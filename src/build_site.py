@@ -343,7 +343,7 @@ NAV_CSS = """<style>
 OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="5,000 simulations of the November vote: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is. Explore every ward, every coalition, every assumption.">
+<meta property="og:description" content="5,000 simulations of the November vote: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is.">
 <meta property="og:url" content="https://joburg.whysoserious.city/">
 <link rel="canonical" href="https://joburg.whysoserious.city/">
 <meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
@@ -412,23 +412,20 @@ MODEL_DOCS = {
     "docs-public/corrections.md": (
         "corrections.html",
         "Corrections",
-        "Where this site published something that was wrong: what it said, "
-        "what is true, and how it happened.",
+        "Where this site published something wrong: what it said, and what "
+        "changed.",
     ),
     "docs-public/methodology.md": (
         "methodology.html",
         "Methodology",
-        "The machinery in plain language: how the council is actually "
-        "elected, how the simulation runs, what is validated — and what can "
-        "only be stated honestly.",
+        "The machinery in plain language: how the council is elected, how the "
+        "simulation runs, what is validated, and what can only be stated.",
     ),
     "docs-public/about-the-model.md": (
         "about.html",
         "About the model",
-        "A forecast that has never been scored is an opinion. This is the "
-        "scoring: run against an election that already happened, in eight "
-        "cities, against what occurred and against three deliberately stupid "
-        "alternatives.",
+        "The model run against an election that already happened, in eight "
+        "cities, and scored against the result and three simple baselines.",
     ),
     "docs-public/review.md": (
         "review.html",
@@ -441,9 +438,8 @@ MODEL_DOCS = {
     "docs-public/sources.md": (
         "sources.html",
         "Data sources",
-        "Every number in this model traces back to a public record. Where "
-        "each one lives, what state it was in, and how hard South Africa's "
-        "public records actually are to reach.",
+        "Every number in this model traces back to a public record: where "
+        "each lives, what state it was in, and how hard it was to reach.",
     ),
     # The plan is no longer published as a page of its own: it is Appendix A
     # of MODEL-LOG.md, where it belongs. It is the model's starting point and
@@ -466,8 +462,8 @@ POLICY_DOCS = {
         "support.html",
         "Support",
         "Why the site exists, who pays for it, who may fund it, and what a "
-        "supporter gets in return: a name on this page, and no say over what "
-        "is published.",
+        "supporter receives: a name on this page, and no say over what is "
+        "published.",
         False,
         "Who pays for the Johannesburg 2026 Election Model, who may fund it, "
         "and why no supporter has a say over what it publishes.",
@@ -660,8 +656,8 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
     elif str(source).startswith("docs-public/"):
         tech = tech or source.name.replace(".md", "").upper() + ".md"
         note = (f"Reader edition, generated from {source} on "
-                f"{date.today().isoformat()}. The full technical record — "
-                f"every URL, identifier and workaround — is "
+                f"{date.today().isoformat()}. The full technical record, with "
+                f"every URL, identifier and workaround, is "
                 f'<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/{tech}">'
                 f"{tech} on GitHub</a>.")
     else:

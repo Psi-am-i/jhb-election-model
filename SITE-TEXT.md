@@ -12,38 +12,45 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-212 blocks from 7 files.
+266 blocks from 9 files.
 
 
 ## forecast-sheet.html
 
-<!-- block fe48cb39 -->
+<!-- block 872f359a -->
 *p*
 
-The DA is the largest party in {{p_da_largest}} of the {{n_draws}} simulations and the ANC in {{p_anc_largest}} — a near tie, where on 31 August the DA led clearly. A single party reaches a majority on its own in {{p_alone}} of them. The ANC still triggers the excessive-seats clause in {{p_excessive_anc}}.
+The DA is the largest party in {{p_da_largest}} of the {{n_draws}} simulations and the ANC in {{p_anc_largest}} — a near tie, where on 8 August the DA led clearly. A single party reaches a majority on its own in {{p_alone}} of them. The ANC still triggers the excessive-seats clause in {{p_excessive_anc}}.
 
-<!-- /block fe48cb39 -->
+<!-- /block 872f359a -->
 
-<!-- block 7af3ffb0 -->
+<!-- block d8ea3896 -->
+*h1*
+
+Who governs Johannesburg
+
+<!-- /block d8ea3896 -->
+
+<!-- block 5da68db4 -->
 *figcaption*
 
-Bars show where the middle 90% of the {{n_draws}} simulations landed; the vertical mark is the middle simulation. Seats, not vote shares. Bars are drawn in a single neutral tone — the colour chip is party identification only. Parties that draw on the same voting pools trade support: when one rises in a simulation, others fishing in the same pool tend to fall. <!-- -->
+Bars show where the middle 90% of the {{n_draws}} simulations landed; the mark is that party's own middle value. Seats, not vote shares. The colour chip identifies the party; the bars are one neutral tone. Parties that compete for the same voters trade support: when one rises in a simulation, the others tend to fall. <!-- -->
 
-<!-- /block 7af3ffb0 -->
+<!-- /block 5da68db4 -->
 
-<!-- block 0d3b7573 -->
+<!-- block bb1a4cde -->
 *p*
 
-If the DA rules out the ANC, the EFF and MK, it has one realistic governing option: working with ActionSA and the PA — this coalition has the numbers in {{@govern.da_best_without=0.168000;chance;seat_draws.csv, 5,000 simulations}} of the {{n_draws}} simulations. By contrast the ANC without the DA has {{@govern.anc_routes=10;int;seat_draws.csv, 5,000 simulations}} workable majorities, {{@govern.anc_routes_strong=4;int;seat_draws.csv, 5,000 simulations}} of them reaching {{majority}} seats in more than half the simulations. Nothing here says which deal is politically likely; just what is mathematically possible.
+If the DA rules out the ANC, the EFF and MK, its one realistic option is ActionSA and the PA, which have the numbers in {{@govern.da_best_without=0.162400;chance;seat_draws.csv, 5,000 simulations}} of the {{n_draws}} simulations. The ANC without the DA has {{@govern.anc_routes=10;int;seat_draws.csv, 5,000 simulations}} workable majorities, {{@govern.anc_routes_strong=4;int;seat_draws.csv, 5,000 simulations}} of them reaching {{majority}} seats in more than half the simulations. This is arithmetic, not a judgement of which deal is likely.
 
-<!-- /block 0d3b7573 -->
+<!-- /block bb1a4cde -->
 
-<!-- block 9796d4f9 -->
+<!-- block 15ba8f14 -->
 *p*
 
-Still the ANC's usual condition, though a weaker one than the published piece described: about {{anc_ward_median}} wards on a {{anc_entitlement}}-seat entitlement, with the clause firing in {{p_excessive_anc}} of the {{n_draws}} simulations. In the rest the ANC gets list seats as well.
+Still the ANC's usual condition, and weaker than published: about {{anc_ward_median}} wards on a {{anc_entitlement}}-seat entitlement, with the clause firing in {{p_excessive_anc}} of the {{n_draws}} simulations. In the rest the ANC also gets list seats.
 
-<!-- /block 9796d4f9 -->
+<!-- /block 15ba8f14 -->
 
 <!-- block 3212e565 -->
 *p*
@@ -66,12 +73,12 @@ That is why the DA can finish first without ever nearing a majority, and why "th
 
 <!-- /block e6109094 -->
 
-<!-- block db135171 -->
+<!-- block 44f7a8a9 -->
 *p*
 
-Our earlier model grouped voters into ANC- and DA-leaning blocs. It now uses pools of voters defined by census data and by how they previously voted. The finding holds, but is formulated differently.
+The model then grouped voters into ANC- and DA-leaning blocs. It now groups them by census data and by how they voted before. The finding holds in the new grouping.
 
-<!-- /block db135171 -->
+<!-- /block 44f7a8a9 -->
 
 <!-- block 97522cee -->
 *h2*
@@ -80,12 +87,12 @@ The parties' claims, tested
 
 <!-- /block 97522cee -->
 
-<!-- block 696984c3 -->
+<!-- block 3bc33a0b -->
 *p*
 
-Public, checkable statements about November — each one put through the same {{n_draws}} simulations behind everything above.
+Public, checkable statements about November, each tested against the same {{n_draws}} simulations as the rest of this page.
 
-<!-- /block 696984c3 -->
+<!-- /block 3bc33a0b -->
 
 
 ## docs-public/about-the-model.md
@@ -104,19 +111,19 @@ Public, checkable statements about November — each one put through the same {{
 
 <!-- /block 3343ff77 -->
 
-<!-- block 66afe6af -->
+<!-- block d5902c4b -->
 *md*
 
-A forecast that has never been scored is an opinion. This page is the scoring: the model was run against an election that has already happened, in eight cities, and compared with what actually occurred and with three deliberately stupid alternatives.
+This page is the model's scoring: it was run against an election that has already happened, in eight cities, and compared with the result and with three simple baselines.
 
-<!-- /block 66afe6af -->
+<!-- /block d5902c4b -->
 
-<!-- block 9b138e18 -->
+<!-- block d7a86872 -->
 *md*
 
-Everything here is generated from the run itself. No number on this page was typed by a person.
+Every figure here is generated from the run. None was typed by a person.
 
-<!-- /block 9b138e18 -->
+<!-- /block d7a86872 -->
 
 <!-- block a8d3e30d -->
 *md*
@@ -125,33 +132,33 @@ Everything here is generated from the run itself. No number on this page was typ
 
 <!-- /block a8d3e30d -->
 
-<!-- block 20609b10 -->
+<!-- block c4570128 -->
 *md*
 
-The model was pointed at the **2021 municipal election** and asked to forecast it, using only what a forecaster could have had before polling day: the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It was then scored against the real council.
+The model was given the **2021 municipal election** to forecast, using only what a forecaster could have had before polling day: the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It was then scored against the real council.
 
-<!-- /block 20609b10 -->
+<!-- /block c4570128 -->
 
-<!-- block ddc8fa5a -->
+<!-- block 8c4792ac -->
 *md*
 
-It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and mean nothing — it has learned that city rather than how elections work. Each city is fitted only on its own wards, its own registration and its own history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.
+It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.
 
-<!-- /block ddc8fa5a -->
+<!-- /block 8c4792ac -->
 
-<!-- block 798c9350 -->
+<!-- block 7451353e -->
 *md*
 
-### The three alternatives it has to beat
+### The three baselines
 
-<!-- /block 798c9350 -->
+<!-- /block 7451353e -->
 
-<!-- block e0c5cc6f -->
+<!-- block 0aecac09 -->
 *md*
 
-A forecast is only as good as the simplest thing that would have done the same job. So the same scoring is applied to three baselines that require no model at all:
+The same scoring is applied to three baselines that need no model:
 
-<!-- /block e0c5cc6f -->
+<!-- /block 0aecac09 -->
 
 <!-- block adaa814d -->
 *md*
@@ -164,12 +171,12 @@ A forecast is only as good as the simplest thing that would have done the same j
 
 <!-- /block adaa814d -->
 
-<!-- block 69947fb3 -->
+<!-- block d251abec -->
 *md*
 
-"Uniform swing" in particular is the standard against which election models are judged everywhere in the world, and it is much harder to beat than it sounds. **Best baseline** below means whichever of the three did best in that city — the model is compared against the toughest one each time, not the easiest.
+Uniform swing is the usual standard for judging election models, and it is hard to beat. **Best baseline** below means whichever of the three did best in that city.
 
-<!-- /block 69947fb3 -->
+<!-- /block d251abec -->
 
 <!-- block 6d2a939f -->
 *md*
@@ -178,57 +185,57 @@ A forecast is only as good as the simplest thing that would have done the same j
 
 <!-- /block 6d2a939f -->
 
-<!-- block 5d8a13f3 -->
+<!-- block ce5d2a40 -->
 *md*
 
 | city | seats | our error | best baseline's error | better by |
 |---|---|---|---|---|
-| Johannesburg | 270 | **45.6** | 114.1 (last result plus noise) | **+60%** |
-| Tshwane | 214 | **35.6** | 60.0 (uniform swing) | **+41%** |
-| Ekurhuleni | 224 | **38.7** | 48.0 (uniform swing) | **+19%** |
-| eThekwini | 222 | **31.1** | 36.0 (uniform swing) | **+14%** |
-| Cape Town | 231 | **31.2** | 38.0 (uniform swing) | **+18%** |
-| Mangaung | 101 | **9.5** | 8.0 (uniform swing) | -19% |
-| Nelson Mandela Bay | 120 | **14.3** | 22.0 (uniform swing) | **+35%** |
-| Buffalo City | 100 | **7.9** | 11.3 (last result plus noise) | **+30%** |
-| **all eight** | | **213.9** | 337.4 | **+37%** |
+| Johannesburg | 270 | **66.8** | 114.1 (last result plus noise) | **+41%** |
+| Tshwane | 214 | **27.7** | 60.0 (uniform swing) | **+54%** |
+| Ekurhuleni | 224 | **29.8** | 48.0 (uniform swing) | **+38%** |
+| eThekwini | 222 | **31.0** | 36.0 (uniform swing) | **+14%** |
+| Cape Town | 231 | **34.2** | 38.0 (uniform swing) | **+10%** |
+| Mangaung | 101 | **9.2** | 8.0 (uniform swing) | -15% |
+| Nelson Mandela Bay | 120 | **17.1** | 22.0 (uniform swing) | **+22%** |
+| Buffalo City | 100 | **8.3** | 11.3 (last result plus noise) | **+26%** |
+| **all eight** | | **224.2** | 337.4 | **+34%** |
 
-<!-- /block 5d8a13f3 -->
+<!-- /block ce5d2a40 -->
 
-<!-- block 2ee76d5e -->
+<!-- block 281b995b -->
 *md*
 
-The model beats the best available baseline in **7 of 8** cities. Across all eight its total error is **37% lower**.
+The model beats the best baseline in **7 of 8** cities. Across all eight its total error is **34% lower**.
 
-<!-- /block 2ee76d5e -->
+<!-- /block 281b995b -->
 
-<!-- block 8abe15e5 -->
+<!-- block 734758c4 -->
 *md*
 
-On the simpler measure of how many council seats it got wrong, it misses **289** seats across all eight councils against the baselines' **353** — 18% better. That figure is lower than the headline because it only compares the single most likely outcome, and throws away everything the model says about how uncertain it is.
+Counting council seats wrong, it misses **297** seats across all eight councils against the baselines' **353**, 16% better. The margin is smaller than the headline because this measure compares only the single most likely outcome and ignores the model's uncertainty.
 
-<!-- /block 8abe15e5 -->
+<!-- /block 734758c4 -->
 
-<!-- block 25f9dad4 -->
+<!-- block f7c151ae -->
 *md*
 
-It calls the winner correctly in **721 of 742 wards**.
+It calls the winner in **719 of 742 wards**.
 
-<!-- /block 25f9dad4 -->
+<!-- /block f7c151ae -->
 
-<!-- block 1db2c71e -->
+<!-- block b73d98ee -->
 *md*
 
-## What it forecast, against what happened
+## What it forecast for 2021, against what happened
 
-<!-- /block 1db2c71e -->
+<!-- /block b73d98ee -->
 
-<!-- block be0e568f -->
+<!-- block 2e39885a -->
 *md*
 
-Every party that won a seat, in every city. Our figure is the middle of the range the model produced, not its best case.
+The largest 55 parties in each city, by seats won in 2021. Our figure is the middle of the range the model produced, not its best case.
 
-<!-- /block be0e568f -->
+<!-- /block 2e39885a -->
 
 <!-- block d4fa2346 -->
 *md*
@@ -237,32 +244,38 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block d4fa2346 -->
 
-<!-- block 089215ec -->
+<!-- block 7155ce96 -->
 *md*
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 91 | 106 | +15 |
-| DA | 71 | 73 | +2 |
-| ActionSA | 44 | 34 | -10 |
-| EFF | 29 | 32 | +3 |
+| ANC | 91 | 105 | +14 |
+| DA | 71 | 89 | +18 |
+| ActionSA | 44 | 15 | -29 |
+| EFF | 29 | 36 | +7 |
 | PA | 8 | 0 | -8 |
-| IFP | 7 | 1 | -6 |
-| VF+ | 4 | 1 | -3 |
+| IFP | 7 | 3 | -4 |
+| VF+ | 4 | 2 | -2 |
 | ACDP | 3 | 1 | -2 |
-| Al Jama-ah | 3 | 0 | -3 |
+| Al Jama-ah | 3 | 1 | -2 |
 | AIC | 2 | 0 | -2 |
 | African Heart Congress | 1 | 0 | -1 |
 | APC | 1 | 0 | -1 |
+| ATM | 1 | 0 | -1 |
+| COPE | 1 | 0 | -1 |
+| GOOD | 1 | 0 | -1 |
+| PAC | 1 | 0 | -1 |
+| UDM | 1 | 0 | -1 |
+| UIM | 1 | 0 | -1 |
 
-<!-- /block 089215ec -->
+<!-- /block 7155ce96 -->
 
-<!-- block 985479a4 -->
+<!-- block f0199726 -->
 *md*
 
-*62 seats out in total.*
+*96 seats out in total — across every party that stood, not only the 18 shown above.*
 
-<!-- /block 985479a4 -->
+<!-- /block f0199726 -->
 
 <!-- block 18aa3833 -->
 *md*
@@ -271,32 +284,35 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block 18aa3833 -->
 
-<!-- block db29e521 -->
+<!-- block 96712b61 -->
 *md*
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 75 | 78 | +3 |
-| DA | 69 | 78 | +9 |
-| EFF | 23 | 26 | +3 |
-| ActionSA | 19 | 1 | -18 |
-| VF+ | 17 | 13 | -4 |
+| ANC | 75 | 79 | +4 |
+| DA | 69 | 71 | +2 |
+| EFF | 23 | 29 | +6 |
+| ActionSA | 19 | 11 | -8 |
+| VF+ | 17 | 10 | -7 |
 | ACDP | 2 | 1 | -1 |
-| AIC | 1 | 0 | -1 |
+| AIC | 1 | 1 | +0 |
 | ATM | 1 | 0 | -1 |
 | COPE | 1 | 0 | -1 |
 | Dop | 1 | 0 | -1 |
 | GOOD | 1 | 0 | -1 |
 | IFP | 1 | 0 | -1 |
+| PA | 1 | 0 | -1 |
+| PAC | 1 | 0 | -1 |
+| Rct | 1 | 0 | -1 |
 
-<!-- /block db29e521 -->
+<!-- /block 96712b61 -->
 
-<!-- block bda47784 -->
+<!-- block 8c243fcd -->
 *md*
 
-*47 seats out in total.*
+*36 seats out in total — across every party that stood, not only the 15 shown above.*
 
-<!-- /block bda47784 -->
+<!-- /block 8c243fcd -->
 
 <!-- block 889a5834 -->
 *md*
@@ -305,32 +321,36 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block 889a5834 -->
 
-<!-- block 4a930627 -->
+<!-- block 15895208 -->
 *md*
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 86 | 102 | +16 |
-| DA | 65 | 67 | +2 |
-| EFF | 31 | 29 | -2 |
-| ActionSA | 15 | 1 | -14 |
+| ANC | 86 | 98 | +12 |
+| DA | 65 | 66 | +1 |
+| EFF | 31 | 31 | +0 |
+| ActionSA | 15 | 7 | -8 |
 | VF+ | 8 | 6 | -2 |
-| PA | 4 | 0 | -4 |
-| AIC | 3 | 0 | -3 |
+| PA | 4 | 1 | -3 |
+| AIC | 3 | 1 | -2 |
 | IFP | 3 | 1 | -2 |
 | ACDP | 2 | 1 | -1 |
 | ATM | 1 | 0 | -1 |
 | COPE | 1 | 0 | -1 |
 | Independent  | 1 | 0 | -1 |
+| Independent  | 1 | 0 | -1 |
+| NFP | 1 | 0 | -1 |
+| PAC | 1 | 0 | -1 |
+| UDM | 1 | 0 | -1 |
 
-<!-- /block 4a930627 -->
+<!-- /block 15895208 -->
 
-<!-- block 85f9964e -->
+<!-- block bbe9b673 -->
 *md*
 
-*53 seats out in total.*
+*38 seats out in total — across every party that stood, not only the 16 shown above.*
 
-<!-- /block 85f9964e -->
+<!-- /block bbe9b673 -->
 
 <!-- block bb4c1274 -->
 *md*
@@ -339,16 +359,16 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block bb4c1274 -->
 
-<!-- block 87453bd1 -->
+<!-- block 3651bd30 -->
 *md*
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 96 | 107 | +11 |
-| DA | 59 | 56 | -3 |
+| ANC | 96 | 103 | +7 |
+| DA | 59 | 63 | +4 |
 | EFF | 24 | 22 | -2 |
 | IFP | 16 | 10 | -6 |
-| ActionSA | 4 | 1 | -3 |
+| ActionSA | 4 | 2 | -2 |
 | Abantu Batho | 2 | 0 | -2 |
 | ACDP | 2 | 1 | -1 |
 | Active Citiz | 2 | 0 | -2 |
@@ -356,15 +376,27 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 | African Demo | 1 | 0 | -1 |
 | African Peop | 1 | 0 | -1 |
 | Al Jama-ah | 1 | 0 | -1 |
+| ATM | 1 | 0 | -1 |
+| Democratic L | 1 | 1 | +0 |
+| Justice And  | 1 | 0 | -1 |
+| Kzn Independ | 1 | 0 | -1 |
+| Minorities O | 1 | 0 | -1 |
+| Minority Fro | 1 | 1 | +0 |
+| NFP | 1 | 0 | -1 |
+| People S Fre | 1 | 0 | -1 |
+| People S Rev | 1 | 0 | -1 |
+| Truly Allian | 1 | 0 | -1 |
+| UIM | 1 | 0 | -1 |
+| VF+ | 1 | 0 | -1 |
 
-<!-- /block 87453bd1 -->
+<!-- /block 3651bd30 -->
 
-<!-- block 7604a3e0 -->
+<!-- block 77e24fc6 -->
 *md*
 
-*45 seats out in total.*
+*41 seats out in total — across every party that stood, not only the 24 shown above.*
 
-<!-- /block 7604a3e0 -->
+<!-- /block 77e24fc6 -->
 
 <!-- block ece7925d -->
 *md*
@@ -373,32 +405,37 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block ece7925d -->
 
-<!-- block 95c41c99 -->
+<!-- block 62609c4f -->
 *md*
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| DA | 135 | 138 | +3 |
-| ANC | 43 | 51 | +8 |
-| EFF | 10 | 9 | -1 |
-| GOOD | 9 | 6 | -3 |
+| DA | 135 | 141 | +6 |
+| ANC | 43 | 53 | +10 |
+| EFF | 10 | 11 | +1 |
+| GOOD | 9 | 7 | -2 |
 | Cape Coloure | 7 | 0 | -7 |
-| ACDP | 6 | 4 | -2 |
+| ACDP | 6 | 5 | -1 |
 | PA | 4 | 0 | -4 |
-| VF+ | 4 | 1 | -3 |
+| VF+ | 4 | 2 | -2 |
 | Al Jama-ah | 3 | 2 | -1 |
 | Africa Resto | 2 | 0 | -2 |
 | Cape Indepen | 2 | 0 | -2 |
 | AIC | 1 | 0 | -1 |
+| Cape Muslim  | 1 | 0 | -1 |
+| Democratic I | 1 | 0 | -1 |
+| PAC | 1 | 0 | -1 |
+| UDM | 1 | 0 | -1 |
+| UIM | 1 | 0 | -1 |
 
-<!-- /block 95c41c99 -->
+<!-- /block 62609c4f -->
 
-<!-- block 64542b4b -->
+<!-- block 6d132490 -->
 *md*
 
-*43 seats out in total.*
+*44 seats out in total — across every party that stood, not only the 17 shown above.*
 
-<!-- /block 64542b4b -->
+<!-- /block 6d132490 -->
 
 <!-- block 382051d0 -->
 *md*
@@ -407,29 +444,29 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block 382051d0 -->
 
-<!-- block d261e451 -->
+<!-- block 0fc8508c -->
 *md*
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 51 | 53 | +2 |
-| DA | 26 | 24 | -2 |
-| EFF | 12 | 12 | +0 |
+| ANC | 51 | 51 | +0 |
+| DA | 26 | 25 | -1 |
+| EFF | 12 | 11 | -1 |
 | VF+ | 5 | 4 | -1 |
 | Afrikan Alli | 2 | 0 | -2 |
 | PA | 2 | 1 | -1 |
 | ACDP | 1 | 0 | -1 |
-| AIC | 1 | 0 | -1 |
+| AIC | 1 | 1 | +0 |
 | ATM | 1 | 0 | -1 |
 
-<!-- /block d261e451 -->
+<!-- /block 0fc8508c -->
 
-<!-- block 10bb1833 -->
+<!-- block 3bf52cda -->
 *md*
 
-*11 seats out in total.*
+*8 seats out in total — across every party that stood, not only the 9 shown above.*
 
-<!-- /block 10bb1833 -->
+<!-- /block 3bf52cda -->
 
 <!-- block 16f6e413 -->
 *md*
@@ -438,32 +475,33 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block 16f6e413 -->
 
-<!-- block 8c22fb91 -->
+<!-- block 2aabe22b -->
 *md*
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 48 | 49 | +1 |
-| DA | 48 | 51 | +3 |
-| EFF | 8 | 8 | +0 |
+| ANC | 48 | 46 | -2 |
+| DA | 48 | 54 | +6 |
+| EFF | 8 | 9 | +1 |
 | Northern All | 3 | 0 | -3 |
 | ACDP | 2 | 1 | -1 |
 | Dop | 2 | 0 | -2 |
 | PA | 2 | 0 | -2 |
-| VF+ | 2 | 1 | -1 |
+| VF+ | 2 | 2 | +0 |
 | Abantu Integ | 1 | 0 | -1 |
 | AIC | 1 | 0 | -1 |
 | GOOD | 1 | 1 | +0 |
 | PAC | 1 | 0 | -1 |
+| UDM | 1 | 0 | -1 |
 
-<!-- /block 8c22fb91 -->
+<!-- /block 2aabe22b -->
 
-<!-- block f492e029 -->
+<!-- block aecccddd -->
 *md*
 
-*18 seats out in total.*
+*22 seats out in total — across every party that stood, not only the 13 shown above.*
 
-<!-- /block f492e029 -->
+<!-- /block aecccddd -->
 
 <!-- block 1104a40b -->
 *md*
@@ -472,29 +510,29 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block 1104a40b -->
 
-<!-- block 7d989eb1 -->
+<!-- block f397ea7d -->
 *md*
 
 | party | actually won | our forecast | out by |
 |---|---|---|---|
-| ANC | 61 | 61 | +0 |
+| ANC | 61 | 57 | -4 |
 | DA | 20 | 22 | +2 |
 | EFF | 13 | 10 | -3 |
 | ACDP | 1 | 1 | +0 |
 | AIC | 1 | 0 | -1 |
-| ATM | 1 | 0 | -1 |
+| ATM | 1 | 1 | +0 |
 | PAC | 1 | 0 | -1 |
-| UDM | 1 | 0 | -1 |
+| UDM | 1 | 1 | +0 |
 | VF+ | 1 | 0 | -1 |
 
-<!-- /block 7d989eb1 -->
+<!-- /block f397ea7d -->
 
-<!-- block 4130ba05 -->
+<!-- block ef43a910 -->
 *md*
 
-*10 seats out in total.*
+*12 seats out in total — across every party that stood, not only the 9 shown above.*
 
-<!-- /block 4130ba05 -->
+<!-- /block ef43a910 -->
 
 <!-- block acaa6ea2 -->
 *md*
@@ -503,40 +541,40 @@ Every party that won a seat, in every city. Our figure is the middle of the rang
 
 <!-- /block acaa6ea2 -->
 
-<!-- block ac1b9c9e -->
+<!-- block 7c381bb8 -->
 *md*
 
-Three numbers appear above. They measure different things and it is worth knowing which.
+Three measures appear above, and they measure different things.
 
-<!-- /block ac1b9c9e -->
+<!-- /block 7c381bb8 -->
 
-<!-- block 348b615e -->
+<!-- block 36013e9e -->
 *md*
 
-**Seats out** is the obvious one: add up how many seats we got wrong for each party. It is easy to understand and it throws away most of what a forecast says, because it only looks at the single most likely outcome and ignores the range around it.
+**Seats out** adds up how many seats the forecast got wrong for each party. It is easy to read, and it ignores most of what a forecast says: it looks only at the single most likely outcome, not the range around it.
 
-<!-- /block 348b615e -->
+<!-- /block 36013e9e -->
 
-<!-- block f932776c -->
+<!-- block d63a519b -->
 *md*
 
-**CRPS** — the continuous ranked probability score — is the number in the comparison table. It scores the *whole range* a forecast gives, not just its midpoint. Saying "between 85 and 95 seats" and being right scores better than saying "exactly 90" and being right, because the first was honest about what it did not know; and a confident wrong answer is punished harder than a hedged one. Lower is better, and zero is perfect. It is in the same units as seats: a CRPS of 45 across a 270-seat council is a small error.
+**CRPS** (the continuous ranked probability score) is the number in the comparison table. It scores the *whole range* a forecast gives, not just its midpoint. Saying "between 85 and 95 seats" and being right scores better than saying "exactly 90" and being right, and a confident wrong answer is punished more than a hedged one. Lower is better; zero is perfect. It is in seats: a CRPS of 45 across a 270-seat council is a small error.
 
-<!-- /block f932776c -->
+<!-- /block d63a519b -->
 
-<!-- block e2dd9c76 -->
+<!-- block 93126937 -->
 *md*
 
-**Calling the ward** is the hardest test and the most direct: 135 separate first-past-the-post contests in Johannesburg alone, each won outright by one party. Getting the council roughly right while misreading which streets vote which way would show up here.
+**Calling the ward** is the hardest and most direct test: 135 separate first-past-the-post contests in Johannesburg alone. A forecast that got the council roughly right while misreading which streets vote which way would show up here.
 
-<!-- /block e2dd9c76 -->
+<!-- /block 93126937 -->
 
-<!-- block 827a07ac -->
+<!-- block b62b6d52 -->
 *md*
 
-One caveat on the comparison. Two of the three baselines produce a single number rather than a range, so CRPS is unavoidably kind to a model that gives ranges. That is why the seats-out figure is quoted alongside it: it is the like-for-like comparison, it is less flattering, and it is still in the model's favour.
+One caveat. Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model's favour.
 
-<!-- /block 827a07ac -->
+<!-- /block b62b6d52 -->
 
 <!-- block 27a10b25 -->
 *md*
@@ -545,41 +583,47 @@ One caveat on the comparison. Two of the three baselines produce a single number
 
 <!-- /block 27a10b25 -->
 
-<!-- block 0853f2a1 -->
+<!-- block 1d1d59b0 -->
 *md*
 
-**These are not fully out-of-sample scores, and the model says so on every run.** Two inputs could not be confined to the period before the election:
+**These are not fully out-of-sample scores, and every run says so.** At least one input could not be confined to the period before the election; the run prints the full list above its results:
 
-<!-- /block 0853f2a1 -->
+<!-- /block 1d1d59b0 -->
 
-<!-- block 6aebe1a9 -->
+<!-- block f7ea2adb -->
 *md*
 
-* **The census.** Ward-level population figures come from the 2022 census, which was taken after the 2021 election. It is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result — but it is information from after the fact and it is declared as such.
-* **How much a breakaway party takes.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows them depends enormously on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021, and one example is not a pattern, so the model uses all of them — including two from after 2021. This is a deliberate choice, recorded, and it is the single largest reason the Johannesburg figure improves.
+* **The census.** Ward-level population figures come from the 2022 census, taken after the 2021 election; it is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result. It is still information from after the fact, and is declared as such.
 
-<!-- /block 6aebe1a9 -->
+<!-- /block f7ea2adb -->
 
-<!-- block 17361ac8 -->
+<!-- block c84c2d09 -->
 *md*
 
-Every run prints these above its results. The honest reading is that this is a strong estimate of what the machinery is worth, not a sealed prediction made in 2021.
+**How much a breakaway party takes was a leak until 14 August 2026.** When a well-known figure leaves a party and starts their own, how much of the old party's vote follows depends mostly on whether that figure's support is in *this* city. Only one such split had happened anywhere before 2021. The model used to fill that gap with splits from after 2021, including MK's three years later, which flattered this page. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg's figure is worse for it.
 
-<!-- /block 17361ac8 -->
+<!-- /block c84c2d09 -->
 
-<!-- block eda0c7e9 -->
+<!-- block 3b4ee887 -->
 *md*
 
-**One city is worse than doing nothing.** The model loses to uniform swing in Mangaung, the smallest council in the set. It is reported rather than dropped.
+Read the scores as an estimate of what the machinery is worth, not as a sealed prediction made in 2021.
 
-<!-- /block eda0c7e9 -->
+<!-- /block 3b4ee887 -->
 
-<!-- block 21d1b155 -->
+<!-- block c44b5a27 -->
 *md*
 
-**The past is not the future.** Scoring well against 2021 does not guarantee 2026. Every party in this table existed in 2021; the hardest thing a forecast does is a party that has never stood before, and the record on those is the model's weakest area.
+**In one city the model loses.** Uniform swing beats it in Mangaung, the smallest council in the set.
 
-<!-- /block 21d1b155 -->
+<!-- /block c44b5a27 -->
+
+<!-- block 7188ded1 -->
+*md*
+
+**The past is not the future.** Scoring well against 2021 does not guarantee 2026. Every party in this table existed in 2021. A party that has never stood before is the hardest thing to forecast, and the model's weakest area.
+
+<!-- /block 7188ded1 -->
 
 <!-- block cb3f91d5 -->
 *md*
@@ -588,12 +632,12 @@ Every run prints these above its results. The honest reading is that this is a s
 
 <!-- /block cb3f91d5 -->
 
-<!-- block 8a8b8850 -->
+<!-- block 306d9fa4 -->
 *md*
 
-*Generated 2026-08-11 by `src/build_validation.py` from a 400-draw run per city against the 2021 result. The underlying figures are in `data/processed/validation_2021.json`; the code that produced them is public.*
+*Generated 2026-09-30 by `src/build_validation.py` from a 400-draw run per city against the 2021 result. The underlying figures are in `data/processed/validation_2021.json`; the code that produced them is public.*
 
-<!-- /block 8a8b8850 -->
+<!-- /block 306d9fa4 -->
 
 
 ## docs-public/corrections.md
@@ -605,14 +649,14 @@ Every run prints these above its results. The honest reading is that this is a s
 
 <!-- /block 15694b39 -->
 
-<!-- block 24133ff1 -->
+<!-- block 1ca15d91 -->
 *md*
 
-A **correction** means the page was wrong when it was published. That is different from an **update**, where the
-model or the world moved and the earlier statement was true on its date;
-updates appear beside the original as a dated "what the model says now" box.
+A **correction** means a page was wrong when it was published. An **update**
+means the model or the world moved; it appears beside the original as a dated
+"what the model says now" box.
 
-<!-- /block 24133ff1 -->
+<!-- /block 1ca15d91 -->
 
 <!-- block 8e4fe2b0 -->
 *md*
@@ -621,27 +665,99 @@ Nothing is removed from this list.
 
 <!-- /block 8e4fe2b0 -->
 
-<!-- block 33644e24 -->
+<!-- block caa0dcf0 -->
 *md*
 
-**Nothing is listed here yet.** Checked against the published page on
-2026-09-23: the three entries this page carried in draft all described figures
-that were never public. They came from a local build on 17 September that was
-never deployed — the "smaller parties" bar said 15 seats on the published page,
-not 39; the published page has no two-ballot bars at all; and its tiles and its
-article agree with each other at 62%. A correction is for what a reader saw.
+## 30 September 2026 — a claim's title said something its test did not
 
-<!-- /block 33644e24 -->
+<!-- /block caa0dcf0 -->
 
-<!-- block 1a39963e -->
+<!-- block 1ad1e667 -->
 *md*
 
-The defects those drafts described were real and are fixed — figures written by
-scripts, medians summed as if they added up — and they are recorded in
-`MODEL-LOG.md`, which is the technical record. They are not corrections,
-because nothing wrong reached a reader.
+**What changed.** The title now reads *"The DA can govern without the ANC, the
+EFF or MK"*. The quote is dated 13 September, the date of the report it cites;
+it was shown as 11 September.</span>
 
-<!-- /block 1a39963e -->
+<!-- /block 1ad1e667 -->
+
+<!-- block ddc4fd57 -->
+*md*
+
+## 30 September 2026 — publication dates on the tested claims
+
+<!-- /block ddc4fd57 -->
+
+<!-- block d37a31ee -->
+*md*
+
+**What changed.** Each claim's published date is now taken from the
+publication ledger. The date beside each claim on the home page is the date of
+the quote, and is labelled as such.</span>
+
+<!-- /block d37a31ee -->
+
+<!-- block 515b3175 -->
+*md*
+
+## 30 September 2026 — "the most reliable majority"
+
+<!-- /block 515b3175 -->
+
+<!-- block e494f65b -->
+*md*
+
+**What changed.** The sentence now says 'the most reliable two-party majority
+in the city'.</span>
+
+<!-- /block e494f65b -->
+
+<!-- block 5cf3f144 -->
+*md*
+
+## 27 September 2026 — three arrows on "Nobody will win Johannesburg" pointed the wrong way
+
+<!-- /block 5cf3f144 -->
+
+<!-- block 8999e494 -->
+*md*
+
+| | the page said we published | we actually published | today |
+|---|---|---|---|
+| the ANC's stronghold wards | 55 | **74** | 61 |
+| its proportional entitlement | 54 | **65** | 58 |
+| how often the excessive-seats clause fires | 58% | **96%** | 65% |
+| the DA as largest party | 71% | **62%** | 47% |
+
+<!-- /block 8999e494 -->
+
+<!-- block fa56f6e6 -->
+*md*
+
+A sentence beside them read *"Still the ANC's usual condition, and a stronger
+one"*. The figures had been frozen against the last build in the repository,
+on the assumption that it was the last thing published.
+
+<!-- /block fa56f6e6 -->
+
+<!-- block 0692bdc7 -->
+*md*
+
+**What changed.** The four figures are taken from the publication ledger,
+which records what was served and when, and the arrows compare against it. The
+sentence is rewritten. Five articles dated 31 August are re-dated 8 August,
+checked against the archived page. The source of a frozen figure is the
+ledger, never a build.</span>
+
+<!-- /block 0692bdc7 -->
+
+<!-- block 4a0355bc -->
+*md*
+
+The defects those drafts described (figures written by scripts, medians summed
+as if they added up) are fixed and recorded in `MODEL-LOG.md`.
+
+<!-- /block 4a0355bc -->
 
 
 ## docs-public/methodology.md
@@ -653,17 +769,17 @@ because nothing wrong reached a reader.
 
 <!-- /block dc8dfabd -->
 
-<!-- block afb6ae5c -->
+<!-- block d40f3717 -->
 *md*
 
-This page explains the machinery in plain language: what is actually being
-predicted, how the simulation runs step by step, how we know the parts that
-*can* be tested work — and which parts can only be stated honestly. If you
-want the full technical record, every file and every workaround is in the
-[public repository](https://github.com/Psi-am-i/jhb-election-model), and the
+This page explains the machinery in plain language: what is predicted, how the
+simulation runs, how the parts that *can* be tested are tested, and which parts
+can only be stated. The full technical record, every file and every
+workaround, is in the
+[public repository](https://github.com/Psi-am-i/jhb-election-model). The
 scoring is on the [about the model](about) page.
 
-<!-- /block afb6ae5c -->
+<!-- /block d40f3717 -->
 
 <!-- block 3cecde72 -->
 *md*
@@ -672,110 +788,99 @@ scoring is on the [about the model](about) page.
 
 <!-- /block 3cecde72 -->
 
-<!-- block 41552594 -->
+<!-- block 09da97cf -->
 *md*
 
-A forecast that has never been scored is an opinion. So this one is run against
-an election that has already happened — the 2021 municipal election, in
-{{backtest_cities}} cities — and scored against what actually occurred.
+The model is run against an election that has already happened, the 2021
+municipal election, in {{backtest_cities}} cities, and scored against the
+result.
 
-<!-- /block 41552594 -->
+<!-- /block 09da97cf -->
 
-<!-- block 49319b33 -->
+<!-- block 1b1d8781 -->
 *md*
 
-The comparison that matters is not "did it get close", but "did it beat what
-anyone could do without a model". The standard in election forecasting is
-**uniform swing**: take the national change since the last election and apply it
-equally everywhere. It is much harder to beat than it sounds, because it already
-knows the last result and the direction the country moved. We score against that
-and two others — the last local result repeating unchanged, and that result with
-uncertainty drawn around it — and compare the model against **whichever did best
-in each city**, not the weakest of the three.
+The standard in election forecasting is **uniform swing**: take the national
+change since the last election and apply it equally everywhere. It already
+knows the last result and the direction the country moved, which makes it hard
+to beat. The model is scored against it and two other baselines (the last local
+result repeated unchanged, and that result with uncertainty drawn around it),
+and compared with **whichever did best in each city**.
 
-<!-- /block 49319b33 -->
+<!-- /block 1b1d8781 -->
 
-<!-- block b77ab051 -->
+<!-- block 821fa924 -->
 *md*
 
 The model wins in **{{backtest_wins}} of {{backtest_cities}}** cities on the
-measure that counts a forecast's whole range rather than a single guess (CRPS),
-with **{{backtest_crps_better}}** less error in total. On the blunter measure of
-seats put in the wrong column it misses **{{backtest_seat_err_model}}** across
-all those councils against the baselines' **{{backtest_seat_err_baseline}}**, and
-it calls the winner correctly in **{{backtest_wards_called}} of
-{{backtest_wards}}** wards.
+measure that scores a forecast's whole range rather than a single guess (CRPS),
+with **{{backtest_crps_better}}** less error in total. On seats put in the
+wrong column it misses **{{backtest_seat_err_model}}** across those councils
+against the baselines' **{{backtest_seat_err_baseline}}**, and it calls the
+winner in **{{backtest_wards_called}} of {{backtest_wards}}** wards.
 
-<!-- /block b77ab051 -->
+<!-- /block 821fa924 -->
 
-<!-- block 158c8de9 -->
+<!-- block 25b61f4e -->
 *md*
 
-Two honest caveats. Two of the three alternatives produce a single number rather
-than a range, which the range-based score treats kindly. And the model is
-compared against the best baseline in each city, which is the hardest test
-available but still a test of arithmetic, not of politics. The full scoring, city
-by city and party by party, with our forecast beside the real result, is on the
-[about the model](about) page.
+Two caveats. Two of the three baselines produce a single number rather than a
+range, which the range-based score treats kindly. And the best baseline in each
+city is the hardest test available, but it is a test of arithmetic, not of
+politics. The full scoring, city by city and party by party, with the forecast
+beside the real result, is on the [about the model](about) page.
 
-<!-- /block 158c8de9 -->
+<!-- /block 25b61f4e -->
 
-<!-- block 228873da -->
+<!-- block a4a3d8af -->
 *md*
 
-## How Johannesburg's council elections actually work
+## How Johannesburg's council elections work
 
-<!-- /block 228873da -->
+<!-- /block a4a3d8af -->
 
-<!-- block 511914a5 -->
+<!-- block 56e6a308 -->
 *md*
 
 Johannesburg's council is elected on two ballots at once. On the first, 135
-ward seats are decided race by race, first past the post — if your candidate
-wins your ward, they win that seat, full stop. On the second, you vote for a
-party. It seems intuitive that the two ballots elect two separate halves of
-the council, but that isn't how it works. The two ballots are **added
-together**, and that combined share decides the *total* number of seats each
-party is entitled to. Ward wins don't add to a party's total — they fill it.
-The other 135 seats are then allocated from the party lists to top every
-party up to its entitlement. (The part almost everyone gets wrong — including
-an early version of this model's own plan — is thinking the party ballot
-alone sets the totals. It's *both ballots combined*, and for a party whose
-voters split their tickets the difference is worth real seats.)
+ward seats are decided race by race, first past the post. On the second, you
+vote for a party. The two ballots do not elect two halves of the council. They
+are **added together**, and the combined share decides the *total* number of
+seats each party is entitled to. Ward wins do not add to a party's total; they
+fill it. The other 135 seats are allocated from the party lists to top every
+party up to its entitlement. A common mistake, made in an early version of this
+model's own plan, is to think the party ballot alone sets the totals. For a
+party whose voters split their tickets, the difference is worth seats.
 
-<!-- /block 511914a5 -->
+<!-- /block 56e6a308 -->
 
-<!-- block 328a57c6 -->
+<!-- block ab72a4a4 -->
 *md*
 
-The niggle is that a party can win *more* wards than its combined share
-entitles it to. Say a small party's support is tightly concentrated: it wins
-3 wards outright, but its overall share of both ballots entitles it to only
-2 seats. Nobody unseats a ward winner — the party keeps all 3, and the seat
-law's "excessive seats" clause (Schedule 1, item 16, completed by a 2021
-amendment) settles the overflow: the winner receives **no list seats at
-all**, and the other parties' list seats are recalculated over the seats
-that remain. The council does not grow. We did not take this on trust — we
-found the Electoral Commission's own published calculation applying exactly
-this in Laingsburg in 2021, where the DA won 3 of 4 wards on 23% of the
-vote. The over-winner stays slightly over-represented; the cost falls on
-everyone else.
+A party can win *more* wards than its combined share entitles it to. Say a
+small party with concentrated support wins 3 wards outright, but its share of
+both ballots entitles it to 2 seats. It keeps all 3. The seat law's "excessive
+seats" clause (Schedule 1, item 16, completed by a 2021 amendment) settles the
+overflow: the party receives **no list seats**, and the other parties' list
+seats are recalculated over the seats that remain. The council does not grow.
+The Electoral Commission's own published calculation applies exactly this in
+Laingsburg in 2021, where the DA won 3 of 4 wards on 23% of the vote. The
+over-winner stays slightly over-represented; the cost falls on everyone else.
 
-<!-- /block 328a57c6 -->
+<!-- /block ab72a4a4 -->
 
-<!-- block 9d236ae5 -->
+<!-- block 606eac76 -->
 *md*
 
-Two consequences shape everything on this site. First, the council is always
-close to proportional, so a fragmented vote produces a fragmented council.
-Second, the excessive-seats clause, which the model expects to catch the ANC
-in {{p_excessive_anc}} of simulations: a citywide vote in the mid-twenties,
-but stronghold wards that still win. Where it fires, the party's ward count
-becomes an unbreakable floor, its list seats go to zero, and the squeeze lands
-on every other party's list seats — inside a council fixed at
-{{council_size}}, with the majority fixed at {{majority}}.
+Two consequences shape this site. The council is always close to proportional,
+so a fragmented vote produces a fragmented council. And the excessive-seats
+clause, which the model expects to catch the ANC in {{p_excessive_anc}} of
+simulations: a citywide vote in the mid-twenties, with stronghold wards that
+still win. Where it fires, the party's ward count is a floor, its list seats go
+to zero, and the squeeze lands on every other party's list seats, inside a
+council fixed at {{council_size}} with the majority at {{majority}}.
 
-<!-- /block 9d236ae5 -->
+<!-- /block 606eac76 -->
 
 <!-- block 6a2b6db6 -->
 *md*
@@ -784,31 +889,21 @@ on every other party's list seats — inside a council fixed at
 
 <!-- /block 6a2b6db6 -->
 
-<!-- block 10649767 -->
+<!-- block 670b482d -->
 *md*
 
-Here is the whole thing in order. Nothing below is more complicated than it
-looks.
+### 1. Count who can vote, and where
 
-<!-- /block 10649767 -->
+<!-- /block 670b482d -->
 
-<!-- block 85636878 -->
+<!-- block 7e6613cf -->
 *md*
 
-### 1. Start by counting who can vote, and where
+Before polling day the Electoral Commission publishes how many people are
+registered in each of Johannesburg's {{n_vds}} voting districts. That count is
+the model's foundation. It is not estimated, projected or adjusted.
 
-<!-- /block 85636878 -->
-
-<!-- block 1beca4f6 -->
-*md*
-
-Before any modelling, the Electoral Commission publishes how many people are
-registered to vote in each of Johannesburg's {{n_vds}} voting districts. We
-take that count. It is not estimated, projected or adjusted — it is the roll,
-published before polling day, and it is the foundation everything else sits
-on.
-
-<!-- /block 1beca4f6 -->
+<!-- /block 7e6613cf -->
 
 <!-- block 20741ce5 -->
 *md*
@@ -817,73 +912,65 @@ on.
 
 <!-- /block 20741ce5 -->
 
-<!-- block e97af4e2 -->
+<!-- block eff961d0 -->
 *md*
 
-A **pool** is a group of voters who are choosing between the same parties —
-people with a shared shortlist.
+A **pool** is a group of voters choosing between the same parties.
 
-<!-- /block e97af4e2 -->
+<!-- /block eff961d0 -->
 
-<!-- block a0d02edd -->
+<!-- block da73e9f7 -->
 *md*
 
-**Where the categories come from.** Johannesburg currently has four pools, and
-they are not our invention: they are Statistics South Africa's own population
-group categories, in Stats SA's own words — *Black African, Coloured,
-Indian/Asian, White* — taken per ward from the Census 2022 Ward Statistical
-Product. We use their terms rather than substituting our own so that anyone
-can check the input against the published source. A fifth Stats SA category,
-"Other", is not carried: it is about half a percent of the population, no
-party's rate in it could be identified, and inventing a constituency for it
-would assert something the data does not support.
+**Where the categories come from.** Johannesburg has four pools. They are
+Statistics South Africa's population group categories, in Stats SA's own words
+(*Black African, Coloured, Indian/Asian, White*), taken per ward from the
+Census 2022 Ward Statistical Product. We use their terms so that anyone can
+check the input against the published source. A fifth category, "Other", is not
+carried: it is about half a percent of the population, and no party's rate in
+it could be identified.
 
-<!-- /block a0d02edd -->
+<!-- /block da73e9f7 -->
 
-<!-- block da488abd -->
+<!-- block 14b31d1e -->
 *md*
 
-That is an uncomfortable thing to model and we should say why we do it. It is
-not a claim that people vote according to their race, or that anyone must. It
-is that South African cities are still physically laid out by apartheid
-planning, so a voting district is one of the few things in the data that
-actually distinguishes one group of voters from another — and the parties
-themselves behave as though this were true. Al Jama-ah takes about a fifth of
-one pool and essentially nothing anywhere else. The Patriotic Alliance takes
-about two-fifths of another and nothing at all in the other three. Those are
-measurements, not opinions.
+This is not a claim that people vote by race, or that anyone should. South
+African cities are still laid out by apartheid planning, so a voting district's
+population group is one of the few things in the data that distinguishes one
+group of voters from another, and the parties' results follow it. Al Jama-ah
+takes about a fifth of one pool and almost nothing elsewhere. The Patriotic
+Alliance takes about two-fifths of another and nothing in the other three.
 
-<!-- /block da488abd -->
+<!-- /block 14b31d1e -->
 
-<!-- block c9e43606 -->
+<!-- block 39cd0b42 -->
 *md*
 
-**These categories are too coarse, and we intend to replace them.** Population
-group is the only ward-level characteristic Stats SA publishes, and it plainly
-does not describe how voters actually group: the ANC and the IFP both draw
-overwhelmingly from the same population group and stand on entirely separate
-ground, which is a linguistic and regional division rather than a racial one.
-The right input is **home language by ward**, which Stats SA holds but does not
-publish in the ward product; we have requested it. Income, employment and
-dwelling type would help too, and are also request-only — reasonably so, since
-at ward level they can identify households. Until those arrive we
-carry one extra pool that the census cannot see, identified instead from a
-party's own geography — the constituency the IFP stands on — and we label it
-for what was measured rather than what we suspect it is.
+**These categories are too coarse.** Population group is the only ward-level
+characteristic Stats SA publishes, and it does not describe how voters group:
+the ANC and the IFP draw mostly from the same population group and stand on
+separate ground, a linguistic and regional division. The better input is
+**home language by ward**, which Stats SA holds but does not publish in the
+ward product; we have requested it. Income, employment and dwelling type would
+also help, and are also request-only, since at ward level they can identify
+households. Until those arrive the model carries one extra pool that the census
+cannot see, identified from a party's own geography (the constituency the IFP
+stands on) and labelled for what was measured.
 
-<!-- /block c9e43606 -->
+<!-- /block 39cd0b42 -->
 
-<!-- block 55f8a850 -->
+<!-- block 95edd383 -->
 *md*
 
 **How big is each pool?** Each ward's registered voters, split by that ward's
-own composition, added up across all 135 wards. The census tells us the
-*proportions* within a ward; the roll tells us the *number*, and where the two
-disagree the roll wins. It disagrees a lot: the census implies about 300,000
-white adults in Johannesburg while the roll carries roughly 560,000 registered
-white voters. We publish that gap rather than absorbing it.
+composition, summed across all 135 wards. The census gives the *proportions*
+within a ward; the roll gives the *number*, and where they disagree the roll
+wins. They disagree a lot: the census implies about 300,000 white adults in
+Johannesburg, and the roll carries about 560,000 registered white voters. We
+publish the gap rather than absorb it.
 
-<!-- /block 55f8a850 -->
+<!-- /block 95edd383 -->
 
 <!-- block 83eca765 -->
 *md*
@@ -892,27 +979,25 @@ white voters. We publish that gap rather than absorbing it.
 
 <!-- /block 83eca765 -->
 
-<!-- block 5bf8d998 -->
+<!-- block f312f095 -->
 *md*
 
-Now the only real statistics in the model. We know how every ward voted, and
-we know roughly what each ward is made of. From 135 wards at once we can work
-backwards to how each party performs with each pool — the same way you can
-work out the price of apples and oranges from a stack of shopping receipts
-without ever seeing inside a bag.
+This is the model's statistics. We know how every ward voted and roughly what
+each ward is made of. From 135 wards at once the model works back to how each
+party performs in each pool, as you can work out the price of apples and
+oranges from a stack of receipts without seeing inside a bag.
 
-<!-- /block 5bf8d998 -->
+<!-- /block f312f095 -->
 
-<!-- block bb5cd91c -->
+<!-- block d388a627 -->
 *md*
 
-This is done for every party simultaneously, under two rules that must hold:
-no party can win a negative number of votes, and everyone's votes in a pool
-must add up to that pool's voters. Fitting parties one at a time breaks both —
-an early version had a party winning a *negative* share of one pool, which is
-not a small error but an impossible one.
+It does this for every party at once, under two rules: no party can win a
+negative number of votes, and the votes in a pool must add up to that pool's
+voters. Fitting parties one at a time breaks both; an early version had a party
+winning a *negative* share of one pool.
 
-<!-- /block bb5cd91c -->
+<!-- /block d388a627 -->
 
 <!-- block 62cace52 -->
 *md*
@@ -921,35 +1006,32 @@ not a small error but an impossible one.
 
 <!-- /block 62cace52 -->
 
-<!-- block bcb76f34 -->
+<!-- block df697721 -->
 *md*
 
-Steps 1–3 describe the last election. This step is the forecast, and it is the
-part that is genuinely uncertain, so instead of picking one answer we draw
-thousands.
+Steps 1–3 describe the last election. This step is the forecast, and it is
+uncertain, so the model draws thousands of answers instead of picking one.
 
-<!-- /block bcb76f34 -->
+<!-- /block df697721 -->
 
-<!-- block d17c3e99 -->
+<!-- block a0f70ced -->
 *md*
 
-Two things get drawn:
+Two things are drawn:
 
-<!-- /block d17c3e99 -->
+<!-- /block a0f70ced -->
 
-<!-- block c460d886 -->
+<!-- block ff178314 -->
 *md*
 
 - **How each party's support moves.** Parties usually do worse locally than
-  nationally, and we measure how much from every previous national-to-local
-  transition on record for that party — not a guess, and not the same number
-  for everyone.
-- **Turnout, per pool.** This is the only genuinely unknown quantity, and it
-  is drawn from what turnout has actually done in that city before. In 2021
-  every pool's turnout was the lowest on record, which is why the range has to
-  allow falls as well as rises.
+  nationally. The model measures by how much from every national-to-local
+  transition on record for that party, separately for each party.
+- **Turnout, per pool.** It is the one unknown quantity, and it is drawn from
+  what turnout has done in that city before. In 2021 every pool's turnout was
+  the lowest on record, so the range allows falls as well as rises.
 
-<!-- /block c460d886 -->
+<!-- /block ff178314 -->
 
 <!-- block 0dac9743 -->
 *md*
@@ -958,49 +1040,47 @@ Two things get drawn:
 
 <!-- /block 0dac9743 -->
 
-<!-- block 4016f141 -->
+<!-- block f32d33cd -->
 *md*
 
-This is the hardest part of forecasting an election and where models usually
-fail. There are two kinds of new party and they behave nothing alike:
+This is the hardest part of forecasting an election. There are two kinds of
+new party, and they behave differently:
 
-<!-- /block 4016f141 -->
+<!-- /block f32d33cd -->
 
-<!-- block 25e54c05 -->
+<!-- block cf5ad3e2 -->
 *md*
 
-- A **split** is when a known person leaves a known party and takes some of
-  its vote with them: Zuma leaving the ANC for MK, Malema for the EFF, Mashaba
-  leaving the DA for ActionSA. A split starts with a leader, a machine and a
-  share of somebody's existing vote. We size it as a fraction of its parent,
-  from what previous splits actually took.
+- A **split** is a known person leaving a known party and taking some of its
+  vote: Zuma leaving the ANC for MK, Malema for the EFF, Mashaba leaving the DA
+  for ActionSA. A split starts with a leader, a machine and a share of an
+  existing vote. It is sized as a fraction of its parent, from what previous
+  splits took.
 - An **entrant** is a name on a ballot with none of that. Most new parties are
-  this, and most of them get almost nothing.
+  entrants, and most get almost nothing.
 
-<!-- /block 25e54c05 -->
+<!-- /block cf5ad3e2 -->
 
-<!-- block fe3685db -->
+<!-- block ca401deb -->
 *md*
 
-Telling them apart matters more than anything else in the model. Before we
-did, every party that managed to file candidates everywhere was being sized as
-though it were the EFF's 2016 breakthrough — filing papers is cheap, and in
-Cape Town that put more than the entire electorate into the hands of parties
-that did not exist. Separating the two fixed it.
+Before the model told them apart, every party that filed candidates everywhere
+was sized like the EFF's 2016 breakthrough. Filing papers is cheap, and in Cape
+Town that handed parties that did not exist more than the entire electorate.
+Separating the two fixed it.
 
-<!-- /block fe3685db -->
+<!-- /block ca401deb -->
 
-<!-- block bd7dfcb8 -->
+<!-- block 7a8252b4 -->
 *md*
 
-One further thing we found, which surprised us: how much a split takes depends
-overwhelmingly on **whether the leader's own following is in this city**, not
-on how famous they are. Patricia de Lille was at least as well known
-nationally in 2019 as Julius Malema was in 2014; her party took about
-one-eighteenth as much of the DA's vote in Johannesburg as it did in her own
-Cape Town. A reputation does not travel. A constituency does not move.
+How much a split takes depends mostly on **whether the leader's own following
+is in this city**, not on how famous the leader is. Patricia de Lille was at
+least as well known nationally in 2019 as Julius Malema was in 2014; her party
+took about one-eighteenth as much of the DA's vote in Johannesburg as it did in
+Cape Town.
 
-<!-- /block bd7dfcb8 -->
+<!-- /block 7a8252b4 -->
 
 <!-- block 8823cbc0 -->
 *md*
@@ -1009,15 +1089,15 @@ Cape Town. A reputation does not travel. A constituency does not move.
 
 <!-- /block 8823cbc0 -->
 
-<!-- block 2f8327e1 -->
+<!-- block 913df201 -->
 *md*
 
-Each drawn outcome is spread back across all {{n_vds}} voting districts using each
-party's own geography — where its votes actually were last time. This is the
-best-tested idea in the model: *where* a party's support sits barely moves
-between elections even when *how much* it has swings wildly.
+Each drawn outcome is spread back across all {{n_vds}} voting districts using
+each party's own geography: where its votes were last time. This is the
+best-tested idea in the model. *Where* a party's support sits barely moves
+between elections, even when *how much* it has swings widely.
 
-<!-- /block 2f8327e1 -->
+<!-- /block 913df201 -->
 
 <!-- block 99d0f52e -->
 *md*
@@ -1026,16 +1106,15 @@ between elections even when *how much* it has swings wildly.
 
 <!-- /block 99d0f52e -->
 
-<!-- block 754d50f8 -->
+<!-- block 0a11ac51 -->
 *md*
 
-Voters split their tickets, so the ward ballot and the party ballot are
-counted separately, each party's split measured from its own past behaviour.
-Ward winners are called race by race. Then the statutory formula — the same
-arithmetic the Electoral Commission uses — allocates every seat, excessive
-seats included.
+Voters split their tickets, so the ward ballot and the party ballot are counted
+separately, each party's split measured from its own past behaviour. Ward
+winners are called race by race. Then the statutory formula, the arithmetic the
+Electoral Commission uses, allocates every seat, excessive seats included.
 
-<!-- /block 754d50f8 -->
+<!-- /block 0a11ac51 -->
 
 <!-- block 8ad7c3ed -->
 *md*
@@ -1044,56 +1123,53 @@ seats included.
 
 <!-- /block 8ad7c3ed -->
 
-<!-- block 2b8fcd53 -->
+<!-- block 8306ac7d -->
 *md*
 
-Each run draws fresh values within every bound. The output is not a
-prediction but a distribution: how often each seat count happens, how often
-each coalition clears the line. Every possible combination of parties is
-checked against that run's own majority line, with no judgement about who
-would work with whom.
+Each run draws fresh values within every bound. The output is a distribution:
+how often each seat count happens, and how often each coalition clears the
+line. Every combination of parties is checked against that run's own majority
+line, with no judgement about who would work with whom.
 
-<!-- /block 2b8fcd53 -->
+<!-- /block 8306ac7d -->
 
-<!-- block ec206d44 -->
+<!-- block d5893cd0 -->
 *md*
 
-Why simulate at all, rather than publish one number? Because Johannesburg's
-politics runs on thresholds — a coalition either reaches {{majority}} seats or
-it does not — and near a threshold small uncertainties have large, lopsided
-consequences that no error bar can carry.
+Johannesburg's politics runs on thresholds: a coalition either reaches
+{{majority}} seats or it does not. Near a threshold, small uncertainties have
+large, lopsided consequences that a single number with an error bar cannot
+show.
 
-<!-- /block ec206d44 -->
+<!-- /block d5893cd0 -->
 
-<!-- block 199e19e3 -->
+<!-- block 574b4568 -->
 *md*
 
-## What a pool is — and what it is not
+## What a pool is, and what it is not
 
-<!-- /block 199e19e3 -->
+<!-- /block 574b4568 -->
 
-<!-- block d8370164 -->
+<!-- block be6e1c3a -->
 *md*
 
 A pool is **not** an alliance, a coalition, or a prediction about who will
-govern with whom. It is a statement about voters, not parties: a set of
-parties competing for the same people. The DA and ActionSA drawing from the
-same pool means they compete for the same voters: when one rises in a
-simulation the other tends to fall in the same places. It shows up as a mild
-offset — together they vary less than they would if they moved independently —
-not as a rule that one gains exactly what the other loses.
+govern with whom. It describes voters, not parties: a set of parties competing
+for the same people. The DA and ActionSA drawing from the same pool means that
+when one rises in a simulation the other tends to fall in the same places. The
+effect is a mild offset (together they vary less than they would independently),
+not a rule that one gains exactly what the other loses.
 
-<!-- /block d8370164 -->
+<!-- /block be6e1c3a -->
 
-<!-- block 57c8eacd -->
+<!-- block 22766b69 -->
 *md*
 
-It is also not a claim about why anyone votes as they do. We can measure that
-a pool of voters moved; we cannot measure why, and aggregate data can never
-tell you. Any sentence on this site that appears to explain a voter's
-reasoning is overreach, and we would like to know about it.
+It is also not a claim about why anyone votes as they do. Aggregate data can
+show that a pool of voters moved, not why. A sentence on this site that appears
+to explain a voter's reasoning is overreach, and we would like to hear about it.
 
-<!-- /block 57c8eacd -->
+<!-- /block 22766b69 -->
 
 <!-- block af07380a -->
 *md*
@@ -1109,43 +1185,39 @@ Three checks, in increasing order of difficulty.
 
 <!-- /block 90d046aa -->
 
-<!-- block 10be8484 -->
+<!-- block 117e64f5 -->
 *md*
 
-**The seat law is exact.** Our implementation reproduces the published
-councils to the seat — quota, vote totals, every party — for eight
-municipalities across three elections, from the raw voting-district files. The
-legal arithmetic is not an assumption. One exception is documented: the
-Commission publishes every independent candidate under a single name, so where
-several stand in one ward they cannot be told apart, and we take the
-Commission's own count of independent ward councillors rather than inferring
-it.
+**The seat law is exact.** The implementation reproduces the published councils
+to the seat (quota, vote totals, every party) for eight municipalities across
+three elections, from the raw voting-district files. One exception is
+documented: the Commission publishes every independent candidate under a single
+name, so where several stand in one ward they cannot be told apart, and we take
+the Commission's own count of independent ward councillors.
 
-<!-- /block 10be8484 -->
+<!-- /block 117e64f5 -->
 
-<!-- block a84c4026 -->
+<!-- block 0c7026f0 -->
 *md*
 
-**The geography transfers.** <span data-asof="2026-08-04">Shown only citywide
-totals for 2021 — nothing about where the votes sat — the model placed them
-well enough to call {{blind_test_called}} of {{blind_test_of}} ward winners.
-That test was run on 4 August 2026; the model has changed since, and it has not
-been re-run.</span>
+**The geography transfers.** <span data-asof="2026-08-04">Given only citywide
+totals for 2021, the model placed the votes well enough to call
+{{blind_test_called}} of {{blind_test_of}} ward winners. That test was run on 4
+August 2026 and has not been re-run on the current model.</span>
 
-<!-- /block a84c4026 -->
+<!-- /block 0c7026f0 -->
 
-<!-- block d6754b9b -->
+<!-- block 8f26590b -->
 *md*
 
-**The whole thing beats the simple alternatives, in cities it was never built
-for.** This is the test that matters, and the one most forecasts skip. A model
-tuned on one city can look superb there and have learned nothing but that
-city. So the entire pipeline is run independently in eight metros — each
-fitted only on its own wards, its own roll, its own history — and scored
-against three baselines that need no model at all. The results are on the
-[about the model](about) page, including the city where the model *loses*.
+**The whole model beats simple baselines, in cities it was not built for.** A
+model tuned on one city can look good there and have learned only that city. So
+the whole pipeline is run separately in eight metros, each fitted only on its
+own wards, roll and history, and scored against three baselines that need no
+model. The results are on the [about the model](about) page, including the city
+where the model *loses*.
 
-<!-- /block d6754b9b -->
+<!-- /block 8f26590b -->
 
 <!-- block 961baec6 -->
 *md*
@@ -1154,43 +1226,39 @@ against three baselines that need no model at all. The results are on the
 
 <!-- /block 961baec6 -->
 
-<!-- block 876f9eda -->
+<!-- block e13ff454 -->
 *md*
 
-- **A party that does not exist yet is still the hardest case.** We now
-  separate splits from entrants and size each from the record, which is a
-  large improvement, but a genuinely new formation with a popular leader
-  remains the biggest single source of error.
+- **A party that does not exist yet is the hardest case.** Splits and entrants
+  are sized separately from the record, but a new formation with a popular
+  leader remains the largest single source of error.
 - **Two inputs could not be confined to the period before the test election**,
-  and every run prints them above its own results: the ward-level census
-  (2022, the only one we hold) and the record of how much breakaway parties
-  take. Both are declared on the [about the model](about) page.
-- **Overhang's legal fine print is untested in court.** The Commission has
-  never published a worked metro overhang example. We put the question to it
-  on 5 August 2026 and are awaiting an answer; a 2021 amendment and the
-  Commission's own handling of Laingsburg 2021 settle the arithmetic, and the
-  forecast applies it.
-- **The model runs from national results downward, and that is half the
-  story.** Every party's starting level comes from the last *national*
-  election, converted down to local. That is the right way round for a
-  nationally organised party and the wrong way round for one whose support is
-  local — and tested on 2021 the two routes are close to even, five parties to
-  four. ActionSA is the sharpest case: it polled 18.12% in this city's 2021
-  local election and 6.22% nationally in 2024, and the forecast is built on
-  the smaller, less relevant number. Local formations — a ratepayers'
-  association, a party that exists in one metro — are carried poorly for the
-  same reason. Fixing it means drawing a party's level from its local and
-  national records together, weighted by which has actually been more
-  informative for a party like it. It is the largest open item on the model.
-- **No poll is used in the forecast.** Polls were an input until
-  12 September 2026 and are not one now. Why they were taken out, what
-  they were worth when it was measured, and what we intend to do with
-  them, is in [Where polls fit](#where-polls-fit) below.
+  and every run prints them above its own results: the ward-level census (2022,
+  the only one we hold) and the record of how much breakaway parties take. Both
+  are declared on the [about the model](about) page.
+- **Overhang's legal fine print is untested in court.** The Commission has never
+  published a worked metro overhang example. We put the question to it on 5
+  August 2026 and have no answer yet. A 2021 amendment and the Commission's own
+  handling of Laingsburg 2021 settle the arithmetic, and the forecast applies
+  it.
+- **The model runs from national results downward.** Every party's starting
+  level comes from the last *national* election, converted down to local. That
+  suits a nationally organised party and not one whose support is local; tested
+  on 2021, the two routes are close to even, five parties to four. ActionSA is
+  the sharpest case: it polled 18.12% in this city's 2021 local election and
+  6.22% nationally in 2024, and the forecast is built on the smaller number.
+  Local formations, such as a ratepayers' association or a party that exists in
+  one metro, are carried poorly for the same reason. The fix is to draw a
+  party's level from its local and national records together, weighted by which
+  has been more informative for a party like it. It is the largest open item on
+  the model.
+- **No poll is used in the forecast.** Polls were an input until 12 September
+  2026. Why they were taken out, what they were worth, and what is planned are
+  under *Where polls fit*, below.
 - **Arithmetic is not politics.** The model says which governments are
-  numerically possible. Whether people who dislike each other will sit in the
-  same room is not a modelling question.
+  numerically possible, not which will form.
 
-<!-- /block 876f9eda -->
+<!-- /block e13ff454 -->
 
 <!-- block ff0d9166 -->
 *md*
@@ -1199,27 +1267,24 @@ against three baselines that need no model at all. The results are on the
 
 <!-- /block ff0d9166 -->
 
-<!-- block e4034799 -->
+<!-- block dda1e697 -->
 *md*
 
-The switch went off on 12 September 2026. Before that date polls were an
-input to the forecast; since it, none is.
+Polls were an input to the forecast until 12 September 2026. Since then, none
+is.
 
-<!-- /block e4034799 -->
+<!-- /block dda1e697 -->
 
-<!-- block 731231b6 -->
+<!-- block 69d2a93a -->
 *md*
 
-*This page has twice described the wrong state of that switch, and both times
-in the same direction — the text stayed still while the model moved. It said
-"no poll is currently used at all" for a day after that stopped being true on
-2026-08-22, which is the most serious error this site has carried; it then
-described a weighting cap for three weeks after that cap was retired. So the
-date is not decoration.* **If you are reading this and the site's forecast
-still differs from a no-polls model, this sentence is stale again and the
-forecast is what to believe.**
+*This section has described that switch wrongly twice: for a day after 22
+August 2026 it said no poll was used when one was, and for three weeks it
+described a weighting cap that had been retired.* **If the forecast ever
+differs from a no-polls model, this section is out of date and the forecast is
+what to believe.**
 
-<!-- /block 731231b6 -->
+<!-- /block 69d2a93a -->
 
 <!-- block 9f6373d7 -->
 *md*
@@ -1228,19 +1293,17 @@ forecast is what to believe.**
 
 <!-- /block 9f6373d7 -->
 
-<!-- block 81399497 -->
+<!-- block cca4da96 -->
 *md*
 
-Polls were an input until 12 September. Removing
-them is not a judgement that they are worthless — it is that we had no
-designed answer to how several polls should interact with each other: how much
-two waves from one house count against one wave from another, how a party-
-internal poll is discounted, how a national poll and a metro poll combine. The
-weighting we had was defensible one poll at a time and improvised across
-several. Rather than keep shipping a forecast that depended on it, the channel
-is off until that is designed properly.
+There was no designed answer to how several polls should combine: how much two
+waves from one house count against one wave from another, how a party-internal
+poll is discounted, how a national poll and a metro poll combine. The weighting
+was defensible one poll at a time and improvised across several. The channel is
+off until that is designed. Removing polls is not a judgement that they are
+worthless.
 
-<!-- /block 81399497 -->
+<!-- /block cca4da96 -->
 
 <!-- block 569c9b4a -->
 *md*
@@ -1249,23 +1312,21 @@ is off until that is designed properly.
 
 <!-- /block 569c9b4a -->
 
-<!-- block 1f22ad82 -->
+<!-- block 8755972f -->
 *md*
 
-We aim to score {{backtest_target}} past city
-elections across the country — eight metros, three elections each — and how
-many are in the panel on any given day depends on which specs have been
-emitted. Against the panel as it stood, removing polls changed the total seat
-error from
+The aim is to score {{backtest_target}} past city elections across the country,
+eight metros with three elections each; how many are in the panel on a given
+day depends on which have been prepared. Against the panel as it stood,
+removing polls changed the total seat error from
 {{polls_off_seat_err_before}} to {{polls_off_seat_err_after}} and the
 distributional score (CRPS) from {{polls_off_crps_before}} to
-{{polls_off_crps_after}}. Both move the right way and neither is large: seven
-elections moved at all, one of them by six seats *against* the change. The
-honest summary is that **we cannot distinguish the poll channel's
-contribution from zero**, which is itself a reason not to let it move a
-published headline while its design is unsettled.
+{{polls_off_crps_after}}. Both moved the right way and neither by much: seven
+elections moved at all, one of them by six seats *against* the change. **The
+poll channel's contribution cannot be distinguished from zero.** That is a
+reason not to let it move a published headline while its design is unsettled.
 
-<!-- /block 1f22ad82 -->
+<!-- /block 8755972f -->
 
 <!-- block 7cb6431b -->
 *md*
@@ -1274,37 +1335,35 @@ published headline while its design is unsettled.
 
 <!-- /block 7cb6431b -->
 
-<!-- block 1e0e78d0 -->
+<!-- block d03cac16 -->
 *md*
 
-To use every poll we receive, and to put the weighting in
-the reader's hands — a control on this site letting you say how far you trust
-each individual poll, within that poll's own margin of error, and see the
-forecast respond. That is the design being worked on; it is not built yet, and
-we would rather say so than ship the half of it we had.
+To use every poll received, and to put the weighting in the reader's hands.
+[Play with the model](play/) has a first version: you choose how far to trust
+each poll, and the published simulations are re-weighted in your browser. The
+published forecast uses no poll.
 
-<!-- /block 1e0e78d0 -->
+<!-- /block d03cac16 -->
 
-<!-- block a5d6968d -->
+<!-- block 91a3fee7 -->
 *md*
 
-### The caution behind it
+### Why polls are read with caution
 
-<!-- /block a5d6968d -->
+<!-- /block 91a3fee7 -->
 
-<!-- block 13d83bc1 -->
+<!-- block 55853ad8 -->
 *md*
 
-This has not changed: the polls that
-exist disagree with each other by more than the quantity being forecast — one
-house had the DA on 42% and the ANC on 18% in the same year another had the
-ANC on 35% and the DA on 25% — and metro-level polling has little track record
-here to weight them by; pre-2021 polling missed ActionSA in this city by about
-ten points. Every poll we hold is still listed, with its caveats, and the
-model is still read against them as an outside check that it is in the
-ballpark. They are evidence we look at. They are not, at present, an input.
+The polls that exist disagree with each other by more than the quantity being
+forecast: one house had the DA on 42% and the ANC on 18% in the same year
+another had the ANC on 35% and the DA on 25%. Metro-level polling has little
+track record here to weight it by; pre-2021 polling missed ActionSA in this
+city by about ten points. Every poll we hold is listed, with its caveats, and
+the model is read against them as an outside check. They are not, at present,
+an input.
 
-<!-- /block 13d83bc1 -->
+<!-- /block 55853ad8 -->
 
 <!-- block 6cbd50ee -->
 *md*
@@ -1313,31 +1372,16 @@ ballpark. They are evidence we look at. They are not, at present, an input.
 
 <!-- /block 6cbd50ee -->
 
-<!-- block 947ba0f0 -->
+<!-- block 0b2310a8 -->
 *md*
 
-After the first version of this forecast was built, a full review found six
-implementation errors — one of which made its primary claim outright false.
-All six were fixed, and the forecast changed materially. The whole episode —
-finding the errors and repairing them — is documented on the
-[review page](review).
+After the first version of this forecast was built, a review found six
+implementation errors, one of which made its main claim false. All six were
+fixed, and the forecast changed materially. The errors and the repairs are on
+the [review page](review). Errors that reached readers since are on the
+[corrections page](corrections).
 
-<!-- /block 947ba0f0 -->
-
-<!-- block 7608e793 -->
-*md*
-
-We publish it because it is worth demonstrating how errors lead to
-improvement and better understanding. If you don't look for errors — if you
-don't *want* to find them — you are not trying to learn; you are actively
-avoiding improvement. A model that admits no error in its construction is
-almost guaranteed to be wrong. Good models are the product of continuous
-error-correction, each fix pushing them closer to behaving like the real
-thing they describe. They do not arrive fully formed — and a model that hides
-its mistakes, or hides from them, is refusing the chance to be better, and
-should not be trusted.
-
-<!-- /block 7608e793 -->
+<!-- /block 0b2310a8 -->
 
 <!-- block d4383da3 -->
 *md*
@@ -1346,26 +1390,257 @@ should not be trusted.
 
 <!-- /block d4383da3 -->
 
-<!-- block 209f9a21 -->
+<!-- block f10d10b3 -->
 *md*
 
-Everything above is a simplification of something you can read in full. The
-code, the data recipes, the running log of findings and mistakes, and the
-known defects in the public records we depend on are all published:
+The code, the data recipes, the log of findings and mistakes, and the known
+defects in the public records the model depends on are published:
 
-<!-- /block 209f9a21 -->
+<!-- /block f10d10b3 -->
 
-<!-- block f40a81e7 -->
+<!-- block b4dcc240 -->
 *md*
 
-- [the repository](https://github.com/Psi-am-i/jhb-election-model) — all of it
-- `MODEL-LOG.md` — every finding, obstacle and decision, in order, including
-  the ones that went badly
-- `DATA-QUALITY.md` — defects in the official published records, with the ward
+- [the repository](https://github.com/Psi-am-i/jhb-election-model)
+- `MODEL-LOG.md`: every finding, obstacle and decision, in order, including the
+  ones that went badly
+- `DATA-QUALITY.md`: defects in the official published records, with the ward
   and the arithmetic for each
-- `SOURCES.md` — where every input came from and how to fetch it again
+- `SOURCES.md`: where every input came from and how to fetch it again
 
-<!-- /block f40a81e7 -->
+<!-- /block b4dcc240 -->
+
+
+## docs-public/privacy.md
+
+<!-- block b822d2bd -->
+*md*
+
+# Privacy
+
+<!-- /block b822d2bd -->
+
+<!-- block c2422cdd -->
+*md*
+
+## Who is responsible
+
+<!-- /block c2422cdd -->
+
+<!-- block d632aa18 -->
+*md*
+
+The responsible party for this site under the Protection of Personal
+Information Act (POPIA) is the site's author, Simon Davis, 91 St Patrick Road, Johannesburg 2198.
+
+<!-- /block d632aa18 -->
+
+<!-- block 5cfe8ebb -->
+*md*
+
+Contact: [psi@whysoserious.city](mailto:psi@whysoserious.city).
+
+<!-- /block 5cfe8ebb -->
+
+<!-- block 46b3e27e -->
+*md*
+
+The site counts its readers with **Cloudflare Web Analytics**. It sets no
+cookie, so there is no consent banner. Cloudflare's description of it ([Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/)):
+"Cloudflare Web Analytics does not use any client-side state, such as cookies
+or localStorage, to collect usage metrics. We also don't 'fingerprint'
+individuals via their IP address, User Agent string, or any other data for the
+purpose of displaying analytics."
+
+<!-- /block 46b3e27e -->
+
+<!-- block 1a09a088 -->
+*md*
+
+For each page view it records:
+
+<!-- /block 1a09a088 -->
+
+<!-- block e9983e52 -->
+*md*
+
+- the page's address on this site, without any part after a `?`;
+- the site that linked to it, if any;
+- your country;
+- your device type, browser and operating system;
+- how long the page took to load and display.
+<!-- /analytics -->
+<!-- no-analytics -->
+## What is measured
+
+<!-- /block e9983e52 -->
+
+<!-- block b7ef1c70 -->
+*md*
+
+The pages carry no analytics script and count no page views. The short links
+described below are the only count the site keeps.
+<!-- /no-analytics -->
+
+<!-- /block b7ef1c70 -->
+
+<!-- block caede00f -->
+*md*
+
+## Which link brought you here
+
+<!-- /block caede00f -->
+
+<!-- block 9a374788 -->
+*md*
+
+Links in this site's advertising and social posts use short addresses, one per
+channel: `/go` on the billboard, `/x`, `/li`, `/fb` and `/ig` for social posts,
+and `/g` for Google Ads. Each forwards to the home page and writes one log line
+naming the channel and the site's own address, and nothing about the visitor.
+The site counts those lines by channel.
+
+<!-- /block 9a374788 -->
+
+<!-- block 217468d3 -->
+*md*
+
+Cloudflare's [Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/)
+holds those lines, with the metadata Cloudflare attaches to each, and any error
+the site's server code raises. It is set not to record each request, and keeps
+every entry for at most seven days.
+
+<!-- /block 217468d3 -->
+
+<!-- block 7e7d747c -->
+*md*
+
+The same count (the channel and the site's address for each arrival, and
+nothing about the visitor) is also kept in Cloudflare's
+[Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/),
+which deletes it after three months.
+
+<!-- /block 7e7d747c -->
+
+<!-- block 8b3b7923 -->
+*md*
+
+## Network error reports
+
+<!-- /block 8b3b7923 -->
+
+<!-- block a5676493 -->
+*md*
+
+Cloudflare's response headers `NEL` and `Report-To` ask your browser to report
+failed connections to the site, not successful ones, to Cloudflare's
+[Network Error Logging](https://developers.cloudflare.com/network-error-logging/)
+service.
+
+<!-- /block a5676493 -->
+
+<!-- block b834cd98 -->
+*md*
+
+## What is not collected
+
+<!-- /block b834cd98 -->
+
+<!-- block a5af0f5d -->
+*md*
+
+- No accounts, sign-in or forms.
+- No advertising trackers and no Google tags.
+- No personal data is sold, or shared with advertisers.
+
+<!-- /block a5af0f5d -->
+
+<!-- block 2a2f0449 -->
+*md*
+
+## What your browser keeps
+
+<!-- /block 2a2f0449 -->
+
+<!-- block b2bcde31 -->
+*md*
+
+The light/dark switch in the menu bar saves your choice in your browser's local
+storage under the name `theme`, so the next page opens the same way. It stays
+on your device and is not sent to the site.
+
+<!-- /block b2bcde31 -->
+
+<!-- block fec9f3ba -->
+*md*
+
+## Who serves the site, and where
+
+<!-- /block fec9f3ba -->
+
+<!-- block f58314a0 -->
+*md*
+
+The site is hosted and delivered by Cloudflare, Inc. It processes the IP
+address and request details of every visit to deliver pages and protect the
+site from abuse, as set out in the
+[Cloudflare privacy policy](https://www.cloudflare.com/privacypolicy/).
+
+<!-- /block f58314a0 -->
+
+<!-- block dfc1cb8a -->
+*md*
+
+Cloudflare is a United States company, and its network handles requests in
+data centres outside South Africa, so this data leaves the country. The transfer
+rests on a binding agreement, Cloudflare's
+[Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/),
+under which it processes personal data only to provide its service to this
+site and must keep that data secure. POPIA permits a transfer abroad to a
+recipient bound by an agreement of that kind.
+
+<!-- /block dfc1cb8a -->
+
+<!-- block a797531e -->
+*md*
+
+## Your rights
+
+<!-- /block a797531e -->
+
+<!-- block c11d1478 -->
+*md*
+
+Under POPIA you may:
+
+<!-- /block c11d1478 -->
+
+<!-- block be0eca43 -->
+*md*
+
+- ask whether the site holds personal data about you, and for a copy of it;
+- ask for that data to be corrected or deleted;
+- object to its processing.
+
+<!-- /block be0eca43 -->
+
+<!-- block 01af24ec -->
+*md*
+
+Send a request to [psi@whysoserious.city](mailto:psi@whysoserious.city). The
+site stores nothing that names a visitor; the records described above are held
+by Cloudflare.
+
+<!-- /block 01af24ec -->
+
+<!-- block 1b0b6d80 -->
+*md*
+
+If you are not satisfied with the answer, you may complain to the
+[Information Regulator](https://inforegulator.org.za/), South Africa's
+regulator for POPIA.
+
+<!-- /block 1b0b6d80 -->
 
 
 ## docs-public/review.md
@@ -1399,17 +1674,16 @@ makes the forecast more worth your trust, not less.
 
 <!-- /block 23c7b64f -->
 
-<!-- block 471f96a6 -->
+<!-- block 41a99009 -->
 *md*
 
 <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
-<p>Every figure below describes the <b>first version</b> of the model, as it stood on
-6 August 2026. None of them is today's forecast: the DA is now the largest party in
-{{p_da_largest}} of simulations and the ANC in {{p_anc_largest}}, and the excessive-seats
-clause fires in {{p_excessive_anc}}. The page is kept as published because what it
-records is how the errors were found and fixed, and that process is the point.</p></aside>
+<p>The figures below describe the <b>first version</b> of the model, on 6 August 2026.
+Today the DA is the largest party in {{p_da_largest}} of simulations and the ANC in
+{{p_anc_largest}}, and the excessive-seats clause fires in {{p_excessive_anc}}. The page
+is kept as published, as a record of how the errors were found and fixed.</p></aside>
 
-<!-- /block 471f96a6 -->
+<!-- /block 41a99009 -->
 
 <!-- block 358a51aa -->
 *md*
@@ -1567,23 +1841,23 @@ against. One that doesn't is asking you to take it on faith.
 
 ## docs-public/sources.md
 
-<!-- block 76f58cf1 -->
+<!-- block 7314aa33 -->
 *md*
 
-# Where the data comes from — and what it took to get it
+# Where the data comes from
 
-<!-- /block 76f58cf1 -->
+<!-- /block 7314aa33 -->
 
-<!-- block 2ff95c1c -->
+<!-- block 7e7d6cbf -->
 *md*
 
-Election results at voting-district level, boundary maps of wards and voting
-districts, by-election returns, census tables — this page tracks each to its
-origin and records the state it was in when we found it. The full technical
-recipes, file by file, are in
+Election results at voting-district level, ward and voting-district boundary
+maps, by-election returns and census tables: this page traces each to its
+origin and records the state it was in when we found it. The technical recipes,
+file by file, are in
 [`SOURCES.md` on GitHub](https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md).
 
-<!-- /block 2ff95c1c -->
+<!-- /block 7e7d6cbf -->
 
 <!-- block c11f869d -->
 *md*
@@ -1592,44 +1866,41 @@ recipes, file by file, are in
 
 <!-- /block c11f869d -->
 
-<!-- block e4a5cffa -->
+<!-- block 5b53fa58 -->
 *md*
 
-The IEC's results sites — `results.elections.org.za` and
-`www.elections.org.za` — do not allow programmatic collection of their data:
-automated requests are refused. Election results are public records, and no
-reason for the restriction is given. In practice most of the raw data behind
-this model was collected through an ordinary browser session, one file at a
-time.
+The IEC's results sites, `results.elections.org.za` and `www.elections.org.za`,
+refuse automated requests. Election results are public records, and no reason
+for the restriction is given. Most of the raw data behind this model was
+collected through an ordinary browser session, one file at a time.
 
-<!-- /block e4a5cffa -->
+<!-- /block 5b53fa58 -->
 
-<!-- block 829a0428 -->
+<!-- block 07f53081 -->
 *md*
 
-The identifiers are also unhelpful. The portal identifies each election not by its year but by
-an arbitrary internal code — and the codes for the national and provincial
-halves of the same election day differ. Guess wrong and the site does not
-error: it quietly hands you a different election's results. And one election —
-the 2014 national and provincial vote — is missing from the results portal
-altogether; its files turned out to live on a second, older IEC site.
+The portal identifies each election by an internal code, not by its year, and
+the national and provincial halves of the same election day have different
+codes. A wrong guess raises no error: the site returns a different election's
+results. One election, the 2014 national and provincial vote, is missing from
+the results portal; its files are on a second, older IEC site.
 
-<!-- /block 829a0428 -->
+<!-- /block 07f53081 -->
 
-<!-- block 892ebad3 -->
+<!-- block 289a4915 -->
 *md*
 
-## The election results themselves
+## The election results
 
-<!-- /block 892ebad3 -->
+<!-- /block 289a4915 -->
 
-<!-- block caff99d2 -->
+<!-- block 74208fb9 -->
 *md*
 
-The model rests on six elections at voting-district level — the finest grain
-the IEC publishes:
+The model rests on six elections at voting-district level, the finest grain the
+IEC publishes:
 
-<!-- /block caff99d2 -->
+<!-- /block 74208fb9 -->
 
 <!-- block 1a0d84bc -->
 *md*
@@ -1641,18 +1912,17 @@ the IEC publishes:
 
 <!-- /block 1a0d84bc -->
 
-<!-- block 13c41540 -->
+<!-- block 2839ea48 -->
 *md*
 
-The files themselves were not clean. Different years arrive in different
-character encodings — one in a format from the DOS era. A voting station with
-a comma in its name silently shifts every later column in the row. One year's
-"valid votes" column does not contain what its name says. Each of these
-corrupts results without raising any error; each had to be caught by
-cross-checking totals against the IEC's own published reports. The full list
-of traps, and the code that handles them, is on GitHub.
+The files were not clean. Different years arrive in different character
+encodings, one from the DOS era. A voting station with a comma in its name
+shifts every later column in the row. One year's "valid votes" column does not
+contain what its name says. None of these raises an error; each was caught by
+cross-checking totals against the IEC's own published reports. The full list,
+and the code that handles each, is on GitHub.
 
-<!-- /block 13c41540 -->
+<!-- /block 2839ea48 -->
 
 <!-- block 0c6c0d6d -->
 *md*
@@ -1661,35 +1931,34 @@ of traps, and the code that handles them, is on GitHub.
 
 <!-- /block 0c6c0d6d -->
 
-<!-- block 6d1e76fc -->
+<!-- block 10df7a74 -->
 *md*
 
-Council seats follow geography, so the model needs the boundaries of every
-ward and voting district — across four different boundary revisions, because
-Johannesburg's wards have been redrawn before every election. The Municipal
-Demarcation Board publishes the recent layers through its mapping portal; the
-two older ward sets survive only as archived file downloads.
+Council seats follow geography, so the model needs the boundaries of every ward
+and voting district across four boundary revisions: Johannesburg's wards have
+been redrawn before every election. The Municipal Demarcation Board publishes
+the recent layers through its mapping portal; the two older ward sets survive
+only as archived file downloads.
 
-<!-- /block 6d1e76fc -->
+<!-- /block 10df7a74 -->
 
-<!-- block 2cc2b2be -->
+<!-- block af336162 -->
 *md*
 
-Public geodata also disappears: the Demarcation Board has already
-retired the per-municipality downloads its old website offered. One dataset
-this model needed — the complete voting-district results of the 2016
-election — now exists in the Internet Archive and nowhere official.
+The Demarcation Board has retired the per-municipality downloads its old website
+offered. One dataset this model needed, the complete voting-district results of
+the 2016 election, now exists in the Internet Archive and nowhere official.
 
-<!-- /block 2cc2b2be -->
+<!-- /block af336162 -->
 
-<!-- block 0941f9f7 -->
+<!-- block 8c72016b -->
 *md*
 
-One trap worth recording: the 2026 voting-district layer carries a field that
-looks like current voter registration. It is actually a snapshot from 2024.
-Take it at face value and every turnout figure built on it is wrong.
+The 2026 voting-district layer carries a field that looks like current voter
+registration. It is a snapshot from 2024. Every turnout figure built on it as
+current would be wrong.
 
-<!-- /block 0941f9f7 -->
+<!-- /block 8c72016b -->
 
 <!-- block 04a6c55f -->
 *md*
@@ -1698,18 +1967,18 @@ Take it at face value and every turnout figure built on it is wrong.
 
 <!-- /block 04a6c55f -->
 
-<!-- block 84056833 -->
+<!-- block 57252d16 -->
 *md*
 
-Fifteen wards in Johannesburg have held by-elections since 2021 — the only
-hard evidence of how opinion has moved between elections, and an input to this
+Fifteen Johannesburg wards have held by-elections since 2021. They are the only
+direct evidence of how opinion has moved between elections, and an input to this
 forecast. The IEC's official download page could not supply them: its report
-links only work inside the browser session that created them. The IEC's own
-public dashboard, however, is fed by plain data files that anyone can read —
-richer than the reports, down to voting-district level with every party and
-candidate. That is what the model uses.
+links work only inside the browser session that created them. The IEC's public
+dashboard is fed by plain data files that anyone can read, with more detail than
+the reports, down to voting-district level with every party and candidate. The
+model uses those.
 
-<!-- /block 84056833 -->
+<!-- /block 57252d16 -->
 
 <!-- block daf0befb -->
 *md*
@@ -1718,17 +1987,16 @@ candidate. That is what the model uses.
 
 <!-- /block daf0befb -->
 
-<!-- block 34ca5092 -->
+<!-- block d416ffe4 -->
 *md*
 
 Statistics South Africa publishes ward-level population estimates from Census
-2022 — age, sex and population group for all 135 wards — and those are used in
-the turnout modelling. The more detailed small-area data (income, dwelling
-type, employment) is not published at all. That is ordinary disclosure
-control: income and employment at ward level can identify households. Access
-under conditions exists, and we have not sought it.
+2022 (age, sex and population group for all 135 wards), and the turnout
+modelling uses them. The more detailed small-area data (income, dwelling type,
+employment) is not published, because at ward level it can identify households.
+Access under conditions exists, and we have not sought it.
 
-<!-- /block 34ca5092 -->
+<!-- /block d416ffe4 -->
 
 <!-- block 0323d17f -->
 *md*
@@ -1737,51 +2005,196 @@ under conditions exists, and we have not sought it.
 
 <!-- /block 0323d17f -->
 
-<!-- block 6f51dd0f -->
-*md*
-
-Some records could not be obtained because they do not exist in public:
-
-<!-- /block 6f51dd0f -->
-
-<!-- block 9d016835 -->
+<!-- block 60665f47 -->
 *md*
 
 - **Historic voting-district boundaries.** The IEC draws these with its own
   mapping systems and appears never to have published them. Five archives and
   catalogues were searched; a request to the IEC's Delimitation Directorate is
-  the only remaining route. The model works around the gap and tests that the
+  the remaining route. The model works around the gap and tests that the
   workaround does not change its conclusions.
 - **The voters' roll by age and sex below municipality level**, and the
-  registration figures from the 2026 sign-up weekends — the latter simply not
-  released yet.
+  registration figures from the 2026 sign-up weekends, which are not released
+  yet.
 
-<!-- /block 9d016835 -->
+<!-- /block 60665f47 -->
 
-<!-- block 9c4da078 -->
+<!-- block e73b782c -->
 *md*
 
-## Keeping ourselves honest
+## Checksums
 
-<!-- /block 9c4da078 -->
+<!-- /block e73b782c -->
 
-<!-- block 5fe220be -->
+<!-- block 50b92890 -->
 *md*
 
-Because the raw files were assembled by hand from sources that can change or
-vanish, we fingerprint every one of them ourselves: when a file is collected,
-the model's build records its cryptographic checksum — a short code that
-changes if even one byte of the file does. Those fingerprints are published in
-this project's own repository on
-[GitHub](https://github.com/Psi-am-i/jhb-election-model) (the raw files are
-bulky, so we publish the fingerprints and the instructions to fetch the files
-rather than the files themselves). That gives everyone two guarantees: anyone
-who re-downloads the same sources can prove they hold exactly the data this
-forecast was computed from, byte for byte — and if a source file is ever
-quietly altered or withdrawn upstream, the mismatch shows up immediately
-instead of silently corrupting the model.
+The raw files were assembled by hand from sources that can change or vanish, so
+the build records a cryptographic checksum of each file when it is collected: a
+short code that changes if one byte of the file does. The checksums, and the
+instructions to fetch each file, are published in the project's repository on
+[GitHub](https://github.com/Psi-am-i/jhb-election-model); the raw files are too
+large to publish. Anyone who downloads the same sources can confirm they hold
+exactly the data this forecast was computed from, and a file altered or
+withdrawn upstream shows up as a mismatch.
 
-<!-- /block 5fe220be -->
+<!-- /block 50b92890 -->
+
+
+## docs-public/support.md
+
+<!-- block 09961fdf -->
+*md*
+
+# Supporting this site
+
+<!-- /block 09961fdf -->
+
+<!-- block 3a046047 -->
+*md*
+
+## Why the site exists
+
+<!-- /block 3a046047 -->
+
+<!-- block 6c42cce7 -->
+*md*
+
+Johannesburg's council is elected under a mixed system: ward seats won
+outright, proportional seats topped up from the party lists, and a statutory
+formula that combines the two. After the count comes the coalition arithmetic.
+This site explains that system and forecasts its result.
+
+<!-- /block 6c42cce7 -->
+
+<!-- block 8bca507c -->
+*md*
+
+It publishes the forecast with the [method](methodology), the
+[sources](sources), the [review](review) that found the model's errors, and
+the [corrections](corrections). It is free to read. Its text, charts and
+published figures are licensed
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): reuse them with
+attribution and a link back. The model's code is on
+[GitHub](https://github.com/Psi-am-i/jhb-election-model) under the MIT licence.
+The raw election results are available from the
+[IEC](https://results.elections.org.za/).
+
+<!-- /block 8bca507c -->
+
+<!-- block f6637fce -->
+*md*
+
+## Who pays for it now
+
+<!-- /block f6637fce -->
+
+<!-- block e57f1cbe -->
+*md*
+
+The site, its hosting and its advertising are paid for by its author through
+picnic labs.
+
+<!-- /block e57f1cbe -->
+
+<!-- block ee7fe4c7 -->
+*md*
+
+## Who may fund it
+
+<!-- /block ee7fe4c7 -->
+
+<!-- block 6a058bfa -->
+*md*
+
+Support is accepted from two kinds of backer:
+
+<!-- /block 6a058bfa -->
+
+<!-- block d2cc2c72 -->
+*md*
+
+- **institutional partners**, such as universities, research institutes, civic
+  organisations and newsrooms;
+- **named sponsors** that are not political parties.
+
+<!-- /block d2cc2c72 -->
+
+<!-- block e8885790 -->
+*md*
+
+The site does not take:
+
+<!-- /block e8885790 -->
+
+<!-- block 6095d892 -->
+*md*
+
+- donations;
+- money or in-kind support from any political party, any candidate, any of
+  their office-bearers, or any organisation they control or fund, or that
+  campaigns for or against a party or candidate.
+
+<!-- /block 6095d892 -->
+
+<!-- block 45a504c5 -->
+*md*
+
+Every supporter is named on this page, with the band its support falls in:
+under R10,000, R10,000 to R50,000, or over R50,000.
+
+<!-- /block 45a504c5 -->
+
+<!-- block 3c8618e6 -->
+*md*
+
+## What a supporter receives
+
+<!-- /block 3c8618e6 -->
+
+<!-- block 518e8d8c -->
+*md*
+
+An acknowledgement on this page: its name, whether it is a partner or a
+sponsor, and its amount band.
+
+<!-- /block 518e8d8c -->
+
+<!-- block 79278222 -->
+*md*
+
+A supporter has no say over the model, its inputs, its findings, the wording of
+any page, or when anything is published.
+
+<!-- /block 79278222 -->
+
+<!-- block aa18d074 -->
+*md*
+
+## Current supporters
+
+<!-- /block aa18d074 -->
+
+<!-- block 903ea500 -->
+*md*
+
+None.
+
+<!-- /block 903ea500 -->
+
+<!-- block 657f676d -->
+*md*
+
+## Contact
+
+<!-- /block 657f676d -->
+
+<!-- block 9b464586 -->
+*md*
+
+Institutions and sponsors: [psi@whysoserious.city](mailto:psi@whysoserious.city).
+
+<!-- /block 9b464586 -->
 
 
 ## content/joburg/claims.toml
@@ -1821,12 +2234,12 @@ P(DA reaches 136 alone) under a full DA-camp turnout surge
 
 <!-- /block d991355a -->
 
-<!-- block cf3f88f5 -->
+<!-- block 847b2933 -->
 *claim[0].since*
 
-The turnout setting this test used no longer exists in the model, so the surge cannot be re-run as it was. In today's forecast, with no surge at all, the DA wins a majority on its own in [[da_alone_share]] of the [[n_draws]] simulations — [[da_alone_count]] of them. [[wall_count]] of those take at least 30 of the ANC's usual wards from it, with the ANC falling to [[wall_anc_low]]–[[wall_anc_high]] seats. The other route to a DA majority — the ANC holding its wards while ActionSA and the EFF collapse — no longer appears in any simulation. **The claim's verdict stands; the scenario that makes a DA majority possible is further from turnout alone than it was.**
+The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In today's forecast, with no surge, the DA wins a majority on its own in [[da_alone_share]] of the [[n_draws]] simulations ([[da_alone_count]] of them). [[wall_count]] of those take at least [[wall_flips]] of the ANC's usual wards from it, and the ANC falls to [[wall_anc_span]] seats. The other route to a DA majority, the ANC holding its wards while ActionSA and the EFF collapse, appears in no simulation. **The verdict stands. A DA majority now depends on more than turnout.**
 
-<!-- /block cf3f88f5 -->
+<!-- /block 847b2933 -->
 
 <!-- block 15f6dcc6 -->
 *claim[0].steps[0]*
@@ -1891,12 +2304,19 @@ This is an appeal, not a forecast, so the thing to test is whether the mandate b
 
 <!-- /block 8fe31c86 -->
 
-<!-- block de81f61a -->
+<!-- block 58307a58 -->
+*claim[1].since*
+
+The ANC reaches a majority on its own in [[anc_alone_count]] of the {{n_draws}} simulations ([[anc_alone_share]]), with [[anc_best]] seats at its best. When this claim was first written it did so in none.
+
+<!-- /block 58307a58 -->
+
+<!-- block f9839249 -->
 *claim[1].steps[0]*
 
-**Not once, and not close.** The ANC's median is [[anc_median]] seats. Its single best result anywhere in the {{n_draws}} simulations is [[anc_best]] — still [[anc_best_short]] short of {{majority}}, and that draw is the outer edge of the range, not a likely outcome.
+**Not close.** The ANC's median is [[anc_median]] seats, against the {{majority}} it would need. Its single best result anywhere in the {{n_draws}} simulations is [[anc_best]], and that draw is the outer edge of the range, not a likely outcome.
 
-<!-- /block de81f61a -->
+<!-- /block f9839249 -->
 
 <!-- block 39810140 -->
 *claim[1].steps[1]*
@@ -1989,12 +2409,12 @@ Daily Maverick, 13 September 2026
 
 <!-- /block ce26bc9a -->
 
-<!-- block bb593cc6 -->
+<!-- block 007ec97b -->
 *claim[3].tests*
 
-P(a majority exists that excludes the EFF and MK)
+P(a majority exists without the ANC, the EFF and MK)
 
-<!-- /block bb593cc6 -->
+<!-- /block 007ec97b -->
 
 <!-- block 16809194 -->
 *claim[3].intro*
@@ -2010,19 +2430,19 @@ A red line is a choice, not a claim about the world, so there is nothing here to
 
 <!-- /block 0d7acd3d -->
 
-<!-- block 074f9639 -->
+<!-- block 56e68d1e -->
 *claim[3].steps[1]*
 
-**The plausible version of that coalition is much weaker.** The DA with ActionSA and the Patriotic Alliance — the partners most often named — reaches {{majority}} in [[three_share]] of simulations, on a median of [[three_median]] seats. Getting from there to a majority means adding parties that will each hold a handful of seats, and keeping all of them.
+**The plausible version of that coalition is much weaker.** The DA with ActionSA and the Patriotic Alliance — the partners most often named — reaches {{majority}} in [[three_share]] of simulations. Two medians describe them and they answer different questions: across all [[n_draws]] simulations the three hold [[three_median]] seats, and in the [[three_share]] where they do reach a majority they hold [[three_median_when_wins]]. The who-can-govern table reports the second, because it is asking what governing looks like when it happens. Getting from the first to a majority means adding parties that will each hold a handful of seats, and keeping all of them.
 
-<!-- /block 074f9639 -->
+<!-- /block 56e68d1e -->
 
-<!-- block fd7290d7 -->
+<!-- block 6fc46689 -->
 *claim[3].steps[2]*
 
-**The alternative the red line leaves is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable majority in the city that does not involve the EFF or MK.
+**The alternative the red line leaves is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable two-party majority in the city. <span data-asof="2026-09-30"><em>Correction, 30 September 2026: this sentence called it "the most reliable majority in the city that does not involve the EFF or MK", which the combination above contradicts. <a href="/corrections">Corrections</a>.</em></span>
 
-<!-- /block fd7290d7 -->
+<!-- /block 6fc46689 -->
 
 <!-- block a2c3ac8a -->
 *claim[3].steps[3]*

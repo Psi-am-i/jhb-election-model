@@ -11,8 +11,7 @@ Contact: [psi@whysoserious.city](mailto:psi@whysoserious.city).
 ## What is measured
 
 The site counts its readers with **Cloudflare Web Analytics**. It sets no
-cookie, which is why there is no consent banner. Cloudflare's description of
-it ([Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/)):
+cookie, so there is no consent banner. Cloudflare's description of it ([Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/)):
 "Cloudflare Web Analytics does not use any client-side state, such as cookies
 or localStorage, to collect usage metrics. We also don't 'fingerprint'
 individuals via their IP address, User Agent string, or any other data for the
@@ -20,12 +19,11 @@ purpose of displaying analytics."
 
 For each page view it records:
 
-- the page's address on this site, without any part after a `?`, which Web
-  Analytics does not log;
+- the page's address on this site, without any part after a `?`;
 - the site that linked to it, if any;
 - your country;
 - your device type, browser and operating system;
-- how long the page took to load and draw.
+- how long the page took to load and display.
 <!-- /analytics -->
 <!-- no-analytics -->
 ## What is measured
@@ -38,18 +36,17 @@ described below are the only count the site keeps.
 
 Links in this site's advertising and social posts use short addresses, one per
 channel: `/go` on the billboard, `/x`, `/li`, `/fb` and `/ig` for social posts,
-and `/g` for Google Ads. Each forwards to the home page. When it does, the
-site's server code writes one log line naming the channel and the site's own
-address, and nothing about the visitor. The site counts those lines to see which
-channels bring readers.
+and `/g` for Google Ads. Each forwards to the home page and writes one log line
+naming the channel and the site's own address, and nothing about the visitor.
+The site counts those lines by channel.
 
 Cloudflare's [Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/)
-holds those lines, with the metadata Cloudflare attaches to each one, and any
-error the site's server code raises. It is set not to keep a record of each
-request. It keeps every entry for at most seven days.
+holds those lines, with the metadata Cloudflare attaches to each, and any error
+the site's server code raises. It is set not to record each request, and keeps
+every entry for at most seven days.
 
-The same count, the channel and the site's address for each arrival and nothing
-about the visitor, is also kept in Cloudflare's
+The same count (the channel and the site's address for each arrival, and
+nothing about the visitor) is also kept in Cloudflare's
 [Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/),
 which deletes it after three months.
 
@@ -62,26 +59,26 @@ service.
 
 ## What is not collected
 
-- No accounts, sign-in or forms. If that changes, this page changes with it.
+- No accounts, sign-in or forms.
 - No advertising trackers and no Google tags.
 - No personal data is sold, or shared with advertisers.
 
 ## What your browser keeps
 
-If you use the light/dark switch in the menu bar, your choice is saved in your
-browser's local storage under the name `theme`, so the next page opens the same
-way. It stays on your device and is never sent to the site.
+The light/dark switch in the menu bar saves your choice in your browser's local
+storage under the name `theme`, so the next page opens the same way. It stays
+on your device and is not sent to the site.
 
 ## Who serves the site, and where
 
-The site is hosted and delivered by Cloudflare, Inc. Like any web host, it
-processes the IP address and request details of every visit in order to deliver
-pages and protect the site from abuse. Its handling of that data is set out in
-the [Cloudflare privacy policy](https://www.cloudflare.com/privacypolicy/).
+The site is hosted and delivered by Cloudflare, Inc. It processes the IP
+address and request details of every visit to deliver pages and protect the
+site from abuse, as set out in the
+[Cloudflare privacy policy](https://www.cloudflare.com/privacypolicy/).
 
 Cloudflare is a United States company, and its network handles requests in
-data centres outside South Africa, so this data leaves the country. The basis
-for that transfer is a binding agreement: Cloudflare's
+data centres outside South Africa, so this data leaves the country. The transfer
+rests on a binding agreement, Cloudflare's
 [Data Processing Addendum](https://www.cloudflare.com/cloudflare-customer-dpa/),
 under which it processes personal data only to provide its service to this
 site and must keep that data secure. POPIA permits a transfer abroad to a
@@ -96,8 +93,8 @@ Under POPIA you may:
 - object to its processing.
 
 Send a request to [psi@whysoserious.city](mailto:psi@whysoserious.city). The
-site itself stores nothing that names a visitor; the records described above
-are held by Cloudflare.
+site stores nothing that names a visitor; the records described above are held
+by Cloudflare.
 
 If you are not satisfied with the answer, you may complain to the
 [Information Regulator](https://inforegulator.org.za/), South Africa's

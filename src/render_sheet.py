@@ -161,13 +161,12 @@ def main(argv: list[str] | None = None) -> int:
     tiles = [
         (chance("tile.p_alone", p_alone), "One party reaches a majority alone", ""),
         (chance("tile.p_anc_da", anc_da["p"]),
-         "ANC + DA have a majority — the only two-party combination that reliably "
-         "reaches one", ""),
+         "ANC + DA have a majority. No other pair of parties reliably reaches one", ""),
         (chance("tile.p_da_largest", p_da_largest), "The DA is the largest single party", ""),
         (chance("tile.p_anc_largest", p_anc_largest), "The ANC is the largest single party", ""),
         (chance("tile.p_anc_excessive", p_excessive, "forecast_summary.json p_excessive_by_party"),
          "The ANC triggers the excessive-seats clause",
-         "Keeps every ward it wins, takes zero list seats — everyone else squeezed"),
+         "It keeps every ward it wins and gets no list seats; the other parties' list seats shrink"),
     ]
     tiles_html = "".join(
         f'<div class="stat"><div class="n">{n}<span class="chancew"> of simulations</span></div>'
@@ -304,24 +303,23 @@ def main(argv: list[str] | None = None) -> int:
                      if "ANC" in members_of(m) and "DA" not in members_of(m)
                      and float((msum(m) >= thr).mean()) > 0.5)
     govern_lede = (
-        f'<p class="lede">If the DA rules out the ANC, the EFF and MK, it has one realistic '
-        f'governing option: working with ActionSA and the PA — this coalition has the numbers in '
-        f'{chance("govern.da_best_without", da_best)} of the {{{{n_draws}}}} simulations. By '
-        f'contrast the ANC without the DA has {tok("govern.anc_routes", anc_routes, "int")} '
+        f'<p class="lede">If the DA rules out the ANC, the EFF and MK, its one realistic '
+        f'option is ActionSA and the PA, which have the numbers in '
+        f'{chance("govern.da_best_without", da_best)} of the {{{{n_draws}}}} simulations. '
+        f'The ANC without the DA has {tok("govern.anc_routes", anc_routes, "int")} '
         f'workable majorities, {tok("govern.anc_routes_strong", anc_strong, "int")} of them '
-        f'reaching {{{{majority}}}} seats in more than half the simulations. Nothing here says '
-        f'which deal is politically likely; just what is mathematically possible.</p>')
+        f'reaching {{{{majority}}}} seats in more than half the simulations. This is '
+        f'arithmetic, not a judgement of which deal is likely.</p>')
 
     govern_note = (
-        f"<b>How to read it.</b> Every row is a \u201csmallest workable majority\u201d: it has the "
-        f"numbers, and usually loses them if any one partner walks out. We have omitted "
-        f"combinations where a partner leaving usually has no effect. "
-        f"<b>% of simulations it can govern</b> — the share of the {{{{n_draws}}}} simulations in which "
-        f"it reaches {{{{majority}}}} seats; not a vote share, and not the chance a deal is made. "
-        f"<b>Median seats</b>, <b>cushion</b>, <b>stability</b> and <b>survivability</b> apply to the "
-        f"simulations in which it governs: stability is the share of its own councillors who could "
-        f"defect without sinking it, survivability how often the majority holds if that partner "
-        f"walks out.")
+        f"<b>How to read it.</b> Each row is a smallest workable majority: it has the numbers, "
+        f"and usually loses them if any one partner leaves. Combinations that a partner leaving "
+        f"usually does not break are left out. <b>Governs in</b> is the share of the "
+        f"{{{{n_draws}}}} simulations in which it reaches {{{{majority}}}} seats. It is not a vote "
+        f"share, or the chance that a deal is made. <b>Seats</b>, <b>cushion</b>, "
+        f"<b>stability</b> and <b>if a partner leaves</b> are over the simulations in which it "
+        f"governs. Stability is the share of its own councillors who could defect without "
+        f"sinking it.")
 
     # How many parties the simulation carries, and the seats it leaves to the
     # ones it does not. This used to sit under the coalition table, which lists
@@ -331,8 +329,8 @@ def main(argv: list[str] | None = None) -> int:
     band = chance("seats.band", _scq.BAND_SHARE,
                   "scenarios.BAND, the percentiles seat_quantiles reports")
     seats_note = (
-        "<b>Others</b> is every party not named above, counted within each simulation: the "
-        "council minus the named parties' seats. Each row is that party's own middle value and "
+        "<b>Others</b> is the council minus the named parties' seats, within each simulation. "
+        "Each row is that party's own middle value and "
         f"{band} range across the simulations, so the rows do not add up to the council.")
 
     # --- minority administrations ---------------------------------------------
@@ -563,21 +561,20 @@ def main(argv: list[str] | None = None) -> int:
     src_typ = f"seat_detail_draws.csv, simulation {typical}"
     anc_note = (f"In it the ANC wins {tok('ballots.typical.anc_wards', anc_w, 'int', src_typ)} wards "
                 f"and gets {tok('ballots.typical.anc_list', anc_l, 'int', src_typ)} list seats"
-                + (" — its ward wins already exceed its proportional share, so the excessive-seats "
-                   "clause gives it no list seats and everyone else's list seats shrink to fit. That "
-                   "happens in " if anc_l == 0 else ". The excessive-seats clause strips the ANC's list "
+                + ("; its ward wins exceed its proportional share, so the excessive-seats "
+                   "clause gives it no list seats and the other parties' list seats shrink. That "
+                   "happens in " if anc_l == 0 else ". The excessive-seats clause removes the ANC's list "
                    "seats in ")
                 + chance("ballots.p_anc_excessive", p_excessive,
                          "forecast_summary.json p_excessive_by_party")
                 + " of the simulations")
-    ballots_caption = (f"This is our most typical result: of the {{{{n_draws}}}} simulations, the one "
+    ballots_caption = (f"The most typical result: of the {{{{n_draws}}}} simulations, the one "
                        f"closest to the middle of every party's range (simulation "
                        f"{tok('ballots.typical.draw', typical, 'int', 'seat_detail_draws.csv')}). "
-                       f"Because it is a single result rather than an average of many, the ward seats "
-                       f"and the list seats add up to the council exactly. Hover a segment for its "
-                       f"seats. {anc_note}. ActionSA, with broad support but no stronghold wards, "
-                       "lives almost wholly on the list. Two opposite ways of turning votes into "
-                       "seats, in one city.")
+                       f"It is a single simulation, so its ward and list seats add up to the "
+                       f"council exactly. Hover a segment for its seats. {anc_note}. ActionSA, "
+                       "with broad support and no stronghold wards, takes almost all its seats "
+                       "from the list.")
     assert council_n == int(np.median(council)), (council_n, "typical simulation is not a full council")
     strip = f"""<!-- __BALLOTS_START__ -->
   <details class="rollup" data-band="forecast" open>

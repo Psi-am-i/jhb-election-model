@@ -119,8 +119,8 @@
 <header class="hero">
   <div class="eyebrow">City of Johannesburg · 4 November 2026</div>
   <!-- __HOMELEDE_START__ -->
-  <h1 class="state"><em>A coalition is all but inevitable</em> and we have a dead heat: the ANC and the DA each lead in {{@home.p_da_largest=0.465800;chance;forecast_summary.json, 5,000 simulations}} of simulations.</h1>
-  <p class="sub">One party governs alone in {{@home.p_alone=0.000800;chance;seat_draws.csv, one party at or above the threshold}} of simulations. And a rarely-used clause lets a party keep every ward it wins whatever its proportional share, taking the shortfall from everyone else — it fires in {{@home.p_excessive_any=0.698200;chance;forecast_summary.json p_excessive_any}} of them.</p>
+  <h1 class="state"><em>A coalition is all but inevitable</em> and it is a dead heat: the ANC and the DA each lead in {{@home.p_da_largest=0.465800;chance;forecast_summary.json, 5,000 simulations}} of simulations.</h1>
+  <p class="sub">One party governs alone in {{@home.p_alone=0.000800;chance;seat_draws.csv, one party at or above the threshold}} of simulations. A rarely used clause lets a party keep every ward it wins beyond its proportional share, with the shortfall taken from everyone else. It fires in {{@home.p_excessive_any=0.698200;chance;forecast_summary.json p_excessive_any}} of them.</p>
   <div class="stamp">Model run {{@home.generated=2026-09-29T17:59:46Z;date_long;forecast_summary.json, 5,000 simulations}} · {{@home.n_draws=5000;comma;forecast_summary.json, 5,000 simulations}} simulations</div>
   <!-- __HOMELEDE_END__ -->
 </header>
@@ -363,25 +363,21 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
 <section class="kind kind-interactive">
   <div class="eyebrow">Make your own forecast</div>
   <div class="comingsoon">
-    <h3>Tweak the levers and make your own forecast</h3>
-    <p>Disagree with us? You will be able to move the assumptions this model
-    rests on — how much the big parties lose to the small ones, how much recent
-    by-elections count, how many people turn out in each community — and watch
-    the council change. You will also be able to overrule the model completely
-    and call wards yourself.</p>
+    <h3>Move the assumptions, or call the wards yourself</h3>
+    <p>The builder will let you change what the model assumes: how much the
+    big parties lose to the small ones, how much recent by-elections count,
+    and how many people turn out in each community. You can also call wards
+    yourself.</p>
     <ul>
-      <li>Your forecast is <b>yours</b>, and the page says so — ours stays
-      where it is, and a small note shows how far apart the two are.</li>
-      <li>Share it as a link. Whoever opens it gets your forecast, and can
-      change it into theirs.</li>
-      <li>It is intended to run the same model this site publishes, in your
-      browser — not a simplified copy of it. Whether the whole model can be
-      shipped to a browser is still being measured, and this page will say
-      which it turned out to be.</li>
+      <li>The note under your council shows how far it is from the model's
+      forecast.</li>
+      <li>A link carries your forecast. Whoever opens it can change it.</li>
+      <li>It is meant to run the model this site publishes, in your browser.
+      Whether the whole model fits in a browser is still being measured.</li>
     </ul>
-    <p class="stamp" style="margin-top:14px">Not built yet. It is being built
-    against the model that produced the numbers above, and this space is held
-    for it rather than filled with a page that disagrees with them.</p>
+    <p class="stamp" style="margin-top:14px">Not built yet. <a href="play/">Play
+    with the model</a> re-weights the published simulations under your
+    settings.</p>
   </div>
 </section>
 
@@ -487,7 +483,7 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
         <div>
           <div class="t"><a href="nobody-will-win#the-november-surprise">Two ballots,
           one council</a></div>
-          <div class="d">Wards and lists are added together — and one clause
+          <div class="d">Ward and list seats are added together. One clause
           decides the rest.</div>
         </div>
       </div>
@@ -497,25 +493,24 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
         <div></div>
         <div>
           <div class="t"><a href="sources">Where the data comes from</a></div>
-          <div class="d">Every source file fingerprinted, every workaround
-          published.</div>
+          <div class="d">Each source file, its checksum, and the workarounds
+          it needed.</div>
         </div>
       </div>
       <div class="item" style="border-bottom:none">
         <div></div>
         <div>
           <div class="t"><a href="about">How well it has done</a></div>
-          <div class="d">Scored against elections that already happened, in
-          eight cities, against three deliberately stupid alternatives.</div>
+          <div class="d">Scored against a past election in eight cities, and
+          against three simple baselines.</div>
         </div>
       </div>
       <div class="item" style="border-bottom:none">
         <div></div>
         <div>
           <div class="t"><a href="review">How the model was broken — and fixed</a></div>
-          <div class="d">Every defect found in it, what it cost, and what
-          caught it. Moved here from the article list: it is not a piece about
-          the election.</div>
+          <div class="d">The errors found in the first version, and what each
+          repair changed.</div>
         </div>
       </div>
     </div>
@@ -527,8 +522,7 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
         <div>
           <div class="t"><a href="forecast#limits">What this forecast cannot
           tell you</a></div>
-          <div class="d">The questions it is not able to answer, said plainly
-          rather than left for a reader to discover.</div>
+          <div class="d">The questions it cannot answer.</div>
         </div>
       </div>
     </div>

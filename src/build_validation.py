@@ -181,34 +181,30 @@ def markdown(target: str, results: dict) -> str:
     add("")
     add("## What this page is")
     add("")
-    add("A forecast that has never been scored is an opinion. This page is the "
-        "scoring: the model was run against an election that has already "
-        "happened, in eight cities, and compared with what actually occurred "
-        "and with three deliberately stupid alternatives.")
+    add("This page is the model's scoring: it was run against an election "
+        "that has already happened, in eight cities, and compared with the "
+        "result and with three simple baselines.")
     add("")
-    add("Everything here is generated from the run itself. No number on this "
-        "page was typed by a person.")
+    add("Every figure here is generated from the run. None was typed by a "
+        "person.")
     add("")
     add("## How it was tested")
     add("")
-    add(f"The model was pointed at the **{target} municipal election** and asked "
-        f"to forecast it, using only what a forecaster could have had before "
+    add(f"The model was given the **{target} municipal election** to forecast, "
+        f"using only what a forecaster could have had before "
         f"polling day: the previous local election for its geography, the "
         f"national election before it for each party's starting level, and the "
         f"voters' roll. It was then scored against the real council.")
     add("")
     add("It was done in **eight metros, not one**. A model tuned on a single "
-        "city can look excellent there and mean nothing — it has learned that "
-        "city rather than how elections work. Each city is fitted only on its "
-        "own wards, its own registration and its own history; nothing is "
-        "carried across from Johannesburg. Seven of the eight are cities the "
-        "model was never designed against.")
+        "city can look excellent there and have learned only that city. Each "
+        "city is fitted only on its own wards, registration and history; "
+        "nothing is carried across from Johannesburg. Seven of the eight are "
+        "cities the model was never designed against.")
     add("")
-    add("### The three alternatives it has to beat")
+    add("### The three baselines")
     add("")
-    add("A forecast is only as good as the simplest thing that would have done "
-        "the same job. So the same scoring is applied to three baselines that "
-        "require no model at all:")
+    add("The same scoring is applied to three baselines that need no model:")
     add("")
     add("| baseline | what it does |")
     add("|---|---|")
@@ -216,11 +212,9 @@ def markdown(target: str, results: dict) -> str:
     add("| **uniform swing** | take the national swing since the last election and apply it equally everywhere |")
     add("| **last result plus noise** | the previous result, with uncertainty added around it |")
     add("")
-    add("\"Uniform swing\" in particular is the standard against which election "
-        "models are judged everywhere in the world, and it is much harder to "
-        "beat than it sounds. **Best baseline** below means whichever of the "
-        "three did best in that city — the model is compared against the "
-        "toughest one each time, not the easiest.")
+    add("Uniform swing is the usual standard for judging election models, and "
+        "it is hard to beat. **Best baseline** below means whichever of the "
+        "three did best in that city.")
     add("")
     add("## The result, city by city")
     add("")
@@ -237,20 +231,18 @@ def markdown(target: str, results: dict) -> str:
     add(f"| **all eight** | | **{total_m:.1f}** | {total_b:.1f} | "
         f"**+{(total_b - total_m) / total_b * 100:.0f}%** |")
     add("")
-    add(f"The model beats the best available baseline in **{wins} of "
+    add(f"The model beats the best baseline in **{wins} of "
         f"{len(best)}** cities. Across all eight its total error is "
         f"**{(total_b - total_m) / total_b * 100:.0f}% lower**.")
     add("")
-    add(f"On the simpler measure of how many council seats it got wrong, it "
-        f"misses **{total_mae}** seats across all eight councils against the "
-        f"baselines' **{total_bmae}** — "
-        f"{(total_bmae - total_mae) / total_bmae * 100:.0f}% better. That "
-        f"figure is lower than the headline because it only compares the "
-        f"single most likely outcome, and throws away everything the model "
-        f"says about how uncertain it is.")
+    add(f"Counting council seats wrong, it misses **{total_mae}** seats across "
+        f"all eight councils against the baselines' **{total_bmae}**, "
+        f"{(total_bmae - total_mae) / total_bmae * 100:.0f}% better. The "
+        f"margin is smaller than the headline because this measure compares "
+        f"only the single most likely outcome and ignores the model's "
+        f"uncertainty.")
     add("")
-    add(f"It calls the winner correctly in **{seats_called} of {seats_total} "
-        f"wards**.")
+    add(f"It calls the winner in **{seats_called} of {seats_total} wards**.")
     add("")
     add(f"## What it forecast for {target}, against what happened")
     add("")
@@ -290,33 +282,30 @@ def markdown(target: str, results: dict) -> str:
         add("")
     add("## The technical measures, in plain language")
     add("")
-    add("Three numbers appear above. They measure different things and it is "
-        "worth knowing which.")
+    add("Three measures appear above, and they measure different things.")
     add("")
-    add("**Seats out** is the obvious one: add up how many seats we got wrong "
-        "for each party. It is easy to understand and it throws away most of "
-        "what a forecast says, because it only looks at the single most likely "
-        "outcome and ignores the range around it.")
+    add("**Seats out** adds up how many seats the forecast got wrong for each "
+        "party. It is easy to read, and it ignores most of what a forecast "
+        "says: it looks only at the single most likely outcome, not the range "
+        "around it.")
     add("")
-    add("**CRPS** — the continuous ranked probability score — is the number in "
+    add("**CRPS** (the continuous ranked probability score) is the number in "
         "the comparison table. It scores the *whole range* a forecast gives, "
         "not just its midpoint. Saying \"between 85 and 95 seats\" and being "
-        "right scores better than saying \"exactly 90\" and being right, "
-        "because the first was honest about what it did not know; and a "
-        "confident wrong answer is punished harder than a hedged one. Lower is "
-        "better, and zero is perfect. It is in the same units as seats: a CRPS "
-        "of 45 across a 270-seat council is a small error.")
+        "right scores better than saying \"exactly 90\" and being right, and "
+        "a confident wrong answer is punished more than a hedged one. Lower is "
+        "better; zero is perfect. It is in seats: a CRPS of 45 across a "
+        "270-seat council is a small error.")
     add("")
-    add("**Calling the ward** is the hardest test and the most direct: 135 "
-        "separate first-past-the-post contests in Johannesburg alone, each won "
-        "outright by one party. Getting the council roughly right while "
-        "misreading which streets vote which way would show up here.")
+    add("**Calling the ward** is the hardest and most direct test: 135 "
+        "separate first-past-the-post contests in Johannesburg alone. A "
+        "forecast that got the council roughly right while misreading which "
+        "streets vote which way would show up here.")
     add("")
-    add("One caveat on the comparison. Two of the three baselines produce a "
-        "single number rather than a range, so CRPS is unavoidably kind to a "
-        "model that gives ranges. That is why the seats-out figure is quoted "
-        "alongside it: it is the like-for-like comparison, it is less "
-        "flattering, and it is still in the model's favour.")
+    add("One caveat. Two of the three baselines produce a single number rather "
+        "than a range, so CRPS favours a model that gives ranges. The seats-out "
+        "figure is the like-for-like comparison; its margin is smaller, and "
+        "still in the model's favour.")
     add("")
     add("## What this does not prove")
     add("")
@@ -329,20 +318,21 @@ def markdown(target: str, results: dict) -> str:
         # and the run's own banner names others the page never mentions. So the
         # lead-in no longer counts, and the splinter bullet has moved out of
         # this list into the paragraph below, where it belongs as history.
-        add("**These are not fully out-of-sample scores, and the model says so "
-            "on every run.** At least one input could not be confined to the "
-            "period before the election, and the run prints the full list "
-            "above its own results:")
+        add("**These are not fully out-of-sample scores, and every run says "
+            "so.** At least one input could not be confined to the period "
+            "before the election; the run prints the full list above its "
+            "results:")
         add("")
         add("* **The census.** Ward-level population figures come from the 2022 "
-            "census, which was taken after the 2021 election. It is the only "
-            "census we hold. A census records who lives in a ward, not how "
-            "they voted, so it cannot leak a result — but it is information "
-            "from after the fact and it is declared as such.")
+            "census, taken after the 2021 election; it is the only census we "
+            "hold. A census records who lives in a ward, not how they voted, "
+            "so it cannot leak a result. It is still information from after "
+            "the fact, and is declared as such.")
         add("")
-        add("**How much a breakaway party takes — this one WAS a leak, and is not one now.** When a well-known figure "
-            "leaves a party and starts their own, how much of the old party's "
-            "vote follows them depends enormously on whether that figure's "
+        add("**How much a breakaway party takes was a leak until 14 August "
+            "2026.** When a well-known figure leaves a party and starts their "
+            "own, how much of the old party's vote follows depends mostly on "
+            "whether that figure's "
             # ⛔ THIS PARAGRAPH WAS FALSE FROM 2026-08-14 TO 2026-09-27.
             # It said the model used splinter records "including two from after
             # 2021" and called that "the single largest reason the Johannesburg
@@ -353,25 +343,22 @@ def markdown(target: str, results: dict) -> str:
             # says "No number on this page was typed by a person". The sentence
             # is not a number, which is exactly the hole.
             "support is in *this* city. Only one such split had happened "
-            "anywhere before 2021, and one example is not a pattern. The model "
-            "used to fill that gap with splits from after 2021 — including "
-            "MK's, three years later — which flattered this page. Since "
-            "14 August 2026 it does not: the record is cut at the election "
-            "being forecast, the same rule every other record here obeys. "
-            "Johannesburg's figure is worse for it and is honest.")
+            "anywhere before 2021. The model used to fill that gap with splits "
+            "from after 2021, including MK's three years later, which "
+            "flattered this page. Since 14 August 2026 the record is cut at "
+            "the election being forecast, as every other record here is. "
+            "Johannesburg's figure is worse for it.")
         add("")
-        add("Every run prints these above its results. The honest reading is "
-            "that this is a strong estimate of what the machinery is worth, "
-            "not a sealed prediction made in 2021.")
+        add("Read the scores as an estimate of what the machinery is worth, "
+            "not as a sealed prediction made in 2021.")
     add("")
-    add("**One city is worse than doing nothing.** The model loses to uniform "
-        "swing in Mangaung, the smallest council in the set. It is reported "
-        "rather than dropped.")
+    add("**In one city the model loses.** Uniform swing beats it in Mangaung, "
+        "the smallest council in the set.")
     add("")
     add("**The past is not the future.** Scoring well against 2021 does not "
-        "guarantee 2026. Every party in this table existed in 2021; the "
-        "hardest thing a forecast does is a party that has never stood before, "
-        "and the record on those is the model's weakest area.")
+        "guarantee 2026. Every party in this table existed in 2021. A party "
+        "that has never stood before is the hardest thing to forecast, and the "
+        "model's weakest area.")
     add("")
     return "\n".join(L)
 

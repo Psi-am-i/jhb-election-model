@@ -120,7 +120,7 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
         first = HEAD_TO_HEAD_ORDER[0]
         p_heat = chance(f"home.p_{first.lower()}_largest",
                         da if first == "DA" else anc)
-        race = (f'we have a dead heat: the ANC and the DA each lead in '
+        race = (f'it is a dead heat: the ANC and the DA each lead in '
                 f'{p_heat} of simulations')
     elif abs(anc - da) < 0.05:
         race = (f'the race is too close to call: the {lead} leads in {p_lead} '
@@ -133,10 +133,10 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
 
     excessive = chance("home.p_excessive_any", float(summary["p_excessive_any"]),
                        "forecast_summary.json p_excessive_any")
-    sub = (f'One party governs alone in {p_alone} of simulations. And a '
-           f'rarely-used clause lets a party keep every ward it wins whatever '
-           f'its proportional share, taking the shortfall from everyone else — '
-           f'it fires in {excessive} of them.')
+    sub = (f'One party governs alone in {p_alone} of simulations. A '
+           f'rarely used clause lets a party keep every ward it wins beyond its '
+           f'proportional share, with the shortfall taken from everyone else. '
+           f'It fires in {excessive} of them.')
     # `date_long` is the registry's only date format; there is no "date".
     stamp = (f'Model run '
              f'{tok("home.generated", summary["_generated"], "date_long")} '
