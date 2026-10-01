@@ -296,7 +296,7 @@ THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 # apply to it). It lives in THEME_HEAD because that is the one head fragment
 # every page carries: the rendered documents, the nav-injected artefacts, the
 # portal (`build_portal`) and /play/ (`build_play.assemble`).
-CF_WEB_ANALYTICS_TOKEN = ""
+CF_WEB_ANALYTICS_TOKEN = "c14bef699fb74863b4db775ea910b533"   # public site token (Web Analytics site whysoserious.city, auto-injection off 2026-10-01)
 
 
 def analytics_head(token: str | None = None) -> str:

@@ -73,6 +73,7 @@
     try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
   }
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "c14bef699fb74863b4db775ea910b533"}'></script>
 <style>
   :root{
     /* colours come from THEME_HEAD, the one palette every page shares */
@@ -229,8 +230,22 @@
 Information Act (POPIA) is the site&rsquo;s author, Simon Davis, 91 St Patrick Road, Johannesburg 2198.</p>
 <p>Contact: <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a>.</p>
 <h2>What is measured</h2>
-<p>The pages carry no analytics script and count no page views. The short links
-described below are the only count the site keeps.</p>
+<p>The site counts its readers with <strong>Cloudflare Web Analytics</strong>. It sets no
+cookie, which is why there is no consent banner. Cloudflare&rsquo;s description of
+it (<a href="https://www.cloudflare.com/web-analytics/">Cloudflare Web Analytics</a>):
+&ldquo;Cloudflare Web Analytics does not use any client-side state, such as cookies
+or localStorage, to collect usage metrics. We also don&rsquo;t &lsquo;fingerprint&rsquo;
+individuals via their IP address, User Agent string, or any other data for the
+purpose of displaying analytics.&rdquo;</p>
+<p>For each page view it records:</p>
+<ul>
+<li>the page&rsquo;s address on this site, without any part after a <code>?</code>, which Web
+  Analytics does not log;</li>
+<li>the site that linked to it, if any;</li>
+<li>your country;</li>
+<li>your device type, browser and operating system;</li>
+<li>how long the page took to load and draw.</li>
+</ul>
 <h2>Which link brought you here</h2>
 <p>Links in this site&rsquo;s advertising and social posts use short addresses, one per
 channel: <code>/go</code> on the billboard, <code>/x</code>, <code>/li</code>, <code>/fb</code> and <code>/ig</code> for social posts,
