@@ -569,9 +569,11 @@ single most valuable addition to the register: it would let the metro path fire
 on the model's **worst** city-year, and give `H_eff > 1` for the first time.
 
 **Houses that publish South African voting intention**, from the coverage of the
-2026 cycle: Ipsos, MarkDATA, the Brenthurst Foundation, the Institute of Race
-Relations, and the Social Research Foundation with Victory Research. Only the
-last has published a Johannesburg metro cut for 2026, which is why `H_eff = 1.0`
+2026 cycle: Ipsos, MarkDATA, the Institute of Race Relations, and the Social
+Research Foundation with Victory Research. The Brenthurst Foundation closed in
+July 2025: its research director wrote that it "has closed its doors"
+([Daily Investor, 15 July 2025](https://dailyinvestor.com/south-africa/94131/billionaire-oppenheimer-family-closes-down-its-foundation-in-south-africa/)).
+Only the Social Research Foundation with Victory Research has published a Johannesburg metro cut for 2026, which is why `H_eff = 1.0`
 and the weight cap binds at 0.42 (§1.67).
 
 **On the 2026 register's single-house problem, independently.** The Daily
@@ -595,7 +597,14 @@ input it moves up the file and acquires a provenance note like everything else.
 
 <https://inside-politics.org/election-2026-7-resources/>
 
-An independent analyst's index for the 2026 LGE, and it is **large — roughly 230
+**Author.** The site is edited by Gareth van Onselen, who is chief executive of
+Victory Research, the firm that conducts the Social Research Foundation polls in
+the 2026 register, and who previously worked for the DA in communication,
+research and analysis roles. Sources: the site's own
+[About page](https://inside-politics.org/about/) and
+[IOL, 23 August 2026](https://iol.co.za/news/politics/2026-08-23-anc-at-18-former-da-man-gareth-van-onselens-hidden-hand-behind-the-polls/).
+
+An analyst's index for the 2026 LGE, and it is **large — roughly 230
 linked pages**, not a summary page. (A first survey of it recorded here called it
 a handful of graphics with "notable gaps"; that was read off a compressed
 summary and was wrong. Enumerated properly, the structure is below.)
