@@ -21,8 +21,10 @@
  * and showed the portal.
  *
  * Channel short paths (/go, /x, /li, /fb, /ig, /g; any case, optional trailing
- * slash) on the Johannesburg host and on workers.dev hosts answer 302 to the
- * home page and log one object, which Workers Logs indexes as fields:
+ * slash) on the apex and www answer 302 to the same path and query on
+ * joburg.whysoserious.city, and log nothing. On the Johannesburg host and on
+ * workers.dev hosts they answer 302 to the home page and log one object, which
+ * Workers Logs indexes as fields:
  *   {event: "arrival", channel: "<name>", host: "<hostname>"}
  * Cloudflare Web Analytics does not record query strings, so UTM tags are
  * invisible there; Workers Logs ([observability] in wrangler.toml) counts these
@@ -33,6 +35,9 @@
 // NB: request "/portal", not "/portal.html" — the assets layer 307s the
 // extension away, which would move the visitor off the apex URL.
 const PORTAL_HOSTS = new Set(["whysoserious.city", "www.whysoserious.city"]);
+
+// Where the portal hosts send a channel short path.
+const JOBURG_HOST = "joburg.whysoserious.city";
 
 // Cities served from the asset root rather than a subdirectory. Johannesburg
 // shipped before the portal existed and its URLs are already in the wild.
@@ -90,6 +95,14 @@ export default {
     }
 
     if (PORTAL_HOSTS.has(host)) {
+      // A short path on the apex or www goes to the Johannesburg host, which
+      // logs the arrival; logging here as well would count it twice.
+      if (channelOf(path)) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: `https://${JOBURG_HOST}${path}${url.search}` },
+        });
+      }
       if (path === "/" || path === "/index.html") {
         return env.ASSETS.fetch(new Request(new URL("/portal", url), request));
       }

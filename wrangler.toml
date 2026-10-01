@@ -53,3 +53,14 @@ run_worker_first = true
 # src/worker.js writes for the channel short paths (/go, /x, /li, /fb, /ig, /g).
 [observability]
 enabled = true
+
+# No per-request record: only the arrival objects above, plus errors and
+# uncaught exceptions, are kept. docs-public/privacy.md states this; change the
+# two together. Cloudflare, developers.cloudflare.com/workers/observability/
+# logs/workers-logs/ (read 2026-10-01):
+#   "Invocation logs can be disabled in wrangler by adding the
+#    `invocation_logs = false` configuration."
+#   "Any `console.log` statements within your Worker will be visible in
+#    Workers Logs."
+[observability.logs]
+invocation_logs = false
