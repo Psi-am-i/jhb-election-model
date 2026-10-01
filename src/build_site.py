@@ -297,9 +297,9 @@ THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 CF_WEB_ANALYTICS_TOKEN = ""
 
 
-def analytics_head(token: str = CF_WEB_ANALYTICS_TOKEN) -> str:
+def analytics_head(token: str | None = None) -> str:
     """The Web Analytics beacon, or nothing when no token is set."""
-    token = token.strip()
+    token = (CF_WEB_ANALYTICS_TOKEN if token is None else token).strip()
     if not token:
         return ""
     if not re.fullmatch(r"[0-9a-f]{32}", token):
@@ -353,11 +353,12 @@ OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election M
 SITE_URL = "https://joburg.whysoserious.city"
 
 
-def footer_for(token: str = CF_WEB_ANALYTICS_TOKEN) -> str:
+def footer_for(token: str | None = None) -> str:
     """The site footer. The support/privacy line appears only with the pages
     it links, i.e. only when the analytics token is set (`docs_for`). Its links
     are absolute: the footer is also carried by /play/ and the portal, where a
     relative `support` resolves somewhere else."""
+    token = CF_WEB_ANALYTICS_TOKEN if token is None else token
     policies = (f'\n  <div><a href="{SITE_URL}/support">support this site</a> · '
                 f'<a href="{SITE_URL}/privacy">privacy</a></div>'
                 if token.strip() else "")
@@ -480,9 +481,10 @@ POLICY_DOCS = {
 }
 
 
-def docs_for(token: str = CF_WEB_ANALYTICS_TOKEN) -> dict:
+def docs_for(token: str | None = None) -> dict:
     """The rendered documents: the model's pages, plus the policy pages only
     when the analytics token is set."""
+    token = CF_WEB_ANALYTICS_TOKEN if token is None else token
     return {**MODEL_DOCS, **(POLICY_DOCS if token.strip() else {})}
 
 
