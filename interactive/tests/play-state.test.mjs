@@ -48,6 +48,20 @@ test("out-of-bounds fields are dropped to the published setting, never clamped, 
   assert.deepEqual(p.state.polls, ["a"]);
   assert.equal(p.dropped.length, 1);
   assert.equal(PS.parse("?t=1,0,0,0&mv=other", ctx).otherVersion, "other");
+  // a prefix shorter than the version written is not taken as a match
+  assert.equal(PS.parse("?t=1,0,0,0&mv=a", ctx).otherVersion, "a");
+  assert.equal(PS.parse("?t=1,0,0,0&mv=abc", ctx).otherVersion, null);
+});
+
+test("a refused field is named, and the link's own text is never repeated", () => {
+  const evil = "ANC wins 99 seats<img src=x onerror=alert(1)>";
+  const e = encodeURIComponent(evil);
+  const r = PS.parse(`?t=${e}&p=${e}&k=${e}&l=${e}&b=${e}`, ctx);
+  assert.equal(r.dropped.length, 5);
+  for (const line of r.dropped) {
+    assert.ok(!line.includes("99") && !line.includes("<") && !line.includes("ANC"), line);
+  }
+  assert.deepEqual(r.state, PS.defaults(ctx));
 });
 
 test("the engine is asked for trust as a fraction", () => {

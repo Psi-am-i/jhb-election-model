@@ -371,3 +371,13 @@ body:has([data-live="seats"][data-touched]) .pubseats{display:none;}
 .seatstab .se{font-size:11px;color:var(--ink-3);font-weight:400;margin-left:3px;}
 .mobilesum .sumrow{display:contents;}
 .mobilesum .livelabel{flex-basis:100%;margin:0;}
+/* the phone's summary bar appears only once it has figures to show */
+.mobilesum:not(:has(.sumrow > *)){display:none;}
+/* a control table wider than the phone shows a shadow at the edge it scrolls towards */
+@media (max-width:979px){
+  .ctl .tablewrap{background:
+      linear-gradient(to right,var(--paper) 30%,transparent) left / 40px 100% no-repeat local,
+      linear-gradient(to left,var(--paper) 30%,transparent) right / 40px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%,rgba(127,127,127,.4),transparent) left / 14px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%,rgba(127,127,127,.4),transparent) right / 14px 100% no-repeat scroll;}
+}

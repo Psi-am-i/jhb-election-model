@@ -27,12 +27,15 @@
 // canvas cannot load web fonts.
 
 import { textWidth, fitText } from "./card-text.js";
-import { TRUST } from "./play-state.js";
+import { TRUST, MV_CHARS } from "./play-state.js";
 
 export const SIZES = { link: [1200, 630], story: [1080, 1920] };
 export const SITE = "joburg.whysoserious.city";
 export const STAMP = "Your settings, the model's simulations. Not the model's forecast.";
 export const INVITE = "Try your own at " + SITE + "/play";
+// In the header, beside the site's name, so a crop of the card's foot cannot
+// leave the figures reading as the forecast (critic S3, 2026-10-01).
+export const BANNER = "NOT THE FORECAST: a reader's settings";
 
 const C = {
   paper: "#141715", paper2: "#1c201d", rule: "#333833", ink: "#eceee9",
@@ -68,6 +71,25 @@ export function order(r, name) {
 
 const signedPoints = x => (x > 0 ? "+" : "") + x + (Math.abs(x) === 1 ? " point" : " points");
 
+// JUDGEMENT-CALLS §N2: polls switched on together multiply as independent
+// readings, which two waves of one house are not. One sentence per house with
+// more than one poll switched on, from the poll rows' own `house`, the same
+// rule for every house. The page (model.js) and the card both print these.
+export function sameHouse(ids, pollRows) {
+  const by = {};
+  for (const p of pollRows) if (ids.includes(p.id) && p.house) (by[p.house] ??= []).push(p.label || p.id);
+  return Object.entries(by).filter(([, ls]) => ls.length > 1)
+    .map(([h, ls]) => `${ls.join(" and ")} are from one polling house (${h}) and are counted as independent, so that house's error counts once for each.`);
+}
+
+// When the card was made and against which model: a card outlives the
+// forecast it was drawn from (critic S1). `made` is the date the page passes
+// in, ISO 8601; the version is the link's own `mv`.
+export function madeLine(made, ctx) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(made))) throw new Error("the card needs the date it was made, YYYY-MM-DD");
+  return "Made " + made + " · model " + String(ctx.modelVersion).slice(0, MV_CHARS);
+}
+
 // The reader's settings in words, one line each, every setting named whether
 // or not it was moved. `st` is play-state.js's state; `ctx` the page's.
 export function settingsLines(st, ctx) {
@@ -76,9 +98,10 @@ export function settingsLines(st, ctx) {
     : "Turnout: as published"];
   const on = ctx.pollRows.filter(p => st.polls.includes(p.id)).map(p => p.label || p.id);
   lines.push(st.trust > 0 && on.length ? "Polls at trust " + st.trust + " of " + TRUST.max + ": " + on.join("; ") : "Polls: none trusted, as published");
+  if (st.trust > 0) lines.push(...sameHouse(st.polls, ctx.pollRows).map(l => "Counted as independent: " + l));
   const cell = ctx.cellRows.find(c => c.path === st.cell);
   lines.push("Weight of recent by-elections: " + (cell ? cellName(cell) : st.cell));
-  lines.push("Seat law: " + (LAW_TEXT[st.law] || st.law));
+  lines.push(LAW_TEXT[st.law] || "Seat law: " + st.law);
   return lines;
 }
 
@@ -139,25 +162,34 @@ function councilLine(r, left) {
     " of " + seatText({ value: r.council }) + " seats.";
 }
 
+// At most `n` wrapped lines; when some are cut, the last says so.
+function capLines(ls, n) {
+  return ls.length <= n ? ls : [...ls.slice(0, n - 1), "… more settings: the link carries every one."];
+}
+
 // The card for one result. `r` is the compute result the page rendered;
-// `st`/`ctx` the settings that produced it; `party(code)` -> {name, colour}.
-export function buildPlayCardSVG({ r, st, ctx, party, size = "link" }) {
+// `st`/`ctx` the settings that produced it; `party(code)` -> {name, colour};
+// `made` the date it was made (madeLine).
+export function buildPlayCardSVG({ r, st, ctx, party, made, size = "link" }) {
   if (!r || r.refused) throw new Error("the card needs a computed result, not a refusal");
   const [W, H] = SIZES[size];
   const all = order(r, c => party(c).name);
   const lines = settingsLines(st, ctx);
+  const when = madeLine(made, ctx);
   let body;
   if (size === "link") {
     const list = all.slice(0, 7);
     const sx = 36, sw = 470, rx = 548, rw = W - 36 - rx;
-    const set = lines.flatMap(l => wrap(l, sw, 18));
+    const set = capLines(lines.flatMap(l => wrap(l, sw, 18)), 13);
     const note = wrap(councilLine(r, all.length - list.length), rw, 15);
     body =
       `<rect x="0" y="0" width="${W}" height="8" fill="${C.reader}"/>` +
       text(36, 58, SITE, { fs: 22, family: MONO, fill: C.accent, weight: "700" }) +
+      text(W - 36, 58, BANNER, { fs: 20, fill: C.reader, weight: "700", anchor: "end" }) +
       text(36, 90, "Play with the model: seats on the Johannesburg council", { fs: 19 }) +
+      text(W - 36, 90, when, { fs: 15, fill: C.ink3, anchor: "end" }) +
       text(sx, 150, "Your settings", { fs: 36, family: SERIF, fill: C.ink, weight: "600" }) +
-      set.slice(0, 13).map((l, k) => text(sx, 188 + k * 26, l, { fs: 18 })).join("") +
+      set.map((l, k) => text(sx, 188 + k * 26, l, { fs: 18 })).join("") +
       text(rx, 140, "Seats: middle (range)", { fs: 16, fill: C.ink3 }) +
       rows(list, r, party, rx, 156, rw, 44, 21) +
       note.map((l, k) => text(rx, 156 + list.length * 44 + 18 + k * 20, l, { fs: 15, fill: C.ink3 })).join("") +
@@ -165,16 +197,23 @@ export function buildPlayCardSVG({ r, st, ctx, party, size = "link" }) {
       text(36, H - 26, STAMP, { fs: 18, fill: C.reader }) +
       text(W - 36, H - 26, INVITE, { fs: 18, anchor: "end" });
   } else {
-    const list = all.slice(0, 10);
+    // Everything ends by FOOT_MAX, clear of the story apps' lower chrome: the
+    // settings are capped, and the party rows are as many as then fit (at
+    // least MIN_ROWS), the rest counted in the note.
+    const FOOT_MAX = 1800, MIN_ROWS = 5, MAX_ROWS = 10;
     const x = 60, w = W - 120;
-    const set = lines.flatMap(l => wrap(l, w, 30));
+    const set = capLines(lines.flatMap(l => wrap(l, w, 30)), 10);
     const setY = 330;
     const rowsY = setY + set.length * 42 + 90;
+    const tail = 30 + 3 * 32 + 80 + 150;          // note (up to three lines), stamp, invite, date
+    const fit = Math.floor((FOOT_MAX - tail - rowsY) / 66);
+    const list = all.slice(0, Math.max(MIN_ROWS, Math.min(MAX_ROWS, fit)));
     const note = wrap(councilLine(r, all.length - list.length), w, 24);
     const noteY = rowsY + list.length * 66 + 30;
     const footY = Math.max(noteY + note.length * 32 + 80, 1560);
     body =
       `<rect x="0" y="0" width="${W}" height="14" fill="${C.reader}"/>` +
+      text(x, 120, BANNER, { fs: 34, fill: C.reader, weight: "700" }) +
       text(x, 170, SITE, { fs: 36, family: MONO, fill: C.accent, weight: "700" }) +
       text(x, 216, "Play with the model: seats on the Johannesburg council", { fs: 28 }) +
       text(x, 290, "Your settings", { fs: 64, family: SERIF, fill: C.ink, weight: "600" }) +
@@ -183,16 +222,17 @@ export function buildPlayCardSVG({ r, st, ctx, party, size = "link" }) {
       rows(list, r, party, x, rowsY, w, 66, 32) +
       note.map((l, k) => text(x, noteY + k * 32, l, { fs: 24, fill: C.ink3 })).join("") +
       wrap(STAMP, w, 32).map((l, k) => text(x, footY + k * 42, l, { fs: 32, fill: C.reader })).join("") +
-      text(x, footY + 100, INVITE, { fs: 32 });
+      text(x, footY + 100, INVITE, { fs: 32 }) +
+      text(x, footY + 150, when, { fs: 24, fill: C.ink3 });
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
     `<rect width="${W}" height="${H}" fill="${C.paper}"/>${body}</svg>`;
 }
 
 // The image's text alternative: the same figures, in the same order.
-export function playCardAlt({ r, st, ctx, party }) {
+export function playCardAlt({ r, st, ctx, party, made }) {
   const all = order(r, c => party(c).name);
   const seats = all.map(c => party(c).name + " " + seatText(r.seats[c].median) + " (" + seatText(r.seats[c].p5) + " to " + seatText(r.seats[c].p95) + ")");
-  return "Seats on the Johannesburg council under a reader's settings. " + settingsLines(st, ctx).join(". ") + ". Middle seats (range): " +
-    seats.join(", ") + ". " + STAMP;
+  return "Not the forecast: seats on the Johannesburg council under a reader's settings. " + settingsLines(st, ctx).map(l => l.replace(/\.$/, "")).join(". ") + ". Middle seats (range): " +
+    seats.join(", ") + ". " + STAMP + " " + madeLine(made, ctx) + ".";
 }
