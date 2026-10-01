@@ -34,8 +34,9 @@ here first, so anything stale in this file is read as an instruction.
 > application/json, `/` text/html).
 >
 > **Deploy through UAT (2026-10-01): `docs/DEPLOY-UAT.md`.** `wrangler versions
-> upload`, check the printed Version URL, then `versions deploy <id>@100%`. Campaign
-> links use the channel short paths listed there, not `utm_` tags.
+> upload`, check the printed Version URL, then `versions deploy <id>@100%`.
+> Campaign links use the channel short paths, not `utm_` tags; on the apex and
+> www they 302 to the Joburg host, which logs the arrival once.
 >
 > **Frozen and published, MODEL-LOG §1.282.** Deploy by the runbook above from
 > the repo root (the agent is not permitted to), then check with a cache-buster: the ANC
@@ -46,16 +47,18 @@ here first, so anything stale in this file is read as an instruction.
 > ⚠️ `test_the_published_pages_are_what_this_tree_builds_today` fails after a
 > publish on the movement arrows alone (§1.282); that is expected.
 >
-> **Web Analytics, /support and /privacy (branch `support-analytics`)** ship
-> only once `CF_WEB_ANALYTICS_TOKEN` in `src/build_site.py` is set; while it is
-> empty the build emits no beacon and neither page nor their footer line. To
-> enable: Cloudflare dashboard → Web Analytics → Add a site →
-> `joburg.whysoserious.city` → Done; in Manage site choose the JS-snippet setup
-> (not automatic injection, which would count every visit twice); copy the
-> 32-hex token from the snippet's `data-cf-beacon` into the constant; rebuild;
-> after deploying, check a served page carries `cloudflareinsights` once.
-> /privacy describes the channel short paths (`/go /x /li /fb /ig /g`) and
-> Workers Logs, so it must not ship before the Worker that serves them.
+> **Site policy state (2026-10-01, branch `remediation`, not yet in `site/`).**
+> /privacy and /support ship in every build; only privacy.md's Web Analytics
+> paragraph and the beacon follow `CF_WEB_ANALYTICS_TOKEN` (empty). Footer:
+> text, charts and figures CC BY 4.0 (`LICENSE-CONTENT`), code MIT (`LICENSE`),
+> raw results from the IEC. `_headers` adds nosniff, Referrer-Policy, CSP
+> `frame-ancestors 'self'` and HSTS (one year, no subdomains). Workers Logs
+> keeps no invocation logs. **Owner, before the next deploy:** (1) fill the
+> `OWNER:` line in `docs-public/privacy.md` (`--publish` refuses until then);
+> (2) `site/_headers` is stale and `deploy_check` refuses every deploy until it
+> equals `build_site.headers_text()`; the footer, policy pages and robots.txt
+> reach `site/` only through a build; (3) move to Workers Paid before results
+> night.
 >
 > **EARLIER STATE (2026-09-29 night):** F8, F9, F10 DONE; F11 (build, R4, publish) WAS NEXT.
 >
