@@ -129,7 +129,8 @@
   <header class="lede">
     <h1>Play with the model</h1>
     <p>Untouched, this page shows the model's published forecast. Each control picks out the simulated elections that match what you
-      believe, so every answer stays inside what the model already drew. Every control applies to every party in the same way.</p>
+      believe, so every answer stays inside what the model already drew. Every control is one mechanism applied to all parties; its
+      effect differs by party.</p>
     <p class="pos">Figures under the label "computed in your browser from your settings" are worked out on your device: this site's
       re-weighting code, in Python, runs in your browser on the model's published simulations. It does not re-run the model. These
       figures are not part of the published forecast and are not recorded anywhere; your settings are kept only in this page's address,
@@ -153,10 +154,14 @@
 
       <section class="ctl" aria-labelledby="h-poll">
         <h3 id="h-poll">Polls</h3>
-        <p class="pos">Our setting is zero trust: the published forecast uses no polls. Moving the slider is your judgement, not ours.</p>
-        <p>These are the polls of Johannesburg the model's own rules admit. At full trust each poll counts with the whole error the
-          model gives it: sampling error, the polling house's usual lean, its likely-voter screen and the drift since fieldwork. At half
-          trust that error is doubled; at zero the poll has no weight at all. Full trust never means the poll comes true: the figures
+        <p class="pos">Our setting is zero trust: the published forecast uses no polls. Why, and what polls were worth when that was
+          measured, is under "Where polls fit" on the <a href="../methodology">methodology page</a>. Moving the slider is your
+          judgement, not ours.</p>
+        <p>These are the polls of Johannesburg the model's own rules admit. At full trust each poll counts with the error the model
+          computes for that poll taken on its own: sampling error, a typical house error that is the same for every house, a charge
+          for an undisclosed likely-voter screen, and the drift since fieldwork. A poll that published no sample size is given the
+          typical house error in place of its sampling error. This is narrower than the error the model's own poll blend would use,
+          which prices the polls together. At half trust that error is doubled; at zero the poll has no weight at all. Full trust never means the poll comes true: the figures
           then describe the model's draws nearest the polls.</p>
         <div class="tablewrap" data-live="polls"><p class="livelabel">Computed in your browser from your settings: each house's published figures.</p><table class="polltab"></table></div>
         <div data-live="trust"><p class="livelabel">Computed in your browser from your settings.</p>
@@ -164,8 +169,8 @@
           <input type="range" id="trust" aria-describedby="trusthelp" disabled><output for="trust"></output></div></div>
         <p id="trusthelp" style="font-size:12.5px;color:var(--ink-3)">Zero leaves the forecast untouched whatever is switched on.</p>
         <p class="stubnote">Polls switched on together are counted as independent readings. Two waves from the same polling house share
-          that house's lean, so switching both on counts the lean twice and pulls the figures further towards that house than two
-          waves justify.</p>
+          that house's error, so switching both on counts it twice and pulls the figures further towards that house than two waves
+          justify.</p>
         <div data-live="poll-average"><p class="livelabel">Computed in your browser from your settings.</p><p class="pollavg"></p></div>
       </section>
 
@@ -513,8 +518,7 @@
 <b>Others</b> is every party not named above, counted within each simulation: the council minus the named parties' seats. Each row is that party's own middle value and <span class="mstat" data-mode="generated" data-token="seats.band" data-when="" data-prov="90%. Unchanged since 27 September 2026. Source: scenarios.BAND, the percentiles seat_quantiles reports, computed at build from the current model run." tabindex="0">90%</span> range across the simulations, so the rows do not add up to the council.
 <!-- __SEATS_NOTE_END__ --></figcaption>
     </figure></div></template></div></div>
-      <div data-live="effective-draws"><p class="livelabel">Computed in your browser from your settings.</p><p class="ess"></p></div>
-      <div class="tablewrap" data-live="seats"><p class="livelabel">Computed in your browser from your settings.</p>
+      <div class="tablewrap" data-live="seats"><p class="livelabel">Computed in your browser from your settings.</p><p class="ess"></p>
         <p class="stubnote seatsempty">Move a control and the seats it gives are computed here.</p>
         <table class="seatstab"></table>
         <p class="stubnote bandnote"></p>

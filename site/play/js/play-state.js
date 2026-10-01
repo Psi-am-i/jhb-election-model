@@ -45,6 +45,9 @@ const onStep = (x, { min, max, step }) =>
 // Returns { state, dropped: [what was refused and why], otherVersion: sha|null }.
 // A field out of bounds is dropped back to the published setting, never
 // clamped: a clamped value is a setting the reader did not choose.
+// `dropped` names the refused FIELD and what it accepts, never the value the
+// link carried: the page prints these lines, and a link's text is anyone's
+// (code review, 2026-10-01: "?p=ANC%20wins%2099%20seats" was echoed verbatim).
 export function parse(search, ctx) {
   const q = new URLSearchParams(search);
   const st = defaults(ctx);
@@ -52,29 +55,31 @@ export function parse(search, ctx) {
   if (q.has("t")) {
     const xs = q.get("t").split(",").map(Number);
     if (xs.length === ctx.pools.length && xs.every(x => onStep(x, TURNOUT))) st.shift = xs;
-    else dropped.push('turnout "' + q.get("t") + '": needs ' + ctx.pools.length + " values from " + TURNOUT.min + " to " + TURNOUT.max + " in steps of " + TURNOUT.step);
+    else dropped.push("turnout: needs " + ctx.pools.length + " values from " + TURNOUT.min + " to " + TURNOUT.max + " in steps of " + TURNOUT.step);
   }
   if (q.has("p")) {
     const ids = q.get("p").split(",").filter(Boolean);
     const known = ids.filter(id => ctx.polls.includes(id));
-    if (known.length !== ids.length) dropped.push("poll(s) not offered: " + ids.filter(id => !ctx.polls.includes(id)).join(", "));
+    if (known.length !== ids.length) dropped.push("polls: the link names a poll this page does not offer");
     st.polls = [...new Set(known)];
   }
   if (q.has("k")) {
     const k = Number(q.get("k"));
     if (onStep(k, TRUST)) st.trust = k;
-    else dropped.push('trust "' + q.get("k") + '": needs ' + TRUST.min + " to " + TRUST.max + " in steps of " + TRUST.step);
+    else dropped.push("trust: needs " + TRUST.min + " to " + TRUST.max + " in steps of " + TRUST.step);
   }
   if (q.has("l")) {
     if (ctx.laws.includes(q.get("l"))) st.law = q.get("l");
-    else dropped.push('seat law "' + q.get("l") + '" is not one of ' + ctx.laws.join(", "));
+    else dropped.push("seat law: needs one of " + ctx.laws.join(", "));
   }
   if (q.has("b")) {
     if (ctx.cells.includes(q.get("b"))) st.cell = q.get("b");
-    else dropped.push('by-election setting "' + q.get("b") + '" is not in this export');
+    else dropped.push("by-election weight: not one this page offers");
   }
+  // The link's version must be this model's first MV_CHARS characters
+  // exactly: a shorter prefix would match more than one version.
   const mv = q.get("mv");
-  return { state: st, dropped, otherVersion: mv && !String(ctx.modelVersion).startsWith(mv) ? mv : null };
+  return { state: st, dropped, otherVersion: mv != null && mv !== String(ctx.modelVersion).slice(0, MV_CHARS) ? mv : null };
 }
 
 // Only fields that differ from the published setting are written, plus mv.

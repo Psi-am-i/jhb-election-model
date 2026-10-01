@@ -44,6 +44,7 @@ let now = null;
 let size = "link";
 let cache = {};
 let opener = null;
+let shown = null;             // the preview's object URL, revoked when replaced
 
 export function setShareable(info) {
   now = info;
@@ -83,7 +84,9 @@ async function draw() {
     return;
   }
   if (want !== size || info !== now) return;
-  S.img.src = URL.createObjectURL(cache[want]);
+  if (shown) URL.revokeObjectURL(shown);
+  shown = URL.createObjectURL(cache[want]);
+  S.img.src = shown;
   S.native.disabled = false;
   S.dl.disabled = false;
 }
@@ -104,9 +107,13 @@ S.dlg.addEventListener("click", e => { if (e.target === S.dlg) S.dlg.close(); })
 S.dlg.addEventListener("close", () => opener?.focus?.());
 for (const b of S.sizes) b.addEventListener("click", () => { size = b.dataset.size; draw(); });
 S.copy.addEventListener("click", async () => {
-  try { await navigator.clipboard.writeText(now.url); }
-  catch (e) { S.url.select(); document.execCommand?.("copy"); }
-  say("Link copied.");
+  let ok = false;
+  try { await navigator.clipboard.writeText(now.url); ok = true; }
+  catch (e) {
+    S.url.select();
+    try { ok = document.execCommand?.("copy") === true; } catch (e2) { ok = false; }
+  }
+  say(ok ? "Link copied." : "Copying did not work here. The link is selected: copy it from the box.");
 });
 S.native.addEventListener("click", () => {
   const data = { title: "Play with the Johannesburg election model", text: "My settings for the Johannesburg election model.", url: now.url };
@@ -123,5 +130,6 @@ S.dl.addEventListener("click", () => {
   a.href = URL.createObjectURL(cache[size]);
   a.download = fileBase() + "-" + size + ".png";
   a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);   // after the download has started
   say("Image downloaded.");
 });

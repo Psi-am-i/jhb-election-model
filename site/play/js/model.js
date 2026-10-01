@@ -34,7 +34,7 @@
 // reweight.within_precision held.
 
 import * as PS from "./play-state.js";
-import { order, seatText, LAW_TEXT, cellName } from "./play-card.js";
+import { order, seatText, LAW_TEXT, cellName, sameHouse } from "./play-card.js";
 import { setShareable } from "./play-share.js";
 
 const DEBOUNCE_MS = 200;
@@ -54,7 +54,7 @@ const R = {
   cells: document.querySelector('[data-live="cells"] .seg'),
   bye: document.querySelector('[data-live="byelection"] table'),
   law: document.querySelector('[data-live="law"]'),
-  ess: document.querySelector('[data-live="effective-draws"] .ess'),
+  ess: document.querySelector('[data-live="seats"] .ess'),
   seatsRegion: document.querySelector('[data-live="seats"]'),
   seats: document.querySelector('[data-live="seats"] table'),
   bandnote: document.querySelector('[data-live="seats"] .bandnote'),
@@ -248,9 +248,14 @@ async function update() {
     return;
   }
   R.ess.textContent = "Computing…";
+  // The settings this result is FOR. A control moved during the await changes
+  // `st`, and that move schedules its own update: this result is then stale,
+  // and is dropped rather than shown (or shared) beside the newer settings.
+  const asked = copyState(st);
   let m;
-  try { m = await ask(PS.engineSettings(st)); }
+  try { m = await ask(PS.engineSettings(asked)); }
   catch (e) { if (e.message !== "superseded") R.ess.textContent = `The re-weighting code refused: ${e.message}`; return; }
+  if (PS.serialize(st, ctx) !== PS.serialize(asked, ctx)) return;
   const r = m.result;
   const bad = r.refused ? `too few simulations match that setting to say anything (${r.refused})`
     : r.within_precision === false ? `a figure on this page would be known to worse than ±${r.max_figure_se} seats` : null;
@@ -275,6 +280,7 @@ async function update() {
         let tr;
         try { tr = (await ask(PS.engineSettings(trial))).result; }
         catch (e) { if (e.message === "superseded") return; throw e; }
+        if (PS.serialize(st, ctx) !== PS.serialize(asked, ctx)) return;   // moved meanwhile
         if (!tr.refused && tr.within_precision !== false) { lo = mid; stop = { state: trial, result: tr }; }
         else hi = mid;
       }
@@ -300,23 +306,24 @@ async function update() {
     clear(R.seats);
     R.bandnote.textContent = "";
     renderBye(baseline);
-    offerShare(null);
+    offerShare(null, asked);
     return;
   }
-  if (r.within_precision) accepted = { state: copyState(st), result: r };
+  if (r.within_precision) accepted = { state: copyState(asked), result: r };
   lastResult = r;
-  render(r, true, m.ms);
+  render(r, true, m.ms, asked);
 }
 
 // The share sheet is handed the result the seat table shows, never a second
-// computation: its image draws these same figures (play-card.js).
-function offerShare(r) {
-  setShareable({ url: new URL(location.pathname + PS.serialize(st, ctx), location.href).href,
-                 r, st: copyState(st), ctx, party });
+// computation, with the settings that result was computed for (not whatever
+// `st` holds by then): its image and its link carry the same setting.
+function offerShare(r, state) {
+  setShareable({ url: new URL(location.pathname + PS.serialize(state, ctx), location.href).href,
+                 r, st: copyState(state), ctx, party, made: new Date().toLocaleDateString("en-CA") });
 }
 
-function render(r, touched, ms) {
-  offerShare(touched ? r : null);
+function render(r, touched, ms, state = st) {
+  offerShare(touched ? r : null, state);
   if (touched) R.seatsRegion.setAttribute("data-touched", "");
   else R.seatsRegion.removeAttribute("data-touched");
   R.ess.classList.remove("low");
@@ -337,7 +344,7 @@ function render(r, touched, ms) {
   const codes = order(r, c => party(c).name);
   const base = baseline && r.law === baseline.law ? baseline.seats : null;
   clear(R.seats);
-  R.seats.append(el("thead", {}, el("tr", {}, ...["Party", "Middle", "Range", "Change"].map(h => el("th", { scope: "col" }, h)))));
+  R.seats.append(el("thead", {}, el("tr", {}, ...["Party", "Middle", "Range", "Against published"].map(h => el("th", { scope: "col" }, h)))));
   const tbody = el("tbody");
   for (const c of codes) {
     const s = r.seats[c], b = base?.[c];
@@ -352,7 +359,7 @@ function render(r, touched, ms) {
   const label = r.poll ? ` With a poll trusted, these figures are ${r.poll.label}, not what happens if the poll is right.` : "";
   R.bandnote.textContent = "Middle is the median seat count; the range covers nine in ten of the weighted simulations. " +
     `The ± under each figure is simulation error only, in seats: how far that figure could move with a fresh set of simulations. It is not the forecast's uncertainty, which is the range. No control goes past ±${r.max_figure_se}. ` +
-    (base ? "Change is against the published forecast under this seat law. " : "Change is shown only under the published seat law. ") +
+    (base ? "Against published is the change in the middle count from the published forecast under this seat law; the arrows on the published panel compare it with the previous edition. " : "Against published is shown only under the published seat law. ") +
     "Fewer effective simulations make every figure less certain than the published one." + label;
 
   clear(R.summary);
@@ -366,19 +373,8 @@ function render(r, touched, ms) {
     const parts = Object.keys(r.poll.average).sort((a, b) => r.poll.average[b] - r.poll.average[a]);
     R.pollavg.textContent = "Average of the polls switched on, on the parties they all name (lowest to highest poll in brackets): " +
       parts.map(k => `${party(k).name} ${pct(r.poll.average[k])} (${pct(r.poll.spread[k][0])}–${pct(r.poll.spread[k][1])})`).join(", ") + "." +
-      sameHouse(st.polls);
+      sameHouse(state.polls, ctx.pollRows).map(l => " " + l).join("");
   } else R.pollavg.textContent = "No poll is switched on with any trust.";
-}
-
-// JUDGEMENT-CALLS §N2: polls switched on together multiply as independent
-// readings, which two waves of one house are not. Said in words wherever it
-// applies, from the poll rows' own `house`, the same rule for every house.
-function sameHouse(ids) {
-  const by = {};
-  for (const p of ctx.pollRows) if (ids.includes(p.id) && p.house) (by[p.house] ??= []).push(p.label || p.id);
-  return Object.entries(by).filter(([, ls]) => ls.length > 1)
-    .map(([h, ls]) => ` ${ls.join(" and ")} are from one polling house (${h}) and are counted as independent, so that house's lean counts once for each.`)
-    .join("");
 }
 
 // The by-election column (DESIGN-decided §11, review F20). `centres` are the
@@ -390,11 +386,11 @@ const signed = (x, digits) => (x > 0 ? "+" : "") + x.toFixed(digits);
 function renderBye(r) {
   clear(R.bye);
   R.bye.append(el("thead", {}, el("tr", {}, ...["Party", "By-election swing, contested wards only", "Wards contested",
-    "Model's central level at this weight", "Level against the published weight", "Middle seats against the published weight"]
+    "Counts in the model", "Model's central level at this weight", "Level against the published weight", "Middle seats against the published weight"]
     .map(h => el("th", { scope: "col" }, h)))));
   const tbody = el("tbody");
   if (!evidence) {
-    tbody.append(el("tr", {}, el("td", { colspan: 6 }, "The by-election evidence is not served with these draws.")));
+    tbody.append(el("tr", {}, el("td", { colspan: 7 }, "The by-election evidence is not served with these draws.")));
     R.bye.append(tbody);
     return;
   }
@@ -411,6 +407,9 @@ function renderBye(r) {
       : cmp?.[c] ? (cmp[c].within_noise ? "within sampling noise" : `${signed(Math.round(cmp[c].difference * 10) / 10, 1)}, more than sampling noise`) : "—";
     tbody.append(el("tr", {}, el("td", {}, party(c).name),
       el("td", {}, `${signed(Math.round(+x.weighted_delta * 1000) / 10, 1)} points`), el("td", {}, String(x.contests)),
+      // index.json's reaches_model: false when the party's by-election evidence
+      // is below the model's minimum weight, so its swing moves no forecast.
+      el("td", {}, x.reaches_model === false ? "no: too little by-election evidence" : x.reaches_model ? "yes" : "—"),
       el("td", {}, level), el("td", {}, vsLevel), el("td", {}, vsSeats)));
   }
   R.bye.append(tbody);
