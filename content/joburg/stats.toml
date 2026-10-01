@@ -619,14 +619,6 @@ reviewed = "2026-09-17"
 page = "index.html"
 
 [[audit.fixed]]
-value = "4,450"
-context = "it means the thing happened in about 4,450 of the"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
-kind = "convention"
-source = "a worked illustration of what a share of simulations means"
-reviewed = "2026-09-17"
-page = "index.html"
-
-[[audit.fixed]]
 value = "1"
 context = "a 2021 amendment completes schedule 1, and"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
 kind = "rule"
@@ -775,14 +767,6 @@ value = "2026-08-22"
 context = "for a day after 2026-08-22 it said no poll was used"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
 kind = "history"
 source = "MODEL-LOG — the date the methodology's poll statement stopped being true"
-reviewed = "2026-09-17"
-page = "methodology.html"
-
-[[audit.fixed]]
-value = "12"
-context = "an input until 12 September. Removing them is not a"
-kind = "history"
-source = "MODEL-LOG 1.244 — the date polls left the forecast"
 reviewed = "2026-09-17"
 page = "methodology.html"
 

@@ -364,7 +364,7 @@ function render(r, touched, ms, state = st) {
   R.bandnote.textContent = "Middle is the median seat count; the range covers nine in ten of the weighted simulations. " +
     `The ± under each figure is simulation error only, in seats: how far it could move with a fresh set of simulations. It is not the forecast's uncertainty, which is the range. No control goes past ±${r.max_figure_se}. ` +
     (base ? "Against published is the change in the middle count from the published forecast under this seat law. The arrows on the published forecast's panel, shown when no control is moved, compare it with the previous edition. " : "Against published is shown only under the published seat law. ") +
-    "Fewer effective simulations make every figure less certain than the published one." + label;
+    "Effective simulations are the number of equally weighted simulations the re-weighted set is worth. The fewer there are, the less certain every figure." + label;
 
   clear(R.summary);
   R.summary.append(...codes.slice(0, 4).map(c => el("span", {}, el("span", { className: "sw", style: `background:${party(c).colour}` }),

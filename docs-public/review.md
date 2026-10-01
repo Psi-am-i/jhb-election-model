@@ -15,8 +15,9 @@ makes the forecast more worth your trust, not less.
 <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
 <p>The figures below describe the <b>first version</b> of the model, as it stood on 6 August 2026.
 Today the DA is the largest party in {{p_da_largest}} of simulations and the ANC in
-{{p_anc_largest}}, and the excessive-seats clause fires in {{p_excessive_anc}}. The page
-is kept as published, as a record of how the errors were found and fixed.</p></aside>
+{{p_anc_largest}}, and the ANC triggers the excessive-seats clause in {{p_excessive_anc}}. No
+poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is kept as published, as a record
+of how the errors were found and fixed.</p></aside>
 
 <span data-asof="2026-08-06">
 

@@ -123,3 +123,83 @@ share").
   `reweight.MAX_FIGURE_SE_SEATS` under 2.0; the constant is 2.5 at HEAD),
   `test_no_numeric_module_constant_is_a_default_argument` (`deploy_check.py:34`),
   `test_pool_bounds::test_no_emitted_composition_weight_is_arithmetically_impossible`.
+
+## After the check (2026-10-01)
+
+The check of this sweep listed must-fix, should-fix and taste items. What was
+applied, and what was not and why.
+
+### Applied
+
+| item | file | change |
+|---|---|---|
+| M1 home, present tense for an unbuilt feature | `home.html` | "You can also call wards yourself" → "You will also be able to call wards yourself"; the two bullets under "Not built yet" now say "will show" and "will carry" (also should-fix "home · tense") |
+| M3 about, "largest 55 parties" | `src/build_validation.py` → `about-the-model.md` (`--from-json`) | 55 was the artefact's row cap, not the rows shown. Now "The largest parties in each city, by seats won in 2021; the note under each table says how many are shown." Each table's note already prints `len(shown)`. |
+| M5 corrections, 27 September table | `corrections.md` | column header "today" → "on 27 September" |
+| M6 methodology grammar | `methodology.md` | "handed parties … more than the entire electorate" → "gave parties … more votes than the entire electorate"; the verbless excessive-seats sentence → "The excessive-seats clause catches the ANC in {{p_excessive_anc}} of simulations: …"; "measures by how much … separately for each party" → "measures the gap for each party from its own national-to-local transitions on record" |
+| claim 1 since box | `claims.toml` (rendered into `forecast-sheet.html`) | "no longer appears in any simulation"; "A DA majority depends less on turnout than it did" |
+| privacy | `privacy.md` | "If that changes, this page changes with it." restored |
+| support | `support.md` | "two kinds of backer only" restored |
+| review since box | `review.md` | "the ANC triggers the excessive-seats clause in {{p_excessive_anc}}"; adds "No poll has been an input since 12 September 2026", the date in a `data-asof="2026-09-12"` span as on the forecast dateline |
+| about, standfirst repeated by first paragraph | `src/build_validation.py` | paragraph cut; "Every figure here is generated … None was typed by a person" → "Every result on this page is generated from the run recorded at its foot. The examples under *The technical measures* are illustrations." |
+| forecast typed figures | `forecast-sheet.html`, `drafts/forecast-draft.html` | "about 4,450 of the {{n_draws}}" → "that share of the {{n_draws}}"; "all 15 CoJ by-elections" → "all CoJ by-elections" |
+| forecast repetition | `forecast-sheet.html` | Limits bullet "Viability is not intent" keeps its first two sentences; "The model says which deals have the numbers, not which will happen" cut (its token stays) |
+| corrections last paragraph | `corrections.md` | the 23 September check keeps its date and verdict and one sentence naming the draft entries; the figures of drafts no reader saw are cut; the HTML comment says so |
+| play, unexplained "effective simulations" | `interactive/js/model.js`, `interactive/js/play-card.js` | the page's band note defines the term ("the number of equally weighted simulations the re-weighted set is worth"); the share card says "the range covering nine in ten of the re-weighted simulations. They count as N of M equally weighted ones." The live count stays. |
+| taste: "overwhelmingly" softened to "mostly" twice; contrast clause dropped | `methodology.md` | restored |
+| claims proposals | `claims-proposals.md` | C1 steps[0] "every registered DA voter"; C3 steps[0] "against the ANC and the DA"; C4 steps[0] heading no longer says "about half"; C4 steps[2] keeps "on this arithmetic" and its inline reason, note rewritten |
+| `stats.toml` | | the `"4,450"` audit entry (its sentence is gone) and the orphaned `"12"` entry removed |
+
+No token was added, removed or moved: the `{{…}}`/`[[…]]` sequence of every
+changed page source is identical to `84f7084`.
+
+### Not applied
+
+| item | why |
+|---|---|
+| M2 claim 4, "the red line holds about half the time", "comes down to a coin flip", verdict "A COIN FLIP" | The ledger records `claim.red_lines.no_red_share` at 59% on all three publications (26, 27, 30 September). The heading is in the dated write-up, the verdict is a claim verdict, and the check's rewrite adds `[[no_red_share]]` to the heading. This is a correction for the owner; the C4 steps[0] proposal now carries the rewrite. |
+| M4 "587,000 votes the ANC shed between 2016 and 2021" (`articles.toml`, 8 August standfirst, on the home page) | Confirmed against `stats.toml [bloc_leak_votes]` and MODEL-LOG §1.18: the figure is the ANC **bloc**'s loss from the **2019 national** election to the 2021 local election (−586,775). A published, dated piece is factually wrong, which needs a /corrections entry. Draft for the owner below. |
+| home seat table order (§7) | Re-sorting the rows moves tokens. |
+| methodology typed figures (300,000; 560,000; 18.12%; 6.22%; 42/18/35/25%; "about ten points"; "seven elections … six seats"; "3 of 4 wards on 23%") | Making them tokens adds tokens and `stats.toml` entries. |
+| methodology "Where polls fit" self-correction → /corrections | Both misstatements were in the repository between deploys: the live site served the 8 August build until 26 September. Whether a reader saw either is not established. If none did, the sentence should be deleted, not promoted to a correction. Owner's call. |
+| corrections, "the most reliable majority" entry | Its text is STYLE.md §3's own example. |
+| share card wording "matching simulations" | Re-weighting selects nothing; every simulation is kept with a weight. "Matching" misdescribes it. The term is defined instead (above). |
+| `src/reweight.py` refusal "{n} effective simulations of {m}" | Changing it changes the interactive copy, the code hash and the fixture. Left as it is. |
+| remaining taste items | left |
+
+### Draft correction for the owner (M4)
+
+> **What was wrong.** The standfirst of "When the ANC falls, nobody catches the
+> votes" said the opposition captured none of "the 587,000 votes the ANC shed
+> between 2016 and 2021". The figure is the ANC bloc's loss between the 2019
+> national election and the 2021 local election, as the forecast article
+> states it.
+>
+> **What changed.** The standfirst now reads "… the 587,000 votes the ANC bloc
+> shed between the 2019 national election and the 2021 local election."
+
+### Seen, not changed
+
+- `/about`, "Saying 'between 85 and 95 seats' and being right scores better
+  than saying 'exactly 90' and being right": under CRPS a point forecast that
+  is exactly right scores 0, the best possible. The example is wrong as
+  written.
+- The newsdesk's `bin/sync-context.sh` was not run; claim 1's since box changed
+  again.
+
+### Verification (after the check)
+
+- `render_sheet` and `render_home` reproduced the committed pages exactly
+  before any edit; `build_validation --from-json` reproduced
+  `about-the-model.md` byte for byte.
+- `site_text --export` then `--apply --dry-run`: "no edits to apply."
+- Scratch build (`--out <scratch>`, copy of `publications/`): 0 unsourced
+  figures, 0 unsourced claims, 0 blocking; 319 tokens, 0 new, 0 visibly
+  changed.
+- UAT build of `site/` (copy of `publications/`, ledger cut to its first 665
+  rows, `--publish --change-class mechanism --reason` = the reason on the
+  `r-c68c627d287e` rows): 0 blocking; 319 rows appended to the scratch ledger
+  (984). The real ledger's sha256 is unchanged.
+- `src/deploy_check.py` passes.
+- `/play/` screenshots retaken (`interactive/tools/play_screenshots.mjs`, port
+  8801): no page errors.

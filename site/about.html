@@ -7,7 +7,7 @@
 <meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="5,000 simulations of the November vote: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is. Explore every ward, every coalition, every assumption.">
+<meta property="og:description" content="5,000 simulations of the November vote: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is.">
 <meta property="og:url" content="https://joburg.whysoserious.city/">
 <link rel="canonical" href="https://joburg.whysoserious.city/">
 <meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
@@ -224,16 +224,15 @@
 <header>
   <div class="kicker">About the model</div>
   <h1>How we know the model works</h1>
-  <p class="standfirst">A forecast that has never been scored is an opinion. This is the scoring: run against an election that already happened, in eight cities, against what occurred and against three deliberately stupid alternatives.</p>
+  <p class="standfirst">The model run against an election that already happened, in eight cities, and scored against the result and three simple baselines.</p>
 </header>
 <h2>What this page is</h2>
-<p>A forecast that has never been scored is an opinion. This page is the scoring: the model was run against an election that has already happened, in eight cities, and compared with what actually occurred and with three deliberately stupid alternatives.</p>
-<p>Everything here is generated from the run itself. No number on this page was typed by a person.</p>
+<p>Every result on this page is generated from the run recorded at its foot. The examples under <em>The technical measures</em> are illustrations.</p>
 <h2>How it was tested</h2>
-<p>The model was pointed at the <strong>2021 municipal election</strong> and asked to forecast it, using only what a forecaster could have had before polling day: the previous local election for its geography, the national election before it for each party&rsquo;s starting level, and the voters&rsquo; roll. It was then scored against the real council.</p>
-<p>It was done in <strong>eight metros, not one</strong>. A model tuned on a single city can look excellent there and mean nothing — it has learned that city rather than how elections work. Each city is fitted only on its own wards, its own registration and its own history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.</p>
-<h3>The three alternatives it has to beat</h3>
-<p>A forecast is only as good as the simplest thing that would have done the same job. So the same scoring is applied to three baselines that require no model at all:</p>
+<p>The model was given the <strong>2021 municipal election</strong> to forecast, using only what a forecaster could have had before polling day: the previous local election for its geography, the national election before it for each party&rsquo;s starting level, and the voters&rsquo; roll. It was then scored against the real council.</p>
+<p>It was done in <strong>eight metros, not one</strong>. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.</p>
+<h3>The three baselines</h3>
+<p>The same scoring is applied to three baselines that need no model:</p>
 <div class="tablewrap"><table>
 <thead>
 <tr>
@@ -256,7 +255,7 @@
 </tr>
 </tbody>
 </table></div>
-<p>&ldquo;Uniform swing&rdquo; in particular is the standard against which election models are judged everywhere in the world, and it is much harder to beat than it sounds. <strong>Best baseline</strong> below means whichever of the three did best in that city — the model is compared against the toughest one each time, not the easiest.</p>
+<p>Uniform swing is the usual standard for judging election models, and it is hard to beat. <strong>Best baseline</strong> below means whichever of the three did best in that city.</p>
 <h2>The result, city by city</h2>
 <div class="tablewrap"><table>
 <thead>
@@ -334,11 +333,11 @@
 </tr>
 </tbody>
 </table></div>
-<p>The model beats the best available baseline in <strong>7 of 8</strong> cities. Across all eight its total error is <strong>34% lower</strong>.</p>
-<p>On the simpler measure of how many council seats it got wrong, it misses <strong>297</strong> seats across all eight councils against the baselines&rsquo; <strong>353</strong> — 16% better. That figure is lower than the headline because it only compares the single most likely outcome, and throws away everything the model says about how uncertain it is.</p>
-<p>It calls the winner correctly in <strong>719 of 742 wards</strong>.</p>
+<p>The model beats the best baseline in <strong>7 of 8</strong> cities. Across all eight its total error is <strong>34% lower</strong>.</p>
+<p>Counting council seats wrong, it misses <strong>297</strong> seats across all eight councils against the baselines&rsquo; <strong>353</strong>, 16% better. The margin is smaller than the headline because this measure compares only the single most likely outcome and ignores the model&rsquo;s uncertainty.</p>
+<p>It calls the winner in <strong>719 of 742 wards</strong>.</p>
 <h2>What it forecast for 2021, against what happened</h2>
-<p>The largest 55 parties in each city, by seats won in 2021. Our figure is the middle of the range the model produced, not its best case.</p>
+<p>The largest parties in each city, by seats won in 2021; the note under each table says how many are shown. Our figure is the middle of the range the model produced, not its best case.</p>
 <h3>Johannesburg — 270 seats</h3>
 <div class="tablewrap"><table>
 <thead>
@@ -1178,24 +1177,24 @@
 </table></div>
 <p><em>12 seats out in total — across every party that stood, not only the 9 shown above.</em></p>
 <h2>The technical measures, in plain language</h2>
-<p>Three numbers appear above. They measure different things and it is worth knowing which.</p>
-<p><strong>Seats out</strong> is the obvious one: add up how many seats we got wrong for each party. It is easy to understand and it throws away most of what a forecast says, because it only looks at the single most likely outcome and ignores the range around it.</p>
-<p><strong>CRPS</strong> — the continuous ranked probability score — is the number in the comparison table. It scores the <em>whole range</em> a forecast gives, not just its midpoint. Saying &ldquo;between 85 and 95 seats&rdquo; and being right scores better than saying &ldquo;exactly 90&rdquo; and being right, because the first was honest about what it did not know; and a confident wrong answer is punished harder than a hedged one. Lower is better, and zero is perfect. It is in the same units as seats: a CRPS of 45 across a 270-seat council is a small error.</p>
-<p><strong>Calling the ward</strong> is the hardest test and the most direct: 135 separate first-past-the-post contests in Johannesburg alone, each won outright by one party. Getting the council roughly right while misreading which streets vote which way would show up here.</p>
-<p>One caveat on the comparison. Two of the three baselines produce a single number rather than a range, so CRPS is unavoidably kind to a model that gives ranges. That is why the seats-out figure is quoted alongside it: it is the like-for-like comparison, it is less flattering, and it is still in the model&rsquo;s favour.</p>
+<p>Three measures appear above, and they measure different things.</p>
+<p><strong>Seats out</strong> adds up how many seats the forecast got wrong for each party. It is easy to read, and it ignores most of what a forecast says: it looks only at the single most likely outcome, not the range around it.</p>
+<p><strong>CRPS</strong> (the continuous ranked probability score) is the number in the comparison table. It scores the <em>whole range</em> a forecast gives, not just its midpoint. Saying &ldquo;between 85 and 95 seats&rdquo; and being right scores better than saying &ldquo;exactly 90&rdquo; and being right, and a confident wrong answer is punished more than a hedged one. Lower is better; zero is perfect. It is in seats: a CRPS of 45 across a 270-seat council is a small error.</p>
+<p><strong>Calling the ward</strong> is the hardest and most direct test: 135 separate first-past-the-post contests in Johannesburg alone. A forecast that got the council roughly right while misreading which streets vote which way would show up here.</p>
+<p>One caveat. Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model&rsquo;s favour.</p>
 <h2>What this does not prove</h2>
-<p><strong>These are not fully out-of-sample scores, and the model says so on every run.</strong> At least one input could not be confined to the period before the election, and the run prints the full list above its own results:</p>
+<p><strong>These are not fully out-of-sample scores, and every run says so.</strong> At least one input could not be confined to the period before the election; the run prints the full list above its results:</p>
 <ul>
-<li><strong>The census.</strong> Ward-level population figures come from the 2022 census, which was taken after the 2021 election. It is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result — but it is information from after the fact and it is declared as such.</li>
+<li><strong>The census.</strong> Ward-level population figures come from the 2022 census, taken after the 2021 election; it is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result. It is still information from after the fact, and is declared as such.</li>
 </ul>
-<p><strong>How much a breakaway party takes — this one WAS a leak, and is not one now.</strong> When a well-known figure leaves a party and starts their own, how much of the old party&rsquo;s vote follows them depends enormously on whether that figure&rsquo;s support is in <em>this</em> city. Only one such split had happened anywhere before 2021, and one example is not a pattern. The model used to fill that gap with splits from after 2021 — including MK&rsquo;s, three years later — which flattered this page. Since 14 August 2026 it does not: the record is cut at the election being forecast, the same rule every other record here obeys. Johannesburg&rsquo;s figure is worse for it and is honest.</p>
-<p>Every run prints these above its results. The honest reading is that this is a strong estimate of what the machinery is worth, not a sealed prediction made in 2021.</p>
-<p><strong>One city is worse than doing nothing.</strong> The model loses to uniform swing in Mangaung, the smallest council in the set. It is reported rather than dropped.</p>
-<p><strong>The past is not the future.</strong> Scoring well against 2021 does not guarantee 2026. Every party in this table existed in 2021; the hardest thing a forecast does is a party that has never stood before, and the record on those is the model&rsquo;s weakest area.</p>
+<p><strong>How much a breakaway party takes was a leak until 14 August 2026.</strong> When a well-known figure leaves a party and starts their own, how much of the old party&rsquo;s vote follows depends mostly on whether that figure&rsquo;s support is in <em>this</em> city. Only one such split had happened anywhere before 2021. The model used to fill that gap with splits from after 2021, including MK&rsquo;s three years later, which flattered this page. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg&rsquo;s figure is worse for it.</p>
+<p>Read the scores as an estimate of what the machinery is worth, not as a sealed prediction made in 2021.</p>
+<p><strong>In one city the model loses.</strong> Uniform swing beats it in Mangaung, the smallest council in the set.</p>
+<p><strong>The past is not the future.</strong> Scoring well against 2021 does not guarantee 2026. Every party in this table existed in 2021. A party that has never stood before is the hardest thing to forecast, and the model&rsquo;s weakest area.</p>
 <hr />
 <p><em>Generated 2026-09-30 by <code>src/build_validation.py</code> from a 400-draw run per city against the 2021 result. The underlying figures are in <code>data/processed/validation_2021.json</code>; the code that produced them is public.</em></p>
 <div class="colophon">
-  Reader edition, generated from docs-public/about-the-model.md on 2026-10-01. The full technical record — every URL, identifier and workaround — is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/ABOUT-THE-MODEL.md">ABOUT-THE-MODEL.md on GitHub</a>.
+  Reader edition, generated from docs-public/about-the-model.md on 2026-10-01. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/ABOUT-THE-MODEL.md">ABOUT-THE-MODEL.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Site text, charts and figures: <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, free to reuse with attribution and a link back.</div>

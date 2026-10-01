@@ -56,12 +56,12 @@ Laingsburg in 2021, where the DA won 3 of 4 wards on 23% of the vote. The
 over-winner stays slightly over-represented; the cost falls on everyone else.
 
 Two consequences shape this site. The council is always close to proportional,
-so a fragmented vote produces a fragmented council. And the excessive-seats
-clause, which the model expects to catch the ANC in {{p_excessive_anc}} of
-simulations: a citywide vote in the mid-twenties, with stronghold wards that
-still win. Where it fires, the party's ward count is a floor, its list seats go
-to zero, and the squeeze lands on every other party's list seats, inside a
-council fixed at {{council_size}} with the majority at {{majority}}.
+so a fragmented vote produces a fragmented council. The excessive-seats clause
+catches the ANC in {{p_excessive_anc}} of simulations: a citywide vote in the
+mid-twenties, with stronghold wards that still win. Where it fires, the party's
+ward count is a floor, its list seats go to zero, and the squeeze lands on
+every other party's list seats, inside a council fixed at {{council_size}} with
+the majority at {{majority}}.
 
 ## The model, step by step
 
@@ -92,8 +92,9 @@ Alliance takes about two-fifths of another and nothing in the other three.
 
 **These categories are too coarse.** Population group is the only ward-level
 characteristic Stats SA publishes, and it does not describe how voters group:
-the ANC and the IFP draw mostly from the same population group and stand on
-separate ground, a linguistic and regional division. The better input is
+the ANC and the IFP draw overwhelmingly from the same population group and
+stand on separate ground, a linguistic and regional division rather than a
+racial one. The better input is
 **home language by ward**, which Stats SA holds but does not publish in the
 ward product; we have requested it. Income, employment and dwelling type would
 also help, and are also request-only, since at ward level they can identify
@@ -128,8 +129,8 @@ uncertain, so the model draws thousands of answers instead of picking one.
 Two things are drawn:
 
 - **How each party's support moves.** Parties usually do worse locally than
-  nationally. The model measures by how much from every national-to-local
-  transition on record for that party, separately for each party.
+  nationally. The model measures the gap for each party from its own
+  national-to-local transitions on record.
 - **Turnout, per pool.** It is the one unknown quantity, and it is drawn from
   what turnout has done in that city before. In 2021 every pool's turnout was
   the lowest on record, so the range allows falls as well as rises.
@@ -149,11 +150,11 @@ new party, and they behave differently:
 
 Before the model told them apart, every party that filed candidates everywhere
 was sized like the EFF's 2016 breakthrough. Filing papers is cheap, and in Cape
-Town that handed parties that did not exist more than the entire electorate.
-Separating the two fixed it.
+Town that gave parties that did not exist more votes than the entire
+electorate. Separating the two fixed it.
 
-How much a split takes depends mostly on **whether the leader's own following
-is in this city**, not on how famous the leader is. Patricia de Lille was at
+How much a split takes depends overwhelmingly on **whether the leader's own
+following is in this city**, not on how famous the leader is. Patricia de Lille was at
 least as well known nationally in 2019 as Julius Malema was in 2014; her party
 took about one-eighteenth as much of the DA's vote in Johannesburg as it did in
 Cape Town.

@@ -181,12 +181,8 @@ def markdown(target: str, results: dict) -> str:
     add("")
     add("## What this page is")
     add("")
-    add("This page is the model's scoring: it was run against an election "
-        "that has already happened, in eight cities, and compared with the "
-        "result and with three simple baselines.")
-    add("")
-    add("Every figure here is generated from the run. None was typed by a "
-        "person.")
+    add("Every result on this page is generated from the run recorded at its "
+        "foot. The examples under *The technical measures* are illustrations.")
     add("")
     add("## How it was tested")
     add("")
@@ -253,13 +249,16 @@ def markdown(target: str, results: dict) -> str:
     # sum to 56 against a printed 62, and the gap is exactly the six parties
     # left out. A reader with a calculator got a different number from the one
     # printed beside the table.
-    # COUNTED from the artefact, not typed. The comment above is the whole
+    # COUNTED from the table, not typed. The comment above is the whole
     # point: a sentence that describes the table has to be derived from the
-    # table, or it goes stale the first time the table changes shape.
-    rows_per_city = max(len(r["model"]["parties"]) for r in results.values())
-    add(f"The largest {rows_per_city} parties in each city, by seats won in "
-        f"{target}. Our figure is the middle of the range the model produced, "
-        f"not its best case.")
+    # table, or it goes stale the first time the table changes shape. The
+    # count therefore lives in each table's own note (`len(shown)`), which is
+    # what the reader sees. It was printed here as the artefact's row cap
+    # (every city's `parties` list), which is not the number of rows shown
+    # once parties with no seat actual or forecast are dropped.
+    add(f"The largest parties in each city, by seats won in {target}; the "
+        f"note under each table says how many are shown. Our figure is the "
+        f"middle of the range the model produced, not its best case.")
     add("")
     for slug, r in results.items():
         m = r["model"]

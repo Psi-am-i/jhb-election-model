@@ -40,7 +40,7 @@ Before:
 
 After:
 
-> **It is half of the wrong number.** 490,000 is almost exactly half of the ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low. More voters means half of a bigger number. If every DA supporter voted, as Zille asks, the total would be ~{{claim_poll_surged}}, and half of that is {{claim_half_surged}}, not 490,000.
+> **It is half of the wrong number.** 490,000 is almost exactly half of the ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low. More voters means half of a bigger number. If every registered DA voter voted, as Zille asks, the total would be ~{{claim_poll_surged}}, and half of that is {{claim_half_surged}}, not 490,000.
 
 ### steps[1]
 
@@ -145,7 +145,7 @@ Before:
 
 After:
 
-> **MK's range against the two largest parties.** MK's median is [[mk_median]] seats of {{council_size}}. At the top of its range, [[mk_p95]] seats (exceeded in one simulation in twenty), it is below the ANC's median of [[anc_median]] and the DA's of [[da_median]].
+> **MK's range against the ANC and the DA.** MK's median is [[mk_median]] seats of {{council_size}}. At the top of its range, [[mk_p95]] seats (exceeded in one simulation in twenty), it is below the ANC's median of [[anc_median]] and the DA's of [[da_median]].
 
 ### steps[1]
 
@@ -189,7 +189,16 @@ Before:
 
 After:
 
-> **Without the ANC, the red line leaves a majority about half the time.** Every party except the ANC, the EFF and MK together reach {{majority}} in [[no_red_share]] of the {{n_draws}} simulations. That assumes the whole rest of the council acts as one, the most generous reading of the DA's options.
+> **Without the ANC, the red line leaves a majority in [[no_red_share]] of the {{n_draws}} simulations.** That counts every party except the ANC, the EFF and MK together reaching {{majority}}, which assumes the whole rest of the council acts as one: the most generous reading of the DA's options.
+
+Note (added 2026-10-01 after the check): the published heading "about half the
+time" and "comes down to a coin flip" have contradicted the token since first
+publication. The ledger records `claim.red_lines.no_red_share` at 59% on every
+publication (26, 27 and 30 September). This is a correction candidate, not a
+style edit: if applied, it needs a /corrections entry. The verdict label "A
+COIN FLIP" is the owner's call. This block keeps the same token multiset as the
+"before" but moves `[[no_red_share]]` and `{{n_draws}}` into the heading, ahead
+of `{{majority}}`.
 
 ### steps[1]
 
@@ -209,10 +218,12 @@ Before:
 
 After:
 
-> **The other route is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is the most reliable two-party majority in the city. `<span data-asof="2026-09-30"><em>`Correction, 30 September 2026: this sentence called it "the most reliable majority in the city that does not involve the EFF or MK". `<a href="/corrections">`Corrections`</a>.</em></span>`
+> **The other route is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable two-party majority in the city. `<span data-asof="2026-09-30"><em>`Correction, 30 September 2026: this sentence called it "the most reliable majority in the city that does not involve the EFF or MK", which the combination above contradicts. `<a href="/corrections">`Corrections`</a>.</em></span>`
 
-Note: the inline correction keeps its date, its quote and its link; the
-reason moves to `/corrections`, where the entry now gives it (STYLE §3).
+Note: "on this arithmetic" stays; without it the sentence is a stronger
+claim. The inline correction keeps its reason, because the /corrections entry
+gives a different and less specific one ("Many governing majorities occur in
+most simulations").
 
 ### steps[3]
 

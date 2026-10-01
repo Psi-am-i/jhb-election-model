@@ -59,7 +59,7 @@ service.
 
 ## What is not collected
 
-- No accounts, sign-in or forms.
+- No accounts, sign-in or forms. If that changes, this page changes with it.
 - No advertising trackers and no Google tags.
 - No personal data is sold, or shared with advertisers.
 

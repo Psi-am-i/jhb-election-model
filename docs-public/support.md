@@ -24,7 +24,7 @@ picnic labs.
 
 ## Who may fund it
 
-Support is accepted from two kinds of backer:
+Support is accepted from two kinds of backer only:
 
 - **institutional partners**, such as universities, research institutes, civic
   organisations and newsrooms;

@@ -12,7 +12,7 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-266 blocks from 9 files.
+265 blocks from 9 files.
 
 
 ## forecast-sheet.html
@@ -111,19 +111,12 @@ Public, checkable statements about November, each tested against the same {{n_dr
 
 <!-- /block 3343ff77 -->
 
-<!-- block d5902c4b -->
+<!-- block d5251714 -->
 *md*
 
-This page is the model's scoring: it was run against an election that has already happened, in eight cities, and compared with the result and with three simple baselines.
+Every result on this page is generated from the run recorded at its foot. The examples under *The technical measures* are illustrations.
 
-<!-- /block d5902c4b -->
-
-<!-- block d7a86872 -->
-*md*
-
-Every figure here is generated from the run. None was typed by a person.
-
-<!-- /block d7a86872 -->
+<!-- /block d5251714 -->
 
 <!-- block a8d3e30d -->
 *md*
@@ -230,12 +223,12 @@ It calls the winner in **719 of 742 wards**.
 
 <!-- /block b73d98ee -->
 
-<!-- block 2e39885a -->
+<!-- block d9a7b9fb -->
 *md*
 
-The largest 55 parties in each city, by seats won in 2021. Our figure is the middle of the range the model produced, not its best case.
+The largest parties in each city, by seats won in 2021; the note under each table says how many are shown. Our figure is the middle of the range the model produced, not its best case.
 
-<!-- /block 2e39885a -->
+<!-- /block d9a7b9fb -->
 
 <!-- block d4fa2346 -->
 *md*
@@ -719,17 +712,17 @@ in the city'.</span>
 
 <!-- /block 5cf3f144 -->
 
-<!-- block 8999e494 -->
+<!-- block b80b3fa9 -->
 *md*
 
-| | the page said we published | we actually published | today |
+| | the page said we published | we actually published | on 27 September |
 |---|---|---|---|
 | the ANC's stronghold wards | 55 | **74** | 61 |
 | its proportional entitlement | 54 | **65** | 58 |
 | how often the excessive-seats clause fires | 58% | **96%** | 65% |
 | the DA as largest party | 71% | **62%** | 47% |
 
-<!-- /block 8999e494 -->
+<!-- /block b80b3fa9 -->
 
 <!-- block fa56f6e6 -->
 *md*
@@ -869,18 +862,18 @@ over-winner stays slightly over-represented; the cost falls on everyone else.
 
 <!-- /block ab72a4a4 -->
 
-<!-- block 606eac76 -->
+<!-- block d38d7c13 -->
 *md*
 
 Two consequences shape this site. The council is always close to proportional,
-so a fragmented vote produces a fragmented council. And the excessive-seats
-clause, which the model expects to catch the ANC in {{p_excessive_anc}} of
-simulations: a citywide vote in the mid-twenties, with stronghold wards that
-still win. Where it fires, the party's ward count is a floor, its list seats go
-to zero, and the squeeze lands on every other party's list seats, inside a
-council fixed at {{council_size}} with the majority at {{majority}}.
+so a fragmented vote produces a fragmented council. The excessive-seats clause
+catches the ANC in {{p_excessive_anc}} of simulations: a citywide vote in the
+mid-twenties, with stronghold wards that still win. Where it fires, the party's
+ward count is a floor, its list seats go to zero, and the squeeze lands on
+every other party's list seats, inside a council fixed at {{council_size}} with
+the majority at {{majority}}.
 
-<!-- /block 606eac76 -->
+<!-- /block d38d7c13 -->
 
 <!-- block 6a2b6db6 -->
 *md*
@@ -944,13 +937,14 @@ Alliance takes about two-fifths of another and nothing in the other three.
 
 <!-- /block 14b31d1e -->
 
-<!-- block 39cd0b42 -->
+<!-- block 0099cfee -->
 *md*
 
 **These categories are too coarse.** Population group is the only ward-level
 characteristic Stats SA publishes, and it does not describe how voters group:
-the ANC and the IFP draw mostly from the same population group and stand on
-separate ground, a linguistic and regional division. The better input is
+the ANC and the IFP draw overwhelmingly from the same population group and
+stand on separate ground, a linguistic and regional division rather than a
+racial one. The better input is
 **home language by ward**, which Stats SA holds but does not publish in the
 ward product; we have requested it. Income, employment and dwelling type would
 also help, and are also request-only, since at ward level they can identify
@@ -958,7 +952,7 @@ households. Until those arrive the model carries one extra pool that the census
 cannot see, identified from a party's own geography (the constituency the IFP
 stands on) and labelled for what was measured.
 
-<!-- /block 39cd0b42 -->
+<!-- /block 0099cfee -->
 
 <!-- block 95edd383 -->
 *md*
@@ -1021,17 +1015,17 @@ Two things are drawn:
 
 <!-- /block a0f70ced -->
 
-<!-- block ff178314 -->
+<!-- block 985bda14 -->
 *md*
 
 - **How each party's support moves.** Parties usually do worse locally than
-  nationally. The model measures by how much from every national-to-local
-  transition on record for that party, separately for each party.
+  nationally. The model measures the gap for each party from its own
+  national-to-local transitions on record.
 - **Turnout, per pool.** It is the one unknown quantity, and it is drawn from
   what turnout has done in that city before. In 2021 every pool's turnout was
   the lowest on record, so the range allows falls as well as rises.
 
-<!-- /block ff178314 -->
+<!-- /block 985bda14 -->
 
 <!-- block 0dac9743 -->
 *md*
@@ -1061,26 +1055,26 @@ new party, and they behave differently:
 
 <!-- /block cf5ad3e2 -->
 
-<!-- block ca401deb -->
+<!-- block 6b99ccfc -->
 *md*
 
 Before the model told them apart, every party that filed candidates everywhere
 was sized like the EFF's 2016 breakthrough. Filing papers is cheap, and in Cape
-Town that handed parties that did not exist more than the entire electorate.
-Separating the two fixed it.
+Town that gave parties that did not exist more votes than the entire
+electorate. Separating the two fixed it.
 
-<!-- /block ca401deb -->
+<!-- /block 6b99ccfc -->
 
-<!-- block 7a8252b4 -->
+<!-- block 61412124 -->
 *md*
 
-How much a split takes depends mostly on **whether the leader's own following
-is in this city**, not on how famous the leader is. Patricia de Lille was at
+How much a split takes depends overwhelmingly on **whether the leader's own
+following is in this city**, not on how famous the leader is. Patricia de Lille was at
 least as well known nationally in 2019 as Julius Malema was in 2014; her party
 took about one-eighteenth as much of the DA's vote in Johannesburg as it did in
 Cape Town.
 
-<!-- /block 7a8252b4 -->
+<!-- /block 61412124 -->
 
 <!-- block 8823cbc0 -->
 *md*
@@ -1226,7 +1220,7 @@ where the model *loses*.
 
 <!-- /block 961baec6 -->
 
-<!-- block e13ff454 -->
+<!-- block ca071209 -->
 *md*
 
 - **A party that does not exist yet is the hardest case.** Splits and entrants
@@ -1253,12 +1247,12 @@ where the model *loses*.
   has been more informative for a party like it. It is the largest open item on
   the model.
 - **No poll is used in the forecast.** Polls were an input until 12 September
-  2026. Why they were taken out, what they were worth, and what is planned are
-  under *Where polls fit*, below.
+  2026 and are not one now. Why they were taken out, what they were worth, and
+  what is planned are under *Where polls fit*, below.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible, not which will form.
 
-<!-- /block e13ff454 -->
+<!-- /block ca071209 -->
 
 <!-- block ff0d9166 -->
 *md*
@@ -1275,16 +1269,16 @@ is.
 
 <!-- /block dda1e697 -->
 
-<!-- block 69d2a93a -->
+<!-- block 2f7bd600 -->
 *md*
 
-*This section has described that switch wrongly twice: for a day after 22
-August 2026 it said no poll was used when one was, and for three weeks it
+*This section has described that switch wrongly twice: for a day after
+2026-08-22 it said no poll was used when one was, and for three weeks it
 described a weighting cap that had been retired.* **If the forecast ever
 differs from a no-polls model, this section is out of date and the forecast is
 what to believe.**
 
-<!-- /block 69d2a93a -->
+<!-- /block 2f7bd600 -->
 
 <!-- block 9f6373d7 -->
 *md*
@@ -1546,14 +1540,14 @@ service.
 
 <!-- /block b834cd98 -->
 
-<!-- block a5af0f5d -->
+<!-- block 4821f7b7 -->
 *md*
 
-- No accounts, sign-in or forms.
+- No accounts, sign-in or forms. If that changes, this page changes with it.
 - No advertising trackers and no Google tags.
 - No personal data is sold, or shared with advertisers.
 
-<!-- /block a5af0f5d -->
+<!-- /block 4821f7b7 -->
 
 <!-- block 2a2f0449 -->
 *md*
@@ -1674,16 +1668,17 @@ makes the forecast more worth your trust, not less.
 
 <!-- /block 23c7b64f -->
 
-<!-- block 41a99009 -->
+<!-- block d5abf8a5 -->
 *md*
 
 <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
-<p>The figures below describe the <b>first version</b> of the model, on 6 August 2026.
+<p>The figures below describe the <b>first version</b> of the model, as it stood on 6 August 2026.
 Today the DA is the largest party in {{p_da_largest}} of simulations and the ANC in
-{{p_anc_largest}}, and the excessive-seats clause fires in {{p_excessive_anc}}. The page
-is kept as published, as a record of how the errors were found and fixed.</p></aside>
+{{p_anc_largest}}, and the ANC triggers the excessive-seats clause in {{p_excessive_anc}}. No
+poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is kept as published, as a record
+of how the errors were found and fixed.</p></aside>
 
-<!-- /block 41a99009 -->
+<!-- /block d5abf8a5 -->
 
 <!-- block 358a51aa -->
 *md*
@@ -2104,12 +2099,12 @@ picnic labs.
 
 <!-- /block ee7fe4c7 -->
 
-<!-- block 6a058bfa -->
+<!-- block 11b8ce0e -->
 *md*
 
-Support is accepted from two kinds of backer:
+Support is accepted from two kinds of backer only:
 
-<!-- /block 6a058bfa -->
+<!-- /block 11b8ce0e -->
 
 <!-- block d2cc2c72 -->
 *md*
@@ -2234,12 +2229,12 @@ P(DA reaches 136 alone) under a full DA-camp turnout surge
 
 <!-- /block d991355a -->
 
-<!-- block 847b2933 -->
+<!-- block 65e3f548 -->
 *claim[0].since*
 
-The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In today's forecast, with no surge, the DA wins a majority on its own in [[da_alone_share]] of the [[n_draws]] simulations ([[da_alone_count]] of them). [[wall_count]] of those take at least [[wall_flips]] of the ANC's usual wards from it, and the ANC falls to [[wall_anc_span]] seats. The other route to a DA majority, the ANC holding its wards while ActionSA and the EFF collapse, appears in no simulation. **The verdict stands. A DA majority now depends on more than turnout.**
+The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In today's forecast, with no surge, the DA wins a majority on its own in [[da_alone_share]] of the [[n_draws]] simulations ([[da_alone_count]] of them). [[wall_count]] of those take at least [[wall_flips]] of the ANC's usual wards from it, and the ANC falls to [[wall_anc_span]] seats. The other route to a DA majority, the ANC holding its wards while ActionSA and the EFF collapse, no longer appears in any simulation. **The verdict stands. A DA majority depends less on turnout than it did.**
 
-<!-- /block 847b2933 -->
+<!-- /block 65e3f548 -->
 
 <!-- block 15f6dcc6 -->
 *claim[0].steps[0]*

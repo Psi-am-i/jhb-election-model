@@ -5,9 +5,7 @@
 
 ## What this page is
 
-This page is the model's scoring: it was run against an election that has already happened, in eight cities, and compared with the result and with three simple baselines.
-
-Every figure here is generated from the run. None was typed by a person.
+Every result on this page is generated from the run recorded at its foot. The examples under *The technical measures* are illustrations.
 
 ## How it was tested
 
@@ -49,7 +47,7 @@ It calls the winner in **719 of 742 wards**.
 
 ## What it forecast for 2021, against what happened
 
-The largest 55 parties in each city, by seats won in 2021. Our figure is the middle of the range the model produced, not its best case.
+The largest parties in each city, by seats won in 2021; the note under each table says how many are shown. Our figure is the middle of the range the model produced, not its best case.
 
 ### Johannesburg — 270 seats
 

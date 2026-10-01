@@ -165,8 +165,9 @@ function text(x, y, s, { fs, family = SANS, fill = C.ink2, weight = "", anchor =
 // returned for these settings, the parties left out, and the simulations used.
 function councilLine(r, left) {
   const more = left > 0 ? left + (left === 1 ? " more party" : " more parties") + " not shown. " : "";
-  return more + "Middle seats, with the range covering nine in ten of " + Math.round(r.effective_draws).toLocaleString("en-ZA") +
-    " effective simulations of " + r.draws.toLocaleString("en-ZA") + ". A majority is " + seatText({ value: r.majority }) +
+  return more + "Middle seats, with the range covering nine in ten of the re-weighted simulations. They count as " +
+    Math.round(r.effective_draws).toLocaleString("en-ZA") + " of " + r.draws.toLocaleString("en-ZA") +
+    " equally weighted ones. A majority is " + seatText({ value: r.majority }) +
     " of " + seatText({ value: r.council }) + " seats.";
 }
 

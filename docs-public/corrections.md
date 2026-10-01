@@ -48,7 +48,7 @@ September readers had different numbers. Each frozen figure carries an arrow
 where today's model disagrees, and three of those arrows pointed up against
 numbers that had fallen:
 
-| | the page said we published | we actually published | today |
+| | the page said we published | we actually published | on 27 September |
 |---|---|---|---|
 | the ANC's stronghold wards | 55 | **74** | 61 |
 | its proportional entitlement | 54 | **65** | 58 |
@@ -66,17 +66,14 @@ checked against the archived page. The source of a frozen figure is the
 ledger, never a build.</span>
 
 <span data-asof="2026-09-23">**Checked against the published page on
-2026-09-23: nothing outstanding.** The three entries this page carried in draft
-described figures that were never public. They came from a local build on 17
-September that was never deployed. On the published page the "smaller parties"
-bar said 15 seats, not 39; there were no two-ballot bars; and the tiles and the
-article agreed at 62%. A correction is for what a reader saw.</span>
+2026-09-23: nothing outstanding.** Three draft entries on this page described a
+local build of 17 September that was never deployed.</span>
 
 <!-- The passage above is wrapped as a dated statement because that is what it
-     is: a record of what the published page showed on 2026-09-23. Its figures
-     are not model output and must not become tokens — a token would recompute
-     them and the sentence would then describe today's page, not the one the
-     correction is about. Without the wrapper all four blocked the build. -->
+     is: a record of what the published page showed on 2026-09-23. Until
+     2026-10-01 it also quoted that page's figures (typed, not tokens: a token
+     would recompute them and describe today's page instead); they were cut as
+     describing drafts no reader saw. -->
 
 The defects those drafts described (figures written by scripts, medians summed
 as if they added up) are fixed and recorded in `MODEL-LOG.md`.
