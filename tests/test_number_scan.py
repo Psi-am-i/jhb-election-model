@@ -383,3 +383,40 @@ def test_the_analytics_beacon_is_the_only_remote_script_a_page_may_load():
         (tmp / "index.html").write_text(
             f'<script src="{S.ANALYTICS_BEACON}">el.innerHTML = rows;</script>')
         assert _writes(tmp, page="index.html"), "an inline body rode on the beacon"
+
+
+def test_the_policy_pages_and_their_footer_line_need_the_analytics_token():
+    """privacy.md describes the Web Analytics beacon, so neither it, support.md
+    nor the footer line linking them is built while the token is empty
+    (lane review, 2026-10-01). Both states are checked, not just today's."""
+    tok = "0123456789abcdef0123456789abcdef"
+    policy = {"support.html", "privacy.html"}
+    off = {spec[0] for spec in build_site.docs_for("").values()}
+    on = {spec[0] for spec in build_site.docs_for(tok).values()}
+    assert not (off & policy) and policy <= on and on - off == policy
+    assert "privacy" not in build_site.footer_for("")
+    foot = build_site.footer_for(tok)
+    for page in ("support", "privacy"):
+        assert f'href="https://joburg.whysoserious.city/{page}"' in foot
+    # The module's own state is the function of its own token.
+    token = build_site.CF_WEB_ANALYTICS_TOKEN
+    assert build_site.DOCS == build_site.docs_for(token)
+    assert build_site.FOOTER == build_site.footer_for(token)
+    assert ("privacy.html" in {s[0] for s in build_site.DOCS.values()}) == bool(token.strip())
+
+
+def test_a_policy_page_carries_its_own_share_card_and_a_reader_note():
+    """No maintainer colophon pointing at a GitHub record that does not exist,
+    and a share card that describes the page rather than the forecast."""
+    for source, spec in build_site.POLICY_DOCS.items():
+        output, kicker, standfirst, tech, og = spec
+        html = build_site.render_doc(Path(build_site.__file__).parents[1] / source,
+                                     kicker, standfirst, output, tech, og)
+        slug = output.removesuffix(".html")
+        assert "Reader edition" not in html and "regenerate rather" not in html
+        assert "describes how the site is run" in html
+        assert f'<link rel="canonical" href="https://joburg.whysoserious.city/{slug}">' in html
+        assert f'<meta property="og:url" content="https://joburg.whysoserious.city/{slug}">' in html
+        assert html.count('property="og:description"') == 1
+        assert "5,000 simulations" not in html and og.split(":")[0] in html
+        assert not any(ch.isdigit() for ch in og.replace("2026", "")), og  # no model figure

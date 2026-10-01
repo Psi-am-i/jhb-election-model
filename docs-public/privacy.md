@@ -2,25 +2,42 @@
 
 ## What is measured
 
-The site counts its readers with **Cloudflare Web Analytics**. It is cookieless:
-it sets no cookie and stores nothing in your browser, which is why there is no
-consent banner.
+The site counts its readers with **Cloudflare Web Analytics**. It sets no
+cookie, which is why there is no consent banner. Cloudflare's description of
+it ([Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/)):
+"Cloudflare Web Analytics does not use any client-side state, such as cookies
+or localStorage, to collect usage metrics. We also don't 'fingerprint'
+individuals via their IP address, User Agent string, or any other data for the
+purpose of displaying analytics."
 
 For each page view it records:
 
-- the page's address on this site;
+- the page's address on this site, without any part after a `?`, which Web
+  Analytics does not log;
 - the site that linked to it, if any;
 - your country;
 - your device type, browser and operating system;
 - how long the page took to load and draw.
 
-Cloudflare states that Web Analytics does not fingerprint visitors, and that the
-IP address the measurement arrives from is discarded at the data centre that
-receives it rather than stored.
+## Which link brought you here
 
-Links in this site's social posts and advertising carry a tag in the address
-naming the channel, such as a social network or the billboard. The tag
-identifies where a link was published, not who followed it.
+Links in this site's advertising and social posts use short addresses, one per
+channel: `/go` on the billboard, `/x`, `/li`, `/fb` and `/ig` for social posts,
+and `/g` for Google Ads. Each forwards to the home page. When it does, the
+site's server code writes one log line naming the channel, and nothing about
+the visitor. The site counts those lines to see which channels bring readers.
+
+Cloudflare's [Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/),
+which holds those lines, also records each request the site's server code
+handles, with the request's details, and keeps every record for at most seven
+days.
+
+## Network error reports
+
+Cloudflare's response headers `NEL` and `Report-To` ask your browser to report
+failed connections to the site, not successful ones, to Cloudflare's
+[Network Error Logging](https://developers.cloudflare.com/network-error-logging/)
+service.
 
 ## What is not collected
 

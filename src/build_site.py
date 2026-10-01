@@ -269,15 +269,25 @@ THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 # cookieless, no consent banner, no Google tag). What readers are told about it
 # is docs-public/privacy.md; change the two together.
 #
-# ⛔ LEAVE THIS EMPTY WHILE AUTOMATIC SETUP IS ON. Two ways to run it, never both
-# (Cloudflare's FAQ: one beacon per page, or visits are counted twice):
-#   * automatic — Web Analytics injects the beacon at the edge. Nothing here.
-#   * manual    — paste the site token from the dashboard's JS snippet below,
-#                 and every page this build writes carries the beacon.
-# Cloudflare's documentation does not say whether automatic injection reaches
-# responses a Worker serves on a custom domain, which is how this site is
-# served. Try automatic first and check the served HTML for
-# `cloudflareinsights`; fall back to the token only if it is absent.
+# ⛔ THE TOKEN GATES THE POLICY PAGES. While it is empty the build emits no
+# beacon AND publishes neither /privacy nor /support, nor the footer line that
+# links them (`docs_for`, `footer_for`): a privacy page describing a beacon the
+# site does not carry is false. Set the token and both pages appear.
+#
+# SETUP (manual snippet, the only mode this site uses). In the Cloudflare
+# dashboard:
+#   1. Web Analytics → Add a site → hostname `joburg.whysoserious.city` → Done.
+#   2. Manage site → if it offers automatic setup, choose "Enable with JS
+#      Snippet installation" (or Disable automatic injection). Cloudflare's FAQ:
+#      one beacon per page, or visits are counted twice.
+#   3. Manage site → copy the JS snippet; the token is the 32-hex value in
+#      `data-cf-beacon='{"token": "…"}'`. Paste only that value below.
+#   4. Rebuild, then check a served page carries `cloudflareinsights` once.
+# On 2026-10-01 the live site carried no injected beacon.
+#
+# Web Analytics does not log query strings (its FAQ), so UTM tags are invisible
+# to it. Channels are counted by short paths in src/worker.js instead
+# (/go, /x, /li, /fb, /ig, /g), which privacy.md describes.
 #
 # The token is PUBLIC — it is printed into every page's source by design — so
 # it is a constant here, not a Keychain secret (~/CLAUDE.md rule 4 does not
@@ -340,11 +350,24 @@ OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election M
 <meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
 """
 
-FOOTER = """<footer class="sitefooter">
+SITE_URL = "https://joburg.whysoserious.city"
+
+
+def footer_for(token: str = CF_WEB_ANALYTICS_TOKEN) -> str:
+    """The site footer. The support/privacy line appears only with the pages
+    it links, i.e. only when the analytics token is set (`docs_for`). Its links
+    are absolute: the footer is also carried by /play/ and the portal, where a
+    relative `support` resolves somewhere else."""
+    policies = (f'\n  <div><a href="{SITE_URL}/support">support this site</a> · '
+                f'<a href="{SITE_URL}/privacy">privacy</a></div>'
+                if token.strip() else "")
+    return f"""<footer class="sitefooter">
   <div>Johannesburg · 2026 Local Government Election Model · Free to distribute with attribution and linkback.</div>
-  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>
-  <div><a href="support">support this site</a> · <a href="privacy">privacy</a></div>
+  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">source &amp; data on GitHub</a></div>{policies}
 </footer>"""
+
+
+FOOTER = footer_for()
 
 FOOTER_CSS = """
   .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
@@ -378,8 +401,8 @@ def inject_nav(html: str, active_href: str) -> str:
         raise SystemExit("artefact page lacks the </div><!-- /sheet --> container marker")
     return html.replace(marker_close, FOOTER + "\n" + marker_close, 1)
 
-# source markdown -> (output, kicker, standfirst)
-DOCS = {
+# source markdown -> (output, kicker, standfirst[, tech[, og description]])
+MODEL_DOCS = {
     "docs-public/corrections.md": (
         "corrections.html",
         "Corrections",
@@ -416,24 +439,6 @@ DOCS = {
         "each one lives, what state it was in, and how hard South Africa's "
         "public records actually are to reach.",
     ),
-    # The site's own policies. Linked from the footer, not the nav: the nav
-    # holds the model and its record, and these describe the site around it.
-    # `False` in the fourth slot: no technical record on GitHub backs them, so
-    # the colophon must not point at one.
-    "docs-public/support.md": (
-        "support.html",
-        "Support",
-        "Why the site exists, who may fund it, and what a supporter gets in "
-        "return: a name on this page, and no say over what is published.",
-        False,
-    ),
-    "docs-public/privacy.md": (
-        "privacy.html",
-        "Privacy",
-        "What this site measures about its readers, what it does not, and "
-        "who handles it.",
-        False,
-    ),
     # The plan is no longer published as a page of its own: it is Appendix A
     # of MODEL-LOG.md, where it belongs. It is the model's starting point and
     # every numbered finding in that log is a delta from it, so the two only
@@ -441,6 +446,47 @@ DOCS = {
     # figures with no provenance — historical assertions the sourcing audit
     # cannot tell from live claims, and which nobody was maintaining.
 }
+
+# The site's own policies. Linked from the footer, not the nav: the nav holds
+# the model and its record, and these describe the site around it. `False` in
+# the fourth slot: no technical record on GitHub backs them, so the colophon
+# says what the page is instead of pointing at one. The fifth slot is the share
+# card's description (`shell(og=…)`), which carries no model figure.
+#
+# ⛔ PUBLISHED ONLY WHILE THE ANALYTICS TOKEN IS SET (`docs_for`). privacy.md
+# describes the Web Analytics beacon, and support.md is linked from the same
+# footer line; neither goes out describing a site that does not exist yet.
+POLICY_DOCS = {
+    "docs-public/support.md": (
+        "support.html",
+        "Support",
+        "Why the site exists, who pays for it, who may fund it, and what a "
+        "supporter gets in return: a name on this page, and no say over what "
+        "is published.",
+        False,
+        "Who pays for the Johannesburg 2026 Election Model, who may fund it, "
+        "and why no supporter has a say over what it publishes.",
+    ),
+    "docs-public/privacy.md": (
+        "privacy.html",
+        "Privacy",
+        "What this site measures about its readers, what it does not, and "
+        "who handles it.",
+        False,
+        "What the Johannesburg 2026 Election Model measures about its readers: "
+        "cookieless page counts, the short link a visitor arrived through, and "
+        "nothing sold.",
+    ),
+}
+
+
+def docs_for(token: str = CF_WEB_ANALYTICS_TOKEN) -> dict:
+    """The rendered documents: the model's pages, plus the policy pages only
+    when the analytics token is set."""
+    return {**MODEL_DOCS, **(POLICY_DOCS if token.strip() else {})}
+
+
+DOCS = docs_for()
 
 # already-styled artefacts copied verbatim under stable public names
 # already-styled artefacts, nav-injected; the forecast IS the landing page
@@ -489,14 +535,35 @@ def cut_spans(html: str, kind: str | None) -> str:
 
 
 
-def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str, active_href: str = "") -> str:
+def page_og(og: str, page_title: str, href: str) -> str:
+    """OG_META with this page's own share-card description, title, og:url and
+    canonical. Only the policy pages pass one; every other page keeps the
+    site-wide card."""
+    from html import escape
+    url = f"{SITE_URL}/{href}"
+    out = re.sub(r'(<meta property="og:description" content=")[^"]*(">)',
+                 lambda m: m.group(1) + escape(og) + m.group(2), OG_META, count=1)
+    out = re.sub(r'(<meta property="og:title" content=")[^"]*(">)',
+                 lambda m: m.group(1) + escape(page_title) + m.group(2), out, count=1)
+    out = out.replace(f'<meta property="og:url" content="{SITE_URL}/">',
+                      f'<meta property="og:url" content="{url}">', 1)
+    out = out.replace(f'<link rel="canonical" href="{SITE_URL}/">',
+                      f'<link rel="canonical" href="{url}">', 1)
+    if out.count(url) != 2 or escape(og) not in out:
+        raise SystemExit(f"OG_META no longer has the fields page_og rewrites ({href})")
+    return out
+
+
+def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str,
+          active_href: str = "", og: str | None = None) -> str:
+    og_meta = page_og(og, title, active_href) if og else OG_META
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-{OG_META}{THEME_HEAD}<style>{STYLE}</style>
+{og_meta}{THEME_HEAD}<style>{STYLE}</style>
 </head>
 <body>
 <div class="page">
@@ -517,9 +584,11 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 
 
 def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
-               tech: str | None | bool = None) -> str:
+               tech: str | None | bool = None, og: str | None = None) -> str:
     """`tech` names the technical record on GitHub that a reader edition is
-    drawn from; None derives it from the file name, False says there is none."""
+    drawn from; None derives it from the file name, False says there is none
+    (a page about the site, not the model). `og` is the page's own share-card
+    description; None keeps the site-wide one."""
     text = source.read_text(encoding="utf-8")
     lines = text.splitlines()
     # Skip any leading HTML comment and blank lines before taking the title.
@@ -553,7 +622,10 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
 
     masthead = (published + f"  <h1>{title}</h1>\n"
                 f'  <p class="standfirst">{standfirst}</p>')
-    if str(source).startswith("docs-public/") and tech is not False:
+    if tech is False:
+        note = ("This page describes how the site is run. It is not part of "
+                "the model or its record.")
+    elif str(source).startswith("docs-public/"):
         tech = tech or source.name.replace(".md", "").upper() + ".md"
         note = (f"Reader edition, generated from {source} on "
                 f"{date.today().isoformat()}. The full technical record — "
@@ -565,7 +637,7 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
                 f"{date.today().isoformat()} — the Markdown file in the project "
                 f"repository is canonical; regenerate rather than editing this page.")
     return shell(f"Johannesburg 2026 — {title}", kicker, masthead, html, note,
-                 active_href=output.removesuffix(".html"))
+                 active_href=output.removesuffix(".html"), og=og)
 
 
 
@@ -791,7 +863,8 @@ def main(argv: list[str] | None = None) -> int:
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
         tech = spec[3] if len(spec) > 3 else None
-        page = render_doc(Path(source), kicker, standfirst, output, tech)
+        og = spec[4] if len(spec) > 4 else None
+        page = render_doc(Path(source), kicker, standfirst, output, tech, og)
         seen: list[dict] = []
         page, drift, unresolved = statlib.render(page, registry, ctx,
                                                  record=seen)

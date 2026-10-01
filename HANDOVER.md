@@ -43,6 +43,17 @@ here first, so anything stale in this file is read as an instruction.
 > ⚠️ `test_the_published_pages_are_what_this_tree_builds_today` fails after a
 > publish on the movement arrows alone (§1.282); that is expected.
 >
+> **Web Analytics, /support and /privacy (branch `support-analytics`)** ship
+> only once `CF_WEB_ANALYTICS_TOKEN` in `src/build_site.py` is set; while it is
+> empty the build emits no beacon and neither page nor their footer line. To
+> enable: Cloudflare dashboard → Web Analytics → Add a site →
+> `joburg.whysoserious.city` → Done; in Manage site choose the JS-snippet setup
+> (not automatic injection, which would count every visit twice); copy the
+> 32-hex token from the snippet's `data-cf-beacon` into the constant; rebuild;
+> after deploying, check a served page carries `cloudflareinsights` once.
+> /privacy describes the channel short paths (`/go /x /li /fb /ig /g`) and
+> Workers Logs, so it must not ship before the Worker that serves them.
+>
 > **EARLIER STATE (2026-09-29 night):** F8, F9, F10 DONE; F11 (build, R4, publish) WAS NEXT.
 >
 > **The repository folder is now `~/projects/atlas-jhb-election-model`** (owner, 2026-09-29); the MemPalace wing is unchanged.

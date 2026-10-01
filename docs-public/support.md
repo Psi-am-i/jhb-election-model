@@ -4,15 +4,19 @@
 
 Johannesburg's council is elected under a mixed system: ward seats won outright,
 proportional seats topped up from the party lists, and a statutory formula that
-decides how the two combine. After the count comes the coalition arithmetic. Few
-voters ever see any of it explained.
+decides how the two combine. After the count comes the coalition arithmetic.
+This site exists to explain that system to voters and to forecast its result.
 
-This site publishes a forecast of that council together with everything behind
-it: the [method](methodology), the [sources](sources), the
-[review](review) that found the model's errors, and the
-[corrections](corrections). It is free to read, and free to redistribute with
-attribution and a link back. The code and data are public on
-[GitHub](https://github.com/Psi-am-i/jhb-election-model).
+It publishes the forecast together with everything behind it: the
+[method](methodology), the [sources](sources), the [review](review) that found
+the model's errors, and the [corrections](corrections). It is free to read, and
+free to redistribute with attribution and a link back. The code and data are
+public on [GitHub](https://github.com/Psi-am-i/jhb-election-model).
+
+## Who pays for it now
+
+The site, its hosting and its advertising are paid for by its author through
+picnic labs.
 
 ## Who may fund it
 
@@ -25,15 +29,17 @@ Support is accepted from two kinds of backer only:
 The site does not take:
 
 - donations;
-- money or in-kind support from any political party, any candidate, or any of
-  their office-bearers.
+- money or in-kind support from any political party, any candidate, any of
+  their office-bearers, or any organisation they control, fund or that
+  campaigns for or against a party or candidate.
 
-Every supporter is named on this page.
+Every supporter is named on this page, with the band its support falls in:
+under R10,000, R10,000 to R50,000, or over R50,000.
 
 ## What a supporter receives
 
-An acknowledgement on this page: the supporter's name, and whether it is a
-partner or a sponsor.
+An acknowledgement on this page: the supporter's name, whether it is a partner
+or a sponsor, and its amount band.
 
 Support buys no editorial say. A supporter has no say over the model, its
 inputs, its findings, the wording of any page, or when anything is published.
