@@ -325,11 +325,15 @@ def test_a_listed_module_may_write_only_into_its_live_regions():
 def test_the_registry_names_served_modules_and_region_names():
     """`LIVE_WRITERS` maps a module's path under the site root to the LIVE
     region names it may write. Checked for every entry it holds, whatever that
-    number is."""
+    number is. An EMPTY set is allowed: a module that builds figures but
+    reaches no region of the page (play-card.js, the share image) is held to
+    the writer contract with nothing it may select; at least one entry must
+    name regions, or no figure could reach a page at all."""
     assert isinstance(S.LIVE_WRITERS, dict)
     for rel, names in S.LIVE_WRITERS.items():
         assert not rel.startswith("/") and rel.endswith((".js", ".mjs")), rel
-        assert names and all(S.LIVE_NAME.match(n) for n in names), (rel, names)
+        assert isinstance(names, frozenset) and all(S.LIVE_NAME.match(n) for n in names), (rel, names)
+    assert any(S.LIVE_WRITERS.values())
 
 
 def test_deploy_check_scans_nested_pages():
