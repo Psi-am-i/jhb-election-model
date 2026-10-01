@@ -15,7 +15,7 @@ owner does.
 | Host | Serves | `X-Robots-Tag` | Channel paths |
 |---|---|---|---|
 | `joburg.whysoserious.city` | Johannesburg, from the asset root | none | 302 to `/`, logged |
-| `whysoserious.city`, `www.` | the portal | none | not handled; behave as any other path |
+| `whysoserious.city`, `www.` | the portal | none | 302 to the same path and query on `joburg.whysoserious.city`, not logged here |
 | `<city>.whysoserious.city` | `/<city>/`, portal if unbuilt | none | not handled |
 | `<version-prefix>-joburg-whysoserious.<sub>.workers.dev` (Version URL, UAT) | Johannesburg, from the asset root | `noindex, nofollow` | 302 to `/`; the log line is written but Workers Logs does not show Version URL logs |
 | `joburg-whysoserious.<sub>.workers.dev` (live workers.dev) | Johannesburg, from the asset root | `noindex, nofollow` | 302 to `/`, logged with this host |
@@ -49,9 +49,14 @@ from the redirect. Logged object:
 `host` separates real arrivals from hits on the live `workers.dev` host. Count
 only `host = joburg.whysoserious.city`.
 
-**Workers Logs keeps events for 3 days on Workers Free and 7 days on Workers Paid**
-(developers.cloudflare.com/workers/observability/logs/workers-logs/, "Pricing").
-Counts older than that are gone; export them at least that often.
+**The account moves to Workers Paid before results night** (owner's decision,
+2026-10-01). Workers Logs then keeps events for 7 days (3 on Workers Free;
+developers.cloudflare.com/workers/observability/logs/workers-logs/, "Pricing").
+Counts older than 7 days are gone; export them at least weekly.
+
+`[observability.logs] invocation_logs = false` in `wrangler.toml`: Workers Logs
+keeps the arrival objects, errors and uncaught exceptions, and no per-request
+record. `docs-public/privacy.md` says so; change the two together.
 
 ## One-time settings check
 
@@ -70,6 +75,12 @@ dashboard does not change the version being tested.
 ## Runbook
 
 ### 0. Build and commit
+
+Before `build_site.py --publish`, replace the `OWNER:` line in
+`docs-public/privacy.md` with the responsible party's legal name and physical
+address. `--publish` refuses while that line is present. A build without
+`--publish` is not stopped by it, so a UAT version can carry the placeholder;
+live must not.
 
 Build `site/` and pass the number review as `HANDOVER.md` describes. Wrangler
 uploads the working directory, so start from a clean tree:
