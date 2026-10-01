@@ -11,23 +11,36 @@ here first, so anything stale in this file is read as an instruction.
 > glaring items fixed and rendered in `c3f6aa8` (claim dates from the ledger,
 > the red-lines claim retitled, the Zille quote dated 13 Sep, the share text,
 > "8 August", two corrections, `/play/` opt-in). **Fix soon (not done):**
-> GitHub links dead/retired and the published commit not on GitHub (push only
-> after `export_draws` drops `code_dir` and serves reader-facing poll caveats —
-> `site/draws/` is committed with a local path and internal notes); `changes.json`
+> GitHub links dead/retired and the published commit not on GitHub (the draws
+> blocker is cleared: see the 2026-10-01 /play/ block below); `changes.json`
 > provenance names a commit made after the run (`publication.run_identity`);
 > `/methodology` inverts the CRPS caveat that `/about` states; `/about` calls the
 > seven other cities "never designed against" and says "largest 55 parties";
-> `/review` still says polls are "wired in"; `/play/` wording ("sampling error"
-> vs total error; SRF waves multiplied as independent; "the model's own
-> Python"); the largest-party tie-break favours the DA (60 tied draws);
+> `/review` still says polls are "wired in"; the largest-party tie-break favours
+> the DA (60 tied draws);
 > Pyodide from jsdelivr without SRI; the Worker soft-404s with status 200;
 > wrangler unpinned.
+>
+> **/play/ ships in the next UAT version (2026-10-01, owner: "we are only
+> adding saving and sharing").** Built by every Johannesburg build (no
+> `--with-play`), linked from every page's nav, its draws uploaded with the site
+> (`site/.assetsignore` deleted). `export_draws` writes no `code_dir`, and
+> `--index` scrubs older manifests and serves reader caveats from
+> `content/joburg/poll-caveats.toml`; `site/draws/*/base.bin` are unchanged
+> (sha256). Anonymous share: settings in the URL, "Share these settings" sheet
+> with the link and a 1200×630 / 1080×1920 image drawn from the computed result
+> (`play-card.js`, `play-share.js`, both in `stats.LIVE_WRITERS`); no storage,
+> so `/privacy` is unchanged. The /play/ fix-soon wording items are done.
+> `site/` was rebuilt the UAT way (scratch ledger, first 665 rows).
+> Screenshots: `interactive/screenshots/play-*.png`. **Owner:** UAT per
+> `docs/DEPLOY-UAT.md` (now with /play/ and /draws/ checks); a new poll needs
+> a reader caveat or `export_draws --index` refuses; tell the newsdesk.
 >
 > **Deploy review (2026-09-30, `audits/2026-09-29-f11/R-deploy-brief.md`): ship
 > after fixes, applied** — `site/_headers` regenerated alone (the live site
 > serves every non-HTML file as text/html); `site/draws/` held back until the
-> page ships (its manifests carried a local path and internal poll notes, to be
-> fixed in `export_draws` first); `deploy_check` and `test_site_headers` now
+> page ships (its manifests carried a local path and internal poll notes;
+> fixed 2026-10-01, above); `deploy_check` and `test_site_headers` now
 > refuse a stale `_headers`. Deploy from a CLEAN tree: wrangler uploads the
 > working directory. After deploying, check content types with curl
 > (`/logos/ANC.png` image/png, `/robots.txt` text/plain, `/regimes.json`
