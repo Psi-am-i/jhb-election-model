@@ -170,11 +170,15 @@ separate staging Worker serving the same `site/` build tests the routing in
 one place, and gives the strict-token build and the drift report somewhere
 real to fail before the public sees anything.
 
-*Trap to remember*: wrangler environment config is **not** fully inherited —
-top-level `[assets]`, `routes` and `vars` must be restated under the env
-block. That is the same class of quiet failure as the routes-above-`[table]`
-bug already in this repo's git history. Cloudflare *versions/preview URLs*
-are useful for eyeballing but awkward on a custom-domain Worker.
+*Correction (2026-10-01)*: of `[assets]`, `routes` and `vars`, only `vars`
+(with every binding) is non-inheritable and must be restated under an env
+block; `routes`, `assets`, `build`, `workers_dev`, `preview_urls` and
+`observability` are inheritable keys
+(developers.cloudflare.com/workers/wrangler/configuration/, "Inheritable
+keys"). UAT is now a Version URL of the live Worker, not a staging Worker:
+`docs/DEPLOY-UAT.md`. ~~Cloudflare *versions/preview URLs*
+are useful for eyeballing but awkward on a custom-domain Worker.~~ (superseded
+2026-10-01: Version URLs are the UAT path.)
 
 Staging sends `X-Robots-Tag: noindex` via the existing `_headers` file. The
 current `/dev/` convention on the live Worker is zero-config and useful but

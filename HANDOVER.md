@@ -33,9 +33,12 @@ here first, so anything stale in this file is read as an instruction.
 > (`/logos/ANC.png` image/png, `/robots.txt` text/plain, `/regimes.json`
 > application/json, `/` text/html).
 >
-> **Frozen and published, MODEL-LOG §1.282.** Deploy with
-> `env -u CLOUDFLARE_API_TOKEN npx wrangler deploy` from the repo root (the agent
-> is not permitted to), then check workers.dev with a cache-buster: the ANC
+> **Deploy through UAT (2026-10-01): `docs/DEPLOY-UAT.md`.** `wrangler versions
+> upload`, check the printed Version URL, then `versions deploy <id>@100%`. Campaign
+> links use the channel short paths listed there, not `utm_` tags.
+>
+> **Frozen and published, MODEL-LOG §1.282.** Deploy by the runbook above from
+> the repo root (the agent is not permitted to), then check with a cache-buster: the ANC
 > claim reads "Not close." with its note, the home lede is a dead heat at 47%,
 > `/corrections` has the 30 September entry. **Next:** the interactive,
 > `audits/2026-09-28-interactive-architecture/PLAN.md` S2–S6, on the frozen

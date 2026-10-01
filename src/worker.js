@@ -12,6 +12,22 @@
  *
  * Anything shared across cities (logos, share images, robots.txt, _headers)
  * stays at the root and is served to every host unchanged.
+ *
+ * Every *.workers.dev host serves the Johannesburg build from the root, and
+ * every response it sends carries X-Robots-Tag: noindex, nofollow. That covers
+ * the Worker's own workers.dev URL and every Version URL printed by
+ * `wrangler versions upload`, which is the UAT path (docs/DEPLOY-UAT.md).
+ * Without this branch those hosts fell through to the city-directory lookup
+ * and showed the portal.
+ *
+ * Channel short paths (/go, /x, /li, /fb, /ig, /g; any case, optional trailing
+ * slash) on the Johannesburg host and on workers.dev hosts answer 302 to the
+ * home page and log one object, which Workers Logs indexes as fields:
+ *   {event: "arrival", channel: "<name>", host: "<hostname>"}
+ * Cloudflare Web Analytics does not record query strings, so UTM tags are
+ * invisible there; Workers Logs ([observability] in wrangler.toml) counts these
+ * lines instead. Version URLs are not visible in Workers Logs, so UAT clicks
+ * are never counted.
  */
 
 // NB: request "/portal", not "/portal.html" — the assets layer 307s the
@@ -27,11 +43,51 @@ const SHARED = [
   "/logos/", "/share.jpg", "/robots.txt", "/favicon", "/_headers", "/sitemap",
 ];
 
+const NOINDEX = "noindex, nofollow";
+
+// Short path (lowercase, no slashes) -> channel name in the arrival log.
+const CHANNELS = new Map([
+  ["go", "billboard"],
+  ["x", "x"],
+  ["li", "linkedin"],
+  ["fb", "facebook"],
+  ["ig", "instagram"],
+  ["g", "google_ads"],
+]);
+
+function isPreview(host) {
+  return host.endsWith(".workers.dev");
+}
+
+// "/GO", "/go/" -> "billboard"; anything else -> undefined.
+function channelOf(path) {
+  const m = /^\/([a-z]+)\/?$/.exec(path.toLowerCase());
+  return m ? CHANNELS.get(m[1]) : undefined;
+}
+
+function arrival(url, host, channel) {
+  // An object, not a JSON string: Workers Logs indexes an object's keys as
+  // fields (filter event, group by channel); a string is one message field.
+  console.log({ event: "arrival", channel, host });
+  return new Response(null, {
+    status: 302,
+    headers: { Location: new URL("/", url).toString() },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const host = url.hostname.toLowerCase();
     const path = url.pathname;
+
+    if (isPreview(host)) {
+      const channel = channelOf(path);
+      const res = channel ? arrival(url, host, channel) : await env.ASSETS.fetch(request);
+      const out = new Response(res.body, res);
+      out.headers.set("X-Robots-Tag", NOINDEX);
+      return out;
+    }
 
     if (PORTAL_HOSTS.has(host)) {
       if (path === "/" || path === "/index.html") {
@@ -41,6 +97,11 @@ export default {
     }
 
     const sub = host.split(".")[0];
+
+    if (ROOT_CITIES.has(sub)) {
+      const channel = channelOf(path);
+      if (channel) return arrival(url, host, channel);
+    }
 
     // Johannesburg, and anything shared, is served straight from the root.
     if (ROOT_CITIES.has(sub) || SHARED.some((p) => path.startsWith(p))) {
