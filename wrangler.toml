@@ -64,3 +64,28 @@ enabled = true
 #    Workers Logs."
 [observability.logs]
 invocation_logs = false
+
+# Workers Analytics Engine: one data point per channel arrival (the same events
+# as the log objects above), kept longer than Workers Logs' seven days. Written
+# by arrival() in src/worker.js; counted with the SQL API (docs/DEPLOY-UAT.md,
+# "Counting arrivals"). Holds the channel and the site's hostname only.
+# `[[analytics_engine_datasets]]` is an array-of-tables header of its own, so
+# it is top-level wherever it sits; an inline `analytics_engine_datasets = [...]`
+# key would have to sit above every [table] header, like routes. Cloudflare
+# (read 2026-10-01):
+#   developers.cloudflare.com/workers/wrangler/configuration/#analytics-engine-datasets
+#     [[analytics_engine_datasets]]
+#     binding = "<BINDING_NAME>"
+#     dataset = "<DATASET_NAME>"
+#   developers.cloudflare.com/analytics/analytics-engine/limits/ (updated 2026-04-23):
+#     "Data written to Workers Analytics Engine is stored for three months."
+#   developers.cloudflare.com/analytics/analytics-engine/pricing/ (updated 2026-04-23):
+#     Workers Paid, data points written: "10 million included per month
+#     (+$0.25 per additional million)"; read queries: "1 million included per
+#     month (+$1.00 per additional million)".
+#     "Currently, you will not be billed for your use of Workers Analytics Engine."
+# Version URLs carry this binding too: UAT clicks are written, under their own
+# workers.dev host, and the count filters them out by host.
+[[analytics_engine_datasets]]
+binding = "ARRIVALS"
+dataset = "joburg_arrivals"

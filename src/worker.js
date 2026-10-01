@@ -29,7 +29,14 @@
  * Cloudflare Web Analytics does not record query strings, so UTM tags are
  * invisible there; Workers Logs ([observability] in wrangler.toml) counts these
  * lines instead. Version URLs are not visible in Workers Logs, so UAT clicks
- * are never counted.
+ * never appear there.
+ *
+ * Each arrival is also written as one Workers Analytics Engine data point
+ * (env.ARRIVALS, [[analytics_engine_datasets]] in wrangler.toml):
+ *   blobs [channel, host], doubles [1], indexes [channel]
+ * Analytics Engine keeps it three months against Workers Logs' seven days.
+ * Version URLs have the binding too, so UAT clicks are written under their
+ * workers.dev host; the count in docs/DEPLOY-UAT.md filters on host.
  */
 
 // NB: request "/portal", not "/portal.html" — the assets layer 307s the
@@ -70,10 +77,19 @@ function channelOf(path) {
   return m ? CHANNELS.get(m[1]) : undefined;
 }
 
-function arrival(url, host, channel) {
+function arrival(url, host, channel, env) {
   // An object, not a JSON string: Workers Logs indexes an object's keys as
   // fields (filter event, group by channel); a string is one message field.
   console.log({ event: "arrival", channel, host });
+  // The same arrival as one Analytics Engine data point, kept three months
+  // (Workers Logs keeps seven days). Channel and hostname only, nothing about
+  // the visitor. Not awaited: writeDataPoint is non-blocking. A missing
+  // binding or a failed write must never cost the visitor the redirect.
+  try {
+    env.ARRIVALS?.writeDataPoint({ blobs: [channel, host], doubles: [1], indexes: [channel] });
+  } catch {
+    // the log line above still records the arrival
+  }
   return new Response(null, {
     status: 302,
     headers: { Location: new URL("/", url).toString() },
@@ -88,7 +104,7 @@ export default {
 
     if (isPreview(host)) {
       const channel = channelOf(path);
-      const res = channel ? arrival(url, host, channel) : await env.ASSETS.fetch(request);
+      const res = channel ? arrival(url, host, channel, env) : await env.ASSETS.fetch(request);
       const out = new Response(res.body, res);
       out.headers.set("X-Robots-Tag", NOINDEX);
       return out;
@@ -113,7 +129,7 @@ export default {
 
     if (ROOT_CITIES.has(sub)) {
       const channel = channelOf(path);
-      if (channel) return arrival(url, host, channel);
+      if (channel) return arrival(url, host, channel, env);
     }
 
     // Johannesburg, and anything shared, is served straight from the root.

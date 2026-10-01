@@ -17,7 +17,7 @@ owner does.
 | `joburg.whysoserious.city` | Johannesburg, from the asset root | none | 302 to `/`, logged |
 | `whysoserious.city`, `www.` | the portal | none | 302 to the same path and query on `joburg.whysoserious.city`, not logged here |
 | `<city>.whysoserious.city` | `/<city>/`, portal if unbuilt | none | not handled |
-| `<version-prefix>-joburg-whysoserious.<sub>.workers.dev` (Version URL, UAT) | Johannesburg, from the asset root | `noindex, nofollow` | 302 to `/`; the log line is written but Workers Logs does not show Version URL logs |
+| `<version-prefix>-joburg-whysoserious.<sub>.workers.dev` (Version URL, UAT) | Johannesburg, from the asset root | `noindex, nofollow` | 302 to `/`; the log line is written but Workers Logs does not show Version URL logs; the Analytics Engine point is written with this host |
 | `joburg-whysoserious.<sub>.workers.dev` (live workers.dev) | Johannesburg, from the asset root | `noindex, nofollow` | 302 to `/`, logged with this host |
 
 Source: `src/worker.js`. Tests: `tests/test_worker_routing.py`.
@@ -46,13 +46,18 @@ from the redirect. Logged object:
 {"event":"arrival","channel":"billboard","host":"joburg.whysoserious.city"}
 ```
 
-`host` separates real arrivals from hits on the live `workers.dev` host. Count
-only `host = joburg.whysoserious.city`.
+The same arrival is written as one Workers Analytics Engine data point
+(binding `ARRIVALS`, dataset `joburg_arrivals`): `blob1` the channel, `blob2` the
+host, `double1` = 1, index the channel. Nothing about the visitor is written.
+
+`host` separates real arrivals from hits on the live `workers.dev` host and on
+Version URLs. Count only `host = joburg.whysoserious.city`.
 
 **The account moves to Workers Paid before results night** (owner's decision,
 2026-10-01). Workers Logs then keeps events for 7 days (3 on Workers Free;
 developers.cloudflare.com/workers/observability/logs/workers-logs/, "Pricing").
-Counts older than 7 days are gone; export them at least weekly.
+Analytics Engine keeps them three months, so it holds the count; Workers Logs is
+for checking a single arrival soon after it happens.
 
 `[observability.logs] invocation_logs = false` in `wrangler.toml`: Workers Logs
 keeps the arrival objects, errors and uncaught exceptions, and no per-request
@@ -124,7 +129,8 @@ done
 
 Then open `$U/?v=<anything>` in a browser and read the pages that changed. The
 arrival log line cannot be checked here: Workers Logs does not show Version URL
-requests.
+requests. The loop above does write eight Analytics Engine points under the
+Version URL host; the count excludes them by host.
 
 If anything is wrong, stop. Nothing is live; fix, commit, go back to step 1.
 
@@ -162,12 +168,60 @@ env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy <previous-version-id>@1
 
 ## Counting arrivals
 
+### Analytics Engine (the count; three months)
+
+The SQL API, Cloudflare
+(developers.cloudflare.com/analytics/analytics-engine/sql-api/, read 2026-10-01):
+endpoint `https://api.cloudflare.com/client/v4/accounts/<account_id>/analytics_engine/sql`,
+a bearer token with *Account* | *Account Analytics* | *Read*, and
+"Instead of `SELECT COUNT() FROM ...` use `SELECT SUM(_sample_interval) FROM ...`"
+because high volumes are sampled.
+
+The token and account id come from the environment, never typed into a command:
+store the token in the Keychain and export it from an `.envrc` (policy:
+`~/CLAUDE.md` rule 4 and `~/projects/SECRETS.md`). Names used below:
+`CF_ANALYTICS_TOKEN`, `CF_ACCOUNT_ID`. The header is passed from a process
+substitution so the token does not appear in the command line.
+
+```sh
+curl -s "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/analytics_engine/sql" \
+  -H @<(printf 'Authorization: Bearer %s' "$CF_ANALYTICS_TOKEN") \
+  --data "
+    SELECT toStartOfDay(timestamp) AS day,
+           blob1 AS channel,
+           SUM(_sample_interval) AS arrivals
+    FROM joburg_arrivals
+    WHERE blob2 = 'joburg.whysoserious.city'
+    GROUP BY day, channel
+    ORDER BY day, channel
+    FORMAT JSON"
+```
+
+The dataset is created by its first write, so `SHOW TABLES` (same curl, that as
+the `--data`) lists `joburg_arrivals` only after the first live arrival. Days are
+UTC.
+
+Retention and cost, Cloudflare, read 2026-10-01:
+
+- developers.cloudflare.com/analytics/analytics-engine/limits/: "Data written to
+  Workers Analytics Engine is stored for three months."
+- developers.cloudflare.com/analytics/analytics-engine/pricing/: on Workers Paid,
+  "10 million included per month (+$0.25 per additional million)" data points
+  written and "1 million included per month (+$1.00 per additional million)" read
+  queries; "Currently, you will not be billed for your use of Workers Analytics
+  Engine."
+
+**After results night, export once:** run the query above and commit its JSON
+output to the private newsdesk repo. Points older than three months are deleted.
+
+### Workers Logs (single arrivals; seven days)
+
 Dashboard → `joburg-whysoserious` → Observability → Query builder (or the
 `query_worker_observability` tool):
 
 - filter `event` = `arrival` and `host` = `joburg.whysoserious.city`
 - group by `channel`, aggregate count
-- time range: the campaign day or week, within the retention window above
+- time range: within the last seven days
 
 ## When `wrangler deploy` is still the command
 

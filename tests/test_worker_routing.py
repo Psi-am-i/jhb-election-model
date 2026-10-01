@@ -33,8 +33,15 @@ request. Detectors, each a function returning a list of problems:
                         fetches nothing and logs nothing (the Joburg host logs
                         the arrival once).
 * `config_problems`   — `wrangler.toml` states workers_dev, preview_urls,
-                        [observability] and invocation_logs = false where
-                        wrangler reads them.
+                        [observability], invocation_logs = false and the
+                        ARRIVALS Analytics Engine binding where wrangler
+                        reads them.
+
+`env.ARRIVALS` is a fake Analytics Engine binding recording every data point
+(`points` per request). `channel_problems` wants exactly one point per arrival,
+matching the log object; every other detector wants none. `resilience_problems`
+runs the channel paths with the binding absent and with a binding that throws:
+the redirect and the log line must survive both.
 
 Each is shown to fire on a constructed violation and to be quiet on the real
 source (CLAUDE.md §4).
@@ -96,8 +103,14 @@ const have = new Set(assets);
 const out = [];
 const realLog = console.log;
 for (const c of cases) {
-  const fetched = [], logs = [];
-  const env = { ...c.env, ASSETS: { async fetch(req) {
+  const fetched = [], logs = [], points = [];
+  // env.ARRIVALS: a recorder by default; "absent" leaves it out, "throw" fails.
+  const mode = c.arrivals || "record";
+  const arrivals = mode === "absent" ? {} : { ARRIVALS: { writeDataPoint(p) {
+    if (mode === "throw") throw new Error("analytics engine down");
+    points.push(JSON.parse(JSON.stringify(p)));
+  } } };
+  const env = { ...c.env, ...arrivals, ASSETS: { async fetch(req) {
     const u = new URL(req.url);
     fetched.push(u.pathname + u.search);
     if (redirects[u.pathname]) return new Response(null, { status: 307,
@@ -111,11 +124,13 @@ for (const c of cases) {
   } } };
   console.log = (...a) => logs.push(a.length === 1 && typeof a[0] === "object"
     ? a[0] : { text: a.join(" ") });
-  let res;
+  let res, error = null;
   try { res = await worker.fetch(new Request(c.url, { headers: c.headers || {} }), env); }
+  catch (e) { error = String(e); }
   finally { console.log = realLog; }
-  out.push({ url: c.url, status: res.status, headers: [...res.headers].sort(),
-             body: await res.text(), fetched, logs });
+  out.push({ url: c.url, status: res ? res.status : null,
+             headers: res ? [...res.headers].sort() : [],
+             body: res ? await res.text() : "", fetched, logs, points, error });
 }
 process.stdout.write(JSON.stringify(out));
 """
@@ -201,6 +216,8 @@ def preview_problems(src: str) -> list[str]:
             out.append(f"{r['url']}: fetched {r['fetched']}, want [{_path(r['url'])!r}]")
         if r["logs"]:
             out.append(f"{r['url']}: logged {r['logs']}")
+        if r["points"]:
+            out.append(f"{r['url']}: wrote {r['points']}")
     return out
 
 
@@ -237,6 +254,9 @@ def channel_problems(src: str) -> list[str]:
         logged = r["logs"]  # each a logged object; a string arrives as {"text": ...}
         if logged != [want]:
             out.append(f"{r['url']}: logged {r['logs']}, want [{want}]")
+        point = {"blobs": [name, host], "doubles": [1], "indexes": [name]}
+        if r["points"] != [point]:
+            out.append(f"{r['url']}: wrote {r['points']}, want [{point}]")
         if preview != (h.get("x-robots-tag") == NOINDEX):
             out.append(f"{r['url']}: X-Robots-Tag {h.get('x-robots-tag')!r}")
     return out
@@ -254,8 +274,30 @@ def portal_channel_problems(src: str) -> list[str]:
                        f"fetched {r['fetched']}, want 302 {want!r}")
         if r["logs"]:
             out.append(f"{r['url']}: logged {r['logs']}; only {JOBURG} logs")
+        if r["points"]:
+            out.append(f"{r['url']}: wrote {r['points']}; only {JOBURG} writes")
         if "x-robots-tag" in h:
             out.append(f"{r['url']}: X-Robots-Tag {h['x-robots-tag']!r}")
+    return out
+
+
+def resilience_problems(src: str) -> list[str]:
+    """With ARRIVALS absent, or throwing on every write, each channel path on
+    the Joburg host still answers 302 home and logs its one arrival."""
+    keys = [(m, p, n) for m in ("absent", "throw") for p, n in CHANNEL_PATHS.items()]
+    cases = [{"url": f"https://{JOBURG}{p}", "env": {}, "arrivals": m}
+             for m, p, _n in keys]
+    out = []
+    for r, (mode, _p, name) in zip(run_worker(src, cases), keys):
+        h = dict(r["headers"])
+        if r["error"] or r["status"] != 302 or h.get("location") != f"https://{JOBURG}/":
+            out.append(f"{r['url']} [{mode}]: {r['status']} {h.get('location')!r} "
+                       f"error={r['error']!r}")
+        want = {"event": "arrival", "channel": name, "host": JOBURG}
+        if r["logs"] != [want]:
+            out.append(f"{r['url']} [{mode}]: logged {r['logs']}, want [{want}]")
+        if r["points"]:
+            out.append(f"{r['url']} [{mode}]: recorded {r['points']}")
     return out
 
 
@@ -300,6 +342,14 @@ def test_live_differential_fires_on_a_changed_live_route():
 def test_live_hosts_are_never_noindexed():
     for r in run_worker(source(), live_cases()):
         assert "x-robots-tag" not in dict(r["headers"]), r["url"]
+
+
+def test_no_data_point_off_the_channel_paths():
+    """Near misses on every live host, and channel paths on cities other than
+    Joburg, write no Analytics Engine point; neither does the 307 or 304."""
+    runs = run_worker(source(), live_cases() + PREVIEW_CASES)
+    assert not [(r["url"], r["points"]) for r in runs if r["points"]]
+    assert not [r["url"] for r in runs if r["error"]]
 
 
 # ---------------------------------------------------------------- preview
@@ -351,7 +401,14 @@ def test_channel_check_fires_on_each_constructed_violation():
                   'console.log(JSON.stringify({ event: "arrival", channel, host }))'),
                  ('/^\\/([a-z]+)\\/?$/', '/^\\/([a-z]+)$/'),
                  ('new URL("/", url)', 'new URL("/forecast", url)'),
-                 ('  ["ig", "instagram"],\n', "")):
+                 ('  ["ig", "instagram"],\n', ""),
+                 (AE_WRITE, ""),
+                 ("blobs: [channel, host]", "blobs: [host, channel]"),
+                 ("indexes: [channel]", "indexes: [host]"),
+                 ("doubles: [1]", "doubles: []"),
+                 (AE_WRITE, AE_WRITE + "\n    " + AE_WRITE),
+                 (AE_WRITE, AE_WRITE.replace("[channel, host]",
+                                             "[channel, host, request.url]"))):
         assert channel_problems(_mutate(src, a, b)), f"channel check blind to {b!r}"
     assert channel_problems(baseline_source())
 
@@ -374,6 +431,44 @@ def test_portal_channel_check_fires_on_each_constructed_violation():
         assert portal_channel_problems(_mutate(src, a, b)), f"blind to {b!r}"
     # the baseline worker served these paths from the asset layer
     assert portal_channel_problems(baseline_source())
+
+
+# ---------------------------------------------------------------- analytics engine
+
+AE_WRITE = ("env.ARRIVALS?.writeDataPoint({ blobs: [channel, host], "
+            "doubles: [1], indexes: [channel] });")
+
+
+def test_the_redirect_survives_a_missing_or_failing_binding():
+    assert resilience_problems(source()) == []
+
+
+def test_resilience_check_fires_on_each_constructed_violation():
+    src = source()
+    bare = "env.ARRIVALS.writeDataPoint({ blobs: [channel, host], doubles: [1], indexes: [channel] });"
+    # `?.` and try/catch each cover the other's absence, so the violation
+    # removes both: a bare call outside any try.
+    i = src.index("  try {\n    " + AE_WRITE)
+    j = src.index("  }\n", src.index("  } catch {", i)) + len("  }\n")
+    unguarded = src[:i] + "  " + bare + "\n" + src[j:]
+    assert unguarded.count("writeDataPoint(") == 1 and "catch" not in unguarded[i:i + 200]
+    assert resilience_problems(unguarded), "blind to an unguarded write"
+    # the throw case alone: `?.` without try/catch survives "absent" only
+    no_try = src[:i] + "  " + AE_WRITE + "\n" + src[j:]
+    probs = resilience_problems(no_try)
+    assert probs and all("[throw]" in p for p in probs), probs
+    # the absent case alone: try/catch without `?.` survives both, by catching
+    assert resilience_problems(_mutate(src, AE_WRITE, bare)) == []
+
+
+def test_the_worker_writes_nothing_about_the_visitor():
+    """The data point carries the channel and hostname only."""
+    src = source()
+    assert src.count("writeDataPoint(") == 1 and AE_WRITE in src
+    body = src[src.index("function arrival"):src.index("export default")]
+    for leak in ("CF-Connecting-IP", "cf-connecting-ip", "User-Agent", "user-agent",
+                 "request.cf", "url.search", "headers.get"):
+        assert leak not in body, leak
 
 
 # ---------------------------------------------------------------- config
@@ -399,6 +494,10 @@ def config_problems(text: str, staging_file: bool | None = None) -> list[str]:
         out.append("vars.STAGING is set on the live Worker")
     if not cfg.get("routes"):
         out.append("no top-level routes")
+    if {"binding": "ARRIVALS", "dataset": "joburg_arrivals"} not in \
+            cfg.get("analytics_engine_datasets", []):
+        out.append("no top-level [[analytics_engine_datasets]] ARRIVALS -> "
+                   "joburg_arrivals: arrivals are kept seven days only")
     if staging_file is None:
         staging_file = (ROOT / "wrangler.staging.toml").exists()
     if staging_file:
@@ -410,8 +509,13 @@ def test_wrangler_toml_states_preview_urls_and_observability():
     assert config_problems(WRANGLER.read_text(encoding="utf-8")) == []
 
 
+AE_BLOCK = ('[[analytics_engine_datasets]]\nbinding = "ARRIVALS"\n'
+            'dataset = "joburg_arrivals"\n')
+
+
 def test_config_check_fires_on_each_constructed_violation():
     text = WRANGLER.read_text(encoding="utf-8")
+    assert text.count(AE_BLOCK) == 1
     line = "preview_urls = true\n"
     assert text.count(line) == 1
     cases = {
@@ -426,6 +530,13 @@ def test_config_check_fires_on_each_constructed_violation():
         "invocation logs on": text.replace("invocation_logs = false",
                                            "invocation_logs = true"),
         "invocation logs unstated": text.replace("invocation_logs = false\n", ""),
+        "AE binding absent": text.replace(AE_BLOCK, ""),
+        "AE binding renamed": text.replace('binding = "ARRIVALS"', 'binding = "ARRIVAL"'),
+        "AE dataset renamed": text.replace('dataset = "joburg_arrivals"',
+                                           'dataset = "arrivals"'),
+        "AE binding inline under [observability.logs]": text.replace(AE_BLOCK, "") +
+            'analytics_engine_datasets = [{ binding = "ARRIVALS", '
+            'dataset = "joburg_arrivals" }]\n',
     }
     for name, t in cases.items():
         assert t != text, name

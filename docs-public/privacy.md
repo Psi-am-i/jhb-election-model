@@ -48,6 +48,11 @@ holds those lines, with the metadata Cloudflare attaches to each one, and any
 error the site's server code raises. It is set not to keep a record of each
 request. It keeps every entry for at most seven days.
 
+The same count, the channel and the site's address for each arrival and nothing
+about the visitor, is also kept in Cloudflare's
+[Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/),
+which deletes it after three months.
+
 ## Network error reports
 
 Cloudflare's response headers `NEL` and `Report-To` ask your browser to report
