@@ -58,6 +58,7 @@ function fill() {
   S.url.value = now.url;
   S.native.hidden = typeof navigator.share !== "function";
   if (!now.r) {
+    S.native.disabled = false;
     S.about.textContent = "No control is moved, so this link opens the published forecast. Move a control to share your own settings and an image of what they give.";
     S.imagebox.hidden = true;
     return;

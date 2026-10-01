@@ -7,13 +7,13 @@ const BASE = "http://127.0.0.1:8801/play/";
 const MOVED = "?t=2,0,0,-1&p=srf-2026q2-coj,srf-2026q1-coj&k=35";
 const b = await chromium.launch();
 const errors = [];
-async function page(w, h, query) {
+async function page(w, h, query, moved = !!query) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: w < 500 ? 2 : 1, colorScheme: "dark", acceptDownloads: true });
   const p = await ctx.newPage();
   p.on("pageerror", e => errors.push(`${w} ${query}: ${e.message}`));
   await p.goto(BASE + query, { waitUntil: "load" });
   await p.waitForFunction(() => /code is ready|effective/.test(document.querySelector('[data-live="engine"] .ess').textContent), null, { timeout: 120000 });
-  if (query && !query.includes("k=7")) await p.waitForFunction(() => document.querySelector('[data-live="seats"] table tbody tr'), null, { timeout: 120000 });
+  if (moved) await p.waitForFunction(() => document.querySelector('[data-live="seats"] table tbody tr'), null, { timeout: 120000 });
   await p.waitForTimeout(500);
   return p;
 }
@@ -44,7 +44,7 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   await p.context().close();
 }
 // an invalid link falls back, visibly
-const p = await page(1440, 1000, "?t=9,0,0,0&k=7");
+const p = await page(1440, 1000, "?t=9,0,0,0&k=7", false);
 console.log("invalid-link note:", await p.evaluate(() => document.querySelector('[data-live="engine"] .linknote').textContent));
 await p.screenshot({ path: `${OUT}/play-1440-invalid-link.png` });
 await b.close();
