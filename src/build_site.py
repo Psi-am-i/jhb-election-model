@@ -782,10 +782,26 @@ CONTENT_TYPES = {
 }
 
 
+#: Sent with every file (the `/*` rule). No `script-src`: /play/ runs Pyodide
+#: (WebAssembly compiled in the page) and the Web Analytics beacon loads from
+#: static.cloudflareinsights.com, so a script policy would break both. The CSP
+#: only stops other sites framing these pages. HSTS carries no
+#: `includeSubDomains` (nothing in this repository can show that every
+#: whysoserious.city subdomain serves HTTPS) and no `preload`.
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Content-Security-Policy": "frame-ancestors 'self'",
+    "Strict-Transport-Security": "max-age=31536000",
+}
+
+
 def headers_text() -> str:
-    """The `_headers` file: HTML by default, each asset type by extension, and
-    the working copies (`/dev/`, `/drafts/`) reachable but never indexed."""
-    rules = ["/*\n  Content-Type: text/html; charset=utf-8\n"]
+    """The `_headers` file: HTML by default, each asset type by extension, the
+    security headers on every file, and the working copies (`/dev/`,
+    `/drafts/`) reachable but never indexed."""
+    rules = ["/*\n  Content-Type: text/html; charset=utf-8\n"
+             + "".join(f"  {k}: {v}\n" for k, v in SECURITY_HEADERS.items())]
     rules += [f"/*{ext}\n  ! Content-Type\n  Content-Type: {ctype}\n"
               for ext, ctype in CONTENT_TYPES.items()]
     rules += ["/dev/*\n  X-Robots-Tag: noindex, nofollow\n",

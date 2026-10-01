@@ -169,3 +169,48 @@ def test_the_check_can_see_a_missing_type_and_an_overlapping_rule():
                "/share.jpg\n  ! Content-Type\n  Content-Type: image/jpeg\n")
         assert any(f.startswith("/js/model.js: served as 'text/html")
                    for f in _problems(site, old))
+
+
+def _all_headers(path: str, text: str) -> dict[str, str]:
+    """Every non-Content-Type header the matching rules set on ``path``."""
+    out: dict[str, str] = {}
+    for pat, ops in _rules(text):
+        if _pattern(pat).fullmatch(path):
+            for name, value in ops:
+                if name != "content-type" and value is not None:
+                    out[name] = value
+    return out
+
+
+def security_problems(text: str) -> list[str]:
+    want = {"x-content-type-options": "nosniff",
+            "referrer-policy": "strict-origin-when-cross-origin",
+            "content-security-policy": "frame-ancestors 'self'",
+            "strict-transport-security": "max-age=31536000"}
+    out = []
+    for path in ("/", "/forecast", "/privacy", "/play/", "/js/model.js",
+                 "/draws/base.bin", "/robots.txt", "/dev/forecast"):
+        got = _all_headers(path, text)
+        for name, value in want.items():
+            if got.get(name) != value:
+                out.append(f"{path}: {name} {got.get(name)!r}, want {value!r}")
+    if "script-src" in text or "default-src" in text:
+        out.append("a script policy would break Pyodide and the analytics beacon")
+    if re.search(r"includeSubDomains|preload", text, re.I):
+        out.append("HSTS reaches beyond this host (includeSubDomains/preload)")
+    return out
+
+
+def test_every_file_carries_the_security_headers():
+    assert security_problems(B.headers_text()) == []
+
+
+def test_security_check_fires_on_each_constructed_violation():
+    text = B.headers_text()
+    for old, new in (("  X-Content-Type-Options: nosniff\n", ""),
+                     ("strict-origin-when-cross-origin", "unsafe-url"),
+                     ("frame-ancestors 'self'", "frame-ancestors 'self'; script-src 'self'"),
+                     ("max-age=31536000", "max-age=31536000; includeSubDomains"),
+                     ("  Strict-Transport-Security: max-age=31536000\n", "")):
+        assert text.count(old) == 1, old
+        assert security_problems(text.replace(old, new)), f"blind to {new!r}"
