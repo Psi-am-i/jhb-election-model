@@ -106,7 +106,7 @@ TOSS_STEP = 7.0
 TOSS_ROTATE = 45
 
 
-def toss_bands(contenders, step: float = TOSS_STEP):
+def toss_bands(contenders, step: float | None = None):
     """The geometry of :func:`toss_pattern`: one vertical line per contender.
 
     ``[{"colour", "x", "w"}]``, ``x`` the line's centre and ``w`` its width
@@ -114,6 +114,7 @@ def toss_bands(contenders, step: float = TOSS_STEP):
     definition of the pattern's shape: ``toss_pattern`` writes it as markup,
     /play/ (``pyboot/page.py``) hands it to the page, which builds it as DOM.
     """
+    step = TOSS_STEP if step is None else float(step)
     if len(contenders) < 2:
         return None
     total = sum(v for _, v in contenders)

@@ -147,8 +147,9 @@ def _sha(data: bytes) -> str:
 # the start state
 
 
-def _draws(draws: Path = DRAWS) -> tuple[dict, dict, bytes]:
+def _draws(draws: Path | None = None) -> tuple[dict, dict, bytes]:
     import reweight
+    draws = DRAWS if draws is None else draws
     man_bytes = (draws / "manifest.json").read_bytes()
     manifest = json.loads(man_bytes)
     blob = (draws / "base.bin").read_bytes()
@@ -315,7 +316,7 @@ def start_seats(manifest: dict, arrays: dict, calls: list[str]) -> dict:
     return {"seats": {p: n for p, n in seats.items() if n}, "published": published, "rows": rows}
 
 
-def start_shares(seats: dict, roster: list[str], total: int, council: int) -> dict:
+def start_shares(seats: dict, roster: list[str], total: int) -> dict:
     """Step 5: each party's combined vote as a percent of ``total``, from
     whole votes in proportion to its target seats."""
     votes = _apportion({p: float(seats.get(p, 0)) for p in roster}, total, {})
@@ -341,7 +342,7 @@ def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
         counts.tolist(), roster, wards, flat, roster, schema)["ward_calls"]
     context, total, target, _tol, ward_ids = score_forecasts.schema_context(schema)
     plan = start_seats(manifest, arrays, calls)
-    share = start_shares(plan["seats"], roster, total, int(context["council"]))
+    share = start_shares(plan["seats"], roster, total)
     got = reader_seats.reader_seats({p: v / 100 for p, v in share.items()}, dict(zip(ward_ids, calls)),
                                     context, total)
     if not got["ok"]:
@@ -361,7 +362,7 @@ def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
     }
 
 
-def forecast_data(draws: Path = DRAWS) -> dict:
+def forecast_data(draws: Path | None = None) -> dict:
     """Everything ``make/forecast.json`` carries."""
     import cityconfig
     manifest, arrays, raw = _draws(draws)

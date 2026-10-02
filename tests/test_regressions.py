@@ -751,6 +751,13 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # published map — presentation, set by the owner 2026-09-17 ("1 in 10 is
         # a contender"). It changes no draw, seat or probability.
         "STRIPE_MIN",
+        # The stripe tile's size and angle (`render_map.TOSS_STEP`,
+        # `TOSS_ROTATE`) and /play/'s layout (`build_play.SEAT_SCALE`,
+        # `SEAT_TICKS`, `BANNER_PARTIES`, `SEGMENT_LABEL_MIN`): how a page
+        # draws figures, set 2026-10-02 with the /play/ redesign. None changes
+        # a draw, seat or probability.
+        "TOSS_STEP", "TOSS_ROTATE", "SEAT_SCALE", "SEAT_TICKS", "BANNER_PARTIES",
+        "SEGMENT_LABEL_MIN",
         "MIN_HOME_SPLITS",                            # registered under its own name
         # `theta_residual.py` MEASURES the model; it is not part of it.
         # `SIM_DRAWS` and `NULL_REPS` bound how precisely a REFERENCE

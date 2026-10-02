@@ -250,13 +250,15 @@ def section_in(page: str) -> str:
     return page[lo:hi]
 
 
-def refresh_methodology(page_path: Path = METHODOLOGY,
-                        register_path: Path = REGISTER) -> bool:
+def refresh_methodology(page_path: Path | None = None,
+                        register_path: Path | None = None) -> bool:
     """Rewrite the section from the register. True if the page changed.
 
     Called by `build_site.main` before any page is rendered, so the site never
     carries a section older than the register it was built beside.
     """
+    page_path = METHODOLOGY if page_path is None else page_path
+    register_path = REGISTER if register_path is None else register_path
     page = page_path.read_text(encoding="utf-8")
     fresh = methodology_section(
         plain_calls(register_path.read_text(encoding="utf-8")))

@@ -31,7 +31,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def untracked(site: Path, root: Path = ROOT) -> list[str]:
+def untracked(site: Path, root: Path | None = None) -> list[str]:
     """Files under ``site`` that git does not track, as paths relative to it.
 
     ⛔ WRANGLER UPLOADS THE DIRECTORY, NOT THE COMMIT (code review, 2026-10-01).
@@ -47,6 +47,7 @@ def untracked(site: Path, root: Path = ROOT) -> list[str]:
     temporary build has no git index to compare with. Raises if git cannot be asked: a gate that
     cannot look must not pass.
     """
+    root = ROOT if root is None else root
     site, root = site.resolve(), root.resolve()
     rel = site.relative_to(root).as_posix()
     tracked = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--", rel],
