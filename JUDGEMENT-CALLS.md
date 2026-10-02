@@ -368,8 +368,8 @@ neither replicated. ⚠️ Under rule 11 the effective sample is close to two ev
 **Plain — No poll is used.** There is no designed rule yet for how several polls
 combine. With polls in, the forecast moves toward the polls the rules admit;
 what that was worth when measured is under *Where polls fit*, below. On [play
-with the model](play/) you can switch each poll on and choose how far to trust
-it.
+with the model](play/) you can pick one poll at a time and choose how far to
+believe it.
 
 **Where.** `montecarlo.py`, gates both live poll paths
 
@@ -667,7 +667,8 @@ some parties would get almost no by-election weight and others more than 40%.
 The by-election data starts in 2022, so no past election can test the weight or
 the choice between the two rules, and only the November result will. We kept the
 simpler rule. A higher weight moves parties toward their by-election swings. On
-[play with the model](play/) you can change the weight, not the rule.
+[play with the model](play/) by-elections can count not at all, partly as the
+forecast does, or fully. The rule stays the same.
 
 **Where.** `montecarlo.py`
 
@@ -1680,8 +1681,9 @@ projected from how far turnout fell from the national election to the local
 election two years later, in 2016 and in 2021, with 2021 counting for 70%. The
 weight comes from the model's original plan and has never been tested. Turnout
 fell less in 2016, so weighting the two equally would raise projected turnout.
-On [play with the model](play/) you can move each population group's turnout up
-or down.
+On [play with the model](play/) you can move the turnout of any or all four
+population groups at once. A group you leave alone stays at the forecast's
+turnout.
 
 **Where.** `turnout.py --w-recency`
 
