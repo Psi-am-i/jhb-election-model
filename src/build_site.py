@@ -417,16 +417,14 @@ MODEL_DOCS = {
     "docs-public/methodology.md": (
         "methodology.html",
         "Methodology",
-        "How the council is elected, how the simulation runs, and what has "
-        "been tested.",
+        "This page explains how the council is elected, how the simulation "
+        "runs and what has been tested.",
     ),
     "docs-public/about-the-model.md": (
         "about.html",
         "About the model",
-        "The model was run on the 2021 municipal election in eight cities, "
-        "using data from before that election and the 2022 census. Its "
-        "forecasts were scored against the actual results and against three "
-        "simple alternatives.",
+        "The model forecast the 2021 municipal election in eight cities and "
+        "was scored against the results and three simple alternatives.",
     ),
     "docs-public/review.md": (
         "review.html",
@@ -461,8 +459,7 @@ POLICY_DOCS = {
     "docs-public/support.md": (
         "support.html",
         "Support",
-        "The site's author pays for it. A supporter gets its name on this "
-        "page and no say over what is published.",
+        "",
         False,
         "Who pays for the Johannesburg 2026 Election Model, who may fund it, "
         "and why no supporter has a say over what it publishes.",

@@ -188,11 +188,11 @@ def markdown(target: str, results: dict) -> str:
     add("")
     add("## How it was tested")
     add("")
-    add(f"The model was given the **{target} municipal election** to forecast, "
-        f"using only what a forecaster could have had before "
-        f"polling day: the previous local election for its geography, the "
-        f"national election before it for each party's starting level, and the "
-        f"voters' roll. It was then scored against the real council.")
+    add("Each forecast used what a forecaster had before polling day: the "
+        "previous local election for its geography, the national election "
+        "before it for each party's starting level, and the voters' roll. It "
+        "also used the 2022 census, taken after the election; *What this does "
+        "not prove* says why that cannot leak a result.")
     add("")
     add("It was done in **eight metros, not one**. A model tuned on a single "
         "city can look excellent there and have learned only that city. Each "
@@ -303,7 +303,7 @@ def markdown(target: str, results: dict) -> str:
         "forecast that got the council roughly right while misreading which "
         "streets vote which way would show up here.")
     add("")
-    add("One caveat. Two of the three baselines produce a single number rather "
+    add("Two of the three baselines produce a single number rather "
         "than a range, so CRPS favours a model that gives ranges. The seats-out "
         "figure is the like-for-like comparison; its margin is smaller, and "
         "still in the model's favour.")

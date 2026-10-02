@@ -224,12 +224,12 @@
 <header>
   <div class="kicker">About the model</div>
   <h1>How we know the model works</h1>
-  <p class="standfirst">The model was run on the 2021 municipal election in eight cities, using data from before that election and the 2022 census. Its forecasts were scored against the actual results and against three simple alternatives.</p>
+  <p class="standfirst">The model forecast the 2021 municipal election in eight cities and was scored against the results and three simple alternatives.</p>
 </header>
 <h2>What this page is</h2>
 <p>Every result on this page comes from the model run described at the bottom of the page. The forecasts and scores used as examples under <em>The technical measures</em> are made up to explain the measures; they are not results.</p>
 <h2>How it was tested</h2>
-<p>The model was given the <strong>2021 municipal election</strong> to forecast, using only what a forecaster could have had before polling day: the previous local election for its geography, the national election before it for each party&rsquo;s starting level, and the voters&rsquo; roll. It was then scored against the real council.</p>
+<p>Each forecast used what a forecaster had before polling day: the previous local election for its geography, the national election before it for each party&rsquo;s starting level, and the voters&rsquo; roll. It also used the 2022 census, taken after the election; <em>What this does not prove</em> says why that cannot leak a result.</p>
 <p>It was done in <strong>eight metros, not one</strong>. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.</p>
 <h3>The three baselines</h3>
 <p>The same scoring is applied to three baselines that need no model:</p>
@@ -1181,7 +1181,7 @@
 <p><strong>Seats out</strong> adds up how many seats the forecast got wrong for each party. It is easy to read, and it ignores most of what a forecast says: it looks only at the single most likely outcome, not the range around it.</p>
 <p><strong>CRPS</strong> (the continuous ranked probability score) is the number in the comparison table. It scores the <em>whole range</em> a forecast gives, not just its midpoint. Saying &ldquo;between 85 and 95 seats&rdquo; and being right scores better than saying &ldquo;exactly 90&rdquo; and being right, and a confident wrong answer is punished more than a hedged one. Lower is better; zero is perfect. It is in seats: a CRPS of 45 across a 270-seat council is a small error.</p>
 <p><strong>Calling the ward</strong> is the hardest and most direct test: 135 separate first-past-the-post contests in Johannesburg alone. A forecast that got the council roughly right while misreading which streets vote which way would show up here.</p>
-<p>One caveat. Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model&rsquo;s favour.</p>
+<p>Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model&rsquo;s favour.</p>
 <h2>What this does not prove</h2>
 <p><strong>These are not fully out-of-sample scores, and every run says so.</strong> At least one input could not be confined to the period before the election; the run prints the full list above its results:</p>
 <ul>

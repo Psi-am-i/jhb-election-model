@@ -9,7 +9,7 @@ Every result on this page comes from the model run described at the bottom of th
 
 ## How it was tested
 
-The model was given the **2021 municipal election** to forecast, using only what a forecaster could have had before polling day: the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It was then scored against the real council.
+Each forecast used what a forecaster had before polling day: the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It also used the 2022 census, taken after the election; *What this does not prove* says why that cannot leak a result.
 
 It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.
 
@@ -236,7 +236,7 @@ Three measures appear above, and they measure different things.
 
 **Calling the ward** is the hardest and most direct test: 135 separate first-past-the-post contests in Johannesburg alone. A forecast that got the council roughly right while misreading which streets vote which way would show up here.
 
-One caveat. Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model's favour.
+Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model's favour.
 
 ## What this does not prove
 

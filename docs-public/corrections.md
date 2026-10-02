@@ -1,14 +1,14 @@
 # Corrections
 
-A list of errors on published pages. Nothing is removed from this list.
+This page lists errors on published pages. Nothing is removed from it.
 
 ## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 2 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** The red-lines claim on the
 forecast page was headed "Without the ANC, the red line holds about half the
 time", said the DA's widest option "still comes down to a coin flip", and
-carried the verdict "A COIN FLIP". The figure it described was 59% of
-simulations on 26 and 27 September.
+carried the verdict "A COIN FLIP" there and on the home page. The figure it
+described was 59% of simulations on 26 and 27 September. 59% is not half.
 
 **What changed.** The heading now reads "Without the ANC, the red line leaves
 a majority in 59% of simulations." The coin-flip clause is gone, and the
@@ -17,8 +17,8 @@ verdict is "MORE LIKELY THAN NOT".</span>
 ## "The 587,000 votes the ANC shed between 2016 and 2021" — published 26 September 2026, corrected 2 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** The home page summary of "When
-the ANC falls, nobody catches the votes" said the opposition captured none of
-"the 587,000 votes the ANC shed between 2016 and 2021". The figure is the ANC
+the ANC falls, nobody catches the votes" said "the opposition captured
+essentially none of the 587,000 votes the ANC shed between 2016 and 2021". The figure is the ANC
 bloc's loss from the 2019 national election to the 2021 local election, as the
 article says.
 
@@ -71,9 +71,9 @@ the Johannesburg figure improves". Splits from after 2021 are information from
 after the election being forecast: a leak. The scores on the page came from a
 run of 11 August, before the record was cut on 14 August.
 
-**What changed.** The page says the splits were a leak until 14 August 2026.
-Its scores come from a run with the record cut at the election being
-forecast.</span>
+**What changed.** The paragraph reads "this one WAS a leak, and is not one
+now", and says the record has been cut at the election being forecast since 14
+August 2026. The page's scores come from a run made with that cut.</span>
 
 ## Four figures on "Nobody will win Johannesburg" labelled "published 31 August 2026" — published 26 September 2026, corrected 27 September 2026
 

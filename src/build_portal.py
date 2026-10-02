@@ -74,16 +74,22 @@ def render(cards: list[dict]) -> str:
             # "DA leads on the median simulation, ANC on 66", the leader
             # chosen by dictionary order (R4, 2026-09-30) — the defect
             # `render_home` already guards against for the largest-party odds.
+            # A median is per party, not one simulation; a tie names the two
+            # parties alphabetically (STYLE.md rule 7).
+            def the(name: str) -> str:
+                return f"the {name}" if name.isupper() else name
             if h["leader_seats"] == h["second_seats"]:
-                sub = (f'{h["leader"]} and {h["second"]} tie on the median '
-                       f'simulation, {h["leader_seats"]} seats each')
+                a, b = sorted((h["leader"], h["second"]))
+                sub = (f'{the(a)} and {the(b)} each have a median of '
+                       f'{h["leader_seats"]} seats')
             else:
-                sub = (f'{h["leader"]} leads on the median simulation, '
-                       f'{h["second"]} on {h["second_seats"]}')
+                sub = (f'{the(h["leader"])}\'s median is {h["leader_seats"]} '
+                       f'seats and {the(h["second"])}\'s is {h["second_seats"]}')
+            sub = sub[0].upper() + sub[1:]
             detail = (f'<div class="pc-num">{h["leader_seats"]}'
                       f'<span>/{c["council"]}</span></div>'
-                      f'<div class="pc-sub">{sub} — '
-                      f'{c["majority"]} needed to govern</div>')
+                      f'<div class="pc-sub">{sub}. '
+                      f'{c["majority"]} are needed to govern.</div>')
             cta = "Open the forecast →"
         else:
             detail = (f'<div class="pc-num pc-soon">{c["council"]}'
@@ -113,10 +119,10 @@ def render(cards: list[dict]) -> str:
          you can move", in the present tense, on the one page `deploy_check`
          does not scan. Describe what is here; the interactive can change this
          sentence when it ships and not before. -->
-    <p class="standfirst">Each metro has its own voting-district model: thousands of
-    simulated elections, the real seat law, and every assumption written down
-    where you can check it. No party is barracked for; nothing is hand-typed.
-    Pick a city.</p>
+    <p class="standfirst">Each forecast here is thousands of simulated
+    elections under the real seat law, with every assumption written down where
+    you can check it. A metro without a 2026 forecast yet is marked in
+    preparation. Pick a city.</p>
   </header>
   <div class="pcards">{cards_html}</div>
   <p class="pfoot">Each city is modelled from the Electoral Commission's own

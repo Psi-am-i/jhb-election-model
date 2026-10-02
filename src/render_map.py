@@ -316,7 +316,7 @@ def main(argv: list[str] | None = None) -> int:
   <details class="rollup" data-band="forecast" data-map="geo" open>
     <summary><span class="eyebrow">The map — every ward, called using {{{{n_draws}}}} simulations</span>
     <h2>Who wins where</h2></summary>
-    <p class="maplede">Ward races for half the council — 135 seats, first past the post. A ward needs no
+    <p class="maplede">Wards elect half the council, 135 seats, first past the post. A ward needs no
     majority: the highest total wins. A geographic map can mislead, because every ward elects one
     councillor however big or small it is. Switch to <b>Equal Sized Wards</b> to see the same forecast
     drawn by seats.</p>

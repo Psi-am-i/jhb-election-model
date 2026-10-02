@@ -1,8 +1,7 @@
 # How the model works
 
 The full technical record, every file and every workaround, is in the
-[public repository](https://github.com/Psi-am-i/jhb-election-model). The
-scoring is on the [about the model](about) page.
+[public repository](https://github.com/Psi-am-i/jhb-election-model).
 
 ## How accurate is it?
 
@@ -24,11 +23,11 @@ wrong column it misses **{{backtest_seat_err_model}}** across those councils
 against the baselines' **{{backtest_seat_err_baseline}}**, and it calls the
 winner in **{{backtest_wards_called}} of {{backtest_wards}}** wards.
 
-Two caveats. Two of the three baselines produce a single number rather than a
-range, which the range-based score treats kindly. And the best baseline in each
+Two of the three baselines produce a single number rather than a
+range, which the range-based score treats kindly. The best baseline in each
 city is the hardest test available, but it is a test of arithmetic, not of
 politics. The full scoring, city by city and party by party, with the forecast
-beside the real result, is on the [about the model](about) page.
+beside the real result, is on the [scoring page](about).
 
 ## How Johannesburg's council elections work
 

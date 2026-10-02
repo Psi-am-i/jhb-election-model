@@ -224,11 +224,10 @@
 <header>
   <div class="kicker">Methodology</div>
   <h1>How the model works</h1>
-  <p class="standfirst">How the council is elected, how the simulation runs, and what has been tested.</p>
+  <p class="standfirst">This page explains how the council is elected, how the simulation runs and what has been tested.</p>
 </header>
 <p>The full technical record, every file and every workaround, is in the
-<a href="https://github.com/Psi-am-i/jhb-election-model">public repository</a>. The
-scoring is on the <a href="about">about the model</a> page.</p>
+<a href="https://github.com/Psi-am-i/jhb-election-model">public repository</a>.</p>
 <h2>How accurate is it?</h2>
 <p>The model is run against an election that has already happened, the 2021
 municipal election, in <span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-current="8" data-prov="8. Unchanged since 27 September 2026. Source: validation:cities, live from the current model run." tabindex="0">8</span> cities, and scored against the
@@ -245,11 +244,11 @@ with <strong><span class="mstat" data-mode="free" data-token="backtest_crps_bett
 wrong column it misses <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-current="297" data-prov="297. Was 294. Published 27 September 2026; now 2 October 2026. Source: validation:seat_err_model, live from the current model run." tabindex="0">297</span><span class="mstat-move up" data-prov="Was 294.">▲</span></strong> across those councils
 against the baselines&rsquo; <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-current="353" data-prov="353. Unchanged since 27 September 2026. Source: validation:seat_err_baseline, live from the current model run." tabindex="0">353</span></strong>, and it calls the
 winner in <strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-current="719" data-prov="719. Unchanged since 27 September 2026. Source: validation:wards_called, live from the current model run." tabindex="0">719</span> of <span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-current="742" data-prov="742. Unchanged since 27 September 2026. Source: validation:wards, live from the current model run." tabindex="0">742</span></strong> wards.</p>
-<p>Two caveats. Two of the three baselines produce a single number rather than a
-range, which the range-based score treats kindly. And the best baseline in each
+<p>Two of the three baselines produce a single number rather than a
+range, which the range-based score treats kindly. The best baseline in each
 city is the hardest test available, but it is a test of arithmetic, not of
 politics. The full scoring, city by city and party by party, with the forecast
-beside the real result, is on the <a href="about">about the model</a> page.</p>
+beside the real result, is on the <a href="about">scoring page</a>.</p>
 <h2>How Johannesburg&rsquo;s council elections work</h2>
 <p>Johannesburg&rsquo;s council is elected on two ballots at once. On the first, 135
 ward seats are decided race by race, first past the post. On the second, you

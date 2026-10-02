@@ -254,3 +254,45 @@ dropped table column.
 - /methodology "How accurate is it?" and "How we know it works" both describe
   the eight-city backtest.
 
+
+## Blind check of bf48109 (2026-10-02)
+
+Must-fix and should-fix items applied, except where the table below says why
+not. Taste items (20-26) are not applied.
+
+| check item | where | change |
+|---|---|---|
+| 1 entry 2 misquoted | `corrections.md` | quotes the live sentence: "the opposition captured essentially none of the 587,000 votes the ANC shed between 2016 and 2021" |
+| 2 intro without a verb | `corrections.md` | "This page lists errors on published pages. Nothing is removed from it." |
+| 4 /about standfirst restates and contradicts "How it was tested" | `build_site.py`, `build_validation.py` | standfirst: election, eight cities, results, three simple alternatives. Body: the inputs, and the 2022 census as the one input taken after the election; "only" and "It was then scored against the real council." are gone. Rebuilt with `--from-json`, which reproduced HEAD byte for byte first |
+| 5 "more wards than that" | `home.html` | "… than its share of the vote entitles it to" (the /play/ Seat-law wording; the check's "seat total" misdescribes the clause) |
+| 6 "Every percentage" | `home.html`, `forecast-sheet.html` | "A percentage beside a party, a coalition or a result is a share of the simulations …"; no token added |
+| 9 entry 1 | `corrections.md` | the verdict was "A COIN FLIP" "there and on the home page" (confirmed on d05b6a2, edc7f50, fbb829e); "59% is not half." added |
+| 10 entry 7 "What changed" | `corrections.md` | quotes the 27 September wording ("this one WAS a leak, and is not one now"; record cut since 14 August 2026) |
+| 12 portal standfirst | `build_portal.py` | "Each forecast here is thousands of simulated elections under the real seat law, with every assumption written down where you can check it. A metro without a 2026 forecast yet is marked in preparation. Pick a city." No count typed |
+| 13 portal card | `build_portal.py` | tie: "The ANC and the DA each have a median of 66 seats. 136 are needed to govern." (names sorted); lead case: "X's median is n seats and Y's is m". Figures still from the record |
+| 14 /support standfirst | `build_site.py` | removed |
+| 15 /methodology twice points at /about | `methodology.md` | opening pointer cut; section one ends "… is on the [scoring page](about)." (the portal's name for it) |
+| 16 verbless sentences | `build_site.py`, `methodology.md`, `build_validation.py`, map ledes, `interactive/model.html` | /methodology standfirst "This page explains how …"; "Two caveats." and "One caveat." cut; map lede "Wards elect half the council, 135 seats, first past the post." (`render_map.py`, `hex_cartogram.py` and the pages they splice into, edited in place; neither script run); /play/ "This is the published forecast." and "Each slider sets a population group's turnout …" |
+| 17 claims lede | `forecast-sheet.html` | "Each claim below is a public, checkable statement …" |
+| 18 home Play sentence | `home.html` | "Until it is built, the play page re-weights …" |
+
+### Not applied
+
+| check item | why |
+|---|---|
+| 3 claim-4 verdict "MORE LIKELY THAN NOT" | a verdict change; this pass changes no verdict. Owner |
+| 7 ledger rows dated 30 September | needs the deploy log |
+| 8 claim 1 "7 August 2026: Published" | needs the deploy log |
+| 11 dead colophon links | a choice of technical record, not wording. `render_doc` defaults the link to `<NAME>.md` at the repo root on `main`. On this branch only `SOURCES.md` exists at the root: `METHODOLOGY.md` is gone, `model-review.html` is under `archive/superseded-pages/`, and there is no `CORRECTIONS.md` or `ABOUT-THE-MODEL.md`. After a merge to `main`, four of the five colophon links 404 |
+| 16 two article teasers ("The same votes under …", "The only place the clause has fired …") | frozen 8 August text in `articles.toml`; proposals already in `standfirst-proposals.md` |
+| 19 the deleted /methodology "described … wrongly twice" sentence | no edit: the errors it admitted were never live. Recorded here |
+
+### Verification
+
+- Scratch build: 0 blocking, 0 unsourced, 319 tokens, 0 new, 0 visibly
+  changed; per-page `data-token` counts equal to `site/` at HEAD.
+- UAT `--publish` build (first 665 ledger rows, mechanism, the
+  `r-c68c627d287e` reason): 319 rows appended to the scratch ledger (984).
+  Real ledger sha256 unchanged. `deploy_check` passes.
+- `site_text --export`, then `--apply --dry-run`: "no edits to apply".

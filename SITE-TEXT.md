@@ -87,12 +87,12 @@ The parties' claims, tested
 
 <!-- /block 97522cee -->
 
-<!-- block 387dfe69 -->
+<!-- block ef9034fd -->
 *p*
 
-Each is a public, checkable statement about November, tested against the same {{n_draws}} simulations as the rest of this page.
+Each claim below is a public, checkable statement about November, tested against the same {{n_draws}} simulations as the rest of this page.
 
-<!-- /block 387dfe69 -->
+<!-- /block ef9034fd -->
 
 
 ## docs-public/about-the-model.md
@@ -125,12 +125,12 @@ Every result on this page comes from the model run described at the bottom of th
 
 <!-- /block a8d3e30d -->
 
-<!-- block c4570128 -->
+<!-- block 9efbd894 -->
 *md*
 
-The model was given the **2021 municipal election** to forecast, using only what a forecaster could have had before polling day: the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It was then scored against the real council.
+Each forecast used what a forecaster had before polling day: the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It also used the 2022 census, taken after the election; *What this does not prove* says why that cannot leak a result.
 
-<!-- /block c4570128 -->
+<!-- /block 9efbd894 -->
 
 <!-- block 8c4792ac -->
 *md*
@@ -562,12 +562,12 @@ Three measures appear above, and they measure different things.
 
 <!-- /block 93126937 -->
 
-<!-- block b62b6d52 -->
+<!-- block 30ffb0bc -->
 *md*
 
-One caveat. Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model's favour.
+Two of the three baselines produce a single number rather than a range, so CRPS favours a model that gives ranges. The seats-out figure is the like-for-like comparison; its margin is smaller, and still in the model's favour.
 
-<!-- /block b62b6d52 -->
+<!-- /block 30ffb0bc -->
 
 <!-- block 27a10b25 -->
 *md*
@@ -642,12 +642,12 @@ Read the scores as an estimate of what the machinery is worth, not as a sealed p
 
 <!-- /block 15694b39 -->
 
-<!-- block 7a6fb055 -->
+<!-- block 8838b445 -->
 *md*
 
-A list of errors on published pages. Nothing is removed from this list.
+This page lists errors on published pages. Nothing is removed from it.
 
-<!-- /block 7a6fb055 -->
+<!-- /block 8838b445 -->
 
 <!-- block 50ba7fbe -->
 *md*
@@ -746,14 +746,14 @@ EFF or MK", and the quote is dated 13 September.</span>
 
 <!-- /block fa1a4412 -->
 
-<!-- block 1787ddeb -->
+<!-- block 78af7f8b -->
 *md*
 
-**What changed.** The page says the splits were a leak until 14 August 2026.
-Its scores come from a run with the record cut at the election being
-forecast.</span>
+**What changed.** The paragraph reads "this one WAS a leak, and is not one
+now", and says the record has been cut at the election being forecast since 14
+August 2026. The page's scores come from a run made with that cut.</span>
 
-<!-- /block 1787ddeb -->
+<!-- /block 78af7f8b -->
 
 <!-- block 5c72f299 -->
 *md*
@@ -804,14 +804,13 @@ August.</span>
 
 <!-- /block dc8dfabd -->
 
-<!-- block b1c519c6 -->
+<!-- block 16d912c1 -->
 *md*
 
 The full technical record, every file and every workaround, is in the
-[public repository](https://github.com/Psi-am-i/jhb-election-model). The
-scoring is on the [about the model](about) page.
+[public repository](https://github.com/Psi-am-i/jhb-election-model).
 
-<!-- /block b1c519c6 -->
+<!-- /block 16d912c1 -->
 
 <!-- block 3cecde72 -->
 *md*
@@ -853,16 +852,16 @@ winner in **{{backtest_wards_called}} of {{backtest_wards}}** wards.
 
 <!-- /block 821fa924 -->
 
-<!-- block 25b61f4e -->
+<!-- block 13a4f957 -->
 *md*
 
-Two caveats. Two of the three baselines produce a single number rather than a
-range, which the range-based score treats kindly. And the best baseline in each
+Two of the three baselines produce a single number rather than a
+range, which the range-based score treats kindly. The best baseline in each
 city is the hardest test available, but it is a test of arithmetic, not of
 politics. The full scoring, city by city and party by party, with the forecast
-beside the real result, is on the [about the model](about) page.
+beside the real result, is on the [scoring page](about).
 
-<!-- /block 25b61f4e -->
+<!-- /block 13a4f957 -->
 
 <!-- block a4a3d8af -->
 *md*
