@@ -9,10 +9,10 @@
 //    fixture), so the link reproduces the same figures.
 // 2. A broken link falls back to the published setting and says so.
 // 3. The share image is drawn from the compute result the page shows: each
-//    party's row carries that party's own figures, every other digit comes
-//    from the result's totals, the reader's settings or the date and model
-//    version the card was made with, the count of parties left out is the
-//    count actually left out, the parties are in the page's order, and a
+//    party's row carries that party's middle seat count, every other digit comes
+//    from the result's totals, the reader's settings, the election day, the
+//    date and model version the card was made with or the reader's name (drawn
+//    as text, never markup), every ward is drawn in the result's colour, the parties are in the page's order, and a
 //    figure typed into the card, or a result the card ignored, is caught (and
 //    the check goes quiet again).
 import { test } from "node:test";
@@ -21,7 +21,7 @@ import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as PS from "../js/play-state.js";
-import { buildPlayCardSVG, order, seatText, settingsLines, playCardAlt, madeLine, sameHouse, BANNER, SIZES } from "../js/play-card.js";
+import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, madeLine, headline, READER_STAMP, PUBLISHED_STAMP, SIZES } from "../js/play-card.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = JSON.parse(readFileSync(resolve(here, "native-play.json"), "utf8"));
@@ -44,6 +44,12 @@ test("every harness case survives a link, and the engine is asked for the same s
   let touched = 0;
   for (const c of CASES) {
     const st = toState(c.settings);
+    if (st.polls.length > 1) {
+      // a harness case with two polls: no control can make it (one poll at a
+      // time), and a link to it is refused back to no poll
+      assert.equal(PS.parse(PS.serialize(st, ctx), ctx).dropped.length, 1, c.name);
+      continue;
+    }
     if (st.shift.some(x => x < PS.TURNOUT.min || x > PS.TURNOUT.max)) {
       // a harness case past the controls' bounds: no control can make it, and a
       // link to it is refused back to the published turnout
@@ -78,139 +84,135 @@ test("a broken link falls back to the published setting, field by field, and say
 });
 
 // ---------- 3. the card ----------
-const ROSTER = new Proxy({}, { get: (_, c) => ({ code: c, name: String(c).replace(/_/g, " "), colour: "#888888" }) });
+const ROSTER = new Proxy({}, { get: (_, c) => ({ code: c, name: String(c).replace(/_/g, " "), colour: "#888888", article: "" }) });
 const party = c => ROSTER[c];
 const textOf = svg => [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(m => m[1]);
-const runs = s => (s.replace(/[   ]/g, "").match(/\d+(?:\.\d+)?/g) || []);
+const runs = s => (s.replace(/[   ]/g, "").match(/\d+(?:\.\d+)?/g) || []);
+const unesc = s => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
 
 const MADE = "2026-10-01";
-const rowFig = (r, c) => seatText(r.seats[c].median) + " (" + seatText(r.seats[c].p5) + "–" + seatText(r.seats[c].p95) + ")";
+const WHEN = "4 November 2026";
+// Constructed boundaries, one square per ward the result carries: the card's
+// map is checked against the result, not against a file on this machine.
+const geometryFor = r => ({ W: 100, H: 50, step: 7, rotate: 45, places: [],
+  paths: Object.fromEntries(r.wards.map((w, i) => [w.ward, `M${i} 0L${i + 1} 0L${i + 1} 1Z`])) });
+const card = (c, extra = {}) => {
+  const r = extra.r ?? c.result;
+  return { r, st: { ...settingsOf(c.name), name: "" }, ctx, party, made: MADE, when: WHEN, name: "reader-7",
+           geometry: geometryFor(r), photoSrc: null, ...extra };
+};
 
-// The digit runs the card may print OUTSIDE the party rows: the result's
-// totals, the reader's settings, and the date and version it was made with.
-// No seat figure is here: a row's figures are checked against its own party.
-function allowed(r, st) {
+// The digit runs the card may print outside the seat rows: the result's
+// council and majority, the reader's settings, the election day, the made line
+// and the reader's name. No seat figure is here: a row's figure is checked
+// against its own party.
+function allowed(info) {
   const out = new Set();
   const add = x => runs(String(x)).forEach(d => out.add(d));
-  add(Math.round(r.effective_draws).toLocaleString("en-ZA")); add(r.draws.toLocaleString("en-ZA"));
-  add(seatText({ value: r.majority })); add(seatText({ value: r.council }));
-  settingsLines(st, ctx).forEach(add);                            // the reader's own settings, in words
-  add(madeLine(MADE, ctx));
+  add(seatText({ value: info.r.council })); add(seatText({ value: info.r.majority }));
+  settingsWords(info.st, ctx).forEach(add);
+  add(madeLine(MADE, ctx)); add(WHEN); add(info.name);
   return out;
 }
-// What the card prints that it should not: a party row whose figures are not
-// that party's, a "N more parties" count that is not the number left out, and
-// any other digit run not in `allowed`.
-function typed(svg, r, st) {
-  const ts = textOf(svg), ok = allowed(r, st), bad = [], rowTexts = new Set();
-  // A row's name is the party's name, or that name cut to fit and ended "…".
-  // Rows are drawn in the page's order, so the k-th row is order(r)[k].
+// What the card prints that it should not: a row whose figure is not that
+// party's middle, rows out of the page's order, and any other digit run.
+function typed(svg, info) {
+  const r = info.r, ts = textOf(svg).map(unesc), ok = allowed(info), bad = [], rowTexts = new Set();
+  const want = [...order(r, c => party(c).name), "OTHERS"];
+  const label = c => (c === "OTHERS" ? "Others" : party(c).name);
+  // a row's name is the party's name, or that name cut to fit and ended "…"
   const isName = (t, nm) => t === nm || (t.endsWith("…") && t.length > 1 && nm.startsWith(t.slice(0, -1)));
-  const want = order(r, c => party(c).name);
   let drawn = 0;
   ts.forEach((t, i) => {
-    if (!r.shown.some(c => isName(t, party(c).name))) return;
+    if (!want.some(c => isName(t, label(c)))) return;
     const c = want[drawn++];
     rowTexts.add(i + 1);
-    if (!c || !isName(t, party(c).name)) bad.push(`row ${drawn} is "${t}", not ${c && party(c).name}`);
-    else if (ts[i + 1] !== rowFig(r, c)) bad.push(`${t}'s row reads "${ts[i + 1]}", not "${rowFig(r, c)}"`);
+    if (!c || !isName(t, label(c))) bad.push(`row ${drawn} is "${t}", not ${c && label(c)}`);
+    else if (ts[i + 1] !== seatText(r.seats[c].median)) bad.push(`${t}'s row reads "${ts[i + 1]}", not "${seatText(r.seats[c].median)}"`);
   });
-  ts.forEach((t, i) => {
-    if (rowTexts.has(i)) return;
-    let rest = t;
-    const more = /^(\d+) more part(?:y|ies) not shown\./.exec(t);
-    if (more) {
-      if (+more[1] !== r.shown.length - drawn) bad.push(`"${more[1]} more" but ${r.shown.length - drawn} were left out`);
-      rest = t.slice(more[0].length);
-    }
-    for (const d of runs(rest)) if (!ok.has(d)) bad.push(`${d} in "${t}"`);
-  });
+  if (drawn !== want.length) bad.push(`${drawn} rows drawn, ${want.length} shown`);
+  ts.forEach((t, i) => { if (!rowTexts.has(i)) for (const d of runs(t)) if (!ok.has(d)) bad.push(`${d} in "${t}"`); });
   return bad;
 }
 
 const moved = FIXTURE.cases.filter(c => c.result && !c.result.refused && c.name !== "untouched");
 const settingsOf = name => toState(CASES.find(c => c.name === name).settings);
+const untouched = FIXTURE.cases.find(c => c.name === "untouched");
 
 test("the card's figures are the result's, in the page's order, at both sizes", () => {
   assert.ok(moved.length >= 3, "the fixture has computed cases");
-  for (const c of moved) {
-    const r = c.result, st = settingsOf(c.name);
+  for (const c of [untouched, ...moved]) {
     for (const size of Object.keys(SIZES)) {
-      const svg = buildPlayCardSVG({ r, st, ctx, party, size, made: MADE });
+      const info = card(c);
+      const svg = buildPlayCardSVG({ ...info, size });
       assert.match(svg, new RegExp(`width="${SIZES[size][0]}" height="${SIZES[size][1]}"`));
-      assert.deepEqual(typed(svg, r, st), [], `${c.name} ${size}`);
-      const names = textOf(svg).filter(t => r.shown.some(p => party(p).name === t));
-      const want = order(r, p => party(p).name).map(p => party(p).name).slice(0, names.length);
-      assert.ok(names.length >= 5, `${c.name}: ${names.length} parties drawn`);
-      assert.deepEqual(names, want, `${c.name} ${size}: party order`);
-      const top = order(r, p => party(p).name)[0];
-      assert.ok(textOf(svg).some(t => t.startsWith(seatText(r.seats[top].median) + " (")), `${c.name}: top median`);
-      assert.match(textOf(svg).join(" "), /Not the model's forecast/);
-      // the banner is in the header, above every figure, so a crop of the foot keeps it
-      const k = textOf(svg).findIndex(t => t.startsWith("NOT THE FORECAST"));
-      assert.ok(k >= 0 && k < 3, `${c.name} ${size}: banner in the header`);
-      assert.ok(textOf(svg).includes(madeLine(MADE, ctx)), `${c.name} ${size}: made line`);
+      assert.deepEqual(typed(svg, info), [], `${c.name} ${size}`);
+      // the headline is the reader's name; the foot says whose forecast it is
+      const all = textOf(svg).map(unesc).join(" ");
+      assert.ok(all.includes(headline("reader-7")), `${c.name} ${size}: headline`);
+      const stamp = PS.isTouched(info.st) ? READER_STAMP : PUBLISHED_STAMP;
+      assert.ok(all.includes(stamp.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: stamp`);
+      // every ward the result carries is drawn, in the result's colour
+      for (const w of info.r.wards.slice(0, 20)) assert.ok(svg.includes(`fill="${w.fill}"`), w.ward);
+      assert.equal((svg.match(/<path d="M/g) || []).length,
+        info.r.wards.length + info.r.wards.filter(w => w.bands).length, `${c.name} ${size}: one fill and one stripe layer per ward`);
       // nothing runs off the card, and the story stays clear of the apps' lower chrome
       const ys = [...svg.matchAll(/<text x="[^"]*" y="([\d.]+)"/g)].map(m => +m[1]);
-      assert.ok(Math.max(...ys) <= (size === "story" ? 1800 : SIZES[size][1] - 20), `${c.name} ${size}: text at y ${Math.max(...ys)}`);
+      assert.ok(Math.max(...ys) <= (size === "story" ? 1800 : SIZES[size][1] - 10), `${c.name} ${size}: text at y ${Math.max(...ys)}`);
     }
-    assert.match(playCardAlt({ r, st, ctx, party, made: MADE }), /Not the model's forecast/);
+    assert.ok(playCardAlt(card(c)).startsWith(headline("reader-7")));
   }
 });
 
+test("the reader's name is drawn as text, never as markup", () => {
+  const info = card(moved[0], { name: "<image href=x onerror=alert(1)>" });
+  const svg = buildPlayCardSVG(info);
+  assert.ok(!svg.includes("<image href=x"), "the name was injected as markup");
+  assert.ok(svg.includes("&lt;image href=x"));
+});
+
 test("a typed figure, or a result the card did not read, is caught; reverted, quiet", () => {
-  const c = moved[0], st = settingsOf(c.name);
-  const r = JSON.parse(JSON.stringify(c.result));
-  const svg = buildPlayCardSVG({ r, st, ctx, party, made: MADE });
-  assert.deepEqual(typed(svg, r, st), []);
+  const c = moved[0];
+  const info = card(c, { r: JSON.parse(JSON.stringify(c.result)) });
+  const svg = buildPlayCardSVG(info);
+  assert.deepEqual(typed(svg, info), []);
   const forged = svg.replace("</svg>", "<text x=\"1\" y=\"1\">The DA wins 4321 seats</text></svg>");
-  assert.deepEqual(typed(forged, r, st), ['4321 in "The DA wins 4321 seats"']);
-  // a small typed figure is caught too: no seat figure is allowed outside its row
-  const [a, b] = order(r, p => party(p).name);
-  const small = svg.replace("</svg>", `<text x="1" y="1">${rowFig(r, a)}</text></svg>`);
-  assert.ok(typed(small, r, st).length > 0, "a seat figure outside its row");
+  assert.deepEqual(typed(forged, info), ['4321 in "The DA wins 4321 seats"']);
   // two parties' figures swapped is caught
-  assert.notEqual(rowFig(r, a), rowFig(r, b));
-  const swapped = svg.replace(`>${rowFig(r, a)}<`, ">@A@<").replace(`>${rowFig(r, b)}<`, `>${rowFig(r, a)}<`).replace(">@A@<", `>${rowFig(r, b)}<`);
-  assert.equal(typed(swapped, r, st).length, 2, "swapped rows");
-  // a wrong "N more parties" count is caught
-  const more = textOf(svg).find(t => /more part/.test(t));
-  assert.ok(more, "the fixture case leaves some parties off the card");
-  const n = +/^(\d+)/.exec(more)[1];
-  assert.ok(typed(svg.replace(`>${more}<`, `>${more.replace(/^\d+/, String(n + 1))}<`), r, st).length > 0, "a wrong count");
-  // reverted, quiet
-  assert.deepEqual(typed(svg, r, st), []);
+  const [a, b] = order(info.r, p => party(p).name).filter((p, i, xs) => seatText(info.r.seats[p].median) !== seatText(info.r.seats[xs[0]].median) || i === 0);
+  const fa = seatText(info.r.seats[a].median), fb = seatText(info.r.seats[b].median);
+  assert.notEqual(fa, fb);
+  const swapped = svg.replace(`>${fa}<`, ">@A@<").replace(`>${fb}<`, `>${fa}<`).replace(">@A@<", `>${fb}<`);
+  assert.ok(typed(swapped, info).length >= 2, "swapped rows");
+  assert.deepEqual(typed(svg, info), []);
   // the card reads the result: change the top party's middle and the card moves with it
-  const top = order(r, p => party(p).name)[0];
-  r.seats[top].median.value = 987.6;
-  const moved2 = buildPlayCardSVG({ r, st, ctx, party, made: MADE });
-  assert.ok(textOf(moved2).some(t => t.startsWith("987.6 (")));
-  assert.deepEqual(typed(moved2, c.result, st).length > 0, true);
-  assert.deepEqual(typed(moved2, r, st), []);
+  const top = order(info.r, p => party(p).name)[0];
+  info.r.seats[top].median.value = 987.6;
+  const again = buildPlayCardSVG(info);
+  assert.ok(textOf(again).includes("987.6"));
+  assert.ok(typed(again, card(c)).length > 0);
+  assert.deepEqual(typed(again, info), []);
 });
 
-test("a withheld figure is printed as withheld, never as a number", () => {
-  const c = moved[0], st = settingsOf(c.name);
-  const r = JSON.parse(JSON.stringify(c.result));
-  const top = order(r, p => party(p).name)[0];
-  r.seats[top].p95 = { ...r.seats[top].p95, withheld: true };
-  const svg = buildPlayCardSVG({ r, st, ctx, party, made: MADE });
-  assert.ok(textOf(svg).some(t => t.includes("–withheld)")));
-  assert.throws(() => buildPlayCardSVG({ r: { refused: "too few" }, st, ctx, party, made: MADE }));
-  // and a card with no date is refused
-  assert.throws(() => buildPlayCardSVG({ r: c.result, st, ctx, party }));
+test("a withheld figure is printed as withheld; a refusal, no date or no map draws no card", () => {
+  const c = moved[0];
+  const info = card(c, { r: JSON.parse(JSON.stringify(c.result)) });
+  const top = order(info.r, p => party(p).name)[0];
+  info.r.seats[top].median = { ...info.r.seats[top].median, withheld: true };
+  assert.ok(textOf(buildPlayCardSVG(info)).includes("withheld"));
+  assert.throws(() => buildPlayCardSVG({ ...info, r: { refused: "too few" } }));
+  assert.throws(() => buildPlayCardSVG({ ...info, made: undefined }));
+  assert.throws(() => buildPlayCardSVG({ ...info, geometry: null }));
 });
 
-test("the card says when one house is counted twice, and only then", () => {
-  const r = moved[0].result;
-  const byHouse = {};
-  for (const p of ctx.pollRows) (byHouse[p.house] ??= []).push(p.id);
-  const twice = Object.values(byHouse).find(ids => ids.length > 1);
-  assert.ok(twice, "the served polls include two waves of one house");
-  const base = { ...PS.defaults(ctx), shift: [1, 0, 0, 0] };
-  const card = st => textOf(buildPlayCardSVG({ r, st, ctx, party, made: MADE })).join(" ");
-  assert.equal(sameHouse(twice, ctx.pollRows).length, 1);
-  assert.match(card({ ...base, polls: twice, trust: 35 }), /Counted as independent/);
-  assert.doesNotMatch(card({ ...base, polls: twice, trust: 0 }), /Counted as independent/);
-  assert.doesNotMatch(card({ ...base, polls: twice.slice(0, 1), trust: 35 }), /Counted as independent/);
+test("the reader's settings in words name every moved setting and nothing else", () => {
+  const d = { ...PS.defaults(ctx) };
+  assert.deepEqual(settingsWords(d, ctx), []);
+  const poll = ctx.pollRows[0];
+  const words = settingsWords({ ...d, shift: [5, 0, 0, -0.5], polls: [poll.id], trust: 30, cell: ctx.cellRows.find(c => c.w_bye === 1).path, law: "cap" }, ctx);
+  assert.equal(words.length, 5, words.join(" | "));
+  assert.ok(words[0].startsWith("Black African turnout +5"));
+  assert.ok(words[1].startsWith("White turnout -0.5"));
+  // a poll chosen but not believed is not a setting
+  assert.deepEqual(settingsWords({ ...d, polls: [poll.id], trust: 0 }, ctx), []);
 });

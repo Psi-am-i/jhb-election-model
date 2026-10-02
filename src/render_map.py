@@ -26,7 +26,11 @@ import cityconfig
 import math
 import os
 
-import geopandas as gpd
+# NO GEOPANDAS AND NO CITY FILE AT IMPORT (2026-10-02). /play/ draws a ward
+# under a reader's weights with THIS module's `ward_call` (one definition):
+# `interactive/pyboot/page.py` imports it under Pyodide in the browser, which
+# has no geopandas and opens no file. Both are needed only to draw the
+# boundaries, so they load in `main` (`_map_config`).
 
 CHIPS = {
     "DA": "#1B5EA8", "ANC": "#1B7A3D", "EFF": "#B3202B", "MK": "#5B6E22",
@@ -39,20 +43,23 @@ GREY = "#9aa09a"
 MARK_START = "<!-- __MAP_START__ -->"
 MARK_END = "<!-- __MAP_END__ -->"
 
-# (label, lon, lat) — approximate district centroids for orientation
-# Map chrome is per-city: which places to label, the cos-latitude correction
-# for lon->km, and how far to rotate so the city sits well in a wide figure.
-# All three live in cities/<slug>.toml [map]; the first is editorial, the
-# second is derivable from the centroid, the third is an aesthetic call.
-_CITY = cityconfig.load(os.environ.get("CITY_SLUG") or None)
-_MAP = _CITY.raw.get("map", {})
 
-DISTRICTS = [(d["name"], float(d["lon"]), float(d["lat"]))
-             for d in _MAP.get("labels", [])]
+def _map_config():
+    """``(city, districts, W, COS, ANG)``: the city's map chrome, read when drawing.
 
-W = float(_MAP.get("width", 840.0))
-COS = float(_MAP.get("cos_lat", 0.898))   # lon->km correction at this latitude
-ANG = math.radians(float(_MAP.get("rotate_deg", 40)))
+    Map chrome is per-city: which places to label ((label, lon, lat),
+    approximate district centroids for orientation), the cos-latitude
+    correction for lon->km, and how far to rotate so the city sits well in a
+    wide figure. All three live in cities/<slug>.toml [map]; the first is
+    editorial, the second is derivable from the centroid, the third is an
+    aesthetic call.
+    """
+    city = cityconfig.load(os.environ.get("CITY_SLUG") or None)
+    m = city.raw.get("map", {})
+    districts = [(d["name"], float(d["lon"]), float(d["lat"])) for d in m.get("labels", [])]
+    return (city, districts, float(m.get("width", 840.0)),
+            float(m.get("cos_lat", 0.898)),          # lon->km correction at this latitude
+            math.radians(float(m.get("rotate_deg", 40))))
 
 
 #: A party gets a STRIPE only if it wins the ward in at least one simulation in
@@ -79,21 +86,44 @@ def toss_pattern(contenders, step: float = 7.0, prefix: str = "h"):
     looked like four parties (owner, 2026-09-17). Returns ``(pattern_id, svg)``,
     or ``None`` with fewer than two contenders (the ward stays plain grey).
     """
+    bands = toss_bands(contenders, step)
+    if bands is None:
+        return None
+    pid = f"{prefix}_toss_" + "_".join(
+        f"{b['colour'].lstrip('#')}{b['w']:.1f}".replace(".", "p") for b in bands)
+    lines = [f'<line x1="{b["x"]:.2f}" y1="0" x2="{b["x"]:.2f}" '
+             f'y2="{step}" stroke="{b["colour"]}" stroke-width="{b["w"]:.2f}"/>'
+             for b in bands]
+    return pid, (f'<pattern id="{pid}" width="{step}" height="{step}" '
+                 f'patternTransform="rotate({TOSS_ROTATE})" patternUnits="userSpaceOnUse">'
+                 + "".join(lines) + "</pattern>")
+
+
+#: The stripe pattern's tile and angle, shared by :func:`toss_pattern` and the
+#: /play/ page, which builds the same pattern with DOM calls from
+#: :func:`toss_bands` (a page script may not inject markup).
+TOSS_STEP = 7.0
+TOSS_ROTATE = 45
+
+
+def toss_bands(contenders, step: float = TOSS_STEP):
+    """The geometry of :func:`toss_pattern`: one vertical line per contender.
+
+    ``[{"colour", "x", "w"}]``, ``x`` the line's centre and ``w`` its width
+    in a tile ``step`` wide, or ``None`` with fewer than two contenders. The one
+    definition of the pattern's shape: ``toss_pattern`` writes it as markup,
+    /play/ (``pyboot/page.py``) hands it to the page, which builds it as DOM.
+    """
     if len(contenders) < 2:
         return None
     total = sum(v for _, v in contenders)
-    widths = [step * v / total for _, v in contenders]
-    cols = [GREY if c == REST else CHIPS.get(c, UNKNOWN_CHIP) for c, _ in contenders]
-    pid = f"{prefix}_toss_" + "_".join(
-        f"{col.lstrip('#')}{w:.1f}".replace(".", "p") for col, w in zip(cols, widths))
-    x, lines = 0.0, []
-    for col, w in zip(cols, widths):
-        lines.append(f'<line x1="{x + w / 2:.2f}" y1="0" x2="{x + w / 2:.2f}" '
-                     f'y2="{step}" stroke="{col}" stroke-width="{w:.2f}"/>')
+    out, x = [], 0.0
+    for c, v in contenders:
+        w = step * v / total
+        out.append({"colour": GREY if c == REST else CHIPS.get(c, UNKNOWN_CHIP),
+                    "x": x + w / 2, "w": w})
         x += w
-    return pid, (f'<pattern id="{pid}" width="{step}" height="{step}" '
-                 f'patternTransform="rotate(45)" patternUnits="userSpaceOnUse">'
-                 + "".join(lines) + "</pattern>")
+    return out
 
 
 #: Solid colour only when one party wins the ward in at least this share of
@@ -170,6 +200,37 @@ def party_key() -> str:
         f'display:inline-block"></span>{NAMES[c]}</span>' for c in KEY_PARTIES)
 
 
+def probs_calls(rows) -> dict[str, dict]:
+    """``{ward: ward_call(...)}`` from ``ward_winner_probs.csv``'s rows."""
+    return {r["ward"]: ward_call(r["ward"], r["winner"], float(r["p_win"]), r["dist"])
+            for r in rows}
+
+
+def ward_layers(geometry: dict, calls: dict, *, prefix: str = "h",
+                tips: bool = True) -> tuple[str, str, str]:
+    """``(patterns, fills, hatches)``: the SVG markup of every ward, drawn by ``ward_call``.
+
+    ``geometry`` is ``{ward: path data}`` (``ward_paths.json``'s ``paths``),
+    ``calls`` ``{ward: ward_call(...)}``. ONE DRAWING RULE for the forecast's
+    map (``main``) and /play/'s published map (``build_play``); /play/'s map
+    under a reader's weights takes the same ``ward_call`` and
+    :func:`toss_bands` through ``pyboot/page.py`` and builds the DOM itself.
+    ``tips=False`` leaves out ``data-tip`` (the share image carries none).
+    """
+    patterns: dict[str, str] = {}
+    paths, hatches = [], []
+    for ward, d in geometry.items():
+        call = calls.get(ward) or {"fill": GREY, "cls": "contested", "bands": [],
+                                   "tip": f"Ward {ward}"}
+        tip = f' data-tip="{call["tip"]}"' if tips else ""
+        paths.append(f'<path d="{d}" fill="{call["fill"]}" stroke="var(--paper)" '
+                     f'stroke-width="0.8"{tip}></path>')
+        pid = ward_hatch(call, patterns, prefix=prefix)
+        if pid:
+            hatches.append(f'<path d="{d}" fill="url(#{pid})" pointer-events="none"></path>')
+    return "".join(patterns.values()), "".join(paths), "".join(hatches)
+
+
 def map_key(called: dict, n_draws_token: str = "{{n_draws}}") -> str:
     """The key both maps show: party colours, then what solid and striped mean."""
     stripes = "".join(
@@ -196,6 +257,8 @@ def main(argv: list[str] | None = None) -> int:
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
+    import geopandas as gpd
+    _CITY, DISTRICTS, W, COS, ANG = _map_config()
 
     with args.probs.open(encoding="utf-8", newline="") as fh:
         probs = {r["ward"]: r for r in csv.DictReader(fh)}
@@ -238,8 +301,9 @@ def main(argv: list[str] | None = None) -> int:
         rx, ry = rot(x, y)
         return ((rx - rminx) * scale + PAD_X, (ry - rminy) * scale + PAD_TOP)
 
-    paths, hatches, called = [], [], {"solid": 0, "contested": 0}
-    patterns: dict[str, str] = {}
+    called = {"solid": 0, "contested": 0}
+    geometry: dict[str, str] = {}
+    calls: dict[str, dict] = {}
     path_data: list = []
     for _, row in gdf.iterrows():
         p = probs.get(row["wardno"])
@@ -257,11 +321,9 @@ def main(argv: list[str] | None = None) -> int:
             call = ward_call(row["wardno"], p["winner"], float(p["p_win"]), p["dist"])
         called[call["cls"]] = called.get(call["cls"], 0) + 1
         path_data.append((row, d))
-        paths.append(f'<path d="{d}" fill="{call["fill"]}" stroke="var(--paper)" '
-                     f'stroke-width="0.8" data-tip="{call["tip"]}"></path>')
-        pid = ward_hatch(call, patterns)
-        if pid:
-            hatches.append(f'<path d="{d}" fill="url(#{pid})" pointer-events="none"></path>')
+        geometry[row["wardno"]] = d
+        calls[row["wardno"]] = call
+    patterns, paths, hatches = ward_layers(geometry, calls)
 
     labels = []
     for name, lx, ly in DISTRICTS:
@@ -329,8 +391,8 @@ def main(argv: list[str] | None = None) -> int:
       <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap"
            aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by predicted winning party"
            style="width:100%;height:auto;display:block">
-        <defs>{''.join(patterns.values())}</defs>
-        {''.join(paths)}{''.join(hatches)}{''.join(labels)}{inset}
+        <defs>{patterns}</defs>
+        {paths}{hatches}{''.join(labels)}{inset}
       </svg>
       <div id="maptip" style="position:fixed;display:none;pointer-events:none;z-index:9;
         font:12px/1.4 ui-sans-serif,system-ui;background:var(--ink);color:var(--paper);
@@ -383,7 +445,7 @@ def main(argv: list[str] | None = None) -> int:
         target.write_text(t[:start] + snippet + t[end:], encoding="utf-8")
         print(f"  map into {target}")
     print(f"called: {called}  ·  {W:.0f}x{H:.0f}  ·  "
-          f"svg ~{sum(len(p) for p in paths) / 1024:.0f} KB")
+          f"svg ~{len(paths) / 1024:.0f} KB")
     return 0
 
 

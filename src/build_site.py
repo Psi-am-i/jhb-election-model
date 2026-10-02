@@ -978,12 +978,12 @@ def main(argv: list[str] | None = None) -> int:
     # no local path and no internal poll note, so site/.assetsignore is gone).
     if cityconfig.active().slug == "joburg":
         import build_play
-        written = build_play.write_assets(args.out)
+        written = build_play.write_assets(args.out, args.processed)
         html = build_play.assemble(theme_head=page_og(build_play.OG_DESCRIPTION,
                                                       build_play.OG_TITLE, build_play.PLAY_HREF)
                                    + THEME_HEAD,
                                    nav=nav_for(build_play.PLAY_HREF), footer=FOOTER,
-                                   stat_css=statlib.STAT_CSS, cut_markers=cut_spans)
+                                   processed=args.processed)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
         published += [{**r, "page": build_play.PLAY_PAGE} for r in seen]

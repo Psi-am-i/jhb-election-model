@@ -2,7 +2,7 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
-## "The DA is the largest single party" — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-02">"The DA is the largest single party"</span> — published 26 September 2026, corrected 2 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** Every page that gave a
 party's share of simulations as the largest party counted a simulation in which

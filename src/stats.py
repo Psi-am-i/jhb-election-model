@@ -241,10 +241,14 @@ LIVE_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 #: A module not listed here may write no figure anywhere.
 LIVE_WRITERS: dict[str, frozenset[str]] = {
     # "Play with the model" (src/build_play.py, from interactive/js/model.js):
-    # the controls it builds and every figure a reader's settings produce.
+    # the controls it builds and every figure a reader's settings produce. Each
+    # results region is the LIVE twin of a build twin of tokens (DESIGN §4,
+    # 2026-10-02): banner, result (the status strip and the one-line result),
+    # map and its tooltip, flips, seats; then the controls, the line under the
+    # by-elections, the seat law's summary and the note's effective count.
     "play/js/model.js": frozenset({
-        "engine", "turnout", "polls", "trust", "poll-average", "cells",
-        "byelection", "law", "seats", "actions", "summary",
+        "engine", "banner", "result", "map", "wardtip", "flips", "seats",
+        "turnout", "polls", "trust", "cells", "byelection", "law", "lawnow", "ess",
     }),
     # Its share sheet (interactive/js/play-share.js): the link to the reader's
     # settings and the image of their figures, inside the one region "share".
