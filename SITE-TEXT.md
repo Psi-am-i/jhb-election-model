@@ -649,12 +649,12 @@ This page lists errors on published pages. Nothing is removed from it.
 
 <!-- /block 8838b445 -->
 
-<!-- block 7c2b90e6 -->
+<!-- block d986d2bf -->
 *md*
 
-## "The DA is the largest single party" — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-02">"The DA is the largest single party"</span> — published 26 September 2026, corrected 2 October 2026
 
-<!-- /block 7c2b90e6 -->
+<!-- /block d986d2bf -->
 
 <!-- block 7016be5f -->
 *md*

@@ -12,7 +12,7 @@
    .pl-live pieces show. CSS, not script, because the twins hold tokens and are
    not regions a writer may reach (stats.script_writes). */
 
-.pl{--reader:var(--k-interactive,#b98ad6);--reader-soft:var(--k-soft,#2c2233);}
+.pl{--reader:var(--k-interactive,#b98ad6);--reader-soft:color-mix(in srgb,var(--reader) 16%,var(--paper));}
 .pl .pl-live{display:none;}
 .pl:has([data-live="result"][data-touched]) .pl-pub{display:none;}
 .pl:has([data-live="result"][data-touched]) .pl-live{display:revert;}
