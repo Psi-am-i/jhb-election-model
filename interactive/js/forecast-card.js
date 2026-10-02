@@ -17,11 +17,12 @@
 // SVG, and reaches no element of the page. It may hold no data block and open
 // no data source.
 //
-// A ROW is { label, colour, value } plus either `n` (a bar from zero to n: an
-// exact seat count) or `mid`, `lo`, `hi` and `range` (the range holding nine
-// in ten as a band, the middle as a tick, `range` as text beside `value`).
-// `lo`/`hi`/`mid` may be null when the figure is withheld. All rows share one
-// scale.
+// A ROW is { label, colour, value } plus either `n` (a bar from zero to n: a
+// seat count, null when withheld) or `mid`, `lo`, `hi` and `range` (the range
+// holding nine in ten as a band, the middle as a tick, `range` as text beside
+// `value`). `lo`/`hi`/`mid` may be null when the figure is withheld. All rows
+// share one scale. Without a range column the name column takes what the
+// longest name needs, up to NAME_SHARE of the width, so names are not cut.
 //
 // The photograph is not in the SVG: an SVG drawn as an image may not fetch,
 // and a canvas an SVG <image> was drawn into can refuse to export. The page
@@ -33,13 +34,15 @@
 // fonts: the image leaves the page, and an SVG drawn into a canvas cannot load
 // web fonts.
 
-import { fitText } from "./card-text.js";
+import { fitText, textWidth } from "./card-text.js";
 
 export const SIZES = { link: [1200, 630], story: [1080, 1920] };
 export const SITE = "joburg.whysoserious.city";
 // The lowest a story card's words may sit: story apps lay their reply bar
 // over the band below it.
 export const STORY_TEXT_BOTTOM = 1660;
+// The story card's headline baseline: the photograph shows above it.
+const STORY_TITLE_Y = 380;
 export const OTHERS_COLOUR = "#464d47";
 
 const C = { paper: "#141715", paper2: "#1c201d", rule: "#333833", ink: "#eceee9", ink2: "#b6bcb6", ink3: "#868d86" };
@@ -112,11 +115,14 @@ function drawMap(map, { x, y, w, prefix, fs }) {
 
 // The rows, on one scale: a range band and a middle tick where the row has a
 // range, a bar from zero otherwise; the figure, then the range if any.
+const NAME_SHARE = 0.45;
 function drawRows(rows, { x, y, w, rowH, fs }) {
   const ranged = rows.some(r => "range" in r);
-  const hi = r => (ranged ? (r.hi ?? r.mid ?? 0) : r.n);
+  const hi = r => (ranged ? (r.hi ?? r.mid ?? 0) : (r.n ?? 0));
   const top = Math.max(1, ...rows.map(hi));
-  const nameW = fs * 6.2, figW = fs * 2.2, rngW = ranged ? fs * 3.6 : 0, barW = w - nameW - figW - rngW - 8;
+  const longest = Math.max(...rows.map(r => textWidth(r.label, fs, "sansBold")));
+  const nameW = ranged ? fs * 6.2 : Math.max(fs * 6.2, Math.min(w * NAME_SHARE, longest + 10));
+  const figW = fs * 2.2, rngW = ranged ? fs * 3.6 : 0, barW = w - nameW - figW - rngW - 8;
   const at = v => x + nameW + barW * v / top;
   return rows.map((r, k) => {
     const yy = y + k * rowH;
@@ -128,7 +134,8 @@ function drawRows(rows, { x, y, w, rowH, fs }) {
         (r.mid == null ? ""
           : `<rect x="${(at(r.mid) - 1.5).toFixed(1)}" y="${yy.toFixed(1)}" width="3" height="${(fs * 1.1).toFixed(1)}" rx="1" fill="${C.ink}"/>`);
     } else {
-      marks = `<rect x="${(x + nameW).toFixed(1)}" y="${(yy + fs * 0.2).toFixed(1)}" width="${Math.max(3, barW * r.n / top).toFixed(1)}" height="${(fs * 0.7).toFixed(1)}" rx="2" fill="${r.colour}"/>`;
+      marks = r.n == null ? ""
+        : `<rect x="${(x + nameW).toFixed(1)}" y="${(yy + fs * 0.2).toFixed(1)}" width="${Math.max(3, barW * r.n / top).toFixed(1)}" height="${(fs * 0.7).toFixed(1)}" rx="2" fill="${r.colour}"/>`;
     }
     return text(x, yy + fs * 0.85, fitted.text, { fs: fitted.fs, fill: C.ink, weight: "600" }) + marks +
       text(x + w - rngW, yy + fs * 0.9, r.value, { fs: fs * 1.15, fill: C.ink, weight: "700", anchor: "end" }) +
@@ -142,7 +149,9 @@ function fade(size, W, H) {
     return `<defs><linearGradient id="pf" x1="0" x2="1" y1="0" y2="0"><stop offset="0.7" stop-color="${C.paper}" stop-opacity="0"/><stop offset="1" stop-color="${C.paper}"/></linearGradient></defs>` +
       `<rect x="${STRIP}" y="0" width="${W - STRIP}" height="${H}" fill="${C.paper}"/><rect x="0" y="0" width="${STRIP}" height="${H}" fill="url(#pf)"/>`;
   }
-  return `<defs><linearGradient id="pf" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${C.paper}" stop-opacity="0.2"/><stop offset="0.45" stop-color="${C.paper}" stop-opacity="0.55"/><stop offset="0.62" stop-color="${C.paper}"/></linearGradient></defs>` +
+  // the photograph shows above the headline; from the headline down the
+  // paper is near-opaque, a scrim, so grey text stays readable over it
+  return `<defs><linearGradient id="pf" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${C.paper}" stop-opacity="0.15"/><stop offset="0.12" stop-color="${C.paper}" stop-opacity="0.35"/><stop offset="0.17" stop-color="${C.paper}" stop-opacity="0.88"/><stop offset="0.33" stop-color="${C.paper}"/></linearGradient></defs>` +
     `<rect width="${W}" height="${H}" fill="url(#pf)"/>`;
 }
 
@@ -185,7 +194,7 @@ export function buildForecastCardSVG({ size = "link", title, lines = [], map, ma
   } else {
     const x = 60, w = W - 120;
     const head = fitText(title, w, 64, "serifBold", 40);
-    let y = 440, first = true;
+    let y = STORY_TITLE_Y, first = true;
     let top = text(x, y, head.text, { fs: head.fs, family: SERIF, fill: C.ink, weight: "600" });
     for (const l of lines) {
       wrap(l.text, w, 28).forEach((t, k) => {
@@ -196,7 +205,7 @@ export function buildForecastCardSVG({ size = "link", title, lines = [], map, ma
     }
     const feet = foot.flatMap(f => wrap(f, w, 22));
     const notes = mapNote ? wrap(mapNote, w, 22) : [], bnotes = rowsNote ? wrap(rowsNote, w, 22) : [];
-    const rowH = 44, rowsH = rows.length * rowH;
+    const rowH = 40, rowsH = rows.length * rowH;
     const footTop = STORY_TEXT_BOTTOM - (feet.length - 1) * 28;
     const mapY = y + 30;
     const room = footTop - 40 - bnotes.length * 28 - 20 - rowsH - 30 - notes.length * 28 - 20 - mapY;

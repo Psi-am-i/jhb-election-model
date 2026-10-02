@@ -26,13 +26,13 @@
 // G1-G3, 2026-10-02): a headline that says whose figures these are (the
 // model's published forecast, or a reader's settings on the model, never
 // "{name}'s Election Forecast": a name is anyone's text, and the site would
-// print it over its own forecast); "Not the model's forecast" in the line
-// under it when the reader moved anything; the largest-party line, ties apart;
+// print it over its own forecast); the largest-party line, ties apart;
 // a line saying the map holds the ward seats only; and each party's middle
-// seat count with the range holding nine in ten.
+// seat count, as a bar (no range: review 2026-10-02). "Not the model's
+// forecast" sits in the foot, in the small type, as on /make/'s card.
 
 import { buildForecastCardSVG, SIZES, SITE, STORY_TEXT_BOTTOM, OTHERS_COLOUR } from "./forecast-card.js";
-import { TRUST, MV_CHARS, PUBLISHED_CELL, PUBLISHED_LAW } from "./play-state.js";
+import { TRUST, PUBLISHED_CELL, PUBLISHED_LAW } from "./play-state.js";
 
 export { SIZES, SITE, STORY_TEXT_BOTTOM };
 export const INVITE = "Try your own at " + SITE + "/play";
@@ -40,7 +40,7 @@ export const READER_STAMP = "Not the model's forecast: a reader's settings on it
 export const PUBLISHED_STAMP = "The model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
-export const BARS_NOTE = "Middle of each party's simulations, and the range holding nine in ten. The middles need not add up to the council's size.";
+export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";
 
 // The seat law's four settings: a short name and what it does.
 export const LAW_TEXT = {
@@ -100,12 +100,16 @@ export function settingsWords(st, ctx) {
   return out;
 }
 
-// When the card was made and against which model: a card outlives the
-// forecast it was drawn from (critic S1). `made` is the date the page passes
-// in, ISO 8601; the version is the link's own `mv`.
-export function madeLine(made, ctx) {
+// When the card was made: a card outlives the forecast it was drawn from
+// (critic S1). `made` is the date the page passes in, ISO 8601, printed as
+// the pages print dates ("2 October 2026"). The model version stays in the
+// link (`mv`), not on the image: it is an internal identifier (review
+// 2026-10-02).
+const MONTHS = "January February March April May June July August September October November December".split(" ");
+export function madeLine(made) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(made))) throw new Error("the card needs the date it was made, YYYY-MM-DD");
-  return "Made " + made + " · model " + String(ctx.modelVersion).slice(0, MV_CHARS);
+  const [y, m, d] = made.split("-").map(Number);
+  return "Made " + d + " " + MONTHS[m - 1] + " " + y;
 }
 
 // The headline. Untouched, the card is the model's forecast and says so; the
@@ -123,12 +127,17 @@ export function largestTop(r, party) {
   return Object.keys(r.largest).sort((a, b) => r.largest[b].p - r.largest[a].p).slice(0, 2)
     .sort((a, b) => party(a).name.toLowerCase().localeCompare(party(b).name.toLowerCase()));
 }
-// The largest-party line, in the shares' own text (page.py, reweight.chance_text).
+// The largest-party line, in the shares' own text (page.py, reweight.chance_text),
+// in the site's one wording for it (/forecast, home, /play/): "X alone has the
+// most seats in …". `cap` starts it with a capital, as a sentence.
+export const theName = (c, party, cap = false) => {
+  const s = party(c).article + party(c).name;
+  return cap ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+};
 export function largestLine(r, party) {
   const [a, b] = largestTop(r, party);
-  const nm = c => party(c).article + party(c).name;
-  return "Largest party: " + nm(a) + " in " + r.largest[a].text + " of simulations, " + nm(b) + " in " +
-    r.largest[b].text + ". Tied for the most seats in " + r.tied.text + ".";
+  return theName(a, party, true) + " alone has the most seats in " + r.largest[a].text + " of simulations, " +
+    theName(b, party) + " alone in " + r.largest[b].text + ". Two or more parties tie for the most seats in " + r.tied.text + ".";
 }
 
 // The line under the headline: whose figures these are, then the council.
@@ -136,15 +145,15 @@ export function councilLine({ r, when }) {
   return "Johannesburg council" + (when ? ", " + when : "") + " · " + seatText({ value: r.council }) +
     " seats, " + seatText({ value: r.majority }) + " for a majority";
 }
-export function subLine({ r, touched, when }) {
-  return touched ? READER_STAMP + " " + councilLine({ r, when }) : councilLine({ r, when });
+export function subLine({ r, when }) {
+  return councilLine({ r, when });
 }
 
-// The foot under the card, in sentences.
-export function footText({ r, st, ctx, made }) {
+// The foot under the card, in sentences: whose figures these are first.
+export function footText({ st, ctx, made }) {
   const words = st && isMoved(st) ? settingsWords(st, ctx) : [];
-  const said = words.length ? "Settings: " + words.join("; ") + "; everything else as published." : PUBLISHED_STAMP;
-  return said + " " + HOW + " " + INVITE + ". " + madeLine(made, ctx) + ".";
+  const said = words.length ? READER_STAMP + " Settings: " + words.join("; ") + "; everything else as published." : PUBLISHED_STAMP;
+  return said + " " + HOW + " " + INVITE + ". " + madeLine(made) + ".";
 }
 const isMoved = st => st.shift.some(x => x !== 0) || (st.trust > 0 && st.polls.length > 0) || st.law !== PUBLISHED_LAW || st.cell !== PUBLISHED_CELL;
 
@@ -159,19 +168,18 @@ export function playCardSpec({ r, st, ctx, party, made, name, geometry, when, to
   if (!r || r.refused) throw new Error("the card needs a computed result, not a refusal");
   if (!geometry) throw new Error("the card needs the ward boundaries");
   const codes = [...order(r, c => party(c).name), "OTHERS"];
-  const fig = f => (f.withheld ? null : f.value);
+  // exact rows, the middle only: a bar from zero to it (none when withheld)
   const rows = codes.map(c => {
     const s = r.seats[c];
     return { label: c === "OTHERS" ? "Others" : party(c).name, colour: c === "OTHERS" ? OTHERS_COLOUR : party(c).colour,
-             value: seatText(s.median), range: rangeText(s), mid: fig(s.median),
-             lo: s.p5.withheld || s.p95.withheld ? null : s.p5.value, hi: s.p5.withheld || s.p95.withheld ? null : s.p95.value };
+             value: seatText(s.median), n: s.median.withheld ? null : s.median.value };
   });
   const wards = r.wards.filter(w => geometry.paths[w.ward])
     .map(w => ({ path: geometry.paths[w.ward], fill: w.fill, bands: w.bands }));
   return {
     size, photo,
     title: headline(name, touched),
-    lines: [{ text: touched ? READER_STAMP : sharedBy(name), tone: touched ? "strong" : "muted" },
+    lines: [...(touched ? [] : [{ text: sharedBy(name), tone: "muted" }]),
             { text: councilLine({ r, when }), tone: "muted" },
             { text: largestLine(r, party), tone: "plain" }],
     map: { W: geometry.W, H: geometry.H, step: geometry.step, rotate: geometry.rotate, wards },
@@ -185,9 +193,7 @@ export const buildPlayCardSVG = info => buildForecastCardSVG(playCardSpec(info))
 // The image's text alternative: the same figures, in the same order.
 export function playCardAlt({ r, st, ctx, party, made, name, when, touched }) {
   const codes = [...order(r, c => party(c).name), "OTHERS"];
-  const seats = codes.map(c => (c === "OTHERS" ? "Others" : party(c).name) + " " + seatText(r.seats[c].median) +
-    " (" + rangeText(r.seats[c]) + ")");
-  return headline(name, touched) + ". " + (touched ? "" : sharedBy(name) + ". ") + subLine({ r, touched, when }) + ". " +
-    largestLine(r, party) + " Middle seats, with the range holding nine in ten: " + seats.join(", ") + ". " +
-    footText({ r, st, ctx, made });
+  const seats = codes.map(c => (c === "OTHERS" ? "Others" : party(c).name) + " " + seatText(r.seats[c].median));
+  return headline(name, touched) + ". " + (touched ? "" : sharedBy(name) + ". ") + subLine({ r, when }) + ". " +
+    largestLine(r, party) + " Middle seats: " + seats.join(", ") + ". " + footText({ st, ctx, made });
 }

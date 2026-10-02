@@ -15,7 +15,7 @@
   "article": "",
   "code": "AFRICAN_CONGRESS_FOR_TRANSFORMATION",
   "colour": "#8b918b",
-  "name": "African Congress For Transformation"
+  "name": "African Congress for Transformation"
  },
  "AFRICAN_ECONOMIC_FREEDOM": {
   "article": "",
@@ -66,16 +66,16 @@
   "name": "Afrika Unite Congress"
  },
  "AHC": {
-  "article": "",
+  "article": "the ",
   "code": "AHC",
   "colour": "#8b918b",
-  "name": "Ahc"
+  "name": "AHC"
  },
  "AIC": {
-  "article": "",
+  "article": "the ",
   "code": "AIC",
   "colour": "#8b918b",
-  "name": "Aic"
+  "name": "AIC"
  },
  "ALJAMAAH": {
   "article": "",
@@ -99,7 +99,7 @@
   "article": "",
   "code": "ALL_NATIVES_OF_SOUTH_AFRICA",
   "colour": "#8b918b",
-  "name": "All Natives Of South Africa"
+  "name": "All Natives of South Africa"
  },
  "ANC": {
   "article": "the ",
@@ -108,10 +108,10 @@
   "name": "ANC"
  },
  "APC": {
-  "article": "",
+  "article": "the ",
   "code": "APC",
   "colour": "#8b918b",
-  "name": "Apc"
+  "name": "APC"
  },
  "ASA": {
   "article": "",
@@ -120,10 +120,10 @@
   "name": "ActionSA"
  },
  "ATM": {
-  "article": "",
+  "article": "the ",
   "code": "ATM",
   "colour": "#8b918b",
-  "name": "Atm"
+  "name": "ATM"
  },
  "AZANIAN_GROUND_FORCES": {
   "article": "",
@@ -138,16 +138,16 @@
   "name": "Azania Peaceful Revolution"
  },
  "AZAPO": {
-  "article": "",
+  "article": "the ",
   "code": "AZAPO",
   "colour": "#8b918b",
-  "name": "Azapo"
+  "name": "AZAPO"
  },
  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": {
   "article": "",
   "code": "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
   "colour": "#8b918b",
-  "name": "Bolsheviks Party Of South Africa"
+  "name": "Bolsheviks Party of South Africa"
  },
  "BOSA": {
   "article": "the ",
@@ -165,7 +165,7 @@
   "article": "",
   "code": "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS",
   "colour": "#8b918b",
-  "name": "Civic Movement For Progressive Citizens"
+  "name": "Civic Movement for Progressive Citizens"
  },
  "COMBAT": {
   "article": "",
@@ -180,10 +180,10 @@
   "name": "Community First Movement"
  },
  "COPE": {
-  "article": "",
+  "article": "the ",
   "code": "COPE",
   "colour": "#8b918b",
-  "name": "Cope"
+  "name": "COPE"
  },
  "DA": {
   "article": "the ",
@@ -195,7 +195,7 @@
   "article": "",
   "code": "DUDULA",
   "colour": "#8b918b",
-  "name": "Dudula"
+  "name": "Operation Dudula"
  },
  "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
   "article": "",
@@ -225,7 +225,7 @@
   "article": "",
   "code": "GAP_FIXERS_OF_SOUTH_AFRICA",
   "colour": "#8b918b",
-  "name": "Gap Fixers Of South Africa"
+  "name": "Gap Fixers of South Africa"
  },
  "GAZA_DEMOCRATIC_FRONT": {
   "article": "",
@@ -249,7 +249,7 @@
   "article": "",
   "code": "IMSTAYING",
   "colour": "#8b918b",
-  "name": "Imstaying"
+  "name": "ImStaying"
  },
  "INDEPENDENT_CITIZENS_MOVEMENT": {
   "article": "",
@@ -273,7 +273,7 @@
   "article": "",
   "code": "LABOUR_PARTY_OF_SOUTH_AFRICA",
   "colour": "#8b918b",
-  "name": "Labour Party Of South Africa"
+  "name": "Labour Party of South Africa"
  },
  "LAND_PARTY": {
   "article": "",
@@ -309,13 +309,13 @@
   "article": "",
   "code": "MOVEMENT_OF_RESIDENTS_PARTY",
   "colour": "#8b918b",
-  "name": "Movement Of Residents Party"
+  "name": "Movement of Residents Party"
  },
  "MOVE_SA": {
   "article": "",
   "code": "MOVE_SA",
   "colour": "#8b918b",
-  "name": "Move Sa"
+  "name": "Move SA"
  },
  "NATIONAL_DEMOCRATIC_CONVENTION": {
   "article": "",
@@ -324,16 +324,16 @@
   "name": "National Democratic Convention"
  },
  "NCC": {
-  "article": "",
+  "article": "the ",
   "code": "NCC",
   "colour": "#8b918b",
-  "name": "Ncc"
+  "name": "NCC"
  },
  "NFP": {
-  "article": "",
+  "article": "the ",
   "code": "NFP",
   "colour": "#8b918b",
-  "name": "Nfp"
+  "name": "NFP"
  },
  "PA": {
   "article": "the ",
@@ -342,28 +342,28 @@
   "name": "PA"
  },
  "PAC": {
-  "article": "",
+  "article": "the ",
   "code": "PAC",
   "colour": "#8b918b",
-  "name": "Pac"
+  "name": "PAC"
  },
  "PEOPLE_OF_JOBURG": {
   "article": "",
   "code": "PEOPLE_OF_JOBURG",
   "colour": "#8b918b",
-  "name": "People Of Joburg"
+  "name": "People of Joburg"
  },
  "PEOPLE_S_CONSENT_PARTY": {
   "article": "",
   "code": "PEOPLE_S_CONSENT_PARTY",
   "colour": "#8b918b",
-  "name": "People S Consent Party"
+  "name": "People's Consent Party"
  },
  "PEOPLE_S_MOVEMENT_FOR_CHANGE": {
   "article": "",
   "code": "PEOPLE_S_MOVEMENT_FOR_CHANGE",
   "colour": "#8b918b",
-  "name": "People S Movement For Change"
+  "name": "People's Movement for Change"
  },
  "PRO_SOUTH_AFRICA": {
   "article": "",
@@ -399,25 +399,25 @@
   "article": "",
   "code": "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION",
   "colour": "#8b918b",
-  "name": "South African People S Civic Organization"
+  "name": "South African People's Civic Organization"
  },
  "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": {
   "article": "",
   "code": "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA",
   "colour": "#8b918b",
-  "name": "Tau Dia Rora Cultural And Traditional Lekgotla"
+  "name": "Tau Dia Rora Cultural and Traditional Lekgotla"
  },
  "TRUTH_AND_SOLIDARITY_MOVEMENT": {
   "article": "",
   "code": "TRUTH_AND_SOLIDARITY_MOVEMENT",
   "colour": "#8b918b",
-  "name": "Truth And Solidarity Movement"
+  "name": "Truth and Solidarity Movement"
  },
  "UDM": {
-  "article": "",
+  "article": "the ",
   "code": "UDM",
   "colour": "#8b918b",
-  "name": "Udm"
+  "name": "UDM"
  },
  "UMPHAKATHI_WARONA": {
   "article": "",
@@ -441,6 +441,6 @@
   "article": "",
   "code": "VUKA_SA",
   "colour": "#8b918b",
-  "name": "Vuka Sa"
+  "name": "Vuka SA"
  }
 }

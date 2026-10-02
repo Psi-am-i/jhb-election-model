@@ -9,17 +9,17 @@
 //    fixture), so the link reproduces the same figures.
 // 2. A broken link falls back to the published setting and says so.
 // 3. The share image is drawn from the compute result the page shows: each
-//    party's row carries that party's middle seat count and its range, every
-//    other digit comes from the result's totals, its largest-party shares, its
-//    ward count, the reader's settings, the election day, the date and model
-//    version the card was made with or the reader's name (drawn as text, never
+//    party's row carries that party's middle seat count and no range (review
+//    2026-10-02), every other digit comes from the result's totals, its
+//    largest-party shares, its ward count, the reader's settings, the election
+//    day, the date the card was made or the reader's name (drawn as text, never
 //    markup), every ward is drawn in the result's colour, the parties are in
 //    the page's order, and a figure typed into the card, or a result the card
 //    ignored, is caught (and the check goes quiet again).
 // 4. The card says whose figures these are: untouched, the model's forecast,
 //    with the name only on a "Shared by" line; touched, the reader's settings,
-//    with "Not the model's forecast" among its first lines (critic G1/G2, code
-//    review 5, 2026-10-02).
+//    with "Not the model's forecast" in the foot (critic G1/G2, code review 5,
+//    review 2026-10-02: in the small type, not under the headline).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -119,7 +119,7 @@ function allowed(info) {
   const add = x => runs(String(x)).forEach(d => out.add(d));
   add(subLine(info)); add(largestLine(info.r, party)); add(info.r.wards.length);
   settingsWords(info.st, ctx).forEach(add);
-  add(madeLine(MADE, ctx)); add(WHEN); add(info.name);
+  add(madeLine(MADE)); add(WHEN); add(info.name);
   return out;
 }
 // What the card prints that it should not: a row whose figure is not that
@@ -135,10 +135,8 @@ function typed(svg, info) {
     if (!want.some(c => isName(t, label(c)))) return;
     const c = want[drawn++];
     rowTexts.add(i + 1);
-    rowTexts.add(i + 2);
     if (!c || !isName(t, label(c))) bad.push(`row ${drawn} is "${t}", not ${c && label(c)}`);
     else if (ts[i + 1] !== seatText(r.seats[c].median)) bad.push(`${t}'s row reads "${ts[i + 1]}", not "${seatText(r.seats[c].median)}"`);
-    else if (ts[i + 2] !== rangeText(r.seats[c])) bad.push(`${t}'s range reads "${ts[i + 2]}", not "${rangeText(r.seats[c])}"`);
   });
   if (drawn !== want.length) bad.push(`${drawn} rows drawn, ${want.length} shown`);
   ts.forEach((t, i) => { if (!rowTexts.has(i)) for (const d of runs(t)) if (!ok.has(d)) bad.push(`${d} in "${t}"`); });
@@ -157,16 +155,17 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       const svg = buildPlayCardSVG({ ...info, size });
       assert.match(svg, new RegExp(`width="${SIZES[size][0]}" height="${SIZES[size][1]}"`));
       assert.deepEqual(typed(svg, info), [], `${c.name} ${size}`);
-      // whose figures these are, in the first lines: the model's forecast
-      // (the name only as "Shared by"), or the reader's settings with "Not
-      // the model's forecast" right under the headline
+      // whose figures these are: the model's forecast (the name only as
+      // "Shared by"), or the reader's settings with "Not the model's
+      // forecast" in the foot, not in the first lines
       const lines = textOf(svg).map(unesc);
       const all = lines.join(" ");
       const firstLines = lines.slice(1, 4).join(" ");    // after the site name
       assert.equal(lines[1], headline("reader-7", info.touched), `${c.name} ${size}: headline`);
       assert.ok(!all.includes("Election Forecast"), `${c.name} ${size}`);
       if (info.touched) {
-        assert.ok(firstLines.includes(READER_STAMP.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: ${firstLines}`);
+        assert.ok(!firstLines.includes(READER_STAMP.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: ${firstLines}`);
+        assert.ok(all.includes(READER_STAMP.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: the stamp is in the foot`);
       } else {
         assert.ok(!lines[1].includes("reader-7"), `${c.name} ${size}: the name is not the model's headline`);
         assert.ok(firstLines.includes(sharedBy("reader-7")), `${c.name} ${size}: shared by`);
@@ -186,7 +185,7 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
     const alt = playCardAlt(card(c));
     assert.ok(alt.startsWith(headline("reader-7", card(c).touched)));
     assert.ok(alt.includes(largestLine(c.result, party)));
-    for (const p of c.result.shown) assert.ok(alt.includes(rangeText(c.result.seats[p])), `${c.name}: ${p}'s range in the alt`);
+    for (const p of c.result.shown) assert.ok(!alt.includes(rangeText(c.result.seats[p])), `${c.name}: ${p}'s range in the alt`);
   }
 });
 
@@ -199,7 +198,8 @@ test("a name never heads the model's forecast, and is the reader's own on the re
   assert.ok(!lines.some(l => /IEC's/.test(l)), lines.join(" | "));
   const mine = textOf(buildPlayCardSVG(card(moved[0], { name: "The IEC" }))).map(unesc);
   assert.equal(mine[1], "The IEC's settings on the model");
-  assert.ok(mine[2].startsWith(READER_STAMP), mine[2]);
+  assert.ok(!mine.slice(1, 4).some(l => l.startsWith(READER_STAMP)), mine.slice(1, 4).join(" | "));
+  assert.ok(mine.join(" ").includes("Not the model's forecast"), "the stamp is in the foot");
 });
 
 test("the reader's name is drawn as text, never as markup", () => {
@@ -223,11 +223,10 @@ test("a typed figure, or a result the card did not read, is caught; reverted, qu
   const swapped = svg.replace(`>${fa}<`, ">@A@<").replace(`>${fb}<`, `>${fa}<`).replace(">@A@<", `>${fb}<`);
   assert.ok(typed(swapped, info).length >= 2, "swapped rows");
   assert.deepEqual(typed(svg, info), []);
-  // a range that is not the party's own is caught
-  const rng = rangeText(info.r.seats[a]);
-  const narrowed = svg.replace(`>${rng}<`, ">1–2<");
-  assert.notEqual(narrowed, svg);
-  assert.ok(typed(narrowed, info).some(x => x.includes("range")), typed(narrowed, info).join(" | "));
+  // no range is drawn, and one added is caught as a typed figure
+  for (const p of info.r.shown) assert.ok(!textOf(svg).includes(rangeText(info.r.seats[p])), p);
+  const ranged = svg.replace("</svg>", `<text x="1" y="1">${rangeText(info.r.seats[a])}</text></svg>`);
+  assert.ok(typed(ranged, info).length > 0, "an added range is caught");
   // the card reads the result: change the top party's middle and the card moves with it
   const top = order(info.r, p => party(p).name)[0];
   info.r.seats[top].median.value = 987.6;

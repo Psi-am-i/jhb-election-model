@@ -34,7 +34,7 @@
 // to the furthest setting for which page.py's reweight.within_precision held.
 
 import * as PS from "./play-state.js";
-import { order, seatText, LAW_TEXT, cellName, pollName, settingsWords, largestTop } from "./play-card.js";
+import { order, seatText, rangeText, LAW_TEXT, cellName, pollName, settingsWords, largestTop, theName } from "./play-card.js";
 import { setShareable } from "./play-share.js";
 
 const DEBOUNCE_MS = 200;
@@ -420,8 +420,10 @@ function renderResult(r) {
   // every share in the text page.py returns (reweight.chance_text, the
   // format the published twin's tokens use)
   const top = largestTop(r, party);
-  const part = c => [party(c).article + party(c).name + " in " + r.largest[c].text, arrow(r.largest[c].vs_published)];
-  R.oneline.append(...["Largest party: ", ...part(top[0]), " of simulations, ", ...part(top[1]),
+  // the site's one wording for it (play-card.js largestLine): "X alone has the most seats in …"
+  const share = c => [r.largest[c].text, arrow(r.largest[c].vs_published)];
+  R.oneline.append(...[theName(top[0], party, true) + " alone has the most seats in ", ...share(top[0]), " of simulations, ",
+    theName(top[1], party) + " alone in ", ...share(top[1]),
     ". Two or more parties tie for the most seats in " + r.tied.text, arrow(r.tied.vs_published),
     ". One party wins a majority on its own in " + r.alone.text + "."].filter(x => x != null));
   const said = order(r, c => party(c).name).slice(0, 5).map(c => party(c).name + " " + seatText(r.seats[c].median)).join(", ");
@@ -501,11 +503,11 @@ function renderSeats(r) {
       track.append(el("span", { className: "pl-ghost", style: "left:calc(" + at(pub[c].median.value) + " - 1px)" }));
     if (!s.median.withheld)
       track.append(el("span", { className: "pl-med", style: "left:calc(" + at(s.median.value) + " - 1.5px)" }));
-    const label = c === "OTHERS" ? [el("span", { className: "pl-chip", style: "background:" + colour }), "Others ", el("span", { className: "pl-sub" }, "(" + r.others_count + ")")]
+    const label = c === "OTHERS" ? [el("span", { className: "pl-chip", style: "background:" + colour }), "Others ", el("span", { className: "pl-sub" }, "(" + r.others_count + " parties)")]
       : [el("span", { className: "pl-chip", style: "background:" + colour }), party(c).name];
     R.seats.append(el("div", { className: "pl-srow" }, el("div", { className: "pl-sname" }, ...label), track,
       el("div", { className: "pl-sval" }, el("b", {}, seatText(s.median)), c === "OTHERS" ? null : arrow(s.vs_published),
-        el("span", { className: "pl-rng" }, s.p5.withheld || s.p95.withheld ? "withheld" : seatText(s.p5) + "–" + seatText(s.p95)))));
+        el("span", { className: "pl-rng" }, rangeText(s)))));
   }
   R.seats.append(el("div", { className: "pl-srow pl-axis" }, el("div"),
     el("div", { className: "ticks pl-ticks" }, ...TICKS.map(t => el("span", { style: "left:" + at(t) }, String(t)))), el("div")));

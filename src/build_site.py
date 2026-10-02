@@ -1476,6 +1476,13 @@ def main(argv: list[str] | None = None) -> int:
             if not f.is_file():
                 continue
             text = f.read_text(encoding="utf-8")
+            # NO EDITION ARROWS ON /play/ (review 2026-10-02). There a ▲▼ means
+            # "your settings against the published forecast" (play/js/model.js),
+            # and the published twin carrying edition arrows in the same glyph
+            # made an untouched page look moved. Its figures keep the history
+            # tooltip; only the glyph is left off.
+            import build_play as _bp
+            glyphs = not page.startswith(f"{_bp.PLAY_DIR}/")
 
             def _mark(m):
                 token = _re.search(r'data-token="([^"]+)"', m.group(0)).group(1)
@@ -1489,7 +1496,8 @@ def main(argv: list[str] | None = None) -> int:
                     span = _re.sub(r'data-prov="([^"]*)"',
                                    lambda d: f'data-prov="{_html.escape(note, quote=True)} {d.group(1)}"',
                                    span, count=1)
-                return _mark(_re.match(r"(.*)", span, _re.S)) if m.group(2) in arrows else span
+                return (_mark(_re.match(r"(.*)", span, _re.S))
+                        if glyphs and m.group(2) in arrows else span)
             text = _re.sub(r'(<span class="mstat"[^>]*data-token="([^"]+)"[^>]*>[^<]*</span>)',
                            _prov, text)
             f.write_text(text, encoding="utf-8")

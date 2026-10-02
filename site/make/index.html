@@ -131,7 +131,8 @@
     <h1>Make your own forecast</h1>
     <p>Call every ward, set each party's share of the vote, and pick who governs. The seats follow from the law that
       seats the council. The page starts from the model's most likely winner in each ward.</p>
-    <p class="pos">Your forecast is kept only in the page's address, so a link carries it. Nothing is sent or stored.</p>
+    <p class="pos">Your forecast, and the name you type when you share it, are kept only in the page's address, so a
+      link carries them. Nothing is sent or stored.</p>
   </header>
 
   <noscript><p class="notours">This page needs JavaScript. The <a href="../forecast">model's forecast</a> works without it.</p></noscript>
@@ -151,12 +152,12 @@
             <button type="button" data-view="list" aria-pressed="false">List</button>
           </div>
         </div>
-        <p class="livelabel" style="padding:6px 12px 0">Computed in your browser from your edits.</p>
+        <p class="livelabel" style="padding:6px 12px 0">Computed in your browser.</p>
         <div class="mapscroll">
           <svg class="wardmap" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
         </div>
         <div class="listview" hidden></div>
-        <p class="maphint painthint">Choose a party, then tap or drag across wards to give them to it. <span class="narrow">Scroll sideways to see the whole city.</span></p>
+        <p class="maphint painthint">Choose a party, then tap or drag across wards to give them to it.</p>
         <div class="tray">
           <div class="brush" role="group" aria-label="Party to give wards to">
             <div class="brushscroll row"></div>
@@ -176,7 +177,7 @@
       </section>
       <section class="results" data-live="council" aria-labelledby="h-res">
         <h2 id="h-res">Your council</h2>
-        <p class="livelabel">Computed in your browser from your edits.</p>
+        <p class="livelabel">Computed in your browser.</p>
         <p class="ess restate"></p>
         <div class="bars"></div>
         <div class="council" aria-hidden="true">
@@ -187,9 +188,8 @@
         <p class="visually-hidden announce" aria-live="polite"></p>
       </section>
 
-      <div class="sharebox" data-live="share"><p class="livelabel">Computed in your browser from your edits.</p>
+      <div class="sharebox" data-live="share"><p class="livelabel">Computed in your browser.</p>
         <button class="btn primary shareopen" type="button" disabled>Share this forecast</button>
-        <p class="stubnote">The link carries your forecast and the name you type, nothing else. The site saves nothing.</p>
         <dialog class="sheet" aria-labelledby="share-title">
           <div class="dh"><h2 id="share-title">Share this forecast</h2>
             <button class="x" type="button" aria-label="Close">×</button></div>
@@ -221,10 +221,10 @@
           <p>Each party's share of all votes, ward and list ballots together: the vote the law counts. The shares always
             add up to the whole. Moving one party scales the others in proportion. A party that wins a ward on your map
             keeps at least one vote.</p>
-          <p class="pos">The start shares give each party its middle seat count from the published forecast, as nearly as
-            the law allows. A party called for more wards than its middle starts at its ward count. The middles need not
-            add up to the council's size, so some parties start one seat away from theirs.</p>
-          <p class="livelabel">Computed in your browser from your edits.</p>
+          <p class="pos">The start shares give each party named in the published forecast its middle seat count, or its
+            ward count where it is called for more wards than that. The middles need not add up to the council's size:
+            the seats left over go to the other parties, in proportion to their average seats in the simulations.</p>
+          <p class="livelabel">Computed in your browser.</p>
           <div class="row">
             <button class="btn small model prmodel" type="button">Back to the start shares</button>
             <label class="find">Find a party <input class="prfind" type="search" autocomplete="off"></label>
@@ -238,7 +238,7 @@
         <h2 id="h-gov" class="stephead stepno">Pick who governs</h2>
         <div class="body">
           <p>Choose the parties in the governing coalition. The parties that hold a seat in your council are listed.</p>
-          <p class="livelabel">Computed in your browser from your edits.</p>
+          <p class="livelabel">Computed in your browser.</p>
           <div class="coal" role="group" aria-label="Parties in the coalition"></div>
           <p class="coalstat" role="status"></p>
         </div>
@@ -479,6 +479,14 @@
     border-bottom:none;background:color-mix(in srgb,var(--ink) 3%,transparent);}
   .govfilter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;}
   .govfilter .fgroup{display:inline-flex;flex-wrap:nowrap;align-items:center;gap:6px;}
+  /* At phone width the filter's groups wrap and the map key's solid-colour line
+     breaks (its span is nowrap inline, from render_map.map_key): both pushed
+     the page 150px past a 375px screen (review 2026-10-02). */
+  @media (max-width:560px){
+    .govfilter .fgroup{flex-wrap:wrap;}
+    .govfilter select{min-width:0;max-width:100%;}
+    figcaption span[style*="nowrap"]{white-space:normal !important;}
+  }
   .govfilter-row + .govfilter-row{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule-soft);}
   .govfilter-label{font:650 11px var(--sans,sans-serif);letter-spacing:.08em;text-transform:uppercase;
     color:var(--ink-3);}

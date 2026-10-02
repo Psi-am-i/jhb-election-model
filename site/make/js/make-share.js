@@ -45,8 +45,9 @@ let now = null, png = null, shown = null, opener = null, nameCb = () => {}, draw
 
 export function onNameChange(cb) { nameCb = cb; }
 
-// What the page is showing now: { url, name, calls, seats, council, majority,
-// coalition, geom, party(code) -> {name, colour} }.
+// What the page is showing now: { url, name, edited, calls, seats, council,
+// majority, coalition, geom, party(code) -> {name, colour} }. `edited` is
+// false while the forecast is still the page's start.
 export function setShareable(info) {
   now = info;
   png = null;
@@ -60,12 +61,24 @@ const say = s => { S.toast.textContent = s; };
 const MONTHS = "January February March April May June July August September October November December".split(" ");
 const dateText = iso => { const [y, m, d] = iso.split("-").map(Number); return d + " " + MONTHS[m - 1] + " " + y; };
 
-// The card's words and figures, from the seats the page is showing.
+// The card's words and figures, from the seats the page is showing. The rows
+// are the page's council list in its order; past PARTY_ROWS the rest are
+// summed as "Others", and the cut never falls between two parties with the
+// same seats (review 2026-10-02: three parties on 3 seats were split).
 export function cardOf(info) {
   const { seats, council, majority, coalition, party } = info;
   const list = Object.keys(seats).filter(c => seats[c] > 0)
     .sort((a, b) => seats[b] - seats[a] || party(a).name.localeCompare(party(b).name));
-  const shown = list.length > PARTY_ROWS + 1 ? list.slice(0, PARTY_ROWS) : list;
+  let cut = list.length > PARTY_ROWS + 1 ? PARTY_ROWS : list.length;
+  if (cut < list.length && seats[list[cut - 1]] === seats[list[cut]]) {
+    // a tie at the cut: take the whole group if it ends by PARTY_ROWS + 1,
+    // else leave it all to Others
+    let end = cut;
+    while (end < list.length && seats[list[end]] === seats[list[cut - 1]]) end++;
+    if (end <= PARTY_ROWS + 1) cut = end;
+    else while (cut > 0 && seats[list[cut - 1]] === seats[list[cut]]) cut--;
+  }
+  const shown = list.slice(0, cut);
   const rows = shown.map(c => ({ label: party(c).name, colour: party(c).colour, value: String(seats[c]), n: seats[c] }));
   const rest = list.slice(shown.length).reduce((a, c) => a + seats[c], 0);
   if (rest) rows.push({ label: "Others", colour: OTHERS_COLOUR, value: String(rest), n: rest });
@@ -74,13 +87,16 @@ export function cardOf(info) {
     ? "Governing: " + coalition.map(c => party(c).name).join(", ") + ". " + cs + " of " + council + " seats" + (cs >= majority ? "." : ", short of a majority.")
     : "";
   return {
-    title: cardTitle(info.name),
+    title: info.edited ? cardTitle(info.name) : "The starting forecast",
     lines: [{ text: info.election.city + " council, " + dateText(info.election.date) + " · " + council + " seats, " + majority + " for a majority", tone: "muted" }],
     map: { W: info.geom.W, H: info.geom.H, wards: info.geom.wards.map((w, i) => ({ path: w.path, fill: party(info.calls[i]).colour })) },
-    mapNote: "Each ward in the colour of the party the reader called it for.",
+    mapNote: info.edited ? "Each ward in the colour of the party the reader called it for."
+      : "Each ward in the colour of the model's most likely winner.",
     rows, rowsNote,
-    foot: ["A reader's forecast: the reader called the wards and set the vote, and the seats follow from the law. Not the model's forecast.",
-           "Made " + MADE + ". Make your own at " + SITE + "/make"],
+    foot: [info.edited
+      ? "A reader's forecast: the reader called the wards and set the vote, and the seats follow from the law. Not the model's forecast."
+      : "The page's start, unedited: each ward called for the model's most likely winner, and the vote set from the published forecast's middle seat counts. The seats follow from the law. Not the model's forecast.",
+           "Made " + dateText(MADE) + ". Make your own at " + SITE + "/make"],
   };
 }
 

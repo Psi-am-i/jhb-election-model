@@ -111,6 +111,9 @@
   .wrap{max-width:1040px;margin:0 auto;padding:28px 24px 80px;}
   @media (max-width:560px){.wrap{padding:20px 14px 56px;}
     .item{grid-template-columns:1fr;gap:2px;}}
+  /* the map key's solid-colour line is a nowrap span (render_map.map_key):
+     at phone width it pushed the page past the screen (review 2026-10-02) */
+  @media (max-width:560px){figcaption span[style*="nowrap"]{white-space:normal !important;}}
 </style>
 </head>
 <body>
@@ -119,8 +122,8 @@
 <header class="hero">
   <div class="eyebrow">City of Johannesburg · 4 November 2026</div>
   <!-- __HOMELEDE_START__ -->
-  <h1 class="state"><em>A coalition is all but inevitable</em> and the race is too close to call: the ANC leads in {{@home.p_anc_largest=0.467200;chance;seat_draws.csv, 5,000 simulations, the party alone with the most seats}} of simulations, the DA in {{@home.p_da_largest=0.452400;chance;seat_draws.csv, 5,000 simulations, the party alone with the most seats}}.</h1>
-  <p class="sub">One party governs alone in {{@home.p_alone=0.000800;chance;seat_draws.csv, one party at or above the threshold}} of simulations. Two or more parties tie for the most seats in {{@home.p_largest_tied=0.014400;chance;seat_draws.csv, 5,000 simulations, two or more parties level on the most seats}}. A rarely used clause lets a party keep every ward it wins beyond its proportional share, with the shortfall taken from everyone else. It fires in {{@home.p_excessive_any=0.698200;chance;forecast_summary.json p_excessive_any}} of them.</p>
+  <h1 class="state"><em>A coalition is all but inevitable</em> and the race is too close to call: the ANC alone has the most seats in {{@home.p_anc_largest=0.467200;chance;seat_draws.csv, 5,000 simulations, the party alone with the most seats}} of simulations, the DA alone in {{@home.p_da_largest=0.452400;chance;seat_draws.csv, 5,000 simulations, the party alone with the most seats}}.</h1>
+  <p class="sub">One party governs alone in {{@home.p_alone=0.000800;chance;seat_draws.csv, one party at or above the threshold}} of simulations. Two or more parties tie for the most seats in {{@home.p_largest_tied=0.014400;chance;seat_draws.csv, 5,000 simulations, two or more parties level on the most seats}}. A rarely used clause lets a party keep every ward it wins beyond its proportional share, with the shortfall taken from everyone else. It fires for at least one party in {{@home.p_excessive_any=0.698200;chance;forecast_summary.json p_excessive_any}} of them.</p>
   <div class="stamp">Model run {{@home.generated=2026-09-29T17:59:46Z;date_long;forecast_summary.json, 5,000 simulations}} · {{@home.n_draws=5000;comma;forecast_summary.json, 5,000 simulations}} simulations</div>
   <!-- __HOMELEDE_END__ -->
 </header>
@@ -306,22 +309,16 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
       <div class="sval rng">{{@home.seats.anc_lo=28;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.anc_hi=92;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:#B3202B"></span>EFF</div>
-      <div class="strack"><i style="width:27.2%;background:#B3202B"></i></div>
-      <div class="sval"><b>{{@home.seats.eff=25;int;forecast_summary.json, 5,000 simulations}}</b></div>
-      <div class="sval rng">{{@home.seats.eff_lo=8;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.eff_hi=57;int;forecast_summary.json, 5,000 simulations}}</div>
-    </div>
-    <div class="srow">
       <div class="sname"><span class="chip" style="background:#2FA79B"></span>ActionSA</div>
       <div class="strack"><i style="width:29.3%;background:#2FA79B"></i></div>
       <div class="sval"><b>{{@home.seats.asa=27;int;forecast_summary.json, 5,000 simulations}}</b></div>
       <div class="sval rng">{{@home.seats.asa_lo=11;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.asa_hi=52;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:#5B6E22"></span>MK Party</div>
-      <div class="strack"><i style="width:23.9%;background:#5B6E22"></i></div>
-      <div class="sval"><b>{{@home.seats.mk=22;int;forecast_summary.json, 5,000 simulations}}</b></div>
-      <div class="sval rng">{{@home.seats.mk_lo=7;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.mk_hi=50;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sname"><span class="chip" style="background:#B3202B"></span>EFF</div>
+      <div class="strack"><i style="width:27.2%;background:#B3202B"></i></div>
+      <div class="sval"><b>{{@home.seats.eff=25;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.eff_lo=8;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.eff_hi=57;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:#E0A419"></span>PA</div>
@@ -330,16 +327,22 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
       <div class="sval rng">{{@home.seats.pa_lo=14;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.pa_hi=36;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
-      <div class="sname"><span class="chip" style="background:#C8442A"></span>IFP</div>
-      <div class="strack"><i style="width:2.2%;background:#C8442A"></i></div>
-      <div class="sval"><b>{{@home.seats.ifp=2;int;forecast_summary.json, 5,000 simulations}}</b></div>
-      <div class="sval rng">{{@home.seats.ifp_lo=0;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.ifp_hi=16;int;forecast_summary.json, 5,000 simulations}}</div>
+      <div class="sname"><span class="chip" style="background:#5B6E22"></span>MK Party</div>
+      <div class="strack"><i style="width:23.9%;background:#5B6E22"></i></div>
+      <div class="sval"><b>{{@home.seats.mk=22;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.mk_lo=7;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.mk_hi=50;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:#7A6BA8"></span>Rise Mzansi</div>
       <div class="strack"><i style="width:2.2%;background:#7A6BA8"></i></div>
       <div class="sval"><b>{{@home.seats.rise=2;int;forecast_summary.json, 5,000 simulations}}</b></div>
       <div class="sval rng">{{@home.seats.rise_lo=0;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.rise_hi=15;int;forecast_summary.json, 5,000 simulations}}</div>
+    </div>
+    <div class="srow">
+      <div class="sname"><span class="chip" style="background:#C8442A"></span>IFP</div>
+      <div class="strack"><i style="width:2.2%;background:#C8442A"></i></div>
+      <div class="sval"><b>{{@home.seats.ifp=2;int;forecast_summary.json, 5,000 simulations}}</b></div>
+      <div class="sval rng">{{@home.seats.ifp_lo=0;int;forecast_summary.json, 5,000 simulations}}–{{@home.seats.ifp_hi=16;int;forecast_summary.json, 5,000 simulations}}</div>
     </div>
     <div class="srow">
       <div class="sname"><span class="chip" style="background:#2E8B72"></span>Al Jama-ah</div>

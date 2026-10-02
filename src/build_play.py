@@ -26,7 +26,7 @@ What the served page is made of
 ``play/parties.json``
     Party names, colours and the article a name takes in a sentence ("the
     ANC", "ActionSA"), for the draws' roster, from the site's one definition
-    (``render_sheet.NAMES`` / ``CHIPS``, then ``parties.display_name``), so the
+    (``render_sheet.NAMES`` / ``CHIPS``, then :func:`reader_name`), so the
     page types none.
 ``play/ward_paths.json``
     The ward boundaries (``render_map``'s ``ward_paths.json``: geometry and
@@ -235,7 +235,6 @@ def roster() -> dict:
     ``article`` is "the " for a name written as an abbreviation ("the ANC"),
     else empty ("ActionSA", "MK Party"): one rule, so the page types no list.
     """
-    import parties as _parties
     import render_sheet
     codes = list(render_sheet.NAMES)
     man = DRAWS / "manifest.json"
@@ -243,10 +242,50 @@ def roster() -> dict:
         codes = json.loads(man.read_text(encoding="utf-8")).get("parties") or codes
     out = {}
     for c in codes:
-        name = render_sheet.NAMES.get(c) or _parties.display_name(c)
+        name = render_sheet.NAMES.get(c) or reader_name(c)
         out[c] = {"code": c, "name": name, "colour": render_sheet.CHIPS.get(c, "#8b918b"),
                   "article": "the " if name.isupper() else ""}
     return out
+
+
+# A reader-facing name for a party the pages do not name by hand: acronyms as
+# the parties write them, and an apostrophe the derived code lost ("PEOPLE_S"
+# is "People's"). `parties.display_name`'s plain `.title()` printed "Aic",
+# "Move Sa" and "People S Consent Party" on /make/ (review 2026-10-02). Kept
+# HERE, not in parties.py: build_crosswalk writes display_name into a data
+# artefact, and parties.py is shipped as seat code to the seat Worker and both
+# pages (interactive/tools/sync_py.mjs), whose hashes a name must not move.
+READER_NAMES: dict[str, str] = {
+    "AHC": "AHC", "AIC": "AIC", "APC": "APC", "ATM": "ATM", "AZAPO": "AZAPO",
+    "COPE": "COPE", "NCC": "NCC", "NFP": "NFP", "OKM": "OKM", "PAC": "PAC",
+    "UDM": "UDM", "UIM": "UIM", "GOOD": "GOOD", "AGANG": "Agang SA",
+    "DUDULA": "Operation Dudula", "IMSTAYING": "ImStaying",
+}
+_KEEP_UPPER = {"SA"}
+_SMALL = {"OF", "AND", "THE", "FOR", "IN"}
+
+
+def reader_name(code: str) -> str:
+    """The name a reader sees for ``code``: :data:`parties.PARTIES`, then
+    :data:`READER_NAMES`, then the code's words in title case, with "SA"
+    kept upper, small words lower after the first, and a lone "S" rejoined
+    to the word before it as "'s"."""
+    import parties as _parties
+    if code in _parties.PARTIES:
+        return _parties.PARTIES[code][0]
+    if code in READER_NAMES:
+        return READER_NAMES[code]
+    words: list[str] = []
+    for w in code.split("_"):
+        if w == "S" and words:
+            words[-1] += "'s"
+        elif w in _KEEP_UPPER:
+            words.append(w)
+        elif w in _SMALL and words:
+            words.append(w.lower())
+        else:
+            words.append(w.capitalize())
+    return " ".join(words)
 
 
 # ==========================================================================
@@ -268,7 +307,7 @@ def seats(rows: list[dict], others_count: str) -> str:
     out = []
     for r in _ordered(rows):
         pct = lambda v: f"{100.0 * v / SEAT_SCALE:.2f}%"
-        label = (f'Others <span class="pl-sub">({others_count})</span>' if r["code"] == "OTHERS"
+        label = (f'Others <span class="pl-sub">({others_count} parties)</span>' if r["code"] == "OTHERS"
                  else _esc(r["name"]))
         out.append(
             f'<div class="pl-srow"><div class="pl-sname"><span class="pl-chip" style="background:{r["chip"]}">'
@@ -302,13 +341,17 @@ def oneline(processed: Path, names: dict) -> str:
     top = sorted(sorted(lp["outright"], key=lambda p: -lp["outright"][p])[:2],
                  key=lambda p: names[p]["name"].lower())
 
-    def part(p):
-        art = names[p]["article"]
-        return (f"{art}{_esc(names[p]['name'])} in "
-                f"{_chance(f'play.largest.{p}', lp['outright'][p], src + ', the party alone with the most seats')}")
+    def share(p):
+        return _chance(f'play.largest.{p}', lp['outright'][p], src + ', the party alone with the most seats')
+
+    def who(p, cap=False):
+        nm = names[p]["article"] + _esc(names[p]["name"])
+        return nm[:1].upper() + nm[1:] if cap else nm
     tied = _chance("play.largest_tied", lp["tied"], src + ", two or more parties level on the most seats")
     alone = _chance("play.alone", R.majority_alone(seats_, thr), src + ", one party at or above the threshold")
-    return (f"Largest party: {part(top[0])} of simulations, {part(top[1])}. Two or more parties tie "
+    # the site's one wording (play-card.js largestLine, /forecast, home)
+    return (f"{who(top[0], True)} alone has the most seats in {share(top[0])} of simulations, "
+            f"{who(top[1])} alone in {share(top[1])}. Two or more parties tie "
             f"for the most seats in {tied}. One party wins a majority on its own in {alone}.")
 
 

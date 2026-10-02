@@ -33,13 +33,33 @@ async function edit(p) {
   await p.waitForTimeout(400);
 }
 
+// A full-page capture stitches the viewport down the page, so the sticky tray
+// is painted over the map wherever it was pinned (review 2026-10-02: the
+// committed 375 shots looked like a layout bug). Unstick it for those shots.
+const fullPage = async (p, path) => {
+  const tag = await p.addStyleTag({ content: ".tray{position:static !important;}" });
+  await p.screenshot({ path, fullPage: true });
+  await tag.evaluate(t => t.remove());
+};
+
 const links = {};
 for (const [w, h] of [[375, 812], [1440, 1000]]) {
   let p = await page(w, h);
-  await p.screenshot({ path: OUT + "/make-" + w + "-default.png", fullPage: true });
+  await fullPage(p, OUT + "/make-" + w + "-default.png");
+  if (w > 500) {
+    // the untouched start's card
+    await p.click('[data-live="share"] .shareopen');
+    await p.waitForFunction(() => { const i = document.querySelector('[data-live="share"] .preview img'); return i.src.startsWith("blob:") && i.complete && i.naturalWidth > 0; }, null, { timeout: 30000 });
+    const d = p.waitForEvent("download");
+    await p.click('[data-live="share"] .shdl');
+    await (await d).saveAs(OUT + "/make-card-untouched-1200x630.png");
+    await p.keyboard.press("Escape");
+    await p.waitForTimeout(200);
+  }
   await edit(p);
   links[w] = await p.evaluate(() => location.search);
-  await p.screenshot({ path: OUT + "/make-" + w + "-edited.png", fullPage: w > 500 });
+  if (w > 500) await fullPage(p, OUT + "/make-" + w + "-edited.png");
+  else await p.screenshot({ path: OUT + "/make-" + w + "-edited.png" });
   if (w < 500) {
     await p.locator('[data-live="council"]').scrollIntoViewIfNeeded();
     await p.screenshot({ path: OUT + "/make-375-edited-council.png" });

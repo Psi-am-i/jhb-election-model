@@ -115,7 +115,10 @@ test("an invalid link opens the published start with a note saying why", () => {
     "another version of this page": with_("v", "2"),
     "another version of the model's roster": with_("c", "000000000000"),
     "cut short": with_("f", f.slice(0, 40)),
-    "extra data": with_("f", f + "AA"),
+    // four letters, so the result is still valid base64 whatever f's length
+    // ("AA" was, or was not, depending on the start: f + "AA" can be a length
+    // no base64 has)
+    "extra data": with_("f", f + "AAAA"),
     "not in the expected letters": with_("f", f.slice(0, -2) + "!*"),
     "a ward winner is not on the roster": with_("f", tweak(b => { b[1] = 250; })),
     "a party is listed twice": with_("f", k > 1 ? tweak(b => { b[2] = b[1]; }) : f + "!"),

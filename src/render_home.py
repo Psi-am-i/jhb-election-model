@@ -135,14 +135,14 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
         first = HEAD_TO_HEAD_ORDER[0]
         p_heat = chance(f"home.p_{first.lower()}_largest",
                         da if first == "DA" else anc, _src)
-        race = (f'it is a dead heat: the ANC and the DA each lead in '
-                f'{p_heat} of simulations')
+        race = (f'it is a dead heat: the ANC and the DA each alone have the '
+                f'most seats in {p_heat} of simulations')
     elif abs(anc - da) < 0.05:
-        race = (f'the race is too close to call: the {lead} leads in {p_lead} '
-                f'of simulations, the {trail} in {p_trail}')
+        race = (f'the race is too close to call: the {lead} alone has the most '
+                f'seats in {p_lead} of simulations, the {trail} alone in {p_trail}')
     else:
-        race = (f'the {lead} leads, in {p_lead} of simulations against the '
-                f'{trail}\'s {p_trail}')
+        race = (f'the {lead} is ahead: it alone has the most seats in {p_lead} '
+                f'of simulations, the {trail} alone in {p_trail}')
 
     head = f'<em>{coalition}</em> and {race}.'
 
@@ -152,7 +152,7 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
            f'parties tie for the most seats in {p_tied}. A '
            f'rarely used clause lets a party keep every ward it wins beyond its '
            f'proportional share, with the shortfall taken from everyone else. '
-           f'It fires in {excessive} of them.')
+           f'It fires for at least one party in {excessive} of them.')
     # `date_long` is the registry's only date format; there is no "date".
     stamp = (f'Model run '
              f'{tok("home.generated", summary["_generated"], "date_long")} '
@@ -167,6 +167,15 @@ def _seats(summary: dict, tok, processed: Path) -> str:
     parties = summary["parties"]
     named = [p for p in NAMED if p in parties]
     others = sorted(set(parties) - set(named))
+    # THE FORECAST PAGE'S ORDER (render_sheet's seat chart): middle seat count,
+    # then mean seats over the draws, highest first. STYLE rule 7: numeric,
+    # never a fixed list (the rows used to follow NAMED_PARTIES, which put the
+    # EFF above ActionSA with fewer seats; review 2026-10-02).
+    import csv as _csv
+    with (Path(processed) / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+        _draws = list(_csv.DictReader(fh))
+    _mean = {p: sum(float(r[p] or 0) for r in _draws) / len(_draws) for p in named}
+    rows_order = sorted(named, key=lambda p: (-float(parties[p]["median"]), -_mean[p]))
     rows, widest = [], max(float(parties[p]["p95"]) for p in named) or 1.0
 
     def row(code: str, label: str, med: float, lo: float, hi: float,
@@ -187,7 +196,7 @@ def _seats(summary: dict, tok, processed: Path) -> str:
             f'{src_of(f"home.seats.{key}_hi", int(round(hi)), "int")}</div>\n'
             f'    </div>')
 
-    for code in named:
+    for code in rows_order:
         p = parties[code]
         rows.append(row(code, LABEL.get(code, code),
                         float(p["median"]), float(p["p5"]), float(p["p95"])))

@@ -8,8 +8,9 @@ digit, and only a module in ``stats.LIVE_WRITERS`` may write one.
 These tests build the real site into a temporary directory (never ``site/``)
 and hold the BUILT page to that, then show each guard fires on a constructed
 violation and goes quiet when it is reverted. They also hold the start state
-to its stated definition (src/build_make.py): the published ward calls and the
-published list-ballot medians, seated by the statute.
+to its stated definition (src/build_make.py): the published ward calls, and
+vote shares that seat each named party at its published middle (or its ward
+count), Others taking the rest, by the statute.
 """
 from __future__ import annotations
 
@@ -261,23 +262,23 @@ def test_the_start_is_the_published_ward_calls_and_the_panel_middles():
     got = {p: v["total"] for p, v in seated["seats"].items()}
     assert got == start["seats"]
     assert sum(got.values()) == seated["council"]
-    # each panel row opens at its middle, one seat off where the middles do
-    # not fill the council, or at its ward count where the wards it is called
-    # for exceed its middle
+    # each named row opens exactly at its middle, or at its ward count where
+    # the wards it is called for exceed its middle; Others is the remainder
+    # that fills the council, never below the wards its parties are called for
     held = {}
     for c in start["ward_calls"]:
         held[c] = held.get(c, 0) + 1
     others = sum(n for p, n in got.items() if p not in named)
     off = {}
     for g, mid in page.items():
-        n = others if g == "OTHERS" else got.get(g, 0)
-        wards_held = (sum(v for p, v in held.items() if p not in named) if g == "OTHERS"
-                      else held.get(g, 0))
-        if wards_held > mid:
-            assert n == wards_held, (g, n, wards_held)
-        else:
-            assert abs(n - mid) <= 1, (g, n, mid)
+        if g == "OTHERS":
+            continue
+        n = got.get(g, 0)
+        assert n == max(mid, held.get(g, 0)), (g, n, mid, held.get(g, 0))
         off[g] = n - mid
+    assert others == seated["council"] - sum(got.get(g, 0) for g in named)
+    assert others >= sum(v for p, v in held.items() if p not in named)
+    off["OTHERS"] = others - page["OTHERS"]
     print(f"  untouched /make/ against the published middles: {off}")
 
 

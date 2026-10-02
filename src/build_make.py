@@ -40,8 +40,9 @@ The start state, stated exactly
   ``render_map.ward_call`` wherever that column has no tie
   (``tests/test_make_page.py``).
 * **Vote shares**: chosen so that the untouched council, under the seat law
-  (``reader_seats``), gives each row of the published seat panel its middle
-  seat count as nearly as the law allows (:func:`start_seats`, then
+  (``reader_seats``), gives each party the published seat panel names its
+  middle seat count, or its ward count where that is higher, and the other
+  parties the rest of the council (:func:`start_seats`, then
   :func:`start_shares`). There is no published combined (ward + list) share
   to start from: the draws' manifest refuses one
   (``export_draws.COMBINED_SHARE_REFUSAL``), and the list-ballot medians,
@@ -57,10 +58,15 @@ The start state, stated exactly
      (item 16 keeps every ward won), so a target below that count is raised
      to it. This is the one reason a named party can open away from its
      middle by more than one seat.
-  3. **The council's size.** The middles need not add up to the council. The
-     seats left over (or missing) are added (or taken) one per row per
-     round, first to the rows whose mean over the draws exceeds their middle
-     by most (or by least), never below a row's ward floor.
+  3. **The council's size.** The middles need not add up to the council.
+     The seats left over (or missing) go to (or come from) "Others", the
+     remainder row, so every named party opens at its published middle or
+     its ward floor (review 2026-10-02: the earlier rule put one seat on
+     every row, and the untouched page disagreed with /forecast on every
+     named party). Only if taking the missing seats would put Others below
+     its ward floor are they taken one per row per round instead, from the
+     rows whose mean over the draws falls furthest below their middle,
+     never below a row's ward floor.
   4. **Others** is split among its parties by largest remainder on each
      party's mean seats over the draws, none below its ward floor.
   5. **Votes.** Each party's combined vote is its target seats' share of
@@ -293,6 +299,10 @@ def start_seats(manifest: dict, arrays: dict, calls: list[str]) -> dict:
     gap = {g: float(series[g].mean()) - published[g] for g in series}
     order = list(series)
     left = council - sum(rows.values())
+    # step 3: Others is the remainder row
+    take = left if rows["OTHERS"] + left >= floor["OTHERS"] else floor["OTHERS"] - rows["OTHERS"]
+    rows["OTHERS"] += take
+    left -= take
     while left:
         step = 1 if left > 0 else -1
         ranked = sorted(order, key=lambda g: (-gap[g] * step, order.index(g)))
@@ -357,8 +367,8 @@ def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
         "published_middle": plan["published"],
         "rule": ("ward calls: score_forecasts.model_forecast's modal winner over the published draws; "
                  "combined shares: each party's target seats' share of the council, the targets being "
-                 "the published seat panel's middles, raised to the ward floor and filled to the "
-                 "council size (src/build_make.py start_seats)"),
+                 "the published seat panel's middles, raised to the ward floor, with Others taking the "
+                 "seats left to fill the council (src/build_make.py start_seats)"),
     }
 
 

@@ -15,13 +15,15 @@
 //
 // DESIGN-decided §8: every control applies to every party identically. Parties
 // are listed alphabetically wherever a reader chooses; nothing is preselected.
+// The vote list is two alphabetical lists, the parties seated at the start
+// and then the rest, collapsed: an order fixed by the start, not a ranking.
 // §14: the builder can only hold a valid forecast (js/builder-state.js); seats
 // are recomputed after every edit by the seat code the server would run.
 //
 // The start (src/build_make.py, make/forecast.json): each ward's modal winner
-// over the published draws, and combined shares that seat each row of the
-// published seat panel at its middle as nearly as the law allows
-// (build_make.start_seats). The reader's forecast lives only in the address
+// over the published draws, and combined shares that seat each named party
+// of the published seat panel at its middle (or its ward count, if higher),
+// the other parties taking the rest of the council (build_make.start_seats). The reader's forecast lives only in the address
 // (js/make-state.js).
 
 import * as B from "./builder-state.js";
@@ -202,7 +204,16 @@ one.undo.addEventListener("click", () => {
 });
 
 // ---------- the vote: one identical row per party ----------
+// Two lists, each alphabetical: the parties that hold a seat in the start,
+// then every other party in a collapsed "Other parties" (review 2026-10-02:
+// one alphabetical list of every party put ACDP first and the ANC and DA far
+// below a run of parties at zero). The split is the start's, fixed for the
+// page, so a row never moves under the reader's finger; finding a party opens
+// the second list.
 const rows = {};
+const seatedAtStart = alpha.filter(c => (D.start.seats[c] || 0) > 0);
+const restList = el("div", { className: "prrest" });
+const rest = el("details", { className: "prmore" }, el("summary", {}, "Other parties"), restList);
 for (const c of alpha) {
   const num = el("input", { type: "number", id: "pr-n-" + c, min: "0", max: "100", step: "0.1", inputMode: "decimal", disabled: true });
   const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", share of all votes, percent" });
@@ -213,11 +224,13 @@ for (const c of alpha) {
   rng.addEventListener("change", () => editShare(c, rng.value, true, null));
   rows[c] = { row, num, rng, fl };
   editables.push(num, rng);
-  one.prlist.append(row);
+  (seatedAtStart.includes(c) ? one.prlist : restList).append(row);
 }
+one.prlist.append(rest);
 one.prfind.addEventListener("input", () => {
   const q = one.prfind.value.trim().toLowerCase();
   for (const c of alpha) rows[c].row.hidden = !!q && !name(c).toLowerCase().includes(q);
+  if (q && alpha.some(c => !seatedAtStart.includes(c) && !rows[c].row.hidden)) rest.open = true;
 });
 
 function paintShares(except = null) {
@@ -334,7 +347,7 @@ function paintCouncil() {
 
 function share() {
   setShareable({
-    url: location.href, name: S.name, calls: state.calls, seats: result.seats,
+    url: location.href, name: S.name, edited: !MS.sameState(state, start, ctx), calls: state.calls, seats: result.seats,
     council: result.council_total, majority: result.majority, coalition: S.coalition, geom, party: c => byCode[c],
     election: D.election,
   });
@@ -344,7 +357,7 @@ onNameChange(n => { S.name = n; writeURL(); });
 worker.onmessage = e => {
   const m = e.data;
   if (m.type === "stage") {
-    one.status.textContent = "Loading the seat law in your browser: " + m.label.toLowerCase() + "…";
+    if (m.label !== "Ready") one.status.textContent = m.label + " in your browser…";
   } else if (m.type === "failed") {
     one.status.textContent = m.missing ? m.message : "The seat law could not load (" + m.message + "). Reload to try again.";
     one.status.classList.add("low");
@@ -352,7 +365,7 @@ worker.onmessage = e => {
     engineReady = true;
     window.__seatEngineTimes = m.times;
     console.info("seat engine loaded", m.times);
-    one.status.textContent = "Seats are worked out in your browser by the project's own seat code, the code that seats the model's simulations.";
+    one.status.textContent = "The seats come from the project's own seat code, the code that seats the model's simulations.";
     lock(false);
     paintBrush();
     afterEdit();

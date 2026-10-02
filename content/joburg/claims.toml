@@ -43,7 +43,7 @@ since = """The ANC reaches a majority on its own in [[anc_alone_count]] of the {
 intro = """This is an appeal, not a forecast, so the thing to test is whether the mandate being asked for is available at all. Absolute authority means governing without needing anyone else: {{majority}} of the {{council_size}} seats. In the {{n_draws}} simulations behind today's forecast, the ANC does it in [[anc_alone_count]] of them."""
 steps = [
   """**Not close.** The ANC's median is [[anc_median]] seats, against the {{majority}} it would need. Its single best result anywhere in the {{n_draws}} simulations is [[anc_best]], and that draw is the outer edge of the range, not a likely outcome.""",
-  """**Being first is a different question, and that one is open.** The ANC alone is the largest party in [[anc_largest_share]] of simulations, the DA alone in [[da_largest_share]], and two or more parties tie for the most seats in [[largest_tied_share]]. First place is a genuine contest. Sole control is not: no party reaches {{majority}} alone in more than a handful of draws.""",
+  """**Being first is a different question, and that one is open.** The ANC alone has the most seats in [[anc_largest_share]] of simulations, the DA alone in [[da_largest_share]], and two or more parties tie for the most seats in [[largest_tied_share]]. First place is a genuine contest. Sole control is not: no party reaches {{majority}} alone in more than a handful of draws.""",
   """**The ANC does have routes — they are all coalitions.** With the EFF and MK, its closest partners on this ballot, the three together reach {{majority}} in [[anc_left_share]] of simulations, on a median of [[anc_left_median]] seats. Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in [[anc_side_share]]. These routes and others are open to the ANC. Absolute authority is not.""",
 ]
 
@@ -64,7 +64,7 @@ published = "26 September 2026"
 intro = """Unlike most campaign talk this is a precise, checkable prediction: more seats than anyone else. MK is the largest party in [[mk_largest_share]] of the {{n_draws}} simulations."""
 steps = [
   """**The gap is large, not marginal.** MK's median is [[mk_median]] seats of {{council_size}}. Even at the top of its range — [[mk_p95]] seats, a result it beats in only one simulation in twenty — it is short of the ANC's typical [[anc_median]] and the DA's [[da_median]].""",
-  """**First place is a two-horse race in this forecast.** The ANC alone is largest in [[anc_largest_share]] of simulations and the DA alone in [[da_largest_share]]. Two or more parties tie for the most seats in [[largest_tied_share]]. Everything else, MK included, shares what is left.""",
+  """**First place is a two-horse race in this forecast.** The ANC alone has the most seats in [[anc_largest_share]] of simulations and the DA alone in [[da_largest_share]]. Two or more parties tie for the most seats in [[largest_tied_share]]. Everything else, MK included, shares what is left.""",
   """**The complaint about polls does not reach this forecast.** Our model uses no poll at all. It is built from the record — how this city has actually voted, and the trajectories we can measure in that record. So the claim that pollsters undercount MK, whether or not it is right, leaves these numbers where they are. To be largest, MK would have to be under-represented in past ballot boxes, not in a survey — a different and much harder argument.""",
 ]
 

@@ -2,16 +2,21 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
-## <span data-asof="2026-10-02">"The DA is the largest single party"</span> — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 2 October 2026
 
-<span data-asof="2026-10-02">**What was wrong.** Every page that gave a
-party's share of simulations as the largest party counted a simulation in which
-two or more parties tied for the most seats for whichever of them came first in
-the results file. That was usually the DA.
+<span data-asof="2026-10-02">**What was wrong.** The forecast page said "The
+ANC is largest in 47% of simulations and the DA in 47%", and its tiles gave
+47% for "The DA is the largest single party" and 47% for "The ANC is the
+largest single party". The home page, "Nobody will win Johannesburg" and the
+review gave the same two figures. A simulation in which two or more parties
+tied for the most seats was counted for whichever of them came first in the
+results file.
 
-**What changed.** Each party's figure is now the share of simulations in which
-it alone has the most seats. Ties are reported as their own share, beside
-them.</span>
+**What changed.** A party is counted only where it alone has the most seats,
+and ties have their own figure. The sentence reads "The ANC alone has the most
+seats in 47% of simulations and the DA alone in 45%. Two or more parties tie
+for the most seats in 1.4%." The tiles read "The DA alone has the most seats"
+and "The ANC alone has the most seats".</span>
 
 ## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 2 October 2026
 
