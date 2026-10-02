@@ -253,18 +253,22 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     # Its share sheet (interactive/js/play-share.js): the link to the reader's
     # settings and the image of their figures, inside the one region "share".
     "play/js/play-share.js": frozenset({"share"}),
-    # The share image (interactive/js/play-card.js): an SVG of the figures the
-    # seat table shows, from the same compute result. It builds figures and
-    # reaches NO region; play-share.js puts the image in the sheet. Listed so
-    # the writer contract, not the non-writer one, applies to it.
+    # The share image's words (interactive/js/play-card.js): the figures the
+    # seat table shows, from the same compute result, handed to the card
+    # module. It builds figures and reaches NO region; play-share.js puts the
+    # image in the sheet. Listed so the writer contract, not the non-writer
+    # one, applies to it.
     "play/js/play-card.js": frozenset(),
+    # The card module both pages share (interactive/js/forecast-card.js): an
+    # SVG of the figures it is handed. It reaches NO region.
+    "play/js/forecast-card.js": frozenset(),
     # "Make your own forecast" (src/build_make.py, from interactive/js/make.js):
     # the map, the vote, the coalition and the council the reader's edits give.
     "make/js/make.js": frozenset({"status", "map", "vote", "govern", "council"}),
     # Its share sheet (interactive/js/make-share.js), inside the region "share".
     "make/js/make-share.js": frozenset({"share"}),
-    # The share image (interactive/js/forecast-card.js): an SVG of the figures
-    # it is handed. It reaches NO region; listed so the writer contract applies.
+    # The same card module as /play/'s (interactive/js/forecast-card.js),
+    # served again under make/. It reaches NO region.
     "make/js/forecast-card.js": frozenset(),
 }
 

@@ -1,6 +1,7 @@
 // "Play with the model": the share sheet. Anonymous: what is shared is the
 // page's address with the reader's settings in it (play-state.js serialize),
-// and an image drawn from the figures the page is showing (play-card.js).
+// and an image drawn from the figures the page is showing (play-card.js's
+// words, drawn by forecast-card.js, the card module /make/ shares).
 // Nothing is sent anywhere, stored, or asked of the reader.
 //
 // ⛔ A LIVE WRITER (stats.LIVE_WRITERS["play/js/play-share.js"]), for the one
@@ -31,6 +32,7 @@
 //    and focus returns to the button that opened it.
 
 import { buildPlayCardSVG, playCardAlt, SIZES } from "./play-card.js";
+import { photoUnder, PHOTO_FILE } from "./forecast-card.js";
 import { svgToPNG } from "./card-text.js";
 import { cleanName, NAME_MAX, serialize } from "./play-state.js";
 
@@ -58,15 +60,10 @@ let cache = {};
 let opener = null;
 let shown = null;             // the preview's object URL, revoked when replaced
 let label = "";               // the random label used when no name is given
-let photoSrc = null;          // share.jpg as a data URL, fetched once
 
-// share.jpg (the site's Hillbrow Tower image), as a data URL the card's SVG can
-// carry into a canvas: an SVG drawn as an image may not load other files.
-const photoP = fetch(new URL("../../share.jpg", import.meta.url))
-  .then(r => (r.ok ? r.blob() : null))
-  .then(b => b && new Promise(ok => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = () => ok(null); f.readAsDataURL(b); }))
-  .catch(() => null)
-  .then(src => { photoSrc = src; return src; });
+// The site's photograph (share.jpg, Hillbrow Tower), drawn under the card by
+// svgToPNG: same-origin, beside the page's own directory.
+const PHOTO_SRC = new URL("../../" + PHOTO_FILE, import.meta.url).href;
 
 // A random label, "<word>-<number>", in labels.js's form.
 const labelP = fetch(new URL("../labels.json", import.meta.url))
@@ -103,10 +100,10 @@ async function draw() {
   S.native.disabled = true;
   S.dl.disabled = true;
   for (const b of S.sizes) b.setAttribute("aria-pressed", String(b.dataset.size === want));
-  const card = { ...info, name: who, photoSrc };
+  const card = { ...info, name: who };
   S.img.alt = playCardAlt(card);
   try {
-    if (!cache[want + who]) cache[want + who] = await svgToPNG(buildPlayCardSVG({ ...card, size: want }), SIZES[want]);
+    if (!cache[want + who]) cache[want + who] = await svgToPNG(buildPlayCardSVG({ ...card, size: want }), SIZES[want], photoUnder(want, PHOTO_SRC));
   } catch (e) {
     say("The image could not be drawn in this browser. The link still works.");
     S.native.disabled = false;
@@ -127,7 +124,7 @@ S.open.addEventListener("click", async () => {
   if (!now) return;
   opener = S.open;
   say("");
-  await Promise.all([photoP, labelP]);
+  await labelP;
   S.dlg.showModal();
   fill();
   S.name.focus();

@@ -45,7 +45,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WRITER = "play/js/model.js"
 SHARE = "play/js/play-share.js"
 #: The page's writers: the page, its share sheet, and the share image.
-PLAY_WRITERS = (WRITER, SHARE, "play/js/play-card.js")
+PLAY_WRITERS = (WRITER, SHARE, "play/js/play-card.js", "play/js/forecast-card.js")
 STAMP = re.compile(r"<!-- built-pages: (.*?) blocking=(\d+) -->")
 
 _BUILT: dict = {}

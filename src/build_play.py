@@ -67,7 +67,8 @@ from ``/forecast`` is embedded. The twins' figures come from:
 Figures a reader's settings produce are NOT here: they are written at view
 time into ``data-live`` regions by ``play/js/model.js``, and the share sheet
 (region ``share``) by ``play/js/play-share.js``, which shows an image that
-``play/js/play-card.js`` draws from the same result (``stats.LIVE_WRITERS``);
+``play/js/forecast-card.js`` (the card module /make/ shares) draws from the
+same result as ``play/js/play-card.js`` words it (``stats.LIVE_WRITERS``);
 ``stats.script_writes`` holds each to that.
 
 Share card and preview
@@ -108,7 +109,7 @@ OG_DESCRIPTION = ("Move turnout, a poll and the weight of by-elections, and see 
 #: The modules the page loads, statically or as its Worker. Nothing else under
 #: interactive/js ships: the builder's modules are not part of this page.
 PLAY_JS = ("model.js", "play-state.js", "model-worker.js", "reweight-engine.js",
-           "play-card.js", "play-share.js", "card-text.js")
+           "play-card.js", "play-share.js", "forecast-card.js", "card-text.js")
 PLAY_CSS = ("interactive.css", "play.css")
 PLAY_PYBOOT = ("page.py",)
 #: The one line of the Worker that differs between the prototype and the site.

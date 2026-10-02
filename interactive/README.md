@@ -97,7 +97,8 @@ with a note saying why. The name (24 characters, letters, digits, spaces and
 Election Forecast" with no name), the reader's map, each party's seats (top
 nine and "Others"), the coalition, on the site's photograph of Hillbrow Tower
 (`share.jpg`, drawn under the SVG by `card-text.js`'s `svgToPNG`). The module
-takes rows and fills, not a seat result, so /play/'s card can use it.
+takes a headline, lines, ward fills and rows, not a seat result: /play/'s card
+is the same module (`play-card.js` supplies its words and rows).
 
 Tests: `tests/test_make_page.py` (the gate, both directions, guards firing and
 going quiet, the start's definition); `interactive/tests/make.test.mjs` (the
@@ -114,7 +115,7 @@ stamps it like every other page). Served layout, under the site root:
 | path | what |
 |---|---|
 | `play/index.html` | `model.html` with the site's `THEME_HEAD`, nav and footer, and a build twin of each results element filled at its `__PLAY:<name>__` marker (`build_play.FILL`): the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map (`render_map.ward_layers`, a `MAP` generated region), turnout by group, where each party's votes come from, and the notes' figures, all as `{{tokens}}`. First paint is ledgered tokens, no script; nothing of `/forecast` is embedded |
-| `play/js/` | `model.js` (the LIVE writer), `play-state.js`, `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `play-share.js` (the share sheet, LIVE writer of region `share`), `play-card.js` (the share image, a LIVE writer of no region), `card-text.js` |
+| `play/js/` | `model.js` (the LIVE writer), `play-state.js`, `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `play-share.js` (the share sheet, LIVE writer of region `share`), `play-card.js` (the share image's words and rows) and `forecast-card.js` (the card module, shared with /make/), both LIVE writers of no region, `card-text.js` |
 | `play/css/interactive.css`, `play/css/play.css`, `play/pyboot/page.py` | copies (`play.css` holds the page's own rules, every class `pl-`) |
 | `play/py/manifest.json`, `play/py/page/` | the page's Python, copied by `tools/sync_py.mjs`, which the build runs |
 | `play/parties.json` | party names, colours and the article a name takes ("the ANC") |
@@ -143,8 +144,9 @@ falls back to the published setting and the page says which). "Share this
 forecast" opens a sheet with an optional name (free text, at most
 `NAME_MAX` characters, put only in the field, the link and the image, drawn as
 text), the image, and the link (copy, or the phone's own share sheet). The
-image, 1200×630 or 1080×1920, is drawn in the browser by `js/play-card.js` from
-the same compute result the page shows: the Hillbrow Tower strip from
+image, 1200×630 or 1080×1920, is drawn in the browser by `js/forecast-card.js`
+(the card module /make/ shares) from what `js/play-card.js` reads off the same
+compute result the page shows: the Hillbrow Tower strip from
 `share.jpg`; a headline saying whose figures these are ("The model's
 Johannesburg forecast" with the name on a "Shared by" line when nothing is
 moved, "<name>'s settings on the model" with "Not the model's forecast" under
@@ -168,7 +170,7 @@ Screenshots: `screenshots/play-*.png`.
 | `model.html`, `js/model.js` | play with the model: the page's one source (the build cuts its `__DEVONLY__` spans and fills its `__PLAY…__` markers), and the ONE module that writes figures, only into `data-live` regions (`stats.LIVE_WRITERS["play/js/model.js"]`) |
 | `js/model-worker.js`, `js/reweight-engine.js`, `pyboot/page.py` | the Web Worker, the engine loader (injectable, also run by the node test), and the Python entry that routes settings to `src/reweight.py` |
 | `js/play-state.js` | the reader's settings, their bounds and the URL form (F16); pure |
-| `js/play-share.js`, `js/play-card.js`, `js/card-text.js` | play's share sheet, its share image, and the measured text layout and PNG step both share images use |
+| `js/play-share.js`, `js/play-card.js`, `js/card-text.js` | play's share sheet, its share image's words and rows (drawn by `js/forecast-card.js`), and the measured text layout and PNG step |
 | `tools/native_play.py`, `tests/native-play.json`, `tests/play-settings.json` | the native side of the native-vs-Pyodide harness (F19), its stored output, and the settings both sides compute; `--measure` reports what `page.py` imports and opens |
 | `f/index.html`, `js/f.js` | the shared forecast page, `/f/<id>` in production |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
