@@ -1,18 +1,20 @@
-# Readers' forecasts: prototype
+# Readers' forecasts
 
 "Make your own forecast", "play with the model", sign-in to save, the share
 sheet and share image, and the shared forecast page, for
-joburg.whysoserious.city. **A prototype**: the builder's and shared page's
-figures are synthetic, and on a loopback host sign-in and saving are stubs that
-never leave the browser. "Play with the model" runs on the model's published
-draws (`site/draws/`) and computes every figure with `src/reweight.py` under
-Pyodide in a Web Worker (below); `build_site.py` builds it into the site as
-`/play/` (`src/build_play.py`, "Play with the model, built" below). Seats
-on the builder and the shared page come from the project's own seat code
-(`src/reader_seats.py` and its imports) running under Pyodide, from a served
-copy in `py/`. Nothing under `site/` or `src/` is touched at run time.
+joburg.whysoserious.city.
 
-The backend is specified, not built: `BACKEND.md`.
+Two pages are BUILT into the site and ship anonymous (no sign-in, no server
+storage, no prize): "play with the model" (`/play/`, `src/build_play.py`) and
+"make your own forecast" (`/make/`, `src/build_make.py`), both below. Both run
+on the model's published draws (`site/draws/`) and compute every figure with
+the project's own Python under Pyodide in a Web Worker. Nothing under `site/`
+or `src/` is touched at run time.
+
+Still a **prototype**: sign-in, saving and the shared forecast page (`f/`),
+which run on the synthetic fixtures and, on a loopback host, on stubs that
+never leave the browser. Their backend is specified in `BACKEND.md` and built
+in `worker-api/`, not deployed.
 
 ## Open it
 
@@ -23,7 +25,6 @@ python3 -m http.server 8801 --bind 127.0.0.1      # port 8801, never 8765
 
 | page | URL |
 |---|---|
-| Make your own forecast | http://127.0.0.1:8801/interactive/make.html |
 | Play with the model | http://127.0.0.1:8801/interactive/model.html |
 | A shared forecast (demo) | http://127.0.0.1:8801/interactive/f/?id=demo7Qx2Lp |
 | Privacy notice placeholder | http://127.0.0.1:8801/interactive/privacy-placeholder.html |
@@ -57,6 +58,52 @@ says when).
 Screenshots at 375 px and 1440 px are in `screenshots/`.
 
 To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
+
+## Make your own forecast, built
+
+`build_site.py` builds it on every Johannesburg build (`src/build_make.py`
+assembles it; `build_site` renders, audits, scans and stamps it). Served
+layout, under the site root:
+
+| path | what |
+|---|---|
+| `make/index.html` | `make.html` with the site's head, nav and footer, and the published seat panel cut from `forecast-sheet.html` as `{{tokens}}` in a declarative shadow root |
+| `make/forecast.json` | the one data file: the generated schema (`worker-api/tools/make_schema.mjs`'s `build`, run on an artefact made from the published draws), the ward geometry (`tools/make_fixtures.geometry`), the start state, `context_ref` |
+| `make/js/` | `make.js` (LIVE writer: status, map, vote, govern, council), `make-share.js` (LIVE writer: share), `forecast-card.js` (the share image, a writer of no region), `make-state.js`, `builder-state.js`, `map.js`, `card-text.js` (non-writers); `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js`, `http.js` (from `worker-api/src`), which run only in the Web Worker |
+| `make/py/`, `make/pyboot/boot.py` | the seat code (`sync_py.mjs`'s `manifest.files`) and its boot file |
+
+**The start, stated exactly** (`src/build_make.py`). Ward calls: each ward's
+modal winner over the published draws, by `score_forecasts.model_forecast`
+(equal to `ward_winner_probs.csv`'s `winner`, which the forecast map uses,
+wherever that has no tie). Vote shares: no combined (ward + list) share is
+published (the draws' manifest refuses one), so the start is each party's
+MEDIAN LIST-ballot share over the draws, renormalised to 100 (the medians sum
+to about 0.87; `OTHER` is not a party and is left out). MODEL-LOG §1.270
+measures what a list share costs as the combined vote, so the untouched
+council differs from the published medians, and the page says so. Total
+combined vote (`x-total-votes`): two ballots times the median over the draws
+of the votes cast (pool registration in `pools_2026.json` times the draw's
+pool turnout).
+
+**The address is the forecast** (`js/make-state.js`): `?v=1&c=<context
+ref>&f=<payload>[&n=<name>]`, the whole state (every ward's winner, every
+party's whole votes, the coalition) in base64url, about 250 to 350
+characters. A link that fails any rule of DESIGN-decided §14, or was made
+against another roster, ward list or vote total, opens the published start
+with a note saying why. The name (24 characters, letters, digits, spaces and
+`. ' -`) appears only on the share image.
+
+**Share image** (`js/forecast-card.js`): "[Name]'s Election Forecast" ("My
+Election Forecast" with no name), the reader's map, each party's seats (top
+nine and "Others"), the coalition, on the site's photograph of Hillbrow Tower
+(`share.jpg`, drawn under the SVG by `card-text.js`'s `svgToPNG`). The module
+takes rows and fills, not a seat result, so /play/'s card can use it.
+
+Tests: `tests/test_make_page.py` (the gate, both directions, guards firing and
+going quiet, the start's definition); `interactive/tests/make.test.mjs` (the
+address round trip over random reachable states, every refusal, the card,
+CPython seats, and Pyodide = CPython with `PYODIDE_NODE`). Screenshots:
+`tools/make_screenshots.mjs` into `screenshots/make-*.png`.
 
 ## Play with the model, built
 
@@ -112,7 +159,7 @@ Screenshots: `screenshots/play-*.png`.
 
 | path | what |
 |---|---|
-| `make.html`, `js/make.js` | the builder: map, vote shares, coalition, results, save and share |
+| `make.html`, `js/make.js`, `js/make-share.js`, `js/make-state.js`, `js/make-worker.js`, `js/forecast-card.js` | make your own forecast: the page source, its writer, its share sheet, the address form, the seat Worker, the share image |
 | `js/builder-state.js` | the builder's state and every edit to it; pure, and can only hold a valid forecast (DESIGN-decided §14) |
 | `js/seat-engine.js`, `pyboot/boot.py` | seats under Pyodide: the Worker's `seatRequest`, the seat Worker's `entry.answer`, the Worker's `checkSeatAnswer` |
 | `tools/sync_py.mjs`, `py/` | the served copy of the seat code (gitignored; written by the tool) |
@@ -150,8 +197,9 @@ Screenshots: `screenshots/play-*.png`.
 **The fixtures are synthetic on purpose.** A seeded random generator made them;
 none is derived from `ward_draws.csv`, `seat_draws.csv` or any model artefact,
 because the model is about to be re-emitted and a real-looking number in a
-prototype is a model number in a page. Every page and every share image carries
-a "prototype, placeholder data" line.
+prototype is a model number in a page. They feed only the prototype pages
+(`f/`, the backend's tests); the built `/make/` and `/play/` read the published
+draws, and no fixture ships.
 
 **Copies to remove at integration** (each is a second definition):
 
@@ -199,7 +247,11 @@ committed. S5 should commit its code and be the one source.
    (CLAUDE.md §4b).
 5. **Server-rendered `/f/<id>`** with Open Graph tags; the comment at the top of
    `f/index.html` lists them.
-6. **Production mode is wired, not exercised.** On a non-loopback host
+6. **Saving with sign-in is not part of `/make/`.** The built page is
+   anonymous; the old builder's sign-in and save path (`js/api.js`,
+   `js/auth-ui.js`, `js/share.js`, `js/card.js`) is no longer imported by it.
+   What follows applies when a signed-in save is added back.
+   **Production mode is wired, not exercised.** On a non-loopback host
    `js/api.js` talks to the Worker: sign-in goes to `/auth/<provider>/start`,
    the callback's `/make?consent=1` opens the consent screen from `GET /api/me`
    (deletion date, X handle, unverified address), and a page whose wording hash

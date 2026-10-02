@@ -40,18 +40,27 @@ export function fitText(s, maxW, fs, face = "sans", minFs = fs * 0.75) {
   return { text: chars.join("").trimEnd() + "…", fs: f };
 }
 
-export function svgToPNG(svg, [W, H]) {
-  return new Promise((resolve, reject) => {
+// The SVG as a PNG blob. `under`, if given, is a photograph drawn on the
+// canvas first, beneath the SVG: { src, sx, sy, sw, sh, dx, dy, dw, dh } as
+// drawImage takes them. It is drawn here and not inside the SVG because an
+// SVG loaded as an image may not fetch, and a browser can refuse to export a
+// canvas an SVG <image> was drawn into. `src` must be same-origin.
+export function svgToPNG(svg, [W, H], under = null) {
+  const load = src => new Promise((resolve, reject) => {
     const img = new Image();
-    const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
-    img.onload = () => {
-      const cv = document.createElement("canvas");
-      cv.width = W; cv.height = H;
-      cv.getContext("2d").drawImage(img, 0, 0, W, H);
-      URL.revokeObjectURL(url);
-      cv.toBlob(b => b ? resolve(b) : reject(new Error("toBlob failed")), "image/png");
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("SVG did not load")); };
-    img.src = url;
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("image did not load"));
+    img.src = src;
   });
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+  return Promise.all([load(url), under ? load(under.src) : null]).then(([img, photo]) => {
+    URL.revokeObjectURL(url);
+    const cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    const g = cv.getContext("2d");
+    if (photo) g.drawImage(photo, under.sx, under.sy, under.sw, under.sh, under.dx, under.dy, under.dw, under.dh);
+    g.drawImage(img, 0, 0, W, H);
+    return new Promise((resolve, reject) =>
+      cv.toBlob(b => b ? resolve(b) : reject(new Error("toBlob failed")), "image/png"));
+  }, e => { URL.revokeObjectURL(url); throw e; });
 }

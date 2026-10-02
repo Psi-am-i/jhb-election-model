@@ -4,11 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Make your own forecast</title>
-<meta name="description" content="Call every Johannesburg ward, set each party's share of the vote, pick who governs, and share your forecast.">
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<!-- Production: build_site injects OG_META + THEME_HEAD here. This copy of the
-     theme's first-paint script keeps the prototype's theme in step with the
-     live site (same localStorage key, same OS fallback). -->
+<!--
+  "Make your own forecast". This file is the page's ONE source: build_site
+  (src/build_make.py) builds /make/ from it. Opened from the repository it has
+  no data: the start state is written by the build (make/forecast.json).
+
+  What the build does to it:
+    __DEVONLY_START__ … __DEVONLY_END__   dropped (the prototype's head
+                                          script, nav, footer and note)
+    <!- - __MAKEHEAD__ - ->                 the site's THEME_HEAD and share card
+    <!- - __MAKENAV__ - ->                  the site's nav, one level down
+    <!- - __MAKEFOOT__ - ->                 the site's footer, one level down
+    <!- - __PUBLISHED:seats__ - ->          the published forecast's seat panel
+                                          from forecast-sheet.html, as
+                                          ledgered tokens, in a shadow root
+
+  A figure computed from the reader's forecast appears ONLY inside a data-live
+  region, written only by js/make.js or js/make-share.js
+  (stats.LIVE_WRITERS). Nothing outside a LIVE region, and nothing inside one
+  at build time, may be a digit.
+-->
+<!-- __MAKEHEAD__ -->
+<!-- __DEVONLY_START__ -->
 <script>
   (function () {
     var t = null;
@@ -18,136 +35,165 @@
     }
     document.documentElement.setAttribute("data-theme", t);
   })();
+  function toggleTheme() {
+    var root = document.documentElement;
+    var light = root.getAttribute("data-theme") !== "light";
+    root.setAttribute("data-theme", light ? "light" : "dark");
+    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
+  }
 </script>
+<!-- __DEVONLY_END__ -->
 <link rel="stylesheet" href="css/interactive.css">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script type="module" src="js/make.js"></script>
 </head>
 <body>
 <div class="wrap">
+  <!-- __MAKENAV__ -->
+  <!-- __DEVONLY_START__ -->
   <nav class="topnav" aria-label="Site">
     <a class="home" href="../site/index.html">joburg.whysoserious.city</a>
     <a href="../site/forecast.html">forecast</a>
-    <a class="active" href="make.html" aria-current="page">make yours</a>
+    <a class="active" href="make.html" aria-current="page">make your own</a>
     <a href="model.html">play with the model</a>
-    <a href="../site/about.html">the model</a>
-    <a href="../site/methodology.html">methodology</a>
-    <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
   </nav>
-
-  <p class="proto"><b>Prototype.</b> Every figure on this page is placeholder data made up by a random number generator. Seats are worked out from those figures by the project's own seat law. Nothing here is the model's forecast.</p>
+  <p class="proto"><b>Not built.</b> Opened from the repository this page has no data: <code>build_site.py</code> writes it
+    into <code>make/forecast.json</code>. Build into a scratch directory and serve that to see the page as it ships.</p>
+  <!-- __DEVONLY_END__ -->
 
   <header class="lede">
     <h1>Make your own forecast</h1>
-    <p>Start from the model's call in each of the <span data-n-wards></span> wards and change any you disagree with, set each party's share of all votes (ward and list ballots together), and say who governs.
-      Your forecast is yours. The model's forecast is on the <a href="../site/forecast.html">forecast page</a>.</p>
+    <p>Call every ward, set each party's share of the vote, and pick who governs. The seats follow from the law that
+      seats the council. The page starts from the model's most likely winner in each ward.</p>
+    <p class="pos">Your forecast is kept only in the page's address, so a link carries it. Nothing is sent or stored.</p>
   </header>
 
-  <noscript><p class="notours">This page needs JavaScript to draw the map. The <a href="../site/forecast.html">model's forecast</a> works without it.</p></noscript>
+  <noscript><p class="notours">This page needs JavaScript. The <a href="../forecast">model's forecast</a> works without it.</p></noscript>
+
+  <div data-live="status"><p class="livelabel">Computed in your browser.</p>
+    <p class="ess" role="status">Loading the published start and the seat law.</p>
+    <p class="notours linknote" hidden></p></div>
 
   <div class="builder">
     <div class="mapcol">
-      <section class="mapcard" aria-labelledby="maph">
+      <section class="mapcard" data-live="map" aria-labelledby="h-map">
         <div class="mapbar">
-          <h2 id="maph" class="progress"><span class="num" aria-hidden="true" style="color:var(--reader);margin-right:8px">1</span>All <span data-n-wards></span> wards called<small id="nchanged"></small></h2>
-          <div class="seg" role="group" aria-label="Map view">
+          <h2 id="h-map" class="progress stepno">Call the wards <small class="nchanged"></small></h2>
+          <div class="seg views" role="group" aria-label="Map view">
             <button type="button" data-view="geo" aria-pressed="true">Map</button>
             <button type="button" data-view="hex" aria-pressed="false">Equal-sized wards</button>
             <button type="button" data-view="list" aria-pressed="false">List</button>
           </div>
         </div>
-        <div class="mapscroll" id="mapscroll">
-          <svg id="map" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards, Enter paints the ward with the chosen party, Delete clears it."></svg>
+        <p class="livelabel" style="padding:6px 12px 0">Computed in your browser from your edits.</p>
+        <div class="mapscroll">
+          <svg class="wardmap" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
         </div>
-        <div id="listview" class="db" hidden></div>
-        <p class="maphint" id="maphint">Choose a party below, then tap or drag across wards to give them to it.
-          <span class="narrow">Scroll sideways to see the whole city.</span></p>
-
+        <div class="listview" hidden></div>
+        <p class="maphint painthint">Choose a party, then tap or drag across wards to give them to it. <span class="narrow">Scroll sideways to see the whole city.</span></p>
         <div class="tray">
-          <div class="brush" role="group" aria-labelledby="brushlab">
-            <p id="brushlab" class="visually-hidden">Party to paint with</p>
-            <div class="brushscroll row" id="brush"></div>
+          <div class="brush" role="group" aria-label="Party to give wards to">
+            <div class="brushscroll row"></div>
+            <label class="brushpick">Another party <select class="brushselect"></select></label>
           </div>
         </div>
         <div class="tools">
-          <label>Area <select id="area" data-edit>
+          <label>Area <select class="area">
             <option value="north">North</option><option value="east">East</option>
             <option value="south">South</option><option value="west">West</option>
             <option value="central">Central</option></select></label>
-          <button class="btn small" type="button" id="fillarea" data-edit>Give the area to the chosen party</button>
-          <button class="btn small model" type="button" id="copymodel" data-edit>Reset to the model's map</button>
-          <button class="btn small" type="button" id="undo" disabled>Undo</button>
+          <button class="btn small fillarea" type="button">Give the area to the chosen party</button>
+          <button class="btn small model copymodel" type="button">Back to the model's ward calls</button>
+          <button class="btn small undo" type="button" disabled>Undo</button>
         </div>
         <p class="maphint">Areas are compass sectors drawn from the ward boundaries, not the City's regions.</p>
       </section>
+      <section class="results" data-live="council" aria-labelledby="h-res">
+        <h2 id="h-res">Your council</h2>
+        <p class="livelabel">Computed in your browser from your edits.</p>
+        <p class="ess restate"></p>
+        <div class="bars"></div>
+        <div class="council" aria-hidden="true">
+          <div class="strip"></div>
+          <div class="cap"><span class="capseats"></span><span class="capmaj"></span></div>
+        </div>
+        <p class="stubnote excess"></p>
+        <p class="visually-hidden announce" aria-live="polite"></p>
+      </section>
+
+      <div class="sharebox" data-live="share"><p class="livelabel">Computed in your browser from your edits.</p>
+        <button class="btn primary shareopen" type="button" disabled>Share this forecast</button>
+        <p class="stubnote">The link carries your forecast and the name you type, nothing else. The site saves nothing.</p>
+        <dialog class="sheet" aria-labelledby="share-title">
+          <div class="dh"><h2 id="share-title">Share this forecast</h2>
+            <button class="x" type="button" aria-label="Close">×</button></div>
+          <div class="db">
+            <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
+              <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
+            <p class="err shnameerr" role="status"></p>
+            <div class="urlrow">
+              <label class="visually-hidden" for="shurl">Link to this forecast</label>
+              <input class="shurl" id="shurl" type="text" readonly value="">
+              <button class="btn shcopy" type="button">Copy link</button>
+            </div>
+            <div class="preview"><img alt=""></div>
+            <div class="cta" style="margin-top:0">
+              <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
+              <button class="btn shdl" type="button" disabled>Download image</button>
+            </div>
+            <p class="toast" role="status" aria-live="polite"></p>
+          </div>
+        </dialog>
+      </div>
+
     </div>
 
     <div class="steps">
-      <details class="step" id="step2" open>
-        <summary><span class="num" aria-hidden="true">2</span><span class="st">Set the vote</span><span class="state" id="prstate"></span></summary>
+      <section class="step" data-live="vote" aria-labelledby="h-vote">
+        <h2 id="h-vote" class="stephead stepno">Set the vote</h2>
         <div class="body">
-          <p>Each party's share of all votes, ward and list ballots together. That combined vote is what the law
-            counts: it sets each party's seats, and the ward winners you picked take theirs first.
-            Every party has the same control. Parties are listed alphabetically.</p>
-          <p class="sumline">The shares always add up to 100%. Moving one party scales the others up or down in proportion.
-            A party that wins a ward on your map keeps at least one vote.</p>
+          <p>Each party's share of all votes, ward and list ballots together: the vote the law counts. The shares always
+            add up to the whole. Moving one party scales the others in proportion. A party that wins a ward on your map
+            keeps at least one vote.</p>
+          <p class="pos">The start is each party's middle list-ballot share in the model's simulations, scaled to add up to
+            the whole. The model does not publish a combined share, so your untouched council differs from its forecast.</p>
+          <p class="livelabel">Computed in your browser from your edits.</p>
           <div class="row">
-            <button class="btn small model" type="button" id="prmodel" data-edit>Use the model's vote shares</button>
+            <button class="btn small model prmodel" type="button">Back to the start shares</button>
+            <label class="find">Find a party <input class="prfind" type="search" autocomplete="off"></label>
           </div>
-          <p class="floornote" id="floornote" role="status"></p>
-          <div class="prlist" id="prlist"></div>
+          <p class="floornote" role="status"></p>
+          <div class="prlist"></div>
         </div>
-      </details>
-
-      <details class="step" id="step3" open>
-        <summary><span class="num" aria-hidden="true">3</span><span class="st">Pick who governs</span><span class="state" id="costate"></span></summary>
-        <div class="body">
-          <p>Choose the parties in the governing coalition. <span id="coalneed">The council needs a majority</span> to elect a mayor and pass a budget.</p>
-          <div class="coal" id="coal" role="group" aria-label="Parties in the coalition"></div>
-          <div class="row" style="margin-top:10px"><label for="mayor" style="font-size:13.5px;color:var(--ink)">Mayor from</label>
-            <select id="mayor"><option value="">Not chosen</option></select></div>
-          <p class="coalstat" id="coalstat" role="status"></p>
-        </div>
-      </details>
-
-      <section class="results" aria-labelledby="resh">
-        <h2 id="resh">Your council</h2>
-        <div class="engine" id="engine">
-          <div class="enginebar" id="enginebar" aria-hidden="true"></div>
-          <p class="enginemsg" id="enginemsg" role="status">Loading the seat law…</p>
-        </div>
-        <p class="err" id="engineerr" role="alert"></p>
-        <p class="meta" id="restate"></p>
-        <div class="bars" id="bars"></div>
-        <div class="council" aria-hidden="true">
-          <div class="strip" id="strip"></div>
-          <div class="cap"><span id="capseats"></span><span id="capmaj"></span></div>
-        </div>
-        <p class="delta" id="delta"></p>
-        <p class="stubnote" id="engineok"></p>
-        <p class="visually-hidden" aria-live="polite" id="live"></p>
-        <div class="labelrow" style="margin:12px 0 4px">
-          <label for="flabel" style="font-size:13.5px;color:var(--ink)">Label on your shared prediction</label>
-          <div class="urlrow"><input id="flabel" type="text" maxlength="40" autocomplete="off"
-            placeholder="a random name such as pollster-23" aria-describedby="flabelhelp">
-            <button class="btn small" type="button" id="flabelclear">Use a random name</button></div>
-          <p class="err" id="flabelerr" role="status"></p>
-          <p id="flabelhelp" style="font-size:12.5px;color:var(--ink-3);margin-top:3px">We never show your name. Leave this empty for a random name, chosen when you save; if you sign in with X, it starts as your @username. Up to 40 characters.</p>
-        </div>
-        <div class="cta">
-          <button class="btn primary" type="button" id="save" disabled aria-describedby="saveneed">Save and share</button>
-          <a class="btn model" href="model.html">Play with the model instead</a>
-        </div>
-        <p class="meta" id="saveneed"></p>
-        <p class="err" id="saveerr" role="alert"></p>
-        <p class="meta" id="savedline"></p>
       </section>
+
+      <section class="step" data-live="govern" aria-labelledby="h-gov">
+        <h2 id="h-gov" class="stephead stepno">Pick who governs</h2>
+        <div class="body">
+          <p>Choose the parties in the governing coalition. The parties that hold a seat in your council are listed.</p>
+          <p class="livelabel">Computed in your browser from your edits.</p>
+          <div class="coal" role="group" aria-label="Parties in the coalition"></div>
+          <p class="coalstat" role="status"></p>
+        </div>
+      </section>
+
+      <details class="step pubseats">
+        <summary><span class="st">The model's forecast, for comparison</span></summary>
+        <div class="body">
+          <p>The published forecast: each party's middle seat count across the model's simulations, with its range.</p>
+          <div class="published"><!-- __PUBLISHED:seats__ --></div>
+          <p><a href="../play/">Play with the model</a> to change its assumptions instead.</p>
+        </div>
+      </details>
     </div>
   </div>
 
+  <!-- __MAKEFOOT__ -->
+  <!-- __DEVONLY_START__ -->
   <footer class="sitefooter">
-    <div>Johannesburg 2026 Local Government Election Model. Free to distribute with attribution and linkback.</div>
-    <div><a href="../site/index.html">joburg.whysoserious.city</a> — <a href="privacy-placeholder.html">privacy notice (placeholder)</a></div>
+    <div>Johannesburg Local Government Election Model.</div>
   </footer>
+  <!-- __DEVONLY_END__ -->
 </div>
 </body>
 </html>
