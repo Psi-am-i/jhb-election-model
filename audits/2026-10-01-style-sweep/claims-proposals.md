@@ -10,6 +10,11 @@ adjectives (STYLE §7), no rhetorical questions.
 Already applied (not the dated write-up): the two `since` boxes (DA 490,000;
 ANC alone). See `CHANGES.md`.
 
+Done since, as corrections with /corrections entries (`85254b1`): claim 4's
+heading, coin-flip clause and verdict (below), and the 587,000 standfirst of
+"When the ANC falls, nobody catches the votes" (`articles.toml`, CHANGES.md
+M4).
+
 If approved: paste each "after" over its field, run
 `.venv/bin/python src/render_sheet.py --city joburg`, and decide whether the
 change needs a dated note (the convention for a published piece).
@@ -191,14 +196,11 @@ After:
 
 > **Without the ANC, the red line leaves a majority in [[no_red_share]] of the {{n_draws}} simulations.** That counts every party except the ANC, the EFF and MK together reaching {{majority}}, which assumes the whole rest of the council acts as one: the most generous reading of the DA's options.
 
-Note (added 2026-10-01 after the check): the published heading "about half the
-time" and "comes down to a coin flip" have contradicted the token since first
-publication. The ledger records `claim.red_lines.no_red_share` at 59% on every
-publication (26, 27 and 30 September). This is a correction candidate, not a
-style edit: if applied, it needs a /corrections entry. The verdict label "A
-COIN FLIP" is the owner's call. This block keeps the same token multiset as the
-"before" but moves `[[no_red_share]]` and `{{n_draws}}` into the heading, ahead
-of `{{majority}}`.
+Done (2026-10-02): the heading, the coin-flip clause and the verdict were
+corrected in `85254b1`, with a /corrections entry (59% on 26 and 27
+September; verdict now "MORE LIKELY THAN NOT"). The live heading is "Without
+the ANC, the red line leaves a majority in [[no_red_share]] of simulations."
+The rest of this "after" (the body sentence) remains a proposal.
 
 ### steps[1]
 

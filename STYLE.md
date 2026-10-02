@@ -43,3 +43,5 @@ images, marketing copy. Owner, 2026-10-01.
 
 8. **Numbers are tokens, never typed** (CLAUDE.md §2). This guide covers the words
    around them.
+
+9. **A standfirst never restates the first paragraph.** Either the standfirst says it or the body does. Every sentence has a subject and a verb.

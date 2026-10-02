@@ -8,7 +8,7 @@ A list of errors on published pages. Nothing is removed from this list.
 forecast page was headed "Without the ANC, the red line holds about half the
 time", said the DA's widest option "still comes down to a coin flip", and
 carried the verdict "A COIN FLIP". The figure it described was 59% of
-simulations on every edition.
+simulations on 26 and 27 September.
 
 **What changed.** The heading now reads "Without the ANC, the red line leaves
 a majority in 59% of simulations." The coin-flip clause is gone, and the
@@ -62,25 +62,38 @@ appeared on 26 September.
 
 **What changed.** They are labelled "26 September 2026: Published".</span>
 
+## "This is a deliberate choice, recorded, and it is the single largest reason the Johannesburg figure improves" — published 26 September 2026, corrected 27 September 2026
+
+<span data-asof="2026-10-02">**What was wrong.** The about page said the model
+sized breakaway parties from all splits, "including two from after 2021", and
+called this "a deliberate choice, recorded, and it is the single largest reason
+the Johannesburg figure improves". Splits from after 2021 are information from
+after the election being forecast: a leak. The scores on the page came from a
+run of 11 August, before the record was cut on 14 August.
+
+**What changed.** The page says the splits were a leak until 14 August 2026.
+Its scores come from a run with the record cut at the election being
+forecast.</span>
+
 ## Four figures on "Nobody will win Johannesburg" labelled "published 31 August 2026" — published 26 September 2026, corrected 27 September 2026
 
 <span data-asof="2026-09-27">**What was wrong.** Four figures on that piece
 were labelled as published on 31 August 2026. The piece was published on 8
-August with different figures. Each frozen figure carries an arrow where the
-model's current figure differs, and three of those arrows pointed up against
-figures that had fallen:
+August, with different figures:
 
-| | labelled "31 August" | published 8 August | the model's figure beside them, 26 September |
-|---|---|---|---|
-| the ANC's stronghold wards | 55 | **74** | 61 |
-| its proportional entitlement | 54 | **65** | 58 |
-| how often the excessive-seats clause fires | 58% | **96%** | 65% |
-| the DA as largest party | 71% | **62%** | 47% |
+| | labelled "31 August" | published 8 August |
+|---|---|---|
+| the ANC's stronghold wards | 55 | **74** |
+| its proportional entitlement | 54 | **65** |
+| how often the excessive-seats clause fires | 58% | **96%** |
+| the DA as largest party | 71% | **62%** |
 
-A sentence beside them read "Still the ANC's usual condition, and a stronger
-one".
+Each figure carries an arrow comparing it with the model's current figure.
+Three arrows pointed up, but each of those figures had fallen from its 8 August
+value. A sentence beside them read "Still the ANC's usual condition, and a
+stronger one".
 
-**What changed.** The four figures are the ones published on 8 August, and
-the arrows compare against them. The sentence now reads "Still the ANC's usual
+**What changed.** The four figures are the ones published on 8 August, and the
+arrows compare against them. The sentence reads "Still the ANC's usual
 condition, and weaker than published". The piece and its sections are dated 8
 August.</span>

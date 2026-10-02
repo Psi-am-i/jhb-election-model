@@ -5,7 +5,7 @@
 
 ## What this page is
 
-Every result on this page is generated from the run recorded at its foot. The examples under *The technical measures* are illustrations.
+Every result on this page comes from the model run described at the bottom of the page. The forecasts and scores used as examples under *The technical measures* are made up to explain the measures; they are not results.
 
 ## How it was tested
 

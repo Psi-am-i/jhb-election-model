@@ -412,34 +412,34 @@ MODEL_DOCS = {
     "docs-public/corrections.md": (
         "corrections.html",
         "Corrections",
-        "Where this site published something wrong: what it said, and what "
-        "changed.",
+        "",
     ),
     "docs-public/methodology.md": (
         "methodology.html",
         "Methodology",
-        "The machinery in plain language: how the council is elected, how the "
-        "simulation runs, what is validated, and what can only be stated.",
+        "How the council is elected, how the simulation runs, and what has "
+        "been tested.",
     ),
     "docs-public/about-the-model.md": (
         "about.html",
         "About the model",
-        "The model run against an election that already happened, in eight "
-        "cities, and scored against the result and three simple baselines.",
+        "The model was run on the 2021 municipal election in eight cities, "
+        "using data from before that election and the 2022 census. Its "
+        "forecasts were scored against the actual results and against three "
+        "simple alternatives.",
     ),
     "docs-public/review.md": (
         "review.html",
         "The review",
-        "Six implementation errors found by a hostile read of the model's own "
-        "plan, one of which made the first forecast's headline claim false, and "
-        "what each repair changed.",
+        "",
         "model-review.html",
     ),
     "docs-public/sources.md": (
         "sources.html",
         "Data sources",
-        "Every number in this model traces back to a public record: where "
-        "each lives, what state it was in, and how hard it was to reach.",
+        "The model is built from election results, boundary maps, by-election "
+        "returns and census tables. This page traces each to its origin and "
+        "records the state it was in when we found it.",
     ),
     # The plan is no longer published as a page of its own: it is Appendix A
     # of MODEL-LOG.md, where it belongs. It is the model's starting point and
@@ -461,9 +461,8 @@ POLICY_DOCS = {
     "docs-public/support.md": (
         "support.html",
         "Support",
-        "Why the site exists, who pays for it, who may fund it, and what a "
-        "supporter receives: a name on this page, and no say over what is "
-        "published.",
+        "The site's author pays for it. A supporter gets its name on this "
+        "page and no say over what is published.",
         False,
         "Who pays for the Johannesburg 2026 Election Model, who may fund it, "
         "and why no supporter has a say over what it publishes.",
@@ -471,8 +470,8 @@ POLICY_DOCS = {
     "docs-public/privacy.md": (
         "privacy.html",
         "Privacy",
-        "What this site measures about its readers, what it does not, and "
-        "who handles it.",
+        "This page says what the site records about its readers, what it "
+        "does not, and who processes it.",
         False,
         "What the Johannesburg 2026 Election Model records about its readers, "
         "who is responsible for it, where it is processed, and the rights "
@@ -648,8 +647,11 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
     html = html.replace("<table>", '<div class="tablewrap"><table>')
     html = html.replace("</table>", "</table></div>")
 
-    masthead = (published + f"  <h1>{title}</h1>\n"
-                f'  <p class="standfirst">{standfirst}</p>')
+    # An empty standfirst prints none: a page whose first paragraph already
+    # says it needs no second copy above it (STYLE.md rule 9).
+    masthead = published + f"  <h1>{title}</h1>"
+    if standfirst:
+        masthead += f'\n  <p class="standfirst">{standfirst}</p>'
     if tech is False:
         note = ("This page describes how the site is run. It is not part of "
                 "the model or its record.")

@@ -157,8 +157,6 @@ changed page source is identical to `84f7084`.
 
 | item | why |
 |---|---|
-| M2 claim 4, "the red line holds about half the time", "comes down to a coin flip", verdict "A COIN FLIP" | The ledger records `claim.red_lines.no_red_share` at 59% on all three publications (26, 27, 30 September). The heading is in the dated write-up, the verdict is a claim verdict, and the check's rewrite adds `[[no_red_share]]` to the heading. This is a correction for the owner; the C4 steps[0] proposal now carries the rewrite. |
-| M4 "587,000 votes the ANC shed between 2016 and 2021" (`articles.toml`, 8 August standfirst, on the home page) | Confirmed against `stats.toml [bloc_leak_votes]` and MODEL-LOG §1.18: the figure is the ANC **bloc**'s loss from the **2019 national** election to the 2021 local election (−586,775). A published, dated piece is factually wrong, which needs a /corrections entry. Draft for the owner below. |
 | home seat table order (§7) | Re-sorting the rows moves tokens. |
 | methodology typed figures (300,000; 560,000; 18.12%; 6.22%; 42/18/35/25%; "about ten points"; "seven elections … six seats"; "3 of 4 wards on 23%") | Making them tokens adds tokens and `stats.toml` entries. |
 | methodology "Where polls fit" self-correction → /corrections | Both misstatements were in the repository between deploys: the live site served the 8 August build until 26 September. Whether a reader saw either is not established. If none did, the sentence should be deleted, not promoted to a correction. Owner's call. |
@@ -167,7 +165,7 @@ changed page source is identical to `84f7084`.
 | `src/reweight.py` refusal "{n} effective simulations of {m}" | Changing it changes the interactive copy, the code hash and the fixture. Left as it is. |
 | remaining taste items | left |
 
-### Draft correction for the owner (M4)
+### Correction for M4 (applied in `85254b1`; text as drafted here, the live entry is in `corrections.md`)
 
 > **What was wrong.** The standfirst of "When the ANC falls, nobody catches the
 > votes" said the opposition captured none of "the 587,000 votes the ANC shed
@@ -203,3 +201,56 @@ changed page source is identical to `84f7084`.
 - `src/deploy_check.py` passes.
 - `/play/` screenshots retaken (`interactive/tools/play_screenshots.mjs`, port
   8801): no page errors.
+
+## Done since (2026-10-02)
+
+| item | where | status |
+|---|---|---|
+| M2 claim 4, "about half the time", "a coin flip", verdict "A COIN FLIP" | `claims.toml`, `corrections.md` | done in `85254b1`: heading, clause and verdict corrected, with a /corrections entry. The entry now says the figure was 59% "on 26 and 27 September" (was "on every edition") |
+| M4 the 587,000 standfirst | `articles.toml`, `corrections.md` | done in `85254b1`, with a /corrections entry |
+
+## STYLE.md rule 9 (2026-10-02)
+
+Owner: "Almost every subheading contains duplication of the body text first
+line." Rule 9 added to `STYLE.md`. Every page standfirst and section intro was
+checked against its first paragraph, and every prose sentence met on the way
+for a main verb. `render_doc` now prints no standfirst when it is empty.
+
+| page | change |
+|---|---|
+| /corrections | standfirst removed (it repeated the page's own opening lines) |
+| /methodology | standfirst is the owner's wording; the body's restating first sentence cut, its two pointers kept. "Three checks, in increasing order of difficulty." and "To use every poll received …" given verbs |
+| /about | standfirst names the 2021 election, the eight cities, the census exception and the three baselines ("simple alternatives"); "What this page is" says the example forecasts and scores under *The technical measures* are made up |
+| /review | standfirst removed; the frozen first paragraph says the same |
+| /sources | standfirst rewritten; the body's restating first sentence cut, the pointer to `SOURCES.md` kept. The claim "Every number in this model traces back to a public record" is gone (see below) |
+| /support, /privacy | standfirsts given a subject and verb |
+| home | "How this is built" teasers given verbs; "How to read the page" teaser now says what that section says; "Not built yet." → "Until it is built, …" |
+| /forecast | claims band lede given a verb |
+| /play/ | "Seat law" intro given a verb |
+| portal | standfirst's first sentence given a verb |
+| /corrections | new entry for the 26 September /about leak sentence; four-figures entry cut to two parts, the third table column (the model's 26 September figures 61, 58, 65%, 47%) dropped |
+
+Frozen text the rule would change: `standfirst-proposals.md`.
+
+No token added, removed or moved. Typed figures deleted: the four in the
+dropped table column.
+
+### Left for the owner
+
+- /methodology standfirst (owner's wording) has no main verb, against rule 9's
+  own second sentence. One-word fix: "This page explains how the council is
+  elected, …".
+- /about body, "using only what a forecaster could have had before polling day"
+  (`build_validation.py`, "How it was tested"): the 2022 census is used, as the
+  page's own "What this does not prove" says. The standfirst now states the
+  exception; the body sentence does not.
+- /sources: the standfirst's "Every number in this model traces back to a public
+  record" was dropped, not reworded. The values in `JUDGEMENT-CALLS.md` trace to
+  no public record.
+- /play/ lede, "Each control picks out the simulated elections that match your
+  settings": re-weighting keeps every simulation with a weight, and the
+  by-election control switches between separate runs. A mechanism description,
+  not changed.
+- /methodology "How accurate is it?" and "How we know it works" both describe
+  the eight-city backtest.
+

@@ -113,7 +113,7 @@ def render(cards: list[dict]) -> str:
          you can move", in the present tense, on the one page `deploy_check`
          does not scan. Describe what is here; the interactive can change this
          sentence when it ships and not before. -->
-    <p class="standfirst">A voting-district model of each metro: thousands of
+    <p class="standfirst">Each metro has its own voting-district model: thousands of
     simulated elections, the real seat law, and every assumption written down
     where you can check it. No party is barracked for; nothing is hand-typed.
     Pick a city.</p>

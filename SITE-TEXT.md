@@ -12,7 +12,7 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-269 blocks from 9 files.
+271 blocks from 9 files.
 
 
 ## forecast-sheet.html
@@ -87,12 +87,12 @@ The parties' claims, tested
 
 <!-- /block 97522cee -->
 
-<!-- block 3bc33a0b -->
+<!-- block 387dfe69 -->
 *p*
 
-Public, checkable statements about November, each tested against the same {{n_draws}} simulations as the rest of this page.
+Each is a public, checkable statement about November, tested against the same {{n_draws}} simulations as the rest of this page.
 
-<!-- /block 3bc33a0b -->
+<!-- /block 387dfe69 -->
 
 
 ## docs-public/about-the-model.md
@@ -111,12 +111,12 @@ Public, checkable statements about November, each tested against the same {{n_dr
 
 <!-- /block 3343ff77 -->
 
-<!-- block d5251714 -->
+<!-- block b56e48a8 -->
 *md*
 
-Every result on this page is generated from the run recorded at its foot. The examples under *The technical measures* are illustrations.
+Every result on this page comes from the model run described at the bottom of the page. The forecasts and scores used as examples under *The technical measures* are made up to explain the measures; they are not results.
 
-<!-- /block d5251714 -->
+<!-- /block b56e48a8 -->
 
 <!-- block a8d3e30d -->
 *md*
@@ -739,6 +739,22 @@ EFF or MK", and the quote is dated 13 September.</span>
 
 <!-- /block 3a9012e6 -->
 
+<!-- block fa1a4412 -->
+*md*
+
+## "This is a deliberate choice, recorded, and it is the single largest reason the Johannesburg figure improves" — published 26 September 2026, corrected 27 September 2026
+
+<!-- /block fa1a4412 -->
+
+<!-- block 1787ddeb -->
+*md*
+
+**What changed.** The page says the splits were a leak until 14 August 2026.
+Its scores come from a run with the record cut at the election being
+forecast.</span>
+
+<!-- /block 1787ddeb -->
+
 <!-- block 5c72f299 -->
 *md*
 
@@ -746,35 +762,37 @@ EFF or MK", and the quote is dated 13 September.</span>
 
 <!-- /block 5c72f299 -->
 
-<!-- block 49107156 -->
+<!-- block ccafafb7 -->
 *md*
 
-| | labelled "31 August" | published 8 August | the model's figure beside them, 26 September |
-|---|---|---|---|
-| the ANC's stronghold wards | 55 | **74** | 61 |
-| its proportional entitlement | 54 | **65** | 58 |
-| how often the excessive-seats clause fires | 58% | **96%** | 65% |
-| the DA as largest party | 71% | **62%** | 47% |
+| | labelled "31 August" | published 8 August |
+|---|---|---|
+| the ANC's stronghold wards | 55 | **74** |
+| its proportional entitlement | 54 | **65** |
+| how often the excessive-seats clause fires | 58% | **96%** |
+| the DA as largest party | 71% | **62%** |
 
-<!-- /block 49107156 -->
+<!-- /block ccafafb7 -->
 
-<!-- block 7f8f2ff4 -->
+<!-- block 9cf61ca0 -->
 *md*
 
-A sentence beside them read "Still the ANC's usual condition, and a stronger
-one".
+Each figure carries an arrow comparing it with the model's current figure.
+Three arrows pointed up, but each of those figures had fallen from its 8 August
+value. A sentence beside them read "Still the ANC's usual condition, and a
+stronger one".
 
-<!-- /block 7f8f2ff4 -->
+<!-- /block 9cf61ca0 -->
 
-<!-- block e455c9d7 -->
+<!-- block 78deb40b -->
 *md*
 
-**What changed.** The four figures are the ones published on 8 August, and
-the arrows compare against them. The sentence now reads "Still the ANC's usual
+**What changed.** The four figures are the ones published on 8 August, and the
+arrows compare against them. The sentence reads "Still the ANC's usual
 condition, and weaker than published". The piece and its sections are dated 8
 August.</span>
 
-<!-- /block e455c9d7 -->
+<!-- /block 78deb40b -->
 
 
 ## docs-public/methodology.md
@@ -786,17 +804,14 @@ August.</span>
 
 <!-- /block dc8dfabd -->
 
-<!-- block d40f3717 -->
+<!-- block b1c519c6 -->
 *md*
 
-This page explains the machinery in plain language: what is predicted, how the
-simulation runs, how the parts that *can* be tested are tested, and which parts
-can only be stated. The full technical record, every file and every
-workaround, is in the
+The full technical record, every file and every workaround, is in the
 [public repository](https://github.com/Psi-am-i/jhb-election-model). The
 scoring is on the [about the model](about) page.
 
-<!-- /block d40f3717 -->
+<!-- /block b1c519c6 -->
 
 <!-- block 3cecde72 -->
 *md*
@@ -1196,12 +1211,12 @@ to explain a voter's reasoning is overreach, and we would like to hear about it.
 
 <!-- /block af07380a -->
 
-<!-- block 90d046aa -->
+<!-- block 8bf50e85 -->
 *md*
 
-Three checks, in increasing order of difficulty.
+There are three checks, in increasing order of difficulty.
 
-<!-- /block 90d046aa -->
+<!-- /block 8bf50e85 -->
 
 <!-- block 117e64f5 -->
 *md*
@@ -1350,15 +1365,16 @@ reason not to let it move a published headline while its design is unsettled.
 
 <!-- /block 7cb6431b -->
 
-<!-- block d03cac16 -->
+<!-- block 38cb11be -->
 *md*
 
-To use every poll received, and to put the weighting in the reader's hands.
+We intend to use every poll received and to put the weighting in the
+reader's hands.
 [Play with the model](play/) has a first version: you choose how far to trust
 each poll, and the published simulations are re-weighted in your browser. The
 published forecast uses no poll.
 
-<!-- /block d03cac16 -->
+<!-- /block 38cb11be -->
 
 <!-- block 91a3fee7 -->
 *md*
@@ -1864,16 +1880,13 @@ against. One that doesn't is asking you to take it on faith.
 
 <!-- /block 7314aa33 -->
 
-<!-- block 7e7d6cbf -->
+<!-- block 05aceff7 -->
 *md*
 
-Election results at voting-district level, ward and voting-district boundary
-maps, by-election returns and census tables: this page traces each to its
-origin and records the state it was in when we found it. The technical recipes,
-file by file, are in
+The technical recipes, file by file, are in
 [`SOURCES.md` on GitHub](https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md).
 
-<!-- /block 7e7d6cbf -->
+<!-- /block 05aceff7 -->
 
 <!-- block c11f869d -->
 *md*

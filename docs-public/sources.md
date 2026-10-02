@@ -1,9 +1,6 @@
 # Where the data comes from
 
-Election results at voting-district level, ward and voting-district boundary
-maps, by-election returns and census tables: this page traces each to its
-origin and records the state it was in when we found it. The technical recipes,
-file by file, are in
+The technical recipes, file by file, are in
 [`SOURCES.md` on GitHub](https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md).
 
 ## Public records that are hard to reach

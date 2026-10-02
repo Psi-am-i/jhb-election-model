@@ -1,9 +1,6 @@
 # How the model works
 
-This page explains the machinery in plain language: what is predicted, how the
-simulation runs, how the parts that *can* be tested are tested, and which parts
-can only be stated. The full technical record, every file and every
-workaround, is in the
+The full technical record, every file and every workaround, is in the
 [public repository](https://github.com/Psi-am-i/jhb-election-model). The
 scoring is on the [about the model](about) page.
 
@@ -200,7 +197,7 @@ to explain a voter's reasoning is overreach, and we would like to hear about it.
 
 ## How we know it works
 
-Three checks, in increasing order of difficulty.
+There are three checks, in increasing order of difficulty.
 
 **The seat law is exact.** The implementation reproduces the published councils
 to the seat (quota, vote totals, every party) for eight municipalities across
@@ -284,7 +281,8 @@ reason not to let it move a published headline while its design is unsettled.
 
 ### What we intend
 
-To use every poll received, and to put the weighting in the reader's hands.
+We intend to use every poll received and to put the weighting in the
+reader's hands.
 [Play with the model](play/) has a first version: you choose how far to trust
 each poll, and the published simulations are re-weighted in your browser. The
 published forecast uses no poll.
