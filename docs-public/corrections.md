@@ -71,9 +71,10 @@ the Johannesburg figure improves". Splits from after 2021 are information from
 after the election being forecast: a leak. The scores on the page came from a
 run of 11 August, before the record was cut on 14 August.
 
-**What changed.** The paragraph reads "this one WAS a leak, and is not one
-now", and says the record has been cut at the election being forecast since 14
-August 2026. The page's scores come from a run made with that cut.</span>
+**What changed.** On 27 September the paragraph read "this one WAS a leak, and
+is not one now", and said the record has been cut at the election being
+forecast since 14 August 2026. The page's scores came from a run made with that
+cut.</span>
 
 ## Four figures on "Nobody will win Johannesburg" labelled "published 31 August 2026" — published 26 September 2026, corrected 27 September 2026
 

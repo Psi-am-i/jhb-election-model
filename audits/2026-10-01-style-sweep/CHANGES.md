@@ -258,7 +258,8 @@ dropped table column.
 ## Blind check of bf48109 (2026-10-02)
 
 Must-fix and should-fix items applied, except where the table below says why
-not. Taste items (20-26) are not applied.
+not. Of the taste items only 26 is applied ("59% is not half."); 20-25 are
+untouched.
 
 | check item | where | change |
 |---|---|---|
@@ -268,7 +269,7 @@ not. Taste items (20-26) are not applied.
 | 5 "more wards than that" | `home.html` | "… than its share of the vote entitles it to" (the /play/ Seat-law wording; the check's "seat total" misdescribes the clause) |
 | 6 "Every percentage" | `home.html`, `forecast-sheet.html` | "A percentage beside a party, a coalition or a result is a share of the simulations …"; no token added |
 | 9 entry 1 | `corrections.md` | the verdict was "A COIN FLIP" "there and on the home page" (confirmed on d05b6a2, edc7f50, fbb829e); "59% is not half." added |
-| 10 entry 7 "What changed" | `corrections.md` | quotes the 27 September wording ("this one WAS a leak, and is not one now"; record cut since 14 August 2026) |
+| 10 entry 7 "What changed" | `corrections.md` | quotes the 27 September wording in the past tense ("On 27 September the paragraph read 'this one WAS a leak, and is not one now' …"); the page has since been reworded |
 | 12 portal standfirst | `build_portal.py` | "Each forecast here is thousands of simulated elections under the real seat law, with every assumption written down where you can check it. A metro without a 2026 forecast yet is marked in preparation. Pick a city." No count typed |
 | 13 portal card | `build_portal.py` | tie: "The ANC and the DA each have a median of 66 seats. 136 are needed to govern." (names sorted); lead case: "X's median is n seats and Y's is m". Figures still from the record |
 | 14 /support standfirst | `build_site.py` | removed |

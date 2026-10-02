@@ -746,14 +746,15 @@ EFF or MK", and the quote is dated 13 September.</span>
 
 <!-- /block fa1a4412 -->
 
-<!-- block 78af7f8b -->
+<!-- block 72b87d41 -->
 *md*
 
-**What changed.** The paragraph reads "this one WAS a leak, and is not one
-now", and says the record has been cut at the election being forecast since 14
-August 2026. The page's scores come from a run made with that cut.</span>
+**What changed.** On 27 September the paragraph read "this one WAS a leak, and
+is not one now", and said the record has been cut at the election being
+forecast since 14 August 2026. The page's scores came from a run made with that
+cut.</span>
 
-<!-- /block 78af7f8b -->
+<!-- /block 72b87d41 -->
 
 <!-- block 5c72f299 -->
 *md*
