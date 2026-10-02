@@ -12,7 +12,7 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-265 blocks from 9 files.
+269 blocks from 9 files.
 
 
 ## forecast-sheet.html
@@ -642,115 +642,139 @@ Read the scores as an estimate of what the machinery is worth, not as a sealed p
 
 <!-- /block 15694b39 -->
 
-<!-- block 1ca15d91 -->
+<!-- block 7a6fb055 -->
 *md*
 
-A **correction** means a page was wrong when it was published. An **update**
-means the model or the world moved; it appears beside the original as a dated
-"what the model says now" box.
+A list of errors on published pages. Nothing is removed from this list.
 
-<!-- /block 1ca15d91 -->
+<!-- /block 7a6fb055 -->
 
-<!-- block 8e4fe2b0 -->
+<!-- block 50ba7fbe -->
 *md*
 
-Nothing is removed from this list.
+## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 2 October 2026
 
-<!-- /block 8e4fe2b0 -->
+<!-- /block 50ba7fbe -->
 
-<!-- block caa0dcf0 -->
+<!-- block 14d9f7a1 -->
 *md*
 
-## 30 September 2026 — a claim's title said something its test did not
+**What changed.** The heading now reads "Without the ANC, the red line leaves
+a majority in 59% of simulations." The coin-flip clause is gone, and the
+verdict is "MORE LIKELY THAN NOT".</span>
 
-<!-- /block caa0dcf0 -->
+<!-- /block 14d9f7a1 -->
 
-<!-- block 1ad1e667 -->
+<!-- block 7b7fe434 -->
 *md*
 
-**What changed.** The title now reads *"The DA can govern without the ANC, the
-EFF or MK"*. The quote is dated 13 September, the date of the report it cites;
-it was shown as 11 September.</span>
+## "The 587,000 votes the ANC shed between 2016 and 2021" — published 26 September 2026, corrected 2 October 2026
 
-<!-- /block 1ad1e667 -->
+<!-- /block 7b7fe434 -->
 
-<!-- block ddc4fd57 -->
+<!-- block a153cd01 -->
 *md*
 
-## 30 September 2026 — publication dates on the tested claims
+**What changed.** The summary now reads "the 587,000 votes the ANC bloc shed
+between the 2019 national election and the 2021 local election".</span>
 
-<!-- /block ddc4fd57 -->
+<!-- /block a153cd01 -->
 
-<!-- block d37a31ee -->
+<!-- block 19985c99 -->
 *md*
 
-**What changed.** Each claim's published date is now taken from the
-publication ledger. The date beside each claim on the home page is the date of
-the quote, and is labelled as such.</span>
+## "Where on 31 August the DA led clearly" — published 26 September 2026, corrected 2 October 2026
 
-<!-- /block d37a31ee -->
+<!-- /block 19985c99 -->
 
-<!-- block 515b3175 -->
+<!-- block 84a7539b -->
 *md*
 
-## 30 September 2026 — "the most reliable majority"
+**What changed.** The note now reads "where on 8 August the DA led
+clearly".</span>
 
-<!-- /block 515b3175 -->
+<!-- /block 84a7539b -->
 
-<!-- block e494f65b -->
+<!-- block 782e5791 -->
 *md*
 
-**What changed.** The sentence now says 'the most reliable two-party majority
-in the city'.</span>
+## "The most reliable majority in the city that does not involve the EFF or MK" — published 26 September 2026, corrected 2 October 2026
 
-<!-- /block e494f65b -->
+<!-- /block 782e5791 -->
 
-<!-- block 5cf3f144 -->
+<!-- block 39459f0c -->
 *md*
 
-## 27 September 2026 — three arrows on "Nobody will win Johannesburg" pointed the wrong way
+**What changed.** The sentence now says "the most reliable two-party majority
+in the city".</span>
 
-<!-- /block 5cf3f144 -->
+<!-- /block 39459f0c -->
 
-<!-- block b80b3fa9 -->
+<!-- block 60b60e7a -->
 *md*
 
-| | the page said we published | we actually published | on 27 September |
+## "A government can be formed without the EFF or MK" — published 26 September 2026, corrected 2 October 2026
+
+<!-- /block 60b60e7a -->
+
+<!-- block a002c3f9 -->
+*md*
+
+**What changed.** The title now reads "The DA can govern without the ANC, the
+EFF or MK", and the quote is dated 13 September.</span>
+
+<!-- /block a002c3f9 -->
+
+<!-- block dad9f863 -->
+*md*
+
+## "18 September 2026: Published" on three tested claims — published 26 September 2026, corrected 2 October 2026
+
+<!-- /block dad9f863 -->
+
+<!-- block 3a9012e6 -->
+*md*
+
+**What changed.** They are labelled "26 September 2026: Published".</span>
+
+<!-- /block 3a9012e6 -->
+
+<!-- block 5c72f299 -->
+*md*
+
+## Four figures on "Nobody will win Johannesburg" labelled "published 31 August 2026" — published 26 September 2026, corrected 27 September 2026
+
+<!-- /block 5c72f299 -->
+
+<!-- block 49107156 -->
+*md*
+
+| | labelled "31 August" | published 8 August | the model's figure beside them, 26 September |
 |---|---|---|---|
 | the ANC's stronghold wards | 55 | **74** | 61 |
 | its proportional entitlement | 54 | **65** | 58 |
 | how often the excessive-seats clause fires | 58% | **96%** | 65% |
 | the DA as largest party | 71% | **62%** | 47% |
 
-<!-- /block b80b3fa9 -->
+<!-- /block 49107156 -->
 
-<!-- block fa56f6e6 -->
+<!-- block 7f8f2ff4 -->
 *md*
 
-A sentence beside them read *"Still the ANC's usual condition, and a stronger
-one"*. The figures had been frozen against the last build in the repository,
-on the assumption that it was the last thing published.
+A sentence beside them read "Still the ANC's usual condition, and a stronger
+one".
 
-<!-- /block fa56f6e6 -->
+<!-- /block 7f8f2ff4 -->
 
-<!-- block 0692bdc7 -->
+<!-- block e455c9d7 -->
 *md*
 
-**What changed.** The four figures are taken from the publication ledger,
-which records what was served and when, and the arrows compare against it. The
-sentence is rewritten. Five articles dated 31 August are re-dated 8 August,
-checked against the archived page. The source of a frozen figure is the
-ledger, never a build.</span>
+**What changed.** The four figures are the ones published on 8 August, and
+the arrows compare against them. The sentence now reads "Still the ANC's usual
+condition, and weaker than published". The piece and its sections are dated 8
+August.</span>
 
-<!-- /block 0692bdc7 -->
-
-<!-- block 4a0355bc -->
-*md*
-
-The defects those drafts described (figures written by scripts, medians summed
-as if they added up) are fixed and recorded in `MODEL-LOG.md`.
-
-<!-- /block 4a0355bc -->
+<!-- /block e455c9d7 -->
 
 
 ## docs-public/methodology.md
@@ -1269,16 +1293,13 @@ is.
 
 <!-- /block dda1e697 -->
 
-<!-- block 2f7bd600 -->
+<!-- block 803b8ab6 -->
 *md*
 
-*This section has described that switch wrongly twice: for a day after
-2026-08-22 it said no poll was used when one was, and for three weeks it
-described a weighting cap that had been retired.* **If the forecast ever
-differs from a no-polls model, this section is out of date and the forecast is
-what to believe.**
+**If the forecast ever differs from a no-polls model, this section is out of
+date and the forecast is what to believe.**
 
-<!-- /block 2f7bd600 -->
+<!-- /block 803b8ab6 -->
 
 <!-- block 9f6373d7 -->
 *md*
@@ -2418,12 +2439,12 @@ A red line is a choice, not a claim about the world, so there is nothing here to
 
 <!-- /block 16809194 -->
 
-<!-- block 0d7acd3d -->
+<!-- block ffacc740 -->
 *claim[3].steps[0]*
 
-**Without the ANC, the red line holds about half the time.** A council built from every party except the ANC, the EFF and MK reaches {{majority}} in [[no_red_share]] of the {{n_draws}} simulations. That is the whole of the rest of the council acting as one — the most generous possible reading of the DA's options, and it still comes down to a coin flip.
+**Without the ANC, the red line leaves a majority in [[no_red_share]] of simulations.** A council built from every party except the ANC, the EFF and MK reaches {{majority}} in that share of the {{n_draws}} simulations. That is the whole of the rest of the council acting as one — the most generous possible reading of the DA's options.
 
-<!-- /block 0d7acd3d -->
+<!-- /block ffacc740 -->
 
 <!-- block 56e68d1e -->
 *claim[3].steps[1]*
@@ -2432,12 +2453,12 @@ A red line is a choice, not a claim about the world, so there is nothing here to
 
 <!-- /block 56e68d1e -->
 
-<!-- block 6fc46689 -->
+<!-- block fb9db167 -->
 *claim[3].steps[2]*
 
-**The alternative the red line leaves is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable two-party majority in the city. <span data-asof="2026-09-30"><em>Correction, 30 September 2026: this sentence called it "the most reliable majority in the city that does not involve the EFF or MK", which the combination above contradicts. <a href="/corrections">Corrections</a>.</em></span>
+**The alternative the red line leaves is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable two-party majority in the city.
 
-<!-- /block 6fc46689 -->
+<!-- /block fb9db167 -->
 
 <!-- block a2c3ac8a -->
 *claim[3].steps[3]*

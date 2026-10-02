@@ -428,6 +428,10 @@ allow = [
   # there alone.
   "the da can finish first without ever nearing a majority",                # a stated reporting convention (the band the
                                    #   charts draw), not a model output
+  # ADDED 2026-10-02. Claim 4's verdict label (claims.toml), set by a human as
+  # every verdict is. It rests on [[no_red_share]] in the claim's own heading;
+  # if that token falls below 50% the verdict must be changed with a correction.
+  "more likely than not we won't go into a coalition",
 ]
 
 # ---------------------------------------------------------------------------

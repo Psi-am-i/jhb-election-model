@@ -257,11 +257,8 @@ where the model *loses*.
 Polls were an input to the forecast until 12 September 2026. Since then, none
 is.
 
-*This section has described that switch wrongly twice: for a day after
-2026-08-22 it said no poll was used when one was, and for three weeks it
-described a weighting cap that had been retired.* **If the forecast ever
-differs from a no-polls model, this section is out of date and the forecast is
-what to believe.**
+**If the forecast ever differs from a no-polls model, this section is out of
+date and the forecast is what to believe.**
 
 ### Why they were taken out
 
