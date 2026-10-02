@@ -125,6 +125,7 @@
 .pl-ticks span:first-child{transform:none;}
 .pl-sharebox{margin-top:14px;}
 .pl-sharebox .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+.pl-tomake{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);}
 
 /* ---------- controls ---------- */
 .pl-ctl{border-top:1px solid var(--rule);padding:16px 0 6px;}

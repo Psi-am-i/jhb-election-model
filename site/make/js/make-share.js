@@ -17,7 +17,7 @@
 //  * native <dialog> + showModal(): the page behind is inert, Escape closes,
 //    focus returns to the button that opened it.
 
-import { buildForecastCardSVG, forecastCardAlt, PHOTO, SITE, W, H } from "./forecast-card.js";
+import { buildForecastCardSVG, forecastCardAlt, cardTitle, photoUnder, PHOTO_FILE, SITE, SIZES, OTHERS_COLOUR } from "./forecast-card.js";
 import { svgToPNG } from "./card-text.js";
 import { nameRule, NAME_MAX } from "./make-state.js";
 
@@ -37,7 +37,7 @@ const S = {
 S.name.maxLength = NAME_MAX + 8;          // the rule, not the box, says what is too long
 
 // The site's photograph, beside the page's own directory: /share.jpg.
-const PHOTO_SRC = new URL("../../" + PHOTO.file, import.meta.url).href;
+const PHOTO_SRC = new URL("../../" + PHOTO_FILE, import.meta.url).href;
 const MADE = new Date().toISOString().slice(0, 10);
 const PARTY_ROWS = 9;
 
@@ -68,16 +68,17 @@ export function cardOf(info) {
   const shown = list.length > PARTY_ROWS + 1 ? list.slice(0, PARTY_ROWS) : list;
   const rows = shown.map(c => ({ label: party(c).name, colour: party(c).colour, value: String(seats[c]), n: seats[c] }));
   const rest = list.slice(shown.length).reduce((a, c) => a + seats[c], 0);
-  if (rest) rows.push({ label: "Others", colour: "#59605a", value: String(rest), n: rest });
+  if (rest) rows.push({ label: "Others", colour: OTHERS_COLOUR, value: String(rest), n: rest });
   const cs = coalition.reduce((a, c) => a + (seats[c] || 0), 0);
-  const note = coalition.length
+  const rowsNote = coalition.length
     ? "Governing: " + coalition.map(c => party(c).name).join(", ") + ". " + cs + " of " + council + " seats" + (cs >= majority ? "." : ", short of a majority.")
     : "";
   return {
-    name: info.name,
-    subtitle: info.election.city + " council, " + dateText(info.election.date) + " · " + council + " seats, " + majority + " for a majority",
+    title: cardTitle(info.name),
+    lines: [{ text: info.election.city + " council, " + dateText(info.election.date) + " · " + council + " seats, " + majority + " for a majority", tone: "muted" }],
     map: { W: info.geom.W, H: info.geom.H, wards: info.geom.wards.map((w, i) => ({ path: w.path, fill: party(info.calls[i]).colour })) },
-    rows, note,
+    mapNote: "Each ward in the colour of the party the reader called it for.",
+    rows, rowsNote,
     foot: ["A reader's forecast: the reader called the wards and set the vote, and the seats follow from the law. Not the model's forecast.",
            "Made " + MADE + ". Make your own at " + SITE + "/make"],
   };
@@ -98,7 +99,7 @@ async function draw() {
   S.img.alt = forecastCardAlt(card);
   let made;
   try {
-    made = await svgToPNG(buildForecastCardSVG(card), [W, H], { src: PHOTO_SRC, ...PHOTO });
+    made = await svgToPNG(buildForecastCardSVG(card), SIZES.link, photoUnder("link", PHOTO_SRC));
   } catch (e) {
     if (ticket === drawing) { say("The image could not be drawn in this browser. The link still works."); S.native.disabled = false; }
     return;
