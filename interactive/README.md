@@ -75,12 +75,13 @@ layout, under the site root:
 **The start, stated exactly** (`src/build_make.py`). Ward calls: each ward's
 modal winner over the published draws, by `score_forecasts.model_forecast`
 (equal to `ward_winner_probs.csv`'s `winner`, which the forecast map uses,
-wherever that has no tie). Vote shares: no combined (ward + list) share is
-published (the draws' manifest refuses one), so the start is each party's
-MEDIAN LIST-ballot share over the draws, renormalised to 100 (the medians sum
-to about 0.87; `OTHER` is not a party and is left out). MODEL-LOG §1.270
-measures what a list share costs as the combined vote, so the untouched
-council differs from the published medians, and the page says so. Total
+wherever that has no tie). Vote shares: chosen so the untouched council
+seats each row of the published seat panel at its middle as nearly as the law
+allows (`build_make.start_seats`, whose docstring states the rule): a row
+called for more wards than its middle opens at its ward count, and the seats
+the middles leave unfilled go one per row to the rows whose mean over the
+draws most exceeds their middle. `tests/test_make_page.py` holds the untouched
+seats to that and prints each row's distance from its middle. Total
 combined vote (`x-total-votes`): two ballots times the median over the draws
 of the votes cast (pool registration in `pools_2026.json` times the draw's
 pool turnout).

@@ -183,6 +183,9 @@ test("CPython seats every reachable state, and the seats match the scorer's", ()
     "r = S.seat_forecast(d['f'], d['schema']); print(json.dumps({k: v['total'] for k, v in r['seats'].items()}))"],
     { cwd: repo, input: JSON.stringify({ f: { ward_calls: D.start.ward_calls, combined_share: D.start.combined_share }, schema }), maxBuffer: 1 << 26 }));
   assert.deepEqual(Object.fromEntries(Object.entries(cp[0].payload.seats).filter(([, v]) => v > 0)), native);
+  // the untouched page, through its own percent-to-votes step, seats exactly
+  // the start the build planned (src/build_make.py start_seats)
+  assert.deepEqual(native, D.start.seats);
 });
 
 test("the page's seat engine under Pyodide gives the CPython answer", { skip: !process.env.PYODIDE_NODE && "PYODIDE_NODE not set" }, async () => {

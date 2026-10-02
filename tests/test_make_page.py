@@ -217,7 +217,7 @@ def test_the_build_blocks_an_unlisted_writer_and_a_typed_live_digit():
 
 # -- the start state -------------------------------------------------------------
 
-def test_the_start_is_the_published_ward_calls_and_list_medians():
+def test_the_start_is_the_published_ward_calls_and_the_panel_middles():
     site = _built()
     d = _data(site)
     schema, start = d["schema"], d["start"]
@@ -233,22 +233,52 @@ def test_the_start_is_the_published_ward_calls_and_list_medians():
         assert call == published[w]["winner"], w
         agree += 1
     assert agree >= len(wards) - 2, agree
-    # the shares: renormalised medians of the published list share, summing to 100
-    assert math.isclose(math.fsum(start["combined_share"].values()), 100.0, abs_tol=1e-9)
-    assert 0.5 < start["median_share_sum"] < 1.0
-    assert "LIST" in start["rule"] and "no combined share is published" in start["rule"]
     # no placeholder
     assert schema["x-placeholder"] is False and not d["model_ref"].startswith("placeholder")
     man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
     assert d["model_ref"] == man["published_run"]["model_run_id"]
     assert schema["x-seat-context"]["parties"] == man["parties"]
-    # the total vote, by its stated rule, and the start seats by the statute
+    assert isinstance(schema["x-total-votes"], int) and schema["x-total-votes"] > 0
+    assert math.isclose(math.fsum(start["combined_share"].values()), 100.0, abs_tol=1e-9)
+
+    # the middles the start aims at are the forecast page's own: the seat
+    # panel's rows from seat_draws.csv (render_sheet's source), Others by
+    # scenarios.others_per_draw, both through scenarios.seat_quantiles
+    import scenarios
+    seat_csv = ROOT / "data/processed/seat_draws.csv"
+    with seat_csv.open(encoding="utf-8", newline="") as h:
+        rows = list(csv.DictReader(h))
+    named = [p for p in scenarios.NAMED_PARTIES if p in rows[0]]
+    page = {p: scenarios.seat_quantiles([float(r[p]) for r in rows])[0] for p in named}
+    page["OTHERS"] = scenarios.seat_quantiles(scenarios.others_per_draw(seat_csv.parent, named))[0]
+    assert {g: v for g, v in start["published_middle"].items() if g in page} == page
+
+    # the untouched council, seated by the statute from the stored shares
     import score_forecasts
     seated = score_forecasts.seat_forecast({"ward_calls": start["ward_calls"],
                                            "combined_share": start["combined_share"]}, schema)
     assert seated["ok"], seated["errors"]
-    assert sum(p["total"] for p in seated["seats"].values()) == seated["council"]
-    assert isinstance(schema["x-total-votes"], int) and schema["x-total-votes"] > 0
+    got = {p: v["total"] for p, v in seated["seats"].items()}
+    assert got == start["seats"]
+    assert sum(got.values()) == seated["council"]
+    # each panel row opens at its middle, one seat off where the middles do
+    # not fill the council, or at its ward count where the wards it is called
+    # for exceed its middle
+    held = {}
+    for c in start["ward_calls"]:
+        held[c] = held.get(c, 0) + 1
+    others = sum(n for p, n in got.items() if p not in named)
+    off = {}
+    for g, mid in page.items():
+        n = others if g == "OTHERS" else got.get(g, 0)
+        wards_held = (sum(v for p, v in held.items() if p not in named) if g == "OTHERS"
+                      else held.get(g, 0))
+        if wards_held > mid:
+            assert n == wards_held, (g, n, wards_held)
+        else:
+            assert abs(n - mid) <= 1, (g, n, mid)
+        off[g] = n - mid
+    print(f"  untouched /make/ against the published middles: {off}")
 
 
 def test_the_data_file_is_the_one_the_build_writes():

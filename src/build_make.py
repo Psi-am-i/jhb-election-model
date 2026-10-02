@@ -13,7 +13,7 @@ What the served page is made of
     ``interactive/make.html`` with its prototype-only parts cut
     (``__DEVONLY__`` spans), the site's ``THEME_HEAD``, nav and footer, and
     the published forecast's seat panel cut from ``forecast-sheet.html`` as
-    ``{{tokens}}`` (``build_play.published_host``), so first paint is ledgered
+    ``{{tokens}}`` (:func:`published_host`), so first paint is ledgered
     tokens.
 ``make/forecast.json``
     The one data file the page reads (:func:`forecast_data`): the generated
@@ -39,15 +39,36 @@ The start state, stated exactly
   ``ward_winner_probs.csv`` that the forecast page's map passes to
   ``render_map.ward_call`` wherever that column has no tie
   (``tests/test_make_page.py``).
-* **Vote shares**: there is NO published combined (ward + list) share. The
-  draws' manifest refuses one (``export_draws.COMBINED_SHARE_REFUSAL``). The
-  start uses the same ``model_forecast`` rule on the only per-draw share the
-  draws publish, the LIST (PR) ballot share ``pr_share``: each roster party's
-  median over the 5,000 draws, renormalised to sum to 100 (the medians alone
-  do not). The ``OTHER`` column is not a party and is left out before
-  renormalising. MODEL-LOG §1.270 measures what feeding a list share as the
-  combined vote costs, so the untouched reader's council need not equal the
-  published medians, and the page does not call it the model's forecast.
+* **Vote shares**: chosen so that the untouched council, under the seat law
+  (``reader_seats``), gives each row of the published seat panel its middle
+  seat count as nearly as the law allows (:func:`start_seats`, then
+  :func:`start_shares`). There is no published combined (ward + list) share
+  to start from: the draws' manifest refuses one
+  (``export_draws.COMBINED_SHARE_REFUSAL``), and the list-ballot medians,
+  fed in as the combined vote, open the council far from the forecast's
+  middle (MODEL-LOG §1.270). The rule, in order:
+
+  1. **Targets.** Each party the panel names
+     (``scenarios.NAMED_PARTIES``) gets its published middle, and "Others"
+     (every other party) the published middle of the seats they hold within
+     each simulation; both by ``scenarios.seat_quantiles`` over the draws'
+     ``seats/deduct`` block, the forecast page's own definitions.
+  2. **The ward floor.** A party holds at least the wards it is called for
+     (item 16 keeps every ward won), so a target below that count is raised
+     to it. This is the one reason a named party can open away from its
+     middle by more than one seat.
+  3. **The council's size.** The middles need not add up to the council. The
+     seats left over (or missing) are added (or taken) one per row per
+     round, first to the rows whose mean over the draws exceeds their middle
+     by most (or by least), never below a row's ward floor.
+  4. **Others** is split among its parties by largest remainder on each
+     party's mean seats over the draws, none below its ward floor.
+  5. **Votes.** Each party's combined vote is its target seats' share of
+     the council, in whole votes of the total by largest remainder; a party
+     with no target seat gets none. Under the quota this seats every party
+     at its target; the build runs ``reader_seats`` on the result and
+     refuses to write a start it does not reproduce.
+
 * **Total combined vote** (``reader_seats``' ``total_votes``, the schema's
   ``x-total-votes``): nothing published carries it. It is two ballots times
   the median over the draws of each draw's citywide votes cast, the sum over
@@ -100,8 +121,16 @@ DATA = "forecast.json"
 #: The site's own photograph (Hillbrow Tower) the share image is drawn on.
 PHOTO = "share.jpg"
 
-#: The published panel shown beside the reader's council, by host marker.
-HOSTS = {"seats": ("seats",)}
+#: The published panel shown beside the reader's council, at the marker
+#: HOST: the forecast sheet's seat chart, a slice of forecast-sheet.html from
+#: the <figure> before its anchor to the </figure> after it.
+HOST = "<!-- __PUBLISHED:seats__ -->"
+SEATS_PANEL = (("<figure>", '<div class="chart" id="seats">'), "</figure>")
+#: The forecast page's controls, which need its scripts, are hidden here.
+HIDE_CSS = (".maptoggle,.govfilter,#govMore,script{display:none!important}"
+            ":host{display:block}")
+_SCRIPT = re.compile(r"<script\b[^>]*>.*?</script>\s*", re.S | re.I)
+_STYLE = re.compile(r"<style\b[^>]*>(.*?)</style>", re.S | re.I)
 
 _DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
 
@@ -214,8 +243,88 @@ def make_schema(artefact: dict, geom: dict) -> dict:
     return json.loads(run.stdout)
 
 
+def _apportion(weights: dict, total: int, floors: dict) -> dict:
+    """Whole numbers summing to ``total`` in proportion to ``weights``, none
+    below its ``floors`` entry: largest remainder, ties by input order."""
+    fixed: dict = {}
+    while True:
+        free = [k for k in weights if k not in fixed]
+        left = total - sum(fixed.values())
+        w = math.fsum(weights[k] for k in free)
+        raw = {k: (left * weights[k] / w if w > 0 else left / len(free)) for k in free}
+        under = [k for k in free if raw[k] < floors.get(k, 0)]
+        if not under:
+            break
+        for k in under:
+            fixed[k] = floors.get(k, 0)
+    out = {k: math.floor(v) for k, v in raw.items()}
+    spare = total - sum(fixed.values()) - sum(out.values())
+    for k in sorted(raw, key=lambda k: -(raw[k] - out[k]))[:spare]:
+        out[k] += 1
+    out.update(fixed)
+    return {k: out[k] for k in weights}
+
+
+def start_seats(manifest: dict, arrays: dict, calls: list[str]) -> dict:
+    """The untouched council's seats by party, steps 1-4 of the module
+    docstring's vote-share rule. Returns ``{"seats", "published", "rows"}``:
+    the target per party (zeros left out), each panel row's published middle,
+    and each row's target."""
+    import scenarios
+    parties = _columns(manifest, "seats/deduct")
+    S = np.asarray(arrays["seats/deduct"], dtype=float)
+    council_draws = np.asarray(arrays["council/deduct"], dtype=float)[:, _columns(manifest, "council/deduct").index("council_size")]
+    council = int(round(float(np.median(council_draws))))
+    if not np.all(council_draws == council):
+        raise MakeBuildError("build_make: the draws' council size varies under the statutory law")
+    col = {p: j for j, p in enumerate(parties)}
+    named = [p for p in scenarios.NAMED_PARTIES if p in col]
+    others = [p for p in parties if p not in named]
+    held = {p: 0 for p in parties}
+    for c in calls:
+        held[c] += 1
+    series = {p: S[:, col[p]] for p in named}
+    series["OTHERS"] = council_draws - sum(series[p] for p in named)
+    published = {g: scenarios.seat_quantiles(x)[0] for g, x in series.items()}
+    floor = {p: held[p] for p in named}
+    floor["OTHERS"] = sum(held[p] for p in others)
+    rows = {g: max(published[g], floor[g]) for g in series}
+    gap = {g: float(series[g].mean()) - published[g] for g in series}
+    order = list(series)
+    left = council - sum(rows.values())
+    while left:
+        step = 1 if left > 0 else -1
+        ranked = sorted(order, key=lambda g: (-gap[g] * step, order.index(g)))
+        moved = False
+        for g in ranked:
+            if left == 0:
+                break
+            if step < 0 and rows[g] <= floor[g]:
+                continue
+            if step > 0 and rows[g] < floor[g]:
+                continue
+            rows[g] += step
+            left -= step
+            moved = True
+        if not moved:
+            raise MakeBuildError("build_make: the panel's rows cannot fill the council above their ward floors")
+    split = _apportion({p: float(S[:, col[p]].mean()) for p in others}, rows["OTHERS"],
+                       {p: held[p] for p in others})
+    seats = {p: rows[p] for p in named}
+    seats.update(split)
+    return {"seats": {p: n for p, n in seats.items() if n}, "published": published, "rows": rows}
+
+
+def start_shares(seats: dict, roster: list[str], total: int, council: int) -> dict:
+    """Step 5: each party's combined vote as a percent of ``total``, from
+    whole votes in proportion to its target seats."""
+    votes = _apportion({p: float(seats.get(p, 0)) for p in roster}, total, {})
+    return {p: votes[p] / total * 100 for p in roster}
+
+
 def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
     """The model's central state as a reader forecast; module docstring."""
+    import reader_seats
     import score_forecasts
     roster = list(schema["x-seat-context"]["parties"])
     wards = _columns(manifest, "ward_winner")
@@ -225,23 +334,30 @@ def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
     col = {p: j for j, p in enumerate(roster)}
     for k, code in enumerate(codes):
         counts[:, col[code]] = (winners == k).sum(axis=0)
-    share_cols = _columns(manifest, "pr_share")
-    keep = [j for j, c in enumerate(share_cols) if c in col]
-    dropped = [c for c in share_cols if c not in col]
-    if dropped != ["OTHER"]:
-        raise MakeBuildError(f"build_make: the draws' pr_share carries {dropped} off the roster; "
-                             "only OTHER is expected")
-    shares = np.asarray(arrays["pr_share"], dtype=float)[:, keep]
-    forecast = score_forecasts.model_forecast(
-        counts.tolist(), roster, wards, shares.tolist(), [share_cols[j] for j in keep], schema)
-    medians_sum = math.fsum(statistics.median(shares[:, j].tolist()) for j in range(shares.shape[1]))
+    # the ward calls by the scorer's rule (its shares are not used: see the
+    # module docstring)
+    flat = [[1.0 / len(roster)] * len(roster)]
+    calls = score_forecasts.model_forecast(
+        counts.tolist(), roster, wards, flat, roster, schema)["ward_calls"]
+    context, total, target, _tol, ward_ids = score_forecasts.schema_context(schema)
+    plan = start_seats(manifest, arrays, calls)
+    share = start_shares(plan["seats"], roster, total, int(context["council"]))
+    got = reader_seats.reader_seats({p: v / 100 for p, v in share.items()}, dict(zip(ward_ids, calls)),
+                                    context, total)
+    if not got["ok"]:
+        raise MakeBuildError(f"build_make: the start shares do not seat: {got['errors']}")
+    seated = {p: v["total"] for p, v in got["seats"].items()}
+    if seated != plan["seats"]:
+        raise MakeBuildError(f"build_make: the start shares seat {seated}, not the targets {plan['seats']}")
     return {
-        "ward_calls": forecast["ward_calls"],
-        "combined_share": forecast["combined_share"],
-        "rule": ("score_forecasts.model_forecast on the published draws: each ward's modal "
-                 "winner; each party's median LIST-ballot share (pr_share; no combined share is "
-                 "published), renormalised to 100"),
-        "median_share_sum": round(medians_sum, 6),
+        "ward_calls": calls,
+        "combined_share": {p: v * target / 100 for p, v in share.items()},
+        "seats": plan["seats"],
+        "published_middle": plan["published"],
+        "rule": ("ward calls: score_forecasts.model_forecast's modal winner over the published draws; "
+                 "combined shares: each party's target seats' share of the council, the targets being "
+                 "the published seat panel's middles, raised to the ward floor and filled to the "
+                 "council size (src/build_make.py start_seats)"),
     }
 
 
@@ -281,6 +397,25 @@ def forecast_data(draws: Path = DRAWS) -> dict:
 # the page
 
 
+def seats_panel(sheet: str) -> str:
+    """The published seat chart, cut from the forecast sheet's source template."""
+    (opener, anchor), closer = SEATS_PANEL
+    at = build_play._once(sheet, anchor, "the seats chart")
+    lo = sheet.rindex(opener, 0, at)
+    hi = sheet.index(closer, at) + len(closer)
+    return _SCRIPT.sub("", sheet[lo:hi])
+
+
+def published_host(sheet: str, stat_css: str) -> str:
+    """A declarative shadow root holding the seat chart and the sheet's styles,
+    so first paint is the forecast page's own ``{{tokens}}``."""
+    head = sheet[:sheet.index("</head>")]
+    css = "\n".join(_STYLE.findall(head))
+    return ('<template shadowrootmode="open"><style>' + css + "\n" + stat_css + "\n"
+            + HIDE_CSS + '</style><div class="page">' + build_play.one_level_down(seats_panel(sheet))
+            + "</div></template>")
+
+
 def assemble(*, theme_head: str, nav: str, footer: str, stat_css: str, cut_markers) -> str:
     """The page's HTML, tokens unrendered: make.html with the site put in."""
     page = (INTERACTIVE / "make.html").read_text(encoding="utf-8")
@@ -295,10 +430,8 @@ def assemble(*, theme_head: str, nav: str, footer: str, stat_css: str, cut_marke
                           ("<!-- __MAKEFOOT__ -->", build_play.one_level_down(footer))):
         build_play._once(page, marker, "make.html")
         page = page.replace(marker, value)
-    for host, names in HOSTS.items():
-        marker = f"<!-- __PUBLISHED:{host}__ -->"
-        build_play._once(page, marker, "make.html")
-        page = page.replace(marker, build_play.published_host(sheet, names, stat_css))
+    build_play._once(page, HOST, "make.html")
+    page = page.replace(HOST, published_host(sheet, stat_css))
     left = re.findall(r"<!-- __[A-Z:a-z]+__ -->", page)
     if left:
         raise MakeBuildError(f"build_make: unfilled markers in make.html: {left}")

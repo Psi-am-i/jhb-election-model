@@ -19,9 +19,10 @@
 // are recomputed after every edit by the seat code the server would run.
 //
 // The start (src/build_make.py, make/forecast.json): each ward's modal winner
-// over the published draws, and each party's median LIST-ballot share,
-// renormalised; the model publishes no combined share. The reader's forecast
-// lives only in the address (js/make-state.js).
+// over the published draws, and combined shares that seat each row of the
+// published seat panel at its middle as nearly as the law allows
+// (build_make.start_seats). The reader's forecast lives only in the address
+// (js/make-state.js).
 
 import * as B from "./builder-state.js";
 import * as MS from "./make-state.js";
