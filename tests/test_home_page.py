@@ -325,16 +325,22 @@ def test_a_party_the_page_names_is_never_pooled_into_everyone_else():
 # 4 — the lede
 # --------------------------------------------------------------------------
 def _lede_over(alone_of_100: int, anc: float, da: float) -> str:
-    """The lede for a constructed run: `alone_of_100` draws of 100 govern alone."""
+    """The lede for a constructed run of 10,000 draws: `alone_of_100` in 100
+    govern alone, the ANC ALONE has the most seats in `anc` of them, the DA
+    alone in `da`, and the rest are ties. The lede reads who is largest from
+    the seat draws (reweight.largest_party, side finding S1), so the shares
+    are built into the draws, not into forecast_summary.json."""
+    n = 10_000
+    n_anc, n_da, n_alone = round(anc * n), round(da * n), alone_of_100 * n // 100
+    assert n_alone <= n_anc and n_anc + n_da <= n, "the fixture cannot be built"
+    rows = ([{"ANC": 6 if i < n_alone else 4, "DA": 3} for i in range(n_anc)]
+            + [{"ANC": 3, "DA": 4} for _ in range(n_da)]
+            + [{"ANC": 3, "DA": 3} for _ in range(n - n_anc - n_da)])
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        rows = [{"ANC": 6 if i < alone_of_100 else 4, "DA": 3}
-                for i in range(100)]
         _seat_draws(tmp, rows, council=10, threshold=6, columns=["ANC", "DA"])
-        summary = {"structural": {"P(ANC is the largest single party)": anc,
-                                  "P(DA is the largest single party)": da},
-                   "p_excessive_any": 0.31, "_generated": "2026-09-25",
-                   "_draws": 1000}
+        summary = {"structural": {}, "p_excessive_any": 0.31,
+                   "_generated": "2026-09-25", "_draws": n}
         return RH._lede(summary, tmp, _tok, _chance)
 
 
