@@ -122,8 +122,8 @@
 <header class="hero">
   <div class="eyebrow">City of Johannesburg · 4 November 2026</div>
   <!-- __HOMELEDE_START__ -->
-  <h1 class="state"><em>A coalition is all but inevitable</em> and the race is too close to call: the ANC alone has the most seats in {{@home.p_anc_largest=0.467200;chance;seat_draws.csv, 5,000 simulations, the party alone with the most seats}} of simulations, the DA alone in {{@home.p_da_largest=0.452400;chance;seat_draws.csv, 5,000 simulations, the party alone with the most seats}}.</h1>
-  <p class="sub">One party governs alone in {{@home.p_alone=0.000800;chance;seat_draws.csv, one party at or above the threshold}} of simulations. Two or more parties tie for the most seats in {{@home.p_largest_tied=0.014400;chance;seat_draws.csv, 5,000 simulations, two or more parties level on the most seats}}. A rarely used clause lets a party keep every ward it wins beyond its proportional share, with the shortfall taken from everyone else. It fires for at least one party in {{@home.p_excessive_any=0.698200;chance;forecast_summary.json p_excessive_any}} of them.</p>
+  <h1 class="state"><em>A coalition is all but inevitable.</em> {{@home.p_alone=0.000800;chance;seat_draws.csv, one party at or above the threshold}} chance of one party winning a majority. The largest party is too close to call. {{@home.p_anc_largest=0.467200;chance;seat_draws.csv, 5,000 simulations, the party alone with the most seats}} chance it's the ANC and {{@home.p_da_largest=0.452400;chance;seat_draws.csv, 5,000 simulations, the party alone with the most seats}} chance it's the DA.</h1>
+  <p class="sub">Two or more parties tie for the most seats: {{@home.p_largest_tied=0.014400;chance;seat_draws.csv, 5,000 simulations, two or more parties level on the most seats}} chance. A rarely used clause lets a party keep every ward it wins beyond its proportional share, with the shortfall taken from everyone else. It applies to at least one party: {{@home.p_excessive_any=0.698200;chance;forecast_summary.json p_excessive_any}} chance. By party: the ANC {{@home.p_excessive.anc=0.622800;chance;forecast_summary.json p_excessive_by_party}}, MK Party {{@home.p_excessive.mk=0.038200;chance;forecast_summary.json p_excessive_by_party}}, the EFF {{@home.p_excessive.eff=0.026600;chance;forecast_summary.json p_excessive_by_party}}, every other party {{@home.p_excessive_rest=0.013400;chance;forecast_summary.json p_excessive_by_party, the highest of the parties not named}} or less.</p>
   <div class="stamp">Model run {{@home.generated=2026-09-29T17:59:46Z;date_long;forecast_summary.json, 5,000 simulations}} · {{@home.n_draws=5000;comma;forecast_summary.json, 5,000 simulations}} simulations</div>
   <!-- __HOMELEDE_END__ -->
 </header>
@@ -534,8 +534,8 @@ document.querySelectorAll(".maptoggle button").forEach(function(b){
         <div>
           <div class="t"><a href="forecast#how-to-read">How to read the
           page</a></div>
-          <div class="d">A percentage beside a party, a coalition or a result is
-          a share of the simulations, not of the vote.</div>
+          <div class="d">A chance is the share of the {{n_draws}} simulations
+          in which the outcome happens, not a share of the vote.</div>
         </div>
       </div>
     </div>

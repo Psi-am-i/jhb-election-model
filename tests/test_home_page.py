@@ -379,8 +379,8 @@ def test_a_lead_is_never_claimed_between_two_identical_printed_figures():
 
     # and a real lead names the leader
     clear = _lede_over(0, 0.60, 0.30)
-    assert "the ANC is ahead" in clear and "too close" not in clear, clear
-    assert "the DA is ahead" in _lede_over(0, 0.30, 0.60)
+    assert "The ANC is ahead" in clear and "too close" not in clear, clear
+    assert "The DA is ahead" in _lede_over(0, 0.30, 0.60)
 
 
 # --------------------------------------------------------------------------

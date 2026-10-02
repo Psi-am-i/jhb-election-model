@@ -758,6 +758,11 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # a draw, seat or probability.
         "TOSS_STEP", "TOSS_ROTATE", "SEAT_SCALE", "SEAT_TICKS", "BANNER_PARTIES",
         "SEGMENT_LABEL_MIN",
+        # `scenarios.EXCESSIVE_FLOOR`: the chance at which the home page and
+        # /forecast name a party in the excessive-seats sentence (owner,
+        # 2026-10-02, "we should say who they are"). It picks which figures a
+        # sentence prints and changes no draw, seat or probability.
+        "EXCESSIVE_FLOOR",
         "MIN_HOME_SPLITS",                            # registered under its own name
         # `theta_residual.py` MEASURES the model; it is not part of it.
         # `SIM_DRAWS` and `NULL_REPS` bound how precisely a REFERENCE

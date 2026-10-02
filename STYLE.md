@@ -33,7 +33,7 @@ images, marketing copy. Owner, 2026-10-01.
 5. **Short beats complete.** One clause per idea. A caveat that matters gets its
    own short sentence; one that does not, goes.
 
-6. **Plain words, the reader's units.** Seats and percent of simulations. No
+6. **Plain words, the reader's units.** Seats and chances (rule 10). No
    internal terms (draws, cells, pools, CRPS, trust units) unless the page
    explains them where they appear.
 
@@ -45,3 +45,5 @@ images, marketing copy. Owner, 2026-10-01.
    around them.
 
 9. **A standfirst never restates the first paragraph.** Either the standfirst says it or the body does. Every sentence has a subject and a verb.
+
+10. **Chance in headlines, simulations in explanations.** Headlines, ledes, tiles, verdicts, banners and share images state a chance ('47% chance it's the ANC'). The simulations are how the chance is measured; say so where the method is explained (methodology, footnotes, how to read), not in the claim.

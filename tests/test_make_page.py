@@ -120,9 +120,8 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     assert {w for w in S.LIVE_WRITERS if w.startswith("make/")} == set(MAKE_WRITERS)
     for w in MAKE_WRITERS:
         assert (site / w).is_file(), w
-    for name in on_page:
-        assert re.search(rf'data-live="{name}"[^>]*>(?:(?!data-live=).)*?[Cc]omputed in your browser',
-                         html, re.S), name
+    # no "computed in your browser" label in any live region (owner, 2026-10-02)
+    assert not re.search(r"[Cc]omputed in your browser", re.sub(r"<[^>]+>", " ", html))
     # the Worker's seat module was pointed at the copy beside it
     engine = (site / "make/js/seat-engine.js").read_text(encoding="utf-8")
     assert build_make.SEATS_LINE[1] in engine and build_make.SEATS_LINE[0] not in engine

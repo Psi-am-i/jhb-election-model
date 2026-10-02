@@ -12,17 +12,17 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-273 blocks from 9 files.
+274 blocks from 9 files.
 
 
 ## forecast-sheet.html
 
-<!-- block cbf5e4d3 -->
+<!-- block 9df67c7a -->
 *p*
 
-The DA alone is the largest party in {{p_da_largest}} of the {{n_draws}} simulations and the ANC in {{p_anc_largest}} — a near tie, where on 8 August the DA led clearly. A single party reaches a majority on its own in {{p_alone}} of them. The ANC still triggers the excessive-seats clause in {{p_excessive_anc}}. Two or more parties tie for the most seats in {{p_largest_tied}}.
+The largest party is a near tie, where on 8 August the DA led clearly: {{p_anc_largest}} chance it's the ANC alone and {{p_da_largest}} chance it's the DA alone. Two or more parties tie for the most seats: {{p_largest_tied}} chance. A single party reaches a majority on its own: {{p_alone}} chance. The ANC still triggers the excessive-seats clause: {{p_excessive_anc}} chance.
 
-<!-- /block cbf5e4d3 -->
+<!-- /block 9df67c7a -->
 
 <!-- block d8ea3896 -->
 *h1*
@@ -38,26 +38,26 @@ Bars show where the middle 90% of the {{n_draws}} simulations landed; the mark i
 
 <!-- /block 5da68db4 -->
 
-<!-- block bb1a4cde -->
+<!-- block edb8af16 -->
 *p*
 
-If the DA rules out the ANC, the EFF and MK, its one realistic option is ActionSA and the PA, which have the numbers in {{@govern.da_best_without=0.162400;chance;seat_draws.csv, 5,000 simulations}} of the {{n_draws}} simulations. The ANC without the DA has {{@govern.anc_routes=10;int;seat_draws.csv, 5,000 simulations}} workable majorities, {{@govern.anc_routes_strong=4;int;seat_draws.csv, 5,000 simulations}} of them reaching {{majority}} seats in more than half the simulations. This is arithmetic, not a judgement of which deal is likely.
+If the DA rules out the ANC, the EFF and MK, its one realistic option is ActionSA and the PA: {{@govern.da_best_without=0.162400;chance;seat_draws.csv, 5,000 simulations}} chance they have the numbers. The ANC without the DA has {{@govern.anc_routes=10;int;seat_draws.csv, 5,000 simulations}} workable majorities, {{@govern.anc_routes_strong=4;int;seat_draws.csv, 5,000 simulations}} of them with a better than even chance of reaching {{majority}} seats. This is arithmetic, not a judgement of which deal is likely.
 
-<!-- /block bb1a4cde -->
+<!-- /block edb8af16 -->
 
-<!-- block 15ba8f14 -->
+<!-- block b67cf5af -->
 *p*
 
-Still the ANC's usual condition, and weaker than published: about {{anc_ward_median}} wards on a {{anc_entitlement}}-seat entitlement, with the clause firing in {{p_excessive_anc}} of the {{n_draws}} simulations. In the rest the ANC also gets list seats.
+Still the ANC's usual condition, and weaker than published: about {{anc_ward_median}} wards on a {{anc_entitlement}}-seat entitlement. The clause fires for the ANC: {{p_excessive_anc}} chance. When it does not, the ANC also gets list seats.
 
-<!-- /block 15ba8f14 -->
+<!-- /block b67cf5af -->
 
-<!-- block 3212e565 -->
+<!-- block a1e79ef2 -->
 *p*
 
-The central case now has the ANC on about {{anc_ward_median}} wards against a {{anc_entitlement}}-seat entitlement; the clause fires in {{p_excessive_anc}} of the {{n_draws}} simulations.
+The central case now has the ANC on about {{anc_ward_median}} wards against a {{anc_entitlement}}-seat entitlement. The clause fires for the ANC: {{p_excessive_anc}} chance.
 
-<!-- /block 3212e565 -->
+<!-- /block a1e79ef2 -->
 
 <!-- block b6686273 -->
 *figcaption*
@@ -649,21 +649,23 @@ This page lists errors on published pages. Nothing is removed from it.
 
 <!-- /block 8838b445 -->
 
-<!-- block d986d2bf -->
+<!-- block 315860b5 -->
 *md*
 
-## <span data-asof="2026-10-02">"The DA is the largest single party"</span> — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 2 October 2026
 
-<!-- /block d986d2bf -->
+<!-- /block 315860b5 -->
 
-<!-- block 7016be5f -->
+<!-- block cbb45a94 -->
 *md*
 
-**What changed.** Each party's figure is now the share of simulations in which
-it alone has the most seats. Ties are reported as their own share, beside
-them.</span>
+**What changed.** A party is counted only where it alone has the most seats,
+and ties have their own figure. The sentence reads "The ANC alone has the most
+seats in 47% of simulations and the DA alone in 45%. Two or more parties tie
+for the most seats in 1.4%." The tiles read "The DA alone has the most seats"
+and "The ANC alone has the most seats".</span>
 
-<!-- /block 7016be5f -->
+<!-- /block cbb45a94 -->
 
 <!-- block 50ba7fbe -->
 *md*
@@ -1081,6 +1083,14 @@ Two things are drawn:
   the lowest on record, so the range allows falls as well as rises.
 
 <!-- /block 985bda14 -->
+
+<!-- block ba43754f -->
+*md*
+
+Before the draws, recent by-elections tilt each party's expected share (see
+*The judgement calls*, below).
+
+<!-- /block ba43754f -->
 
 <!-- block 0dac9743 -->
 *md*
@@ -1721,18 +1731,18 @@ makes the forecast more worth your trust, not less.
 
 <!-- /block 23c7b64f -->
 
-<!-- block eb9a6890 -->
+<!-- block bfef3a14 -->
 *md*
 
 <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
 <p>The figures below describe the <b>first version</b> of the model, as it stood on 6 August 2026.
-Today the DA alone is the largest party in {{p_da_largest}} of simulations and the ANC alone in
-{{p_anc_largest}}; two or more parties tie for the most seats in {{p_largest_tied}}. The ANC
-triggers the excessive-seats clause in {{p_excessive_anc}}. No
+The largest party today: {{p_anc_largest}} chance it's the ANC alone and {{p_da_largest}} chance
+it's the DA alone. Two or more parties tie for the most seats: {{p_largest_tied}} chance. The ANC
+triggers the excessive-seats clause: {{p_excessive_anc}} chance. No
 poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is kept as published, as a record
 of how the errors were found and fixed.</p></aside>
 
-<!-- /block eb9a6890 -->
+<!-- /block bfef3a14 -->
 
 <!-- block 358a51aa -->
 *md*
@@ -2280,12 +2290,12 @@ P(DA reaches 136 alone) under a full DA-camp turnout surge
 
 <!-- /block d991355a -->
 
-<!-- block 65e3f548 -->
+<!-- block c7414443 -->
 *claim[0].since*
 
-The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In today's forecast, with no surge, the DA wins a majority on its own in [[da_alone_share]] of the [[n_draws]] simulations ([[da_alone_count]] of them). [[wall_count]] of those take at least [[wall_flips]] of the ANC's usual wards from it, and the ANC falls to [[wall_anc_span]] seats. The other route to a DA majority, the ANC holding its wards while ActionSA and the EFF collapse, no longer appears in any simulation. **The verdict stands. A DA majority depends less on turnout than it did.**
+The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In today's forecast, with no surge, the DA wins a majority on its own: [[da_alone_share]] chance ([[da_alone_count]] of the [[n_draws]] simulations). [[wall_count]] of those take at least [[wall_flips]] of the ANC's usual wards from it, and the ANC falls to [[wall_anc_span]] seats. The other route to a DA majority, the ANC holding its wards while ActionSA and the EFF collapse, no longer appears in any simulation. **The verdict stands. A DA majority depends less on turnout than it did.**
 
-<!-- /block 65e3f548 -->
+<!-- /block c7414443 -->
 
 <!-- block 15f6dcc6 -->
 *claim[0].steps[0]*
@@ -2350,12 +2360,12 @@ This is an appeal, not a forecast, so the thing to test is whether the mandate b
 
 <!-- /block 8fe31c86 -->
 
-<!-- block 58307a58 -->
+<!-- block 8cca7768 -->
 *claim[1].since*
 
-The ANC reaches a majority on its own in [[anc_alone_count]] of the {{n_draws}} simulations ([[anc_alone_share]]), with [[anc_best]] seats at its best. When this claim was first written it did so in none.
+The ANC reaches a majority on its own: [[anc_alone_share]] chance ([[anc_alone_count]] of the {{n_draws}} simulations), with [[anc_best]] seats at its best. When this claim was first written it did so in none of them.
 
-<!-- /block 58307a58 -->
+<!-- /block 8cca7768 -->
 
 <!-- block f9839249 -->
 *claim[1].steps[0]*
@@ -2364,12 +2374,12 @@ The ANC reaches a majority on its own in [[anc_alone_count]] of the {{n_draws}} 
 
 <!-- /block f9839249 -->
 
-<!-- block 0f7183d5 -->
+<!-- block bc9fa8c4 -->
 *claim[1].steps[1]*
 
-**Being first is a different question, and that one is open.** The ANC alone is the largest party in [[anc_largest_share]] of simulations, the DA alone in [[da_largest_share]], and two or more parties tie for the most seats in [[largest_tied_share]]. First place is a genuine contest. Sole control is not: no party reaches {{majority}} alone in more than a handful of draws.
+**Being first is a different question, and that one is open.** The ANC alone has the most seats in [[anc_largest_share]] of simulations, the DA alone in [[da_largest_share]], and two or more parties tie for the most seats in [[largest_tied_share]]. First place is a genuine contest. Sole control is not: no party reaches {{majority}} alone in more than a handful of draws.
 
-<!-- /block 0f7183d5 -->
+<!-- /block bc9fa8c4 -->
 
 <!-- block 028b3515 -->
 *claim[1].steps[2]*
@@ -2420,12 +2430,12 @@ Unlike most campaign talk this is a precise, checkable prediction: more seats th
 
 <!-- /block 934eaabc -->
 
-<!-- block 8af3bdfa -->
+<!-- block 08743c72 -->
 *claim[2].steps[1]*
 
-**First place is a two-horse race in this forecast.** The ANC alone is largest in [[anc_largest_share]] of simulations and the DA alone in [[da_largest_share]]. Two or more parties tie for the most seats in [[largest_tied_share]]. Everything else, MK included, shares what is left.
+**First place is a two-horse race in this forecast.** The ANC alone has the most seats in [[anc_largest_share]] of simulations and the DA alone in [[da_largest_share]]. Two or more parties tie for the most seats in [[largest_tied_share]]. Everything else, MK included, shares what is left.
 
-<!-- /block 8af3bdfa -->
+<!-- /block 08743c72 -->
 
 <!-- block 80152a1e -->
 *claim[2].steps[2]*

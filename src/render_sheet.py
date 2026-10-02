@@ -172,10 +172,15 @@ def main(argv: list[str] | None = None) -> int:
          "Two or more parties tie for the most seats", ""),
         (chance("tile.p_anc_excessive", p_excessive, "forecast_summary.json p_excessive_by_party"),
          "The ANC triggers the excessive-seats clause",
-         "It keeps every ward it wins and gets no list seats; the other parties' list seats shrink"),
+         "It keeps every ward it wins and gets no list seats; the other parties' list seats shrink. "
+         "At least one party triggers it: " + chance("tile.p_excessive_any", summary["p_excessive_any"],
+                                                     "forecast_summary.json p_excessive_any")
+         + " chance" + (". Beyond the ANC: " + _excl if (_excl := _scq.excessive_by_party(
+             summary.get("p_excessive_by_party", {}), NAMES, chance, "tile.p_excessive",
+             "forecast_summary.json p_excessive_by_party", exclude=("ANC",))) else "")),
     ]
     tiles_html = "".join(
-        f'<div class="stat"><div class="n">{n}<span class="chancew"> of simulations</span></div>'
+        f'<div class="stat"><div class="n">{n}<span class="chancew"> chance</span></div>'
         f'<div class="l">{l}{f"<span class=sub>{sub}</span>" if sub else ""}</div></div>'
         for n, l, sub in tiles)
     # (no 'council 270 · majority 136' tile: that is the law, not something the simulations say)
@@ -310,19 +315,19 @@ def main(argv: list[str] | None = None) -> int:
                      and float((msum(m) >= thr).mean()) > 0.5)
     govern_lede = (
         f'<p class="lede">If the DA rules out the ANC, the EFF and MK, its one realistic '
-        f'option is ActionSA and the PA, which have the numbers in '
-        f'{chance("govern.da_best_without", da_best)} of the {{{{n_draws}}}} simulations. '
-        f'The ANC without the DA has {tok("govern.anc_routes", anc_routes, "int")} '
-        f'workable majorities, {tok("govern.anc_routes_strong", anc_strong, "int")} of them '
-        f'reaching {{{{majority}}}} seats in more than half the simulations. This is '
-        f'arithmetic, not a judgement of which deal is likely.</p>')
+        f'option is ActionSA and the PA: {chance("govern.da_best_without", da_best)} chance '
+        f'they have the numbers. The ANC without the DA has '
+        f'{tok("govern.anc_routes", anc_routes, "int")} workable majorities, '
+        f'{tok("govern.anc_routes_strong", anc_strong, "int")} of them with a better than '
+        f'even chance of reaching {{{{majority}}}} seats. This is arithmetic, not a '
+        f'judgement of which deal is likely.</p>')
 
     govern_note = (
         f"<b>How to read it.</b> Each row is a smallest workable majority: it has the numbers, "
         f"and usually loses them if any one partner leaves. Combinations that a partner leaving "
-        f"usually does not break are left out. <b>Governs in</b> is the share of the "
-        f"{{{{n_draws}}}} simulations in which it reaches {{{{majority}}}} seats. It is not a vote "
-        f"share, or the chance that a deal is made. <b>Seats</b>, <b>cushion</b>, "
+        f"usually does not break are left out. <b>Governs in</b> is the chance it reaches "
+        f"{{{{majority}}}} seats: the share of the {{{{n_draws}}}} simulations in which it does. "
+        f"It is not a vote share, or the chance that a deal is made. <b>Seats</b>, <b>cushion</b>, "
         f"<b>stability</b> and <b>if a partner leaves</b> are over the simulations in which it "
         f"governs. Stability is the share of its own councillors who could defect without "
         f"sinking it.")

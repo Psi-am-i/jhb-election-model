@@ -357,7 +357,7 @@ onNameChange(n => { S.name = n; writeURL(); });
 worker.onmessage = e => {
   const m = e.data;
   if (m.type === "stage") {
-    if (m.label !== "Ready") one.status.textContent = m.label + " in your browser…";
+    if (m.label !== "Ready") one.status.textContent = m.label + "…";
   } else if (m.type === "failed") {
     one.status.textContent = m.missing ? m.message : "The seat law could not load (" + m.message + "). Reload to try again.";
     one.status.classList.add("low");

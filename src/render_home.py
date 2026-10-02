@@ -117,12 +117,27 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
     else:
         coalition = "A coalition is one of two live outcomes"
 
+    # ⛔ CHANCE IN THE HEADLINE, SIMULATIONS IN THE EXPLANATION (STYLE rule
+    # 10; owner, 2026-10-02): "A coalition is all but inevitable. 0.1% chance
+    # of one party winning a majority. The largest party is too close to call.
+    # 47% chance it's the ANC and 45% chance it's the DA." The page says what a
+    # chance is once, in its how-to-read item.
+    import stats as _stats
+
+    def opening(token: str, value: float, tail: str) -> str:
+        """A sentence that opens on a chance. "under 0.1%" and "over 99%" are
+        the token's own display and cannot be capitalised, so a figure that
+        does not start with a digit is said the other way round."""
+        if _stats._fmt(value, "chance")[:1].isdigit():
+            return f"{token} chance {tail}."
+        return f"Chance {tail}: {token}."
+
     # ⛔ THE SECOND CLAUSE FOLLOWS WHAT THE READER WILL SEE. An earlier version
     # branched on the raw gap and produced "the DA leads in 47% of simulations,
     # the ANC in 47%" — a claimed lead between two identical printed figures.
     # At four decimal places one of them is always ahead; the question is
-    # whether the difference survives the formatter.
-    import stats as _stats
+    # whether the difference survives the formatter. The two parties are in
+    # the order of their figures, higher first (STYLE rule 7, numeric).
     if _stats._fmt(max(anc, da), "chance") == _stats._fmt(min(anc, da), "chance"):
         # ⛔ ONE TOKEN, WHICHEVER PARTY IS AHEAD BEFORE ROUNDING. A dead heat
         # prints one shared figure; printing the unrounded leader's token made
@@ -133,26 +148,31 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
         # freeze edition, 2026-09-30. The figure is the first party in
         # HEAD_TO_HEAD_ORDER, the order the ledger first published it in.
         first = HEAD_TO_HEAD_ORDER[0]
-        p_heat = chance(f"home.p_{first.lower()}_largest",
-                        da if first == "DA" else anc, _src)
-        race = (f'it is a dead heat: the ANC and the DA each alone have the '
-                f'most seats in {p_heat} of simulations')
-    elif abs(anc - da) < 0.05:
-        race = (f'the race is too close to call: the {lead} alone has the most '
-                f'seats in {p_lead} of simulations, the {trail} alone in {p_trail}')
+        v_heat = da if first == "DA" else anc
+        p_heat = chance(f"home.p_{first.lower()}_largest", v_heat, _src)
+        race = ("The largest party is a dead heat. "
+                + opening(p_heat, v_heat, f"it's the {HEAD_TO_HEAD_ORDER[0]}, and the "
+                         f"same chance it's the {HEAD_TO_HEAD_ORDER[1]}"))
     else:
-        race = (f'the {lead} is ahead: it alone has the most seats in {p_lead} '
-                f'of simulations, the {trail} alone in {p_trail}')
+        verdict = ("The largest party is too close to call." if abs(anc - da) < 0.05
+                   else f"The {lead} is ahead to be the largest party.")
+        race = (f"{verdict} "
+                + opening(p_lead, max(anc, da), f"it's the {lead} and {p_trail} chance it's the {trail}"))
 
-    head = f'<em>{coalition}</em> and {race}.'
+    head = (f"<em>{coalition}.</em> "
+            + opening(p_alone, alone, "of one party winning a majority")
+            + f" {race}")
 
     excessive = chance("home.p_excessive_any", float(summary["p_excessive_any"]),
                        "forecast_summary.json p_excessive_any")
-    sub = (f'One party governs alone in {p_alone} of simulations. Two or more '
-           f'parties tie for the most seats in {p_tied}. A '
+    by_party = _sc.excessive_by_party(
+        summary.get("p_excessive_by_party", {}), LABEL, chance, "home.p_excessive",
+        "forecast_summary.json p_excessive_by_party")
+    sub = (f'Two or more parties tie for the most seats: {p_tied} chance. A '
            f'rarely used clause lets a party keep every ward it wins beyond its '
            f'proportional share, with the shortfall taken from everyone else. '
-           f'It fires for at least one party in {excessive} of them.')
+           f'It applies to at least one party: {excessive} chance.'
+           + (f' By party: {by_party}.' if by_party else ''))
     # `date_long` is the registry's only date format; there is no "date".
     stamp = (f'Model run '
              f'{tok("home.generated", summary["_generated"], "date_long")} '

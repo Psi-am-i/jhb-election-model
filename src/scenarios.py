@@ -230,3 +230,50 @@ def main(argv=None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+# The excessive-seats clause, said by party (owner, 2026-10-02: "is this the
+# ANC or also other parties? We should say who they are. That is the story").
+# A party is named when its chance is at or above this floor; the rest are
+# summed up as "every other party <the highest of them> or less". PRESENTATION:
+# it chooses which figures a sentence prints and changes no draw, seat or
+# probability. The parties named come from the figures, in their order, never
+# from a list.
+#
+# ⚠️ A party that crosses the floor between editions changes which tokens the
+# page prints. One that drops below it leaves its published token off the page,
+# and build_site refuses a published token that vanishes unretired: retire it
+# (`publication.retire`) in that edition, as for any figure that stops being
+# printed.
+EXCESSIVE_FLOOR = 0.02
+
+
+def excessive_by_party(by_party: dict, names: dict, chance, prefix: str,
+                       source: str, exclude: tuple = ()) -> str:
+    """"the ANC 62%, MK Party 3.8%, the EFF 2.7%, every other party 1.3% or less".
+
+    ``by_party`` is forecast_summary.json's ``p_excessive_by_party``; ``names``
+    maps a code to its reader name; ``chance(name, value, source)`` makes a
+    token. Parties at or above ``EXCESSIVE_FLOOR`` are named, highest first;
+    the clause about the rest carries the highest of their figures as its own
+    token, and is left out when no other party ever triggers the clause.
+    ``exclude`` drops parties the sentence has already given.
+    """
+    import stats as _stats
+
+    figures = sorted(((float(v), c) for c, v in by_party.items() if c not in exclude),
+                     key=lambda t: (-t[0], t[1]))
+    named = [(v, c) for v, c in figures if v >= EXCESSIVE_FLOOR]
+    rest = [v for v, c in figures if v < EXCESSIVE_FLOOR and v > 0]
+
+    def who(c):
+        nm = names.get(c, c)
+        return ("the " if nm.isupper() else "") + nm
+
+    parts = [f"{who(c)} {chance(f'{prefix}.{c.lower()}', v, source)}" for v, c in named]
+    if rest:
+        top = max(rest)
+        t = chance(f"{prefix}_rest", top, source + ", the highest of the parties not named")
+        tail = " or less" if _stats._fmt(top, "chance")[:1].isdigit() else ""
+        parts.append(f"every other party {t}{tail}")
+    return ", ".join(parts)

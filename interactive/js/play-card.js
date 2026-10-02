@@ -128,16 +128,18 @@ export function largestTop(r, party) {
     .sort((a, b) => party(a).name.toLowerCase().localeCompare(party(b).name.toLowerCase()));
 }
 // The largest-party line, in the shares' own text (page.py, reweight.chance_text),
-// in the site's one wording for it (/forecast, home, /play/): "X alone has the
-// most seats in …". `cap` starts it with a capital, as a sentence.
+// in the site's one wording for it (/play/'s line and its published twin):
+// "Most seats alone: 47% chance it's the ANC, …" (STYLE rule 10: a chance,
+// never "of simulations"). `cap` starts a name with a capital, as a sentence.
 export const theName = (c, party, cap = false) => {
   const s = party(c).article + party(c).name;
   return cap ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 };
 export function largestLine(r, party) {
   const [a, b] = largestTop(r, party);
-  return theName(a, party, true) + " alone has the most seats in " + r.largest[a].text + " of simulations, " +
-    theName(b, party) + " alone in " + r.largest[b].text + ". Two or more parties tie for the most seats in " + r.tied.text + ".";
+  return "Most seats alone: " + r.largest[a].text + " chance it's " + theName(a, party) + ", " +
+    r.largest[b].text + " chance it's " + theName(b, party) + ". Two or more parties tie for the most seats: " +
+    r.tied.text + " chance.";
 }
 
 // The line under the headline: whose figures these are, then the council.

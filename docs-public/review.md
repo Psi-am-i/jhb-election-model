@@ -14,9 +14,9 @@ makes the forecast more worth your trust, not less.
 
 <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
 <p>The figures below describe the <b>first version</b> of the model, as it stood on 6 August 2026.
-Today the ANC alone has the most seats in {{p_anc_largest}} of simulations and the DA alone in
-{{p_da_largest}}; two or more parties tie for the most seats in {{p_largest_tied}}. The ANC
-triggers the excessive-seats clause in {{p_excessive_anc}}. No
+The largest party today: {{p_anc_largest}} chance it's the ANC alone and {{p_da_largest}} chance
+it's the DA alone. Two or more parties tie for the most seats: {{p_largest_tied}} chance. The ANC
+triggers the excessive-seats clause: {{p_excessive_anc}} chance. No
 poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is kept as published, as a record
 of how the errors were found and fixed.</p></aside>
 

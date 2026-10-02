@@ -420,12 +420,11 @@ function renderResult(r) {
   // every share in the text page.py returns (reweight.chance_text, the
   // format the published twin's tokens use)
   const top = largestTop(r, party);
-  // the site's one wording for it (play-card.js largestLine): "X alone has the most seats in …"
+  // the site's one wording for it (play-card.js largestLine): "Most seats alone: 47% chance it's …"
   const share = c => [r.largest[c].text, arrow(r.largest[c].vs_published)];
-  R.oneline.append(...[theName(top[0], party, true) + " alone has the most seats in ", ...share(top[0]), " of simulations, ",
-    theName(top[1], party) + " alone in ", ...share(top[1]),
-    ". Two or more parties tie for the most seats in " + r.tied.text, arrow(r.tied.vs_published),
-    ". One party wins a majority on its own in " + r.alone.text + "."].filter(x => x != null));
+  R.oneline.append(...["Most seats alone: ", ...share(top[0]), " chance it's " + theName(top[0], party) + ", ",
+    ...share(top[1]), " chance it's " + theName(top[1], party) + ". Two or more parties tie for the most seats: " + r.tied.text,
+    arrow(r.tied.vs_published), " chance. One party wins a majority on its own: " + r.alone.text + " chance."].filter(x => x != null));
   const said = order(r, c => party(c).name).slice(0, 5).map(c => party(c).name + " " + seatText(r.seats[c].median)).join(", ");
   if (R.announce.textContent !== said) R.announce.textContent = said;
 }

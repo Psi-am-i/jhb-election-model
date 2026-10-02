@@ -240,3 +240,35 @@ After:
 Note: "close to the DA's figure" restates "almost exactly the same odds"; it
 is a claim about two live tokens (on 1 October, the two printed figures were
 within three points of each other) and needs rewording if they separate.
+
+---
+
+# STYLE rule 10 (2026-10-02): chance in the claim, simulations in the explanation
+
+Owner, 2026-10-02: "The use of simulations is explanatory and should not be in
+headlines." The two `since` boxes are applied (see `CHANGES.md`, rule 10). The
+items below are in the dated `intro` and `steps`, so they are proposals. Each
+"after" is written against the published text; where an earlier proposal above
+rewrites the same field, apply this change to that "after" instead. Tokens are
+unchanged except where a note says so. A sentence never opens on a token,
+because a chance token can display as "under 0.1%" or "over 99%".
+
+| # | claim · field | before | after | note |
+|---|---|---|---|---|
+| R1 | DA 490,000 · steps[2] (inside `data-asof="2026-08-07"`) | "But the excessive-seats law still fires in nine simulations out of ten" | "But the excessive-seats law still had a nine-in-ten chance of firing" | dated history; body, not heading |
+| R2 | ANC alone · intro | "In the {{n_draws}} simulations behind today's forecast, the ANC does it in [[anc_alone_count]] of them." | "Today's forecast gives it [[anc_alone_share]] chance ([[anc_alone_count]] of the {{n_draws}} simulations)." | adds `[[anc_alone_share]]`, already printed in this claim's since box |
+| R3 | ANC alone · steps[1] body | "The ANC alone has the most seats in [[anc_largest_share]] of simulations, the DA alone in [[da_largest_share]], and two or more parties tie for the most seats in [[largest_tied_share]]." | "Most seats alone: [[anc_largest_share]] chance it's the ANC, [[da_largest_share]] chance it's the DA. Two or more parties tie for the most seats: [[largest_tied_share]] chance." | heading unchanged |
+| R4 | ANC alone · steps[2] body | "the three together reach {{majority}} in [[anc_left_share]] of simulations, on a median of [[anc_left_median]] seats. … reaches it in [[anc_side_share]]." | "the three together reach {{majority}}: [[anc_left_share]] chance, on a median of [[anc_left_median]] seats. … reaches it: [[anc_side_share]] chance." | |
+| R5 | MK · intro | "MK is the largest party in [[mk_largest_share]] of the {{n_draws}} simulations." | "MK has the most seats alone: [[mk_largest_share]] chance." | `{{n_draws}}` leaves the sentence; the how-to-read box says what a chance is |
+| R6 | MK · steps[1] body | "The ANC alone has the most seats in [[anc_largest_share]] of simulations and the DA alone in [[da_largest_share]]. Two or more parties tie for the most seats in [[largest_tied_share]]." | as R3 | heading unchanged |
+| R7 | red line · intro | "which clears {{majority}} in [[no_red_share]] of simulations, or a deal with the ANC itself, which clears it in [[grand_share]]." | "which clears {{majority}}: [[no_red_share]] chance; or a deal with the ANC itself: [[grand_share]] chance." | |
+| R8 | red line · steps[0] **heading** | "**Without the ANC, the red line leaves a majority in [[no_red_share]] of simulations.**" | "**Without the ANC, the red line leaves a majority: [[no_red_share]] chance.**" | ⚠️ the /corrections entry "Without the ANC, the red line holds about half the time" says "The heading now reads 'Without the ANC, the red line leaves a majority in 59% of simulations.'" Changing the heading leaves that entry quoting a wording the page no longer prints, and rule 5 of the brief says presentation changes get no entry. Not applied: the owner decides between leaving the corrected heading as it is and changing it with the entry left as a record of the correction's own wording |
+| R9 | red line · steps[1] body | "reaches {{majority}} in [[three_share]] of simulations" | "reaches {{majority}}: [[three_share]] chance" | the later "in the [[three_share]] where they do reach a majority" is explanatory and stays |
+| R10 | red line · steps[2] body | "clear {{majority}} in [[grand_share]] of simulations" | "clear {{majority}}: [[grand_share]] chance" | the inline 30 September correction is untouched |
+| R11 | red line · steps[3] body | "reaches {{majority}} in [[anc_side_share]] of simulations" | "reaches {{majority}}: [[anc_side_share]] chance" | |
+
+Left as they are (explanatory, not a claim of chance): "Its single best result
+anywhere in the {{n_draws}} simulations" (ANC steps[0]); "a result it beats in
+only one simulation in twenty" (MK steps[0]); "Across all [[n_draws]]
+simulations they hold" (red line steps[1]); "The few simulations where the DA
+does govern alone" (DA 490,000 steps[3]).

@@ -297,3 +297,18 @@ untouched.
   `r-c68c627d287e` reason): 319 rows appended to the scratch ledger (984).
   Real ledger sha256 unchanged. `deploy_check` passes.
 - `site_text --export`, then `--apply --dry-run`: "no edits to apply".
+
+## STYLE rule 10, 2026-10-02: chance in headlines, simulations in explanations
+
+| where | change |
+|---|---|
+| `STYLE.md` | rule 10 added; rule 6's units now "Seats and chances (rule 10)" |
+| home lede (`render_home._lede`) | the owner's four sentences, every figure a token; parties in the order of their figures; a sentence that would open on "under 0.1%" or "over 99%" is turned round ("Chance …: under 0.1%.") |
+| home sub | ties and the excessive-seats clause as chances; the clause named by party (`scenarios.excessive_by_party`, floor `EXCESSIVE_FLOOR`, presentation, registered in `test_regressions`) |
+| home how-to-read item, /forecast how-to-read and tile eyebrow, /play/ note 1 | each says once that a chance is the share of the 5,000 simulations |
+| /forecast | tiles "N chance"; heading "The chances"; coalition lede and "Governs in" column as chances; the ANC clause tile carries the other parties |
+| since boxes (article ×3, review, claims ×2) | chance language; "where on 8 August the DA led clearly" and "Still the ANC's usual condition, and weaker than published" kept (quoted by corrections); the fixed-fact context for "8 August" in `stats.toml` follows the new sentence |
+| /play/ result line, its published twin, share card | "Most seats alone: N chance it's …" |
+| /make/ | the six "Computed in your browser." labels and the loading status's "in your browser" removed; `.livelabel` CSS removed |
+| claims `intro`/`steps` | proposals R1–R11 in `claims-proposals.md`; R8 (the red-line heading) conflicts with its /corrections entry |
+| corrections | none added: rewording into chance language is presentation |

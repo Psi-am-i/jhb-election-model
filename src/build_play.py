@@ -349,10 +349,12 @@ def oneline(processed: Path, names: dict) -> str:
         return nm[:1].upper() + nm[1:] if cap else nm
     tied = _chance("play.largest_tied", lp["tied"], src + ", two or more parties level on the most seats")
     alone = _chance("play.alone", R.majority_alone(seats_, thr), src + ", one party at or above the threshold")
-    # the site's one wording (play-card.js largestLine, /forecast, home)
-    return (f"{who(top[0], True)} alone has the most seats in {share(top[0])} of simulations, "
-            f"{who(top[1])} alone in {share(top[1])}. Two or more parties tie "
-            f"for the most seats in {tied}. One party wins a majority on its own in {alone}.")
+    # the site's one wording (play-card.js largestLine, model.js renderResult):
+    # a chance, never "of simulations" (STYLE rule 10); note-browser says what
+    # a chance is
+    return (f"Most seats alone: {share(top[0])} chance it's {who(top[0])}, "
+            f"{share(top[1])} chance it's {who(top[1])}. Two or more parties tie "
+            f"for the most seats: {tied} chance. One party wins a majority on its own: {alone} chance.")
 
 
 def map_twin(processed: Path, geometry: dict) -> str:
