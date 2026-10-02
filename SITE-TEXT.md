@@ -12,7 +12,7 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-271 blocks from 9 files.
+272 blocks from 9 files.
 
 
 ## forecast-sheet.html
@@ -1065,6 +1065,14 @@ Two things are drawn:
   the lowest on record, so the range allows falls as well as rises.
 
 <!-- /block 985bda14 -->
+
+<!-- block ba43754f -->
+*md*
+
+Before the draws, recent by-elections tilt each party's expected share (see
+*The judgement calls*, below).
+
+<!-- /block ba43754f -->
 
 <!-- block 0dac9743 -->
 *md*

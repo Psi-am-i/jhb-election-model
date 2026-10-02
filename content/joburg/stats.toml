@@ -969,3 +969,29 @@ kind = "judgement"
 source = "JUDGEMENT-CALLS.md §O1 (the merger retention, a judgement call)"
 reviewed = "2026-10-02"
 page = "methodology.html"
+
+[[audit.fixed]]
+value = "40%"
+context = "others more than 40%"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §A35 (the by-election blend weight, a judgement call; the per-party alternative of §A33 is compared with it)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "50%"
+context = "recommended 50%"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §O1 (the blind review of 2026-09-29 recommended a retention of 0.5, the low end of the range in the entry's heading; recorded, not adopted)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+# A party's registered name, not a model figure: the merger partner declared in
+# pools.MERGERS and sourced in SOURCES.md "Mergers".
+[[audit.fixed]]
+value = "4"
+context = "Forum 4 Service Delivery"
+kind = "convention"
+source = "the registered name of the party that merged into ActionSA (SOURCES.md, Mergers)"
+reviewed = "2026-10-02"
+page = "methodology.html"

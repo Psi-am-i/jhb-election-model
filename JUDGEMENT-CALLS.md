@@ -365,11 +365,11 @@ neither replicated. ⚠️ Under rule 11 the effective sample is close to two ev
 
 ### §A8 · `poll_paths` — **"off"** — 🟢
 
-**Plain — No poll is used.** The forecast leaves polls out, because there is no
-designed rule yet for how several polls combine. With polls in, the forecast
-moves toward the polls the rules admit; what that was worth when measured is
-under *Where polls fit*, below. On [play with the model](play/) you can switch
-each poll on and choose how far to trust it.
+**Plain — No poll is used.** There is no designed rule yet for how several polls
+combine. With polls in, the forecast moves toward the polls the rules admit;
+what that was worth when measured is under *Where polls fit*, below. On [play
+with the model](play/) you can switch each poll on and choose how far to trust
+it.
 
 **Where.** `montecarlo.py`, gates both live poll paths
 
@@ -488,7 +488,7 @@ machinery cannot rot while it is switched off.
 
 **Plain — Large surprises are allowed.** Each party's simulated support is drawn
 with heavier tails than a bell curve, so a large miss in either direction comes
-up more often than an ordinary error allows. The record does not fix how heavy.
+up more often than a bell curve gives. The record does not fix how heavy.
 Lighter tails make extreme results rarer and scored the same against past
 elections; much heavier tails scored worse. It cannot be changed on [play with
 the model](play/).
@@ -540,11 +540,11 @@ the model](play/).
 
 **Plain — The largest parties are pulled down.** Before the simulations are
 drawn, each party's expected share is cut by an amount that grows with its size,
-and the vote freed is shared out among all parties. Without the cut, forecasts
-of past elections gave the largest parties too much and the rest too little;
-adding it was the largest single improvement the model has had. The smallest
-parties are now forecast slightly too high. It cannot be changed on [play with
-the model](play/).
+and the vote freed is returned to all parties in proportion to their share.
+Without the cut, forecasts of past elections gave the largest parties too much
+and the middle-sized parties too little; adding it was the largest single
+improvement the model has had. The smallest parties are now forecast slightly
+too high. It cannot be changed on [play with the model](play/).
 
 **Where.** `montecarlo.compress_levels`, run on the finished centre vector
 
@@ -640,13 +640,6 @@ the model](play/).
 
 ### §A33 · `bye_weight_mode` — `"fixed"` — 🟡
 
-**Plain — By-elections count the same for every party.** One by-election weight,
-described next, applies to every party. The alternative, built and not used,
-weights each party by how many by-elections it fought and how much they varied,
-which gives some parties almost no by-election weight and others more than the
-shared one. No past election can test either rule, so we kept the simpler one.
-On [play with the model](play/) you can change the shared weight, not the rule.
-
 **Where.** `montecarlo.py`
 
 **Now.** Defaults to `fixed`. `inverse_variance` is built and derives the weight; switching it moves the published 2026 forecast and no backtest can score either — the owner's call.
@@ -663,12 +656,18 @@ On [play with the model](play/) you can change the shared weight, not the rule.
 
 ### §A35 · `w_bye` — 0.40 — 🔴
 
-**Plain — How much recent by-elections count.** A party's results in the
-by-elections held since the last local election are blended into its expected
-share at a weight of 40%; the rest comes from its national and local record. The
-by-election data starts in 2022, so no past election can test the weight, and
-only the November result will. A higher weight moves parties toward their
-by-election swings. You can change it on [play with the model](play/).
+**Plain — How much recent by-elections count.** A party's swing in the
+by-elections held since the last local election is applied to its last local
+result. The result is held within a range set for each party and blended into
+its expected share at a weight of 40%; the rest comes from its national and
+local record. The same weight applies to every party. The alternative, built and
+not used, gives each party its own weight from how many by-elections it fought,
+how much they varied and how uncertain its record is; some parties would get
+almost no by-election weight and others more than 40%. The by-election data
+starts in 2022, so no past election can test the weight or the choice between
+the two rules, and only the November result will. We kept the simpler rule. A
+higher weight moves parties toward their by-election swings. On [play with the
+model](play/) you can change the weight, not the rule.
 
 **Where.** `montecarlo.py`
 
@@ -902,12 +901,13 @@ picked it, did not.
 ### §B4 · `TURNOUT_CORRELATION = 0.63` — 🟡
 
 **Plain — Turnout moves together across population groups.** In each simulation,
-turnout in the population groups rises and falls together, to one shared degree
-for every pair of groups and every city. The record shows three groups moving
-closely together and the fourth much less. Removing the link was tested and
+turnout in the four population groups rises and falls together, to one degree
+for every pair: the average of how closely each pair's turnout moved between
+past local elections in the metros. Black African, Coloured and White turnout
+have moved closely together, and Indian/Asian turnout much less. Separate
+figures for each pair have not been tried. Removing the link was tested and
 changed the forecast's spread very little, and why it matters so little is not
-yet explained. On [play with the model](play/) each turnout slider moves one
-group and holds the others.
+yet explained. It cannot be changed on [play with the model](play/).
 
 **Where.** `montecarlo.py`
 
@@ -1632,10 +1632,10 @@ otherwise. **None has been measured; several have never been moved at all.**
 ### §H1 · `overhang_rule` — `"deduct"` — ⚖️ STATUTE, NOT A JUDGEMENT CALL
 
 **Plain — The excessive-seats clause.** The clause is applied as amended in
-2021, as set out under *How Johannesburg's council elections work*. The reading
-is ours and has not been tested in court. The other readings change the size of
-the council or the majority line, and [play with the model](play/) lets you
-apply them.
+2021, with the arithmetic the Commission used in Laingsburg in 2021 (see *How
+Johannesburg's council elections work*). No court has ruled on it. [Play with
+the model](play/) applies three versions of Germany's seat law instead; two of
+them enlarge the council and move the majority line.
 
 ⛔ **RECLASSIFIED 2026-09-02 (§1.165). This is not a lever and it must never be
 swept.** It sat at 🔴 "typed, never swept, no interval" for its whole life, and
@@ -1676,17 +1676,25 @@ cannot be re-checked from the repository.
 ### §H2 · `w_recency` — 0.70 — 🔴
 
 **Plain — Expected turnout leans on 2021.** Each voting district's turnout is
-projected from how far it fell between the national and the local election in
-2016 and in 2021, with 2021 counting for 70%. The weight comes from the model's
-original plan and has never been tested. Weighting the two equally moves
-projected turnout toward 2016, when it was higher. On [play with the
-model](play/) you can move each population group's turnout up or down.
+projected from how far turnout fell from the national election to the local
+election two years later, in 2016 and in 2021, with 2021 counting for 70%. The
+weight comes from the model's original plan and has never been tested. Turnout
+fell less in 2016, so weighting the two equally would raise projected turnout.
+On [play with the model](play/) you can move each population group's turnout up
+or down.
 
 **Where.** `turnout.py --w-recency`
 
 **Now.** 0.70, verbatim from the original plan. It reaches the model through 20 committed `turnout.csv` files that carry no artefact key, so changing it does nothing until someone re-runs the script.
 
 **Record.** Weight on the 2021 vs 2016 turnout drop-off. **Verbatim from the original plan §3.5**, whose own text asks for a fold-2 sensitivity test that `MODEL-LOG` never records. Reaches the model through 20 committed `turnout.csv` files that carry **no artefact key**, so changing it does nothing until someone re-runs the script and nothing announces the mismatch
+
+**Direction of the alternative (read 2026-10-02, no model run).** In Johannesburg's
+turnout.csv the median drop-off ratio over voting districts is 0.773 for 2016
+(774 districts) and 0.625 for 2021 (817): turnout fell less from 2014 to 2016
+than from 2019 to 2021, in 712 of the 766 districts that have both. A weight
+below 0.70 therefore raises projected turnout. The sensitivity test the plan
+asks for is still unrun; this gives the sign only.
 
 ### §H3 · `kappa_bye` — 0.25 — 🔴
 
@@ -2589,8 +2597,11 @@ can be certified automatically, and nothing available certifies these. §1.242.
 
 **Plain — The SACP's first ballot under its own name.** The South African
 Communist Party has stood on ANC lists until now, so it has no Johannesburg
-record of its own. We sized it by hand from its by-elections elsewhere, as the
-average of two readings of them. Sized as a breakaway from the ANC it came out
+record of its own. We sized it by hand from the ward by-elections it has fought
+elsewhere since July 2025, all in wards it chose to contest. The size is the
+average of two readings: its typical share of the vote in those wards, and its
+typical share of the combined SACP and ANC vote there, applied to the ANC's
+expected Johannesburg share. Sized as a breakaway from the ANC it came out
 several times larger, and sized as a brand-new party it came out below every
 by-election result it has had; its own record rejects both. It cannot be changed
 on [play with the model](play/).
@@ -3035,10 +3046,13 @@ figures above at any time.
 
 ### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured
 
-**Plain — What a merger keeps.** When parties merge and only one of them is on the
-ballot, it inherits 75% of the other's previous vote and the rest is treated as
-lost. No merger in the record shows how much carries over, so the share is a
-judgement; a review recommended half. A lower share moves the inheriting party
+**Plain — What a merger keeps.** When parties merge, or one stands down for
+another, and only one of them is on the ballot, it inherits 75% of the other's
+previous vote. The rest goes to the parties that compete for the same voters, as
+any absent party's vote does. In 2026 ActionSA inherits from Forum 4 Service
+Delivery, and Rise Mzansi from GOOD. No merger in the record shows how much
+carries over, so the share is a judgement; a review in September that was not
+shown our reasoning recommended 50%. A lower share moves the inheriting party
 down. It cannot be changed on [play with the model](play/).
 
 **Where.** `pools.MERGER_RETENTION`, read at call time by `pools.apply_mergers`,

@@ -18,7 +18,7 @@ whether /play/ can move it. `src/judgement_sheet.py` writes the /methodology
 section "The judgement calls" from those fields, in register order; the site
 build refreshes it and `tests/test_judgement_sheet.py` checks it both ways.
 
-**Counts.** 163 § entries in `JUDGEMENT-CALLS.md`: 10 kept,
+**Counts.** 163 § entries in `JUDGEMENT-CALLS.md`: 10 kept (in nine Plain fields; §A33 shares §A35's),
 153 dropped. One table row has no § entry of its own (the
 independent-ward count, citing MODEL-LOG §1.166): dropped, a structural
 limitation of the seat count rather than an opinion a reader can weigh.
@@ -60,7 +60,7 @@ from the emitted 2026 spec's seed notes (no 2026 seed is sized as a breakaway).
 | §A30 | Dirichlet floor — 1e-4 — 🟢 | dropped | numerical floor |
 | §A31 | _LOG_FLOOR — 1e-6 — 🟡 | dropped | numerical floor, unexercised |
 | §A32 | turnout spread with one observation — 0.30 logits — 🟡 | dropped | fallback for a missing measurement |
-| §A33 | bye_weight_mode — "fixed" — 🟡 | KEPT | kept as "By-elections count the same for every party" |
+| §A33 | bye_weight_mode — "fixed" — 🟡 | KEPT | carried inside §A35's field "How much recent by-elections count" (merged 2026-10-02: the weight and the per-party alternative read as one call, and the page describes the by-election blend only there) |
 | §A34 | turnout-adjusted by-election weighting — ⚫ refused | dropped | refused, never shipped |
 | §A35 | w_bye — 0.40 — 🔴 | KEPT | kept as "How much recent by-elections count" |
 | §A36 | ward→PR conversion of the by-election delta — ratio, clipped [0.5, 2.0], above pc > 0.0... | dropped | conversion detail inside the by-election channel |
