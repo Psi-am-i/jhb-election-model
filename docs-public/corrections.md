@@ -2,6 +2,17 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
+## "The DA is the largest single party" — published 26 September 2026, corrected 2 October 2026
+
+<span data-asof="2026-10-02">**What was wrong.** Every page that gave a
+party's share of simulations as the largest party counted a simulation in which
+two or more parties tied for the most seats for whichever of them came first in
+the results file. That was usually the DA.
+
+**What changed.** Each party's figure is now the share of simulations in which
+it alone has the most seats. Ties are reported as their own share, beside
+them.</span>
+
 ## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 2 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** The red-lines claim on the

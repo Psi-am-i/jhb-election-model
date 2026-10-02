@@ -355,6 +355,21 @@ def _derived(name: str, ctx: dict):
         hit = sum(1 for r in draws
                   if max(int(r[p]) for p in parties) >= int(r["threshold"]))
         return hit / len(draws)
+    if name.startswith("largest_outright.") or name == "largest_tied":
+        # ONE DEFINITION, reweight.largest_party (side finding S1, 2026-10-02):
+        # `structural.P(X is the largest single party)` in forecast_summary.json
+        # is an argmax over the model's party order, which credits every tied
+        # simulation to the first party in it. Ties are their own outcome.
+        if not draws:
+            return None
+        import numpy as _np
+        import reweight as _rw
+        parties = [k for k in draws[0] if k not in ("draw", "threshold", "council_size")]
+        seats = _np.array([[int(float(r[p] or 0)) for p in parties] for r in draws])
+        got = _rw.largest_party(seats, parties)
+        if name == "largest_tied":
+            return got["tied"]
+        return got["outright"].get(name[len("largest_outright."):])
     return None
 
 
@@ -827,6 +842,9 @@ _LEGACY_SHAPE = re.compile(r"^\d{1,3}(?:[.,]\d+)?\s?%$|^\d+$")
 # citation, the same kind of thing as a piece's own dated label: it dates the
 # quote, it does not assert anything about the city.
 CHROME_CLASSES = ("ticks", "scale", "pubdate", "since-h", "colophon",
+                   # a footnote marker points at a note; it counts nothing
+                   # (/play/'s notes, 2026-10-02)
+                   "fn",
                    # and the quotation itself: the page tests that claim, it does
                    # not assert it. Our own figures about it are tokens below it.
                    "claim-who", "claim-quote")

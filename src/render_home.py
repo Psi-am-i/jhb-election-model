@@ -78,14 +78,29 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
     """
     import scenarios as _sc
 
-    st = summary["structural"]
-    anc = float(st.get("P(ANC is the largest single party)", 0.0))
-    da = float(st.get("P(DA is the largest single party)", 0.0))
+    # WHO IS LARGEST: reweight.largest_party, the one definition the forecast
+    # page and /play/ use, over the seat draws. forecast_summary.json's
+    # `structural.P(X is the largest single party)` is an argmax that credits
+    # every tied simulation to the first party in the model's order (side
+    # finding S1, 2026-10-02); a tie is its own outcome and is said as one.
+    import csv as _csv
+    import numpy as _np
+    import reweight as _rw
+    with (Path(processed) / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+        _rows = list(_csv.DictReader(fh))
+    _parties = [k for k in _rows[0] if k not in ("draw", "threshold", "council_size")]
+    _lp = _rw.largest_party(_np.array([[int(float(r[p] or 0)) for p in _parties]
+                                       for r in _rows]), _parties)
+    _src = f"seat_draws.csv, {len(_rows):,} simulations, the party alone with the most seats"
+    anc = float(_lp["outright"].get("ANC", 0.0))
+    da = float(_lp["outright"].get("DA", 0.0))
     alone = _sc.majority_alone_share(processed)
     lead, trail = ("ANC", "DA") if anc >= da else ("DA", "ANC")
 
-    p_lead = chance(f"home.p_{lead.lower()}_largest", max(anc, da))
-    p_trail = chance(f"home.p_{trail.lower()}_largest", min(anc, da))
+    p_lead = chance(f"home.p_{lead.lower()}_largest", max(anc, da), _src)
+    p_trail = chance(f"home.p_{trail.lower()}_largest", min(anc, da), _src)
+    p_tied = chance("home.p_largest_tied", _lp["tied"],
+                    f"seat_draws.csv, {len(_rows):,} simulations, two or more parties level on the most seats")
     p_alone = chance("home.p_alone", alone,
                      "seat_draws.csv, one party at or above the threshold")
 
@@ -119,7 +134,7 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
         # HEAD_TO_HEAD_ORDER, the order the ledger first published it in.
         first = HEAD_TO_HEAD_ORDER[0]
         p_heat = chance(f"home.p_{first.lower()}_largest",
-                        da if first == "DA" else anc)
+                        da if first == "DA" else anc, _src)
         race = (f'it is a dead heat: the ANC and the DA each lead in '
                 f'{p_heat} of simulations')
     elif abs(anc - da) < 0.05:
@@ -133,7 +148,8 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
 
     excessive = chance("home.p_excessive_any", float(summary["p_excessive_any"]),
                        "forecast_summary.json p_excessive_any")
-    sub = (f'One party governs alone in {p_alone} of simulations. A '
+    sub = (f'One party governs alone in {p_alone} of simulations. Two or more '
+           f'parties tie for the most seats in {p_tied}. A '
            f'rarely used clause lets a party keep every ward it wins beyond its '
            f'proportional share, with the shortfall taken from everyone else. '
            f'It fires in {excessive} of them.')
