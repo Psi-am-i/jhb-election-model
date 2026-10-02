@@ -1042,5 +1042,70 @@ def test_uniform_weights_withhold_no_published_figure_and_a_far_tilt_does():
     assert worst and not R.within_precision(figs, far)
 
 
+def test_a_tie_for_the_most_seats_is_its_own_outcome():
+    """S1 (2026-10-02): argmax credited every tied simulation to the first
+    column. Constructed: four simulations, one tied for the most seats."""
+    cols = ["DA", "ANC", "EFF"]
+    seats = np.array([[60, 60, 20],     # tied: nobody's
+                      [70, 50, 20],     # DA alone
+                      [50, 71, 20],     # ANC alone
+                      [40, 80, 30]])    # ANC alone
+    got = R.largest_party(seats, cols)
+    assert got["outright"] == {"DA": 0.25, "ANC": 0.5, "EFF": 0.0}, got
+    assert got["tied"] == 0.25
+    assert abs(sum(got["outright"].values()) + got["tied"] - 1.0) < 1e-12
+    # the old rule on the same array credits the tie to the first column: the
+    # test fails if it comes back
+    argmax = np.bincount(seats.argmax(axis=1), minlength=3) / len(seats)
+    assert argmax[0] == 0.5 and got["outright"]["DA"] != argmax[0]
+    # weighted: the tie's weight goes to "tied" only
+    w = np.array([3.0, 1.0, 0.0, 0.0])
+    got = R.largest_party(seats, cols, w)
+    assert got["tied"] == 0.75 and got["outright"]["DA"] == 0.25 and got["outright"]["ANC"] == 0.0
+
+
+def test_majority_alone_reads_each_simulations_own_threshold():
+    seats = np.array([[136, 100], [135, 100], [100, 140]])
+    assert R.majority_alone(seats, [136, 136, 141]) == 1 / 3
+    assert R.majority_alone(seats, [136, 135, 140]) == 1.0
+
+
+def test_beyond_noise_is_twice_the_combined_error_on_each_side():
+    se_a, se_b = 0.6, 0.8
+    noise = 2.0 * math.sqrt(se_a ** 2 + se_b ** 2)          # 2.0
+    assert R.beyond_noise(10.0 + noise + 1e-9, se_a, 10.0, se_b)["within_noise"] is False
+    assert R.beyond_noise(10.0 + noise - 1e-9, se_a, 10.0, se_b)["within_noise"] is True
+    assert R.beyond_noise(10.0 - noise - 1e-9, se_a, 10.0, se_b)["within_noise"] is False
+    # with no sampling error, any difference counts; callers drop a zero one
+    assert R.beyond_noise(5.0, 0.0, 4.0, 0.0)["within_noise"] is False
+
+
+def test_the_registry_reads_the_tie_rule_too():
+    """``stats._derived`` ("largest_outright.<P>", "largest_tied") is the
+    registry's door to the same rule: constructed draws, one tie."""
+    import stats as S
+    draws = [{"draw": 0, "threshold": 136, "council_size": 270, "DA": 60, "ANC": 60},
+             {"draw": 1, "threshold": 136, "council_size": 270, "DA": 70, "ANC": 50},
+             {"draw": 2, "threshold": 136, "council_size": 270, "DA": 50, "ANC": 140}]
+    ctx = {"draws": draws}
+    assert S._derived("largest_outright.DA", ctx) == 1 / 3
+    assert S._derived("largest_outright.ANC", ctx) == 1 / 3
+    assert S._derived("largest_tied", ctx) == 1 / 3
+    assert S._derived("p_alone", ctx) == 1 / 3
+
+
+def test_one_text_for_a_share_of_simulations():
+    """``reweight.chance_text`` is what ``stats``' "chance" format prints and
+    what /play/ prints beside a reader's share (code review 3, 2026-10-02:
+    the browser printed 9.1% where the build printed 9.0%)."""
+    import stats as S
+    grid = [0.0, 0.0004, 0.0005, 0.014, 0.02, 0.05, 0.0905, 0.094999, 0.095, 0.125,
+            0.4672, 0.985, 0.99, 0.9901, 1.0]
+    for v in grid:
+        assert S._fmt(v, "chance") == R.chance_text(v), v
+    assert [R.chance_text(v) for v in (0.02, 0.0905, 0.0144, 0.4524, 0.995, 0.0001)] == \
+        ["2.0%", "9.0%", "1.4%", "45%", "over 99%", "under 0.1%"]
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

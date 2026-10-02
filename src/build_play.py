@@ -11,9 +11,10 @@ What the served page is made of
 ``play/index.html``
     ``interactive/model.html`` with its prototype-only parts cut
     (``__DEVONLY__`` spans), the site's ``THEME_HEAD``, nav and footer put in
-    one level down, and the published forecast's own panels spliced in.
+    one level down, and the published forecast's figures filled in at the
+    ``<!-- __PLAY:<name>__ -->`` markers (:data:`FILL`).
 ``play/js/``, ``play/css/``, ``play/pyboot/page.py``
-    Byte copies of the page's modules (``PLAY_JS``), its stylesheet and its
+    Byte copies of the page's modules (``PLAY_JS``), its stylesheets and its
     Python entry, except ONE declared line of ``model-worker.js``: where the
     draws are (``DRAWS_LINE``), which is ``site/draws/`` beside the prototype
     and ``/draws/`` when served. The build refuses if that line is not there
@@ -23,23 +24,45 @@ What the served page is made of
     written by ``interactive/tools/sync_py.mjs`` — the one definition of that
     copy and its hash — which this build runs, then copies.
 ``play/parties.json``
-    Party names and colours for the draws' roster, from the site's one
-    definition (``render_sheet.NAMES`` / ``CHIPS``, then
-    ``parties.display_name``), so the page types none.
+    Party names, colours and the article a name takes in a sentence ("the
+    ANC", "ActionSA"), for the draws' roster, from the site's one definition
+    (``render_sheet.NAMES`` / ``CHIPS``, then ``parties.display_name``), so the
+    page types none.
+``play/ward_paths.json``
+    The ward boundaries (``render_map``'s ``ward_paths.json``: geometry and
+    place labels, no figure). ``js/model.js`` draws the map under a reader's
+    settings from it; the published map is drawn here (:func:`map_twin`).
+``play/labels.json``
+    The word list and number range of ``interactive/js/labels.js``, read by
+    node, so the share sheet can offer a random label without importing a
+    module that holds a data block.
 
-First paint is the published forecast AS TOKENS
-===============================================
+First paint is the published forecast AS TOKENS (DESIGN §4)
+===========================================================
 
-The untouched page shows the published forecast (SPEC-v2 F6). Its panels are
-cut from ``forecast-sheet.html`` — the SOURCE template, whose figures are
-``{{…}}`` tokens — and ``build_site`` renders them with ``stats.render``, so
-every figure on first paint is ledgered, drift-checked and arrowed exactly as
-on ``/forecast``. Each group of panels sits in a declarative shadow root with
-the sheet's own stylesheet, so the two pages' class names cannot collide.
-The sheet's inline scripts (the map tooltip, the coalition filter) are not
-carried: they are the forecast page's, and the controls they drive are hidden.
-The ``MAP`` region keeps its markers, so the number scan classifies its
-figures as generated, exactly as on ``/forecast``.
+Every results element exists twice: a BUILD TWIN written here, whose figures
+are ``{{…}}`` tokens that ``build_site`` renders with ``stats.render`` (so
+each is ledgered, drift-checked and arrowed as on ``/forecast``), and an empty
+LIVE sibling that ``play/js/model.js`` fills once a control moves. Nothing
+from ``/forecast`` is embedded. The twins' figures come from:
+
+* the seat rows and banner: the forecast sheet's own seat tokens
+  (``forecast-sheet.html``'s ``__SEATS__`` region, ``render_sheet``'s
+  ``seats.<P>.*``), so the untouched page is the forecast page's figures;
+* the largest party, ties and a majority alone: ``reweight.largest_party``
+  and ``reweight.majority_alone`` over ``seat_draws.csv``, the definitions
+  ``render_sheet`` uses;
+* the published map: ``render_map.ward_layers`` over ``ward_winner_probs.csv``,
+  between ``__MAP_START__``/``__MAP_END__`` so the number scan lists its
+  tooltips as generated, as on ``/forecast``;
+* turnout by group, the line under the by-election control and its
+  footnote: the published draws (``site/draws/``) through ``src/reweight.py``,
+  the arithmetic the page itself runs;
+* where each party's votes come from, and the new-party note:
+  ``pools_<target>.json`` (``pools[g].members``, ``pool_shares_at_target``,
+  ``no_measured_vector``), the spec the forecast consumed. NOT
+  ``pools_<target>_simulation.json``, which carries a fifth bloc the forecast
+  never reads.
 
 Figures a reader's settings produce are NOT here: they are written at view
 time into ``data-live`` regions by ``play/js/model.js``, and the share sheet
@@ -59,6 +82,7 @@ them.
 """
 from __future__ import annotations
 
+import csv
 import json
 import re
 import shutil
@@ -79,37 +103,48 @@ PLAY_HREF = f"{PLAY_DIR}/"
 #: settings (``?t=…``) shows this same generic card, because nothing renders
 #: per-link previews on the server. og:image stays the site's share.jpg.
 OG_TITLE = "Play with the Johannesburg election model"
-OG_DESCRIPTION = ("Move turnout, polls and the seat law, and see how the model's "
-                  "simulations of the Johannesburg council change.")
+OG_DESCRIPTION = ("Move turnout, a poll and the weight of by-elections, and see how "
+                  "the model's simulations of the Johannesburg council change.")
 #: The modules the page loads, statically or as its Worker. Nothing else under
 #: interactive/js ships: the builder's modules are not part of this page.
 PLAY_JS = ("model.js", "play-state.js", "model-worker.js", "reweight-engine.js",
            "play-card.js", "play-share.js", "card-text.js")
-PLAY_CSS = ("interactive.css",)
+PLAY_CSS = ("interactive.css", "play.css")
 PLAY_PYBOOT = ("page.py",)
 #: The one line of the Worker that differs between the prototype and the site.
 DRAWS_LINE = ('const DRAWS = "../../site/draws/";', 'const DRAWS = "../../draws/";')
-
-#: The published forecast's panels, by host marker in model.html. Each is a
-#: slice of forecast-sheet.html from its first string to its last, both
-#: included; each must occur exactly once.
-PANELS = {
-    "seats": (("<figure>", '<div class="chart" id="seats">'), "</figure>"),
-    "tiles": ('<section class="stats" id="tiles">', "<!-- __TILES_END__ --></section>"),
-    "govern": ("<!-- __GOVERN_LEDE_START__ -->", "<!-- __GOVERN_NOTE_END__ --></figcaption>"),
-    "map": ("<!-- __MAP_START__ -->", "<!-- __MAP_END__ -->"),
-    "claims": ('<section class="claimband" id="claims">', "<!-- __CLAIMS_END__ -->", "</section>"),
-}
-#: Which panels fill which host, in order.
-HOSTS = {"seats": ("seats",), "panels": ("tiles", "govern", "map", "claims")}
-#: The forecast page's controls, which need its scripts, are hidden here.
-HIDE_CSS = (".maptoggle,.govfilter,#govMore,script{display:none!important}"
-            ":host{display:block}")
+#: The markers model.html carries, each filled by one function below.
+FILL = ("banner", "oneline", "map", "seats", "turnout", "composition", "refused",
+        "bye", "newparties", "maxse", "election", "seatscale")
+#: The seat axis, in seats, for the published rows here and the reader's rows
+#: in js/model.js (which reads it from the "seats" region's data-scale).
+SEAT_SCALE = 125
+SEAT_TICKS = (0, 25, 50, 75, 100, 125)
+#: How many parties the banner names, in the published order.
+BANNER_PARTIES = 6
+#: The share of a party's votes below which its bar segment carries no label.
+SEGMENT_LABEL_MIN = 0.12
+#: The four population groups' bar tones: four hues at one lightness, so the
+#: chart carries no light-to-dark order of the groups (critic S4, 2026-10-02),
+#: none of them a party's colour, each light enough for the same dark label.
+GROUP_TONES = ("#86b6ad", "#d3b062", "#c99682", "#a3aec4")
+#: How a refused poll is described, by polling.screen's rule. A rule not here
+#: is not a reason a reader of this cycle's polls needs (another city, another
+#: election, after polling day).
+REFUSED_AS = {"commissioned": "commissioned by a party or campaign",
+              "no-city": "reporting several cities together",
+              "under-min-n": "with too small a sample",
+              "undated": "with no fieldwork date",
+              "outside-window": "taken too long before polling day"}
 
 _DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
-_SCRIPT = re.compile(r"<script\b[^>]*>.*?</script>\s*", re.S | re.I)
-_STYLE = re.compile(r"<style\b[^>]*>(.*?)</style>", re.S | re.I)
 _REL_ATTR = re.compile(r'\b(href|src)="(?![a-z][a-z0-9+.-]*:|/|#|\.\./)([^"]*)"', re.I)
+_SEAT_ROW = re.compile(
+    r'<div class="row"><div class="pname"><span class="chip" style="background:(#[0-9A-Fa-f]{6})">'
+    r'</span>([^<]*)</div><div class="track">.*?</div>'
+    r'<div class="val"><b>(\{\{@seats\.([A-Z_]+)\.median=([^;]*);[^}]*\}\})</b></div>'
+    r'<div class="val rng">(\{\{@seats\.\4\.p5=([^;]*);[^}]*\}\})–(\{\{@seats\.\4\.p95=([^;]*);[^}]*\}\})</div></div>',
+    re.S)
 
 
 class PlayBuildError(SystemExit):
@@ -128,34 +163,383 @@ def one_level_down(html: str) -> str:
     return _REL_ATTR.sub(lambda m: f'{m.group(1)}="../{m.group(2)}"', html)
 
 
-def panel(sheet: str, name: str) -> str:
-    """One published panel, cut from the forecast sheet's source template."""
-    spec = PANELS[name]
-    if name == "seats":
-        (opener, anchor), closer = spec
-        at = _once(sheet, anchor, "the seats chart")
-        lo = sheet.rindex(opener, 0, at)
-        hi = sheet.index(closer, at) + len(closer)
-    else:
-        lo = _once(sheet, spec[0], f"the {name} panel")
-        hi = lo
-        for closer in spec[1:]:
-            hi = sheet.index(closer, hi) + len(closer)
-    return _SCRIPT.sub("", sheet[lo:hi])
+def _tok(name: str, value, fmt: str, source: str) -> str:
+    """A generated token (``stats.GEN_TOKEN``): rendered, ledgered and scanned as one."""
+    return f"{{{{@{name}={value};{fmt};{source}}}}}"
 
 
-def published_host(sheet: str, names, stat_css: str) -> str:
-    """A declarative shadow root holding these panels and the sheet's styles."""
-    head = sheet[:sheet.index("</head>")]
-    css = "\n".join(_STYLE.findall(head))
-    body = "\n".join(panel(sheet, n) for n in names)
-    return ('<template shadowrootmode="open"><style>' + css + "\n" + stat_css + "\n"
-            + HIDE_CSS + '</style><div class="page">' + one_level_down(body)
-            + "</div></template>")
+def _chance(name: str, value: float, source: str) -> str:
+    return _tok(name, f"{float(value):.6f}", "chance", source)
 
 
-def assemble(*, theme_head: str, nav: str, footer: str, stat_css: str,
-             cut_markers) -> str:
+def _slug(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", s.lower()).strip("_")
+
+
+def _esc(s: str) -> str:
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+
+# ==========================================================================
+# what the twins are made of
+# ==========================================================================
+
+def seat_rows(sheet: str) -> list[dict]:
+    """The forecast sheet's seat rows, in its order, each with its own tokens.
+
+    ``code``, ``name``, ``chip``, the three token strings (``median``, ``p5``,
+    ``p95``) and their pinned values (``m``, ``lo``, ``hi``). Refuses a sheet
+    whose ``__SEATS__`` region it cannot read, rather than show fewer rows.
+    """
+    lo = _once(sheet, "<!-- __SEATS_START__ -->", "the forecast sheet's seats region")
+    hi = sheet.index("<!-- __SEATS_END__ -->", lo)
+    region = sheet[lo:hi]
+    rows = [{"code": m.group(4), "name": m.group(2), "chip": m.group(1),
+             "median": m.group(3), "p5": m.group(6), "p95": m.group(8),
+             "m": float(m.group(5)), "lo": float(m.group(7)), "hi": float(m.group(9))}
+            for m in _SEAT_ROW.finditer(region)]
+    if len(rows) != region.count('<div class="row">') or not rows:
+        raise PlayBuildError("build_play: the forecast sheet's seat rows are not in the form "
+                             "build_play reads (render_sheet's seats_html); fix one or the other")
+    return rows
+
+
+def _ordered(rows: list[dict]) -> list[dict]:
+    """Party rows by middle seat count, then name (STYLE rule 7); Others last."""
+    named = sorted((r for r in rows if r["code"] != "OTHERS"),
+                   key=lambda r: (-round(r["m"]), r["name"].lower()))
+    return named + [r for r in rows if r["code"] == "OTHERS"]
+
+
+def _draws_cell(path: str = "."):
+    import reweight as R
+    d = DRAWS if path == "." else DRAWS / path
+    man = json.loads((d / "manifest.json").read_text(encoding="utf-8"))
+    return man, R.unpack((d / "base.bin").read_bytes(), man)
+
+
+def _seat_draws(processed: Path):
+    import numpy as np
+    with (processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+    parties = [k for k in rows[0] if k not in ("draw", "threshold", "council_size")]
+    seats = np.array([[int(float(r[p] or 0)) for p in parties] for r in rows])
+    thr = np.array([int(float(r["threshold"])) for r in rows])
+    return parties, seats, thr
+
+
+def roster() -> dict:
+    """``{code: {name, colour, article}}`` for every party the draws carry.
+
+    ``article`` is "the " for a name written as an abbreviation ("the ANC"),
+    else empty ("ActionSA", "MK Party"): one rule, so the page types no list.
+    """
+    import parties as _parties
+    import render_sheet
+    codes = list(render_sheet.NAMES)
+    man = DRAWS / "manifest.json"
+    if man.is_file():
+        codes = json.loads(man.read_text(encoding="utf-8")).get("parties") or codes
+    out = {}
+    for c in codes:
+        name = render_sheet.NAMES.get(c) or _parties.display_name(c)
+        out[c] = {"code": c, "name": name, "colour": render_sheet.CHIPS.get(c, "#8b918b"),
+                  "article": "the " if name.isupper() else ""}
+    return out
+
+
+# ==========================================================================
+# the twins
+# ==========================================================================
+
+def banner(rows: list[dict]) -> str:
+    """The sticky banner's published seats: the first BANNER_PARTIES rows."""
+    items = "".join(
+        f'<span class="pl-bi"><i style="background:{r["chip"]}"></i>{_esc(r["name"])} <b>{r["median"]}</b></span>'
+        for r in _ordered(rows) if r["code"] != "OTHERS")
+    items = "".join(re.findall(r'<span class="pl-bi">.*?</b></span>', items)[:BANNER_PARTIES])
+    return (f'<span class="pl-bitems">{items}</span>'
+            f'<span class="pl-bmaj">Majority {{{{majority}}}}</span>')
+
+
+def seats(rows: list[dict], others_count: str) -> str:
+    """The published seat rows: the sheet's tokens, on the page's own axis."""
+    out = []
+    for r in _ordered(rows):
+        pct = lambda v: f"{100.0 * v / SEAT_SCALE:.2f}%"
+        label = (f'Others <span class="pl-sub">({others_count})</span>' if r["code"] == "OTHERS"
+                 else _esc(r["name"]))
+        out.append(
+            f'<div class="pl-srow"><div class="pl-sname"><span class="pl-chip" style="background:{r["chip"]}">'
+            f'</span>{label}</div><div class="pl-track"><span class="pl-band" style="left:{pct(r["lo"])};'
+            f'width:{pct(r["hi"] - r["lo"])};background:{r["chip"]}"></span><span class="pl-med" '
+            f'style="left:calc({pct(r["m"])} - 1.5px)"></span></div><div class="pl-sval"><b>{r["median"]}</b>'
+            f'<span class="pl-rng">{r["p5"]}–{r["p95"]}</span></div></div>')
+    ticks = "".join(f'<span style="left:{100.0 * t / SEAT_SCALE:.2f}%">{t}</span>' for t in SEAT_TICKS)
+    return "".join(out) + f'<div class="pl-srow pl-axis"><div></div><div class="ticks pl-ticks">{ticks}</div><div></div></div>'
+
+
+def others_count(rows: list[dict]) -> str:
+    """How many parties "Others" sums: those outside the published rows that win
+    a seat in any simulation, counted as ``pyboot/page.py`` counts them."""
+    man, arrays = _draws_cell(".")
+    cols = next(b for b in man["blocks"] if b["name"] == "seats/deduct")["columns"]
+    shown = {r["code"] for r in rows}
+    block = arrays["seats/deduct"]
+    n = sum(1 for j, c in enumerate(cols) if c not in shown and c != "OTHER" and block[:, j].max() > 0)
+    return _tok("play.others_count", n, "int",
+                "site/draws/base.bin, parties outside the named rows winning a seat in any simulation")
+
+
+def oneline(processed: Path, names: dict) -> str:
+    """The one-line result: the two parties most often alone with the most seats
+    (alphabetical), ties, and a majority alone, by reweight's definitions."""
+    import reweight as R
+    parties, seats_, thr = _seat_draws(processed)
+    lp = R.largest_party(seats_, parties)
+    src = f"seat_draws.csv, {len(seats_):,} simulations"
+    top = sorted(sorted(lp["outright"], key=lambda p: -lp["outright"][p])[:2],
+                 key=lambda p: names[p]["name"].lower())
+
+    def part(p):
+        art = names[p]["article"]
+        return (f"{art}{_esc(names[p]['name'])} in "
+                f"{_chance(f'play.largest.{p}', lp['outright'][p], src + ', the party alone with the most seats')}")
+    tied = _chance("play.largest_tied", lp["tied"], src + ", two or more parties level on the most seats")
+    alone = _chance("play.alone", R.majority_alone(seats_, thr), src + ", one party at or above the threshold")
+    return (f"Largest party: {part(top[0])} of simulations, {part(top[1])}. Two or more parties tie "
+            f"for the most seats in {tied}. One party wins a majority on its own in {alone}.")
+
+
+def map_twin(processed: Path, geometry: dict) -> str:
+    """The published map, drawn by ``render_map.ward_layers`` (the forecast map's rule)."""
+    import render_map as RM
+    with (processed / "ward_winner_probs.csv").open(encoding="utf-8", newline="") as fh:
+        calls = RM.probs_calls(csv.DictReader(fh))
+    patterns, fills, hatches = RM.ward_layers(geometry["paths"], calls, prefix="pub")
+    labels = "".join(f'<text x="{l["x"]}" y="{l["y"]}" text-anchor="middle" class="pl-maplabel">{_esc(l["t"])}</text>'
+                     for l in geometry["labels"])
+    w, h = geometry["W"], geometry["H"]
+    return (f'{RM.MARK_START}<svg class="pl-wardmap" viewBox="0 0 {w:.0f} {h:.0f}" role="img" '
+            f'aria-label="Johannesburg wards, north to the right, coloured by the party that wins each">'
+            f'<defs>{patterns}</defs>{fills}{hatches}{labels}'
+            f'<text x="{w - 14:.0f}" y="20" text-anchor="end" class="pl-north">N ↗</text></svg>{RM.MARK_END}')
+
+
+def turnout() -> str:
+    """Each group's published turnout: the mean of the draws' ``pool_turnout``."""
+    man, arrays = _draws_cell(".")
+    pools = next(b for b in man["blocks"] if b["name"] == "pool_turnout")["columns"]
+    means = arrays["pool_turnout"].mean(axis=0)
+    src = (f"site/draws/base.bin pool_turnout, mean of {int(man['draws']):,} simulations "
+           f"(votes per registered voter in the group)")
+    return "".join(
+        f'<div class="pl-tslider"><div class="pl-tlab"><span>{_esc(g)}</span><span class="pl-tval">'
+        f'{_tok(f"play.turnout.{_slug(g)}", f"{float(m):.6f}", "pct0", src)}</span></div>'
+        f'<div class="pl-rail"><span class="pl-zero"></span><span class="pl-knob"></span></div></div>'
+        for g, m in zip(pools, means))
+
+
+def _spec(processed: Path) -> tuple[dict, str]:
+    import cityconfig
+    year = cityconfig.target().year
+    name = f"pools_{year}.json"
+    return json.loads((processed / name).read_text(encoding="utf-8")), name
+
+
+def _new_parties(spec: dict, codes) -> dict:
+    """``{code: (kind, parent, parent_share)}`` for parties with no measured vector:
+    an ``entrant`` takes the city's own split, a ``splinter`` a blend with its parent."""
+    out = {}
+    for c in codes:
+        why = (spec.get("no_measured_vector") or {}).get(c, "")
+        m = re.match(r"splinter of ([A-Z_]+), (\d+(?:\.\d+)?)% its vector and (\d+(?:\.\d+)?)% the city average", why)
+        if m:
+            out[c] = ("splinter", m.group(1), float(m.group(2)) / 100.0)
+        elif why.startswith("entrant"):
+            out[c] = ("entrant", None, None)
+    return out
+
+
+def composition(processed: Path, rows: list[dict], names: dict) -> str:
+    """Where each shown party's votes come from, by population group, and the roll."""
+    spec, fname = _spec(processed)
+    groups = spec["categories"]
+    codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
+    new = _new_parties(spec, codes)
+
+    def bar(key, vals, src, cls=""):
+        segs = []
+        for i, (g, v) in enumerate(zip(groups, vals)):
+            if v <= 0:
+                continue
+            # pct0_capped: a share that rounds to 100% but is not all of the
+            # party's vote prints "over 99%"
+            lab = (_tok(f"{key}.{_slug(g)}", f"{float(v):.6f}", "pct0_capped", src)
+                   if v >= SEGMENT_LABEL_MIN else "")
+            segs.append(f'<span class="pl-cseg" style="width:{100.0 * v:.2f}%;'
+                        f'background-color:{GROUP_TONES[i % len(GROUP_TONES)]}">{lab}</span>')
+        return f'<span class="pl-cbar{cls}">{"".join(segs)}</span>'
+    legend = "".join(f'<span><i style="background:{GROUP_TONES[i % len(GROUP_TONES)]}"></i>{_esc(g)}</span>'
+                     for i, g in enumerate(groups))
+    out = [f'<div class="pl-clegend">{legend}</div>']
+    for c in codes:
+        # a party with no 2021 record has an ASSUMED split, not an estimate:
+        # said in the row and drawn hatched (critic S4)
+        mark = ('<sup class="fn"><a href="#note-new">4</a></sup><span class="pl-asm">assumed</span>'
+                if c in new else "")
+        vals = [float(spec["pools"][g]["members"].get(c, 0.0)) for g in groups]
+        out.append(f'<div class="pl-crow"><span class="pl-cname">{_esc(names[c]["name"])}{mark}</span>'
+                   f'{bar(f"play.votes.{c}", vals, f"{fname} pools[group].members[{c}]", " pl-chatch" if c in new else "")}</div>')
+    out.append(f'<div class="pl-crow pl-roll"><span class="pl-cname">Registered</span>'
+               f'{bar("play.roll", spec["pool_shares_at_target"], f"{fname} pool_shares_at_target")}</div>')
+    return "".join(out)
+
+
+def new_parties_note(processed: Path, rows: list[dict], names: dict) -> str:
+    """Note 3: the shown parties with no 2021 record, and the split each is given."""
+    spec, fname = _spec(processed)
+    codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
+    new = _new_parties(spec, codes)
+    if not new:
+        return "Every party shown stood in 2021."
+    who = [names[c]["name"] for c in new]
+    lst = who[0] if len(who) == 1 else ", ".join(who[:-1]) + " and " + who[-1]
+    out = [f"{_esc(lst)} did not stand in 2021."]
+    for c, (kind, parent, share) in new.items():
+        src = f"{fname} no_measured_vector[{c}]"
+        if kind == "splinter":
+            p = names.get(parent, {"name": parent, "article": ""})
+            out.append(f"{_esc(names[c]['name'])}'s split is assumed: "
+                       f"{_tok(f'play.splinter.{c}.parent', f'{share:.6f}', 'pct0', src)} "
+                       f"{p['article']}{_esc(p['name'])}'s and "
+                       f"{_tok(f'play.splinter.{c}.city', f'{1.0 - share:.6f}', 'pct0', src)} the city average.")
+        else:
+            out.append(f"{_esc(names[c]['name'])}'s is the city average.")
+    return " ".join(out)
+
+
+def refused_polls() -> str:
+    """The polls of this election the page does not offer, and why (``polling.screen``)."""
+    import cityconfig
+    import polling
+    from datetime import date
+    target = cityconfig.target()
+    register = {p.get("id"): p for p in polling.load()}
+    _, excluded = polling.screen(target)
+    since = cityconfig.CALENDAR[target.previous_lge].date if target.previous_lge else date.min
+    said = []
+    for x in excluded:
+        p = register.get(x.poll_id) or {}
+        end = str(p.get("fieldwork_end") or "")
+        if (x.rule in REFUSED_AS and str(p.get("target") or target.year) == str(target.year)
+                and p.get("city") in (None, target.city.slug)
+                and (not end or date.fromisoformat(end) > since)):
+            said.append(REFUSED_AS[x.rule])
+    if not said:
+        return ""
+    words = ["a poll " + s for s in said]
+    return "Not offered: " + (words[0] if len(words) == 1 else ", ".join(words[:-1]) + " and " + words[-1]) + "."
+
+
+def _bye_cells() -> tuple[dict, list[dict]]:
+    index = json.loads((DRAWS / "index.json").read_text(encoding="utf-8"))
+    cells = sorted(index["cells"], key=lambda c: c["w_bye"])
+    return index, cells
+
+
+def _cell_medians(path: str) -> tuple[dict, dict]:
+    """``{party: (median, its sampling se)}`` under the published law, and the cell's centres."""
+    import reweight as R
+    man, arrays = _draws_cell(path)
+    cols = next(b for b in man["blocks"] if b["name"] == "seats/deduct")["columns"]
+    w = R.uniform(int(man["draws"]))
+    out = {}
+    for j, c in enumerate(cols):
+        v = arrays["seats/deduct"][:, j].astype(float)
+        if c != "OTHER" and v.max() > 0:
+            out[c] = (R.weighted_quantile(v, w, 0.5), R.sampling_se(v, w, 0.5))
+    return out, (man.get("centres") or {}).get("values") or {}
+
+
+def _moves(cell: dict, pub: dict) -> list[tuple[str, int]]:
+    """Each party's middle seat change against the published cell, rounded,
+    where ``reweight.beyond_noise`` says it is more than sampling noise."""
+    import reweight as R
+    out = []
+    for c in set(cell) | set(pub):
+        a, b = cell.get(c, (0.0, 0.0)), pub.get(c, (0.0, 0.0))
+        d = R.beyond_noise(a[0], a[1], b[0], b[1])
+        if not d["within_noise"] and round(d["difference"]):
+            out.append((c, int(round(d["difference"]))))
+    return out
+
+
+def bye_line(names: dict) -> str:
+    """The line under the by-election control: each party's middle seat change
+    at either end against the published weight, where it is larger than
+    sampling noise. No party's move is explained here: the page explains every
+    move or none (critic, 2026-10-02), and note 5 says why the cells differ."""
+    index, cells = _bye_cells()
+    pub_cell = next(c for c in cells if c["path"] == ".")
+    pub, _ = _cell_medians(".")
+    parts = []
+    for c in [c for c in (cells[-1], cells[0]) if c["path"] != "."]:
+        med, _ = _cell_medians(c["path"])
+        label = "Fully" if c["w_bye"] > pub_cell["w_bye"] else "Not at all"
+        mv = sorted(_moves(med, pub), key=lambda x: names.get(x[0], {"name": x[0]})["name"].lower())
+        src = f"site/draws/{c['path']} against site/draws/., middle seats beyond sampling noise"
+        said = ", ".join(f"{_esc(names.get(p, {'name': p})['name'])} {'+' if d > 0 else '−'}"
+                         f"{_tok(f'play.bye.{_slug(c['path'])}.{p}', abs(d), 'int', src)}" for p, d in mv)
+        parts.append(f"{label}: {said or 'no change larger than sampling noise'}.")
+    return "Change in middle seat counts against the forecast. " + " ".join(parts)
+
+
+_PROCESSED: Path | None = None
+
+
+def _target_date() -> str:
+    """The election being forecast, ISO 8601 (``cityconfig``'s calendar)."""
+    import cityconfig
+    return cityconfig.target().date.isoformat()
+
+
+def _processed() -> Path:
+    assert _PROCESSED is not None, "assemble() sets the processed directory first"
+    return _PROCESSED
+
+
+def fills(processed: Path) -> dict[str, str]:
+    """Every ``<!-- __PLAY:<name>__ -->`` marker's content (:data:`FILL`)."""
+    import reweight as R
+    global _PROCESSED
+    _PROCESSED = processed
+    sheet = SHEET.read_text(encoding="utf-8")
+    rows = seat_rows(sheet)
+    names = roster()
+    geometry = json.loads((processed / "ward_paths.json").read_text(encoding="utf-8"))
+    out = {
+        "banner": banner(rows),
+        "oneline": oneline(processed, names),
+        "map": map_twin(processed, geometry),
+        "seats": seats(rows, others_count(rows)),
+        "turnout": turnout(),
+        "composition": composition(processed, rows, names),
+        "refused": refused_polls(),
+        "bye": bye_line(names),
+        "newparties": new_parties_note(processed, rows, names),
+        "maxse": _tok("play.max_figure_se", R.MAX_FIGURE_SE_SEATS, "one_dp",
+                      "reweight.MAX_FIGURE_SE_SEATS, the owner's precision rule (JUDGEMENT-CALLS §N2)"),
+        # attribute values on two LIVE regions, read by js/model.js: the
+        # election day (for the share image) and the seat axis
+        "election": _target_date(),
+        "seatscale": str(SEAT_SCALE),
+    }
+    assert set(out) == set(FILL)
+    return out
+
+
+def assemble(*, theme_head: str, nav: str, footer: str, processed: Path) -> str:
     """The page's HTML, tokens unrendered: model.html with the site put in."""
     page = (INTERACTIVE / "model.html").read_text(encoding="utf-8")
     starts = page.count("<!-- __DEVONLY_START__ -->")
@@ -164,16 +548,15 @@ def assemble(*, theme_head: str, nav: str, footer: str, stat_css: str,
     page = _DEVONLY.sub("", page)
     # the leading authoring comment describes the markers; it is not the page's
     page = re.sub(r"<!--\n  \"Play with the model\".*?-->\n", "", page, count=1, flags=re.S)
-    sheet = cut_markers(SHEET.read_text(encoding="utf-8"), None)
     for marker, value in (("<!-- __PLAYHEAD__ -->", theme_head),
                           ("<!-- __PLAYNAV__ -->", one_level_down(nav)),
                           ("<!-- __PLAYFOOT__ -->", one_level_down(footer))):
         _once(page, marker, "model.html")
         page = page.replace(marker, value)
-    for host, names in HOSTS.items():
-        marker = f"<!-- __PUBLISHED:{host}__ -->"
+    for name, value in fills(Path(processed)).items():
+        marker = f"<!-- __PLAY:{name}__ -->"
         _once(page, marker, "model.html")
-        page = page.replace(marker, published_host(sheet, names, stat_css))
+        page = page.replace(marker, value)
     left = re.findall(r"<!-- __[A-Z:a-z]+__ -->", page)
     if left:
         raise PlayBuildError(f"build_play: unfilled markers in model.html: {left}")
@@ -192,19 +575,20 @@ def sync_python() -> None:
         raise PlayBuildError(f"build_play: {tool.relative_to(REPO_ROOT)} failed:\n{run.stderr}")
 
 
-def roster() -> dict:
-    """``{code: {name, colour}}`` for every party the draws carry."""
-    import parties as _parties
-    import render_sheet
-    codes = list(render_sheet.NAMES)
-    man = DRAWS / "manifest.json"
-    if man.is_file():
-        codes = json.loads(man.read_text(encoding="utf-8")).get("parties") or codes
-    return {c: {"code": c, "name": render_sheet.NAMES.get(c) or _parties.display_name(c),
-                "colour": render_sheet.CHIPS.get(c, "#8b918b")} for c in codes}
+def labels_json() -> bytes:
+    """``interactive/js/labels.js``'s words and number range, read by node."""
+    src = (INTERACTIVE / "js" / "labels.js").as_uri()
+    run = subprocess.run(
+        ["node", "--input-type=module", "-e",
+         f'const m = await import("{src}"); '
+         f'console.log(JSON.stringify({{words: m.LABEL_WORDS, max: m.LABEL_MAX_NUMBER}}));'],
+        cwd=REPO_ROOT, capture_output=True, text=True)
+    if run.returncode:
+        raise PlayBuildError(f"build_play: interactive/js/labels.js could not be read:\n{run.stderr}")
+    return (run.stdout.strip() + "\n").encode("utf-8")
 
 
-def write_assets(out: Path) -> list[str]:
+def write_assets(out: Path, processed: Path) -> list[str]:
     """Copy everything the page loads into ``out/play/``; returns the paths written."""
     dest = out / PLAY_DIR
     if dest.exists():
@@ -235,4 +619,12 @@ def write_assets(out: Path) -> list[str]:
     for rel in [*page["files"], *page["data"], "page_code_ref.py"]:
         put(f"py/{page['dir']}/{rel}", (INTERACTIVE / "py" / page["dir"] / rel).read_bytes())
     put("parties.json", (json.dumps(roster(), indent=1, sort_keys=True) + "\n").encode("utf-8"))
+    import render_map as RM
+    geometry = json.loads((Path(processed) / "ward_paths.json").read_text(encoding="utf-8"))
+    put("ward_paths.json", (json.dumps({"W": geometry["W"], "H": geometry["H"], "paths": geometry["paths"],
+                                        "places": geometry["labels"],
+                                        # the stripe tile, render_map.toss_pattern's
+                                        "step": RM.TOSS_STEP, "rotate": RM.TOSS_ROTATE},
+                                       separators=(",", ":")) + "\n").encode("utf-8"))
+    put("labels.json", labels_json())
     return written

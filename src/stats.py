@@ -241,10 +241,14 @@ LIVE_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 #: A module not listed here may write no figure anywhere.
 LIVE_WRITERS: dict[str, frozenset[str]] = {
     # "Play with the model" (src/build_play.py, from interactive/js/model.js):
-    # the controls it builds and every figure a reader's settings produce.
+    # the controls it builds and every figure a reader's settings produce. Each
+    # results region is the LIVE twin of a build twin of tokens (DESIGN §4,
+    # 2026-10-02): banner, result (the status strip and the one-line result),
+    # map and its tooltip, flips, seats; then the controls, the line under the
+    # by-elections, the seat law's summary and the note's effective count.
     "play/js/model.js": frozenset({
-        "engine", "turnout", "polls", "trust", "poll-average", "cells",
-        "byelection", "law", "seats", "actions", "summary",
+        "engine", "banner", "result", "map", "wardtip", "flips", "seats",
+        "turnout", "polls", "trust", "cells", "byelection", "law", "lawnow", "ess",
     }),
     # Its share sheet (interactive/js/play-share.js): the link to the reader's
     # settings and the image of their figures, inside the one region "share".
@@ -303,12 +307,11 @@ def _fmt(value, spec: str | None):
     if spec == "pct0_plain":          # 62 (no % sign, for "X of every")
         return f"{float(value) * 100:.0f}"
     if spec == "chance":              # a share of simulations, never "100%" or "0%"
+        import reweight as _rw        # one definition, which /play/ prints too
+        return _rw.chance_text(value)
+    if spec == "pct0_capped":         # a share that rounds to 100% but is not all of it
         v = float(value)
-        if v > 0.99:
-            return "over 99%"
-        if v < 0.0005:
-            return "under 0.1%"
-        return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
+        return "over 99%" if v > 0.99 and v < 1.0 else f"{v * 100:.0f}%"
     if spec == "one_dp":
         return f"{float(value):.1f}"
     if spec == "date_long":           # 2026-09-16T21:46:15Z -> 16 September 2026
@@ -355,6 +358,21 @@ def _derived(name: str, ctx: dict):
         hit = sum(1 for r in draws
                   if max(int(r[p]) for p in parties) >= int(r["threshold"]))
         return hit / len(draws)
+    if name.startswith("largest_outright.") or name == "largest_tied":
+        # ONE DEFINITION, reweight.largest_party (side finding S1, 2026-10-02):
+        # `structural.P(X is the largest single party)` in forecast_summary.json
+        # is an argmax over the model's party order, which credits every tied
+        # simulation to the first party in it. Ties are their own outcome.
+        if not draws:
+            return None
+        import numpy as _np
+        import reweight as _rw
+        parties = [k for k in draws[0] if k not in ("draw", "threshold", "council_size")]
+        seats = _np.array([[int(float(r[p] or 0)) for p in parties] for r in draws])
+        got = _rw.largest_party(seats, parties)
+        if name == "largest_tied":
+            return got["tied"]
+        return got["outright"].get(name[len("largest_outright."):])
     return None
 
 
@@ -835,6 +853,11 @@ CHROME_CLASSES = ("ticks", "scale", "pubdate", "since-h", "colophon",
 _HEADING = re.compile(r"<h[1-4][^>]*>.*?</h[1-4]>", re.S)
 _CHROME = re.compile(
     r"<(\w+)[^>]*class=\"[^\"]*\b(?:" + "|".join(CHROME_CLASSES) + r")\b[^\"]*\"[^>]*>.*?</\1>", re.S)
+#: A footnote marker points at a note; it counts nothing (/play/'s notes,
+#: 2026-10-02). Only this exact shape is chrome: a class named "fn" anywhere in
+#: an attribute ("pl-fn", "fn-wrap", a <p class="fn">) would otherwise exempt
+#: every figure inside it on every page (code review, 2026-10-02).
+_FN_MARKER = re.compile(r'<sup class="fn"><a href="#note-[a-z-]+">\d{1,2}</a></sup>')
 
 
 def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
@@ -924,6 +947,10 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
             classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", m.group(0)))),
                      region + ":chrome")
         fragment = _CHROME.sub(" ", fragment)
+        for m in _FN_MARKER.finditer(fragment):
+            classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", m.group(0)))),
+                     region + ":chrome")
+        fragment = _FN_MARKER.sub(" ", fragment)
         for attr in ATTRS.findall(fragment):
             classify(re.sub(r"\s+", " ", html_unescape(attr)), region + ":attr")
         classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", fragment))), region)

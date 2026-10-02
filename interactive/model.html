@@ -11,17 +11,23 @@
 
   What the build does to it:
     __DEVONLY_START__ … __DEVONLY_END__   dropped (the prototype's own head
-                                          script, nav, footer and notes)
+                                          script, nav and footer)
     <!- - __PLAYHEAD__ - ->                 the site's THEME_HEAD
     <!- - __PLAYNAV__ - ->                  the site's nav, one level down
     <!- - __PLAYFOOT__ - ->                 the site's footer, one level down
-    <!- - __PUBLISHED:<name>__ - ->         the published forecast's own panel
-                                          from forecast-sheet.html, as
-                                          ledgered tokens, in a shadow root
+    <!- - __PLAY:<name>__ - ->              the published forecast's figures,
+                                          as ledgered tokens (build_play.FILL)
+
+  Every results element exists twice (DESIGN §4): a build twin of tokens
+  (class "pl-pub") and a LIVE region (data-live) that js/model.js fills from
+  the reader's settings. model.js sets data-touched on the "result" region
+  when a control is away from the published setting, and css/play.css then
+  hides every twin and shows the LIVE regions. Nothing from /forecast is
+  embedded.
 
   Figures a reader's settings produce appear ONLY inside data-live regions,
-  written only by js/model.js (stats.LIVE_WRITERS). Nothing outside a LIVE
-  region, and nothing inside one at build time, may be a digit.
+  written only by the modules stats.LIVE_WRITERS lists for them. Nothing
+  outside a LIVE region, and nothing inside one at build time, may be a digit.
 -->
 <!-- __PLAYHEAD__ -->
 <!-- __DEVONLY_START__ -->
@@ -34,166 +40,191 @@
     }
     document.documentElement.setAttribute("data-theme", t);
   })();
-  function toggleTheme() {
-    var root = document.documentElement;
-    var light = root.getAttribute("data-theme") !== "light";
-    root.setAttribute("data-theme", light ? "light" : "dark");
-    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
-  }
 </script>
 <!-- __DEVONLY_END__ -->
 <link rel="stylesheet" href="css/interactive.css">
+<link rel="stylesheet" href="css/play.css">
 <script type="module" src="js/model.js"></script>
 </head>
-<body>
-<div class="wrap">
+<body class="pl">
+<div class="wrap pl-navwrap">
   <!-- __PLAYNAV__ -->
   <!-- __DEVONLY_START__ -->
   <nav class="topnav" aria-label="Site">
     <a class="home" href="../site/index.html">joburg.whysoserious.city</a>
     <a href="../site/forecast.html">forecast</a>
-    <a href="make.html">make yours</a>
     <a class="active" href="model.html" aria-current="page">play with the model</a>
     <a href="../site/about.html">the model</a>
     <a href="../site/methodology.html">methodology</a>
-    <button class="themetoggle" type="button" onclick="toggleTheme()" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
   </nav>
-  <p class="proto"><b>Prototype.</b> Served from the repository, the published forecast's panels are not rendered here: they are
-    built into the page by <code>build_site.py</code>. Build into a scratch directory to see the page as it ships.</p>
   <!-- __DEVONLY_END__ -->
+</div>
 
-  <header class="lede">
+<div class="pl-bannerwrap">
+  <div class="pl-banner pl-pub" aria-label="Seats in the published forecast"><span class="pl-bstate">Published forecast</span><!-- __PLAY:banner__ --></div>
+  <div class="pl-banner pl-live" data-live="banner" aria-label="Seats under your settings"></div>
+</div>
+
+<div class="wrap">
+  <header class="lede pl-lede">
     <h1>Play with the model</h1>
-    <p>Untouched, this page shows the model's published forecast. Each control picks out the simulated elections that match your
-      settings, so every answer stays within what the model drew. A control applies one mechanism to every party; its effect differs
-      by party.</p>
-    <p class="pos">Figures labelled "computed in your browser from your settings" are worked out on your device: the site's
-      re-weighting code runs in your browser on the model's published simulations, without re-running the model. They are not part
-      of the published forecast and are not recorded. Your settings are kept only in the page's address, so a link carries them.</p>
+    <p>This page lets you alter turnout by population group, take into account a poll, and decide how much
+      by-election results count. Untouched, it shows the <a href="../forecast">published forecast</a>.</p>
   </header>
 
-  <div data-live="engine"><p class="ess" role="status">Loading the re-weighting code. The published forecast is shown until it is ready.</p>
-    <p class="stubnote linknote" hidden></p></div>
-
-  <div class="grid2">
-    <div id="controls">
-      <section class="ctl" aria-labelledby="h-turn">
-        <h3 id="h-turn">Turnout, by community</h3>
-        <p>Each slider sets a population group's turnout in percentage points above or below the published forecast. The census has four groups,
-          the most the model can tell apart. Moving one holds the other three at the published turnout.</p>
-        <div data-live="turnout"><p class="livelabel">Computed in your browser from your settings.</p>
-          <p class="pos turnrange"></p><div class="sliders"></div>
-          <p class="stubnote turnpin" hidden>A poll is on and turnout is untouched, so turnout is held at the published mean: the poll
-            moves who wins, not how many vote.</p></div>
-      </section>
-
-      <section class="ctl" aria-labelledby="h-poll">
-        <h3 id="h-poll">Polls</h3>
-        <p class="pos">The published forecast uses no polls: its setting is zero trust. Why, and what polls were worth when that was
-          measured, is under "Where polls fit" on the <a href="../methodology">methodology page</a>.</p>
-        <p>These are the Johannesburg polls the model's rules admit. At full trust each poll counts with the error the model computes
-          for it alone: sampling error, a typical house error (the same for every house), a charge for an undisclosed likely-voter
-          screen, and drift since fieldwork. A poll with no published sample size gets the typical house error in place of sampling
-          error. This is narrower than the error the model's own poll blend uses, which prices the polls together. At half trust the
-          error is doubled; at zero the poll has no weight. Full trust does not make the poll come true: the figures then describe
-          the simulations nearest the polls.</p>
-        <div class="tablewrap" data-live="polls"><p class="livelabel">Computed in your browser from your settings: each house's published figures.</p><table class="polltab"></table></div>
-        <div data-live="trust"><p class="livelabel">Computed in your browser from your settings.</p>
-          <div class="slider" style="margin-top:4px"><label for="trust">How far to trust them</label>
-          <input type="range" id="trust" aria-describedby="trusthelp" disabled><output for="trust"></output></div></div>
-        <p id="trusthelp" style="font-size:12.5px;color:var(--ink-3)">Zero leaves the forecast untouched whatever is switched on.</p>
-        <p class="stubnote">Polls switched on together are counted as independent readings. Two waves from the same polling house share
-          that house's error, so switching both on counts it twice and pulls the figures further towards that house than two waves
-          justify.</p>
-        <div data-live="poll-average"><p class="livelabel">Computed in your browser from your settings.</p><p class="pollavg"></p></div>
-      </section>
-
-      <section class="ctl" aria-labelledby="h-bye">
-        <h3 id="h-bye">Weight of recent by-elections</h3>
-        <p>How much the model relies on the ward by-elections held since the last local election. Each setting is a separate full run
-          of the model. The published weight is an unmeasured judgement, recorded in the model's register of judgement calls; only
-          the November result can test it.</p>
-        <div data-live="cells"><p class="livelabel">Computed in your browser from your settings.</p>
-          <div class="seg" role="group" aria-label="Weight of recent by-elections"></div></div>
-        <p class="stubnote">By-elections are small, low-turnout contests, and some swings rest on a handful of wards. The swing column is
-          measured in the wards that held by-elections only.</p>
-        <p class="stubnote">The model's column is each party's central level at this weight: the value its simulations are drawn
-          around. Levels are not vote shares and do not add up to a whole, so compare a level only with the same party's level at
-          the published weight, not with a share or with the swing column.</p>
-        <p class="stubnote">The three settings are separate runs, not the same simulations re-weighted, so part of any difference between
-          them is sampling noise. A change in a party's middle seat count is marked "within sampling noise" when it is smaller than
-          twice the combined standard error of the two settings' middle counts.</p>
-        <div class="tablewrap" data-live="byelection"><p class="livelabel">Computed in your browser from your settings.</p><table class="polltab"></table></div>
-      </section>
-
-      <section class="ctl" aria-labelledby="h-law">
-        <h3 id="h-law">Seat law</h3>
-        <p>This sets what happens when a party wins more wards than its share of the vote entitles it to.</p>
-        <div data-live="law" role="radiogroup" aria-labelledby="h-law"></div>
+  <div class="pl-layout">
+    <div class="pl-resultscol">
+      <section class="pl-results" aria-label="Results">
+        <div data-live="engine" data-election="<!-- __PLAY:election__ -->"><p class="pl-engine" role="status">Loading the re-weighting code. The published forecast is shown until it is ready.</p>
+          <p class="pl-linknote" hidden></p></div>
+        <div data-live="result" class="pl-result">
+          <div class="pl-status" hidden><span class="pl-dot"></span><span class="pl-settings"></span>
+            <button class="btn pl-back" type="button">Back to the forecast</button></div>
+          <p class="pl-oneline"></p>
+          <p class="visually-hidden pl-announce" aria-live="polite"></p>
+        </div>
+        <p class="pl-oneline pl-pub"><!-- __PLAY:oneline__ --></p>
+        <div class="pl-rgrid">
+          <figure class="pl-mapfig">
+            <figcaption class="pl-fhead"><h2>Who wins each ward</h2></figcaption>
+            <div class="pl-pub pl-maptwin"><!-- __PLAY:map__ --></div>
+            <div class="pl-livemap" data-live="map"></div>
+            <p class="pl-key"><span class="pl-ksolid"></span>Solid: one party wins the ward in nine in ten simulations or more.
+              <span class="pl-kstripe"></span>Stripes: each party winning it in at least one in ten.
+              <span class="pl-live"><span class="pl-kring"></span>Outlined: the most likely winner differs from the published forecast.</span>
+              Tap a ward for its numbers.</p>
+            <div data-live="flips" class="pl-flips"></div>
+          </figure>
+          <figure class="pl-seatfig">
+            <figcaption class="pl-fhead"><h2>Seats on the council</h2>
+              <p>Middle of the simulations, and the range holding nine in ten.<sup class="fn"><a href="#note-browser">1</a></sup></p>
+              <p class="pl-glegend pl-live"><i></i>Dotted line: the published forecast.</p></figcaption>
+            <div class="pl-seats pl-pub"><!-- __PLAY:seats__ --></div>
+            <div class="pl-seats pl-liveseats" data-live="seats" data-scale="<!-- __PLAY:seatscale__ -->"></div>
+            <div class="pl-sharebox" data-live="share">
+              <button class="btn primary pl-shareopen" type="button" disabled>Share this forecast</button>
+              <dialog class="sheet pl-sheet" aria-labelledby="share-title">
+                <div class="dh"><h2 id="share-title">Share this forecast</h2>
+                  <button class="x" type="button" aria-label="Close">×</button></div>
+                <div class="db">
+                  <label class="pl-fld">Name on the image (optional)
+                    <input class="pl-name" type="text" maxlength="24" autocomplete="off" spellcheck="false"></label>
+                  <p class="pl-fldnote"></p>
+                  <div class="preview"><img alt=""></div>
+                  <div class="pl-cta">
+                    <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
+                    <button class="btn shdl" type="button" disabled>Download image</button>
+                    <button class="btn shcopy" type="button">Copy link</button>
+                  </div>
+                  <div class="pl-seg2 sizes" role="group" aria-label="Image size">
+                    <button type="button" data-size="link" aria-pressed="true">Link preview</button>
+                    <button type="button" data-size="story" aria-pressed="false">Story</button>
+                  </div>
+                  <label class="visually-hidden" for="shurl">Link to this forecast</label>
+                  <input class="shurl visually-hidden" id="shurl" type="text" readonly value="">
+                  <p class="toast" role="status" aria-live="polite"></p>
+                </div>
+              </dialog>
+            </div>
+          </figure>
+        </div>
       </section>
     </div>
 
-    <section class="results" aria-labelledby="h-res" style="border-top-color:var(--accent)">
-      <h2 id="h-res">Seats</h2>
-      <div class="pubseats"><p class="stubnote">This is the published forecast.</p>
-        <div class="published"><!-- __PUBLISHED:seats__ --></div></div>
-      <div class="tablewrap" data-live="seats"><p class="livelabel">Computed in your browser from your settings.</p><p class="ess"></p>
-        <p class="stubnote seatsempty">Move a control to compute the seats it gives.</p>
-        <table class="seatstab"></table>
-        <p class="stubnote bandnote"></p>
-        <p class="visually-hidden announce" aria-live="polite"></p></div>
-      <div class="cta" data-live="actions">
-        <button class="btn primary tomake" type="button" disabled>Make my forecast from this</button>
-        <button class="btn reset" type="button">Back to the published forecast</button>
-        <p class="stubnote tomakenote">The published simulations do not yet carry the combined vote, so the builder cannot start from here.</p>
-      </div>
-      <div class="sharebox" data-live="share"><p class="livelabel">Computed in your browser from your settings.</p>
-        <button class="btn primary shareopen" type="button" disabled>Share these settings</button>
-        <p class="stubnote">The link carries your settings and nothing about you. The site saves nothing.</p>
-        <dialog class="sheet" aria-labelledby="share-title">
-          <div class="dh"><h2 id="share-title">Share these settings</h2>
-            <button class="x" type="button" aria-label="Close">×</button></div>
-          <div class="db">
-            <p class="stubnote shabout"></p>
-            <div class="urlrow">
-              <label class="visually-hidden" for="shurl">Link to these settings</label>
-              <input class="shurl" id="shurl" type="text" readonly value="">
-              <button class="btn shcopy" type="button">Copy link</button>
-            </div>
-            <div class="shimage" hidden>
-              <div class="seg sizes" role="group" aria-label="Image size" style="margin-bottom:8px">
-                <button type="button" data-size="link" aria-pressed="true">Link preview</button>
-                <button type="button" data-size="story" aria-pressed="false">Story</button>
-              </div>
-              <div class="preview"><img alt=""></div>
-              <div class="cta" style="margin-top:0">
-                <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
-                <button class="btn shdl" type="button" disabled>Download image</button>
-              </div>
-            </div>
-            <p class="toast" role="status" aria-live="polite"></p>
-          </div>
-        </dialog>
-      </div>
-    </section>
+    <div class="pl-controls">
+      <section class="pl-ctl" aria-labelledby="h-turn">
+        <h3 id="h-turn">Turnout by population group</h3>
+        <p>Move any or all four. A group you leave alone stays at the forecast's turnout. The scale is percentage points
+          of that group's registered voters.<sup class="fn"><a href="#note-turnout">2</a></sup></p>
+        <div class="pl-pub pl-turntwin"><!-- __PLAY:turnout__ --></div>
+        <div data-live="turnout" class="pl-sliders"></div>
+        <details class="pl-comp" open>
+          <summary>Where each party's votes come from</summary>
+          <p class="pl-note">The model estimates this from the ward results of 2021 and the census population groups in each
+            ward. The census reports population groups, so those are the groups the model can measure.<sup class="fn"><a href="#note-groups">3</a></sup></p>
+          <!-- __PLAY:composition__ -->
+        </details>
+      </section>
+
+      <section class="pl-ctl" aria-labelledby="h-poll">
+        <h3 id="h-poll">A poll</h3>
+        <p>Pick one poll, then how much to believe it.<sup class="fn"><a href="#note-poll">5</a></sup></p>
+        <div data-live="polls" class="pl-polls" role="radiogroup" aria-labelledby="h-poll"></div>
+        <div data-live="trust" class="pl-trust"></div>
+        <p class="pl-note">A poll's accuracy, as the model rates it, comes from its sample size, the polling house's typical
+          miss and the time since fieldwork. At full belief the page gives a poll that error alone. The model's own
+          blend of polls gives more, and caps the weight of one polling house.</p>
+        <p class="pl-note"><!-- __PLAY:refused__ --></p>
+      </section>
+
+      <section class="pl-ctl" aria-labelledby="h-bye">
+        <h3 id="h-bye">By-elections</h3>
+        <p>Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">6</a></sup></p>
+        <div data-live="cells" class="pl-seg3" role="radiogroup" aria-labelledby="h-bye"></div>
+        <p class="pl-note"><!-- __PLAY:bye__ --></p>
+        <div data-live="byelection" class="pl-byenote"></div>
+      </section>
+
+      <details class="pl-ctl pl-law">
+        <summary><h3>Seat law</h3><span class="pl-lawnow" data-live="lawnow">Deduct, as the law says</span></summary>
+        <p>What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">7</a></sup></p>
+        <div data-live="law" class="pl-lawopts" role="radiogroup" aria-label="Seat law"></div>
+      </details>
+    </div>
   </div>
 
-  <section class="ctl" aria-labelledby="h-pub">
-    <h2 id="h-pub">The published forecast</h2>
-    <p class="pos pubnote">These panels show the published forecast. Your settings apply only to the Seats panel and the figures
-      beside the controls.</p>
-    <div class="published"><!-- __PUBLISHED:panels__ --></div>
+  <section class="pl-notes" aria-labelledby="h-notes">
+    <h2 id="h-notes">Notes</h2>
+    <ol>
+      <li id="note-browser">Your figures are worked out in your browser from the published simulations and are not
+        recorded. A figure is withheld when its sampling error exceeds <!-- __PLAY:maxse__ --> seats.
+        <span data-live="ess"></span></li>
+      <li id="note-turnout">The page does not re-run the model. It re-weights the model's {{n_draws}} published simulations
+        towards those with the turnout you set. For Black African turnout at the top of the slider's range this was
+        checked against a full re-run of the model, and every party's seat change agreed within sampling error. The other
+        groups use the same method, unchecked. Past this range, or with groups moved far in opposite directions, the
+        simulations run out and the slider stops.</li>
+      <li id="note-groups">Each bar is one party's vote split by population group, as the model fits it to the ward results
+        of 2021. "Registered" is the split of the voters' roll.</li>
+      <li id="note-new"><!-- __PLAY:newparties__ --></li>
+      <li id="note-poll">Each poll is a Johannesburg subsample of a larger survey. Under a poll, the figures describe the
+        model's simulations nearest the poll; the poll does not come true. The slider stops where too few simulations
+        lie near the poll. That is a fact about the simulations, not a rating of the poll.</li>
+      <li id="note-bye">By-elections are small, low-turnout contests, and some parties' swings rest on a handful of wards.
+        The forecast counts them partly; the election will test that weight. Each setting is a separate full run of the
+        model, so part of any difference between settings is sampling noise; the line under the control lists only
+        changes larger than that.</li>
+      <li id="note-law">The Municipal Structures Act deducts the surplus. The other three are for comparison.</li>
+    </ol>
   </section>
 
-  <a class="mobilesum" href="#h-res" aria-hidden="true" tabindex="-1" data-live="summary"><span class="livelabel">Computed in your browser from your settings:</span><span class="sumrow"></span></a>
+  <div class="pl-tip pl-pubtip" hidden></div>
+  <div class="pl-tip" data-live="wardtip" hidden></div>
 
   <!-- __PLAYFOOT__ -->
   <!-- __DEVONLY_START__ -->
   <footer class="sitefooter">
     <div>Johannesburg Local Government Election Model.</div>
-    <div><a href="../site/index.html">joburg.whysoserious.city</a></div>
   </footer>
   <!-- __DEVONLY_END__ -->
 </div>
+<script>
+  // The published map's tooltip: it copies the ward's data-tip attribute,
+  // which the number scan has read (the MAP generated region), and writes no
+  // figure of its own. The map under a reader's settings has its own, in
+  // js/model.js (region "wardtip").
+  (function () {
+    var tip = document.querySelector(".pl-pubtip");
+    function show(e) {
+      var t = e.target.getAttribute && e.target.getAttribute("data-tip");
+      if (!t) { tip.hidden = true; return; }
+      tip.textContent = t; tip.hidden = false;
+      tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 290) + "px";
+      tip.style.top = (e.clientY + 14) + "px";
+    }
+    document.addEventListener("mousemove", show);
+    document.addEventListener("click", show);
+  })();
+</script>
 </body>
 </html>

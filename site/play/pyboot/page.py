@@ -4,9 +4,10 @@ The page (``js/model-worker.js``, a Web Worker, under Pyodide) and the native
 harness (``tools/native_play.py``, under the project's CPython) both run this
 file, with the served copy of the page code (``interactive/py/page/``, written
 by ``tools/sync_py.mjs`` from ``src/``) on ``sys.path`` and as the working
-directory. Every figure comes from ``src/reweight.py``; this file only routes a
-reader's settings to it and collects what it returns. There is no arithmetic of
-the model's here, and none in JavaScript.
+directory. Every figure comes from ``src/reweight.py``, and every ward is drawn
+by ``src/render_map.py``'s ``ward_call``; this file only routes a reader's
+settings to them and collects what they return. There is no arithmetic of the
+model's here, and none in JavaScript.
 
 Two calls:
 
@@ -18,9 +19,20 @@ Two calls:
 The settings (``js/play-state.js`` holds the page's copy and its bounds)::
 
     {"cell": ".", "law": "deduct", "shift": [pp, pp, pp, pp],
-     "polls": ["<poll id>", ...], "trust": 0..1}
+     "polls": ["<poll id>"], "trust": 0..1}
 
 ``shift`` is in turnout POINTS per pool, in the manifest's pool order.
+``polls`` holds at most ONE poll (owner, 2026-10-02: one poll at a time); a
+setting naming more is refused.
+
+What ``compute`` returns beside the seat figures: the share of simulations in
+which each party alone has the most seats and in which two or more tie
+(``reweight.largest_party``, the definition /forecast uses), the share in which
+one party reaches a majority alone, each group's turnout, and every ward drawn
+by ``render_map.ward_call`` with the wards whose most likely winner differs
+from the published forecast's. Every "against the published forecast" figure
+is the published cell, each draw counted once, under the seat law the
+forecast publishes (``PUBLISHED_LAW``).
 """
 
 from __future__ import annotations
@@ -32,14 +44,27 @@ import numpy as np
 
 import cityconfig
 import polling
+import render_map as RM
 import reweight as R
 
 #: The cell the published forecast was drawn in (``site/draws/index.json``'s
 #: entry with no overrides). Its pool-turnout means are the published means.
 BASE = "."
+#: The seat law the published forecast uses: every "against the published
+#: forecast" figure is taken under it.
+PUBLISHED_LAW = "deduct"
+#: A party gets its own seat row when its middle seat count is at least this,
+#: in the published forecast or under the reader's settings; every other party
+#: is summed into "Others" (owner, decision D1, 2026-10-02).
+MIN_SHOWN_SEATS = 2
+#: The quantiles the seat rows show for each party: its range ends and middle.
+SHOWN_QUANTILES = {"p5": 0.05, "median": 0.5, "p95": 0.95}
+#: The row of every party below MIN_SHOWN_SEATS, summed within each draw.
+OTHERS = "OTHERS"
 
 _CELLS: dict[str, dict] = {}
 _POLLS: list[dict] | None = None
+_PUBLISHED: dict | None = None
 
 
 # ==========================================================================
@@ -65,15 +90,14 @@ def set_polls(records_json: str) -> int:
     return len(_POLLS)
 
 
-def poll_weights(shares, columns, polls_on: list[dict], trust: float) -> np.ndarray:
-    """Each switched-on poll's ``reweight.poll_weights(trust=...)``, multiplied.
+def poll_weights(shares, columns, poll: dict, trust: float) -> np.ndarray:
+    """The chosen poll's ``reweight.poll_weights(trust=...)``, normalised.
 
-    Multiplying treats the polls as independent; two waves of one house are
-    not, and JUDGEMENT-CALLS §N2 says so. At trust 0 every factor is uniform.
+    One poll at a time (owner, 2026-10-02), so two waves of one house are never
+    multiplied as if they were independent readings. At trust 0 the weights
+    are uniform.
     """
-    w = R.uniform(len(shares))
-    for poll in polls_on:
-        w = w * R.poll_weights(shares, columns, poll, trust=trust)
+    w = R.poll_weights(shares, columns, poll, trust=trust)
     return w / w.sum()
 
 
@@ -91,7 +115,6 @@ def figure(values, weights, q: float, *, poll: bool) -> dict:
 def model_version(manifest: dict) -> str:
     """The model-only code hash (Lane E), the page's ``model_version``."""
     return str(manifest["artefact_key"]["model_sha256"])
-
 
 
 def load_cell(path: str, manifest_json: str, blob) -> dict:
@@ -118,24 +141,36 @@ def _pools(manifest: dict) -> list[str]:
     return next(b for b in manifest["blocks"] if b["name"] == "pool_turnout")["columns"]
 
 
+def _block(cell: dict, name: str) -> tuple[np.ndarray, list[str]]:
+    cols = next(b for b in cell["manifest"]["blocks"] if b["name"] == name)["columns"]
+    return cell["arrays"][name], cols
+
+
+def _party_columns(cell: dict, law: str) -> tuple[np.ndarray, list[str]]:
+    """The seat block's PARTY columns: ``OTHER`` (the export's remainder) is not a party."""
+    block, cols = _block(cell, f"seats/{law}")
+    keep = [j for j, c in enumerate(cols) if c != "OTHER"]
+    return block[:, keep].astype(float), [cols[j] for j in keep]
+
+
 def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
     """The weights for one setting, and what they are; raises ``Refused``."""
     a = cell["arrays"]
     pr = next(b for b in cell["manifest"]["blocks"] if b["name"] == "pr_share")["columns"]
     trust = float(settings.get("trust", 0.0))
-    ids = set(settings.get("polls") or [])
+    ids = list(dict.fromkeys(settings.get("polls") or []))
+    if len(ids) > 1:
+        raise R.Refused("one poll at a time: this setting names more than one")
     polls()
     on = [p for p in _POLLS if p["id"] in ids]
     info = {"poll": None, "turnout_pinned": False}
     base = None
     if trust > 0 and on:
-        average, spread = R.combine_polls(on)
-        base = poll_weights(a["pr_share"], pr, on, trust)
-        info["poll"] = {"average": average, "spread": spread,
-                        "label": R.POLL_LABEL, "trust": trust,
-                        "sd": {p["id"]: {k: R.poll_trust_sd(p, s, trust)
-                                         for k, s in p["numbers"].items()}
-                               for p in on}}
+        poll = on[0]
+        base = poll_weights(a["pr_share"], pr, poll, trust)
+        info["poll"] = {"id": poll["id"], "label": R.POLL_LABEL, "trust": trust,
+                        "sd": {k: R.poll_trust_sd(poll, v, trust)
+                               for k, v in poll["numbers"].items()}}
     shift = np.asarray(settings.get("shift") or [0, 0, 0, 0], dtype=float) / 100.0
     if base is None and not np.any(shift):
         return R.uniform(a["pool_turnout"].shape[0]), info
@@ -145,37 +180,132 @@ def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
     return w, info
 
 
-#: The quantiles the seat table shows for each party: its range ends and middle.
-SHOWN_QUANTILES = {"p5": 0.05, "median": 0.5, "p95": 0.95}
+def _ward_calls(cell: dict, w: np.ndarray) -> list[dict]:
+    """Every ward under ``w``, drawn by ``render_map.ward_call`` (the forecast map's rule).
+
+    ``dist`` is built as ``ward_winner_probs.csv`` carries it: each party that
+    wins the ward in any draw with weight, strongest first, at its
+    ``reweight.ward_win_probability``. ``bands`` is ``render_map.toss_bands``
+    of the call's contenders: the stripe geometry the page draws as DOM.
+    """
+    winners, wards = _block(cell, "ward_winner")
+    codes = cell["manifest"]["ward_parties"]
+    probs = R.ward_win_probability(winners, w, len(codes))
+    out = []
+    for j, ward in enumerate(wards):
+        hit = np.bincount(winners[:, j], weights=w, minlength=len(codes)) > 0
+        order = [int(k) for k in np.argsort(-probs[j], kind="stable") if hit[k]]
+        dist = "|".join(f"{codes[k]}:{probs[j, k]:.4f}" for k in order)
+        call = RM.ward_call(ward, codes[order[0]], float(probs[j, order[0]]), dist)
+        out.append({"ward": ward, "winner": codes[order[0]], "fill": call["fill"],
+                    "bands": RM.toss_bands(call["bands"]) if call["cls"] == "contested" else None,
+                    "tip": call["tip"]})
+    return out
 
 
-def _seats(cell: dict, law: str, w: np.ndarray, poll: bool) -> tuple[dict, list, bool]:
-    """Median and 90% range of every party that wins a seat in any draw, under ``w``.
+def _published() -> dict:
+    """The published forecast's figures this page compares against: the BASE
+    cell, every draw counted once, under PUBLISHED_LAW. Computed once."""
+    global _PUBLISHED
+    if _PUBLISHED is None:
+        cell = _CELLS[BASE]
+        w = R.uniform(int(cell["manifest"]["draws"]))
+        seats, cols = _party_columns(cell, PUBLISHED_LAW)
+        council = cell["arrays"][f"council/{PUBLISHED_LAW}"]
+        lp = R.largest_party(seats, cols, w)
+        _PUBLISHED = {
+            "median": {c: R.weighted_quantile(seats[:, j], w, 0.5) for j, c in enumerate(cols)},
+            "largest": lp["outright"], "tied": lp["tied"],
+            "alone": R.majority_alone(seats, council[:, 0], w),
+            "turnout": dict(zip(_pools(cell["manifest"]),
+                                cell["arrays"]["pool_turnout"].mean(axis=0).tolist())),
+            "winner": {x["ward"]: x["winner"] for x in _ward_calls(cell, w)},
+        }
+    return _PUBLISHED
 
-    Also returns the parties the page SHOWS (a middle or an upper end above
-    zero, or a figure withheld, so a withheld row is shown as withheld rather
-    than dropped) and whether every figure it shows passes the precision rule
+
+def _chance(p: float, vs_published) -> dict:
+    """A share of simulations, with its text as every page prints it
+    (``reweight.chance_text``, which ``stats``' "chance" format also calls)."""
+    return {"p": p, "text": R.chance_text(p), "vs_published": vs_published}
+
+
+def _points(x: float) -> int:
+    """A share as the whole percentage point the page compares (shares are fractions)."""
+    return int(round(100.0 * x))
+
+
+def _seats(cell: dict, law: str, w: np.ndarray, poll: bool) -> tuple[dict, list, bool, int]:
+    """Median and 90% range of each party the page shows, and of "Others", under ``w``.
+
+    The rows (owner, D1, 2026-10-02): every party whose middle seat count is at
+    least MIN_SHOWN_SEATS in the published forecast or under these weights, or
+    whose middle is withheld (a withheld row is shown as withheld rather than
+    dropped). Every other party's seats are summed WITHIN each draw into
+    ``OTHERS`` (``scenarios.others_per_draw``'s rule: never a sum of
+    quantiles); the count of those parties that win a seat in any draw is
+    returned too. ``vs_published`` is the middle seat count, rounded, less the
+    published one, rounded.
+
+    Also returns whether every figure shown passes the precision rule
     (``reweight.within_precision``, DESIGN-decided §15): the page stops a
     control at the last setting for which this was true. Deciding here which
     rows are shown keeps the rule and the rows it covers in one place.
     """
-    block = cell["arrays"][f"seats/{law}"]
-    cols = next(b for b in cell["manifest"]["blocks"]
-                if b["name"] == f"seats/{law}")["columns"]
-    out, values = {}, {}
+    block, cols = _party_columns(cell, law)
+    pub = _published()["median"]
+    out, values, rest = {}, {}, []
     for j, party in enumerate(cols):
-        v = block[:, j].astype(float)
-        if party == "OTHER" or not v.max() > 0:
+        v = block[:, j]
+        if not v.max() > 0:
             continue
-        values[party] = v
+        med = figure(v, w, 0.5, poll=poll)
+        if med["withheld"] or med["value"] >= MIN_SHOWN_SEATS or pub.get(party, 0.0) >= MIN_SHOWN_SEATS:
+            values[party] = v
+        else:
+            rest.append(j)
+    others = block[:, rest].sum(axis=1) if rest else np.zeros(block.shape[0])
+    rows = [*values.items(), (OTHERS, others)]
+    for party, v in rows:
         out[party] = {k: figure(v, w, q, poll=poll) for k, q in SHOWN_QUANTILES.items()}
         out[party]["median_se"] = out[party]["median"]["sampling_se"]
-    shown = [p for p, f in out.items()
-             if any(f[k]["withheld"] for k in SHOWN_QUANTILES)
-             or f["median"]["value"] > 0 or f["p95"]["value"] > 0]
+        m, b = out[party]["median"], pub.get(party)
+        out[party]["vs_published"] = (None if m["withheld"] or b is None
+                                      else int(round(m["value"])) - int(round(b)))
     precise = R.within_precision(
-        {f"{p}.{k}": (values[p], q) for p in shown for k, q in SHOWN_QUANTILES.items()}, w)
-    return out, shown, precise
+        {f"{p}.{k}": (v, q) for p, v in rows for k, q in SHOWN_QUANTILES.items()}, w)
+    return out, list(values), precise, len(rest)
+
+
+def _medians(cell: dict, law: str, w: np.ndarray, poll: bool) -> dict:
+    """``{party: figure}`` of the middle seat count of EVERY party that wins a
+    seat in any draw, shown row or not: the by-election comparison covers each
+    party, as ``build_play``'s line under the control does (critic S1,
+    2026-10-02: a party outside the rows was compared against 0)."""
+    block, cols = _party_columns(cell, law)
+    return {party: figure(block[:, j], w, 0.5, poll=poll)
+            for j, party in enumerate(cols) if block[:, j].max() > 0}
+
+
+def _outcomes(cell: dict, law: str, w: np.ndarray) -> dict:
+    """Largest party (ties apart), a majority alone, turnout and the wards, each
+    with the change from the published forecast where the page shows one."""
+    pub = _published()
+    seats, cols = _party_columns(cell, law)
+    council = cell["arrays"][f"council/{law}"]
+    lp = R.largest_party(seats, cols, w)
+    largest = {c: _chance(p, _points(p) - _points(pub["largest"].get(c, 0.0)))
+               for c, p in lp["outright"].items() if p > 0 or pub["largest"].get(c, 0.0) > 0}
+    share = w / w.sum()
+    turnout = {g: {"mean": float(t), "published": pub["turnout"][g]}
+               for g, t in zip(_pools(cell["manifest"]), share @ cell["arrays"]["pool_turnout"])}
+    wards = _ward_calls(cell, w)
+    flips = [{"ward": x["ward"], "from": pub["winner"][x["ward"]], "to": x["winner"]}
+             for x in wards if x["winner"] != pub["winner"].get(x["ward"], x["winner"])]
+    return {"largest": largest,
+            "tied": _chance(lp["tied"], _points(lp["tied"]) - _points(pub["tied"])),
+            "alone": _chance(R.majority_alone(seats, council[:, 0], w), None),
+            "turnout": turnout, "wards": wards, "flips": flips}
 
 
 def _one(path: str, settings: dict) -> dict:
@@ -185,31 +315,33 @@ def _one(path: str, settings: dict) -> dict:
         raise ValueError(f"no seat law {law!r} in this export")
     try:
         w, info = _weights(cell, settings)
-        ess = R.require_effective(w)
     except R.Refused as exc:
         return {"cell": path, "refused": str(exc)}
+    try:
+        ess = R.require_effective(w)
+    except R.Refused as exc:
+        # the counts beside the reason, so the page can say it in its own
+        # words and number format
+        return {"cell": path, "refused": str(exc), "effective_draws": R.effective_draws(w),
+                "draws": int(cell["manifest"]["draws"]), "floor": R.MIN_EFFECTIVE_DRAWS}
     council = cell["arrays"][f"council/{law}"]
-    seats, shown, precise = _seats(cell, law, w, info["poll"] is not None)
+    seats, shown, precise, others_count = _seats(cell, law, w, info["poll"] is not None)
     centres = cell["manifest"].get("centres") or {}
     out = {"cell": path, "law": law, "refused": None,
            "draws": int(cell["manifest"]["draws"]), "effective_draws": ess,
-           "seats": seats, "shown": shown, "within_precision": precise,
+           "seats": seats, "shown": shown, "others_count": others_count,
+           "within_precision": precise,
            "max_figure_se": R.MAX_FIGURE_SE_SEATS,
            "majority": R.weighted_quantile(council[:, 0], w, 0.5),
            "council": R.weighted_quantile(council[:, 1], w, 0.5),
+           **_outcomes(cell, law, w),
            # the model's deterministic LEVELS (run_model's centres after the
            # shrink), not shares: they do not sum to one, and the page compares
            # them only cell against cell (review F20, DESIGN-decided §11)
            "centres": centres.get("values"),
            "centres_source": centres.get("source"),
            "model_version": model_version(cell["manifest"]), **info}
-    if "combined_share" in cell["arrays"]:
-        cols = next(b for b in cell["manifest"]["blocks"]
-                    if b["name"] == "combined_share")["columns"]
-        p = w / w.sum()
-        out["combined_share"] = dict(zip(cols, (p @ cell["arrays"]["combined_share"]).tolist()))
-    else:
-        out["combined_share"] = None
+    out["_medians"] = _medians(cell, law, w, info["poll"] is not None)
     return out
 
 
@@ -218,8 +350,8 @@ def compute(settings_json: str) -> str:
 
     When the chosen cell is not the published one, the same settings are also
     computed on the published cell, and each party's median difference is
-    reported against the noise rule of F2: two unpaired cells differ by
-    sampling alone unless the difference is at least
+    reported against the noise rule of F2 (``reweight.beyond_noise``): two
+    unpaired cells differ by sampling alone unless the difference is at least
     ``2 * sqrt(se_a**2 + se_b**2)``.
     """
     s = json.loads(settings_json)
@@ -232,19 +364,24 @@ def compute(settings_json: str) -> str:
         out["published_cell"] = {"centres": ref.get("centres"),
                                  "refused": ref["refused"]}
         if ref["refused"] is None:
-            cmp = {}
-            for party in sorted(set(out["seats"]) | set(ref["seats"])):
-                a = out["seats"].get(party)
-                b = ref["seats"].get(party)
-                ma = a["median"]["value"] if a else 0.0
-                mb = b["median"]["value"] if b else 0.0
-                sa = a["median_se"] if a else 0.0
-                sb = b["median_se"] if b else 0.0
-                noise = 2.0 * math.sqrt(sa * sa + sb * sb)
-                cmp[party] = {"difference": ma - mb, "noise": noise,
-                              "within_noise": abs(ma - mb) < noise}
-            out["against_published_cell"] = cmp
+            out["against_published_cell"] = against(out["_medians"], ref["_medians"])
+    out.pop("_medians", None)
     return json.dumps(_plain(out), allow_nan=False)
+
+
+def against(cell: dict, published: dict) -> dict:
+    """Each party's middle seat count in a by-election cell against the
+    published cell's, by ``reweight.beyond_noise``. Every party that wins a
+    seat in either cell is compared; a party absent from one cell has no seat
+    there (0, with no sampling error). A withheld figure is not compared."""
+    out = {}
+    for party in sorted(set(cell) | set(published)):
+        a, b = cell.get(party), published.get(party)
+        if (a and a["withheld"]) or (b and b["withheld"]):
+            continue
+        out[party] = R.beyond_noise(a["value"] if a else 0.0, a["sampling_se"] if a else 0.0,
+                                    b["value"] if b else 0.0, b["sampling_se"] if b else 0.0)
+    return out
 
 
 def _plain(o):

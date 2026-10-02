@@ -8,34 +8,57 @@
 // controls could not.
 //
 // URL form (every field optional; an absent field is the published setting):
-//   ?t=0,0,0,0        turnout shift per community, points, in the draws' pool order
-//   &p=id1,id2        polls switched on
-//   &k=0              trust, 0-100 (0 = the published forecast: no weight on polls)
+//   ?t=0,0,0,0        turnout shift per group, points, in the draws' pool order
+//   &p=id             the one poll chosen (owner, 2026-10-02: one at a time)
+//   &k=0              how much to believe it, 0-100 (0 = the published forecast)
 //   &l=deduct         seat law
 //   &b=.              by-election cell: the published one, or a grid cell's path
 //   &mv=<sha>         the model version the link was made against, its first
 //                     MV_CHARS hex digits (enough to tell versions apart)
+//   &n=<text>         the name for the share image, at most NAME_MAX characters
+//                     (D7, owner 2026-10-02). It is the reader's text: the page
+//                     puts it only in the name field's value and on the image,
+//                     drawn as text, never as markup
 // Commas are written bare, not as %2C, so a link stays readable.
 
 // F21: the turnout range is what was tested: ±5 points for Black African
 // against a paired re-run of the model (prereg/2026-09-28-reweight-against-
-// paired-rerun.md). The same range is offered for every community (no
-// community singled out, DESIGN-decided §8), and the other three are labelled
-// "argued, not tested" on the page.
+// paired-rerun.md). The same range is offered for every group (no group
+// singled out, DESIGN-decided §8); the page's first note says which was checked.
 export const TURNOUT = { min: -5, max: 5, step: 0.5 };
 export const TRUST = { min: 0, max: 100, step: 5 };
-export const TESTED_POOL = "Black African";
 export const PUBLISHED_LAW = "deduct";
 export const PUBLISHED_CELL = ".";
 export const MV_CHARS = 12;
+export const NAME_MAX = 24;
 
 export function defaults(ctx) {
-  return { shift: ctx.pools.map(() => 0), polls: [], trust: 0, law: PUBLISHED_LAW, cell: PUBLISHED_CELL };
+  return { shift: ctx.pools.map(() => 0), polls: [], trust: 0, law: PUBLISHED_LAW, cell: PUBLISHED_CELL, name: "" };
 }
 
-// Does this state differ from the published forecast's?
+// Does this state differ from the published forecast's? A poll counts only
+// once it is believed at all; the name is not a setting of the model, so a
+// named, untouched page is the published forecast.
 export function isTouched(st) {
-  return st.shift.some(x => x !== 0) || st.trust > 0 || st.law !== PUBLISHED_LAW || st.cell !== PUBLISHED_CELL;
+  return st.shift.some(x => x !== 0) || (st.trust > 0 && st.polls.length > 0) ||
+    st.law !== PUBLISHED_LAW || st.cell !== PUBLISHED_CELL;
+}
+
+// The name as the page keeps it: control characters (C0, C1) and the
+// invisible direction and width controls dropped, so a name cannot reverse or
+// hide the words drawn after it on the image (code review, 2026-10-02); runs
+// of space made one; trimmed; at most NAME_MAX UTF-16 units, the unit the
+// field's maxlength counts, never cutting a character in two. "" when nothing
+// is left.
+const INVISIBLE = /[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]/g;
+export function cleanName(s) {
+  const t = String(s == null ? "" : s).replace(INVISIBLE, "").replace(/\s+/g, " ").trim();
+  let out = "";
+  for (const ch of t) {
+    if (out.length + ch.length > NAME_MAX) break;
+    out += ch;
+  }
+  return out.trim();
 }
 
 const onStep = (x, { min, max, step }) =>
@@ -58,15 +81,15 @@ export function parse(search, ctx) {
     else dropped.push("turnout: needs " + ctx.pools.length + " values from " + TURNOUT.min + " to " + TURNOUT.max + " in steps of " + TURNOUT.step);
   }
   if (q.has("p")) {
-    const ids = q.get("p").split(",").filter(Boolean);
-    const known = ids.filter(id => ctx.polls.includes(id));
-    if (known.length !== ids.length) dropped.push("polls: the link names a poll this page does not offer");
-    st.polls = [...new Set(known)];
+    const ids = [...new Set(q.get("p").split(",").filter(Boolean))];
+    if (ids.length > 1) dropped.push("poll: one at a time");
+    else if (ids.length === 1 && !ctx.polls.includes(ids[0])) dropped.push("poll: the link names a poll this page does not offer");
+    else st.polls = ids;
   }
   if (q.has("k")) {
     const k = Number(q.get("k"));
     if (onStep(k, TRUST)) st.trust = k;
-    else dropped.push("trust: needs " + TRUST.min + " to " + TRUST.max + " in steps of " + TRUST.step);
+    else dropped.push("belief in the poll: needs " + TRUST.min + " to " + TRUST.max + " in steps of " + TRUST.step);
   }
   if (q.has("l")) {
     if (ctx.laws.includes(q.get("l"))) st.law = q.get("l");
@@ -76,13 +99,21 @@ export function parse(search, ctx) {
     if (ctx.cells.includes(q.get("b"))) st.cell = q.get("b");
     else dropped.push("by-election weight: not one this page offers");
   }
+  if (q.has("n")) {
+    // an empty name is no name, not a refusal; a long one is refused whole,
+    // never cut, in the field's own unit
+    const raw = q.get("n");
+    if (raw.length > NAME_MAX) dropped.push("name: at most " + NAME_MAX + " characters");
+    else st.name = cleanName(raw);
+  }
   // The link's version must be this model's first MV_CHARS characters
   // exactly: a shorter prefix would match more than one version.
   const mv = q.get("mv");
   return { state: st, dropped, otherVersion: mv != null && mv !== String(ctx.modelVersion).slice(0, MV_CHARS) ? mv : null };
 }
 
-// Only fields that differ from the published setting are written, plus mv.
+// Only fields that differ from the published setting are written, plus mv,
+// then the name.
 export function serialize(st, ctx) {
   const q = new URLSearchParams();
   if (st.shift.some(x => x !== 0)) q.set("t", st.shift.join(","));
@@ -91,12 +122,14 @@ export function serialize(st, ctx) {
   if (st.law !== PUBLISHED_LAW) q.set("l", st.law);
   if (st.cell !== PUBLISHED_CELL) q.set("b", st.cell);
   if ([...q.keys()].length) q.set("mv", String(ctx.modelVersion).slice(0, MV_CHARS));
+  if (cleanName(st.name)) q.set("n", cleanName(st.name));
   const s = q.toString().replace(/%2C/g, ",");
   return s ? "?" + s : "";
 }
 
-// The settings pyboot/page.py computes: trust as a fraction; the polls are
-// passed as switched on, and page.py gives them no weight at trust 0.
+// The settings pyboot/page.py computes: trust as a fraction; the poll is
+// passed as chosen, and page.py gives it no weight at trust 0. The name is
+// not the model's.
 export function engineSettings(st) {
   return { cell: st.cell, law: st.law, shift: st.shift.slice(), polls: st.polls.slice(), trust: st.trust / 100 };
 }

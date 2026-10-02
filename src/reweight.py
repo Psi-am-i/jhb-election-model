@@ -854,6 +854,71 @@ def weighted_probability(event, weights) -> float:
     return float(w[e].sum() / w.sum())
 
 
+def chance_text(p: float) -> str:
+    """A share of simulations as every page prints it: never "100%" or "0%".
+
+    ONE DEFINITION (code review, 2026-10-02): ``stats``' "chance" token format
+    calls this, and ``interactive/pyboot/page.py`` returns its text beside each
+    share, so the published figure and the reader's figure print one share the
+    same way (``model.js`` had its own rounding and printed 9.1% where the
+    build printed 9.0%).
+    """
+    v = float(p)
+    if v > 0.99:
+        return "over 99%"
+    if v < 0.0005:
+        return "under 0.1%"
+    return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
+
+
+def largest_party(seats, columns, weights=None) -> dict:
+    """Who has the most seats, per simulation: ``{"outright": {party: P}, "tied": P}``.
+
+    ⛔ ONE DEFINITION OF "THE LARGEST PARTY", FOR /forecast AND /play/ (side
+    finding S1, owner 2026-10-02). ``render_sheet`` took ``argmax`` over
+    ``seat_draws.csv``'s column order, and ``argmax`` returns the FIRST
+    maximum, so every simulation in which two parties tied for the most seats
+    was credited to whichever came first in the file. A tie is its own
+    outcome: ``outright[p]`` is the share of simulations in which ``p`` alone
+    has the most seats, and ``tied`` the share in which two or more share the
+    most. They sum to one.
+
+    ``seats`` is ``(draws, parties)``, ``columns`` its party codes; an
+    aggregate column (``reweight``'s draws carry ``OTHER``, every party below
+    the export's cut summed) is not a party and must not be passed. Unit
+    weights when ``weights`` is None.
+    """
+    s = np.asarray(seats)
+    w = uniform(s.shape[0]) if weights is None else np.asarray(weights, dtype=float)
+    top = s.max(axis=1)
+    at_top = s == top[:, None]
+    alone = at_top.sum(axis=1) == 1
+    return {"outright": {c: weighted_probability(at_top[:, j] & alone, w)
+                         for j, c in enumerate(columns)},
+            "tied": weighted_probability(~alone, w)}
+
+
+def majority_alone(seats, thresholds, weights=None) -> float:
+    """P(one party reaches the majority on its own): the row maximum against
+    that simulation's own threshold, as ``scenarios.majority_alone_share``
+    reads it from ``seat_draws.csv``."""
+    s = np.asarray(seats)
+    w = uniform(s.shape[0]) if weights is None else np.asarray(weights, dtype=float)
+    return weighted_probability(s.max(axis=1) >= np.asarray(thresholds), w)
+
+
+def beyond_noise(a: float, se_a: float, b: float, se_b: float) -> dict:
+    """Is ``a - b`` more than two unpaired runs differ by sampling alone?
+
+    The review's F2 rule for the by-election cells, which are separate runs:
+    a difference counts when it is at least ``2 * sqrt(se_a**2 + se_b**2)``.
+    ONE DEFINITION for the page's live comparison (``pyboot/page.py``) and the
+    build's line under the by-election control (``build_play``).
+    """
+    noise = 2.0 * float(np.sqrt(se_a * se_a + se_b * se_b))
+    return {"difference": a - b, "noise": noise, "within_noise": abs(a - b) < noise}
+
+
 def weighted_mean_se(values, weights) -> tuple[float, float]:
     """The weighted mean and its linearised standard error.
 

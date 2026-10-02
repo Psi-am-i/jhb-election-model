@@ -12,8 +12,12 @@ violation and goes quiet when it is reverted (CLAUDE.md §4):
 
 * the page is in the review stamp, blocks nothing, and ``deploy_check`` passes
   on the build;
-* its first paint is token spans (the published forecast, ledgered), and its
-  LIVE regions are exactly the ones its writer is listed for, both directions;
+* its first paint is token spans (the published forecast, ledgered) in build
+  twins, with no copy of another page embedded, and its LIVE regions are
+  exactly the ones its writers are listed for, both directions;
+* the twins carry the forecast page's own seat tokens, and pyboot/page.py's
+  rows at uniform weights are those rows (DESIGN §4: the untouched page IS the
+  published forecast);
 * a figure written outside a LIVE region, by the listed writer or by a module
   that is not listed, is refused, on the built files and by the build itself;
 * a digit typed into a LIVE region at build time blocks the stamp.
@@ -89,14 +93,16 @@ def test_the_built_play_page_is_stamped_and_blocks_nothing():
     pages, blocking = _stamp(site)
     assert build_play.PLAY_PAGE in pages, sorted(pages)
     assert blocking == 0
-    # the page's own section of the review: it was looked at (it carries the
-    # published forecast's panels, so its scan is far from empty) and none of
+    # the page's own section of the review: it was looked at (the published
+    # map's tooltips, one per ward and party, are scanned as a generated
+    # region, so its scan is far from empty; measured 2026-10-02) and none of
     # its rows blocks
     review = (site.parent / "NUMBERS-REVIEW.md").read_text(encoding="utf-8")
     section = re.search(rf"^## {re.escape(build_play.PLAY_PAGE)} — (.*?)$(.*?)(?=^## |\Z)", review, re.S | re.M)
     assert section, "the review has no section for the play page"
     assert sum(int(n) for n in re.findall(r"(\d+) \w+", section.group(1))) > 100, section.group(1)
     assert "| BLOCKS |" not in section.group(2)
+    assert "| generated:MAP:attr |" in section.group(2)
     # and the rule the build applied is the one in stats: a raw scan of the
     # page finds nothing blocking inside a LIVE region
     hits = S.scan_numbers((site / build_play.PLAY_PAGE).read_text(encoding="utf-8"))
@@ -110,11 +116,24 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     site = _built()
     html = (site / build_play.PLAY_PAGE).read_text(encoding="utf-8")
     assert "js/published.js" not in html and not (site / "play/js/published.js").exists()
-    # the published figures are rendered token spans, in both published hosts
-    hosts = html.split('<template shadowrootmode="open">')[1:]
-    assert len(hosts) == 2
-    for host in hosts:
-        assert host.count('class="mstat"') >= 5, host[:300]
+    # nothing of /forecast is embedded (DESIGN §4): no shadow host, no copy of
+    # its tiles, coalition table or claims
+    assert "shadowrootmode" not in html
+    for other in ('id="tiles"', 'id="coalitions"', 'id="claims"'):
+        assert other not in html, other
+    # the twins: every build marker filled, and each twin's figures are
+    # rendered token spans
+    assert "__PLAY:" not in html
+    sheet = build_play.seat_rows((ROOT / "forecast-sheet.html").read_text(encoding="utf-8"))
+    for part in ("pl-banner pl-pub", "pl-oneline pl-pub", "pl-seats pl-pub", "pl-pub pl-turntwin"):
+        lo = html.index(f'class="{part}"')
+        twin = html[lo:lo + 6000]
+        assert twin.count('class="mstat') >= 2, (part, twin[:300])
+    # the seat twin is the forecast page's rows: one per sheet row, its tokens
+    seats = html[html.index('class="pl-seats pl-pub"'):html.index('data-live="seats"')]
+    assert seats.count('class="pl-srow"') == len(sheet), (seats.count('class="pl-srow"'), len(sheet))
+    # the published map, once, as a generated region the scan lists
+    assert html.count("<!-- __MAP_START__ -->") == 1 and html.count("<!-- __MAP_END__ -->") == 1
     # every LIVE region on the page is one the writer is listed for, and every
     # listed region is on the page (both directions)
     on_page = {name for _, _, name in S._live_scan(html)[0]}
@@ -126,10 +145,11 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     assert {w for w in S.LIVE_WRITERS if w.startswith("play/")} == set(PLAY_WRITERS)
     for w in PLAY_WRITERS:
         assert (site / w).is_file(), w
-    # each figure region carries its visible label; none is hidden at build time
-    for name in on_page - {"engine", "law", "actions"}:
-        assert re.search(rf'data-live="{name}"[^>]*>(?:(?!data-live=).)*?[Cc]omputed in your browser',
-                         html, re.S), name
+    # the "computed in your browser" labels are gone (owner, 2026-10-02): the
+    # page says it once, in its notes
+    text = re.sub(r"<[^>]+>", " ", html)
+    assert len(re.findall(r"worked out in your browser", text)) == 1
+    assert not re.search(r"[Cc]omputed in your browser", text)
     # the Worker was pointed at the served draws, and at nothing else
     worker = (site / "play/js/model-worker.js").read_text(encoding="utf-8")
     assert build_play.DRAWS_LINE[1] in worker and build_play.DRAWS_LINE[0] not in worker
@@ -157,8 +177,8 @@ def test_a_figure_outside_a_live_region_is_refused_and_the_refusal_reverts():
     writer = site / WRITER
     body = writer.read_text(encoding="utf-8")
     cases = (
-        # the listed writer, writing into the published seats panel
-        ("document.querySelector('.pubseats').textContent = String(r.draws);\n",
+        # the listed writer, writing into the published seat twin
+        ("document.querySelector('.pl-seats').textContent = String(r.draws);\n",
          "a lookup that is not a LIVE selector"),
         # the listed writer, into a LIVE region it is not listed for
         ("document.querySelector('[data-live=\"headline\"]').textContent = '1';\n",
@@ -227,7 +247,7 @@ def test_the_build_itself_blocks_an_unlisted_writer_and_a_typed_live_digit():
         # 2. a digit typed into a LIVE region at build time: the stamp blocks
         def typed(**kw):
             html = real_assemble(**kw)
-            marker = '<p class="stubnote seatsempty">'
+            marker = '<div data-live="flips" class="pl-flips">'
             assert html.count(marker) == 1
             return html.replace(marker, marker + "The DA wins 71 seats. ")
         build_play.assemble = typed
@@ -240,7 +260,7 @@ def test_the_build_itself_blocks_an_unlisted_writer_and_a_typed_live_digit():
         pages, blocking = _stamp(Path(t) / "b")
         assert blocking >= 1 and build_play.PLAY_PAGE in pages
         review = (Path(t) / "NUMBERS-REVIEW.md").read_text(encoding="utf-8")
-        assert re.search(r"\| BLOCKS \| num \| live:seats \| `71` \|", review), review[:2000]
+        assert re.search(r"\| BLOCKS \| num \| live:flips \| `71` \|", review), review[:2000]
 
         # 3. reverted, the same build is quiet again
         (Path(t) / "c").mkdir()
@@ -300,6 +320,86 @@ def test_the_default_build_writes_the_play_page_links_it_and_gives_it_its_own_ca
     from html import unescape
     assert not re.search(r"\d", unescape(og["title"] + og["description"])), og
     assert play.count('property="og:image"') == 1
+
+
+def test_the_page_engine_at_uniform_weights_is_the_forecast_pages_rows():
+    """DESIGN §4: the untouched page IS the published forecast, so the LIVE
+    side at uniform weights (pyboot/page.py, run natively as the Worker runs
+    it) must show the rows the build twin shows, with the same figures: the
+    rows (owner's D1, a middle of at least two seats) equal the forecast
+    sheet's, every median and range end equals the sheet's token, and the map
+    under uniform weights calls every ward as ward_winner_probs.csv does."""
+    import csv
+    import json
+    import subprocess
+    _built()            # it also runs sync_py.mjs, which writes the served copy
+    run = subprocess.run([sys.executable, str(ROOT / "interactive/tools/native_play.py")],
+                         cwd=ROOT, capture_output=True, text=True, check=True)
+    cases = {c["name"]: c["result"] for c in json.loads(run.stdout)["cases"]}
+    out = cases["untouched"]
+    sheet = {r["code"]: r for r in build_play.seat_rows((ROOT / "forecast-sheet.html").read_text(encoding="utf-8"))}
+    assert set(out["shown"]) | {"OTHERS"} == set(sheet), (sorted(out["shown"]), sorted(sheet))
+    for code, row in sheet.items():
+        f = out["seats"][code]
+        assert (round(f["median"]["value"]), round(f["p5"]["value"]), round(f["p95"]["value"])) == \
+            (round(row["m"]), round(row["lo"]), round(row["hi"])), code
+    assert out["flips"] == []
+    with (ROOT / "data/processed/ward_winner_probs.csv").open(encoding="utf-8", newline="") as fh:
+        pub = {r["ward"]: r for r in csv.DictReader(fh)}
+    import render_map as RM
+    for w in out["wards"]:
+        call = RM.ward_call(w["ward"], pub[w["ward"]]["winner"], float(pub[w["ward"]]["p_win"]), pub[w["ward"]]["dist"])
+        assert (w["winner"], w["fill"]) == (pub[w["ward"]]["winner"], call["fill"]), w["ward"]
+    assert len(out["wards"]) == len(pub)
+    # and it can see: a weight that moves the result moves a row
+    moved = cases["black-african-plus-5"]
+    assert moved["flips"] and any(moved["seats"][c]["vs_published"] for c in moved["shown"])
+
+
+def test_the_live_by_election_line_is_the_builds_at_every_setting():
+    """At the published turnout, poll and seat law, the reader's by-election
+    comparison (pyboot/page.py ``against_published_cell``) must list exactly
+    the moves the build's line under the control lists (``build_play._moves``),
+    for every by-election cell. Critic S1, 2026-10-02: a party outside the
+    shown rows was compared against 0, and the two lines disagreed on screen.
+
+    Population: every cell index.json lists except the published one, and
+    every party winning a seat in either cell, both directions. It can see: at
+    least one party the build line names is outside the shown rows, which is
+    the case the defect broke."""
+    import importlib.util
+    import json
+    import os
+    _built()            # runs sync_py.mjs: the served copy is current
+    spec = importlib.util.spec_from_file_location("native_play", ROOT / "interactive/tools/native_play.py")
+    NP = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(NP)
+    cwd, path = os.getcwd(), list(sys.path)
+    try:
+        ns = NP._page(NP.SERVED, NP.SERVED)
+        for c in NP.cells():
+            d = NP.DRAWS / c["path"]
+            ns["load_cell"](c["path"], (d / "manifest.json").read_text(), (d / "base.bin").read_bytes())
+        ns["set_polls"](json.dumps(json.loads((NP.DRAWS / "index.json").read_text()).get("polls", [])))
+        pub, _ = build_play._cell_medians(".")
+        others = [c for c in NP.cells() if c["path"] != "."]
+        assert len(others) >= 2, others
+        outside = 0
+        for c in others:
+            res = json.loads(ns["compute"](json.dumps({"cell": c["path"], "law": "deduct",
+                                                       "shift": [0, 0, 0, 0], "polls": [], "trust": 0})))
+            live = res["against_published_cell"]
+            med, _ = build_play._cell_medians(c["path"])
+            assert set(live) == set(med) | set(pub), (c["path"], sorted(set(live) ^ (set(med) | set(pub))))
+            got = sorted((p, int(round(d["difference"]))) for p, d in live.items()
+                         if not d["within_noise"] and round(d["difference"]))
+            want = sorted(build_play._moves(med, pub))
+            assert got == want, (c["path"], got, want)
+            outside += sum(1 for p, _ in want if p not in res["shown"])
+        assert outside, "no move outside the shown rows: the test cannot see the defect it guards"
+    finally:
+        os.chdir(cwd)
+        sys.path[:] = path
 
 
 if __name__ == "__main__":

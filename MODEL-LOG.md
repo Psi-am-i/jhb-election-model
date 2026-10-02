@@ -28373,3 +28373,42 @@ equal for the first 79 draws" is wrong. The equal rows are scattered: 79 for
 (scattered up to draw 1630); no PR-share row is equal in either cell.
 Per-pool correlation over draws 100–4999 is 0.001–0.006 (`w_bye=0`) and
 0.029–0.039 (`w_bye=1`). The conclusion stands: the cells are unpaired.
+
+## 1.284 S1: a tie for the most seats was credited to the first party in the file (2026-10-02)
+
+**Finding.** `render_sheet` took `argmax` over `seat_draws.csv`'s columns, and
+`montecarlo`'s `structural.P(X is the largest single party)` takes it over the
+model's party order. `argmax` returns the first maximum, so a simulation in
+which two or more parties tied for the most seats counted for the first of
+them, DA first in both orders. On the frozen run (`r-c68c627d287e`, 5,000
+draws) 72 simulations are ties (1.44%): the published "DA largest" of 46.58%
+was 45.24% alone plus 1.34 points of ties, and "ANC largest" 46.82% was 46.72%
+alone plus 0.10. Found by the /play/ redesign's figures check (side finding S1).
+
+**Change.** `reweight.largest_party` is the one definition: each party's share
+of simulations in which it ALONE has the most seats, and the share in which two
+or more tie; they sum to one. `render_sheet` (tiles, claims), `render_home`
+(lede), the registry tokens `p_da_largest` / `p_anc_largest`
+(`derived:largest_outright.<P>`), the new `p_largest_tied`, and /play/ all read
+it. No forecast number moved; four pages' figures did (the corrections entry of
+2 October; the ledger's `tile.p_da_largest`, `claim.*_largest.share`,
+`home.p_*_largest`, `p_da_largest` rows).
+
+**Not changed.** `montecarlo.py`'s structural keys still use `argmax`. No page
+reads them now; changing the model file moves its code hash, so it waits for
+the next model change.
+
+## 1.285 A poll with no published sample size is priced below one with a sample, on some parties (2026-10-02)
+
+**Finding.** `polling.poll_sd` prices a poll with no `n` on the house term alone
+(its documented fallback; `polling.validate` warns about it). Measured with
+`reweight.poll_trust_sd(poll, share, 1.0)` on `site/draws/index.json`'s three
+offered polls, in points: Ipsos Khayabus (no `n`) 4.14 on every party; SRF July
+2026 (n 504) ANC 3.99, DA 4.35, EFF 3.68; SRF Feb–Mar 2026 (n 503) ANC 4.40, DA
+4.50, EFF 3.73. The poll whose size is unknown carries less error than the
+reported-sample polls on the DA, and more on the ANC. Raised by the /play/
+critic (S2), who expected an unknown sample to cost more.
+
+**Not changed.** Pricing is the model's (JUDGEMENT-CALLS §N2, DESIGN D3); this
+is for the owner. A fix would give an unreported sample a sampling term (a
+prior on `n`) instead of none.

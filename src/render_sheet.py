@@ -116,11 +116,15 @@ def main(argv: list[str] | None = None) -> int:
         return {"p": round(float((total >= thr).mean()), 4),
                 "med": med, "lo": lo, "hi": hi}
 
-    # largest party, and whether anyone ever gets to govern alone
-    stack = np.stack([S[p] for p in parties])
-    largest = stack.argmax(axis=0)
-    p_da_largest = float((np.array(parties)[largest] == "DA").mean())
-    p_anc_largest = float((np.array(parties)[largest] == "ANC").mean())
+    # largest party, and whether anyone ever gets to govern alone. ONE
+    # DEFINITION, shared with /play/: reweight.largest_party. This was an
+    # argmax over this file's column order, which credited every tied
+    # simulation to the first column, the DA (side finding S1, 2026-10-02).
+    import reweight as _rw
+    _lp = _rw.largest_party(np.stack([S[p] for p in parties], axis=1), parties)
+    p_da_largest = _lp["outright"]["DA"]
+    p_anc_largest = _lp["outright"]["ANC"]
+    p_tied_largest = _lp["tied"]
     # ONE DEFINITION, shared with the home page's heading — see
     # scenarios.majority_alone_share. The inline version lived here and
     # the heading needed the same number; two copies of "can anyone
@@ -164,6 +168,8 @@ def main(argv: list[str] | None = None) -> int:
          "ANC + DA have a majority. No other pair of parties reliably reaches one", ""),
         (chance("tile.p_da_largest", p_da_largest), "The DA is the largest single party", ""),
         (chance("tile.p_anc_largest", p_anc_largest), "The ANC is the largest single party", ""),
+        (chance("tile.p_tied_largest", p_tied_largest),
+         "Two or more parties tie for the most seats", ""),
         (chance("tile.p_anc_excessive", p_excessive, "forecast_summary.json p_excessive_by_party"),
          "The ANC triggers the excessive-seats clause",
          "It keeps every ward it wins and gets no list seats; the other parties' list seats shrink"),
@@ -379,19 +385,20 @@ def main(argv: list[str] | None = None) -> int:
         _anc_side = _bloc(("EFF", "MK", "DA"))
         _three = sum(S[p] for p in ("DA", "ASA", "PA") if p in S)
         _left = sum(S[p] for p in ("ANC", "EFF", "MK") if p in S)
-        _stack = np.stack([S[p] for p in parties])
-        _largest = np.array(parties)[_stack.argmax(axis=0)]
+        # the same definition as the tiles above (reweight.largest_party)
+        _outright = _lp["outright"]
         since_vals = {
             "anc_alone_share": chance("claim.anc_alone.share", _anc_alone),
             "anc_alone_count": tok("claim.anc_alone.count", int((S["ANC"] >= thr).sum()), "int"),
             "anc_best": tok("claim.anc_alone.best", int(S["ANC"].max()), "int"),
             "anc_median": tok("claim.anc.median", int(np.median(S["ANC"])), "int"),
             "da_median": tok("claim.da.median", int(np.median(S["DA"])), "int"),
-            "mk_largest_share": chance("claim.mk_largest.share", float((_largest == "MK").mean())),
+            "mk_largest_share": chance("claim.mk_largest.share", _outright["MK"]),
             "mk_median": tok("claim.mk.median", int(np.median(S["MK"])), "int"),
             "mk_p95": tok("claim.mk.p95", int(np.percentile(S["MK"], 95)), "int"),
-            "anc_largest_share": chance("claim.anc_largest.share", float((_largest == "ANC").mean())),
-            "da_largest_share": chance("claim.da_largest.share", float((_largest == "DA").mean())),
+            "anc_largest_share": chance("claim.anc_largest.share", _outright["ANC"]),
+            "da_largest_share": chance("claim.da_largest.share", _outright["DA"]),
+            "largest_tied_share": chance("claim.largest_tied.share", _lp["tied"]),
             "da_alone_share": chance("claim.da_alone.share", len(_da) / N),
             "da_alone_count": tok("claim.da_alone.count", len(_da), "int"),
             "n_draws": "{{n_draws}}",

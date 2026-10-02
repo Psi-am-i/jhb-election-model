@@ -66,34 +66,45 @@ stamps it like every other page). Served layout, under the site root:
 
 | path | what |
 |---|---|
-| `play/index.html` | `model.html` with the site's `THEME_HEAD`, nav and footer, and the published forecast's TILES, SEATS, GOVERN, MAP and CLAIMS panels cut from `forecast-sheet.html` as `{{tokens}}` in two declarative shadow roots: first paint is ledgered tokens, no script |
+| `play/index.html` | `model.html` with the site's `THEME_HEAD`, nav and footer, and a build twin of each results element filled at its `__PLAY:<name>__` marker (`build_play.FILL`): the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map (`render_map.ward_layers`, a `MAP` generated region), turnout by group, where each party's votes come from, and the notes' figures, all as `{{tokens}}`. First paint is ledgered tokens, no script; nothing of `/forecast` is embedded |
 | `play/js/` | `model.js` (the LIVE writer), `play-state.js`, `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `play-share.js` (the share sheet, LIVE writer of region `share`), `play-card.js` (the share image, a LIVE writer of no region), `card-text.js` |
-| `play/css/interactive.css`, `play/pyboot/page.py` | copies |
+| `play/css/interactive.css`, `play/css/play.css`, `play/pyboot/page.py` | copies (`play.css` holds the page's own rules, every class `pl-`) |
 | `play/py/manifest.json`, `play/py/page/` | the page's Python, copied by `tools/sync_py.mjs`, which the build runs |
-| `play/parties.json` | party names and colours |
+| `play/parties.json` | party names, colours and the article a name takes ("the ANC") |
+| `play/ward_paths.json` | the ward boundaries and place labels, and the stripe tile, for the map under a reader's settings |
+| `play/labels.json` | `js/labels.js`'s words and number range, for the share image's random label |
 | `draws/` | the published draws (`export_draws`), already under `site/` |
 
 The number gate holds it: every figure a reader's settings produce is written
 by `play/js/model.js` (and the share sheet by `play/js/play-share.js`), into `data-live` regions that hold no digit at
-build time and carry the label "computed in your browser from your settings";
-`stats.script_writes` refuses the build otherwise
-(`tests/test_play_page.py`). Opened from the repository as the prototype, the
-page shows no published panels (they exist only once built): build into a
-scratch directory, copy `site/draws/` and `site/logos/` beside it, and serve
+build time; `stats.script_writes` refuses the build otherwise
+(`tests/test_play_page.py`). The page says once, in its notes, that these
+figures are worked out in the reader's browser. Each results element has a
+build twin of tokens and a LIVE sibling: `model.js` sets `data-touched` on the
+`result` region when a control is away from the published setting, and
+`css/play.css` swaps them. Opened from the repository as the prototype, the
+page shows no published figures (they exist only once built): build into a
+scratch directory, link `site/draws/` and `site/share.jpg` beside it, and serve
 that directory to see the page as it ships.
 
 ### Saving and sharing, anonymous
 
 A reader's settings live in the page's address (`js/play-state.js`:
-`?t=…&p=…&k=…&l=…&b=…&mv=…`, only the fields that differ from the published
+`?t=…&p=…&k=…&l=…&b=…&mv=…&n=…`, only the fields that differ from the published
 setting, checked against the controls' bounds on load; a field out of bounds
-falls back to the published setting and the page says which). "Share these
-settings" opens a sheet with the link (copy, or the phone's own share sheet)
-and an image of the seats those settings give, at 1200×630 or 1080×1920,
-drawn in the browser by `js/play-card.js` from the same compute result the
-seat table shows, stamped as the reader's settings and not the model's
-forecast. No account, no name, no cookie, no storage, nothing sent: a shared
-link shows the page's generic preview (`og:` tags with no figure, the site's
+falls back to the published setting and the page says which). "Share this
+forecast" opens a sheet with an optional name (free text, at most
+`NAME_MAX` characters, put only in the field, the link and the image, drawn as
+text), the image, and the link (copy, or the phone's own share sheet). The
+image, 1200×630 or 1080×1920, is drawn in the browser by `js/play-card.js` from
+the same compute result the page shows: the Hillbrow Tower strip from
+`share.jpg`; a headline saying whose figures these are ("The model's
+Johannesburg forecast" with the name on a "Shared by" line when nothing is
+moved, "<name>'s settings on the model" with "Not the model's forecast" under
+it when something is); the largest-party line, ties apart; the ward map, north
+marked, with a line saying it holds the ward seats only; and each party's
+middle seat count with the range holding nine in ten. No account, no cookie, no storage, nothing sent: a shared link shows
+the page's generic preview (`og:` tags with no figure, the site's
 `share.jpg`). Tests: `tests/play-share.test.mjs`, `tests/test_play_page.py`.
 Screenshots: `screenshots/play-*.png`.
 
@@ -107,7 +118,7 @@ Screenshots: `screenshots/play-*.png`.
 | `tools/sync_py.mjs`, `py/` | the served copy of the seat code (gitignored; written by the tool) |
 | `js/api.js` | the one backend door: the stub on loopback hosts, the Worker API elsewhere (`?api=stub` / `?api=live` override) |
 | `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; `/api/me` mapping |
-| `model.html`, `js/model.js` | play with the model: the page's one source (the build cuts its `__DEVONLY__` spans and fills its `__PLAY…__` / `__PUBLISHED:…__` markers), and the ONE module that writes figures, only into `data-live` regions (`stats.LIVE_WRITERS["play/js/model.js"]`) |
+| `model.html`, `js/model.js` | play with the model: the page's one source (the build cuts its `__DEVONLY__` spans and fills its `__PLAY…__` markers), and the ONE module that writes figures, only into `data-live` regions (`stats.LIVE_WRITERS["play/js/model.js"]`) |
 | `js/model-worker.js`, `js/reweight-engine.js`, `pyboot/page.py` | the Web Worker, the engine loader (injectable, also run by the node test), and the Python entry that routes settings to `src/reweight.py` |
 | `js/play-state.js` | the reader's settings, their bounds and the URL form (F16); pure |
 | `js/play-share.js`, `js/play-card.js`, `js/card-text.js` | play's share sheet, its share image, and the measured text layout and PNG step both share images use |
