@@ -995,6 +995,27 @@ def main(argv: list[str] | None = None) -> int:
         (args.out / build_play.PLAY_PAGE).write_text(html, encoding="utf-8")
         print(f"  play     interactive/model.html       -> site/{build_play.PLAY_PAGE} "
               f"(+{len(written)} files under site/{build_play.PLAY_DIR}/)")
+        # "make your own forecast" (/make/), the same way: assembled by
+        # build_make from interactive/make.html, rendered, audited and scanned
+        # here; its scripts are held to the LIVE-writer contract like /play/'s.
+        import build_make
+        written = build_make.write_assets(args.out)
+        html = build_make.assemble(theme_head=page_og(build_make.OG_DESCRIPTION,
+                                                      build_make.OG_TITLE, build_make.MAKE_HREF)
+                                   + THEME_HEAD,
+                                   nav=nav_for(build_make.MAKE_HREF), footer=FOOTER,
+                                   stat_css=statlib.STAT_CSS, cut_markers=cut_spans)
+        seen = []
+        html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
+        published += [{**r, "page": build_make.MAKE_PAGE} for r in seen]
+        all_drift += drift
+        unresolved_all += [f"interactive/make.html: {u}" for u in unresolved]
+        audits[build_make.MAKE_PAGE] = statlib.audit(html, **audit_cfg)
+        scans[build_make.MAKE_PAGE] = statlib.scan_numbers(html, **scan_cfg)
+        html = statlib.inject_stat_css(html)
+        (args.out / build_make.MAKE_PAGE).write_text(html, encoding="utf-8")
+        print(f"  make     interactive/make.html        -> site/{build_make.MAKE_PAGE} "
+              f"(+{len(written)} files under site/{build_make.MAKE_DIR}/)")
     # EVERY PAGE THIS BUILD NO LONGER PRODUCES IS REMOVED, not just the one
     # somebody remembered. A single hard-coded `forecast.html` unlink stood here
     # for months while `plan.html` and, the moment the interactive was withheld,

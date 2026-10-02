@@ -13,7 +13,7 @@ export function hexPoints([cx, cy], r) {
   const pts = [];
   for (let k = 0; k < 6; k++) {
     const a = Math.PI / 180 * (60 * k - 90);
-    pts.push(`${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`);
+    pts.push((cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1));
   }
   return pts.join(" ");
 }
@@ -24,7 +24,7 @@ export class WardMap {
     this.readonly = readonly; this.onPaint = onPaint; this.onFocusWard = onFocusWard;
     this.mode = "geo"; this.calls = new Array(geom.wards.length).fill(null);
     this.cur = 0; this.painting = false;
-    svg.setAttribute("viewBox", `0 0 ${geom.W} ${Math.ceil(geom.H)}`);
+    svg.setAttribute("viewBox", "0 0 " + geom.W + " " + Math.ceil(geom.H));
     svg.classList.toggle("readonly", readonly);
     this.draw();
     if (!readonly) this.wire();
@@ -35,7 +35,7 @@ export class WardMap {
 
   label(i) {
     const c = this.calls[i];
-    return `Ward ${this.geom.wards[i].id}, ${this.geom.wards[i].sector}: ` +
+    return "Ward " + this.geom.wards[i].id + ", " + this.geom.wards[i].sector + ": " +
       (c ? this.byCode[c].name : "not called yet");
   }
 

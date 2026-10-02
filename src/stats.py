@@ -254,6 +254,14 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     # reaches NO region; play-share.js puts the image in the sheet. Listed so
     # the writer contract, not the non-writer one, applies to it.
     "play/js/play-card.js": frozenset(),
+    # "Make your own forecast" (src/build_make.py, from interactive/js/make.js):
+    # the map, the vote, the coalition and the council the reader's edits give.
+    "make/js/make.js": frozenset({"status", "map", "vote", "govern", "council"}),
+    # Its share sheet (interactive/js/make-share.js), inside the region "share".
+    "make/js/make-share.js": frozenset({"share"}),
+    # The share image (interactive/js/forecast-card.js): an SVG of the figures
+    # it is handed. It reaches NO region; listed so the writer contract applies.
+    "make/js/forecast-card.js": frozenset(),
 }
 
 

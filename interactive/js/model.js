@@ -59,9 +59,7 @@ const R = {
   seats: document.querySelector('[data-live="seats"] table'),
   bandnote: document.querySelector('[data-live="seats"] .bandnote'),
   announce: document.querySelector('[data-live="seats"] .announce'),
-  tomake: document.querySelector('[data-live="actions"] .tomake'),
   reset: document.querySelector('[data-live="actions"] .reset'),
-  tomakenote: document.querySelector('[data-live="actions"] .tomakenote'),
   summary: document.querySelector('[data-live="summary"] .sumrow'),
 };
 
@@ -333,7 +331,6 @@ function render(r, touched, ms, state = st) {
   R.ess.classList.remove("low");
   R.turnpin.hidden = !r.turnout_pinned;
   renderBye(touched ? r : baseline);
-  handoff(r);
   if (!touched) {
     R.ess.textContent = "The published forecast: every simulation counts once.";
     clear(R.seats);
@@ -419,30 +416,10 @@ function renderBye(r) {
   R.bye.append(tbody);
 }
 
-// The start state handed to "make your own": the combined vote the builder
-// shows (DESIGN-decided §10). The draws carry only the list vote (the export
-// states why), and a list share is not handed over as if it were the combined
-// one, so the button stays disabled and says so.
-function handoff(r) {
-  const ok = !!r?.combined_share;
-  R.tomake.disabled = !ok;
-  R.tomakenote.hidden = ok;
-}
-
 R.reset.addEventListener("click", () => {
   if (!ctx) return;
   st = PS.defaults(ctx); lastMoved = null;
   syncControls();
   history.replaceState(null, "", location.pathname + location.hash);
   update();
-});
-R.tomake.addEventListener("click", () => {
-  const r = st && PS.isTouched(st) ? lastResult : baseline;
-  if (!r?.combined_share) return;
-  try {
-    sessionStorage.setItem("jhb-start-from", JSON.stringify({
-      calls: null, share: Object.fromEntries(Object.entries(r.combined_share).map(([k, v]) => [k, Math.round(v * 1000) / 10])),
-      coalition: [], mayor: "" }));
-  } catch (e) {}
-  location.href = "make.html";
 });

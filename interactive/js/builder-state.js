@@ -91,7 +91,7 @@ function apportion(codes, weights, total, mins) {
 // Returns { state, clamped } where clamped says the reader asked for less
 // than the party's floor (or more than its ceiling).
 export function setVotes(state, ctx, code, target) {
-  if (!ctx.codes.includes(code)) throw new Error(`not on the roster: ${code}`);
+  if (!ctx.codes.includes(code)) throw new Error("not on the roster: " + code);
   const floors = floorsOf(state.calls, ctx);
   const hi = ceilingOf(code, state.calls, ctx);
   const want = Math.round(Number(target));
@@ -121,10 +121,10 @@ function raiseFloors(state, ctx) {
 // Give wards to a party. A party that had no votes and now holds a ward is
 // raised to the floor; `raised` names it, for the page's note.
 export function assignWards(state, ctx, indices, code) {
-  if (!ctx.codes.includes(code)) throw new Error(`not on the roster: ${code}`);
+  if (!ctx.codes.includes(code)) throw new Error("not on the roster: " + code);
   const calls = state.calls.slice();
   for (const i of indices) {
-    if (!(i >= 0 && i < calls.length)) throw new Error(`no ward at index ${i}`);
+    if (!(i >= 0 && i < calls.length)) throw new Error("no ward at index " + i);
     calls[i] = code;
   }
   return raiseFloors({ calls, votes: state.votes }, ctx);
@@ -137,7 +137,7 @@ export function setCalls(state, ctx, calls) {
 
 function checkCalls(calls, ctx) {
   if (!Array.isArray(calls) || calls.length !== ctx.wards.length) throw new Error("one winner per ward is needed");
-  for (const c of calls) if (!ctx.codes.includes(c)) throw new Error(`not on the roster: ${c}`);
+  for (const c of calls) if (!ctx.codes.includes(c)) throw new Error("not on the roster: " + c);
   return calls.slice();
 }
 
@@ -188,19 +188,19 @@ export function forecastBody(state, ctx, { coalition = [], mayor = null, display
 export function invariantErrors(state, ctx) {
   const e = [];
   if (!Array.isArray(state.calls) || state.calls.length !== ctx.wards.length) e.push("not one winner per ward");
-  else state.calls.forEach((c, i) => { if (!ctx.codes.includes(c)) e.push(`ward ${ctx.wards[i]} has no winner on the roster`); });
+  else state.calls.forEach((c, i) => { if (!ctx.codes.includes(c)) e.push("ward " + ctx.wards[i] + " has no winner on the roster"); });
   let sum = 0;
   for (const c of ctx.codes) {
     const v = state.votes[c];
-    if (!Number.isInteger(v) || v < 0) e.push(`${c}: ${v} is not a whole number of votes`);
+    if (!Number.isInteger(v) || v < 0) e.push(c + ": " + v + " is not a whole number of votes");
     sum += v;
   }
-  if (sum !== ctx.T) e.push(`votes sum to ${sum}, not ${ctx.T}`);
+  if (sum !== ctx.T) e.push("votes sum to " + sum + ", not " + ctx.T);
   if (!e.length) {
     const f = floorsOf(state.calls, ctx);
     for (const c of ctx.codes) {
-      if (state.votes[c] < f[c]) e.push(`${c} holds a ward with fewer than ${f[c]} vote`);
-      if (ctx.noList.has(c) && state.votes[c] > 0) e.push(`${c} has no PR list and may hold no votes`);
+      if (state.votes[c] < f[c]) e.push(c + " holds a ward with fewer than " + f[c] + " vote");
+      if (ctx.noList.has(c) && state.votes[c] > 0) e.push(c + " has no PR list and may hold no votes");
     }
   }
   return e;
