@@ -272,7 +272,7 @@ THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 # is docs-public/privacy.md; change the two together.
 #
 # ⛔ THE TOKEN GATES THE BEACON AND ITS PARAGRAPH, NOT THE PAGES. /privacy and
-# /support are always published, with the footer line that links them. While
+# /support are always published, with the footer links to them. While
 # the token is empty the build emits no beacon, and `render_doc` keeps
 # privacy.md's `<!-- no-analytics -->` block and drops its `<!-- analytics -->`
 # block (`analytics_blocks`); with a token it does the reverse. A privacy page
@@ -362,14 +362,17 @@ IEC_RESULTS_URL = "https://results.elections.org.za/"
 
 
 def footer_for() -> str:
-    """The site footer. Its links are absolute: the footer is also carried by
-    /play/ and the portal, where a relative `support` resolves somewhere else.
-    The licence wording matches LICENSE (code, MIT) and LICENSE-CONTENT (site
+    """The site footer. Its links are relative, like the nav's, so a UAT
+    Version URL keeps the reader on UAT: absolute /support and /privacy links
+    sent UAT readers to live. /play/ re-points them one level down
+    (`build_play.one_level_down`); the portal sits at the apex root, where
+    they resolve to the asset root; on other city hosts `src/worker.js`
+    serves both pages from the root. The licence wording matches LICENSE (code, MIT) and LICENSE-CONTENT (site
     text, charts and published figures, CC BY 4.0)."""
     return f"""<footer class="sitefooter">
-  <div>Johannesburg · 2026 Local Government Election Model · Site text, charts and figures: <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, free to reuse with attribution and a link back.</div>
+  <div>Johannesburg · 2026 Local Government Election Model · Site text, charts and figures: <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, free to reuse with attribution and a link back. · <a href="privacy">privacy</a></div>
   <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">code on GitHub</a> (MIT licence) · raw results from the <a href="{IEC_RESULTS_URL}">IEC</a></div>
-  <div><a href="{SITE_URL}/support">support this site</a> · <a href="{SITE_URL}/privacy">privacy</a></div>
+  <div><a href="support">Support or Sponsor this site.</a></div>
 </footer>"""
 
 
@@ -423,8 +426,10 @@ MODEL_DOCS = {
     "docs-public/about-the-model.md": (
         "about.html",
         "About the model",
-        "The model forecast the 2021 municipal election in eight cities and "
-        "was scored against the results and three simple alternatives.",
+        "The model was run on the 2021 municipal election in eight cities, "
+        "using data from before that election and the 2022 census. Its "
+        "forecasts were scored against the actual election results and against "
+        "three naive baselines used in forecasting.",
     ),
     "docs-public/review.md": (
         "review.html",

@@ -32,6 +32,15 @@ request. Detectors, each a function returning a list of problems:
                         302 to the same path and query on the Joburg host,
                         fetches nothing and logs nothing (the Joburg host logs
                         the arrival once).
+* `shared_page_problems` — /support and /privacy (and their .html forms) are
+                        served from the asset root on every host: Joburg, the
+                        portal hosts, built and unbuilt cities and workers.dev
+                        (2026-10-02; the footer links them relatively). The
+                        live differential runs them on Joburg and the portal
+                        hosts only, where they must behave as before; on other
+                        cities the baseline city-prefixed them. Near misses
+                        (/supporters, /support/x, /privacyx) run everywhere in
+                        the differential, so the match is shown to be exact.
 * `config_problems`   — `wrangler.toml` states workers_dev, preview_urls,
                         [observability], invocation_logs = false and the
                         ARRIVALS Analytics Engine binding where wrangler
@@ -84,15 +93,20 @@ CHANNEL_PATHS.update({"/g?gclid=abc": "google_ads", "/Go?x=1": "billboard"})
 #: real layer serves at an extensionless URL.
 ASSETS = ["/", "/index.html", "/forecast", "/about", "/portal",
           "/logos/party.png", "/robots.txt", "/share.jpg",
-          "/tshwane/index.html", "/tshwane/forecast"]
+          "/tshwane/index.html", "/tshwane/forecast", "/support", "/privacy"]
 #: The real layer 307s an .html URL to its extensionless form.
-REDIRECTS = {"/about.html": "/about"}
+REDIRECTS = {"/about.html": "/about", "/support.html": "/support",
+             "/privacy.html": "/privacy"}
+#: Pages every host serves from the asset root, and what ASSETS answers.
+SHARED_PAGES = {"/support": 200, "/privacy": 200, "/support.html": 307,
+                "/privacy.html": 307}
 
 #: Near misses: none of these is a channel path on any host.
 LIVE_PATHS = ["/", "/index.html", "/forecast", "/about.html", "/nope",
               "/logos/party.png", "/robots.txt", "/share.jpg", "/?x=1",
               "/go/x", "/gone", "/go.html", "/xx", "/gg", "/g/x", "/G/x",
-              "/li.html", "/fbx", "/ig/ig", "//go"]
+              "/li.html", "/fbx", "/ig/ig", "//go",
+              "/supporters", "/support/x", "/privacyx", "/Support"]
 
 DRIVER = r"""
 import { readFileSync } from "node:fs";
@@ -189,10 +203,12 @@ def live_hosts() -> list[str]:
 
 def live_cases() -> list[dict]:
     """Every live host x near misses; channel paths too, except on Joburg and
-    the portal hosts, whose channel paths are checked by their own detectors."""
+    the portal hosts, whose channel paths are checked by their own detectors;
+    the shared pages on Joburg and the portal hosts only, since other cities
+    city-prefixed them before 2026-10-02 (`shared_page_problems`)."""
     return [{"url": f"https://{h}{p}", "env": {}}
             for h in live_hosts()
-            for p in LIVE_PATHS + ([] if h in (JOBURG, *PORTALS)
+            for p in LIVE_PATHS + (list(SHARED_PAGES) if h in (JOBURG, *PORTALS)
                                    else list(CHANNEL_PATHS))]
 
 
@@ -301,6 +317,23 @@ def resilience_problems(src: str) -> list[str]:
     return out
 
 
+def shared_page_problems(src: str) -> list[str]:
+    hosts = live_hosts() + list(PREVIEW_HOSTS)
+    keys = [(h, p, st) for h in hosts for p, st in SHARED_PAGES.items()]
+    cases = [{"url": f"https://{h}{p}", "env": {}} for h, p, _st in keys]
+    out = []
+    for r, (host, p, status) in zip(run_worker(src, cases), keys):
+        h = dict(r["headers"])
+        if r["status"] != status or r["fetched"] != [p]:
+            out.append(f"{r['url']}: {r['status']} fetched {r['fetched']}, "
+                       f"want {status} [{p!r}]")
+        if r["logs"] or r["points"]:
+            out.append(f"{r['url']}: logged {r['logs']} wrote {r['points']}")
+        if (host in PREVIEW_HOSTS) != (h.get("x-robots-tag") == NOINDEX):
+            out.append(f"{r['url']}: X-Robots-Tag {h.get('x-robots-tag')!r}")
+    return out
+
+
 def _mutate(src: str, old: str, new: str) -> str:
     assert src.count(old) == 1, f"mutation anchor not unique: {old!r}"
     return src.replace(old, new)
@@ -350,6 +383,43 @@ def test_no_data_point_off_the_channel_paths():
     runs = run_worker(source(), live_cases() + PREVIEW_CASES)
     assert not [(r["url"], r["points"]) for r in runs if r["points"]]
     assert not [r["url"] for r in runs if r["error"]]
+
+
+# ---------------------------------------------------------------- shared pages
+
+def test_support_and_privacy_resolve_from_every_host():
+    assert {"tshwane.whysoserious.city", "capetown.whysoserious.city",
+            JOBURG, *PORTALS} <= set(live_hosts())
+    assert shared_page_problems(source()) == []
+
+
+def test_shared_page_check_fires_on_each_constructed_violation():
+    src = source()
+    for a, b in (('  "/support", "/support.html", "/privacy", "/privacy.html",\n', ""),
+                 ('"/support", "/support.html", ', ""),
+                 ('"/privacy", "/privacy.html",', '"/privacy",'),
+                 ("ROOT_CITIES.has(sub) || SHARED_PAGES.has(path) ||",
+                  "ROOT_CITIES.has(sub) ||")):
+        assert shared_page_problems(_mutate(src, a, b)), f"blind to {b!r}"
+    # the baseline worker city-prefixed both pages on every other city host
+    # (and on workers.dev, which it treated as a city); Joburg and the portal
+    # hosts already served them from the root
+    probs = shared_page_problems(baseline_source())
+    for h in ("tshwane.", "capetown."):
+        assert any(f"https://{h}" in p for p in probs), h
+    assert not any(p.startswith(f"https://{h}/") for p in probs
+                   for h in (JOBURG, *PORTALS)), probs
+
+
+def test_shared_pages_are_exact_matches_in_the_differential():
+    """A prefix match would send /supporters on a city host to the root; the
+    differential carries the near misses on every host to catch that."""
+    src, old = source(), baseline_source()
+    for near in ("/supporters", "/support/x", "/privacyx"):
+        assert near in LIVE_PATHS
+    prefix = _mutate(src, "SHARED_PAGES.has(path) ||",
+                     "[...SHARED_PAGES].some((p) => path.startsWith(p)) ||")
+    assert live_diffs(prefix, old), "differential blind to a prefix match"
 
 
 # ---------------------------------------------------------------- preview

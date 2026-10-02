@@ -438,7 +438,7 @@ def test_the_policy_pages_ship_in_both_analytics_states():
     assert policy <= {spec[0] for spec in build_site.DOCS.values()}
     foot = build_site.footer_for()
     for page in ("support", "privacy"):
-        assert f'href="https://joburg.whysoserious.city/{page}"' in foot
+        assert f'href="{page}"' in foot and "whysoserious.city/" + page not in foot
     assert build_site.FOOTER == foot
     root = Path(build_site.__file__).parents[1]
     src = "docs-public/privacy.md"

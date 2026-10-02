@@ -16,7 +16,7 @@ owner does.
 |---|---|---|---|
 | `joburg.whysoserious.city` | Johannesburg, from the asset root | none | 302 to `/`, logged |
 | `whysoserious.city`, `www.` | the portal | none | 302 to the same path and query on `joburg.whysoserious.city`, not logged here |
-| `<city>.whysoserious.city` | `/<city>/`, portal if unbuilt | none | not handled |
+| `<city>.whysoserious.city` | `/<city>/`, portal if unbuilt; `/support` and `/privacy` from the asset root | none | not handled |
 | `<version-prefix>-joburg-whysoserious.<sub>.workers.dev` (Version URL, UAT) | Johannesburg, from the asset root | `noindex, nofollow` | 302 to `/`; the log line is written but Workers Logs does not show Version URL logs; the Analytics Engine point is written with this host |
 | `joburg-whysoserious.<sub>.workers.dev` (live workers.dev) | Johannesburg, from the asset root | `noindex, nofollow` | 302 to `/`, logged with this host |
 

@@ -11,7 +11,11 @@
  * per-city deploy and no duplicated content.
  *
  * Anything shared across cities (logos, share images, robots.txt, _headers)
- * stays at the root and is served to every host unchanged.
+ * stays at the root and is served to every host unchanged. So do /support and
+ * /privacy, which only the Johannesburg build produces: the footer links them
+ * relatively, so on <city>.whysoserious.city they must not be city-prefixed.
+ * Those two match exactly (with or without .html), not as prefixes, so
+ * /supporters on a city host still goes to the city directory.
  *
  * Every *.workers.dev host serves the Johannesburg build from the root, and
  * every response it sends carries X-Robots-Tag: noindex, nofollow. That covers
@@ -54,6 +58,11 @@ const ROOT_CITIES = new Set(["joburg"]);
 const SHARED = [
   "/logos/", "/share.jpg", "/robots.txt", "/favicon", "/_headers", "/sitemap",
 ];
+
+// Pages shared by every city, matched exactly. Built by Johannesburg only.
+const SHARED_PAGES = new Set([
+  "/support", "/support.html", "/privacy", "/privacy.html",
+]);
 
 const NOINDEX = "noindex, nofollow";
 
@@ -133,7 +142,8 @@ export default {
     }
 
     // Johannesburg, and anything shared, is served straight from the root.
-    if (ROOT_CITIES.has(sub) || SHARED.some((p) => path.startsWith(p))) {
+    if (ROOT_CITIES.has(sub) || SHARED_PAGES.has(path) ||
+        SHARED.some((p) => path.startsWith(p))) {
       return env.ASSETS.fetch(request);
     }
 
