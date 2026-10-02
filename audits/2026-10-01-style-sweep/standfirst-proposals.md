@@ -30,9 +30,13 @@ Before:
 
 After:
 
-> A rarely used clause lets a party keep every ward it wins beyond its share of
-> the vote. The shortfall is taken from every other party. It has fired once
-> before, in a Karoo town of seven seats.
+> Nobody unseats a ward winner, even one whose party has won more wards than
+> its share of the vote entitles it to.
+
+Note: the home page lede, above this teaser, already says the clause lets a
+party keep every ward beyond its share with the shortfall taken from everyone
+else, so the "after" leaves that out. The Karoo precedent stays with the
+Laingsburg teaser.
 
 ### "When the ANC falls, nobody catches the votes"
 
@@ -80,8 +84,8 @@ Before:
 
 After:
 
-> The clause has fired once, in a council of seven. The Electoral Commission's
-> calculation shows each step.
+> In 2021 the clause fired in a Karoo town with a seven-seat council. The
+> Electoral Commission's calculation shows each step.
 
 ---
 
