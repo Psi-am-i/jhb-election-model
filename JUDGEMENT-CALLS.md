@@ -489,9 +489,9 @@ machinery cannot rot while it is switched off.
 **Plain — Large surprises are allowed.** Each party's simulated support is drawn
 with heavier tails than a bell curve, so a large miss in either direction comes
 up more often than an ordinary error allows. The record does not fix how heavy.
-Lighter tails make extreme results rarer and scored the same in the backtest;
-much heavier tails scored worse. It cannot be changed on [play with the
-model](play/).
+Lighter tails make extreme results rarer and scored the same against past
+elections; much heavier tails scored worse. It cannot be changed on [play with
+the model](play/).
 
 **Where.** `montecarlo.py`
 
@@ -540,11 +540,11 @@ model](play/).
 
 **Plain — The largest parties are pulled down.** Before the simulations are
 drawn, each party's expected share is cut by an amount that grows with its size,
-and the vote freed is shared out among all parties. Without the cut, the
-backtest gave the largest parties too much and the rest too little; adding it
-was the largest single improvement the model has had. The smallest parties are
-now forecast slightly too high. It cannot be changed on [play with the
-model](play/).
+and the vote freed is shared out among all parties. Without the cut, forecasts
+of past elections gave the largest parties too much and the rest too little;
+adding it was the largest single improvement the model has had. The smallest
+parties are now forecast slightly too high. It cannot be changed on [play with
+the model](play/).
 
 **Where.** `montecarlo.compress_levels`, run on the finished centre vector
 
@@ -663,7 +663,7 @@ On [play with the model](play/) you can change the shared weight, not the rule.
 
 ### §A35 · `w_bye` — 0.40 — 🔴
 
-**Plain — How much recent by-elections count.** Each party's results in the
+**Plain — How much recent by-elections count.** A party's results in the
 by-elections held since the last local election are blended into its expected
 share at a weight of 40%; the rest comes from its national and local record. The
 by-election data starts in 2022, so no past election can test the weight, and
@@ -1634,8 +1634,8 @@ otherwise. **None has been measured; several have never been moved at all.**
 **Plain — The excessive-seats clause.** The clause is applied as amended in
 2021, as set out under *How Johannesburg's council elections work*. The reading
 is ours and has not been tested in court. The other readings change the size of
-the council or the majority line, and [play with the model](play/) applies any
-of them.
+the council or the majority line, and [play with the model](play/) lets you
+apply them.
 
 ⛔ **RECLASSIFIED 2026-09-02 (§1.165). This is not a lever and it must never be
 swept.** It sat at 🔴 "typed, never swept, no interval" for its whole life, and
@@ -2591,9 +2591,9 @@ can be certified automatically, and nothing available certifies these. §1.242.
 Communist Party has stood on ANC lists until now, so it has no Johannesburg
 record of its own. We sized it by hand from its by-elections elsewhere, as the
 average of two readings of them. Sized as a breakaway from the ANC it came out
-several times larger; sized as a brand-new party it came out below every
-by-election result it has had. Both were rejected against its own record. It
-cannot be changed on [play with the model](play/).
+several times larger, and sized as a brand-new party it came out below every
+by-election result it has had; its own record rejects both. It cannot be changed
+on [play with the model](play/).
 
 **Where.** `judgements/joburg-2026.toml`, `[party.SOUTH_AFRICAN_COMMUNIST_PARTY]`:
 `weights` and `support`. No symbol in `src/`.
