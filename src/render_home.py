@@ -155,7 +155,7 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
                          f"same chance it's the {HEAD_TO_HEAD_ORDER[1]}"))
     else:
         verdict = ("The largest party is too close to call." if abs(anc - da) < 0.05
-                   else f"The {lead} is ahead to be the largest party.")
+                   else f"The {lead} is ahead for largest party.")
         race = (f"{verdict} "
                 + opening(p_lead, max(anc, da), f"it's the {lead} and {p_trail} chance it's the {trail}"))
 

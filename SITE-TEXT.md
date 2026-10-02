@@ -17,12 +17,12 @@ build rewrites them, so an edit would vanish at the next run.
 
 ## forecast-sheet.html
 
-<!-- block 9df67c7a -->
+<!-- block fc86af84 -->
 *p*
 
-The largest party is a near tie, where on 8 August the DA led clearly: {{p_anc_largest}} chance it's the ANC alone and {{p_da_largest}} chance it's the DA alone. Two or more parties tie for the most seats: {{p_largest_tied}} chance. A single party reaches a majority on its own: {{p_alone}} chance. The ANC still triggers the excessive-seats clause: {{p_excessive_anc}} chance.
+The largest party is a near tie, where on 8 August the DA led clearly: {{p_anc_largest}} chance it's the ANC alone and {{p_da_largest}} chance it's the DA alone. Two or more parties tie for the most seats: {{p_largest_tied}} chance. A single party reaches a majority on its own: {{p_alone}} chance. The ANC still triggers the excessive-seats clause: {{p_excessive_anc}} chance. A chance is the share of the {{n_draws}} simulations in which the outcome happens.
 
-<!-- /block 9df67c7a -->
+<!-- /block fc86af84 -->
 
 <!-- block d8ea3896 -->
 *h1*
@@ -1731,18 +1731,19 @@ makes the forecast more worth your trust, not less.
 
 <!-- /block 23c7b64f -->
 
-<!-- block bfef3a14 -->
+<!-- block 577dcd0b -->
 *md*
 
 <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
 <p>The figures below describe the <b>first version</b> of the model, as it stood on 6 August 2026.
 The largest party today: {{p_anc_largest}} chance it's the ANC alone and {{p_da_largest}} chance
 it's the DA alone. Two or more parties tie for the most seats: {{p_largest_tied}} chance. The ANC
-triggers the excessive-seats clause: {{p_excessive_anc}} chance. No
+triggers the excessive-seats clause: {{p_excessive_anc}} chance. A chance is the share of the
+{{n_draws}} simulations in which the outcome happens. No
 poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is kept as published, as a record
 of how the errors were found and fixed.</p></aside>
 
-<!-- /block bfef3a14 -->
+<!-- /block 577dcd0b -->
 
 <!-- block 358a51aa -->
 *md*

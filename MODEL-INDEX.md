@@ -98,7 +98,7 @@ arithmetic test can see.
 | 0.002 | `benchmarks.SHARE_FLOOR`, `fold.SHARE_FLOOR`, `levels.RELIABILITY_HALF`, `montecarlo.SHARE_FLOOR` |
 | 0.005 | `gamma_recent.MIN_SHARE`, `pools.UNCLASSIFIED_FLOOR`, `render_map.OTHER_FLOOR` |
 | 0.015 | `polling.SIGMA_COMMON`, `polling.SIGMA_IDIO`, `pools.ROSTER_DROP_CEILING` |
-| 0.02 | `montecarlo.TURNOUT_DRAW_FLOOR`, `polling.POLL_SCREEN_SD_UNDISCLOSED` |
+| 0.02 | `montecarlo.TURNOUT_DRAW_FLOOR`, `polling.POLL_SCREEN_SD_UNDISCLOSED`, `scenarios.EXCESSIVE_FLOOR` |
 | 0.05 | `pools.CENSUS_DRIFT_CEILING`, `render_map.TIP_FLOOR` |
 | 0.25 | `compare_history.REFERENCE_SLATE`, `pools.ARRIVAL_BAND_LO` |
 | 0.5 | `montecarlo.WARD_PR_RATIO_MIN`, `score.CLAIM_FRACTION` |
@@ -632,6 +632,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `scenarios.BAND` | tuple[2] | NO | NO | NO | -- |
 | `scenarios.BAND_SHARE` | (BAND[1] - BAND[0]) / 100 | NO | NO | NO | `render_home`, `render_sheet` |
 | `scenarios.NAMED_PARTIES` | tuple[10] | NO | NO | NO | `build_make`, `render_home`, `render_sheet` |
+| `scenarios.EXCESSIVE_FLOOR` | float 0.02 | NO | NO | NO | -- |
 | `score.CLAIM_FRACTION` | float 0.5 | NO | NO | yes | `compare_history` |
 | `score_forecasts.MEASURES` | tuple[3] | NO | NO | NO | -- |
 | `score_forecasts.REPORTED` | tuple[1] | NO | NO | NO | -- |
@@ -1045,7 +1046,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `score_forecasts` | neither | NO | `src/build_make`, `tests/test_make_page`, `tests/test_score_forecasts` | Score ANY forecast of a council — the model's and every reader's — against the |
 | `seats` | model+measurement | NO | `src/backtest`, `src/benchmarks`, `src/fold`, `src/levels`, `src/montecarlo`, `src/reader_seats`, `src/validate_seats`, `tests/test_overhang`, `tests/test_seats`, `tests/test_stage_realisation` | Seat allocation for a metro council, per Municipal Structures Act Schedule 1. |
 | `site_text` | neither | NO | `tests/test_site_text` | Export the site's editable prose to one markdown file, and apply it back. |
-| `stats` | neither | NO | `src/build_interactive`, `src/build_site`, `src/render_home`, `tests/test_home_page`, `tests/test_judgement_sheet`, `tests/test_make_page`, `tests/test_number_scan`, `tests/test_play_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_reweight`, `tests/test_stat_freshness` | The stat registry: no model result is ever typed into prose by hand. |
+| `stats` | neither | NO | `src/build_interactive`, `src/build_site`, `src/render_home`, `src/scenarios`, `tests/test_home_page`, `tests/test_judgement_sheet`, `tests/test_make_page`, `tests/test_number_scan`, `tests/test_play_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_reweight`, `tests/test_stat_freshness` | The stat registry: no model result is ever typed into prose by hand. |
 | `sweep` | neither | yes | -- | Run the model over every metro-year we can score, and hunt for anomalies. |
 | `theta_residual` | neither | NO | `tests/test_levels_dispersion` | The CONDITIONAL dispersion of log θ — the quantity `SD_FLOOR` claims to be. |
 | `turnout` | model+measurement | NO | `src/fold` | VD-level turnout series and the λ drop-off factors (plan §3.3). |
