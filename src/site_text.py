@@ -39,10 +39,23 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "SITE-TEXT.md"
 
 # Regions the build owns. Text inside them is regenerated and must not be edited.
+# JUDGEMENTS is /methodology's section, written by `judgement_sheet.py` from
+# the register's Plain fields: an edit belongs in JUDGEMENT-CALLS.md.
 GENERATED = re.compile(
-    r"__(GEN|BALLOTS|CLAIMS|REGIMES|MAP|HEXMAP|SEATS_NOTE)_START__.*?"
-    r"__(GEN|BALLOTS|CLAIMS|REGIMES|MAP|HEXMAP|SEATS_NOTE)_END__",
+    r"__(GEN|BALLOTS|CLAIMS|REGIMES|MAP|HEXMAP|SEATS_NOTE|JUDGEMENTS)_START__.*?"
+    r"__(GEN|BALLOTS|CLAIMS|REGIMES|MAP|HEXMAP|SEATS_NOTE|JUDGEMENTS)_END__",
     re.S)
+
+
+#: The same regions as written in a Markdown edition: whole comment markers,
+#: so blanking one leaves no stray `<!--` or `-->` to be offered as a block.
+GENERATED_MD = re.compile(r"<!--\s*" + GENERATED.pattern.replace(
+    "_START__.*?", "_START__\\s*-->.*?<!--\\s*") + r"\s*-->", re.S)
+
+
+def _blank_generated(text: str) -> str:
+    """A Markdown edition with every generated region blanked, line breaks kept."""
+    return GENERATED_MD.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), text)
 
 PLACEHOLDER = re.compile(r"\{\{\w+\}\}|\[\[\w+\]\]")
 BLOCK_ID = re.compile(r"^<!-- block (\w+) -->$", re.M)
@@ -84,7 +97,8 @@ def blocks() -> list[dict]:
                           "text": text, "id": _digest(text)})
 
     for md in sorted((ROOT / "docs-public").glob("*.md")):
-        for para in re.split(r"\n\s*\n", md.read_text(encoding="utf-8")):
+        masked = _blank_generated(md.read_text(encoding="utf-8"))
+        for para in re.split(r"\n\s*\n", masked):
             para = para.strip()
             if not para or para.startswith(("<span", "</span", "<!--")):
                 continue

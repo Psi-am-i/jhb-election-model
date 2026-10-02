@@ -78,6 +78,29 @@ def test_nothing_inside_a_generated_region_is_offered_for_editing():
             f"{flat[:60]!r}. The build overwrites it on the next run.")
 
 
+def test_the_methodology_judgement_calls_are_not_offered_for_editing():
+    """/methodology's "The judgement calls" is written from JUDGEMENT-CALLS.md,
+    so an edit made here would be overwritten by the next build. Every
+    paragraph inside its region is withheld, and the same paragraphs ARE
+    offered once the markers are removed (the detector can see)."""
+    page = (ROOT / "docs-public" / "methodology.md").read_text(encoding="utf-8")
+    regions = site_text.GENERATED_MD.findall(page)
+    assert len(regions) == 1, "methodology.md should carry exactly one region"
+    inside = site_text.GENERATED_MD.search(page).group(0)
+    paras = [p.strip() for p in re.split(r"\n\s*\n", inside)
+             if p.strip() and not p.strip().startswith("<!--")]
+    assert len(paras) > 2, "too few paragraphs inside the region to test with"
+    offered = {b["text"] for b in site_text.blocks()
+               if b["source"] == "docs-public/methodology.md"}
+    leaked = [p[:60] for p in paras if p in offered]
+    assert not leaked, f"generated paragraphs offered for editing: {leaked}"
+    unmarked = re.sub(r"<!--\s*__JUDGEMENTS_(?:START|END)__\s*-->", "", page)
+    visible = re.split(r"\n\s*\n", site_text._blank_generated(unmarked))
+    assert all(p in [v.strip() for v in visible] for p in paras), (
+        "without its markers the region's text is still hidden, so the check "
+        "above cannot tell a masked region from a missing one")
+
+
 def test_an_unedited_round_trip_changes_nothing():
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d) / "x.md"

@@ -916,6 +916,16 @@ def main(argv: list[str] | None = None) -> int:
     # ledger needs the raw value AND the displayed string; see `stats.render`.
     published: list[dict] = []
 
+    # The methodology page's "The judgement calls" section is regenerated from
+    # the register's Plain fields before anything is rendered, so the page can
+    # never be older than the register it is built beside. One source: the
+    # field in JUDGEMENT-CALLS.md. Its words are a person's, so the region is
+    # scanned as prose by the number gate like the rest of the page.
+    import judgement_sheet
+    if judgement_sheet.refresh_methodology():
+        print("  refreshed docs-public/methodology.md 'The judgement calls' "
+              "from JUDGEMENT-CALLS.md")
+
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
         tech = spec[3] if len(spec) > 3 else None

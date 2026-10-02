@@ -47,6 +47,18 @@ So:
 4. ⚠️ **Eight entries carry a dated *restructure note*.** Each records a
    contradiction or a stale citation found while reorganising, left **unfixed**
    because fixing it is a judgement: §A4, §A7, §A21, §C3, §F21, §F29, §H10, §H16.
+5. **A *Plain* field is the reader's version of an entry** (added 2026-10-02,
+   owner: "omit all judgement calls that aren't an opinion on machinery"). Only
+   calls a lay reader can follow and might dispute carry one: what was chosen,
+   why, what the alternative changes, and whether /play/ can move it. It opens
+   the entry, directly under the heading. `src/judgement_sheet.py` copies every
+   one, in register order, into the section of `docs-public/methodology.md`
+   headed "The judgement calls", and the site build refreshes it; edit the field
+   here, never that section. No backticks inside a field (the register→code
+   guard would read them as symbols); a figure in one must be the entry's own
+   and is cleared for the site by an `[[audit.fixed]]` row citing the entry.
+   Which calls carry one, and why the rest do not:
+   `audits/2026-10-02-judgement-public/SELECTION.md`.
 
 The section letters and their meanings are unchanged, because `MODEL-LOG.md`,
 `MACHINERY.md` and `DATA-QUALITY.md` cite them. §E has been moved back into
@@ -353,6 +365,12 @@ neither replicated. ⚠️ Under rule 11 the effective sample is close to two ev
 
 ### §A8 · `poll_paths` — **"off"** — 🟢
 
+**Plain — No poll is used.** The forecast leaves polls out, because there is no
+designed rule yet for how several polls combine. With polls in, the forecast
+moves toward the polls the rules admit; what that was worth when measured is
+under *Where polls fit*, below. On [play with the model](play/) you can switch
+each poll on and choose how far to trust it.
+
 **Where.** `montecarlo.py`, gates both live poll paths
 
 **Now.** ⛔ **SHIPS "off" SINCE 2026-09-12. THE FORECAST USES NO POLL AT ALL.**
@@ -468,6 +486,13 @@ machinery cannot rot while it is switched off.
 
 ### §A18 · `LEVEL_DF` — 7.0 — 🟡
 
+**Plain — Large surprises are allowed.** Each party's simulated support is drawn
+with heavier tails than a bell curve, so a large miss in either direction comes
+up more often than an ordinary error allows. The record does not fix how heavy.
+Lighter tails make extreme results rarer and scored the same in the backtest;
+much heavier tails scored worse. It cannot be changed on [play with the
+model](play/).
+
 **Where.** `montecarlo.py`
 
 **Now.** Ships 7.0, live since 2026-08-17 and swept. The sweep cannot distinguish 7 from 30; §F narrows it to ν ∈ [5, 15] on four constraints.
@@ -512,6 +537,14 @@ machinery cannot rot while it is switched off.
 **Record.** How far a documented figure may drift from `data/processed/history.json` before the document counts as stale. Typed, not measured — it is a judgement about how much re-run drift is tolerable, not a property of the model. **Deliberately tight enough to fire on a legitimate re-run**: the Monte Carlo spread on the ranks 1-3 absolute band has been ~1.5pp between runs against a ±0.5pp tolerance, so a re-run will demand the documents be updated. That is the intent — three reviews found stale figures, and the failure mode being guarded against is a document that quietly stops matching the artefact.
 
 ### §A23 · `level_shrink = 0.35` (with `level_shrink_scale = 0.04`) — 0.35 — 🟡
+
+**Plain — The largest parties are pulled down.** Before the simulations are
+drawn, each party's expected share is cut by an amount that grows with its size,
+and the vote freed is shared out among all parties. Without the cut, the
+backtest gave the largest parties too much and the rest too little; adding it
+was the largest single improvement the model has had. The smallest parties are
+now forecast slightly too high. It cannot be changed on [play with the
+model](play/).
 
 **Where.** `montecarlo.compress_levels`, run on the finished centre vector
 
@@ -607,6 +640,13 @@ machinery cannot rot while it is switched off.
 
 ### §A33 · `bye_weight_mode` — `"fixed"` — 🟡
 
+**Plain — By-elections count the same for every party.** One by-election weight,
+described next, applies to every party. The alternative, built and not used,
+weights each party by how many by-elections it fought and how much they varied,
+which gives some parties almost no by-election weight and others more than the
+shared one. No past election can test either rule, so we kept the simpler one.
+On [play with the model](play/) you can change the shared weight, not the rule.
+
 **Where.** `montecarlo.py`
 
 **Now.** Defaults to `fixed`. `inverse_variance` is built and derives the weight; switching it moves the published 2026 forecast and no backtest can score either — the owner's call.
@@ -622,6 +662,13 @@ machinery cannot rot while it is switched off.
 **Record.** **CONSIDERED AND REFUSED 2026-08-28, with the measurement.** Leave-one-contest-out on the by-election data — the only out-of-sample test this channel will ever have before an election — gives RMSE **36.46pp against uniform's 24.66pp**. The aggregate hides the reason: it *helps* ANC, EFF, MK and AIC and is catastrophic for the **DA (47.30 → 78.98pp)**, because turnout sensitivity is **party-specific and signed** — DA **−0.925**, EFF **+0.842**, ANC **+0.720**. A uniform ratio applies one sign to every party. A PER-PARTY sensitivity is worth pre-registering; the uniform form is not. §1.122
 
 ### §A35 · `w_bye` — 0.40 — 🔴
+
+**Plain — How much recent by-elections count.** Each party's results in the
+by-elections held since the last local election are blended into its expected
+share at a weight of 40%; the rest comes from its national and local record. The
+by-election data starts in 2022, so no past election can test the weight, and
+only the November result will. A higher weight moves parties toward their
+by-election swings. You can change it on [play with the model](play/).
 
 **Where.** `montecarlo.py`
 
@@ -853,6 +900,14 @@ picked it, did not.
 **Record.** Floors the splinter band's log-spread. **Verified to override the measurement at target 2016** (pooled log-sd 0.286); it does not bind at 2021 (1.599) or 2026 (1.492). So the floor does real work in the one fold where it is least justified.
 
 ### §B4 · `TURNOUT_CORRELATION = 0.63` — 🟡
+
+**Plain — Turnout moves together across population groups.** In each simulation,
+turnout in the population groups rises and falls together, to one shared degree
+for every pair of groups and every city. The record shows three groups moving
+closely together and the fourth much less. Removing the link was tested and
+changed the forecast's spread very little, and why it matters so little is not
+yet explained. On [play with the model](play/) each turnout slider moves one
+group and holds the others.
 
 **Where.** `montecarlo.py`
 
@@ -1576,6 +1631,12 @@ otherwise. **None has been measured; several have never been moved at all.**
 
 ### §H1 · `overhang_rule` — `"deduct"` — ⚖️ STATUTE, NOT A JUDGEMENT CALL
 
+**Plain — The excessive-seats clause.** The clause is applied as amended in
+2021, as set out under *How Johannesburg's council elections work*. The reading
+is ours and has not been tested in court. The other readings change the size of
+the council or the majority line, and [play with the model](play/) applies any
+of them.
+
 ⛔ **RECLASSIFIED 2026-09-02 (§1.165). This is not a lever and it must never be
 swept.** It sat at 🔴 "typed, never swept, no interval" for its whole life, and
 the sweep-order note above used to schedule it first. That was a category error:
@@ -1613,6 +1674,13 @@ cannot be re-checked from the repository.
 **Record.** Four regimes — `cap` / `level` / `deduct` / `expand` — give different council sizes AND different majority thresholds. Chosen in §1.17. Reachable only behind `--counterfactual`, which `src/overhang_regimes.py` passes to build the comparison table
 
 ### §H2 · `w_recency` — 0.70 — 🔴
+
+**Plain — Expected turnout leans on 2021.** Each voting district's turnout is
+projected from how far it fell between the national and the local election in
+2016 and in 2021, with 2021 counting for 70%. The weight comes from the model's
+original plan and has never been tested. Weighting the two equally moves
+projected turnout toward 2016, when it was higher. On [play with the
+model](play/) you can move each population group's turnout up or down.
 
 **Where.** `turnout.py --w-recency`
 
@@ -2519,6 +2587,14 @@ can be certified automatically, and nothing available certifies these. §1.242.
 
 ### §L13 · The SACP's first general ballot is sized by hand from its by-elections — 🔴 typed, and it is the largest single newcomer
 
+**Plain — The SACP's first ballot under its own name.** The South African
+Communist Party has stood on ANC lists until now, so it has no Johannesburg
+record of its own. We sized it by hand from its by-elections elsewhere, as the
+average of two readings of them. Sized as a breakaway from the ANC it came out
+several times larger; sized as a brand-new party it came out below every
+by-election result it has had. Both were rejected against its own record. It
+cannot be changed on [play with the model](play/).
+
 **Where.** `judgements/joburg-2026.toml`, `[party.SOUTH_AFRICAN_COMMUNIST_PARTY]`:
 `weights` and `support`. No symbol in `src/`.
 
@@ -2958,6 +3034,12 @@ figures above at any time.
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 
 ### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured
+
+**Plain — What a merger keeps.** When parties merge and only one of them is on the
+ballot, it inherits 75% of the other's previous vote and the rest is treated as
+lost. No merger in the record shows how much carries over, so the share is a
+judgement; a review recommended half. A lower share moves the inheriting party
+down. It cannot be changed on [play with the model](play/).
 
 **Where.** `pools.MERGER_RETENTION`, read at call time by `pools.apply_mergers`,
 which every function in `pools.MERGER_CONSUMERS` calls: `montecarlo.run_model`

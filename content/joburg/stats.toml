@@ -940,3 +940,32 @@ context = "Johannesburg 2198"
 kind = "convention"
 source = "the postal code of the owner's address as the POPIA responsible party (docs-public/privacy.md), given by the owner 2026-10-01"
 reviewed = "2026-10-01"
+
+# /methodology, "The judgement calls": each figure is the value a register
+# entry states in its own heading, carried in that entry's Plain field and
+# copied to the page by src/judgement_sheet.py. `source` names the entry, and
+# tests/test_judgement_sheet.py fails if the value stops matching it, so a
+# changed call cannot leave this row clearing a stale sentence.
+[[audit.fixed]]
+value = "40%"
+context = "at a weight of 40%"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §A35 (the by-election blend weight, a judgement call)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "70%"
+context = "with 2021 counting for 70%"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §H2 (the turnout recency weight, a judgement call)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "75%"
+context = "it inherits 75% of the other"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §O1 (the merger retention, a judgement call)"
+reviewed = "2026-10-02"
+page = "methodology.html"
