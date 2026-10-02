@@ -103,6 +103,24 @@ def test_an_invented_marker_does_not_exempt_prose():
     assert numbers, "a hand-typed marker exempted a number from the gate"
 
 
+def test_only_the_exact_footnote_marker_is_chrome():
+    """A footnote marker counts nothing; a class merely NAMED "fn" exempts
+    nothing (code review, 2026-10-02: ``\\bfn\\b`` matched "pl-fn" and
+    "fn-wrap" and cleared every figure inside them)."""
+    marker = '<p>Turnout moves.<sup class="fn"><a href="#note-turnout">2</a></sup></p>'
+    assert [(v, r) for _, v, r, _ in _one(marker)] == [("2", "prose:chrome")]
+    assert not S.audit(marker)[0]
+    for html in ('<p class="fn">The DA wins 71 seats.</p>',
+                 '<p class="pl-fn">The DA wins 71 seats.</p>',
+                 '<div class="note fn-wrap">The DA wins 71 seats.</div>',
+                 '<sup class="fn">71</sup>',
+                 '<sup class="fn"><a href="#note-x">71 seats</a></sup>'):
+        numbers, _ = S.audit(html)
+        assert numbers and "'71'" in numbers[0], (html, numbers)
+    # and the marker shape is what clears it: the same digit outside it blocks
+    assert S.audit('<p>Turnout moves 2.</p>')[0]
+
+
 def test_a_fixed_fact_must_contain_the_occurrence_not_sit_near_it():
     fixed = [{"value": "23%", "context": "laingsburg"}]
     assert _one("<p>the DA 23% forecast; see laingsburg</p>", fixed=fixed)[0][3] == "unreviewed"

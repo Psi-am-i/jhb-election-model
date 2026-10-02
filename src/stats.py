@@ -307,12 +307,11 @@ def _fmt(value, spec: str | None):
     if spec == "pct0_plain":          # 62 (no % sign, for "X of every")
         return f"{float(value) * 100:.0f}"
     if spec == "chance":              # a share of simulations, never "100%" or "0%"
+        import reweight as _rw        # one definition, which /play/ prints too
+        return _rw.chance_text(value)
+    if spec == "pct0_capped":         # a share that rounds to 100% but is not all of it
         v = float(value)
-        if v > 0.99:
-            return "over 99%"
-        if v < 0.0005:
-            return "under 0.1%"
-        return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
+        return "over 99%" if v > 0.99 and v < 1.0 else f"{v * 100:.0f}%"
     if spec == "one_dp":
         return f"{float(value):.1f}"
     if spec == "date_long":           # 2026-09-16T21:46:15Z -> 16 September 2026
@@ -846,9 +845,6 @@ _LEGACY_SHAPE = re.compile(r"^\d{1,3}(?:[.,]\d+)?\s?%$|^\d+$")
 # citation, the same kind of thing as a piece's own dated label: it dates the
 # quote, it does not assert anything about the city.
 CHROME_CLASSES = ("ticks", "scale", "pubdate", "since-h", "colophon",
-                   # a footnote marker points at a note; it counts nothing
-                   # (/play/'s notes, 2026-10-02)
-                   "fn",
                    # and the quotation itself: the page tests that claim, it does
                    # not assert it. Our own figures about it are tokens below it.
                    "claim-who", "claim-quote")
@@ -857,6 +853,11 @@ CHROME_CLASSES = ("ticks", "scale", "pubdate", "since-h", "colophon",
 _HEADING = re.compile(r"<h[1-4][^>]*>.*?</h[1-4]>", re.S)
 _CHROME = re.compile(
     r"<(\w+)[^>]*class=\"[^\"]*\b(?:" + "|".join(CHROME_CLASSES) + r")\b[^\"]*\"[^>]*>.*?</\1>", re.S)
+#: A footnote marker points at a note; it counts nothing (/play/'s notes,
+#: 2026-10-02). Only this exact shape is chrome: a class named "fn" anywhere in
+#: an attribute ("pl-fn", "fn-wrap", a <p class="fn">) would otherwise exempt
+#: every figure inside it on every page (code review, 2026-10-02).
+_FN_MARKER = re.compile(r'<sup class="fn"><a href="#note-[a-z-]+">\d{1,2}</a></sup>')
 
 
 def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
@@ -946,6 +947,10 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
             classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", m.group(0)))),
                      region + ":chrome")
         fragment = _CHROME.sub(" ", fragment)
+        for m in _FN_MARKER.finditer(fragment):
+            classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", m.group(0)))),
+                     region + ":chrome")
+        fragment = _FN_MARKER.sub(" ", fragment)
         for attr in ATTRS.findall(fragment):
             classify(re.sub(r"\s+", " ", html_unescape(attr)), region + ":attr")
         classify(re.sub(r"\s+", " ", html_unescape(TAGS.sub(" ", fragment))), region)

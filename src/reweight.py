@@ -854,6 +854,23 @@ def weighted_probability(event, weights) -> float:
     return float(w[e].sum() / w.sum())
 
 
+def chance_text(p: float) -> str:
+    """A share of simulations as every page prints it: never "100%" or "0%".
+
+    ONE DEFINITION (code review, 2026-10-02): ``stats``' "chance" token format
+    calls this, and ``interactive/pyboot/page.py`` returns its text beside each
+    share, so the published figure and the reader's figure print one share the
+    same way (``model.js`` had its own rounding and printed 9.1% where the
+    build printed 9.0%).
+    """
+    v = float(p)
+    if v > 0.99:
+        return "over 99%"
+    if v < 0.0005:
+        return "under 0.1%"
+    return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
+
+
 def largest_party(seats, columns, weights=None) -> dict:
     """Who has the most seats, per simulation: ``{"outright": {party: P}, "tied": P}``.
 
