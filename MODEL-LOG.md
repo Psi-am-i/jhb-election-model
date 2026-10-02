@@ -28397,3 +28397,18 @@ it. No forecast number moved; four pages' figures did (the corrections entry of
 **Not changed.** `montecarlo.py`'s structural keys still use `argmax`. No page
 reads them now; changing the model file moves its code hash, so it waits for
 the next model change.
+
+## 1.285 A poll with no published sample size is priced below one with a sample, on some parties (2026-10-02)
+
+**Finding.** `polling.poll_sd` prices a poll with no `n` on the house term alone
+(its documented fallback; `polling.validate` warns about it). Measured with
+`reweight.poll_trust_sd(poll, share, 1.0)` on `site/draws/index.json`'s three
+offered polls, in points: Ipsos Khayabus (no `n`) 4.14 on every party; SRF July
+2026 (n 504) ANC 3.99, DA 4.35, EFF 3.68; SRF Feb–Mar 2026 (n 503) ANC 4.40, DA
+4.50, EFF 3.73. The poll whose size is unknown carries less error than the
+reported-sample polls on the DA, and more on the ANC. Raised by the /play/
+critic (S2), who expected an unknown sample to cost more.
+
+**Not changed.** Pricing is the model's (JUDGEMENT-CALLS §N2, DESIGN D3); this
+is for the owner. A fix would give an unreported sample a sampling term (a
+prior on `n`) instead of none.
