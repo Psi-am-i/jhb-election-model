@@ -36,7 +36,7 @@ async function edit(p) {
 const links = {};
 for (const [w, h] of [[375, 812], [1440, 1000]]) {
   let p = await page(w, h);
-  await p.screenshot({ path: OUT + "/make-" + w + "-default.png", fullPage: w > 500 });
+  await p.screenshot({ path: OUT + "/make-" + w + "-default.png", fullPage: true });
   await edit(p);
   links[w] = await p.evaluate(() => location.search);
   await p.screenshot({ path: OUT + "/make-" + w + "-edited.png", fullPage: w > 500 });

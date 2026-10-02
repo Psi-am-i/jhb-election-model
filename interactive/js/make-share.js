@@ -56,6 +56,10 @@ export function setShareable(info) {
 
 const say = s => { S.toast.textContent = s; };
 
+// "2026-11-04" as "4 November 2026", from the city config the build read.
+const MONTHS = "January February March April May June July August September October November December".split(" ");
+const dateText = iso => { const [y, m, d] = iso.split("-").map(Number); return d + " " + MONTHS[m - 1] + " " + y; };
+
 // The card's words and figures, from the seats the page is showing.
 export function cardOf(info) {
   const { seats, council, majority, coalition, party } = info;
@@ -71,7 +75,7 @@ export function cardOf(info) {
     : "";
   return {
     name: info.name,
-    subtitle: "Johannesburg council, 4 November 2026 · " + council + " seats, " + majority + " for a majority",
+    subtitle: info.election.city + " council, " + dateText(info.election.date) + " · " + council + " seats, " + majority + " for a majority",
     map: { W: info.geom.W, H: info.geom.H, wards: info.geom.wards.map((w, i) => ({ path: w.path, fill: party(info.calls[i]).colour })) },
     rows, note,
     foot: ["A reader's forecast: the reader called the wards and set the vote, and the seats follow from the law. Not the model's forecast.",
@@ -92,14 +96,15 @@ async function draw() {
   S.dl.disabled = true;
   const card = cardOf(info);
   S.img.alt = forecastCardAlt(card);
+  let made;
   try {
-    png = await svgToPNG(buildForecastCardSVG(card), [W, H], { src: PHOTO_SRC, ...PHOTO });
+    made = await svgToPNG(buildForecastCardSVG(card), [W, H], { src: PHOTO_SRC, ...PHOTO });
   } catch (e) {
-    say("The image could not be drawn in this browser. The link still works.");
-    S.native.disabled = false;
+    if (ticket === drawing) { say("The image could not be drawn in this browser. The link still works."); S.native.disabled = false; }
     return;
   }
-  if (ticket !== drawing) return;
+  if (ticket !== drawing) return;           // a newer draw replaced this one
+  png = made;
   if (shown) URL.revokeObjectURL(shown);
   shown = URL.createObjectURL(png);
   S.img.src = shown;

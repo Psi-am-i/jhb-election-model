@@ -335,6 +335,7 @@ function share() {
   setShareable({
     url: location.href, name: S.name, calls: state.calls, seats: result.seats,
     council: result.council_total, majority: result.majority, coalition: S.coalition, geom, party: c => byCode[c],
+    election: D.election,
   });
 }
 onNameChange(n => { S.name = n; writeURL(); });

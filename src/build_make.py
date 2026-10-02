@@ -260,10 +260,14 @@ def forecast_data(draws: Path = DRAWS) -> dict:
     # What a link is read against: change any of these and an old link's
     # positions mean different parties, wards or votes (js/make-state.js).
     context_ref = _sha(json.dumps([ctx["parties"], ctx["wards"], schema["x-total-votes"]]).encode())[:12]
+    city = cityconfig.active()
+    election = {"city": city.name,
+                "date": str(city.structure_for(city.default_target)["election_date"])}
     return {
         "_about": ("Written by src/build_make.py from the published draws (site/draws/). "
                    "Do not edit."),
         "model_ref": artefact["model_ref"],
+        "election": election,
         "context_ref": context_ref,
         "draws_sha256": _sha(raw),
         "total_votes_source": total_src,
