@@ -658,16 +658,16 @@ too high. It cannot be changed on [play with the model](play/).
 
 **Plain — How much recent by-elections count.** A party's swing in the
 by-elections held since the last local election is applied to its last local
-result. The result is held within a range set for each party and blended into
-its expected share at a weight of 40%; the rest comes from its national and
-local record. The same weight applies to every party. The alternative, built and
-not used, gives each party its own weight from how many by-elections it fought,
-how much they varied and how uncertain its record is; some parties would get
-almost no by-election weight and others more than 40%. The by-election data
-starts in 2022, so no past election can test the weight or the choice between
-the two rules, and only the November result will. We kept the simpler rule. A
-higher weight moves parties toward their by-election swings. On [play with the
-model](play/) you can change the weight, not the rule.
+result. The result is held within a set range where the party has one, and
+blended into its expected share at a weight of 40%; the rest comes from its
+national and local record. The same weight applies to every party. The
+alternative, built and not used, gives each party its own weight from how many
+by-elections it fought, how much they varied and how uncertain its record is;
+some parties would get almost no by-election weight and others more than 40%.
+The by-election data starts in 2022, so no past election can test the weight or
+the choice between the two rules, and only the November result will. We kept the
+simpler rule. A higher weight moves parties toward their by-election swings. On
+[play with the model](play/) you can change the weight, not the rule.
 
 **Where.** `montecarlo.py`
 
