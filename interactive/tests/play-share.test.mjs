@@ -9,19 +9,25 @@
 //    fixture), so the link reproduces the same figures.
 // 2. A broken link falls back to the published setting and says so.
 // 3. The share image is drawn from the compute result the page shows: each
-//    party's row carries that party's middle seat count, every other digit comes
-//    from the result's totals, the reader's settings, the election day, the
-//    date and model version the card was made with or the reader's name (drawn
-//    as text, never markup), every ward is drawn in the result's colour, the parties are in the page's order, and a
-//    figure typed into the card, or a result the card ignored, is caught (and
-//    the check goes quiet again).
+//    party's row carries that party's middle seat count and its range, every
+//    other digit comes from the result's totals, its largest-party shares, its
+//    ward count, the reader's settings, the election day, the date and model
+//    version the card was made with or the reader's name (drawn as text, never
+//    markup), every ward is drawn in the result's colour, the parties are in
+//    the page's order, and a figure typed into the card, or a result the card
+//    ignored, is caught (and the check goes quiet again).
+// 4. The card says whose figures these are: untouched, the model's forecast,
+//    with the name only on a "Shared by" line; touched, the reader's settings,
+//    with "Not the model's forecast" among its first lines (critic G1/G2, code
+//    review 5, 2026-10-02).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as PS from "../js/play-state.js";
-import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, madeLine, headline, READER_STAMP, PUBLISHED_STAMP, SIZES } from "../js/play-card.js";
+import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, madeLine, headline, sharedBy, largestLine,
+         rangeText, subLine, READER_STAMP, PUBLISHED_STAMP, STORY_TEXT_BOTTOM, SIZES } from "../js/play-card.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = JSON.parse(readFileSync(resolve(here, "native-play.json"), "utf8"));
@@ -85,6 +91,7 @@ test("a broken link falls back to the published setting, field by field, and say
 
 // ---------- 3. the card ----------
 const ROSTER = new Proxy({}, { get: (_, c) => ({ code: c, name: String(c).replace(/_/g, " "), colour: "#888888", article: "" }) });
+// the fixture predates no field the card reads: every share carries its text
 const party = c => ROSTER[c];
 const textOf = svg => [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(m => m[1]);
 const runs = s => (s.replace(/[   ]/g, "").match(/\d+(?:\.\d+)?/g) || []);
@@ -98,7 +105,8 @@ const geometryFor = r => ({ W: 100, H: 50, step: 7, rotate: 45, places: [],
   paths: Object.fromEntries(r.wards.map((w, i) => [w.ward, `M${i} 0L${i + 1} 0L${i + 1} 1Z`])) });
 const card = (c, extra = {}) => {
   const r = extra.r ?? c.result;
-  return { r, st: { ...settingsOf(c.name), name: "" }, ctx, party, made: MADE, when: WHEN, name: "reader-7",
+  const st = { ...settingsOf(c.name), name: "" };
+  return { r, st, ctx, party, made: MADE, when: WHEN, name: "reader-7", touched: PS.isTouched(st),
            geometry: geometryFor(r), photoSrc: null, ...extra };
 };
 
@@ -109,7 +117,7 @@ const card = (c, extra = {}) => {
 function allowed(info) {
   const out = new Set();
   const add = x => runs(String(x)).forEach(d => out.add(d));
-  add(seatText({ value: info.r.council })); add(seatText({ value: info.r.majority }));
+  add(subLine(info)); add(largestLine(info.r, party)); add(info.r.wards.length);
   settingsWords(info.st, ctx).forEach(add);
   add(madeLine(MADE, ctx)); add(WHEN); add(info.name);
   return out;
@@ -127,8 +135,10 @@ function typed(svg, info) {
     if (!want.some(c => isName(t, label(c)))) return;
     const c = want[drawn++];
     rowTexts.add(i + 1);
+    rowTexts.add(i + 2);
     if (!c || !isName(t, label(c))) bad.push(`row ${drawn} is "${t}", not ${c && label(c)}`);
     else if (ts[i + 1] !== seatText(r.seats[c].median)) bad.push(`${t}'s row reads "${ts[i + 1]}", not "${seatText(r.seats[c].median)}"`);
+    else if (ts[i + 2] !== rangeText(r.seats[c])) bad.push(`${t}'s range reads "${ts[i + 2]}", not "${rangeText(r.seats[c])}"`);
   });
   if (drawn !== want.length) bad.push(`${drawn} rows drawn, ${want.length} shown`);
   ts.forEach((t, i) => { if (!rowTexts.has(i)) for (const d of runs(t)) if (!ok.has(d)) bad.push(`${d} in "${t}"`); });
@@ -147,21 +157,49 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       const svg = buildPlayCardSVG({ ...info, size });
       assert.match(svg, new RegExp(`width="${SIZES[size][0]}" height="${SIZES[size][1]}"`));
       assert.deepEqual(typed(svg, info), [], `${c.name} ${size}`);
-      // the headline is the reader's name; the foot says whose forecast it is
-      const all = textOf(svg).map(unesc).join(" ");
-      assert.ok(all.includes(headline("reader-7")), `${c.name} ${size}: headline`);
-      const stamp = PS.isTouched(info.st) ? READER_STAMP : PUBLISHED_STAMP;
-      assert.ok(all.includes(stamp.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: stamp`);
+      // whose figures these are, in the first lines: the model's forecast
+      // (the name only as "Shared by"), or the reader's settings with "Not
+      // the model's forecast" right under the headline
+      const lines = textOf(svg).map(unesc);
+      const all = lines.join(" ");
+      const firstLines = lines.slice(1, 4).join(" ");    // after the site name
+      assert.equal(lines[1], headline("reader-7", info.touched), `${c.name} ${size}: headline`);
+      assert.ok(!all.includes("Election Forecast"), `${c.name} ${size}`);
+      if (info.touched) {
+        assert.ok(firstLines.includes(READER_STAMP.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: ${firstLines}`);
+      } else {
+        assert.ok(!lines[1].includes("reader-7"), `${c.name} ${size}: the name is not the model's headline`);
+        assert.ok(firstLines.includes(sharedBy("reader-7")), `${c.name} ${size}: shared by`);
+        assert.ok(all.includes(PUBLISHED_STAMP), `${c.name} ${size}: stamp`);
+      }
+      // the largest-party line, ties apart, in the result's own text
+      assert.ok(all.includes(largestLine(info.r, party)), `${c.name} ${size}: largest`);
+      assert.ok(all.includes(info.r.tied.text), `${c.name} ${size}: ties`);
       // every ward the result carries is drawn, in the result's colour
       for (const w of info.r.wards.slice(0, 20)) assert.ok(svg.includes(`fill="${w.fill}"`), w.ward);
       assert.equal((svg.match(/<path d="M/g) || []).length,
         info.r.wards.length + info.r.wards.filter(w => w.bands).length, `${c.name} ${size}: one fill and one stripe layer per ward`);
       // nothing runs off the card, and the story stays clear of the apps' lower chrome
       const ys = [...svg.matchAll(/<text x="[^"]*" y="([\d.]+)"/g)].map(m => +m[1]);
-      assert.ok(Math.max(...ys) <= (size === "story" ? 1800 : SIZES[size][1] - 10), `${c.name} ${size}: text at y ${Math.max(...ys)}`);
+      assert.ok(Math.max(...ys) <= (size === "story" ? STORY_TEXT_BOTTOM : SIZES[size][1] - 10), `${c.name} ${size}: text at y ${Math.max(...ys)}`);
     }
-    assert.ok(playCardAlt(card(c)).startsWith(headline("reader-7")));
+    const alt = playCardAlt(card(c));
+    assert.ok(alt.startsWith(headline("reader-7", card(c).touched)));
+    assert.ok(alt.includes(largestLine(c.result, party)));
+    for (const p of c.result.shown) assert.ok(alt.includes(rangeText(c.result.seats[p])), `${c.name}: ${p}'s range in the alt`);
   }
+});
+
+test("a name never heads the model's forecast, and is the reader's own on the reader's settings", () => {
+  // critic G1: "The IEC's Election Forecast" printed over the model's own figures
+  const svg = buildPlayCardSVG(card(untouched, { name: "The IEC" }));
+  const lines = textOf(svg).map(unesc);
+  assert.equal(lines[1], "The model's Johannesburg forecast");
+  assert.ok(lines.includes(sharedBy("The IEC")));
+  assert.ok(!lines.some(l => /IEC's/.test(l)), lines.join(" | "));
+  const mine = textOf(buildPlayCardSVG(card(moved[0], { name: "The IEC" }))).map(unesc);
+  assert.equal(mine[1], "The IEC's settings on the model");
+  assert.ok(mine[2].startsWith(READER_STAMP), mine[2]);
 });
 
 test("the reader's name is drawn as text, never as markup", () => {
@@ -185,6 +223,11 @@ test("a typed figure, or a result the card did not read, is caught; reverted, qu
   const swapped = svg.replace(`>${fa}<`, ">@A@<").replace(`>${fb}<`, `>${fa}<`).replace(">@A@<", `>${fb}<`);
   assert.ok(typed(swapped, info).length >= 2, "swapped rows");
   assert.deepEqual(typed(svg, info), []);
+  // a range that is not the party's own is caught
+  const rng = rangeText(info.r.seats[a]);
+  const narrowed = svg.replace(`>${rng}<`, ">1–2<");
+  assert.notEqual(narrowed, svg);
+  assert.ok(typed(narrowed, info).some(x => x.includes("range")), typed(narrowed, info).join(" | "));
   // the card reads the result: change the top party's middle and the card moves with it
   const top = order(info.r, p => party(p).name)[0];
   info.r.seats[top].median.value = 987.6;

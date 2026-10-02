@@ -98,9 +98,12 @@ forecast" opens a sheet with an optional name (free text, at most
 text), the image, and the link (copy, or the phone's own share sheet). The
 image, 1200×630 or 1080×1920, is drawn in the browser by `js/play-card.js` from
 the same compute result the page shows: the Hillbrow Tower strip from
-`share.jpg`, "<name>'s Election Forecast", the ward map and the middle seat
-counts, with a foot saying whether it is a reader's settings or the published
-forecast. No account, no cookie, no storage, nothing sent: a shared link shows
+`share.jpg`; a headline saying whose figures these are ("The model's
+Johannesburg forecast" with the name on a "Shared by" line when nothing is
+moved, "<name>'s settings on the model" with "Not the model's forecast" under
+it when something is); the largest-party line, ties apart; the ward map, north
+marked, with a line saying it holds the ward seats only; and each party's
+middle seat count with the range holding nine in ten. No account, no cookie, no storage, nothing sent: a shared link shows
 the page's generic preview (`og:` tags with no figure, the site's
 `share.jpg`). Tests: `tests/play-share.test.mjs`, `tests/test_play_page.py`.
 Screenshots: `screenshots/play-*.png`.

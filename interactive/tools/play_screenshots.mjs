@@ -2,7 +2,7 @@
 //   build the site, serve site/ on 127.0.0.1:8801, then
 //   PLAYWRIGHT=<path to playwright/index.mjs> node interactive/tools/play_screenshots.mjs interactive/screenshots
 //
-// States (DESIGN §1-2): the untouched page; Black African turnout +5 (first
+// States (DESIGN §1-2): the untouched page and its card; Black African turnout +5 (first
 // screen and whole page, with the map's outlined wards and the ▲▼ against the
 // published forecast); a poll believed at half; the share sheet at both sizes
 // with a name, and the two images it downloads; an invalid link.
@@ -27,6 +27,16 @@ const cardReady = p => p.waitForFunction(() => { const i = document.querySelecto
 for (const [w, h] of [[375, 812], [1440, 1000]]) {
   let p = await page(w, h, "");
   await p.screenshot({ path: `${OUT}/play-${w}-default.png`, fullPage: true });
+  if (w === 1440) {
+    // the untouched page's card: the model's headline, the name as "Shared by"
+    await p.click('[data-live="share"] .pl-shareopen');
+    await cardReady(p);
+    await p.fill('[data-live="share"] .pl-name', "Thandi");
+    await p.waitForFunction(() => /Thandi/.test(document.querySelector('[data-live="share"] .preview img').alt), null, { timeout: 30000 });
+    await cardReady(p);
+    await p.waitForTimeout(400);
+    const d = p.waitForEvent("download"); await p.click('[data-live="share"] .shdl'); await (await d).saveAs(`${OUT}/play-card-untouched-1200x630.png`);
+  }
   await p.context().close();
   p = await page(w, h, BA5);
   await p.screenshot({ path: `${OUT}/play-${w}-ba5-fold.png` });

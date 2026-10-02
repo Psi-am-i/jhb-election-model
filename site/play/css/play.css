@@ -23,22 +23,31 @@
 [data-live="turnout"]:not([data-ready]){display:none;}
 
 .pl sup.fn{font-size:10px;margin-left:1px;}
+/* movement since the last edition, on the published twins: one neutral ink,
+   not the site's green for up and red for down (STYLE rule 7: a move is not
+   good or bad news for a party), and only on the middle count, not on a
+   range's ends; the figure's own note still says what it was */
+.pl .mstat-move.up,.pl .mstat-move.down{color:var(--ink-3);}
+.pl .pl-rng .mstat-move{display:none;}
 .pl sup.fn a{color:var(--accent);text-decoration:none;}
 .pl-navwrap{padding-bottom:0;}
 
 /* ---------- the sticky banner ---------- */
 .pl-bannerwrap{position:sticky;top:0;z-index:18;background:var(--paper);border-bottom:1px solid var(--rule);}
-.pl-banner{display:flex;max-width:1180px;margin:0 auto;padding:8px 16px;gap:10px 14px;align-items:center;
-  font:13px var(--sans);overflow-x:auto;white-space:nowrap;scrollbar-width:none;}
-@media (min-width:720px){.pl-banner{padding:8px 24px;}}
-.pl-banner::-webkit-scrollbar{display:none;}
+/* on a phone the banner wraps rather than scrolls: every party it names and
+   the majority stay in view (critic S5) */
+.pl-banner{display:flex;flex-wrap:wrap;max-width:1180px;margin:0 auto;padding:6px 16px;gap:4px 12px;align-items:center;
+  font:13px var(--sans);}
+@media (min-width:720px){.pl-banner{flex-wrap:nowrap;white-space:nowrap;padding:8px 24px;gap:10px 14px;}}
 .pl-bstate{font-weight:700;font-size:12px;padding:2px 8px;border-radius:10px;background:var(--paper-2);color:var(--ink-3);}
 .pl-bstate.pl-mine{background:var(--reader-soft);color:var(--reader);}
-.pl-bitems{display:flex;gap:14px;}
-.pl-bi{display:inline-flex;align-items:center;gap:5px;color:var(--ink-2);}
+.pl-bitems{display:flex;flex-wrap:wrap;gap:2px 12px;}
+@media (min-width:720px){.pl-bitems{flex-wrap:nowrap;gap:14px;}}
+.pl-bi{display:inline-flex;align-items:center;gap:5px;color:var(--ink-2);white-space:nowrap;}
 .pl-bi i{width:9px;height:9px;border-radius:2px;display:inline-block;}
 .pl-bi b{color:var(--ink);font-variant-numeric:tabular-nums;}
-.pl-bmaj{color:var(--ink-3);font-size:12px;margin-left:auto;padding-left:10px;}
+.pl-bmaj{color:var(--ink-3);font-size:12px;white-space:nowrap;}
+@media (min-width:720px){.pl-bmaj{margin-left:auto;padding-left:10px;}}
 .pl-delta{font:700 11px var(--sans);color:var(--reader);margin-left:2px;letter-spacing:-.02em;}
 
 /* ---------- layout ---------- */
@@ -147,9 +156,11 @@
 .pl-crow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;align-items:center;margin:4px 0;}
 .pl-crow.pl-roll{margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);}
 .pl-cname{font-size:13px;white-space:nowrap;color:var(--ink);}
+.pl-asm{display:block;font-size:11px;color:var(--ink-3);}
 .pl-cbar{display:flex;height:18px;border-radius:2px;overflow:hidden;}
 .pl-cseg{display:flex;align-items:center;padding-left:4px;font:600 10.5px var(--sans);color:#1a1d1b;overflow:hidden;white-space:nowrap;}
-.pl-cseg.pl-dk{color:#eceee9;}
+/* an assumed split (a party with no 2021 record) is hatched */
+.pl-cbar.pl-chatch .pl-cseg{background-image:repeating-linear-gradient(45deg,rgba(20,23,21,.28) 0 2px,transparent 2px 6px);}
 
 /* the poll, the by-elections and the seat law */
 .pl-polls,.pl-lawopts{display:flex;flex-direction:column;gap:2px;margin-bottom:6px;}

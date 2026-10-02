@@ -12,7 +12,9 @@
 // THE NAME (D6/D7, owner 2026-10-02). The reader may put a name on the image,
 // untouched page or not: free text, at most play-state.NAME_MAX characters,
 // cleaned by play-state.cleanName. It goes into the input's value, the link
-// (`n=`) and the image, where play-card.js escapes it and draws it as text.
+// (`n=`) and the image, where play-card.js escapes it and draws it as text:
+// "Shared by {name}" under the model's own headline when nothing is moved,
+// "{name}'s settings on the model" when something is (critic G1, 2026-10-02).
 // It is never written into the page as markup or as page text. Left empty,
 // the image carries a random label: a word and a number from
 // interactive/js/labels.js, which the build serves as play/labels.json.
@@ -155,7 +157,11 @@ S.copy.addEventListener("click", async () => {
   say(ok ? "Link copied." : "Copying did not work here. Copy the page's address instead.");
 });
 S.native.addEventListener("click", () => {
-  const data = { title: "Play with the Johannesburg election model", text: "My Johannesburg election forecast.", url: urlNow() };
+  // the words follow the image: the model's forecast untouched, the reader's
+  // settings otherwise; never "my forecast" over the model's (critic G1)
+  const data = { title: "Play with the Johannesburg election model",
+                 text: now.touched ? "My settings on the Johannesburg election model." : "The Johannesburg election model's forecast.",
+                 url: urlNow() };
   if (cache[size + nameNow()]) {
     const f = file();
     if (navigator.canShare?.({ files: [f] })) data.files = [f];

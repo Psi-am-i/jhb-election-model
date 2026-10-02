@@ -20,11 +20,18 @@
 // seat count, highest first, ties by name), every one drawn the same way in
 // its own colour; none is marked out.
 //
-// The layout (DESIGN §2, "Share card"): the Hillbrow Tower strip from the
-// site's share.jpg (handed in as a data URL by play-share.js, which fetches
-// it), the reader's name as the headline, the ward map, and the middle seat
-// count as bars. Two sizes: "link" 1200 x 630 for link previews, "story"
-// 1080 x 1920 for phone stories. The site's dark palette as literal hex and
+// The layout (DESIGN §2, "Share card", amended after the critic's G1-G3,
+// 2026-10-02): the Hillbrow Tower strip from the site's share.jpg (handed in
+// as a data URL by play-share.js, which fetches it); a headline that says
+// whose figures these are (the model's published forecast, or a reader's
+// settings on the model, never "{name}'s Election Forecast": a name is anyone's
+// text, and the site would print it over its own forecast); "Not the model's
+// forecast" in the line under it when the reader moved anything; the
+// largest-party line, ties apart; the ward map with north marked and a line
+// saying it holds the ward seats only; and each party's middle seat count with
+// the range holding nine in ten. Two sizes: "link" 1200 x 630 for link
+// previews, "story" 1080 x 1920 for phone stories, whose words stay above the
+// bottom band story apps cover. The site's dark palette as literal hex and
 // system font stacks: the image leaves the page, and an SVG drawn into a
 // canvas cannot load web fonts.
 
@@ -34,9 +41,14 @@ import { TRUST, MV_CHARS, PUBLISHED_CELL, PUBLISHED_LAW } from "./play-state.js"
 export const SIZES = { link: [1200, 630], story: [1080, 1920] };
 export const SITE = "joburg.whysoserious.city";
 export const INVITE = "Try your own at " + SITE + "/play";
-export const READER_STAMP = "A reader's settings on the model's simulations, not the model's forecast.";
+export const READER_STAMP = "Not the model's forecast: a reader's settings on its simulations.";
 export const PUBLISHED_STAMP = "The model's published forecast.";
-export const HOW = "Middle seat count of the simulations; wards in the party's colour, striped where contested.";
+export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
+export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
+export const BARS_NOTE = "Middle of each party's simulations, and the range holding nine in ten. The middles need not add up to the council's size.";
+// The lowest a story card's words may sit: story apps lay their reply bar
+// over the band below it.
+export const STORY_TEXT_BOTTOM = 1660;
 
 const C = {
   paper: "#141715", paper2: "#1c201d", rule: "#333833", ink: "#eceee9",
@@ -62,10 +74,14 @@ export function cellName(c) {
   return c.w_bye === 0 ? "Not at all" : c.w_bye === 1 ? "Fully" : "Weight " + c.w_bye;
 }
 
-// A poll's short name, from its register label: "SRF, July 2026".
+// A poll's short name, from its register label: "SRF, July 2026". When the
+// register says only when the poll was reported (its fieldwork dates were not
+// published), the date is called that: "Ipsos Khayabus, reported September
+// 2026" (critic, 2026-10-02).
 export function pollName(p) {
   const parts = String(p.label || p.id).split(" · ");
-  return parts.length > 1 ? parts[0] + ", " + parts[parts.length - 1] : parts[0];
+  const reported = /^reported\b/i.test(String(p.fieldwork || "")) ? "reported " : "";
+  return parts.length > 1 ? parts[0] + ", " + reported + parts[parts.length - 1] : parts[0];
 }
 
 // One seat figure as the page and the card print it.
@@ -107,18 +123,44 @@ export function madeLine(made, ctx) {
   return "Made " + made + " · model " + String(ctx.modelVersion).slice(0, MV_CHARS);
 }
 
-// The headline: the reader's name, which is their text and is escaped where drawn.
-export function headline(name) {
-  return name + "'s Election Forecast";
+// The headline. Untouched, the card is the model's forecast and says so; the
+// name goes on a "Shared by" line under it. Touched, it is the reader's
+// settings on the model, under the reader's name. The name is the reader's
+// text and is escaped where drawn.
+export function headline(name, touched) {
+  return touched ? name + "'s settings on the model" : "The model's Johannesburg forecast";
+}
+export const sharedBy = name => "Shared by " + name;
+
+// The two parties most often alone with the most seats, in alphabetical
+// order, as the page's one-line result names them.
+export function largestTop(r, party) {
+  return Object.keys(r.largest).sort((a, b) => r.largest[b].p - r.largest[a].p).slice(0, 2)
+    .sort((a, b) => party(a).name.toLowerCase().localeCompare(party(b).name.toLowerCase()));
+}
+// The largest-party line, in the shares' own text (page.py, reweight.chance_text).
+export function largestLine(r, party) {
+  const [a, b] = largestTop(r, party);
+  const nm = c => party(c).article + party(c).name;
+  return "Largest party: " + nm(a) + " in " + r.largest[a].text + " of simulations, " + nm(b) + " in " +
+    r.largest[b].text + ". Tied for the most seats in " + r.tied.text + ".";
+}
+
+// The line under the headline: whose figures these are, then the council.
+export function councilLine({ r, when }) {
+  return "Johannesburg council" + (when ? ", " + when : "") + " · " + seatText({ value: r.council }) +
+    " seats, " + seatText({ value: r.majority }) + " for a majority";
+}
+export function subLine({ r, touched, when }) {
+  return touched ? READER_STAMP + " " + councilLine({ r, when }) : councilLine({ r, when });
 }
 
 // The foot under the card, in sentences.
 export function footText({ r, st, ctx, made }) {
   const words = st && isMoved(st) ? settingsWords(st, ctx) : [];
-  const said = words.length ? READER_STAMP + " " + cap(words.join("; ")) + "; everything else as published." : PUBLISHED_STAMP;
+  const said = words.length ? "Settings: " + words.join("; ") + "; everything else as published." : PUBLISHED_STAMP;
   return said + " " + HOW + " " + INVITE + ". " + madeLine(made, ctx) + ".";
 }
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const isMoved = st => st.shift.some(x => x !== 0) || (st.trust > 0 && st.polls.length > 0) || st.law !== PUBLISHED_LAW || st.cell !== PUBLISHED_CELL;
 
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -142,8 +184,8 @@ function wrap(s, maxW, fs) {
 
 // The ward map, from the result's wards (render_map.ward_call through
 // page.py) and the boundaries the page draws: fills, then the stripes, as the
-// page's map. No labels and no outlines.
-function map({ r, geometry, x, y, w, prefix }) {
+// page's map, and north marked as the page marks it. No outlines.
+function map({ r, geometry, x, y, w, prefix, fs }) {
   const s = w / geometry.W, h = geometry.H * s;
   const defs = [], fills = [], hatches = [];
   for (const ward of r.wards) {
@@ -157,23 +199,31 @@ function map({ r, geometry, x, y, w, prefix }) {
       hatches.push(`<path d="${d}" fill="url(#${id})"/>`);
     }
   }
-  return { h, svg: `<g transform="translate(${x} ${y}) scale(${s.toFixed(4)})"><defs>${defs.join("")}</defs>${fills.join("")}${hatches.join("")}</g>` };
+  const north = text(x + w - 4, y + fs, "N ↗", { fs, family: MONO, fill: C.ink2, anchor: "end" });
+  return { h, svg: `<g transform="translate(${x} ${y}) scale(${s.toFixed(4)})"><defs>${defs.join("")}</defs>${fills.join("")}${hatches.join("")}</g>` + north };
 }
 
-// The median bars: every row the page shows, then Others.
+// The seat rows: every row the page shows, then Others. Each is the range
+// holding nine in ten of the party's simulations, its middle marked, the
+// middle in figures and the range beside it, on one scale for every row.
+export const rangeText = s => (s.p5.withheld || s.p95.withheld ? "withheld" : seatText(s.p5) + "–" + seatText(s.p95));
 function bars({ r, party, x, y, w, rowH, fs }) {
   const codes = [...order(r, c => party(c).name), "OTHERS"];
-  const val = c => (r.seats[c].median.withheld ? 0 : r.seats[c].median.value);
-  const top = Math.max(1, ...codes.map(val));
-  const nameW = fs * 6.4, figW = fs * 2.4, barW = w - nameW - figW;
+  const hi = c => (r.seats[c].p95.withheld ? (r.seats[c].median.withheld ? 0 : r.seats[c].median.value) : r.seats[c].p95.value);
+  const top = Math.max(1, ...codes.map(hi));
+  const nameW = fs * 6.2, figW = fs * 2.2, rngW = fs * 3.6, barW = w - nameW - figW - rngW - 8;
+  const at = v => x + nameW + barW * v / top;
   return codes.map((c, k) => {
-    const yy = y + k * rowH, nm = c === "OTHERS" ? "Others" : party(c).name;
+    const s = r.seats[c], yy = y + k * rowH, nm = c === "OTHERS" ? "Others" : party(c).name;
     const colour = c === "OTHERS" ? C.others : party(c).colour;
     const fitted = fitText(nm, nameW - 8, fs);
-    const len = Math.max(3, barW * val(c) / top * 0.96);
-    return text(x, yy + fs * 0.85, fitted.text, { fs: fitted.fs, fill: C.ink, weight: "600" }) +
-      (r.seats[c].median.withheld ? "" : `<rect x="${(x + nameW).toFixed(1)}" y="${(yy + fs * 0.15).toFixed(1)}" width="${len.toFixed(1)}" height="${(fs * 0.8).toFixed(1)}" rx="2" fill="${colour}"/>`) +
-      text(x + w, yy + fs * 0.9, seatText(r.seats[c].median), { fs: fs * 1.2, fill: C.ink, weight: "700", anchor: "end" });
+    const band = s.p5.withheld || s.p95.withheld ? ""
+      : `<rect x="${at(s.p5.value).toFixed(1)}" y="${(yy + fs * 0.2).toFixed(1)}" width="${Math.max(2, at(s.p95.value) - at(s.p5.value)).toFixed(1)}" height="${(fs * 0.7).toFixed(1)}" rx="2" fill="${colour}" fill-opacity="0.6"/>`;
+    const tick = s.median.withheld ? ""
+      : `<rect x="${(at(s.median.value) - 1.5).toFixed(1)}" y="${(yy).toFixed(1)}" width="3" height="${(fs * 1.1).toFixed(1)}" rx="1" fill="${C.ink}"/>`;
+    return text(x, yy + fs * 0.85, fitted.text, { fs: fitted.fs, fill: C.ink, weight: "600" }) + band + tick +
+      text(x + w - rngW, yy + fs * 0.9, seatText(s.median), { fs: fs * 1.15, fill: C.ink, weight: "700", anchor: "end" }) +
+      text(x + w, yy + fs * 0.9, rangeText(s), { fs: fs * 0.85, fill: C.ink3, anchor: "end" });
   }).join("");
 }
 
@@ -195,54 +245,81 @@ function photo({ src, w, h, fade }) {
 // reader's name or label; `geometry` the ward boundaries with the stripe
 // tile (`step`, `rotate`); `photoSrc` share.jpg as a data URL, or null;
 // `when` the election day in words.
-export function buildPlayCardSVG({ r, st, ctx, party, made, name, geometry, photoSrc, when, size = "link" }) {
+export function buildPlayCardSVG({ r, st, ctx, party, made, name, geometry, photoSrc, when, touched, size = "link" }) {
   if (!r || r.refused) throw new Error("the card needs a computed result, not a refusal");
   if (!geometry) throw new Error("the card needs the ward boundaries");
   const [W, H] = SIZES[size];
-  const sub = "Johannesburg council" + (when ? ", " + when : "") + " · " + seatText({ value: r.council }) +
-    " seats, " + seatText({ value: r.majority }) + " for a majority";
+  // the stamp (touched) or "Shared by" (untouched), each on its own line,
+  // then the council
+  const second = touched ? READER_STAMP : sharedBy(name);
+  const sub = councilLine({ r, when });
+  const lead = largestLine(r, party);
+  const mapNote = r.wards.length + " " + MAP_NOTE;
   const foot = footText({ r, st, ctx, made });
   let body;
   if (size === "link") {
     const sx = 268, sw = W - sx - 34;
-    const head = fitText(headline(name), sw, 44, "serifBold", 30);
-    const m = map({ r, geometry, x: sx, y: 128, w: 520, prefix: "cl" });
+    const head = fitText(headline(name, touched), sw, 40, "serifBold", 26);
+    const subs = wrap(sub, sw, 15);
     const feet = wrap(foot, sw, 12);
-    const rowH = Math.min(29, (H - 150 - feet.length * 16 - 30) / (r.shown.length + 1));
+    let y = 64;
+    const top = text(sx, y, head.text, { fs: head.fs, family: SERIF, fill: C.ink, weight: "600" }) +
+      wrap(second, sw, 15).map((l, k) => text(sx, (y += k ? 20 : 28), l, { fs: 15, fill: touched ? C.ink : C.ink2, weight: touched ? "600" : "" })).join("") +
+      subs.map(l => text(sx, (y += 21), l, { fs: 15, fill: C.ink2 })).join("") +
+      wrap(lead, sw, 15).map(l => text(sx, (y += 24), l, { fs: 15, fill: C.ink })).join("");
+    const footTop = H - 14 - (feet.length - 1) * 16 - 12;
+    const mapY = y + 18, mapW = 470;
+    const m = map({ r, geometry, x: sx, y: mapY, w: mapW, prefix: "cl", fs: 12 });
+    const notes = wrap(mapNote, mapW, 12);
+    const bx = sx + mapW + 22, bw = sw - mapW - 22;
+    const bnotes = wrap(BARS_NOTE, bw, 12);
+    const rowH = Math.min(28, (footTop - 10 - mapY - bnotes.length * 15 - 6) / (r.shown.length + 1));
+    const rowsEnd = mapY + rowH * (r.shown.length + 1);
     body = photo({ src: photoSrc, w: 250, h: H, fade: "right" }) +
       text(30, H - 22, SITE, { fs: 15, family: MONO, fill: C.ink, weight: "700", transform: `rotate(-90 30 ${H - 22})` }) +
-      text(sx, 74, head.text, { fs: head.fs, family: SERIF, fill: C.ink, weight: "600" }) +
-      text(sx, 104, sub, { fs: 16 }) +
-      m.svg +
-      bars({ r, party, x: sx + 546, y: 140, w: sw - 546, rowH, fs: 15 }) +
-      `<rect x="${sx}" y="${H - 18 - feet.length * 16 - 8}" width="${sw}" height="1" fill="${C.rule}"/>` +
-      feet.map((l, k) => text(sx, H - 14 - (feet.length - 1 - k) * 16, l, { fs: 12, fill: C.ink3 })).join("");
+      top + m.svg +
+      notes.map((l, k) => text(sx, Math.min(mapY + m.h + 14, footTop - 6 - (notes.length - 1) * 15) + k * 15, l, { fs: 12, fill: C.ink3 })).join("") +
+      bars({ r, party, x: bx, y: mapY, w: bw, rowH, fs: 14 }) +
+      bnotes.map((l, k) => text(bx, rowsEnd + 12 + k * 15, l, { fs: 12, fill: C.ink3 })).join("") +
+      `<rect x="${sx}" y="${footTop - 4}" width="${sw}" height="1" fill="${C.rule}"/>` +
+      feet.map((l, k) => text(sx, footTop + 12 + k * 16, l, { fs: 12, fill: C.ink3 })).join("");
   } else {
     const x = 60, w = W - 120;
-    const head = fitText(headline(name), w, 72, "serifBold", 44);
-    // the rows get a readable height first; the map takes the room left
-    const feet = wrap(foot, w, 24);
-    const rowH = 46, rows = (r.shown.length + 1) * rowH;
-    const mapY = 620, room = 1800 - feet.length * 32 - 60 - rows - 40 - mapY;
+    const head = fitText(headline(name, touched), w, 64, "serifBold", 40);
+    let y = 440;
+    const top = text(x, y, head.text, { fs: head.fs, family: SERIF, fill: C.ink, weight: "600" }) +
+      wrap(second, w, 28).map((l, k) => text(x, (y += k ? 38 : 50), l, { fs: 28, fill: touched ? C.ink : C.ink2, weight: touched ? "600" : "" })).join("") +
+      wrap(sub, w, 28).map(l => text(x, (y += 38), l, { fs: 28, fill: C.ink2 })).join("") +
+      wrap(lead, w, 28).map(l => text(x, (y += 40), l, { fs: 28, fill: C.ink })).join("");
+    const feet = wrap(foot, w, 22);
+    const notes = wrap(mapNote, w, 22), bnotes = wrap(BARS_NOTE, w, 22);
+    const rowH = 44, rows = (r.shown.length + 1) * rowH;
+    const footTop = STORY_TEXT_BOTTOM - (feet.length - 1) * 28;
+    const mapY = y + 30;
+    const room = footTop - 40 - bnotes.length * 28 - 20 - rows - 30 - notes.length * 28 - 20 - mapY;
     const mw = Math.min(w, room * geometry.W / geometry.H);
-    const m = map({ r, geometry, x: x + (w - mw) / 2, y: mapY, w: mw, prefix: "cs" });
-    const rowsY = mapY + m.h + 40;
+    const m = map({ r, geometry, x: x + (w - mw) / 2, y: mapY, w: mw, prefix: "cs", fs: 22 });
+    let yy = mapY + m.h + 6;
+    const mapText = notes.map(l => text(x, (yy += 28), l, { fs: 22, fill: C.ink3 })).join("");
+    const rowsY = yy + 30;
+    yy = rowsY + rows;
+    const barText = bnotes.map(l => text(x, (yy += 28), l, { fs: 22, fill: C.ink3 })).join("");
     body = photo({ src: photoSrc, w: W, h: H, fade: "down" }) +
       text(x, 120, SITE, { fs: 30, family: MONO, fill: C.ink, weight: "700" }) +
-      text(x, 470, head.text, { fs: head.fs, family: SERIF, fill: C.ink, weight: "600" }) +
-      wrap(sub, w, 30).map((l, k) => text(x, 530 + k * 38, l, { fs: 30 })).join("") +
-      m.svg +
-      bars({ r, party, x, y: rowsY, w, rowH, fs: 26 }) +
-      feet.map((l, k) => text(x, 1800 - (feet.length - 1 - k) * 32, l, { fs: 24, fill: C.ink3 })).join("");
+      top + m.svg + mapText +
+      bars({ r, party, x, y: rowsY, w, rowH, fs: 26 }) + barText +
+      feet.map((l, k) => text(x, footTop + k * 28, l, { fs: 22, fill: C.ink3 })).join("");
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
     `<rect width="${W}" height="${H}" fill="${C.paper}"/>${body}</svg>`;
 }
 
 // The image's text alternative: the same figures, in the same order.
-export function playCardAlt({ r, st, ctx, party, made, name }) {
+export function playCardAlt({ r, st, ctx, party, made, name, when, touched }) {
   const codes = [...order(r, c => party(c).name), "OTHERS"];
-  const seats = codes.map(c => (c === "OTHERS" ? "Others" : party(c).name) + " " + seatText(r.seats[c].median));
-  return headline(name) + ". Middle seats on the Johannesburg council: " + seats.join(", ") + ". " +
+  const seats = codes.map(c => (c === "OTHERS" ? "Others" : party(c).name) + " " + seatText(r.seats[c].median) +
+    " (" + rangeText(r.seats[c]) + ")");
+  return headline(name, touched) + ". " + (touched ? "" : sharedBy(name) + ". ") + subLine({ r, touched, when }) + ". " +
+    largestLine(r, party) + " Middle seats, with the range holding nine in ten: " + seats.join(", ") + ". " +
     footText({ r, st, ctx, made });
 }

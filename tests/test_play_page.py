@@ -356,5 +356,51 @@ def test_the_page_engine_at_uniform_weights_is_the_forecast_pages_rows():
     assert moved["flips"] and any(moved["seats"][c]["vs_published"] for c in moved["shown"])
 
 
+def test_the_live_by_election_line_is_the_builds_at_every_setting():
+    """At the published turnout, poll and seat law, the reader's by-election
+    comparison (pyboot/page.py ``against_published_cell``) must list exactly
+    the moves the build's line under the control lists (``build_play._moves``),
+    for every by-election cell. Critic S1, 2026-10-02: a party outside the
+    shown rows was compared against 0, and the two lines disagreed on screen.
+
+    Population: every cell index.json lists except the published one, and
+    every party winning a seat in either cell, both directions. It can see: at
+    least one party the build line names is outside the shown rows, which is
+    the case the defect broke."""
+    import importlib.util
+    import json
+    import os
+    _built()            # runs sync_py.mjs: the served copy is current
+    spec = importlib.util.spec_from_file_location("native_play", ROOT / "interactive/tools/native_play.py")
+    NP = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(NP)
+    cwd, path = os.getcwd(), list(sys.path)
+    try:
+        ns = NP._page(NP.SERVED, NP.SERVED)
+        for c in NP.cells():
+            d = NP.DRAWS / c["path"]
+            ns["load_cell"](c["path"], (d / "manifest.json").read_text(), (d / "base.bin").read_bytes())
+        ns["set_polls"](json.dumps(json.loads((NP.DRAWS / "index.json").read_text()).get("polls", [])))
+        pub, _ = build_play._cell_medians(".")
+        others = [c for c in NP.cells() if c["path"] != "."]
+        assert len(others) >= 2, others
+        outside = 0
+        for c in others:
+            res = json.loads(ns["compute"](json.dumps({"cell": c["path"], "law": "deduct",
+                                                       "shift": [0, 0, 0, 0], "polls": [], "trust": 0})))
+            live = res["against_published_cell"]
+            med, _ = build_play._cell_medians(c["path"])
+            assert set(live) == set(med) | set(pub), (c["path"], sorted(set(live) ^ (set(med) | set(pub))))
+            got = sorted((p, int(round(d["difference"]))) for p, d in live.items()
+                         if not d["within_noise"] and round(d["difference"]))
+            want = sorted(build_play._moves(med, pub))
+            assert got == want, (c["path"], got, want)
+            outside += sum(1 for p, _ in want if p not in res["shown"])
+        assert outside, "no move outside the shown rows: the test cannot see the defect it guards"
+    finally:
+        os.chdir(cwd)
+        sys.path[:] = path
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

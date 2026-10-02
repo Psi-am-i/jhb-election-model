@@ -224,6 +224,12 @@ def _published() -> dict:
     return _PUBLISHED
 
 
+def _chance(p: float, vs_published) -> dict:
+    """A share of simulations, with its text as every page prints it
+    (``reweight.chance_text``, which ``stats``' "chance" format also calls)."""
+    return {"p": p, "text": R.chance_text(p), "vs_published": vs_published}
+
+
 def _points(x: float) -> int:
     """A share as the whole percentage point the page compares (shares are fractions)."""
     return int(round(100.0 * x))
@@ -271,6 +277,16 @@ def _seats(cell: dict, law: str, w: np.ndarray, poll: bool) -> tuple[dict, list,
     return out, list(values), precise, len(rest)
 
 
+def _medians(cell: dict, law: str, w: np.ndarray, poll: bool) -> dict:
+    """``{party: figure}`` of the middle seat count of EVERY party that wins a
+    seat in any draw, shown row or not: the by-election comparison covers each
+    party, as ``build_play``'s line under the control does (critic S1,
+    2026-10-02: a party outside the rows was compared against 0)."""
+    block, cols = _party_columns(cell, law)
+    return {party: figure(block[:, j], w, 0.5, poll=poll)
+            for j, party in enumerate(cols) if block[:, j].max() > 0}
+
+
 def _outcomes(cell: dict, law: str, w: np.ndarray) -> dict:
     """Largest party (ties apart), a majority alone, turnout and the wards, each
     with the change from the published forecast where the page shows one."""
@@ -278,7 +294,7 @@ def _outcomes(cell: dict, law: str, w: np.ndarray) -> dict:
     seats, cols = _party_columns(cell, law)
     council = cell["arrays"][f"council/{law}"]
     lp = R.largest_party(seats, cols, w)
-    largest = {c: {"p": p, "vs_published": _points(p) - _points(pub["largest"].get(c, 0.0))}
+    largest = {c: _chance(p, _points(p) - _points(pub["largest"].get(c, 0.0)))
                for c, p in lp["outright"].items() if p > 0 or pub["largest"].get(c, 0.0) > 0}
     share = w / w.sum()
     turnout = {g: {"mean": float(t), "published": pub["turnout"][g]}
@@ -287,9 +303,8 @@ def _outcomes(cell: dict, law: str, w: np.ndarray) -> dict:
     flips = [{"ward": x["ward"], "from": pub["winner"][x["ward"]], "to": x["winner"]}
              for x in wards if x["winner"] != pub["winner"].get(x["ward"], x["winner"])]
     return {"largest": largest,
-            "tied": {"p": lp["tied"], "vs_published": _points(lp["tied"]) - _points(pub["tied"])},
-            "alone": {"p": R.majority_alone(seats, council[:, 0], w),
-                      "vs_published": None},
+            "tied": _chance(lp["tied"], _points(lp["tied"]) - _points(pub["tied"])),
+            "alone": _chance(R.majority_alone(seats, council[:, 0], w), None),
             "turnout": turnout, "wards": wards, "flips": flips}
 
 
@@ -300,9 +315,15 @@ def _one(path: str, settings: dict) -> dict:
         raise ValueError(f"no seat law {law!r} in this export")
     try:
         w, info = _weights(cell, settings)
-        ess = R.require_effective(w)
     except R.Refused as exc:
         return {"cell": path, "refused": str(exc)}
+    try:
+        ess = R.require_effective(w)
+    except R.Refused as exc:
+        # the counts beside the reason, so the page can say it in its own
+        # words and number format
+        return {"cell": path, "refused": str(exc), "effective_draws": R.effective_draws(w),
+                "draws": int(cell["manifest"]["draws"]), "floor": R.MIN_EFFECTIVE_DRAWS}
     council = cell["arrays"][f"council/{law}"]
     seats, shown, precise, others_count = _seats(cell, law, w, info["poll"] is not None)
     centres = cell["manifest"].get("centres") or {}
@@ -320,6 +341,7 @@ def _one(path: str, settings: dict) -> dict:
            "centres": centres.get("values"),
            "centres_source": centres.get("source"),
            "model_version": model_version(cell["manifest"]), **info}
+    out["_medians"] = _medians(cell, law, w, info["poll"] is not None)
     return out
 
 
@@ -342,18 +364,24 @@ def compute(settings_json: str) -> str:
         out["published_cell"] = {"centres": ref.get("centres"),
                                  "refused": ref["refused"]}
         if ref["refused"] is None:
-            cmp = {}
-            for party in sorted((set(out["seats"]) | set(ref["seats"])) - {OTHERS}):
-                a = out["seats"].get(party)
-                b = ref["seats"].get(party)
-                if (a and a["median"]["withheld"]) or (b and b["median"]["withheld"]):
-                    continue
-                cmp[party] = R.beyond_noise(a["median"]["value"] if a else 0.0,
-                                            a["median_se"] if a else 0.0,
-                                            b["median"]["value"] if b else 0.0,
-                                            b["median_se"] if b else 0.0)
-            out["against_published_cell"] = cmp
+            out["against_published_cell"] = against(out["_medians"], ref["_medians"])
+    out.pop("_medians", None)
     return json.dumps(_plain(out), allow_nan=False)
+
+
+def against(cell: dict, published: dict) -> dict:
+    """Each party's middle seat count in a by-election cell against the
+    published cell's, by ``reweight.beyond_noise``. Every party that wins a
+    seat in either cell is compared; a party absent from one cell has no seat
+    there (0, with no sampling error). A withheld figure is not compared."""
+    out = {}
+    for party in sorted(set(cell) | set(published)):
+        a, b = cell.get(party), published.get(party)
+        if (a and a["withheld"]) or (b and b["withheld"]):
+            continue
+        out[party] = R.beyond_noise(a["value"] if a else 0.0, a["sampling_se"] if a else 0.0,
+                                    b["value"] if b else 0.0, b["sampling_se"] if b else 0.0)
+    return out
 
 
 def _plain(o):

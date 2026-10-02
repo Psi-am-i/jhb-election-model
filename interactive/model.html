@@ -97,7 +97,7 @@
           </figure>
           <figure class="pl-seatfig">
             <figcaption class="pl-fhead"><h2>Seats on the council</h2>
-              <p>Middle of the simulations, and the range holding nine in ten. A majority is {{majority}} of {{council_size}}.</p>
+              <p>Middle of the simulations, and the range holding nine in ten.<sup class="fn"><a href="#note-browser">1</a></sup></p>
               <p class="pl-glegend pl-live"><i></i>Dotted line: the published forecast.</p></figcaption>
             <div class="pl-seats pl-pub"><!-- __PLAY:seats__ --></div>
             <div class="pl-seats pl-liveseats" data-live="seats" data-scale="<!-- __PLAY:seatscale__ -->"></div>
@@ -135,29 +135,31 @@
       <section class="pl-ctl" aria-labelledby="h-turn">
         <h3 id="h-turn">Turnout by population group</h3>
         <p>Move any or all four. A group you leave alone stays at the forecast's turnout. The scale is percentage points
-          of that group's registered voters.<sup class="fn"><a href="#note-turnout">1</a></sup></p>
+          of that group's registered voters.<sup class="fn"><a href="#note-turnout">2</a></sup></p>
         <div class="pl-pub pl-turntwin"><!-- __PLAY:turnout__ --></div>
         <div data-live="turnout" class="pl-sliders"></div>
         <details class="pl-comp" open>
           <summary>Where each party's votes come from</summary>
-          <!-- __PLAY:composition__ -->
           <p class="pl-note">The model estimates this from the ward results of 2021 and the census population groups in each
-            ward. The census reports population groups, so those are the groups the model can measure.<sup class="fn"><a href="#note-groups">2</a></sup></p>
+            ward. The census reports population groups, so those are the groups the model can measure.<sup class="fn"><a href="#note-groups">3</a></sup></p>
+          <!-- __PLAY:composition__ -->
         </details>
       </section>
 
       <section class="pl-ctl" aria-labelledby="h-poll">
         <h3 id="h-poll">A poll</h3>
-        <p>Pick one poll, then how much to believe it.<sup class="fn"><a href="#note-poll">4</a></sup></p>
+        <p>Pick one poll, then how much to believe it.<sup class="fn"><a href="#note-poll">5</a></sup></p>
         <div data-live="polls" class="pl-polls" role="radiogroup" aria-labelledby="h-poll"></div>
         <div data-live="trust" class="pl-trust"></div>
         <p class="pl-note">A poll's accuracy, as the model rates it, comes from its sample size, the polling house's typical
-          miss and the time since fieldwork. <!-- __PLAY:refused__ --></p>
+          miss and the time since fieldwork. At full belief the page gives a poll that error alone. The model's own
+          blend of polls gives more, and caps the weight of one polling house.</p>
+        <p class="pl-note"><!-- __PLAY:refused__ --></p>
       </section>
 
       <section class="pl-ctl" aria-labelledby="h-bye">
         <h3 id="h-bye">By-elections</h3>
-        <p>Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">5</a></sup></p>
+        <p>Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">6</a></sup></p>
         <div data-live="cells" class="pl-seg3" role="radiogroup" aria-labelledby="h-bye"></div>
         <p class="pl-note"><!-- __PLAY:bye__ --></p>
         <div data-live="byelection" class="pl-byenote"></div>
@@ -165,7 +167,7 @@
 
       <details class="pl-ctl pl-law">
         <summary><h3>Seat law</h3><span class="pl-lawnow" data-live="lawnow">Deduct, as the law says</span></summary>
-        <p>What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">6</a></sup></p>
+        <p>What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">7</a></sup></p>
         <div data-live="law" class="pl-lawopts" role="radiogroup" aria-label="Seat law"></div>
       </details>
     </div>
@@ -174,26 +176,25 @@
   <section class="pl-notes" aria-labelledby="h-notes">
     <h2 id="h-notes">Notes</h2>
     <ol>
+      <li id="note-browser">Your figures are worked out in your browser from the published simulations and are not
+        recorded. A figure is withheld when its sampling error exceeds <!-- __PLAY:maxse__ --> seats.
+        <span data-live="ess"></span></li>
       <li id="note-turnout">The page does not re-run the model. It re-weights the model's {{n_draws}} published simulations
         towards those with the turnout you set. For Black African turnout at the top of the slider's range this was
         checked against a full re-run of the model, and every party's seat change agreed within sampling error. The other
         groups use the same method, unchecked. Past this range, or with groups moved far in opposite directions, the
         simulations run out and the slider stops.</li>
-      <li id="note-groups">Shares of each party's votes, by population group, in the model's forecast. "Registered" is the
-        voters' roll's split.</li>
+      <li id="note-groups">Each bar is one party's vote split by population group, as the model fits it to the ward results
+        of 2021. "Registered" is the split of the voters' roll.</li>
       <li id="note-new"><!-- __PLAY:newparties__ --></li>
       <li id="note-poll">Each poll is a Johannesburg subsample of a larger survey. Under a poll, the figures describe the
-        model's simulations nearest the poll; the poll does not come true. At full belief the page gives a poll less error
-        than the model's own blend of polls would, and it does not cap the weight of one polling house, which the blend
-        does.</li>
+        model's simulations nearest the poll; the poll does not come true. The slider stops where too few simulations
+        lie near the poll. That is a fact about the simulations, not a rating of the poll.</li>
       <li id="note-bye">By-elections are small, low-turnout contests, and some parties' swings rest on a handful of wards.
         The forecast counts them partly; the election will test that weight. Each setting is a separate full run of the
         model, so part of any difference between settings is sampling noise; the line under the control lists only
-        changes larger than that. <!-- __PLAY:byereason__ --></li>
+        changes larger than that.</li>
       <li id="note-law">The Municipal Structures Act deducts the surplus. The other three are for comparison.</li>
-      <li id="note-browser">Your figures are worked out in your browser from the published simulations and are not
-        recorded. A figure is withheld when its sampling error exceeds <!-- __PLAY:maxse__ --> seats.
-        <span data-live="ess"></span></li>
     </ol>
   </section>
 

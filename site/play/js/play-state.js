@@ -44,11 +44,21 @@ export function isTouched(st) {
     st.law !== PUBLISHED_LAW || st.cell !== PUBLISHED_CELL;
 }
 
-// The name as the page keeps it: control characters dropped, runs of space
-// made one, trimmed, at most NAME_MAX characters. "" when nothing is left.
+// The name as the page keeps it: control characters (C0, C1) and the
+// invisible direction and width controls dropped, so a name cannot reverse or
+// hide the words drawn after it on the image (code review, 2026-10-02); runs
+// of space made one; trimmed; at most NAME_MAX UTF-16 units, the unit the
+// field's maxlength counts, never cutting a character in two. "" when nothing
+// is left.
+const INVISIBLE = /[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]/g;
 export function cleanName(s) {
-  const t = [...String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim()];
-  return t.slice(0, NAME_MAX).join("").trim();
+  const t = String(s == null ? "" : s).replace(INVISIBLE, "").replace(/\s+/g, " ").trim();
+  let out = "";
+  for (const ch of t) {
+    if (out.length + ch.length > NAME_MAX) break;
+    out += ch;
+  }
+  return out.trim();
 }
 
 const onStep = (x, { min, max, step }) =>
@@ -90,9 +100,11 @@ export function parse(search, ctx) {
     else dropped.push("by-election weight: not one this page offers");
   }
   if (q.has("n")) {
+    // an empty name is no name, not a refusal; a long one is refused whole,
+    // never cut, in the field's own unit
     const raw = q.get("n");
-    if ([...raw].length <= NAME_MAX && cleanName(raw)) st.name = cleanName(raw);
-    else dropped.push("name: at most " + NAME_MAX + " characters");
+    if (raw.length > NAME_MAX) dropped.push("name: at most " + NAME_MAX + " characters");
+    else st.name = cleanName(raw);
   }
   // The link's version must be this model's first MV_CHARS characters
   // exactly: a shorter prefix would match more than one version.

@@ -115,7 +115,7 @@ PLAY_PYBOOT = ("page.py",)
 DRAWS_LINE = ('const DRAWS = "../../site/draws/";', 'const DRAWS = "../../draws/";')
 #: The markers model.html carries, each filled by one function below.
 FILL = ("banner", "oneline", "map", "seats", "turnout", "composition", "refused",
-        "bye", "newparties", "byereason", "maxse", "election", "seatscale")
+        "bye", "newparties", "maxse", "election", "seatscale")
 #: The seat axis, in seats, for the published rows here and the reader's rows
 #: in js/model.js (which reads it from the "seats" region's data-scale).
 SEAT_SCALE = 125
@@ -124,8 +124,10 @@ SEAT_TICKS = (0, 25, 50, 75, 100, 125)
 BANNER_PARTIES = 6
 #: The share of a party's votes below which its bar segment carries no label.
 SEGMENT_LABEL_MIN = 0.12
-#: The four population groups' bar tones, lightest first: no party's colour.
-GROUP_TONES = ("#d8d3c6", "#a7a99f", "#767b76", "#4a4f4a")
+#: The four population groups' bar tones: four hues at one lightness, so the
+#: chart carries no light-to-dark order of the groups (critic S4, 2026-10-02),
+#: none of them a party's colour, each light enough for the same dark label.
+GROUP_TONES = ("#86b6ad", "#d3b062", "#c99682", "#a3aec4")
 #: How a refused poll is described, by polling.screen's rule. A rule not here
 #: is not a reason a reader of this cycle's polls needs (another city, another
 #: election, after polling day).
@@ -366,23 +368,29 @@ def composition(processed: Path, rows: list[dict], names: dict) -> str:
     codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
     new = _new_parties(spec, codes)
 
-    def bar(key, vals, src):
+    def bar(key, vals, src, cls=""):
         segs = []
         for i, (g, v) in enumerate(zip(groups, vals)):
             if v <= 0:
                 continue
-            lab = _tok(f"{key}.{_slug(g)}", f"{float(v):.6f}", "pct0", src) if v >= SEGMENT_LABEL_MIN else ""
-            segs.append(f'<span class="pl-cseg{" pl-dk" if i >= 2 else ""}" style="width:{100.0 * v:.2f}%;'
-                        f'background:{GROUP_TONES[i % len(GROUP_TONES)]}">{lab}</span>')
-        return f'<span class="pl-cbar">{"".join(segs)}</span>'
+            # pct0_capped: a share that rounds to 100% but is not all of the
+            # party's vote prints "over 99%"
+            lab = (_tok(f"{key}.{_slug(g)}", f"{float(v):.6f}", "pct0_capped", src)
+                   if v >= SEGMENT_LABEL_MIN else "")
+            segs.append(f'<span class="pl-cseg" style="width:{100.0 * v:.2f}%;'
+                        f'background-color:{GROUP_TONES[i % len(GROUP_TONES)]}">{lab}</span>')
+        return f'<span class="pl-cbar{cls}">{"".join(segs)}</span>'
     legend = "".join(f'<span><i style="background:{GROUP_TONES[i % len(GROUP_TONES)]}"></i>{_esc(g)}</span>'
                      for i, g in enumerate(groups))
     out = [f'<div class="pl-clegend">{legend}</div>']
     for c in codes:
-        mark = '<sup class="fn"><a href="#note-new">3</a></sup>' if c in new else ""
+        # a party with no 2021 record has an ASSUMED split, not an estimate:
+        # said in the row and drawn hatched (critic S4)
+        mark = ('<sup class="fn"><a href="#note-new">4</a></sup><span class="pl-asm">assumed</span>'
+                if c in new else "")
         vals = [float(spec["pools"][g]["members"].get(c, 0.0)) for g in groups]
         out.append(f'<div class="pl-crow"><span class="pl-cname">{_esc(names[c]["name"])}{mark}</span>'
-                   f'{bar(f"play.votes.{c}", vals, f"{fname} pools[group].members[{c}]")}</div>')
+                   f'{bar(f"play.votes.{c}", vals, f"{fname} pools[group].members[{c}]", " pl-chatch" if c in new else "")}</div>')
     out.append(f'<div class="pl-crow pl-roll"><span class="pl-cname">Registered</span>'
                f'{bar("play.roll", spec["pool_shares_at_target"], f"{fname} pool_shares_at_target")}</div>')
     return "".join(out)
@@ -467,41 +475,24 @@ def _moves(cell: dict, pub: dict) -> list[tuple[str, int]]:
     return out
 
 
-def bye_line(names: dict) -> tuple[str, str]:
-    """The line under the by-election control, and the footnote sentence a party
-    whose seats fall when by-elections count fully, despite a gain in them, needs."""
+def bye_line(names: dict) -> str:
+    """The line under the by-election control: each party's middle seat change
+    at either end against the published weight, where it is larger than
+    sampling noise. No party's move is explained here: the page explains every
+    move or none (critic, 2026-10-02), and note 5 says why the cells differ."""
     index, cells = _bye_cells()
     pub_cell = next(c for c in cells if c["path"] == ".")
-    pub, pub_centres = _cell_medians(".")
-    parts, reason = [], []
-    ends = [c for c in (cells[-1], cells[0]) if c["path"] != "."]
-    for c in ends:
-        med, centres = _cell_medians(c["path"])
+    pub, _ = _cell_medians(".")
+    parts = []
+    for c in [c for c in (cells[-1], cells[0]) if c["path"] != "."]:
+        med, _ = _cell_medians(c["path"])
         label = "Fully" if c["w_bye"] > pub_cell["w_bye"] else "Not at all"
         mv = sorted(_moves(med, pub), key=lambda x: names.get(x[0], {"name": x[0]})["name"].lower())
         src = f"site/draws/{c['path']} against site/draws/., middle seats beyond sampling noise"
         said = ", ".join(f"{_esc(names.get(p, {'name': p})['name'])} {'+' if d > 0 else '−'}"
                          f"{_tok(f'play.bye.{_slug(c['path'])}.{p}', abs(d), 'int', src)}" for p, d in mv)
         parts.append(f"{label}: {said or 'no change larger than sampling noise'}.")
-        if label == "Fully":
-            # A party whose by-election figure is a gain but whose seats fall:
-            # explained when it is a LEVEL (the party did not stand in the
-            # previous election, so its "swing" is its share) below the level
-            # the model starts it from (the cell with no by-elections).
-            none_centres = _cell_medians(cells[0]["path"])[1]
-            spec, _ = _spec(_processed())
-            new = _new_parties(spec, [p for p, _ in mv])
-            for row in index.get("byelection") or []:
-                p = row["party"]
-                if (row.get("reaches_model") and float(row["weighted_delta"]) > 0
-                        and dict(mv).get(p, 0) < 0 and p in new
-                        and p in centres and p in none_centres and centres[p] < none_centres[p]):
-                    n = names.get(p, {"name": p})["name"]
-                    reason.append(f"{_esc(n)} did not stand in 2021, so its by-election figure is its share "
-                                  f"of the vote in those wards, not a gain since 2021. That share is below the "
-                                  f"level the model starts {_esc(n)} from, so counting by-elections fully "
-                                  f"lowers its seats.")
-    return "Change in middle seat counts against the forecast. " + " ".join(parts), " ".join(reason)
+    return "Change in middle seat counts against the forecast. " + " ".join(parts)
 
 
 _PROCESSED: Path | None = None
@@ -527,7 +518,6 @@ def fills(processed: Path) -> dict[str, str]:
     rows = seat_rows(sheet)
     names = roster()
     geometry = json.loads((processed / "ward_paths.json").read_text(encoding="utf-8"))
-    line, reason = bye_line(names)
     out = {
         "banner": banner(rows),
         "oneline": oneline(processed, names),
@@ -536,9 +526,8 @@ def fills(processed: Path) -> dict[str, str]:
         "turnout": turnout(),
         "composition": composition(processed, rows, names),
         "refused": refused_polls(),
-        "bye": line,
+        "bye": bye_line(names),
         "newparties": new_parties_note(processed, rows, names),
-        "byereason": reason,
         "maxse": _tok("play.max_figure_se", R.MAX_FIGURE_SE_SEATS, "one_dp",
                       "reweight.MAX_FIGURE_SE_SEATS, the owner's precision rule (JUDGEMENT-CALLS §N2)"),
         # attribute values on two LIVE regions, read by js/model.js: the

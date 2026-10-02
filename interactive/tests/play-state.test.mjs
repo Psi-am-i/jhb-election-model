@@ -77,7 +77,23 @@ test("a name is the reader's text: bounded, cleaned, refused when too long, and 
   assert.ok(!r.dropped[0].includes("xxx"));
   assert.equal(PS.parse("?n=" + encodeURIComponent("x".repeat(PS.NAME_MAX)), ctx).state.name.length, PS.NAME_MAX);
   assert.equal(PS.cleanName("  a\u0000 \n b  "), "a b");
-  assert.equal(PS.parse("?n=%20%20", ctx).dropped.length, 1);
+  // an empty name is no name, not a refusal (code review, 2026-10-02: it was
+  // reported as "at most 24 characters")
+  assert.deepEqual(PS.parse("?n=%20%20", ctx).dropped, []);
+  assert.equal(PS.parse("?n=", ctx).state.name, "");
+  // direction and width controls and C1 controls are dropped: a name cannot
+  // reverse or hide the words drawn after it on the image
+  const bidi = "a\u202Eb\u2066c\u200Bd\u0085e\u061Cf\uFEFFg";
+  assert.equal(PS.cleanName(bidi), "abcdefg");
+  assert.equal(PS.parse("?n=" + encodeURIComponent(bidi), ctx).state.name, "abcdefg");
+  // one unit for the field and the link: UTF-16 units, as maxlength counts,
+  // and a character is never cut in two
+  const emoji = "\u{1F600}".repeat(PS.NAME_MAX / 2);                  // NAME_MAX units
+  assert.equal(PS.parse("?n=" + encodeURIComponent(emoji), ctx).state.name, emoji);
+  assert.equal(PS.parse("?n=" + encodeURIComponent(emoji + "x"), ctx).dropped.length, 1);
+  const cut = PS.cleanName("x" + emoji);                                // one unit over
+  assert.ok(cut.length <= PS.NAME_MAX && !/[\uD800-\uDBFF]$/.test(cut), JSON.stringify(cut));
+  assert.equal(cut, "x" + "\u{1F600}".repeat(PS.NAME_MAX / 2 - 1));
   // markup survives as text: the page never parses it, and the card escapes it
   assert.equal(PS.parse("?n=" + encodeURIComponent("<b>x</b>"), ctx).state.name, "<b>x</b>");
   assert.equal("name" in PS.engineSettings({ ...PS.defaults(ctx), name: "z" }), false);

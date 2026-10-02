@@ -34,7 +34,7 @@
 // to the furthest setting for which page.py's reweight.within_precision held.
 
 import * as PS from "./play-state.js";
-import { order, seatText, LAW_TEXT, cellName, pollName, settingsWords } from "./play-card.js";
+import { order, seatText, LAW_TEXT, cellName, pollName, settingsWords, largestTop } from "./play-card.js";
 import { setShareable } from "./play-share.js";
 
 const DEBOUNCE_MS = 200;
@@ -214,7 +214,7 @@ function buildControls() {
   inputs.trust = trust;
   inputs.trustv = el("output", { htmlFor: "trust", className: "pl-tval" });
   R.trust.append(el("label", { className: "pl-tlab", htmlFor: "trust" }, el("span", {}, "How much to believe it"), inputs.trustv), trust,
-    el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": as much as its accuracy allows")));
+    el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": the model's error for this poll")));
   groups.trust = R.trust;
 
   // by-elections: three positions, the published one in the middle
@@ -299,7 +299,7 @@ async function update() {
   catch (e) { if (e.message !== "superseded") R.engine.textContent = "The re-weighting code refused: " + e.message; return; }
   if (PS.serialize(st, ctx) !== PS.serialize(asked, ctx)) return;
   const r = m.result;
-  const bad = r.refused ? "too few simulations match that setting to say anything (" + r.refused + ")"
+  const bad = r.refused ? tooFew(r)
     : r.within_precision === false ? "a figure on this page would be known to worse than ±" + r.max_figure_se + " seats" : null;
   if (bad && lastMoved && accepted) {
     // The control stops at the FURTHEST setting every shown figure passes, not
@@ -333,7 +333,8 @@ async function update() {
     writeURL();
     render(stop.result, PS.isTouched(st), stop.state);
     greyOnly([which]);
-    R.engine.textContent = "The greyed control stops here: one step further and " + bad + ".";
+    R.engine.textContent = "The greyed control stops here: one step further and " + bad + "." +
+      (which === "trust" ? " That says where the simulations lie, not how good the poll is." : "");
     R.engine.classList.add("pl-low");
     return;
   }
@@ -343,7 +344,8 @@ async function update() {
     greyOnly([...st.shift.map((x, i) => x !== 0 ? "turnout:" + i : null),
       st.trust && st.polls.length ? "trust" : null,
       st.cell !== PS.PUBLISHED_CELL ? "cell" : null, st.law !== PS.PUBLISHED_LAW ? "law" : null].filter(Boolean));
-    R.engine.textContent = "Too few simulations match these settings: " + r.refused + " Move the greyed control back towards the published setting.";
+    R.engine.textContent = "At these settings " + tooFew(r) +
+      ". Move the greyed control back towards the published setting.";
     R.engine.classList.add("pl-low");
     render(baseline, false, asked);
     return;
@@ -371,12 +373,14 @@ function offerShare(r, state) {
 
 // ---------- figures ----------
 
-// A share of simulations as the page prints it (stats' "chance" format).
-function chance(x) {
-  if (x > 0.99) return "over 99%";
-  if (x < 0.0005) return "under 0.1%";
-  return x >= 0.095 ? Math.round(x * 100) + "%" : (Math.round(x * 1000) / 10) + "%";
-}
+// A count as the site prints counts: "5,000", one format on the page.
+const count = n => Math.round(n).toLocaleString("en-US");
+// Why a setting is refused, in the page's words (page.py returns the counts
+// beside reweight's own reason; a refusal of another kind keeps that reason).
+const tooFew = r => (r.effective_draws != null && r.draws
+  ? "the figures would rest on the equivalent of " + count(r.effective_draws) + " of the " + count(r.draws) +
+    " simulations, fewer than the " + count(r.floor) + " a figure needs"
+  : "the re-weighting refuses it (" + r.refused + ")");
 const arrow = d => (d ? el("span", { className: "pl-delta" }, (d > 0 ? "▲" : "▼") + Math.abs(d)) : null);
 
 function render(r, touched, state = st) {
@@ -397,7 +401,7 @@ function render(r, touched, state = st) {
   renderSeats(r);
   renderBye(r);
   R.ess.textContent = "At your settings the figures rest on the equivalent of " +
-    Math.round(r.effective_draws).toLocaleString("en-ZA") + " equally weighted simulations.";
+    count(r.effective_draws) + " equally weighted simulations.";
 }
 
 function renderBanner(r) {
@@ -413,12 +417,13 @@ function renderBanner(r) {
 
 function renderResult(r) {
   clear(R.oneline);
-  const top = Object.keys(r.largest).sort((a, b) => r.largest[b].p - r.largest[a].p).slice(0, 2)
-    .sort((a, b) => party(a).name.toLowerCase().localeCompare(party(b).name.toLowerCase()));
-  const part = c => [party(c).article + party(c).name + " in " + chance(r.largest[c].p), arrow(r.largest[c].vs_published)];
+  // every share in the text page.py returns (reweight.chance_text, the
+  // format the published twin's tokens use)
+  const top = largestTop(r, party);
+  const part = c => [party(c).article + party(c).name + " in " + r.largest[c].text, arrow(r.largest[c].vs_published)];
   R.oneline.append(...["Largest party: ", ...part(top[0]), " of simulations, ", ...part(top[1]),
-    ". Two or more parties tie for the most seats in " + chance(r.tied.p), arrow(r.tied.vs_published),
-    ". One party wins a majority on its own in " + chance(r.alone.p) + "."].filter(x => x != null));
+    ". Two or more parties tie for the most seats in " + r.tied.text, arrow(r.tied.vs_published),
+    ". One party wins a majority on its own in " + r.alone.text + "."].filter(x => x != null));
   const said = order(r, c => party(c).name).slice(0, 5).map(c => party(c).name + " " + seatText(r.seats[c].median)).join(", ");
   if (R.announce.textContent !== said) R.announce.textContent = said;
 }
