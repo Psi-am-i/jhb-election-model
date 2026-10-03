@@ -328,9 +328,17 @@
     <section class="yf-analysis" aria-labelledby="h-analysis">
       <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
       <div data-live="b-analysis" hidden>
-        <p class="yf-verdict"></p>
-        <p class="yf-outcome"></p>
-        <p class="yf-expected"></p>
+        <p class="yf-verdict yf-slot"></p>
+        <!-- the competition's order: seats, then ward calls, then vote
+             (JUDGEMENT-CALLS §N4) -->
+        <ul class="yf-score">
+          <li class="yf-sseats yf-slot"></li>
+          <li class="yf-swards yf-slot"></li>
+          <li class="yf-svote yf-slot"></li>
+        </ul>
+        <p class="yf-caveat">But historical trends can always be broken.</p>
+        <p class="yf-outcome yf-slot"></p>
+        <p class="yf-expected yf-slot"></p>
         <div class="yf-atable"></div>
         <p class="pl-note yf-anote"></p>
       </div>

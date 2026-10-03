@@ -2,41 +2,58 @@
 election result, and rank them by the owner's three keys.
 
 ``DESIGN-decided.md`` §5 (owner, 2026-09-27): *"we have a result and thousands
-of forecasts. some are objectively superior to others."* The ranking is §13
-(owner, 2026-09-29), which supersedes §5's three measures for ranking.
+of forecasts. some are objectively superior to others."* The ranking is the
+owner's competition order of 2026-10-03, seats, then ward calls, then vote
+(``JUDGEMENT-CALLS.md`` §N4, which supersedes ``DESIGN-decided.md`` §13's
+ward-count key).
 Integration contract: ``audits/2026-09-28-interactive-architecture/INTEGRATION.md``
 §3e. ⛔ This module and the rule in it must be frozen (committed, code hash
 recorded) before polls open on 4 November; a rule written once the result is
 known is not a scoring rule.
 
-The ranking keys, the owner's, in his order (§13)
-=================================================
+The ranking keys, the owner's, in his order (JUDGEMENT-CALLS §N4)
+=================================================================
 
-1. **Seat total error** — for every party holding a seat in the forecast OR the
-   result, ``|forecast seats − actual seats|``, summed. A party the forecast
-   never names is a forecast of zero. Lower is better.
-2. **Ward-count error** — for every party winning a ward in the forecast OR the
-   result, ``|forecast wards won − actual wards won|``, summed. Wards won are
-   counted from the ward winners on both sides (the forecast's ``ward_calls``,
-   the result's ward ballot), so an independent is counted under the code it
-   carries on each side. Lower is better.
-3. **Correct ward calls** — the wards whose forecast winner is the actual
-   winner. *Where* a party wins, not only how many. An actual winner that is
-   not on the reader's roster (an independent, while the reader roster lacks
-   one) is a miss for every reader, the same for all of them. Higher is
-   better.
+1. **Seat total error** (:func:`seat_error`) — for every party holding a seat
+   in the forecast OR the result, ``|forecast seats − actual seats|``, summed.
+   A party the forecast never names is a forecast of zero. Lower is better.
+2. **Correct ward calls** (:func:`wards_called`) — the wards whose forecast
+   winner is the actual winner. *Where* a party wins, not only how many. An
+   actual winner that is not on the reader's roster (an independent, while
+   the reader roster lacks one) is a miss for every reader, the same for all
+   of them. Higher is better.
+3. **List-ballot vote error** (:func:`list_vote_error`) — for every party
+   with a share in the forecast OR on the result's LIST (PR) ballot,
+   ``|forecast share − actual list-ballot share|`` in percentage points,
+   summed. The forecast's share is its ``combined_share``, which a reader
+   sets as the party's share of both ballots and which the seat law reads as
+   its PR share (§M1); it is compared with the list ballot alone, so a
+   forecast exact on the combined vote still scores the gap between the two
+   ballots. The list ballot is used because the published simulations carry
+   no other per-party share, and /your-forecast/ scores a reader against
+   them by these same functions. Lower is better.
 
-:func:`rank_key` is exactly ``(key 1, key 2, −key 3)``, compared
-lexicographically: one seat of total error outranks any ward-count error, and
-one ward of ward-count error outranks any number of correct calls. Forecasts
-equal on all three share a rank (competition ranking: 1, 2, 2, 4). Where one
-winner must be named, the earlier save before the lock (07:00 SAST,
-4 November) wins: :func:`rank` takes the save times for that and uses nothing
-else. No weight appears anywhere, so none can be chosen after the result.
+:func:`rank_key` is exactly ``(key 1, −key 2, key 3)``, compared
+lexicographically: one seat of total error outranks any number of correct
+calls, and one correct call outranks any vote error. Forecasts equal on all
+three share a rank (competition ranking: 1, 2, 2, 4). Where one winner must
+be named, the earlier save before the lock (07:00 SAST, 4 November) wins:
+:func:`rank` takes the save times for that and uses nothing else. No weight
+appears anywhere, so none can be chosen after the result.
 
-**Reported, not ranked:** the ward/list split per party (``split_correct``,
-``split_by_party``). §13 drops it as a key because, party by party, it is
-implied by keys 1 and 2: list seats are seats minus wards.
+The three measures are array functions over a last axis of parties (or
+wards), so one definition scores one result here and every published
+simulation on /your-forecast/ (``interactive/pyboot/page.py``'s
+``analyse``). That is why this module imports ``reader_seats`` only inside
+the functions that seat a council: the page imports this module and must
+not carry the seat code.
+
+**Reported, not ranked:** the ward-count error (``ward_count_error``, for
+every party winning a ward in the forecast OR the result, ``|forecast wards
+won − actual wards won|`` summed; a key under DESIGN-decided §13 until
+2026-10-03) and the ward/list split per party (``split_correct``,
+``split_by_party``), which, party by party, is implied by the seat and ward
+figures: list seats are seats minus wards.
 
 Coalition and mayor are part of a stored forecast and are **not** scored.
 
@@ -126,13 +143,14 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-import parties as P
-import reader_seats as R
+import numpy as np
 
-# The ranking keys, in the owner's order (DESIGN-decided §13).
-MEASURES = ("seat_error", "ward_count_error", "wards_called")
-# Computed and reported for information; not a ranking key.
-REPORTED = ("split_correct",)
+import parties as P
+
+# The ranking keys, in the owner's order (JUDGEMENT-CALLS §N4).
+MEASURES = ("seat_error", "wards_called", "list_vote_error")
+# Computed and reported for information; not ranking keys.
+REPORTED = ("ward_count_error", "split_correct")
 SEAT_SOURCES = ("computed", "official")
 
 
@@ -247,12 +265,14 @@ def ingest_result(path, *, city: str, target: str, roster, aliases=None,
     :func:`official_seats.read`'s dict, or None.
 
     Returns ``{"city", "target", "wards": {ward number: code},
-    "combined": {code: votes}, "no_pr_list", "roster_codes", "names",
+    "combined": {code: votes}, "list_share": {code: percentage points of
+    the PR ballot}, "no_pr_list", "roster_codes", "names",
     "council", "seats": {code: {"ward","pr","total"}}, "computed_seats",
     "official_seats", "disagreements": [...]}``. ``seats`` is the computed
     council; the official one, when given, is ``official_seats``.
     """
     import cityconfig
+    import reader_seats as R
 
     city_cfg = cityconfig.load(city)
     roster_codes = list(dict.fromkeys(P.canonical(r) for r in roster))
@@ -283,6 +303,8 @@ def ingest_result(path, *, city: str, target: str, roster, aliases=None,
     pr_total: dict[str, int] = defaultdict(int)
     for name, n in pr_raw.items():
         pr_total[codes[name]] += n
+    pr_sum = sum(pr_total.values())
+    list_share = {c: 100.0 * n / pr_sum for c, n in pr_total.items()} if pr_sum else {}
     combined = {c: ward_total.get(c, 0) + pr_total.get(c, 0)
                 for c in dict.fromkeys(list(ward_total) + list(pr_total))}
     no_pr_list = sorted(c for c in combined if not pr_total.get(c, 0) > 0)
@@ -306,7 +328,8 @@ def ingest_result(path, *, city: str, target: str, roster, aliases=None,
     computed = {c: dict(v) for c, v in seated["seats"].items()}
 
     result = {"city": city, "target": str(target), "wards": wards,
-              "combined": combined, "no_pr_list": no_pr_list,
+              "combined": combined, "list_share": list_share,
+              "no_pr_list": no_pr_list,
               "roster_codes": roster_codes, "names": codes,
               "council": seated["council"], "seats": computed,
               "computed_seats": computed, "official_seats": None,
@@ -364,6 +387,8 @@ def seat_forecast(forecast: dict, schema: dict) -> dict:
     passed on, so a forecast the Worker stored is not refused for a sum the
     Worker allowed. A ``seats`` key on the record is ignored.
     """
+    import reader_seats as R
+
     context, total, target, tolerance, ward_ids = schema_context(schema)
     calls = forecast["ward_calls"]
     if len(calls) != len(ward_ids):
@@ -419,6 +444,55 @@ def model_forecast(ward_winner_counts, count_parties, count_wards,
 
 
 # --------------------------------------------------------------------------
+# the three measures: one definition, for one result or for every simulation
+
+
+def aligned(forecast: dict, columns, actual) -> tuple[list, np.ndarray, np.ndarray]:
+    """``(parties, f, a)``: a forecast ``{party: value}`` and actual values
+    whose last axis is ``columns``, on the UNION of the two party sets. A party
+    absent from one side is zero there: a party the forecast never names is a
+    forecast of zero, and a party with no column has nothing on the actual
+    side. ``actual`` may carry leading axes (one row per simulation)."""
+    columns = list(columns)
+    extra = sorted(p for p in forecast if p not in columns)
+    a = np.asarray(actual, dtype=float)
+    if a.shape[-1] != len(columns):
+        raise ValueError(f"{a.shape[-1]} actual values for {len(columns)} columns")
+    a = np.concatenate([a, np.zeros(a.shape[:-1] + (len(extra),))], axis=-1)
+    parties = columns + extra
+    return parties, np.array([float(forecast.get(p, 0.0)) for p in parties]), a
+
+
+def _total_gap(forecast: dict, columns, actual) -> np.ndarray:
+    _parties, f, a = aligned(forecast, columns, actual)
+    return np.abs(a - f).sum(axis=-1)
+
+
+def seat_error(forecast_seats: dict, columns, actual_seats) -> np.ndarray:
+    """Key 1: ``Σ_p |forecast seats − actual seats|`` over every party in
+    either (:func:`aligned`), per row of ``actual_seats``."""
+    return _total_gap(forecast_seats, columns, actual_seats)
+
+
+def wards_called(calls, actual_winners) -> np.ndarray:
+    """Key 2: the wards whose call is the actual winner, per row of
+    ``actual_winners`` (last axis the wards, in the order of ``calls``)."""
+    calls = np.asarray(calls)
+    actual = np.asarray(actual_winners)
+    if actual.shape[-1] != calls.shape[-1]:
+        raise ValueError(f"{actual.shape[-1]} actual winners for {calls.shape[-1]} calls")
+    return (actual == calls).sum(axis=-1)
+
+
+def list_vote_error(forecast_points: dict, columns, actual_list_points) -> np.ndarray:
+    """Key 3, THE LIST BALLOT: ``Σ_p |forecast share − actual list-ballot
+    share|`` in percentage points over every party in either
+    (:func:`aligned`), per row of ``actual_list_points``. The forecast's
+    share is its combined share (module docstring)."""
+    return _total_gap(forecast_points, columns, actual_list_points)
+
+
+# --------------------------------------------------------------------------
 # scoring
 
 
@@ -427,9 +501,10 @@ def score(forecast: dict, schema: dict, result: dict, *,
     """Score one stored forecast against one ingested result.
 
     Returns ``{"ok", "errors", "seat_error", "seat_error_by_party",
-    "ward_count_error", "ward_count_error_by_party", "wards_called", "wards",
-    "wards_missed", "split_correct", "split_parties", "split_by_party",
-    "seat_source", "seats"}``. The keys named in
+    "wards_called", "wards", "wards_missed", "list_vote_error",
+    "list_vote_error_by_party", "ward_count_error",
+    "ward_count_error_by_party", "split_correct", "split_parties",
+    "split_by_party", "seat_source", "seats"}``. The keys named in
     :data:`MEASURES` rank; the split is reported only. ``ok`` is
     False, with ``errors``, when the forecast cannot be seated or the result
     is not usable as it stands; nothing is scored then.
@@ -497,27 +572,43 @@ def score(forecast: dict, schema: dict, result: dict, *,
                     "correct": (fw, fp) == (aw, ap)}
     missed = [w for w in ward_ids
               if seated["ward_winners"][w] != result["wards"][w]]
+    _context, _total, target, _tol, _ids = schema_context(schema)
+    f_points = {p: 100.0 * v / target for p, v in forecast["combined_share"].items()}
+    actual_points = result["list_share"]
+    vote_parties = sorted(set(f_points) | set(actual_points))
+    vote_by_party = {p: f_points.get(p, 0.0) - actual_points.get(p, 0.0)
+                     for p in vote_parties}
+    a_cols = sorted(a_total)
 
     out.update(ok=True, seat_source=source, seats=f_seats,
-               seat_error=sum(abs(v) for v in by_party.values()),
+               seat_error=int(round(float(seat_error(
+                   {p: v.get("total", 0) for p, v in f_seats.items()}, a_cols,
+                   [[a_total[c] for c in a_cols]])[0]))),
                seat_error_by_party=by_party,
+               wards_called=int(wards_called(
+                   [seated["ward_winners"][w] for w in ward_ids],
+                   [[result["wards"][w] for w in ward_ids]])[0]),
+               wards=len(ward_ids), wards_missed=missed,
+               list_vote_error=float(list_vote_error(
+                   f_points, list(actual_points),
+                   [[actual_points[c] for c in actual_points]])[0]),
+               list_vote_error_by_party=vote_by_party,
                ward_count_error=sum(abs(v) for v in ward_count.values()),
                ward_count_error_by_party=ward_count,
-               wards_called=len(ward_ids) - len(missed), wards=len(ward_ids),
-               wards_missed=missed,
                split_correct=sum(v["correct"] for v in split.values()),
                split_parties=len(split), split_by_party=split)
     return out
 
 
 def rank_key(scored: dict) -> tuple:
-    """The owner's ordering (DESIGN-decided §13): lower sorts first.
+    """The owner's ordering (JUDGEMENT-CALLS §N4): lower sorts first.
 
-    Seat total error ascending, then ward-count error ascending, then correct
-    ward calls descending. The ward/list split is not in it.
+    Seat total error ascending, then correct ward calls descending, then the
+    list-ballot vote error ascending. The ward-count error and the ward/list
+    split are not in it.
     """
-    return (scored["seat_error"], scored["ward_count_error"],
-            -scored["wards_called"])
+    return (scored["seat_error"], -scored["wards_called"],
+            scored["list_vote_error"])
 
 
 def rank(scores: dict, saved_at: dict | None = None) -> list[tuple]:

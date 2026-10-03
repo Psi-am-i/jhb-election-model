@@ -206,6 +206,7 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
     ["a coalition party", ".coal", p => p.locator(".coal button").first().click(), ".coalstat"],
     ["analyse", ".yf-step4", p => p.locator('[data-live="b-actions"] .yf-analyse').click(), '[data-live="b-analysis"] .yf-verdict', { scrolls: true }],
     ["edit after analysing", VOTE, vote(25), null],
+    ["a second coalition party after analysing", ".coal", p => p.locator(".coal button").nth(1).click(), null],
   ];
   for (const [label, lever, act, shows, opt] of S) await move(p, w, label, lever, () => act(p), shows, opt);
   // every lever at once, the longest every message gets: no slot overflows

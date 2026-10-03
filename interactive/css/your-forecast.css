@@ -147,7 +147,12 @@
 .yf-analysis [data-live="b-analysis"]{scroll-margin-top:110px;}
 .yf-analysis h3{font:600 20px var(--serif);margin:0 0 8px;}
 .yf-verdict{font:19px/1.4 var(--serif);color:var(--ink);margin:0 0 6px;max-width:62ch;}
-.yf-verdict .yf-exp{display:block;font-size:16px;color:var(--ink-2);margin-top:4px;}
+/* the reader's forecast scored as the competition scores it: seats, ward
+   calls, vote (JUDGEMENT-CALLS §N4), one line each */
+.yf-score{list-style:none;margin:0 0 6px;padding:0;font-size:15.5px;line-height:1.45;color:var(--ink);max-width:72ch;}
+.yf-score li{margin:0 0 4px;}
+.yf-score b{font-weight:650;}
+.yf-caveat{font:16px/1.4 var(--serif);color:var(--ink-2);margin:0 0 8px;}
 .yf-outcome{font-size:14px;color:var(--ink-2);margin:0 0 4px;}
 .yf-outcome:empty{display:none;}
 .yf-expected{font-size:14px;margin:0 0 10px;}
@@ -211,6 +216,11 @@
 .yf .floornote.yf-slot{line-height:1.4;height:calc(3lh + 12px);}
 .yf .floornote.yf-slot:empty{background:none;border-left-color:transparent;}
 .yf .coalstat.yf-slot{line-height:1.4;height:2lh;}
+.yf .yf-verdict.yf-slot{height:2lh;}
+.yf .yf-score .yf-slot{height:2lh;}
+.yf .yf-score .yf-sseats.yf-slot{height:4lh;}
+.yf .yf-outcome.yf-slot{line-height:1.4;height:4lh;}
+.yf .yf-expected.yf-slot{line-height:1.4;height:2lh;}
 .yf .painthint.yf-slot{line-height:1.4;height:calc(3lh + 16px);}
 .yf [data-live="ess"].yf-slot{display:block;line-height:1.4;height:3lh;}
 @media (min-width:1100px){
@@ -225,6 +235,11 @@
   .yf .stubnote.yf-slot{height:2lh;}
   .yf .painthint.yf-slot{height:calc(2lh + 16px);}
   .yf [data-live="ess"].yf-slot{height:2lh;}
+  .yf .yf-verdict.yf-slot{height:1lh;}
+  .yf .yf-score .yf-slot{height:1lh;}
+  .yf .yf-score .yf-sseats.yf-slot{height:2lh;}
+  .yf .yf-outcome.yf-slot{height:2lh;}
+  .yf .yf-expected.yf-slot{height:1lh;}
   .yf .floornote.yf-slot{height:calc(2lh + 12px);}
 }
 /* the legend lines that name the reader's changes take their place whether

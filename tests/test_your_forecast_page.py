@@ -634,10 +634,10 @@ def test_the_hand_off_is_the_published_start_untouched_and_section_1s_wards_move
 
 def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     """page.py ``analyse`` on a constructed forecast (the published start with
-    three wards given to another party, and one party's vote moved) equals
-    ``reweight.ward_calls_likelihood`` and ``reweight.within_band`` computed
-    here on the published cell's draws, each draw counted once, and it moves
-    when the forecast does."""
+    three wards given to another party) equals ``reweight.ward_calls_likelihood``
+    and ``reweight.within_band`` computed here on the published cell's draws,
+    each draw counted once; its score equals the competition's three measures
+    worked out here draw by draw; and it moves when the forecast does."""
     import numpy as np
     import reweight as R
     site = _built()
@@ -660,10 +660,34 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     w = R.uniform(int(man["draws"]))
     k = [codes.index(calls[x]) if calls[x] in codes else len(codes) for x in cols("ward_winner")]
     want = R.ward_calls_likelihood(arr["ward_winner"], w, len(codes) + 1, k)
-    assert math.isclose(a["expected"], want["expected"], rel_tol=1e-12)
-    assert math.isclose(a["percentile"]["p"], want["percentile"], rel_tol=1e-12)
     assert all(math.isclose(a["wards"][x]["p"], p, rel_tol=1e-12) for x, p in zip(cols("ward_winner"), want["p"]))
     sc, pc = cols("seats/deduct"), cols("pr_share")
+    # the score, by a loop over the draws: the forecast against each draw as
+    # if it were the result (JUDGEMENT-CALLS §N4), the competition's three
+    # measures written out here, not called
+    seat_errs, right, vote_errs = [], [], []
+    seat_rows, pr_rows, win_rows = arr["seats/deduct"], arr["pr_share"], arr["ward_winner"]
+    named = set(pc) - {"OTHER"}
+    mine_pts = {c: v for c, v in share.items() if c in named}
+    mine_pts["OTHER"] = sum(v for c, v in share.items() if c not in named)
+    for i in range(int(man["draws"])):
+        drawn = {c: int(seat_rows[i, j]) for j, c in enumerate(sc) if c != "OTHER"}
+        seat_errs.append(sum(abs(seats.get(c, 0) - drawn.get(c, 0)) for c in set(seats) | set(drawn)))
+        right.append(sum(codes[win_rows[i, j]] == calls[x] for j, x in enumerate(cols("ward_winner"))))
+        listed = {c: 100.0 * float(pr_rows[i, j]) for j, c in enumerate(pc)}
+        vote_errs.append(sum(abs(mine_pts.get(c, 0.0) - listed.get(c, 0.0)) for c in set(mine_pts) | set(listed)))
+    n = len(seat_errs)
+    got = a["score"]
+    assert math.isclose(got["seat_error"], sum(seat_errs) / n, rel_tol=1e-9)
+    assert math.isclose(got["seat_error_within"]["p"],
+                        sum(e <= R.ANALYSIS_SEAT_ERROR_WITHIN for e in seat_errs) / n, rel_tol=1e-9)
+    assert got["seat_error_within"]["text"] == R.chance_text(got["seat_error_within"]["p"])
+    assert got["within"] == R.ANALYSIS_SEAT_ERROR_WITHIN
+    assert math.isclose(got["wards_called"], sum(right) / n, rel_tol=1e-9)
+    assert math.isclose(got["list_vote_error"], sum(vote_errs) / n, rel_tol=1e-9)
+    assert a["wards_count"] == len(cols("ward_winner"))
+    # it looked: the forecast misses somewhere in every measure
+    assert 0 < got["seat_error"] and 0 < got["wards_called"] < a["wards_count"] and got["list_vote_error"] > 0
     assert a["seats"], "no party analysed"
     for c, got in a["seats"].items():
         v = arr["seats/deduct"][:, sc.index(c)].astype(float)
@@ -699,8 +723,13 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     # it moves with the forecast: the start's own calls score higher
     b = json.loads(ns["analyse"](json.dumps({"ward_calls": dict(zip(wards, d["start"]["ward_calls"])),
                                              "share": share, "seats": seats})))
-    assert b["expected"] > a["expected"] and b["percentile"]["p"] >= a["percentile"]["p"]
-    assert np.isfinite(a["expected"])
+    assert b["score"]["wards_called"] > a["score"]["wards_called"]
+    assert np.isfinite(a["score"]["list_vote_error"])
+    # a row the page shows stays while the reader edits: "keep" holds it
+    gone = sorted(set(sc) - {"OTHER"} - set(a["seats"]))[0]
+    kept = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
+                                                "keep": [gone]})))
+    assert gone in kept["seats"] and set(a["seats"]) < set(kept["seats"])
 
 
 if __name__ == "__main__":

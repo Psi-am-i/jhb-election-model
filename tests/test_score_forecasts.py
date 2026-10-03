@@ -110,6 +110,27 @@ def _self_forecast(result: dict, schema: dict) -> dict:
                                for c in schema["x-seat-context"]["parties"]}}
 
 
+def _list_points(result: dict) -> dict:
+    """Each party's share of the PR ballot in points, read from the file here,
+    not from ``ingest_result``'s ``list_share``."""
+    votes: dict[str, int] = {}
+    with RESULT.open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh):
+            if r["BallotType"].strip().upper() == "PR":
+                code = result["names"][r["sPartyName"]]
+                votes[code] = votes.get(code, 0) + int(r["Party_Votes"])
+    total = sum(votes.values())
+    return {c: 100.0 * v / total for c, v in votes.items()}
+
+
+def _vote_gap_by_hand(result: dict, forecast: dict, schema: dict) -> float:
+    """Key 3 by a loop: every party in the forecast or on the list ballot."""
+    scale = schema["x-share-sum"]["target"]
+    actual = _list_points(result)
+    mine = {c: 100.0 * v / scale for c, v in forecast["combined_share"].items()}
+    return sum(abs(mine.get(c, 0.0) - actual.get(c, 0.0)) for c in set(mine) | set(actual))
+
+
 def _seat_holders(result: dict) -> set[str]:
     return {c for c, v in result["computed_seats"].items() if v["total"] > 0}
 
@@ -135,6 +156,18 @@ def test_the_result_scored_against_itself_is_perfect_on_every_measure():
         # rule 0: the split was judged over exactly the seat holders, both ways
         assert set(got["split_by_party"]) == holders
         assert got["split_correct"] == got["split_parties"] == len(holders)
+        # the vote is scored on the list ballot: exact on the combined vote,
+        # the forecast still carries the gap between the two ballots
+        assert abs(got["list_vote_error"] - _vote_gap_by_hand(result, forecast, schema)) < 1e-9
+        assert got["list_vote_error"] > 0
+    # a forecast of the list ballot itself scores zero on it
+    listed = dict(forecast, combined_share={
+        c: v * schema["x-share-sum"]["target"] / 100.0 for c, v in _list_points(result).items()})
+    for c in schema["x-seat-context"]["parties"]:
+        listed["combined_share"].setdefault(c, 0.0)
+    got = S.score(listed, schema, result, seat_source="computed")
+    assert got["ok"], got["errors"]
+    assert got["list_vote_error"] < 1e-9, got["list_vote_error_by_party"]
 
 
 def test_the_computed_council_is_the_one_the_iec_published():
@@ -480,27 +513,30 @@ def _swap_calls(forecast, schema, result, pairs):
 
 
 def test_the_owners_ranking_on_constructed_forecasts_by_hand():
-    """DESIGN-decided §13: seat total error, then ward-count error, then
-    correct ward calls. Five forecasts on the 2021 result, W the ward count:
+    """JUDGEMENT-CALLS §N4: seat total error, then correct ward calls, then
+    the list-ballot vote error. Six forecasts on the 2021 result, W the ward
+    count, v the self forecast's vote error (the gap between the ballots):
 
-    ======  ===============================================  ============
+    ======  ===============================================  =================
     id      edit to the result-as-forecast                   key (by hand)
-    ======  ===============================================  ============
-    self    none                                             (0, 0, W)
-    swap1   one ANC ward and one DA ward swap their calls    (0, 0, W-2)
-    swap2   a different ANC/DA pair swaps                    (0, 0, W-2)
-    ifp     one ANC ward called for the IFP                  (0, 2, W-1)
-    quota   2 quotas of votes moved EFF -> DA, calls as won  (4, 0, W)
-    ======  ===============================================  ============
+    ======  ===============================================  =================
+    self    none                                             (0, -W, v)
+    vote    a sliver of share moved, no seat or call moved   (0, -W, v + gap)
+    ifp     one ANC ward called for the IFP                  (0, -(W-1), v)
+    swap1   one ANC ward and one DA ward swap their calls    (0, -(W-2), v)
+    swap2   a different ANC/DA pair swaps                    (0, -(W-2), v)
+    quota   2 quotas of votes moved EFF -> DA, calls as won  (4, -W, v')
+    ======  ===============================================  =================
 
-    Swaps and the IFP call move no share, so no seat total moves (the IFP
-    ward is §2's edit A). The quota move is §2's edit B: DA +2, EFF −2.
+    Swaps and the IFP call move no share, so no seat total and no vote error
+    moves (the IFP ward is §2's edit A). The quota move is §2's edit B: DA +2,
+    EFF −2.
 
-    By hand: self 1; swap1 and swap2 share 2; ifp 4; quota 5. ``ifp`` beats
-    the swaps on key 3 (W-1 > W-2) and loses on key 2, so it ranks lower;
-    ``quota`` beats ``ifp`` on keys 2 and 3 and loses on key 1, so it ranks
-    lower. Reversing the key order would put ifp above the swaps and quota
-    first after self; the test fails in either case.
+    By hand: self 1; vote 2; ifp 3; swap1 and swap2 share 4; quota 6.
+    ``vote`` loses to ``ifp`` on key 3 and beats it on key 2, so it ranks
+    higher; ``quota`` beats the swaps on key 2 and loses on key 1, so it ranks
+    lower. The old order (ward-count error second) put the swaps above ifp;
+    the test fails under it.
     """
     result, official = _result(), _official()
     schema = _schema(result)
@@ -519,67 +555,112 @@ def test_the_owners_ranking_on_constructed_forecasts_by_hand():
     shift = 2 * official["quota"] / total * scale
     quota["combined_share"]["DA"] += shift
     quota["combined_share"]["EFF"] -= shift
-    forecasts = {"self": base,
+    # a sliver, far under a quota, moved in the direction that widens both
+    # parties' gap to the list ballot
+    listed = _list_points(result)
+    sliver = 0.01 * official["quota"] / total * scale
+    vote = copy.deepcopy(base)
+    for c in ("DA", "EFF"):
+        up = vote["combined_share"][c] * 100.0 / scale >= listed[c]
+        vote["combined_share"][c] += sliver if up else -sliver
+    forecasts = {"self": base, "vote": vote, "ifp": ifp,
                  "swap1": _swap_calls(base, schema, result, [(anc[0], da[0])]),
                  "swap2": _swap_calls(base, schema, result, [(anc[1], da[1])]),
-                 "ifp": ifp, "quota": quota}
+                 "quota": quota}
     scores = {i: S.score(f, schema, result, seat_source="computed")
               for i, f in forecasts.items()}
     assert all(s["ok"] for s in scores.values()), \
         {i: s["errors"] for i, s in scores.items() if not s["ok"]}
 
-    by_hand = {"self": (0, 0, -W), "swap1": (0, 0, -(W - 2)),
-               "swap2": (0, 0, -(W - 2)), "ifp": (0, 2, -(W - 1)),
-               "quota": (4, 0, -W)}
-    assert {i: S.rank_key(s) for i, s in scores.items()} == by_hand
-    # the split is reported, and it is not in the key: the swaps get every
-    # party's split right, ifp and quota do not, and the ranks ignore that
+    v = _vote_gap_by_hand(result, base, schema)
+    by_hand = {"self": (0, -W, v), "ifp": (0, -(W - 1), v),
+               "swap1": (0, -(W - 2), v), "swap2": (0, -(W - 2), v),
+               "vote": (0, -W, _vote_gap_by_hand(result, vote, schema)),
+               "quota": (4, -W, _vote_gap_by_hand(result, quota, schema))}
+    got = {i: S.rank_key(s) for i, s in scores.items()}
+    for i, key in by_hand.items():
+        assert got[i][:2] == key[:2] and abs(got[i][2] - key[2]) < 1e-9, (i, got[i], key)
+    assert abs(by_hand["vote"][2] - v - 2 * sliver * 100.0 / scale) < 1e-9
+    # the ward count and the split are reported, and in no key: the swaps
+    # get every party's split right and ifp does not, and ifp still ranks first
     assert scores["swap1"]["split_correct"] == scores["swap1"]["split_parties"]
     assert scores["ifp"]["split_correct"] < scores["ifp"]["split_parties"]
+    assert scores["ifp"]["ward_count_error"] > scores["swap1"]["ward_count_error"] == 0
 
     ranked = S.rank(scores)
     assert [(r, i) for r, i, _ in ranked] == [
-        (1, "self"), (2, "swap1"), (2, "swap2"), (4, "ifp"), (5, "quota")]
+        (1, "self"), (2, "vote"), (3, "ifp"), (4, "swap1"), (4, "swap2"), (6, "quota")]
 
-    # the order of the keys matters: ranked by key 3 alone, ifp would beat
-    # both swaps and quota would tie self; by key 2 first, quota would beat
-    # ifp. Neither is what rank returns.
-    assert sorted(scores, key=lambda i: -scores[i]["wards_called"])[:2] == \
-        ["self", "quota"]
-    assert (scores["quota"]["ward_count_error"]
-            < scores["ifp"]["ward_count_error"])
+    # the order of the keys matters: by the vote alone, ifp and the swaps
+    # would tie self and beat vote; with the ward count second (the rule
+    # before 2026-10-03), the swaps would beat ifp. Neither is what rank returns.
+    assert sorted(scores, key=lambda i: scores[i]["list_vote_error"])[-2:] in (
+        ["vote", "quota"], ["quota", "vote"])
+    old = sorted(("ifp", "swap1"), key=lambda i: (scores[i]["seat_error"],
+                 scores[i]["ward_count_error"], -scores[i]["wards_called"]))
+    assert old == ["swap1", "ifp"]
 
     # the earlier save names the single winner among a tie, and the rank is
     # still shared; a tied forecast with no save time goes after
     tie = S.rank(scores, saved_at={"swap1": "2026-11-03T10:00",
                                    "swap2": "2026-11-01T10:00"})
-    assert [(r, i) for r, i, _ in tie][1:3] == [(2, "swap2"), (2, "swap1")]
+    assert [(r, i) for r, i, _ in tie][3:5] == [(4, "swap2"), (4, "swap1")]
     tie = S.rank(scores, saved_at={"swap1": "2026-11-03T10:00"})
-    assert [(r, i) for r, i, _ in tie][1:3] == [(2, "swap1"), (2, "swap2")]
+    assert [(r, i) for r, i, _ in tie][3:5] == [(4, "swap1"), (4, "swap2")]
 
 
 def test_the_ranking_keys_in_order_on_bare_scores():
     """The key and the ranks on constructed scores, one key at a time:
-    b is better than a on key 2 but worse on key 1, so it ranks lower;
-    c is better than d on key 3 but worse on key 2, so it ranks lower;
-    d and e tie on all three and share a rank; split_correct, not a key,
-    differs between d and e and changes nothing."""
-    s = lambda e, wc, w, sp=0: {"ok": True, "seat_error": e,
-                                "ward_count_error": wc, "wards_called": w,
-                                "split_correct": sp}
-    scores = {"a": s(2, 10, 100), "b": s(3, 0, 135),
-              "c": s(2, 4, 130), "d": s(2, 2, 90, sp=1),
-              "e": s(2, 2, 90, sp=9), "f": s(0, 6, 80)}
+    b is better than every other on keys 2 and 3 but worst on key 1, so it
+    ranks last; c is better than a on key 2 but worse on key 3, so it ranks
+    higher; d and e tie on all three and share a rank; the ward-count error
+    and split_correct, not keys, differ between d and e and change nothing."""
+    s = lambda e, w, v, wc=0, sp=0: {"ok": True, "seat_error": e,
+                                     "wards_called": w, "list_vote_error": v,
+                                     "ward_count_error": wc, "split_correct": sp}
+    scores = {"a": s(2, 100, 1.0), "b": s(3, 135, 0.0),
+              "c": s(2, 130, 9.0), "d": s(2, 90, 5.0, wc=1, sp=1),
+              "e": s(2, 90, 5.0, wc=9, sp=9), "f": s(0, 80, 20.0)}
     ranked = S.rank(scores)
     assert [(r, i) for r, i, _ in ranked] == [
-        (1, "f"), (2, "d"), (2, "e"), (4, "c"), (5, "a"), (6, "b")]
-    assert S.MEASURES == ("seat_error", "ward_count_error", "wards_called")
+        (1, "f"), (2, "c"), (3, "a"), (4, "d"), (4, "e"), (6, "b")]
+    assert S.MEASURES == ("seat_error", "wards_called", "list_vote_error")
+    assert "ward_count_error" in S.REPORTED
     assert S.rank({}) == []
 
 
+def test_the_measures_score_every_row_of_an_actual_array_by_hand():
+    """The three measures over a leading axis of rows (the page passes one
+    row per published simulation), on constructed values worked by hand."""
+    cols = ["A", "B", "OTHER"]
+    actual = [[10, 5, 0], [7, 8, 0], [12, 3, 0]]
+    # C has no column: the actual side has none of it, so its seats are error
+    mine = {"A": 9, "B": 6, "C": 2}
+    by_hand = [1 + 1 + 0 + 2, 2 + 2 + 0 + 2, 3 + 3 + 0 + 2]
+    assert S.seat_error(mine, cols, actual).tolist() == by_hand
+    # a party the forecast never names is a forecast of zero
+    assert S.seat_error({"A": 10}, cols, actual).tolist() == [5, 3 + 8, 2 + 3]
+    pts = [[40.0, 35.5, 24.5], [42.0, 30.0, 28.0]]
+    assert abs(S.list_vote_error({"A": 41.0, "B": 33.0, "OTHER": 26.0}, cols, pts)[1]
+               - (1.0 + 3.0 + 2.0)) < 1e-12
+    calls = ["A", "B", "A", "C"]
+    winners = [["A", "B", "A", "C"], ["B", "B", "B", "A"], ["A", "A", "B", "C"]]
+    assert S.wards_called(calls, winners).tolist() == [4, 1, 2]
+    # integer codes, as the page holds them: a call off the code list never matches
+    assert S.wards_called([0, 1, -1], [[0, 1, 2], [1, 1, 2]]).tolist() == [2, 1]
+    for bad in (lambda: S.seat_error(mine, cols, [[1, 2]]),
+                lambda: S.wards_called(calls, [["A", "B"]])):
+        try:
+            bad()
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("a misaligned actual array was scored")
+
+
 def test_an_unscorable_forecast_stops_the_ranking_and_is_named():
-    good = {"ok": True, "seat_error": 0, "ward_count_error": 0,
-            "wards_called": 1}
+    good = {"ok": True, "seat_error": 0, "wards_called": 1,
+            "list_vote_error": 0.0}
     scores = {"good": good,
               "bad": {"ok": False, "errors": ["cannot be seated: x"]},
               "worse": {"ok": False, "errors": ["ward calls: y"]}}
@@ -593,7 +674,7 @@ def test_an_unscorable_forecast_stops_the_ranking_and_is_named():
     assert "'bad'" in message and "'worse'" in message
     assert "cannot be seated: x" in message and "'good'" not in message
     # control: remove them and the same call ranks
-    assert S.rank({"good": good}) == [(1, "good", (0, 0, -1))]
+    assert S.rank({"good": good}) == [(1, "good", (0, -1, 0.0))]
 
 
 def test_the_certified_roster_covers_every_party_a_reader_can_pick():

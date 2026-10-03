@@ -22035,7 +22035,7 @@
   "w_bye-1": "432f2781d74c2156dfb2b6956e1a464eac613b495c38d6086604210ee0c724d6"
  },
  "numpy": "2.5.1",
- "page_ref": "aec61c3752a2345ea7711323ffd20fa9ac31180b54d904057a306c8e71d31921",
+ "page_ref": "8c52fcc23cc4306bf487cfdf3a8f957e67b50ff279a5cf803c1479d2cd1ff2a8",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22097,7 +22097,6 @@
   {
    "analyse": {
     "draws": 5000,
-    "expected": 107.9393121375725,
     "outcome": {
      "coalition": [
       "ANC",
@@ -22108,9 +22107,15 @@
      "p": 0.2554,
      "text": "26%"
     },
-    "percentile": {
-     "p": 1.0,
-     "text": "over 99%"
+    "score": {
+     "list_vote_error": 43.5130425,
+     "seat_error": 108.53640000000001,
+     "seat_error_within": {
+      "p": 0.0,
+      "text": "under 0.1%"
+     },
+     "wards_called": 107.94739999999993,
+     "within": 10
     },
     "seat_band": 2,
     "seats": {
@@ -23058,7 +23063,6 @@
   {
    "analyse": {
     "draws": 5000,
-    "expected": 107.71255748850231,
     "outcome": {
      "coalition": [
       "ANC",
@@ -23069,9 +23073,15 @@
      "p": 0.2554,
      "text": "26%"
     },
-    "percentile": {
-     "p": 0.9994,
-     "text": "over 99%"
+    "score": {
+     "list_vote_error": 44.480587316666664,
+     "seat_error": 110.34800000000001,
+     "seat_error_within": {
+      "p": 0.0,
+      "text": "under 0.1%"
+     },
+     "wards_called": 107.72059999999996,
+     "within": 10
     },
     "seat_band": 2,
     "seats": {
@@ -24011,7 +24021,6 @@
   {
    "analyse": {
     "draws": 5000,
-    "expected": 107.7249550089982,
     "outcome": {
      "coalition": [
       "ANC",
@@ -24022,9 +24031,15 @@
      "p": 0.2554,
      "text": "26%"
     },
-    "percentile": {
-     "p": 0.9994,
-     "text": "over 99%"
+    "score": {
+     "list_vote_error": 43.69236981666667,
+     "seat_error": 108.62999999999998,
+     "seat_error_within": {
+      "p": 0.0,
+      "text": "under 0.1%"
+     },
+     "wards_called": 107.73299999999996,
+     "within": 10
     },
     "seat_band": 2,
     "seats": {
@@ -24970,7 +24985,6 @@
   {
    "analyse": {
     "draws": 5000,
-    "expected": 107.38482303539293,
     "outcome": {
      "coalition": [
       "ANC",
@@ -24981,9 +24995,15 @@
      "p": 0.1652,
      "text": "17%"
     },
-    "percentile": {
-     "p": 0.9976,
-     "text": "over 99%"
+    "score": {
+     "list_vote_error": 43.679267966666686,
+     "seat_error": 110.10680000000002,
+     "seat_error_within": {
+      "p": 0.0,
+      "text": "under 0.1%"
+     },
+     "wards_called": 107.3928,
+     "within": 10
     },
     "seat_band": 2,
     "seats": {

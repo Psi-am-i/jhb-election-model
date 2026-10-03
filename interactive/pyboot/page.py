@@ -51,6 +51,7 @@ import cityconfig
 import polling
 import render_map as RM
 import reweight as R
+import score_forecasts as SF
 import start_rule
 
 #: The cell the published forecast was drawn in (``site/draws/index.json``'s
@@ -461,23 +462,35 @@ def handoff(request_json: str) -> str:
 
 def analyse(request_json: str) -> str:
     """What the model gives a reader's own forecast, as JSON (owner,
-    2026-10-03; the bands and the method are JUDGEMENT-CALLS.md §N3).
+    2026-10-03; the bands and the outcome are JUDGEMENT-CALLS.md §N3, the
+    scoring §N4).
 
     Request: ``{"ward_calls": {ward: party}, "share": {party: percent of the
     combined vote}, "seats": {party: seats}, "majority": seats needed,
-    "coalition": [party]}``, section 2's forecast. Every
-    chance is the PUBLISHED forecast's: the published cell, each draw counted
-    once, statutory seats. Returns
+    "coalition": [party], "keep": [party]}``, section 2's forecast (``keep``:
+    parties whose row the page already shows, so a row never goes while the
+    reader edits). Every chance is the PUBLISHED forecast's: the published
+    cell, each draw counted once, statutory seats. Returns
 
     * ``outcome``: the chance of the reader's council-level outcome,
       ``reweight.council_outcome``: the largest party alone (or a tie for
       the most seats), whether one party has a majority on its own, and the
       chosen coalition reaching a majority; with what it was read as. The
       page's headline;
-    * ``wards``: ``{ward: chance}`` the model gives the reader's winner there;
-    * ``expected`` and ``percentile``: ``reweight.ward_calls_likelihood``.
-      The page prints ``expected`` second; ``percentile`` is a rank among the
-      simulations' ward results, and the page never words it as a chance;
+    * ``score``: the reader's forecast scored against EVERY published
+      simulation as if it were the result, by the competition's own
+      measures in its order (``score_forecasts.seat_error``,
+      ``wards_called``, ``list_vote_error``), summarised by
+      ``reweight.scored_as_results``: the expected seat error and the chance
+      it is ``within`` seats or fewer, the expected correct ward calls of
+      ``wards_count``, and the expected list-ballot vote error in points. The
+      draws' ``OTHER`` share sums every party with no column of its own, so
+      the reader's shares for those parties are summed against it; their
+      seats are compared with zero, which is what every draw gives them;
+    * ``wards``: ``{ward: chance}`` the model gives the reader's winner there
+      (``reweight.ward_calls_likelihood``'s Jeffreys-corrected ``p``, the
+      published map's estimate; the expected ward count above is the plain
+      mean over the draws);
     * ``seats``: ``{party: chance}`` that the party's seats land within
       ``reweight.ANALYSIS_SEAT_BAND`` of the reader's figure;
     * ``share``: ``{party: chance}`` that its LIST-BALLOT share lands within
@@ -509,7 +522,16 @@ def analyse(request_json: str) -> str:
     pr, prcols = _block(cell, "pr_share")
     pub = _published()["median"]
     mine = {c: int(v) for c, v in (req.get("seats") or {}).items()}
-    shown = sorted(c for c in cols if mine.get(c, 0) >= MIN_SHOWN_SEATS or pub.get(c, 0.0) >= MIN_SHOWN_SEATS)
+    keep = set(req.get("keep") or [])
+    shown = sorted(c for c in cols if mine.get(c, 0) >= MIN_SHOWN_SEATS or pub.get(c, 0.0) >= MIN_SHOWN_SEATS
+                   or c in keep)
+    # the reader's forecast against every simulation as if it were the result
+    share = {c: float(v) for c, v in (req.get("share") or {}).items()}
+    points = {c: v for c, v in share.items() if c in prcols and c != "OTHER"}
+    points["OTHER"] = sum(v for c, v in share.items() if c not in points)
+    score = R.scored_as_results(SF.seat_error(mine, cols, seats),
+                                SF.wards_called(k, winners),
+                                SF.list_vote_error(points, prcols, pr * 100.0), w)
 
     def chance(p):
         return {"p": float(p), "text": R.chance_text(p)}
@@ -532,8 +554,8 @@ def analyse(request_json: str) -> str:
                                                R.ANALYSIS_SHARE_BAND_POINTS))
     return json.dumps(_plain({
         "wards": {x: chance(p) for x, p in zip(wards, lik["p"])},
-        "expected": lik["expected"], "wards_count": len(wards),
-        "percentile": chance(lik["percentile"]),
+        "wards_count": len(wards),
+        "score": {**score, "seat_error_within": chance(score["seat_error_within"])},
         "outcome": outcome,
         "seats": seat_out, "share": share_out,
         "seat_band": R.ANALYSIS_SEAT_BAND, "share_band": R.ANALYSIS_SHARE_BAND_POINTS,

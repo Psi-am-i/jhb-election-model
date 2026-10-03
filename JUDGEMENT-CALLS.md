@@ -3097,7 +3097,9 @@ each counted once, seated by the statute. Five figures:
   in words under the headline. Typed choices with no record behind them:
   which three parts make "the outcome", and that the coalition part applies
   only when one is picked.
-* **The ward calls, second.** "We expect N of your M ward calls to come
+* **The ward calls, second (superseded 2026-10-03 by §N4's Wards line,
+  the plain mean of correct calls over the draws; the rank below is no
+  longer printed).** "We expect N of your M ward calls to come
   true": the sum of the ward chances. Beneath it, a rank: "Ranked by the
   chance we give each ward's winner, your ward calls as a set come level with
   or above the ward results of R of our simulations." Method of the rank:
@@ -3150,6 +3152,71 @@ weights; `tests/test_your_forecast_page.py` holds `page.py`'s `analyse` to
 those functions on the published draws for a constructed forecast. A
 different band changes only which chance is printed; nothing in the model
 reads it.
+
+### §N4 · The competition rule: seats, then ward calls, then vote (list ballot); and the 10-seat line — ⚖️ owner's order, 🔴 the line typed (2026-10-03)
+
+**Where.** `src/score_forecasts.py` (`seat_error`, `wards_called`,
+`list_vote_error`, `rank_key`, `MEASURES`); on /your-forecast/,
+`interactive/pyboot/page.py`'s `analyse` and `reweight.scored_as_results`,
+with the line `reweight.ANALYSIS_SEAT_ERROR_WITHIN`.
+
+**The rule (owner, 2026-10-03).** Every forecast of the council is ranked on
+three measures, compared in this order, each only breaking ties in the one
+before. No weight combines them.
+
+1. **Seats.** For every party holding a seat in the forecast or the result,
+   `|forecast seats − actual seats|`, summed. A party the forecast never
+   names is a forecast of zero. Lower is better.
+2. **Ward calls.** The wards whose forecast winner is the actual winner.
+   Higher is better.
+3. **Vote, list ballot.** For every party with a share in the forecast or on
+   the result's list (PR) ballot, `|forecast share − actual list-ballot
+   share|` in percentage points, summed. Lower is better. The forecast's
+   share is the one a reader sets, its share of both ballots together, which
+   the seat law reads as its PR share (§M1). It is compared with the list
+   ballot alone because the published simulations carry no other per-party
+   share, and the page scores readers against them with these same
+   functions. A forecast exact on the combined vote therefore still scores
+   the gap between the two ballots.
+
+Equal on all three, forecasts share a rank; the earlier save before the lock
+names a single winner. This supersedes `DESIGN-decided.md` §13, which ranked
+the ward-count error second and correct calls third. The ward-count error
+and the ward/list split are still computed and reported, not ranked.
+
+**On /your-forecast/ ("How likely is your forecast?").** The reader's
+forecast is scored by these functions against EACH published simulation (the
+published cell, each draw counted once, statutory seats) as if that
+simulation were the result. The page prints, in the rule's order: the
+expected seat error and the chance it is `ANALYSIS_SEAT_ERROR_WITHIN` seats
+or fewer; the expected number of correct ward calls out of the wards; the
+expected list-ballot vote error in points. Two adaptations to the draws:
+
+* The draws' `OTHER` columns sum every party that never wins a seat in any
+  draw. Its seats are zero by construction, so a reader's seats for such a
+  party are compared with zero, as the rule does. Its list share is a sum,
+  so the reader's shares for those parties are summed and compared with it
+  as one group: a lower bound on the party-by-party error, for parties with
+  no seat in any draw.
+* The expected correct calls is the plain mean over the draws. The chance
+  printed for a single ward (on hover) is `reweight.ward_win_probability`,
+  Jeffreys-corrected as the published map's is. The two differ by that
+  correction, which is under one ward in total; neither is wrong.
+
+**The 10-seat line.** `ANALYSIS_SEAT_ERROR_WITHIN = 10`: typed, the owner's
+suggestion, no record behind it. With the model's present spread, a
+forecast at the model's own middle has an expected seat error far above it,
+so the chance printed is near zero for most forecasts (the stored native
+fixture, `interactive/tests/native-play.json`, holds the figures for its
+cases). A line scaled to the spread, or a different total, is the owner's to
+choose. The page states the line is a judgement where it explains the
+method.
+
+**How to check it.** `tests/test_score_forecasts.py` holds the three
+measures to hand-worked arrays and the ranking to constructed forecasts on
+the 2021 result, including one that only the new order ranks correctly;
+`tests/test_your_forecast_page.py` holds `analyse`'s score to the three
+measures written out as a loop over the published draws.
 
 ### §N5 · /your-forecast/ reserves room for two extra seat rows (`--yf-spare-rows` = 2) — 🔴 typed, presentation only (2026-10-03)
 

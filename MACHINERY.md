@@ -2118,17 +2118,28 @@ INTEGRATION.md §3e); it must be frozen before polls open on 4 November.
   refused. The council is seated by `reader_seats` — the path readers take —
   with ward-only parties as `no_pr_list`, and an official table is compared
   party by party, chamber, C and D, every disagreement recorded.
+* `seat_error`, `wards_called`, `list_vote_error`: the three ranking
+  measures (JUDGEMENT-CALLS §N4), as array functions over a last axis of
+  parties or wards, so the same definitions score one result here and every
+  published simulation on /your-forecast/ (`page.py`'s `analyse`, summarised
+  by `reweight.scored_as_results`). `aligned` puts a forecast and an actual
+  array on the union of their parties, zero where one side lacks a party.
+  `reader_seats` is imported inside the functions that seat a council, so the
+  page can import the measures without the seat code.
 * `score(forecast, schema, result, seat_source)` takes the stored forecast and
   the generated schema, re-seats it with `reader_seats` at `x-total-votes`, and
-  returns seat total error, ward-count error (wards won per party, from the
-  ward winners on both sides) and correct ward calls, each with per-party or
-  per-ward detail, plus the ward/list split per party for information.
-  It refuses a result whose councils disagree until `seat_source` is named.
+  returns the seat total error, the correct ward calls and the list-ballot
+  vote error (against `ingest_result`'s `list_share`), each with per-party or
+  per-ward detail, plus, for information, the ward-count error (wards won per
+  party, from the ward winners on both sides) and the ward/list split per
+  party. It refuses a result whose councils disagree until `seat_source` is
+  named.
 * `model_forecast(...)` writes the model's central state as a stored forecast:
   modal ward winner, median combined share.
-* `rank_key` / `rank`: the owner's lexicographic ranking (§13) — seat total
-  error ascending, then ward-count error ascending, then correct ward calls
-  descending; the split is not a key. Full ties share a competition rank;
+* `rank_key` / `rank`: the owner's lexicographic ranking (2026-10-03,
+  JUDGEMENT-CALLS §N4, superseding DESIGN-decided §13) — seat total error
+  ascending, then correct ward calls descending, then the list-ballot vote
+  error ascending; the ward-count error and the split are not keys. Full ties share a competition rank;
   `saved_at` orders a tie so the earlier save names a single winner. `rank`
   raises, naming each one, if any forecast is unscorable (the seat service
   refuses those at save with 422), rather than exclude it.

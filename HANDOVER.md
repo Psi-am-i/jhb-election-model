@@ -160,7 +160,8 @@ here first, so anything stale in this file is read as an instruction.
 > * The backend is `worker-api/`: the R5 fixes are done, but it is not deployed
 >   and not provisioned.
 > * The scorer is `src/score_forecasts.py`, ranking by seat error, then
->   ward-count error, then correct ward calls.
+>   correct ward calls, then the list-ballot vote error (JUDGEMENT-CALLS §N4,
+>   owner's order of 2026-10-03).
 >
 > **Owner to do:**
 > * the privacy notice blanks and the two dates (R5 blocker 4);
