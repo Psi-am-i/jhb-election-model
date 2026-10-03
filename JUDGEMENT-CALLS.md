@@ -3151,6 +3151,29 @@ those functions on the published draws for a constructed forecast. A
 different band changes only which chance is printed; nothing in the model
 reads it.
 
+### §N5 · /your-forecast/ reserves room for two extra seat rows (`--yf-spare-rows` = 2) — 🔴 typed, presentation only (2026-10-03)
+
+**Where.** `interactive/css/your-forecast.css`, "Reserved message regions";
+`interactive/js/model.js`'s `renderSeats` marks the live seat table with
+the rows it adds (`data-extra`).
+
+**Now.** Section 1's seat table shows a row for every party with a middle of
+at least `MIN_SHOWN_SEATS` in the published forecast or under the reader's
+settings (`page.py`, owner decision D1). A lever that lifts a party to the
+threshold adds a row. So that the row moves nothing below the table (owner,
+2026-10-03: the page must not jump when a lever moves), the table keeps room
+for two rows more than the published forecast's, empty until a lever fills
+them. A third added row grows the table, and
+`interactive/tools/yf_jump_check.mjs` fails on it.
+
+**Why two.** Typed. In the check's moves, every lever moved at once
+included, the added rows fit. No record says how many parties a reader's
+settings can lift.
+
+**How to check it.** `yf_jump_check.mjs` measures the document height and
+the landmarks below the table around every lever move, at 375 and 1440
+wide. Nothing in the model reads this value.
+
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 
 ### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured

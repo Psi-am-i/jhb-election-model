@@ -475,6 +475,7 @@ function render(r, touched, state = st) {
   R.status.hidden = !touched;
   if (!touched) {
     for (const n of [R.banner, R.oneline, R.map, R.flips, R.seats, R.bye, R.ess]) clear(n);
+    R.seats.removeAttribute("data-extra");
     R.settings.textContent = "";
     showToast(moves);
     return;
@@ -595,6 +596,10 @@ function renderSeats(r, moves) {
   const table = seatTable(document, rows, TABLE);
   // the ▲/▼ goes in the seats cell, over its corner: it moves no figure
   for (const row of table.children) if (row.dataset.code) cue(row, moves.get(row.dataset.code), row.children[2]);
+  // the rows the reader's settings add to the published forecast's: their
+  // room is reserved under the table (css/your-forecast.css), so a row that
+  // comes or goes moves nothing below it
+  R.seats.setAttribute("data-extra", String(r.shown.filter(c => !baseline.shown.includes(c)).length));
   R.seats.append(table);
 }
 

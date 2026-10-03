@@ -58,7 +58,10 @@ re-export of `site/draws/` or a change to the page code, regenerate the native
 fixture: `.venv/bin/python interactive/tools/native_play.py --write` (the test
 says when). Screenshots at 375 px and 1440 px are in `screenshots/yf-*.png`
 (`tools/yf_screenshots.mjs`, which can serve a scratch build to the browser
-itself with `YF_ROOT`, no port).
+itself with `YF_ROOT`, no port). Whether the page jumps when a lever moves:
+`PLAYWRIGHT=<playwright index.mjs> YF_ROOT=site node
+interactive/tools/yf_jump_check.mjs` (exit 1 on a jump or an overflowing
+reserved region; `YF_JUMP_DEBUG=1` names the blocks that changed height).
 
 To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 
@@ -211,6 +214,7 @@ refusals, the card, CPython seats, Pyodide = CPython); `page.test.mjs`
 | `tools/sync_py.mjs`, `py/` | the served copy of the Python (gitignored; written by the tool) |
 | `tools/native_play.py`, `tests/native-play.json`, `tests/play-settings.json` | the native side of the native-vs-Pyodide harness (F19), its stored output, and the settings both sides compute (section 1's cases and section 2's `section2` block); `--measure` reports what `page.py` imports and opens |
 | `tools/yf_screenshots.mjs` | the screenshots |
+| `tools/yf_jump_check.mjs` | the no-jump check: document height, scroll and the landmarks around every lever move, at 375 and 1440 |
 | `css/interactive.css`, `css/play.css`, `css/your-forecast.css` | styles |
 | `js/api.js` | the one backend door: the stub on loopback hosts, the Worker API elsewhere (`?api=stub` / `?api=live` override) |
 | `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; the address; `/api/me` mapping |

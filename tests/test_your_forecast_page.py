@@ -156,7 +156,7 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     assert 'class="proto"' not in html and "placeholder" not in html.lower()
     # section 1's twins: each twin's figures are rendered token spans
     sheet = build_play.seat_rows((ROOT / "forecast-sheet.html").read_text(encoding="utf-8"))
-    for part in ("pl-banner pl-pub", "pl-oneline pl-pub", "pl-seats pl-pub", "pl-pub pl-turntwin"):
+    for part in ("pl-banner pl-pub", "pl-oneline pl-pub yf-slot", "pl-seats pl-pub", "pl-pub pl-turntwin"):
         lo = html.index(f'class="{part}"')
         assert html[lo:lo + 6000].count('class="mstat') >= 2, part
     seats = html[html.index('class="pl-seats pl-pub"'):html.index('data-live="seats"')]
@@ -289,8 +289,8 @@ def test_the_build_itself_blocks_an_unlisted_writer_and_a_typed_live_digit():
         # 2. a digit typed into a LIVE region of each section: the stamp blocks
         def typed(**kw):
             html = real_assemble(**kw)
-            for marker, words in (('<div data-live="flips" class="pl-flips">', "The DA wins 71 seats. "),
-                                  ('<p class="ess restate">', "The DA wins 77 seats. ")):
+            for marker, words in (('<div data-live="flips" class="pl-flips yf-slot">', "The DA wins 71 seats. "),
+                                  ('<p class="ess restate yf-slot">', "The DA wins 77 seats. ")):
                 assert html.count(marker) == 1, marker
                 html = html.replace(marker, marker + words)
             return html

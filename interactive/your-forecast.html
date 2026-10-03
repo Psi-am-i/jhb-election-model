@@ -117,19 +117,19 @@
           <p>Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">6</a></sup></p>
           <div data-live="cells" class="pl-seg3" role="radiogroup" aria-labelledby="h-bye"></div>
           <p class="pl-note"><!-- __PLAY:bye__ --></p>
-          <div data-live="byelection" class="pl-byenote"></div>
+          <div data-live="byelection" class="pl-byenote yf-slot"></div>
         </section>
 
         <section class="pl-ctl pl-law" aria-labelledby="h-law">
           <h3 id="h-law">See how other systems would seat this vote</h3>
           <p>What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">7</a></sup>
-            <span class="pl-lawnow" data-live="lawnow"></span></p>
+            <span class="pl-lawnow yf-slot" data-live="lawnow"></span></p>
           <div data-live="law" class="pl-lawopts" role="radiogroup" aria-labelledby="h-law"></div>
         </section>
 
         <div class="pl-sharebox yf-sharebox" data-live="share">
           <button class="btn primary pl-shareopen" type="button" disabled>Share this forecast</button>
-          <p class="pl-note pl-sharewhy"></p>
+          <p class="pl-note pl-sharewhy yf-slot"></p>
           <dialog class="sheet pl-sheet" aria-labelledby="share-title">
             <div class="dh"><h2 id="share-title">Share this forecast</h2>
               <button class="x" type="button" aria-label="Close">×</button></div>
@@ -157,15 +157,15 @@
 
       <div class="pl-resultscol">
         <section class="pl-results" aria-label="Results">
-          <div data-live="engine" data-election="<!-- __PLAY:election__ -->"><p class="pl-engine" role="status">Loading the re-weighting code. The published forecast is shown until it is ready.</p>
+          <div data-live="engine" data-election="<!-- __PLAY:election__ -->"><p class="pl-engine yf-slot" role="status">Loading the re-weighting code. The published forecast is shown until it is ready.</p>
             <p class="pl-linknote" hidden></p></div>
           <div data-live="result" class="pl-result">
-            <div class="pl-status" hidden><span class="pl-dot"></span><span class="pl-settings"></span>
+            <div class="pl-status yf-slot" hidden><span class="pl-dot"></span><span class="pl-settings yf-scrolls"></span>
               <button class="btn pl-back" type="button">Back to the forecast</button></div>
-            <p class="pl-oneline"></p>
+            <p class="pl-oneline yf-slot"></p>
             <p class="visually-hidden pl-announce" aria-live="polite"></p>
           </div>
-          <p class="pl-oneline pl-pub"><!-- __PLAY:oneline__ --></p>
+          <p class="pl-oneline pl-pub yf-slot"><!-- __PLAY:oneline__ --></p>
           <div class="pl-rgrid">
             <figure class="pl-mapfig">
               <figcaption class="pl-fhead"><h2>Who wins each ward</h2></figcaption>
@@ -187,7 +187,7 @@
                 <span class="pl-kstripe"></span>Stripes: each party winning it in at least one in ten.
                 <span class="pl-live"><span class="pl-kring"></span>Outlined: the most likely winner differs from the published forecast.</span>
                 Tap a ward for its numbers.</p>
-              <div data-live="flips" class="pl-flips"></div>
+              <div data-live="flips" class="pl-flips yf-slot"></div>
             </div>
           </div>
         </section>
@@ -207,7 +207,7 @@
 
     <noscript><p class="notours">This section needs JavaScript. The <a href="../forecast">model's forecast</a> works without it.</p></noscript>
 
-    <div data-live="b-status"><p class="ess" role="status"></p>
+    <div data-live="b-status" class="yf-slot"><p class="ess" role="status"></p>
       <p class="notours linknote" hidden></p>
       <p class="yf-follow" hidden><span class="yf-followtext"></span>
         <button class="btn small yf-reseed" type="button">Start again from them</button></p></div>
@@ -216,7 +216,7 @@
       <div class="mapcol">
         <section class="mapcard step yf-step" data-live="b-map" aria-labelledby="h-map">
           <div class="mapbar">
-            <h3 id="h-map" class="progress stepno">Call the wards <small class="nchanged"></small></h3>
+            <h3 id="h-map" class="progress stepno">Call the wards <small class="nchanged yf-slot"></small></h3>
             <div class="seg views" role="group" aria-label="Map view">
               <button type="button" data-view="geo" aria-pressed="true">Map</button>
               <button type="button" data-view="hex" aria-pressed="false">Equal-sized wards</button>
@@ -227,7 +227,7 @@
             <svg class="wardmap" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
           </div>
           <div class="listview" hidden></div>
-          <p class="maphint painthint">Choose a party, then tap or drag across wards to give them to it.</p>
+          <p class="maphint painthint yf-slot">Choose a party, then tap or drag across wards to give them to it.</p>
           <div class="tray">
             <div class="brush" role="group" aria-label="Party to give wards to">
               <div class="brushscroll row"></div>
@@ -249,14 +249,14 @@
         <section class="results" data-live="b-council" aria-labelledby="h-res" data-scale="<!-- __MAKE:seatscale__ -->"
           data-ticks="<!-- __MAKE:seatticks__ -->" data-head="<!-- __MAKE:seathead__ -->">
           <h3 id="h-res">Your council</h3>
-          <p class="ess restate"></p>
+          <p class="ess restate yf-slot"></p>
           <div class="bars"></div>
           <div class="council" aria-hidden="true">
             <div class="strip"></div>
             <div class="cap"><span class="capseats"></span><span class="capmaj"></span></div>
           </div>
-          <p class="stubnote yf-startnote"></p>
-          <p class="stubnote excess"></p>
+          <p class="stubnote yf-startnote yf-slot"></p>
+          <p class="stubnote excess yf-slot"></p>
           <p class="visually-hidden announce" aria-live="polite"></p>
         </section>
       </div>
@@ -273,7 +273,7 @@
               <button class="btn small model prmodel" type="button">Back to the start shares</button>
               <label class="find">Find a party <input class="prfind" type="search" autocomplete="off"></label>
             </div>
-            <p class="floornote" role="status"></p>
+            <p class="floornote yf-slot" role="status"></p>
             <div class="prlist"></div>
             <p class="yf-nextrow"><button class="btn small yf-next" type="button">Next: pick who governs</button></p>
           </div>
@@ -284,7 +284,7 @@
           <div class="body">
             <p>Choose the parties in the governing coalition. The parties that hold a seat in your council are listed.</p>
             <div class="coal" role="group" aria-label="Parties in the coalition"></div>
-            <p class="coalstat" role="status"></p>
+            <p class="coalstat yf-slot" role="status"></p>
             <p class="yf-nextrow"><button class="btn small yf-next" type="button">Next: share or analyse it</button></p>
           </div>
         </section>
@@ -343,7 +343,7 @@
       <li id="note-browser">Your figures are worked out in your browser from the published simulations and are not
         recorded. A chance is the share of the {{n_draws}} simulations in which the outcome happens, weighted by your
         settings. A figure is withheld when its sampling error exceeds <!-- __PLAY:maxse__ --> seats.
-        <span data-live="ess"></span></li>
+        <span data-live="ess" class="yf-slot"></span></li>
       <li id="note-turnout">The page does not re-run the model. It re-weights the model's {{n_draws}} published simulations
         towards those with the turnout you set. For Black African turnout at the top of the slider's range this was
         checked against a full re-run of the model, and every party's seat change agreed within sampling error. The other
