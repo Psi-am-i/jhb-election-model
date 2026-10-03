@@ -29,8 +29,20 @@ its open decisions, as built.
 
 | item | as built |
 |---|---|
-| 2, 12 | A seal shows when a forecast was made, not that it was its maker's only one: `/seal/1` is anonymous and stores nothing, so anyone can seal any number of variants before polls open. The cards, the arrival view and `privacy.md` therefore promise no scoring or ranking: the story card's foot reads "Bring this link back after the count to compare it with the result."; the return card's "Compare both with the result after the count." A ranking of shared forecasts would need one stored entry per person before polls open, which "nothing stored" rules out. **Open, owner.** |
+| 2, 12 | A seal shows when a forecast was made, not that it was its maker's only one: `/seal/1` is anonymous and stores nothing, so anyone can seal any number of variants before polls open. The cards, the arrival view and `privacy.md` therefore promise no scoring or ranking: the story card's foot reads "Bring this link back after the count to compare it with the result."; the return card's "Compare both with the result after the count." A ranking of shared forecasts would need one stored entry per person before polls open, which "nothing stored" rules out. **Decided by the owner, below.** |
 | 2, 12 | Preview versions (`*.workers.dev`) refuse `/seal/1` (403) and still answer `/seal/1/check`: they share the live `SEAL_KEY`, and a preview built with a later `polls_open` would sign links the live site accepts. |
 | 2, 12 | `/seal/1/check` checks the signature on the fields as the link carries them, before reading the forecast, and adds `readable`: a link sealed under an earlier `context_ref` still checks as sealed. The page cannot open such a link; keeping old contexts so it can is not built. |
 | 6 | An image is kept at the edge a year when its link's seal checks, an hour otherwise (`share-edge.js` `imageCache`). |
 | 7 | The return card's date line names whose seal it is ("{Name}'s forecast sealed …"). The friend's seal is not carried: it signs the friend's name, which "Leave their name off" removes from the link. |
+
+## Entries and the ranking (owner, 2026-10-03)
+
+| item | as built |
+|---|---|
+| 2, 12 | Every sealed forecast is ranked, each seal one entry, even when one person seals several. Each successful seal is stored at sealing in the D1 database `joburg-entries` (binding `ENTRIES`, `migrations/0001_entries.sql`): the forecast, the name typed, the seal time and id, the model version. No IP address, user agent, cookie or account. A failed insert is logged by reason and the reader keeps the seal (`share-edge.js` `storeEntry`). |
+| 2, 12 | The share sheet seals a name 1.5 s after typing pauses, or when the field is left, not 0.5 s after each pause (`make-share.js` `NAME_PAUSE_MS`): each seal is an entry, and a half-typed name would be one. Opening the sheet still seals; a reader who opens it, then names the forecast, makes two entries of one forecast, one anonymous. |
+| 2, 12 | `/seal/1` is rate-limited per connection by the Workers Rate Limiting binding `SEAL_LIMIT`, thirty a minute, keyed by an HMAC of the address (JUDGEMENT-CALLS.md §N9). |
+| 2, 12 | Before the results, `/your-forecast/` and the arrival view show only "N forecasts sealed so far" (`GET /entries/1/count`, kept at the edge a minute; `interactive/js/entries.js`). No name or forecast is listed. |
+| 3 | Results night: `src/rank_entries.py` scores every entry by `score_forecasts` against the result and writes `content/joburg/leaderboard.json`; `/leaderboard/` is built once `content/joburg/leaderboard.toml` says `published = true`, and only then is it in the nav. Ties: the earlier seal, then the seal id (JUDGEMENT-CALLS.md §N7). |
+| 2, 12 | Entries are deleted ninety days after the leaderboard is published (JUDGEMENT-CALLS.md §N8); one is deleted sooner on request by its seal id (`docs-public/privacy.md`). |
+| 2, 12 | Until the owner creates `joburg-entries` and uncomments the binding in `wrangler.toml`, no seal is stored and every seal logs one `console.error` line with the reason only. A forecast sealed in that gap is not an entry. |

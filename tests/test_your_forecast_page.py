@@ -62,7 +62,8 @@ BREAK = f"{D}/js/make.js"
 #: section 1's share-image words and card module, section 2's card module,
 #: and the arrival view a shared link opens.
 WRITERS = (ADJUST, f"{D}/js/play-share.js", f"{D}/js/play-card.js", f"{D}/js/forecast-card.js",
-           BREAK, f"{D}/js/make-share.js", f"{D}/js/share-card.js", f"{D}/js/arrival.js")
+           BREAK, f"{D}/js/make-share.js", f"{D}/js/share-card.js", f"{D}/js/arrival.js",
+           f"{D}/js/entries.js")
 STAMP = re.compile(r"<!-- built-pages: (.*?) blocking=(\d+) -->")
 
 _BUILT: dict = {}

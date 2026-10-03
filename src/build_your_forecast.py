@@ -83,9 +83,10 @@ JS = (
     "reweight-engine.js", "pubtip.js",
     # section 2: the page, its state, map and share sheet, its seat Worker,
     # the arrival view a shared link opens, and the share cards and their
-    # font widths (one card module with the site's Worker, src/share-edge.js)
+    # font widths (one card module with the site's Worker, src/share-edge.js),
+    # and the count of sealed forecasts (entries.js)
     "make.js", "make-state.js", "builder-state.js", "map.js", "make-share.js",
-    "make-worker.js", "seat-engine.js", "arrival.js", "share-card.js", "card-fonts.js",
+    "make-worker.js", "seat-engine.js", "arrival.js", "entries.js", "share-card.js", "card-fonts.js",
     # both: the address, the share image, its text layout, the seat table,
     # the tooltips' placement
     "yf-url.js", "forecast-card.js", "card-text.js", "seat-table.js", "tip.js",

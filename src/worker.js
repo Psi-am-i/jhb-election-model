@@ -63,8 +63,10 @@
  * in its query (its og: tags rewritten to the forecast's own image),
  * /og/1/link.png and /og/1/story.png (that image, drawn here from the seat
  * Worker's answer over the SEATS service binding; /og.png when anything
- * fails), and POST /seal/1 and /seal/1/check (sealed links, under the Worker
- * secret SEAL_KEY). Preview versions refuse /seal/1: they share the live
+ * fails), POST /seal/1 and /seal/1/check (sealed links, under the Worker
+ * secret SEAL_KEY; each seal stored as one entry in the D1 database ENTRIES,
+ * /seal/1 rate-limited by SEAL_LIMIT), and GET /entries/1/count (how many
+ * entries). Preview versions refuse /seal/1: they share the live
  * SEAL_KEY, and one built with a later polls_open would otherwise sign links
  * the live site accepts after polls open. They still check seals. The share
  * data point is

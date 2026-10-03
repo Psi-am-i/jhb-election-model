@@ -18,6 +18,8 @@
 //                            the moment polls open, and on preview versions
 //   POST /seal/1/check       is this link sealed, and when: the signature
 //                            first, then whether this page reads the forecast
+//   GET /entries/1/count     how many forecasts have been sealed: one D1 count,
+//                            kept at the edge COUNT_MAX_AGE_S seconds
 //
 // SEATS AND THE CHANCE COME ONLY FROM PYTHON (DESIGN §3): the image's seats
 // are the seat law's for the link's picks and its chance the published
@@ -28,16 +30,25 @@
 // no SEATS binding, or any answer but a checked 200, the image is the generic
 // one.
 //
-// NOTHING ABOUT A PERSON IS STORED. The image lives in the edge cache only,
-// which evicts on its own; the name on it is text the reader put in a link
-// they chose to share. No URL, name or forecast is logged.
+// ENTRIES (owner, 2026-10-03). Every successful seal is stored as one entry
+// in the D1 database bound as ENTRIES (migrations/0001_entries.sql): the
+// forecast, the name the reader typed, the seal's time and id, and the model
+// version. Nothing about the person who asked: no IP address, user agent,
+// cookie or account. Results night ranks every entry (src/rank_entries.py).
+// The insert runs after the seal is answered (ctx.waitUntil): a failed or
+// missing insert is logged with console.error, by reason only, and the reader
+// keeps the seal. Before results the site shows only how many there are.
+//
+// The image lives in the edge cache only, which evicts on its own; the name
+// on it is text the reader put in a link they chose to share. No URL, name or
+// forecast is logged.
 
 import * as MS from "../interactive/js/make-state.js";
 import * as B from "../interactive/js/builder-state.js";
 import { cardName } from "../interactive/js/play-state.js";
 import * as SC from "../interactive/js/share-card.js";
 import { seatRequest, checkSeatAnswer } from "../worker-api/src/seats.js";
-import { makeSeal, checkSeal, SEALED_KEYS } from "./seal.js";
+import { makeSeal, checkSeal, rateKey, SEALED_KEYS } from "./seal.js";
 
 // The keys of a shared forecast's link, in the order the image's address
 // writes them: section 2's state (make-state.js), the name, the seal, and the
@@ -267,21 +278,108 @@ async function sealBody(request, env, url) {
   return { D, fields, body };
 }
 
+// ---------- entries ----------
+
+// The columns of one entry, in the order ENTRY_INSERT binds them. The table
+// (migrations/0001_entries.sql) has exactly these; tests/test_entries.py holds
+// the two to each other both ways.
+//   seal_id      the signature half of `s`: the same fields sealed in the same
+//                second give the same seal, so a repeat inserts nothing
+//   sealed_at    the seal's time, seconds since 1970 (the Worker's clock)
+//   label        the name the reader typed (play-state.js cardName), or ""
+//   model_ref    forecast.json's model_ref when it was sealed
+//   context_ref  the link's `c`: the roster, wards and total vote it is over
+//   state        the link's `f`, as sealed: with label and sealed_at it
+//                rebuilds the seal, so an entry can be checked against SEAL_KEY
+//   forecast     the forecast decoded from `f` by the page's own decoder, as
+//                JSON in the shape src/score_forecasts.py scores
+export const ENTRY_COLUMNS = ["seal_id", "sealed_at", "label", "model_ref", "context_ref", "state", "forecast"];
+export const ENTRY_INSERT = "INSERT OR IGNORE INTO entries (" + ENTRY_COLUMNS.join(", ") +
+  ") VALUES (" + ENTRY_COLUMNS.map(() => "?").join(", ") + ")";
+export const COUNT_SELECT = "SELECT COUNT(*) AS n FROM entries";
+// How long the edge keeps the count, in seconds.
+export const COUNT_MAX_AGE_S = 60;
+const COUNT_PATH = "/entries/1/count";
+
+// One entry's values, in ENTRY_COLUMNS order.
+export function entryRow(s, fields, got, D) {
+  const [t, sig] = s.split(".");
+  return [sig, parseInt(t, 36), fields.n, D.forecast.model_ref, fields.c, fields.f,
+          JSON.stringify(B.forecastBody(got.state, D.ctx, { coalition: got.coalition }))];
+}
+
+// Store one entry. Never throws: the seal is already the reader's. A failure
+// is logged by reason alone, with nothing from the entry.
+export async function storeEntry(env, row) {
+  if (!env.ENTRIES) {
+    console.error({ event: "entry", stored: false, reason: "no ENTRIES binding" });
+    return;
+  }
+  try {
+    await env.ENTRIES.prepare(ENTRY_INSERT).bind(...row).run();
+  } catch {
+    console.error({ event: "entry", stored: false, reason: "insert failed" });
+  }
+}
+
+// GET /entries/1/count: { count }, kept at the edge COUNT_MAX_AGE_S seconds.
+export async function entryCount(request, env, url, ctx) {
+  if (request.method !== "GET" && request.method !== "HEAD") return json({ error: "GET only" }, 405);
+  if (!env.ENTRIES) return json({ error: "entries are not set up" }, 503);
+  const cache = globalThis.caches?.default;
+  const key = new Request(url.origin + COUNT_PATH);
+  const hit = cache ? await cache.match(key) : null;
+  if (hit) return hit;
+  let n;
+  try {
+    n = Number((await env.ENTRIES.prepare(COUNT_SELECT).first()).n);
+  } catch {
+    console.error({ event: "entry_count", read: false });
+    return json({ error: "the count could not be read" }, 503);
+  }
+  const res = new Response(JSON.stringify({ count: n }), {
+    headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=" + COUNT_MAX_AGE_S },
+  });
+  if (cache) ctx?.waitUntil?.(cache.put(key, res.clone()));
+  return res;
+}
+
+// ---------- the rate limit on /seal/1 ----------
+
+// The Workers Rate Limiting binding SEAL_LIMIT (wrangler.toml [[ratelimits]],
+// JUDGEMENT-CALLS.md §N9) counts seals per connection. Its key is an HMAC of
+// the connection's address under SEAL_KEY (seal.js rateKey), so neither this
+// Worker nor the counter holds the address; the counter forgets it after the
+// period. This is the only place the address is read. Without the binding
+// nothing is limited.
+export const RATE_LIMITED = "Too many links sealed from this connection. Try again in a minute.";
+async function sealLimited(request, env) {
+  if (!env.SEAL_LIMIT) return false;
+  const key = await rateKey(env.SEAL_KEY, request.headers.get("CF-Connecting-IP") || "");
+  const { success } = await env.SEAL_LIMIT.limit({ key });
+  return !success;
+}
+
 // Sealing needs a forecast this page reads, under a name a card may carry.
 // Refused on a preview version (`preview`): a preview could carry a later
 // polls_open and would sign with the live key.
-export async function seal(request, env, url, { preview = false } = {}) {
+export async function seal(request, env, url, { preview = false, ctx = null } = {}) {
   if (!env.SEAL_KEY) return json({ error: "sealing is not set up" }, 503);
   if (preview) return json({ error: "sealing is refused on a preview version" }, 403);
+  if (request.method === "POST" && await sealLimited(request, env)) return json({ error: RATE_LIMITED }, 429);
   const got = await sealBody(request, env, url);
   if (got.error) return got.error;
-  if (!decodeLink(got.fields.v, got.fields.c, got.fields.f, got.D)) return json({ error: "the link carries no forecast this page can read" }, 400);
+  const read = decodeLink(got.fields.v, got.fields.c, got.fields.f, got.D);
+  if (!read) return json({ error: "the link carries no forecast this page can read" }, 400);
   const fields = got.fields;
   if (fields.n !== "" && cardName(fields.n) !== fields.n) return json({ error: "the name is not one a card can carry" }, 400);
   const now = Date.now();
   const opens = Date.parse(got.D.forecast.election.polls_open);
   if (!(now < opens)) return json({ error: "Polls are open: a forecast can no longer be sealed." }, 403);
-  return json({ s: await makeSeal(env.SEAL_KEY, got.fields, now) });
+  const s = await makeSeal(env.SEAL_KEY, got.fields, now);
+  const stored = storeEntry(env, entryRow(s, fields, read, got.D));
+  if (ctx?.waitUntil) ctx.waitUntil(stored); else await stored;
+  return json({ s });
 }
 
 // The signature is checked first, on the fields as the link carries them:
@@ -307,7 +405,8 @@ export async function sealCheck(request, env, url) {
 export async function shareRoute(request, url, host, env, ctx, { preview = false } = {}) {
   const path = url.pathname;
   if (path === "/s" || path === "/s/") return shareArrival(url, host, env);
-  if (path === "/seal/1") return seal(request, env, url, { preview });
+  if (path === "/seal/1") return seal(request, env, url, { preview, ctx });
+  if (path === COUNT_PATH) return entryCount(request, env, url, ctx);
   if (path === "/seal/1/check") return sealCheck(request, env, url);
   const img = IMAGE.exec(path);
   if (img) return request.method === "GET" || request.method === "HEAD" ? cardImage(url, env, ctx, img[1]) : json({ error: "GET only" }, 405);

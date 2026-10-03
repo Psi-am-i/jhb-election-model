@@ -146,11 +146,51 @@ const worker = (await import("file://" + workerPath)).default;
 const { assets, redirects, files, cases } = JSON.parse(readFileSync(casesPath, "utf8"));
 const have = new Set(assets);
 const out = [];
-const realLog = console.log;
+const realLog = console.log, realError = console.error;
 const realNow = Date.now;
+// A fake D1 for ENTRIES, one per run, so cases see each other's rows: it
+// answers the two statements share-edge.js sends (the insert, INSERT OR IGNORE
+// on the first column; the count) and records every statement and its values.
+const db = { rows: new Map(), statements: [] };
+function fakeD1(mode) {
+  return { prepare(sql) {
+    const stmt = { values: [], bind(...v) { stmt.values = v; return stmt; },
+      async run() {
+        db.statements.push({ sql, values: stmt.values });
+        if (mode === "throw") throw new Error("D1 down");
+        const m = /^INSERT OR IGNORE INTO entries \(([^)]*)\) VALUES/.exec(sql);
+        if (!m) throw new Error("fake D1: unexpected statement " + sql);
+        const cols = m[1].split(", ");
+        if (cols.length !== stmt.values.length) throw new Error("fake D1: columns and values differ");
+        const row = Object.fromEntries(cols.map((c, i) => [c, stmt.values[i]]));
+        if (!db.rows.has(row[cols[0]])) db.rows.set(row[cols[0]], row);
+        return { success: true };
+      },
+      async first() {
+        db.statements.push({ sql, values: stmt.values });
+        if (mode === "throw") throw new Error("D1 down");
+        if (sql !== "SELECT COUNT(*) AS n FROM entries") throw new Error("fake D1: unexpected statement " + sql);
+        return { n: db.rows.size };
+      } };
+    return stmt;
+  } };
+}
+// A fake Rate Limiting binding, one per run: `limit` calls per key, then refused.
+const counts = new Map();
+const limiter = limit => ({ async limit({ key }) {
+  counts.set(key, (counts.get(key) || 0) + 1);
+  limitKeys.push(key);
+  return { success: counts.get(key) <= limit };
+} });
+let limitKeys = [];
 const TYPES = { json: "application/json", png: "image/png", svg: "image/svg+xml", html: "text/html; charset=utf-8" };
 for (const c of cases) {
-  const fetched = [], logs = [], points = [], seatCalls = [];
+  const fetched = [], logs = [], errors = [], points = [], seatCalls = [], pending = [];
+  limitKeys = [];
+  const before = db.statements.length;
+  // c.entries: "record" (the run's fake D1) or "throw"; c.limit: SEAL_LIMIT's limit
+  const entries = c.entries ? { ENTRIES: fakeD1(c.entries) } : {};
+  const limits = c.limit ? { SEAL_LIMIT: limiter(c.limit) } : {};
   // c.now: the Worker's clock for this case (ms), for the polls-open refusal
   Date.now = c.now ? () => c.now : realNow;
   // c.seats: a fake seat Worker answering every /v1/card with this status and body
@@ -164,7 +204,7 @@ for (const c of cases) {
     if (mode === "throw") throw new Error("analytics engine down");
     points.push(JSON.parse(JSON.stringify(p)));
   } } };
-  const env = { ...c.env, ...arrivals, ...seats, ASSETS: { async fetch(req) {
+  const env = { ...c.env, ...arrivals, ...seats, ...entries, ...limits, ASSETS: { async fetch(req) {
     const u = new URL(req.url);
     fetched.push(u.pathname + u.search);
     if (files[u.pathname]) return new Response(readFileSync(files[u.pathname]),
@@ -180,15 +220,23 @@ for (const c of cases) {
   } } };
   console.log = (...a) => logs.push(a.length === 1 && typeof a[0] === "object"
     ? a[0] : { text: a.join(" ") });
+  console.error = (...a) => errors.push(a.length === 1 && typeof a[0] === "object"
+    ? a[0] : { text: a.map(String).join(" ") });
   let res, error = null;
   const init = { headers: c.headers || {}, method: c.method || "GET" };
   if (c.body !== undefined) init.body = JSON.stringify(c.body);
-  try { res = await worker.fetch(new Request(c.url, init), env, { waitUntil() {} }); }
+  let body = "";
+  try {
+    res = await worker.fetch(new Request(c.url, init), env, { waitUntil(p) { pending.push(p); } });
+    body = await res.text();
+    await Promise.all(pending);   // what ran after the response, before the next case
+  }
   catch (e) { error = String(e); }
-  finally { console.log = realLog; Date.now = realNow; }
+  finally { console.log = realLog; console.error = realError; Date.now = realNow; }
   out.push({ url: c.url, status: res ? res.status : null,
              headers: res ? [...res.headers].sort() : [],
-             body: res ? await res.text() : "", fetched, logs, points, seatCalls, error });
+             body, fetched, logs, errors, points, seatCalls, error,
+             statements: db.statements.slice(before), rows: [...db.rows.values()], limitKeys });
 }
 process.stdout.write(JSON.stringify(out));
 """
@@ -975,8 +1023,19 @@ def test_seal_check_fires_on_each_constructed_violation():
 
 
 def test_the_share_routes_write_nothing_about_the_visitor():
+    """The connection's address is read once, in `sealLimited`, and goes
+    only into seal.js `rateKey` (an HMAC); tests/test_entries.py shows it
+    reaches no response, log, statement or limiter key in the clear."""
     edge = (ROOT / "src" / "share-edge.js").read_text(encoding="utf-8")
     assert edge.count("writeDataPoint(") == 1 and edge.count("console.log(") == 1
+    limited = edge[edge.index("async function sealLimited"):]
+    limited = limited[:limited.index("\n}\n") + 3]
+    assert edge.count("CF-Connecting-IP") == 1 and limited.count(
+        'rateKey(env.SEAL_KEY, request.headers.get("CF-Connecting-IP") || "")') == 1
+    rest = edge.replace(limited, "")
     for leak in ("CF-Connecting-IP", "cf-connecting-ip", "User-Agent", "user-agent", "request.cf",
-                 "headers.get(\"cookie\")", "SEAL_KEY)", "console.log(url", "console.log(q"):
-        assert leak not in edge.replace("env.SEAL_KEY)", ""), leak
+                 "headers.get(\"cookie\")", "SEAL_KEY)", "console.log(url", "console.log(q",
+                 "console.error(url", "console.error(q", "console.error(e", "console.error(row"):
+        assert leak not in rest.replace("env.SEAL_KEY)", ""), leak
+    for line in re.findall(r"console\.error\((.*)\);", edge):
+        assert re.fullmatch(r'\{ event: "[a-z_]+", [a-z]+: false(, reason: "[a-z A-Z]+")? \}', line), line

@@ -3297,6 +3297,69 @@ published cell for each largest party with and without a majority, as
 `interactive/pyboot/page.py`'s `analyse` does. Nothing in the model reads the
 badge.
 
+### §N7 · Entries equal on all three keys: the earlier seal places higher, then the seal id — ⚖️ judgement (2026-10-03)
+
+**Where.** `src/rank_entries.py` (`rank_entries`), through
+`score_forecasts.rank`'s `saved_at`; the leaderboard (`/leaderboard/`) prints
+the place.
+
+**Now.** Every sealed forecast is one entry (owner, 2026-10-03). Entries equal
+on seats, ward calls and vote (§N4) are placed by the earlier seal, the
+Worker's own clock at sealing, to the second. Entries sealed in the same
+second are placed by seal id, in character order. Every entry has its own
+place; `score_forecasts.rank`'s shared competition rank is not printed.
+
+**Why.** The owner asked for ties broken by the earlier seal. A seal time is
+the one ordering of entries that existed before the result, so it cannot be
+chosen after it. The seal id is a signature, so its order is arbitrary but
+fixed when the seal is made.
+
+**How to check it.** `tests/test_rank_entries.py` ranks three entries equal on
+all keys, two of them sealed in the same second, and shows the order check
+fires when the seal times are dropped.
+
+### §N8 · Entries are deleted ninety days after the leaderboard is published — ⚖️ judgement (2026-10-03)
+
+**Where.** `docs-public/privacy.md`, "Forecasts entered"; the owner's delete
+command is in `wrangler.toml`'s ENTRIES note.
+
+**Now.** The D1 table `entries` (`migrations/0001_entries.sql`) is emptied
+ninety days after `/leaderboard/` is published. The leaderboard stays on the
+site. An entry is deleted sooner on request, by its seal id.
+
+**Why ninety.** Typed. Long enough for a reader to find their entry, query
+it, or ask for a correction after the results; nothing in the ranking needs
+the rows once the leaderboard is written. Nothing measured sets it.
+
+**How to check it.** The deletion is a command the owner runs; nothing runs
+it on a schedule. `tests/test_entries.py` holds the privacy page to the
+sentence.
+
+### §N9 · Thirty seals per connection per minute (the SEAL_LIMIT binding) — 🔴 typed (2026-10-03)
+
+**Where.** `wrangler.toml` `[[ratelimits]]`, binding SEAL_LIMIT; `src/share-edge.js`
+`sealLimited`.
+
+**Now.** `POST /seal/1` is counted per connection by the Workers Rate Limiting
+binding. Past thirty in a minute it answers 429 and the share sheet says
+"Too many links sealed from this connection. Try again in a minute." The
+counter's key is an HMAC of the connection's address under the seal key
+(`seal.js` `rateKey`), so no address is stored; the counter is Cloudflare's,
+per location, and forgets after the minute.
+
+**Why this mechanism.** The binding needs nothing created and stores nothing
+for this site. A counter kept in the Workers cache would be per data centre,
+not atomic, and would hold the key as a cache entry. **Why thirty.** The share
+sheet seals when it opens and when a name or the forecast changes, so one
+reader can seal several times in a minute. Mobile networks in South Africa put
+many readers behind one address (carrier-grade NAT), so the limit is set well
+above one reader's use. Typed, not measured: Cloudflare allows a period of ten
+or sixty seconds only.
+
+**How to check it.** `tests/test_entries.py` runs the limit at three and shows
+the fourth seal refused, another address and a new period passed, and a
+preview refused before it is counted.
+
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 
 ### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured

@@ -335,7 +335,7 @@
   .yf-arr-wide{display:table-cell;}
   .yf-arr-btns{flex-direction:row;}
   .yf-arr-btns .btn{text-align:center;}
-  .yf-arr-later{grid-template-columns:repeat(3,1fr);gap:22px;}
+  .yf-arr-later{grid-template-columns:repeat(2,1fr);gap:22px;}
 }
 
 /* ---------- section 2's share sheet: the seal, the image picker, the links ---------- */

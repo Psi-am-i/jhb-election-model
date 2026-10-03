@@ -80,6 +80,11 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # Added 2026-10-03 with the site-structure lane (items 9-15): the
            # nav, the pages cut from the sheet, the old anchors, the footer.
            "test_site_structure",
+           # Added 2026-10-03 with entries (owner): every seal stored in D1,
+           # the count, the rate limit, and the results-night ranking and
+           # its hidden /leaderboard/.
+           "test_entries",
+           "test_rank_entries",
            # Added 2026-09-12 with the Phase 0 instrument repairs.
            # Membership is not optional: `test_every_test_module_is
            # _collected` turns the suite red for any `tests/test_*.py`

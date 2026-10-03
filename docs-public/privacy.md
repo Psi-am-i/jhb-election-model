@@ -52,16 +52,13 @@ which deletes it after three months.
 
 ## Shared forecasts
 
-A forecast you make on [your forecast](your-forecast/) lives only in its link.
-When you share it, three things happen on the site's server, and none of them
-keeps the forecast or the name in it.
+A forecast you make on [your forecast](your-forecast/) lives in its link. When
+you share it, three things happen on the site's server.
 
 - **The seal.** The page sends the forecast and its name to the server, which
   signs them with the time, using a key only the server holds, and returns the
   signature for the link to carry. Anyone opening the link can then see that
-  it was sealed and when. The server keeps no record of what it signed, so a
-  seal shows when a forecast was made, not that it was the only one its
-  maker sealed.
+  it was sealed and when. Each seal is also kept as an entry, below.
 - **The preview image.** A chat app shown the link fetches an image the server
   draws from the link. The image is kept in Cloudflare's cache, which deletes
   it on its own: an hour for an unsealed link, a year for a sealed one. Chat
@@ -72,6 +69,35 @@ keeps the forecast or the name in it.
   "share", the button used (WhatsApp, X, copy or the phone's share menu) and
   the site's own address, as the short links above do.
 
+## Forecasts entered
+
+Every sealed forecast is entered in a ranking against the result. A person may
+enter several. The server stores, for each seal, in a database at Cloudflare:
+
+- the forecast: every ward's winner, each party's vote and the governing parties;
+- the name you typed on it, if any;
+- the time of the seal;
+- the seal's id, the part of the link's `s=` after the dot;
+- the model's version when it was sealed.
+
+No IP address, browser details, cookie or account is stored with it. To limit
+how often one connection can seal, the server counts seals per connection for
+one minute under a scrambled form of its address, which is not stored.
+
+**Why.** To rank every forecast sealed before polls open against the result.
+Until the results only the number of entries is shown. After the count the
+leaderboard lists entries by place, under the name typed on each, or
+"Anonymous" and the start of its seal id if none was typed. The name is then
+public on the leaderboard.
+
+**How long.** The entries are deleted ninety days after the leaderboard is
+published. The leaderboard itself stays on the site.
+
+**Removing an entry.** Write to
+[psi@whysoserious.city](mailto:psi@whysoserious.city) with the link, or its
+seal id, and the entry is deleted, before or after the leaderboard is
+published.
+
 ## Network error reports
 
 Cloudflare's response headers `NEL` and `Report-To` ask your browser to report
@@ -81,7 +107,7 @@ service.
 
 ## What is not collected
 
-- No accounts, sign-in or forms. If that changes, this page changes with it.
+- No accounts or sign-in. If that changes, this page changes with it.
 - No advertising trackers and no Google tags.
 - No personal data is sold, or shared with advertisers.
 
@@ -115,8 +141,8 @@ Under POPIA you may:
 - object to its processing.
 
 Send a request to [psi@whysoserious.city](mailto:psi@whysoserious.city). The
-site stores nothing that names a visitor; the records described above are held
-by Cloudflare.
+only records the site keeps are those described above, held by Cloudflare for
+the site; an entry is found by its seal id.
 
 If you are not satisfied with the answer, you may complain to the
 [Information Regulator](https://inforegulator.org.za/), South Africa's

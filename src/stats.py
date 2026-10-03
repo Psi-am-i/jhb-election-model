@@ -278,6 +278,15 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     # The view a shared link opens (interactive/js/arrival.js): the friend's
     # forecast, its outcome and chance, and the ways on, in "arrival".
     "your-forecast/js/arrival.js": frozenset({"arrival"}),
+    # How many forecasts have been sealed so far (interactive/js/entries.js,
+    # the site Worker's /entries/1/count), in "entries"; arrival.js prints the
+    # same line, from the same module, in its own region.
+    "your-forecast/js/entries.js": frozenset({"entries"}),
+    # /leaderboard/ (src/build_leaderboard.py, interactive/js/leaderboard.js),
+    # once published: the first places in "lb-top", and the reader's own
+    # entry, found by their link, in "lb-mine". Every figure is read from
+    # leaderboard.json (src/rank_entries.py); none is computed in the page.
+    "leaderboard/js/leaderboard.js": frozenset({"lb-top", "lb-mine"}),
     # Section 2's share cards (interactive/js/share-card.js): an SVG of the
     # figures it is handed, for the share sheet and the site's Worker. It
     # reaches NO region.

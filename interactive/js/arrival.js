@@ -12,8 +12,10 @@
 // (the seat law, in the page's seat Worker), the chance and badge
 // (page.py analyse, the published forecast), the seal check (the server), and
 // the card module's spec (share-card.js forecastSpec), from which the council
-// graphic's geometry (councilLayout) is drawn as on the cards.
+// graphic's geometry (councilLayout) is drawn as on the cards, and the number
+// of forecasts sealed so far (entries.js, the server's count).
 
+import { entryCount, countLine } from "./entries.js";
 import { councilLayout, stepPath, listedRows, cardTitle, chanceSentence, dateText, daysToVote, localStamp, ROWS, PR_OPACITY } from "./share-card.js";
 
 const R = document.querySelector('[data-live="arrival"]');
@@ -98,6 +100,7 @@ export function showArrival(v) {
   const name = spec.name || "A reader";
   const lead = spec.rows[0];
   const o = spec.outcome;
+  const count = el("p", { className: "yf-arr-count", hidden: true });
   R.replaceChildren(
     el("p", { className: "yf-arr-from" }, sw(lead && lead.code), "A forecast shared with you. ",
       el("span", { className: "yf-arr-seal", "data-seal": seal.state }, sealLine(seal, spec.election))),
@@ -131,10 +134,10 @@ export function showArrival(v) {
     el("div", { className: "yf-arr-later" },
       el("div", {}, el("h3", {}, "The vote"), countdown(spec.election, now)),
       el("div", {}, el("h3", {}, "After the count"),
-        el("p", {}, "Open this link again once the results are declared to compare it with them: seats per party first, then wards called right, then vote per party.")),
-      el("div", {}, el("h3", {}, "Nothing stored"),
-        el("p", {}, "The forecast is in the link. We keep no copy and nothing about " + name + " or you."))));
+        el("p", {}, "Every sealed forecast is ranked against the result: seats per party first, then wards called right, then vote per party. The leaderboard lists names after the count."),
+        count)));
   R.hidden = false;
+  entryCount().then(n => { count.textContent = countLine(n); count.hidden = !count.textContent; });
 }
 
 function chooseButton(kind, text, sub, cls) {

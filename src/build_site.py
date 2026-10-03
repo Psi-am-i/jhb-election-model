@@ -91,13 +91,27 @@ STRAPLINE = ("Made for the benefit of all the residents, businesses, professiona
              "interesting.")
 
 
-def nav_for(active_href: str) -> str:
+def nav_items(leaderboard: bool | None = None) -> list[tuple[str, str]]:
+    """:data:`NAV_ITEMS`, with "leaderboard" after "your forecast" once the
+    leaderboard is published (``content/<city>/leaderboard.toml``,
+    :mod:`build_leaderboard`). Hidden from the nav until the results."""
+    import build_leaderboard
+    if leaderboard is None:
+        leaderboard = build_leaderboard.published(cityconfig.active().slug)
+    items = list(NAV_ITEMS)
+    if leaderboard:
+        at = [h for h, _l in items].index(build_your_forecast.YF_HREF) + 1
+        items.insert(at, (build_leaderboard.LB_HREF, "leaderboard"))
+    return items
+
+
+def nav_for(active_href: str, leaderboard: bool | None = None) -> str:
     """The site nav with the current page held in the accent colour, and
     the owner's strapline (:data:`STRAPLINE`) directly under it."""
     links = "\n".join(
         f'  <a{" class=\"active\"" if href == active_href else ""} '
         f'href="{href}">{label}</a>'
-        for href, label in NAV_ITEMS
+        for href, label in nav_items(leaderboard)
     )
     return ('<nav class="topnav">\n'
             # the owner's logo (src/brand/logo.svg, site_assets.LOGO): one
@@ -1125,6 +1139,27 @@ def main(argv: list[str] | None = None) -> int:
         (args.out / yf.YF_PAGE).write_text(html, encoding="utf-8")
         print(f"  yf       interactive/your-forecast.html -> site/{yf.YF_PAGE} "
               f"(+{len(written)} files under site/{yf.YF_DIR}/)")
+    # --- the leaderboard (/leaderboard/): built only once published --------
+    # src/build_leaderboard.py; hidden, and any earlier copy removed, while
+    # content/<city>/leaderboard.toml says published = false. Its figures are
+    # written at view time into its two LIVE regions by its one writer.
+    import build_leaderboard as lb
+    lb_written = lb.write_assets(args.out, cityconfig.active().slug)
+    if lb_written:
+        import build_play
+        html = lb.assemble(shell, build_play.one_level_down)
+        seen = []
+        html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
+        published += [{**r, "page": lb.LB_PAGE} for r in seen]
+        all_drift += drift
+        unresolved_all += [f"src/build_leaderboard.py: {u}" for u in unresolved]
+        audits[lb.LB_PAGE] = statlib.audit(html, page=lb.LB_PAGE, **audit_cfg)
+        scans[lb.LB_PAGE] = statlib.scan_numbers(html, page=lb.LB_PAGE, **scan_cfg)
+        (args.out / lb.LB_PAGE).write_text(html, encoding="utf-8")
+        print(f"  board    src/build_leaderboard.py -> site/{lb.LB_PAGE} "
+              f"(+{len(lb_written)} files under site/{lb.LB_DIR}/)")
+    else:
+        print(f"  board    /leaderboard/ not published (content/{cityconfig.active().slug}/leaderboard.toml)")
     # EVERY PAGE THIS BUILD NO LONGER PRODUCES IS REMOVED, not just the one
     # somebody remembered. A single hard-coded `forecast.html` unlink stood here
     # for months while `plan.html` and, the moment the interactive was withheld,

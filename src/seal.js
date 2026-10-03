@@ -14,8 +14,9 @@
 // after the count. Any edit, or a new name, needs a new seal. The Worker
 // refuses to seal from the moment polls open (forecast.json
 // `election.polls_open`, from content/<slug>/election.toml), so only a link sealed before
-// then can be eligible for any ranking. Nothing is stored: the Worker keeps no
-// record of what it signed, and the seal says nothing about who asked.
+// then can be eligible for any ranking. The seal says nothing about who asked.
+// What the Worker signed is stored as one entry (share-edge.js storeEntry,
+// owner 2026-10-03), so every sealed forecast can be ranked on results night.
 //
 // Pure apart from crypto.subtle (Workers and node alike). The key is read
 // from the environment by the caller and never logged, stored or returned.
@@ -64,4 +65,12 @@ export async function checkSeal(secret, fields, s) {
   if (!Number.isSafeInteger(seconds) || !sig || seconds.toString(36) !== m[1] || b64url(sig) !== m[2]) return no;
   const ok = await crypto.subtle.verify("HMAC", await hmacKey(secret, "verify"), sig, enc.encode(sealMessage(fields, seconds)));
   return ok ? { sealed: true, at: seconds * 1000 } : no;
+}
+
+// The rate limiter's key for one connection (share-edge.js sealLimited): an
+// HMAC of the address under the seal key, with its own label so it can never
+// equal a seal's signature. base64url, the first 22 characters (132 bits).
+export async function rateKey(secret, address) {
+  const sig = await crypto.subtle.sign("HMAC", await hmacKey(secret, "sign"), enc.encode("rate1\n" + address));
+  return b64url(sig).slice(0, 22);
 }
