@@ -194,8 +194,7 @@ range (CRPS), with **{{backtest_crps_better}}** less error in total. Counted in
 seats put in the wrong column, it misses **{{backtest_seat_err_model}}** against
 the baselines' **{{backtest_seat_err_baseline}}**, a smaller margin because that
 measure looks only at the single most likely outcome. It calls the winner in
-**{{backtest_wards_called}} of {{backtest_wards}}** wards. The rest of this
-section is that test, written by the program that ran it.
+**{{backtest_wards_called}} of {{backtest_wards}}** wards.
 
 <!-- __VALIDATION__ -->
 

@@ -70,7 +70,7 @@ def _produced() -> set[str]:
 def _sheet_pages() -> dict[str, str]:
     """Each page the build cuts from the forecast sheet, cut."""
     raw = SHEET.read_text(encoding="utf-8")
-    return {out: B.cut_spans(raw, key) for out, (src, key, _t, _a) in B.ARTEFACTS.items()
+    return {out: B.cut_spans(raw, key) for out, (src, key, *_r) in B.ARTEFACTS.items()
             if src == SHEET.name}
 
 
@@ -161,7 +161,7 @@ def test_every_sheet_span_reaches_a_built_page_and_back():
     raw = SHEET.read_text(encoding="utf-8")
     keys = {k for m in re.finditer(r"<!-- __ONLY:([a-z0-9,-]+)_START__ -->", raw)
             for k in m.group(1).split(",")}
-    cut_keys = {key for src, key, _t, _a in B.ARTEFACTS.values() if src == SHEET.name}
+    cut_keys = {key for src, key, *_r in B.ARTEFACTS.values() if src == SHEET.name}
     assert 6 <= len(cut_keys) <= 20, cut_keys
     assert keys == cut_keys, (keys ^ cut_keys)
     assert {f"{k}.html" for k in cut_keys} == {out for out, (src, *_r) in B.ARTEFACTS.items()
@@ -187,6 +187,9 @@ def test_each_page_holds_its_own_content_only():
         assert ('id="coalitions"' in html) == (out == "forecast.html"), out
         assert ("<!-- __COMMENTARY__ -->" in html) == (out == "commentary.html"), out
         assert html.count("<h1") == 1, (out, html.count("<h1"))
+        # the sheet's colophon and dateline describe the forecast's figures
+        assert ('class="colophon"' in html) == (out == "forecast.html"), out
+        assert ('class="dateline"' in html) == (out == "forecast.html"), out
     assert len(articles) == 5
 
 
@@ -206,6 +209,67 @@ def test_commentary_lists_exactly_the_article_pages():
     assert "<!-- __COMMENTARY__ -->" not in page
     # every entry is a dated passage, so a figure in a standfirst reads as history
     assert page.count('data-asof="') >= len(listed)
+
+
+def _heads() -> dict[str, tuple[str, str]]:
+    """Each cut page's <title> and share-card meta, as the build sets them."""
+    articles = B.article_meta("joburg")
+    pages = _sheet_pages()
+    return {out: B.artefact_head(out, B.ARTEFACTS[out], html, articles)
+            for out, html in pages.items()}
+
+
+def _card(og_meta: str, prop: str) -> str:
+    m = re.search(rf'<meta property="og:{prop}" content="([^"]*)">', og_meta)
+    return unescape(m.group(1)) if m else ""
+
+
+def test_each_article_page_is_titled_and_carded_from_its_list_entry():
+    """articles.toml -> each article page's <title>, og:title and
+    og:description, and every page but the home page has its own address."""
+    listed = B.article_meta("joburg")
+    heads = _heads()
+    assert 4 <= len(listed) <= 12 and set(listed) <= set(heads), (listed, heads)
+    for out, a in listed.items():
+        title, og = heads[out]
+        assert unescape(title) == a["title"], (out, title)
+        assert _card(og, "title") == a["title"], out
+        assert _card(og, "description") == " ".join(a["standfirst"].split()), out
+    urls = {out: _card(og, "url") for out, (_t, og) in heads.items()}
+    assert len(set(urls.values())) == len(urls), urls
+    for out, (_t, og) in heads.items():
+        slug = out.removesuffix(".html")
+        assert urls[out] == f"{B.SITE_URL}/{slug}", (out, urls[out])
+        assert f'<link rel="canonical" href="{B.SITE_URL}/{slug}">' in og, out
+    # the home page alone keeps the site-wide card at the root
+    _t, og = B.artefact_head("index.html", B.ARTEFACTS["index.html"],
+                             "<title>x</title>", listed)
+    assert og == B.OG_META
+
+
+def test_the_head_refuses_a_second_title_or_a_missing_card():
+    articles = B.article_meta("joburg")
+    pages = _sheet_pages()
+    out = "laingsburg-2021.html"
+    src, cut, _t, active, _og = B.ARTEFACTS[out]
+    for spec in ((src, cut, "Laingsburg", active, None),
+                 (src, cut, None, active, "A typed card.")):
+        try:
+            B.artefact_head(out, spec, pages[out], articles)
+        except SystemExit:
+            continue
+        raise AssertionError(f"an article's head was typed twice: {spec}")
+    src, cut, title, active, _og = B.ARTEFACTS["claims.html"]
+    try:
+        B.artefact_head("claims.html", (src, cut, title, active, None),
+                        pages["claims.html"], articles)
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("a page with no card of its own was given the home page's")
+    # quiet on the specs as they stand
+    for out, html in pages.items():
+        B.artefact_head(out, B.ARTEFACTS[out], html, articles)
 
 
 def test_fill_commentary_refuses_two_markers_and_leaves_other_pages_alone():
@@ -326,6 +390,61 @@ def test_validation_is_refused_without_its_generator_marker():
         assert not any(stats.is_blocking(h) for h in hits)
         # the same figures typed into prose would block
         assert any(stats.is_blocking(h) for h in stats.scan_numbers("<p>7 of 8.</p>"))
+
+
+def test_a_document_cannot_type_a_script_made_region():
+    """Markdown passes HTML comments through, so a hand-written document that
+    typed a generated-region marker round a sentence would exempt its figures.
+    `render_doc` refuses every such marker; without the markers the same
+    sentence renders and its figure blocks."""
+    import stats
+    import tempfile
+    sentence = "The ANC will win 61% of wards."
+    wrapped = f"<!-- __VALIDATION_START__ -->\n{sentence}\n<!-- __VALIDATION_END__ -->"
+    # what the guard prevents: the scan exempts the wrapped figure
+    assert any(stats.is_blocking(h) for h in stats.scan_numbers(f"<p>{sentence}</p>"))
+    assert not any(stats.is_blocking(h) for h in stats.scan_numbers(f"<p>{wrapped}</p>"))
+    assert len(stats.GENERATED_MARKERS) >= 5
+    with tempfile.TemporaryDirectory() as t:
+        doc = Path(t) / "note.md"
+        for name in sorted(stats.GENERATED_MARKERS):
+            for body in (wrapped.replace("VALIDATION", name),
+                         f"{sentence}\n<!-- __{name}_END__ -->"):
+                doc.write_text(f"# Note\n\n{body}\n", encoding="utf-8")
+                try:
+                    B.render_doc(doc, "Note", "", "note.html", tech=False)
+                except SystemExit:
+                    continue
+                raise AssertionError(f"a typed __{name}__ marker was accepted")
+        # a marker that is not script-made, and no marker, both render
+        for body in (sentence, f"<!-- __JUDGEMENTS_START__ -->\n{sentence}\n"
+                               "<!-- __JUDGEMENTS_END__ -->"):
+            doc.write_text(f"# Note\n\n{body}\n", encoding="utf-8")
+            html = B.render_doc(doc, "Note", "", "note.html", tech=False)
+            assert any(stats.is_blocking(h) for h in stats.scan_numbers(html))
+    # every published document is free of them
+    docs = sorted((ROOT / "docs-public").glob("*.md"))
+    assert len(docs) >= 5
+    assert [d.name for d in docs if B.typed_generated_markers(d.read_text(encoding="utf-8"))] == []
+
+
+def test_figure_tables_marks_tables_of_figures_only():
+    figures = B._md_html("| party | won | out by |\n|---|---|---|\n"
+                         "| A | **91** | -14 |\n| B | 7 | |\n")
+    words = B._md_html("| baseline | what it does |\n|---|---|\n| last | repeats 2021 |\n")
+    mixed = B._md_html("| city | seats |\n|---|---|\n| X | 270 |\n| Y | n/a |\n")
+    assert B.figure_tables(figures).count('<table class="figures">') == 1
+    assert 'class="figures"' not in B.figure_tables(words)
+    assert 'class="figures"' not in B.figure_tables(mixed)
+    assert "style=" not in B.figure_tables(figures)
+    html = B.validation_html()
+    assert 4 <= html.count('<table class="figures">') <= html.count("<table") - 1
+
+
+def test_a_heading_id_carries_no_token_name():
+    html = B._md_html("### 8. Do it {{n_draws}} times\n")
+    assert 'id="8-do-it-times"' in html, html
+    assert 'id="how-accurate-is-it"' in B._md_html("## How accurate is it?\n")
 
 
 # ---------------------------------------------------------------- footer

@@ -278,13 +278,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html",
-        "claims.html",
-        "nobody-will-win.html",
-        "nobody-catches-the-votes.html",
-        "minority-administrations.html",
-        "if-the-law-were-german.html",
-        "laingsburg-2021.html"
+        "forecast.html"
       ],
       "previous": "15",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3346,12 +3340,7 @@
       "pages": [
         "methodology.html",
         "forecast.html",
-        "claims.html",
-        "nobody-will-win.html",
-        "nobody-catches-the-votes.html",
-        "minority-administrations.html",
-        "if-the-law-were-german.html",
-        "laingsburg-2021.html"
+        "claims.html"
       ],
       "previous": "270",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3371,8 +3360,6 @@
         "claims.html",
         "nobody-will-win.html",
         "nobody-catches-the-votes.html",
-        "minority-administrations.html",
-        "if-the-law-were-german.html",
         "laingsburg-2021.html"
       ],
       "previous": "23 September 2026",
@@ -4066,11 +4053,6 @@
         "methodology.html",
         "forecast.html",
         "claims.html",
-        "nobody-will-win.html",
-        "nobody-catches-the-votes.html",
-        "minority-administrations.html",
-        "if-the-law-were-german.html",
-        "laingsburg-2021.html",
         "play/index.html"
       ],
       "previous": "136",
@@ -4152,10 +4134,8 @@
         "forecast.html",
         "claims.html",
         "nobody-will-win.html",
-        "nobody-catches-the-votes.html",
         "minority-administrations.html",
         "if-the-law-were-german.html",
-        "laingsburg-2021.html",
         "play/index.html",
         "make/index.html"
       ],
@@ -5005,13 +4985,7 @@
       "mode": "free",
       "movement": "none",
       "pages": [
-        "forecast.html",
-        "claims.html",
-        "nobody-will-win.html",
-        "nobody-catches-the-votes.html",
-        "minority-administrations.html",
-        "if-the-law-were-german.html",
-        "laingsburg-2021.html"
+        "forecast.html"
       ],
       "previous": "20261104",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -5704,9 +5678,9 @@
     "draws": 5000,
     "forecast_content_sha256": "c68c627d287e5e103ac0effbf1aaab9dbcffdb4d2945720ec43d771a9945efad",
     "forecast_summary_sha256": "97efecf5c70e0020412d801b20bce579c1f7e31e8f5bb8c3e0a8423106bc84bd",
-    "git_commit": "a912197a7cf0cbb45c325b463bc496a7fb562a94",
+    "git_commit": "c49b93c002585c4fd0fc1e771a4ec9c9d4305ae6",
     "git_dirty": true,
-    "model_run_id": "r-c68c627d287e-a912197a-dirty",
+    "model_run_id": "r-c68c627d287e-c49b93c0-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",

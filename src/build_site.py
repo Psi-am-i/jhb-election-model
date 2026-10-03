@@ -156,10 +156,17 @@ import site_assets  # noqa: E402
 SITE_HEAD = site_assets.head() + analytics_head()
 
 
-OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election Model">
+#: The site-wide share card's title and description: the home page's card,
+#: and /forecast's with its own address (ARTEFACTS).
+OG_TITLE = "Who governs Johannesburg after 4 November 2026?"
+OG_DESCRIPTION = ("5,000 simulations of the November vote: who could govern "
+                  "Johannesburg, how the seat law shapes the council, and how "
+                  "sure the model is.")
+
+OG_META = f"""<meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="5,000 simulations of the November vote: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is.">
+<meta property="og:title" content="{OG_TITLE}">
+<meta property="og:description" content="{OG_DESCRIPTION}">
 <meta property="og:url" content="https://joburg.whysoserious.city/">
 <link rel="canonical" href="https://joburg.whysoserious.city/">
 <meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
@@ -213,12 +220,14 @@ def footer_for() -> str:
 
 FOOTER = footer_for()
 
-def inject_nav(html: str, active_href: str) -> str:
+def inject_nav(html: str, active_href: str, og_meta: str = OG_META) -> str:
     """Give an artefact page the site navigation: the site's head into
-    <head>, the class ``pg-art`` onto <body> (the rules every artefact page
-    shares, src/css/page-art.css), the nav bar at the top of its content
-    container so it aligns with the content, and the footer."""
-    html = html.replace("</head>", OG_META + SITE_HEAD + "</head>", 1)
+    <head> (`og_meta` is the page's share card and canonical address; the
+    site-wide one is the home page's), the class ``pg-art`` onto <body> (the
+    rules every artefact page shares, src/css/page-art.css), the nav bar at
+    the top of its content container so it aligns with the content, and the
+    footer."""
+    html = html.replace("</head>", og_meta + SITE_HEAD + "</head>", 1)
     # The template names its own page class (pg-sheet, pg-home); a body with
     # no class gets none of its own page's rules, so it is refused.
     if html.count('<body class="') != 1:
@@ -363,30 +372,83 @@ ARTEFACTS = {
     #
     # Keyed by the OUTPUT page: (source, the `__ONLY:<page>__` key whose spans
     # it keeps (`cut_spans`), the page's <title> or None to keep the source's,
-    # the nav item it lights or None for its own name). The forecast sheet
-    # makes every page below except the home page (owner's sweep, 2026-10-03,
-    # items 10-11): /forecast holds the forecast alone; the parties' claims
-    # moved to /claims; each article stands on its own page, listed on
-    # /commentary from content/<city>/articles.toml.
-    "index.html": ("home.html", None, None, None),
-    "forecast.html": ("forecast-sheet.html", "forecast", None, None),
+    # the nav item it lights or None for its own name, the share-card
+    # description or None for the site-wide card). The forecast sheet makes
+    # every page below except the home page (owner's sweep, 2026-10-03, items
+    # 10-11): /forecast holds the forecast alone; the parties' claims moved to
+    # /claims; each article stands on its own page, listed on /commentary from
+    # content/<city>/articles.toml.
+    #
+    # AN ARTICLE'S TITLE AND SHARE CARD ARE NOT HERE. Both come from its entry
+    # in articles.toml (`article_meta`), the same entry /commentary and the
+    # home page list it by, so the list and the page cannot name it
+    # differently. An article entry that types either is refused.
+    #
+    # A share-card description carries no token: `statlib.render` writes
+    # provenance markup, which cannot sit inside a `content="…"` attribute.
+    "index.html": ("home.html", None, None, None, None),
+    "forecast.html": ("forecast-sheet.html", "forecast", None, None, OG_DESCRIPTION),
     "claims.html": ("forecast-sheet.html", "claims",
-                    "The parties' claims, tested", None),
+                    "The parties' claims, tested", None,
+                    "Public statements by the parties about November's result, "
+                    "each tested against the model's simulations."),
     "commentary.html": ("forecast-sheet.html", "commentary",
-                        "Commentary · Johannesburg 2026", None),
-    "nobody-will-win.html": ("forecast-sheet.html", "nobody-will-win",
-                             "Nobody will win Johannesburg", "commentary"),
+                        "Commentary · Johannesburg 2026", None,
+                        "Dated articles on the Johannesburg council election: "
+                        "the seat law, turnout and who can govern."),
+    "nobody-will-win.html": ("forecast-sheet.html", "nobody-will-win", None,
+                             "commentary", None),
     "nobody-catches-the-votes.html": ("forecast-sheet.html", "nobody-catches-the-votes",
-                                      "When the ANC falls, nobody catches the votes",
-                                      "commentary"),
+                                      None, "commentary", None),
     "minority-administrations.html": ("forecast-sheet.html", "minority-administrations",
-                                      "Minority administrations", "commentary"),
+                                      None, "commentary", None),
     "if-the-law-were-german.html": ("forecast-sheet.html", "if-the-law-were-german",
-                                    "Other Proportional Representation Mechanisms",
-                                    "commentary"),
+                                    None, "commentary", None),
     "laingsburg-2021.html": ("forecast-sheet.html", "laingsburg-2021",
-                             "Laingsburg, 2021", "commentary"),
+                             None, "commentary", None),
 }
+
+
+def article_meta(city: str | None = None) -> dict[str, dict]:
+    """Each article's articles.toml entry, keyed by its page (`<href>.html`),
+    read by the one reader of that file (`render_home.load_articles`)."""
+    import render_home
+    city = city or cityconfig.active().slug
+    return {f"{a['href']}.html": a
+            for a in render_home.load_articles(REPO_ROOT / "content" / city)}
+
+
+def artefact_head(output: str, spec: tuple, html: str,
+                  articles: dict[str, dict]) -> tuple[str, str]:
+    """An artefact page's <title> and share card (`og_meta`). The home page
+    keeps the site-wide card at the site's root; every other page gets its own
+    title, description, og:url and canonical, so a shared article shows its
+    own card and a search engine does not fold it into the home page. An
+    article's come from articles.toml; an ARTEFACTS entry that also types
+    them is refused (two definitions of one title)."""
+    from html import escape
+    _src, _cut, title, _active, og = spec
+    art = articles.get(output)
+    if art is not None:
+        if title or og:
+            raise SystemExit(f"ARTEFACTS types a title or share card for "
+                             f"{output}, an article: both come from its "
+                             f"articles.toml entry")
+        title, og = art["title"], " ".join(art["standfirst"].split())
+    if title is None:
+        m = re.search(r"<title>(.*?)</title>", html, re.S)
+        if not m:
+            raise SystemExit(f"{output}: its source has no <title> to keep")
+        title = m.group(1).strip()
+    else:
+        title = escape(title, quote=False)
+    if output == "index.html":
+        return title, OG_META
+    if not og:
+        raise SystemExit(f"ARTEFACTS gives {output} no share-card description: "
+                         "it would carry the home page's card and canonical")
+    from html import unescape
+    return title, page_og(og, unescape(title), output.removesuffix(".html"))
 
 #: A span of a template that reaches only the page(s) it names.
 _ONLY = re.compile(r"<!-- __ONLY:([a-z0-9,-]+)_(START|END)__ -->")
@@ -506,9 +568,40 @@ def _md_html(text: str) -> str:
     """A document's Markdown as the site's HTML. `toc` gives every heading an
     id, so a link can land on a section (the home page's "How well it has
     done" lands on /methodology's "How accurate is it?")."""
-    html = markdown.markdown(text, extensions=["tables", "fenced_code", "smarty", "toc"])
+    html = markdown.markdown(text, extensions=["tables", "fenced_code", "smarty", "toc"],
+                             extension_configs={"toc": {"slugify": _heading_id}})
     html = html.replace("<table>", '<div class="tablewrap"><table>')
     return html.replace("</table>", "</table></div>")
+
+
+def _heading_id(value: str, separator: str) -> str:
+    """A heading's id from its words. `toc` runs before tokens are filled in,
+    so a token's name is dropped rather than let into the address
+    ("### 8. Do it {{n_draws}} times" -> `8-do-it-times`)."""
+    from markdown.extensions.toc import slugify
+    return slugify(re.sub(r"\{\{[^}]*\}\}", " ", value), separator)
+
+
+#: A table whose body cells after the first column are all figures (or empty).
+_FIGURE_CELL = re.compile(r"^(?:<strong>)?[−+-]?\d")
+
+
+def figure_tables(html: str) -> str:
+    """Mark each table whose columns after the first hold only figures with
+    the class `figures`, which right-aligns them in tabular digits and fixes
+    the column widths (src/css/page-doc.css), so one city's table lines up
+    with the next. Python-Markdown's own `|--:|` alignment writes an inline
+    `style=`, which the site does not carry."""
+    def mark(m: re.Match) -> str:
+        table = m.group(0)
+        body = table.split("</thead>", 1)[-1]
+        cells = [re.sub(r"\s+", " ", c).strip()
+                 for row in re.findall(r"<tr>(.*?)</tr>", body, re.S)
+                 for c in re.findall(r"<td>(.*?)</td>", row, re.S)[1:]]
+        if cells and all(not c or _FIGURE_CELL.match(c) for c in cells):
+            return table.replace("<table>", '<table class="figures">', 1)
+        return table
+    return re.sub(r"<table>.*?</table>", mark, html, flags=re.S)
 
 
 #: The scoring of the model against 2021, written whole by
@@ -534,8 +627,21 @@ def validation_html(source: Path = VALIDATION_SOURCE) -> str:
         raise SystemExit(f"{source} does not open with src/build_validation.py's "
                          "GENERATED marker: its figures cannot be exempted as "
                          "script-made. Regenerate it (--from-json).")
-    return ("<!-- __VALIDATION_START__ -->\n" + _md_html(text[head.end():])
+    return ("<!-- __VALIDATION_START__ -->\n" + figure_tables(_md_html(text[head.end():]))
             + "\n<!-- __VALIDATION_END__ -->")
+
+
+#: Any start or end marker of a script-made region (`stats.GENERATED_MARKERS`).
+_GENERATED_MARKER = re.compile(
+    r"__(%s)_(?:START|END)__" % "|".join(sorted(statlib.GENERATED_MARKERS)))
+
+
+def typed_generated_markers(text: str) -> list[str]:
+    """The script-made region markers a hand-written source carries. Markdown
+    passes HTML comments through, so a document that typed
+    `<!-- __VALIDATION_START__ -->` around a sentence would have its figures
+    listed as generated and left out of the claim audit."""
+    return sorted({m.group(0) for m in _GENERATED_MARKER.finditer(text)})
 
 
 def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
@@ -547,7 +653,15 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
     description; None keeps the site-wide one. `token` is the Web Analytics
     token that picks the document's analytics blocks; None reads the
     module's."""
-    text = analytics_blocks(source.read_text(encoding="utf-8"), token)
+    raw = source.read_text(encoding="utf-8")
+    typed = typed_generated_markers(raw)
+    if typed:
+        raise SystemExit(f"{source} types the script-made region marker(s) "
+                         f"{', '.join(typed)}: a figure inside one is listed as "
+                         "generated and does not block. Only a generator writes "
+                         "them (methodology's VALIDATION is spliced in by "
+                         "`validation_html` at the __VALIDATION__ line).")
+    text = analytics_blocks(raw, token)
     lines = text.splitlines()
     # Skip any leading HTML comment and blank lines before taking the title.
     # A generated page opens with a "do not edit by hand" marker, and without
@@ -896,14 +1010,16 @@ def main(argv: list[str] | None = None) -> int:
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
 
-    for output, (source, cut, title, active) in ARTEFACTS.items():
+    articles = article_meta()
+    for output, spec in ARTEFACTS.items():
+        source, cut, _title, active, _og = spec
         href = active or ("./" if output == "index.html" else output.removesuffix(".html"))
         html = cut_spans(Path(source).read_text(encoding="utf-8"), cut)
-        if title:
-            html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
-                          html, count=1, flags=re.S)
+        title, og_meta = artefact_head(output, spec, html, articles)
+        html = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{title}</title>",
+                      html, count=1, flags=re.S)
         html = fill_commentary(html)
-        html = inject_nav(html, href)
+        html = inject_nav(html, href, og_meta)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx,
                                                  record=seen)

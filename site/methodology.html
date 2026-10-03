@@ -160,7 +160,7 @@ between elections, even when <em>how much</em> it has swings widely.</p>
 separately, each party&rsquo;s split measured from its own past behaviour. Ward
 winners are called race by race. Then the statutory formula, the arithmetic the
 Electoral Commission uses, allocates every seat, excessive seats included.</p>
-<h3 id="8-do-it-n_draws-times">8. Do it <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-current="5,000" data-prov="5,000. Unchanged since 27 September 2026. Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> times</h3>
+<h3 id="8-do-it-times">8. Do it <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-current="5,000" data-prov="5,000. Unchanged since 27 September 2026. Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> times</h3>
 <p>Each run draws fresh values within every bound. The output is a distribution:
 how often each seat count happens, and how often each coalition clears the
 line. Every combination of parties is checked against that run&rsquo;s own majority
@@ -198,8 +198,7 @@ range (CRPS), with <strong><span class="mstat" data-mode="free" data-token="back
 seats put in the wrong column, it misses <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-current="297" data-prov="297. Was 294. Published 27 September 2026; now 3 October 2026. Source: validation:seat_err_model, live from the current model run." tabindex="0">297</span><span class="arrow mstat-move up" data-prov="Was 294.">▲</span></strong> against
 the baselines&rsquo; <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-current="353" data-prov="353. Unchanged since 27 September 2026. Source: validation:seat_err_baseline, live from the current model run." tabindex="0">353</span></strong>, a smaller margin because that
 measure looks only at the single most likely outcome. It calls the winner in
-<strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-current="719" data-prov="719. Unchanged since 27 September 2026. Source: validation:wards_called, live from the current model run." tabindex="0">719</span> of <span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-current="742" data-prov="742. Unchanged since 27 September 2026. Source: validation:wards, live from the current model run." tabindex="0">742</span></strong> wards. The rest of this
-section is that test, written by the program that ran it.</p>
+<strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-current="719" data-prov="719. Unchanged since 27 September 2026. Source: validation:wards_called, live from the current model run." tabindex="0">719</span> of <span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-current="742" data-prov="742. Unchanged since 27 September 2026. Source: validation:wards, live from the current model run." tabindex="0">742</span></strong> wards.</p>
 <!-- __VALIDATION_START__ -->
 <p>Every result in this section comes from the model run described at its end. The forecasts and scores used as examples under <em>The technical measures</em> are made up to explain the measures; they are not results.</p>
 <h3 id="how-it-was-tested">How it was tested</h3>
@@ -231,7 +230,7 @@ section is that test, written by the program that ran it.</p>
 </table></div>
 <p>Uniform swing is the usual standard for judging election models, and it is hard to beat. <strong>Best baseline</strong> below means whichever of the three did best in that city.</p>
 <h3 id="the-result-city-by-city">The result, city by city</h3>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>city</th>
@@ -310,7 +309,7 @@ section is that test, written by the program that ran it.</p>
 <h3 id="what-it-forecast-for-2021-against-what-happened">What it forecast for 2021, against what happened</h3>
 <p>The largest parties in each city, by seats won in 2021; the note under each table says how many are shown. Our figure is the middle of the range the model produced, not its best case.</p>
 <h4 id="johannesburg-270-seats">Johannesburg — 270 seats</h4>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>party</th>
@@ -432,7 +431,7 @@ section is that test, written by the program that ran it.</p>
 </table></div>
 <p><em>96 seats out in total — across every party that stood, not only the 18 shown above.</em></p>
 <h4 id="tshwane-214-seats">Tshwane — 214 seats</h4>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>party</th>
@@ -536,7 +535,7 @@ section is that test, written by the program that ran it.</p>
 </table></div>
 <p><em>36 seats out in total — across every party that stood, not only the 15 shown above.</em></p>
 <h4 id="ekurhuleni-224-seats">Ekurhuleni — 224 seats</h4>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>party</th>
@@ -646,7 +645,7 @@ section is that test, written by the program that ran it.</p>
 </table></div>
 <p><em>38 seats out in total — across every party that stood, not only the 16 shown above.</em></p>
 <h4 id="ethekwini-222-seats">eThekwini — 222 seats</h4>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>party</th>
@@ -804,7 +803,7 @@ section is that test, written by the program that ran it.</p>
 </table></div>
 <p><em>41 seats out in total — across every party that stood, not only the 24 shown above.</em></p>
 <h4 id="cape-town-231-seats">Cape Town — 231 seats</h4>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>party</th>
@@ -920,7 +919,7 @@ section is that test, written by the program that ran it.</p>
 </table></div>
 <p><em>44 seats out in total — across every party that stood, not only the 17 shown above.</em></p>
 <h4 id="mangaung-101-seats">Mangaung — 101 seats</h4>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>party</th>
@@ -988,7 +987,7 @@ section is that test, written by the program that ran it.</p>
 </table></div>
 <p><em>8 seats out in total — across every party that stood, not only the 9 shown above.</em></p>
 <h4 id="nelson-mandela-bay-120-seats">Nelson Mandela Bay — 120 seats</h4>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>party</th>
@@ -1080,7 +1079,7 @@ section is that test, written by the program that ran it.</p>
 </table></div>
 <p><em>22 seats out in total — across every party that stood, not only the 13 shown above.</em></p>
 <h4 id="buffalo-city-100-seats">Buffalo City — 100 seats</h4>
-<div class="tablewrap"><table>
+<div class="tablewrap"><table class="figures">
 <thead>
 <tr>
 <th>party</th>

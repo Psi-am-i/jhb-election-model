@@ -244,7 +244,10 @@ def _seats(summary: dict, tok, processed: Path) -> str:
             + "\n" + note)
 
 
-def _articles(city_dir: Path) -> str:
+def load_articles(city_dir: Path) -> list[dict]:
+    """The articles in content/<city>/articles.toml: the one reader of that
+    file. The home page's and /commentary's lists, and each article page's
+    <title> and share card (`build_site.artefact_head`), all come from here."""
     path = city_dir / "articles.toml"
     if not path.exists():
         raise SystemExit(f"no {path}: the home page has no articles to list.")
@@ -255,6 +258,11 @@ def _articles(city_dir: Path) -> str:
             f"{path} marks {len(leads)} articles as `lead`, and the home page "
             f"runs exactly one. Retiring a lead means moving that flag, not "
             f"deleting the piece.")
+    return items
+
+
+def _articles(city_dir: Path) -> str:
+    items = load_articles(city_dir)
     out = []
     # The lead first, then the rest newest first.
     for a in sorted(items, key=lambda x: (bool(x.get("lead")), x["date"]),
@@ -337,8 +345,7 @@ def main(argv: list[str] | None = None) -> int:
     page = region(page, "HOMECLAIMS", _claims(city_dir))
     args.page.write_text(page, encoding="utf-8")
 
-    n_articles = len(tomllib.loads((city_dir / "articles.toml")
-                                   .read_text(encoding="utf-8"))["article"])
+    n_articles = len(load_articles(city_dir))
     print(f"home: lede, {len(NAMED)} named parties + others, "
           f"{n_articles} articles -> {args.page.name}")
     return 0
