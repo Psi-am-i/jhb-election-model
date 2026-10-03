@@ -46,3 +46,18 @@ its open decisions, as built.
 | 3 | Results night: `src/rank_entries.py` scores every entry by `score_forecasts` against the result and writes `content/joburg/leaderboard.json`; `/leaderboard/` is built once `content/joburg/leaderboard.toml` says `published = true`, and only then is it in the nav. Ties: the earlier seal, then the seal id (JUDGEMENT-CALLS.md §N7). |
 | 2, 12 | Entries are deleted ninety days after the leaderboard is published (JUDGEMENT-CALLS.md §N8); one is deleted sooner on request by its seal id (`docs-public/privacy.md`). |
 | 2, 12 | Until the owner creates `joburg-entries` and uncomments the binding in `wrangler.toml`, no seal is stored and every seal logs one `console.error` line with the reason only. A forecast sealed in that gap is not an entry. |
+
+## After the review of the entries (2026-10-03)
+
+| item | as built |
+|---|---|
+| 1 | Every entry is ranked and listed on `/leaderboard/`; the `top` setting is gone (owner: "we can rank all entries"). `leaderboard.json` is served whole by design. |
+| 1 | The board's data is gitignored, as `content/<city>/leaderboard.json` and `site/leaderboard/leaderboard.json`, and `deploy_check.SHIPPED_UNCOMMITTED` lets the built copy ship: a name removed from the board is not kept in the public repository's history. `rank_entries.py --drop <seal id>` removes one entry from the published board; `--anonymise` replaces every name at the ninety-day deletion, when the export `~/joburg-entries.json` is also deleted (JUDGEMENT-CALLS.md §N8). |
+| 2 | The rate limit counts an IPv6 connection by its /64 (`seal.js` `rateAddress`); IPv4 by the whole address. |
+| 3 | Opening the share sheet still seals, and so enters the forecast (the owner's rule: each seal is one entry). The sheet and `privacy.md` say so. Moving the seal to the share action is not done. |
+| 4 | Not limited further: one connection can make thirty entries a minute, and the binding allows no daily period. The leaderboard says one person may hold several places. A daily cap would need a counter in D1 or a Durable Object; not built. |
+| 5, 6 | `privacy.md` and §N8 state D1 Time Travel's recovery copy (up to thirty days) and a backstop: entries are deleted within six months of polling day if no leaderboard is published. |
+| 7, 8 | A failing limiter lets the seal through and logs the reason; the entry's row is built inside `storeEntry`'s guard, so a row that cannot be built fails the entry, not the seal. |
+| 9 | The vote error is rounded once, to `rank_entries.VOTE_DP` decimals, before ranking; the page prints that value at `vote_dp` from the artefact. |
+| 12 | `id_chars` and `vote_dp` are written into `leaderboard.json`; `leaderboard.js` reads them and types neither. |
+| 13 | `docs/DEPLOY-UAT.md` "Entries at launch": empty `entries` before the site is announced. |

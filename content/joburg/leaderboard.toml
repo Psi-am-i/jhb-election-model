@@ -3,7 +3,5 @@
 # no page is built and the nav has no entry. On results night the owner runs
 # src/rank_entries.py, which writes leaderboard.json beside this file, then
 # sets `published = true` and builds the site.
+# The page lists every entry; a reader finds their own by its link.
 published = false
-# How many places the page lists. A reader whose forecast placed lower finds
-# it by its link.
-top = 50

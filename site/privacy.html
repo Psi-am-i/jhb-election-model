@@ -97,10 +97,15 @@ you share it, three things happen on the site&rsquo;s server.</p>
   the site&rsquo;s own address, as the short links above do.</li>
 </ul>
 <h2 id="forecasts-entered">Forecasts entered</h2>
-<p>Every sealed forecast is entered in a ranking against the result. A person may
-enter several. The server stores, for each seal, in a database at Cloudflare:</p>
+<p>Every sealed forecast is entered in a ranking against the result. Opening the
+share sheet seals the forecast, and so enters it. Typing a
+name or changing the forecast with the sheet open seals again, and each seal
+is another entry. A person may enter several. The server stores, for each
+seal, in a database at Cloudflare:</p>
 <ul>
 <li>the forecast: every ward&rsquo;s winner, each party&rsquo;s vote and the governing parties;</li>
+<li>the forecast as the link carries it, and the version of the page&rsquo;s figures
+  it was made against;</li>
 <li>the name you typed on it, if any;</li>
 <li>the time of the seal;</li>
 <li>the seal&rsquo;s id, the part of the link&rsquo;s <code>s=</code> after the dot;</li>
@@ -108,18 +113,25 @@ enter several. The server stores, for each seal, in a database at Cloudflare:</p
 </ul>
 <p>No IP address, browser details, cookie or account is stored with it. To limit
 how often one connection can seal, the server counts seals per connection for
-one minute under a scrambled form of its address, which is not stored.</p>
+one minute under a scrambled form of its address, which is not stored. For an
+address of the newer kind, which holds many addresses for one connection,
+only its first half is used.</p>
 <p><strong>Why.</strong> To rank every forecast sealed before polls open against the result.
 Until the results only the number of entries is shown. After the count the
 leaderboard lists entries by place, under the name typed on each, or
 &ldquo;Anonymous&rdquo; and the start of its seal id if none was typed. The name is then
 public on the leaderboard.</p>
 <p><strong>How long.</strong> The entries are deleted ninety days after the leaderboard is
-published. The leaderboard itself stays on the site.</p>
+published, and within six months of polling day if no leaderboard is
+published. At that deletion the names come off the leaderboard: each entry
+then shows as &ldquo;Anonymous&rdquo; and the start of its seal id, and the leaderboard
+stays on the site that way. Cloudflare keeps a recovery copy of the
+database, from which deleted entries can be restored, for up to thirty days
+after they are deleted.</p>
 <p><strong>Removing an entry.</strong> Write to
 <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> with the link, or its
-seal id, and the entry is deleted, before or after the leaderboard is
-published.</p>
+seal id. The entry is deleted from the database and, once the leaderboard is
+published, from the leaderboard.</p>
 <h2 id="network-error-reports">Network error reports</h2>
 <p>Cloudflare&rsquo;s response headers <code>NEL</code> and <code>Report-To</code> ask your browser to report
 failed connections to the site, not successful ones, to Cloudflare&rsquo;s

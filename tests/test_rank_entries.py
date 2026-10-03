@@ -8,17 +8,24 @@ are constructed as the Worker stores them (share-edge.js ENTRY_COLUMNS, the
 forecast as JSON): the result itself, and variants worse on one key each.
 
 1. ORDER. Places follow `score_forecasts.rank_key`, each entry scored by
-   `score_forecasts.score`, compared with the order written out by hand.
+   `score_forecasts.score`, the vote error rounded to `VOTE_DP` decimals as
+   the page prints it, compared with the order written out by hand. An entry
+   off on seats with every ward right places below one right on seats with a
+   ward missed: the first key decides before the second.
 2. TIES (JUDGEMENT-CALLS §N7). Entries equal on all three keys are placed by
    the earlier seal, then by seal id; every place is distinct. A detector
    shown to fire when the tie rule is dropped.
+3. AFTER PUBLICATION. `--drop` removes an entry and renumbers the places;
+   `--anonymise` replaces every name; an unknown id is refused.
 3. REFUSALS. An entry under a context with no forecast.json, an unscorable
    entry, an export with a missing or extra column, a repeated seal id.
 4. THE EXPORT. `wrangler d1 execute --json`'s wrapper and a bare list.
 5. THE PAGE. Hidden until `published = true` (no page, no nav entry, an old
    copy removed); refused when published without the artefact; once
-   published, a page with no build-time figure whose one script is held to
-   its LIVE regions by `stats.script_writes`; the real flag is off today.
+   published, every entry in the artefact, and a page with no build-time
+   figure whose one script is held to its LIVE regions by
+   `stats.script_writes`; the real flag is off today. The artefact and its
+   source are gitignored, and deploy_check lets the built one ship.
 """
 from __future__ import annotations
 
@@ -61,23 +68,39 @@ def _setup():
     base = T._self_forecast(result, schema)
     wards = schema["x-ward-ids"]
     parties = schema["x-seat-context"]["parties"]
-    # one ward called for the party that came second there: worse on wards
-    w0 = wards[0]
-    other = next(p for p in parties if p != result["wards"][w0] and base["combined_share"].get(p, 0) > 0)
-    ward_miss = copy.deepcopy(base)
-    ward_miss["ward_calls"][0] = other
-    # a sliver of vote moved between the two largest parties: worse on the vote
-    big = sorted(base["combined_share"], key=lambda p: -base["combined_share"][p])[:2]
-    vote_miss = copy.deepcopy(base)
-    eps = schema["x-share-sum"]["target"] * 1e-5
-    vote_miss["combined_share"][big[0]] -= eps
-    vote_miss["combined_share"][big[1]] += eps
+    by_size = sorted(base["combined_share"], key=lambda p: -base["combined_share"][p])
+    target = schema["x-share-sum"]["target"]
+
+    def moved(frm, to, frac):
+        f = copy.deepcopy(base)
+        f["combined_share"][by_size[frm]] -= target * frac
+        f["combined_share"][by_size[to]] += target * frac
+        return f
+
+    # ward 0 called for another party, with the seats still right: worse on
+    # wards only
+    ward_miss = None
+    for p in parties:
+        if p == result["wards"][wards[0]] or base["combined_share"].get(p, 0) <= 0:
+            continue
+        f = copy.deepcopy(base)
+        f["ward_calls"][0] = p
+        if S.score(f, schema, result)["seat_error"] == 0:
+            ward_miss = f
+            break
+    assert ward_miss is not None, "no ward miss keeps the seats right"
+    # vote moved from the third party to the second: worse on the vote only,
+    # by more than the page's rounding
+    vote_miss = moved(2, 1, 1e-3)
+    # vote moved from the second party to the first: a seat off, every ward right
+    seat_miss = moved(1, 0, 1e-3)
     rows = [
         _row(1, base, 1_000, "Late perfect"),       # ties 2 and 3, sealed last of them
         _row(2, base, 500, ""),                     # ties, earliest second, the higher seal id
         _row(3, base, 500, "Same second"),          # ties, earliest second, ... see ids
         _row(4, ward_miss, 100, "Ward miss"),
         _row(5, vote_miss, 200, "Vote miss"),
+        _row(6, seat_miss, 50, "Seat miss"),
     ]
     return result, schema, rows
 
@@ -94,7 +117,7 @@ def order_problems(rows, board) -> list[str]:
     keyed = []
     for r in rows:
         s = S.score(json.loads(r["forecast"]), schema, result)
-        keyed.append(((s["seat_error"], -s["wards_called"], s["list_vote_error"]),
+        keyed.append(((s["seat_error"], -s["wards_called"], round(s["list_vote_error"], RE.VOTE_DP)),
                       r["sealed_at"], r["seal_id"]))
     want = [k[2][:RE.ID_CHARS] for k in sorted(keyed)]
     got = [x["id"] for x in board["rows"]]
@@ -120,11 +143,34 @@ def test_entries_are_ranked_by_the_three_keys_then_the_earlier_seal():
     assert first[2]["name"] == "Late perfect"
     # one ward wrong and a sliver of vote: each worse on exactly its key
     by = {r["name"]: r for r in first}
-    assert by["Ward miss"]["wards_called"] == board["wards"] - 1
-    assert by["Vote miss"]["list_vote_error"] >= by["Late perfect"]["list_vote_error"]
+    assert by["Ward miss"]["wards_called"] == board["wards"] - 1 and by["Ward miss"]["seat_error"] == 0
+    assert by["Vote miss"]["list_vote_error"] > by["Late perfect"]["list_vote_error"]
+    assert (by["Vote miss"]["seat_error"], by["Vote miss"]["wards_called"]) == (0, board["wards"])
     assert board["entries"] == len(rows)
     assert first[0]["sealed_at"] == "1970-01-01T00:08:20Z"
     assert set(first[0]) == {"place", "id", "name", "seat_error", "wards_called", "list_vote_error", "sealed_at"}
+    assert (board["id_chars"], board["vote_dp"]) == (RE.ID_CHARS, RE.VOTE_DP)
+    # the vote error is printed and ranked at the same precision
+    assert all(r["list_vote_error"] == round(r["list_vote_error"], RE.VOTE_DP) for r in first)
+
+
+def test_seats_decide_before_wards():
+    """Seat error first: an entry a seat off with every ward right places
+    below one right on seats with a ward missed, though it was sealed earlier."""
+    _result, _schema, rows = _setup()
+    by = {r["name"]: r for r in _board()["rows"]}
+    seat, ward = by["Seat miss"], by["Ward miss"]
+    assert seat["seat_error"] > 0 and seat["wards_called"] == _board()["wards"]
+    assert (ward["seat_error"], ward["wards_called"]) == (0, _board()["wards"] - 1)
+    assert seat["place"] > ward["place"] and seat["sealed_at"] < ward["sealed_at"]
+    # constructed violation: the first two keys swapped
+    real = S.rank_key
+    try:
+        S.rank_key = lambda sc: (-sc["wards_called"], sc["seat_error"], sc["list_vote_error"])
+        swapped = {r["name"]: r for r in _board()["rows"]}
+        assert swapped["Seat miss"]["place"] < swapped["Ward miss"]["place"]
+    finally:
+        S.rank_key = real
 
 
 def test_order_check_fires_when_the_tie_rule_is_dropped():
@@ -144,6 +190,82 @@ def test_order_check_fires_when_the_tie_rule_is_dropped():
     shared["rows"][1]["place"] = 1
     assert order_problems(rows, shared)
     assert order_problems(rows, board) == []
+
+
+def test_the_board_ranks_on_the_vote_error_it_prints():
+    """An entry off on the vote by less than the page prints ties with the
+    perfect entries and, sealed first, places first; ranked on the unrounded
+    value it would place after them while the page showed the same figures."""
+    result, schema, rows = _setup()
+    sliver = json.loads(rows[0]["forecast"])
+    big = sorted(sliver["combined_share"], key=lambda p: -sliver["combined_share"][p])[:2]
+    eps = schema["x-share-sum"]["target"] * 1e-5
+    sliver["combined_share"][big[0]] -= eps
+    sliver["combined_share"][big[1]] += eps
+    raw = S.score(sliver, schema, result)["list_vote_error"]
+    perfect = S.score(json.loads(rows[0]["forecast"]), schema, result)["list_vote_error"]
+    assert raw != perfect and round(raw, RE.VOTE_DP) == round(perfect, RE.VOTE_DP)
+    board = _board(rows + [_row(9, sliver, 10, "Sliver")])
+    assert board["rows"][0]["name"] == "Sliver"
+    real = RE.VOTE_DP
+    try:
+        RE.VOTE_DP = 15
+        assert _board(rows + [_row(9, sliver, 10, "Sliver")])["rows"][0]["name"] != "Sliver"
+    finally:
+        RE.VOTE_DP = real
+
+
+# ----------------------------------------------------------------- after publication
+
+def test_an_entry_is_dropped_or_every_name_anonymised_on_the_board():
+    board = _board()
+    gone = board["rows"][1]
+    dropped = RE.edit_board(board, drop=[_sig(3)])          # a whole seal id
+    assert gone["id"] == _sig(3)[:RE.ID_CHARS]
+    assert [r["id"] for r in dropped["rows"]] == [r["id"] for r in board["rows"] if r["id"] != gone["id"]]
+    assert [r["place"] for r in dropped["rows"]] == list(range(1, len(board["rows"])))
+    assert dropped["entries"] == board["entries"] - 1
+    assert board["rows"][1] is gone and gone["place"] == 2, "the board passed in was changed"
+    anon = RE.edit_board(board, anonymise=True)
+    assert all(r["name"] == "Anonymous #" + r["id"][:RE.ANON_CHARS] for r in anon["rows"])
+    assert not {r["name"] for r in anon["rows"]} & {"Late perfect", "Same second", "Ward miss"}
+    try:
+        RE.edit_board(board, drop=["not-a-seal-on-the-board"])
+        raise AssertionError("an unknown seal id was accepted")
+    except ValueError:
+        pass
+    # through the command line, on a board file, with no export
+    with tempfile.TemporaryDirectory() as t:
+        f = Path(t, "leaderboard.json")
+        f.write_text(json.dumps(board))
+        assert RE.main(["--out", str(f), "--drop", _sig(1)[:RE.ID_CHARS], "--anonymise"]) == 0
+        got = json.loads(f.read_text())
+        assert got["entries"] == board["entries"] - 1
+        assert _sig(1)[:RE.ID_CHARS] not in {r["id"] for r in got["rows"]}
+        assert all(r["name"].startswith("Anonymous #") for r in got["rows"])
+
+
+def test_the_board_is_kept_out_of_git():
+    for path in ("content/joburg/leaderboard.json", "site/leaderboard/leaderboard.json"):
+        p = subprocess.run(["git", "-C", str(ROOT), "check-ignore", "-q", path])
+        assert p.returncode == 0, f"{path} is not gitignored"
+    import deploy_check
+    assert deploy_check.SHIPPED_UNCOMMITTED == {f"{LB.LB_DIR}/leaderboard.json"}
+    # the built board ships uncommitted; anything else beside it does not
+    with tempfile.TemporaryDirectory() as t:
+        repo = Path(t)
+        site = repo / "site"
+        (site / LB.LB_DIR / "js").mkdir(parents=True)
+        (site / "index.html").write_text("<p>page</p>")
+        git = lambda *a: subprocess.run(["git", "-C", str(repo), *a], check=True, capture_output=True)
+        git("init", "-q")
+        git("add", "-A")
+        git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "site")
+        (site / LB.LB_DIR / "leaderboard.json").write_text("{}")
+        assert deploy_check.untracked(site, root=repo) == []
+        (site / LB.LB_DIR / "js" / "leaderboard.js").write_text("x")
+        (site / "leaderboard.json").write_text("{}")
+        assert deploy_check.untracked(site, root=repo) == ["leaderboard.json", f"{LB.LB_DIR}/js/leaderboard.js"]
 
 
 # ----------------------------------------------------------------- 3
@@ -201,7 +323,7 @@ def _content(published: bool, with_board: bool = True) -> Path:
     t = Path(tempfile.mkdtemp(prefix="lb-"))
     (t / "joburg").mkdir()
     (t / "joburg" / "leaderboard.toml").write_text(
-        f"published = {'true' if published else 'false'}\ntop = 2\n")
+        f"published = {'true' if published else 'false'}\n")
     if with_board:
         (t / "joburg" / "leaderboard.json").write_text(json.dumps(_board()))
     return t
@@ -209,7 +331,7 @@ def _content(published: bool, with_board: bool = True) -> Path:
 
 def test_the_leaderboard_is_hidden_until_the_flag_is_set():
     # the real flag: off, so no page and no nav entry
-    assert LB.settings("joburg") == {"published": False, "top": LB.settings("joburg")["top"]}
+    assert LB.settings("joburg") == {"published": False}
     assert not (ROOT / "site" / LB.LB_DIR).exists()
     assert ("leaderboard/", "leaderboard") not in B.nav_items()
     assert 'href="leaderboard/"' not in B.nav_for("forecast")
@@ -232,7 +354,7 @@ def test_the_leaderboard_is_hidden_until_the_flag_is_set():
         written = LB.write_assets(out, "joburg", _content(True))
         assert sorted(written) == ["leaderboard/js/leaderboard.js", "leaderboard/leaderboard.json"]
         data = json.loads((out / "leaderboard" / "leaderboard.json").read_text())
-        assert data["top"] == 2 and len(data["rows"]) == 5
+        assert "top" not in data and len(data["rows"]) == data["entries"] == len(_setup()[2])
     finally:
         shutil.rmtree(out)
 
@@ -263,11 +385,11 @@ def test_the_published_page_holds_no_figure_and_its_script_only_its_regions():
 def test_a_reader_s_link_finds_their_entry_id():
     script = r"""
 const { idOf } = await import("%s");
-const s = "lz3k2a." + "%s";
+const s = "lz3k2a." + "%s", n = %d;
 process.stdout.write(JSON.stringify([
-  idOf("https://joburg.whysoserious.city/your-forecast/?v=1&c=x&f=AA&n=T&s=" + s),
-  idOf(s), idOf("%s"), idOf("nonsense"), idOf("https://x.test/?f=1")]));
-""" % ((ROOT / "interactive/js/leaderboard.js").as_uri(), _sig(7), _sig(7))
+  idOf("https://joburg.whysoserious.city/your-forecast/?v=1&c=x&f=AA&n=T&s=" + s, n),
+  idOf(s, n), idOf("%s", n), idOf("nonsense", n), idOf("https://x.test/?f=1", n)]));
+""" % ((ROOT / "interactive/js/leaderboard.js").as_uri(), _sig(7), RE.ID_CHARS, _sig(7))
     with tempfile.TemporaryDirectory() as t:
         f = Path(t, "id.mjs")
         # the module touches the DOM at load: give it a stand-in
@@ -276,7 +398,7 @@ process.stdout.write(JSON.stringify([
                      "globalThis.fetch = () => new Promise(() => {});\n" + script)
         p = subprocess.run(["node", str(f)], capture_output=True, text=True, timeout=30)
     assert p.returncode == 0, p.stderr
-    want = _sig(7)[:12]
+    want = _sig(7)[:RE.ID_CHARS]
     assert json.loads(p.stdout) == [want, want, want, "", ""]
 
 

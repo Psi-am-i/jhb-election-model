@@ -167,7 +167,7 @@ def test_every_seal_is_stored_once_and_a_failed_insert_keeps_the_seal():
 def test_entry_check_fires_on_each_constructed_violation():
     e, src = edge(), W.source()
     for a, b in (
-        ("const stored = storeEntry(env, entryRow(s, fields, read, got.D));", "const stored = null;"),
+        ("const stored = storeEntry(env, () => entryRow(s, fields, read, got.D));", "const stored = null;"),
         ('"INSERT OR IGNORE INTO entries ("', '"INSERT INTO entries ("'),
         ("  } catch {\n    console.error({ event: \"entry\", stored: false, reason: \"insert failed\" });\n  }",
          "  } finally {}"),
@@ -184,6 +184,35 @@ def test_entry_check_fires_on_each_constructed_violation():
         "async function sealLimited(request, env) {",
         "async function sealLimited(request, env) {\n  globalThis.__ip = request.headers.get(\"CF-Connecting-IP\");")
     assert entry_problems(src, {"share-edge.js": leaky})
+
+
+def row_failure_problems(src: str, overrides: dict | None = None) -> list[str]:
+    """A row that cannot be built fails the entry, not the seal: the seal is
+    returned, nothing is inserted, and the reason alone is logged."""
+    S = W._share_setup()
+    before, _ = _times(S)
+    e = src_edge(overrides)
+    broken = e.replace("export function entryRow(s, fields, got, D) {",
+                       "export function entryRow(s, fields, got, D) {\n  throw new Error(\"no row\");", 1)
+    r = W.run_worker(src, [_seal(S, before)], S["files"], {**(overrides or {}), "share-edge.js": broken})[0]
+    out = []
+    if r["status"] != 200 or "s" not in json.loads(r["body"] or "{}"):
+        out.append(f"a row that cannot be built failed the seal: {r['status']} {r['body'][:120]}")
+    if [s for s in r["statements"] if s["sql"].startswith("INSERT")]:
+        out.append("a row that cannot be built was inserted")
+    if r["errors"] != [{"event": "entry", "stored": False, "reason": "row failed"}]:
+        out.append(f"a row that cannot be built logged {r['errors']}")
+    return out + _leaks(r)
+
+
+def test_a_row_that_cannot_be_built_keeps_the_seal():
+    assert row_failure_problems(W.source()) == []
+    e = edge()
+    a = "storeEntry(env, () => entryRow(s, fields, read, got.D))"
+    assert e.count(a) == 1
+    # the row built before the guard, as first written: the seal fails
+    old = e.replace(a, "storeEntry(env, (row => () => row)(entryRow(s, fields, read, got.D)))")
+    assert row_failure_problems(W.source(), {"share-edge.js": old})
 
 
 def test_a_stored_forecast_is_seated_by_the_scorer_as_the_link_called_it():
@@ -343,9 +372,50 @@ def test_limit_check_fires_on_each_constructed_violation():
     ):
         assert e.count(a) == 1, a
         assert limit_problems(src, {"share-edge.js": e.replace(a, b)}), f"blind to {b!r}"
-    a = 'enc.encode("rate1\\n" + address)'
+    a = 'enc.encode("rate1\\n" + rateAddress(address))'
     assert s.count(a) == 1
     assert limit_problems(src, {"seal.js": s.replace(a, "enc.encode(\"rate1\")")})
+
+
+#: Two addresses in one /64, written differently, and one in the next /64.
+V6_SAME = ("2001:db8:0:1::7", "2001:0db8:0000:0001:ffff:ffff:ffff:ffff")
+V6_NEXT = "2001:db8:0:2::7"
+
+
+def v6_problems(src: str, overrides: dict | None = None) -> list[str]:
+    """An IPv6 connection is counted by its /64; IPv4 by its whole address;
+    a limiter that fails lets the seal through and logs the reason alone."""
+    S = W._share_setup()
+    before, _ = _times(S)
+    runs = W.run_worker(src, [
+        _seal(S, before, limit=1, ip=V6_SAME[0]),            # 0 counted
+        _seal(S, before + 1000, limit=1, ip=V6_SAME[1]),     # 1 same /64: refused
+        _seal(S, before + 2000, limit=1, ip=V6_NEXT),        # 2 next /64: passes
+        _seal(S, before + 3000, limit=1, ip="203.0.113.8"),  # 3 IPv4 neighbours are
+        _seal(S, before + 4000, limit=1, ip="203.0.113.9"),  # 4 counted apart
+        _seal(S, before + 5000, limit="throw"),              # 5 the limiter fails: sealed
+    ], S["files"], overrides)
+    out = []
+    for i, (r, st) in enumerate(zip(runs, [200, 429, 200, 200, 200, 200])):
+        if r["status"] != st:
+            out.append(f"v6 case {i}: {r['status']} {r['body'][:120]}, want {st}")
+        out += _leaks(r)
+        blob = json.dumps({k: r[k] for k in ("body", "logs", "errors", "statements", "rows", "limitKeys")})
+        out += [f"v6 case {i}: {a!r} reached the output" for a in (*V6_SAME, V6_NEXT) if a in blob]
+    if runs[5]["errors"] != [{"event": "seal_limit", "counted": False, "reason": "limiter failed"}]:
+        out.append(f"a failed limiter logged {runs[5]['errors']}")
+    return out
+
+
+def test_an_ipv6_connection_is_counted_by_its_slash_64():
+    assert v6_problems(W.source()) == []
+    e, s = edge(), (ROOT / "src" / "seal.js").read_text(encoding="utf-8")
+    a = 'enc.encode("rate1\\n" + rateAddress(address))'
+    assert s.count(a) == 1
+    assert v6_problems(W.source(), {"seal.js": s.replace(a, 'enc.encode("rate1\\n" + address)')})
+    a = '  } catch {\n    console.error({ event: "seal_limit", counted: false, reason: "limiter failed" });\n    return false;\n  }'
+    assert e.count(a) == 1
+    assert v6_problems(W.source(), {"share-edge.js": e.replace(a, "  } finally {}")})
 
 
 # ---------------------------------------------------------------- config and text
@@ -389,6 +459,13 @@ PRIVACY_MUST = (
     "the model's version",
     "No IP address, browser details, cookie or account",
     "ninety days after the leaderboard is published",
+    "within six months of polling day if no leaderboard is published",
+    "the names come off the leaderboard",
+    "for up to thirty days after they are deleted",
+    "share sheet seals the forecast, and so enters it",
+    "the forecast as the link carries it",
+    "from the leaderboard",
+    "only its first half",
     "public on the leaderboard",
     "psi@whysoserious.city",
     "seal id",
@@ -408,6 +485,8 @@ def test_the_privacy_page_says_what_an_entry_holds_and_for_how_long():
     text = PRIVACY.read_text(encoding="utf-8")
     assert privacy_problems(text) == []
     assert privacy_problems(re.sub(r"ninety days after the leaderboard is\s+published", "a while", text))
+    assert privacy_problems(re.sub(r"and so enters\s+it", "", text))
+    assert privacy_problems(re.sub(r"within six months of\s+polling day", "", text))
     assert privacy_problems(text + "\nThe server keeps no record of what it signed.\n")
 
 

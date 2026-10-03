@@ -146,8 +146,15 @@ simple = { limit = 30, period = 60 }
 #
 # Results night (src/rank_entries.py), once the result is ingested:
 #   npx wrangler d1 execute joburg-entries --remote --json --command "SELECT seal_id, sealed_at, label, model_ref, context_ref, state, forecast FROM entries" > ~/joburg-entries.json
-# Deletion, 90 days after the leaderboard is published (docs-public/privacy.md):
+# Deletion, 90 days after the leaderboard is published, or within six months
+# of polling day if none is (docs-public/privacy.md; JUDGEMENT-CALLS.md §N8):
 #   npx wrangler d1 execute joburg-entries --remote --command "DELETE FROM entries"
+#   rm ~/joburg-entries.json
+#   .venv/bin/python src/rank_entries.py --anonymise     (then build and deploy)
 # One entry, on a reader's request (the seal id is the part of the link's s=
 # after the dot):
 #   npx wrangler d1 execute joburg-entries --remote --command "DELETE FROM entries WHERE seal_id = '<seal id>'"
+#   .venv/bin/python src/rank_entries.py --drop <seal id> (once published; then build and deploy)
+# At launch, before the first live seal: empty the table of test seals
+# (docs/DEPLOY-UAT.md, "Entries at launch"):
+#   npx wrangler d1 execute joburg-entries --remote --command "DELETE FROM entries"

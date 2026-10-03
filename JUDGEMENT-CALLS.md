@@ -3303,7 +3303,10 @@ badge.
 `score_forecasts.rank`'s `saved_at`; the leaderboard (`/leaderboard/`) prints
 the place.
 
-**Now.** Every sealed forecast is one entry (owner, 2026-10-03). Entries equal
+**Now.** Every sealed forecast is one entry, and every entry is ranked and
+listed (owner, 2026-10-03). The vote error is rounded to one decimal
+(`rank_entries.VOTE_DP`) before ranking, the precision the leaderboard prints,
+so two entries that look equal on all three keys are equal. Entries equal
 on seats, ward calls and vote (§N4) are placed by the earlier seal, the
 Worker's own clock at sealing, to the second. Entries sealed in the same
 second are placed by seal id, in character order. Every entry has its own
@@ -3316,7 +3319,9 @@ fixed when the seal is made.
 
 **How to check it.** `tests/test_rank_entries.py` ranks three entries equal on
 all keys, two of them sealed in the same second, and shows the order check
-fires when the seal times are dropped.
+fires when the seal times are dropped. It also shows an entry off on the
+vote by less than the printed decimal tying with the perfect entries, and
+placing apart from them when ranked unrounded.
 
 ### §N8 · Entries are deleted ninety days after the leaderboard is published — ⚖️ judgement (2026-10-03)
 
@@ -3324,16 +3329,28 @@ fires when the seal times are dropped.
 command is in `wrangler.toml`'s ENTRIES note.
 
 **Now.** The D1 table `entries` (`migrations/0001_entries.sql`) is emptied
-ninety days after `/leaderboard/` is published. The leaderboard stays on the
-site. An entry is deleted sooner on request, by its seal id.
+ninety days after `/leaderboard/` is published, and within six months of
+polling day if no leaderboard is published. The same day the owner deletes
+the results-night export (`~/joburg-entries.json`) and replaces every name on
+the leaderboard with "Anonymous #" and the seal id's start
+(`rank_entries.py --anonymise`); the leaderboard stays on the site. An entry
+is deleted sooner on request, by its seal id: from D1, and once published
+from the leaderboard (`rank_entries.py --drop`). The leaderboard's data is
+gitignored, at `content/<city>/` and in `site/`, so a removed name is not kept
+in the repository's history; `deploy_check` ships the built copy uncommitted.
+D1 Time Travel keeps a restorable copy of deleted rows for up to thirty days
+(seven on the Free plan); the privacy page says so.
 
 **Why ninety.** Typed. Long enough for a reader to find their entry, query
 it, or ask for a correction after the results; nothing in the ranking needs
-the rows once the leaderboard is written. Nothing measured sets it.
+the rows once the leaderboard is written. Nothing measured sets it. **Why six
+months.** Typed: a limit that holds if results night never produces a
+leaderboard, set past the ninety days that follow a normal count.
 
 **How to check it.** The deletion is a command the owner runs; nothing runs
 it on a schedule. `tests/test_entries.py` holds the privacy page to the
-sentence.
+sentences; `tests/test_rank_entries.py` shows `--drop` and `--anonymise` on a
+board and both paths gitignored.
 
 ### §N9 · Thirty seals per connection per minute (the SEAL_LIMIT binding) — 🔴 typed (2026-10-03)
 

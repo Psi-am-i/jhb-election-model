@@ -79,3 +79,11 @@ whysoserious.city/
 backups/
 # marketing/ lives in the private atlas-jhb-model-newsdesk repo
 marketing/
+
+# The leaderboard of readers' entries (src/rank_entries.py, src/build_leaderboard.py).
+# It carries the names readers typed. Kept out of this public repository so that
+# an entry removed on request (`rank_entries.py --drop`) or the names removed at
+# the ninety-day deletion (`--anonymise`) are not kept in its history
+# (JUDGEMENT-CALLS.md §N8). deploy_check lets the built copy ship uncommitted.
+content/*/leaderboard.json
+site/leaderboard/leaderboard.json

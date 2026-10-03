@@ -71,6 +71,25 @@ export async function checkSeal(secret, fields, s) {
 // HMAC of the address under the seal key, with its own label so it can never
 // equal a seal's signature. base64url, the first 22 characters (132 bits).
 export async function rateKey(secret, address) {
-  const sig = await crypto.subtle.sign("HMAC", await hmacKey(secret, "sign"), enc.encode("rate1\n" + address));
+  const sig = await crypto.subtle.sign("HMAC", await hmacKey(secret, "sign"), enc.encode("rate1\n" + rateAddress(address)));
   return b64url(sig).slice(0, 22);
+}
+
+// The part of an address the limiter counts by: an IPv4 address whole (also
+// one written inside IPv6, "::ffff:a.b.c.d"); an IPv6 address by its first
+// four groups, the /64 one connection holds, since its holder can pick any of
+// the 2^64 addresses below it (review of the entries, 2026-10-03). Anything
+// that is not an address is counted as written.
+export function rateAddress(address) {
+  const a = String(address ?? "").trim().toLowerCase();
+  if (!a.includes(":") || a.includes(".")) return a;
+  const halves = a.split("::");
+  if (halves.length > 2) return a;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  const fill = halves.length === 2 ? 8 - head.length - tail.length : 0;
+  if (fill < 0 || (halves.length === 1 && head.length !== 8)) return a;
+  const groups = [...head, ...Array(fill).fill("0"), ...tail];
+  if (!groups.every(g => /^[0-9a-f]{1,4}$/.test(g))) return a;
+  return groups.slice(0, 4).map(g => g.replace(/^0+(?=.)/, "")).join(":") + "::/64";
 }

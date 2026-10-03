@@ -188,9 +188,11 @@ for (const c of cases) {
   const fetched = [], logs = [], errors = [], points = [], seatCalls = [], pending = [];
   limitKeys = [];
   const before = db.statements.length;
-  // c.entries: "record" (the run's fake D1) or "throw"; c.limit: SEAL_LIMIT's limit
+  // c.entries: "record" (the run's fake D1) or "throw"; c.limit: SEAL_LIMIT's
+  // limit, or "throw" for a limiter that fails
   const entries = c.entries ? { ENTRIES: fakeD1(c.entries) } : {};
-  const limits = c.limit ? { SEAL_LIMIT: limiter(c.limit) } : {};
+  const limits = c.limit === "throw" ? { SEAL_LIMIT: { async limit() { throw new Error("limiter down"); } } }
+    : c.limit ? { SEAL_LIMIT: limiter(c.limit) } : {};
   // c.now: the Worker's clock for this case (ms), for the polls-open refusal
   Date.now = c.now ? () => c.now : realNow;
   // c.seats: a fake seat Worker answering every /v1/card with this status and body

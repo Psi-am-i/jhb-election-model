@@ -195,6 +195,18 @@ env -u CLOUDFLARE_API_TOKEN npx wrangler versions list
 env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy <previous-version-id>@100%
 ```
 
+## Entries at launch
+
+Every seal the live Worker makes is stored as an entry in the D1 database
+`joburg-entries`, including seals made while testing on the live host. Once
+the checks above pass and before the site is announced, empty the table:
+
+```sh
+env -u CLOUDFLARE_API_TOKEN npx wrangler d1 execute joburg-entries --remote --command "DELETE FROM entries"
+```
+
+Preview versions refuse `/seal/1`, so a UAT check never makes an entry.
+
 ## Counting arrivals
 
 ### Analytics Engine (the count; three months)

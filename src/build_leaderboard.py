@@ -1,8 +1,7 @@
 """Build ``/leaderboard/``: every sealed forecast ranked against the result.
 
 Hidden until the result is in. ``content/<city>/leaderboard.toml`` holds the
-flag (``published``) and how many places the page lists (``top``). With the
-flag off the build writes no page, removes any earlier one, and the nav has no
+flag (``published``). The page lists every entry. With the flag off the build writes no page, removes any earlier one, and the nav has no
 entry (``build_site.nav_for``). With it on, ``content/<city>/leaderboard.json``
 (written by ``src/rank_entries.py``) must exist, and the build writes:
 
@@ -10,10 +9,12 @@ entry (``build_site.nav_for``). With it on, ``content/<city>/leaderboard.json``
     The page: a shell with two LIVE regions and no figure, rendered, audited
     and scanned by ``build_site`` like every other page.
 ``leaderboard/leaderboard.json``
-    The artefact, with ``top`` added.
+    The artefact. Gitignored, like its source, so a name removed from the
+    board is not kept in git; ``deploy_check`` lets this one file ship
+    uncommitted.
 ``leaderboard/js/leaderboard.js``
     ``interactive/js/leaderboard.js``, the regions' one writer
-    (``stats.LIVE_WRITERS``): it lists the first places and finds a reader's
+    (``stats.LIVE_WRITERS``): it lists every entry and finds a reader's
     entry by the link they paste, or the ``s`` in the page's own address.
 
 Its style is ``src/css/page-board.css``, in the site's one stylesheet.
@@ -41,16 +42,16 @@ class LeaderboardBuildError(SystemExit):
 
 
 def settings(city: str, content: Path | None = None) -> dict:
-    """``{"published": bool, "top": int}`` from the city's leaderboard.toml;
-    a city without the file has no leaderboard."""
+    """``{"published": bool}`` from the city's leaderboard.toml; a city
+    without the file has no leaderboard."""
     f = (content or REPO_ROOT / "content") / city / "leaderboard.toml"
     if not f.exists():
-        return {"published": False, "top": 0}
+        return {"published": False}
     data = tomllib.loads(f.read_text(encoding="utf-8"))
-    published, top = data.get("published"), data.get("top")
-    if not isinstance(published, bool) or not isinstance(top, int) or top < 1:
-        raise LeaderboardBuildError(f"{f}: `published` must be true or false and `top` a whole number")
-    return {"published": published, "top": top}
+    published = data.get("published")
+    if not isinstance(published, bool) or set(data) != {"published"}:
+        raise LeaderboardBuildError(f"{f}: it holds one key, `published`, true or false")
+    return {"published": published}
 
 
 def published(city: str, content: Path | None = None) -> bool:
@@ -58,23 +59,24 @@ def published(city: str, content: Path | None = None) -> bool:
 
 
 def board(city: str, content: Path | None = None) -> dict:
-    """The artefact rank_entries wrote, with ``top`` added. Refuses when the
-    flag is on and there is no artefact."""
+    """The artefact rank_entries wrote. Refuses when the flag is on and there
+    is no artefact."""
     f = (content or REPO_ROOT / "content") / city / "leaderboard.json"
     if not f.exists():
         raise LeaderboardBuildError(f"{f} does not exist: run src/rank_entries.py before "
                                     f"setting published = true")
     data = json.loads(f.read_text(encoding="utf-8"))
-    for k in ("entries", "wards", "rows"):
+    for k in ("entries", "wards", "id_chars", "vote_dp", "rows"):
         if k not in data:
             raise LeaderboardBuildError(f"{f} lacks {k!r}: not written by src/rank_entries.py")
-    return {**data, "top": settings(city, content)["top"]}
+    return data
 
 
 BODY = """<main class="lb">
 <p>Each forecast sealed before polls opened is one entry. Entries are ranked against the result:
 seats per party first, then wards called right, then the vote per party on the list ballot. Equal on all three,
-the earlier seal places higher. <a href="methodology">The measures</a> ·
+the earlier seal places higher. One person may enter several forecasts, so may hold several places.
+<a href="methodology">The measures</a> ·
 <a href="privacy">How entries are kept</a></p>
 <h2 id="lb-find">Find your forecast</h2>
 <div class="lb-mine" data-live="lb-mine">
@@ -83,7 +85,7 @@ spellcheck="false"></label><button class="btn" type="submit">Find it</button></f
 <p class="lb-found" role="status"></p>
 <div class="lb-yours"></div>
 </div>
-<h2 id="lb-leaders">The leaders</h2>
+<h2 id="lb-leaders">Every entry</h2>
 <div class="lb-top" data-live="lb-top"></div>
 </main>
 """

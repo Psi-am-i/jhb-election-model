@@ -308,11 +308,20 @@ export function entryRow(s, fields, got, D) {
           JSON.stringify(B.forecastBody(got.state, D.ctx, { coalition: got.coalition }))];
 }
 
-// Store one entry. Never throws: the seal is already the reader's. A failure
-// is logged by reason alone, with nothing from the entry.
-export async function storeEntry(env, row) {
+// Store one entry. Never throws: the seal is already the reader's. `makeRow`
+// builds the row inside the guard, so a forecast that cannot be put in the
+// stored shape fails the entry, not the seal. A failure is logged by reason
+// alone, with nothing from the entry.
+export async function storeEntry(env, makeRow) {
   if (!env.ENTRIES) {
     console.error({ event: "entry", stored: false, reason: "no ENTRIES binding" });
+    return;
+  }
+  let row;
+  try {
+    row = makeRow();
+  } catch {
+    console.error({ event: "entry", stored: false, reason: "row failed" });
     return;
   }
   try {
@@ -350,14 +359,21 @@ export async function entryCount(request, env, url, ctx) {
 // JUDGEMENT-CALLS.md §N9) counts seals per connection. Its key is an HMAC of
 // the connection's address under SEAL_KEY (seal.js rateKey), so neither this
 // Worker nor the counter holds the address; the counter forgets it after the
-// period. This is the only place the address is read. Without the binding
-// nothing is limited.
+// period. An IPv6 connection is counted by its /64 (seal.js rateAddress).
+// This is the only place the address is read. Without the binding nothing is
+// limited; when the limiter fails, the seal goes ahead and the reason alone
+// is logged.
 export const RATE_LIMITED = "Too many links sealed from this connection. Try again in a minute.";
 async function sealLimited(request, env) {
   if (!env.SEAL_LIMIT) return false;
-  const key = await rateKey(env.SEAL_KEY, request.headers.get("CF-Connecting-IP") || "");
-  const { success } = await env.SEAL_LIMIT.limit({ key });
-  return !success;
+  try {
+    const key = await rateKey(env.SEAL_KEY, request.headers.get("CF-Connecting-IP") || "");
+    const { success } = await env.SEAL_LIMIT.limit({ key });
+    return !success;
+  } catch {
+    console.error({ event: "seal_limit", counted: false, reason: "limiter failed" });
+    return false;
+  }
 }
 
 // Sealing needs a forecast this page reads, under a name a card may carry.
@@ -377,7 +393,7 @@ export async function seal(request, env, url, { preview = false, ctx = null } = 
   const opens = Date.parse(got.D.forecast.election.polls_open);
   if (!(now < opens)) return json({ error: "Polls are open: a forecast can no longer be sealed." }, 403);
   const s = await makeSeal(env.SEAL_KEY, got.fields, now);
-  const stored = storeEntry(env, entryRow(s, fields, read, got.D));
+  const stored = storeEntry(env, () => entryRow(s, fields, read, got.D));
   if (ctx?.waitUntil) ctx.waitUntil(stored); else await stored;
   return json({ s });
 }

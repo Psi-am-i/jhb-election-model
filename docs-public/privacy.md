@@ -71,10 +71,15 @@ you share it, three things happen on the site's server.
 
 ## Forecasts entered
 
-Every sealed forecast is entered in a ranking against the result. A person may
-enter several. The server stores, for each seal, in a database at Cloudflare:
+Every sealed forecast is entered in a ranking against the result. Opening the
+share sheet seals the forecast, and so enters it. Typing a
+name or changing the forecast with the sheet open seals again, and each seal
+is another entry. A person may enter several. The server stores, for each
+seal, in a database at Cloudflare:
 
 - the forecast: every ward's winner, each party's vote and the governing parties;
+- the forecast as the link carries it, and the version of the page's figures
+  it was made against;
 - the name you typed on it, if any;
 - the time of the seal;
 - the seal's id, the part of the link's `s=` after the dot;
@@ -82,7 +87,9 @@ enter several. The server stores, for each seal, in a database at Cloudflare:
 
 No IP address, browser details, cookie or account is stored with it. To limit
 how often one connection can seal, the server counts seals per connection for
-one minute under a scrambled form of its address, which is not stored.
+one minute under a scrambled form of its address, which is not stored. For an
+address of the newer kind, which holds many addresses for one connection,
+only its first half is used.
 
 **Why.** To rank every forecast sealed before polls open against the result.
 Until the results only the number of entries is shown. After the count the
@@ -91,12 +98,17 @@ leaderboard lists entries by place, under the name typed on each, or
 public on the leaderboard.
 
 **How long.** The entries are deleted ninety days after the leaderboard is
-published. The leaderboard itself stays on the site.
+published, and within six months of polling day if no leaderboard is
+published. At that deletion the names come off the leaderboard: each entry
+then shows as "Anonymous" and the start of its seal id, and the leaderboard
+stays on the site that way. Cloudflare keeps a recovery copy of the
+database, from which deleted entries can be restored, for up to thirty days
+after they are deleted.
 
 **Removing an entry.** Write to
 [psi@whysoserious.city](mailto:psi@whysoserious.city) with the link, or its
-seal id, and the entry is deleted, before or after the leaderboard is
-published.
+seal id. The entry is deleted from the database and, once the leaderboard is
+published, from the leaderboard.
 
 ## Network error reports
 

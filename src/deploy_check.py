@@ -33,6 +33,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+#: Files under site/ that ship without being committed. The leaderboard's
+#: data carries the names readers typed; it is gitignored so a name removed
+#: from it is not kept in this public repository's history (JUDGEMENT-CALLS.md
+#: §N8). Built by build_leaderboard from content/<city>/leaderboard.json.
+SHIPPED_UNCOMMITTED = {"leaderboard/leaderboard.json"}
+
+
 def untracked(site: Path, root: Path | None = None) -> list[str]:
     """Files under ``site`` that git does not track, as paths relative to it.
 
@@ -56,8 +63,10 @@ def untracked(site: Path, root: Path | None = None) -> list[str]:
                              check=True, capture_output=True).stdout.decode()
     tracked = {Path(t).relative_to(rel).as_posix() for t in tracked.split("\0") if t}
     on_disk = {f.relative_to(site).as_posix() for f in site.rglob("*") if f.is_file()}
-    # Finder's .DS_Store is the one exception: `site/.assetsignore` lists it.
-    return sorted(f for f in on_disk - tracked if Path(f).name != ".DS_Store")
+    # Finder's .DS_Store is excepted (`site/.assetsignore` lists it), and the
+    # files named in SHIPPED_UNCOMMITTED.
+    return sorted(f for f in on_disk - tracked
+                  if Path(f).name != ".DS_Store" and f not in SHIPPED_UNCOMMITTED)
 
 
 def check(city: str, site: Path, preview: bool, review: Path | None = None) -> list[str]:
