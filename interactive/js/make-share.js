@@ -89,7 +89,8 @@ export function cardOf(info) {
     ? "Governing: " + coalition.map(c => party(c).name).join(", ") + ". " + cs + " of " + council + " seats" + (cs >= majority ? "." : ", short of a majority.")
     : "";
   return {
-    title: info.edited ? cardTitle(info.name) : "The starting forecast",
+    // the reader's own once they have edited it or changed the model under it
+    title: info.edited || info.adjusted ? cardTitle(info.name) : "The starting forecast",
     lines: [{ text: info.election.city + " council, " + dateText(info.election.date) + " · " + council + " seats, " + majority + " for a majority", tone: "muted" }],
     map: { W: info.geom.W, H: info.geom.H, wards: info.geom.wards.map((w, i) => ({ path: w.path, fill: party(info.calls[i]).colour })) },
     mapNote: info.edited ? "Each ward in the colour of the party the reader called it for."

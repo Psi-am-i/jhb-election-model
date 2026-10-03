@@ -88,7 +88,7 @@ address. `--publish` refuses while that line is present. A build without
 live must not.
 
 Build `site/` and pass the number review as `HANDOVER.md` describes. One
-command builds every page, `/play/` ("play with the model") included; its
+command builds every page, `/your-forecast/` included; its
 draws are committed under `site/draws/` and upload with the rest
 (`site/.assetsignore` lists only `__pycache__`, `*.pyc` and `.DS_Store`). A
 re-export of the draws is a separate step (`src/export_draws.py`, then
@@ -128,9 +128,11 @@ curl -sI "$U/" | grep -iE '^(HTTP|content-type|x-robots-tag)'
 curl -sI "$U/share.jpg"     | grep -iE '^(HTTP|content-type)'     # 200 · image/jpeg
 curl -sI "$U/robots.txt"    | grep -iE '^(HTTP|content-type)'     # 200 · text/plain
 curl -sI "$U/regimes.json"  | grep -iE '^(HTTP|content-type)'     # 200 · application/json
-curl -sI "$U/play/"                 | grep -iE '^(HTTP|content-type)'   # 200 · text/html
-curl -sI "$U/play/js/model.js"      | grep -iE '^(HTTP|content-type)'   # 200 · text/javascript
-curl -sI "$U/play/py/manifest.json" | grep -iE '^(HTTP|content-type)'   # 200 · application/json
+curl -sI "$U/your-forecast/"                 | grep -iE '^(HTTP|content-type)'   # 200 · text/html
+curl -sI "$U/your-forecast/js/model.js"      | grep -iE '^(HTTP|content-type)'   # 200 · text/javascript
+curl -sI "$U/your-forecast/py/manifest.json" | grep -iE '^(HTTP|content-type)'   # 200 · application/json
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "$U/play/?t=5,0,0,0"   # 301 …/your-forecast/?t=5,0,0,0
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "$U/make/?v=1"         # 301 …/your-forecast/?v=1#break
 curl -sI "$U/draws/index.json"      | grep -iE '^(HTTP|content-type)'   # 200 · application/json
 curl -sI "$U/draws/base.bin"        | grep -iE '^(HTTP|content-type)'   # 200 · application/octet-stream
 for p in go x li fb ig g GO go/; do
@@ -140,9 +142,11 @@ done
 ```
 
 Then open `$U/?v=<anything>` in a browser and read the pages that changed. On
-`$U/play/`, wait for "The re-weighting code is ready", move a control, press
-"Share these settings", and open the copied link in a private window: it must
-show the same seat figures. The
+`$U/your-forecast/`, move a control, press "Share this forecast", and open the
+copied link in a private window: it must show the same seat figures. Scroll to
+"Break the model", give a ward to another party, press "Analyse my forecast",
+then copy section 2's link and open it in a private window: the ward and the
+analysis must come back. The
 arrival log line cannot be checked here: Workers Logs does not show Version URL
 requests. The loop above does write eight Analytics Engine points under the
 Version URL host; the count excludes them by host.
