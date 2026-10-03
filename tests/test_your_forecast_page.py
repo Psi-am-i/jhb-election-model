@@ -363,14 +363,16 @@ def test_every_page_links_it_and_it_has_its_own_card():
     assert html.count('property="og:image"') == 1
 
 
-def test_wide_section_1_stacks_the_map_over_the_seat_table_in_a_column_that_scrolls():
-    """Owner, 2026-10-03: on a wide screen the map sits ABOVE the seat table,
-    each the column's full width, in a sticky column never taller than the
-    window. On the built page the map's figure comes before the seat table's
-    inside the results grid; the stylesheets give the grid no second column
-    and the column a window-high cap with its own scroll. A constructed
-    side-by-side grid is caught, and the check goes quiet when it is
-    reverted."""
+def test_wide_section_1_stacks_the_map_over_the_seat_table_at_full_size():
+    """Owner, 2026-10-03 ("stacked … plenty of space … too small"): on a wide
+    screen the map sits ABOVE the seat table, each the results column's full
+    width, in the page's flow; the levers' column is the one that holds still
+    and scrolls on its own. On the built page the map's figure comes before
+    the seat table's inside the results grid; the stylesheets give the grid
+    no second column, put no height cap or inner scroll on the results
+    column, and cap the map only at the window's height. A constructed
+    side-by-side grid and a capped results column are caught, and the check
+    goes quiet when they are reverted."""
     site = _built()
     html = _html(site)
     grid = html[html.index('class="pl-rgrid"'):]
@@ -381,11 +383,16 @@ def test_wide_section_1_stacks_the_map_over_the_seat_table_in_a_column_that_scro
     def side_by_side(css: str) -> list[str]:
         return [m.group(0) for m in re.finditer(r"\.pl-rgrid\{[^}]*grid-template-columns[^}]*\}", css)]
 
+    def capped(css: str) -> list[str]:
+        return [m.group(0) for m in re.finditer(r"\.pl-resultscol\{[^}]*(?:max-height|overflow)[^}]*\}", css)]
+
     assert not side_by_side(play + yf)
     assert side_by_side(play + ".pl-rgrid{display:grid;grid-template-columns:1fr 330px;}")
-    col = re.search(r"\.pl-resultscol\{max-height:calc\(100vh[^}]*overflow-y:auto", play)
-    assert col, "the results column has no window-high cap with its own scroll"
-    assert re.search(r"\.yf \.pl-wardmap\{max-height:var\(--yf-map-h\);\}", yf)
+    assert not capped(play + yf)
+    assert capped(play + ".pl-resultscol{max-height:calc(100vh - 60px);overflow-y:auto;}")
+    assert re.search(r"\.pl-controls\{[^}]*position:sticky[^}]*max-height:calc\(100vh[^}]*overflow-y:auto", play), \
+        "the levers' column does not hold still with its own scroll"
+    assert re.search(r"\.yf \.pl-wardmap\{max-height:calc\(100vh - \d+px\);\}", yf)
 
 
 def test_every_footnote_marker_names_its_notes_position():
@@ -427,7 +434,7 @@ def test_the_vote_is_a_table_with_no_spinner_and_no_inner_scroll():
     assert prlist and not any("max-height" in r or "overflow" in r for r in prlist), prlist
     assert re.search(r"\.prrow\{display:grid;grid-template-columns:minmax\(0,\d+px\) minmax\(0,1fr\) \d+px;", css)
     assert re.search(r"\.wltable\{[^}]*table-layout:fixed", css)
-    assert 'el("table", { className: "wltable" }' in js and 'el("details", { className: "prmore" }' in js
+    assert 'el("table", { className: k ? "wltable wlcont" : "wltable" }' in js and 'el("details", { className: "prmore" }' in js
 
 
 # -- section 1: the engine -------------------------------------------------------

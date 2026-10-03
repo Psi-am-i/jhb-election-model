@@ -14,9 +14,13 @@
    as the figures' (the name cell's own type is for a party's name) */
 .st-head .st-name{display:block;font:650 10.5px var(--sans);color:var(--ink-3);}
 .st-head .st-graphic{text-align:center;}
-.st-name{display:flex;align-items:center;gap:7px;min-width:0;font-size:13.5px;font-weight:550;
-  color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.st-sub{font-weight:400;font-size:12px;color:var(--ink-3);}
+/* a long name wraps under itself rather than being cut: the chip is inline
+   so the text is an ordinary line box */
+.st-name{display:block;min-width:0;font-size:13.5px;font-weight:550;line-height:1.25;
+  color:var(--ink);overflow-wrap:anywhere;padding:3px 0 3px 16px;text-indent:-16px;}
+.st-head .st-name{padding-left:0;text-indent:0;}
+.st-name .pchip{margin-right:7px;vertical-align:0;}
+.st-sub{font-weight:400;font-size:12px;color:var(--ink-3);margin-left:6px;}
 .st-svg{display:block;width:100%;height:20px;overflow:visible;}
 .st-axis{stroke:var(--rule-soft);stroke-width:1;}
 .st-band{fill:var(--mark-band);}
@@ -27,6 +31,12 @@
   align-items:baseline;color:var(--ink);font-weight:600;}
 .st-seats b > .arrow{justify-self:start;margin-left:3px;}
 .st-range{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);text-align:right;white-space:nowrap;}
+/* A table with no range (a single council: seat_table.HEAD_COUNCIL leaves
+   the range's heading empty): the seats take the range's column too, so the
+   table has no column without a heading and its seats end where every other
+   table's last column ends. */
+.st:has(> .st-head > .st-range:empty) .st-range{display:none;}
+.st:has(> .st-head > .st-range:empty) .st-seats{grid-column:span 2;}
 /* A range's two ends keep their history tooltip; their arrows would push the
    column about, so only the middle count carries one. */
 .st-range .arrow{display:none;}
@@ -36,6 +46,10 @@
    and the axis keeps every other tick, so the labels never overprint. A
    container query, so the table answers to its own width, not the window's. */
 .st{container-type:inline-size;}
+/* a wide table gives the names room, so few of them wrap */
+@container (min-width:640px){
+  .st-row{grid-template-columns:minmax(0,190px) minmax(0,1fr) 62px 62px;}
+}
 @container (max-width:440px){
   .st-row{grid-template-columns:minmax(0,88px) minmax(0,1fr) 50px 50px;gap:0 7px;}
   .st-name{font-size:12.5px;}

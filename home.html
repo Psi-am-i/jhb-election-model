@@ -238,75 +238,59 @@
 
 <section class="kind kind-explain">
   <div class="eyebrow">How this is built</div>
-  <div class="two below">
-    <div class="feed">
-      <div class="item flat first">
-        <div></div>
-        <div>
-          <div class="t"><a href="methodology">How the model works</a></div>
-          <div class="d">The simulations are built from how every voting
+  <!-- one grid, read across: each row's two items share a top line -->
+  <div class="feed explain">
+    <div class="item">
+      <div>
+        <div class="t"><a href="methodology">How the model works</a></div>
+        <div class="d">The simulations are built from how every voting
           district in the city has voted before.</div>
-        </div>
       </div>
-      <div class="item flat">
-        <div></div>
-        <div>
-          <div class="t"><a href="nobody-will-win#the-november-surprise">Two ballots,
+    </div>
+    <div class="item">
+      <div>
+        <div class="t"><a href="sources">Where the data comes from</a></div>
+        <div class="d">Each source file is listed with its checksum and the
+          workarounds it needed.</div>
+      </div>
+    </div>
+    <div class="item">
+      <div>
+        <div class="t"><a href="nobody-will-win#the-november-surprise">Two ballots,
           one council</a></div>
-          <div class="d">The ward and party ballots are added together to set
+        <div class="d">The ward and party ballots are added together to set
           each party's seats. One clause covers a party that wins more wards
           than its share of the vote entitles it to.</div>
-        </div>
       </div>
     </div>
-    <div class="feed">
-      <div class="item flat first">
-        <div></div>
-        <div>
-          <div class="t"><a href="sources">Where the data comes from</a></div>
-          <div class="d">Each source file is listed with its checksum and the
-          workarounds it needed.</div>
-        </div>
-      </div>
-      <div class="item flat">
-        <div></div>
-        <div>
-          <div class="t"><a href="methodology#how-accurate-is-it">How well it has done</a></div>
-          <div class="d">The model was scored on the 2021 election in eight
+    <div class="item">
+      <div>
+        <div class="t"><a href="methodology#how-accurate-is-it">How well it has done</a></div>
+        <div class="d">The model was scored on the 2021 election in eight
           cities, against the results and three simple baselines.</div>
-        </div>
       </div>
-      <div class="item flat">
-        <div></div>
-        <div>
-          <div class="t"><a href="review">How the model was broken — and fixed</a></div>
-          <div class="d">A review found errors in the first version. Each was
+    </div>
+    <div class="item">
+      <div>
+        <div class="t"><a href="review">How the model was broken — and fixed</a></div>
+        <div class="d">A review found errors in the first version. Each was
           repaired, and the page says what the repair changed.</div>
-        </div>
       </div>
     </div>
-  </div>
-  <div class="two after">
-    <div class="feed">
-      <div class="item flat">
-        <div></div>
-        <div>
-          <div class="t"><a href="forecast#limits">What this forecast cannot
+    <div class="item">
+      <div>
+        <div class="t"><a href="forecast#limits">What this forecast cannot
           tell you</a></div>
-          <div class="d">It cannot say which deal will be made, and it may
+        <div class="d">It cannot say which deal will be made, and it may
           underestimate a new party.</div>
-        </div>
       </div>
     </div>
-    <div class="feed">
-      <div class="item flat">
-        <div></div>
-        <div>
-          <div class="t"><a href="forecast#how-to-read">How to read the
+    <div class="item">
+      <div>
+        <div class="t"><a href="forecast#how-to-read">How to read the
           page</a></div>
-          <div class="d">A chance is the share of the {{n_draws}} simulations
+        <div class="d">A chance is the share of the {{n_draws}} simulations
           in which the outcome happens, not a share of the vote.</div>
-        </div>
       </div>
     </div>
   </div>

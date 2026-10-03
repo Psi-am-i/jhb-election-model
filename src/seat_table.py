@@ -54,9 +54,11 @@ SEAT_TICKS = (0, 25, 50, 75, 100, 125)
 #: The header row's words, one per column (owner's list, 2026-10-03, item 4):
 #: the party, the range graphic, the middle seat count, the range as text.
 HEAD = ("party", "middle and range", "seats", "range")
-#: A single council's (/your-forecast/ section 2): its bar is the party's
-#: seats, and it has no range.
-HEAD_COUNCIL = ("party", "seats", "seats", "")
+#: A single council's (/your-forecast/ section 2): its mark is the party's
+#: seats on the axis, and it has no range (one council, not simulations), so
+#: the range column carries no heading and css/seat-table.css folds it into
+#: the seats column.
+HEAD_COUNCIL = ("party", "on the seat scale", "seats", "")
 
 
 def _pct(v: float, scale: float) -> str:

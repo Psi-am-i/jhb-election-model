@@ -360,16 +360,22 @@ function buildList() {
         el("td", {}, el("span", { className: "wlpick" }, sw(state.calls[i]), s)),
         el("td", { className: "wln", title: got ? chanceSentence(got.text) : "" }, got ? got.text : "–")));
     });
-    if (!rows.length) return null;
-    return el("table", { className: "wltable" },
+    if (!rows.length) return [];
+    // an area's wards in two halves, side by side where the list is wide
+    // (css/interactive.css .wardlist); stacked, the second reads on from the
+    // first, its caption and header hidden
+    const cut = Math.ceil(rows.length / 2);
+    const halves = rows.length > 1 ? [rows.slice(0, cut), rows.slice(cut)] : [rows];
+    return halves.map((part, k) => el("table", { className: k ? "wltable wlcont" : "wltable" },
       el("caption", {}, title),
       el("colgroup", {}, el("col", { className: "wlc-ward" }), el("col", { className: "wlc-party" }), el("col", { className: "wlc-chance" })),
       el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Ward"), el("th", { scope: "col" }, "Called for"),
         el("th", { scope: "col", className: "wln" }, analysed ? "Our chance" : "Our chance, once analysed"))),
-      el("tbody", {}, ...rows));
-  }).filter(Boolean);
+      el("tbody", {}, ...part)));
+  }).flat();
   one.listview.replaceChildren(bar, el("div", { className: "wardlist" },
-    ...(tables.length ? tables : [el("p", { className: "stubnote" }, "No ward in this area is called for that party.")])));
+    tables.length ? el("div", { className: "wlgrid" }, ...tables)
+      : el("p", { className: "stubnote" }, "No ward in this area is called for that party.")));
 }
 
 one.fillarea.addEventListener("click", () => {

@@ -6,7 +6,6 @@
    numbers and the walkthrough's step numbers are CSS counters. */
 
 .yf{counter-reset:yfsec;}
-.yf .yf-wrap,.yf .pl-banner{max-width:1360px;}
 
 /* ---------- the two sections ---------- */
 .yf-jump{display:flex;flex-wrap:wrap;gap:6px 18px;font:600 14px var(--sans);margin:0 0 8px;counter-reset:yfjump;}
@@ -22,28 +21,27 @@
 /* the clean break between adjusting and breaking the model */
 .yf-break{border-top:4px double var(--rule);margin:56px 0 18px;}
 
-/* ---------- section 1: levers left, a sticky column of results right ---------- */
-/* Wide screens (owner, 2026-10-03): the levers on the left; on the right a
-   column that holds still while they scroll, the map above the seat table,
-   each the column's full width. The map's height is capped by the window
-   (--yf-map-h), so the table's head and first rows show under it at a
-   laptop's height; the column is never taller than the window
-   (play.css .pl-resultscol) and scrolls on its own for the rest. */
+/* ---------- section 1 on a wide screen: the results at full size ---------- */
+/* The column grid and which column holds still are play.css's. Here: the
+   map as wide as the column, capped only so the whole city fits in one
+   window; the seat table in larger type with every party on its own row. */
 @media (min-width:1100px){
-  .yf .yf-layout{grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:40px;}
-  .yf{--yf-map-h:max(260px,calc(100vh - 520px));}
+  .yf .yf-wrap,.yf .pl-banner{max-width:1760px;}
   .yf .pl-seatfig .pl-fhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;}
   .yf .pl-seatfig .pl-fhead h2{margin:0;}
-  .yf .pl-rgrid{gap:14px;}
-  .yf .pl-wardmap{max-height:var(--yf-map-h);}
-  .yf .pl-oneline{font-size:19px;margin:4px 0 10px;}
-  .yf .pl-key{font-size:13px;}
-  /* the seat table at the column's width: larger type, a wider name column */
-  .yf .pl-seats .st-row{grid-template-columns:minmax(0,150px) minmax(0,1fr) 76px 76px;min-height:34px;}
-  .yf .pl-seats .st-name{font-size:15px;}
-  .yf .pl-seats .st-seats{font-size:15px;}
-  .yf .pl-seats .st-range{font-size:14px;}
-  .yf .pl-seats .st-head > div{font-size:11.5px;}
+  .yf .pl-rgrid{gap:22px;}
+  .yf .pl-wardmap{max-height:calc(100vh - 110px);}
+  .yf .pl-fhead h2{font-size:22px;}
+  .yf .pl-oneline{font-size:21px;margin:4px 0 12px;}
+  .yf .pl-key{font-size:14px;}
+  .yf .pl-seats .st-row{grid-template-columns:minmax(0,210px) minmax(0,1fr) 92px 92px;min-height:42px;gap:0 16px;}
+  .yf .pl-seats .st{--st-arrow:30px;}
+  .yf .pl-seats .st-name{font-size:17px;}
+  .yf .pl-seats .st-seats{font-size:17px;}
+  .yf .pl-seats .st-range{font-size:15.5px;}
+  .yf .pl-seats .st-head > div{font-size:12px;}
+  .yf .pl-seats .st-svg{height:24px;}
+  .yf .pl-seats .st-ticks{font-size:12px;height:16px;}
 }
 /* the map's key sits under the map on a phone, under the seat table in
    the wide column */
@@ -63,36 +61,41 @@
 .yf-sharebox{padding-top:4px;margin-top:0;}
 
 /* ---------- the floating "computing" indicator: reserves no space ---------- */
-/* Owner, 2026-10-03 (item 5a): it floats above the page, prominent, at the
-   top centre under the one-line sticky banner where the eye is; being fixed
-   it moves nothing on the page. */
-.yf-busy{position:fixed;left:50%;top:58px;transform:translateX(-50%);z-index:40;pointer-events:none;margin:0;
-  font:600 15px var(--sans);color:var(--paper);background:var(--reader);padding:9px 20px;border-radius:999px;
-  box-shadow:0 4px 18px rgba(0,0,0,.35);white-space:nowrap;}
-/* a phone: the banner wraps to several lines, so the line floats at the
-   bottom centre instead, above the change toast */
-@media (max-width:719px){.yf-busy{top:auto;bottom:calc(72px + env(safe-area-inset-bottom));}}
+/* Owner, 2026-10-03 (item 5a): prominent, and fixed so it moves nothing on
+   the page. It floats at the bottom centre of the window, where it covers
+   neither the sticky banner nor the "Your changes" line under it; on a
+   phone it sits above the change toast. Solid, never faded. */
+.yf-busy{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:42;
+  pointer-events:none;margin:0;font:700 17px var(--sans);color:var(--paper);background:var(--ink);
+  border:2px solid var(--reader);padding:11px 24px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.45);white-space:nowrap;}
+@media (max-width:1099px){.yf-busy{bottom:calc(78px + env(safe-area-inset-bottom));font-size:16px;padding:10px 20px;}}
 .yf-busy[hidden]{display:none;}
+.yf-busy::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--reader);
+  margin-right:10px;vertical-align:1px;}
 @media (prefers-reduced-motion:no-preference){
-  .yf-busy{animation:yf-breathe 1.2s ease-in-out infinite alternate;}
-  @keyframes yf-breathe{from{opacity:.75;}to{opacity:1;}}
+  .yf-busy::before{animation:yf-blink .8s ease-in-out infinite alternate;}
+  @keyframes yf-blink{from{opacity:.3;}to{opacity:1;}}
 }
 
 /* ---------- change cues ---------- */
+/* A figure that moved: a ring that fades (no fill, so wrapped banner rows
+   never paint over each other) and a spark with the direction. */
 .yf .st-seats{position:relative;}
-.yf-spark{position:absolute;top:-6px;right:-4px;font-size:10px;line-height:1;pointer-events:none;}
+.yf-spark{position:absolute;top:-8px;right:-6px;font-size:13px;line-height:1;pointer-events:none;}
 /* one hue for both directions: a move is not good or bad news for a reader */
 .yf-spark{color:var(--reader);}
+.yf-cue{border-radius:4px;}
 /* the banner item keeps its spark inside its own box: room on its right */
-.pl-bi.yf-cue{position:relative;padding-right:9px;}
-.pl-bi .yf-spark{top:-4px;right:0;}
+.pl-bi.yf-cue{position:relative;padding:0 11px 0 3px;}
+.pl-bi .yf-spark{top:-5px;right:0;font-size:11px;}
+@media (max-width:719px){.pl-bitems{row-gap:7px;}}
 @media (prefers-reduced-motion:no-preference){
-  .yf-cue{animation:yf-pulse .9s ease-out 1;}
-  .yf-cue .pchip,.pl-bi.yf-cue i{animation:yf-grow .9s ease-out 1;}
-  .yf-spark{animation:yf-spark 1.6s ease-out 1 forwards;}
-  @keyframes yf-pulse{0%{background:color-mix(in srgb,var(--reader) 26%,transparent);}100%{background:transparent;}}
-  @keyframes yf-grow{0%{transform:scale(1);}35%{transform:scale(1.7);}100%{transform:scale(1);}}
-  @keyframes yf-spark{0%{opacity:0;transform:translateY(4px) scale(.6);}25%{opacity:1;transform:none;}
+  .yf-cue{animation:yf-pulse 1.4s ease-out 1;}
+  .yf-cue .pchip{animation:yf-grow .9s ease-out 1;}
+  .yf-spark{animation:yf-spark 1.8s ease-out 1 forwards;}
+  @keyframes yf-pulse{0%,30%{box-shadow:0 0 0 2px var(--reader);}100%{box-shadow:0 0 0 2px transparent;}}
+  @keyframes yf-grow{0%{transform:scale(1);}35%{transform:scale(1.5);}100%{transform:scale(1);}}
+  @keyframes yf-spark{0%{opacity:0;transform:translateY(4px) scale(.6);}20%{opacity:1;transform:none;}
     80%{opacity:1;}100%{opacity:0;transform:translateY(-4px);}}
 }
 @media (prefers-reduced-motion:reduce){

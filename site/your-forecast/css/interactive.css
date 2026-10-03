@@ -129,14 +129,15 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
    scroll: the parties beyond the seat-holders are collapsed instead. */
 .prlist{display:flex;flex-direction:column;border-top:1px solid var(--rule-soft);margin-top:8px;
   container-type:inline-size;font-variant-numeric:tabular-nums;}
-.prrow{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 62px;gap:2px 12px;align-items:center;
+.prrow{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) 62px;gap:2px 12px;align-items:center;
   min-height:38px;padding:3px 0;border-bottom:1px solid var(--rule-soft);}
 .prrow.prhead{min-height:0;padding:6px 0 4px;font:650 10.5px var(--sans);letter-spacing:.08em;
   text-transform:uppercase;color:var(--ink-3);}
 .prrow .prpct{text-align:right;}
-.prname{display:flex;align-items:center;gap:7px;min-width:0;font-size:13.5px;font-weight:550;color:var(--ink);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.prrow .sw{width:10px;height:10px;border-radius:2px;flex:none;}
+/* a long name wraps under itself rather than being cut */
+.prname{display:block;min-width:0;font-size:13.5px;font-weight:550;line-height:1.25;color:var(--ink);
+  overflow-wrap:anywhere;padding-left:17px;text-indent:-17px;}
+.prrow .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px;vertical-align:0;}
 .prrow input[type="range"]{width:100%;margin:0;accent-color:var(--reader);}
 .prrow .prnum{width:62px;box-sizing:border-box;text-align:right;font:13px var(--mono);
   padding:5px 6px;min-height:32px;}
@@ -193,8 +194,21 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 .wlfilter{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 12px 4px;}
 .wlfilter label{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-3);}
 .wlfilter select{min-height:34px;font-size:13px;}
-.wardlist{display:flex;flex-direction:column;gap:14px;padding:6px 12px 12px;}
-.wltable{width:100%;max-width:560px;border-collapse:collapse;table-layout:fixed;font-size:13px;
+/* An area's wards come as two tables (js/make.js buildList): side by side
+   where the list has room, one under the other on a phone, where the second
+   drops its caption and header and reads on from the first. */
+.wardlist{container-type:inline-size;padding:6px 12px 12px;}
+.wlgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:0 28px;align-items:start;}
+@container (min-width:720px){
+  .wlgrid{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:14px;}
+  .wlcont caption{visibility:hidden;}
+}
+@container (max-width:719px){
+  .wlcont caption,.wlcont thead{display:none;}
+  .wltable:not(.wlcont){margin-top:14px;}
+  .wltable:first-child{margin-top:0;}
+}
+.wltable{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13.5px;
   font-variant-numeric:tabular-nums;}
 .wltable caption{text-align:left;font:600 16px var(--serif);color:var(--ink);padding:4px 0 6px;}
 .wltable .wlc-ward{width:76px;}
@@ -207,7 +221,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 .wltable .wln{text-align:right;font-family:var(--mono);}
 .wlpick{display:flex;align-items:center;gap:7px;min-width:0;}
 .wlpick .sw{width:10px;height:10px;border-radius:2px;flex:none;}
-.wlpick select{flex:1;min-width:0;max-width:100%;min-height:30px;padding:2px 4px;font-size:13px;}
+.wlpick select{flex:1;min-width:0;max-width:240px;min-height:30px;padding:2px 4px;font-size:13px;}
 
 /* ---------- dialogs ---------- */
 dialog{margin:auto;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2);padding:0;

@@ -178,8 +178,9 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) p{margin:0;color:var(--ink-2);}
 :where(.pg-sheet) li{color:var(--ink-2);}
 :where(.pg-sheet) .lede{font-size:16px;}
-:where(.pg-sheet) .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:1px;
+:where(.pg-sheet) .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;
     background:var(--rule-soft);border:1px solid var(--rule-soft);}
+@media (max-width:640px){:where(.pg-sheet) .stats{grid-template-columns:repeat(2,minmax(0,1fr));}}
 :where(.pg-sheet) .stat{background:var(--paper);padding:14px 16px;display:flex;flex-direction:column;gap:3px;}
 :where(.pg-sheet) .stat .n{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-.02em;
     font-variant-numeric:tabular-nums;line-height:1;color:var(--accent);white-space:nowrap;}
@@ -213,7 +214,7 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.11em;
     text-transform:uppercase;color:var(--ink-3);text-align:left;
     padding:0 10px 7px 0;border-bottom:1px solid var(--rule);}
-:where(.pg-sheet) th.num,:where(.pg-sheet) td.num{text-align:right;padding-right:0;}
+:where(.pg-sheet) th.num,:where(.pg-sheet) td.num{text-align:right;padding-right:14px;}
 :where(.pg-sheet) th.num:not(:last-child),:where(.pg-sheet) td.num:not(:last-child){padding-right:18px;}
 :where(.pg-sheet) td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule-soft);vertical-align:middle;}
 :where(.pg-sheet) td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
@@ -298,12 +299,12 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) .govtable col.c-combo{width:25%;}
 :where(.pg-sheet) .govtable col.c-num{width:11%;}
 :where(.pg-sheet) .govtable col.c-surv{width:31%;}
-:where(.pg-sheet) .govtable thead th{vertical-align:top;padding:0 12px 10px 0;text-align:right;
+:where(.pg-sheet) .govtable thead th{vertical-align:top;padding:0 18px 10px 0;text-align:right;
     font:650 11px var(--sans,sans-serif);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);}
 :where(.pg-sheet) .govtable thead th:last-child{text-align:left;}
 :where(.pg-sheet) .govtable thead th span{display:block;margin-top:3px;font:400 11px/1.35 var(--sans,sans-serif);
     letter-spacing:0;text-transform:none;color:var(--ink-3);}
-:where(.pg-sheet) #coalitions td{vertical-align:top;padding:12px 12px 12px 0;border-top:1px solid var(--rule-soft);}
+:where(.pg-sheet) #coalitions td{vertical-align:top;padding:12px 18px 12px 0;border-top:1px solid var(--rule-soft);}
 :where(.pg-sheet) #coalitions tr:hover td{background:color-mix(in srgb,var(--ink) 4%,transparent);}
 :where(.pg-sheet) #coalitions .combo{line-height:1.6;text-align:right;}
 :where(.pg-sheet) #coalitions .cparty{white-space:nowrap;}
@@ -351,7 +352,7 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-home) .kind-claim{--k:var(--k-claim);}
 :where(.pg-home) .kind-explain{--k:var(--k-explain);}
 :where(.pg-home) .kind-interactive{--k:var(--k-interactive);}
-:where(.pg-home) .two > .kind{margin-top:0;align-self:start;}
+:where(.pg-home) .two > .kind{margin-top:0;align-self:stretch;}
 :where(.pg-home) .two.kinds{margin-top:28px;}
 @media (max-width:560px){:where(.pg-home) .kind{padding:14px 14px 16px;border-radius:4px;}}
 :where(.pg-home) .verdict{display:inline-block;font:600 10.5px var(--mono);
@@ -365,10 +366,9 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-home) .wrap{max-width:1040px;margin:0 auto;padding:28px 24px 80px;}
 @media (max-width:560px){:where(.pg-home) .wrap{padding:20px 14px 56px;}}
 :where(.pg-home) .comingsoon .stamp.more{margin-top:14px;}
-:where(.pg-home) .two.below{margin-top:14px;}
-:where(.pg-home) .two.after{margin-top:6px;}
-:where(.pg-home) .feed .item.flat{border-bottom:none;}
-:where(.pg-home) .feed .item.flat.first{padding-top:0;}
+:where(.pg-home) .feed.explain{display:grid;grid-template-columns:1fr;gap:16px 38px;margin-top:12px;}
+@media (min-width:900px){:where(.pg-home) .feed.explain{grid-template-columns:1fr 1fr;}}
+:where(.pg-home) .feed.explain .item{display:block;padding:0;border-bottom:none;}
 :where(.pg-home) .seatnote{margin-top:12px;}
 
 /* ---- src/css/page-portal.css ---- */
@@ -428,7 +428,7 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 .topnav{align-items:flex-end;}
 .topnav a.home{display:block;line-height:0;margin-right:10px;color:var(--ink);}
 .topnav a.home:hover{color:var(--accent);}
-.topnav .logo{display:block;height:144px;width:calc(144px * 656 / 408);margin-top:-6px;}
+.topnav .logo{display:block;height:116px;width:calc(116px * 656 / 408);margin-top:-6px;}
 @media (min-width:1200px){.topnav{column-gap:12px;}}
 /* beside the logo the bar is tall: the theme toggle takes its top right
    corner, so the links keep one line */
@@ -439,7 +439,7 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 /* a phone: the logo has the first line to itself */
 @media (max-width:640px){
   .topnav a.home{flex-basis:100%;margin:0 0 6px;}
-  .topnav .logo{height:112px;width:calc(112px * 656 / 408);}
+  .topnav .logo{height:96px;width:calc(96px * 656 / 408);}
 }
 .topnav a.active{color:var(--accent);}
 
@@ -499,6 +499,10 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 .arrow{font:700 .72em var(--sans);letter-spacing:-.02em;margin-left:2px;vertical-align:.12em;
   color:var(--ink-3);cursor:help;position:relative;white-space:nowrap;}
 .arrow.reader{color:var(--reader);cursor:default;}
+/* In a right-aligned figure column an arrow takes no width: it hangs in the
+   cell's right padding, so a figure with an arrow ends where one without
+   ends (owner's list, item 5). */
+td.num .arrow{display:inline-block;width:1.3em;margin-right:calc(-1.3em - 2px);text-align:left;}
 .arrow.moved-since{opacity:.75;}
 .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
 
@@ -573,9 +577,13 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
    as the figures' (the name cell's own type is for a party's name) */
 .st-head .st-name{display:block;font:650 10.5px var(--sans);color:var(--ink-3);}
 .st-head .st-graphic{text-align:center;}
-.st-name{display:flex;align-items:center;gap:7px;min-width:0;font-size:13.5px;font-weight:550;
-  color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.st-sub{font-weight:400;font-size:12px;color:var(--ink-3);}
+/* a long name wraps under itself rather than being cut: the chip is inline
+   so the text is an ordinary line box */
+.st-name{display:block;min-width:0;font-size:13.5px;font-weight:550;line-height:1.25;
+  color:var(--ink);overflow-wrap:anywhere;padding:3px 0 3px 16px;text-indent:-16px;}
+.st-head .st-name{padding-left:0;text-indent:0;}
+.st-name .pchip{margin-right:7px;vertical-align:0;}
+.st-sub{font-weight:400;font-size:12px;color:var(--ink-3);margin-left:6px;}
 .st-svg{display:block;width:100%;height:20px;overflow:visible;}
 .st-axis{stroke:var(--rule-soft);stroke-width:1;}
 .st-band{fill:var(--mark-band);}
@@ -586,6 +594,12 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
   align-items:baseline;color:var(--ink);font-weight:600;}
 .st-seats b > .arrow{justify-self:start;margin-left:3px;}
 .st-range{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);text-align:right;white-space:nowrap;}
+/* A table with no range (a single council: seat_table.HEAD_COUNCIL leaves
+   the range's heading empty): the seats take the range's column too, so the
+   table has no column without a heading and its seats end where every other
+   table's last column ends. */
+.st:has(> .st-head > .st-range:empty) .st-range{display:none;}
+.st:has(> .st-head > .st-range:empty) .st-seats{grid-column:span 2;}
 /* A range's two ends keep their history tooltip; their arrows would push the
    column about, so only the middle count carries one. */
 .st-range .arrow{display:none;}
@@ -595,6 +609,10 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
    and the axis keeps every other tick, so the labels never overprint. A
    container query, so the table answers to its own width, not the window's. */
 .st{container-type:inline-size;}
+/* a wide table gives the names room, so few of them wrap */
+@container (min-width:640px){
+  .st-row{grid-template-columns:minmax(0,190px) minmax(0,1fr) 62px 62px;}
+}
 @container (max-width:440px){
   .st-row{grid-template-columns:minmax(0,88px) minmax(0,1fr) 50px 50px;gap:0 7px;}
   .st-name{font-size:12.5px;}

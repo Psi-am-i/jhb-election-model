@@ -8,8 +8,16 @@ here first, so anything stale in this file is read as an instruction.
 > ## ⛔ STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
 >
 > **Follow-up to the owner's list (2026-10-03, branch `followup`).** /your-forecast/
-> wide: the map above the seat table in a sticky column capped at the window
-> that scrolls on its own; levers in cards. "Analyse my forecast" leads with
+> wide (revised after the checklist review, owner: "stacked … plenty of
+> space … too small"): the page runs to 1760px; the levers' column holds
+> still and scrolls on its own; the results sit in the page's flow, the map
+> at the column's full width (capped at the window's height) above a seat
+> table in 17px type. Section 2's council table has no range (one council),
+> so its seats take the range's column. Arrows in right-aligned table cells
+> hang in the cell's padding (`stat.css td.num .arrow`). The "computing" line
+> sits at the bottom centre at every width. The home page's "How this is
+> built" is one two-column grid; /forecast's chances are three tiles a row;
+> the header logo is 116px (96px on a phone). "Analyse my forecast" leads with
 > "We give this outcome a N% chance. But historical trends can always be
 > broken.": "this outcome" is the reader's council-level result,
 > `reweight.council_outcome` (largest party alone or a tie, a majority alone or

@@ -23,7 +23,7 @@
 .topnav{align-items:flex-end;}
 .topnav a.home{display:block;line-height:0;margin-right:10px;color:var(--ink);}
 .topnav a.home:hover{color:var(--accent);}
-.topnav .logo{display:block;height:144px;width:calc(144px * 656 / 408);margin-top:-6px;}
+.topnav .logo{display:block;height:116px;width:calc(116px * 656 / 408);margin-top:-6px;}
 @media (min-width:1200px){.topnav{column-gap:12px;}}
 /* beside the logo the bar is tall: the theme toggle takes its top right
    corner, so the links keep one line */
@@ -34,7 +34,7 @@
 /* a phone: the logo has the first line to itself */
 @media (max-width:640px){
   .topnav a.home{flex-basis:100%;margin:0 0 6px;}
-  .topnav .logo{height:112px;width:calc(112px * 656 / 408);}
+  .topnav .logo{height:96px;width:calc(96px * 656 / 408);}
 }
 .topnav a.active{color:var(--accent);}
 

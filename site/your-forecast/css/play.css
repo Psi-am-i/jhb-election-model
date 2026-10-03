@@ -49,15 +49,15 @@
 .pl-lede{margin-bottom:8px;}
 .pl-layout{display:flex;flex-direction:column;gap:28px;margin-top:18px;}
 .pl-resultscol,.pl-controls{min-width:0;}
+/* Wide screens (owner, 2026-10-03: "stacked … plenty of space … too small"):
+   the levers in a narrow column on the left that holds still and scrolls on
+   its own; the results in the page's flow on the right, the map above the
+   seat table, each at the column's full width and full size. */
 @media (min-width:1100px){
-  .pl-layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:40px;align-items:start;}
-  .pl-controls{order:1;}
-  .pl-resultscol{order:2;position:sticky;top:52px;}
-  /* the column is never taller than the window: what does not fit scrolls
-     inside it, so the map and the seat table both stay beside the levers */
-  .pl-resultscol{max-height:calc(100vh - 60px);overflow-y:auto;overscroll-behavior:contain;
-    scrollbar-gutter:stable;padding-right:6px;}
-  .pl-ctl:first-child{border-top:0;padding-top:0;}
+  .pl-layout{display:grid;grid-template-columns:minmax(330px,390px) minmax(0,1fr);gap:40px;align-items:start;}
+  .pl-controls{order:1;position:sticky;top:52px;max-height:calc(100vh - 60px);overflow-y:auto;
+    scrollbar-gutter:stable;padding-right:8px;}
+  .pl-resultscol{order:2;}
 }
 
 /* ---------- results ---------- */
@@ -84,7 +84,8 @@
   stroke:var(--paper);stroke-width:3px;paint-order:stroke;pointer-events:none;}
 .pl-north{font:600 11px var(--mono);fill:var(--ink-3);}
 @media (max-width:640px){.pl-maplabel{font-size:19px;stroke-width:5px;letter-spacing:.02em;}.pl-north{font-size:20px;}}
-@media (min-width:1100px){.pl-maplabel{font-size:14px;}}
+@media (min-width:1100px){.pl-maplabel{font-size:14px;}.pl-north{font-size:15px;}}
+@media (min-width:1600px){.pl-maplabel{font-size:12px;}.pl-north{font-size:11px;}}
 .pl-ring{stroke:var(--reader);stroke-width:2.6;stroke-linejoin:round;}
 .pl-key{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;line-height:1.6;}
 .pl-ksolid,.pl-kstripe{display:inline-block;width:16px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:4px;}

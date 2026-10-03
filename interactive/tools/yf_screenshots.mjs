@@ -12,8 +12,9 @@
 // Germany's 2023 law, sharing refused; section 2's walkthrough, step one
 // highlighted, opened from section 1's adjusted forecast; the analysis, with
 // a ward's chance on hover; both share images, at both sizes for section 1;
-// the phone's change toast with the seat table out of view; an old /make/
-// link restored. Pyodide loads from cdn.jsdelivr.net. Any page error is
+// the phone's change toast with the seat table out of view; the seat table
+// under the map; the computing line and the change cues after a lever moves;
+// section 2's council table. Pyodide loads from cdn.jsdelivr.net. Any page error is
 // printed at the end.
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, extname } from "node:path";
@@ -60,6 +61,11 @@ for (const [w, h] of [[375, 812], [1440, 1000], [1920, 1080]]) {
   let p = await page(w, h, BA5);
   await p.screenshot({ path: `${OUT}/yf-adjust-${w}-fold.png` });
   await p.screenshot({ path: `${OUT}/yf-adjust-${w}.png`, fullPage: true });
+  // the seat table under the map, scrolled into view (the levers' column holds still)
+  await p.locator('[data-live="seats"]').evaluate(e => e.scrollIntoView({ block: "end" }));
+  await p.waitForTimeout(300);
+  await p.screenshot({ path: `${OUT}/yf-adjust-${w}-table.png` });
+  await p.evaluate(() => scrollTo(0, 0));
   // its share sheet and image (1440 only: the image is the same at any width)
   if (w === 1440) {
     await p.click('[data-live="share"] .pl-shareopen');
@@ -115,6 +121,9 @@ for (const [w, h] of [[375, 812], [1440, 1000], [1920, 1080]]) {
   await p.locator('[data-live="b-vote"]').evaluate(e => e.scrollIntoView({ block: "start" }));
   await p.waitForTimeout(300);
   await p.screenshot({ path: `${OUT}/yf-break-vote-${w}.png` });
+  await p.locator('[data-live="b-council"]').evaluate(e => e.scrollIntoView({ block: "start" }));
+  await p.waitForTimeout(300);
+  await p.screenshot({ path: `${OUT}/yf-break-council-${w}.png` });
   await p.click('[data-live="b-map"] .views button[data-view="geo"]');
   await p.waitForTimeout(300);
   if (w === 1440) {
@@ -143,6 +152,22 @@ for (const [w, h] of [[375, 812], [1440, 1000], [1920, 1080]]) {
   await p.waitForFunction(() => !document.querySelector('[data-live="toast"]').hidden, null, { timeout: 60000 });
   await p.waitForTimeout(250);
   await p.screenshot({ path: `${OUT}/yf-phone-toast-375.png` });
+  await p.context().close();
+}
+// a lever moved: the "computing" line while the engine works, then the
+// change cues (ring and spark) on the banner and the seat table
+for (const [w, h] of [[375, 812], [1440, 900]]) {
+  const p = await page(w, h, BA5);
+  if (w > 500) await p.locator('[data-live="seats"]').evaluate(e => e.scrollIntoView({ block: "end" }));
+  else await p.locator("#h-bye").scrollIntoViewIfNeeded();
+  await p.waitForTimeout(400);
+  await p.evaluate(() => { const i = document.querySelectorAll('[data-live="turnout"] input')[3]; i.value = "-3";
+    i.dispatchEvent(new Event("input", { bubbles: true })); i.dispatchEvent(new Event("change", { bubbles: true })); });
+  await p.waitForFunction(() => !document.querySelector('[data-live="busy"]').hidden, null, { timeout: 5000, polling: 5 })
+    .then(() => p.screenshot({ path: `${OUT}/yf-busy-${w}.png` }), () => errors.push(`${w}: the computing line never showed`));
+  await p.waitForFunction(() => document.querySelector('.yf-spark'), null, { timeout: 60000 });
+  await p.waitForTimeout(250);
+  await p.screenshot({ path: `${OUT}/yf-cue-${w}.png` });
   await p.context().close();
 }
 // Germany's 2023 law: sharing refused, and said why
