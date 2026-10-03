@@ -1192,5 +1192,27 @@ def test_ward_calls_likelihood_against_a_hand_enumeration():
     assert never["percentile"] == 0.0 and np.all(never["p"] > 0)
 
 
+def test_scored_as_results_by_hand():
+    """The analysis's summary of the competition's measures over the draws
+    (JUDGEMENT-CALLS §N4), on four constructed draws worked by hand: the
+    weighted means, and the chance the seat error is within the line, edge
+    included."""
+    seat = [4, 10, 11, 30]
+    wards = [130, 120, 110, 100]
+    vote = [1.0, 2.0, 3.0, 6.0]
+    w = [1.0, 1.0, 1.0, 1.0]
+    got = R.scored_as_results(seat, wards, vote, w, within=10)
+    assert math.isclose(got["seat_error"], 55 / 4)
+    assert math.isclose(got["seat_error_within"], 0.5)
+    assert math.isclose(got["wards_called"], 115.0)
+    assert math.isclose(got["list_vote_error"], 3.0)
+    assert got["within"] == 10
+    # weights count: the last draw alone
+    alone = R.scored_as_results(seat, wards, vote, [0.0, 0.0, 0.0, 1.0], within=10)
+    assert (alone["seat_error"], alone["seat_error_within"], alone["wards_called"]) == (30.0, 0.0, 100.0)
+    # the default line is the module's constant, read at call time
+    assert R.scored_as_results(seat, wards, vote, w)["within"] == R.ANALYSIS_SEAT_ERROR_WITHIN
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

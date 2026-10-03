@@ -3225,7 +3225,7 @@ measures written out as a loop over the published draws.
 the rows it adds (`data-extra`).
 
 **Now.** Section 1's seat table shows a row for every party with a middle of
-at least `MIN_SHOWN_SEATS` in the published forecast or under the reader's
+at least the row threshold of `interactive/pyboot/page.py` in the published forecast or under the reader's
 settings (`page.py`, owner decision D1). A lever that lifts a party to the
 threshold adds a row. So that the row moves nothing below the table (owner,
 2026-10-03: the page must not jump when a lever moves), the table keeps room

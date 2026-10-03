@@ -787,6 +787,10 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # changes what the INDEX says, never what the model draws.
         "MAX_APPORTIONMENT_CHARS", "MAX_EXPRESSION_CHARS",
         "MIN_GLOB_FRAGMENT",
+        # `site_assets.FONT_FACES` — the typefaces' files and weights for the
+        # site's @font-face rules (owner, 2026-10-03). Presentation: its
+        # numbers are CSS font weights, and nothing in the model reads it.
+        "FONT_FACES",
         # `inputs_preflight.SNAPSHOT_STALE_DAYS` — how old the IEC registration
         # snapshot may be before the preflight calls it stale. OPERATIONAL, the
         # same argument as `STRIPE_MIN` and `DECLARATION_MIN_CHARS` above: it

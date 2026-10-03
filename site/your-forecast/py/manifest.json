@@ -21,10 +21,12 @@
    "render_map.py",
    "reweight.py",
    "scenarios.py",
-   "start_rule.py"
+   "start_rule.py",
+   "parties.py",
+   "score_forecasts.py"
   ],
   "data": [],
   "boot": "pyboot/page.py",
-  "code_ref": "aec61c3752a2345ea7711323ffd20fa9ac31180b54d904057a306c8e71d31921"
+  "code_ref": "8c52fcc23cc4306bf487cfdf3a8f957e67b50ff279a5cf803c1479d2cd1ff2a8"
  }
 }

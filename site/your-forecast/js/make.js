@@ -101,6 +101,9 @@ const one = {
   analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
   analysis: document.querySelector('[data-live="b-analysis"]'),
   verdict: document.querySelector('[data-live="b-analysis"] .yf-verdict'),
+  sseats: document.querySelector('[data-live="b-analysis"] .yf-sseats'),
+  swards: document.querySelector('[data-live="b-analysis"] .yf-swards'),
+  svote: document.querySelector('[data-live="b-analysis"] .yf-svote'),
   outcome: document.querySelector('[data-live="b-analysis"] .yf-outcome'),
   expected: document.querySelector('[data-live="b-analysis"] .yf-expected'),
   atable: document.querySelector('[data-live="b-analysis"] .yf-atable'),
@@ -612,13 +615,17 @@ one.analyse.addEventListener("click", () => {
 async function analyse(scroll) {
   if (!result) return;
   const ticket = ++analyseTicket;
+  // the first analysis opens the region with a line saying it is working;
+  // a re-analysis after an edit keeps the figures in place until the new
+  // ones arrive, so nothing on the page changes height while it works
+  if (one.analysis.hidden) one.anote.textContent = "Working it out…";
   one.analysis.hidden = false;
-  one.anote.textContent = "Working it out…";
   let a;
   try {
     a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
                                       share: B.percentOf(state, ctx), seats: result.seats,
-                                      majority: result.majority, coalition: S.coalition });
+                                      majority: result.majority, coalition: S.coalition,
+                                      keep: analysed ? Object.keys(analysed.seats) : [] });
   } catch (e) {
     if (ticket === analyseTicket) one.anote.textContent = "The analysis could not run: " + (e.message || e) + ".";
     return;
@@ -632,9 +639,12 @@ async function analyse(scroll) {
 // "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
 // the whole forecast, a ward, a party's seats and its vote alike; a chance
 // printed as "under 0.1%" or "over 99%" reads "a chance of under 0.1%".
+function aChance(text) {
+  if (!/^\d/.test(text)) return "a chance of " + text;
+  return (/^(8|11|18)(\D|$)|^8\d/.test(text) ? "an " : "a ") + text + " chance";
+}
 function chanceSentence(text) {
-  if (!/^\d/.test(text)) return "We give this outcome a chance of " + text + ".";
-  return "We give this outcome " + (/^(8|11|18)(\D|$)|^8\d/.test(text) ? "an " : "a ") + text + " chance.";
+  return "We give this outcome " + aChance(text) + ".";
 }
 // the reader's council-level outcome, in words (page.py analyse: reweight.council_outcome)
 function outcomeWords(o) {
@@ -644,19 +654,23 @@ function outcomeWords(o) {
   return "The outcome: " + lead + ", " + maj + gov + ".";
 }
 function paintAnalysis(a) {
-  const n = a.wards_count, exp = Math.round(a.expected);
   // The headline is the chance of the reader's council-level outcome (the
-  // largest party, a majority alone or not, the chosen coalition), then the
-  // expected number of ward calls that come true. The rank among the
-  // simulations is not a chance and is never worded as one (STYLE rule 10;
-  // JUDGEMENT-CALLS §N3).
-  one.verdict.replaceChildren(chanceSentence(a.outcome.text) + " But historical trends can always be broken. ",
-    el("span", { className: "yf-exp" }, "We expect ", el("b", {}, exp + " of your " + n), " ward calls to come true."));
+  // largest party, a majority alone or not, the chosen coalition). Under it,
+  // the reader's forecast scored against each simulation as if it were the
+  // result, by the competition's rules in its order: seats, ward calls, vote
+  // (page.py analyse; JUDGEMENT-CALLS §N4). Then the template's closing line.
+  const sc = a.score;
+  one.verdict.textContent = chanceSentence(a.outcome.text);
+  one.sseats.replaceChildren(el("b", {}, "Seats: "), "we expect your seat counts to be off by " + Math.round(sc.seat_error) +
+    " in total across the parties, and give " + aChance(sc.seat_error_within.text) + " that they are off by " + sc.within + " or fewer.");
+  one.swards.replaceChildren(el("b", {}, "Wards: "), "we expect " + Math.round(sc.wards_called) + " of your " + a.wards_count +
+    " ward calls to be right.");
+  one.svote.replaceChildren(el("b", {}, "Vote: "), "we expect your vote shares to be off by " + sc.list_vote_error.toFixed(1) +
+    " points in total, on the list ballot.");
   one.outcome.textContent = outcomeWords(a.outcome);
-  one.expected.textContent = "Ranked by the chance we give each ward's winner, your ward calls as a set come level with or above the ward results of " +
-    a.percentile.text + " of our simulations. " + (HOVER.matches
-      ? "Hover over a ward, or reach it with the arrow keys, for the chance we give your call there."
-      : "Tap a ward with no party chosen for the chance we give your call there.");
+  one.expected.textContent = HOVER.matches
+    ? "Hover over a ward, or reach it with the arrow keys, for the chance we give your call there."
+    : "Tap a ward with no party chosen for the chance we give your call there.";
   const sb = a.seat_band, pb = a.share_band;
   const head = el("tr", {}, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
     el("th", { scope: "col", className: "num" }, "Chance within " + sb + " seats"),
@@ -686,8 +700,13 @@ function paintAnalysis(a) {
     el("th", { scope: "col", className: "num" }, "Chance within " + sb + " seats, or " + pb + " points (list ballot)"));
   head.className = "yf-wide";
   one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)));
-  one.anote.textContent = "Every chance is the published forecast's: its " + a.draws.toLocaleString("en-US") +
-    " simulations, each counted once, seated by the law. Your vote is your share of both ballots together; the simulations carry each party's list-ballot share only, so that is what it is compared with. A set of ward results is ranked by multiplying the chance we give each ward's winner, and set among our own simulations ranked the same way.";
+  one.anote.textContent = "Every chance and expectation is the published forecast's: its " + a.draws.toLocaleString("en-US") +
+    " simulations, each counted once, seated by the law. Seats, wards and vote score your forecast against each simulation as if it" +
+    " were the result, by the competition's rules in its order. Seats: the gap between your seats and the simulation's, party by" +
+    " party, added up. Wards: your calls that match its winners. Vote: the gap between your vote and its list-ballot share, party by" +
+    " party, added up, in points. The line at " + sc.within + " seats is a judgement, not a measurement. Your vote is your share of" +
+    " both ballots together; the simulations carry each party's list-ballot share only, so that is what it is compared with, and the" +
+    " parties they do not carry one by one are compared as one group.";
 }
 // each ward's chance, over the map, once analysed: on hover, and on focus (the
 // arrow keys, or a tap, which focuses the ward; with no party chosen a tap

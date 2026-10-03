@@ -147,7 +147,12 @@
 .yf-analysis [data-live="b-analysis"]{scroll-margin-top:110px;}
 .yf-analysis h3{font:600 20px var(--serif);margin:0 0 8px;}
 .yf-verdict{font:19px/1.4 var(--serif);color:var(--ink);margin:0 0 6px;max-width:62ch;}
-.yf-verdict .yf-exp{display:block;font-size:16px;color:var(--ink-2);margin-top:4px;}
+/* the reader's forecast scored as the competition scores it: seats, ward
+   calls, vote (JUDGEMENT-CALLS §N4), one line each */
+.yf-score{list-style:none;margin:0 0 6px;padding:0;font-size:15.5px;line-height:1.45;color:var(--ink);max-width:72ch;}
+.yf-score li{margin:0 0 4px;}
+.yf-score b{font-weight:650;}
+.yf-caveat{font:16px/1.4 var(--serif);color:var(--ink-2);margin:0 0 8px;}
 .yf-outcome{font-size:14px;color:var(--ink-2);margin:0 0 4px;}
 .yf-outcome:empty{display:none;}
 .yf-expected{font-size:14px;margin:0 0 10px;}
@@ -175,3 +180,85 @@
    the eighth in the page's notes) */
 .yf-oneline{font-size:13.5px;margin:0 0 8px;}
 .yf-fnvote::after{content:"8";}
+
+/* ---------- reserved message regions: a lever moves nothing ---------- */
+/* Owner, 2026-10-03: the page must not jump when a lever moves. Every
+   message that comes and goes is either floating (.yf-busy, .yf-toast,
+   above) or one of these: a .yf-slot, a region of fixed height that is
+   there, empty or not, in every state. A message longer than its slot
+   scrolls inside it rather than pushing the page. The heights are in lines
+   of each slot's own type, sized to the longest message measured with every
+   lever moved at once (interactive/tools/yf_jump_check.mjs, which fails on
+   any jump and on any slot that overflows in that state). */
+.yf .yf-slot{box-sizing:border-box;overflow-y:auto;overflow-wrap:anywhere;}
+/* a slot that empties stays: the :empty and [hidden] rules of the base
+   sheets would take it out of the page */
+.yf .pl-engine.yf-slot:empty,.yf .pl-sharewhy.yf-slot:empty,.yf .floornote.yf-slot:empty,
+.yf .ess.yf-slot:empty{display:block;}
+.yf .pl-engine.yf-slot{line-height:1.5;height:4lh;margin:0 0 4px;}
+.yf .pl-status.yf-slot{line-height:1.4;height:calc(5lh + 20px);align-content:flex-start;overflow:hidden;}
+.yf .pl-status.yf-slot[hidden]{display:flex;visibility:hidden;}
+/* the one region that scrolls by design: every lever moved at once names
+   more settings than the strip has lines for; the Back button stays in view */
+.yf .pl-status .pl-settings.yf-scrolls{max-height:3lh;overflow-y:auto;}
+.yf .pl-oneline.yf-slot{height:6lh;}
+.yf .pl-flips.yf-slot{height:6.2em;font-size:13px;line-height:1.55;}
+.yf .pl-flips .pl-flipline{margin:0;}
+.yf .pl-byenote.yf-slot{height:4.7em;font-size:13px;line-height:1.55;}
+.yf .pl-byenote .pl-note{margin:0;}
+.yf .pl-lawnow.yf-slot{line-height:1.4;height:2lh;}
+.yf .pl-sharewhy.yf-slot{line-height:1.4;height:3lh;margin:6px 0 0;}
+.yf [data-live="b-status"].yf-slot{height:122px;}
+.yf [data-live="b-status"] .yf-follow[hidden]{display:flex;visibility:hidden;}
+.yf .nchanged.yf-slot{display:block;line-height:1.4;height:2lh;}
+.yf .restate.yf-slot{line-height:1.4;height:2lh;}
+.yf .stubnote.yf-slot{line-height:1.4;height:3lh;}
+.yf .floornote.yf-slot{line-height:1.4;height:calc(3lh + 12px);}
+.yf .floornote.yf-slot:empty{background:none;border-left-color:transparent;}
+.yf .coalstat.yf-slot{line-height:1.4;height:2lh;}
+.yf .yf-verdict.yf-slot{height:2lh;}
+.yf .yf-score .yf-slot{height:2lh;}
+.yf .yf-score .yf-sseats.yf-slot{height:4lh;}
+.yf .yf-outcome.yf-slot{line-height:1.4;height:4lh;}
+.yf .yf-expected.yf-slot{line-height:1.4;height:2lh;}
+.yf .painthint.yf-slot{line-height:1.4;height:calc(3lh + 16px);}
+.yf [data-live="ess"].yf-slot{display:block;line-height:1.4;height:3lh;}
+@media (min-width:1100px){
+  .yf .pl-engine.yf-slot{height:2lh;}
+  .yf .pl-status.yf-slot{height:calc(2lh + 20px);}
+  .yf .pl-status .pl-settings.yf-scrolls{max-height:2lh;}
+  .yf .pl-oneline.yf-slot{height:3lh;}
+  .yf .pl-flips.yf-slot{height:4.7em;}
+  .yf .pl-byenote.yf-slot{height:3.1em;}
+  .yf [data-live="b-status"].yf-slot{height:70px;}
+  .yf .nchanged.yf-slot{display:inline;height:auto;}
+  .yf .stubnote.yf-slot{height:2lh;}
+  .yf .painthint.yf-slot{height:calc(2lh + 16px);}
+  .yf [data-live="ess"].yf-slot{height:2lh;}
+  .yf .yf-verdict.yf-slot{height:1lh;}
+  .yf .yf-score .yf-slot{height:1lh;}
+  .yf .yf-score .yf-sseats.yf-slot{height:2lh;}
+  .yf .yf-outcome.yf-slot{height:2lh;}
+  .yf .yf-expected.yf-slot{height:1lh;}
+  .yf .floornote.yf-slot{height:calc(2lh + 12px);}
+}
+/* the legend lines that name the reader's changes take their place whether
+   or not they show */
+.yf.pl .pl-key .pl-live{display:inline;visibility:hidden;}
+.yf.pl .pl-glegend.pl-live{display:flex;visibility:hidden;}
+.yf.pl:has([data-live="result"][data-touched]) .pl-key .pl-live,
+.yf.pl:has([data-live="result"][data-touched]) .pl-glegend.pl-live{visibility:visible;}
+/* the seat table: room for --yf-spare-rows rows more than the published
+   forecast's, which a lever may add (page.py shows a party the reader's
+   settings lift to the row threshold); model.js marks the live table with
+   the rows it adds (data-extra). JUDGEMENT-CALLS §N5. */
+.yf .pl-seatfig{--yf-spare-rows:2;--yf-row:31px;}
+.yf .pl-seats{padding-bottom:calc(var(--yf-spare-rows) * var(--yf-row));}
+.yf .pl-liveseats:empty{display:none;}
+.yf .pl-liveseats[data-extra="1"]{padding-bottom:calc((var(--yf-spare-rows) - 1) * var(--yf-row));}
+.yf .pl-liveseats[data-extra="2"]{padding-bottom:0;}
+@media (min-width:1100px){.yf .pl-seatfig{--yf-row:43px;}}
+/* a vote row at the floor says so over its own slider's foot, inside the row */
+.yf .prrow{position:relative;}
+.yf .prrow .fl{position:absolute;left:17px;bottom:1px;padding:0;font-size:10.5px;line-height:1.2;
+  white-space:nowrap;pointer-events:none;}

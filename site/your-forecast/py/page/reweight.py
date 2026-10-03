@@ -117,6 +117,12 @@ MAX_FIGURE_SE_SEATS = 2.5   # owner, 2026-09-30: was 2.0 (JUDGEMENT-CALLS §N2)
 #: prints them from the engine's result, never as typed text.
 ANALYSIS_SEAT_BAND = 2
 ANALYSIS_SHARE_BAND_POINTS = 2.0
+#: The seat line of the same analysis: the chance that a reader's seat
+#: counts, scored against a simulation as if it were the result, are off by
+#: this many seats or fewer in total across the parties
+#: (``score_forecasts.seat_error``). A JUDGEMENT CALL, not a measurement:
+#: JUDGEMENT-CALLS.md §N4. The page prints it from the engine's result.
+ANALYSIS_SEAT_ERROR_WITHIN = 10
 
 #: What a figure computed under a poll's weights is, in the page's words. The
 #: weights select the model's own draws that lie near the poll; they do not
@@ -1010,6 +1016,28 @@ def council_outcome(seats, columns, thresholds, weights=None, *, largest, majori
         idx = [list(columns).index(c) for c in coalition if c in columns]
         event &= (s[:, idx].sum(axis=1) if idx else np.zeros(s.shape[0])) >= thr
     return weighted_probability(event, w)
+
+
+def scored_as_results(seat_error, wards_called, list_vote_error, weights, *,
+                      within: float | None = None) -> dict:
+    """A reader's forecast scored against every simulation as if it were the
+    result, summarised (owner, 2026-10-03; JUDGEMENT-CALLS.md §N4).
+
+    Each argument but ``weights`` holds one value per draw, from
+    ``score_forecasts``' measures (the competition's definitions, in its
+    order: seats, ward calls, vote). Returns the expected value of each under
+    ``weights``, and the chance that the seat error is ``within`` seats or
+    fewer (:data:`ANALYSIS_SEAT_ERROR_WITHIN` when None)."""
+    if within is None:
+        within = ANALYSIS_SEAT_ERROR_WITHIN
+    w = np.asarray(weights, dtype=float)
+    seats = np.asarray(seat_error, dtype=float)
+    mean = lambda v: weighted_mean_se(np.asarray(v, dtype=float), w)[0]
+    return {"seat_error": mean(seats),
+            "seat_error_within": weighted_probability(seats <= float(within) + 1e-9, w),
+            "within": within,
+            "wards_called": mean(wards_called),
+            "list_vote_error": mean(list_vote_error)}
 
 
 def ward_calls_likelihood(winners, weights, codes: int, calls) -> dict:
