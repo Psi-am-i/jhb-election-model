@@ -136,3 +136,27 @@ test("a name longer than the limit is refused whole, never cut", () => {
   assert.equal(YU.nameOf("?n=%20%20"), "");
   assert.equal(YU.nameRefused("?n=%20%20"), false);
 });
+
+test("in the page, the address it opened with is the first state of every part", async () => {
+  // A fresh copy of the module, imported with an address in place, as the
+  // browser imports it: the first write by one section keeps the other's
+  // part and the name (an old /play/ link's name, a /make/ link's forecast
+  // while section 2 is still loading).
+  const replaced = [];
+  globalThis.location = { pathname: "/your-forecast/", hash: "", href: "https://x.test/your-forecast/",
+                          search: "?t=5,0,0,0&mv=abc&v=1&c=" + REF + "&f=QUJD&n=Thandi" };
+  globalThis.history = { replaceState: (_s, _t, u) => replaced.push(u) };
+  try {
+    const fresh = await import("../js/yf-url.js?fresh=1");
+    assert.equal(fresh.currentName(), "Thandi");
+    fresh.write("adjust", "?t=2,0,0,0&mv=abc");
+    assert.equal(replaced.at(-1), "/your-forecast/?t=2,0,0,0&mv=abc&v=1&c=" + REF + "&f=QUJD&n=Thandi");
+    // it can see: the module imported with no address starts empty
+    delete globalThis.location;
+    const bare = await import("../js/yf-url.js?fresh=2");
+    assert.equal(bare.currentName(), "");
+  } finally {
+    delete globalThis.location;
+    delete globalThis.history;
+  }
+});

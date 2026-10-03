@@ -90,3 +90,9 @@ export function linkTo(which, hash) {
 }
 
 export function currentName() { return name; }
+
+// In the page, the parts are seeded from the address it opened with, before
+// either section writes: a section that has not written yet (section 2 is
+// lazy) keeps its part of a shared link, and so does the name. Under node
+// there is no address; the tests call open() themselves.
+if (typeof location !== "undefined") open(location.search);

@@ -187,13 +187,14 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     assert build_make.SEATS_LINE[1] in engine and build_make.SEATS_LINE[0] not in engine
     for f in build_make.WORKER_API_JS:
         assert (site / D / "js" / f).read_bytes() == (ROOT / "worker-api/src" / f).read_bytes()
-    # the seat laws' names are the forecast page's one definition
+    # the seat laws' names are the one definition the forecast sheet's
+    # regime table is written from (render_sheet.SEAT_LAWS)
     import render_sheet
     laws = json.loads((site / D / "laws.json").read_text(encoding="utf-8"))
     assert [(k, v["label"]) for k, v in laws.items()] == [(k, n) for k, n, _ in render_sheet.SEAT_LAWS]
-    forecast = (site / "forecast.html").read_text(encoding="utf-8")
-    for _k, label, _n in render_sheet.SEAT_LAWS:
-        assert label in forecast, label
+    sheet_text = (ROOT / "forecast-sheet.html").read_text(encoding="utf-8")
+    regimes = sheet_text[sheet_text.index("<!-- __REGIMES_START__ -->"):sheet_text.index("<!-- __REGIMES_END__ -->")]
+    assert re.findall(r'class="rg-h[^"]*">([^<]+)<br>', regimes) == [n for _k, n, _ in render_sheet.SEAT_LAWS]
 
 
 def test_the_page_scripts_pass_and_the_check_reaches_every_writer():

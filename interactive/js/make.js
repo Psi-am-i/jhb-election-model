@@ -171,7 +171,9 @@ onForecast(f => { section1 = f; if (started) follow(); });
 
 async function follow() {
   const f = section1, ticket = ++handSeq;
-  if (!f) return;
+  // before start() has its data, there is nothing to follow with: start()
+  // follows once it has
+  if (!f || !ctx || !from) return;
   let next;
   if (!f.touched) next = { state: pubStart, adjusted: false };
   else {
@@ -252,7 +254,7 @@ async function start() {
   buildVote();
   fromLink = !MS.sameState(state, pubStart, ctx);
   afterEdit();
-  if (section1) follow();
+  if (section1) follow();          // section 1 may have spoken while the data loaded
   worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
   worker.onmessage = onWorker;
   worker.postMessage({ type: "init", schema });
