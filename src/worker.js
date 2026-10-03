@@ -64,7 +64,10 @@
  * /og/1/link.png and /og/1/story.png (that image, drawn here from the seat
  * Worker's answer over the SEATS service binding; /og.png when anything
  * fails), and POST /seal/1 and /seal/1/check (sealed links, under the Worker
- * secret SEAL_KEY). The share data point is
+ * secret SEAL_KEY). Preview versions refuse /seal/1: they share the live
+ * SEAL_KEY, and one built with a later polls_open would otherwise sign links
+ * the live site accepts after polls open. They still check seals. The share
+ * data point is
  *   blobs ["share", host, button], doubles [1], indexes ["share"]
  * On the apex and www, /s/ answers 302 to the same path and query on the
  * Johannesburg host, like a channel short path.
@@ -171,7 +174,7 @@ export default {
       const to = movedTo(path);
       const res = channel ? arrival(url, host, channel, env)
         : to ? moved(url, to)
-          : (await shareRoute(request, url, host, env, ctx)) ?? await env.ASSETS.fetch(request);
+          : (await shareRoute(request, url, host, env, ctx, { preview: true })) ?? await env.ASSETS.fetch(request);
       const out = new Response(res.body, res);
       out.headers.set("X-Robots-Tag", NOINDEX);
       return out;

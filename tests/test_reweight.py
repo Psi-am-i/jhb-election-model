@@ -1210,8 +1210,30 @@ def test_scored_as_results_by_hand():
     # weights count: the last draw alone
     alone = R.scored_as_results(seat, wards, vote, [0.0, 0.0, 0.0, 1.0], within=10)
     assert (alone["seat_error"], alone["seat_error_within"], alone["wards_called"]) == (30.0, 0.0, 100.0)
-    # the default line is the module's constant, read at call time
-    assert R.scored_as_results(seat, wards, vote, w)["within"] == R.ANALYSIS_SEAT_ERROR_WITHIN
+    # the line is the caller's to pass: nothing typed stands in for it
+    try:
+        R.scored_as_results(seat, wards, vote, w)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("scored_as_results ran without a line")
+
+
+def test_the_seat_line_is_the_middle_forecasts_median_error_by_hand():
+    """seat_error_line and middle_seats (JUDGEMENT-CALLS §N4) on constructed
+    draws worked by hand: medians rounded half up, the line the median error
+    rounded down, and weights counted."""
+    seats = [[10, 0], [12, 1], [14, 3], [20, 2]]
+    w = [1.0, 1.0, 1.0, 1.0]
+    # medians 13 and 1.5: rounded half up to 13 and 2
+    assert R.middle_seats(seats, ["A", "B"], w) == {"A": 13, "B": 2}
+    # errors of the middle forecast against each draw: 5, 2, 2, 7; median 3.5, line 3
+    errs = [abs(13 - a) + abs(2 - b) for a, b in seats]
+    assert errs == [5, 2, 2, 7]
+    assert R.seat_error_line(errs, w) == 3
+    # the last draw alone
+    assert R.middle_seats(seats, ["A", "B"], [0.0, 0.0, 0.0, 1.0]) == {"A": 20, "B": 2}
+    assert R.seat_error_line(errs, [0.0, 0.0, 0.0, 1.0]) == 7
 
 
 

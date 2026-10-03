@@ -172,7 +172,10 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
     if (!caught || quiet) failures.push(`${w}: the detector is blind (caught ${!!caught}, quiet after revert ${!quiet})`);
   }
   const T0 = "#t-0", T1 = "#t-1", VOTE = ".prlist .prrow input.prnum";
-  const vote = v => async p => { const i = p.locator(VOTE).first(); await i.fill(String(v)); await i.press("Enter"); };
+  // the first party of "Other parties", seated nowhere at the start
+  const NEW = '[data-live="b-vote"] .prmore .prrow input.prnum';
+  const voteAt = (sel, v) => async p => { const i = p.locator(sel).first(); await i.fill(String(v)); await i.press("Enter"); };
+  const vote = v => voteAt(VOTE, v);
   // Section 2 follows section 1 until the reader edits it (make.js), so
   // while it is unedited a section-1 lever redraws its council: rows and
   // chips, which are content. That pass is held to everything down to
@@ -203,12 +206,28 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
     // section 2
     ["paint another ward", ".wardmap", p => p.locator(".wardmap [data-i]").nth(20).click({ force: true }), null],
     ["a party's vote", VOTE, vote(30), null],
+    // a party taken to zero keeps its row; a typed vote over 100 is capped
+    // at the most the party can have, which takes most parties to zero
+    // (review of the share build, 2026-10-03: both moved the vote box at 375)
+    ["a party's vote to 0", VOTE, vote(0), null],
+    ["a party's vote typed over 100", VOTE, vote(150), '[data-live="b-vote"] .floornote'],
+    ["a party's vote back", VOTE, vote(30), null],
+    // a party seated nowhere at the start gets its first seats: its row
+    // fills the council's reserved room (JUDGEMENT-CALLS §N5); its new
+    // coalition chip is below the lever, so that pass is held down to the
+    // coalition's region
+    p => p.evaluate(() => { document.querySelector('[data-live="b-vote"] .prmore').open = true; }),
+    ["a new party's first seats", NEW, voteAt(NEW, 3), null, { above: '[data-live="b-govern"]' }],
     ["a coalition party", ".coal", p => p.locator(".coal button").first().click(), ".coalstat"],
     ["analyse", ".yf-step4", p => p.locator('[data-live="b-actions"] .yf-analyse').click(), '[data-live="b-analysis"] .yf-verdict', { scrolls: true }],
     ["edit after analysing", VOTE, vote(25), null],
     ["a second coalition party after analysing", ".coal", p => p.locator(".coal button").nth(1).click(), null],
   ];
-  for (const [label, lever, act, shows, opt] of S) await move(p, w, label, lever, () => act(p), shows, opt);
+  for (const m of S) {
+    if (typeof m === "function") { await m(p); await settle(p); continue; }   // a step that is not a lever move
+    const [label, lever, act, shows, opt] = m;
+    await move(p, w, label, lever, () => act(p), shows, opt);
+  }
   // every lever at once, the longest every message gets: no slot overflows
   for (const [sel, v] of [["#t-0", 5], ["#t-1", 5], ["#t-2", 5], ["#t-3", 5]]) { await slide(sel, v)(p); await settle(p); }
   await pick('[data-live="polls"] input[type="radio"]:not([value=""])')(p); await settle(p);

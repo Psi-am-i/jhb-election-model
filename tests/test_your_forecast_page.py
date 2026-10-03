@@ -186,6 +186,8 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     assert build_play.DRAWS_LINE[1] in worker and build_play.DRAWS_LINE[0] not in worker
     engine = (site / D / "js/seat-engine.js").read_text(encoding="utf-8")
     assert build_make.SEATS_LINE[1] in engine and build_make.SEATS_LINE[0] not in engine
+    state = (site / D / "js/play-state.js").read_text(encoding="utf-8")
+    assert YF.BLOCKLIST_LINE[1] in state and YF.BLOCKLIST_LINE[0] not in state
     for f in build_make.WORKER_API_JS:
         assert (site / D / "js" / f).read_bytes() == (ROOT / "worker-api/src" / f).read_bytes()
     # the seat laws' names are the one definition the forecast sheet's
@@ -679,11 +681,17 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
         vote_errs.append(sum(abs(mine_pts.get(c, 0.0) - listed.get(c, 0.0)) for c in set(mine_pts) | set(listed)))
     n = len(seat_errs)
     got = a["score"]
+    # the seat line, written out: each party's median seats over the draws,
+    # rounded half up; that forecast's error against each draw; its median,
+    # rounded down (reweight.seat_error_line, JUDGEMENT-CALLS §N4)
+    middle = {c: int(np.floor(np.median(seat_rows[:, j]) + 0.5)) for j, c in enumerate(sc)}
+    mid_errs = [sum(abs(middle[c] - int(seat_rows[i, j])) for j, c in enumerate(sc)) for i in range(n)]
+    line = int(np.floor(np.median(mid_errs)))
+    assert got["within"] == line and line > 0
     assert math.isclose(got["seat_error"], sum(seat_errs) / n, rel_tol=1e-9)
     assert math.isclose(got["seat_error_within"]["p"],
-                        sum(e <= R.ANALYSIS_SEAT_ERROR_WITHIN for e in seat_errs) / n, rel_tol=1e-9)
+                        sum(e <= line for e in seat_errs) / n, rel_tol=1e-9)
     assert got["seat_error_within"]["text"] == R.chance_text(got["seat_error_within"]["p"])
-    assert got["within"] == R.ANALYSIS_SEAT_ERROR_WITHIN
     assert math.isclose(got["wards_called"], sum(right) / n, rel_tol=1e-9)
     assert math.isclose(got["list_vote_error"], sum(vote_errs) / n, rel_tol=1e-9)
     assert a["wards_count"] == len(cols("ward_winner"))

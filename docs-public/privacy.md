@@ -59,10 +59,14 @@ keeps the forecast or the name in it.
 - **The seal.** The page sends the forecast and its name to the server, which
   signs them with the time, using a key only the server holds, and returns the
   signature for the link to carry. Anyone opening the link can then see that
-  it was sealed and when. The server keeps no record of what it signed.
+  it was sealed and when. The server keeps no record of what it signed, so a
+  seal shows when a forecast was made, not that it was the only one its
+  maker sealed.
 - **The preview image.** A chat app shown the link fetches an image the server
   draws from the link. The image is kept in Cloudflare's cache, which deletes
-  it on its own.
+  it on its own: an hour for an unsealed link, a year for a sealed one. Chat
+  apps and search engines that fetch it may keep their own copy, under their
+  own rules.
 - **The count.** Shared links go out as `/s/` addresses. Each forwards to the
   forecast and writes one log line and one Analytics Engine data point naming
   "share", the button used (WhatsApp, X, copy or the phone's share menu) and

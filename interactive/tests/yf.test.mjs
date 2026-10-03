@@ -137,6 +137,26 @@ test("a name longer than the limit is refused whole, never cut", () => {
   assert.equal(YU.nameRefused("?n=%20%20"), false);
 });
 
+test("a name the blocklist refuses is no name on the page, the return link or the edge (one rule)", async () => {
+  const EDGE = await import("../../src/share-edge.js");
+  for (const raw of ["IEC Official", "the model", "Ｏｆｆｉｃｉａｌ", "WhySoSerious"]) {
+    assert.equal(PS.cardName(raw), "", raw);
+    assert.equal(PS.nameBlocked(raw), true, raw);
+    assert.equal(YU.nameOf("?n=" + encodeURIComponent(raw)), "", raw);
+    assert.equal(EDGE.cardName(raw), "", raw);
+    assert.equal(YU.friendPart("AAAA", raw), "?vs=AAAA", raw);
+    assert.equal(YU.compose("", "", raw), "", raw);
+  }
+  YU.open("?vs=AAAA&vn=" + encodeURIComponent("IEC Official"));
+  assert.deepEqual(YU.friend(), { f: "AAAA", name: "" });
+  // the check sees: an ordinary name passes every one of them
+  assert.equal(PS.cardName("Thandi"), "Thandi");
+  assert.equal(PS.nameBlocked("Thandi"), false);
+  assert.equal(PS.nameBlocked(""), false);
+  assert.equal(YU.nameOf("?n=Thandi"), "Thandi");
+  YU.open("");
+});
+
 test("in the page, the address it opened with is the first state of every part", async () => {
   // A fresh copy of the module, imported with an address in place, as the
   // browser imports it: the first write by one section keeps the other's

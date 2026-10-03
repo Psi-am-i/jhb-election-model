@@ -3153,12 +3153,12 @@ those functions on the published draws for a constructed forecast. A
 different band changes only which chance is printed; nothing in the model
 reads it.
 
-### §N4 · The competition rule: seats, then ward calls, then vote (list ballot); and the 10-seat line — ⚖️ owner's order, 🔴 the line typed (2026-10-03)
+### §N4 · The competition rule: seats, then ward calls, then vote (list ballot); and the seat line — ⚖️ owner's order, the line derived (2026-10-03)
 
 **Where.** `src/score_forecasts.py` (`seat_error`, `wards_called`,
 `list_vote_error`, `rank_key`, `MEASURES`); on /your-forecast/,
 `interactive/pyboot/page.py`'s `analyse` and `reweight.scored_as_results`,
-with the line `reweight.ANALYSIS_SEAT_ERROR_WITHIN`.
+with the line `reweight.seat_error_line`.
 
 **The rule (owner, 2026-10-03).** Every forecast of the council is ranked on
 three measures, compared in this order, each only breaking ties in the one
@@ -3188,8 +3188,8 @@ and the ward/list split are still computed and reported, not ranked.
 forecast is scored by these functions against EACH published simulation (the
 published cell, each draw counted once, statutory seats) as if that
 simulation were the result. The page prints, in the rule's order: the
-expected seat error and the chance it is `ANALYSIS_SEAT_ERROR_WITHIN` seats
-or fewer; the expected number of correct ward calls out of the wards; the
+expected seat error and the chance it is within the seat line or fewer
+seats; the expected number of correct ward calls out of the wards; the
 expected list-ballot vote error in points. Two adaptations to the draws:
 
 * The draws' `OTHER` columns sum every party that never wins a seat in any
@@ -3203,14 +3203,20 @@ expected list-ballot vote error in points. Two adaptations to the draws:
   Jeffreys-corrected as the published map's is. The two differ by that
   correction, which is under one ward in total; neither is wrong.
 
-**The 10-seat line.** `ANALYSIS_SEAT_ERROR_WITHIN = 10`: typed, the owner's
-suggestion, no record behind it. With the model's present spread, a
-forecast at the model's own middle has an expected seat error far above it,
-so the chance printed is near zero for most forecasts (the stored native
-fixture, `interactive/tests/native-play.json`, holds the figures for its
-cases). A line scaled to the spread, or a different total, is the owner's to
-choose. The page states the line is a judgement where it explains the
-method.
+**The seat line (derived since 2026-10-03, after the review of the share
+build).** `reweight.seat_error_line`: the model's own middle forecast
+(`reweight.middle_seats`: each party's median seats over the draws, rounded
+half up) is scored against every draw by `seat_error`; the line is the median
+of those errors, rounded down. Half the simulations, or more, are that close
+to the model's middle forecast. It replaced a typed 10 seats, the owner's
+suggestion, under which every forecast, the model's own start included,
+printed "a chance of under 0.1%": the reviewer measured the start forecast's
+expected seat error at 108.5 seats, and 94.5 for each party's median
+(figures from that review, not re-measured here; the native fixture
+`interactive/tests/native-play.json` holds the current line for its cases).
+The page says how the line is set where it explains the method. **Owner:**
+the 10-seat line was yours; a different derivation, or printing where a
+forecast ranks among the simulations instead, is yours to choose.
 
 **How to check it.** `tests/test_score_forecasts.py` holds the three
 measures to hand-worked arrays and the ranking to constructed forecasts on
@@ -3233,13 +3239,28 @@ for two rows more than the published forecast's, empty until a lever fills
 them. A third added row grows the table, and
 `interactive/tools/yf_jump_check.mjs` fails on it.
 
+**Section 2's council (added 2026-10-03, after the review of the share
+build).** The same two, in their own `--yf-spare-rows` on section 2's council
+table (`your-forecast.css`, "section 2's council"; `make.js` `councilRows`).
+Every party seated at the start section 2 is open at, or in a friend's
+forecast, keeps its row when the reader takes it to zero seats, so no edit
+removes a row. A party seated in neither is new: up to two new rows fill the
+reserved room, each a fixed `--yf-new-row` high (a long name is cut with an
+ellipsis rather than wrapping); a third grows the table. The council sits
+above the vote list on a phone, so a row added or removed there moved the
+lever (measured by the reviewer at 375 wide: a party's vote set to 0 moved
+the vote box 30px). The coalition chips below the vote list list the same
+parties; a new party adds a chip, below the lever.
+
 **Why two.** Typed. In the check's moves, every lever moved at once
 included, the added rows fit. No record says how many parties a reader's
-settings can lift.
+settings can lift, or how many a reader's vote edits can seat.
 
 **How to check it.** `yf_jump_check.mjs` measures the document height and
 the landmarks below the table around every lever move, at 375 and 1440
-wide. Nothing in the model reads this value.
+wide; its section 2 moves include a party's vote set to 0, a typed vote over
+100, and a party from "Other parties" given its first seats. Nothing in the
+model reads this value.
 
 ### §N6 · The boldness badge: Safe call at 20% or more, Bold call from 5% to under 20%, Wild call under 5% — ⚖️ owner's bands (2026-10-03)
 

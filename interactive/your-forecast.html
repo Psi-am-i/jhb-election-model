@@ -302,6 +302,7 @@
                 <div class="db">
                   <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
                     <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
+                  <p class="stubnote shnamenote" role="status"></p>
                   <label class="shfriend" hidden><input class="shoff" type="checkbox"> Leave their name off the
                     side-by-side image and link</label>
                   <div class="urlrow">
@@ -339,6 +340,9 @@
     <section class="yf-analysis" aria-labelledby="h-analysis">
       <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
       <div data-live="b-analysis" hidden>
+        <!-- the reader's outcome, then the chance we give it (share-card.js
+             outcomeWords and chanceSentence, as on the cards) -->
+        <p class="yf-outcome yf-slot"></p>
         <p class="yf-verdict yf-slot"></p>
         <!-- the competition's order: seats, then ward calls, then vote
              (JUDGEMENT-CALLS §N4) -->
@@ -348,7 +352,6 @@
           <li class="yf-svote yf-slot"></li>
         </ul>
         <p class="yf-caveat">But historical trends can always be broken.</p>
-        <p class="yf-outcome yf-slot"></p>
         <p class="yf-expected yf-slot"></p>
         <div class="yf-atable"></div>
         <p class="pl-note yf-anote"></p>

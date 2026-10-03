@@ -2003,7 +2003,10 @@ more uses of the same draws, neither of which moves a forecast:
   a band of a reader's figure) and `ward_calls_likelihood` (each ward call's
   chance, their sum, and the reader's set of ward results ranked among the
   draws' own by the sum of log ward chances), on the published draws, unit
-  weights. The bands and the method are JUDGEMENT-CALLS §N3.
+  weights. The bands and the method are JUDGEMENT-CALLS §N3. The seat line
+  (`seat_error_line`) is derived: the median, over the draws, of the seat
+  error of the model's own middle forecast (`middle_seats`, each party's
+  median seats), rounded down (JUDGEMENT-CALLS §N4).
 
 ## A reader's forecast, seated by the statute alone — `src/reader_seats.py` (2026-09-28)
 
@@ -2173,14 +2176,24 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   view; `/your-forecast/?f=…` gets its og: tags pointed at
   `/og/1/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
   rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
-  the draws' hash, and is `/og.png` on any failure.
+  the draws' hash (a year when the link's seal checks, an hour otherwise), and
+  is `/og.png` on any failure.
 * **Sealed links** (`seal.js`): HMAC-SHA256 under the Worker secret
   `SEAL_KEY` over `v`, `c`, `f`, `n` and the Worker's clock; refused from
-  `election.polls_open` (`content/joburg/election.toml`). The arrival view
-  checks a link's seal; a card prints a time only for a verified seal.
+  `election.polls_open` (`content/joburg/election.toml`) and on preview
+  versions. `/seal/1/check` checks the signature before reading the
+  forecast, so a link sealed under an earlier `context_ref` still checks
+  (`readable: false`). The arrival view checks a link's seal; a card prints a
+  time only for a verified seal. A seal shows when a forecast was made, not
+  that it was its maker's only one.
+* **The name** on every card and image is `play-state.cardName`: the page's
+  cleaning, then the owner's blocklist (`worker-api/src/blocklist.js`, copied
+  beside the page's modules by the build). The page, both share sheets and
+  the Worker use it.
 * **The arrival view** (`arrival.js`): `from=1` opens the friend's forecast
   read-only; section 2 stays locked until the reader starts from it or from
-  the published start. The friend's forecast stays in the address (`vs`,
+  the published start. The share sheet's buttons stay off until the seal
+  returns or is refused. The friend's forecast stays in the address (`vs`,
   `vn`) for the return card; its seats come from the page's seat Worker in a
   lane of their own (`make-worker.js`).
 

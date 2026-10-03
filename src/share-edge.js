@@ -11,10 +11,13 @@
 //   /og/1/link.png?<link>    that image, drawn here: share-card.js's card,
 //   /og/1/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
 //                            the edge by the link and the published draws'
-//                            hash. Any failure answers 302 to /og.png.
+//                            hash: a year when the link's seal checks, an
+//                            hour otherwise (imageCache). Any failure
+//                            answers 302 to /og.png.
 //   POST /seal/1             seal a link's state (src/seal.js); refused from
-//                            the moment polls open
-//   POST /seal/1/check       is this link sealed, and when
+//                            the moment polls open, and on preview versions
+//   POST /seal/1/check       is this link sealed, and when: the signature
+//                            first, then whether this page reads the forecast
 //
 // SEATS AND THE CHANCE COME ONLY FROM PYTHON (DESIGN §3): the image's seats
 // are the seat law's for the link's picks and its chance the published
@@ -31,10 +34,9 @@
 
 import * as MS from "../interactive/js/make-state.js";
 import * as B from "../interactive/js/builder-state.js";
-import { cleanName, NAME_MAX } from "../interactive/js/play-state.js";
+import { cardName } from "../interactive/js/play-state.js";
 import * as SC from "../interactive/js/share-card.js";
 import { seatRequest, checkSeatAnswer } from "../worker-api/src/seats.js";
-import { BLOCKED_NAME_PATTERNS } from "../worker-api/src/blocklist.js";
 import { makeSeal, checkSeal, SEALED_KEYS } from "./seal.js";
 
 // The keys of a shared forecast's link, in the order the image's address
@@ -45,6 +47,13 @@ export const LINK_KEYS = ["v", "c", "f", "n", "s", "vs", "vn"];
 export const SHARE_CHANNELS = new Set(["wa", "x", "copy", "native"]);
 export const FALLBACK_IMAGE = "/og.png";
 export const SEATS_TIMEOUT_MS = 3000;
+// How long an image whose link is not sealed may be kept, by the edge and by
+// whoever fetched it, in seconds. A sealed link's image never changes and is
+// kept for a year; an unsealed one would show "Sealed" once SEAL_KEY is set
+// (it is not yet), so it is not kept for long.
+export const UNSEALED_MAX_AGE_S = 3600;
+// The image's Cache-Control: a year for a sealed link's image, an hour for any other.
+export const imageCache = sealed => (sealed ? "public, max-age=31536000, immutable" : "public, max-age=" + UNSEALED_MAX_AGE_S);
 const PAGE = "/your-forecast/";
 const IMAGE = /^\/og\/1\/(link|story)\.png$/;
 
@@ -57,14 +66,9 @@ export function linkQuery(search) {
   return out.toString();
 }
 
-// The name as a card may print it, or "" (cleaned by the page's one rule,
-// refused whole when too long or when it would pass for the site).
-export function cardName(raw) {
-  if (raw == null || raw.length > NAME_MAX) return "";
-  const n = cleanName(raw);
-  const folded = n.normalize("NFKC");
-  return BLOCKED_NAME_PATTERNS.some(p => p.test(folded)) ? "" : n;
-}
+// The name as a card may print it: play-state.js cardName, the one rule the
+// page and both share sheets use too.
+export { cardName };
 
 // ---------- the page's data, from the asset bundle ----------
 
@@ -196,7 +200,8 @@ const fallback = url => new Response(null, {
   status: 302, headers: { Location: new URL(FALLBACK_IMAGE, url).toString(), "Cache-Control": "no-store" },
 });
 
-// The SVG of the card a link asks for, from checked answers; exported for the
+// The card a link asks for, from checked answers: { svg, sealed }, `sealed`
+// when the image's own forecast carries this Worker's seal. Exported for the
 // tests, which hand it a fake SEATS.
 export async function cardFor(url, env, size) {
   const D = await pageData(env, url);
@@ -219,10 +224,10 @@ export async function cardFor(url, env, size) {
     const Bspec = await specOf(friend, cardName(q.get("vn")) || "a friend");
     if (!A.name) A.name = "A reader";
     const codes = [...new Set([...A.rows, ...Bspec.rows].map(r => r.code))];
-    return SC.duelCardSVG(A, Bspec, await cardAssets(env, url, D, codes), party);
+    return { svg: SC.duelCardSVG(A, Bspec, await cardAssets(env, url, D, codes), party), sealed: !!made };
   }
   const assets = await cardAssets(env, url, D, A.rows.map(r => r.code));
-  return size === "story" ? SC.storyCardSVG(A, assets, party) : SC.linkCardSVG(A, assets, party);
+  return { svg: size === "story" ? SC.storyCardSVG(A, assets, party) : SC.linkCardSVG(A, assets, party), sealed: !!made };
 }
 
 export async function cardImage(url, env, ctx, size) {
@@ -233,10 +238,10 @@ export async function cardImage(url, env, ctx, size) {
     key = new Request(`${url.origin}/og/1/${size}.png?${linkQuery(url.search)}&ds=${D.forecast.draws_sha256}`);
     const hit = cache ? await cache.match(key) : null;
     if (hit) return hit;
-    const svg = await cardFor(url, env, size);
+    const card = await cardFor(url, env, size);
     const { renderPNG } = await import("./og-render.js");
-    const res = new Response(await renderPNG(svg), {
-      headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable" },
+    const res = new Response(await renderPNG(card.svg), {
+      headers: { "Content-Type": "image/png", "Cache-Control": imageCache(card.sealed) },
     });
     if (cache) ctx?.waitUntil?.(cache.put(key, res.clone()));
     return res;
@@ -251,6 +256,7 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
 });
 
+// The request's body and the link's four sealed fields, as strings.
 async function sealBody(request, env, url) {
   if (request.method !== "POST") return { error: json({ error: "POST only" }, 405) };
   let body;
@@ -258,21 +264,30 @@ async function sealBody(request, env, url) {
   if (!body || typeof body !== "object") return { error: json({ error: "the body is not an object" }, 400) };
   const D = await pageData(env, url);
   const fields = Object.fromEntries(SEALED_KEYS.map(k => [k, typeof body[k] === "string" ? body[k] : ""]));
-  if (!decodeLink(fields.v, fields.c, fields.f, D)) return { error: json({ error: "the link carries no forecast this page can read" }, 400) };
-  if (fields.n !== "" && cardName(fields.n) !== fields.n) return { error: json({ error: "the name is not one a card can carry" }, 400) };
   return { D, fields, body };
 }
 
-export async function seal(request, env, url) {
+// Sealing needs a forecast this page reads, under a name a card may carry.
+// Refused on a preview version (`preview`): a preview could carry a later
+// polls_open and would sign with the live key.
+export async function seal(request, env, url, { preview = false } = {}) {
   if (!env.SEAL_KEY) return json({ error: "sealing is not set up" }, 503);
+  if (preview) return json({ error: "sealing is refused on a preview version" }, 403);
   const got = await sealBody(request, env, url);
   if (got.error) return got.error;
+  if (!decodeLink(got.fields.v, got.fields.c, got.fields.f, got.D)) return json({ error: "the link carries no forecast this page can read" }, 400);
+  const fields = got.fields;
+  if (fields.n !== "" && cardName(fields.n) !== fields.n) return json({ error: "the name is not one a card can carry" }, 400);
   const now = Date.now();
   const opens = Date.parse(got.D.forecast.election.polls_open);
   if (!(now < opens)) return json({ error: "Polls are open: a forecast can no longer be sealed." }, 403);
   return json({ s: await makeSeal(env.SEAL_KEY, got.fields, now) });
 }
 
+// The signature is checked first, on the fields as the link carries them:
+// a link sealed under an earlier context_ref (a new roster, wards or total
+// vote) is still answered sealed, and when. `readable` says separately
+// whether this page can read its forecast.
 export async function sealCheck(request, env, url) {
   if (!env.SEAL_KEY) return json({ error: "sealing is not set up" }, 503);
   const got = await sealBody(request, env, url);
@@ -280,17 +295,19 @@ export async function sealCheck(request, env, url) {
   const r = await checkSeal(env.SEAL_KEY, got.fields, got.body.s);
   const opens = Date.parse(got.D.forecast.election.polls_open);
   return json({ sealed: r.sealed, at: r.sealed ? new Date(r.at).toISOString() : null,
-                before_polls: r.sealed ? r.at < opens : false });
+                before_polls: r.sealed ? r.at < opens : false,
+                readable: !!decodeLink(got.fields.v, got.fields.c, got.fields.f, got.D) });
 }
 
 // ---------- routing ----------
 
 // The response for a share route on a host that serves the Johannesburg build
-// from the root, or null when the path is not one.
-export async function shareRoute(request, url, host, env, ctx) {
+// from the root, or null when the path is not one. `preview`: a workers.dev
+// host (src/worker.js), where /seal/1 is refused and /seal/1/check answers.
+export async function shareRoute(request, url, host, env, ctx, { preview = false } = {}) {
   const path = url.pathname;
   if (path === "/s" || path === "/s/") return shareArrival(url, host, env);
-  if (path === "/seal/1") return seal(request, env, url);
+  if (path === "/seal/1") return seal(request, env, url, { preview });
   if (path === "/seal/1/check") return sealCheck(request, env, url);
   const img = IMAGE.exec(path);
   if (img) return request.method === "GET" || request.method === "HEAD" ? cardImage(url, env, ctx, img[1]) : json({ error: "GET only" }, 405);

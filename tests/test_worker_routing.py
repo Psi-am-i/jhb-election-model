@@ -926,19 +926,23 @@ def seal_problems(src: str, overrides: dict | None = None) -> list[str]:
         _seal_cases(S, before, key, n="the model"),  # a name the cards refuse
         {k: v for k, v in _seal_cases(S, before, key).items() if k != "body"} | {"method": "GET"},
         {**check(), "env": {"SEAL_KEY": "another-key"}},   # another key
+        {**_seal_cases(S, before, key), "url": f"https://{PREVIEW_HOSTS[1]}/seal/1"},        # a preview: refused
+        {**check(), "url": f"https://{PREVIEW_HOSTS[1]}/seal/1/check"},                       # a preview still checks
     ], S["files"], overrides)
+    unsealed = {"sealed": False, "at": None, "before_polls": False, "readable": True}
     want = [(200, {"sealed": True, "at": datetime.fromtimestamp(before // 1000 * 1000 / 1000).astimezone().isoformat(), "before_polls": True}),
-            (200, {"sealed": False, "at": None, "before_polls": False})] + \
-        [(200, {"sealed": False, "at": None, "before_polls": False})] * 3 + \
+            (200, unsealed)] + \
+        [(200, unsealed)] * 3 + \
         [(403, None), (503, None), (400, None), (400, None), (405, None),
-         (200, {"sealed": False, "at": None, "before_polls": False})]
+         (200, unsealed), (403, None),
+         (200, {"sealed": True, "at": None, "before_polls": True})]
     for r, (status, body) in zip(runs, want):
         got = json.loads(r["body"]) if r["body"] else None
         if r["status"] != status:
             out.append(f"{r['url']}: {r['status']} {r['body'][:200]}, want {status}")
         elif body is not None:
             if body["sealed"]:
-                if not (got["sealed"] and got["before_polls"] and
+                if not (got["sealed"] and got["before_polls"] and got["readable"] is True and
                         abs(datetime.fromisoformat(got["at"].replace("Z", "+00:00")).timestamp() * 1000 - before) < 1000):
                     out.append(f"check: {got}, want sealed at {before}")
             elif got != body:
@@ -959,7 +963,8 @@ def test_seal_check_fires_on_each_constructed_violation():
     seal = (ROOT / "src" / "seal.js").read_text(encoding="utf-8")
     src = source()
     for a, b in (("if (!(now < opens))", "if (false)"),
-                 ('if (fields.n !== "" && cardName(fields.n) !== fields.n)', "if (false)")):
+                 ('if (fields.n !== "" && cardName(fields.n) !== fields.n)', "if (false)"),
+                 ('if (preview) return json(', 'if (false) return json(')):
         assert edge.count(a) == 1, a
         assert seal_problems(src, {"share-edge.js": edge.replace(a, b)}), f"blind to {b!r}"
     for a, b in (('return [SEAL_VERSION, String(seconds), ...SEALED_KEYS.map(k => String(fields[k] ?? ""))].join("\\n");',

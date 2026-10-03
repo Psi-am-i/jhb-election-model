@@ -53,13 +53,15 @@ export async function makeSeal(secret, fields, nowMs) {
 
 // { sealed: true, at: ms } when `s` is this Worker's seal of these fields,
 // else { sealed: false, at: null }. crypto.subtle.verify compares in constant
-// time.
+// time. Only the spelling makeSeal writes is accepted: no leading zero on the
+// time, and no stray low bits in the signature's last character, so each
+// seal has exactly one string.
 export async function checkSeal(secret, fields, s) {
   const no = { sealed: false, at: null };
   const m = /^([0-9a-z]{1,9})\.([A-Za-z0-9_-]{43})$/.exec(String(s ?? ""));
   if (!m) return no;
   const seconds = parseInt(m[1], 36), sig = fromB64url(m[2]);
-  if (!Number.isSafeInteger(seconds) || !sig) return no;
+  if (!Number.isSafeInteger(seconds) || !sig || seconds.toString(36) !== m[1] || b64url(sig) !== m[2]) return no;
   const ok = await crypto.subtle.verify("HMAC", await hmacKey(secret, "verify"), sig, enc.encode(sealMessage(fields, seconds)));
   return ok ? { sealed: true, at: seconds * 1000 } : no;
 }

@@ -12,11 +12,13 @@ reader's forecast lives in the page's address (``js/make-state.js``, through
     schema (``worker-api/tools/make_schema.mjs``'s own ``build``, run on the
     artefact :func:`model_artefact` writes from the published draws), the ward
     geometry, and the start state.
-``your-forecast/js/seats.js``, ``http.js``
+``your-forecast/js/seats.js``, ``http.js``, ``blocklist.js``
     Copied from ``worker-api/src`` (``WORKER_API_JS``) beside
     ``seat-engine.js``, whose ONE declared import line (``SEATS_LINE``) is
-    rewritten to them. Both run only inside section 2's Web Worker, which the
-    number gate does not follow (it cannot touch the page).
+    rewritten to them. The first two run only inside section 2's Web Worker,
+    which the number gate does not follow (it cannot touch the page);
+    ``blocklist.js`` is the owner's name blocklist, imported by
+    ``play-state.js``.
 
 The start state, stated exactly
 ===============================
@@ -68,8 +70,10 @@ INTERACTIVE = REPO_ROOT / "interactive"
 DRAWS = REPO_ROOT / "site" / "draws"
 WORKER_SRC = REPO_ROOT / "worker-api" / "src"
 
-#: The two worker-api files section 2's seat Worker imports, copied beside it.
-WORKER_API_JS = ("seats.js", "http.js")
+#: The worker-api files the page imports, copied beside its modules: the two
+#: section 2's seat Worker imports, and the owner's name blocklist, which
+#: ``play-state.js`` imports (``build_your_forecast.BLOCKLIST_LINE``).
+WORKER_API_JS = ("seats.js", "http.js", "blocklist.js")
 #: The one line of seat-engine.js that differs between the repository and the site.
 SEATS_LINE = ('from "../../worker-api/src/seats.js";', 'from "./seats.js";')
 #: The data file section 2 reads.

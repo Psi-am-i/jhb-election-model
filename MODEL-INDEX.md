@@ -316,7 +316,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `build_make.INTERACTIVE` | REPO_ROOT / 'interactive' | NO | NO | NO | `build_play`, `build_your_forecast` |
 | `build_make.DRAWS` | REPO_ROOT / 'site' / 'draws' | NO | NO | NO | `build_play` |
 | `build_make.WORKER_SRC` | REPO_ROOT / 'worker-api' / 'src' | NO | NO | NO | `build_your_forecast` |
-| `build_make.WORKER_API_JS` | tuple[2] | NO | NO | NO | `build_your_forecast` |
+| `build_make.WORKER_API_JS` | tuple[3] | NO | NO | NO | `build_your_forecast` |
 | `build_make.SEATS_LINE` | tuple[2] | NO | NO | NO | `build_your_forecast` |
 | `build_make.DATA` | str 'forecast.json' | NO | NO | NO | `build_your_forecast`, `freeze`, `width_budget` |
 | `build_play.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_make`, `build_site`, `build_your_forecast`, `site_assets` |
@@ -374,6 +374,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `build_your_forecast.JS` | tuple[22] | NO | NO | NO | -- |
 | `build_your_forecast.CSS` | tuple[3] | NO | NO | NO | -- |
 | `build_your_forecast.PYBOOT` | tuple[2] | NO | NO | NO | -- |
+| `build_your_forecast.BLOCKLIST_LINE` | tuple[2] | NO | NO | NO | -- |
 | `cityconfig.CITIES_DIR` | Path('cities') | NO | NO | NO | `pools` |
 | `cityconfig.DEFAULT_CITY` | str 'joburg' | NO | NO | NO | -- |
 | `cityconfig.CALENDAR` | {'1999': Election('1999', 'NPE', _date(1999, 6, 2), 'npe1999_approx_{COD | NO | NO | NO | `backtest`, `benchmarks`, `build_make`, `build_play`, `byelections`, `levels`, `montecarlo`, `pools`, `theta_residual`, `turnout` |
@@ -632,7 +633,6 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `reweight.MAX_FIGURE_SE_SEATS` | float 2.5 | NO | NO | yes | `build_play` |
 | `reweight.ANALYSIS_SEAT_BAND` | int 2 | NO | NO | yes | -- |
 | `reweight.ANALYSIS_SHARE_BAND_POINTS` | float 2.0 | NO | NO | yes | -- |
-| `reweight.ANALYSIS_SEAT_ERROR_WITHIN` | int 10 | NO | NO | yes | -- |
 | `reweight.PUBLISHED_LAW` | str 'deduct' | NO | NO | NO | -- |
 | `reweight.BOLDNESS` | tuple[3] | NO | NO | NO | -- |
 | `reweight.POLL_LABEL` | str | NO | NO | NO | -- |

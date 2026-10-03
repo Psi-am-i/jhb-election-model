@@ -22035,7 +22035,7 @@
   "w_bye-1": "432f2781d74c2156dfb2b6956e1a464eac613b495c38d6086604210ee0c724d6"
  },
  "numpy": "2.5.1",
- "page_ref": "47fb9a55a0739e15febe1f9cec9a46b0be7ab6595cc1c7b861f3617c59704589",
+ "page_ref": "6ecccb999c76e0bc02569134b89516bd4dbf9e00ee3556249446a0efe20ef508",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22112,11 +22112,11 @@
      "list_vote_error": 43.5130425,
      "seat_error": 108.53640000000001,
      "seat_error_within": {
-      "p": 0.0,
-      "text": "under 0.1%"
+      "p": 0.2984,
+      "text": "30%"
      },
      "wards_called": 107.94739999999993,
-     "within": 10
+     "within": 90
     },
     "seat_band": 2,
     "seats": {
@@ -23079,11 +23079,11 @@
      "list_vote_error": 44.480587316666664,
      "seat_error": 110.34800000000001,
      "seat_error_within": {
-      "p": 0.0,
-      "text": "under 0.1%"
+      "p": 0.288,
+      "text": "29%"
      },
      "wards_called": 107.72059999999996,
-     "within": 10
+     "within": 90
     },
     "seat_band": 2,
     "seats": {
@@ -24038,11 +24038,11 @@
      "list_vote_error": 43.69236981666667,
      "seat_error": 108.62999999999998,
      "seat_error_within": {
-      "p": 0.0,
-      "text": "under 0.1%"
+      "p": 0.3012,
+      "text": "30%"
      },
      "wards_called": 107.73299999999996,
-     "within": 10
+     "within": 90
     },
     "seat_band": 2,
     "seats": {
@@ -25003,11 +25003,11 @@
      "list_vote_error": 43.679267966666686,
      "seat_error": 110.10680000000002,
      "seat_error_within": {
-      "p": 0.0,
-      "text": "under 0.1%"
+      "p": 0.2528,
+      "text": "25%"
      },
      "wards_called": 107.3928,
-     "within": 10
+     "within": 90
     },
     "seat_band": 2,
     "seats": {

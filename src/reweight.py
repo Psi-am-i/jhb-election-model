@@ -117,12 +117,6 @@ MAX_FIGURE_SE_SEATS = 2.5   # owner, 2026-09-30: was 2.0 (JUDGEMENT-CALLS §N2)
 #: prints them from the engine's result, never as typed text.
 ANALYSIS_SEAT_BAND = 2
 ANALYSIS_SHARE_BAND_POINTS = 2.0
-#: The seat line of the same analysis: the chance that a reader's seat
-#: counts, scored against a simulation as if it were the result, are off by
-#: this many seats or fewer in total across the parties
-#: (``score_forecasts.seat_error``). A JUDGEMENT CALL, not a measurement:
-#: JUDGEMENT-CALLS.md §N4. The page prints it from the engine's result.
-ANALYSIS_SEAT_ERROR_WITHIN = 10
 
 #: The seat law the published forecast uses: every "against the published
 #: forecast" figure is taken under it (``interactive/pyboot/page.py`` and the
@@ -1074,8 +1068,27 @@ def outcome_chance(seats, columns, thresholds, weights, mine: dict, majority: in
     return {**out, "p": float(p), "text": chance_text(p), "badge": boldness(p)}
 
 
+def middle_seats(seats, columns, weights) -> dict:
+    """The model's own middle forecast of the council: each party column's
+    weighted median seats (:func:`weighted_quantile`), rounded half up to a
+    whole seat. ``seats`` is ``(draws, len(columns))``."""
+    s = np.asarray(seats, dtype=float)
+    return {c: int(np.floor(weighted_quantile(s[:, j], weights, 0.5) + 0.5)) for j, c in enumerate(columns)}
+
+
+def seat_error_line(middle_error, weights) -> int:
+    """The seat line of "Analyse my forecast" (review of the share build,
+    2026-10-03, replacing a typed 10 seats; JUDGEMENT-CALLS.md §N4): the
+    weighted median, rounded down, of ``middle_error``, the seat error
+    (``score_forecasts.seat_error``) of the model's own middle forecast
+    (:func:`middle_seats`) against each draw as if it were the result. Half
+    the simulations, or more, are this close to the model's middle forecast.
+    Derived from the model's spread; nothing typed."""
+    return int(np.floor(weighted_quantile(middle_error, weights, 0.5)))
+
+
 def scored_as_results(seat_error, wards_called, list_vote_error, weights, *,
-                      within: float | None = None) -> dict:
+                      within: float) -> dict:
     """A reader's forecast scored against every simulation as if it were the
     result, summarised (owner, 2026-10-03; JUDGEMENT-CALLS.md §N4).
 
@@ -1083,9 +1096,7 @@ def scored_as_results(seat_error, wards_called, list_vote_error, weights, *,
     ``score_forecasts``' measures (the competition's definitions, in its
     order: seats, ward calls, vote). Returns the expected value of each under
     ``weights``, and the chance that the seat error is ``within`` seats or
-    fewer (:data:`ANALYSIS_SEAT_ERROR_WITHIN` when None)."""
-    if within is None:
-        within = ANALYSIS_SEAT_ERROR_WITHIN
+    fewer (the page passes :func:`seat_error_line`)."""
     w = np.asarray(weights, dtype=float)
     seats = np.asarray(seat_error, dtype=float)
     mean = lambda v: weighted_mean_se(np.asarray(v, dtype=float), w)[0]

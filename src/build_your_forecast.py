@@ -30,7 +30,8 @@ What the served page is made of
     Byte copies of the page's modules (:data:`JS`), stylesheets and Python
     entries, except ONE declared line of each Worker's loader: where the draws
     are (``build_play.DRAWS_LINE``) and where the Worker's ``seats.js`` is
-    (``build_make.SEATS_LINE``). The build refuses if either is not there
+    (``build_make.SEATS_LINE``); and ``play-state.js``'s one import, the name
+    blocklist (:data:`BLOCKLIST_LINE`). The build refuses if any is not there
     exactly once.
 ``your-forecast/py/``
     The served Python (``manifest.json``, the seat code, and the page code in
@@ -92,6 +93,10 @@ JS = (
 CSS = ("interactive.css", "play.css", "your-forecast.css")
 PYBOOT = ("page.py", "boot.py")
 
+#: The one line of play-state.js that differs between the repository and the
+#: site: the owner's name blocklist, copied beside it (build_make.WORKER_API_JS).
+BLOCKLIST_LINE = ('from "../../worker-api/src/blocklist.js";', 'from "./blocklist.js";')
+
 _DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
 
 
@@ -123,8 +128,9 @@ def assemble(*, site_head: str, nav: str, footer: str, processed: Path) -> str:
 
 
 def _rewrite(name: str, data: bytes) -> bytes:
-    """The one declared line of a Worker loader that differs when served."""
-    line = {"model-worker.js": build_play.DRAWS_LINE, "seat-engine.js": build_make.SEATS_LINE}.get(name)
+    """The one declared line of a module that differs when served."""
+    line = {"model-worker.js": build_play.DRAWS_LINE, "seat-engine.js": build_make.SEATS_LINE,
+            "play-state.js": BLOCKLIST_LINE}.get(name)
     if not line:
         return data
     text = data.decode("utf-8")

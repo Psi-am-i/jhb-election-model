@@ -262,7 +262,10 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   const s = await makeSeal(KEY, fields, at);
   const q = new URLSearchParams({ ...fields, s }).toString();
   const { env, asked } = fakeEnv();
-  const svg = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), env, "link");
+  const card = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), env, "link");
+  const svg = card.svg;
+  assert.equal(card.sealed, true);
+  assert.match(EDGE.imageCache(card.sealed), /immutable/);
   assert.ok(svg.includes("Thandi's Election Forecast"));
   assert.ok(svg.includes(SC.chanceSentence(FIXTURE.A.answer.outcome.text).replace(/'/g, "'")));
   assert.ok(svg.includes(">" + FIXTURE.A.answer.outcome.badge + "<"));
@@ -272,11 +275,16 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   assert.equal(asked[0].draws_sha256, D.draws_sha256);
   // relabelled: the seal no longer holds, and the card says nothing about when
   const q2 = new URLSearchParams({ ...fields, n: "Someone", s }).toString();
-  const svg2 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q2), fakeEnv().env, "link");
+  const card2 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q2), fakeEnv().env, "link");
+  const svg2 = card2.svg;
+  assert.equal(card2.sealed, false);
+  assert.equal(EDGE.imageCache(card2.sealed), "public, max-age=" + EDGE.UNSEALED_MAX_AGE_S);
   assert.ok(!svg2.includes("Sealed") && !svg2.includes("Made "));
+  // no key: the same sealed link draws unsealed
+  assert.equal((await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), fakeEnv({ key: null }).env, "link")).sealed, false);
   // a return link draws both forecasts
   const q3 = new URLSearchParams({ ...fields, vs: fA, vn: "Kgomotso" }).toString();
-  const svg3 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q3), fakeEnv().env, "link");
+  const svg3 = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q3), fakeEnv().env, "link")).svg;
   assert.ok(svg3.includes(">Thandi<") && svg3.includes(">Kgomotso<") && svg3.includes("Difference"));
   // no seat Worker: no card
   await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), fakeEnv({ seats: false }).env, "link"));
@@ -296,6 +304,24 @@ test("an answer that breaks the seat law's arithmetic draws no card", async () =
 
 // ---------- the seal ----------
 
+test("a seal made under an earlier context still checks; the answer says the page cannot read it", async () => {
+  EDGE.forgetPageData();
+  const fields = { v: "1", c: "an-earlier-context", f: fA, n: "Thandi" };
+  const at = Date.parse("2026-10-03T10:05:00Z");
+  const s = await makeSeal(KEY, fields, at);
+  const ask = body => EDGE.sealCheck(new Request("https://joburg.whysoserious.city/seal/1/check", { method: "POST", body: JSON.stringify(body) }),
+                                     fakeEnv().env, new URL("https://joburg.whysoserious.city/seal/1/check"));
+  const old = await (await ask({ ...fields, s })).json();
+  assert.deepEqual(old, { sealed: true, at: new Date(Math.floor(at / 1000) * 1000).toISOString(), before_polls: true, readable: false });
+  const forged = await (await ask({ ...fields, n: "Someone", s })).json();
+  assert.deepEqual(forged, { sealed: false, at: null, before_polls: false, readable: false });
+  // and sealing is refused for a forecast the page cannot read, and on a preview
+  const sealAt = (body, opt) => EDGE.seal(new Request("https://x/seal/1", { method: "POST", body: JSON.stringify(body) }),
+                                          fakeEnv().env, new URL("https://joburg.whysoserious.city/seal/1"), opt);
+  assert.equal((await sealAt(fields)).status, 400);
+  assert.equal((await sealAt({ ...fields, c: D.context_ref }, { preview: true })).status, 403);
+});
+
 test("a seal holds for exactly the state and name it signed, under its key", async () => {
   const fields = { v: "1", c: "abc", f: "AQID", n: "Thandi" };
   const at = Date.parse("2026-10-03T10:05:07Z");
@@ -308,7 +334,12 @@ test("a seal holds for exactly the state and name it signed, under its key", asy
   assert.equal((await checkSeal("another-key", fields, s)).sealed, false);
   const [t, sig] = s.split(".");
   assert.equal((await checkSeal(KEY, fields, (parseInt(t, 36) - 1).toString(36) + "." + sig)).sealed, false, "a moved time");
-  for (const bad of ["", "x", s + "A", "zzzzzzzzzz." + sig, t + "." + sig.slice(1) + "!", null, undefined]) {
+  // one string per seal: a leading zero on the time, or other low bits in the
+  // signature's last character, is not this seal
+  const last = sig.slice(-1), alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  const twin = alpha[alpha.indexOf(last) ^ 1];
+  for (const bad of ["", "x", s + "A", "zzzzzzzzzz." + sig, t + "." + sig.slice(1) + "!", null, undefined,
+                     "0" + t + "." + sig, t + "." + sig.slice(0, -1) + twin]) {
     assert.equal((await checkSeal(KEY, fields, bad)).sealed, false, String(bad));
   }
 });

@@ -65,7 +65,7 @@ import * as YU from "./yf-url.js";
 import { WardMap } from "./map.js";
 import { setShareable, onNameChange, onOpen, onFriendName } from "./make-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
-import { forecastSpec, aChance, chanceSentence } from "./share-card.js";
+import { forecastSpec, aChance, chanceSentence, outcomeWords } from "./share-card.js";
 import { seatTable } from "./seat-table.js";
 import { placeTip } from "./tip.js";
 import { engineCall, onForecast } from "./model.js";
@@ -311,7 +311,9 @@ const pageRoot = new URL("../../", import.meta.url);
 async function checkSeal() {
   const s = YU.arrival().s;
   if (!s) { friend.seal = { state: "not", at: null }; paintArrival(); return; }
-  const fields = { v: MS.FORMAT, c: D.context_ref, f: friend.f, n: friend.name, s };
+  // the fields as the link carries them: the server checks the signature on these
+  const link = new URLSearchParams(YU.partOf(location.search, YU.BREAK_KEYS));
+  const fields = { v: link.get("v") || "", c: link.get("c") || "", f: friend.f, n: friend.name, s };
   try {
     const r = await fetch(new URL("seal/1/check", pageRoot), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(fields) });
     const b = await r.json();
@@ -644,7 +646,7 @@ function writeURL() {
 // ---------- coalition ----------
 function paintCoalition() {
   const seats = result.seats;
-  const shown = alpha.filter(c => seats[c] || S.coalition.includes(c));
+  const shown = alpha.filter(c => shownRows.includes(c) || S.coalition.includes(c));
   one.coal.replaceChildren(...shown.map(c => {
     const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)), disabled: locked },
       sw(c), name(c) + " ", el("span", { className: "chipn" }, String(seats[c] || 0)));
@@ -671,12 +673,27 @@ const TABLE = {
   ticks: String(one.councilRegion.dataset.ticks || "").split(" ").filter(Boolean).map(Number),
   head: String(one.councilRegion.dataset.head || "").split("|"),
 };
-function order(seats) {
-  return Object.keys(seats).filter(c => seats[c] > 0).sort((a, b) => seats[b] - seats[a] || name(a).localeCompare(name(b)));
+// The council's rows and the coalition's chips list every party seated at the
+// start section 2 is open at, every party seated in a friend's forecast, and
+// every party seated now; a party at the start that the reader takes to zero
+// keeps its row, at 0, so no edit removes a row above the vote list (review
+// of the share build, 2026-10-03: the page jumped when a party dropped to 0).
+// A party seated now and in neither is NEW: the table keeps room for
+// --yf-spare-rows of those (css/your-forecast.css, JUDGEMENT-CALLS §N5), each
+// a row of fixed height, and marks how many it shows (data-extra).
+let startRows = null;      // the parties seated at the start, set while the forecast is its start
+function councilRows(seats) {
+  if (!startRows || MS.sameState(state, from, ctx)) startRows = Object.keys(seats).filter(c => seats[c] > 0);
+  const known = new Set(startRows);
+  if (friend && friend.answer) for (const [c, v] of Object.entries(friend.answer.seats)) if (v > 0) known.add(c);
+  const fresh = Object.keys(seats).filter(c => seats[c] > 0 && !known.has(c));
+  return { list: [...known, ...fresh].sort((a, b) => (seats[b] || 0) - (seats[a] || 0) || name(a).localeCompare(name(b))), fresh };
 }
+let shownRows = [];        // councilRows' list for the result shown, which the chips list too
 function paintCouncil() {
   const { seats, ward, council_total: council, majority, excessive } = result;
-  const list = order(seats);
+  const { list, fresh } = councilRows(seats);
+  shownRows = list;
   const max = Math.max(1, ...list.map(c => seats[c]));
   one.restate.textContent = "Each party's wards plus its list seats, of " + council + ".";
   // The site's one seat table (js/seat-table.js). A single council has no
@@ -687,14 +704,17 @@ function paintCouncil() {
   const scale = max <= TABLE.scale ? TABLE.scale : Math.ceil(max / tick) * tick;
   const every = tick * Math.ceil(scale / tick / (T.length - 1));
   const ticks = scale === TABLE.scale ? T : Array.from({ length: Math.floor(scale / every) + 1 }, (_, i) => i * every);
-  one.bars.replaceChildren(seatTable(document, list.map(c => ({
-    code: c, name: name(c), sub: null, seats: String(seats[c]), lo: null, hi: null,
-    m: seats[c], p5: null, p95: null, ghost: null, arrow: null,
-    title: (ward[c] || 0) + " wards, " + (seats[c] - (ward[c] || 0)) + " list",
-  })), { scale, ticks, head: TABLE.head, label: "Your council" }));
+  const table = seatTable(document, list.map(c => ({
+    code: c, name: name(c), sub: null, seats: String(seats[c] || 0), lo: null, hi: null,
+    m: seats[c] || 0, p5: null, p95: null, ghost: null, arrow: null,
+    title: (ward[c] || 0) + " wards, " + ((seats[c] || 0) - (ward[c] || 0)) + " list",
+  })), { scale, ticks, head: TABLE.head, label: "Your council" });
+  for (const row of table.children) if (fresh.includes(row.getAttribute("data-code"))) row.setAttribute("data-new", "");
+  one.bars.setAttribute("data-extra", String(fresh.length));
+  one.bars.replaceChildren(table);
   // the whole council in one bar, the majority line across it
   let at = 0;
-  const segs = list.map(c => {
+  const segs = list.filter(c => seats[c] > 0).map(c => {
     const r = sv("rect", { class: "pc-" + c, x: (at / council * 100).toFixed(2) + "%", y: 0,
       width: (seats[c] / council * 100).toFixed(2) + "%", height: 16 });
     at += seats[c];
@@ -710,7 +730,7 @@ function paintCouncil() {
     ? over.map(name).join(", ") + (over.length === 1 ? " wins" : " win") + " at least as many wards as " + (over.length === 1 ? "its" : "their") +
       " share of the vote earns, so " + (over.length === 1 ? "it keeps its wards" : "they keep their wards") + " and the list seats go to the others."
     : "";
-  const top = list.slice(0, 5).map(c => name(c) + " " + seats[c]).join(", ");
+  const top = list.slice(0, 5).map(c => name(c) + " " + (seats[c] || 0)).join(", ");
   if (one.announce.textContent !== top) one.announce.textContent = top;
 }
 
@@ -765,22 +785,17 @@ async function analyse(scroll) {
   analysed = a;
   ownOutcome = a.outcome;
   paintAnalysis(a);
+  share();                 // the share sheet's image waits for this outcome
   if (!one.listview.hidden) buildList();
   if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 // "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
 // the whole forecast, a ward, a party's seats and its vote alike:
 // share-card.js's aChance and chanceSentence, one definition.
-// the reader's council-level outcome, in words (page.py analyse: reweight.council_outcome)
-function outcomeWords(o) {
-  const lead = o.largest ? name(o.largest) + " has the most seats" : "two or more parties tie for the most seats";
-  const maj = o.majority_alone ? "one party has a majority on its own" : "no party has a majority on its own";
-  const gov = o.coalition.length ? ", and " + o.coalition.map(name).join(", ") + " together hold a majority" : "";
-  return "The outcome: " + lead + ", " + maj + gov + ".";
-}
 function paintAnalysis(a) {
-  // The headline is the chance of the reader's council-level outcome (the
-  // largest party, a majority alone or not, the chosen coalition). Under it,
+  // The headline is the reader's council-level outcome (the largest party, a
+  // majority alone or not, the chosen coalition), in the cards' and the
+  // arrival view's words (share-card.js outcomeWords), and its chance. Under it,
   // the reader's forecast scored against each simulation as if it were the
   // result, by the competition's rules in its order: seats, ward calls, vote
   // (page.py analyse; JUDGEMENT-CALLS §N4). Then the template's closing line.
@@ -792,7 +807,7 @@ function paintAnalysis(a) {
     " ward calls to be right.");
   one.svote.replaceChildren(el("b", {}, "Vote: "), "we expect your vote shares to be off by " + sc.list_vote_error.toFixed(1) +
     " points in total, on the list ballot.");
-  one.outcome.textContent = outcomeWords(a.outcome);
+  one.outcome.textContent = outcomeWords(a.outcome, partyOf);
   one.expected.textContent = HOVER.matches
     ? "Hover over a ward, or reach it with the arrow keys, for the chance we give your call there."
     : "Tap a ward with no party chosen for the chance we give your call there.";
@@ -829,7 +844,8 @@ function paintAnalysis(a) {
     " simulations, each counted once, seated by the law. Seats, wards and vote score your forecast against each simulation as if it" +
     " were the result, by the competition's rules in its order. Seats: the gap between your seats and the simulation's, party by" +
     " party, added up. Wards: your calls that match its winners. Vote: the gap between your vote and its list-ballot share, party by" +
-    " party, added up, in points. The line at " + sc.within + " seats is a judgement, not a measurement. Your vote is your share of" +
+    " party, added up, in points. The line at " + sc.within + " seats is the model's own spread: its middle forecast, each party at its" +
+    " middle seat count, is that close to half the simulations. Your vote is your share of" +
     " both ballots together; the simulations carry each party's list-ballot share only, so that is what it is compared with, and the" +
     " parties they do not carry one by one are compared as one group.";
 }
@@ -876,6 +892,7 @@ function onWorker(e) {
   } else if (m.type === "result" && m.lane === "friend") {
     if (!friend || !m.ok) return;
     friend.answer = m.answer;
+    if (result) { paintCouncil(); paintCoalition(); }   // the friend's parties get their rows now, not at the next edit
     friendOutcome();
   } else if (m.type === "result") {
     if (m.seq !== seq) return;

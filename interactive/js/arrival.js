@@ -131,7 +131,7 @@ export function showArrival(v) {
     el("div", { className: "yf-arr-later" },
       el("div", {}, el("h3", {}, "The vote"), countdown(spec.election, now)),
       el("div", {}, el("h3", {}, "After the count"),
-        el("p", {}, "Open this link again once the results are declared. It will be scored against them: seats per party first, then wards called right, then vote per party.")),
+        el("p", {}, "Open this link again once the results are declared to compare it with them: seats per party first, then wards called right, then vote per party.")),
       el("div", {}, el("h3", {}, "Nothing stored"),
         el("p", {}, "The forecast is in the link. We keep no copy and nothing about " + name + " or you."))));
   R.hidden = false;
