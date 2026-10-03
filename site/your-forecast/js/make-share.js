@@ -97,6 +97,7 @@ function fill() {
   S.native.hidden = typeof navigator.share !== "function";
   const hasFriend = !!(now.friend && now.friend.answer);
   S.duelOpt.hidden = !hasFriend;
+  S.duelOpt.disabled = !hasFriend;   // Safari has ignored `hidden` on an option
   S.friend.hidden = !now.friend;
   S.off.checked = !!(now.friend && now.friend.leftOff);
   if (!hasFriend && S.kind.value === "duel") S.kind.value = "link";

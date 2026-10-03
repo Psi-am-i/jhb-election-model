@@ -101,7 +101,7 @@ export function showArrival(v) {
   R.replaceChildren(
     el("p", { className: "yf-arr-from" }, sw(lead && lead.code), "A forecast shared with you. ",
       el("span", { className: "yf-arr-seal", "data-seal": seal.state }, sealLine(seal, spec.election))),
-    el("h2", { className: "yf-arr-title" }, cardTitle(spec.name)),
+    el("h2", { className: "yf-arr-title" }, cardTitle(spec.name || "A Reader")),
     el("p", { className: "yf-arr-sub" }, spec.election.city + " council, " + dateText(spec.election.date) + ". " +
       spec.council + " seats, " + spec.majority + " for a majority."),
     el("div", { className: "yf-arr-verdict", "aria-live": "polite" },

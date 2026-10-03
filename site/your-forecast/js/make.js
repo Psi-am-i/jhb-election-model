@@ -161,7 +161,11 @@ paintSteps();
 // ---------- locking: the controls answer once the seat law has loaded ----------
 const editables = [one.brushselect, one.area, one.fillarea, one.copymodel, one.prmodel, one.analyse];
 let engineReady = false;
+// Locked until the seat law has loaded, and while a shared link's arrival
+// view is up: no control edits the forecast then, by pointer or keyboard.
+let locked = true;
 function lock(on) {
+  locked = on;
   for (const r of [one.mapRegion, one.voteRegion, one.govRegion]) r.classList.toggle("locked", on);
   for (const e of editables) e.disabled = on;
 }
@@ -358,6 +362,7 @@ onChoose(kind => {
   one.status.textContent = "";
   if (engineReady) lock(false);
   afterEdit();
+  if (result) paintCoalition();
   if (section1 && kind === "ours") follow();
   one.statusRegion.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 });
@@ -386,7 +391,7 @@ else new IntersectionObserver((es, io) => {
 function snapshot() { history.push(state); one.undo.disabled = false; }
 let strokeOpen = false;
 function paintWard(i) {
-  if (!engineReady) return;
+  if (!engineReady || locked) return;
   if (!S.brush) { one.hint.textContent = "Choose a party first, then tap the ward."; return; }
   if (state.calls[i] === S.brush) return;
   if (!strokeOpen) { snapshot(); strokeOpen = true; }
@@ -402,6 +407,7 @@ function raisedNote(raised) {
     " given one vote. A party that wins a ward must have votes.";
 }
 function setCallsFrom(calls) {
+  if (locked) return;
   snapshot();
   const r = B.setCalls(state, ctx, calls);
   commit(r.state, raisedNote(r.raised));
@@ -423,7 +429,7 @@ function paintBrush() {
   const held = new Set(state.calls);
   if (S.brush) held.add(S.brush);
   one.brush.replaceChildren(...alpha.filter(c => held.has(c)).map(c => {
-    const b = el("button", { type: "button", className: "chip", value: c, "aria-pressed": String(c === S.brush), disabled: !engineReady }, sw(c), name(c));
+    const b = el("button", { type: "button", className: "chip", value: c, "aria-pressed": String(c === S.brush), disabled: !engineReady || locked }, sw(c), name(c));
     b.addEventListener("click", () => chooseBrush(S.brush === c ? null : c));
     return b;
   }));
@@ -448,11 +454,11 @@ function buildList() {
   if (LIST.area === null) LIST.area = AREAS()[0][0];
   const held = alpha.filter(c => state.calls.includes(c));
   if (LIST.party && !held.includes(LIST.party)) LIST.party = "";
-  const areaPick = el("select", { className: "wlf-area", disabled: !engineReady },
+  const areaPick = el("select", { className: "wlf-area", disabled: !engineReady || locked },
     el("option", { value: "" }, "Every area"), ...AREAS().map(([v, t]) => el("option", { value: v }, t)));
   areaPick.value = LIST.area;
   areaPick.addEventListener("change", () => { LIST.area = areaPick.value; buildList(); });
-  const partyPick = el("select", { className: "wlf-party", disabled: !engineReady },
+  const partyPick = el("select", { className: "wlf-party", disabled: !engineReady || locked },
     el("option", { value: "" }, "Every party"), ...held.map(c => el("option", { value: c }, name(c))));
   partyPick.value = LIST.party;
   partyPick.addEventListener("change", () => { LIST.party = partyPick.value; buildList(); });
@@ -462,7 +468,7 @@ function buildList() {
     const rows = [];
     geom.wards.forEach((w, i) => {
       if (w.sector !== sec || (LIST.party && state.calls[i] !== LIST.party)) return;
-      const s = el("select", { id: "wl" + i, disabled: !engineReady, "aria-label": "Ward " + w.id + ", called for" }, ...opts());
+      const s = el("select", { id: "wl" + i, disabled: !engineReady || locked, "aria-label": "Ward " + w.id + ", called for" }, ...opts());
       s.value = state.calls[i];
       s.addEventListener("change", () => {
         snapshot();
@@ -493,12 +499,14 @@ function buildList() {
 }
 
 one.fillarea.addEventListener("click", () => {
+  if (locked) return;
   if (!S.brush) { one.hint.textContent = "Choose a party first, then fill the area."; return; }
   const sec = one.area.value;
   setCallsFrom(state.calls.map((c, i) => geom.wards[i].sector === sec ? S.brush : c));
 });
 one.copymodel.addEventListener("click", () => setCallsFrom(from.calls));
 one.undo.addEventListener("click", () => {
+  if (locked) return;
   const prev = history.pop(); if (!prev) return;
   commit(prev);
 });
@@ -557,7 +565,7 @@ function paintShares(except = null) {
 }
 let openEdit = null;
 function editShare(c, raw, final, active) {
-  if (!engineReady) return;
+  if (!engineReady || locked) return;
   const want = parseFloat(raw);
   if (!Number.isFinite(want)) { if (final) paintShares(); return; }
   if (openEdit !== c) { snapshot(); openEdit = c; }
@@ -575,6 +583,7 @@ function editShare(c, raw, final, active) {
   afterEdit(final ? null : active);
 }
 one.prmodel.addEventListener("click", () => {
+  if (locked) return;
   snapshot();
   const r = B.setCalls({ calls: state.calls, votes: { ...from.votes } }, ctx, state.calls);
   commit(r.state, raisedNote(r.raised));
@@ -594,7 +603,7 @@ function afterEdit(active = null) {
   if (!one.listview.hidden) buildList();
   paintShares(active);
   paintBrush();
-  one.undo.disabled = !engineReady || !history.size;
+  one.undo.disabled = !engineReady || locked || !history.size;
   const changed = state.calls.filter((c, i) => c !== from.calls[i]).length;
   const whose = adjusted ? "your adjusted forecast's" : "the model's";
   one.nchanged.textContent = changed ? changed + (changed === 1 ? " changed from " + whose + " call" : " changed from " + whose + " calls")
@@ -637,9 +646,10 @@ function paintCoalition() {
   const seats = result.seats;
   const shown = alpha.filter(c => seats[c] || S.coalition.includes(c));
   one.coal.replaceChildren(...shown.map(c => {
-    const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)) },
+    const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)), disabled: locked },
       sw(c), name(c) + " ", el("span", { className: "chipn" }, String(seats[c] || 0)));
     b.addEventListener("click", () => {
+      if (locked) return;
       S.coalition = S.coalition.includes(c) ? S.coalition.filter(x => x !== c) : [...S.coalition, c];
       writeURL();
       paintCoalition();

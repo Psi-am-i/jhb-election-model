@@ -80,7 +80,7 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   const locked = await pg.evaluate(() => {
     const q = s => [...document.querySelectorAll(s)];
     const editable = [...q('[data-live="b-map"] .brush button'), ...q('[data-live="b-govern"] .coal button'),
-      ...q('[data-live="b-vote"] input'), ...q('[data-live="b-map"] .tools select'), ...q('[data-live="b-map"] .tools button')];
+      ...q('[data-live="b-vote"] input:not([type=search])'), ...q('[data-live="b-map"] .tools select'), ...q('[data-live="b-map"] .tools button')];
     const before = location.search;
     document.querySelector('[data-live="b-map"] svg path')?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
     return { open: editable.filter(e => !e.disabled).map(e => e.className || e.tagName), count: editable.length, same: location.search === before };
