@@ -438,7 +438,9 @@ export function storyCardSVG(spec, assets = {}, party) {
   const m = assets.geom ? wardMap(spec, assets.geom, party, X, y, 340) : { svg: "", h: 0 };
   s += m.svg;
   const ox = X + 380, ow = R - ox;
-  const foot = wrapText("Bring this link back after the count. It will be scored against the result.", R - X, 27);
+  // a seal shows when a forecast was made, not that it was its maker's only
+  // one, so no card promises a ranking (review of the share build, 2026-10-03)
+  const foot = wrapText("Bring this link back after the count to compare it with the result.", R - X, 27);
   const column = ([fw, fc, fn]) => {
     let out = "", oy = y + fw;
     for (const l of wrapText(spec.words, ow, fw)) { out += text(ox, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
@@ -483,8 +485,14 @@ export function duelCardSVG(a, b, assets = {}, party) {
   s += text(X, 106, na, fs, "serifSemi") + text(X + textWidth(na + " ", fs, "serifSemi"), 106, and.trim(), fs, "serifSemi", { fill: C.ink3 }) +
     text(X + textWidth(na + and, fs, "serifSemi"), 106, nb, fs, "serifSemi");
   s += text(X, 142, "Two forecasts of the " + a.election.city + " council, " + a.council + " seats.", 21, "sans", { fill: C.ink2 });
+  // the date is the first forecast's own: the second's link carries no seal
   const made = madeText(a);
-  if (made) s += text(X, 169, made + ", " + daysText(daysToVote(a.made.at, a.election)) + ".", 21, "sans", { fill: C.ink2 });
+  if (made) {
+    const line = a.name + (/s$/i.test(a.name) ? "'" : "'s") + " forecast " + made.charAt(0).toLowerCase() + made.slice(1) + ", " +
+      daysText(daysToVote(a.made.at, a.election)) + ".";
+    const fit = fitText(line, R - X, 21, "sans", 16);
+    s += text(X, 169, fit.text, fit.fs, "sans", { fill: C.ink2 });
+  }
   const pair = (F, y) => {
     const who = F.name + " ";
     const rest = "We give it " + aChance(F.outcome.text) + ". " + F.badge + ".";
@@ -511,7 +519,7 @@ export function duelCardSVG(a, b, assets = {}, party) {
       text(R, y, signed(vb - va), 19, "sans", { fill: C.ink3, anchor: "end" });
   });
   s += rect(X, 570, R - X, 1, C.rule);
-  s += text(X, 600, "Readers' forecasts, not the model's. Bring this link back after the count: both will be scored.", 19, "sans", { fill: C.ink2 });
+  s += text(X, 600, "Readers' forecasts, not the model's. Compare both with the result after the count.", 19, "sans", { fill: C.ink2 });
   s += text(R, 600, SITE, 19, "monoSemi", { anchor: "end" });
   return s + "</svg>";
 }

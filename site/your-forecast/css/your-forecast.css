@@ -258,6 +258,16 @@
 .yf .pl-liveseats[data-extra="1"]{padding-bottom:calc((var(--yf-spare-rows) - 1) * var(--yf-row));}
 .yf .pl-liveseats[data-extra="2"]{padding-bottom:0;}
 @media (min-width:1100px){.yf .pl-seatfig{--yf-row:43px;}}
+/* section 2's council: every party seated at the start keeps its row (make.js
+   councilRows), and the table keeps room for --yf-spare-rows NEW parties,
+   each a row of fixed height (data-new), which make.js counts on the table
+   (data-extra). JUDGEMENT-CALLS §N5. */
+.yf [data-live="b-council"] .bars{--yf-spare-rows:2;--yf-new-row:30px;
+  padding-bottom:calc(var(--yf-spare-rows) * var(--yf-new-row));}
+.yf [data-live="b-council"] .bars[data-extra="1"]{padding-bottom:calc((var(--yf-spare-rows) - 1) * var(--yf-new-row));}
+.yf [data-live="b-council"] .bars:not([data-extra="0"]):not([data-extra="1"]){padding-bottom:0;}
+.yf [data-live="b-council"] .bars .st-row[data-new]{box-sizing:border-box;height:var(--yf-new-row);min-height:0;overflow:hidden;}
+.yf [data-live="b-council"] .bars .st-row[data-new] .st-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* a vote row at the floor says so over its own slider's foot, inside the row */
 .yf .prrow{position:relative;}
 .yf .prrow .fl{position:absolute;left:17px;bottom:1px;padding:0;font-size:10.5px;line-height:1.2;

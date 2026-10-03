@@ -49,7 +49,7 @@ h3{font-family:var(--serif);font-weight:600;font-size:17px;line-height:1.3;}
 .btn.primary:hover{filter:brightness(1.08);color:var(--paper);}
 .btn.model{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);}
 .btn.small{font-size:13px;padding:7px 11px;min-height:36px;}
-.btn[disabled]{opacity:.45;cursor:not-allowed;}
+.btn[disabled],a.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
 
 /* ---------- the builder layout ---------- */

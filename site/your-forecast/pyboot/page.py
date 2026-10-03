@@ -480,7 +480,9 @@ def analyse(request_json: str) -> str:
       measures in its order (``score_forecasts.seat_error``,
       ``wards_called``, ``list_vote_error``), summarised by
       ``reweight.scored_as_results``: the expected seat error and the chance
-      it is ``within`` seats or fewer, the expected correct ward calls of
+      it is ``within`` seats or fewer, the line being ``reweight.seat_error_line``
+      (the model's own middle forecast, ``reweight.middle_seats``, is that
+      close to half the simulations), the expected correct ward calls of
       ``wards_count``, and the expected list-ballot vote error in points. The
       draws' ``OTHER`` share sums every party with no column of its own, so
       the reader's shares for those parties are summed against it; their
@@ -527,9 +529,10 @@ def analyse(request_json: str) -> str:
     share = {c: float(v) for c, v in (req.get("share") or {}).items()}
     points = {c: v for c, v in share.items() if c in prcols and c != "OTHER"}
     points["OTHER"] = sum(v for c, v in share.items() if c not in points)
+    within = R.seat_error_line(SF.seat_error(R.middle_seats(seats, cols, w), cols, seats), w)
     score = R.scored_as_results(SF.seat_error(mine, cols, seats),
                                 SF.wards_called(k, winners),
-                                SF.list_vote_error(points, prcols, pr * 100.0), w)
+                                SF.list_vote_error(points, prcols, pr * 100.0), w, within=within)
 
     def chance(p):
         return {"p": float(p), "text": R.chance_text(p)}

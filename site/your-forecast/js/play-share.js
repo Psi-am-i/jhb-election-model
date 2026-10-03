@@ -14,7 +14,7 @@
 //
 // THE NAME (D6/D7, owner 2026-10-02). The reader may put a name on the image,
 // untouched page or not: free text, at most play-state.NAME_MAX characters,
-// cleaned by play-state.cleanName. It goes into the input's value, the link
+// as play-state.cardName prints it. It goes into the input's value, the link
 // (`n=`) and the image, where play-card.js escapes it and draws it as text:
 // "Shared by {name}" under the model's own headline when nothing is moved,
 // "{name}'s settings on the model" when something is (critic G1, 2026-10-02).
@@ -41,7 +41,7 @@
 import { buildPlayCardSVG, playCardAlt, SIZES } from "./play-card.js";
 import { photoUnder, siteLabel, PHOTO_FILE, MARK_FILE } from "./forecast-card.js";
 import { svgToPNG } from "./card-text.js";
-import { cleanName, NAME_MAX, serialize } from "./play-state.js";
+import { cardName, nameBlocked, NAME_MAX, serialize } from "./play-state.js";
 import { compose } from "./yf-url.js";
 
 const S = {
@@ -93,12 +93,12 @@ export function setShareable(info) {
   S.why.textContent = info.shareable ? "" : "Only a council seated under " + info.lawName +
     " can be shared. The other laws are here for comparison.";
   if (!info.shareable && S.dlg.open) S.dlg.close();
-  if (S.name.value !== cleanName(info.st.name)) S.name.value = cleanName(info.st.name);
+  if (cardName(S.name.value) !== cardName(info.st.name)) S.name.value = cardName(info.st.name);
   if (S.dlg.open) fill();
 }
 
 const say = s => { S.toast.textContent = s; };
-const nameNow = () => cleanName(S.name.value) || label;
+const nameNow = () => cardName(S.name.value) || label;
 // The link carries section 1's settings for the result shown, and the name;
 // never section 2's part (yf-url.js linkTo's rule).
 const urlNow = () => new URL(location.pathname + compose(serialize(now.st, now.ctx), "", S.name.value) + "#adjust",
@@ -107,7 +107,7 @@ const urlNow = () => new URL(location.pathname + compose(serialize(now.st, now.c
 function fill() {
   S.url.value = urlNow();
   S.native.hidden = typeof navigator.share !== "function";
-  S.namenote.textContent = "Left empty, the image says " + label + ". The name goes on the image and in the link, and nowhere else.";
+  noteName();
   draw();
 }
 
@@ -145,11 +145,19 @@ S.open.addEventListener("click", async () => {
   fill();
   S.name.focus();
 });
+// The note under the name: what an empty name prints, or that the name typed
+// is one no image carries (play-state.cardName).
+function noteName() {
+  S.namenote.textContent = nameBlocked(S.name.value)
+    ? "This name cannot go on the image: it could pass for the site, the model or the IEC. The image says " + label + "."
+    : "Left empty, the image says " + label + ". The name goes on the image and in the link, and nowhere else.";
+}
 let typing = null;
 S.name.addEventListener("input", () => {
   clearTimeout(typing);
   typing = setTimeout(() => {
-    now.onName?.(cleanName(S.name.value));
+    noteName();
+    now.onName?.(cardName(S.name.value));
     S.url.value = urlNow();
     draw();
   }, 250);

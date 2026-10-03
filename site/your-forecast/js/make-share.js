@@ -31,13 +31,14 @@
 import { forecastSpec, linkCardSVG, storyCardSVG, duelCardSVG, cardAlt, duelAlt, brandOf, localStamp, SIZES } from "./share-card.js";
 import { FACES } from "./card-fonts.js";
 import { svgToPNG } from "./card-text.js";
-import { cleanName, NAME_MAX } from "./play-state.js";
+import { cardName, nameBlocked, NAME_MAX } from "./play-state.js";
 
 const S = {
   open: document.querySelector('[data-live="b-share"] .shareopen'),
   dlg: document.querySelector('[data-live="b-share"] dialog'),
   close: document.querySelector('[data-live="b-share"] .x'),
   name: document.querySelector('[data-live="b-share"] .shname'),
+  namenote: document.querySelector('[data-live="b-share"] .shnamenote'),
   url: document.querySelector('[data-live="b-share"] .shurl'),
   seal: document.querySelector('[data-live="b-share"] .shseal'),
   copy: document.querySelector('[data-live="b-share"] .shcopy'),
@@ -60,6 +61,12 @@ const ROOT = new URL("../../", import.meta.url);
 let now = null, png = null, shown = null, opener = null, drawing = 0, sealing = 0;
 let nameCb = () => {}, openCb = () => {}, friendNameCb = () => {};
 let sealed = null;          // { key, s, at } for the state now in the sheet, or null
+// The buttons that send the link wait for the seal: until the Worker has
+// sealed the state in the sheet, or refused, or cannot be reached, they are
+// off, so no button sends the unsealed link while a seal is on its way
+// (review of the share build, 2026-10-03). Native sharing also waits for the
+// image.
+let sealSettled = false, imageSettled = false;
 
 export function onNameChange(cb) { nameCb = cb; }
 // cb(): the sheet opened, so the page should work out the reader's outcome
@@ -101,15 +108,21 @@ function fill() {
   S.friend.hidden = !now.friend;
   S.off.checked = !!(now.friend && now.friend.leftOff);
   if (!hasFriend && S.kind.value === "duel") S.kind.value = "link";
-  links();
   seal();
   draw();
 }
 
-function links() {
-  S.url.value = shareURL("copy");
-  S.wa.href = "https://wa.me/?text=" + encodeURIComponent(shareURL("wa"));
-  S.x.href = "https://x.com/intent/post?url=" + encodeURIComponent(shareURL("x"));
+// The link's box and the buttons that send it, on or off with the seal.
+function buttons() {
+  const on = sealSettled;
+  S.url.value = on ? shareURL("copy") : "";
+  S.copy.disabled = !on;
+  for (const [a, href] of [[S.wa, () => "https://wa.me/?text=" + encodeURIComponent(shareURL("wa"))],
+                           [S.x, () => "https://x.com/intent/post?url=" + encodeURIComponent(shareURL("x"))]]) {
+    if (on) a.href = href(); else a.removeAttribute("href");
+    a.setAttribute("aria-disabled", String(!on));
+  }
+  S.native.disabled = !(on && imageSettled);
 }
 
 // Ask the Worker to seal the state in the sheet, once typing has paused; the
@@ -118,9 +131,16 @@ let sealTimer = null;
 function seal() {
   const key = keyOf(now.fields);
   clearTimeout(sealTimer);
-  if (sealed && sealed.key === key) { S.seal.textContent = "Sealed " + localStamp(sealed.at, now.election) + "."; return; }
+  if (sealed && sealed.key === key) {
+    S.seal.textContent = "Sealed " + localStamp(sealed.at, now.election) + ".";
+    sealSettled = true;
+    buttons();
+    return;
+  }
   const ticket = ++sealing;
   S.seal.textContent = "Sealing the link.";
+  sealSettled = false;
+  buttons();
   sealTimer = setTimeout(() => askSeal(ticket), 500);
 }
 async function askSeal(ticket) {
@@ -137,11 +157,14 @@ async function askSeal(ticket) {
     const at = parseInt(body.s.split(".")[0], 36) * 1000;
     sealed = { key, s: body.s, at };
     S.seal.textContent = "Sealed " + localStamp(at, now.election) + ".";
-    links();
+    sealSettled = true;
+    buttons();
     draw();
   } else {
     S.seal.textContent = r && r.status === 403 && body && body.error ? body.error
       : "Not sealed: the link works, but it cannot show when it was made.";
+    sealSettled = true;
+    buttons();
   }
 }
 
@@ -188,7 +211,8 @@ function specOf(F, name) {
 
 async function draw() {
   const ticket = ++drawing, info = now;
-  S.native.disabled = true;
+  imageSettled = false;
+  buttons();
   S.dl.disabled = true;
   if (!info.outcome) { S.img.alt = ""; say("Working out the chance we give your outcome."); openCb(); return; }
   const kind = S.kind.value;
@@ -206,7 +230,7 @@ async function draw() {
     S.img.alt = B ? duelAlt(A, B) : cardAlt(A);
     made = await svgToPNG(svg, SIZES[B ? "duel" : kind]);
   } catch (e) {
-    if (ticket === drawing) { say("The image could not be drawn in this browser. The link still works."); S.native.disabled = false; }
+    if (ticket === drawing) { say("The image could not be drawn in this browser. The link still works."); imageSettled = true; buttons(); }
     return;
   }
   if (ticket !== drawing) return;           // a newer draw replaced this one
@@ -215,7 +239,8 @@ async function draw() {
   if (shown) URL.revokeObjectURL(shown);
   shown = URL.createObjectURL(png);
   S.img.src = shown;
-  S.native.disabled = false;
+  imageSettled = true;
+  buttons();
   S.dl.disabled = false;
 }
 
@@ -235,7 +260,9 @@ S.dlg.addEventListener("close", () => opener?.focus?.());
 S.kind.addEventListener("change", () => { png = null; draw(); });
 S.off.addEventListener("change", () => friendNameCb(S.off.checked));
 S.name.addEventListener("input", () => {
-  nameCb(cleanName(S.name.value));    // the page rewrites the address and calls setShareable
+  S.namenote.textContent = nameBlocked(S.name.value)
+    ? "This name cannot go on the image or in the link: it could pass for the site, the model or the IEC." : "";
+  nameCb(cardName(S.name.value));     // the page rewrites the address and calls setShareable
 });
 S.copy.addEventListener("click", async () => {
   let ok = false;

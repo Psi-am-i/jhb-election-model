@@ -7,7 +7,7 @@
 // The address is five disjoint parts, each written by its own state module:
 //   section 1, "Adjust the model"   play-state.js serialize:  t p k l b mv
 //   section 2, "Break the model"    make-state.js serialize:  v c f
-//   the name on either share image  n (play-state.cleanName, the one rule)
+//   the name on either share image  n (play-state.cardName, the one rule)
 //   a friend's forecast, kept for   vs vn (make.js: the forecast a shared
 //     the return card                link opened with, and its name)
 //   a shared link's arrival         from s (read only: `from=1` opens the
@@ -21,7 +21,7 @@
 // unchanged. A link to section 2 carries section 1's settings too: section 2
 // "continues the same forecast", so its start is section 1's hand-off.
 
-import { cleanName, NAME_MAX } from "./play-state.js";
+import { cardName, NAME_MAX } from "./play-state.js";
 
 export const ADJUST_KEYS = "t p k l b mv".split(" ");
 export const BREAK_KEYS = "v c f".split(" ");
@@ -45,7 +45,7 @@ export function compose(adjust, brk, n, friend = "", arrival = "") {
   };
   own(adjust, ADJUST_KEYS);
   own(brk, BREAK_KEYS);
-  const nm = cleanName(n);
+  const nm = cardName(n);
   if (nm) q.set(NAME_KEY, nm);
   own(friend, FRIEND_KEYS);
   own(arrival, ARRIVAL_KEYS);
@@ -62,11 +62,11 @@ export function partOf(search, keys) {
   return s ? "?" + s : "";
 }
 
-// The name an address carries, as the page keeps it. A name longer than
-// NAME_MAX is refused whole, never cut (code review, 2026-10-01): "".
+// The name an address carries, as the page keeps it (cardName): a name longer
+// than NAME_MAX is refused whole, never cut (code review, 2026-10-01), and so
+// is one the owner's blocklist refuses: "".
 export function nameOf(search) {
-  const raw = new URLSearchParams(search).get(NAME_KEY);
-  return raw == null || raw.length > NAME_MAX ? "" : cleanName(raw);
+  return cardName(new URLSearchParams(search).get(NAME_KEY));
 }
 
 // Did the address carry a name too long to use?
@@ -93,18 +93,17 @@ export function arrival() {
 }
 
 // The friend's forecast the address carries for the return card:
-// { f, name } or null. The name is cleaned by the page's one rule.
+// { f, name } or null. The name is the page's one rule's (cardName).
 export function friend() {
   const q = new URLSearchParams(parts.friend);
   if (!q.get("vs")) return null;
-  const raw = q.get("vn");
-  return { f: q.get("vs"), name: raw == null || raw.length > NAME_MAX ? "" : cleanName(raw) };
+  return { f: q.get("vs"), name: cardName(q.get("vn")) };
 }
 
 // The address with one part, or the name, replaced. `which` is "adjust",
 // "break" or "name". Returns the query string written.
 export function write(which, value) {
-  if (which === "name") name = cleanName(value);
+  if (which === "name") name = cardName(value);
   else if (which in parts) parts[which] = value || "";
   else throw new Error("no address part " + which);
   const q = compose(parts.adjust, parts.break, name, parts.friend, parts.arrival);
@@ -116,7 +115,7 @@ export function write(which, value) {
 export function friendPart(f, n) {
   if (!f) return "";
   const q = new URLSearchParams({ vs: f });
-  const nm = cleanName(n);
+  const nm = cardName(n);
   if (nm) q.set("vn", nm);
   return "?" + q.toString();
 }

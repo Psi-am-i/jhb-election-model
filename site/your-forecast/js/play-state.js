@@ -18,10 +18,15 @@
 //   &mv=<sha>         the model version the link was made against, its first
 //                     MV_CHARS hex digits (enough to tell versions apart)
 // The name for either share image (`n`, D7, owner 2026-10-02) is yf-url.js's,
-// cleaned here by cleanName, the one rule: the reader's text, at most
+// cleaned here by cardName, the one rule: the reader's text, at most
 // NAME_MAX characters, put only in the name fields' values and on the images,
 // drawn as text, never as markup.
 // Commas are written bare, not as %2C, so a link stays readable.
+//
+// The one import is the owner's name blocklist (cardName, below). Served, it
+// is the copy beside this file (build_your_forecast.BLOCKLIST_LINE).
+
+import { BLOCKED_NAME_PATTERNS } from "./blocklist.js";
 
 // F21: the turnout range is what was tested: ±5 points for Black African
 // against a paired re-run of the model (prereg/2026-09-28-reweight-against-
@@ -61,6 +66,23 @@ export function cleanName(s) {
     out += ch;
   }
   return out.trim();
+}
+
+// The name as the page, both share sheets, the images and the site's Worker
+// print it (review of the share build, 2026-10-03: one function for all of
+// them): cleanName's text, or "" when the raw text is longer than NAME_MAX
+// (refused whole, never cut) or when its NFKC form matches the owner's
+// blocklist (worker-api/src/blocklist.js: names that pass for the site, the
+// model or the IEC).
+export function cardName(raw) {
+  if (raw == null || String(raw).length > NAME_MAX) return "";
+  const n = cleanName(raw);
+  const folded = n.normalize("NFKC");
+  return BLOCKED_NAME_PATTERNS.some(p => p.test(folded)) ? "" : n;
+}
+// Is `raw` a name the reader typed that cardName refuses for its words?
+export function nameBlocked(raw) {
+  return cleanName(raw) !== "" && String(raw).length <= NAME_MAX && cardName(raw) === "";
 }
 
 const onStep = (x, { min, max, step }) =>

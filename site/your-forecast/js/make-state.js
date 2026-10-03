@@ -6,7 +6,7 @@
 //
 // Anonymous: the address is the only place a forecast is kept. Nothing is
 // stored or sent, and nothing about the reader is in it except the name they
-// choose to type (yf-url.js, play-state.cleanName).
+// choose to type (yf-url.js, play-state.cardName).
 //
 // THE FORM, version 1 (FORMAT):
 //   v=1&c=<context ref>&f=<payload>
