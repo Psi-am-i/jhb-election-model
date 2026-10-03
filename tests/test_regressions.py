@@ -845,6 +845,10 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # a forecast — `note_value` returns its argument unchanged, proven
         # bit-identical against HEAD.
         "DELIVERY_MAX_VALUES", "DELIVERY_MAX_CHARS", "depth",
+        # `rank_entries.ID_CHARS` / `ANON_CHARS`: how many characters of a seal
+        # id name an entry on the leaderboard. Display only; the ranking reads
+        # the whole id, and a collision in the shown prefix is refused.
+        "ID_CHARS", "ANON_CHARS",
         "LEVELS",         # the nominal coverage levels 50/80/90 a report prints
         "LGE_YEARS", "LGE_ELECTIONS", "FOLDS",        # calendar/route structure
         "independent_wards", "no_pr_list_wards",      # per-call council facts
