@@ -193,7 +193,7 @@
         for (const k of kinds) kind.append(new Option(k, k));
         form.replaceChildren(el("label", "", "Context (words around it, as on the page)"), ctx,
                              el("label", "", "Source"), src, el("label", "", "Kind"), kind,
-                             button("Register in stats.toml", "ed-act ed-primary",
+                             button("Add to stats.toml at Apply", "ed-act ed-primary",
                                     () => act({ register: true, context: ctx.value, source: src.value, kind: kind.value })));
       }),
       button("Remove it", "ed-act", () => act({ action: "remove" })));

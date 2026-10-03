@@ -4,12 +4,12 @@
   --ed-accent: #2457c5; --ed-bad: #b3261e; --ed-good: #1e7a3a; --ed-warn: #8a5a00;
   --ed-add: #e3f4e6; --ed-del: #fbe4e2; --ed-tok: #e6ecfa; --ed-tag: #eeeeee;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ed-bg: #1d1f23; --ed-fg: #ececec; --ed-line: #43464d; --ed-soft: #2a2d33;
-    --ed-accent: #8fb0ff; --ed-bad: #ff8a80; --ed-good: #7fd69a; --ed-warn: #f0c060;
-    --ed-add: #1f3a27; --ed-del: #42211f; --ed-tok: #263457; --ed-tag: #33363c;
-  }
+/* Dark follows the site's theme: js/theme.js always sets `data-theme` (from
+   the reader's choice or the OS), and the overlay only runs with script. */
+:root[data-theme="dark"] {
+  --ed-bg: #1d1f23; --ed-fg: #ececec; --ed-line: #43464d; --ed-soft: #2a2d33;
+  --ed-accent: #8fb0ff; --ed-bad: #ff8a80; --ed-good: #7fd69a; --ed-warn: #f0c060;
+  --ed-add: #1f3a27; --ed-del: #42211f; --ed-tok: #263457; --ed-tag: #33363c;
 }
 
 [data-edit-block] { outline: 1px dashed transparent; outline-offset: 3px; }

@@ -14,7 +14,8 @@ built HTML would be a second place the site's words live, and the build would
 overwrite it at the next run — the `site/*.html` trap `README` already warns
 about. Every block here names the file it came from, and an edit is written
 back to that file: at the block's own offsets in an HTML or Markdown source,
-by its exact text in a TOML one.
+by its exact text in a TOML one, escaped for the string it sits in and read
+back before anything is written.
 
 ⛔ **A FIGURE IS NEVER EDITABLE HERE.** A token — `{{name}}`, a generated
 `{{@name=value;fmt;source}}` (`stats.GEN_TOKEN`) or `[[name]]` — can be kept or
@@ -43,6 +44,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html as _html
+import json
 import re
 import tomllib
 from collections import Counter
@@ -260,11 +263,11 @@ def _md_source_blocks(rel: str, body: str) -> list[dict]:
     return out
 
 
-def _toml_blocks(rel: str, table: str, fields: tuple, lists: tuple = ()) -> list[dict]:
-    path = ROOT / rel
-    if not path.exists():
-        return []
-    data = tomllib.loads(path.read_text(encoding="utf-8"))
+def _toml_blocks(rel: str, body: str, table: str, fields: tuple,
+                 lists: tuple = ()) -> list[dict]:
+    """The blocks of a TOML source. Raises `tomllib.TOMLDecodeError` when
+    ``body`` does not parse, which is how :func:`plan` checks what it wrote."""
+    data = tomllib.loads(body)
     out = []
     for i, entry in enumerate(data.get(table, [])):
         for name in fields:
@@ -279,8 +282,22 @@ def _toml_blocks(rel: str, table: str, fields: tuple, lists: tuple = ()) -> list
     return out
 
 
-#: Where each kind of source lives, in the order a reader meets it.
+#: The sources, relative to ROOT. HTML front pages:
 HTML_SOURCES = ("home.html", "forecast-sheet.html")
+#: the reader editions (every ``*.md`` in it):
+MD_DIR = "docs-public"
+#: and TOML tables: ``file: (table, text fields, list-of-text fields)``.
+TOML_SOURCES = {
+    "content/joburg/articles.toml": ("article", ARTICLE_FIELDS, ()),
+    "content/joburg/claims.toml": ("claim", CLAIM_FIELDS, ("steps",)),
+}
+
+
+def source_files() -> list[str]:
+    """Every file :func:`blocks` reads, relative to ROOT, in the order a
+    reader meets it. Edit mode reloads when one of them changes."""
+    md = [f"{MD_DIR}/{p.name}" for p in sorted((ROOT / MD_DIR).glob("*.md"))]
+    return [*HTML_SOURCES, *md, *TOML_SOURCES]
 
 
 def blocks() -> list[dict]:
@@ -290,16 +307,17 @@ def blocks() -> list[dict]:
     Markdown source also carries ``span``, the offsets of its text in that
     file, which is where an edit is written."""
     found: list[dict] = []
-    for rel in HTML_SOURCES:
+    for rel in source_files():
         path = ROOT / rel
-        if path.exists():
-            found += _html_source_blocks(rel, path.read_text(encoding="utf-8"))
-    for md in sorted((ROOT / "docs-public").glob("*.md")):
-        found += _md_source_blocks(f"docs-public/{md.name}",
-                                   md.read_text(encoding="utf-8"))
-    found += _toml_blocks("content/joburg/articles.toml", "article", ARTICLE_FIELDS)
-    found += _toml_blocks("content/joburg/claims.toml", "claim", CLAIM_FIELDS,
-                          ("steps",))
+        if not path.exists():
+            continue
+        body = path.read_text(encoding="utf-8")
+        if rel in TOML_SOURCES:
+            found += _toml_blocks(rel, body, *TOML_SOURCES[rel])
+        elif rel.endswith(".md"):
+            found += _md_source_blocks(rel, body)
+        else:
+            found += _html_source_blocks(rel, body)
 
     # ⛔ EVERY BLOCK GETS ITS OWN ID, even when two blocks say the same words.
     # The id is a digest of the text, so identical text collided — and a dict
@@ -334,18 +352,19 @@ def registry_names(path: Path | None = None) -> frozenset[str]:
                      if k != "audit" and isinstance(v, dict))
 
 
-_TAG = re.compile(r"<!--.*?-->|<(/?)([a-zA-Z][\w-]*)[^>]*?>", re.S)
+#: A tag or an HTML comment in a block's text.
+TAG = re.compile(r"<!--.*?-->|<(/?)([a-zA-Z][\w-]*)[^>]*?>", re.S)
 
 
 def _tags(text: str) -> list[str]:
-    return [m.group(0) for m in _TAG.finditer(PLACEHOLDER.sub(" ", text))
+    return [m.group(0) for m in TAG.finditer(PLACEHOLDER.sub(" ", text))
             if m.group(2)]
 
 
 def _unbalanced(text: str) -> str | None:
     """The first tag that does not nest, or None."""
     stack: list[str] = []
-    for m in _TAG.finditer(PLACEHOLDER.sub(" ", text)):
+    for m in TAG.finditer(PLACEHOLDER.sub(" ", text)):
         closing, name = m.group(1), (m.group(2) or "").lower()
         if not name or name in VOID or m.group(0).endswith("/>"):
             continue
@@ -368,22 +387,43 @@ def edit_problems(block: dict, new_text: str, added=()) -> list[str]:
     allowed = Counter(placeholders(block["text"])) + Counter(added)
     for tok, n in Counter(placeholders(new_text)).items():
         if n > allowed[tok]:
+            where = (f"{tok} appears {n} times; the original has {allowed[tok]}"
+                     if allowed[tok] else f"{tok} is not in the original block")
             problems.append(
-                f"changed its figures: {tok} is not in the original block. A "
-                f"token can be kept or deleted, never edited — it is filled in "
-                f"from the run (CLAUDE.md §2).")
+                f"The edit changes the block's figures: {where}. A token can be "
+                f"kept or deleted, never edited: the build fills it in from the run.")
     if _STRAY.search(PLACEHOLDER.sub(" ", new_text)):
-        problems.append("changed its figures: a token was partly deleted or "
-                        "typed by hand (a stray {{, }}, [[ or ]]). Delete the "
-                        "whole token or put it back.")
-    if not block["source"].endswith(".toml") and _tags(new_text) != _tags(block["text"]):
-        bad = _unbalanced(new_text)
-        if bad:
-            problems.append(f"breaks the page's markup: {bad} no longer pairs. "
-                            f"Delete a tag only with its partner.")
+        problems.append("The edit breaks one of the block's figures: a token was "
+                        "partly deleted or typed by hand (a stray {{, }}, [[ or ]]). "
+                        "Delete the whole token or put it back.")
+    if not block["source"].endswith(".toml"):
+        new_tags = Counter(_tags(new_text)) - Counter(_tags(block["text"]))
+        if new_tags:
+            problems.append(f"The edit adds or changes markup: {', '.join(sorted(new_tags))}. "
+                            f"A tag can be kept, or deleted with its partner.")
+        elif _tags(new_text) != _tags(block["text"]):
+            bad = _unbalanced(new_text)
+            if bad:
+                problems.append(f"The edit breaks the page's markup: {bad} no "
+                                f"longer pairs. Delete a tag only with its partner.")
+    if block["source"].endswith(".md"):
+        extra = _loose_marks(block, new_text) - _loose_marks(block, block["text"])
+        if extra:
+            problems.append(
+                f"The edit leaves Markdown emphasis unpaired: "
+                f"{', '.join(sorted(extra))} would show on the page as typed. "
+                f"Delete ** or * only with its partner.")
     if not new_text.strip():
-        problems.append("is empty. Delete the element in its source file instead.")
+        problems.append("The edit empties the block. Delete the element in its "
+                        "source file instead.")
     return problems
+
+
+def _loose_marks(block: dict, text: str) -> Counter:
+    """The emphasis characters (``*``, ``_``) a Markdown block shows as typed
+    once rendered: a ``**`` whose partner was deleted is one of them."""
+    shown = _html.unescape(stats.TAGS.sub(" ", scan_form(block, text)))
+    return Counter(c for c in shown if c in "*_")
 
 
 # --------------------------------------------------------------------------
@@ -469,7 +509,7 @@ def plan(edits: dict[str, str], added: dict[str, list[str]] | None = None
             continue
         problems = edit_problems(old, new_text, added.get(block_id, ()))
         if problems:
-            raise EditRefused(f"block {block_id} ({old['source']}, {old['kind']}) "
+            raise EditRefused(f"block {block_id} ({old['source']}, {old['kind']}): "
                               + " ".join(problems))
         changes.append((old, new_text))
 
@@ -485,14 +525,57 @@ def plan(edits: dict[str, str], added: dict[str, list[str]] | None = None
             if source in HTML_SOURCES:
                 new_text = rewrap(body[lo:hi], new_text)
             body = body[:lo] + new_text + body[hi:]
-        for old, new_text in (c for c in mine if "span" not in c[0]):
+        unspanned = [c for c in mine if "span" not in c[0]]
+        for old, new_text in unspanned:
             if body.count(old["text"]) != 1:
                 raise EditRefused(
                     f"block {old['id']} matched {body.count(old['text'])} times "
                     f"in {source}; refusing to guess which one you meant.")
-            body = body.replace(old["text"], new_text, 1)
+            at = body.index(old["text"])
+            body = (body[:at] + _toml_escape(old, body[:at], new_text.strip())
+                    + body[at + len(old["text"]):])
+        if unspanned:
+            _check_toml(source, body, unspanned)
         files[source] = (before, body)
     return changes, files
+
+
+def _toml_escape(block: dict, head: str, text: str) -> str:
+    """``text`` written for the TOML string it replaces, whose opening
+    delimiter ends ``head``. Raises EditRefused when the string's style
+    cannot hold it (a literal string has no escapes)."""
+    m = re.search(r"(\"\"\"|'''|\"|')\s*\Z", head)
+    delim = m.group(1) if m else ""
+    control = [c for c in text if (ord(c) < 0x20 and c not in "\t\n") or c == "\x7f"]
+    if delim == '"':
+        return json.dumps(text, ensure_ascii=False)[1:-1].replace("\x7f", "\\u007f")
+    if delim == '"""':
+        return "".join("\\" + c if c in '\\"' else
+                       f"\\u{ord(c):04x}" if c in control else c for c in text)
+    if delim in ("'", "'''") and not control and delim not in text \
+            and (delim == "'''" or "\n" not in text):
+        return text
+    raise EditRefused(
+        f"block {block['id']} ({block['source']}, {block['kind']}): the new text "
+        f"cannot be written into that string as it stands (a {delim or '?'} "
+        f"string with a quotation mark, line break or control character in "
+        f"the text). Change it in the file by hand.")
+
+
+def _check_toml(source: str, body: str, edits: list[tuple[dict, str]]) -> None:
+    """Refuse unless ``body`` parses and every edited field now reads exactly
+    as edited: what the next build will load, checked before it is written."""
+    try:
+        now = {b["kind"]: b["text"] for b in _toml_blocks(source, body, *TOML_SOURCES[source])}
+    except tomllib.TOMLDecodeError as exc:
+        raise EditRefused(f"the edit would leave {source} unreadable ({exc}); "
+                          f"nothing was written.") from None
+    for old, new_text in edits:
+        if now.get(old["kind"]) != new_text.strip():
+            raise EditRefused(
+                f"block {old['id']} ({source}, {old['kind']}): written into the "
+                f"file, the text would read back as {now.get(old['kind'])!r}, not "
+                f"as edited; nothing was written.")
 
 
 def rewrap(orig: str, new_text: str) -> str:

@@ -85,9 +85,9 @@ def test_the_methodology_judgement_calls_are_not_offered_for_editing():
     paragraph inside its region is withheld, and the same paragraphs ARE
     offered once the markers are removed (the detector can see)."""
     page = (ROOT / "docs-public" / "methodology.md").read_text(encoding="utf-8")
-    regions = site_text.GENERATED_MD.findall(page)
+    regions = site_text.GENERATED.findall(page)
     assert len(regions) == 1, "methodology.md should carry exactly one region"
-    inside = site_text.GENERATED_MD.search(page).group(0)
+    inside = site_text.GENERATED.search(page).group(0)
     paras = [p.strip() for p in re.split(r"\n\s*\n", inside)
              if p.strip() and not p.strip().startswith("<!--")]
     assert len(paras) > 2, "too few paragraphs inside the region to test with"

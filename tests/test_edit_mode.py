@@ -22,7 +22,11 @@ is pointed at it for the duration; the real tree is never written.
 from __future__ import annotations
 
 import email.message
+import io
+import os
 import re
+import threading
+import tomllib
 import shutil
 import sys
 import tempfile
@@ -91,6 +95,12 @@ def test_a_token_can_be_kept_or_deleted_never_edited():
     for what, new in refused.items():
         problems = ST.edit_problems(b, new)
         assert problems and "figures" in problems[0], (what, problems)
+        assert problems[0].startswith("The edit "), problems
+    # the message names what happened: a duplicate is not "missing"
+    dup = ST.edit_problems(b, refused["a duplicated token"])[0]
+    assert "{{p_anc_largest}} appears 2 times; the original has 1" in dup, dup
+    assert "{{p_da_largest}} is not in the original block" in ST.edit_problems(
+        b, refused["a renamed token"])[0]
     # and through plan(), the one writer: a refused edit raises before writing
     with _sources():
         blk = next(x for x in ST.blocks() if "{{" in x["text"] and "repeated" not in x)
@@ -120,6 +130,61 @@ def test_broken_markup_is_refused_and_a_deleted_pair_is_not():
     assert ST.edit_problems(b, 'Read how it works</a> first.')
     toml = _block("A **bold** claim <b>", "content/joburg/claims.toml")
     assert ST.edit_problems(toml, "A **bold** claim") == [], "TOML text carries no markup rule"
+    # a tag can be kept, or deleted with its partner; never added or changed
+    for added in (old + ' <span style="color:red">x</span>',
+                  old + " <script>alert(1)</script>",
+                  old.replace('href="methodology"', 'href="https://example.com"'),
+                  old + " <br>"):
+        problems = ST.edit_problems(b, added)
+        assert problems and "markup" in problems[0], (added, problems)
+
+
+def test_unpaired_markdown_emphasis_is_refused():
+    old = "The **largest party** is _not_ the winner, and {{p_anc_largest}} says so."
+    b = _block(old, "docs-public/x.md")
+    assert ST.edit_problems(b, old.replace("**largest party**", "largest party")) == []
+    assert ST.edit_problems(b, old.replace("_not_", "not")) == []
+    assert ST.edit_problems(b, old + " A **new** emphasis.") == []
+    for broken in (old.replace("**largest", "largest", 1),
+                   old.replace("party**", "party", 1),
+                   old.replace("_not_", "not_")):
+        problems = ST.edit_problems(b, broken)
+        assert problems and "emphasis" in problems[0], (broken, problems)
+    # the same characters in an HTML source are text, not emphasis
+    assert ST.edit_problems(_block(old), old.replace("**largest", "largest", 1)) == []
+
+
+TYPED = ('… "really"', "two\nlines", "a\\b", 'ends in a quote"', "tab\there")
+
+
+def test_a_toml_edit_is_escaped_for_its_string_and_read_back():
+    """Population: a field of each string style the TOML sources use (a
+    one-line title, a multi-line standfirst). The reviewer's three inputs (a
+    quotation mark, a line break, a backslash), a closing quote and a tab each
+    reach the file and read back exactly as typed."""
+    with _sources():
+        found = [b for b in ST.blocks() if b["source"].endswith(".toml")
+                 and "repeated" not in b]
+        title = next(b for b in found if b["kind"].endswith(".title"))
+        multi = next(b for b in found if b["kind"].endswith(".standfirst"))
+        for blk in (title, multi):
+            for typed in TYPED:
+                new = blk["text"] + " " + typed
+                _changes, files = ST.plan({blk["id"]: new})
+                body = files[blk["source"]][1]
+                tomllib.loads(body)
+                now = {x["kind"]: x["text"] for x in ST._toml_blocks(
+                    blk["source"], body, *ST.TOML_SOURCES[blk["source"]])}
+                assert now[blk["kind"]] == new.strip(), (blk["kind"], typed, now[blk["kind"]])
+        # a string style that cannot hold the text is refused, not corrupted
+        for head, text in (("title = '", "it's"), ("title = '", "two\nlines"),
+                           ("title = '''", "a ''' b")):
+            try:
+                ST._toml_escape(title, head, text)
+            except ST.EditRefused:
+                pass
+            else:
+                raise AssertionError((head, text))
 
 
 # --------------------------------------------------------------------------
@@ -138,7 +203,7 @@ def test_a_new_typed_number_is_flagged_and_a_kept_one_is_not():
         review = s.review()
         assert not review["can_apply"], "Apply must wait for the typed number"
         ok, out = s.apply()
-        assert not ok and "resolve" in out["problems"][0]
+        assert not ok and "Apply waits" in out["problems"][0], out
         # removing it clears the gate; the detector goes quiet
         ok, out = s.resolve(b["id"], "4,321", "remove")
         assert ok and out["numbers"] == [], out
@@ -161,23 +226,41 @@ def test_make_it_a_token_and_register_it_clear_the_number():
         # a name the registry does not define is refused
         ok, out = s.resolve(b["id"], shown, "token", "no_such_token")
         assert not ok
-        # register: a second number, given a source, clears; editing the
-        # words its entry names flags it again
+        # register: a second number, given a source, clears. The entry is
+        # held with the edit: shown in the review's diff, written only at
+        # Apply, dropped by Discard or by an edit that loses its words.
         real = (ROOT / "content/joburg/stats.toml").read_bytes()
-        text = s.pending[b["id"]]["text"] + " The council met 17 times."
+        registry = tmp / "content/joburg/stats.toml"
+        before = registry.read_bytes()
+        src = "the council's own minutes, 2025"
+        text = b["text"] + " The council met 17 times."
         s.save(b["id"], text)
         assert [n["value"] for n in s.review()["edits"][0]["numbers"]] == ["17"]
         ok, out = s.register(b["id"], "17", "met 17 times", "", "history")
         assert not ok, "a registration without a source is refused"
-        before = (tmp / "content/joburg/stats.toml").read_text(encoding="utf-8")
-        ok, out = s.register(b["id"], "17", "met 17 times",
-                             "the council's own minutes, 2025", "history")
+        ok, out = s.register(b["id"], "17", "met 17 times", src, "history")
         assert ok, out
-        after = (tmp / "content/joburg/stats.toml").read_text(encoding="utf-8")
-        assert after.startswith(before.rstrip("\n")) and 'value = "17"' in after
-        assert s.review()["edits"][0]["numbers"] == []
+        assert registry.read_bytes() == before, "register writes nothing before Apply"
+        review = s.review()
+        assert review["edits"][0]["numbers"] == [] and review["can_apply"], review
+        assert "+[[audit.fixed]]" in review["diff"] and '+value = "17"' in review["diff"]
         s.save(b["id"], text.replace("met 17 times", "sat 17 times"))
         assert [n["value"] for n in s.review()["edits"][0]["numbers"]] == ["17"]
+        assert s.registered == {}, "an edit that loses the entry's words drops it"
+        s.save(b["id"], text)
+        s.register(b["id"], "17", "met 17 times", src, "history")
+        s.discard(b["id"])
+        assert s.registered == {} and s.review()["diff"] == ""
+        assert registry.read_bytes() == before, "Discard writes nothing"
+        s.save(b["id"], text)
+        s.register(b["id"], "17", "met 17 times", src, "history")
+        assert s.review()["can_apply"], s.review()
+        ok, out = s.apply()
+        assert ok, out
+        assert "content/joburg/stats.toml" in out["written"], out["written"]
+        after = registry.read_text(encoding="utf-8")
+        assert after.startswith(before.decode().rstrip("\n")) and 'value = "17"' in after
+        assert s.registered == {} and s.review()["edits"] == []
         assert (ROOT / "content/joburg/stats.toml").read_bytes() == real
 
 
@@ -326,6 +409,65 @@ def test_deploy_check_refuses_a_site_carrying_the_overlay():
         assert mine() == []
     finally:
         shutil.rmtree(root)
+
+
+def test_a_relative_or_symlinked_site_path_is_resolved():
+    """Register walks the site for the pages a block is on. A relative or
+    symlinked --site (`/tmp` is one on macOS) must compare with the resolved
+    paths the pages are keyed by."""
+    real = Path(tempfile.mkdtemp()).resolve()
+    link = real.parent / (real.name + "-link")
+    try:
+        (real / "about.html").write_text("<html><body><p>x</p></body></html>",
+                                         encoding="utf-8")
+        link.symlink_to(real)
+        with _sources():
+            for site in (Path(os.path.relpath(real)), Path(os.path.relpath(link)), link):
+                s = EM.Session(site)
+                assert s.site == real, site
+                assert s.pages_of("nothing") == [], site
+    finally:
+        link.unlink(missing_ok=True)
+        shutil.rmtree(real)
+
+
+class _NoSession:
+    lock = threading.RLock()
+
+    def refresh(self):
+        pass
+
+
+def _post(body: bytes, path: str = "/__edit/api/nothing", **headers) -> int:
+    """The status the handler gives a POST, without a socket. ``headers``
+    override the defaults (underscores for hyphens; None removes one)."""
+    h = EM.Handler.__new__(EM.Handler)
+    h.client_address, h.port, h.path = ("127.0.0.1", 50000), EM.PORT, path
+    sent = {"Host": f"127.0.0.1:{EM.PORT}", "X-Edit-Mode": "1",
+            "Content-Type": "application/json", "Content-Length": str(len(body))}
+    sent.update({k.replace("_", "-"): v for k, v in headers.items()})
+    h.headers = email.message.Message()
+    for k, v in sent.items():
+        if v is not None:
+            h.headers[k] = v
+    h.rfile, h.session, status = io.BytesIO(body), _NoSession(), []
+    h._json = lambda code, obj: status.append(code)
+    h.send_error = lambda code, msg=None: status.append(code)
+    h.do_POST()
+    return status[0]
+
+
+def test_a_write_needs_the_pages_own_request():
+    """Each POST guard refuses on its own, and the control request that
+    passes them all reaches the router (404: no such endpoint)."""
+    good = b'{"id": "x"}'
+    assert _post(good) == 404, "the control request passes every guard"
+    assert _post(good, X_Edit_Mode=None) == 403, "no custom header"
+    assert _post(good, Sec_Fetch_Site="cross-site") == 403, "a cross-site request"
+    assert _post(good, Content_Type="text/plain") == 403, "a body a form can send"
+    assert _post(b"not json") == 400
+    for body in (b"[1]", b'"x"', b'{"id": 1}', b'{"id": "x", "text": 5}'):
+        assert _post(body, path="/__edit/api/save") == 400, body
 
 
 def test_the_server_answers_this_machine_only():

@@ -155,7 +155,8 @@ script on the way to the page has no button; its words are in that script.
   number gate on each edit. A number the original did not have is listed with
   three ways out: make it a token (a registry token showing that value),
   register it (an `[[audit.fixed]]` entry in `content/joburg/stats.toml`, with
-  its source) or remove it. **Apply** waits until each is dealt with.
+  its source, written at Apply with the edit) or remove it. **Apply** waits
+  until each is dealt with.
 - **Apply** writes the source files. Then run the normal build
   (`.venv/bin/python src/build_all.py --city joburg`) and reload.
 

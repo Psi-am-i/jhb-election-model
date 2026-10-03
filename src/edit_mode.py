@@ -20,7 +20,8 @@ What it will not do
   edited text and lists every number-shaped string the original did not have,
   with three ways out: make it a token (a registry token whose value it is),
   register it (a ``[[audit.fixed]]`` entry in the stats registry, with its
-  source), or remove it. *Apply* refuses while one is unresolved.
+  source, written at Apply with the edit), or remove it. *Apply* refuses while
+  one is unresolved.
 * **Reach the public site.** It binds 127.0.0.1 only, answers only a loopback
   client and its own ``Host``, and takes writes only from its own pages (a
   custom header a cross-site form cannot send). The overlay
@@ -211,7 +212,7 @@ def page_blocks(blocks) -> dict[str | None, set[str]]:
 # --------------------------------------------------------------------------
 # the editor's view of a block
 
-_SEGMENT = re.compile(site_text.PLACEHOLDER.pattern + r"|<!--.*?-->|</?[a-zA-Z][^>]*>", re.S)
+_SEGMENT = re.compile(site_text.PLACEHOLDER.pattern + "|" + site_text.TAG.pattern, re.S)
 
 
 def segments(block: dict, text: str) -> list[dict]:
@@ -254,8 +255,15 @@ class Session:
     """The pending edits and everything needed to judge them. One per server."""
 
     def __init__(self, site: Path | None = None):
-        self.site = SITE if site is None else site
+        # Resolved: pages are found by walking it and keyed by their path
+        # relative to it, and a relative or symlinked path (`/tmp`) would not
+        # compare with the resolved one `resolve_path` returns.
+        self.site = (SITE if site is None else site).resolve()
         self.pending: dict[str, dict] = {}
+        #: `[[audit.fixed]]` entries made by "register it", per block. Held
+        #: with the edit: written at Apply, dropped with a Discard.
+        self.registered: dict[str, list[dict]] = {}
+        self._gate = None
         self.lock = threading.RLock()
         self._key = None
         self._ctx = None
@@ -264,9 +272,7 @@ class Session:
 
     # -- state ----------------------------------------------------------
     def _sources_key(self):
-        files = [ROOT / s for s in site_text.HTML_SOURCES] + [site_text.STATS]
-        files += sorted((ROOT / "docs-public").glob("*.md"))
-        files += [ROOT / "content" / "joburg" / f for f in ("claims.toml", "articles.toml")]
+        files = [ROOT / rel for rel in site_text.source_files()] + [site_text.STATS]
         return tuple((str(f), f.stat().st_mtime_ns) for f in files if f.exists())
 
     def refresh(self) -> None:
@@ -287,6 +293,7 @@ class Session:
                 self.index.setdefault(sig, []).append(b["id"])
         self.allowed = page_blocks(self.blocks.values())
         self._displays = None
+        self._gate = None
         self._pages.clear()
         self._key = key
 
@@ -307,7 +314,7 @@ class Session:
         hit = self._pages.get(str(path))
         if hit and hit[0] == mtime:
             return hit[1], hit[2]
-        rel = path.relative_to(self.site.resolve()).as_posix()
+        rel = path.relative_to(self.site).as_posix()
         text, tagged = annotate(path.read_text(encoding="utf-8"), self.index,
                                 self.allowed.get(rel, self.allowed[None]))
         self._pages[str(path)] = (mtime, text, tagged)
@@ -327,8 +334,38 @@ class Session:
         return edit["text"] if edit else self.blocks[block_id]["text"]
 
     # -- judging an edit -------------------------------------------------
+    def stats_file(self) -> dict[str, tuple[str, str]]:
+        """``{stats.toml: (before, after)}`` with every pending registration
+        appended, or {} when there is none."""
+        entries = [e for block_id in self.registered for e in self.registered[block_id]]
+        if not entries:
+            return {}
+        before = site_text.STATS.read_text(encoding="utf-8")
+        after = before.rstrip("\n") + "\n" + "".join(
+            "\n[[audit.fixed]]\n" + "".join(
+                f"{k} = {json.dumps(v, ensure_ascii=False)}\n" for k, v in e.items())
+            for e in entries)
+        return {site_text.STATS.relative_to(ROOT).as_posix(): (before, after)}
+
+    def gate(self) -> dict:
+        """The number gate's settings, with the pending registrations in the
+        registry as Apply would write them."""
+        if self._gate is None:
+            pending = self.stats_file()
+            self._gate = (site_text.scan_config(tomllib.loads(
+                next(iter(pending.values()))[1]), self._ctx)
+                if pending else self.scan_cfg)
+        return self._gate
+
     def new_numbers(self, block: dict, new_text: str) -> list[dict]:
-        return site_text.typed_numbers(block, new_text, self.scan_cfg)
+        return site_text.typed_numbers(block, new_text, self.gate())
+
+    @staticmethod
+    def prose(block: dict, text: str) -> str:
+        """``text`` as a reader reads it, lower-cased: what a registered
+        entry's context is matched against."""
+        return re.sub(r"\s+", " ", _html.unescape(stats.TAGS.sub(
+            " ", site_text.scan_form(block, text)))).lower()
 
     def _fresh_offset(self, block: dict, text: str, value: str) -> tuple[int, int] | None:
         """The occurrence of ``value`` in ``text`` that the original lacked."""
@@ -357,7 +394,7 @@ class Session:
             raise LookupError(f"no block {block_id!r} in the sources; reload the page")
         text = text.strip()
         if text == b["text"]:
-            self.pending.pop(block_id, None)
+            self.discard(block_id)
             return True, {"saved": False, "numbers": []}
         added = [t for t in (self.pending.get(block_id) or {}).get("added", [])
                  if t in text] + list(added)
@@ -365,11 +402,20 @@ class Session:
         if problems:
             return False, {"problems": problems}
         self.pending[block_id] = {"text": text, "page": page, "added": added}
+        # A registration whose words the edit no longer has is dropped, so a
+        # stale entry never reaches Apply.
+        kept = [e for e in self.registered.pop(block_id, [])
+                if e["context"].lower() in self.prose(b, text)]
+        if kept:
+            self.registered[block_id] = kept
+        self._gate = None
         return True, {"saved": True,
                       "numbers": [h["value"] for h in self.new_numbers(b, text)]}
 
     def discard(self, block_id: str) -> dict:
         self.pending.pop(block_id, None)
+        self.registered.pop(block_id, None)
+        self._gate = None
         return {"pending": sorted(self.pending)}
 
     def _added(self) -> dict[str, list[str]]:
@@ -385,7 +431,7 @@ class Session:
             b = self.blocks.get(block_id)
             if b is None:
                 edits.append({"id": block_id, "problems": [
-                    "its source block changed under the edit; discard it and redo it"]})
+                    "The source block changed under the edit. Discard it and redo it."]})
                 blocked = True
                 continue
             problems = site_text.edit_problems(b, edit["text"], edit["added"])
@@ -410,7 +456,7 @@ class Session:
                 diff, blocked = "", True
                 edits.append({"id": "", "problems": [str(exc)]})
             else:
-                diff = file_diff(files)
+                diff = file_diff({**files, **self.stats_file()})
         return {"edits": edits, "diff": diff, "can_apply": bool(self.pending) and not blocked,
                 "kinds": self.kinds(), "rebuild": site_text.REBUILD}
 
@@ -421,13 +467,13 @@ class Session:
             raise LookupError(f"no pending edit for block {block_id!r}")
         at = self._fresh_offset(b, edit["text"], value)
         if at is None:
-            return False, {"problems": [f"{value!r} is not in the edited text"]}
+            return False, {"problems": [f"The edited text has no {value!r}."]}
         lo, hi = at
         text = edit["text"]
         if action == "token":
             if token not in self.names:
-                return False, {"problems": [f"{token!r} is not a token in "
-                                            f"content/joburg/stats.toml"]}
+                return False, {"problems": [f"The registry (content/joburg/stats.toml) "
+                                            f"has no token {token!r}."]}
             text = text[:lo] + "{{%s}}" % token + text[hi:]
             return self.save(block_id, text, edit["page"], ("{{%s}}" % token,))
         elif action == "remove":
@@ -435,48 +481,52 @@ class Session:
             sep = "" if not left or not right or right[0] in ".,;:)" else " "
             text = left + sep + right
         else:
-            return False, {"problems": [f"unknown action {action!r}"]}
+            return False, {"problems": [f"The action {action!r} is not one edit mode knows."]}
         return self.save(block_id, text, edit["page"])
 
     def register(self, block_id: str, value: str, context: str, source: str,
                  kind: str) -> tuple[bool, dict]:
-        """Append an ``[[audit.fixed]]`` entry for a flagged number."""
+        """Hold an ``[[audit.fixed]]`` entry for a flagged number. It shows in
+        the review's diff and is written to the registry at Apply, with the
+        edit; Discard drops it."""
         b, edit = self.blocks.get(block_id), self.pending.get(block_id)
         if not b or not edit:
             raise LookupError(f"no pending edit for block {block_id!r}")
         problems = []
         if len(source.strip()) < stats.DECLARATION_MIN_CHARS:
-            problems.append("say where the number comes from: the source is "
-                            "what the entry is for")
-        prose = re.sub(r"\s+", " ", _html.unescape(stats.TAGS.sub(
-            " ", site_text.scan_form(b, edit["text"])))).lower()
-        if value.lower() not in context.lower() or context.strip().lower() not in prose:
-            problems.append("the context must be words from the edited text "
-                            "that contain the number")
+            problems.append("The entry needs a source: say where the number "
+                            "comes from.")
+        if (value.lower() not in context.lower()
+                or context.strip().lower() not in self.prose(b, edit["text"])):
+            problems.append("The context must be words from the edited text "
+                            "that contain the number.")
         if problems:
             return False, {"problems": problems}
         pages = self.pages_of(block_id) or [edit["page"].lstrip("/") or "index.html"]
         entry = {"value": value, "context": context.strip(), "kind": kind or "history",
                  "source": source.strip(), "reviewed": _dt.date.today().isoformat(),
                  "page": ", ".join(pages)}
-        stanza = "\n[[audit.fixed]]\n" + "".join(
-            f"{k} = {json.dumps(v, ensure_ascii=False)}\n" for k, v in entry.items())
-        before = site_text.STATS.read_text(encoding="utf-8")
-        after = before.rstrip("\n") + "\n" + stanza
-        tomllib.loads(after)            # refuse rather than write a broken registry
-        site_text.STATS.write_text(after, encoding="utf-8")
-        self.refresh()
+        self.registered.setdefault(block_id, []).append(entry)
+        self._gate = None
+        try:
+            self.gate()                 # the registry Apply would write must load
+        except tomllib.TOMLDecodeError as exc:
+            self.registered[block_id].pop()
+            self._gate = None
+            return False, {"problems": [f"The entry would break the registry ({exc})."]}
         return True, {"registered": entry}
 
     def apply(self) -> tuple[bool, dict]:
         review = self.review()
         if not review["can_apply"]:
-            return False, {"problems": ["resolve every flagged number and refused "
-                                        "edit first (Review changes)"], "review": review}
+            return False, {"problems": ["Apply waits for every flagged number and "
+                                        "refused edit (Review changes)."], "review": review}
         edits = {i: e["text"] for i, e in self.pending.items()}
         _changes, files = site_text.plan(edits, self._added())
+        files.update(self.stats_file())
         written = site_text.write(files)
         self.pending.clear()
+        self.registered.clear()
         self.refresh()
         return True, {"written": written, "diff": file_diff(files),
                       "rebuild": site_text.REBUILD}
@@ -581,7 +631,9 @@ class Handler(BaseHTTPRequestHandler):
         try:
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
         except ValueError:
-            return self._json(400, {"problems": ["not JSON"]})
+            return self._json(400, {"problems": ["The request is not JSON."]})
+        if not isinstance(body, dict) or not all(isinstance(v, str) for v in body.values()):
+            return self._json(400, {"problems": ["The request must be a JSON object of strings."]})
         s = self.session
         with s.lock:
             s.refresh()
