@@ -1,9 +1,9 @@
 /* "Play with the model" (/play/): the page's own rules, after interactive.css.
 
    Every class here starts "pl-" so nothing collides with the builder's
-   stylesheet. The palette is the site's (THEME_HEAD in production,
-   interactive.css's copy in the prototype); --reader is the hue anything the
-   READER made wears, the amber --accent anything the MODEL made.
+   stylesheet. The palette, the seat table and the arrows are the site's
+   (site/css/site.css); --reader is the hue anything the READER made wears,
+   the amber --accent anything the MODEL made.
 
    THE SWAP (DESIGN §4). Each results element exists twice: a build twin of
    ledgered tokens (.pl-pub) and a LIVE region js/model.js fills. model.js sets
@@ -23,12 +23,6 @@
 [data-live="turnout"]:not([data-ready]){display:none;}
 
 .pl sup.fn{font-size:10px;margin-left:1px;}
-/* movement since the last edition, on the published twins: one neutral ink,
-   not the site's green for up and red for down (STYLE rule 7: a move is not
-   good or bad news for a party), and only on the middle count, not on a
-   range's ends; the figure's own note still says what it was */
-.pl .mstat-move.up,.pl .mstat-move.down{color:var(--ink-3);}
-.pl .pl-rng .mstat-move{display:none;}
 .pl sup.fn a{color:var(--accent);text-decoration:none;}
 .pl-navwrap{padding-bottom:0;}
 
@@ -44,11 +38,10 @@
 .pl-bitems{display:flex;flex-wrap:wrap;gap:2px 12px;}
 @media (min-width:720px){.pl-bitems{flex-wrap:nowrap;gap:14px;}}
 .pl-bi{display:inline-flex;align-items:center;gap:5px;color:var(--ink-2);white-space:nowrap;}
-.pl-bi i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+.pl-bi i{width:9px;height:9px;border-radius:2px;display:inline-block;background:var(--pc,var(--pc-other));}
 .pl-bi b{color:var(--ink);font-variant-numeric:tabular-nums;}
 .pl-bmaj{color:var(--ink-3);font-size:12px;white-space:nowrap;}
 @media (min-width:720px){.pl-bmaj{margin-left:auto;padding-left:10px;}}
-.pl-delta{font:700 11px var(--sans);color:var(--reader);margin-left:2px;letter-spacing:-.02em;}
 
 /* ---------- layout ---------- */
 .pl-lede{margin-bottom:8px;}
@@ -74,7 +67,6 @@
 .pl-back{margin-left:auto;min-height:32px;padding:5px 10px;font-size:12.5px;}
 .pl-oneline{font:20px/1.35 var(--serif);color:var(--ink);margin:6px 0 14px;max-width:62ch;}
 .pl-oneline:empty{display:none;}
-.pl-oneline .pl-delta{font-size:12px;vertical-align:2px;}
 .pl-rgrid{display:flex;flex-direction:column;gap:22px;}
 .pl-rgrid figure{margin:0;}
 @media (min-width:1100px){.pl-rgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:28px;align-items:start;}}
@@ -105,24 +97,6 @@
 .pl-glegend{align-items:center;gap:6px;margin:4px 0 0!important;}
 .pl-glegend i{display:inline-block;height:14px;border-left:2px dotted var(--ink-3);}
 .pl-seats{margin-top:10px;}
-.pl-srow{display:grid;grid-template-columns:104px minmax(0,1fr) 96px;align-items:center;gap:10px;min-height:30px;
-  border-bottom:1px solid var(--rule-soft);}
-.pl-srow.pl-axis{border:0;min-height:22px;}
-@media (min-width:1100px){.pl-srow{grid-template-columns:96px minmax(0,1fr) 100px;min-height:28px;}}
-.pl-sname{display:flex;align-items:center;gap:7px;font-weight:600;font-size:14px;color:var(--ink);white-space:nowrap;overflow:hidden;}
-.pl-sub{font-weight:400;color:var(--ink-3);font-size:12px;}
-.pl-chip{width:10px;height:10px;border-radius:2px;flex:none;display:inline-block;}
-.pl-track{position:relative;height:14px;}
-.pl-track::before{content:"";position:absolute;left:0;right:0;top:6.5px;height:1px;background:var(--rule-soft);}
-.pl-band{position:absolute;top:2px;height:10px;border-radius:2px;opacity:.55;}
-.pl-med{position:absolute;top:-2px;width:3px;height:18px;background:var(--ink);border-radius:1px;}
-.pl-ghost{position:absolute;top:-4px;height:22px;width:0;border-left:2px dotted var(--ink-3);}
-.pl-sval{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.pl-sval b{font-size:15px;}
-.pl-rng{color:var(--ink-3);font-size:12.5px;margin-left:6px;}
-.pl-ticks{position:relative;height:16px;font:11px var(--sans);color:var(--ink-3);}
-.pl-ticks span{position:absolute;transform:translateX(-50%);}
-.pl-ticks span:first-child{transform:none;}
 .pl-sharebox{margin-top:14px;}
 .pl-sharebox .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);}
 .pl-tomake{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);}
@@ -154,14 +128,24 @@
 .pl-comp summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--ink);margin-bottom:8px;}
 .pl-clegend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink-3);margin-bottom:8px;}
 .pl-clegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
+/* the four population groups' tones: four hues at one lightness, so the chart
+   carries no light-to-dark order of the groups (critic S4, 2026-10-02), none
+   a party's colour, each light enough for the same dark label
+   (build_play.composition draws pl-g0 … pl-g3) */
+.pl-g0{--g:#86b6ad;} .pl-g1{--g:#d3b062;} .pl-g2{--g:#c99682;} .pl-g3{--g:#a3aec4;}
+.pl-clegend i{background:var(--g);}
 .pl-crow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;align-items:center;margin:4px 0;}
 .pl-crow.pl-roll{margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);}
 .pl-cname{font-size:13px;white-space:nowrap;color:var(--ink);}
 .pl-asm{display:block;font-size:11px;color:var(--ink-3);}
-.pl-cbar{display:flex;height:18px;border-radius:2px;overflow:hidden;}
-.pl-cseg{display:flex;align-items:center;padding-left:4px;font:600 10.5px var(--sans);color:#1a1d1b;overflow:hidden;white-space:nowrap;}
+.pl-cbar{display:block;width:100%;height:18px;border-radius:2px;overflow:hidden;}
+.pl-cbar rect{fill:var(--g);}
+.pl-clab{display:flex;align-items:center;height:18px;padding-left:4px;font:600 10.5px var(--sans);color:#1a1d1b;
+  overflow:hidden;white-space:nowrap;}
 /* an assumed split (a party with no 2021 record) is hatched */
-.pl-cbar.pl-chatch .pl-cseg{background-image:repeating-linear-gradient(45deg,rgba(20,23,21,.28) 0 2px,transparent 2px 6px);}
+.pl-cbar rect.pl-hatch{fill:url(#pl-hatch);}
+.pl-defs{position:absolute;width:0;height:0;}
+.pl-defs pattern rect{fill:rgba(20,23,21,.28);}
 
 /* the poll, the by-elections and the seat law */
 .pl-polls,.pl-lawopts{display:flex;flex-direction:column;gap:2px;margin-bottom:6px;}

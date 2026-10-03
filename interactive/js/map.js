@@ -80,7 +80,10 @@ export class WardMap {
     this.els.forEach((el, i) => {
       const c = this.calls[i];
       el.classList.toggle("empty", !c);
-      el.style.fill = c ? this.byCode[c].colour : "";
+      // the party's colour as a presentation attribute; an empty ward takes
+      // css/interactive.css's .w.empty fill
+      if (c) el.setAttribute("fill", this.byCode[c].colour);
+      else el.removeAttribute("fill");
       if (!this.readonly) el.setAttribute("aria-label", this.label(i));
       else {
         let t = el.querySelector("title");

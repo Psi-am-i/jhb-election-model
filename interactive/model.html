@@ -12,7 +12,8 @@
   What the build does to it:
     __DEVONLY_START__ … __DEVONLY_END__   dropped (the prototype's own head
                                           script, nav and footer)
-    <!- - __PLAYHEAD__ - ->                 the site's THEME_HEAD
+    <!- - __PLAYHEAD__ - ->                 the site's head: its one stylesheet
+                                          and scripts (build_site.SITE_HEAD)
     <!- - __PLAYNAV__ - ->                  the site's nav, one level down
     <!- - __PLAYFOOT__ - ->                 the site's footer, one level down
     <!- - __PLAY:<name>__ - ->              the published forecast's figures,
@@ -31,20 +32,13 @@
 -->
 <!-- __PLAYHEAD__ -->
 <!-- __DEVONLY_START__ -->
-<script>
-  (function () {
-    var t = null;
-    try { t = localStorage.getItem("theme"); } catch (e) {}
-    if (t !== "light" && t !== "dark") {
-      t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
-    }
-    document.documentElement.setAttribute("data-theme", t);
-  })();
-</script>
+<link rel="stylesheet" href="../site/css/site.css">
+<script src="../src/js/theme.js"></script>
 <!-- __DEVONLY_END__ -->
 <link rel="stylesheet" href="css/interactive.css">
 <link rel="stylesheet" href="css/play.css">
 <script type="module" src="js/model.js"></script>
+<script defer src="js/pubtip.js"></script>
 </head>
 <body class="pl">
 <div class="wrap pl-navwrap">
@@ -100,7 +94,8 @@
               <p>Middle of the simulations, and the range holding nine in ten.<sup class="fn"><a href="#note-browser">1</a></sup></p>
               <p class="pl-glegend pl-live"><i></i>Dotted line: the published forecast.</p></figcaption>
             <div class="pl-seats pl-pub"><!-- __PLAY:seats__ --></div>
-            <div class="pl-seats pl-liveseats" data-live="seats" data-scale="<!-- __PLAY:seatscale__ -->"></div>
+            <div class="pl-seats pl-liveseats" data-live="seats" data-scale="<!-- __PLAY:seatscale__ -->"
+              data-ticks="<!-- __PLAY:seatticks__ -->" data-head="<!-- __PLAY:seathead__ -->"></div>
             <div class="pl-sharebox" data-live="share">
               <button class="btn primary pl-shareopen" type="button" disabled>Share this forecast</button>
               <dialog class="sheet pl-sheet" aria-labelledby="share-title">
@@ -209,23 +204,5 @@
   </footer>
   <!-- __DEVONLY_END__ -->
 </div>
-<script>
-  // The published map's tooltip: it copies the ward's data-tip attribute,
-  // which the number scan has read (the MAP generated region), and writes no
-  // figure of its own. The map under a reader's settings has its own, in
-  // js/model.js (region "wardtip").
-  (function () {
-    var tip = document.querySelector(".pl-pubtip");
-    function show(e) {
-      var t = e.target.getAttribute && e.target.getAttribute("data-tip");
-      if (!t) { tip.hidden = true; return; }
-      tip.textContent = t; tip.hidden = false;
-      tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 290) + "px";
-      tip.style.top = (e.clientY + 14) + "px";
-    }
-    document.addEventListener("mousemove", show);
-    document.addEventListener("click", show);
-  })();
-</script>
 </body>
 </html>

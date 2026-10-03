@@ -11,10 +11,10 @@ What the served page is made of
 
 ``make/index.html``
     ``interactive/make.html`` with its prototype-only parts cut
-    (``__DEVONLY__`` spans), the site's ``THEME_HEAD``, nav and footer, and
-    the published forecast's seat panel cut from ``forecast-sheet.html`` as
-    ``{{tokens}}`` (:func:`published_host`), so first paint is ledgered
-    tokens.
+    (``__DEVONLY__`` spans), the site's head (``build_site.SITE_HEAD``),
+    nav and footer, and the published forecast's seat rows from
+    ``forecast-sheet.html`` as ``{{tokens}}`` in the site's seat table
+    (:func:`published_panel`), so first paint is ledgered tokens.
 ``make/forecast.json``
     The one data file the page reads (:func:`forecast_data`): the generated
     schema (``worker-api/tools/make_schema.mjs``'s own ``build``, run on the
@@ -116,7 +116,8 @@ OG_DESCRIPTION = ("Call every Johannesburg ward, set each party's share of the v
 #: The page's modules. make-worker.js, seat-engine.js and the two worker-api
 #: files run only in the Web Worker.
 MAKE_JS = ("make.js", "make-state.js", "builder-state.js", "map.js", "make-share.js",
-           "forecast-card.js", "card-text.js", "make-worker.js", "seat-engine.js")
+           "forecast-card.js", "card-text.js", "make-worker.js", "seat-engine.js",
+           "seat-table.js")
 WORKER_API_JS = ("seats.js", "http.js")
 MAKE_CSS = ("interactive.css",)
 MAKE_PYBOOT = ("boot.py",)
@@ -128,15 +129,11 @@ DATA = "forecast.json"
 PHOTO = "share.jpg"
 
 #: The published panel shown beside the reader's council, at the marker
-#: HOST: the forecast sheet's seat chart, a slice of forecast-sheet.html from
-#: the <figure> before its anchor to the </figure> after it.
+#: HOST: the forecast sheet's seat rows, with their own tokens, in the site's
+#: one seat table (src/seat_table.py).
 HOST = "<!-- __PUBLISHED:seats__ -->"
-SEATS_PANEL = (("<figure>", '<div class="chart" id="seats">'), "</figure>")
-#: The forecast page's controls, which need its scripts, are hidden here.
-HIDE_CSS = (".maptoggle,.govfilter,#govMore,script{display:none!important}"
-            ":host{display:block}")
-_SCRIPT = re.compile(r"<script\b[^>]*>.*?</script>\s*", re.S | re.I)
-_STYLE = re.compile(r"<style\b[^>]*>(.*?)</style>", re.S | re.I)
+#: Where the forecast sheet's seats chart is; its caption follows it.
+SEATS_ANCHOR = '<div class="chart" id="seats">'
 
 _DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
 
@@ -408,26 +405,31 @@ def forecast_data(draws: Path | None = None) -> dict:
 # the page
 
 
-def seats_panel(sheet: str) -> str:
-    """The published seat chart, cut from the forecast sheet's source template."""
-    (opener, anchor), closer = SEATS_PANEL
-    at = build_play._once(sheet, anchor, "the seats chart")
-    lo = sheet.rindex(opener, 0, at)
-    hi = sheet.index(closer, at) + len(closer)
-    return _SCRIPT.sub("", sheet[lo:hi])
+def published_panel(sheet: str) -> str:
+    """The published forecast's seat table: the forecast sheet's rows and
+    tokens (``build_play.seat_rows``), in the sheet's order, with the sheet's
+    own caption under it, so first paint is the forecast page's own ledgered
+    figures and words."""
+    import seat_table
+    at = build_play._once(sheet, SEATS_ANCHOR, "the forecast sheet's seats chart")
+    lo = sheet.index("<figcaption>", at)
+    caption = sheet[lo:sheet.index("</figcaption>", lo) + len("</figcaption>")]
+    return ("<figure>" + seat_table.table(build_play.table_rows(build_play.seat_rows(sheet)),
+                                          label="Seats in the published forecast")
+            + caption + "</figure>")
 
 
-def published_host(sheet: str, stat_css: str) -> str:
-    """A declarative shadow root holding the seat chart and the sheet's styles,
-    so first paint is the forecast page's own ``{{tokens}}``."""
-    head = sheet[:sheet.index("</head>")]
-    css = "\n".join(_STYLE.findall(head))
-    return ('<template shadowrootmode="open"><style>' + css + "\n" + stat_css + "\n"
-            + HIDE_CSS + '</style><div class="page">' + build_play.one_level_down(seats_panel(sheet))
-            + "</div></template>")
+def seat_attrs() -> dict[str, str]:
+    """The reader's council table's axis, ticks and header words, set on its
+    region for js/make.js. A single council has no range, so its range
+    column carries no heading."""
+    import seat_table
+    return {"<!-- __MAKE:seatscale__ -->": str(seat_table.SEAT_SCALE),
+            "<!-- __MAKE:seatticks__ -->": " ".join(str(x) for x in seat_table.SEAT_TICKS),
+            "<!-- __MAKE:seathead__ -->": seat_table.HEAD[0] + "|"}
 
 
-def assemble(*, theme_head: str, nav: str, footer: str, stat_css: str, cut_markers) -> str:
+def assemble(*, site_head: str, nav: str, footer: str, cut_markers) -> str:
     """The page's HTML, tokens unrendered: make.html with the site put in."""
     page = (INTERACTIVE / "make.html").read_text(encoding="utf-8")
     starts = page.count("<!-- __DEVONLY_START__ -->")
@@ -436,13 +438,16 @@ def assemble(*, theme_head: str, nav: str, footer: str, stat_css: str, cut_marke
     page = _DEVONLY.sub("", page)
     page = re.sub(r"<!--\n  \"Make your own forecast\".*?-->\n", "", page, count=1, flags=re.S)
     sheet = cut_markers(build_play.SHEET.read_text(encoding="utf-8"), None)
-    for marker, value in (("<!-- __MAKEHEAD__ -->", theme_head),
+    for marker, value in (("<!-- __MAKEHEAD__ -->", build_play.one_level_down(site_head)),
                           ("<!-- __MAKENAV__ -->", build_play.one_level_down(nav)),
                           ("<!-- __MAKEFOOT__ -->", build_play.one_level_down(footer))):
         build_play._once(page, marker, "make.html")
         page = page.replace(marker, value)
     build_play._once(page, HOST, "make.html")
-    page = page.replace(HOST, published_host(sheet, stat_css))
+    page = page.replace(HOST, published_panel(sheet))
+    for marker, value in seat_attrs().items():
+        build_play._once(page, marker, "make.html")
+        page = page.replace(marker, value)
     left = re.findall(r"<!-- __[A-Z:a-z]+__ -->", page)
     if left:
         raise MakeBuildError(f"build_make: unfilled markers in make.html: {left}")

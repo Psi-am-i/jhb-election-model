@@ -1,0 +1,241 @@
+/* /forecast and /nobody-will-win (forecast-sheet.html): the template's
+   <body> carries the class pg-sheet, and src/site_assets.py scopes every rule
+   here to it.
+
+   Three text levels, the same on every page of the site: headings and
+   subheadings at full contrast, running prose one step down, and the apparatus
+   around a figure (keys, scale ticks, captions, footers) one step down again. */
+  body{
+    background:var(--paper); color:var(--ink-2);
+    font-family:var(--sans); font-size:15px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4,.standfirst,strong,b{color:var(--ink);}
+  figcaption,.small,.colophon,.derived{color:var(--ink-3);}
+  figcaption b,figcaption strong{color:inherit;}
+  .sheet{max-width:860px;margin:0 auto;padding:28px 24px 64px;}
+  @media (min-width:1440px){.sheet{max-width:1040px;}}
+  .page{display:flex;flex-direction:column;gap:24px;}
+  .page + .page{margin-top:34px;padding-top:30px;border-top:1px solid var(--rule);}
+
+  /* ---- masthead ---- */
+  .masthead{display:flex;flex-direction:column;gap:10px;}
+  .kicker{
+    font-family:var(--sans); font-size:11px; font-weight:650;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3);
+  }
+  h1{
+    font-family:var(--serif); font-weight:600; font-size:clamp(30px,5.2vw,46px);
+    line-height:1.06; letter-spacing:-.012em; text-wrap:pretty; margin:0;
+  }
+  .h1-sub{display:block;font-size:.78em;line-height:1.12;margin-top:6px;color:var(--ink);}
+  .standfirst{
+    font-family:var(--serif); font-size:clamp(17px,2.4vw,20px); line-height:1.45;
+    color:var(--ink-2); text-wrap:pretty;
+  }
+  .dateline{
+    display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
+    border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+    padding:9px 0;
+  }
+  .dateline b{color:var(--ink-2);font-weight:600;}
+
+  h2{
+    font-family:var(--serif); font-weight:600; font-size:22px; line-height:1.2;
+    margin:0; letter-spacing:-.006em;
+  }
+  .eyebrow{
+    font-family:var(--sans); font-size:10.5px; font-weight:650;
+    letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3);
+  }
+  section{display:flex;flex-direction:column;gap:14px;}
+  a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
+  .sheet a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
+  .sheet a:hover{color:var(--accent);}
+  /* Body copy is grey and headings are white, the rhythm the masthead sets.
+     Before this only the standfirst was grey and every later section ran white
+     (owner, 2026-09-18). */
+  p{margin:0;color:var(--ink-2);}
+  li{color:var(--ink-2);}
+  .lede{font-size:16px;}
+
+  /* ---- headline stats ---- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:1px;
+    background:var(--rule-soft);border:1px solid var(--rule-soft);}
+  .stat{background:var(--paper);padding:14px 16px;display:flex;flex-direction:column;gap:3px;}
+  .stat .n{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;line-height:1;color:var(--accent);white-space:nowrap;}
+  .stat .n .chancew{font-size:.5em;font-weight:650;letter-spacing:.04em;}
+  .stat .l{font-size:13.5px;color:var(--ink);line-height:1.4;}
+  .stat .l .sub{display:block;font-size:11.5px;color:var(--ink-2);margin-top:2px;}
+
+  /* ---- thematic bands & roll-up sections ---- */
+  .bandhead{display:flex;align-items:baseline;justify-content:space-between;
+    border-bottom:2px solid var(--accent);padding-bottom:6px;margin-top:16px;}
+  .bandtitle{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--accent);}
+  .bandbtn{font-family:var(--mono);font-size:11px;color:var(--ink-3);background:none;
+    border:none;cursor:pointer;padding:0;}
+  .bandbtn:hover{color:var(--accent);}
+  details.rollup>summary{cursor:pointer;list-style:none;position:relative;
+    display:flex;flex-direction:column;gap:6px;padding-right:26px;}
+  details.rollup>summary::-webkit-details-marker{display:none;}
+  details.rollup>summary::after{content:"–";position:absolute;right:2px;top:0;
+    font-family:var(--mono);font-size:17px;line-height:1;color:var(--ink-3);}
+  details.rollup:not([open])>summary::after{content:"+";}
+  details.rollup>*:not(summary){margin-top:14px;}
+  details.rollup>summary h2{margin:0;}
+  /* ⛔ A HAIRLINE AND AIR BETWEEN ADJACENT BANDS. Thirteen sections with
+     nothing between them read as one wall and the eye finds no place to stop
+     (owner, 2026-09-26: "it all rolls into each other and feels like work").
+     `rule-soft` rather than `rule`: a separator the reader notices only when
+     looking for it, which is what a minor boundary is. */
+  details.rollup + details.rollup{margin-top:30px;padding-top:26px;
+    border-top:1px solid var(--rule-soft);}
+
+  /* ---- range chart ---- */
+  figure{margin:0;display:flex;flex-direction:column;gap:10px;}
+  figcaption{font-size:12.5px;color:var(--ink-3);}
+  /* The two-ballots note is an explanation, not a key: body type, body colour. */
+  /* Full width, to the same edge as the bars it explains: a caption that stops
+     short of its own figure reads as a different column. */
+  figcaption.ballots-note{font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--ink-2);
+    margin-top:10px;}
+  .chart{display:flex;flex-direction:column;gap:2px;}
+
+  /* ---- coalition table ---- */
+  .tablewrap{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px;}
+  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--ink-3);text-align:left;
+    padding:0 10px 7px 0;border-bottom:1px solid var(--rule);}
+  th.num,td.num{text-align:right;padding-right:0;}
+  th.num:not(:last-child),td.num:not(:last-child){padding-right:18px;}
+  td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule-soft);vertical-align:middle;}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  tr.key td{background:var(--accent-soft);}
+  tr.key td:first-child{font-weight:650;}
+  .pbar{position:relative;height:6px;background:var(--rule-soft);border-radius:3px;
+    min-width:70px;overflow:hidden;}
+  .pbar i{position:absolute;inset:0 auto 0 0;background:var(--mark);border-radius:3px;}
+  tr.key .pbar i{background:var(--accent);}
+
+  /* ---- notes ---- */
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px;}
+  .cols.two{grid-template-columns:repeat(2,minmax(0,1fr));}
+  @media (max-width:640px){.cols.two{grid-template-columns:1fr;}}
+  .note{border-left:2px solid var(--rule);padding-left:14px;display:flex;flex-direction:column;gap:6px;}
+  .note h3{font-family:var(--sans);font-size:12px;font-weight:650;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-2);margin:0;}
+  .note p{font-size:13.5px;color:var(--ink-2);}
+  ul{margin:0;padding-left:17px;display:flex;flex-direction:column;gap:5px;
+    font-size:13.5px;color:var(--ink-2);}
+  .caveat{background:var(--paper-2);border:1px solid var(--rule-soft);padding:16px 18px;
+    display:flex;flex-direction:column;gap:9px;}
+  .claimq{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.35;margin:0;}
+  .claimattrib{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
+  .badge{display:inline-block;font-family:var(--sans);font-size:10px;font-weight:750;
+    letter-spacing:.09em;padding:2.5px 8px;border-radius:3px;vertical-align:3px;margin-left:8px;}
+  .badge.bfalse{background:var(--bad);color:var(--paper);}
+  .rd{font-family:var(--mono);font-size:9px;margin-left:3px;vertical-align:super;}
+  .rd.up{color:var(--good);} .rd.dn{color:var(--bad);}
+  .colophon{font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:12px;}
+
+  @media print{
+    body{background:#fff;color:#000;font-size:10.5pt;}
+    .sheet{max-width:none;padding:0;}
+    .page{break-after:page;}
+    .page:last-child{break-after:auto;}
+    .page + .page{margin-top:0;border-top:none;padding-top:0;}
+  }
+  @media (max-width:560px){
+    .sheet{padding:20px 14px 48px;}
+    h1{text-wrap:pretty;}
+  }
+  /* .mstat rules: injected by build_site from stats.STAT_CSS (one definition) */
+  /* ---- the claims band: a full-bleed finale, visually unlike the data ---- */
+  .claimband{margin:44px calc(50% - 50vw) 0;padding:38px 0 44px;
+    background:var(--paper-2);border-top:2px solid var(--accent);
+    border-bottom:1px solid var(--rule);}
+  .claimband-inner{max-width:860px;margin:0 auto;padding:0 24px;
+    display:flex;flex-direction:column;gap:12px;}
+  @media (min-width:1440px){.claimband-inner{max-width:1040px;}}
+  @media (max-width:560px){.claimband-inner{padding:0 14px;}}
+  .claimband-h{font-size:30px;}
+  .claimband-lede{font-family:var(--serif);font-size:16px;color:var(--ink-2);
+    max-width:60ch;}
+
+  .claim{display:flex;flex-direction:column;gap:14px;margin-top:26px;
+    padding-top:24px;border-top:1px solid var(--rule);}
+  .claim-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .plogo{width:64px;height:64px;border-radius:7px;object-fit:contain;
+    background:#fff;padding:2px;flex:none;}
+  .claim-who{display:flex;flex-direction:column;line-height:1.35;margin-right:auto;}
+  .claim-who b{font-size:14.5px;}
+  .claim-who span{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
+  .verdict{font-family:var(--sans);font-size:12px;font-weight:750;
+    letter-spacing:.12em;padding:5px 12px;border-radius:3px;}
+  .verdict.vfalse{background:var(--bad);color:#fff;}
+  .verdict.vtrue{background:var(--good);color:#fff;}
+
+  .claim-quote{margin:0;font-family:var(--serif);font-weight:600;
+    font-size:clamp(21px,3.2vw,27px);line-height:1.25;letter-spacing:-.01em;
+    text-wrap:pretty;position:relative;padding-left:30px;}
+  .claim-quote::before{content:"\201C";position:absolute;left:-2px;top:-6px;
+    font-size:56px;line-height:1;color:var(--accent);opacity:.5;}
+  .claim-intro{font-family:var(--serif);font-size:16px;color:var(--ink-2);}
+  .claimsteps{margin:0;padding-left:0;list-style:none;counter-reset:cs;
+    display:flex;flex-direction:column;gap:16px;}
+  .claimsteps li{counter-increment:cs;display:flex;gap:14px;font-size:14.5px;
+    line-height:1.55;}
+  .claimsteps li::before{content:counter(cs);flex:none;width:26px;height:26px;
+    border-radius:50%;background:var(--accent);color:var(--paper);
+    font:700 13px/26px var(--mono);text-align:center;}
+  .stepbody{flex:1;}
+  .q-close{color:var(--accent);opacity:.55;margin-left:1px;}
+  .govfilter{margin:14px 0 0;padding:12px 14px;border:1px solid var(--rule);border-radius:6px 6px 0 0;
+    border-bottom:none;background:color-mix(in srgb,var(--ink) 3%,transparent);}
+  .govfilter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;}
+  .govfilter .fgroup{display:inline-flex;flex-wrap:nowrap;align-items:center;gap:6px;}
+  /* At phone width the filter's groups wrap: they pushed the page past a
+     375px screen (review 2026-10-02). The map key's line is maps.css's. */
+  @media (max-width:560px){
+    .govfilter .fgroup{flex-wrap:wrap;}
+    .govfilter select{min-width:0;max-width:100%;}
+  }
+  .govfilter-row + .govfilter-row{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule-soft);}
+  .govfilter-label{font:650 11px var(--sans,sans-serif);letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-3);}
+  .govfilter select{font:500 13px var(--sans,sans-serif);padding:5px 8px;border:1px solid var(--rule);
+    border-radius:4px;background:var(--paper);color:var(--ink);min-width:118px;}
+  .govfilter button{font:600 12.5px var(--sans,sans-serif);padding:6px 12px;border:1px solid var(--rule);
+    border-radius:4px;background:transparent;color:var(--ink-2);cursor:pointer;}
+  .govfilter button:hover{border-color:var(--accent);color:var(--accent);}
+  .govfilter #govGo{border-color:var(--accent);background:var(--accent);color:var(--paper);padding:6px 18px;}
+  .govtable{table-layout:fixed;width:100%;border-collapse:collapse;}
+
+  .govtable col.c-combo{width:25%;} .govtable col.c-num{width:11%;} .govtable col.c-surv{width:31%;}
+  /* Every column right-aligned against its numbers, so a coalition sits beside
+     its own figures; only the defection column, which is a list, stays left.
+     Headers align to the top, or a two-line label sinks below a one-line one. */
+  .govtable thead th{vertical-align:top;padding:0 12px 10px 0;text-align:right;
+    font:650 11px var(--sans,sans-serif);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);}
+  .govtable thead th:last-child{text-align:left;}
+  .govtable thead th span{display:block;margin-top:3px;font:400 11px/1.35 var(--sans,sans-serif);
+    letter-spacing:0;text-transform:none;color:var(--ink-3);}
+  #coalitions td{vertical-align:top;padding:12px 12px 12px 0;border-top:1px solid var(--rule-soft);}
+  #coalitions tr:hover td{background:color-mix(in srgb,var(--ink) 4%,transparent);}
+  #coalitions .combo{line-height:1.6;text-align:right;}
+  #coalitions .cparty{white-space:nowrap;}
+  #coalitions .cparty .chip{display:inline-block;}
+  #coalitions .num,#coalitions td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;
+    font-size:15px;}
+  #coalitions .surv{padding-right:0;font-size:12.5px;color:var(--ink-2);line-height:1.7;}
+  #coalitions .surv .survp{white-space:nowrap;display:inline-block;margin:0 14px 2px 0;}
+  #coalitions .surv .survn{color:var(--ink-3);}
+  #govMore{margin-top:8px;font:600 12.5px var(--sans,sans-serif);padding:5px 12px;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-2);border-radius:4px;cursor:pointer;}
+  .maplede{font-size:13.5px;color:var(--ink-2);margin:2px 0 8px;max-width:70ch;}
+  /* .pubdate and .since: injected by build_site from stats.STAT_CSS */

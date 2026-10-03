@@ -7,7 +7,7 @@ const OUT = process.argv[2];
 const BASE = "http://127.0.0.1:8801/make/";
 const b = await chromium.launch();
 const errors = [];
-const ready = p => p.waitForFunction(() => document.querySelector('[data-live="council"] .bars .bar'), null, { timeout: 180000 });
+const ready = p => p.waitForFunction(() => document.querySelector('[data-live="council"] .bars .st-row'), null, { timeout: 180000 });
 
 async function page(w, h, query = "") {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: w < 500 ? 2 : 1, colorScheme: "dark", acceptDownloads: true });

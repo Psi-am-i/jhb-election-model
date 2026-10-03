@@ -1,0 +1,9 @@
+/* The light/dark toggle in the nav bar (build_site.nav_for). The sun shows
+   while dark (click for light), the moon while light. js/theme.js wires it. */
+.themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
+  padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
+.themetoggle svg{display:block;}
+.themetoggle:hover{color:var(--accent);}
+.themetoggle .to-dark{display:none;}
+:root[data-theme="light"] .themetoggle .to-light{display:none;}
+:root[data-theme="light"] .themetoggle .to-dark{display:inline;}

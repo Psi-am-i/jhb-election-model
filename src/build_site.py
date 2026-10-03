@@ -43,106 +43,6 @@ import stats as statlib
 # resolves to an empty ledger, which reads as "nothing was ever published".
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-STYLE = """
-  :root{
-    /* colours come from THEME_HEAD, the one palette every page shares */
-    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
-    --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  }
-  *{box-sizing:border-box;margin:0;}
-  /* Three text levels, applied the same way on every page: headings and
-     subheadings at full contrast, running prose one step down, and the
-     apparatus around a figure — keys, captions, footers — one step down
-     again. Set on body and the heading elements so nothing opts out. */
-  body{background:var(--paper);color:var(--ink-2);font-family:var(--sans);
-    font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased;}
-  h1,h2,h3,h4,.standfirst,strong,b{color:var(--ink);}
-  figcaption,.small,.colophon,.sitefooter{color:var(--ink-3);}
-  figcaption b,figcaption strong,.small b{color:inherit;}
-  .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
-
-  /* one line at desktop width: the items are short enough to fit, so they
-     must not break — wrapping is kept only for narrow screens. */
-  .topnav{display:flex;flex-wrap:wrap;gap:6px 13px;align-items:baseline;
-    justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink-3);
-    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:26px;}
-  .topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
-  .topnav a:hover{color:var(--accent);}
-  .topnav a.home{color:var(--accent);font-weight:600;}
-  .topnav a.active{color:var(--accent);}
-
-  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--accent);margin-bottom:10px;}
-  h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
-    line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
-  .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
-    text-wrap:pretty;margin-bottom:6px;}
-  .dateline{display:flex;flex-wrap:wrap;gap:8px 18px;font-family:var(--mono);
-    font-size:11.5px;color:var(--ink-3);border-top:1px solid var(--rule);
-    border-bottom:1px solid var(--rule);padding:9px 0;margin:14px 0 8px;}
-  .dateline b{color:var(--ink-2);font-weight:600;}
-
-  h2{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.2;
-    letter-spacing:-.006em;margin:42px 0 4px;padding-top:18px;
-    border-top:1px solid var(--rule);}
-  h3{font-family:var(--serif);font-weight:600;font-size:18px;line-height:1.3;margin:28px 0 2px;}
-  h4{font-size:14px;font-weight:650;margin:20px 0 2px;}
-  p{margin:10px 0;}
-  ul,ol{margin:10px 0;padding-left:20px;
-    display:flex;flex-direction:column;gap:5px;}
-  strong{font-weight:650;}
-  hr{border:none;border-top:1px solid var(--rule-soft);margin:26px 0;}
-  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
-
-  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
-    border:1px solid var(--rule-soft);border-radius:3px;padding:.08em .34em;}
-  pre{background:var(--paper-2);border:1px solid var(--rule-soft);border-radius:5px;
-    padding:13px 15px;overflow-x:auto;margin:14px 0;line-height:1.5;}
-  pre code{background:none;border:none;padding:0;font-size:12.5px;color:var(--ink-2);}
-
-  .tablewrap{overflow-x:auto;margin:14px 0;}
-  table{border-collapse:collapse;width:100%;font-size:13.5px;}
-  th{font-family:var(--sans);font-size:10.5px;font-weight:650;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--ink-3);text-align:left;
-    padding:0 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:bottom;}
-  td{padding:8px 12px 8px 0;border-bottom:1px solid var(--rule-soft);
-    vertical-align:top;color:var(--ink-2);}
-  td:first-child{color:var(--ink);}
-
-  blockquote{border-left:2px solid var(--accent);background:var(--paper-2);
-    padding:10px 16px;margin:14px 0;color:var(--ink-2);}
-  blockquote p{margin:6px 0;}
-  blockquote h3,blockquote h4{margin-top:8px;}
-
-  .colophon{font-family:var(--mono);font-size:11px;line-height:1.65;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:12px;margin-top:48px;}
-  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:14px;margin-top:20px;}
-  .sitefooter a{color:var(--ink-3);}
-  .sitefooter a:hover{color:var(--accent);}
-
-  /* index cards */
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:14px;margin:22px 0;}
-  .card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--rule-soft);
-    background:var(--paper-2);padding:16px 18px;text-decoration:none;color:var(--ink);
-    transition:border-color .15s;}
-  .card:hover{border-color:var(--accent);}
-  .card.hero{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 35%,transparent);}
-  .card .t{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.25;}
-  .card .d{font-size:13px;color:var(--ink-2);line-height:1.45;}
-  .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
-    text-transform:uppercase;color:var(--accent);}
-
-  @media print{
-    body{background:#fff;color:#000;font-size:10pt;}
-    .page{max-width:none;padding:0;}
-    .topnav{display:none;}
-    h2,h3{break-after:avoid;} table,blockquote,pre{break-inside:avoid;}
-  }
-"""
-
 NAV_ITEMS = [
     # No "home" item: the site name at the left of the bar IS the link home
     # (owner, 2026-09-24).
@@ -178,94 +78,14 @@ def nav_for(active_href: str) -> str:
     return ('<nav class="topnav">\n'
             '  <a class="home" href="./">joburg.whysoserious.city</a>\n'
             f"{links}\n"
-            '  <button class="themetoggle" type="button" onclick="toggleTheme()" '
+            # js/theme.js wires the toggle; the page carries no handler
+            '  <button class="themetoggle" type="button" '
             'aria-label="Switch between dark and light" title="Light or dark">'
             # the sun shows while dark (click for light), the moon while light
             '<span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span>'
             '<span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span>'
             '</button>\n</nav>')
 
-
-# THE SITE'S ONE PALETTE (owner, 2026-09-24: "pages flip between light and dark
-# themes — default to dark with a toggle in the menu bar"). Until this, the
-# reader editions followed the OS, the forecast sheet followed the OS unless a
-# data-theme attribute nobody ever set said otherwise, and the home page was
-# dark only — so walking the nav changed the lights. Every page now takes its
-# colours from here and nowhere else.
-#
-# ⛔ THE OS DECIDES, NOT THIS FILE (owner, 2026-09-27: "can light dark themes
-# match the OS from the browser?"). Dark is the bare `:root` only because a
-# palette has to be written somewhere; it is NOT the default a reader gets.
-# Three cases, and they are ordered so the more specific statement wins:
-#
-#   1. a reader who has chosen — `data-theme` is set from localStorage in
-#      <head> before first paint, and beats everything below;
-#   2. a reader who has not, with script — the same <head> script reads
-#      `prefers-color-scheme` and sets `data-theme` explicitly, so the toggle's
-#      own icon logic and every `[data-theme]` rule see one consistent answer
-#      rather than an attribute that is absent but effectively light;
-#   3. a reader with NO SCRIPT — the media query below carries the light
-#      palette, so the OS is still honoured. `:not([data-theme="dark"])` keeps
-#      an explicit dark choice winning over an OS that prefers light.
-#
-# The light palette is written ONCE, as `_LIGHT_VARS`, and emitted in both
-# places it is needed. Two hand-maintained copies of the same twelve colours is
-# how one of them goes stale.
-_LIGHT_VARS = """color-scheme:light;
-    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5;
-    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
-    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
-    --k-interactive:#7a4a9c;"""
-
-THEME_HEAD = """<style>
-  :root{color-scheme:dark;
-    --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-    --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-    --accent:#d9954f; --accent-soft:#3a2a1a;
-    --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
-    --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
-    --k-interactive:#b98ad6;
-  }
-  @media (prefers-color-scheme: light){
-    :root:not([data-theme="dark"]){__LIGHT__}
-  }
-  :root[data-theme="light"]{__LIGHT__}
-  .themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;
-    padding:0;cursor:pointer;white-space:nowrap;line-height:0;align-self:center;}
-  .themetoggle svg{display:block;}
-  .themetoggle:hover{color:var(--accent);}
-  .themetoggle .to-dark{display:none;}
-  :root[data-theme="light"] .themetoggle .to-light{display:none;}
-  :root[data-theme="light"] .themetoggle .to-dark{display:inline;}
-</style>
-<script>
-  (function () {
-    var t = null;
-    try { t = localStorage.getItem("theme"); } catch (e) {}
-    if (t !== "light" && t !== "dark") {
-      // No stored choice: the operating system's is the answer, and it is
-      // written onto the element so the toggle and every [data-theme] rule
-      // read one thing. Without this the icon offers to switch to the theme
-      // already showing.
-      t = (window.matchMedia
-           && window.matchMedia("(prefers-color-scheme: light)").matches)
-          ? "light" : "dark";
-    }
-    document.documentElement.setAttribute("data-theme", t);
-  })();
-  function toggleTheme() {
-    var root = document.documentElement;
-    var light = root.getAttribute("data-theme") !== "light";
-    // Always an explicit value. Removing the attribute used to mean "dark",
-    // which is wrong now that its absence means "ask the OS".
-    root.setAttribute("data-theme", light ? "light" : "dark");
-    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
-  }
-</script>
-"""
-THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 
 # CLOUDFLARE WEB ANALYTICS — the site's only analytics (owner, 2026-09-30:
 # cookieless, no consent banner, no Google tag). What readers are told about it
@@ -295,9 +115,9 @@ THEME_HEAD = THEME_HEAD.replace("__LIGHT__", _LIGHT_VARS)
 #
 # The token is PUBLIC — it is printed into every page's source by design — so
 # it is a constant here, not a Keychain secret (~/CLAUDE.md rule 4 does not
-# apply to it). It lives in THEME_HEAD because that is the one head fragment
+# apply to it). It goes out in SITE_HEAD because that is the one head fragment
 # every page carries: the rendered documents, the nav-injected artefacts, the
-# portal (`build_portal`) and /play/ (`build_play.assemble`).
+# portal (`build_portal`), /play/ and /make/ (their `assemble`).
 CF_WEB_ANALYTICS_TOKEN = "c14bef699fb74863b4db775ea910b533"   # public site token (Web Analytics site whysoserious.city, auto-injection off 2026-10-01)
 
 
@@ -314,30 +134,14 @@ def analytics_head(token: str | None = None) -> str:
             f"data-cf-beacon='{{\"token\": \"{token}\"}}'></script>\n")
 
 
-THEME_HEAD += analytics_head()
+import site_assets  # noqa: E402
 
-# Standalone nav styling injected into the artefact pages (which carry their
-# own stylesheets); the rendered documents get it via STYLE above.
-NAV_CSS = """<style>
-  /* site-wide standard container: every page, same width and padding */
-  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
-  .sheet{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
-  @media (min-width:1440px){.sheet{max-width:1040px;}}
-  @media (max-width:560px){.sheet{padding:20px 14px 56px;}h1{text-wrap:pretty;}}
-  .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
-  @media (max-width:840px){.layout{grid-template-columns:1fr;}}
-{FOOTER_CSS_PLACEHOLDER}
-  /* one line at desktop width: the items are short enough to fit, so they
-     must not break — wrapping is kept only for narrow screens. */
-  .topnav{display:flex;flex-wrap:wrap;gap:6px 13px;align-items:baseline;
-    justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink-3);
-    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px;}
-  .topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
-  .topnav a:hover{color:var(--accent);}
-  .topnav a.home{color:var(--accent);font-weight:600;}
-  .topnav a.active{color:var(--accent);}
-</style>"""
-
+#: The head every page carries: the site's one stylesheet, the theme script
+#: (before first paint), the provenance pop-over and the Web Analytics beacon.
+#: THE PALETTE, THE NAV, THE FOOTER AND THE TOKEN STYLING ARE NOT HERE: they
+#: are src/css/, built into site/css/site.css by `site_assets` (owner's sweep,
+#: 2026-10-03: no inline CSS or JS on any page).
+SITE_HEAD = site_assets.head() + analytics_head()
 
 
 OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election Model">
@@ -378,20 +182,18 @@ def footer_for() -> str:
 
 FOOTER = footer_for()
 
-FOOTER_CSS = """
-  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
-    border-top:1px solid var(--rule);padding-top:14px;margin-top:44px;}
-  .sitefooter a{color:var(--ink-3);}
-  .sitefooter a:hover{color:var(--accent);}"""
-
-
-NAV_CSS = NAV_CSS.replace("{FOOTER_CSS_PLACEHOLDER}", FOOTER_CSS)
-
-
 def inject_nav(html: str, active_href: str) -> str:
-    """Give an artefact page the site navigation: CSS into <head>, nav bar
-    at the top of its content container so it aligns with the content."""
-    html = html.replace("</head>", OG_META + THEME_HEAD + NAV_CSS + "\n</head>", 1)
+    """Give an artefact page the site navigation: the site's head into
+    <head>, the class ``pg-art`` onto <body> (the rules every artefact page
+    shares, src/css/page-art.css), the nav bar at the top of its content
+    container so it aligns with the content, and the footer."""
+    html = html.replace("</head>", OG_META + SITE_HEAD + "</head>", 1)
+    # The template names its own page class (pg-sheet, pg-home); a body with
+    # no class gets none of its own page's rules, so it is refused.
+    if html.count('<body class="') != 1:
+        raise SystemExit('artefact page has no <body class="pg-…">: its own '
+                         "rules in site.css would reach nothing")
+    html = html.replace('<body class="', '<body class="pg-art ', 1)
     # The forecast sheet's container is `.sheet`; the home page's is `.wrap`,
     # which is why the home page shipped with no menu bar at all. Either will
     # do; neither is a refusal, as it is for the footer below.
@@ -589,9 +391,8 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-{og_meta}{THEME_HEAD}<style>{STYLE}</style>
-</head>
-<body>
+{og_meta}{SITE_HEAD}</head>
+<body class="pg-doc">
 <div class="page">
 {nav_for(active_href)}
 <header>
@@ -903,6 +704,11 @@ def main(argv: list[str] | None = None) -> int:
         getattr(args, "target", None)).processed
 
     args.out.mkdir(exist_ok=True)
+    # The stylesheet and the site's scripts go first: every page links them,
+    # and the script check below reads each script a page loads from disk.
+    assets = site_assets.write(args.out)
+    print(f"  wrote    {len(assets)} asset(s): {site_assets.CSS_PATH} and "
+          f"{site_assets.JS_DIR}/*.js from src/css and src/js")
     registry = statlib.load_registry(args.stats) if args.stats.exists() else {}
     ctx = statlib.load_context(args.processed)
     audit_cfg, scan_cfg = audit_configs(registry, ctx)
@@ -954,7 +760,6 @@ def main(argv: list[str] | None = None) -> int:
         else:
             audits[output] = statlib.audit(page, **audit_cfg)
             scans[output] = statlib.scan_numbers(page, **scan_cfg)
-        page = statlib.inject_stat_css(page)
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
 
@@ -973,7 +778,6 @@ def main(argv: list[str] | None = None) -> int:
         unresolved_all += [f"{source}: {u}" for u in unresolved]
         audits[output] = statlib.audit(html, **audit_cfg)
         scans[output] = statlib.scan_numbers(html, **scan_cfg)
-        html = statlib.inject_stat_css(html)
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
 
@@ -989,9 +793,9 @@ def main(argv: list[str] | None = None) -> int:
     if cityconfig.active().slug == "joburg":
         import build_play
         written = build_play.write_assets(args.out, args.processed)
-        html = build_play.assemble(theme_head=page_og(build_play.OG_DESCRIPTION,
-                                                      build_play.OG_TITLE, build_play.PLAY_HREF)
-                                   + THEME_HEAD,
+        html = build_play.assemble(site_head=page_og(build_play.OG_DESCRIPTION,
+                                                     build_play.OG_TITLE, build_play.PLAY_HREF)
+                                   + SITE_HEAD,
                                    nav=nav_for(build_play.PLAY_HREF), footer=FOOTER,
                                    processed=args.processed)
         seen = []
@@ -1001,7 +805,6 @@ def main(argv: list[str] | None = None) -> int:
         unresolved_all += [f"interactive/model.html: {u}" for u in unresolved]
         audits[build_play.PLAY_PAGE] = statlib.audit(html, **audit_cfg)
         scans[build_play.PLAY_PAGE] = statlib.scan_numbers(html, **scan_cfg)
-        html = statlib.inject_stat_css(html)
         (args.out / build_play.PLAY_PAGE).write_text(html, encoding="utf-8")
         print(f"  play     interactive/model.html       -> site/{build_play.PLAY_PAGE} "
               f"(+{len(written)} files under site/{build_play.PLAY_DIR}/)")
@@ -1010,11 +813,11 @@ def main(argv: list[str] | None = None) -> int:
         # here; its scripts are held to the LIVE-writer contract like /play/'s.
         import build_make
         written = build_make.write_assets(args.out)
-        html = build_make.assemble(theme_head=page_og(build_make.OG_DESCRIPTION,
-                                                      build_make.OG_TITLE, build_make.MAKE_HREF)
-                                   + THEME_HEAD,
+        html = build_make.assemble(site_head=page_og(build_make.OG_DESCRIPTION,
+                                                     build_make.OG_TITLE, build_make.MAKE_HREF)
+                                   + SITE_HEAD,
                                    nav=nav_for(build_make.MAKE_HREF), footer=FOOTER,
-                                   stat_css=statlib.STAT_CSS, cut_markers=cut_spans)
+                                   cut_markers=cut_spans)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
         published += [{**r, "page": build_make.MAKE_PAGE} for r in seen]
@@ -1022,7 +825,6 @@ def main(argv: list[str] | None = None) -> int:
         unresolved_all += [f"interactive/make.html: {u}" for u in unresolved]
         audits[build_make.MAKE_PAGE] = statlib.audit(html, **audit_cfg)
         scans[build_make.MAKE_PAGE] = statlib.scan_numbers(html, **scan_cfg)
-        html = statlib.inject_stat_css(html)
         (args.out / build_make.MAKE_PAGE).write_text(html, encoding="utf-8")
         print(f"  make     interactive/make.html        -> site/{build_make.MAKE_PAGE} "
               f"(+{len(written)} files under site/{build_make.MAKE_DIR}/)")
@@ -1294,6 +1096,18 @@ def main(argv: list[str] | None = None) -> int:
         if numbers or claims:
             print(f"  --- {page}")
             print(statlib.audit_report(numbers, claims, limit=6))
+    # ⛔ NO INLINE CSS OR JS ON ANY PAGE (owner's sweep, 2026-10-03). Every
+    # page this build wrote, at any depth, not just the ones the number review
+    # stamps: `wrangler.toml` ships the directory whole.
+    _pages, inline = site_assets.scan_site(args.out)
+    if inline:
+        print("\nINLINE CSS OR JS — refusing to build: styles belong in src/css "
+              "(site/css/site.css) and scripts in .js files:")
+        for w in inline[:40]:
+            print(f"  ✗ {w}")
+        if len(inline) > 40:
+            print(f"  … and {len(inline) - 40} more")
+        raise SystemExit(1)
     script_problems = [f"{page}: {w}" for page in sorted(scans)
                        if (args.out / page).is_file()
                        for w in statlib.script_writes(
@@ -1487,7 +1301,7 @@ def main(argv: list[str] | None = None) -> int:
             def _mark(m):
                 token = _re.search(r'data-token="([^"]+)"', m.group(0)).group(1)
                 glyph, was, cls = arrows[token]
-                return (m.group(0) + f'<span class="mstat-move {cls}" '
+                return (m.group(0) + f'<span class="arrow mstat-move {cls}" '
                         f'data-prov="{_html.escape(was, quote=True)}">{glyph}</span>')
             def _prov(m):
                 span = m.group(1)

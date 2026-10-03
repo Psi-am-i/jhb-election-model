@@ -1,0 +1,74 @@
+/* The home page (home.html): its <body> carries the class pg-home, and
+   src/site_assets.py scopes every rule here to it. */
+  *{box-sizing:border-box;margin:0;}
+  body{background:var(--paper);color:var(--ink-2);font-family:var(--sans);
+    font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4,strong,b{color:var(--ink);}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .eyebrow{font:650 10.5px var(--sans);letter-spacing:.15em;
+    text-transform:uppercase;color:var(--ink-3);}
+  .stamp{font-family:var(--mono);font-size:11px;color:var(--ink-3);
+    letter-spacing:.04em;}
+  hr.rule{border:none;border-top:1px solid var(--rule);margin:34px 0;}
+
+  /* the lede */
+  .hero{padding:44px 0 8px;position:relative;}
+  /* Full page width, owner 2026-09-23 — the heading and the standfirst run
+     the width of the page rather than sitting in a narrow column. */
+  .hero .state{font-family:var(--serif);font-size:clamp(30px,4.2vw,52px);
+    line-height:1.12;color:var(--ink);letter-spacing:-.01em;max-width:none;}
+  .hero .state em{font-style:normal;color:var(--accent);}
+  .hero p.sub{margin-top:16px;max-width:none;font-size:16.5px;
+    line-height:1.55;color:var(--ink-2);}
+  .hero .stamp{margin-top:16px;}
+
+  /* the map, deliberately the largest thing on the page */
+  .mapwrap{margin:26px 0 8px;}
+  .mapwrap svg{width:100%;height:auto;display:block;}
+  .maphead{display:flex;justify-content:space-between;align-items:baseline;
+    gap:16px;margin-bottom:10px;}
+
+  .two{display:grid;grid-template-columns:1fr;gap:26px;}
+  @media (min-width:900px){.two{grid-template-columns:1fr 1fr;gap:38px;}}
+
+  /* content KINDS, each with its own colour */
+  .kind{border-top:3px solid var(--k);padding-top:14px;margin-top:8px;}
+  .kind .eyebrow{color:var(--k);}
+  .kind-article{--k:var(--k-article);}
+  .kind-claim{--k:var(--k-claim);}
+  .kind-explain{--k:var(--k-explain);}
+  .kind-interactive{--k:var(--k-interactive);}
+  .feed{display:flex;flex-direction:column;}
+  .item{display:grid;grid-template-columns:62px 1fr;gap:14px;
+    padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+  .item:last-child{border-bottom:none;}
+  .when{font-family:var(--mono);font-size:11px;color:var(--ink-3);
+    padding-top:4px;}
+  .item .t{font-family:var(--serif);font-size:19px;line-height:1.28;
+    color:var(--ink);}
+  .item .d{font-size:13.5px;margin-top:5px;}
+  .verdict{display:inline-block;font:600 10.5px var(--mono);
+    letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--k);
+    color:var(--k);border-radius:3px;padding:2px 6px;margin-top:7px;}
+  .lead-item .t{font-size:clamp(22px,2.6vw,30px);}
+
+  /* the interactive, reserved */
+  .comingsoon{background:var(--paper-2);border:1px solid var(--rule);
+    border-left:3px solid var(--k-interactive);border-radius:4px;
+    padding:22px 24px;margin-top:14px;}
+  .comingsoon h3{font-family:var(--serif);font-size:24px;line-height:1.2;}
+  .comingsoon p{margin-top:10px;max-width:66ch;}
+  .comingsoon ul{margin:12px 0 0 18px;font-size:14px;}
+  .comingsoon li{margin:4px 0;}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 24px 80px;}
+  @media (max-width:560px){.wrap{padding:20px 14px 56px;}
+    .item{grid-template-columns:1fr;gap:2px;}}
+
+  /* the parts of the page the template writes by hand */
+  .comingsoon .stamp.more{margin-top:14px;}
+  .two.below{margin-top:14px;}
+  .two.after{margin-top:6px;}
+  .item.flat{border-bottom:none;}
+  .item.flat.first{padding-top:0;}
+  .seatnote{margin-top:12px;}

@@ -18,6 +18,8 @@ from pathlib import Path
 import cityconfig
 
 ELECTION = "4 November 2026"
+#: A city card's colour when its cities/<slug>.toml declares no [site] accent.
+DEFAULT_ACCENT = "#a8621f"
 
 
 def city_card(slug: str) -> dict:
@@ -38,7 +40,7 @@ def city_card(slug: str) -> dict:
         "name": city.name,
         "formal": city.identity.get("formal_name", city.name),
         "url": ("https://" + subdomain) if subdomain else None,
-        "accent": city.site.get("accent", "#a8621f"),
+        "accent": city.site.get("accent", DEFAULT_ACCENT),
         "council": city.council,
         "majority": city.majority,
         "wards": city.wards,
@@ -106,7 +108,9 @@ def render(cards: list[dict]) -> str:
         klass = "pcard" + ("" if c["live"] else " pcard-soon")
         href = f' href="{c["url"]}"' if c["live"] else ""
         tag = "a" if c["live"] else "div"
-        return (f'<{tag} class="{klass}"{href} style="--city:{c["accent"]}">'
+        # the card's colour is its city's class (src/site_assets.colour_css,
+        # from cities/<slug>.toml): the page carries no style
+        return (f'<{tag} class="{klass} city-{c["slug"]}"{href}>'
                 f'<div class="pc-name">{c["formal"]}</div>'
                 f'{detail}<div class="pc-cta">{cta}</div></{tag}>')
 
@@ -133,28 +137,10 @@ def render(cards: list[dict]) -> str:
 </div>"""
 
 
-PORTAL_CSS = """
-  .portal{display:flex;flex-direction:column;gap:26px;}
-  .pmast{display:flex;flex-direction:column;gap:10px;}
-  .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:14px;}
-  .pcard{display:flex;flex-direction:column;gap:7px;padding:20px 20px 18px;
-    border:1px solid var(--rule);border-top:3px solid var(--city);
-    background:var(--paper-2);text-decoration:none;color:var(--ink);
-    transition:border-color .15s,transform .15s;}
-  a.pcard:hover{border-color:var(--city);transform:translateY(-2px);}
-  .pcard-soon{opacity:.72;}
-  .pc-name{font-family:var(--serif);font-weight:600;font-size:20px;}
-  .pc-num{font-family:var(--mono);font-size:34px;font-weight:600;
-    letter-spacing:-.02em;line-height:1;color:var(--city);}
-  .pc-num span{font-size:15px;color:var(--ink-3);}
-  .pc-num.pc-soon{color:var(--ink-3);}
-  .pc-sub{font-size:12.5px;color:var(--ink-2);line-height:1.45;}
-  .pc-cta{font-family:var(--mono);font-size:11.5px;color:var(--city);
-    margin-top:4px;}
-  .pcard-soon .pc-cta{color:var(--ink-3);}
-  .pfoot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:70ch;}
-"""
+# The portal's own rules are src/css/page-portal.css, scoped to its <body>
+# (`pg-portal`) in the site's one stylesheet, on top of the documents' rules
+# (`pg-doc`).
+
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -167,7 +153,7 @@ def main(argv: list[str] | None = None) -> int:
     cards = [city_card(s) for s in slugs]
     body = render(cards)
 
-    import build_site  # reuse the site's palette and footer, not its nav
+    import build_site  # reuse the site's head and footer, not its nav
     page = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -181,9 +167,8 @@ def main(argv: list[str] | None = None) -> int:
  Africa's metros for the {ELECTION} local government election: thousands of
  simulated elections, the real seat law, every assumption written down.">
 <meta property="og:url" content="https://whysoserious.city/">
-{build_site.THEME_HEAD}<style>{build_site.STYLE}{PORTAL_CSS}</style>
-</head>
-<body>
+{build_site.SITE_HEAD}</head>
+<body class="pg-doc pg-portal">
 <div class="page">
 {body}
 {build_site.FOOTER}

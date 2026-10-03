@@ -30,6 +30,7 @@ import * as B from "./builder-state.js";
 import * as MS from "./make-state.js";
 import { WardMap } from "./map.js";
 import { setShareable, onNameChange } from "./make-share.js";
+import { seatTable } from "./seat-table.js";
 
 const one = {
   status: document.querySelector('[data-live="status"] .ess'),
@@ -54,6 +55,7 @@ const one = {
   govRegion: document.querySelector('[data-live="govern"]'),
   coal: document.querySelector('[data-live="govern"] .coal'),
   coalstat: document.querySelector('[data-live="govern"] .coalstat'),
+  councilRegion: document.querySelector('[data-live="council"]'),
   restate: document.querySelector('[data-live="council"] .restate'),
   bars: document.querySelector('[data-live="council"] .bars'),
   strip: document.querySelector('[data-live="council"] .strip'),
@@ -69,14 +71,21 @@ function el(tag, props = {}, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(props)) {
     if (v == null || v === false) continue;
-    if (k === "style") e.style.cssText = v;
-    else if (k.includes("-") || k === "role") e.setAttribute(k, v === true ? "" : String(v));
+    if (k.includes("-") || k === "role") e.setAttribute(k, v === true ? "" : String(v));
     else e[k] = v;
   }
   e.append(...kids.filter(k => k != null && k !== false));
   return e;
 }
-const sw = colour => el("span", { className: "sw", style: "background:" + colour, "aria-hidden": "true" });
+// A party's colour swatch: its colour class (site.css, from render_sheet.CHIPS).
+const sw = code => el("span", { className: "sw pc-" + code, "aria-hidden": "true" });
+const SVG = "http://www.w3.org/2000/svg";
+function sv(tag, attrs = {}, ...kids) {
+  const e = document.createElementNS(SVG, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+  e.append(...kids);
+  return e;
+}
 
 // ---------- the published start ----------
 let D;
@@ -158,7 +167,7 @@ function paintBrush() {
   const held = new Set(state.calls);
   if (S.brush) held.add(S.brush);
   one.brush.replaceChildren(...alpha.filter(c => held.has(c)).map(c => {
-    const b = el("button", { type: "button", className: "chip", value: c, "aria-pressed": String(c === S.brush), disabled: !engineReady }, sw(byCode[c].colour), name(c));
+    const b = el("button", { type: "button", className: "chip", value: c, "aria-pressed": String(c === S.brush), disabled: !engineReady }, sw(c), name(c));
     b.addEventListener("click", () => chooseBrush(S.brush === c ? null : c));
     return b;
   }));
@@ -218,7 +227,7 @@ for (const c of alpha) {
   const num = el("input", { type: "number", id: "pr-n-" + c, min: "0", max: "100", step: "0.1", inputMode: "decimal", disabled: true });
   const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", share of all votes, percent" });
   const fl = el("span", { className: "fl" });
-  const row = el("div", { className: "prrow" }, sw(byCode[c].colour), el("label", { htmlFor: "pr-n-" + c }, name(c)), num, fl, rng);
+  const row = el("div", { className: "prrow" }, sw(c), el("label", { htmlFor: "pr-n-" + c }, name(c)), num, fl, rng);
   num.addEventListener("change", () => editShare(c, num.value, true, null));
   rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
   rng.addEventListener("change", () => editShare(c, rng.value, true, null));
@@ -304,7 +313,7 @@ function paintCoalition() {
   const shown = alpha.filter(c => seats[c] || S.coalition.includes(c));
   one.coal.replaceChildren(...shown.map(c => {
     const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)) },
-      sw(byCode[c].colour), name(c) + " ", el("span", { style: "color:var(--ink-3)" }, String(seats[c] || 0)));
+      sw(c), name(c) + " ", el("span", { className: "chipn" }, String(seats[c] || 0)));
     b.addEventListener("click", () => {
       S.coalition = S.coalition.includes(c) ? S.coalition.filter(x => x !== c) : [...S.coalition, c];
       writeURL();
@@ -320,6 +329,13 @@ function paintCoalition() {
 }
 
 // ---------- the council ----------
+// The seat table's axis, ticks and header words, set by the build on the
+// "council" region from src/seat_table.py (the one definition).
+const TABLE = {
+  scale: Number(one.councilRegion.dataset.scale),
+  ticks: String(one.councilRegion.dataset.ticks || "").split(" ").filter(Boolean).map(Number),
+  head: String(one.councilRegion.dataset.head || "").split("|"),
+};
 function order(seats) {
   return Object.keys(seats).filter(c => seats[c] > 0).sort((a, b) => seats[b] - seats[a] || name(a).localeCompare(name(b)));
 }
@@ -328,12 +344,30 @@ function paintCouncil() {
   const list = order(seats);
   const max = Math.max(1, ...list.map(c => seats[c]));
   one.restate.textContent = "Each party's wards plus its list seats, of " + council + ".";
-  one.bars.replaceChildren(...list.map(c => el("div", { className: "bar" },
-    el("span", { className: "nm" }, name(c)),
-    el("span", { className: "tr" }, el("span", { className: "fl", style: "width:" + (seats[c] / max * 100) + "%;background:" + byCode[c].colour })),
-    el("span", { className: "v", title: (ward[c] || 0) + " wards, " + (seats[c] - (ward[c] || 0)) + " list" }, String(seats[c])))));
-  one.strip.replaceChildren(...list.map(c => el("span", { style: "width:" + (seats[c] / council * 100) + "%;background:" + byCode[c].colour })),
-    el("span", { className: "maj", style: "left:calc(" + ((majority - 0.5) / council) + " * 100%)" }));
+  // The site's one seat table (js/seat-table.js). A single council has no
+  // range: the mark is the party's seats, and the range column is empty. The
+  // axis is the site's, widened in steps of its own tick spacing when a party
+  // the reader built holds more seats than it reaches.
+  const T = TABLE.ticks, step = T[1] - T[0];
+  const scale = max <= TABLE.scale ? TABLE.scale : Math.ceil(max / step) * step;
+  const every = step * Math.ceil(scale / step / (T.length - 1));
+  const ticks = scale === TABLE.scale ? T : Array.from({ length: Math.floor(scale / every) + 1 }, (_, i) => i * every);
+  one.bars.replaceChildren(seatTable(document, list.map(c => ({
+    code: c, name: name(c), sub: null, seats: String(seats[c]), lo: null, hi: null,
+    m: seats[c], p5: null, p95: null, ghost: null, arrow: null,
+    title: (ward[c] || 0) + " wards, " + (seats[c] - (ward[c] || 0)) + " list",
+  })), { scale, ticks, head: TABLE.head, label: "Your council" }));
+  // the whole council in one bar, the majority line across it
+  let at = 0;
+  const segs = list.map(c => {
+    const r = sv("rect", { class: "pc-" + c, x: (at / council * 100).toFixed(2) + "%", y: 0,
+      width: (seats[c] / council * 100).toFixed(2) + "%", height: 16 });
+    at += seats[c];
+    return r;
+  });
+  const mx = ((majority - 0.5) / council * 100).toFixed(2) + "%";
+  one.strip.replaceChildren(sv("svg", { class: "stripbar", width: "100%", height: 16 }, ...segs,
+    sv("line", { class: "maj", x1: mx, x2: mx, y1: -4, y2: 20 })));
   one.capseats.textContent = council + " seats";
   one.capmaj.textContent = majority + " to govern";
   const over = Object.keys(excessive || {});

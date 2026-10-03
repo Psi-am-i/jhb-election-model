@@ -1,0 +1,39 @@
+/* The seat table (src/seat_table.py, interactive/js/seat-table.js): one look
+   for every list of party seats on the site. Columns: chip and name | range
+   graphic | middle seats, bold, with a fixed slot for an arrow | the range.
+   Every figure column is right-aligned in tabular figures, and the arrow slot
+   has a width of its own, so an arrow never moves a number. */
+.st{--st-arrow:26px;display:flex;flex-direction:column;font-variant-numeric:tabular-nums;}
+.st-row{display:grid;grid-template-columns:minmax(0,104px) minmax(0,1fr) 62px 62px;
+  align-items:center;gap:0 12px;min-height:30px;border-bottom:1px solid var(--rule-soft);}
+.st-row.st-head,.st-row.st-scale{border-bottom:0;min-height:0;}
+.st-head{padding-bottom:4px;}
+.st-head > div{font:650 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
+.st-head .st-seats{padding-right:var(--st-arrow);}
+.st-name{display:flex;align-items:center;gap:7px;min-width:0;font-size:13.5px;font-weight:550;
+  color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.st-sub{font-weight:400;font-size:12px;color:var(--ink-3);}
+.st-svg{display:block;width:100%;height:20px;overflow:visible;}
+.st-axis{stroke:var(--rule-soft);stroke-width:1;}
+.st-band{fill:var(--mark-band);}
+.st-med{stroke:var(--mark);stroke-width:3;}
+.st-ghost{stroke:var(--ink-3);stroke-width:2;stroke-dasharray:2 2;}
+.st-seats{font-family:var(--mono);font-size:13px;text-align:right;color:var(--ink-2);}
+.st-seats b{display:inline-grid;grid-template-columns:auto var(--st-arrow);justify-items:end;
+  align-items:baseline;color:var(--ink);font-weight:600;}
+.st-seats b > .arrow{justify-self:start;margin-left:3px;}
+.st-range{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);text-align:right;white-space:nowrap;}
+/* A range's two ends keep their history tooltip; their arrows would push the
+   column about, so only the middle count carries one. */
+.st-range .arrow{display:none;}
+.st-ticks{display:block;width:100%;height:14px;overflow:visible;
+  font:10.5px var(--mono);fill:var(--ink-3);}
+/* Narrow tables (a phone, or /play/'s results column): the columns tighten
+   and the axis keeps every other tick, so the labels never overprint. A
+   container query, so the table answers to its own width, not the window's. */
+.st{container-type:inline-size;}
+@container (max-width:440px){
+  .st-row{grid-template-columns:minmax(0,88px) minmax(0,1fr) 50px 50px;gap:0 7px;}
+  .st-name{font-size:12.5px;}
+  .st-ticks text:nth-child(even){display:none;}
+}

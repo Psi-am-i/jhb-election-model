@@ -36,6 +36,7 @@
 import * as PS from "./play-state.js";
 import { order, seatText, rangeText, LAW_TEXT, cellName, pollName, settingsWords, largestTop, theName } from "./play-card.js";
 import { setShareable } from "./play-share.js";
+import { seatTable } from "./seat-table.js";
 
 const DEBOUNCE_MS = 200;
 const SVG = "http://www.w3.org/2000/svg";
@@ -71,8 +72,7 @@ function el(tag, props = {}, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(props)) {
     if (v == null || v === false) continue;
-    if (k === "style") e.style.cssText = v;
-    else if (k.includes("-") || k === "role" || k === "for") e.setAttribute(k, v === true ? "" : String(v));
+    if (k.includes("-") || k === "role" || k === "for") e.setAttribute(k, v === true ? "" : String(v));
     else e[k] = v;
   }
   e.append(...kids.filter(k => k != null && k !== false));
@@ -92,9 +92,14 @@ let roster = {};
 const party = c => roster[c] ?? { code: c, name: c.replace(/_/g, " ").toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase()), colour: "#8b918b", article: "" };
 const nameOf = c => (c === "OTHERS" ? "Others" : party(c).name);
 
-// The seat axis, set by the build on the "seats" region (build_play.SEAT_SCALE).
-const SCALE = Number(R.seats.dataset.scale) || 125;
-const TICKS = [0, 0.2, 0.4, 0.6, 0.8, 1].map(f => Math.round(SCALE * f));
+// The seat table's axis, ticks and header words, set by the build on the
+// "seats" region from src/seat_table.py (the one definition).
+const TABLE = {
+  scale: Number(R.seats.dataset.scale),
+  ticks: String(R.seats.dataset.ticks || "").split(" ").filter(Boolean).map(Number),
+  head: String(R.seats.dataset.head || "").split("|"),
+  label: "Seats under your settings",
+};
 // The election day, set by the build on the "engine" region.
 const WHEN = (() => {
   const d = new Date(String(R.engineRegion.dataset.election || "") + "T12:00:00");
@@ -381,7 +386,10 @@ const tooFew = r => (r.effective_draws != null && r.draws
   ? "the figures would rest on the equivalent of " + count(r.effective_draws) + " of the " + count(r.draws) +
     " simulations, fewer than the " + count(r.floor) + " a figure needs"
   : "the re-weighting refuses it (" + r.refused + ")");
-const arrow = d => (d ? el("span", { className: "pl-delta" }, (d > 0 ? "▲" : "▼") + Math.abs(d)) : null);
+// The reader's change against the published forecast: the site's one arrow
+// (src/css/stat.css .arrow), in the reader's hue.
+const arrowText = d => (d ? (d > 0 ? "▲" : "▼") + Math.abs(d) : null);
+const arrow = d => (d ? el("span", { className: "arrow reader" }, arrowText(d)) : null);
 
 function render(r, touched, state = st) {
   offerShare(r, state);
@@ -408,7 +416,7 @@ function renderBanner(r) {
   clear(R.banner);
   const items = pubOrder.filter(c => r.seats[c]).slice(0, 6).map(c => {
     const s = r.seats[c];
-    return el("span", { className: "pl-bi" }, el("i", { style: "background:" + party(c).colour }), party(c).name + " ",
+    return el("span", { className: "pl-bi" }, el("i", { className: "pc-" + c }), party(c).name + " ",
       el("b", {}, seatText(s.median)), arrow(s.vs_published));
   });
   R.banner.append(el("span", { className: "pl-bstate pl-mine" }, "Your settings"), el("span", { className: "pl-bitems" }, ...items),
@@ -488,28 +496,25 @@ function renderFlips(r) {
 }
 
 // The seat rows: the published rows and any party the reader's settings lift
-// to the threshold (page.py's `shown`), in the page's order, then Others.
+// to the threshold (page.py's `shown`), in the page's order, then Others. The
+// site's one seat table (js/seat-table.js), with the published middle as a
+// dotted mark and the change against it as an arrow.
 function renderSeats(r) {
   clear(R.seats);
-  const at = v => (100 * v / SCALE).toFixed(2) + "%";
   const pub = baseline.seats;
-  for (const c of [...order(r, c => party(c).name), "OTHERS"]) {
-    const s = r.seats[c], colour = c === "OTHERS" ? "#8b918b" : party(c).colour;
-    const track = el("div", { className: "pl-track" });
-    if (!s.p5.withheld && !s.p95.withheld)
-      track.append(el("span", { className: "pl-band", style: "left:" + at(s.p5.value) + ";width:" + at(s.p95.value - s.p5.value) + ";background:" + colour }));
-    if (pub[c] && !pub[c].median.withheld && c !== "OTHERS")
-      track.append(el("span", { className: "pl-ghost", style: "left:calc(" + at(pub[c].median.value) + " - 1px)" }));
-    if (!s.median.withheld)
-      track.append(el("span", { className: "pl-med", style: "left:calc(" + at(s.median.value) + " - 1.5px)" }));
-    const label = c === "OTHERS" ? [el("span", { className: "pl-chip", style: "background:" + colour }), "Others ", el("span", { className: "pl-sub" }, "(" + r.others_count + " parties)")]
-      : [el("span", { className: "pl-chip", style: "background:" + colour }), party(c).name];
-    R.seats.append(el("div", { className: "pl-srow" }, el("div", { className: "pl-sname" }, ...label), track,
-      el("div", { className: "pl-sval" }, el("b", {}, seatText(s.median)), c === "OTHERS" ? null : arrow(s.vs_published),
-        el("span", { className: "pl-rng" }, rangeText(s)))));
-  }
-  R.seats.append(el("div", { className: "pl-srow pl-axis" }, el("div"),
-    el("div", { className: "ticks pl-ticks" }, ...TICKS.map(t => el("span", { style: "left:" + at(t) }, String(t)))), el("div")));
+  const val = f => (f.withheld ? null : f.value);
+  const rows = [...order(r, c => party(c).name), "OTHERS"].map(c => {
+    const s = r.seats[c], others = c === "OTHERS";
+    const range = s.p5.withheld || s.p95.withheld;
+    return {
+      code: c, name: nameOf(c), sub: others ? "(" + r.others_count + " parties)" : null,
+      seats: seatText(s.median), lo: range ? rangeText(s) : seatText(s.p5), hi: range ? null : seatText(s.p95),
+      m: val(s.median), p5: range ? null : val(s.p5), p95: range ? null : val(s.p95),
+      ghost: !others && pub[c] ? val(pub[c].median) : null,
+      arrow: others ? null : arrowText(s.vs_published), title: null,
+    };
+  });
+  R.seats.append(seatTable(document, rows, TABLE));
 }
 
 // Under a by-election setting other than the forecast's: each party's change

@@ -6,7 +6,8 @@ Wired as `[build] command` in `wrangler.toml`, so wrangler runs it before every
 ships `site/` whatever the ledger says (blind review, 2026-09-17).
 
 It checks that every file wrangler would upload from the repository's own
-`site/` is committed (`untracked`), and two things against
+`site/` is committed (`untracked`), that no page carries inline CSS or JS
+(`site_assets.scan_site`), and two things against
 `content/<city>/NUMBERS-REVIEW.md`:
 
 1. the review describes THESE pages — the sha256 of every page it scanned
@@ -125,6 +126,19 @@ def check(city: str, site: Path, preview: bool, review: Path | None = None) -> l
                 f"{headers} is not what build_site.headers_text() generates — "
                 f"rewrite it (only that file; a full build strips a published "
                 f"edition's arrows)")
+    # ⛔ NO INLINE CSS OR JS (owner's sweep, 2026-10-03): build_site refuses
+    # to write one, and this refuses to ship one that got here another way.
+    try:
+        import site_assets as _SA
+        _pages, inline = _SA.scan_site(site)
+    except Exception as exc:          # a gate that cannot look must not pass
+        problems.append(f"cannot scan {site} for inline CSS or JS ({exc!r})")
+    else:
+        if inline:
+            problems.append(f"{len(inline)} inline style(s) or script(s) in the pages "
+                            f"under {site}/: {'; '.join(inline[:5])}"
+                            f"{' …' if len(inline) > 5 else ''}. Styles belong in "
+                            f"src/css, scripts in .js files.")
     blocks = sum(1 for line in text.splitlines() if line.startswith("| BLOCKS |"))
     if blocks != int(head.group(2)):
         problems.append(f"{review} was edited by hand: stamp says "

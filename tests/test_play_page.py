@@ -131,7 +131,9 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
         assert twin.count('class="mstat') >= 2, (part, twin[:300])
     # the seat twin is the forecast page's rows: one per sheet row, its tokens
     seats = html[html.index('class="pl-seats pl-pub"'):html.index('data-live="seats"')]
-    assert seats.count('class="pl-srow"') == len(sheet), (seats.count('class="pl-srow"'), len(sheet))
+    # (the site's one seat table, src/seat_table.py)
+    rows = seats.count('<div class="st-row" data-code=')
+    assert rows == len(sheet), (rows, len(sheet))
     # the published map, once, as a generated region the scan lists
     assert html.count("<!-- __MAP_START__ -->") == 1 and html.count("<!-- __MAP_END__ -->") == 1
     # every LIVE region on the page is one the writer is listed for, and every

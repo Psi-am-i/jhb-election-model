@@ -1,0 +1,42 @@
+/* THE SITE'S ONE PALETTE, and its type stacks. Every page takes its colours
+   from here and nowhere else (owner, 2026-09-24: "pages flip between light and
+   dark themes — default to dark with a toggle in the menu bar").
+
+   ⛔ THE OS DECIDES, NOT THIS FILE (owner, 2026-09-27). Dark is the bare
+   `:root` only because a palette has to be written somewhere. Three cases, in
+   the order the more specific one wins:
+     1. a reader who has chosen: js/theme.js sets `data-theme` from
+        localStorage in <head>, before first paint;
+     2. a reader who has not, with script: the same file reads
+        `prefers-color-scheme` and sets `data-theme` explicitly, so the
+        toggle and every `[data-theme]` rule see one answer;
+     3. a reader with NO SCRIPT: the media query carries the light palette,
+        and `:not([data-theme="dark"])` keeps an explicit dark choice winning.
+
+   The light palette is written ONCE, as the explicit choice below.
+   src/site_assets.py emits it a second time inside the media query (case 3):
+   two hand-kept copies of the same colours is how one of them goes stale. */
+
+:root{color-scheme:dark;
+  --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
+  --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
+  --accent:#d9954f; --accent-soft:#3a2a1a;
+  --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
+  --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
+  --k-interactive:#b98ad6; --k-soft:#2c2233;
+}
+:root[data-theme="light"]{color-scheme:light;
+    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
+    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
+    --accent:#a8621f; --accent-soft:#f0e2d5;
+    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
+    --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
+    --k-interactive:#7a4a9c; --k-soft:#efe6f5;}
+
+:root{
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  /* anything the READER made wears this hue; anything the MODEL made, --accent */
+  --reader:var(--k-interactive);
+}

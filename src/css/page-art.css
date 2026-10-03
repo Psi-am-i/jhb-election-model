@@ -1,0 +1,24 @@
+/* The forecast sheet's two pages and the home page (build_site.ARTEFACTS):
+   build_site.inject_nav gives their <body> the class pg-art, and
+   src/site_assets.py scopes every rule here to it. */
+  /* site-wide standard container: every page, same width and padding */
+  a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
+  .sheet{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
+  @media (min-width:1440px){.sheet{max-width:1040px;}}
+  @media (max-width:560px){.sheet{padding:20px 14px 56px;}h1{text-wrap:pretty;}}
+  .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
+  @media (max-width:840px){.layout{grid-template-columns:1fr;}}
+
+  .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
+    border-top:1px solid var(--rule);padding-top:14px;margin-top:44px;}
+  .sitefooter a{color:var(--ink-3);}
+  .sitefooter a:hover{color:var(--accent);}
+  /* one line at desktop width: the items are short enough to fit, so they
+     must not break — wrapping is kept only for narrow screens. */
+  .topnav{display:flex;flex-wrap:wrap;gap:6px 13px;align-items:baseline;
+    justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink-3);
+    border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px;}
+  .topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
+  .topnav a:hover{color:var(--accent);}
+  .topnav a.home{color:var(--accent);font-weight:600;}
+  .topnav a.active{color:var(--accent);}

@@ -86,7 +86,10 @@ python src/pools.py --city joburg --target 2026 --emit --simulation   # reader e
 # 5. the forecast and its outputs
 python src/montecarlo.py                 # 5,000 draws; scenario knobs via --config/--set
 python src/render_sheet.py               # regenerate the sheet's figures
-python src/build_site.py                 # the public site -> ./site
+python src/build_site.py                 # the public site -> ./site; its one
+                                         #   stylesheet (src/css -> site/css/site.css)
+                                         #   and scripts (src/js) by src/site_assets.py;
+                                         #   no page may carry inline CSS or JS
 python src/build_portal.py               # the multi-city portal
 
 # `leverage.py` used to be step 5 here. It was retired to

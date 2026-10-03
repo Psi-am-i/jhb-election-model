@@ -12,12 +12,16 @@
   What the build does to it:
     __DEVONLY_START__ … __DEVONLY_END__   dropped (the prototype's head
                                           script, nav, footer and note)
-    <!- - __MAKEHEAD__ - ->                 the site's THEME_HEAD and share card
+    <!- - __MAKEHEAD__ - ->                 the site's head (build_site.SITE_HEAD:
+                                          its one stylesheet and scripts) and
+                                          share card
     <!- - __MAKENAV__ - ->                  the site's nav, one level down
     <!- - __MAKEFOOT__ - ->                 the site's footer, one level down
-    <!- - __PUBLISHED:seats__ - ->          the published forecast's seat panel
-                                          from forecast-sheet.html, as
-                                          ledgered tokens, in a shadow root
+    <!- - __PUBLISHED:seats__ - ->          the published forecast's seat panel:
+                                          forecast-sheet.html's rows and
+                                          tokens, in the site's seat table
+    <!- - __MAKE:seat…__ - ->               the seat table's axis, ticks and
+                                          header words (src/seat_table.py)
 
   A figure computed from the reader's forecast appears ONLY inside a data-live
   region, written only by js/make.js or js/make-share.js
@@ -26,22 +30,8 @@
 -->
 <!-- __MAKEHEAD__ -->
 <!-- __DEVONLY_START__ -->
-<script>
-  (function () {
-    var t = null;
-    try { t = localStorage.getItem("theme"); } catch (e) {}
-    if (t !== "light" && t !== "dark") {
-      t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark";
-    }
-    document.documentElement.setAttribute("data-theme", t);
-  })();
-  function toggleTheme() {
-    var root = document.documentElement;
-    var light = root.getAttribute("data-theme") !== "light";
-    root.setAttribute("data-theme", light ? "light" : "dark");
-    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
-  }
-</script>
+<link rel="stylesheet" href="../site/css/site.css">
+<script src="../src/js/theme.js"></script>
 <!-- __DEVONLY_END__ -->
 <link rel="stylesheet" href="css/interactive.css">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -107,7 +97,8 @@
         </div>
         <p class="maphint">Areas are compass sectors drawn from the ward boundaries, not the City's regions.</p>
       </section>
-      <section class="results" data-live="council" aria-labelledby="h-res">
+      <section class="results" data-live="council" aria-labelledby="h-res" data-scale="<!-- __MAKE:seatscale__ -->"
+        data-ticks="<!-- __MAKE:seatticks__ -->" data-head="<!-- __MAKE:seathead__ -->">
         <h2 id="h-res">Your council</h2>
         <p class="ess restate"></p>
         <div class="bars"></div>
@@ -134,7 +125,7 @@
               <button class="btn shcopy" type="button">Copy link</button>
             </div>
             <div class="preview"><img alt=""></div>
-            <div class="cta" style="margin-top:0">
+            <div class="cta shcta">
               <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
               <button class="btn shdl" type="button" disabled>Download image</button>
             </div>

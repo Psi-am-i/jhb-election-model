@@ -38,15 +38,14 @@ import render_sheet as _sheet
 import scenarios as _scenarios
 
 # ⛔ THE SEATS TABLE IS NOT THIS PAGE'S OWN DESIGN, AND THAT IS DELIBERATE.
-# The parties named, their labels and their colours all come from the forecast
-# sheet, so the two tables name the same parties — which is the only way the
+# The parties named and their labels come from the forecast sheet, and their
+# colours from the site's one party palette (src/site_assets.py), so the two tables name the same parties — which is the only way the
 # word "Others" can mean one number on both (owner, 2026-09-25). This page used
 # to declare its own shorter list and its own colour map, and the cost was two
 # "Others" rows differing by the seats of the three parties it left out, plus an
 # IFP chip that was grey here and red there.
 NAMED = tuple(_scenarios.NAMED_PARTIES)
 LABEL = _sheet.NAMES
-COLOUR = {**_sheet.CHIPS, "Others": "#8b918b"}
 
 
 def region(page: str, name: str, body: str) -> str:
@@ -196,25 +195,20 @@ def _seats(summary: dict, tok, processed: Path) -> str:
         _draws = list(_csv.DictReader(fh))
     _mean = {p: sum(float(r[p] or 0) for r in _draws) / len(_draws) for p in named}
     rows_order = sorted(named, key=lambda p: (-float(parties[p]["median"]), -_mean[p]))
-    rows, widest = [], max(float(parties[p]["p95"]) for p in named) or 1.0
+    rows = []
 
+    # THE SITE'S ONE SEAT TABLE (src/seat_table.py), the forecast page's own.
+    # The token names are this page's (`home.seats.<party>`, `_lo`, `_hi`):
+    # they are what its ledger rows were published under.
     def row(code: str, label: str, med: float, lo: float, hi: float,
-            source: str | None = None) -> str:
+            source: str | None = None) -> dict:
         key = code.lower()
         src_of = (lambda n, v, f: tok(n, v, f, source)) if source else tok
-        return (
-            f'    <div class="srow">\n'
-            f'      <div class="sname"><span class="chip" style="background:'
-            f'{COLOUR.get(code, "var(--oth)")}"></span>{html.escape(label)}</div>\n'
-            f'      <div class="strack"><i style="width:'
-            f'{100 * med / widest:.1f}%;background:{COLOUR.get(code, "var(--oth)")}">'
-            f'</i></div>\n'
-            f'      <div class="sval"><b>'
-            f'{src_of(f"home.seats.{key}", int(round(med)), "int")}'
-            f'</b></div>\n'
-            f'      <div class="sval rng">{src_of(f"home.seats.{key}_lo", int(round(lo)), "int")}–'
-            f'{src_of(f"home.seats.{key}_hi", int(round(hi)), "int")}</div>\n'
-            f'    </div>')
+        return {"code": code.upper(), "name": label,
+                "seats": src_of(f"home.seats.{key}", int(round(med)), "int"),
+                "lo": src_of(f"home.seats.{key}_lo", int(round(lo)), "int"),
+                "hi": src_of(f"home.seats.{key}_hi", int(round(hi)), "int"),
+                "m": med, "p5": lo, "p95": hi}
 
     for code in rows_order:
         p = parties[code]
@@ -239,15 +233,15 @@ def _seats(summary: dict, tok, processed: Path) -> str:
     import scenarios as _scn
     band = tok("home.band", _scn.BAND_SHARE, "chance",
                "scenarios.BAND, the percentiles seat_quantiles reports")
-    note = ('  <div class="stamp" style="margin-top:12px">Each party\'s middle '
+    note = ('  <div class="stamp seatnote">Each party\'s middle '
             f'value across the simulations, with the range covering {band} of '
             'them. They do not add up to the council: a party\'s best '
             'simulations are not the same ones as its rivals\'. "Others" is '
             'the council minus the parties named above, taken '
             '<em>within</em> each simulation.</div>')
-    head = ('    <div class="srow shead"><div></div><div></div>'
-            '<div class="sval">median</div><div class="sval rng">range</div></div>')
-    return '  <div class="seats">\n' + "\n".join([head] + rows) + "\n  </div>\n" + note
+    import seat_table
+    return ("  " + seat_table.table(rows, label="Seats by party, if the election were held now")
+            + "\n" + note)
 
 
 def _articles(city_dir: Path) -> str:

@@ -1,43 +1,12 @@
-/* The interactive prototype's stylesheet.
-
-   Colours: the site's palette (src/build_site.py THEME_HEAD / _LIGHT_VARS),
-   COPIED here for the prototype only. In production build_site injects
-   THEME_HEAD into these pages exactly as it does for every other page, and
-   this block is deleted — two copies of one palette is how one goes stale.
+/* The stylesheet of "make your own forecast" (/make/) and "play with the
+   model" (/play/, with css/play.css after it), loaded after the site's one
+   stylesheet (site/css/site.css, from src/css/), which carries the palette,
+   the type stacks, the theme toggle, the token styling and the seat table.
 
    One structural rule carries the brand's distinction between the two kinds
-   of forecast: anything the READER made wears --k-interactive (the hue the
-   home page already gives the interactive); anything the MODEL made wears
-   the amber --accent. A reader's forecast is never drawn in amber. */
-
-:root{color-scheme:dark;
-  --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
-  --ink:#eceee9; --ink-2:#b6bcb6; --ink-3:#868d86;
-  --accent:#d9954f; --accent-soft:#3a2a1a;
-  --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
-  --k-interactive:#b98ad6; --k-soft:#2c2233;
-}
-@media (prefers-color-scheme: light){
-  :root:not([data-theme="dark"]){color-scheme:light;
-    --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-    --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-    --accent:#a8621f; --accent-soft:#f0e2d5;
-    --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
-    --k-interactive:#7a4a9c; --k-soft:#efe6f5;}
-}
-:root[data-theme="light"]{color-scheme:light;
-  --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
-  --ink:#1a1d1b; --ink-2:#4a4f4b; --ink-3:#767b76;
-  --accent:#a8621f; --accent-soft:#f0e2d5;
-  --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
-  --k-interactive:#7a4a9c; --k-soft:#efe6f5;}
-
-:root{
-  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
-  --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
-  --reader:var(--k-interactive);
-}
+   of forecast: anything the READER made wears --reader (the hue the home page
+   gives the interactive); anything the MODEL made wears the amber --accent. A
+   reader's forecast is never drawn in amber. */
 
 *{box-sizing:border-box;margin:0;}
 html{-webkit-text-size-adjust:100%;}
@@ -61,12 +30,6 @@ a:hover{color:var(--ink);}
 .topnav a:hover{color:var(--accent);}
 .topnav a.home{color:var(--accent);font-weight:600;}
 .topnav a.active{color:var(--reader);}
-.themetoggle{font:inherit;color:var(--ink-3);background:none;border:0;padding:0;
-  cursor:pointer;line-height:0;align-self:center;}
-.themetoggle:hover{color:var(--accent);}
-.themetoggle .to-dark{display:none;}
-:root[data-theme="light"] .themetoggle .to-light{display:none;}
-:root[data-theme="light"] .themetoggle .to-dark{display:inline;}
 
 /* ⚠ the prototype says what it is on every screen */
 .proto{font-family:var(--mono);font-size:11.5px;line-height:1.5;color:var(--ink-2);
@@ -140,6 +103,8 @@ svg .lbl{font:600 11px var(--sans);letter-spacing:.06em;fill:var(--ink);
   border:1px solid var(--rule);border-radius:999px;padding:6px 11px 6px 8px;
   background:transparent;color:var(--ink-2);cursor:pointer;min-height:36px;}
 .chip .sw{width:12px;height:12px;border-radius:50%;flex:none;}
+.sw{background:var(--pc,var(--pc-other));}
+.chip .chipn{color:var(--ink-3);}
 .chip[aria-checked="true"],.chip[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);
   background:color-mix(in srgb,var(--ink) 8%,transparent);}
 .chip[aria-checked="true"] .sw,.chip[aria-pressed="true"] .sw{box-shadow:0 0 0 2px var(--paper-2),0 0 0 3.5px var(--ink);}
@@ -185,7 +150,6 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 .builder.locked .mapcard svg,.mapcard.locked svg{cursor:progress;}
 .builder.locked .prlist,.builder.locked .brush,.builder.locked .coal,
 .locked .prlist,.locked .brush,.locked .coal{opacity:.55;}
-.bar.model .fl{background:var(--accent);}
 
 /* coalition */
 .coal{display:flex;flex-wrap:wrap;gap:6px;}
@@ -196,22 +160,18 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 .results{border:1px solid var(--rule-soft);border-top:3px solid var(--reader);padding:14px;
   background:var(--paper-2);}
 .results h2{font-size:19px;margin-bottom:2px;}
-.bars{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
-.bar{display:grid;grid-template-columns:96px 1fr 38px;gap:8px;align-items:center;font-size:13px;}
-.bar .nm{color:var(--ink);overflow-wrap:anywhere;line-height:1.25;}
-.bar .tr{height:12px;background:var(--rule-soft);position:relative;}
-.bar .fl{position:absolute;inset:0 auto 0 0;}
-.bar .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;}
+.bars{margin-top:10px;}
 .council{margin-top:14px;}
-.council .strip{display:flex;height:16px;position:relative;background:var(--rule-soft);}
-.council .strip span{height:100%;}
-.council .maj{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);}
+.council .stripbar{display:block;width:100%;height:16px;overflow:visible;background:var(--rule-soft);}
+.council .stripbar rect{fill:var(--pc,var(--pc-other));}
+.council .maj{stroke:var(--ink);stroke-width:2;}
 .council .cap{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);margin-top:4px;}
 .stubnote{font-size:12px;color:var(--ink-3);margin-top:8px;}
 .stubnote b{color:var(--bad);}
 
 .cta{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
 @media (min-width:560px){.cta{flex-direction:row;flex-wrap:wrap;}}
+.cta.shcta{margin-top:0;}
 
 /* the phone tray: palette + tally stay in reach while the map scrolls */
 @media (max-width:979px){
@@ -283,6 +243,7 @@ footer.sitefooter a{color:var(--ink-3);}
 /* A region the page writes from the reader's edits (data-live) carries this
    visible label. */
 .published{display:block;margin:8px 0;}
+.published figcaption{font-size:12.5px;color:var(--ink-3);margin-top:10px;}
 
 
 /* ---------- make your own forecast (/make/) ---------- */

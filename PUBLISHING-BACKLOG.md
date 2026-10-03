@@ -703,7 +703,8 @@ build):
   forwarded to wherever that section now lives.
 * **One theme for the whole site**: dark by default (including with no
   script), a sun/moon toggle in the menu, the choice remembered per reader.
-  `build_site.THEME_HEAD` is the only palette; the per-page copies are gone.
+  `src/css/tokens.css` (built into `site/css/site.css`) is the only palette;
+  the per-page copies are gone.
   This is why pages used to flip — each followed a different rule.
 * **The map's Normal / Equal Sized switch works on every page with both
   maps.** Its script is now emitted by `hex_cartogram.py` with the cartogram

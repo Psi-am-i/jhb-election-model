@@ -412,29 +412,22 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
             ink = "#ffffff" if _luminance(info["fill"]) < 0.55 else "#12140f"
             numbers.append(
                 f'<text x="{cx:.1f}" y="{cy + size * 0.35:.1f}" text-anchor="middle" '
-                f'style="font:600 {size:.1f}px ui-monospace,monospace;fill:{ink};'
-                f'opacity:.85;pointer-events:none">{ward}</text>')
+                f'class="hexnum" font-size="{size:.1f}" fill="{ink}">{ward}</text>')
 
     labels = []
     for lab in layout.labels:
         labels.append(
             f'<text x="{lab["x"]}" y="{lab["y"]}" text-anchor="middle" '
-            f'style="font:650 11px ui-sans-serif,system-ui;letter-spacing:.08em;'
-            f'text-transform:uppercase;fill:var(--ink);stroke:var(--paper);'
-            f'stroke-width:3px;paint-order:stroke;pointer-events:none">{lab["t"]}</text>')
+            f'class="maplabel">{lab["t"]}</text>')
     labels.append(
-        f'<text x="{W - 14:.0f}" y="20" text-anchor="end" '
-        f'style="font:600 11px ui-monospace,monospace;fill:var(--ink-3);'
-        f'pointer-events:none">N ↗</text>')
+        f'<text x="{W - 14:.0f}" y="20" text-anchor="end" class="mapnorth">N ↗</text>')
     labels.append(
-        '<text x="8" y="16" style="font:650 10.5px ui-sans-serif,system-ui;'
-        'letter-spacing:.1em;text-transform:uppercase;fill:var(--ink-3);'
-        'pointer-events:none">One hexagon = one ward = one councillor</text>')
+        '<text x="8" y="16" class="mapcap">One hexagon = one ward = one councillor</text>')
 
     tier_key = map_key(called)
 
     return f"""{MARK_START}
-  <details class="rollup" data-band="forecast" data-map="cartogram" open style="display:none">
+  <details class="rollup" data-band="forecast" data-map="cartogram" open hidden>
     <summary><span class="eyebrow">The same forecast, drawn by seats instead of by land</span>
     <h2>Who wins how many</h2></summary>
     <p class="maplede">Wards elect half the council, 135 seats, first past the post. A ward needs no
@@ -445,69 +438,23 @@ def render(layout: Layout, probs: dict[str, dict], city_name: str = "the city") 
       <button type="button" data-show="cartogram" class="on" aria-pressed="true">Equal Sized Wards</button>
     </div>
     <figure>
-      <div style="position:relative">
-      <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardhexmap"
+      <div class="mapbox">
+      <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardhexmap" class="mapsvg"
            xmlns:xlink="http://www.w3.org/1999/xlink"
-           aria-label="{city_name} ward cartogram: one equal hexagon per ward, placed near its real location and coloured by predicted winning party"
-           style="width:100%;height:auto;display:block">
+           aria-label="{city_name} ward cartogram: one equal hexagon per ward, placed near its real location and coloured by predicted winning party">
         <defs><polygon id="hexcell" points="{cell}"/>{''.join(patterns.values())}</defs>
         {''.join(tiles)}{''.join(hatches)}{''.join(numbers)}{''.join(labels)}
       </svg>
-      <div id="hextip" style="position:fixed;display:none;pointer-events:none;z-index:9;
-        font:12px/1.4 ui-sans-serif,system-ui;background:var(--ink);color:var(--paper);
-        padding:6px 10px;border-radius:4px;max-width:280px"></div>
+      <div id="hextip" class="maptip" hidden></div>
       </div>
-      <figcaption style="display:flex;flex-direction:column;gap:6px">
+      <figcaption class="mapcaption">
         <span>{tier_key}</span>
         <span>Each hexagon sits as close to its ward's real position as the grid allows. The
         normal map answers <em>where</em>; this one answers <em>how many</em>. Touch or hover any
         hexagon for its numbers.</span>
       </figcaption>
     </figure>
-    <script>
-    (function() {{
-      var tip = document.getElementById('hextip');
-      var svg = document.getElementById('wardhexmap');
-      function show(e) {{
-        var t = e.target.getAttribute && e.target.getAttribute('data-tip');
-        if (t) {{ tip.textContent = t; tip.style.display = 'block';
-          tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
-        }} else tip.style.display = 'none';
-      }}
-      svg.addEventListener('mousemove', show);
-      svg.addEventListener('click', show);
-      svg.addEventListener('mouseleave', function() {{ tip.style.display = 'none'; }});
-    }})();
-    </script>
   </details>
-<style>
-  /* The Normal / Equal Sized switch, styled wherever it is emitted. */
-  .maptoggle{{display:flex;gap:0;margin:4px 0 12px;font-size:13px;}}
-  .maptoggle button{{font:600 12.5px var(--sans,sans-serif);letter-spacing:.02em;padding:6px 14px;
-    border:1px solid var(--rule);background:transparent;color:var(--ink-2);cursor:pointer;}}
-  .maptoggle button:first-child{{border-radius:4px 0 0 4px;}}
-  .maptoggle button:last-child{{border-radius:0 4px 4px 0;border-left:none;}}
-  .maptoggle button.on{{background:var(--accent);border-color:var(--accent);color:var(--paper);}}
-</style>
-<script>
-// Switches between the land map and the equal-ward map. Shows or hides the two
-// sections the build wrote; it writes no text or figure. Emitted HERE, with the
-// cartogram, so every page that has both maps has the switch (the home page
-// once had the buttons and neither the second map nor this script).
-document.querySelectorAll(".maptoggle button").forEach(function(b){{
-  b.addEventListener("click", function(){{
-    var show = b.getAttribute("data-show");
-    document.querySelectorAll("details[data-map]").forEach(function(d){{
-      d.style.display = d.getAttribute("data-map") === show ? "" : "none";
-    }});
-    document.querySelectorAll(".maptoggle button").forEach(function(o){{
-      var on = o.getAttribute("data-show") === show;
-      o.classList.toggle("on", on);
-      o.setAttribute("aria-pressed", on ? "true" : "false");
-    }});
-  }});
-}});
-</script>
   {MARK_END}"""
 
 

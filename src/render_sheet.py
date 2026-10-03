@@ -33,6 +33,8 @@ CHIPS = {
     "VFPLUS": "#B0752D", "ACDP": "#6B4E9E", "ALJAMAAH": "#2E8B72",
     "ENTRANT": "#b9b9b9",
 }
+#: The colour of every party CHIPS leaves out, and of "Others".
+OTHER_CHIP = "#8b918b"
 NAMES = {
     "DA": "DA", "ANC": "ANC", "EFF": "EFF", "MK": "MK Party", "ASA": "ActionSA",
     "PA": "PA", "IFP": "IFP", "RISE": "Rise Mzansi", "VFPLUS": "VF+",
@@ -187,22 +189,22 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- where the parties land: ordered by median, then mean ----------------
     others = _scq.others_per_draw(args.processed, CHART_PARTIES)
-    chart = [(NAMES[p], CHIPS[p], S[p], p) for p in CHART_PARTIES if p in S]
-    chart.sort(key=lambda c: (-np.median(c[2]), -c[2].mean()))
-    chart.append(("Others", "#8b918b", others, "OTHERS"))
-    MAX = 125
-    seats_html = ""
-    for name, chip, series, code in chart:
+    chart = [(NAMES[p], S[p], p) for p in CHART_PARTIES if p in S]
+    chart.sort(key=lambda c: (-np.median(c[1]), -c[1].mean()))
+    chart.append(("Others", others, "OTHERS"))
+    # THE SITE'S ONE SEAT TABLE (src/seat_table.py), shared with the home page
+    # and the published panels of /play/ and /make/. build_play reads these
+    # rows back (its `seat_rows`) by their data-code/data-m/-p5/-p95.
+    import seat_table
+    seat_rows = []
+    for name, series, code in chart:
         med, lo, hi = q(series)
-        seats_html += (
-            f'<div class="row"><div class="pname"><span class="chip" '
-            f'style="background:{chip}"></span>{name}</div>'
-            f'<div class="track"><span class="band" style="left:{lo / MAX * 100:.2f}%;'
-            f'width:{(hi - lo) / MAX * 100:.2f}%"></span><span class="med" '
-            f'style="left:calc({med / MAX * 100:.2f}% - 1.5px)"></span></div>'
-            f'<div class="val"><b>{seats(f"seats.{code}.median", med)}</b></div>'
-            f'<div class="val rng">{seats(f"seats.{code}.p5", lo)}–'
-            f'{seats(f"seats.{code}.p95", hi)}</div></div>')
+        seat_rows.append({"code": code, "name": name,
+                          "seats": seats(f"seats.{code}.median", med),
+                          "lo": seats(f"seats.{code}.p5", lo),
+                          "hi": seats(f"seats.{code}.p95", hi),
+                          "m": med, "p5": lo, "p95": hi})
+    seats_html = seat_table.table(seat_rows, label="Projected seats by party")
 
     # --- who can govern ------------------------------------------------------
     means = {p: float(S[p].mean()) for p in parties}
@@ -262,8 +264,7 @@ def main(argv: list[str] | None = None) -> int:
     def label(m):
         return "".join(
             f'<span class="cparty">{"" if i == 0 else chr(43) + " "}'
-            f'<span class="chip" style="background:{CHIPS.get(p, "#8b918b")};'
-            f'display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px"></span>'
+            f'<span class="pchip sm pc-{p}"></span>'
             f'{NAMES.get(p, p)}</span> '
             for i, p in enumerate(members_of(m)))
 
@@ -490,7 +491,7 @@ def main(argv: list[str] | None = None) -> int:
                      f'{c["verdict"].upper()}</span>')
             ident = (f'<img class="plogo" src="logos/{c["logo"]}.png" alt="" '
                      f'width="44" height="44">' if c.get("logo") else
-                     f'<span class="chip" style="background:{c["chip"]}"></span>')
+                     f'<span class="pchip pc-{c["party"]}"></span>')
             boxes.append(
                 f'<article class="claim" data-party="{c["party"]}">'
                 f'<div class="pubdate">{c["published"]}: Published</div>'
@@ -514,16 +515,20 @@ def main(argv: list[str] | None = None) -> int:
         print(f"claims: {len(claims)} box(es) rendered from {claims_path}")
 
     # two-ballots arithmetic strip: 135 wards + 135 list = 270
+    # One SVG per ballot, the segments placed in percent of its width: the
+    # geometry is attributes and the colours are party classes, so the page
+    # carries no style (owner's sweep, 2026-10-03).
     def bar(items, total, label):
-        segs = ""
-        for nm, n, col in items:
+        segs, at = "", 0.0
+        for nm, n, code in items:
             if n <= 0: continue
-            segs += (f'<div data-tip="{nm} — {n} seats" title="{nm} — {n} seats" style="width:{n/total*100:.2f}%;'
-                     f'background:{col}"></div>')
-        return (f'<div style="display:flex;flex-direction:column;gap:4px">'
-                f'<div style="font:650 10.5px var(--sans, sans-serif);letter-spacing:.1em;'
-                f'text-transform:uppercase;color:var(--ink-3)">{label}</div>'
-                f'<div style="display:flex;height:26px;border-radius:3px;overflow:hidden">{segs}</div></div>')
+            segs += (f'<rect class="pc-{code}" x="{at / total * 100:.2f}%" y="0" '
+                     f'width="{n / total * 100:.2f}%" height="26" '
+                     f'data-tip="{nm} — {n} seats"><title>{nm} — {n} seats</title></rect>')
+            at += n
+        return (f'<div class="ballot"><div class="ballot-h">{label}</div>'
+                f'<svg class="ballot-bar" width="100%" height="26" role="img" '
+                f'aria-label="{label}">{segs}</svg></div>')
 
     # Bars must sum exactly as the headline claims (135 + 135 = 270): named
     # parties plus a "Smaller parties" bucket are rounded with largest
@@ -562,7 +567,7 @@ def main(argv: list[str] | None = None) -> int:
     tot_n = {k: ward_n[k] + list_n[k] for k in ward_n}
 
     def seg(k):
-        return ("Smaller parties", "#8b918b") if k == OTHER else (NAMES[k], CHIPS[k])
+        return ("Smaller parties", "OTHERS") if k == OTHER else (NAMES[k], k)
     order = named_codes + [OTHER]
     wardsb = [(seg(k)[0], ward_n[k], seg(k)[1]) for k in order if ward_n.get(k, 0) > 0]
     listb = [(seg(k)[0], list_n[k], seg(k)[1]) for k in order if list_n.get(k, 0) > 0]
@@ -592,7 +597,7 @@ def main(argv: list[str] | None = None) -> int:
   <details class="rollup" data-band="forecast" open>
     <summary><span class="eyebrow">The arithmetic — two ballots, one council</span>
     <h2>135 wards + 135 list seats = 270</h2></summary>
-    <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="ballots">
       {bar(wardsb, 135, "Ward seats — won race by race")}
       {bar(listb, 135, "+ List seats — topping parties up to their share")}
       {bar(totb, 270, "= The council")}
@@ -636,18 +641,18 @@ def main(argv: list[str] | None = None) -> int:
         regimes.append((label, note, meds, council_med, thr_med))
 
     if regimes:
+        def k_(k, base=""):
+            # a rule after the first is set off by a hairline (.rg-k)
+            cls = (base + (" rg-k" if k else "")).strip()
+            return f' class="{cls}"' if cls else ""
         head = "".join(
-            f'<th colspan="2" style="text-align:center'
-            + (';border-left:1px solid var(--rule-soft)' if k else "")
-            + f'">{lab}<br><span style="font-weight:400;color:var(--ink-3)">{note}</span></th>'
+            f'<th colspan="2"{k_(k, "rg-h")}>{lab}<br><span class="rg-note">{note}</span></th>'
             for k, (lab, note, *_) in enumerate(regimes))
         sub = "<th></th>" + "".join(
-            f'<th class="num"'
-            + (f' style="border-left:1px solid var(--rule-soft)"' if k else "")
-            + '>seats</th><th class="num">share</th>'
+            f'<th{k_(k, "num")}>seats</th><th class="num">share</th>'
             for k in range(len(regimes)))
-        cols = ('<colgroup><col style="width:15%">'
-                + '<col style="width:9.5%"><col style="width:11.75%">' * 4
+        cols = ('<colgroup><col class="rg-c0">'
+                + '<col class="rg-cn"><col class="rg-cs">' * 4
                 + "</colgroup>")
 
         def _n_for(p, meds, cm):
@@ -665,9 +670,8 @@ def main(argv: list[str] | None = None) -> int:
         base_meds, base_cm = regimes[0][2], regimes[0][3]
         body = ""
         for p in REG_PARTIES + ["__OTH__"]:
-            chip = "#8b918b" if p == "__OTH__" else CHIPS[p]
-            nm = (f'<span class="chip" style="background:{chip};display:inline-block;'
-                  f'width:9px;height:9px;border-radius:2px;margin-right:6px"></span>'
+            code = "OTHERS" if p == "__OTH__" else p
+            nm = (f'<span class="pchip pc-{code}"></span>'
                   f'{"Smaller parties" if p == "__OTH__" else NAMES[p]}')
             n0 = _n_for(p, base_meds, base_cm)
             s0 = n0 / base_cm * 100
@@ -676,22 +680,18 @@ def main(argv: list[str] | None = None) -> int:
                 n = _n_for(p, meds, cm)
                 ds = "" if k == 0 else _delta(n, n0)
                 dp = "" if k == 0 else _delta(n / cm * 100, s0, "pt")
-                gl = ';border-left:1px solid var(--rule-soft)' if k else ""
-                cells += (f'<td class="num" style="white-space:nowrap{gl}">{n}{ds}</td>'
-                          f'<td class="num" style="color:var(--ink-3);white-space:nowrap">'
-                          f'{n / cm:.1%}{dp}</td>')
+                cells += (f'<td{k_(k, "num")}>{n}{ds}</td>'
+                          f'<td class="num rg-s">{n / cm:.1%}{dp}</td>')
             body += f"<tr><td>{nm}</td>{cells}</tr>"
         for row_lab, pick in (("Council size", 3), ("Majority line", 4)):
             cells = "".join(
-                f'<td class="num" colspan="2"'
-                + (' style="border-left:1px solid var(--rule-soft)"' if k else "")
-                + f'><b>{rr[pick]}</b></td>'
+                f'<td{k_(k, "num")} colspan="2"><b>{rr[pick]}</b></td>'
                 for k, rr in enumerate(regimes))
-            body += (f'<tr style="border-top:1px solid var(--rule)">'
+            body += (f'<tr class="rg-sum">'
                      f"<td><b>{row_lab}</b></td>{cells}</tr>")
         regimes_html = (
             "<!-- __REGIMES_START__ -->\n"
-            '    <div class="tablewrap"><table style="table-layout:fixed;min-width:820px">'
+            '    <div class="tablewrap"><table class="rg">'
             f"{cols}"
             f'<thead><tr><th></th>{head}</tr><tr>{sub}</tr></thead>'
             f"<tbody>{body}</tbody></table></div>\n"

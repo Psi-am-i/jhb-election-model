@@ -196,9 +196,8 @@ KEY_PARTIES = ("ANC", "DA", "EFF", "MK", "ASA", "PA", "IFP", "ALJAMAAH")
 def party_key() -> str:
     """The party colours, shown first in both maps' keys."""
     return " ".join(
-        f'<span style="display:inline-flex;align-items:center;gap:5px;margin-right:11px">'
-        f'<span style="width:10px;height:10px;border-radius:2px;background:{CHIPS[c]};'
-        f'display:inline-block"></span>{NAMES[c]}</span>' for c in KEY_PARTIES)
+        f'<span class="mapkey-party"><span class="pchip pc-{c}"></span>{NAMES[c]}</span>'
+        for c in KEY_PARTIES)
 
 
 def probs_calls(rows) -> dict[str, dict]:
@@ -237,14 +236,14 @@ def map_key(called: dict, n_draws_token: str = "{{n_draws}}") -> str:
     stripes = "".join(
         f'<rect x="{i * 3}" width="3" height="12" fill="{KEY_STRIPE_A if i % 2 == 0 else KEY_STRIPE_B}" '
         f'transform="skewX(-30)"/>' for i in range(-2, 12))
-    return f"""<span style="display:block;margin-bottom:6px">{party_key()}</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;margin-right:13px;white-space:nowrap">
+    return f"""<span class="mapkey-parties">{party_key()}</span>
+    <span class="mapkey-item">
       <svg width="18" height="12"><rect width="18" height="12" rx="2" fill="{KEY_SOLID}"/></svg>
       <b>Solid colour</b>&nbsp;one party wins the ward in at least 9 of every 10 simulations ({called.get('solid', 0)})</span>
-    <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+    <span class="mapkey-item">
       <svg width="18" height="12"><clipPath id="keyclip"><rect width="18" height="12" rx="2"/></clipPath><g clip-path="url(#keyclip)">{stripes}</g></svg>
       <b>Stripes</b>&nbsp;contested ({called.get('contested', 0)})</span>
-    <br><span style="font-size:12px;color:var(--ink-3)">A stripe for every party that wins the ward in
+    <br><span class="mapkey-note">A stripe for every party that wins the ward in
       at least 1 in 10 of the {n_draws_token} simulations; the wider the stripe, the more simulations
       it wins. Grey is every other party together. These are shares of simulations, not vote shares.</span>"""
 
@@ -255,6 +254,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--probs", type=Path,
                         default=Path("data/processed/ward_winner_probs.csv"))
     parser.add_argument("--simplify", type=float, default=0.0006)
+    parser.add_argument("--paths-out", type=Path, default=Path("data/processed/ward_paths.json"),
+                        help="where the ward geometry is written (/play/ and the cartogram read it)")
+    parser.add_argument("--into", type=Path, nargs="+",
+                        default=[Path("forecast-sheet.html"), Path("home.html"),
+                                 Path("drafts/forecast-draft.html")],
+                        help="the pages whose __MAP_ markers take the snippet")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
     cityconfig.use(getattr(args, "city", None))
@@ -332,13 +337,9 @@ def main(argv: list[str] | None = None) -> int:
         if -10 <= px <= W + 10 and -10 <= py <= H + 10:
             labels.append(
                 f'<text x="{px:.0f}" y="{py:.0f}" text-anchor="middle" '
-                f'style="font:650 11px ui-sans-serif,system-ui;letter-spacing:.08em;'
-                f'text-transform:uppercase;fill:var(--ink);stroke:var(--paper);'
-                f'stroke-width:3px;paint-order:stroke;pointer-events:none">{name}</text>')
+                f'class="maplabel">{name}</text>')
     labels.append(
-        f'<text x="{W - 14:.0f}" y="20" text-anchor="end" '
-        f'style="font:600 11px ui-monospace,monospace;fill:var(--ink-3);'
-        f'pointer-events:none">N ↗</text>')
+        f'<text x="{W - 14:.0f}" y="20" text-anchor="end" class="mapnorth">N ↗</text>')
 
     # The full council as a plain stacked bar, not a city silhouette: PR seats
     # have no geography, so drawing them inside the city outline suggested one
@@ -367,11 +368,8 @@ def main(argv: list[str] | None = None) -> int:
     inset = f"""<g transform="translate({mx:.0f},{my:.0f})">{''.join(bands)}
       <rect width="{BAR_W:.0f}" height="{BAR_H:.0f}" fill="none" stroke="var(--ink-3)" stroke-width="1"/></g>
     <text x="{mx + BAR_W:.0f}" y="{my + BAR_H + 16:.0f}" text-anchor="end"
-      style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
-      text-transform:uppercase;fill:var(--ink-3);pointer-events:none">The full council — {council} seats, one typical simulation</text>
-    <text x="8" y="16"
-      style="font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;
-      text-transform:uppercase;fill:var(--ink-3);pointer-events:none">Ward races — 135 seats, first past the post</text>"""
+      class="mapcap">The full council — {council} seats, one typical simulation</text>
+    <text x="8" y="16" class="mapcap">Ward races — 135 seats, first past the post</text>"""
 
     tier_key = map_key(called)
 
@@ -388,46 +386,25 @@ def main(argv: list[str] | None = None) -> int:
       <button type="button" data-show="cartogram" aria-pressed="false">Equal Sized Wards</button>
     </div>
     <figure>
-      <div style="position:relative">
-      <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap"
-           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by predicted winning party"
-           style="width:100%;height:auto;display:block">
+      <div class="mapbox">
+      <svg viewBox="0 0 {W:.0f} {H:.0f}" role="img" id="wardmap" class="mapsvg"
+           aria-label="{_CITY.name} ward map, rotated with north to the right, coloured by predicted winning party">
         <defs>{patterns}</defs>
         {paths}{hatches}{''.join(labels)}{inset}
       </svg>
-      <div id="maptip" style="position:fixed;display:none;pointer-events:none;z-index:9;
-        font:12px/1.4 ui-sans-serif,system-ui;background:var(--ink);color:var(--paper);
-        padding:6px 10px;border-radius:4px;max-width:280px"></div>
+      <div id="maptip" class="maptip" hidden></div>
       </div>
-      <figcaption style="display:flex;flex-direction:column;gap:6px">
+      <figcaption class="mapcaption">
         <span>{tier_key}</span>
         <span>Touch or hover any ward for its numbers. The bar shows the whole council, ward and
         list seats together, in one typical simulation.</span>
       </figcaption>
     </figure>
-    <script>
-    (function() {{
-      var tip = document.getElementById('maptip');
-      var map = document;
-      map.addEventListener('mousemove', function(e) {{
-        var t = e.target.getAttribute && e.target.getAttribute('data-tip');
-        if (t) {{ tip.textContent = t; tip.style.display = 'block';
-          tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
-        }} else tip.style.display = 'none';
-      }});
-      map.addEventListener('mouseleave', function() {{ tip.style.display = 'none'; }});
-      map.addEventListener('click', function(e) {{
-        var t = e.target.getAttribute && e.target.getAttribute('data-tip');
-        if (t) {{ tip.textContent = t; tip.style.display = 'block';
-          tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; }}
-      }});
-    }})();
-    </script>
   </details>
   {MARK_END}"""
 
     import json as _json
-    Path("data/processed/ward_paths.json").write_text(_json.dumps({
+    args.paths_out.write_text(_json.dumps({
         "W": W, "H": H,
         "paths": {row["wardno"]: d for row, d in path_data},
         "labels": [{"t": name, "x": round(xy(lx, ly)[0]), "y": round(xy(lx, ly)[1])}
@@ -435,8 +412,7 @@ def main(argv: list[str] | None = None) -> int:
                    if -10 <= xy(lx, ly)[0] <= W + 10 and -10 <= xy(lx, ly)[1] <= H + 10],
     }, separators=(",", ":")), encoding="utf-8")
 
-    for target in (Path("forecast-sheet.html"), Path("home.html"),
-                   Path("drafts/forecast-draft.html")):
+    for target in args.into:
         t = target.read_text(encoding="utf-8")
         if MARK_START not in t:
             print(f"  ! no map markers in {target}; skipped")

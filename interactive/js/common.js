@@ -61,7 +61,7 @@ export function fmtDate(iso) {
     { day: "numeric", month: "long", year: "numeric" });
 }
 
-// The theme toggle, the same localStorage key and logic as build_site.THEME_HEAD
+// The theme toggle, the same localStorage key and logic as src/js/theme.js
 // (the <head> of each page sets the initial value before paint).
 export function wireTheme() {
   document.querySelectorAll(".themetoggle").forEach(b => b.addEventListener("click", () => {

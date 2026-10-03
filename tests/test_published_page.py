@@ -77,7 +77,7 @@ LANDING = SITE / "index.html"
 
 # `_span` writes a fixed attribute order and escapes everything that could
 # close the tag early, so the shape is stable. Anchored on class="mstat" so a
-# `.stat` headline tile (a different class, deliberately — see stats.STAT_CSS)
+# `.stat` headline tile (a different class, deliberately — see src/css/stat.css)
 # can never be mistaken for a sourced figure.
 SPAN = re.compile(r'<span class="mstat"([^>]*)>(.*?)</span>', re.S)
 ATTR = re.compile(r'([a-zA-Z-]+)="([^"]*)"')

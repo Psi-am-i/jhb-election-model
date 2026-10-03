@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from _support import run_module, skip  # noqa: E402
 
 import build_make  # noqa: E402
+import build_play  # noqa: E402
 import build_site  # noqa: E402
 import deploy_check  # noqa: E402
 import stats as S  # noqa: E402
@@ -106,9 +107,15 @@ def test_the_built_make_page_is_stamped_and_blocks_nothing():
 def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     site = _built()
     html = (site / build_make.MAKE_PAGE).read_text(encoding="utf-8")
-    # the published seat panel, as rendered token spans in a shadow root
-    hosts = html.split('<template shadowrootmode="open">')[1:]
-    assert len(hosts) == 1 and hosts[0].count('class="mstat"') >= 5, hosts[:1]
+    # the published seat panel, as rendered token spans in the site's one
+    # seat table (src/seat_table.py), one row per row of the forecast sheet's
+    # table, and no shadow root (its styles were an inline <style>)
+    assert "shadowrootmode" not in html
+    lo = html.index('<div class="published">')
+    panel = html[lo:html.index("</figure>", lo)]
+    sheet = build_play.seat_rows((ROOT / "forecast-sheet.html").read_text(encoding="utf-8"))
+    assert panel.count('<div class="st-row" data-code=') == len(sheet) > 0
+    assert panel.count('class="mstat"') >= 3 * len(sheet), panel[:300]
     # no prototype banner and no placeholder data
     assert 'class="proto"' not in html and "placeholder" not in html.lower()
     # every LIVE region on the page is one a make writer is listed for, and

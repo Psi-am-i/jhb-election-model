@@ -1,0 +1,23 @@
+/* The apex portal (src/build_portal.py), on top of page-doc.css: its <body>
+   carries both pg-doc and pg-portal. Each card's --city comes from the
+   generated colour block (src/site_assets.py, cities/*.toml [site] accent). */
+  .portal{display:flex;flex-direction:column;gap:26px;}
+  .pmast{display:flex;flex-direction:column;gap:10px;}
+  .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:14px;}
+  .pcard{display:flex;flex-direction:column;gap:7px;padding:20px 20px 18px;
+    border:1px solid var(--rule);border-top:3px solid var(--city);
+    background:var(--paper-2);text-decoration:none;color:var(--ink);
+    transition:border-color .15s,transform .15s;}
+  a.pcard:hover{border-color:var(--city);transform:translateY(-2px);}
+  .pcard-soon{opacity:.72;}
+  .pc-name{font-family:var(--serif);font-weight:600;font-size:20px;}
+  .pc-num{font-family:var(--mono);font-size:34px;font-weight:600;
+    letter-spacing:-.02em;line-height:1;color:var(--city);}
+  .pc-num span{font-size:15px;color:var(--ink-3);}
+  .pc-num.pc-soon{color:var(--ink-3);}
+  .pc-sub{font-size:12.5px;color:var(--ink-2);line-height:1.45;}
+  .pc-cta{font-family:var(--mono);font-size:11.5px;color:var(--city);
+    margin-top:4px;}
+  .pcard-soon .pc-cta{color:var(--ink-3);}
+  .pfoot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:70ch;}

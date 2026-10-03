@@ -67,9 +67,9 @@ layout, under the site root:
 
 | path | what |
 |---|---|
-| `make/index.html` | `make.html` with the site's head, nav and footer, and the published seat panel cut from `forecast-sheet.html` as `{{tokens}}` in a declarative shadow root |
+| `make/index.html` | `make.html` with the site's head, nav and footer, and the published seat panel cut from `forecast-sheet.html` as `{{tokens}}` in the site's one seat table (`src/seat_table.py`), with the sheet's caption |
 | `make/forecast.json` | the one data file: the generated schema (`worker-api/tools/make_schema.mjs`'s `build`, run on an artefact made from the published draws), the ward geometry (`tools/make_fixtures.geometry`), the start state, `context_ref` |
-| `make/js/` | `make.js` (LIVE writer: status, map, vote, govern, council), `make-share.js` (LIVE writer: share), `forecast-card.js` (the share image, a writer of no region), `make-state.js`, `builder-state.js`, `map.js`, `card-text.js` (non-writers); `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js`, `http.js` (from `worker-api/src`), which run only in the Web Worker |
+| `make/js/` | `make.js` (LIVE writer: status, map, vote, govern, council), `make-share.js` (LIVE writer: share), `forecast-card.js` (the share image, a writer of no region), `make-state.js`, `builder-state.js`, `map.js`, `card-text.js`, `seat-table.js` (non-writers); `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js`, `http.js` (from `worker-api/src`), which run only in the Web Worker |
 | `make/py/`, `make/pyboot/boot.py` | the seat code (`sync_py.mjs`'s `manifest.files`) and its boot file |
 
 **The start, stated exactly** (`src/build_make.py`). Ward calls: each ward's
@@ -115,7 +115,7 @@ stamps it like every other page). Served layout, under the site root:
 
 | path | what |
 |---|---|
-| `play/index.html` | `model.html` with the site's `THEME_HEAD`, nav and footer, and a build twin of each results element filled at its `__PLAY:<name>__` marker (`build_play.FILL`): the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map (`render_map.ward_layers`, a `MAP` generated region), turnout by group, where each party's votes come from, and the notes' figures, all as `{{tokens}}`. First paint is ledgered tokens, no script; nothing of `/forecast` is embedded |
+| `play/index.html` | `model.html` with the site's head (`build_site.SITE_HEAD`: `css/site.css` and the site's scripts), nav and footer, and a build twin of each results element filled at its `__PLAY:<name>__` marker (`build_play.FILL`): the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map (`render_map.ward_layers`, a `MAP` generated region), turnout by group, where each party's votes come from, and the notes' figures, all as `{{tokens}}`. First paint is ledgered tokens, no script; nothing of `/forecast` is embedded |
 | `play/js/` | `model.js` (the LIVE writer), `play-state.js`, `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `play-share.js` (the share sheet, LIVE writer of region `share`), `play-card.js` (the share image's words and rows) and `forecast-card.js` (the card module, shared with /make/), both LIVE writers of no region, `card-text.js` |
 | `play/css/interactive.css`, `play/css/play.css`, `play/pyboot/page.py` | copies (`play.css` holds the page's own rules, every class `pl-`) |
 | `play/py/manifest.json`, `play/py/page/` | the page's Python, copied by `tools/sync_py.mjs`, which the build runs |
@@ -164,6 +164,8 @@ Screenshots: `screenshots/play-*.png`.
 |---|---|
 | `make.html`, `js/make.js`, `js/make-share.js`, `js/make-state.js`, `js/make-worker.js`, `js/forecast-card.js` | make your own forecast: the page source, its writer, its share sheet, the address form, the seat Worker, the share image |
 | `js/builder-state.js` | the builder's state and every edit to it; pure, and can only hold a valid forecast (DESIGN-decided §14) |
+| `js/seat-table.js` | the site's one seat table, drawn from a reader's figures: the JavaScript twin of `src/seat_table.py`, the same markup for the same rows (`tests/test_seat_table.py`); styled by `src/css/seat-table.css` |
+| `js/pubtip.js` | /play/'s published map tooltip (copies a ward's `data-tip`) |
 | `js/seat-engine.js`, `pyboot/boot.py` | seats under Pyodide: the Worker's `seatRequest`, the seat Worker's `entry.answer`, the Worker's `checkSeatAnswer` |
 | `tools/sync_py.mjs`, `py/` | the served copy of the seat code (gitignored; written by the tool) |
 | `js/api.js` | the one backend door: the stub on loopback hosts, the Worker API elsewhere (`?api=stub` / `?api=live` override) |
@@ -206,8 +208,6 @@ draws, and no fixture ships.
 
 **Copies to remove at integration** (each is a second definition):
 
-* the site palette in `css/interactive.css` and the theme script in each page's
-  `<head>`: production injects `build_site.THEME_HEAD` and `nav_for`;
 * party colours and names in `tools/make_fixtures.py`, a third copy after
   `render_sheet.CHIPS` and `render_map.py`. Emit them once, with the roster;
 * the ward geometry in `fixtures/geometry.json`, copied from

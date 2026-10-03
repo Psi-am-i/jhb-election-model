@@ -19,7 +19,7 @@ async function page(w, h, query, moved = !!query) {
   p.on("pageerror", e => errors.push(`${w} ${query}: ${e.message}`));
   await p.goto(BASE + query, { waitUntil: "load" });
   await p.waitForFunction(() => document.querySelector('[data-live="engine"]').hasAttribute("data-ready"), null, { timeout: 120000 });
-  if (moved) await p.waitForFunction(() => document.querySelector('[data-live="seats"] .pl-srow'), null, { timeout: 120000 });
+  if (moved) await p.waitForFunction(() => document.querySelector('[data-live="seats"] .st-row'), null, { timeout: 120000 });
   await p.waitForTimeout(500);
   return p;
 }

@@ -673,7 +673,7 @@ def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
     # marks a LIVE region, and one attribute may not mean two things.
     live_attr = f' data-current="{live_str}"' if live_str is not None else ""
     # `data-prov`, not `title`: a browser shows a title tooltip late or not at
-    # all, and the owner saw none (2026-09-17). STAT_CSS draws it as a hover box.
+    # all, and the owner saw none (2026-09-17). src/css/stat.css draws it as a hover box.
     return (f'<span class="mstat" data-mode="{mode}" data-token="{name}"'
             f' data-when="{when}"{live_attr} data-prov="{tip}" tabindex="0">{text}</span>')
 
@@ -1214,23 +1214,6 @@ def script_writes(text: str, *, page: Path | None = None, root: Path | None = No
     return out
 
 
-def inject_stat_css(page: str) -> str:
-    """Put STAT_CSS into a page, once. The only place the token styling comes
-    from: a template that kept its own copy is how a hover box written here
-    never reached the page (2026-09-17)."""
-    if "/*stat-css*/" in page or "</head>" not in page:
-        return page
-    # A pop-over near the right or bottom edge of the window flips so it stays
-    # visible. The script only toggles a class; it writes no text or figure.
-    flip = ("<script>/*stat-tip*/document.addEventListener('mouseover',function(e){"
-            "var s=e.target.closest&&e.target.closest('.mstat');if(!s)return;"
-            "var r=s.getBoundingClientRect();"
-            "var w=document.documentElement.clientWidth,h=document.documentElement.clientHeight;"
-            "s.classList.toggle('tip-left',r.left+316>w);"
-            "s.classList.toggle('tip-up',r.bottom+96>h);});</script>")
-    return page.replace("</head>", f"<style>/*stat-css*/\n{STAT_CSS}</style>\n{flip}\n</head>", 1)
-
-
 def html_unescape(s: str) -> str:
     import html as _html
     return _html.unescape(s)
@@ -1387,38 +1370,3 @@ def drift_report(rows: list[dict], registry: dict | None = None) -> str:
     return "\n".join(out) + tail
 
 
-# The CSS/markup a page needs so pinned figures reveal their provenance.
-# Injected into every page that renders tokens. `mstat` (model stat), NOT
-# `stat` — that class is already the headline tiles, whose flex-column
-# display turned every inline figure into its own block.
-STAT_CSS = """  .mstat{display:inline;position:relative;border-bottom:1px dotted var(--ink-3);cursor:help;}
-  .mstat[data-mode="fixed"]{border-bottom-style:dashed;}
-  @media (min-width:760px){.tablewrap{overflow:visible;}}  /* phones keep sideways scroll */
-  .mstat:hover::after,.mstat:focus::after,.mstat-move:hover::after{content:attr(data-prov);position:absolute;
-    left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
-    background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
-    padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
-  /* Interactive tables: the figure is the point, and a provenance box on every
-     cell buried the row. Tracking is unchanged — only the hover box is off. */
-  .notips .mstat{border-bottom:none;cursor:default;}
-  .notips .mstat:hover::after,.notips .mstat:focus::after,.notips .mstat-move:hover::after{content:none;}
-  .mstat.tip-left:hover::after,.mstat.tip-left:focus::after{left:auto;right:0;}
-  .mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
-  .mstat-move{font-size:.7em;margin-left:2px;cursor:help;vertical-align:.15em;position:relative;}
-  .mstat-move.up{color:#2f6d4a;} .mstat-move.down{color:#a33a2a;} .mstat-move.changed{color:var(--ink-3);}
-  /* NOT `.since`: the page's "Since then" boxes own that class, and the marker
-     inherited their panel background — a brown block beside every pinned figure
-     (owner, 2026-09-18). Same collision as `.pname` in the coalition table. */
-  .mstat-move.moved-since{color:var(--ink-3);opacity:.75;}
-  .arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
-  /* The publication convention's furniture, injected on EVERY page: the forecast
-     sheet had its own copy and the document pages had none, so a dated piece on
-     /review rendered as plain text (owner, 2026-09-18). */
-  .pubdate{font:650 11.5px var(--sans,ui-sans-serif,system-ui);letter-spacing:.06em;
-    text-transform:uppercase;color:var(--accent);margin:2px 0 10px;text-align:left;}
-  .since{margin:16px 0 4px;padding:12px 16px;border-left:4px solid var(--accent);
-    background:var(--accent-soft,rgba(168,98,31,.12));border-radius:0 6px 6px 0;font-size:14.5px;}
-  .since .since-h{font:650 11px var(--sans,ui-sans-serif,system-ui);letter-spacing:.08em;
-    text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
-  .since p{margin:0;}
-"""

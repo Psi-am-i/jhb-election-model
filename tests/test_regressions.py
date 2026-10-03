@@ -752,10 +752,11 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # a contender"). It changes no draw, seat or probability.
         "STRIPE_MIN",
         # The stripe tile's size and angle (`render_map.TOSS_STEP`,
-        # `TOSS_ROTATE`) and /play/'s layout (`build_play.SEAT_SCALE`,
-        # `SEAT_TICKS`, `BANNER_PARTIES`, `SEGMENT_LABEL_MIN`): how a page
-        # draws figures, set 2026-10-02 with the /play/ redesign. None changes
-        # a draw, seat or probability.
+        # `TOSS_ROTATE`), the seat table's axis (`seat_table.SEAT_SCALE`,
+        # `SEAT_TICKS`, the site's one seat table since 2026-10-03) and
+        # /play/'s layout (`build_play.BANNER_PARTIES`, `SEGMENT_LABEL_MIN`):
+        # how a page draws figures, set 2026-10-02 with the /play/ redesign.
+        # None changes a draw, seat or probability.
         "TOSS_STEP", "TOSS_ROTATE", "SEAT_SCALE", "SEAT_TICKS", "BANNER_PARTIES",
         "SEGMENT_LABEL_MIN",
         # `scenarios.EXCESSIVE_FLOOR`: the chance at which the home page and

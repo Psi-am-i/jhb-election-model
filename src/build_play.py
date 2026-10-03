@@ -10,8 +10,9 @@ What the served page is made of
 
 ``play/index.html``
     ``interactive/model.html`` with its prototype-only parts cut
-    (``__DEVONLY__`` spans), the site's ``THEME_HEAD``, nav and footer put in
-    one level down, and the published forecast's figures filled in at the
+    (``__DEVONLY__`` spans), the site's head (``build_site.SITE_HEAD``: the
+    one stylesheet and the site's scripts), nav and footer put in one level
+    down, and the published forecast's figures filled in at the
     ``<!-- __PLAY:<name>__ -->`` markers (:data:`FILL`).
 ``play/js/``, ``play/css/``, ``play/pyboot/page.py``
     Byte copies of the page's modules (``PLAY_JS``), its stylesheets and its
@@ -48,7 +49,9 @@ from ``/forecast`` is embedded. The twins' figures come from:
 
 * the seat rows and banner: the forecast sheet's own seat tokens
   (``forecast-sheet.html``'s ``__SEATS__`` region, ``render_sheet``'s
-  ``seats.<P>.*``), so the untouched page is the forecast page's figures;
+  ``seats.<P>.*``), so the untouched page is the forecast page's figures,
+  drawn by the site's one seat table (``src/seat_table.py``; the reader's rows
+  by its JS twin, ``js/seat-table.js``);
 * the largest party, ties and a majority alone: ``reweight.largest_party``
   and ``reweight.majority_alone`` over ``seat_draws.csv``, the definitions
   ``render_sheet`` uses;
@@ -109,26 +112,22 @@ OG_DESCRIPTION = ("Move turnout, a poll and the weight of by-elections, and see 
 #: The modules the page loads, statically or as its Worker. Nothing else under
 #: interactive/js ships: the builder's modules are not part of this page.
 PLAY_JS = ("model.js", "play-state.js", "model-worker.js", "reweight-engine.js",
-           "play-card.js", "play-share.js", "forecast-card.js", "card-text.js")
+           "play-card.js", "play-share.js", "forecast-card.js", "card-text.js",
+           "seat-table.js", "pubtip.js")
 PLAY_CSS = ("interactive.css", "play.css")
 PLAY_PYBOOT = ("page.py",)
 #: The one line of the Worker that differs between the prototype and the site.
 DRAWS_LINE = ('const DRAWS = "../../site/draws/";', 'const DRAWS = "../../draws/";')
 #: The markers model.html carries, each filled by one function below.
 FILL = ("banner", "oneline", "map", "seats", "turnout", "composition", "refused",
-        "bye", "newparties", "maxse", "election", "seatscale")
-#: The seat axis, in seats, for the published rows here and the reader's rows
-#: in js/model.js (which reads it from the "seats" region's data-scale).
-SEAT_SCALE = 125
-SEAT_TICKS = (0, 25, 50, 75, 100, 125)
+        "bye", "newparties", "maxse", "election", "seatscale", "seatticks", "seathead")
 #: How many parties the banner names, in the published order.
 BANNER_PARTIES = 6
 #: The share of a party's votes below which its bar segment carries no label.
 SEGMENT_LABEL_MIN = 0.12
-#: The four population groups' bar tones: four hues at one lightness, so the
-#: chart carries no light-to-dark order of the groups (critic S4, 2026-10-02),
-#: none of them a party's colour, each light enough for the same dark label.
-GROUP_TONES = ("#86b6ad", "#d3b062", "#c99682", "#a3aec4")
+#: The population groups' bar tones, as their classes in
+#: interactive/css/play.css (four hues at one lightness, critic S4).
+GROUP_TONE_CLASSES = ("pl-g0", "pl-g1", "pl-g2", "pl-g3")
 #: How a refused poll is described, by polling.screen's rule. A rule not here
 #: is not a reason a reader of this cycle's polls needs (another city, another
 #: election, after polling day).
@@ -140,11 +139,14 @@ REFUSED_AS = {"commissioned": "commissioned by a party or campaign",
 
 _DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
 _REL_ATTR = re.compile(r'\b(href|src)="(?![a-z][a-z0-9+.-]*:|/|#|\.\./)([^"]*)"', re.I)
+#: A seat row of the forecast sheet's table (src/seat_table.py), read back by
+#: its data attributes and its three token cells.
 _SEAT_ROW = re.compile(
-    r'<div class="row"><div class="pname"><span class="chip" style="background:(#[0-9A-Fa-f]{6})">'
-    r'</span>([^<]*)</div><div class="track">.*?</div>'
-    r'<div class="val"><b>(\{\{@seats\.([A-Z_]+)\.median=([^;]*);[^}]*\}\})</b></div>'
-    r'<div class="val rng">(\{\{@seats\.\4\.p5=([^;]*);[^}]*\}\})–(\{\{@seats\.\4\.p95=([^;]*);[^}]*\}\})</div></div>',
+    r'<div class="st-row" data-code="([A-Z_]+)"[^>]*>'
+    r'<div class="st-name"><span class="pchip pc-\1"></span>([^<]*)</div>'
+    r'<div class="st-graphic">.*?</div>'
+    r'<div class="st-seats"><b>(\{\{@seats\.\1\.median=([^;]*);[^}]*\}\})</b></div>'
+    r'<div class="st-range">(\{\{@seats\.\1\.p5=([^;]*);[^}]*\}\})–(\{\{@seats\.\1\.p95=([^;]*);[^}]*\}\})</div></div>',
     re.S)
 
 
@@ -188,20 +190,20 @@ def _esc(s: str) -> str:
 def seat_rows(sheet: str) -> list[dict]:
     """The forecast sheet's seat rows, in its order, each with its own tokens.
 
-    ``code``, ``name``, ``chip``, the three token strings (``median``, ``p5``,
+    ``code``, ``name``, the three token strings (``median``, ``p5``,
     ``p95``) and their pinned values (``m``, ``lo``, ``hi``). Refuses a sheet
     whose ``__SEATS__`` region it cannot read, rather than show fewer rows.
     """
     lo = _once(sheet, "<!-- __SEATS_START__ -->", "the forecast sheet's seats region")
     hi = sheet.index("<!-- __SEATS_END__ -->", lo)
     region = sheet[lo:hi]
-    rows = [{"code": m.group(4), "name": m.group(2), "chip": m.group(1),
-             "median": m.group(3), "p5": m.group(6), "p95": m.group(8),
-             "m": float(m.group(5)), "lo": float(m.group(7)), "hi": float(m.group(9))}
+    rows = [{"code": m.group(1), "name": m.group(2),
+             "median": m.group(3), "p5": m.group(5), "p95": m.group(7),
+             "m": float(m.group(4)), "lo": float(m.group(6)), "hi": float(m.group(8))}
             for m in _SEAT_ROW.finditer(region)]
-    if len(rows) != region.count('<div class="row">') or not rows:
+    if len(rows) != region.count('<div class="st-row" data-code=') or not rows:
         raise PlayBuildError("build_play: the forecast sheet's seat rows are not in the form "
-                             "build_play reads (render_sheet's seats_html); fix one or the other")
+                             "build_play reads (src/seat_table.py's row_html); fix one or the other")
     return rows
 
 
@@ -243,7 +245,7 @@ def roster() -> dict:
     out = {}
     for c in codes:
         name = render_sheet.NAMES.get(c) or reader_name(c)
-        out[c] = {"code": c, "name": name, "colour": render_sheet.CHIPS.get(c, "#8b918b"),
+        out[c] = {"code": c, "name": name, "colour": render_sheet.CHIPS.get(c, render_sheet.OTHER_CHIP),
                   "article": "the " if name.isupper() else ""}
     return out
 
@@ -295,28 +297,27 @@ def reader_name(code: str) -> str:
 def banner(rows: list[dict]) -> str:
     """The sticky banner's published seats: the first BANNER_PARTIES rows."""
     items = "".join(
-        f'<span class="pl-bi"><i style="background:{r["chip"]}"></i>{_esc(r["name"])} <b>{r["median"]}</b></span>'
+        f'<span class="pl-bi"><i class="pc-{r["code"]}"></i>{_esc(r["name"])} <b>{r["median"]}</b></span>'
         for r in _ordered(rows) if r["code"] != "OTHERS")
     items = "".join(re.findall(r'<span class="pl-bi">.*?</b></span>', items)[:BANNER_PARTIES])
     return (f'<span class="pl-bitems">{items}</span>'
             f'<span class="pl-bmaj">Majority {{{{majority}}}}</span>')
 
 
+def table_rows(rows: list[dict], others_sub: str | None = None) -> list[dict]:
+    """The sheet's rows as rows of the site's seat table (src/seat_table.py),
+    with their own tokens: the published panel on /play/ and /make/."""
+    return [{"code": r["code"], "name": r["name"],
+             "sub": others_sub if r["code"] == "OTHERS" else None,
+             "seats": r["median"], "lo": r["p5"], "hi": r["p95"],
+             "m": r["m"], "p5": r["lo"], "p95": r["hi"]} for r in rows]
+
+
 def seats(rows: list[dict], others_count: str) -> str:
-    """The published seat rows: the sheet's tokens, on the page's own axis."""
-    out = []
-    for r in _ordered(rows):
-        pct = lambda v: f"{100.0 * v / SEAT_SCALE:.2f}%"
-        label = (f'Others <span class="pl-sub">({others_count} parties)</span>' if r["code"] == "OTHERS"
-                 else _esc(r["name"]))
-        out.append(
-            f'<div class="pl-srow"><div class="pl-sname"><span class="pl-chip" style="background:{r["chip"]}">'
-            f'</span>{label}</div><div class="pl-track"><span class="pl-band" style="left:{pct(r["lo"])};'
-            f'width:{pct(r["hi"] - r["lo"])};background:{r["chip"]}"></span><span class="pl-med" '
-            f'style="left:calc({pct(r["m"])} - 1.5px)"></span></div><div class="pl-sval"><b>{r["median"]}</b>'
-            f'<span class="pl-rng">{r["p5"]}–{r["p95"]}</span></div></div>')
-    ticks = "".join(f'<span style="left:{100.0 * t / SEAT_SCALE:.2f}%">{t}</span>' for t in SEAT_TICKS)
-    return "".join(out) + f'<div class="pl-srow pl-axis"><div></div><div class="ticks pl-ticks">{ticks}</div><div></div></div>'
+    """The published seat rows: the sheet's tokens, in the site's seat table."""
+    import seat_table
+    return seat_table.table(table_rows(_ordered(rows), f"({others_count} parties)"),
+                            label="Seats in the published forecast")
 
 
 def others_count(rows: list[dict]) -> str:
@@ -414,21 +415,36 @@ def composition(processed: Path, rows: list[dict], names: dict) -> str:
     codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
     new = _new_parties(spec, codes)
 
-    def bar(key, vals, src, cls=""):
-        segs = []
+    # One SVG per bar, the segments placed in percent of its width (no style
+    # on the page). A label is HTML in a <foreignObject>, because a token
+    # renders as a <span>, which the parser does not allow in SVG text.
+    def bar(key, vals, src, hatch=False):
+        rects, labels, at = [], [], 0.0
         for i, (g, v) in enumerate(zip(groups, vals)):
             if v <= 0:
                 continue
+            x, w = f"{100.0 * at:.2f}%", f"{100.0 * v:.2f}%"
+            rects.append(f'<rect class="{GROUP_TONE_CLASSES[i % len(GROUP_TONE_CLASSES)]}" x="{x}" y="0" width="{w}" height="18"></rect>')
+            if hatch:
+                rects.append(f'<rect class="pl-hatch" x="{x}" y="0" width="{w}" height="18"></rect>')
             # pct0_capped: a share that rounds to 100% but is not all of the
             # party's vote prints "over 99%"
-            lab = (_tok(f"{key}.{_slug(g)}", f"{float(v):.6f}", "pct0_capped", src)
-                   if v >= SEGMENT_LABEL_MIN else "")
-            segs.append(f'<span class="pl-cseg" style="width:{100.0 * v:.2f}%;'
-                        f'background-color:{GROUP_TONES[i % len(GROUP_TONES)]}">{lab}</span>')
-        return f'<span class="pl-cbar{cls}">{"".join(segs)}</span>'
-    legend = "".join(f'<span><i style="background:{GROUP_TONES[i % len(GROUP_TONES)]}"></i>{_esc(g)}</span>'
+            if v >= SEGMENT_LABEL_MIN:
+                labels.append(f'<foreignObject x="{x}" y="0" width="{w}" height="18">'
+                              f'<div class="pl-clab">'
+                              f'{_tok(f"{key}.{_slug(g)}", f"{float(v):.6f}", "pct0_capped", src)}'
+                              f'</div></foreignObject>')
+            at += v
+        return (f'<svg class="pl-cbar" width="100%" height="18" aria-hidden="true">'
+                f'{"".join(rects)}{"".join(labels)}</svg>')
+    legend = "".join(f'<span><i class="{GROUP_TONE_CLASSES[i % len(GROUP_TONE_CLASSES)]}"></i>{_esc(g)}</span>'
                      for i, g in enumerate(groups))
-    out = [f'<div class="pl-clegend">{legend}</div>']
+    # the hatching an assumed split is drawn with, defined once for every bar
+    out = ['<svg class="pl-defs" width="0" height="0" aria-hidden="true"><defs>'
+           '<pattern id="pl-hatch" width="6" height="6" patternUnits="userSpaceOnUse" '
+           'patternTransform="rotate(45)"><rect width="2" height="6"></rect></pattern>'
+           '</defs></svg>',
+           f'<div class="pl-clegend">{legend}</div>']
     for c in codes:
         # a party with no 2021 record has an ASSUMED split, not an estimate:
         # said in the row and drawn hatched (critic S4)
@@ -436,7 +452,7 @@ def composition(processed: Path, rows: list[dict], names: dict) -> str:
                 if c in new else "")
         vals = [float(spec["pools"][g]["members"].get(c, 0.0)) for g in groups]
         out.append(f'<div class="pl-crow"><span class="pl-cname">{_esc(names[c]["name"])}{mark}</span>'
-                   f'{bar(f"play.votes.{c}", vals, f"{fname} pools[group].members[{c}]", " pl-chatch" if c in new else "")}</div>')
+                   f'{bar(f"play.votes.{c}", vals, f"{fname} pools[group].members[{c}]", c in new)}</div>')
     out.append(f'<div class="pl-crow pl-roll"><span class="pl-cname">Registered</span>'
                f'{bar("play.roll", spec["pool_shares_at_target"], f"{fname} pool_shares_at_target")}</div>')
     return "".join(out)
@@ -558,6 +574,7 @@ def _processed() -> Path:
 def fills(processed: Path) -> dict[str, str]:
     """Every ``<!-- __PLAY:<name>__ -->`` marker's content (:data:`FILL`)."""
     import reweight as R
+    import seat_table
     global _PROCESSED
     _PROCESSED = processed
     sheet = SHEET.read_text(encoding="utf-8")
@@ -577,15 +594,18 @@ def fills(processed: Path) -> dict[str, str]:
         "maxse": _tok("play.max_figure_se", R.MAX_FIGURE_SE_SEATS, "one_dp",
                       "reweight.MAX_FIGURE_SE_SEATS, the owner's precision rule (JUDGEMENT-CALLS §N2)"),
         # attribute values on two LIVE regions, read by js/model.js: the
-        # election day (for the share image) and the seat axis
+        # election day (for the share image), and the seat table's axis, ticks
+        # and header words (src/seat_table.py, the one definition)
         "election": _target_date(),
-        "seatscale": str(SEAT_SCALE),
+        "seatscale": str(seat_table.SEAT_SCALE),
+        "seatticks": " ".join(str(x) for x in seat_table.SEAT_TICKS),
+        "seathead": "|".join(seat_table.HEAD),
     }
     assert set(out) == set(FILL)
     return out
 
 
-def assemble(*, theme_head: str, nav: str, footer: str, processed: Path) -> str:
+def assemble(*, site_head: str, nav: str, footer: str, processed: Path) -> str:
     """The page's HTML, tokens unrendered: model.html with the site put in."""
     page = (INTERACTIVE / "model.html").read_text(encoding="utf-8")
     starts = page.count("<!-- __DEVONLY_START__ -->")
@@ -594,7 +614,7 @@ def assemble(*, theme_head: str, nav: str, footer: str, processed: Path) -> str:
     page = _DEVONLY.sub("", page)
     # the leading authoring comment describes the markers; it is not the page's
     page = re.sub(r"<!--\n  \"Play with the model\".*?-->\n", "", page, count=1, flags=re.S)
-    for marker, value in (("<!-- __PLAYHEAD__ -->", theme_head),
+    for marker, value in (("<!-- __PLAYHEAD__ -->", one_level_down(site_head)),
                           ("<!-- __PLAYNAV__ -->", one_level_down(nav)),
                           ("<!-- __PLAYFOOT__ -->", one_level_down(footer))):
         _once(page, marker, "model.html")
