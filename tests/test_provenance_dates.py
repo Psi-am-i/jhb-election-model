@@ -158,7 +158,10 @@ def test_a_dated_passage_accepts_only_figures_of_its_date():
            _occ("pinned_later", "fixed", "2026-09-01", "2026-08-08"),
            _occ("pinned_undated", "fixed", "", "2026-08-08"),
            # a forecast that happens to print the council's majority
-           _occ("anc_seats_median", "free", "", "2026-08-08", display="136")]
+           _occ("anc_seats_median", "free", "", "2026-08-08", display="136"),
+           # the same value as an exempt constant on the same date: only the
+           # token tells them apart
+           _occ("anc_seats_p95", "free", "", "2026-08-08", display="270")]
     caught = P.misdated_figures(good + bad, consts)
     assert sorted(v["token"] for v in caught) == sorted(o["token"] for o in bad), caught
     # and quiet again once the bad occurrences are taken out
