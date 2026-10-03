@@ -49,7 +49,7 @@ its open decisions, as built.
 
 ## After the review of the entries (2026-10-03)
 
-| item | as built |
+| review item | as built |
 |---|---|
 | 1 | Every entry is ranked and listed on `/leaderboard/`; the `top` setting is gone (owner: "we can rank all entries"). `leaderboard.json` is served whole by design. |
 | 1 | The board's data is gitignored, as `content/<city>/leaderboard.json` and `site/leaderboard/leaderboard.json`, and `deploy_check.SHIPPED_UNCOMMITTED` lets the built copy ship: a name removed from the board is not kept in the public repository's history. `rank_entries.py --drop <seal id>` removes one entry from the published board; `--anonymise` replaces every name at the ninety-day deletion, when the export `~/joburg-entries.json` is also deleted (JUDGEMENT-CALLS.md §N8). |

@@ -99,6 +99,10 @@ directory, ignored files included, so start from a clean tree:
 git status --short --ignored site/   # expect no output
 ```
 
+Once the leaderboard is published, the one expected line is
+`!! site/leaderboard/leaderboard.json`: it is gitignored on purpose and
+`deploy_check` lets it ship (`deploy_check.SHIPPED_UNCOMMITTED`).
+
 `deploy_check` also refuses any file under `site/` that git does not track.
 
 A UAT build publishes into a scratch copy of `publications/`, never the real

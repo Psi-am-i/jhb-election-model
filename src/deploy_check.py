@@ -6,7 +6,7 @@ Wired as `[build] command` in `wrangler.toml`, so wrangler runs it before every
 ships `site/` whatever the ledger says (blind review, 2026-09-17).
 
 It checks that every file wrangler would upload from the repository's own
-`site/` is committed (`untracked`), that no page carries inline CSS or JS
+`site/` is committed (`untracked`; the files in `SHIPPED_UNCOMMITTED` excepted), that no page carries inline CSS or JS
 (`site_assets.scan_site`), that nothing of the local edit mode is in it
 (`edit_mode.shipped`), and two things against
 `content/<city>/NUMBERS-REVIEW.md`:
