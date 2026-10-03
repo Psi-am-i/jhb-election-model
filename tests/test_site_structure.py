@@ -511,5 +511,59 @@ def test_every_built_page_carries_the_footer_once():
             assert foot[0] == build_play.one_level_down(B.FOOTER), p
 
 
+# ---------------------------------------------------------------- strapline
+
+STRAPLINE = ("Made for the benefit of all the residents, businesses, professional "
+             "and civic organisations and political parties that make our city so "
+             "interesting.")
+#: the apex portal is the only built page with no city nav, so no strapline
+NO_NAV = {"portal.html"}
+
+
+def strapline_problems(html: str) -> list[str]:
+    """The owner's strapline, once, directly under the nav bar."""
+    out = []
+    if _text(html).count(STRAPLINE) != 1:
+        out.append(f"the strapline appears {_text(html).count(STRAPLINE)} times")
+    if not re.search(r'</nav>\s*<p class="strapline">' + re.escape(STRAPLINE) + "</p>", html):
+        out.append("the strapline is not directly under the nav")
+    return out
+
+
+def test_the_strapline_is_the_owners_and_sits_under_the_nav():
+    assert B.STRAPLINE == STRAPLINE
+    assert strapline_problems(B.nav_for("forecast")) == []
+
+
+def test_the_strapline_check_fires_on_each_constructed_violation():
+    nav = B.nav_for("forecast")
+    assert strapline_problems(nav.replace("</nav>\n", "</nav>\n<p>x</p>"))
+    assert strapline_problems(nav.replace("so interesting", "very interesting"))
+    assert strapline_problems(nav + "<p>" + STRAPLINE + "</p>")
+    assert strapline_problems(nav.split("<p class")[0])
+
+
+def test_the_strapline_has_one_definition():
+    """No page template types it: nav_for is its only source."""
+    for f in (ROOT / "home.html", SHEET, ROOT / "interactive" / "your-forecast.html"):
+        assert STRAPLINE not in _text(f.read_text(encoding="utf-8")), f
+
+
+def test_every_built_page_with_the_nav_carries_the_strapline_once():
+    site = ROOT / "site"
+    pages = sorted(site.rglob("*.html"))
+    assert len(_produced()) + 1 <= len(pages) <= len(_produced()) + 6, len(pages)
+    seen = 0
+    for p in pages:
+        html = p.read_text(encoding="utf-8")
+        if p.name in NO_NAV and p.parent == site:
+            assert 'class="topnav"' not in html and STRAPLINE not in html, p
+            continue
+        assert html.count('<nav class="topnav">') == 1, p
+        assert strapline_problems(html) == [], (p, strapline_problems(html))
+        seen += 1
+    assert seen == len(pages) - len(NO_NAV), seen
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

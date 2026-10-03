@@ -38,6 +38,17 @@
 }
 .topnav a.active{color:var(--accent);}
 
+/* The owner's strapline (build_site.STRAPLINE), directly under the bar on
+   every page: small, muted, the site mono. The bar's gap to the content moves
+   below it. */
+.topnav{margin-bottom:8px;}
+.strapline{font-family:var(--mono);font-size:12px;line-height:1.5;color:var(--ink-3);
+  max-width:none;margin:0 0 24px;}
+@media (min-width:1200px){
+  .strapline{box-sizing:border-box;width:max(100%,1120px);
+    margin-left:min(0px,calc((100% - 1120px) / 2));}
+}
+
 /* The footer: the credits, a rule, then the independence statement with the
    support link set larger, in the accent colour, at the right (owner's sweep,
    2026-10-03). The support rule is specific enough to win over any page's own
@@ -60,5 +71,5 @@
 .sitefooter a.foot-support:hover{text-decoration:underline;}
 
 @media print{
-  .topnav{display:none;}
+  .topnav,.strapline{display:none;}
 }

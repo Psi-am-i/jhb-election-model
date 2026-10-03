@@ -10,9 +10,6 @@
     text-transform:uppercase;color:var(--ink-3);}
   .stamp{font-family:var(--mono);font-size:11px;color:var(--ink-3);
     letter-spacing:.04em;}
-  /* the owner's line under the nav (sweep of 2026-10-03, item 13) */
-  .dedication{font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--ink-2);
-    max-width:none;}
 
   /* the lede */
   .hero{padding:44px 0 8px;position:relative;}

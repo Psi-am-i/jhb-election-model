@@ -84,9 +84,16 @@ NAV_ITEMS = [
 #: The site's name: the home link's accessible name, under the logo.
 SITE_NAME = "joburg.whysoserious.city"
 
+#: The owner's line under the menu bar on every page (2026-10-03). Its one
+#: definition: `nav_for` emits it after the nav, src/css/chrome.css styles it.
+STRAPLINE = ("Made for the benefit of all the residents, businesses, professional "
+             "and civic organisations and political parties that make our city so "
+             "interesting.")
+
 
 def nav_for(active_href: str) -> str:
-    """The site nav with the current page held in the accent colour."""
+    """The site nav with the current page held in the accent colour, and
+    the owner's strapline (:data:`STRAPLINE`) directly under it."""
     links = "\n".join(
         f'  <a{" class=\"active\"" if href == active_href else ""} '
         f'href="{href}">{label}</a>'
@@ -105,7 +112,8 @@ def nav_for(active_href: str) -> str:
             # the sun shows while dark (click for light), the moon while light
             '<span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span>'
             '<span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span>'
-            '</button>\n</nav>')
+            '</button>\n</nav>\n'
+            f'<p class="strapline">{STRAPLINE}</p>')
 
 
 # CLOUDFLARE WEB ANALYTICS — the site's only analytics (owner, 2026-09-30:
