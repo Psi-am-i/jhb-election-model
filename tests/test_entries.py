@@ -186,6 +186,23 @@ def test_entry_check_fires_on_each_constructed_violation():
     assert entry_problems(src, {"share-edge.js": leaky})
 
 
+def test_a_stored_forecast_is_seated_by_the_scorer_as_the_link_called_it():
+    """The seam between the Worker and results night: the forecast the Worker
+    stores goes through score_forecasts.seat_forecast, on the live schema, with
+    each ward's call where the link put it."""
+    import score_forecasts
+    S = W._share_setup()
+    before, _ = _times(S)
+    r = W.run_worker(W.source(), [_seal(S, before)], S["files"])[0]
+    assert r["status"] == 200 and len(r["rows"]) == 1, r["body"]
+    schema = S["data"]["schema"]
+    seated = score_forecasts.seat_forecast(json.loads(r["rows"][0]["forecast"]), schema)
+    assert seated["ok"], seated.get("errors")
+    want = dict(zip(schema["x-seat-context"]["wards"], S["calls"]))
+    assert seated["ward_winners"] == want
+    assert [str(w) for w in schema["x-ward-ids"]] == [str(w) for w in schema["x-seat-context"]["wards"]]
+
+
 # ---------------------------------------------------------------- columns
 
 def column_problems(migration: list[str], declared: list[str]) -> list[str]:
