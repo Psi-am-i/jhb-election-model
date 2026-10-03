@@ -32,7 +32,8 @@
 //
 // Text is laid out by measured width (card-text.js). Literal hex and system
 // fonts: the image leaves the page, and an SVG drawn into a canvas cannot load
-// web fonts.
+// web fonts. The site's name is the exception: svgToPNG draws it on the
+// canvas in the page's IBM Plex Mono (siteLabel).
 
 import { fitText, textWidth } from "./card-text.js";
 
@@ -54,6 +55,24 @@ const PHOTO = { file: "share.jpg", w: 1200, h: 630, towerX: 613 };
 // The link card's photograph strip, in card pixels.
 const STRIP = 250;
 export const PHOTO_FILE = PHOTO.file;
+
+// The site's name on the card, as svgToPNG's `label` takes it: drawn on the
+// canvas in IBM Plex Mono, after the logo's tower-J (MARK_FILE, the
+// favicon, same-origin: `markSrc`). Up the photograph's left edge on the
+// link card, across the top of the story card. The card's SVG leaves the
+// place empty.
+export const MARK_FILE = "mark.svg";
+// mark.svg's box, width over height
+const MARK_ASPECT = 106 / 404;
+export function siteLabel(size, markSrc) {
+  const H = SIZES[size][1];
+  // the link card's name runs up the strip's edge, so its mark is no taller
+  // than the strip's margin allows
+  const at = size === "link" ? { x: 30, y: H - 22, fs: 15, rotate: -90, mh: 1.7 } : { x: 60, y: 120, fs: 30, rotate: 0, mh: 2.6 };
+  const h = at.fs * at.mh;
+  return { text: SITE, weight: "700", fill: C.ink, x: at.x, y: at.y, fs: at.fs, rotate: at.rotate,
+           mark: markSrc ? { src: markSrc, w: h * MARK_ASPECT, h } : null };
+}
 
 // The crop of share.jpg drawn under the card at `size`, as svgToPNG's `under`
 // takes it: a window on the tower with the card area's proportions.
@@ -185,7 +204,6 @@ export function buildForecastCardSVG({ size = "link", title, lines = [], map, ma
     const rowH = Math.min(28, (footTop - 10 - mapY - bnotes.length * 15 - 6) / rows.length);
     const rowsEnd = mapY + rowH * rows.length;
     body = under + fade(size, W, H) +
-      text(30, H - 22, SITE, { fs: 15, family: MONO, fill: C.ink, weight: "700", transform: `rotate(-90 30 ${H - 22})` }) +
       top + m.svg +
       notes.map((l, k) => text(sx, Math.min(mapY + m.h + 14, footTop - 6 - (notes.length - 1) * 15) + k * 15, l, { fs: 12, fill: C.ink3 })).join("") +
       drawRows(rows, { x: bx, y: mapY, w: bw, rowH, fs: 14 }) +
@@ -218,7 +236,6 @@ export function buildForecastCardSVG({ size = "link", title, lines = [], map, ma
     yy = rowsY + rowsH;
     const rowText = bnotes.map(l => text(x, (yy += 28), l, { fs: 22, fill: C.ink3 })).join("");
     body = (photo ? "" : under) + fade(size, W, H) +
-      text(x, 120, SITE, { fs: 30, family: MONO, fill: C.ink, weight: "700" }) +
       top + m.svg + mapText +
       drawRows(rows, { x, y: rowsY, w, rowH, fs: 26 }) + rowText +
       feet.map((l, k) => text(x, footTop + k * 28, l, { fs: 22, fill: C.ink3 })).join("");

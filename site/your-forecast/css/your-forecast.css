@@ -23,26 +23,52 @@
 .yf-break{border-top:4px double var(--rule);margin:56px 0 18px;}
 
 /* ---------- section 1: levers left, a sticky column of results right ---------- */
-/* The column holds still while the levers scroll (play.css: sticky). The map
-   and the seat table sit side by side in it (play.css .pl-rgrid), so the whole
-   column fits a laptop's window and the seat table stays in view beside every
-   lever. Stacked, the map above the table, the column measured 1332px at
-   1440x900 against 848px of window, and the table never showed beside the
-   levers (review of lane Y, 2026-10-03). */
+/* Wide screens (owner, 2026-10-03): the levers on the left; on the right a
+   column that holds still while they scroll, the map above the seat table,
+   each the column's full width. The map's height is capped by the window
+   (--yf-map-h), so the table's head and first rows show under it at a
+   laptop's height; the column is never taller than the window
+   (play.css .pl-resultscol) and scrolls on its own for the rest. */
 @media (min-width:1100px){
-  .yf .yf-layout{grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:44px;}
+  .yf .yf-layout{grid-template-columns:minmax(330px,400px) minmax(0,1fr);gap:40px;}
+  .yf{--yf-map-h:max(260px,calc(100vh - 520px));}
+  .yf .pl-seatfig .pl-fhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;}
+  .yf .pl-seatfig .pl-fhead h2{margin:0;}
+  .yf .pl-rgrid{gap:14px;}
+  .yf .pl-wardmap{max-height:var(--yf-map-h);}
+  .yf .pl-oneline{font-size:19px;margin:4px 0 10px;}
+  .yf .pl-key{font-size:13px;}
+  /* the seat table at the column's width: larger type, a wider name column */
+  .yf .pl-seats .st-row{grid-template-columns:minmax(0,150px) minmax(0,1fr) 76px 76px;min-height:34px;}
+  .yf .pl-seats .st-name{font-size:15px;}
+  .yf .pl-seats .st-seats{font-size:15px;}
+  .yf .pl-seats .st-range{font-size:14px;}
+  .yf .pl-seats .st-head > div{font-size:11.5px;}
 }
+/* the map's key sits under the map on a phone, under the seat table in
+   the wide column */
+.yf .pl-seatfig{order:2;}
+@media (min-width:1100px){.yf .pl-seatfig{order:0;}}
+/* the levers: one card per lever, separated */
+.yf .pl-controls{display:flex;flex-direction:column;gap:14px;}
+.yf .pl-ctl,.yf .pl-ctl:first-child{border:1px solid var(--rule);border-radius:8px;background:var(--paper-2);
+  padding:14px 16px 10px;}
+.yf .pl-ctl h3{display:flex;align-items:baseline;gap:8px;padding-bottom:8px;margin-bottom:10px;
+  border-bottom:1px solid var(--rule-soft);}
 .yf-section .pl-bannerwrap{margin:0 0 4px;border-bottom:0;
   /* full width without overflow: the background and its rule drawn past the
      column by border-image outset, which adds no scrollable width */
   border-image:linear-gradient(to top,var(--rule) 1px,var(--paper) 1px) fill 0 / 0 / 0 100vmax;}
 .yf-section .pl-banner{padding-left:0;padding-right:0;}
-.yf-sharebox{border-top:1px solid var(--rule);padding-top:16px;margin-top:10px;}
+.yf-sharebox{padding-top:4px;margin-top:0;}
 
 /* ---------- the floating "computing" indicator: reserves no space ---------- */
-.yf-busy{position:fixed;right:16px;bottom:16px;z-index:40;pointer-events:none;margin:0;
-  font:600 12.5px var(--sans);color:var(--paper);background:var(--reader);padding:7px 14px;border-radius:999px;
-  box-shadow:0 2px 10px rgba(0,0,0,.25);}
+/* Owner, 2026-10-03 (item 5a): it floats above the page, prominent, at the
+   top centre under the sticky banner where the eye is, and being fixed it
+   moves nothing on the page. */
+.yf-busy{position:fixed;left:50%;top:58px;transform:translateX(-50%);z-index:40;pointer-events:none;margin:0;
+  font:600 15px var(--sans);color:var(--paper);background:var(--reader);padding:9px 20px;border-radius:999px;
+  box-shadow:0 4px 18px rgba(0,0,0,.35);white-space:nowrap;}
 .yf-busy[hidden]{display:none;}
 @media (prefers-reduced-motion:no-preference){
   .yf-busy{animation:yf-breathe 1.2s ease-in-out infinite alternate;}
@@ -110,9 +136,14 @@
 /* ---------- "Analyse my forecast" ---------- */
 .yf-analysis{border:1px solid var(--rule-soft);border-top:3px solid var(--reader);background:var(--paper-2);
   padding:16px;margin-top:22px;max-width:980px;scroll-margin-top:60px;}
-.yf-analysis[hidden]{display:none;}
+.yf-analysis:has(> [data-live="b-analysis"][hidden]){display:none;}
+/* the reader is scrolled to the region; the heading above it stays in view */
+.yf-analysis [data-live="b-analysis"]{scroll-margin-top:110px;}
 .yf-analysis h3{font:600 20px var(--serif);margin:0 0 8px;}
 .yf-verdict{font:19px/1.4 var(--serif);color:var(--ink);margin:0 0 6px;max-width:62ch;}
+.yf-verdict .yf-exp{display:block;font-size:16px;color:var(--ink-2);margin-top:4px;}
+.yf-outcome{font-size:14px;color:var(--ink-2);margin:0 0 4px;}
+.yf-outcome:empty{display:none;}
 .yf-expected{font-size:14px;margin:0 0 10px;}
 .yf-atable{overflow-x:auto;}
 .yf-at td:first-child{white-space:nowrap;}
@@ -132,3 +163,9 @@
   .yf-at tr.yf-narrow + tr.yf-narrow td{border-bottom:1px solid var(--rule-soft);padding-bottom:6px;padding-top:2px;}
 }
 .ess:empty{display:none;}
+
+/* "Set the vote": its one line, and the footnote marker's number, drawn here
+   because the step is a LIVE region with no build-time digit (the note is
+   the eighth in the page's notes) */
+.yf-oneline{font-size:13.5px;margin:0 0 8px;}
+.yf-fnvote::after{content:"8";}

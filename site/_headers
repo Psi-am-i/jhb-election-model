@@ -37,6 +37,9 @@
 /*.svg
   ! Content-Type
   Content-Type: image/svg+xml
+/*.woff2
+  ! Content-Type
+  Content-Type: font/woff2
 /dev/*
   X-Robots-Tag: noindex, nofollow
 /drafts/*

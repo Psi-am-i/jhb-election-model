@@ -1025,6 +1025,23 @@
       "value": 57
     },
     {
+      "display": "490,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:Helen Zille, Business Day, 1 March 2026: the claim's own figure, as quoted",
+      "token": "claim_zille_votes",
+      "value": 490000
+    },
+    {
       "display": "14",
       "fmt": "int",
       "mode": "generated",
@@ -3871,6 +3888,160 @@
       "value": 0.1624
     },
     {
+      "display": "6.22%",
+      "fmt": "pct2",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:IEC NPE 2024, national ballot: ActionSA's share (MODEL-LOG, the local-premium entry quoting 18.12% against 6.22%)",
+      "token": "hist_asa_npe_2024",
+      "value": 0.0622
+    },
+    {
+      "display": "18.12%",
+      "fmt": "pct2",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:IEC LGE 2021, City of Johannesburg: ActionSA's PR-ballot share (SOURCES.md, 'ASA citywide PR share')",
+      "token": "hist_asa_pr_2021",
+      "value": 0.1812
+    },
+    {
+      "display": "18%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "nobody-catches-the-votes.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:IEC LGE 2021, City of Johannesburg: ActionSA 18.12% of the PR ballot (SOURCES.md, 'ASA citywide PR share'; MODEL-LOG 1.18), rounded",
+      "token": "hist_asa_pr_2021_rounded",
+      "value": 0.18
+    },
+    {
+      "display": "300,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:Stats SA Census 2022 ward estimates, Johannesburg's white adults, against the IEC voters' roll (DATA-QUALITY.md item 11)",
+      "token": "hist_census_white_adults",
+      "value": 300000
+    },
+    {
+      "display": "52,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "nobody-catches-the-votes.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:MODEL-LOG 1.18 \u2014 DA-bloc vote change, 2019 NPE to 2021 LGE (\u221251,587, rounded to the thousand as published on 8 August)",
+      "token": "hist_da_bloc_change_votes",
+      "value": 52000
+    },
+    {
+      "display": "23%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html",
+        "laingsburg-2021.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's share, 23.06% (MODEL-LOG 1.17)",
+      "token": "hist_laingsburg_da_share",
+      "value": 0.2306
+    },
+    {
+      "display": "3",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021 (MODEL-LOG 1.17): the DA's ward wins",
+      "token": "hist_laingsburg_da_wards",
+      "value": 3
+    },
+    {
+      "display": "4",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021 (MODEL-LOG 1.17): the municipality's wards",
+      "token": "hist_laingsburg_wards",
+      "value": 4
+    },
+    {
+      "display": "560,000",
+      "fmt": "comma",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:IEC voters' roll against Stats SA Census 2022 ward estimates, Johannesburg's registered white voters (DATA-QUALITY.md item 11)",
+      "token": "hist_roll_white_voters",
+      "value": 560000
+    },
+    {
       "display": "90%",
       "fmt": "chance",
       "mode": "generated",
@@ -5503,6 +5674,74 @@
       "value": 0.30697
     },
     {
+      "display": "35%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:Ipsos Khayabus W2-2025, all-metro subsample, Q1 2026 (POLLING.md): the ANC",
+      "token": "poll_ipsos_w2_anc",
+      "value": 0.35
+    },
+    {
+      "display": "25%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:Ipsos Khayabus W2-2025, all-metro subsample, Q1 2026 (POLLING.md): the DA",
+      "token": "poll_ipsos_w2_da",
+      "value": 0.25
+    },
+    {
+      "display": "18%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:SRF Q2-2026 City of Johannesburg poll, published 5 August 2026 (POLLING.md): the ANC",
+      "token": "poll_srf_q2_anc",
+      "value": 0.18
+    },
+    {
+      "display": "42%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "methodology.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:SRF Q2-2026 City of Johannesburg poll, published 5 August 2026 (POLLING.md): the DA",
+      "token": "poll_srf_q2_da",
+      "value": 0.42
+    },
+    {
       "display": "541.4",
       "fmt": null,
       "mode": "fixed",
@@ -5656,6 +5895,91 @@
       "source": "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)",
       "token": "pub0831_p_excessive_anc",
       "value": 0.96
+    },
+    {
+      "display": "61%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "review.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: DA + EFF + MK at the majority line, the full coalition check",
+      "token": "rev0806_da_eff_mk_share",
+      "value": 0.61
+    },
+    {
+      "display": "86%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "review.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: the DA largest, in the first forecast",
+      "token": "rev0806_da_largest_first",
+      "value": 0.86
+    },
+    {
+      "display": "63%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "review.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: the DA largest, after the fixes",
+      "token": "rev0806_da_largest_fixed",
+      "value": 0.63
+    },
+    {
+      "display": "61%",
+      "fmt": "pct0",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "review.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: a DA-led minority government viable",
+      "token": "rev0806_da_minority_viable",
+      "value": 0.61
+    },
+    {
+      "display": "87",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "review.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: district-year records with more votes than registered voters",
+      "token": "rev0806_overvote_records",
+      "value": 87
     },
     {
       "display": "20261104",
@@ -6409,9 +6733,9 @@
     "draws": 5000,
     "forecast_content_sha256": "c68c627d287e5e103ac0effbf1aaab9dbcffdb4d2945720ec43d771a9945efad",
     "forecast_summary_sha256": "97efecf5c70e0020412d801b20bce579c1f7e31e8f5bb8c3e0a8423106bc84bd",
-    "git_commit": "2daf605c7518b475540397c500430de5d33fec52",
+    "git_commit": "134753951aae0042bd84bb666d7874cd53931b00",
     "git_dirty": true,
-    "model_run_id": "r-c68c627d287e-2daf605c-dirty",
+    "model_run_id": "r-c68c627d287e-13475395-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -6614,6 +6938,16 @@
         "claim.anc_alone.share",
         "claim.da_alone.wall_anc_top",
         "claim.largest_tied.share",
+        "claim_zille_votes",
+        "hist_asa_npe_2024",
+        "hist_asa_pr_2021",
+        "hist_asa_pr_2021_rounded",
+        "hist_census_white_adults",
+        "hist_da_bloc_change_votes",
+        "hist_laingsburg_da_share",
+        "hist_laingsburg_da_wards",
+        "hist_laingsburg_wards",
+        "hist_roll_white_voters",
         "home.p_anc_largest",
         "home.p_excessive.anc",
         "home.p_excessive.eff",
@@ -6661,7 +6995,16 @@
         "play.votes.RISE.black_african",
         "play.votes.RISE.coloured",
         "play.votes.RISE.white",
+        "poll_ipsos_w2_anc",
+        "poll_ipsos_w2_da",
+        "poll_srf_q2_anc",
+        "poll_srf_q2_da",
         "pub0808_n_draws",
+        "rev0806_da_eff_mk_share",
+        "rev0806_da_largest_first",
+        "rev0806_da_largest_fixed",
+        "rev0806_da_minority_viable",
+        "rev0806_overvote_records",
         "tile.p_excessive.eff",
         "tile.p_excessive.mk",
         "tile.p_excessive_any",
@@ -6858,7 +7201,7 @@
         "tile.p_anc_largest"
       ]
     },
-    "n": 373,
+    "n": 392,
     "n_rounding": 44,
     "n_visible": 136,
     "nominal": [

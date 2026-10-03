@@ -101,6 +101,7 @@ const one = {
   analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
   analysis: document.querySelector('[data-live="b-analysis"]'),
   verdict: document.querySelector('[data-live="b-analysis"] .yf-verdict'),
+  outcome: document.querySelector('[data-live="b-analysis"] .yf-outcome'),
   expected: document.querySelector('[data-live="b-analysis"] .yf-expected'),
   atable: document.querySelector('[data-live="b-analysis"] .yf-atable'),
   anote: document.querySelector('[data-live="b-analysis"] .yf-anote'),
@@ -323,24 +324,52 @@ for (const b of views) b.addEventListener("click", () => {
   if (v === "list") buildList(); else map.setMode(v);
 });
 
+// The list view: one aligned table per area (ward | the party it is called
+// for | the chance we give that call, once analysed), filtered by area and by
+// party instead of one long scroll. The areas are the area picker's options
+// (one definition, in the page).
+const AREAS = () => [...one.area.options].map(o => [o.value, o.textContent]);
+const LIST = { area: null, party: "" };
 function buildList() {
+  if (LIST.area === null) LIST.area = AREAS()[0][0];
+  const held = alpha.filter(c => state.calls.includes(c));
+  if (LIST.party && !held.includes(LIST.party)) LIST.party = "";
+  const areaPick = el("select", { className: "wlf-area", disabled: !engineReady },
+    el("option", { value: "" }, "Every area"), ...AREAS().map(([v, t]) => el("option", { value: v }, t)));
+  areaPick.value = LIST.area;
+  areaPick.addEventListener("change", () => { LIST.area = areaPick.value; buildList(); });
+  const partyPick = el("select", { className: "wlf-party", disabled: !engineReady },
+    el("option", { value: "" }, "Every party"), ...held.map(c => el("option", { value: c }, name(c))));
+  partyPick.value = LIST.party;
+  partyPick.addEventListener("change", () => { LIST.party = partyPick.value; buildList(); });
+  const bar = el("div", { className: "wlfilter" }, el("label", {}, "Area ", areaPick), el("label", {}, "Called for ", partyPick));
   const opts = () => alpha.map(c => el("option", { value: c }, name(c)));
-  const sets = ["north", "east", "south", "west", "central"].map(sec => {
-    const fs = el("fieldset", {}, el("legend", {}, sec));
+  const tables = AREAS().filter(([v]) => !LIST.area || v === LIST.area).map(([sec, title]) => {
+    const rows = [];
     geom.wards.forEach((w, i) => {
-      if (w.sector !== sec) return;
-      const s = el("select", { id: "wl" + i, disabled: !engineReady }, ...opts());
+      if (w.sector !== sec || (LIST.party && state.calls[i] !== LIST.party)) return;
+      const s = el("select", { id: "wl" + i, disabled: !engineReady, "aria-label": "Ward " + w.id + ", called for" }, ...opts());
       s.value = state.calls[i];
       s.addEventListener("change", () => {
         snapshot();
         const r = B.assignWards(state, ctx, [i], s.value);
         commit(r.state, raisedNote(r.raised));
       });
-      fs.append(el("div", { className: "wl" }, el("label", { htmlFor: "wl" + i }, "Ward " + w.id), s));
+      const got = analysed ? analysed.wards[ctx.wards[i]] : null;
+      rows.push(el("tr", {}, el("th", { scope: "row" }, "Ward " + w.id),
+        el("td", {}, el("span", { className: "wlpick" }, sw(state.calls[i]), s)),
+        el("td", { className: "wln", title: got ? chanceSentence(got.text) : "" }, got ? got.text : "–")));
     });
-    return fs;
-  });
-  one.listview.replaceChildren(el("div", { className: "wardlist" }, ...sets));
+    if (!rows.length) return null;
+    return el("table", { className: "wltable" },
+      el("caption", {}, title),
+      el("colgroup", {}, el("col", { className: "wlc-ward" }), el("col", { className: "wlc-party" }), el("col", { className: "wlc-chance" })),
+      el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Ward"), el("th", { scope: "col" }, "Called for"),
+        el("th", { scope: "col", className: "wln" }, analysed ? "Our chance" : "Our chance, once analysed"))),
+      el("tbody", {}, ...rows));
+  }).filter(Boolean);
+  one.listview.replaceChildren(bar, el("div", { className: "wardlist" },
+    ...(tables.length ? tables : [el("p", { className: "stubnote" }, "No ward in this area is called for that party.")])));
 }
 
 one.fillarea.addEventListener("click", () => {
@@ -354,25 +383,32 @@ one.undo.addEventListener("click", () => {
   commit(prev);
 });
 
-// ---------- the vote: one identical row per party ----------
-// Two lists, each alphabetical: the parties that hold a seat in the published
-// start, then every other party in a collapsed "Other parties" (review
-// 2026-10-02: one alphabetical list of every party put ACDP first and the ANC
-// and DA far below a run of parties at zero). The split is the published
-// start's, fixed for the page, so a row never moves under the reader's
-// finger; finding a party opens the second list.
+// ---------- the vote: a table with the seat table's columns ----------
+// Party | slider | percent, one identical row per party. The parties that
+// hold a seat in the published start come first, most seats first as the
+// seat table orders them; every other party, alphabetical, in a collapsed
+// "Other parties". The order is the published start's, fixed for the page,
+// so a row never moves under the reader's finger; finding a party opens the
+// second list. The percent box is text with a decimal keypad: no spinner.
 const rows = {};
 let rest;
 function buildVote() {
-  const seatedAtStart = alpha.filter(c => (D.start.seats[c] || 0) > 0);
+  const start = D.start.seats;
+  const seatedAtStart = alpha.filter(c => (start[c] || 0) > 0)
+    .sort((a, b) => start[b] - start[a] || name(a).localeCompare(name(b)));
   const restList = el("div", { className: "prrest" });
   rest = el("details", { className: "prmore" }, el("summary", {}, "Other parties"), restList);
-  for (const c of alpha) {
-    const num = el("input", { type: "number", id: "pr-n-" + c, min: "0", max: "100", step: "0.1", inputMode: "decimal", disabled: true });
+  const head = el("div", { className: "prrow prhead", "aria-hidden": "true" },
+    el("span", {}, "Party"), el("span", {}, "Share of all votes"), el("span", { className: "prpct" }, "%"));
+  one.prlist.append(head);
+  for (const c of [...seatedAtStart, ...alpha.filter(x => !seatedAtStart.includes(x))]) {
+    const num = el("input", { type: "text", id: "pr-n-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
+                              disabled: true, className: "prnum" });
     const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", share of all votes, percent" });
     const fl = el("span", { className: "fl" });
-    const row = el("div", { className: "prrow" }, sw(c), el("label", { htmlFor: "pr-n-" + c }, name(c)), num, fl, rng);
+    const row = el("div", { className: "prrow" }, el("label", { htmlFor: "pr-n-" + c, className: "prname" }, sw(c), name(c)), rng, num, fl);
     num.addEventListener("change", () => editShare(c, num.value, true, null));
+    num.addEventListener("keydown", e => { if (e.key === "Enter") editShare(c, num.value, true, null); });
     rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
     rng.addEventListener("change", () => editShare(c, rng.value, true, null));
     rows[c] = { row, num, rng, fl, seated: seatedAtStart.includes(c) };
@@ -575,7 +611,8 @@ async function analyse(scroll) {
   let a;
   try {
     a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
-                                      share: B.percentOf(state, ctx), seats: result.seats });
+                                      share: B.percentOf(state, ctx), seats: result.seats,
+                                      majority: result.majority, coalition: S.coalition });
   } catch (e) {
     if (ticket === analyseTicket) one.anote.textContent = "The analysis could not run: " + (e.message || e) + ".";
     return;
@@ -583,14 +620,33 @@ async function analyse(scroll) {
   if (ticket !== analyseTicket) return;
   analysed = a;
   paintAnalysis(a);
+  if (!one.listview.hidden) buildList();
   if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+// "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
+// the whole forecast, a ward, a party's seats and its vote alike; a chance
+// printed as "under 0.1%" or "over 99%" reads "a chance of under 0.1%".
+function chanceSentence(text) {
+  if (!/^\d/.test(text)) return "We give this outcome a chance of " + text + ".";
+  return "We give this outcome " + (/^(8|11|18)(\D|$)|^8\d/.test(text) ? "an " : "a ") + text + " chance.";
+}
+// the reader's council-level outcome, in words (page.py analyse: reweight.council_outcome)
+function outcomeWords(o) {
+  const lead = o.largest ? name(o.largest) + " has the most seats" : "two or more parties tie for the most seats";
+  const maj = o.majority_alone ? "one party has a majority on its own" : "no party has a majority on its own";
+  const gov = o.coalition.length ? ", and " + o.coalition.map(name).join(", ") + " together hold a majority" : "";
+  return "The outcome: " + lead + ", " + maj + gov + ".";
 }
 function paintAnalysis(a) {
   const n = a.wards_count, exp = Math.round(a.expected);
-  // The headline is the expected number of ward calls that come true. The
-  // rank among the simulations is not a chance and is never worded as one
-  // (STYLE rule 10; JUDGEMENT-CALLS §N3).
-  one.verdict.replaceChildren("We expect ", el("b", {}, exp + " of your " + n), " ward calls to come true. But historical trends can always be broken.");
+  // The headline is the chance of the reader's council-level outcome (the
+  // largest party, a majority alone or not, the chosen coalition), then the
+  // expected number of ward calls that come true. The rank among the
+  // simulations is not a chance and is never worded as one (STYLE rule 10;
+  // JUDGEMENT-CALLS §N3).
+  one.verdict.replaceChildren(chanceSentence(a.outcome.text) + " But historical trends can always be broken. ",
+    el("span", { className: "yf-exp" }, "We expect ", el("b", {}, exp + " of your " + n), " ward calls to come true."));
+  one.outcome.textContent = outcomeWords(a.outcome);
   one.expected.textContent = "Ranked by the chance we give each ward's winner, your ward calls as a set come level with or above the ward results of " +
     a.percentile.text + " of our simulations. " + (HOVER.matches
       ? "Hover over a ward, or reach it with the arrow keys, for the chance we give your call there."
@@ -605,18 +661,19 @@ function paintAnalysis(a) {
   // two layouts of the same cells (css/your-forecast.css): one row per party,
   // or on a phone a party's seats and then its vote, each in its own row
   const yourVote = c => (share[c] ?? 0).toFixed(1) + "%", voteChance = c => (a.share[c] ? a.share[c].text : "");
+  const voteTitle = c => (a.share[c] ? chanceSentence(a.share[c].text) : "");
   const body = codes.flatMap(c => [
     el("tr", { className: "yf-wide" },
       el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0)),
-      el("td", { className: "num" }, a.seats[c].text),
+      el("td", { className: "num", title: chanceSentence(a.seats[c].text) }, a.seats[c].text),
       el("td", { className: "num" }, yourVote(c)),
-      el("td", { className: "num" }, voteChance(c))),
+      el("td", { className: "num", title: voteTitle(c) }, voteChance(c))),
     el("tr", { className: "yf-narrow" },
       el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0) + " seats"),
-      el("td", { className: "num" }, a.seats[c].text)),
+      el("td", { className: "num", title: chanceSentence(a.seats[c].text) }, a.seats[c].text)),
     el("tr", { className: "yf-narrow" },
       el("td", {}), el("td", { className: "num" }, yourVote(c) + " vote"),
-      el("td", { className: "num" }, voteChance(c))),
+      el("td", { className: "num", title: voteTitle(c) }, voteChance(c))),
   ]);
   const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
     el("th", { scope: "col", className: "num" }, "Yours"),
@@ -633,7 +690,7 @@ const HOVER = matchMedia("(hover: hover)");
 function tipFor(i, x, y) {
   const w = i == null ? null : ctx.wards[+i], got = analysed && w != null ? analysed.wards[w] : null;
   if (!got) { one.wardtip.hidden = true; return; }
-  one.wardtip.textContent = "Ward " + w + ", " + name(state.calls[+i]) + ": we give this outcome a chance of " + got.text + ".";
+  one.wardtip.textContent = "Ward " + w + ", " + name(state.calls[+i]) + ". " + chanceSentence(got.text);
   one.wardtip.hidden = false;
   placeTip(one.wardtip, x, y);
 }
