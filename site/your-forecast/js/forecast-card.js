@@ -1,7 +1,7 @@
-// The share image of a Johannesburg council, for every page that has one:
-// /your-forecast/ section 1 (play-card.js: a reader's settings on the model, each party's middle
-// seat count and range) and /your-forecast/ section 2 (make-share.js: a reader's own forecast,
-// exact seats). ONE MODULE, ONE LAYOUT: the site's photograph of Hillbrow
+// The share image of section 1 of /your-forecast/ (play-card.js: a reader's
+// settings on the model, each party's middle seat count and range). Section 2's
+// cards, a reader's own forecast, are share-card.js's (2026-10-03 share
+// design). ONE LAYOUT: the site's photograph of Hillbrow
 // Tower down the left (link) or behind the top (story), a headline, the lines
 // under it, the ward map, one row per party, and a foot.
 //
@@ -9,8 +9,7 @@
 // headline, the lines, the wards' paths and fills (and stripes, where a ward
 // is contested), the rows and the notes, all from the result that page shows,
 // and every word: the headline is the caller's, because /your-forecast/ section 1 never prints a
-// reader's name over the model's own forecast (critic G1, 2026-10-02) and
-// /your-forecast/ section 2 heads the reader's forecast with their name (cardTitle).
+// reader's name over the model's own forecast (critic G1, 2026-10-02).
 //
 // ⛔ A LIVE WRITER WITH NO REGION (stats.LIVE_WRITERS["play/js/forecast-card.js"]
 // and ["make/js/forecast-card.js"]): it turns the figures it is handed into an
@@ -82,13 +81,6 @@ export function photoUnder(size, src) {
   const sh = PHOTO.h, sw = Math.min(PHOTO.w, sh * dw / dh);
   const sx = Math.max(0, Math.min(PHOTO.w - sw, PHOTO.towerX - sw / 2));
   return { src, sx, sy: 0, sw, sh, dx: 0, dy: 0, dw, dh };
-}
-
-// Section 2's headline: "[Name]'s election forecast", in the sentence case of
-// section 1's ("[Name]'s settings on the model").
-export function cardTitle(name) {
-  if (!name) return "My election forecast";
-  return name + (/s$/i.test(name) ? "'" : "'s") + " election forecast";
 }
 
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

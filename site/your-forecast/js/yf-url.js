@@ -4,10 +4,17 @@
 // PURE apart from the one history call: no DOM, no fetch, no figures. Read by
 // stats.script_writes as a NON-writer module.
 //
-// The address is three disjoint parts, each written by its own state module:
+// The address is five disjoint parts, each written by its own state module:
 //   section 1, "Adjust the model"   play-state.js serialize:  t p k l b mv
 //   section 2, "Break the model"    make-state.js serialize:  v c f
 //   the name on either share image  n (play-state.cleanName, the one rule)
+//   a friend's forecast, kept for   vs vn (make.js: the forecast a shared
+//     the return card                link opened with, and its name)
+//   a shared link's arrival         from s (read only: `from=1` opens the
+//                                    arrival view, `s` is the link's seal;
+//                                    kept until the reader picks a start,
+//                                    then dropped, since any edit or new name
+//                                    needs a new seal)
 // so a link opened by one section is never clobbered by the other's next
 // write (one writer per address). Old /play/?… and /make/?… links reach this
 // page with their query strings (src/worker.js), and each part reads back
@@ -19,23 +26,29 @@ import { cleanName, NAME_MAX } from "./play-state.js";
 export const ADJUST_KEYS = "t p k l b mv".split(" ");
 export const BREAK_KEYS = "v c f".split(" ");
 export const NAME_KEY = "n";
+export const FRIEND_KEYS = "vs vn".split(" ");
+export const ARRIVAL_KEYS = "from s".split(" ");
 
-const parts = { adjust: "", break: "" };
+const parts = { adjust: "", break: "", friend: "", arrival: "" };
 let name = "";
 
 // The address for `adjust` and `brk` (each a serialize() string, "" or
 // "?…"), and `n`. Throws if a part carries a key that is not its own: two
 // parts writing one key is the defect this module exists to prevent.
-export function compose(adjust, brk, n) {
+export function compose(adjust, brk, n, friend = "", arrival = "") {
   const q = new URLSearchParams();
-  for (const [part, keys] of [[adjust, ADJUST_KEYS], [brk, BREAK_KEYS]]) {
+  const own = (part, keys) => {
     for (const [k, v] of new URLSearchParams(part || "")) {
       if (!keys.includes(k)) throw new Error("the address part for " + keys.join(",") + " wrote " + k);
       q.set(k, v);
     }
-  }
+  };
+  own(adjust, ADJUST_KEYS);
+  own(brk, BREAK_KEYS);
   const nm = cleanName(n);
   if (nm) q.set(NAME_KEY, nm);
+  own(friend, FRIEND_KEYS);
+  own(arrival, ARRIVAL_KEYS);
   const s = q.toString().replace(/%2C/g, ",");
   return s ? "?" + s : "";
 }
@@ -67,7 +80,25 @@ export function nameRefused(search) {
 export function open(search) {
   parts.adjust = partOf(search, ADJUST_KEYS);
   parts.break = partOf(search, BREAK_KEYS);
+  parts.friend = partOf(search, FRIEND_KEYS);
+  parts.arrival = partOf(search, ARRIVAL_KEYS);
   name = nameOf(search);
+}
+
+// The arrival the address opened with: { from: did a shared link open the
+// page, s: its seal or "" }.
+export function arrival() {
+  const q = new URLSearchParams(parts.arrival);
+  return { from: q.get("from") === "1", s: q.get("s") || "" };
+}
+
+// The friend's forecast the address carries for the return card:
+// { f, name } or null. The name is cleaned by the page's one rule.
+export function friend() {
+  const q = new URLSearchParams(parts.friend);
+  if (!q.get("vs")) return null;
+  const raw = q.get("vn");
+  return { f: q.get("vs"), name: raw == null || raw.length > NAME_MAX ? "" : cleanName(raw) };
 }
 
 // The address with one part, or the name, replaced. `which` is "adjust",
@@ -76,16 +107,29 @@ export function write(which, value) {
   if (which === "name") name = cleanName(value);
   else if (which in parts) parts[which] = value || "";
   else throw new Error("no address part " + which);
-  const q = compose(parts.adjust, parts.break, name);
+  const q = compose(parts.adjust, parts.break, name, parts.friend, parts.arrival);
   history.replaceState(null, "", location.pathname + q + location.hash);
   return q;
+}
+
+// The friend part for a forecast `f` and its name ("" leaves the name off).
+export function friendPart(f, n) {
+  if (!f) return "";
+  const q = new URLSearchParams({ vs: f });
+  const nm = cleanName(n);
+  if (nm) q.set("vn", nm);
+  return "?" + q.toString();
 }
 
 // The link to one section as it stands: section 1's share link carries only
 // section 1 and the name; section 2's carries both, since it continues
 // section 1. `hash` is the section's anchor.
-export function linkTo(which, hash) {
-  const q = which === "adjust" ? compose(parts.adjust, "", name) : compose(parts.adjust, parts.break, name);
+// The return card's link adds the friend's part (`withFriend`); a link never
+// carries the arrival part: a seal is added by the share sheet for the state
+// it shares, and `from` by the server's /s/ redirect.
+export function linkTo(which, hash, { withFriend = false } = {}) {
+  const q = which === "adjust" ? compose(parts.adjust, "", name)
+    : compose(parts.adjust, parts.break, name, withFriend ? parts.friend : "");
   return new URL(location.pathname + q + (hash || ""), location.href).href;
 }
 

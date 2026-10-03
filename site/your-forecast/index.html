@@ -51,6 +51,8 @@
   </div>
 
 <div class="wrap yf-wrap">
+  <!-- the view a shared link opens (js/arrival.js; from=1 in the address) -->
+  <section class="yf-arrival" data-live="arrival" aria-label="A forecast shared with you" hidden></section>
   <header class="lede pl-lede">
     <h1>Your forecast</h1>
     <p>Adjust the model, then break it. Untouched, the page shows the <a href="../forecast">published forecast</a>.</p>
@@ -285,14 +287,23 @@
                 <div class="db">
                   <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
                     <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
+                  <label class="shfriend" hidden><input class="shoff" type="checkbox"> Leave their name off the
+                    side-by-side image and link</label>
                   <div class="urlrow">
                     <label class="visually-hidden" for="b-shurl">Link to this forecast</label>
                     <input class="shurl" id="b-shurl" type="text" readonly value="">
                     <button class="btn shcopy" type="button">Copy link</button>
                   </div>
+                  <p class="stubnote shseal yf-slot" role="status"></p>
+                  <label class="shimgpick">Image <select class="shimg">
+                    <option value="link">Link preview</option>
+                    <option value="story">Story, for a phone</option>
+                    <option value="duel" class="shduel" hidden>Both forecasts, side by side</option></select></label>
                   <div class="preview"><img alt=""></div>
                   <div class="cta shcta">
                     <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
+                    <a class="btn shwa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+                    <a class="btn shx" href="#" target="_blank" rel="noopener">X</a>
                     <button class="btn shdl" type="button" disabled>Download image</button>
                   </div>
                   <p class="toast" role="status" aria-live="polite"></p>

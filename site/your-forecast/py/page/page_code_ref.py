@@ -1,2 +1,2 @@
 # Written by interactive/tools/sync_py.mjs. Do not edit.
-PAGE_REF = "8c52fcc23cc4306bf487cfdf3a8f957e67b50ff279a5cf803c1479d2cd1ff2a8"
+PAGE_REF = "47fb9a55a0739e15febe1f9cec9a46b0be7ab6595cc1c7b861f3617c59704589"

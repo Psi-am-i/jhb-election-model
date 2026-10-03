@@ -262,3 +262,75 @@
 .yf .prrow{position:relative;}
 .yf .prrow .fl{position:absolute;left:17px;bottom:1px;padding:0;font-size:10.5px;line-height:1.2;
   white-space:nowrap;pointer-events:none;}
+
+/* ---------- a shared link's arrival view (js/arrival.js) ---------- */
+/* The friend's forecast at the top of the page, read-only, then three ways
+   on (audits/2026-10-03-share-design §4). Party colours are site.css's
+   pc-<code> classes; no colour of a party is written here. */
+.yf-arrival{max-width:1180px;margin:8px auto 40px;padding-bottom:28px;border-bottom:4px double var(--rule);}
+.yf-arr-from{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px;color:var(--ink-3);margin:0;}
+.yf-arr-from .sw{width:10px;height:10px;border-radius:2px;display:inline-block;}
+.yf-arr-seal[data-seal="sealed"]{color:var(--ink-2);}
+.yf-arr-title{font:600 clamp(32px,5vw,48px)/1.08 var(--serif);color:var(--ink);margin:10px 0 6px;}
+.yf-arr-sub{color:var(--ink-2);font-size:clamp(16px,1.6vw,18px);margin:0;}
+.yf-arr-verdict{border:1px solid var(--rule);background:var(--paper-2);border-radius:8px;padding:16px;margin-top:20px;}
+.yf-arr-what{color:var(--ink-2);font-size:15px;line-height:1.45;margin:0;}
+.yf-arr-chance{font:600 clamp(24px,2.6vw,30px)/1.2 var(--serif);color:var(--ink);margin:6px 0 0;}
+.yf-badge{display:inline-block;font:600 14px/1.4 var(--sans);border:1.5px solid var(--ink-2);border-radius:20px;
+  padding:1px 10px;margin-left:4px;vertical-align:4px;color:var(--ink);white-space:nowrap;}
+.yf-arr-how{font-size:13px;color:var(--ink-3);margin:8px 0 0;line-height:1.45;}
+.yf-arr-quick{margin:16px 0 0;}
+.yf-arr-quick .btn{width:100%;}
+.yf-arr-grid{display:grid;grid-template-columns:1fr;gap:26px;margin-top:22px;}
+.yf-arr-council{width:100%;height:auto;display:block;overflow:visible;}
+.yf-arr-council rect{fill:var(--pc,var(--pc-other));}
+.yf-arr-step{fill:none;stroke:var(--ink);stroke-width:2;}
+.yf-arr-maj{font:12px var(--sans);fill:var(--ink-2);}
+.yf-arr-key{font-size:13px;color:var(--ink-3);margin:8px 0 0;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;}
+.yf-arr-key i{display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--ink-2);margin-right:6px;vertical-align:-1px;}
+.yf-arr-key i.yf-key-pr{opacity:.42;}
+.yf-arr-gov{margin:10px 0 0;font-size:15px;color:var(--ink);}
+.yf-arr-table{border-collapse:collapse;width:100%;font-size:14px;}
+.yf-arr-table th,.yf-arr-table td{padding:6px 0 6px 6px;border-top:1px solid var(--rule);text-align:right;font-variant-numeric:tabular-nums;}
+.yf-arr-table thead th{font-size:12.5px;font-weight:500;color:var(--ink-3);border-top:0;vertical-align:bottom;line-height:1.25;}
+.yf-arr-table th:first-child{text-align:left;padding-left:0;}
+.yf-arr-table tbody th{font-weight:600;color:var(--ink);}
+.yf-arr-party{display:inline-flex;align-items:center;gap:8px;}
+.yf-arr-party .sw{width:18px;height:18px;border-radius:3px;display:inline-block;flex:none;}
+.yf-arr-logo{width:18px;height:18px;border-radius:3px;background:#fff;object-fit:contain;flex:none;}
+.yf-arr-n{font-weight:700;color:var(--ink);}
+.yf-arr-d{color:var(--ink-2);}
+.yf-arr-wide{display:none;}
+.yf-arr-note{font-size:13px;color:var(--ink-3);margin:8px 0 0;line-height:1.45;}
+.yf-arr-fig{margin:18px 0 0;}
+.yf-arr-map{width:100%;max-width:520px;height:auto;display:block;}
+.yf-arr-map path{fill:var(--pc,var(--pc-other));stroke:var(--paper);stroke-width:.8;stroke-linejoin:round;}
+.yf-arr-fig figcaption{font-size:13px;color:var(--ink-3);margin-top:4px;}
+.yf-arr-ctas{margin-top:30px;border-top:1px solid var(--rule);padding-top:22px;}
+.yf-arr-ctas h3{font:600 22px var(--serif);color:var(--ink);margin:0;}
+.yf-arr-ctas p{color:var(--ink-2);font-size:15px;max-width:62ch;line-height:1.5;margin:6px 0 0;}
+.yf-arr-btns{display:flex;flex-direction:column;gap:12px;margin-top:18px;}
+.yf-arr-btns .btn,.yf-arr-quick .btn{display:block;text-align:left;padding:13px 16px;font-weight:600;font-size:16px;}
+.yf-arr-btns .btn small{display:block;font-weight:400;font-size:13px;margin-top:2px;opacity:.85;}
+.yf-arr-later{margin-top:30px;display:grid;grid-template-columns:1fr;gap:14px;}
+.yf-arr-later > div{border-top:1px solid var(--rule);padding-top:12px;}
+.yf-arr-later h3{font-size:15px;font-weight:600;color:var(--ink);margin:0;}
+.yf-arr-later p{font-size:14px;color:var(--ink-2);margin:4px 0 0;line-height:1.5;}
+.yf-arr-big{font:600 30px var(--serif);color:var(--ink);}
+@media (min-width:720px){
+  .yf-arr-verdict{padding:22px 26px;}
+  .yf-arr-quick{display:none;}
+  .yf-arr-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:start;}
+  .yf-arr-table{font-size:16px;}
+  .yf-arr-wide{display:table-cell;}
+  .yf-arr-btns{flex-direction:row;}
+  .yf-arr-btns .btn{text-align:center;}
+  .yf-arr-later{grid-template-columns:repeat(3,1fr);gap:22px;}
+}
+
+/* ---------- section 2's share sheet: the seal, the image picker, the links ---------- */
+.sheet .shseal{margin:6px 0 0;}
+.sheet .shimgpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:10px 0 6px;}
+.sheet .shfriend{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:8px 0 0;}
+.sheet .shfriend[hidden]{display:none;}
+.sheet .shwa,.sheet .shx{text-decoration:none;}
