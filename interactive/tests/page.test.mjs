@@ -223,7 +223,8 @@ test("the page's engine under Pyodide gives the native answer (F19)", { skip: !p
   for (const want of FIXTURE.section2) {
     const h = await engine.handoff({ settings: byName[want.name], total: SECTION2.total });
     assert.deepEqual([h.ward_calls, h.seats], [want.handoff.ward_calls, want.handoff.seats], want.name);
-    const a = await engine.analyse({ ward_calls: h.ward_calls, share: h.share, seats: h.seats });
+    const two = Object.keys(h.seats).sort((x, y) => h.seats[y] - h.seats[x] || (x < y ? -1 : x > y ? 1 : 0)).slice(0, 2);
+    const a = await engine.analyse({ ward_calls: h.ward_calls, share: h.share, seats: h.seats, coalition: two });
     for (const [got, exp, what] of [[h, want.handoff, "handoff"], [a, want.analyse, "analyse"]]) {
       const d = compareLeaves(got, exp);
       assert.ok(d.maxRel <= 1e-9, `${want.name} ${what}: ${d.maxRel} at ${d.where}`);

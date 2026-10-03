@@ -77,8 +77,11 @@ def run_section2(ns) -> list[dict]:
     out = []
     for name in doc["section2"]["cases"]:
         h = json.loads(ns["handoff"](json.dumps({"settings": by_name[name], "total": total})))
+        # the two parties with most seats as the governing coalition, so the
+        # outcome's coalition part is exercised (page.test.mjs picks the same)
+        two = sorted(h["seats"], key=lambda c: (-h["seats"][c], c))[:2]
         a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": h["share"],
-                                                 "seats": h["seats"]})))
+                                                 "seats": h["seats"], "coalition": two})))
         out.append({"name": name, "handoff": h, "analyse": a})
     return out
 
