@@ -1,0 +1,47 @@
+/* The nav bar and the footer every page carries (build_site.nav_for and
+   build_site.footer_for), on every kind of page: the rendered documents, the
+   forecast sheet's pages, the home page, the portal and the interactive pages.
+   One copy here; page files carry none (owner's sweep, 2026-10-03). */
+
+/* Ten items (owner's sweep, 2026-10-03). Below 1200px they wrap from the
+   left and the theme toggle keeps the right end of the last line. From
+   1200px the bar is at least 1120px wide, centred on the page's own column
+   and wider than it where the column is narrower (852px on a document page),
+   so the ten items and the toggle sit on one line on every page. */
+.topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
+  justify-content:flex-start;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:24px;}
+.topnav .themetoggle{margin-left:auto;}
+@media (min-width:1200px){
+  .topnav{box-sizing:border-box;width:max(100%,1120px);
+    margin-left:min(0px,calc((100% - 1120px) / 2));}
+}
+.topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
+.topnav a:hover{color:var(--accent);}
+.topnav a.home{color:var(--accent);font-weight:600;}
+.topnav a.active{color:var(--accent);}
+
+/* The footer: the credits, a rule, then the independence statement with the
+   support link set larger, in the accent colour, at the right (owner's sweep,
+   2026-10-03). The support rule is specific enough to win over any page's own
+   `footer.sitefooter a`. */
+.sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
+  border-top:1px solid var(--rule);padding-top:14px;margin-top:40px;}
+.sitefooter p{margin:0;color:var(--ink-3);}
+/* Underlined, so a link reads as one inside the sentence-form credits on
+   every page, the home page's no-underline links included. */
+.sitefooter a{color:var(--ink-3);text-decoration:underline;
+  text-decoration-color:var(--rule);text-underline-offset:2px;}
+.sitefooter a:hover{color:var(--accent);}
+.sitefooter .foot-rule{border:none;border-top:1px solid var(--rule-soft);margin:12px 0;}
+.sitefooter .foot-independence{display:flex;flex-wrap:wrap;align-items:flex-end;
+  justify-content:space-between;gap:10px 28px;}
+.sitefooter .foot-independence p{flex:1 1 40ch;max-width:110ch;}
+.sitefooter a.foot-support{margin-left:auto;font-family:var(--sans);font-size:18px;
+  font-weight:650;line-height:1.3;color:var(--accent);text-align:right;white-space:nowrap;
+  text-decoration:none;}
+.sitefooter a.foot-support:hover{text-decoration:underline;}
+
+@media print{
+  .topnav{display:none;}
+}

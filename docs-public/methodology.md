@@ -3,32 +3,6 @@
 The full technical record, every file and every workaround, is in the
 [public repository](https://github.com/Psi-am-i/jhb-election-model).
 
-## How accurate is it?
-
-The model is run against an election that has already happened, the 2021
-municipal election, in {{backtest_cities}} cities, and scored against the
-result.
-
-The standard in election forecasting is **uniform swing**: take the national
-change since the last election and apply it equally everywhere. It already
-knows the last result and the direction the country moved, which makes it hard
-to beat. The model is scored against it and two other baselines (the last local
-result repeated unchanged, and that result with uncertainty drawn around it),
-and compared with **whichever did best in each city**.
-
-The model wins in **{{backtest_wins}} of {{backtest_cities}}** cities on the
-measure that scores a forecast's whole range rather than a single guess (CRPS),
-with **{{backtest_crps_better}}** less error in total. On seats put in the
-wrong column it misses **{{backtest_seat_err_model}}** across those councils
-against the baselines' **{{backtest_seat_err_baseline}}**, and it calls the
-winner in **{{backtest_wards_called}} of {{backtest_wards}}** wards.
-
-Two of the three baselines produce a single number rather than a
-range, which the range-based score treats kindly. The best baseline in each
-city is the hardest test available, but it is a test of arithmetic, not of
-politics. The full scoring, city by city and party by party, with the forecast
-beside the real result, is on the [scoring page](about).
-
 ## How Johannesburg's council elections work
 
 Johannesburg's council is elected on two ballots at once. On the first, 135
@@ -197,7 +171,7 @@ It is also not a claim about why anyone votes as they do. Aggregate data can
 show that a pool of voters moved, not why. A sentence on this site that appears
 to explain a voter's reasoning is overreach, and we would like to hear about it.
 
-## How we know it works
+## How accurate is it?
 
 There are three checks, in increasing order of difficulty.
 
@@ -213,12 +187,16 @@ totals for 2021, the model placed the votes well enough to call
 {{blind_test_called}} of {{blind_test_of}} ward winners. That test was run on 4
 August 2026 and has not been re-run on the current model.</span>
 
-**The whole model beats simple baselines, in cities it was not built for.** A
-model tuned on one city can look good there and have learned only that city. So
-the whole pipeline is run separately in eight metros, each fitted only on its
-own wards, roll and history, and scored against three baselines that need no
-model. The results are on the [about the model](about) page, including the city
-where the model *loses*.
+**The whole model beats simple baselines, in cities it was not built for.** It
+is run on the 2021 election in {{backtest_cities}} cities and wins in
+**{{backtest_wins}}** of them on the measure that scores a forecast's whole
+range (CRPS), with **{{backtest_crps_better}}** less error in total. Counted in
+seats put in the wrong column, it misses **{{backtest_seat_err_model}}** against
+the baselines' **{{backtest_seat_err_baseline}}**, a smaller margin because that
+measure looks only at the single most likely outcome. It calls the winner in
+**{{backtest_wards_called}} of {{backtest_wards}}** wards.
+
+<!-- __VALIDATION__ -->
 
 <!-- __JUDGEMENTS_START__ -->
 
@@ -253,10 +231,6 @@ These are choices about how the model works that the data did not make for us. E
 - **A party that does not exist yet is the hardest case.** Splits and entrants
   are sized separately from the record, but a new formation with a popular
   leader remains the largest single source of error.
-- **Two inputs could not be confined to the period before the test election**,
-  and every run prints them above its own results: the ward-level census (2022,
-  the only one we hold) and the record of how much breakaway parties take. Both
-  are declared on the [about the model](about) page.
 - **Overhang's legal fine print is untested in court.** The Commission has never
   published a worked metro overhang example. We put the question to it on 5
   August 2026 and have no answer yet. A 2021 amendment and the Commission's own

@@ -43,28 +43,40 @@ import stats as statlib
 # resolves to an empty ledger, which reads as "nothing was ever published".
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+#: The source code's home, linked from the nav and the footer.
+REPO_URL = "https://github.com/Psi-am-i/jhb-election-model"
+
+import build_play  # noqa: E402  (the interactive page's address, below)
+
+#: The nav, in the owner's order (sweep of 2026-10-03, item 9):
+#: joburg.whysoserious.city | our forecast | your forecast | commentary |
+#: party claims tested | methodology | review | corrections | sources |
+#: source code. No "home" item: the site name at the left of the bar IS the
+#: link home (owner, 2026-09-24).
+#:
+#: ⛔ EVERY HREF IS A PAGE THIS BUILD PRODUCES (or the repository).
+#: `tests/test_site_structure.py` checks it both ways. The last time a nav
+#: entry outlived its page, every page linked to plan.html for weeks after no
+#: build produced it, describing an engine deleted in 87806a7.
+#:
+#: "your forecast" is the interactive page's own address, read from
+#: build_play rather than typed here, so the nav follows the page wherever it
+#: moves (and the page's active state, `nav_for(build_play.PLAY_HREF)`,
+#: matches it).
 NAV_ITEMS = [
-    # No "home" item: the site name at the left of the bar IS the link home
-    # (owner, 2026-09-24).
-    ("forecast", "forecast"),
-    # /play/ (src/build_play.py), built by every Johannesburg build.
-    ("play/", "play with the model"),
-    # "interactive" removed with the page itself — see ARTEFACTS. The comment
-    # below records what happened the LAST time a nav entry outlived its page:
-    # every page linked to plan.html for weeks after no build produced it.
-    ("about", "the model"),
+    ("forecast", "our forecast"),
+    (build_play.PLAY_HREF, "your forecast"),
+    ("commentary", "commentary"),
+    ("claims", "party claims tested"),
+    # /about merged into /methodology (owner's sweep, 2026-10-03); the Worker
+    # sends /about there.
     ("methodology", "methodology"),
     ("review", "review"),
-    ("sources", "sources"),
     # Corrections has its own place in the nav (owner, 2026-09-17): a page that
     # only exists when someone goes looking for it is not a correction record.
     ("corrections", "corrections"),
-    # "plan" was removed from DOCS when the plan became Appendix A of
-    # MODEL-LOG.md, but the nav link stayed. Every page on the site therefore
-    # linked to site/plan.html — a file no build touches any more, describing
-    # the two-bloc engine that was deleted in 87806a7. A dead link to a live
-    # page is one thing; a live link to a dead model is another.
-    ("https://github.com/Psi-am-i/jhb-election-model", "source-code"),
+    ("sources", "sources"),
+    (REPO_URL, "source code"),
 ]
 
 
@@ -144,10 +156,17 @@ import site_assets  # noqa: E402
 SITE_HEAD = site_assets.head() + analytics_head()
 
 
-OG_META = """<meta property="og:site_name" content="Johannesburg 2026 Election Model">
+#: The site-wide share card's title and description: the home page's card,
+#: and /forecast's with its own address (ARTEFACTS).
+OG_TITLE = "Who governs Johannesburg after 4 November 2026?"
+OG_DESCRIPTION = ("The November vote, simulated: who could govern "
+                  "Johannesburg, how the seat law shapes the council, and how "
+                  "sure the model is.")
+
+OG_META = f"""<meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="The November vote, simulated: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is.">
+<meta property="og:title" content="{OG_TITLE}">
+<meta property="og:description" content="{OG_DESCRIPTION}">
 <meta property="og:url" content="https://joburg.whysoserious.city/">
 <link rel="canonical" href="https://joburg.whysoserious.city/">
 <meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
@@ -165,29 +184,50 @@ SITE_URL = "https://joburg.whysoserious.city"
 IEC_RESULTS_URL = "https://results.elections.org.za/"
 
 
+#: Where Stats SA publishes the ward-level population estimates the model reads
+#: (SOURCES.md, "Covariates"), and where the Municipal Demarcation Board
+#: publishes the ward and voting-district boundaries (SOURCES.md, "Boundaries").
+STATSSA_URL = "https://www.statssa.gov.za/"
+MDB_URL = "https://spatialhub-mdb-sa.opendata.arcgis.com/"
+
+
 def footer_for() -> str:
-    """The site footer. Its links are relative, like the nav's, so a UAT
-    Version URL keeps the reader on UAT: absolute /support and /privacy links
-    sent UAT readers to live. /play/ re-points them one level down
-    (`build_play.one_level_down`); the portal sits at the apex root, where
-    they resolve to the asset root; on other city hosts `src/worker.js`
-    serves both pages from the root. The licence wording matches LICENSE (code, MIT) and LICENSE-CONTENT (site
+    """The site footer: the owner's two blocks (sweep of 2026-10-03, item 14),
+    his wording, with a rule between them.
+
+    The sources sentence names what the model reads, per SOURCES.md: from
+    Stats SA, the Census 2022 Ward-level Small Area Population Estimates
+    (population group, age and head counts by ward, `config/dimensions.toml`);
+    from the Municipal Demarcation Board, the 2026 ward and voting-district
+    boundaries; from the IEC, the raw results.
+
+    Its links are relative, like the nav's, so a UAT Version URL keeps the
+    reader on UAT: absolute /support and /privacy links sent UAT readers to
+    live. /play/ re-points them one level down (`build_play.one_level_down`);
+    the portal sits at the apex root, where they resolve to the asset root; on
+    other city hosts `src/worker.js` serves both pages from the root. The
+    licence wording matches LICENSE (code, MIT) and LICENSE-CONTENT (site
     text, charts and published figures, CC BY 4.0)."""
     return f"""<footer class="sitefooter">
-  <div>Johannesburg · 2026 Local Government Election Model · Site text, charts and figures: <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, free to reuse with attribution and a link back. · <a href="privacy">privacy</a></div>
-  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">code on GitHub</a> (MIT licence) · raw results from the <a href="{IEC_RESULTS_URL}">IEC</a></div>
-  <div><a href="support">Support or Sponsor this site.</a></div>
+  <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="{STATSSA_URL}">Stats SA</a>. Ward and voting-district boundaries from the <a href="{MDB_URL}">Municipal Demarcation Board</a>. Raw election results from the <a href="{IEC_RESULTS_URL}">IEC</a>. <a href="{REPO_URL}">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
+  <hr class="foot-rule">
+  <div class="foot-independence">
+    <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
+    <a class="foot-support" href="support">Support Our Work</a>
+  </div>
 </footer>"""
 
 
 FOOTER = footer_for()
 
-def inject_nav(html: str, active_href: str) -> str:
+def inject_nav(html: str, active_href: str, og_meta: str = OG_META) -> str:
     """Give an artefact page the site navigation: the site's head into
-    <head>, the class ``pg-art`` onto <body> (the rules every artefact page
-    shares, src/css/page-art.css), the nav bar at the top of its content
-    container so it aligns with the content, and the footer."""
-    html = html.replace("</head>", OG_META + SITE_HEAD + "</head>", 1)
+    <head> (`og_meta` is the page's share card and canonical address; the
+    site-wide one is the home page's), the class ``pg-art`` onto <body> (the
+    rules every artefact page shares, src/css/page-art.css), the nav bar at
+    the top of its content container so it aligns with the content, and the
+    footer."""
+    html = html.replace("</head>", og_meta + SITE_HEAD + "</head>", 1)
     # The template names its own page class (pg-sheet, pg-home); a body with
     # no class gets none of its own page's rules, so it is refused.
     if html.count('<body class="') != 1:
@@ -225,14 +265,10 @@ MODEL_DOCS = {
         "This page explains how the council is elected, how the simulation "
         "runs and what has been tested.",
     ),
-    "docs-public/about-the-model.md": (
-        "about.html",
-        "About the model",
-        "The model was run on the 2021 municipal election in eight cities, "
-        "using data from before that election and the 2022 census. Its "
-        "forecasts were scored against the actual election results and against "
-        "three naive baselines used in forecasting.",
-    ),
+    # /about is not a page of its own since the owner's sweep of 2026-10-03
+    # (item 12): its scoring, generated into docs-public/about-the-model.md
+    # by src/build_validation.py, is part of /methodology's "How accurate is
+    # it?" (`validation_html`), and src/worker.js sends /about there.
     "docs-public/review.md": (
         "review.html",
         "The review",
@@ -334,33 +370,151 @@ ARTEFACTS = {
     # retiring a stale lead is now one flag in content/<city>/articles.toml.
     # PUBLISHING-BACKLOG §10.
     #
-    # Keyed by the OUTPUT page: (source, the marker whose spans are cut, the
-    # page's <title> or None to keep the source's). The forecast sheet makes
-    # two pages (owner, 2026-09-24): /forecast leads with the forecast, and
-    # the dated 8 August article — headline, standfirst, "since then" note
-    # and the commentary it opens — stands on its own among the articles.
-    "index.html": ("home.html", None, None),
-    "forecast.html": ("forecast-sheet.html", "ARTICLE_ONLY", None),
-    "nobody-will-win.html": ("forecast-sheet.html", "FORECAST_ONLY",
-                             "Nobody will win Johannesburg"),
+    # Keyed by the OUTPUT page: (source, the `__ONLY:<page>__` key whose spans
+    # it keeps (`cut_spans`), the page's <title> or None to keep the source's,
+    # the nav item it lights or None for its own name, the share-card
+    # description or None for the site-wide card). The forecast sheet makes
+    # every page below except the home page (owner's sweep, 2026-10-03, items
+    # 10-11): /forecast holds the forecast alone; the parties' claims moved to
+    # /claims; each article stands on its own page, listed on /commentary from
+    # content/<city>/articles.toml.
+    #
+    # AN ARTICLE'S TITLE AND SHARE CARD ARE NOT HERE. Both come from its entry
+    # in articles.toml (`article_meta`), the same entry /commentary and the
+    # home page list it by, so the list and the page cannot name it
+    # differently. An article entry that types either is refused.
+    #
+    # A share-card description carries no token: `statlib.render` writes
+    # provenance markup, which cannot sit inside a `content="…"` attribute.
+    "index.html": ("home.html", None, None, None, None),
+    "forecast.html": ("forecast-sheet.html", "forecast", None, None, OG_DESCRIPTION),
+    "claims.html": ("forecast-sheet.html", "claims",
+                    "The parties' claims, tested", None,
+                    "Public statements by the parties about November's result, "
+                    "each tested against the model's simulations."),
+    "commentary.html": ("forecast-sheet.html", "commentary",
+                        "Commentary · Johannesburg 2026", None,
+                        "Dated articles on the Johannesburg council election: "
+                        "the seat law, turnout and who can govern."),
+    "nobody-will-win.html": ("forecast-sheet.html", "nobody-will-win", None,
+                             "commentary", None),
+    "nobody-catches-the-votes.html": ("forecast-sheet.html", "nobody-catches-the-votes",
+                                      None, "commentary", None),
+    "minority-administrations.html": ("forecast-sheet.html", "minority-administrations",
+                                      None, "commentary", None),
+    "if-the-law-were-german.html": ("forecast-sheet.html", "if-the-law-were-german",
+                                    None, "commentary", None),
+    "laingsburg-2021.html": ("forecast-sheet.html", "laingsburg-2021",
+                             None, "commentary", None),
 }
 
 
-def cut_spans(html: str, kind: str | None) -> str:
-    """Drop every `<!-- __KIND_START__ -->…<!-- __KIND_END__ -->` span, and
-    the markers of every other kind. Refuses a template with none, or with a
-    START left unclosed — a missing cut publishes the other page's half."""
-    import re as _re
-    if kind is not None:
-        start, end = f"<!-- __{kind}_START__ -->", f"<!-- __{kind}_END__ -->"
-        if html.count(start) == 0 or html.count(start) != html.count(end):
-            raise SystemExit(f"template has {html.count(start)} {start} and "
-                             f"{html.count(end)} {end}: nothing safe to cut")
-        html = _re.sub(_re.escape(start) + r".*?" + _re.escape(end) + r"\n?",
-                       "", html, flags=_re.S)
-    return _re.sub(r"<!-- __(?:ARTICLE|FORECAST)_ONLY_(?:START|END)__ -->\n?",
-                   "", html)
+def article_meta(city: str | None = None) -> dict[str, dict]:
+    """Each article's articles.toml entry, keyed by its page (`<href>.html`),
+    read by the one reader of that file (`render_home.load_articles`)."""
+    import render_home
+    city = city or cityconfig.active().slug
+    return {f"{a['href']}.html": a
+            for a in render_home.load_articles(REPO_ROOT / "content" / city)}
 
+
+def artefact_head(output: str, spec: tuple, html: str,
+                  articles: dict[str, dict]) -> tuple[str, str]:
+    """An artefact page's <title> and share card (`og_meta`). The home page
+    keeps the site-wide card at the site's root; every other page gets its own
+    title, description, og:url and canonical, so a shared article shows its
+    own card and a search engine does not fold it into the home page. An
+    article's come from articles.toml; an ARTEFACTS entry that also types
+    them is refused (two definitions of one title)."""
+    from html import escape
+    _src, _cut, title, _active, og = spec
+    art = articles.get(output)
+    if art is not None:
+        if title or og:
+            raise SystemExit(f"ARTEFACTS types a title or share card for "
+                             f"{output}, an article: both come from its "
+                             f"articles.toml entry")
+        title, og = art["title"], " ".join(art["standfirst"].split())
+    if title is None:
+        m = re.search(r"<title>(.*?)</title>", html, re.S)
+        if not m:
+            raise SystemExit(f"{output}: its source has no <title> to keep")
+        title = m.group(1).strip()
+    else:
+        title = escape(title, quote=False)
+    if output == "index.html":
+        return title, OG_META
+    if not og:
+        raise SystemExit(f"ARTEFACTS gives {output} no share-card description: "
+                         "it would carry the home page's card and canonical")
+    from html import unescape
+    return title, page_og(og, unescape(title), output.removesuffix(".html"))
+
+#: A span of a template that reaches only the page(s) it names.
+_ONLY = re.compile(r"<!-- __ONLY:([a-z0-9,-]+)_(START|END)__ -->")
+
+
+def cut_spans(html: str, keep: str | None) -> str:
+    """The page `keep` cut from a template: every `__ONLY:<pages>__` span
+    that names `keep` is kept, every other span is dropped, and every marker
+    goes. `keep=None` drops no content and only strips the markers (the
+    interactive page reads the forecast sheet's seat rows that way).
+
+    Refuses a template whose markers do not pair or nest, and a `keep` that
+    no span names: a page cut to nothing but the shared frame would publish
+    as an empty page with a working nav."""
+    stack: list[tuple[str, int]] = []
+    spans: list[tuple[int, int, set[str]]] = []
+    for m in _ONLY.finditer(html):
+        if m.group(2) == "START":
+            if stack:
+                raise SystemExit(f"template nests __ONLY:{m.group(1)}__ inside "
+                                 f"__ONLY:{stack[-1][0]}__: nothing safe to cut")
+            stack.append((m.group(1), m.start()))
+        else:
+            if not stack or stack[-1][0] != m.group(1):
+                raise SystemExit(f"template closes __ONLY:{m.group(1)}__ without "
+                                 "opening it: nothing safe to cut")
+            name, lo = stack.pop()
+            spans.append((lo, m.end(), set(name.split(","))))
+    if stack:
+        raise SystemExit(f"template leaves __ONLY:{stack[-1][0]}__ unclosed: "
+                         "nothing safe to cut")
+    if keep is not None and not any(keep in names for _, _, names in spans):
+        raise SystemExit(f"template has no __ONLY:{keep}__ span: the page "
+                         "would be the shared frame alone")
+    out, last = [], 0
+    for lo, hi, names in spans:
+        out.append(html[last:lo])
+        if keep is None or keep in names:
+            out.append(html[lo:hi])
+            last = hi
+        else:
+            # a dropped span takes the line break after it, as a marker does
+            last = hi + (html[hi:hi + 1] == "\n")
+    out.append(html[last:])
+    return re.sub(_ONLY.pattern + r"\n?", "", "".join(out))
+
+
+#: Where /commentary's list of articles goes (forecast-sheet.html).
+COMMENTARY_MARKER = "<!-- __COMMENTARY__ -->"
+
+
+def fill_commentary(html: str, city: str | None = None) -> str:
+    """/commentary's article list, written at build time from
+    content/<city>/articles.toml by the same function that writes the home
+    page's (`render_home._articles`), so the two lists cannot differ. Every
+    entry is its own dated passage. A page without the marker is returned
+    unchanged; a page with two is refused."""
+    n = html.count(COMMENTARY_MARKER)
+    if n == 0:
+        return html
+    if n > 1:
+        raise SystemExit(f"{n} {COMMENTARY_MARKER} markers on one page")
+    import render_home
+    city = city or cityconfig.active().slug
+    return html.replace(COMMENTARY_MARKER,
+                        render_home._articles(REPO_ROOT / "content" / city).strip(), 1)
 
 
 def page_og(og: str, page_title: str, href: str) -> str:
@@ -410,6 +564,86 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 """
 
 
+def _md_html(text: str) -> str:
+    """A document's Markdown as the site's HTML. `toc` gives every heading an
+    id, so a link can land on a section (the home page's "How well it has
+    done" lands on /methodology's "How accurate is it?")."""
+    html = markdown.markdown(text, extensions=["tables", "fenced_code", "smarty", "toc"],
+                             extension_configs={"toc": {"slugify": _heading_id}})
+    html = html.replace("<table>", '<div class="tablewrap"><table>')
+    return html.replace("</table>", "</table></div>")
+
+
+def _heading_id(value: str, separator: str) -> str:
+    """A heading's id from its words. `toc` runs before tokens are filled in,
+    so a token's name is dropped rather than let into the address
+    ("### 8. Do it {{n_draws}} times" -> `8-do-it-times`)."""
+    from markdown.extensions.toc import slugify
+    return slugify(re.sub(r"\{\{[^}]*\}\}", " ", value), separator)
+
+
+#: A table whose body cells after the first column are all figures (or empty).
+_FIGURE_CELL = re.compile(r"^(?:<strong>)?[−+-]?\d")
+
+
+def figure_tables(html: str) -> str:
+    """Mark each table whose columns after the first hold only figures with
+    the class `figures`, which right-aligns them in tabular digits and fixes
+    the column widths (src/css/page-doc.css), so one city's table lines up
+    with the next. Python-Markdown's own `|--:|` alignment writes an inline
+    `style=`, which the site does not carry."""
+    def mark(m: re.Match) -> str:
+        table = m.group(0)
+        body = table.split("</thead>", 1)[-1]
+        cells = [re.sub(r"\s+", " ", c).strip()
+                 for row in re.findall(r"<tr>(.*?)</tr>", body, re.S)
+                 for c in re.findall(r"<td>(.*?)</td>", row, re.S)[1:]]
+        if cells and all(not c or _FIGURE_CELL.match(c) for c in cells):
+            return table.replace("<table>", '<table class="figures">', 1)
+        return table
+    return re.sub(r"<table>.*?</table>", mark, html, flags=re.S)
+
+
+#: The scoring of the model against 2021, written whole by
+#: src/build_validation.py (never by hand), and the line in
+#: docs-public/methodology.md where the build puts it.
+VALIDATION_SOURCE = REPO_ROOT / "docs-public" / "about-the-model.md"
+VALIDATION_MARKER = "<!-- __VALIDATION__ -->"
+
+
+def validation_html(source: Path = VALIDATION_SOURCE) -> str:
+    """The validation section as HTML, inside a `VALIDATION` region.
+
+    ⛔ THE REGION IS WHAT KEEPS ITS FIGURES SCRIPT-MADE. The file is generated,
+    and its figures come from `data/processed/validation_<year>.json`; as its
+    own page it was scanned with `generated_page=True`. Spliced into a
+    hand-written page it would be scanned as prose, so it is wrapped in a
+    region named in `stats.GENERATED_MARKERS`, where the scan lists its
+    figures as generated and does not gate them. A file that does not open
+    with the generator's marker is refused rather than exempted."""
+    text = source.read_text(encoding="utf-8")
+    head = re.match(r"\s*<!-- GENERATED by src/build_validation\.py.*?-->\s*", text, re.S)
+    if not head:
+        raise SystemExit(f"{source} does not open with src/build_validation.py's "
+                         "GENERATED marker: its figures cannot be exempted as "
+                         "script-made. Regenerate it (--from-json).")
+    return ("<!-- __VALIDATION_START__ -->\n" + figure_tables(_md_html(text[head.end():]))
+            + "\n<!-- __VALIDATION_END__ -->")
+
+
+#: Any start or end marker of a script-made region (`stats.GENERATED_MARKERS`).
+_GENERATED_MARKER = re.compile(
+    r"__(%s)_(?:START|END)__" % "|".join(sorted(statlib.GENERATED_MARKERS)))
+
+
+def typed_generated_markers(text: str) -> list[str]:
+    """The script-made region markers a hand-written source carries. Markdown
+    passes HTML comments through, so a document that typed
+    `<!-- __VALIDATION_START__ -->` around a sentence would have its figures
+    listed as generated and left out of the claim audit."""
+    return sorted({m.group(0) for m in _GENERATED_MARKER.finditer(text)})
+
+
 def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
                tech: str | None | bool = None, og: str | None = None,
                token: str | None = None) -> str:
@@ -419,7 +653,15 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
     description; None keeps the site-wide one. `token` is the Web Analytics
     token that picks the document's analytics blocks; None reads the
     module's."""
-    text = analytics_blocks(source.read_text(encoding="utf-8"), token)
+    raw = source.read_text(encoding="utf-8")
+    typed = typed_generated_markers(raw)
+    if typed:
+        raise SystemExit(f"{source} types the script-made region marker(s) "
+                         f"{', '.join(typed)}: a figure inside one is listed as "
+                         "generated and does not block. Only a generator writes "
+                         "them (methodology's VALIDATION is spliced in by "
+                         "`validation_html` at the __VALIDATION__ line).")
+    text = analytics_blocks(raw, token)
     lines = text.splitlines()
     # Skip any leading HTML comment and blank lines before taking the title.
     # A generated page opens with a "do not edit by hand" marker, and without
@@ -446,9 +688,9 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
     if m:
         published = f'  <div class="pubdate">{m.group(1).strip()}</div>\n'
         body_md = body_md[:m.start()] + body_md[m.end():]
-    html = markdown.markdown(body_md, extensions=["tables", "fenced_code", "smarty"])
-    html = html.replace("<table>", '<div class="tablewrap"><table>')
-    html = html.replace("</table>", "</table></div>")
+    html = _md_html(body_md)
+    if VALIDATION_MARKER in html:
+        html = html.replace(VALIDATION_MARKER, validation_html(), 1)
 
     # An empty standfirst prints none: a page whose first paragraph already
     # says it needs no second copy above it (STYLE.md rule 9).
@@ -773,18 +1015,26 @@ def main(argv: list[str] | None = None) -> int:
             scans[output] = statlib.scan_numbers(page, page=output,
                                                  generated_page=True, **scan_cfg)
         else:
-            audits[output] = statlib.audit(page, page=output, **audit_cfg)
+            # A script-made region (methodology's VALIDATION) is listed by the
+            # scan as generated; the claim audit is for prose a person wrote.
+            prose = statlib.REGION.sub(
+                lambda m: " " if m.group(1) in statlib.GENERATED_MARKERS else m.group(0),
+                page)
+            audits[output] = statlib.audit(prose, page=output, **audit_cfg)
             scans[output] = statlib.scan_numbers(page, page=output, **scan_cfg)
         (args.out / output).write_text(page, encoding="utf-8")
         print(f"  rendered {source:<28s} -> site/{output}")
 
-    for output, (source, cut, title) in ARTEFACTS.items():
-        href = "./" if output == "index.html" else output.removesuffix(".html")
+    articles = article_meta()
+    for output, spec in ARTEFACTS.items():
+        source, cut, _title, active, _og = spec
+        href = active or ("./" if output == "index.html" else output.removesuffix(".html"))
         html = cut_spans(Path(source).read_text(encoding="utf-8"), cut)
-        if title:
-            html = re.sub(r"<title>.*?</title>", f"<title>{title}</title>",
-                          html, count=1, flags=re.S)
-        html = inject_nav(html, href)
+        title, og_meta = artefact_head(output, spec, html, articles)
+        html = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{title}</title>",
+                      html, count=1, flags=re.S)
+        html = fill_commentary(html)
+        html = inject_nav(html, href, og_meta)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx,
                                                  record=seen)

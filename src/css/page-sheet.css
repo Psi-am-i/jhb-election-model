@@ -1,5 +1,6 @@
-/* /forecast and /nobody-will-win (forecast-sheet.html): the template's
-   <body> carries the class pg-sheet, and src/site_assets.py scopes every rule
+/* Every page cut from forecast-sheet.html (/forecast, /claims, /commentary and
+   the articles; build_site.ARTEFACTS): the template's <body> carries the class
+   pg-sheet, and src/site_assets.py scopes every rule
    here to it.
 
    Three text levels, the same on every page of the site: headings and
@@ -155,18 +156,8 @@
     h1{text-wrap:pretty;}
   }
   /* .mstat rules: injected by build_site from stats.STAT_CSS (one definition) */
-  /* ---- the claims band: a full-bleed finale, visually unlike the data ---- */
-  .claimband{margin:44px calc(50% - 50vw) 0;padding:38px 0 44px;
-    background:var(--paper-2);border-top:2px solid var(--accent);
-    border-bottom:1px solid var(--rule);}
-  .claimband-inner{max-width:860px;margin:0 auto;padding:0 24px;
-    display:flex;flex-direction:column;gap:12px;}
-  @media (min-width:1440px){.claimband-inner{max-width:1040px;}}
-  @media (max-width:560px){.claimband-inner{padding:0 14px;}}
-  .claimband-h{font-size:30px;}
-  .claimband-lede{font-family:var(--serif);font-size:16px;color:var(--ink-2);
-    max-width:60ch;}
-
+  /* ---- the parties' claims (/claims) ---- */
+  .claimlist > .claim:first-child{margin-top:0;padding-top:0;border-top:none;}
   .claim{display:flex;flex-direction:column;gap:14px;margin-top:26px;
     padding-top:24px;border-top:1px solid var(--rule);}
   .claim-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}

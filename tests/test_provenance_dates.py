@@ -235,7 +235,7 @@ def test_every_dated_figure_in_the_lead_article_is_of_the_article_date():
     arts = tomllib.loads((ROOT / "content/joburg/articles.toml").read_text())["article"]
     lead = next(a for a in arts if a.get("lead"))
     page = lead["href"].split("#")[0] + ".html"
-    source, cut, _ = B.ARTEFACTS[page]
+    source, cut, *_ = B.ARTEFACTS[page]
     html = B.cut_spans((ROOT / source).read_text(encoding="utf-8"), cut)
     registry = S.load_registry(STATS)
     ctx = S.load_context(processed)

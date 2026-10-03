@@ -853,8 +853,11 @@ GATING = ("num", "date", "wnum")
 #: The only marker regions a SCRIPT writes. `CLAIMS` is not one: its prose is
 #: typed into claims.toml by hand, so it is scanned as prose. A region name not
 #: in this set is prose, whatever the comment says — otherwise any hand-written
-#: page could exempt itself by typing a marker.
-GENERATED_MARKERS = frozenset({"MAP", "HEXMAP", "BALLOTS", "REGIMES"})
+#: page could exempt itself by typing a marker. `VALIDATION` is /methodology's
+#: scoring section, written by src/build_validation.py and spliced in by
+#: `build_site.validation_html`, which refuses a source without the generator's
+#: own marker.
+GENERATED_MARKERS = frozenset({"MAP", "HEXMAP", "BALLOTS", "REGIMES", "VALIDATION"})
 REGION = re.compile(r"<!-- __([A-Z]+)_START__ -->(.*?)<!-- __\1_END__ -->", re.S)
 #: Reader-visible attributes: tooltips, accessible labels, link previews.
 ATTRS = re.compile(r'\b(?:title|data-tip|aria-label|alt|content)="([^"]*)"')

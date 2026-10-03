@@ -313,9 +313,9 @@ def test_the_default_build_writes_the_play_page_links_it_and_gives_it_its_own_ca
     pages = sorted(p for p in site.glob("*.html") if p.name != "portal.html")
     assert len(pages) >= 5, pages
     for page in pages:
-        assert 'href="play/">play with the model</a>' in page.read_text(encoding="utf-8"), page.name
+        assert f'href="{build_play.PLAY_HREF}">your forecast</a>' in page.read_text(encoding="utf-8"), page.name
     play = (site / build_play.PLAY_PAGE).read_text(encoding="utf-8")
-    assert 'class="active" href="../play/">play with the model</a>' in play
+    assert f'class="active" href="../{build_play.PLAY_HREF}">your forecast</a>' in play
     # its own card: title, description and url, and no digit in either text
     og = dict(re.findall(r'<meta property="og:(title|description|url)" content="([^"]*)"', play))
     assert og["title"] == build_play.OG_TITLE and og["url"].endswith("/play/"), og

@@ -1,9 +1,12 @@
 <!doctype html>
 <!--
-  ONE TEMPLATE, TWO PAGES (owner, 2026-09-24). build_site cuts this file into
-  /forecast, which drops every __ARTICLE_ONLY__ span and leads with the
-  forecast, and the 8 August article, which drops every __FORECAST_ONLY__
-  span. The stylesheet, the scripts and every generated region stay single.
+  ONE TEMPLATE, SEVERAL PAGES (owner, 2026-09-24; split further 2026-10-03).
+  build_site cuts this file into /forecast, /claims, /commentary and one page
+  per article. A span between `__ONLY:<page>_START__` and `__ONLY:<page>_END__`
+  markers reaches only the page(s) named (a comma-separated list); everything
+  outside every span reaches all of them. build_site.ARTEFACTS names the pages
+  and `cut_spans` does the cutting. The scripts and every generated region stay
+  single, which is what lets render_sheet regenerate them in one file.
 -->
 <html lang="en">
 <head>
@@ -13,9 +16,12 @@
 
 <script defer src="js/maps.js"></script>
 <script defer src="js/sheet.js"></script>
-<!-- __FORECAST_ONLY_START__ -->
-<script defer src="js/forward.js" data-to="nobody-will-win"></script>
-<!-- __FORECAST_ONLY_END__ -->
+<!-- __ONLY:forecast_START__ -->
+<script defer src="js/forward.js" data-to="nobody-will-win" data-map="claims:claims"></script>
+<!-- __ONLY:forecast_END__ -->
+<!-- __ONLY:nobody-will-win_START__ -->
+<script defer src="js/forward.js" data-map="nobody-catches:nobody-catches-the-votes minority:minority-administrations other-pr:if-the-law-were-german laingsburg:laingsburg-2021"></script>
+<!-- __ONLY:nobody-will-win_END__ -->
 </head>
 <body class="pg-sheet">
 
@@ -24,7 +30,7 @@
 <!-- ============================ PAGE 1 ============================ -->
 <div class="page">
 
-<!-- __ARTICLE_ONLY_START__ -->
+<!-- __ONLY:nobody-will-win_START__ -->
   <header class="masthead">
     <div class="pubdate">8 August 2026: Published</div>
     <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
@@ -43,13 +49,55 @@
     {{p_alone}} chance. The ANC still triggers the excessive-seats clause: {{p_excessive_anc}} chance.
     A chance is the share of the {{n_draws}} simulations in which the outcome happens.</p></aside>
   </header>
-<!-- __ARTICLE_ONLY_END__ -->
-<!-- __FORECAST_ONLY_START__ -->
+<!-- __ONLY:nobody-will-win_END__ -->
+<!-- __ONLY:forecast_START__ -->
   <header class="masthead">
     <div class="kicker">Forecast · City of Johannesburg · 4 November 2026</div>
     <h1>Who governs Johannesburg</h1>
   </header>
-<!-- __FORECAST_ONLY_END__ -->
+<!-- __ONLY:forecast_END__ -->
+<!-- __ONLY:claims_START__ -->
+  <header class="masthead" id="claims">
+    <div class="kicker">The campaign arithmetic</div>
+    <h1>The parties' claims, tested</h1>
+    <p class="standfirst">Each claim below is a public, checkable statement about November,
+    tested against the same {{n_draws}} simulations as the forecast.</p>
+  </header>
+<!-- __ONLY:claims_END__ -->
+<!-- __ONLY:commentary_START__ -->
+  <header class="masthead">
+    <div class="kicker">Johannesburg 2026</div>
+    <h1>Commentary</h1>
+  </header>
+<!-- __ONLY:commentary_END__ -->
+<!-- __ONLY:nobody-catches-the-votes_START__ -->
+  <header class="masthead">
+    <div class="pubdate">8 August 2026: Published</div>
+    <div class="kicker">The counter-intuitive part</div>
+    <h1 id="nobody-catches">When the ANC falls, nobody catches the votes</h1>
+  </header>
+<!-- __ONLY:nobody-catches-the-votes_END__ -->
+<!-- __ONLY:minority-administrations_START__ -->
+  <header class="masthead">
+    <div class="pubdate">8 August 2026: Published</div>
+    <div class="kicker">The third way to govern</div>
+    <h1 id="minority">Minority administrations</h1>
+  </header>
+<!-- __ONLY:minority-administrations_END__ -->
+<!-- __ONLY:if-the-law-were-german_START__ -->
+  <header class="masthead">
+    <div class="pubdate">8 August 2026: Published</div>
+    <div class="kicker">The counterfactual — four answers to one problem</div>
+    <h1 id="other-pr">Other Proportional Representation Mechanisms</h1>
+  </header>
+<!-- __ONLY:if-the-law-were-german_END__ -->
+<!-- __ONLY:laingsburg-2021_START__ -->
+  <header class="masthead">
+    <div class="pubdate">8 August 2026: Published</div>
+    <div class="kicker">The precedent — a dress rehearsal in the Karoo</div>
+    <h1 id="laingsburg">Laingsburg, 2021: the whole mechanism in seven seats</h1>
+  </header>
+<!-- __ONLY:laingsburg-2021_END__ -->
 
 
 
@@ -60,7 +108,7 @@
 
 
 
-<!-- __FORECAST_ONLY_START__ -->
+<!-- __ONLY:forecast_START__ -->
   <div class="bandhead"><span class="bandtitle">The forecast</span><button type="button" class="bandbtn" data-band="forecast">collapse all</button></div>
 
 <!-- __MAP_START__ -->
@@ -260,14 +308,17 @@
 <!-- __GOVERN_NOTE_END__ --></figcaption>
   </details>
 
-<!-- __FORECAST_ONLY_END__ -->
-<!-- __ARTICLE_ONLY_START__ -->
-  <div class="bandhead"><span class="bandtitle">Commentary</span><button type="button" class="bandbtn" data-band="commentary">collapse all</button></div>
+<!-- __ONLY:forecast_END__ -->
+<!-- __ONLY:commentary_START__ -->
+  <section class="article">
+  <!-- __COMMENTARY__ -->
+  </section>
+<!-- __ONLY:commentary_END__ -->
 
-  <details class="rollup" data-band="commentary" open>
-    <summary><span class="eyebrow">The rule that shapes everything</span>
-    <h2 id="the-november-surprise">Wards, lists — and the November surprise</h2></summary>
-    <div class="pubdate">8 August 2026: Published</div>
+<!-- __ONLY:nobody-will-win_START__ -->
+  <section class="article">
+    <div class="eyebrow">The rule that shapes everything</div>
+    <h2 id="the-november-surprise">Wards, lists — and the November surprise</h2>
     <p class="lede">Johannesburg votes on two ballots at once: one elects a ward councillor, race
     by race — highest total wins, no majority needed, no runoff — and one is for a party. It seems like they elect two separate halves of the council,
     but they don't — the two ballots are <em>added together</em>, and that combined share sets
@@ -286,12 +337,11 @@
     <p>Still the ANC's usual condition, and weaker than published: about {{anc_ward_median}} wards on a
     {{anc_entitlement}}-seat entitlement. The clause fires for the ANC: {{p_excessive_anc}} chance.
     When it does not, the ANC also gets list seats.</p></aside>
-  </details>
+  </section>
+<!-- __ONLY:nobody-will-win_END__ -->
 
-  <details class="rollup" data-band="commentary" open>
-    <summary><span class="eyebrow">The precedent — a dress rehearsal in the Karoo</span>
-    <h2 id="laingsburg">Laingsburg, 2021: the whole mechanism in seven seats</h2></summary>
-    <div class="pubdate">8 August 2026: Published</div>
+<!-- __ONLY:laingsburg-2021_START__ -->
+  <section class="article">
     <p class="lede">This clause is not a theory — it has fired exactly once, in a Karoo town with a
     seven-seat council. In 2021 the DA won three of Laingsburg's four wards on just 23% of the
     vote, a share entitling it to only two seats. The Electoral Commission's published calculation
@@ -307,11 +357,11 @@
     <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
     <p>The central case now has the ANC on about {{anc_ward_median}} wards against a
     {{anc_entitlement}}-seat entitlement. The clause fires for the ANC: {{p_excessive_anc}} chance.</p></aside>
-  </details>
+  </section>
+<!-- __ONLY:laingsburg-2021_END__ -->
 
-  <details class="rollup" data-band="commentary" open>
-    <summary><span class="eyebrow">The counterfactual — four answers to one problem</span>
-    <h2 id="other-pr">Other Proportional Representation Mechanisms</h2></summary>
+<!-- __ONLY:if-the-law-were-german_START__ -->
+  <section class="article">
     <p class="lede">South Africa is not the only democracy whose voters hand a party more
     constituency wins than its proportional share. Germany faced the same arithmetic for
     decades — and answered it differently three times. Until 2013 the Bundestag simply grew:
@@ -330,12 +380,11 @@
     the four rules differ only in who absorbs its surplus: the other parties, everyone a
     little, the chamber itself, or — since 2023 in Germany — the surplus winners themselves,
     whose extra wards would simply go unfilled.</figcaption>
-  </details>
+  </section>
+<!-- __ONLY:if-the-law-were-german_END__ -->
 
-  <details class="rollup" data-band="commentary" open>
-    <summary><span class="eyebrow">The counter-intuitive part</span>
-    <h2 id="nobody-catches">When the ANC falls, nobody catches the votes</h2></summary>
-    <div class="pubdate">8 August 2026: Published</div>
+<!-- __ONLY:nobody-catches-the-votes_START__ -->
+  <section class="article">
     <p class="lede">Most voters assume the ANC's decline must hand victory to someone else. The
     record says otherwise. Between 2019 and 2021 — the ANC bloc's biggest collapse ever — it shed
     <b>{{bloc_leak_votes}} votes</b> across Johannesburg's voting districts. The opposition captured
@@ -350,13 +399,13 @@
     <aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div>
     <p>The model then grouped voters into ANC- and DA-leaning blocs. It now groups them by census
     data and by how they voted before. The finding holds in the new grouping.</p></aside>
-  </details>
+  </section>
+<!-- __ONLY:nobody-catches-the-votes_END__ -->
 
 
 
-  <details class="rollup" data-band="commentary">
-    <summary><span class="eyebrow">The third way to govern</span>
-    <h2 id="minority">Minority administrations</h2></summary>
+<!-- __ONLY:minority-administrations_START__ -->
+  <section class="article">
     <p class="lede">No coalition table shows it, but the mayor is elected by councillors
     <em>present and voting</em>, so abstention installs minority governments — it is how the DA
     took this mayoralty in 2021. A minority administration is viable when its candidate outpolls
@@ -368,10 +417,10 @@
 <tr><td>DA minority, ANC+EFF+MK oppose</td><td class="num">{{@minority.DA_minority_ANC_EFF_MK_oppose=0.040400;chance;forecast_summary.json minority}}</td></tr><tr><td>DA minority, only ANC opposes (2021 pattern)</td><td class="num">{{@minority.DA_minority_only_ANC_opposes_2021_pattern=0.504000;chance;forecast_summary.json minority}}</td></tr><tr><td>ANC minority, only DA opposes</td><td class="num">{{@minority.ANC_minority_only_DA_opposes=0.481400;chance;forecast_summary.json minority}}</td></tr><tr><td>ANC minority, DA+ASA oppose</td><td class="num">{{@minority.ANC_minority_DA_ASA_oppose=0.128000;chance;forecast_summary.json minority}}</td></tr>
 <!-- __MINORITY_END__ --></tbody>
     </table></div>
-  </details>
+  </section>
+<!-- __ONLY:minority-administrations_END__ -->
 
-<!-- __ARTICLE_ONLY_END__ -->
-<!-- __FORECAST_ONLY_START__ -->
+<!-- __ONLY:forecast_START__ -->
   <div class="bandhead"><span class="bandtitle">About the model</span><button type="button" class="bandbtn" data-band="about">collapse all</button></div>
 
 
@@ -415,24 +464,19 @@
 
 
 
-  <!-- "Your turn — simulate it yourself" removed 2026-09-17: the interactive it links to was withdrawn and is not on the site. -->
-
-  <section class="claimband" id="claims">
-    <div class="claimband-inner">
-      <div class="eyebrow">The campaign arithmetic</div>
-      <h2 class="claimband-h">The parties' claims, tested</h2>
-      <p class="claimband-lede">Each claim below is a public, checkable statement about November,
-      tested against the same {{n_draws}} simulations as the rest of this page.</p>
+<!-- __ONLY:forecast_END__ -->
+<!-- __ONLY:claims_START__ -->
+  <section class="claimlist">
 <!-- __CLAIMS_START__ -->
     <article class="claim" data-party="DA"><div class="pubdate">7 August 2026: Published</div><div class="claim-top"><img class="plogo" src="logos/DA.png" alt="" width="44" height="44"><div class="claim-who"><b>Democratic Alliance</b><span>Helen Zille, DA · <a href="https://www.businessday.co.za/politics/2026-03-01-da-needs-490000-voters-to-win-outright-majority-in-joburg-says-zille/" target="_blank" rel="noopener">Business Day, March 2026</a></span></div><span class="verdict vfalse">FALSE</span></div><blockquote class="claim-quote">We need 490,000 registered DA voters to go vote DA, if they do that we win an outright majority<span class="q-close">”</span></blockquote><p class="claim-intro"><span data-asof="2026-08-07">When we put the claim through the full model on 7 August 2026 it fell short by {{claim_short_by}} seats at the median. The figures below are from that run. The model has changed since, and the turnout setting they were measured under no longer exists, so read them as history rather than as today's forecast. The claim also falls at its use of arithmetic.</span></p><ol class="claimsteps"><li><div class="stepbody"><span data-asof="2026-08-07"><b>It is half of the wrong number.</b> 490,000 is almost exactly half of the ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low. At first glance it looks plausible, until you realise that if there are more voters, you need half of a bigger number. If all DA members did what Helen wanted, the total number of voters would be ~{{claim_poll_surged}}, and half of that is {{claim_half_surged}} — not 490,000.</span></div></li><li><div class="stepbody"><span data-asof="2026-08-07"><b>They can't reach the higher number.</b> Push every DA and ActionSA supporter to the highest turnout their areas have ever recorded — {{claim_hi_turnout}}%, a turnout fantasy at a local election — and the DA does clear the wrong original target, polling ~{{claim_da_votes_surge}}. But that is still well short of {{claim_half_surged}}.</span></div></li><li><div class="stepbody"><span data-asof="2026-08-07"><b>Even {{claim_da_share_surged}}% of the vote doesn't buy {{claim_da_share_surged}}% of the seats.</b> {{claim_da_share_surged}}% would be {{claim_prop_seats}} seats of {{council_size}}. But the excessive-seats law still fires in nine simulations out of ten, handing the ANC every stronghold ward it holds — about {{claim_anc_wards_surged}} wards on an entitlement of about {{claim_anc_entitlement_surged}}. The surplus is deducted from everyone else's column, the biggest slice from the biggest party. So the DA's median actually lands on {{claim_da_median}} of the {{majority}} needed.</span></div></li><li><div class="stepbody"><span data-asof="2026-08-07"><b>Could she still be right?</b> We looked for a reading that works. Her exact words — “We need 490,000 registered DA voters to go vote DA, if they do that we win an outright majority” — never say what total she is measuring against. Against 2021's poll of ~{{claim_poll_2021}} ballots, 490,000 would be {{claim_490k_of_2021}}%. So the claim is true in exactly one world: the DA doubles its vote while every other party combined sheds about {{claim_others_shed}} votes, keeping the voter numbers frozen at the record low. If that happened, is Helen right? Nothing in twenty years of turnout records produces that world — but even assuming it exists, while the ANC holds its ~{{claim_anc_wards_surged}}-ward wall the excessive-seats law means the DA needs about {{claim_vote_share_needed}}% of the vote to reach {{majority}}. So even in a special universe with never-before-seen events, it is false. The few simulations where the DA does govern alone are the ones where its surge breaks the wall itself, flipping stronghold wards — in those draws the ANC falls to ~{{claim_anc_collapse_seats}} seats. To do that, the DA needs to do more than turn out its existing supporters. It needs new ones.</span></div></li></ol><aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div><p>The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In today's forecast, with no surge, the DA wins a majority on its own: {{@claim.da_alone.share=0.000600;chance;seat_draws.csv, 5,000 simulations}} chance ({{@claim.da_alone.count=3;int;seat_draws.csv, 5,000 simulations}} of the {{n_draws}} simulations). {{@claim.da_alone.wall_count=3;int;ward_draws.csv + seat_detail_draws.csv}} of those take at least {{@claim.da_alone.wall_flips=30;int;render_sheet.WALL_FLIPS, the threshold this scenario is counted at}} of the ANC's usual wards from it, and the ANC falls to {{@claim.da_alone.wall_anc_low=21;int;ward_draws.csv + seat_detail_draws.csv, over the 3 simulations where this happens}}–{{@claim.da_alone.wall_anc_top=52;int;ward_draws.csv + seat_detail_draws.csv, over the 3 simulations where this happens}} seats. The other route to a DA majority, the ANC holding its wards while ActionSA and the EFF collapse, no longer appears in any simulation. <b>The verdict stands. A DA majority depends less on turnout than it did.</b></p></aside></article>
     <article class="claim" data-party="ANC"><div class="pubdate">26 September 2026: Published</div><div class="claim-top"><img class="plogo" src="logos/ANC.png" alt="" width="44" height="44"><div class="claim-who"><b>African National Congress</b><span>Dickson Masemola, ANC NEC member · <a href="https://www.joburgetc.com/news/anc-vows-to-restore-joburg-no-turnaround-plan/" target="_blank" rel="noopener">Joburg ETC, 13 August 2026</a></span></div><span class="verdict vfalse">OUT OF REACH</span></div><blockquote class="claim-quote">We want to restore this city. But we can only be able to do so if the people of greater Johannesburg give their organisation, the ANC, absolute authority without any hesitation<span class="q-close">”</span></blockquote><p class="claim-intro">This is an appeal, not a forecast, so the thing to test is whether the mandate being asked for is available at all. Absolute authority means governing without needing anyone else: {{majority}} of the {{council_size}} seats. In the {{n_draws}} simulations behind today's forecast, the ANC does it in {{@claim.anc_alone.count=1;int;seat_draws.csv, 5,000 simulations}} of them.</p><ol class="claimsteps"><li><div class="stepbody"><b>Not close.</b> The ANC's median is {{@claim.anc.median=66;int;seat_draws.csv, 5,000 simulations}} seats, against the {{majority}} it would need. Its single best result anywhere in the {{n_draws}} simulations is {{@claim.anc_alone.best=144;int;seat_draws.csv, 5,000 simulations}}, and that draw is the outer edge of the range, not a likely outcome.</div></li><li><div class="stepbody"><b>Being first is a different question, and that one is open.</b> The ANC alone has the most seats in {{@claim.anc_largest.share=0.467200;chance;seat_draws.csv, 5,000 simulations}} of simulations, the DA alone in {{@claim.da_largest.share=0.452400;chance;seat_draws.csv, 5,000 simulations}}, and two or more parties tie for the most seats in {{@claim.largest_tied.share=0.014400;chance;seat_draws.csv, 5,000 simulations}}. First place is a genuine contest. Sole control is not: no party reaches {{majority}} alone in more than a handful of draws.</div></li><li><div class="stepbody"><b>The ANC does have routes — they are all coalitions.</b> With the EFF and MK, its closest partners on this ballot, the three together reach {{majority}} in {{@claim.anc_routes.left_share=0.115800;chance;seat_draws.csv, 5,000 simulations}} of simulations, on a median of {{@claim.anc_routes.left_median=116;int;seat_draws.csv, 5,000 simulations}} seats. Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in {{@claim.red_lines.anc_side_share=0.570200;chance;seat_draws.csv, 5,000 simulations}}. These routes and others are open to the ANC. Absolute authority is not.</div></li></ol><aside class="since"><div class="since-h">{{generated_date}}: what the model says now</div><p>The ANC reaches a majority on its own: {{@claim.anc_alone.share=0.000200;chance;seat_draws.csv, 5,000 simulations}} chance ({{@claim.anc_alone.count=1;int;seat_draws.csv, 5,000 simulations}} of the {{n_draws}} simulations), with {{@claim.anc_alone.best=144;int;seat_draws.csv, 5,000 simulations}} seats at its best. When this claim was first written it did so in none of them.</p></aside></article>
     <article class="claim" data-party="MK"><div class="pubdate">26 September 2026: Published</div><div class="claim-top"><img class="plogo" src="logos/MK.png" alt="" width="44" height="44"><div class="claim-who"><b>uMkhonto weSizwe Party</b><span>Bongani Baloyi, MK Party mayoral candidate for Johannesburg · <a href="https://www.timeslive.co.za/politics/2026-09-09-mkp-mayoral-hopeful-says-polls-undercounting-grassroots-support/" target="_blank" rel="noopener">TimesLive, 9 September 2026</a></span></div><span class="verdict vfalse">VERY UNLIKELY</span></div><blockquote class="claim-quote">We firmly believe that these polls are underpolling MK Party, just as they did in the 2024 elections. According to us, we are going to be the biggest party in the city<span class="q-close">”</span></blockquote><p class="claim-intro">Unlike most campaign talk this is a precise, checkable prediction: more seats than anyone else. MK is the largest party in {{@claim.mk_largest.share=0.014400;chance;seat_draws.csv, 5,000 simulations}} of the {{n_draws}} simulations.</p><ol class="claimsteps"><li><div class="stepbody"><b>The gap is large, not marginal.</b> MK's median is {{@claim.mk.median=22;int;seat_draws.csv, 5,000 simulations}} seats of {{council_size}}. Even at the top of its range — {{@claim.mk.p95=50;int;seat_draws.csv, 5,000 simulations}} seats, a result it beats in only one simulation in twenty — it is short of the ANC's typical {{@claim.anc.median=66;int;seat_draws.csv, 5,000 simulations}} and the DA's {{@claim.da.median=66;int;seat_draws.csv, 5,000 simulations}}.</div></li><li><div class="stepbody"><b>First place is a two-horse race in this forecast.</b> The ANC alone has the most seats in {{@claim.anc_largest.share=0.467200;chance;seat_draws.csv, 5,000 simulations}} of simulations and the DA alone in {{@claim.da_largest.share=0.452400;chance;seat_draws.csv, 5,000 simulations}}. Two or more parties tie for the most seats in {{@claim.largest_tied.share=0.014400;chance;seat_draws.csv, 5,000 simulations}}. Everything else, MK included, shares what is left.</div></li><li><div class="stepbody"><b>The complaint about polls does not reach this forecast.</b> Our model uses no poll at all. It is built from the record — how this city has actually voted, and the trajectories we can measure in that record. So the claim that pollsters undercount MK, whether or not it is right, leaves these numbers where they are. To be largest, MK would have to be under-represented in past ballot boxes, not in a survey — a different and much harder argument.</div></li></ol></article>
     <article class="claim" data-party="DA"><div class="pubdate">26 September 2026: Published</div><div class="claim-top"><img class="plogo" src="logos/DA.png" alt="" width="44" height="44"><div class="claim-who"><b>Democratic Alliance</b><span>Helen Zille, DA · <a href="https://www.dailymaverick.co.za/article/2026-09-13-zille-draws-coalition-red-lines-as-da-targets-joburg-majority/" target="_blank" rel="noopener">Daily Maverick, 13 September 2026</a></span></div><span class="verdict vfalse">MORE LIKELY THAN NOT</span></div><blockquote class="claim-quote">We won't go into a coalition with MK, and we will not go into coalition with the EFF. Because our value set is too incompatible. You cannot govern with people who don't share any of your ideology<span class="q-close">”</span></blockquote><p class="claim-intro">A red line is a choice, not a claim about the world, so there is nothing here to call true or false. What can be tested is what it costs. Ruling out the EFF and MK leaves the DA two high-probability ways to a majority: everyone else in the council except the ANC, which clears {{majority}} in {{@claim.red_lines.no_red_share=0.593000;chance;seat_draws.csv, 5,000 simulations}} of simulations, or a deal with the ANC itself, which clears it in {{@claim.red_lines.grand_share=0.427200;chance;seat_draws.csv, 5,000 simulations}}. The narrower option — ActionSA and the PA alone — is the {{@claim.red_lines.three_share=0.162400;chance;seat_draws.csv, 5,000 simulations}} case discussed just below.</p><ol class="claimsteps"><li><div class="stepbody"><b>Without the ANC, the red line leaves a majority in {{@claim.red_lines.no_red_share=0.593000;chance;seat_draws.csv, 5,000 simulations}} of simulations.</b> A council built from every party except the ANC, the EFF and MK reaches {{majority}} in that share of the {{n_draws}} simulations. That is the whole of the rest of the council acting as one — the most generous possible reading of the DA's options.</div></li><li><div class="stepbody"><b>The plausible version of that coalition is much weaker.</b> The DA with ActionSA and the Patriotic Alliance — the partners most often named — reaches {{majority}} in {{@claim.red_lines.three_share=0.162400;chance;seat_draws.csv, 5,000 simulations}} of simulations. Two medians describe them and they answer different questions: across all {{n_draws}} simulations the three hold {{@claim.red_lines.three_median=117;int;seat_draws.csv, 5,000 simulations}} seats, and in the {{@claim.red_lines.three_share=0.162400;chance;seat_draws.csv, 5,000 simulations}} where they do reach a majority they hold {{@claim.red_lines.three_median_when_wins=143;int;seat_draws.csv, 5,000 simulations, among the simulations where this combination reaches a majority}}. The who-can-govern table reports the second, because it is asking what governing looks like when it happens. Getting from the first to a majority means adding parties that will each hold a handful of seats, and keeping all of them.</div></li><li><div class="stepbody"><b>The alternative the red line leaves is a deal with the ANC.</b> The DA and the ANC together clear {{majority}} in {{@claim.red_lines.grand_share=0.427200;chance;seat_draws.csv, 5,000 simulations}} of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable two-party majority in the city.</div></li><li><div class="stepbody"><b>The same test applied to the other side.</b> An ANC-led council excluding the DA, the EFF and MK reaches {{majority}} in {{@claim.red_lines.anc_side_share=0.570200;chance;seat_draws.csv, 5,000 simulations}} of simulations — almost exactly the same odds as the DA's route. On coalition arithmetic alone, neither leader is better placed than the other.</div></li></ol></article>
     <!-- __CLAIMS_END__ -->
-    </div>
   </section>
-<!-- __FORECAST_ONLY_END__ -->
+<!-- __ONLY:claims_END__ -->
 
+<!-- __ONLY:forecast_START__ -->
   <div class="colophon">
     Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and
     2021 municipal elections, the 2014, 2019 and 2024 national and provincial elections, and all
@@ -454,6 +498,7 @@
     <span><b>Polls</b> not an input since <span data-asof="2026-09-12">12 September 2026</span> — used only as an outside check</span>
     <span><b>Council</b> {{council_size}} seats · majority {{majority}} · Schedule 1 item 16 applied</span>
   </div>
+<!-- __ONLY:forecast_END__ -->
 
 </div>
 
