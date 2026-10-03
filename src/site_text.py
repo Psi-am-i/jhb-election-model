@@ -460,7 +460,8 @@ def shown_text(block: dict, text: str) -> str:
     return _html.unescape(stats.TAGS.sub(" ", scan_form(block, text)))
 
 
-def typed_numbers(block: dict, new_text: str, scan_cfg: dict) -> list[dict]:
+def typed_numbers(block: dict, new_text: str, scan_cfg: dict,
+                  pages=(None,)) -> list[dict]:
     """Every number in ``new_text`` that would block a publish
     (`stats.is_blocking`) and that ``block`` did not already have as one —
     a typed number the edit brings in, including one put where a token was.
@@ -469,20 +470,27 @@ def typed_numbers(block: dict, new_text: str, scan_cfg: dict) -> list[dict]:
 
     A block is scanned alone, so a page context that clears a number (a dated
     passage around a whole article entry, a quotation's class) is not seen:
-    such a number is listed, which errs toward asking."""
-    def scan(text):
-        return stats.scan_numbers(scan_form(block, text), **scan_cfg)
-    old = scan(block["text"])
-    left = Counter(h["value"] for h in old if stats.is_blocking(h))
-    fixed = {h["value"] for h in old if h["status"] == "fixed"}
-    out = []
-    for h in scan(new_text):
-        if not stats.is_blocking(h):
-            continue
-        if left[h["value"]] > 0:
-            left[h["value"]] -= 1
-        else:
-            out.append({**h, "was_fixed": h["value"] in fixed})
+    such a number is listed, which errs toward asking.
+
+    A registered fact clears only on the pages its entry names
+    (`stats.for_page`), so the block is scanned as each page in ``pages``
+    shows it, and a number blocking on any of them is listed once. ``None``
+    is no page: only entries for every page clear there."""
+    out, seen = [], set()
+    for page in pages or (None,):
+        def scan(text):
+            return stats.scan_numbers(scan_form(block, text), page=page, **scan_cfg)
+        old = scan(block["text"])
+        left = Counter(h["value"] for h in old if stats.is_blocking(h))
+        fixed = {h["value"] for h in old if h["status"] == "fixed"}
+        for h in scan(new_text):
+            if not stats.is_blocking(h):
+                continue
+            if left[h["value"]] > 0:
+                left[h["value"]] -= 1
+            elif (h["value"], h["context"]) not in seen:
+                seen.add((h["value"], h["context"]))
+                out.append({**h, "was_fixed": h["value"] in fixed})
     return out
 
 

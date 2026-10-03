@@ -184,11 +184,11 @@ def inject(page: str) -> str:
 
 def page_blocks(blocks) -> dict[str | None, set[str]]:
     """Which blocks each built page can show, from `build_site`'s own map of
-    page to source (`ARTEFACTS`, with the half of a template a page cuts, and
-    `DOCS`). A TOML block can be on any page; key None is every other page."""
+    page to source (`ARTEFACTS`, with the `__ONLY__` spans of a template a
+    page drops, `build_site.only_spans`, and `DOCS`). A TOML block can be on any page; key None is every other page."""
     import build_site
     sources: dict[str, list[tuple[str, str | None]]] = {}
-    for output, (source, cut, _title) in build_site.ARTEFACTS.items():
+    for output, (source, cut, *_rest) in build_site.ARTEFACTS.items():
         sources.setdefault(output, []).append((source, cut))
     for source, spec in build_site.DOCS.items():
         sources.setdefault(spec[0], []).append((source, None))
@@ -201,8 +201,8 @@ def page_blocks(blocks) -> dict[str | None, set[str]]:
             cuts = []
             if cut:
                 body = (ROOT / source).read_text(encoding="utf-8")
-                cuts = [m.span() for m in re.finditer(
-                    rf"<!-- __{cut}_START__ -->.*?<!-- __{cut}_END__ -->", body, re.S)]
+                cuts = [(lo, hi) for lo, hi, names in build_site.only_spans(body)
+                        if cut not in names]
             ids |= {b["id"] for b in blocks if b["source"] == source
                     and not any(lo <= b["span"][0] < hi for lo, hi in cuts)}
         out[page] = ids
@@ -329,6 +329,14 @@ class Session:
                 out.append(f.relative_to(self.site).as_posix())
         return out
 
+    def shown_on(self, block_id: str) -> list[str]:
+        """The pages the number gate judges a block's edit on, and a
+        registered entry for it names: the built pages it appears on, or the
+        page it was edited from."""
+        edit = self.pending.get(block_id) or {}
+        return self.pages_of(block_id) or [
+            (edit.get("page") or "").lstrip("/") or "index.html"]
+
     def text_of(self, block_id: str) -> str:
         edit = self.pending.get(block_id)
         return edit["text"] if edit else self.blocks[block_id]["text"]
@@ -358,7 +366,8 @@ class Session:
         return self._gate
 
     def new_numbers(self, block: dict, new_text: str) -> list[dict]:
-        return site_text.typed_numbers(block, new_text, self.gate())
+        return site_text.typed_numbers(block, new_text, self.gate(),
+                                       pages=self.shown_on(block["id"]))
 
     @staticmethod
     def prose(block: dict, text: str) -> str:
@@ -501,7 +510,7 @@ class Session:
                             "that contain the number.")
         if problems:
             return False, {"problems": problems}
-        pages = self.pages_of(block_id) or [edit["page"].lstrip("/") or "index.html"]
+        pages = self.shown_on(block_id)
         entry = {"value": value, "context": context.strip(), "kind": kind or "history",
                  "source": source.strip(), "reviewed": _dt.date.today().isoformat(),
                  "page": ", ".join(pages)}
@@ -542,7 +551,7 @@ def file_diff(files: dict[str, tuple[str, str]]) -> str:
 
 def resolve_path(site: Path, url_path: str) -> Path | None:
     """The file the deployed site serves for ``url_path`` (`/forecast` is
-    forecast.html, `/play/` is play/index.html), or None."""
+    forecast.html, `/your-forecast/` is your-forecast/index.html), or None."""
     rel = unquote(url_path).lstrip("/")
     base = site.resolve()
     for cand in (rel, rel + ".html", (rel.rstrip("/") + "/index.html").lstrip("/")):

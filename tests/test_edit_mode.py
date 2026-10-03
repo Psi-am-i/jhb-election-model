@@ -388,7 +388,8 @@ def test_the_overlay_never_reaches_a_site():
     import build_site as B
     pages, problems = EM.shipped(ROOT / "site")
     expected = {spec[0] for spec in B.DOCS.values()} | set(B.ARTEFACTS) | {"portal.html"}
-    expected |= {"play/index.html", "make/index.html"}
+    import build_your_forecast
+    expected |= {build_your_forecast.YF_PAGE}
     assert expected <= set(pages) and len(pages) <= len(expected) + 2, pages
     assert problems == [], problems
 

@@ -99,7 +99,7 @@ def check(city: str, site: Path, preview: bool, review: Path | None = None) -> l
     #
     # RECURSIVE since 2026-09-30 (blind review B2): the interactive ships pages
     # below the root (`/play/`, `/f/`), and a top-level glob could not see them.
-    # Stamp keys are paths relative to site/, so `play/index.html` is a key.
+    # Stamp keys are paths relative to site/, so `your-forecast/index.html` is a key.
     stamped = {pair.split("=", 1)[0] for pair in head.group(1).split()}
     unscanned = sorted(rel for rel in (f.relative_to(site).as_posix()
                                        for f in site.rglob("*.html"))

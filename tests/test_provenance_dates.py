@@ -295,11 +295,10 @@ def test_every_registered_page_is_a_page_the_build_writes():
     """Reads the tree, both directions of the registry's page names: every page
     an entry names is one the build writes, and the entries cover more than
     one page (a registry scoped to nothing would pass the check above)."""
-    import build_play
-    import build_make
+    import build_your_forecast
     import build_site as B
     built = ({spec[0] for spec in B.DOCS.values()} | set(B.ARTEFACTS)
-             | {build_play.PLAY_PAGE, build_make.MAKE_PAGE, "portal.html"})
+             | {build_your_forecast.YF_PAGE, "portal.html"})
     cfg = S.load_audit_config(S.load_registry(STATS))
     named = set()
     for e in cfg["fixed"] + cfg["allow"]:
@@ -336,7 +335,7 @@ def test_every_registered_entry_clears_something_on_every_page_it_names():
     registry = S.load_registry(STATS)
     ctx = S.load_context(cityconfig.use_target(None).processed)
     audit_cfg, scan_cfg = B.audit_configs(registry, ctx)
-    generated = {"about.html", "portal.html"}
+    generated = {"portal.html"}
     stale = []
     for f in audit_cfg["fixed"]:
         listed = [x.strip() for x in str(f["page"]).split(",")]

@@ -472,15 +472,10 @@ def artefact_head(output: str, spec: tuple, html: str,
 _ONLY = re.compile(r"<!-- __ONLY:([a-z0-9,-]+)_(START|END)__ -->")
 
 
-def cut_spans(html: str, keep: str | None) -> str:
-    """The page `keep` cut from a template: every `__ONLY:<pages>__` span
-    that names `keep` is kept, every other span is dropped, and every marker
-    goes. `keep=None` drops no content and only strips the markers (the
-    interactive page reads the forecast sheet's seat rows that way).
-
-    Refuses a template whose markers do not pair or nest, and a `keep` that
-    no span names: a page cut to nothing but the shared frame would publish
-    as an empty page with a working nav."""
+def only_spans(html: str) -> list[tuple[int, int, set[str]]]:
+    """Every `__ONLY:<pages>__` span in a template: (start, end, the pages it
+    names), end past its END marker. Refuses markers that do not pair or nest
+    (`cut_spans`; `edit_mode.page_blocks` reads which blocks a page shows)."""
     stack: list[tuple[str, int]] = []
     spans: list[tuple[int, int, set[str]]] = []
     for m in _ONLY.finditer(html):
@@ -498,6 +493,19 @@ def cut_spans(html: str, keep: str | None) -> str:
     if stack:
         raise SystemExit(f"template leaves __ONLY:{stack[-1][0]}__ unclosed: "
                          "nothing safe to cut")
+    return spans
+
+
+def cut_spans(html: str, keep: str | None) -> str:
+    """The page `keep` cut from a template: every `__ONLY:<pages>__` span
+    that names `keep` is kept, every other span is dropped, and every marker
+    goes. `keep=None` drops no content and only strips the markers (the
+    interactive page reads the forecast sheet's seat rows that way).
+
+    Refuses a template whose markers do not pair or nest, and a `keep` that
+    no span names: a page cut to nothing but the shared frame would publish
+    as an empty page with a working nav."""
+    spans = only_spans(html)
     if keep is not None and not any(keep in names for _, _, names in spans):
         raise SystemExit(f"template has no __ONLY:{keep}__ span: the page "
                          "would be the shared frame alone")

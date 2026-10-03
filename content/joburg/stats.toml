@@ -1106,7 +1106,7 @@ context = "where the middle 90% of the simulations landed"
 kind = "convention"
 source = "the seat range's definition: 5th to 95th percentile of the simulations (seat_table legend)"
 reviewed = "2026-10-03"
-page = "forecast.html, make/index.html"
+page = "forecast.html"
 
 [[audit.fixed]]
 value = "90%"
