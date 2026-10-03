@@ -392,10 +392,19 @@ used_in = "claims/zille-490k step 4 — what the frozen-poll world requires"
 
 # --- build-time audit -------------------------------------------------------
 # Every model figure and every model claim must either be a {{token}}, so its
-# provenance travels to the reader and drift is reported, or be excused here.
-# `allow` entries are CONTEXT SUBSTRINGS, not values: whitelisting "23" would
-# excuse every 23 on the site, whitelisting "Laingsburg" excuses the one figure
-# that is a matter of record.
+# provenance travels to the reader and drift is reported, or be registered here.
+#
+# `[[audit.fixed]]` clears a NUMBER: its value, the phrase it must sit inside,
+# its kind, its source, and the page(s) it is on. `[[audit.allow]]` excuses a
+# CLAIM IN WORDS ("nobody will win Johannesburg") and clears no number at all.
+#
+# ⛔ `page` IS REQUIRED AND IS ENFORCED (owner's sweep, 2026-10-03). It is the
+# output path(s) the entry clears, comma-separated, or "*" for every page (the
+# footer). `stats.load_audit_config` refuses an entry without one and
+# `stats.for_page` applies an entry only on the pages it lists. Until then the
+# field was ignored: the 8 August article moved to nobody-will-win.html and
+# entries naming index.html went on clearing it, and the allow phrase
+# "arriving from nowhere to take" cleared ActionSA's 18% with no source.
 #
 # Only three things belong here, and none of them can go stale:
 #   historical fact   what happened, from the IEC record
@@ -403,47 +412,42 @@ used_in = "claims/zille-490k step 4 — what the frozen-poll world requires"
 #   reviewed prose    a human decided it should stay static
 unverifiable = "arithmetic on two published figures, not a quantity the model emits"
 [audit]
-allow = [
-  "Laingsburg",                    # 2021 result, IEC record
-  "ActionSA went from nothing",    # 2021 result, IEC record
-  "needs no majority",             # describes the ward rule
-  "no majority needed",            # ditto
-  "would govern together",         # explicitly a disclaimer, not a forecast
-  "will govern with whom",         # ditto — methodology, defining what a pool is NOT
-  # Published election results and published poll numbers are external facts,
-  # not model outputs. The audit cannot tell them apart, and tokenising them
-  # would imply this model produced them.
-  "it polled",                     # ActionSA's own 2021 result, IEC record
-  "nationally in 2024",            # and its own 2024 national result, IEC record
-  "one house had",                 # SRF and Ipsos published poll numbers, POLLING.md
-  "another had the ANC on",        # ditto, the second house in the same sentence
-  # ADDED 2026-08-30, after the audit was read to the bottom for the first time.
-  # It reported 45 unsourced figures; 41 sat inside machine-owned marker blocks
-  # that regenerate every build, and only FOUR were hand-typed prose. One of the
-  # four was a real defect — "The 87% for ANC+DA", 29 points wrong, now the
-  # token {{p_anc_da}}. These are the other three, and each is allowed for a
-  # stated reason rather than because it was noisy. MODEL-LOG §1.140.
-  "arriving from nowhere to take", # ActionSA's 2021 result, IEC record — a fact
-                                   #   about the past, which cannot go stale
-  "never means a vote share",      # the glossary's own illustration of what a
-                                   #   percentage on this page does NOT mean;
-                                   #   an example, not a figure
-  "the middle 90%",
-  # ADDED 2026-09-17, with the figure each rests on named.
-  # The headline. Its claim is that no party governs alone, and the standfirst
-  # under it carries {{p_alone}} — a share of simulations, dated and tokenised.
-  "nobody will win johannesburg",
-  # Commentary, and a statement about the MECHANISM rather than a forecast: a
-  # party can lead without nearing a majority. The seat chart above it carries
-  # every party's range as tokens, and {{p_alone}} says how often anyone gets
-  # there alone.
-  "the da can finish first without ever nearing a majority",                # a stated reporting convention (the band the
-                                   #   charts draw), not a model output
-  # ADDED 2026-10-02. Claim 4's verdict label (claims.toml), set by a human as
-  # every verdict is. It rests on [[no_red_share]] in the claim's own heading;
-  # if that token falls below 50% the verdict must be changed with a correction.
-  "more likely than not we won't go into a coalition",
-]
+
+# A rule of the electoral system, in the 8 August article's lede.
+[[audit.allow]]
+phrase = "no majority needed"
+page = "nobody-will-win.html"
+why = "describes the ward rule: highest total wins"
+
+# Methodology, defining what a pool is NOT.
+[[audit.allow]]
+phrase = "will govern with whom"
+page = "methodology.html"
+why = "a disclaimer, not a forecast"
+
+# ADDED 2026-09-17. The headline. Its claim is that no party governs alone,
+# and the standfirst under it carries a share of simulations, dated and
+# tokenised. /corrections quotes the headline.
+[[audit.allow]]
+phrase = "nobody will win johannesburg"
+page = "nobody-will-win.html, corrections.html"
+why = "the 8 August headline; the standfirst under it carries the figure as a token"
+
+# Commentary, and a statement about the MECHANISM rather than a forecast: a
+# party can lead without nearing a majority. The seat table carries every
+# party's range as tokens.
+[[audit.allow]]
+phrase = "the da can finish first without ever nearing a majority"
+page = "nobody-will-win.html"
+why = "a statement about the mechanism; the ranges are tokens"
+
+# ADDED 2026-10-02. Claim 4's verdict label (claims.toml), set by a human as
+# every verdict is. It rests on [[no_red_share]] in the claim's own heading;
+# if that token falls below 50% the verdict must be changed with a correction.
+[[audit.allow]]
+phrase = "more likely than not we won't go into a coalition"
+page = "forecast.html"
+why = "a quoted claim's verdict label, resting on a token in the claim's heading"
 
 # ---------------------------------------------------------------------------
 # The poll channel, switched off 2026-09-12 (MODEL-LOG §1.225)
@@ -523,6 +527,26 @@ used_in = "methodology.md — distributional score, without polls"
 # ⛔ THE SOURCE OF A FROZEN FIGURE IS THE LEDGER, NEVER A BUILD ARTEFACT.
 # `site/changes.json` at any commit says what a build WOULD have changed. Only
 # `publications/joburg/ledger.jsonl` says what was published.
+# ⚠️ THE `pub0831_` NAMES ARE KEPT ALTHOUGH THE DATE IS 8 AUGUST. They are in
+# the publication ledger under these names, and a published token that leaves
+# the registry unretired refuses the build; renaming would mean retiring four
+# rows of an append-only record to fix a label no reader sees. Their dates
+# (`captured`, `historical`, the passages' `data-asof`) are 8 August.
+#
+# `pub0808_n_draws` was added 2026-10-03: the standfirst's draw count was the
+# live `{{n_draws}}` inside a passage dated to the article, so the passage
+# claimed today's count was the 8 August one (`publication.misdated_figures`).
+[pub0808_n_draws]
+mode = "fixed"
+tracks = "n_draws"   # the live figure this frozen one is shown against
+value = 5000
+format = "comma"
+source = "external:published forecast page, 8 August 2026 (archive/live-deployed-2026-08-08/index.html, typed in the standfirst; not a token on that page, so the ledger has no row for it)"
+captured = "2026-08-08"
+used_in = "standfirst, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 8 August 2026; kept as the original of a written piece"
+
 [pub0831_p_da_largest]
 mode = "fixed"
 tracks = "p_da_largest"   # the live figure this frozen one is shown against
@@ -532,7 +556,7 @@ source = "external:published forecast page, 8 August 2026 (publications/joburg/l
 captured = "2026-08-08"
 used_in = "standfirst, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
-historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
+historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
 
 [pub0831_anc_ward_median]
 mode = "fixed"
@@ -543,7 +567,7 @@ source = "external:published forecast page, 8 August 2026 (publications/joburg/l
 captured = "2026-08-08"
 used_in = "Wards, lists and Laingsburg articles, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
-historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
+historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
 
 [pub0831_anc_entitlement]
 mode = "fixed"
@@ -554,7 +578,7 @@ source = "external:published forecast page, 8 August 2026 (publications/joburg/l
 captured = "2026-08-08"
 used_in = "Wards, lists and Laingsburg articles, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
-historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
+historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
 
 [pub0831_p_excessive_anc]
 mode = "fixed"
@@ -565,7 +589,7 @@ source = "external:published forecast page, 8 August 2026 (publications/joburg/l
 captured = "2026-08-08"
 used_in = "Wards, lists article, as published"
 unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
-historical = "published 31 August 2026; kept as the original of a written piece, with a Since-then box"
+historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
 
 [backtest_target]
 mode = "fixed"
@@ -591,7 +615,7 @@ context = "City of Johannesburg · 4 November 2026"
 kind = "rule"
 source = "Proclaimed by the Minister of Cooperative Governance and Traditional Affairs, Velenkosini Hlabisa, announced 7 August 2026; the Electoral Commission welcomed the date and opened the 89-day timetable"
 reviewed = "2026-09-26"
-page = "index.html, forecast.html"
+page = "index.html, forecast.html, nobody-will-win.html"
 
 [[audit.fixed]]
 value = "8"
@@ -599,7 +623,7 @@ context = "The largest party is a near tie, where on 8 August the DA led clearly
 kind = "history"
 source = "the date of the published edition this piece is compared against (the 8 August deploy; /corrections, 27 September)"
 reviewed = "2026-10-02"
-page = "index.html"
+page = "nobody-will-win.html"
 
 [[audit.fixed]]
 value = "1"
@@ -607,7 +631,7 @@ context = "excessive seats\" clause (Schedule 1, item 16, completed by a 2021 am
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
-page = "index.html"
+page = "nobody-will-win.html"
 
 [[audit.fixed]]
 value = "16"
@@ -615,7 +639,7 @@ context = "e seats\" clause (Schedule 1, item 16, completed by a 2021 amendment)
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
-page = "index.html"
+page = "nobody-will-win.html"
 
 [[audit.fixed]]
 value = "four"
@@ -623,15 +647,15 @@ context = "the DA won three of Laingsburg's four wards on just 23% of the vote, 
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg 2021"
 reviewed = "2026-09-17"
-page = "index.html"
+page = "nobody-will-win.html"
 
 [[audit.fixed]]
 value = "52,000"
 context = "them: the DA's bloc actually lost 52,000 votes of its own over the same st"
 kind = "history"
-source = "MODEL-LOG 1.18 — DA-bloc vote change, 2019 NPE to 2021 LGE"
+source = "MODEL-LOG §1.18 — DA-bloc vote change, 2019 NPE to 2021 LGE (−51,587, rounded), as published on 8 August"
 reviewed = "2026-09-17"
-page = "index.html"
+page = "nobody-will-win.html"
 
 [[audit.fixed]]
 value = "1"
@@ -639,23 +663,7 @@ context = "a 2021 amendment completes schedule 1, and"  # re-keyed 2026-10-01: w
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
-page = "index.html"
-
-[[audit.fixed]]
-value = "490,000"
-context = "ess Day, March 2026 FALSE We need 490,000 registered DA voters to go vote D"
-kind = "quote"
-source = "Helen Zille, Business Day, March 2026 (the claim under test)"
-reviewed = "2026-09-17"
-page = "index.html"
-
-[[audit.fixed]]
-value = "30"
-context = "of them. In the DA takes at least 30 of the ANC's usual wards and the"
-kind = "model"
-source = "seat_detail_draws.csv — the DA-majority simulations"
-reviewed = "2026-09-17"
-page = "index.html"
+page = "forecast.html"
 
 [[audit.fixed]]
 value = "1"
@@ -663,7 +671,7 @@ context = "uncil seats · majority · Schedule 1 item 16 applied Johannesburg ·
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
-page = "index.html"
+page = "forecast.html, nobody-will-win.html"
 
 [[audit.fixed]]
 value = "16"
@@ -671,7 +679,7 @@ context = "eats · majority · Schedule 1 item 16 applied Johannesburg · 2026 L
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
-page = "index.html"
+page = "forecast.html, nobody-will-win.html"
 
 [[audit.fixed]]
 value = "3"
@@ -778,14 +786,6 @@ reviewed = "2026-09-17"
 page = "methodology.html"
 
 [[audit.fixed]]
-value = "2026-08-22"
-context = "for a day after 2026-08-22 it said no poll was used"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
-kind = "history"
-source = "MODEL-LOG — the date the methodology's poll statement stopped being true"
-reviewed = "2026-09-17"
-page = "methodology.html"
-
-[[audit.fixed]]
 value = "six"
 context = "one of them by six seats against the change"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
 kind = "history"
@@ -807,6 +807,7 @@ context = "23% of the vote, a share entitling it to only two seats"
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg 2021"
 reviewed = "2026-09-17"
+page = "nobody-will-win.html"
 
 [[audit.fixed]]
 value = "three"
@@ -814,6 +815,7 @@ context = "the DA kept all three wards"
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg 2021"
 reviewed = "2026-09-17"
+page = "nobody-will-win.html"
 
 [[audit.fixed]]
 value = "four"
@@ -821,6 +823,7 @@ context = "for everyone else over the four seats that remained"
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg 2021"
 reviewed = "2026-09-17"
+page = "nobody-will-win.html"
 
 [[audit.fixed]]
 value = "1"
@@ -828,6 +831,7 @@ context = "Steps 1–3 describe the last election"
 kind = "convention"
 source = "a reference to this page's own numbered steps"
 reviewed = "2026-09-17"
+page = "methodology.html"
 
 [[audit.fixed]]
 value = "3"
@@ -835,20 +839,7 @@ context = "Steps 1–3 describe the last election"
 kind = "convention"
 source = "a reference to this page's own numbered steps"
 reviewed = "2026-09-17"
-
-[[audit.fixed]]
-value = "Fifteen"
-context = "Fifteen wards in Johannesburg have held by-elec"
-kind = "history"
-source = "IEC by-election records, CoJ 2021-2026"
-reviewed = "2026-09-17"
-
-[[audit.fixed]]
-value = "1"
-context = "the 2021 amendment that completes Schedule 1"
-kind = "rule"
-source = "Municipal Structures Act 117 of 1998, Schedule 1, as completed by the 2021 amendment"
-reviewed = "2026-09-17"
+page = "methodology.html"
 
 # The backtest scoreboard, resolved from data/processed/validation_<year>.json,
 # whose `headline` block build_validation writes from its own comparison. The
@@ -908,6 +899,7 @@ context = "as it stood on 6 August 2026"
 kind = "history"
 source = "the date the first version of the model was reviewed (docs-public/review.md)"
 reviewed = "2026-09-18"
+page = "review.html"
 
 # The support page's amount bands: the site's funding policy, not a model
 # figure. Set by the owner; change them here and in docs-public/support.md.
@@ -935,6 +927,7 @@ context = "CC BY 4.0"
 kind = "convention"
 source = "the licence the site's text, charts and figures are published under (LICENSE-CONTENT)"
 reviewed = "2026-10-01"
+page = "*"
 
 # The responsible party's street address on /privacy (POPIA requires it). An
 # address, not a model figure; it changes only if the owner moves.
@@ -944,6 +937,7 @@ context = "91 St Patrick Road"
 kind = "convention"
 source = "the owner's address as the POPIA responsible party (docs-public/privacy.md), given by the owner 2026-10-01"
 reviewed = "2026-10-01"
+page = "privacy.html"
 
 [[audit.fixed]]
 value = "2198"
@@ -951,6 +945,7 @@ context = "Johannesburg 2198"
 kind = "convention"
 source = "the postal code of the owner's address as the POPIA responsible party (docs-public/privacy.md), given by the owner 2026-10-01"
 reviewed = "2026-10-01"
+page = "privacy.html"
 
 # /methodology, "The judgement calls": each figure is the value a register
 # entry states in its own heading, carried in that entry's Plain field and
@@ -1006,3 +1001,137 @@ kind = "convention"
 source = "the registered name of the party that merged into ActionSA (SOURCES.md, Mergers)"
 reviewed = "2026-10-02"
 page = "methodology.html"
+
+# ---------------------------------------------------------------------------
+# REGISTERED 2026-10-03 (owner's sweep). Each of these was cleared by an
+# `[audit].allow` phrase, which named neither the figure nor its source nor its
+# page: "Laingsburg", "arriving from nowhere to take", "it polled", "nationally
+# in 2024", "one house had", "another had the ANC on", "never means a vote
+# share" and "the middle 90%". An allow phrase now clears no number.
+# ---------------------------------------------------------------------------
+[[audit.fixed]]
+value = "23%"
+context = "Laingsburg's four wards on just 23% of the vote"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's share, 23.06% (MODEL-LOG §1.17)"
+reviewed = "2026-10-03"
+page = "nobody-will-win.html"
+
+[[audit.fixed]]
+value = "18%"
+context = "ActionSA arriving from nowhere to take 18%"
+kind = "history"
+source = "IEC LGE 2021, City of Johannesburg: ActionSA 18.12% of the PR ballot (SOURCES.md, 'ASA citywide PR share'; MODEL-LOG §1.18)"
+reviewed = "2026-10-03"
+page = "nobody-will-win.html"
+
+[[audit.fixed]]
+value = "3"
+context = "where the DA won 3 of 4 wards on 23% of the vote"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021 (MODEL-LOG §1.17)"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "4"
+context = "where the DA won 3 of 4 wards on 23% of the vote"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021 (MODEL-LOG §1.17)"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "23%"
+context = "where the DA won 3 of 4 wards on 23% of the vote"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's share, 23.06% (MODEL-LOG §1.17)"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "18.12%"
+context = "it polled 18.12% in this city"
+kind = "history"
+source = "IEC LGE 2021, City of Johannesburg: ActionSA's PR-ballot share (SOURCES.md, 'ASA citywide PR share')"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "6.22%"
+context = "6.22% nationally in 2024"
+kind = "history"
+source = "IEC NPE 2024, national ballot: ActionSA's share (MODEL-LOG, the local-premium entry quoting 18.12% against 6.22%)"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "42%"
+context = "one house had the DA on 42% and the ANC on 18%"
+kind = "history"
+source = "SRF Q2-2026 City of Johannesburg poll, published 5 August 2026 (POLLING.md)"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "18%"
+context = "one house had the DA on 42% and the ANC on 18%"
+kind = "history"
+source = "SRF Q2-2026 City of Johannesburg poll, published 5 August 2026 (POLLING.md)"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "35%"
+context = "another had the ANC on 35% and the DA on 25%"
+kind = "history"
+source = "Ipsos Khayabus W2-2025, all-metro subsample, Q1 2026 (POLLING.md)"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "25%"
+context = "another had the ANC on 35% and the DA on 25%"
+kind = "history"
+source = "Ipsos Khayabus W2-2025, all-metro subsample, Q1 2026 (POLLING.md)"
+reviewed = "2026-10-03"
+page = "methodology.html"
+
+# The band every seat range on the site draws: the 5th to 95th percentile of
+# the simulations (`p5`/`p95` in forecast_summary.json). A convention of the
+# reporting, not a model output; it changes only if the band does.
+[[audit.fixed]]
+value = "90%"
+context = "where the middle 90% of the simulations landed"
+kind = "convention"
+source = "the seat range's definition: 5th to 95th percentile of the simulations (seat_table legend)"
+reviewed = "2026-10-03"
+page = "forecast.html, make/index.html"
+
+[[audit.fixed]]
+value = "90%"
+context = "is where the middle 90% of simulations landed"
+kind = "convention"
+source = "the seat range's definition: 5th to 95th percentile of the simulations (how to read this page)"
+reviewed = "2026-10-03"
+page = "forecast.html"
+
+# The glossary's own illustration of what a percentage on this page does NOT
+# mean: an example, not a figure.
+[[audit.fixed]]
+value = "89%"
+context = "\"89%\" never means a vote share"
+kind = "convention"
+source = "an illustrative percentage in 'How to read this page'"
+reviewed = "2026-10-03"
+page = "forecast.html"
+
+# The site's share-card title (build_site's page head): the election date, a
+# rule like the kicker's, in a link preview rather than the page body.
+[[audit.fixed]]
+value = "4 November 2026"
+context = "Who governs Johannesburg after 4 November 2026?"
+kind = "rule"
+source = "Proclaimed by the Minister of Cooperative Governance and Traditional Affairs, announced 7 August 2026 (as the kicker's entry above)"
+reviewed = "2026-10-03"
+page = "index.html, forecast.html, nobody-will-win.html, methodology.html, about.html, review.html, sources.html, corrections.html"

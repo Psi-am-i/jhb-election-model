@@ -16,9 +16,11 @@
 # reason the home page exists: before it, the article WAS the front page and a
 # piece written on a date sat at the front door looking current forever.
 #
-# Figures in a standfirst are the published ones and are left as published. The
-# number audit accepts them because the build wraps each entry in its own dated
-# passage — the same rule the claims use.
+# Figures in a standfirst are the published ones and are left as published.
+# The build wraps each entry in its own dated passage, so a figure in one is a
+# token pinned on or before the piece's `date` (`publication.misdated_figures`
+# refuses a live one) — never typed: "587,000" was typed here until 2026-10-03
+# and is now `{{bloc_leak_votes}}`.
 
 [[article]]
 lead = true
@@ -34,7 +36,7 @@ href = "nobody-will-win"
 [[article]]
 date = "2026-08-08"
 title = "When the ANC falls, nobody catches the votes"
-standfirst = """The opposition captured essentially none of the 587,000 votes
+standfirst = """The opposition captured essentially none of the {{bloc_leak_votes}} votes
 the ANC bloc shed between the 2019 national election and the 2021 local
 election. The city's collapse in ANC support did not
 become anybody else's gain — it became abstention."""

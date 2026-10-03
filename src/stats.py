@@ -353,6 +353,21 @@ def _dig(obj, path: str):
     return cur
 
 
+#: The ``source`` of every token whose value IS the council, not a forecast:
+#: its size and its majority (`_derived`). No edition moves them, so they may
+#: stand in a dated passage (`publication.misdated_figures`). Matched by the
+#: token's source, never by the number it shows: a forecast that happens to
+#: print 136 is still a forecast.
+COUNCIL_CONSTANT_SOURCES = ("derived:council_size", "derived:majority")
+
+
+def council_constant_tokens(registry: dict) -> set[str]:
+    """The registry's tokens whose source is a council constant."""
+    return {name for name, e in registry.items()
+            if isinstance(e, dict)
+            and str(e.get("source", "")).strip() in COUNCIL_CONSTANT_SOURCES}
+
+
 def _derived(name: str, ctx: dict):
     """Named computations over the draw-level outputs."""
     draws = ctx.get("draws") or []
@@ -843,15 +858,40 @@ GENERATED_MARKERS = frozenset({"MAP", "HEXMAP", "BALLOTS", "REGIMES"})
 REGION = re.compile(r"<!-- __([A-Z]+)_START__ -->(.*?)<!-- __\1_END__ -->", re.S)
 #: Reader-visible attributes: tooltips, accessible labels, link previews.
 ATTRS = re.compile(r'\b(?:title|data-tip|aria-label|alt|content)="([^"]*)"')
-#: The legacy `[audit].allow` entries were written against the old audit, which
-#: only ever saw "NN%" and "N seats". They excuse exactly that shape, in the old
-#: 60/30 window — never a date, never a bare count they were not written for.
-_LEGACY_SHAPE = re.compile(r"^\d{1,3}(?:[.,]\d+)?\s?%$|^\d+$")
+#: ``page = "*"`` on a registry entry: every page, said explicitly (the footer).
+ALL_PAGES = "*"
+
+
+def for_page(entries, page: str | None) -> list:
+    """The `[[audit.fixed]]` / `[[audit.allow]]` entries that apply on ``page``.
+
+    ⛔ THE `page` FIELD WAS IGNORED (owner's sweep, 2026-10-03). Every entry
+    cleared its value in any page whose text happened to hold the context, so
+    a fact registered for one page cleared the same words on every other, and
+    a page that moved (the 8 August article left index.html on 2026-09-24)
+    kept being cleared by entries that still named the old one.
+
+    ``page`` is a comma-separated list of output paths, or ``"*"``. An entry
+    with a page applies only when the caller names a page it lists: a caller
+    that names no page gets no page-scoped entry (fails closed). An entry with
+    NO page field applies everywhere; only constructed inputs have one, because
+    `load_audit_config` refuses a registry entry without a page.
+    """
+    out = []
+    for e in entries:
+        where = e.get("page") if isinstance(e, dict) else None
+        if where is None:
+            out.append(e)
+            continue
+        listed = {w.strip() for w in str(where).split(",") if w.strip()}
+        if ALL_PAGES in listed or (page is not None and page in listed):
+            out.append(e)
+    return out
 
 
 #: Page furniture: a chart's scale ticks and the dated labels a piece carries.
 #: Numbers here are not claims about the world — the axis of a chart and the
-#: "31 August 2026: Published" line are structure, and their values come from
+#: "8 August 2026: Published" line are structure, and their values come from
 #: the chart's own scale or from the piece's publication date.
 # A claim's attribution line — speaker, outlet, date of the article — is a
 # citation, the same kind of thing as a piece's own dated label: it dates the
@@ -872,8 +912,8 @@ _CHROME = re.compile(
 _FN_MARKER = re.compile(r'<sup class="fn"><a href="#note-[a-z-]+">\d{1,2}</a></sup>')
 
 
-def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
-                 structural=(), ) -> list[dict]:
+def scan_numbers(text: str, *, page: str | None = None, fixed=(),
+                 generated_page: bool = False, structural=()) -> list[dict]:
     """Every number-shaped string a reader can see, classified.
 
     One dict per occurrence: ``kind`` (num/wnum/date/year/word), ``value``,
@@ -894,11 +934,14 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
     And by declaration:
 
     * ``fixed``      — a registered fixed fact whose ``context`` phrase CONTAINS
-      this occurrence (not merely sits near it) and whose ``value`` matches,
-      optionally scoped to one ``page``;
-    * ``allowed``    — a legacy ``[audit].allow`` entry, for the shape it was
-      written against only;
+      this occurrence (not merely sits near it), whose ``value`` matches, and
+      whose ``page`` lists ``page`` (`for_page`);
     * ``unreviewed`` — everything else.
+
+    An `[[audit.allow]]` phrase clears no number (owner's sweep, 2026-10-03:
+    "Laingsburg" cleared every "NN%" within sixty characters of the word on
+    any page, which is how ActionSA's 18% and Laingsburg's 23% escaped being
+    registered). It excuses a CLAIM in words (`audit`), nothing else.
 
     Token spans are removed first, so a token — including its provenance
     tooltip — never appears here. Script text is not scanned: a number a script
@@ -914,8 +957,8 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
     body = SCRIPTS.sub(" ", text)
     structural = {str(s).strip() for s in structural}
     fixed = [(str(f.get("value", "")).strip().lower(),
-              str(f.get("context", "")).strip().lower()) for f in fixed]
-    allow_lower = [a.lower() for a in allow if a]
+              str(f.get("context", "")).strip().lower())
+             for f in for_page(fixed, page)]
     out: list[dict] = []
 
     def classify(prose: str, region: str) -> None:
@@ -937,11 +980,6 @@ def scan_numbers(text: str, *, fixed=(), allow=(), generated_page: bool = False,
                     i = low_all.find(c, i + 1)
                 if status == "fixed":
                     break
-            if (status == "unreviewed" and m.lastgroup == "num"
-                    and _LEGACY_SHAPE.match(value)):
-                narrow = low_all[max(0, m.start() - 60):m.end() + 30]
-                if any(a in narrow for a in allow_lower):
-                    status = "allowed"
             if region.startswith("live:"):
                 # nothing clears a build-time figure inside a LIVE region
                 status = "unreviewed"
@@ -1241,23 +1279,23 @@ def _visible(text: str) -> str:
     return TAGS.sub(" ", body)
 
 
-def audit(text: str, *, allow=(), fixed=(), structural=(),
-          claim_patterns=CLAIM_PATTERNS) -> tuple[list[str], list[str]]:
+def audit(text: str, *, page: str | None = None, allow=(), fixed=(),
+          structural=(), claim_patterns=CLAIM_PATTERNS
+          ) -> tuple[list[str], list[str]]:
     """Model figures and model claims that reach the reader unsourced.
 
-    ``allow`` is a list of *context substrings*, not bare values. Whitelisting
-    the number 23 would excuse every 23 on the site; whitelisting "Laingsburg"
-    excuses the one figure that is a matter of record. Three things legitimately
-    need it, and none of them can drift:
+    ``allow`` excuses CLAIMS IN WORDS, never a number: each entry is a context
+    phrase (a string, or an ``{"phrase", "page"}`` mapping scoped by
+    `for_page`). Three kinds of sentence legitimately need it, and none can
+    drift:
 
-    * **historical fact** — "ActionSA went from nothing to 44 seats" is what
-      happened in 2021, not what the model says will happen;
-    * **the rules** — "a ward needs no majority, highest total wins" describes
-      the electoral system;
+    * **historical fact** stated in words — "ActionSA went from nothing";
+    * **the rules** — "a ward needs no majority, highest total wins";
     * **reviewed prose** a human has decided should stay static.
 
-    Everything else should be a token, because a token carries its source to
-    the reader and reports drift when the model moves under it.
+    A number is cleared only by a token or by a registered fixed fact
+    (`scan_numbers`), which names its value, its context, its page and its
+    source.
 
     Returns ``(numbers, claims)``.
     """
@@ -1279,14 +1317,16 @@ def audit(text: str, *, allow=(), fixed=(), structural=(),
     # claim can be checked for a figure standing beside it.
     marked = re.sub(r"\s+", " ", TAGS.sub(" ", SOURCED.sub(" ⟦TOK⟧ ", SCRIPTS.sub(" ", text))))
     prose = re.sub(r"\s+", " ", _visible(text))
-    allow_lower = [a.lower() for a in allow if a]
+    allow_lower = [(a.get("phrase", "") if isinstance(a, dict) else a).lower()
+                   for a in for_page(allow, page)]
+    allow_lower = [a for a in allow_lower if a]
 
     def excused(context: str) -> bool:
         low = context.lower()
         return any(a in low for a in allow_lower)
 
     numbers = [f"{h['value']!r}  …{h['context']}…"
-               for h in scan_numbers(text, fixed=fixed, allow=allow,
+               for h in scan_numbers(text, page=page, fixed=fixed,
                                      structural=structural)
                if is_blocking(h)]
     lowered = prose.lower()
@@ -1305,10 +1345,26 @@ def audit(text: str, *, allow=(), fixed=(), structural=(),
 
 
 def load_audit_config(registry: dict) -> dict:
-    """The ``[audit]`` block of the stats registry, if it has one."""
+    """The ``[audit]`` block of the stats registry, if it has one.
+
+    Refuses an `[[audit.fixed]]` or `[[audit.allow]]` entry that names no
+    ``page``, or an allow entry that is a bare string: the page is what scopes
+    the entry (`for_page`), and an entry without one would clear its words on
+    every page, which is the defect the field exists to close.
+    """
     block = registry.get("audit") or {}
-    return {"allow": tuple(block.get("allow", ())),
-            "fixed": tuple(block.get("fixed", ())),
+    fixed = tuple(block.get("fixed", ()))
+    allow = tuple(block.get("allow", ()))
+    bad = [f"[[audit.fixed]] value={f.get('value')!r} context={f.get('context')!r}"
+           for f in fixed if not str(f.get("page", "")).strip()]
+    bad += [f"[[audit.allow]] {a!r}" for a in allow
+            if not isinstance(a, dict) or not str(a.get("page", "")).strip()
+            or not str(a.get("phrase", "")).strip()]
+    if bad:
+        raise ValueError(
+            "audit entries with no page (name the output page(s) it clears, "
+            "comma-separated, or \"*\" for every page):\n  " + "\n  ".join(bad))
+    return {"allow": allow, "fixed": fixed,
             "claim_patterns": tuple(block.get("claim_patterns", CLAIM_PATTERNS))}
 
 
@@ -1326,8 +1382,9 @@ def audit_report(numbers: list[str], claims: list[str], *, limit: int = 8) -> st
         out += [f"      {c}" for c in claims[:limit]]
         if len(claims) > limit:
             out.append(f"      … and {len(claims) - limit} more")
-    out.append("  Register each as a {{token}}, or whitelist it in the "
-               "[audit] block of the stats registry if it is structural.")
+    out.append("  Register each figure as a {{token}} or an [[audit.fixed]] "
+               "fact with its page and source; a claim in words that cannot "
+               "drift goes in [[audit.allow]] with its page.")
     return "\n".join(out)
 
 

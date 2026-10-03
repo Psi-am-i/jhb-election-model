@@ -128,10 +128,13 @@ def test_a_fixed_fact_must_contain_the_occurrence_not_sit_near_it():
     assert _one("<p>three wards on just 23% of the vote</p>", fixed=fixed)[1][3] == "fixed"
 
 
-def test_a_legacy_allow_entry_never_excuses_a_date():
-    hits = _one("<p>Laingsburg is fine. The ANC will get 44% on 1 November 2026.</p>",
-                allow=["Laingsburg"])
-    assert ("date", "1 November 2026", "prose", "unreviewed") in hits, hits
+def test_an_allow_phrase_excuses_no_number_at_all():
+    """An `[[audit.allow]]` phrase excuses a claim in words. It used to clear
+    any "NN%" within sixty characters of it, which is how ActionSA's 18% and
+    Laingsburg's 23% went unregistered (owner's sweep, 2026-10-03)."""
+    html = "<p>Laingsburg is fine. The ANC will get 44% on 1 November 2026.</p>"
+    numbers, _ = S.audit(html, allow=["Laingsburg"])
+    assert sorted(n.split("  ")[0] for n in numbers) == ["'1 November 2026'", "'44%'"], numbers
 
 
 def test_deploy_check_refuses_a_stale_review_and_unreviewed_numbers(tmp=None):

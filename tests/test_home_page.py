@@ -429,17 +429,17 @@ def test_the_typed_figure_gate_reaches_the_home_page():
     # IT LOOKED: the scan's population is the page's number-shaped strings, and
     # it is bounded on BOTH sides — a floor alone ratchets, and a scan that has
     # drifted onto the wrong text reads as a clean page.
-    population = statlib.scan_numbers(rendered, **scan_cfg)
+    population = statlib.scan_numbers(rendered, page="index.html", **scan_cfg)
     assert 20 <= len(population) <= 5000, (
         f"{len(population)} number-shaped strings on the home page — the scan "
         f"is looking at the wrong text, or the page has been gutted")
     # `scan_numbers` strips token spans before it looks, so a token is not IN
     # this population at all: what a non-`unreviewed` status marks is a
-    # structural, fixed or allowed figure. Both are asserted, and separately —
+    # structural or fixed figure. Both are asserted, and separately —
     # they are different claims and the page needs each.
     cleared = [h for h in population if h["status"] != "unreviewed"]
-    assert cleared, ("not one number on the page is structural, fixed or "
-                     "allowed — the registry is not reaching this page")
+    assert cleared, ("not one number on the page is structural or fixed "
+                     "— the registry is not reaching this page")
     assert "{{@home." in raw, (
         "the regenerated page carries no home token at all, so the scan above "
         "is measuring a page the generator did not fill")
@@ -448,8 +448,8 @@ def test_the_typed_figure_gate_reaches_the_home_page():
     fault = '<p class="sub">The ANC takes just 7 seats.</p>'
     i = rendered.index("<!-- __HOMELEDE_END__ -->")
     broken = rendered[:i] + fault + rendered[i:]
-    caught, _ = statlib.audit(broken, **audit_cfg)
-    before, _ = statlib.audit(rendered, **audit_cfg)
+    caught, _ = statlib.audit(broken, page="index.html", **audit_cfg)
+    before, _ = statlib.audit(rendered, page="index.html", **audit_cfg)
     assert any("'7'" in n for n in caught), (
         f"a typed seat count inside the lede was not caught: {caught}")
     assert len(caught) == len(before) + 1, (caught, before)
@@ -457,7 +457,7 @@ def test_the_typed_figure_gate_reaches_the_home_page():
     # …AND GOES QUIET AGAIN when it is taken out.
     reverted = broken.replace(fault, "")
     assert reverted == rendered, "the mutation did not revert byte-exact"
-    assert statlib.audit(reverted, **audit_cfg)[0] == before
+    assert statlib.audit(reverted, page="index.html", **audit_cfg)[0] == before
 
 
 if __name__ == "__main__":

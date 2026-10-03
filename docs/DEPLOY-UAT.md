@@ -101,6 +101,16 @@ git status --short --ignored site/   # expect no output
 
 `deploy_check` also refuses any file under `site/` that git does not track.
 
+A UAT build publishes into a scratch copy of `publications/`, never the real
+ledger. The copy keeps the ledger's first 665 rows, which ends before the 30
+September freeze edition (run `r-c68c627d287e`, 319 rows), and the build
+re-publishes that edition with its reason. On the UAT site a figure the
+freeze edition first published is dated to the build day: its tooltip reads
+"Published 26 September 2026; now <build day>" where a build against the full
+ledger reads "Unchanged since 30 September 2026" (157 tooltips on the
+2026-10-03 build). Live is built against the real ledger and does not have
+this.
+
 `[build]` in `wrangler.toml` runs `src/deploy_check.py --city joburg` before every
 upload; a build whose numbers were not reviewed is refused there.
 
