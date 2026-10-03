@@ -226,6 +226,10 @@ curl -s "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/analytics_
     FORMAT JSON"
 ```
 
+Shared forecasts (`/s/`, src/share-edge.js) write the channel `share`, with the
+share button used as `blob3` (`wa`, `x`, `copy`, `native`, or empty). By button:
+the same query with `blob3 AS button` and `WHERE blob1 = 'share'`.
+
 The dataset is created by its first write, so `SHOW TABLES` (same curl, that as
 the `--data`) lists `joburg_arrivals` only after the first live arrival. Days are
 UTC.

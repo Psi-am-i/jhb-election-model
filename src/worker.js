@@ -55,7 +55,22 @@
  * Analytics Engine keeps it three months against Workers Logs' seven days.
  * Version URLs have the binding too, so UAT clicks are written under their
  * workers.dev host; the count in docs/DEPLOY-UAT.md filters on host.
+ *
+ * A reader's shared forecast (src/share-edge.js, audits/2026-10-03-share-design)
+ * has five routes on the Johannesburg host and on workers.dev hosts: /s/ (the
+ * share sheet's links: counted as channel "share", with the button used, then
+ * 302 to the arrival view on /your-forecast/), /your-forecast/ with a forecast
+ * in its query (its og: tags rewritten to the forecast's own image),
+ * /og/1/link.png and /og/1/story.png (that image, drawn here from the seat
+ * Worker's answer over the SEATS service binding; /og.png when anything
+ * fails), and POST /seal/1 and /seal/1/check (sealed links, under the Worker
+ * secret SEAL_KEY). The share data point is
+ *   blobs ["share", host, button], doubles [1], indexes ["share"]
+ * On the apex and www, /s/ answers 302 to the same path and query on the
+ * Johannesburg host, like a channel short path.
  */
+
+import { shareRoute } from "./share-edge.js";
 
 // NB: request "/portal", not "/portal.html" — the assets layer 307s the
 // extension away, which would move the visitor off the apex URL.
@@ -142,8 +157,11 @@ function arrival(url, host, channel, env) {
   });
 }
 
+// "/s", "/s/": the share sheet's links (src/share-edge.js).
+const isShare = path => path === "/s" || path === "/s/";
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const host = url.hostname.toLowerCase();
     const path = url.pathname;
@@ -152,7 +170,8 @@ export default {
       const channel = channelOf(path);
       const to = movedTo(path);
       const res = channel ? arrival(url, host, channel, env)
-        : to ? moved(url, to) : await env.ASSETS.fetch(request);
+        : to ? moved(url, to)
+          : (await shareRoute(request, url, host, env, ctx)) ?? await env.ASSETS.fetch(request);
       const out = new Response(res.body, res);
       out.headers.set("X-Robots-Tag", NOINDEX);
       return out;
@@ -161,7 +180,7 @@ export default {
     if (PORTAL_HOSTS.has(host)) {
       // A short path on the apex or www goes to the Johannesburg host, which
       // logs the arrival; logging here as well would count it twice.
-      if (channelOf(path)) {
+      if (channelOf(path) || isShare(path)) {
         return new Response(null, {
           status: 302,
           headers: { Location: `https://${JOBURG_HOST}${path}${url.search}` },
@@ -180,6 +199,8 @@ export default {
       if (channel) return arrival(url, host, channel, env);
       const to = movedTo(path);
       if (to) return moved(url, to);
+      const shared = await shareRoute(request, url, host, env, ctx);
+      if (shared) return shared;
     }
 
     // Johannesburg, and anything shared, is served straight from the root.

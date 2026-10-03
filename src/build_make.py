@@ -292,13 +292,15 @@ def baseline(city, roster: list[str]) -> dict:
 
 
 def election_of(city) -> dict:
-    """The election the page forecasts: the city, polling day, and
-    ``polls_open``, the instant voting stations open with its UTC offset
-    (``cities/<slug>.toml`` ``[structure]``). The Worker refuses to seal a
-    reader's forecast from that instant (src/worker.js)."""
+    """The election the page forecasts: the city, polling day,
+    ``polls_open``, the instant voting stations open with its UTC offset, and
+    ``zone``, that offset's name (``cities/<slug>.toml`` ``[structure]``).
+    The Worker refuses to seal a reader's forecast from that instant
+    (src/worker.js); the share cards print times in that zone."""
     struct = city.structure_for(city.default_target)
     return {"city": city.name, "date": str(struct["election_date"]),
-            "polls_open": f"{struct['election_date']}T{struct['polls_open']}:00{struct['utc_offset']}"}
+            "polls_open": f"{struct['election_date']}T{struct['polls_open']}:00{struct['utc_offset']}",
+            "zone": str(struct["time_zone"])}
 
 
 def forecast_data(draws: Path | None = None) -> dict:

@@ -50,6 +50,24 @@ nothing about the visitor) is also kept in Cloudflare's
 [Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/),
 which deletes it after three months.
 
+## Shared forecasts
+
+A forecast you make on [your forecast](your-forecast/) lives only in its link.
+When you share it, three things happen on the site's server, and none of them
+keeps the forecast or the name in it.
+
+- **The seal.** The page sends the forecast and its name to the server, which
+  signs them with the time, using a key only the server holds, and returns the
+  signature for the link to carry. Anyone opening the link can then see that
+  it was sealed and when. The server keeps no record of what it signed.
+- **The preview image.** A chat app shown the link fetches an image the server
+  draws from the link. The image is kept in Cloudflare's cache, which deletes
+  it on its own.
+- **The count.** Shared links go out as `/s/` addresses. Each forwards to the
+  forecast and writes one log line and one Analytics Engine data point naming
+  "share", the button used (WhatsApp, X, copy or the phone's share menu) and
+  the site's own address, as the short links above do.
+
 ## Network error reports
 
 Cloudflare's response headers `NEL` and `Report-To` ask your browser to report

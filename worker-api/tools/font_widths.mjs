@@ -54,6 +54,24 @@ function glyphOf(dv, cmap) {
   };
 }
 
+// Every character a format-4 cmap maps, with its advance: { em, w: { code:
+// advance } }. For a subset font (the site's Latin-1 IBM Plex), this is the
+// whole repertoire: a character outside it has no glyph to draw.
+export function advanceMap(buf) {
+  const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  const t = tables(dv);
+  const em = dv.getUint16(t.head + 18);
+  const nh = dv.getUint16(t.hhea + 34);
+  const glyph = glyphOf(dv, t.cmap);
+  const adv = g => dv.getUint16(t.hmtx + 4 * Math.min(g, nh - 1));
+  const w = {};
+  for (let c = 32; c < 0xfffe; c++) {
+    const g = glyph(c);
+    if (g) w[c] = adv(g);
+  }
+  return { em, w };
+}
+
 export function advanceTable(buf) {
   const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
   const t = tables(dv);

@@ -143,21 +143,32 @@ DRIVER = r"""
 import { readFileSync } from "node:fs";
 const [workerPath, casesPath] = process.argv.slice(2);
 const worker = (await import("file://" + workerPath)).default;
-const { assets, redirects, cases } = JSON.parse(readFileSync(casesPath, "utf8"));
+const { assets, redirects, files, cases } = JSON.parse(readFileSync(casesPath, "utf8"));
 const have = new Set(assets);
 const out = [];
 const realLog = console.log;
+const realNow = Date.now;
+const TYPES = { json: "application/json", png: "image/png", svg: "image/svg+xml", html: "text/html; charset=utf-8" };
 for (const c of cases) {
-  const fetched = [], logs = [], points = [];
+  const fetched = [], logs = [], points = [], seatCalls = [];
+  // c.now: the Worker's clock for this case (ms), for the polls-open refusal
+  Date.now = c.now ? () => c.now : realNow;
+  // c.seats: a fake seat Worker answering every /v1/card with this status and body
+  const seats = c.seats ? { SEATS: { async fetch(u, init) {
+    seatCalls.push({ url: String(u), body: JSON.parse(init.body) });
+    return new Response(JSON.stringify(c.seats.body), { status: c.seats.status });
+  } } } : {};
   // env.ARRIVALS: a recorder by default; "absent" leaves it out, "throw" fails.
   const mode = c.arrivals || "record";
   const arrivals = mode === "absent" ? {} : { ARRIVALS: { writeDataPoint(p) {
     if (mode === "throw") throw new Error("analytics engine down");
     points.push(JSON.parse(JSON.stringify(p)));
   } } };
-  const env = { ...c.env, ...arrivals, ASSETS: { async fetch(req) {
+  const env = { ...c.env, ...arrivals, ...seats, ASSETS: { async fetch(req) {
     const u = new URL(req.url);
     fetched.push(u.pathname + u.search);
+    if (files[u.pathname]) return new Response(readFileSync(files[u.pathname]),
+      { status: 200, headers: { "content-type": TYPES[u.pathname.split(".").pop()] || TYPES.html, "x-asset": u.pathname } });
     if (redirects[u.pathname]) return new Response(null, { status: 307,
       headers: { Location: redirects[u.pathname], "x-asset": u.pathname } });
     if (req.headers.get("if-none-match") === '"v1"' && have.has(u.pathname))
@@ -170,12 +181,14 @@ for (const c of cases) {
   console.log = (...a) => logs.push(a.length === 1 && typeof a[0] === "object"
     ? a[0] : { text: a.join(" ") });
   let res, error = null;
-  try { res = await worker.fetch(new Request(c.url, { headers: c.headers || {} }), env); }
+  const init = { headers: c.headers || {}, method: c.method || "GET" };
+  if (c.body !== undefined) init.body = JSON.stringify(c.body);
+  try { res = await worker.fetch(new Request(c.url, init), env, { waitUntil() {} }); }
   catch (e) { error = String(e); }
-  finally { console.log = realLog; }
+  finally { console.log = realLog; Date.now = realNow; }
   out.push({ url: c.url, status: res ? res.status : null,
              headers: res ? [...res.headers].sort() : [],
-             body: res ? await res.text() : "", fetched, logs, points, error });
+             body: res ? await res.text() : "", fetched, logs, points, seatCalls, error });
 }
 process.stdout.write(JSON.stringify(out));
 """
@@ -188,14 +201,22 @@ def _node() -> str:
     return node
 
 
-def run_worker(source: str, cases: list[dict]) -> list[dict]:
-    """Run `source` (worker.js text) over `cases` ({url, env, headers?})."""
+def run_worker(source: str, cases: list[dict], files: dict | None = None) -> list[dict]:
+    """Run `source` (worker.js text) over `cases` ({url, env, headers?,
+    method?, body?, now?, seats?}). The worker is written beside symlinks to
+    the other modules in src/, so its relative imports resolve to the real
+    files (and theirs, through the links, to the rest of the repository).
+    `files` maps an asset path to a file on disk the fake ASSETS serves."""
     node = _node()
     with tempfile.TemporaryDirectory() as t:
         w, d, c = Path(t, "worker.mjs"), Path(t, "driver.mjs"), Path(t, "cases.json")
+        for js in WORKER.parent.glob("*.js"):
+            if js != WORKER:
+                Path(t, js.name).symlink_to(js)
         w.write_text(source, encoding="utf-8")
         d.write_text(DRIVER, encoding="utf-8")
         c.write_text(json.dumps({"assets": ASSETS, "redirects": REDIRECTS,
+                                 "files": {k: str(v) for k, v in (files or {}).items()},
                                  "cases": cases}), encoding="utf-8")
         p = subprocess.run([node, str(d), str(w), str(c)], capture_output=True,
                            text=True, timeout=60)
@@ -463,8 +484,8 @@ def test_moved_check_fires_on_each_constructed_violation():
                  ("path + url.search + hash", "path + hash"),
                  ("status: 301,", "status: 302,"),
                  ("      const to = movedTo(path);\n      if (to) return moved(url, to);\n", ""),
-                 ("        : to ? moved(url, to) : await env.ASSETS.fetch(request);",
-                  "        : await env.ASSETS.fetch(request);")):
+                 ("        : to ? moved(url, to)\n          : (await shareRoute",
+                  "        : (await shareRoute")):
         assert moved_problems(_mutate(src, a, b)), f"moved check blind to {b!r}"
     # the baseline worker had no moved page
     assert moved_problems(baseline_source())
@@ -576,13 +597,13 @@ def test_portal_channel_paths_redirect_to_the_joburg_host_unlogged():
 
 def test_portal_channel_check_fires_on_each_constructed_violation():
     src = source()
-    for a, b in (("      if (channelOf(path)) {", "      if (false) {"),
+    for a, b in (("      if (channelOf(path) || isShare(path)) {", "      if (isShare(path)) {"),
                  ("${path}${url.search}", "${path}"),
                  ("${path}${url.search}", "/"),
                  ("          status: 302,\n          headers: { Location: `",
                   "          status: 301,\n          headers: { Location: `"),
-                 ("      if (channelOf(path)) {",
-                  "      if (channelOf(path)) {\n        console.log({ event: \"arrival\" });")):
+                 ("      if (channelOf(path) || isShare(path)) {",
+                  "      if (channelOf(path) || isShare(path)) {\n        console.log({ event: \"arrival\" });")):
         assert portal_channel_problems(_mutate(src, a, b)), f"blind to {b!r}"
     # the baseline worker served these paths from the asset layer
     assert portal_channel_problems(baseline_source())
@@ -697,3 +718,267 @@ def test_config_check_fires_on_each_constructed_violation():
         assert t != text, name
         assert config_problems(t), f"config check blind to {name}"
     assert config_problems(text, staging_file=True), "blind to wrangler.staging.toml"
+
+
+# ---------------------------------------------------------------- shared forecasts
+#
+# src/share-edge.js (audits/2026-10-03-share-design), driven through the
+# worker: /s/ counted and sent to the arrival view, the page's tags rewritten
+# for a link that carries a forecast, the image route's seat call and its
+# fallback, and the seal. The fake ASSETS serves the real forecast.json (built
+# here by build_make, not the possibly older one under site/), parties.json,
+# the logos and the built page; the fake SEATS records what it is asked.
+
+#: A key for these tests only. Obviously not a secret; the live key is a
+#: Worker secret set by the owner (`wrangler secret put SEAL_KEY`).
+TEST_SEAL_KEY = "test-only-seal-key"
+_SHARE: dict = {}
+
+
+def _share_setup() -> dict:
+    """forecast.json and parties.json in a temp dir, and one valid link."""
+    if _SHARE:
+        return _SHARE
+    sys.path.insert(0, str(ROOT / "src"))
+    import build_make
+    import build_play
+    t = Path(tempfile.mkdtemp(prefix="share-"))
+    data = build_make.forecast_data()
+    (t / "forecast.json").write_text(json.dumps(data), encoding="utf-8")
+    (t / "parties.json").write_bytes(build_play.roster_json())
+    # the published start with a coalition, through the page's own encoder
+    script = r"""
+import { readFileSync } from "node:fs";
+import * as B from "%s";
+import * as MS from "%s";
+const D = JSON.parse(readFileSync(process.argv[2], "utf8"));
+const ctx = B.contextOf(D.schema);
+const st = B.startState(ctx, { calls: D.start.ward_calls, share: D.start.combined_share }, D.start.ward_calls).state;
+const seats = D.start.seats;
+const top = Object.keys(seats).sort((a, b) => seats[b] - seats[a]).slice(0, 2);
+const other = B.assignWards(st, ctx, [0], st.calls[1] === st.calls[0] ? top[1] : st.calls[1]).state;
+process.stdout.write(JSON.stringify({ f: MS.encode(st, top, ctx), f2: MS.encode(other, [top[0]], ctx),
+  calls: st.calls, top }));
+""" % ((ROOT / "interactive/js/builder-state.js").as_uri(), (ROOT / "interactive/js/make-state.js").as_uri())
+    (t / "enc.mjs").write_text(script, encoding="utf-8")
+    p = subprocess.run([_node(), str(t / "enc.mjs"), str(t / "forecast.json")],
+                       capture_output=True, text=True, timeout=120)
+    assert p.returncode == 0, p.stderr
+    enc = json.loads(p.stdout)
+    _SHARE.update(dir=t, data=data, link=f"v=1&c={data['context_ref']}&f={enc['f']}", f=enc["f"],
+                  f2=enc["f2"], calls=enc["calls"], top=enc["top"],
+                  files={"/your-forecast/forecast.json": t / "forecast.json",
+                         "/your-forecast/parties.json": t / "parties.json",
+                         "/your-forecast/index.html": ROOT / "site/your-forecast/index.html",
+                         "/your-forecast/": ROOT / "site/your-forecast/index.html",
+                         "/logo.svg": ROOT / "site/logo.svg"})
+    return _SHARE
+
+
+def share_arrival_problems(src: str) -> list[str]:
+    S = _share_setup()
+    out = []
+    for host in (JOBURG, *PREVIEW_HOSTS):
+        for ch, blob in (("wa", "wa"), ("copy", "copy"), ("evil<x>", ""), (None, "")):
+            q = S["link"] + "&n=Thandi" + (f"&ch={ch}" if ch else "")
+            r = run_worker(src, [{"url": f"https://{host}/s/?{q}", "env": {}}])[0]
+            h = dict(r["headers"])
+            want = f"https://{host}/your-forecast/?{S['link']}&n=Thandi&from=1"
+            if r["status"] != 302 or h.get("location") != want or r["fetched"]:
+                out.append(f"{host} ch={ch}: {r['status']} {h.get('location')!r} fetched {r['fetched']}, want {want!r}")
+            point = {"blobs": ["share", host, blob], "doubles": [1], "indexes": ["share"]}
+            if r["points"] != [point]:
+                out.append(f"{host} ch={ch}: wrote {r['points']}, want [{point}]")
+            log = {"event": "arrival", "channel": "share", "host": host, "via": blob}
+            if r["logs"] != [log]:
+                out.append(f"{host} ch={ch}: logged {r['logs']}, want [{log}]")
+            if (host in PREVIEW_HOSTS) != (h.get("x-robots-tag") == NOINDEX):
+                out.append(f"{host}: X-Robots-Tag {h.get('x-robots-tag')!r}")
+    for host in PORTALS:
+        for path in ("/s/", "/s"):
+            r = run_worker(src, [{"url": f"https://{host}{path}?{S['link']}&ch=x", "env": {}}])[0]
+            want = f"https://{JOBURG}{path}?{S['link']}&ch=x"
+            if r["status"] != 302 or dict(r["headers"]).get("location") != want or r["logs"] or r["points"]:
+                out.append(f"{host}{path}: {r['status']} {dict(r['headers']).get('location')!r} "
+                           f"logged {r['logs']} wrote {r['points']}, want 302 {want!r} unlogged")
+    return out
+
+
+def test_share_links_count_once_and_open_the_arrival_view():
+    assert share_arrival_problems(source()) == []
+
+
+def test_share_arrival_check_fires_on_each_constructed_violation():
+    edge = (ROOT / "src" / "share-edge.js").read_text(encoding="utf-8")
+    src = source()
+    write = 'env.ARRIVALS?.writeDataPoint({ blobs: ["share", host, ch], doubles: [1], indexes: ["share"] });'
+    assert edge.count(write) == 1
+    for a, b in ((write, ""), ('blobs: ["share", host, ch]', 'blobs: ["share", host, url.search]'),
+                 ('if (q.has("f")) q.set("from", "1");', ""), ('q.delete("ch");', ""),
+                 ("SHARE_CHANNELS.has(raw) ? raw : \"\"", "raw || \"\"")):
+        assert edge.count(a) == 1, a
+        mutated = edge.replace(a, b)
+        assert _with_edge(mutated, lambda: share_arrival_problems(src)), f"blind to {b!r}"
+    assert share_arrival_problems(_mutate(src, "      if (channelOf(path) || isShare(path)) {",
+                                          "      if (channelOf(path)) {"))
+
+
+def _with_edge(text: str, fn):
+    """Run `fn` with src/share-edge.js replaced by `text`, restored after."""
+    p = ROOT / "src" / "share-edge.js"
+    real = p.read_text(encoding="utf-8")
+    p.write_text(text, encoding="utf-8")
+    try:
+        return fn()
+    finally:
+        p.write_text(real, encoding="utf-8")
+
+
+def test_the_built_page_carries_every_tag_a_shared_link_rewrites():
+    page = (ROOT / "site/your-forecast/index.html").read_text(encoding="utf-8")
+    edge = (ROOT / "src" / "share-edge.js").read_text(encoding="utf-8")
+    tags = re.findall(r'"((?:og|twitter):[a-z:]+)"', edge[edge.index("export const TAGS"):].split("\n")[0])
+    assert len(tags) == 6, tags
+    for t in tags:
+        attr = "name" if t.startswith("twitter:") else "property"
+        assert page.count(f'<meta {attr}="{t}" content="') == 1, t
+
+
+def test_a_shared_link_names_its_forecast_and_points_at_its_own_image():
+    S = _share_setup()
+    cases = [{"url": f"https://{JOBURG}/your-forecast/?{S['link']}&n=Thandi&from=1&t=1,0,0,0", "env": {}},
+             {"url": f"https://{JOBURG}/your-forecast/?{S['link']}&n=%3Cb%3EX%3C%2Fb%3E", "env": {}},
+             {"url": f"https://{JOBURG}/your-forecast/?t=1,0,0,0", "env": {}},
+             {"url": f"https://{PREVIEW_HOSTS[1]}/your-forecast/?{S['link']}&n=whysoserious", "env": {}}]
+    named, escaped, plain, blocked = run_worker(source(), cases, S["files"])
+    img = f"https://{JOBURG}/og/1/link.png?{S['link']}&amp;n=Thandi".replace("&amp;", "&")
+    assert f'<meta property="og:image" content="{img.replace("&", "&amp;")}">' in named["body"], named["body"][:3000]
+    assert f'<meta name="twitter:image" content="{img.replace("&", "&amp;")}">' in named["body"]
+    assert '<meta property="og:title" content="Thandi&#x27;s Election Forecast">' in named["body"] or \
+        '<meta property="og:title" content="Thandi\'s Election Forecast">' in named["body"]
+    assert "from=1" not in re.search(r'og:image" content="([^"]*)"', named["body"]).group(1)
+    assert "t=1" not in re.search(r'og:url" content="([^"]*)"', named["body"]).group(1)
+    assert "<b>" not in escaped["body"].split("</head>")[0] or "&lt;b&gt;" in escaped["body"]
+    page = (ROOT / "site/your-forecast/index.html").read_text(encoding="utf-8")
+    assert plain["body"] == "asset:/your-forecast/" or plain["body"] == page   # no forecast: untouched
+    assert "My Election Forecast" in blocked["body"] and "whysoserious&#x27;s" not in blocked["body"]
+    assert dict(blocked["headers"]).get("x-robots-tag") == NOINDEX
+    assert not any(r["logs"] or r["points"] for r in (named, escaped, plain, blocked))
+
+
+def test_the_image_asks_the_seat_worker_and_falls_back_to_the_generic_image():
+    """No binding, a failing seat Worker, an incomplete answer and an
+    unreadable link each answer 302 to /og.png, never an error. The seat
+    Worker is asked for the link's picks, never seats from the link, with the
+    published draws' hash."""
+    S = _share_setup()
+    base = f"https://{JOBURG}/og/1/link.png?{S['link']}&n=Thandi&seats=999"
+    ok = {"status": 200, "body": {"seats": {}, "outcome": {}}}
+    cases = [{"url": base, "env": {}},
+             {"url": base, "env": {}, "seats": {"status": 500, "body": {}}},
+             {"url": base, "env": {}, "seats": ok},
+             {"url": f"https://{JOBURG}/og/1/link.png?v=1&c=x&f=AAAA", "env": {}, "seats": ok},
+             {"url": f"https://{PREVIEW_HOSTS[0]}/og/1/story.png?{S['link']}", "env": {}, "seats": ok}]
+    runs = run_worker(source(), cases, S["files"])
+    for r in runs:
+        h = dict(r["headers"])
+        assert r["status"] == 302 and h.get("location", "").endswith("/og.png"), (r["url"], r["status"], h, r["error"])
+        assert h.get("cache-control") == "no-store" and not r["error"] and not r["logs"] and not r["points"]
+    assert runs[0]["seatCalls"] == [] and runs[3]["seatCalls"] == []
+    call = runs[2]["seatCalls"][0]
+    assert call["url"] == "https://seats/v1/card"
+    assert set(call["body"]) == {"seats", "coalition", "draws_sha256"}
+    assert call["body"]["draws_sha256"] == S["data"]["draws_sha256"]
+    assert call["body"]["coalition"] == S["top"]
+    wards = S["data"]["schema"]["x-seat-context"]["wards"]
+    assert call["body"]["seats"]["ward_winners"] == dict(zip(wards, S["calls"]))
+    assert "999" not in json.dumps(call["body"])
+    assert dict(runs[4]["headers"]).get("x-robots-tag") == NOINDEX
+
+
+SEAL = f"https://{JOBURG}/seal/1"
+
+
+def _seal_cases(S, now, env, **body):
+    return {"url": SEAL, "method": "POST", "now": now, "env": env,
+            "body": {"v": "1", "c": S["data"]["context_ref"], "f": S["f"], "n": "Thandi", **body}}
+
+
+def seal_problems(src: str) -> list[str]:
+    S = _share_setup()
+    from datetime import datetime
+    opens = int(datetime.fromisoformat(S["data"]["election"]["polls_open"]).timestamp() * 1000)
+    key = {"SEAL_KEY": TEST_SEAL_KEY}
+    before, after = opens - 86_400_000, opens
+    out = []
+    made = run_worker(src, [_seal_cases(S, before, key)], S["files"])[0]
+    if made["status"] != 200:
+        return [f"seal: {made['status']} {made['body']}"]
+    s = json.loads(made["body"])["s"]
+    check = lambda **b: {**_seal_cases(S, before, key, **{"s": s, **b}), "url": SEAL + "/check"}
+    runs = run_worker(src, [
+        check(),                                   # sealed, before polls
+        check(f=S["f2"]),                          # another forecast under this seal
+        check(n="Kgomotso"),                       # relabelled
+        check(s=s[:-2] + ("AA" if not s.endswith("AA") else "BB")),   # forged signature
+        check(s=""),                               # unsigned
+        _seal_cases(S, after, key),                # polls open: refused
+        _seal_cases(S, before, {}),                # no key: not set up
+        _seal_cases(S, before, key, f="AAAA"),     # not a forecast
+        _seal_cases(S, before, key, n="the model"),  # a name the cards refuse
+        {k: v for k, v in _seal_cases(S, before, key).items() if k != "body"} | {"method": "GET"},
+        {**check(), "env": {"SEAL_KEY": "another-key"}},   # another key
+    ], S["files"])
+    want = [(200, {"sealed": True, "at": datetime.fromtimestamp(before // 1000 * 1000 / 1000).astimezone().isoformat(), "before_polls": True}),
+            (200, {"sealed": False, "at": None, "before_polls": False})] + \
+        [(200, {"sealed": False, "at": None, "before_polls": False})] * 3 + \
+        [(403, None), (503, None), (400, None), (400, None), (405, None),
+         (200, {"sealed": False, "at": None, "before_polls": False})]
+    for r, (status, body) in zip(runs, want):
+        got = json.loads(r["body"]) if r["body"] else None
+        if r["status"] != status:
+            out.append(f"{r['url']}: {r['status']} {r['body'][:200]}, want {status}")
+        elif body is not None:
+            if body["sealed"]:
+                if not (got["sealed"] and got["before_polls"] and
+                        abs(datetime.fromisoformat(got["at"].replace("Z", "+00:00")).timestamp() * 1000 - before) < 1000):
+                    out.append(f"check: {got}, want sealed at {before}")
+            elif got != body:
+                out.append(f"check: {got}, want {body}")
+        if r["logs"] or r["points"]:
+            out.append(f"{r['url']}: logged {r['logs']} wrote {r['points']}")
+        if TEST_SEAL_KEY in r["body"]:
+            out.append("the key is in a response")
+    return out
+
+
+def test_a_link_is_sealed_before_polls_open_and_its_seal_checks():
+    assert seal_problems(source()) == []
+
+
+def test_seal_check_fires_on_each_constructed_violation():
+    edge = (ROOT / "src" / "share-edge.js").read_text(encoding="utf-8")
+    seal = (ROOT / "src" / "seal.js").read_text(encoding="utf-8")
+    src = source()
+    for a, b in (("if (!(now < opens))", "if (false)"),
+                 ('if (fields.n !== "" && cardName(fields.n) !== fields.n)', "if (false)")):
+        assert edge.count(a) == 1, a
+        assert _with_edge(edge.replace(a, b), lambda: seal_problems(src)), f"blind to {b!r}"
+    p = ROOT / "src" / "seal.js"
+    for a, b in (('return [SEAL_VERSION, String(seconds), ...SEALED_KEYS.map(k => String(fields[k] ?? ""))].join("\\n");',
+                  'return [SEAL_VERSION, String(seconds), String(fields.f ?? "")].join("\\n");'),
+                 ("return ok ? { sealed: true, at: seconds * 1000 } : no;", "return { sealed: true, at: seconds * 1000 };")):
+        assert seal.count(a) == 1, a
+        p.write_text(seal.replace(a, b), encoding="utf-8")
+        try:
+            assert seal_problems(src), f"blind to {b!r}"
+        finally:
+            p.write_text(seal, encoding="utf-8")
+
+
+def test_the_share_routes_write_nothing_about_the_visitor():
+    edge = (ROOT / "src" / "share-edge.js").read_text(encoding="utf-8")
+    assert edge.count("writeDataPoint(") == 1 and edge.count("console.log(") == 1
+    for leak in ("CF-Connecting-IP", "cf-connecting-ip", "User-Agent", "user-agent", "request.cf",
+                 "headers.get(\"cookie\")", "SEAL_KEY)", "console.log(url", "console.log(q"):
+        assert leak not in edge.replace("env.SEAL_KEY)", ""), leak

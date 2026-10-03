@@ -19,7 +19,7 @@ import { createRequire } from "node:module";
 
 import * as B from "../js/builder-state.js";
 import * as MS from "../js/make-state.js";
-import { buildForecastCardSVG, forecastCardAlt, cardTitle } from "../js/forecast-card.js";
+import { buildForecastCardSVG, forecastCardAlt } from "../js/forecast-card.js";
 import { seatRequest, checkSeatAnswer } from "../../worker-api/src/seats.js";
 import { check as checkServedCopy, DST as PY_DIR } from "../tools/sync_py.mjs";
 
@@ -139,16 +139,16 @@ test("an invalid link opens the section at its start with a note saying why", ()
   }
 });
 
-test("the share image carries the name, the map and every row, escaped", () => {
+test("the card module draws the title, the map and every row, escaped", () => {
+  // section 2's own cards are share-card.js's (share.test.mjs); this is the
+  // layout section 1 keeps, with a title that needs escaping
   const rows = [{ label: "DA", colour: "#1B5EA8", value: "77", n: 77 }, { label: "Others", colour: "#555", value: "6", n: 6 }];
   const map = { W: D.geometry.W, H: D.geometry.H, wards: D.geometry.wards.map(w => ({ path: w.path, fill: "#123456" })) };
-  const svg = buildForecastCardSVG({ title: cardTitle("A & B"), lines: [{ text: "s" }], map, rows, rowsNote: "n", foot: ["f"] });
-  assert.ok(svg.includes("A &amp; B's election forecast"));
+  const svg = buildForecastCardSVG({ title: "A & B's settings", lines: [{ text: "s" }], map, rows, rowsNote: "n", foot: ["f"] });
+  assert.ok(svg.includes("A &amp; B's settings"));
   assert.equal((svg.match(/<path /g) || []).length, ctx.wards.length);
   for (const r of rows) assert.ok(svg.includes(">" + r.value + "<"), r.label);
-  assert.equal(cardTitle(null), "My election forecast");
-  assert.equal(cardTitle("James"), "James' election forecast");
-  assert.match(forecastCardAlt({ title: cardTitle("Thandi"), lines: [{ text: "s" }], rows, foot: ["Not the model's forecast."] }), /^Thandi's election forecast\. s\. Seats: DA 77, Others 6\. Not the model's forecast\.$/);
+  assert.match(forecastCardAlt({ title: "Thandi's settings", lines: [{ text: "s" }], rows, foot: ["Not the model's forecast."] }), /^Thandi's settings\. s\. Seats: DA 77, Others 6\. Not the model's forecast\.$/);
 });
 
 // Seats for many bodies at once through the CPython the project runs: the
