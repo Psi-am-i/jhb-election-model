@@ -44,6 +44,18 @@ NAMES = {
 }
 import scenarios as _scenarios  # noqa: E402  (constants below read it)
 
+#: The seat laws, in the order the pages list them: ``(key, name, what it
+#: does)``. ONE DEFINITION of their names (owner, 2026-10-03): the regime table
+#: on /forecast prints them, and /your-forecast/'s seat-law lever offers them
+#: under the same names (``build_play.laws_json``). The key is the draws' and
+#: ``overhang_regimes``' name for the law.
+SEAT_LAWS = (
+    ("deduct", "South African law", "fixed 270 — others squeezed"),
+    ("expand", "Germany 2000 law", "council grows"),
+    ("level", "Germany 2015 law", "council grows &amp; levelled"),
+    ("cap", "Germany 2023 law", "fixed 270 — wins not seated if not proportional"),
+)
+
 # ⛔ A COALITION TOKEN'S IDENTITY MAY NOT DEPEND ON A RUN'S SEAT RANKING. The
 # key was `"+".join(members_of(m))`, and `members_of` follows the parties'
 # mean-seat order, so when MK and the PA swapped places between the
@@ -617,12 +629,7 @@ def main(argv: list[str] | None = None) -> int:
     # and restores the reference outputs)
     REG_PARTIES = ["DA", "ANC", "EFF", "ASA", "MK", "PA", "IFP", "ALJAMAAH"]
     regimes = []
-    for key, label, note in (
-            ("deduct", "South African law", "fixed 270 — others squeezed"),
-            ("expand", "Germany 2000 law", "council grows"),
-            ("level", "Germany 2015 law", "council grows &amp; levelled"),
-            ("cap", "Germany 2023 law",
-             "fixed 270 — wins not seated if not proportional")):
+    for key, label, note in SEAT_LAWS:
         if key == "deduct":
             summ = summary
             sd = rows

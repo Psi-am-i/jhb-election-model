@@ -1,5 +1,5 @@
-/* The stylesheet of "make your own forecast" (/make/) and "play with the
-   model" (/play/, with css/play.css after it), loaded after the site's one
+/* The stylesheet of "your forecast" (/your-forecast/, with css/play.css and
+   css/your-forecast.css after it), loaded after the site's one
    stylesheet (site/css/site.css, from src/css/), which carries the palette,
    the type stacks, the theme toggle, the token styling and the seat table.
 
@@ -240,24 +240,14 @@ footer.sitefooter a{color:var(--ink-3);}
 .mapscroll svg.readonly{min-width:0;}
 .lede p.meta{font-size:12px;margin-top:6px;}
 
-/* A region the page writes from the reader's edits (data-live) carries this
-   visible label. */
-.published{display:block;margin:8px 0;}
-.published figcaption{font-size:12.5px;color:var(--ink-3);margin-top:10px;}
-
-
-/* ---------- make your own forecast (/make/) ---------- */
+/* ---------- section 2, "Break the model" ---------- */
 .builder{counter-reset:step;}
 .stepno::before{counter-increment:step;content:counter(step);font-family:var(--serif);color:var(--reader);
   margin-right:10px;}
 .step>.stephead{font-size:18px;padding:12px 14px 6px;}
-.step.pubseats>summary{display:block;padding:12px 14px;}
-.step.pubseats>summary .st::before{content:"▸ ";color:var(--ink-3);font-size:14px;}
-.step.pubseats[open]>summary .st::before{content:"▾ ";}
 /* the vote list's second tier: parties with no seat at the start */
 .prmore>summary{cursor:pointer;font:600 13px var(--sans);color:var(--ink-2);padding:10px 2px;
   border-bottom:1px solid var(--rule-soft);}
-.step.pubseats .st{font-size:17px;}
 .brushpick{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3);margin-top:8px;}
 .brushpick select{flex:1;min-width:0;}
 .brushscroll:empty{display:none;}

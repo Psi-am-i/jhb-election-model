@@ -1953,6 +1953,27 @@ with the value and, for poll weights, `POLL_LABEL`, "the model's draws nearest
 this poll". `require_effective` and `export_draws.export` resolve their
 defaults (`MIN_EFFECTIVE_DRAWS`, `LAWS`) at call time.
 
+
+**Added 2026-10-03, with /your-forecast/ (the owner's sweep, lane Y).** Two
+more uses of the same draws, neither of which moves a forecast:
+
+* **Where a reader's own forecast opens** — `src/start_rule.py`,
+  `start_seats` and `start_shares`, moved out of `build_make` so the build and
+  the page run one definition. Targets are each named party's weighted middle
+  seat count (`weighted_quantile` at one half) raised to its ward count, Others
+  the remainder; shares are the targets' share of the council in whole votes.
+  The build runs it with unit weights (the published start, `forecast.json`);
+  the page's `handoff` (`interactive/pyboot/page.py`) runs it on the reader's
+  weights, with each ward's most likely winner under them as the ward calls.
+  `tests/test_your_forecast_page.py` holds the two equal at the published
+  setting and the hand-off's wards equal to section 1's under every setting
+  it checks.
+* **"Analyse my forecast"** — `within_band` (the weighted share of draws within
+  a band of a reader's figure) and `ward_calls_likelihood` (each ward call's
+  chance, their sum, and the reader's set of ward results ranked among the
+  draws' own by the sum of log ward chances), on the published draws, unit
+  weights. The bands and the method are JUDGEMENT-CALLS §N3.
+
 ## A reader's forecast, seated by the statute alone — `src/reader_seats.py` (2026-09-28)
 
 **What it does.** DESIGN-decided §9: a reader edits the citywide PR vote shares

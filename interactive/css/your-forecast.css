@@ -1,0 +1,116 @@
+/* "Your forecast" (/your-forecast/): the page's layout, and what its two
+   sections share, after interactive.css and play.css. Every class here
+   starts "yf-".
+
+   Numbers are never typed into the page (stats.scan_numbers): the section
+   numbers and the walkthrough's step numbers are CSS counters. */
+
+.yf{counter-reset:yfsec;}
+.yf .yf-wrap,.yf .pl-banner{max-width:1360px;}
+
+/* ---------- the two sections ---------- */
+.yf-jump{display:flex;flex-wrap:wrap;gap:6px 18px;font:600 14px var(--sans);margin:0 0 8px;counter-reset:yfjump;}
+.yf-jump a{text-decoration:none;color:var(--ink-2);}
+.yf-jump a::before{counter-increment:yfjump;content:counter(yfjump);display:inline-block;width:20px;height:20px;
+  border-radius:50%;background:var(--reader-soft);color:var(--reader);font:700 12px/20px var(--sans);text-align:center;margin-right:6px;}
+.yf-jump a:hover{color:var(--ink);}
+.yf-section{scroll-margin-top:56px;padding-top:6px;}
+.yf-shead{font:600 clamp(24px,3.4vw,32px)/1.15 var(--serif);margin:18px 0 6px;color:var(--ink);}
+.yf-shead::before{counter-increment:yfsec;content:counter(yfsec);display:inline-block;min-width:1.4em;
+  color:var(--reader);margin-right:10px;}
+.yf-sdek{max-width:72ch;font-size:15.5px;color:var(--ink-2);margin:0 0 6px;}
+/* the clean break between adjusting and breaking the model */
+.yf-break{border-top:4px double var(--rule);margin:56px 0 18px;}
+
+/* ---------- section 1: levers left, a sticky column of results right ---------- */
+@media (min-width:1100px){
+  .yf .yf-layout{grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:44px;}
+  /* the map above the seat table, both the column's full width; the column
+     holds still while the levers scroll, and scrolls itself when it is
+     taller than the window, so it is never pinned part-scrolled */
+  .yf .pl-resultscol{max-height:calc(100dvh - 60px);overflow-y:auto;overscroll-behavior:contain;
+    padding-right:6px;scrollbar-gutter:stable;}
+  .yf .pl-rgrid{display:flex;flex-direction:column;gap:18px;}
+}
+.yf-sharebox{border-top:1px solid var(--rule);padding-top:16px;margin-top:10px;}
+
+/* ---------- the floating "computing" indicator: reserves no space ---------- */
+.yf-busy{position:fixed;right:16px;bottom:16px;z-index:40;pointer-events:none;margin:0;
+  font:600 12.5px var(--sans);color:var(--paper);background:var(--reader);padding:7px 14px;border-radius:999px;
+  box-shadow:0 2px 10px rgba(0,0,0,.25);}
+.yf-busy[hidden]{display:none;}
+@media (prefers-reduced-motion:no-preference){
+  .yf-busy{animation:yf-breathe 1.2s ease-in-out infinite alternate;}
+  @keyframes yf-breathe{from{opacity:.75;}to{opacity:1;}}
+}
+
+/* ---------- change cues ---------- */
+.yf .st-seats{position:relative;}
+.yf-spark{position:absolute;top:-6px;right:-4px;font-size:10px;line-height:1;pointer-events:none;}
+/* one hue for both directions: a move is not good or bad news for a reader */
+.yf-spark{color:var(--reader);}
+.pl-bi.yf-cue{position:relative;}
+.pl-bi .yf-spark{top:-5px;right:-9px;}
+@media (prefers-reduced-motion:no-preference){
+  .yf-cue{animation:yf-pulse .9s ease-out 1;}
+  .yf-cue .pchip,.pl-bi.yf-cue i{animation:yf-grow .9s ease-out 1;}
+  .yf-spark{animation:yf-spark 1.6s ease-out 1 forwards;}
+  @keyframes yf-pulse{0%{background:color-mix(in srgb,var(--reader) 26%,transparent);}100%{background:transparent;}}
+  @keyframes yf-grow{0%{transform:scale(1);}35%{transform:scale(1.7);}100%{transform:scale(1);}}
+  @keyframes yf-spark{0%{opacity:0;transform:translateY(4px) scale(.6);}25%{opacity:1;transform:none;}
+    80%{opacity:1;}100%{opacity:0;transform:translateY(-4px);}}
+}
+@media (prefers-reduced-motion:reduce){
+  /* no motion: the direction stays, still, until the next change */
+  .yf-cue{outline:1px solid color-mix(in srgb,var(--reader) 45%,transparent);outline-offset:1px;}
+}
+
+/* the phone's toast, while the seat table is out of view */
+.yf-toast{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:41;
+  display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;max-width:calc(100vw - 24px);
+  background:var(--paper);color:var(--ink);border:1px solid var(--reader);border-radius:10px;padding:8px 12px;
+  font:600 13px var(--sans);box-shadow:0 4px 18px rgba(0,0,0,.28);}
+.yf-toast[hidden]{display:none;}
+.yf-thead{font-weight:700;color:var(--reader);}
+.yf-ti{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.yf-ti i{width:10px;height:10px;border-radius:2px;display:inline-block;background:var(--pc,var(--pc-other));}
+.yf-tlogo{width:20px;height:20px;object-fit:contain;border-radius:3px;background:#fff;}
+@media (prefers-reduced-motion:no-preference){
+  .yf-toast:not([hidden]){animation:yf-toast .25s ease-out;}
+  @keyframes yf-toast{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+}
+@media (min-width:1100px){.yf-toast{display:none;}}
+
+/* ---------- section 2: the walkthrough ---------- */
+.yf-builder{margin-top:14px;}
+.yf-step{transition:box-shadow .2s, border-color .2s;}
+.yf-step[data-step="now"],.yf-step4:has([data-live="b-actions"][data-step="now"]){
+  border-color:var(--reader);box-shadow:0 0 0 2px color-mix(in srgb,var(--reader) 45%,transparent);}
+.yf-step[data-step="done"] .stepno::after,
+.yf-step4:has([data-live="b-actions"][data-step="done"]) .stepno::after{content:" ✓";color:var(--good);font-size:.8em;}
+.yf-step[data-step="next"] .stepno::before,
+.yf-step4:has([data-live="b-actions"][data-step="next"]) .stepno::before{color:var(--ink-3);}
+.yf-nextrow{margin:10px 0 0;padding:0 12px 10px;}
+.step .body .yf-nextrow{padding:0;}
+.yf-step:not([data-step="now"]) .yf-next{opacity:.7;}
+@media (prefers-reduced-motion:reduce){.yf-step{transition:none;}}
+
+.yf-actrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;}
+.yf-actrow .sharebox{border:0;padding:0;}
+.yf-follow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px;color:var(--ink);
+  background:var(--k-soft,var(--paper-2));border-left:3px solid var(--reader);padding:8px 10px;margin:8px 0;}
+.yf-follow[hidden]{display:none;}
+
+/* ---------- "Analyse my forecast" ---------- */
+.yf-analysis{border:1px solid var(--rule-soft);border-top:3px solid var(--reader);background:var(--paper-2);
+  padding:16px;margin-top:22px;max-width:980px;scroll-margin-top:60px;}
+.yf-analysis[hidden]{display:none;}
+.yf-analysis h3{font:600 20px var(--serif);margin:0 0 8px;}
+.yf-verdict{font:19px/1.4 var(--serif);color:var(--ink);margin:0 0 6px;max-width:62ch;}
+.yf-expected{font-size:14px;margin:0 0 10px;}
+.yf-atable{overflow-x:auto;}
+.yf-at{border-collapse:collapse;width:100%;font-size:13.5px;}
+.yf-at th,.yf-at td{padding:6px 8px;border-bottom:1px solid var(--rule-soft);text-align:left;vertical-align:baseline;}
+.yf-at th{font-weight:600;color:var(--ink-3);font-size:12.5px;}
+.yf-at .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.yf-at td .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;}

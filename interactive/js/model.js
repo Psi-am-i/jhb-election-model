@@ -1,5 +1,6 @@
-// "Play with the model": the page. It holds the controls and writes the figures
-// the model's Python returns; it computes none of them.
+// "Your forecast", section 1 ("Adjust the model"): the page. It holds the
+// controls and writes the figures the model's Python returns; it computes
+// none of them.
 //
 // Every figure a control produces is computed by src/reweight.py, through
 // pyboot/page.py, under Pyodide, in a Web Worker (js/model-worker.js; SPEC-v2
@@ -9,18 +10,24 @@
 // rounding a figure for print, placing a bar, and an arrow for a change
 // page.py has already computed.
 //
-// ⛔ THE ONE MODULE THAT WRITES THE PAGE'S FIGURES, and the path listed for it
-// in stats.LIVE_WRITERS ("play/js/model.js"), with the LIVE regions it may
-// write. The build refuses the page (stats.script_writes) unless this file
-// keeps the writer contract:
+// The same Worker answers section 2 ("Break the model", js/make.js): where it
+// opens from these settings (page.py handoff) and what the model gives the
+// reader's own forecast (page.py analyse). make.js asks through engineCall and
+// hears of each new setting through onForecast; this module owns the Worker.
+//
+// ⛔ THE ONE MODULE THAT WRITES SECTION 1'S FIGURES, and the path listed for
+// it in stats.LIVE_WRITERS ("your-forecast/js/model.js"), with the LIVE
+// regions it may write. The build refuses the page (stats.script_writes)
+// unless this file keeps the writer contract:
 //   * it reaches the page ONLY through literal '[data-live="<name>"] …'
 //     selectors, each for a region listed for it, all taken once, below;
 //   * it writes with textContent, createElement(NS) and append; never markup;
 //   * it does not walk out of a region (no parent, sibling or document-level
 //     handles), and writes nothing through an event's target.
-// Its imports: play-state.js is scanned as a NON-writer; play-card.js (the
-// party order, seat format and setting names it shares with the share image)
-// and play-share.js (region "share") are writers in their own right.
+// Its imports: play-state.js and yf-url.js are scanned as NON-writers;
+// play-card.js (the party order, seat format and setting names it shares with
+// the share image) and play-share.js (region "share") are writers in their
+// own right.
 //
 // First paint (F6, DESIGN §4): the published forecast's figures, rendered by
 // build_site as ledgered tokens in each element's build twin, and no Python.
@@ -32,9 +39,17 @@
 // Precision (DESIGN-decided §15): a move that would leave any figure shown
 // known to worse than reweight.MAX_FIGURE_SE_SEATS stops: the control returns
 // to the furthest setting for which page.py's reweight.within_precision held.
+//
+// Change cues (owner, 2026-10-03): a seat row or banner entry whose middle
+// moved since the last figures shown pulses, with a ▲/▼ for the direction;
+// on a narrow screen with the seat table out of view, a toast names the
+// parties that moved. css/your-forecast.css drops the motion under
+// prefers-reduced-motion. The computing indicator floats over the page and
+// moves nothing ("busy").
 
 import * as PS from "./play-state.js";
-import { order, seatText, rangeText, LAW_TEXT, cellName, pollName, settingsWords, largestTop, theName } from "./play-card.js";
+import * as YU from "./yf-url.js";
+import { order, seatText, rangeText, cellName, pollName, settingsWords, largestTop, theName } from "./play-card.js";
 import { setShareable } from "./play-share.js";
 import { seatTable } from "./seat-table.js";
 
@@ -45,6 +60,8 @@ const SVG = "http://www.w3.org/2000/svg";
 const R = {
   engineRegion: document.querySelector('[data-live="engine"]'),
   engine: document.querySelector('[data-live="engine"] .pl-engine'),
+  busy: document.querySelector('[data-live="busy"]'),
+  toast: document.querySelector('[data-live="toast"]'),
   linknote: document.querySelector('[data-live="engine"] .pl-linknote'),
   banner: document.querySelector('[data-live="banner"]'),
   result: document.querySelector('[data-live="result"]'),
@@ -119,11 +136,41 @@ const inputs = { turnout: [], tlabel: [], tscale: [], poll: [], law: [], cells: 
 const geometryP = fetch(new URL("../ward_paths.json", import.meta.url))
   .then(r => (r.ok ? r.json() : null)).catch(() => null)
   .then(g => { geometry = g; return g; });
+// The seat laws' names, as /forecast prints them (render_sheet.SEAT_LAWS).
+const lawsP = fetch(new URL("../laws.json", import.meta.url))
+  .then(r => (r.ok ? r.json() : {})).catch(() => ({}));
 
 function ask(settings) {
   const id = ++seq;
   worker.postMessage({ type: "compute", seq: id, settings });
   return new Promise((ok, no) => pending.set(id, { ok, no }));
+}
+
+// ---------- what section 2 (js/make.js) reaches through this module ----------
+// A call to page.py's handoff or analyse, answered in order and never
+// superseded; rejected if the engine did not load.
+const calls = new Map();
+let callSeq = 0, engineFailed = null;
+let readyResolve;
+const engineReady = new Promise(ok => { readyResolve = ok; });
+export async function engineCall(fn, payload) {
+  await engineReady;
+  if (engineFailed) throw new Error(engineFailed);
+  const id = ++callSeq;
+  worker.postMessage({ type: "call", id, fn, payload });
+  return new Promise((ok, no) => calls.set(id, { ok, no }));
+}
+// Each setting section 1 shows, as it is shown: { settings, touched }. A
+// listener added late hears the current one at once.
+const listeners = [];
+let shownNow = null;
+export function onForecast(cb) {
+  listeners.push(cb);
+  if (shownNow) cb(shownNow);
+}
+function told(state) {
+  shownNow = { settings: PS.engineSettings(state), touched: PS.isTouched(state) };
+  for (const cb of listeners) cb(shownNow);
 }
 
 worker.onmessage = e => {
@@ -132,8 +179,14 @@ worker.onmessage = e => {
   else if (m.type === "failed") {
     R.engine.textContent = m.missing ? m.message : "The re-weighting code did not load: " + m.message + ". The published forecast is shown.";
     R.engine.classList.add("pl-low");
+    engineFailed = "the re-weighting code did not load";
+    readyResolve();
   } else if (m.type === "ready") ready(m);
-  else if (m.type === "result" || m.type === "error") {
+  else if (m.type === "answer" || m.type === "callerror") {
+    const c = calls.get(m.id);
+    calls.delete(m.id);
+    if (c) m.type === "answer" ? c.ok(m.result) : c.no(new Error(m.message));
+  } else if (m.type === "result" || m.type === "error") {
     const p = pending.get(m.seq);
     pending.delete(m.seq);
     // an older request superseded by a newer one is dropped, not shown
@@ -143,15 +196,19 @@ worker.onmessage = e => {
 };
 
 // ---------- controls ----------
-function ready(m) {
+async function ready(m) {
   const cells = [...m.cells].sort((a, b) => a.w_bye - b.w_bye);
   roster = m.parties || {};
-  ctx = { pools: m.pools, polls: m.polls.map(p => p.id), pollRows: m.polls, laws: m.laws,
+  const lawsText = await lawsP;
+  ctx = { pools: m.pools, polls: m.polls.map(p => p.id), pollRows: m.polls,
+          laws: m.laws.filter(k => k === PS.PUBLISHED_LAW || lawsText[k]), laws_text: lawsText,
           cells: cells.map(c => c.path), cellRows: cells, modelVersion: m.modelVersion };
   window.__playEngineTimes = m.times;
+  readyResolve();
   const parsed = PS.parse(location.search, ctx);
-  st = parsed.state;
+  st = { ...parsed.state, name: YU.nameOf(location.search) };
   const notes = [];
+  if (YU.nameRefused(location.search)) parsed.dropped.push("name: at most " + PS.NAME_MAX + " characters");
   if (parsed.dropped.length) notes.push("Some settings in this link were not applied: " + parsed.dropped.join("; ") + ".");
   if (parsed.otherVersion) notes.push("This link was made against a different version of the model; its settings are applied to the current one.");
   if (notes.length) { R.linknote.textContent = notes.join(" "); R.linknote.hidden = false; }
@@ -237,8 +294,8 @@ function buildControls() {
     const radio = el("input", { type: "radio", name: "law", value: k });
     radio.addEventListener("change", () => { st.law = k; moved("law", false); });
     inputs.law.push(radio);
-    const [short, long] = LAW_TEXT[k] || [k, ""];
-    R.law.append(el("label", { className: "pl-popt" }, radio, el("span", { className: "pl-pmain" }, el("b", {}, short), el("span", { className: "pl-pnums" }, long))));
+    const t = lawText(k);
+    R.law.append(el("label", { className: "pl-popt" }, radio, el("span", { className: "pl-pmain" }, el("b", {}, t.label), el("span", { className: "pl-pnums" }, t.note))));
   }
   groups.law = R.law;
   syncControls();
@@ -262,12 +319,15 @@ function syncControls() {
   inputs.trustv.textContent = String(st.trust);
   for (const [b, path] of inputs.cells) b.setAttribute("aria-checked", String(path === st.cell));
   for (const r of inputs.law) r.checked = r.value === st.law;
-  const [short] = LAW_TEXT[st.law] || [st.law];
-  R.lawnow.textContent = st.law === PS.PUBLISHED_LAW ? short + ", as the law says" : short + ", not the law";
+  R.lawnow.textContent = lawText(st.law).label + (st.law === PS.PUBLISHED_LAW ? ", the law that seats the council" : ", for comparison");
 }
 
+// A seat law's name and what it does, as /forecast prints them (laws.json).
+const lawText = k => ctx.laws_text[k] || { label: k, note: "" };
+
 const copyState = s => ({ ...s, shift: s.shift.slice(), polls: s.polls.slice() });
-function writeURL() { history.replaceState(null, "", location.pathname + PS.serialize(st, ctx) + location.hash); }
+// Section 1's part of the page's one address (yf-url.js).
+function writeURL() { YU.write("adjust", PS.serialize(st, ctx)); }
 
 function moved(group, debounce) {
   lastMoved = group;
@@ -283,7 +343,20 @@ function greyOnly(names) {
   for (const n of names) groups[n]?.classList.add("pl-greyed");
 }
 
+// The floating indicator: shown while any computation is in flight. It is
+// position: fixed (css/your-forecast.css), so it reserves no space and moves
+// nothing.
+let busyN = 0;
+function busy(on) {
+  busyN = Math.max(0, busyN + (on ? 1 : -1));
+  R.busy.hidden = busyN === 0;
+}
 async function update() {
+  busy(true);
+  try { await compute(); } finally { busy(false); }
+}
+
+async function compute() {
   if (!ctx || !baseline) return;
   const touched = PS.isTouched(st);
   greyOnly([]);
@@ -294,7 +367,7 @@ async function update() {
     render(baseline, false);
     return;
   }
-  R.engine.textContent = "Computing…";
+  R.engine.textContent = "";
   // The settings this result is FOR. A control moved during the await changes
   // `st`, and that move schedules its own update: this result is then stale,
   // and is dropped rather than shown (or shared) beside the newer settings.
@@ -373,7 +446,8 @@ function offerShare(r, state) {
                  r, st: copyState(state), ctx, party, made: today(), when: WHEN,
                  geometry: geometry && { ...geometry, step: geometry.step, rotate: geometry.rotate },
                  touched: PS.isTouched(state),
-                 onName: name => { st.name = name; writeURL(); } });
+                 shareable: PS.shareable(state), lawName: lawText(PS.PUBLISHED_LAW).label,
+                 onName: name => { st.name = name; YU.write("name", name); } });
 }
 
 // ---------- figures ----------
@@ -393,33 +467,37 @@ const arrow = d => (d ? el("span", { className: "arrow reader" }, arrowText(d)) 
 
 function render(r, touched, state = st) {
   offerShare(r, state);
+  told(state);
+  const moves = changes(r);
   if (touched) R.result.setAttribute("data-touched", "");
   else R.result.removeAttribute("data-touched");
   R.status.hidden = !touched;
   if (!touched) {
     for (const n of [R.banner, R.oneline, R.map, R.flips, R.seats, R.bye, R.ess]) clear(n);
     R.settings.textContent = "";
+    showToast(moves);
     return;
   }
-  R.settings.textContent = "Your settings: " + settingsWords(state, ctx).join("; ") + ".";
-  renderBanner(r);
+  R.settings.textContent = "Your changes: " + settingsWords(state, ctx).join("; ") + ".";
+  renderBanner(r, moves);
   renderResult(r);
   renderMap(r);
   renderFlips(r);
-  renderSeats(r);
+  renderSeats(r, moves);
   renderBye(r);
+  showToast(moves);
   R.ess.textContent = "At your settings the figures rest on the equivalent of " +
     count(r.effective_draws) + " equally weighted simulations.";
 }
 
-function renderBanner(r) {
+function renderBanner(r, moves) {
   clear(R.banner);
   const items = pubOrder.filter(c => r.seats[c]).slice(0, 6).map(c => {
     const s = r.seats[c];
-    return el("span", { className: "pl-bi" }, el("i", { className: "pc-" + c }), party(c).name + " ",
-      el("b", {}, seatText(s.median)), arrow(s.vs_published));
+    return cue(el("span", { className: "pl-bi" }, el("i", { className: "pc-" + c }), party(c).name + " ",
+      el("b", {}, seatText(s.median)), arrow(s.vs_published)), moves.get(c));
   });
-  R.banner.append(el("span", { className: "pl-bstate pl-mine" }, "Your settings"), el("span", { className: "pl-bitems" }, ...items),
+  R.banner.append(el("span", { className: "pl-bstate pl-mine" }, "Your changes"), el("span", { className: "pl-bitems" }, ...items),
     el("span", { className: "pl-bmaj" }, "Majority " + seatText({ value: r.majority })));
 }
 
@@ -499,7 +577,7 @@ function renderFlips(r) {
 // to the threshold (page.py's `shown`), in the page's order, then Others. The
 // site's one seat table (js/seat-table.js), with the published middle as a
 // dotted mark and the change against it as an arrow.
-function renderSeats(r) {
+function renderSeats(r, moves) {
   clear(R.seats);
   const pub = baseline.seats;
   const val = f => (f.withheld ? null : f.value);
@@ -514,7 +592,49 @@ function renderSeats(r) {
       arrow: others ? null : arrowText(s.vs_published), title: null,
     };
   });
-  R.seats.append(seatTable(document, rows, TABLE));
+  const table = seatTable(document, rows, TABLE);
+  // the ▲/▼ goes in the seats cell, over its corner: it moves no figure
+  for (const row of table.children) if (row.dataset.code) cue(row, moves.get(row.dataset.code), row.children[2]);
+  R.seats.append(table);
+}
+
+// ---------- change cues ----------
+// Each party's middle seat count, rounded, as last shown (the published
+// forecast's until a control moves). `changes` returns the parties whose
+// figure moved since then, with the move; nothing on first paint.
+let lastShown = null;
+function changes(r) {
+  const now = new Map(Object.entries(r.seats).filter(([c, s]) => c !== "OTHERS" && !s.median.withheld)
+    .map(([c, s]) => [c, Math.round(s.median.value)]));
+  const out = new Map();
+  if (lastShown) for (const [c, v] of now) if (lastShown.has(c) && v !== lastShown.get(c)) out.set(c, v - lastShown.get(c));
+  lastShown = now;
+  return out;
+}
+// An element that moved: it pulses once (css/your-forecast.css .yf-cue), with
+// a ▲ or ▼ for the direction of this move.
+function cue(node, d, at = node) {
+  if (!d) return node;
+  node.classList.add("yf-cue", d > 0 ? "yf-up" : "yf-down");
+  at.append(el("span", { className: "yf-spark", "aria-hidden": "true" }, d > 0 ? "▲" : "▼"));
+  return node;
+}
+// The phone's toast: when the seat table is out of view on a narrow screen,
+// the parties whose seats moved, each with its logo (or colour) and the move.
+let seatsInView = true, toastTimer = null;
+new IntersectionObserver(es => { seatsInView = es.some(e => e.isIntersecting); }).observe(R.seats);
+const narrow = window.matchMedia("(max-width: 1099px)");
+function showToast(moves) {
+  clearTimeout(toastTimer);
+  if (!moves.size || seatsInView || !narrow.matches) { R.toast.hidden = true; return; }
+  const items = [...moves].sort((a, b) => party(a[0]).name.localeCompare(party(b[0]).name)).map(([c, d]) =>
+    el("span", { className: "yf-ti" },
+      party(c).logo ? el("img", { className: "yf-tlogo", src: new URL("../../logos/" + c + ".png", import.meta.url).href, alt: "" })
+        : el("i", { className: "pc-" + c }),
+      party(c).name + " ", el("span", { className: "arrow reader" }, arrowText(d))));
+  R.toast.replaceChildren(el("span", { className: "yf-thead" }, "Seats moved"), ...items);
+  R.toast.hidden = false;
+  toastTimer = setTimeout(() => { R.toast.hidden = true; }, 3500);
 }
 
 // Under a by-election setting other than the forecast's: each party's change

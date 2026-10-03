@@ -29,7 +29,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const PYTHON = resolve(REPO, ".venv/bin/python");
 const HARNESS = resolve(REPO, "interactive/tools/native_play.py");
 const FIXTURE = JSON.parse(readFileSync(resolve(here, "native-play.json"), "utf8"));
-const CASES = JSON.parse(readFileSync(resolve(here, "play-settings.json"), "utf8")).cases;
+const SETTINGS = JSON.parse(readFileSync(resolve(here, "play-settings.json"), "utf8"));
+const CASES = SETTINGS.cases;
+const SECTION2 = SETTINGS.section2;
 
 // ---------- 1. the served list is the measured closure ----------
 
@@ -120,6 +122,8 @@ test("the stored native fixture is what CPython computes now", () => {
   assert.deepEqual(stale, [], "regenerate: .venv/bin/python interactive/tools/native_play.py --write");
   const now = JSON.parse(execFileSync(PYTHON, [HARNESS], { cwd: REPO, maxBuffer: 1 << 28 }));
   assert.deepEqual(now.cases, FIXTURE.cases);
+  assert.deepEqual(now.section2, FIXTURE.section2);
+  assert.equal(FIXTURE.section2.length, SECTION2.cases.length);
   // it looked: every case computed, the untouched one on every draw, and the
   // case beyond the draws refused rather than answered
   assert.equal(FIXTURE.cases.length, CASES.length);
@@ -213,4 +217,16 @@ test("the page's engine under Pyodide gives the native answer (F19)", { skip: !p
     assert.ok(d.maxRel <= 1e-9, `${c.name}: ${d.maxRel} at ${d.where}`);
   }
   assert.equal(compared, CASES.length);
+  // section 2's hand-off and analysis: the ward calls, seats and every
+  // share and chance as CPython gives them
+  const byName = Object.fromEntries(CASES.map(c => [c.name, c.settings]));
+  for (const want of FIXTURE.section2) {
+    const h = await engine.handoff({ settings: byName[want.name], total: SECTION2.total });
+    assert.deepEqual([h.ward_calls, h.seats], [want.handoff.ward_calls, want.handoff.seats], want.name);
+    const a = await engine.analyse({ ward_calls: h.ward_calls, share: h.share, seats: h.seats });
+    for (const [got, exp, what] of [[h, want.handoff, "handoff"], [a, want.analyse, "analyse"]]) {
+      const d = compareLeaves(got, exp);
+      assert.ok(d.maxRel <= 1e-9, `${want.name} ${what}: ${d.maxRel} at ${d.where}`);
+    }
+  }
 });

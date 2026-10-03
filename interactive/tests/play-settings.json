@@ -1,5 +1,5 @@
 {
- "_about": "The fixed control settings the native-vs-Pyodide harness computes (F19). Read by interactive/tools/native_play.py and interactive/tests/page.test.mjs; one list, so both sides compute the same cases. One poll at a time (owner, 2026-10-02).",
+ "_about": "The fixed control settings the native-vs-Pyodide harness computes (F19). Read by interactive/tools/native_play.py and interactive/tests/page.test.mjs; one list, so both sides compute the same cases. One poll at a time (owner, 2026-10-02). `section2`: the cases whose settings section 2 is handed (page.py handoff) and then analysed (page.py analyse), at a constructed total vote (a test input: the hand-off's shares are percentages and move with it only by rounding).",
  "cases": [
   {"name": "untouched", "settings": {"cell": ".", "law": "deduct", "shift": [0, 0, 0, 0], "polls": [], "trust": 0}},
   {"name": "black-african-plus-5", "settings": {"cell": ".", "law": "deduct", "shift": [5, 0, 0, 0], "polls": [], "trust": 0}},
@@ -11,5 +11,6 @@
   {"name": "w_bye-1-black-african-plus-3-cap", "settings": {"cell": "w_bye-1", "law": "cap", "shift": [3, 0, 0, 0], "polls": [], "trust": 0}},
   {"name": "two-polls-refused", "settings": {"cell": ".", "law": "deduct", "shift": [0, 0, 0, 0], "polls": ["srf-2026q2-coj", "srf-2026q1-coj"], "trust": 0.3}},
   {"name": "beyond-the-draws", "settings": {"cell": ".", "law": "deduct", "shift": [40, 0, 0, 0], "polls": [], "trust": 0}}
- ]
+ ],
+ "section2": {"total": 2400000, "cases": ["untouched", "black-african-plus-5", "w_bye-0-untouched", "polls-on-trust-0.3"]}
 }

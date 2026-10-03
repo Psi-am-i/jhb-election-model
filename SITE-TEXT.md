@@ -1396,7 +1396,7 @@ reason not to let it move a published headline while its design is unsettled.
 
 We intend to use every poll received and to put the weighting in the
 reader's hands.
-[Play with the model](play/) has a first version: you choose how far to trust
+[Your forecast](your-forecast/) has a first version: you choose how far to trust
 each poll, and the published simulations are re-weighted in your browser. The
 published forecast uses no poll.
 

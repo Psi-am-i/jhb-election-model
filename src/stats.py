@@ -237,39 +237,44 @@ LIVE_NAME = re.compile(r"^[a-z][a-z0-9-]*$")
 
 #: The only modules allowed to write figures into a page, and the LIVE regions
 #: each may write into. Keyed by the module's path under the site root, as
-#: served (``"play/js/live.js"``); the value is the set of ``data-live`` names.
-#: A module not listed here may write no figure anywhere.
+#: served (``"your-forecast/js/model.js"``); the value is the set of
+#: ``data-live`` names. A module not listed here may write no figure anywhere.
+#: Regions on one page are disjoint between writers: each has one writer.
 LIVE_WRITERS: dict[str, frozenset[str]] = {
-    # "Play with the model" (src/build_play.py, from interactive/js/model.js):
-    # the controls it builds and every figure a reader's settings produce. Each
-    # results region is the LIVE twin of a build twin of tokens (DESIGN §4,
-    # 2026-10-02): banner, result (the status strip and the one-line result),
-    # map and its tooltip, flips, seats; then the controls, the line under the
-    # by-elections, the seat law's summary and the note's effective count.
-    "play/js/model.js": frozenset({
-        "engine", "banner", "result", "map", "wardtip", "flips", "seats",
+    # "Your forecast" (src/build_your_forecast.py), section 1, "Adjust the
+    # model" (interactive/js/model.js): the controls it builds and every figure
+    # a reader's settings produce. Each results region is the LIVE twin of a
+    # build twin of tokens (DESIGN §4, 2026-10-02): banner, result (the status
+    # strip and the one-line result), map and its tooltip, flips, seats; then
+    # the controls, the line under the by-elections, the seat law's summary,
+    # the note's effective count, the floating "computing" overlay and the
+    # phone's change toast.
+    "your-forecast/js/model.js": frozenset({
+        "engine", "busy", "banner", "result", "map", "wardtip", "flips", "seats",
         "turnout", "polls", "trust", "cells", "byelection", "law", "lawnow", "ess",
+        "toast",
     }),
-    # Its share sheet (interactive/js/play-share.js): the link to the reader's
-    # settings and the image of their figures, inside the one region "share".
-    "play/js/play-share.js": frozenset({"share"}),
-    # The share image's words (interactive/js/play-card.js): the figures the
-    # seat table shows, from the same compute result, handed to the card
+    # Section 1's share sheet (interactive/js/play-share.js): the link to the
+    # reader's settings and the image of their figures, in the region "share".
+    "your-forecast/js/play-share.js": frozenset({"share"}),
+    # Section 1's share image words (interactive/js/play-card.js): the figures
+    # the seat table shows, from the same compute result, handed to the card
     # module. It builds figures and reaches NO region; play-share.js puts the
     # image in the sheet. Listed so the writer contract, not the non-writer
     # one, applies to it.
-    "play/js/play-card.js": frozenset(),
-    # The card module both pages share (interactive/js/forecast-card.js): an
+    "your-forecast/js/play-card.js": frozenset(),
+    # The card module both sections share (interactive/js/forecast-card.js): an
     # SVG of the figures it is handed. It reaches NO region.
-    "play/js/forecast-card.js": frozenset(),
-    # "Make your own forecast" (src/build_make.py, from interactive/js/make.js):
-    # the map, the vote, the coalition and the council the reader's edits give.
-    "make/js/make.js": frozenset({"status", "map", "vote", "govern", "council"}),
-    # Its share sheet (interactive/js/make-share.js), inside the region "share".
-    "make/js/make-share.js": frozenset({"share"}),
-    # The same card module as /play/'s (interactive/js/forecast-card.js),
-    # served again under make/. It reaches NO region.
-    "make/js/forecast-card.js": frozenset(),
+    "your-forecast/js/forecast-card.js": frozenset(),
+    # Section 2, "Break the model" (interactive/js/make.js): the map, the vote,
+    # the coalition and the council the reader's edits give, the walkthrough's
+    # buttons, and the analysis of the reader's forecast with its ward tooltip.
+    "your-forecast/js/make.js": frozenset({
+        "b-status", "b-map", "b-vote", "b-govern", "b-council", "b-actions",
+        "b-analysis", "b-wardtip",
+    }),
+    # Section 2's share sheet (interactive/js/make-share.js), in "b-share".
+    "your-forecast/js/make-share.js": frozenset({"b-share"}),
 }
 
 

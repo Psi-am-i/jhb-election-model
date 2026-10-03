@@ -1,11 +1,13 @@
-// "Play with the model": the share sheet. Anonymous: what is shared is the
-// page's address with the reader's settings in it (play-state.js serialize),
+// "Your forecast", section 1 ("Adjust the model"): the share sheet.
+// Anonymous: what is shared is the page's address with the reader's settings
+// in it (play-state.js serialize, composed by yf-url.js),
 // and an image drawn from the figures the page is showing (play-card.js's
-// words, drawn by forecast-card.js, the card module /make/ shares).
+// words, drawn by forecast-card.js, the card module section 2 shares).
 // Nothing is sent anywhere, stored, or asked of the reader.
 //
-// ⛔ A LIVE WRITER (stats.LIVE_WRITERS["play/js/play-share.js"]), for the one
-// region "share": the button and the <dialog> it opens are in model.html,
+// ⛔ A LIVE WRITER (stats.LIVE_WRITERS["your-forecast/js/play-share.js"]), for
+// the one region "share": the button and the <dialog> it opens are in
+// your-forecast.html,
 // inside that region, and every element is reached through a literal
 // '[data-live="share"] …' selector, taken once, below. It writes with
 // textContent and properties, never markup, and adds nothing outside the region.
@@ -18,7 +20,12 @@
 // "{name}'s settings on the model" when something is (critic G1, 2026-10-02).
 // It is never written into the page as markup or as page text. Left empty,
 // the image carries a random label: a word and a number from
-// interactive/js/labels.js, which the build serves as play/labels.json.
+// interactive/js/labels.js, which the build serves as labels.json.
+//
+// ONLY SOUTH AFRICAN LAW IS SHARED (owner, 2026-10-03; play-state.shareable).
+// Under another seat law the button is disabled and the sheet's note says
+// why: those laws are for comparison, and a shared council seated under them
+// would read as a forecast.
 //
 // Practice it follows (the builder's share.js, adapted to the writer rules):
 //  * The native share sheet (navigator.share) is offered where it exists. The
@@ -35,9 +42,11 @@ import { buildPlayCardSVG, playCardAlt, SIZES } from "./play-card.js";
 import { photoUnder, PHOTO_FILE } from "./forecast-card.js";
 import { svgToPNG } from "./card-text.js";
 import { cleanName, NAME_MAX, serialize } from "./play-state.js";
+import { compose } from "./yf-url.js";
 
 const S = {
   open: document.querySelector('[data-live="share"] .pl-shareopen'),
+  why: document.querySelector('[data-live="share"] .pl-sharewhy'),
   dlg: document.querySelector('[data-live="share"] dialog'),
   close: document.querySelector('[data-live="share"] .x'),
   name: document.querySelector('[data-live="share"] .pl-name'),
@@ -52,8 +61,8 @@ const S = {
 };
 S.name.maxLength = NAME_MAX;
 
-// What the page is showing now: { url, r, st, ctx, party, made, when,
-// geometry, touched, onName }.
+// What the page is showing now: { r, st, ctx, party, made, when, geometry,
+// touched, shareable, lawName, onName }.
 let now = null;
 let size = "link";
 let cache = {};
@@ -79,14 +88,20 @@ const labelP = fetch(new URL("../labels.json", import.meta.url))
 export function setShareable(info) {
   now = info;
   cache = {};
-  S.open.disabled = !info.geometry;
+  S.open.disabled = !info.geometry || !info.shareable;
+  S.why.textContent = info.shareable ? "" : "Only a council seated under " + info.lawName +
+    " can be shared. The other laws are here for comparison.";
+  if (!info.shareable && S.dlg.open) S.dlg.close();
   if (S.name.value !== cleanName(info.st.name)) S.name.value = cleanName(info.st.name);
   if (S.dlg.open) fill();
 }
 
 const say = s => { S.toast.textContent = s; };
 const nameNow = () => cleanName(S.name.value) || label;
-const urlNow = () => new URL(location.pathname + serialize({ ...now.st, name: cleanName(S.name.value) }, now.ctx), location.href).href;
+// The link carries section 1's settings for the result shown, and the name;
+// never section 2's part (yf-url.js linkTo's rule).
+const urlNow = () => new URL(location.pathname + compose(serialize(now.st, now.ctx), "", S.name.value) + "#adjust",
+                             location.href).href;
 
 function fill() {
   S.url.value = urlNow();
@@ -121,7 +136,7 @@ const fileBase = () => "joburg-forecast-" + nameNow().replace(/[^A-Za-z0-9-]+/g,
 const file = () => new File([cache[size + nameNow()]], fileBase() + "-" + size + ".png", { type: "image/png" });
 
 S.open.addEventListener("click", async () => {
-  if (!now) return;
+  if (!now || !now.shareable) return;
   opener = S.open;
   say("");
   await labelP;
@@ -156,7 +171,7 @@ S.copy.addEventListener("click", async () => {
 S.native.addEventListener("click", () => {
   // the words follow the image: the model's forecast untouched, the reader's
   // settings otherwise; never "my forecast" over the model's (critic G1)
-  const data = { title: "Play with the Johannesburg election model",
+  const data = { title: "Your Johannesburg election forecast",
                  text: now.touched ? "My settings on the Johannesburg election model." : "The Johannesburg election model's forecast.",
                  url: urlNow() };
   if (cache[size + nameNow()]) {

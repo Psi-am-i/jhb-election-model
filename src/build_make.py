@@ -1,33 +1,22 @@
-"""Build "make your own forecast" (``/make/``) from ``interactive/`` into the site.
+"""Section 2 of "your forecast" ("Break the model"): its data and its start.
 
-Called by ``build_site.main`` next to ``build_play``, which renders, scans,
-stamps and ledgers the page like every other. This module only ASSEMBLES it
-and writes the data it starts from; it decides nothing about what is allowed
-on a page. Anonymous, as /play/ is: no sign-in, no server storage, no prize.
-The reader's forecast lives in the page's address (``js/make-state.js``).
+``src/build_your_forecast.py`` assembles the page (``/your-forecast/``) and
+copies its files; ``build_site.main`` renders, scans, stamps and ledgers it.
+This module writes the one data file section 2 reads and states where it
+starts; it decides nothing about what is allowed on a page. Anonymous: the
+reader's forecast lives in the page's address (``js/make-state.js``, through
+``js/yf-url.js``).
 
-What the served page is made of
-===============================
-
-``make/index.html``
-    ``interactive/make.html`` with its prototype-only parts cut
-    (``__DEVONLY__`` spans), the site's head (``build_site.SITE_HEAD``),
-    nav and footer, and the published forecast's seat rows from
-    ``forecast-sheet.html`` as ``{{tokens}}`` in the site's seat table
-    (:func:`published_panel`), so first paint is ledgered tokens.
-``make/forecast.json``
-    The one data file the page reads (:func:`forecast_data`): the generated
+``your-forecast/forecast.json``
+    The one data file section 2 reads (:func:`forecast_data`): the generated
     schema (``worker-api/tools/make_schema.mjs``'s own ``build``, run on the
     artefact :func:`model_artefact` writes from the published draws), the ward
     geometry, and the start state.
-``make/js/``, ``make/css/``, ``make/pyboot/boot.py``, ``make/py/``
-    Byte copies of the page's modules (``MAKE_JS``), the stylesheet, the seat
-    code's boot file and the served seat code (``interactive/tools/sync_py.mjs``
-    writes it; its ``manifest.files``), except ONE declared line of
-    ``seat-engine.js`` (``SEATS_LINE``): where the Worker's own
-    ``seats.js`` is. ``seats.js`` and the ``http.js`` it imports are copied
-    beside it from ``worker-api/src``. Both run only inside the page's Web
-    Worker, which the number gate does not follow (it cannot touch the page).
+``your-forecast/js/seats.js``, ``http.js``
+    Copied from ``worker-api/src`` (``WORKER_API_JS``) beside
+    ``seat-engine.js``, whose ONE declared import line (``SEATS_LINE``) is
+    rewritten to them. Both run only inside section 2's Web Worker, which the
+    number gate does not follow (it cannot touch the page).
 
 The start state, stated exactly
 ===============================
@@ -38,42 +27,21 @@ The start state, stated exactly
   reader who changed nothing". It is the ``winner`` column of
   ``ward_winner_probs.csv`` that the forecast page's map passes to
   ``render_map.ward_call`` wherever that column has no tie
-  (``tests/test_make_page.py``).
+  (``tests/test_your_forecast_page.py``).
 * **Vote shares**: chosen so that the untouched council, under the seat law
   (``reader_seats``), gives each party the published seat panel names its
   middle seat count, or its ward count where that is higher, and the other
-  parties the rest of the council (:func:`start_seats`, then
-  :func:`start_shares`). There is no published combined (ward + list) share
+  parties the rest of the council (``start_rule.start_seats``, then
+  ``start_rule.start_shares``: the one definition, which the page also runs
+  on the reader's weighted draws when section 1 hands its forecast on). There is no published combined (ward + list) share
   to start from: the draws' manifest refuses one
   (``export_draws.COMBINED_SHARE_REFUSAL``), and the list-ballot medians,
   fed in as the combined vote, open the council far from the forecast's
   middle (MODEL-LOG §1.270). The rule, in order:
 
-  1. **Targets.** Each party the panel names
-     (``scenarios.NAMED_PARTIES``) gets its published middle, and "Others"
-     (every other party) the published middle of the seats they hold within
-     each simulation; both by ``scenarios.seat_quantiles`` over the draws'
-     ``seats/deduct`` block, the forecast page's own definitions.
-  2. **The ward floor.** A party holds at least the wards it is called for
-     (item 16 keeps every ward won), so a target below that count is raised
-     to it. This is the one reason a named party can open away from its
-     middle by more than one seat.
-  3. **The council's size.** The middles need not add up to the council.
-     The seats left over (or missing) go to (or come from) "Others", the
-     remainder row, so every named party opens at its published middle or
-     its ward floor (review 2026-10-02: the earlier rule put one seat on
-     every row, and the untouched page disagreed with /forecast on every
-     named party). Only if taking the missing seats would put Others below
-     its ward floor are they taken one per row per round instead, from the
-     rows whose mean over the draws falls furthest below their middle,
-     never below a row's ward floor.
-  4. **Others** is split among its parties by largest remainder on each
-     party's mean seats over the draws, none below its ward floor.
-  5. **Votes.** Each party's combined vote is its target seats' share of
-     the council, in whole votes of the total by largest remainder; a party
-     with no target seat gets none. Under the quota this seats every party
-     at its target; the build runs ``reader_seats`` on the result and
-     refuses to write a start it does not reproduce.
+  The rule, in order, is ``src/start_rule.py``'s docstring; here it runs
+  with every draw counted once. The build runs ``reader_seats`` on the
+  result and refuses to write a start it does not reproduce.
 
 * **Total combined vote** (``reader_seats``' ``total_votes``, the schema's
   ``x-total-votes``): nothing published carries it. It is two ballots times
@@ -86,10 +54,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
-import re
-import shutil
-import statistics
 import subprocess
 import sys
 from pathlib import Path
@@ -97,45 +61,19 @@ from pathlib import Path
 import numpy as np
 
 import build_play
+import start_rule
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INTERACTIVE = REPO_ROOT / "interactive"
 DRAWS = REPO_ROOT / "site" / "draws"
 WORKER_SRC = REPO_ROOT / "worker-api" / "src"
 
-#: Where the page is served, relative to the site root.
-MAKE_DIR = "make"
-MAKE_PAGE = f"{MAKE_DIR}/index.html"
-MAKE_HREF = f"{MAKE_DIR}/"
-#: The page's share card text: no figure. A link carrying a forecast shows the
-#: same generic preview; the image of a reader's forecast is drawn in their
-#: browser.
-OG_TITLE = "Make your own Johannesburg election forecast"
-OG_DESCRIPTION = ("Call every Johannesburg ward, set each party's share of the vote "
-                  "and pick who governs. The seats follow from the law.")
-#: The page's modules. make-worker.js, seat-engine.js and the two worker-api
-#: files run only in the Web Worker.
-MAKE_JS = ("make.js", "make-state.js", "builder-state.js", "map.js", "make-share.js",
-           "forecast-card.js", "card-text.js", "make-worker.js", "seat-engine.js",
-           "seat-table.js")
+#: The two worker-api files section 2's seat Worker imports, copied beside it.
 WORKER_API_JS = ("seats.js", "http.js")
-MAKE_CSS = ("interactive.css",)
-MAKE_PYBOOT = ("boot.py",)
 #: The one line of seat-engine.js that differs between the repository and the site.
 SEATS_LINE = ('from "../../worker-api/src/seats.js";', 'from "./seats.js";')
-#: The data file the page reads.
+#: The data file section 2 reads.
 DATA = "forecast.json"
-#: The site's own photograph (Hillbrow Tower) the share image is drawn on.
-PHOTO = "share.jpg"
-
-#: The published panel shown beside the reader's council, at the marker
-#: HOST: the forecast sheet's seat rows, with their own tokens, in the site's
-#: one seat table (src/seat_table.py).
-HOST = "<!-- __PUBLISHED:seats__ -->"
-#: Where the forecast sheet's seats chart is; its caption follows it.
-SEATS_ANCHOR = '<div class="chart" id="seats">'
-
-_DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
 
 
 class MakeBuildError(SystemExit):
@@ -247,87 +185,16 @@ def make_schema(artefact: dict, geom: dict) -> dict:
     return json.loads(run.stdout)
 
 
-def _apportion(weights: dict, total: int, floors: dict) -> dict:
-    """Whole numbers summing to ``total`` in proportion to ``weights``, none
-    below its ``floors`` entry: largest remainder, ties by input order."""
-    fixed: dict = {}
-    while True:
-        free = [k for k in weights if k not in fixed]
-        left = total - sum(fixed.values())
-        w = math.fsum(weights[k] for k in free)
-        raw = {k: (left * weights[k] / w if w > 0 else left / len(free)) for k in free}
-        under = [k for k in free if raw[k] < floors.get(k, 0)]
-        if not under:
-            break
-        for k in under:
-            fixed[k] = floors.get(k, 0)
-    out = {k: math.floor(v) for k, v in raw.items()}
-    spare = total - sum(fixed.values()) - sum(out.values())
-    for k in sorted(raw, key=lambda k: -(raw[k] - out[k]))[:spare]:
-        out[k] += 1
-    out.update(fixed)
-    return {k: out[k] for k in weights}
-
-
-def start_seats(manifest: dict, arrays: dict, calls: list[str]) -> dict:
-    """The untouched council's seats by party, steps 1-4 of the module
-    docstring's vote-share rule. Returns ``{"seats", "published", "rows"}``:
-    the target per party (zeros left out), each panel row's published middle,
-    and each row's target."""
-    import scenarios
-    parties = _columns(manifest, "seats/deduct")
-    S = np.asarray(arrays["seats/deduct"], dtype=float)
-    council_draws = np.asarray(arrays["council/deduct"], dtype=float)[:, _columns(manifest, "council/deduct").index("council_size")]
-    council = int(round(float(np.median(council_draws))))
-    if not np.all(council_draws == council):
-        raise MakeBuildError("build_make: the draws' council size varies under the statutory law")
-    col = {p: j for j, p in enumerate(parties)}
-    named = [p for p in scenarios.NAMED_PARTIES if p in col]
-    others = [p for p in parties if p not in named]
-    held = {p: 0 for p in parties}
-    for c in calls:
-        held[c] += 1
-    series = {p: S[:, col[p]] for p in named}
-    series["OTHERS"] = council_draws - sum(series[p] for p in named)
-    published = {g: scenarios.seat_quantiles(x)[0] for g, x in series.items()}
-    floor = {p: held[p] for p in named}
-    floor["OTHERS"] = sum(held[p] for p in others)
-    rows = {g: max(published[g], floor[g]) for g in series}
-    gap = {g: float(series[g].mean()) - published[g] for g in series}
-    order = list(series)
-    left = council - sum(rows.values())
-    # step 3: Others is the remainder row
-    take = left if rows["OTHERS"] + left >= floor["OTHERS"] else floor["OTHERS"] - rows["OTHERS"]
-    rows["OTHERS"] += take
-    left -= take
-    while left:
-        step = 1 if left > 0 else -1
-        ranked = sorted(order, key=lambda g: (-gap[g] * step, order.index(g)))
-        moved = False
-        for g in ranked:
-            if left == 0:
-                break
-            if step < 0 and rows[g] <= floor[g]:
-                continue
-            if step > 0 and rows[g] < floor[g]:
-                continue
-            rows[g] += step
-            left -= step
-            moved = True
-        if not moved:
-            raise MakeBuildError("build_make: the panel's rows cannot fill the council above their ward floors")
-    split = _apportion({p: float(S[:, col[p]].mean()) for p in others}, rows["OTHERS"],
-                       {p: held[p] for p in others})
-    seats = {p: rows[p] for p in named}
-    seats.update(split)
-    return {"seats": {p: n for p, n in seats.items() if n}, "published": published, "rows": rows}
-
-
-def start_shares(seats: dict, roster: list[str], total: int) -> dict:
-    """Step 5: each party's combined vote as a percent of ``total``, from
-    whole votes in proportion to its target seats."""
-    votes = _apportion({p: float(seats.get(p, 0)) for p in roster}, total, {})
-    return {p: votes[p] / total * 100 for p in roster}
+def start_plan(manifest: dict, arrays: dict, calls: list[str], weights=None) -> dict:
+    """``start_rule.start_seats`` on the draws' statutory seats and council,
+    each draw counted once unless ``weights`` are given."""
+    council = np.asarray(arrays["council/deduct"], dtype=float)[
+        :, _columns(manifest, "council/deduct").index("council_size")]
+    try:
+        return start_rule.start_seats(_columns(manifest, "seats/deduct"), arrays["seats/deduct"],
+                                      council, calls, weights)
+    except start_rule.StartRuleError as exc:
+        raise MakeBuildError(f"build_make: {exc}") from None
 
 
 def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
@@ -348,8 +215,8 @@ def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
     calls = score_forecasts.model_forecast(
         counts.tolist(), roster, wards, flat, roster, schema)["ward_calls"]
     context, total, target, _tol, ward_ids = score_forecasts.schema_context(schema)
-    plan = start_seats(manifest, arrays, calls)
-    share = start_shares(plan["seats"], roster, total)
+    plan = start_plan(manifest, arrays, calls)
+    share = start_rule.start_shares(plan["seats"], roster, total)
     got = reader_seats.reader_seats({p: v / 100 for p, v in share.items()}, dict(zip(ward_ids, calls)),
                                     context, total)
     if not got["ok"]:
@@ -365,7 +232,7 @@ def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
         "rule": ("ward calls: score_forecasts.model_forecast's modal winner over the published draws; "
                  "combined shares: each party's target seats' share of the council, the targets being "
                  "the published seat panel's middles, raised to the ward floor, with Others taking the "
-                 "seats left to fill the council (src/build_make.py start_seats)"),
+                 "seats left to fill the council (src/start_rule.py start_seats)"),
     }
 
 
@@ -405,20 +272,6 @@ def forecast_data(draws: Path | None = None) -> dict:
 # the page
 
 
-def published_panel(sheet: str) -> str:
-    """The published forecast's seat table: the forecast sheet's rows and
-    tokens (``build_play.seat_rows``), in the sheet's order, with the sheet's
-    own caption under it, so first paint is the forecast page's own ledgered
-    figures and words."""
-    import seat_table
-    at = build_play._once(sheet, SEATS_ANCHOR, "the forecast sheet's seats chart")
-    lo = sheet.index("<figcaption>", at)
-    caption = sheet[lo:sheet.index("</figcaption>", lo) + len("</figcaption>")]
-    return ("<figure>" + seat_table.table(build_play.table_rows(build_play.seat_rows(sheet)),
-                                          label="Seats in the published forecast")
-            + caption + "</figure>")
-
-
 def seat_attrs() -> dict[str, str]:
     """The reader's council table's axis, ticks and header words, set on its
     region for js/make.js. A single council has no range, so its range
@@ -427,64 +280,3 @@ def seat_attrs() -> dict[str, str]:
     return {"<!-- __MAKE:seatscale__ -->": str(seat_table.SEAT_SCALE),
             "<!-- __MAKE:seatticks__ -->": " ".join(str(x) for x in seat_table.SEAT_TICKS),
             "<!-- __MAKE:seathead__ -->": seat_table.HEAD[0] + "|"}
-
-
-def assemble(*, site_head: str, nav: str, footer: str, cut_markers) -> str:
-    """The page's HTML, tokens unrendered: make.html with the site put in."""
-    page = (INTERACTIVE / "make.html").read_text(encoding="utf-8")
-    starts = page.count("<!-- __DEVONLY_START__ -->")
-    if not starts or starts != page.count("<!-- __DEVONLY_END__ -->"):
-        raise MakeBuildError("build_make: make.html's __DEVONLY__ markers do not pair")
-    page = _DEVONLY.sub("", page)
-    page = re.sub(r"<!--\n  \"Make your own forecast\".*?-->\n", "", page, count=1, flags=re.S)
-    sheet = cut_markers(build_play.SHEET.read_text(encoding="utf-8"), None)
-    for marker, value in (("<!-- __MAKEHEAD__ -->", build_play.one_level_down(site_head)),
-                          ("<!-- __MAKENAV__ -->", build_play.one_level_down(nav)),
-                          ("<!-- __MAKEFOOT__ -->", build_play.one_level_down(footer))):
-        build_play._once(page, marker, "make.html")
-        page = page.replace(marker, value)
-    build_play._once(page, HOST, "make.html")
-    page = page.replace(HOST, published_panel(sheet))
-    for marker, value in seat_attrs().items():
-        build_play._once(page, marker, "make.html")
-        page = page.replace(marker, value)
-    left = re.findall(r"<!-- __[A-Z:a-z]+__ -->", page)
-    if left:
-        raise MakeBuildError(f"build_make: unfilled markers in make.html: {left}")
-    return page
-
-
-def write_assets(out: Path) -> list[str]:
-    """Copy everything the page loads into ``out/make/``; returns the paths written."""
-    dest = out / MAKE_DIR
-    if dest.exists():
-        shutil.rmtree(dest)          # nothing under make/ survives a build that did not write it
-    written = []
-
-    def put(rel: str, data: bytes) -> None:
-        f = dest / rel
-        f.parent.mkdir(parents=True, exist_ok=True)
-        f.write_bytes(data)
-        written.append(f"{MAKE_DIR}/{rel}")
-
-    for name in MAKE_JS:
-        data = (INTERACTIVE / "js" / name).read_bytes()
-        if name == "seat-engine.js":
-            text = data.decode("utf-8")
-            build_play._once(text, SEATS_LINE[0], "js/seat-engine.js, the seats.js import")
-            data = text.replace(SEATS_LINE[0], SEATS_LINE[1]).encode("utf-8")
-        put(f"js/{name}", data)
-    for name in WORKER_API_JS:
-        put(f"js/{name}", (WORKER_SRC / name).read_bytes())
-    for name in MAKE_CSS:
-        put(f"css/{name}", (INTERACTIVE / "css" / name).read_bytes())
-    for name in MAKE_PYBOOT:
-        put(f"pyboot/{name}", (INTERACTIVE / "pyboot" / name).read_bytes())
-    build_play.sync_python()
-    manifest = json.loads((INTERACTIVE / "py" / "manifest.json").read_text(encoding="utf-8"))
-    put("py/manifest.json", (INTERACTIVE / "py" / "manifest.json").read_bytes())
-    for rel in manifest["files"]:
-        put(f"py/{rel}", (INTERACTIVE / "py" / rel).read_bytes())
-    put(DATA, (json.dumps(forecast_data(), indent=None, sort_keys=True,
-                          separators=(",", ":")) + "\n").encode("utf-8"))
-    return written

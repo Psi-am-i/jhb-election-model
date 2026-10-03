@@ -1,4 +1,4 @@
-# What /play/ says about each poll it offers, in the reader's language.
+# What /your-forecast/ says about each poll it offers, in the reader's language.
 #
 # src/export_draws.py --index writes these into site/draws/index.json as each
 # poll's `caveat`, in place of the register's own `caveat` in polls.json, which

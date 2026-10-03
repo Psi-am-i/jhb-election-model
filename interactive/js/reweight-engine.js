@@ -1,4 +1,4 @@
-// The "play with the model" engine: src/reweight.py under Pyodide, driven by
+// The "your forecast" engine: src/reweight.py under Pyodide, driven by
 // pyboot/page.py. There is no JavaScript re-weighting anywhere; every figure
 // the page shows is the Python's return value (SPEC-v2 Lane P, INTEGRATION §3b).
 //
@@ -62,6 +62,8 @@ export async function loadReweightEngine({ onStage = () => {}, loadPyodide, read
   const loadCellPy = py.globals.get("load_cell");
   const computePy = py.globals.get("compute");
   const poolsPy = py.globals.get("pools_of");
+  const handoffPy = py.globals.get("handoff");
+  const analysePy = py.globals.get("analyse");
   mark("import", "Loading the published draws");
 
   const { cells } = await index;
@@ -106,6 +108,16 @@ export async function loadReweightEngine({ onStage = () => {}, loadPyodide, read
   // The by-election evidence column (DESIGN-decided §11), selected at build
   // time by export_draws --index from the model's own input file.
   const byelection = (await index).byelection ?? null;
-  return { compute, loadCell, cells, base, polls, pools, pageRef, times, byelection,
+  // Section 2: where it opens from a setting (its cell loaded first), and
+  // what the published forecast gives a reader's own forecast.
+  async function handoff(req) {
+    await loadCell(req.settings.cell || ".");
+    return JSON.parse(handoffPy(JSON.stringify(req)));
+  }
+  async function analyse(req) {
+    return JSON.parse(analysePy(JSON.stringify(req)));
+  }
+
+  return { compute, handoff, analyse, loadCell, cells, base, polls, pools, pageRef, times, byelection,
            modelVersion: base.model_version };
 }

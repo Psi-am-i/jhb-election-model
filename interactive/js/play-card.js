@@ -1,9 +1,9 @@
-// "Play with the model": what the share image of a reader's settings says,
-// and the words the page and the image share. The image itself is drawn by
-// forecast-card.js, the one card module /play/ and /make/ share
-// (playCardSpec hands it this page's headline, lines, map and rows).
+// "Your forecast", section 1: what the share image of a reader's settings
+// says, and the words the page and the image share. The image itself is drawn
+// by forecast-card.js, the one card module both sections share
+// (playCardSpec hands it this section's headline, lines, map and rows).
 //
-// ⛔ A LIVE WRITER WITH NO REGION (stats.LIVE_WRITERS["play/js/play-card.js"]).
+// ⛔ A LIVE WRITER WITH NO REGION (stats.LIVE_WRITERS["your-forecast/js/play-card.js"]).
 // It turns the compute result the page is showing into the card's figures,
 // and it reaches no element of the page: play-share.js puts the image into
 // the share sheet. Listed so that stats.script_writes holds it to the writer
@@ -14,8 +14,8 @@
 // object js/model.js rendered (pyboot/page.py's compute, through
 // src/reweight.py and render_map.ward_call); nothing here computes a seat or
 // colours a ward by its own rule. The party order (order), the seat format
-// (seatText) and the words for each setting (LAW_TEXT, cellName,
-// settingsWords) are defined here once and used by the page as well, so the
+// (seatText) and the words for each setting (cellName, settingsWords; the
+// seat laws' names are laws.json's, render_sheet.SEAT_LAWS) are defined here once and used by the page as well, so the
 // card cannot disagree with the page.
 //
 // NEUTRAL (DESIGN-decided §8): the parties appear in the page's order (middle
@@ -35,20 +35,12 @@ import { buildForecastCardSVG, SIZES, SITE, STORY_TEXT_BOTTOM, OTHERS_COLOUR } f
 import { TRUST, PUBLISHED_CELL, PUBLISHED_LAW } from "./play-state.js";
 
 export { SIZES, SITE, STORY_TEXT_BOTTOM };
-export const INVITE = "Try your own at " + SITE + "/play";
+export const INVITE = "Try your own at " + SITE + "/your-forecast";
 export const READER_STAMP = "Not the model's forecast: a reader's settings on its simulations.";
 export const PUBLISHED_STAMP = "The model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
 export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";
-
-// The seat law's four settings: a short name and what it does.
-export const LAW_TEXT = {
-  deduct: ["Deduct", "The law: the surplus comes off every other party"],
-  expand: ["Expand", "Not the law: the council grows by the surplus"],
-  level: ["Level", "Not the law: the council grows until every party is covered"],
-  cap: ["Cap", "Not the law: surplus ward winners are not seated"],
-};
 
 // A by-election cell's name: the published weight, none, or full.
 export function cellName(c) {
@@ -93,10 +85,8 @@ export function settingsWords(st, ctx) {
   if (st.cell !== PUBLISHED_CELL)
     out.push(!cell ? "by-elections: " + st.cell : cell.w_bye === 0 ? "by-elections not counted"
       : cell.w_bye === 1 ? "by-elections counted fully" : "by-elections at weight " + cell.w_bye);
-  if (st.law !== PUBLISHED_LAW) {
-    const [short, long] = LAW_TEXT[st.law] || [st.law, ""];
-    out.push("seat law: " + (long.replace(/^Not the law: /, "") || short.toLowerCase()) + " (not the law)");
-  }
+  // the law's name as /forecast prints it (laws.json, render_sheet.SEAT_LAWS)
+  if (st.law !== PUBLISHED_LAW) out.push("seated under " + ((ctx.laws_text || {})[st.law]?.label || st.law));
   return out;
 }
 

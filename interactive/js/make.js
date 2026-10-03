@@ -1,77 +1,117 @@
-// "Make your own forecast": the page. The reader calls every ward, sets each
-// party's share of the combined vote and picks who governs; the seats come
-// from the project's own seat code, run in the browser (js/make-worker.js).
+// "Your forecast", section 2 ("Break the model"): the page. The reader calls
+// every ward, sets each party's share of the combined vote and picks who
+// governs; the seats come from the project's own seat code, run in the
+// browser (js/make-worker.js). "Analyse my forecast" asks section 1's engine
+// what the published forecast gives the reader's (page.py analyse).
 //
-// ⛔ A LIVE WRITER (stats.LIVE_WRITERS["make/js/make.js"]) for the regions
-// "status", "map", "vote", "govern" and "council". The build refuses the page
+// ⛔ A LIVE WRITER (stats.LIVE_WRITERS["your-forecast/js/make.js"]) for the
+// regions "b-status", "b-map", "b-vote", "b-govern", "b-council",
+// "b-actions", "b-analysis" and "b-wardtip". The build refuses the page
 // (stats.script_writes) unless this file keeps the writer contract:
 //   * it reaches the page ONLY through literal '[data-live="<name>"] …'
 //     selectors, each for a region listed for it, all taken once, below;
 //   * it writes with textContent, createElement and append; never markup;
 //   * it does not walk out of a region and writes nothing through an event's
 //     target.
-// Its imports: builder-state.js, make-state.js and map.js are scanned as
-// NON-writers; make-share.js (region "share") is a writer in its own right.
+// Its imports: builder-state.js, make-state.js, yf-url.js and map.js are
+// scanned as NON-writers; make-share.js (region "b-share") and model.js
+// (section 1) are writers in their own right.
 //
 // DESIGN-decided §8: every control applies to every party identically. Parties
 // are listed alphabetically wherever a reader chooses; nothing is preselected.
-// The vote list is two alphabetical lists, the parties seated at the start
-// and then the rest, collapsed: an order fixed by the start, not a ranking.
-// §14: the builder can only hold a valid forecast (js/builder-state.js); seats
-// are recomputed after every edit by the seat code the server would run.
+// The vote list is two alphabetical lists, the parties seated at the
+// published start and then the rest, collapsed: an order fixed by the page,
+// not a ranking. §14: the builder can only hold a valid forecast
+// (js/builder-state.js); seats are recomputed after every edit by the seat
+// code the server would run.
 //
-// The start (src/build_make.py, make/forecast.json): each ward's modal winner
-// over the published draws, and combined shares that seat each named party
-// of the published seat panel at its middle (or its ward count, if higher),
-// the other parties taking the rest of the council (build_make.start_seats). The reader's forecast lives only in the address
-// (js/make-state.js).
+// WHERE IT STARTS (owner, 2026-10-03: section 2 "continues the same
+// forecast"). Untouched, section 1 is the published forecast and section 2
+// opens at the published start (src/build_make.py, your-forecast/forecast.json:
+// each ward's modal winner, and shares that seat each named party at its
+// published middle). Once section 1 moves, its engine hands section 2 the same
+// rule on the reader's weighted draws (page.py handoff, src/start_rule.py):
+// each ward's most likely winner under the reader's changes, and shares that
+// seat each named party at its middle under them.
+//   * While the reader has not edited section 2, it follows section 1: each
+//     new setting there re-opens section 2 at its hand-off.
+//   * Once the reader has edited section 2, a new setting in section 1 does
+//     not overwrite the edits. The status line says section 1 has changed and
+//     offers to start again from it (undo restores the edits).
+// The reader's forecast lives only in the address (js/make-state.js, its part
+// written through js/yf-url.js beside section 1's).
+//
+// LAZY: section 2 loads its data, its map and its seat Worker (a second
+// Pyodide) only when the reader comes near it, or at once when the address
+// carries a section 2 forecast or the #break anchor.
+//
+// THE WALKTHROUGH (owner, 2026-10-03): four numbered steps, one highlighted at
+// a time (data-step="now"); "Next" marks a step done and highlights the next.
+// Every step stays usable whichever is highlighted.
 
 import * as B from "./builder-state.js";
 import * as MS from "./make-state.js";
+import * as YU from "./yf-url.js";
 import { WardMap } from "./map.js";
 import { setShareable, onNameChange } from "./make-share.js";
 import { seatTable } from "./seat-table.js";
+import { engineCall, onForecast } from "./model.js";
 
 const one = {
-  status: document.querySelector('[data-live="status"] .ess'),
-  linknote: document.querySelector('[data-live="status"] .linknote'),
-  mapRegion: document.querySelector('[data-live="map"]'),
-  svg: document.querySelector('[data-live="map"] svg'),
-  mapscroll: document.querySelector('[data-live="map"] .mapscroll'),
-  listview: document.querySelector('[data-live="map"] .listview'),
-  nchanged: document.querySelector('[data-live="map"] .nchanged'),
-  hint: document.querySelector('[data-live="map"] .painthint'),
-  brush: document.querySelector('[data-live="map"] .brushscroll'),
-  brushselect: document.querySelector('[data-live="map"] .brushselect'),
-  area: document.querySelector('[data-live="map"] .area'),
-  fillarea: document.querySelector('[data-live="map"] .fillarea'),
-  copymodel: document.querySelector('[data-live="map"] .copymodel'),
-  undo: document.querySelector('[data-live="map"] .undo'),
-  voteRegion: document.querySelector('[data-live="vote"]'),
-  prmodel: document.querySelector('[data-live="vote"] .prmodel'),
-  prfind: document.querySelector('[data-live="vote"] .prfind'),
-  floornote: document.querySelector('[data-live="vote"] .floornote'),
-  prlist: document.querySelector('[data-live="vote"] .prlist'),
-  govRegion: document.querySelector('[data-live="govern"]'),
-  coal: document.querySelector('[data-live="govern"] .coal'),
-  coalstat: document.querySelector('[data-live="govern"] .coalstat'),
-  councilRegion: document.querySelector('[data-live="council"]'),
-  restate: document.querySelector('[data-live="council"] .restate'),
-  bars: document.querySelector('[data-live="council"] .bars'),
-  strip: document.querySelector('[data-live="council"] .strip'),
-  capseats: document.querySelector('[data-live="council"] .capseats'),
-  capmaj: document.querySelector('[data-live="council"] .capmaj'),
-  excess: document.querySelector('[data-live="council"] .excess'),
-  announce: document.querySelector('[data-live="council"] .announce'),
+  statusRegion: document.querySelector('[data-live="b-status"]'),
+  status: document.querySelector('[data-live="b-status"] .ess'),
+  linknote: document.querySelector('[data-live="b-status"] .linknote'),
+  follow: document.querySelector('[data-live="b-status"] .yf-follow'),
+  followText: document.querySelector('[data-live="b-status"] .yf-followtext'),
+  reseed: document.querySelector('[data-live="b-status"] .yf-reseed'),
+  mapRegion: document.querySelector('[data-live="b-map"]'),
+  svg: document.querySelector('[data-live="b-map"] svg'),
+  mapscroll: document.querySelector('[data-live="b-map"] .mapscroll'),
+  listview: document.querySelector('[data-live="b-map"] .listview'),
+  nchanged: document.querySelector('[data-live="b-map"] .nchanged'),
+  hint: document.querySelector('[data-live="b-map"] .painthint'),
+  brush: document.querySelector('[data-live="b-map"] .brushscroll'),
+  brushselect: document.querySelector('[data-live="b-map"] .brushselect'),
+  area: document.querySelector('[data-live="b-map"] .area'),
+  fillarea: document.querySelector('[data-live="b-map"] .fillarea'),
+  copymodel: document.querySelector('[data-live="b-map"] .copymodel'),
+  undo: document.querySelector('[data-live="b-map"] .undo'),
+  next1: document.querySelector('[data-live="b-map"] .yf-next'),
+  voteRegion: document.querySelector('[data-live="b-vote"]'),
+  prmodel: document.querySelector('[data-live="b-vote"] .prmodel'),
+  prfind: document.querySelector('[data-live="b-vote"] .prfind'),
+  floornote: document.querySelector('[data-live="b-vote"] .floornote'),
+  prlist: document.querySelector('[data-live="b-vote"] .prlist'),
+  next2: document.querySelector('[data-live="b-vote"] .yf-next'),
+  govRegion: document.querySelector('[data-live="b-govern"]'),
+  coal: document.querySelector('[data-live="b-govern"] .coal'),
+  coalstat: document.querySelector('[data-live="b-govern"] .coalstat'),
+  next3: document.querySelector('[data-live="b-govern"] .yf-next'),
+  councilRegion: document.querySelector('[data-live="b-council"]'),
+  restate: document.querySelector('[data-live="b-council"] .restate'),
+  bars: document.querySelector('[data-live="b-council"] .bars'),
+  strip: document.querySelector('[data-live="b-council"] .strip'),
+  capseats: document.querySelector('[data-live="b-council"] .capseats'),
+  capmaj: document.querySelector('[data-live="b-council"] .capmaj'),
+  excess: document.querySelector('[data-live="b-council"] .excess'),
+  announce: document.querySelector('[data-live="b-council"] .announce'),
+  actions: document.querySelector('[data-live="b-actions"]'),
+  analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
+  analysis: document.querySelector('[data-live="b-analysis"]'),
+  verdict: document.querySelector('[data-live="b-analysis"] .yf-verdict'),
+  expected: document.querySelector('[data-live="b-analysis"] .yf-expected'),
+  atable: document.querySelector('[data-live="b-analysis"] .yf-atable'),
+  anote: document.querySelector('[data-live="b-analysis"] .yf-anote'),
+  wardtip: document.querySelector('[data-live="b-wardtip"]'),
 };
-const views = document.querySelectorAll('[data-live="map"] .views button');
+const views = document.querySelectorAll('[data-live="b-map"] .views button');
 
 // A new element: properties, attributes (keys with a dash) and children.
 function el(tag, props = {}, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(props)) {
     if (v == null || v === false) continue;
-    if (k.includes("-") || k === "role") e.setAttribute(k, v === true ? "" : String(v));
+    if (k.includes("-") || k === "role" || k === "scope") e.setAttribute(k, v === true ? "" : String(v));
     else e[k] = v;
   }
   e.append(...kids.filter(k => k != null && k !== false));
@@ -87,48 +127,143 @@ function sv(tag, attrs = {}, ...kids) {
   return e;
 }
 
-// ---------- the published start ----------
-let D;
-try {
-  const r = await fetch(new URL("../forecast.json", import.meta.url));
-  if (!r.ok) throw new Error("HTTP " + r.status);
-  D = await r.json();
-} catch (e) {
-  one.status.textContent = "The published start could not be loaded (" + (e.message || e) + "). Reload to try again.";
-  throw e;
+// ---------- the walkthrough ----------
+const STEPS = [one.mapRegion, one.voteRegion, one.govRegion, one.actions];
+let step = 0;
+function paintSteps() {
+  STEPS.forEach((r, i) => r.setAttribute("data-step", i < step ? "done" : i === step ? "now" : "next"));
 }
-const schema = D.schema, geom = D.geometry;
-const ctx = B.contextOf(schema);
-const byCode = Object.fromEntries(schema["x-parties"].map(p => [p.code, p]));
-const name = c => byCode[c].name;
-const alpha = ctx.codes.slice().sort((a, b) => name(a).localeCompare(name(b)));
-const startCalls = D.start.ward_calls;
-const start = B.startState(ctx, { calls: startCalls, share: D.start.combined_share }, startCalls).state;
-if (geom.wards.map(w => String(w.id)).join() !== ctx.wards.join()) throw new Error("the geometry and the schema disagree about the wards");
+[one.next1, one.next2, one.next3].forEach((b, i) => b.addEventListener("click", () => {
+  step = Math.max(step, i + 1);
+  paintSteps();
+  STEPS[i + 1].scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}));
+paintSteps();
 
-const opened = MS.parse(location.search, ctx, D.context_ref, start);
-let state = opened.state;
-const S = { coalition: opened.coalition.slice(), name: opened.name, brush: null };
-if (opened.note) { one.linknote.textContent = opened.note; one.linknote.hidden = false; }
-const history = new B.History();
+// ---------- locking: the controls answer once the seat law has loaded ----------
+const editables = [one.brushselect, one.area, one.fillarea, one.copymodel, one.prmodel, one.analyse];
+let engineReady = false;
+function lock(on) {
+  for (const r of [one.mapRegion, one.voteRegion, one.govRegion]) r.classList.toggle("locked", on);
+  for (const e of editables) e.disabled = on;
+}
+lock(true);
+
+// ---------- state, set when the section starts ----------
+let D, schema, geom, ctx, byCode, name, alpha;
+let pubStart;              // the published start (forecast.json)
+let from;                  // the start section 2 is open at: pubStart or a hand-off
+let adjusted = false;      // is `from` section 1's hand-off?
+let state, S, history, map, worker;
+let result = null, seq = 0;
+let started = false;
+let fromLink = false;      // opened from a link's forecast, not yet measured against section 1
 
 const pct = (v, dp = 1) => {
   const p = v / ctx.T * 100;
   return p > 0 && p < 0.05 ? "under 0.1" : p.toFixed(dp);
 };
 
-// ---------- locking: the controls answer once the seat law has loaded ----------
-const editables = [one.brushselect, one.area, one.fillarea, one.copymodel, one.prmodel];
-let engineReady = false;
-function lock(on) {
-  for (const r of [one.mapRegion, one.voteRegion, one.govRegion]) r.classList.toggle("locked", on);
-  for (const e of editables) e.disabled = on;
+// ---------- following section 1 ----------
+let section1 = null;       // { settings, touched }, the newest setting section 1 shows
+let handSeq = 0, waiting = null;
+onForecast(f => { section1 = f; if (started) follow(); });
+
+async function follow() {
+  const f = section1, ticket = ++handSeq;
+  if (!f) return;
+  let next;
+  if (!f.touched) next = { state: pubStart, adjusted: false };
+  else {
+    let h;
+    try { h = await engineCall("handoff", { settings: f.settings, total: ctx.T }); }
+    catch (e) { return; }                        // section 2 stays where it is
+    if (ticket !== handSeq) return;              // a newer setting is on its way
+    if (h.refused) return;
+    const calls = ctx.wards.map(w => h.ward_calls[w]);
+    next = { state: B.startState(ctx, { calls, share: h.share }, pubStart.calls).state, adjusted: true };
+  }
+  if (fromLink) {
+    // a forecast opened from a link is the reader's: its start becomes
+    // section 1's hand-off without a note, and nothing is overwritten
+    fromLink = false;
+    from = next.state;
+    adjusted = next.adjusted;
+    afterEdit();
+    return;
+  }
+  if (MS.sameState(next.state, from, ctx)) { waiting = null; one.follow.hidden = true; return; }
+  if (MS.sameState(state, from, ctx)) {
+    // unedited: section 2 follows section 1
+    from = next.state;
+    adjusted = next.adjusted;
+    waiting = null;
+    one.follow.hidden = true;
+    state = from;
+    afterEdit();
+  } else {
+    waiting = next;
+    one.followText.textContent = next.adjusted
+      ? "Your changes to the model have moved since this section opened from them."
+      : "Your changes to the model are undone since this section opened from them.";
+    one.follow.hidden = false;
+  }
 }
+one.reseed.addEventListener("click", () => {
+  if (!waiting) return;
+  snapshot();
+  from = waiting.state;
+  adjusted = waiting.adjusted;
+  waiting = null;
+  one.follow.hidden = true;
+  commit(from);
+});
+
+// ---------- start when the reader comes near ----------
+async function start() {
+  if (started) return;
+  started = true;
+  one.status.textContent = "Loading the start and the seat law.";
+  try {
+    const r = await fetch(new URL("../forecast.json", import.meta.url));
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    D = await r.json();
+  } catch (e) {
+    one.status.textContent = "The start could not be loaded (" + (e.message || e) + "). Reload to try again.";
+    started = false;
+    return;
+  }
+  schema = D.schema; geom = D.geometry;
+  ctx = B.contextOf(schema);
+  byCode = Object.fromEntries(schema["x-parties"].map(p => [p.code, p]));
+  name = c => byCode[c].name;
+  alpha = ctx.codes.slice().sort((a, b) => name(a).localeCompare(name(b)));
+  pubStart = B.startState(ctx, { calls: D.start.ward_calls, share: D.start.combined_share }, D.start.ward_calls).state;
+  if (geom.wards.map(w => String(w.id)).join() !== ctx.wards.join()) throw new Error("the geometry and the schema disagree about the wards");
+  from = pubStart;
+  const opened = MS.parse(YU.partOf(location.search, YU.BREAK_KEYS), ctx, D.context_ref, pubStart);
+  state = opened.state;
+  S = { coalition: opened.coalition.slice(), brush: null };
+  if (opened.note) { one.linknote.textContent = opened.note; one.linknote.hidden = false; }
+  history = new B.History();
+  map = new WardMap(one.svg, geom, { byCode, onPaint: paintWard });
+  map.onClear = () => { one.hint.textContent = "Every ward needs a winner. Choose a party, then tap the ward to change it."; };
+  buildBrush();
+  buildVote();
+  fromLink = !MS.sameState(state, pubStart, ctx);
+  afterEdit();
+  if (section1) follow();
+  worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
+  worker.onmessage = onWorker;
+  worker.postMessage({ type: "init", schema });
+}
+const wantsNow = /(^|[?&])f=/.test(location.search) || location.hash === "#break";
+if (wantsNow) start();
+else new IntersectionObserver((es, io) => {
+  if (es.some(e => e.isIntersecting)) { io.disconnect(); start(); }
+}, { rootMargin: "600px 0px" }).observe(one.statusRegion);
 
 // ---------- map ----------
-const map = new WardMap(one.svg, geom, { byCode, onPaint: paintWard });
-map.onClear = () => { one.hint.textContent = "Every ward needs a winner. Choose a party, then tap the ward to change it."; };
-
 function snapshot() { history.push(state); one.undo.disabled = false; }
 let strokeOpen = false;
 function paintWard(i) {
@@ -155,7 +290,9 @@ function setCallsFrom(calls) {
 
 // The brush: a chip for each party that wins a ward on the reader's map, the
 // same rule for every party, and every party in the select.
-one.brushselect.append(el("option", { value: "" }, "Choose…"), ...alpha.map(c => el("option", { value: c }, name(c))));
+function buildBrush() {
+  one.brushselect.append(el("option", { value: "" }, "Choose…"), ...alpha.map(c => el("option", { value: c }, name(c))));
+}
 one.brushselect.addEventListener("change", () => chooseBrush(one.brushselect.value || null));
 function chooseBrush(c) {
   S.brush = c;
@@ -174,6 +311,7 @@ function paintBrush() {
 }
 
 for (const b of views) b.addEventListener("click", () => {
+  if (!started) return;
   const v = b.dataset.view;
   for (const x of views) x.setAttribute("aria-pressed", String(x === b));
   one.mapscroll.hidden = v === "list";
@@ -206,40 +344,45 @@ one.fillarea.addEventListener("click", () => {
   const sec = one.area.value;
   setCallsFrom(state.calls.map((c, i) => geom.wards[i].sector === sec ? S.brush : c));
 });
-one.copymodel.addEventListener("click", () => setCallsFrom(startCalls));
+one.copymodel.addEventListener("click", () => setCallsFrom(from.calls));
 one.undo.addEventListener("click", () => {
   const prev = history.pop(); if (!prev) return;
   commit(prev);
 });
 
 // ---------- the vote: one identical row per party ----------
-// Two lists, each alphabetical: the parties that hold a seat in the start,
-// then every other party in a collapsed "Other parties" (review 2026-10-02:
-// one alphabetical list of every party put ACDP first and the ANC and DA far
-// below a run of parties at zero). The split is the start's, fixed for the
-// page, so a row never moves under the reader's finger; finding a party opens
-// the second list.
+// Two lists, each alphabetical: the parties that hold a seat in the published
+// start, then every other party in a collapsed "Other parties" (review
+// 2026-10-02: one alphabetical list of every party put ACDP first and the ANC
+// and DA far below a run of parties at zero). The split is the published
+// start's, fixed for the page, so a row never moves under the reader's
+// finger; finding a party opens the second list.
 const rows = {};
-const seatedAtStart = alpha.filter(c => (D.start.seats[c] || 0) > 0);
-const restList = el("div", { className: "prrest" });
-const rest = el("details", { className: "prmore" }, el("summary", {}, "Other parties"), restList);
-for (const c of alpha) {
-  const num = el("input", { type: "number", id: "pr-n-" + c, min: "0", max: "100", step: "0.1", inputMode: "decimal", disabled: true });
-  const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", share of all votes, percent" });
-  const fl = el("span", { className: "fl" });
-  const row = el("div", { className: "prrow" }, sw(c), el("label", { htmlFor: "pr-n-" + c }, name(c)), num, fl, rng);
-  num.addEventListener("change", () => editShare(c, num.value, true, null));
-  rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
-  rng.addEventListener("change", () => editShare(c, rng.value, true, null));
-  rows[c] = { row, num, rng, fl };
-  editables.push(num, rng);
-  (seatedAtStart.includes(c) ? one.prlist : restList).append(row);
+let rest;
+function buildVote() {
+  const seatedAtStart = alpha.filter(c => (D.start.seats[c] || 0) > 0);
+  const restList = el("div", { className: "prrest" });
+  rest = el("details", { className: "prmore" }, el("summary", {}, "Other parties"), restList);
+  for (const c of alpha) {
+    const num = el("input", { type: "number", id: "pr-n-" + c, min: "0", max: "100", step: "0.1", inputMode: "decimal", disabled: true });
+    const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", share of all votes, percent" });
+    const fl = el("span", { className: "fl" });
+    const row = el("div", { className: "prrow" }, sw(c), el("label", { htmlFor: "pr-n-" + c }, name(c)), num, fl, rng);
+    num.addEventListener("change", () => editShare(c, num.value, true, null));
+    rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
+    rng.addEventListener("change", () => editShare(c, rng.value, true, null));
+    rows[c] = { row, num, rng, fl, seated: seatedAtStart.includes(c) };
+    editables.push(num, rng);
+    (rows[c].seated ? one.prlist : restList).append(row);
+  }
+  one.prlist.append(rest);
+  if (engineReady) lock(false);
 }
-one.prlist.append(rest);
 one.prfind.addEventListener("input", () => {
+  if (!started) return;
   const q = one.prfind.value.trim().toLowerCase();
   for (const c of alpha) rows[c].row.hidden = !!q && !name(c).toLowerCase().includes(q);
-  if (q && alpha.some(c => !seatedAtStart.includes(c) && !rows[c].row.hidden)) rest.open = true;
+  if (q && alpha.some(c => !rows[c].seated && !rows[c].row.hidden)) rest.open = true;
 });
 
 function paintShares(except = null) {
@@ -273,14 +416,11 @@ function editShare(c, raw, final, active) {
 }
 one.prmodel.addEventListener("click", () => {
   snapshot();
-  const r = B.setCalls({ calls: state.calls, votes: B.votesFromPercent(D.start.combined_share, ctx) }, ctx, state.calls);
+  const r = B.setCalls({ calls: state.calls, votes: { ...from.votes } }, ctx, state.calls);
   commit(r.state, raisedNote(r.raised));
 });
 
 // ---------- recompute ----------
-const worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
-let seq = 0, result = null;
-
 function commit(next, note = "") {
   state = next;
   one.floornote.textContent = note;
@@ -295,15 +435,16 @@ function afterEdit(active = null) {
   paintShares(active);
   paintBrush();
   one.undo.disabled = !engineReady || !history.size;
-  const changed = state.calls.filter((c, i) => c !== startCalls[i]).length;
-  one.nchanged.textContent = changed ? changed + (changed === 1 ? " changed from the model's call" : " changed from the model's calls") : "as the model calls them";
+  const changed = state.calls.filter((c, i) => c !== from.calls[i]).length;
+  const whose = adjusted ? "your adjusted forecast's" : "the model's";
+  one.nchanged.textContent = changed ? changed + (changed === 1 ? " changed from " + whose + " call" : " changed from " + whose + " calls")
+    : "as " + whose.replace(/'s$/, "") + " calls them";
   writeURL();
   if (engineReady) worker.postMessage({ type: "seats", seq: ++seq, forecast: B.forecastBody(state, ctx) });
 }
 
 function writeURL() {
-  const q = MS.serialize({ state, coalition: S.coalition, name: S.name }, ctx, D.context_ref, start);
-  window.history.replaceState(null, "", location.pathname + q + location.hash);
+  YU.write("break", MS.serialize({ state, coalition: S.coalition }, ctx, D.context_ref, from));
   if (result) share();
 }
 
@@ -330,7 +471,7 @@ function paintCoalition() {
 
 // ---------- the council ----------
 // The seat table's axis, ticks and header words, set by the build on the
-// "council" region from src/seat_table.py (the one definition).
+// "b-council" region from src/seat_table.py (the one definition).
 const TABLE = {
   scale: Number(one.councilRegion.dataset.scale),
   ticks: String(one.councilRegion.dataset.ticks || "").split(" ").filter(Boolean).map(Number),
@@ -348,9 +489,9 @@ function paintCouncil() {
   // range: the mark is the party's seats, and the range column is empty. The
   // axis is the site's, widened in steps of its own tick spacing when a party
   // the reader built holds more seats than it reaches.
-  const T = TABLE.ticks, step = T[1] - T[0];
-  const scale = max <= TABLE.scale ? TABLE.scale : Math.ceil(max / step) * step;
-  const every = step * Math.ceil(scale / step / (T.length - 1));
+  const T = TABLE.ticks, tick = T[1] - T[0];
+  const scale = max <= TABLE.scale ? TABLE.scale : Math.ceil(max / tick) * tick;
+  const every = tick * Math.ceil(scale / tick / (T.length - 1));
   const ticks = scale === TABLE.scale ? T : Array.from({ length: Math.floor(scale / every) + 1 }, (_, i) => i * every);
   one.bars.replaceChildren(seatTable(document, list.map(c => ({
     code: c, name: name(c), sub: null, seats: String(seats[c]), lo: null, hi: null,
@@ -381,14 +522,79 @@ function paintCouncil() {
 
 function share() {
   setShareable({
-    url: location.href, name: S.name, edited: !MS.sameState(state, start, ctx), calls: state.calls, seats: result.seats,
-    council: result.council_total, majority: result.majority, coalition: S.coalition, geom, party: c => byCode[c],
-    election: D.election,
+    url: YU.linkTo("break", "#break"), name: YU.currentName(), edited: !MS.sameState(state, from, ctx), adjusted,
+    calls: state.calls, seats: result.seats, council: result.council_total, majority: result.majority,
+    coalition: S.coalition, geom, party: c => byCode[c], election: D.election,
   });
 }
-onNameChange(n => { S.name = n; writeURL(); });
+onNameChange(n => { YU.write("name", n); if (result) share(); });
 
-worker.onmessage = e => {
+// ---------- "Analyse my forecast" ----------
+// The reader's forecast, as page.py's analyse reads it: every ward's call, the
+// combined shares, the seats the law gives them. The answer is the published
+// forecast's chances (page.py says how); shown in "b-analysis", and each
+// ward's chance on hover over the map. Once shown, it follows every edit.
+let analysed = null, analyseTimer = null, analyseTicket = 0;
+one.analyse.addEventListener("click", () => {
+  step = Math.max(step, 3);
+  paintSteps();
+  analyse(true);
+});
+async function analyse(scroll) {
+  if (!result) return;
+  const ticket = ++analyseTicket;
+  one.analysis.hidden = false;
+  one.anote.textContent = "Working it out…";
+  let a;
+  try {
+    a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
+                                      share: B.percentOf(state, ctx), seats: result.seats });
+  } catch (e) {
+    if (ticket === analyseTicket) one.anote.textContent = "The analysis could not run: " + (e.message || e) + ".";
+    return;
+  }
+  if (ticket !== analyseTicket) return;
+  analysed = a;
+  paintAnalysis(a);
+  if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+function paintAnalysis(a) {
+  const n = a.wards_count, exp = Math.round(a.expected);
+  one.verdict.replaceChildren("We give ward results as unlikely as yours, or less likely, a chance of ", el("b", {}, a.percentile.text),
+    ". But historical trends can always be broken.");
+  one.expected.textContent = "We expect " + exp + " of your " + n + " ward calls to come true. Hover over a ward for the chance we give your call there.";
+  const sb = a.seat_band, pb = a.share_band;
+  const head = el("tr", {}, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
+    el("th", { scope: "col", className: "num" }, "Chance within " + sb + " seats"),
+    el("th", { scope: "col", className: "num" }, "Your vote"),
+    el("th", { scope: "col", className: "num" }, "Chance within " + pb + " points, list ballot"));
+  const seats = result.seats, share = B.percentOf(state, ctx);
+  const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
+  const body = codes.map(c => el("tr", {},
+    el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0)),
+    el("td", { className: "num" }, a.seats[c].text),
+    el("td", { className: "num" }, (share[c] ?? 0).toFixed(1) + "%"),
+    el("td", { className: "num" }, a.share[c] ? a.share[c].text : "")));
+  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head), el("tbody", {}, ...body)));
+  one.anote.textContent = "Every chance is the published forecast's: its " + a.draws.toLocaleString("en-US") +
+    " simulations, each counted once, seated by the law. Your vote is your share of both ballots together; the simulations carry each party's list-ballot share only, so that is what it is compared with. A set of ward results is ranked by multiplying the chance we give each ward's winner, and set among our own simulations ranked the same way.";
+}
+// each ward's chance, over the map, once analysed
+function wardTip(e) {
+  const i = e.target.getAttribute && e.target.getAttribute("data-i");
+  if (!analysed || i == null) { one.wardtip.hidden = true; return; }
+  const w = ctx.wards[+i], c = state.calls[+i], got = analysed.wards[w];
+  if (!got) { one.wardtip.hidden = true; return; }
+  one.wardtip.textContent = "Ward " + w + ", " + name(c) + ": we give this outcome a chance of " + got.text + ".";
+  one.wardtip.hidden = false;
+  one.wardtip.style.left = Math.min(e.clientX + 14, window.innerWidth - 290) + "px";
+  one.wardtip.style.top = (e.clientY + 14) + "px";
+}
+one.svg.addEventListener("mousemove", wardTip);
+one.svg.addEventListener("mouseleave", () => { one.wardtip.hidden = true; });
+
+// ---------- the seat Worker ----------
+function onWorker(e) {
   const m = e.data;
   if (m.type === "stage") {
     if (m.label !== "Ready") one.status.textContent = m.label + "…";
@@ -415,10 +621,6 @@ worker.onmessage = e => {
     paintCouncil();
     paintCoalition();
     share();
+    if (analysed) { clearTimeout(analyseTimer); analyseTimer = setTimeout(() => analyse(false), 400); }
   }
-};
-
-// ---------- first paint, then the seat law ----------
-lock(true);
-afterEdit();
-worker.postMessage({ type: "init", schema });
+}

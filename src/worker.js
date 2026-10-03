@@ -35,6 +35,13 @@
  * lines instead. Version URLs are not visible in Workers Logs, so UAT clicks
  * never appear there.
  *
+ * Pages that moved (MOVED) answer 301 to their new address on the Johannesburg
+ * host and on workers.dev hosts, with the query string kept, so a link shared
+ * from the old page opens the same settings on the new one. /play/ and /make/
+ * became the two sections of /your-forecast/ on 2026-10-03; /make/ lands on
+ * its section, #break. The rest of each old path is dropped: both pages were
+ * single pages, and their files are gone. Logs nothing.
+ *
  * Each arrival is also written as one Workers Analytics Engine data point
  * (env.ARRIVALS, [[analytics_engine_datasets]] in wrangler.toml):
  *   blobs [channel, host], doubles [1], indexes [channel]
@@ -65,6 +72,28 @@ const SHARED_PAGES = new Set([
 ]);
 
 const NOINDEX = "noindex, nofollow";
+
+// Old page -> where it lives now: [path, fragment]. Matched as the page
+// directory itself, its index.html, or anything under it, in any case.
+// Add a row here to move a page; the query string is always kept.
+const MOVED = new Map([
+  ["play", ["/your-forecast/", ""]],
+  ["make", ["/your-forecast/", "#break"]],
+]);
+
+// "/play", "/Play/", "/make/index.html" -> its row in MOVED; else undefined.
+function movedTo(path) {
+  const m = /^\/([a-z-]+)(?:\/.*)?$/i.exec(path);
+  return m ? MOVED.get(m[1].toLowerCase()) : undefined;
+}
+
+function moved(url, to) {
+  const [path, hash] = to;
+  return new Response(null, {
+    status: 301,
+    headers: { Location: new URL(path + url.search + hash, url).toString() },
+  });
+}
 
 // Short path (lowercase, no slashes) -> channel name in the arrival log.
 const CHANNELS = new Map([
@@ -113,7 +142,9 @@ export default {
 
     if (isPreview(host)) {
       const channel = channelOf(path);
-      const res = channel ? arrival(url, host, channel, env) : await env.ASSETS.fetch(request);
+      const to = movedTo(path);
+      const res = channel ? arrival(url, host, channel, env)
+        : to ? moved(url, to) : await env.ASSETS.fetch(request);
       const out = new Response(res.body, res);
       out.headers.set("X-Robots-Tag", NOINDEX);
       return out;
@@ -139,6 +170,8 @@ export default {
     if (ROOT_CITIES.has(sub)) {
       const channel = channelOf(path);
       if (channel) return arrival(url, host, channel, env);
+      const to = movedTo(path);
+      if (to) return moved(url, to);
     }
 
     // Johannesburg, and anything shared, is served straight from the root.

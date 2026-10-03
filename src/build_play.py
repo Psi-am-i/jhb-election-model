@@ -1,42 +1,28 @@
-"""Build "play with the model" (``/play/``) from ``interactive/`` into the site.
+"""Section 1 of "your forecast" ("Adjust the model"): its published figures.
 
-Called by ``build_site.main``, which renders, scans, stamps and ledgers the page
-like every other (INTEGRATION §3c: "built by build_site.py from interactive/,
-so the number gate and deploy_check see it like every other page"). This
-module only ASSEMBLES it; it decides nothing about what is allowed on a page.
+``src/build_your_forecast.py`` assembles the page (``/your-forecast/``) from
+``interactive/your-forecast.html`` and copies its files; ``build_site.main``
+renders, scans, stamps and ledgers it like every other page (INTEGRATION §3c).
+This module fills section 1's ``<!-- __PLAY:<name>__ -->`` markers (:data:`FILL`)
+and writes the data files section 1 reads; it decides nothing about what is
+allowed on a page.
 
-What the served page is made of
-===============================
-
-``play/index.html``
-    ``interactive/model.html`` with its prototype-only parts cut
-    (``__DEVONLY__`` spans), the site's head (``build_site.SITE_HEAD``: the
-    one stylesheet and the site's scripts), nav and footer put in one level
-    down, and the published forecast's figures filled in at the
-    ``<!-- __PLAY:<name>__ -->`` markers (:data:`FILL`).
-``play/js/``, ``play/css/``, ``play/pyboot/page.py``
-    Byte copies of the page's modules (``PLAY_JS``), its stylesheets and its
-    Python entry, except ONE declared line of ``model-worker.js``: where the
-    draws are (``DRAWS_LINE``), which is ``site/draws/`` beside the prototype
-    and ``/draws/`` when served. The build refuses if that line is not there
-    exactly once, so a moved constant cannot ship a Worker that 404s.
-``play/py/``
-    The served copy of the page's Python (``manifest.json`` and ``page/``),
-    written by ``interactive/tools/sync_py.mjs`` — the one definition of that
-    copy and its hash — which this build runs, then copies.
-``play/parties.json``
-    Party names, colours and the article a name takes in a sentence ("the
-    ANC", "ActionSA"), for the draws' roster, from the site's one definition
-    (``render_sheet.NAMES`` / ``CHIPS``, then :func:`reader_name`), so the
-    page types none.
-``play/ward_paths.json``
+``parties.json``
+    Party names, colours, the article a name takes in a sentence ("the
+    ANC", "ActionSA") and whether the site has the party's logo, for the
+    draws' roster, from the site's one definition (``render_sheet.NAMES`` /
+    ``CHIPS``, then :func:`reader_name`), so the page types none.
+``ward_paths.json``
     The ward boundaries (``render_map``'s ``ward_paths.json``: geometry and
     place labels, no figure). ``js/model.js`` draws the map under a reader's
     settings from it; the published map is drawn here (:func:`map_twin`).
-``play/labels.json``
+``labels.json``
     The word list and number range of ``interactive/js/labels.js``, read by
     node, so the share sheet can offer a random label without importing a
     module that holds a data block.
+``laws.json``
+    The seat laws' names, as ``/forecast`` prints them
+    (``render_sheet.SEAT_LAWS``, the one definition).
 
 First paint is the published forecast AS TOKENS (DESIGN §4)
 ===========================================================
@@ -44,7 +30,7 @@ First paint is the published forecast AS TOKENS (DESIGN §4)
 Every results element exists twice: a BUILD TWIN written here, whose figures
 are ``{{…}}`` tokens that ``build_site`` renders with ``stats.render`` (so
 each is ledgered, drift-checked and arrowed as on ``/forecast``), and an empty
-LIVE sibling that ``play/js/model.js`` fills once a control moves. Nothing
+LIVE sibling that ``js/model.js`` fills once a control moves. Nothing
 from ``/forecast`` is embedded. The twins' figures come from:
 
 * the seat rows and banner: the forecast sheet's own seat tokens
@@ -68,17 +54,17 @@ from ``/forecast`` is embedded. The twins' figures come from:
   never reads.
 
 Figures a reader's settings produce are NOT here: they are written at view
-time into ``data-live`` regions by ``play/js/model.js``, and the share sheet
-(region ``share``) by ``play/js/play-share.js``, which shows an image that
-``play/js/forecast-card.js`` (the card module /make/ shares) draws from the
-same result as ``play/js/play-card.js`` words it (``stats.LIVE_WRITERS``);
+time into ``data-live`` regions by ``js/model.js``, and the share sheet
+(region ``share``) by ``js/play-share.js``, which shows an image that
+``js/forecast-card.js`` (the card module section 2 shares) draws from the
+same result as ``js/play-card.js`` words it (``stats.LIVE_WRITERS``);
 ``stats.script_writes`` holds each to that.
 
 Share card and preview
 ======================
 
-The page's own ``og:title``/``og:description`` (:data:`OG_TITLE`,
-:data:`OG_DESCRIPTION`) carry no figure, and ``og:image`` is the site's
+The page's own ``og:title``/``og:description``
+(``build_your_forecast.OG_TITLE``, ``OG_DESCRIPTION``) carry no figure, and ``og:image`` is the site's
 ``share.jpg``. A link with settings in its query string gets the same generic
 preview: nothing renders a card per link on the server. The image of a
 reader's settings is drawn in their browser and attached or downloaded by
@@ -89,7 +75,6 @@ from __future__ import annotations
 import csv
 import json
 import re
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -98,24 +83,6 @@ INTERACTIVE = REPO_ROOT / "interactive"
 SHEET = REPO_ROOT / "forecast-sheet.html"
 DRAWS = REPO_ROOT / "site" / "draws"
 
-#: Where the page is served, relative to the site root.
-PLAY_DIR = "play"
-PLAY_PAGE = f"{PLAY_DIR}/index.html"
-#: The page's address in the nav and in og:url.
-PLAY_HREF = f"{PLAY_DIR}/"
-#: The page's own share card text. It carries no figure: a shared link with
-#: settings (``?t=…``) shows this same generic card, because nothing renders
-#: per-link previews on the server. og:image stays the site's share.jpg.
-OG_TITLE = "Play with the Johannesburg election model"
-OG_DESCRIPTION = ("Move turnout, a poll and the weight of by-elections, and see how "
-                  "the model's simulations of the Johannesburg council change.")
-#: The modules the page loads, statically or as its Worker. Nothing else under
-#: interactive/js ships: the builder's modules are not part of this page.
-PLAY_JS = ("model.js", "play-state.js", "model-worker.js", "reweight-engine.js",
-           "play-card.js", "play-share.js", "forecast-card.js", "card-text.js",
-           "seat-table.js", "pubtip.js")
-PLAY_CSS = ("interactive.css", "play.css")
-PLAY_PYBOOT = ("page.py",)
 #: The one line of the Worker that differs between the prototype and the site.
 DRAWS_LINE = ('const DRAWS = "../../site/draws/";', 'const DRAWS = "../../draws/";')
 #: The markers model.html carries, each filled by one function below.
@@ -137,7 +104,6 @@ REFUSED_AS = {"commissioned": "commissioned by a party or campaign",
               "undated": "with no fieldwork date",
               "outside-window": "taken too long before polling day"}
 
-_DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
 _REL_ATTR = re.compile(r'\b(href|src)="(?![a-z][a-z0-9+.-]*:|/|#|\.\./)([^"]*)"', re.I)
 #: A seat row of the forecast sheet's table (src/seat_table.py), read back by
 #: its data attributes and its three token cells.
@@ -162,7 +128,7 @@ def _once(text: str, needle: str, what: str) -> int:
 
 
 def one_level_down(html: str) -> str:
-    """Relative links and images, re-pointed from the site root to ``/play/``."""
+    """Relative links and images, re-pointed from the site root to a page one level down."""
     return _REL_ATTR.sub(lambda m: f'{m.group(1)}="../{m.group(2)}"', html)
 
 
@@ -232,7 +198,7 @@ def _seat_draws(processed: Path):
 
 
 def roster() -> dict:
-    """``{code: {name, colour, article}}`` for every party the draws carry.
+    """``{code: {name, colour, article, logo}}`` for every party the draws carry.
 
     ``article`` is "the " for a name written as an abbreviation ("the ANC"),
     else empty ("ActionSA", "MK Party"): one rule, so the page types no list.
@@ -246,7 +212,9 @@ def roster() -> dict:
     for c in codes:
         name = render_sheet.NAMES.get(c) or reader_name(c)
         out[c] = {"code": c, "name": name, "colour": render_sheet.CHIPS.get(c, render_sheet.OTHER_CHIP),
-                  "article": "the " if name.isupper() else ""}
+                  "article": "the " if name.isupper() else "",
+                  # the site serves its logo (/logos/<code>.png, src/prep_logos.py)
+                  "logo": (REPO_ROOT / "site" / "logos" / f"{c}.png").is_file()}
     return out
 
 
@@ -605,30 +573,6 @@ def fills(processed: Path) -> dict[str, str]:
     return out
 
 
-def assemble(*, site_head: str, nav: str, footer: str, processed: Path) -> str:
-    """The page's HTML, tokens unrendered: model.html with the site put in."""
-    page = (INTERACTIVE / "model.html").read_text(encoding="utf-8")
-    starts = page.count("<!-- __DEVONLY_START__ -->")
-    if not starts or starts != page.count("<!-- __DEVONLY_END__ -->"):
-        raise PlayBuildError("build_play: model.html's __DEVONLY__ markers do not pair")
-    page = _DEVONLY.sub("", page)
-    # the leading authoring comment describes the markers; it is not the page's
-    page = re.sub(r"<!--\n  \"Play with the model\".*?-->\n", "", page, count=1, flags=re.S)
-    for marker, value in (("<!-- __PLAYHEAD__ -->", one_level_down(site_head)),
-                          ("<!-- __PLAYNAV__ -->", one_level_down(nav)),
-                          ("<!-- __PLAYFOOT__ -->", one_level_down(footer))):
-        _once(page, marker, "model.html")
-        page = page.replace(marker, value)
-    for name, value in fills(Path(processed)).items():
-        marker = f"<!-- __PLAY:{name}__ -->"
-        _once(page, marker, "model.html")
-        page = page.replace(marker, value)
-    left = re.findall(r"<!-- __[A-Z:a-z]+__ -->", page)
-    if left:
-        raise PlayBuildError(f"build_play: unfilled markers in model.html: {left}")
-    return page
-
-
 def sync_python() -> None:
     """Run the one copy rule (``sync_py.mjs``); refuse, saying how, if it cannot."""
     tool = INTERACTIVE / "tools" / "sync_py.mjs"
@@ -654,43 +598,23 @@ def labels_json() -> bytes:
     return (run.stdout.strip() + "\n").encode("utf-8")
 
 
-def write_assets(out: Path, processed: Path) -> list[str]:
-    """Copy everything the page loads into ``out/play/``; returns the paths written."""
-    dest = out / PLAY_DIR
-    if dest.exists():
-        shutil.rmtree(dest)          # nothing under play/ survives a build that did not write it
-    written = []
-
-    def put(rel: str, data: bytes) -> None:
-        f = dest / rel
-        f.parent.mkdir(parents=True, exist_ok=True)
-        f.write_bytes(data)
-        written.append(f"{PLAY_DIR}/{rel}")
-
-    for name in PLAY_JS:
-        data = (INTERACTIVE / "js" / name).read_bytes()
-        if name == "model-worker.js":
-            text = data.decode("utf-8")
-            _once(text, DRAWS_LINE[0], "js/model-worker.js, the draws location")
-            data = text.replace(DRAWS_LINE[0], DRAWS_LINE[1]).encode("utf-8")
-        put(f"js/{name}", data)
-    for name in PLAY_CSS:
-        put(f"css/{name}", (INTERACTIVE / "css" / name).read_bytes())
-    for name in PLAY_PYBOOT:
-        put(f"pyboot/{name}", (INTERACTIVE / "pyboot" / name).read_bytes())
-    sync_python()
-    manifest = json.loads((INTERACTIVE / "py" / "manifest.json").read_text(encoding="utf-8"))
-    put("py/manifest.json", (INTERACTIVE / "py" / "manifest.json").read_bytes())
-    page = manifest["page"]
-    for rel in [*page["files"], *page["data"], "page_code_ref.py"]:
-        put(f"py/{page['dir']}/{rel}", (INTERACTIVE / "py" / page["dir"] / rel).read_bytes())
-    put("parties.json", (json.dumps(roster(), indent=1, sort_keys=True) + "\n").encode("utf-8"))
+def ward_paths_json(processed: Path) -> bytes:
+    """The ward boundaries and place labels, and the stripe tile
+    (``render_map.toss_pattern``'s), for the map under a reader's settings."""
     import render_map as RM
     geometry = json.loads((Path(processed) / "ward_paths.json").read_text(encoding="utf-8"))
-    put("ward_paths.json", (json.dumps({"W": geometry["W"], "H": geometry["H"], "paths": geometry["paths"],
-                                        "places": geometry["labels"],
-                                        # the stripe tile, render_map.toss_pattern's
-                                        "step": RM.TOSS_STEP, "rotate": RM.TOSS_ROTATE},
-                                       separators=(",", ":")) + "\n").encode("utf-8"))
-    put("labels.json", labels_json())
-    return written
+    return (json.dumps({"W": geometry["W"], "H": geometry["H"], "paths": geometry["paths"],
+                        "places": geometry["labels"], "step": RM.TOSS_STEP, "rotate": RM.TOSS_ROTATE},
+                       separators=(",", ":")) + "\n").encode("utf-8")
+
+
+def laws_json() -> bytes:
+    """``{law: {label, note}}`` from ``render_sheet.SEAT_LAWS``, in its order."""
+    import html
+    import render_sheet
+    return (json.dumps({k: {"label": label, "note": html.unescape(note)}
+                        for k, label, note in render_sheet.SEAT_LAWS}, indent=1) + "\n").encode("utf-8")
+
+
+def roster_json() -> bytes:
+    return (json.dumps(roster(), indent=1, sort_keys=True) + "\n").encode("utf-8")

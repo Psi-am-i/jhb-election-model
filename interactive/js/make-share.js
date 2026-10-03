@@ -1,15 +1,16 @@
-// "Make your own forecast": the share sheet. Anonymous: what is shared is the
-// page's address, which carries the whole forecast (make-state.js), and an
+// "Your forecast", section 2 ("Break the model"): the share sheet. Anonymous:
+// what is shared is the page's address, which carries the whole forecast
+// (make-state.js, with section 1's settings, through yf-url.js), and an
 // image drawn in the browser from the seats the page is showing
 // (forecast-card.js). Nothing is sent anywhere or stored.
 //
-// ⛔ A LIVE WRITER (stats.LIVE_WRITERS["make/js/make-share.js"]), for the one
-// region "share": the button and the <dialog> it opens are in make.html,
-// inside that region, and every element is reached through a literal
-// '[data-live="share"] …' selector, taken once, below. It writes with
+// ⛔ A LIVE WRITER (stats.LIVE_WRITERS["your-forecast/js/make-share.js"]), for
+// the one region "b-share": the button and the <dialog> it opens are in
+// your-forecast.html, inside that region, and every element is reached
+// through a literal '[data-live="b-share"] …' selector, taken once, below. It writes with
 // textContent and properties, never markup.
 //
-// Practice it follows (as /play/'s play-share.js):
+// Practice it follows (as section 1's play-share.js):
 //  * the image is drawn before the share button is enabled, so the native
 //    share call happens inside the tap (Safari drops the gesture across an
 //    await); files are attached only when navigator.canShare({files}) allows;
@@ -19,22 +20,21 @@
 
 import { buildForecastCardSVG, forecastCardAlt, cardTitle, photoUnder, PHOTO_FILE, SITE, SIZES, OTHERS_COLOUR } from "./forecast-card.js";
 import { svgToPNG } from "./card-text.js";
-import { nameRule, NAME_MAX } from "./make-state.js";
+import { cleanName, NAME_MAX } from "./play-state.js";
 
 const S = {
-  open: document.querySelector('[data-live="share"] .shareopen'),
-  dlg: document.querySelector('[data-live="share"] dialog'),
-  close: document.querySelector('[data-live="share"] .x'),
-  name: document.querySelector('[data-live="share"] .shname'),
-  nameerr: document.querySelector('[data-live="share"] .shnameerr'),
-  url: document.querySelector('[data-live="share"] .shurl'),
-  copy: document.querySelector('[data-live="share"] .shcopy'),
-  native: document.querySelector('[data-live="share"] .shnative'),
-  img: document.querySelector('[data-live="share"] .preview img'),
-  dl: document.querySelector('[data-live="share"] .shdl'),
-  toast: document.querySelector('[data-live="share"] .toast'),
+  open: document.querySelector('[data-live="b-share"] .shareopen'),
+  dlg: document.querySelector('[data-live="b-share"] dialog'),
+  close: document.querySelector('[data-live="b-share"] .x'),
+  name: document.querySelector('[data-live="b-share"] .shname'),
+  url: document.querySelector('[data-live="b-share"] .shurl'),
+  copy: document.querySelector('[data-live="b-share"] .shcopy'),
+  native: document.querySelector('[data-live="b-share"] .shnative'),
+  img: document.querySelector('[data-live="b-share"] .preview img'),
+  dl: document.querySelector('[data-live="b-share"] .shdl'),
+  toast: document.querySelector('[data-live="b-share"] .toast'),
 };
-S.name.maxLength = NAME_MAX + 8;          // the rule, not the box, says what is too long
+S.name.maxLength = NAME_MAX;
 
 // The site's photograph, beside the page's own directory: /share.jpg.
 const PHOTO_SRC = new URL("../../" + PHOTO_FILE, import.meta.url).href;
@@ -45,9 +45,11 @@ let now = null, png = null, shown = null, opener = null, nameCb = () => {}, draw
 
 export function onNameChange(cb) { nameCb = cb; }
 
-// What the page is showing now: { url, name, edited, calls, seats, council,
-// majority, coalition, geom, party(code) -> {name, colour} }. `edited` is
-// false while the forecast is still the page's start.
+// What the page is showing now: { url, name, edited, adjusted, calls, seats,
+// council, majority, coalition, geom, party(code) -> {name, colour} }.
+// `edited` is false while the forecast is still section 2's start;
+// `adjusted` is true when that start is section 1's hand-off, not the
+// published one.
 export function setShareable(info) {
   now = info;
   png = null;
@@ -91,12 +93,15 @@ export function cardOf(info) {
     lines: [{ text: info.election.city + " council, " + dateText(info.election.date) + " · " + council + " seats, " + majority + " for a majority", tone: "muted" }],
     map: { W: info.geom.W, H: info.geom.H, wards: info.geom.wards.map((w, i) => ({ path: w.path, fill: party(info.calls[i]).colour })) },
     mapNote: info.edited ? "Each ward in the colour of the party the reader called it for."
-      : "Each ward in the colour of the model's most likely winner.",
+      : info.adjusted ? "Each ward in the colour of its most likely winner under the reader's changes to the model."
+        : "Each ward in the colour of the model's most likely winner.",
     rows, rowsNote,
     foot: [info.edited
       ? "A reader's forecast: the reader called the wards and set the vote, and the seats follow from the law. Not the model's forecast."
-      : "The page's start, unedited: each ward called for the model's most likely winner, and the vote set from the published forecast's middle seat counts. The seats follow from the law. Not the model's forecast.",
-           "Made " + dateText(MADE) + ". Make your own at " + SITE + "/make"],
+      : info.adjusted
+        ? "The reader's changes to the model, as a forecast: each ward called for its most likely winner under them, and the vote set from their middle seat counts. The seats follow from the law. Not the model's forecast."
+        : "The page's start, unedited: each ward called for the model's most likely winner, and the vote set from the published forecast's middle seat counts. The seats follow from the law. Not the model's forecast.",
+           "Made " + dateText(MADE) + ". Make your own at " + SITE + "/your-forecast"],
   };
 }
 
@@ -143,10 +148,7 @@ S.close.addEventListener("click", () => S.dlg.close());
 S.dlg.addEventListener("click", e => { if (e.target === S.dlg) S.dlg.close(); });
 S.dlg.addEventListener("close", () => opener?.focus?.());
 S.name.addEventListener("input", () => {
-  const r = nameRule(S.name.value);
-  S.nameerr.textContent = r.ok ? "" : "This name cannot be used: " + r.reason + ".";
-  if (!r.ok) return;
-  nameCb(r.value);            // the page rewrites the address and calls setShareable
+  nameCb(cleanName(S.name.value));    // the page rewrites the address and calls setShareable
 });
 S.copy.addEventListener("click", async () => {
   let ok = false;
@@ -158,7 +160,7 @@ S.copy.addEventListener("click", async () => {
   say(ok ? "Link copied." : "Copying did not work here. The link is selected: copy it from the box.");
 });
 S.native.addEventListener("click", () => {
-  const data = { title: "Make your own Johannesburg election forecast", text: "My forecast for the Johannesburg council.", url: now.url };
+  const data = { title: "Your Johannesburg election forecast", text: "My forecast for the Johannesburg council.", url: now.url };
   if (png) {
     const f = new File([png], fileName(), { type: "image/png" });
     if (navigator.canShare?.({ files: [f] })) data.files = [f];
