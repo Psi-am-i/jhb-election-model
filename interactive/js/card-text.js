@@ -3,7 +3,7 @@
 // definition; card.js re-exports it for the worker-api.
 //
 // Pure apart from svgToPNG, which needs a browser (Image, canvas). Served with
-// /play/ and read by stats.script_writes as a NON-writer module: it puts no
+// /your-forecast/ section 1 and read by stats.script_writes as a NON-writer module: it puts no
 // figure on a page.
 
 // Advance widths of printable ASCII (32..126) in font units, per face, read

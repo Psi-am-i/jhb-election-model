@@ -46,7 +46,9 @@ let now = null, png = null, shown = null, opener = null, nameCb = () => {}, draw
 export function onNameChange(cb) { nameCb = cb; }
 
 // What the page is showing now: { url, name, edited, adjusted, calls, seats,
-// council, majority, coalition, geom, party(code) -> {name, colour} }.
+// council, majority, coalition, geom, party(code) -> {name, colour}, raised }.
+// `raised` is make.js's sentence naming the parties the start raised to their
+// ward count, empty once edited.
 // `edited` is false while the forecast is still section 2's start;
 // `adjusted` is true when that start is section 1's hand-off, not the
 // published one.
@@ -97,11 +99,15 @@ export function cardOf(info) {
       : info.adjusted ? "Each ward in the colour of its most likely winner under the reader's changes to the model."
         : "Each ward in the colour of the model's most likely winner.",
     rows, rowsNote,
+    // unedited, the card says how the start was built and names every party
+    // raised from its middle seat count to its ward count (info.raised,
+    // make.js), so it cannot pass for section 1's figures
     foot: [info.edited
       ? "A reader's forecast: the reader called the wards and set the vote, and the seats follow from the law. Not the model's forecast."
-      : info.adjusted
-        ? "The reader's changes to the model, as a forecast: each ward called for its most likely winner under them, and the vote set from their middle seat counts. The seats follow from the law. Not the model's forecast."
-        : "The page's start, unedited: each ward called for the model's most likely winner, and the vote set from the published forecast's middle seat counts. The seats follow from the law. Not the model's forecast.",
+      : (info.adjusted
+        ? "A start built from the reader's changes to the model: each ward called for its most likely winner under them, and each party's vote set to seat it at its middle seat count under them, or at its ward count where that is more."
+        : "The page's start: each ward called for the model's most likely winner, and each party's vote set to seat it at its middle seat count in the published forecast, or at its ward count where that is more.")
+        + (info.raised ? " " + info.raised : "") + " The seats follow from the law. Not the model's forecast.",
            "Made " + dateText(MADE) + ". Make your own at " + SITE + "/your-forecast"],
   };
 }

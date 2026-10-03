@@ -50,7 +50,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script type="module" src="js/model.js"></script>
 <script type="module" src="js/make.js"></script>
-<script defer src="js/pubtip.js"></script>
+<script type="module" src="js/pubtip.js"></script>
 </head>
 <body class="pl yf">
 <div class="wrap pl-navwrap yf-wrap">
@@ -65,17 +65,10 @@
   <!-- __DEVONLY_END__ -->
 </div>
 
-<div class="pl-bannerwrap">
-  <div class="pl-banner pl-pub" aria-label="Seats in the published forecast"><span class="pl-bstate">Published forecast</span><!-- __PLAY:banner__ --></div>
-  <div class="pl-banner pl-live" data-live="banner" aria-label="Seats under your changes"></div>
-</div>
-
 <div class="wrap yf-wrap">
   <header class="lede pl-lede">
     <h1>Your forecast</h1>
-    <p>Adjust the model, then break it. First change its turnout, its polls and the weight of by-elections, and
-      see the council it gives. Then call every ward and set the vote yourself. Untouched, the page shows the
-      <a href="../forecast">published forecast</a>.</p>
+    <p>Adjust the model, then break it. Untouched, the page shows the <a href="../forecast">published forecast</a>.</p>
   </header>
   <nav class="yf-jump" aria-label="Sections">
     <a href="#adjust">Adjust the model</a>
@@ -83,6 +76,12 @@
   </nav>
 
   <section id="adjust" class="yf-section" aria-labelledby="h-adjust">
+    <!-- the banner sticks only while section 1 is in view: its figures are
+         section 1's, and section 2 opens from them by its own rule -->
+    <div class="pl-bannerwrap">
+      <div class="pl-banner pl-pub" aria-label="Seats in the published forecast"><span class="pl-bstate">Published forecast</span><!-- __PLAY:banner__ --></div>
+      <div class="pl-banner pl-live" data-live="banner" aria-label="Seats under your changes"></div>
+    </div>
     <h2 id="h-adjust" class="yf-shead">Adjust the model</h2>
     <p class="yf-sdek">Move turnout by population group, take a poll into account, decide how much by-election
       results count, and see how other systems would seat the vote.</p>
@@ -198,14 +197,13 @@
     <h2 id="h-break" class="yf-shead">Break the model</h2>
     <p class="yf-sdek">Take the forecast above as your own. Call every ward, set each party's share of the vote, and pick
       who governs. The seats follow from the law that seats the council. Each ward starts at its most likely winner
-      under your changes, and each party's vote at the share that seats it at its middle seat count, or at the
-      number of wards it is called for where that is more.</p>
+      under your changes.</p>
     <p class="pos">Your forecast, and the name you type when you share it, are kept only in the page's address, so a
       link carries them. Nothing is sent or stored.</p>
 
     <noscript><p class="notours">This section needs JavaScript. The <a href="../forecast">model's forecast</a> works without it.</p></noscript>
 
-    <div data-live="b-status"><p class="ess" role="status">This section loads its seat law when you reach it.</p>
+    <div data-live="b-status"><p class="ess" role="status"></p>
       <p class="notours linknote" hidden></p>
       <p class="yf-follow" hidden><span class="yf-followtext"></span>
         <button class="btn small yf-reseed" type="button">Start again from them</button></p></div>
@@ -253,6 +251,7 @@
             <div class="strip"></div>
             <div class="cap"><span class="capseats"></span><span class="capmaj"></span></div>
           </div>
+          <p class="stubnote yf-startnote"></p>
           <p class="stubnote excess"></p>
           <p class="visually-hidden announce" aria-live="polite"></p>
         </section>

@@ -13,7 +13,7 @@
 //   * it writes with textContent, createElement and append; never markup;
 //   * it does not walk out of a region and writes nothing through an event's
 //     target.
-// Its imports: builder-state.js, make-state.js, yf-url.js and map.js are
+// Its imports: builder-state.js, make-state.js, yf-url.js, map.js, seat-table.js and tip.js are
 // scanned as NON-writers; make-share.js (region "b-share") and model.js
 // (section 1) are writers in their own right.
 //
@@ -55,6 +55,7 @@ import * as YU from "./yf-url.js";
 import { WardMap } from "./map.js";
 import { setShareable, onNameChange } from "./make-share.js";
 import { seatTable } from "./seat-table.js";
+import { placeTip } from "./tip.js";
 import { engineCall, onForecast } from "./model.js";
 
 const one = {
@@ -94,6 +95,7 @@ const one = {
   capseats: document.querySelector('[data-live="b-council"] .capseats'),
   capmaj: document.querySelector('[data-live="b-council"] .capmaj'),
   excess: document.querySelector('[data-live="b-council"] .excess'),
+  startnote: document.querySelector('[data-live="b-council"] .yf-startnote'),
   announce: document.querySelector('[data-live="b-council"] .announce'),
   actions: document.querySelector('[data-live="b-actions"]'),
   analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
@@ -154,6 +156,7 @@ let D, schema, geom, ctx, byCode, name, alpha;
 let pubStart;              // the published start (forecast.json)
 let from;                  // the start section 2 is open at: pubStart or a hand-off
 let adjusted = false;      // is `from` section 1's hand-off?
+let fromMiddle = {};       // `from`'s middle seat count per named party (start_rule "published")
 let state, S, history, map, worker;
 let result = null, seq = 0;
 let started = false;
@@ -175,7 +178,7 @@ async function follow() {
   // follows once it has
   if (!f || !ctx || !from) return;
   let next;
-  if (!f.touched) next = { state: pubStart, adjusted: false };
+  if (!f.touched) next = { state: pubStart, adjusted: false, middle: D.start.published_middle };
   else {
     let h;
     try { h = await engineCall("handoff", { settings: f.settings, total: ctx.T }); }
@@ -183,22 +186,20 @@ async function follow() {
     if (ticket !== handSeq) return;              // a newer setting is on its way
     if (h.refused) return;
     const calls = ctx.wards.map(w => h.ward_calls[w]);
-    next = { state: B.startState(ctx, { calls, share: h.share }, pubStart.calls).state, adjusted: true };
+    next = { state: B.startState(ctx, { calls, share: h.share }, pubStart.calls).state, adjusted: true, middle: h.middle };
   }
   if (fromLink) {
     // a forecast opened from a link is the reader's: its start becomes
     // section 1's hand-off without a note, and nothing is overwritten
     fromLink = false;
-    from = next.state;
-    adjusted = next.adjusted;
+    ({ state: from, adjusted, middle: fromMiddle } = next);
     afterEdit();
     return;
   }
   if (MS.sameState(next.state, from, ctx)) { waiting = null; one.follow.hidden = true; return; }
   if (MS.sameState(state, from, ctx)) {
     // unedited: section 2 follows section 1
-    from = next.state;
-    adjusted = next.adjusted;
+    ({ state: from, adjusted, middle: fromMiddle } = next);
     waiting = null;
     one.follow.hidden = true;
     state = from;
@@ -214,8 +215,7 @@ async function follow() {
 one.reseed.addEventListener("click", () => {
   if (!waiting) return;
   snapshot();
-  from = waiting.state;
-  adjusted = waiting.adjusted;
+  ({ state: from, adjusted, middle: fromMiddle } = waiting);
   waiting = null;
   one.follow.hidden = true;
   commit(from);
@@ -243,12 +243,14 @@ async function start() {
   pubStart = B.startState(ctx, { calls: D.start.ward_calls, share: D.start.combined_share }, D.start.ward_calls).state;
   if (geom.wards.map(w => String(w.id)).join() !== ctx.wards.join()) throw new Error("the geometry and the schema disagree about the wards");
   from = pubStart;
-  const opened = MS.parse(YU.partOf(location.search, YU.BREAK_KEYS), ctx, D.context_ref, pubStart);
+  fromMiddle = D.start.published_middle;
+  const opened = MS.parse(YU.partOf(location.search, YU.BREAK_KEYS), ctx, D.context_ref, pubStart,
+                          "Break the model opens at its start instead.");
   state = opened.state;
   S = { coalition: opened.coalition.slice(), brush: null };
   if (opened.note) { one.linknote.textContent = opened.note; one.linknote.hidden = false; }
   history = new B.History();
-  map = new WardMap(one.svg, geom, { byCode, onPaint: paintWard });
+  map = new WardMap(one.svg, geom, { byCode, onPaint: paintWard, onFocusWard: focusTip });
   map.onClear = () => { one.hint.textContent = "Every ward needs a winner. Choose a party, then tap the ward to change it."; };
   buildBrush();
   buildVote();
@@ -441,8 +443,30 @@ function afterEdit(active = null) {
   const whose = adjusted ? "your adjusted forecast's" : "the model's";
   one.nchanged.textContent = changed ? changed + (changed === 1 ? " changed from " + whose + " call" : " changed from " + whose + " calls")
     : "as " + whose.replace(/'s$/, "") + " calls them";
+  paintStartNote();
   writeURL();
   if (engineReady) worker.postMessage({ type: "seats", seq: ++seq, forecast: B.forecastBody(state, ctx) });
+}
+
+// While the forecast is still its start: every named party whose start seats
+// were raised from its middle seat count to the wards it is called for, so a
+// start that differs from section 1's middles says where and why
+// (start_rule step 2, the ward floor; review of lane Y, 2026-10-03).
+function raisedAtStart() {
+  if (!MS.sameState(state, from, ctx)) return [];
+  const held = {};
+  for (const c of from.calls) held[c] = (held[c] || 0) + 1;
+  return Object.keys(fromMiddle || {}).filter(c => byCode[c] && (held[c] || 0) > fromMiddle[c])
+    .sort((a, b) => name(a).localeCompare(name(b)))
+    .map(c => ({ code: c, wards: held[c], middle: fromMiddle[c] }));
+}
+function raisedText(raised, whose) {
+  if (!raised.length) return "";
+  return raised.map(r => name(r.code) + " is called for " + r.wards + " wards, more than its middle seat count of " + r.middle +
+    " " + whose).join(". ") + ". " + (raised.length === 1 ? "It starts" : "Each starts") + " at its ward count.";
+}
+function paintStartNote() {
+  one.startnote.textContent = raisedText(raisedAtStart(), adjusted ? "under your changes" : "in the published forecast");
 }
 
 function writeURL() {
@@ -527,6 +551,7 @@ function share() {
     url: YU.linkTo("break", "#break"), name: YU.currentName(), edited: !MS.sameState(state, from, ctx), adjusted,
     calls: state.calls, seats: result.seats, council: result.council_total, majority: result.majority,
     coalition: S.coalition, geom, party: c => byCode[c], election: D.election,
+    raised: raisedText(raisedAtStart(), adjusted ? "under the reader's changes" : "in the published forecast"),
   });
 }
 onNameChange(n => { YU.write("name", n); if (result) share(); });
@@ -562,9 +587,14 @@ async function analyse(scroll) {
 }
 function paintAnalysis(a) {
   const n = a.wards_count, exp = Math.round(a.expected);
-  one.verdict.replaceChildren("We give ward results as unlikely as yours, or less likely, a chance of ", el("b", {}, a.percentile.text),
-    ". But historical trends can always be broken.");
-  one.expected.textContent = "We expect " + exp + " of your " + n + " ward calls to come true. Hover over a ward for the chance we give your call there.";
+  // The headline is the expected number of ward calls that come true. The
+  // rank among the simulations is not a chance and is never worded as one
+  // (STYLE rule 10; JUDGEMENT-CALLS §N3).
+  one.verdict.replaceChildren("We expect ", el("b", {}, exp + " of your " + n), " ward calls to come true. But historical trends can always be broken.");
+  one.expected.textContent = "Ranked by the chance we give each ward's winner, your ward calls as a set come level with or above the ward results of " +
+    a.percentile.text + " of our simulations. " + (HOVER.matches
+      ? "Hover over a ward, or reach it with the arrow keys, for the chance we give your call there."
+      : "Tap a ward with no party chosen for the chance we give your call there.");
   const sb = a.seat_band, pb = a.share_band;
   const head = el("tr", {}, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
     el("th", { scope: "col", className: "num" }, "Chance within " + sb + " seats"),
@@ -572,28 +602,51 @@ function paintAnalysis(a) {
     el("th", { scope: "col", className: "num" }, "Chance within " + pb + " points, list ballot"));
   const seats = result.seats, share = B.percentOf(state, ctx);
   const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
-  const body = codes.map(c => el("tr", {},
-    el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0)),
-    el("td", { className: "num" }, a.seats[c].text),
-    el("td", { className: "num" }, (share[c] ?? 0).toFixed(1) + "%"),
-    el("td", { className: "num" }, a.share[c] ? a.share[c].text : "")));
-  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head), el("tbody", {}, ...body)));
+  // two layouts of the same cells (css/your-forecast.css): one row per party,
+  // or on a phone a party's seats and then its vote, each in its own row
+  const yourVote = c => (share[c] ?? 0).toFixed(1) + "%", voteChance = c => (a.share[c] ? a.share[c].text : "");
+  const body = codes.flatMap(c => [
+    el("tr", { className: "yf-wide" },
+      el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0)),
+      el("td", { className: "num" }, a.seats[c].text),
+      el("td", { className: "num" }, yourVote(c)),
+      el("td", { className: "num" }, voteChance(c))),
+    el("tr", { className: "yf-narrow" },
+      el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0) + " seats"),
+      el("td", { className: "num" }, a.seats[c].text)),
+    el("tr", { className: "yf-narrow" },
+      el("td", {}), el("td", { className: "num" }, yourVote(c) + " vote"),
+      el("td", { className: "num" }, voteChance(c))),
+  ]);
+  const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
+    el("th", { scope: "col", className: "num" }, "Yours"),
+    el("th", { scope: "col", className: "num" }, "Chance within " + sb + " seats, or " + pb + " points (list ballot)"));
+  head.className = "yf-wide";
+  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)));
   one.anote.textContent = "Every chance is the published forecast's: its " + a.draws.toLocaleString("en-US") +
     " simulations, each counted once, seated by the law. Your vote is your share of both ballots together; the simulations carry each party's list-ballot share only, so that is what it is compared with. A set of ward results is ranked by multiplying the chance we give each ward's winner, and set among our own simulations ranked the same way.";
 }
-// each ward's chance, over the map, once analysed
-function wardTip(e) {
-  const i = e.target.getAttribute && e.target.getAttribute("data-i");
-  if (!analysed || i == null) { one.wardtip.hidden = true; return; }
-  const w = ctx.wards[+i], c = state.calls[+i], got = analysed.wards[w];
+// each ward's chance, over the map, once analysed: on hover, and on focus (the
+// arrow keys, or a tap, which focuses the ward; with no party chosen a tap
+// paints nothing)
+const HOVER = matchMedia("(hover: hover)");
+function tipFor(i, x, y) {
+  const w = i == null ? null : ctx.wards[+i], got = analysed && w != null ? analysed.wards[w] : null;
   if (!got) { one.wardtip.hidden = true; return; }
-  one.wardtip.textContent = "Ward " + w + ", " + name(c) + ": we give this outcome a chance of " + got.text + ".";
+  one.wardtip.textContent = "Ward " + w + ", " + name(state.calls[+i]) + ": we give this outcome a chance of " + got.text + ".";
   one.wardtip.hidden = false;
-  one.wardtip.style.left = Math.min(e.clientX + 14, window.innerWidth - 290) + "px";
-  one.wardtip.style.top = (e.clientY + 14) + "px";
+  placeTip(one.wardtip, x, y);
 }
-one.svg.addEventListener("mousemove", wardTip);
+function focusTip(i) {
+  // after the focus has scrolled the ward into view
+  requestAnimationFrame(() => {
+    const r = map.els[i].getBoundingClientRect();
+    tipFor(i, r.left + r.width / 2, r.top + r.height / 2);
+  });
+}
+one.svg.addEventListener("mousemove", e => tipFor(e.target.getAttribute && e.target.getAttribute("data-i"), e.clientX, e.clientY));
 one.svg.addEventListener("mouseleave", () => { one.wardtip.hidden = true; });
+one.svg.addEventListener("focusout", () => { one.wardtip.hidden = true; });
 
 // ---------- the seat Worker ----------
 function onWorker(e) {
@@ -607,7 +660,7 @@ function onWorker(e) {
     engineReady = true;
     window.__seatEngineTimes = m.times;
     console.info("seat engine loaded", m.times);
-    one.status.textContent = "The seats come from the project's own seat code, the code that seats the model's simulations.";
+    one.status.textContent = "";
     lock(false);
     paintBrush();
     afterEdit();

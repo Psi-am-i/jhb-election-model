@@ -23,15 +23,20 @@
 .yf-break{border-top:4px double var(--rule);margin:56px 0 18px;}
 
 /* ---------- section 1: levers left, a sticky column of results right ---------- */
+/* The column holds still while the levers scroll (play.css: sticky). The map
+   and the seat table sit side by side in it (play.css .pl-rgrid), so the whole
+   column fits a laptop's window and the seat table stays in view beside every
+   lever. Stacked, the map above the table, the column measured 1332px at
+   1440x900 against 848px of window, and the table never showed beside the
+   levers (review of lane Y, 2026-10-03). */
 @media (min-width:1100px){
   .yf .yf-layout{grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:44px;}
-  /* the map above the seat table, both the column's full width; the column
-     holds still while the levers scroll, and scrolls itself when it is
-     taller than the window, so it is never pinned part-scrolled */
-  .yf .pl-resultscol{max-height:calc(100dvh - 60px);overflow-y:auto;overscroll-behavior:contain;
-    padding-right:6px;scrollbar-gutter:stable;}
-  .yf .pl-rgrid{display:flex;flex-direction:column;gap:18px;}
 }
+.yf-section .pl-bannerwrap{margin:0 0 4px;border-bottom:0;
+  /* full width without overflow: the background and its rule drawn past the
+     column by border-image outset, which adds no scrollable width */
+  border-image:linear-gradient(to top,var(--rule) 1px,var(--paper) 1px) fill 0 / 0 / 0 100vmax;}
+.yf-section .pl-banner{padding-left:0;padding-right:0;}
 .yf-sharebox{border-top:1px solid var(--rule);padding-top:16px;margin-top:10px;}
 
 /* ---------- the floating "computing" indicator: reserves no space ---------- */
@@ -49,8 +54,9 @@
 .yf-spark{position:absolute;top:-6px;right:-4px;font-size:10px;line-height:1;pointer-events:none;}
 /* one hue for both directions: a move is not good or bad news for a reader */
 .yf-spark{color:var(--reader);}
-.pl-bi.yf-cue{position:relative;}
-.pl-bi .yf-spark{top:-5px;right:-9px;}
+/* the banner item keeps its spark inside its own box: room on its right */
+.pl-bi.yf-cue{position:relative;padding-right:9px;}
+.pl-bi .yf-spark{top:-4px;right:0;}
 @media (prefers-reduced-motion:no-preference){
   .yf-cue{animation:yf-pulse .9s ease-out 1;}
   .yf-cue .pchip,.pl-bi.yf-cue i{animation:yf-grow .9s ease-out 1;}
@@ -109,8 +115,20 @@
 .yf-verdict{font:19px/1.4 var(--serif);color:var(--ink);margin:0 0 6px;max-width:62ch;}
 .yf-expected{font-size:14px;margin:0 0 10px;}
 .yf-atable{overflow-x:auto;}
+.yf-at td:first-child{white-space:nowrap;}
+.yf-at th.num{white-space:normal;}
 .yf-at{border-collapse:collapse;width:100%;font-size:13.5px;}
 .yf-at th,.yf-at td{padding:6px 8px;border-bottom:1px solid var(--rule-soft);text-align:left;vertical-align:baseline;}
 .yf-at th{font-weight:600;color:var(--ink-3);font-size:12.5px;}
 .yf-at .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
 .yf-at td .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;}
+/* a phone: each party is two rows, its seats and then its vote, so nothing
+   scrolls sideways (make.js writes both rows; this hides the wide layout's) */
+.yf-at .yf-narrow{display:none;}
+@media (max-width:599px){
+  .yf-at .yf-wide{display:none;}
+  .yf-at .yf-narrow{display:table-row;}
+  .yf-at tr.yf-narrow td{border-bottom:0;padding-bottom:0;}
+  .yf-at tr.yf-narrow + tr.yf-narrow td{border-bottom:1px solid var(--rule-soft);padding-bottom:6px;padding-top:2px;}
+}
+.ess:empty{display:none;}

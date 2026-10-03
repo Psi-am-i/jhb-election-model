@@ -82,8 +82,9 @@ JS = (
     # section 2: the page, its state, map and share sheet, its seat Worker
     "make.js", "make-state.js", "builder-state.js", "map.js", "make-share.js",
     "make-worker.js", "seat-engine.js",
-    # both: the address, the share image, its text layout, the seat table
-    "yf-url.js", "forecast-card.js", "card-text.js", "seat-table.js",
+    # both: the address, the share image, its text layout, the seat table,
+    # the tooltips' placement
+    "yf-url.js", "forecast-card.js", "card-text.js", "seat-table.js", "tip.js",
 )
 CSS = ("interactive.css", "play.css", "your-forecast.css")
 PYBOOT = ("page.py", "boot.py")
@@ -110,7 +111,7 @@ def assemble(*, site_head: str, nav: str, footer: str, processed: Path) -> str:
              **{f"<!-- __PLAY:{k}__ -->": v for k, v in build_play.fills(Path(processed)).items()},
              **build_make.seat_attrs()}
     for marker, value in fills.items():
-        build_play._once(page, marker, SOURCE.name)
+        build_play.occurs_once(page, marker, SOURCE.name)
         page = page.replace(marker, value)
     left = re.findall(r"<!-- __[A-Z:a-z]+__ -->", page)
     if left:
@@ -124,7 +125,7 @@ def _rewrite(name: str, data: bytes) -> bytes:
     if not line:
         return data
     text = data.decode("utf-8")
-    build_play._once(text, line[0], f"js/{name}, its served-layout line")
+    build_play.occurs_once(text, line[0], f"js/{name}, its served-layout line")
     return text.replace(line[0], line[1]).encode("utf-8")
 
 

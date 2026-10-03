@@ -49,11 +49,13 @@ import scenarios as _scenarios  # noqa: E402  (constants below read it)
 #: on /forecast prints them, and /your-forecast/'s seat-law lever offers them
 #: under the same names (``build_play.laws_json``). The key is the draws' and
 #: ``overhang_regimes``' name for the law.
+#: The notes are plain words with no figure (STYLE rules 6 and 8): the page
+#: puts them into a LIVE region, where the number gate cannot see a digit.
 SEAT_LAWS = (
-    ("deduct", "South African law", "fixed 270 — others squeezed"),
-    ("expand", "Germany 2000 law", "council grows"),
-    ("level", "Germany 2015 law", "council grows &amp; levelled"),
-    ("cap", "Germany 2023 law", "fixed 270 — wins not seated if not proportional"),
+    ("deduct", "South African law", "the council keeps its size; the surplus comes off the other parties"),
+    ("expand", "Germany 2000 law", "the council grows by the surplus"),
+    ("level", "Germany 2015 law", "the council grows until every party's seats match its vote"),
+    ("cap", "Germany 2023 law", "the council keeps its size; surplus ward winners are not seated"),
 )
 
 # ⛔ A COALITION TOKEN'S IDENTITY MAY NOT DEPEND ON A RUN'S SEAT RANKING. The

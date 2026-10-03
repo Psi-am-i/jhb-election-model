@@ -81,8 +81,22 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   await p.locator("#h-break").evaluate(e => e.scrollIntoView({ block: "start" }));
   await p.waitForTimeout(500);
   await p.screenshot({ path: `${OUT}/yf-break-${w}.png` });
-  // a few wards changed, step two highlighted
-  await p.selectOption('[data-live="b-map"] .brushselect', { label: "DA" }).catch(() => {});
+  // a few wards changed, step two highlighted: the brush on the party
+  // alphabetically first that the start calls for no ward, three wards
+  // given to it
+  const spare = await p.evaluate(() => {
+    const opts = [...document.querySelectorAll('[data-live="b-map"] .brushselect option')].filter(o => o.value);
+    const held = new Set([...document.querySelectorAll('[data-live="b-map"] .brushscroll button')].map(b => b.value));
+    return opts.find(o => !held.has(o.value)).value;
+  });
+  await p.selectOption('[data-live="b-map"] .brushselect', spare);
+  // by keyboard (focus, Enter): on a phone the brush tray covers part of the map
+  for (const k of [12, 70, 130]) {
+    await p.locator('[data-live="b-map"] svg .w').nth(k).focus();
+    await p.keyboard.press("Enter");
+  }
+  await p.waitForFunction(() => /changed/.test(document.querySelector('[data-live="b-map"] .nchanged').textContent), null, { timeout: 30000 });
+  await p.locator("#h-break").evaluate(e => e.scrollIntoView({ block: "start" }));
   await p.click('[data-live="b-map"] .yf-next');
   await p.waitForTimeout(500);
   await p.screenshot({ path: `${OUT}/yf-break-${w}-step2.png` });

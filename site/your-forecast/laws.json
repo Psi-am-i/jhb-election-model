@@ -1,18 +1,18 @@
 {
  "deduct": {
   "label": "South African law",
-  "note": "fixed 270 \u2014 others squeezed"
+  "note": "the council keeps its size; the surplus comes off the other parties"
  },
  "expand": {
   "label": "Germany 2000 law",
-  "note": "council grows"
+  "note": "the council grows by the surplus"
  },
  "level": {
   "label": "Germany 2015 law",
-  "note": "council grows & levelled"
+  "note": "the council grows until every party's seats match its vote"
  },
  "cap": {
   "label": "Germany 2023 law",
-  "note": "fixed 270 \u2014 wins not seated if not proportional"
+  "note": "the council keeps its size; surplus ward winners are not seated"
  }
 }

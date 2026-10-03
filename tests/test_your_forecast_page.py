@@ -192,6 +192,10 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     import render_sheet
     laws = json.loads((site / D / "laws.json").read_text(encoding="utf-8"))
     assert [(k, v["label"]) for k, v in laws.items()] == [(k, n) for k, n, _ in render_sheet.SEAT_LAWS]
+    # the notes reach the reader through a LIVE region, where the number gate
+    # cannot see them: no digit, and no em-dash aside (STYLE rules 4 and 8)
+    for k, v in laws.items():
+        assert not re.search(r"\d|\u2014|&", v["note"]), (k, v["note"])
     sheet_text = (ROOT / "forecast-sheet.html").read_text(encoding="utf-8")
     regimes = sheet_text[sheet_text.index("<!-- __REGIMES_START__ -->"):sheet_text.index("<!-- __REGIMES_END__ -->")]
     assert re.findall(r'class="rg-h[^"]*">([^<]+)<br>', regimes) == [n for _k, n, _ in render_sheet.SEAT_LAWS]

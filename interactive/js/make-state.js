@@ -133,12 +133,13 @@ export function serialize({ state, coalition }, ctx, ref, start) {
   return "?" + q.toString();
 }
 
-// The forecast a query string carries, or the start and a note saying why not.
-export function parse(search, ctx, ref, start) {
+// The forecast a query string carries, or the start and a note saying why
+// not; `instead` is the caller's sentence for what opens in its place.
+export function parse(search, ctx, ref, start, instead = "") {
   const q = new URLSearchParams(search);
   const fresh = { state: start, coalition: [], note: null };
   if (!q.has("f") && !q.has("v")) return fresh;
-  const refuse = why => ({ ...fresh, note: "The forecast in this link could not be opened: " + why + ". Section 2 opens from your adjusted forecast instead." });
+  const refuse = why => ({ ...fresh, note: ("The forecast in this link could not be opened: " + why + ". " + instead).trim() });
   if (q.get("v") !== FORMAT) return refuse("it was made by another version of this page");
   if (q.get("c") !== ref) return refuse("it was made against another version of the model's roster, wards or vote total");
   let got;

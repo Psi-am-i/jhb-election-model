@@ -22035,7 +22035,7 @@
   "w_bye-1": "432f2781d74c2156dfb2b6956e1a464eac613b495c38d6086604210ee0c724d6"
  },
  "numpy": "2.5.1",
- "page_ref": "58ec840298d069357f93e6361dd9b8ae574f53b78e15415bd36e9ed123920931",
+ "page_ref": "c7918307c4958d0f31558510601e6e9e94783abfbea7dd7cc0e45f48dd6bb483",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22789,6 +22789,18 @@
     "wards_count": 135
    },
    "handoff": {
+    "middle": {
+     "ALJAMAAH": 2,
+     "ANC": 66,
+     "ASA": 27,
+     "DA": 66,
+     "EFF": 25,
+     "IFP": 2,
+     "MK": 22,
+     "OTHERS": 23,
+     "PA": 23,
+     "RISE": 2
+    },
     "seats": {
      "ACDP": 2,
      "AHC": 2,
@@ -23720,6 +23732,18 @@
     "wards_count": 135
    },
    "handoff": {
+    "middle": {
+     "ALJAMAAH": 2,
+     "ANC": 68,
+     "ASA": 26,
+     "DA": 62,
+     "EFF": 26,
+     "IFP": 2,
+     "MK": 22,
+     "OTHERS": 23,
+     "PA": 22,
+     "RISE": 2
+    },
     "seats": {
      "ACDP": 2,
      "AFRICAN_UNEMPLOYED_CONGRESS": 1,
@@ -24659,6 +24683,18 @@
     "wards_count": 135
    },
    "handoff": {
+    "middle": {
+     "ALJAMAAH": 3,
+     "ANC": 68,
+     "ASA": 25,
+     "DA": 65,
+     "EFF": 26,
+     "IFP": 2,
+     "MK": 24,
+     "OTHERS": 22,
+     "PA": 22,
+     "RISE": 3
+    },
     "seats": {
      "ACDP": 2,
      "AHC": 2,
@@ -25604,6 +25640,18 @@
     "wards_count": 135
    },
    "handoff": {
+    "middle": {
+     "ALJAMAAH": 2,
+     "ANC": 63,
+     "ASA": 25,
+     "DA": 70,
+     "EFF": 24,
+     "IFP": 2,
+     "MK": 23,
+     "OTHERS": 23,
+     "PA": 23,
+     "RISE": 2
+    },
     "seats": {
      "ACDP": 2,
      "AFRIKA_MAYIBUYE_MOVEMENT": 1,

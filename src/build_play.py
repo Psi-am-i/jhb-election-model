@@ -120,7 +120,9 @@ class PlayBuildError(SystemExit):
     """The page cannot be assembled; the message says what to do."""
 
 
-def _once(text: str, needle: str, what: str) -> int:
+def occurs_once(text: str, needle: str, what: str) -> int:
+    """Where ``needle`` is in ``text``; refused unless it occurs exactly once.
+    Shared with ``build_your_forecast`` (one definition)."""
     n = text.count(needle)
     if n != 1:
         raise PlayBuildError(f"build_play: {what}: {needle!r} occurs {n} times, not once")
@@ -160,7 +162,7 @@ def seat_rows(sheet: str) -> list[dict]:
     ``p95``) and their pinned values (``m``, ``lo``, ``hi``). Refuses a sheet
     whose ``__SEATS__`` region it cannot read, rather than show fewer rows.
     """
-    lo = _once(sheet, "<!-- __SEATS_START__ -->", "the forecast sheet's seats region")
+    lo = occurs_once(sheet, "<!-- __SEATS_START__ -->", "the forecast sheet's seats region")
     hi = sheet.index("<!-- __SEATS_END__ -->", lo)
     region = sheet[lo:hi]
     rows = [{"code": m.group(1), "name": m.group(2),

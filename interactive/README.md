@@ -73,7 +73,7 @@ the site root:
 | path | what |
 |---|---|
 | `your-forecast/index.html` | `your-forecast.html` with the site's head (`build_site.SITE_HEAD`: `css/site.css` and the site's scripts), nav and footer; section 1's build twins filled at its `__PLAY:<name>__` markers (`build_play.FILL`: the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map, turnout by group, where each party's votes come from, the notes' figures), all as `{{tokens}}`; section 2's seat-table attributes at its `__MAKE:<name>__` markers. First paint is ledgered tokens, no script |
-| `your-forecast/js/` | section 1: `model.js` (LIVE writer), `play-state.js`, `play-card.js` and `play-share.js` (writers), `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `pubtip.js`; section 2: `make.js` and `make-share.js` (writers), `make-state.js`, `builder-state.js`, `map.js`, `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js` and `http.js` (from `worker-api/src`, Worker only); both: `yf-url.js` (the one address), `forecast-card.js` (the share image, a writer of no region), `card-text.js`, `seat-table.js` |
+| `your-forecast/js/` | section 1: `model.js` (LIVE writer), `play-state.js`, `play-card.js` and `play-share.js` (writers), `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `pubtip.js`; section 2: `make.js` and `make-share.js` (writers), `make-state.js`, `builder-state.js`, `map.js`, `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js` and `http.js` (from `worker-api/src`, Worker only); both: `yf-url.js` (the one address), `forecast-card.js` (the share image, a writer of no region), `card-text.js`, `seat-table.js`, `tip.js` (where each tooltip goes) |
 | `your-forecast/css/` | `interactive.css`, `play.css` (section 1's rules, every class `pl-`), `your-forecast.css` (the layout and what both sections share, every class `yf-`) |
 | `your-forecast/pyboot/` | `page.py` (section 1's engine, and section 2's hand-off and analysis), `boot.py` (the seat code's) |
 | `your-forecast/py/` | the served Python, copied by `tools/sync_py.mjs` |
@@ -95,15 +95,20 @@ one poll and how far to believe it, and the weight of by-elections, and
 seated under a law the reader picks: "See how other systems would seat this
 vote", with South African law and Germany's of 2000, 2015 and 2023 under the
 names `/forecast` gives them. Levers on the left; on a wide screen the map
-above the seat table in a column that holds still while the levers scroll.
+and the seat table side by side in a column that holds still while the levers
+scroll, so the seat table is in view beside every lever (stacked, the column
+was taller than a laptop's window). The banner of seats sticks while section
+1 is in view and leaves with it.
 Each results element has a build twin of tokens and a LIVE sibling:
 `model.js` sets `data-touched` on the `result` region when a control is away
 from the published setting, and `css/play.css` swaps them. The status strip
 reads "Your changes: …". A computation in flight shows a floating
 "Computing…" (`busy`), which reserves no space. A seat row or banner entry
 whose middle moved since the figures last shown pulses once, with a ▲ or ▼;
-on a narrow screen with the seat table out of view, a toast (`toast`) names
-the parties that moved, each with its logo where the site has one. Under
+on a narrow screen with the seat table out of view, a toast (`toast`,
+headed "Since your last change") names the parties that moved, each with its
+logo where the site has one. The banner's own arrows are against the
+published forecast. Under
 `prefers-reduced-motion` nothing moves. The share button ends the section;
 only a council seated under South African law can be shared
 (`play-state.shareable`): under another law the button is disabled and says
@@ -129,7 +134,10 @@ weighted draws: each ward's most likely winner under the reader's changes
 of the statutory seats. While section 2 is unedited it follows section 1;
 once edited, a change in section 1 overwrites nothing, and the status line
 offers to start again from it (undo restores the edits). A link's forecast
-is kept as the reader's.
+is kept as the reader's. While the forecast is still its start, a line under
+"Your council" names every named party the ward floor raised above its
+middle seat count (`handoff` returns the middles; the published start's are
+`forecast.json`'s `published_middle`), and the share image says the same.
 
 **The walkthrough.** Four numbered steps: call the wards, set the vote, pick
 who governs, share or analyse. One is highlighted at a time; "Next" marks a
@@ -141,10 +149,13 @@ published forecast's. Hovering a ward gives the chance of the reader's call
 there; each party's seats get the chance of landing within
 `reweight.ANALYSIS_SEAT_BAND` seats; its vote the chance its LIST-BALLOT share
 lands within `ANALYSIS_SHARE_BAND_POINTS` points (the draws carry no combined
-share, and the page says so); and the whole forecast a percentile: "We give
-ward results as unlikely as yours, or less likely, a chance of N. But
-historical trends can always be broken.", with the expected number of the
-reader's ward calls that come true. Once shown, it follows every edit.
+share, and the page says so); and the whole forecast the expected number of
+the reader's ward calls that come true ("We expect N of your M ward calls to
+come true. But historical trends can always be broken."), with beneath it the
+rank of the reader's calls among the simulations' ward results, worded as a
+rank and never as a chance (JUDGEMENT-CALLS §N3). A ward's chance shows on
+hover, on keyboard focus and on a tap with no party chosen. Once shown, the
+analysis follows every edit.
 
 ### The address is the forecast
 
@@ -166,7 +177,7 @@ Worker's redirect with their query strings and read back unchanged
 words and rows from `js/play-card.js` (a headline saying whose figures these
 are, the largest-party line, the reader's map, each party's middle seat count,
 at 1200×630 or 1080×1920); section 2's from `js/make-share.js` ("[Name]'s
-Election Forecast", the reader's map, each party's seats, the coalition).
+election forecast", the reader's map, each party's seats, the coalition).
 Both on the site's photograph of Hillbrow Tower (`share.jpg`). No account, no
 cookie, no storage, nothing sent: a shared link shows the page's generic
 preview (`og:` tags with no figure, the site's `share.jpg`).

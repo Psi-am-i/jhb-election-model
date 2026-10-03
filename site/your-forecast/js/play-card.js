@@ -25,11 +25,11 @@
 // What the card says (DESIGN §2, "Share card", amended after the critic's
 // G1-G3, 2026-10-02): a headline that says whose figures these are (the
 // model's published forecast, or a reader's settings on the model, never
-// "{name}'s Election Forecast": a name is anyone's text, and the site would
+// "{name}'s election forecast": a name is anyone's text, and the site would
 // print it over its own forecast); the largest-party line, ties apart;
 // a line saying the map holds the ward seats only; and each party's middle
 // seat count, as a bar (no range: review 2026-10-02). "Not the model's
-// forecast" sits in the foot, in the small type, as on /make/'s card.
+// forecast" sits in the foot, in the small type, as on section 2's card.
 
 import { buildForecastCardSVG, SIZES, SITE, STORY_TEXT_BOTTOM, OTHERS_COLOUR } from "./forecast-card.js";
 import { TRUST, PUBLISHED_CELL, PUBLISHED_LAW } from "./play-state.js";
@@ -118,7 +118,7 @@ export function largestTop(r, party) {
     .sort((a, b) => party(a).name.toLowerCase().localeCompare(party(b).name.toLowerCase()));
 }
 // The largest-party line, in the shares' own text (page.py, reweight.chance_text),
-// in the site's one wording for it (/play/'s line and its published twin):
+// in the site's one wording for it (section 1's line and its published twin):
 // "Most seats alone: 47% chance it's the ANC, …" (STYLE rule 10: a chance,
 // never "of simulations"). `cap` starts a name with a capital, as a sentence.
 export const theName = (c, party, cap = false) => {
@@ -150,7 +150,7 @@ export function footText({ st, ctx, made }) {
 const isMoved = st => st.shift.some(x => x !== 0) || (st.trust > 0 && st.polls.length > 0) || st.law !== PUBLISHED_LAW || st.cell !== PUBLISHED_CELL;
 
 // The card for one result, drawn by forecast-card.js (the one card module,
-// shared with /make/). `r` is the compute result the page shows (the
+// shared with /your-forecast/ section 2). `r` is the compute result the page shows (the
 // published one when nothing is moved); `st`/`ctx` the settings that produced
 // it; `party(code)` -> {name, colour}; `made` the date it was made; `name` the
 // reader's name or label; `geometry` the ward boundaries with the stripe tile

@@ -356,7 +356,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `build_your_forecast.RETIRED` | tuple[2] | NO | NO | NO | -- |
 | `build_your_forecast.OG_TITLE` | str | NO | NO | NO | `build_site` |
 | `build_your_forecast.OG_DESCRIPTION` | str | NO | NO | NO | `build_site` |
-| `build_your_forecast.JS` | tuple[18] | NO | NO | NO | -- |
+| `build_your_forecast.JS` | tuple[19] | NO | NO | NO | -- |
 | `build_your_forecast.CSS` | tuple[3] | NO | NO | NO | -- |
 | `build_your_forecast.PYBOOT` | tuple[2] | NO | NO | NO | -- |
 | `cityconfig.CITIES_DIR` | Path('cities') | NO | NO | NO | `pools` |

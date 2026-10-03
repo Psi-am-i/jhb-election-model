@@ -3060,8 +3060,11 @@ each counted once, seated by the statute. Four figures:
   land within `ANALYSIS_SEAT_BAND` of the reader's figure, either side, edges
   included. Two seats, typed: wide enough that a reader's round number near
   the model's middle scores as near it (the middle's own Monte Carlo error is
-  under one seat, §N2), narrow enough that a figure outside the model's 90%
-  range scores low. Not derived from anything.
+  under one seat, §N2). For a party whose 90% range is several times wider
+  than the band, a figure outside that range scores low. For a party whose
+  90% range is about as wide as the band or narrower (a party with a few
+  seats), any figure near its middle scores high, so the figure separates
+  little there. Not derived from anything.
 * **A party's vote.** The share of simulations in which the party's
   LIST-BALLOT share lands within `ANALYSIS_SHARE_BAND_POINTS` of the reader's
   combined share. The draws carry no combined share (`export_draws` refuses
@@ -3070,15 +3073,18 @@ each counted once, seated by the statute. Four figures:
   A party whose ward ballot runs ahead of its list ballot is scored against
   the lower of the two. Two points, typed, on the same reasoning as the seat
   band.
-* **The whole forecast.** "We give ward results as unlikely as yours, or less
-  likely, a chance of N." Method: each set of ward results is scored by the
-  sum over wards of the log of the chance the model gives its winner there.
-  The reader's calls are scored so, and so is every simulation's own set of
-  ward winners; N is the share of simulations scoring at or below the
-  reader's. It is a PERCENTILE, not the chance of the reader's exact set,
-  which is vanishingly small for any set (the model's own modal calls
-  included). Beside it the page prints the expected number of the reader's
-  ward calls that come true, the sum of the ward chances.
+* **The whole forecast.** The headline is the expected number of the
+  reader's ward calls that come true, the sum of the ward chances: "We expect
+  N of your M ward calls to come true. But historical trends can always be
+  broken." Beneath it, a rank: "Ranked by the chance we give each ward's
+  winner, your ward calls as a set come level with or above the ward results
+  of R of our simulations." Method of the rank: each set of ward results is
+  scored by the sum over wards of the log of the chance the model gives its
+  winner there. The reader's calls are scored so, and so is every
+  simulation's own set of ward winners; R is the share of simulations scoring
+  at or below the reader's. R is a PERCENTILE, not a chance: the chance of the
+  reader's exact set is vanishingly small for any set, the model's own modal
+  calls included, and the modal calls rank above every simulation.
 
 **What the method assumes.** The score treats wards as independent. They are
 not: the simulations share citywide swings, so a reader who moves many wards
@@ -3086,6 +3092,23 @@ the same way is penalised as if each move were separate. Scoring every
 simulation by the same rule puts the reader's set and the model's on one
 footing, so the percentile ranks fairly; it is not a joint probability. Seats
 and votes are not in the whole-forecast figure: they are shown party by party.
+
+**Rejected wordings.**
+
+| Wording | Why it was not used |
+|---|---|
+| "We give this outcome N% chance" (the owner's sweep, item 6) | No probability of the reader's whole set exists that is not vanishingly small. The only figure of that shape is the rank R. |
+| "We give ward results as unlikely as yours, or less likely, a chance of R" (lane Y, first build) | R reads as the chance the forecast comes true. The untouched start printed "over 99%" (review of lane Y, 2026-10-03, must-fix 2; STYLE rule 10). |
+
+**Waiting on the owner.**
+
+* The headline: the expected number of ward calls that come true, with the
+  rank beneath it, replaces the plan's "We give this outcome N% chance".
+* The bands for small parties: a fixed band of two seats and two points
+  scores near-certain for a party with a few seats (ACDP 91%, Al Jama-ah
+  over 99% at any plausible figure; review of lane Y, item 11). Options: a
+  band scaled to each party's 90% range, or no seat and vote chance for
+  parties below a seat threshold. Kept as typed until decided.
 
 **Alternatives, not taken.** A joint figure across wards, seats and votes
 (a distance in all three at once) would need a weighting of the three, which

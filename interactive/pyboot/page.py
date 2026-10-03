@@ -424,7 +424,10 @@ def handoff(request_json: str) -> str:
     Request: ``{"settings": <compute's settings>, "total": <the seat law's
     total combined vote, the schema's x-total-votes>}``. Returns
     ``{"ward_calls": {ward: party}, "share": {party: percent}, "seats":
-    {party: n}}`` or ``{"refused": reason}``.
+    {party: n}, "middle": {row: n}}`` or ``{"refused": reason}``. ``middle``
+    is ``start_rule.start_seats``' ``published``: each named row's middle seat
+    count under the weights, from which the page names every party the ward
+    floor raised above it.
 
     * Ward calls: each ward's most likely winner under the reader's weights,
       exactly the ``winner`` :func:`compute` returns for the same settings
@@ -452,8 +455,8 @@ def handoff(request_json: str) -> str:
                                   list(calls.values()), w)
     roster = list(cell["manifest"]["parties"])
     share = start_rule.start_shares(plan["seats"], roster, int(req["total"]))
-    return json.dumps(_plain({"ward_calls": calls, "share": share, "seats": plan["seats"]}),
-                      allow_nan=False)
+    return json.dumps(_plain({"ward_calls": calls, "share": share, "seats": plan["seats"],
+                              "middle": plan["published"]}), allow_nan=False)
 
 
 def analyse(request_json: str) -> str:
@@ -466,7 +469,9 @@ def analyse(request_json: str) -> str:
     once, statutory seats. Returns
 
     * ``wards``: ``{ward: chance}`` the model gives the reader's winner there;
-    * ``expected`` and ``percentile``: ``reweight.ward_calls_likelihood``;
+    * ``expected`` and ``percentile``: ``reweight.ward_calls_likelihood``.
+      The page leads with ``expected``; ``percentile`` is a rank among the
+      simulations' ward results, and the page never words it as a chance;
     * ``seats``: ``{party: chance}`` that the party's seats land within
       ``reweight.ANALYSIS_SEAT_BAND`` of the reader's figure;
     * ``share``: ``{party: chance}`` that its LIST-BALLOT share lands within

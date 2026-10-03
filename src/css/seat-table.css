@@ -28,7 +28,7 @@
 .st-range .arrow{display:none;}
 .st-ticks{display:block;width:100%;height:14px;overflow:visible;
   font:10.5px var(--mono);fill:var(--ink-3);}
-/* Narrow tables (a phone, or /play/'s results column): the columns tighten
+/* Narrow tables (a phone, or section 1's results column): the columns tighten
    and the axis keeps every other tick, so the labels never overprint. A
    container query, so the table answers to its own width, not the window's. */
 .st{container-type:inline-size;}

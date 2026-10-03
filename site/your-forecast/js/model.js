@@ -24,7 +24,7 @@
 //   * it writes with textContent, createElement(NS) and append; never markup;
 //   * it does not walk out of a region (no parent, sibling or document-level
 //     handles), and writes nothing through an event's target.
-// Its imports: play-state.js and yf-url.js are scanned as NON-writers;
+// Its imports: play-state.js, yf-url.js, seat-table.js and tip.js are scanned as NON-writers;
 // play-card.js (the party order, seat format and setting names it shares with
 // the share image) and play-share.js (region "share") are writers in their
 // own right.
@@ -52,6 +52,7 @@ import * as YU from "./yf-url.js";
 import { order, seatText, rangeText, cellName, pollName, settingsWords, largestTop, theName } from "./play-card.js";
 import { setShareable } from "./play-share.js";
 import { seatTable } from "./seat-table.js";
+import { placeTip } from "./tip.js";
 
 const DEBOUNCE_MS = 200;
 const SVG = "http://www.w3.org/2000/svg";
@@ -549,8 +550,7 @@ function showTip(e) {
   if (!w || !tips[w]) { R.wardtip.hidden = true; return; }
   R.wardtip.textContent = tips[w];
   R.wardtip.hidden = false;
-  R.wardtip.style.left = Math.min(e.clientX + 14, window.innerWidth - 290) + "px";
-  R.wardtip.style.top = (e.clientY + 14) + "px";
+  placeTip(R.wardtip, e.clientX, e.clientY);
 }
 R.map.addEventListener("mousemove", showTip);
 R.map.addEventListener("click", showTip);
@@ -632,7 +632,7 @@ function showToast(moves) {
       party(c).logo ? el("img", { className: "yf-tlogo", src: new URL("../../logos/" + c + ".png", import.meta.url).href, alt: "" })
         : el("i", { className: "pc-" + c }),
       party(c).name + " ", el("span", { className: "arrow reader" }, arrowText(d))));
-  R.toast.replaceChildren(el("span", { className: "yf-thead" }, "Seats moved"), ...items);
+  R.toast.replaceChildren(el("span", { className: "yf-thead" }, "Since your last change"), ...items);
   R.toast.hidden = false;
   toastTimer = setTimeout(() => { R.toast.hidden = true; }, 3500);
 }
