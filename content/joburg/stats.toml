@@ -438,7 +438,7 @@ why = "the 8 August headline; the standfirst under it carries the figure as a to
 # party's range as tokens.
 [[audit.allow]]
 phrase = "the da can finish first without ever nearing a majority"
-page = "nobody-will-win.html"
+page = "nobody-catches-the-votes.html"
 why = "a statement about the mechanism; the ranges are tokens"
 
 # ADDED 2026-10-02. Claim 4's verdict label (claims.toml), set by a human as
@@ -446,7 +446,7 @@ why = "a statement about the mechanism; the ranges are tokens"
 # if that token falls below 50% the verdict must be changed with a correction.
 [[audit.allow]]
 phrase = "more likely than not we won't go into a coalition"
-page = "forecast.html"
+page = "claims.html"
 why = "a quoted claim's verdict label, resting on a token in the claim's heading"
 
 # ---------------------------------------------------------------------------
@@ -647,7 +647,7 @@ context = "the DA won three of Laingsburg's four wards on just 23% of the vote, 
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg 2021"
 reviewed = "2026-09-17"
-page = "nobody-will-win.html"
+page = "laingsburg-2021.html"
 
 [[audit.fixed]]
 value = "52,000"
@@ -655,7 +655,7 @@ context = "them: the DA's bloc actually lost 52,000 votes of its own over the sa
 kind = "history"
 source = "MODEL-LOG §1.18 — DA-bloc vote change, 2019 NPE to 2021 LGE (−51,587, rounded), as published on 8 August"
 reviewed = "2026-09-17"
-page = "nobody-will-win.html"
+page = "nobody-catches-the-votes.html"
 
 [[audit.fixed]]
 value = "1"
@@ -671,7 +671,7 @@ context = "uncil seats · majority · Schedule 1 item 16 applied Johannesburg ·
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
-page = "forecast.html, nobody-will-win.html"
+page = "forecast.html"
 
 [[audit.fixed]]
 value = "16"
@@ -679,7 +679,7 @@ context = "eats · majority · Schedule 1 item 16 applied Johannesburg · 2026 L
 kind = "rule"
 source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
 reviewed = "2026-09-17"
-page = "forecast.html, nobody-will-win.html"
+page = "forecast.html"
 
 [[audit.fixed]]
 value = "3"
@@ -807,7 +807,7 @@ context = "23% of the vote, a share entitling it to only two seats"
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg 2021"
 reviewed = "2026-09-17"
-page = "nobody-will-win.html"
+page = "laingsburg-2021.html"
 
 [[audit.fixed]]
 value = "three"
@@ -815,7 +815,7 @@ context = "the DA kept all three wards"
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg 2021"
 reviewed = "2026-09-17"
-page = "nobody-will-win.html"
+page = "laingsburg-2021.html"
 
 [[audit.fixed]]
 value = "four"
@@ -823,7 +823,7 @@ context = "for everyone else over the four seats that remained"
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg 2021"
 reviewed = "2026-09-17"
-page = "nobody-will-win.html"
+page = "laingsburg-2021.html"
 
 [[audit.fixed]]
 value = "1"
@@ -1015,7 +1015,7 @@ context = "Laingsburg's four wards on just 23% of the vote"
 kind = "history"
 source = "IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's share, 23.06% (MODEL-LOG §1.17)"
 reviewed = "2026-10-03"
-page = "nobody-will-win.html"
+page = "laingsburg-2021.html"
 
 [[audit.fixed]]
 value = "18%"
@@ -1023,7 +1023,7 @@ context = "ActionSA arriving from nowhere to take 18%"
 kind = "history"
 source = "IEC LGE 2021, City of Johannesburg: ActionSA 18.12% of the PR ballot (SOURCES.md, 'ASA citywide PR share'; MODEL-LOG §1.18)"
 reviewed = "2026-10-03"
-page = "nobody-will-win.html"
+page = "nobody-catches-the-votes.html"
 
 [[audit.fixed]]
 value = "3"
@@ -1134,4 +1134,4 @@ context = "Who governs Johannesburg after 4 November 2026?"
 kind = "rule"
 source = "Proclaimed by the Minister of Cooperative Governance and Traditional Affairs, announced 7 August 2026 (as the kicker's entry above)"
 reviewed = "2026-10-03"
-page = "index.html, forecast.html, nobody-will-win.html, methodology.html, about.html, review.html, sources.html, corrections.html"
+page = "index.html, methodology.html, review.html, sources.html, corrections.html"

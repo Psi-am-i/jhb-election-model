@@ -418,14 +418,26 @@ def article_meta(city: str | None = None) -> dict[str, dict]:
             for a in render_home.load_articles(REPO_ROOT / "content" / city)}
 
 
+def plain_tokens(text: str, registry: dict, ctx: dict) -> str:
+    """`text` with every {{token}} replaced by the figure alone, for a place
+    provenance markup cannot go: an article's share card is a `content="…"`
+    attribute. An unknown token is refused."""
+    out, _drift, unresolved = statlib.render(text, registry, ctx, wrap=False)
+    if unresolved:
+        raise SystemExit(f"unresolved tokens in a share card: {unresolved}")
+    return out
+
+
 def artefact_head(output: str, spec: tuple, html: str,
-                  articles: dict[str, dict]) -> tuple[str, str]:
+                  articles: dict[str, dict], plain=None) -> tuple[str, str]:
     """An artefact page's <title> and share card (`og_meta`). The home page
     keeps the site-wide card at the site's root; every other page gets its own
     title, description, og:url and canonical, so a shared article shows its
     own card and a search engine does not fold it into the home page. An
     article's come from articles.toml; an ARTEFACTS entry that also types
-    them is refused (two definitions of one title)."""
+    them is refused (two definitions of one title). `plain` renders the
+    tokens in an article's standfirst as bare figures (`plain_tokens`); a
+    standfirst with a token and no `plain` is refused."""
     from html import escape
     _src, _cut, title, _active, og = spec
     art = articles.get(output)
@@ -435,6 +447,11 @@ def artefact_head(output: str, spec: tuple, html: str,
                              f"{output}, an article: both come from its "
                              f"articles.toml entry")
         title, og = art["title"], " ".join(art["standfirst"].split())
+        if "{{" in og:
+            if plain is None:
+                raise SystemExit(f"{output}: its standfirst has tokens and no "
+                                 "renderer was given for its share card")
+            og = plain(og)
     if title is None:
         m = re.search(r"<title>(.*?)</title>", html, re.S)
         if not m:
@@ -1030,7 +1047,9 @@ def main(argv: list[str] | None = None) -> int:
         source, cut, _title, active, _og = spec
         href = active or ("./" if output == "index.html" else output.removesuffix(".html"))
         html = cut_spans(Path(source).read_text(encoding="utf-8"), cut)
-        title, og_meta = artefact_head(output, spec, html, articles)
+        title, og_meta = artefact_head(
+            output, spec, html, articles,
+            plain=lambda t: plain_tokens(t, registry, ctx))
         html = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{title}</title>",
                       html, count=1, flags=re.S)
         html = fill_commentary(html)

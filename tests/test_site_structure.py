@@ -215,8 +215,15 @@ def _heads() -> dict[str, tuple[str, str]]:
     """Each cut page's <title> and share-card meta, as the build sets them."""
     articles = B.article_meta("joburg")
     pages = _sheet_pages()
-    return {out: B.artefact_head(out, B.ARTEFACTS[out], html, articles)
+    return {out: B.artefact_head(out, B.ARTEFACTS[out], html, articles, plain=_plain)
             for out, html in pages.items()}
+
+
+def _plain(text: str) -> str:
+    """The build's share-card renderer over the registry. Every token a
+    standfirst may hold is fixed, so no simulation output is needed."""
+    import stats as S
+    return B.plain_tokens(text, S.load_registry(ROOT / "content/joburg/stats.toml"), {})
 
 
 def _card(og_meta: str, prop: str) -> str:
@@ -234,7 +241,8 @@ def test_each_article_page_is_titled_and_carded_from_its_list_entry():
         title, og = heads[out]
         assert unescape(title) == a["title"], (out, title)
         assert _card(og, "title") == a["title"], out
-        assert _card(og, "description") == " ".join(a["standfirst"].split()), out
+        assert _card(og, "description") == " ".join(_plain(a["standfirst"]).split()), out
+        assert "{{" not in _card(og, "description") and "<span" not in og, out
     urls = {out: _card(og, "url") for out, (_t, og) in heads.items()}
     assert len(set(urls.values())) == len(urls), urls
     for out, (_t, og) in heads.items():
@@ -269,7 +277,7 @@ def test_the_head_refuses_a_second_title_or_a_missing_card():
         raise AssertionError("a page with no card of its own was given the home page's")
     # quiet on the specs as they stand
     for out, html in pages.items():
-        B.artefact_head(out, B.ARTEFACTS[out], html, articles)
+        B.artefact_head(out, B.ARTEFACTS[out], html, articles, plain=_plain)
 
 
 def test_fill_commentary_refuses_two_markers_and_leaves_other_pages_alone():
