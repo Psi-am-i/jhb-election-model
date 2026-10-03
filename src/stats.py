@@ -321,6 +321,8 @@ def _fmt(value, spec: str | None):
         return f"{float(value) * 100:.0f}%"
     if spec == "pct1":
         return f"{float(value) * 100:.1f}%"
+    if spec == "pct2":                # an official result to the hundredth: 18.12%
+        return f"{float(value) * 100:.2f}%"
     if spec == "pct0_plain":          # 62 (no % sign, for "X of every")
         return f"{float(value) * 100:.0f}"
     if spec == "chance":              # a share of simulations, never "100%" or "0%"

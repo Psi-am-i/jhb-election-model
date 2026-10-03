@@ -274,9 +274,9 @@ def forecast_data(draws: Path | None = None) -> dict:
 
 def seat_attrs() -> dict[str, str]:
     """The reader's council table's axis, ticks and header words, set on its
-    region for js/make.js. A single council has no range, so its range
-    column carries no heading."""
+    region for js/make.js (``seat_table.HEAD_COUNCIL``: a single council has
+    no range, so its range column carries no heading)."""
     import seat_table
     return {"<!-- __MAKE:seatscale__ -->": str(seat_table.SEAT_SCALE),
             "<!-- __MAKE:seatticks__ -->": " ".join(str(x) for x in seat_table.SEAT_TICKS),
-            "<!-- __MAKE:seathead__ -->": seat_table.HEAD[0] + "|"}
+            "<!-- __MAKE:seathead__ -->": "|".join(seat_table.HEAD_COUNCIL)}

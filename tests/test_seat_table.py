@@ -10,6 +10,8 @@ serialises elements the way the Python renderer writes them.
 """
 from __future__ import annotations
 
+import re
+
 import json
 import shutil
 import subprocess
@@ -37,7 +39,7 @@ ROWS = [
     {"code": "OTHERS", "name": "Others", "sub": "(14 parties)", "seats": "23", "lo": None, "hi": None,
      "m": 23.5, "p5": None, "p95": None, "ghost": None, "arrow": None, "title": None},
 ]
-OPTS = {"scale": 125, "ticks": [0, 25, 50, 75, 100, 125], "head": ["seats", "range"], "label": "Seats"}
+OPTS = {"scale": 125, "ticks": [0, 25, 50, 75, 100, 125], "head": ["party", "middle and range", "seats", "range"], "label": "Seats"}
 
 #: A DOM just large enough for seat-table.js, serialising as src/seat_table.py
 #: writes: attributes in the order set, `html.escape` rules, no void elements.
@@ -95,7 +97,11 @@ def test_every_row_has_every_column_and_the_arrow_sits_in_the_seat_cell():
     html = _py(ROWS, OPTS)
     assert html.count('<div class="st-row" data-code=') == len(ROWS)
     for col in ("st-name", "st-graphic", "st-seats", "st-range"):
-        assert html.count(f'<div class="{col}"') == len(ROWS) + (1 if col in ("st-seats", "st-range") else 0), col
+        # every party row, and the header row (owner's list, 2026-10-03,
+        # item 4: a word over every column)
+        assert html.count(f'<div class="{col}"') == len(ROWS) + 1, col
+    head = re.search(r'<div class="st-row st-head">(.*?)</div></div>', html).group(1)
+    assert re.findall(r'<div class="st-[a-z]+">([^<]+)', head + "</div>") == list(OPTS["head"])
     assert '<b>66<span class="arrow reader">▲2</span></b>' in html
     assert '<div class="st-range">45–90</div>' in html
     assert '<div class="st-range">withheld</div>' in html

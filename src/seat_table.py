@@ -14,7 +14,7 @@ The columns, in order: the party's chip and name; the range graphic (the band
 from the low to the high end of the range and a mark at the middle, on one seat
 axis); the middle seat count, in bold, with a fixed-width slot after it for an
 arrow so an arrow never moves a number; the range as text. A header row names
-the two figure columns and a scale row gives the axis.
+every column and a scale row gives the axis.
 
 A row is a dict with the same keys in both renderers:
 
@@ -51,8 +51,12 @@ from html import escape
 SEAT_SCALE = 125
 #: The scale row's ticks.
 SEAT_TICKS = (0, 25, 50, 75, 100, 125)
-#: The header row's words for the two figure columns.
-HEAD = ("seats", "range")
+#: The header row's words, one per column (owner's list, 2026-10-03, item 4):
+#: the party, the range graphic, the middle seat count, the range as text.
+HEAD = ("party", "middle and range", "seats", "range")
+#: A single council's (/your-forecast/ section 2): its bar is the party's
+#: seats, and it has no range.
+HEAD_COUNCIL = ("party", "seats", "seats", "")
 
 
 def _pct(v: float, scale: float) -> str:
@@ -103,11 +107,13 @@ def row_html(row: dict, scale: float | None = None) -> str:
 
 
 def head_html(head=None) -> str:
-    """The header row: the words over the two figure columns."""
+    """The header row: a word over each column."""
     head = HEAD if head is None else head
-    return ('<div class="st-row st-head"><div></div><div></div>'
-            f'<div class="st-seats">{escape(head[0])}</div>'
-            f'<div class="st-range">{escape(head[1])}</div></div>')
+    return ('<div class="st-row st-head">'
+            f'<div class="st-name">{escape(head[0])}</div>'
+            f'<div class="st-graphic">{escape(head[1])}</div>'
+            f'<div class="st-seats">{escape(head[2])}</div>'
+            f'<div class="st-range">{escape(head[3])}</div></div>')
 
 
 def scale_html(scale: float | None = None, ticks=None) -> str:

@@ -22,7 +22,7 @@ seats" clause (Schedule 1, item 16, completed by a 2021 amendment) settles the
 overflow: the party receives **no list seats**, and the other parties' list
 seats are recalculated over the seats that remain. The council does not grow.
 The Electoral Commission's own published calculation applies exactly this in
-Laingsburg in 2021, where the DA won 3 of 4 wards on 23% of the vote. The
+Laingsburg in 2021, where the DA won {{hist_laingsburg_da_wards}} of {{hist_laingsburg_wards}} wards on {{hist_laingsburg_da_share}} of the vote. The
 over-winner stays slightly over-represented; the cost falls on everyone else.
 
 Two consequences shape this site. The council is always close to proportional,
@@ -75,8 +75,8 @@ stands on) and labelled for what was measured.
 **How big is each pool?** Each ward's registered voters, split by that ward's
 composition, summed across all 135 wards. The census gives the *proportions*
 within a ward; the roll gives the *number*, and where they disagree the roll
-wins. They disagree a lot: the census implies about 300,000 white adults in
-Johannesburg, and the roll carries about 560,000 registered white voters. We
+wins. They disagree a lot: the census implies about {{hist_census_white_adults}} white adults in
+Johannesburg, and the roll carries about {{hist_roll_white_voters}} registered white voters. We
 publish the gap rather than absorb it.
 
 ### 3. Measure how each party does in each pool
@@ -240,8 +240,8 @@ These are choices about how the model works that the data did not make for us. E
   level comes from the last *national* election, converted down to local. That
   suits a nationally organised party and not one whose support is local; tested
   on 2021, the two routes are close to even, five parties to four. ActionSA is
-  the sharpest case: it polled 18.12% in this city's 2021 local election and
-  6.22% nationally in 2024, and the forecast is built on the smaller number.
+  the sharpest case: it polled {{hist_asa_pr_2021}} in this city's 2021 local election and
+  {{hist_asa_npe_2024}} nationally in 2024, and the forecast is built on the smaller number.
   Local formations, such as a ratepayers' association or a party that exists in
   one metro, are carried poorly for the same reason. The fix is to draw a
   party's level from its local and national records together, weighted by which
@@ -294,8 +294,8 @@ published forecast uses no poll.
 ### Why polls are read with caution
 
 The polls that exist disagree with each other by more than the quantity being
-forecast: one house had the DA on 42% and the ANC on 18% in the same year
-another had the ANC on 35% and the DA on 25%. Metro-level polling has little
+forecast: one house had the DA on {{poll_srf_q2_da}} and the ANC on {{poll_srf_q2_anc}} in the same year
+another had the ANC on {{poll_ipsos_w2_anc}} and the DA on {{poll_ipsos_w2_da}}. Metro-level polling has little
 track record here to weight it by; pre-2021 polling missed ActionSA in this
 city by about ten points. Every poll we hold is listed, with its caveats, and
 the model is read against them as an outside check. They are not, at present,

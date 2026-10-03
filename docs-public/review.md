@@ -37,7 +37,7 @@ politics has a habit of making yesterday's unthinkable arrangement tomorrow's
 government. The build ignored that instruction and checked six hand-picked,
 "realistic" coalitions. When the full check was finally run, a combination
 nobody had thought to test — DA + EFF + MK — cleared the majority line in
-**61% of the very same simulations**. The published conclusion wasn't wrong
+**{{rev0806_da_eff_mk_share}} of the very same simulations**. The published conclusion wasn't wrong
 because the maths was wrong; it was wrong because a human had quietly
 filtered the question through political taste, which is exactly what the plan
 had forbidden.
@@ -72,7 +72,7 @@ had forbidden.
   them. They now move independently, with ranges set from their actual
   history.
 
-There were also data bugs found along the way — including 87 district-year
+There were also data bugs found along the way — including {{rev0806_overvote_records}} district-year
 records where more people had voted than were registered, a sign of broken
 registration counts that had quietly poisoned the turnout projections.
 
@@ -88,13 +88,13 @@ The corrected forecast is meaningfully different from the one first computed:
   vote entitles it to — and (as we later confirmed from the statute and a real
   2021 precedent) it keeps them all, gets zero list seats, and the shortfall
   comes out of everyone else's list seats, inside a fixed 270.
-- **The DA's dominance shrank.** Largest party in 63% of simulations, not
-  86% — the ANC's overhang seats close the gap.
+- **The DA's dominance shrank.** Largest party in {{rev0806_da_largest_fixed}} of simulations, not
+  {{rev0806_da_largest_first}} — the ANC's overhang seats close the gap.
 - **A kingmaker verdict flipped.** The first sheet asserted the Patriotic
   Alliance mattered more to coalition-building than ActionSA. Computed
   properly, it is the other way around.
 - **The realistic outcomes clarified into three:** a grand coalition, a
-  DA-led minority government resting on abstention (viable in 61% of
+  DA-led minority government resting on abstention (viable in {{rev0806_da_minority_viable}} of
   simulations), or a DA arrangement with one of the parties it has publicly
   ruled out.
 

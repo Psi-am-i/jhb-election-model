@@ -8,7 +8,7 @@
 //       node interactive/tools/yf_screenshots.mjs interactive/screenshots
 //
 // States (owner's sweep, 2026-10-03): section 1 adjusted (Black African
-// turnout +5) at 375 and 1440, first screen and whole page; section 1 under
+// turnout +5) at 375, 1440 and 1920, first screen and whole page; section 1 under
 // Germany's 2023 law, sharing refused; section 2's walkthrough, step one
 // highlighted, opened from section 1's adjusted forecast; the analysis, with
 // a ward's chance on hover; both share images, at both sizes for section 1;
@@ -55,7 +55,7 @@ const imgReady = sel => p => p.waitForFunction(s => { const i = document.querySe
   sel, { timeout: 60000 });
 const download = async (p, sel, path) => { const d = p.waitForEvent("download"); await p.click(sel); await (await d).saveAs(path); };
 
-for (const [w, h] of [[375, 812], [1440, 1000]]) {
+for (const [w, h] of [[375, 812], [1440, 1000], [1920, 1080]]) {
   // section 1, adjusted
   let p = await page(w, h, BA5);
   await p.screenshot({ path: `${OUT}/yf-adjust-${w}-fold.png` });
@@ -105,6 +105,18 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   await p.waitForFunction(() => document.querySelector('[data-live="b-analysis"] tbody tr'), null, { timeout: 60000 });
   await p.waitForTimeout(700);
   await p.screenshot({ path: `${OUT}/yf-analyse-${w}.png` });
+  // the list view, one table per area with the chances, and the vote table
+  await p.click('[data-live="b-map"] .views button[data-view="list"]');
+  await p.waitForTimeout(400);
+  await p.locator('[data-live="b-map"] .listview').evaluate(e => e.scrollIntoView({ block: "start" }));
+  await p.evaluate(() => scrollBy(0, -60));
+  await p.waitForTimeout(300);
+  await p.screenshot({ path: `${OUT}/yf-break-list-${w}.png` });
+  await p.locator('[data-live="b-vote"]').evaluate(e => e.scrollIntoView({ block: "start" }));
+  await p.waitForTimeout(300);
+  await p.screenshot({ path: `${OUT}/yf-break-vote-${w}.png` });
+  await p.click('[data-live="b-map"] .views button[data-view="geo"]');
+  await p.waitForTimeout(300);
   if (w === 1440) {
     // a ward's chance, on hover over section 2's map
     const ward = p.locator('[data-live="b-map"] svg .w').nth(40);

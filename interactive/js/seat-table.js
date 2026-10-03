@@ -76,9 +76,10 @@ export function seatRow(doc, row, scale) {
 
 export function headRow(doc, head) {
   return node(doc, "div", [["class", "st-row st-head"]], [
-    node(doc, "div", [], []), node(doc, "div", [], []),
-    node(doc, "div", [["class", "st-seats"]], [head[0]]),
-    node(doc, "div", [["class", "st-range"]], [head[1]]),
+    node(doc, "div", [["class", "st-name"]], [head[0]]),
+    node(doc, "div", [["class", "st-graphic"]], [head[1]]),
+    node(doc, "div", [["class", "st-seats"]], [head[2]]),
+    node(doc, "div", [["class", "st-range"]], [head[3]]),
   ]);
 }
 
@@ -95,7 +96,7 @@ export function scaleRow(doc, scale, ticks) {
 }
 
 // The whole table: header, one row per party in the order given, scale.
-// opts: { scale, ticks, head: [seats word, range word], label }.
+// opts: { scale, ticks, head: [party, graphic, seats, range words], label }.
 export function seatTable(doc, rows, opts) {
   const attrs = [];
   attrs.push(["class", "st"], ["data-scale", opts.scale]);

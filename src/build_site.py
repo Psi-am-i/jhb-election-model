@@ -1574,6 +1574,13 @@ def main(argv: list[str] | None = None) -> int:
                 + f"Published {when}"
                 + ((f"; now {_long(now_date)}." if publishing else "; changed since.")
                    if now else "."))
+        elif c["previous"] is None and (registry_entries.get(c["token"]) or {}).get("on_site"):
+            # A figure that was on the site, typed, before it became a token:
+            # dated from the publication that first showed it (the article's
+            # date), not from the edition that first ledgered it (owner's
+            # list, 2026-10-03, items 1 and 2).
+            history[c["token"]] = (f"{c['display']}. Unchanged since "
+                                   f"{_long(registry_entries[c['token']]['on_site'])}.")
         elif c["previous"] is None:
             history[c["token"]] = (
                 f"{c['display']}. First published in this edition "

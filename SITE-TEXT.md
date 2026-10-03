@@ -538,12 +538,12 @@ Still the ANC's usual condition, and weaker than published: about {{anc_ward_med
 
 <!-- /block b67cf5af -->
 
-<!-- block 32569d83 -->
+<!-- block 7633b954 -->
 *p*
 
-This clause is not a theory — it has fired exactly once, in a Karoo town with a seven-seat council. In 2021 the DA won three of Laingsburg's four wards on just 23% of the vote, a share entitling it to only two seats. The Electoral Commission's published calculation shows what the law does next: the DA kept all three wards and received <b>no list seats</b>; its votes were set aside and a fresh quota computed for everyone else over the four seats that remained; and the small Karoo Democratic Force lost the seat it would otherwise have held. The council stayed at seven. Scale that up thirty-eight-fold and you have this forecast's central case: <span data-asof="2026-08-08">the ANC winning roughly {{pub0831_anc_ward_median}} of Johannesburg's wards on a {{pub0831_anc_entitlement}}-seat entitlement</span> — keeping every one, taking zero list seats, the squeeze recalculated onto everyone else inside a council fixed at 270. A quirk that has fired once, in one small town, is about to govern the country's biggest metro.
+This clause is not a theory — it has fired exactly once, in a Karoo town with a seven-seat council. In 2021 the DA won three of Laingsburg's four wards on just {{hist_laingsburg_da_share}} of the vote, a share entitling it to only two seats. The Electoral Commission's published calculation shows what the law does next: the DA kept all three wards and received <b>no list seats</b>; its votes were set aside and a fresh quota computed for everyone else over the four seats that remained; and the small Karoo Democratic Force lost the seat it would otherwise have held. The council stayed at seven. Scale that up thirty-eight-fold and you have this forecast's central case: <span data-asof="2026-08-08">the ANC winning roughly {{pub0831_anc_ward_median}} of Johannesburg's wards on a {{pub0831_anc_entitlement}}-seat entitlement</span> — keeping every one, taking zero list seats, the squeeze recalculated onto everyone else inside a council fixed at 270. A quirk that has fired once, in one small town, is about to govern the country's biggest metro.
 
-<!-- /block 32569d83 -->
+<!-- /block 7633b954 -->
 
 <!-- block 3a6ae1b5-3 -->
 *div*
@@ -573,12 +573,12 @@ The same {{n_draws}} simulated elections, scored under each rule (median seats; 
 
 <!-- /block b6686273 -->
 
-<!-- block 2e3760f4 -->
+<!-- block 7ac92b9a -->
 *p*
 
-Most voters assume the ANC's decline must hand victory to someone else. The record says otherwise. Between 2019 and 2021 — the ANC bloc's biggest collapse ever — it shed <b>{{bloc_leak_votes}} votes</b> across Johannesburg's voting districts. The opposition captured essentially <b>none</b> of them: the DA's bloc actually lost 52,000 votes of its own over the same stretch, even with ActionSA arriving from nowhere to take 18%. The opposition's share surged only because ANC voters stayed home and the total shrank. The voting blocs behave like separate reservoirs whose levels rise and fall — not pipes into each other.
+Most voters assume the ANC's decline must hand victory to someone else. The record says otherwise. Between 2019 and 2021 — the ANC bloc's biggest collapse ever — it shed <b>{{bloc_leak_votes}} votes</b> across Johannesburg's voting districts. The opposition captured essentially <b>none</b> of them: the DA's bloc actually lost {{hist_da_bloc_change_votes}} votes of its own over the same stretch, even with ActionSA arriving from nowhere to take {{hist_asa_pr_2021_rounded}}. The opposition's share surged only because ANC voters stayed home and the total shrank. The voting blocs behave like separate reservoirs whose levels rise and fall — not pipes into each other.
 
-<!-- /block 2e3760f4 -->
+<!-- /block 7ac92b9a -->
 
 <!-- block e6109094 -->
 *p*
@@ -1437,7 +1437,7 @@ party whose voters split their tickets, the difference is worth seats.
 
 <!-- /block 56e6a308 -->
 
-<!-- block ab72a4a4 -->
+<!-- block 95c6eeda -->
 *md*
 
 A party can win *more* wards than its combined share entitles it to. Say a
@@ -1447,10 +1447,10 @@ seats" clause (Schedule 1, item 16, completed by a 2021 amendment) settles the
 overflow: the party receives **no list seats**, and the other parties' list
 seats are recalculated over the seats that remain. The council does not grow.
 The Electoral Commission's own published calculation applies exactly this in
-Laingsburg in 2021, where the DA won 3 of 4 wards on 23% of the vote. The
+Laingsburg in 2021, where the DA won {{hist_laingsburg_da_wards}} of {{hist_laingsburg_wards}} wards on {{hist_laingsburg_da_share}} of the vote. The
 over-winner stays slightly over-represented; the cost falls on everyone else.
 
-<!-- /block ab72a4a4 -->
+<!-- /block 95c6eeda -->
 
 <!-- block d38d7c13 -->
 *md*
@@ -1544,17 +1544,17 @@ stands on) and labelled for what was measured.
 
 <!-- /block 0099cfee -->
 
-<!-- block 95edd383 -->
+<!-- block b0b6ad99 -->
 *md*
 
 **How big is each pool?** Each ward's registered voters, split by that ward's
 composition, summed across all 135 wards. The census gives the *proportions*
 within a ward; the roll gives the *number*, and where they disagree the roll
-wins. They disagree a lot: the census implies about 300,000 white adults in
-Johannesburg, and the roll carries about 560,000 registered white voters. We
+wins. They disagree a lot: the census implies about {{hist_census_white_adults}} white adults in
+Johannesburg, and the roll carries about {{hist_roll_white_voters}} registered white voters. We
 publish the gap rather than absorb it.
 
-<!-- /block 95edd383 -->
+<!-- /block b0b6ad99 -->
 
 <!-- block 83eca765 -->
 *md*
@@ -1820,7 +1820,7 @@ measure looks only at the single most likely outcome. It calls the winner in
 
 <!-- /block 961baec6 -->
 
-<!-- block b54e0011 -->
+<!-- block 06e84ac4 -->
 *md*
 
 - **A party that does not exist yet is the hardest case.** Splits and entrants
@@ -1835,8 +1835,8 @@ measure looks only at the single most likely outcome. It calls the winner in
   level comes from the last *national* election, converted down to local. That
   suits a nationally organised party and not one whose support is local; tested
   on 2021, the two routes are close to even, five parties to four. ActionSA is
-  the sharpest case: it polled 18.12% in this city's 2021 local election and
-  6.22% nationally in 2024, and the forecast is built on the smaller number.
+  the sharpest case: it polled {{hist_asa_pr_2021}} in this city's 2021 local election and
+  {{hist_asa_npe_2024}} nationally in 2024, and the forecast is built on the smaller number.
   Local formations, such as a ratepayers' association or a party that exists in
   one metro, are carried poorly for the same reason. The fix is to draw a
   party's level from its local and national records together, weighted by which
@@ -1848,7 +1848,7 @@ measure looks only at the single most likely outcome. It calls the winner in
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible, not which will form.
 
-<!-- /block b54e0011 -->
+<!-- /block 06e84ac4 -->
 
 <!-- block ff0d9166 -->
 *md*
@@ -1940,18 +1940,18 @@ published forecast uses no poll.
 
 <!-- /block 91a3fee7 -->
 
-<!-- block 55853ad8 -->
+<!-- block cb4bcf94 -->
 *md*
 
 The polls that exist disagree with each other by more than the quantity being
-forecast: one house had the DA on 42% and the ANC on 18% in the same year
-another had the ANC on 35% and the DA on 25%. Metro-level polling has little
+forecast: one house had the DA on {{poll_srf_q2_da}} and the ANC on {{poll_srf_q2_anc}} in the same year
+another had the ANC on {{poll_ipsos_w2_anc}} and the DA on {{poll_ipsos_w2_da}}. Metro-level polling has little
 track record here to weight it by; pre-2021 polling missed ActionSA in this
 city by about ten points. Every poll we hold is listed, with its caveats, and
 the model is read against them as an outside check. They are not, at present,
 an input.
 
-<!-- /block 55853ad8 -->
+<!-- /block cb4bcf94 -->
 
 <!-- block 6cbd50ee -->
 *md*
@@ -2293,7 +2293,7 @@ them.
 
 <!-- /block 083dd0b6 -->
 
-<!-- block 55a40fc0 -->
+<!-- block 51557379 -->
 *md*
 
 The plan the model was built from had been explicit: check **every**
@@ -2303,12 +2303,12 @@ politics has a habit of making yesterday's unthinkable arrangement tomorrow's
 government. The build ignored that instruction and checked six hand-picked,
 "realistic" coalitions. When the full check was finally run, a combination
 nobody had thought to test — DA + EFF + MK — cleared the majority line in
-**61% of the very same simulations**. The published conclusion wasn't wrong
+**{{rev0806_da_eff_mk_share}} of the very same simulations**. The published conclusion wasn't wrong
 because the maths was wrong; it was wrong because a human had quietly
 filtered the question through political taste, which is exactly what the plan
 had forbidden.
 
-<!-- /block 55a40fc0 -->
+<!-- /block 51557379 -->
 
 <!-- block bea0b713 -->
 *md*
@@ -2347,14 +2347,14 @@ had forbidden.
 
 <!-- /block fc4b4d2e -->
 
-<!-- block 7bee6c33 -->
+<!-- block 8852efd5 -->
 *md*
 
-There were also data bugs found along the way — including 87 district-year
+There were also data bugs found along the way — including {{rev0806_overvote_records}} district-year
 records where more people had voted than were registered, a sign of broken
 registration counts that had quietly poisoned the turnout projections.
 
-<!-- /block 7bee6c33 -->
+<!-- /block 8852efd5 -->
 
 <!-- block df76afde -->
 *md*
@@ -2370,7 +2370,7 @@ The corrected forecast is meaningfully different from the one first computed:
 
 <!-- /block a7feb999 -->
 
-<!-- block 7d69de10 -->
+<!-- block c8d2e116 -->
 *md*
 
 - **The excessive-seats clause went from invisible to the headline.** In
@@ -2378,17 +2378,17 @@ The corrected forecast is meaningfully different from the one first computed:
   vote entitles it to — and (as we later confirmed from the statute and a real
   2021 precedent) it keeps them all, gets zero list seats, and the shortfall
   comes out of everyone else's list seats, inside a fixed 270.
-- **The DA's dominance shrank.** Largest party in 63% of simulations, not
-  86% — the ANC's overhang seats close the gap.
+- **The DA's dominance shrank.** Largest party in {{rev0806_da_largest_fixed}} of simulations, not
+  {{rev0806_da_largest_first}} — the ANC's overhang seats close the gap.
 - **A kingmaker verdict flipped.** The first sheet asserted the Patriotic
   Alliance mattered more to coalition-building than ActionSA. Computed
   properly, it is the other way around.
 - **The realistic outcomes clarified into three:** a grand coalition, a
-  DA-led minority government resting on abstention (viable in 61% of
+  DA-led minority government resting on abstention (viable in {{rev0806_da_minority_viable}} of
   simulations), or a DA arrangement with one of the parties it has publicly
   ruled out.
 
-<!-- /block 7d69de10 -->
+<!-- /block c8d2e116 -->
 
 <!-- block 24fd6f25 -->
 *md*
@@ -2913,12 +2913,12 @@ The turnout setting this test used is no longer in the model, so the surge canno
 
 <!-- /block c7414443 -->
 
-<!-- block 15f6dcc6 -->
+<!-- block 50b805aa -->
 *claim[0].steps[0]*
 
-<span data-asof="2026-08-07">**It is half of the wrong number.** 490,000 is almost exactly half of the ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low. At first glance it looks plausible, until you realise that if there are more voters, you need half of a bigger number. If all DA members did what Helen wanted, the total number of voters would be ~{{claim_poll_surged}}, and half of that is {{claim_half_surged}} — not 490,000.</span>
+<span data-asof="2026-08-07">**It is half of the wrong number.** {{claim_zille_votes}} is almost exactly half of the ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low. At first glance it looks plausible, until you realise that if there are more voters, you need half of a bigger number. If all DA members did what Helen wanted, the total number of voters would be ~{{claim_poll_surged}}, and half of that is {{claim_half_surged}} — not {{claim_zille_votes}}.</span>
 
-<!-- /block 15f6dcc6 -->
+<!-- /block 50b805aa -->
 
 <!-- block ff6a5b74 -->
 *claim[0].steps[1]*
@@ -2934,12 +2934,12 @@ The turnout setting this test used is no longer in the model, so the surge canno
 
 <!-- /block 4df0fa71 -->
 
-<!-- block 2460abb2 -->
+<!-- block c4382dad -->
 *claim[0].steps[3]*
 
-<span data-asof="2026-08-07">**Could she still be right?** We looked for a reading that works. Her exact words — “We need 490,000 registered DA voters to go vote DA, if they do that we win an outright majority” — never say what total she is measuring against. Against 2021's poll of ~{{claim_poll_2021}} ballots, 490,000 would be {{claim_490k_of_2021}}%. So the claim is true in exactly one world: the DA doubles its vote while every other party combined sheds about {{claim_others_shed}} votes, keeping the voter numbers frozen at the record low. If that happened, is Helen right? Nothing in twenty years of turnout records produces that world — but even assuming it exists, while the ANC holds its ~{{claim_anc_wards_surged}}-ward wall the excessive-seats law means the DA needs about {{claim_vote_share_needed}}% of the vote to reach {{majority}}. So even in a special universe with never-before-seen events, it is false. The few simulations where the DA does govern alone are the ones where its surge breaks the wall itself, flipping stronghold wards — in those draws the ANC falls to ~{{claim_anc_collapse_seats}} seats. To do that, the DA needs to do more than turn out its existing supporters. It needs new ones.</span>
+<span data-asof="2026-08-07">**Could she still be right?** We looked for a reading that works. Her exact words — “We need 490,000 registered DA voters to go vote DA, if they do that we win an outright majority” — never say what total she is measuring against. Against 2021's poll of ~{{claim_poll_2021}} ballots, {{claim_zille_votes}} would be {{claim_490k_of_2021}}%. So the claim is true in exactly one world: the DA doubles its vote while every other party combined sheds about {{claim_others_shed}} votes, keeping the voter numbers frozen at the record low. If that happened, is Helen right? Nothing in twenty years of turnout records produces that world — but even assuming it exists, while the ANC holds its ~{{claim_anc_wards_surged}}-ward wall the excessive-seats law means the DA needs about {{claim_vote_share_needed}}% of the vote to reach {{majority}}. So even in a special universe with never-before-seen events, it is false. The few simulations where the DA does govern alone are the ones where its surge breaks the wall itself, flipping stronghold wards — in those draws the ANC falls to ~{{claim_anc_collapse_seats}} seats. To do that, the DA needs to do more than turn out its existing supporters. It needs new ones.</span>
 
-<!-- /block 2460abb2 -->
+<!-- /block c4382dad -->
 
 <!-- block c786d964 -->
 *claim[1].quote*

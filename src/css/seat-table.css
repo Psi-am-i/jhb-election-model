@@ -10,6 +10,10 @@
 .st-head{padding-bottom:4px;}
 .st-head > div{font:650 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);}
 .st-head .st-seats{padding-right:var(--st-arrow);}
+/* the header's words over the name and the graphic: the same small capitals
+   as the figures' (the name cell's own type is for a party's name) */
+.st-head .st-name{display:block;font:650 10.5px var(--sans);color:var(--ink-3);}
+.st-head .st-graphic{text-align:center;}
 .st-name{display:flex;align-items:center;gap:7px;min-width:0;font-size:13.5px;font-weight:550;
   color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .st-sub{font-weight:400;font-size:12px;color:var(--ink-3);}

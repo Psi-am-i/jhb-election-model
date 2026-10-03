@@ -139,6 +139,67 @@ def test_the_built_tooltip_dates_an_unchanged_figure_to_its_first_edition():
         assert "30 September" not in tip, tip
 
 
+def test_a_figure_typed_before_it_was_a_token_is_dated_from_its_first_publication():
+    """Owner's list, 2026-10-03, items 1 and 2: the figures typed into "When
+    the ANC falls, nobody catches the votes" are tokens now, and with no
+    ledger row yet their tooltip dates them from the article (``on_site``),
+    not from the edition that first ledgers them. A fixed token WITHOUT
+    ``on_site`` still says it is new, so the branch is seen to discriminate.
+    End to end, on an empty throwaway ledger."""
+    if not (ROOT / "data" / "processed" / "forecast_summary.json").exists():
+        skip("needs data/processed/forecast_summary.json; run montecarlo.py")
+    reg = tomllib.loads(STATS.read_text(encoding="utf-8"))
+    dated = {"hist_da_bloc_change_votes": "nobody-catches-the-votes.html",
+             "hist_asa_pr_2021_rounded": "nobody-catches-the-votes.html"}
+    undated = ("hist_census_white_adults", "methodology.html")
+    assert all(reg[t].get("on_site") == "2026-08-08" for t in dated)
+    assert "on_site" not in reg[undated[0]]
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        (tmp / "led" / "joburg").mkdir(parents=True)
+        (tmp / "led" / "joburg" / "ledger.jsonl").write_text("", encoding="utf-8")
+        r = subprocess.run(
+            [str(ROOT / ".venv/bin/python"), str(ROOT / "src/build_site.py"),
+             "--out", str(tmp / "site"), "--ledger-root", str(tmp / "led"),
+             "--allow-orphans", "--allow-stale-sources"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 0, r.stdout[-1500:] + r.stderr[-1500:]
+        pages = {p: (tmp / "site" / p).read_text(encoding="utf-8")
+                 for p in {*dated.values(), undated[1]}}
+    import html
+    import re
+
+    def tips(token, page):
+        return [html.unescape(m) for m in re.findall(
+            rf'data-token="{token}"[^>]*data-prov="([^"]*)"', pages[page])]
+    for token, page in dated.items():
+        shown = S._fmt(reg[token]["value"], reg[token].get("format"))
+        assert tips(token, page), f"{token} is not on {page}"
+        for tip in tips(token, page):
+            assert tip.startswith(f"{shown}. Unchanged since 8 August 2026."), tip
+    assert tips(*undated) and all("new in this edition" in t for t in tips(*undated))
+
+
+def test_no_typed_figure_is_left_in_an_article():
+    """Owner's list, 2026-10-03, item 2: every typed number in an article is
+    a token. No fixed fact registered on an article page carries a digit,
+    except a date (a piece's own dated label). The articles are
+    articles.toml's list; a constructed digit fact on one is caught."""
+    arts = tomllib.loads((ROOT / "content" / "joburg" / "articles.toml").read_text(encoding="utf-8"))["article"]
+    pages = {a["href"] + ".html" for a in arts}
+    assert len(pages) == len(arts) >= 4
+    import re
+    fixed = tomllib.loads(STATS.read_text(encoding="utf-8"))["audit"]["fixed"]
+
+    def typed(facts):
+        return [f["value"] for f in facts
+                if {p.strip() for p in f.get("page", "").split(",")} & pages
+                and re.search(r"\d", f["value"]) and f.get("kind") != "rule"
+                and not re.fullmatch(r"\d{1,2}( [A-Z][a-z]+( \d{4})?)?", f["value"])]
+    assert typed(fixed) == []
+    assert typed(fixed + [{"value": "52,000", "page": "nobody-catches-the-votes.html", "kind": "history"}]) == ["52,000"]
+
+
 # --- a figure in a dated passage is the figure of that date ------------------
 
 def _occ(token, mode, captured, asof, display="61"):
