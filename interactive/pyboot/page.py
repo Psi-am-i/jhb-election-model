@@ -464,13 +464,19 @@ def analyse(request_json: str) -> str:
     2026-10-03; the bands and the method are JUDGEMENT-CALLS.md §N3).
 
     Request: ``{"ward_calls": {ward: party}, "share": {party: percent of the
-    combined vote}, "seats": {party: seats}}``, section 2's forecast. Every
+    combined vote}, "seats": {party: seats}, "majority": seats needed,
+    "coalition": [party]}``, section 2's forecast. Every
     chance is the PUBLISHED forecast's: the published cell, each draw counted
     once, statutory seats. Returns
 
+    * ``outcome``: the chance of the reader's council-level outcome,
+      ``reweight.council_outcome``: the largest party alone (or a tie for
+      the most seats), whether one party has a majority on its own, and the
+      chosen coalition reaching a majority; with what it was read as. The
+      page's headline;
     * ``wards``: ``{ward: chance}`` the model gives the reader's winner there;
     * ``expected`` and ``percentile``: ``reweight.ward_calls_likelihood``.
-      The page leads with ``expected``; ``percentile`` is a rank among the
+      The page prints ``expected`` second; ``percentile`` is a rank among the
       simulations' ward results, and the page never words it as a chance;
     * ``seats``: ``{party: chance}`` that the party's seats land within
       ``reweight.ANALYSIS_SEAT_BAND`` of the reader's figure;
@@ -507,6 +513,16 @@ def analyse(request_json: str) -> str:
 
     def chance(p):
         return {"p": float(p), "text": R.chance_text(p)}
+    # the reader's council-level outcome (reweight.council_outcome)
+    held = {c: v for c, v in mine.items() if v > 0}
+    most = max(held.values(), default=0)
+    tops = [c for c, v in held.items() if v == most]
+    need = int(req.get("majority") or sum(held.values()) // 2 + 1)
+    coalition = sorted(set(req.get("coalition") or []))
+    council = cell["arrays"][f"council/{PUBLISHED_LAW}"]
+    outcome = {"largest": tops[0] if len(tops) == 1 else None, "majority_alone": most >= need,
+               "coalition": coalition}
+    outcome.update(chance(R.council_outcome(seats, cols, council[:, 0], w, **outcome)))
     seat_out, share_out = {}, {}
     for c in shown:
         seat_out[c] = chance(R.within_band(seats[:, cols.index(c)], w, mine.get(c, 0), R.ANALYSIS_SEAT_BAND))
@@ -518,6 +534,7 @@ def analyse(request_json: str) -> str:
         "wards": {x: chance(p) for x, p in zip(wards, lik["p"])},
         "expected": lik["expected"], "wards_count": len(wards),
         "percentile": chance(lik["percentile"]),
+        "outcome": outcome,
         "seats": seat_out, "share": share_out,
         "seat_band": R.ANALYSIS_SEAT_BAND, "share_band": R.ANALYSIS_SHARE_BAND_POINTS,
         "draws": n,

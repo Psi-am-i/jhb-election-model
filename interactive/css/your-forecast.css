@@ -133,9 +133,14 @@
 /* ---------- "Analyse my forecast" ---------- */
 .yf-analysis{border:1px solid var(--rule-soft);border-top:3px solid var(--reader);background:var(--paper-2);
   padding:16px;margin-top:22px;max-width:980px;scroll-margin-top:60px;}
-.yf-analysis[hidden]{display:none;}
+.yf-analysis:has(> [data-live="b-analysis"][hidden]){display:none;}
+/* the reader is scrolled to the region; the heading above it stays in view */
+.yf-analysis [data-live="b-analysis"]{scroll-margin-top:110px;}
 .yf-analysis h3{font:600 20px var(--serif);margin:0 0 8px;}
 .yf-verdict{font:19px/1.4 var(--serif);color:var(--ink);margin:0 0 6px;max-width:62ch;}
+.yf-verdict .yf-exp{display:block;font-size:16px;color:var(--ink-2);margin-top:4px;}
+.yf-outcome{font-size:14px;color:var(--ink-2);margin:0 0 4px;}
+.yf-outcome:empty{display:none;}
 .yf-expected{font-size:14px;margin:0 0 10px;}
 .yf-atable{overflow-x:auto;}
 .yf-at td:first-child{white-space:nowrap;}

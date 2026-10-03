@@ -95,7 +95,7 @@ promotion note in §F.
 | `_SIGN_EPS` | 1e-9 | `theta_residual.py` | 1e-9, and it decides one of KEY 4's two failure triggers: six orders above the float dust a genuine no-op produced and six below the smallest real effect on record. | 🟡 | §F7 |
 | `ALPHA_MIN_SHARE`, `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK` | 0.01, 1.0, 200.0, 12.0 | `pools.dirichlet_alpha` | Promoted from inline literals 2026-08-22, number-neutral. They are the SELECTION RULE feeding the dominant width lever, and none has ever been swept. | 🔴 | §F31 |
 | `alpha` per pool (and `dirichlet_scale`) | — | `pools.dirichlet_alpha` | The model's DOMINANT width lever, sweepable since §1.63 via `dirichlet_scale` and NOT retuned — the method-of-moments fit names 1.0. The ranks 4-12 half of the old 'a scalar cannot serve both bands' finding is WITHDRAWN. | 🟡 | §B7 |
-| `ANALYSIS_SEAT_BAND`, `ANALYSIS_SHARE_BAND_POINTS` | 2, 2.0 | `reweight.py`, `within_band`, read by `pyboot/page.py` `analyse` | Typed 2026-10-03 for "Analyse my forecast" on /your-forecast/: how near a reader's seats (seats) and vote (list-ballot points) a simulation must land to count. With them, the whole-forecast figure's method. Moves no forecast; decides which chance the analysis prints. | 🟡 | §N3 |
+| `ANALYSIS_SEAT_BAND`, `ANALYSIS_SHARE_BAND_POINTS` | 2, 2.0 | `reweight.py`, `within_band`, read by `pyboot/page.py` `analyse` | Typed 2026-10-03 for "Analyse my forecast" on /your-forecast/: how near a reader's seats (seats) and vote (list-ballot points) a simulation must land to count. With them, the definition of "this outcome" (`council_outcome`: the largest party, a majority alone, the chosen coalition). Moves no forecast; decides which chance the analysis prints. | 🟡 | §N3 |
 | `apply_city` never resets `DEFAULTS` | — | `montecarlo.py` | **AMENDED 2026-09-24 (register audit).** FIXED: `apply_city` clears `DEFAULTS` and restores a pristine copy before applying a city (since 2026-08-18), guarded by `test_apply_city_does_not_leak_one_citys_scalars_into_the_next`. Johannesburg declares 11 scalars, not sixteen. Status marker left for the owner. | 🔴 | §A43 |
 | `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` | 0.25, 0.95 | — | 0.25 / 0.95, the triangular support of every seeded arrival. 25/95 rather than 10/90 or 5/95 is undefended and never swept. | 🔴 | §F32 |
 | `arrival_group_draw` | False | `montecarlo.py`, read in `make_drawer` | Ships False. The rejection was re-run on the label-free referee 2026-08-29 and refuted again; the 254 → 348 figure is superseded and must not be quoted. | 🟢 | §A6 |
@@ -3045,17 +3045,17 @@ figures above at any time.
 
 ### §N3 · "Analyse my forecast": the bands (`ANALYSIS_SEAT_BAND` = 2 seats, `ANALYSIS_SHARE_BAND_POINTS` = 2.0 points) and the whole-forecast figure — 🟡 argued, not tested (2026-10-03)
 
-**Where.** `reweight.within_band` and `reweight.ward_calls_likelihood`, called
-by `interactive/pyboot/page.py`'s `analyse` when a reader presses "Analyse my
+**Where.** `reweight.within_band`, `reweight.ward_calls_likelihood` and
+`reweight.council_outcome`, called by `interactive/pyboot/page.py`'s `analyse` when a reader presses "Analyse my
 forecast" in section 2 of /your-forecast/ (the owner's sweep of 2026-10-03,
 item 6).
 
 **Now.** Every chance is the PUBLISHED forecast's: the published cell's draws,
-each counted once, seated by the statute. Four figures:
+each counted once, seated by the statute. Five figures:
 
 * **A ward.** The chance the model gives the reader's winner there,
   `reweight.ward_win_probability` (the published map's Jeffreys-corrected
-  estimate). Printed on hover: "we give this outcome a chance of N".
+  estimate). Printed on hover: "We give this outcome a N% chance."
 * **A party's seats.** The share of simulations in which the party's seats
   land within `ANALYSIS_SEAT_BAND` of the reader's figure, either side, edges
   included. Two seats, typed: wide enough that a reader's round number near
@@ -3073,37 +3073,65 @@ each counted once, seated by the statute. Four figures:
   A party whose ward ballot runs ahead of its list ballot is scored against
   the lower of the two. Two points, typed, on the same reasoning as the seat
   band.
-* **The whole forecast.** The headline is the expected number of the
-  reader's ward calls that come true, the sum of the ward chances: "We expect
-  N of your M ward calls to come true. But historical trends can always be
-  broken." Beneath it, a rank: "Ranked by the chance we give each ward's
-  winner, your ward calls as a set come level with or above the ward results
-  of R of our simulations." Method of the rank: each set of ward results is
-  scored by the sum over wards of the log of the chance the model gives its
-  winner there. The reader's calls are scored so, and so is every
-  simulation's own set of ward winners; R is the share of simulations scoring
-  at or below the reader's. R is a PERCENTILE, not a chance: the chance of the
-  reader's exact set is vanishingly small for any set, the model's own modal
-  calls included, and the modal calls rank above every simulation.
+* **The whole forecast: "this outcome".** The headline is the owner's form
+  (2026-10-03): "We give this outcome a N% chance. But historical trends can
+  always be broken." An exact match of the whole forecast (every ward, every
+  seat, every share) has a chance of about zero for any forecast, the
+  model's own included, so "this outcome" is DEFINED as the reader's
+  council-level result, three parts read off the reader's council:
+  1. the largest party: the party with the most seats on its own, or, when
+     the reader's council has a tie for the most, a tie;
+  2. whether any one party has a majority on its own (the reader's council
+     against the majority the seat law reports for it);
+  3. only if the reader picked a governing coalition: that coalition holding
+     a majority.
+
+  N is the share of the published draws, each counted once
+  (`reweight.uniform`, the same weights as every other figure in the
+  analysis), in which all three parts hold in the same draw, each draw read
+  against its own majority threshold (`council/deduct`). The largest party
+  is read as `reweight.largest_party` reads it (a tie is its own outcome).
+  A coalition party outside the draws' party columns (summed into `OTHER`)
+  counts no seats. Function: `reweight.council_outcome`. The page states
+  the definition in the analysis's footnote and prints the outcome it scored
+  in words under the headline. Typed choices with no record behind them:
+  which three parts make "the outcome", and that the coalition part applies
+  only when one is picked.
+* **The ward calls, second.** "We expect N of your M ward calls to come
+  true": the sum of the ward chances. Beneath it, a rank: "Ranked by the
+  chance we give each ward's winner, your ward calls as a set come level with
+  or above the ward results of R of our simulations." Method of the rank:
+  each set of ward results is scored by the sum over wards of the log of the
+  chance the model gives its winner there. The reader's calls are scored so,
+  and so is every simulation's own set of ward winners; R is the share of
+  simulations scoring at or below the reader's. R is a PERCENTILE, not a
+  chance: the chance of the reader's exact set is vanishingly small for any
+  set, the model's own modal calls included, and the modal calls rank above
+  every simulation.
+* **Wording.** Every chance the analysis gives, the outcome's, a ward's
+  (on hover), a party's seats and its vote (on hover over the cell), is
+  worded "We give this outcome a N% chance"; a chance printed as "under
+  0.1%" or "over 99%" reads "a chance of under 0.1%".
 
 **What the method assumes.** The score treats wards as independent. They are
 not: the simulations share citywide swings, so a reader who moves many wards
 the same way is penalised as if each move were separate. Scoring every
 simulation by the same rule puts the reader's set and the model's on one
-footing, so the percentile ranks fairly; it is not a joint probability. Seats
-and votes are not in the whole-forecast figure: they are shown party by party.
+footing, so the percentile ranks fairly; it is not a joint probability. The
+council-level outcome is read draw by draw, so it carries the citywide swings
+the ward score ignores. Seats and votes enter it only through its three
+parts; they are shown party by party.
 
 **Rejected wordings.**
 
 | Wording | Why it was not used |
 |---|---|
-| "We give this outcome N% chance" (the owner's sweep, item 6) | No probability of the reader's whole set exists that is not vanishingly small. The only figure of that shape is the rank R. |
+| "We give this outcome N% chance" with "this outcome" the whole forecast, every ward, seat and share | Its chance is about zero for any forecast, the model's own included. The owner's form is kept with "this outcome" defined as the council-level result above. |
+| "We expect N of your M ward calls to come true" as the headline (lane Y, 2026-10-03) | The owner asked for a chance in the headline (2026-10-03, item 7). It is the second sentence. |
 | "We give ward results as unlikely as yours, or less likely, a chance of R" (lane Y, first build) | R reads as the chance the forecast comes true. The untouched start printed "over 99%" (review of lane Y, 2026-10-03, must-fix 2; STYLE rule 10). |
 
 **Waiting on the owner.**
 
-* The headline: the expected number of ward calls that come true, with the
-  rank beneath it, replaces the plan's "We give this outcome N% chance".
 * The bands for small parties: a fixed band of two seats and two points
   scores near-certain for a party with a few seats (ACDP 91%, Al Jama-ah
   over 99% at any plausible figure; review of lane Y, item 11). Options: a
@@ -3116,8 +3144,8 @@ is another judgement with no record to fit it to. Scoring the reader's calls
 against the reader's own adjusted weights would answer "how likely under my
 changes", which section 1 already shows.
 
-**How to check it.** `tests/test_reweight.py` holds `within_band` and
-`ward_calls_likelihood` to hand enumerations on constructed draws and
+**How to check it.** `tests/test_reweight.py` holds `within_band`,
+`ward_calls_likelihood` and `council_outcome` to hand enumerations on constructed draws and
 weights; `tests/test_your_forecast_page.py` holds `page.py`'s `analyse` to
 those functions on the published draws for a constructed forecast. A
 different band changes only which chance is printed; nothing in the model

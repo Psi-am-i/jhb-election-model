@@ -101,6 +101,7 @@ const one = {
   analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
   analysis: document.querySelector('[data-live="b-analysis"]'),
   verdict: document.querySelector('[data-live="b-analysis"] .yf-verdict'),
+  outcome: document.querySelector('[data-live="b-analysis"] .yf-outcome'),
   expected: document.querySelector('[data-live="b-analysis"] .yf-expected'),
   atable: document.querySelector('[data-live="b-analysis"] .yf-atable'),
   anote: document.querySelector('[data-live="b-analysis"] .yf-anote'),
@@ -575,7 +576,8 @@ async function analyse(scroll) {
   let a;
   try {
     a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
-                                      share: B.percentOf(state, ctx), seats: result.seats });
+                                      share: B.percentOf(state, ctx), seats: result.seats,
+                                      majority: result.majority, coalition: S.coalition });
   } catch (e) {
     if (ticket === analyseTicket) one.anote.textContent = "The analysis could not run: " + (e.message || e) + ".";
     return;
@@ -585,12 +587,30 @@ async function analyse(scroll) {
   paintAnalysis(a);
   if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
+// "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
+// the whole forecast, a ward, a party's seats and its vote alike; a chance
+// printed as "under 0.1%" or "over 99%" reads "a chance of under 0.1%".
+function chanceSentence(text) {
+  if (!/^\d/.test(text)) return "We give this outcome a chance of " + text + ".";
+  return "We give this outcome " + (/^(8|11|18)(\D|$)|^8\d/.test(text) ? "an " : "a ") + text + " chance.";
+}
+// the reader's council-level outcome, in words (page.py analyse: reweight.council_outcome)
+function outcomeWords(o) {
+  const lead = o.largest ? name(o.largest) + " has the most seats" : "two or more parties tie for the most seats";
+  const maj = o.majority_alone ? "one party has a majority on its own" : "no party has a majority on its own";
+  const gov = o.coalition.length ? ", and " + o.coalition.map(name).join(", ") + " together hold a majority" : "";
+  return "The outcome: " + lead + ", " + maj + gov + ".";
+}
 function paintAnalysis(a) {
   const n = a.wards_count, exp = Math.round(a.expected);
-  // The headline is the expected number of ward calls that come true. The
-  // rank among the simulations is not a chance and is never worded as one
-  // (STYLE rule 10; JUDGEMENT-CALLS §N3).
-  one.verdict.replaceChildren("We expect ", el("b", {}, exp + " of your " + n), " ward calls to come true. But historical trends can always be broken.");
+  // The headline is the chance of the reader's council-level outcome (the
+  // largest party, a majority alone or not, the chosen coalition), then the
+  // expected number of ward calls that come true. The rank among the
+  // simulations is not a chance and is never worded as one (STYLE rule 10;
+  // JUDGEMENT-CALLS §N3).
+  one.verdict.replaceChildren(chanceSentence(a.outcome.text) + " But historical trends can always be broken. ",
+    el("span", { className: "yf-exp" }, "We expect ", el("b", {}, exp + " of your " + n), " ward calls to come true."));
+  one.outcome.textContent = outcomeWords(a.outcome);
   one.expected.textContent = "Ranked by the chance we give each ward's winner, your ward calls as a set come level with or above the ward results of " +
     a.percentile.text + " of our simulations. " + (HOVER.matches
       ? "Hover over a ward, or reach it with the arrow keys, for the chance we give your call there."
@@ -605,18 +625,19 @@ function paintAnalysis(a) {
   // two layouts of the same cells (css/your-forecast.css): one row per party,
   // or on a phone a party's seats and then its vote, each in its own row
   const yourVote = c => (share[c] ?? 0).toFixed(1) + "%", voteChance = c => (a.share[c] ? a.share[c].text : "");
+  const voteTitle = c => (a.share[c] ? chanceSentence(a.share[c].text) : "");
   const body = codes.flatMap(c => [
     el("tr", { className: "yf-wide" },
       el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0)),
-      el("td", { className: "num" }, a.seats[c].text),
+      el("td", { className: "num", title: chanceSentence(a.seats[c].text) }, a.seats[c].text),
       el("td", { className: "num" }, yourVote(c)),
-      el("td", { className: "num" }, voteChance(c))),
+      el("td", { className: "num", title: voteTitle(c) }, voteChance(c))),
     el("tr", { className: "yf-narrow" },
       el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0) + " seats"),
-      el("td", { className: "num" }, a.seats[c].text)),
+      el("td", { className: "num", title: chanceSentence(a.seats[c].text) }, a.seats[c].text)),
     el("tr", { className: "yf-narrow" },
       el("td", {}), el("td", { className: "num" }, yourVote(c) + " vote"),
-      el("td", { className: "num" }, voteChance(c))),
+      el("td", { className: "num", title: voteTitle(c) }, voteChance(c))),
   ]);
   const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
     el("th", { scope: "col", className: "num" }, "Yours"),
@@ -633,7 +654,7 @@ const HOVER = matchMedia("(hover: hover)");
 function tipFor(i, x, y) {
   const w = i == null ? null : ctx.wards[+i], got = analysed && w != null ? analysed.wards[w] : null;
   if (!got) { one.wardtip.hidden = true; return; }
-  one.wardtip.textContent = "Ward " + w + ", " + name(state.calls[+i]) + ": we give this outcome a chance of " + got.text + ".";
+  one.wardtip.textContent = "Ward " + w + ", " + name(state.calls[+i]) + ". " + chanceSentence(got.text);
   one.wardtip.hidden = false;
   placeTip(one.wardtip, x, y);
 }

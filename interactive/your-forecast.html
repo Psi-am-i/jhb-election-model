@@ -324,12 +324,18 @@
       </div>
     </div>
 
-    <section class="yf-analysis" data-live="b-analysis" aria-labelledby="h-analysis" hidden>
-      <h3 id="h-analysis">How likely is your forecast?</h3>
-      <p class="yf-verdict"></p>
-      <p class="yf-expected"></p>
-      <div class="yf-atable"></div>
-      <p class="pl-note yf-anote"></p>
+    <!-- the heading and its footnote marker sit outside the LIVE region,
+         which holds no build-time digit; css/your-forecast.css hides the
+         section while the region is hidden -->
+    <section class="yf-analysis" aria-labelledby="h-analysis">
+      <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">8</a></sup></h3>
+      <div data-live="b-analysis" hidden>
+        <p class="yf-verdict"></p>
+        <p class="yf-outcome"></p>
+        <p class="yf-expected"></p>
+        <div class="yf-atable"></div>
+        <p class="pl-note yf-anote"></p>
+      </div>
     </section>
   </section>
 
@@ -357,6 +363,10 @@
         changes larger than that.</li>
       <li id="note-law">The Municipal Structures Act deducts the surplus. Germany's laws are here for comparison, and only a
         council seated under South African law can be shared. Breaking the model always seats by South African law.</li>
+      <li id="note-outcome">"This outcome" is your council's: the party with the most seats on its own, or a tie for
+        the most; whether any one party has a majority on its own; and, if you picked who governs, that coalition
+        holding a majority. Its chance is the share of the published forecast's {{n_draws}} simulations, each counted
+        once, in which all of these happen together. A ward's chance is the share in which your party wins it.</li>
     </ol>
   </section>
 

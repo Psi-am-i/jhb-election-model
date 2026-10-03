@@ -601,7 +601,9 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
         calls[w] = next(c for c in other if c != calls[w])
     share = dict(d["start"]["combined_share"])
     seats = dict(d["start"]["seats"])
-    a = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats})))
+    top2 = sorted(seats, key=lambda c: -seats[c])[:2]
+    a = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
+                                             "coalition": top2})))
     man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
     arr = R.unpack((ROOT / "site/draws/base.bin").read_bytes(), man)
     cols = lambda n: next(b for b in man["blocks"] if b["name"] == n)["columns"]
@@ -622,6 +624,29 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
         v = arr["pr_share"][:, pc.index(c)] * 100.0
         assert math.isclose(got["p"], R.within_band(v, w, share.get(c, 0.0), R.ANALYSIS_SHARE_BAND_POINTS), rel_tol=1e-12), c
     assert (a["seat_band"], a["share_band"]) == (R.ANALYSIS_SEAT_BAND, R.ANALYSIS_SHARE_BAND_POINTS)
+    # the headline: the reader's council-level outcome, read off the reader's
+    # seats here, scored on the same draws by reweight.council_outcome
+    held = {c: v for c, v in seats.items() if v > 0}
+    most = max(held.values())
+    tops = [c for c, v in held.items() if v == most]
+    need = sum(held.values()) // 2 + 1
+    o = a["outcome"]
+    assert (o["largest"], o["majority_alone"], o["coalition"]) == (
+        tops[0] if len(tops) == 1 else None, most >= need, sorted(top2))
+    pc_cols = [c for c in sc if c != "OTHER"]
+    want_o = R.council_outcome(arr["seats/deduct"][:, [sc.index(c) for c in pc_cols]].astype(float), pc_cols,
+                               arr["council/deduct"][:, 0], w, largest=o["largest"],
+                               majority_alone=o["majority_alone"], coalition=o["coalition"])
+    assert math.isclose(o["p"], want_o, rel_tol=1e-12) and o["text"] == R.chance_text(o["p"])
+    # the coalition part bites on the real draws: without it the chance is
+    # at least as high, and a coalition of the two smallest shown parties
+    # (never a majority) scores zero
+    bare = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats})))
+    assert bare["outcome"]["p"] >= o["p"] and bare["outcome"]["coalition"] == []
+    small = sorted(a["seats"], key=lambda c: seats.get(c, 0))[:2]
+    tiny = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
+                                                "coalition": small})))
+    assert tiny["outcome"]["p"] == 0.0, small
     # it moves with the forecast: the start's own calls score higher
     b = json.loads(ns["analyse"](json.dumps({"ward_calls": dict(zip(wards, d["start"]["ward_calls"])),
                                              "share": share, "seats": seats})))

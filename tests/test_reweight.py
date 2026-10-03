@@ -1127,6 +1127,42 @@ def test_within_band_is_the_weighted_share_within_the_band_on_both_sides():
     assert R.within_band([10.0, 12.5, 15.0], R.uniform(3), 12.5, 2.5) == 1.0
 
 
+def test_council_outcome_against_a_hand_enumeration():
+    """Five draws of three parties, constructed weights, a threshold of 6 in
+    each draw. The outcome is the largest party alone (or a tie), whether one
+    party holds a majority alone, and a chosen coalition reaching the
+    threshold, ALL three in the same draw; each part is seen to bite (dropping
+    it changes the answer), and a reader's tie matches only the tied draws."""
+    cols = ["A", "B", "C"]
+    s = np.array([[6, 3, 1],    # A alone largest, A majority
+                  [5, 4, 1],    # A alone largest, no majority; A+C = 6
+                  [4, 4, 2],    # tie A/B, no majority
+                  [3, 5, 2],    # B alone largest, no majority; A+C = 5
+                  [5, 3, 2]])   # A alone largest, no majority; A+C = 7
+    w = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    thr = np.full(5, 6)
+    f = lambda **k: R.council_outcome(s, cols, thr, w, **k)
+    # A largest, no majority: draws 2 and 5
+    assert f(largest="A", majority_alone=False) == (2 + 5) / 15
+    # the majority part bites: A largest with a majority is draw 1 only
+    assert f(largest="A", majority_alone=True) == 1 / 15
+    # the coalition part bites: A+C >= 6 keeps draws 2 and 5
+    assert f(largest="A", majority_alone=False, coalition=["A", "C"]) == (2 + 5) / 15
+    assert f(largest="A", majority_alone=False, coalition=["C"]) == 0.0
+    assert f(largest="B", majority_alone=False, coalition=["A", "C"]) == 0.0
+    assert f(largest="B", majority_alone=False) == 4 / 15
+    # a reader's tie for the most seats matches the tied draw only
+    assert f(largest=None, majority_alone=False) == 3 / 15
+    # a party with no column is largest in no draw; a coalition party with
+    # no column holds no seats
+    assert f(largest="Z", majority_alone=False) == 0.0
+    assert f(largest="A", majority_alone=False, coalition=["A", "Z"]) == 0.0
+    # every reader outcome over the parties partitions the draws with the
+    # majority part
+    total = sum(f(largest=c, majority_alone=m) for c in (*cols, None) for m in (True, False))
+    assert math.isclose(total, 1.0)
+
+
 def test_ward_calls_likelihood_against_a_hand_enumeration():
     """Three wards, two parties, four draws, constructed weights. Each ward's
     chance is ``ward_win_probability`` (Jeffreys); ``expected`` is their sum;

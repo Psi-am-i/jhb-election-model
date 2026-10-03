@@ -972,6 +972,46 @@ def within_band(values, weights, centre: float, band: float) -> float:
     return weighted_probability(np.abs(v - float(centre)) <= float(band) + 1e-9, weights)
 
 
+def council_outcome(seats, columns, thresholds, weights=None, *, largest, majority_alone: bool,
+                    coalition=()) -> float:
+    """The chance the model gives a reader's council-level outcome (owner,
+    2026-10-03; definition and method in JUDGEMENT-CALLS.md §N3).
+
+    "The outcome" is three things about the reader's council at once, each
+    read from every simulation the same way:
+
+    * the largest party: ``largest`` alone has the most seats, as
+      :func:`largest_party` defines it, or, when ``largest`` is None (the
+      reader's council has a tie for the most seats), two or more parties
+      tie for the most;
+    * whether one party has a majority on its own, against that simulation's
+      own threshold (:func:`majority_alone`), equal to ``majority_alone``;
+    * if the reader picked a governing ``coalition``, that its parties
+      together hold at least that simulation's threshold.
+
+    ``seats`` is ``(draws, parties)`` with ``columns`` its party codes (no
+    aggregate column); a coalition party with no column holds no seats in any
+    simulation. Unit weights when ``weights`` is None.
+    """
+    s = np.asarray(seats, dtype=float)
+    w = uniform(s.shape[0]) if weights is None else np.asarray(weights, dtype=float)
+    thr = np.asarray(thresholds, dtype=float)
+    top = s.max(axis=1)
+    at_top = s == top[:, None]
+    alone = at_top.sum(axis=1) == 1
+    if largest is None:
+        event = ~alone
+    elif largest in columns:
+        event = alone & at_top[:, list(columns).index(largest)]
+    else:
+        event = np.zeros(s.shape[0], dtype=bool)
+    event &= (top >= thr) == bool(majority_alone)
+    if coalition:
+        idx = [list(columns).index(c) for c in coalition if c in columns]
+        event &= (s[:, idx].sum(axis=1) if idx else np.zeros(s.shape[0])) >= thr
+    return weighted_probability(event, w)
+
+
 def ward_calls_likelihood(winners, weights, codes: int, calls) -> dict:
     """How the model rates a full set of ward calls (owner, 2026-10-03; method
     in JUDGEMENT-CALLS.md §N3).
