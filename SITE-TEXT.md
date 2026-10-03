@@ -12,10 +12,237 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-274 blocks from 9 files.
+369 blocks from 11 files.
+
+
+## home.html
+
+<!-- block 642d5d12 -->
+*div*
+
+City of Johannesburg · 4 November 2026
+
+<!-- /block 642d5d12 -->
+
+<!-- block b97c3f0f -->
+*div*
+
+<a href="forecast">the full forecast →</a>
+
+<!-- /block b97c3f0f -->
+
+<!-- block 046a598c -->
+*div*
+
+Seats, if the election were held now
+
+<!-- /block 046a598c -->
+
+<!-- block e8cb966d -->
+*div*
+
+Make your own forecast
+
+<!-- /block e8cb966d -->
+
+<!-- block 281c86a1 -->
+*h3*
+
+<a href="make/">Call the wards yourself</a>
+
+<!-- /block 281c86a1 -->
+
+<!-- block a000d6a3 -->
+*p*
+
+Give each ward to a party, set each party's share of the vote, and pick who governs. The seats follow from the law that seats the council. The page starts from the model's most likely winner in each ward.
+
+<!-- /block a000d6a3 -->
+
+<!-- block b6d36ed7 -->
+*li*
+
+The seats are worked out in your browser by the site's own seat code.
+
+<!-- /block b6d36ed7 -->
+
+<!-- block 8a33de24 -->
+*li*
+
+Your forecast is kept in the page's address, so a link carries it. Nothing is sent or stored.
+
+<!-- /block 8a33de24 -->
+
+<!-- block e90f98df -->
+*li*
+
+Share it as a link or as an image with your name on it.
+
+<!-- /block e90f98df -->
+
+<!-- block 2b40ae97 -->
+*p*
+
+To change what the model assumes instead, <a href="play/">play with the model</a>.
+
+<!-- /block 2b40ae97 -->
+
+<!-- block b14ac78a -->
+*div*
+
+Articles
+
+<!-- /block b14ac78a -->
+
+<!-- block 97522cee -->
+*div*
+
+The parties' claims, tested
+
+<!-- /block 97522cee -->
+
+<!-- block 29c45cdc -->
+*div*
+
+How this is built
+
+<!-- /block 29c45cdc -->
+
+<!-- block bcca88f1 -->
+*div*
+
+<a href="methodology">How the model works</a>
+
+<!-- /block bcca88f1 -->
+
+<!-- block 3576e5ca -->
+*div*
+
+The simulations are built from how every voting district in the city has voted before.
+
+<!-- /block 3576e5ca -->
+
+<!-- block 264ba27c -->
+*div*
+
+<a href="nobody-will-win#the-november-surprise">Two ballots, one council</a>
+
+<!-- /block 264ba27c -->
+
+<!-- block 5b763cb8 -->
+*div*
+
+The ward and party ballots are added together to set each party's seats. One clause covers a party that wins more wards than its share of the vote entitles it to.
+
+<!-- /block 5b763cb8 -->
+
+<!-- block 13fa80aa -->
+*div*
+
+<a href="sources">Where the data comes from</a>
+
+<!-- /block 13fa80aa -->
+
+<!-- block 41a8b9a7 -->
+*div*
+
+Each source file is listed with its checksum and the workarounds it needed.
+
+<!-- /block 41a8b9a7 -->
+
+<!-- block 53ee073a -->
+*div*
+
+<a href="about">How well it has done</a>
+
+<!-- /block 53ee073a -->
+
+<!-- block c0e80d27 -->
+*div*
+
+The model was scored on the 2021 election in eight cities, against the results and three simple baselines.
+
+<!-- /block c0e80d27 -->
+
+<!-- block 2aae4655 -->
+*div*
+
+<a href="review">How the model was broken — and fixed</a>
+
+<!-- /block 2aae4655 -->
+
+<!-- block 1ea05a7d -->
+*div*
+
+A review found errors in the first version. Each was repaired, and the page says what the repair changed.
+
+<!-- /block 1ea05a7d -->
+
+<!-- block a9281d23 -->
+*div*
+
+<a href="forecast#limits">What this forecast cannot tell you</a>
+
+<!-- /block a9281d23 -->
+
+<!-- block efa4e845 -->
+*div*
+
+It cannot say which deal will be made, and it may underestimate a new party.
+
+<!-- /block efa4e845 -->
+
+<!-- block 38d81bad -->
+*div*
+
+<a href="forecast#how-to-read">How to read the page</a>
+
+<!-- /block 38d81bad -->
+
+<!-- block 2cf96651 -->
+*div*
+
+A chance is the share of the {{n_draws}} simulations in which the outcome happens, not a share of the vote.
+
+<!-- /block 2cf96651 -->
 
 
 ## forecast-sheet.html
+
+<!-- block 6c5c9743 -->
+*div*
+
+8 August 2026: Published
+
+<!-- /block 6c5c9743 -->
+
+<!-- block 823e6be9 -->
+*div*
+
+Forecast · City of Johannesburg · 4 November 2026
+
+<!-- /block 823e6be9 -->
+
+<!-- block dd1dd93a -->
+*h1*
+
+Nobody will win Johannesburg <span class="h1-sub">— and an obscure voting law will give the ANC more seats than expected. Get ready for squabbles.</span>
+
+<!-- /block dd1dd93a -->
+
+<!-- block 6436251e -->
+*p*
+
+<span data-asof="2026-08-31">{{n_draws}} simulations using a new voting-district model of the city find the DA finishing first {{pub0831_p_da_largest}} of the time — but never with a majority.</span> A rarely-used clause in our voting laws will hand the shrinking ANC an unbreakable floor: it will keep its ward seats, even though this is more than its proportional allowance — and the shortfall will be taken from every other party.
+
+<!-- /block 6436251e -->
+
+<!-- block 3a6ae1b5 -->
+*div*
+
+{{generated_date}}: what the model says now
+
+<!-- /block 3a6ae1b5 -->
 
 <!-- block fc86af84 -->
 *p*
@@ -24,6 +251,13 @@ The largest party is a near tie, where on 8 August the DA led clearly: {{p_anc_l
 
 <!-- /block fc86af84 -->
 
+<!-- block 823e6be9-2 -->
+*div*
+
+Forecast · City of Johannesburg · 4 November 2026
+
+<!-- /block 823e6be9-2 -->
+
 <!-- block d8ea3896 -->
 *h1*
 
@@ -31,19 +265,159 @@ Who governs Johannesburg
 
 <!-- /block d8ea3896 -->
 
-<!-- block 5da68db4 -->
-*figcaption*
+<!-- block a566758d -->
+*span*
 
-Bars show where the middle 90% of the {{n_draws}} simulations landed; the mark is that party's own middle value. Seats, not vote shares. The colour chip identifies the party; the bars are one neutral tone. Parties that compete for the same voters trade support: when one rises in a simulation, the others tend to fall. <!-- -->
+The forecast
 
-<!-- /block 5da68db4 -->
+<!-- /block a566758d -->
 
-<!-- block edb8af16 -->
+<!-- block 5e8bb908 -->
+*span*
+
+A chance is the share of the {{n_draws}} simulations in which the outcome happens
+
+<!-- /block 5e8bb908 -->
+
+<!-- block f8f1beb8 -->
+*h2*
+
+The chances
+
+<!-- /block f8f1beb8 -->
+
+<!-- block 7427749f -->
 *p*
 
-If the DA rules out the ANC, the EFF and MK, its one realistic option is ActionSA and the PA: {{@govern.da_best_without=0.162400;chance;seat_draws.csv, 5,000 simulations}} chance they have the numbers. The ANC without the DA has {{@govern.anc_routes=10;int;seat_draws.csv, 5,000 simulations}} workable majorities, {{@govern.anc_routes_strong=4;int;seat_draws.csv, 5,000 simulations}} of them with a better than even chance of reaching {{majority}} seats. This is arithmetic, not a judgement of which deal is likely.
+Hover any figure for its source. <span class="arrow mstat-move up">▲</span> <span class="arrow mstat-move down">▼</span> mark figures that moved since the last published edition; <span class="arrow mstat-move moved-since">↘</span> marks a published figure the model has since moved away from. A figure new in this edition carries no mark.
 
-<!-- /block edb8af16 -->
+<!-- /block 7427749f -->
+
+<!-- block 8e788263 -->
+*span*
+
+Projected seats
+
+<!-- /block 8e788263 -->
+
+<!-- block 7d7cbb96 -->
+*h2*
+
+Where the parties land
+
+<!-- /block 7d7cbb96 -->
+
+<!-- block 4aa7ea0d -->
+*span*
+
+Mathematical coalitions &amp; stability
+
+<!-- /block 4aa7ea0d -->
+
+<!-- block e4f58b59 -->
+*h2*
+
+Who can govern
+
+<!-- /block e4f58b59 -->
+
+<!-- block 3fdefc27 -->
+*span*
+
+Or try
+
+<!-- /block 3fdefc27 -->
+
+<!-- block 51f9b3e6 -->
+*th*
+
+Combination
+
+<!-- /block 51f9b3e6 -->
+
+<!-- block db653974 -->
+*th*
+
+Governs in<span>chance</span>
+
+<!-- /block db653974 -->
+
+<!-- block d08708d0 -->
+*th*
+
+Seats<span>median when governing</span>
+
+<!-- /block d08708d0 -->
+
+<!-- block 5192d1d9 -->
+*th*
+
+Cushion<span>over {{majority}}</span>
+
+<!-- /block 5192d1d9 -->
+
+<!-- block 37e2bf77 -->
+*th*
+
+Stability<span>councillors free to defect</span>
+
+<!-- /block 37e2bf77 -->
+
+<!-- block 9209f258 -->
+*th*
+
+If a partner leaves<span>how often the majority still holds</span>
+
+<!-- /block 9209f258 -->
+
+<!-- block 4a7a75ab -->
+*span*
+
+Commentary
+
+<!-- /block 4a7a75ab -->
+
+<!-- block e2a4f55c -->
+*span*
+
+The rule that shapes everything
+
+<!-- /block e2a4f55c -->
+
+<!-- block 3fe4ad35 -->
+*h2*
+
+Wards, lists — and the November surprise
+
+<!-- /block 3fe4ad35 -->
+
+<!-- block 6c5c9743-2 -->
+*div*
+
+8 August 2026: Published
+
+<!-- /block 6c5c9743-2 -->
+
+<!-- block 5e60ca63 -->
+*p*
+
+Johannesburg votes on two ballots at once: one elects a ward councillor, race by race — highest total wins, no majority needed, no runoff — and one is for a party. It seems like they elect two separate halves of the council, but they don't — the two ballots are <em>added together</em>, and that combined share sets the <b>total</b> seats each party is entitled to. Winning a ward doesn't add a seat; it fills one the party was already owed, and the party lists top everyone up to their entitlement.
+
+<!-- /block 5e60ca63 -->
+
+<!-- block f3f81940 -->
+*p*
+
+The quirk: a party with tightly concentrated support can win <em>more</em> wards than its overall share entitles it to. Nobody unseats a ward winner — the seat law's "excessive seats" clause (Schedule 1, item 16, completed by a 2021 amendment) settles it: the winner keeps every ward, receives <b>no list seats at all</b>, and the other parties' list seats are recalculated over what remains. The council stays at 270 and the majority at 136 — we found the Electoral Commission applying exactly this in Laingsburg in 2021. It is now the ANC's normal condition: <span data-asof="2026-08-31">roughly {{pub0831_anc_ward_median}} stronghold wards on a {{pub0831_anc_entitlement}}-seat entitlement, in {{pub0831_p_excessive_anc}} of simulations.</span> Its ward count is an unbreakable floor — and the parties squeezed to pay for it are everyone else.
+
+<!-- /block f3f81940 -->
+
+<!-- block 3a6ae1b5-2 -->
+*div*
+
+{{generated_date}}: what the model says now
+
+<!-- /block 3a6ae1b5-2 -->
 
 <!-- block b67cf5af -->
 *p*
@@ -52,12 +426,68 @@ Still the ANC's usual condition, and weaker than published: about {{anc_ward_med
 
 <!-- /block b67cf5af -->
 
+<!-- block fdd14f85 -->
+*span*
+
+The precedent — a dress rehearsal in the Karoo
+
+<!-- /block fdd14f85 -->
+
+<!-- block 75ded111 -->
+*h2*
+
+Laingsburg, 2021: the whole mechanism in seven seats
+
+<!-- /block 75ded111 -->
+
+<!-- block 6c5c9743-3 -->
+*div*
+
+8 August 2026: Published
+
+<!-- /block 6c5c9743-3 -->
+
+<!-- block 9e83929f -->
+*p*
+
+This clause is not a theory — it has fired exactly once, in a Karoo town with a seven-seat council. In 2021 the DA won three of Laingsburg's four wards on just 23% of the vote, a share entitling it to only two seats. The Electoral Commission's published calculation shows what the law does next: the DA kept all three wards and received <b>no list seats</b>; its votes were set aside and a fresh quota computed for everyone else over the four seats that remained; and the small Karoo Democratic Force lost the seat it would otherwise have held. The council stayed at seven. Scale that up thirty-eight-fold and you have this forecast's central case: <span data-asof="2026-08-31">the ANC winning roughly {{pub0831_anc_ward_median}} of Johannesburg's wards on a {{pub0831_anc_entitlement}}-seat entitlement</span> — keeping every one, taking zero list seats, the squeeze recalculated onto everyone else inside a council fixed at 270. A quirk that has fired once, in one small town, is about to govern the country's biggest metro.
+
+<!-- /block 9e83929f -->
+
+<!-- block 3a6ae1b5-3 -->
+*div*
+
+{{generated_date}}: what the model says now
+
+<!-- /block 3a6ae1b5-3 -->
+
 <!-- block a1e79ef2 -->
 *p*
 
 The central case now has the ANC on about {{anc_ward_median}} wards against a {{anc_entitlement}}-seat entitlement. The clause fires for the ANC: {{p_excessive_anc}} chance.
 
 <!-- /block a1e79ef2 -->
+
+<!-- block fd314c17 -->
+*span*
+
+The counterfactual — four answers to one problem
+
+<!-- /block fd314c17 -->
+
+<!-- block 792212f8 -->
+*h2*
+
+Other Proportional Representation Mechanisms
+
+<!-- /block 792212f8 -->
+
+<!-- block 4c02bc85 -->
+*p*
+
+South Africa is not the only democracy whose voters hand a party more constituency wins than its proportional share. Germany faced the same arithmetic for decades — and answered it differently three times. Until 2013 the Bundestag simply grew: the winner kept its extra seats and everyone else kept their proportional count (<em>Überhangmandate</em>). Modern Germany went further and added levelling seats (<em>Ausgleichsmandate</em>) for everyone else, growing the chamber until full proportionality was restored. In 2023 Germany abolished overhang entirely: a constituency winner whose party lacks the list share is now simply not seated. South Africa's 2021 amendment chose the opposite approach: the council size does not change, the winner keeps what it won, and the other parties lose some representation.
+
+<!-- /block 4c02bc85 -->
 
 <!-- block b6686273 -->
 *figcaption*
@@ -66,12 +496,47 @@ The same {{n_draws}} simulated elections, scored under each rule (median seats; 
 
 <!-- /block b6686273 -->
 
+<!-- block 7db0177d -->
+*span*
+
+The counter-intuitive part
+
+<!-- /block 7db0177d -->
+
+<!-- block c755515f -->
+*h2*
+
+When the ANC falls, nobody catches the votes
+
+<!-- /block c755515f -->
+
+<!-- block 6c5c9743-4 -->
+*div*
+
+8 August 2026: Published
+
+<!-- /block 6c5c9743-4 -->
+
+<!-- block 2e3760f4 -->
+*p*
+
+Most voters assume the ANC's decline must hand victory to someone else. The record says otherwise. Between 2019 and 2021 — the ANC bloc's biggest collapse ever — it shed <b>{{bloc_leak_votes}} votes</b> across Johannesburg's voting districts. The opposition captured essentially <b>none</b> of them: the DA's bloc actually lost 52,000 votes of its own over the same stretch, even with ActionSA arriving from nowhere to take 18%. The opposition's share surged only because ANC voters stayed home and the total shrank. The voting blocs behave like separate reservoirs whose levels rise and fall — not pipes into each other.
+
+<!-- /block 2e3760f4 -->
+
 <!-- block e6109094 -->
 *p*
 
 That is why the DA can finish first without ever nearing a majority, and why "the ANC is collapsing" and "someone else must be winning" are entirely different claims. If 2026 breaks this pattern — and the boldest July polling would require it to — it would be the first time in the city's democratic history.
 
 <!-- /block e6109094 -->
+
+<!-- block 3a6ae1b5-4 -->
+*div*
+
+{{generated_date}}: what the model says now
+
+<!-- /block 3a6ae1b5-4 -->
 
 <!-- block 44f7a8a9 -->
 *p*
@@ -80,12 +545,131 @@ The model then grouped voters into ANC- and DA-leaning blocs. It now groups them
 
 <!-- /block 44f7a8a9 -->
 
-<!-- block 97522cee -->
+<!-- block 7bdbd8c6 -->
+*span*
+
+The third way to govern
+
+<!-- /block 7bdbd8c6 -->
+
+<!-- block 2f42c448 -->
+*h2*
+
+Minority administrations
+
+<!-- /block 2f42c448 -->
+
+<!-- block 4601b9d9 -->
+*p*
+
+No coalition table shows it, but the mayor is elected by councillors <em>present and voting</em>, so abstention installs minority governments — it is how the DA took this mayoralty in 2021. A minority administration is viable when its candidate outpolls the parties that actively vote against it, with everyone else abstaining. In the {{n_draws}} simulations, that route is as open to the ANC as to the DA:
+
+<!-- /block 4601b9d9 -->
+
+<!-- block d5450931 -->
+*th*
+
+Candidate, and who votes against (everyone else abstains)
+
+<!-- /block d5450931 -->
+
+<!-- block ebcdfc82 -->
+*th*
+
+Viable in, of simulations
+
+<!-- /block ebcdfc82 -->
+
+<!-- block 292ecd66 -->
+*span*
+
+About the model
+
+<!-- /block 292ecd66 -->
+
+<!-- block c119d99c -->
+*span*
+
+Before the numbers
+
+<!-- /block c119d99c -->
+
+<!-- block fde652c7 -->
+*h2*
+
+How to read this page
+
+<!-- /block fde652c7 -->
+
+<!-- block 1c3d759f -->
+*p*
+
+This forecast is <b>{{n_draws}} simulations</b> of the election, each a plausible 2026 within the bounds of everything observed since 2006. A chance beside a party, a coalition or a result is <b>the share of those {{n_draws}} simulations in which it happens</b>. "89%" never means a vote share or a poll figure: it means the thing happened in that share of the {{n_draws}} simulations. The range beside each seat count is where the middle 90% of simulations landed.
+
+<!-- /block 1c3d759f -->
+
+<!-- block dffb64dc -->
+*span*
+
+Limits
+
+<!-- /block dffb64dc -->
+
+<!-- block 28307483 -->
+*h2*
+
+What this forecast cannot tell you
+
+<!-- /block 28307483 -->
+
+<!-- block 6cbe11b9 -->
+*li*
+
+<b>Viability is not intent.</b> The {{p_anc_da}} for ANC + DA is arithmetic, not a prediction that the deal is made.
+
+<!-- /block 6cbe11b9 -->
+
+<!-- block eae7f308 -->
+*li*
+
+<b>A new party is sized from history, not from polling.</b> Every party on the IEC's certified ballot is named in the simulations, and a party with no record is sized from how past newcomers performed. ActionSA went from absent to {{asa_2021_seats}} seats in one cycle. This sizing can underestimate a breakthrough of that kind.
+
+<!-- /block eae7f308 -->
+
+<!-- block c334574d -->
+*li*
+
+<b>The ranges are the output.</b> A seat number quoted without its range misreads the sheet. The shares of simulations are as good as the assumptions, which are set out on the methodology page.
+
+<!-- /block c334574d -->
+
+<!-- block 336f8ef8 -->
+*li*
+
+<b>The excessive-seats law is settled by precedent, not yet confirmed.</b> A 2021 amendment completes Schedule 1, and the Electoral Commission's own Laingsburg 2021 calculation applies it. The Commission has been asked to confirm our reading.
+
+<!-- /block 336f8ef8 -->
+
+<!-- block eb8a1f97 -->
+*li*
+
+<b>This is not a poll.</b> No voters were surveyed. It is arithmetic on results, registration and {{byelection_count}} by-elections. Polls are not an input; they are kept as an outside check.
+
+<!-- /block eb8a1f97 -->
+
+<!-- block 7f3121e1 -->
+*div*
+
+The campaign arithmetic
+
+<!-- /block 7f3121e1 -->
+
+<!-- block 97522cee-2 -->
 *h2*
 
 The parties' claims, tested
 
-<!-- /block 97522cee -->
+<!-- /block 97522cee-2 -->
 
 <!-- block ef9034fd -->
 *p*
@@ -93,6 +677,20 @@ The parties' claims, tested
 Each claim below is a public, checkable statement about November, tested against the same {{n_draws}} simulations as the rest of this page.
 
 <!-- /block ef9034fd -->
+
+<!-- block 67604f55 -->
+*div*
+
+Sources: Electoral Commission of South Africa — voting-district results for the 2011, 2016 and 2021 municipal elections, the 2014, 2019 and 2024 national and provincial elections, and all CoJ by-elections 2021–2026 (weighted within-ward deltas, an input to the central scenario). Municipal Demarcation Board — 2026 ward and voting-district boundaries. Statistics South Africa — Census 2022 ward estimates. <strong>No poll is an input to this forecast</strong> (since 12 September 2026). The polls we hold are listed and used only as an outside check; see the methodology page.<br> Seat allocation follows Schedule 1 of the Municipal Structures Act, including the excessive-seats clause as the IEC applied it in Laingsburg in 2021 (fixed 270-seat council; the Commission has been asked to confirm our reading). Figures on this sheet are generated from the model outputs by src/render_sheet.py. Methodology, validation, review history and the interactive companion are in the project repository.<br> Figures generated {{generated_date}}, seed {{run_seed}}.
+
+<!-- /block 67604f55 -->
+
+<!-- block 9ad49806 -->
+*div*
+
+<span><b>First issued</b> <span data-asof="2026-08-05">5 August 2026</span> · <b>figures from</b> {{generated_date}}</span> <span><b>Method</b> {{n_draws}} simulations · voting-district level · both ballots · ward winners &amp; overhang</span> <span><b>Baseline</b> 2024 provincial ballot + {{byelection_count}} by-elections</span> <span><b>Polls</b> not an input since <span data-asof="2026-09-12">12 September 2026</span> — used only as an outside check</span> <span><b>Council</b> {{council_size}} seats · majority {{majority}} · Schedule 1 item 16 applied</span>
+
+<!-- /block 9ad49806 -->
 
 
 ## docs-public/about-the-model.md
@@ -2252,6 +2850,90 @@ None.
 Institutions and sponsors: [psi@whysoserious.city](mailto:psi@whysoserious.city).
 
 <!-- /block 9b464586 -->
+
+
+## content/joburg/articles.toml
+
+<!-- block 130c45bb -->
+*article[0].title*
+
+Nobody will win Johannesburg — and an obscure voting law will give the ANC more seats than expected
+
+<!-- /block 130c45bb -->
+
+<!-- block c10456e8 -->
+*article[0].standfirst*
+
+Johannesburg votes on two ballots at once, and they are added
+together. A party with tightly concentrated support can win more wards than its
+share entitles it to — and nobody unseats a ward winner. The shortfall is taken
+from every other party. The clause has fired exactly once before, in a Karoo
+town of seven seats.
+
+<!-- /block c10456e8 -->
+
+<!-- block c755515f-2 SAME WORDS APPEAR ELSEWHERE — an edit here is refused unless the text is unique in its own file -->
+*article[1].title*
+
+When the ANC falls, nobody catches the votes
+
+<!-- /block c755515f-2 -->
+
+<!-- block b9f6b233 -->
+*article[1].standfirst*
+
+The opposition captured essentially none of the 587,000 votes
+the ANC bloc shed between the 2019 national election and the 2021 local
+election. The city's collapse in ANC support did not
+become anybody else's gain — it became abstention.
+
+<!-- /block b9f6b233 -->
+
+<!-- block 608bf272 -->
+*article[2].title*
+
+Minority administrations, and why nobody has to win
+
+<!-- /block 608bf272 -->
+
+<!-- block 2d4574dc -->
+*article[2].standfirst*
+
+The mayor is elected by the councillors present and voting, so
+abstention installs governments. A council nobody controls is not a council
+nobody can run.
+
+<!-- /block 2d4574dc -->
+
+<!-- block 607d3ae1 -->
+*article[3].title*
+
+If the law were German instead
+
+<!-- /block 607d3ae1 -->
+
+<!-- block ce57722f -->
+*article[3].standfirst*
+
+The same votes under our seat law and Germany's of 2000, 2015
+and 2023.
+
+<!-- /block ce57722f -->
+
+<!-- block 3df81e6a -->
+*article[4].title*
+
+Laingsburg, 2021
+
+<!-- /block 3df81e6a -->
+
+<!-- block 2ebe3695 -->
+*article[4].standfirst*
+
+The only place the clause has fired — the whole mechanism in a
+council of seven.
+
+<!-- /block 2ebe3695 -->
 
 
 ## content/joburg/claims.toml

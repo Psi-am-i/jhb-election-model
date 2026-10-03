@@ -137,6 +137,33 @@ Every scenario assumption is a key in `montecarlo.DEFAULTS`, overridable with
 `--config scenario.json` — the same schema the interactive page emits, so a
 slider position on the website reproduces exactly here.
 
+## Editing the site's words
+
+```bash
+.venv/bin/python src/edit_mode.py        # then open http://127.0.0.1:8801/
+```
+
+It serves the last build in `site/` on this machine only, with an **edit**
+button on every block of prose that has an editable source: the front pages
+(`home.html`, `forecast-sheet.html`), the reader editions (`docs-public/`), the
+tested claims and the article list (`content/joburg/*.toml`). Text written by a
+script on the way to the page has no button; its words are in that script.
+
+- **Figures are locked chips.** Keep one or delete it; Save refuses any change
+  inside one, including from the *Raw text* view.
+- **Review changes** shows the diff of every source file and runs the build's
+  number gate on each edit. A number the original did not have is listed with
+  three ways out: make it a token (a registry token showing that value),
+  register it (an `[[audit.fixed]]` entry in `content/joburg/stats.toml`, with
+  its source) or remove it. **Apply** waits until each is dealt with.
+- **Apply** writes the source files. Then run the normal build
+  (`.venv/bin/python src/build_all.py --city joburg`) and reload.
+
+The overlay (`src/edit/`) is added to each page as it is served and never
+written to `site/`; `src/deploy_check.py` refuses a site that carries it. The
+same edits can be made offline through `src/site_text.py --export` and
+`--apply`, which apply the same rules.
+
 ## Licence
 
 - **Code:** MIT, in [`LICENSE`](LICENSE).

@@ -48,10 +48,11 @@ def _apply_from(tmp: Path, dry_run=True):
 
 
 def test_the_export_finds_prose_in_every_source_it_claims():
-    """The export is only useful if it reaches all three kinds of source."""
+    """The export is only useful if it reaches every kind of source."""
     with tempfile.TemporaryDirectory() as d:
         text = _export_to(Path(d) / "x.md")
-    for source in ("forecast-sheet.html", "docs-public/", "claims.toml"):
+    for source in ("forecast-sheet.html", "home.html", "docs-public/",
+                   "claims.toml", "articles.toml"):
         assert source in text, (
             f"no block came from {source}; the export claims to cover it, and "
             f"an editor would never see those words.")
@@ -106,8 +107,9 @@ def test_an_unedited_round_trip_changes_nothing():
         tmp = Path(d) / "x.md"
         _export_to(tmp)
         before = {p: p.read_bytes() for p in
-                  [ROOT / "forecast-sheet.html",
+                  [ROOT / "forecast-sheet.html", ROOT / "home.html",
                    ROOT / "content" / "joburg" / "claims.toml",
+                   ROOT / "content" / "joburg" / "articles.toml",
                    *(ROOT / "docs-public").glob("*.md")]}
         _apply_from(tmp, dry_run=False)
         after = {p: p.read_bytes() for p in before}

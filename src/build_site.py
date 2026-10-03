@@ -410,6 +410,11 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 """
 
 
+#: The Markdown extensions a reader edition is rendered with. One definition:
+#: `edit_mode` renders a single paragraph the same way to find it on the page.
+MD_EXTENSIONS = ("tables", "fenced_code", "smarty")
+
+
 def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
                tech: str | None | bool = None, og: str | None = None,
                token: str | None = None) -> str:
@@ -446,7 +451,7 @@ def render_doc(source: Path, kicker: str, standfirst: str, output: str = "",
     if m:
         published = f'  <div class="pubdate">{m.group(1).strip()}</div>\n'
         body_md = body_md[:m.start()] + body_md[m.end():]
-    html = markdown.markdown(body_md, extensions=["tables", "fenced_code", "smarty"])
+    html = markdown.markdown(body_md, extensions=list(MD_EXTENSIONS))
     html = html.replace("<table>", '<div class="tablewrap"><table>')
     html = html.replace("</table>", "</table></div>")
 
