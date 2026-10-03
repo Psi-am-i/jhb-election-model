@@ -173,7 +173,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # reproduces the published figures and a paired re-run. Both run
            # the model at the full draw count; both write only into temporary
            # directories.
-           "test_export_draws", "test_reweight",
+           "test_export_draws", "test_reweight", "test_share",
            # Added 2026-09-30 with S6 lane E (review B3): the committed
            # `site/draws/` bytes against the published files and the ledger.
            # Runs no model.

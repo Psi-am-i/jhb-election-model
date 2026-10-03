@@ -8,10 +8,10 @@ its open decisions, as built.
 
 | §7 | decision |
 |---|---|
-| 5 | Headline in Title Case: "{Name}'s Election Forecast" (`forecast-card.js` `cardTitle`). |
+| 5 | Headline in Title Case: "{Name}'s Election Forecast" (`share-card.js` `cardTitle`). |
 | 4 | Boldness badge: Safe call at 20% or more, Bold call from 5% to under 20%, Wild call under 5%. A judgement call: JUDGEMENT-CALLS.md §N6. |
 | 3 | Results-night scoring in the competition's order: seats per party, then wards, then vote per party (JUDGEMENT-CALLS.md §N4). |
-| 2, 12 | Sealed links. The site's Worker signs a link's state and a server timestamp with HMAC-SHA256 under the Worker secret `SEAL_KEY`. A sealed link shows "Sealed <date time SAST>"; a tampered or unsigned one shows "Not sealed". The Worker refuses to seal from the moment polls open (`cities/joburg.toml` `polls_open`). Only links sealed before polls open are eligible for any ranking. Nothing about the person is stored. The seal replaces the design's `d=` date parameter. |
+| 2, 12 | Sealed links. The site's Worker signs a link's state and a server timestamp with HMAC-SHA256 under the Worker secret `SEAL_KEY`. A sealed link shows "Sealed <date time SAST>"; a tampered or unsigned one shows "Not sealed". The Worker refuses to seal from the moment polls open (`content/joburg/election.toml` `polls_open`, on `cities/joburg.toml`'s polling day). Only links sealed before polls open are eligible for any ranking. Nothing about the person is stored. The seal replaces the design's `d=` date parameter. |
 
 ## The lead's defaults
 

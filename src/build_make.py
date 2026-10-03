@@ -294,13 +294,17 @@ def baseline(city, roster: list[str]) -> dict:
 def election_of(city) -> dict:
     """The election the page forecasts: the city, polling day,
     ``polls_open``, the instant voting stations open with its UTC offset, and
-    ``zone``, that offset's name (``cities/<slug>.toml`` ``[structure]``).
+    ``zone``, that offset's name: polling day from ``cities/<slug>.toml``,
+    the opening time and zone from ``content/<slug>/election.toml`` (which
+    says why it is not in the city file).
     The Worker refuses to seal a reader's forecast from that instant
     (src/worker.js); the share cards print times in that zone."""
+    import tomllib
     struct = city.structure_for(city.default_target)
+    clock = tomllib.loads((REPO_ROOT / "content" / city.slug / "election.toml").read_text(encoding="utf-8"))
     return {"city": city.name, "date": str(struct["election_date"]),
-            "polls_open": f"{struct['election_date']}T{struct['polls_open']}:00{struct['utc_offset']}",
-            "zone": str(struct["time_zone"])}
+            "polls_open": f"{struct['election_date']}T{clock['polls_open']}:00{clock['utc_offset']}",
+            "zone": str(clock["time_zone"])}
 
 
 def forecast_data(draws: Path | None = None) -> dict:

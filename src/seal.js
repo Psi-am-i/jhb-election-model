@@ -13,7 +13,7 @@
 // The name is inside the signature, so a sealed forecast cannot be relabelled
 // after the count. Any edit, or a new name, needs a new seal. The Worker
 // refuses to seal from the moment polls open (forecast.json
-// `election.polls_open`, from cities/<slug>.toml), so only a link sealed before
+// `election.polls_open`, from content/<slug>/election.toml), so only a link sealed before
 // then can be eligible for any ranking. Nothing is stored: the Worker keeps no
 // record of what it signed, and the seal says nothing about who asked.
 //

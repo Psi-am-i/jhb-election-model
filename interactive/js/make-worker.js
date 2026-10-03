@@ -5,29 +5,35 @@
 // off the page's thread, so the map and sliders stay responsive.
 //
 // Messages in:   {type: "init", schema}
-//                {type: "seats", seq, forecast}    forecast: builder-state forecastBody
+//                {type: "seats", seq, forecast, lane?}    forecast: builder-state forecastBody
 // Messages out:  {type: "stage", key, label, ms}
 //                {type: "ready", codeRef, times}
-//                {type: "result", seq, ok, answer, errors, ms}
+//                {type: "result", seq, lane, ok, answer, errors, ms}
 //                {type: "failed", message, missing}
 //
-// Only the newest request is answered: one that arrives while another runs
-// replaces any queued one, and the page drops a reply whose seq is stale.
+// Two lanes: "own" (the default, the reader's forecast) and "friend" (the
+// forecast a shared link opened with, for the arrival view and the return
+// card). In each lane only the newest request is answered: one that arrives
+// while another runs replaces any queued one, and the page drops a reply
+// whose seq is stale.
 import { loadSeatEngine, SeatCodeMissing } from "./seat-engine.js";
 
-let engine = null, schema = null, queued = null;
+let engine = null, schema = null;
+const queued = {};
 
 function drain() {
-  if (!engine || !queued) return;
-  const { seq, forecast } = queued;
-  queued = null;
-  const t = performance.now();
-  try {
-    const r = engine.seats(forecast, schema);
-    postMessage({ type: "result", seq, ok: r.ok, answer: r.answer || null, errors: r.errors || [],
-                  ms: Math.round(performance.now() - t) });
-  } catch (e) {
-    postMessage({ type: "result", seq, ok: false, answer: null, errors: [String(e.message || e)] });
+  if (!engine) return;
+  for (const lane of Object.keys(queued)) {
+    const { seq, forecast } = queued[lane];
+    delete queued[lane];
+    const t = performance.now();
+    try {
+      const r = engine.seats(forecast, schema);
+      postMessage({ type: "result", seq, lane, ok: r.ok, answer: r.answer || null, errors: r.errors || [],
+                    ms: Math.round(performance.now() - t) });
+    } catch (e) {
+      postMessage({ type: "result", seq, lane, ok: false, answer: null, errors: [String(e.message || e)] });
+    }
   }
 }
 
@@ -39,7 +45,7 @@ onmessage = e => {
       .then(en => { engine = en; postMessage({ type: "ready", codeRef: en.codeRef, times: en.times }); drain(); })
       .catch(err => postMessage({ type: "failed", message: String(err.message || err), missing: err instanceof SeatCodeMissing }));
   } else if (m.type === "seats") {
-    queued = m;
+    queued[m.lane || "own"] = m;
     drain();
   }
 };

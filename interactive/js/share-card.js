@@ -379,6 +379,12 @@ export function linkCardSVG(spec, assets = {}, party) {
 
 // ---------- the story card, 1080 x 1920 ----------
 
+// The table's right edges, in card pixels; the last column ends at the margin.
+const STORY_COLUMNS = { seats: 443, wards: 549, pr: 607, vote: 752, seatsVs: 886 };
+// The outcome column's type, [words, chance, notes] in px, largest first: the
+// first whose foot stays above STORY_TEXT_BOTTOM is used.
+const STORY_TYPE = { large: [27, 42, 22], middle: [24, 36, 20], small: [22, 32, 18] };
+
 export function storyCardSVG(spec, assets = {}, party) {
   const [W, H] = SIZES.story;
   const X = 60, R = W - 60;
@@ -407,22 +413,23 @@ export function storyCardSVG(spec, assets = {}, party) {
     s += text(x, y, c, 24, "sans", { fill: C.ink3 });
   }
   // the table
-  const cols = [["Seats", 443], ["Wards", 549], ["PR", 607], ["Vote", 752], ["Seats|vs " + spec.baseYear, 886], ["Vote|vs " + spec.baseYear, R]];
+  const K = STORY_COLUMNS;
   y += 50;
-  for (const [h, x] of cols) {
-    const [a, b] = h.split("|");
+  const colHead = (x, a, b = "") => {
     s += b ? text(x, y, a, 22, "sans", { fill: C.ink3, anchor: "end" }) + text(x, y + 26, b, 22, "sans", { fill: C.ink3, anchor: "end" })
       : text(x, y + 26, a, 22, "sans", { fill: C.ink3, anchor: "end" });
-  }
+  };
+  colHead(K.seats, "Seats"); colHead(K.wards, "Wards"); colHead(K.pr, "PR"); colHead(K.vote, "Vote");
+  colHead(K.seatsVs, "Seats", "vs " + spec.baseYear); colHead(R, "Vote", "vs " + spec.baseYear);
   y += 40;
   listedRows(spec, ROWS.story).forEach(r => {
     s += rect(X, y, R - X, 1, C.rule);
     const by = y + 36;
     s += chip(r, X, by - 28, 36, assets) + text(X + 50, by, fitText(r.name, 300, 29, "sansSemi", 22).text, 29, "sansSemi") +
-      text(443, by, String(r.seats), 34, "sansBold", { anchor: "end" }) +
-      text(549, by, String(r.ward), 29, "sans", { anchor: "end" }) + text(607, by, String(r.pr), 29, "sans", { anchor: "end" }) +
-      text(752, by, r.vote.toFixed(1) + "%", 29, "sans", { anchor: "end" }) +
-      (r.others ? "" : text(886, by, r.seatsVs, 26, "sans", { fill: C.ink2, anchor: "end" }) + text(R, by, r.voteVs, 26, "sans", { fill: C.ink2, anchor: "end" }));
+      text(K.seats, by, String(r.seats), 34, "sansBold", { anchor: "end" }) +
+      text(K.wards, by, String(r.ward), 29, "sans", { anchor: "end" }) + text(K.pr, by, String(r.pr), 29, "sans", { anchor: "end" }) +
+      text(K.vote, by, r.vote.toFixed(1) + "%", 29, "sans", { anchor: "end" }) +
+      (r.others ? "" : text(K.seatsVs, by, r.seatsVs, 26, "sans", { fill: C.ink2, anchor: "end" }) + text(R, by, r.voteVs, 26, "sans", { fill: C.ink2, anchor: "end" }));
     y += 48;
   });
   // the map, and beside it the outcome, its chance and badge, and the notes;
@@ -442,9 +449,8 @@ export function storyCardSVG(spec, assets = {}, party) {
     for (const l of wrapText(spec.excess.join(" "), ow, fn)) { out += text(ox, oy, l, fn, "sans", { fill: C.ink3 }); oy += fn * 1.4; }
     return { out, bottom: Math.max(y + m.h, oy - fn) };
   };
-  const sizes = [[27, 42, 22], [24, 36, 20], [22, 32, 18]];
   let col;
-  for (const z of sizes) {
+  for (const z of Object.values(STORY_TYPE)) {
     col = column(z);
     if (col.bottom + 60 + foot.length * 38 <= STORY_TEXT_BOTTOM) break;
   }
@@ -459,6 +465,9 @@ export function storyCardSVG(spec, assets = {}, party) {
 
 // ---------- the return card, 1200 x 630: two forecasts ----------
 
+// The headline's sizes, largest first: the first at which both names fit.
+const DUEL_TITLE = { large: 48, middle: 44, small: 40, least: 36 };
+
 export function duelCardSVG(a, b, assets = {}, party) {
   const [W, H] = SIZES.duel;
   const X = 48, R = W - 48;
@@ -467,7 +476,7 @@ export function duelCardSVG(a, b, assets = {}, party) {
   s += brand(assets, R + 4 - bw, 26, bh);
   const and = " and ";
   const maxW = R - bw - 24 - X;
-  const fs = [48, 44, 40, 36].find(f => textWidth(a.name + and + b.name, f, "serifSemi") <= maxW) || 36;
+  const fs = Object.values(DUEL_TITLE).find(f => textWidth(a.name + and + b.name, f, "serifSemi") <= maxW) || DUEL_TITLE.least;
   const na = fitText(a.name, (maxW - textWidth(and, fs, "serifSemi")) / 2, fs, "serifSemi", fs).text;
   const nb = fitText(b.name, maxW - textWidth(na + and, fs, "serifSemi"), fs, "serifSemi", fs).text;
   // three texts, each placed by measure: SVG drops a text's leading space

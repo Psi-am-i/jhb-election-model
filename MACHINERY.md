@@ -2145,3 +2145,46 @@ INTEGRATION.md §3e); it must be frozen before polls open on 4 November.
   refuses those at save with 422), rather than exclude it.
 
 Tests: `tests/test_score_forecasts.py`. Findings: MODEL-LOG §1.276, §1.277.
+
+## A reader's forecast, shared — `src/share-edge.js`, `src/seal.js`, `interactive/js/share-card.js` (2026-10-03)
+
+The design and the owner's decisions: `audits/2026-10-03-share-design/`.
+
+* **The cards.** `share-card.js` is the one builder of a reader's link card
+  (1200×630), story card (1080×1920) and return card (two forecasts), as SVG.
+  The page draws them in the browser for the share sheet (`make-share.js`);
+  the site's Worker draws the link card as the forecast's preview image.
+  `forecastSpec` takes the seat law's answer, the chance and badge of the
+  reader's council-level outcome, the reader's vote, and forecast.json's
+  `baseline` (the previous council election per roster party, from
+  `build_make.baseline`); it adds no figure of its own. The council graphic's
+  geometry (`councilLayout`, `stepPath`) is shared with the arrival view.
+  Text is measured with the IBM Plex faces that draw it (`card-fonts.js`,
+  generated from `src/card-fonts/` by `interactive/tools/card_fonts.mjs`).
+* **The chance and the badge** come only from Python:
+  `reweight.outcome_chance` (council_outcome, chance_text, and `boldness`,
+  JUDGEMENT-CALLS §N6). The page reaches it through `page.py`'s `analyse`;
+  the Worker through the seat Worker's `/v1/card`
+  (`worker-api/seats-py/src/entry.py`), which seats the link's picks with
+  `reader_seats` and reads the published draws from the site. A link's own
+  figures are never read for an image.
+* **The edge** (`share-edge.js`, routed by `src/worker.js`): `/s/` counts a
+  share arrival (channel `share`, the button) and redirects to the arrival
+  view; `/your-forecast/?f=…` gets its og: tags pointed at
+  `/og/1/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
+  rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
+  the draws' hash, and is `/og.png` on any failure.
+* **Sealed links** (`seal.js`): HMAC-SHA256 under the Worker secret
+  `SEAL_KEY` over `v`, `c`, `f`, `n` and the Worker's clock; refused from
+  `election.polls_open` (`content/joburg/election.toml`). The arrival view
+  checks a link's seal; a card prints a time only for a verified seal.
+* **The arrival view** (`arrival.js`): `from=1` opens the friend's forecast
+  read-only; section 2 stays locked until the reader starts from it or from
+  the published start. The friend's forecast stays in the address (`vs`,
+  `vn`) for the return card; its seats come from the page's seat Worker in a
+  lane of their own (`make-worker.js`).
+
+Tests: `tests/test_worker_routing.py` (routes, counting, fallback, seal),
+`tests/test_share.py` (baseline, polls open), `tests/test_reweight.py`
+(badge edges), `tests/test_reader_seats.py` (`/v1/card`),
+`interactive/tests/share.test.mjs` (cards, fonts, the edge's card, seals).

@@ -90,9 +90,11 @@ def test_polls_open_is_the_configs_day_time_and_offset():
     struct = city.structure_for(city.default_target)
     at = datetime.fromisoformat(e["polls_open"])
     assert at.date().isoformat() == e["date"] == str(struct["election_date"])
-    assert at.strftime("%H:%M") == struct["polls_open"]
+    import tomllib
+    clock = tomllib.loads((ROOT / "content" / city.slug / "election.toml").read_text(encoding="utf-8"))
+    assert at.strftime("%H:%M") == clock["polls_open"]
     assert at.utcoffset() is not None
-    assert e["polls_open"].endswith(struct["utc_offset"])
+    assert e["polls_open"].endswith(clock["utc_offset"]) and e["zone"] == clock["time_zone"]
 
 
 if __name__ == "__main__":

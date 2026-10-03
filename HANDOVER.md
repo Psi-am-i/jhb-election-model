@@ -7,6 +7,22 @@ here first, so anything stale in this file is read as an instruction.
 
 > ## ⛔ STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
 >
+> **Sharing a reader's forecast (2026-10-03, branch `remediation`).** Built from
+> `audits/2026-10-03-share-design/` (DESIGN.md, DECISIONS.md): section 2's
+> cards (`interactive/js/share-card.js`: link, story, two-forecast return
+> card; Title Case headline; Safe/Bold/Wild badge, JUDGEMENT-CALLS §N6), the
+> arrival view a shared link opens (`arrival.js`, `from=1`), `/s/` counting
+> (Analytics Engine channel `share`), per-link og: tags and
+> `/og/1/link.png` (`src/share-edge.js`, resvg in `src/og-render.js`), and
+> sealed links (`src/seal.js`). MACHINERY.md has the mechanism. **Owner, before
+> previews and seals work live:** `wrangler secret put SEAL_KEY` (until then
+> `/seal/1` answers 503 and links go unsealed); deploy `joburg-seats`
+> (`worker-api/seats-py`, never deployed) and add the `SEATS` service binding
+> to `wrangler.toml` (commented there; until then every preview is `/og.png`);
+> run `npm ci` in `worker-api/` before `wrangler deploy` (resvg-wasm is
+> imported from there). The Worker bundle was resolved with esbuild, not
+> wrangler.
+>
 > **Follow-up to the owner's list (2026-10-03, branch `followup`).** /your-forecast/
 > wide (revised after the checklist review, owner: "stacked … plenty of
 > space … too small"): the page runs to 1760px; the levers' column holds

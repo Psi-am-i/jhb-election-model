@@ -275,6 +275,13 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     }),
     # Section 2's share sheet (interactive/js/make-share.js), in "b-share".
     "your-forecast/js/make-share.js": frozenset({"b-share"}),
+    # The view a shared link opens (interactive/js/arrival.js): the friend's
+    # forecast, its outcome and chance, and the ways on, in "arrival".
+    "your-forecast/js/arrival.js": frozenset({"arrival"}),
+    # Section 2's share cards (interactive/js/share-card.js): an SVG of the
+    # figures it is handed, for the share sheet and the site's Worker. It
+    # reaches NO region.
+    "your-forecast/js/share-card.js": frozenset(),
 }
 
 

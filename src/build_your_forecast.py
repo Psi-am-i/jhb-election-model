@@ -68,9 +68,10 @@ YF_HREF = f"{YF_DIR}/"
 #: site (a page nobody rebuilds still looks current), and src/worker.js
 #: redirects their addresses here, query string kept.
 RETIRED = ("play", "make")
-#: The page's share card text. It carries no figure: a shared link shows this
-#: same generic card, because nothing renders per-link previews on the server.
-#: og:image is the site's default share image (site_assets.BRAND_FILES).
+#: The page's share card text. It carries no figure. A link that carries a
+#: reader's forecast gets its own title and image from the site's Worker
+#: (src/share-edge.js rewrites these tags); any other gets these, and og:image
+#: is the site's default share image (site_assets.BRAND_FILES).
 OG_TITLE = "Your Johannesburg election forecast"
 OG_DESCRIPTION = ("Adjust the model's turnout, polls and by-elections, then call every "
                   "ward and set the vote yourself. The seats follow from the law.")
@@ -79,9 +80,11 @@ JS = (
     # section 1: the page, its share sheet and image, its Worker and engine
     "model.js", "play-state.js", "play-card.js", "play-share.js", "model-worker.js",
     "reweight-engine.js", "pubtip.js",
-    # section 2: the page, its state, map and share sheet, its seat Worker
+    # section 2: the page, its state, map and share sheet, its seat Worker,
+    # the arrival view a shared link opens, and the share cards and their
+    # font widths (one card module with the site's Worker, src/share-edge.js)
     "make.js", "make-state.js", "builder-state.js", "map.js", "make-share.js",
-    "make-worker.js", "seat-engine.js",
+    "make-worker.js", "seat-engine.js", "arrival.js", "share-card.js", "card-fonts.js",
     # both: the address, the share image, its text layout, the seat table,
     # the tooltips' placement
     "yf-url.js", "forecast-card.js", "card-text.js", "seat-table.js", "tip.js",

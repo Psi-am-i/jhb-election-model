@@ -48,12 +48,24 @@
 // THE WALKTHROUGH (owner, 2026-10-03): four numbered steps, one highlighted at
 // a time (data-step="now"); "Next" marks a step done and highlights the next.
 // Every step stays usable whichever is highlighted.
+//
+// A SHARED LINK (audits/2026-10-03-share-design §4). A link the share sheet
+// sends arrives with `from=1` (src/share-edge.js's /s/ redirect): the
+// friend's forecast is shown read-only at the top of the page (js/arrival.js)
+// and section 2 stays locked until the reader picks a start: the friend's
+// forecast (their name is not carried over) or the published one. Either way
+// the friend's forecast is kept in the address (`vs`, `vn`) so the share sheet
+// can draw the return card, both forecasts side by side. Its seats come from
+// the same seat Worker, in a lane of their own, and its chance from the same
+// analysis.
 
 import * as B from "./builder-state.js";
 import * as MS from "./make-state.js";
 import * as YU from "./yf-url.js";
 import { WardMap } from "./map.js";
-import { setShareable, onNameChange } from "./make-share.js";
+import { setShareable, onNameChange, onOpen, onFriendName } from "./make-share.js";
+import { showArrival, hideArrival, onChoose } from "./arrival.js";
+import { forecastSpec, aChance, chanceSentence } from "./share-card.js";
 import { seatTable } from "./seat-table.js";
 import { placeTip } from "./tip.js";
 import { engineCall, onForecast } from "./model.js";
@@ -165,6 +177,11 @@ let state, S, history, map, worker;
 let result = null, seq = 0;
 let started = false;
 let fromLink = false;      // opened from a link's forecast, not yet measured against section 1
+let parties = {};          // parties.json: name, colour, article, logo per party
+let arriving = false;      // a shared link's arrival view is up; section 2 is locked
+let pinned = false;        // the start is a friend's forecast: section 1 never replaces it unasked
+let friend = null;         // { name, f, state, coalition, answer, outcome, leftOff, seal }
+let ownOutcome = null, outcomeTicket = 0;
 
 const pct = (v, dp = 1) => {
   const p = v / ctx.T * 100;
@@ -180,7 +197,7 @@ async function follow() {
   const f = section1, ticket = ++handSeq;
   // before start() has its data, there is nothing to follow with: start()
   // follows once it has
-  if (!f || !ctx || !from) return;
+  if (!f || !ctx || !from || arriving) return;
   let next;
   if (!f.touched) next = { state: pubStart, adjusted: false, middle: D.start.published_middle };
   else {
@@ -201,7 +218,7 @@ async function follow() {
     return;
   }
   if (MS.sameState(next.state, from, ctx)) { waiting = null; one.follow.hidden = true; return; }
-  if (MS.sameState(state, from, ctx)) {
+  if (MS.sameState(state, from, ctx) && !pinned) {
     // unedited: section 2 follows section 1
     ({ state: from, adjusted, middle: fromMiddle } = next);
     waiting = null;
@@ -222,6 +239,7 @@ one.reseed.addEventListener("click", () => {
   ({ state: from, adjusted, middle: fromMiddle } = waiting);
   waiting = null;
   one.follow.hidden = true;
+  pinned = false;
   commit(from);
 });
 
@@ -231,9 +249,11 @@ async function start() {
   started = true;
   one.status.textContent = "Loading the start and the seat law.";
   try {
-    const r = await fetch(new URL("../forecast.json", import.meta.url));
+    const [r, p] = await Promise.all([fetch(new URL("../forecast.json", import.meta.url)), fetch(new URL("../parties.json", import.meta.url))]);
     if (!r.ok) throw new Error("HTTP " + r.status);
+    if (!p.ok) throw new Error("HTTP " + p.status);
     D = await r.json();
+    parties = await p.json();
   } catch (e) {
     one.status.textContent = "The start could not be loaded (" + (e.message || e) + "). Reload to try again.";
     started = false;
@@ -259,6 +279,21 @@ async function start() {
   buildBrush();
   buildVote();
   fromLink = !MS.sameState(state, pubStart, ctx);
+  const linkF = new URLSearchParams(YU.partOf(location.search, YU.BREAK_KEYS)).get("f");
+  if (YU.arrival().from && linkF && !opened.note) {
+    // a shared link: the friend's forecast, read-only until a start is picked
+    arriving = true;
+    fromLink = false;
+    friend = { name: YU.currentName(), f: linkF, state, coalition: S.coalition.slice(), answer: null, outcome: null, leftOff: false,
+               seal: { state: "checking", at: null } };
+    one.status.textContent = "This is " + (friend.name || "a reader") + "'s forecast. Pick where to start, above, to make your own.";
+    checkSeal();
+  } else if (YU.friend()) {
+    // a return link carries the friend's forecast for the side-by-side card
+    const fr = YU.friend();
+    const got = MS.parse("?" + new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fr.f }).toString(), ctx, D.context_ref, pubStart);
+    if (!got.note) friend = { name: fr.name, f: fr.f, state: got.state, coalition: got.coalition, answer: null, outcome: null, leftOff: !fr.name };
+  }
   afterEdit();
   if (section1) follow();          // section 1 may have spoken while the data loaded
   worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
@@ -266,6 +301,82 @@ async function start() {
   worker.postMessage({ type: "init", schema });
 }
 const wantsNow = /(^|[?&])f=/.test(location.search) || location.hash === "#break";
+
+// ---------- a shared link ----------
+const pageRoot = new URL("../../", import.meta.url);
+async function checkSeal() {
+  const s = YU.arrival().s;
+  if (!s) { friend.seal = { state: "not", at: null }; paintArrival(); return; }
+  const fields = { v: MS.FORMAT, c: D.context_ref, f: friend.f, n: friend.name, s };
+  try {
+    const r = await fetch(new URL("seal/1/check", pageRoot), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(fields) });
+    const b = await r.json();
+    friend.seal = r.ok && b.sealed ? { state: "sealed", at: Date.parse(b.at) } : r.ok ? { state: "not", at: null } : { state: "unknown", at: null };
+  } catch (e) {
+    friend.seal = { state: "unknown", at: null };
+  }
+  paintArrival();
+}
+const partyOf = c => parties[c] || { name: byCode[c] ? byCode[c].name : c, colour: "#8b918b", article: "", logo: false };
+function friendSpec() {
+  return forecastSpec({ name: friend.name, answer: friend.answer, outcome: friend.outcome || { coalition: friend.coalition, text: "", badge: "" },
+    vote: B.percentOf(friend.state, ctx), calls: friend.state.calls, party: partyOf, baseline: D.baseline, election: D.election,
+    made: friend.seal && friend.seal.state === "sealed" ? { at: friend.seal.at, sealed: true } : null });
+}
+function paintArrival() {
+  if (!arriving || !friend.answer) return;
+  const spec = friendSpec();
+  if (!friend.outcome) spec.outcome = null;
+  showArrival({ spec, geom, seal: friend.seal, now: Date.now(), logo: c => new URL("logos/" + c + ".png", pageRoot).href });
+}
+// The chance and badge of a forecast's outcome (page.py analyse), for the
+// arrival view, the return card and the reader's own card.
+function outcomeOf(st, coalition, answer) {
+  return engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, st.calls[i]])),
+    share: B.percentOf(st, ctx), seats: answer.seats, majority: answer.majority, coalition, keep: [] }).then(a => a.outcome);
+}
+async function friendOutcome() {
+  if (!friend || !friend.answer || friend.outcome) return;
+  try { friend.outcome = await outcomeOf(friend.state, friend.coalition, friend.answer); } catch (e) { return; }
+  paintArrival();
+  if (result) share();
+}
+onChoose(kind => {
+  arriving = false;
+  hideArrival();
+  YU.write("arrival", "");
+  YU.write("name", "");                       // the friend's label is not carried over
+  YU.write("friend", YU.friendPart(friend.f, friend.name));
+  snapshot();
+  if (kind === "friend") {
+    from = friend.state; adjusted = false; fromMiddle = {}; pinned = true;
+    state = friend.state;
+  } else {
+    from = pubStart; adjusted = false; fromMiddle = D.start.published_middle; pinned = false;
+    state = pubStart; S.coalition = [];
+  }
+  one.status.textContent = "";
+  if (engineReady) lock(false);
+  afterEdit();
+  if (section1 && kind === "ours") follow();
+  one.statusRegion.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+});
+onFriendName(off => {
+  if (!friend) return;
+  friend.leftOff = off;
+  YU.write("friend", YU.friendPart(friend.f, off ? "" : friend.name));
+  if (result) share();
+});
+// the share sheet opened: work out the reader's own outcome if not yet known
+onOpen(async () => {
+  if (ownOutcome || !result) return;
+  const ticket = ++outcomeTicket, st = state, co = S.coalition.slice(), ans = result;
+  let o;
+  try { o = await outcomeOf(st, co, ans); } catch (e) { return; }
+  if (ticket !== outcomeTicket) return;
+  ownOutcome = o;
+  share();
+});
 if (wantsNow) start();
 else new IntersectionObserver((es, io) => {
   if (es.some(e => e.isIntersecting)) { io.disconnect(); start(); }
@@ -516,6 +627,8 @@ function paintStartNote() {
 
 function writeURL() {
   YU.write("break", MS.serialize({ state, coalition: S.coalition }, ctx, D.context_ref, from));
+  ownOutcome = null;
+  outcomeTicket++;
   if (result) share();
 }
 
@@ -592,11 +705,19 @@ function paintCouncil() {
 }
 
 function share() {
+  if (arriving) return;
+  // the link always carries the forecast, the untouched start included, so
+  // its preview and its seal have a forecast to show
+  const f = MS.encode(state, S.coalition, ctx);
+  const link = new URL(YU.linkTo("break", "#break", { withFriend: !!friend }));
+  link.searchParams.set("v", MS.FORMAT); link.searchParams.set("c", D.context_ref); link.searchParams.set("f", f);
+  const n = YU.currentName();
   setShareable({
-    url: YU.linkTo("break", "#break"), name: YU.currentName(), edited: !MS.sameState(state, from, ctx), adjusted,
-    calls: state.calls, seats: result.seats, council: result.council_total, majority: result.majority,
-    coalition: S.coalition, geom, party: c => byCode[c], election: D.election,
-    raised: raisedText(raisedAtStart(), adjusted ? "under the reader's changes" : "in the published forecast"),
+    link: link.href, fields: { v: MS.FORMAT, c: D.context_ref, f, n }, name: n,
+    answer: result, outcome: ownOutcome, vote: B.percentOf(state, ctx), calls: state.calls, coalition: S.coalition,
+    party: partyOf, baseline: D.baseline, election: D.election, geom,
+    friend: friend ? { name: friend.name, answer: friend.answer, outcome: friend.outcome, vote: B.percentOf(friend.state, ctx),
+                       calls: friend.state.calls, leftOff: friend.leftOff } : null,
   });
 }
 onNameChange(n => { YU.write("name", n); if (result) share(); });
@@ -632,20 +753,14 @@ async function analyse(scroll) {
   }
   if (ticket !== analyseTicket) return;
   analysed = a;
+  ownOutcome = a.outcome;
   paintAnalysis(a);
   if (!one.listview.hidden) buildList();
   if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 // "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
-// the whole forecast, a ward, a party's seats and its vote alike; a chance
-// printed as "under 0.1%" or "over 99%" reads "a chance of under 0.1%".
-function aChance(text) {
-  if (!/^\d/.test(text)) return "a chance of " + text;
-  return (/^(8|11|18)(\D|$)|^8\d/.test(text) ? "an " : "a ") + text + " chance";
-}
-function chanceSentence(text) {
-  return "We give this outcome " + aChance(text) + ".";
-}
+// the whole forecast, a ward, a party's seats and its vote alike:
+// share-card.js's aChance and chanceSentence, one definition.
 // the reader's council-level outcome, in words (page.py analyse: reweight.council_outcome)
 function outcomeWords(o) {
   const lead = o.largest ? name(o.largest) + " has the most seats" : "two or more parties tie for the most seats";
@@ -742,11 +857,16 @@ function onWorker(e) {
     engineReady = true;
     window.__seatEngineTimes = m.times;
     console.info("seat engine loaded", m.times);
-    one.status.textContent = "";
-    lock(false);
+    if (!arriving) { one.status.textContent = ""; lock(false); }
     paintBrush();
     afterEdit();
     one.undo.disabled = !history.size;
+    if (friend && !arriving && !friend.answer)
+      worker.postMessage({ type: "seats", seq: 0, lane: "friend", forecast: B.forecastBody(friend.state, ctx, { coalition: friend.coalition }) });
+  } else if (m.type === "result" && m.lane === "friend") {
+    if (!friend || !m.ok) return;
+    friend.answer = m.answer;
+    friendOutcome();
   } else if (m.type === "result") {
     if (m.seq !== seq) return;
     if (!m.ok) {
@@ -757,6 +877,7 @@ function onWorker(e) {
     result = m.answer;
     paintCouncil();
     paintCoalition();
+    if (arriving && !friend.answer) { friend.answer = m.answer; friendOutcome(); paintArrival(); }
     share();
     if (analysed) { clearTimeout(analyseTimer); analyseTimer = setTimeout(() => analyse(false), 400); }
   }

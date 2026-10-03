@@ -26,13 +26,6 @@ list_seats = 135
 vds = 865
 registered = 2348781
 election_date = "2026-11-04"
-# When voting stations open on election_date, local time, and the local UTC
-# offset (Electoral Commission: stations open 07:00 to 21:00, SAST). Read by
-# src/build_make.py into your-forecast/forecast.json `election.polls_open`;
-# src/worker.js refuses to seal a reader's forecast from that instant.
-polls_open = "07:00"
-utc_offset = "+02:00"
-time_zone = "SAST"           # the offset's name, as the share cards print a time
 
 # Council sizes READ FROM the IEC's own Seat Calculation Detail
 # (data/raw/elections/_reports/lge<year>_JHB_seat_calculation_detail.xls, via
