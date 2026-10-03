@@ -201,18 +201,28 @@ def _node() -> str:
     return node
 
 
-def run_worker(source: str, cases: list[dict], files: dict | None = None) -> list[dict]:
+def run_worker(source: str, cases: list[dict], files: dict | None = None,
+               overrides: dict | None = None) -> list[dict]:
     """Run `source` (worker.js text) over `cases` ({url, env, headers?,
-    method?, body?, now?, seats?}). The worker is written beside symlinks to
-    the other modules in src/, so its relative imports resolve to the real
-    files (and theirs, through the links, to the rest of the repository).
-    `files` maps an asset path to a file on disk the fake ASSETS serves."""
+    method?, body?, now?, seats?}). The worker is written into a temporary
+    `src/` beside copies of the other modules in src/ (`overrides` maps a
+    file name to text that replaces its copy: a mutant, never written into
+    the repository), next to links to the real `interactive/` and
+    `worker-api/`, so every relative import resolves as it does in the
+    repository. `files` maps an asset path to a file the fake ASSETS serves."""
     node = _node()
     with tempfile.TemporaryDirectory() as t:
-        w, d, c = Path(t, "worker.mjs"), Path(t, "driver.mjs"), Path(t, "cases.json")
+        src = Path(t, "src")
+        src.mkdir()
+        for name in ("interactive", "worker-api"):
+            Path(t, name).symlink_to(ROOT / name)
         for js in WORKER.parent.glob("*.js"):
             if js != WORKER:
-                Path(t, js.name).symlink_to(js)
+                Path(src, js.name).write_text((overrides or {}).get(js.name, js.read_text(encoding="utf-8")),
+                                             encoding="utf-8")
+        for d_ in ("card-fonts",):
+            Path(src, d_).symlink_to(WORKER.parent / d_)
+        w, d, c = Path(src, "worker.mjs"), Path(t, "driver.mjs"), Path(t, "cases.json")
         w.write_text(source, encoding="utf-8")
         d.write_text(DRIVER, encoding="utf-8")
         c.write_text(json.dumps({"assets": ASSETS, "redirects": REDIRECTS,
@@ -775,13 +785,13 @@ process.stdout.write(JSON.stringify({ f: MS.encode(st, top, ctx), f2: MS.encode(
     return _SHARE
 
 
-def share_arrival_problems(src: str) -> list[str]:
+def share_arrival_problems(src: str, overrides: dict | None = None) -> list[str]:
     S = _share_setup()
     out = []
     for host in (JOBURG, *PREVIEW_HOSTS):
         for ch, blob in (("wa", "wa"), ("copy", "copy"), ("evil<x>", ""), (None, "")):
             q = S["link"] + "&n=Thandi" + (f"&ch={ch}" if ch else "")
-            r = run_worker(src, [{"url": f"https://{host}/s/?{q}", "env": {}}])[0]
+            r = run_worker(src, [{"url": f"https://{host}/s/?{q}", "env": {}}], overrides=overrides)[0]
             h = dict(r["headers"])
             want = f"https://{host}/your-forecast/?{S['link']}&n=Thandi&from=1"
             if r["status"] != 302 or h.get("location") != want or r["fetched"]:
@@ -796,7 +806,7 @@ def share_arrival_problems(src: str) -> list[str]:
                 out.append(f"{host}: X-Robots-Tag {h.get('x-robots-tag')!r}")
     for host in PORTALS:
         for path in ("/s/", "/s"):
-            r = run_worker(src, [{"url": f"https://{host}{path}?{S['link']}&ch=x", "env": {}}])[0]
+            r = run_worker(src, [{"url": f"https://{host}{path}?{S['link']}&ch=x", "env": {}}], overrides=overrides)[0]
             want = f"https://{JOBURG}{path}?{S['link']}&ch=x"
             if r["status"] != 302 or dict(r["headers"]).get("location") != want or r["logs"] or r["points"]:
                 out.append(f"{host}{path}: {r['status']} {dict(r['headers']).get('location')!r} "
@@ -817,21 +827,9 @@ def test_share_arrival_check_fires_on_each_constructed_violation():
                  ('if (q.has("f")) q.set("from", "1");', ""), ('q.delete("ch");', ""),
                  ("SHARE_CHANNELS.has(raw) ? raw : \"\"", "raw || \"\"")):
         assert edge.count(a) == 1, a
-        mutated = edge.replace(a, b)
-        assert _with_edge(mutated, lambda: share_arrival_problems(src)), f"blind to {b!r}"
+        assert share_arrival_problems(src, {"share-edge.js": edge.replace(a, b)}), f"blind to {b!r}"
     assert share_arrival_problems(_mutate(src, "      if (channelOf(path) || isShare(path)) {",
                                           "      if (channelOf(path)) {"))
-
-
-def _with_edge(text: str, fn):
-    """Run `fn` with src/share-edge.js replaced by `text`, restored after."""
-    p = ROOT / "src" / "share-edge.js"
-    real = p.read_text(encoding="utf-8")
-    p.write_text(text, encoding="utf-8")
-    try:
-        return fn()
-    finally:
-        p.write_text(real, encoding="utf-8")
 
 
 def test_the_built_page_carries_every_tag_a_shared_link_rewrites():
@@ -904,14 +902,14 @@ def _seal_cases(S, now, env, **body):
             "body": {"v": "1", "c": S["data"]["context_ref"], "f": S["f"], "n": "Thandi", **body}}
 
 
-def seal_problems(src: str) -> list[str]:
+def seal_problems(src: str, overrides: dict | None = None) -> list[str]:
     S = _share_setup()
     from datetime import datetime
     opens = int(datetime.fromisoformat(S["data"]["election"]["polls_open"]).timestamp() * 1000)
     key = {"SEAL_KEY": TEST_SEAL_KEY}
     before, after = opens - 86_400_000, opens
     out = []
-    made = run_worker(src, [_seal_cases(S, before, key)], S["files"])[0]
+    made = run_worker(src, [_seal_cases(S, before, key)], S["files"], overrides)[0]
     if made["status"] != 200:
         return [f"seal: {made['status']} {made['body']}"]
     s = json.loads(made["body"])["s"]
@@ -928,7 +926,7 @@ def seal_problems(src: str) -> list[str]:
         _seal_cases(S, before, key, n="the model"),  # a name the cards refuse
         {k: v for k, v in _seal_cases(S, before, key).items() if k != "body"} | {"method": "GET"},
         {**check(), "env": {"SEAL_KEY": "another-key"}},   # another key
-    ], S["files"])
+    ], S["files"], overrides)
     want = [(200, {"sealed": True, "at": datetime.fromtimestamp(before // 1000 * 1000 / 1000).astimezone().isoformat(), "before_polls": True}),
             (200, {"sealed": False, "at": None, "before_polls": False})] + \
         [(200, {"sealed": False, "at": None, "before_polls": False})] * 3 + \
@@ -963,17 +961,12 @@ def test_seal_check_fires_on_each_constructed_violation():
     for a, b in (("if (!(now < opens))", "if (false)"),
                  ('if (fields.n !== "" && cardName(fields.n) !== fields.n)', "if (false)")):
         assert edge.count(a) == 1, a
-        assert _with_edge(edge.replace(a, b), lambda: seal_problems(src)), f"blind to {b!r}"
-    p = ROOT / "src" / "seal.js"
+        assert seal_problems(src, {"share-edge.js": edge.replace(a, b)}), f"blind to {b!r}"
     for a, b in (('return [SEAL_VERSION, String(seconds), ...SEALED_KEYS.map(k => String(fields[k] ?? ""))].join("\\n");',
                   'return [SEAL_VERSION, String(seconds), String(fields.f ?? "")].join("\\n");'),
                  ("return ok ? { sealed: true, at: seconds * 1000 } : no;", "return { sealed: true, at: seconds * 1000 };")):
         assert seal.count(a) == 1, a
-        p.write_text(seal.replace(a, b), encoding="utf-8")
-        try:
-            assert seal_problems(src), f"blind to {b!r}"
-        finally:
-            p.write_text(seal, encoding="utf-8")
+        assert seal_problems(src, {"seal.js": seal.replace(a, b)}), f"blind to {b!r}"
 
 
 def test_the_share_routes_write_nothing_about_the_visitor():

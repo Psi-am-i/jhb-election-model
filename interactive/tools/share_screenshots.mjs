@@ -76,6 +76,16 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   // the page from its top to the end of the arrival view
   const bottom = await pg.evaluate(() => Math.ceil(document.querySelector('[data-live="arrival"]').getBoundingClientRect().bottom + scrollY + 24));
   await pg.screenshot({ path: `${OUT}/share-arrival-${w}.png`, fullPage: true, clip: { x: 0, y: 0, width: w, height: bottom } });
+  // DESIGN §6: until a start is picked, nothing edits the friend's forecast
+  const locked = await pg.evaluate(() => {
+    const q = s => [...document.querySelectorAll(s)];
+    const editable = [...q('[data-live="b-map"] .brush button'), ...q('[data-live="b-govern"] .coal button'),
+      ...q('[data-live="b-vote"] input'), ...q('[data-live="b-map"] .tools select'), ...q('[data-live="b-map"] .tools button')];
+    const before = location.search;
+    document.querySelector('[data-live="b-map"] svg path')?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    return { open: editable.filter(e => !e.disabled).map(e => e.className || e.tagName), count: editable.length, same: location.search === before };
+  });
+  if (locked.open.length || !locked.count || !locked.same) throw new Error("the arrival view left section 2 editable: " + JSON.stringify(locked));
   if (w === 1440) {
     // start from the friend's forecast, open the share sheet, pick both forecasts
     await pg.click('[data-live="arrival"] .yf-arr-btns .btn.primary');
