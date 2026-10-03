@@ -324,24 +324,52 @@ for (const b of views) b.addEventListener("click", () => {
   if (v === "list") buildList(); else map.setMode(v);
 });
 
+// The list view: one aligned table per area (ward | the party it is called
+// for | the chance we give that call, once analysed), filtered by area and by
+// party instead of one long scroll. The areas are the area picker's options
+// (one definition, in the page).
+const AREAS = () => [...one.area.options].map(o => [o.value, o.textContent]);
+const LIST = { area: null, party: "" };
 function buildList() {
+  if (LIST.area === null) LIST.area = AREAS()[0][0];
+  const held = alpha.filter(c => state.calls.includes(c));
+  if (LIST.party && !held.includes(LIST.party)) LIST.party = "";
+  const areaPick = el("select", { className: "wlf-area", disabled: !engineReady },
+    el("option", { value: "" }, "Every area"), ...AREAS().map(([v, t]) => el("option", { value: v }, t)));
+  areaPick.value = LIST.area;
+  areaPick.addEventListener("change", () => { LIST.area = areaPick.value; buildList(); });
+  const partyPick = el("select", { className: "wlf-party", disabled: !engineReady },
+    el("option", { value: "" }, "Every party"), ...held.map(c => el("option", { value: c }, name(c))));
+  partyPick.value = LIST.party;
+  partyPick.addEventListener("change", () => { LIST.party = partyPick.value; buildList(); });
+  const bar = el("div", { className: "wlfilter" }, el("label", {}, "Area ", areaPick), el("label", {}, "Called for ", partyPick));
   const opts = () => alpha.map(c => el("option", { value: c }, name(c)));
-  const sets = ["north", "east", "south", "west", "central"].map(sec => {
-    const fs = el("fieldset", {}, el("legend", {}, sec));
+  const tables = AREAS().filter(([v]) => !LIST.area || v === LIST.area).map(([sec, title]) => {
+    const rows = [];
     geom.wards.forEach((w, i) => {
-      if (w.sector !== sec) return;
-      const s = el("select", { id: "wl" + i, disabled: !engineReady }, ...opts());
+      if (w.sector !== sec || (LIST.party && state.calls[i] !== LIST.party)) return;
+      const s = el("select", { id: "wl" + i, disabled: !engineReady, "aria-label": "Ward " + w.id + ", called for" }, ...opts());
       s.value = state.calls[i];
       s.addEventListener("change", () => {
         snapshot();
         const r = B.assignWards(state, ctx, [i], s.value);
         commit(r.state, raisedNote(r.raised));
       });
-      fs.append(el("div", { className: "wl" }, el("label", { htmlFor: "wl" + i }, "Ward " + w.id), s));
+      const got = analysed ? analysed.wards[ctx.wards[i]] : null;
+      rows.push(el("tr", {}, el("th", { scope: "row" }, "Ward " + w.id),
+        el("td", {}, el("span", { className: "wlpick" }, sw(state.calls[i]), s)),
+        el("td", { className: "wln", title: got ? chanceSentence(got.text) : "" }, got ? got.text : "–")));
     });
-    return fs;
-  });
-  one.listview.replaceChildren(el("div", { className: "wardlist" }, ...sets));
+    if (!rows.length) return null;
+    return el("table", { className: "wltable" },
+      el("caption", {}, title),
+      el("colgroup", {}, el("col", { className: "wlc-ward" }), el("col", { className: "wlc-party" }), el("col", { className: "wlc-chance" })),
+      el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Ward"), el("th", { scope: "col" }, "Called for"),
+        el("th", { scope: "col", className: "wln" }, analysed ? "Our chance" : "Our chance, once analysed"))),
+      el("tbody", {}, ...rows));
+  }).filter(Boolean);
+  one.listview.replaceChildren(bar, el("div", { className: "wardlist" },
+    ...(tables.length ? tables : [el("p", { className: "stubnote" }, "No ward in this area is called for that party.")])));
 }
 
 one.fillarea.addEventListener("click", () => {
@@ -355,25 +383,32 @@ one.undo.addEventListener("click", () => {
   commit(prev);
 });
 
-// ---------- the vote: one identical row per party ----------
-// Two lists, each alphabetical: the parties that hold a seat in the published
-// start, then every other party in a collapsed "Other parties" (review
-// 2026-10-02: one alphabetical list of every party put ACDP first and the ANC
-// and DA far below a run of parties at zero). The split is the published
-// start's, fixed for the page, so a row never moves under the reader's
-// finger; finding a party opens the second list.
+// ---------- the vote: a table with the seat table's columns ----------
+// Party | slider | percent, one identical row per party. The parties that
+// hold a seat in the published start come first, most seats first as the
+// seat table orders them; every other party, alphabetical, in a collapsed
+// "Other parties". The order is the published start's, fixed for the page,
+// so a row never moves under the reader's finger; finding a party opens the
+// second list. The percent box is text with a decimal keypad: no spinner.
 const rows = {};
 let rest;
 function buildVote() {
-  const seatedAtStart = alpha.filter(c => (D.start.seats[c] || 0) > 0);
+  const start = D.start.seats;
+  const seatedAtStart = alpha.filter(c => (start[c] || 0) > 0)
+    .sort((a, b) => start[b] - start[a] || name(a).localeCompare(name(b)));
   const restList = el("div", { className: "prrest" });
   rest = el("details", { className: "prmore" }, el("summary", {}, "Other parties"), restList);
-  for (const c of alpha) {
-    const num = el("input", { type: "number", id: "pr-n-" + c, min: "0", max: "100", step: "0.1", inputMode: "decimal", disabled: true });
+  const head = el("div", { className: "prrow prhead", "aria-hidden": "true" },
+    el("span", {}, "Party"), el("span", {}, "Share of all votes"), el("span", { className: "prpct" }, "%"));
+  one.prlist.append(head);
+  for (const c of [...seatedAtStart, ...alpha.filter(x => !seatedAtStart.includes(x))]) {
+    const num = el("input", { type: "text", id: "pr-n-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
+                              disabled: true, className: "prnum" });
     const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", share of all votes, percent" });
     const fl = el("span", { className: "fl" });
-    const row = el("div", { className: "prrow" }, sw(c), el("label", { htmlFor: "pr-n-" + c }, name(c)), num, fl, rng);
+    const row = el("div", { className: "prrow" }, el("label", { htmlFor: "pr-n-" + c, className: "prname" }, sw(c), name(c)), rng, num, fl);
     num.addEventListener("change", () => editShare(c, num.value, true, null));
+    num.addEventListener("keydown", e => { if (e.key === "Enter") editShare(c, num.value, true, null); });
     rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
     rng.addEventListener("change", () => editShare(c, rng.value, true, null));
     rows[c] = { row, num, rng, fl, seated: seatedAtStart.includes(c) };
@@ -585,6 +620,7 @@ async function analyse(scroll) {
   if (ticket !== analyseTicket) return;
   analysed = a;
   paintAnalysis(a);
+  if (!one.listview.hidden) buildList();
   if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 // "We give this outcome a 3% chance." The owner's wording (2026-10-03), for

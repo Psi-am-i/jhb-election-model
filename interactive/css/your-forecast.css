@@ -160,3 +160,9 @@
   .yf-at tr.yf-narrow + tr.yf-narrow td{border-bottom:1px solid var(--rule-soft);padding-bottom:6px;padding-top:2px;}
 }
 .ess:empty{display:none;}
+
+/* "Set the vote": its one line, and the footnote marker's number, drawn here
+   because the step is a LIVE region with no build-time digit (the note is
+   the eighth in the page's notes) */
+.yf-oneline{font-size:13.5px;margin:0 0 8px;}
+.yf-fnvote::after{content:"8";}

@@ -388,6 +388,48 @@ def test_wide_section_1_stacks_the_map_over_the_seat_table_in_a_column_that_scro
     assert re.search(r"\.yf \.pl-wardmap\{max-height:var\(--yf-map-h\);\}", yf)
 
 
+def test_every_footnote_marker_names_its_notes_position():
+    """Each footnote marker's number is its note's place in the notes list,
+    including the one css/your-forecast.css draws inside the vote step (a
+    LIVE region holds no build-time digit). Every note is pointed at. A
+    marker moved out of step is caught, and the check goes quiet when it is
+    reverted."""
+    site = _built()
+    html = _html(site)
+    css = (site / D / "css" / "your-forecast.css").read_text(encoding="utf-8")
+    notes = re.findall(r'<li id="(note-[a-z-]+)"', html[html.index('aria-labelledby="h-notes"'):])
+
+    def wrong(page: str, sheet: str) -> list:
+        marks = re.findall(r'<sup class="fn"><a href="#(note-[a-z-]+)">(\d+)</a></sup>', page)
+        drawn = re.findall(r'<a class="(yf-fn[a-z]+)" href="#(note-[a-z-]+)"', page)
+        for cls, note in drawn:
+            m = re.search(r"\." + cls + r"::after\{content:\"(\d+)\";\}", sheet)
+            marks.append((note, m.group(1) if m else "?"))
+        bad = [(n, k) for n, k in marks if n not in notes or int(k) != notes.index(n) + 1]
+        return bad + [n for n in notes if n not in {m for m, _ in marks}]
+
+    assert len(notes) >= 8, notes
+    assert not wrong(html, css)
+    assert wrong(html, css.replace('.yf-fnvote::after{content:"8";}', '.yf-fnvote::after{content:"7";}'))
+    assert wrong(html.replace('href="#note-outcome">9<', 'href="#note-outcome">8<'), css)
+
+
+def test_the_vote_is_a_table_with_no_spinner_and_no_inner_scroll():
+    """Section 2's vote (owner, 2026-10-03): a row per party with the seat
+    table's columns (party | slider | percent), the percent a text box with
+    a decimal keypad (no spinner arrows), and the list never scrolls inside
+    itself; the ward list is one table per area with fixed columns."""
+    site = _built()
+    js = (site / D / "js" / "make.js").read_text(encoding="utf-8")
+    css = (site / D / "css" / "interactive.css").read_text(encoding="utf-8")
+    assert 'type: "number"' not in js and 'inputMode: "decimal"' in js
+    prlist = re.findall(r"\.prlist\{[^}]*\}", css)
+    assert prlist and not any("max-height" in r or "overflow" in r for r in prlist), prlist
+    assert re.search(r"\.prrow\{display:grid;grid-template-columns:minmax\(0,\d+px\) minmax\(0,1fr\) \d+px;", css)
+    assert re.search(r"\.wltable\{[^}]*table-layout:fixed", css)
+    assert 'el("table", { className: "wltable" }' in js and 'el("details", { className: "prmore" }' in js
+
+
 # -- section 1: the engine -------------------------------------------------------
 
 def _engine():

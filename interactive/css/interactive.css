@@ -124,18 +124,29 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 .step[open]{border-color:var(--rule);}
 .step .body>p{font-size:13.5px;margin:0 0 10px;}
 
-/* PR shares: one row per party, identical */
-.prlist{display:flex;flex-direction:column;max-height:420px;overflow:auto;
-  border-top:1px solid var(--rule-soft);margin-top:8px;}
-.prrow{display:grid;grid-template-columns:14px minmax(0,1fr) 72px;gap:4px 10px;align-items:center;
-  padding:8px 2px;border-bottom:1px solid var(--rule-soft);}
-.prrow .sw{width:12px;height:12px;border-radius:50%;}
-.prrow label{font-size:13.5px;color:var(--ink);}
-.prrow input[type="range"]{grid-column:2/3;width:100%;accent-color:var(--reader);}
-.prrow input[type="number"]{grid-row:1/3;grid-column:3;width:72px;text-align:right;
-  font-variant-numeric:tabular-nums;padding:6px 8px;}
-.prrow .fl{grid-column:2/4;grid-row:3;font-size:11.5px;color:var(--ink-3);}
+/* the vote: a table with the seat table's columns (src/css/seat-table.css):
+   party | slider | percent, right-aligned in tabular figures. No inner
+   scroll: the parties beyond the seat-holders are collapsed instead. */
+.prlist{display:flex;flex-direction:column;border-top:1px solid var(--rule-soft);margin-top:8px;
+  container-type:inline-size;font-variant-numeric:tabular-nums;}
+.prrow{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 62px;gap:2px 12px;align-items:center;
+  min-height:38px;padding:3px 0;border-bottom:1px solid var(--rule-soft);}
+.prrow.prhead{min-height:0;padding:6px 0 4px;font:650 10.5px var(--sans);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);}
+.prrow .prpct{text-align:right;}
+.prname{display:flex;align-items:center;gap:7px;min-width:0;font-size:13.5px;font-weight:550;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prrow .sw{width:10px;height:10px;border-radius:2px;flex:none;}
+.prrow input[type="range"]{width:100%;margin:0;accent-color:var(--reader);}
+.prrow .prnum{width:62px;box-sizing:border-box;text-align:right;font:13px var(--mono);
+  padding:5px 6px;min-height:32px;}
+.prrow .fl{grid-column:1/-1;font-size:11.5px;color:var(--ink-3);padding-bottom:3px;}
 .prrow .fl:empty{display:none;}
+@container (max-width:340px){
+  .prrow{grid-template-columns:minmax(0,92px) minmax(0,1fr) 54px;gap:2px 8px;}
+  .prrow .prnum{width:54px;}
+  .prname{font-size:12.5px;}
+}
 .floornote{font-size:12.5px;color:var(--ink);background:var(--k-soft);border-left:3px solid var(--reader);
   padding:6px 10px;margin-top:8px;}
 .floornote:empty{display:none;}
@@ -178,12 +189,25 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 @media (min-width:980px){.tray{display:contents;}}
 
 /* ward list (the keyboard and screen-reader route to the same picks) */
-.wardlist{columns:1;column-gap:18px;}
-@media (min-width:560px){.wardlist{columns:2;}}
-.wardlist fieldset{break-inside:avoid;border:0;padding:0;margin:0 0 12px;}
-.wardlist legend{font-family:var(--serif);font-size:16px;color:var(--ink);margin-bottom:4px;text-transform:capitalize;}
-.wardlist .wl{display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;margin:3px 0;font-size:13px;}
-.wardlist select{min-height:34px;padding:4px 6px;font-size:13px;}
+/* the list view: one aligned table per area, filtered by area and party */
+.wlfilter{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 12px 4px;}
+.wlfilter label{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-3);}
+.wlfilter select{min-height:34px;font-size:13px;}
+.wardlist{display:flex;flex-direction:column;gap:14px;padding:6px 12px 12px;}
+.wltable{width:100%;max-width:560px;border-collapse:collapse;table-layout:fixed;font-size:13px;
+  font-variant-numeric:tabular-nums;}
+.wltable caption{text-align:left;font:600 16px var(--serif);color:var(--ink);padding:4px 0 6px;}
+.wltable .wlc-ward{width:76px;}
+.wltable .wlc-chance{width:118px;}
+.wltable th,.wltable td{padding:4px 6px;border-bottom:1px solid var(--rule-soft);text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wltable thead th{font:650 10.5px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);
+  white-space:normal;}
+.wltable tbody th{font-weight:500;color:var(--ink-2);}
+.wltable .wln{text-align:right;font-family:var(--mono);}
+.wlpick{display:flex;align-items:center;gap:7px;min-width:0;}
+.wlpick .sw{width:10px;height:10px;border-radius:2px;flex:none;}
+.wlpick select{flex:1;min-width:0;max-width:100%;min-height:30px;padding:2px 4px;font-size:13px;}
 
 /* ---------- dialogs ---------- */
 dialog{margin:auto;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2);padding:0;
@@ -246,7 +270,6 @@ dialog .x:hover{color:var(--ink);}
 .find{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-3);flex:1;min-width:180px;}
 .find input{flex:1;min-width:0;font:14px var(--sans);color:var(--ink);background:var(--paper);
   border:1px solid var(--rule);border-radius:4px;padding:6px 8px;min-height:36px;}
-.prlist{max-height:min(420px,60dvh);}
 .prrow[hidden]{display:none;}
 .namefield{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink);}
 .sharebox{border:1px solid var(--rule-soft);padding:12px 14px;}

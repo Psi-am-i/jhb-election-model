@@ -265,12 +265,10 @@
         <section class="step yf-step" data-live="b-vote" aria-labelledby="h-vote">
           <h3 id="h-vote" class="stephead stepno">Set the vote</h3>
           <div class="body">
-            <p>Each party's share of all votes, ward and list ballots together: the vote the law counts. The shares always
-              add up to the whole. Moving one party scales the others in proportion. A party that wins a ward on your map
-              keeps at least one vote.</p>
-            <p class="pos">The start shares give each party named in the forecast its middle seat count, or its ward count
-              where it is called for more wards than that. The middles need not add up to the council's size: the seats
-              left over go to the other parties, in proportion to their average seats in the simulations.</p>
+            <!-- the footnote marker's number is drawn by css/your-forecast.css
+                 (.yf-fnvote): this region holds no build-time digit -->
+            <p class="yf-oneline">Each party's share of all votes, ward and list ballots together; moving one scales the
+              others.<sup class="fn"><a class="yf-fnvote" href="#note-vote" aria-label="Note on the vote"></a></sup></p>
             <div class="row">
               <button class="btn small model prmodel" type="button">Back to the start shares</button>
               <label class="find">Find a party <input class="prfind" type="search" autocomplete="off"></label>
@@ -328,7 +326,7 @@
          which holds no build-time digit; css/your-forecast.css hides the
          section while the region is hidden -->
     <section class="yf-analysis" aria-labelledby="h-analysis">
-      <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">8</a></sup></h3>
+      <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
       <div data-live="b-analysis" hidden>
         <p class="yf-verdict"></p>
         <p class="yf-outcome"></p>
@@ -363,6 +361,12 @@
         changes larger than that.</li>
       <li id="note-law">The Municipal Structures Act deducts the surplus. Germany's laws are here for comparison, and only a
         council seated under South African law can be shared. Breaking the model always seats by South African law.</li>
+      <li id="note-vote">The vote in "Break the model" is the one the law counts: each party's share of the ward and
+        list ballots together, always adding up to the whole. Moving one party scales the others in proportion. A
+        party that wins a ward on your map always keeps a vote. The start shares give each party named in the
+        forecast its middle seat count, or its ward count where it is called for more wards than that. The middles need
+        not add up to the council's size: the seats left over go to the other parties, in proportion to their average
+        seats in the simulations.</li>
       <li id="note-outcome">"This outcome" is your council's: the party with the most seats on its own, or a tie for
         the most; whether any one party has a majority on its own; and, if you picked who governs, that coalition
         holding a majority. Its chance is the share of the published forecast's {{n_draws}} simulations, each counted
