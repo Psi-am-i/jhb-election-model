@@ -70,7 +70,7 @@ YF_HREF = f"{YF_DIR}/"
 RETIRED = ("play", "make")
 #: The page's share card text. It carries no figure: a shared link shows this
 #: same generic card, because nothing renders per-link previews on the server.
-#: og:image stays the site's share.jpg.
+#: og:image is the site's default share image (site_assets.BRAND_FILES).
 OG_TITLE = "Your Johannesburg election forecast"
 OG_DESCRIPTION = ("Adjust the model's turnout, polls and by-elections, then call every "
                   "ward and set the vote yourself. The seats follow from the law.")

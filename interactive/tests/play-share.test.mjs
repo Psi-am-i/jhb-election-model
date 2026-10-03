@@ -27,7 +27,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as PS from "../js/play-state.js";
 import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, madeLine, headline, sharedBy, largestLine,
-         rangeText, subLine, READER_STAMP, PUBLISHED_STAMP, STORY_TEXT_BOTTOM, SIZES } from "../js/play-card.js";
+         rangeText, subLine, READER_STAMP, PUBLISHED_STAMP, STORY_TEXT_BOTTOM, SIZES, SITE } from "../js/play-card.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = JSON.parse(readFileSync(resolve(here, "native-play.json"), "utf8"));
@@ -160,14 +160,15 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       // forecast" in the foot, not in the first lines
       const lines = textOf(svg).map(unesc);
       const all = lines.join(" ");
-      const firstLines = lines.slice(1, 4).join(" ");    // after the site name
-      assert.equal(lines[1], headline("reader-7", info.touched), `${c.name} ${size}: headline`);
+      const firstLines = lines.slice(0, 3).join(" ");    // the site name is on the canvas (siteLabel)
+      assert.equal(lines[0], headline("reader-7", info.touched), `${c.name} ${size}: headline`);
+      assert.ok(!lines.includes(SITE), `${c.name} ${size}: the site name is drawn on the canvas, not in the SVG`);
       assert.ok(!/election forecast/i.test(all), `${c.name} ${size}`);
       if (info.touched) {
         assert.ok(!firstLines.includes(READER_STAMP.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: ${firstLines}`);
         assert.ok(all.includes(READER_STAMP.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: the stamp is in the foot`);
       } else {
-        assert.ok(!lines[1].includes("reader-7"), `${c.name} ${size}: the name is not the model's headline`);
+        assert.ok(!lines[0].includes("reader-7"), `${c.name} ${size}: the name is not the model's headline`);
         assert.ok(firstLines.includes(sharedBy("reader-7")), `${c.name} ${size}: shared by`);
         assert.ok(all.includes(PUBLISHED_STAMP), `${c.name} ${size}: stamp`);
       }
@@ -193,12 +194,12 @@ test("a name never heads the model's forecast, and is the reader's own on the re
   // critic G1: "The IEC's Election Forecast" printed over the model's own figures
   const svg = buildPlayCardSVG(card(untouched, { name: "The IEC" }));
   const lines = textOf(svg).map(unesc);
-  assert.equal(lines[1], "The model's Johannesburg forecast");
+  assert.equal(lines[0], "The model's Johannesburg forecast");
   assert.ok(lines.includes(sharedBy("The IEC")));
   assert.ok(!lines.some(l => /IEC's/.test(l)), lines.join(" | "));
   const mine = textOf(buildPlayCardSVG(card(moved[0], { name: "The IEC" }))).map(unesc);
-  assert.equal(mine[1], "The IEC's settings on the model");
-  assert.ok(!mine.slice(1, 4).some(l => l.startsWith(READER_STAMP)), mine.slice(1, 4).join(" | "));
+  assert.equal(mine[0], "The IEC's settings on the model");
+  assert.ok(!mine.slice(0, 3).some(l => l.startsWith(READER_STAMP)), mine.slice(0, 3).join(" | "));
   assert.ok(mine.join(" ").includes("Not the model's forecast"), "the stamp is in the foot");
 });
 
@@ -258,3 +259,21 @@ test("the reader's settings in words name every moved setting and nothing else",
   // a poll chosen but not believed is not a setting
   assert.deepEqual(settingsWords({ ...d, polls: [poll.id], trust: 0 }, ctx), []);
 });
+
+test("the site's name is drawn on the canvas in IBM Plex Mono, after the tower-J, at both sizes", async () => {
+  const { siteLabel, MARK_FILE } = await import("../js/forecast-card.js");
+  const { LABEL_FONT } = await import("../js/card-text.js");
+  assert.ok(LABEL_FONT.startsWith('"IBM Plex Mono"'));
+  assert.equal(MARK_FILE, "mark.svg");
+  for (const size of Object.keys(SIZES)) {
+    const l = siteLabel(size, "x/mark.svg");
+    assert.equal(l.text, SITE);
+    assert.equal(l.mark.src, "x/mark.svg");
+    // inside the card, the mark included
+    const [W, H] = SIZES[size];
+    assert.ok(l.x >= 0 && l.x <= W && l.y >= 0 && l.y <= H);
+    if (l.rotate) assert.ok(l.x - l.mark.h + l.fs * 0.28 >= 0, size + ": the mark runs off the card's edge");
+    else assert.ok(l.y + l.fs * 0.28 - l.mark.h >= 0, size + ": the mark runs off the card's top");
+  }
+});
+

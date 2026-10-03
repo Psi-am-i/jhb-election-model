@@ -18,7 +18,7 @@
 //  * native <dialog> + showModal(): the page behind is inert, Escape closes,
 //    focus returns to the button that opened it.
 
-import { buildForecastCardSVG, forecastCardAlt, cardTitle, photoUnder, PHOTO_FILE, SITE, SIZES, OTHERS_COLOUR } from "./forecast-card.js";
+import { buildForecastCardSVG, forecastCardAlt, cardTitle, photoUnder, siteLabel, PHOTO_FILE, MARK_FILE, SITE, SIZES, OTHERS_COLOUR } from "./forecast-card.js";
 import { svgToPNG } from "./card-text.js";
 import { cleanName, NAME_MAX } from "./play-state.js";
 
@@ -38,6 +38,7 @@ S.name.maxLength = NAME_MAX;
 
 // The site's photograph, beside the page's own directory: /share.jpg.
 const PHOTO_SRC = new URL("../../" + PHOTO_FILE, import.meta.url).href;
+const MARK_SRC = new URL("../../" + MARK_FILE, import.meta.url).href;
 const MADE = new Date().toISOString().slice(0, 10);
 const PARTY_ROWS = 9;
 
@@ -127,7 +128,7 @@ async function draw() {
   S.img.alt = forecastCardAlt(card);
   let made;
   try {
-    made = await svgToPNG(buildForecastCardSVG(card), SIZES.link, photoUnder("link", PHOTO_SRC));
+    made = await svgToPNG(buildForecastCardSVG(card), SIZES.link, photoUnder("link", PHOTO_SRC), siteLabel("link", MARK_SRC));
   } catch (e) {
     if (ticket === drawing) { say("The image could not be drawn in this browser. The link still works."); S.native.disabled = false; }
     return;

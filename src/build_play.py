@@ -65,7 +65,7 @@ Share card and preview
 
 The page's own ``og:title``/``og:description``
 (``build_your_forecast.OG_TITLE``, ``OG_DESCRIPTION``) carry no figure, and ``og:image`` is the site's
-``share.jpg``. A link with settings in its query string gets the same generic
+default share image (``og.png``). A link with settings in its query string gets the same generic
 preview: nothing renders a card per link on the server. The image of a
 reader's settings is drawn in their browser and attached or downloaded by
 them.

@@ -81,6 +81,10 @@ NAV_ITEMS = [
 ]
 
 
+#: The site's name: the home link's accessible name, under the logo.
+SITE_NAME = "joburg.whysoserious.city"
+
+
 def nav_for(active_href: str) -> str:
     """The site nav with the current page held in the accent colour."""
     links = "\n".join(
@@ -89,7 +93,11 @@ def nav_for(active_href: str) -> str:
         for href, label in NAV_ITEMS
     )
     return ('<nav class="topnav">\n'
-            '  <a class="home" href="./">joburg.whysoserious.city</a>\n'
+            # the owner's logo (src/brand/logo.svg, site_assets.LOGO): one
+            # file, drawn in the text colour; the link keeps the site's name
+            f'  <a class="home" href="./" aria-label="{SITE_NAME}">'
+            f'<svg class="logo" viewBox="{site_assets.LOGO_VIEWBOX}" aria-hidden="true" focusable="false">'
+            f'<use href="{site_assets.LOGO}#logo"></use></svg></a>\n'
             f"{links}\n"
             # js/theme.js wires the toggle; the page carries no handler
             '  <button class="themetoggle" type="button" '
@@ -170,12 +178,12 @@ OG_META = f"""<meta property="og:site_name" content="Johannesburg 2026 Election 
 <meta property="og:description" content="{OG_DESCRIPTION}">
 <meta property="og:url" content="https://joburg.whysoserious.city/">
 <link rel="canonical" href="https://joburg.whysoserious.city/">
-<meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
+<meta property="og:image" content="https://joburg.whysoserious.city/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Hillbrow Tower silhouetted against a Johannesburg sunset">
+<meta property="og:image:alt" content="joburg.whysoserious.city, modelling and forecasting: the Hillbrow Tower as the J">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://joburg.whysoserious.city/share.jpg">
+<meta name="twitter:image" content="https://joburg.whysoserious.city/og.png">
 """
 
 SITE_URL = "https://joburg.whysoserious.city"
@@ -898,6 +906,7 @@ CONTENT_TYPES = {
     ".png": "image/png",
     ".jpg": "image/jpeg",
     ".svg": "image/svg+xml",
+    ".woff2": "font/woff2",
 }
 
 

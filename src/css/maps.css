@@ -14,15 +14,15 @@
 .mapbox{position:relative;}
 .mapsvg{width:100%;height:auto;display:block;}
 /* district names, the north arrow and the captions drawn inside the maps */
-.maplabel{font:650 11px ui-sans-serif,system-ui;letter-spacing:.08em;text-transform:uppercase;
+.maplabel{font:650 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;
   fill:var(--ink);stroke:var(--paper);stroke-width:3px;paint-order:stroke;pointer-events:none;}
 .mapnorth{font:600 11px ui-monospace,monospace;fill:var(--ink-3);pointer-events:none;}
-.mapcap{font:650 10.5px ui-sans-serif,system-ui;letter-spacing:.1em;text-transform:uppercase;
+.mapcap{font:650 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;
   fill:var(--ink-3);pointer-events:none;}
 /* ward numbers on the equal-ward map: size and ink are attributes, set per
    hexagon by the build */
-.hexnum{font-family:ui-monospace,monospace;font-weight:600;opacity:.85;pointer-events:none;}
-.maptip{position:fixed;pointer-events:none;z-index:9;font:12px/1.4 ui-sans-serif,system-ui;
+.hexnum{font-family:var(--mono);font-weight:600;opacity:.85;pointer-events:none;}
+.maptip{position:fixed;pointer-events:none;z-index:9;font:12px/1.4 var(--sans);
   background:var(--ink);color:var(--paper);padding:6px 10px;border-radius:4px;max-width:280px;}
 .maptip[hidden]{display:none;}
 

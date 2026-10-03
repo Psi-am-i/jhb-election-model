@@ -18,7 +18,24 @@
 }
 .topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
 .topnav a:hover{color:var(--accent);}
-.topnav a.home{color:var(--accent);font-weight:600;}
+/* the home link is the owner's logo (site_assets.LOGO), drawn in the text
+   colour; the links sit on the line of its foot */
+.topnav{align-items:flex-end;}
+.topnav a.home{display:block;line-height:0;margin-right:10px;color:var(--ink);}
+.topnav a.home:hover{color:var(--accent);}
+.topnav .logo{display:block;height:144px;width:calc(144px * 656 / 408);margin-top:-6px;}
+@media (min-width:1200px){.topnav{column-gap:12px;}}
+/* beside the logo the bar is tall: the theme toggle takes its top right
+   corner, so the links keep one line */
+@media (min-width:641px){
+  .topnav{position:relative;}
+  .topnav .themetoggle{position:absolute;top:0;right:0;}
+}
+/* a phone: the logo has the first line to itself */
+@media (max-width:640px){
+  .topnav a.home{flex-basis:100%;margin:0 0 6px;}
+  .topnav .logo{height:112px;width:calc(112px * 656 / 408);}
+}
 .topnav a.active{color:var(--accent);}
 
 /* The footer: the credits, a rule, then the independence statement with the

@@ -39,7 +39,7 @@
 //    and focus returns to the button that opened it.
 
 import { buildPlayCardSVG, playCardAlt, SIZES } from "./play-card.js";
-import { photoUnder, PHOTO_FILE } from "./forecast-card.js";
+import { photoUnder, siteLabel, PHOTO_FILE, MARK_FILE } from "./forecast-card.js";
 import { svgToPNG } from "./card-text.js";
 import { cleanName, NAME_MAX, serialize } from "./play-state.js";
 import { compose } from "./yf-url.js";
@@ -73,6 +73,7 @@ let label = "";               // the random label used when no name is given
 // The site's photograph (share.jpg, Hillbrow Tower), drawn under the card by
 // svgToPNG: same-origin, beside the page's own directory.
 const PHOTO_SRC = new URL("../../" + PHOTO_FILE, import.meta.url).href;
+const MARK_SRC = new URL("../../" + MARK_FILE, import.meta.url).href;
 
 // A random label, "<word>-<number>", in labels.js's form.
 const labelP = fetch(new URL("../labels.json", import.meta.url))
@@ -118,7 +119,7 @@ async function draw() {
   const card = { ...info, name: who };
   S.img.alt = playCardAlt(card);
   try {
-    if (!cache[want + who]) cache[want + who] = await svgToPNG(buildPlayCardSVG({ ...card, size: want }), SIZES[want], photoUnder(want, PHOTO_SRC));
+    if (!cache[want + who]) cache[want + who] = await svgToPNG(buildPlayCardSVG({ ...card, size: want }), SIZES[want], photoUnder(want, PHOTO_SRC), siteLabel(want, MARK_SRC));
   } catch (e) {
     say("The image could not be drawn in this browser. The link still works.");
     S.native.disabled = false;

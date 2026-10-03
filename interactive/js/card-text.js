@@ -45,22 +45,60 @@ export function fitText(s, maxW, fs, face = "sans", minFs = fs * 0.75) {
 // drawImage takes them. It is drawn here and not inside the SVG because an
 // SVG loaded as an image may not fetch, and a browser can refuse to export a
 // canvas an SVG <image> was drawn into. `src` must be same-origin.
-export function svgToPNG(svg, [W, H], under = null) {
+//
+// `label`, if given, is the site's name, drawn on the canvas after the SVG
+// in the page's own IBM Plex Mono: an SVG drawn as an image cannot load a
+// web font, the canvas can once the page has it, so this waits for
+// document.fonts before drawing. { text, x, y, fs, weight, fill, rotate
+// (degrees, about x, y), mark: { src, w, h } }: the mark (the logo's
+// tower-J, same-origin) is drawn first, in `fill`, its foot on the
+// baseline's descender line, and the name follows it.
+export const LABEL_FONT = '"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace';
+export function svgToPNG(svg, [W, H], under = null, label = null) {
   const load = src => new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error("image did not load"));
     img.src = src;
   });
+  const font = label ? label.weight + " " + label.fs + "px " + LABEL_FONT : "";
+  const fontReady = label && document.fonts ? document.fonts.load(font, label.text).catch(() => null) : null;
   const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
-  return Promise.all([load(url), under ? load(under.src) : null]).then(([img, photo]) => {
-    URL.revokeObjectURL(url);
-    const cv = document.createElement("canvas");
-    cv.width = W; cv.height = H;
-    const g = cv.getContext("2d");
-    if (photo) g.drawImage(photo, under.sx, under.sy, under.sw, under.sh, under.dx, under.dy, under.dw, under.dh);
-    g.drawImage(img, 0, 0, W, H);
-    return new Promise((resolve, reject) =>
-      cv.toBlob(b => b ? resolve(b) : reject(new Error("toBlob failed")), "image/png"));
-  }, e => { URL.revokeObjectURL(url); throw e; });
+  return Promise.all([load(url), under ? load(under.src) : null, label && label.mark ? load(label.mark.src) : null, fontReady])
+    .then(([img, photo, mark]) => {
+      URL.revokeObjectURL(url);
+      const cv = document.createElement("canvas");
+      cv.width = W; cv.height = H;
+      const g = cv.getContext("2d");
+      if (photo) g.drawImage(photo, under.sx, under.sy, under.sw, under.sh, under.dx, under.dy, under.dw, under.dh);
+      g.drawImage(img, 0, 0, W, H);
+      if (label) drawLabel(g, label, mark, font);
+      return new Promise((resolve, reject) =>
+        cv.toBlob(b => b ? resolve(b) : reject(new Error("toBlob failed")), "image/png"));
+    }, e => { URL.revokeObjectURL(url); throw e; });
+}
+
+function drawLabel(g, label, mark, font) {
+  g.save();
+  g.translate(label.x, label.y);
+  if (label.rotate) g.rotate(label.rotate * Math.PI / 180);
+  let x = 0;
+  if (mark) {
+    // the mark in the label's colour: drawn alone, then filled where it is
+    const { w, h } = label.mark;
+    const m = document.createElement("canvas");
+    m.width = Math.ceil(w); m.height = Math.ceil(h);
+    const mg = m.getContext("2d");
+    mg.drawImage(mark, 0, 0, w, h);
+    mg.globalCompositeOperation = "source-in";
+    mg.fillStyle = label.fill;
+    mg.fillRect(0, 0, w, h);
+    g.drawImage(m, 0, label.fs * 0.28 - h, w, h);
+    x = w + label.fs * 0.15;
+  }
+  g.font = font;
+  g.fillStyle = label.fill;
+  g.textBaseline = "alphabetic";
+  g.fillText(label.text, x, 0);
+  g.restore();
 }
