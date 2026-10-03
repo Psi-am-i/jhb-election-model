@@ -78,7 +78,7 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
     import scenarios as _sc
 
     # WHO IS LARGEST: reweight.largest_party, the one definition the forecast
-    # page and /play/ use, over the seat draws. forecast_summary.json's
+    # page and /your-forecast/ use, over the seat draws. forecast_summary.json's
     # `structural.P(X is the largest single party)` is an argmax that credits
     # every tied simulation to the first party in the model's order (side
     # finding S1, 2026-10-02); a tie is its own outcome and is said as one.

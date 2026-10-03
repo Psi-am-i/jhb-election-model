@@ -1,13 +1,15 @@
-// "Make your own forecast": the reader's whole forecast in the page's address.
-// PURE: no DOM, no fetch, so interactive/tests drives it directly. Read by
-// stats.script_writes as a NON-writer module: it puts nothing on a page.
+// "Your forecast", section 2 ("Break the model"): the reader's whole forecast
+// in the page's address. PURE: no DOM, no fetch, so interactive/tests drives
+// it directly. Read by stats.script_writes as a NON-writer module: it puts
+// nothing on a page. Its part of the address is written through yf-url.js,
+// the page's one address writer, beside section 1's part and the name.
 //
-// Anonymous, like /play/: the address is the only place a forecast is kept.
-// Nothing is stored or sent, and nothing about the reader is in it except the
-// name they choose to type.
+// Anonymous: the address is the only place a forecast is kept. Nothing is
+// stored or sent, and nothing about the reader is in it except the name they
+// choose to type (yf-url.js, play-state.cleanName).
 //
 // THE FORM, version 1 (FORMAT):
-//   ?v=1&c=<context ref>&f=<payload>[&n=<name>]
+//   v=1&c=<context ref>&f=<payload>
 // `c` is the data file's context_ref, a hash of the roster, the wards and the
 // total vote (src/build_make.py): positions in the payload mean those parties,
 // those wards and those votes, so a link made against another context is
@@ -18,33 +20,21 @@
 //                           ceil(log2 k) bits, wards in schema order
 //   one varint per party    whole votes, roster order (LEB128)
 //   m, then m roster indices    the governing coalition
-// with no byte left over. `n` is the name for the share image, at most
-// NAME_MAX characters of text (nameRule).
+// with no byte left over.
 //
 // The WHOLE state is written, not a difference from the start: a difference
-// would change meaning when the start changes.
+// would change meaning when the start changes, and the start of section 2
+// is section 1's hand-off, which moves with section 1's settings.
 //
 // VALIDITY is DESIGN-decided §14's, the builder's own (builder-state.js
 // invariantErrors): every ward has a winner on the roster, the whole votes sum
 // to the total, a ward winner holds at least one vote. A link that fails any
-// rule opens the published start, and `note` says why.
+// rule opens section 2 at its start, and `note` says why.
 
 import * as B from "./builder-state.js";
 
 export const FORMAT = "1";
-export const NAME_MAX = 24;
 const MAX_ROSTER = 255;
-
-// The name on the share image: letters, digits, spaces and . ' ’ - only, so it
-// cannot carry markup, an address or a handle; at most NAME_MAX characters.
-const NAME_OK = /^[\p{L}\p{M}\p{N} .'’-]+$/u;
-export function nameRule(raw) {
-  const s = String(raw ?? "").normalize("NFKC").replace(/\s+/g, " ").trim();
-  if (!s) return { ok: true, value: null };
-  if ([...s].length > NAME_MAX) return { ok: false, value: null, reason: "it is longer than " + NAME_MAX + " characters" };
-  if (!NAME_OK.test(s)) return { ok: false, value: null, reason: "use letters, numbers, spaces and . ' - only" };
-  return { ok: true, value: s };
-}
 
 function toB64url(bytes) {
   let bin = "";
@@ -137,24 +127,22 @@ export function sameState(a, b, ctx) {
 }
 
 // The query string for a forecast: empty for the untouched start.
-export function serialize({ state, coalition, name }, ctx, ref, start) {
-  if (sameState(state, start, ctx) && !coalition.length && !name) return "";
+export function serialize({ state, coalition }, ctx, ref, start) {
+  if (sameState(state, start, ctx) && !coalition.length) return "";
   const q = new URLSearchParams({ v: FORMAT, c: ref, f: encode(state, coalition, ctx) });
-  if (name) q.set("n", name);
   return "?" + q.toString();
 }
 
-// The forecast a query string carries, or the start and a note saying why not.
-export function parse(search, ctx, ref, start) {
+// The forecast a query string carries, or the start and a note saying why
+// not; `instead` is the caller's sentence for what opens in its place.
+export function parse(search, ctx, ref, start, instead = "") {
   const q = new URLSearchParams(search);
-  const fresh = { state: start, coalition: [], name: null, note: null };
-  if (!q.has("f") && !q.has("v") && !q.has("n")) return fresh;
-  const refuse = why => ({ ...fresh, note: "The forecast in this link could not be opened: " + why + ". This is the published start." });
+  const fresh = { state: start, coalition: [], note: null };
+  if (!q.has("f") && !q.has("v")) return fresh;
+  const refuse = why => ({ ...fresh, note: ("The forecast in this link could not be opened: " + why + ". " + instead).trim() });
   if (q.get("v") !== FORMAT) return refuse("it was made by another version of this page");
   if (q.get("c") !== ref) return refuse("it was made against another version of the model's roster, wards or vote total");
   let got;
   try { got = decode(q.get("f") || "", ctx); } catch (e) { return refuse(String(e.message || e)); }
-  const nm = nameRule(q.get("n"));
-  if (!nm.ok) return refuse("its name cannot be used: " + nm.reason);
-  return { state: got.state, coalition: got.coalition, name: nm.value, note: null };
+  return { state: got.state, coalition: got.coalition, note: null };
 }

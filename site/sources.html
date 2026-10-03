@@ -7,7 +7,7 @@
 <meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Who governs Johannesburg after 4 November 2026?">
-<meta property="og:description" content="The November vote, simulated: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is.">
+<meta property="og:description" content="5,000 simulations of the November vote: who could govern Johannesburg, how the seat law shapes the council, and how sure the model is.">
 <meta property="og:url" content="https://joburg.whysoserious.city/">
 <link rel="canonical" href="https://joburg.whysoserious.city/">
 <meta property="og:image" content="https://joburg.whysoserious.city/share.jpg">
@@ -25,15 +25,14 @@
 <div class="page">
 <nav class="topnav">
   <a class="home" href="./">joburg.whysoserious.city</a>
-  <a href="forecast">our forecast</a>
-  <a href="play/">your forecast</a>
-  <a href="commentary">commentary</a>
-  <a href="claims">party claims tested</a>
+  <a href="forecast">forecast</a>
+  <a href="your-forecast/">your forecast</a>
+  <a href="about">the model</a>
   <a href="methodology">methodology</a>
   <a href="review">review</a>
-  <a href="corrections">corrections</a>
   <a class="active" href="sources">sources</a>
-  <a href="https://github.com/Psi-am-i/jhb-election-model">source code</a>
+  <a href="corrections">corrections</a>
+  <a href="https://github.com/Psi-am-i/jhb-election-model">source-code</a>
   <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
 </nav>
 <header>
@@ -43,7 +42,7 @@
 </header>
 <p>The technical recipes, file by file, are in
 <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md"><code>SOURCES.md</code> on GitHub</a>.</p>
-<h2 id="public-records-that-are-hard-to-reach">Public records that are hard to reach</h2>
+<h2>Public records that are hard to reach</h2>
 <p>The IEC&rsquo;s results sites, <code>results.elections.org.za</code> and <code>www.elections.org.za</code>,
 refuse automated requests. Election results are public records, and no reason
 for the restriction is given. Most of the raw data behind this model was
@@ -53,7 +52,7 @@ the national and provincial halves of the same election day have different
 codes. A wrong guess raises no error: the site returns a different election&rsquo;s
 results. One election, the 2014 national and provincial vote, is missing from
 the results portal; its files are on a second, older IEC site.</p>
-<h2 id="the-election-results">The election results</h2>
+<h2>The election results</h2>
 <p>The model rests on six elections at voting-district level, the finest grain the
 IEC publishes:</p>
 <div class="tablewrap"><table>
@@ -80,7 +79,7 @@ shifts every later column in the row. One year&rsquo;s &ldquo;valid votes&rdquo;
 contain what its name says. None of these raises an error; each was caught by
 cross-checking totals against the IEC&rsquo;s own published reports. The full list,
 and the code that handles each, is on GitHub.</p>
-<h2 id="the-maps">The maps</h2>
+<h2>The maps</h2>
 <p>Council seats follow geography, so the model needs the boundaries of every ward
 and voting district across four boundary revisions: Johannesburg&rsquo;s wards have
 been redrawn before every election. The Municipal Demarcation Board publishes
@@ -92,7 +91,7 @@ the 2016 election, now exists in the Internet Archive and nowhere official.</p>
 <p>The 2026 voting-district layer carries a field that looks like current voter
 registration. It is a snapshot from 2024. Every turnout figure built on it as
 current would be wrong.</p>
-<h2 id="by-elections">By-elections</h2>
+<h2>By-elections</h2>
 <p>Fifteen Johannesburg wards have held by-elections since 2021. They are the only
 direct evidence of how opinion has moved between elections, and an input to this
 forecast. The IEC&rsquo;s official download page could not supply them: its report
@@ -100,13 +99,13 @@ links work only inside the browser session that created them. The IEC&rsquo;s pu
 dashboard is fed by plain data files that anyone can read, with more detail than
 the reports, down to voting-district level with every party and candidate. The
 model uses those.</p>
-<h2 id="people">People</h2>
+<h2>People</h2>
 <p>Statistics South Africa publishes ward-level population estimates from Census
 2022 (age, sex and population group for all 135 wards), and the turnout
 modelling uses them. The more detailed small-area data (income, dwelling type,
 employment) is not published, because at ward level it can identify households.
 Access under conditions exists, and we have not sought it.</p>
-<h2 id="what-nobody-publishes">What nobody publishes</h2>
+<h2>What nobody publishes</h2>
 <ul>
 <li><strong>Historic voting-district boundaries.</strong> The IEC draws these with its own
   mapping systems and appears never to have published them. Five archives and
@@ -117,7 +116,7 @@ Access under conditions exists, and we have not sought it.</p>
   registration figures from the 2026 sign-up weekends, which are not released
   yet.</li>
 </ul>
-<h2 id="checksums">Checksums</h2>
+<h2>Checksums</h2>
 <p>The raw files were assembled by hand from sources that can change or vanish, so
 the build records a cryptographic checksum of each file when it is collected: a
 short code that changes if one byte of the file does. The checksums, and the
@@ -130,12 +129,9 @@ withdrawn upstream shows up as a mismatch.</p>
   Reader edition, generated from docs-public/sources.md on 2026-10-03. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/SOURCES.md">SOURCES.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
-  <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="https://www.statssa.gov.za/">Stats SA</a>. Ward and voting-district boundaries from the <a href="https://spatialhub-mdb-sa.opendata.arcgis.com/">Municipal Demarcation Board</a>. Raw election results from the <a href="https://results.elections.org.za/">IEC</a>. <a href="https://github.com/Psi-am-i/jhb-election-model">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
-  <hr class="foot-rule">
-  <div class="foot-independence">
-    <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
-    <a class="foot-support" href="support">Support Our Work</a>
-  </div>
+  <div>Johannesburg · 2026 Local Government Election Model · Site text, charts and figures: <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, free to reuse with attribution and a link back. · <a href="privacy">privacy</a></div>
+  <div><a href="./">joburg.whysoserious.city</a> · model design by <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> · whysoserious.city is part of picnic labs · <a href="https://github.com/Psi-am-i/jhb-election-model">code on GitHub</a> (MIT licence) · raw results from the <a href="https://results.elections.org.za/">IEC</a></div>
+  <div><a href="support">Support or Sponsor this site.</a></div>
 </footer>
 </div>
 </body>

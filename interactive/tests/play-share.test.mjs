@@ -162,7 +162,7 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       const all = lines.join(" ");
       const firstLines = lines.slice(1, 4).join(" ");    // after the site name
       assert.equal(lines[1], headline("reader-7", info.touched), `${c.name} ${size}: headline`);
-      assert.ok(!all.includes("Election Forecast"), `${c.name} ${size}`);
+      assert.ok(!/election forecast/i.test(all), `${c.name} ${size}`);
       if (info.touched) {
         assert.ok(!firstLines.includes(READER_STAMP.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: ${firstLines}`);
         assert.ok(all.includes(READER_STAMP.split(" ").slice(0, 4).join(" ")), `${c.name} ${size}: the stamp is in the foot`);

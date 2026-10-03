@@ -41,13 +41,16 @@ request. Detectors, each a function returning a list of problems:
                         cities the baseline city-prefixed them. Near misses
                         (/supporters, /support/x, /privacyx) run everywhere in
                         the differential, so the match is shown to be exact.
-* `moved_problems`    — every moved page (/about, 2026-10-03), with or without
-                        .html or a trailing slash and with its query, answers
-                        301 to its new address on the Joburg host and every
-                        workers.dev host, fetches nothing and logs nothing.
-                        The live differential runs these paths on the portal
-                        and other city hosts, where nothing changed, and the
-                        near misses (/aboutx, /about/x) everywhere.
+* `moved_problems`    — every moved page (src/worker.js MOVED, 2026-10-03:
+                        /about to /methodology; /play/ and /make/ to the two
+                        sections of /your-forecast/) answers 301 to its new
+                        address with its query string, in every spelling that
+                        moves, on the Joburg host and every workers.dev host;
+                        fetches nothing and logs nothing. The near misses
+                        (/aboutx, /about/x, /About, /playground, /maker,
+                        /make.html, /your-forecast/) are served as before. The
+                        live differential runs the moved paths on the portal
+                        and other city hosts, where nothing changed.
 * `config_problems`   — `wrangler.toml` states workers_dev, preview_urls,
                         [observability], invocation_logs = false and the
                         ARRIVALS Analytics Engine binding where wrangler
@@ -117,9 +120,24 @@ LIVE_PATHS = ["/", "/index.html", "/forecast", "/forecast.html", "/nope",
               "/aboutx", "/about/x", "/About"]
 
 #: Pages that moved (src/worker.js MOVED): every spelling that must redirect,
-#: and where to. On the Joburg host and workers.dev hosts only.
-MOVED_PATHS = {"/about": "/methodology", "/about.html": "/methodology",
-               "/about/": "/methodology", "/about?x=1": "/methodology?x=1"}
+#: and where to. On the Joburg host and workers.dev hosts only. The query
+#: strings on /play/ and /make/ are a shared /play/ link (`t=…&n=…`) and a
+#: shared /make/ link (`v=1&c=…&f=…`): each must arrive whole, since the new
+#: page reads both parts.
+MOVED_PATHS = {
+    "/about": "/methodology", "/about.html": "/methodology",
+    "/about/": "/methodology", "/about?x=1": "/methodology?x=1",
+    "/play": "/your-forecast/", "/play/": "/your-forecast/", "/PLAY/": "/your-forecast/",
+    "/play/index.html": "/your-forecast/",
+    "/play/?t=5,0,0,0&n=Thandi": "/your-forecast/?t=5,0,0,0&n=Thandi",
+    "/make": "/your-forecast/#break", "/make/": "/your-forecast/#break",
+    "/Make/index.html": "/your-forecast/#break",
+    "/make/?v=1&c=abc123&f=AQID-_": "/your-forecast/?v=1&c=abc123&f=AQID-_#break",
+}
+#: Not moved: each must reach the asset layer unchanged on the Joburg and
+#: workers.dev hosts.
+NOT_MOVED = ["/aboutx", "/about/x", "/About",
+             "/playground", "/maker", "/your-forecast/", "/plays", "/make.html"]
 
 DRIVER = r"""
 import { readFileSync } from "node:fs";
@@ -364,6 +382,11 @@ def moved_problems(src: str) -> list[str]:
             out.append(f"{r['url']}: logged {r['logs']} wrote {r['points']}")
         if (host in PREVIEW_HOSTS) != (h.get("x-robots-tag") == NOINDEX):
             out.append(f"{r['url']}: X-Robots-Tag {h.get('x-robots-tag')!r}")
+    near = [(h, p) for h in hosts for p in NOT_MOVED]
+    for r, (host, p) in zip(run_worker(src, [{"url": f"https://{h}{p}", "env": {}}
+                                             for h, p in near]), near):
+        if r["fetched"] != [p] or r["status"] == 301:
+            out.append(f"{r['url']}: {r['status']} fetched {r['fetched']}, want it served")
     return out
 
 
@@ -420,24 +443,29 @@ def test_no_data_point_off_the_channel_paths():
 
 # ---------------------------------------------------------------- moved pages
 
-def test_moved_pages_redirect_on_the_johannesburg_hosts():
+def test_the_moved_pages_redirect_with_their_query_strings():
     assert moved_problems(source()) == []
-    # the near misses reach the assets on Joburg, as they did before
-    runs = run_worker(source(), [{"url": f"https://{JOBURG}{p}", "env": {}}
-                                 for p in ("/aboutx", "/about/x", "/About")])
-    assert [r["fetched"] for r in runs] == [["/aboutx"], ["/about/x"], ["/About"]], runs
+    # the population: every old page, with and without a link's settings
+    assert {"/about", "/play/", "/make/"} <= set(MOVED_PATHS)
+    assert any("?" in p for p in MOVED_PATHS if p.lower().startswith("/play"))
+    assert any("f=" in p for p in MOVED_PATHS if p.lower().startswith("/make"))
+    assert any("?" in p for p in MOVED_PATHS if p.startswith("/about"))
 
 
 def test_moved_check_fires_on_each_constructed_violation():
     src = source()
-    for a, b in (('  ["/about", "/methodology"],\n', ""),
+    for a, b in (('  [/^\\/about(?:\\.html|\\/)?$/, "/methodology", ""],\n', ""),
+                 ('  [/^\\/make(?:\\/.*)?$/i, "/your-forecast/", "#break"],\n', ""),
+                 ('/^\\/about(?:\\.html|\\/)?$/', '/^\\/about$/'),
+                 ('/^\\/about(?:\\.html|\\/)?$/', '/^\\/about/i'),
+                 ('/^\\/play(?:\\/.*)?$/i', '/^\\/play(?:\\/.*)?$/'),
+                 ('/^\\/play(?:\\/.*)?$/i', '/^\\/play/i'),
+                 ("path + url.search + hash", "path + hash"),
+                 ("status: 301,", "status: 302,"),
                  ("      const to = movedTo(path);\n      if (to) return moved(url, to);\n", ""),
                  ("        : to ? moved(url, to) : await env.ASSETS.fetch(request);",
-                  "        : await env.ASSETS.fetch(request);"),
-                 ("status: 301,", "status: 302,"),
-                 ("to + url.search", "to"),
-                 ('(?:\\.html|\\/)?$', '$')):
-        assert moved_problems(_mutate(src, a, b)), f"blind to {b!r}"
+                  "        : await env.ASSETS.fetch(request);")):
+        assert moved_problems(_mutate(src, a, b)), f"moved check blind to {b!r}"
     # the baseline worker had no moved page
     assert moved_problems(baseline_source())
 

@@ -1107,5 +1107,54 @@ def test_one_text_for_a_share_of_simulations():
         ["2.0%", "9.0%", "1.4%", "45%", "over 99%", "under 0.1%"]
 
 
+# -- "Analyse my forecast" (/your-forecast/, owner 2026-10-03) --------------------
+
+def test_within_band_is_the_weighted_share_within_the_band_on_both_sides():
+    """Constructed draws and weights: the chance counts the draws within the
+    band either side of the centre, edges included, weighted; both sides
+    and both edges are seen (a one-sided or open band gives another answer)."""
+    v = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    w = np.array([1, 2, 3, 4, 3, 2, 1], dtype=float)
+    # |v - 4| <= 2: 2..6, weights 2+3+4+3+2 of 16
+    assert R.within_band(v, w, 4, 2) == 14 / 16
+    # an open band would leave out both edges
+    assert R.within_band(v, w, 4, 1.999) == 10 / 16
+    # a one-sided band (v <= 6) would add the 1 at v = 1
+    assert R.within_band(v, w, 4, 2) != float(w[v <= 6].sum() / w.sum())
+    # unit weights: the count over the draws
+    assert R.within_band(v, R.uniform(7), 0, 1) == 1 / 7
+    # fractional centres, as a share in points is
+    assert R.within_band([10.0, 12.5, 15.0], R.uniform(3), 12.5, 2.5) == 1.0
+
+
+def test_ward_calls_likelihood_against_a_hand_enumeration():
+    """Three wards, two parties, four draws, constructed weights. Each ward's
+    chance is ``ward_win_probability`` (Jeffreys); ``expected`` is their sum;
+    ``percentile`` is the weighted share of draws whose own ward results
+    score no higher (sum of log chances) than the reader's calls, enumerated
+    here by hand."""
+    win = np.array([[0, 0, 1],
+                    [0, 1, 1],
+                    [1, 0, 1],
+                    [0, 0, 0]])
+    w = np.array([1.0, 2.0, 1.0, 4.0])
+    P = R.ward_win_probability(win, w, 2)
+    for calls in ([0, 0, 1], [1, 1, 0], [0, 1, 0]):
+        got = R.ward_calls_likelihood(win, w, 2, calls)
+        p = np.array([P[j, c] for j, c in enumerate(calls)])
+        assert np.allclose(got["p"], p)
+        assert math.isclose(got["expected"], float(p.sum()))
+        score = lambda cs: sum(math.log(P[j, c]) for j, c in enumerate(cs))
+        mine = score(calls)
+        want = sum(wi for row, wi in zip(win, w) if score(row) <= mine + 1e-9) / w.sum()
+        assert math.isclose(got["percentile"], want), (calls, got["percentile"], want)
+    # the modal calls are at the top; calls against every draw at the bottom
+    assert R.ward_calls_likelihood(win, w, 2, [0, 0, 1])["percentile"] == 1.0
+    assert R.ward_calls_likelihood(win, w, 2, [1, 1, 0])["percentile"] == 0.0
+    # a party that never wins a ward (code 2 of 3) is scored, not refused
+    never = R.ward_calls_likelihood(win, w, 3, [2, 2, 2])
+    assert never["percentile"] == 0.0 and np.all(never["p"] > 0)
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

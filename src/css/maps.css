@@ -1,6 +1,6 @@
 /* The ward maps: the land map (src/render_map.py) and the equal-ward map
    (src/hex_cartogram.py), on the home page and /forecast, and the published
-   map on /play/ (build_play.map_twin). js/maps.js runs the tooltips and the
+   map on /your-forecast/ section 1 (build_play.map_twin). js/maps.js runs the tooltips and the
    switch between the two. */
 
 /* The Normal / Equal Sized switch. */

@@ -108,6 +108,16 @@ MIN_EFFECTIVE_DRAWS = 200
 #: its evidence. In the values' own units, which on the page are seats.
 MAX_FIGURE_SE_SEATS = 2.5   # owner, 2026-09-30: was 2.0 (JUDGEMENT-CALLS §N2)
 
+#: "Analyse my forecast" on /your-forecast/ (owner, 2026-10-03): how close to
+#: a reader's own figure the model's simulations must come to count as
+#: "near" it. A party's seats count when within this many seats either side
+#: (:func:`within_band`, statutory seats); its vote when within this many
+#: percentage points of the list ballot. JUDGEMENT CALLS, not measurements:
+#: JUDGEMENT-CALLS.md §N3 carries them, with how to check them. The page
+#: prints them from the engine's result, never as typed text.
+ANALYSIS_SEAT_BAND = 2
+ANALYSIS_SHARE_BAND_POINTS = 2.0
+
 #: What a figure computed under a poll's weights is, in the page's words. The
 #: weights select the model's own draws that lie near the poll; they do not
 #: make the poll come true, and a draw set with nothing near the poll gives an
@@ -952,3 +962,46 @@ def ward_win_probability(winners, weights, codes: int) -> np.ndarray:
     for j in range(c.shape[1]):
         out[j] = np.bincount(c[:, j], weights=w, minlength=codes)
     return (out * (ess / total) + 0.5) / (ess + 1.0)
+
+
+def within_band(values, weights, centre: float, band: float) -> float:
+    """P(|value - centre| <= band) under the weights: the chance the model
+    gives a figure landing within ``band`` of a reader's own ``centre``.
+    ``values`` is one column of draws, in the centre's own units."""
+    v = np.asarray(values, dtype=float)
+    return weighted_probability(np.abs(v - float(centre)) <= float(band) + 1e-9, weights)
+
+
+def ward_calls_likelihood(winners, weights, codes: int, calls) -> dict:
+    """How the model rates a full set of ward calls (owner, 2026-10-03; method
+    in JUDGEMENT-CALLS.md §N3).
+
+    ``winners`` is the ``ward_winner`` block (``(draws, wards)`` of codes),
+    ``calls`` one code index per ward in the same order. Returns
+
+    * ``p``: each call's chance, :func:`ward_win_probability` (Jeffreys-
+      corrected, so never zero);
+    * ``expected``: the number of calls expected to come true, ``Σ p``;
+    * ``percentile``: the share of the model's own simulations whose ward
+      results are no more likely than the reader's. Each set of ward results,
+      the reader's and every simulation's, is scored by the same sum of log
+      ward chances; the reader's is placed among the simulations'. A
+      percentile, not the chance of the reader's exact set, which is
+      vanishingly small for any set of results, the model's own included.
+
+    The ward chances are scored as if wards were independent. They are not:
+    the simulations share citywide swings. Scoring every simulation by the
+    same rule puts the reader's set and the model's sets on one footing, so
+    the percentile is a fair ranking; it is not a joint probability.
+    """
+    c = np.asarray(winners)
+    w = np.asarray(weights, dtype=float)
+    k = np.asarray(calls, dtype=int)
+    probs = ward_win_probability(c, w, codes)
+    logp = np.log(probs)
+    wards = np.arange(c.shape[1])
+    p = probs[wards, k]
+    reader = float(logp[wards, k].sum())
+    sims = logp[wards[None, :], c].sum(axis=1)
+    return {"p": p, "expected": float(p.sum()),
+            "percentile": weighted_probability(sims <= reader + 1e-9, w)}

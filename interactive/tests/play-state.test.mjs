@@ -1,5 +1,7 @@
-// "Play with the model": the share URL is bounded and validated on load (F16),
-// and the page's JavaScript holds no re-weighting (one definition, in Python).
+// "Your forecast", section 1: its part of the address is bounded and validated
+// on load (F16), only South African law is shared, and the page's JavaScript
+// holds no re-weighting (one definition, in Python). The whole address, both
+// sections and the name, is yf.test.mjs's.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -21,7 +23,7 @@ test("the published setting is untouched and writes no URL", () => {
 });
 
 test("a setting survives the URL both ways, with the model version", () => {
-  const st = { shift: [2.5, 0, -1, 0], polls: ["b"], trust: 35, law: "cap", cell: "w_bye-1", name: "Thandi's view" };
+  const st = { shift: [2.5, 0, -1, 0], polls: ["b"], trust: 35, law: "cap", cell: "w_bye-1", name: "" };
   const q = PS.serialize(st, ctx);
   assert.match(q, /mv=abc/);
   const back = PS.parse(q, ctx);
@@ -69,36 +71,32 @@ test("a refused field is named, and the link's own text is never repeated", () =
   assert.deepEqual(r.state, PS.defaults(ctx));
 });
 
-test("a name is the reader's text: bounded, cleaned, refused when too long, and not the engine's", () => {
-  const long = "x".repeat(PS.NAME_MAX + 1);
-  const r = PS.parse("?n=" + encodeURIComponent(long), ctx);
-  assert.equal(r.state.name, "");
-  assert.equal(r.dropped.length, 1);
-  assert.ok(!r.dropped[0].includes("xxx"));
-  assert.equal(PS.parse("?n=" + encodeURIComponent("x".repeat(PS.NAME_MAX)), ctx).state.name.length, PS.NAME_MAX);
+test("the name is cleaned by one rule and is not this part's, nor the engine's", () => {
   assert.equal(PS.cleanName("  a\u0000 \n b  "), "a b");
-  // an empty name is no name, not a refusal (code review, 2026-10-02: it was
-  // reported as "at most 24 characters")
-  assert.deepEqual(PS.parse("?n=%20%20", ctx).dropped, []);
-  assert.equal(PS.parse("?n=", ctx).state.name, "");
   // direction and width controls and C1 controls are dropped: a name cannot
   // reverse or hide the words drawn after it on the image
-  const bidi = "a\u202Eb\u2066c\u200Bd\u0085e\u061Cf\uFEFFg";
-  assert.equal(PS.cleanName(bidi), "abcdefg");
-  assert.equal(PS.parse("?n=" + encodeURIComponent(bidi), ctx).state.name, "abcdefg");
+  assert.equal(PS.cleanName("a\u202Eb\u2066c\u200Bd\u0085e\u061Cf\uFEFFg"), "abcdefg");
   // one unit for the field and the link: UTF-16 units, as maxlength counts,
   // and a character is never cut in two
-  const emoji = "\u{1F600}".repeat(PS.NAME_MAX / 2);                  // NAME_MAX units
-  assert.equal(PS.parse("?n=" + encodeURIComponent(emoji), ctx).state.name, emoji);
-  assert.equal(PS.parse("?n=" + encodeURIComponent(emoji + "x"), ctx).dropped.length, 1);
-  const cut = PS.cleanName("x" + emoji);                                // one unit over
+  const emoji = "\u{1F600}".repeat(PS.NAME_MAX / 2);
+  const cut = PS.cleanName("x" + emoji);
   assert.ok(cut.length <= PS.NAME_MAX && !/[\uD800-\uDBFF]$/.test(cut), JSON.stringify(cut));
   assert.equal(cut, "x" + "\u{1F600}".repeat(PS.NAME_MAX / 2 - 1));
   // markup survives as text: the page never parses it, and the card escapes it
-  assert.equal(PS.parse("?n=" + encodeURIComponent("<b>x</b>"), ctx).state.name, "<b>x</b>");
+  assert.equal(PS.cleanName("<b>x</b>"), "<b>x</b>");
+  // the name is yf-url.js's: section 1's part neither writes nor reads it
+  assert.equal(PS.serialize({ ...PS.defaults(ctx), name: "z" }, ctx), "");
+  assert.equal(PS.parse("?n=z", ctx).state.name, "");
+  assert.deepEqual(PS.parse("?n=" + "x".repeat(99), ctx).dropped, []);
   assert.equal("name" in PS.engineSettings({ ...PS.defaults(ctx), name: "z" }), false);
-  // an untouched page with a name writes only the name
-  assert.equal(PS.serialize({ ...PS.defaults(ctx), name: "z" }, ctx), "?n=z");
+});
+
+test("only a council under South African law can be shared", () => {
+  const d = PS.defaults(ctx);
+  assert.equal(PS.shareable(d), true);
+  for (const law of ctx.laws) assert.equal(PS.shareable({ ...d, law }), law === PS.PUBLISHED_LAW, law);
+  // every other setting may be shared
+  assert.equal(PS.shareable({ ...d, shift: [5, 0, 0, 0], polls: ["a"], trust: 50, cell: "w_bye-0" }), true);
 });
 
 test("the engine is asked for trust as a fraction", () => {

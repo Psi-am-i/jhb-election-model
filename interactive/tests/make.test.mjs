@@ -1,10 +1,12 @@
-// "Make your own forecast" (/make/): the address form, its validity rules, the
-// share image, and the seats under Pyodide against the project's CPython.
+// "Your forecast", section 2 ("Break the model"): its part of the address, its
+// validity rules, the share image, and the seats under Pyodide against the
+// project's CPython. The whole address, both sections and the name, is
+// yf.test.mjs's.
 //
 //   node --test interactive/tests/
 //
 // Runs on the REAL start state: src/build_make.py's forecast_data(), the
-// data file the build serves as make/forecast.json, computed here by the
+// data file the build serves as your-forecast/forecast.json, computed here by the
 // project's own Python. Set PYODIDE_NODE to a directory holding
 // node_modules/pyodide to also run the page's seat engine under Pyodide.
 import { test } from "node:test";
@@ -66,7 +68,7 @@ test("the start is valid, every ward called and the vote whole", () => {
 });
 
 test("an untouched forecast has no query and an empty query opens the start", () => {
-  assert.equal(MS.serialize({ state: start, coalition: [], name: null }, ctx, REF, start), "");
+  assert.equal(MS.serialize({ state: start, coalition: [] }, ctx, REF, start), "");
   const p = MS.parse("", ctx, REF, start);
   assert.equal(p.state, start);
   assert.equal(p.note, null);
@@ -74,29 +76,26 @@ test("an untouched forecast has no query and an empty query opens the start", ()
 
 test("every state a reader can reach survives the address exactly", () => {
   const r = rng(7);
-  const names = [null, "Thandi", "Nomvula Dlamini-Khumalo", "José", "O'Neill", "Ntombi 2026"];
   let longest = 0;
   for (const seed of [1, 2, 3]) {
     for (const s of walk(seed, 120)) {
       const coalition = ctx.codes.filter(() => r() < 0.04);
-      const name = names[Math.floor(r() * names.length)];
-      const q = MS.serialize({ state: s, coalition, name }, ctx, REF, start);
+      const q = MS.serialize({ state: s, coalition }, ctx, REF, start);
       longest = Math.max(longest, q.length);
       const back = MS.parse(q, ctx, REF, start);
       assert.equal(back.note, null, q);
       assert.deepEqual(back.state.calls, s.calls);
       assert.deepEqual(back.state.votes, s.votes);
       assert.deepEqual(back.coalition, coalition);
-      assert.equal(back.name, name);
     }
   }
   console.log("# longest address query: " + longest + " characters");
   assert.ok(longest < 600, longest);
 });
 
-test("an invalid link opens the published start with a note saying why", () => {
+test("an invalid link opens the section at its start with a note saying why", () => {
   const s = walk(11, 30).at(-1);
-  const good = MS.serialize({ state: s, coalition: [ctx.codes[3]], name: "Sipho" }, ctx, REF, start);
+  const good = MS.serialize({ state: s, coalition: [ctx.codes[3]] }, ctx, REF, start);
   const q = new URLSearchParams(good);
   const f = q.get("f");
   const with_ = (k, v) => { const c = new URLSearchParams(q); c.set(k, v); return "?" + c; };
@@ -124,35 +123,32 @@ test("an invalid link opens the published start with a note saying why", () => {
     "a party is listed twice": with_("f", k > 1 ? tweak(b => { b[2] = b[1]; }) : f + "!"),
     "not one the seat law can seat (votes sum": with_("f", tweak(b => { b[b.length - 3] ^= 1; })),
     "holds a ward with fewer than": with_("f", MS.encode(voteless, [], ctx)),
-    "its name cannot be used": with_("n", "<b>x</b>"),
-    "longer than": with_("n", "x".repeat(MS.NAME_MAX + 1)),
   };
   for (const [why, link] of Object.entries(cases)) {
     const p = MS.parse(link, ctx, REF, start);
     assert.equal(p.state, start, why);
-    assert.deepEqual([p.coalition, p.name], [[], null], why);
+    assert.deepEqual(p.coalition, [], why);
     assert.ok(p.note && p.note.includes(why), why + " -> " + p.note);
   }
-  assert.equal(MS.parse(with_("n", "x".repeat(MS.NAME_MAX)), ctx, REF, start).note, null);
-});
-
-test("the name rule: text only, at most the limit", () => {
-  for (const ok of ["Thandi", "Nomvula Dlamini-Khumalo", "O'Neill", "Zoë", "  two   spaces  "]) assert.ok(MS.nameRule(ok).ok, ok);
-  assert.equal(MS.nameRule("  two   spaces  ").value, "two spaces");
-  assert.equal(MS.nameRule("").value, null);
-  for (const bad of ["<script>", "a/b", "@handle", "https://x.co", "x".repeat(25), "tab\there\u0000"]) assert.ok(!MS.nameRule(bad).ok, bad);
+  // section 1's settings and the name are not this part's: a link carrying
+  // only them opens the start with no note
+  for (const other of ["?t=5,0,0,0&mv=abc", "?n=Thandi", "?k=50&p=x"]) {
+    const p = MS.parse(other, ctx, REF, start);
+    assert.equal(p.state, start, other);
+    assert.equal(p.note, null, other);
+  }
 });
 
 test("the share image carries the name, the map and every row, escaped", () => {
   const rows = [{ label: "DA", colour: "#1B5EA8", value: "77", n: 77 }, { label: "Others", colour: "#555", value: "6", n: 6 }];
   const map = { W: D.geometry.W, H: D.geometry.H, wards: D.geometry.wards.map(w => ({ path: w.path, fill: "#123456" })) };
   const svg = buildForecastCardSVG({ title: cardTitle("A & B"), lines: [{ text: "s" }], map, rows, rowsNote: "n", foot: ["f"] });
-  assert.ok(svg.includes("A &amp; B's Election Forecast"));
+  assert.ok(svg.includes("A &amp; B's election forecast"));
   assert.equal((svg.match(/<path /g) || []).length, ctx.wards.length);
   for (const r of rows) assert.ok(svg.includes(">" + r.value + "<"), r.label);
-  assert.equal(cardTitle(null), "My Election Forecast");
-  assert.equal(cardTitle("James"), "James' Election Forecast");
-  assert.match(forecastCardAlt({ title: cardTitle("Thandi"), lines: [{ text: "s" }], rows, foot: ["Not the model's forecast."] }), /^Thandi's Election Forecast\. s\. Seats: DA 77, Others 6\. Not the model's forecast\.$/);
+  assert.equal(cardTitle(null), "My election forecast");
+  assert.equal(cardTitle("James"), "James' election forecast");
+  assert.match(forecastCardAlt({ title: cardTitle("Thandi"), lines: [{ text: "s" }], rows, foot: ["Not the model's forecast."] }), /^Thandi's election forecast\. s\. Seats: DA 77, Others 6\. Not the model's forecast\.$/);
 });
 
 // Seats for many bodies at once through the CPython the project runs: the

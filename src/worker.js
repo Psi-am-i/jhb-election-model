@@ -35,14 +35,19 @@
  * lines instead. Version URLs are not visible in Workers Logs, so UAT clicks
  * never appear there.
  *
- * Pages that moved (MOVED) answer 301 to their new address, query kept, on the
- * Johannesburg host and on workers.dev hosts, wherever the Johannesburg build
- * is served from the root, and log nothing. /about merged into /methodology in
- * the owner's sweep of 2026-10-03. A moved page is matched exactly, with or
- * without .html or a trailing slash, so /aboutx still reaches the assets.
- * Sections that moved inside a page (old article anchors) cannot be redirected
- * here: a fragment never reaches the server, so js/forward.js on the old page
- * sends them on.
+ * Pages that moved (MOVED) answer 301 to their new address on the Johannesburg
+ * host and on workers.dev hosts, wherever the Johannesburg build is served
+ * from the root, with the query string kept, so a link shared from the old
+ * page opens the same settings on the new one. They log nothing. Each row says
+ * which spellings of the old path move (owner's sweep, 2026-10-03):
+ *   - /about merged into /methodology. It is matched exactly, with or without
+ *     .html or a trailing slash, so /aboutx and /about/x still reach the
+ *     assets. Sections that moved inside a page (old article anchors) cannot be
+ *     redirected here: a fragment never reaches the server, so js/forward.js on
+ *     the old page sends them on.
+ *   - /play/ and /make/ became the two sections of /your-forecast/; /make/
+ *     lands on its section, #break. The directory and anything under it moves,
+ *     in any case: both were single pages and their files are gone.
  *
  * Each arrival is also written as one Workers Analytics Engine data point
  * (env.ARRIVALS, [[analytics_engine_datasets]] in wrangler.toml):
@@ -75,21 +80,26 @@ const SHARED_PAGES = new Set([
 
 const NOINDEX = "noindex, nofollow";
 
-// Johannesburg pages that moved: old path -> new path.
-const MOVED = new Map([
-  ["/about", "/methodology"],
-]);
+// Johannesburg pages that moved: [old path, new path, fragment]. Add a row
+// here to move a page; the query string is always kept.
+const MOVED = [
+  [/^\/about(?:\.html|\/)?$/, "/methodology", ""],
+  [/^\/play(?:\/.*)?$/i, "/your-forecast/", ""],
+  [/^\/make(?:\/.*)?$/i, "/your-forecast/", "#break"],
+];
 
-// "/about", "/about.html", "/about/" -> "/methodology"; anything else -> undefined.
+// "/about.html" -> ["/methodology", ""]; "/Make/index.html" ->
+// ["/your-forecast/", "#break"]; anything else -> undefined.
 function movedTo(path) {
-  const m = /^(\/[a-z0-9-]+)(?:\.html|\/)?$/.exec(path);
-  return m ? MOVED.get(m[1]) : undefined;
+  const row = MOVED.find(([old]) => old.test(path));
+  return row ? row.slice(1) : undefined;
 }
 
 function moved(url, to) {
+  const [path, hash] = to;
   return new Response(null, {
     status: 301,
-    headers: { Location: new URL(to + url.search, url).toString() },
+    headers: { Location: new URL(path + url.search + hash, url).toString() },
   });
 }
 

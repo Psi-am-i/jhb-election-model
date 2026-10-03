@@ -26,7 +26,7 @@ import cityconfig
 import math
 import os
 
-# NO GEOPANDAS AND NO CITY FILE AT IMPORT (2026-10-02). /play/ draws a ward
+# NO GEOPANDAS AND NO CITY FILE AT IMPORT (2026-10-02). /your-forecast/ section 1 draws a ward
 # under a reader's weights with THIS module's `ward_call` (one definition):
 # `interactive/pyboot/page.py` imports it under Pyodide in the browser, which
 # has no geopandas and opens no file. Both are needed only to draw the
@@ -100,7 +100,7 @@ def toss_pattern(contenders, step: float = 7.0, prefix: str = "h"):
 
 
 #: The stripe pattern's tile and angle, shared by :func:`toss_pattern` and the
-#: /play/ page, which builds the same pattern with DOM calls from
+#: section 1 of /your-forecast/, which builds the same pattern with DOM calls from
 #: :func:`toss_bands` (a page script may not inject markup).
 TOSS_STEP = 7.0
 TOSS_ROTATE = 45
@@ -112,7 +112,7 @@ def toss_bands(contenders, step: float | None = None):
     ``[{"colour", "x", "w"}]``, ``x`` the line's centre and ``w`` its width
     in a tile ``step`` wide, or ``None`` with fewer than two contenders. The one
     definition of the pattern's shape: ``toss_pattern`` writes it as markup,
-    /play/ (``pyboot/page.py``) hands it to the page, which builds it as DOM.
+    /your-forecast/ section 1 (``pyboot/page.py``) hands it to the page, which builds it as DOM.
     """
     step = TOSS_STEP if step is None else float(step)
     if len(contenders) < 2:
@@ -212,7 +212,7 @@ def ward_layers(geometry: dict, calls: dict, *, prefix: str = "h",
 
     ``geometry`` is ``{ward: path data}`` (``ward_paths.json``'s ``paths``),
     ``calls`` ``{ward: ward_call(...)}``. ONE DRAWING RULE for the forecast's
-    map (``main``) and /play/'s published map (``build_play``); /play/'s map
+    map (``main``) and section 1's published map (``build_play``); section 1's map
     under a reader's weights takes the same ``ward_call`` and
     :func:`toss_bands` through ``pyboot/page.py`` and builds the DOM itself.
     ``tips=False`` leaves out ``data-tip`` (the share image carries none).
@@ -255,7 +255,7 @@ def main(argv: list[str] | None = None) -> int:
                         default=Path("data/processed/ward_winner_probs.csv"))
     parser.add_argument("--simplify", type=float, default=0.0006)
     parser.add_argument("--paths-out", type=Path, default=Path("data/processed/ward_paths.json"),
-                        help="where the ward geometry is written (/play/ and the cartogram read it)")
+                        help="where the ward geometry is written (/your-forecast/ section 1 and the cartogram read it)")
     parser.add_argument("--into", type=Path, nargs="+",
                         default=[Path("forecast-sheet.html"), Path("home.html"),
                                  Path("drafts/forecast-draft.html")],

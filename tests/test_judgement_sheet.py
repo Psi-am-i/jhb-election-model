@@ -298,12 +298,13 @@ def test_the_parser_refuses_a_field_it_cannot_place():
         raise AssertionError(f"a Plain field with {why} was accepted")
 
 
-def test_every_field_says_whether_play_can_move_it():
-    """The owner's brief: each call says whether /play/ can change it."""
+def test_every_field_says_whether_your_forecast_can_move_it():
+    """The owner's brief: each call says whether /your-forecast/ (it replaced
+    /play/ on 2026-10-03) can change it."""
     calls = judgement_sheet.plain_calls(
         judgement_sheet.REGISTER.read_text(encoding="utf-8"))
-    silent = [c["title"] for c in calls if "](play/)" not in c["body"]]
-    assert not silent, f"Plain fields that never mention /play/: {silent}"
+    silent = [c["title"] for c in calls if "](your-forecast/)" not in c["body"]]
+    assert not silent, f"Plain fields that never mention /your-forecast/: {silent}"
 
 
 def _heading_numbers(heading: str) -> set[float]:

@@ -1,22 +1,26 @@
-// The "play with the model" Web Worker (SPEC-v2 F11): Pyodide, numpy,
+// The "your forecast" re-weighting Web Worker (SPEC-v2 F11): Pyodide, numpy,
 // src/reweight.py and the published draws live here, off the page's main
 // thread, so a slider stays responsive while the Python computes.
 //
 // Messages in:   {type: "compute", seq, settings}
+//                {type: "call", id, fn, payload}   fn "handoff" or "analyse"
+//                                                  (page.py), for section 2
 // Messages out:  {type: "stage", key, label, ms}
 //                {type: "ready", polls, pools, cells, laws, modelVersion, pageRef, times,
 //                 byelection, parties}
 //                {type: "result", seq, result, ms}   ({type: "error", seq, message})
+//                {type: "answer", id, result}        ({type: "callerror", id, message})
 //                {type: "failed", message, missing}  the engine could not load
 //
 // Only the newest compute is answered: a request that arrives while one runs
-// replaces any queued one, and the page drops a reply whose seq is stale.
+// replaces any queued one, and the page drops a reply whose seq is stale. A
+// call is answered once, in order, and is never replaced.
 import { loadReweightEngine, PageCodeMissing, PYODIDE_URL } from "./reweight-engine.js";
 
 const INTERACTIVE = new URL("../", import.meta.url);
 // Where the published draws are, relative to this file. In the prototype this
 // file is interactive/js/ and the draws are site/draws/; served, it is
-// /play/js/ and the draws are /draws/. build_play.py rewrites THIS ONE LINE
+// /your-forecast/js/ and the draws are /draws/. build_your_forecast.py rewrites THIS ONE LINE
 // for the served layout and refuses to build if it cannot find it exactly once.
 const DRAWS = "../../site/draws/";
 const DRAWS_URL = new URL(DRAWS, import.meta.url);
@@ -63,8 +67,22 @@ async function drain() {
   drain();
 }
 
+let callChain = Promise.resolve();
+const callsWaiting = [];
+function runCall({ id, fn, payload }) {
+  callChain = callChain.then(async () => {
+    try {
+      if (fn !== "handoff" && fn !== "analyse") throw new Error("no call " + fn);
+      postMessage({ type: "answer", id, result: await engine[fn](payload) });
+    } catch (e) {
+      postMessage({ type: "callerror", id, message: String(e.message || e) });
+    }
+  });
+}
+
 onmessage = e => {
   if (e.data.type === "compute") { queued = e.data; drain(); }
+  else if (e.data.type === "call") { if (engine) runCall(e.data); else callsWaiting.push(e.data); }
 };
 
 (async () => {
@@ -82,6 +100,7 @@ onmessage = e => {
                   modelVersion: engine.modelVersion, pageRef: engine.pageRef, times: engine.times,
                   byelection: engine.byelection, parties: await partiesP });
     drain();
+    for (const c of callsWaiting.splice(0)) runCall(c);
   } catch (e) {
     postMessage({ type: "failed", message: String(e.message || e), missing: e instanceof PageCodeMissing });
   }

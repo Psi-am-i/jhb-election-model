@@ -1,4 +1,6 @@
-/* "Play with the model" (/play/): the page's own rules, after interactive.css.
+/* "Your forecast", section 1 ("Adjust the model"): its rules, after
+   interactive.css; css/your-forecast.css (the page's layout and the parts
+   both sections share) comes after this.
 
    Every class here starts "pl-" so nothing collides with the builder's
    stylesheet. The palette, the seat table and the arrows are the site's
@@ -99,7 +101,7 @@
 .pl-seats{margin-top:10px;}
 .pl-sharebox{margin-top:14px;}
 .pl-sharebox .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper);}
-.pl-tomake{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);}
+.pl-sharewhy:empty{display:none;}
 
 /* ---------- controls ---------- */
 .pl-ctl{border-top:1px solid var(--rule);padding:16px 0 6px;}
@@ -162,12 +164,7 @@
   border-right:1px solid var(--rule);padding:9px 6px;cursor:pointer;min-height:44px;}
 .pl-seg3 button:last-child{border-right:0;}
 .pl-seg3 button[aria-checked="true"]{background:var(--accent-soft);color:var(--accent);}
-.pl-law summary{cursor:pointer;list-style:none;}
-.pl-law summary::-webkit-details-marker{display:none;}
-.pl-law summary h3{display:inline;margin-right:10px;}
-.pl-law summary h3::before{content:"▸ ";color:var(--ink-3);font-size:14px;}
-.pl-law[open] summary h3::before{content:"▾ ";}
-.pl-lawnow{display:block;font-size:13px;color:var(--ink-3);margin-top:2px;}
+.pl-lawnow{display:block;font-size:13px;color:var(--ink-3);margin-top:4px;}
 
 /* ---------- notes ---------- */
 .pl-notes{border-top:1px solid var(--rule);margin-top:34px;padding-top:12px;max-width:820px;}

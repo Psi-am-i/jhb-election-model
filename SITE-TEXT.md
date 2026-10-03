@@ -1391,16 +1391,16 @@ reason not to let it move a published headline while its design is unsettled.
 
 <!-- /block 7cb6431b -->
 
-<!-- block 38cb11be -->
+<!-- block 90df8a6c -->
 *md*
 
 We intend to use every poll received and to put the weighting in the
 reader's hands.
-[Play with the model](play/) has a first version: you choose how far to trust
+[Your forecast](your-forecast/) has a first version: you choose how far to trust
 each poll, and the published simulations are re-weighted in your browser. The
 published forecast uses no poll.
 
-<!-- /block 38cb11be -->
+<!-- /block 90df8a6c -->
 
 <!-- block 91a3fee7 -->
 *md*

@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _support import ROOT, run_module  # noqa: E402
 
 import build_play  # noqa: E402
+import build_your_forecast  # noqa: E402
 import build_site as B  # noqa: E402
 
 SHEET = ROOT / "forecast-sheet.html"
@@ -85,7 +86,7 @@ def nav_problems(items) -> list[str]:
     for href, label in items:
         if href.startswith("https://"):
             continue
-        if href == build_play.PLAY_HREF:
+        if href == build_your_forecast.YF_HREF:
             continue
         if href not in produced:
             out.append(f"nav item {label!r} -> {href!r}, a page this build does not produce")
@@ -95,7 +96,7 @@ def nav_problems(items) -> list[str]:
 def test_the_nav_is_the_owners_and_every_item_is_a_built_page():
     assert nav_problems(B.NAV_ITEMS) == []
     # "your forecast" is the interactive page's own address, not a literal
-    assert dict((lab, h) for h, lab in B.NAV_ITEMS)["your forecast"] == build_play.PLAY_HREF
+    assert dict((lab, h) for h, lab in B.NAV_ITEMS)["your forecast"] == build_your_forecast.YF_HREF
     assert dict((lab, h) for h, lab in B.NAV_ITEMS)["source code"] == B.REPO_URL
     # the other direction: every reader-facing page of the model is in the nav
     in_nav = {h for h, _l in B.NAV_ITEMS}
@@ -499,14 +500,14 @@ def test_every_built_page_carries_the_footer_once():
     pages = sorted(site.rglob("*.html"))
     root_pages = {p.name for p in pages if p.parent == site}
     assert root_pages == _produced(), root_pages ^ _produced()
-    assert len(_produced()) + 2 <= len(pages) <= len(_produced()) + 6, len(pages)
+    assert len(_produced()) + 1 <= len(pages) <= len(_produced()) + 6, len(pages)
     for p in pages:
         html = p.read_text(encoding="utf-8")
         foot = re.findall(r'<footer class="sitefooter">.*?</footer>', html, re.S)
         assert len(foot) == 1, (p, len(foot))
         if p.parent == site:
             assert foot[0] == B.FOOTER, p
-        else:  # /play/, /make/: the same footer re-pointed one level down
+        else:  # /your-forecast/: the same footer re-pointed one level down
             assert foot[0] == build_play.one_level_down(B.FOOTER), p
 
 

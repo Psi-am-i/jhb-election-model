@@ -11,7 +11,9 @@ Runs ``interactive/pyboot/page.py`` exactly as the page's Web Worker does, but
 under the project's CPython: the served copy ``interactive/py/page/`` (written
 by ``tools/sync_py.mjs``) is the working directory and the only project
 directory on ``sys.path``, the cells are read from ``site/draws/`` as the page
-fetches them, and the settings are ``tests/play-settings.json``.
+fetches them, and the settings are ``tests/play-settings.json``: its cases for
+section 1's ``compute``, and its ``section2`` block for ``handoff`` and
+``analyse``.
 ``tests/page.test.mjs`` runs the same cases under Pyodide and compares.
 
 ``--measure`` is how ``PAGE_FILES`` and ``PAGE_DATA`` are held to the truth:
@@ -66,6 +68,21 @@ def run(ns) -> list[dict]:
     return out
 
 
+def run_section2(ns) -> list[dict]:
+    """Section 2's two calls on the settings ``play-settings.json`` names:
+    the hand-off, then the analysis of the forecast it hands over."""
+    doc = json.loads(SETTINGS.read_text())
+    by_name = {c["name"]: c["settings"] for c in doc["cases"]}
+    total = doc["section2"]["total"]
+    out = []
+    for name in doc["section2"]["cases"]:
+        h = json.loads(ns["handoff"](json.dumps({"settings": by_name[name], "total": total})))
+        a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": h["share"],
+                                                 "seats": h["seats"]})))
+        out.append({"name": name, "handoff": h, "analyse": a})
+    return out
+
+
 def describe(ns) -> dict:
     import numpy as np
     return {
@@ -112,7 +129,7 @@ def main(argv: list[str]) -> int:
         return 0
     ns = _page(SERVED, SERVED)
     cases = run(ns)          # first: it hands the page its poll set
-    doc = {**describe(ns), "cases": cases}
+    doc = {**describe(ns), "cases": cases, "section2": run_section2(ns)}
     text = json.dumps(doc, indent=1, sort_keys=True) + "\n"
     if "--write" in argv:
         FIXTURE.write_text(text)

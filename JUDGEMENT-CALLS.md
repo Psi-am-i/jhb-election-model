@@ -50,7 +50,7 @@ So:
 5. **A *Plain* field is the reader's version of an entry** (added 2026-10-02,
    owner: "omit all judgement calls that aren't an opinion on machinery"). Only
    calls a lay reader can follow and might dispute carry one: what was chosen,
-   why, what the alternative changes, and whether /play/ can move it. It opens
+   why, what the alternative changes, and whether /your-forecast/ can move it. It opens
    the entry, directly under the heading. `src/judgement_sheet.py` copies every
    one, in register order, into the section of `docs-public/methodology.md`
    headed "The judgement calls", and the site build refreshes it; edit the field
@@ -95,6 +95,7 @@ promotion note in §F.
 | `_SIGN_EPS` | 1e-9 | `theta_residual.py` | 1e-9, and it decides one of KEY 4's two failure triggers: six orders above the float dust a genuine no-op produced and six below the smallest real effect on record. | 🟡 | §F7 |
 | `ALPHA_MIN_SHARE`, `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK` | 0.01, 1.0, 200.0, 12.0 | `pools.dirichlet_alpha` | Promoted from inline literals 2026-08-22, number-neutral. They are the SELECTION RULE feeding the dominant width lever, and none has ever been swept. | 🔴 | §F31 |
 | `alpha` per pool (and `dirichlet_scale`) | — | `pools.dirichlet_alpha` | The model's DOMINANT width lever, sweepable since §1.63 via `dirichlet_scale` and NOT retuned — the method-of-moments fit names 1.0. The ranks 4-12 half of the old 'a scalar cannot serve both bands' finding is WITHDRAWN. | 🟡 | §B7 |
+| `ANALYSIS_SEAT_BAND`, `ANALYSIS_SHARE_BAND_POINTS` | 2, 2.0 | `reweight.py`, `within_band`, read by `pyboot/page.py` `analyse` | Typed 2026-10-03 for "Analyse my forecast" on /your-forecast/: how near a reader's seats (seats) and vote (list-ballot points) a simulation must land to count. With them, the whole-forecast figure's method. Moves no forecast; decides which chance the analysis prints. | 🟡 | §N3 |
 | `apply_city` never resets `DEFAULTS` | — | `montecarlo.py` | **AMENDED 2026-09-24 (register audit).** FIXED: `apply_city` clears `DEFAULTS` and restores a pristine copy before applying a city (since 2026-08-18), guarded by `test_apply_city_does_not_leak_one_citys_scalars_into_the_next`. Johannesburg declares 11 scalars, not sixteen. Status marker left for the owner. | 🔴 | §A43 |
 | `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` | 0.25, 0.95 | — | 0.25 / 0.95, the triangular support of every seeded arrival. 25/95 rather than 10/90 or 5/95 is undefended and never swept. | 🔴 | §F32 |
 | `arrival_group_draw` | False | `montecarlo.py`, read in `make_drawer` | Ships False. The rejection was re-run on the label-free referee 2026-08-29 and refuted again; the 254 → 348 figure is superseded and must not be quoted. | 🟢 | §A6 |
@@ -367,8 +368,8 @@ neither replicated. ⚠️ Under rule 11 the effective sample is close to two ev
 
 **Plain — No poll is used.** There is no designed rule yet for how several polls
 combine. With polls in, the forecast moves toward the polls the rules admit;
-what that was worth when measured is under *Where polls fit*, below. On [play
-with the model](play/) you can pick one poll at a time and choose how far to
+what that was worth when measured is under *Where polls fit*, below. On [your
+forecast](your-forecast/) you can pick one poll at a time and choose how far to
 believe it.
 
 **Where.** `montecarlo.py`, gates both live poll paths
@@ -490,8 +491,7 @@ machinery cannot rot while it is switched off.
 with heavier tails than a bell curve, so a large miss in either direction comes
 up more often than a bell curve gives. The record does not fix how heavy.
 Lighter tails make extreme results rarer and scored the same against past
-elections; much heavier tails scored worse. It cannot be changed on [play with
-the model](play/).
+elections; much heavier tails scored worse. It cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.py`
 
@@ -544,7 +544,7 @@ and the vote freed is returned to all parties in proportion to their share.
 Without the cut, forecasts of past elections gave the largest parties too much
 and the middle-sized parties too little; adding it was the largest single
 improvement the model has had. The smallest parties are now forecast slightly
-too high. It cannot be changed on [play with the model](play/).
+too high. It cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.compress_levels`, run on the finished centre vector
 
@@ -667,7 +667,7 @@ some parties would get almost no by-election weight and others more than 40%.
 The by-election data starts in 2022, so no past election can test the weight or
 the choice between the two rules, and only the November result will. We kept the
 simpler rule. A higher weight moves parties toward their by-election swings. On
-[play with the model](play/) by-elections can count not at all, partly as the
+[your forecast](your-forecast/) by-elections can count not at all, partly as the
 forecast does, or fully. The rule stays the same.
 
 **Where.** `montecarlo.py`
@@ -908,7 +908,7 @@ past local elections in the metros. Black African, Coloured and White turnout
 have moved closely together, and Indian/Asian turnout much less. Separate
 figures for each pair have not been tried. Removing the link was tested and
 changed the forecast's spread very little, and why it matters so little is not
-yet explained. It cannot be changed on [play with the model](play/).
+yet explained. It cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.py`
 
@@ -1634,8 +1634,7 @@ otherwise. **None has been measured; several have never been moved at all.**
 
 **Plain — The excessive-seats clause.** The clause is applied as amended in
 2021, with the arithmetic the Commission used in Laingsburg in 2021 (see *How
-Johannesburg's council elections work*). No court has ruled on it. [Play with
-the model](play/) applies three versions of Germany's seat law instead; two of
+Johannesburg's council elections work*). No court has ruled on it. [Your forecast](your-forecast/) applies three versions of Germany's seat law instead; two of
 them enlarge the council and move the majority line.
 
 ⛔ **RECLASSIFIED 2026-09-02 (§1.165). This is not a lever and it must never be
@@ -1681,7 +1680,7 @@ projected from how far turnout fell from the national election to the local
 election two years later, in 2016 and in 2021, with 2021 counting for 70%. The
 weight comes from the model's original plan and has never been tested. Turnout
 fell less in 2016, so weighting the two equally would raise projected turnout.
-On [play with the model](play/) you can move the turnout of any or all four
+On [your forecast](your-forecast/) you can move the turnout of any or all four
 population groups at once. A group you leave alone stays at the forecast's
 turnout.
 
@@ -2606,7 +2605,7 @@ typical share of the combined SACP and ANC vote there, applied to the ANC's
 expected Johannesburg share. Sized as a breakaway from the ANC it came out
 several times larger, and sized as a brand-new party it came out below every
 by-election result it has had; its own record rejects both. It cannot be changed
-on [play with the model](play/).
+on [your forecast](your-forecast/).
 
 **Where.** `judgements/joburg-2026.toml`, `[party.SOUTH_AFRICAN_COMMUNIST_PARTY]`:
 `weights` and `support`. No symbol in `src/`.
@@ -3044,6 +3043,86 @@ weights withhold no published figure and Black African +8 withholds some.
 `sampling_se` on the published draws can be compared with the bootstrap
 figures above at any time.
 
+### §N3 · "Analyse my forecast": the bands (`ANALYSIS_SEAT_BAND` = 2 seats, `ANALYSIS_SHARE_BAND_POINTS` = 2.0 points) and the whole-forecast figure — 🟡 argued, not tested (2026-10-03)
+
+**Where.** `reweight.within_band` and `reweight.ward_calls_likelihood`, called
+by `interactive/pyboot/page.py`'s `analyse` when a reader presses "Analyse my
+forecast" in section 2 of /your-forecast/ (the owner's sweep of 2026-10-03,
+item 6).
+
+**Now.** Every chance is the PUBLISHED forecast's: the published cell's draws,
+each counted once, seated by the statute. Four figures:
+
+* **A ward.** The chance the model gives the reader's winner there,
+  `reweight.ward_win_probability` (the published map's Jeffreys-corrected
+  estimate). Printed on hover: "we give this outcome a chance of N".
+* **A party's seats.** The share of simulations in which the party's seats
+  land within `ANALYSIS_SEAT_BAND` of the reader's figure, either side, edges
+  included. Two seats, typed: wide enough that a reader's round number near
+  the model's middle scores as near it (the middle's own Monte Carlo error is
+  under one seat, §N2). For a party whose 90% range is several times wider
+  than the band, a figure outside that range scores low. For a party whose
+  90% range is about as wide as the band or narrower (a party with a few
+  seats), any figure near its middle scores high, so the figure separates
+  little there. Not derived from anything.
+* **A party's vote.** The share of simulations in which the party's
+  LIST-BALLOT share lands within `ANALYSIS_SHARE_BAND_POINTS` of the reader's
+  combined share. The draws carry no combined share (`export_draws` refuses
+  one: the statutory pool is built inside the draw loop), so the list ballot
+  is the nearest quantity the model has; the page says so beside the figure.
+  A party whose ward ballot runs ahead of its list ballot is scored against
+  the lower of the two. Two points, typed, on the same reasoning as the seat
+  band.
+* **The whole forecast.** The headline is the expected number of the
+  reader's ward calls that come true, the sum of the ward chances: "We expect
+  N of your M ward calls to come true. But historical trends can always be
+  broken." Beneath it, a rank: "Ranked by the chance we give each ward's
+  winner, your ward calls as a set come level with or above the ward results
+  of R of our simulations." Method of the rank: each set of ward results is
+  scored by the sum over wards of the log of the chance the model gives its
+  winner there. The reader's calls are scored so, and so is every
+  simulation's own set of ward winners; R is the share of simulations scoring
+  at or below the reader's. R is a PERCENTILE, not a chance: the chance of the
+  reader's exact set is vanishingly small for any set, the model's own modal
+  calls included, and the modal calls rank above every simulation.
+
+**What the method assumes.** The score treats wards as independent. They are
+not: the simulations share citywide swings, so a reader who moves many wards
+the same way is penalised as if each move were separate. Scoring every
+simulation by the same rule puts the reader's set and the model's on one
+footing, so the percentile ranks fairly; it is not a joint probability. Seats
+and votes are not in the whole-forecast figure: they are shown party by party.
+
+**Rejected wordings.**
+
+| Wording | Why it was not used |
+|---|---|
+| "We give this outcome N% chance" (the owner's sweep, item 6) | No probability of the reader's whole set exists that is not vanishingly small. The only figure of that shape is the rank R. |
+| "We give ward results as unlikely as yours, or less likely, a chance of R" (lane Y, first build) | R reads as the chance the forecast comes true. The untouched start printed "over 99%" (review of lane Y, 2026-10-03, must-fix 2; STYLE rule 10). |
+
+**Waiting on the owner.**
+
+* The headline: the expected number of ward calls that come true, with the
+  rank beneath it, replaces the plan's "We give this outcome N% chance".
+* The bands for small parties: a fixed band of two seats and two points
+  scores near-certain for a party with a few seats (ACDP 91%, Al Jama-ah
+  over 99% at any plausible figure; review of lane Y, item 11). Options: a
+  band scaled to each party's 90% range, or no seat and vote chance for
+  parties below a seat threshold. Kept as typed until decided.
+
+**Alternatives, not taken.** A joint figure across wards, seats and votes
+(a distance in all three at once) would need a weighting of the three, which
+is another judgement with no record to fit it to. Scoring the reader's calls
+against the reader's own adjusted weights would answer "how likely under my
+changes", which section 1 already shows.
+
+**How to check it.** `tests/test_reweight.py` holds `within_band` and
+`ward_calls_likelihood` to hand enumerations on constructed draws and
+weights; `tests/test_your_forecast_page.py` holds `page.py`'s `analyse` to
+those functions on the published draws for a constructed forecast. A
+different band changes only which chance is printed; nothing in the model
+reads it.
+
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 
 ### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured
@@ -3055,7 +3134,7 @@ any absent party's vote does. In 2026 ActionSA inherits from Forum 4 Service
 Delivery, and Rise Mzansi from GOOD. No merger in the record shows how much
 carries over, so the share is a judgement; a review in September that was not
 shown our reasoning recommended 50%. A lower share moves the inheriting party
-down. It cannot be changed on [play with the model](play/).
+down. It cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `pools.MERGER_RETENTION`, read at call time by `pools.apply_mergers`,
 which every function in `pools.MERGER_CONSUMERS` calls: `montecarlo.run_model`

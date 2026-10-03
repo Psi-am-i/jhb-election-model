@@ -2,7 +2,7 @@
 // Serves the project's Python to the interactive pages, which run it under
 // Pyodide. Two sets, kept apart because they are two programs:
 //
-// THE SEAT CODE (make.html, the builder). Copied by
+// THE SEAT CODE (your-forecast.html's section 2, the builder). Copied by
 // worker-api/tools/sync_seats_py.mjs's own `copy` and `checkCopy`, over its own
 // FILES list, so the page and the seat Worker carry the same bytes by the same
 // rule; nothing about that list or its hash is restated here. Added beside it:
@@ -10,7 +10,7 @@
 //   entry.py       the seat Worker's request handler (worker-api/seats-py/src),
 //                  so the page asks the same `answer(body)` the server asks;
 //
-// THE PAGE CODE (model.html, "play with the model"; SPEC-v2 Lane P, F18).
+// THE PAGE CODE (your-forecast.html's section 1; SPEC-v2 Lane P, F18).
 // src/reweight.py and the rest of the import closure of pyboot/page.py
 // (PAGE_FILES), plus the files that closure opens at run time (PAGE_DATA),
 // copied into interactive/py/page/. It is NOT added to worker-api's FILES: the
@@ -43,12 +43,13 @@ const ENTRY = resolve(REPO, "worker-api/seats-py/src/entry.py");
 export const SERVED = [...FILES, "code_ref.py", "entry.py"];
 
 // The page's Python, in import order: pyboot/page.py imports cityconfig,
-// polling, render_map (the ward rule, ward_call) and reweight; polling and
-// render_map import cityconfig. Measured, not argued:
+// polling, render_map (the ward rule, ward_call), reweight and start_rule
+// (where section 2 opens; it imports scenarios for the seat panel's named
+// parties); polling and render_map import cityconfig. Measured, not argued:
 // page.test.mjs fails if page.py imports a src/ module missing here or this
 // names one it does not import. When Lane R's reweight.py imports more, the
 // test says which.
-export const PAGE_FILES = ["cityconfig.py", "polling.py", "render_map.py", "reweight.py"];
+export const PAGE_FILES = ["cityconfig.py", "polling.py", "render_map.py", "reweight.py", "scenarios.py", "start_rule.py"];
 // Files the page code opens, relative to the repository root, which is the
 // page's working directory: the poll register (polling.REGISTER) and the city
 // file (cityconfig.CITIES_DIR). Measured the same way, with an audit hook.

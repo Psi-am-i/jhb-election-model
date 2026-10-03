@@ -1,13 +1,15 @@
-// "Play with the model": the reader's control settings, their bounds, and the
-// share URL (SPEC-v2 F16). Pure: no DOM, no figures. Served with the page and
-// imported by its LIVE writer, so stats.script_writes reads it as a module
-// that may write no figure: no data block, no data source, no HTML and no
-// template interpolation (string concatenation below, for that reason). What a setting MEANS is
+// "Your forecast", section 1 ("Adjust the model"): the reader's control
+// settings, their bounds and their part of the address (SPEC-v2 F16). Pure:
+// no DOM, no figures. Served with the page and imported by its LIVE writer,
+// so stats.script_writes reads it as a module that may write no figure: no
+// data block, no data source, no HTML and no template interpolation (string
+// concatenation below, for that reason). What a setting MEANS is
 // pyboot/page.py's and src/reweight.py's; this file holds only what a reader
 // may set, so a hand-edited link cannot ask the engine for anything the
 // controls could not.
 //
-// URL form (every field optional; an absent field is the published setting):
+// Address part (every field optional; an absent field is the published
+// setting), written through yf-url.js, the page's one address writer:
 //   ?t=0,0,0,0        turnout shift per group, points, in the draws' pool order
 //   &p=id             the one poll chosen (owner, 2026-10-02: one at a time)
 //   &k=0              how much to believe it, 0-100 (0 = the published forecast)
@@ -15,10 +17,10 @@
 //   &b=.              by-election cell: the published one, or a grid cell's path
 //   &mv=<sha>         the model version the link was made against, its first
 //                     MV_CHARS hex digits (enough to tell versions apart)
-//   &n=<text>         the name for the share image, at most NAME_MAX characters
-//                     (D7, owner 2026-10-02). It is the reader's text: the page
-//                     puts it only in the name field's value and on the image,
-//                     drawn as text, never as markup
+// The name for either share image (`n`, D7, owner 2026-10-02) is yf-url.js's,
+// cleaned here by cleanName, the one rule: the reader's text, at most
+// NAME_MAX characters, put only in the name fields' values and on the images,
+// drawn as text, never as markup.
 // Commas are written bare, not as %2C, so a link stays readable.
 
 // F21: the turnout range is what was tested: ±5 points for Black African
@@ -99,21 +101,13 @@ export function parse(search, ctx) {
     if (ctx.cells.includes(q.get("b"))) st.cell = q.get("b");
     else dropped.push("by-election weight: not one this page offers");
   }
-  if (q.has("n")) {
-    // an empty name is no name, not a refusal; a long one is refused whole,
-    // never cut, in the field's own unit
-    const raw = q.get("n");
-    if (raw.length > NAME_MAX) dropped.push("name: at most " + NAME_MAX + " characters");
-    else st.name = cleanName(raw);
-  }
   // The link's version must be this model's first MV_CHARS characters
   // exactly: a shorter prefix would match more than one version.
   const mv = q.get("mv");
   return { state: st, dropped, otherVersion: mv != null && mv !== String(ctx.modelVersion).slice(0, MV_CHARS) ? mv : null };
 }
 
-// Only fields that differ from the published setting are written, plus mv,
-// then the name.
+// Only fields that differ from the published setting are written, plus mv.
 export function serialize(st, ctx) {
   const q = new URLSearchParams();
   if (st.shift.some(x => x !== 0)) q.set("t", st.shift.join(","));
@@ -122,9 +116,15 @@ export function serialize(st, ctx) {
   if (st.law !== PUBLISHED_LAW) q.set("l", st.law);
   if (st.cell !== PUBLISHED_CELL) q.set("b", st.cell);
   if ([...q.keys()].length) q.set("mv", String(ctx.modelVersion).slice(0, MV_CHARS));
-  if (cleanName(st.name)) q.set("n", cleanName(st.name));
   const s = q.toString().replace(/%2C/g, ",");
   return s ? "?" + s : "";
+}
+
+// May these settings be shared? Only under the law that seats the council
+// (owner, 2026-10-03): the other laws are for comparison, and a shared image
+// or link of a council seated under Germany's law would read as a forecast.
+export function shareable(st) {
+  return st.law === PUBLISHED_LAW;
 }
 
 // The settings pyboot/page.py computes: trust as a fraction; the poll is

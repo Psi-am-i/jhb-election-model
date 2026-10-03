@@ -81,10 +81,11 @@ def test_the_built_site_carries_no_inline_css_or_js():
     site = ROOT / "site"
     pages, problems = SA.scan_site(site)
     # two-sided: the build's own pages (build_site.DOCS + ARTEFACTS + portal,
-    # /play/ and /make/), not a floor that ratchets
+    # /your-forecast/), not a floor that ratchets
     import build_site as B
+    import build_your_forecast as YF
     expected = {spec[0] for spec in B.DOCS.values()} | set(B.ARTEFACTS) | {"portal.html"}
-    expected |= {"play/index.html", "make/index.html"}
+    expected |= {YF.YF_PAGE}
     assert expected <= set(pages), sorted(expected - set(pages))
     assert len(pages) <= len(expected) + 2, pages
     assert problems == [], problems[:5]
@@ -92,7 +93,7 @@ def test_the_built_site_carries_no_inline_css_or_js():
 
 def test_the_templates_carry_no_inline_css_or_js():
     templates = [ROOT / "forecast-sheet.html", ROOT / "home.html",
-                 ROOT / "interactive" / "model.html", ROOT / "interactive" / "make.html"]
+                 ROOT / "interactive" / "your-forecast.html"]
     for t in templates:
         assert SA.inline_problems(t.read_text(encoding="utf-8")) == [], t.name
 

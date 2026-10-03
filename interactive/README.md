@@ -1,15 +1,18 @@
 # Readers' forecasts
 
-"Make your own forecast", "play with the model", sign-in to save, the share
+"Your forecast" (adjust the model, then break it), sign-in to save, the share
 sheet and share image, and the shared forecast page, for
 joburg.whysoserious.city.
 
-Two pages are BUILT into the site and ship anonymous (no sign-in, no server
-storage, no prize): "play with the model" (`/play/`, `src/build_play.py`) and
-"make your own forecast" (`/make/`, `src/build_make.py`), both below. Both run
-on the model's published draws (`site/draws/`) and compute every figure with
-the project's own Python under Pyodide in a Web Worker. Nothing under `site/`
-or `src/` is touched at run time.
+One page is BUILT into the site and ships anonymous (no sign-in, no server
+storage, no prize): "your forecast" (`/your-forecast/`,
+`src/build_your_forecast.py`), below. It replaced "play with the model"
+(`/play/`) and "make your own forecast" (`/make/`) on 2026-10-03, which are
+now its two sections; `src/worker.js` answers both old addresses with a 301 to
+it, query string kept, so a shared link restores. It runs on the model's
+published draws (`site/draws/`) and computes every figure with the project's
+own Python under Pyodide in two Web Workers. Nothing under `site/` or `src/`
+is touched at run time.
 
 Still a **prototype**: sign-in, saving and the shared forecast page (`f/`),
 which run on the synthetic fixtures and, on a loopback host, on stubs that
@@ -18,163 +21,198 @@ in `worker-api/`, not deployed.
 
 ## Open it
 
+The page has no figures until it is built. Build into a scratch directory,
+link `site/draws/`, `site/logos/` and `site/share.jpg` beside it, and serve
+that directory:
+
 ```
 cd ~/projects/atlas-jhb-election-model
-python3 -m http.server 8801 --bind 127.0.0.1      # port 8801, never 8765
+.venv/bin/python src/build_site.py --out /tmp/yf/site
+python3 -m http.server 8801 --bind 127.0.0.1 --directory /tmp/yf/site   # port 8801, never 8765
 ```
 
 | page | URL |
 |---|---|
-| Play with the model | http://127.0.0.1:8801/interactive/model.html |
-| A shared forecast (demo) | http://127.0.0.1:8801/interactive/f/?id=demo7Qx2Lp |
-| Privacy notice placeholder | http://127.0.0.1:8801/interactive/privacy-placeholder.html |
+| Your forecast | http://127.0.0.1:8801/your-forecast/ |
+| A shared forecast (demo), from the repository root | http://127.0.0.1:8801/interactive/f/?id=demo7Qx2Lp |
+| Privacy notice placeholder, from the repository root | http://127.0.0.1:8801/interactive/privacy-placeholder.html |
 
-`python3 -m http.server` listens with a backlog of five, and the pages fetch
-enough modules at once that some connections are reset; if a page fails to
-load a module, serve with a larger backlog:
-`python3 -c "import http.server as h, functools; S=type('S',(h.ThreadingHTTPServer,),{'request_queue_size':128}); S(('127.0.0.1',8801), functools.partial(h.SimpleHTTPRequestHandler, directory='.')).serve_forever()"`.
-
-Serve the repository root, not `interactive/`: the nav links point at the live
-pages in `../site/`, and the builder imports the Worker's own `validate.js`,
-`seats.js` and generated schema from `../worker-api/`. The pages are ES modules,
-so `file://` does not work.
+`python3 -m http.server` listens with a backlog of five, and the page fetches
+enough modules at once that some connections are reset; if a module fails to
+load, serve with a larger backlog:
+`python3 -c "import http.server as h, functools; S=type('S',(h.ThreadingHTTPServer,),{'request_queue_size':128}); S(('127.0.0.1',8801), functools.partial(h.SimpleHTTPRequestHandler, directory='/tmp/yf/site')).serve_forever()"`.
+The pages are ES modules, so `file://` does not work.
 
 **Copy the Python first**, after checkout and after any change to it:
 `node interactive/tools/sync_py.mjs` (`--check` to verify). It writes
 `interactive/py/` (gitignored): the seat code, with worker-api's own copy rule
 and file list, plus the seat Worker's `entry.py`; and, separately, the page
-code in `py/page/` (`PAGE_FILES`: `reweight.py` and its import closure;
-`PAGE_DATA`: the poll register and the city file it opens). `manifest.json`
-carries both lists and a hash of each. Without it the builder stays locked and
-"play with the model" keeps the published forecast, and each says which
-command to run.
+code in `py/page/` (`PAGE_FILES`: `reweight.py`, `start_rule.py` and their
+import closure; `PAGE_DATA`: files that closure opens, none today).
+`manifest.json` carries both lists and a hash of each. The build runs it.
 
 Tests: `node --test interactive/tests/*.test.mjs`. Set `PYODIDE_NODE` to a
 directory holding `node_modules/pyodide` (0.29.5) to also run both engines
 under Pyodide; otherwise those two tests are skipped and say so. After a
 re-export of `site/draws/` or a change to the page code, regenerate the native
 fixture: `.venv/bin/python interactive/tools/native_play.py --write` (the test
-says when).
-Screenshots at 375 px and 1440 px are in `screenshots/`.
+says when). Screenshots at 375 px and 1440 px are in `screenshots/yf-*.png`
+(`tools/yf_screenshots.mjs`, which can serve a scratch build to the browser
+itself with `YF_ROOT`, no port).
 
 To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 
-## Make your own forecast, built
+## Your forecast, built
 
-`build_site.py` builds it on every Johannesburg build (`src/build_make.py`
-assembles it; `build_site` renders, audits, scans and stamps it). Served
-layout, under the site root:
-
-| path | what |
-|---|---|
-| `make/index.html` | `make.html` with the site's head, nav and footer, and the published seat panel cut from `forecast-sheet.html` as `{{tokens}}` in the site's one seat table (`src/seat_table.py`), with the sheet's caption |
-| `make/forecast.json` | the one data file: the generated schema (`worker-api/tools/make_schema.mjs`'s `build`, run on an artefact made from the published draws), the ward geometry (`tools/make_fixtures.geometry`), the start state, `context_ref` |
-| `make/js/` | `make.js` (LIVE writer: status, map, vote, govern, council), `make-share.js` (LIVE writer: share), `forecast-card.js` (the share image, a writer of no region), `make-state.js`, `builder-state.js`, `map.js`, `card-text.js`, `seat-table.js` (non-writers); `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js`, `http.js` (from `worker-api/src`), which run only in the Web Worker |
-| `make/py/`, `make/pyboot/boot.py` | the seat code (`sync_py.mjs`'s `manifest.files`) and its boot file |
-
-**The start, stated exactly** (`src/build_make.py`). Ward calls: each ward's
-modal winner over the published draws, by `score_forecasts.model_forecast`
-(equal to `ward_winner_probs.csv`'s `winner`, which the forecast map uses,
-wherever that has no tie). Vote shares: chosen so the untouched council
-seats each row of the published seat panel at its middle as nearly as the law
-allows (`build_make.start_seats`, whose docstring states the rule): a row
-called for more wards than its middle opens at its ward count, and the seats
-the middles leave unfilled go one per row to the rows whose mean over the
-draws most exceeds their middle. `tests/test_make_page.py` holds the untouched
-seats to that and prints each row's distance from its middle. Total
-combined vote (`x-total-votes`): two ballots times the median over the draws
-of the votes cast (pool registration in `pools_2026.json` times the draw's
-pool turnout).
-
-**The address is the forecast** (`js/make-state.js`): `?v=1&c=<context
-ref>&f=<payload>[&n=<name>]`, the whole state (every ward's winner, every
-party's whole votes, the coalition) in base64url, about 250 to 350
-characters. A link that fails any rule of DESIGN-decided §14, or was made
-against another roster, ward list or vote total, opens the published start
-with a note saying why. The name (24 characters, letters, digits, spaces and
-`. ' -`) appears only on the share image.
-
-**Share image** (`js/forecast-card.js`): "[Name]'s Election Forecast" ("My
-Election Forecast" with no name), the reader's map, each party's seats (top
-nine and "Others"), the coalition, on the site's photograph of Hillbrow Tower
-(`share.jpg`, drawn under the SVG by `card-text.js`'s `svgToPNG`). The module
-takes a headline, lines, ward fills and rows, not a seat result: /play/'s card
-is the same module (`play-card.js` supplies its words and rows).
-
-Tests: `tests/test_make_page.py` (the gate, both directions, guards firing and
-going quiet, the start's definition); `interactive/tests/make.test.mjs` (the
-address round trip over random reachable states, every refusal, the card,
-CPython seats, and Pyodide = CPython with `PYODIDE_NODE`). Screenshots:
-`tools/make_screenshots.mjs` into `screenshots/make-*.png`.
-
-## Play with the model, built
-
-`build_site.py` builds the page into the site on every Johannesburg build
-(`src/build_play.py` assembles it; `build_site` renders, audits, scans and
-stamps it like every other page). Served layout, under the site root:
+`build_site.py` builds it on every Johannesburg build
+(`src/build_your_forecast.py` assembles it and copies its files;
+`build_site` renders, audits, scans and stamps it like every other page, and
+removes the retired `play/` and `make/` directories). Served layout, under
+the site root:
 
 | path | what |
 |---|---|
-| `play/index.html` | `model.html` with the site's head (`build_site.SITE_HEAD`: `css/site.css` and the site's scripts), nav and footer, and a build twin of each results element filled at its `__PLAY:<name>__` marker (`build_play.FILL`): the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map (`render_map.ward_layers`, a `MAP` generated region), turnout by group, where each party's votes come from, and the notes' figures, all as `{{tokens}}`. First paint is ledgered tokens, no script; nothing of `/forecast` is embedded |
-| `play/js/` | `model.js` (the LIVE writer), `play-state.js`, `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `play-share.js` (the share sheet, LIVE writer of region `share`), `play-card.js` (the share image's words and rows) and `forecast-card.js` (the card module, shared with /make/), both LIVE writers of no region, `card-text.js` |
-| `play/css/interactive.css`, `play/css/play.css`, `play/pyboot/page.py` | copies (`play.css` holds the page's own rules, every class `pl-`) |
-| `play/py/manifest.json`, `play/py/page/` | the page's Python, copied by `tools/sync_py.mjs`, which the build runs |
-| `play/parties.json` | party names, colours and the article a name takes ("the ANC") |
-| `play/ward_paths.json` | the ward boundaries and place labels, and the stripe tile, for the map under a reader's settings |
-| `play/labels.json` | `js/labels.js`'s words and number range, for the share image's random label |
+| `your-forecast/index.html` | `your-forecast.html` with the site's head (`build_site.SITE_HEAD`: `css/site.css` and the site's scripts), nav and footer; section 1's build twins filled at its `__PLAY:<name>__` markers (`build_play.FILL`: the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map, turnout by group, where each party's votes come from, the notes' figures), all as `{{tokens}}`; section 2's seat-table attributes at its `__MAKE:<name>__` markers. First paint is ledgered tokens, no script |
+| `your-forecast/js/` | section 1: `model.js` (LIVE writer), `play-state.js`, `play-card.js` and `play-share.js` (writers), `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `pubtip.js`; section 2: `make.js` and `make-share.js` (writers), `make-state.js`, `builder-state.js`, `map.js`, `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js` and `http.js` (from `worker-api/src`, Worker only); both: `yf-url.js` (the one address), `forecast-card.js` (the share image, a writer of no region), `card-text.js`, `seat-table.js`, `tip.js` (where each tooltip goes) |
+| `your-forecast/css/` | `interactive.css`, `play.css` (section 1's rules, every class `pl-`), `your-forecast.css` (the layout and what both sections share, every class `yf-`) |
+| `your-forecast/pyboot/` | `page.py` (section 1's engine, and section 2's hand-off and analysis), `boot.py` (the seat code's) |
+| `your-forecast/py/` | the served Python, copied by `tools/sync_py.mjs` |
+| `your-forecast/parties.json`, `ward_paths.json`, `labels.json`, `laws.json` | party names, colours, articles and whether the site has a logo; the ward boundaries; the share label words; the seat laws' names (`render_sheet.SEAT_LAWS`, as `/forecast` prints them) |
+| `your-forecast/forecast.json` | section 2's one data file (`build_make.forecast_data`): the generated schema, the ward geometry, the published start, `context_ref` |
 | `draws/` | the published draws (`export_draws`), already under `site/` |
 
-The number gate holds it: every figure a reader's settings produce is written
-by `play/js/model.js` (and the share sheet by `play/js/play-share.js`), into `data-live` regions that hold no digit at
-build time; `stats.script_writes` refuses the build otherwise
-(`tests/test_play_page.py`). The page says once, in its notes, that these
-figures are worked out in the reader's browser. Each results element has a
-build twin of tokens and a LIVE sibling: `model.js` sets `data-touched` on the
-`result` region when a control is away from the published setting, and
-`css/play.css` swaps them. Opened from the repository as the prototype, the
-page shows no published figures (they exist only once built): build into a
-scratch directory, link `site/draws/` and `site/share.jpg` beside it, and serve
-that directory to see the page as it ships.
+The number gate holds it: every figure a reader's settings or edits produce
+is written by a module `stats.LIVE_WRITERS` lists, into `data-live` regions
+that hold no digit at build time, each region with one writer;
+`stats.script_writes` refuses the build otherwise
+(`tests/test_your_forecast_page.py`). Section and step numbers are CSS
+counters for that reason.
 
-### Saving and sharing, anonymous
+### Section 1, "Adjust the model"
 
-A reader's settings live in the page's address (`js/play-state.js`:
-`?t=…&p=…&k=…&l=…&b=…&mv=…&n=…`, only the fields that differ from the published
-setting, checked against the controls' bounds on load; a field out of bounds
-falls back to the published setting and the page says which). "Share this
-forecast" opens a sheet with an optional name (free text, at most
-`NAME_MAX` characters, put only in the field, the link and the image, drawn as
-text), the image, and the link (copy, or the phone's own share sheet). The
-image, 1200×630 or 1080×1920, is drawn in the browser by `js/forecast-card.js`
-(the card module /make/ shares) from what `js/play-card.js` reads off the same
-compute result the page shows: the Hillbrow Tower strip from
-`share.jpg`; a headline saying whose figures these are ("The model's
-Johannesburg forecast" with the name on a "Shared by" line when nothing is
-moved, "<name>'s settings on the model" with "Not the model's forecast" under
-it when something is); the largest-party line, ties apart; the ward map, north
-marked, with a line saying it holds the ward seats only; and each party's
-middle seat count with the range holding nine in ten. No account, no cookie, no storage, nothing sent: a shared link shows
-the page's generic preview (`og:` tags with no figure, the site's
-`share.jpg`). Tests: `tests/play-share.test.mjs`, `tests/test_play_page.py`.
-Screenshots: `screenshots/play-*.png`.
+The published draws re-weighted by the reader's turnout by population group,
+one poll and how far to believe it, and the weight of by-elections, and
+seated under a law the reader picks: "See how other systems would seat this
+vote", with South African law and Germany's of 2000, 2015 and 2023 under the
+names `/forecast` gives them. Levers on the left; on a wide screen the map
+and the seat table side by side in a column that holds still while the levers
+scroll, so the seat table is in view beside every lever (stacked, the column
+was taller than a laptop's window). The banner of seats sticks while section
+1 is in view and leaves with it.
+Each results element has a build twin of tokens and a LIVE sibling:
+`model.js` sets `data-touched` on the `result` region when a control is away
+from the published setting, and `css/play.css` swaps them. The status strip
+reads "Your changes: …". A computation in flight shows a floating
+"Computing…" (`busy`), which reserves no space. A seat row or banner entry
+whose middle moved since the figures last shown pulses once, with a ▲ or ▼;
+on a narrow screen with the seat table out of view, a toast (`toast`,
+headed "Since your last change") names the parties that moved, each with its
+logo where the site has one. The banner's own arrows are against the
+published forecast. Under
+`prefers-reduced-motion` nothing moves. The share button ends the section;
+only a council seated under South African law can be shared
+(`play-state.shareable`): under another law the button is disabled and says
+why.
+
+### Section 2, "Break the model"
+
+The same forecast as the reader's own: every ward called, each party's share
+of the combined vote set, a coalition picked, the seats from the seat law
+under Pyodide (`reader_seats`, the Worker's own request and check). It loads
+its data and its seat Worker (a second Pyodide) when the reader comes near it,
+or at once for a link carrying a section 2 forecast or `#break`.
+
+**Where it starts.** Untouched, section 1 is the published forecast and
+section 2 opens at the published start (`build_make.start_state`, written
+into `forecast.json`): each ward's modal winner over the published draws
+(`score_forecasts.model_forecast`), and shares that seat each party the seat
+panel names at its published middle, or its ward count where higher, Others
+taking the rest (`src/start_rule.py`, whose docstring states the rule). Once
+section 1 moves, `page.py`'s `handoff` applies the same rule to the reader's
+weighted draws: each ward's most likely winner under the reader's changes
+(exactly the winners section 1 shows), and shares from the weighted middles
+of the statutory seats. While section 2 is unedited it follows section 1;
+once edited, a change in section 1 overwrites nothing, and the status line
+offers to start again from it (undo restores the edits). A link's forecast
+is kept as the reader's. While the forecast is still its start, a line under
+"Your council" names every named party the ward floor raised above its
+middle seat count (`handoff` returns the middles; the published start's are
+`forecast.json`'s `published_middle`), and the share image says the same.
+
+**The walkthrough.** Four numbered steps: call the wards, set the vote, pick
+who governs, share or analyse. One is highlighted at a time; "Next" marks a
+step done. Every step stays usable whichever is highlighted.
+
+**"Analyse my forecast"** (`page.py`'s `analyse`, `reweight.within_band`,
+`reweight.ward_calls_likelihood`; JUDGEMENT-CALLS §N3). Every chance is the
+published forecast's. Hovering a ward gives the chance of the reader's call
+there; each party's seats get the chance of landing within
+`reweight.ANALYSIS_SEAT_BAND` seats; its vote the chance its LIST-BALLOT share
+lands within `ANALYSIS_SHARE_BAND_POINTS` points (the draws carry no combined
+share, and the page says so); and the whole forecast the expected number of
+the reader's ward calls that come true ("We expect N of your M ward calls to
+come true. But historical trends can always be broken."), with beneath it the
+rank of the reader's calls among the simulations' ward results, worded as a
+rank and never as a chance (JUDGEMENT-CALLS §N3). A ward's chance shows on
+hover, on keyboard focus and on a tap with no party chosen. Once shown, the
+analysis follows every edit.
+
+### The address is the forecast
+
+`js/yf-url.js` is the page's one address writer. Three disjoint parts:
+section 1's (`play-state.js`: `t p k l b mv`, only the fields that differ
+from the published setting, checked against the controls' bounds on load),
+section 2's (`make-state.js`: `v=1&c=<context ref>&f=<payload>`, the whole
+state in base64url, refused with a note if it fails any rule of
+DESIGN-decided §14 or was made against another roster, ward list or vote
+total), and the name `n` (`play-state.cleanName`, the one rule: free text, at
+most `NAME_MAX` characters, refused whole when longer). A write by one
+section never touches the other's part. Section 1's share link carries its
+part and the name; section 2's carries both sections, since it continues
+section 1. Old `/play/?…` and `/make/?…` links reach the page through the
+Worker's redirect with their query strings and read back unchanged
+(`tests/yf.test.mjs`).
+
+**Share images** (`js/forecast-card.js`, the one card module): section 1's
+words and rows from `js/play-card.js` (a headline saying whose figures these
+are, the largest-party line, the reader's map, each party's middle seat count,
+at 1200×630 or 1080×1920); section 2's from `js/make-share.js` ("[Name]'s
+election forecast", the reader's map, each party's seats, the coalition).
+Both on the site's photograph of Hillbrow Tower (`share.jpg`). No account, no
+cookie, no storage, nothing sent: a shared link shows the page's generic
+preview (`og:` tags with no figure, the site's `share.jpg`).
+
+Tests: `tests/test_your_forecast_page.py` (the gate, both directions, guards
+firing and going quiet, section 1's rows at uniform weights, the start's
+definition, the hand-off, the analysis); `interactive/tests/yf.test.mjs` (the
+address, both sections, old links); `make.test.mjs` (section 2's part, its
+refusals, the card, CPython seats, Pyodide = CPython); `page.test.mjs`
+(section 1's engine and section 2's hand-off and analysis, Pyodide = CPython);
+`play-share.test.mjs`, `play-state.test.mjs`; `tests/test_worker_routing.py`
+(the redirects). Screenshots: `screenshots/yf-*.png`.
 
 ## Files
 
 | path | what |
 |---|---|
-| `make.html`, `js/make.js`, `js/make-share.js`, `js/make-state.js`, `js/make-worker.js`, `js/forecast-card.js` | make your own forecast: the page source, its writer, its share sheet, the address form, the seat Worker, the share image |
-| `js/builder-state.js` | the builder's state and every edit to it; pure, and can only hold a valid forecast (DESIGN-decided §14) |
+| `your-forecast.html` | the page's one source: the build cuts its `__DEVONLY__` spans and fills its markers |
+| `js/model.js` | section 1's LIVE writer (`stats.LIVE_WRITERS["your-forecast/js/model.js"]`); it owns the re-weighting Worker and lends it to section 2 (`engineCall`, `onForecast`) |
+| `js/model-worker.js`, `js/reweight-engine.js`, `pyboot/page.py` | the re-weighting Web Worker, the engine loader (injectable, also run by the node test), and the Python entry: `compute`, `handoff`, `analyse` |
+| `js/play-state.js` | section 1's settings, their bounds, its address part (F16) and the share rule; pure |
+| `js/play-share.js`, `js/play-card.js`, `js/card-text.js` | section 1's share sheet, its share image's words and rows (drawn by `js/forecast-card.js`), and the measured text layout and PNG step |
+| `js/make.js`, `js/make-share.js`, `js/make-state.js`, `js/make-worker.js` | section 2: its LIVE writer, its share sheet, its address part, the seat Worker |
+| `js/yf-url.js` | the page's one address: both parts and the name; pure but for the one history call |
+| `js/forecast-card.js` | the share image both sections draw |
+| `js/builder-state.js` | section 2's state and every edit to it; pure, and can only hold a valid forecast (DESIGN-decided §14) |
 | `js/seat-table.js` | the site's one seat table, drawn from a reader's figures: the JavaScript twin of `src/seat_table.py`, the same markup for the same rows (`tests/test_seat_table.py`); styled by `src/css/seat-table.css` |
-| `js/pubtip.js` | /play/'s published map tooltip (copies a ward's `data-tip`) |
+| `js/pubtip.js` | section 1's published map tooltip (copies a ward's `data-tip`) |
 | `js/seat-engine.js`, `pyboot/boot.py` | seats under Pyodide: the Worker's `seatRequest`, the seat Worker's `entry.answer`, the Worker's `checkSeatAnswer` |
-| `tools/sync_py.mjs`, `py/` | the served copy of the seat code (gitignored; written by the tool) |
+| `tools/sync_py.mjs`, `py/` | the served copy of the Python (gitignored; written by the tool) |
+| `tools/native_play.py`, `tests/native-play.json`, `tests/play-settings.json` | the native side of the native-vs-Pyodide harness (F19), its stored output, and the settings both sides compute (section 1's cases and section 2's `section2` block); `--measure` reports what `page.py` imports and opens |
+| `tools/yf_screenshots.mjs` | the screenshots |
+| `css/interactive.css`, `css/play.css`, `css/your-forecast.css` | styles |
 | `js/api.js` | the one backend door: the stub on loopback hosts, the Worker API elsewhere (`?api=stub` / `?api=live` override) |
-| `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; `/api/me` mapping |
-| `model.html`, `js/model.js` | play with the model: the page's one source (the build cuts its `__DEVONLY__` spans and fills its `__PLAY…__` markers), and the ONE module that writes figures, only into `data-live` regions (`stats.LIVE_WRITERS["play/js/model.js"]`) |
-| `js/model-worker.js`, `js/reweight-engine.js`, `pyboot/page.py` | the Web Worker, the engine loader (injectable, also run by the node test), and the Python entry that routes settings to `src/reweight.py` |
-| `js/play-state.js` | the reader's settings, their bounds and the URL form (F16); pure |
-| `js/play-share.js`, `js/play-card.js`, `js/card-text.js` | play's share sheet, its share image's words and rows (drawn by `js/forecast-card.js`), and the measured text layout and PNG step |
-| `tools/native_play.py`, `tests/native-play.json`, `tests/play-settings.json` | the native side of the native-vs-Pyodide harness (F19), its stored output, and the settings both sides compute; `--measure` reports what `page.py` imports and opens |
+| `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; the address; `/api/me` mapping |
 | `f/index.html`, `js/f.js` | the shared forecast page, `/f/<id>` in production |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
 | `js/card.js` | the share image, SVG to PNG, 1200×630 and 1080×1920 |
@@ -184,7 +222,6 @@ Screenshots: `screenshots/play-*.png`.
 | `js/labels.js` | the default-label word list and generator: one definition, imported by the page stub and `worker-api` |
 | `js/api-stub.js` | **stub** of the API in BACKEND.md, in localStorage; used through `js/api.js` |
 | `js/common.js` | fixture loading, escaping, theme toggle |
-| `css/interactive.css` | styles; a copy of the site palette |
 | `fixtures/` | **placeholders**, below |
 | `tools/make_fixtures.py` | writes `fixtures/` |
 
@@ -193,7 +230,7 @@ Screenshots: `screenshots/play-*.png`.
 | stub | stands in for | the real thing |
 |---|---|---|
 | `fixtures/placeholder-model.json` | the model's roster, most likely ward winners, combined vote shares, the combined total they scale to, and published seats | the S2 export (`site/draws/base.bin` + manifest, PLAN.md) and the certified roster in IEC ballot order |
-| roster names and colours on the unbuilt model page (`placeholder-model.json`, and the code spaced out for other parties) | the roster | served: `play/parties.json`, written by `build_play.py` from `render_sheet.NAMES`/`CHIPS` and `parties.display_name` |
+| roster names and colours on the unbuilt model page (`placeholder-model.json`, and the code spaced out for other parties) | the roster | served: `your-forecast/parties.json`, written by `build_play.py` from `render_sheet.NAMES`/`CHIPS` and `parties.display_name` |
 | the ADAPTER block in `pyboot/page.py` | Lane R's `page_polls`, `poll_trust_sd`, `poll_weights(trust=)`, `turnout_tilt(pin_to=)`, `figure()["withheld"]`, `sampling_se`, and Lane E's `model_sha256` | delete the block's fallbacks at merge |
 | `js/api-stub.js` (loopback hosts only) | the Worker API and OAuth | `worker-api/`, reached through `js/api.js` on any other host |
 | `fixtures/geometry.json` sectors | the S5 ward-to-sector file | S5 |
@@ -203,7 +240,7 @@ Screenshots: `screenshots/play-*.png`.
 none is derived from `ward_draws.csv`, `seat_draws.csv` or any model artefact,
 because the model is about to be re-emitted and a real-looking number in a
 prototype is a model number in a page. They feed only the prototype pages
-(`f/`, the backend's tests); the built `/make/` and `/play/` read the published
+(`f/`, the backend's tests); the built `/your-forecast/` reads the published
 draws, and no fixture ships.
 
 **Copies to remove at integration** (each is a second definition):
@@ -250,7 +287,7 @@ committed. S5 should commit its code and be the one source.
    (CLAUDE.md §4b).
 5. **Server-rendered `/f/<id>`** with Open Graph tags; the comment at the top of
    `f/index.html` lists them.
-6. **Saving with sign-in is not part of `/make/`.** The built page is
+6. **Saving with sign-in is not part of `/your-forecast/`.** The built page is
    anonymous; the old builder's sign-in and save path (`js/api.js`,
    `js/auth-ui.js`, `js/share.js`, `js/card.js`) is no longer imported by it.
    What follows applies when a signed-in save is added back.
@@ -282,7 +319,7 @@ committed. S5 should commit its code and be the one source.
   ward before choosing a party asks for a party rather than defaulting to one.
   Result lists sort by the reader's own seats.
 * **An impossible forecast cannot be built (DESIGN-decided §14).** The map
-  starts with every ward at the model's call (or the model page's lever state),
+  starts with every ward at the model's call (or section 1's, under its settings),
   and the vote at the model's shares. There is no eraser and no "clear": a ward
   changes winner, it is never empty. The vote is held as whole votes summing
   exactly to the combined total the seat law scales to, so it always sums to
@@ -301,8 +338,9 @@ committed. S5 should commit its code and be the one source.
   paints (Delete explains that every ward needs a winner). Undo keeps the last
   60 edits.
 * **On a phone** the map scrolls sideways at a size where a ward is tappable;
-  the party chips ride along at the bottom of the map card; the model page
-  keeps a one-line result bar at the bottom of the screen.
+  the party chips ride along at the bottom of the map card; section 1
+  keeps its seat banner at the top of the screen, and a toast names the
+  parties whose seats moved while the seat table is out of view.
 * **Share sheet**: the native share sheet first where it exists (with the PNG
   attached when `navigator.canShare({files})` allows, and the image rendered
   before the button enables so the call stays inside the tap), then copy link,

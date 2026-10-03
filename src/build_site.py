@@ -46,7 +46,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 #: The source code's home, linked from the nav and the footer.
 REPO_URL = "https://github.com/Psi-am-i/jhb-election-model"
 
-import build_play  # noqa: E402  (the interactive page's address, below)
+import build_your_forecast  # noqa: E402  (the interactive page's address, below)
 
 #: The nav, in the owner's order (sweep of 2026-10-03, item 9):
 #: joburg.whysoserious.city | our forecast | your forecast | commentary |
@@ -60,12 +60,13 @@ import build_play  # noqa: E402  (the interactive page's address, below)
 #: build produced it, describing an engine deleted in 87806a7.
 #:
 #: "your forecast" is the interactive page's own address, read from
-#: build_play rather than typed here, so the nav follows the page wherever it
-#: moves (and the page's active state, `nav_for(build_play.PLAY_HREF)`,
-#: matches it).
+#: build_your_forecast rather than typed here, so the nav follows the page
+#: wherever it moves (and the page's active state,
+#: `nav_for(build_your_forecast.YF_HREF)`, matches it). It replaced /play/ and
+#: /make/ (owner, 2026-10-03).
 NAV_ITEMS = [
     ("forecast", "our forecast"),
-    (build_play.PLAY_HREF, "your forecast"),
+    (build_your_forecast.YF_HREF, "your forecast"),
     ("commentary", "commentary"),
     ("claims", "party claims tested"),
     # /about merged into /methodology (owner's sweep, 2026-10-03); the Worker
@@ -129,7 +130,7 @@ def nav_for(active_href: str) -> str:
 # it is a constant here, not a Keychain secret (~/CLAUDE.md rule 4 does not
 # apply to it). It goes out in SITE_HEAD because that is the one head fragment
 # every page carries: the rendered documents, the nav-injected artefacts, the
-# portal (`build_portal`), /play/ and /make/ (their `assemble`).
+# portal (`build_portal`) and /your-forecast/ (its `assemble`).
 CF_WEB_ANALYTICS_TOKEN = "c14bef699fb74863b4db775ea910b533"   # public site token (Web Analytics site whysoserious.city, auto-injection off 2026-10-01)
 
 
@@ -203,9 +204,9 @@ def footer_for() -> str:
 
     Its links are relative, like the nav's, so a UAT Version URL keeps the
     reader on UAT: absolute /support and /privacy links sent UAT readers to
-    live. /play/ re-points them one level down (`build_play.one_level_down`);
-    the portal sits at the apex root, where they resolve to the asset root; on
-    other city hosts `src/worker.js` serves both pages from the root. The
+    live. /your-forecast/ re-points them one level down
+    (`build_play.one_level_down`); the portal sits at the apex root, where they
+    resolve to the asset root; on other city hosts `src/worker.js` serves both pages from the root. The
     licence wording matches LICENSE (code, MIT) and LICENSE-CONTENT (site
     text, charts and published figures, CC BY 4.0)."""
     return f"""<footer class="sitefooter">
@@ -886,7 +887,7 @@ CONTENT_TYPES = {
 }
 
 
-#: Sent with every file (the `/*` rule). No `script-src`: /play/ runs Pyodide
+#: Sent with every file (the `/*` rule). No `script-src`: /your-forecast/ runs Pyodide
 #: (WebAssembly compiled in the page) and the Web Analytics beacon loads from
 #: static.cloudflareinsights.com, so a script policy would break both. The CSP
 #: only stops other sites framing these pages. HSTS carries no
@@ -1065,57 +1066,29 @@ def main(argv: list[str] | None = None) -> int:
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
 
-    # --- "play with the model" (/play/), Johannesburg's only ----------------
-    # Assembled by build_play from interactive/model.html, then rendered,
-    # audited and scanned HERE exactly like the pages above, so its first
-    # paint is ledgered tokens and it enters the review stamp deploy_check
-    # reads. Its scripts are held to the LIVE-writer contract below, with every
-    # other page's (`statlib.script_writes`). The page runs on Johannesburg's
-    # draws (site/draws/), so no other city's build writes it. Built by every
-    # Johannesburg build since the draws ship (2026-10-01: export_draws writes
-    # no local path and no internal poll note, so site/.assetsignore is gone).
+    # --- "your forecast" (/your-forecast/), Johannesburg's only ------------
+    # Assembled by build_your_forecast from interactive/your-forecast.html,
+    # then rendered, audited and scanned HERE exactly like the pages above, so
+    # its first paint is ledgered tokens and it enters the review stamp
+    # deploy_check reads. Its scripts are held to the LIVE-writer contract
+    # below, with every other page's (`statlib.script_writes`). The page runs
+    # on Johannesburg's draws (site/draws/), so no other city's build writes
+    # it. The page directories it replaced (/play/, /make/) are removed here.
     if cityconfig.active().slug == "joburg":
-        import build_play
-        written = build_play.write_assets(args.out, args.processed)
-        html = build_play.assemble(site_head=page_og(build_play.OG_DESCRIPTION,
-                                                     build_play.OG_TITLE, build_play.PLAY_HREF)
-                                   + SITE_HEAD,
-                                   nav=nav_for(build_play.PLAY_HREF), footer=FOOTER,
-                                   processed=args.processed)
+        import build_your_forecast as yf
+        written = yf.write_assets(args.out, args.processed)
+        html = yf.assemble(site_head=page_og(yf.OG_DESCRIPTION, yf.OG_TITLE, yf.YF_HREF) + SITE_HEAD,
+                           nav=nav_for(yf.YF_HREF), footer=FOOTER, processed=args.processed)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
-        published += [{**r, "page": build_play.PLAY_PAGE} for r in seen]
+        published += [{**r, "page": yf.YF_PAGE} for r in seen]
         all_drift += drift
-        unresolved_all += [f"interactive/model.html: {u}" for u in unresolved]
-        audits[build_play.PLAY_PAGE] = statlib.audit(
-            html, page=build_play.PLAY_PAGE, **audit_cfg)
-        scans[build_play.PLAY_PAGE] = statlib.scan_numbers(
-            html, page=build_play.PLAY_PAGE, **scan_cfg)
-        (args.out / build_play.PLAY_PAGE).write_text(html, encoding="utf-8")
-        print(f"  play     interactive/model.html       -> site/{build_play.PLAY_PAGE} "
-              f"(+{len(written)} files under site/{build_play.PLAY_DIR}/)")
-        # "make your own forecast" (/make/), the same way: assembled by
-        # build_make from interactive/make.html, rendered, audited and scanned
-        # here; its scripts are held to the LIVE-writer contract like /play/'s.
-        import build_make
-        written = build_make.write_assets(args.out)
-        html = build_make.assemble(site_head=page_og(build_make.OG_DESCRIPTION,
-                                                     build_make.OG_TITLE, build_make.MAKE_HREF)
-                                   + SITE_HEAD,
-                                   nav=nav_for(build_make.MAKE_HREF), footer=FOOTER,
-                                   cut_markers=cut_spans)
-        seen = []
-        html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
-        published += [{**r, "page": build_make.MAKE_PAGE} for r in seen]
-        all_drift += drift
-        unresolved_all += [f"interactive/make.html: {u}" for u in unresolved]
-        audits[build_make.MAKE_PAGE] = statlib.audit(
-            html, page=build_make.MAKE_PAGE, **audit_cfg)
-        scans[build_make.MAKE_PAGE] = statlib.scan_numbers(
-            html, page=build_make.MAKE_PAGE, **scan_cfg)
-        (args.out / build_make.MAKE_PAGE).write_text(html, encoding="utf-8")
-        print(f"  make     interactive/make.html        -> site/{build_make.MAKE_PAGE} "
-              f"(+{len(written)} files under site/{build_make.MAKE_DIR}/)")
+        unresolved_all += [f"interactive/your-forecast.html: {u}" for u in unresolved]
+        audits[yf.YF_PAGE] = statlib.audit(html, page=yf.YF_PAGE, **audit_cfg)
+        scans[yf.YF_PAGE] = statlib.scan_numbers(html, page=yf.YF_PAGE, **scan_cfg)
+        (args.out / yf.YF_PAGE).write_text(html, encoding="utf-8")
+        print(f"  yf       interactive/your-forecast.html -> site/{yf.YF_PAGE} "
+              f"(+{len(written)} files under site/{yf.YF_DIR}/)")
     # EVERY PAGE THIS BUILD NO LONGER PRODUCES IS REMOVED, not just the one
     # somebody remembered. A single hard-coded `forecast.html` unlink stood here
     # for months while `plan.html` and, the moment the interactive was withheld,
@@ -1599,13 +1572,13 @@ def main(argv: list[str] | None = None) -> int:
             if not f.is_file():
                 continue
             text = f.read_text(encoding="utf-8")
-            # NO EDITION ARROWS ON /play/ (review 2026-10-02). There a ▲▼ means
-            # "your settings against the published forecast" (play/js/model.js),
-            # and the published twin carrying edition arrows in the same glyph
-            # made an untouched page look moved. Its figures keep the history
-            # tooltip; only the glyph is left off.
-            import build_play as _bp
-            glyphs = not page.startswith(f"{_bp.PLAY_DIR}/")
+            # NO EDITION ARROWS ON /your-forecast/ (review 2026-10-02, on
+            # /play/). There a ▲▼ means "your changes against the published
+            # forecast" (js/model.js), and the published twin carrying edition
+            # arrows in the same glyph made an untouched page look moved. Its
+            # figures keep the history tooltip; only the glyph is left off.
+            import build_your_forecast as _yf
+            glyphs = not page.startswith(f"{_yf.YF_DIR}/")
 
             def _mark(m):
                 token = _re.search(r'data-token="([^"]+)"', m.group(0)).group(1)
