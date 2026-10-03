@@ -364,8 +364,7 @@ class Session:
     def prose(block: dict, text: str) -> str:
         """``text`` as a reader reads it, lower-cased: what a registered
         entry's context is matched against."""
-        return re.sub(r"\s+", " ", _html.unescape(stats.TAGS.sub(
-            " ", site_text.scan_form(block, text)))).lower()
+        return re.sub(r"\s+", " ", site_text.shown_text(block, text)).lower()
 
     def _fresh_offset(self, block: dict, text: str, value: str) -> tuple[int, int] | None:
         """The occurrence of ``value`` in ``text`` that the original lacked."""

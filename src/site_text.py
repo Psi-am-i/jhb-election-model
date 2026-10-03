@@ -422,8 +422,7 @@ def edit_problems(block: dict, new_text: str, added=()) -> list[str]:
 def _loose_marks(block: dict, text: str) -> Counter:
     """The emphasis characters (``*``, ``_``) a Markdown block shows as typed
     once rendered: a ``**`` whose partner was deleted is one of them."""
-    shown = _html.unescape(stats.TAGS.sub(" ", scan_form(block, text)))
-    return Counter(c for c in shown if c in "*_")
+    return Counter(c for c in shown_text(block, text) if c in "*_")
 
 
 # --------------------------------------------------------------------------
@@ -453,6 +452,12 @@ def scan_form(block: dict, text: str) -> str:
         import markdown
         bare = markdown.markdown(bare, extensions=list(build_site.MD_EXTENSIONS))
     return bare
+
+
+def shown_text(block: dict, text: str) -> str:
+    """A block's text as a reader sees it: tokens out, Markdown rendered,
+    tags dropped, entities decoded."""
+    return _html.unescape(stats.TAGS.sub(" ", scan_form(block, text)))
 
 
 def typed_numbers(block: dict, new_text: str, scan_cfg: dict) -> list[dict]:
