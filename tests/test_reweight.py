@@ -1214,5 +1214,42 @@ def test_scored_as_results_by_hand():
     assert R.scored_as_results(seat, wards, vote, w)["within"] == R.ANALYSIS_SEAT_ERROR_WITHIN
 
 
+
+def test_boldness_bands_at_their_edges():
+    """JUDGEMENT-CALLS §N6: Safe at 20% or more, Bold from 5% to under 20%,
+    Wild under 5%; an edge takes the higher band. Constructed chances either
+    side of each edge, so a band moved or reordered turns this red."""
+    assert R.boldness(1.0) == "Safe call"
+    assert R.boldness(0.20) == "Safe call"
+    assert R.boldness(0.1999) == "Bold call"
+    assert R.boldness(0.05) == "Bold call"
+    assert R.boldness(0.0499) == "Wild call"
+    assert R.boldness(0.0) == "Wild call"
+    # the table is read highest band first and ends at zero
+    lows = [low for low, _ in R.BOLDNESS]
+    assert lows == sorted(lows, reverse=True) and lows[-1] == 0.0
+
+
+def test_reader_outcome_and_its_chance_by_hand():
+    """reader_outcome reads a council as council_outcome takes it, and
+    outcome_chance is council_outcome's figure with its text and badge."""
+    assert R.reader_outcome({"A": 140, "B": 130, "C": 0}, 136, ["B", "A", "A"]) == {
+        "largest": "A", "majority_alone": True, "coalition": ["A", "B"]}
+    assert R.reader_outcome({"A": 100, "B": 100, "C": 70}, 136) == {
+        "largest": None, "majority_alone": False, "coalition": []}
+    seats = np.array([[140, 130], [100, 170], [120, 150], [150, 120]], dtype=float)
+    thr = np.array([136, 136, 136, 136], dtype=float)
+    got = R.outcome_chance(seats, ["A", "B"], thr, None, {"A": 140, "B": 130}, 136)
+    # "A largest with a majority alone": draws 0 and 3
+    assert math.isclose(got["p"], 0.5) and got["text"] == R.chance_text(0.5)
+    assert got["badge"] == "Safe call" and got["largest"] == "A" and got["majority_alone"] is True
+
+
+def test_party_columns_drop_the_remainder_column_only():
+    block = np.array([[1, 2, 3], [4, 5, 6]])
+    vals, cols = R.party_columns(block, ["A", "OTHER", "B"])
+    assert cols == ["A", "B"] and vals.tolist() == [[1.0, 3.0], [4.0, 6.0]]
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

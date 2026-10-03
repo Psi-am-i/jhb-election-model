@@ -5,7 +5,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "../../tools/make_schema.mjs";
-import { FILES, checkCopy, copy } from "../../tools/sync_seats_py.mjs";
+import { ALL as FILES, checkCopy, copy } from "../../tools/sync_seats_py.mjs";
 import { SCREEN_PURPOSES } from "../../../interactive/js/consent-terms.js";
 import { mkdtempSync, writeFileSync, rmSync, unlinkSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";

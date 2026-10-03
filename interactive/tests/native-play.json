@@ -22035,7 +22035,7 @@
   "w_bye-1": "432f2781d74c2156dfb2b6956e1a464eac613b495c38d6086604210ee0c724d6"
  },
  "numpy": "2.5.1",
- "page_ref": "8c52fcc23cc4306bf487cfdf3a8f957e67b50ff279a5cf803c1479d2cd1ff2a8",
+ "page_ref": "47fb9a55a0739e15febe1f9cec9a46b0be7ab6595cc1c7b861f3617c59704589",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22098,6 +22098,7 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
+     "badge": "Safe call",
      "coalition": [
       "ANC",
       "DA"
@@ -23064,6 +23065,7 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
+     "badge": "Safe call",
      "coalition": [
       "ANC",
       "DA"
@@ -24022,6 +24024,7 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
+     "badge": "Safe call",
      "coalition": [
       "ANC",
       "DA"
@@ -24986,6 +24989,7 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
+     "badge": "Bold call",
      "coalition": [
       "ANC",
       "DA"

@@ -3241,6 +3241,41 @@ settings can lift.
 the landmarks below the table around every lever move, at 375 and 1440
 wide. Nothing in the model reads this value.
 
+### §N6 · The boldness badge: Safe call at 20% or more, Bold call from 5% to under 20%, Wild call under 5% — ⚖️ owner's bands (2026-10-03)
+
+**Where.** `reweight.BOLDNESS`, read only by `reweight.boldness`, which
+`reweight.outcome_chance` calls for `interactive/pyboot/page.py`'s `analyse`
+and for the seat Worker's card answer (`worker-api/seats-py/src/entry.py`,
+`/v1/card`). The share cards, the link preview and the arrival view on
+/your-forecast/ print the badge they are handed; no JavaScript computes it.
+
+**Now.** A reader's forecast carries a badge naming how bold its
+council-level outcome is (§N3: the largest party, a majority alone or not,
+the chosen coalition reaching a majority), from the chance the published
+forecast gives that outcome:
+
+| badge | chance of the reader's outcome |
+|---|---|
+| Safe call | 20% or more |
+| Bold call | 5% to under 20% |
+| Wild call | under 5% |
+
+A chance exactly at an edge takes the higher band.
+
+**Why these.** The owner's choice of the designer's proposal
+of the bands proposed in the share design (`audits/2026-10-03-share-design/DESIGN.md` §5). The edges were set by
+looking at the chances `council_outcome` gives the common outcomes on the
+published draws: an outcome with no coalition can be no likelier than the
+likeliest largest-party outcome, and a two-party government led by one of the
+two largest parties lands in Safe or Bold; an outcome led by any other party
+lands in Wild. Nothing is fitted; the edges are round numbers.
+
+**How to check it.** `tests/test_reweight.py` holds the edges (exactly 5% and
+20%). To see where today's outcomes fall, run `council_outcome` over the
+published cell for each largest party with and without a majority, as
+`interactive/pyboot/page.py`'s `analyse` does. Nothing in the model reads the
+badge.
+
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 
 ### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured

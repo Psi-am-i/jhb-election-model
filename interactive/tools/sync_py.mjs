@@ -33,14 +33,16 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FILES, codeRef, copy, checkCopy } from "../../worker-api/tools/sync_seats_py.mjs";
+import { ALL, codeRef, copy, checkCopy } from "../../worker-api/tools/sync_seats_py.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const REPO = resolve(here, "../..");
 export const SRC = resolve(REPO, "src");
 export const DST = resolve(here, "../py");
 const ENTRY = resolve(REPO, "worker-api/seats-py/src/entry.py");
-export const SERVED = [...FILES, "code_ref.py", "entry.py"];
+// the seat Worker's files: the seat law's closure and the card answer's code
+// (worker-api's ALL), which its entry.py imports
+export const SERVED = [...ALL, "code_ref.py", "entry.py"];
 
 // The page's Python, in import order: pyboot/page.py imports cityconfig,
 // polling, render_map (the ward rule, ward_call), reweight and start_rule
@@ -77,7 +79,7 @@ function manifest(src) {
   return JSON.stringify({
     _about: "Written by interactive/tools/sync_py.mjs. Do not edit.",
     files: SERVED,
-    code_ref: codeRef(FILES.map(f => readFileSync(resolve(src, f)))),
+    code_ref: codeRef(ALL.map(f => readFileSync(resolve(src, f)))),
     page: {
       dir: "page",
       files: PAGE_FILES,

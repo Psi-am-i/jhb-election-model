@@ -23,7 +23,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 
 import { check, pageRef, PAGE_FILES, PAGE_DATA, DST, SRC, REPO } from "../tools/sync_py.mjs";
-import { FILES, codeRef } from "../../worker-api/tools/sync_seats_py.mjs";
+import { FILES, ALL, CARD_FILES, codeRef } from "../../worker-api/tools/sync_seats_py.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PYTHON = resolve(REPO, ".venv/bin/python");
@@ -77,13 +77,16 @@ test("the page list and the seat Worker's list are separate (F18)", () => {
   // own closure by tests/test_reader_seats.py and must not carry it
   assert.ok(!FILES.includes("reweight.py"));
   assert.ok(PAGE_FILES.includes("reweight.py"));
+  // the seat Worker's card answer runs it too, from its own second list
+  assert.deepEqual(CARD_FILES, ["reweight.py"]);
+  assert.deepEqual(ALL, [...FILES, ...CARD_FILES]);
 });
 
 // ---------- 2. both sets hashed, and the hash sees a byte ----------
 
 test("both served sets are hashed into the manifest, and one byte moves the right hash", () => {
   const man = JSON.parse(readFileSync(resolve(DST, "manifest.json"), "utf8"));
-  assert.equal(man.code_ref, codeRef(FILES.map(f => readFileSync(resolve(SRC, f)))));
+  assert.equal(man.code_ref, codeRef(ALL.map(f => readFileSync(resolve(SRC, f)))));
   assert.equal(man.page.code_ref, pageRef());
   assert.deepEqual(man.page.files, PAGE_FILES);
   assert.deepEqual(man.page.data, PAGE_DATA);
@@ -106,7 +109,7 @@ test("both served sets are hashed into the manifest, and one byte moves the righ
     assert.equal(pageRef(srcCopy, repoCopy), pageRef());
     undo = flip(resolve(srcCopy, "seats.py"));
     assert.equal(pageRef(srcCopy, repoCopy), pageRef(), "seats.py is not page code");
-    assert.notEqual(codeRef(FILES.map(f => readFileSync(resolve(srcCopy, f)))), man.code_ref);
+    assert.notEqual(codeRef(ALL.map(f => readFileSync(resolve(srcCopy, f)))), man.code_ref);
     undo();
   } finally { rmSync(tmp, { recursive: true, force: true }); }
 });

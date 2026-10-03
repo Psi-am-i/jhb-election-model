@@ -58,8 +58,8 @@ import start_rule
 #: entry with no overrides). Its pool-turnout means are the published means.
 BASE = "."
 #: The seat law the published forecast uses: every "against the published
-#: forecast" figure is taken under it.
-PUBLISHED_LAW = "deduct"
+#: forecast" figure is taken under it. One definition, ``reweight``'s.
+PUBLISHED_LAW = R.PUBLISHED_LAW
 #: A party gets its own seat row when its middle seat count is at least this,
 #: in the published forecast or under the reader's settings; every other party
 #: is summed into "Others" (owner, decision D1, 2026-10-02).
@@ -155,9 +155,7 @@ def _block(cell: dict, name: str) -> tuple[np.ndarray, list[str]]:
 
 def _party_columns(cell: dict, law: str) -> tuple[np.ndarray, list[str]]:
     """The seat block's PARTY columns: ``OTHER`` (the export's remainder) is not a party."""
-    block, cols = _block(cell, f"seats/{law}")
-    keep = [j for j, c in enumerate(cols) if c != "OTHER"]
-    return block[:, keep].astype(float), [cols[j] for j in keep]
+    return R.party_columns(*_block(cell, f"seats/{law}"))
 
 
 def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
@@ -475,8 +473,8 @@ def analyse(request_json: str) -> str:
     * ``outcome``: the chance of the reader's council-level outcome,
       ``reweight.council_outcome``: the largest party alone (or a tie for
       the most seats), whether one party has a majority on its own, and the
-      chosen coalition reaching a majority; with what it was read as. The
-      page's headline;
+      chosen coalition reaching a majority; with what it was read as and
+      its boldness badge (``reweight.outcome_chance``). The page's headline;
     * ``score``: the reader's forecast scored against EVERY published
       simulation as if it were the result, by the competition's own
       measures in its order (``score_forecasts.seat_error``,
@@ -535,16 +533,11 @@ def analyse(request_json: str) -> str:
 
     def chance(p):
         return {"p": float(p), "text": R.chance_text(p)}
-    # the reader's council-level outcome (reweight.council_outcome)
+    # the reader's council-level outcome (reweight.outcome_chance), with its badge
     held = {c: v for c, v in mine.items() if v > 0}
-    most = max(held.values(), default=0)
-    tops = [c for c, v in held.items() if v == most]
     need = int(req.get("majority") or sum(held.values()) // 2 + 1)
-    coalition = sorted(set(req.get("coalition") or []))
     council = cell["arrays"][f"council/{PUBLISHED_LAW}"]
-    outcome = {"largest": tops[0] if len(tops) == 1 else None, "majority_alone": most >= need,
-               "coalition": coalition}
-    outcome.update(chance(R.council_outcome(seats, cols, council[:, 0], w, **outcome)))
+    outcome = R.outcome_chance(seats, cols, council[:, 0], w, mine, need, req.get("coalition") or [])
     seat_out, share_out = {}, {}
     for c in shown:
         seat_out[c] = chance(R.within_band(seats[:, cols.index(c)], w, mine.get(c, 0), R.ANALYSIS_SEAT_BAND))

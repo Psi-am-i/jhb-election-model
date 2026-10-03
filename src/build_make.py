@@ -236,6 +236,71 @@ def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
     }
 
 
+# --------------------------------------------------------------------------
+# the previous council election, for "vs 2021" on the share cards
+
+
+def baseline(city, roster: list[str]) -> dict:
+    """The council election before the target, per roster party: what the
+    share cards and the arrival view print "vs <year>" against.
+
+    * ``seats``: the IEC's own Seat Calculation Detail (``official_seats.read``),
+      each raw party name through ``parties.canonical``;
+    * ``wards``: wards won, the plurality of each ward's Ward ballot in the
+      city's VD result file;
+    * ``vote``: each party's percent of all valid votes, PR and Ward ballots
+      summed, from the same file.
+
+    Only roster parties that stood are keyed: a party absent from ``vote``
+    was not on that ballot, and the cards print "new" for it (owner,
+    2026-10-03). A party that held seats then and is not on the roster now
+    appears on no card. Refuses a file whose seats do not sum to that
+    election's council or whose wards do not number its ward count."""
+    import collections
+    import csv
+    import cityconfig
+    import official_seats
+    import parties as P
+    year = cityconfig.preceding(city.default_target, "LGE")
+    struct = city.structure_for(year)
+    official = official_seats.read(city.code, int(year), REPO_ROOT / official_seats.REPORTS)
+    if official is None:
+        raise MakeBuildError(f"build_make: no {year} seat calculation for {city.name}")
+    seats = collections.Counter()
+    for raw, row in official["parties"].items():
+        seats[P.canonical(raw)] += int(row["seats"])
+    votes, by_ward = collections.Counter(), collections.defaultdict(collections.Counter)
+    path = REPO_ROOT / city.path("raw", "elections", cityconfig.CALENDAR[year].results)
+    with open(path, newline="", encoding="utf-8") as fh:
+        for r in csv.DictReader(fh):
+            if r["BallotType"] not in ("PR", "Ward"):
+                continue
+            c, v = P.canonical(r["sPartyName"]), int(r["Party_Votes"])
+            votes[c] += v
+            if r["BallotType"] == "Ward":
+                by_ward[r["Ward"]][c] += v
+    wards = collections.Counter(max(w, key=w.get) for w in by_ward.values())
+    if sum(seats.values()) != int(struct["council"]) or sum(wards.values()) != int(struct["wards"]):
+        raise MakeBuildError(f"build_make: the {year} seats sum to {sum(seats.values())} and the wards to "
+                             f"{sum(wards.values())}, not {struct['council']} and {struct['wards']}")
+    total = sum(votes.values())
+    stood = [c for c in roster if votes.get(c, 0) > 0]
+    return {"year": year, "valid_votes": total,
+            "seats": {c: seats.get(c, 0) for c in stood},
+            "wards": {c: wards.get(c, 0) for c in stood},
+            "vote": {c: votes[c] * 100.0 / total for c in stood}}
+
+
+def election_of(city) -> dict:
+    """The election the page forecasts: the city, polling day, and
+    ``polls_open``, the instant voting stations open with its UTC offset
+    (``cities/<slug>.toml`` ``[structure]``). The Worker refuses to seal a
+    reader's forecast from that instant (src/worker.js)."""
+    struct = city.structure_for(city.default_target)
+    return {"city": city.name, "date": str(struct["election_date"]),
+            "polls_open": f"{struct['election_date']}T{struct['polls_open']}:00{struct['utc_offset']}"}
+
+
 def forecast_data(draws: Path | None = None) -> dict:
     """Everything ``make/forecast.json`` carries."""
     import cityconfig
@@ -252,8 +317,7 @@ def forecast_data(draws: Path | None = None) -> dict:
     # positions mean different parties, wards or votes (js/make-state.js).
     context_ref = _sha(json.dumps([ctx["parties"], ctx["wards"], schema["x-total-votes"]]).encode())[:12]
     city = cityconfig.active()
-    election = {"city": city.name,
-                "date": str(city.structure_for(city.default_target)["election_date"])}
+    election = election_of(city)
     return {
         "_about": ("Written by src/build_make.py from the published draws (site/draws/). "
                    "Do not edit."),
@@ -265,6 +329,7 @@ def forecast_data(draws: Path | None = None) -> dict:
         "schema": schema,
         "geometry": {k: geom[k] for k in ("W", "H", "hex_radius", "labels", "wards")},
         "start": start,
+        "baseline": baseline(city, ctx["parties"]),
     }
 
 

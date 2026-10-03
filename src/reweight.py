@@ -124,6 +124,18 @@ ANALYSIS_SHARE_BAND_POINTS = 2.0
 #: JUDGEMENT-CALLS.md §N4. The page prints it from the engine's result.
 ANALYSIS_SEAT_ERROR_WITHIN = 10
 
+#: The seat law the published forecast uses: every "against the published
+#: forecast" figure is taken under it (``interactive/pyboot/page.py`` and the
+#: seat Worker's card answer read it from here).
+PUBLISHED_LAW = "deduct"
+
+#: The boldness badge on a reader's shared forecast (owner, 2026-10-03): the
+#: chance of the reader's council-level outcome (:func:`council_outcome`)
+#: names the call. ``(lowest chance, words)``, highest band first; a chance
+#: at a band's edge takes that band. JUDGEMENT CALLS, not measurements:
+#: JUDGEMENT-CALLS.md §N6. :func:`boldness` is the one reader of it.
+BOLDNESS = ((0.20, "Safe call"), (0.05, "Bold call"), (0.0, "Wild call"))
+
 #: What a figure computed under a poll's weights is, in the page's words. The
 #: weights select the model's own draws that lie near the poll; they do not
 #: make the poll come true, and a draw set with nothing near the poll gives an
@@ -887,6 +899,15 @@ def chance_text(p: float) -> str:
     return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
 
 
+def boldness(p: float) -> str:
+    """The badge for a chance of a reader's outcome: :data:`BOLDNESS`'s words
+    for the highest band whose lowest chance ``p`` reaches. ONE DEFINITION:
+    ``interactive/pyboot/page.py``'s ``analyse`` and the seat Worker's card
+    answer (``worker-api/seats-py/src/entry.py``) both return it."""
+    v = float(p)
+    return next(words for low, words in BOLDNESS if v >= low)
+
+
 def largest_party(seats, columns, weights=None) -> dict:
     """Who has the most seats, per simulation: ``{"outright": {party: P}, "tied": P}``.
 
@@ -1016,6 +1037,41 @@ def council_outcome(seats, columns, thresholds, weights=None, *, largest, majori
         idx = [list(columns).index(c) for c in coalition if c in columns]
         event &= (s[:, idx].sum(axis=1) if idx else np.zeros(s.shape[0])) >= thr
     return weighted_probability(event, w)
+
+
+def party_columns(block, columns) -> tuple[np.ndarray, list[str]]:
+    """A seat block's PARTY columns, as floats: ``OTHER`` (the export's
+    remainder, every party below its cut summed) is not a party. ONE
+    DEFINITION for the page (``pyboot/page.py``) and the seat Worker's card
+    answer."""
+    keep = [j for j, c in enumerate(columns) if c != "OTHER"]
+    return np.asarray(block)[:, keep].astype(float), [columns[j] for j in keep]
+
+
+def reader_outcome(seats: dict, majority: int, coalition=()) -> dict:
+    """A reader's council read as :func:`council_outcome` takes it:
+    ``{"largest", "majority_alone", "coalition"}``. ``largest`` is the one
+    party with the most seats, or None for a tie; ``majority_alone`` whether
+    that most reaches ``majority``; ``coalition`` the chosen parties, sorted.
+    ONE DEFINITION for the page's analysis and the seat Worker's card."""
+    held = {c: int(v) for c, v in seats.items() if int(v) > 0}
+    most = max(held.values(), default=0)
+    tops = [c for c, v in held.items() if v == most]
+    return {"largest": tops[0] if len(tops) == 1 else None,
+            "majority_alone": most >= int(majority),
+            "coalition": sorted(set(coalition or []))}
+
+
+def outcome_chance(seats, columns, thresholds, weights, mine: dict, majority: int,
+                   coalition=()) -> dict:
+    """The chance the model gives a reader's council-level outcome, with what
+    it was read as, its text (:func:`chance_text`) and its badge
+    (:func:`boldness`): ``{"largest", "majority_alone", "coalition", "p",
+    "text", "badge"}``. ``seats``/``columns`` are party columns
+    (:func:`party_columns`), ``thresholds`` each simulation's majority."""
+    out = reader_outcome(mine, majority, coalition)
+    p = council_outcome(seats, columns, thresholds, weights, **out)
+    return {**out, "p": float(p), "text": chance_text(p), "badge": boldness(p)}
 
 
 def scored_as_results(seat_error, wards_called, list_vote_error, weights, *,

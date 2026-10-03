@@ -649,6 +649,52 @@ def test_the_seat_service_answers_a_refusal_as_422_and_a_bad_body_as_400():
     assert _load_entry(with_code=False).answer(body)[0] == 501
 
 
+
+def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_draws():
+    """/v1/card (the link preview's answer): the /v1/seats answer for the
+    body's seats part, and reweight.outcome_chance on the draws for that
+    council and the coalition. Constructed draws, so the chance is known by
+    hand; a stale draw hash is a 409, a bad body a 400, and the seat law's
+    refusal passes through as 422."""
+    import numpy as np
+    import reweight
+    entry = _load_entry()
+    body = {"combined_shares": {"A": 0.31, "B": 0.40, "C": 0.29},
+            "ward_winners": {w: "A" for w in _toy_context()["wards"]},
+            "context": _toy_context(), "total_votes": 1000}
+    draws = {"sha256": "ab" * 32, "columns": ["A", "B", "C"],
+             "seats": np.array([[5, 3, 2], [3, 5, 2], [6, 2, 2], [4, 4, 2]], dtype=float),
+             "thresholds": np.array([6, 6, 6, 6], dtype=float)}
+    status, got = entry.card({"seats": body, "coalition": ["A", "C"], "draws_sha256": "ab" * 32}, draws)
+    assert status == 200, got
+    assert got["seats"] == {"A": 5, "B": 3, "C": 2} and got["majority"] == 6
+    # A largest, no majority alone, A + C reach 6: draws 0 and 2 have A
+    # alone on top; in draw 2 A has 6 alone, so only draw 0 counts
+    assert got["outcome"]["p"] == 0.25 and got["outcome"]["badge"] == reweight.boldness(0.25)
+    assert got["outcome"] == reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"],
+                                                     None, got["seats"], 6, ["A", "C"])
+    assert got["draws_sha256"] == "ab" * 32
+    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "cd" * 32}, draws)[0] == 409
+    assert entry.card({"seats": body, "coalition": "A", "draws_sha256": "ab" * 32}, draws)[0] == 400
+    assert entry.card({"seats": body}, draws)[0] == 400
+    refused = {**body, "combined_shares": {"A": 0.7, "B": 0.3},
+               "ward_winners": {**_GOOD_WINNERS, "W4": "C"}}
+    assert entry.card({"seats": refused, "coalition": [], "draws_sha256": "ab" * 32}, draws)[0] == 422
+
+
+def test_the_card_reads_the_draws_the_page_was_built_from():
+    """load_draws on the served site/draws: its hash is the draws_sha256 the
+    page's forecast.json names (src/build_make.py), which the preview sends,
+    and its columns are the published seat block's party columns."""
+    entry = _load_entry()
+    site = ROOT / "site"
+    data = json.loads((site / "your-forecast" / "forecast.json").read_text(encoding="utf-8"))
+    d = entry.load_draws((site / "draws" / "manifest.json").read_bytes(),
+                         (site / "draws" / "base.bin").read_bytes())
+    assert d["sha256"] == data["draws_sha256"]
+    assert "OTHER" not in d["columns"] and len(d["columns"]) == d["seats"].shape[1]
+    assert d["thresholds"].shape[0] == d["seats"].shape[0] > 0
+
 _CLOSURE_PROBE = r'''
 import json, os, sys
 src = os.path.abspath(sys.argv[1])

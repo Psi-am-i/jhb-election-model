@@ -20,6 +20,12 @@ const DST = resolve(here, "../seats-py/src");
 // module added to or dropped from that chain turns the suite red.
 export const FILES = ["reader_seats.py", "montecarlo.py", "seats.py", "cityconfig.py",
   "coalitions.py", "fold.py", "parties.py", "polling.py"];
+// The card answer's code (/v1/card in seats-py/src/entry.py): the chance of a
+// reader's council-level outcome and its badge. reweight.py has no top-level
+// import from src/ (its docstring), so it is one file. Kept apart from FILES,
+// which the test holds equal to reader_seats' closure.
+export const CARD_FILES = ["reweight.py"];
+export const ALL = [...FILES, ...CARD_FILES];
 
 export function codeRef(bufs) {
   const h = createHash("sha256");
@@ -34,7 +40,7 @@ export function codeRef(bufs) {
 // name the hash of exactly these sources.
 export function checkCopy(src = SRC, dst = DST) {
   const problems = [];
-  for (const f of FILES) {
+  for (const f of ALL) {
     const s = resolve(src, f), d = resolve(dst, f);
     if (!existsSync(s)) problems.push(`source missing: src/${f}`);
     else if (!existsSync(d)) problems.push(`not copied: seats-py/src/${f}`);
@@ -42,18 +48,18 @@ export function checkCopy(src = SRC, dst = DST) {
   }
   const ref = resolve(dst, "code_ref.py");
   if (!existsSync(ref)) problems.push("not written: seats-py/src/code_ref.py");
-  else if (FILES.every(f => existsSync(resolve(src, f)))) {
-    const want = codeRef(FILES.map(f => readFileSync(resolve(src, f))));
+  else if (ALL.every(f => existsSync(resolve(src, f)))) {
+    const want = codeRef(ALL.map(f => readFileSync(resolve(src, f))));
     if (!readFileSync(ref, "utf8").includes(`CODE_REF = "${want}"`)) problems.push("STALE: seats-py/src/code_ref.py does not name the current sources");
   }
   return problems;
 }
 
 export function copy(src = SRC, dst = DST) {
-  const missing = FILES.filter(f => !existsSync(resolve(src, f)));
+  const missing = ALL.filter(f => !existsSync(resolve(src, f)));
   if (missing.length) throw new Error(`cannot copy: src/${missing.join(", src/")} does not exist`);
-  const bufs = FILES.map(f => readFileSync(resolve(src, f)));
-  FILES.forEach((f, i) => writeFileSync(resolve(dst, f), bufs[i]));
+  const bufs = ALL.map(f => readFileSync(resolve(src, f)));
+  ALL.forEach((f, i) => writeFileSync(resolve(dst, f), bufs[i]));
   writeFileSync(resolve(dst, "code_ref.py"), `# Written by worker-api/tools/sync_seats_py.mjs. Do not edit.\nCODE_REF = "${codeRef(bufs)}"\n`);
 }
 
@@ -62,9 +68,9 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const problems = checkCopy();
     for (const p of problems) console.error(p);
     if (problems.length) console.error("run `npm run sync:seats` to copy the seat code into seats-py/");
-    else console.log(`seats-py/src carries ${FILES.length} files and code_ref.py, current`);
+    else console.log(`seats-py/src carries ${ALL.length} files and code_ref.py, current`);
     process.exit(problems.length ? 1 : 0);
   }
   try { copy(); } catch (e) { console.error(e.message); process.exit(1); }
-  console.log(`copied ${FILES.join(", ")}; code_ref written`);
+  console.log(`copied ${ALL.join(", ")}; code_ref written`);
 }

@@ -17,6 +17,7 @@ Parsing it means the expected values are never typed, for any city.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -41,7 +42,10 @@ def read(code: str, year: int, reports: Path = REPORTS) -> dict | None:
     path = reports / f"lge{year}_{code}_seat_calculation_detail.xls"
     if not path.exists():
         return None
-    frame = pd.read_excel(path, header=None)
+    # xlrd writes its file-size warning about these IEC files to stdout, which
+    # corrupts any caller whose stdout is data (the build's JSON); sent nowhere
+    with open(os.devnull, "w") as quiet:
+        frame = pd.read_excel(path, header=None, engine_kwargs={"logfile": quiet})
 
     out: dict = {"path": str(path), "parties": {}}
     for key, labels in LABELS.items():
