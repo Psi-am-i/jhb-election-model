@@ -7,7 +7,8 @@ ships `site/` whatever the ledger says (blind review, 2026-09-17).
 
 It checks that every file wrangler would upload from the repository's own
 `site/` is committed (`untracked`), that no page carries inline CSS or JS
-(`site_assets.scan_site`), and two things against
+(`site_assets.scan_site`), that nothing of the local edit mode is in it
+(`edit_mode.shipped`), and two things against
 `content/<city>/NUMBERS-REVIEW.md`:
 
 1. the review describes THESE pages — the sha256 of every page it scanned
@@ -139,6 +140,20 @@ def check(city: str, site: Path, preview: bool, review: Path | None = None) -> l
                             f"under {site}/: {'; '.join(inline[:5])}"
                             f"{' …' if len(inline) > 5 else ''}. Styles belong in "
                             f"src/css, scripts in .js files.")
+    # ⛔ EDIT MODE IS LOCAL ONLY (owner's sweep, 2026-10-03). Its overlay is
+    # injected as a page is served on 127.0.0.1 and is never written to a
+    # site; a site that carries it, or a page tagged by it, was saved from a
+    # browser or copied by hand, and must not ship.
+    try:
+        import edit_mode as _EM
+        _pages, overlay = _EM.shipped(site)
+    except Exception as exc:          # a gate that cannot look must not pass
+        problems.append(f"cannot scan {site} for the edit-mode overlay ({exc!r})")
+    else:
+        if overlay:
+            problems.append(f"{len(overlay)} edit-mode file(s) or page(s) under {site}/: "
+                            f"{'; '.join(overlay[:5])}{' …' if len(overlay) > 5 else ''}. "
+                            f"Edit mode runs locally only (src/edit_mode.py).")
     blocks = sum(1 for line in text.splitlines() if line.startswith("| BLOCKS |"))
     if blocks != int(head.group(2)):
         problems.append(f"{review} was edited by hand: stamp says "

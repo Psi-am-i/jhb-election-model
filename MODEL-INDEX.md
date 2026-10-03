@@ -22,7 +22,6 @@ arithmetic test can see.
 | `backtest` | `results` | `actual`, `base`, `prior_lge` |
 | `build_make` | `dumps` | `geometry`, `model` |
 | `build_validation` | `grab` | `brier`, `council`, `crps`, `seat_mae`, `wards`, `wards_called` |
-| `build_your_forecast` | `one_level_down` | `<!-- __YFFOOT__ -->`, `<!-- __YFHEAD__ -->`, `<!-- __YFNAV__ -->` |
 | `citywide_table` | `_code_sha` | `levels_sha`, `parties_sha` |
 | `compare_history` | `_stats` | `ge_half`, `lt_half` |
 | `compare_history` | `seat_abs_err` | `seat_abs_err`, `seat_abs_err_coherent` |
@@ -48,23 +47,26 @@ arithmetic test can see.
 | `DATA` | `build_make`, `freeze`, `width_budget` | `REPO / 'data/raw/elections'`, `str 'forecast.json'` | NO |
 | `DRAWS` | `build_make`, `build_play` | `REPO_ROOT / 'site' / 'draws'` | yes |
 | `ELECTIONS` | `build_concordance`, `build_crosswalk`, `turnout` | `dict[11]`, `dict[6]`, `{year: (e.results, e.two_ballot) for year, e in sorted(cityconfig.CALEND` | NO |
-| `INTERACTIVE` | `build_make`, `build_play`, `build_your_forecast` | `REPO_ROOT / 'interactive'` | yes |
+| `INTERACTIVE` | `build_make`, `build_play` | `REPO_ROOT / 'interactive'` | yes |
 | `MARK_END` | `hex_cartogram`, `render_map` | `str '<!-- __HEXMAP_END__ -->'`, `str '<!-- __MAP_END__ -->'` | NO |
 | `MARK_START` | `hex_cartogram`, `render_map` | `str`, `str '<!-- __MAP_START__ -->'` | NO |
 | `METRO_CODES` | `levels`, `pools` | `tuple[8]` | yes |
 | `NAMES` | `render_map`, `render_sheet` | `dict[15]`, `dict[8]` | NO |
+| `OG_DESCRIPTION` | `build_make`, `build_play` | `str` | yes |
+| `OG_TITLE` | `build_make`, `build_play` | `str` | yes |
 | `OUTPUT` | `judgement_sheet`, `model_index` | `ROOT / 'JUDGEMENT-SHEET.md'`, `ROOT / 'MODEL-INDEX.md'` | NO |
 | `PROCESSED` | `declares`, `overhang_regimes` | `Path('data/processed')`, `REPO / 'data' / 'processed'` | NO |
 | `REGISTER` | `judgement_sheet`, `polling` | `Path('polls.json')`, `ROOT / 'JUDGEMENT-CALLS.md'` | NO |
 | `REPO` | `citywide_table`, `declares`, `freeze`, `width_budget` | `Path(__file__).resolve().parents[1]` | yes |
 | `REPORTS` | `derive_city`, `official_seats` | `Path('data/raw/elections/_reports')` | yes |
-| `REPO_ROOT` | `build_make`, `build_play`, `build_site`, `build_your_forecast`, `site_assets` | `Path(__file__).resolve().parents[1]` | yes |
-| `ROOT` | `backup_ignored`, `deploy_check`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` | `Path(__file__).resolve().parent.parent`, `Path(__file__).resolve().parents[1]` | NO |
+| `REPO_ROOT` | `build_make`, `build_play`, `build_site`, `site_assets` | `Path(__file__).resolve().parents[1]` | yes |
+| `ROOT` | `backup_ignored`, `deploy_check`, `edit_mode`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` | `Path(__file__).resolve().parent.parent`, `Path(__file__).resolve().parents[1]`, `site_text.ROOT` | NO |
 | `Row` | `declares`, `publication` | `?` | yes |
 | `SCHEMA` | `citywide_table`, `publication` | `int 1` | yes |
 | `SHARE_FLOOR` | `benchmarks`, `fold`, `montecarlo` | `float 0.002` | yes |
 | `SRC` | `judgement_sheet`, `model_index` | `ROOT / 'src'` | yes |
 | `USER_AGENT` | `fetch_boundaries`, `fetch_byelections`, `fetch_iec` | `str` | yes |
+| `assemble` | `build_make`, `build_play` | `?` | yes |
 | `audit` | `declares`, `stats` | `?` | yes |
 | `build` | `citywide_table`, `export_draws`, `judgement_sheet`, `model_index` | `?` | yes |
 | `citywide` | `fold`, `turnout` | `?` | yes |
@@ -76,15 +78,19 @@ arithmetic test can see.
 | `logit` | `fold`, `montecarlo` | `?` | yes |
 | `normalise` | `parties`, `prep_logos` | `?` | yes |
 | `parse` | `scenarios`, `sweep` | `?` | yes |
+| `plan` | `build_all`, `site_text` | `?` | yes |
 | `read_municipality` | `ingest_lge`, `ingest_npe` | `?` | yes |
 | `render` | `build_portal`, `compare_history`, `hex_cartogram`, `judgement_sheet`, `stats` | `?` | yes |
 | `report` | `coalitions`, `contested_area`, `declares`, `theta_residual` | `?` | yes |
+| `resolve_path` | `cityconfig`, `edit_mode` | `?` | yes |
 | `run` | `build_all`, `build_validation`, `diagnose`, `width_budget` | `?` | yes |
 | `runnable` | `compare_history`, `sweep` | `?` | yes |
 | `stale_reason` | `citywide_table`, `pools` | `?` | yes |
 | `summarise` | `iec_csv`, `publication` | `?` | yes |
 | `ward_number` | `iec_csv`, `score_forecasts` | `?` | yes |
 | `ward_parts` | `build_concordance`, `montecarlo` | `?` | yes |
+| `write` | `site_assets`, `site_text` | `?` | yes |
+| `write_assets` | `build_make`, `build_play` | `?` | yes |
 
 ### 1.3 One value, typed under two names
 
@@ -101,7 +107,7 @@ arithmetic test can see.
 | 0.9 | `pools.MAX_POOL_CAPTURE`, `pools.SPLIT_SD_FLOOR`, `render_map.SAFE` |
 | 0.95 | `montecarlo.TURNOUT_DRAW_CEILING`, `pools.ARRIVAL_BAND_HI` |
 | 12 | `montecarlo.DELIVERY_MAX_VALUES`, `pools.ALPHA_FALLBACK`, `stats.DECLARATION_MIN_CHARS` |
-| 2.0 | `benchmarks.MAX_SIGMA`, `hex_cartogram.GRID_MARGIN_CELLS`, `levels.SHRINK`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.WARD_PR_RATIO_MAX`, `pools.MIN_HOME_SPLITS`, `pools.REGISTRATION_MAX`, `reweight.ANALYSIS_SEAT_BAND`, `reweight.ANALYSIS_SHARE_BAND_POINTS` |
+| 2.0 | `benchmarks.MAX_SIGMA`, `hex_cartogram.GRID_MARGIN_CELLS`, `levels.SHRINK`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.WARD_PR_RATIO_MAX`, `pools.MIN_HOME_SPLITS`, `pools.REGISTRATION_MAX` |
 | 200 | `montecarlo.OVERHANG_LEVEL_MAX_ROUNDS`, `montecarlo.PARTIAL_BALANCE_PASSES`, `pools.ALPHA_CEILING`, `reweight.MIN_EFFECTIVE_DRAWS` |
 | 30.0 | `montecarlo.BYE_MIN_WEIGHT`, `render_sheet.WALL_FLIPS` |
 | 300 | `polling.POLL_MIN_N`, `stats.FRESHNESS_GRACE_S` |
@@ -114,15 +120,14 @@ Matched on the SHAPE of largest-remainder apportionment (a whole part, an orderi
 
 | function | orders the shortfall by | summary |
 |---|---|---|
+| `build_make._apportion` | `sorted(raw, key=lambda k: -(raw[k] - out[k]))[:spare]` | Whole numbers summing to ``total`` in proportion to ``weights``, none |
+| `build_make.start_seats` | `sorted(order, key=lambda g: (-gap[g] * step, order.index(g` | The untouched council's seats by party, steps 1-4 of the module |
 | `compare_history.coherent_seats` | `argsort(-(exact - base` | A point forecast that IS a council: largest remainder on the mean vector. |
 | `pools.panel_turnout_spread` | `sorted((split_bloc or {}).items(` | How far EACH pool's turnout moves between local elections, panel-wide. |
 | `reader_seats.combined_votes` | `sorted(range(len(raw)), key=lambda i: -(raw[i][1] - math.floor(raw[i][1]` | Each positive share as a whole number of votes, summing to ``total_votes``. |
 | `render_sheet.round_to_total` | `sorted(vals, key=lambda q: floors[q] - vals[q])[:max(rem, 0)]` | -- |
 | `scenarios.main` | `sorted(detail[d].items(), key=lambda kv: -kv[1]['']` | -- |
 | `seats.allocate` | `sorted(remainders, key=lambda p: (-remainders[p], -combined[p]` | Allocate council seats by the Schedule 1 quota-and-largest-remainder method. |
-| `site_text.apply` | `sorted(set(edits) - set(found` | -- |
-| `start_rule.apportion` | `sorted(raw, key=lambda k: -(raw[k] - out[k]))[:spare]` | Whole numbers summing to ``total`` in proportion to ``weights``, none |
-| `start_rule.start_seats` | `sorted(order, key=lambda g: (-gap[g] * step, order.index(g` | The council a reader's forecast opens with, steps 1-4 of the module |
 | `validate_seats.main` | `sorted(official[''].items(), key=lambda kv: -kv[1]['']` | -- |
 
 ### 1.5 Shadow pairs — a scenario key and a module constant of one name
@@ -214,7 +219,7 @@ An entry point that has acquired an importer no longer needs the exemption: the 
 
 Not dead by itself — a constant read only where it is defined is ordinary. Dead is this list crossed with a module in `neither` closure, and with §4's delivery table.
 
-`archive.BY_FILENAME`, `archive.PROVENANCE`, `backup_ignored.BACKUPS`, `backup_ignored.SKIP_PREFIXES`, `backup_ignored.SKIP_SUFFIXES`, `benchmarks.BLEND_W`, `benchmarks.MAX_SIGMA`, `benchmarks.MIN_SIGMA`, `benchmarks.NEW_PARTY_SIGMA`, `build_concordance.REG_DRIFT_TOLERANCE`, `build_geo.GDB_LAYERS`, `build_play.FILL`, `build_play.GROUP_TONE_CLASSES`, `build_play.READER_NAMES`, `build_play.REFUSED_AS`, `build_play.SHEET`, `build_portal.ELECTION`, `build_site.CF_WEB_ANALYTICS_TOKEN`, `build_site.CONTENT_TYPES`, `build_site.IEC_RESULTS_URL`, `build_site.MODEL_DOCS`, `build_site.NAV_ITEMS`, `build_site.OG_META`, `build_site.OWNER_PLACEHOLDER`, `build_site.SECURITY_HEADERS`, `build_site.SITE_URL`, `build_validation.DISPLAY`, `build_your_forecast.CSS`, `build_your_forecast.JS`, `build_your_forecast.PYBOOT`, `build_your_forecast.SOURCE`, `cityconfig.DEFAULT_CITY`, `citywide_table.HERE`, `compare_history.GAUTENG`, `compare_history.REFERENCE_SHARE`, `compare_history.REFERENCE_SLATE`, `contested_area.TRANSITIONS`, `declares.REPORT_ORDER`, `declares.UNDECLARED`, `export_draws.CENTRES_STAGE`, `export_draws.COMBINED_SHARE_REFUSAL`, `export_draws.POLL_CAVEATS`, `export_interactive.PAGE_PARTIES`, `fetch_boundaries.FGDB_ITEMS`, `fetch_boundaries.LAYERS`, `fetch_boundaries.PAGE_SIZE`, `fetch_byelections.DASH`, `fetch_iec.LGE_REPORTS`, `fetch_iec.MUNI`, `fold.LEVEL_FLOOR`, `gamma_recent.MIN_SHARE`, `hex_cartogram.CELL_AREA_FACTOR`, `hex_cartogram.GRID_MARGIN_CELLS`, `hex_cartogram.PREVIEW`, `iec_csv.BOMS`, `iec_csv.ENCODINGS`, `ingest_historic.LGE_COLUMNS`, `ingest_historic.METRO_BALLOTS`, `ingest_historic.NPE_COLUMNS`, `ingest_historic.OUT_DIR`, `ingest_historic.SOURCE_DIR`, `inputs_preflight.ADVISORY`, `judgement_sheet.LIVE_TARGET_KEY`, `judgement_sheet.REGISTER_URL`, `judgement_sheet.SECTION_END`, `judgement_sheet.SECTION_HEADING`, `judgement_sheet.SECTION_START`, `model_index.JUDGEMENT_REGISTER`, `model_index.MEASUREMENT_ROOT`, `model_index.MODEL_ROOT`, `model_index.SPAN_MARKERS`, `montecarlo.DIRICHLET_FLOOR`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.OVERHANG_LEVEL_MAX_ROUNDS`, `montecarlo.PARTIAL_BALANCE_PASSES`, `montecarlo.POOL_CAPACITY_MARGIN`, `montecarlo.SCENARIO_METADATA`, `montecarlo.TURNOUT_CORRELATION`, `montecarlo.TURNOUT_DRAW_FLOOR`, `montecarlo.WARD_PR_RATIO_MIN`, `official_seats.LABELS`, `polling.POLL_SCREEN_SD_UNDISCLOSED`, `polling.SCOPES`, `pools.ALPHA_CEILING`, `pools.ALPHA_FALLBACK`, `pools.ALPHA_FLOOR`, `pools.ALPHA_MIN_SHARE`, `pools.CENSUS_COVERAGE_FLOOR`, `pools.KNOWN_PARTY_CODES`, `pools.LOCK_PATH`, `pools.MAX_POOL_CAPTURE`, `pools.NPE_CITYWIDE_STATES`, `pools.ROSTER_KEYS`, `pools.SPLINTER_PARENT_WEIGHT`, `pools.SPLIT_SD_FLOOR`, `prep_logos.CODES`, `publication.MOVEMENTS`, `publication.PRELEDGER_PREFIX`, `render_home.HEAD_TO_HEAD_ORDER`, `render_home.LABEL`, `render_home.NAMED`, `render_map.KEY_PARTIES`, `render_map.KEY_SOLID`, `render_map.KEY_STRIPE_A`, `render_map.KEY_STRIPE_B`, `render_map.REST`, `render_map.UNKNOWN_CHIP`, `render_sheet.ALLIANCE_8`, `render_sheet.CHART_PARTIES`, `render_sheet.COALITION_KEY_ORDER`, `render_sheet.WALL_FLIPS`, `scenarios.BAND`, `scenarios.COND`, `scenarios.OPS`, `score_forecasts.REPORTED`, `site_assets.INLINE`, `site_assets.JS_SRC`, `site_text.BLOCK_ID`, `site_text.CLAIM_FIELDS`, `site_text.PLACEHOLDER`, `site_text.PROSE_TAGS`, `site_text.TAG_BLOCK`, `stats.ATTRS`, `stats.CHROME_CLASSES`, `stats.FRESHNESS_REMEDY`, `stats.GATING`, `stats.GEN_TOKEN`, `stats.HISTORICAL`, `stats.LIVE_ATTR`, `stats.NUMBERISH`, `stats.REGION`, `stats.SCRIPTS`, `stats.SCRIPT_FORBIDDEN`, `stats.SOURCED`, `stats.TAGS`, `stats.TOKEN`, `stats.WRITER_FORBIDDEN`, `sweep.PARTY_ROW`, `turnout.LAMBDA_PAIRS`
+`archive.BY_FILENAME`, `archive.PROVENANCE`, `backup_ignored.BACKUPS`, `backup_ignored.SKIP_PREFIXES`, `backup_ignored.SKIP_SUFFIXES`, `benchmarks.BLEND_W`, `benchmarks.MAX_SIGMA`, `benchmarks.MIN_SIGMA`, `benchmarks.NEW_PARTY_SIGMA`, `build_concordance.REG_DRIFT_TOLERANCE`, `build_geo.GDB_LAYERS`, `build_make.HOST`, `build_make.MAKE_CSS`, `build_make.MAKE_JS`, `build_make.MAKE_PYBOOT`, `build_make.PHOTO`, `build_make.SEATS_ANCHOR`, `build_make.WORKER_SRC`, `build_play.FILL`, `build_play.GROUP_TONE_CLASSES`, `build_play.PLAY_CSS`, `build_play.PLAY_JS`, `build_play.PLAY_PYBOOT`, `build_play.READER_NAMES`, `build_play.REFUSED_AS`, `build_portal.ELECTION`, `build_site.CF_WEB_ANALYTICS_TOKEN`, `build_site.CONTENT_TYPES`, `build_site.IEC_RESULTS_URL`, `build_site.MODEL_DOCS`, `build_site.NAV_ITEMS`, `build_site.OG_META`, `build_site.OWNER_PLACEHOLDER`, `build_site.SECURITY_HEADERS`, `build_site.SITE_URL`, `build_validation.DISPLAY`, `cityconfig.DEFAULT_CITY`, `citywide_table.HERE`, `compare_history.GAUTENG`, `compare_history.REFERENCE_SHARE`, `compare_history.REFERENCE_SLATE`, `contested_area.TRANSITIONS`, `declares.REPORT_ORDER`, `declares.UNDECLARED`, `edit_mode.LOOPBACK`, `edit_mode.OVERLAY_DIR`, `edit_mode.OVERLAY_FILES`, `export_draws.CENTRES_STAGE`, `export_draws.COMBINED_SHARE_REFUSAL`, `export_draws.POLL_CAVEATS`, `export_interactive.PAGE_PARTIES`, `fetch_boundaries.FGDB_ITEMS`, `fetch_boundaries.LAYERS`, `fetch_boundaries.PAGE_SIZE`, `fetch_byelections.DASH`, `fetch_iec.LGE_REPORTS`, `fetch_iec.MUNI`, `fold.LEVEL_FLOOR`, `gamma_recent.MIN_SHARE`, `hex_cartogram.CELL_AREA_FACTOR`, `hex_cartogram.GRID_MARGIN_CELLS`, `hex_cartogram.PREVIEW`, `iec_csv.BOMS`, `iec_csv.ENCODINGS`, `ingest_historic.LGE_COLUMNS`, `ingest_historic.METRO_BALLOTS`, `ingest_historic.NPE_COLUMNS`, `ingest_historic.OUT_DIR`, `ingest_historic.SOURCE_DIR`, `inputs_preflight.ADVISORY`, `judgement_sheet.LIVE_TARGET_KEY`, `judgement_sheet.REGISTER_URL`, `judgement_sheet.SECTION_END`, `judgement_sheet.SECTION_HEADING`, `judgement_sheet.SECTION_START`, `model_index.JUDGEMENT_REGISTER`, `model_index.MEASUREMENT_ROOT`, `model_index.MODEL_ROOT`, `model_index.SPAN_MARKERS`, `montecarlo.DIRICHLET_FLOOR`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.OVERHANG_LEVEL_MAX_ROUNDS`, `montecarlo.PARTIAL_BALANCE_PASSES`, `montecarlo.POOL_CAPACITY_MARGIN`, `montecarlo.SCENARIO_METADATA`, `montecarlo.TURNOUT_CORRELATION`, `montecarlo.TURNOUT_DRAW_FLOOR`, `montecarlo.WARD_PR_RATIO_MIN`, `official_seats.LABELS`, `polling.POLL_SCREEN_SD_UNDISCLOSED`, `polling.SCOPES`, `pools.ALPHA_CEILING`, `pools.ALPHA_FALLBACK`, `pools.ALPHA_FLOOR`, `pools.ALPHA_MIN_SHARE`, `pools.CENSUS_COVERAGE_FLOOR`, `pools.KNOWN_PARTY_CODES`, `pools.LOCK_PATH`, `pools.MAX_POOL_CAPTURE`, `pools.NPE_CITYWIDE_STATES`, `pools.ROSTER_KEYS`, `pools.SPLINTER_PARENT_WEIGHT`, `pools.SPLIT_SD_FLOOR`, `prep_logos.CODES`, `publication.MOVEMENTS`, `publication.PRELEDGER_PREFIX`, `render_home.HEAD_TO_HEAD_ORDER`, `render_home.LABEL`, `render_home.NAMED`, `render_map.KEY_PARTIES`, `render_map.KEY_SOLID`, `render_map.KEY_STRIPE_A`, `render_map.KEY_STRIPE_B`, `render_map.REST`, `render_map.UNKNOWN_CHIP`, `render_sheet.ALLIANCE_8`, `render_sheet.CHART_PARTIES`, `render_sheet.COALITION_KEY_ORDER`, `render_sheet.WALL_FLIPS`, `scenarios.BAND`, `scenarios.COND`, `scenarios.OPS`, `score_forecasts.REPORTED`, `site_assets.INLINE`, `site_assets.JS_SRC`, `site_text.ARTICLE_FIELDS`, `site_text.BLOCK_ID`, `site_text.CLAIM_FIELDS`, `site_text.GENERATED_MD`, `site_text.MD_DIR`, `site_text.OPAQUE`, `site_text.VOID`, `stats.ATTRS`, `stats.CHROME_CLASSES`, `stats.FRESHNESS_REMEDY`, `stats.HISTORICAL`, `stats.LIVE_ATTR`, `stats.REGION`, `stats.SCRIPTS`, `stats.SCRIPT_FORBIDDEN`, `stats.TOKEN`, `stats.WRITER_FORBIDDEN`, `sweep.PARTY_ROW`, `turnout.LAMBDA_PAIRS`
 
 ## 3 · Declared producers against the code
 
@@ -233,7 +238,7 @@ The intermediates register names the script that writes each artefact. `agrees` 
 | `sweep.json` | `sweep` | `declares`, `sweep` | yes |
 | `validation_*.json` | `montecarlo` | `archive`, `backup_ignored`, `build_validation`, `compare_history`, `declares`, `score`, `stats` | NO |
 | `ward_hex_layout.json` | `hex_cartogram` | `build_make`, `hex_cartogram` | yes |
-| `ward_paths.json` | `render_map` | `build_all`, `build_make`, `build_play`, `build_your_forecast`, `export_interactive`, `hex_cartogram`, `render_map` | yes |
+| `ward_paths.json` | `render_map` | `build_all`, `build_make`, `build_play`, `export_interactive`, `hex_cartogram`, `render_map` | yes |
 | `width_budget.json` | `montecarlo` | `declares`, `width_budget` | NO |
 
 ## 4 · Levers
@@ -294,7 +299,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `backtest.FITTED_ON_UNINSTRUMENTED` | dict[7] | NO | NO | NO | `model_index` |
 | `backtest.PROVENANCE_UNSETTLED` | dict[1] | NO | NO | NO | `model_index` |
 | `backtest.NOT_FITTED` | dict[25] | NO | NO | NO | `model_index` |
-| `backup_ignored.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `deploy_check`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
+| `backup_ignored.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
 | `backup_ignored.BACKUPS` | ROOT / 'backups' | NO | NO | NO | -- |
 | `backup_ignored.SKIP_PREFIXES` | tuple[5] | NO | NO | NO | -- |
 | `backup_ignored.SKIP_SUFFIXES` | tuple[2] | NO | NO | NO | -- |
@@ -308,18 +313,37 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `build_concordance.REG_DRIFT_TOLERANCE` | float 0.3 | NO | NO | yes | -- |
 | `build_crosswalk.ELECTIONS` | dict[6] | NO | NO | NO | `build_concordance`, `turnout` |
 | `build_geo.GDB_LAYERS` | dict[2] | NO | NO | NO | -- |
-| `build_make.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_play`, `build_site`, `build_your_forecast`, `site_assets` |
-| `build_make.INTERACTIVE` | REPO_ROOT / 'interactive' | NO | NO | NO | `build_play`, `build_your_forecast` |
+| `build_make.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_play`, `build_site`, `site_assets` |
+| `build_make.INTERACTIVE` | REPO_ROOT / 'interactive' | NO | NO | NO | `build_play` |
 | `build_make.DRAWS` | REPO_ROOT / 'site' / 'draws' | NO | NO | NO | `build_play` |
-| `build_make.WORKER_SRC` | REPO_ROOT / 'worker-api' / 'src' | NO | NO | NO | `build_your_forecast` |
-| `build_make.WORKER_API_JS` | tuple[2] | NO | NO | NO | `build_your_forecast` |
-| `build_make.SEATS_LINE` | tuple[2] | NO | NO | NO | `build_your_forecast` |
-| `build_make.DATA` | str 'forecast.json' | NO | NO | NO | `build_your_forecast`, `freeze`, `width_budget` |
-| `build_play.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_make`, `build_site`, `build_your_forecast`, `site_assets` |
-| `build_play.INTERACTIVE` | REPO_ROOT / 'interactive' | NO | NO | NO | `build_make`, `build_your_forecast` |
-| `build_play.SHEET` | REPO_ROOT / 'forecast-sheet.html' | NO | NO | NO | -- |
+| `build_make.WORKER_SRC` | REPO_ROOT / 'worker-api' / 'src' | NO | NO | NO | -- |
+| `build_make.MAKE_DIR` | str 'make' | NO | NO | NO | `build_site` |
+| `build_make.MAKE_PAGE` | f'{MAKE_DIR}/index.html' | NO | NO | NO | `build_site` |
+| `build_make.MAKE_HREF` | f'{MAKE_DIR}/' | NO | NO | NO | `build_site` |
+| `build_make.OG_TITLE` | str | NO | NO | NO | `build_play`, `build_site` |
+| `build_make.OG_DESCRIPTION` | str | NO | NO | NO | `build_play`, `build_site` |
+| `build_make.MAKE_JS` | tuple[10] | NO | NO | NO | -- |
+| `build_make.WORKER_API_JS` | tuple[2] | NO | NO | NO | -- |
+| `build_make.MAKE_CSS` | tuple[1] | NO | NO | NO | -- |
+| `build_make.MAKE_PYBOOT` | tuple[1] | NO | NO | NO | -- |
+| `build_make.SEATS_LINE` | tuple[2] | NO | NO | NO | -- |
+| `build_make.DATA` | str 'forecast.json' | NO | NO | NO | `freeze`, `width_budget` |
+| `build_make.PHOTO` | str 'share.jpg' | NO | NO | NO | -- |
+| `build_make.HOST` | str | NO | NO | NO | -- |
+| `build_make.SEATS_ANCHOR` | str | NO | NO | NO | -- |
+| `build_play.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_make`, `build_site`, `site_assets` |
+| `build_play.INTERACTIVE` | REPO_ROOT / 'interactive' | NO | NO | NO | `build_make` |
+| `build_play.SHEET` | REPO_ROOT / 'forecast-sheet.html' | NO | NO | NO | `build_make` |
 | `build_play.DRAWS` | REPO_ROOT / 'site' / 'draws' | NO | NO | NO | `build_make` |
-| `build_play.DRAWS_LINE` | tuple[2] | NO | NO | NO | `build_your_forecast` |
+| `build_play.PLAY_DIR` | str 'play' | NO | NO | NO | `build_site` |
+| `build_play.PLAY_PAGE` | f'{PLAY_DIR}/index.html' | NO | NO | NO | `build_site` |
+| `build_play.PLAY_HREF` | f'{PLAY_DIR}/' | NO | NO | NO | `build_site` |
+| `build_play.OG_TITLE` | str | NO | NO | NO | `build_make`, `build_site` |
+| `build_play.OG_DESCRIPTION` | str | NO | NO | NO | `build_make`, `build_site` |
+| `build_play.PLAY_JS` | tuple[10] | NO | NO | NO | -- |
+| `build_play.PLAY_CSS` | tuple[2] | NO | NO | NO | -- |
+| `build_play.PLAY_PYBOOT` | tuple[1] | NO | NO | NO | -- |
+| `build_play.DRAWS_LINE` | tuple[2] | NO | NO | NO | -- |
 | `build_play.FILL` | tuple[14] | NO | NO | NO | -- |
 | `build_play.BANNER_PARTIES` | int 6 | NO | NO | NO | -- |
 | `build_play.SEGMENT_LABEL_MIN` | float 0.12 | NO | NO | NO | -- |
@@ -328,7 +352,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `build_play.READER_NAMES` | dict[16] | NO | NO | NO | -- |
 | `build_portal.ELECTION` | str '4 November 2026' | NO | NO | NO | -- |
 | `build_portal.DEFAULT_ACCENT` | str '#a8621f' | NO | NO | NO | `site_assets` |
-| `build_site.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_make`, `build_play`, `build_your_forecast`, `site_assets` |
+| `build_site.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_make`, `build_play`, `site_assets` |
 | `build_site.NAV_ITEMS` | list[8] | NO | NO | NO | -- |
 | `build_site.CF_WEB_ANALYTICS_TOKEN` | str | NO | NO | NO | -- |
 | `build_site.SITE_HEAD` | site_assets.head() + analytics_head() | NO | NO | NO | `build_portal` |
@@ -338,27 +362,16 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `build_site.FOOTER` | footer_for() | NO | NO | NO | `build_portal` |
 | `build_site.MODEL_DOCS` | dict[5] | NO | NO | NO | -- |
 | `build_site.POLICY_DOCS` | dict[2] | NO | NO | NO | -- |
-| `build_site.DOCS` | {**MODEL_DOCS, **POLICY_DOCS} | NO | NO | NO | -- |
+| `build_site.DOCS` | {**MODEL_DOCS, **POLICY_DOCS} | NO | NO | NO | `edit_mode` |
 | `build_site.PRIVACY_SOURCE` | REPO_ROOT / 'docs-public' / 'privacy.md' | NO | NO | NO | -- |
 | `build_site.OWNER_PLACEHOLDER` | re.compile('^OWNER:', re.M) | NO | NO | NO | -- |
-| `build_site.ARTEFACTS` | dict[3] | NO | NO | NO | -- |
+| `build_site.ARTEFACTS` | dict[3] | NO | NO | NO | `edit_mode`, `site_text` |
+| `build_site.MD_EXTENSIONS` | tuple[3] | NO | NO | NO | `edit_mode`, `site_text` |
 | `build_site.CONTENT_TYPES` | dict[11] | NO | NO | NO | -- |
 | `build_site.SECURITY_HEADERS` | dict[4] | NO | NO | NO | -- |
 | `build_validation.CITIES` | list[8] | NO | NO | NO | `arrivals`, `compare_history`, `judgement_sheet`, `sweep` |
 | `build_validation.DISPLAY` | dict[26] | NO | NO | NO | -- |
 | `build_validation.BASELINES` | dict[3] | NO | NO | NO | `diagnose` |
-| `build_your_forecast.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_make`, `build_play`, `build_site`, `site_assets` |
-| `build_your_forecast.INTERACTIVE` | REPO_ROOT / 'interactive' | NO | NO | NO | `build_make`, `build_play` |
-| `build_your_forecast.SOURCE` | INTERACTIVE / 'your-forecast.html' | NO | NO | NO | -- |
-| `build_your_forecast.YF_DIR` | str 'your-forecast' | NO | NO | NO | `build_site` |
-| `build_your_forecast.YF_PAGE` | f'{YF_DIR}/index.html' | NO | NO | NO | `build_site` |
-| `build_your_forecast.YF_HREF` | f'{YF_DIR}/' | NO | NO | NO | `build_site` |
-| `build_your_forecast.RETIRED` | tuple[2] | NO | NO | NO | -- |
-| `build_your_forecast.OG_TITLE` | str | NO | NO | NO | `build_site` |
-| `build_your_forecast.OG_DESCRIPTION` | str | NO | NO | NO | `build_site` |
-| `build_your_forecast.JS` | tuple[19] | NO | NO | NO | -- |
-| `build_your_forecast.CSS` | tuple[3] | NO | NO | NO | -- |
-| `build_your_forecast.PYBOOT` | tuple[2] | NO | NO | NO | -- |
 | `cityconfig.CITIES_DIR` | Path('cities') | NO | NO | NO | `pools` |
 | `cityconfig.DEFAULT_CITY` | str 'joburg' | NO | NO | NO | -- |
 | `cityconfig.CALENDAR` | {'1999': Election('1999', 'NPE', _date(1999, 6, 2), 'npe1999_approx_{COD | NO | NO | NO | `backtest`, `benchmarks`, `build_play`, `byelections`, `levels`, `montecarlo`, `pools`, `theta_residual`, `turnout` |
@@ -384,11 +397,19 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `declares.UNDECLARED` | tuple[3] | NO | NO | NO | -- |
 | `declares.KINDS` | {'spec': Kind('spec', ('code', 'config', 'scope', 'inputs'), '§1.173 — a | NO | NO | NO | -- |
 | `declares.REPORT_ORDER` | tuple[5] | NO | NO | NO | -- |
-| `deploy_check.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
+| `deploy_check.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
 | `derive_city.REPORTS` | Path('data/raw/elections/_reports') | NO | NO | NO | `official_seats` |
 | `derive_city.LGE_YEARS` | tuple[3] | NO | NO | NO | -- |
 | `diagnose.BASELINES` | scored_opponents() | NO | NO | NO | `build_validation` |
 | `diagnose.VERDICT_STATISTIC` | str 'seat_abs_err_coherent' | NO | NO | NO | -- |
+| `edit_mode.ROOT` | site_text.ROOT | NO | NO | NO | `backup_ignored`, `deploy_check`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
+| `edit_mode.SITE` | ROOT / 'site' | NO | NO | NO | -- |
+| `edit_mode.PORT` | int 8801 | NO | NO | NO | -- |
+| `edit_mode.LOOPBACK` | str '127.0.0.1' | NO | NO | NO | -- |
+| `edit_mode.OVERLAY_DIR` | ROOT / 'src' / 'edit' | NO | NO | NO | -- |
+| `edit_mode.OVERLAY_FILES` | tuple[2] | NO | NO | NO | -- |
+| `edit_mode.URL_PREFIX` | str '/__edit/' | NO | NO | NO | -- |
+| `edit_mode.BLOCK_ATTR` | str 'data-edit-block' | NO | NO | NO | -- |
 | `export_draws.CENTRES_STAGE` | tuple[2] | NO | NO | NO | -- |
 | `export_draws.COMBINED_SHARE_REFUSAL` | dict[5] | NO | NO | NO | -- |
 | `export_draws.PR_SHARE_STEP` | float 1e-05 | NO | NO | NO | -- |
@@ -414,7 +435,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `fold.SHARE_FLOOR` | float 0.002 | NO | NO | yes | `benchmarks`, `montecarlo` |
 | `fold.LEVEL_FLOOR` | float 1e-06 | NO | NO | yes | -- |
 | `freeze.REPO` | Path(__file__).resolve().parents[1] | NO | NO | NO | `citywide_table`, `declares`, `width_budget` |
-| `freeze.DATA` | REPO / 'data/raw/elections' | NO | NO | NO | `build_make`, `build_your_forecast`, `width_budget` |
+| `freeze.DATA` | REPO / 'data/raw/elections' | NO | NO | NO | `build_make`, `width_budget` |
 | `freeze.FROZEN` | REPO / 'data/processed/forecast_frozen.json' | NO | NO | NO | -- |
 | `freeze.ENV_SWITCHES` | tuple[9] | NO | NO | NO | `model_index` |
 | `freeze.ENV_NOT_RECORDED` | dict[2] | NO | NO | NO | -- |
@@ -435,11 +456,11 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `ingest_historic.MUNI_HEAD` | dict[5] | NO | NO | NO | -- |
 | `ingest_lge.COLUMNS` | list[11] | NO | NO | NO | `archive`, `fetch_byelections`, `ingest_npe` |
 | `ingest_npe.COLUMNS` | list[10] | NO | NO | NO | `archive`, `fetch_byelections`, `ingest_lge` |
-| `inputs_preflight.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `deploy_check`, `export_draws`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
+| `inputs_preflight.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
 | `inputs_preflight.SNAPSHOT_STALE_DAYS` | int 21 | NO | NO | NO | -- |
 | `inputs_preflight.REQUIRED` | tuple[2] | NO | NO | NO | -- |
 | `inputs_preflight.ADVISORY` | tuple[2] | NO | NO | NO | -- |
-| `judgement_sheet.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `deploy_check`, `export_draws`, `inputs_preflight`, `model_index`, `render_home`, `site_text` |
+| `judgement_sheet.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `model_index`, `render_home`, `site_text` |
 | `judgement_sheet.SRC` | ROOT / 'src' | NO | NO | NO | `model_index`, `render_sheet` |
 | `judgement_sheet.CITIES` | ROOT / 'cities' | NO | NO | NO | `arrivals`, `build_validation`, `compare_history`, `sweep` |
 | `judgement_sheet.REGISTER` | ROOT / 'JUDGEMENT-CALLS.md' | NO | NO | NO | `montecarlo`, `polling` |
@@ -465,7 +486,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `levels.DEMARCATION_CROSSING` | frozenset({('MAN', '2011'), ('BUF', '2011')}) | yes | NO | NO | `montecarlo`, `theta_residual` |
 | `levels.EXCLUDE_DEMARCATION_CROSSING` | _os.environ.get('EXCLUDE_DEMARCATION_CROSSING', '').lower() in ('1', 'tr | yes | NO | NO | `citywide_table`, `freeze`, `montecarlo`, `theta_residual` |
 | `levels.THETA_WINDOW` | int(_os.environ.get('THETA_WINDOW', '0') or 0) | yes | NO | yes | `citywide_table`, `freeze`, `montecarlo`, `theta_residual` |
-| `model_index.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `render_home`, `site_text` |
+| `model_index.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `render_home`, `site_text` |
 | `model_index.SRC` | ROOT / 'src' | NO | NO | NO | `judgement_sheet`, `render_sheet` |
 | `model_index.TESTS` | ROOT / 'tests' | NO | NO | NO | -- |
 | `model_index.JUDGEMENT_REGISTER` | ROOT / 'JUDGEMENT-CALLS.md' | NO | NO | NO | -- |
@@ -575,7 +596,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `publication.AS_OF_RECONSTRUCTED` | str | NO | NO | NO | -- |
 | `publication.MOVEMENTS` | tuple[6] | NO | NO | NO | -- |
 | `reader_seats.ASSUMPTION` | str | NO | NO | NO | -- |
-| `render_home.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `site_text` |
+| `render_home.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `site_text` |
 | `render_home.PAGE` | ROOT / 'home.html' | NO | NO | NO | -- |
 | `render_home.HEAD_TO_HEAD_ORDER` | tuple[2] | NO | NO | NO | -- |
 | `render_home.NAMED` | tuple(_scenarios.NAMED_PARTIES) | NO | NO | NO | -- |
@@ -600,22 +621,19 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `render_sheet.CHIPS` | dict[12] | NO | NO | NO | `build_play`, `render_map`, `site_assets` |
 | `render_sheet.OTHER_CHIP` | str '#8b918b' | NO | NO | NO | `build_play`, `site_assets` |
 | `render_sheet.NAMES` | dict[15] | NO | NO | NO | `build_play`, `render_home`, `render_map` |
-| `render_sheet.SEAT_LAWS` | tuple[4] | NO | NO | NO | `build_play` |
 | `render_sheet.COALITION_KEY_ORDER` | tuple[6] | NO | NO | NO | -- |
 | `render_sheet.CHART_PARTIES` | list(_scenarios.NAMED_PARTIES) | NO | NO | NO | -- |
 | `render_sheet.ALLIANCE_8` | tuple[8] | NO | NO | NO | -- |
 | `render_sheet.WALL_FLIPS` | int 30 | NO | NO | yes | -- |
 | `reweight.MIN_EFFECTIVE_DRAWS` | int 200 | NO | NO | yes | -- |
 | `reweight.MAX_FIGURE_SE_SEATS` | float 2.5 | NO | NO | yes | `build_play` |
-| `reweight.ANALYSIS_SEAT_BAND` | int 2 | NO | NO | yes | -- |
-| `reweight.ANALYSIS_SHARE_BAND_POINTS` | float 2.0 | NO | NO | yes | -- |
 | `reweight.POLL_LABEL` | str | NO | NO | NO | -- |
 | `reweight.FORMAT` | str 'draws-columnar-v1' | NO | NO | NO | `export_draws` |
 | `scenarios.OPS` | {'>=': operator.ge, '<=': operator.le, '>': operator.gt, '<': operator.l | NO | NO | NO | -- |
 | `scenarios.COND` | re.compile('^\\s*([A-Za-z_]+)\\s*(>=|<=|==|>|<)\\s*(\\d+)\\s*$') | NO | NO | NO | -- |
 | `scenarios.BAND` | tuple[2] | NO | NO | NO | -- |
 | `scenarios.BAND_SHARE` | (BAND[1] - BAND[0]) / 100 | NO | NO | NO | `render_home`, `render_sheet` |
-| `scenarios.NAMED_PARTIES` | tuple[10] | NO | NO | NO | `render_home`, `render_sheet`, `start_rule` |
+| `scenarios.NAMED_PARTIES` | tuple[10] | NO | NO | NO | `build_make`, `render_home`, `render_sheet` |
 | `scenarios.EXCESSIVE_FLOOR` | float 0.02 | NO | NO | NO | -- |
 | `score.CLAIM_FRACTION` | float 0.5 | NO | NO | yes | `compare_history` |
 | `score_forecasts.MEASURES` | tuple[3] | NO | NO | NO | -- |
@@ -625,38 +643,47 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `seat_table.SEAT_TICKS` | tuple[6] | NO | NO | NO | `build_make`, `build_play` |
 | `seat_table.HEAD` | tuple[2] | NO | NO | NO | `build_make`, `build_play`, `build_validation`, `compare_history`, `declares`, `export_draws`, `freeze`, `publication` |
 | `seats.INDEPENDENT` | str 'INDEPENDENT' | NO | NO | NO | `backtest`, `benchmarks`, `montecarlo`, `parties`, `validate_seats` |
-| `site_assets.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_make`, `build_play`, `build_site`, `build_your_forecast` |
+| `site_assets.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_make`, `build_play`, `build_site` |
 | `site_assets.CSS_SRC` | REPO_ROOT / 'src' / 'css' | NO | NO | NO | -- |
 | `site_assets.JS_SRC` | REPO_ROOT / 'src' / 'js' | NO | NO | NO | -- |
 | `site_assets.CSS_PATH` | str 'css/site.css' | NO | NO | NO | `build_site` |
 | `site_assets.JS_DIR` | str 'js' | NO | NO | NO | `build_site` |
 | `site_assets.CSS_FILES` | tuple[11] | NO | NO | NO | -- |
 | `site_assets.INLINE` | (('a <style> element', re.compile('<style\\b', re.I)), ('a style attribu | NO | NO | NO | -- |
-| `site_text.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home` |
+| `site_text.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home` |
 | `site_text.OUT` | ROOT / 'SITE-TEXT.md' | NO | NO | NO | -- |
-| `site_text.GENERATED` | re.compile('__(GEN|BALLOTS|CLAIMS|REGIMES|MAP|HEXMAP|SEATS_NOTE|JUDGEMEN | NO | NO | NO | -- |
-| `site_text.GENERATED_MD` | re.compile('<!--\\s*' + GENERATED.pattern.replace('_START__.*?', '_START | NO | NO | NO | -- |
-| `site_text.PLACEHOLDER` | re.compile('\\{\\{\\w+\\}\\}|\\[\\[\\w+\\]\\]') | NO | NO | NO | -- |
+| `site_text.STATS` | ROOT / 'content' / 'joburg' / 'stats.toml' | NO | NO | NO | `edit_mode` |
+| `site_text.REBUILD` | str | NO | NO | NO | `edit_mode` |
+| `site_text.CUT_KINDS` | frozenset((spec[1] for spec in build_site.ARTEFACTS.values() if spec[1]) | NO | NO | NO | -- |
+| `site_text.GENERATED` | re.compile('<!--\\s*__(?!(?:' + '|'.join(sorted(CUT_KINDS)) + ')_START__ | NO | NO | NO | -- |
+| `site_text.GENERATED_MD` | GENERATED | NO | NO | NO | -- |
+| `site_text.PLACEHOLDER` | re.compile('|'.join((stats.GEN_TOKEN.pattern, '\\{\\{\\w+\\}\\}', '\\[\\ | NO | NO | NO | `edit_mode` |
 | `site_text.BLOCK_ID` | re.compile('^<!-- block (\\w+) -->$', re.M) | NO | NO | NO | -- |
-| `site_text.PROSE_TAGS` | tuple[9] | NO | NO | NO | -- |
-| `site_text.TAG_BLOCK` | re.compile('<(' + '|'.join(PROSE_TAGS) + ')\\b[^>]*>(.*?)</\\1>', re.S | | NO | NO | NO | -- |
 | `site_text.CLAIM_FIELDS` | tuple[6] | NO | NO | NO | -- |
+| `site_text.ARTICLE_FIELDS` | tuple[2] | NO | NO | NO | -- |
+| `site_text.INLINE_TAGS` | frozenset('a abbr b bdi bdo br cite code data dfn em i img kbd mark q s  | NO | NO | NO | `edit_mode` |
+| `site_text.OPAQUE` | frozenset('script style svg head title select textarea template noscript | NO | NO | NO | -- |
+| `site_text.VOID` | frozenset('area base br col embed hr img input link meta source track wb | NO | NO | NO | -- |
+| `site_text.HTML_SOURCES` | tuple[2] | NO | NO | NO | -- |
+| `site_text.MD_DIR` | str 'docs-public' | NO | NO | NO | -- |
+| `site_text.TOML_SOURCES` | {'content/joburg/articles.toml': ('article', ARTICLE_FIELDS, ()), 'conte | NO | NO | NO | -- |
+| `site_text.TAG` | re.compile('<!--.*?-->|<(/?)([a-zA-Z][\\w-]*)[^>]*?>', re.S) | NO | NO | NO | `edit_mode` |
 | `stats.UNVERIFIABLE` | str 'unverifiable' | NO | NO | NO | -- |
-| `stats.DECLARATION_MIN_CHARS` | int 12 | NO | NO | NO | -- |
+| `stats.DECLARATION_MIN_CHARS` | int 12 | NO | NO | NO | `edit_mode` |
 | `stats.HISTORICAL` | str 'historical' | NO | NO | NO | -- |
 | `stats.TOKEN` | re.compile('\\{\\{([a-z0-9_]+)\\}\\}') | NO | NO | NO | -- |
-| `stats.GEN_TOKEN` | re.compile('\\{\\{@([A-Za-z0-9_.+\\-]+)=([^;{}]*);([a-z0-9_]*);([^{}]*)\ | NO | NO | NO | -- |
+| `stats.GEN_TOKEN` | re.compile('\\{\\{@([A-Za-z0-9_.+\\-]+)=([^;{}]*);([a-z0-9_]*);([^{}]*)\ | NO | NO | NO | `edit_mode`, `site_text` |
 | `stats.LIVE_ATTR` | str 'data-live' | NO | NO | NO | -- |
 | `stats.LIVE_NAME` | re.compile('^[a-z][a-z0-9-]*$') | NO | NO | NO | -- |
-| `stats.LIVE_WRITERS` | {'your-forecast/js/model.js': frozenset({'engine', 'busy', 'banner', 're | NO | NO | NO | -- |
+| `stats.LIVE_WRITERS` | {'play/js/model.js': frozenset({'engine', 'banner', 'result', 'map', 'wa | NO | NO | NO | -- |
 | `stats.REFERENCE_ARTEFACT` | str 'forecast_summary.json' | NO | NO | NO | -- |
 | `stats.FRESHNESS_GRACE_S` | float 300.0 | NO | NO | yes | -- |
 | `stats.FRESHNESS_REMEDY` | dict[1] | NO | NO | NO | -- |
-| `stats.SOURCED` | re.compile('<span[^>]*data-token="[^"]*".*?</span>', re.S) | NO | NO | NO | -- |
-| `stats.TAGS` | re.compile('<[^>]+>') | NO | NO | NO | -- |
+| `stats.SOURCED` | re.compile('<span[^>]*data-token="[^"]*".*?</span>', re.S) | NO | NO | NO | `edit_mode` |
+| `stats.TAGS` | re.compile('<[^>]+>') | NO | NO | NO | `edit_mode`, `site_text` |
 | `stats.SCRIPTS` | re.compile('<(script|style)[^>]*>.*?</\\1>', re.S) | NO | NO | NO | -- |
-| `stats.NUMBERISH` | re.compile(f'(?P<date>\\b\\d{{1,2}}\\s(?:{_MONTHS})\\s\\d{{4}}\\b|\\b\\d | NO | NO | NO | -- |
-| `stats.GATING` | tuple[3] | NO | NO | NO | -- |
+| `stats.NUMBERISH` | re.compile(f'(?P<date>\\b\\d{{1,2}}\\s(?:{_MONTHS})\\s\\d{{4}}\\b|\\b\\d | NO | NO | NO | `edit_mode` |
+| `stats.GATING` | tuple[3] | NO | NO | NO | `edit_mode` |
 | `stats.GENERATED_MARKERS` | frozenset({'MAP', 'HEXMAP', 'BALLOTS', 'REGIMES'}) | NO | NO | NO | -- |
 | `stats.REGION` | re.compile('<!-- __([A-Z]+)_START__ -->(.*?)<!-- __\\1_END__ -->', re.S) | NO | NO | NO | -- |
 | `stats.ATTRS` | re.compile('\\b(?:title|data-tip|aria-label|alt|content)="([^"]*)"') | NO | NO | NO | -- |
@@ -675,7 +702,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `turnout.ELECTIONS` | {year: (e.results, e.two_ballot) for year, e in sorted(cityconfig.CALEND | NO | NO | NO | `build_concordance`, `build_crosswalk` |
 | `turnout.LAMBDA_PAIRS` | {year: (cityconfig.preceding(year, 'NPE'), year) for year, e in sorted(c | NO | NO | NO | -- |
 | `width_budget.REPO` | Path(__file__).resolve().parents[1] | NO | NO | NO | `citywide_table`, `declares`, `freeze` |
-| `width_budget.DATA` | REPO / 'data/raw/elections' | NO | NO | NO | `build_make`, `build_your_forecast`, `freeze` |
+| `width_budget.DATA` | REPO / 'data/raw/elections' | NO | NO | NO | `build_make`, `freeze` |
 
 ## 6 · Folds and windows
 
@@ -711,7 +738,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | function | path | summary | callers |
 |---|---|---|---|
 | `backtest.runnable_targets` | measurement | Past local elections this harness can actually run, for one city. | `arrivals`, `benchmarks`, `compare_history`, `sweep`, `tests/test_covariate_fail_open`, `tests/test_levers_are_live`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed` |
-| `backtest.register` | measurement | ``FITTED_ON`` and ``FITTED_ON_UNINSTRUMENTED`` as one mapping. | `build_play`, `model_index`, `tests/test_chain`, `tests/test_intermediates_are_current`, `tests/test_levers_are_live`, `tests/test_register_matches_code`, `tests/test_reweight`, `tests/test_served_draws`, `tests/test_stage_estimation` |
+| `backtest.register` | measurement | ``FITTED_ON`` and ``FITTED_ON_UNINSTRUMENTED`` as one mapping. | `build_play`, `edit_mode`, `model_index`, `tests/test_chain`, `tests/test_edit_mode`, `tests/test_intermediates_are_current`, `tests/test_levers_are_live`, `tests/test_register_matches_code`, `tests/test_reweight`, `tests/test_served_draws`, `tests/test_stage_estimation` |
 | `backtest.unsettled` | measurement | :data:`PROVENANCE_UNSETTLED` keys this run held that could bite here. | `tests/test_levers_are_live`, `tests/test_stage_inputs` |
 | `backtest.contaminated` | measurement | ``FITTED_ON`` keys that read this target or later, minus declared ones. | `compare_history`, `tests/test_chain`, `tests/test_levers_are_live`, `tests/test_scoreboard_disclosure`, `tests/test_stage_inputs` |
 | `backtest.check_derived_from` | measurement | Validate a scenario's ``derived_from`` list; return it as strings. | -- |
@@ -742,11 +769,11 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `benchmarks.ward_probabilities` | measurement | ``{ward: {party: P(win)}}`` from a list of per-draw winner maps. | `backtest`, `compare_history`, `diagnose`, `montecarlo` |
 | `cityconfig.preceding` | model+measurement | The last election of `kind` strictly before `year`, or None. | `benchmarks`, `levels`, `pools`, `tests/test_chain`, `tests/test_data_coverage`, `tests/test_levels_dispersion`, `tests/test_theta_prior`, `theta_residual`, `turnout` |
 | `cityconfig.load` | model+measurement | -- | `arrivals`, `backtest`, `benchmarks`, `build_geo`, `build_interactive`, `build_play`, `build_portal`, `compare_history`, `diagnose`, `export_interactive`, `fetch_boundaries`, `fold`, `gamma_recent`, `inputs_preflight`, `montecarlo`, `polling`, `pools`, `reader_seats`, `render_map`, `render_sheet`, `scenarios`, `score_forecasts`, `stats`, `sweep`, `tests/test_artefact_key_discriminates`, `tests/test_build_all`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_covariate_fail_open`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_draw_record`, `tests/test_drawer`, `tests/test_inputs_preflight`, `tests/test_ipf_feasibility`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_provenance_gates`, `tests/test_reader_seats`, `tests/test_regressions`, `tests/test_reweight`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_scenarios`, `tests/test_scoreboard_disclosure`, `tests/test_served_draws`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_ward_pr_ratios`, `theta_residual` |
-| `cityconfig.use` | model+measurement | Set the active city for this process. | `arrivals`, `backtest`, `benchmarks`, `build_all`, `build_concordance`, `build_crosswalk`, `build_geo`, `build_site`, `byelections`, `citywide_table`, `coalitions`, `compare_history`, `diagnose`, `export_draws`, `export_interactive`, `fold`, `freeze`, `gamma_recent`, `ingest_historic`, `ingest_lge`, `ingest_npe`, `montecarlo`, `pools`, `render_home`, `render_map`, `render_sheet`, `scenarios`, `tests/_support`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_covariate_fail_open`, `tests/test_data_coverage`, `tests/test_declared_ward_slates`, `tests/test_drawer`, `tests/test_export_draws`, `tests/test_ipf_feasibility`, `tests/test_levers_are_live`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_projected_roster_declaration`, `tests/test_publication_ledger`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios`, `turnout`, `validate_seats`, `width_budget` |
+| `cityconfig.use` | model+measurement | Set the active city for this process. | `arrivals`, `backtest`, `benchmarks`, `build_all`, `build_concordance`, `build_crosswalk`, `build_geo`, `build_site`, `byelections`, `citywide_table`, `coalitions`, `compare_history`, `diagnose`, `export_draws`, `export_interactive`, `fold`, `freeze`, `gamma_recent`, `ingest_historic`, `ingest_lge`, `ingest_npe`, `montecarlo`, `pools`, `render_home`, `render_map`, `render_sheet`, `scenarios`, `site_text`, `tests/_support`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_covariate_fail_open`, `tests/test_data_coverage`, `tests/test_declared_ward_slates`, `tests/test_drawer`, `tests/test_export_draws`, `tests/test_ipf_feasibility`, `tests/test_levers_are_live`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_projected_roster_declaration`, `tests/test_publication_ledger`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios`, `turnout`, `validate_seats`, `width_budget` |
 | `cityconfig.active` | model+measurement | -- | `backtest`, `benchmarks`, `build_crosswalk`, `build_make`, `build_site`, `diagnose`, `export_interactive`, `fold`, `iec_csv`, `ingest_lge`, `ingest_npe`, `montecarlo`, `publication`, `tests/_support`, `tests/test_covariate_fail_open`, `tests/test_pool_conservation`, `tests/test_roster_aware_baseline`, `tests/test_spine`, `tests/test_theta_prior`, `tests/test_ward_parts`, `turnout`, `validate_seats` |
-| `cityconfig.use_target` | model+measurement | Set the active target election; None means the active city's next one. | `arrivals`, `backtest`, `build_site`, `byelections`, `citywide_table`, `coalitions`, `compare_history`, `diagnose`, `export_draws`, `export_interactive`, `freeze`, `gamma_recent`, `montecarlo`, `pools`, `render_sheet`, `scenarios`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_declared_ward_slates`, `tests/test_drawer`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_polling_register`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_projected_roster_declaration`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_ward_parts`, `theta_residual`, `turnout`, `width_budget` |
+| `cityconfig.use_target` | model+measurement | Set the active target election; None means the active city's next one. | `arrivals`, `backtest`, `build_site`, `byelections`, `citywide_table`, `coalitions`, `compare_history`, `diagnose`, `export_draws`, `export_interactive`, `freeze`, `gamma_recent`, `montecarlo`, `pools`, `render_sheet`, `scenarios`, `site_text`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_declared_ward_slates`, `tests/test_drawer`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_polling_register`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_projected_roster_declaration`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_ward_parts`, `theta_residual`, `turnout`, `width_budget` |
 | `cityconfig.target` | model+measurement | -- | `arrivals`, `backtest`, `backup_ignored`, `benchmarks`, `build_concordance`, `build_make`, `build_play`, `build_site`, `build_validation`, `byelections`, `citywide_table`, `coalitions`, `compare_history`, `declares`, `diagnose`, `export_draws`, `export_interactive`, `fold`, `freeze`, `gamma_recent`, `inputs_preflight`, `judgement_sheet`, `levels`, `model_index`, `montecarlo`, `polling`, `pools`, `reader_seats`, `render_map`, `render_sheet`, `reweight`, `scenarios`, `score_forecasts`, `sweep`, `tests/_support`, `tests/test_artefact_key_discriminates`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_covariate_fail_open`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_draw_record`, `tests/test_inputs_preflight`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_panel_wiring`, `tests/test_polling_register`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_provenance_gates`, `tests/test_reader_seats`, `tests/test_regressions`, `tests/test_reweight`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_score_forecasts`, `tests/test_scoreboard_disclosure`, `tests/test_site_text`, `tests/test_solve_and_predict`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_theta_prior`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios`, `theta_residual`, `turnout` |
-| `cityconfig.resolve_path` | model+measurement | Substitute {CODE}/{SLUG} in a path or filename. | `backtest`, `build_concordance`, `build_crosswalk`, `build_geo`, `byelections`, `compare_history`, `fold`, `montecarlo`, `render_map`, `tests/test_covariate_fail_open`, `tests/test_drawer`, `tests/test_ipf_feasibility`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios`, `turnout` |
+| `cityconfig.resolve_path` | model+measurement | Substitute {CODE}/{SLUG} in a path or filename. | `backtest`, `build_concordance`, `build_crosswalk`, `build_geo`, `byelections`, `compare_history`, `edit_mode`, `fold`, `montecarlo`, `render_map`, `tests/test_covariate_fail_open`, `tests/test_drawer`, `tests/test_edit_mode`, `tests/test_ipf_feasibility`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios`, `turnout` |
 | `cityconfig.add_city_argument` | model+measurement | Standard ``--city`` flag; every script defaults to Johannesburg so | `backtest`, `benchmarks`, `build_all`, `build_concordance`, `build_crosswalk`, `build_geo`, `build_interactive`, `build_site`, `byelections`, `coalitions`, `export_draws`, `export_interactive`, `fold`, `gamma_recent`, `ingest_historic`, `ingest_lge`, `ingest_npe`, `montecarlo`, `pools`, `render_home`, `render_map`, `render_sheet`, `scenarios`, `turnout`, `validate_seats` |
 | `cityconfig.add_target_argument` | model+measurement | Standard ``--target`` flag: which election is being built. | `byelections`, `export_draws`, `gamma_recent`, `montecarlo`, `pools`, `turnout` |
 | `coalitions.subset_totals` | model+measurement | Seat totals for every subset. seats: (draws, n) -> (2**n, draws). | -- |
@@ -755,7 +782,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `coalitions.shapley_shubik` | model+measurement | Shapley–Shubik index per party per draw. | -- |
 | `coalitions.minority_viable` | model+measurement | Arithmetic viability of a minority administration, per draw. | -- |
 | `coalitions.mask_label` | model+measurement | -- | -- |
-| `coalitions.analyse` | model+measurement | Run the full §3.8 suite. Returns a dict of result tables. | `montecarlo`, `tests/test_your_forecast_page` |
+| `coalitions.analyse` | model+measurement | Run the full §3.8 suite. Returns a dict of result tables. | `montecarlo` |
 | `coalitions.report` | model+measurement | -- | `contested_area`, `declares`, `export_draws`, `fetch_iec`, `fold`, `levels`, `montecarlo`, `tests/test_published_page`, `tests/test_regressions`, `tests/test_scoreboard_disclosure`, `tests/test_scored_universe`, `tests/test_stat_freshness`, `theta_residual` |
 | `coalitions.write_outputs` | model+measurement | -- | `montecarlo` |
 | `compare_history.scored_opponents` | measurement | Every reference in `benchmarks.BENCHMARKS` bar those explicitly refused. | `diagnose`, `tests/test_scoreboard_disclosure` |
@@ -782,7 +809,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `compare_history.run_city_year` | measurement | -- | `tests/test_calibration_report`, `tests/test_panel_wiring`, `tests/test_scoreboard_disclosure` |
 | `compare_history.render_calibration` | measurement | The calibration block: pooled over city-years, SPLIT BY RANK BAND. | `tests/test_calibration_report`, `tests/test_scoreboard_disclosure` |
 | `compare_history.render_wards` | measurement | The ward-winner table — the only key in this report that sees geography. | `tests/test_scoreboard_disclosure` |
-| `compare_history.render` | measurement | -- | `build_interactive`, `build_portal`, `build_site`, `hex_cartogram`, `judgement_sheet`, `stats`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_hex_cartogram`, `tests/test_home_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_scoreboard_disclosure` |
+| `compare_history.render` | measurement | -- | `build_interactive`, `build_portal`, `build_site`, `edit_mode`, `hex_cartogram`, `judgement_sheet`, `stats`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_hex_cartogram`, `tests/test_home_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_scoreboard_disclosure` |
 | `compare_history.moved_module_constants` | measurement | ``(moved, unwatched)`` — what would not survive a fork, and what is blind. | -- |
 | `compare_history.build_manifest` | measurement | What produced this scoreboard, assembled from `freeze`'s existing code. | `tests/test_provenance_gates` |
 | `compare_history.load_history` | measurement | Read a scoreboard artefact, and REFUSE the pre-manifest shape. | `tests/test_calibration_report`, `tests/test_pool_bounds`, `tests/test_scoreboard_disclosure` |
@@ -857,7 +884,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `montecarlo.allocate_with_overhang` | model+measurement | Schedule 1 allocation with the excessive-seats treatment. | `benchmarks`, `reader_seats`, `tests/test_overhang`, `tests/test_seats` |
 | `montecarlo.roster_for_target` | model+measurement | Who is on ``target``'s ballot, and WHICH of four states that answer is in. | `benchmarks`, `tests/test_projected_roster_declaration`, `tests/test_roster_fails_closed` |
 | `montecarlo.run_model` | model+measurement | Run the forecast for one target election. | `arrivals`, `backtest`, `citywide_table`, `compare_history`, `diagnose`, `export_draws`, `freeze`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_levers_are_live`, `tests/test_pool_conservation`, `tests/test_projected_roster_declaration`, `tests/test_regressions`, `tests/test_roster_fails_closed`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_ward_pr_ratios`, `width_budget` |
-| `official_seats.read` | measurement | Official figures for one municipality-year, or None if not on disk. | `archive`, `backtest`, `build_crosswalk`, `compare_history`, `fetch_boundaries`, `fetch_byelections`, `fetch_iec`, `pools`, `tests/run_all`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_data_coverage`, `tests/test_freeze`, `tests/test_prior_local_fails_closed`, `tests/test_score_forecasts`, `tests/test_scoreboard_disclosure`, `tests/test_seats`, `tests/test_stage_inputs`, `validate_seats` |
+| `official_seats.read` | measurement | Official figures for one municipality-year, or None if not on disk. | `archive`, `backtest`, `build_crosswalk`, `compare_history`, `edit_mode`, `fetch_boundaries`, `fetch_byelections`, `fetch_iec`, `pools`, `tests/run_all`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_data_coverage`, `tests/test_freeze`, `tests/test_prior_local_fails_closed`, `tests/test_score_forecasts`, `tests/test_scoreboard_disclosure`, `tests/test_seats`, `tests/test_stage_inputs`, `validate_seats` |
 | `parties.normalise` | model+measurement | Fold a raw party string: upper case, collapsed whitespace, tidy dashes. | `prep_logos`, `score_forecasts` |
 | `parties.canonical` | model+measurement | Return the canonical code for a raw party string. | `backtest`, `build_crosswalk`, `byelections`, `contested_area`, `fold`, `freeze`, `levels`, `pools`, `score_forecasts`, `tests/test_chain`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_freeze`, `tests/test_roster_aware_baseline`, `tests/test_score_forecasts` |
 | `parties.display_name` | model+measurement | -- | `build_crosswalk`, `score_forecasts`, `tests/test_score_forecasts` |
@@ -940,7 +967,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `pools.city_mix_for` | model+measurement | The city's own pool composition — where this city's votes actually are. | -- |
 | `pools.resolve_roster` | model+measurement | Who is on the ballot at ``target``, and who may be deleted from the pools. | `tests/test_chain`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration` |
 | `pools.emit_pools` | model+measurement | Build the ``scenario["pools"]`` structure from measurement. | `tests/test_chain`, `tests/test_pool_bounds` |
-| `pools.gate` | model+measurement | Fit on one city, predict another, and see whether a tilt helped. | `build_site`, `model_index`, `tests/test_levers_are_live` |
+| `pools.gate` | model+measurement | Fit on one city, predict another, and see whether a tilt helped. | `build_site`, `edit_mode`, `model_index`, `tests/test_levers_are_live` |
 | `score.seat_matrix` | measurement | ``(parties, samples[n_draws, n_parties], actual[n_parties])``. | `compare_history`, `montecarlo`, `tests/test_calibration_report`, `tests/test_chain` |
 | `score.relevant_parties` | measurement | A candidate party universe covering several forecasters. | `benchmarks` |
 | `score.hold_universe` | measurement | The column set several forecasters are to be COMPARED on. | `compare_history`, `tests/test_panel_wiring`, `tests/test_scored_universe` |
@@ -989,22 +1016,22 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `build_crosswalk` | neither | yes | -- | Build and check the party crosswalk across every source file. |
 | `build_geo` | neither | yes | -- | Extract the CoJ subsets from the downloaded boundaries and check them. |
 | `build_interactive` | neither | yes | -- | Assemble forecast-interactive.html from the template and the data packs. |
-| `build_make` | neither | NO | `src/build_your_forecast`, `tests/test_your_forecast_page` | Section 2 of "your forecast" ("Break the model"): its data and its start. |
-| `build_play` | neither | NO | `src/build_make`, `src/build_your_forecast`, `tests/test_seat_table`, `tests/test_your_forecast_page` | Section 1 of "your forecast" ("Adjust the model"): its published figures. |
+| `build_make` | neither | NO | `src/build_site`, `tests/test_make_page` | Build "make your own forecast" (``/make/``) from ``interactive/`` into the site. |
+| `build_play` | neither | NO | `src/build_make`, `src/build_site`, `tests/test_make_page`, `tests/test_play_page`, `tests/test_seat_table` | Build "play with the model" (``/play/``) from ``interactive/`` into the site. |
 | `build_portal` | neither | NO | `src/build_site`, `src/site_assets`, `tests/test_build_all` | Build the portal at whysoserious.city — one card per city. |
-| `build_site` | neither | NO | `src/build_portal`, `src/deploy_check`, `tests/test_home_page`, `tests/test_number_scan`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_site_assets`, `tests/test_site_headers`, `tests/test_stat_freshness`, `tests/test_your_forecast_page` | Build the public site (joburg.whysoserious.org) into ./site. |
+| `build_site` | neither | NO | `src/build_portal`, `src/deploy_check`, `src/edit_mode`, `src/site_text`, `tests/test_edit_mode`, `tests/test_home_page`, `tests/test_make_page`, `tests/test_number_scan`, `tests/test_play_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_site_assets`, `tests/test_site_headers`, `tests/test_stat_freshness` | Build the public site (joburg.whysoserious.org) into ./site. |
 | `build_validation` | neither | yes | -- | Run the validation across every metro and write the page that reports it. |
-| `build_your_forecast` | neither | NO | `src/build_site`, `tests/test_site_assets`, `tests/test_your_forecast_page` | Build "your forecast" (``/your-forecast/``) from ``interactive/`` into the site. |
 | `byelections` | neither | yes | -- | By-election evidence for the target election (plan §3.6, §3.3 covariate). |
-| `cityconfig` | model+measurement | NO | `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/build_all`, `src/build_concordance`, `src/build_crosswalk`, `src/build_geo`, `src/build_interactive`, `src/build_make`, `src/build_play`, `src/build_portal`, `src/build_site`, `src/byelections`, `src/citywide_table`, `src/coalitions`, `src/compare_history`, `src/diagnose`, `src/export_draws`, `src/export_interactive`, `src/fold`, `src/freeze`, `src/gamma_recent`, `src/iec_csv`, `src/ingest_historic`, `src/ingest_lge`, `src/ingest_npe`, `src/inputs_preflight`, `src/levels`, `src/montecarlo`, `src/polling`, `src/pools`, `src/publication`, `src/reader_seats`, `src/render_home`, `src/render_map`, `src/render_sheet`, `src/scenarios`, `src/score_forecasts`, `src/sweep`, `src/theta_residual`, `src/turnout`, `src/validate_seats`, `src/width_budget`, `tests/_support`, `tests/test_artefact_key_discriminates`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_covariate_fail_open`, `tests/test_data_coverage`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_drawer`, `tests/test_export_draws`, `tests/test_inputs_preflight`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_polling_register`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_provenance_gates`, `tests/test_publication_ledger`, `tests/test_reader_seats`, `tests/test_regressions`, `tests/test_reweight`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_scoreboard_disclosure`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_theta_prior`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios` | The city and the target election are parameters, not assumptions. |
+| `cityconfig` | model+measurement | NO | `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/build_all`, `src/build_concordance`, `src/build_crosswalk`, `src/build_geo`, `src/build_interactive`, `src/build_make`, `src/build_play`, `src/build_portal`, `src/build_site`, `src/byelections`, `src/citywide_table`, `src/coalitions`, `src/compare_history`, `src/diagnose`, `src/export_draws`, `src/export_interactive`, `src/fold`, `src/freeze`, `src/gamma_recent`, `src/iec_csv`, `src/ingest_historic`, `src/ingest_lge`, `src/ingest_npe`, `src/inputs_preflight`, `src/levels`, `src/montecarlo`, `src/polling`, `src/pools`, `src/publication`, `src/reader_seats`, `src/render_home`, `src/render_map`, `src/render_sheet`, `src/scenarios`, `src/score_forecasts`, `src/site_text`, `src/sweep`, `src/theta_residual`, `src/turnout`, `src/validate_seats`, `src/width_budget`, `tests/_support`, `tests/test_artefact_key_discriminates`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_covariate_fail_open`, `tests/test_data_coverage`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_drawer`, `tests/test_export_draws`, `tests/test_inputs_preflight`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_polling_register`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_provenance_gates`, `tests/test_publication_ledger`, `tests/test_reader_seats`, `tests/test_regressions`, `tests/test_reweight`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_scoreboard_disclosure`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_theta_prior`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios` | The city and the target election are parameters, not assumptions. |
 | `citywide_table` | neither | NO | `src/declares`, `tests/test_citywide_table` | The browser engine's stand-in for re-reading 65 election files. |
 | `coalitions` | model+measurement | NO | `src/montecarlo` | Coalition arithmetic over Monte Carlo seat draws (plan §3.8). |
 | `compare_history` | measurement | NO | `src/diagnose`, `tests/test_calibration_report`, `tests/test_diagnose_baselines`, `tests/test_panel_wiring`, `tests/test_pool_bounds`, `tests/test_provenance_gates`, `tests/test_regressions`, `tests/test_scoreboard_disclosure`, `tests/test_scored_universe` | Every past election we can run, as votes and as seats, against every opponent. |
 | `contested_area` | neither | yes | -- | Validate the contested-area conversion — the table `polling.py` asserted. |
 | `declares` | neither | NO | `tests/test_export_draws`, `tests/test_provenance_gates` | Does every artefact declare what produced it? One table, at a glance. |
-| `deploy_check` | neither | NO | `tests/test_number_scan`, `tests/test_your_forecast_page` | Refuse a Cloudflare deploy of a site whose numbers were not reviewed. |
+| `deploy_check` | neither | NO | `tests/test_edit_mode`, `tests/test_make_page`, `tests/test_number_scan`, `tests/test_play_page` | Refuse a Cloudflare deploy of a site whose numbers were not reviewed. |
 | `derive_city` | neither | yes | -- | Propose a city's config from its own IEC files. |
 | `diagnose` | neither | NO | `tests/test_diagnose_baselines`, `tests/test_scoreboard_disclosure` | One election, laid out so a fault can be ISOLATED rather than summarised. |
+| `edit_mode` | neither | NO | `src/deploy_check`, `tests/test_edit_mode` | Edit the site's words on the site itself, locally, and write them back to |
 | `export_draws` | neither | NO | `tests/test_export_draws`, `tests/test_served_draws` | Export the published run's draws for the interactive: one binary file and its manifest. |
 | `export_interactive` | neither | yes | -- | Export the data pack for the interactive forecast page. |
 | `fetch_boundaries` | neither | yes | -- | Download CoJ ward and voting-district boundaries from the MDB Spatial Knowledge Hub. |
@@ -1032,18 +1059,17 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `publication` | neither | NO | `src/build_site`, `src/export_draws`, `tests/test_export_draws`, `tests/test_publication_ledger`, `tests/test_served_draws` | The publication ledger: what this page said, when, and which model said it. |
 | `reader_seats` | neither | NO | `src/build_make`, `src/score_forecasts`, `tests/test_reader_seats` | A reader's own forecast, turned into council seats by the statute alone. |
 | `render_home` | neither | NO | `tests/test_home_page` | Fill the home page's generated regions from the run that produced them. |
-| `render_map` | neither | NO | `src/build_play`, `src/hex_cartogram`, `tests/test_hex_cartogram`, `tests/test_home_page`, `tests/test_map_stripes`, `tests/test_your_forecast_page` | Render the ward-winner map into the forecast pages. |
-| `render_sheet` | neither | NO | `src/build_play`, `src/render_home`, `src/site_assets`, `tests/test_published_page`, `tests/test_site_assets`, `tests/test_your_forecast_page` | Regenerate forecast-sheet.html's data block from the model outputs. |
-| `reweight` | neither | NO | `src/build_make`, `src/build_play`, `src/export_draws`, `src/render_home`, `src/render_sheet`, `src/start_rule`, `src/stats`, `tests/test_export_draws`, `tests/test_reweight`, `tests/test_served_draws`, `tests/test_your_forecast_page` | Re-weight the published draws: the interactive's engine, and the draw file's format. |
-| `scenarios` | neither | NO | `src/render_home`, `src/render_map`, `src/render_sheet`, `src/start_rule`, `tests/test_home_page`, `tests/test_scenarios`, `tests/test_your_forecast_page` | Which simulations make a scenario, and what their wards did. |
+| `render_map` | neither | NO | `src/build_play`, `src/hex_cartogram`, `tests/test_hex_cartogram`, `tests/test_home_page`, `tests/test_map_stripes`, `tests/test_play_page` | Render the ward-winner map into the forecast pages. |
+| `render_sheet` | neither | NO | `src/build_play`, `src/render_home`, `src/site_assets`, `tests/test_published_page`, `tests/test_site_assets` | Regenerate forecast-sheet.html's data block from the model outputs. |
+| `reweight` | neither | NO | `src/build_make`, `src/build_play`, `src/export_draws`, `src/render_home`, `src/render_sheet`, `src/stats`, `tests/test_export_draws`, `tests/test_reweight`, `tests/test_served_draws` | Re-weight the published draws: the interactive's engine, and the draw file's format. |
+| `scenarios` | neither | NO | `src/build_make`, `src/render_home`, `src/render_map`, `src/render_sheet`, `tests/test_home_page`, `tests/test_make_page`, `tests/test_scenarios` | Which simulations make a scenario, and what their wards did. |
 | `score` | measurement | NO | `src/backtest`, `src/benchmarks`, `src/compare_history`, `tests/test_calibration_report`, `tests/test_chain`, `tests/test_panel_wiring`, `tests/test_regressions`, `tests/test_scored_universe` | Proper scoring rules for a distributional forecast of a council. |
-| `score_forecasts` | neither | NO | `src/build_make`, `tests/test_score_forecasts`, `tests/test_your_forecast_page` | Score ANY forecast of a council — the model's and every reader's — against the |
+| `score_forecasts` | neither | NO | `src/build_make`, `tests/test_make_page`, `tests/test_score_forecasts` | Score ANY forecast of a council — the model's and every reader's — against the |
 | `seat_table` | neither | NO | `src/build_make`, `src/build_play`, `src/render_home`, `src/render_sheet`, `tests/test_seat_table` | The seat table: ONE component for every list of party seats on the site. |
 | `seats` | model+measurement | NO | `src/backtest`, `src/benchmarks`, `src/fold`, `src/levels`, `src/montecarlo`, `src/reader_seats`, `src/validate_seats`, `tests/test_overhang`, `tests/test_seats`, `tests/test_stage_realisation` | Seat allocation for a metro council, per Municipal Structures Act Schedule 1. |
-| `site_assets` | neither | NO | `src/build_site`, `src/deploy_check`, `tests/test_site_assets` | The site's one stylesheet and its scripts, and the gate that keeps them out |
-| `site_text` | neither | NO | `tests/test_site_text` | Export the site's editable prose to one markdown file, and apply it back. |
-| `start_rule` | neither | NO | `src/build_make` | Where a reader's own forecast starts: seats per party, then the vote that gives them. |
-| `stats` | neither | NO | `src/build_interactive`, `src/build_site`, `src/render_home`, `src/scenarios`, `tests/test_home_page`, `tests/test_judgement_sheet`, `tests/test_number_scan`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_reweight`, `tests/test_stat_freshness`, `tests/test_your_forecast_page` | The stat registry: no model result is ever typed into prose by hand. |
+| `site_assets` | neither | NO | `src/build_site`, `src/deploy_check`, `tests/test_edit_mode`, `tests/test_site_assets` | The site's one stylesheet and its scripts, and the gate that keeps them out |
+| `site_text` | neither | NO | `src/edit_mode`, `tests/test_edit_mode`, `tests/test_site_text` | Export the site's editable prose to one markdown file, and apply it back. |
+| `stats` | neither | NO | `src/build_interactive`, `src/build_site`, `src/edit_mode`, `src/render_home`, `src/scenarios`, `src/site_text`, `tests/test_home_page`, `tests/test_judgement_sheet`, `tests/test_make_page`, `tests/test_number_scan`, `tests/test_play_page`, `tests/test_publication_ledger`, `tests/test_published_page`, `tests/test_reweight`, `tests/test_stat_freshness` | The stat registry: no model result is ever typed into prose by hand. |
 | `sweep` | neither | yes | -- | Run the model over every metro-year we can score, and hunt for anomalies. |
 | `theta_residual` | neither | NO | `tests/test_levels_dispersion` | The CONDITIONAL dispersion of log θ — the quantity `SD_FLOOR` claims to be. |
 | `turnout` | model+measurement | NO | `src/fold` | VD-level turnout series and the λ drop-off factors (plan §3.3). |

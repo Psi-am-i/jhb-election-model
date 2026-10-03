@@ -48,10 +48,11 @@ def _apply_from(tmp: Path, dry_run=True):
 
 
 def test_the_export_finds_prose_in_every_source_it_claims():
-    """The export is only useful if it reaches all three kinds of source."""
+    """The export is only useful if it reaches every kind of source."""
     with tempfile.TemporaryDirectory() as d:
         text = _export_to(Path(d) / "x.md")
-    for source in ("forecast-sheet.html", "docs-public/", "claims.toml"):
+    for source in ("forecast-sheet.html", "home.html", "docs-public/",
+                   "claims.toml", "articles.toml"):
         assert source in text, (
             f"no block came from {source}; the export claims to cover it, and "
             f"an editor would never see those words.")
@@ -84,9 +85,9 @@ def test_the_methodology_judgement_calls_are_not_offered_for_editing():
     paragraph inside its region is withheld, and the same paragraphs ARE
     offered once the markers are removed (the detector can see)."""
     page = (ROOT / "docs-public" / "methodology.md").read_text(encoding="utf-8")
-    regions = site_text.GENERATED_MD.findall(page)
+    regions = site_text.GENERATED.findall(page)
     assert len(regions) == 1, "methodology.md should carry exactly one region"
-    inside = site_text.GENERATED_MD.search(page).group(0)
+    inside = site_text.GENERATED.search(page).group(0)
     paras = [p.strip() for p in re.split(r"\n\s*\n", inside)
              if p.strip() and not p.strip().startswith("<!--")]
     assert len(paras) > 2, "too few paragraphs inside the region to test with"
@@ -106,8 +107,9 @@ def test_an_unedited_round_trip_changes_nothing():
         tmp = Path(d) / "x.md"
         _export_to(tmp)
         before = {p: p.read_bytes() for p in
-                  [ROOT / "forecast-sheet.html",
+                  [ROOT / "forecast-sheet.html", ROOT / "home.html",
                    ROOT / "content" / "joburg" / "claims.toml",
+                   ROOT / "content" / "joburg" / "articles.toml",
                    *(ROOT / "docs-public").glob("*.md")]}
         _apply_from(tmp, dry_run=False)
         after = {p: p.read_bytes() for p in before}

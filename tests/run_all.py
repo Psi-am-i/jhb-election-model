@@ -133,6 +133,10 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # src/site_text.py out of the orphaned-CLI register: the module has
            # an importer now, which is how diagnose.py earns its place.
            "test_site_text",
+           # Added 2026-10-03 with edit mode (plan lane E): the token refusal,
+           # the number gate on an edit, the apply round trip, and the guard
+           # that keeps the overlay off the public site.
+           "test_edit_mode",
            # The generated index of levers, folds, windows and methods.
            # Its job is to REGENERATE and compare, so a committed index
            # cannot drift from the tree it describes — the same shape

@@ -582,11 +582,17 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 """
 
 
+#: The Markdown extensions a reader edition is rendered with. One definition:
+#: `edit_mode` and `site_text` render a single paragraph the same way to find
+#: it on the page. `toc` gives every heading an id, so a link can land on a
+#: section (the home page's "How well it has done" lands on /methodology's
+#: "How accurate is it?").
+MD_EXTENSIONS = ("tables", "fenced_code", "smarty", "toc")
+
+
 def _md_html(text: str) -> str:
-    """A document's Markdown as the site's HTML. `toc` gives every heading an
-    id, so a link can land on a section (the home page's "How well it has
-    done" lands on /methodology's "How accurate is it?")."""
-    html = markdown.markdown(text, extensions=["tables", "fenced_code", "smarty", "toc"],
+    """A document's Markdown as the site's HTML."""
+    html = markdown.markdown(text, extensions=list(MD_EXTENSIONS),
                              extension_configs={"toc": {"slugify": _heading_id}})
     html = html.replace("<table>", '<div class="tablewrap"><table>')
     return html.replace("</table>", "</table></div>")
