@@ -1043,7 +1043,8 @@ def main(argv: list[str] | None = None) -> int:
               "refusing:")
         for tok, a, why in sorted(set(wrong_date)):
             print(f"  ✗ {tok}  dated {a}, which {why}")
-    misdated = publication.misdated_figures(published, audit_cfg["structural"])
+    misdated = publication.misdated_figures(
+        published, statlib.council_constant_tokens(registry))
     if misdated:
         refuse = True
         print("\nA DATED PASSAGE PRINTS A FIGURE THAT IS NOT OF ITS DATE — "

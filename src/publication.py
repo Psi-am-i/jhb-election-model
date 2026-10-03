@@ -784,7 +784,7 @@ def dated_context_violations(rendered: Iterable[dict],
 
 
 def misdated_figures(rendered: Iterable[dict],
-                     structural: Iterable[str] = ()) -> list[dict]:
+                     constant_tokens: Iterable[str] = ()) -> list[dict]:
     """Figures inside a dated passage that are not the figure of that date.
 
     ⛔ A DATED PASSAGE SAYS WHEN ITS FIGURES WERE TRUE, SO EVERY FIGURE IN IT
@@ -799,19 +799,21 @@ def misdated_figures(rendered: Iterable[dict],
     * a ``fixed`` token whose ``captured`` date is on or before ``asof`` — the
       pinned value existed when the passage says it was true (a frozen
       ``pub*`` token is captured on its article's date); or
-    * a constant of the council (``structural``: its size, its majority, its
-      ward count), which no edition moves.
+    * a token in ``constant_tokens``: one whose source is a constant of the
+      council (`stats.council_constant_tokens`), which no edition moves. The
+      exemption is by token, not by the value shown, so a forecast that
+      happens to print the council's majority is still caught.
 
     Returns one mapping per failing occurrence: ``token``, ``page``, ``asof``,
     ``why``.
     """
-    constants = {str(c).replace(",", "").strip() for c in structural}
+    constants = set(constant_tokens)
     out = []
     for o in rendered:
         a = o.get("asof") or ""
         if not o.get("token") or not o.get("dated") or not a:
             continue
-        if str(o.get("display", "")).replace(",", "").strip() in constants:
+        if o["token"] in constants:
             continue
         cap = str(o.get("captured") or "")
         if o.get("mode") == "fixed" and cap and cap[:10] <= a:

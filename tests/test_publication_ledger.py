@@ -1042,16 +1042,33 @@ def test_a_frozen_as_published_figure_is_sourced_to_the_LEDGER_not_to_a_build():
         # the bytes readers had (archive/live-deployed-*/MANIFEST.md) — and it
         # must be on that page. Only when the ledger has nothing: a figure the
         # ledger records is sourced to the ledger.
+        # The value must be on that page IN THE PASSAGE that prints the token
+        # today: the token plus the words after it in the tree's source, matched
+        # against the archived text. A value that is merely somewhere on the
+        # archived page (5,000 is printed there nine times) proves nothing.
         page = archived.search(source)
         if page and not hits:
             path = ROOT / page.group(0)
             shown = S._fmt(entry["value"], entry.get("format"))
-            text = S.html_unescape(re.sub(r"<[^>]+>", " ", path.read_text(encoding="utf-8"))
-                                   ) if path.is_file() else ""
-            if not (path.parent / "MANIFEST.md").is_file() or shown not in text:
+
+            def flat(html: str) -> str:
+                return " ".join(S.html_unescape(re.sub(r"<[^>]+>", " ", html)).split())
+            text = flat(path.read_text(encoding="utf-8")) if path.is_file() else ""
+            passages = [shown + " " + flat(m.group(1))[:40]
+                        for f in ("forecast-sheet.html", "home.html")
+                        for m in re.finditer(r"\{\{" + re.escape(name)
+                                             + r"(?::[^}]*)?\}\}(.{1,400})",
+                                             (ROOT / f).read_text(encoding="utf-8"), re.S)]
+            if not passages:
+                problems.append(f"{name}: printed nowhere in the tree's sources, "
+                                f"so there is no passage to check against "
+                                f"{page.group(0)}.")
+            elif not (path.parent / "MANIFEST.md").is_file() or not any(
+                    p.strip() in text for p in passages):
                 problems.append(
                     f"{name}: cites {page.group(0)}, which is not an archived "
-                    f"served page carrying {shown!r}.")
+                    f"served page carrying {shown!r} in the passage that prints "
+                    f"it: {passages[0]!r}.")
             continue
         if "ledger.jsonl" not in source:
             problems.append(

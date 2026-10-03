@@ -151,18 +151,72 @@ def test_a_dated_passage_accepts_only_figures_of_its_date():
             _occ("older", "fixed", "2026-08-06", "2026-08-08"),
             _occ("council_size", "free", "", "2026-08-08", display="270"),
             _occ("live_undated", "free", "", "")]
-    assert P.misdated_figures(good, structural={"270"}) == []
+    consts = {"council_size", "majority"}
+    assert P.misdated_figures(good, consts) == []
     bad = [_occ("live", "free", "", "2026-08-08"),
            _occ("generated", "generated", "", "2026-08-08"),
            _occ("pinned_later", "fixed", "2026-09-01", "2026-08-08"),
-           _occ("pinned_undated", "fixed", "", "2026-08-08")]
-    caught = P.misdated_figures(good + bad, structural={"270"})
+           _occ("pinned_undated", "fixed", "", "2026-08-08"),
+           # a forecast that happens to print the council's majority
+           _occ("anc_seats_median", "free", "", "2026-08-08", display="136")]
+    caught = P.misdated_figures(good + bad, consts)
     assert sorted(v["token"] for v in caught) == sorted(o["token"] for o in bad), caught
     # and quiet again once the bad occurrences are taken out
-    assert P.misdated_figures(good, structural={"270"}) == []
-    # a structural constant is exempt only as a constant of THIS council
-    assert P.misdated_figures([_occ("c", "free", "", "2026-08-08", "270")]), (
+    assert P.misdated_figures(good, consts) == []
+    # the constant is exempt by its token, not by the number it shows
+    assert P.misdated_figures([_occ("council_size", "free", "", "2026-08-08", "270")]), (
         "a free figure was exempted without the council's constants passed in")
+
+
+def test_the_council_constants_are_found_by_source():
+    """`council_constant_tokens` reads the registry: the tree's council size and
+    majority are found, and a token printing the same value from another
+    source is not."""
+    reg = {"council_size": {"source": "derived:council_size"},
+           "majority": {"source": "derived:majority"},
+           "anc_seats_median": {"source": "model:parties.ANC.median"},
+           "audit": {"fixed": []}}
+    assert S.council_constant_tokens(reg) == {"council_size", "majority"}
+    tree = S.council_constant_tokens(S.load_registry(STATS))
+    assert {"council_size", "majority"} <= tree and len(tree) <= 4, tree
+
+
+def _build_with_a_dated_passage(token: str, tmp: Path):
+    """Run `build_site.main` with /forecast's source carrying one dated passage
+    that prints ``token``. The source is a temporary copy; the tree is not
+    touched. Returns the completed process."""
+    import json
+    src = (ROOT / "forecast-sheet.html").read_text(encoding="utf-8")
+    probe = f'<p><span data-asof="2026-08-08">{{{{{token}}}}} probe.</span></p>'
+    assert src.count("</body>") == 1
+    (tmp / "sheet.html").write_text(src.replace("</body>", probe + "</body>"),
+                                    encoding="utf-8")
+    (tmp / "led" / "joburg").mkdir(parents=True)
+    driver = (
+        "import sys; sys.path.insert(0, 'src'); import build_site as B; "
+        f"B.ARTEFACTS['forecast.html'] = ({json.dumps(str(tmp / 'sheet.html'))},"
+        " *B.ARTEFACTS['forecast.html'][1:]); "
+        f"raise SystemExit(B.main(['--out', {json.dumps(str(tmp / 'site'))}, "
+        f"'--ledger-root', {json.dumps(str(tmp / 'led'))}, "
+        "'--allow-orphans', '--allow-stale-sources']))")
+    return subprocess.run([str(ROOT / ".venv/bin/python"), "-c", driver],
+                          capture_output=True, text=True, cwd=ROOT)
+
+
+def test_the_build_refuses_a_live_figure_in_a_dated_passage():
+    """End to end: the refusal is assembled inside `build_site.main`. A live
+    `{{n_draws}}` dated 8 August is refused; the frozen `{{pub0808_n_draws}}`
+    in the same place builds."""
+    if not (ROOT / "data" / "processed" / "forecast_summary.json").exists():
+        skip("needs data/processed/forecast_summary.json; run montecarlo.py")
+    with tempfile.TemporaryDirectory() as bad, tempfile.TemporaryDirectory() as good:
+        r = _build_with_a_dated_passage("n_draws", Path(bad))
+        assert r.returncode != 0, r.stdout[-1500:]
+        assert "NOT OF ITS DATE" in r.stdout, r.stdout[-1500:]
+        assert "n_draws on forecast.html, dated 2026-08-08" in r.stdout, r.stdout[-1500:]
+        r = _build_with_a_dated_passage("pub0808_n_draws", Path(good))
+        assert "NOT OF ITS DATE" not in r.stdout, r.stdout[-1500:]
+        assert r.returncode == 0, r.stdout[-1500:] + r.stderr[-1500:]
 
 
 def test_every_dated_figure_in_the_lead_article_is_of_the_article_date():
@@ -189,8 +243,7 @@ def test_every_dated_figure_in_the_lead_article_is_of_the_article_date():
     assert 3 <= len(dated) <= 20, [r["token"] for r in dated]
     assert {r["asof"] for r in dated} == {lead["date"]}, sorted(
         {(r["token"], r["asof"]) for r in dated})
-    structural = B.audit_configs(registry, ctx)[0]["structural"]
-    assert P.misdated_figures(dated, structural) == []
+    assert P.misdated_figures(dated, S.council_constant_tokens(registry)) == []
 
 
 # --- a registered fact clears only on its own page; an allow phrase, nowhere ---

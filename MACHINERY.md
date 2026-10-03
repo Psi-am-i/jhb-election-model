@@ -1506,8 +1506,10 @@ claims survived two reviews that both named them.
 * **A figure in a dated passage that is not of its date.** The other direction
   of the clause above: a passage carrying `data-asof` says when its figures
   were true, so `publication.misdated_figures` accepts in one only a `fixed`
-  token captured on or before that date, or a constant of the council (the
-  `structural` set of `audit_configs`). The 8 August standfirst carried the
+  token captured on or before that date, or a token whose source is a
+  constant of the council (`stats.council_constant_tokens`: the council size
+  and the majority). The exemption is by token, not by the value shown, so a
+  forecast that prints 136 is still refused. The 8 August standfirst carried the
   live `{{n_draws}}` inside such a passage; it is now `{{pub0808_n_draws}}`,
   frozen as published with `tracks = "n_draws"`.
 

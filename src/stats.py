@@ -353,6 +353,21 @@ def _dig(obj, path: str):
     return cur
 
 
+#: The ``source`` of every token whose value IS the council, not a forecast:
+#: its size and its majority (`_derived`). No edition moves them, so they may
+#: stand in a dated passage (`publication.misdated_figures`). Matched by the
+#: token's source, never by the number it shows: a forecast that happens to
+#: print 136 is still a forecast.
+COUNCIL_CONSTANT_SOURCES = ("derived:council_size", "derived:majority")
+
+
+def council_constant_tokens(registry: dict) -> set[str]:
+    """The registry's tokens whose source is a council constant."""
+    return {name for name, e in registry.items()
+            if isinstance(e, dict)
+            and str(e.get("source", "")).strip() in COUNCIL_CONSTANT_SOURCES}
+
+
 def _derived(name: str, ctx: dict):
     """Named computations over the draw-level outputs."""
     draws = ctx.get("draws") or []
