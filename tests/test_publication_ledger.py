@@ -1026,18 +1026,38 @@ def test_a_frozen_as_published_figure_is_sourced_to_the_LEDGER_not_to_a_build():
                     "convention was removed or this test is looking in the "
                     "wrong place; both need a human.")
 
+    import re
+    import stats as S
+    archived = re.compile(r"archive/live-deployed-[0-9-]+/[a-z-]+\.html")
     problems = []
     for name, entry in sorted(frozen.items()):
         source = str(entry.get("source", ""))
+        tracks = entry.get("tracks")
+        captured = str(entry.get("captured", ""))
+        hits = [r for r in rows if r["token"] == tracks
+                and str(r.get("published_at", "")).startswith(captured)]
+        # A figure TYPED on the served page was never a token there, so the
+        # ledger has no row for it and never will (the 8 August standfirst's
+        # draw count, 2026-10-03). Its evidence is the archived page itself —
+        # the bytes readers had (archive/live-deployed-*/MANIFEST.md) — and it
+        # must be on that page. Only when the ledger has nothing: a figure the
+        # ledger records is sourced to the ledger.
+        page = archived.search(source)
+        if page and not hits:
+            path = ROOT / page.group(0)
+            shown = S._fmt(entry["value"], entry.get("format"))
+            text = S.html_unescape(re.sub(r"<[^>]+>", " ", path.read_text(encoding="utf-8"))
+                                   ) if path.is_file() else ""
+            if not (path.parent / "MANIFEST.md").is_file() or shown not in text:
+                problems.append(
+                    f"{name}: cites {page.group(0)}, which is not an archived "
+                    f"served page carrying {shown!r}.")
+            continue
         if "ledger.jsonl" not in source:
             problems.append(
                 f"{name}: sourced to {source!r}. A frozen figure cites the "
                 f"publication ledger or it is not evidence of publication.")
             continue
-        tracks = entry.get("tracks")
-        captured = str(entry.get("captured", ""))
-        hits = [r for r in rows if r["token"] == tracks
-                and str(r.get("published_at", "")).startswith(captured)]
         if not hits:
             problems.append(
                 f"{name}: cites the ledger and dates itself {captured}, but the "

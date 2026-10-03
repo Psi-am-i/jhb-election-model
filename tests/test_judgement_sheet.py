@@ -371,7 +371,7 @@ def test_the_section_passes_the_number_gate_as_prose():
     cfg = stats.load_audit_config(stats.load_registry(STATS))
 
     def blocking(page):
-        hits = stats.scan_numbers(page, fixed=cfg["fixed"], allow=cfg["allow"])
+        hits = stats.scan_numbers(page, page="methodology.html", fixed=cfg["fixed"])
         return hits, [h for h in hits if stats.is_blocking(h)]
 
     hits, blocked = blocking(html)

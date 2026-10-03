@@ -1410,6 +1410,18 @@ retype the structural set, and a retyped copy answers a different question the
 moment the council changes size. `tests/test_home_page.py` is the first caller
 outside the build.
 
+**A registered fact clears only on the pages it names** (owner's sweep,
+2026-10-03). Every `[[audit.fixed]]` and `[[audit.allow]]` entry carries
+`page` — output paths, comma-separated, or `"*"` — and `stats.load_audit_config`
+refuses one without it. `stats.for_page` is the one place an entry is matched to
+a page; `scan_numbers` and `audit` take `page=` and every build call passes the
+output path. The field had been written on most entries and read by nothing, so
+when the 8 August article moved to `nobody-will-win.html` the entries naming
+`index.html` went on clearing it. **An allow phrase clears no number**: it
+excuses a claim in words. It used to clear any `NN%` within sixty characters of
+the phrase on any page, which is how ActionSA's 18% and Laingsburg's 23% went
+without a registered source; each such figure is now an `[[audit.fixed]]` entry.
+
 ## Saying what we published, and when: the publication ledger
 
 Staleness (above) asks whether a number on the page is still current. This asks
@@ -1467,8 +1479,8 @@ rewritten. **This is not a
 gate on the forecast moving — that is expected. It is a gate on the move being
 silent.**
 
-Four refusals stand between a build and a published row — the first on the
-WRITE path proper, the other three on the BUILD path ahead of it — and they
+Five refusals stand between a build and a published row — the first on the
+WRITE path proper, the other four on the BUILD path ahead of it — and they
 refuse rather than warn for the
 reason recorded throughout this file: a print is a comment, and ten orphaned
 claims survived two reviews that both named them.
@@ -1490,6 +1502,23 @@ claims survived two reviews that both named them.
   has **no escape hatch**, unlike `--allow-orphans` and `--allow-stale-sources`,
   because the obligation it enforces is one call to `retire()` with a reason
   rather than model work. See below.
+
+* **A figure in a dated passage that is not of its date.** The other direction
+  of the clause above: a passage carrying `data-asof` says when its figures
+  were true, so `publication.misdated_figures` accepts in one only a `fixed`
+  token captured on or before that date, or a constant of the council (the
+  `structural` set of `audit_configs`). The 8 August standfirst carried the
+  live `{{n_draws}}` inside such a passage; it is now `{{pub0808_n_draws}}`,
+  frozen as published with `tracks = "n_draws"`.
+
+**The dates on a figure's tooltip come from `publication.run_starts`.** For
+every token it is the first `published_at` of the unbroken run of rows showing
+the reader the current `display` (a `rounding` row continues a run; a value
+that returns after another, or a row after a retirement, starts one). The build
+passes it to `_ledger_candidates`, which records `since` (when the value on the
+page first appeared; empty when it moved) and `previous_since` (when the last
+published value first appeared) on every change, so `changes.json` and the
+tooltips read one date. "Unchanged since" used to name the latest edition.
 
 ### The seam: a ledger that starts empty, and a figure that can simply vanish
 
