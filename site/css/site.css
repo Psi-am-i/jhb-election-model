@@ -400,6 +400,17 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-art) .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
 @media (max-width:840px){:where(.pg-art) .layout{grid-template-columns:1fr;}}
 
+/* ---- src/css/page-board.css ---- */
+:where(.pg-board) .lb-form{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:8px 0;}
+:where(.pg-board) .lb-form label{display:flex;flex-direction:column;gap:4px;flex:1 1 260px;font-size:14px;color:var(--ink-2);}
+:where(.pg-board) .lb-form input{font:inherit;padding:8px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);min-width:0;}
+:where(.pg-board) .lb-found{min-height:1.5em;}
+:where(.pg-board) .lb-table{width:100%;border-collapse:collapse;font-size:15px;}
+:where(.pg-board) .lb-table th,:where(.pg-board) .lb-table td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:left;}
+:where(.pg-board) .lb-table .num{text-align:right;font-variant-numeric:tabular-nums;}
+:where(.pg-board) .lb-table tr.lb-you{outline:2px solid var(--reader);outline-offset:-2px;font-weight:600;}
+:where(.pg-board) .lb-wrap{overflow-x:auto;}
+
 /* ---- src/css/chrome.css ---- */
 /* The nav bar and the footer every page carries (build_site.nav_for and
    build_site.footer_for), on every kind of page: the rendered documents, the

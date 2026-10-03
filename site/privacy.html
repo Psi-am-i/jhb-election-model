@@ -79,16 +79,13 @@ nothing about the visitor) is also kept in Cloudflare&rsquo;s
 <a href="https://developers.cloudflare.com/analytics/analytics-engine/">Workers Analytics Engine</a>,
 which deletes it after three months.</p>
 <h2 id="shared-forecasts">Shared forecasts</h2>
-<p>A forecast you make on <a href="your-forecast/">your forecast</a> lives only in its link.
-When you share it, three things happen on the site&rsquo;s server, and none of them
-keeps the forecast or the name in it.</p>
+<p>A forecast you make on <a href="your-forecast/">your forecast</a> lives in its link. When
+you share it, three things happen on the site&rsquo;s server.</p>
 <ul>
 <li><strong>The seal.</strong> The page sends the forecast and its name to the server, which
   signs them with the time, using a key only the server holds, and returns the
   signature for the link to carry. Anyone opening the link can then see that
-  it was sealed and when. The server keeps no record of what it signed, so a
-  seal shows when a forecast was made, not that it was the only one its
-  maker sealed.</li>
+  it was sealed and when. Each seal is also kept as an entry, below.</li>
 <li><strong>The preview image.</strong> A chat app shown the link fetches an image the server
   draws from the link. The image is kept in Cloudflare&rsquo;s cache, which deletes
   it on its own: an hour for an unsealed link, a year for a sealed one. Chat
@@ -99,6 +96,30 @@ keeps the forecast or the name in it.</p>
   &ldquo;share&rdquo;, the button used (WhatsApp, X, copy or the phone&rsquo;s share menu) and
   the site&rsquo;s own address, as the short links above do.</li>
 </ul>
+<h2 id="forecasts-entered">Forecasts entered</h2>
+<p>Every sealed forecast is entered in a ranking against the result. A person may
+enter several. The server stores, for each seal, in a database at Cloudflare:</p>
+<ul>
+<li>the forecast: every ward&rsquo;s winner, each party&rsquo;s vote and the governing parties;</li>
+<li>the name you typed on it, if any;</li>
+<li>the time of the seal;</li>
+<li>the seal&rsquo;s id, the part of the link&rsquo;s <code>s=</code> after the dot;</li>
+<li>the model&rsquo;s version when it was sealed.</li>
+</ul>
+<p>No IP address, browser details, cookie or account is stored with it. To limit
+how often one connection can seal, the server counts seals per connection for
+one minute under a scrambled form of its address, which is not stored.</p>
+<p><strong>Why.</strong> To rank every forecast sealed before polls open against the result.
+Until the results only the number of entries is shown. After the count the
+leaderboard lists entries by place, under the name typed on each, or
+&ldquo;Anonymous&rdquo; and the start of its seal id if none was typed. The name is then
+public on the leaderboard.</p>
+<p><strong>How long.</strong> The entries are deleted ninety days after the leaderboard is
+published. The leaderboard itself stays on the site.</p>
+<p><strong>Removing an entry.</strong> Write to
+<a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a> with the link, or its
+seal id, and the entry is deleted, before or after the leaderboard is
+published.</p>
 <h2 id="network-error-reports">Network error reports</h2>
 <p>Cloudflare&rsquo;s response headers <code>NEL</code> and <code>Report-To</code> ask your browser to report
 failed connections to the site, not successful ones, to Cloudflare&rsquo;s
@@ -106,7 +127,7 @@ failed connections to the site, not successful ones, to Cloudflare&rsquo;s
 service.</p>
 <h2 id="what-is-not-collected">What is not collected</h2>
 <ul>
-<li>No accounts, sign-in or forms. If that changes, this page changes with it.</li>
+<li>No accounts or sign-in. If that changes, this page changes with it.</li>
 <li>No advertising trackers and no Google tags.</li>
 <li>No personal data is sold, or shared with advertisers.</li>
 </ul>
@@ -134,8 +155,8 @@ recipient bound by an agreement of that kind.</p>
 <li>object to its processing.</li>
 </ul>
 <p>Send a request to <a href="mailto:psi@whysoserious.city">psi@whysoserious.city</a>. The
-site stores nothing that names a visitor; the records described above are held
-by Cloudflare.</p>
+only records the site keeps are those described above, held by Cloudflare for
+the site; an entry is found by its seal id.</p>
 <p>If you are not satisfied with the answer, you may complain to the
 <a href="https://inforegulator.org.za/">Information Regulator</a>, South Africa&rsquo;s
 regulator for POPIA.</p>

@@ -16,7 +16,11 @@
 //    /seal/1, src/seal.js), which signs them with its own clock and returns
 //    the signature the link then carries as `s`. Any edit or new name asks
 //    for a new one; from the moment polls open the Worker refuses. Off the
-//    site (a local build) there is no Worker and the link goes unsealed;
+//    site (a local build) there is no Worker and the link goes unsealed.
+//    The Worker stores every seal as one entry for the results-night ranking
+//    (src/share-edge.js storeEntry), so a name is sealed once typing has
+//    paused NAME_PAUSE_MS, or at once when the field is left, not after
+//    every letter;
 //  * the LINK goes out as /s/?…&ch=<button>, which the Worker counts by
 //    button and forwards to the arrival view (src/share-edge.js).
 //
@@ -126,8 +130,10 @@ function buttons() {
 }
 
 // Ask the Worker to seal the state in the sheet, once typing has paused; the
-// newest request wins.
-let sealTimer = null;
+// newest request wins. A change of name waits longer than any other change:
+// each seal is an entry, and "Th" and "Than" are not the reader's name.
+const SEAL_PAUSE_MS = 500, NAME_PAUSE_MS = 1500;
+let sealTimer = null, typingName = false;
 function seal() {
   const key = keyOf(now.fields);
   clearTimeout(sealTimer);
@@ -141,7 +147,15 @@ function seal() {
   S.seal.textContent = "Sealing the link.";
   sealSettled = false;
   buttons();
-  sealTimer = setTimeout(() => askSeal(ticket), 500);
+  sealTimer = setTimeout(() => { sealTimer = null; askSeal(ticket); }, typingName ? NAME_PAUSE_MS : SEAL_PAUSE_MS);
+  typingName = false;
+}
+// The name field left (or Enter): seal what it holds now.
+function sealNow() {
+  if (!sealTimer) return;
+  clearTimeout(sealTimer);
+  sealTimer = null;
+  askSeal(sealing);
 }
 async function askSeal(ticket) {
   const fields = now.fields, key = keyOf(fields);
@@ -161,7 +175,7 @@ async function askSeal(ticket) {
     buttons();
     draw();
   } else {
-    S.seal.textContent = r && r.status === 403 && body && body.error ? body.error
+    S.seal.textContent = r && (r.status === 403 || r.status === 429) && body && body.error ? body.error
       : "Not sealed: the link works, but it cannot show when it was made.";
     sealSettled = true;
     buttons();
@@ -262,8 +276,10 @@ S.off.addEventListener("change", () => friendNameCb(S.off.checked));
 S.name.addEventListener("input", () => {
   S.namenote.textContent = nameBlocked(S.name.value)
     ? "This name cannot go on the image or in the link: it could pass for the site, the model or the IEC." : "";
+  typingName = true;
   nameCb(cardName(S.name.value));     // the page rewrites the address and calls setShareable
 });
+S.name.addEventListener("change", sealNow);
 S.copy.addEventListener("click", async () => {
   let ok = false;
   try { await navigator.clipboard.writeText(S.url.value); ok = true; }
