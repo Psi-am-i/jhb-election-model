@@ -64,11 +64,14 @@
 
 /* ---------- the floating "computing" indicator: reserves no space ---------- */
 /* Owner, 2026-10-03 (item 5a): it floats above the page, prominent, at the
-   top centre under the sticky banner where the eye is, and being fixed it
-   moves nothing on the page. */
+   top centre under the one-line sticky banner where the eye is; being fixed
+   it moves nothing on the page. */
 .yf-busy{position:fixed;left:50%;top:58px;transform:translateX(-50%);z-index:40;pointer-events:none;margin:0;
   font:600 15px var(--sans);color:var(--paper);background:var(--reader);padding:9px 20px;border-radius:999px;
   box-shadow:0 4px 18px rgba(0,0,0,.35);white-space:nowrap;}
+/* a phone: the banner wraps to several lines, so the line floats at the
+   bottom centre instead, above the change toast */
+@media (max-width:719px){.yf-busy{top:auto;bottom:calc(72px + env(safe-area-inset-bottom));}}
 .yf-busy[hidden]{display:none;}
 @media (prefers-reduced-motion:no-preference){
   .yf-busy{animation:yf-breathe 1.2s ease-in-out infinite alternate;}

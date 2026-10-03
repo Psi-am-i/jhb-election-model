@@ -7,6 +7,26 @@ here first, so anything stale in this file is read as an instruction.
 
 > ## ⛔ STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
 >
+> **Follow-up to the owner's list (2026-10-03, branch `followup`).** /your-forecast/
+> wide: the map above the seat table in a sticky column capped at the window
+> that scrolls on its own; levers in cards. "Analyse my forecast" leads with
+> "We give this outcome a N% chance. But historical trends can always be
+> broken.": "this outcome" is the reader's council-level result,
+> `reweight.council_outcome` (largest party alone or a tie, a majority alone or
+> not, the picked coalition at a majority), uniform weights, JUDGEMENT-CALLS
+> §N3, note 9. Break the model's ward list is one table per area with filters;
+> the vote is a table with the seat table's columns, no spinner, no inner
+> scroll. IBM Plex Sans/Serif/Mono self-hosted (`site_assets.FONT_FACES`,
+> `src/fonts/`). The owner's logo, traced to one-colour vector
+> (`src/brand/`), is the nav's home link, the favicon, the cards' mark and the
+> default share image (`og.png`). Typed article and methodology figures are
+> fixed tokens; `on_site` dates one from the publication that first showed it.
+> Every seat table has a header over every column. **Open, owner:** the
+> methodology's judgement weights stay registered fixed facts (copied from
+> JUDGEMENT-CALLS.md); `nobody-will-win`'s 8 August standfirst words its
+> chance as "simulations … find" (STYLE rule 10); the Zille claim's steps
+> say "a turnout fantasy" and "a special universe" (STYLE rule 7).
+>
 > **Fault-finder review (2026-09-30, `audits/2026-09-29-f11/R-final-faultfinder-brief.md`)**:
 > glaring items fixed and rendered in `c3f6aa8` (claim dates from the ledger,
 > the red-lines claim retitled, the Zille quote dated 13 Sep, the share text,
