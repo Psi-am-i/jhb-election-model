@@ -160,8 +160,9 @@ ENTRY_POINTS: dict[str, str] = {
         "README.md 'Scoring it against a past election': `python "
         "src/build_validation.py --target 2021` — runs the model and the "
         "baselines across eight metros and regenerates "
-        "`docs-public/about-the-model.md` whole. Every figure on the About "
-        "page comes from this and none is typed.",
+        "`docs-public/about-the-model.md` whole, the scoring section "
+        "/methodology carries. Every figure in it comes from this and none "
+        "is typed.",
 
     # --- steps in build_all.plan, invoked as subprocesses ------------------
     "overhang_regimes":

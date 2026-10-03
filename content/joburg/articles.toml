@@ -38,7 +38,7 @@ standfirst = """The opposition captured essentially none of the 587,000 votes
 the ANC bloc shed between the 2019 national election and the 2021 local
 election. The city's collapse in ANC support did not
 become anybody else's gain — it became abstention."""
-href = "nobody-will-win#nobody-catches"
+href = "nobody-catches-the-votes"
 
 [[article]]
 date = "2026-08-08"
@@ -46,18 +46,18 @@ title = "Minority administrations, and why nobody has to win"
 standfirst = """The mayor is elected by the councillors present and voting, so
 abstention installs governments. A council nobody controls is not a council
 nobody can run."""
-href = "nobody-will-win#minority"
+href = "minority-administrations"
 
 [[article]]
 date = "2026-08-08"
 title = "If the law were German instead"
 standfirst = """The same votes under our seat law and Germany's of 2000, 2015
 and 2023."""
-href = "nobody-will-win#other-pr"
+href = "if-the-law-were-german"
 
 [[article]]
 date = "2026-08-08"
 title = "Laingsburg, 2021"
 standfirst = """The only place the clause has fired — the whole mechanism in a
 council of seven."""
-href = "nobody-will-win#laingsburg"
+href = "laingsburg-2021"

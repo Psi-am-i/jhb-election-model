@@ -57,7 +57,7 @@ JS_DIR = "js"
 CSS_FILES = ("tokens.css", "toggle.css",
              "page-doc.css", "page-sheet.css", "page-home.css", "page-portal.css",
              "page-art.css",
-             "stat.css", "maps.css", "seat-table.css", "components.css")
+             "chrome.css", "stat.css", "maps.css", "seat-table.css", "components.css")
 
 
 

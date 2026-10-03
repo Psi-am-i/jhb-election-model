@@ -6,7 +6,8 @@
       "mode": "free",
       "movement": "none",
       "pages": [
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "laingsburg-2021.html"
       ],
       "previous": "58",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -21,7 +22,8 @@
       "mode": "free",
       "movement": "material",
       "pages": [
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "laingsburg-2021.html"
       ],
       "previous": "61",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -261,7 +263,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "nobody-will-win.html"
+        "nobody-catches-the-votes.html"
       ],
       "previous": "587,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -277,7 +279,12 @@
       "movement": "none",
       "pages": [
         "forecast.html",
-        "nobody-will-win.html"
+        "claims.html",
+        "nobody-will-win.html",
+        "nobody-catches-the-votes.html",
+        "minority-administrations.html",
+        "if-the-law-were-german.html",
+        "laingsburg-2021.html"
       ],
       "previous": "15",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -292,7 +299,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "67",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -307,7 +314,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "128",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -322,7 +329,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "0",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -337,7 +344,7 @@
       "mode": "generated",
       "movement": "new",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": null,
       "previous_published_at": null,
@@ -352,7 +359,7 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "47%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -367,7 +374,7 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "116",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -382,7 +389,7 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "12%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -397,7 +404,7 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "66",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -412,7 +419,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "1",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -427,7 +434,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "under 0.1%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -442,7 +449,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "34",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -457,7 +464,7 @@
       "mode": "generated",
       "movement": "new",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": null,
       "previous_published_at": null,
@@ -472,7 +479,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "1",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -487,7 +494,7 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "30",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -502,7 +509,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "47%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -517,7 +524,7 @@
       "mode": "generated",
       "movement": "new",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": null,
       "previous_published_at": null,
@@ -532,7 +539,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "21",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -547,7 +554,7 @@
       "mode": "generated",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "50",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -562,7 +569,7 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "1.4%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -577,7 +584,7 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "57%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -592,7 +599,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "44%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -607,7 +614,7 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "59%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -622,7 +629,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "118",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -637,7 +644,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "144",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -652,7 +659,7 @@
       "mode": "generated",
       "movement": "material",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "17%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -667,7 +674,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "53",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -682,7 +689,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "47",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -697,7 +704,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "50",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -712,7 +719,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "62",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -727,7 +734,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "97",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -742,7 +749,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "41",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -757,7 +764,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "524,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -772,7 +779,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "644,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -787,7 +794,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "75",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -802,7 +809,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "190,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -817,7 +824,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "917,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -832,7 +839,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "985,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -847,7 +854,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "1,290,000",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -862,7 +869,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "110",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -877,7 +884,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "39",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -892,7 +899,7 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "forecast.html"
+        "claims.html"
       ],
       "previous": "57",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3339,7 +3346,12 @@
       "pages": [
         "methodology.html",
         "forecast.html",
-        "nobody-will-win.html"
+        "claims.html",
+        "nobody-will-win.html",
+        "nobody-catches-the-votes.html",
+        "minority-administrations.html",
+        "if-the-law-were-german.html",
+        "laingsburg-2021.html"
       ],
       "previous": "270",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -3356,7 +3368,12 @@
       "pages": [
         "review.html",
         "forecast.html",
-        "nobody-will-win.html"
+        "claims.html",
+        "nobody-will-win.html",
+        "nobody-catches-the-votes.html",
+        "minority-administrations.html",
+        "if-the-law-were-german.html",
+        "laingsburg-2021.html"
       ],
       "previous": "23 September 2026",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4048,7 +4065,12 @@
       "pages": [
         "methodology.html",
         "forecast.html",
+        "claims.html",
         "nobody-will-win.html",
+        "nobody-catches-the-votes.html",
+        "minority-administrations.html",
+        "if-the-law-were-german.html",
+        "laingsburg-2021.html",
         "play/index.html"
       ],
       "previous": "136",
@@ -4064,7 +4086,7 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "nobody-will-win.html"
+        "minority-administrations.html"
       ],
       "previous": "13%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4079,7 +4101,7 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "nobody-will-win.html"
+        "minority-administrations.html"
       ],
       "previous": "48%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4094,7 +4116,7 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "nobody-will-win.html"
+        "minority-administrations.html"
       ],
       "previous": "4.0%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4109,7 +4131,7 @@
       "mode": "generated",
       "movement": "rounding",
       "pages": [
-        "nobody-will-win.html"
+        "minority-administrations.html"
       ],
       "previous": "50%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4128,7 +4150,12 @@
         "review.html",
         "index.html",
         "forecast.html",
+        "claims.html",
         "nobody-will-win.html",
+        "nobody-catches-the-votes.html",
+        "minority-administrations.html",
+        "if-the-law-were-german.html",
+        "laingsburg-2021.html",
         "play/index.html",
         "make/index.html"
       ],
@@ -4224,7 +4251,8 @@
       "pages": [
         "methodology.html",
         "review.html",
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "laingsburg-2021.html"
       ],
       "previous": "65%",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4915,7 +4943,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "laingsburg-2021.html"
       ],
       "previous": "65",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4930,7 +4959,8 @@
       "mode": "fixed",
       "movement": "none",
       "pages": [
-        "nobody-will-win.html"
+        "nobody-will-win.html",
+        "laingsburg-2021.html"
       ],
       "previous": "74",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -4976,7 +5006,12 @@
       "movement": "none",
       "pages": [
         "forecast.html",
-        "nobody-will-win.html"
+        "claims.html",
+        "nobody-will-win.html",
+        "nobody-catches-the-votes.html",
+        "minority-administrations.html",
+        "if-the-law-were-german.html",
+        "laingsburg-2021.html"
       ],
       "previous": "20261104",
       "previous_published_at": "2026-09-27T18:44:27Z",
@@ -5669,9 +5704,9 @@
     "draws": 5000,
     "forecast_content_sha256": "c68c627d287e5e103ac0effbf1aaab9dbcffdb4d2945720ec43d771a9945efad",
     "forecast_summary_sha256": "97efecf5c70e0020412d801b20bce579c1f7e31e8f5bb8c3e0a8423106bc84bd",
-    "git_commit": "f33d9aba66d9c8d2a2c7e501985daa207d05241f",
+    "git_commit": "a912197a7cf0cbb45c325b463bc496a7fb562a94",
     "git_dirty": true,
-    "model_run_id": "r-c68c627d287e-f33d9aba-dirty",
+    "model_run_id": "r-c68c627d287e-a912197a-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",

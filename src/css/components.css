@@ -26,3 +26,15 @@
 .rg td.rg-s{color:var(--ink-3);}
 .rg tr.rg-sum{border-top:1px solid var(--rule);}
 .rg .pchip{margin-right:6px;}
+
+/* A dated list of pieces: the home page's articles and claims, and /commentary
+   (render_home._articles writes both lists, so one look serves both). */
+.feed{display:flex;flex-direction:column;}
+.feed .item{display:grid;grid-template-columns:62px 1fr;gap:14px;
+  padding:15px 0;border-bottom:1px solid var(--rule-soft);}
+.feed .item:last-child{border-bottom:none;}
+.feed .when{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:4px;}
+.feed .item .t{font-family:var(--serif);font-size:19px;line-height:1.28;color:var(--ink);}
+.feed .item .d{font-size:13.5px;margin-top:5px;color:var(--ink-2);}
+.feed .lead-item .t{font-size:clamp(22px,2.6vw,30px);}
+@media (max-width:560px){.feed .item{grid-template-columns:1fr;gap:2px;}}

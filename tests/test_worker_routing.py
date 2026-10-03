@@ -41,6 +41,13 @@ request. Detectors, each a function returning a list of problems:
                         cities the baseline city-prefixed them. Near misses
                         (/supporters, /support/x, /privacyx) run everywhere in
                         the differential, so the match is shown to be exact.
+* `moved_problems`    — every moved page (/about, 2026-10-03), with or without
+                        .html or a trailing slash and with its query, answers
+                        301 to its new address on the Joburg host and every
+                        workers.dev host, fetches nothing and logs nothing.
+                        The live differential runs these paths on the portal
+                        and other city hosts, where nothing changed, and the
+                        near misses (/aboutx, /about/x) everywhere.
 * `config_problems`   — `wrangler.toml` states workers_dev, preview_urls,
                         [observability], invocation_logs = false and the
                         ARRIVALS Analytics Engine binding where wrangler
@@ -91,22 +98,28 @@ CHANNEL_PATHS.update({"/g?gclid=abc": "google_ads", "/Go?x=1": "billboard"})
 
 #: What the fake asset layer holds. Paths with no extension stand for what the
 #: real layer serves at an extensionless URL.
-ASSETS = ["/", "/index.html", "/forecast", "/about", "/portal",
+ASSETS = ["/", "/index.html", "/forecast", "/methodology", "/portal",
           "/logos/party.png", "/robots.txt", "/share.jpg",
           "/tshwane/index.html", "/tshwane/forecast", "/support", "/privacy"]
 #: The real layer 307s an .html URL to its extensionless form.
-REDIRECTS = {"/about.html": "/about", "/support.html": "/support",
+REDIRECTS = {"/forecast.html": "/forecast", "/support.html": "/support",
              "/privacy.html": "/privacy"}
 #: Pages every host serves from the asset root, and what ASSETS answers.
 SHARED_PAGES = {"/support": 200, "/privacy": 200, "/support.html": 307,
                 "/privacy.html": 307}
 
 #: Near misses: none of these is a channel path on any host.
-LIVE_PATHS = ["/", "/index.html", "/forecast", "/about.html", "/nope",
+LIVE_PATHS = ["/", "/index.html", "/forecast", "/forecast.html", "/nope",
               "/logos/party.png", "/robots.txt", "/share.jpg", "/?x=1",
               "/go/x", "/gone", "/go.html", "/xx", "/gg", "/g/x", "/G/x",
               "/li.html", "/fbx", "/ig/ig", "//go",
-              "/supporters", "/support/x", "/privacyx", "/Support"]
+              "/supporters", "/support/x", "/privacyx", "/Support",
+              "/aboutx", "/about/x", "/About"]
+
+#: Pages that moved (src/worker.js MOVED): every spelling that must redirect,
+#: and where to. On the Joburg host and workers.dev hosts only.
+MOVED_PATHS = {"/about": "/methodology", "/about.html": "/methodology",
+               "/about/": "/methodology", "/about?x=1": "/methodology?x=1"}
 
 DRIVER = r"""
 import { readFileSync } from "node:fs";
@@ -205,11 +218,13 @@ def live_cases() -> list[dict]:
     """Every live host x near misses; channel paths too, except on Joburg and
     the portal hosts, whose channel paths are checked by their own detectors;
     the shared pages on Joburg and the portal hosts only, since other cities
-    city-prefixed them before 2026-10-02 (`shared_page_problems`)."""
+    city-prefixed them before 2026-10-02 (`shared_page_problems`); the moved
+    pages everywhere but Joburg, whose redirects `moved_problems` checks."""
     return [{"url": f"https://{h}{p}", "env": {}}
             for h in live_hosts()
             for p in LIVE_PATHS + (list(SHARED_PAGES) if h in (JOBURG, *PORTALS)
-                                   else list(CHANNEL_PATHS))]
+                                   else list(CHANNEL_PATHS))
+            + ([] if h == JOBURG else list(MOVED_PATHS))]
 
 
 def live_diffs(new: str, old: str) -> list[str]:
@@ -240,12 +255,12 @@ def preview_problems(src: str) -> list[str]:
 def passthrough_problems(src: str) -> list[str]:
     """A 307 and a 304 from ASSETS survive the noindex wrap unchanged."""
     host = PREVIEW_HOSTS[1]
-    cases = [{"url": f"https://{host}/about.html", "env": {}},
+    cases = [{"url": f"https://{host}/forecast.html", "env": {}},
              {"url": f"https://{host}/forecast", "env": {},
               "headers": {"If-None-Match": '"v1"'}}]
     r307, r304 = run_worker(src, cases)
     out = []
-    for r, status, key, want in ((r307, 307, "location", "/about"),
+    for r, status, key, want in ((r307, 307, "location", "/forecast"),
                                  (r304, 304, "etag", '"v1"')):
         h = dict(r["headers"])
         if r["status"] != status or h.get(key) != want or r["body"]:
@@ -334,6 +349,24 @@ def shared_page_problems(src: str) -> list[str]:
     return out
 
 
+def moved_problems(src: str) -> list[str]:
+    hosts = [JOBURG, *PREVIEW_HOSTS]
+    keys = [(h, p, to) for h in hosts for p, to in MOVED_PATHS.items()]
+    cases = [{"url": f"https://{h}{p}", "env": {}} for h, p, _to in keys]
+    out = []
+    for r, (host, _p, to) in zip(run_worker(src, cases), keys):
+        h = dict(r["headers"])
+        want = f"https://{host}{to}"
+        if r["status"] != 301 or h.get("location") != want or r["fetched"]:
+            out.append(f"{r['url']}: {r['status']} {h.get('location')!r} "
+                       f"fetched {r['fetched']}, want 301 {want!r}")
+        if r["logs"] or r["points"]:
+            out.append(f"{r['url']}: logged {r['logs']} wrote {r['points']}")
+        if (host in PREVIEW_HOSTS) != (h.get("x-robots-tag") == NOINDEX):
+            out.append(f"{r['url']}: X-Robots-Tag {h.get('x-robots-tag')!r}")
+    return out
+
+
 def _mutate(src: str, old: str, new: str) -> str:
     assert src.count(old) == 1, f"mutation anchor not unique: {old!r}"
     return src.replace(old, new)
@@ -358,7 +391,7 @@ def test_live_routing_matches_the_baseline_worker():
     runs = run_worker(old, live_cases())
     fetched = {f for r in runs for f in r["fetched"]}
     assert {"/portal", "/", "/tshwane/index.html", "/capetown/index.html",
-            "/tshwane/go", "/about.html"} <= fetched, fetched
+            "/tshwane/go", "/forecast.html"} <= fetched, fetched
     assert any(r["status"] == 307 for r in runs)
     assert live_diffs(source(), old) == []
 
@@ -383,6 +416,30 @@ def test_no_data_point_off_the_channel_paths():
     runs = run_worker(source(), live_cases() + PREVIEW_CASES)
     assert not [(r["url"], r["points"]) for r in runs if r["points"]]
     assert not [r["url"] for r in runs if r["error"]]
+
+
+# ---------------------------------------------------------------- moved pages
+
+def test_moved_pages_redirect_on_the_johannesburg_hosts():
+    assert moved_problems(source()) == []
+    # the near misses reach the assets on Joburg, as they did before
+    runs = run_worker(source(), [{"url": f"https://{JOBURG}{p}", "env": {}}
+                                 for p in ("/aboutx", "/about/x", "/About")])
+    assert [r["fetched"] for r in runs] == [["/aboutx"], ["/about/x"], ["/About"]], runs
+
+
+def test_moved_check_fires_on_each_constructed_violation():
+    src = source()
+    for a, b in (('  ["/about", "/methodology"],\n', ""),
+                 ("      const to = movedTo(path);\n      if (to) return moved(url, to);\n", ""),
+                 ("        : to ? moved(url, to) : await env.ASSETS.fetch(request);",
+                  "        : await env.ASSETS.fetch(request);"),
+                 ("status: 301,", "status: 302,"),
+                 ("to + url.search", "to"),
+                 ('(?:\\.html|\\/)?$', '$')):
+        assert moved_problems(_mutate(src, a, b)), f"blind to {b!r}"
+    # the baseline worker had no moved page
+    assert moved_problems(baseline_source())
 
 
 # ---------------------------------------------------------------- shared pages

@@ -290,7 +290,7 @@ def _claims(city_dir: Path) -> str:
             f'    <div class="item" data-asof="{when}">\n'
             f'      <div class="when">said {_pretty(when)}</div>\n'
             f'      <div>\n'
-            f'        <div class="t"><a href="forecast#claims">'
+            f'        <div class="t"><a href="claims">'
             f'{html.escape(c.get("label") or c.get("tests") or c.get("quote", "")[:90])}</a></div>\n'
             f'        <div class="verdict">{html.escape(c.get("verdict", ""))}</div>\n'
             f'      </div>\n'
