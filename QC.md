@@ -135,7 +135,8 @@ line, watch whether the suite stays green.
 ### Running them
 
 `CLAUDE.md` §5 carries the commands. While iterating, `-k` the modules the change
-reaches; before committing, the whole suite once, for the whole batch.
+reaches. The whole suite runs once per UAT version, before promote, for the whole
+batch (§4b); a change that touches model code runs it before committing.
 
 ⚠️ **`run_all.py` prints a `passed / failed / skipped` line per module and no
 grand total.** Read the module lines. A `-k`/`-x` run additionally prints
@@ -160,6 +161,33 @@ Three preconditions that are easy to skip and expensive to skip:
 * **Before measuring anything on a tree more than one worker is touching**,
   `CLAUDE.md` §3: one writer, and nobody measures while it writes. Documents
   included — do not edit a file while an audit of it runs.
+
+## 4b. Site and interactive changes: the owner's process (2026-10-05)
+
+Owner: *"if these things take hours we need much stricter review before
+running"*; *"add a review of all code BEFORE we run anything"*; *"I would
+rather stop them 15m in than wait to check 4 hours later."* Site changes never
+re-run the model; what took hours was full-suite runs and repeated
+build–review–fix loops.
+
+1. **Brief first.** Batch the owner's notes into one numbered brief: each change,
+   what is out of scope, the acceptance check, the test tier, and an estimate.
+   The owner approves it before anything runs.
+2. **Code, then review the diff before running anything.** The writer stops
+   after editing; a reviewer reads the actual diff against the brief (missed
+   items, broken rules, one definition, no inline CSS/JS, no typed numbers). Only
+   then build and test.
+3. **Tier the checks by what changed:**
+   * **Cosmetic** (CSS, wording, layout, cards): site build to `--out`, the page
+     modules (`site_assets`, `site_structure`, `number_scan`, the page's own
+     test), screenshots. No review stage beyond step 2, no full suite.
+   * **Interactive behaviour** (levers, analysis, sharing): the above plus the
+     page's node tests and `interactive/tools/yf_jump_check.mjs`.
+   * **Model or published figures:** the whole suite.
+4. **Report at the first checkpoint, early.** A run reports after its first
+   step so a wrong direction is stopped in minutes, not discovered at the end.
+5. **The whole suite once per UAT version**, before promote — never once per
+   round.
 
 ## 5. Every plan item names its completion predicate
 

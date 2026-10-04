@@ -185,6 +185,9 @@ whole file. **Parallel analysis, serial application.**
 **`QC.md` is the process document** — this loop, the gated stage observation the
 `--run-dir` trace supports, and what a plan item must name to be finishable.
 Read it before designing a round; nothing else brings it into a session.
+**Site and interactive changes follow `QC.md` §4b** (owner-approved brief, diff
+review before running anything, checks tiered by what changed, whole suite once
+per UAT version).
 
     ROUND = design (parallel, read-only)
           → I re-derive the decisive number myself
