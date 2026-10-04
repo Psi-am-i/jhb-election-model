@@ -527,7 +527,7 @@ function buildVote() {
   const seatedAtStart = alpha.filter(c => (start[c] || 0) > 0)
     .sort((a, b) => start[b] - start[a] || name(a).localeCompare(name(b)));
   const restList = el("div", { className: "prrest" });
-  rest = el("details", { className: "prmore" }, el("summary", {}, "Other parties"), restList);
+  rest = el("details", { className: "rollup prmore" }, el("summary", {}, el("span", { className: "eyebrow" }, "Other parties")), restList);
   const head = el("div", { className: "prrow prhead", "aria-hidden": "true" },
     el("span", {}, "Party"), el("span", {}, "Share of all votes"), el("span", { className: "prpct" }, "%"));
   one.prlist.append(head);

@@ -186,20 +186,46 @@ def test_the_typefaces_are_ibm_plex_from_this_site_and_every_face_has_its_file()
     SA.font_files()
 
 
-def test_the_logo_is_one_colour_vector_and_the_home_link_keeps_the_name():
-    """The owner's logo (2026-10-03): logo.svg is paths only (the tower
-    traced, no raster), one colour (currentColor on #logo, so a <use> from a
-    page inherits the text colour); every page's nav draws it in the home
-    link, whose accessible name is the site's name; the favicons and the
+def _vector_logo_problems(name: str, group: str, parts: tuple[str, ...]) -> list[str]:
+    """A logo file is paths only (no raster, no live text, no <use>), one
+    colour (currentColor on its outer group, so a <use> from a page inherits
+    the text colour), and its one muted part takes the page's ink-3 token
+    rather than a colour of its own."""
+    raw = (SA.BRAND_SRC / name).read_text(encoding="utf-8")
+    out = []
+    # a comment holding "--" is not XML, and a page's <use> of the file draws nothing
+    if any("--" in c for c in re.findall(r"<!--(.*?)-->", raw, flags=re.S)):
+        out.append(f"{name}: a comment holds a double hyphen")
+    logo = re.sub(r"<!--.*?-->", "", raw, flags=re.S)
+    if "<image" in logo or "data:" in logo or "<use" in logo or "<text" in logo:
+        out.append(f"{name}: not paths only")
+    if f'<g id="{group}" fill="currentColor"' not in logo:
+        out.append(f"{name}: #{group} is not drawn in currentColor")
+    out += [f"{name}: no #{p}" for p in parts if f'id="{p}"' not in logo]
+    if re.search(r'fill="#|fill:#|fill="rgb|fill:rgb', logo):
+        out.append(f"{name}: a colour of its own")
+    styled = re.findall(r'style="([^"]*)"', logo)
+    if styled != ["fill:var(--ink-3,currentColor)"]:
+        out.append(f"{name}: styles {styled}")
+    return out
+
+
+def test_the_logos_are_one_colour_vector_and_their_links_keep_the_names():
+    """The owner's logos (2026-10-05). logo.svg, the Hillbrow Tower as the J
+    of "Johannesburg" over the site's address, is every city page's home link,
+    named for what it says; whysoserious.svg, the umbrella site's, heads the
+    portal and sits in the footer, linking to the apex. The favicons and the
     default share image are linked and copied; the built pages carry them."""
-    logo = re.sub(r"<!--.*?-->", "", (SA.BRAND_SRC / SA.LOGO).read_text(encoding="utf-8"), flags=re.S)
-    assert "<image" not in logo and "data:" not in logo and "<use" not in logo
-    assert '<g id="logo" fill="currentColor"' in logo and 'id="tower"' in logo and 'id="lettering"' in logo
-    assert not re.search(r'fill="#|fill:#', logo)
+    assert _vector_logo_problems(SA.LOGO, "logo", ("tower", "lettering", "sub")) == []
+    assert _vector_logo_problems(SA.UMBRELLA, "wsc", ("skyline", "wsc-name", "wsc-sub")) == []
     import build_site as B
+    assert B.LOGO_NAME == "Johannesburg \u2014 joburg.whysoserious.city"
     nav = B.nav_for("forecast")
-    assert (f'<a class="home" href="./" aria-label="{B.SITE_NAME}"><svg class="logo" viewBox="{SA.LOGO_VIEWBOX}"'
+    assert (f'<a class="home" href="./" aria-label="{B.LOGO_NAME}"><svg class="logo" viewBox="{SA.LOGO_VIEWBOX}"'
             in nav) and f'<use href="{SA.LOGO}#logo">' in nav
+    assert (f'<a class="foot-umbrella" href="{SA.APEX_URL}" aria-label="whysoserious.city">'
+            f'<svg class="wsc-logo" viewBox="{SA.UMBRELLA_VIEWBOX}"') in B.FOOTER
+    assert f'<use href="{SA.UMBRELLA}#wsc">' in B.FOOTER
     head = SA.head()
     for href in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png"):
         assert f'href="{href}"' in head and href in SA.BRAND_FILES
@@ -209,4 +235,30 @@ def test_the_logo_is_one_colour_vector_and_the_home_link_keeps_the_name():
         assert (site / name).read_bytes() == (SA.BRAND_SRC / name).read_bytes(), name
     for page in ("index.html", "forecast.html", "your-forecast/index.html"):
         html = (site / page).read_text(encoding="utf-8")
-        assert f'aria-label="{B.SITE_NAME}"' in html and "logo.svg#logo" in html, page
+        assert f'aria-label="{B.LOGO_NAME}"' in html and "logo.svg#logo" in html, page
+        assert "whysoserious.svg#wsc" in html, page
+    portal = (site / "portal.html").read_text(encoding="utf-8")
+    assert re.search(r'<header class="pmast">\s*<a class="pm-logo" href="./" aria-label="[^"]+">'
+                     r'<svg class="wsc-logo"', portal)
+
+
+def test_the_logo_check_fires_on_each_constructed_violation():
+    saved = SA.BRAND_SRC
+    with tempfile.TemporaryDirectory() as d:
+        try:
+            SA.BRAND_SRC = Path(d)
+            good = (saved / SA.LOGO).read_text(encoding="utf-8")
+            for old, new in (('<g id="logo" fill="currentColor"', '<g id="logo" fill="#000"'),
+                             ('id="tower"', 'id="towr"'),
+                             ('<path id="lettering"', '<image href="data:x"/><path id="lettering"'),
+                             ("fill:var(--ink-3,currentColor)", "fill:#939393"),
+                             ("<!-- ", "<!-- --x ")):
+                assert good.count(old) == 1, old
+                (Path(d) / SA.LOGO).write_text(good.replace(old, new, 1), encoding="utf-8")
+                assert _vector_logo_problems(SA.LOGO, "logo", ("tower", "lettering", "sub")), new
+            (Path(d) / SA.LOGO).write_text(good, encoding="utf-8")
+            assert _vector_logo_problems(SA.LOGO, "logo", ("tower", "lettering", "sub")) == []
+        finally:
+            SA.BRAND_SRC = saved
+
+

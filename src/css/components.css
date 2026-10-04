@@ -38,3 +38,43 @@
 .feed .item .d{font-size:13.5px;margin-top:5px;color:var(--ink-2);}
 .feed .lead-item .t{font-size:clamp(22px,2.6vw,30px);}
 @media (max-width:560px){.feed .item{grid-template-columns:1fr;gap:2px;}}
+
+/* THE MINI-HEADING (owner, 2026-10-05: "it is often the only headline for a
+   section"). One style for the eyebrow over a section ("Make your own
+   forecast", "Articles", "The map — every ward…") and the kicker over a page's
+   title; a page or a panel may set its colour and spacing. :where() keeps the
+   rule at no specificity, so a page file's colour wins wherever it sits in
+   the cascade. */
+:where(.eyebrow,.kicker){font-family:var(--sans);font-size:13px;font-weight:650;line-height:1.35;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);}
+
+/* THE COLLAPSIBLE (owner, 2026-10-05: one style everywhere, the forecast
+   sheet's). A band's head: its title in the accent over an accent rule, and a
+   muted mono "collapse all" at the right (js/sheet.js). A section under it is
+   a <details class="rollup">: its summary is the heading, with a mono "–"
+   (open) or "+" (closed) at the right edge, never inside the heading's text.
+   <details>/<summary> carry the keyboard and the expanded state. */
+.bandhead{display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:2px solid var(--accent);padding-bottom:6px;margin-top:16px;}
+.bandtitle{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);}
+.bandbtn{font-family:var(--mono);font-size:11px;color:var(--ink-3);background:none;
+  border:none;cursor:pointer;padding:0;}
+.bandbtn:hover{color:var(--accent);}
+details.rollup>summary{cursor:pointer;list-style:none;position:relative;
+  display:flex;flex-direction:column;gap:6px;padding-right:26px;}
+details.rollup>summary::-webkit-details-marker{display:none;}
+details.rollup>summary::after{content:"–";position:absolute;right:2px;top:0;
+  font-family:var(--mono);font-size:17px;line-height:1;color:var(--ink-3);}
+details.rollup:not([open])>summary::after{content:"+";}
+details.rollup>summary:hover::after{color:var(--accent);}
+details.rollup>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+details.rollup>*:not(summary){margin-top:14px;}
+details.rollup>summary h2{margin:0;}
+/* ⛔ A HAIRLINE AND AIR BETWEEN ADJACENT SECTIONS. Thirteen sections with
+   nothing between them read as one wall and the eye finds no place to stop
+   (owner, 2026-09-26: "it all rolls into each other and feels like work").
+   `rule-soft` rather than `rule`: a separator the reader notices only when
+   looking for it, which is what a minor boundary is. */
+details.rollup + details.rollup{margin-top:30px;padding-top:26px;
+  border-top:1px solid var(--rule-soft);}

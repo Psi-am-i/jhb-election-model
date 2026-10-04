@@ -83,6 +83,9 @@ NAV_ITEMS = [
 
 #: The site's name: the home link's accessible name, under the logo.
 SITE_NAME = "joburg.whysoserious.city"
+#: The home link's accessible name: what the logo says, the city's name over
+#: the site's address (owner's logo of 2026-10-05).
+LOGO_NAME = f"Johannesburg \u2014 {SITE_NAME}"
 
 #: The owner's line under the menu bar on every page (2026-10-03). Its one
 #: definition: `nav_for` emits it after the nav, src/css/chrome.css styles it.
@@ -105,21 +108,34 @@ def nav_items(leaderboard: bool | None = None) -> list[tuple[str, str]]:
     return items
 
 
+#: The nav's first group ends at this item; the second group, the record and
+#: the method, starts after it. The groups sit beside the logo's "Johannesburg"
+#: on one line where there is room, and the second drops to a row of its own
+#: as a whole where there is not (owner, 2026-10-05).
+NAV_FIRST_GROUP_ENDS = "claims"
+
+
 def nav_for(active_href: str, leaderboard: bool | None = None) -> str:
-    """The site nav with the current page held in the accent colour, and
-    the owner's strapline (:data:`STRAPLINE`) directly under it."""
-    links = "\n".join(
-        f'  <a{" class=\"active\"" if href == active_href else ""} '
-        f'href="{href}">{label}</a>'
-        for href, label in nav_items(leaderboard)
-    )
+    """The site nav with the current page held in the accent colour, in two
+    groups split after :data:`NAV_FIRST_GROUP_ENDS`, and the owner's
+    strapline (:data:`STRAPLINE`) directly under it."""
+    items = nav_items(leaderboard)
+    cut = [h for h, _l in items].index(NAV_FIRST_GROUP_ENDS) + 1
+
+    def group(part):
+        return ('  <span class="navgroup">'
+                + "".join(f'<a{" class=\"active\"" if href == active_href else ""} '
+                          f'href="{href}">{label}</a>' for href, label in part)
+                + "</span>\n")
     return ('<nav class="topnav">\n'
             # the owner's logo (src/brand/logo.svg, site_assets.LOGO): one
             # file, drawn in the text colour; the link keeps the site's name
-            f'  <a class="home" href="./" aria-label="{SITE_NAME}">'
+            f'  <a class="home" href="./" aria-label="{LOGO_NAME}">'
             f'<svg class="logo" viewBox="{site_assets.LOGO_VIEWBOX}" aria-hidden="true" focusable="false">'
             f'<use href="{site_assets.LOGO}#logo"></use></svg></a>\n'
-            f"{links}\n"
+            '  <div class="navlinks">\n'
+            + group(items[:cut]) + group(items[cut:]) +
+            '  </div>\n'
             # js/theme.js wires the toggle; the page carries no handler
             '  <button class="themetoggle" type="button" '
             'aria-label="Switch between dark and light" title="Light or dark">'
@@ -239,8 +255,14 @@ def footer_for() -> str:
     resolve to the asset root; on other city hosts `src/worker.js` serves both pages from the root. The
     licence wording matches LICENSE (code, MIT) and LICENSE-CONTENT (site
     text, charts and published figures, CC BY 4.0)."""
+    # the umbrella site's logo, small, at the head of the credits that name it
+    # ("whysoserious.city is part of picnic labs"; owner, 2026-10-05)
+    umbrella = (f'<a class="foot-umbrella" href="{site_assets.APEX_URL}" aria-label="whysoserious.city">'
+                f'{site_assets.umbrella_svg("wsc-logo")}</a>')
     return f"""<footer class="sitefooter">
+  <div class="foot-top">{umbrella}
   <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="{STATSSA_URL}">Stats SA</a>. Ward and voting-district boundaries from the <a href="{MDB_URL}">Municipal Demarcation Board</a>. Raw election results from the <a href="{IEC_RESULTS_URL}">IEC</a>. <a href="{REPO_URL}">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
+  </div>
   <hr class="foot-rule">
   <div class="foot-independence">
     <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
@@ -594,6 +616,19 @@ def page_og(og: str, page_title: str, href: str) -> str:
     return out
 
 
+def page_type(href: str) -> str:
+    """The body class of a page type with a look of its own (owner,
+    2026-10-05: "the site needs to avoid looking exactly the same everywhere"):
+    ``pg-<href>`` when ``src/css/page-<href>.css`` exists, so the stylesheet
+    is the one list of which types have one (site_assets scopes it to that
+    class). Every page that lights the same nav item shares it: /commentary
+    and the articles, for one. Empty for any other page."""
+    name = href.strip("./")
+    if re.fullmatch(r"[a-z-]+", name or "-") and (site_assets.CSS_SRC / f"page-{name}.css").exists():
+        return f" pg-{name}"
+    return ""
+
+
 def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str,
           active_href: str = "", og: str | None = None) -> str:
     og_meta = page_og(og, title, active_href) if og else OG_META
@@ -604,7 +639,7 @@ def shell(title: str, kicker: str, masthead: str, body: str, generated_note: str
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 {og_meta}{SITE_HEAD}</head>
-<body class="pg-doc">
+<body class="pg-doc{page_type(active_href)}">
 <div class="page">
 {nav_for(active_href)}
 <header>
@@ -1105,6 +1140,8 @@ def main(argv: list[str] | None = None) -> int:
                       html, count=1, flags=re.S)
         html = fill_commentary(html)
         html = inject_nav(html, href, og_meta)
+        if page_type(href):
+            html = html.replace('<body class="', f'<body class="{page_type(href).strip()} ', 1)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx,
                                                  record=seen)

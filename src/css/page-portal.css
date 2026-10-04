@@ -21,3 +21,8 @@
     margin-top:4px;}
   .pcard-soon .pc-cta{color:var(--ink-3);}
   .pfoot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:70ch;}
+  /* the umbrella logo heads the apex page (src/brand/whysoserious.svg) */
+  .pm-logo{display:block;width:max-content;line-height:0;color:var(--ink);margin-bottom:14px;}
+  .pm-logo:hover{color:var(--accent);}
+  .pm-logo .wsc-logo{display:block;height:120px;width:calc(120px * 1984 / 1016);}
+  @media (max-width:560px){.pm-logo .wsc-logo{height:92px;width:calc(92px * 1984 / 1016);}}

@@ -184,7 +184,7 @@ def test_each_page_holds_its_own_content_only():
         assert not heads[out], (out, heads[out])
     # the claims are on /claims and nowhere else; the forecast is on /forecast
     for out, html in pages.items():
-        assert ('<article class="claim"' in html) == (out == "claims.html"), out
+        assert ('<article class="claim ' in html) == (out == "claims.html"), out
         assert ('id="coalitions"' in html) == (out == "forecast.html"), out
         assert ("<!-- __COMMENTARY__ -->" in html) == (out == "commentary.html"), out
         assert html.count("<h1") == 1, (out, html.count("<h1"))
@@ -567,3 +567,40 @@ def test_every_built_page_with_the_nav_carries_the_strapline_once():
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
+
+
+# ---------------------------------------------------------------- claims
+
+def claim_colour_problems(html: str, css: str, codes) -> list[str]:
+    """Every claim wears its own party's colour class and nothing else picks
+    a party: the claims stylesheet reads --pc and names no party."""
+    out = []
+    arts = re.findall(r'<article class="claim([^"]*)" data-party="([^"]+)">', html)
+    if not arts:
+        out.append("no claims")
+    for classes, party in arts:
+        if classes.split() != [f"pc-{party}"]:
+            out.append(f"{party}: classes {classes!r}")
+    if html.count('<article class="claim') != len(arts):
+        out.append("a claim without its party")
+    for code in codes:
+        if re.search(rf"\b{re.escape(code)}\b", css):
+            out.append(f"page-claims.css names {code}")
+    return out
+
+
+def test_every_claim_wears_its_own_partys_colour_and_none_is_singled_out():
+    import render_sheet
+    import site_assets as SA
+    html = (ROOT / "site" / "claims.html").read_text(encoding="utf-8")
+    css = re.sub(r"/\*.*?\*/", "", (SA.CSS_SRC / "page-claims.css").read_text(encoding="utf-8"), flags=re.S)
+    codes = list(render_sheet.CHIPS)
+    assert claim_colour_problems(html, css, codes) == []
+    assert '<body class="pg-claims ' in html
+    # it can see: a claim in another party's colour, one with none, a party named
+    one = re.search(r'<article class="claim pc-(\w+)" data-party="\1">', html)
+    assert one
+    wrong = "OTHER" if one.group(1) != "OTHER" else "DA"
+    assert claim_colour_problems(html.replace(one.group(0), one.group(0).replace(f"pc-{one.group(1)}", f"pc-{wrong}"), 1), css, codes)
+    assert claim_colour_problems(html.replace(one.group(0), f'<article class="claim" data-party="{one.group(1)}">', 1), css, codes)
+    assert claim_colour_problems(html, css + ".claim.pc-ANC{border-width:9px}", codes)

@@ -15,8 +15,8 @@
 
   /* the nav and the footer: src/css/chrome.css */
 
-  .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--accent);margin-bottom:10px;}
+  /* .kicker's type: src/css/components.css; a document's is in the accent */
+  .kicker{color:var(--accent);margin-bottom:10px;}
   h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
     line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
   .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;

@@ -438,7 +438,7 @@ def test_the_vote_is_a_table_with_no_spinner_and_no_inner_scroll():
     assert prlist and not any("max-height" in r or "overflow" in r for r in prlist), prlist
     assert re.search(r"\.prrow\{display:grid;grid-template-columns:minmax\(0,\d+px\) minmax\(0,1fr\) \d+px;", css)
     assert re.search(r"\.wltable\{[^}]*table-layout:fixed", css)
-    assert 'el("table", { className: k ? "wltable wlcont" : "wltable" }' in js and 'el("details", { className: "prmore" }' in js
+    assert 'el("table", { className: k ? "wltable wlcont" : "wltable" }' in js and 'el("details", { className: "rollup prmore" }' in js
 
 
 # -- section 1: the engine -------------------------------------------------------

@@ -504,10 +504,10 @@ def main(argv: list[str] | None = None) -> int:
             badge = (f'<span class="verdict {vclass}">'
                      f'{c["verdict"].upper()}</span>')
             ident = (f'<img class="plogo" src="logos/{c["logo"]}.png" alt="" '
-                     f'width="44" height="44">' if c.get("logo") else
+                     f'width="96" height="96">' if c.get("logo") else
                      f'<span class="pchip pc-{c["party"]}"></span>')
             boxes.append(
-                f'<article class="claim" data-party="{c["party"]}">'
+                f'<article class="claim pc-{c["party"]}" data-party="{c["party"]}">'
                 f'<div class="pubdate">{c["published"]}: Published</div>'
                 f'<div class="claim-top">{ident}'
                 f'<div class="claim-who"><b>{c.get("party_name", c["party"])}'

@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 
 import cityconfig
+import site_assets
 
 ELECTION = "4 November 2026"
 #: A city card's colour when its cities/<slug>.toml declares no [site] accent.
@@ -117,6 +118,7 @@ def render(cards: list[dict]) -> str:
     cards_html = "".join(card_html(c) for c in live + soon)
     return f"""<div class="portal">
   <header class="pmast">
+    <a class="pm-logo" href="./" aria-label="whysoserious.city — open city modelling &amp; forecasting">{site_assets.umbrella_svg("wsc-logo")}</a>
     <div class="kicker">South African local government · {ELECTION}</div>
     <h1>Who governs your city?</h1>
     <!-- ⛔ NO SLIDER EXISTS ON ANY PAGE. This read "every assumption a slider

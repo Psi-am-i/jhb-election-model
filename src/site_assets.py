@@ -22,7 +22,7 @@ What this module owns
     The site's typefaces, IBM Plex Sans, Serif and Mono, byte copies of
     ``src/fonts/`` with their licence; :func:`font_css` declares them at the
     head of ``site.css``.
-``site/logo.svg``, ``favicon.svg``, ``favicon-32.png``, ``apple-touch-icon.png``, ``og.png``
+``site/logo.svg``, ``whysoserious.svg``, ``favicon.svg``, ``favicon-32.png``, ``apple-touch-icon.png``, ``og.png``
     The owner's logo and what is made from it (:data:`BRAND_FILES`), byte
     copies of ``src/brand/``.
 ``site/js/``
@@ -60,14 +60,30 @@ CSS_PATH = "css/site.css"
 JS_DIR = "js"
 FONT_DIR = "fonts"
 BRAND_SRC = REPO_ROOT / "src" / "brand"
-#: The owner's logo (2026-10-03), served at the site root: the full logo
-#: (``#logo``, the nav's home link), the tower-J alone as the favicon (SVG,
-#: and PNG at 32 and 180 px) and, tight, as the share cards' mark
-#: (``mark.svg``), and the default share image. LOGO_VIEWBOX is
-#: the logo's box in logo.svg's coordinates, for a page's <svg><use>.
+#: The owner's logos, served at the site root. ``logo.svg`` (2026-10-05,
+#: replacing the 2026-10-03 one): the Hillbrow Tower as the J of
+#: "Johannesburg" over the site's address, the nav's home link (``#logo``).
+#: The tower-J alone is the favicon (SVG, and PNG at 32 and 180 px) and,
+#: tight, the share cards' mark (``mark.svg``); ``og.png`` is the default
+#: share image. ``whysoserious.svg`` is the umbrella site's logo (``#wsc``):
+#: the apex portal's masthead and the footer's "part of" line. A viewBox is
+#: the logo's box in its file's coordinates, for a page's <svg><use>.
 LOGO = "logo.svg"
-LOGO_VIEWBOX = "86 14 656 408"
-BRAND_FILES = ("logo.svg", "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png", "mark.svg")
+LOGO_VIEWBOX = "336 84 2190 1307"
+UMBRELLA = "whysoserious.svg"
+UMBRELLA_VIEWBOX = "440 272 1984 1016"
+#: The umbrella site's address, which its logo links to.
+APEX_URL = "https://whysoserious.city/"
+
+
+def umbrella_svg(cls: str) -> str:
+    """The umbrella logo (:data:`UMBRELLA`) for a page: one <svg><use>,
+    decorative (the link around it carries the name), in the text colour."""
+    return (f'<svg class="{cls}" viewBox="{UMBRELLA_VIEWBOX}" aria-hidden="true" focusable="false">'
+            f'<use href="{UMBRELLA}#wsc"></use></svg>')
+
+
+BRAND_FILES = ("logo.svg", "whysoserious.svg", "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png", "mark.svg")
 
 #: The stylesheet's parts, in cascade order. A ``page-<name>.css`` is scoped to
 #: ``.pg-<name>`` (:func:`scope_css`); every other file applies to every page.
@@ -76,6 +92,7 @@ BRAND_FILES = ("logo.svg", "favicon.svg", "favicon-32.png", "apple-touch-icon.pn
 CSS_FILES = ("tokens.css", "toggle.css",
              "page-doc.css", "page-sheet.css", "page-home.css", "page-portal.css",
              "page-art.css", "page-board.css",
+             "page-claims.css", "page-commentary.css", "page-methodology.css",
              "chrome.css", "stat.css", "maps.css", "seat-table.css", "components.css")
 
 

@@ -3,50 +3,55 @@
    forecast sheet's pages, the home page, the portal and the interactive pages.
    One copy here; page files carry none (owner's sweep, 2026-10-03). */
 
-/* Ten items (owner's sweep, 2026-10-03). Below 1200px they wrap from the
-   left and the theme toggle keeps the right end of the last line. From
-   1200px the bar is at least 1120px wide, centred on the page's own column
-   and wider than it where the column is narrower (852px on a document page),
-   so the ten items and the toggle sit on one line on every page. */
-.topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
-  justify-content:flex-start;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);
-  border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:24px;}
-.topnav .themetoggle{margin-left:auto;}
-@media (min-width:1200px){
-  .topnav{box-sizing:border-box;width:max(100%,1120px);
-    margin-left:min(0px,calc((100% - 1120px) / 2));}
-}
-.topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
-.topnav a:hover{color:var(--accent);}
-/* the home link is the owner's logo (site_assets.LOGO), drawn in the text
-   colour; the links sit on the line of its foot */
-.topnav{align-items:flex-end;}
-.topnav a.home{display:block;line-height:0;margin-right:10px;color:var(--ink);}
-.topnav a.home:hover{color:var(--accent);}
-.topnav .logo{display:block;height:116px;width:calc(116px * 656 / 408);margin-top:-6px;}
-@media (min-width:1200px){.topnav{column-gap:12px;}}
-/* beside the logo the bar is tall: the theme toggle takes its top right
-   corner, so the links keep one line */
-@media (min-width:641px){
-  .topnav{position:relative;}
-  .topnav .themetoggle{position:absolute;top:0;right:0;}
-}
-/* a phone: the logo has the first line to itself */
-@media (max-width:640px){
-  .topnav a.home{flex-basis:100%;margin:0 0 6px;}
-  .topnav .logo{height:96px;width:calc(96px * 656 / 408);}
-}
-.topnav a.active{color:var(--accent);}
+/* THE BAR (owner, 2026-10-05). The logo at the left; the menu in two groups
+   (build_site.nav_for) on the line of the logo's "Johannesburg", the record
+   and the method following the forecasts on that line where there is room
+   and dropping to a row of their own, as a group, where there is not; the
+   theme toggle at the right end of the first line. From 1200px the bar is at
+   least 1160px wide, centred on the page's own column and wider than it
+   where the column is narrower (852px on a document page), so every page's
+   bar is the same.
 
-/* The owner's strapline (build_site.STRAPLINE), directly under the bar on
-   every page: small, muted, the site mono. The bar's gap to the content moves
-   below it. */
-.topnav{margin-bottom:8px;}
-.strapline{font-family:var(--mono);font-size:12px;line-height:1.5;color:var(--ink-3);
-  max-width:none;margin:0 0 24px;}
+   --logo-h is the logo's height; the wordmark's baseline sits at .718 of it
+   (src/brand/logo.svg: baseline 1022.73 in a box from 84, 1307 high). The
+   links' first line is pushed down so their baseline meets it: --nav-base is
+   the distance from the top of a link's line box to its baseline. */
+.topnav{--logo-h:112px;--nav-base:14px;
+  display:flex;align-items:flex-start;gap:0 24px;
+  font-family:var(--mono);font-size:12.5px;line-height:18px;color:var(--ink);
+  border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:0;}
 @media (min-width:1200px){
-  .strapline{box-sizing:border-box;width:max(100%,1120px);
-    margin-left:min(0px,calc((100% - 1120px) / 2));}
+  .topnav{box-sizing:border-box;width:max(100%,1160px);
+    margin-left:min(0px,calc((100% - 1160px) / 2));}
+}
+.topnav a.home{flex:none;display:block;line-height:0;color:var(--ink);}
+.topnav a.home:hover{color:var(--accent);}
+.topnav .logo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 2190 / 1307);}
+.topnav .navlinks,.topnav .themetoggle{margin-top:calc(var(--logo-h) * .718 - var(--nav-base));}
+.topnav .navlinks{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;gap:6px 24px;}
+.topnav .navgroup{display:flex;flex-wrap:nowrap;gap:0 14px;}
+/* the toggle's box is taller than a line of links: centred on their line */
+.topnav .themetoggle{flex:none;margin-left:auto;transform:translateY(-6px);color:var(--ink);}
+.topnav a{color:var(--ink);text-decoration:none;white-space:nowrap;}
+.topnav a:hover{color:var(--accent);}
+.topnav a.active{color:var(--accent);}
+/* a phone: the logo on the first line with the toggle, the groups below it,
+   each wrapping between its items (never inside one) */
+@media (max-width:760px){
+  .topnav{--logo-h:92px;flex-wrap:wrap;}
+  .topnav .navlinks{order:3;flex-basis:100%;margin-top:10px;gap:4px 22px;}
+  .topnav .navgroup{flex-wrap:wrap;gap:4px 14px;}
+}
+
+/* The owner's strapline (build_site.STRAPLINE), under the bar on every page:
+   muted, a size below the menu, in the body face, with air above it so it
+   reads as a line of its own rather than a row of the menu (owner,
+   2026-10-05). */
+.strapline{font-family:var(--sans);font-size:11px;line-height:1.5;color:var(--ink-3);
+  max-width:none;margin:12px 0 26px;}
+@media (min-width:1200px){
+  .strapline{box-sizing:border-box;width:max(100%,1160px);
+    margin-left:min(0px,calc((100% - 1160px) / 2));}
 }
 
 /* The footer: the credits, a rule, then the independence statement with the
@@ -56,6 +61,14 @@
 .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
   border-top:1px solid var(--rule);padding-top:14px;margin-top:40px;}
 .sitefooter p{margin:0;color:var(--ink-3);}
+/* the umbrella site's logo, small, beside the credits that name it */
+.sitefooter .foot-top{display:flex;align-items:flex-start;gap:12px 24px;}
+.sitefooter .foot-top p{flex:1 1 auto;min-width:0;}
+.sitefooter a.foot-umbrella{flex:none;display:block;line-height:0;color:var(--ink-2);
+  text-decoration:none;margin-top:3px;}
+.sitefooter a.foot-umbrella:hover{color:var(--accent);}
+.sitefooter .wsc-logo{display:block;height:44px;width:calc(44px * 1984 / 1016);}
+@media (max-width:560px){.sitefooter .foot-top{flex-direction:column;}}
 /* Underlined, so a link reads as one inside the sentence-form credits on
    every page, the home page's no-underline links included. */
 .sitefooter a{color:var(--ink-3);text-decoration:underline;

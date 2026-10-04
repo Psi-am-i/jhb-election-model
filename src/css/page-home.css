@@ -6,8 +6,7 @@
   h1,h2,h3,h4,strong,b{color:var(--ink);}
   a{color:var(--accent);text-decoration:none;}
   a:hover{text-decoration:underline;}
-  .eyebrow{font:650 10.5px var(--sans);letter-spacing:.15em;
-    text-transform:uppercase;color:var(--ink-3);}
+  /* .eyebrow: src/css/components.css */
   .stamp{font-family:var(--mono);font-size:11px;color:var(--ink-3);
     letter-spacing:.04em;}
 
