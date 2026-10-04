@@ -116,13 +116,27 @@ def test_the_stylesheet_lists_every_source_file_and_scopes_every_page_file():
     css = SA.site_css()
     for name in SA.CSS_FILES:
         assert f"/* ---- src/css/{name} ---- */" in css
-    page_rules = re.findall(r"/\* ---- src/css/page-(\w+)\.css ---- \*/\n(.*?)(?=/\* ---- |\Z)", css, re.S)
+    page_rules = re.findall(r"/\* ---- src/css/page-([\w-]+)\.css ---- \*/\n(.*?)(?=/\* ---- |\Z)", css, re.S)
     assert len(page_rules) == sum(1 for n in SA.CSS_FILES if n.startswith("page-"))
     for name, body in page_rules:
         for sel in re.findall(r"(?:^|[{}])\s*([^@{}\s][^{}]*)\{", body):
             for s in sel.split(","):
                 s = s.strip()
                 assert (f".pg-{name})" in s or s.startswith(":root")), (name, s)
+
+
+def test_page_type_and_the_stylesheet_scope_by_one_pattern():
+    import build_site
+    m = SA.PAGE_CSS.fullmatch("page-your-forecast.css")
+    assert m and m.group(1) == "your-forecast"
+    for bad in ("page-.css", "page--x.css", "page-X.css", "page-a_b.css"):
+        assert not SA.PAGE_CSS.fullmatch(bad), bad
+    for name in SA.CSS_FILES:
+        if name.startswith("page-"):
+            kind = SA.PAGE_CSS.fullmatch(name).group(1)
+            assert build_site.page_type(kind) == f" pg-{kind}"
+    assert build_site.page_type("") == ""
+    assert build_site.page_type("no-such-page") == ""
 
 
 def test_the_light_palette_is_written_once_and_emitted_twice():

@@ -623,9 +623,10 @@ def page_type(href: str) -> str:
     is the one list of which types have one (site_assets scopes it to that
     class). Every page that lights the same nav item shares it: /commentary
     and the articles, for one. Empty for any other page."""
-    name = href.strip("./")
-    if re.fullmatch(r"[a-z-]+", name or "-") and (site_assets.CSS_SRC / f"page-{name}.css").exists():
-        return f" pg-{name}"
+    css = f"page-{href.strip('./')}.css"
+    m = site_assets.PAGE_CSS.fullmatch(css)
+    if m and (site_assets.CSS_SRC / css).exists():
+        return f" pg-{m.group(1)}"
     return ""
 
 

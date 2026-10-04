@@ -35,12 +35,16 @@
 .topnav a{color:var(--ink);text-decoration:none;white-space:nowrap;}
 .topnav a:hover{color:var(--accent);}
 .topnav a.active{color:var(--accent);}
-/* a phone: the logo on the first line with the toggle, the groups below it,
-   each wrapping between its items (never inside one) */
+/* Up to 900px a group wraps between its items (never inside one): beside the
+   logo from 761px a group with "leaderboard" in it is wider than the room
+   (measured overflow at 780-840px, 2026-10-05). */
+@media (max-width:900px){
+  .topnav .navgroup{flex-wrap:wrap;gap:4px 14px;}
+}
+/* a phone: the logo on the first line with the toggle, the groups below it */
 @media (max-width:760px){
   .topnav{--logo-h:92px;flex-wrap:wrap;}
   .topnav .navlinks{order:3;flex-basis:100%;margin-top:10px;gap:4px 22px;}
-  .topnav .navgroup{flex-wrap:wrap;gap:4px 14px;}
 }
 
 /* The owner's strapline (build_site.STRAPLINE), under the bar on every page:

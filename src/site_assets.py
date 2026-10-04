@@ -95,6 +95,12 @@ CSS_FILES = ("tokens.css", "toggle.css",
              "page-claims.css", "page-commentary.css", "page-methodology.css",
              "chrome.css", "stat.css", "maps.css", "seat-table.css", "components.css")
 
+#: A page stylesheet's file name; group 1 is the page type, ``pg-<type>`` its
+#: body class. The one pattern for both ends: :func:`site_css` scopes by it and
+#: ``build_site.page_type`` names the body class by it, so a type the one
+#: accepts the other scopes (a hyphenated ``page-your-forecast.css`` included).
+PAGE_CSS = re.compile(r"page-([a-z]+(?:-[a-z]+)*)\.css")
+
 
 
 # --------------------------------------------------------------------------
@@ -250,9 +256,13 @@ def site_css() -> str:
         text = (CSS_SRC / name).read_text(encoding="utf-8")
         if name == "tokens.css":
             text = _light_twice(text)
-        m = re.fullmatch(r"page-([a-z]+)\.css", name)
+        m = PAGE_CSS.fullmatch(name)
         if m:
             text = scope_css(text, f"pg-{m.group(1)}")
+        elif name.startswith("page-"):
+            raise SystemExit(f"src/css/{name} is a page stylesheet whose name "
+                             f"site_assets.PAGE_CSS cannot scope: its rules would "
+                             f"reach every page. Name it page-<lowercase-words>.css.")
         parts.append(f"/* ---- src/css/{name} ---- */\n{text.strip()}\n")
     on_disk = sorted(p.name for p in CSS_SRC.glob("*.css"))
     if on_disk != sorted(CSS_FILES):
