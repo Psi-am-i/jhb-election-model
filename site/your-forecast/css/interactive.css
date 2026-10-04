@@ -114,9 +114,6 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 /* ---------- the steps panel ---------- */
 .steps{display:flex;flex-direction:column;gap:14px;}
 .step{border:1px solid var(--rule-soft);border-radius:2px;background:var(--paper);}
-.step>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:28px 1fr auto;
-  gap:10px;align-items:baseline;padding:12px 14px;}
-.step>summary::-webkit-details-marker{display:none;}
 .step .num{font-family:var(--serif);font-size:20px;color:var(--reader);line-height:1;}
 .step .st{font-family:var(--serif);font-size:18px;color:var(--ink);font-weight:600;}
 .step .state{font-size:12.5px;color:var(--ink-3);}
@@ -276,8 +273,8 @@ dialog .x:hover{color:var(--ink);}
   margin-right:10px;}
 .step>.stephead{font-size:18px;padding:12px 14px 6px;}
 /* the vote list's second tier: parties with no seat at the start */
-.prmore>summary{cursor:pointer;font:600 13px var(--sans);color:var(--ink-2);padding:10px 2px;
-  border-bottom:1px solid var(--rule-soft);}
+/* a <details class="rollup">: the site's one collapsible (src/css/components.css) */
+.prmore>summary{padding:10px 0;border-bottom:1px solid var(--rule-soft);}
 .brushpick{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3);margin-top:8px;}
 .brushpick select{flex:1;min-width:0;}
 .brushscroll:empty{display:none;}

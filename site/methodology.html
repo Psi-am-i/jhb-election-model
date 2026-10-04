@@ -24,19 +24,14 @@
 <script defer src="js/stat-tip.js"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "c14bef699fb74863b4db775ea910b533"}'></script>
 </head>
-<body class="pg-doc">
+<body class="pg-doc pg-methodology">
 <div class="page">
 <nav class="topnav">
-  <a class="home" href="./" aria-label="joburg.whysoserious.city"><svg class="logo" viewBox="86 14 656 408" aria-hidden="true" focusable="false"><use href="logo.svg#logo"></use></svg></a>
-  <a href="forecast">our forecast</a>
-  <a href="your-forecast/">your forecast</a>
-  <a href="commentary">commentary</a>
-  <a href="claims">party claims tested</a>
-  <a class="active" href="methodology">methodology</a>
-  <a href="review">review</a>
-  <a href="corrections">corrections</a>
-  <a href="sources">sources</a>
-  <a href="https://github.com/Psi-am-i/jhb-election-model">source code</a>
+  <a class="home" href="./" aria-label="Johannesburg — joburg.whysoserious.city"><svg class="logo" viewBox="336 84 2190 1307" aria-hidden="true" focusable="false"><use href="logo.svg#logo"></use></svg></a>
+  <div class="navlinks">
+  <span class="navgroup"><a href="forecast">our forecast</a><a href="your-forecast/">your forecast</a><a href="commentary">commentary</a><a href="claims">party claims tested</a></span>
+  <span class="navgroup"><a class="active" href="methodology">methodology</a><a href="review">review</a><a href="corrections">corrections</a><a href="sources">sources</a><a href="https://github.com/Psi-am-i/jhb-election-model">source code</a></span>
+  </div>
   <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
 </nav>
 <p class="strapline">Made for the benefit of all the residents, businesses, professional and civic organisations and political parties that make our city so interesting.</p>
@@ -68,7 +63,7 @@ Laingsburg in 2021, where the DA won <span class="mstat" data-mode="fixed" data-
 over-winner stays slightly over-represented; the cost falls on everyone else.</p>
 <p>Two consequences shape this site. The council is always close to proportional,
 so a fragmented vote produces a fragmented council. The excessive-seats clause
-catches the ANC in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-current="62%" data-prov="62%. Was 65%. Published 26 September 2026; now 3 October 2026. Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">62%</span><span class="arrow mstat-move down" data-prov="Was 65%.">▼</span> of simulations: a citywide vote in the
+catches the ANC in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-current="62%" data-prov="62%. Was 65%. Published 26 September 2026; now 4 October 2026. Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">62%</span><span class="arrow mstat-move down" data-prov="Was 65%.">▼</span> of simulations: a citywide vote in the
 mid-twenties, with stronghold wards that still win. Where it fires, the party&rsquo;s
 ward count is a floor, its list seats go to zero, and the squeeze lands on
 every other party&rsquo;s list seats, inside a council fixed at <span class="mstat" data-mode="free" data-token="council_size" data-when="2026-08-07" data-current="270" data-prov="270. Unchanged since 8 August 2026. Source: derived:council_size, live from the current model run." tabindex="0">270</span> with
@@ -107,8 +102,8 @@ stands on) and labelled for what was measured.</p>
 <p><strong>How big is each pool?</strong> Each ward&rsquo;s registered voters, split by that ward&rsquo;s
 composition, summed across all 135 wards. The census gives the <em>proportions</em>
 within a ward; the roll gives the <em>number</em>, and where they disagree the roll
-wins. They disagree a lot: the census implies about <span class="mstat" data-mode="fixed" data-token="hist_census_white_adults" data-when="2026-09-17" data-prov="300,000. First published in this edition (3 October 2026). Source: external:Stats SA Census 2022 ward estimates, Johannesburg's white adults, against the IEC voters' roll (DATA-QUALITY.md item 11). Pinned 2026-09-17." tabindex="0">300,000</span> white adults in
-Johannesburg, and the roll carries about <span class="mstat" data-mode="fixed" data-token="hist_roll_white_voters" data-when="2026-09-17" data-prov="560,000. First published in this edition (3 October 2026). Source: external:IEC voters' roll against Stats SA Census 2022 ward estimates, Johannesburg's registered white voters (DATA-QUALITY.md item 11). Pinned 2026-09-17." tabindex="0">560,000</span> registered white voters. We
+wins. They disagree a lot: the census implies about <span class="mstat" data-mode="fixed" data-token="hist_census_white_adults" data-when="2026-09-17" data-prov="300,000. First published in this edition (4 October 2026). Source: external:Stats SA Census 2022 ward estimates, Johannesburg's white adults, against the IEC voters' roll (DATA-QUALITY.md item 11). Pinned 2026-09-17." tabindex="0">300,000</span> white adults in
+Johannesburg, and the roll carries about <span class="mstat" data-mode="fixed" data-token="hist_roll_white_voters" data-when="2026-09-17" data-prov="560,000. First published in this edition (4 October 2026). Source: external:IEC voters' roll against Stats SA Census 2022 ward estimates, Johannesburg's registered white voters (DATA-QUALITY.md item 11). Pinned 2026-09-17." tabindex="0">560,000</span> registered white voters. We
 publish the gap rather than absorb it.</p>
 <h3 id="3-measure-how-each-party-does-in-each-pool">3. Measure how each party does in each pool</h3>
 <p>This is the model&rsquo;s statistics. We know how every ward voted and roughly what
@@ -199,7 +194,7 @@ August 2026 and has not been re-run on the current model.</span></p>
 is run on the 2021 election in <span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-current="8" data-prov="8. Unchanged since 26 September 2026. Source: validation:cities, live from the current model run." tabindex="0">8</span> cities and wins in
 <strong><span class="mstat" data-mode="free" data-token="backtest_wins" data-when="2026-09-18" data-current="7" data-prov="7. Unchanged since 26 September 2026. Source: validation:wins, live from the current model run." tabindex="0">7</span></strong> of them on the measure that scores a forecast&rsquo;s whole
 range (CRPS), with <strong><span class="mstat" data-mode="free" data-token="backtest_crps_better" data-when="2026-09-18" data-current="34%" data-prov="34%. Unchanged since 27 September 2026. Source: validation:crps_better_pct, live from the current model run." tabindex="0">34%</span></strong> less error in total. Counted in
-seats put in the wrong column, it misses <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-current="297" data-prov="297. Was 294. Published 27 September 2026; now 3 October 2026. Source: validation:seat_err_model, live from the current model run." tabindex="0">297</span><span class="arrow mstat-move up" data-prov="Was 294.">▲</span></strong> against
+seats put in the wrong column, it misses <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-current="297" data-prov="297. Was 294. Published 27 September 2026; now 4 October 2026. Source: validation:seat_err_model, live from the current model run." tabindex="0">297</span><span class="arrow mstat-move up" data-prov="Was 294.">▲</span></strong> against
 the baselines&rsquo; <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-current="353" data-prov="353. Unchanged since 26 September 2026. Source: validation:seat_err_baseline, live from the current model run." tabindex="0">353</span></strong>, a smaller margin because that
 measure looks only at the single most likely outcome. It calls the winner in
 <strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-current="719" data-prov="719. Unchanged since 27 September 2026. Source: validation:wards_called, live from the current model run." tabindex="0">719</span> of <span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-current="742" data-prov="742. Unchanged since 26 September 2026. Source: validation:wards, live from the current model run." tabindex="0">742</span></strong> wards.</p>
@@ -1268,10 +1263,12 @@ defects in the public records the model depends on are published:</p>
 <li><code>SOURCES.md</code>: where every input came from and how to fetch it again</li>
 </ul>
 <div class="colophon">
-  Reader edition, generated from docs-public/methodology.md on 2026-10-03. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
+  Reader edition, generated from docs-public/methodology.md on 2026-10-05. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
+  <div class="foot-top"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="440 272 1984 1016" aria-hidden="true" focusable="false"><use href="whysoserious.svg#wsc"></use></svg></a>
   <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="https://www.statssa.gov.za/">Stats SA</a>. Ward and voting-district boundaries from the <a href="https://spatialhub-mdb-sa.opendata.arcgis.com/">Municipal Demarcation Board</a>. Raw election results from the <a href="https://results.elections.org.za/">IEC</a>. <a href="https://github.com/Psi-am-i/jhb-election-model">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
+  </div>
   <hr class="foot-rule">
   <div class="foot-independence">
     <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>

@@ -85,8 +85,7 @@ body:where(.pg-doc){background:var(--paper);color:var(--ink-2);font-family:var(-
 :where(.pg-doc) figcaption,:where(.pg-doc) .small,:where(.pg-doc) .colophon{color:var(--ink-3);}
 :where(.pg-doc) figcaption b,:where(.pg-doc) figcaption strong,:where(.pg-doc) .small b{color:inherit;}
 :where(.pg-doc) .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
-:where(.pg-doc) .kicker{font-size:11px;font-weight:650;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--accent);margin-bottom:10px;}
+:where(.pg-doc) .kicker{color:var(--accent);margin-bottom:10px;}
 :where(.pg-doc) h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
     line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
 :where(.pg-doc) .standfirst{font-family:var(--serif);font-size:clamp(16px,2.2vw,19px);line-height:1.5;
@@ -155,8 +154,6 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) .page{display:flex;flex-direction:column;gap:24px;}
 :where(.pg-sheet) .page + .page{margin-top:34px;padding-top:30px;border-top:1px solid var(--rule);}
 :where(.pg-sheet) .masthead{display:flex;flex-direction:column;gap:10px;}
-:where(.pg-sheet) .kicker{font-family:var(--sans); font-size:11px; font-weight:650;
-    letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3);}
 :where(.pg-sheet) h1{font-family:var(--serif); font-weight:600; font-size:clamp(30px,5.2vw,46px);
     line-height:1.06; letter-spacing:-.012em; text-wrap:pretty; margin:0;}
 :where(.pg-sheet) .h1-sub{display:block;font-size:.78em;line-height:1.12;margin-top:6px;color:var(--ink);}
@@ -169,8 +166,6 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) .dateline b{color:var(--ink-2);font-weight:600;}
 :where(.pg-sheet) h2{font-family:var(--serif); font-weight:600; font-size:22px; line-height:1.2;
     margin:0; letter-spacing:-.006em;}
-:where(.pg-sheet) .eyebrow{font-family:var(--sans); font-size:10.5px; font-weight:650;
-    letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3);}
 :where(.pg-sheet) section{display:flex;flex-direction:column;gap:14px;}
 :where(.pg-sheet) a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
 :where(.pg-sheet) .sheet a{color:var(--good);text-decoration-thickness:1px;text-underline-offset:2px;}
@@ -187,23 +182,6 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) .stat .n .chancew{font-size:.5em;font-weight:650;letter-spacing:.04em;}
 :where(.pg-sheet) .stat .l{font-size:13.5px;color:var(--ink);line-height:1.4;}
 :where(.pg-sheet) .stat .l .sub{display:block;font-size:11.5px;color:var(--ink-2);margin-top:2px;}
-:where(.pg-sheet) .bandhead{display:flex;align-items:baseline;justify-content:space-between;
-    border-bottom:2px solid var(--accent);padding-bottom:6px;margin-top:16px;}
-:where(.pg-sheet) .bandtitle{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.18em;
-    text-transform:uppercase;color:var(--accent);}
-:where(.pg-sheet) .bandbtn{font-family:var(--mono);font-size:11px;color:var(--ink-3);background:none;
-    border:none;cursor:pointer;padding:0;}
-:where(.pg-sheet) .bandbtn:hover{color:var(--accent);}
-:where(.pg-sheet) details.rollup>summary{cursor:pointer;list-style:none;position:relative;
-    display:flex;flex-direction:column;gap:6px;padding-right:26px;}
-:where(.pg-sheet) details.rollup>summary::-webkit-details-marker{display:none;}
-:where(.pg-sheet) details.rollup>summary::after{content:"–";position:absolute;right:2px;top:0;
-    font-family:var(--mono);font-size:17px;line-height:1;color:var(--ink-3);}
-:where(.pg-sheet) details.rollup:not([open])>summary::after{content:"+";}
-:where(.pg-sheet) details.rollup>*:not(summary){margin-top:14px;}
-:where(.pg-sheet) details.rollup>summary h2{margin:0;}
-:where(.pg-sheet) details.rollup + details.rollup{margin-top:30px;padding-top:26px;
-    border-top:1px solid var(--rule-soft);}
 :where(.pg-sheet) figure{margin:0;display:flex;flex-direction:column;gap:10px;}
 :where(.pg-sheet) figcaption{font-size:12.5px;color:var(--ink-3);}
 :where(.pg-sheet) figcaption.ballots-note{font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--ink-2);
@@ -252,34 +230,6 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) .page + .page{margin-top:0;border-top:none;padding-top:0;}}
 @media (max-width:560px){:where(.pg-sheet) .sheet{padding:20px 14px 48px;}
 :where(.pg-sheet) h1{text-wrap:pretty;}}
-:where(.pg-sheet) .claimlist > .claim:first-child{margin-top:0;padding-top:0;border-top:none;}
-:where(.pg-sheet) .claim{display:flex;flex-direction:column;gap:14px;margin-top:26px;
-    padding-top:24px;border-top:1px solid var(--rule);}
-:where(.pg-sheet) .claim-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-:where(.pg-sheet) .plogo{width:64px;height:64px;border-radius:7px;object-fit:contain;
-    background:#fff;padding:2px;flex:none;}
-:where(.pg-sheet) .claim-who{display:flex;flex-direction:column;line-height:1.35;margin-right:auto;}
-:where(.pg-sheet) .claim-who b{font-size:14.5px;}
-:where(.pg-sheet) .claim-who span{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
-:where(.pg-sheet) .verdict{font-family:var(--sans);font-size:12px;font-weight:750;
-    letter-spacing:.12em;padding:5px 12px;border-radius:3px;}
-:where(.pg-sheet) .verdict.vfalse{background:var(--bad);color:#fff;}
-:where(.pg-sheet) .verdict.vtrue{background:var(--good);color:#fff;}
-:where(.pg-sheet) .claim-quote{margin:0;font-family:var(--serif);font-weight:600;
-    font-size:clamp(21px,3.2vw,27px);line-height:1.25;letter-spacing:-.01em;
-    text-wrap:pretty;position:relative;padding-left:30px;}
-:where(.pg-sheet) .claim-quote::before{content:"\201C";position:absolute;left:-2px;top:-6px;
-    font-size:56px;line-height:1;color:var(--accent);opacity:.5;}
-:where(.pg-sheet) .claim-intro{font-family:var(--serif);font-size:16px;color:var(--ink-2);}
-:where(.pg-sheet) .claimsteps{margin:0;padding-left:0;list-style:none;counter-reset:cs;
-    display:flex;flex-direction:column;gap:16px;}
-:where(.pg-sheet) .claimsteps li{counter-increment:cs;display:flex;gap:14px;font-size:14.5px;
-    line-height:1.55;}
-:where(.pg-sheet) .claimsteps li::before{content:counter(cs);flex:none;width:26px;height:26px;
-    border-radius:50%;background:var(--accent);color:var(--paper);
-    font:700 13px/26px var(--mono);text-align:center;}
-:where(.pg-sheet) .stepbody{flex:1;}
-:where(.pg-sheet) .q-close{color:var(--accent);opacity:.55;margin-left:1px;}
 :where(.pg-sheet) .govfilter{margin:14px 0 0;padding:12px 14px;border:1px solid var(--rule);border-radius:6px 6px 0 0;
     border-bottom:none;background:color-mix(in srgb,var(--ink) 3%,transparent);}
 :where(.pg-sheet) .govfilter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;}
@@ -325,8 +275,6 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-home) h1,:where(.pg-home) h2,:where(.pg-home) h3,:where(.pg-home) h4,:where(.pg-home) strong,:where(.pg-home) b{color:var(--ink);}
 :where(.pg-home) a{color:var(--accent);text-decoration:none;}
 :where(.pg-home) a:hover{text-decoration:underline;}
-:where(.pg-home) .eyebrow{font:650 10.5px var(--sans);letter-spacing:.15em;
-    text-transform:uppercase;color:var(--ink-3);}
 :where(.pg-home) .stamp{font-family:var(--mono);font-size:11px;color:var(--ink-3);
     letter-spacing:.04em;}
 :where(.pg-home) .hero{padding:44px 0 8px;position:relative;}
@@ -390,6 +338,10 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
     margin-top:4px;}
 :where(.pg-portal) .pcard-soon .pc-cta{color:var(--ink-3);}
 :where(.pg-portal) .pfoot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:70ch;}
+:where(.pg-portal) .pm-logo{display:block;width:max-content;line-height:0;color:var(--ink);margin-bottom:14px;}
+:where(.pg-portal) .pm-logo:hover{color:var(--accent);}
+:where(.pg-portal) .pm-logo .wsc-logo{display:block;height:120px;width:calc(120px * 1984 / 1016);}
+@media (max-width:560px){:where(.pg-portal) .pm-logo .wsc-logo{height:92px;width:calc(92px * 1984 / 1016);}}
 
 /* ---- src/css/page-art.css ---- */
 :where(.pg-art) a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
@@ -411,56 +363,110 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-board) .lb-table tr.lb-you{outline:2px solid var(--reader);outline-offset:-2px;font-weight:600;}
 :where(.pg-board) .lb-wrap{overflow-x:auto;}
 
+/* ---- src/css/page-claims.css ---- */
+:where(.pg-claims) .claimlist{display:flex;flex-direction:column;gap:30px;}
+:where(.pg-claims) .claim{--c:var(--pc,var(--pc-other));display:flex;flex-direction:column;gap:14px;
+    padding:20px 24px 24px;border:1px solid color-mix(in srgb,var(--c) 30%,var(--rule-soft));
+    border-left:6px solid var(--c);border-radius:4px;
+    background:color-mix(in srgb,var(--c) 7%,var(--paper));}
+:where(.pg-claims) .claim-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+:where(.pg-claims) .plogo{width:96px;height:96px;border-radius:10px;object-fit:contain;
+    background:#fff;padding:5px;flex:none;box-shadow:0 0 0 3px var(--c);}
+:where(.pg-claims) .claim-top .pchip{width:28px;height:28px;border-radius:6px;}
+:where(.pg-claims) .claim-who{display:flex;flex-direction:column;gap:2px;line-height:1.35;margin-right:auto;}
+:where(.pg-claims) .claim-who b{font-family:var(--serif);font-size:20px;font-weight:600;}
+:where(.pg-claims) .claim-who span{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
+:where(.pg-claims) .verdict{font-family:var(--sans);font-size:12px;font-weight:750;
+    letter-spacing:.12em;padding:5px 12px;border-radius:3px;color:var(--ink);
+    border:1px solid var(--c);background:color-mix(in srgb,var(--c) 30%,var(--paper));}
+:where(.pg-claims) .claim-quote{margin:0;font-family:var(--serif);font-weight:600;
+    font-size:clamp(21px,3.2vw,27px);line-height:1.25;letter-spacing:-.01em;
+    text-wrap:pretty;position:relative;padding-left:30px;}
+:where(.pg-claims) .claim-quote::before{content:"\201C";position:absolute;left:-2px;top:-6px;
+    font-size:56px;line-height:1;color:var(--c);}
+:where(.pg-claims) .q-close{color:var(--c);margin-left:1px;}
+:where(.pg-claims) .claim-intro{font-family:var(--serif);font-size:16px;color:var(--ink-2);}
+:where(.pg-claims) .claimsteps{margin:0;padding-left:0;list-style:none;counter-reset:cs;
+    display:flex;flex-direction:column;gap:16px;}
+:where(.pg-claims) .claimsteps li{counter-increment:cs;display:flex;gap:14px;font-size:14.5px;
+    line-height:1.55;}
+:where(.pg-claims) .claimsteps li::before{content:counter(cs);flex:none;box-sizing:border-box;width:26px;height:26px;
+    border-radius:50%;border:2px solid var(--c);color:var(--ink);
+    font:700 12px/22px var(--mono);text-align:center;}
+:where(.pg-claims) .stepbody{flex:1;}
+@media (max-width:560px){:where(.pg-claims) .claim{padding:16px 14px 18px;border-left-width:4px;}
+:where(.pg-claims) .plogo{width:72px;height:72px;}}
+
+/* ---- src/css/page-commentary.css ---- */
+:where(.pg-commentary) .masthead{border-top:3px solid var(--k-article);padding-top:18px;}
+:where(.pg-commentary) .kicker{color:var(--k-article);}
+:where(.pg-commentary) .feed .item{border-bottom-color:var(--rule);}
+:where(.pg-commentary) .feed .when{color:var(--k-article);font-weight:600;}
+:where(.pg-commentary) .sheet .feed .t a{color:var(--ink);text-decoration:none;}
+:where(.pg-commentary) .sheet .feed .t a:hover{color:var(--k-article);text-decoration:underline;
+    text-decoration-thickness:1px;text-underline-offset:3px;}
+
+/* ---- src/css/page-methodology.css ---- */
+:where(.pg-methodology) .kicker{color:var(--k-explain);}
+:where(.pg-methodology) header{border-top:3px solid var(--k-explain);padding-top:18px;}
+:where(.pg-methodology) h2{border-top:2px solid color-mix(in srgb,var(--k-explain) 55%,var(--rule));}
+:where(.pg-methodology) blockquote{border-left-color:var(--k-explain);}
+
 /* ---- src/css/chrome.css ---- */
 /* The nav bar and the footer every page carries (build_site.nav_for and
    build_site.footer_for), on every kind of page: the rendered documents, the
    forecast sheet's pages, the home page, the portal and the interactive pages.
    One copy here; page files carry none (owner's sweep, 2026-10-03). */
 
-/* Ten items (owner's sweep, 2026-10-03). Below 1200px they wrap from the
-   left and the theme toggle keeps the right end of the last line. From
-   1200px the bar is at least 1120px wide, centred on the page's own column
-   and wider than it where the column is narrower (852px on a document page),
-   so the ten items and the toggle sit on one line on every page. */
-.topnav{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
-  justify-content:flex-start;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);
-  border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:24px;}
-.topnav .themetoggle{margin-left:auto;}
-@media (min-width:1200px){
-  .topnav{box-sizing:border-box;width:max(100%,1120px);
-    margin-left:min(0px,calc((100% - 1120px) / 2));}
-}
-.topnav a{color:var(--ink-3);text-decoration:none;white-space:nowrap;}
-.topnav a:hover{color:var(--accent);}
-/* the home link is the owner's logo (site_assets.LOGO), drawn in the text
-   colour; the links sit on the line of its foot */
-.topnav{align-items:flex-end;}
-.topnav a.home{display:block;line-height:0;margin-right:10px;color:var(--ink);}
-.topnav a.home:hover{color:var(--accent);}
-.topnav .logo{display:block;height:116px;width:calc(116px * 656 / 408);margin-top:-6px;}
-@media (min-width:1200px){.topnav{column-gap:12px;}}
-/* beside the logo the bar is tall: the theme toggle takes its top right
-   corner, so the links keep one line */
-@media (min-width:641px){
-  .topnav{position:relative;}
-  .topnav .themetoggle{position:absolute;top:0;right:0;}
-}
-/* a phone: the logo has the first line to itself */
-@media (max-width:640px){
-  .topnav a.home{flex-basis:100%;margin:0 0 6px;}
-  .topnav .logo{height:96px;width:calc(96px * 656 / 408);}
-}
-.topnav a.active{color:var(--accent);}
+/* THE BAR (owner, 2026-10-05). The logo at the left; the menu in two groups
+   (build_site.nav_for) on the line of the logo's "Johannesburg", the record
+   and the method following the forecasts on that line where there is room
+   and dropping to a row of their own, as a group, where there is not; the
+   theme toggle at the right end of the first line. From 1200px the bar is at
+   least 1160px wide, centred on the page's own column and wider than it
+   where the column is narrower (852px on a document page), so every page's
+   bar is the same.
 
-/* The owner's strapline (build_site.STRAPLINE), directly under the bar on
-   every page: small, muted, the site mono. The bar's gap to the content moves
-   below it. */
-.topnav{margin-bottom:8px;}
-.strapline{font-family:var(--mono);font-size:12px;line-height:1.5;color:var(--ink-3);
-  max-width:none;margin:0 0 24px;}
+   --logo-h is the logo's height; the wordmark's baseline sits at .718 of it
+   (src/brand/logo.svg: baseline 1022.73 in a box from 84, 1307 high). The
+   links' first line is pushed down so their baseline meets it: --nav-base is
+   the distance from the top of a link's line box to its baseline. */
+.topnav{--logo-h:112px;--nav-base:14px;
+  display:flex;align-items:flex-start;gap:0 24px;
+  font-family:var(--mono);font-size:12.5px;line-height:18px;color:var(--ink);
+  border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:0;}
 @media (min-width:1200px){
-  .strapline{box-sizing:border-box;width:max(100%,1120px);
-    margin-left:min(0px,calc((100% - 1120px) / 2));}
+  .topnav{box-sizing:border-box;width:max(100%,1160px);
+    margin-left:min(0px,calc((100% - 1160px) / 2));}
+}
+.topnav a.home{flex:none;display:block;line-height:0;color:var(--ink);}
+.topnav a.home:hover{color:var(--accent);}
+.topnav .logo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 2190 / 1307);}
+.topnav .navlinks,.topnav .themetoggle{margin-top:calc(var(--logo-h) * .718 - var(--nav-base));}
+.topnav .navlinks{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;gap:6px 24px;}
+.topnav .navgroup{display:flex;flex-wrap:nowrap;gap:0 14px;}
+/* the toggle's box is taller than a line of links: centred on their line */
+.topnav .themetoggle{flex:none;margin-left:auto;transform:translateY(-6px);color:var(--ink);}
+.topnav a{color:var(--ink);text-decoration:none;white-space:nowrap;}
+.topnav a:hover{color:var(--accent);}
+.topnav a.active{color:var(--accent);}
+/* a phone: the logo on the first line with the toggle, the groups below it,
+   each wrapping between its items (never inside one) */
+@media (max-width:760px){
+  .topnav{--logo-h:92px;flex-wrap:wrap;}
+  .topnav .navlinks{order:3;flex-basis:100%;margin-top:10px;gap:4px 22px;}
+  .topnav .navgroup{flex-wrap:wrap;gap:4px 14px;}
+}
+
+/* The owner's strapline (build_site.STRAPLINE), under the bar on every page:
+   muted, a size below the menu, in the body face, with air above it so it
+   reads as a line of its own rather than a row of the menu (owner,
+   2026-10-05). */
+.strapline{font-family:var(--sans);font-size:11px;line-height:1.5;color:var(--ink-3);
+  max-width:none;margin:12px 0 26px;}
+@media (min-width:1200px){
+  .strapline{box-sizing:border-box;width:max(100%,1160px);
+    margin-left:min(0px,calc((100% - 1160px) / 2));}
 }
 
 /* The footer: the credits, a rule, then the independence statement with the
@@ -470,6 +476,14 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
   border-top:1px solid var(--rule);padding-top:14px;margin-top:40px;}
 .sitefooter p{margin:0;color:var(--ink-3);}
+/* the umbrella site's logo, small, beside the credits that name it */
+.sitefooter .foot-top{display:flex;align-items:flex-start;gap:12px 24px;}
+.sitefooter .foot-top p{flex:1 1 auto;min-width:0;}
+.sitefooter a.foot-umbrella{flex:none;display:block;line-height:0;color:var(--ink-2);
+  text-decoration:none;margin-top:3px;}
+.sitefooter a.foot-umbrella:hover{color:var(--accent);}
+.sitefooter .wsc-logo{display:block;height:44px;width:calc(44px * 1984 / 1016);}
+@media (max-width:560px){.sitefooter .foot-top{flex-direction:column;}}
 /* Underlined, so a link reads as one inside the sentence-form credits on
    every page, the home page's no-underline links included. */
 .sitefooter a{color:var(--ink-3);text-decoration:underline;
@@ -680,6 +694,46 @@ td.num .arrow{display:inline-block;width:1.3em;margin-right:calc(-1.3em - 2px);t
 .feed .item .d{font-size:13.5px;margin-top:5px;color:var(--ink-2);}
 .feed .lead-item .t{font-size:clamp(22px,2.6vw,30px);}
 @media (max-width:560px){.feed .item{grid-template-columns:1fr;gap:2px;}}
+
+/* THE MINI-HEADING (owner, 2026-10-05: "it is often the only headline for a
+   section"). One style for the eyebrow over a section ("Make your own
+   forecast", "Articles", "The map — every ward…") and the kicker over a page's
+   title; a page or a panel may set its colour and spacing. :where() keeps the
+   rule at no specificity, so a page file's colour wins wherever it sits in
+   the cascade. */
+:where(.eyebrow,.kicker){font-family:var(--sans);font-size:13px;font-weight:650;line-height:1.35;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);}
+
+/* THE COLLAPSIBLE (owner, 2026-10-05: one style everywhere, the forecast
+   sheet's). A band's head: its title in the accent over an accent rule, and a
+   muted mono "collapse all" at the right (js/sheet.js). A section under it is
+   a <details class="rollup">: its summary is the heading, with a mono "–"
+   (open) or "+" (closed) at the right edge, never inside the heading's text.
+   <details>/<summary> carry the keyboard and the expanded state. */
+.bandhead{display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:2px solid var(--accent);padding-bottom:6px;margin-top:16px;}
+.bandtitle{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);}
+.bandbtn{font-family:var(--mono);font-size:11px;color:var(--ink-3);background:none;
+  border:none;cursor:pointer;padding:0;}
+.bandbtn:hover{color:var(--accent);}
+details.rollup>summary{cursor:pointer;list-style:none;position:relative;
+  display:flex;flex-direction:column;gap:6px;padding-right:26px;}
+details.rollup>summary::-webkit-details-marker{display:none;}
+details.rollup>summary::after{content:"–";position:absolute;right:2px;top:0;
+  font-family:var(--mono);font-size:17px;line-height:1;color:var(--ink-3);}
+details.rollup:not([open])>summary::after{content:"+";}
+details.rollup>summary:hover::after{color:var(--accent);}
+details.rollup>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+details.rollup>*:not(summary){margin-top:14px;}
+details.rollup>summary h2{margin:0;}
+/* ⛔ A HAIRLINE AND AIR BETWEEN ADJACENT SECTIONS. Thirteen sections with
+   nothing between them read as one wall and the eye finds no place to stop
+   (owner, 2026-09-26: "it all rolls into each other and feels like work").
+   `rule-soft` rather than `rule`: a separator the reader notices only when
+   looking for it, which is what a minor boundary is. */
+details.rollup + details.rollup{margin-top:30px;padding-top:26px;
+  border-top:1px solid var(--rule-soft);}
 
 /* generated by src/site_assets.py from render_sheet.CHIPS and cities/*.toml: do not edit */
 :root{--pc-other:#8b918b;}
