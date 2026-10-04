@@ -367,7 +367,7 @@ function council(spec, x, y, { width, cell: want, gap, fs = 15, label = true }) 
 // the previous election. `g`: { x, right, cols: [four right edges], y (the
 // headers' first baseline), n (rows before Others), pitch, chip, rules,
 // fs: { head, name, pct, seats, vs } }. Returns { svg, bottom }.
-const TABLE_HEAD = baseYear => [["% of", "seats"], ["% of", "votes"], ["", "Seats"], ["Change", "vs " + baseYear]];
+const TABLE_HEAD = baseYear => [["% of", "seats"], ["% of", "votes"], ["", "Seats"], ["Change", "vs " + (baseYear || "")]];
 function partyTable(spec, assets, g) {
   const { x, right: R, cols, pitch, chip: cs, fs } = g;
   let s = "";
