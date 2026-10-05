@@ -39,6 +39,12 @@
 // Precision (DESIGN-decided §15): a move that would leave any figure shown
 // known to worse than reweight.MAX_FIGURE_SE_SEATS stops: the control returns
 // to the furthest setting for which page.py's reweight.within_precision held.
+// Never silently (owner, 2026-10-05): a slider that stops shows a shaded zone
+// beyond the furthest setting it reaches and one line saying why, under the
+// slider; an option of a discrete control (a poll, a by-election weight, a
+// seat law) that cannot be shown at the other settings is marked, and the
+// line beside that control names it and says why. Both are forgotten when
+// another control moves, because the stop depends on every other setting.
 //
 // Change cues (owner, 2026-10-03): a seat row or banner entry whose middle
 // moved since the last figures shown pulses, with a ▲/▼ for the direction;
@@ -78,6 +84,7 @@ const R = {
   turnout: document.querySelector('[data-live="turnout"]'),
   polls: document.querySelector('[data-live="polls"]'),
   trust: document.querySelector('[data-live="trust"]'),
+  trustwhy: document.querySelector('[data-live="trustwhy"]'),
   cells: document.querySelector('[data-live="cells"]'),
   bye: document.querySelector('[data-live="byelection"]'),
   law: document.querySelector('[data-live="law"]'),
@@ -132,7 +139,13 @@ let geometry = null;          // the ward boundaries (play/ward_paths.json)
 let pubOrder = [];            // the published rows' order: the banner keeps it
 const pending = new Map();
 const groups = {};            // control group -> the element that greys
-const inputs = { turnout: [], tlabel: [], tscale: [], poll: [], law: [], cells: [] };
+const inputs = { turnout: [], tlabel: [], tscale: [], tzone: [], poll: [], pollRow: [], law: [], lawRow: [], cells: [] };
+// Where each slider stops at the other settings now ({ group: { up, down } },
+// play-state.js withStop) and why; and the one option of each discrete
+// control refused at them ({ group: { group, value, why } }).
+const limits = {}, limitWhy = {}, unavailable = {};
+// The by-election line's words at the figures shown (renderBye).
+let byeText = "";
 
 const geometryP = fetch(new URL("../ward_paths.json", import.meta.url))
   .then(r => (r.ok ? r.json() : null)).catch(() => null)
@@ -233,20 +246,32 @@ function buildControls() {
   clear(R.turnout);
   ctx.pools.forEach((p, i) => {
     const input = el("input", { type: "range", id: "t-" + i, min: PS.TURNOUT.min, max: PS.TURNOUT.max, step: PS.TURNOUT.step,
-      "aria-describedby": "ts-" + i });
-    input.addEventListener("input", () => { st.shift[i] = +input.value; moved("turnout:" + i, true); });
+      "aria-describedby": "ts-" + i + " turnout-why" });
+    // a known stop holds the thumb at it: the zone beyond it is shaded
+    input.addEventListener("input", () => {
+      const g = "turnout:" + i, v = PS.heldAtStop(+input.value, limits[g]);
+      if (v !== +input.value) input.value = v;
+      if (v === st.shift[i]) { paintLimits(); return; }
+      st.shift[i] = v;
+      moved(g, true);
+    });
     const value = el("span", { className: "pl-tval" });
     const scale = el("span", { className: "pl-cur", id: "ts-" + i });
+    const zone = sv("svg", { class: "pl-zone", "aria-hidden": "true" });
     const row = el("div", { className: "pl-tslider" },
       el("label", { className: "pl-tlab", htmlFor: "t-" + i }, el("span", {}, p), value),
-      input,
+      el("div", { className: "pl-track" }, input, zone),
       el("div", { className: "pl-tscale" }, el("span", {}, signed(PS.TURNOUT.min)), scale, el("span", {}, signed(PS.TURNOUT.max))));
     groups["turnout:" + i] = row;
     inputs.turnout[i] = input;
     inputs.tlabel[i] = value;
     inputs.tscale[i] = scale;
+    inputs.tzone[i] = zone;
     R.turnout.append(row);
   });
+  // why a turnout slider stops, one line under the four (a reserved slot)
+  inputs.twhy = el("p", { className: "pl-note pl-zonewhy yf-slot", id: "turnout-why", role: "status" });
+  R.turnout.append(inputs.twhy);
   R.turnout.setAttribute("data-ready", "");
 
   // the poll: none, or one of those the model's rules admit
@@ -254,14 +279,18 @@ function buildControls() {
   const option = (id, title, sub, caveat) => {
     const radio = el("input", { type: "radio", name: "poll", value: id });
     radio.addEventListener("change", () => {
+      // a poll refused at the other settings stays unchosen, and its line says why
+      if (unavailable.poll && unavailable.poll.value === id) { syncControls(); return; }
       st.polls = id ? [id] : [];
       if (!id) st.trust = 0;
       moved("poll", false);
     });
     inputs.poll.push(radio);
-    return el("label", { className: "pl-popt" }, radio,
+    const row = el("label", { className: "pl-popt" }, radio,
       el("span", { className: "pl-pmain" }, el("b", {}, title), el("span", { className: "pl-pnums" }, sub),
         caveat ? el("span", { className: "pl-pcav" }, caveat) : null));
+    inputs.pollRow.push([row, radio, id]);
+    return row;
   };
   R.polls.append(option("", "None", "As the forecast does"));
   for (const p of [...ctx.pollRows].sort((a, b) => String(b.fieldwork_end).localeCompare(String(a.fieldwork_end)))) {
@@ -272,19 +301,36 @@ function buildControls() {
   groups.poll = R.polls;
 
   clear(R.trust);
-  const trust = el("input", { type: "range", id: "trust", min: PS.TRUST.min, max: PS.TRUST.max, step: PS.TRUST.step });
-  trust.addEventListener("input", () => { st.trust = +trust.value; moved("trust", true); });
+  const trust = el("input", { type: "range", id: "trust", min: PS.TRUST.min, max: PS.TRUST.max, step: PS.TRUST.step,
+    "aria-describedby": "trust-why" });
+  trust.addEventListener("input", () => {
+    const v = PS.heldAtStop(+trust.value, limits.trust);
+    if (v !== +trust.value) trust.value = v;
+    if (v === st.trust) { paintLimits(); return; }
+    st.trust = v;
+    moved("trust", true);
+  });
   inputs.trust = trust;
   inputs.trustv = el("output", { htmlFor: "trust", className: "pl-tval" });
-  R.trust.append(el("label", { className: "pl-tlab", htmlFor: "trust" }, el("span", {}, "How much to believe it"), inputs.trustv), trust,
+  inputs.trustzone = sv("svg", { class: "pl-zone", "aria-hidden": "true" });
+  R.trust.append(el("label", { className: "pl-tlab", htmlFor: "trust" }, el("span", {}, "How much to believe it"), inputs.trustv),
+    el("div", { className: "pl-track" }, trust, inputs.trustzone),
     el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": the model's error for this poll")));
+  // why the slider stops, or why a poll cannot be chosen: the page's slot
+  // after the slider's block, not in it, because the block fades while no
+  // poll is chosen, which is when a refused poll's reason is shown
+  inputs.trustwhy = R.trustwhy;
   groups.trust = R.trust;
 
   // by-elections: three positions, the published one in the middle
   clear(R.cells);
   for (const c of ctx.cellRows) {
     const b = el("button", { type: "button", role: "radio" }, cellName(c));
-    b.addEventListener("click", () => { st.cell = c.path; moved("cell", false); });
+    b.addEventListener("click", () => {
+      if (unavailable.cell && unavailable.cell.value === c.path) { paintLimits(); return; }
+      st.cell = c.path;
+      moved("cell", false);
+    });
     inputs.cells.push([b, c.path]);
     R.cells.append(b);
   }
@@ -293,10 +339,16 @@ function buildControls() {
   clear(R.law);
   for (const k of ctx.laws) {
     const radio = el("input", { type: "radio", name: "law", value: k });
-    radio.addEventListener("change", () => { st.law = k; moved("law", false); });
+    radio.addEventListener("change", () => {
+      if (unavailable.law && unavailable.law.value === k) { syncControls(); return; }
+      st.law = k;
+      moved("law", false);
+    });
     inputs.law.push(radio);
     const t = lawText(k);
-    R.law.append(el("label", { className: "pl-popt" }, radio, el("span", { className: "pl-pmain" }, el("b", {}, t.label), el("span", { className: "pl-pnums" }, t.note))));
+    const row = el("label", { className: "pl-popt" }, radio, el("span", { className: "pl-pmain" }, el("b", {}, t.label), el("span", { className: "pl-pnums" }, t.note)));
+    inputs.lawRow.push([row, radio, k]);
+    R.law.append(row);
   }
   groups.law = R.law;
   syncControls();
@@ -320,7 +372,81 @@ function syncControls() {
   inputs.trustv.textContent = String(st.trust);
   for (const [b, path] of inputs.cells) b.setAttribute("aria-checked", String(path === st.cell));
   for (const r of inputs.law) r.checked = r.value === st.law;
-  R.lawnow.textContent = lawText(st.law).label + (st.law === PS.PUBLISHED_LAW ? ", the law that seats the council" : ", for comparison");
+  for (const [row, radio, id] of inputs.pollRow) markRefused(unavailable.poll, id, row, radio, "trust-why");
+  for (const [b, path] of inputs.cells) markRefused(unavailable.cell, path, b, b, "bye-why");
+  for (const [row, radio, k] of inputs.lawRow) markRefused(unavailable.law, k, row, radio, "law-why");
+  paintLimits();
+}
+
+// An option refused at the other settings: marked, its reason as its title,
+// and described by the line that says it (`line`, that line's id).
+function markRefused(u, value, row, control, line) {
+  const off = !!u && u.value === value;
+  row.classList.toggle("pl-unavail", off);
+  if (off) {
+    control.setAttribute("aria-disabled", "true");
+    control.setAttribute("aria-describedby", line);
+    row.title = refusedWords(u);
+  } else {
+    control.removeAttribute("aria-disabled");
+    control.removeAttribute("aria-describedby");
+    row.removeAttribute("title");
+  }
+}
+
+// A message line rewritten only when its words change: the lines are live
+// regions, and a live region announces every write. `para` wraps the words
+// in a note paragraph (the by-election line holds one).
+function say(node, text, para = false) {
+  if (node.textContent === text) return;
+  if (para) node.replaceChildren(...(text ? [el("p", { className: "pl-note" }, text)] : []));
+  else node.textContent = text;
+}
+
+// ---------- stops and refusals, said where they happen ----------
+// Each slider's shaded zones (play-state.js stopZones), as SVG rects over its
+// track; the line under the turnout sliders and under the poll's slider; the
+// seat law's line and the by-election line when an option there is refused.
+function paintLimits() {
+  if (!inputs.twhy) return;
+  ctx.pools.forEach((p, i) => paintZone(inputs.tzone[i], PS.TURNOUT, limits["turnout:" + i]));
+  paintZone(inputs.trustzone, PS.TRUST, limits.trust);
+  say(inputs.twhy, ctx.pools.map((p, i) => (limitWhy["turnout:" + i] ? p + " turnout " + limitWhy["turnout:" + i] : null))
+    .filter(Boolean).join(" "));
+  say(inputs.trustwhy, [limitWhy.trust ? "Belief " + limitWhy.trust : null,
+    unavailable.poll ? refusedWords(unavailable.poll) : null].filter(Boolean).join(" "));
+  say(R.lawnow, unavailable.law ? refusedWords(unavailable.law)
+    : lawText(st.law).label + (st.law === PS.PUBLISHED_LAW ? ", the law that seats the council" : ", for comparison"));
+  say(R.bye, unavailable.cell ? refusedWords(unavailable.cell) : byeText, true);
+}
+function paintZone(svg, bounds, limit) {
+  svg.replaceChildren(...PS.stopZones(bounds, limit).map(z => sv("rect", { class: "pl-zrect",
+    x: (z.from * 100).toFixed(2) + "%", y: 0, width: ((z.to - z.from) * 100).toFixed(2) + "%", height: "100%" })));
+}
+// "Germany 2015 is not available at these settings: <why>."
+function refusedWords(u) {
+  return optionName(u.group, u.value) + " is not available at these settings: " + u.why + ".";
+}
+function optionName(group, v) {
+  if (group === "law") return lawText(v).label;
+  if (group === "cell") {
+    const c = ctx.cellRows.find(x => x.path === v);
+    return "Counting by-elections \u201c" + (c ? cellName(c) : v) + "\u201d";
+  }
+  const p = ctx.pollRows.find(x => x.id === v);
+  return "The poll " + (p ? pollName(p) : v);
+}
+// The value a discrete control was moved to, in a state.
+const discreteValue = (group, s) => (group === "cell" ? s.cell : group === "law" ? s.law : s.polls[0] || "");
+// Set a discrete control's value in a state (the poll's "" is no poll).
+function discreteSet(group, s, v) {
+  if (group === "cell") s.cell = v;
+  else if (group === "law") s.law = v;
+  else s.polls = v ? [v] : [];
+}
+// A move of `group` leaves every other control's stop and refusal unknown.
+function forgetOthers(group) {
+  for (const m of [limits, limitWhy, unavailable]) for (const g of Object.keys(m)) if (g !== group) delete m[g];
 }
 
 // A seat law's name and what it does, as /forecast prints them (laws.json).
@@ -332,6 +458,7 @@ function writeURL() { YU.write("adjust", PS.serialize(st, ctx)); }
 
 function moved(group, debounce) {
   lastMoved = group;
+  forgetOthers(group);
   syncControls();
   writeURL();
   clearTimeout(timer);
@@ -378,20 +505,27 @@ async function compute() {
   catch (e) { if (e.message !== "superseded") R.engine.textContent = "The re-weighting code refused: " + e.message; return; }
   if (PS.serialize(st, ctx) !== PS.serialize(asked, ctx)) return;
   const r = m.result;
-  const bad = r.refused ? tooFew(r)
-    : r.within_precision === false ? "a figure on this page would be known to worse than ±" + r.max_figure_se + " seats" : null;
+  const bad = whyNot(r);
   if (bad && lastMoved && accepted) {
     // The control stops at the FURTHEST setting every shown figure passes, not
     // back at the last accepted one (owner, 2026-09-30): a slider is bisected
-    // between its accepted and requested positions, on its own step. A
-    // discrete control (seat law, the poll, a by-election cell) reverts.
+    // between its accepted and requested positions, on its own step, and the
+    // zone beyond the setting it reaches is shaded with the reason under it.
+    // A discrete control (seat law, the poll, a by-election cell) returns to
+    // its last option, and the option refused is marked with the reason
+    // beside the control (owner, 2026-10-05: never a silent stop). The
+    // reason is the one for the setting just past the stop.
     const which = lastMoved;
-    let stop = { state: copyState(accepted.state), result: accepted.result };
+    let stop = { state: copyState(accepted.state), result: accepted.result }, why = bad;
     const slider = which === "trust" ? { get: s => s.trust, set: (s, v) => { s.trust = v; }, step: PS.TRUST.step }
       : which.startsWith("turnout:") ? (i => ({ get: s => s.shift[i], set: (s, v) => { s.shift[i] = v; }, step: PS.TURNOUT.step }))(Number(which.split(":")[1]))
       : null;
-    if (slider) {
-      const from = slider.get(accepted.state), to = slider.get(st);
+    const from = slider ? slider.get(accepted.state) : null, to = slider ? slider.get(st) : null;
+    if (slider && from === to) {
+      // The last slider moved has not moved since the last figures shown, so
+      // the refusal is not its stop: it is said, and nothing is shaded.
+      limitWhy[which] = "cannot be shown at these settings: " + bad + ".";
+    } else if (slider) {
       const dir = Math.sign(to - from), n = Math.round(Math.abs(to - from) / slider.step);
       let lo = 0, hi = n;
       while (hi - lo > 1) {
@@ -402,19 +536,35 @@ async function compute() {
         try { tr = (await ask(PS.engineSettings(trial))).result; }
         catch (e) { if (e.message === "superseded") return; throw e; }
         if (PS.serialize(st, ctx) !== PS.serialize(asked, ctx)) return;   // moved meanwhile
-        if (!tr.refused && tr.within_precision !== false) { lo = mid; stop = { state: trial, result: tr }; }
-        else hi = mid;
+        if (!whyNot(tr)) { lo = mid; stop = { state: trial, result: tr }; }
+        else { hi = mid; why = whyNot(tr); }
       }
       if (lo > 0) accepted = { state: copyState(stop.state), result: stop.result };
+      const reach = slider.get(stop.state);
+      limits[which] = PS.withStop(limits[which], dir, reach);
+      limitWhy[which] = "stops at " + (which === "trust" ? String(reach) : signed(reach, Math.abs(reach) === 1 ? " point" : " points")) +
+        ": past it, " + why + ".";
+    } else {
+      unavailable[which] = { group: which, value: discreteValue(which, asked), why };
+      // Only the refused control goes back: any other control moved since
+      // the last figures shown (a slider still inside its delay) keeps its
+      // place, and is computed on its own as the last control moved.
+      const back = copyState(asked);
+      discreteSet(which, back, discreteValue(which, accepted.state));
+      const still = PS.movedGroups(accepted.state, back);
+      if (still.length) {
+        st = back;
+        lastMoved = still[0];
+        syncControls();
+        writeURL();
+        update();
+        return;
+      }
     }
     st = copyState(stop.state);
     syncControls();
     writeURL();
     render(stop.result, PS.isTouched(st), stop.state);
-    greyOnly([which]);
-    R.engine.textContent = "The greyed control stops here: one step further and " + bad + "." +
-      (which === "trust" ? " That says where the simulations lie, not how good the poll is." : "");
-    R.engine.classList.add("pl-low");
     return;
   }
   if (r.refused) {
@@ -423,7 +573,7 @@ async function compute() {
     greyOnly([...st.shift.map((x, i) => x !== 0 ? "turnout:" + i : null),
       st.trust && st.polls.length ? "trust" : null,
       st.cell !== PS.PUBLISHED_CELL ? "cell" : null, st.law !== PS.PUBLISHED_LAW ? "law" : null].filter(Boolean));
-    R.engine.textContent = "At these settings " + tooFew(r) +
+    R.engine.textContent = "At these settings " + whyNot(r) +
       ". Move the greyed control back towards the published setting.";
     R.engine.classList.add("pl-low");
     render(baseline, false, asked);
@@ -432,6 +582,18 @@ async function compute() {
   if (r.within_precision) accepted = { state: copyState(asked), result: r };
   R.engine.textContent = "";
   render(r, true, asked);
+}
+
+// Why a result cannot be shown, in the page's words, or null when it can:
+// below the effective-draw floor, or a figure past the precision ceiling
+// (page.py returns reweight.MAX_FIGURE_SE_SEATS beside the result).
+// Short, because it is said in the line beside the control (a reserved slot).
+function whyNot(r) {
+  if (r.refused) return r.effective_draws != null && r.draws
+    ? "too few simulations lie near (the equivalent of " + count(r.effective_draws) + "; a figure needs " + count(r.floor) + ")"
+    : "the re-weighting refuses it (" + r.refused + ")";
+  if (r.within_precision === false) return "a seat figure would be known to worse than ±" + r.max_figure_se + " seats";
+  return null;
 }
 
 // The local date, YYYY-MM-DD, built by hand: a locale's own format varies.
@@ -455,12 +617,6 @@ function offerShare(r, state) {
 
 // A count as the site prints counts: "5,000", one format on the page.
 const count = n => Math.round(n).toLocaleString("en-US");
-// Why a setting is refused, in the page's words (page.py returns the counts
-// beside reweight's own reason; a refusal of another kind keeps that reason).
-const tooFew = r => (r.effective_draws != null && r.draws
-  ? "the figures would rest on the equivalent of " + count(r.effective_draws) + " of the " + count(r.draws) +
-    " simulations, fewer than the " + count(r.floor) + " a figure needs"
-  : "the re-weighting refuses it (" + r.refused + ")");
 // The reader's change against the published forecast: the site's one arrow
 // (src/css/stat.css .arrow), in the reader's hue.
 const arrowText = d => (d ? (d > 0 ? "▲" : "▼") + Math.abs(d) : null);
@@ -474,10 +630,12 @@ function render(r, touched, state = st) {
   else R.result.removeAttribute("data-touched");
   R.status.hidden = !touched;
   if (!touched) {
-    for (const n of [R.banner, R.oneline, R.map, R.flips, R.seats, R.bye, R.ess]) clear(n);
+    for (const n of [R.banner, R.oneline, R.map, R.flips, R.seats, R.ess]) clear(n);
+    byeText = "";
     R.seats.removeAttribute("data-extra");
     R.settings.textContent = "";
     showToast(moves);
+    paintLimits();
     return;
   }
   R.settings.textContent = "Your changes: " + settingsWords(state, ctx).join("; ") + ".";
@@ -490,6 +648,7 @@ function render(r, touched, state = st) {
   showToast(moves);
   R.ess.textContent = "At your settings the figures rest on the equivalent of " +
     count(r.effective_draws) + " equally weighted simulations.";
+  paintLimits();
 }
 
 function renderBanner(r, moves) {
@@ -645,15 +804,16 @@ function showToast(moves) {
 // Under a by-election setting other than the forecast's: each party's change
 // in middle seats against the forecast's weight AT THESE SETTINGS, where it
 // is larger than the two runs' sampling noise (page.py, reweight.beyond_noise).
+// The words only: paintLimits writes the line (a refused by-election option's
+// reason takes its place).
 function renderBye(r) {
-  clear(R.bye);
   const cmp = r.against_published_cell;
-  if (!cmp) return;
+  if (!cmp) { byeText = ""; return; }
   const moves = Object.entries(cmp).filter(([, d]) => !d.within_noise && Math.round(d.difference))
     .sort((a, b) => party(a[0]).name.localeCompare(party(b[0]).name))
     .map(([c, d]) => party(c).name + " " + signed(Math.round(d.difference)));
-  R.bye.append(el("p", { className: "pl-note" }, "At your settings, against the forecast's weight: " +
-    (moves.length ? moves.join(", ") : "no change larger than sampling noise") + "."));
+  byeText = "At your settings, against the forecast's weight: " +
+    (moves.length ? moves.join(", ") : "no change larger than sampling noise") + ".";
 }
 
 R.back.addEventListener("click", () => {
@@ -661,6 +821,7 @@ R.back.addEventListener("click", () => {
   const name = st.name;
   st = { ...PS.defaults(ctx), name };
   lastMoved = null;
+  forgetOthers(null);
   syncControls();
   writeURL();
   update();

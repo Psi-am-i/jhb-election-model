@@ -19,8 +19,10 @@ export function hexPoints([cx, cy], r) {
 }
 
 export class WardMap {
-  constructor(svg, geom, { byCode, readonly = false, onPaint = null, onFocusWard = null } = {}) {
-    this.svg = svg; this.geom = geom; this.byCode = byCode;
+  // `labelFor(i)`, when given, replaces each ward's label (the analysis map
+  // names our chance for the call there).
+  constructor(svg, geom, { byCode, readonly = false, onPaint = null, onFocusWard = null, labelFor = null } = {}) {
+    this.svg = svg; this.geom = geom; this.byCode = byCode; this.labelFor = labelFor;
     this.readonly = readonly; this.onPaint = onPaint; this.onFocusWard = onFocusWard;
     this.mode = "geo"; this.calls = new Array(geom.wards.length).fill(null);
     this.cur = 0; this.painting = false;
@@ -32,8 +34,13 @@ export class WardMap {
 
   setMode(mode) { this.mode = mode; this.draw(); }
   setCalls(calls) { this.calls = calls.slice(); this.refresh(); }
+  // Each ward's strength, 0 to 1, as its fill-opacity, in ward order; null
+  // draws every ward at full strength. The analysis map (js/make.js) passes
+  // our chance for the reader's call in each ward.
+  setShade(shade) { this.shade = shade ? shade.slice() : null; this.refresh(); }
 
   label(i) {
+    if (this.labelFor) return this.labelFor(i);
     const c = this.calls[i];
     return "Ward " + this.geom.wards[i].id + ", " + this.geom.wards[i].sector + ": " +
       (c ? this.byCode[c].name : "not called yet");
@@ -84,6 +91,8 @@ export class WardMap {
       // css/interactive.css's .w.empty fill
       if (c) el.setAttribute("fill", this.byCode[c].colour);
       else el.removeAttribute("fill");
+      if (this.shade && this.shade[i] != null) el.setAttribute("fill-opacity", String(this.shade[i]));
+      else el.removeAttribute("fill-opacity");
       if (!this.readonly) el.setAttribute("aria-label", this.label(i));
       else {
         let t = el.querySelector("title");
