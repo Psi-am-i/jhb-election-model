@@ -128,6 +128,19 @@
 .pl-tslider input.pl-moved{accent-color:var(--reader);}
 .pl-tscale{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
 .pl-tscale .pl-cur{color:var(--ink-2);}
+/* a slider's stop (owner, 2026-10-05): the part of the track past the
+   furthest setting it reaches, shaded (model.js draws the rects, as
+   percentages of the track; the inset is the thumb's half-width, so a rect's
+   edge sits under the thumb at the stop) */
+.pl-track{position:relative;}
+.pl-zone{position:absolute;left:8px;top:50%;width:calc(100% - 16px);height:12px;margin-top:-5px;pointer-events:none;overflow:visible;}
+.pl-zrect{fill:color-mix(in srgb,var(--bad) 28%,transparent);}
+.pl-zonewhy{font-size:12.5px;color:var(--ink-2);margin:2px 0 0;}
+/* an option refused at the other settings: marked, still readable; the line
+   beside its control says why */
+.pl-popt.pl-unavail{opacity:.55;cursor:not-allowed;}
+.pl-popt.pl-unavail .pl-pmain b{text-decoration:line-through;text-decoration-color:var(--bad);}
+.pl-seg3 button.pl-unavail{opacity:.55;cursor:not-allowed;text-decoration:line-through;text-decoration-color:var(--bad);}
 
 /* where each party's votes come from */
 /* a <details class="rollup">: the site's one collapsible (src/css/components.css) */

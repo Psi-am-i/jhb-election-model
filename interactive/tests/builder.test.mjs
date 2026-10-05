@@ -217,6 +217,33 @@ test("undo restores calls and votes together", () => {
   assert.deepEqual(B.invariantErrors(back, ctx), []);
 });
 
+// B4 (owner, 2026-10-05): the one-click chips for painting wards are chosen
+// by one seat-based rule for every party: seated in the reader's council or
+// at its start, and the party chosen. At the published start every party
+// with a seat has a chip, ActionSA among them though the start calls it for
+// no ward, and no party without one does.
+test("the painting chips are every seated party, by one rule, alphabetical", () => {
+  const f = resolve(repo, "site/your-forecast/forecast.json");
+  if (!existsSync(f)) return;          // a checkout with no built site
+  const D = JSON.parse(readFileSync(f, "utf8"));
+  const name = c => D.schema["x-parties"].find(p => p.code === c).name;
+  const alpha = D.schema["x-parties"].map(p => p.code).sort((a, b) => name(a).localeCompare(name(b)));
+  const seated = B.seatedIn(D.start.seats);
+  const chips = B.chipParties(alpha, seated);
+  assert.deepEqual(chips, alpha.filter(c => D.start.seats[c] > 0));
+  assert.ok(chips.includes("ASA"), "ActionSA has no chip");
+  assert.ok(!D.start.ward_calls.includes("ASA"), "the start calls ActionSA for a ward: the case this guards is gone");
+  // the old rule, the parties that win a ward, would have left it out
+  assert.ok(!alpha.filter(c => D.start.ward_calls.includes(c)).includes("ASA"));
+  // every party that wins a ward on the map holds a seat, so has a chip
+  for (const c of new Set(D.start.ward_calls)) assert.ok(chips.includes(c), c);
+  // the party chosen keeps its chip; an unseated, unchosen party has none
+  const spare = alpha.find(c => !seated.includes(c));
+  assert.ok(!chips.includes(spare));
+  assert.ok(B.chipParties(alpha, seated, spare).includes(spare));
+  assert.deepEqual(B.seatedIn({ A: 0, B: 2 }), ["B"]);
+});
+
 test("the page's engine under Pyodide gives the CPython answer", { skip: !process.env.PYODIDE_NODE && "PYODIDE_NODE not set" }, async () => {
   const req = createRequire(resolve(process.env.PYODIDE_NODE, "package.json"));
   const mod = await import(pathToFileURL(req.resolve("pyodide")).href);

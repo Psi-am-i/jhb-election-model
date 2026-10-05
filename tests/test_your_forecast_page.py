@@ -742,5 +742,222 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     assert gone in kept["seats"] and set(a["seats"]) < set(kept["seats"])
 
 
+
+# -- Lane B (owner, 2026-10-05): stops said, every option applies or says why --
+
+def test_every_discrete_option_applies_at_the_published_settings():
+    """B2. The owner saw "not at all" and "fully" go back to "partly", and
+    Germany 2015 go back to Germany 2000. The engine is not why: at the
+    published turnout, no poll, every by-election cell under every seat law
+    is shown, none refused and every figure within the precision ceiling.
+    A discrete option is refused only by the OTHER settings (a poll or a
+    turnout move that leaves the slider at its stop), and the page then
+    says so beside the control (``test_a_refused_option_is_said_beside_its_control``).
+    The check can see a refusal: with the ceiling at zero every option is
+    refused, and with it restored none is."""
+    _built()
+    NP, ns = _engine()
+    R = ns["R"]
+    laws = ns["_CELLS"]["."]["manifest"]["laws"]
+    cells = [c["path"] for c in NP.cells()]
+    assert len(cells) >= 3 and len(laws) >= 4, (cells, laws)
+
+    def shown(path, law):
+        res = json.loads(ns["compute"](json.dumps({**PUBLISHED, "cell": path, "law": law})))
+        return res["refused"] is None and res["within_precision"] is True
+
+    assert all(shown(c, k) for c in cells for k in laws)
+    ceiling = R.MAX_FIGURE_SE_SEATS
+    try:
+        R.MAX_FIGURE_SE_SEATS = 0.0
+        assert not any(shown(c, k) for c in cells for k in laws)
+    finally:
+        R.MAX_FIGURE_SE_SEATS = ceiling
+    assert all(shown(c, k) for c in cells for k in laws)
+
+
+def test_a_poll_at_any_belief_is_not_refused_by_the_tilts_rounding():
+    """B1. A poll at one trust step was refused "the tilt did not converge"
+    (owner's test, 2026-10-05) although its turnout target, the published
+    mean, lies well inside the draws: with a poll on, page.py pins turnout
+    at the published mean, and the tilt's step-halving test rejected the
+    exact Newton step once the dual's decrease fell below what a float
+    resolves at its size (``reweight.DUAL_ROUNDING``). Every poll the page
+    offers, at a spread of beliefs, now gets weights or an effective-draw
+    refusal, never a convergence one. With the rounding allowance at zero
+    the old refusal comes back for at least one of them (the positive
+    control), and goes again when it is restored."""
+    _built()
+    NP, ns = _engine()
+    R = ns["R"]
+    ids = [p["id"] for p in ns["polls"]()]
+    assert ids, "the page offers no poll"
+    beliefs = (0.05, 0.10, 0.25, 0.50, 1.00)
+
+    def refusals():
+        out = []
+        for pid in ids:
+            for t in beliefs:
+                res = json.loads(ns["compute"](json.dumps({**PUBLISHED, "polls": [pid], "trust": t})))
+                if res["refused"] and "did not converge" in res["refused"]:
+                    out.append((pid, t))
+        return out
+
+    assert refusals() == []
+    allowance = R.DUAL_ROUNDING
+    try:
+        R.DUAL_ROUNDING = 0.0
+        assert refusals(), "no convergence refusal without the allowance: the test cannot see the defect"
+    finally:
+        R.DUAL_ROUNDING = allowance
+    assert refusals() == []
+
+
+def test_a_refused_option_is_said_beside_its_control():
+    """B1 and B2, on the built page's section 1 module: a stop is never
+    silent. A slider that stops records the furthest setting it reaches
+    (``limits``) and why, and shades the track past it (``pl-zone`` rects
+    from ``play-state.js stopZones``); a discrete option refused at the other
+    settings is recorded (``unavailable``), marked, and named with its reason
+    in the line beside its control. Each reason has a reserved slot: under
+    the turnout sliders and under the poll's slider (``pl-zonewhy``); the
+    seat law's line; the by-election line. The old single message in the
+    results column ("The greyed control stops here") is gone. A constructed
+    revert of the old branch is caught."""
+    site = _built()
+    js = (site / ADJUST).read_text(encoding="utf-8")
+    css = (site / D / "css" / "your-forecast.css").read_text(encoding="utf-8")
+    play = (site / D / "css" / "play.css").read_text(encoding="utf-8")
+
+    def silent(src: str) -> list[str]:
+        out = []
+        if "The greyed control stops here" in src:
+            out.append("the stop is said only in the results column")
+        for need in ("limits[which] = PS.withStop(", "unavailable[which] = {", "paintZone(", "refusedWords(",
+                     'className: "pl-note pl-zonewhy yf-slot", id: "turnout-why"',
+                     'className: "pl-note pl-zonewhy yf-slot", id: "trust-why"',
+                     "R.lawnow.textContent = refusedWords(", "R.bye.replaceChildren(", "PS.heldAtStop("):
+            if need not in src:
+                out.append(f"missing: {need}")
+        return out
+
+    assert silent(js) == []
+    assert silent(js.replace("unavailable[which] = {", "lastRefused = {"))
+    assert silent(js + '\nR.engine.textContent = "The greyed control stops here";\n')
+    assert re.search(r"\.yf \.pl-zonewhy\.yf-slot\{[^}]*height:", css)
+    assert re.search(r"\.pl-zone\{[^}]*position:absolute[^}]*pointer-events:none", play)
+    assert re.search(r"\.pl-popt\.pl-unavail\{", play) and re.search(r"\.pl-seg3 button\.pl-unavail\{", play)
+    # the reasons reach the reader through LIVE regions model.js is listed for
+    for region in ("turnout", "trust", "byelection", "lawnow"):
+        assert region in S.LIVE_WRITERS[ADJUST], region
+
+
+def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
+    """B3. "Share this forecast" is a full-width row at the end of section 1
+    (section 1's sheet) and at the foot of section 2, after the analysis and
+    before the notes (section 2's sheet); "Analyse my forecast" is the same
+    bold row in step 4. Each button carries its one line on what it gives,
+    and section 2's names the map, the seats, our chance and the sealed link.
+    A share box moved back into the levers' column is caught."""
+    site = _built()
+    html = _html(site)
+    css = (site / D / "css" / "your-forecast.css").read_text(encoding="utf-8")
+
+    def misplaced(page: str) -> list[str]:
+        out = []
+        at = lambda s: page.index(s) if s in page else -1
+        s1, s2, notes = at('data-live="share"'), at('data-live="b-share"'), at('class="pl-notes"')
+        layout_end = page.rindex('class="pl-resultscol"', 0, s1) if s1 > 0 and 'class="pl-resultscol"' in page[:s1] else -1
+        if not (0 < layout_end < s1 < at('id="break"')):
+            out.append("section 1's share row is not after the levers and results")
+        if s1 > 0 and at('class="pl-controls"') < s1 < at('class="pl-resultscol"'):
+            out.append("section 1's share row is inside the levers' column")
+        if not (at('class="yf-analysis"') < s2 < notes):
+            out.append("section 2's share row is not between the analysis and the notes")
+        for sel in ('class="btn primary pl-shareopen yf-ctabtn"', 'class="btn primary shareopen yf-ctabtn"',
+                    'class="btn primary yf-analyse yf-ctabtn"'):
+            i = at(sel)
+            if i < 0 or "<small>" not in page[i:page.index("</button>", i)]:
+                out.append(f"no full-width row with its line: {sel}")
+        i = at('class="btn primary shareopen yf-ctabtn"')
+        line = page[i:page.index("</button>", i)] if i >= 0 else ""
+        for w in ("map", "seats", "chance", "sealed link"):
+            if w not in line:
+                out.append(f"section 2's line does not name {w}")
+        return out
+
+    assert misplaced(html) == []
+    row = html[html.index('<div class="pl-sharebox yf-sharebox yf-cta"'):]
+    row = row[:row.index("</dialog>") + len("</dialog>\n    </div>")]
+    moved = html.replace(row, "").replace('<div class="pl-controls">', '<div class="pl-controls">' + row, 1)
+    assert misplaced(moved)
+    assert re.search(r"\.yf \.yf-ctabtn\{[^}]*display:block;width:100%", css)
+    # step 4 names what it holds now
+    assert "Next: see how likely it is" in html and "Share it, or see how likely it is" not in html
+
+
+def test_next_scrolls_to_the_next_step_and_focuses_its_first_control():
+    """B5, on the built module: every "Next" goes through one function that
+    marks the step done, highlights the next, scrolls to it and focuses its
+    first control (the first vote slider, the first coalition chip,
+    "Analyse my forecast"), leaving a disabled control unfocused. A handler
+    that only scrolls is caught."""
+    site = _built()
+    js = (site / BREAK).read_text(encoding="utf-8")
+
+    def incomplete(src: str) -> list[str]:
+        m = re.search(r"function goToStep\(k\) \{(.*?)\n\}", src, re.S)
+        if not m:
+            return ["no goToStep"]
+        body = m.group(1)
+        need = ("step = Math.max(step, k)", "paintSteps()", "scrollIntoView(", "FIRST[k]()", "!f.disabled",
+                "f.focus({ preventScroll: true })")
+        out = [n for n in need if n not in body]
+        if "[one.next1, one.next2, one.next3].forEach((b, i) => b.addEventListener(\"click\", () => goToStep(i + 1)))" not in src:
+            out.append("the Next buttons do not call goToStep")
+        if "() => firstVote, () => one.coal.firstElementChild, () => one.analyse" not in src:
+            out.append("the first controls are not the vote, the coalition and the analysis")
+        return out
+
+    assert incomplete(js) == []
+    assert incomplete(js.replace("f.focus({ preventScroll: true })", ""))
+
+
+def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
+    """B6, on the built page: the headline names what "this outcome" is and
+    says it is the citywide result only; "Ward wins" is a part titled "Your
+    map" holding the reader's map (an SVG make.js shades by our chance for
+    each call, with a legend), the expected count of ward calls right and a
+    line on hover and tap; "Citywide vote and seats" holds the table of each
+    party's seats and vote beside its chance, then the totals. The long
+    explanation is the note on the outcome, not the region. Each of these
+    removed is caught."""
+    site = _built()
+    html = _html(site)
+    js = (site / BREAK).read_text(encoding="utf-8")
+    region = html[html.index('data-live="b-analysis"'):html.index('class="yf-ctafoot"')]
+    note = re.search(r'<li id="note-outcome">(.*?)</li>', html, re.S).group(1)
+
+    def missing(reg: str, src: str, nt: str) -> list[str]:
+        need_html = ('class="yf-outcome yf-slot"', 'class="yf-verdict yf-slot"', "citywide result only",
+                     ">Ward wins<", ">Your map<", 'class="yf-amapsvg"', 'class="yf-alegend"',
+                     'class="yf-expected yf-slot"', ">Citywide vote and seats<", 'class="yf-atable"',
+                     'class="yf-sseats yf-slot"', 'class="yf-svote yf-slot"')
+        need_js = ('"This outcome: " + outcomeWords(', "chanceSentence(a.outcome.text)",
+                   "new WardMap(one.amap, geom, { byCode, readonly: true })", "amap.setShade(",
+                   "ward calls to come true", 'one.amap.addEventListener("click"', 'one.anote.textContent = "";')
+        out = [n for n in need_html if n not in reg] + [n for n in need_js if n not in src]
+        if "score your forecast against each simulation" not in re.sub(r"\s+", " ", nt):
+            out.append("the explanation is not in the note")
+        if "simulation" in re.sub(r"<[^>]+>", " ", reg):
+            out.append("the region explains with simulations (STYLE rule 10)")
+        return out
+
+    assert missing(region, js, note) == []
+    assert missing(region.replace(">Your map<", ">Wards<"), js, note)
+    assert missing(region, js.replace("amap.setShade(", "amap.setCalls("), note)
+    assert missing(region + "<p>Of the simulations</p>", js, note)
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

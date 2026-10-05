@@ -46,7 +46,8 @@
 // carries a section 2 forecast or the #break anchor.
 //
 // THE WALKTHROUGH (owner, 2026-10-03): four numbered steps, one highlighted at
-// a time (data-step="now"); "Next" marks a step done and highlights the next.
+// a time (data-step="now"); "Next" marks a step done, highlights the next,
+// scrolls to it and puts the focus on its first control (owner, 2026-10-05).
 // Every step stays usable whichever is highlighted.
 //
 // A SHARED LINK (audits/2026-10-03-share-design §4). A link the share sheet
@@ -114,10 +115,10 @@ const one = {
   analysis: document.querySelector('[data-live="b-analysis"]'),
   verdict: document.querySelector('[data-live="b-analysis"] .yf-verdict'),
   sseats: document.querySelector('[data-live="b-analysis"] .yf-sseats'),
-  swards: document.querySelector('[data-live="b-analysis"] .yf-swards'),
   svote: document.querySelector('[data-live="b-analysis"] .yf-svote'),
   outcome: document.querySelector('[data-live="b-analysis"] .yf-outcome'),
   expected: document.querySelector('[data-live="b-analysis"] .yf-expected'),
+  amap: document.querySelector('[data-live="b-analysis"] .yf-amapsvg'),
   atable: document.querySelector('[data-live="b-analysis"] .yf-atable'),
   anote: document.querySelector('[data-live="b-analysis"] .yf-anote'),
   wardtip: document.querySelector('[data-live="b-wardtip"]'),
@@ -147,15 +148,26 @@ function sv(tag, attrs = {}, ...kids) {
 
 // ---------- the walkthrough ----------
 const STEPS = [one.mapRegion, one.voteRegion, one.govRegion, one.actions];
+// Each step's first control: the first party's vote slider, the first
+// coalition chip, "Analyse my forecast". Read when "Next" is pressed, so the
+// rows built since are there.
+let firstVote = null;
+const FIRST = [() => null, () => firstVote, () => one.coal.firstElementChild, () => one.analyse];
 let step = 0;
 function paintSteps() {
   STEPS.forEach((r, i) => r.setAttribute("data-step", i < step ? "done" : i === step ? "now" : "next"));
 }
-[one.next1, one.next2, one.next3].forEach((b, i) => b.addEventListener("click", () => {
-  step = Math.max(step, i + 1);
+const motion = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+// "Next": this step done, the next highlighted, scrolled to and focused on
+// its first control (a locked or disabled control is scrolled to, not focused)
+function goToStep(k) {
+  step = Math.max(step, k);
   paintSteps();
-  STEPS[i + 1].scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-}));
+  STEPS[k].scrollIntoView({ block: "start", behavior: motion() });
+  const f = FIRST[k]();
+  if (f && !f.disabled) f.focus({ preventScroll: true });
+}
+[one.next1, one.next2, one.next3].forEach((b, i) => b.addEventListener("click", () => goToStep(i + 1)));
 paintSteps();
 
 // ---------- locking: the controls answer once the seat law has loaded ----------
@@ -415,8 +427,9 @@ function setCallsFrom(calls) {
   commit(r.state, raisedNote(r.raised));
 }
 
-// The brush: a chip for each party that wins a ward on the reader's map, the
-// same rule for every party, and every party in the select.
+// The brush: a chip for each party seated in the reader's council or at its
+// start (builder-state.js chipParties, one seat-based rule for every party;
+// owner, 2026-10-05), one click to paint with it, and every party in the select.
 function buildBrush() {
   one.brushselect.append(el("option", { value: "" }, "Choose…"), ...alpha.map(c => el("option", { value: c }, name(c))));
 }
@@ -424,13 +437,14 @@ one.brushselect.addEventListener("change", () => chooseBrush(one.brushselect.val
 function chooseBrush(c) {
   S.brush = c;
   one.brushselect.value = c || "";
-  for (const b of one.brush.children) b.setAttribute("aria-pressed", String(b.value === c));
+  paintBrush();
   one.hint.textContent = c ? "Giving wards to " + name(c) + ". Tap or drag across wards." : "Choose a party, then tap or drag across wards to give them to it.";
 }
 function paintBrush() {
-  const held = new Set(state.calls);
-  if (S.brush) held.add(S.brush);
-  one.brush.replaceChildren(...alpha.filter(c => held.has(c)).map(c => {
+  // the council table's rows once the seat law has answered; before, the
+  // start's seats (the published start's, as forecast.json gives them)
+  const seated = shownRows.length ? shownRows : B.seatedIn(D.start.seats);
+  one.brush.replaceChildren(...B.chipParties(alpha, seated, S.brush).map(c => {
     const b = el("button", { type: "button", className: "chip", value: c, "aria-pressed": String(c === S.brush), disabled: !engineReady || locked }, sw(c), name(c));
     b.addEventListener("click", () => chooseBrush(S.brush === c ? null : c));
     return b;
@@ -542,6 +556,7 @@ function buildVote() {
     rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
     rng.addEventListener("change", () => editShare(c, rng.value, true, null));
     rows[c] = { row, num, rng, fl, seated: seatedAtStart.includes(c) };
+    if (!firstVote) firstVote = rng;
     editables.push(num, rng);
     (rows[c].seated ? one.prlist : restList).append(row);
   }
@@ -792,30 +807,37 @@ async function analyse(scroll) {
 // "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
 // the whole forecast, a ward, a party's seats and its vote alike:
 // share-card.js's aChance and chanceSentence, one definition.
+//
+// The analysis (owner, 2026-10-05), three parts:
+//   * the headline: what "this outcome" is, the reader's council-level
+//     outcome in the cards' words (share-card.js outcomeWords: the largest
+//     party, a majority alone or not, the chosen coalition), its chance, and
+//     the page's line that it is the citywide result only;
+//   * ward wins, "Your map": the reader's own map, each ward in the colour of
+//     the party called, as strong as our chance for that call, with the
+//     number of calls we expect to come true beside it, and each ward's
+//     chance on hover or tap;
+//   * citywide vote and seats: each party's seats and vote, each beside its
+//     chance, then the totals, scored as the competition scores (page.py
+//     analyse; JUDGEMENT-CALLS §N4).
+// The long explanation is the page's note on the outcome; nothing here
+// repeats it.
+let amap = null;
 function paintAnalysis(a) {
-  // The headline is the reader's council-level outcome (the largest party, a
-  // majority alone or not, the chosen coalition), in the cards' and the
-  // arrival view's words (share-card.js outcomeWords), and its chance. Under it,
-  // the reader's forecast scored against each simulation as if it were the
-  // result, by the competition's rules in its order: seats, ward calls, vote
-  // (page.py analyse; JUDGEMENT-CALLS §N4). Then the template's closing line.
   const sc = a.score;
+  one.outcome.textContent = "This outcome: " + outcomeWords(a.outcome, partyOf);
   one.verdict.textContent = chanceSentence(a.outcome.text);
-  one.sseats.replaceChildren(el("b", {}, "Seats: "), "we expect your seat counts to be off by " + Math.round(sc.seat_error) +
-    " in total across the parties, and give " + aChance(sc.seat_error_within.text) + " that they are off by " + sc.within + " or fewer.");
-  one.swards.replaceChildren(el("b", {}, "Wards: "), "we expect " + Math.round(sc.wards_called) + " of your " + a.wards_count +
-    " ward calls to be right.");
-  one.svote.replaceChildren(el("b", {}, "Vote: "), "we expect your vote shares to be off by " + sc.list_vote_error.toFixed(1) +
-    " points in total, on the list ballot.");
-  one.outcome.textContent = outcomeWords(a.outcome, partyOf);
-  one.expected.textContent = HOVER.matches
-    ? "Hover over a ward, or reach it with the arrow keys, for the chance we give your call there."
-    : "Tap a ward with no party chosen for the chance we give your call there.";
+  // ward wins: the reader's map, shaded by our chance for each call
+  if (!amap) amap = new WardMap(one.amap, geom, { byCode, readonly: true });
+  amap.setCalls(state.calls);
+  amap.setShade(ctx.wards.map(w => (a.wards[w] ? a.wards[w].p : 0)));
+  one.expected.textContent = "We expect " + Math.round(sc.wards_called) + " of your " + a.wards_count + " ward calls to come true.";
+  // citywide: each party's seats and vote beside its chance
   const sb = a.seat_band, pb = a.share_band;
-  const head = el("tr", {}, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
-    el("th", { scope: "col", className: "num" }, "Chance within " + sb + " seats"),
+  const head = el("tr", { className: "yf-wide" }, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
+    el("th", { scope: "col", className: "num" }, "Our chance, within " + sb + " seats"),
     el("th", { scope: "col", className: "num" }, "Your vote"),
-    el("th", { scope: "col", className: "num" }, "Chance within " + pb + " points, list ballot"));
+    el("th", { scope: "col", className: "num" }, "Our chance, within " + pb + " points (list ballot)"));
   const seats = result.seats, share = B.percentOf(state, ctx);
   const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
   // two layouts of the same cells (css/your-forecast.css): one row per party,
@@ -837,22 +859,18 @@ function paintAnalysis(a) {
   ]);
   const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
     el("th", { scope: "col", className: "num" }, "Yours"),
-    el("th", { scope: "col", className: "num" }, "Chance within " + sb + " seats, or " + pb + " points (list ballot)"));
-  head.className = "yf-wide";
+    el("th", { scope: "col", className: "num" }, "Our chance, within " + sb + " seats, or " + pb + " points (list ballot)"));
   one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)));
-  one.anote.textContent = "Every chance and expectation is the published forecast's: its " + a.draws.toLocaleString("en-US") +
-    " simulations, each counted once, seated by the law. Seats, wards and vote score your forecast against each simulation as if it" +
-    " were the result, by the competition's rules in its order. Seats: the gap between your seats and the simulation's, party by" +
-    " party, added up. Wards: your calls that match its winners. Vote: the gap between your vote and its list-ballot share, party by" +
-    " party, added up, in points. The line at " + sc.within + " seats is the model's own spread: its middle forecast, each party at its" +
-    " middle seat count, is that close to half the simulations. Your vote is your share of" +
-    " both ballots together; the simulations carry each party's list-ballot share only, so that is what it is compared with, and the" +
-    " parties they do not carry one by one are compared as one group.";
+  // the totals, every party added up
+  one.sseats.replaceChildren(el("b", {}, "All seats: "), "we expect your seat counts to be off by " + Math.round(sc.seat_error) +
+    " in total across the parties, and give " + aChance(sc.seat_error_within.text) + " that they are off by " + sc.within + " or fewer.");
+  one.svote.replaceChildren(el("b", {}, "All votes: "), "we expect your vote shares to be off by " + sc.list_vote_error.toFixed(1) +
+    " points in total, on the list ballot.");
+  one.anote.textContent = "";
 }
 // each ward's chance, over the map, once analysed: on hover, and on focus (the
 // arrow keys, or a tap, which focuses the ward; with no party chosen a tap
 // paints nothing)
-const HOVER = matchMedia("(hover: hover)");
 function tipFor(i, x, y) {
   const w = i == null ? null : ctx.wards[+i], got = analysed && w != null ? analysed.wards[w] : null;
   if (!got) { one.wardtip.hidden = true; return; }
@@ -870,6 +888,11 @@ function focusTip(i) {
 one.svg.addEventListener("mousemove", e => tipFor(e.target.getAttribute && e.target.getAttribute("data-i"), e.clientX, e.clientY));
 one.svg.addEventListener("mouseleave", () => { one.wardtip.hidden = true; });
 one.svg.addEventListener("focusout", () => { one.wardtip.hidden = true; });
+// the same on the analysis's own map: hover, and a tap (a click on a touch screen)
+const wardAt = e => (e.target.getAttribute ? e.target.getAttribute("data-i") : null);
+one.amap.addEventListener("mousemove", e => tipFor(wardAt(e), e.clientX, e.clientY));
+one.amap.addEventListener("click", e => tipFor(wardAt(e), e.clientX, e.clientY));
+one.amap.addEventListener("mouseleave", () => { one.wardtip.hidden = true; });
 
 // ---------- the seat Worker ----------
 function onWorker(e) {
@@ -904,6 +927,7 @@ function onWorker(e) {
     result = m.answer;
     paintCouncil();
     paintCoalition();
+    paintBrush();             // the chips follow the council's rows
     if (arriving && !friend.answer) { friend.answer = m.answer; friendOutcome(); paintArrival(); }
     share();
     if (analysed) { clearTimeout(analyseTimer); analyseTimer = setTimeout(() => analyse(false), 400); }

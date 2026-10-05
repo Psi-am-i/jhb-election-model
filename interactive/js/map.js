@@ -32,6 +32,10 @@ export class WardMap {
 
   setMode(mode) { this.mode = mode; this.draw(); }
   setCalls(calls) { this.calls = calls.slice(); this.refresh(); }
+  // Each ward's strength, 0 to 1, as its fill-opacity, in ward order; null
+  // draws every ward at full strength. The analysis map (js/make.js) passes
+  // our chance for the reader's call in each ward.
+  setShade(shade) { this.shade = shade ? shade.slice() : null; this.refresh(); }
 
   label(i) {
     const c = this.calls[i];
@@ -84,6 +88,8 @@ export class WardMap {
       // css/interactive.css's .w.empty fill
       if (c) el.setAttribute("fill", this.byCode[c].colour);
       else el.removeAttribute("fill");
+      if (this.shade && this.shade[i] != null) el.setAttribute("fill-opacity", String(this.shade[i]));
+      else el.removeAttribute("fill-opacity");
       if (!this.readonly) el.setAttribute("aria-label", this.label(i));
       else {
         let t = el.querySelector("title");

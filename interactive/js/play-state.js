@@ -149,6 +149,42 @@ export function shareable(st) {
   return st.law === PUBLISHED_LAW;
 }
 
+// ---------- a slider's stops (owner, 2026-10-05: never a silent stop) ----------
+// model.js bisects a slider that a figure's precision or the effective-draw
+// floor stops, and records the furthest setting that passed in the
+// direction it was moved: `limit` is { up, down }, each a value on the
+// slider's step or null. Both hold only while every OTHER setting stays as it
+// was; model.js forgets them when another control moves.
+
+// The shaded zones beyond each stop, as fractions of the slider's track:
+// [{ from, to }] with 0 <= from < to <= 1, `up` first. No zone where the stop
+// is at the slider's own end.
+export function stopZones(bounds, limit) {
+  const span = bounds.max - bounds.min;
+  const at = v => (v - bounds.min) / span;
+  const out = [];
+  if (limit && limit.up != null && limit.up < bounds.max) out.push({ from: at(limit.up), to: 1 });
+  if (limit && limit.down != null && limit.down > bounds.min) out.push({ from: 0, to: at(limit.down) });
+  return out;
+}
+
+// A value the reader dragged into a known zone, held at that zone's stop;
+// any other value unchanged.
+export function heldAtStop(value, limit) {
+  if (limit && limit.up != null && value > limit.up) return limit.up;
+  if (limit && limit.down != null && value < limit.down) return limit.down;
+  return value;
+}
+
+// The limit after a stop at `reach`, moving `dir` (+1 up, -1 down), kept
+// beside any stop already known the other way.
+export function withStop(limit, dir, reach) {
+  const next = { up: limit ? limit.up : null, down: limit ? limit.down : null };
+  if (dir > 0) next.up = reach;
+  else if (dir < 0) next.down = reach;
+  return next;
+}
+
 // The settings pyboot/page.py computes: trust as a fraction; the poll is
 // passed as chosen, and page.py gives it no weight at trust 0. The name is
 // not the model's.

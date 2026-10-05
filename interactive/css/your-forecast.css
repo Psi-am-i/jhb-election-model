@@ -133,8 +133,20 @@
 .yf-step:not([data-step="now"]) .yf-next{opacity:.7;}
 @media (prefers-reduced-motion:reduce){.yf-step{transition:none;}}
 
-.yf-actrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;}
-.yf-actrow .sharebox{border:0;padding:0;}
+
+/* ---------- the calls to act: full-width rows (owner, 2026-10-05) ---------- */
+/* "Share this forecast" after section 1 and at the foot of section 2, and
+   "Analyse my forecast" in step 4: one bold button the row's full width, a
+   short line inside it on what it gives */
+.yf .yf-cta{border:0;padding:0;margin:18px 0 0;}
+.yf .yf-ctabtn{display:block;width:100%;box-sizing:border-box;text-align:left;padding:14px 18px;
+  font:650 18px/1.3 var(--sans);white-space:normal;}
+.yf .yf-ctabtn small{display:block;font-weight:400;font-size:13.5px;line-height:1.4;margin-top:3px;opacity:.88;}
+.yf-ctafoot{margin-top:26px;}
+/* "Next" scrolls a step to the top of the window: a little air above it */
+.yf-step{scroll-margin-top:12px;}
+/* step 4's region is its body: room for the step's heading above it */
+.yf-step4 .yf-actions{scroll-margin-top:56px;}
 .yf-follow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px;color:var(--ink);
   background:var(--k-soft,var(--paper-2));border-left:3px solid var(--reader);padding:8px 10px;margin:8px 0;}
 .yf-follow[hidden]{display:none;}
@@ -156,6 +168,27 @@
 .yf-outcome{font-size:14px;color:var(--ink-2);margin:0 0 4px;}
 .yf-outcome:empty{display:none;}
 .yf-expected{font-size:14px;margin:0 0 10px;}
+/* the headline names the outcome, then says it is the citywide result only */
+.yf-cityonly{font-size:14px;color:var(--ink-2);margin:0 0 6px;max-width:62ch;}
+/* the two parts: ward wins ("Your map") and citywide vote and seats */
+.yf-apart{margin:18px 0 0;padding-top:12px;border-top:1px solid var(--rule-soft);}
+.yf-apart .eyebrow{margin:0 0 2px;}
+.yf-apart h4{font:600 17px var(--serif);color:var(--ink);margin:0 0 8px;}
+.yf-amapgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px 22px;}
+.yf-amap{margin:0;}
+/* the reader's map: each ward's fill is the party called, its fill-opacity
+   our chance for that call (make.js, through map.js setShade) */
+.yf-amapsvg{display:block;width:100%;height:auto;max-height:calc(100vh - 120px);}
+.yf-amapsvg .w{cursor:pointer;}
+.yf-alegend{font-size:13px;color:var(--ink-3);margin:6px 0 0;line-height:1.45;}
+.yf-ramp{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.yf-ramp i{display:inline-block;width:90px;height:10px;border-radius:2px;border:1px solid var(--rule);
+  background:linear-gradient(90deg,transparent,var(--ink-2));}
+.yf-aside .yf-expected{font:600 18px/1.4 var(--serif);color:var(--ink);}
+.yf-ahint{font-size:13px;color:var(--ink-3);margin:0;}
+@media (min-width:720px){
+  .yf-amapgrid{grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:start;}
+}
 .yf-atable{overflow-x:auto;}
 .yf-at td:first-child{white-space:nowrap;}
 .yf-at th.num{white-space:normal;}
@@ -194,7 +227,10 @@
 /* a slot that empties stays: the :empty and [hidden] rules of the base
    sheets would take it out of the page */
 .yf .pl-engine.yf-slot:empty,.yf .pl-sharewhy.yf-slot:empty,.yf .floornote.yf-slot:empty,
-.yf .ess.yf-slot:empty{display:block;}
+.yf .ess.yf-slot:empty,.yf .pl-zonewhy.yf-slot:empty{display:block;}
+/* why a slider stops, or a poll cannot be chosen: under the turnout sliders
+   and under the poll's slider */
+.yf .pl-zonewhy.yf-slot{line-height:1.4;height:3lh;}
 .yf .pl-engine.yf-slot{line-height:1.5;height:4lh;margin:0 0 4px;}
 .yf .pl-status.yf-slot{line-height:1.4;height:calc(5lh + 20px);align-content:flex-start;overflow:hidden;}
 .yf .pl-status.yf-slot[hidden]{display:flex;visibility:hidden;}
@@ -220,7 +256,8 @@
 .yf .yf-score .yf-slot{height:2lh;}
 .yf .yf-score .yf-sseats.yf-slot{height:4lh;}
 .yf .yf-outcome.yf-slot{line-height:1.4;height:4lh;}
-.yf .yf-expected.yf-slot{line-height:1.4;height:2lh;}
+.yf .yf-expected.yf-slot{line-height:1.4;height:3lh;}
+.yf .yf-anote.yf-slot{line-height:1.4;height:2lh;}
 .yf .painthint.yf-slot{line-height:1.4;height:calc(3lh + 16px);}
 .yf [data-live="ess"].yf-slot{display:block;line-height:1.4;height:3lh;}
 @media (min-width:1100px){
@@ -239,7 +276,6 @@
   .yf .yf-score .yf-slot{height:1lh;}
   .yf .yf-score .yf-sseats.yf-slot{height:2lh;}
   .yf .yf-outcome.yf-slot{height:2lh;}
-  .yf .yf-expected.yf-slot{height:1lh;}
   .yf .floornote.yf-slot{height:calc(2lh + 12px);}
 }
 /* the legend lines that name the reader's changes take their place whether

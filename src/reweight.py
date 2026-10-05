@@ -272,6 +272,12 @@ def require_effective(weights, floor: int | None = None) -> float:
     return ess
 
 
+#: The rounding allowance in :func:`_tilt`'s line search, relative to the
+#: dual's size: a few dozen float64 epsilons. A numerical tolerance, not a
+#: modelling choice.
+DUAL_ROUNDING = 64 * float(np.finfo(float).eps)
+
+
 def _tilt(features: np.ndarray, targets: np.ndarray, *, base=None,
           tolerance: float, steps: int) -> np.ndarray:
     """Exponential tilting: w ∝ base·exp(λ·x), λ chosen so the weighted mean of x is ``targets``.
@@ -344,8 +350,16 @@ def _tilt(features: np.ndarray, targets: np.ndarray, *, base=None,
             step = np.linalg.solve(cov, grad)
         except np.linalg.LinAlgError as exc:
             raise Refused(f"the tilt is singular: {exc}") from exc
+        # Armijo step halving. The dual is a log-sum-exp of order log(draws):
+        # near the optimum its decrease falls below what a float can resolve
+        # at that size, and a test with no allowance for rounding then rejects
+        # the exact Newton step and halves it to nothing, so a target well
+        # inside the draws' span "did not converge" (a poll at one trust step
+        # was refused this way, owner's test 2026-10-05). Convergence is still
+        # judged by the gradient alone.
         f0, s = dual(lam), 1.0
-        while dual(lam - s * step) > f0 - 1e-4 * s * (grad @ step) and s > 1e-12:
+        slack = DUAL_ROUNDING * max(1.0, abs(f0))
+        while dual(lam - s * step) > f0 - 1e-4 * s * (grad @ step) + slack and s > 1e-12:
             s *= 0.5
         lam = lam - s * step
     raise Refused("the tilt did not converge: the target is at the edge of what "

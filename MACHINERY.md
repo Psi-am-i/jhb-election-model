@@ -1933,7 +1933,13 @@ under Pyodide. Every party is treated identically (DESIGN-decided §8).
   targets. Of the weightings that hit them, it is the closest to uniform in
   Kullback-Leibler divergence. There is no single-pool form: the pools' turnouts
   are correlated, so selecting on one lifts all four (PLAN.md finding 3). A
-  target outside what the draws span is refused, not extrapolated.
+  target outside what the draws span is refused, not extrapolated. The
+  Newton step is halved until the dual falls (Armijo), with an allowance of
+  `DUAL_ROUNDING` for the dual's own rounding: near the optimum the true
+  decrease is below what a float resolves at the dual's size, and without
+  the allowance a target well inside the draws was refused "did not
+  converge" (owner's test, 2026-10-05: a poll at one trust step).
+  Convergence is judged on the gradient alone.
 * **Polls** *(superseded 2026-09-28: the `trust` exponent and `combine` are
   gone; see the dated paragraph "Changed 2026-09-28, after the blind pollster
   review" below)*: `poll_weights` is an independent-normal likelihood on each draw's

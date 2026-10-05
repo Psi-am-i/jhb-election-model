@@ -193,7 +193,8 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
     }, ".nchanged"],
     ["turnout +5", T0, slide(T0, 5), '[data-live="b-status"] .yf-follow'],
     // two groups far apart: the simulations run out and the slider stops
-    ["a second group to -5 (stops)", T1, slide(T1, -5), '[data-live="engine"] .pl-engine.pl-low'],
+    // the stop is said under the turnout sliders, with the zone shaded (B1)
+    ["a second group to -5 (stops)", T1, slide(T1, -5), '[data-live="turnout"] .pl-zonewhy'],
     ["the second group back to 0", T1, slide(T1, 0), null],
     ["turnout back to 0", T0, slide(T0, 0), null],
     ["a poll", '[data-live="polls"]', pick('[data-live="polls"] input[type="radio"]:not([value=""])'), null],

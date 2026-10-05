@@ -839,6 +839,53 @@ def test_page_polls_on_the_real_register_both_directions():
     assert not {p["id"] for p in page} & {x.poll_id for x in declined}
 
 
+def test_a_target_well_inside_the_draws_converges_despite_rounding():
+    """The tilt's step-halving test allows for the dual's rounding
+    (``DUAL_ROUNDING``, owner's test 2026-10-05: a poll at one trust step was
+    refused "did not converge"). The dual is a log-sum-exp of order
+    log(draws); near the optimum its true decrease is below what a float
+    resolves there, and a test with no allowance rejects the exact Newton
+    step and halves it to nothing. Targets a hair from the base's own mean,
+    with a poll as the base (the page's pinned case), all converge and are
+    hit. With the allowance at zero at least one is refused again: the
+    positive control. Convergence is still judged on the gradient alone, so
+    a target outside the draws is still refused."""
+    t, shares, cols = _correlated_draws()
+    poll = R.poll_weights(shares, cols, {"A": 0.38, "B": 0.25}, sd=0.03)
+    held = (poll / poll.sum()) @ t
+    # log-spaced: the defect bites when a Newton iterate lands with a
+    # gradient small enough that its decrease is below rounding, but still
+    # above the tolerance, which depends on where the first step lands
+    offsets = [float(x) for x in np.geomspace(1e-8, 1e-4, 41)]
+
+    def refused() -> list[float]:
+        out = []
+        for d in offsets:
+            target = held + d
+            try:
+                w = R.turnout_tilt(t, np.zeros(4), base=poll, pin_to=target)
+            except R.Refused as exc:
+                assert "did not converge" in str(exc), exc
+                out.append(d)
+                continue
+            assert np.max(np.abs((w / w.sum()) @ t - target)) < 1e-9, d
+        return out
+
+    assert refused() == []
+    allowance = R.DUAL_ROUNDING
+    try:
+        R.DUAL_ROUNDING = 0.0
+        assert refused(), "every target converged without the allowance: the test cannot see the defect"
+    finally:
+        R.DUAL_ROUNDING = allowance
+    assert refused() == []
+    try:
+        R.turnout_tilt(t, np.zeros(4), base=poll, pin_to=t.max(axis=0) + 0.01)
+    except R.Refused:
+        pass
+    else:
+        raise AssertionError("a target outside the draws was not refused")
+
 def test_a_pinned_tilt_holds_another_cells_turnout_at_the_published_mean():
     """F4/F10: a cell's own mean is not the published one; pin_to says which."""
     published = _constructed_turnouts()

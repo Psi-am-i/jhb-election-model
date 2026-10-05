@@ -113,7 +113,7 @@ on a narrow screen with the seat table out of view, a toast (`toast`,
 headed "Since your last change") names the parties that moved, each with its
 logo where the site has one. The banner's own arrows are against the
 published forecast. Under
-`prefers-reduced-motion` nothing moves. The share button ends the section;
+`prefers-reduced-motion` nothing moves. The share row ends the section;
 only a council seated under South African law can be shared
 (`play-state.shareable`): under another law the button is disabled and says
 why.
@@ -144,12 +144,29 @@ middle seat count (`handoff` returns the middles; the published start's are
 `forecast.json`'s `published_middle`), and the share image says the same.
 
 **The walkthrough.** Four numbered steps: call the wards, set the vote, pick
-who governs, share or analyse. One is highlighted at a time; "Next" marks a
-step done. Every step stays usable whichever is highlighted.
+who governs, see how likely it is. One is highlighted at a time; "Next" marks
+a step done, highlights the next, scrolls to it and focuses its first control
+(the first vote slider, the first coalition chip, "Analyse my forecast").
+Every step stays usable whichever is highlighted. The chips for painting
+wards are every party seated in the reader's council or at its start, and
+the party chosen (`builder-state.chipParties`, one rule for every party);
+every other party is in the select beside them.
+
+**The calls to act** (owner, 2026-10-05) are full-width rows, each with one
+line on what it gives: "Share this forecast" at the end of section 1
+(section 1's sheet) and at the foot of section 2, before the notes (section
+2's sheet: the map, the seats, our chance, a sealed link); "Analyse my
+forecast" in step 4.
 
 **"Analyse my forecast"** (`page.py`'s `analyse`, `reweight.within_band`,
 `reweight.ward_calls_likelihood`; JUDGEMENT-CALLS §N3). Every chance is the
-published forecast's. Hovering a ward gives the chance of the reader's call
+published forecast's. The region opens with what "this outcome" is (the
+reader's council-level outcome, `share-card.outcomeWords`), its chance, and a
+line that it is the citywide result only. "Your map" (ward wins) is the
+reader's map, each ward in the colour called and as strong as our chance for
+that call, with the number of calls expected to come true beside it;
+"Citywide vote and seats" is the table below and the totals. The long
+explanation is the note on the outcome. Hovering a ward gives the chance of the reader's call
 there; each party's seats get the chance of landing within
 `reweight.ANALYSIS_SEAT_BAND` seats; its vote the chance its LIST-BALLOT share
 lands within `ANALYSIS_SHARE_BAND_POINTS` points (the draws carry no combined
@@ -282,8 +299,14 @@ committed. S5 should commit its code and be the one source.
    the published forecast. Every figure shows its ± seats (`figure()`'s
    `sampling_se`); a move that would take any figure the page shows past
    `reweight.MAX_FIGURE_SE_SEATS` (`within_precision`, via `pyboot/page.py`)
-   or below the effective-draw floor stops: the control returns to the last
-   setting that passed and greys. A link opened past it shows "withheld".
+   or below the effective-draw floor stops, and says so where it stops
+   (owner, 2026-10-05): a slider halts at the furthest setting that passes,
+   the track beyond it shaded, with one line under the slider saying why; an
+   option of a discrete control (a poll, a by-election weight, a seat law)
+   refused at the other settings returns to the last option, is marked, and
+   the line beside its control names it and says why. Both are forgotten
+   when another control moves. A link opened past it greys the controls and
+   shows "withheld".
 3. **The trust-slider mapping** is the owner's (SPEC-v2 decision 2): trust t
    gives the poll error `poll_sd / t`, so 100 is the poll's own sampling error
    and 0 is no weight.

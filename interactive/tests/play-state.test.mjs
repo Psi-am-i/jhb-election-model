@@ -118,3 +118,34 @@ test("no page script re-weights (one definition, in Python)", () => {
   assert.ok(reweightingIn("w[i] *= Math.exp(lam * (x - m));").length > 0);
   assert.deepEqual(reweightingIn("const x = 1;"), []);
 });
+
+// B1 (owner, 2026-10-05): a slider that stops shows a shaded zone beyond the
+// furthest setting it reaches; the thumb is held at the stop.
+test("a stop shades the track beyond it, each way, and holds the thumb there", () => {
+  const T = PS.TRUST;
+  assert.deepEqual(PS.stopZones(T, null), []);
+  assert.deepEqual(PS.stopZones(T, { up: null, down: null }), []);
+  const up = PS.withStop(null, 1, 35);
+  assert.deepEqual(up, { up: 35, down: null });
+  assert.deepEqual(PS.stopZones(T, up), [{ from: 0.35, to: 1 }]);
+  // a stop at the slider's own end shades nothing
+  assert.deepEqual(PS.stopZones(T, PS.withStop(null, 1, T.max)), []);
+  // turnout runs both ways from zero; a second stop keeps the first
+  const U = PS.TURNOUT;
+  const both = PS.withStop(PS.withStop(null, 1, 3), -1, -2.5);
+  assert.deepEqual(both, { up: 3, down: -2.5 });
+  const z = PS.stopZones(U, both);
+  assert.equal(z.length, 2);
+  assert.ok(Math.abs(z[0].from - (3 - U.min) / (U.max - U.min)) < 1e-12 && z[0].to === 1);
+  assert.ok(z[1].from === 0 && Math.abs(z[1].to - (-2.5 - U.min) / (U.max - U.min)) < 1e-12);
+  // a new stop the same way replaces the old one
+  assert.deepEqual(PS.withStop(both, 1, 4), { up: 4, down: -2.5 });
+  // the thumb: held at a stop it is dragged past, free inside
+  assert.equal(PS.heldAtStop(50, up), 35);
+  assert.equal(PS.heldAtStop(35, up), 35);
+  assert.equal(PS.heldAtStop(20, up), 20);
+  assert.equal(PS.heldAtStop(-4, both), -2.5);
+  assert.equal(PS.heldAtStop(5, both), 3);
+  assert.equal(PS.heldAtStop(1, both), 1);
+  assert.equal(PS.heldAtStop(90, null), 90);
+});
