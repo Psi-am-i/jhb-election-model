@@ -188,7 +188,9 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
     ["back to the forecast, section 2 following", '[data-live="result"]', click('[data-live="result"] .pl-back'), null, { above: FOLLOWS }],
     // section 2 edited: from here it holds its own forecast
     ["paint a ward", ".wardmap", async p => {
-      await p.locator(".brushscroll button").last().click();
+      // a DOM click: the reader's click does not scroll, Playwright's would
+      // bring the last of the chips into view first
+      await p.evaluate(() => [...document.querySelectorAll(".brushscroll button")].pop().click());
       await p.locator(".wardmap [data-i]").nth(7).click({ force: true });
     }, ".nchanged"],
     ["turnout +5", T0, slide(T0, 5), '[data-live="b-status"] .yf-follow'],

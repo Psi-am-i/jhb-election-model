@@ -132,9 +132,10 @@
    furthest setting it reaches, shaded (model.js draws the rects, as
    percentages of the track; the inset is the thumb's half-width, so a rect's
    edge sits under the thumb at the stop) */
-/* the track carries the range input's margin, so its middle is the input's */
+/* the track carries the range input's margin, and the input is a block (no
+   line box below it), so the track's middle is the input's */
 .pl-track{position:relative;margin:6px 0 2px;}
-.pl-track input[type="range"]{margin:0;}
+.pl-track input[type="range"]{margin:0;display:block;}
 .pl-zone{position:absolute;left:8px;top:50%;width:calc(100% - 16px);height:12px;margin-top:-6px;pointer-events:none;overflow:visible;}
 .pl-zrect{fill:color-mix(in srgb,var(--bad) 28%,transparent);}
 .pl-zonewhy{font-size:12.5px;color:var(--ink-2);margin:2px 0 0;}
