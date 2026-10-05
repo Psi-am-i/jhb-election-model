@@ -280,9 +280,18 @@ const contrast = (a, b) => {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 };
+const worstContrast = (ink, fills) => Math.min(...fills.map(f => contrast(ink, f)));
 export function inkOn(fills) {
-  const worst = ink => Math.min(...fills.map(f => contrast(ink, f)));
-  return worst(C.ink) >= worst(C.paper) ? C.ink : C.paper;
+  return worstContrast(C.ink, fills) >= worstContrast(C.paper, fills) ? C.ink : C.paper;
+}
+// The least contrast (WCAG, large text) the words on a band may have. Below
+// it, as on a band split between two mid-tone colours, the words sit on
+// plates of the card's paper inside the band.
+export const BAND_MIN_CONTRAST = 3;
+// { ink, ratio, plated } for words on a band of `fills`.
+export function bandInk(fills) {
+  const ink = inkOn(fills), ratio = worstContrast(ink, fills);
+  return ratio >= BAND_MIN_CONTRAST ? { ink, ratio, plated: false } : { ink: C.ink, ratio: worstContrast(C.ink, [C.paper]), plated: true };
 }
 
 // The colours of the most seats: one party's, or each tied party's.
@@ -290,8 +299,9 @@ const topColours = spec => (spec.top.length ? spec.top : [null])
   .map(c => (c ? spec.rows.find(r => r.code === c).colour : OTHERS_COLOUR));
 
 // A band in the largest party's colour, split equally for a tie: behind a
-// headline, or over a council graphic. Returns { svg, ink } (ink: what reads
-// on it). A band given several forecasts splits into one part per forecast.
+// headline, or over a council graphic. Returns { svg, ink, plated } (ink:
+// what reads on it; plated: each text on it goes on a plate, bandPlate). A
+// band given several forecasts splits into one part per forecast.
 function colourBand(specs, x, y, w, h) {
   const parts = [].concat(specs);
   const fills = [];
@@ -300,8 +310,18 @@ function colourBand(specs, x, y, w, h) {
     const cs = topColours(spec), pw = w / parts.length, cw = pw / cs.length;
     cs.forEach((c, j) => { svg += rect(x + k * pw + j * cw, y, cw + 0.5, h, c); fills.push(c); });
   });
-  return { svg, ink: inkOn(fills) };
+  return { svg, ...bandInk(fills) };
 }
+
+// The paper plate under what sits on a plated band: the box (x, y, w, h) and
+// a margin, or "" on a band that needs none. textPlate: the box of a text
+// `w` wide at `fs` px on the baseline `y`.
+function bandPlate(band, x, y, w, h) {
+  if (!band.plated) return "";
+  const p = Math.round(Math.min(10, h * 0.2));
+  return rect(x - p, y - p, w + 2 * p, h + 2 * p, C.paper, ` rx="${n1(p)}"`);
+}
+const textPlate = (band, x, y, w, fs) => bandPlate(band, x, y - fs * 0.92, w, fs * 1.2);
 
 // A row of the table in its party's colour, for the largest party (or each
 // tied for it). Returns { svg, ink }, or no band for any other row.
@@ -354,7 +374,8 @@ function council(spec, x, y, { width, cell: want, gap, fs = 15, label = true }) 
     const lx = ox + (L.step.col + 1) * step - gap / 2 + 6;
     const words = spec.majority + " for a majority";
     const anchor = lx + textWidth(words, fs) > x + gridW ? "end" : "";
-    s += bar.svg + text(anchor ? ox + L.step.col * step - 6 : lx, y + fs + 1, words, fs, "sans", { fill: bar.ink, anchor });
+    const ww = textWidth(words, fs), wx = anchor ? ox + L.step.col * step - 6 : lx;
+    s += bar.svg + textPlate(bar, anchor ? wx - ww : wx, y + fs + 1, ww, fs) + text(wx, y + fs + 1, words, fs, "sans", { fill: bar.ink, anchor });
   }
   s += L.cells.map(c => rect(ox + c.col * step, oy + c.row * step, cell, cell, c.colour,
     ` rx="${n1(Math.max(1, cell / 6))}"${c.pr ? ` fill-opacity="${PR_OPACITY}"` : ""}`)).join("");
@@ -376,7 +397,7 @@ function partyTable(spec, assets, g) {
     s += text(cols[k], g.y + fs.head * 1.2, b, fs.head, "sans", { fill: C.ink3, anchor: "end" });
   });
   const pad = Math.round(cs / 4);
-  let top = g.y + fs.head * 1.2 + pad;
+  let top = Math.round(g.y + fs.head * 1.2 + pad);
   for (const r of listedRows(spec, g.n)) {
     const band = rowBand(spec.top.includes(r.code), r.colour, x - pad, top + 2, R - x + 2 * pad, pitch - 4);
     if (g.rules && !band.svg) s += rect(x, top, R - x, 1, C.rule);
@@ -420,6 +441,8 @@ function svgOpen(W, H, assets) {
 // The headline band's height and the headline's baseline.
 export const LINK_BAND = 128;
 export const LINK_HEAD_Y = 92;
+// The party table's row pitch.
+export const LINK_PITCH = 38;
 
 export function linkCardSVG(spec, assets = {}, party) {
   const [W, H] = SIZES.link;
@@ -429,9 +452,10 @@ export function linkCardSVG(spec, assets = {}, party) {
   const top = colourBand(spec, 0, 0, W, LINK_BAND);
   s += top.svg;
   const bh = 104, bw = brandWidth(assets, bh);
-  s += brand(assets, R + 4 - bw, 14, bh, top.ink);
+  s += bandPlate(top, R + 4 - bw, 14, bw, bh) + brand(assets, R + 4 - bw, 14, bh, top.ink);
   const head = fitText(spec.title, Math.min(900, R - bw - 24 - X), 56, "serifSemi", 40);
-  s += text(X, LINK_HEAD_Y, head.text, head.fs, "serifSemi", { fill: top.ink });
+  s += textPlate(top, X, LINK_HEAD_Y, textWidth(head.text, head.fs, "serifSemi"), head.fs) +
+    text(X, LINK_HEAD_Y, head.text, head.fs, "serifSemi", { fill: top.ink });
   s += text(X, 168, spec.election.city + " council, " + dateText(spec.election.date) + ", " + spec.council + " seats.", 20, "sans", { fill: C.ink2 });
   const made = madeText(spec);
   if (made) s += text(X, 195, made + ", " + daysText(daysToVote(spec.made.at, spec.election)) + ".", 20, "sans", { fill: C.ink2 });
@@ -444,8 +468,8 @@ export function linkCardSVG(spec, assets = {}, party) {
     s += text(X, y, lead, 22) + text(X + textWidth(lead, 22), y, names, 22, "sansSemi") +
       text(X + textWidth(lead, 22) + textWidth(names, 22, "sansSemi"), y, tail, 22);
   }
-  s += partyTable(spec, assets, { x: 616, right: R, cols: [856, 946, 1068, R], y: gy - 8, n: ROWS.link,
-    pitch: 38, chip: 32, rules: false, fs: { head: 15, name: 23, pct: 21, seats: 26, vs: 19 } }).svg;
+  s += partyTable(spec, assets, { x: 600, right: R, cols: [876, 960, 1068, R], y: gy - 8, n: ROWS.link,
+    pitch: LINK_PITCH, chip: 32, rules: false, fs: { head: 15, name: 23, pct: 21, seats: 26, vs: 19 } }).svg;
   // the foot: the outcome and its chance; whose forecast; where to make one
   s += rect(X, 522, R - X, 1, C.rule);
   const rightW = 300;
@@ -464,9 +488,10 @@ export function linkCardSVG(spec, assets = {}, party) {
 
 // ---------- the story card, 1080 x 1920 ----------
 
-// The table's right edges, in card pixels: % of seats, % of votes, seats;
-// the change column ends at the margin.
-const STORY_COLUMNS = [560, 700, 900];
+// The table's right edges, in card pixels; the change column ends at the
+// margin. Named, not a list: the build's live-writer scan refuses a literal
+// array of numbers in this module (stats.SCRIPT_FORBIDDEN "a data block").
+const STORY_COLUMNS = { seatPct: 560, vote: 700, seats: 900 };
 // The headline band's height and the headline's baseline.
 export const STORY_BAND = 292;
 export const STORY_HEAD_Y = 262;
@@ -480,14 +505,18 @@ export function storyCardSVG(spec, assets = {}, party) {
   let s = svgOpen(W, H, assets);
   // the logo, the date and the headline on a band in the largest party's colour
   const top = colourBand(spec, 0, 0, W, STORY_BAND);
-  s += top.svg + brand(assets, X, 44, 130, top.ink);
+  const bh = 130;
+  s += top.svg + bandPlate(top, X, 44, brandWidth(assets, bh), bh) + brand(assets, X, 44, bh, top.ink);
   const made = madeText(spec);
   if (made) {
-    s += text(R, 82, made, 28, "sans", { fill: top.ink, anchor: "end" });
-    s += text(R, 120, cap(daysText(daysToVote(spec.made.at, spec.election), false)), 28, "sans", { fill: top.ink, anchor: "end" });
+    [made, cap(daysText(daysToVote(spec.made.at, spec.election), false))].forEach((l, k) => {
+      const w = textWidth(l, 28);
+      s += textPlate(top, R - w, 82 + k * 38, w, 28) + text(R, 82 + k * 38, l, 28, "sans", { fill: top.ink, anchor: "end" });
+    });
   }
   const head = fitText(spec.title, R - X, 70, "serifSemi", 40);
-  s += text(X, STORY_HEAD_Y, head.text, head.fs, "serifSemi", { fill: top.ink });
+  s += textPlate(top, X, STORY_HEAD_Y, textWidth(head.text, head.fs, "serifSemi"), head.fs) +
+    text(X, STORY_HEAD_Y, head.text, head.fs, "serifSemi", { fill: top.ink });
   s += text(X, 326, spec.election.city + " council, " + dateText(spec.election.date) + ". " + spec.council + " seats.", 30, "sans", { fill: C.ink2 });
   s += text(X, 362, "A reader's forecast, not the model's.", 26, "sans", { fill: C.ink3 });
   const gy = 388;
@@ -504,7 +533,7 @@ export function storyCardSVG(spec, assets = {}, party) {
     s += text(x, y, b, 24, "sansSemi"); x += textWidth(b, 24, "sansSemi");
     s += text(x, y, c, 24, "sans", { fill: C.ink3 });
   }
-  const t = partyTable(spec, assets, { x: X, right: R, cols: [...STORY_COLUMNS, R], y: y + 46, n: ROWS.story,
+  const t = partyTable(spec, assets, { x: X, right: R, cols: [STORY_COLUMNS.seatPct, STORY_COLUMNS.vote, STORY_COLUMNS.seats, R], y: y + 46, n: ROWS.story,
     pitch: 52, chip: 42, rules: true, fs: { head: 22, name: 29, pct: 29, seats: 34, vs: 26 } });
   s += t.svg;
   y = t.bottom;
@@ -533,10 +562,10 @@ export function storyCardSVG(spec, assets = {}, party) {
     if (col.bottom + 60 + foot.length * 38 <= STORY_TEXT_BOTTOM) break;
   }
   s += col.out;
-  const top = col.bottom + 60;
-  s += rect(X, top - 40, R - X, 1, C.rule);
-  foot.forEach((l, k) => { s += text(X, top + k * 38, l, 27, "sans", { fill: C.ink2 }); });
-  const my = top + foot.length * 38, lead = "Make yours at ";
+  const footTop = col.bottom + 60;
+  s += rect(X, footTop - 40, R - X, 1, C.rule);
+  foot.forEach((l, k) => { s += text(X, footTop + k * 38, l, 27, "sans", { fill: C.ink2 }); });
+  const my = footTop + foot.length * 38, lead = "Make yours at ";
   s += text(X, my, lead, 27, "sans", { fill: C.ink2 }) + text(X + textWidth(lead, 27), my, SITE, 27, "monoSemi");
   return s + "</svg>";
 }
@@ -558,15 +587,16 @@ export function duelCardSVG(a, b, assets = {}, party) {
   const top = colourBand([a, b], 0, 0, W, DUEL_BAND);
   s += top.svg;
   const bh = 96, bw = brandWidth(assets, bh);
-  s += brand(assets, R + 4 - bw, 14, bh, top.ink);
+  s += bandPlate(top, R + 4 - bw, 14, bw, bh) + brand(assets, R + 4 - bw, 14, bh, top.ink);
   const and = " and ";
   const maxW = R - bw - 24 - X;
   const fs = Object.values(DUEL_TITLE).find(f => textWidth(a.name + and + b.name, f, "serifSemi") <= maxW) || DUEL_TITLE.least;
   const na = fitText(a.name, (maxW - textWidth(and, fs, "serifSemi")) / 2, fs, "serifSemi", fs).text;
   const nb = fitText(b.name, maxW - textWidth(na + and, fs, "serifSemi"), fs, "serifSemi", fs).text;
   // three texts, each placed by measure: SVG drops a text's leading space
-  s += text(X, DUEL_HEAD_Y, na, fs, "serifSemi", { fill: top.ink }) +
-    text(X + textWidth(na + " ", fs, "serifSemi"), DUEL_HEAD_Y, and.trim(), fs, "serifSemi", { fill: top.ink, opacity: 0.7 }) +
+  s += textPlate(top, X, DUEL_HEAD_Y, textWidth(na + and + nb, fs, "serifSemi"), fs) +
+    text(X, DUEL_HEAD_Y, na, fs, "serifSemi", { fill: top.ink }) +
+    text(X + textWidth(na + " ", fs, "serifSemi"), DUEL_HEAD_Y, and.trim(), fs, "serifSemi", { fill: top.ink }) +
     text(X + textWidth(na + and, fs, "serifSemi"), DUEL_HEAD_Y, nb, fs, "serifSemi", { fill: top.ink });
   s += text(X, 150, "Two forecasts of the " + a.election.city + " council, " + a.council + " seats.", 21, "sans", { fill: C.ink2 });
   // the date is the first forecast's own: the second's link carries no seal
@@ -583,11 +613,13 @@ export function duelCardSVG(a, b, assets = {}, party) {
     const who = F.name + " ";
     const rest = "We give it " + aChance(F.outcome.text) + ". " + F.badge + ".";
     const bar = colourBand(F, X, y - 22, 470, 30);
-    return bar.svg + text(X + 8, y, who, 20, "sansSemi", { fill: bar.ink }) +
-      text(X + 8 + textWidth(who, 20, "sansSemi"), y, fitText(rest, 454 - textWidth(who, 20, "sansSemi"), 20, "sans", 15).text, 20, "sans", { fill: bar.ink }) +
+    const tail = fitText(rest, 454 - textWidth(who, 20, "sansSemi"), 20, "sans", 15).text;
+    return bar.svg + textPlate(bar, X + 8, y, textWidth(who, 20, "sansSemi") + textWidth(tail, 20), 20) +
+      text(X + 8, y, who, 20, "sansSemi", { fill: bar.ink }) +
+      text(X + 8 + textWidth(who, 20, "sansSemi"), y, tail, 20, "sans", { fill: bar.ink }) +
       council(F, X, y + 14, { width: 350, cell: 11, gap: 2, label: false }).svg;
   };
-  s += pair(a, 216) + pair(b, 386);
+  s += pair(a, 216) + pair(b, 396);
   // the table: each party in either top seven, in the first forecast's seat order
   const seatsA = Object.fromEntries(a.rows.map(r => [r.code, r.seats]));
   const seatsB = Object.fromEntries(b.rows.map(r => [r.code, r.seats]));
@@ -637,6 +669,6 @@ export function duelAlt(a, b) {
 export function brandOf(svgText) {
   const vb = /viewBox="([^"]+)"/.exec(svgText);
   const body = svgText.replace(/<!--[\s\S]*?-->/g, "").replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "")
-    .replace(/currentColor/g, C.ink);
+    .replace(/var\(--[\w-]+,\s*currentColor\)/g, "currentColor").replace(/currentColor/g, C.ink);   // resvg reads no CSS variable
   return vb ? { viewBox: vb[1], body } : null;
 }

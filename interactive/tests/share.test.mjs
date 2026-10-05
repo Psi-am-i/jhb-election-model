@@ -146,7 +146,7 @@ test("the outcome reads exactly as the chance is defined, and a tie splits the b
   assert.deepEqual(band.map(b => b[3]).sort(), [p.colour, q.colour].sort());
   assert.ok(Math.abs(band.reduce((a, b) => a + Number(b[2]), 0) - SC.SIZES.link[0]) <= 1, "the halves span the card");
   // the table: each tied party's row in its colour, no other row
-  const rowBands = svg => [...svg.matchAll(/<rect x="[\d.]+" y="[\d.]+" width="[\d.]+" height="34" fill="([^"]+)"/g)].map(m => m[1]);
+  const rowBands = svg => [...svg.matchAll(new RegExp(`<rect x="[\\d.]+" y="[\\d.]+" width="[\\d.]+" height="${SC.LINK_PITCH - 4}" fill="([^"]+)"`, "g"))].map(m => m[1]);
   assert.deepEqual(rowBands(svg).sort(), [p.colour, q.colour].sort());
   // one largest party: one band, its colour, and its row alone in colour
   const one = SC.linkCardSVG(A, ASSETS, party);
@@ -172,6 +172,41 @@ test("text on a band is the ink that reads on it", () => {
   // black together, whichever, but the same for either order
   assert.equal(SC.inkOn(["#ffffff", "#000000"]), SC.inkOn(["#000000", "#ffffff"]));
   for (const r of A.rows) assert.ok([light, dark].includes(SC.inkOn([r.colour])), r.code);
+});
+
+test("words on a band read at 3:1 or better: every roster colour and every pair, else they sit on paper plates", () => {
+  const colours = [...new Set(Object.values(FIXTURE.parties).map(p => p.colour.toLowerCase()))];
+  const pairs = colours.flatMap((c, i) => colours.slice(i + 1).map(d => [c, d]));
+  assert.ok(colours.length > 5 && pairs.length > 10, "the scan looked at the roster");
+  let plated = 0;
+  for (const fills of [...colours.map(c => [c]), ...pairs]) {
+    const b = SC.bandInk(fills);
+    assert.ok(b.ratio >= SC.BAND_MIN_CONTRAST, fills.join(" "));
+    if (b.plated) plated++;
+    else assert.equal(b.ink, SC.inkOn(fills), fills.join(" "));
+  }
+  // a tie between two colours that no ink reads on: the headline goes on a plate
+  const [c, d] = pairs.find(f => SC.bandInk(f).plated) || [];
+  assert.ok(c, "some pair of roster colours needs a plate");
+  const [p, q] = [A.rows[0], A.rows[1]];
+  const recolour = code => code === p.code ? { ...party(code), colour: c } : code === q.code ? { ...party(code), colour: d } : party(code);
+  const answer = { ...FIXTURE.A.answer, seats: { ...FIXTURE.A.answer.seats, [q.code]: p.seats } };
+  const tie = SC.forecastSpec({ name: "T", answer, outcome: { ...A.outcome, largest: null }, vote: FIXTURE.A.vote,
+    calls: A.calls, party: recolour, baseline: FIXTURE.baseline, election: FIXTURE.election });
+  const paper = /<rect [^>]*fill="([^"]+)"/.exec(SC.linkCardSVG(tie, ASSETS, recolour))[1];   // the card's ground
+  for (const [svg, headY] of [[SC.linkCardSVG(tie, ASSETS, recolour), SC.LINK_HEAD_Y], [SC.storyCardSVG(tie, ASSETS, recolour), SC.STORY_HEAD_Y],
+    [SC.duelCardSVG(tie, tie, ASSETS, recolour), SC.DUEL_HEAD_Y]]) {
+    const plates = [...svg.matchAll(new RegExp(`<rect x="[\\d.]+" y="([\\d.]+)" width="[\\d.]+" height="([\\d.]+)" fill="${paper}" rx=`, "g"))];
+    assert.ok(plates.some(m => Number(m[1]) < headY && Number(m[1]) + Number(m[2]) > headY), "a plate under the headline");
+  }
+  // one roster colour alone never needs a plate
+  for (const F of [A, Bspec]) assert.ok(!SC.bandInk([F.rows[0].colour]).plated);
+});
+
+test("the brand on a card holds no CSS variable, which resvg cannot read: every part in the card's ink", () => {
+  const svg = readFileSync(resolve(repo, "site/logo.svg"), "utf8");
+  assert.ok(/var\(--/.test(svg), "the site's logo uses a variable, so the check can see one");
+  assert.ok(!/var\(|currentColor/.test(SC.brandOf(svg).body));
 });
 
 test("% of seats is the seats over the council, for every row and Others, on both single cards", () => {
