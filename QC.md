@@ -176,7 +176,11 @@ build–review–fix loops.
 2. **Code, then review the diff before running anything.** The writer stops
    after editing; a reviewer reads the actual diff against the brief (missed
    items, broken rules, one definition, no inline CSS/JS, no typed numbers). Only
-   then build and test.
+   then build and test. The writer's self-check for a JS module is importing it
+   (`node -e 'import("./interactive/js/x.js")'`), not `node --check`: on
+   card-1005 `node --check` passed a module whose import threw. A module that
+   `site/` serves also has to pass the site build's live-writer scan
+   (`stats.SCRIPT_FORBIDDEN`), which refuses a literal array of numbers.
 3. **Tier the checks by what changed:**
    * **Cosmetic** (CSS, wording, layout, cards): site build to `--out`, the page
      modules (`site_assets`, `site_structure`, `number_scan`, the page's own
