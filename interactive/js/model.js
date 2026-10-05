@@ -402,10 +402,9 @@ function paintZone(svg, bounds, limit) {
   svg.replaceChildren(...PS.stopZones(bounds, limit).map(z => sv("rect", { class: "pl-zrect",
     x: (z.from * 100).toFixed(2) + "%", y: 0, width: ((z.to - z.from) * 100).toFixed(2) + "%", height: "100%" })));
 }
-// "Germany 2015 is not available at your other settings: <why>. …"
+// "Germany 2015 is not available at these settings: <why>."
 function refusedWords(u) {
-  return optionName(u.group, u.value) + " is not available at your other settings: " + u.why +
-    ". Move them back towards the forecast's to use it.";
+  return optionName(u.group, u.value) + " is not available at these settings: " + u.why + ".";
 }
 function optionName(group, v) {
   if (group === "law") return lawText(v).label;
@@ -513,7 +512,7 @@ async function compute() {
       const reach = slider.get(stop.state);
       limits[which] = PS.withStop(limits[which], dir, reach);
       limitWhy[which] = "stops at " + (which === "trust" ? String(reach) : signed(reach, Math.abs(reach) === 1 ? " point" : " points")) +
-        ": one step further, " + why + ".";
+        ": past it, " + why + ".";
     } else {
       unavailable[which] = { group: which, value: discreteValue(which, asked), why };
     }
@@ -543,8 +542,11 @@ async function compute() {
 // Why a result cannot be shown, in the page's words, or null when it can:
 // below the effective-draw floor, or a figure past the precision ceiling
 // (page.py returns reweight.MAX_FIGURE_SE_SEATS beside the result).
+// Short, because it is said in the line beside the control (a reserved slot).
 function whyNot(r) {
-  if (r.refused) return tooFew(r);
+  if (r.refused) return r.effective_draws != null && r.draws
+    ? "too few simulations lie near (the equivalent of " + count(r.effective_draws) + "; a figure needs " + count(r.floor) + ")"
+    : "the re-weighting refuses it (" + r.refused + ")";
   if (r.within_precision === false) return "a seat figure would be known to worse than ±" + r.max_figure_se + " seats";
   return null;
 }
