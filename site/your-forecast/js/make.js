@@ -451,7 +451,7 @@ function paintBrush() {
   const chips = chipped.map(c => {
     let b = have.get(c);
     if (!b) {
-      b = el("button", { type: "button", className: "chip", value: c }, sw(c), name(c));
+      b = el("button", { type: "button", className: "chip", value: c, title: name(c) }, sw(c), el("span", { className: "chipt" }, name(c)));
       b.addEventListener("click", () => chooseBrush(S.brush === c ? null : c));
     }
     b.setAttribute("aria-pressed", String(c === S.brush));

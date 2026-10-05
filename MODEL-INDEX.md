@@ -643,6 +643,8 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `render_map.KEY_PARTIES` | tuple[8] | NO | NO | NO | -- |
 | `render_sheet.CHIPS` | dict[12] | NO | NO | NO | `build_play`, `render_map`, `site_assets` |
 | `render_sheet.OTHER_CHIP` | str '#8b918b' | NO | NO | NO | `build_play`, `site_assets` |
+| `render_sheet.VERDICT_STEPS` | tuple[5] | NO | NO | NO | -- |
+| `render_sheet.VERDICT_STEP` | dict[9] | NO | NO | NO | -- |
 | `render_sheet.NAMES` | dict[15] | NO | NO | NO | `build_play`, `render_home`, `render_map` |
 | `render_sheet.SEAT_LAWS` | tuple[4] | NO | NO | NO | `build_play` |
 | `render_sheet.COALITION_KEY_ORDER` | tuple[6] | NO | NO | NO | -- |
