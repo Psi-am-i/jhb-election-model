@@ -4,93 +4,51 @@ This page lists errors on published pages. Nothing is removed from it.
 
 ## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 2 October 2026
 
-<span data-asof="2026-10-02">**What was wrong.** The forecast page said "The
-ANC is largest in 47% of simulations and the DA in 47%", and its tiles gave
-47% for "The DA is the largest single party" and 47% for "The ANC is the
-largest single party". The home page, "Nobody will win Johannesburg" and the
-review gave the same two figures. A simulation in which two or more parties
-tied for the most seats was counted for whichever of them came first in the
-results file.
+<span data-asof="2026-10-02">**What was wrong.** The forecast page, the home page, "Nobody will win Johannesburg" and the review said the ANC and the DA were each the largest party in 47% of simulations. Where two parties tied for the most seats, the tie was counted as a win for one of them.
 
-**What changed.** A party is counted only where it alone has the most seats,
-and ties have their own figure. The sentence reads "The ANC alone has the most
-seats in 47% of simulations and the DA alone in 45%. Two or more parties tie
-for the most seats in 1.4%." The tiles read "The DA alone has the most seats"
-and "The ANC alone has the most seats".</span>
+**What is right.** The ANC alone has the most seats in 47% of simulations and the DA alone in 45%. In 1.4%, two or more parties tie for the most seats.</span>
 
 ## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 2 October 2026
 
-<span data-asof="2026-10-02">**What was wrong.** The red-lines claim on the
-forecast page was headed "Without the ANC, the red line holds about half the
-time", said the DA's widest option "still comes down to a coin flip", and
-carried the verdict "A COIN FLIP" there and on the home page. The figure it
-described was 59% of simulations on 26 and 27 September. 59% is not half.
+<span data-asof="2026-10-02">**What was wrong.** The red-lines claim on the forecast page said that without the ANC the red line holds "about half the time", and called it a coin flip. The figure was 59% of simulations, which is not half.
 
-**What changed.** The heading now reads "Without the ANC, the red line leaves
-a majority in 59% of simulations." The coin-flip clause is gone, and the
-verdict is "MORE LIKELY THAN NOT".</span>
+**What is right.** Without the ANC, the red line leaves a majority in 59% of simulations. The verdict is "MORE LIKELY THAN NOT".</span>
 
 ## "The 587,000 votes the ANC shed between 2016 and 2021" — published 26 September 2026, corrected 2 October 2026
 
-<span data-asof="2026-10-02">**What was wrong.** The home page summary of "When
-the ANC falls, nobody catches the votes" said "the opposition captured
-essentially none of the 587,000 votes the ANC shed between 2016 and 2021". The figure is the ANC
-bloc's loss from the 2019 national election to the 2021 local election, as the
-article says.
+<span data-asof="2026-10-02">**What was wrong.** The home page said the ANC shed 587,000 votes between 2016 and 2021.
 
-**What changed.** The summary now reads "the 587,000 votes the ANC bloc shed
-between the 2019 national election and the 2021 local election".</span>
+**What is right.** The ANC bloc lost 587,000 votes between the 2019 national election and the 2021 local election, as the article says.</span>
 
 ## "Where on 31 August the DA led clearly" — published 26 September 2026, corrected 2 October 2026
 
-<span data-asof="2026-10-02">**What was wrong.** The dated note at the top of
-"Nobody will win Johannesburg" compared today's forecast with the piece "on 31
-August". The piece was published on 8 August.
+<span data-asof="2026-10-02">**What was wrong.** A note at the top of "Nobody will win Johannesburg" said the piece was published on 31 August.
 
-**What changed.** The note now reads "where on 8 August the DA led
-clearly".</span>
+**What is right.** It was published on 8 August.</span>
 
 ## "The most reliable majority in the city that does not involve the EFF or MK" — published 26 September 2026, corrected 2 October 2026
 
-<span data-asof="2026-10-02">**What was wrong.** We said the DA and the ANC are
-"the most reliable majority in the city that does not involve the EFF or MK".
-Many governing majorities occur in most simulations; DA + ANC is only the most
-common *two-party* one.
+<span data-asof="2026-10-02">**What was wrong.** We called the DA and the ANC "the most reliable majority in the city that does not involve the EFF or MK". Several majorities without the EFF or MK occur in most simulations.
 
-**What changed.** The sentence now says "the most reliable two-party majority
-in the city".</span>
+**What is right.** The DA and the ANC are the most reliable two-party majority in the city.</span>
 
 ## "A government can be formed without the EFF or MK" — published 26 September 2026, corrected 2 October 2026
 
-<span data-asof="2026-10-02">**What was wrong.** A tested claim was titled "A
-government can be formed without the EFF or MK". Its test was narrower: whether
-a council without the ANC, the EFF and MK reaches a majority. The home page
-dated the quote 11 September; the report it cites is dated 13 September.
+<span data-asof="2026-10-02">**What was wrong.** A tested claim was titled "A government can be formed without the EFF or MK". What it tested was narrower: whether a council without the ANC, the EFF and MK has a majority. The quote was dated 11 September.
 
-**What changed.** The title now reads "The DA can govern without the ANC, the
-EFF or MK", and the quote is dated 13 September.</span>
+**What is right.** The claim is titled "The DA can govern without the ANC, the EFF or MK". The quote is dated 13 September, the date of the report it comes from.</span>
 
 ## "18 September 2026: Published" on three tested claims — published 26 September 2026, corrected 2 October 2026
 
-<span data-asof="2026-10-02">**What was wrong.** Three tested claims on the
-forecast page were labelled "18 September 2026: Published". They first
-appeared on 26 September.
+<span data-asof="2026-10-02">**What was wrong.** Three tested claims on the forecast page were dated 18 September.
 
-**What changed.** They are labelled "26 September 2026: Published".</span>
+**What is right.** They were first published on 26 September.</span>
 
 ## "This is a deliberate choice, recorded, and it is the single largest reason the Johannesburg figure improves" — published 26 September 2026, corrected 27 September 2026
 
-<span data-asof="2026-10-02">**What was wrong.** The about page said the model
-sized breakaway parties from all splits, "including two from after 2021", and
-called this "a deliberate choice, recorded, and it is the single largest reason
-the Johannesburg figure improves". Splits from after 2021 are information from
-after the election being forecast: a leak. The scores on the page came from a
-run of 11 August, before the record was cut on 14 August.
+<span data-asof="2026-10-02">**What was wrong.** The about page reported how accurate the model was on the 2021 election, but the model had used party splits that happened after 2021. A forecast made before that election could not have known them. The page called this a deliberate choice.
 
-**What changed.** On 27 September the paragraph read "this one WAS a leak, and
-is not one now", and said the record has been cut at the election being
-forecast since 14 August 2026. The page's scores came from a run made with that
-cut.</span>
+**What is right.** The model uses only what was known before each election it is tested on, and the about page's accuracy figures come from that version.</span>
 
 ## Four figures on "Nobody will win Johannesburg" labelled "published 31 August 2026" — published 26 September 2026, corrected 27 September 2026
 
@@ -105,12 +63,10 @@ August, with different figures:
 | how often the excessive-seats clause fires | 58% | **96%** |
 | the DA as largest party | 71% | **62%** |
 
-Each figure carries an arrow comparing it with the model's current figure.
-Three arrows pointed up, but each of those figures had fallen from its 8 August
-value. A sentence beside them read "Still the ANC's usual condition, and a
-stronger one".
+Three of them carried arrows saying the figure had gone up since then; each
+had gone down. A sentence beside them read "Still the ANC's usual condition,
+and a stronger one".
 
-**What changed.** The four figures are the ones published on 8 August, and the
-arrows compare against them. The sentence reads "Still the ANC's usual
-condition, and weaker than published". The piece and its sections are dated 8
-August.</span>
+**What is right.** The four figures are the ones published on 8 August, the
+arrows compare today's figures with them, and the sentence reads "Still the
+ANC's usual condition, and weaker than published".</span>
