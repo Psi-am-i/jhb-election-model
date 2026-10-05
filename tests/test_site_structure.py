@@ -565,10 +565,6 @@ def test_every_built_page_with_the_nav_carries_the_strapline_once():
     assert seen == len(pages) - len(NO_NAV), seen
 
 
-if __name__ == "__main__":
-    raise SystemExit(run_module(globals()))
-
-
 # ---------------------------------------------------------------- claims
 
 def claim_colour_problems(html: str, css: str, codes) -> list[str]:
@@ -604,3 +600,72 @@ def test_every_claim_wears_its_own_partys_colour_and_none_is_singled_out():
     assert claim_colour_problems(html.replace(one.group(0), one.group(0).replace(f"pc-{one.group(1)}", f"pc-{wrong}"), 1), css, codes)
     assert claim_colour_problems(html.replace(one.group(0), f'<article class="claim" data-party="{one.group(1)}">', 1), css, codes)
     assert claim_colour_problems(html, css + ".claim.pc-ANC{border-width:9px}", codes)
+
+
+def verdict_problems(html: str, step_of) -> list[str]:
+    """Every claim's badge carries the class its verdict's step names, and
+    nothing else picks its colour."""
+    out = []
+    badges = re.findall(r'<article class="claim pc-(\w+)" data-party="\1">.*?'
+                        r'<span class="verdict ([^"]*)">([^<]+)</span>', html, re.S)
+    if not badges:
+        out.append("no verdict badges")
+    for party, classes, text in badges:
+        want = step_of(text)
+        if classes.split() != [want]:
+            out.append(f"{party} {text!r}: classes {classes!r}, wanted {want!r}")
+    if html.count('<span class="verdict') != len(badges):
+        out.append("a verdict badge outside a claim")
+    return out
+
+
+def test_every_verdict_takes_its_step_on_the_one_scale_whatever_the_party():
+    """Owner, 2026-10-05: the badge's colour is the verdict's, red false to
+    grey open to green true, one scale for every party. Every verdict in
+    claims.toml is on the scale; the mapping reads the verdict string and
+    nothing else; the built page carries it; the stylesheet colours every
+    step from a token in both palettes."""
+    import inspect
+    import tomllib
+    import render_sheet as RS
+    import site_assets as SA
+    claims = tomllib.loads((ROOT / "content" / "joburg" / "claims.toml").read_text(encoding="utf-8"))["claim"]
+    assert claims
+    steps = set(RS.VERDICT_STEPS)
+    assert set(RS.VERDICT_STEP.values()) == steps
+    for c in claims:
+        assert RS.verdict_class(c["verdict"]) in {f"v-{s}" for s in steps}, c["verdict"]
+    # party-independent: the class is a function of the verdict string alone
+    assert list(inspect.signature(RS.verdict_class).parameters) == ["verdict"]
+    # the ends and the middle are where the owner put them
+    assert RS.verdict_class("FALSE") == "v-false" and RS.verdict_class("TRUE") == "v-true"
+    assert RS.verdict_class("A COIN FLIP") == "v-open"
+    assert RS.verdict_class("out of  reach") == "v-false"
+    # it can see: a verdict off the scale stops the build, not a default colour
+    try:
+        RS.verdict_class("PROBABLY")
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("an unknown verdict took a colour")
+    # the built page
+    html = (ROOT / "site" / "claims.html").read_text(encoding="utf-8")
+    assert verdict_problems(html, RS.verdict_class) == []
+    one = re.search(r'<span class="verdict (v-\w+)">', html)
+    assert one
+    wrong = "v-true" if one.group(1) != "v-true" else "v-false"
+    assert verdict_problems(html.replace(one.group(0), f'<span class="verdict {wrong}">', 1), RS.verdict_class)
+    assert verdict_problems(html.replace(one.group(0), '<span class="verdict vfalse">', 1), RS.verdict_class)
+    # every step has a rule reading its token, and the token is in both palettes
+    css = re.sub(r"/\*.*?\*/", "", (SA.CSS_SRC / "page-claims.css").read_text(encoding="utf-8"), flags=re.S)
+    tokens = (SA.CSS_SRC / "tokens.css").read_text(encoding="utf-8")
+    dark = re.search(r":root\{color-scheme:dark;(.*?)\}", tokens, re.S).group(1)
+    light = re.search(r':root\[data-theme="light"\]\{(.*?)\}', tokens, re.S).group(1)
+    for s in steps:
+        assert f".v-{s}{{--v:var(--v-{s});}}" in css, s
+        assert f"--v-{s}:" in dark and f"--v-{s}:" in light, s
+    assert "var(--c)" not in re.search(r"\.verdict\{[^}]*\}", css).group(0)
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_module(globals()))

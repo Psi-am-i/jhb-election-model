@@ -35,6 +35,31 @@ CHIPS = {
 }
 #: The colour of every party CHIPS leaves out, and of "Others".
 OTHER_CHIP = "#8b918b"
+#: Each verdict a claim can get, and its step on the ONE verdict scale (owner,
+#: 2026-10-05): red where the claim fails, grey where it is open, green where
+#: it holds. The badge takes its colour from this step, never from the party,
+#: so one verdict looks the same on every claim; the rest of the card keeps the
+#: party's colour. The steps are classes `v-<step>`, coloured by the
+#: `--v-<step>` tokens in tokens.css.
+VERDICT_STEPS = ("false", "unlikely", "open", "likely", "true")
+VERDICT_STEP = {
+    "FALSE": "false", "OUT OF REACH": "false",
+    "VERY UNLIKELY": "unlikely", "UNLIKELY": "unlikely",
+    "A COIN FLIP": "open",
+    "MORE LIKELY THAN NOT": "likely", "LIKELY": "likely", "VERY LIKELY": "likely",
+    "TRUE": "true",
+}
+
+
+def verdict_class(verdict: str) -> str:
+    """The badge class for a verdict string: its step on the verdict scale.
+    A verdict the scale does not list stops the build rather than taking a
+    default colour."""
+    key = " ".join(verdict.upper().split())
+    if key not in VERDICT_STEP:
+        raise SystemExit(f"claims.toml verdict {verdict!r} is not on the verdict scale "
+                         f"(render_sheet.VERDICT_STEP: {sorted(VERDICT_STEP)})")
+    return f"v-{VERDICT_STEP[key]}"
 NAMES = {
     "DA": "DA", "ANC": "ANC", "EFF": "EFF", "MK": "MK Party", "ASA": "ActionSA",
     "PA": "PA", "IFP": "IFP", "RISE": "Rise Mzansi", "VFPLUS": "VF+",
@@ -498,7 +523,7 @@ def main(argv: list[str] | None = None) -> int:
             steps = "".join(
                 f'<li><div class="stepbody">{_md(_fill(step))}</div></li>'
                 for step in c.get("steps", []))
-            vclass = "vtrue" if c["verdict"].upper() == "TRUE" else "vfalse"
+            vclass = verdict_class(c["verdict"])
             link = (f'<a href="{c["url"]}" target="_blank" rel="noopener">'
                     f'{c["outlet"]}</a>') if c.get("url") else c.get("outlet", "")
             badge = (f'<span class="verdict {vclass}">'

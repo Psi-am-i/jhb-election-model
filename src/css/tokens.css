@@ -15,7 +15,10 @@
 
    The light palette is written ONCE, as the explicit choice below.
    src/site_assets.py emits it a second time inside the media query (case 3):
-   two hand-kept copies of the same colours is how one of them goes stale. */
+   two hand-kept copies of the same colours is how one of them goes stale.
+
+   --v-<step> is the verdict scale on /claims (render_sheet.VERDICT_STEPS):
+   red where a claim fails, grey where it is open, green where it holds. */
 
 :root{color-scheme:dark;
   --paper:#141715; --paper-2:#1c201d; --rule:#333833; --rule-soft:#282d29;
@@ -24,6 +27,7 @@
   --mark:#c2c8c2; --mark-band:#464d47; --good:#6fb98a; --bad:#d98070;
   --k-article:#7aa6d6; --k-claim:#d9954f; --k-explain:#6fb98a;
   --k-interactive:#b98ad6; --k-soft:#2c2233;
+  --v-false:var(--bad); --v-unlikely:#c99482; --v-open:#9aa09a; --v-likely:#c7a76a; --v-true:var(--good);
 }
 :root[data-theme="light"]{color-scheme:light;
     --paper:#fbfbfa; --paper-2:#f2f3f1; --rule:#d9dbd6; --rule-soft:#e7e8e4;
@@ -31,7 +35,8 @@
     --accent:#a8621f; --accent-soft:#f0e2d5;
     --mark:#3b423e; --mark-band:#c9cec9; --good:#2f6d4a; --bad:#a03d2e;
     --k-article:#2f5f96; --k-claim:#a8621f; --k-explain:#2f6d4a;
-    --k-interactive:#7a4a9c; --k-soft:#efe6f5;}
+    --k-interactive:#7a4a9c; --k-soft:#efe6f5;
+    --v-false:var(--bad); --v-unlikely:#9c5a48; --v-open:#767b76; --v-likely:#8c6a24; --v-true:var(--good);}
 
 :root{
   /* IBM Plex, self-hosted (fonts.css), then the system's own faces */

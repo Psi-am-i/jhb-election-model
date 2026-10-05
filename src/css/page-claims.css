@@ -6,8 +6,13 @@
    <article class="claim"> its party's colour class (`pc-<code>`, which sets
    --pc from render_sheet.CHIPS), and every rule below reads --pc and nothing
    else: the ground, the rule at the left, the ring round the logo, the
-   verdict, the quotation marks and the step numbers. The same rules for every
-   party; a party with no colour of its own takes --pc-other. */
+   quotation marks and the step numbers. The same rules for every party; a
+   party with no colour of its own takes --pc-other.
+
+   THE VERDICT IS THE EXCEPTION (owner, 2026-10-05): its badge takes the one
+   verdict scale, red false to grey open to green true, the same for every
+   party. render_sheet.verdict_class gives it `v-<step>`; the colour is the
+   --v-<step> token in tokens.css. */
   .claimlist{display:flex;flex-direction:column;gap:30px;}
   .claim{--c:var(--pc,var(--pc-other));display:flex;flex-direction:column;gap:14px;
     padding:20px 24px 24px;border:1px solid color-mix(in srgb,var(--c) 30%,var(--rule-soft));
@@ -22,7 +27,12 @@
   .claim-who span{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
   .verdict{font-family:var(--sans);font-size:12px;font-weight:750;
     letter-spacing:.12em;padding:5px 12px;border-radius:3px;color:var(--ink);
-    border:1px solid var(--c);background:color-mix(in srgb,var(--c) 30%,var(--paper));}
+    border:1px solid var(--v);background:color-mix(in srgb,var(--v) 28%,var(--paper));}
+  .v-false{--v:var(--v-false);}
+  .v-unlikely{--v:var(--v-unlikely);}
+  .v-open{--v:var(--v-open);}
+  .v-likely{--v:var(--v-likely);}
+  .v-true{--v:var(--v-true);}
 
   .claim-quote{margin:0;font-family:var(--serif);font-weight:600;
     font-size:clamp(21px,3.2vw,27px);line-height:1.25;letter-spacing:-.01em;
