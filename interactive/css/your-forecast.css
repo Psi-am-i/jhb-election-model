@@ -183,7 +183,7 @@
 .yf-alegend{font-size:13px;color:var(--ink-3);margin:6px 0 0;line-height:1.45;}
 .yf-ramp{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
 .yf-ramp i{display:inline-block;width:90px;height:10px;border-radius:2px;border:1px solid var(--rule);
-  background:linear-gradient(90deg,transparent,var(--ink-2));}
+  background:linear-gradient(90deg,color-mix(in srgb,var(--ink-2) 15%,transparent),var(--ink-2));}
 .yf-aside .yf-expected{font:600 18px/1.4 var(--serif);color:var(--ink);}
 .yf-ahint{font-size:13px;color:var(--ink-3);margin:0;}
 @media (min-width:720px){
@@ -240,7 +240,9 @@
 .yf .pl-oneline.yf-slot{height:6lh;}
 .yf .pl-flips.yf-slot{height:6.2em;font-size:13px;line-height:1.55;}
 .yf .pl-flips .pl-flipline{margin:0;}
-.yf .pl-byenote.yf-slot{height:4.7em;font-size:13px;line-height:1.55;}
+/* four lines: a refused by-election option's reason runs to four in the
+   narrow control column */
+.yf .pl-byenote.yf-slot{height:4lh;font-size:13px;line-height:1.55;}
 .yf .pl-byenote .pl-note{margin:0;}
 .yf .pl-lawnow.yf-slot{line-height:1.4;height:3lh;}
 .yf .pl-sharewhy.yf-slot{line-height:1.4;height:3lh;margin:6px 0 0;}

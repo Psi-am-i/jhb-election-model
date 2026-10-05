@@ -833,8 +833,9 @@ def test_a_refused_option_is_said_beside_its_control():
             out.append("the stop is said only in the results column")
         for need in ("limits[which] = PS.withStop(", "unavailable[which] = {", "paintZone(", "refusedWords(",
                      'className: "pl-note pl-zonewhy yf-slot", id: "turnout-why"',
-                     'className: "pl-note pl-zonewhy yf-slot", id: "trust-why"',
-                     "R.lawnow.textContent = refusedWords(", "R.bye.replaceChildren(", "PS.heldAtStop("):
+                     "inputs.trustwhy = R.trustwhy",
+                     "say(R.lawnow, unavailable.law ? refusedWords(", "say(R.bye, unavailable.cell ? refusedWords(",
+                     "PS.heldAtStop("):
             if need not in src:
                 out.append(f"missing: {need}")
         return out
@@ -846,8 +847,53 @@ def test_a_refused_option_is_said_beside_its_control():
     assert re.search(r"\.pl-zone\{[^}]*position:absolute[^}]*pointer-events:none", play)
     assert re.search(r"\.pl-popt\.pl-unavail\{", play) and re.search(r"\.pl-seg3 button\.pl-unavail\{", play)
     # the reasons reach the reader through LIVE regions model.js is listed for
-    for region in ("turnout", "trust", "byelection", "lawnow"):
+    for region in ("turnout", "trust", "trustwhy", "byelection", "lawnow"):
         assert region in S.LIVE_WRITERS[ADJUST], region
+
+
+def test_refusal_lines_are_live_readable_and_revert_one_control():
+    """The diff review's fixes to B1 and B2 (2026-10-05). A refused poll's
+    reason sits after the belief slider's block, not in it (the block fades
+    to .45 while no poll is chosen). Every reason line is a live region
+    (role="status") written only when its words change, and a refused option
+    is described by its line. A refusal turns into words in one function
+    (whyNot). A slider that has not moved since the last figures shown
+    records no stop. A refused discrete option sends back only its own
+    control (play-state.js movedGroups), not every control moved since. Each
+    constructed revert is caught."""
+    site = _built()
+    js = (site / ADJUST).read_text(encoding="utf-8")
+    html = _html(site)
+
+    def broken(src: str, page: str) -> list[str]:
+        out = []
+        trust = page.find('data-live="trust"')
+        why = page.find('data-live="trustwhy"')
+        if "inputs.trustwhy);" in src or "inputs.trustwhy = R.trustwhy" not in src or not 0 < trust < why:
+            out.append("the poll's reason is inside the fading block")
+        if 'id: "turnout-why", role: "status"' not in src:
+            out.append("not live: the turnout line")
+        for slot in ('id="trust-why" role="status"', 'id="bye-why" role="status"', 'id="law-why" role="status"'):
+            if slot not in page:
+                out.append(f"not live: {slot}")
+        if 'control.setAttribute("aria-describedby", line)' not in src:
+            out.append("a refused option is not described by its line")
+        if "function say(node, text" not in src or "if (node.textContent === text) return;" not in src:
+            out.append("a live line is rewritten with the same words")
+        if "tooFew" in src:
+            out.append("two writers for a refusal's reason")
+        if "if (slider && from === to)" not in src:
+            out.append("a slider that did not move records a stop")
+        if "discreteSet(which, back, discreteValue(which, accepted.state))" not in src or "PS.movedGroups(" not in src:
+            out.append("a refused option sends every control back")
+        return out
+
+    assert broken(js, html) == []
+    assert broken(js.replace("inputs.trustwhy = R.trustwhy", "R.trust.append(inputs.trustwhy)"), html)
+    assert broken(js.replace("if (node.textContent === text) return;", ""), html)
+    assert broken(js + "\nconst tooFew = 1;\n", html)
+    assert broken(js, html.replace('id="bye-why" role="status"', 'id="bye-why"'))
+    assert broken(js.replace("if (slider && from === to)", "if (false)"), html)
 
 
 def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
@@ -892,6 +938,31 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
     assert re.search(r"\.yf \.yf-ctabtn\{[^}]*display:block;width:100%", css)
     # step 4 names what it holds now
     assert "Next: see how likely it is" in html and "Share it, or see how likely it is" not in html
+
+
+def test_a_chip_pressed_keeps_its_focus():
+    """B4, the diff review's fix: choosing a chip repaints the chips without
+    rebuilding the ones already drawn, so a chip pressed with Enter or Space
+    keeps the focus; a chip that goes hands the focus to the select. A
+    paintBrush that rebuilds every chip is caught."""
+    site = _built()
+    js = (site / BREAK).read_text(encoding="utf-8")
+
+    def drops(src: str) -> list[str]:
+        m = re.search(r"function paintBrush\(\) \{(.*?)\n\}", src, re.S)
+        if not m:
+            return ["no paintBrush"]
+        body, out = m.group(1), []
+        if "one.brush.replaceChildren(" in body:
+            out.append("every chip is rebuilt")
+        if "have.get(c)" not in body:
+            out.append("a chip already drawn is not kept")
+        if "one.brushselect.focus()" not in src:
+            out.append("a chip that goes leaves the focus nowhere")
+        return out
+
+    assert drops(js) == []
+    assert drops(js.replace("let b = have.get(c);", "let b = null; one.brush.replaceChildren();"))
 
 
 def test_next_scrolls_to_the_next_step_and_focuses_its_first_control():
@@ -942,7 +1013,8 @@ def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
                      'class="yf-expected yf-slot"', ">Citywide vote and seats<", 'class="yf-atable"',
                      'class="yf-sseats yf-slot"', 'class="yf-svote yf-slot"')
         need_js = ('"This outcome: " + outcomeWords(', "chanceSentence(a.outcome.text)",
-                   "new WardMap(one.amap, geom, { byCode, readonly: true })", "amap.setShade(",
+                   "new WardMap(one.amap, geom, { byCode, readonly: true, labelFor: wardWords })",
+                   "SHADE_FLOOR + (1 - SHADE_FLOOR) * a.wards[w].p", "amap.setShade(",
                    "ward calls to come true", 'one.amap.addEventListener("click"', 'one.anote.textContent = "";')
         out = [n for n in need_html if n not in reg] + [n for n in need_js if n not in src]
         if "score your forecast against each simulation" not in re.sub(r"\s+", " ", nt):

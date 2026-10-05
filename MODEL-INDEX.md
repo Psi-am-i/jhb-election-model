@@ -688,6 +688,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `site_assets.APEX_URL` | str | NO | NO | NO | `build_site` |
 | `site_assets.BRAND_FILES` | tuple[7] | NO | NO | NO | -- |
 | `site_assets.CSS_FILES` | tuple[16] | NO | NO | NO | -- |
+| `site_assets.PAGE_CSS` | re.compile('page-([a-z]+(?:-[a-z]+)*)\\.css') | NO | NO | NO | `build_site` |
 | `site_assets.FONT_FACES` | tuple[3] | NO | NO | NO | -- |
 | `site_assets.FONT_RANGE` | str | NO | NO | NO | -- |
 | `site_assets.INLINE` | (('a <style> element', re.compile('<style\\b', re.I)), ('a style attribu | NO | NO | NO | -- |

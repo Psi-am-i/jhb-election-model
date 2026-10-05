@@ -84,6 +84,7 @@ const R = {
   turnout: document.querySelector('[data-live="turnout"]'),
   polls: document.querySelector('[data-live="polls"]'),
   trust: document.querySelector('[data-live="trust"]'),
+  trustwhy: document.querySelector('[data-live="trustwhy"]'),
   cells: document.querySelector('[data-live="cells"]'),
   bye: document.querySelector('[data-live="byelection"]'),
   law: document.querySelector('[data-live="law"]'),
@@ -143,6 +144,8 @@ const inputs = { turnout: [], tlabel: [], tscale: [], tzone: [], poll: [], pollR
 // play-state.js withStop) and why; and the one option of each discrete
 // control refused at them ({ group: { group, value, why } }).
 const limits = {}, limitWhy = {}, unavailable = {};
+// The by-election line's words at the figures shown (renderBye).
+let byeText = "";
 
 const geometryP = fetch(new URL("../ward_paths.json", import.meta.url))
   .then(r => (r.ok ? r.json() : null)).catch(() => null)
@@ -267,7 +270,7 @@ function buildControls() {
     R.turnout.append(row);
   });
   // why a turnout slider stops, one line under the four (a reserved slot)
-  inputs.twhy = el("p", { className: "pl-note pl-zonewhy yf-slot", id: "turnout-why" });
+  inputs.twhy = el("p", { className: "pl-note pl-zonewhy yf-slot", id: "turnout-why", role: "status" });
   R.turnout.append(inputs.twhy);
   R.turnout.setAttribute("data-ready", "");
 
@@ -310,12 +313,13 @@ function buildControls() {
   inputs.trust = trust;
   inputs.trustv = el("output", { htmlFor: "trust", className: "pl-tval" });
   inputs.trustzone = sv("svg", { class: "pl-zone", "aria-hidden": "true" });
-  // why the slider stops, or why a poll cannot be chosen (a reserved slot)
-  inputs.trustwhy = el("p", { className: "pl-note pl-zonewhy yf-slot", id: "trust-why" });
   R.trust.append(el("label", { className: "pl-tlab", htmlFor: "trust" }, el("span", {}, "How much to believe it"), inputs.trustv),
     el("div", { className: "pl-track" }, trust, inputs.trustzone),
-    el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": the model's error for this poll")),
-    inputs.trustwhy);
+    el("div", { className: "pl-tscale" }, el("span", {}, PS.TRUST.min + ": ignore it"), el("span", {}, PS.TRUST.max + ": the model's error for this poll")));
+  // why the slider stops, or why a poll cannot be chosen: the page's slot
+  // after the slider's block, not in it, because the block fades while no
+  // poll is chosen, which is when a refused poll's reason is shown
+  inputs.trustwhy = R.trustwhy;
   groups.trust = R.trust;
 
   // by-elections: three positions, the published one in the middle
@@ -368,19 +372,35 @@ function syncControls() {
   inputs.trustv.textContent = String(st.trust);
   for (const [b, path] of inputs.cells) b.setAttribute("aria-checked", String(path === st.cell));
   for (const r of inputs.law) r.checked = r.value === st.law;
-  R.lawnow.textContent = lawText(st.law).label + (st.law === PS.PUBLISHED_LAW ? ", the law that seats the council" : ", for comparison");
-  for (const [row, radio, id] of inputs.pollRow) markRefused(unavailable.poll, id, row, radio);
-  for (const [b, path] of inputs.cells) markRefused(unavailable.cell, path, b, b);
-  for (const [row, radio, k] of inputs.lawRow) markRefused(unavailable.law, k, row, radio);
+  for (const [row, radio, id] of inputs.pollRow) markRefused(unavailable.poll, id, row, radio, "trust-why");
+  for (const [b, path] of inputs.cells) markRefused(unavailable.cell, path, b, b, "bye-why");
+  for (const [row, radio, k] of inputs.lawRow) markRefused(unavailable.law, k, row, radio, "law-why");
   paintLimits();
 }
 
-// An option refused at the other settings: marked, and its reason as its title.
-function markRefused(u, value, row, control) {
+// An option refused at the other settings: marked, its reason as its title,
+// and described by the line that says it (`line`, that line's id).
+function markRefused(u, value, row, control, line) {
   const off = !!u && u.value === value;
   row.classList.toggle("pl-unavail", off);
-  if (off) { control.setAttribute("aria-disabled", "true"); row.title = refusedWords(u); }
-  else { control.removeAttribute("aria-disabled"); row.removeAttribute("title"); }
+  if (off) {
+    control.setAttribute("aria-disabled", "true");
+    control.setAttribute("aria-describedby", line);
+    row.title = refusedWords(u);
+  } else {
+    control.removeAttribute("aria-disabled");
+    control.removeAttribute("aria-describedby");
+    row.removeAttribute("title");
+  }
+}
+
+// A message line rewritten only when its words change: the lines are live
+// regions, and a live region announces every write. `para` wraps the words
+// in a note paragraph (the by-election line holds one).
+function say(node, text, para = false) {
+  if (node.textContent === text) return;
+  if (para) node.replaceChildren(...(text ? [el("p", { className: "pl-note" }, text)] : []));
+  else node.textContent = text;
 }
 
 // ---------- stops and refusals, said where they happen ----------
@@ -391,12 +411,13 @@ function paintLimits() {
   if (!inputs.twhy) return;
   ctx.pools.forEach((p, i) => paintZone(inputs.tzone[i], PS.TURNOUT, limits["turnout:" + i]));
   paintZone(inputs.trustzone, PS.TRUST, limits.trust);
-  inputs.twhy.textContent = ctx.pools.map((p, i) => (limitWhy["turnout:" + i] ? p + " turnout " + limitWhy["turnout:" + i] : null))
-    .filter(Boolean).join(" ");
-  inputs.trustwhy.textContent = [limitWhy.trust ? "Belief " + limitWhy.trust : null,
-    unavailable.poll ? refusedWords(unavailable.poll) : null].filter(Boolean).join(" ");
-  if (unavailable.law) R.lawnow.textContent = refusedWords(unavailable.law);
-  if (unavailable.cell) R.bye.replaceChildren(el("p", { className: "pl-note" }, refusedWords(unavailable.cell)));
+  say(inputs.twhy, ctx.pools.map((p, i) => (limitWhy["turnout:" + i] ? p + " turnout " + limitWhy["turnout:" + i] : null))
+    .filter(Boolean).join(" "));
+  say(inputs.trustwhy, [limitWhy.trust ? "Belief " + limitWhy.trust : null,
+    unavailable.poll ? refusedWords(unavailable.poll) : null].filter(Boolean).join(" "));
+  say(R.lawnow, unavailable.law ? refusedWords(unavailable.law)
+    : lawText(st.law).label + (st.law === PS.PUBLISHED_LAW ? ", the law that seats the council" : ", for comparison"));
+  say(R.bye, unavailable.cell ? refusedWords(unavailable.cell) : byeText, true);
 }
 function paintZone(svg, bounds, limit) {
   svg.replaceChildren(...PS.stopZones(bounds, limit).map(z => sv("rect", { class: "pl-zrect",
@@ -417,6 +438,12 @@ function optionName(group, v) {
 }
 // The value a discrete control was moved to, in a state.
 const discreteValue = (group, s) => (group === "cell" ? s.cell : group === "law" ? s.law : s.polls[0] || "");
+// Set a discrete control's value in a state (the poll's "" is no poll).
+function discreteSet(group, s, v) {
+  if (group === "cell") s.cell = v;
+  else if (group === "law") s.law = v;
+  else s.polls = v ? [v] : [];
+}
 // A move of `group` leaves every other control's stop and refusal unknown.
 function forgetOthers(group) {
   for (const m of [limits, limitWhy, unavailable]) for (const g of Object.keys(m)) if (g !== group) delete m[g];
@@ -493,8 +520,12 @@ async function compute() {
     const slider = which === "trust" ? { get: s => s.trust, set: (s, v) => { s.trust = v; }, step: PS.TRUST.step }
       : which.startsWith("turnout:") ? (i => ({ get: s => s.shift[i], set: (s, v) => { s.shift[i] = v; }, step: PS.TURNOUT.step }))(Number(which.split(":")[1]))
       : null;
-    if (slider) {
-      const from = slider.get(accepted.state), to = slider.get(st);
+    const from = slider ? slider.get(accepted.state) : null, to = slider ? slider.get(st) : null;
+    if (slider && from === to) {
+      // The last slider moved has not moved since the last figures shown, so
+      // the refusal is not its stop: it is said, and nothing is shaded.
+      limitWhy[which] = "cannot be shown at these settings: " + bad + ".";
+    } else if (slider) {
       const dir = Math.sign(to - from), n = Math.round(Math.abs(to - from) / slider.step);
       let lo = 0, hi = n;
       while (hi - lo > 1) {
@@ -515,6 +546,20 @@ async function compute() {
         ": past it, " + why + ".";
     } else {
       unavailable[which] = { group: which, value: discreteValue(which, asked), why };
+      // Only the refused control goes back: any other control moved since
+      // the last figures shown (a slider still inside its delay) keeps its
+      // place, and is computed on its own as the last control moved.
+      const back = copyState(asked);
+      discreteSet(which, back, discreteValue(which, accepted.state));
+      const still = PS.movedGroups(accepted.state, back);
+      if (still.length) {
+        st = back;
+        lastMoved = still[0];
+        syncControls();
+        writeURL();
+        update();
+        return;
+      }
     }
     st = copyState(stop.state);
     syncControls();
@@ -528,7 +573,7 @@ async function compute() {
     greyOnly([...st.shift.map((x, i) => x !== 0 ? "turnout:" + i : null),
       st.trust && st.polls.length ? "trust" : null,
       st.cell !== PS.PUBLISHED_CELL ? "cell" : null, st.law !== PS.PUBLISHED_LAW ? "law" : null].filter(Boolean));
-    R.engine.textContent = "At these settings " + tooFew(r) +
+    R.engine.textContent = "At these settings " + whyNot(r) +
       ". Move the greyed control back towards the published setting.";
     R.engine.classList.add("pl-low");
     render(baseline, false, asked);
@@ -572,12 +617,6 @@ function offerShare(r, state) {
 
 // A count as the site prints counts: "5,000", one format on the page.
 const count = n => Math.round(n).toLocaleString("en-US");
-// Why a setting is refused, in the page's words (page.py returns the counts
-// beside reweight's own reason; a refusal of another kind keeps that reason).
-const tooFew = r => (r.effective_draws != null && r.draws
-  ? "the figures would rest on the equivalent of " + count(r.effective_draws) + " of the " + count(r.draws) +
-    " simulations, fewer than the " + count(r.floor) + " a figure needs"
-  : "the re-weighting refuses it (" + r.refused + ")");
 // The reader's change against the published forecast: the site's one arrow
 // (src/css/stat.css .arrow), in the reader's hue.
 const arrowText = d => (d ? (d > 0 ? "▲" : "▼") + Math.abs(d) : null);
@@ -591,7 +630,8 @@ function render(r, touched, state = st) {
   else R.result.removeAttribute("data-touched");
   R.status.hidden = !touched;
   if (!touched) {
-    for (const n of [R.banner, R.oneline, R.map, R.flips, R.seats, R.bye, R.ess]) clear(n);
+    for (const n of [R.banner, R.oneline, R.map, R.flips, R.seats, R.ess]) clear(n);
+    byeText = "";
     R.seats.removeAttribute("data-extra");
     R.settings.textContent = "";
     showToast(moves);
@@ -764,15 +804,16 @@ function showToast(moves) {
 // Under a by-election setting other than the forecast's: each party's change
 // in middle seats against the forecast's weight AT THESE SETTINGS, where it
 // is larger than the two runs' sampling noise (page.py, reweight.beyond_noise).
+// The words only: paintLimits writes the line (a refused by-election option's
+// reason takes its place).
 function renderBye(r) {
-  clear(R.bye);
   const cmp = r.against_published_cell;
-  if (!cmp) return;
+  if (!cmp) { byeText = ""; return; }
   const moves = Object.entries(cmp).filter(([, d]) => !d.within_noise && Math.round(d.difference))
     .sort((a, b) => party(a[0]).name.localeCompare(party(b[0]).name))
     .map(([c, d]) => party(c).name + " " + signed(Math.round(d.difference)));
-  R.bye.append(el("p", { className: "pl-note" }, "At your settings, against the forecast's weight: " +
-    (moves.length ? moves.join(", ") : "no change larger than sampling noise") + "."));
+  byeText = "At your settings, against the forecast's weight: " +
+    (moves.length ? moves.join(", ") : "no change larger than sampling noise") + ".";
 }
 
 R.back.addEventListener("click", () => {

@@ -853,10 +853,11 @@ def test_a_target_well_inside_the_draws_converges_despite_rounding():
     t, shares, cols = _correlated_draws()
     poll = R.poll_weights(shares, cols, {"A": 0.38, "B": 0.25}, sd=0.03)
     held = (poll / poll.sum()) @ t
-    # log-spaced: the defect bites when a Newton iterate lands with a
-    # gradient small enough that its decrease is below rounding, but still
-    # above the tolerance, which depends on where the first step lands
-    offsets = [float(x) for x in np.geomspace(1e-8, 1e-4, 41)]
+    # log-spaced, both ways: the defect bites when a Newton iterate lands
+    # with a gradient small enough that its decrease is below rounding, but
+    # still above the tolerance, which depends on where the first step lands;
+    # on these seeded draws one target of the 242 (6.4e-6 below) does
+    offsets = [s * float(x) for x in np.geomspace(1e-8, 3e-2, 121) for s in (1, -1)]
 
     def refused() -> list[float]:
         out = []

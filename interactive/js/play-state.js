@@ -185,6 +185,18 @@ export function withStop(limit, dir, reach) {
   return next;
 }
 
+// The controls whose settings differ between two states, as model.js names
+// its control groups ("turnout:<i>", "trust", "poll", "cell", "law"), the
+// sliders first. The name is not a control.
+export function movedGroups(a, b) {
+  const out = a.shift.map((x, i) => (x !== b.shift[i] ? "turnout:" + i : null)).filter(Boolean);
+  if (a.trust !== b.trust) out.push("trust");
+  if ((a.polls[0] || "") !== (b.polls[0] || "")) out.push("poll");
+  if (a.cell !== b.cell) out.push("cell");
+  if (a.law !== b.law) out.push("law");
+  return out;
+}
+
 // The settings pyboot/page.py computes: trust as a fraction; the poll is
 // passed as chosen, and page.py gives it no weight at trust 0. The name is
 // not the model's.

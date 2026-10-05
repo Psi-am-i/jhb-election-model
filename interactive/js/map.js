@@ -19,8 +19,10 @@ export function hexPoints([cx, cy], r) {
 }
 
 export class WardMap {
-  constructor(svg, geom, { byCode, readonly = false, onPaint = null, onFocusWard = null } = {}) {
-    this.svg = svg; this.geom = geom; this.byCode = byCode;
+  // `labelFor(i)`, when given, replaces each ward's label (the analysis map
+  // names our chance for the call there).
+  constructor(svg, geom, { byCode, readonly = false, onPaint = null, onFocusWard = null, labelFor = null } = {}) {
+    this.svg = svg; this.geom = geom; this.byCode = byCode; this.labelFor = labelFor;
     this.readonly = readonly; this.onPaint = onPaint; this.onFocusWard = onFocusWard;
     this.mode = "geo"; this.calls = new Array(geom.wards.length).fill(null);
     this.cur = 0; this.painting = false;
@@ -38,6 +40,7 @@ export class WardMap {
   setShade(shade) { this.shade = shade ? shade.slice() : null; this.refresh(); }
 
   label(i) {
+    if (this.labelFor) return this.labelFor(i);
     const c = this.calls[i];
     return "Ward " + this.geom.wards[i].id + ", " + this.geom.wards[i].sector + ": " +
       (c ? this.byCode[c].name : "not called yet");

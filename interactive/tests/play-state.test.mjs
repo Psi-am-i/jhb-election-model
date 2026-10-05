@@ -149,3 +149,16 @@ test("a stop shades the track beyond it, each way, and holds the thumb there", (
   assert.equal(PS.heldAtStop(1, both), 1);
   assert.equal(PS.heldAtStop(90, null), 90);
 });
+
+// B2 (diff review, 2026-10-05): a refused discrete option sends back only its
+// own control; the controls still moved since the last figures shown are
+// named, sliders first, and computed next.
+test("movedGroups names each control that differs, sliders first", () => {
+  const a = { shift: [0, 0, 0], polls: [], trust: 0, cell: ".", law: "deduct", name: "" };
+  assert.deepEqual(PS.movedGroups(a, { ...a, shift: a.shift.slice(), name: "Thandi" }), []);
+  const b = { ...a, shift: [0, 1.5, 0], polls: ["p1"], trust: 40, cell: "x", law: "cap" };
+  assert.deepEqual(PS.movedGroups(a, b), ["turnout:1", "trust", "poll", "cell", "law"]);
+  assert.deepEqual(PS.movedGroups(a, { ...a, shift: [-0.5, 0, 0] }), ["turnout:0"]);
+  // no poll is the same as an empty list
+  assert.deepEqual(PS.movedGroups(a, { ...a, polls: [""] }), []);
+});

@@ -251,7 +251,7 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     # phone's change toast.
     "your-forecast/js/model.js": frozenset({
         "engine", "busy", "banner", "result", "map", "wardtip", "flips", "seats",
-        "turnout", "polls", "trust", "cells", "byelection", "law", "lawnow", "ess",
+        "turnout", "polls", "trust", "trustwhy", "cells", "byelection", "law", "lawnow", "ess",
         "toast",
     }),
     # Section 1's share sheet (interactive/js/play-share.js): the link to the

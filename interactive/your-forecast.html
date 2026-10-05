@@ -109,6 +109,9 @@
           <p>Pick one poll, then how much to believe it.<sup class="fn"><a href="#note-poll">5</a></sup></p>
           <div data-live="polls" class="pl-polls" role="radiogroup" aria-labelledby="h-poll"></div>
           <div data-live="trust" class="pl-trust"></div>
+          <!-- why the belief slider stops, or why a poll cannot be chosen: after
+               the slider's block, which fades while no poll is chosen -->
+          <p data-live="trustwhy" class="pl-note pl-zonewhy yf-slot" id="trust-why" role="status"></p>
           <p class="pl-note">A poll's accuracy, as the model rates it, comes from its sample size, the polling house's typical
             miss and the time since fieldwork. At full belief the page gives a poll that error alone.</p>
           <p class="pl-note"><!-- __PLAY:refused__ --></p>
@@ -119,13 +122,13 @@
           <p>Since 2021, single wards have voted again in by-elections. How much should they count?<sup class="fn"><a href="#note-bye">6</a></sup></p>
           <div data-live="cells" class="pl-seg3" role="radiogroup" aria-labelledby="h-bye"></div>
           <p class="pl-note"><!-- __PLAY:bye__ --></p>
-          <div data-live="byelection" class="pl-byenote yf-slot"></div>
+          <div data-live="byelection" class="pl-byenote yf-slot" id="bye-why" role="status"></div>
         </section>
 
         <section class="pl-ctl pl-law" aria-labelledby="h-law">
           <h3 id="h-law">See how other systems would seat this vote</h3>
           <p>What happens when a party wins more wards than its share of the vote entitles it to.<sup class="fn"><a href="#note-law">7</a></sup>
-            <span class="pl-lawnow yf-slot" data-live="lawnow"></span></p>
+            <span class="pl-lawnow yf-slot" data-live="lawnow" id="law-why" role="status"></span></p>
           <div data-live="law" class="pl-lawopts" role="radiogroup" aria-labelledby="h-law"></div>
         </section>
 
@@ -317,7 +320,7 @@
         <p class="yf-outcome yf-slot"></p>
         <p class="yf-verdict yf-slot"></p>
         <p class="yf-cityonly">This is the citywide result only. Your ward calls and seat counts can be off while it
-          comes true, so its chance can be high when they are.</p>
+          comes true, so its chance can be high even when they are off.</p>
         <!-- ward wins: the reader's own map, each ward shaded by the chance we
              give their call there; the expected number of calls right beside it -->
         <section class="yf-apart yf-awards" aria-labelledby="h-amap">

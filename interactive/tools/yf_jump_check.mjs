@@ -195,6 +195,14 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
     // two groups far apart: the simulations run out and the slider stops
     // the stop is said under the turnout sliders, with the zone shaded (B1)
     ["a second group to -5 (stops)", T1, slide(T1, -5), '[data-live="turnout"] .pl-zonewhy'],
+    // the stop is in the DOM, not only in the source (diff review, 2026-10-05):
+    // the line has words and the track past the stop is shaded
+    p => p.evaluate(() => [document.querySelector('[data-live="turnout"] .pl-zonewhy').textContent.trim(),
+      document.querySelectorAll('[data-live="turnout"] svg.pl-zone rect').length])
+      .then(([why, rects]) => {
+        looked.push(`stop: "${why.slice(0, 70)}", ${rects} shaded zone(s)`);
+        if (!why || !rects) failures.push(`the stop shows ${why ? "" : "no reason "}${rects ? "" : "no shaded zone"}`);
+      }),
     ["the second group back to 0", T1, slide(T1, 0), null],
     ["turnout back to 0", T0, slide(T0, 0), null],
     ["a poll", '[data-live="polls"]', pick('[data-live="polls"] input[type="radio"]:not([value=""])'), null],
@@ -219,6 +227,11 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
     // coalition's region
     p => p.evaluate(() => { document.querySelector('[data-live="b-vote"] .prmore').open = true; }),
     ["a new party's first seats", NEW, voteAt(NEW, 3), null, { above: '[data-live="b-govern"]' }],
+    // "Next" after the vote: the focus lands on the first coalition chip (B5)
+    p => p.locator('[data-live="b-vote"] .yf-next').click().then(() => p.waitForTimeout(800))
+      .then(() => p.evaluate(() => !!document.activeElement && document.activeElement.matches('[data-live="b-govern"] .coal > *')))
+      .then(ok => { looked.push(`next after the vote: focus on the first coalition chip ${ok ? "yes" : "NO"}`);
+        if (!ok) failures.push("Next after the vote leaves the focus off the coalition's first chip"); }),
     ["a coalition party", ".coal", p => p.locator(".coal button").first().click(), ".coalstat"],
     ["analyse", ".yf-step4", p => p.locator('[data-live="b-actions"] .yf-analyse').click(), '[data-live="b-analysis"] .yf-verdict', { scrolls: true }],
     ["edit after analysing", VOTE, vote(25), null],

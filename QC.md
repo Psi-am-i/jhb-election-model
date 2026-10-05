@@ -186,6 +186,12 @@ build–review–fix loops.
    * **Model or published figures:** the whole suite.
 4. **Report at the first checkpoint, early.** A run reports after its first
    step so a wrong direction is stopped in minutes, not discovered at the end.
+   **Checks run cheapest first and are time-boxed** (owner, 2026-10-05: "I do
+   not think these need 3 hours of testing"): the page's own test module, then
+   the other page modules, the node tests by file, the site build, the jump
+   check, the click-through, screenshots. A check that still fails after one
+   fix, or a tier not finished in about 15 minutes, stops the run: commit what
+   passes and report the failing check with its output, rather than looping.
 5. **The whole suite once per UAT version**, before promote — never once per
    round.
 

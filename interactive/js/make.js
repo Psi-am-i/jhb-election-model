@@ -435,20 +435,34 @@ function buildBrush() {
 }
 one.brushselect.addEventListener("change", () => chooseBrush(one.brushselect.value || null));
 function chooseBrush(c) {
+  // a chip pressed from the keyboard keeps the focus: paintBrush keeps the
+  // chips it already has; a chip that goes takes the focus to the select
+  const wasOn = document.activeElement && one.brush.contains(document.activeElement);
   S.brush = c;
   one.brushselect.value = c || "";
   paintBrush();
+  if (wasOn && !one.brush.contains(document.activeElement)) one.brushselect.focus();
   one.hint.textContent = c ? "Giving wards to " + name(c) + ". Tap or drag across wards." : "Choose a party, then tap or drag across wards to give them to it.";
 }
 function paintBrush() {
   // the council table's rows once the seat law has answered; before, the
   // start's seats (the published start's, as forecast.json gives them)
+  // Each chip already drawn is kept (a keyboard user's focus stays on it);
+  // only a party new to the rule gets a new one.
   const seated = shownRows.length ? shownRows : B.seatedIn(D.start.seats);
-  one.brush.replaceChildren(...B.chipParties(alpha, seated, S.brush).map(c => {
-    const b = el("button", { type: "button", className: "chip", value: c, "aria-pressed": String(c === S.brush), disabled: !engineReady || locked }, sw(c), name(c));
-    b.addEventListener("click", () => chooseBrush(S.brush === c ? null : c));
+  const have = new Map([...one.brush.children].map(b => [b.value, b]));
+  const chips = B.chipParties(alpha, seated, S.brush).map(c => {
+    let b = have.get(c);
+    if (!b) {
+      b = el("button", { type: "button", className: "chip", value: c }, sw(c), name(c));
+      b.addEventListener("click", () => chooseBrush(S.brush === c ? null : c));
+    }
+    b.setAttribute("aria-pressed", String(c === S.brush));
+    b.disabled = !engineReady || locked;
     return b;
-  }));
+  });
+  for (const b of have.values()) if (!chips.includes(b)) b.remove();
+  chips.forEach((b, k) => { if (one.brush.children[k] !== b) one.brush.insertBefore(b, one.brush.children[k] || null); });
 }
 
 for (const b of views) b.addEventListener("click", () => {
@@ -828,9 +842,12 @@ function paintAnalysis(a) {
   one.outcome.textContent = "This outcome: " + outcomeWords(a.outcome, partyOf);
   one.verdict.textContent = chanceSentence(a.outcome.text);
   // ward wins: the reader's map, shaded by our chance for each call
-  if (!amap) amap = new WardMap(one.amap, geom, { byCode, readonly: true });
+  // each ward's title names our chance for the call there (a screen reader
+  // reads it; a pointer shows it); a ward's strength has a floor, so a call
+  // we give little chance stays visible against an empty ward
+  if (!amap) amap = new WardMap(one.amap, geom, { byCode, readonly: true, labelFor: wardWords });
   amap.setCalls(state.calls);
-  amap.setShade(ctx.wards.map(w => (a.wards[w] ? a.wards[w].p : 0)));
+  amap.setShade(ctx.wards.map(w => (a.wards[w] ? SHADE_FLOOR + (1 - SHADE_FLOOR) * a.wards[w].p : null)));
   one.expected.textContent = "We expect " + Math.round(sc.wards_called) + " of your " + a.wards_count + " ward calls to come true.";
   // citywide: each party's seats and vote beside its chance
   const sb = a.seat_band, pb = a.share_band;
@@ -871,10 +888,20 @@ function paintAnalysis(a) {
 // each ward's chance, over the map, once analysed: on hover, and on focus (the
 // arrow keys, or a tap, which focuses the ward; with no party chosen a tap
 // paints nothing)
-function tipFor(i, x, y) {
+// A ward's call and our chance for it, or null before the analysis or with
+// no call there.
+function wardChance(i) {
   const w = i == null ? null : ctx.wards[+i], got = analysed && w != null ? analysed.wards[w] : null;
-  if (!got) { one.wardtip.hidden = true; return; }
-  one.wardtip.textContent = "Ward " + w + ", " + name(state.calls[+i]) + ". " + chanceSentence(got.text);
+  return got ? "Ward " + w + ", " + name(state.calls[+i]) + ". " + chanceSentence(got.text) : null;
+}
+// The analysis map's ward titles: the chance, or the ward and "not called".
+const wardWords = i => wardChance(i) || "Ward " + ctx.wards[i] + ": not called";
+// The weakest a called ward is drawn on the analysis map (fill-opacity).
+const SHADE_FLOOR = 0.15;
+function tipFor(i, x, y) {
+  const words = wardChance(i);
+  if (!words) { one.wardtip.hidden = true; return; }
+  one.wardtip.textContent = words;
   one.wardtip.hidden = false;
   placeTip(one.wardtip, x, y);
 }
@@ -888,9 +915,9 @@ function focusTip(i) {
 one.svg.addEventListener("mousemove", e => tipFor(e.target.getAttribute && e.target.getAttribute("data-i"), e.clientX, e.clientY));
 one.svg.addEventListener("mouseleave", () => { one.wardtip.hidden = true; });
 one.svg.addEventListener("focusout", () => { one.wardtip.hidden = true; });
-// the same on the analysis's own map: hover, and a tap (a click on a touch screen)
+// the same on the analysis's own map: a pointer reads each ward's title (the
+// chance), and a tap (a click on a touch screen) shows it as the tip
 const wardAt = e => (e.target.getAttribute ? e.target.getAttribute("data-i") : null);
-one.amap.addEventListener("mousemove", e => tipFor(wardAt(e), e.clientX, e.clientY));
 one.amap.addEventListener("click", e => tipFor(wardAt(e), e.clientX, e.clientY));
 one.amap.addEventListener("mouseleave", () => { one.wardtip.hidden = true; });
 

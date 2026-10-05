@@ -18908,7 +18908,7 @@
      },
      "ALJAMAAH": {
       "difference": 0.0,
-      "noise": 0.12646332477708902,
+      "noise": 0.1264633247770781,
       "within_noise": true
      },
      "ALLIED_INDEPENDENTS_UMBRELLA": {
@@ -22035,7 +22035,7 @@
   "w_bye-1": "432f2781d74c2156dfb2b6956e1a464eac613b495c38d6086604210ee0c724d6"
  },
  "numpy": "2.5.1",
- "page_ref": "6ecccb999c76e0bc02569134b89516bd4dbf9e00ee3556249446a0efe20ef508",
+ "page_ref": "df9a49d48428990bc8e7ebbbc6237032b8fc5eed04d0a79767253dfd843b5f30",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
