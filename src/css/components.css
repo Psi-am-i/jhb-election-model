@@ -64,9 +64,9 @@
 details.rollup>summary{cursor:pointer;list-style:none;position:relative;
   display:flex;flex-direction:column;gap:6px;padding-right:26px;}
 details.rollup>summary::-webkit-details-marker{display:none;}
-details.rollup>summary::after{content:"–";position:absolute;right:2px;top:0;
+details.rollup>summary::after{content:"–"/"";position:absolute;right:2px;top:0;
   font-family:var(--mono);font-size:17px;line-height:1;color:var(--ink-3);}
-details.rollup:not([open])>summary::after{content:"+";}
+details.rollup:not([open])>summary::after{content:"+"/"";}
 details.rollup>summary:hover::after{color:var(--accent);}
 details.rollup>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
 details.rollup>*:not(summary){margin-top:14px;}

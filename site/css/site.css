@@ -450,12 +450,16 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 .topnav a{color:var(--ink);text-decoration:none;white-space:nowrap;}
 .topnav a:hover{color:var(--accent);}
 .topnav a.active{color:var(--accent);}
-/* a phone: the logo on the first line with the toggle, the groups below it,
-   each wrapping between its items (never inside one) */
+/* Up to 900px a group wraps between its items (never inside one): beside the
+   logo from 761px a group with "leaderboard" in it is wider than the room
+   (measured overflow at 780-840px, 2026-10-05). */
+@media (max-width:900px){
+  .topnav .navgroup{flex-wrap:wrap;gap:4px 14px;}
+}
+/* a phone: the logo on the first line with the toggle, the groups below it */
 @media (max-width:760px){
   .topnav{--logo-h:92px;flex-wrap:wrap;}
   .topnav .navlinks{order:3;flex-basis:100%;margin-top:10px;gap:4px 22px;}
-  .topnav .navgroup{flex-wrap:wrap;gap:4px 14px;}
 }
 
 /* The owner's strapline (build_site.STRAPLINE), under the bar on every page:
@@ -591,8 +595,13 @@ td.num .arrow{display:inline-block;width:1.3em;margin-right:calc(-1.3em - 2px);t
 .mapkey-item + .mapkey-item{margin-left:13px;}
 .mapkey-note{font-size:12px;color:var(--ink-3);}
 /* the solid-colour line is nowrap: at phone width it pushed the page past the
-   screen (review 2026-10-02) */
-@media (max-width:560px){.mapkey-item{white-space:normal;}}
+   screen (review 2026-10-02). There each item is a line of running text with
+   the swatch at its start; as a wrapping flex row it split into three columns. */
+@media (max-width:560px){
+  .mapkey-item{display:block;white-space:normal;}
+  .mapkey-item + .mapkey-item{margin-left:0;}
+  .mapkey-item svg{display:inline;width:18px;height:12px;vertical-align:-1px;margin-right:6px;}
+}
 
 /* ---- src/css/seat-table.css ---- */
 /* The seat table (src/seat_table.py, interactive/js/seat-table.js): one look
@@ -720,9 +729,9 @@ td.num .arrow{display:inline-block;width:1.3em;margin-right:calc(-1.3em - 2px);t
 details.rollup>summary{cursor:pointer;list-style:none;position:relative;
   display:flex;flex-direction:column;gap:6px;padding-right:26px;}
 details.rollup>summary::-webkit-details-marker{display:none;}
-details.rollup>summary::after{content:"–";position:absolute;right:2px;top:0;
+details.rollup>summary::after{content:"–"/"";position:absolute;right:2px;top:0;
   font-family:var(--mono);font-size:17px;line-height:1;color:var(--ink-3);}
-details.rollup:not([open])>summary::after{content:"+";}
+details.rollup:not([open])>summary::after{content:"+"/"";}
 details.rollup>summary:hover::after{color:var(--accent);}
 details.rollup>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
 details.rollup>*:not(summary){margin-top:14px;}

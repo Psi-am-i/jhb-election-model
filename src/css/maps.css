@@ -35,5 +35,10 @@
 .mapkey-item + .mapkey-item{margin-left:13px;}
 .mapkey-note{font-size:12px;color:var(--ink-3);}
 /* the solid-colour line is nowrap: at phone width it pushed the page past the
-   screen (review 2026-10-02) */
-@media (max-width:560px){.mapkey-item{white-space:normal;}}
+   screen (review 2026-10-02). There each item is a line of running text with
+   the swatch at its start; as a wrapping flex row it split into three columns. */
+@media (max-width:560px){
+  .mapkey-item{display:block;white-space:normal;}
+  .mapkey-item + .mapkey-item{margin-left:0;}
+  .mapkey-item svg{display:inline;width:18px;height:12px;vertical-align:-1px;margin-right:6px;}
+}
