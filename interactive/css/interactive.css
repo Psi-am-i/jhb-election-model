@@ -277,6 +277,14 @@ dialog .x:hover{color:var(--ink);}
 .prmore>summary{padding:10px 0;border-bottom:1px solid var(--rule-soft);}
 .brushpick{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-3);margin-top:8px;}
 .brushpick select{flex:1;min-width:0;}
+/* where the chips wrap (no phone tray), "More parties" follows the last chip
+   on its line */
+@media (min-width:980px){
+  .brush{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+  .brush .brushscroll{display:contents;}
+  .brushpick{margin-top:0;margin-left:4px;}
+  .brushpick select{flex:none;max-width:220px;}
+}
 .brushscroll:empty{display:none;}
 .find{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--ink-3);flex:1;min-width:180px;}
 .find input{flex:1;min-width:0;font:14px var(--sans);color:var(--ink);background:var(--paper);

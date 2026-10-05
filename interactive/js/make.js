@@ -66,7 +66,7 @@ import * as YU from "./yf-url.js";
 import { WardMap } from "./map.js";
 import { setShareable, onNameChange, onOpen, onFriendName } from "./make-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
-import { forecastSpec, aChance, chanceSentence, outcomeWords } from "./share-card.js";
+import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
 import { seatTable } from "./seat-table.js";
 import { placeTip } from "./tip.js";
 import { engineCall, onForecast } from "./model.js";
@@ -292,8 +292,8 @@ async function start() {
   history = new B.History();
   map = new WardMap(one.svg, geom, { byCode, onPaint: paintWard, onFocusWard: focusTip });
   map.onClear = () => { one.hint.textContent = "Every ward needs a winner. Choose a party, then tap the ward to change it."; };
-  buildBrush();
   buildVote();
+  paintBrush();
   fromLink = !MS.sameState(state, pubStart, ctx);
   const linkF = new URLSearchParams(YU.partOf(location.search, YU.BREAK_KEYS)).get("f");
   if (YU.arrival().from && linkF && !opened.note) {
@@ -427,31 +427,28 @@ function setCallsFrom(calls) {
   commit(r.state, raisedNote(r.raised));
 }
 
-// The brush: a chip for each party seated in the reader's council or at its
-// start (builder-state.js chipParties, one seat-based rule for every party;
-// owner, 2026-10-05), one click to paint with it, and every party in the select.
-function buildBrush() {
-  one.brushselect.append(el("option", { value: "" }, "Choose…"), ...alpha.map(c => el("option", { value: c }, name(c))));
-}
+// The brush: a chip for each of the parties with the most seats in the
+// reader's council, or at its start before the seat law has answered
+// (builder-state.js chipParties, one seat-based rule for every party; owner,
+// 2026-10-05), one click to paint with it, and every other party in the
+// "More parties" select beside them, which paints the same way.
+let pulldown = "";         // the select's parties, as last drawn
 one.brushselect.addEventListener("change", () => chooseBrush(one.brushselect.value || null));
 function chooseBrush(c) {
   // a chip pressed from the keyboard keeps the focus: paintBrush keeps the
   // chips it already has; a chip that goes takes the focus to the select
   const wasOn = document.activeElement && one.brush.contains(document.activeElement);
   S.brush = c;
-  one.brushselect.value = c || "";
   paintBrush();
   if (wasOn && !one.brush.contains(document.activeElement)) one.brushselect.focus();
   one.hint.textContent = c ? "Giving wards to " + name(c) + ". Tap or drag across wards." : "Choose a party, then tap or drag across wards to give them to it.";
 }
 function paintBrush() {
-  // the council table's rows once the seat law has answered; before, the
-  // start's seats (the published start's, as forecast.json gives them)
   // Each chip already drawn is kept (a keyboard user's focus stays on it);
   // only a party new to the rule gets a new one.
-  const seated = shownRows.length ? shownRows : B.seatedIn(D.start.seats);
   const have = new Map([...one.brush.children].map(b => [b.value, b]));
-  const chips = B.chipParties(alpha, seated, S.brush).map(c => {
+  const chipped = B.chipParties(alpha, result ? result.seats : D.start.seats);
+  const chips = chipped.map(c => {
     let b = have.get(c);
     if (!b) {
       b = el("button", { type: "button", className: "chip", value: c }, sw(c), name(c));
@@ -463,6 +460,13 @@ function paintBrush() {
   });
   for (const b of have.values()) if (!chips.includes(b)) b.remove();
   chips.forEach((b, k) => { if (one.brush.children[k] !== b) one.brush.insertBefore(b, one.brush.children[k] || null); });
+  // the select: every party without a chip, redrawn only when that list changes
+  const rest = alpha.filter(c => !chipped.includes(c));
+  if (rest.join() !== pulldown) {
+    pulldown = rest.join();
+    one.brushselect.replaceChildren(el("option", { value: "" }, "Choose…"), ...rest.map(c => el("option", { value: c }, name(c))));
+  }
+  one.brushselect.value = S.brush && rest.includes(S.brush) ? S.brush : "";
 }
 
 for (const b of views) b.addEventListener("click", () => {
@@ -508,7 +512,7 @@ function buildList() {
       const got = analysed ? analysed.wards[ctx.wards[i]] : null;
       rows.push(el("tr", {}, el("th", { scope: "row" }, "Ward " + w.id),
         el("td", {}, el("span", { className: "wlpick" }, sw(state.calls[i]), s)),
-        el("td", { className: "wln", title: got ? chanceSentence(got.text) : "" }, got ? got.text : "–")));
+        el("td", { className: "wln", title: got ? wardChanceSentence(got.text) : "" }, got ? got.text : "–")));
     });
     if (!rows.length) return [];
     // an area's wards in two halves, side by side where the list is wide
@@ -718,7 +722,7 @@ function councilRows(seats) {
   const fresh = Object.keys(seats).filter(c => seats[c] > 0 && !known.has(c));
   return { list: [...known, ...fresh].sort((a, b) => (seats[b] || 0) - (seats[a] || 0) || name(a).localeCompare(name(b))), fresh };
 }
-let shownRows = [];        // councilRows' list for the result shown, which the chips list too
+let shownRows = [];        // councilRows' list for the result shown
 function paintCouncil() {
   const { seats, ward, council_total: council, majority, excessive } = result;
   const { list, fresh } = councilRows(seats);
@@ -892,7 +896,7 @@ function paintAnalysis(a) {
 // no call there.
 function wardChance(i) {
   const w = i == null ? null : ctx.wards[+i], got = analysed && w != null ? analysed.wards[w] : null;
-  return got ? "Ward " + w + ", " + name(state.calls[+i]) + ". " + chanceSentence(got.text) : null;
+  return got ? "Ward " + w + ", " + name(state.calls[+i]) + ". " + wardChanceSentence(got.text) : null;
 }
 // The analysis map's ward titles: the chance, or the ward and "not called".
 const wardWords = i => wardChance(i) || "Ward " + ctx.wards[i] + ": not called";
@@ -954,7 +958,7 @@ function onWorker(e) {
     result = m.answer;
     paintCouncil();
     paintCoalition();
-    paintBrush();             // the chips follow the council's rows
+    paintBrush();             // the chips follow the council's seats
     if (arriving && !friend.answer) { friend.answer = m.answer; friendOutcome(); paintArrival(); }
     share();
     if (analysed) { clearTimeout(analyseTimer); analyseTimer = setTimeout(() => analyse(false), 400); }

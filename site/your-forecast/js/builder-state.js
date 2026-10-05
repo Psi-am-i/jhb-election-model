@@ -51,22 +51,22 @@ export function wardCounts(calls) {
 }
 
 // The one-click party chips for painting wards (owner, 2026-10-05): ONE
-// seat-based rule for every party. A party has a chip when it holds a seat in
-// `seated`, the rows of the reader's council table (js/make.js councilRows:
-// every party seated at the start section 2 opened at, or seated now), and
-// the party chosen to paint with keeps its chip. A ward is a seat, so every
-// party that wins a ward on the map is among them. In `order`, which the
-// page keeps alphabetical (DESIGN-decided §8). Every other party is in the
+// seat-based rule for every party. The CHIP_LIMIT parties with the most seats
+// in `seats` ({party: seats}, the reader's council, or its start before the
+// seat law has answered) have a chip; a tie for the last chip falls to
+// `order`, which the page keeps alphabetical (DESIGN-decided §8), and the
+// chips are shown in that order. Every other party is in the "More parties"
 // select beside the chips.
-export function chipParties(order, seated, brush = null) {
-  const on = new Set(seated);
-  if (brush) on.add(brush);
-  return order.filter(c => on.has(c));
+export const CHIP_LIMIT = 8;
+export function chipParties(order, seats, limit = CHIP_LIMIT) {
+  const top = new Set(seatedIn(seats, order).slice(0, limit));
+  return order.filter(c => top.has(c));
 }
 
-// The parties holding at least one seat in `seats` ({party: seats}).
-export function seatedIn(seats) {
-  return Object.keys(seats || {}).filter(c => seats[c] > 0);
+// The parties holding at least one seat in `seats` ({party: seats}), most
+// seats first; a tie in `order` when given, else in `seats`' own order.
+export function seatedIn(seats, order = Object.keys(seats || {})) {
+  return order.filter(c => (seats || {})[c] > 0).sort((a, b) => seats[b] - seats[a]);
 }
 
 // The smallest vote each party may hold, given the ward picks.

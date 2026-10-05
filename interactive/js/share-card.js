@@ -65,6 +65,10 @@ export function aChance(text) {
 export function chanceSentence(text) {
   return "We give this outcome " + aChance(text) + ".";
 }
+// A ward on the reader's map: "We give your call in this ward an 18% chance."
+export function wardChanceSentence(text) {
+  return "We give your call in this ward " + aChance(text) + ".";
+}
 
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const listAnd = xs => (xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1]);
