@@ -370,8 +370,11 @@ def test_every_page_links_it_and_it_has_its_own_card():
 def test_wide_section_1_stacks_the_map_over_the_seat_table_at_full_size():
     """Owner, 2026-10-03 ("stacked … plenty of space … too small"): on a wide
     screen the map sits ABOVE the seat table, each the results column's full
-    width, in the page's flow; the levers' column is the one that holds still
-    and scrolls on its own. On the built page the map's figure comes before
+    width, in the page's flow. The levers' column is in the page's flow too,
+    with no inner scroll: the owner saw its scroll bar beside the results
+    ("a visible scroll bar beside the results text", 2026-10-05), so
+    your-forecast.css takes play.css's still, self-scrolling column out of
+    this page. On the built page the map's figure comes before
     the seat table's inside the results grid; the stylesheets give the grid
     no second column, put no height cap or inner scroll on the results
     column, and cap the map only at the window's height. A constructed
@@ -394,8 +397,21 @@ def test_wide_section_1_stacks_the_map_over_the_seat_table_at_full_size():
     assert side_by_side(play + ".pl-rgrid{display:grid;grid-template-columns:1fr 330px;}")
     assert not capped(play + yf)
     assert capped(play + ".pl-resultscol{max-height:calc(100vh - 60px);overflow-y:auto;}")
-    assert re.search(r"\.pl-controls\{[^}]*position:sticky[^}]*max-height:calc\(100vh[^}]*overflow-y:auto", play), \
-        "the levers' column does not hold still with its own scroll"
+    def self_scrolling(css: str) -> bool:
+        """Does the LAST rule this page gives the levers' column leave it
+        scrolling on its own (an overflow of auto/scroll or a stable gutter)?"""
+        rules = re.findall(r"\.pl-controls\{([^}]*)\}", css)
+        last = {}
+        for body in rules:
+            for decl in body.split(";"):
+                if ":" in decl:
+                    k, v = (x.strip() for x in decl.split(":", 1))
+                    last["overflow-y" if k == "overflow" else k] = v.split()[-1] if k == "overflow" else v
+        return last.get("overflow-y") in ("auto", "scroll") or "stable" in last.get("scrollbar-gutter", "")
+
+    assert self_scrolling(play), "play.css no longer gives /play/ its self-scrolling column: re-check this test"
+    assert not self_scrolling(play + yf), "the levers' column scrolls on its own on /your-forecast/"
+    assert self_scrolling(play + yf + ".yf .pl-controls{overflow-y:auto;}")
     assert re.search(r"\.yf \.pl-wardmap\{max-height:calc\(100vh - \d+px\);\}", yf)
 
 

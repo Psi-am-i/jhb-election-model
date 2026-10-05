@@ -622,6 +622,29 @@ const count = n => Math.round(n).toLocaleString("en-US");
 const arrowText = d => (d ? (d > 0 ? "▲" : "▼") + Math.abs(d) : null);
 const arrow = d => (d ? el("span", { className: "arrow reader" }, arrowText(d)) : null);
 
+// The status strip's settings line, which never scrolls (owner, 2026-10-05):
+// it wraps inside the lines css/your-forecast.css reserves for it, and when
+// the settings run past them it names as many as fit and ends with a
+// "+N more" button that opens the whole list (and "fewer" closes it). A
+// page whose line is not clamped (no max-height) always fits.
+let settingsNow = [], settingsOpen = false, moreButton = null;
+function fitSettings() {
+  const words = settingsNow, n = words.length;
+  const line = (k, more) => {
+    moreButton = more ? el("button", { type: "button", className: "pl-more", "aria-expanded": String(settingsOpen) },
+      settingsOpen ? "fewer" : "+" + (n - k) + " more") : null;
+    if (moreButton) moreButton.addEventListener("click", () => { settingsOpen = !settingsOpen; fitSettings(); moreButton?.focus(); });
+    R.settings.replaceChildren("Your changes: " + words.slice(0, k).join("; ") + (k < n ? "; " : "."), ...(moreButton ? [moreButton] : []));
+  };
+  const fits = () => R.settings.scrollHeight <= R.settings.clientHeight + 1;
+  if (settingsOpen) R.status.setAttribute("data-open", ""); else R.status.removeAttribute("data-open");
+  if (!n) { R.settings.textContent = ""; return; }
+  line(n, settingsOpen);
+  if (settingsOpen || fits()) return;
+  for (let k = n - 1; k >= 1; k--) { line(k, true); if (fits()) return; }
+}
+addEventListener("resize", () => { if (settingsNow.length) fitSettings(); });
+
 function render(r, touched, state = st) {
   offerShare(r, state);
   told(state);
@@ -633,12 +656,14 @@ function render(r, touched, state = st) {
     for (const n of [R.banner, R.oneline, R.map, R.flips, R.seats, R.ess]) clear(n);
     byeText = "";
     R.seats.removeAttribute("data-extra");
+    settingsNow = [];
     R.settings.textContent = "";
     showToast(moves);
     paintLimits();
     return;
   }
-  R.settings.textContent = "Your changes: " + settingsWords(state, ctx).join("; ") + ".";
+  settingsNow = settingsWords(state, ctx);
+  fitSettings();
   renderBanner(r, moves);
   renderResult(r);
   renderMap(r);

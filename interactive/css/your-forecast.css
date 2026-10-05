@@ -17,7 +17,10 @@
 .yf-shead{font:600 clamp(24px,3.4vw,32px)/1.15 var(--serif);margin:18px 0 6px;color:var(--ink);}
 .yf-shead::before{counter-increment:yfsec;content:counter(yfsec);display:inline-block;min-width:1.4em;
   color:var(--reader);margin-right:10px;}
-.yf-sdek{max-width:72ch;font-size:15.5px;color:var(--ink-2);margin:0 0 6px;}
+.yf-sdek{max-width:72ch;margin:0 0 6px;}
+/* the line under a heading that says what the section, lever or step does:
+   one style for every one of them on the page (owner, 2026-10-05) */
+.yf.pl .yf-sub{font-size:17px;line-height:1.5;color:var(--ink-2);}
 /* the clean break between adjusting and breaking the model */
 .yf-break{border-top:4px double var(--rule);margin:56px 0 18px;}
 
@@ -47,6 +50,25 @@
    the wide column */
 .yf .pl-seatfig{order:2;}
 @media (min-width:1100px){.yf .pl-seatfig{order:0;}}
+/* the levers' column at full height, in the page's flow (owner, 2026-10-05:
+   "a visible scroll bar beside the results"): play.css's column that holds
+   still and scrolls on its own drew its scroll bar between the levers and
+   the results, so on this page the column scrolls with the page. */
+@media (min-width:1100px){
+  .yf .pl-controls{position:static;max-height:none;overflow:visible;scrollbar-gutter:auto;padding-right:0;}
+}
+/* section 2's paint chips and "More parties" select where they wrap: a grid
+   of equal cells, so the number of rows depends on the width alone and a
+   change of seats, which changes the chips, cannot add a row (owner,
+   2026-10-05: the page must not jump when a lever moves). A long name is
+   cut, in full in its title. */
+@media (min-width:980px){
+  .yf .brush{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;align-items:center;}
+  .yf .brush .chip{min-width:0;justify-content:flex-start;}
+  .yf .brush .chipt{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .yf .brushpick{grid-column:span 2;margin-left:0;}
+  .yf .brushpick select{flex:1;min-width:0;max-width:none;}
+}
 /* the levers: one card per lever, separated */
 .yf .pl-controls{display:flex;flex-direction:column;gap:14px;}
 .yf .pl-ctl,.yf .pl-ctl:first-child{border:1px solid var(--rule);border-radius:8px;background:var(--paper-2);
@@ -211,7 +233,7 @@
 /* "Set the vote": its one line, and the footnote marker's number, drawn here
    because the step is a LIVE region with no build-time digit (the note is
    the eighth in the page's notes) */
-.yf-oneline{font-size:13.5px;margin:0 0 8px;}
+.yf-oneline{margin:0 0 8px;}
 .yf-fnvote::after{content:"8";}
 
 /* ---------- reserved message regions: a lever moves nothing ---------- */
@@ -234,9 +256,15 @@
 .yf .pl-engine.yf-slot{line-height:1.5;height:4lh;margin:0 0 4px;}
 .yf .pl-status.yf-slot{line-height:1.4;height:calc(5lh + 20px);align-content:flex-start;overflow:hidden;}
 .yf .pl-status.yf-slot[hidden]{display:flex;visibility:hidden;}
-/* the one region that scrolls by design: every lever moved at once names
-   more settings than the strip has lines for; the Back button stays in view */
-.yf .pl-status .pl-settings.yf-scrolls{max-height:3lh;overflow-y:auto;}
+/* the settings line wraps inside its strip and never scrolls (owner,
+   2026-10-05: no visible inner scroll bar). When every lever is moved at
+   once and the settings run past the lines reserved here, model.js
+   (fitSettings) names as many as fit and ends the line with a "+N more"
+   button, which opens the whole list; the Back button stays in view. */
+.yf .pl-status .pl-settings.yf-clamp{max-height:3lh;overflow:hidden;}
+.yf .pl-status[data-open].yf-slot{height:auto;}
+.yf .pl-status[data-open] .pl-settings.yf-clamp{max-height:none;}
+.yf .pl-more{font:inherit;color:inherit;background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;}
 .yf .pl-oneline.yf-slot{height:6lh;}
 .yf .pl-flips.yf-slot{height:6.2em;font-size:13px;line-height:1.55;}
 .yf .pl-flips .pl-flipline{margin:0;}
@@ -264,8 +292,7 @@
 .yf [data-live="ess"].yf-slot{display:block;line-height:1.4;height:3lh;}
 @media (min-width:1100px){
   .yf .pl-engine.yf-slot{height:2lh;}
-  .yf .pl-status.yf-slot{height:calc(2lh + 20px);}
-  .yf .pl-status .pl-settings.yf-scrolls{max-height:2lh;}
+  .yf .pl-status.yf-slot{height:calc(3lh + 20px);}
   .yf .pl-oneline.yf-slot{height:3lh;}
   .yf .pl-flips.yf-slot{height:4.7em;}
   .yf [data-live="b-status"].yf-slot{height:70px;}
@@ -279,6 +306,10 @@
   .yf .yf-outcome.yf-slot{height:2lh;}
   .yf .floornote.yf-slot{height:calc(2lh + 12px);}
 }
+/* the narrowest wide screens: "Most seats alone: …" runs to a fourth line in
+   the results column, which three lines would scroll beside (owner,
+   2026-10-05: no visible inner scroll bar) */
+@media (min-width:1100px) and (max-width:1279px){.yf .pl-oneline.yf-slot{height:4lh;}}
 /* the legend lines that name the reader's changes take their place whether
    or not they show */
 .yf.pl .pl-key .pl-live{display:inline;visibility:hidden;}

@@ -252,11 +252,29 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   await pick('[data-live="law"] input:not([value="deduct"])')(p); await settle(p);
   const over = await p.evaluate(() => [...document.querySelectorAll(".yf-slot")].filter(e => e.getClientRects().length)
     .map(e => [e.className, e.scrollHeight - e.clientHeight, e.textContent.trim().slice(0, 60)]).filter(([, d]) => d > 1));
-  looked.push(`${w} every lever: ${await p.evaluate(() => document.querySelector(".pl-settings").textContent)}`);
   for (const [c, d, t] of over) failures.push(`${w} every lever: .${c.replace(/ /g, ".")} overflows by ${d}px ("${t}")`);
-  // the one region that scrolls by design (.yf-scrolls): said, not failed
-  for (const d of await p.evaluate(() => [...document.querySelectorAll(".yf-scrolls")].map(e => e.scrollHeight - e.clientHeight)))
-    looked.push(`${w} every lever: the settings line scrolls ${d}px inside its strip`);
+  // wide: no inner scroll bar anywhere on the page (owner, 2026-10-05): no
+  // element that scrolls up and down on its own with more than it shows, and
+  // none that keeps a gutter for a scroll bar. (A phone's chip tray and map
+  // scroll sideways by design.)
+  const scrolling = () => p.evaluate(() => [...document.querySelectorAll("body *")].filter(e => e.getClientRects().length)
+    .filter(e => { const s = getComputedStyle(e);
+      return (["auto", "scroll"].includes(s.overflowY) && e.scrollHeight - e.clientHeight > 1)
+        || (s.scrollbarGutter || "").includes("stable"); })
+    .map(e => `${e.tagName.toLowerCase()}.${String(e.className).trim().replace(/\s+/g, ".")} by ${e.scrollHeight - e.clientHeight}px`));
+  if (w >= 980) {   // the detector sees a constructed scroller, and goes quiet when it is removed
+    await p.evaluate(() => { const x = document.createElement("div"); x.id = "scroll-probe"; x.style.cssText = "height:10px;overflow-y:auto";
+      x.append(Object.assign(document.createElement("div"), { style: "height:40px" })); document.querySelector("#adjust").append(x); });
+    const seen = (await scrolling()).some(x => x.startsWith("div. by"));
+    await p.evaluate(() => document.querySelector("#scroll-probe").remove());
+    const quiet = !(await scrolling()).some(x => x.startsWith("div. by"));
+    if (!seen || !quiet) failures.push(`${w}: the scroller check is blind (caught ${seen}, quiet after removal ${quiet})`);
+  }
+  const scrollers = w < 980 ? [] : await scrolling();
+  if (w >= 980) looked.push(`${w} every lever: ${scrollers.length} inner scroller(s)`);
+  for (const x of scrollers) failures.push(`${w} every lever: ${x} scrolls inside the page`);
+  // the settings line: clamped to its strip, the rest behind "+N more"
+  looked.push(`${w} every lever: the settings line shows "${await p.evaluate(() => document.querySelector(".pl-settings").textContent)}"`);
   await ctx.close();
 }
 await b.close();
