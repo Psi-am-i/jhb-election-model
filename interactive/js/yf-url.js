@@ -134,6 +134,13 @@ export function linkTo(which, hash, { withFriend = false } = {}) {
 
 export function currentName() { return name; }
 
+// The name a share sheet may seal and enter, the one source for both
+// sections: the address's name, except while a shared link's arrival is in
+// the address. Then the name is the sharer's, and a recipient never seals
+// under it; picking a start drops the arrival and the name together
+// (make.js onChoose).
+export function sealName() { return arrival().from ? "" : name; }
+
 // In the page, the parts are seeded from the address it opened with, before
 // either section writes: a section that has not written yet (section 2 is
 // lazy) keeps its part of a shared link, and so does the name. Under node

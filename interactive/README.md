@@ -22,7 +22,7 @@ in `worker-api/`, not deployed.
 ## Open it
 
 The page has no figures until it is built. Build into a scratch directory,
-link `site/draws/`, `site/logos/` and `site/share.jpg` beside it, and serve
+link `site/draws/` and `site/logos/` beside it, and serve
 that directory:
 
 ```
@@ -76,7 +76,7 @@ the site root:
 | path | what |
 |---|---|
 | `your-forecast/index.html` | `your-forecast.html` with the site's head (`build_site.SITE_HEAD`: `css/site.css` and the site's scripts), nav and footer; section 1's build twins filled at its `__PLAY:<name>__` markers (`build_play.FILL`: the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map, turnout by group, where each party's votes come from, the notes' figures), all as `{{tokens}}`; section 2's seat-table attributes at its `__MAKE:<name>__` markers. First paint is ledgered tokens, no script |
-| `your-forecast/js/` | section 1: `model.js` (LIVE writer), `play-state.js`, `play-card.js` and `play-share.js` (writers), `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `pubtip.js`; section 2: `make.js` and `make-share.js` (writers), `make-state.js`, `builder-state.js`, `map.js`, `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js` and `http.js` (from `worker-api/src`, Worker only); both: `yf-url.js` (the one address), `forecast-card.js` (the share image, a writer of no region), `card-text.js`, `seat-table.js`, `tip.js` (where each tooltip goes) |
+| `your-forecast/js/` | section 1: `model.js` (LIVE writer), `play-state.js`, `play-card.js` and `play-share.js` (writers), `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `pubtip.js`; section 2: `make.js` and `make-share.js` (writers), `make-state.js`, `builder-state.js`, `map.js`, `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js` and `http.js` (from `worker-api/src`, Worker only); both: `yf-url.js` (the one address), `share-sheet.js` (the one share sheet: a writer for both share regions that looks up nothing), `share-card.js` (every share image, a writer of no region) and `card-fonts.js`, `card-text.js` (the PNG step), `seat-table.js`, `tip.js` (where each tooltip goes) |
 | `your-forecast/css/` | `interactive.css`, `play.css` (section 1's rules, every class `pl-`), `your-forecast.css` (the layout and what both sections share, every class `yf-`) |
 | `your-forecast/pyboot/` | `page.py` (section 1's engine, and section 2's hand-off and analysis), `boot.py` (the seat code's) |
 | `your-forecast/py/` | the served Python, copied by `tools/sync_py.mjs` |
@@ -196,14 +196,17 @@ section 1. Old `/play/?…` and `/make/?…` links reach the page through the
 Worker's redirect with their query strings and read back unchanged
 (`tests/yf.test.mjs`).
 
-**Share images** (`js/forecast-card.js`, the one card module): section 1's
-words and rows from `js/play-card.js` (a headline saying whose figures these
-are, the largest-party line, the reader's map, each party's middle seat count,
-at 1200×630 or 1080×1920); section 2's from `js/make-share.js` ("[Name]'s
-election forecast", the reader's map, each party's seats, the coalition).
-Both on the site's photograph of Hillbrow Tower (`share.jpg`). No account, no
-cookie, no storage, nothing sent: a shared link shows the page's generic
-preview (`og:` tags with no figure, the site's `share.jpg`).
+**Share images** (`js/share-card.js`, the one card module, at 1200×630 or
+1080×1920; owner, 2026-10-06: one design). Section 1 untouched shares the
+model's own card (`modelCardSVG`, words and rows from `js/play-card.js`): "Our
+Johannesburg Forecast", black and white, the logo, the ward map, the council
+graphic of the start section 2 opens at, each party's middle seat count.
+A reader's forecast (section 2, and section 1 once a setting is moved, which
+shares section 1's hand-off) has the reader's card: "[Name]'s Election
+Forecast" on a band in the largest party's colour, the council graphic, the
+table, the ward map, our chance for its outcome. **One share sheet**
+(`js/share-sheet.js`) serves both sections with the same controls; a reader's
+forecast is sealed and entered, the model's is not.
 
 Tests: `tests/test_your_forecast_page.py` (the gate, both directions, guards
 firing and going quiet, section 1's rows at uniform weights, the start's
@@ -222,10 +225,10 @@ refusals, the card, CPython seats, Pyodide = CPython); `page.test.mjs`
 | `js/model.js` | section 1's LIVE writer (`stats.LIVE_WRITERS["your-forecast/js/model.js"]`); it owns the re-weighting Worker and lends it to section 2 (`engineCall`, `onForecast`) |
 | `js/model-worker.js`, `js/reweight-engine.js`, `pyboot/page.py` | the re-weighting Web Worker, the engine loader (injectable, also run by the node test), and the Python entry: `compute`, `handoff`, `analyse` |
 | `js/play-state.js` | section 1's settings, their bounds, its address part (F16) and the share rule; pure |
-| `js/play-share.js`, `js/play-card.js`, `js/card-text.js` | section 1's share sheet, its share image's words and rows (drawn by `js/forecast-card.js`), and the measured text layout and PNG step |
-| `js/make.js`, `js/make-share.js`, `js/make-state.js`, `js/make-worker.js` | section 2: its LIVE writer, its share sheet, its address part, the seat Worker |
+| `js/play-share.js`, `js/play-card.js`, `js/card-text.js` | section 1's share sheet content, the model's card's words and rows (drawn by `js/share-card.js`), and the PNG step |
+| `js/make.js`, `js/make-share.js`, `js/make-state.js`, `js/make-worker.js` | section 2: its LIVE writer (and the hand-off section 1 shares once moved), its share sheet content, its address part, the seat Worker |
 | `js/yf-url.js` | the page's one address: both parts and the name; pure but for the one history call |
-| `js/forecast-card.js` | the share image both sections draw |
+| `js/share-sheet.js`, `js/share-card.js` | the one share sheet both sections use (a LIVE writer that looks up nothing), and every share image |
 | `js/builder-state.js` | section 2's state and every edit to it; pure, and can only hold a valid forecast (DESIGN-decided §14) |
 | `js/seat-table.js` | the site's one seat table, drawn from a reader's figures: the JavaScript twin of `src/seat_table.py`, the same markup for the same rows (`tests/test_seat_table.py`); styled by `src/css/seat-table.css` |
 | `js/pubtip.js` | section 1's published map tooltip (copies a ward's `data-tip`) |

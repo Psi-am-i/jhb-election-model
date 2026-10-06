@@ -1,6 +1,6 @@
 // Screenshots of the built /your-forecast/ page into interactive/screenshots/yf-*.png.
 //
-//   build the site into a scratch directory, link site/share.jpg, site/logos
+//   build the site into a scratch directory, link site/logos
 //   and site/draws beside it, then either serve it on 127.0.0.1:8801 or let
 //   this tool serve it to the browser itself (no port):
 //     PLAYWRIGHT=<playwright or playwright-core index.mjs> \
@@ -68,15 +68,15 @@ for (const [w, h] of [[375, 812], [1440, 1000], [1920, 1080]]) {
   await p.evaluate(() => scrollTo(0, 0));
   // its share sheet and image (1440 only: the image is the same at any width)
   if (w === 1440) {
-    await p.click('[data-live="share"] .pl-shareopen');
+    await p.click('[data-live="share"] .shareopen');
     await imgReady('[data-live="share"] .preview img')(p);
-    await p.fill('[data-live="share"] .pl-name', "Thandi");
+    await p.fill('[data-live="share"] .shname', "Thandi");
     await p.waitForFunction(() => /Thandi/.test(document.querySelector('[data-live="share"] .preview img').alt), null, { timeout: 30000 });
     await imgReady('[data-live="share"] .preview img')(p);
     await p.waitForTimeout(300);
     await p.screenshot({ path: `${OUT}/yf-adjust-share.png` });
     await download(p, '[data-live="share"] .shdl', `${OUT}/yf-card-adjust-1200x630.png`);
-    await p.click('[data-live="share"] .sizes button[data-size="story"]');
+    await p.selectOption('[data-live="share"] .shimg', "story");
     await p.waitForFunction(() => { const i = document.querySelector('[data-live="share"] .preview img'); return i.naturalHeight > i.naturalWidth; }, null, { timeout: 30000 });
     await download(p, '[data-live="share"] .shdl', `${OUT}/yf-card-adjust-1080x1920.png`);
     await p.click('[data-live="share"] .x');
@@ -175,7 +175,7 @@ for (const [w, h] of [[375, 812], [1440, 900]]) {
   const p = await page(1440, 1000, "?l=cap");
   await p.locator("#h-law").scrollIntoViewIfNeeded();
   await p.waitForTimeout(300);
-  console.log("share under cap:", await p.evaluate(() => [document.querySelector('[data-live="share"] .pl-shareopen').disabled,
+  console.log("share under cap:", await p.evaluate(() => [document.querySelector('[data-live="share"] .shareopen').disabled,
     document.querySelector('[data-live="share"] .pl-sharewhy').textContent]));
   await p.screenshot({ path: `${OUT}/yf-adjust-1440-law.png` });
   await p.context().close();

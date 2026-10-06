@@ -58,10 +58,11 @@ ROOT = Path(__file__).resolve().parents[1]
 D = YF.YF_DIR
 ADJUST = f"{D}/js/model.js"
 BREAK = f"{D}/js/make.js"
-#: Every writer the page ships: each section's page module and share sheet,
-#: section 1's share-image words and card module, section 2's card module,
-#: and the arrival view a shared link opens.
-WRITERS = (ADJUST, f"{D}/js/play-share.js", f"{D}/js/play-card.js", f"{D}/js/forecast-card.js",
+#: Every writer the page ships: each section's page module and share sheet
+#: content, the one share sheet, section 1's share-image words, the card
+#: module of both sections, and the arrival view a shared link opens.
+SHEET = f"{D}/js/share-sheet.js"
+WRITERS = (ADJUST, f"{D}/js/play-share.js", f"{D}/js/play-card.js", SHEET,
            BREAK, f"{D}/js/make-share.js", f"{D}/js/share-card.js", f"{D}/js/arrival.js",
            f"{D}/js/entries.js")
 STAMP = re.compile(r"<!-- built-pages: (.*?) blocking=(\d+) -->")
@@ -168,12 +169,19 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     # section 2 shows none of its own (the reader scrolls past section 1's)
     assert html.count('<div class="st" ') == 1
     # every LIVE region on the page is one a writer is listed for, every
-    # listed region is on the page, and each region has one writer
+    # listed region is on the page, and each region has one writer that
+    # reaches it by selector. The one share sheet is listed for both share
+    # regions but selects nothing: it writes only to the elements the
+    # region's own module handed it (test_the_page_scripts_pass… holds it
+    # to no lookup), so it is the one writer counted apart. It cannot be
+    # listed for no region: that contract refuses a data source, and the
+    # sheet fetches the seal and the card's fonts and logos.
     on_page = [name for _, _, name in S._live_scan(html)[0]]
     listed = set().union(*(S.LIVE_WRITERS[w] for w in WRITERS))
     assert set(on_page) == listed, (set(on_page) ^ listed)
     assert len(on_page) == len(set(on_page)), sorted(on_page)
-    assert sum(len(S.LIVE_WRITERS[w]) for w in WRITERS) == len(listed)
+    assert sum(len(S.LIVE_WRITERS[w]) for w in WRITERS if w != SHEET) == len(listed)
+    assert S.LIVE_WRITERS[SHEET] == {"share", "b-share"} <= listed
     assert {w for w in S.LIVE_WRITERS if w.startswith(D + "/")} == set(WRITERS)
     assert not [w for w in S.LIVE_WRITERS if w.split("/")[0] in YF.RETIRED]
     for w in WRITERS:
@@ -257,6 +265,19 @@ def test_a_figure_outside_a_live_region_is_refused_and_the_refusal_reverts():
         finally:
             mod.write_text(body, encoding="utf-8")
         assert _writes(site) == [], (f, line)
+    # the one share sheet looks up nothing: it writes only to the elements
+    # each section took from its own region and handed it (the build's scan
+    # would allow it a lookup into either region it is listed for, so this
+    # is checked here); and each section's content module stays in its one
+    # region
+    sheet_js = (site / SHEET).read_text(encoding="utf-8")
+    looks = lambda js: [w for w in ("querySelector", "getElementBy", "elementFromPoint") if w in js]
+    assert looks(sheet_js) == []
+    assert looks(sheet_js + "document.querySelector('[data-live=\"share\"] img').alt = '1';") == ["querySelector"]
+    assert S.LIVE_WRITERS[SHEET] == frozenset({"share", "b-share"})
+    assert S.LIVE_WRITERS[f"{D}/js/play-share.js"] == frozenset({"share"})
+    assert S.LIVE_WRITERS[f"{D}/js/make-share.js"] == frozenset({"b-share"})
+    assert _writes(site) == []
     # a module that is NOT listed, imported by a writer, writing a figure
     writer = site / ADJUST
     body = writer.read_text(encoding="utf-8")
@@ -955,16 +976,20 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
             out.append("section 1's share row is inside the levers' column")
         if not (at('class="yf-analysis"') < s2 < notes):
             out.append("section 2's share row is not between the analysis and the notes")
-        for sel in ('class="btn primary pl-shareopen yf-ctabtn"', 'class="btn primary shareopen yf-ctabtn"',
-                    'class="btn primary yf-analyse yf-ctabtn"'):
-            i = at(sel)
-            if i < 0 or "<small>" not in page[i:page.index("</button>", i)]:
-                out.append(f"no full-width row with its line: {sel}")
-        i = at('class="btn primary shareopen yf-ctabtn"')
-        line = page[i:page.index("</button>", i)] if i >= 0 else ""
-        for w in ("map", "seats", "chance", "sealed link"):
-            if w not in line:
-                out.append(f"section 2's line does not name {w}")
+        share = 'class="btn primary shareopen yf-ctabtn"'
+        if page.count(share) != 2:
+            out.append("not one share row in each section")
+        # each row, in its own section, with its one line
+        rows = (("section 1", page.find(share, s1) if s1 > 0 else -1, ("map", "council", "seats", "sealed")),
+                ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "chance", "sealed link")),
+                ("step 4", at('class="btn primary yf-analyse yf-ctabtn"'), ()))
+        for where, i, words in rows:
+            line = page[i:page.index("</button>", i)] if i >= 0 else ""
+            if "<small>" not in line:
+                out.append(f"no full-width row with its line: {where}")
+            for w in words:
+                if w not in line:
+                    out.append(f"{where}'s line does not name {w}")
         return out
 
     assert misplaced(html) == []
@@ -975,6 +1000,35 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
     assert re.search(r"\.yf \.yf-ctabtn\{[^}]*display:block;width:100%", css)
     # step 4 names what it holds now
     assert "Next: see how likely it is" in html and "Share it, or see how likely it is" not in html
+
+
+def test_both_share_sheets_are_one_sheet_with_one_set_of_controls():
+    """Amendment A (owner, 2026-10-06): one sheet, one set of options, the
+    same words. Each section's <dialog> carries the same controls, by class
+    and by visible words, in the same order; what differs is content only
+    (section 2's friend checkbox, which section 1 never has). A control
+    missing from one sheet, or one worded differently, is caught."""
+    html = _html(_built())
+
+    def controls(region: str) -> list[tuple[str, str]]:
+        start = html.index(f'data-live="{region}"')
+        dlg = html[html.index("<dialog", start):html.index("</dialog>", start)]
+        dlg = re.sub(r'<label class="shfriend".*?</label>', "", dlg, flags=re.S)
+        return [(re.search(r'class="([^"]+)"', m.group(1)).group(1) if 'class="' in m.group(1) else m.group(0)[:12],
+                 re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(2))).strip())
+                for m in re.finditer(r"<(?:button|a|input|select|option)\b([^>]*)>([^<]*)", dlg)]
+
+    def differ(a: list, b: list) -> list:
+        return [x for x in a if x not in b] + [x for x in b if x not in a] if a != b else []
+
+    one, two = controls("share"), controls("b-share")
+    assert len(one) >= 10, one
+    want = {"shname", "shurl", "btn shcopy", "shimg", "btn primary shnative", "btn shwa", "btn shx", "btn shdl", "x"}
+    assert want <= {c for c, _ in one}, sorted(want - {c for c, _ in one})
+    assert differ(one, two) == [], differ(one, two)
+    # it can see: a sheet without WhatsApp, or with Copy link worded otherwise
+    assert differ([c for c in one if c[0] != "btn shwa"], two)
+    assert differ([(c, "Copy") if c == "btn shcopy" else (c, w) for c, w in one], two)
 
 
 def test_a_chip_pressed_keeps_its_focus():

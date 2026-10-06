@@ -101,6 +101,36 @@ test("writing one section's part keeps the other's and the name", () => {
   }
 });
 
+test("a recipient of a shared link never seals under the sharer's name, in either section", () => {
+  const replaced = [];
+  globalThis.location = { pathname: "/your-forecast/", hash: "", href: "https://x.test/your-forecast/" };
+  globalThis.history = { replaceState: (_s, _t, u) => replaced.push(u) };
+  try {
+    // the arrival a /s/ link opens: section 1's settings, section 2's
+    // forecast, the sharer's name and seal
+    YU.open("?t=5,0,0,0&mv=abc&v=1&c=" + REF + "&f=QUJD&n=Alice&s=abc.def&from=1");
+    assert.equal(YU.currentName(), "Alice", "the address carries the sharer's name");
+    assert.equal(YU.sealName(), "", "a sheet would seal under the sharer's name");
+    // picking a start drops the arrival and the name together (make.js onChoose)
+    YU.write("arrival", "");
+    YU.write("name", "");
+    assert.equal(YU.sealName(), "");
+    // the reader's own name, typed after, is theirs
+    YU.write("name", "Thandi");
+    assert.equal(YU.sealName(), "Thandi");
+    // it can see: the arrival back in the address hides the name again
+    YU.write("arrival", "?from=1");
+    assert.equal(YU.sealName(), "");
+    // a page opened with a name and no arrival is the reader's own
+    YU.open("?n=Thandi");
+    assert.equal(YU.sealName(), "Thandi");
+  } finally {
+    YU.open("");
+    delete globalThis.location;
+    delete globalThis.history;
+  }
+});
+
 test("an old /play/ link and an old /make/ link restore on the new page", () => {
   // /play/?… as play-state wrote it before 2026-10-03, name included
   const play = "?t=5,0,0,0&p=srf-2026q2-coj&k=50&l=cap&b=w_bye-1&mv=cf665663686d&n=Thandi";

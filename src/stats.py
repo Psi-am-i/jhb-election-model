@@ -254,18 +254,20 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
         "turnout", "polls", "trust", "trustwhy", "cells", "byelection", "law", "lawnow", "ess",
         "toast",
     }),
-    # Section 1's share sheet (interactive/js/play-share.js): the link to the
-    # reader's settings and the image of their figures, in the region "share".
+    # Section 1's share sheet (interactive/js/play-share.js): its content (the
+    # model's card, or the reader's hand-off sealed) for the one share sheet,
+    # in the region "share".
     "your-forecast/js/play-share.js": frozenset({"share"}),
+    # The one share sheet both sections use (interactive/js/share-sheet.js):
+    # it holds no selector, and writes only to the elements play-share.js
+    # and make-share.js took from their own regions and handed it.
+    "your-forecast/js/share-sheet.js": frozenset({"share", "b-share"}),
     # Section 1's share image words (interactive/js/play-card.js): the figures
     # the seat table shows, from the same compute result, handed to the card
-    # module. It builds figures and reaches NO region; play-share.js puts the
-    # image in the sheet. Listed so the writer contract, not the non-writer
-    # one, applies to it.
+    # module (share-card.js). It builds figures and reaches NO region;
+    # play-share.js puts the image in the sheet. Listed so the writer
+    # contract, not the non-writer one, applies to it.
     "your-forecast/js/play-card.js": frozenset(),
-    # The card module both sections share (interactive/js/forecast-card.js): an
-    # SVG of the figures it is handed. It reaches NO region.
-    "your-forecast/js/forecast-card.js": frozenset(),
     # Section 2, "Break the model" (interactive/js/make.js): the map, the vote,
     # the coalition and the council the reader's edits give, the walkthrough's
     # buttons, and the analysis of the reader's forecast with its ward tooltip.
@@ -287,9 +289,9 @@ LIVE_WRITERS: dict[str, frozenset[str]] = {
     # entry, found by their link, in "lb-mine". Every figure is read from
     # leaderboard.json (src/rank_entries.py); none is computed in the page.
     "leaderboard/js/leaderboard.js": frozenset({"lb-top", "lb-mine"}),
-    # Section 2's share cards (interactive/js/share-card.js): an SVG of the
-    # figures it is handed, for the share sheet and the site's Worker. It
-    # reaches NO region.
+    # The share cards of both sections (interactive/js/share-card.js): an SVG
+    # of the figures it is handed, for the share sheet and the site's Worker.
+    # It reaches NO region.
     "your-forecast/js/share-card.js": frozenset(),
 }
 

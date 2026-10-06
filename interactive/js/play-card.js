@@ -1,7 +1,12 @@
-// "Your forecast", section 1: what the share image of a reader's settings
-// says, and the words the page and the image share. The image itself is drawn
-// by forecast-card.js, the one card module both sections share
-// (playCardSpec hands it this section's headline, lines, map and rows).
+// "Your forecast", section 1: the words the page and its share image share,
+// and what the share image of the model's own forecast says. The image is
+// drawn by share-card.js, the one card module of both sections
+// (modelCardSVG, from playCardSpec). Once the reader moves a setting, the
+// share is section 1's hand-off as a reader's forecast, drawn like section
+// 2's (share-card.js forecastSpec, linkCardSVG, storyCardSVG; owner,
+// 2026-10-06: a reader who alters the settings gets the reader treatment,
+// their name on the card and the forecast sealed), so this module draws the
+// untouched page's card only.
 //
 // ⛔ A LIVE WRITER WITH NO REGION (stats.LIVE_WRITERS["your-forecast/js/play-card.js"]).
 // It turns the compute result the page is showing into the card's figures,
@@ -10,37 +15,47 @@
 // contract (no lookup outside a LIVE selector, no markup injection, no data
 // block, no data source).
 //
-// ONE RESULT, TWO VIEWS. Every figure on the card is read from the result
-// object js/model.js rendered (pyboot/page.py's compute, through
-// src/reweight.py and render_map.ward_call); nothing here computes a seat or
-// colours a ward by its own rule. The party order (order), the seat format
-// (seatText) and the words for each setting (cellName, settingsWords; the
-// seat laws' names are laws.json's, render_sheet.SEAT_LAWS) are defined here once and used by the page as well, so the
-// card cannot disagree with the page.
+// ONE RESULT, TWO VIEWS. Every figure in the card's table, lines and map is
+// read from the result object js/model.js rendered (pyboot/page.py's
+// compute, through src/reweight.py and render_map.ward_call); nothing here
+// computes a seat or colours a ward by its own rule. The party order (order),
+// the seat format (seatText) and the words for each setting (cellName,
+// settingsWords; the seat laws' names are laws.json's, render_sheet.SEAT_LAWS)
+// are defined here once and used by the page as well, so the card cannot
+// disagree with the page. The council graphic is the one figure from
+// elsewhere: a council graphic needs every seat given to a party, and the
+// result's middles are not that (they need not add up to the council), so
+// it draws the start "Break the model" opens at (forecast.json `start`,
+// src/start_rule.py), and says so (CHAMBER_NOTE).
 //
 // NEUTRAL (DESIGN-decided §8): the parties appear in the page's order (middle
-// seat count, highest first, ties by name), every one drawn the same way in
-// its own colour; none is marked out.
+// seat count, highest first, ties by name), every one drawn the same way;
+// none is marked out, and the card is black and white but for each party's
+// chip, its wards and its seats (owner, 2026-10-06).
 //
 // What the card says (DESIGN §2, "Share card", amended after the critic's
-// G1-G3, 2026-10-02): a headline that says whose figures these are (the
-// model's published forecast, or a reader's settings on the model, never
-// "{name}'s election forecast": a name is anyone's text, and the site would
-// print it over its own forecast); the largest-party line, ties apart;
-// a line saying the map holds the ward seats only; and each party's middle
-// seat count, as a bar (no range: review 2026-10-02). "Not the model's
-// forecast" sits in the foot, in the small type, as on section 2's card.
+// G1-G3, 2026-10-02, and by the owner, 2026-10-06): "Our Johannesburg
+// Forecast", never a reader's name over the model's own forecast (critic G1:
+// a name is anyone's text); the name on a "Shared by" line; the council; the
+// largest-party line, ties apart; the ward map, which holds the ward seats
+// only; the council graphic; and each party's middle seat count, as a bar
+// (no range: review 2026-10-02).
 
-import { buildForecastCardSVG, SIZES, SITE, STORY_TEXT_BOTTOM, OTHERS_COLOUR } from "./forecast-card.js";
-import { TRUST, PUBLISHED_CELL, PUBLISHED_LAW } from "./play-state.js";
+import { modelCardSVG, seatOrder, SIZES as CARD_SIZES, SITE, STORY_TEXT_BOTTOM, OTHERS_COLOUR } from "./share-card.js";
+import { TRUST, PUBLISHED_CELL, PUBLISHED_LAW, engineSettings, serialize } from "./play-state.js";
+import { compose } from "./yf-url.js";
 
-export { SIZES, SITE, STORY_TEXT_BOTTOM };
+// The two sizes section 1 shares (share-card.js's third is the return card).
+export const SIZES = { link: CARD_SIZES.link, story: CARD_SIZES.story };
+export { SITE, STORY_TEXT_BOTTOM };
 export const INVITE = "Try your own at " + SITE + "/your-forecast";
-export const READER_STAMP = "Not the model's forecast: a reader's settings on its simulations.";
 export const PUBLISHED_STAMP = "The model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
 export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";
+export const CHAMBER_NOTE = "The council graphic seats the start Break the model opens at: each ward to its most likely winner, " +
+  "each party at its middle seat count or at the wards it wins if more, and the seats left among the smaller parties.";
+export const MODEL_TITLE = "Our Johannesburg Forecast";
 
 // A by-election cell's name: the published weight, none, or full.
 export function cellName(c) {
@@ -102,13 +117,9 @@ export function madeLine(made) {
   return "Made " + d + " " + MONTHS[m - 1] + " " + y;
 }
 
-// The headline. Untouched, the card is the model's forecast and says so; the
-// name goes on a "Shared by" line under it. Touched, it is the reader's
-// settings on the model, under the reader's name. The name is the reader's
-// text and is escaped where drawn.
-export function headline(name, touched) {
-  return touched ? name + "'s settings on the model" : "The model's Johannesburg forecast";
-}
+// The headline of the model's own card (owner, 2026-10-06). A reader's name
+// goes on a "Shared by" line under it, never into it (critic G1).
+export const headline = () => MODEL_TITLE;
 export const sharedBy = name => "Shared by " + name;
 
 // The two parties most often alone with the most seats, in alphabetical
@@ -132,60 +143,121 @@ export function largestLine(r, party) {
     r.tied.text + " chance.";
 }
 
-// The line under the headline: whose figures these are, then the council.
+// The council line: the council, the day, its size and its majority.
 export function councilLine({ r, when }) {
   return "Johannesburg council" + (when ? ", " + when : "") + " · " + seatText({ value: r.council }) +
     " seats, " + seatText({ value: r.majority }) + " for a majority";
 }
-export function subLine({ r, when }) {
-  return councilLine({ r, when });
+
+// The foot under the card: whose figures these are, how the map reads, where
+// to try one's own, and when the card was made.
+export function footText({ made }) {
+  return PUBLISHED_STAMP + " " + HOW + " " + INVITE + ". " + madeLine(made) + ".";
 }
 
-// The foot under the card, in sentences: whose figures these are first.
-export function footText({ st, ctx, made }) {
-  const words = st && isMoved(st) ? settingsWords(st, ctx) : [];
-  const said = words.length ? READER_STAMP + " Settings: " + words.join("; ") + "; everything else as published." : PUBLISHED_STAMP;
-  return said + " " + HOW + " " + INVITE + ". " + madeLine(made) + ".";
+// The council graphic of the start "Break the model" opens at (forecast.json
+// `start`: seats per party and each ward's call), as share-card.js's council
+// graphic takes it: each party's ward seats (its wards in the start's calls)
+// and list seats (the rest), in seat order. Refuses a start whose seats are
+// not the council's.
+export function chamberOf(start, party, { council, majority }) {
+  const ward = {};
+  for (const c of start.ward_calls) ward[c] = (ward[c] || 0) + 1;
+  const rows = seatOrder(start.seats, party).map(c => ({ code: c, colour: party(c).colour, ward: ward[c] || 0, pr: start.seats[c] - (ward[c] || 0) }));
+  const seated = rows.reduce((a, r) => a + r.ward + r.pr, 0);
+  if (seated !== council) throw new Error("the start seats " + seated + " of the council's " + council);
+  return { rows, council, majority, coalition: [], top: [] };
 }
-const isMoved = st => st.shift.some(x => x !== 0) || (st.trust > 0 && st.polls.length > 0) || st.law !== PUBLISHED_LAW || st.cell !== PUBLISHED_CELL;
 
-// The card for one result, drawn by forecast-card.js (the one card module,
-// shared with /your-forecast/ section 2). `r` is the compute result the page shows (the
-// published one when nothing is moved); `st`/`ctx` the settings that produced
-// it; `party(code)` -> {name, colour}; `made` the date it was made; `name` the
-// reader's name or label; `geometry` the ward boundaries with the stripe tile
-// (`step`, `rotate`); `when` the election day in words; `photo` false when
-// share.jpg will not be drawn under it.
-export function playCardSpec({ r, st, ctx, party, made, name, geometry, when, touched, size = "link", photo = true }) {
+// The model's card for one result: the untouched page's. `r` is the compute
+// result the page shows; `party(code)` -> {name, colour, logo}; `made` the
+// date it was made; `name` the reader's name or label; `geometry` the ward
+// boundaries with the stripe tile (`step`, `rotate`); `when` the election day
+// in words; `start` forecast.json's `start`. Every card carries the council
+// graphic (owner, 2026-10-06), so a card without the start is refused, not
+// drawn without it.
+export function playCardSpec({ r, party, made, name, geometry, when, start = null, touched = false }) {
+  if (touched) throw new Error("a moved setting is shared as the reader's forecast, not on the model's card");
   if (!r || r.refused) throw new Error("the card needs a computed result, not a refusal");
   if (!geometry) throw new Error("the card needs the ward boundaries");
+  if (!start) throw new Error("the card needs the start, for its council graphic");
   const codes = [...order(r, c => party(c).name), "OTHERS"];
   // exact rows, the middle only: a bar from zero to it (none when withheld)
   const rows = codes.map(c => {
-    const s = r.seats[c];
-    return { label: c === "OTHERS" ? "Others" : party(c).name, colour: c === "OTHERS" ? OTHERS_COLOUR : party(c).colour,
-             value: seatText(s.median), n: s.median.withheld ? null : s.median.value };
+    const s = r.seats[c], other = c === "OTHERS";
+    return { code: other ? null : c, others: other, name: other ? "Others" : party(c).name, colour: other ? OTHERS_COLOUR : party(c).colour,
+             logo: !other && !!party(c).logo, value: seatText(s.median), n: s.median.withheld ? null : s.median.value };
   });
   const wards = r.wards.filter(w => geometry.paths[w.ward])
     .map(w => ({ path: geometry.paths[w.ward], fill: w.fill, bands: w.bands }));
   return {
-    size, photo,
-    title: headline(name, touched),
-    lines: [...(touched ? [] : [{ text: sharedBy(name), tone: "muted" }]),
-            { text: councilLine({ r, when }), tone: "muted" },
+    title: MODEL_TITLE,
+    lines: [{ text: sharedBy(name), tone: "muted" }, { text: councilLine({ r, when }), tone: "muted" },
             { text: largestLine(r, party), tone: "plain" }],
     map: { W: geometry.W, H: geometry.H, step: geometry.step, rotate: geometry.rotate, wards },
     mapNote: r.wards.length + " " + MAP_NOTE,
+    chamber: chamberOf(start, party, r), chamberNote: CHAMBER_NOTE,
     rows, rowsNote: BARS_NOTE,
-    foot: [footText({ r, st, ctx, made })],
+    foot: [footText({ made })],
   };
 }
-export const buildPlayCardSVG = info => buildForecastCardSVG(playCardSpec(info));
+// The card at `size` ("link" or "story"); `assets` as share-card.js takes
+// them (fonts, the site's logo, the parties' logos).
+export const buildPlayCardSVG = info => modelCardSVG(playCardSpec(info), info.assets || {}, info.size || "link");
 
 // The image's text alternative: the same figures, in the same order.
-export function playCardAlt({ r, st, ctx, party, made, name, when, touched }) {
+export function playCardAlt({ r, party, made, name, when }) {
   const codes = [...order(r, c => party(c).name), "OTHERS"];
   const seats = codes.map(c => (c === "OTHERS" ? "Others" : party(c).name) + " " + seatText(r.seats[c].median));
-  return headline(name, touched) + ". " + (touched ? "" : sharedBy(name) + ". ") + subLine({ r, when }) + ". " +
-    largestLine(r, party) + " Middle seats: " + seats.join(", ") + ". " + footText({ st, ctx, made });
+  return MODEL_TITLE + ". " + sharedBy(name) + ". " + councilLine({ r, when }) + ". " +
+    largestLine(r, party) + " Middle seats: " + seats.join(", ") + ". " + CHAMBER_NOTE + " " + footText({ made });
+}
+
+// ---------- what section 1's share sheet seals and links ----------
+
+// Why a moved setting's forecast cannot be sealed when "Break the model"
+// never loaded, so nothing can work the forecast out.
+export const NO_HANDOFF = "this page could not load Break the model, which works your forecast out";
+
+// Section 1's content for the one share sheet (share-sheet.js), apart from
+// the page. `get`: { now() (what the page shows: { st, ctx, touched }),
+// name() (yf-url.js sealName: the one name source), handoff() (make.js's
+// provider, or null), page() ({ pathname, href }), changed() (a forecast
+// arrived or failed: redraw) }. Returns:
+//   ask()     work out the forecast for the settings shown, once per setting
+//   ready()   that forecast's record { key, forecast, failed }, or null
+//   fields()  null untouched (the model's forecast is never sealed);
+//             undefined while the forecast is being worked out; { failed:
+//             reason } when it cannot be; else { v, c, f, n } to seal
+//   link()    the page's address: section 1's settings, and once moved the
+//             forecast's part and the name, the same name as fields()
+//   retry()   forget a failure, so the next ask() tries again
+export function section1Share(get) {
+  let mine = null;
+  const keyNow = () => JSON.stringify(engineSettings(get.now().st));
+  function ask() {
+    const now = get.now(), h = get.handoff();
+    if (!now.touched || !h) return;
+    const key = keyNow();
+    if (mine && mine.key === key) return;
+    const asked = mine = { key, forecast: null, failed: null };
+    h.forecast(engineSettings(now.st)).then(F => { if (mine === asked) { asked.forecast = F; get.changed(); } },
+      e => { if (mine === asked) { asked.failed = String((e && e.message) || e); get.changed(); } });
+  }
+  const ready = () => (get.now().touched && mine && mine.key === keyNow() ? mine : null);
+  function fields() {
+    if (!get.now().touched) return null;
+    if (!get.handoff()) return { failed: NO_HANDOFF };
+    const m = ready();
+    if (!m || (!m.forecast && !m.failed)) return undefined;
+    if (m.failed) return { failed: m.failed };
+    return { ...m.forecast.fields, n: get.name() };
+  }
+  function link() {
+    const now = get.now(), m = ready(), page = get.page();
+    const brk = m && m.forecast ? "?" + new URLSearchParams(m.forecast.fields).toString() : "";
+    return new URL(page.pathname + compose(serialize(now.st, now.ctx), brk, brk ? get.name() : "") + (brk ? "#break" : "#adjust"), page.href).href;
+  }
+  function retry() { if (mine && mine.failed) mine = null; }
+  return { ask, ready, fields, link, retry };
 }
