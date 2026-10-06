@@ -12,10 +12,13 @@ when it moves. Nothing here types a number into prose and nothing is written by
 page script: that was the defect the whole 2026-09-17 pass was about, and the
 home page is not allowed to reintroduce it.
 
-The lede is a SENTENCE, and its shape changes with the result: "too close to
-call" is a claim about the two leaders being within a seat of each other, and it
-would be a lie the day one of them pulls away. `_lede` picks the wording from
-the numbers rather than leaving a human to remember.
+The lede's words are the owner's, in `content/<city>/home.toml` (editable in
+edit mode since 2026-10-06), with `{{lede_…}}` placeholders this module fills
+(:data:`LEDE_PLACEHOLDERS`). A figure becomes a generated token. A phrase whose
+strength depends on a figure is chosen by it (:func:`phrases`): "too close to
+call" is a claim about the two leaders being close, and it would be a lie the
+day one of them pulls away, so the number picks the words rather than leaving
+a human to remember.
 """
 from __future__ import annotations
 
@@ -60,8 +63,166 @@ def region(page: str, name: str, body: str) -> str:
     return page[:i] + start + "\n" + body.rstrip() + "\n  " + end + page[j:]
 
 
-def _lede(summary: dict, processed: Path, tok, chance) -> str:
-    """The verdict, in a sentence whose SHAPE follows the numbers.
+#: What each {{lede_…}} placeholder in content/<city>/home.toml stands for. A
+#: figure becomes a generated token (its source, a ledger row, an arrow); a
+#: phrase chosen by a figure becomes a `data-word` span, which edit mode reads
+#: as locked, like a token, and which is never a figure.
+LEDE_PLACEHOLDERS = {
+    "lede_coalition": "phrase: how certain a coalition is, chosen by lede_p_alone",
+    "lede_race": "phrase: the race for largest party, chosen by the two chances",
+    "lede_first": "phrase: the party with the higher chance of the most seats alone",
+    "lede_second": "phrase: the other of the two",
+    "lede_p_first": "figure: chance lede_first alone has the most seats",
+    "lede_p_second": "figure: chance lede_second alone has the most seats",
+    "lede_p_alone": "figure: chance one party reaches a majority alone",
+    "lede_overhang_party": "phrase: the party the excessive-seats clause applies to most often",
+    "lede_p_overhang": "figure: chance the clause applies to that party",
+    "lede_overhang_seats": "figure: that party's share of the council, median where the clause applies to it",
+    "lede_overhang_votes": "figure: its share of the party-list vote, median in the same simulations",
+}
+
+
+def load_lede(city_dir: Path) -> dict:
+    """content/<city>/home.toml's one ``[[lede]]``: the owner's headline and
+    paragraph, with placeholders. The one reader of that file."""
+    path = city_dir / "home.toml"
+    if not path.exists():
+        raise SystemExit(f"no {path}: the home page's headline is written there.")
+    items = tomllib.loads(path.read_text(encoding="utf-8")).get("lede", [])
+    if len(items) != 1 or not all(isinstance(items[0].get(k), str) for k in ("head", "sub")):
+        raise SystemExit(f"{path} must hold exactly one [[lede]] with `head` and `sub`.")
+    return items[0]
+
+
+def fill_lede(template: str, values: dict, where: str) -> str:
+    """``template`` with each ``{{lede_…}}`` replaced by its value. Refuses a
+    placeholder it has no value for, rather than printing the braces."""
+    import re as _re
+
+    def one(m):
+        name = m.group(1)
+        if name not in values:
+            raise SystemExit(
+                f"{where}: {{{{{name}}}}} is not a placeholder the home page "
+                f"fills. The ones it fills: {', '.join(sorted(values))} "
+                f"(render_home.LEDE_PLACEHOLDERS).")
+        return values[name]
+    return _re.sub(r"\{\{(\w+)\}\}", one, " ".join(template.split()))
+
+
+def _word(name: str, text: str) -> str:
+    return f'<span data-word="{name}">{html.escape(text)}</span>'
+
+
+def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
+    """``party``'s median share of the council's seats and of the party-list
+    vote, over the simulations in which the excessive-seats clause applies to
+    it, and how many those are.
+
+    Seats and the clause come from the run's `seat_detail_draws.csv` (its
+    `excessive` flag counts a party exactly at its quota, as the statute does);
+    the list vote from the published draw export (`site/draws`, block
+    `pr_share`), the only place the run's per-simulation shares are kept. The
+    two are joined by simulation number, and refused unless they hold the same
+    seats for ``party`` in every simulation: two different runs would join
+    silently otherwise.
+    """
+    import csv as _csv
+    import numpy as _np
+    import reweight as _rw
+
+    with (processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+        size = {int(r["draw"]): int(r["council_size"]) for r in _csv.DictReader(fh)}
+    seats, applies = {}, {}
+    with (processed / "seat_detail_draws.csv").open(encoding="utf-8", newline="") as fh:
+        for r in _csv.DictReader(fh):
+            if r["party"] == party:
+                d = int(r["draw"])
+                seats[d], applies[d] = int(r["seats"]), r["excessive"] == "1"
+    draws = ROOT / "site" / "draws"
+    man = json.loads((draws / "manifest.json").read_text(encoding="utf-8"))
+    blocks = _rw.unpack((draws / "base.bin").read_bytes(), man)
+    cols = {b["name"]: b["columns"] for b in man["blocks"]}
+    statute = blocks["seats/deduct"][:, cols["seats/deduct"].index(party)]
+    share = blocks["pr_share"][:, cols["pr_share"].index(party)]
+    order = sorted(seats)
+    if order != list(range(len(statute))) or any(seats[d] != int(statute[d]) for d in order):
+        raise SystemExit(
+            f"site/draws and seat_detail_draws.csv disagree about {party}'s seats: "
+            f"they are not the same run. Re-export the draws from the run the "
+            f"home page quotes (src/export_draws.py --index).")
+    hit = [d for d in order if applies[d]]
+    if not hit:
+        return 0.0, 0.0, 0
+    return (float(_np.median([seats[d] / size[d] for d in hit])),
+            float(_np.median([share[d] for d in hit])), len(hit))
+
+
+def race_figures(processed: Path) -> tuple[float, float, float, int]:
+    """The chance one party governs alone, the chance the ANC and the DA each
+    ALONE have the most seats, and the number of simulations.
+
+    WHO IS LARGEST: reweight.largest_party, the one definition the forecast
+    page and /your-forecast/ use, over the seat draws. forecast_summary.json's
+    `structural.P(X is the largest single party)` is an argmax that credits
+    every tied simulation to the first party in the model's order (side
+    finding S1, 2026-10-02); a tie is its own outcome and is said as one.
+    """
+    import csv as _csv
+    import numpy as _np
+    import reweight as _rw
+    import scenarios as _sc
+    with (processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+        rows = list(_csv.DictReader(fh))
+    parties = [k for k in rows[0] if k not in ("draw", "threshold", "council_size")]
+    lp = _rw.largest_party(_np.array([[int(float(r[p] or 0)) for p in parties]
+                                      for r in rows]), parties)
+    return (_sc.majority_alone_share(processed), float(lp["outright"].get("ANC", 0.0)),
+            float(lp["outright"].get("DA", 0.0)), len(rows))
+
+
+def phrases(alone: float, anc: float, da: float) -> tuple[str, str, str, str]:
+    """The headline's figure-chosen phrases: how certain a coalition is, the
+    race for largest party, and the two parties in the order they are named.
+    ``alone`` is the chance one party governs alone; ``anc`` and ``da`` the
+    chance each alone has the most seats."""
+    import stats as _stats
+
+    # The owner's wording, 2026-09-23: "all but inevitable" at the top of the
+    # ladder rather than "inevitable". One simulation in 5,000 IS a majority
+    # alone, so the flat word would be contradicted by the figure printed in
+    # the same paragraph.
+    if alone < 0.01:
+        coalition = "A coalition is all but inevitable"
+    elif alone < 0.10:
+        coalition = "A coalition is overwhelmingly likely"
+    elif alone < 0.35:
+        coalition = "A coalition is the likely outcome"
+    else:
+        coalition = "A coalition is one of two live outcomes"
+
+    # ⛔ THE RACE FOLLOWS WHAT THE READER WILL SEE. An earlier version branched
+    # on the raw gap and produced "the DA leads in 47% of simulations, the ANC
+    # in 47%": a claimed lead between two identical printed figures. A dead
+    # heat is decided by the formatter, and its order is HEAD_TO_HEAD_ORDER,
+    # the order the ledger first published the pair in; otherwise the higher
+    # figure goes first (STYLE rule 7, numeric). Both parties' tokens are
+    # always printed, so neither is ever dropped and retired when the lead
+    # changes hands.
+    if _stats._fmt(max(anc, da), "chance") == _stats._fmt(min(anc, da), "chance"):
+        first, second = HEAD_TO_HEAD_ORDER
+        race = "a dead heat"
+    else:
+        first, second = ("ANC", "DA") if anc > da else ("DA", "ANC")
+        race = ("too close to call" if abs(anc - da) < 0.05
+                else f"leaning to the {first}")
+    return coalition, race, first, second
+
+
+def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
+    """The headline and the paragraph under it: the owner's words from
+    content/<city>/home.toml, with every figure and every figure-chosen phrase
+    filled in from the run.
 
     It leads on the coalition (owner, 2026-09-23), because that is the finding:
     who is marginally ahead matters far less than the fact that nobody governs
@@ -72,106 +233,53 @@ def _lede(summary: dict, processed: Path, tok, chance) -> str:
     (`scenarios.majority_alone_share`, the same definition the sheet's tile
     uses). At 0.02% "inevitable" is honest; at 6% it would be a lie sitting in
     the largest type on the site, and nobody would notice until a journalist
-    did. So the adjective is a function of the measurement, and the measurement
-    is shown in the same breath.
+    did. So the adjective is a placeholder the number fills, and the owner's
+    words go round it.
     """
-    import scenarios as _sc
+    alone, anc, da, n = race_figures(Path(processed))
+    _src = f"seat_draws.csv, {n:,} simulations, the party alone with the most seats"
+    coalition, race, first, second = phrases(alone, anc, da)
+    value = {"ANC": anc, "DA": da}
 
-    # WHO IS LARGEST: reweight.largest_party, the one definition the forecast
-    # page and /your-forecast/ use, over the seat draws. forecast_summary.json's
-    # `structural.P(X is the largest single party)` is an argmax that credits
-    # every tied simulation to the first party in the model's order (side
-    # finding S1, 2026-10-02); a tie is its own outcome and is said as one.
-    import csv as _csv
-    import numpy as _np
-    import reweight as _rw
-    with (Path(processed) / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
-        _rows = list(_csv.DictReader(fh))
-    _parties = [k for k in _rows[0] if k not in ("draw", "threshold", "council_size")]
-    _lp = _rw.largest_party(_np.array([[int(float(r[p] or 0)) for p in _parties]
-                                       for r in _rows]), _parties)
-    _src = f"seat_draws.csv, {len(_rows):,} simulations, the party alone with the most seats"
-    anc = float(_lp["outright"].get("ANC", 0.0))
-    da = float(_lp["outright"].get("DA", 0.0))
-    alone = _sc.majority_alone_share(processed)
-    lead, trail = ("ANC", "DA") if anc >= da else ("DA", "ANC")
+    def party(code: str) -> str:
+        nm = LABEL.get(code) or code
+        return ("the " if nm.isupper() else "") + nm
 
-    p_lead = chance(f"home.p_{lead.lower()}_largest", max(anc, da), _src)
-    p_trail = chance(f"home.p_{trail.lower()}_largest", min(anc, da), _src)
-    p_tied = chance("home.p_largest_tied", _lp["tied"],
-                    f"seat_draws.csv, {len(_rows):,} simulations, two or more parties level on the most seats")
-    p_alone = chance("home.p_alone", alone,
-                     "seat_draws.csv, one party at or above the threshold")
+    # THE CLAUSE: about the party it applies to most often (owner, 2026-10-05:
+    # "leave the point to be about the ANC" unless another party is likely to
+    # trigger it), chosen by the figures, so the sentence follows if that
+    # changes.
+    by_party = {p: float(v) for p, v in summary.get("p_excessive_by_party", {}).items()}
+    over = max(sorted(by_party), key=lambda p: by_party[p])
+    o_seats, o_votes, o_n = _overhang(Path(processed), over)
+    o_name = party(over)
+    o_src = (f"over the {o_n:,} simulations in which the excessive-seats clause "
+             f"applies to {o_name}, counting a party exactly at its quota as the "
+             f"statute does")
 
-    # The owner's wording, 2026-09-23: "all but inevitable" at the top of the
-    # ladder rather than "inevitable". One simulation in 5,000 IS a majority
-    # alone, so the flat word would be contradicted by the figure printed in
-    # the next sentence.
-    if alone < 0.01:
-        coalition = "A coalition is all but inevitable"
-    elif alone < 0.10:
-        coalition = "A coalition is overwhelmingly likely"
-    elif alone < 0.35:
-        coalition = "A coalition is the likely outcome"
-    else:
-        coalition = "A coalition is one of two live outcomes"
-
-    # ⛔ CHANCE IN THE HEADLINE, SIMULATIONS IN THE EXPLANATION (STYLE rule
-    # 10; owner, 2026-10-02): "A coalition is all but inevitable. 0.1% chance
-    # of one party winning a majority. The largest party is too close to call.
-    # 47% chance it's the ANC and 45% chance it's the DA." The page says what a
-    # chance is once, in its how-to-read item.
-    import stats as _stats
-
-    def opening(token: str, value: float, tail: str) -> str:
-        """A sentence that opens on a chance. "under 0.1%" and "over 99%" are
-        the token's own display and cannot be capitalised, so a figure that
-        does not start with a digit is said the other way round."""
-        if _stats._fmt(value, "chance")[:1].isdigit():
-            return f"{token} chance {tail}."
-        return f"Chance {tail}: {token}."
-
-    # ⛔ THE SECOND CLAUSE FOLLOWS WHAT THE READER WILL SEE. An earlier version
-    # branched on the raw gap and produced "the DA leads in 47% of simulations,
-    # the ANC in 47%" — a claimed lead between two identical printed figures.
-    # At four decimal places one of them is always ahead; the question is
-    # whether the difference survives the formatter. The two parties are in
-    # the order of their figures, higher first (STYLE rule 7, numeric).
-    if _stats._fmt(max(anc, da), "chance") == _stats._fmt(min(anc, da), "chance"):
-        # ⛔ ONE TOKEN, WHICHEVER PARTY IS AHEAD BEFORE ROUNDING. A dead heat
-        # prints one shared figure; printing the unrounded leader's token made
-        # the token flip between `home.p_da_largest` and `home.p_anc_largest`
-        # on a 0.2-point move that no reader can see, and a flipped-out token
-        # has to be retired (a retired token can never be printed again, so
-        # the next flip back would block the build). Found at R4 for the
-        # freeze edition, 2026-09-30. The figure is the first party in
-        # HEAD_TO_HEAD_ORDER, the order the ledger first published it in.
-        first = HEAD_TO_HEAD_ORDER[0]
-        v_heat = da if first == "DA" else anc
-        p_heat = chance(f"home.p_{first.lower()}_largest", v_heat, _src)
-        race = ("The largest party is a dead heat. "
-                + opening(p_heat, v_heat, f"it's the {HEAD_TO_HEAD_ORDER[0]}, and the "
-                         f"same chance it's the {HEAD_TO_HEAD_ORDER[1]}"))
-    else:
-        verdict = ("The largest party is too close to call." if abs(anc - da) < 0.05
-                   else f"The {lead} is ahead for largest party.")
-        race = (f"{verdict} "
-                + opening(p_lead, max(anc, da), f"it's the {lead} and {p_trail} chance it's the {trail}"))
-
-    head = (f"<em>{coalition}.</em> "
-            + opening(p_alone, alone, "of one party winning a majority")
-            + f" {race}")
-
-    excessive = chance("home.p_excessive_any", float(summary["p_excessive_any"]),
-                       "forecast_summary.json p_excessive_any")
-    by_party = _sc.excessive_by_party(
-        summary.get("p_excessive_by_party", {}), LABEL, chance, "home.p_excessive",
-        "forecast_summary.json p_excessive_by_party")
-    sub = (f'Two or more parties tie for the most seats: {p_tied} chance. A '
-           f'rarely used clause lets a party keep every ward it wins beyond its '
-           f'proportional share, with the shortfall taken from everyone else. '
-           f'It applies to at least one party: {excessive} chance.'
-           + (f' By party: {by_party}.' if by_party else ''))
+    values = {
+        "lede_coalition": _word("lede_coalition", coalition),
+        "lede_race": _word("lede_race", race),
+        "lede_first": _word("lede_first", party(first)),
+        "lede_second": _word("lede_second", party(second)),
+        "lede_p_first": chance(f"home.p_{first.lower()}_largest", value[first], _src),
+        "lede_p_second": chance(f"home.p_{second.lower()}_largest", value[second], _src),
+        "lede_p_alone": chance("home.p_alone", alone,
+                               "seat_draws.csv, one party at or above the threshold"),
+        "lede_overhang_party": _word("lede_overhang_party", o_name),
+        "lede_p_overhang": chance(f"home.p_excessive.{over.lower()}", by_party[over],
+                                  "forecast_summary.json p_excessive_by_party"),
+        "lede_overhang_seats": tok("home.overhang_seat_share", f"{o_seats:.6f}", "pct0",
+                                   f"seat_detail_draws.csv seats over seat_draws.csv "
+                                   f"council_size, median {o_src}"),
+        "lede_overhang_votes": tok("home.overhang_list_share", f"{o_votes:.6f}", "pct0",
+                                   f"site/draws pr_share, median {o_src}"),
+    }
+    assert set(values) == set(LEDE_PLACEHOLDERS), "LEDE_PLACEHOLDERS is the list"
+    lede = load_lede(city_dir)
+    where = str(city_dir / "home.toml")
+    head = fill_lede(lede["head"], values, where + " head")
+    sub = fill_lede(lede["sub"], values, where + " sub")
     # `date_long` is the registry's only date format; there is no "date".
     stamp = (f'Model run '
              f'{tok("home.generated", summary["_generated"], "date_long")} '
@@ -338,7 +446,8 @@ def main(argv: list[str] | None = None) -> int:
 
     page = args.page.read_text(encoding="utf-8")
     page = region(page, "HOMELEDE",
-                  _lede(summary, city.processed, tok, chance))
+                  _lede(summary, city.processed, tok, chance,
+                        ROOT / "content" / city.slug))
     page = region(page, "HOMESEATS", _seats(summary, tok, city.processed))
     city_dir = ROOT / "content" / city.slug
     page = region(page, "HOMEARTICLES", _articles(city_dir))

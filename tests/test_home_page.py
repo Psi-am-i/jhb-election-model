@@ -339,9 +339,9 @@ def _lede_over(alone_of_100: int, anc: float, da: float) -> str:
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         _seat_draws(tmp, rows, council=10, threshold=6, columns=["ANC", "DA"])
-        summary = {"structural": {}, "p_excessive_any": 0.31,
-                   "_generated": "2026-09-25", "_draws": n}
-        return RH._lede(summary, tmp, _tok, _chance)
+        alone, a, d, _n = RH.race_figures(tmp)
+        coalition, race, first, second = RH.phrases(alone, a, d)
+        return f"{coalition}. The largest party is {race}: {first}, then {second}."
 
 
 def test_the_strength_of_the_coalition_claim_is_chosen_by_the_number():
@@ -379,8 +379,8 @@ def test_a_lead_is_never_claimed_between_two_identical_printed_figures():
 
     # and a real lead names the leader
     clear = _lede_over(0, 0.60, 0.30)
-    assert "The ANC is ahead" in clear and "too close" not in clear, clear
-    assert "The DA is ahead" in _lede_over(0, 0.30, 0.60)
+    assert "leaning to the ANC" in clear and "too close" not in clear, clear
+    assert "leaning to the DA" in _lede_over(0, 0.30, 0.60)
 
 
 # --------------------------------------------------------------------------

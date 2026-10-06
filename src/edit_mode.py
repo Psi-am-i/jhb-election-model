@@ -96,11 +96,16 @@ def shipped(site: Path) -> tuple[list[str], list[str]]:
 # matching built elements to source blocks
 
 _TOK = "qqtokqq"
+#: A phrase a figure chose (render_home's ``data-word`` spans: "too close to
+#: call", "the ANC"). Its source is a placeholder, so on the page it reads as
+#: one, locked like a token.
+WORD = re.compile(r'<span[^>]*data-word="[^"]*"[^>]*>.*?</span>', re.S)
 
 
 def signature(fragment: str) -> str:
     """A fragment of HTML (built or source) reduced to what both sides share."""
     s = stats.SOURCED.sub(f" {_TOK} ", fragment)
+    s = WORD.sub(f" {_TOK} ", s)
     s = site_text.PLACEHOLDER.sub(f" {_TOK} ", s)
     s = _html.unescape(stats.TAGS.sub(" ", s)).lower().replace(_TOK, "#")
     return re.sub(r"[^\w#]|_", "", s)

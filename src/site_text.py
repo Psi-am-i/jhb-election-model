@@ -30,8 +30,10 @@ pages (`forecast-sheet.html`, `home.html`), including blocks with inline
 markup (links, emphasis, dated spans), which is kept as it is unless a whole
 pair of tags is deleted; the reader editions (`docs-public/*.md`); the tested
 claims (`content/joburg/claims.toml` — the quote, the verdict line, the
-argument steps, the "since" box); and the article list
-(`content/joburg/articles.toml` — titles and standfirsts).
+argument steps, the "since" box); the article list
+(`content/joburg/articles.toml` — titles and standfirsts); and the home page's
+headline and the paragraph under it (`content/joburg/home.toml`), whose
+``{{lede_…}}`` placeholders `render_home` fills from the run.
 
 **What is not, and why:** anything inside a generated region — every
 `__NAME_START__`/`__NAME_END__` pair except the page cuts `build_site` uses to
@@ -88,6 +90,7 @@ BLOCK_ID = re.compile(r"^<!-- block (\w+) -->$", re.M)
 
 CLAIM_FIELDS = ("quote", "speaker", "outlet", "tests", "intro", "since")
 ARTICLE_FIELDS = ("title", "standfirst")
+LEDE_FIELDS = ("head", "sub")
 
 
 def placeholders(text: str) -> list[str]:
@@ -290,6 +293,7 @@ MD_DIR = "docs-public"
 TOML_SOURCES = {
     "content/joburg/articles.toml": ("article", ARTICLE_FIELDS, ()),
     "content/joburg/claims.toml": ("claim", CLAIM_FIELDS, ("steps",)),
+    "content/joburg/home.toml": ("lede", LEDE_FIELDS, ()),
 }
 
 
