@@ -402,13 +402,23 @@ def _claims(city_dir: Path) -> str:
         # The date of the QUOTE, and labelled so: it is not when we published
         # the test (fault-finder review 2026-09-30; that is the claim box's
         # `published`, from the ledger).
+        # The party's colour and logo, and the verdict on the one verdict
+        # scale: the same class names /claims uses (render_sheet), so the two
+        # cannot drift (owner, 2026-10-06).
+        party = c.get("party", "")
+        ident = (f'<img class="plogo" src="logos/{html.escape(c["logo"])}.png" alt="" '
+                 f'width="56" height="56">' if c.get("logo") else
+                 f'<span class="pchip pc-{html.escape(party)}"></span>')
+        verdict = c.get("verdict", "")
         out.append(
-            f'    <div class="item" data-asof="{when}">\n'
-            f'      <div class="when">said {_pretty(when)}</div>\n'
+            f'    <div class="item pc-{html.escape(party)}" data-asof="{when}">\n'
+            f'      {ident}\n'
             f'      <div>\n'
             f'        <div class="t"><a href="claims">'
             f'{html.escape(c.get("label") or c.get("tests") or c.get("quote", "")[:90])}</a></div>\n'
-            f'        <div class="verdict">{html.escape(c.get("verdict", ""))}</div>\n'
+            f'        <div class="meta"><span class="verdict {_sheet.verdict_class(verdict)}">'
+            f'{html.escape(verdict)}</span>'
+            f'<span class="when">{html.escape(LABEL.get(party) or party)} · said {_pretty(when)}</span></div>\n'
             f'      </div>\n'
             f'    </div>')
     return '  <div class="feed">\n' + "\n".join(out) + "\n  </div>"

@@ -310,6 +310,21 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-home) .verdict{display:inline-block;font:600 10.5px var(--mono);
     letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--k);
     color:var(--k);border-radius:3px;padding:2px 6px;margin-top:7px;}
+:where(.pg-home) .kind-claim .feed .item{--c:var(--pc,var(--pc-other));grid-template-columns:56px 1fr;
+    align-items:center;gap:16px;margin-top:12px;padding:14px 16px;border-bottom:none;
+    border-left:5px solid var(--c);border-radius:4px;
+    background:color-mix(in srgb,var(--c) 9%,var(--paper-2));}
+:where(.pg-home) .kind-claim .plogo{display:block;width:56px;height:56px;border-radius:8px;
+    object-fit:contain;background:#fff;padding:3px;box-shadow:0 0 0 2px var(--c);}
+:where(.pg-home) .kind-claim .pchip{width:28px;height:28px;border-radius:6px;}
+:where(.pg-home) .kind-claim .t a{color:var(--ink);}
+:where(.pg-home) .kind-claim .t a:hover{color:var(--accent);text-decoration:none;}
+:where(.pg-home) .kind-claim .meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:8px;}
+:where(.pg-home) .kind-claim .meta .when{padding-top:0;}
+:where(.pg-home) .kind-claim .verdict{margin-top:0;color:var(--ink);font-weight:700;
+    border-color:var(--v);background:color-mix(in srgb,var(--v) 28%,var(--paper));}
+@media (max-width:560px){:where(.pg-home) .kind-claim .feed .item{grid-template-columns:44px 1fr;gap:12px;padding:12px;}
+:where(.pg-home) .kind-claim .plogo{width:44px;height:44px;}}
 :where(.pg-home) .comingsoon{margin-top:10px;}
 :where(.pg-home) .comingsoon h3{font-family:var(--serif);font-size:24px;line-height:1.2;}
 :where(.pg-home) .comingsoon p{margin-top:10px;max-width:66ch;}
@@ -385,11 +400,6 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-claims) .verdict{font-family:var(--sans);font-size:12px;font-weight:750;
     letter-spacing:.12em;padding:5px 12px;border-radius:3px;color:var(--ink);
     border:1px solid var(--v);background:color-mix(in srgb,var(--v) 28%,var(--paper));}
-:where(.pg-claims) .v-false{--v:var(--v-false);}
-:where(.pg-claims) .v-unlikely{--v:var(--v-unlikely);}
-:where(.pg-claims) .v-open{--v:var(--v-open);}
-:where(.pg-claims) .v-likely{--v:var(--v-likely);}
-:where(.pg-claims) .v-true{--v:var(--v-true);}
 :where(.pg-claims) .claim-quote{margin:0;font-family:var(--serif);font-weight:600;
     font-size:clamp(21px,3.2vw,27px);line-height:1.25;letter-spacing:-.01em;
     text-wrap:pretty;position:relative;padding-left:30px;}
@@ -703,6 +713,16 @@ td.num .arrow{display:inline-block;width:1.3em;margin-right:calc(-1.3em - 2px);t
 .rg td.rg-s{color:var(--ink-3);}
 .rg tr.rg-sum{border-top:1px solid var(--rule);}
 .rg .pchip{margin-right:6px;}
+
+/* The one verdict scale, red false to grey open to green true, the same for
+   every party (owner, 2026-10-05): render_sheet.verdict_class gives a verdict
+   badge `v-<step>`, and each page's badge reads --v. /claims and the home
+   page's claims list both take it from here. */
+.v-false{--v:var(--v-false);}
+.v-unlikely{--v:var(--v-unlikely);}
+.v-open{--v:var(--v-open);}
+.v-likely{--v:var(--v-likely);}
+.v-true{--v:var(--v-true);}
 
 /* A dated list of pieces: the home page's articles and claims, and /commentary
    (render_home._articles writes both lists, so one look serves both). */

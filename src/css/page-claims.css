@@ -28,11 +28,6 @@
   .verdict{font-family:var(--sans);font-size:12px;font-weight:750;
     letter-spacing:.12em;padding:5px 12px;border-radius:3px;color:var(--ink);
     border:1px solid var(--v);background:color-mix(in srgb,var(--v) 28%,var(--paper));}
-  .v-false{--v:var(--v-false);}
-  .v-unlikely{--v:var(--v-unlikely);}
-  .v-open{--v:var(--v-open);}
-  .v-likely{--v:var(--v-likely);}
-  .v-true{--v:var(--v-true);}
 
   .claim-quote{margin:0;font-family:var(--serif);font-weight:600;
     font-size:clamp(21px,3.2vw,27px);line-height:1.25;letter-spacing:-.01em;

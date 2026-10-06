@@ -656,13 +656,17 @@ def test_every_verdict_takes_its_step_on_the_one_scale_whatever_the_party():
     wrong = "v-true" if one.group(1) != "v-true" else "v-false"
     assert verdict_problems(html.replace(one.group(0), f'<span class="verdict {wrong}">', 1), RS.verdict_class)
     assert verdict_problems(html.replace(one.group(0), '<span class="verdict vfalse">', 1), RS.verdict_class)
-    # every step has a rule reading its token, and the token is in both palettes
-    css = re.sub(r"/\*.*?\*/", "", (SA.CSS_SRC / "page-claims.css").read_text(encoding="utf-8"), flags=re.S)
+    # every step has a rule reading its token, once, in the shared stylesheet
+    # that /claims and the home page's claims list both take it from
+    # (2026-10-06), and the token is in both palettes
+    uncomment = lambda name: re.sub(r"/\*.*?\*/", "", (SA.CSS_SRC / name).read_text(encoding="utf-8"), flags=re.S)
+    shared, css = uncomment("components.css"), uncomment("page-claims.css")
     tokens = (SA.CSS_SRC / "tokens.css").read_text(encoding="utf-8")
     dark = re.search(r":root\{color-scheme:dark;(.*?)\}", tokens, re.S).group(1)
     light = re.search(r':root\[data-theme="light"\]\{(.*?)\}', tokens, re.S).group(1)
     for s in steps:
-        assert f".v-{s}{{--v:var(--v-{s});}}" in css, s
+        assert f".v-{s}{{--v:var(--v-{s});}}" in shared, s
+        assert f".v-{s}{{" not in css, f"a second definition of the {s} step"
         assert f"--v-{s}:" in dark and f"--v-{s}:" in light, s
     assert "var(--c)" not in re.search(r"\.verdict\{[^}]*\}", css).group(0)
 

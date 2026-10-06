@@ -27,6 +27,16 @@
 .rg tr.rg-sum{border-top:1px solid var(--rule);}
 .rg .pchip{margin-right:6px;}
 
+/* The one verdict scale, red false to grey open to green true, the same for
+   every party (owner, 2026-10-05): render_sheet.verdict_class gives a verdict
+   badge `v-<step>`, and each page's badge reads --v. /claims and the home
+   page's claims list both take it from here. */
+.v-false{--v:var(--v-false);}
+.v-unlikely{--v:var(--v-unlikely);}
+.v-open{--v:var(--v-open);}
+.v-likely{--v:var(--v-likely);}
+.v-true{--v:var(--v-true);}
+
 /* A dated list of pieces: the home page's articles and claims, and /commentary
    (render_home._articles writes both lists, so one look serves both). */
 .feed{display:flex;flex-direction:column;}
