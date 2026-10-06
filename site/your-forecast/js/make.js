@@ -65,6 +65,7 @@ import * as MS from "./make-state.js";
 import * as YU from "./yf-url.js";
 import { WardMap } from "./map.js";
 import { setShareable, onNameChange, onOpen, onFriendName } from "./make-share.js";
+import { setHandoff } from "./play-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
 import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
 import { seatTable } from "./seat-table.js";
@@ -209,6 +210,17 @@ let section1 = null;       // { settings, touched }, the newest setting section 
 let handSeq = 0, waiting = null;
 onForecast(f => { section1 = f; if (started) follow(); });
 
+// The forecast this section opens at from section 1's moved `settings`
+// (page.py handoff): { state, middle }, or { refused }. ONE definition: what
+// follow() opens at and what section 1's sheet seals (setHandoff, below) are
+// the same forecast by construction.
+async function handoffState(settings) {
+  const h = await engineCall("handoff", { settings, total: ctx.T });
+  if (h.refused) return { refused: h.refused };
+  const calls = ctx.wards.map(w => h.ward_calls[w]);
+  return { state: B.startState(ctx, { calls, share: h.share }, pubStart.calls).state, middle: h.middle };
+}
+
 async function follow() {
   const f = section1, ticket = ++handSeq;
   // before start() has its data, there is nothing to follow with: start()
@@ -218,12 +230,11 @@ async function follow() {
   if (!f.touched) next = { state: pubStart, adjusted: false, middle: D.start.published_middle };
   else {
     let h;
-    try { h = await engineCall("handoff", { settings: f.settings, total: ctx.T }); }
+    try { h = await handoffState(f.settings); }
     catch (e) { return; }                        // section 2 stays where it is
     if (ticket !== handSeq) return;              // a newer setting is on its way
     if (h.refused) return;
-    const calls = ctx.wards.map(w => h.ward_calls[w]);
-    next = { state: B.startState(ctx, { calls, share: h.share }, pubStart.calls).state, adjusted: true, middle: h.middle };
+    next = { state: h.state, adjusted: true, middle: h.middle };
   }
   if (fromLink) {
     // a forecast opened from a link is the reader's: its start becomes
@@ -260,16 +271,32 @@ one.reseed.addEventListener("click", () => {
 });
 
 // ---------- start when the reader comes near ----------
+// The section's data (forecast.json, parties.json), loaded once: by the
+// section when the reader comes near, or by section 1's share sheet, which
+// draws the start's council on the model's card (setHandoff, below).
+let dataP = null;
+function loadData() {
+  dataP ??= Promise.all([fetch(new URL("../forecast.json", import.meta.url)), fetch(new URL("../parties.json", import.meta.url))])
+    .then(async ([r, p]) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      if (!p.ok) throw new Error("HTTP " + p.status);
+      return { forecast: await r.json(), parties: await p.json() };
+    });
+  dataP.catch(() => { dataP = null; });
+  return dataP;
+}
+// The section started, once: every caller waits on the same start.
+let startP = null;
+function begin() {
+  startP ??= start().then(() => { if (!started) startP = null; });
+  return startP;
+}
 async function start() {
   if (started) return;
   started = true;
   one.status.textContent = "Loading the start and the seat law.";
   try {
-    const [r, p] = await Promise.all([fetch(new URL("../forecast.json", import.meta.url)), fetch(new URL("../parties.json", import.meta.url))]);
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    if (!p.ok) throw new Error("HTTP " + p.status);
-    D = await r.json();
-    parties = await p.json();
+    ({ forecast: D, parties } = await loadData());
   } catch (e) {
     one.status.textContent = "The start could not be loaded (" + (e.message || e) + "). Reload to try again.";
     started = false;
@@ -396,10 +423,44 @@ onOpen(async () => {
   ownOutcome = o;
   share();
 });
-if (wantsNow) start();
+if (wantsNow) begin();
 else new IntersectionObserver((es, io) => {
-  if (es.some(e => e.isIntersecting)) { io.disconnect(); start(); }
+  if (es.some(e => e.isIntersecting)) { io.disconnect(); begin(); }
 }, { rootMargin: "600px 0px" }).observe(one.statusRegion);
+
+// ---------- section 1's moved settings, shared as a reader's forecast ----------
+// Owner, 2026-10-06: a reader who moves section 1's settings shares a
+// forecast of their own, sealed and entered like this section's. It is the
+// forecast this section opens at from those settings (follow(), above: the
+// hand-off), seated by the seat Worker in a lane of its own and its chance
+// worked out as the reader's own is (outcomeOf), whatever the reader has
+// done in this section since. Section 1's share sheet (play-share.js) asks
+// for it; the section starts if it has not.
+let handoffSeq = 0, handoffWaiting = null;   // { seq, ok } for the newest seat request in the "handoff" lane
+let seatEngineOk;
+const seatEngine = new Promise(ok => { seatEngineOk = ok; });
+function handoffSeats(st) {
+  if (handoffWaiting) handoffWaiting.ok(null);         // the lane answers only its newest request
+  return new Promise(ok => {
+    handoffWaiting = { seq: ++handoffSeq, ok };
+    worker.postMessage({ type: "seats", seq: handoffSeq, lane: "handoff", forecast: B.forecastBody(st, ctx) });
+  });
+}
+setHandoff({
+  start: async () => (await loadData()).forecast.start,
+  async forecast(settings) {
+    await begin();
+    if (!ctx || !(await seatEngine)) throw new Error("the seat law did not load");
+    const h = await handoffState(settings);
+    if (h.refused) throw new Error("the model refused these settings: " + h.refused);
+    const st = h.state;
+    const answer = await handoffSeats(st);
+    if (!answer) throw new Error("a newer setting replaced this one");
+    const outcome = await outcomeOf(st, [], answer);
+    return { fields: { v: MS.FORMAT, c: D.context_ref, f: MS.encode(st, [], ctx) }, answer, outcome,
+             vote: B.percentOf(st, ctx), calls: st.calls, party: partyOf, baseline: D.baseline, election: D.election, geom };
+  },
+});
 
 // ---------- map ----------
 function snapshot() { history.push(state); one.undo.disabled = false; }
@@ -933,8 +994,10 @@ function onWorker(e) {
   } else if (m.type === "failed") {
     one.status.textContent = m.missing ? m.message : "The seat law could not load (" + m.message + "). Reload to try again.";
     one.status.classList.add("low");
+    seatEngineOk(false);
   } else if (m.type === "ready") {
     engineReady = true;
+    seatEngineOk(true);
     window.__seatEngineTimes = m.times;
     console.info("seat engine loaded", m.times);
     if (!arriving) { one.status.textContent = ""; lock(false); }
@@ -943,6 +1006,11 @@ function onWorker(e) {
     one.undo.disabled = !history.size;
     if (friend && !arriving && !friend.answer)
       worker.postMessage({ type: "seats", seq: 0, lane: "friend", forecast: B.forecastBody(friend.state, ctx, { coalition: friend.coalition }) });
+  } else if (m.type === "result" && m.lane === "handoff") {
+    if (!handoffWaiting || m.seq !== handoffWaiting.seq) return;
+    const w = handoffWaiting;
+    handoffWaiting = null;
+    w.ok(m.ok ? m.answer : null);
   } else if (m.type === "result" && m.lane === "friend") {
     if (!friend || !m.ok) return;
     friend.answer = m.answer;

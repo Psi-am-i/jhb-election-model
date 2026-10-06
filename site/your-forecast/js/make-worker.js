@@ -11,9 +11,10 @@
 //                {type: "result", seq, lane, ok, answer, errors, ms}
 //                {type: "failed", message, missing}
 //
-// Two lanes: "own" (the default, the reader's forecast) and "friend" (the
+// Three lanes: "own" (the default, the reader's forecast), "friend" (the
 // forecast a shared link opened with, for the arrival view and the return
-// card). In each lane only the newest request is answered: one that arrives
+// card) and "handoff" (section 1's moved settings as a reader's forecast,
+// for section 1's share sheet; make.js setHandoff). In each lane only the newest request is answered: one that arrives
 // while another runs replaces any queued one, and the page drops a reply
 // whose seq is stale.
 import { loadSeatEngine, SeatCodeMissing } from "./seat-engine.js";

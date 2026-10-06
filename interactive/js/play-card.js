@@ -53,8 +53,8 @@ export const PUBLISHED_STAMP = "The model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
 export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";
-export const CHAMBER_NOTE = "The council graphic seats the start Break the model opens at: each ward to its most likely winner, " +
-  "each party at its middle seat count or at the wards it wins if more, and the seats left among the smaller parties.";
+export const CHAMBER_NOTE = "One full council: each ward to its most likely winner, each party at least its middle " +
+  "seat count, and the remaining seats among the smaller parties.";
 export const MODEL_TITLE = "Our Johannesburg Forecast";
 
 // A by-election cell's name: the published weight, none, or full.

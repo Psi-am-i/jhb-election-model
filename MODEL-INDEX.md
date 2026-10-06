@@ -693,7 +693,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `site_assets.UMBRELLA` | str 'whysoserious.svg' | NO | NO | NO | -- |
 | `site_assets.UMBRELLA_VIEWBOX` | str '440 272 1984 1016' | NO | NO | NO | -- |
 | `site_assets.APEX_URL` | str | NO | NO | NO | `build_site` |
-| `site_assets.BRAND_FILES` | tuple[7] | NO | NO | NO | -- |
+| `site_assets.BRAND_FILES` | tuple[6] | NO | NO | NO | -- |
 | `site_assets.CSS_FILES` | tuple[16] | NO | NO | NO | -- |
 | `site_assets.PAGE_CSS` | re.compile('page-([a-z]+(?:-[a-z]+)*)\\.css') | NO | NO | NO | `build_site` |
 | `site_assets.FONT_FACES` | tuple[3] | NO | NO | NO | -- |
