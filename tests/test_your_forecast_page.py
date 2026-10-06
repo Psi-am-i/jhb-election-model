@@ -169,12 +169,19 @@ def test_first_paint_is_tokens_and_the_live_regions_are_the_listed_ones():
     # section 2 shows none of its own (the reader scrolls past section 1's)
     assert html.count('<div class="st" ') == 1
     # every LIVE region on the page is one a writer is listed for, every
-    # listed region is on the page, and each region has one writer
+    # listed region is on the page, and each region has one writer that
+    # reaches it by selector. The one share sheet is listed for both share
+    # regions but selects nothing: it writes only to the elements the
+    # region's own module handed it (test_the_page_scripts_pass… holds it
+    # to no lookup), so it is the one writer counted apart. It cannot be
+    # listed for no region: that contract refuses a data source, and the
+    # sheet fetches the seal and the card's fonts and logos.
     on_page = [name for _, _, name in S._live_scan(html)[0]]
     listed = set().union(*(S.LIVE_WRITERS[w] for w in WRITERS))
     assert set(on_page) == listed, (set(on_page) ^ listed)
     assert len(on_page) == len(set(on_page)), sorted(on_page)
-    assert sum(len(S.LIVE_WRITERS[w]) for w in WRITERS) == len(listed)
+    assert sum(len(S.LIVE_WRITERS[w]) for w in WRITERS if w != SHEET) == len(listed)
+    assert S.LIVE_WRITERS[SHEET] == {"share", "b-share"} <= listed
     assert {w for w in S.LIVE_WRITERS if w.startswith(D + "/")} == set(WRITERS)
     assert not [w for w in S.LIVE_WRITERS if w.split("/")[0] in YF.RETIRED]
     for w in WRITERS:
