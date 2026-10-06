@@ -12,3 +12,7 @@ node_modules/
 # test/node/build.test.js asserts both directions with `git check-ignore`.
 seats-py/src/*
 !seats-py/src/entry.py
+# pywrangler's vendored packages and environment (rebuilt by
+# `uvx --from workers-py pywrangler deploy` from pyproject.toml + pylock.toml)
+seats-py/python_modules/
+seats-py/.venv-workers/
