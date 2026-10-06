@@ -185,8 +185,9 @@ test("words on a band read at 3:1 or better: every roster colour and every pair,
     if (b.plated) plated++;
     else assert.equal(b.ink, SC.inkOn(fills), fills.join(" "));
   }
-  // a tie between two colours that no ink reads on: the headline goes on a plate
-  const [c, d] = pairs.find(f => SC.bandInk(f).plated) || [];
+  // a tie between two colours that no ink reads on: the headline goes on a
+  // plate (two hued colours: a colour with no hue is marked in the ink)
+  const [c, d] = pairs.find(f => SC.bandInk(f).plated && f.every(x => SC.markColour(x) === x)) || [];
   assert.ok(c, "some pair of roster colours needs a plate");
   const [p, q] = [A.rows[0], A.rows[1]];
   const recolour = code => code === p.code ? { ...party(code), colour: c } : code === q.code ? { ...party(code), colour: d } : party(code);
@@ -279,6 +280,96 @@ test("the sealing time and the days to the vote are the election's own clock", (
   assert.equal(SC.madeText({ ...A, made: null }), "");
   assert.match(SC.madeText(A), /^Sealed \d+ \w+ \d{4}, \d\d:\d\d /);
   assert.match(SC.madeText({ ...A, made: { at: MADE.at, sealed: false } }), /^Made \d+ \w+ \d{4}$/);
+});
+
+test("a winner with no colour of its own is marked in the card's ink, on the band and its row, and reads", () => {
+  const grey = Object.values(FIXTURE.parties).map(p => p.colour).find(c => SC.markColour(c) !== c);
+  assert.ok(grey, "the roster has a colour with no hue");
+  const hued = A.rows[0].colour;
+  assert.equal(SC.markColour(hued), hued, "a hued colour is its own mark");
+  const top = A.rows[0].code;
+  const recolour = code => (code === top ? { ...party(code), colour: grey } : party(code));
+  const F = SC.forecastSpec({ name: "T", answer: FIXTURE.A.answer, outcome: A.outcome, vote: FIXTURE.A.vote, calls: A.calls,
+    party: recolour, baseline: FIXTURE.baseline, election: FIXTURE.election });
+  const svg = SC.linkCardSVG(F, ASSETS, recolour);
+  const band = [...svg.matchAll(new RegExp(`<rect x="[\\d.]+" y="0" width="[\\d.]+" height="${SC.LINK_BAND}" fill="([^"]+)"`, "g"))].map(m => m[1]);
+  assert.equal(band.length, 1);
+  assert.notEqual(band[0], grey, "the winner's band is the grey");
+  assert.equal(band[0], SC.markColour(grey));
+  assert.ok(SC.bandInk(band).ratio >= SC.BAND_MIN_CONTRAST);
+  const rowBands = [...svg.matchAll(new RegExp(`<rect x="[\\d.]+" y="[\\d.]+" width="[\\d.]+" height="${SC.LINK_PITCH - 4}" fill="([^"]+)"`, "g"))].map(m => m[1]);
+  assert.deepEqual(rowBands, [SC.markColour(grey)]);
+  // it can see: with the party's own colour the band is that colour
+  assert.ok(SC.linkCardSVG(A, ASSETS, party).includes(`height="${SC.LINK_BAND}" fill="${hued}"`));
+});
+
+// Each name's clip box, and the left edge of the first figure drawn after it
+// on its row: a name may not reach the figure beside it.
+function nameClips(svg) {
+  const out = [];
+  for (const m of svg.matchAll(/<clipPath id="([\w-]+)"><rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)"/g)) {
+    const after = svg.slice(m.index + m[0].length);
+    const fig = /<text x="([\d.]+)" y="[\d.]+" font-family="[^"]+" font-weight="(\d+)" font-size="([\d.]+)" text-anchor="end"[^>]*>([^<]*)<\/text>/.exec(after);
+    const face = { 400: "sans", 600: "sansSemi", 700: "sansBold" }[fig[2]];
+    out.push({ id: m[1], right: Number(m[2]) + Number(m[3]), figLeft: Number(fig[1]) - SC.textWidth(fig[4], Number(fig[3]), face), fig: fig[4] });
+  }
+  return out;
+}
+
+test("a long party name is fitted and clipped to its column, never into the figures, on every card", () => {
+  const long = A.rows[1].code;
+  const named = code => (code === long ? { ...party(code), name: "National Democratic Convention of the Very Long Name" } : party(code));
+  const F = SC.forecastSpec({ name: "T", answer: FIXTURE.A.answer, outcome: A.outcome, vote: FIXTURE.A.vote, calls: A.calls,
+    party: named, baseline: FIXTURE.baseline, election: FIXTURE.election });
+  const G = SC.forecastSpec({ name: "U", answer: FIXTURE.B.answer, outcome: Bspec.outcome, vote: FIXTURE.B.vote, calls: Bspec.calls,
+    party: named, baseline: FIXTURE.baseline, election: FIXTURE.election });
+  for (const [what, svg, n] of [["link", SC.linkCardSVG(F, ASSETS, named), SC.listedRows(F, SC.ROWS.link).length],
+    ["story", SC.storyCardSVG(F, ASSETS, named), SC.listedRows(F, SC.ROWS.story).length], ["duel", SC.duelCardSVG(F, G, ASSETS, named), 2]]) {
+    const clips = nameClips(svg);
+    assert.ok(clips.length >= n, `${what}: ${clips.length} names clipped`);
+    for (const c of clips) assert.ok(c.right <= c.figLeft - 4, `${what} ${c.id}: the name's box ends at ${c.right}, the figure "${c.fig}" starts at ${c.figLeft}`);
+    assert.ok(svg.includes("National Democratic"), what);
+    // the clip is applied to the name's text
+    for (const c of clips) assert.ok(svg.includes(`clip-path="url(#${c.id})"`), `${what} ${c.id}`);
+  }
+  // it can see: a clip box widened into the figure is caught
+  const svg = SC.linkCardSVG(F, ASSETS, named), c = nameClips(svg)[0];
+  const wide = svg.replace(new RegExp(`(<clipPath id="${c.id}"><rect x="[\\d.]+" y="[\\d.]+" width=")([\\d.]+)`), (m, a, w) => a + (Number(w) + 200));
+  assert.ok(nameClips(wide).some(x => x.right > x.figLeft - 4));
+});
+
+// The map's drawn width (from its group's scale) and the lowest baseline.
+function space(svg) {
+  const m = /<g transform="translate\([\d.]+ [\d.]+\) scale\(([\d.]+)\)">/.exec(svg);
+  return { mapW: m ? FIXTURE.geometry.W * Number(m[1]) : 0, lowest: Math.max(...[...svg.matchAll(/<text x="[\d.]+" y="([\d.]+)"/g)].map(x => Number(x[1]))) };
+}
+function unused(svg, size) {
+  const [W, H] = SC.SIZES[size], sp = space(svg), out = [];
+  const least = (size === "story" ? SC.READER_STORY_MAP_MIN_SHARE : SC.LINK_MAP_MIN_SHARE) * W;
+  if (!(sp.mapW >= least)) out.push(`map ${sp.mapW.toFixed(0)} px wide, under ${least.toFixed(0)}`);
+  if (size === "story" && !(sp.lowest >= SC.STORY_TEXT_BOTTOM - SC.STORY_FILL_SLACK && sp.lowest <= SC.STORY_TEXT_BOTTOM)) out.push(`lowest words at ${sp.lowest}`);
+  if (size === "link" && !(sp.lowest <= H - 10)) out.push(`words at ${sp.lowest} run off the card`);
+  return out;
+}
+
+test("every reader's card carries the council graphic, the table, the map and the logo, and uses the canvas", () => {
+  for (const F of [A, Bspec, { ...Bspec, excess: [A.excess[0] || "x", "A second long note about wards and seats that wraps."] }]) {
+    for (const [size, svg] of [["link", SC.linkCardSVG(F, ASSETS, party)], ["story", SC.storyCardSVG(F, ASSETS, party)]]) {
+      assert.deepEqual(unused(svg, size), [], size);
+      assert.ok(svg.includes(F.majority + " for a majority"), size + ": the council graphic");
+      assert.ok(svg.includes(">% of<"), size + ": the table");
+      assert.ok(svg.includes(`viewBox="${ASSETS.brand.viewBox}"`), size + ": the logo");
+      const m = /<g transform="translate\([\d.]+ [\d.]+\) scale\([\d.]+\)">([\s\S]*?)<\/g>/.exec(svg);
+      assert.equal((m[1].match(/<path /g) || []).length, FIXTURE.geometry.wards.length, size + ": every ward");
+    }
+  }
+  // it can see: a map at half the scale, and a story card cut short
+  const svg = SC.storyCardSVG(A, ASSETS, party);
+  const small = svg.replace(/(<g transform="translate\([\d.]+ [\d.]+\) scale\()([\d.]+)/, (m, a, k) => a + (k / 2).toFixed(4));
+  assert.equal(unused(small, "story").length, 1);
+  const cut = svg.replace(/<text x="[\d.]+" y="(1[5-6]\d\d(?:\.\d)?)"[^>]*>[^<]*<\/text>/g, "");
+  assert.ok(unused(cut, "story").some(w => w.startsWith("lowest")));
+  assert.deepEqual(unused(svg, "story"), []);
 });
 
 // ---------- the images ----------
