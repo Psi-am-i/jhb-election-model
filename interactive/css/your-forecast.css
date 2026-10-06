@@ -306,7 +306,7 @@
   .yf .yf-outcome.yf-slot{height:2lh;}
   .yf .floornote.yf-slot{height:calc(2lh + 12px);}
 }
-/* the narrowest wide screens: "Most seats alone: …" runs to a fourth line in
+/* the narrowest wide screens: "Most seats: …" runs to a fourth line in
    the results column, which three lines would scroll beside (owner,
    2026-10-05: no visible inner scroll bar) */
 @media (min-width:1100px) and (max-width:1279px){.yf .pl-oneline.yf-slot{height:4lh;}}

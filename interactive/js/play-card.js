@@ -119,7 +119,7 @@ export function largestTop(r, party) {
 }
 // The largest-party line, in the shares' own text (page.py, reweight.chance_text),
 // in the site's one wording for it (section 1's line and its published twin):
-// "Most seats alone: 47% chance it's the ANC, …" (STYLE rule 10: a chance,
+// "Most seats: 47% chance it's the ANC, …" (STYLE rule 10: a chance,
 // never "of simulations"). `cap` starts a name with a capital, as a sentence.
 export const theName = (c, party, cap = false) => {
   const s = party(c).article + party(c).name;
@@ -127,7 +127,7 @@ export const theName = (c, party, cap = false) => {
 };
 export function largestLine(r, party) {
   const [a, b] = largestTop(r, party);
-  return "Most seats alone: " + r.largest[a].text + " chance it's " + theName(a, party) + ", " +
+  return "Most seats: " + r.largest[a].text + " chance it's " + theName(a, party) + ", " +
     r.largest[b].text + " chance it's " + theName(b, party) + ". Two or more parties tie for the most seats: " +
     r.tied.text + " chance.";
 }

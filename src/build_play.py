@@ -323,7 +323,7 @@ def oneline(processed: Path, names: dict) -> str:
     # the site's one wording (play-card.js largestLine, model.js renderResult):
     # a chance, never "of simulations" (STYLE rule 10); note-browser says what
     # a chance is
-    return (f"Most seats alone: {share(top[0])} chance it's {who(top[0])}, "
+    return (f"Most seats: {share(top[0])} chance it's {who(top[0])}, "
             f"{share(top[1])} chance it's {who(top[1])}. Two or more parties tie "
             f"for the most seats: {tied} chance. One party wins a majority on its own: {alone} chance.")
 

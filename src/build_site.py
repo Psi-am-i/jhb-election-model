@@ -48,11 +48,11 @@ REPO_URL = "https://github.com/Psi-am-i/jhb-election-model"
 
 import build_your_forecast  # noqa: E402  (the interactive page's address, below)
 
-#: The nav, in the owner's order (sweep of 2026-10-03, item 9):
-#: joburg.whysoserious.city | our forecast | your forecast | commentary |
-#: party claims tested | methodology | review | corrections | sources |
-#: source code. No "home" item: the site name at the left of the bar IS the
-#: link home (owner, 2026-09-24).
+#: The nav, in the owner's order (sweep of 2026-10-03, item 9; "party
+#: claims", 2026-10-05): the logo | our forecast | your forecast |
+#: commentary | party claims | methodology | review | corrections | sources |
+#: source code. No "home" item: the logo at the left of the bar IS the link
+#: home (owner, 2026-09-24).
 #:
 #: ⛔ EVERY HREF IS A PAGE THIS BUILD PRODUCES (or the repository).
 #: `tests/test_site_structure.py` checks it both ways. The last time a nav
@@ -68,7 +68,7 @@ NAV_ITEMS = [
     ("forecast", "our forecast"),
     (build_your_forecast.YF_HREF, "your forecast"),
     ("commentary", "commentary"),
-    ("claims", "party claims tested"),
+    ("claims", "party claims"),
     # /about merged into /methodology (owner's sweep, 2026-10-03); the Worker
     # sends /about there.
     ("methodology", "methodology"),

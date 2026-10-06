@@ -49,11 +49,11 @@
 }
 
 /* The owner's strapline (build_site.STRAPLINE), under the bar on every page:
-   muted, a size below the menu, in the body face, with air above it so it
-   reads as a line of its own rather than a row of the menu (owner,
-   2026-10-05). */
+   muted, a size below the menu, in the body face (owner, 2026-10-05), close
+   under the bar's rule so it reads as the rule's caption, with the space
+   below it kept (owner, 2026-10-05: it sat too far below the rule). */
 .strapline{font-family:var(--sans);font-size:11px;line-height:1.5;color:var(--ink-3);
-  max-width:none;margin:12px 0 26px;}
+  max-width:none;margin:5px 0 26px;}
 @media (min-width:1200px){
   .strapline{box-sizing:border-box;width:max(100%,1160px);
     margin-left:min(0px,calc((100% - 1160px) / 2));}
