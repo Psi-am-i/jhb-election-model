@@ -320,14 +320,16 @@ export function bandInk(fills) {
 // colour for, marks nothing: a winner's band in it read as grey, like Others
 // (owner, 2026-10-06, of "National Democratic Convention"). Such a party is
 // marked in the card's ink instead. Chroma is the spread of the colour's
-// channels, 0 to 1; below NEUTRAL_CHROMA the colour counts as no hue.
+// channels, 0 to 1; below NEUTRAL_CHROMA the colour counts as no hue. A
+// colour that is not "#rrggbb" is no colour the card can read: the ink too.
 export const NEUTRAL_CHROMA = 0.12;
+const HEX6 = /^#[0-9a-f]{6}$/i;
 const chroma = hex => {
   const v = hex.replace("#", "").match(/../g).map(h => parseInt(h, 16) / 255);
   return Math.max(...v) - Math.min(...v);
 };
 export function markColour(hex) {
-  return chroma(hex) < NEUTRAL_CHROMA ? C.ink : hex;
+  return typeof hex !== "string" || !HEX6.test(hex) || chroma(hex) < NEUTRAL_CHROMA ? C.ink : hex;
 }
 
 // The colours of the most seats: one party's, or each tied party's, as
@@ -542,6 +544,24 @@ function northMark(x, y, fs) {
     `<polyline points="${n1(x - a)},${n1(y + a)} ${n1(x)},${n1(y)} ${n1(x - a * 0.55)},${n1(y)} ${n1(x)},${n1(y)} ${n1(x)},${n1(y + a * 0.55)}" fill="none" stroke="${C.ink2}" stroke-width="2"/>`;
 }
 
+// "Governing: ANC and DA, 137 seats." on the baseline `y` from `x`, within
+// `maxW`: the type shrinks to three quarters of `fs`, and below that the
+// names are cut with an ellipsis, so long roster names never run off the
+// card. The names are in the card's ink, the words around them in `fill`.
+function governing(spec, x, y, maxW, fs, lead, end, fill) {
+  const tail = ", " + spec.coalitionSeats + " seats" + end;
+  let names = listAnd(spec.coalitionNames);
+  const width = f => textWidth(lead, f) + textWidth(names, f, "sansSemi") + textWidth(tail, f);
+  let f = fs;
+  while (f > fs * 0.75 && width(f) > maxW) f = Math.max(fs * 0.75, f - 1);
+  if (width(f) > maxW) {
+    const room = maxW - textWidth(lead, f) - textWidth(tail, f);
+    names = fitText(names, room, f, "sansSemi", f).text;
+  }
+  const a = textWidth(lead, f), b = textWidth(names, f, "sansSemi");
+  return text(x, y, lead, f, "sans", { fill }) + text(x + a, y, names, f, "sansSemi") + text(x + a + b, y, tail, f, "sans", { fill });
+}
+
 // The badge: the words in a pill, after `x` on the baseline `y`.
 function badge(words, x, y, fs, stroke = 1.5) {
   const w = textWidth(words, fs, "sansSemi") + fs * 1.4;
@@ -610,9 +630,7 @@ export function linkCardSVG(spec, assets = {}, party) {
   s += g.svg;
   const gy = LINK_BAND + 14 + g.h + 30;
   if (spec.coalition.length) {
-    const lead = "Governing: ", names = listAnd(spec.coalitionNames), tail = ", " + spec.coalitionSeats + " seats.";
-    s += text(rx, gy, lead, 20) + text(rx + textWidth(lead, 20), gy, names, 20, "sansSemi") +
-      text(rx + textWidth(lead, 20) + textWidth(names, 20, "sansSemi"), gy, tail, 20);
+    s += governing(spec, rx, gy, R - rx, 20, "Governing: ", ".", C.ink);
   }
   s += partyTable(spec, assets, { x: rx, right: R, cols: [R - 276, R - 192, R - 84, R], y: gy + 32, n: ROWS.link,
     pitch: LINK_PITCH, chip: 24, rules: false, id: "ln", fs: { head: 15, name: 20, pct: 19, seats: 22, vs: 17 } }).svg;
@@ -714,11 +732,7 @@ export function storyCardSVG(spec, assets = {}, party) {
   s += key(X) + text(X + 28, ky, "ward seats", 24, "sans", { fill: C.ink3 });
   s += key(X + 172, PR_OPACITY) + text(X + 200, ky, "PR seats", 24, "sans", { fill: C.ink3 });
   if (spec.coalition.length) {
-    const a = "Governing first: ", b = listAnd(spec.coalitionNames), c = ", " + spec.coalitionSeats + " seats";
-    let x = X + 330;
-    s += text(x, ky, a, 24, "sans", { fill: C.ink3 }); x += textWidth(a, 24);
-    s += text(x, ky, b, 24, "sansSemi"); x += textWidth(b, 24, "sansSemi");
-    s += text(x, ky, c, 24, "sans", { fill: C.ink3 });
+    s += governing(spec, X + 330, ky, R - X - 330, 24, "Governing first: ", "", C.ink3);
   }
   y += KEY_H + gap;
   const t = partyTable(spec, assets, { ...TB, y: y + TB.fs.head });

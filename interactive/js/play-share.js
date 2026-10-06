@@ -4,8 +4,9 @@
 // TWO THINGS TO SHARE (owner, 2026-10-06).
 //  * Untouched, the page shows the model's own forecast. The image is the
 //    model's card (play-card.js, drawn by share-card.js modelCardSVG), the
-//    link is the page's address with the name (yf-url.js compose), and
-//    nothing is sealed: it is not a reader's forecast and not an entry.
+//    link is the page's address with section 1's settings and no name (the
+//    name is the image's "Shared by" line only), and nothing is sealed: it is
+//    not a reader's forecast and not an entry.
 //  * Once a setting is moved, the reader shares a forecast of their own,
 //    like section 2's: section 1's hand-off (the forecast section 2 opens
 //    at from these settings: page.py handoff, src/start_rule.py), seated by
@@ -22,8 +23,10 @@
 // and adds nothing outside the region.
 //
 // THE NAME (D6/D7, owner 2026-10-02). Free text, at most
-// play-state.NAME_MAX characters, as play-state.cardName prints it. It goes
-// into the input's value, the link (`n=`) and the image, where share-card.js
+// play-state.NAME_MAX characters, as play-state.cardName prints it, from ONE
+// source for both sections (yf-url.js sealName: never the name of a shared
+// link's sharer). It goes into the input's value, a sealed forecast's link
+// (`n=`) and its entry, and the image, where share-card.js
 // escapes it and draws it as text: "Shared by {name}" under the model's own
 // headline (critic G1, 2026-10-02), "{name}'s Election Forecast" on the
 // reader's own. It is never written into the page as markup or as page text.
@@ -35,11 +38,10 @@
 // why: those laws are for comparison, and a shared council seated under them
 // would read as a forecast.
 
-import { buildPlayCardSVG, playCardAlt } from "./play-card.js";
+import { buildPlayCardSVG, playCardAlt, section1Share } from "./play-card.js";
 import { forecastSpec, linkCardSVG, storyCardSVG, cardAlt, cardTitle } from "./share-card.js";
 import { shareSheet, loadAssets } from "./share-sheet.js";
-import { cardName, engineSettings, serialize } from "./play-state.js";
-import { compose } from "./yf-url.js";
+import * as YU from "./yf-url.js";
 
 const E = {
   open: document.querySelector('[data-live="share"] .shareopen'),
@@ -84,64 +86,52 @@ const labelP = fetch(new URL("../labels.json", import.meta.url))
 // What section 2 (make.js) provides: start() -> forecast.json's `start`, for
 // the model's council graphic; forecast(settings) -> the hand-off as a
 // reader's forecast, { fields: { v, c, f }, answer, outcome, vote, calls,
-// party, baseline, election, geom }.
+// party, baseline, election, geom }. Null if make.js never loaded.
 let handoff = null;
-export function setHandoff(h) { handoff = h; if (now) ask(); }
+export function setHandoff(h) { handoff = h; if (now) sheet.update(); }
 
-// The hand-off for the settings shown now, worked out once per setting.
-let mine = null;              // { key, forecast (null until worked out), failed }
 let start = null;
-function ask() {
-  if (!handoff || !now.touched || !sheet.isOpen()) return;
-  const settings = engineSettings(now.st), key = JSON.stringify(settings);
-  if (mine && mine.key === key) return;
-  const asked = mine = { key, forecast: null, failed: false };
-  handoff.forecast(settings).then(F => { if (mine === asked) { asked.forecast = F; sheet.update(); } },
-                                  () => { if (mine === asked) { asked.failed = true; sheet.update(); } });
-}
-const ready = () => (now.touched && mine && mine.key === JSON.stringify(engineSettings(now.st)) ? mine : null);
-
-const nameNow = () => cardName(now.st.name || "");
+// The name both sections seal and print: yf-url.js's, never a shared link's
+// sharer's (sealName).
+const nameNow = () => YU.sealName();
+const content = section1Share({
+  now: () => now, name: nameNow, handoff: () => handoff,
+  page: () => ({ pathname: location.pathname, href: location.href }),
+  changed: () => sheet.update(),
+});
 
 const sheet = shareSheet(E, {
   canOpen: () => !!(now && now.shareable),
-  prepare: async () => { await labelP; },
-  // the model's forecast is not sealed; the reader's waits for its hand-off
-  fields: () => {
-    if (!now.touched) return null;
-    const m = ready();
-    if (!m || m.failed) return m && m.failed ? null : undefined;
-    return { ...m.forecast.fields, n: nameNow() };
-  },
-  // the page's address: section 1's settings and the name, and once a
-  // setting is moved the sealed forecast's part (yf-url.js compose)
-  link: () => {
-    const m = ready();
-    const brk = m && m.forecast ? "?" + new URLSearchParams(m.forecast.fields).toString() : "";
-    return new URL(location.pathname + compose(serialize(now.st, now.ctx), brk, nameNow()) + (brk ? "#break" : "#adjust"), location.href).href;
-  },
-  election: () => (ready()?.forecast || {}).election,
+  // a forecast that failed is tried again each time the sheet opens
+  prepare: async () => { content.retry(); await labelP; },
+  fields: () => content.fields(),
+  link: () => content.link(),
+  election: () => (content.ready()?.forecast || {}).election,
   emptyName: () => (now.touched ? cardTitle("") : label),
-  // the page keeps the name in its address; the sheet redraws with it
-  onName: n => { now.onName?.(n); now = { ...now, st: { ...now.st, name: n } }; sheet.update(); },
+  // the model's forecast is entered nowhere; a reader's is
+  entered: () => !!now.touched,
+  // the page keeps the name in its address (model.js onName, yf-url.js); the
+  // sheet redraws with it
+  onName: n => { now.onName?.(n); sheet.update(); },
   shareWords: () => (now.touched ? { title: "My Johannesburg election forecast", text: "My forecast for the Johannesburg council." }
     : { title: "Our Johannesburg Forecast", text: "The Johannesburg election model's forecast." }),
   fileBase: () => "joburg-forecast-" + (nameNow() || label).replace(/[^A-Za-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase().slice(0, 40),
   async card(kind, made) {
     const info = now, size = kind === "story" ? "story" : "link";
     if (!info.touched) {
-      // the start's council, fetched when the model's card is first drawn
+      // the start's council, fetched when the model's card is first drawn;
+      // without it no card is drawn (every card carries the council graphic)
       if (!start && handoff) start = await handoff.start().catch(() => null);
+      if (!start) return { wait: "The council could not be loaded, so the image cannot be drawn. The link still works." };
       const card = { ...info, name: nameNow() || label, start };
-      const codes = info.r.shown;
-      const assets = await loadAssets(codes, info.party);
+      const assets = await loadAssets(info.r.shown, info.party);
       return { svg: buildPlayCardSVG({ ...card, size, assets }), size, alt: playCardAlt(card) };
     }
-    ask();
-    const m = ready();
-    if (!m || (!m.forecast && !m.failed)) return { wait: "Working out your forecast from your settings, and the chance we give it." };
-    if (m.failed) return { wait: "Your forecast could not be worked out from these settings. Reload to try again." };
-    const F = m.forecast;
+    content.ask();
+    const f = content.fields();
+    if (f === undefined) return { wait: "Working out your forecast from your settings, and the chance we give it." };
+    if (f.failed) return { wait: "No image: your forecast could not be worked out (" + f.failed + "). The link still works." };
+    const F = content.ready().forecast;
     const A = forecastSpec({ name: nameNow(), answer: F.answer, outcome: F.outcome, vote: F.vote, calls: F.calls, party: F.party,
       baseline: F.baseline, election: F.election, made });
     const assets = { ...(await loadAssets(A.rows.map(r => r.code), F.party)), geom: F.geom };
@@ -155,7 +145,6 @@ export function setShareable(info) {
   E.why.textContent = info.shareable ? "" : "Only a council seated under " + info.lawName +
     " can be shared. The other laws are here for comparison.";
   if (!info.shareable) sheet.close();
-  sheet.setName(info.st.name || "");
-  ask();
+  sheet.setName(nameNow());
   sheet.update();
 }

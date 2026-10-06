@@ -56,6 +56,7 @@ const sheet = shareSheet(E, {
   link: () => now.link,
   election: () => now.election,
   emptyName: () => cardTitle(""),
+  entered: () => true,
   onName: n => nameCb(n),                 // the page rewrites the address and calls setShareable
   shareWords: () => ({ title: "My Johannesburg election forecast", text: "My forecast for the Johannesburg council." }),
   fileBase: () => "joburg-forecast",

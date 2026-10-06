@@ -969,17 +969,20 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
             out.append("section 1's share row is inside the levers' column")
         if not (at('class="yf-analysis"') < s2 < notes):
             out.append("section 2's share row is not between the analysis and the notes")
-        for sel in ('class="btn primary shareopen yf-ctabtn"', 'class="btn primary yf-analyse yf-ctabtn"'):
-            i = at(sel)
-            if i < 0 or "<small>" not in page[i:page.index("</button>", i)]:
-                out.append(f"no full-width row with its line: {sel}")
-        if page.count('class="btn primary shareopen yf-ctabtn"') != 2:
+        share = 'class="btn primary shareopen yf-ctabtn"'
+        if page.count(share) != 2:
             out.append("not one share row in each section")
-        i = page.find('class="btn primary shareopen yf-ctabtn"', s2) if s2 > 0 else -1
-        line = page[i:page.index("</button>", i)] if i >= 0 else ""
-        for w in ("map", "seats", "chance", "sealed link"):
-            if w not in line:
-                out.append(f"section 2's line does not name {w}")
+        # each row, in its own section, with its one line
+        rows = (("section 1", page.find(share, s1) if s1 > 0 else -1, ("map", "council", "seats", "sealed")),
+                ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "chance", "sealed link")),
+                ("step 4", at('class="btn primary yf-analyse yf-ctabtn"'), ()))
+        for where, i, words in rows:
+            line = page[i:page.index("</button>", i)] if i >= 0 else ""
+            if "<small>" not in line:
+                out.append(f"no full-width row with its line: {where}")
+            for w in words:
+                if w not in line:
+                    out.append(f"{where}'s line does not name {w}")
         return out
 
     assert misplaced(html) == []
@@ -990,6 +993,35 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
     assert re.search(r"\.yf \.yf-ctabtn\{[^}]*display:block;width:100%", css)
     # step 4 names what it holds now
     assert "Next: see how likely it is" in html and "Share it, or see how likely it is" not in html
+
+
+def test_both_share_sheets_are_one_sheet_with_one_set_of_controls():
+    """Amendment A (owner, 2026-10-06): one sheet, one set of options, the
+    same words. Each section's <dialog> carries the same controls, by class
+    and by visible words, in the same order; what differs is content only
+    (section 2's friend checkbox, which section 1 never has). A control
+    missing from one sheet, or one worded differently, is caught."""
+    html = _html(_built())
+
+    def controls(region: str) -> list[tuple[str, str]]:
+        start = html.index(f'data-live="{region}"')
+        dlg = html[html.index("<dialog", start):html.index("</dialog>", start)]
+        dlg = re.sub(r'<label class="shfriend".*?</label>', "", dlg, flags=re.S)
+        return [(re.search(r'class="([^"]+)"', m.group(1)).group(1) if 'class="' in m.group(1) else m.group(0)[:12],
+                 re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(2))).strip())
+                for m in re.finditer(r"<(?:button|a|input|select|option)\b([^>]*)>([^<]*)", dlg)]
+
+    def differ(a: list, b: list) -> list:
+        return [x for x in a if x not in b] + [x for x in b if x not in a] if a != b else []
+
+    one, two = controls("share"), controls("b-share")
+    assert len(one) >= 10, one
+    want = {"shname", "shurl", "btn shcopy", "shimg", "btn primary shnative", "btn shwa", "btn shx", "btn shdl", "x"}
+    assert want <= {c for c, _ in one}, sorted(want - {c for c, _ in one})
+    assert differ(one, two) == [], differ(one, two)
+    # it can see: a sheet without WhatsApp, or with Copy link worded otherwise
+    assert differ([c for c in one if c[0] != "btn shwa"], two)
+    assert differ([(c, "Copy") if c == "btn shcopy" else (c, w) for c, w in one], two)
 
 
 def test_a_chip_pressed_keeps_its_focus():

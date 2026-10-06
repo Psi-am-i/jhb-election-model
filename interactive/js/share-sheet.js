@@ -93,53 +93,100 @@ export function loadAssets(codes, party) {
 
 // ---------- the sheet ----------
 
-// The words under the name field, the same in both sections. `label`: what
-// the image says when the name is left empty.
-export function nameNote(value, label) {
+// The words under the name field, the same in both sections, true of the
+// sheet they sit in. `label`: what the image says when the name is left
+// empty; `entered`: whether the sheet seals and enters the forecast, so the
+// name is also stored with the entry (docs-public/privacy.md, "Forecasts
+// entered").
+export function nameNote(value, label, entered) {
   if (nameBlocked(value)) return "This name cannot go on the image or in the link: it could pass for the site, the model or the IEC." +
     (label ? " The image says " + label + "." : "");
-  return "Left empty, the image says " + label + ". The name goes on the image and in the link, and nowhere else.";
+  return "Left empty, the image says " + label + "." + (entered
+    ? " The name goes on the image, in the link and with the entry this sheet seals."
+    : " The name goes on the image, and nowhere else.");
 }
 
-const SEAL_PAUSE_MS = 500, NAME_PAUSE_MS = 1500, NAME_TYPING_MS = 250;
+const SEAL_PAUSE_MS = 500, NAME_PAUSE_MS = 1500;
 const keyOf = f => [f.v, f.c, f.f, f.n].join("\n");
+// Every seal the Worker has given this page, by the state and name it signed,
+// shared by both sections' sheets: the same forecast under the same name is
+// one entry, whichever sheet asks (review of the one-sheet diff, 2026-10-06).
+const SEALS = new Map();
+// Seals asked for and not yet answered, by key: a second sheet asking for the
+// same key waits on the first request instead of entering it again.
+const ASKED = new Map();
+function requestSeal(fields) {
+  const key = keyOf(fields);
+  if (SEALS.has(key)) return Promise.resolve({ seal: SEALS.get(key) });
+  if (ASKED.has(key)) return ASKED.get(key);
+  const p = (async () => {
+    let r, body = null;
+    try {
+      r = await fetch(new URL("seal/1", ROOT), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(fields) });
+      body = await r.json();
+    } catch (e) {
+      r = null;
+    }
+    if (r && r.ok && body && typeof body.s === "string") {
+      const seal = { s: body.s, at: parseInt(body.s.split(".")[0], 36) * 1000 };
+      SEALS.set(key, seal);
+      return { seal };
+    }
+    return { refused: r && (r.status === 403 || r.status === 429) && body && body.error ? body.error
+      : "Not sealed: the link works, but it cannot show when it was made." };
+  })();
+  ASKED.set(key, p);
+  p.finally(() => ASKED.delete(key));
+  return p;
+}
 
 // E: the sheet's elements, from the section's own region: { open, dlg, close,
 //   name, namenote, url, copy, seal, entry, kind, duelOpt, img, wa, x,
 //   native, dl, toast }.
 // H: what the section shares, as functions of what its page shows now:
 //   canOpen()          may the sheet open
-//   prepare()          async, before it opens (a label to load)
-//   fields()           { v, c, f, n } to seal, null for nothing to seal, or
-//                      undefined while the forecast to seal is being worked out
+//   prepare()          async, before it opens
+//   fields()           { v, c, f, n } to seal; null for nothing to seal (the
+//                      model's forecast); undefined while the forecast to
+//                      seal is being worked out; { failed: reason } when it
+//                      cannot be
 //   link()             the link's address, the state in it, before any seal
 //   election()         the election (the seal's local time)
 //   card(kind, made)   async: { svg, size, alt }, or { wait: words } while a
-//                      figure it needs is being worked out; `made` is
-//                      { at, sealed } or null
+//                      figure it needs is being worked out or cannot be;
+//                      `made` is { at, sealed } or null
 //   emptyName()        what the image says when the name is left empty
+//   entered()          does this sheet seal and enter what it shares
 //   onName(name)       the name changed (the page rewrites its address and
 //                      calls update())
 //   shareWords()       { title, text } for the native share
 //   fileBase()         the downloaded file's name, before "-<kind>.png"
-// Returns { update(): the page's figures changed, redraw if open; isOpen() }.
+// Returns { update(): the page's figures changed, redraw if open; isOpen(),
+// setName(name), close() }.
 export function shareSheet(E, H) {
   E.name.maxLength = NAME_MAX;
   let png = null, shown = null, opener = null, drawing = 0, sealing = 0;
-  let sealed = null;            // { key, s, at } for the state now in the sheet, or null
-  let sealSettled = false, imageSettled = false;
-  let sealTimer = null, typingName = false, typing = null;
+  // the key the link's buttons are on for: the state whose seal settled
+  // (sealed, refused, or nothing to seal), or null while one is on its way
+  let settled = null, imageSettled = false;
+  let sealTimer = null, typingName = false;
 
   const say = s => { E.toast.textContent = s; };
   const kind = () => E.kind.value || "link";
-  const current = () => { const f = H.fields(); return f && sealed && sealed.key === keyOf(f) ? sealed : null; };
+  // what the buttons send now: "none" (nothing to seal), "failed", the
+  // state's key, or null while it is being worked out
+  const keyNow = () => {
+    const f = H.fields();
+    return f === null ? "none" : f === undefined ? null : f.failed ? "failed" : keyOf(f);
+  };
+  const current = () => { const k = keyNow(); return k && SEALS.get(k) || null; };
 
   // The link a button sends. A forecast to seal goes out through /s/ with its
-  // seal, if current, and the button; the model's own forecast, as the page's
-  // address.
+  // seal, if current, and the button; the model's own forecast, and a
+  // forecast that could not be worked out, as the page's address.
   function shareURL(ch) {
     const f = H.fields();
-    if (!f) return H.link();
+    if (!f || f.failed) return H.link();
     const q = new URL(H.link()).searchParams;
     const s = current();
     if (s) q.set("s", s.s);
@@ -147,9 +194,10 @@ export function shareSheet(E, H) {
     return new URL("s/?" + q.toString().replace(/%2C/g, ","), ROOT).href;
   }
 
-  // The link's box and the buttons that send it, on or off with the seal.
+  // The link's box and the buttons that send it: on only when the state they
+  // would send is the one whose seal settled.
   function buttons() {
-    const on = sealSettled;
+    const k = keyNow(), on = k !== null && settled === k;
     E.url.value = on ? shareURL("copy") : "";
     E.copy.disabled = !on;
     for (const [a, href] of [[E.wa, () => "https://wa.me/?text=" + encodeURIComponent(shareURL("wa"))],
@@ -160,27 +208,31 @@ export function shareSheet(E, H) {
     E.native.disabled = !(on && imageSettled);
   }
 
-  // Ask the Worker to seal the forecast in the sheet, once typing has paused;
-  // the newest request wins. A change of name waits longer than any other
-  // change: each seal is an entry, and "Th" and "Than" are not the name.
+  // Seal the state in the sheet, once typing has paused. EVERY call starts
+  // a new ticket and takes the buttons off, so an answer for an earlier
+  // state can never show as this one's or turn its buttons on. A change of
+  // name waits longer than any other change: each seal is an entry, and
+  // "Th" and "Than" are not the name.
   function seal() {
-    const f = H.fields();
+    const ticket = ++sealing, f = H.fields(), k = keyNow();
     clearTimeout(sealTimer);
     sealTimer = null;
-    E.seal.hidden = E.entry.hidden = f === null;
-    if (f === null) { E.seal.textContent = ""; sealSettled = true; buttons(); return; }
-    if (f === undefined) { E.seal.textContent = "Working out the forecast to seal."; sealSettled = false; buttons(); return; }
-    if (sealed && sealed.key === keyOf(f)) {
-      E.seal.textContent = "Sealed " + localStamp(sealed.at, H.election()) + ".";
-      sealSettled = true;
+    settled = null;
+    E.seal.hidden = f === null;
+    E.entry.hidden = f === null || !!(f && f.failed);
+    if (f === null) { E.seal.textContent = ""; settled = k; typingName = false; buttons(); return; }
+    if (f === undefined) { E.seal.textContent = "Working out the forecast to seal."; buttons(); return; }
+    if (f.failed) { E.seal.textContent = "Not sealed: " + f.failed + "."; settled = k; typingName = false; buttons(); return; }
+    if (SEALS.has(k)) {
+      E.seal.textContent = "Sealed " + localStamp(SEALS.get(k).at, H.election()) + ".";
+      settled = k;
+      typingName = false;
       buttons();
       return;
     }
-    const ticket = ++sealing;
     E.seal.textContent = "Sealing the link.";
-    sealSettled = false;
     buttons();
-    sealTimer = setTimeout(() => { sealTimer = null; askSeal(ticket); }, typingName ? NAME_PAUSE_MS : SEAL_PAUSE_MS);
+    sealTimer = setTimeout(() => { sealTimer = null; askSeal(ticket, f); }, typingName ? NAME_PAUSE_MS : SEAL_PAUSE_MS);
     typingName = false;
   }
   // The name field left (or Enter): seal what it holds now.
@@ -188,33 +240,18 @@ export function shareSheet(E, H) {
     if (!sealTimer) return;
     clearTimeout(sealTimer);
     sealTimer = null;
-    askSeal(sealing);
+    const f = H.fields();
+    if (f && !f.failed) askSeal(sealing, f);
   }
-  async function askSeal(ticket) {
-    const fields = H.fields();
-    if (!fields) return;
+  async function askSeal(ticket, fields) {
     const key = keyOf(fields);
-    let r, body = null;
-    try {
-      r = await fetch(new URL("seal/1", ROOT), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(fields) });
-      body = await r.json();
-    } catch (e) {
-      r = null;
-    }
-    if (ticket !== sealing) return;
-    if (r && r.ok && body && typeof body.s === "string") {
-      const at = parseInt(body.s.split(".")[0], 36) * 1000;
-      sealed = { key, s: body.s, at };
-      E.seal.textContent = "Sealed " + localStamp(at, H.election()) + ".";
-      sealSettled = true;
-      buttons();
-      draw();
-    } else {
-      E.seal.textContent = r && (r.status === 403 || r.status === 429) && body && body.error ? body.error
-        : "Not sealed: the link works, but it cannot show when it was made.";
-      sealSettled = true;
-      buttons();
-    }
+    const got = await requestSeal(fields);
+    // only the newest request, for the state the sheet still holds, shows
+    if (ticket !== sealing || keyNow() !== key) return;
+    E.seal.textContent = got.seal ? "Sealed " + localStamp(got.seal.at, H.election()) + "." : got.refused;
+    settled = key;
+    buttons();
+    if (got.seal) draw();
   }
 
   // The image, drawn before the buttons that send it are on.
@@ -228,7 +265,15 @@ export function shareSheet(E, H) {
       const f = H.fields(), s = current();
       const c = await H.card(want, f ? (s ? { at: s.at, sealed: true } : { at: Date.now(), sealed: false }) : null);
       if (ticket !== drawing) return;
-      if (c.wait) { E.img.alt = ""; say(c.wait); return; }
+      if (c.wait) {
+        // no earlier card stays in view under words that say there is none
+        E.img.alt = "";
+        E.img.removeAttribute("src");
+        if (shown) { URL.revokeObjectURL(shown); shown = null; }
+        png = null;
+        say(c.wait);
+        return;
+      }
       E.img.alt = c.alt;
       made = await svgToPNG(c.svg, SIZES[c.size]);
     } catch (e) {
@@ -247,7 +292,7 @@ export function shareSheet(E, H) {
   }
 
   function fill() {
-    E.namenote.textContent = nameNote(E.name.value, H.emptyName());
+    E.namenote.textContent = nameNote(E.name.value, H.emptyName(), H.entered());
     E.native.hidden = typeof navigator.share !== "function";
     seal();
     draw();
@@ -262,19 +307,19 @@ export function shareSheet(E, H) {
     await H.prepare?.();
     E.dlg.showModal();
     fill();
-    E.name.focus();
+    E.copy.focus();
   });
   E.close.addEventListener("click", () => E.dlg.close());
   E.dlg.addEventListener("click", e => { if (e.target === E.dlg) E.dlg.close(); });
   E.dlg.addEventListener("close", () => opener?.focus?.());
   E.kind.addEventListener("change", () => { png = null; draw(); });
+  // every keystroke reaches the page at once; the seal waits for the pause
   E.name.addEventListener("input", () => {
-    E.namenote.textContent = nameNote(E.name.value, H.emptyName());
+    E.namenote.textContent = nameNote(E.name.value, H.emptyName(), H.entered());
     typingName = true;
-    clearTimeout(typing);
-    typing = setTimeout(() => H.onName(cardName(E.name.value)), NAME_TYPING_MS);
+    H.onName(cardName(E.name.value));
   });
-  E.name.addEventListener("change", () => { clearTimeout(typing); H.onName(cardName(E.name.value)); sealNow(); });
+  E.name.addEventListener("change", sealNow);
   E.copy.addEventListener("click", async () => {
     let ok = false;
     try { await navigator.clipboard.writeText(E.url.value); ok = true; }

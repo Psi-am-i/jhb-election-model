@@ -42,7 +42,8 @@
 // (no range: review 2026-10-02).
 
 import { modelCardSVG, seatOrder, SIZES as CARD_SIZES, SITE, STORY_TEXT_BOTTOM, OTHERS_COLOUR } from "./share-card.js";
-import { TRUST, PUBLISHED_CELL, PUBLISHED_LAW } from "./play-state.js";
+import { TRUST, PUBLISHED_CELL, PUBLISHED_LAW, engineSettings, serialize } from "./play-state.js";
+import { compose } from "./yf-url.js";
 
 // The two sizes section 1 shares (share-card.js's third is the return card).
 export const SIZES = { link: CARD_SIZES.link, story: CARD_SIZES.story };
@@ -172,11 +173,14 @@ export function chamberOf(start, party, { council, majority }) {
 // result the page shows; `party(code)` -> {name, colour, logo}; `made` the
 // date it was made; `name` the reader's name or label; `geometry` the ward
 // boundaries with the stripe tile (`step`, `rotate`); `when` the election day
-// in words; `start` forecast.json's `start` (null: no council graphic).
+// in words; `start` forecast.json's `start`. Every card carries the council
+// graphic (owner, 2026-10-06), so a card without the start is refused, not
+// drawn without it.
 export function playCardSpec({ r, party, made, name, geometry, when, start = null, touched = false }) {
   if (touched) throw new Error("a moved setting is shared as the reader's forecast, not on the model's card");
   if (!r || r.refused) throw new Error("the card needs a computed result, not a refusal");
   if (!geometry) throw new Error("the card needs the ward boundaries");
+  if (!start) throw new Error("the card needs the start, for its council graphic");
   const codes = [...order(r, c => party(c).name), "OTHERS"];
   // exact rows, the middle only: a bar from zero to it (none when withheld)
   const rows = codes.map(c => {
@@ -192,7 +196,7 @@ export function playCardSpec({ r, party, made, name, geometry, when, start = nul
             { text: largestLine(r, party), tone: "plain" }],
     map: { W: geometry.W, H: geometry.H, step: geometry.step, rotate: geometry.rotate, wards },
     mapNote: r.wards.length + " " + MAP_NOTE,
-    chamber: start ? chamberOf(start, party, r) : null, chamberNote: start ? CHAMBER_NOTE : "",
+    chamber: chamberOf(start, party, r), chamberNote: CHAMBER_NOTE,
     rows, rowsNote: BARS_NOTE,
     foot: [footText({ made })],
   };
@@ -202,9 +206,58 @@ export function playCardSpec({ r, party, made, name, geometry, when, start = nul
 export const buildPlayCardSVG = info => modelCardSVG(playCardSpec(info), info.assets || {}, info.size || "link");
 
 // The image's text alternative: the same figures, in the same order.
-export function playCardAlt({ r, party, made, name, when, start = null }) {
+export function playCardAlt({ r, party, made, name, when }) {
   const codes = [...order(r, c => party(c).name), "OTHERS"];
   const seats = codes.map(c => (c === "OTHERS" ? "Others" : party(c).name) + " " + seatText(r.seats[c].median));
   return MODEL_TITLE + ". " + sharedBy(name) + ". " + councilLine({ r, when }) + ". " +
-    largestLine(r, party) + " Middle seats: " + seats.join(", ") + ". " + (start ? CHAMBER_NOTE + " " : "") + footText({ made });
+    largestLine(r, party) + " Middle seats: " + seats.join(", ") + ". " + CHAMBER_NOTE + " " + footText({ made });
+}
+
+// ---------- what section 1's share sheet seals and links ----------
+
+// Why a moved setting's forecast cannot be sealed when "Break the model"
+// never loaded, so nothing can work the forecast out.
+export const NO_HANDOFF = "this page could not load Break the model, which works your forecast out";
+
+// Section 1's content for the one share sheet (share-sheet.js), apart from
+// the page. `get`: { now() (what the page shows: { st, ctx, touched }),
+// name() (yf-url.js sealName: the one name source), handoff() (make.js's
+// provider, or null), page() ({ pathname, href }), changed() (a forecast
+// arrived or failed: redraw) }. Returns:
+//   ask()     work out the forecast for the settings shown, once per setting
+//   ready()   that forecast's record { key, forecast, failed }, or null
+//   fields()  null untouched (the model's forecast is never sealed);
+//             undefined while the forecast is being worked out; { failed:
+//             reason } when it cannot be; else { v, c, f, n } to seal
+//   link()    the page's address: section 1's settings, and once moved the
+//             forecast's part and the name, the same name as fields()
+//   retry()   forget a failure, so the next ask() tries again
+export function section1Share(get) {
+  let mine = null;
+  const keyNow = () => JSON.stringify(engineSettings(get.now().st));
+  function ask() {
+    const now = get.now(), h = get.handoff();
+    if (!now.touched || !h) return;
+    const key = keyNow();
+    if (mine && mine.key === key) return;
+    const asked = mine = { key, forecast: null, failed: null };
+    h.forecast(engineSettings(now.st)).then(F => { if (mine === asked) { asked.forecast = F; get.changed(); } },
+      e => { if (mine === asked) { asked.failed = String((e && e.message) || e); get.changed(); } });
+  }
+  const ready = () => (get.now().touched && mine && mine.key === keyNow() ? mine : null);
+  function fields() {
+    if (!get.now().touched) return null;
+    if (!get.handoff()) return { failed: NO_HANDOFF };
+    const m = ready();
+    if (!m || (!m.forecast && !m.failed)) return undefined;
+    if (m.failed) return { failed: m.failed };
+    return { ...m.forecast.fields, n: get.name() };
+  }
+  function link() {
+    const now = get.now(), m = ready(), page = get.page();
+    const brk = m && m.forecast ? "?" + new URLSearchParams(m.forecast.fields).toString() : "";
+    return new URL(page.pathname + compose(serialize(now.st, now.ctx), brk, brk ? get.name() : "") + (brk ? "#break" : "#adjust"), page.href).href;
+  }
+  function retry() { if (mine && mine.failed) mine = null; }
+  return { ask, ready, fields, link, retry };
 }

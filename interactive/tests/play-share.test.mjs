@@ -26,6 +26,10 @@
 //    share of the card's width, and on the story card the words reach to
 //    within STORY_FILL_SLACK of STORY_TEXT_BOTTOM and never past it; a card
 //    shrunk or cut short is caught.
+// 6. What section 1's sheet seals and links (play-card.js section1Share,
+//    run without the DOM): the model's forecast is never sealed and its link
+//    carries no name; moved settings seal the hand-off under the same name
+//    the link carries; a failure says why and is tried again on retry.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -34,7 +38,7 @@ import { fileURLToPath } from "node:url";
 import * as PS from "../js/play-state.js";
 import * as SC from "../js/share-card.js";
 import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, madeLine, headline, sharedBy, largestLine,
-         rangeText, councilLine, chamberOf, PUBLISHED_STAMP, CHAMBER_NOTE, MODEL_TITLE, STORY_TEXT_BOTTOM, SIZES, SITE } from "../js/play-card.js";
+         rangeText, councilLine, chamberOf, section1Share, NO_HANDOFF, PUBLISHED_STAMP, CHAMBER_NOTE, MODEL_TITLE, STORY_TEXT_BOTTOM, SIZES, SITE } from "../js/play-card.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = JSON.parse(readFileSync(resolve(here, "native-play.json"), "utf8"));
@@ -278,8 +282,77 @@ test("the council graphic is the start's seats, ward seats from its calls; a sta
   // it can see: one seat short is refused
   const short = { ...start, seats: { ...start.seats, [ch.rows[0].code]: start.seats[ch.rows[0].code] - 1 } };
   assert.throws(() => chamberOf(short, party, r), /seats/);
-  // no start, no graphic and no note
-  assert.ok(!buildPlayCardSVG(card(untouched, { start: null })).includes(r.majority + " for a majority"));
+  // every card carries the council graphic: with no start, no card is drawn
+  // (owner, 2026-10-06), never one that silently leaves the graphic out
+  assert.throws(() => buildPlayCardSVG(card(untouched, { start: null })), /start/);
+  assert.ok(buildPlayCardSVG(card(untouched)).includes(r.majority + " for a majority"));
+});
+
+// ---------- 6. what section 1's sheet seals and links ----------
+
+// A constructed page and hand-off provider: section1Share is run without
+// the DOM. `answer(settings)` is what the provider gives, or throws.
+function sheetFor({ touched, handoff = true, name = "Thandi", fail = null } = {}) {
+  const c = touched ? moved[0] : untouched;
+  const st = touched ? toState(CASES.find(x => x.name === c.name).settings) : PS.defaults(ctx);
+  let now = { st, ctx, touched }, asked = 0, changed = 0, last = null;
+  const provider = {
+    start: async () => startFor(c.result),
+    forecast: settings => {
+      asked++;
+      last = settings;
+      return fail ? Promise.reject(new Error(fail)) : Promise.resolve({ fields: { v: "1", c: "ctx", f: "QUJD" }, election: {} });
+    },
+  };
+  const s = section1Share({ now: () => now, name: () => name, handoff: () => (handoff ? provider : null),
+    page: () => ({ pathname: "/your-forecast/", href: "https://x.test/your-forecast/" }), changed: () => { changed++; } });
+  return { s, st, asked: () => asked, changed: () => changed, last: () => last, set: n => { now = { ...now, ...n }; } };
+}
+const settle = () => new Promise(r => setTimeout(r, 0));
+
+test("section 1's sheet: the model's forecast is never sealed and its link carries no name", async () => {
+  const t = sheetFor({ touched: false });
+  t.s.ask();
+  await settle();
+  assert.equal(t.s.fields(), null);
+  assert.equal(t.asked(), 0, "the model's forecast asked for a hand-off");
+  const link = new URL(t.s.link());
+  assert.ok(!link.searchParams.has("n") && !link.searchParams.has("f"), link.href);
+  assert.equal(link.hash, "#adjust");
+});
+
+test("section 1's sheet: moved settings seal the hand-off, under the same name the link carries", async () => {
+  const t = sheetFor({ touched: true });
+  assert.equal(t.s.fields(), undefined, "before it is asked, it is being worked out");
+  t.s.ask();
+  assert.equal(t.s.fields(), undefined);
+  await settle();
+  assert.deepEqual(t.last(), PS.engineSettings(t.st), "the provider was asked for the settings shown");
+  assert.equal(t.asked(), 1);
+  const f = t.s.fields(), link = new URL(t.s.link());
+  assert.deepEqual(f, { v: "1", c: "ctx", f: "QUJD", n: "Thandi" });
+  for (const k of ["v", "c", "f", "n"]) assert.equal(link.searchParams.get(k), f[k], k);
+  assert.equal(link.searchParams.get("t"), new URLSearchParams(PS.serialize(t.st, ctx)).get("t"), "section 1's settings ride along");
+  // asked once per setting
+  t.s.ask(); await settle();
+  assert.equal(t.asked(), 1);
+  // a new setting is a new forecast: nothing is sealed until it is worked out
+  t.set({ st: { ...t.st, shift: t.st.shift.map((x, i) => (i ? x : x - 1)) } });
+  assert.equal(t.s.fields(), undefined);
+  assert.equal(t.s.ready(), null);
+});
+
+test("section 1's sheet: a forecast that cannot be worked out says why, is tried again, and no provider is a failure", async () => {
+  const t = sheetFor({ touched: true, fail: "the seat law did not load" });
+  t.s.ask(); await settle();
+  assert.deepEqual(t.s.fields(), { failed: "the seat law did not load" });
+  assert.ok(!new URL(t.s.link()).searchParams.has("f"), "a failed forecast's link carries a forecast");
+  t.s.ask(); await settle();
+  assert.equal(t.asked(), 1, "a failure is not asked again until retried");
+  t.s.retry(); t.s.ask(); await settle();
+  assert.equal(t.asked(), 2, "retry asks again");
+  const none = sheetFor({ touched: true, handoff: false });
+  assert.equal(none.s.fields().failed, NO_HANDOFF);
 });
 
 test("the model's card is black and white, carries the logo, and no photograph or canvas-drawn name", () => {

@@ -64,8 +64,8 @@ BRAND_SRC = REPO_ROOT / "src" / "brand"
 #: his "joburglogo.svg", replacing the 2026-10-03 one and the first of
 #: 2026-10-05): the Hillbrow Tower as the J of "Johannesburg", "ELECTION
 #: FORECAST" above the rest of the word, the nav's home link (``#logo``).
-#: The tower-J alone is the favicon (SVG, and PNG at 32 and 180 px) and,
-#: tight, ``mark.svg``; ``og.png`` is the default
+#: The tower-J alone is the favicon (SVG, and PNG at 32 and 180 px);
+#: ``og.png`` is the default
 #: share image. ``whysoserious.svg`` is the umbrella site's logo (``#wsc``):
 #: the apex portal's masthead and the footer's "part of" line. A viewBox is
 #: the logo's box in its file's coordinates, for a page's <svg><use>.
@@ -84,7 +84,7 @@ def umbrella_svg(cls: str) -> str:
             f'<use href="{UMBRELLA}#wsc"></use></svg>')
 
 
-BRAND_FILES = ("logo.svg", "whysoserious.svg", "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png", "mark.svg")
+BRAND_FILES = ("logo.svg", "whysoserious.svg", "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png")
 
 #: The stylesheet's parts, in cascade order. A ``page-<name>.css`` is scoped to
 #: ``.pg-<name>`` (:func:`scope_css`); every other file applies to every page.

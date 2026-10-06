@@ -210,6 +210,17 @@ let section1 = null;       // { settings, touched }, the newest setting section 
 let handSeq = 0, waiting = null;
 onForecast(f => { section1 = f; if (started) follow(); });
 
+// The forecast this section opens at from section 1's moved `settings`
+// (page.py handoff): { state, middle }, or { refused }. ONE definition: what
+// follow() opens at and what section 1's sheet seals (setHandoff, below) are
+// the same forecast by construction.
+async function handoffState(settings) {
+  const h = await engineCall("handoff", { settings, total: ctx.T });
+  if (h.refused) return { refused: h.refused };
+  const calls = ctx.wards.map(w => h.ward_calls[w]);
+  return { state: B.startState(ctx, { calls, share: h.share }, pubStart.calls).state, middle: h.middle };
+}
+
 async function follow() {
   const f = section1, ticket = ++handSeq;
   // before start() has its data, there is nothing to follow with: start()
@@ -219,12 +230,11 @@ async function follow() {
   if (!f.touched) next = { state: pubStart, adjusted: false, middle: D.start.published_middle };
   else {
     let h;
-    try { h = await engineCall("handoff", { settings: f.settings, total: ctx.T }); }
+    try { h = await handoffState(f.settings); }
     catch (e) { return; }                        // section 2 stays where it is
     if (ticket !== handSeq) return;              // a newer setting is on its way
     if (h.refused) return;
-    const calls = ctx.wards.map(w => h.ward_calls[w]);
-    next = { state: B.startState(ctx, { calls, share: h.share }, pubStart.calls).state, adjusted: true, middle: h.middle };
+    next = { state: h.state, adjusted: true, middle: h.middle };
   }
   if (fromLink) {
     // a forecast opened from a link is the reader's: its start becomes
@@ -441,9 +451,9 @@ setHandoff({
   async forecast(settings) {
     await begin();
     if (!ctx || !(await seatEngine)) throw new Error("the seat law did not load");
-    const h = await engineCall("handoff", { settings, total: ctx.T });
-    if (h.refused) throw new Error(h.refused);
-    const st = B.startState(ctx, { calls: ctx.wards.map(w => h.ward_calls[w]), share: h.share }, pubStart.calls).state;
+    const h = await handoffState(settings);
+    if (h.refused) throw new Error("the model refused these settings: " + h.refused);
+    const st = h.state;
     const answer = await handoffSeats(st);
     if (!answer) throw new Error("a newer setting replaced this one");
     const outcome = await outcomeOf(st, [], answer);

@@ -1,6 +1,6 @@
 // Screenshots of the built /your-forecast/ page into interactive/screenshots/yf-*.png.
 //
-//   build the site into a scratch directory, link site/share.jpg, site/logos
+//   build the site into a scratch directory, link site/logos
 //   and site/draws beside it, then either serve it on 127.0.0.1:8801 or let
 //   this tool serve it to the browser itself (no port):
 //     PLAYWRIGHT=<playwright or playwright-core index.mjs> \

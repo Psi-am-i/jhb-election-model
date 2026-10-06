@@ -22,7 +22,7 @@ in `worker-api/`, not deployed.
 ## Open it
 
 The page has no figures until it is built. Build into a scratch directory,
-link `site/draws/`, `site/logos/` and `site/share.jpg` beside it, and serve
+link `site/draws/` and `site/logos/` beside it, and serve
 that directory:
 
 ```

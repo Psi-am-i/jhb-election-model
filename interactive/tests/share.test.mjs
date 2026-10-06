@@ -175,9 +175,14 @@ test("text on a band is the ink that reads on it", () => {
 });
 
 test("words on a band read at 3:1 or better: every roster colour and every pair, else they sit on paper plates", () => {
-  const colours = [...new Set(Object.values(FIXTURE.parties).map(p => p.colour.toLowerCase()))];
+  // the colours the cards paint: each roster colour as markColour marks it
+  const roster = [...new Set(Object.values(FIXTURE.parties).map(p => p.colour.toLowerCase()))];
+  const colours = [...new Set(roster.map(SC.markColour))];
+  assert.ok(colours.some(c => !roster.includes(c)), "the scan sees the ink a colourless winner is marked in");
   const pairs = colours.flatMap((c, i) => colours.slice(i + 1).map(d => [c, d]));
   assert.ok(colours.length > 5 && pairs.length > 10, "the scan looked at the roster");
+  // a colour the card cannot read is marked in the ink, never thrown on
+  for (const odd of ["red", "#abc", "", null, undefined, "#zzzzzz"]) assert.equal(SC.markColour(odd), SC.markColour("#8b918b"), String(odd));
   let plated = 0;
   for (const fills of [...colours.map(c => [c]), ...pairs]) {
     const b = SC.bandInk(fills);
@@ -303,6 +308,19 @@ test("a winner with no colour of its own is marked in the card's ink, on the ban
   assert.ok(SC.linkCardSVG(A, ASSETS, party).includes(`height="${SC.LINK_BAND}" fill="${hued}"`));
 });
 
+// The right edge of every left-anchored text, measured in the face that
+// draws it; a clipped text (a name in its column) is held by its clip instead.
+function rightEdges(svg) {
+  const out = [];
+  for (const m of svg.matchAll(/<text x="([\d.-]+)" y="[\d.-]+" font-family="([^"]+)" font-weight="(\d+)" font-size="([\d.]+)"([^>]*)>([^<]*)<\/text>/g)) {
+    if (/text-anchor|clip-path/.test(m[5])) continue;
+    const face = m[2] === "IBM Plex Serif" ? "serifSemi" : m[2] === "IBM Plex Mono" ? "monoSemi" : { 400: "sans", 600: "sansSemi", 700: "sansBold" }[m[3]];
+    const t = m[6].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+    out.push({ text: t, right: Number(m[1]) + SC.textWidth(t, Number(m[4]), face) });
+  }
+  return out;
+}
+
 // Each name's clip box, and the left edge of the first figure drawn after it
 // on its row: a name may not reach the figure beside it.
 function nameClips(svg) {
@@ -321,6 +339,21 @@ test("a long party name is fitted and clipped to its column, never into the figu
   const named = code => (code === long ? { ...party(code), name: "National Democratic Convention of the Very Long Name" } : party(code));
   const F = SC.forecastSpec({ name: "T", answer: FIXTURE.A.answer, outcome: A.outcome, vote: FIXTURE.A.vote, calls: A.calls,
     party: named, baseline: FIXTURE.baseline, election: FIXTURE.election });
+  // every governing party long-named too: the governing lines must fit
+  assert.ok(F.coalition.length >= 1, "the fixture's forecast has a coalition");
+  const gov = new Set(F.coalition);
+  const govNamed = code => (gov.has(code) || code === long ? { ...party(code), name: "National Democratic Convention of the Very Long Name " + code } : party(code));
+  const FG = SC.forecastSpec({ name: "T", answer: FIXTURE.A.answer, outcome: A.outcome, vote: FIXTURE.A.vote, calls: A.calls,
+    party: govNamed, baseline: FIXTURE.baseline, election: FIXTURE.election });
+  for (const [what, svg] of [["link", SC.linkCardSVG(FG, ASSETS, govNamed)], ["story", SC.storyCardSVG(FG, ASSETS, govNamed)]]) {
+    const [W] = SC.SIZES[what];
+    assert.ok(svg.includes("Governing"), what);
+    for (const t of rightEdges(svg)) assert.ok(t.right <= W - 8, `${what}: "${t.text}" ends at ${t.right.toFixed(0)}`);
+  }
+  // it can see: a governing line typed at full size off the card is caught
+  const off = SC.linkCardSVG(FG, ASSETS, govNamed).replace("</svg>",
+    `<text x="900" y="300" font-family="IBM Plex Sans" font-weight="600" font-size="20" fill="#fff">${"National Democratic Convention ".repeat(3)}</text></svg>`);
+  assert.ok(rightEdges(off).some(t => t.right > SC.SIZES.link[0] - 8));
   const G = SC.forecastSpec({ name: "U", answer: FIXTURE.B.answer, outcome: Bspec.outcome, vote: FIXTURE.B.vote, calls: Bspec.calls,
     party: named, baseline: FIXTURE.baseline, election: FIXTURE.election });
   for (const [what, svg, n] of [["link", SC.linkCardSVG(F, ASSETS, named), SC.listedRows(F, SC.ROWS.link).length],
@@ -329,6 +362,9 @@ test("a long party name is fitted and clipped to its column, never into the figu
     assert.ok(clips.length >= n, `${what}: ${clips.length} names clipped`);
     for (const c of clips) assert.ok(c.right <= c.figLeft - 4, `${what} ${c.id}: the name's box ends at ${c.right}, the figure "${c.fig}" starts at ${c.figLeft}`);
     assert.ok(svg.includes("National Democratic"), what);
+    // no words run off the card: the governing line included
+    const [W] = SC.SIZES[what];
+    for (const t of rightEdges(svg)) assert.ok(t.right <= W - 8, `${what}: "${t.text}" ends at ${t.right.toFixed(0)}`);
     // the clip is applied to the name's text
     for (const c of clips) assert.ok(svg.includes(`clip-path="url(#${c.id})"`), `${what} ${c.id}`);
   }
