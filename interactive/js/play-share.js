@@ -92,9 +92,7 @@ export function setHandoff(h) { handoff = h; if (now) ask(); }
 let mine = null;              // { key, forecast (null until worked out), failed }
 let start = null;
 function ask() {
-  if (!handoff) return;
-  if (!start) handoff.start().then(s => { start = s; sheet.update(); }, () => {});
-  if (!now.touched || !sheet.isOpen()) return;
+  if (!handoff || !now.touched || !sheet.isOpen()) return;
   const settings = engineSettings(now.st), key = JSON.stringify(settings);
   if (mine && mine.key === key) return;
   const asked = mine = { key, forecast: null, failed: false };
@@ -132,6 +130,8 @@ const sheet = shareSheet(E, {
   async card(kind, made) {
     const info = now, size = kind === "story" ? "story" : "link";
     if (!info.touched) {
+      // the start's council, fetched when the model's card is first drawn
+      if (!start && handoff) start = await handoff.start().catch(() => null);
       const card = { ...info, name: nameNow() || label, start };
       const codes = info.r.shown;
       const assets = await loadAssets(codes, info.party);
