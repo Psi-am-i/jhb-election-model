@@ -13,7 +13,7 @@
   "name": "joburg-seats",
   "main": "src/entry.py",
   "compatibility_date": "2026-08-22",
-  "compatibility_flags": ["python_workers"],
+  "compatibility_flags": ["python_workers", "global_fetch_strictly_public"],
   "workers_dev": false,
   // /v1/card fetches the published draws from here, once per isolate
   // (src/entry.py). The site's Worker reaches this one through a SEATS
