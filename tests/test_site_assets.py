@@ -235,7 +235,7 @@ def test_the_logos_are_one_colour_vector_and_their_links_keep_the_names():
     assert _vector_logo_problems(SA.LOGO, "logo", ("tower", "lettering"), muted=False) == []
     assert _vector_logo_problems(SA.UMBRELLA, "wsc", ("skyline", "wsc-name", "wsc-sub")) == []
     import build_site as B
-    assert B.LOGO_NAME == "Johannesburg \u2014 joburg.whysoserious.city"
+    assert B.LOGO_NAME == "Johannesburg election forecast \u2014 joburg.whysoserious.city"
     nav = B.nav_for("forecast")
     assert (f'<a class="home" href="./" aria-label="{B.LOGO_NAME}"><svg class="logo" viewBox="{SA.LOGO_VIEWBOX}"'
             in nav) and f'<use href="{SA.LOGO}#logo">' in nav

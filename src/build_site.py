@@ -83,8 +83,9 @@ NAV_ITEMS = [
 
 #: The site's name: the home link's accessible name, under the logo.
 SITE_NAME = "joburg.whysoserious.city"
-#: The home link's accessible name: the city's name and the site's address.
-LOGO_NAME = f"Johannesburg \u2014 {SITE_NAME}"
+#: The home link's accessible name: what the logo says ("Election forecast
+#: Johannesburg", 2026-10-05) and the site's address.
+LOGO_NAME = f"Johannesburg election forecast \u2014 {SITE_NAME}"
 
 #: The owner's line under the menu bar on every page (2026-10-03). Its one
 #: definition: `nav_for` emits it after the nav, src/css/chrome.css styles it.
