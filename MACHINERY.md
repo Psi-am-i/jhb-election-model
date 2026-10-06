@@ -2159,10 +2159,22 @@ Tests: `tests/test_score_forecasts.py`. Findings: MODEL-LOG §1.276, §1.277.
 
 The design and the owner's decisions: `audits/2026-10-03-share-design/`.
 
-* **The cards.** `share-card.js` is the one builder of a reader's link card
-  (1200×630), story card (1080×1920) and return card (two forecasts), as SVG.
-  The page draws them in the browser for the share sheet (`make-share.js`);
-  the site's Worker draws the link card as the forecast's preview image.
+* **The cards.** `share-card.js` is the one builder of every share card, as
+  SVG (owner, 2026-10-06: one design): a reader's link card (1200×630),
+  story card (1080×1920) and return card (two forecasts), and the model's own
+  card at the two sizes (`modelCardSVG`, black and white, for section 1
+  untouched). Each but the return card carries the council graphic, the
+  table and the ward map. The story layouts size their blocks first, draw the
+  widest map that fits, and spread what is left evenly over the gaps down to
+  `STORY_TEXT_BOTTOM`. A winner whose colour has no hue is marked in the
+  card's ink (`markColour`), and every party name is clipped to its column.
+  The page draws them in the browser for the one share sheet
+  (`share-sheet.js`, used by `play-share.js` and `make-share.js`); the site's
+  Worker draws the link card as the forecast's preview image. A reader who
+  moves section 1's settings shares section 1's hand-off as a reader's
+  forecast, sealed through the same `/seal/1` (`make.js` `setHandoff`: the
+  hand-off seated in the seat Worker's `handoff` lane, its chance from
+  `analyse`).
   `forecastSpec` takes the seat law's answer, the chance and badge of the
   reader's council-level outcome, the reader's vote, and forecast.json's
   `baseline` (the previous council election per roster party, from

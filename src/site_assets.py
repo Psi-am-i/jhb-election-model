@@ -65,7 +65,7 @@ BRAND_SRC = REPO_ROOT / "src" / "brand"
 #: 2026-10-05): the Hillbrow Tower as the J of "Johannesburg", "ELECTION
 #: FORECAST" above the rest of the word, the nav's home link (``#logo``).
 #: The tower-J alone is the favicon (SVG, and PNG at 32 and 180 px) and,
-#: tight, the share cards' mark (``mark.svg``); ``og.png`` is the default
+#: tight, ``mark.svg``; ``og.png`` is the default
 #: share image. ``whysoserious.svg`` is the umbrella site's logo (``#wsc``):
 #: the apex portal's masthead and the footer's "part of" line. A viewBox is
 #: the logo's box in its file's coordinates, for a page's <svg><use>.

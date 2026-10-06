@@ -173,31 +173,41 @@
       </div>
     </div>
 
-    <!-- the call to share, a full-width row at the end of section 1: it
-         shares this section's settings (js/play-share.js) -->
+    <!-- the call to share, a full-width row at the end of section 1: the
+         one share sheet (js/share-sheet.js) with this section's content
+         (js/play-share.js): the model's forecast untouched, the reader's own
+         forecast, sealed, once a setting is moved -->
     <div class="pl-sharebox yf-sharebox yf-cta" data-live="share">
-      <button class="btn primary pl-shareopen yf-ctabtn" type="button" disabled>Share this forecast
-        <small>An image of your map and seats, and a link that reopens your settings.</small></button>
+      <button class="btn primary shareopen yf-ctabtn" type="button" disabled>Share this forecast
+        <small>The map, the council and the seats as an image, and a link. Move a setting and it is your own forecast, sealed.</small></button>
       <p class="pl-note pl-sharewhy yf-slot"></p>
-      <dialog class="sheet pl-sheet" aria-labelledby="share-title">
+      <dialog class="sheet" aria-labelledby="share-title">
         <div class="dh"><h2 id="share-title">Share this forecast</h2>
           <button class="x" type="button" aria-label="Close">×</button></div>
         <div class="db">
-          <label class="pl-fld">Name on the image (optional)
-            <input class="pl-name" type="text" maxlength="24" autocomplete="off" spellcheck="false"></label>
-          <p class="pl-fldnote"></p>
-          <div class="preview"><img alt=""></div>
-          <div class="pl-cta">
-            <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
-            <button class="btn shdl" type="button" disabled>Download image</button>
+          <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
+            <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
+          <p class="stubnote shnamenote" role="status"></p>
+          <div class="urlrow">
+            <label class="visually-hidden" for="shurl">Link to this forecast</label>
+            <input class="shurl" id="shurl" type="text" readonly value="">
             <button class="btn shcopy" type="button">Copy link</button>
           </div>
-          <div class="pl-seg2 sizes" role="group" aria-label="Image size">
-            <button type="button" data-size="link" aria-pressed="true">Wide</button>
-            <button type="button" data-size="story" aria-pressed="false">Tall</button>
+          <p class="stubnote shseal yf-slot" role="status"></p>
+          <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
+            against the result, under the name above, and a new name or a changed forecast is another entry.
+            The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>
+          <label class="shimgpick">Image <select class="shimg">
+            <option value="link">Link preview</option>
+            <option value="story">Story, for a phone</option>
+            <option value="duel" class="shduel" hidden>Both forecasts, side by side</option></select></label>
+          <div class="preview"><img alt=""></div>
+          <div class="cta shcta">
+            <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
+            <a class="btn shwa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+            <a class="btn shx" href="#" target="_blank" rel="noopener">X</a>
+            <button class="btn shdl" type="button" disabled>Download image</button>
           </div>
-          <label class="visually-hidden" for="shurl">Link to this forecast</label>
-          <input class="shurl visually-hidden" id="shurl" type="text" readonly value="">
           <p class="toast" role="status" aria-live="polite"></p>
         </div>
       </dialog>
@@ -354,7 +364,8 @@
     </section>
 
     <!-- the call to share the reader's forecast, a full-width row at the
-         foot of section 2, the last before the notes (js/make-share.js) -->
+         foot of section 2, the last before the notes: the one share sheet
+         (js/share-sheet.js) with this section's content (js/make-share.js) -->
     <div class="yf-ctafoot">
       <div class="sharebox yf-cta" data-live="b-share">
         <button class="btn primary shareopen yf-ctabtn" type="button" disabled>Share this forecast
@@ -374,7 +385,7 @@
               <button class="btn shcopy" type="button">Copy link</button>
             </div>
             <p class="stubnote shseal yf-slot" role="status"></p>
-            <p class="stubnote">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
+            <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
               against the result, under the name above, and a new name or a changed forecast is another entry.
               The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>
             <label class="shimgpick">Image <select class="shimg">

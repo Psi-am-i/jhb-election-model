@@ -55,9 +55,10 @@ from ``/forecast`` is embedded. The twins' figures come from:
 
 Figures a reader's settings produce are NOT here: they are written at view
 time into ``data-live`` regions by ``js/model.js``, and the share sheet
-(region ``share``) by ``js/play-share.js``, which shows an image that
-``js/forecast-card.js`` (the card module section 2 shares) draws from the
-same result as ``js/play-card.js`` words it (``stats.LIVE_WRITERS``);
+(region ``share``) by ``js/play-share.js`` through the one share sheet
+(``js/share-sheet.js``), which shows an image that ``js/share-card.js`` (the
+card module of both sections) draws from the same result as
+``js/play-card.js`` words it (``stats.LIVE_WRITERS``);
 ``stats.script_writes`` holds each to that.
 
 Share card and preview

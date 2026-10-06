@@ -58,10 +58,11 @@ ROOT = Path(__file__).resolve().parents[1]
 D = YF.YF_DIR
 ADJUST = f"{D}/js/model.js"
 BREAK = f"{D}/js/make.js"
-#: Every writer the page ships: each section's page module and share sheet,
-#: section 1's share-image words and card module, section 2's card module,
-#: and the arrival view a shared link opens.
-WRITERS = (ADJUST, f"{D}/js/play-share.js", f"{D}/js/play-card.js", f"{D}/js/forecast-card.js",
+#: Every writer the page ships: each section's page module and share sheet
+#: content, the one share sheet, section 1's share-image words, the card
+#: module of both sections, and the arrival view a shared link opens.
+SHEET = f"{D}/js/share-sheet.js"
+WRITERS = (ADJUST, f"{D}/js/play-share.js", f"{D}/js/play-card.js", SHEET,
            BREAK, f"{D}/js/make-share.js", f"{D}/js/share-card.js", f"{D}/js/arrival.js",
            f"{D}/js/entries.js")
 STAMP = re.compile(r"<!-- built-pages: (.*?) blocking=(\d+) -->")
@@ -257,6 +258,19 @@ def test_a_figure_outside_a_live_region_is_refused_and_the_refusal_reverts():
         finally:
             mod.write_text(body, encoding="utf-8")
         assert _writes(site) == [], (f, line)
+    # the one share sheet looks up nothing: it writes only to the elements
+    # each section took from its own region and handed it (the build's scan
+    # would allow it a lookup into either region it is listed for, so this
+    # is checked here); and each section's content module stays in its one
+    # region
+    sheet_js = (site / SHEET).read_text(encoding="utf-8")
+    looks = lambda js: [w for w in ("querySelector", "getElementBy", "elementFromPoint") if w in js]
+    assert looks(sheet_js) == []
+    assert looks(sheet_js + "document.querySelector('[data-live=\"share\"] img').alt = '1';") == ["querySelector"]
+    assert S.LIVE_WRITERS[SHEET] == frozenset({"share", "b-share"})
+    assert S.LIVE_WRITERS[f"{D}/js/play-share.js"] == frozenset({"share"})
+    assert S.LIVE_WRITERS[f"{D}/js/make-share.js"] == frozenset({"b-share"})
+    assert _writes(site) == []
     # a module that is NOT listed, imported by a writer, writing a figure
     writer = site / ADJUST
     body = writer.read_text(encoding="utf-8")
@@ -955,12 +969,13 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
             out.append("section 1's share row is inside the levers' column")
         if not (at('class="yf-analysis"') < s2 < notes):
             out.append("section 2's share row is not between the analysis and the notes")
-        for sel in ('class="btn primary pl-shareopen yf-ctabtn"', 'class="btn primary shareopen yf-ctabtn"',
-                    'class="btn primary yf-analyse yf-ctabtn"'):
+        for sel in ('class="btn primary shareopen yf-ctabtn"', 'class="btn primary yf-analyse yf-ctabtn"'):
             i = at(sel)
             if i < 0 or "<small>" not in page[i:page.index("</button>", i)]:
                 out.append(f"no full-width row with its line: {sel}")
-        i = at('class="btn primary shareopen yf-ctabtn"')
+        if page.count('class="btn primary shareopen yf-ctabtn"') != 2:
+            out.append("not one share row in each section")
+        i = page.find('class="btn primary shareopen yf-ctabtn"', s2) if s2 > 0 else -1
         line = page[i:page.index("</button>", i)] if i >= 0 else ""
         for w in ("map", "seats", "chance", "sealed link"):
             if w not in line:

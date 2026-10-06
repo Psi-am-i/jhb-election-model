@@ -87,9 +87,9 @@ JS = (
     # and the count of sealed forecasts (entries.js)
     "make.js", "make-state.js", "builder-state.js", "map.js", "make-share.js",
     "make-worker.js", "seat-engine.js", "arrival.js", "entries.js", "share-card.js", "card-fonts.js",
-    # both: the address, the share image, its text layout, the seat table,
+    # both: the address, the one share sheet, the PNG step, the seat table,
     # the tooltips' placement
-    "yf-url.js", "forecast-card.js", "card-text.js", "seat-table.js", "tip.js",
+    "yf-url.js", "share-sheet.js", "card-text.js", "seat-table.js", "tip.js",
 )
 CSS = ("interactive.css", "play.css", "your-forecast.css")
 PYBOOT = ("page.py", "boot.py")
