@@ -232,7 +232,7 @@ test("% of seats is the seats over the council, for every row and Others, on bot
 });
 
 test("the card modules name no party, hold no party's colour, and compute no badge", () => {
-  const files = ["js/share-card.js", "js/make-share.js", "js/arrival.js"].map(f => [f, readFileSync(resolve(here, "..", f), "utf8")]);
+  const files = ["js/share-card.js", "js/share-sheet.js", "js/make-share.js", "js/play-share.js", "js/arrival.js"].map(f => [f, readFileSync(resolve(here, "..", f), "utf8")]);
   const looked = [];
   for (const [code, p] of Object.entries(FIXTURE.parties)) {
     if (code.length < 2) continue;
@@ -461,6 +461,20 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   assert.ok(svg3.includes(">Thandi<") && svg3.includes(">Kgomotso<") && svg3.includes("Difference"));
   // no seat Worker: no card
   await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), fakeEnv({ seats: false }).env, "link"));
+});
+
+test("section 1's hand-off, a start with no coalition, is a forecast the edge and the seal read unchanged", async () => {
+  // make.js setHandoff encodes the hand-off as B.startState(...) with no
+  // coalition; src/share-edge.js decodeLink must read it as it reads section 2's
+  EDGE.forgetPageData();
+  const PD = await EDGE.pageData(fakeEnv().env, new URL("https://joburg.whysoserious.city/"));
+  const f = MS.encode(stateA, [], ctx);
+  const read = EDGE.decodeLink(MS.FORMAT, D.context_ref, f, PD);
+  assert.ok(read, "the hand-off's link is not read");
+  assert.deepEqual(read.coalition, []);
+  assert.deepEqual(read.state.calls, stateA.calls);
+  // it can see: another context is refused
+  assert.equal(EDGE.decodeLink(MS.FORMAT, "another-context", f, PD), null);
 });
 
 test("an answer that breaks the seat law's arithmetic draws no card", async () => {
