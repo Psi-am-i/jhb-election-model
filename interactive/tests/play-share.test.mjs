@@ -38,7 +38,7 @@ import { fileURLToPath } from "node:url";
 import * as PS from "../js/play-state.js";
 import * as SC from "../js/share-card.js";
 import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, madeLine, headline, sharedBy, largestLine,
-         rangeText, councilLine, chamberOf, section1Share, NO_HANDOFF, PUBLISHED_STAMP, CHAMBER_NOTE, MODEL_TITLE, STORY_TEXT_BOTTOM, SIZES, SITE } from "../js/play-card.js";
+         rangeText, councilLine, chamberOf, UNCALLED_COLOUR, section1Share, NO_HANDOFF, PUBLISHED_STAMP, CHAMBER_NOTE, MODEL_TITLE, STORY_TEXT_BOTTOM, SIZES, SITE } from "../js/play-card.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = JSON.parse(readFileSync(resolve(here, "native-play.json"), "utf8"));
@@ -116,20 +116,9 @@ const WHEN = "4 November 2026";
 // map is checked against the result, not against a file on this machine.
 const geometryFor = r => ({ W: 100, H: 50, step: 7, rotate: 45, places: [],
   paths: Object.fromEntries(r.wards.map((w, i) => [w.ward, `M${i} 0L${i + 1} 0L${i + 1} 1Z`])) });
-// A constructed start for the council graphic: each ward to the result's
-// winner, and the council's other seats to the parties in the page's order,
-// one at a time, so the seats are the council's and no party has fewer seats
-// than wards.
-function startFor(r) {
-  const ward_calls = r.wards.map(w => w.winner), seats = {};
-  for (const c of ward_calls) seats[c] = (seats[c] || 0) + 1;
-  const codes = order(r, c => party(c).name);
-  for (let k = ward_calls.length; k < r.council; k++) { const c = codes[k % codes.length]; seats[c] = (seats[c] || 0) + 1; }
-  return { ward_calls, seats };
-}
 const card = (c, extra = {}) => {
   const r = extra.r ?? c.result;
-  return { r, party, made: MADE, when: WHEN, name: "reader-7", geometry: geometryFor(r), start: startFor(r), assets: ASSETS, ...extra };
+  return { r, party, made: MADE, when: WHEN, name: "reader-7", geometry: geometryFor(r), assets: ASSETS, ...extra };
 };
 
 // The digit runs the card may print outside the seat rows: the result's
@@ -203,7 +192,7 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       const map = mapOf(svg, info.geometry);
       for (const w of info.r.wards.slice(0, 20)) assert.ok(svg.includes(`fill="${w.fill}"`), w.ward);
       assert.equal(map.paths, info.r.wards.length + info.r.wards.filter(w => w.bands).length, `${c.name} ${size}: one fill and one stripe layer per ward`);
-      // the council graphic: one square per seat of the start
+      // the council graphic is on every card
       assert.ok(all.includes(info.r.majority + " for a majority"), `${c.name} ${size}: the council graphic's majority`);
       // nothing runs off the card, and the story stays clear of the apps' lower chrome
       const ys = baselines(svg);
@@ -253,9 +242,10 @@ test("a typed figure, or a result the card did not read, is caught; reverted, qu
   assert.ok(typed(ranged, info).length > 0, "an added range is caught");
   // the card reads the result: change the top party's middle and the card moves with it
   const top = order(info.r, p => party(p).name)[0];
-  info.r.seats[top].median.value = 987.6;
+  // (a value a council can hold: the council graphic refuses middles past it)
+  info.r.seats[top].median.value = 3.7;
   const again = buildPlayCardSVG(info);
-  assert.ok(textOf(again).includes("987.6"));
+  assert.ok(textOf(again).includes("3.7"));
   assert.ok(typed(again, card(c)).length > 0);
   assert.deepEqual(typed(again, info), []);
 });
@@ -271,20 +261,28 @@ test("a withheld figure is printed as withheld; a refusal, no date or no map dra
   assert.throws(() => buildPlayCardSVG({ ...info, geometry: null }));
 });
 
-test("the council graphic is the start's seats, ward seats from its calls; a start that is not the council is refused", () => {
-  const r = untouched.result, start = startFor(r);
-  const ch = chamberOf(start, party, r);
-  assert.equal(ch.rows.reduce((a, x) => a + x.ward + x.pr, 0), r.council);
-  for (const x of ch.rows) assert.equal(x.ward, start.ward_calls.filter(c => c === x.code).length, x.code);
-  assert.ok(ch.rows.every(x => x.pr >= 0));
-  const L = SC.councilLayout(ch);
-  assert.equal(L.cells.length, r.council);
-  // it can see: one seat short is refused
-  const short = { ...start, seats: { ...start.seats, [ch.rows[0].code]: start.seats[ch.rows[0].code] - 1 } };
-  assert.throws(() => chamberOf(short, party, r), /seats/);
-  // every card carries the council graphic: with no start, no card is drawn
-  // (owner, 2026-10-06), never one that silently leaves the graphic out
-  assert.throws(() => buildPlayCardSVG(card(untouched, { start: null })), /start/);
+test("the council graphic is the table's middles, the rest grey; middles past the council are refused", () => {
+  // owner, 2026-10-06: the graphic must not disagree with the forecast
+  for (const c of [untouched, ...moved]) {
+    const r = c.result, ch = chamberOf(r, party, r);
+    const sum = ch.rows.reduce((a, x) => a + x.ward + x.pr, 0);
+    assert.equal(sum, r.council, c.name);
+    // every party's seats in the graphic are its middle, the table's figure
+    for (const x of ch.rows.filter(x => x.code !== "UNCALLED")) {
+      const m = r.seats[x.code].median;
+      assert.equal(x.ward + x.pr, m.withheld ? 0 : Math.round(m.value), `${c.name} ${x.code}`);
+    }
+    // the rest, and only the rest, is grey
+    const middles = [...order(r, x => party(x).name), "OTHERS"].reduce((a, k) => a + (r.seats[k].median.withheld ? 0 : Math.round(r.seats[k].median.value)), 0);
+    const grey = ch.rows.find(x => x.code === "UNCALLED");
+    assert.equal(grey ? grey.ward : 0, r.council - middles, c.name);
+    if (grey) assert.equal(grey.colour, UNCALLED_COLOUR);
+    assert.equal(SC.councilLayout(ch).cells.length, r.council);
+  }
+  // it can see: middles that add up to more than the council are refused
+  const r = untouched.result, top = order(r, x => party(x).name)[0];
+  const over = { ...r, seats: { ...r.seats, [top]: { ...r.seats[top], median: { value: r.council, withheld: false } } } };
+  assert.throws(() => chamberOf(over, party, r), /middles/);
   assert.ok(buildPlayCardSVG(card(untouched)).includes(r.majority + " for a majority"));
 });
 
@@ -297,7 +295,6 @@ function sheetFor({ touched, handoff = true, name = "Thandi", fail = null } = {}
   const st = touched ? toState(CASES.find(x => x.name === c.name).settings) : PS.defaults(ctx);
   let now = { st, ctx, touched }, asked = 0, changed = 0, last = null;
   const provider = {
-    start: async () => startFor(c.result),
     forecast: settings => {
       asked++;
       last = settings;

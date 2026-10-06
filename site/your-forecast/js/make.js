@@ -447,7 +447,6 @@ function handoffSeats(st) {
   });
 }
 setHandoff({
-  start: async () => (await loadData()).forecast.start,
   async forecast(settings) {
     await begin();
     if (!ctx || !(await seatEngine)) throw new Error("the seat law did not load");

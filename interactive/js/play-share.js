@@ -83,14 +83,12 @@ const labelP = fetch(new URL("../labels.json", import.meta.url))
   })
   .then(l => { label = l; return l; });
 
-// What section 2 (make.js) provides: start() -> forecast.json's `start`, for
-// the model's council graphic; forecast(settings) -> the hand-off as a
+// What section 2 (make.js) provides: forecast(settings) -> the hand-off as a
 // reader's forecast, { fields: { v, c, f }, answer, outcome, vote, calls,
 // party, baseline, election, geom }. Null if make.js never loaded.
 let handoff = null;
 export function setHandoff(h) { handoff = h; if (now) sheet.update(); }
 
-let start = null;
 // The name both sections seal and print: yf-url.js's, never a shared link's
 // sharer's (sealName).
 const nameNow = () => YU.sealName();
@@ -119,11 +117,7 @@ const sheet = shareSheet(E, {
   async card(kind, made) {
     const info = now, size = kind === "story" ? "story" : "link";
     if (!info.touched) {
-      // the start's council, fetched when the model's card is first drawn;
-      // without it no card is drawn (every card carries the council graphic)
-      if (!start && handoff) start = await handoff.start().catch(() => null);
-      if (!start) return { wait: "The council could not be loaded, so the image cannot be drawn. The link still works." };
-      const card = { ...info, name: nameNow() || label, start };
+      const card = { ...info, name: nameNow() || label };
       const assets = await loadAssets(info.r.shown, info.party);
       return { svg: buildPlayCardSVG({ ...card, size, assets }), size, alt: playCardAlt(card) };
     }

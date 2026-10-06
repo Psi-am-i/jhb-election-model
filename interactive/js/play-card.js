@@ -22,11 +22,8 @@
 // the seat format (seatText) and the words for each setting (cellName,
 // settingsWords; the seat laws' names are laws.json's, render_sheet.SEAT_LAWS)
 // are defined here once and used by the page as well, so the card cannot
-// disagree with the page. The council graphic is the one figure from
-// elsewhere: a council graphic needs every seat given to a party, and the
-// result's middles are not that (they need not add up to the council), so
-// it draws the start "Break the model" opens at (forecast.json `start`,
-// src/start_rule.py), and says so (CHAMBER_NOTE).
+// disagree with the page. The council graphic draws the same middles, with
+// the seats they leave over in grey (chamberOf, CHAMBER_NOTE).
 //
 // NEUTRAL (DESIGN-decided §8): the parties appear in the page's order (middle
 // seat count, highest first, ties by name), every one drawn the same way;
@@ -53,8 +50,7 @@ export const PUBLISHED_STAMP = "The model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
 export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";
-export const CHAMBER_NOTE = "One full council: each ward to its most likely winner, each party at least its middle " +
-  "seat count, and the remaining seats among the smaller parties.";
+export const CHAMBER_NOTE = "Each party at its middle seat count; grey seats are too close to call.";
 export const MODEL_TITLE = "Our Johannesburg Forecast";
 
 // A by-election cell's name: the published weight, none, or full.
@@ -155,17 +151,25 @@ export function footText({ made }) {
   return PUBLISHED_STAMP + " " + HOW + " " + INVITE + ". " + madeLine(made) + ".";
 }
 
-// The council graphic of the start "Break the model" opens at (forecast.json
-// `start`: seats per party and each ward's call), as share-card.js's council
-// graphic takes it: each party's ward seats (its wards in the start's calls)
-// and list seats (the rest), in seat order. Refuses a start whose seats are
-// not the council's.
-export function chamberOf(start, party, { council, majority }) {
-  const ward = {};
-  for (const c of start.ward_calls) ward[c] = (ward[c] || 0) + 1;
-  const rows = seatOrder(start.seats, party).map(c => ({ code: c, colour: party(c).colour, ward: ward[c] || 0, pr: start.seats[c] - (ward[c] || 0) }));
-  const seated = rows.reduce((a, r) => a + r.ward + r.pr, 0);
-  if (seated !== council) throw new Error("the start seats " + seated + " of the council's " + council);
+// The council graphic of the model's card, as share-card.js's council
+// graphic takes it: each party at its middle seat count, the figure the table
+// beside it shows, and the seats the middles leave over as one grey block,
+// "too close to call" (owner, 2026-10-06: the graphic must not disagree with
+// the forecast). The middles come from different simulations, so they need
+// not fill the council; a withheld middle seats nothing, and a middle that
+// falls between two seat counts is drawn at the nearer whole seat. Every seat
+// is drawn solid: a middle has no ward and list split. Refuses middles that
+// add up to more than the council.
+export const UNCALLED_COLOUR = "#b4b9b4";
+export function chamberOf(r, party, { council, majority }) {
+  const codes = [...order(r, c => party(c).name), "OTHERS"];
+  const rows = codes.map(c => {
+    const m = r.seats[c].median;
+    return { code: c, colour: c === "OTHERS" ? OTHERS_COLOUR : party(c).colour, ward: m.withheld ? 0 : Math.round(m.value), pr: 0 };
+  }).filter(x => x.ward > 0);
+  const seated = rows.reduce((a, x) => a + x.ward, 0);
+  if (seated > council) throw new Error("the middles seat " + seated + " of the council's " + council);
+  if (seated < council) rows.push({ code: "UNCALLED", colour: UNCALLED_COLOUR, ward: council - seated, pr: 0 });
   return { rows, council, majority, coalition: [], top: [] };
 }
 
@@ -173,14 +177,12 @@ export function chamberOf(start, party, { council, majority }) {
 // result the page shows; `party(code)` -> {name, colour, logo}; `made` the
 // date it was made; `name` the reader's name or label; `geometry` the ward
 // boundaries with the stripe tile (`step`, `rotate`); `when` the election day
-// in words; `start` forecast.json's `start`. Every card carries the council
-// graphic (owner, 2026-10-06), so a card without the start is refused, not
-// drawn without it.
-export function playCardSpec({ r, party, made, name, geometry, when, start = null, touched = false }) {
+// in words. Every card carries the council graphic (owner, 2026-10-06),
+// drawn from the result's own middles (chamberOf).
+export function playCardSpec({ r, party, made, name, geometry, when, touched = false }) {
   if (touched) throw new Error("a moved setting is shared as the reader's forecast, not on the model's card");
   if (!r || r.refused) throw new Error("the card needs a computed result, not a refusal");
   if (!geometry) throw new Error("the card needs the ward boundaries");
-  if (!start) throw new Error("the card needs the start, for its council graphic");
   const codes = [...order(r, c => party(c).name), "OTHERS"];
   // exact rows, the middle only: a bar from zero to it (none when withheld)
   const rows = codes.map(c => {
@@ -196,7 +198,7 @@ export function playCardSpec({ r, party, made, name, geometry, when, start = nul
             { text: largestLine(r, party), tone: "plain" }],
     map: { W: geometry.W, H: geometry.H, step: geometry.step, rotate: geometry.rotate, wards },
     mapNote: r.wards.length + " " + MAP_NOTE,
-    chamber: chamberOf(start, party, r), chamberNote: CHAMBER_NOTE,
+    chamber: chamberOf(r, party, r), chamberNote: CHAMBER_NOTE,
     rows, rowsNote: BARS_NOTE,
     foot: [footText({ made })],
   };
