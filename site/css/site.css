@@ -438,10 +438,11 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
    where the column is narrower (852px on a document page), so every page's
    bar is the same.
 
-   --logo-h is the logo's height; the wordmark's baseline sits at .718 of it
-   (src/brand/logo.svg: baseline 1022.73 in a box from 84, 1307 high). The
-   links' first line is pushed down so their baseline meets it: --nav-base is
-   the distance from the top of a link's line box to its baseline. */
+   --logo-h is the logo's height; the baseline of its "Johannesburg" sits at
+   .722 of it (src/brand/logo.svg: the flat feet of h, n and r at 1022.73 in
+   a box from 87, 1296 high, 2826 wide). The links' first line is pushed down
+   so their baseline meets it: --nav-base is the distance from the top of a
+   link's line box to its baseline. */
 .topnav{--logo-h:112px;--nav-base:14px;
   display:flex;align-items:flex-start;gap:0 24px;
   font-family:var(--mono);font-size:12.5px;line-height:18px;color:var(--ink);
@@ -452,8 +453,8 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 }
 .topnav a.home{flex:none;display:block;line-height:0;color:var(--ink);}
 .topnav a.home:hover{color:var(--accent);}
-.topnav .logo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 2190 / 1307);}
-.topnav .navlinks,.topnav .themetoggle{margin-top:calc(var(--logo-h) * .718 - var(--nav-base));}
+.topnav .logo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 2826 / 1296);}
+.topnav .navlinks,.topnav .themetoggle{margin-top:calc(var(--logo-h) * .722 - var(--nav-base));}
 .topnav .navlinks{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;gap:6px 24px;}
 .topnav .navgroup{display:flex;flex-wrap:nowrap;gap:0 14px;}
 /* the toggle's box is taller than a line of links: centred on their line */
@@ -474,11 +475,11 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 }
 
 /* The owner's strapline (build_site.STRAPLINE), under the bar on every page:
-   muted, a size below the menu, in the body face, with air above it so it
-   reads as a line of its own rather than a row of the menu (owner,
-   2026-10-05). */
+   muted, a size below the menu, in the body face (owner, 2026-10-05), close
+   under the bar's rule so it reads as the rule's caption, with the space
+   below it kept (owner, 2026-10-05: it sat too far below the rule). */
 .strapline{font-family:var(--sans);font-size:11px;line-height:1.5;color:var(--ink-3);
-  max-width:none;margin:12px 0 26px;}
+  max-width:none;margin:5px 0 26px;}
 @media (min-width:1200px){
   .strapline{box-sizing:border-box;width:max(100%,1160px);
     margin-left:min(0px,calc((100% - 1160px) / 2));}

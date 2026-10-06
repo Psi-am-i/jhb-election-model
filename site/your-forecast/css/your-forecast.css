@@ -50,12 +50,22 @@
    the wide column */
 .yf .pl-seatfig{order:2;}
 @media (min-width:1100px){.yf .pl-seatfig{order:0;}}
-/* the levers' column at full height, in the page's flow (owner, 2026-10-05:
-   "a visible scroll bar beside the results"): play.css's column that holds
-   still and scrolls on its own drew its scroll bar between the levers and
-   the results, so on this page the column scrolls with the page. */
+/* the levers' column: play.css's, which holds still at the window's height
+   and scrolls on its own, so the map and the table stay beside whichever
+   lever is moving (owner, 2026-10-05: "they used to, which was good as you
+   could see the effect"), with no scroll bar showing (owner, 2026-10-05: "a
+   visible scroll bar beside the results"). A fade at the column's foot says
+   there is more below: a sticky last item, the fade's height of paper, that
+   lies over the levers while any remain below and over its own blank place
+   once the column is scrolled to its end, or has nothing to scroll, where it
+   draws nothing visible. A focused lever scrolls into view clear of it
+   (scroll-padding-bottom). */
 @media (min-width:1100px){
-  .yf .pl-controls{position:static;max-height:none;overflow:visible;scrollbar-gutter:auto;padding-right:0;}
+  .yf .pl-controls{--yf-fade:44px;scrollbar-width:none;scrollbar-gutter:auto;padding-right:0;
+    scroll-padding-bottom:var(--yf-fade);}
+  .yf .pl-controls::-webkit-scrollbar{display:none;}
+  .yf .pl-controls::after{content:"";flex:none;position:sticky;bottom:0;z-index:1;height:var(--yf-fade);
+    pointer-events:none;background:linear-gradient(to bottom,transparent,var(--paper));}
 }
 /* section 2's paint chips and "More parties" select where they wrap: a grid
    of equal cells, so the number of rows depends on the width alone and a
@@ -306,7 +316,7 @@
   .yf .yf-outcome.yf-slot{height:2lh;}
   .yf .floornote.yf-slot{height:calc(2lh + 12px);}
 }
-/* the narrowest wide screens: "Most seats alone: …" runs to a fourth line in
+/* the narrowest wide screens: "Most seats: …" runs to a fourth line in
    the results column, which three lines would scroll beside (owner,
    2026-10-05: no visible inner scroll bar) */
 @media (min-width:1100px) and (max-width:1279px){.yf .pl-oneline.yf-slot{height:4lh;}}
