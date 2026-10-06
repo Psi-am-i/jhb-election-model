@@ -318,7 +318,7 @@ export function bandInk(fills) {
 
 // A colour with no hue of its own, as the roster gives a party it has no
 // colour for, marks nothing: a winner's band in it read as grey, like Others
-// (owner, 2026-10-06, of "National Democratic Convention"). Such a party is
+// (owner, 2026-10-06, of a party the roster gives no colour). Such a party is
 // marked in the card's ink instead. Chroma is the spread of the colour's
 // channels, 0 to 1; below NEUTRAL_CHROMA the colour counts as no hue. A
 // colour that is not "#rrggbb" is no colour the card can read: the ink too.
@@ -374,7 +374,7 @@ function rowBand(lead, colour, x, y, w, h) {
 // A party's name in its column: fitted, cut with an ellipsis if it still
 // does not fit, and clipped to the column, so that no face a browser
 // substitutes can run it into the figures beside it (owner, 2026-10-06:
-// "National Democratic Conve" ran into "47.0%"). `id` is unique in the card.
+// a long name ran into the "% of seats" beside it). `id` is unique in the card.
 function nameCell(id, s, x, y, w, fs, face, fill) {
   const t = fitText(s, w, fs, face, fs * 0.75);
   return `<clipPath id="${id}">${rect(x, y - fs * 1.1, w, fs * 1.5, "#000")}</clipPath>` +
@@ -585,7 +585,7 @@ export const LINK_PITCH = 30;
 // The left column (whose council, the map, the outcome) and the gap after it;
 // the council graphic and the table take the rest (owner, 2026-10-06: the
 // map on every card, and the table clear of the council graphic).
-const LINK_LEFT = 440, LINK_GUTTER = 36;
+const LINK_LEFT = 500, LINK_GUTTER = 32;
 
 export function linkCardSVG(spec, assets = {}, party) {
   const [W, H] = SIZES.link;
@@ -613,11 +613,23 @@ export function linkCardSVG(spec, assets = {}, party) {
   // its badge, the outcome; the map takes the height between
   s += text(X, H - 44, "A reader's forecast, not the model's.", 15, "sans", { fill: C.ink3 }) +
     text(X, H - 18, "Make yours at ", 18, "sans", { fill: C.ink2 }) + text(X + textWidth("Make yours at ", 18), H - 18, SITE, 18, "monoSemi");
-  const cy = H - 76;
-  const ch = fitText(spec.chance, LINK_LEFT - textWidth(spec.badge, 17, "sansSemi") - 40, 28, "serifSemi", 20);
-  s += text(X, cy, ch.text, ch.fs, "serifSemi") + badge(spec.badge, X + textWidth(ch.text, ch.fs, "serifSemi") + 14, cy - 4, 17).svg;
+  // the chance is never cut: with its badge on one line where both fit at
+  // 22 px or more, else on lines of its own and the badge under them
+  const bw2 = textWidth(spec.badge, 17, "sansSemi") + 17 * 1.4 + 14;
+  const one = fitText(spec.chance, LINK_LEFT - bw2, 28, "serifSemi", 22);
+  let cy = H - 76, upper;
+  if (one.text === spec.chance) {
+    s += text(X, cy, one.text, one.fs, "serifSemi") + badge(spec.badge, X + textWidth(one.text, one.fs, "serifSemi") + 14, cy - 4, 17).svg;
+    upper = cy;
+  } else {
+    s += badge(spec.badge, X, cy - 4, 17).svg;
+    const lines = wrapText(spec.chance, LINK_LEFT, 22, "serifSemi");
+    cy -= 34 + (lines.length - 1) * 26;
+    s += lines.map((l, k) => text(X, cy + k * 26, l, 22, "serifSemi")).join("");
+    upper = cy;
+  }
   const words = wrapText(spec.words, LINK_LEFT, 17);
-  const wy = cy - 40 - (words.length - 1) * 21;
+  const wy = upper - 40 - (words.length - 1) * 21;
   s += words.map((l, k) => text(X, wy + k * 21, l, 17, "sans", { fill: C.ink2 })).join("");
   if (assets.geom) {
     const mt = y - 6, mb = wy - 17 - 14;

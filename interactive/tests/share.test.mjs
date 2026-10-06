@@ -361,7 +361,7 @@ test("a long party name is fitted and clipped to its column, never into the figu
     const clips = nameClips(svg);
     assert.ok(clips.length >= n, `${what}: ${clips.length} names clipped`);
     for (const c of clips) assert.ok(c.right <= c.figLeft - 4, `${what} ${c.id}: the name's box ends at ${c.right}, the figure "${c.fig}" starts at ${c.figLeft}`);
-    assert.ok(svg.includes("National Democratic"), what);
+    assert.ok(svg.includes("National Dem"), what);
     // no words run off the card: the governing line included
     const [W] = SC.SIZES[what];
     for (const t of rightEdges(svg)) assert.ok(t.right <= W - 8, `${what}: "${t.text}" ends at ${t.right.toFixed(0)}`);
