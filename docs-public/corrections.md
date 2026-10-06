@@ -2,43 +2,43 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
-## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** The forecast page, the home page, "Nobody will win Johannesburg" and the review said the ANC and the DA were each the largest party in 47% of simulations. Where two parties tied for the most seats, the tie was counted as a win for one of them.
 
 **What is right.** The ANC alone has the most seats in 47% of simulations and the DA alone in 45%. In 1.4%, two or more parties tie for the most seats.</span>
 
-## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 2 October 2026
+## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** The red-lines claim on the forecast page said that without the ANC the red line holds "about half the time", and called it a coin flip. The figure was 59% of simulations, which is not half.
 
 **What is right.** Without the ANC, the red line leaves a majority in 59% of simulations. The verdict is "MORE LIKELY THAN NOT".</span>
 
-## "The 587,000 votes the ANC shed between 2016 and 2021" — published 26 September 2026, corrected 2 October 2026
+## "The 587,000 votes the ANC shed between 2016 and 2021" — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** The home page said the ANC shed 587,000 votes between 2016 and 2021.
 
 **What is right.** The ANC bloc lost 587,000 votes between the 2019 national election and the 2021 local election, as the article says.</span>
 
-## "Where on 31 August the DA led clearly" — published 26 September 2026, corrected 2 October 2026
+## "Where on 31 August the DA led clearly" — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** A note at the top of "Nobody will win Johannesburg" said the piece was published on 31 August.
 
 **What is right.** It was published on 8 August.</span>
 
-## "The most reliable majority in the city that does not involve the EFF or MK" — published 26 September 2026, corrected 2 October 2026
+## "The most reliable majority in the city that does not involve the EFF or MK" — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** We called the DA and the ANC "the most reliable majority in the city that does not involve the EFF or MK". Several majorities without the EFF or MK occur in most simulations.
 
 **What is right.** The DA and the ANC are the most reliable two-party majority in the city.</span>
 
-## "A government can be formed without the EFF or MK" — published 26 September 2026, corrected 2 October 2026
+## "A government can be formed without the EFF or MK" — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** A tested claim was titled "A government can be formed without the EFF or MK". What it tested was narrower: whether a council without the ANC, the EFF and MK has a majority. The quote was dated 11 September.
 
 **What is right.** The claim is titled "The DA can govern without the ANC, the EFF or MK". The quote is dated 13 September, the date of the report it comes from.</span>
 
-## "18 September 2026: Published" on three tested claims — published 26 September 2026, corrected 2 October 2026
+## "18 September 2026: Published" on three tested claims — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** Three tested claims on the forecast page were dated 18 September.
 

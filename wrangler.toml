@@ -128,21 +128,16 @@ name = "SEAL_LIMIT"
 namespace_id = "1003"
 simple = { limit = 30, period = 60 }
 
-# NOT DECLARED YET, on purpose: the entries database (owner, 2026-10-03). Each
+# The entries database (owner, 2026-10-03; created 2026-10-06). Each
 # successful seal is stored as one row (src/share-edge.js storeEntry; the table
-# is migrations/0001_entries.sql), and GET /entries/1/count counts them. Until
-# the binding exists no seal is stored and the count answers 503: a forecast
-# sealed before then is not an entry. A binding with a made-up id would fail
-# the deploy. The owner, from the repository root:
-#   npx wrangler d1 create joburg-entries
-#   (paste the printed database_id below, and uncomment the four lines)
+# is migrations/0001_entries.sql), and GET /entries/1/count counts them.
+# Before the first deploy with this binding, from the repository root:
 #   npx wrangler d1 migrations apply joburg-entries --remote
-# then deploy as usual (docs/DEPLOY-UAT.md).
-# [[d1_databases]]
-# binding = "ENTRIES"
-# database_name = "joburg-entries"
-# database_id = "<the id `wrangler d1 create` printed>"
-# migrations_dir = "migrations"
+[[d1_databases]]
+binding = "ENTRIES"
+database_name = "joburg-entries"
+database_id = "6f3e7b01-4e73-4f76-81b6-486579fb52d6"
+migrations_dir = "migrations"
 #
 # Results night (src/rank_entries.py), once the result is ingested:
 #   npx wrangler d1 execute joburg-entries --remote --json --command "SELECT seal_id, sealed_at, label, model_ref, context_ref, state, forecast FROM entries" > ~/joburg-entries.json

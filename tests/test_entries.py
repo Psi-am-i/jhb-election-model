@@ -426,14 +426,18 @@ def entries_config_problems(text: str) -> list[str]:
     want = {"name": "SEAL_LIMIT", "namespace_id": "1003", "simple": {"limit": 30, "period": 60}}
     if cfg.get("ratelimits") != [want]:
         out.append(f"[[ratelimits]] is {cfg.get('ratelimits')}, want [{want}]")
-    for d in cfg.get("d1_databases", []):
-        if d.get("binding") == "ENTRIES" and (d.get("database_name") != "joburg-entries" or
-                                               not re.fullmatch(r"[0-9a-f-]{36}", d.get("database_id", ""))
-                                               or d.get("migrations_dir") != "migrations"):
+    # The database exists since 2026-10-06 (owner): ENTRIES is declared once,
+    # with the created id, and the migrations command is still stated.
+    entries = [d for d in cfg.get("d1_databases", []) if d.get("binding") == "ENTRIES"]
+    if len(entries) != 1:
+        out.append(f"ENTRIES is declared {len(entries)} times, want once")
+    for d in entries:
+        if (d.get("database_name") != "joburg-entries"
+                or not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                                    d.get("database_id", ""))
+                or d.get("migrations_dir") != "migrations"):
             out.append(f"ENTRIES is declared with {d}")
-    for cmd in ("npx wrangler d1 create joburg-entries",
-                "npx wrangler d1 migrations apply joburg-entries --remote",
-                "# binding = \"ENTRIES\""):
+    for cmd in ("npx wrangler d1 migrations apply joburg-entries --remote",):
         if cmd not in text:
             out.append(f"the owner's command is missing: {cmd}")
     return out
@@ -442,15 +446,13 @@ def entries_config_problems(text: str) -> list[str]:
 def test_wrangler_toml_states_the_limit_and_the_owner_commands():
     text = W.WRANGLER.read_text(encoding="utf-8")
     assert entries_config_problems(text) == []
+    db_id = re.search(r'database_id = "([^"]+)"', text).group(1)
     for a, b in (("limit = 30", "limit = 3000"), ('name = "SEAL_LIMIT"', 'name = "LIMIT"'),
-                 ("# binding = \"ENTRIES\"\n# database_name = \"joburg-entries\"\n# database_id = \"<the id `wrangler d1 create` printed>\"",
-                  "binding = \"ENTRIES\"\ndatabase_name = \"joburg-entries\"\ndatabase_id = \"placeholder\"")):
+                 (f'database_id = "{db_id}"', 'database_id = "placeholder"'),
+                 ('binding = "ENTRIES"', 'binding = "joburg_entries"'),
+                 ('migrations_dir = "migrations"\n', '')):
         assert text.count(a) == 1, a
-        mutant = text.replace(a, b)
-        if a.startswith("# binding"):
-            mutant = mutant.replace("# [[d1_databases]]", "[[d1_databases]]").replace(
-                '# migrations_dir = "migrations"', 'migrations_dir = "migrations"')
-        assert entries_config_problems(mutant), f"blind to {b!r}"
+        assert entries_config_problems(text.replace(a, b)), f"blind to {b!r}"
 
 
 PRIVACY_MUST = (
