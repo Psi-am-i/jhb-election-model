@@ -196,8 +196,15 @@ build–review–fix loops.
    check, the click-through, screenshots. A check that still fails after one
    fix, or a tier not finished in about 15 minutes, stops the run: commit what
    passes and report the failing check with its output, rather than looping.
-5. **The whole suite once per UAT version**, before promote — never once per
-   round.
+5. **The whole suite only when a UAT version touches the model** (owner,
+   2026-10-07: "do we need the full suite for these changes? this was a very
+   small UAT"). It runs once, before promote, when the version changes the
+   model or the data pipeline (`src/` modules that `run_model` imports, the
+   pools, the intermediates, `compare_history`) or a published figure. A
+   version that changes only the site or the interactive (pages, CSS, page
+   and interactive JS, cards, wording, the build's page assembly) promotes on
+   its tier's checks from step 3: the page modules, the interactive node
+   tests by file and `yf_jump_check`. Never once per round.
 
 ## 5. Every plan item names its completion predicate
 
