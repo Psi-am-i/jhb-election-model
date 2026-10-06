@@ -31,7 +31,7 @@ ARTICLES = ROOT / "content" / "joburg" / "articles.toml"
 BEFORE_SPLIT = "a912197"
 
 #: The owner's nav, in order (sweep of 2026-10-03, item 9).
-NAV = ["our forecast", "your forecast", "commentary", "party claims tested",
+NAV = ["our forecast", "your forecast", "commentary", "party claims",
        "methodology", "review", "corrections", "sources", "source code"]
 
 #: The owner's footer, his words, with his two typos corrected

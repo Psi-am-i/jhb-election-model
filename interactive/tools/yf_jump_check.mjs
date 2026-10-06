@@ -253,26 +253,45 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   const over = await p.evaluate(() => [...document.querySelectorAll(".yf-slot")].filter(e => e.getClientRects().length)
     .map(e => [e.className, e.scrollHeight - e.clientHeight, e.textContent.trim().slice(0, 60)]).filter(([, d]) => d > 1));
   for (const [c, d, t] of over) failures.push(`${w} every lever: .${c.replace(/ /g, ".")} overflows by ${d}px ("${t}")`);
-  // wide: no inner scroll bar anywhere on the page (owner, 2026-10-05): no
-  // element that scrolls up and down on its own with more than it shows, and
-  // none that keeps a gutter for a scroll bar. (A phone's chip tray and map
-  // scroll sideways by design.)
-  const scrolling = () => p.evaluate(() => [...document.querySelectorAll("body *")].filter(e => e.getClientRects().length)
+  // wide: no VISIBLE inner scroll bar anywhere on the page (owner,
+  // 2026-10-05). An element may scroll on its own with its bar hidden, as the
+  // levers' column does so the results stay beside the lever being moved
+  // (owner, 2026-10-05); it fails when it scrolls up and down with more than
+  // it shows AND shows a bar: a computed scrollbar-width other than "none",
+  // and a bar that takes width (offsetWidth - clientWidth, less the borders).
+  // Playwright's headless Chromium runs with --hide-scrollbars, where no bar
+  // takes width: the constructed visible scroller measures its own bar, and
+  // where that reads zero the width term is dropped and scrollbar-width alone
+  // decides, which the check says. (A phone's chip tray and map scroll
+  // sideways by design.)
+  const scrolling = byWidth => p.evaluate(byWidth => [...document.querySelectorAll("body *")].filter(e => e.getClientRects().length)
     .filter(e => { const s = getComputedStyle(e);
-      return (["auto", "scroll"].includes(s.overflowY) && e.scrollHeight - e.clientHeight > 1)
-        || (s.scrollbarGutter || "").includes("stable"); })
-    .map(e => `${e.tagName.toLowerCase()}.${String(e.className).trim().replace(/\s+/g, ".")} by ${e.scrollHeight - e.clientHeight}px`));
-  if (w >= 980) {   // the detector sees a constructed scroller, and goes quiet when it is removed
-    await p.evaluate(() => { const x = document.createElement("div"); x.id = "scroll-probe"; x.style.cssText = "height:10px;overflow-y:auto";
-      x.append(Object.assign(document.createElement("div"), { style: "height:40px" })); document.querySelector("#adjust").append(x); });
-    const seen = (await scrolling()).some(x => x.startsWith("div. by"));
-    await p.evaluate(() => document.querySelector("#scroll-probe").remove());
-    const quiet = !(await scrolling()).some(x => x.startsWith("div. by"));
-    if (!seen || !quiet) failures.push(`${w}: the scroller check is blind (caught ${seen}, quiet after removal ${quiet})`);
+      const bar = e.offsetWidth - e.clientWidth - parseFloat(s.borderLeftWidth) - parseFloat(s.borderRightWidth);
+      return ["auto", "scroll"].includes(s.overflowY) && e.scrollHeight - e.clientHeight > 1
+        && s.scrollbarWidth !== "none" && (!byWidth || bar > 0); })
+    .map(e => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}.${String(e.className).trim().replace(/\s+/g, ".")} by ${e.scrollHeight - e.clientHeight}px`), byWidth);
+  let byWidth = false;
+  if (w >= 980) {   // the detector catches a constructed visible scroller, passes a hidden one, and goes quiet when they are removed
+    byWidth = await p.evaluate(() => {
+      const probe = (id, css) => { const x = document.createElement("div"); x.id = id; x.style.cssText = "height:10px;overflow-y:auto;" + css;
+        x.append(Object.assign(document.createElement("div"), { style: "height:40px" })); document.querySelector("#adjust").append(x); return x; };
+      const shown = probe("scroll-probe", "");
+      probe("scroll-probe-hidden", "scrollbar-width:none");
+      return shown.offsetWidth - shown.clientWidth > 0;
+    });
+    looked.push(`${w}: scroll bars ${byWidth ? "take width here, so a bar fails when it is not set to none and takes width"
+      : "take no width in this browser (--hide-scrollbars), so scrollbar-width alone decides"}`);
+    const found = await scrolling(byWidth);
+    const seen = found.some(x => x.startsWith("div#scroll-probe."));
+    const passed = !found.some(x => x.startsWith("div#scroll-probe-hidden."));
+    await p.evaluate(() => { document.querySelector("#scroll-probe").remove(); document.querySelector("#scroll-probe-hidden").remove(); });
+    const quiet = !(await scrolling(byWidth)).some(x => x.startsWith("div#scroll-probe"));
+    if (!seen || !passed || !quiet)
+      failures.push(`${w}: the scroll-bar check is blind (caught the visible probe ${seen}, passed the hidden one ${passed}, quiet after removal ${quiet})`);
   }
-  const scrollers = w < 980 ? [] : await scrolling();
-  if (w >= 980) looked.push(`${w} every lever: ${scrollers.length} inner scroller(s)`);
-  for (const x of scrollers) failures.push(`${w} every lever: ${x} scrolls inside the page`);
+  const scrollers = w < 980 ? [] : await scrolling(byWidth);
+  if (w >= 980) looked.push(`${w} every lever: ${scrollers.length} inner scroller(s) with a visible bar`);
+  for (const x of scrollers) failures.push(`${w} every lever: ${x} scrolls inside the page with a visible scroll bar`);
   // the settings line: clamped to its strip, the rest behind "+N more"
   looked.push(`${w} every lever: the settings line shows "${await p.evaluate(() => document.querySelector(".pl-settings").textContent)}"`);
   await ctx.close();

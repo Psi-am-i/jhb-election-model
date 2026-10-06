@@ -205,8 +205,13 @@ test("words on a band read at 3:1 or better: every roster colour and every pair,
 
 test("the brand on a card holds no CSS variable, which resvg cannot read: every part in the card's ink", () => {
   const svg = readFileSync(resolve(repo, "site/logo.svg"), "utf8");
-  assert.ok(/var\(--/.test(svg), "the site's logo uses a variable, so the check can see one");
+  assert.ok(/currentColor/.test(svg), "the site's logo is drawn in currentColor, so the check can see it");
   assert.ok(!/var\(|currentColor/.test(SC.brandOf(svg).body));
+  // a part in a page token (var(--ink-3, currentColor)) is resolved too:
+  // constructed, since the logo carries none
+  const muted = svg.replace("</svg>", '<path style="fill:var(--ink-3,currentColor)" d="M0 0h1v1z"/></svg>');
+  assert.ok(/var\(--/.test(muted));
+  assert.ok(!/var\(|currentColor/.test(SC.brandOf(muted).body));
 });
 
 test("% of seats is the seats over the council, for every row and Others, on both single cards", () => {

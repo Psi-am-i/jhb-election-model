@@ -98,10 +98,12 @@ one poll and how far to believe it, and the weight of by-elections, and
 seated under a law the reader picks: "See how other systems would seat this
 vote", with South African law and Germany's of 2000, 2015 and 2023 under the
 names `/forecast` gives them. Levers on the left, one card each; on a wide
-screen the levers' column beside the results, both in the page's flow with no
-inner scroll bar (owner, 2026-10-05), and the map above the seat table, each
-the column's full width. The map's height is capped by the window so the
-table's head shows under it. The banner of seats sticks while section
+screen a levers' column that holds still at the window's height and scrolls
+on its own, so the results stay beside the lever being moved, with its scroll
+bar hidden and a fade at its foot while there is more below (owner,
+2026-10-05), and the map above the seat table, each the results column's full
+width. The map's height is capped by the window so the table's head shows
+under it. The banner of seats sticks while section
 1 is in view and leaves with it.
 Each results element has a build twin of tokens and a LIVE sibling:
 `model.js` sets `data-touched` on the `result` region when a control is away

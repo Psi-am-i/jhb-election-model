@@ -370,16 +370,19 @@ def test_every_page_links_it_and_it_has_its_own_card():
 def test_wide_section_1_stacks_the_map_over_the_seat_table_at_full_size():
     """Owner, 2026-10-03 ("stacked … plenty of space … too small"): on a wide
     screen the map sits ABOVE the seat table, each the results column's full
-    width, in the page's flow. The levers' column is in the page's flow too,
-    with no inner scroll: the owner saw its scroll bar beside the results
-    ("a visible scroll bar beside the results text", 2026-10-05), so
-    your-forecast.css takes play.css's still, self-scrolling column out of
-    this page. On the built page the map's figure comes before
-    the seat table's inside the results grid; the stylesheets give the grid
-    no second column, put no height cap or inner scroll on the results
-    column, and cap the map only at the window's height. A constructed
-    side-by-side grid and a capped results column are caught, and the check
-    goes quiet when they are reverted."""
+    width, in the page's flow. The levers' column is play.css's, which holds
+    still and scrolls on its own so the results stay beside the lever being
+    moved (owner, 2026-10-05: "they used to, which was good as you could see
+    the effect"), and on this page it shows no scroll bar (owner, 2026-10-05:
+    "a visible scroll bar beside the results text"). On the built page the
+    map's figure comes before the seat table's inside the results grid; the
+    stylesheets give the grid no second column, put no height cap or inner
+    scroll on the results column, and cap the map only at the window's
+    height; the levers' column is sticky and scrolls on its own, with its
+    scroll bar hidden in both spellings. A constructed side-by-side grid, a
+    capped results column, a column taken out of its sticky scroll and one
+    whose scroll bar shows are caught, and the check goes quiet when they are
+    reverted."""
     site = _built()
     html = _html(site)
     grid = html[html.index('class="pl-rgrid"'):]
@@ -397,21 +400,39 @@ def test_wide_section_1_stacks_the_map_over_the_seat_table_at_full_size():
     assert side_by_side(play + ".pl-rgrid{display:grid;grid-template-columns:1fr 330px;}")
     assert not capped(play + yf)
     assert capped(play + ".pl-resultscol{max-height:calc(100vh - 60px);overflow-y:auto;}")
-    def self_scrolling(css: str) -> bool:
-        """Does the LAST rule this page gives the levers' column leave it
-        scrolling on its own (an overflow of auto/scroll or a stable gutter)?"""
-        rules = re.findall(r"\.pl-controls\{([^}]*)\}", css)
+    def column(css: str) -> dict[str, str]:
+        """The levers' column as the LAST rule for each property leaves it."""
         last = {}
-        for body in rules:
+        for body in re.findall(r"\.pl-controls\{([^}]*)\}", css):
             for decl in body.split(";"):
                 if ":" in decl:
                     k, v = (x.strip() for x in decl.split(":", 1))
                     last["overflow-y" if k == "overflow" else k] = v.split()[-1] if k == "overflow" else v
-        return last.get("overflow-y") in ("auto", "scroll") or "stable" in last.get("scrollbar-gutter", "")
+        return last
 
-    assert self_scrolling(play), "play.css no longer gives /play/ its self-scrolling column: re-check this test"
-    assert not self_scrolling(play + yf), "the levers' column scrolls on its own on /your-forecast/"
-    assert self_scrolling(play + yf + ".yf .pl-controls{overflow-y:auto;}")
+    def holds_still(css: str) -> bool:
+        """Sticky, capped at the window's height, scrolling on its own."""
+        c = column(css)
+        return (c.get("position") == "sticky" and c.get("max-height", "").startswith("calc(100vh")
+                and c.get("overflow-y") in ("auto", "scroll"))
+
+    def bar_shows(css: str) -> bool:
+        """Does the column show a scroll bar: a scrollbar-width other than
+        none, a stable gutter, or no WebKit rule hiding the bar?"""
+        c = column(css)
+        return (c.get("scrollbar-width") != "none" or "stable" in c.get("scrollbar-gutter", "")
+                or not re.search(r"\.pl-controls::-webkit-scrollbar\{display:none;?\}", css))
+
+    assert holds_still(play) and bar_shows(play), \
+        "play.css no longer gives /play/ its still, self-scrolling column with its bar: re-check this test"
+    assert holds_still(play + yf), "the levers' column does not hold still and scroll on its own on /your-forecast/"
+    assert not holds_still(play + yf + ".yf .pl-controls{position:static;}")
+    assert not holds_still(play + yf + ".yf .pl-controls{overflow:visible;}")
+    assert not bar_shows(play + yf), "the levers' column shows a scroll bar on /your-forecast/"
+    assert bar_shows(play + yf + ".yf .pl-controls{scrollbar-width:auto;}")
+    assert bar_shows(play + yf + ".yf .pl-controls{scrollbar-gutter:stable;}")
+    assert bar_shows(play + yf.replace("::-webkit-scrollbar{display:none;}", "::-webkit-scrollbar{width:8px;}"))
+    assert ".pl-controls::after{" in yf and "position:sticky;bottom:0" in yf, "the column's foot has no fade"
     assert re.search(r"\.yf \.pl-wardmap\{max-height:calc\(100vh - \d+px\);\}", yf)
 
 

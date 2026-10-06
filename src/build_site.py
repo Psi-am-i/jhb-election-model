@@ -48,11 +48,11 @@ REPO_URL = "https://github.com/Psi-am-i/jhb-election-model"
 
 import build_your_forecast  # noqa: E402  (the interactive page's address, below)
 
-#: The nav, in the owner's order (sweep of 2026-10-03, item 9):
-#: joburg.whysoserious.city | our forecast | your forecast | commentary |
-#: party claims tested | methodology | review | corrections | sources |
-#: source code. No "home" item: the site name at the left of the bar IS the
-#: link home (owner, 2026-09-24).
+#: The nav, in the owner's order (sweep of 2026-10-03, item 9; "party
+#: claims", 2026-10-05): the logo | our forecast | your forecast |
+#: commentary | party claims | methodology | review | corrections | sources |
+#: source code. No "home" item: the logo at the left of the bar IS the link
+#: home (owner, 2026-09-24).
 #:
 #: ⛔ EVERY HREF IS A PAGE THIS BUILD PRODUCES (or the repository).
 #: `tests/test_site_structure.py` checks it both ways. The last time a nav
@@ -68,7 +68,7 @@ NAV_ITEMS = [
     ("forecast", "our forecast"),
     (build_your_forecast.YF_HREF, "your forecast"),
     ("commentary", "commentary"),
-    ("claims", "party claims tested"),
+    ("claims", "party claims"),
     # /about merged into /methodology (owner's sweep, 2026-10-03); the Worker
     # sends /about there.
     ("methodology", "methodology"),
@@ -83,9 +83,9 @@ NAV_ITEMS = [
 
 #: The site's name: the home link's accessible name, under the logo.
 SITE_NAME = "joburg.whysoserious.city"
-#: The home link's accessible name: what the logo says, the city's name over
-#: the site's address (owner's logo of 2026-10-05).
-LOGO_NAME = f"Johannesburg \u2014 {SITE_NAME}"
+#: The home link's accessible name: what the logo says ("Election forecast
+#: Johannesburg", 2026-10-05) and the site's address.
+LOGO_NAME = f"Johannesburg election forecast \u2014 {SITE_NAME}"
 
 #: The owner's line under the menu bar on every page (2026-10-03). Its one
 #: definition: `nav_for` emits it after the nav, src/css/chrome.css styles it.
