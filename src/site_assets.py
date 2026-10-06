@@ -61,15 +61,16 @@ JS_DIR = "js"
 FONT_DIR = "fonts"
 BRAND_SRC = REPO_ROOT / "src" / "brand"
 #: The owner's logos, served at the site root. ``logo.svg`` (2026-10-05,
-#: replacing the 2026-10-03 one): the Hillbrow Tower as the J of
-#: "Johannesburg" over the site's address, the nav's home link (``#logo``).
+#: his "joburglogo.svg", replacing the 2026-10-03 one and the first of
+#: 2026-10-05): the Hillbrow Tower as the J of "Johannesburg", "ELECTION
+#: FORECAST" above the rest of the word, the nav's home link (``#logo``).
 #: The tower-J alone is the favicon (SVG, and PNG at 32 and 180 px) and,
 #: tight, the share cards' mark (``mark.svg``); ``og.png`` is the default
 #: share image. ``whysoserious.svg`` is the umbrella site's logo (``#wsc``):
 #: the apex portal's masthead and the footer's "part of" line. A viewBox is
 #: the logo's box in its file's coordinates, for a page's <svg><use>.
 LOGO = "logo.svg"
-LOGO_VIEWBOX = "336 84 2190 1307"
+LOGO_VIEWBOX = "19 87 2826 1296"
 UMBRELLA = "whysoserious.svg"
 UMBRELLA_VIEWBOX = "440 272 1984 1016"
 #: The umbrella site's address, which its logo links to.

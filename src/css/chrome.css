@@ -12,10 +12,11 @@
    where the column is narrower (852px on a document page), so every page's
    bar is the same.
 
-   --logo-h is the logo's height; the wordmark's baseline sits at .718 of it
-   (src/brand/logo.svg: baseline 1022.73 in a box from 84, 1307 high). The
-   links' first line is pushed down so their baseline meets it: --nav-base is
-   the distance from the top of a link's line box to its baseline. */
+   --logo-h is the logo's height; the baseline of its "Johannesburg" sits at
+   .722 of it (src/brand/logo.svg: the flat feet of h, n and r at 1022.73 in
+   a box from 87, 1296 high, 2826 wide). The links' first line is pushed down
+   so their baseline meets it: --nav-base is the distance from the top of a
+   link's line box to its baseline. */
 .topnav{--logo-h:112px;--nav-base:14px;
   display:flex;align-items:flex-start;gap:0 24px;
   font-family:var(--mono);font-size:12.5px;line-height:18px;color:var(--ink);
@@ -26,8 +27,8 @@
 }
 .topnav a.home{flex:none;display:block;line-height:0;color:var(--ink);}
 .topnav a.home:hover{color:var(--accent);}
-.topnav .logo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 2190 / 1307);}
-.topnav .navlinks,.topnav .themetoggle{margin-top:calc(var(--logo-h) * .718 - var(--nav-base));}
+.topnav .logo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 2826 / 1296);}
+.topnav .navlinks,.topnav .themetoggle{margin-top:calc(var(--logo-h) * .722 - var(--nav-base));}
 .topnav .navlinks{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;gap:6px 24px;}
 .topnav .navgroup{display:flex;flex-wrap:nowrap;gap:0 14px;}
 /* the toggle's box is taller than a line of links: centred on their line */
