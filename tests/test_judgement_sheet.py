@@ -311,8 +311,16 @@ def _heading_numbers(heading: str) -> set[float]:
     return {float(x) for x in re.findall(r"(?<![\w.])\d+(?:\.\d+)?", heading)}
 
 
+#: Number words a fixed fact may be written as in prose ("more than three
+#: parties"), read as the number the register's heading states in digits.
+_NUMBER_WORDS = {w: float(i) for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve".split())}
+
+
 def _fixed_as_number(value: str) -> float | None:
     value = value.strip()
+    if value.lower() in _NUMBER_WORDS:
+        return _NUMBER_WORDS[value.lower()]
     try:
         return float(value[:-1]) / 100 if value.endswith("%") else float(value)
     except ValueError:
@@ -357,6 +365,8 @@ def test_every_fixed_figure_citing_a_judgement_call_is_that_calls_value():
             what="fixed facts citing a JUDGEMENT-CALLS entry",
             denominator="[[audit.fixed]] rows in stats.toml")
     i = next(n for n, r in enumerate(rows) if "JUDGEMENT-CALLS.md §" in r["source"])
+    # a number written as a word is read as its number
+    assert _fixed_as_number("three") == 3.0 and _fixed_as_number("Three") == 3.0
     moved = rows[:i] + [{**rows[i], "value": "41%"}] + rows[i + 1:]
     assert len(_stale_fixed(moved, text)[0]) == 1, "a changed value was not seen"
     assert _stale_fixed(rows, text)[0] == [], "the detector does not go quiet"

@@ -425,7 +425,7 @@
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 116.0,
       "since": "2026-09-26T13:58:54Z",
-      "source": "seat_draws.csv, 5,000 simulations",
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
       "token": "claim.anc_routes.left_median",
       "value": 116.0
     },
@@ -442,7 +442,7 @@
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.1158,
       "since": "2026-09-26T13:58:54Z",
-      "source": "seat_draws.csv, 5,000 simulations",
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
       "token": "claim.anc_routes.left_share",
       "value": 0.1158
     },
@@ -651,10 +651,10 @@
       "value": 0.0144
     },
     {
-      "display": "57%",
+      "display": "78%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "claims.html"
       ],
@@ -662,10 +662,10 @@
       "previous_published_at": "2026-10-06T23:29:28Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.5702,
-      "since": "2026-09-26T13:58:54Z",
-      "source": "seat_draws.csv, 5,000 simulations",
+      "since": null,
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
       "token": "claim.red_lines.anc_side_share",
-      "value": 0.5702
+      "value": 0.781
     },
     {
       "display": "43%",
@@ -680,15 +680,15 @@
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 0.4272,
       "since": "2026-09-30T04:21:21Z",
-      "source": "seat_draws.csv, 5,000 simulations",
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
       "token": "claim.red_lines.grand_share",
       "value": 0.4272
     },
     {
-      "display": "59%",
+      "display": "87%",
       "fmt": "chance",
       "mode": "generated",
-      "movement": "none",
+      "movement": "material",
       "pages": [
         "claims.html"
       ],
@@ -696,10 +696,10 @@
       "previous_published_at": "2026-10-06T23:29:28Z",
       "previous_since": "2026-09-26T13:58:54Z",
       "previous_value": 0.593,
-      "since": "2026-09-26T13:58:54Z",
-      "source": "seat_draws.csv, 5,000 simulations",
+      "since": null,
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
       "token": "claim.red_lines.no_red_share",
-      "value": 0.593
+      "value": 0.8712
     },
     {
       "display": "117",
@@ -714,7 +714,7 @@
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 117.0,
       "since": "2026-09-30T04:21:21Z",
-      "source": "seat_draws.csv, 5,000 simulations",
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
       "token": "claim.red_lines.three_median",
       "value": 117.0
     },
@@ -731,7 +731,7 @@
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 143.0,
       "since": "2026-09-30T04:21:21Z",
-      "source": "seat_draws.csv, 5,000 simulations, among the simulations where this combination reaches a majority",
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats, among the simulations where this combination reaches a majority",
       "token": "claim.red_lines.three_median_when_wins",
       "value": 143.0
     },
@@ -748,9 +748,162 @@
       "previous_since": "2026-09-30T04:21:21Z",
       "previous_value": 0.1624,
       "since": "2026-09-30T04:21:21Z",
-      "source": "seat_draws.csv, 5,000 simulations",
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
       "token": "claim.red_lines.three_share",
       "value": 0.1624
+    },
+    {
+      "display": "16%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "seat_detail_draws.csv + ward_draws.csv, the 4,864 of 5,000 simulations where the DA wins no Soweto ward",
+      "token": "claim.soweto.anc_given_none",
+      "value": 0.157689
+    },
+    {
+      "display": "12%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "seat_detail_draws.csv + ward_draws.csv, the 4,864 of 5,000 simulations where the DA wins no Soweto ward",
+      "token": "claim.soweto.asa_pa_given_none",
+      "value": 0.123766
+    },
+    {
+      "display": "83%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats: the DA leading ActionSA, the PA and the smaller parties outside the ANC, the EFF and MK",
+      "token": "claim.soweto.da_small_share",
+      "value": 0.8264
+    },
+    {
+      "display": "97%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "ward_draws.csv, 5,000 simulations, the [areas.soweto] wards",
+      "token": "claim.soweto.none_share",
+      "value": 0.9728
+    },
+    {
+      "display": "23%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "seat_detail_draws.csv + ward_draws.csv, the 4,864 of 5,000 simulations where the DA wins no Soweto ward",
+      "token": "claim.soweto.realistic_given_none",
+      "value": 0.234992
+    },
+    {
+      "display": "88%",
+      "fmt": "chance",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "seat_detail_draws.csv + ward_draws.csv, the 136 of 5,000 simulations where the DA wins at least one Soweto ward",
+      "token": "claim.soweto.realistic_given_some",
+      "value": 0.882353
+    },
+    {
+      "display": "27%",
+      "fmt": "pct0",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "vd_ward_2026.csv part_registered over the [areas.soweto] wards: the MDB 2026 voting-district layer's REGPOP, a 2024 registration snapshot",
+      "token": "claim.soweto.roll_share",
+      "value": 0.272717
+    },
+    {
+      "display": "2",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats, the 4,132 where that coalition reaches a majority: small parties needed, largest first",
+      "token": "claim.soweto.small_needed_median",
+      "value": 2.0
+    },
+    {
+      "display": "40",
+      "fmt": "int",
+      "mode": "generated",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "content/joburg/areas.toml [areas.soweto], generated by src/areas.py",
+      "token": "claim.soweto.wards_n",
+      "value": 40.0
     },
     {
       "display": "53",
@@ -4705,6 +4858,40 @@
       "value": 0.0
     },
     {
+      "display": "9",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:News24, 13 December 2021 (https://www.news24.com/southafrica/news/joburg-mayor-phalatse-appoints-multi-party-coalition-executive-20211213): the DA, ActionSA, IFP, FF Plus, PA, ACDP, Cope, UIM and ATM in Mpho Phalatse's coalition",
+      "token": "jhb_2021_coalition_parties",
+      "value": 9
+    },
+    {
+      "display": "136",
+      "fmt": "int",
+      "mode": "fixed",
+      "movement": "new",
+      "pages": [
+        "claims.html"
+      ],
+      "previous": null,
+      "previous_published_at": null,
+      "previous_since": null,
+      "previous_value": null,
+      "since": null,
+      "source": "external:Daily Maverick, 3 October 2022 (https://www.dailymaverick.co.za/opinionista/2022-10-03-the-tragedy-of-johannesburgs-soap-opera-coalition-mess/): the coalition held exactly the majority of the 270-seat council; it lost the majority when the PA left in September 2022 (BizNews, https://www.biznews.com/leadership/coalition-collapse-johannesburg-action-sa-da)",
+      "token": "jhb_2021_coalition_seats",
+      "value": 136
+    },
+    {
       "display": "136",
       "fmt": "int",
       "mode": "free",
@@ -4840,6 +5027,7 @@
       "mode": "free",
       "movement": "none",
       "pages": [
+        "claims.html",
         "nobody-will-win.html"
       ],
       "previous": "0.1%",
@@ -6682,9 +6870,9 @@
     "draws": 5000,
     "forecast_content_sha256": "c68c627d287e5e103ac0effbf1aaab9dbcffdb4d2945720ec43d771a9945efad",
     "forecast_summary_sha256": "97efecf5c70e0020412d801b20bce579c1f7e31e8f5bb8c3e0a8423106bc84bd",
-    "git_commit": "7b47f029a16ff9646a979de76242728211f95d2c",
+    "git_commit": "bfa598b230c8b0e70dd21aceb79f330db365d3b6",
     "git_dirty": true,
-    "model_run_id": "r-c68c627d287e-7b47f029-dirty",
+    "model_run_id": "r-c68c627d287e-bfa598b2-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -6747,6 +6935,23 @@
   },
   "summary": {
     "by_movement": {
+      "material": [
+        "claim.red_lines.anc_side_share",
+        "claim.red_lines.no_red_share"
+      ],
+      "new": [
+        "claim.soweto.anc_given_none",
+        "claim.soweto.asa_pa_given_none",
+        "claim.soweto.da_small_share",
+        "claim.soweto.none_share",
+        "claim.soweto.realistic_given_none",
+        "claim.soweto.realistic_given_some",
+        "claim.soweto.roll_share",
+        "claim.soweto.small_needed_median",
+        "claim.soweto.wards_n",
+        "jhb_2021_coalition_parties",
+        "jhb_2021_coalition_seats"
+      ],
       "none": [
         "anc_entitlement",
         "anc_ward_median",
@@ -6786,9 +6991,7 @@
         "claim.mk.median",
         "claim.mk.p95",
         "claim.mk_largest.share",
-        "claim.red_lines.anc_side_share",
         "claim.red_lines.grand_share",
-        "claim.red_lines.no_red_share",
         "claim.red_lines.three_median",
         "claim.red_lines.three_median_when_wins",
         "claim.red_lines.three_share",
@@ -7139,9 +7342,9 @@
         "tile.p_tied_largest"
       ]
     },
-    "n": 389,
+    "n": 400,
     "n_rounding": 0,
-    "n_visible": 0,
+    "n_visible": 2,
     "nominal": []
   }
 }

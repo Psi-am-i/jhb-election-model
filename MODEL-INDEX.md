@@ -68,7 +68,7 @@ arithmetic test can see.
 | `REPO` | `citywide_table`, `declares`, `freeze`, `width_budget` | `Path(__file__).resolve().parents[1]` | yes |
 | `REPORTS` | `derive_city`, `official_seats` | `Path('data/raw/elections/_reports')` | yes |
 | `REPO_ROOT` | `build_leaderboard`, `build_make`, `build_play`, `build_site`, `build_your_forecast`, `rank_entries`, `site_assets` | `Path(__file__).resolve().parents[1]` | yes |
-| `ROOT` | `backup_ignored`, `deploy_check`, `edit_mode`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` | `Path(__file__).resolve().parent.parent`, `Path(__file__).resolve().parents[1]`, `site_text.ROOT` | NO |
+| `ROOT` | `areas`, `backup_ignored`, `deploy_check`, `edit_mode`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` | `Path(__file__).resolve().parent.parent`, `Path(__file__).resolve().parents[1]`, `site_text.ROOT` | NO |
 | `Row` | `declares`, `publication` | `?` | yes |
 | `SCHEMA` | `citywide_table`, `publication` | `int 1` | yes |
 | `SHARE_FLOOR` | `benchmarks`, `fold`, `montecarlo` | `float 0.002` | yes |
@@ -303,6 +303,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `archive.COLUMNS` | list[5] | NO | NO | NO | `fetch_byelections`, `ingest_lge`, `ingest_npe` |
 | `archive.PROVENANCE` | dict[48] | NO | NO | NO | -- |
 | `archive.BY_FILENAME` | tuple[22] | NO | NO | NO | -- |
+| `areas.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `render_sheet`, `site_text` |
 | `areas.SOWETO_GAZETTEER` | tuple[44] | NO | NO | yes | -- |
 | `areas.SOWETO_EXCLUDE` | tuple[2] | NO | NO | yes | -- |
 | `areas.STREET_TYPES` | tuple[14] | NO | NO | yes | -- |
@@ -314,7 +315,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `backtest.FITTED_ON_UNINSTRUMENTED` | dict[7] | NO | NO | NO | `model_index` |
 | `backtest.PROVENANCE_UNSETTLED` | dict[1] | NO | NO | NO | `model_index` |
 | `backtest.NOT_FITTED` | dict[25] | NO | NO | NO | `model_index` |
-| `backup_ignored.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
+| `backup_ignored.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `areas`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `render_sheet`, `site_text` |
 | `backup_ignored.BACKUPS` | ROOT / 'backups' | NO | NO | NO | -- |
 | `backup_ignored.SKIP_PREFIXES` | tuple[5] | NO | NO | NO | -- |
 | `backup_ignored.SKIP_SUFFIXES` | tuple[2] | NO | NO | NO | -- |
@@ -401,7 +402,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `build_your_forecast.CSS` | tuple[3] | NO | NO | NO | -- |
 | `build_your_forecast.PYBOOT` | tuple[2] | NO | NO | NO | -- |
 | `build_your_forecast.BLOCKLIST_LINE` | tuple[2] | NO | NO | NO | -- |
-| `cityconfig.CITIES_DIR` | Path('cities') | NO | NO | NO | `areas`, `pools`, `render_sheet` |
+| `cityconfig.CITIES_DIR` | Path('cities') | NO | NO | NO | `pools` |
 | `cityconfig.DEFAULT_CITY` | str 'joburg' | NO | NO | NO | `areas` |
 | `cityconfig.CALENDAR` | {'1999': Election('1999', 'NPE', _date(1999, 6, 2), 'npe1999_approx_{COD | NO | NO | NO | `backtest`, `benchmarks`, `build_make`, `build_play`, `byelections`, `levels`, `montecarlo`, `pools`, `theta_residual`, `turnout` |
 | `citywide_table.HERE` | Path(__file__).resolve().parent | NO | NO | NO | -- |
@@ -426,13 +427,13 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `declares.UNDECLARED` | tuple[3] | NO | NO | NO | -- |
 | `declares.KINDS` | {'spec': Kind('spec', ('code', 'config', 'scope', 'inputs'), '§1.173 — a | NO | NO | NO | -- |
 | `declares.REPORT_ORDER` | tuple[5] | NO | NO | NO | -- |
-| `deploy_check.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
+| `deploy_check.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `areas`, `backup_ignored`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `render_sheet`, `site_text` |
 | `deploy_check.SHIPPED_UNCOMMITTED` | set[1] | NO | NO | NO | -- |
 | `derive_city.REPORTS` | Path('data/raw/elections/_reports') | NO | NO | NO | `build_make`, `official_seats` |
 | `derive_city.LGE_YEARS` | tuple[3] | NO | NO | NO | -- |
 | `diagnose.BASELINES` | scored_opponents() | NO | NO | NO | `build_validation` |
 | `diagnose.VERDICT_STATISTIC` | str 'seat_abs_err_coherent' | NO | NO | NO | -- |
-| `edit_mode.ROOT` | site_text.ROOT | NO | NO | NO | `backup_ignored`, `deploy_check`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
+| `edit_mode.ROOT` | site_text.ROOT | NO | NO | NO | `areas`, `backup_ignored`, `deploy_check`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `render_sheet`, `site_text` |
 | `edit_mode.SITE` | ROOT / 'site' | NO | NO | NO | -- |
 | `edit_mode.PORT` | int 8801 | NO | NO | NO | -- |
 | `edit_mode.LOOPBACK` | str '127.0.0.1' | NO | NO | NO | -- |
@@ -487,11 +488,11 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `ingest_historic.MUNI_HEAD` | dict[5] | NO | NO | NO | -- |
 | `ingest_lge.COLUMNS` | list[11] | NO | NO | NO | `archive`, `fetch_byelections`, `ingest_npe` |
 | `ingest_npe.COLUMNS` | list[10] | NO | NO | NO | `archive`, `fetch_byelections`, `ingest_lge` |
-| `inputs_preflight.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `judgement_sheet`, `model_index`, `render_home`, `site_text` |
+| `inputs_preflight.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `areas`, `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `judgement_sheet`, `model_index`, `render_home`, `render_sheet`, `site_text` |
 | `inputs_preflight.SNAPSHOT_STALE_DAYS` | int 21 | NO | NO | NO | -- |
 | `inputs_preflight.REQUIRED` | tuple[2] | NO | NO | NO | -- |
 | `inputs_preflight.ADVISORY` | tuple[2] | NO | NO | NO | -- |
-| `judgement_sheet.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `model_index`, `render_home`, `site_text` |
+| `judgement_sheet.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `areas`, `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `model_index`, `render_home`, `render_sheet`, `site_text` |
 | `judgement_sheet.SRC` | ROOT / 'src' | NO | NO | NO | `model_index`, `render_sheet` |
 | `judgement_sheet.CITIES` | ROOT / 'cities' | NO | NO | NO | `arrivals`, `build_validation`, `compare_history`, `sweep` |
 | `judgement_sheet.REGISTER` | ROOT / 'JUDGEMENT-CALLS.md' | NO | NO | NO | `montecarlo`, `polling` |
@@ -517,7 +518,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `levels.DEMARCATION_CROSSING` | frozenset({('MAN', '2011'), ('BUF', '2011')}) | yes | NO | NO | `montecarlo`, `theta_residual` |
 | `levels.EXCLUDE_DEMARCATION_CROSSING` | _os.environ.get('EXCLUDE_DEMARCATION_CROSSING', '').lower() in ('1', 'tr | yes | NO | NO | `citywide_table`, `freeze`, `montecarlo`, `theta_residual` |
 | `levels.THETA_WINDOW` | int(_os.environ.get('THETA_WINDOW', '0') or 0) | yes | NO | yes | `citywide_table`, `freeze`, `montecarlo`, `theta_residual` |
-| `model_index.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `render_home`, `site_text` |
+| `model_index.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `areas`, `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `render_home`, `render_sheet`, `site_text` |
 | `model_index.SRC` | ROOT / 'src' | NO | NO | NO | `judgement_sheet`, `render_sheet` |
 | `model_index.TESTS` | ROOT / 'tests' | NO | NO | NO | -- |
 | `model_index.JUDGEMENT_REGISTER` | ROOT / 'JUDGEMENT-CALLS.md' | NO | NO | NO | -- |
@@ -632,7 +633,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `rank_entries.ANON_CHARS` | tuple[2] | NO | NO | NO | -- |
 | `rank_entries.VOTE_DP` | int 1 | NO | NO | NO | -- |
 | `reader_seats.ASSUMPTION` | str | NO | NO | NO | -- |
-| `render_home.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `site_text` |
+| `render_home.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `areas`, `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_sheet`, `site_text` |
 | `render_home.PAGE` | ROOT / 'home.html' | NO | NO | NO | -- |
 | `render_home.HEAD_TO_HEAD_ORDER` | tuple[2] | NO | NO | NO | -- |
 | `render_home.NAMED` | tuple(_scenarios.NAMED_PARTIES) | NO | NO | NO | -- |
@@ -714,7 +715,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `site_assets.FONT_FACES` | tuple[3] | NO | NO | NO | -- |
 | `site_assets.FONT_RANGE` | str | NO | NO | NO | -- |
 | `site_assets.INLINE` | (('a <style> element', re.compile('<style\\b', re.I)), ('a style attribu | NO | NO | NO | -- |
-| `site_text.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home` |
+| `site_text.ROOT` | Path(__file__).resolve().parent.parent | NO | NO | NO | `areas`, `backup_ignored`, `deploy_check`, `edit_mode`, `export_draws`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `render_sheet` |
 | `site_text.OUT` | ROOT / 'SITE-TEXT.md' | NO | NO | NO | -- |
 | `site_text.STATS` | ROOT / 'content' / 'joburg' / 'stats.toml' | NO | NO | NO | `edit_mode` |
 | `site_text.REBUILD` | str | NO | NO | NO | `edit_mode` |

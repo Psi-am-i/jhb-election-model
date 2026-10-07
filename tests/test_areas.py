@@ -1,6 +1,6 @@
 """`areas.py` — the Soweto wards, generated from the raw files and checked.
 
-The committed list in ``cities/joburg.toml`` ``[areas.soweto]`` is a derived
+The committed list in ``content/joburg/areas.toml`` ``[areas.soweto]`` is a derived
 artefact, so the test REGENERATES it from the station addresses and the VD ->
 ward crosswalk and compares (CLAUDE.md §4: regenerate, don't grep). The rule's
 parts are tested on CONSTRUCTED inputs whose answers are worked by hand.
@@ -86,7 +86,7 @@ def test_the_committed_soweto_wards_are_what_the_rule_gives_today():
     """Regenerate from data/raw/geo and data/processed and compare with the
     committed table, in both directions (list equality)."""
     have, derived = A.check("joburg", "soweto")
-    assert have is not None, "cities/joburg.toml has no [areas.soweto]"
+    assert have is not None, "content/joburg/areas.toml has no [areas.soweto]"
     # (1) it looked: a set that is neither empty nor the whole city, as a
     # fraction of the wards the crosswalk carries
     every = sorted({int(w) for _vd, w, _r in A.crosswalk_parts("joburg", "2026")})
@@ -99,17 +99,29 @@ def test_a_one_ward_change_to_the_committed_table_is_caught_and_reverting_clears
     derived = A.derive("joburg", "soweto")
     outside = next(w for w in range(1, 200) if w not in derived)
     with tempfile.TemporaryDirectory() as tmp:
-        cities = Path(tmp)
-        shutil.copy(ROOT / "cities" / "joburg.toml", cities / "joburg.toml")
+        content = Path(tmp)
+        f = content / "joburg" / "areas.toml"
+        f.parent.mkdir()
+        shutil.copy(A.areas_path("joburg"), f)
         for wrong in (sorted(derived + [outside]), derived[1:]):
-            A.write("joburg", "soweto", wrong, cities / "joburg.toml")
-            have, _ = A.check("joburg", "soweto", cities, derived=derived)
+            A.write("joburg", "soweto", wrong, f)
+            have, _ = A.check("joburg", "soweto", content, derived=derived)
             assert have == wrong and have != derived
-        A.write("joburg", "soweto", derived, cities / "joburg.toml")
-        have, _ = A.check("joburg", "soweto", cities, derived=derived)
+        A.write("joburg", "soweto", derived, f)
+        have, _ = A.check("joburg", "soweto", content, derived=derived)
         assert have == derived
         # rewriting replaces the table rather than appending a second one
-        assert (cities / "joburg.toml").read_text().count("[areas.soweto]") == 1
+        assert f.read_text().count("[areas.soweto]") == 1
+
+
+def test_no_city_model_config_carries_an_area_table():
+    """An area table in cities/*.toml would change cities_sha, which every
+    pool spec's artefact key carries: every spec would read as stale
+    (2026-10-07). The tables live in content/<city>/areas.toml."""
+    found = [p.name for p in (ROOT / "cities").glob("*.toml") if "[areas." in p.read_text()]
+    assert found == [], found
+    # it can see: a constructed config with a table is caught
+    assert "[areas." in "x = 1\n[areas.soweto]\nwards = [1]\n"
 
 
 if __name__ == "__main__":

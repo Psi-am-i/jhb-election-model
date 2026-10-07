@@ -404,9 +404,6 @@ def test_a_wrong_or_missing_run_id_is_caught_then_quiet():
     assert _run_problems({"c": good, "d": good}, newest) == []
 
 
-if __name__ == "__main__":
-    raise SystemExit(run_module(globals()))
-
 
 # -- the page's fingerprint of the draws is the served draws' -----------------
 
@@ -435,3 +432,6 @@ def test_the_page_names_the_served_draws_and_a_stale_name_is_caught():
     # it can see: a manifest changed by one byte is caught, and reverted is quiet
     assert _fingerprint_problem(forecast, manifest + b" ", blob)
     assert _fingerprint_problem(forecast, manifest, blob) is None
+
+if __name__ == "__main__":
+    raise SystemExit(run_module(globals()))

@@ -226,7 +226,7 @@ crosswalk's `part_registered` (the REGPOP snapshot above) to decide which 2026
 wards are. The addresses are free text typed by the IEC: some give the
 township, some only the town (Braamfischerville's give ROODEPOORT), and spelling
 varies (WESTERNJABAVU, BRAAM FISCHERVILLE). The rule and its gazetteer are
-JUDGEMENT-CALLS.md §P2; the result is `cities/joburg.toml` `[areas.soweto]`.
+JUDGEMENT-CALLS.md §P2; the result is `content/joburg/areas.toml` `[areas.soweto]`.
 
 ## By-elections — use the dashboard, not the downloads page
 

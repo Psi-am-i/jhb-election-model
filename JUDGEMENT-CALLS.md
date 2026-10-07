@@ -3494,7 +3494,7 @@ regenerated sheet.
 ### §P2 · `SOWETO_GAZETTEER`, `SOWETO_EXCLUDE`, `SOWETO_CUT` — which wards are Soweto's — ⚖️ owner-accepted (2026-10-07)
 
 **Where.** `areas.SOWETO_GAZETTEER`, `areas.SOWETO_EXCLUDE`, `areas.SOWETO_CUT`,
-applied by `areas.derive`, which writes `cities/joburg.toml` `[areas.soweto]`.
+applied by `areas.derive`, which writes `content/joburg/areas.toml` `[areas.soweto]`.
 Read by `render_sheet` for the Mashaba claim only. No model code reads it.
 
 **Now.** No IEC or MDB file names Soweto. A 2026 ward is a Soweto ward if at
@@ -3529,7 +3529,7 @@ township, and names neither exclusion.
   (ward 133). Neither changed a ward; the list is the same 40 with and
   without the rule.
 
-**The result** is the list in `cities/joburg.toml` `[areas.soweto]`, which
+**The result** is the list in `content/joburg/areas.toml` `[areas.soweto]`, which
 `tests/test_areas.py` regenerates from the raw files and compares.
 
 **Sensitivity to the cut** (measured 2026-10-07 on the published 5,000
@@ -3549,7 +3549,7 @@ The gazetteer, the exclusions and the cut are choices.
 cut inclusive and split VDs by part on a constructed crosswalk, the committed
 list equal to a regeneration, and a one-ward change caught.
 
-### §P3 · `REALISTIC_PARTNERS`, `ZILLE_RED_LINES` — what "the DA wins Joburg" means in the Mashaba claim — ⚖️ owner's definition (2026-10-07)
+### §P3 · `REALISTIC_PARTNERS`, `ZILLE_RED_LINES` — what "the DA wins Joburg" means in the Mashaba claim: a coalition of at most 3 parties — ⚖️ owner's definition (2026-10-07)
 
 **Where.** `render_sheet.da_coalitions`, called by `render_sheet._soweto`, over
 `scenarios.all_party_seats`.

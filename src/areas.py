@@ -4,7 +4,8 @@ A claim about "Soweto" needs a list of wards, and no IEC or MDB file names
 Soweto: it is not a ward, a region code or a voting-district field. The list is
 therefore a judgement (JUDGEMENT-CALLS.md §P2), and this module is its ONE
 DEFINITION. It derives the list from the raw files and writes it, with the rule
-that produced it, into ``cities/<city>.toml`` ``[areas.<name>]``. The pages read
+that produced it, into ``content/<city>/areas.toml`` ``[areas.<name>]`` (not the
+city's model config, whose hash every pool spec carries). The pages read
 that table; ``tests/test_areas.py`` regenerates the list from the raw files and
 compares, so the committed list cannot drift from its rule.
 
@@ -23,12 +24,15 @@ between wards counts in each ward for its own part.
 from __future__ import annotations
 
 import argparse
+import tomllib
 import json
 import re
 from collections import defaultdict
 from pathlib import Path
 
 import cityconfig
+
+ROOT = Path(__file__).resolve().parent.parent
 
 #: Place names that put a voting station in Soweto. Matched at the START of a
 #: word in the station's address, after upper-casing and collapsing spaces, so
@@ -176,18 +180,24 @@ def derive(city: str, area: str, parts=None, stations: Path | None = None) -> li
     return area_wards(parts, inside, spec["cut"])
 
 
-def committed(city: str, area: str, cities_dir: Path | None = None) -> list[int] | None:
-    """The ward list committed in ``cities/<city>.toml``, or None if absent."""
-    raw = cityconfig.load(city, cities_dir).raw
+def areas_path(city: str, content_dir: Path | None = None) -> Path:
+    """``content/<city>/areas.toml``: where a city's area tables live."""
+    return (content_dir or (ROOT / "content")) / city / "areas.toml"
+
+
+def committed(city: str, area: str, content_dir: Path | None = None) -> list[int] | None:
+    """The ward list committed in ``content/<city>/areas.toml``, or None if absent."""
+    path = areas_path(city, content_dir)
+    raw = tomllib.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     table = raw.get("areas", {}).get(area)
     return None if table is None else [int(w) for w in table["wards"]]
 
 
-def check(city: str, area: str, cities_dir: Path | None = None,
+def check(city: str, area: str, content_dir: Path | None = None,
           derived: list[int] | None = None) -> tuple[list[int] | None, list[int]]:
     """(committed, derived): equal when the committed table follows its rule."""
     derived = derive(city, area) if derived is None else derived
-    return committed(city, area, cities_dir), derived
+    return committed(city, area, content_dir), derived
 
 
 def section_text(city: str, area: str, wards: list[int]) -> str:
@@ -211,9 +221,9 @@ def section_text(city: str, area: str, wards: list[int]) -> str:
 
 
 def write(city: str, area: str, wards: list[int], path: Path | None = None) -> Path:
-    """Replace (or append) the ``[areas.<area>]`` table in the city's TOML."""
-    path = path or (cityconfig.CITIES_DIR / f"{city}.toml")
-    text = path.read_text(encoding="utf-8")
+    """Replace (or append) the ``[areas.<area>]`` table in ``content/<city>/areas.toml``."""
+    path = path or areas_path(city)
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
     block = section_text(city, area, wards)
     header = f"[areas.{area}]"
     if header in text:
@@ -242,7 +252,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     have, wards = check(city, args.area, derived=wards)
     if have != wards:
-        print(f"[areas.{args.area}] in cities/{city}.toml differs from its rule:\n"
+        print(f"[areas.{args.area}] in {areas_path(city)} differs from its rule:\n"
               f"  committed: {have}\n  derived:   {wards}")
         return 1
     print(f"[areas.{args.area}]: {len(wards)} wards, as committed")
