@@ -406,3 +406,32 @@ def test_a_wrong_or_missing_run_id_is_caught_then_quiet():
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
+
+
+# -- the page's fingerprint of the draws is the served draws' -----------------
+
+def _fingerprint_problem(forecast: dict, manifest: bytes, blob: bytes) -> str | None:
+    """Why /your-forecast/'s forecast.json does not name the served draws, or
+    None. The seat Worker answers a card only when the caller's draws_sha256
+    is the draws it fetched (worker-api/seats-py/src/entry.py), so a mismatch
+    turns every link preview into the generic image (2026-10-07: the manifests
+    were re-exported and the page was not rebuilt)."""
+    import hashlib
+    have = hashlib.sha256(manifest + blob).hexdigest()
+    want = forecast.get("draws_sha256")
+    if want != have:
+        return (f"site/your-forecast/forecast.json draws_sha256 {want!r} is not "
+                f"the served draws' {have!r}: rebuild the site (build_site.py) "
+                f"after any change to site/draws/")
+    return None
+
+
+def test_the_page_names_the_served_draws_and_a_stale_name_is_caught():
+    forecast = json.loads((ROOT / "site" / "your-forecast" / "forecast.json").read_text(encoding="utf-8"))
+    manifest = (ROOT / "site" / "draws" / "manifest.json").read_bytes()
+    blob = (ROOT / "site" / "draws" / "base.bin").read_bytes()
+    assert manifest and blob, "the served draws are empty"
+    assert _fingerprint_problem(forecast, manifest, blob) is None, _fingerprint_problem(forecast, manifest, blob)
+    # it can see: a manifest changed by one byte is caught, and reverted is quiet
+    assert _fingerprint_problem(forecast, manifest + b" ", blob)
+    assert _fingerprint_problem(forecast, manifest, blob) is None

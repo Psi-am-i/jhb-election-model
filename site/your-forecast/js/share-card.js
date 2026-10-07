@@ -67,9 +67,12 @@ const DAY_MS = 864e5;
 
 // ---------- words ----------
 
-// "Thandi's Election Forecast" (owner, 2026-10-03: Title Case).
+// "Thandi's Election Forecast" (owner, 2026-10-03: Title Case). A name the
+// reader already typed as a possessive ("Simon's", "Simon’s", "the Joneses'")
+// takes no second one (owner, 2026-10-07: "Simon's' Election Forecast").
 export function cardTitle(name) {
   if (!name) return "My Election Forecast";
+  if (/['’](s)?$/i.test(name)) return name + " Election Forecast";
   return name + (/s$/i.test(name) ? "'" : "'s") + " Election Forecast";
 }
 

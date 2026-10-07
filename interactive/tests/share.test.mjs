@@ -108,6 +108,10 @@ test("the headline is Title Case and the name is drawn as text, escaped", () => 
   assert.equal(SC.cardTitle("Thandi"), "Thandi's Election Forecast");
   assert.equal(SC.cardTitle("James"), "James' Election Forecast");
   assert.equal(SC.cardTitle(""), "My Election Forecast");
+  // a name typed as a possessive takes no second one
+  assert.equal(SC.cardTitle("Simon's"), "Simon's Election Forecast");
+  assert.equal(SC.cardTitle("Simon’s"), "Simon’s Election Forecast");
+  assert.equal(SC.cardTitle("the Joneses'"), "the Joneses' Election Forecast");
   const spec = { ...A, name: "<A & B>", title: SC.cardTitle("<A & B>") };
   const svg = SC.linkCardSVG(spec, ASSETS, party);
   assert.ok(svg.includes("&lt;A &amp; B&gt;'s Election Forecast"));
