@@ -725,6 +725,42 @@ def test_a_verdict_that_disagrees_with_its_chance_is_refused():
         raise AssertionError("an unknown chance name was accepted")
 
 
+def test_the_mashaba_coalitions_need_the_da_to_lead_and_count_every_party():
+    """Owner, 2026-10-07: a realistic DA-led win is DA+ASA+PA or DA+ANC at the
+    threshold with the DA strictly larger than each partner; the every-party
+    figure adds every party outside the EFF and MK smaller than the DA.
+    Constructed: council 20, threshold 11, three simulations, one Soweto ward."""
+    import numpy as np
+    import render_sheet as RS
+    seats = {"DA": np.array([6, 6, 8]), "ASA": np.array([3, 5, 2]),
+             "PA": np.array([2, 1, 1]), "ANC": np.array([5, 7, 1]),
+             "EFF": np.array([2, 1, 4]), "X": np.array([2, 0, 4])}
+    thr = np.array([11, 11, 11])
+    rows = [{"draw": "0"}, {"draw": "1"}, {"draw": "2"}]
+    winners = {0: {"7": "ANC"}, 1: {"7": "DA"}, 2: {"7": "ANC"}}
+    c = RS.da_coalitions(seats, thr, rows, winners, [7])
+    # 0: DA+ASA+PA = 11, DA leads both -> yes; DA+ANC = 11, DA 6 > 5 -> yes
+    # 1: DA+ASA+PA = 12, DA 6 > 5 and > 1 -> yes; ANC 7 > DA -> no
+    # 2: DA+ASA+PA = 11 -> yes; DA+ANC = 9 -> no
+    assert list(c["partners.ASA+PA"]) == [True, True, True]
+    assert list(c["partners.ANC"]) == [True, False, False]
+    # every party but the EFF and MK, smaller than the DA: X counts, the ANC
+    # counts only where it is smaller; 0: 6+3+2+5+2=18; 1: 6+5+1=12; 2: 8+2+1+1+4=16
+    assert list(c["every_party"]) == [True, True, True]
+    assert list(c["none"]) == [True, False, True]
+    # a DA no larger than its partner does not lead: make ASA equal to the DA
+    seats["ASA"] = np.array([6, 6, 8])
+    c = RS.da_coalitions(seats, thr, rows, winners, [7])
+    assert list(c["partners.ASA+PA"]) == [False, False, False]
+    # a Soweto ward missing from ward_draws.csv stops the build
+    try:
+        RS.da_coalitions(seats, thr, rows, winners, [7, 8])
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("a missing ward column was accepted")
+
+
 def test_every_live_claim_passes_the_chance_scale_when_the_sheet_is_regenerated():
     """Every claim in claims.toml is either settled (FALSE/TRUE) or names its
     chance, and the build accepts every verdict: render_sheet regenerates a

@@ -2,6 +2,12 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
+## <span data-asof="2026-10-07">"Without the ANC, the red line leaves a majority in 59% of simulations"</span> — published 6 October 2026, corrected 7 October 2026
+
+<span data-asof="2026-10-07">**What was wrong.** The red-lines claim said a majority without the ANC, the EFF and MK exists in 59% of simulations, and called it more likely than not. The count left out the seats of the smallest parties.
+
+**What is right.** Counting every party's seats, it exists in 87% of simulations: very likely. It needs almost every small party to join.</span>
+
 ## <span data-asof="2026-10-07">"The DA can govern without the ANC, the EFF or MK"</span> — published 6 October 2026, corrected 7 October 2026
 
 <span data-asof="2026-10-07">**What was wrong.** The tested claim from Helen Zille was titled "The DA can govern without the ANC, the EFF or MK". She ruled out a coalition with the EFF and MK; she did not rule out the ANC.

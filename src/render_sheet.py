@@ -206,73 +206,70 @@ ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
 WALL_FLIPS = 30
 
 #: The parties Helen Zille ruled out of a DA coalition (Daily Maverick,
-#: 13 September 2026): the EFF and MK. Not the ANC. "The DA leads a
-#: majority" in the Mashaba claim excludes exactly these (JUDGEMENT-CALLS.md
-#: §P3).
+#: 13 September 2026): the EFF and MK. Not the ANC (JUDGEMENT-CALLS.md §P3).
 ZILLE_RED_LINES = ("EFF", "MK")
-#: The share of the simulations with a DA Soweto ward in which the DA must
-#: lead a majority for the Mashaba claim's "nearly all of them" to stand.
-#: The words are typed in claims.toml, so the build checks them against the
-#: figure (JUDGEMENT-CALLS.md §P3).
-NEARLY_ALL = 0.9
+#: The REALISTIC coalitions the DA could lead (owner, 2026-10-07): ActionSA
+#: with the PA, or the ANC. Each counts in a simulation where it reaches the
+#: threshold and the DA has more seats than every partner in it. A coalition
+#: of every party outside ZILLE_RED_LINES is printed as context only: "it
+#: never actually happens because it's so fragile" (JUDGEMENT-CALLS.md §P3).
+REALISTIC_PARTNERS = (("ASA", "PA"), ("ANC",))
 
 
-def da_led_majorities(rows, detail, winners, area_wards):
-    """Per simulation, in ``rows`` order: (the DA leads a majority, it needs
-    the ANC to do so, the DA wins none of ``area_wards``).
+def da_coalitions(seats, thr, rows, winners, area_wards) -> dict:
+    """Per simulation, in ``rows`` order, boolean arrays:
 
-    "The DA leads a majority": the DA plus every party other than
-    ``ZILLE_RED_LINES`` with STRICTLY FEWER seats than the DA reaches that
-    simulation's threshold. EVERY party's seats, from ``seat_detail_draws.csv``
-    (``detail``): ``seat_draws.csv`` keeps only the largest parties, and
-    summing its columns drops the seats of every party below them
-    (``scenarios.others_per_draw``'s note). A simulation whose parties do not
-    add up to its council refuses.
+    * ``partners.<A+B>`` — the DA leads that REALISTIC_PARTNERS coalition: the
+      DA and those partners reach the threshold and the DA has strictly more
+      seats than each partner;
+    * ``realistic`` — any of them;
+    * ``every_party`` — the DA plus every party outside ZILLE_RED_LINES with
+      strictly fewer seats than the DA reaches the threshold;
+    * ``none`` — the DA wins none of ``area_wards`` (ward_draws.csv).
 
-    "It needs the ANC": the ANC is in that coalition and the rest of it falls
-    short without the ANC's seats.
+    ``seats`` is ``scenarios.all_party_seats``: every party, never
+    ``seat_draws.csv``'s columns, whose sum leaves out the smallest parties.
     """
     ids = [int(r["draw"]) for r in rows]
-    if not (sorted(ids) == sorted(detail) == sorted(winners)) or len(set(ids)) != len(ids):
-        raise SystemExit("seat_draws.csv, seat_detail_draws.csv and ward_draws.csv do "
-                         "not hold the same simulations; their figures cannot be joined")
+    if sorted(ids) != sorted(winners):
+        raise SystemExit("seat_draws.csv and ward_draws.csv do not hold the same "
+                         "simulations; their figures cannot be joined")
     cols = next(iter(winners.values())).keys()
     missing = [w for w in area_wards if str(w) not in cols]
     if missing:
         raise SystemExit(f"ward_draws.csv has no column for ward(s) {missing}")
-    leads, needs_anc, none = [], [], []
-    for r in rows:
-        d, thr = int(r["draw"]), int(r["threshold"])
-        seats = {p: v["seats"] for p, v in detail[d].items()}
-        if sum(seats.values()) != int(r["council_size"]):
-            raise SystemExit(f"simulation {d}: the parties' seats in seat_detail_draws.csv "
-                             f"do not add up to its council of {r['council_size']}")
-        da = seats.get("DA", 0)
-        partners = [p for p, s in seats.items()
-                    if p != "DA" and p not in ZILLE_RED_LINES and s < da]
-        bloc = da + sum(seats[p] for p in partners)
-        win = bloc >= thr
-        leads.append(win)
-        needs_anc.append(win and "ANC" in partners and bloc - seats["ANC"] < thr)
-        none.append(not any(winners[d][str(w)] == "DA" for w in area_wards))
-    return np.array(leads), np.array(needs_anc), np.array(none)
+    zero = np.zeros(len(ids), dtype=int)
+    da = seats.get("DA", zero)
+    out = {}
+    for group in REALISTIC_PARTNERS:
+        total = da + sum(seats.get(p, zero) for p in group)
+        led = np.all([da > seats.get(p, zero) for p in group], axis=0)
+        out["partners." + "+".join(group)] = (total >= thr) & led
+    out["realistic"] = np.any([out["partners." + "+".join(g)] for g in REALISTIC_PARTNERS], axis=0)
+    smaller = sum(np.where(s < da, s, 0) for p, s in seats.items()
+                  if p != "DA" and p not in ZILLE_RED_LINES)
+    out["every_party"] = (da + smaller) >= thr
+    out["none"] = np.array([not any(winners[d][str(w)] == "DA" for w in area_wards)
+                            for d in ids])
+    return out
 
 
-def _soweto(args, rows, detail, winners, since_vals, tok, chance):
-    """The Mashaba claim's figures, added to ``since_vals`` as tokens. Returns
-    the DA's chance of leading a majority among the simulations where it wins
-    a Soweto ward (None if there are none), which no token prints and the
-    claim's words are checked against. A city with no ``[areas.soweto]`` or a
-    target other than the area's year gets nothing, so a claim naming these
-    figures stops the build there."""
+def _soweto(args, rows, seats, thr, winners, since_vals, tok, chance):
+    """The Mashaba claim's figures, added to ``since_vals`` as tokens. A
+    conditional figure whose condition no simulation meets is left out, so a
+    claim naming it stops the build (``_fill``) rather than printing a share of
+    nothing. A city with no ``[areas.soweto]``, or a target other than the
+    area's year, gets nothing."""
     import areas as _areas
     key = (args.city, "soweto")
     sow = _areas.committed(*key) if key in _areas.AREAS else None
     year = _areas.AREAS.get(key, {}).get("year")
     if sow is None or cityconfig.target().year != year:
-        return None
-    leads, needs_anc, none = da_led_majorities(rows, detail, winners, sow)
+        return
+    c = da_coalitions(seats, thr, rows, winners, sow)
+    none = c["none"]
     n = len(rows)
+    every = f"seat_detail_draws.csv, {n:,} simulations, every party's seats"
     both = f"seat_detail_draws.csv + ward_draws.csv, {n:,} simulations"
     area_src = "cities/joburg.toml [areas.soweto], generated by src/areas.py"
     parts = _areas.crosswalk_parts(args.city, year)
@@ -284,17 +281,22 @@ def _soweto(args, rows, detail, winners, since_vals, tok, chance):
             f"MDB {year} voting-district layer's REGPOP, a 2024 registration snapshot"),
         "soweto_none_share": chance("claim.soweto.none_share", none.mean(),
                                     f"ward_draws.csv, {n:,} simulations, the [areas.soweto] wards"),
-        "da_leads_share": chance("claim.soweto.da_leads_share", leads.mean(),
-                                 f"seat_detail_draws.csv, {n:,} simulations, every party's seats"),
-        "da_leads_with_anc_share": chance("claim.soweto.da_leads_with_anc_share",
-                                          needs_anc.mean(),
-                                          f"seat_detail_draws.csv, {n:,} simulations, every party's seats"),
+        "da_leads_share": chance("claim.soweto.da_leads_share", c["every_party"].mean(), every),
     })
     if none.any():
-        since_vals["soweto_win_given_none"] = chance(
-            "claim.soweto.win_given_none", leads[none].mean(),
-            f"{both}, among those where the DA wins no Soweto ward")
-    return float(leads[~none].mean()) if (~none).any() else None
+        cond = f"{both}, among those where the DA wins no Soweto ward"
+        since_vals.update({
+            "realistic_given_none": chance("claim.soweto.realistic_given_none",
+                                           c["realistic"][none].mean(), cond),
+            "asa_pa_given_none": chance("claim.soweto.asa_pa_given_none",
+                                        c["partners.ASA+PA"][none].mean(), cond),
+            "anc_given_none": chance("claim.soweto.anc_given_none",
+                                     c["partners.ANC"][none].mean(), cond),
+        })
+    if (~none).any():
+        since_vals["realistic_given_some"] = chance(
+            "claim.soweto.realistic_given_some", c["realistic"][~none].mean(),
+            f"{both}, among those where the DA wins at least one Soweto ward")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -599,15 +601,29 @@ def main(argv: list[str] | None = None) -> int:
             return _detail[d].get(p, {}).get("seats", 0)
         _anc_alone = float((S["ANC"] >= thr).mean()) if "ANC" in S else 0.0
 
+        # ⛔ EVERY PARTY'S SEATS, NOT seat_draws.csv's COLUMNS (owner,
+        # 2026-10-07). `_bloc` summed the columns, which keep only the largest
+        # parties, so "every party except X" left out the smallest parties'
+        # seats and the red-lines claim understated its majority (MODEL-LOG
+        # §1.286). Every coalition sum in the claims reads the one all-party
+        # definition, `scenarios.all_party_seats`, which refuses a simulation
+        # whose parties do not add up to its council.
+        _A, _, _ = _sc.all_party_seats(args.processed, rows)
+        _ALL = f"seat_detail_draws.csv, {N:,} simulations, every party's seats"
+        _zero = np.zeros(N, dtype=int)
+
+        def _sum(members):
+            return sum((_A.get(p, _zero) for p in members), _zero)
+
         def _bloc(exclude):
             """Seats held by every party in the simulation except `exclude` —
             the arithmetic a stated red line leaves behind, not a prediction
             that those parties would ever sit together."""
-            return sum(S[p] for p in parties if p not in exclude)
+            return _sum([p for p in _A if p not in exclude])
         _no_red = _bloc(("EFF", "MK", "ANC"))
         _anc_side = _bloc(("EFF", "MK", "DA"))
-        _three = sum(S[p] for p in ("DA", "ASA", "PA") if p in S)
-        _left = sum(S[p] for p in ("ANC", "EFF", "MK") if p in S)
+        _three = _sum(("DA", "ASA", "PA"))
+        _left = _sum(("ANC", "EFF", "MK"))
         # the same definition as the tiles above (reweight.largest_party)
         _outright = _lp["outright"]
         since_vals = {
@@ -629,9 +645,9 @@ def main(argv: list[str] | None = None) -> int:
             "wall_flips": tok("claim.da_alone.wall_flips", WALL_FLIPS, "int",
                               "render_sheet.WALL_FLIPS, the threshold this "
                               "scenario is counted at"),
-            "no_red_share": chance("claim.red_lines.no_red_share", float((_no_red >= thr).mean())),
-            "no_red_median": tok("claim.red_lines.no_red_median", int(np.median(_no_red)), "int"),
-            "three_share": chance("claim.red_lines.three_share", float((_three >= thr).mean())),
+            "no_red_share": chance("claim.red_lines.no_red_share", float((_no_red >= thr).mean()), _ALL),
+            "no_red_median": tok("claim.red_lines.no_red_median", int(np.median(_no_red)), "int", _ALL),
+            "three_share": chance("claim.red_lines.three_share", float((_three >= thr).mean()), _ALL),
             # TWO MEDIANS, AND THEY ANSWER DIFFERENT QUESTIONS. The
             # unconditional one is what this combination holds in a typical
             # simulation; the conditional one is what it holds in the
@@ -641,24 +657,23 @@ def main(argv: list[str] | None = None) -> int:
             # against the other — 118 on this page, 144 in the table, both
             # called "median" — is how a reader is told the page contradicts
             # itself. Owner, 2026-09-27: "it can't be 118 seats and 144 seats".
-            "three_median": tok("claim.red_lines.three_median", int(np.median(_three)), "int"),
+            "three_median": tok("claim.red_lines.three_median", int(np.median(_three)), "int", _ALL),
             "three_median_when_wins": tok(
                 "claim.red_lines.three_median_when_wins",
                 int(np.median(_three[_three >= thr])) if (_three >= thr).any() else 0,
-                # SRC, not _sd. The value is a median over `_three`, which
-                # is built from `S` — read from seat_draws.csv — while `_sd` is
-                # "ward_draws.csv + seat_detail_draws.csv". Its twin
-                # `three_median` cites SRC correctly, so the tooltip on one of
-                # the pair named a file the figure never touched.
-                "int", f"{SRC}, among the simulations where this combination "
+                # The file the figure is computed from, as its twin
+                # `three_median` cites: `_three` is built from the all-party
+                # seats (seat_detail_draws.csv), so the tooltip names that.
+                "int", f"{_ALL}, among the simulations where this combination "
                        f"reaches a majority"),
-            "anc_side_share": chance("claim.red_lines.anc_side_share", float((_anc_side >= thr).mean())),
-            "anc_left_share": chance("claim.anc_routes.left_share", float((_left >= thr).mean())),
-            "anc_left_median": tok("claim.anc_routes.left_median", int(np.median(_left)), "int"),
-            "grand_share": chance("claim.red_lines.grand_share", float((S["ANC"] + S["DA"] >= thr).mean())),
+            "anc_side_share": chance("claim.red_lines.anc_side_share", float((_anc_side >= thr).mean()), _ALL),
+            "anc_left_share": chance("claim.anc_routes.left_share", float((_left >= thr).mean()), _ALL),
+            "anc_left_median": tok("claim.anc_routes.left_median", int(np.median(_left)), "int", _ALL),
+            "grand_share": chance("claim.red_lines.grand_share",
+                                  float((_sum(("ANC", "DA")) >= thr).mean()), _ALL),
             "majority": "{{majority}}",
         }
-        _p_some = _soweto(args, rows, _detail, _winners, since_vals, tok, chance)
+        _soweto(args, rows, _A, thr, _winners, since_vals, tok, chance)
         if _wall:
             # ⛔ A RANGE OVER ONE SIMULATION IS NOT A RANGE. This printed
             # "the ANC falling to 34 – 34 seats" — min and max of a single
@@ -707,18 +722,6 @@ def main(argv: list[str] | None = None) -> int:
         if faults:
             raise SystemExit("claims.toml verdicts disagree with the chance scale "
                              "(render_sheet.CHANCE_SCALE):\n  " + "\n  ".join(faults))
-        # The Mashaba claim says the DA leads a majority in "nearly all" the
-        # simulations where it wins a Soweto ward; those words are typed, so
-        # the figure is checked here.
-        for c in claims:
-            if "soweto_win_given_none" in str(c.get("chance", "")) and any(
-                    "nearly all" in s for s in c.get("steps", [])):
-                if _p_some is None or _p_some < NEARLY_ALL:
-                    raise SystemExit(
-                        f"claims.toml {c.get('label')!r} says 'nearly all', but the DA "
-                        f"leads a majority in {_p_some} of the simulations where it "
-                        f"wins a Soweto ward (render_sheet.NEARLY_ALL = {NEARLY_ALL})")
-
         for c in claims:
             since_html = ""
             if c.get("since"):

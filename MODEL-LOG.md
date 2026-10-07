@@ -28429,3 +28429,21 @@ prior on `n`) instead of none.
 **Change.** The Mashaba claim's figures (`render_sheet.da_led_majorities`) sum every party's seats from `seat_detail_draws.csv` and refuse a simulation whose parties do not add up to its council. Its rated chance is 1 − 86.1% = 13.9%, EXTREMELY UNLIKELY on `CHANCE_SCALE` (§P1).
 
 **Not changed.** `render_sheet`'s `_bloc` (the red-lines claim's `no_red_share`, `no_red_median`, `anc_side_share`) still sums the columns. Correcting it moves two published figures and the red-lines verdict (87% is VERY LIKELY), on a claim whose wording the owner is deciding; it is the owner's call. Whether the smallest parties count as willing partners is part of that definition.
+
+## 1.287 Every coalition sum in the claims counts every party; the Mashaba claim is rated on realistic coalitions (2026-10-07)
+
+**Change (owner, 2026-10-07).** `scenarios.all_party_seats` is the one definition of every party's seats per simulation, read from `seat_detail_draws.csv`; it refuses a simulation whose parties do not add up to its council, or whose `seat_draws.csv` columns disagree with it. `render_sheet`'s claim figures (`_bloc`, `_three`, `_left`, the DA+ANC sum) read it, which corrects the §1.286 defect on the red-lines and ANC cards. The Mashaba claim is rated on a realistic DA-led coalition (JUDGEMENT-CALLS §P3), `render_sheet.da_coalitions`, which replaces `da_led_majorities`.
+
+Published figures that move (same 5,000 simulations as §1.286):
+
+| token | before | after |
+|---|---|---|
+| `claim.red_lines.no_red_share` (red-lines card; verdict QUITE LIKELY → VERY LIKELY) | 59.3% | 87.1% |
+| `claim.red_lines.anc_side_share` (red-lines and ANC cards) | 57.0% | 78.1% |
+| `claim.red_lines.no_red_median` (not printed by any card) | 139 | 154 |
+
+Unchanged, because they sum named parties whose columns equal the detail: `three_share`, `three_median`, `three_median_when_wins`, `anc_left_share`, `anc_left_median`, `grand_share`. Who is largest and whether one party governs alone take a maximum, not a sum; no party outside `seat_draws.csv`'s columns is ever largest or reaches the threshold alone in these simulations, so those figures do not move.
+
+Mashaba claim, among the simulations where the DA wins no Soweto ward: a realistic DA-led coalition 23.5% (ActionSA and the PA 12.4%, the ANC 15.8%); where it wins at least one, 88.2%. The claim holds with chance 76.5%: VERY LIKELY.
+
+**Not changed.** `coalitions.analyse` (in the model run) still sums the largest parties for `structural`'s "P(some majority without …)" in `forecast_summary.json`. No live page prints it; correcting it changes model code and needs a re-run.
