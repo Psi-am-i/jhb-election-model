@@ -8,9 +8,9 @@ This page lists errors on published pages. Nothing is removed from it.
 
 **What is right.** Counting every party's seats, it reaches a majority in 78% of simulations, against 87% for a council without the ANC, the EFF and MK. The red-lines card no longer says the two are level.</span>
 
-## <span data-asof="2026-10-07">"Without the ANC, the red line leaves a majority in 59% of simulations"</span> — published 26 September 2026, corrected 7 October 2026
+## <span data-asof="2026-10-07">"Without the ANC, the red line leaves a majority in 59% of simulations"</span> — published 6 October 2026, corrected 7 October 2026
 
-<span data-asof="2026-10-07">**What was wrong.** The red-lines claim said a majority without the ANC, the EFF and MK exists in 59% of simulations, and called it more likely than not. The count left out the seats of the smallest parties.
+<span data-asof="2026-10-07">**What was wrong.** The red-lines claim said a majority without the ANC, the EFF and MK exists in 59% of simulations, and called it more likely than not. The same 59% had been on the card since 26 September. The count left out the seats of the smallest parties.
 
 **What is right.** Counting every party's seats, it exists in 87% of simulations: very likely.</span>
 
