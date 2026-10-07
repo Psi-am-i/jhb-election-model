@@ -1,7 +1,8 @@
 # Brief: forecast, prediction, result (owner, 2026-10-07)
 
-Terms as defined in `STYLE.md` rule 11. For owner approval before anything is built
-(QC.md §4b).
+Terms as defined in `STYLE.md` rule 11. **Approved by the owner 2026-10-08, on
+hold** pending a blind review (two agents) of the brief, the problem, the solution
+and the vote-share decision.
 
 ## Changes
 
@@ -23,15 +24,30 @@ Terms as defined in `STYLE.md` rule 11. For owner approval before anything is bu
 4. **Our share card is our prediction.** Title "Our Johannesburg Prediction"
    (or the stamp, change 5); reader-card layout; numbers = our prediction. The
    ranges stay on `/forecast`. Readers' cards: "Simon's Prediction".
-5. **Stamp wording.** The owner's stamp reads OFFICIAL FORECAST. Under rule 11
-   the card shows a prediction. **Owner decides:** keep it as the brand mark, or
-   supply an OFFICIAL PREDICTION version.
+5. **Stamp wording.** The prediction card carries an OFFICIAL PREDICTION stamp,
+   which the owner is supplying. The forecast card (change 8) carries OFFICIAL
+   FORECAST.
 6. **Words across the site.** Navigation, home page ("Make your own forecast"
    block), headings, buttons, share-sheet text, card text, leaderboard, edit-mode
    labels, `og:` tags: "forecast" where it is a forecast, "prediction" where it is
    one. A wording change, not an error: no correction entries.
 7. **Methodology gets one short section**, "Forecast, prediction, result", in
    reader words (rule 11's table, rewritten in reader terms).
+
+8. **Both of ours can be shared** (owner, 2026-10-08). Our forecast card, from
+   `/forecast`: battlegrounds and spreads, stripes on contested wards, ranges and
+   chances, what readers want to know before an election. Our prediction card,
+   from `/your-prediction/`: single numbers, solid map, our line in the sand
+   against the result.
+9. **Each page says what it is, in reader words.** `/forecast` and
+   `/your-prediction/` each carry a short passage: a forecast is how often each
+   outcome happens across the simulations and is what to read before the
+   election; a prediction is one complete result that could happen, what we
+   commit to and what the result is measured against.
+10. **Our prediction is on the prediction page, with how it was reduced from the
+    forecast**: the rule that turns the forecast into one scenario (how each ward
+    is called, where the vote shares come from, how the seats follow), stated in
+    reader words beside our prediction's numbers, with every figure a token.
 
 ## Open decision that this brief depends on
 
