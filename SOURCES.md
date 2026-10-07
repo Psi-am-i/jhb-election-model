@@ -901,13 +901,21 @@ them is the owner's call.
 
 ## Johannesburg's 2021 coalition — facts of record for the claims (added 2026-10-07)
 
-Typed figures in the Mashaba claim's step 4, registered as fixed tokens
-(`jhb_2021_coalition_parties`, `jhb_2021_coalition_seats` in
-`content/joburg/stats.toml`) and used for the judgement in JUDGEMENT-CALLS §P3.
+The Mashaba claim's intro prints the coalition's party count as a fixed
+token (`jhb_2021_coalition_parties` in `content/joburg/stats.toml`) and says it
+fell within a year; the seat count is kept here as the evidence for the
+judgement in JUDGEMENT-CALLS §P3 and is not printed.
+
+"In 2021 the DA won no Soweto ward" (the same intro) is MEASURED, not
+reported: in `lge2021_JHB_vd_party_clean.csv`'s ward ballots, the 42 wards of
+2021 with at least half their registered voters at stations the 2026 Soweto
+rule places in Soweto (`src/areas.py`, joined on VD number) were all won by the
+ANC. The join is approximate: 2021 VDs are matched to 2026 station addresses
+by number across the redelimitation (MODEL-LOG §1.289).
 
 | fact | source |
 |---|---|
 | Mpho Phalatse's coalition: the DA, ActionSA, IFP, FF Plus, PA, ACDP, Cope, UIM and ATM | News24, 13 December 2021, <https://www.news24.com/southafrica/news/joburg-mayor-phalatse-appoints-multi-party-coalition-executive-20211213> |
 | it held exactly the majority of the council | Daily Maverick, 3 October 2022, <https://www.dailymaverick.co.za/opinionista/2022-10-03-the-tragedy-of-johannesburgs-soap-opera-coalition-mess/> |
-| it lost the majority when the PA left, September 2022 | BizNews, <https://www.biznews.com/leadership/coalition-collapse-johannesburg-action-sa-da> |
+| it lost the majority when the PA left, September 2022, within a year of forming | BizNews, <https://www.biznews.com/leadership/coalition-collapse-johannesburg-action-sa-da> |
 | no size threshold for coalition stability is established; collapses attributed to ideology and personality | Pholoma et al. (2024), JOLGRI |

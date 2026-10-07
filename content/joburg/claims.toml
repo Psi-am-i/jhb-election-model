@@ -93,12 +93,13 @@ tests = "P(a majority exists without the ANC, the EFF and MK)"
 label = "A majority without the ANC, the EFF and MK"
 captured = "2026-09-13"
 published = "26 September 2026"
-intro = """A red line is a choice, not a claim about the world, so there is nothing here to call true or false. What can be tested is what it costs. Ruling out the EFF and MK leaves the DA two high-probability ways to a majority: everyone else in the council except the ANC, which clears {{majority}} in [[no_red_share]] of simulations, or a deal with the ANC itself, which clears it in [[grand_share]]. The narrower option — ActionSA and the PA alone — is the [[three_share]] case discussed just below."""
+intro = """A red line is a choice, so there is nothing here to call true or false. What can be tested is what it costs. Without the ANC, the EFF and MK, the rest of the council still clears {{majority}} in [[no_red_share]] of simulations."""
 steps = [
-  """**Without the ANC, the red line leaves a majority in [[no_red_share]] of simulations.** A council built from every party except the ANC, the EFF and MK reaches {{majority}} in that share of the {{n_draws}} simulations. That is the whole of the rest of the council acting as one — the most generous possible reading of the DA's options.""",
-  """**The plausible version of that coalition is much weaker.** The DA with ActionSA and the Patriotic Alliance — the partners most often named — reaches {{majority}} in [[three_share]] of simulations. Two medians describe them and they answer different questions: across all [[n_draws]] simulations the three hold [[three_median]] seats, and in the [[three_share]] where they do reach a majority they hold [[three_median_when_wins]]. The who-can-govern table reports the second, because it is asking what governing looks like when it happens. Getting from the first to a majority means adding parties that will each hold a handful of seats, and keeping all of them.""",
-  """**The alternative the red line leaves is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable two-party majority in the city.""",
-  """**The same test applied to the other side.** An ANC-led council excluding the DA, the EFF and MK reaches {{majority}} in [[anc_side_share]] of simulations.""",
+  """**There are three ways to a majority.** The whole rest of the council except the ANC, which clears {{majority}} in [[no_red_share]] of simulations; a deal with the ANC alone, [[grand_share]]; or the narrower option, ActionSA and the PA, [[three_share]].""",
+  """**The first assumes the whole rest of the council acting as one,** ActionSA, the PA and several small parties: the most generous and least stable option.""",
+  """**The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations.** Neither party has said it wants it, but on this arithmetic it is the most reliable two-party majority in the city.""",
+  """**The DA with ActionSA and the Patriotic Alliance reaches {{majority}} in [[three_share]] of simulations.** Across all simulations the three hold a median of [[three_median]] seats; where they reach a majority, a median of [[three_median_when_wins]].""",
+  """**The same test applied to the other side:** an ANC-led council excluding the DA, the EFF and MK reaches {{majority}} in [[anc_side_share]] of simulations.""",
 ]
 
 [[claim]]
@@ -116,12 +117,13 @@ tests = "The chance the DA does not lead a majority with ActionSA and the PA, or
 label = "The DA cannot win Joburg without Soweto"
 captured = "2026-09-09"
 published = "7 October 2026"
-intro = """No party is likely to win a majority on its own: {{p_alone}} chance. So winning Joburg means the DA leading a coalition of at least {{majority}} of {{council_size}} seats. Zille has ruled out the EFF and MK. That leaves two realistic partners: ActionSA with the PA, or the ANC. [[holds]]"""
-holds_subject = "Mashaba's statement"
+intro = """No party is likely to win a majority on its own: {{p_alone}} chance. So winning Joburg means the DA leading a coalition of at least {{majority}} of {{council_size}} seats. Zille has ruled out the EFF and MK. That leaves three realistic partners: ActionSA with the PA, or the ANC. In 2021 the DA won no Soweto ward and governed only through a {{jhb_2021_coalition_parties}}-party coalition that fell within a year. So what about 2026?"""
+holds_subject = "Mashaba"
+requires_at_least = "QUITE LIKELY"
 steps = [
-  """**The DA wins no Soweto ward in [[soweto_none_share]] of simulations.** Soweto's [[soweto_wards_n]] wards hold [[soweto_roll_share]] of the city's registered voters.""",
-  """**Without a Soweto ward, the DA governs in [[realistic_given_none]] of simulations,** assuming ActionSA and the PA, or the ANC, are willing to work with it: [[asa_pa_given_none]] with ActionSA and the PA, [[anc_given_none]] with the ANC as the smaller partner (some simulations allow either).""",
-  """**If it wins a Soweto ward, that jumps to [[realistic_given_some]],** on the same assumption. Those are simulations where the DA is strong across the whole city, a breakthrough it has not made before; Soweto falls with everywhere else.""",
-  """**On paper the DA has more routes.** Adding small parties such as the IFP and the VF+ to ActionSA and the PA gives it a majority in [[da_small_share]] of simulations, typically with [[small_needed_median]] of them on board. Coalitions of more than three parties are not counted here: the last DA-led council, {{jhb_2021_coalition_parties}} parties holding exactly {{jhb_2021_coalition_seats}} seats, lost its majority when one partner left.""",
-  """**What this cannot see.** The model counts seats, not which parties are willing to work together. DA votes cast in Soweto count toward its seats even where it wins no ward.""",
+  """**Mathematically, the DA can lead a coalition in [[da_small_share]] of simulations.** Most of these depend on many parties staying together, any of which can walk out and bring the coalition down. We do not count them.""",
+  """**In [[soweto_none_share]] of simulations the DA wins none of the [[soweto_wards_n]] Soweto wards.** Without a Soweto ward it can still govern in [[realistic_given_none]] of simulations, with ActionSA and the PA or with the ANC: [[asa_pa_given_none]] and [[anc_given_none]] respectively (some simulations allow either).""",
+  """**In the [[soweto_some_share]] of simulations where the DA does win a Soweto ward, its chance of governing jumps to [[realistic_given_some]].** These simulations show a strong DA across the whole city: the breakthrough the DA has never achieved, and needs to make inroads.""",
+  """**All told, [[holds]]** The DA needs Sowetan support, or partners who have it.""",
+  """**What this cannot see.** The model counts seats, not which parties are willing to work together.""",
 ]

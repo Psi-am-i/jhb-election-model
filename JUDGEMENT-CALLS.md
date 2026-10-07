@@ -3479,10 +3479,20 @@ the one check: the sheet runs it with the computed figures, and the home
 page's claims list runs it on the form alone, since it computes no figure.
 
 **The sentence that follows the verdict.** A claim may write `[[holds]]` and
-name its subject in `holds_subject`; `render_sheet.HOLDS` turns the verdict
-into "holds up" (NEAR CERTAIN, VERY LIKELY, TRUE), "mostly holds up" (QUITE
-LIKELY), "is a coin flip" (A COIN FLIP) or "does not hold up" (UNLIKELY and
-below, FALSE). So "Mashaba's statement holds up" cannot outlive its verdict.
+name its subject in `holds_subject`; `render_sheet.HOLDS` gives the
+predicate (owner, 2026-10-07): NEAR CERTAIN "is almost certainly correct",
+VERY LIKELY "is very likely correct", QUITE LIKELY "is probably correct", A
+COIN FLIP "is as likely right as wrong", UNLIKELY "is probably wrong",
+EXTREMELY UNLIKELY "is very likely wrong", NEAR IMPOSSIBLE "is almost
+certainly wrong", TRUE "is correct", FALSE "is wrong". So "Mashaba is very
+likely correct" cannot outlive its verdict.
+
+**Text written for one end of the scale.** A claim whose own words are true
+only at the likely end names the lowest verdict they may print under:
+`requires_at_least` (the Mashaba card: QUITE LIKELY, for "The DA needs
+Sowetan support, or partners who have it"). The build refuses the claim if its
+verdict falls below it (`render_sheet.VERDICT_ORDER`), so the text must be
+rewritten before a contrary verdict prints.
 
 **Why it is a judgement.** The words and the edges are the owner's. Nothing
 derives them. It moves no draw, seat or probability.
@@ -3566,8 +3576,10 @@ of Soweto". The owner's reading, per simulation:
   The card prints, as context, how often the DA would lead a majority by
   adding small parties to ActionSA and the PA (`DA_CORE_PARTNERS` plus every
   party outside the ANC and `ZILLE_RED_LINES` with fewer seats than the DA,
-  the DA larger than each), and how many small parties, largest first, the
-  median such simulation needs. Neither is rated. The evidence is one case:
+  the DA larger than each), and does not rate it. The build still computes
+  how many small parties, largest first, the median such simulation needs
+  (`small_needed_median`); since 2026-10-07 no card prints it. The evidence
+  is one case:
   the last DA-led council (December 2021) was nine parties, the DA, ActionSA,
   the IFP, the FF Plus, the PA, the ACDP, Cope, the UIM and the ATM, holding
   exactly 136 of 270 seats (News24, 13 December 2021; Daily Maverick,
@@ -3575,9 +3587,9 @@ of Soweto". The owner's reading, per simulation:
   2022 (BizNews). The research does not establish a size threshold: Pholoma
   et al. (2024, JOLGRI) attribute South African metro coalition collapses to
   ideology and personality, and compare no coalition sizes. The cut at three
-  is a judgement, not a finding. The two figures of record are fixed tokens,
-  jhb_2021_coalition_parties and jhb_2021_coalition_seats, in
-  content/joburg/stats.toml with their sources.
+  is a judgement, not a finding. The card's intro prints the coalition's
+  party count as the fixed token jhb_2021_coalition_parties
+  (content/joburg/stats.toml); the seat count stays in SOURCES.md.
 * **Without Soweto's support**: the DA wins none of the `[areas.soweto]` wards
   (`ward_draws.csv`).
 * **The rated chance**: the claim holds with chance 1 − P(a realistic DA-led

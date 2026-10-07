@@ -589,7 +589,7 @@ used_in = "claims/zille-490k step 4 — what the frozen-poll world requires"
 unverifiable = "arithmetic on two published figures, not a quantity the model emits"
 
 # The last DA-led council in Johannesburg (December 2021): a fact of record,
-# quoted in the Mashaba claim's step 4 (JUDGEMENT-CALLS.md §P3). Added
+# quoted in the Mashaba claim's intro (JUDGEMENT-CALLS.md §P3). Added
 # 2026-10-07.
 [jhb_2021_coalition_parties]
 mode = "fixed"
@@ -597,16 +597,7 @@ value = 9
 source = "external:News24, 13 December 2021 (https://www.news24.com/southafrica/news/joburg-mayor-phalatse-appoints-multi-party-coalition-executive-20211213): the DA, ActionSA, IFP, FF Plus, PA, ACDP, Cope, UIM and ATM in Mpho Phalatse's coalition"
 captured = "2026-10-07"
 format = "int"
-used_in = "claims/mashaba-soweto step 4"
-unverifiable = "a historical fact of record from the press, not a model output"
-
-[jhb_2021_coalition_seats]
-mode = "fixed"
-value = 136
-source = "external:Daily Maverick, 3 October 2022 (https://www.dailymaverick.co.za/opinionista/2022-10-03-the-tragedy-of-johannesburgs-soap-opera-coalition-mess/): the coalition held exactly the majority of the 270-seat council; it lost the majority when the PA left in September 2022 (BizNews, https://www.biznews.com/leadership/coalition-collapse-johannesburg-action-sa-da)"
-captured = "2026-10-07"
-format = "int"
-used_in = "claims/mashaba-soweto step 4"
+used_in = "claims/mashaba-soweto intro"
 unverifiable = "a historical fact of record from the press, not a model output"
 
 # --- build-time audit -------------------------------------------------------
