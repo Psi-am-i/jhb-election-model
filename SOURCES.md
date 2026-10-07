@@ -898,3 +898,16 @@ Azanian Independent Community Movement and the Creatives Congress Movement
 ([IOL](https://iol.co.za/news/politics/2026-01-26-actionsa-announces-merger-with-two-smaller-parties-but-analysts-doubt-merger-will-boost-support/)).
 Whether either holds a Johannesburg baseline has not been checked. Declaring
 them is the owner's call.
+
+## Johannesburg's 2021 coalition — facts of record for the claims (added 2026-10-07)
+
+Typed figures in the Mashaba claim's step 4, registered as fixed tokens
+(`jhb_2021_coalition_parties`, `jhb_2021_coalition_seats` in
+`content/joburg/stats.toml`) and used for the judgement in JUDGEMENT-CALLS §P3.
+
+| fact | source |
+|---|---|
+| Mpho Phalatse's coalition: the DA, ActionSA, IFP, FF Plus, PA, ACDP, Cope, UIM and ATM | News24, 13 December 2021, <https://www.news24.com/southafrica/news/joburg-mayor-phalatse-appoints-multi-party-coalition-executive-20211213> |
+| it held exactly the majority of the council | Daily Maverick, 3 October 2022, <https://www.dailymaverick.co.za/opinionista/2022-10-03-the-tragedy-of-johannesburgs-soap-opera-coalition-mess/> |
+| it lost the majority when the PA left, September 2022 | BizNews, <https://www.biznews.com/leadership/coalition-collapse-johannesburg-action-sa-da> |
+| no size threshold for coalition stability is established; collapses attributed to ideology and personality | Pholoma et al. (2024), JOLGRI |

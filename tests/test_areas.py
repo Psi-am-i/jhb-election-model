@@ -47,6 +47,13 @@ def test_an_address_names_soweto_by_a_word_start_and_an_exclusion_wins():
     assert not A.address_in_area("5 STREET  KLIPSPRUIT WEST  SOWETO", g, x)
     assert not A.address_in_area("CNR ROAD  ELDORADO PARK  SOWETO", g, x)
     assert not A.address_in_area("", g, x) and not A.address_in_area(None, g, x)
+    # a street named after a township is not the township (the two real false
+    # matches, 2026-10-07), but the township named elsewhere still counts
+    assert not A.address_in_area("N12 MOROKA BYPASS  JHB  LENASIA", g, x)
+    assert not A.address_in_area("6694 DLAMINI DRIVE  IVORY PARK  MIDRAND", g, x)
+    assert not A.address_in_area("1 ORLANDO ST  ROSETTENVILLE", g, x)
+    assert A.address_in_area("1 ORLANDO ST  ORLANDO EAST", g, x)
+    assert A.address_in_area("12 VILAKAZI STREET  ORLANDO WEST  SOWETO", g, x)
 
 
 def test_a_split_district_counts_by_part_and_the_cut_is_inclusive():

@@ -28447,3 +28447,21 @@ Unchanged, because they sum named parties whose columns equal the detail: `three
 Mashaba claim, among the simulations where the DA wins no Soweto ward: a realistic DA-led coalition 23.5% (ActionSA and the PA 12.4%, the ANC 15.8%); where it wins at least one, 88.2%. The claim holds with chance 76.5%: VERY LIKELY.
 
 **Not changed.** `coalitions.analyse` (in the model run) still sums the largest parties for `structural`'s "P(some majority without …)" in `forecast_summary.json`. No live page prints it; correcting it changes model code and needs a re-run.
+
+## 1.288 §1.287's "Not changed" was wrong; the Soweto matcher's two false matches; the Mashaba figures after review (2026-10-07)
+
+**Correction to §1.287.** It said `coalitions.analyse` still sums the largest parties for `structural`'s "P(some majority without …)". `montecarlo.py` overwrites those rows after `analyse` returns, summing every seat-holding party (`seat_draws` there is the per-draw dict of all parties): `forecast_summary.json` holds "P(some majority without ANC, EFF and MK)" 0.8712 and "field without ANC, EFF and MK: median seats" 154, equal to the all-party figures `render_sheet` now prints. The model and the claims therefore compute "every party except X" twice, in `montecarlo.py` and in `scenarios.all_party_seats`. Making it one definition changes model code (the run's import closure), so it is not done here; it is the owner's call.
+
+**Soweto matcher.** Two station addresses matched a township through a street named after it: "N12 MOROKA BYPASS JHB LENASIA" (ward 10) and "6694 DLAMINI DRIVE IVORY PARK MIDRAND" (ward 133). `areas.STREET_TYPES` now skips a gazetteer word followed by a street type. Measured: those two stations, and no other, change; the ward list is the same 40. Ward 10's share of voters at Soweto stations falls from 47.0% to 43.1%, ward 133's from 25.7% to 0.
+
+**Sensitivity to `SOWETO_CUT`** (published 5,000 simulations, realistic DA-led coalitions, JUDGEMENT-CALLS §P3):
+
+| cut | wards | DA wins no Soweto ward | claim holds (1 − realistic coalition given none) |
+|---|---|---|---|
+| 0.40 | 41 (adds 10) | 78.9% | 85.2% |
+| 0.45 to 0.55 | 40 | 97.3% | 76.5% |
+| 0.60 | 39 (drops 11) | 98.1% | 76.1% |
+
+Every row is VERY LIKELY.
+
+**The Mashaba card's small-party figure** (step 4; the DA leading ActionSA, the PA and every other party outside the ANC, the EFF and MK with fewer seats than the DA, the DA larger than each): it reaches a majority in 82.6% of simulations (4,132). Small parties needed, added largest first, in those: median 2; 714 need none, 964 one, 802 two. The every-party figure of §1.287 (86.5%) is off the card.

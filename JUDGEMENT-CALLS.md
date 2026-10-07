@@ -3469,7 +3469,20 @@ its figure: `chance = "<name>"`, or `chance = "1 - <name>"` when the claim
 holds where that figure's event does not. The build reads the value out of
 that figure's own token and refuses a verdict the scale does not give it. The
 words it replaced (OUT OF REACH, VERY UNLIKELY, MORE LIKELY THAN NOT, LIKELY)
-are off the table, so a stale label stops the build.
+are off the table, so a stale label stops the build. A chance written as a
+number instead of a name stops the build.
+
+FALSE and TRUE need a `settled` field saying what fact or arithmetic settles
+the claim, and may not name a chance, so a chance-rated claim cannot be
+relabelled FALSE or TRUE to leave the scale. `render_sheet.claims_faults` is
+the one check: the sheet runs it with the computed figures, and the home
+page's claims list runs it on the form alone, since it computes no figure.
+
+**The sentence that follows the verdict.** A claim may write `[[holds]]` and
+name its subject in `holds_subject`; `render_sheet.HOLDS` turns the verdict
+into "holds up" (NEAR CERTAIN, VERY LIKELY, TRUE), "mostly holds up" (QUITE
+LIKELY), "is a coin flip" (A COIN FLIP) or "does not hold up" (UNLIKELY and
+below, FALSE). So "Mashaba's statement holds up" cannot outlive its verdict.
 
 **Why it is a judgement.** The words and the edges are the owner's. Nothing
 derives them. It moves no draw, seat or probability.
@@ -3509,11 +3522,24 @@ township, and names neither exclusion.
   it is in the set by the gazetteer, not by an address naming Soweto. Under
   whole-word matching wards 44 and 49 (Braamfischerville) drop out; under
   plain substring matching the ward list is the same as this rule's.
+* **Streets** (`STREET_TYPES`, added 2026-10-07): a gazetteer word followed by
+  a street type (DRIVE, STREET, ROAD, BYPASS and the rest) names a street, not
+  the place. Two stations matched that way before the rule: "N12 MOROKA
+  BYPASS JHB LENASIA" (ward 10) and "6694 DLAMINI DRIVE IVORY PARK MIDRAND"
+  (ward 133). Neither changed a ward; the list is the same 40 with and
+  without the rule.
 
 **The result** is the list in `cities/joburg.toml` `[areas.soweto]`, which
-`tests/test_areas.py` regenerates from the raw files and compares. Wards near
-the cut are the ones a different cut would move: run `areas.area_wards` on the
-crosswalk with another cut to see which.
+`tests/test_areas.py` regenerates from the raw files and compares.
+
+**Sensitivity to the cut** (measured 2026-10-07 on the published 5,000
+simulations; MODEL-LOG §1.288). The wards nearest it are 29 (37.9% of its
+voters at Soweto stations), 10 (43.1%, Protea South with Lenasia; 47% before
+the street rule removed the Moroka Bypass station) and 11 (58.2%). Any cut
+from 0.44 to 0.58 gives the same 40 wards. At 0.40 ward 10 joins: the DA wins
+no Soweto ward in 78.9% of simulations instead of 97.3%, and the Mashaba
+claim holds with chance 85.2% instead of 76.5%, VERY LIKELY either way. At
+0.60 ward 11 leaves: 98.1% and 76.1%, VERY LIKELY.
 
 **Why it is a judgement.** "Soweto" has no official boundary in these files.
 The gazetteer, the exclusions and the cut are choices.
@@ -3536,10 +3562,22 @@ of Soweto". The owner's reading, per simulation:
   coalition counts where the DA and its partners reach the simulation's
   majority threshold and the DA has strictly more seats than each partner.
   Zille ruled out the EFF and MK (`ZILLE_RED_LINES`), not the ANC.
-* **Context only: every party.** The DA plus every party outside
-  `ZILLE_RED_LINES` with strictly fewer seats than the DA. The card prints it
-  and does not rate on it: the owner's view is that a coalition of dozens of
-  parties "never actually happens because it's so fragile".
+* **More than three parties are not counted as a win** (owner, 2026-10-07).
+  The card prints, as context, how often the DA would lead a majority by
+  adding small parties to ActionSA and the PA (`DA_CORE_PARTNERS` plus every
+  party outside the ANC and `ZILLE_RED_LINES` with fewer seats than the DA,
+  the DA larger than each), and how many small parties, largest first, the
+  median such simulation needs. Neither is rated. The evidence is one case:
+  the last DA-led council (December 2021) was nine parties, the DA, ActionSA,
+  the IFP, the FF Plus, the PA, the ACDP, Cope, the UIM and the ATM, holding
+  exactly 136 of 270 seats (News24, 13 December 2021; Daily Maverick,
+  3 October 2022), and it lost its majority when the PA left in September
+  2022 (BizNews). The research does not establish a size threshold: Pholoma
+  et al. (2024, JOLGRI) attribute South African metro coalition collapses to
+  ideology and personality, and compare no coalition sizes. The cut at three
+  is a judgement, not a finding. The two figures of record are fixed tokens,
+  jhb_2021_coalition_parties and jhb_2021_coalition_seats, in
+  content/joburg/stats.toml with their sources.
 * **Without Soweto's support**: the DA wins none of the `[areas.soweto]` wards
   (`ward_draws.csv`).
 * **The rated chance**: the claim holds with chance 1 − P(a realistic DA-led
@@ -3554,14 +3592,14 @@ add up to its council.
 
 **Why it is a judgement.** Which partners are realistic is the owner's call;
 the seats cannot say which parties would work together. Adding a partner (the
-IFP, the FF+) raises the chance of a DA win and lowers the chance the claim
-holds; the every-party figure is the upper bound. Vote shares by area are not
+IFP, the VF+) raises the chance of a DA win and lowers the chance the claim
+holds; the small-party figure is near the upper bound. Vote shares by area are not
 in the published simulations, so "support" is read as ward wins.
 
 **How to check it.** Re-derive from the three published files.
 `tests/test_site_structure.py` checks the coalition rules on constructed
-seats, including a DA no larger than its partner. MODEL-LOG §1.286 and §1.287
-record the figures.
+seats, including a DA no larger than its partner and the count of small
+parties needed. MODEL-LOG §1.286 to §1.288 record the figures.
 
 ## Appendix — how this register has failed before
 

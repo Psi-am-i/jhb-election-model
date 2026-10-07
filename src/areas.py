@@ -50,6 +50,12 @@ SOWETO_GAZETTEER = (
 #: names: Klipspruit West and Eldorado Park border Soweto and are not part of
 #: it. Same matching rule as the gazetteer.
 SOWETO_EXCLUDE = ("KLIPSPRUIT WEST", "ELDORADO")
+#: A gazetteer word followed by one of these is a STREET named after the
+#: place, not the place: "N12 MOROKA BYPASS ... LENASIA" and "6694 DLAMINI
+#: DRIVE IVORY PARK MIDRAND" matched Soweto townships until 2026-10-07. Leaving
+#: them out changes no ward (JUDGEMENT-CALLS.md §P2).
+STREET_TYPES = ("DRIVE", "DR", "STREET", "STR", "ST", "ROAD", "RD", "AVENUE",
+                "AVE", "BYPASS", "CRESCENT", "CRES", "LANE", "WAY")
 #: The share of a ward's registered voters that must be at Soweto stations for
 #: the ward to be a Soweto ward. A share exactly at the cut is in.
 SOWETO_CUT = 0.5
@@ -76,11 +82,22 @@ def _names(address: str, terms) -> bool:
     return any(re.search(r"\b" + re.escape(_norm(t)), address) for t in terms)
 
 
+def _names_place(address: str, terms) -> bool:
+    """A term at the start of a word, where that word is not followed by a
+    street type (``STREET_TYPES``): the place, not a street named after it."""
+    street = re.compile(r"\s*(?:" + "|".join(STREET_TYPES) + r")\b")
+    for t in terms:
+        for m in re.finditer(r"\b" + re.escape(_norm(t)) + r"\w*", address):
+            if not street.match(address, m.end()):
+                return True
+    return False
+
+
 def address_in_area(address: str, gazetteer, exclude) -> bool:
     """Whether a station address names the area: a gazetteer term at the start
-    of a word, and no excluded term."""
+    of a word and not as a street's name, and no excluded term."""
     a = _norm(address)
-    return _names(a, gazetteer) and not _names(a, exclude)
+    return _names_place(a, gazetteer) and not _names(a, exclude)
 
 
 def station_vds(stations: Path, gazetteer, exclude) -> tuple[set[str], set[str]]:
