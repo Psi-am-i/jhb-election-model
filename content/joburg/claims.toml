@@ -99,3 +99,27 @@ steps = [
   """**The alternative the red line leaves is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable two-party majority in the city.""",
   """**The same test applied to the other side.** An ANC-led council excluding the DA, the EFF and MK reaches {{majority}} in [[anc_side_share]] of simulations — almost exactly the same odds as the DA's route. On coalition arithmetic alone, neither leader is better placed than the other.""",
 ]
+
+[[claim]]
+party = "ASA"
+party_name = "ActionSA"
+chip = "#2FA79B"
+logo = "ASA"
+quote = """If she thinks she will win Joburg without the support of Soweto, she must be living in another world"""
+speaker = "Herman Mashaba, ActionSA leader and mayoral candidate, of Helen Zille (DA)"
+outlet = "Inside Metros, 9 September 2026"
+url = "https://insidepolitic.co.za/no-joburg-mayoral-win-without-soweto-says-mashaba-of-zille/"
+verdict = "EXTREMELY UNLIKELY"
+chance = "1 - soweto_win_given_none"
+tests = "The chance the DA does not lead a council majority without the EFF and MK when it wins no Soweto ward"
+label = "The DA cannot win Joburg without Soweto"
+captured = "2026-09-09"
+published = "7 October 2026"
+intro = """Winning Joburg here means the DA leading a council majority: the DA and parties smaller than it reaching {{majority}} of {{council_size}} seats, without the EFF or MK, the two parties Zille has ruled out. Without Soweto means the DA wins none of Soweto's [[soweto_wards_n]] wards. When the DA wins no Soweto ward, it still leads a majority: [[soweto_win_given_none]] chance."""
+steps = [
+  """**The DA wins no Soweto ward in [[soweto_none_share]] of simulations.** Soweto's [[soweto_wards_n]] wards hold [[soweto_roll_share]] of the city's registered voters.""",
+  """**Its majorities come from the rest of the city.** The DA leads a majority in [[da_leads_share]] of all simulations, and in [[soweto_win_given_none]] of those where it wins no Soweto ward.""",
+  """**Soweto wards fall to the DA only in landslides.** In the simulations where it wins at least one, it leads a majority in nearly all of them.""",
+  """**This assumes every party except the EFF and MK would join a council the DA leads.** In [[da_leads_with_anc_share]] of simulations that council needs the ANC as a smaller partner.""",
+  """**What this cannot see.** Seats follow ward and list votes together, so DA votes cast in Soweto count toward its seats even where it wins no ward. The published simulations do not record vote shares by area.""",
+]
