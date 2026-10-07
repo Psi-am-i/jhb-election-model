@@ -143,11 +143,27 @@ def verdict_fault(claim: dict, values: dict | None) -> str | None:
         if len(str(claim.get("settled", "")).strip()) < SETTLED_MIN_CHARS:
             return (f"{label!r}: {verdict} needs a `settled` field saying what fact or "
                     f"arithmetic settles it")
+        floor = claim.get("requires_at_least")
+        if floor is not None:
+            floor = " ".join(str(floor).upper().split())
+            if floor not in VERDICT_ORDER:
+                return f"{label!r}: requires_at_least {floor!r} is not a verdict"
+            if VERDICT_ORDER.index(verdict) < VERDICT_ORDER.index(floor):
+                return (f"{label!r}: its text is written for {floor} or above, and "
+                        f"the verdict is {verdict}")
         return None
     if verdict not in VERDICT_STEP:
         return f"{label!r}: {verdict!r} is not on the verdict scale"
     if claim.get("chance") is None:
         return f"{label!r}: {verdict} is on the chance scale, but the claim names no chance"
+    floor = claim.get("requires_at_least")
+    if floor is not None:
+        floor = " ".join(str(floor).upper().split())
+        if floor not in VERDICT_ORDER:
+            return f"{label!r}: requires_at_least {floor!r} is not a verdict"
+        if VERDICT_ORDER.index(verdict) < VERDICT_ORDER.index(floor):
+            return (f"{label!r}: its text is written for {floor} or above, and the "
+                    f"verdict is {verdict}: rewrite the text before the verdict prints")
     if p is None:
         return None
     want = scale_verdict(p)
@@ -167,16 +183,26 @@ def claims_faults(claims, values: dict | None = None) -> None:
                          "(render_sheet.CHANCE_SCALE):\n  " + "\n  ".join(faults))
 
 
-#: The sentence a claim's text gets from its verdict, so "Mashaba's statement
-#: holds up" cannot outlive a verdict that moved (owner, 2026-10-07). A claim
-#: writes ``[[holds]]`` and names its subject in ``holds_subject``.
+#: The sentence a claim's text gets from its verdict, so a conclusion about the
+#: speaker cannot outlive a verdict that moved (owner, 2026-10-07). A claim
+#: writes ``[[holds]]`` and names its subject in ``holds_subject``; the
+#: sentence is the subject followed by the verdict's predicate.
 HOLDS = {
-    "NEAR CERTAIN": "holds up", "VERY LIKELY": "holds up", "TRUE": "holds up",
-    "QUITE LIKELY": "mostly holds up",
-    "A COIN FLIP": "is a coin flip",
-    "UNLIKELY": "does not hold up", "EXTREMELY UNLIKELY": "does not hold up",
-    "NEAR IMPOSSIBLE": "does not hold up", "FALSE": "does not hold up",
+    "NEAR CERTAIN": "is almost certainly correct",
+    "VERY LIKELY": "is very likely correct",
+    "QUITE LIKELY": "is probably correct",
+    "A COIN FLIP": "is as likely right as wrong",
+    "UNLIKELY": "is probably wrong",
+    "EXTREMELY UNLIKELY": "is very likely wrong",
+    "NEAR IMPOSSIBLE": "is almost certainly wrong",
+    "TRUE": "is correct",
+    "FALSE": "is wrong",
 }
+#: Every verdict from the claim failing to the claim holding, for a claim's
+#: ``requires_at_least``: text that is only true at the likely end (the
+#: Mashaba card's "The DA needs Sowetan support") names the lowest verdict it
+#: may print under, and the build refuses the claim below it.
+VERDICT_ORDER = ("FALSE",) + tuple(w for _e, w, _s in CHANCE_SCALE) + ("TRUE",)
 
 
 def holds_sentence(claim: dict) -> str:
@@ -359,6 +385,9 @@ def _soweto(args, rows, seats, thr, winners, since_vals, tok, chance):
             f"MDB {year} voting-district layer's REGPOP, a 2024 registration snapshot"),
         "soweto_none_share": chance("claim.soweto.none_share", none.mean(),
                                     f"ward_draws.csv, {n:,} simulations, the [areas.soweto] wards"),
+        "soweto_some_share": chance("claim.soweto.some_share", (~none).mean(),
+                                    f"ward_draws.csv, {n:,} simulations, the [areas.soweto] "
+                                    f"wards: the DA wins at least one"),
         "da_small_share": chance("claim.soweto.da_small_share", c["da_small"].mean(),
                                  f"{every}: the DA leading ActionSA, the PA and the "
                                  f"smaller parties outside the ANC, the EFF and MK"),

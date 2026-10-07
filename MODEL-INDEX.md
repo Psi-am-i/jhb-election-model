@@ -36,7 +36,7 @@ arithmetic test can see.
 | `render_home` | `tok` | `lede_overhang_seats`, `lede_overhang_votes` |
 | `render_sheet` | `chance` | `anc_alone_share`, `anc_largest_share`, `anc_left_share`, `anc_side_share`, `da_alone_share`, `da_largest_share`, `grand_share`, `largest_tied_share`, `mk_largest_share`, `no_red_share`, `three_share` |
 | `render_sheet` | `chance` | `anc_given_none`, `asa_pa_given_none`, `realistic_given_none` |
-| `render_sheet` | `chance` | `da_small_share`, `soweto_none_share` |
+| `render_sheet` | `chance` | `da_small_share`, `soweto_none_share`, `soweto_some_share` |
 | `render_sheet` | `seats` | `hi`, `lo`, `seats` |
 | `render_sheet` | `tok` | `anc_alone_count`, `anc_best`, `anc_left_median`, `anc_median`, `da_alone_count`, `da_median`, `mk_median`, `mk_p95`, `no_red_median`, `three_median`, `three_median_when_wins`, `wall_count`, `wall_flips` |
 | `render_sheet` | `tok` | `soweto_roll_share`, `soweto_wards_n` |
@@ -663,6 +663,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `render_sheet.SETTLED_VERDICTS` | dict[2] | NO | NO | NO | -- |
 | `render_sheet.VERDICT_STEP` | {**SETTLED_VERDICTS, **{word: step for _edge, word, step in CHANCE_SCALE | NO | NO | NO | -- |
 | `render_sheet.HOLDS` | dict[9] | NO | NO | NO | -- |
+| `render_sheet.VERDICT_ORDER` | ('FALSE',) + tuple((w for _e, w, _s in CHANCE_SCALE)) + ('TRUE',) | NO | NO | NO | -- |
 | `render_sheet.NAMES` | dict[15] | NO | NO | NO | `build_play`, `render_home`, `render_map` |
 | `render_sheet.SEAT_LAWS` | tuple[4] | NO | NO | NO | `build_play` |
 | `render_sheet.COALITION_KEY_ORDER` | tuple[6] | NO | NO | NO | -- |

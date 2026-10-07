@@ -741,17 +741,28 @@ def test_a_verdict_that_disagrees_with_its_chance_is_refused():
 
 
 def test_the_holds_sentence_follows_the_verdict():
-    """Owner, 2026-10-07: "Mashaba's statement holds up" is generated from
-    the verdict's band, so it cannot outlive a verdict that moved."""
+    """Owner, 2026-10-07: "Mashaba is very likely correct" is generated from
+    the verdict, so it cannot outlive a verdict that moved; and text written
+    only for the likely end (requires_at_least) is refused below it."""
     import render_sheet as RS
     words = {w for _e, w, _s in RS.CHANCE_SCALE} | set(RS.SETTLED_VERDICTS)
-    assert set(RS.HOLDS) == words
-    c = {"verdict": "VERY LIKELY", "holds_subject": "Mashaba's statement", "label": "m"}
-    assert RS.with_holds(c, "A. [[holds]]") == "A. Mashaba's statement holds up."
-    assert RS.holds_sentence(dict(c, verdict="QUITE LIKELY")) == "Mashaba's statement mostly holds up."
-    assert RS.holds_sentence(dict(c, verdict="A COIN FLIP")) == "Mashaba's statement is a coin flip."
-    for v in ("UNLIKELY", "EXTREMELY UNLIKELY", "NEAR IMPOSSIBLE"):
-        assert RS.holds_sentence(dict(c, verdict=v)) == "Mashaba's statement does not hold up."
+    assert set(RS.HOLDS) == words == set(RS.VERDICT_ORDER)
+    want = {
+        "NEAR CERTAIN": "Mashaba is almost certainly correct.",
+        "VERY LIKELY": "Mashaba is very likely correct.",
+        "QUITE LIKELY": "Mashaba is probably correct.",
+        "A COIN FLIP": "Mashaba is as likely right as wrong.",
+        "UNLIKELY": "Mashaba is probably wrong.",
+        "EXTREMELY UNLIKELY": "Mashaba is very likely wrong.",
+        "NEAR IMPOSSIBLE": "Mashaba is almost certainly wrong.",
+        "TRUE": "Mashaba is correct.",
+        "FALSE": "Mashaba is wrong.",
+    }
+    c = {"holds_subject": "Mashaba", "label": "m"}
+    for v, sentence in want.items():
+        assert RS.holds_sentence(dict(c, verdict=v)) == sentence, v
+    assert (RS.with_holds(dict(c, verdict="VERY LIKELY"), "**All told, [[holds]]** X")
+            == "**All told, Mashaba is very likely correct.** X")
     assert RS.with_holds({"verdict": "UNLIKELY"}, "no placeholder") == "no placeholder"
     try:
         RS.with_holds({"verdict": "VERY LIKELY", "label": "m"}, "[[holds]]")
@@ -759,6 +770,23 @@ def test_the_holds_sentence_follows_the_verdict():
         pass
     else:
         raise AssertionError("[[holds]] with no subject was accepted")
+    # requires_at_least: at and above the floor passes; one step below is
+    # refused, chance-rated or settled; a floor that is not a verdict is refused
+    vals = {"x": 0.30, "y": 0.62, "z": 0.80}
+    floor = {"requires_at_least": "QUITE LIKELY", "label": "m"}
+    assert RS.verdict_fault(dict(floor, verdict="QUITE LIKELY", chance="y"), vals) is None
+    assert RS.verdict_fault(dict(floor, verdict="VERY LIKELY", chance="z"), vals) is None
+    assert RS.verdict_fault(dict(floor, verdict="UNLIKELY", chance="x"), vals)
+    assert RS.verdict_fault(dict(floor, verdict="UNLIKELY", chance="x"), None)
+    assert RS.verdict_fault(dict(floor, verdict="FALSE", settled="arithmetic, in the steps"), vals)
+    assert RS.verdict_fault(dict(floor, verdict="TRUE", settled="arithmetic, in the steps"), vals) is None
+    assert RS.verdict_fault({"verdict": "QUITE LIKELY", "chance": "y",
+                             "requires_at_least": "PROBABLY"}, vals)
+    # the live Mashaba claim carries the floor
+    claims = tomllib.loads((ROOT / "content" / "joburg" / "claims.toml")
+                           .read_text(encoding="utf-8"))["claim"]
+    mashaba = [k for k in claims if k.get("holds_subject") == "Mashaba"]
+    assert len(mashaba) == 1 and mashaba[0].get("requires_at_least") == "QUITE LIKELY"
 
 
 def test_the_mashaba_coalitions_need_the_da_to_lead_and_count_every_party():
