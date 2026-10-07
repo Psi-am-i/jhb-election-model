@@ -1219,11 +1219,3 @@ kind = "judgement"
 source = "JUDGEMENT-CALLS.md §O1 (the blind review of 2026-09-29 recommended a retention of 0.5, the low end of the range in the entry's heading; recorded, not adopted)"
 reviewed = "2026-10-02"
 page = "methodology.html"
-
-[[audit.fixed]]
-value = "three"
-context = "Coalitions of more than three parties are not counted here"
-kind = "judgement"
-source = "JUDGEMENT-CALLS.md §P3 (owner, 2026-10-07): a realistic DA-led coalition has at most three parties; the 2021 nine-party coalition on exactly 136 seats lost its majority when one partner left"
-reviewed = "2026-10-07"
-page = "claims.html"
