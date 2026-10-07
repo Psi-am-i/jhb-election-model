@@ -2,6 +2,24 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
+## <span data-asof="2026-10-07">"Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in 57%"</span> — published 26 September 2026, corrected 7 October 2026
+
+<span data-asof="2026-10-07">**What was wrong.** The card on the ANC's claim to govern alone said an ANC-led council with ActionSA, the PA and the smaller parties reaches a majority in 57% of simulations. The red-lines card gave the same 57% and concluded it was "almost exactly the same odds as the DA's route" and that "on coalition arithmetic alone, neither leader is better placed than the other". The count left out the seats of the smallest parties.
+
+**What is right.** Counting every party's seats, it reaches a majority in 78% of simulations, against 87% for a council without the ANC, the EFF and MK. The red-lines card no longer says the two are level.</span>
+
+## <span data-asof="2026-10-07">"Without the ANC, the red line leaves a majority in 59% of simulations"</span> — published 6 October 2026, corrected 7 October 2026
+
+<span data-asof="2026-10-07">**What was wrong.** The red-lines claim said a majority without the ANC, the EFF and MK exists in 59% of simulations, and called it more likely than not. The same 59% had been on the card since 26 September. The count left out the seats of the smallest parties.
+
+**What is right.** Counting every party's seats, it exists in 87% of simulations: very likely.</span>
+
+## <span data-asof="2026-10-07">"The DA can govern without the ANC, the EFF or MK"</span> — published 6 October 2026, corrected 7 October 2026
+
+<span data-asof="2026-10-07">**What was wrong.** The tested claim from Helen Zille was titled "The DA can govern without the ANC, the EFF or MK". She ruled out a coalition with the EFF and MK; she did not rule out the ANC.
+
+**What is right.** The claim is titled with what it tests: "A majority without the ANC, the EFF and MK". Her position is quoted in the card.</span>
+
 ## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** The forecast page, the home page, "Nobody will win Johannesburg" and the review said the ANC and the DA were each the largest party in 47% of simulations. Where two parties tied for the most seats, the tie was counted as a win for one of them.

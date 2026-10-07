@@ -640,7 +640,7 @@ def test_every_verdict_takes_its_step_on_the_one_scale_whatever_the_party():
     # the ends and the middle are where the owner put them
     assert RS.verdict_class("FALSE") == "v-false" and RS.verdict_class("TRUE") == "v-true"
     assert RS.verdict_class("A COIN FLIP") == "v-open"
-    assert RS.verdict_class("out of  reach") == "v-false"
+    assert RS.verdict_class("near  impossible") == "v-false"
     # it can see: a verdict off the scale stops the build, not a default colour
     try:
         RS.verdict_class("PROBABLY")
@@ -669,6 +669,161 @@ def test_every_verdict_takes_its_step_on_the_one_scale_whatever_the_party():
         assert f".v-{s}{{" not in css, f"a second definition of the {s} step"
         assert f"--v-{s}:" in dark and f"--v-{s}:" in light, s
     assert "var(--c)" not in re.search(r"\.verdict\{[^}]*\}", css).group(0)
+
+
+def test_the_chance_scale_puts_each_edge_on_the_side_nearer_a_coin_flip():
+    """Owner, 2026-10-07: under 1% NEAR IMPOSSIBLE, 1-15% EXTREMELY UNLIKELY,
+    15-45% UNLIKELY, 45-55% A COIN FLIP, 55-75% QUITE LIKELY, 75-90% VERY
+    LIKELY, over 90% NEAR CERTAIN. The documented edge rule: a chance exactly
+    on an edge takes the band nearer a coin flip. Each edge is tested on, just
+    under and just over (as printed: 1.0% / 0.9% / 1.1%, 15% / 14% / 16%)."""
+    import render_sheet as RS
+    cases = [
+        (0.0, "NEAR IMPOSSIBLE"), (0.0002, "NEAR IMPOSSIBLE"),
+        (0.009, "NEAR IMPOSSIBLE"), (0.01, "EXTREMELY UNLIKELY"), (0.011, "EXTREMELY UNLIKELY"),
+        (0.14, "EXTREMELY UNLIKELY"), (0.15, "UNLIKELY"), (0.16, "UNLIKELY"),
+        (0.44, "UNLIKELY"), (0.45, "A COIN FLIP"), (0.46, "A COIN FLIP"),
+        (0.54, "A COIN FLIP"), (0.55, "A COIN FLIP"), (0.56, "QUITE LIKELY"),
+        (0.74, "QUITE LIKELY"), (0.75, "QUITE LIKELY"), (0.76, "VERY LIKELY"),
+        (0.89, "VERY LIKELY"), (0.90, "VERY LIKELY"), (0.91, "NEAR CERTAIN"),
+        (0.999, "NEAR CERTAIN"), (1.0, "NEAR CERTAIN"),
+        # judged as printed: 14.96% prints "15%", 0.996% prints "1.0%"
+        (0.1496, "UNLIKELY"), (0.00996, "EXTREMELY UNLIKELY"),
+    ]
+    for p, want in cases:
+        assert RS.scale_verdict(p) == want, (p, RS.scale_verdict(p), want)
+    # every word on the scale is reached, and every one has a colour step
+    assert {w for _e, w, _s in RS.CHANCE_SCALE} == {w for _p, w in cases}
+    assert set(RS.VERDICT_STEP) == set(RS.SETTLED_VERDICTS) | {w for _e, w, _s in RS.CHANCE_SCALE}
+    # the retired words are off the scale, so a stale label stops the build
+    for old in ("OUT OF REACH", "VERY UNLIKELY", "MORE LIKELY THAN NOT", "LIKELY"):
+        assert old not in RS.VERDICT_STEP, old
+
+
+def test_a_verdict_that_disagrees_with_its_chance_is_refused():
+    import render_sheet as RS
+    vals = {"x": 0.30, "y": 0.86}
+    why = "arithmetic, set out in the claim's steps"
+    ok = [{"verdict": "UNLIKELY", "chance": "x"},
+          {"verdict": "EXTREMELY UNLIKELY", "chance": "1 - y"},
+          {"verdict": "FALSE", "settled": why},
+          {"verdict": "TRUE", "settled": why}]
+    for c in ok:
+        assert RS.verdict_fault(c, vals) is None, c
+    bad = [{"verdict": "QUITE LIKELY", "chance": "x"},          # wrong word
+           {"verdict": "UNLIKELY", "chance": "1 - y"},           # complement ignored
+           {"verdict": "NEAR CERTAIN", "chance": "y"},           # one band too far
+           {"verdict": "UNLIKELY"},                              # no chance named
+           {"verdict": "FALSE", "chance": "x", "settled": why},  # settled, yet rated
+           {"verdict": "FALSE"},                                 # relabelled, no reason
+           {"verdict": "TRUE", "settled": "yes"},                # a reason too short
+           {"verdict": "PROBABLY", "chance": "x"}]               # off the scale
+    for c in bad:
+        assert RS.verdict_fault(c, vals), c
+    # the form-only check (the home page's) sees the same structural faults
+    assert RS.verdict_fault({"verdict": "FALSE"}, None)
+    assert RS.verdict_fault({"verdict": "UNLIKELY"}, None)
+    assert RS.verdict_fault({"verdict": "UNLIKELY", "chance": "x"}, None) is None
+    # stops the build, not a TypeError: an unknown name, or a typed number
+    for c in ({"verdict": "UNLIKELY", "chance": "nope"},
+              {"verdict": "UNLIKELY", "chance": 0.3}):
+        try:
+            RS.verdict_fault(c, vals)
+        except SystemExit:
+            continue
+        raise AssertionError(f"accepted: {c}")
+    try:
+        RS.claims_faults([{"verdict": "FALSE", "label": "z"}])
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("claims_faults let a reasonless FALSE through")
+
+
+def test_the_holds_sentence_follows_the_verdict():
+    """Owner, 2026-10-07: "Mashaba's statement holds up" is generated from
+    the verdict's band, so it cannot outlive a verdict that moved."""
+    import render_sheet as RS
+    words = {w for _e, w, _s in RS.CHANCE_SCALE} | set(RS.SETTLED_VERDICTS)
+    assert set(RS.HOLDS) == words
+    c = {"verdict": "VERY LIKELY", "holds_subject": "Mashaba's statement", "label": "m"}
+    assert RS.with_holds(c, "A. [[holds]]") == "A. Mashaba's statement holds up."
+    assert RS.holds_sentence(dict(c, verdict="QUITE LIKELY")) == "Mashaba's statement mostly holds up."
+    assert RS.holds_sentence(dict(c, verdict="A COIN FLIP")) == "Mashaba's statement is a coin flip."
+    for v in ("UNLIKELY", "EXTREMELY UNLIKELY", "NEAR IMPOSSIBLE"):
+        assert RS.holds_sentence(dict(c, verdict=v)) == "Mashaba's statement does not hold up."
+    assert RS.with_holds({"verdict": "UNLIKELY"}, "no placeholder") == "no placeholder"
+    try:
+        RS.with_holds({"verdict": "VERY LIKELY", "label": "m"}, "[[holds]]")
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("[[holds]] with no subject was accepted")
+
+
+def test_the_mashaba_coalitions_need_the_da_to_lead_and_count_every_party():
+    """Owner, 2026-10-07: a realistic DA-led win is DA+ASA+PA or DA+ANC at the
+    threshold with the DA strictly larger than each partner. The context
+    figure adds every party outside the ANC, the EFF and MK that is smaller
+    than the DA to DA+ASA+PA, and counts how many of those small parties,
+    largest first, it needs. Constructed: threshold 11, three simulations,
+    one Soweto ward."""
+    import numpy as np
+    import render_sheet as RS
+    seats = {"DA": np.array([6, 6, 8]), "ASA": np.array([3, 5, 2]),
+             "PA": np.array([1, 1, 1]), "ANC": np.array([5, 7, 1]),
+             "EFF": np.array([2, 1, 4]), "X": np.array([2, 0, 4]),
+             "Y": np.array([1, 0, 9])}
+    thr = np.array([11, 11, 11])
+    rows = [{"draw": "0"}, {"draw": "1"}, {"draw": "2"}]
+    winners = {0: {"7": "ANC"}, 1: {"7": "DA"}, 2: {"7": "ANC"}}
+    c = RS.da_coalitions(seats, thr, rows, winners, [7])
+    # 0: DA+ASA+PA = 10 < 11; DA+ANC = 11, DA 6 > 5 -> ANC route only
+    # 1: DA+ASA+PA = 12, DA 6 > 5 and > 1 -> yes; ANC 7 > DA -> no
+    # 2: DA+ASA+PA = 11 -> yes; DA+ANC = 9 -> no
+    assert list(c["partners.ASA+PA"]) == [False, True, True]
+    assert list(c["partners.ANC"]) == [True, False, False]
+    assert list(c["realistic"]) == [True, True, True]
+    # with small parties (not the ANC; only those smaller than the DA):
+    # 0: 10 + X 2 + Y 1 = 13, needs X only -> 1
+    # 1: 12 already -> 0;  2: 11 already -> 0 (Y's 9 is not smaller than the
+    # DA's 8, so Y is not a partner there)
+    assert list(c["da_small"]) == [True, True, True]
+    assert list(c["small_needed"]) == [1, 0, 0]
+    assert list(c["none"]) == [True, False, True]
+    # a DA no larger than ActionSA leads nothing with it, small parties or not
+    seats["ASA"] = np.array([6, 6, 8])
+    c = RS.da_coalitions(seats, thr, rows, winners, [7])
+    assert list(c["partners.ASA+PA"]) == [False, False, False]
+    assert list(c["da_small"]) == [False, False, False]
+    assert list(c["small_needed"]) == [-1, -1, -1]
+    # a Soweto ward missing from ward_draws.csv stops the build
+    try:
+        RS.da_coalitions(seats, thr, rows, winners, [7, 8])
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("a missing ward column was accepted")
+
+
+def test_every_live_claim_passes_the_chance_scale_when_the_sheet_is_regenerated():
+    """Every claim in claims.toml is either settled (FALSE/TRUE) or names its
+    chance, and the build accepts every verdict: render_sheet regenerates a
+    scratch copy of the sheet from today's simulations, and a disagreement
+    stops it with a non-zero exit."""
+    import shutil
+    import tempfile
+    import render_sheet as RS
+    claims = tomllib.loads((ROOT / "content" / "joburg" / "claims.toml")
+                           .read_text(encoding="utf-8"))["claim"]
+    rated = [c for c in claims if c["verdict"] not in RS.SETTLED_VERDICTS]
+    assert rated and all(c.get("chance") for c in rated), [c["label"] for c in rated]
+    with tempfile.TemporaryDirectory() as tmp:
+        copy = Path(tmp) / "forecast-sheet.html"
+        shutil.copy(SHEET, copy)
+        r = subprocess.run([str(ROOT / ".venv/bin/python"), str(ROOT / "src" / "render_sheet.py"),
+                            "--sheet", str(copy)], capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 0, r.stdout[-800:] + r.stderr[-800:]
 
 
 if __name__ == "__main__":

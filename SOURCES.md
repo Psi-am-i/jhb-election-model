@@ -217,6 +217,17 @@ geodatabases and runs the checks.
 **Caveat:** `REGPOP` on the 2026 VD layer sums to 2,348,781 — exactly the *2024*
 registration total. It is a 2024 snapshot, not current 2026 registration.
 
+**Area groupings (added 2026-10-07).** The 2026 voting-station layer
+(`VotingStations_March2026`, on disk as
+`data/raw/geo/votingstations2026_JHB.geojson`) carries each station's IEC
+street `ADDRESS` and its `VOTINGDIST`. `src/areas.py` reads those addresses to
+decide which voting districts are in Soweto, and weights them by the
+crosswalk's `part_registered` (the REGPOP snapshot above) to decide which 2026
+wards are. The addresses are free text typed by the IEC: some give the
+township, some only the town (Braamfischerville's give ROODEPOORT), and spelling
+varies (WESTERNJABAVU, BRAAM FISCHERVILLE). The rule and its gazetteer are
+JUDGEMENT-CALLS.md §P2; the result is `cities/joburg.toml` `[areas.soweto]`.
+
 ## By-elections — use the dashboard, not the downloads page
 
 The downloads page serves by-election reports only through per-session
@@ -887,3 +898,16 @@ Azanian Independent Community Movement and the Creatives Congress Movement
 ([IOL](https://iol.co.za/news/politics/2026-01-26-actionsa-announces-merger-with-two-smaller-parties-but-analysts-doubt-merger-will-boost-support/)).
 Whether either holds a Johannesburg baseline has not been checked. Declaring
 them is the owner's call.
+
+## Johannesburg's 2021 coalition — facts of record for the claims (added 2026-10-07)
+
+Typed figures in the Mashaba claim's step 4, registered as fixed tokens
+(`jhb_2021_coalition_parties`, `jhb_2021_coalition_seats` in
+`content/joburg/stats.toml`) and used for the judgement in JUDGEMENT-CALLS §P3.
+
+| fact | source |
+|---|---|
+| Mpho Phalatse's coalition: the DA, ActionSA, IFP, FF Plus, PA, ACDP, Cope, UIM and ATM | News24, 13 December 2021, <https://www.news24.com/southafrica/news/joburg-mayor-phalatse-appoints-multi-party-coalition-executive-20211213> |
+| it held exactly the majority of the council | Daily Maverick, 3 October 2022, <https://www.dailymaverick.co.za/opinionista/2022-10-03-the-tragedy-of-johannesburgs-soap-opera-coalition-mess/> |
+| it lost the majority when the PA left, September 2022 | BizNews, <https://www.biznews.com/leadership/coalition-collapse-johannesburg-action-sa-da> |
+| no size threshold for coalition stability is established; collapses attributed to ideology and personality | Pholoma et al. (2024), JOLGRI |

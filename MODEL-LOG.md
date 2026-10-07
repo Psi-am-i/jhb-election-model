@@ -28412,3 +28412,56 @@ critic (S2), who expected an unknown sample to cost more.
 **Not changed.** Pricing is the model's (JUDGEMENT-CALLS §N2, DESIGN D3); this
 is for the owner. A fix would give an unreported sample a sampling term (a
 prior on `n`) instead of none.
+
+## 1.286 A coalition summed over `seat_draws.csv`'s columns leaves out every party below them; the red-lines figure is one (2026-10-07)
+
+**Finding.** `seat_draws.csv` keeps the largest parties only (`scenarios.others_per_draw`'s note). A coalition defined as "every party except X" summed over its columns leaves out the seats of every party outside them. Measured on the published draws (`forecast_summary.json` `_generated` 2026-09-29T17:59:46Z, 5,000 simulations), seats outside the columns per simulation: median 12; ACDP 1.58, ATM 1.30, AHC 1.07, AIC 1.00 and PAC 0.96 on average.
+
+| figure, share of the 5,000 simulations | summed over the columns | over every party (`seat_detail_draws.csv`) |
+|---|---|---|
+| a majority without the ANC, the EFF and MK (`claim.red_lines.no_red_share`, published) | 59.3% | 87.1% |
+| a majority without the DA, the EFF and MK (`claim.red_lines.anc_side_share`, published) | 57.0% | 78.1% |
+| the DA leads a majority without the EFF and MK (§P3) | 68.4% | 86.5% |
+| the same, needing the ANC as a smaller partner | 12.8% | 3.7% |
+| the DA leads a majority when it wins no Soweto ward | not computed | 86.1% |
+| the DA leads a majority when it wins a Soweto ward (136 simulations) | not computed | over 99% |
+
+**Change.** The Mashaba claim's figures (`render_sheet.da_led_majorities`) sum every party's seats from `seat_detail_draws.csv` and refuse a simulation whose parties do not add up to its council. Its rated chance is 1 − 86.1% = 13.9%, EXTREMELY UNLIKELY on `CHANCE_SCALE` (§P1).
+
+**Not changed.** `render_sheet`'s `_bloc` (the red-lines claim's `no_red_share`, `no_red_median`, `anc_side_share`) still sums the columns. Correcting it moves two published figures and the red-lines verdict (87% is VERY LIKELY), on a claim whose wording the owner is deciding; it is the owner's call. Whether the smallest parties count as willing partners is part of that definition.
+
+## 1.287 Every coalition sum in the claims counts every party; the Mashaba claim is rated on realistic coalitions (2026-10-07)
+
+**Change (owner, 2026-10-07).** `scenarios.all_party_seats` is the one definition of every party's seats per simulation, read from `seat_detail_draws.csv`; it refuses a simulation whose parties do not add up to its council, or whose `seat_draws.csv` columns disagree with it. `render_sheet`'s claim figures (`_bloc`, `_three`, `_left`, the DA+ANC sum) read it, which corrects the §1.286 defect on the red-lines and ANC cards. The Mashaba claim is rated on a realistic DA-led coalition (JUDGEMENT-CALLS §P3), `render_sheet.da_coalitions`, which replaces `da_led_majorities`.
+
+Published figures that move (same 5,000 simulations as §1.286):
+
+| token | before | after |
+|---|---|---|
+| `claim.red_lines.no_red_share` (red-lines card; verdict QUITE LIKELY → VERY LIKELY) | 59.3% | 87.1% |
+| `claim.red_lines.anc_side_share` (red-lines and ANC cards) | 57.0% | 78.1% |
+| `claim.red_lines.no_red_median` (not printed by any card) | 139 | 154 |
+
+Unchanged, because they sum named parties whose columns equal the detail: `three_share`, `three_median`, `three_median_when_wins`, `anc_left_share`, `anc_left_median`, `grand_share`. Who is largest and whether one party governs alone take a maximum, not a sum; no party outside `seat_draws.csv`'s columns is ever largest or reaches the threshold alone in these simulations, so those figures do not move.
+
+Mashaba claim, among the simulations where the DA wins no Soweto ward: a realistic DA-led coalition 23.5% (ActionSA and the PA 12.4%, the ANC 15.8%); where it wins at least one, 88.2%. The claim holds with chance 76.5%: VERY LIKELY.
+
+**Not changed.** `coalitions.analyse` (in the model run) still sums the largest parties for `structural`'s "P(some majority without …)" in `forecast_summary.json`. No live page prints it; correcting it changes model code and needs a re-run.
+
+## 1.288 §1.287's "Not changed" was wrong; the Soweto matcher's two false matches; the Mashaba figures after review (2026-10-07)
+
+**Correction to §1.287.** It said `coalitions.analyse` still sums the largest parties for `structural`'s "P(some majority without …)". `montecarlo.py` overwrites those rows after `analyse` returns, summing every seat-holding party (`seat_draws` there is the per-draw dict of all parties): `forecast_summary.json` holds "P(some majority without ANC, EFF and MK)" 0.8712 and "field without ANC, EFF and MK: median seats" 154, equal to the all-party figures `render_sheet` now prints. The model and the claims therefore compute "every party except X" twice, in `montecarlo.py` and in `scenarios.all_party_seats`. Making it one definition changes model code (the run's import closure), so it is not done here; it is the owner's call.
+
+**Soweto matcher.** Two station addresses matched a township through a street named after it: "N12 MOROKA BYPASS JHB LENASIA" (ward 10) and "6694 DLAMINI DRIVE IVORY PARK MIDRAND" (ward 133). `areas.STREET_TYPES` now skips a gazetteer word followed by a street type. Measured: those two stations, and no other, change; the ward list is the same 40. Ward 10's share of voters at Soweto stations falls from 47.0% to 43.1%, ward 133's from 25.7% to 0.
+
+**Sensitivity to `SOWETO_CUT`** (published 5,000 simulations, realistic DA-led coalitions, JUDGEMENT-CALLS §P3):
+
+| cut | wards | DA wins no Soweto ward | claim holds (1 − realistic coalition given none) |
+|---|---|---|---|
+| 0.40 | 41 (adds 10) | 78.9% | 85.2% |
+| 0.45 to 0.55 | 40 | 97.3% | 76.5% |
+| 0.60 | 39 (drops 11) | 98.1% | 76.1% |
+
+Every row is VERY LIKELY.
+
+**The Mashaba card's small-party figure** (step 4; the DA leading ActionSA, the PA and every other party outside the ANC, the EFF and MK with fewer seats than the DA, the DA larger than each): it reaches a majority in 82.6% of simulations (4,132). Small parties needed, added largest first, in those: median 2; 714 need none, 964 one, 802 two. The every-party figure of §1.287 (86.5%) is off the card.

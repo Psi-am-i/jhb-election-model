@@ -80,6 +80,9 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # Added 2026-10-03 with the site-structure lane (items 9-15): the
            # nav, the pages cut from the sheet, the old anchors, the footer.
            "test_site_structure",
+           # Added 2026-10-07: the Soweto wards, regenerated from the raw
+           # files and compared with cities/joburg.toml [areas.soweto].
+           "test_areas",
            # Added 2026-10-03 with entries (owner): every seal stored in D1,
            # the count, the rate limit, and the results-night ranking and
            # its hidden /leaderboard/.

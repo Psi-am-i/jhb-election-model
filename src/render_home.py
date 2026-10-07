@@ -396,6 +396,9 @@ def _claims(city_dir: Path) -> str:
     if not path.exists():
         return '  <div class="feed"></div>'
     items = tomllib.loads(path.read_text(encoding="utf-8")).get("claim", [])
+    # The one verdict check, its form only: this page computes no figure, so
+    # the chance itself is checked where it is computed (render_sheet).
+    _sheet.claims_faults(items)
     out = []
     for c in items:
         when = c.get("captured", "")

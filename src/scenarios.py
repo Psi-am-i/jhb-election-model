@@ -158,6 +158,54 @@ def others_per_draw(processed: Path, named) -> "np.ndarray":
     return _np.array(out)
 
 
+def all_party_seats(processed: Path, rows=None):
+    """EVERY party's seats in every simulation: ``(seats, thresholds, councils)``.
+
+    ⛔ ONE DEFINITION OF "THE WHOLE COUNCIL, PARTY BY PARTY" (owner,
+    2026-10-07). ``seat_draws.csv`` keeps only the largest parties, so a
+    coalition written as "every party except X" and summed over its columns
+    drops every smaller party's seats, which is how the red-lines claim
+    understated a majority without the ANC, the EFF and MK (MODEL-LOG §1.286
+    has the figures). This reads ``seat_detail_draws.csv``, which carries
+    every party, and returns ``seats`` as ``{party: array}`` in the order of
+    ``seat_draws.csv``'s rows (``rows``, if the caller has already read them).
+
+    It refuses rather than guesses when: the two files hold different
+    simulations; a simulation's parties do not add up to its council; or a
+    party ``seat_draws.csv`` names has different seats in the two files (two
+    different runs).
+    """
+    import numpy as _np
+    processed = Path(processed)
+    if rows is None:
+        with (processed / "seat_draws.csv").open(encoding="utf-8", newline="") as fh:
+            rows = list(csv.DictReader(fh))
+    detail: dict[int, dict[str, int]] = defaultdict(dict)
+    with (processed / "seat_detail_draws.csv").open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh):
+            detail[int(r["draw"])][r["party"]] = int(r["seats"])
+    ids = [int(r["draw"]) for r in rows]
+    if sorted(ids) != sorted(detail) or len(set(ids)) != len(ids):
+        raise SystemExit("seat_draws.csv and seat_detail_draws.csv do not hold the "
+                         "same simulations; every party's seats cannot be read")
+    parties = sorted({p for d in detail.values() for p in d})
+    columns = [k for k in rows[0] if k not in ("draw", "threshold", "council_size")]
+    for r in rows:
+        d = detail[int(r["draw"])]
+        if sum(d.values()) != int(r["council_size"]):
+            raise SystemExit(f"simulation {r['draw']}: the parties in seat_detail_draws.csv "
+                             f"hold {sum(d.values())} seats, not its council of "
+                             f"{r['council_size']}")
+        bad = [p for p in columns if d.get(p, 0) != int(float(r[p] or 0))]
+        if bad:
+            raise SystemExit(f"simulation {r['draw']}: {bad} have different seats in "
+                             f"seat_draws.csv and seat_detail_draws.csv")
+    seats = {p: _np.array([detail[i].get(p, 0) for i in ids]) for p in parties}
+    thr = _np.array([int(r["threshold"]) for r in rows])
+    council = _np.array([int(r["council_size"]) for r in rows])
+    return seats, thr, council
+
+
 def matching(detail, conditions) -> list[int]:
     return [d for d in sorted(detail)
             if all(OPS[op](detail[d].get(p, {}).get("seats", 0), n)
