@@ -24,8 +24,10 @@ What it proves, on the base cell (the one with no lever override):
 4. EVERY CELL. Each cell `index.json` lists exists and every cell under
    `site/draws/` is listed (both directions); each unpacks against its
    manifest and every draw's seats sum to its council under every law.
-5. THE RUN. Each cell's manifest `published_run.model_run_id` is the ledger's
-   newest run and its pool specs are that run's (`inputs_match_ledger`), and
+5. THE RUN. Each cell's manifest `published_run.model_run_id` names the
+   ledger's newest model run (the id's `r-<content>` part: the run's
+   artefacts; the commit after it changes with every publish of the same run,
+   owner 2026-10-07) and its pool specs are that run's (`inputs_match_ledger`), and
    each carries `model_sha256`. A cell exported before S6 carries neither and
    FAILS with the instruction to re-export — it does not skip, because the
    cell is on disk and stale, which is a finding.
@@ -224,8 +226,15 @@ def _ledger_newest() -> dict:
             "pool_artefact_keys": (row.provenance or {}).get("pool_artefact_keys")}
 
 
+def _model_run(run_id) -> str | None:
+    """The model run in a `publication.run_identity` id, `r-<content>-<commit>[-dirty]`:
+    its `r-<content>` part. Two publications of one run differ only after it."""
+    m = re.fullmatch(r"(r-[0-9a-f]{12})-[0-9a-z]+(?:-dirty)?", run_id or "")
+    return m.group(1) if m else None
+
+
 def _run_problems(manifests: dict[str, dict], newest: dict) -> list[str]:
-    """Cells that do not say they are the ledger's newest run, and why."""
+    """Cells that do not say they are the ledger's newest model run, and why."""
     out = []
     for path, manifest in manifests.items():
         run = manifest.get("published_run")
@@ -233,7 +242,8 @@ def _run_problems(manifests: dict[str, dict], newest: dict) -> list[str]:
         if not run or "model_sha256" not in key:
             out.append(f"{path}: no published_run/model_sha256 (exported "
                        f"before S6)")
-        elif run.get("model_run_id") != newest["model_run_id"]:
+        elif _model_run(run.get("model_run_id")) is None or \
+                _model_run(run.get("model_run_id")) != _model_run(newest["model_run_id"]):
             out.append(f"{path}: run {run.get('model_run_id')!r}, ledger "
                        f"{newest['model_run_id']!r}")
         elif key.get("inputs") != newest["pool_artefact_keys"]:
@@ -371,6 +381,16 @@ def test_a_wrong_or_missing_run_id_is_caught_then_quiet():
     wrong = json.loads(json.dumps(good))
     wrong["published_run"]["model_run_id"] = "r-not-the-published-run"
     assert len(_run_problems({"c": wrong}, newest)) == 1
+    # another model run is caught; the same run published again (a new commit
+    # after it) is not
+    head = _model_run(newest["model_run_id"])
+    assert head, newest["model_run_id"]
+    other_run = json.loads(json.dumps(good))
+    other_run["published_run"]["model_run_id"] = "r-" + ("0" if head[2] != "0" else "1") * 12 + "-abcdef12"
+    assert len(_run_problems({"c": other_run}, newest)) == 1
+    republished = json.loads(json.dumps(good))
+    republished["published_run"]["model_run_id"] = head + "-0badc0de-dirty"
+    assert _run_problems({"c": republished}, newest) == []
     missing = json.loads(json.dumps(good))
     del missing["published_run"]
     assert "exported before S6" in _run_problems({"c": missing}, newest)[0]
