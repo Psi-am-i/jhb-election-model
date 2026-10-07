@@ -47,3 +47,27 @@ images, marketing copy. Owner, 2026-10-01.
 9. **A standfirst never restates the first paragraph.** Either the standfirst says it or the body does. Every sentence has a subject and a verb.
 
 10. **Chance in headlines, simulations in explanations.** Headlines, ledes, tiles, verdicts, banners and share images state a chance ('47% chance it's the ANC'). The simulations are how the chance is measured; say so where the method is explained (methodology, footnotes, how to read), not in the claim.
+
+11. **Forecast, prediction, result: three different things** (owner, 2026-10-07).
+    Every reader-facing word uses them in this sense and no other.
+
+    | term | what it is | how it is drawn |
+    |---|---|---|
+    | **forecast** | how often each thing happens across all the model's simulations of the election: chances, ranges, middles | stripes on contested wards, bands, ranges, chances |
+    | **prediction** | one complete scenario: a winner in every ward, a vote share and a seat count for every party, the seats adding up to the council. It must be a result that could happen | solid ward colours, single numbers, no ranges |
+    | **result** | what the election produces; it is compared with a prediction number for number | as a prediction |
+
+    - **Ours:** `/forecast` is our forecast. Our prediction is the single scenario
+      we call, and the one a share card titled with our name shows.
+    - **Readers'** entries are predictions. A reader who moves the model's
+      levers is changing a forecast; the entry they share and are scored on is
+      a prediction.
+    - A chance printed beside a prediction is the forecast's chance of that
+      prediction's outcome ("We give this outcome an N% chance"), not a property
+      of the prediction.
+    - ✗ "Your forecast: the ANC on N seats." ✓ "Your prediction: the ANC on N seats."
+    - ✗ "Our prediction gives the ANC between A and B seats." ✓ "Our forecast
+      gives the ANC between A and B seats."
+    - Code identifiers (`score_forecasts`, `forecastSpec`, `ward_calls`) predate
+      these terms and keep their names; their docstrings say which of the three
+      they hold.

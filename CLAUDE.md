@@ -88,6 +88,8 @@ each time it was invoked.)*
 **`PUBLISHING-BACKLOG.md` is presentation and is never a reason to change a
 forecast.**
 
+**Forecast, prediction and result are three different things — `STYLE.md` rule 11 defines them; use them in that sense in code comments and documents too.**
+
 **Every reader-facing word follows `STYLE.md`** (dry; every sentence informs;
 corrections say what was wrong and what changed, nothing else).
 
