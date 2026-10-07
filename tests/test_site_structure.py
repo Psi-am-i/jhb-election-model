@@ -640,7 +640,7 @@ def test_every_verdict_takes_its_step_on_the_one_scale_whatever_the_party():
     # the ends and the middle are where the owner put them
     assert RS.verdict_class("FALSE") == "v-false" and RS.verdict_class("TRUE") == "v-true"
     assert RS.verdict_class("A COIN FLIP") == "v-open"
-    assert RS.verdict_class("out of  reach") == "v-false"
+    assert RS.verdict_class("near  impossible") == "v-false"
     # it can see: a verdict off the scale stops the build, not a default colour
     try:
         RS.verdict_class("PROBABLY")
@@ -669,6 +669,80 @@ def test_every_verdict_takes_its_step_on_the_one_scale_whatever_the_party():
         assert f".v-{s}{{" not in css, f"a second definition of the {s} step"
         assert f"--v-{s}:" in dark and f"--v-{s}:" in light, s
     assert "var(--c)" not in re.search(r"\.verdict\{[^}]*\}", css).group(0)
+
+
+def test_the_chance_scale_puts_each_edge_on_the_side_nearer_a_coin_flip():
+    """Owner, 2026-10-07: under 1% NEAR IMPOSSIBLE, 1-15% EXTREMELY UNLIKELY,
+    15-45% UNLIKELY, 45-55% A COIN FLIP, 55-75% QUITE LIKELY, 75-90% VERY
+    LIKELY, over 90% NEAR CERTAIN. The documented edge rule: a chance exactly
+    on an edge takes the band nearer a coin flip. Each edge is tested on, just
+    under and just over (as printed: 1.0% / 0.9% / 1.1%, 15% / 14% / 16%)."""
+    import render_sheet as RS
+    cases = [
+        (0.0, "NEAR IMPOSSIBLE"), (0.0002, "NEAR IMPOSSIBLE"),
+        (0.009, "NEAR IMPOSSIBLE"), (0.01, "EXTREMELY UNLIKELY"), (0.011, "EXTREMELY UNLIKELY"),
+        (0.14, "EXTREMELY UNLIKELY"), (0.15, "UNLIKELY"), (0.16, "UNLIKELY"),
+        (0.44, "UNLIKELY"), (0.45, "A COIN FLIP"), (0.46, "A COIN FLIP"),
+        (0.54, "A COIN FLIP"), (0.55, "A COIN FLIP"), (0.56, "QUITE LIKELY"),
+        (0.74, "QUITE LIKELY"), (0.75, "QUITE LIKELY"), (0.76, "VERY LIKELY"),
+        (0.89, "VERY LIKELY"), (0.90, "VERY LIKELY"), (0.91, "NEAR CERTAIN"),
+        (0.999, "NEAR CERTAIN"), (1.0, "NEAR CERTAIN"),
+        # judged as printed: 14.96% prints "15%", 0.996% prints "1.0%"
+        (0.1496, "UNLIKELY"), (0.00996, "EXTREMELY UNLIKELY"),
+    ]
+    for p, want in cases:
+        assert RS.scale_verdict(p) == want, (p, RS.scale_verdict(p), want)
+    # every word on the scale is reached, and every one has a colour step
+    assert {w for _e, w, _s in RS.CHANCE_SCALE} == {w for _p, w in cases}
+    assert set(RS.VERDICT_STEP) == set(RS.SETTLED_VERDICTS) | {w for _e, w, _s in RS.CHANCE_SCALE}
+    # the retired words are off the scale, so a stale label stops the build
+    for old in ("OUT OF REACH", "VERY UNLIKELY", "MORE LIKELY THAN NOT", "LIKELY"):
+        assert old not in RS.VERDICT_STEP, old
+
+
+def test_a_verdict_that_disagrees_with_its_chance_is_refused():
+    import render_sheet as RS
+    vals = {"x": 0.30, "y": 0.86}
+    ok = [{"verdict": "UNLIKELY", "chance": "x"},
+          {"verdict": "EXTREMELY UNLIKELY", "chance": "1 - y"},
+          {"verdict": "FALSE"}]
+    for c in ok:
+        assert RS.verdict_fault(c, vals) is None, c
+    bad = [{"verdict": "QUITE LIKELY", "chance": "x"},          # wrong word
+           {"verdict": "UNLIKELY", "chance": "1 - y"},           # complement ignored
+           {"verdict": "NEAR CERTAIN", "chance": "y"},           # one band too far
+           {"verdict": "UNLIKELY"},                              # no chance named
+           {"verdict": "FALSE", "chance": "x"},                  # settled, yet rated
+           {"verdict": "PROBABLY", "chance": "x"}]               # off the scale
+    for c in bad:
+        assert RS.verdict_fault(c, vals), c
+    # a chance naming a figure the build does not compute stops the build
+    try:
+        RS.verdict_fault({"verdict": "UNLIKELY", "chance": "nope"}, vals)
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("an unknown chance name was accepted")
+
+
+def test_every_live_claim_passes_the_chance_scale_when_the_sheet_is_regenerated():
+    """Every claim in claims.toml is either settled (FALSE/TRUE) or names its
+    chance, and the build accepts every verdict: render_sheet regenerates a
+    scratch copy of the sheet from today's simulations, and a disagreement
+    stops it with a non-zero exit."""
+    import shutil
+    import tempfile
+    import render_sheet as RS
+    claims = tomllib.loads((ROOT / "content" / "joburg" / "claims.toml")
+                           .read_text(encoding="utf-8"))["claim"]
+    rated = [c for c in claims if c["verdict"] not in RS.SETTLED_VERDICTS]
+    assert rated and all(c.get("chance") for c in rated), [c["label"] for c in rated]
+    with tempfile.TemporaryDirectory() as tmp:
+        copy = Path(tmp) / "forecast-sheet.html"
+        shutil.copy(SHEET, copy)
+        r = subprocess.run([str(ROOT / ".venv/bin/python"), str(ROOT / "src" / "render_sheet.py"),
+                            "--sheet", str(copy)], capture_output=True, text=True, cwd=ROOT)
+        assert r.returncode == 0, r.stdout[-800:] + r.stderr[-800:]
 
 
 if __name__ == "__main__":

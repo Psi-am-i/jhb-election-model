@@ -42,13 +42,100 @@ OTHER_CHIP = "#8b918b"
 #: party's colour. The steps are classes `v-<step>`, coloured by the
 #: `--v-<step>` tokens in tokens.css.
 VERDICT_STEPS = ("false", "unlikely", "open", "likely", "true")
-VERDICT_STEP = {
-    "FALSE": "false", "OUT OF REACH": "false",
-    "VERY UNLIKELY": "unlikely", "UNLIKELY": "unlikely",
-    "A COIN FLIP": "open",
-    "MORE LIKELY THAN NOT": "likely", "LIKELY": "likely", "VERY LIKELY": "likely",
-    "TRUE": "true",
-}
+#: THE CHANCE SCALE (owner, 2026-10-07; JUDGEMENT-CALLS.md §P1): the verdict a
+#: claim rated by chance must carry, from the chance that the claim holds.
+#: Each row is (the band's upper edge, the verdict, its colour step):
+#:
+#:     under 1%  NEAR IMPOSSIBLE     55-75%    QUITE LIKELY
+#:     1-15%     EXTREMELY UNLIKELY  75-90%    VERY LIKELY
+#:     15-45%    UNLIKELY            over 90%  NEAR CERTAIN
+#:     45-55%    A COIN FLIP
+#:
+#: THE EDGE RULE: a chance exactly on an edge takes the band nearer a coin
+#: flip. So 1% is EXTREMELY UNLIKELY, 15% UNLIKELY, 45% and 55% A COIN FLIP,
+#: 75% QUITE LIKELY and 90% VERY LIKELY, which is also what "under 1%" and
+#: "over 90%" say. The chance is judged AS THE PAGE PRINTS IT
+#: (`reweight.chance_text`), so a verdict never disagrees with the figure
+#: beside it: 14.96% prints "15%" and is UNLIKELY.
+#: FALSE and TRUE are not on it: they are for claims settled by fact or
+#: arithmetic, not by chance, and carry no `chance` field.
+CHANCE_SCALE = (
+    (0.01, "NEAR IMPOSSIBLE", "false"),
+    (0.15, "EXTREMELY UNLIKELY", "unlikely"),
+    (0.45, "UNLIKELY", "unlikely"),
+    (0.55, "A COIN FLIP", "open"),
+    (0.75, "QUITE LIKELY", "likely"),
+    (0.90, "VERY LIKELY", "likely"),
+    (1.00, "NEAR CERTAIN", "true"),
+)
+SETTLED_VERDICTS = {"FALSE": "false", "TRUE": "true"}
+VERDICT_STEP = {**SETTLED_VERDICTS,
+                **{word: step for _edge, word, step in CHANCE_SCALE}}
+
+
+def _printed_chance(p: float) -> float:
+    """The chance as a reader sees it: `reweight.chance_text`'s rounding,
+    read back as a fraction. "over 99%" and "under 0.1%" keep the exact value,
+    which is already deep inside the end bands."""
+    import reweight
+    text = reweight.chance_text(p)
+    if not text[:1].isdigit():
+        return float(p)
+    return float(text.rstrip("%")) / 100
+
+
+def scale_verdict(p: float) -> str:
+    """The verdict CHANCE_SCALE gives a chance ``p`` that the claim holds."""
+    q = _printed_chance(p)
+    if not 0.0 <= q <= 1.0:
+        raise ValueError(f"a chance must be in [0, 1], got {p!r}")
+    for i, (edge, word, _step) in enumerate(CHANCE_SCALE[:-1]):
+        # below a coin flip an edge belongs to the band above it; above, to
+        # the band below it: either way, the band nearer a coin flip
+        if (q < edge) if edge <= 0.5 else (q <= edge):
+            return word
+    return CHANCE_SCALE[-1][1]
+
+
+def rated_chance(claim: dict, values: dict) -> float | None:
+    """The chance a claim holds, from its ``chance`` field: the name of a
+    figure the build computes (``"no_red_share"``), or ``"1 - <name>"`` where
+    the claim holds when that figure's event does not. None when the claim has
+    no ``chance`` field."""
+    spec = claim.get("chance")
+    if spec is None:
+        return None
+    m = re.fullmatch(r"\s*(1\s*-\s*)?(\w+)\s*", spec)
+    if not m:
+        raise SystemExit(f"claims.toml chance {spec!r} is not '<name>' or '1 - <name>'")
+    if m.group(2) not in values:
+        raise SystemExit(f"claims.toml chance names {m.group(2)!r}, which the build "
+                         f"does not compute as a chance (have: {sorted(values)})")
+    v = float(values[m.group(2)])
+    return 1.0 - v if m.group(1) else v
+
+
+def verdict_fault(claim: dict, values: dict) -> str | None:
+    """Why a claim's verdict disagrees with the chance scale, or None.
+
+    A verdict on the chance scale needs a ``chance`` field and must be the
+    word the scale gives that chance. FALSE and TRUE are settled by fact and
+    may not carry one."""
+    verdict = " ".join(str(claim.get("verdict", "")).upper().split())
+    p = rated_chance(claim, values)
+    label = claim.get("label", claim.get("quote", "")[:40])
+    if verdict in SETTLED_VERDICTS:
+        return (None if p is None else
+                f"{label!r}: {verdict} is settled by fact, but the claim names a chance")
+    if verdict not in VERDICT_STEP:
+        return f"{label!r}: {verdict!r} is not on the verdict scale"
+    if p is None:
+        return f"{label!r}: {verdict} is on the chance scale, but the claim names no chance"
+    want = scale_verdict(p)
+    if want != verdict:
+        return (f"{label!r}: verdict {verdict}, but the claim holds with chance "
+                f"{p:.4f}, which the scale calls {want}")
+    return None
 
 
 def verdict_class(verdict: str) -> str:
@@ -117,6 +204,97 @@ ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
 # either left the sentence describing a different scenario from the number next
 # to it. The page now renders it as a token.
 WALL_FLIPS = 30
+
+#: The parties Helen Zille ruled out of a DA coalition (Daily Maverick,
+#: 13 September 2026): the EFF and MK. Not the ANC. "The DA leads a
+#: majority" in the Mashaba claim excludes exactly these (JUDGEMENT-CALLS.md
+#: §P3).
+ZILLE_RED_LINES = ("EFF", "MK")
+#: The share of the simulations with a DA Soweto ward in which the DA must
+#: lead a majority for the Mashaba claim's "nearly all of them" to stand.
+#: The words are typed in claims.toml, so the build checks them against the
+#: figure (JUDGEMENT-CALLS.md §P3).
+NEARLY_ALL = 0.9
+
+
+def da_led_majorities(rows, detail, winners, area_wards):
+    """Per simulation, in ``rows`` order: (the DA leads a majority, it needs
+    the ANC to do so, the DA wins none of ``area_wards``).
+
+    "The DA leads a majority": the DA plus every party other than
+    ``ZILLE_RED_LINES`` with STRICTLY FEWER seats than the DA reaches that
+    simulation's threshold. EVERY party's seats, from ``seat_detail_draws.csv``
+    (``detail``): ``seat_draws.csv`` keeps only the largest parties, and
+    summing its columns drops the seats of every party below them
+    (``scenarios.others_per_draw``'s note). A simulation whose parties do not
+    add up to its council refuses.
+
+    "It needs the ANC": the ANC is in that coalition and the rest of it falls
+    short without the ANC's seats.
+    """
+    ids = [int(r["draw"]) for r in rows]
+    if not (sorted(ids) == sorted(detail) == sorted(winners)) or len(set(ids)) != len(ids):
+        raise SystemExit("seat_draws.csv, seat_detail_draws.csv and ward_draws.csv do "
+                         "not hold the same simulations; their figures cannot be joined")
+    cols = next(iter(winners.values())).keys()
+    missing = [w for w in area_wards if str(w) not in cols]
+    if missing:
+        raise SystemExit(f"ward_draws.csv has no column for ward(s) {missing}")
+    leads, needs_anc, none = [], [], []
+    for r in rows:
+        d, thr = int(r["draw"]), int(r["threshold"])
+        seats = {p: v["seats"] for p, v in detail[d].items()}
+        if sum(seats.values()) != int(r["council_size"]):
+            raise SystemExit(f"simulation {d}: the parties' seats in seat_detail_draws.csv "
+                             f"do not add up to its council of {r['council_size']}")
+        da = seats.get("DA", 0)
+        partners = [p for p, s in seats.items()
+                    if p != "DA" and p not in ZILLE_RED_LINES and s < da]
+        bloc = da + sum(seats[p] for p in partners)
+        win = bloc >= thr
+        leads.append(win)
+        needs_anc.append(win and "ANC" in partners and bloc - seats["ANC"] < thr)
+        none.append(not any(winners[d][str(w)] == "DA" for w in area_wards))
+    return np.array(leads), np.array(needs_anc), np.array(none)
+
+
+def _soweto(args, rows, detail, winners, since_vals, tok, chance):
+    """The Mashaba claim's figures, added to ``since_vals`` as tokens. Returns
+    the DA's chance of leading a majority among the simulations where it wins
+    a Soweto ward (None if there are none), which no token prints and the
+    claim's words are checked against. A city with no ``[areas.soweto]`` or a
+    target other than the area's year gets nothing, so a claim naming these
+    figures stops the build there."""
+    import areas as _areas
+    key = (args.city, "soweto")
+    sow = _areas.committed(*key) if key in _areas.AREAS else None
+    year = _areas.AREAS.get(key, {}).get("year")
+    if sow is None or cityconfig.target().year != year:
+        return None
+    leads, needs_anc, none = da_led_majorities(rows, detail, winners, sow)
+    n = len(rows)
+    both = f"seat_detail_draws.csv + ward_draws.csv, {n:,} simulations"
+    area_src = "cities/joburg.toml [areas.soweto], generated by src/areas.py"
+    parts = _areas.crosswalk_parts(args.city, year)
+    since_vals.update({
+        "soweto_wards_n": tok("claim.soweto.wards_n", len(sow), "int", area_src),
+        "soweto_roll_share": tok(
+            "claim.soweto.roll_share", f"{_areas.roll_share(parts, sow):.6f}", "pct0",
+            f"vd_ward_{year}.csv part_registered over the [areas.soweto] wards: the "
+            f"MDB {year} voting-district layer's REGPOP, a 2024 registration snapshot"),
+        "soweto_none_share": chance("claim.soweto.none_share", none.mean(),
+                                    f"ward_draws.csv, {n:,} simulations, the [areas.soweto] wards"),
+        "da_leads_share": chance("claim.soweto.da_leads_share", leads.mean(),
+                                 f"seat_detail_draws.csv, {n:,} simulations, every party's seats"),
+        "da_leads_with_anc_share": chance("claim.soweto.da_leads_with_anc_share",
+                                          needs_anc.mean(),
+                                          f"seat_detail_draws.csv, {n:,} simulations, every party's seats"),
+    })
+    if none.any():
+        since_vals["soweto_win_given_none"] = chance(
+            "claim.soweto.win_given_none", leads[none].mean(),
+            f"{both}, among those where the DA wins no Soweto ward")
+    return float(leads[~none].mean()) if (~none).any() else None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -480,6 +658,7 @@ def main(argv: list[str] | None = None) -> int:
             "grand_share": chance("claim.red_lines.grand_share", float((S["ANC"] + S["DA"] >= thr).mean())),
             "majority": "{{majority}}",
         }
+        _p_some = _soweto(args, rows, _detail, _winners, since_vals, tok, chance)
         if _wall:
             # ⛔ A RANGE OVER ONE SIMULATION IS NOT A RANGE. This printed
             # "the ANC falling to 34 – 34 seats" — min and max of a single
@@ -514,6 +693,31 @@ def main(argv: list[str] | None = None) -> int:
         # does: a placeholder the build resolves into a token, never a number a
         # human typed into a quote-testing argument.
         _since = _fill
+
+        # ⛔ THE VERDICT IS CHECKED AGAINST THE CHANCE SCALE (owner,
+        # 2026-10-07). A claim rated by chance names the figure it is rated
+        # on; the value is read back out of that figure's own token, so the
+        # verdict is judged on exactly the number the page prints beside it.
+        chances = {}
+        for k, t in since_vals.items():
+            m = re.fullmatch(r"\{\{@[^=]+=([^;]+);chance;.*\}\}", t, re.S)
+            if m:
+                chances[k] = float(m.group(1))
+        faults = [f for c in claims if (f := verdict_fault(c, chances))]
+        if faults:
+            raise SystemExit("claims.toml verdicts disagree with the chance scale "
+                             "(render_sheet.CHANCE_SCALE):\n  " + "\n  ".join(faults))
+        # The Mashaba claim says the DA leads a majority in "nearly all" the
+        # simulations where it wins a Soweto ward; those words are typed, so
+        # the figure is checked here.
+        for c in claims:
+            if "soweto_win_given_none" in str(c.get("chance", "")) and any(
+                    "nearly all" in s for s in c.get("steps", [])):
+                if _p_some is None or _p_some < NEARLY_ALL:
+                    raise SystemExit(
+                        f"claims.toml {c.get('label')!r} says 'nearly all', but the DA "
+                        f"leads a majority in {_p_some} of the simulations where it "
+                        f"wins a Soweto ward (render_sheet.NEARLY_ALL = {NEARLY_ALL})")
 
         for c in claims:
             since_html = ""

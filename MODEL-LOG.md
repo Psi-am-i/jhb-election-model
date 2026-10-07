@@ -28412,3 +28412,20 @@ critic (S2), who expected an unknown sample to cost more.
 **Not changed.** Pricing is the model's (JUDGEMENT-CALLS §N2, DESIGN D3); this
 is for the owner. A fix would give an unreported sample a sampling term (a
 prior on `n`) instead of none.
+
+## 1.286 A coalition summed over `seat_draws.csv`'s columns leaves out every party below them; the red-lines figure is one (2026-10-07)
+
+**Finding.** `seat_draws.csv` keeps the largest parties only (`scenarios.others_per_draw`'s note). A coalition defined as "every party except X" summed over its columns leaves out the seats of every party outside them. Measured on the published draws (`forecast_summary.json` `_generated` 2026-09-29T17:59:46Z, 5,000 simulations), seats outside the columns per simulation: median 12; ACDP 1.58, ATM 1.30, AHC 1.07, AIC 1.00 and PAC 0.96 on average.
+
+| figure, share of the 5,000 simulations | summed over the columns | over every party (`seat_detail_draws.csv`) |
+|---|---|---|
+| a majority without the ANC, the EFF and MK (`claim.red_lines.no_red_share`, published) | 59.3% | 87.1% |
+| a majority without the DA, the EFF and MK (`claim.red_lines.anc_side_share`, published) | 57.0% | 78.1% |
+| the DA leads a majority without the EFF and MK (§P3) | 68.4% | 86.5% |
+| the same, needing the ANC as a smaller partner | 12.8% | 3.7% |
+| the DA leads a majority when it wins no Soweto ward | not computed | 86.1% |
+| the DA leads a majority when it wins a Soweto ward (136 simulations) | not computed | over 99% |
+
+**Change.** The Mashaba claim's figures (`render_sheet.da_led_majorities`) sum every party's seats from `seat_detail_draws.csv` and refuse a simulation whose parties do not add up to its council. Its rated chance is 1 − 86.1% = 13.9%, EXTREMELY UNLIKELY on `CHANCE_SCALE` (§P1).
+
+**Not changed.** `render_sheet`'s `_bloc` (the red-lines claim's `no_red_share`, `no_red_median`, `anc_side_share`) still sums the columns. Correcting it moves two published figures and the red-lines verdict (87% is VERY LIKELY), on a claim whose wording the owner is deciding; it is the owner's call. Whether the smallest parties count as willing partners is part of that definition.

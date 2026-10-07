@@ -1,6 +1,13 @@
 # Claims tested — one entry per public, checkable statement.
 # The newsdesk proposes new entries as a data diff; verdicts require a
 # model run, so a human sets them. Numbers use {{registry tokens}}.
+#
+# A verdict is either settled by fact or arithmetic (FALSE, TRUE) or rated by
+# chance on the scale in render_sheet.CHANCE_SCALE. A chance-rated claim names
+# the figure it is rated on: `chance = "<name>"` when that figure is the chance
+# the claim holds, `chance = "1 - <name>"` when the claim holds where that
+# figure's event does not. <name> is a [[name]] the build computes. The build
+# refuses a verdict the scale does not give that chance.
 
 [[claim]]
 party = "DA"
@@ -34,7 +41,8 @@ quote = """We want to restore this city. But we can only be able to do so if the
 speaker = "Dickson Masemola, ANC NEC member"
 outlet = "Joburg ETC, 13 August 2026"
 url = "https://www.joburgetc.com/news/anc-vows-to-restore-joburg-no-turnaround-plan/"
-verdict = "OUT OF REACH"
+verdict = "NEAR IMPOSSIBLE"
+chance = "anc_alone_share"
 tests = "P(ANC reaches a majority of council alone)"
 label = "The ANC can govern Johannesburg alone again"
 captured = "2026-08-13"
@@ -56,7 +64,8 @@ quote = """We firmly believe that these polls are underpolling MK Party, just as
 speaker = "Bongani Baloyi, MK Party mayoral candidate for Johannesburg"
 outlet = "TimesLive, 9 September 2026"
 url = "https://www.timeslive.co.za/politics/2026-09-09-mkp-mayoral-hopeful-says-polls-undercounting-grassroots-support/"
-verdict = "VERY UNLIKELY"
+verdict = "EXTREMELY UNLIKELY"
+chance = "mk_largest_share"
 tests = "P(MK wins more seats than any other party)"
 label = "MK will be the biggest party in the city"
 captured = "2026-09-09"
@@ -77,9 +86,10 @@ quote = """We won't go into a coalition with MK, and we will not go into coaliti
 speaker = "Helen Zille, DA"
 outlet = "Daily Maverick, 13 September 2026"
 url = "https://www.dailymaverick.co.za/article/2026-09-13-zille-draws-coalition-red-lines-as-da-targets-joburg-majority/"
-verdict = "MORE LIKELY THAN NOT"
+verdict = "QUITE LIKELY"
+chance = "no_red_share"
 tests = "P(a majority exists without the ANC, the EFF and MK)"
-label = "The DA can govern without the ANC, the EFF or MK"
+label = "The DA will not go into coalition with the EFF or MK"
 captured = "2026-09-13"
 published = "26 September 2026"
 intro = """A red line is a choice, not a claim about the world, so there is nothing here to call true or false. What can be tested is what it costs. Ruling out the EFF and MK leaves the DA two high-probability ways to a majority: everyone else in the council except the ANC, which clears {{majority}} in [[no_red_share]] of simulations, or a deal with the ANC itself, which clears it in [[grand_share]]. The narrower option — ActionSA and the PA alone — is the [[three_share]] case discussed just below."""

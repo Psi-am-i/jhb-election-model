@@ -2,6 +2,12 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
+## <span data-asof="2026-10-07">"The DA can govern without the ANC, the EFF or MK"</span> — published 6 October 2026, corrected 7 October 2026
+
+<span data-asof="2026-10-07">**What was wrong.** The tested claim from Helen Zille was titled "The DA can govern without the ANC, the EFF or MK". She ruled out a coalition with the EFF and MK; she did not rule out the ANC.
+
+**What is right.** The claim is titled "The DA will not go into coalition with the EFF or MK".</span>
+
 ## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 6 October 2026
 
 <span data-asof="2026-10-02">**What was wrong.** The forecast page, the home page, "Nobody will win Johannesburg" and the review said the ANC and the DA were each the largest party in 47% of simulations. Where two parties tied for the most seats, the tie was counted as a win for one of them.

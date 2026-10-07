@@ -217,6 +217,17 @@ geodatabases and runs the checks.
 **Caveat:** `REGPOP` on the 2026 VD layer sums to 2,348,781 — exactly the *2024*
 registration total. It is a 2024 snapshot, not current 2026 registration.
 
+**Area groupings (added 2026-10-07).** The 2026 voting-station layer
+(`VotingStations_March2026`, on disk as
+`data/raw/geo/votingstations2026_JHB.geojson`) carries each station's IEC
+street `ADDRESS` and its `VOTINGDIST`. `src/areas.py` reads those addresses to
+decide which voting districts are in Soweto, and weights them by the
+crosswalk's `part_registered` (the REGPOP snapshot above) to decide which 2026
+wards are. The addresses are free text typed by the IEC: some give the
+township, some only the town (Braamfischerville's give ROODEPOORT), and spelling
+varies (WESTERNJABAVU, BRAAM FISCHERVILLE). The rule and its gazetteer are
+JUDGEMENT-CALLS.md §P2; the result is `cities/joburg.toml` `[areas.soweto]`.
+
 ## By-elections — use the dashboard, not the downloads page
 
 The downloads page serves by-election reports only through per-session
