@@ -1,0 +1,78 @@
+{
+ "city": "capetown",
+ "year": "2016",
+ "draws": 1000,
+ "council": 231,
+ "wards": 116,
+ "A": {
+  "seats": {
+   "SIZWE_UMMAH_NATION": 1,
+   "ACDP": 3,
+   "NATIONAL_PARTY_SOUTH_AFRICA": 1,
+   "UDM": 1,
+   "ALJAMAAH": 1,
+   "DA": 155,
+   "VFPLUS": 1,
+   "PAC": 1,
+   "EFF": 6,
+   "PA": 1,
+   "ANC": 58,
+   "AIC": 1,
+   "COPE": 1
+  },
+  "seat_err": 8.0,
+  "wards_ok": 116,
+  "ward_vote_err_pp": 4.978285742466442,
+  "list_vote_err_pp": 4.536802520682341,
+  "top": "DA",
+  "top_wards": 81,
+  "top_actual_wards": 81,
+  "excessive": {},
+  "council": 231,
+  "ward_wins": {
+   "DA": 81,
+   "ANC": 35
+  }
+ },
+ "B": {
+  "draw": 185,
+  "seats": {
+   "ACDP": 5,
+   "ALJAMAAH": 1,
+   "ANC": 59,
+   "DA": 157,
+   "EFF": 6,
+   "PA": 1,
+   "PAC": 1,
+   "UDM": 1
+  },
+  "seat_err": 14.0,
+  "wards_ok": 116,
+  "ward_vote_err_pp": 7.821904214203953,
+  "list_vote_err_pp": 7.4536725156094334
+ },
+ "median_seat_err": 11.0,
+ "median_total": 222.0,
+ "coherent_seat_err": 8.0,
+ "actual": {
+  "seats": {
+   "ACDP": 3,
+   "UDM": 1,
+   "ALJAMAAH": 2,
+   "DA": 154,
+   "VFPLUS": 1,
+   "DEMOCRATIC_INDEPENDENT_PARTY": 1,
+   "PAC": 1,
+   "EFF": 7,
+   "PA": 1,
+   "ANC": 57,
+   "AIC": 1,
+   "CAPE_MUSLIM_CONGRESS": 1,
+   "COPE": 1
+  },
+  "ward_wins": {
+   "DA": 81,
+   "ANC": 35
+  }
+ }
+}

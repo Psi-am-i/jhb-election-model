@@ -1,0 +1,62 @@
+{
+ "city": "buffalocity",
+ "year": "2011",
+ "draws": 1000,
+ "council": 100,
+ "wards": 50,
+ "A": {
+  "seats": {
+   "PAC": 2,
+   "ENTRANT": 1,
+   "AIC": 1,
+   "ANC": 62,
+   "UDM": 2,
+   "DA": 15,
+   "COPE": 15,
+   "ACDP": 2
+  },
+  "seat_err": 32.0,
+  "wards_ok": 49,
+  "ward_vote_err_pp": 31.229741275315742,
+  "list_vote_err_pp": 32.162643792487515,
+  "top": "ANC",
+  "top_wards": 44,
+  "top_actual_wards": 43,
+  "excessive": {},
+  "council": 100,
+  "ward_wins": {
+   "ANC": 44,
+   "DA": 6
+  }
+ },
+ "B": {
+  "draw": 923,
+  "seats": {
+   "ANC": 67,
+   "COPE": 17,
+   "DA": 15,
+   "PAC": 1
+  },
+  "seat_err": 28.0,
+  "wards_ok": 49,
+  "ward_vote_err_pp": 25.39340642153626,
+  "list_vote_err_pp": 30.0353990267909
+ },
+ "median_seat_err": 31.5,
+ "median_total": 90.5,
+ "coherent_seat_err": 32.0,
+ "actual": {
+  "seats": {
+   "PAC": 2,
+   "AIC": 2,
+   "ANC": 71,
+   "DA": 21,
+   "COPE": 3,
+   "ACDP": 1
+  },
+  "ward_wins": {
+   "ANC": 43,
+   "DA": 7
+  }
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "city": "buffalocity",
+ "year": "2016",
+ "draws": 1000,
+ "council": 100,
+ "wards": 50,
+ "A": {
+  "seats": {
+   "AIC": 3,
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": 1,
+   "PEOPLES_ALLIANCE": 1,
+   "EFF": 5,
+   "DA": 26,
+   "UDM": 2,
+   "ANC": 60,
+   "PAC": 1,
+   "ACDP": 1
+  },
+  "seat_err": 10.0,
+  "wards_ok": 48,
+  "ward_vote_err_pp": 17.338061080639317,
+  "list_vote_err_pp": 10.947778259255914,
+  "top": "ANC",
+  "top_wards": 43,
+  "top_actual_wards": 45,
+  "excessive": {},
+  "council": 100,
+  "ward_wins": {
+   "ANC": 43,
+   "DA": 7
+  }
+ },
+ "B": {
+  "draw": 752,
+  "seats": {
+   "AIC": 2,
+   "ANC": 63,
+   "DA": 27,
+   "EFF": 6,
+   "PAC": 1,
+   "UDM": 1
+  },
+  "seat_err": 12.0,
+  "wards_ok": 47,
+  "ward_vote_err_pp": 19.492497719339838,
+  "list_vote_err_pp": 13.56545331416422
+ },
+ "median_seat_err": 9.0,
+ "median_total": 93.0,
+ "coherent_seat_err": 10.0,
+ "actual": {
+  "seats": {
+   "AIC": 4,
+   "COPE": 1,
+   "EFF": 8,
+   "DA": 24,
+   "UDM": 1,
+   "ANC": 60,
+   "PAC": 1,
+   "ACDP": 1
+  },
+  "ward_wins": {
+   "ANC": 45,
+   "DA": 5
+  }
+ }
+}

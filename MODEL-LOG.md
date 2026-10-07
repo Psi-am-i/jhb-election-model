@@ -28471,3 +28471,47 @@ Every row is VERY LIKELY.
 **Measured.** The Mashaba card's intro says the DA won no Soweto ward in 2021. In `lge2021_JHB_vd_party_clean.csv`'s ward ballots, 42 of the 135 wards of 2021 have at least half their registered voters at stations that `src/areas.py`'s Soweto rule places in Soweto, joined on VD number to the 2026 station addresses. The ANC won all 42; the DA won none. The join is approximate: VD numbers are matched across the 2021-to-2026 redelimitation, and a VD absent from the 2026 station file counts as outside Soweto. The nearest ward to the cut, 79800017 (24% at Soweto stations), was won by the PA.
 
 **Change (owner's text, 2026-10-07).** The Mashaba card is rated as before (realistic coalitions, §P3) and adds `soweto_some_share` (the DA wins at least one Soweto ward: 2.7% of simulations). Its conclusion is generated from the verdict ("Mashaba is very likely correct") and the card carries `requires_at_least = "QUITE LIKELY"`, because its last sentence ("The DA needs Sowetan support, or partners who have it") is true only at the likely end. The fixed token `jhb_2021_coalition_seats` is retired from the registry (no card prints it); its source stays in SOURCES.md. The red-lines card is restructured; `grand_share` (42.7%) is checked to be the most reliable two-party majority over every pair of parties with at least one seat on average (next: DA with the EFF, 3.0%).
+
+## 1.290 Reducing the forecast to one prediction, scored on 24 past elections (2026-10-08)
+
+**Question.** Which rule turns the forecast into one prediction (STYLE.md rule 11)?
+Pre-registered before the run: `prereg/2026-10-08-prediction-rule-backtest.md`.
+Script, per-city-year results and table: `audits/2026-10-07-prediction-restructure/backtest/`.
+
+**Run.** Every emitted city-year for 2011, 2016 and 2021 (8 metros, 24 city-years),
+`run_model` in-process at `compare_history`'s defaults (1,000 draws, its seed),
+entrant relabelled as there, scored against `compare_history.actual_shares` and
+`_actual_seats`. No file under `data/`, `site/`, `content/` or `publications/` was
+written (checked with `find -newer`).
+
+**Candidates.** A: each ward to its modal winner; mean ward-ballot and mean
+list-ballot votes; seats by the model's seat law. B: the draw with the lowest mean
+seat L1 distance to all draws. References: `coherent_seats` (a council, no wards or
+votes) and per-party medians (not a council).
+
+**Result (24 city-years).**
+
+| measure | A | B | coherent | medians |
+|---|---|---|---|---|
+| total final-seat error, seats | 739 | 749 | 735 | 705.5 (not a council) |
+| correct ward calls, of 2,183 | 2,120 | 2,107 | — | — |
+| A better than B, seats | 11 of 24 (2 ties) | | | |
+| A better than B, ward-ballot vote error | 16 of 24 | | | |
+| A better than B, list-ballot vote error | 12 of 24 | | | |
+
+**Pre-registration scored.** P1 **failed**: A's top ward-winner got more wards than
+it won in reality in 6 of 24, not 14; A's leader ward counts sit within a few wards
+of the actual in most city-years. P2 **failed**: A beat B on seats in 11 (needed 13).
+P3 **held** (22 of 24). P4 held for the ward ballot (16), **failed** for the list
+ballot (12). P5 **held**: A's total is 1.005× `coherent_seats`'. P6 **untestable**:
+A gave no party excessive seats in any past city-year, and no real result did either
+(only independents' ward seats leave the pool).
+
+**What it shows.** A adds no seat error over the model's own centre (`coherent_seats`)
+while also calling every ward and carrying both ballots; B is level on seats and worse
+on ward calls and the ward ballot. The seat errors are the model's, not the rule's: A
+and coherent move together city-year by city-year. A's leader-ward lean, which is
+real against the model's own mean ward wins, did not appear against real results.
+
+**Limit.** The 2026 prediction under A gives the ANC excessive seats (§ SYNTHESIS); no
+city-year in this panel had any, so the backtest cannot test that part of the rule.
