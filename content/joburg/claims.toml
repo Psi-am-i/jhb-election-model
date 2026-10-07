@@ -52,7 +52,7 @@ intro = """This is an appeal, not a forecast, so the thing to test is whether th
 steps = [
   """**Not close.** The ANC's median is [[anc_median]] seats, against the {{majority}} it would need. Its single best result anywhere in the {{n_draws}} simulations is [[anc_best]], and that draw is the outer edge of the range, not a likely outcome.""",
   """**Being first is a different question, and that one is open.** The ANC alone has the most seats in [[anc_largest_share]] of simulations, the DA alone in [[da_largest_share]], and two or more parties tie for the most seats in [[largest_tied_share]]. First place is a genuine contest. Sole control is not: no party reaches {{majority}} alone in more than a handful of draws.""",
-  """**The ANC does have routes — they are all coalitions.** With the EFF and MK, its closest partners on this ballot, the three together reach {{majority}} in [[anc_left_share]] of simulations, on a median of [[anc_left_median]] seats. Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in [[anc_side_share]]. These routes and others are open to the ANC. Absolute authority is not.""",
+  """**The ANC does have routes — they are all coalitions.** With the EFF and MK, its closest partners on this ballot, the three together reach {{majority}} in [[anc_left_share]] of simulations, on a median of [[anc_left_median]] seats. Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in [[anc_side_share]]. It too needs almost every small party in the council to join. These routes and others are open to the ANC. Absolute authority is not.""",
 ]
 
 [[claim]]
@@ -120,6 +120,6 @@ steps = [
   """**The DA wins no Soweto ward in [[soweto_none_share]] of simulations.** Soweto's [[soweto_wards_n]] wards hold [[soweto_roll_share]] of the city's registered voters.""",
   """**Without a Soweto ward, the DA governs in [[realistic_given_none]] of simulations,** assuming ActionSA and the PA, or the ANC, are willing to work with it: [[asa_pa_given_none]] with ActionSA and the PA, [[anc_given_none]] with the ANC as the smaller partner.""",
   """**If it wins a Soweto ward, that jumps to [[realistic_given_some]],** on the same assumption. Those are simulations where the DA is strong across the whole city, a breakthrough it has not made before; Soweto falls with everywhere else.""",
-  """**On paper the DA has more routes.** Smaller parties such as the IFP and the FF+ add seats, and a coalition of every party except the EFF and MK reaches a majority in [[da_leads_share]] of simulations. But it would need dozens of parties to agree and stay together, so it is not counted here.""",
+  """**On paper the DA has more routes.** Smaller parties such as the IFP and the VF+ add seats, and a coalition of every party except the EFF and MK reaches a majority in [[da_leads_share]] of simulations. But it would need dozens of parties to agree and stay together, so it is not counted here.""",
   """**What this cannot see.** The model counts seats, not which parties are willing to work together. DA votes cast in Soweto count toward its seats even where it wins no ward.""",
 ]

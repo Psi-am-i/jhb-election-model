@@ -2,6 +2,12 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
+## <span data-asof="2026-10-07">"Going the other way, an ANC-led council built with ActionSA, the PA and the smaller parties reaches a majority in 57% of simulations"</span> — published 6 October 2026, corrected 7 October 2026
+
+<span data-asof="2026-10-07">**What was wrong.** The card on the ANC's claim to govern alone said an ANC-led council with ActionSA, the PA and the smaller parties reaches a majority in 57% of simulations. The count left out the seats of the smallest parties.
+
+**What is right.** Counting every party's seats, it reaches a majority in 78% of simulations. Like the DA's equivalent, it needs almost every small party in the council to join.</span>
+
 ## <span data-asof="2026-10-07">"Without the ANC, the red line leaves a majority in 59% of simulations"</span> — published 6 October 2026, corrected 7 October 2026
 
 <span data-asof="2026-10-07">**What was wrong.** The red-lines claim said a majority without the ANC, the EFF and MK exists in 59% of simulations, and called it more likely than not. The count left out the seats of the smallest parties.
