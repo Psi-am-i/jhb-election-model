@@ -1,9 +1,9 @@
 # Brief: forecast, prediction, result (owner, 2026-10-07; revised 2026-10-08)
 
-Terms as defined in `STYLE.md` rule 11. Revision 2, after the blind review
-(`review/SYNTHESIS.md`) and the backtest (`MODEL-LOG.md` §1.290). Revision 1 was
-approved on hold; it is in git history. **This revision needs the owner's
-approval before anything is built.**
+Terms as defined in `STYLE.md` rule 11. Revision 3, after the blind review
+(`review/SYNTHESIS.md`), the backtest (`MODEL-LOG.md` §1.290) and the owner's
+answers of 2026-10-08. Earlier revisions are in git history. Under guard and
+provenance review (`FLOW.md`) before it is built.
 
 Owner decisions, 2026-10-08:
 - **Rule A** reduces our forecast to our prediction.
@@ -12,6 +12,12 @@ Owner decisions, 2026-10-08:
   ward seats, list votes and the final seat count.
 - **Excessive seats follow the law.** Schedule 1, the "deduct" reading,
   `tests/test_overhang.py` pinned to Laingsburg 2021.
+- **Emulate the real election, for us and for readers:** ward votes, list
+  votes, ward wins, and list seats allocated by the law (D1 resolved as (i)).
+- **No backward compatibility.** Nothing has been advertised, so existing
+  sealed entries may be invalidated. Whatever this changes in the forecast or
+  its artefacts is recorded as what was, what is now, and the decision
+  (`MODEL-LOG.md`, `JUDGEMENT-CALLS.md`), not avoided.
 
 ## Phase 1: our prediction (model/pipeline tier, whole suite once)
 
@@ -34,10 +40,7 @@ Owner decisions, 2026-10-08:
    `site/draws/`. Today only the list share is, and `COMBINED_SHARE_REFUSAL`
    states why the combined vote is not.
    - Rule A needs both ballots, on the build and in the page's hand-off.
-   - No published seat figure moves: the captured tallies reproduce all 5,000
-     draws (review A, re-derived).
-   - The draws' fingerprint changes. Link previews re-render once; seals do not
-     depend on the draws.
+   - The draws' fingerprint changes and the change is recorded.
 3. **Our prediction is sealed.** Every published version is sealed and dated.
    The one scored is the last sealed before the lock (07:00 SAST, 4 November),
    by the same `score()` as readers, in the same ranking, labelled as ours.
@@ -99,20 +102,23 @@ Owner decisions, 2026-10-08:
     not an error, so no correction entries. Methodology gets a short "Forecast,
     prediction, result" section.
 
-## Decision needed before Phase 1 is built
+## Readers' predictions carry both ballots (D1 = (i), owner 2026-10-08)
 
-**D1. Readers' predictions and the two ballots.**
-- Today a reader's entry holds one vote share per party, used for both ballots.
-  Our prediction will hold two.
-- Either:
-  - **(i)** readers' entries also hold a ward vote and a list vote: a new entry
-    version, two vote rows in the editor, and old entries stay valid with one
-    share used for both; or
-  - **(ii)** readers keep one share. Their editor opens our prediction with its
-    list vote, and our card shows both ballots while theirs shows one.
-- (i) meets the four-quantities principle for everyone. (ii) is smaller. Whichever
-  is chosen, the competition's scoring keys (`JUDGEMENT-CALLS.md` §N4) do not
-  change unless the owner says so.
+13. **A reader's entry holds what an election produces:** a winner for every ward,
+    a ward-ballot vote share and a list-ballot vote share for every party, and the
+    seats the law allocates from them (ward seats from the ward winners, list
+    seats from the combined vote, excessive seats kept).
+    - A new entry version, with the editor showing two vote rows.
+    - The seat service, the validator, the stored schema, `score_forecasts` and
+      the cards all read the new version. The old one is retired, not supported.
+    - Existing D1 entries are exported to a file in the repository and then
+      cleared, **at a step the owner approves when it is reached**.
+    - The competition's scoring keys (`JUDGEMENT-CALLS.md` §N4) do not change
+      unless the owner says so; key 3 already compares the list vote with the
+      list ballot.
+    - **Open for review:** in a real election the ward votes decide the ward
+      winners. A reader sets both, so they can disagree (130 wards to a party on
+      5% of the ward vote). The review says whether to refuse, warn or allow.
 
 ## Out of scope
 
@@ -143,4 +149,5 @@ Owner decisions, 2026-10-08:
 - Phase 3: cosmetic.
 
 Each phase is reviewed as a diff before it runs, and goes to UAT separately.
-Phase 1 about a day; Phase 2 two days; Phase 3 a day. Add a day if D1 is (i).
+Phase 1 about two days with change 13; Phase 2 two days; Phase 3 a day. The
+flow that builds it, and when the whole suite runs, is `FLOW.md`.
