@@ -89,3 +89,24 @@ The whole suite runs once, at S5. Each slice's targeted list is in its spec, §4
   listing), so it is retired.
 - Seal storage is asynchronous: the D1 insert runs after the response (C), so
   the seal command retries its read-back.
+
+## Owner's answers (2026-10-08)
+
+1. **Drop the stored list share.** Nothing is lost: the list share is derived
+   exactly from the list votes.
+2. **Whole votes:** asked where and out of how many. Answer: citywide, for every
+   party in every simulation, the ward-ballot and list-ballot votes, out of
+   that simulation's votes cast on each ballot (about 985,000 each in our
+   prediction).
+3. **Old entries are tests.** No export is needed. They are cleared at the
+   release step.
+4. **Slider bounds:** the historical extremes, widened by 5 points either side.
+   Lowest winning share 18.6%. Highest runner-up 50%: 52.8% capped, because a
+   runner-up cannot exceed half. Gap bounds −6.76 to +11.16pp. Recorded in
+   JUDGEMENT-CALLS as the owner's call.
+5. **The board name for ours:** "WhySoSerious.City's Official JHB Prediction".
+6. **The `/forecast` pointer** shows our predicted seats.
+7. **The dormant prototypes** are retired.
+8. Explained again; awaiting an answer.
+9. Explained again; awaiting an answer. Slice A does not edit the dirty files,
+   so it can start. The release must be settled before slice C.
