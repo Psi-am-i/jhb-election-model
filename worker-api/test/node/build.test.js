@@ -1,10 +1,12 @@
-// Build-time checks: the generated schema is current, the generator reads the
-// artefact (it types nothing), and the Python Worker's seat code is a byte copy.
+// Build-time checks: the generated geometry is current, the schema generator
+// reads the artefact (it types nothing), and the Python Worker's seat code is a
+// byte copy.
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { build } from "../../tools/make_schema.mjs";
+import { build, geometryOf } from "../../tools/make_schema.mjs";
+import { FORMAT } from "../../../interactive/js/make-state.js";
 import { ALL as FILES, checkCopy, copy } from "../../tools/sync_seats_py.mjs";
 import { SCREEN_PURPOSES } from "../../../interactive/js/consent-terms.js";
 import { mkdtempSync, writeFileSync, rmSync, unlinkSync, readdirSync } from "node:fs";
@@ -20,52 +22,66 @@ const GEOM = "interactive/fixtures/geometry.json";
 const names = { model: MODEL, geometry: GEOM };
 const read = p => readFileSync(resolve(repo, p));
 
-describe("generated/ is current", () => {
-  it("regenerating from the sources gives exactly the committed files", () => {
-    const out = build(read(MODEL), read(GEOM), names);
-    for (const [rel, text] of Object.entries(out))
-      expect(readFileSync(resolve(root, rel), "utf8"), rel).toBe(text);
+// The artefact build_make writes carries the editor's bounds; the prototype's
+// placeholder fixture has none, so the test adds them: equal ward shares over
+// the geometry's wards and four finite bounds. Constructed, not measured.
+const geomWards = JSON.parse(read(GEOM)).wards.map(w => String(w.id));
+const withBounds = m => ({ ...m, editor_bounds: { e: Object.fromEntries(geomWards.map(w => [w, 1 / geomWards.length])),
+  q_win: 0.2, q_run: 0.5, gap_min: -5, gap_max: 10 } });
+const schemaOf = m => build(Buffer.from(JSON.stringify(m)), read(GEOM), names).schema;
+
+describe("generated/geometry.json is current", () => {
+  it("regenerating from the source gives exactly the committed file", () => {
+    const g = geometryOf(read(GEOM), GEOM);
+    expect(readFileSync(resolve(root, "generated/geometry.json"), "utf8")).toBe(JSON.stringify(g) + "\n");
+  });
+  it("the retired placeholder schema is not there (guard G13)", () => {
+    expect(existsSync(resolve(root, "generated/forecast.schema.json"))).toBe(false);
   });
 });
 
 describe("the generator reads the artefact", () => {
-  const model = JSON.parse(read(MODEL));
-  it("a new party in the artefact appears in the schema", () => {
+  const model = withBounds(JSON.parse(read(MODEL)));
+  it("the entry version is make-state.js FORMAT, the one definition", () => {
+    expect(schemaOf(model).properties.v.const).toBe(FORMAT);
+  });
+  it("a new party in the artefact appears in the schema, on both ballots", () => {
     const m = { ...model, parties: [...model.parties, { code: "NEWP", name: "New", colour: "#000" }] };
-    const s = JSON.parse(build(Buffer.from(JSON.stringify(m)), read(GEOM), names)["generated/forecast.schema.json"]);
+    const s = schemaOf(m);
     expect(s.properties.ward_calls.items.enum).toContain("NEWP");
-    expect(s.properties.combined_share.required).toContain("NEWP");
+    expect(s.properties.ward_votes.required).toContain("NEWP");
+    expect(s.properties.list_votes.required).toContain("NEWP");
   });
   it("a different council size moves the schema's council", () => {
     const m = { ...model, council_seats: model.council_seats + 2, majority: model.majority + 1 };
-    const s = JSON.parse(build(Buffer.from(JSON.stringify(m)), read(GEOM), names)["generated/forecast.schema.json"]);
-    expect(s["x-council"].council_seats).toBe(model.council_seats + 2);
+    expect(schemaOf(m)["x-council"].council_seats).toBe(model.council_seats + 2);
   });
   it("a ward count that disagrees with ward_seats is refused", () => {
     const m = { ...model, ward_seats: model.ward_seats + 1 };
-    expect(() => build(Buffer.from(JSON.stringify(m)), read(GEOM), names)).toThrow(/ward_seats/);
+    expect(() => schemaOf(m)).toThrow(/ward_seats/);
   });
-  it("the seat context and total_votes come from the artefact", () => {
-    const m = { ...model, total_votes: model.total_votes + 7, no_pr_list: [model.parties[0].code] };
-    const s = JSON.parse(build(Buffer.from(JSON.stringify(m)), read(GEOM), names)["generated/forecast.schema.json"]);
-    expect(s["x-total-votes"]).toBe(model.total_votes + 7);
+  it("the seat context and the editor's bounds come from the artefact; no total is carried", () => {
+    const m = { ...model, no_pr_list: [model.parties[0].code] };
+    const s = schemaOf(m);
     expect(s["x-seat-context"].no_pr_list).toEqual([model.parties[0].code]);
     expect(s["x-seat-context"].council).toBe(model.council_seats);
     expect(s["x-seat-context"].wards).toEqual(s["x-ward-ids"]);
+    expect(s["x-editor-bounds"]).toEqual(m.editor_bounds);
+    expect(s["x-total-votes"]).toBeUndefined();
+    expect(s["x-share-sum"]).toBeUndefined();
   });
-  it("an artefact without what reader_seats needs is refused, not defaulted", () => {
-    for (const k of ["city", "target", "total_votes", "no_pr_list"]) {
+  it("an artefact without what reader_seats and the editor need is refused, not defaulted", () => {
+    for (const k of ["city", "target", "no_pr_list", "editor_bounds"]) {
       const m = { ...model }; delete m[k];
-      expect(() => build(Buffer.from(JSON.stringify(m)), read(GEOM), names)).toThrow(new RegExp(k));
+      expect(() => schemaOf(m)).toThrow(new RegExp(k));
     }
-    const bad = { ...model, total_votes: 1.5 };
-    expect(() => build(Buffer.from(JSON.stringify(bad)), read(GEOM), names)).toThrow(/total_votes/);
     const stray = { ...model, no_pr_list: ["NOPE"] };
-    expect(() => build(Buffer.from(JSON.stringify(stray)), read(GEOM), names)).toThrow(/no_pr_list/);
+    expect(() => schemaOf(stray)).toThrow(/no_pr_list/);
+    const short = { ...model, editor_bounds: { ...model.editor_bounds, e: { [geomWards[0]]: 1 } } };
+    expect(() => schemaOf(short)).toThrow(/editor bounds/);
   });
   it("records the sha256 of each source", () => {
-    const s = JSON.parse(build(read(MODEL), read(GEOM), names)["generated/forecast.schema.json"]);
-    expect(Object.keys(s["x-sources"])).toEqual([MODEL, GEOM]);
+    expect(Object.keys(schemaOf(model)["x-sources"])).toEqual([MODEL, GEOM]);
   });
 });
 

@@ -3,13 +3,13 @@
 The contract is defined by the callers, worker-api/src/seats.js (saved
 forecasts) and src/worker.js (the link preview of a shared one). The request
 body of /v1/seats is the four arguments of ``reader_seats.reader_seats`` by
-name:
+name, a reader's prediction (entry version 2):
 
-    POST /v1/seats  {"combined_shares": {code: fraction},
+    POST /v1/seats  {"ward_votes": {code: int},    whole votes, ward ballot
+                     "list_votes": {code: int},    whole votes, list ballot
                      "ward_winners": {ward_id: code},
                      "context": {city, target, council, wards, parties,
-                                 no_pr_list},
-                     "total_votes": int}
+                                 no_pr_list}}
     200             {"seats": {code: int}, "ward": {code: int}, "pr": {code: int},
                      "council_total": int, "majority": int,
                      "excessive": {code: int}, "code_ref": sha256}
@@ -55,7 +55,7 @@ except ImportError:  # not copied yet: the stub answer
     reweight = None
     CODE_REF = None
 
-ARGUMENTS = ("combined_shares", "ward_winners", "context", "total_votes")
+ARGUMENTS = ("ward_votes", "list_votes", "ward_winners", "context")
 CARD_ARGUMENTS = ("seats", "coalition", "draws_sha256")
 
 

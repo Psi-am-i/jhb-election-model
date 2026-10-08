@@ -21,31 +21,26 @@ describe("the seat request is reader_seats' own arguments", () => {
   const f = validForecast();
   const req = seatRequest(f, schema);
   it("carries exactly the four arguments, by name", () => {
-    expect(Object.keys(req).sort()).toEqual(["combined_shares", "context", "total_votes", "ward_winners"]);
+    expect(Object.keys(req).sort()).toEqual(["context", "list_votes", "ward_votes", "ward_winners"]);
   });
-  it("the shares are the reader's combined shares as fractions summing to 1", () => {
-    const sum = Object.values(req.combined_shares).reduce((a, b) => a + b, 0);
-    expect(Math.abs(sum - 1)).toBeLessThan(1e-12);
-    const pct = Object.values(f.combined_share).reduce((a, b) => a + b, 0);
-    for (const c of roster) expect(req.combined_shares[c]).toBeCloseTo(f.combined_share[c] / pct, 15);
-    expect(Object.keys(req.combined_shares)).toEqual(schema["x-seat-context"].parties);
-  });
-  it("a share sum inside the tolerance still reaches the service summing to 1", () => {
-    const g = clone(f); g.combined_share[roster[0]] += 0.4;
-    const sum = Object.values(seatRequest(g, schema).combined_shares).reduce((a, b) => a + b, 0);
-    expect(Math.abs(sum - 1)).toBeLessThan(1e-12);
+  it("each ballot's whole votes pass through unchanged, in roster order", () => {
+    for (const b of ["ward_votes", "list_votes"]) {
+      expect(Object.keys(req[b])).toEqual(schema["x-seat-context"].parties);
+      for (const c of roster) expect(req[b][c]).toBe(f[b][c]);
+    }
+    // the ballots are not swapped: the fixture's differ
+    expect(req.ward_votes).not.toEqual(req.list_votes);
   });
   it("every ward is keyed by its id, in ward_calls order", () => {
     const ids = schema["x-ward-ids"];
     expect(Object.keys(req.ward_winners)).toEqual(ids);
     ids.forEach((w, i) => expect(req.ward_winners[w]).toBe(f.ward_calls[i]));
   });
-  it("context and total_votes are the schema's, which the artefact supplied", () => {
+  it("the context is the schema's, which the artefact supplied", () => {
     const ctx = req.context;
     expect(ctx.council).toBe(schema["x-council"].council_seats);
     expect(ctx.wards).toEqual(schema["x-ward-ids"]);
     expect(ctx.parties).toEqual(roster);
-    expect(Number.isInteger(req.total_votes) && req.total_votes > 0).toBe(true);
   });
 });
 
@@ -78,12 +73,12 @@ describe("the seat seam refuses an answer that does not add up", () => {
     expect(e2.status).toBe(503);
   });
 
-  it("the seat law refusing the picks is the reader's 422, naming the shares, not a 503", async () => {
+  it("the seat law refusing the picks is the reader's 422, naming the votes, not a 503", async () => {
     const refusing = errors => ({ SEATS: { fetch: async () => Response.json({ errors }, { status: 422 }) } });
-    const e = await computeSeats(refusing(["wards won by parties with a zero share: ['X']"]), f, schema).catch(x => x);
+    const e = await computeSeats(refusing(["wards won by parties with no list vote: ['X']"]), f, schema).catch(x => x);
     expect(e.status).toBe(422);
-    expect(e.field).toBe("combined_share");
-    expect(e.message).toMatch(/zero share/);
+    expect(e.field).toBe("ward_votes");
+    expect(e.message).toMatch(/no list vote/);
     // A 422 that does not say why is a broken service, not a reader error.
     for (const bad of [[], "nope", [3]]) {
       const e2 = await computeSeats(refusing(bad), f, schema).catch(x => x);

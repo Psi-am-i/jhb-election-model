@@ -426,8 +426,7 @@ def handoff(request_json: str) -> str:
     """Our prediction under section 1's settings: where "Break the model"
     opens, as JSON.
 
-    Request: ``{"settings": <compute's settings>}`` (a ``total`` key is
-    accepted and ignored). Rule A (``prediction.rule_a``, the one definition)
+    Request: ``{"settings": <compute's settings>}``. Rule A (``prediction.rule_a``, the one definition)
     on the chosen cell's draws, each weighted as the settings weight it:
 
     * ``ward_calls``: ``{ward: party}``, each ward to the party that wins it in
@@ -436,11 +435,9 @@ def handoff(request_json: str) -> str:
     * ``ward_votes``, ``list_votes``: ``{party: whole votes}``, each party's
       weighted mean on each ballot, every column of the draws' vote blocks.
 
-    No seats: the page seats the prediction through the seat Worker. Two
-    INTERIM keys, until the reader entry carries both ballots (slice B):
-    ``share``, both ballots' votes as one percent share (what ``make.js``
-    seats today), and ``middle``, empty (the seat-first start that filled it
-    is retired). Returns ``{"refused": reason}`` when the settings cannot be
+    This is the prediction object, which ``make.js`` opens through
+    ``builder-state.stateFromPrediction`` and seats through the seat Worker;
+    each ballot's total is the sum of its votes. Returns ``{"refused": reason}`` when the settings cannot be
     weighted or the draws cannot give a prediction (a missing vote block
     included).
     """
@@ -467,16 +464,12 @@ def handoff(request_json: str) -> str:
         pred = P.rule_a(winners, cell["manifest"]["ward_parties"], wards, wv, lv, cols, weights=w)
     except P.RuleAError as exc:
         return json.dumps({"refused": str(exc)})
-    both = sum(pred["ward_votes"].values()) + sum(pred["list_votes"].values())
-    if not both > 0:
-        return json.dumps({"refused": "the prediction holds no vote on either ballot"})
-    share = {p: 100.0 * (pred["ward_votes"][p] + pred["list_votes"][p]) / both
-             for p in cols}
+    empty = [b for b in ("ward_votes", "list_votes") if not sum(pred[b].values()) > 0]
+    if empty:
+        return json.dumps({"refused": f"the prediction holds no vote in {' or '.join(empty)}"})
     return json.dumps(_plain({"ward_calls": dict(zip(wards, pred["ward_calls"])),
                               "ward_votes": pred["ward_votes"],
-                              "list_votes": pred["list_votes"],
-                              "share": share,      # INTERIM, slice B deletes
-                              "middle": {}}),      # INTERIM, slice B deletes
+                              "list_votes": pred["list_votes"]}),
                       allow_nan=False)
 
 
@@ -486,7 +479,7 @@ def analyse(request_json: str) -> str:
     scoring §N4).
 
     Request: ``{"ward_calls": {ward: party}, "share": {party: percent of the
-    combined vote}, "seats": {party: seats}, "majority": seats needed,
+    list ballot}, "seats": {party: seats}, "majority": seats needed,
     "coalition": [party], "keep": [party]}``, section 2's forecast (``keep``:
     parties whose row the page already shows, so a row never goes while the
     reader edits). Every chance is the PUBLISHED forecast's: the published
@@ -516,8 +509,8 @@ def analyse(request_json: str) -> str:
     * ``seats``: ``{party: chance}`` that the party's seats land within
       ``reweight.ANALYSIS_SEAT_BAND`` of the reader's figure;
     * ``share``: ``{party: chance}`` that its LIST-BALLOT share lands within
-      ``reweight.ANALYSIS_SHARE_BAND_POINTS`` of the reader's combined share.
-      The list ballot is the one the competition scores (key 3), and the page
+      ``reweight.ANALYSIS_SHARE_BAND_POINTS`` of the reader's list-ballot
+      share, list against list. The list ballot is the one the competition scores (key 3), and the page
       says so;
     * the two bands, so the page prints them from here.
 

@@ -270,9 +270,11 @@ test("rows past the card's count are summed as Others, and a tie at the cut is n
 
 test("vs the previous election: 'new' for a party not on that ballot, a signed difference otherwise", () => {
   for (const r of A.rows) {
-    if (r.code in FIXTURE.baseline.vote) {
+    if (r.code in FIXTURE.baseline.list_vote) {
       assert.equal(r.seatsVs, SC.signed(r.seats - (FIXTURE.baseline.seats[r.code] || 0)));
       assert.match(r.voteVs, /^[+\u2212\u00b1]\d+\.\d$/);
+      // list against list: the card's vote is the list ballot, and so is the baseline's
+      assert.equal(r.voteVs, SC.signed(FIXTURE.A.vote[r.code] - FIXTURE.baseline.list_vote[r.code], 1));
     } else {
       assert.equal(r.seatsVs, "new");
       assert.equal(r.voteVs, "new");
@@ -440,7 +442,8 @@ const D = JSON.parse(execFileSync(PY, ["-c",
   "import json, sys; sys.path.insert(0, 'src'); import build_make; print(json.dumps(build_make.forecast_data()))"],
   { cwd: repo, maxBuffer: 1 << 28 }));
 const ctx = B.contextOf(D.schema);
-const stateA = B.startState(ctx, { calls: FIXTURE.A.calls, share: FIXTURE.A.vote }, FIXTURE.A.calls).state;
+const stateA = B.stateFromPrediction(ctx, { ward_calls: FIXTURE.A.calls, ward_votes: FIXTURE.A.ward_votes,
+                                            list_votes: FIXTURE.A.list_votes });
 const fA = MS.encode(stateA, FIXTURE.A.coalition, ctx);
 const KEY = "test-only-seal-key";
 
@@ -470,7 +473,7 @@ function fakeEnv({ seats = true, key = KEY } = {}) {
 
 test("the edge draws the link's own forecast from the seat Worker's answer, sealed or not", async () => {
   EDGE.forgetPageData();
-  const fields = { v: "1", c: D.context_ref, f: fA, n: "Thandi" };
+  const fields = { v: MS.FORMAT, c: D.context_ref, f: fA, n: "Thandi" };
   const at = Date.parse("2026-10-03T10:05:00Z");
   const s = await makeSeal(KEY, fields, at);
   const q = new URLSearchParams({ ...fields, s }).toString();
@@ -504,8 +507,9 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
 });
 
 test("section 1's hand-off, a start with no coalition, is a forecast the edge and the seal read unchanged", async () => {
-  // make.js setHandoff encodes the hand-off as B.startState(...) with no
-  // coalition; src/share-edge.js decodeLink must read it as it reads section 2's
+  // make.js setHandoff encodes the hand-off (B.stateFromPrediction of page.py's
+  // handoff) with no coalition; src/share-edge.js decodeLink must read it as it
+  // reads section 2's
   EDGE.forgetPageData();
   const PD = await EDGE.pageData(fakeEnv().env, new URL("https://joburg.whysoserious.city/"));
   const f = MS.encode(stateA, [], ctx);
@@ -525,7 +529,7 @@ test("an answer that breaks the seat law's arithmetic draws no card", async () =
     const k = Object.keys(a.seats)[0];
     return new Response(JSON.stringify({ ...a, seats: { ...a.seats, [k]: a.seats[k] + 5 }, code_ref: "ab".repeat(32), draws_sha256: D.draws_sha256 }), { status: 200 });
   } } };
-  const q = new URLSearchParams({ v: "1", c: D.context_ref, f: fA }).toString();
+  const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA }).toString();
   await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), bad, "link"));
 });
 
@@ -533,7 +537,7 @@ test("an answer that breaks the seat law's arithmetic draws no card", async () =
 
 test("a seal made under an earlier context still checks; the answer says the page cannot read it", async () => {
   EDGE.forgetPageData();
-  const fields = { v: "1", c: "an-earlier-context", f: fA, n: "Thandi" };
+  const fields = { v: MS.FORMAT, c: "an-earlier-context", f: fA, n: "Thandi" };
   const at = Date.parse("2026-10-03T10:05:00Z");
   const s = await makeSeal(KEY, fields, at);
   const ask = body => EDGE.sealCheck(new Request("https://joburg.whysoserious.city/seal/1/check", { method: "POST", body: JSON.stringify(body) }),

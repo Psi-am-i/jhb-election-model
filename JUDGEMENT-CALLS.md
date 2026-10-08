@@ -2949,6 +2949,15 @@ in the vote rounding, `reader_seats.combined_votes`) falls by roster order
 where Schedule 1 says "by lot". The register row above keeps its original name
 for this entry.
 
+**Amended 2026-10-08 — superseded: the reader sets both ballots.** BRIEF
+change 13 (owner, 2026-10-08): a reader's entry holds whole votes on the ward
+ballot and on the list ballot, and `reader_seats` takes them as they are
+(`reader_seats(ward_votes, list_votes, ward_winners, context)`); no share is
+converted, no total is fixed, and the statute's pool is formed from the two
+ballots as given. The combined input, its `total_votes` and its rounding are
+retired (MODEL-LOG §1.292); the editor's bounds that now shape what a reader
+can set are §R.
+
 ## N. Added 2026-09-28 — re-weighting the published draws (PLAN.md S4)
 
 ### §N1 · `MIN_EFFECTIVE_DRAWS` = 200 — 🟡
@@ -3724,6 +3733,120 @@ SYNTHESIS, correcting S0 finding 3).
 a constructed council of ten, six minor parties each under a quota win nothing
 under their own codes, and summed into one column they hold a quota and win a
 seat (`tests/test_prediction_rule.py::test_no_party_is_summed_and_summing_would_seat_differently`).
+
+## R. Added 2026-10-08 — a reader's prediction on both ballots, and the editor's bounds
+
+A reader's entry is a prediction (STYLE.md rule 11; BRIEF change 13,
+`audits/2026-10-07-prediction-restructure/`, slice B): a winner for every ward
+and each party's whole votes on the ward ballot and on the list ballot, entry
+version 2. What is VALID is the seat law's refusals only (R1: a ward winner
+with no ward vote; R2: a ward winner with a PR list and no list vote;
+`reader_seats`, MACHINERY.md). What the page's EDITOR lets a reader set is
+narrower, and the calls below are what narrows it. The mechanism is
+`build_make.editor_bounds` and `interactive/js/builder-state.js`; the values
+each build produces are in the schema's `x-editor-bounds` and MODEL-LOG §1.292,
+not here.
+
+### §R1 · the editor's bounds are read from every metro's past local elections — ⚖️ argued
+
+**Now.** `build_make.panel_extremes` reads every cleaned metro LGE result file
+before the target (`build_make._panel`: all eight metros, every local election
+on file), and takes four extremes over it: the lowest share of a ward's valid
+ward-ballot votes with which a ward was won; the highest share a ward's
+runner-up held; and the lowest and highest list share minus ward share, in
+points of each ballot's citywide total, over every party that stood on both
+ballots in a city-year (the merged `INDEPENDENT` row, which stands on no list,
+falls out by that test).
+
+**Alternatives.** The city's own elections only: five city-years for
+Johannesburg, too few to say what a ward result can look like; the shapes are a
+property of the electoral system and its parties, which every metro shares. A
+percentile instead of the extreme: the 1st percentile of winning shares would
+put 1% of real winners outside the editor (SPEC-B's probe; MODEL-LOG §1.292).
+
+**Limit.** The result files merge every independent in a voting district into
+one `INDEPENDENT` row (DATA-QUALITY.md item 12), so a ward where several
+independents stood records one share larger than any one candidate's. Where
+that row is the runner-up it can raise `q_run` (widening the editor); where it
+wins it raises the recorded winning share, so it can raise `q_win` and narrow
+the editor. Measured on the panel (read-only probe, 2026-10-08): the row is
+present in 719 of 3,434 wards and wins 12; its lowest winning share, 29.6%
+(eThekwini 2006), is above the lowest win on record, so it sets no bound
+today.
+
+**How to check it.** `tests/test_your_forecast_page.py::test_the_editor_bounds_are_regenerated_from_the_panel`:
+the panel is the glob, both ways, each file's sha256 recorded; a constructed
+file with a lower winning share moves `q_win` to it, one with a wider gap moves
+`gap_max`.
+
+### §R2 · `EDITOR_WIDEN_PP` = 5.0 points beyond the extremes, the runner-up's bound capped at `RUNNER_UP_MAX` = 0.5 — ⚖️ owner's call (2026-10-08)
+
+**Now.** Each of the four extremes of §R1 is widened by 5.0 percentage points
+of its ballot: the lowest winning share less 5 points (`q_win`), the highest
+runner-up share plus 5 points (`q_run`), the lowest list-minus-ward gap less 5
+points (`gap_min`), the highest plus 5 points (`gap_max`). `q_run` is then
+capped at 0.5 of the ward's vote: a runner-up holding more than half would be
+the winner. The owner's words: "the historical extremes, widened by 5 points
+either side"; "highest runner-up 50%: 52.8% capped, because a runner-up cannot
+exceed half" (s1/SYNTHESIS.md, owner's answers, 4).
+
+**What it decides.** How far a reader may take a party past anything a metro
+has produced. Unwidened, the editor would say no ward was ever won lower than
+the lowest win on record, which is a record, not a law. The widening is
+uniform in points: a gap of 5 points binds a large party long before a small
+one (SPEC-B open question 5), which is accepted.
+
+**Alternatives, not taken.** The extremes unwidened (the coordinator's
+recommendation, s1/SYNTHESIS.md item 4); a percentile (§R1).
+
+**How to check it.** The same test: the effective bounds equal the extremes
+widened by `EDITOR_WIDEN_PP`, `q_run` capped at `RUNNER_UP_MAX`.
+
+### §R3 · a ward's expected ward vote: the 2026 roll times the preceding local election's turnout in its voting districts — 🟡 argued
+
+**Now.** `build_make.expected_ward_shares`: each ward's roll on the newest
+registration snapshot (`inputs_preflight.roll_snapshot`, the file
+`--strict` checks) times its expected turnout, the registration-weighted mean,
+over the ward's voting-district parts (`montecarlo.ward_parts`, split VDs
+apportioned), of each part's VD's ward-ballot turnout at the preceding local
+election (valid ward votes over registered). A part whose VD has no record
+there is left out of its ward's mean, and the count is recorded beside the
+bounds (`expected_ward_vote.parts_left_out`). Its only use is the editor's
+bounds: `e[w]`, a ward's share of the city's expected ward vote, weights the
+wards a party is called for.
+
+**Alternatives.** Every ward equal: wrong by a factor the probe measured
+(MODEL-LOG §1.292, the range of `e`). The model's own turnout per draw: it is
+a forecast quantity, and the bounds should not move with a model run.
+
+**Limit.** Turnout differences between wards are taken as they were at the
+preceding local election.
+
+### §R4 · the bounds limit the editor, never validity — ⚖️ argued (SPEC-B D4)
+
+**Now.** No validator, decoder or seat call reads `x-editor-bounds`. A state
+from a link, a hand-off, a friend's prediction or our own may lie outside
+them: it opens as it is, the page names the party (`builder-state.js`
+`outOfBounds`), and each out-of-bounds value is clamped when it is next edited: a ward vote outside its range by the next change to any ward vote or ward call (the others are rescaled inside their ranges), a list vote outside its gap range only when that party's list vote is next set.
+`start.out_of_bounds` in `forecast.json` records whether our own prediction is
+outside them.
+
+**Why.** The bounds are regenerated with the data; enforcing them on decode
+would invalidate sealed links and our own encoded prediction whenever a result
+file or the roll changed.
+
+### §R5 · the bound on a party's ward vote treats each ward alone — 🔴 typed
+
+**Now.** For the wards on the map, with `won_e[P]` the expected-vote share of
+the wards called for party P: its ward vote is at least `q_win · won_e[P]` of
+the ward ballot (and one vote if it wins a ward), and at most
+`won_e[P] + q_run · (1 − won_e[P])`. Each ward is treated as won on at least
+`q_win` of its expected vote, and as giving a party that does not win it at
+most `q_run`. It is a bound on the citywide ward vote, not on a seat count, and
+it is loose: no reader can be refused a combination real wards have produced.
+
+**How to check it.** `interactive/tests/builder.test.mjs`: random walks stay
+inside the bounds and valid, and are seated by the CPython seat law.
 
 ## Appendix — how this register has failed before
 

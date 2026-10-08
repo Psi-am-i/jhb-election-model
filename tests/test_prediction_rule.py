@@ -298,10 +298,19 @@ def _tie_draws():
 
 
 def _tie_schema(cols) -> dict:
-    return {"x-seat-context": {"city": "test", "target": "2026", "council": 5,
+    """The entry schema's shape over the tie's parties and wards. The entry
+    version is make-state.js FORMAT, read; the editor's bounds are constructed
+    (equal ward shares, bounds wide enough to bind nothing), because the build
+    encodes the start through the page's encoder, which reads them."""
+    import re
+    fmt = re.search(r'export const FORMAT = "([^"]+)";',
+                    (ROOT / "interactive/js/make-state.js").read_text()).group(1)
+    return {"properties": {"v": {"const": fmt}, "model_ref": {"enum": ["test"]}},
+            "x-seat-context": {"city": "test", "target": "2026", "council": 5,
                                "wards": list(TIE_WARDS), "parties": list(cols),
                                "no_pr_list": []},
-            "x-total-votes": 1, "x-share-sum": {"target": 100.0, "tolerance": 0.5},
+            "x-editor-bounds": {"e": {w: 1 / len(TIE_WARDS) for w in TIE_WARDS},
+                                "q_win": 0.0, "q_run": 1.0, "gap_min": -100.0, "gap_max": 100.0},
             "x-ward-ids": list(TIE_WARDS)}
 
 
@@ -360,9 +369,7 @@ def test_a_tied_ward_resolves_one_way_through_build_handoff_compute_and_scorer()
     assert scored["ward_calls"][0] == want
 
     manifest, blob, arrays = _tie_cell()
-    # the build's start: x-total-votes is the prediction's own two ballots, so
-    # the interim reader-path check seats the same council
-    schema["x-total-votes"] = sum(pred["ward_votes"].values()) + sum(pred["list_votes"].values())
+    # the build's start, encoded and decoded by the page's own encoder
     start = build_make.start_state(manifest, arrays, schema)
     assert start["ward_calls"][0] == want
 

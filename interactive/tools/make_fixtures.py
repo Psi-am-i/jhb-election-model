@@ -1,6 +1,11 @@
 """Write the prototype's fixtures under interactive/fixtures/.
 
-PROTOTYPE ONLY. Nothing here is model output.
+PROTOTYPE ONLY. Nothing here is model output. Since 2026-10-08 nothing that
+ships reads ``placeholder-model.json`` but ``js/model-worker.js``'s fallback
+for party names; its ``combined_share`` is the retired version 1 entry shape,
+and the entry schema is ``src/build_make.py``'s (the placeholder schema made
+from this file is retired). ``geometry.json`` is still read
+(``build_make.geometry``, ``worker-api/tools/make_schema.mjs``).
 
 Two kinds of file:
 

@@ -98,13 +98,14 @@ name or changing the forecast with the sheet open seals again, and each seal
 is another entry. A person may enter several. The server stores, for each
 seal, in a database at Cloudflare:</p>
 <ul>
-<li>the forecast: every ward&rsquo;s winner, each party&rsquo;s vote and the governing parties;</li>
+<li>the forecast: every ward&rsquo;s winner, each party&rsquo;s vote on the ward ballot and
+  on the list ballot, and the governing parties;</li>
 <li>the forecast as the link carries it, and the version of the page&rsquo;s figures
   it was made against;</li>
 <li>the name you typed on it, if any;</li>
 <li>the time of the seal;</li>
 <li>the seal&rsquo;s id, the part of the link&rsquo;s <code>s=</code> after the dot;</li>
-<li>the model&rsquo;s version when it was sealed.</li>
+<li>the model&rsquo;s version when it was sealed, and the version of the entry.</li>
 </ul>
 <p>No IP address, browser details, cookie or account is stored with it. To limit
 how often one connection can seal, the server counts seals per connection for

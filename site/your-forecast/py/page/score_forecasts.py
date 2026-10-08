@@ -23,15 +23,12 @@ The ranking keys, the owner's, in his order (JUDGEMENT-CALLS §N4)
    the reader roster lacks one) is a miss for every reader, the same for all
    of them. Higher is better.
 3. **List-ballot vote error** (:func:`list_vote_error`) — for every party
-   with a share in the forecast OR on the result's LIST (PR) ballot,
-   ``|forecast share − actual list-ballot share|`` in percentage points,
-   summed. The forecast's share is its ``combined_share``, which a reader
-   sets as the party's share of both ballots and which the seat law reads as
-   its PR share (§M1); it is compared with the list ballot alone, so a
-   forecast exact on the combined vote still scores the gap between the two
-   ballots. The list ballot is used because the published simulations carry
-   no other per-party share, and /your-forecast/ scores a reader against
-   them by these same functions. Lower is better.
+   with a share in the entry OR on the result's LIST (PR) ballot,
+   ``|entry share − actual list-ballot share|`` in percentage points,
+   summed. The entry's share is its ``list_votes`` as a share of its own
+   list-ballot total: list against list, so the ward ballot never enters key
+   3 (guard G15). /your-forecast/ scores a reader against every published
+   simulation by these same functions. Lower is better.
 
 :func:`rank_key` is exactly ``(key 1, −key 2, key 3)``, compared
 lexicographically: one seat of total error outranks any number of correct
@@ -62,35 +59,36 @@ refuses at save (HTTP 422) a forecast the seat law cannot seat, so none should
 reach the ranking; :func:`rank` refuses the whole ranking, naming every such
 forecast, rather than rank the rest in silence.
 
-What a forecast is
-==================
+What an entry is
+================
 
-A reader's forecast is **exactly the value the backend stores**
-(``worker-api/src/validate.js``, ``worker-api/generated/forecast.schema.json``):
-``ward_calls`` positional over the schema's ``x-ward-ids``, ``combined_share``
-in the schema's percent scale (``x-share-sum.target``), plus ``coalition``,
-``mayor``, ``model_ref``, ``display_name``. Its seats are **recomputed here**
-through :func:`reader_seats.reader_seats` at the schema's ``x-total-votes`` —
-never read from the record, so a stored number cannot score itself.
+An entry is a reader's PREDICTION (STYLE.md rule 11: one complete result), and
+it is **exactly the value the site Worker stores** (``src/share-edge.js``
+``entryRow``, checked by ``worker-api/src/validate.js`` against the schema
+``build_make`` writes into ``your-forecast/forecast.json``), entry version 2
+(``interactive/js/make-state.js`` ``FORMAT``, carried by the schema as
+``properties.v.const``): ``v``, ``ward_calls`` positional over the schema's
+``x-ward-ids``, ``ward_votes`` and ``list_votes`` (``{party: whole votes}`` on
+each ballot, every roster party), plus ``coalition``, ``mayor``,
+``model_ref``, ``display_name``. Its seats are **recomputed here** through
+:func:`reader_seats.reader_seats` on its two ballots — never read from the
+record, so a stored number cannot score itself. An entry of any other version
+is refused by name (:func:`seat_forecast`, guard G12): version 1 held one
+combined share and is retired, not read (BRIEF, no backward compatibility).
 
-**The model is scored as a reader who saved the model's central state
-untouched** (:func:`model_forecast`): the MODAL winner of each ward, and each
-roster party's MEDIAN combined share, renormalised, then seated by the same
-statute path at the same ``x-total-votes``. Why these two:
+**The model is scored by its PREDICTION** (STYLE.md rule 11: one complete
+result, not the forecast's ranges). :func:`model_forecast` is rule A, from
+``src/prediction.py``, the one definition: each ward to the party that wins it
+in the most simulations (a tie to the code first in string order), and each
+party's mean ward-ballot and mean list-ballot whole votes across the
+simulations; seats then follow by the seat law (``prediction.seats_of``).
+JUDGEMENT-CALLS §Q is the choice and MODEL-LOG §1.290 the backtest behind it.
+The build's start (``build_make.start_state``) and the page's hand-off call the
+same function, so an untouched reader and the model hold one prediction.
 
-* *modal winner* — the call that maximises the model's expected number of
-  correct ward calls (key 3), one ward at a time; an exact tie in the draw counts
-  falls to the earlier party in the schema roster;
-* *median share* — each party's own central vote, robust to the long tails the
-  draws carry, and a vote vector the statute can seat. The model's per-party
-  MEDIAN SEATS are not used: they need not sum to the council and carry no
-  ward/list split, so they are not a council.
-
-⚠️ This council can differ from the published per-party median seats, and the
-modal-ward vector with the median shares need not be any single draw. The
-page's untouched start state (``interactive/js/model.js``, today a weighted
-MEAN of the placeholder ``pr`` share) must be built by this one definition,
-or an untouched reader and the model would score differently.
+Our prediction is held in the entry's own shape (``v``, ``ward_calls``,
+``ward_votes``, ``list_votes``), so :func:`score` scores it exactly as it scores
+a reader's.
 
 The result
 ==========
@@ -112,12 +110,12 @@ returns ward winners, combined votes and the council:
   identifier without it is refused.
 * **Ward winners** are the top party on the ward ballot. An exact tie is
   refused, not broken (the IEC settles it; the file cannot).
-* **The council** comes from the project's seat law on the actual combined
-  votes and ward winners — the same :func:`reader_seats.reader_seats` path a
-  reader's forecast takes, so the result and the forecasts are seated by one
-  code path. Parties with ward votes and no PR votes (independents included)
-  are the context's ``no_pr_list``, which routes their ward seats through the
-  C and D terms.
+* **The council** comes from the project's seat law on the actual ward and
+  list votes and ward winners — the same :func:`reader_seats.reader_seats`
+  path an entry takes, so the result and the entries are seated by one code
+  path. Parties with ward votes and no PR votes (independents included) are
+  the context's ``no_pr_list``, which routes their ward seats through the C
+  and D terms.
 * **An official seat table** (:func:`official_seats.read`'s shape), if given,
   is mapped through the same names and compared party by party, with the
   chamber size, C and D. Every disagreement is recorded on the result, and
@@ -132,14 +130,15 @@ The raw reader here is a third reader of the cleaned layout, beside
 ``fold.load`` and ``validate_seats.load_votes``. It exists because both of
 those canonicalise names on read (``fold.load``) or keep no per-ward tally
 (``validate_seats``), so neither can refuse an unmapped IEC name or see a
-tied ward. It reads only the four columns scoring needs.
+tied ward. It reads the four columns scoring needs and, for
+``build_make.editor_bounds`` (``roll=True``), the three that carry each VD's
+ward and roll: one reader of the cleaned layout, not a second.
 """
 
 from __future__ import annotations
 
 import csv
 import math
-import statistics
 from collections import defaultdict
 from pathlib import Path
 
@@ -227,18 +226,30 @@ def certified_roster(city: str, target: str) -> list[str]:
 # the result
 
 
-def _read_rows(path: Path):
-    """``(ward_votes, pr_votes, names)`` from a cleaned IEC VD-level file.
+#: The columns of the cleaned layout that carry a VD's ward and roll, read only
+#: when a caller asks for the roll (``build_make.editor_bounds``).
+ROLL_COLUMNS = ("VD_Number", "Registered_Population", "Total_Valid_Votes")
+
+
+def _read_rows(path: Path, *, roll: bool = False):
+    """``(ward_votes, pr_votes, names, vd_roll)`` from a cleaned IEC VD-level file.
 
     ``ward_votes`` is ``{mdb ward: {IEC name: votes}}`` on the ward ballot;
-    ``pr_votes`` is ``{IEC name: votes}`` on the PR ballot.
+    ``pr_votes`` is ``{IEC name: votes}`` on the PR ballot. ``vd_roll`` is
+    ``{vd: (mdb ward, registered, valid ward-ballot votes)}`` from each VD's
+    ward-ballot rows when ``roll`` is true (the :data:`ROLL_COLUMNS` are then
+    required, and a VD whose ward rows disagree on any of the three is
+    refused), else ``None``.
     """
     ward_votes: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     pr_votes: dict[str, int] = defaultdict(int)
     names: set[str] = set()
+    vd_roll: dict[str, tuple[str, int, int]] | None = {} if roll else None
     with Path(path).open(encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         need = {"Ward", "BallotType", "sPartyName", "Party_Votes"}
+        if roll:
+            need |= set(ROLL_COLUMNS)
         missing = need - set(reader.fieldnames or ())
         if missing:
             raise ValueError(f"{path}: not a cleaned IEC VD result file; "
@@ -249,11 +260,23 @@ def _read_rows(path: Path):
             names.add(name)
             if ballot == "WARD":
                 ward_votes[row["Ward"].strip()][name] += votes
+                if roll:
+                    vd = row["VD_Number"].strip()
+                    raw = str(row["Registered_Population"]).strip()
+                    if raw == "":
+                        raise ValueError(f"{path}: VD {vd} has a blank "
+                                         f"Registered_Population")
+                    seen = (row["Ward"].strip(), int(float(raw)),
+                            int(row["Total_Valid_Votes"]))
+                    if vd_roll.setdefault(vd, seen) != seen:
+                        raise ValueError(f"{path}: VD {vd}'s ward rows disagree "
+                                         f"on its ward or roll: {vd_roll[vd]} "
+                                         f"and {seen}")
             elif ballot == "PR":
                 pr_votes[name] += votes
             else:
                 raise ValueError(f"{path}: unknown BallotType {ballot!r}")
-    return ward_votes, dict(pr_votes), names
+    return ward_votes, dict(pr_votes), names, vd_roll
 
 
 def ingest_result(path, *, city: str, target: str, roster, aliases=None,
@@ -265,6 +288,7 @@ def ingest_result(path, *, city: str, target: str, roster, aliases=None,
     :func:`official_seats.read`'s dict, or None.
 
     Returns ``{"city", "target", "wards": {ward number: code},
+    "ward_votes", "list_votes": {code: votes} on each ballot,
     "combined": {code: votes}, "list_share": {code: percentage points of
     the PR ballot}, "no_pr_list", "roster_codes", "names",
     "council", "seats": {code: {"ward","pr","total"}}, "computed_seats",
@@ -276,7 +300,7 @@ def ingest_result(path, *, city: str, target: str, roster, aliases=None,
 
     city_cfg = cityconfig.load(city)
     roster_codes = list(dict.fromkeys(P.canonical(r) for r in roster))
-    ward_raw, pr_raw, names = _read_rows(path)
+    ward_raw, pr_raw, names, _roll = _read_rows(path)
     codes = name_map(names, roster_codes, aliases)
 
     # Ward winners, on canonical codes (two IEC strings of one party add up).
@@ -312,22 +336,15 @@ def ingest_result(path, *, city: str, target: str, roster, aliases=None,
     context = R.context_for(city, str(target), roster_codes, ward_list,
                             no_pr_list)
 
-    pooled = {c: v for c, v in combined.items() if c not in no_pr_list and v > 0}
-    total = sum(pooled.values())
-    seated = R.reader_seats({c: v / total for c, v in pooled.items()},
-                            wards, context, total)
+    # The two ballots as counted: nothing to round, so no round trip to check.
+    seated = R.reader_seats(dict(ward_total), dict(pr_total), wards, context)
     if not seated["ok"]:
         raise ValueError(f"the seat law refused the actual result: "
                          f"{seated['errors']}")
-    if seated["votes"] != pooled:
-        drift = {c: (pooled.get(c), seated["votes"].get(c))
-                 for c in set(pooled) | set(seated["votes"])
-                 if pooled.get(c) != seated["votes"].get(c)}
-        raise ValueError(f"the actual votes did not survive the share "
-                         f"round trip: {drift}")
     computed = {c: dict(v) for c, v in seated["seats"].items()}
 
     result = {"city": city, "target": str(target), "wards": wards,
+              "ward_votes": dict(ward_total), "list_votes": dict(pr_total),
               "combined": combined, "list_share": list_share,
               "no_pr_list": no_pr_list,
               "roster_codes": roster_codes, "names": codes,
@@ -370,76 +387,100 @@ def _compare_official(official, computed, seated, roster_codes, aliases):
 # forecasts
 
 
-def schema_context(schema: dict) -> tuple[dict, int, float, float, list[str]]:
-    """``(context, total_votes, share_target, share_tolerance, ward_ids)``
-    from a generated ``forecast.schema.json``. Nothing is typed here."""
-    context = dict(schema["x-seat-context"])
-    share = schema["x-share-sum"]
-    return (context, int(schema["x-total-votes"]), float(share["target"]),
-            float(share["tolerance"]), [str(w) for w in schema["x-ward-ids"]])
+def schema_context(schema: dict) -> tuple[dict, list[str]]:
+    """``(context, ward_ids)`` from the generated entry schema (``build_make``'s
+    ``forecast.json`` ``schema``). Nothing is typed here."""
+    return dict(schema["x-seat-context"]), [str(w) for w in schema["x-ward-ids"]]
 
 
-def seat_forecast(forecast: dict, schema: dict) -> dict:
-    """A stored forecast's council, by :func:`reader_seats.reader_seats`.
+def entry_version(schema: dict) -> str:
+    """The entry version the schema reads: ``properties.v.const``, written
+    from ``interactive/js/make-state.js`` ``FORMAT`` (the one definition)."""
+    return str(schema["properties"]["v"]["const"])
 
-    The ``combined_share`` percentages become fractions of the schema's
-    ``x-share-sum.target``, and the share tolerance the backend accepted is
-    passed on, so a forecast the Worker stored is not refused for a sum the
-    Worker allowed. A ``seats`` key on the record is ignored.
-    """
+
+def version_errors(entry: dict, schema: dict) -> list[str]:
+    """``[]``, or the sentence refusing an entry of a version this scorer does
+    not read (guard G12). Version 1 (one combined share) is retired."""
+    v = entry.get("v") if isinstance(entry, dict) else None
+    if v is None or str(v) != entry_version(schema):
+        return [f"entry version {v} is not read by this scorer (it reads "
+                f"version {entry_version(schema)})"]
+    return []
+
+
+def seat_forecast(entry: dict, schema: dict) -> dict:
+    """A stored entry's council, by :func:`reader_seats.reader_seats` on its
+    two ballots. Refuses an entry of another version by name
+    (:func:`version_errors`). A ``seats`` key on the record is ignored."""
     import reader_seats as R
 
-    context, total, target, tolerance, ward_ids = schema_context(schema)
-    calls = forecast["ward_calls"]
+    refused = version_errors(entry, schema)
+    if refused:
+        return {"ok": False, "errors": refused}
+    context, ward_ids = schema_context(schema)
+    calls = entry["ward_calls"]
     if len(calls) != len(ward_ids):
         return {"ok": False, "errors": [
             f"{len(calls)} ward calls for {len(ward_ids)} wards"]}
     winners = dict(zip(ward_ids, calls))
-    shares = {p: v / target for p, v in forecast["combined_share"].items()}
-    seated = R.reader_seats(shares, winners, context, total,
-                            tolerance=tolerance / target)
+    seated = R.reader_seats(entry["ward_votes"], entry["list_votes"], winners,
+                            context)
     seated["ward_winners"] = winners
     return seated
 
 
-def model_forecast(ward_winner_counts, count_parties, count_wards,
-                   combined_share_draws, share_parties, schema: dict) -> dict:
-    """The model's central state as a stored forecast (module docstring).
+def model_forecast(ward_winners, ward_parties, wards, ward_votes, list_votes,
+                   columns, schema: dict) -> dict:
+    """Our prediction, as the scorer holds it (module docstring): rule A,
+    in the entry's own shape (version 2), so :func:`score` reads it as it
+    reads a reader's.
 
-    ``ward_winner_counts`` is ``(wards, parties)`` in ``count_wards`` ×
-    ``count_parties`` order (``ModelRun.ward_winner_counts``);
-    ``combined_share_draws`` is ``(draws, parties)`` combined-ballot shares in
-    ``share_parties`` order. Both party lists must be the schema roster
-    exactly; a modal winner off the roster, or a share for a party off it, is
-    refused rather than renormalised away.
+    ``ward_winners`` is ``(draws, wards)`` of indices into ``ward_parties``,
+    columns in ``wards`` order (the draw file's ``ward_winner`` block, or
+    ``ModelRun.ward_winner_draws`` with the universe). ``ward_votes`` and
+    ``list_votes`` are ``(draws, len(columns))`` whole votes per ballot (the
+    ``ward_vote`` and ``list_vote`` blocks). Calls :func:`prediction.rule_a`
+    with the schema's ``x-ward-ids`` order.
+
+    Refuses (``ValueError``, naming them): a roster party missing from
+    ``columns``; a column off the roster with a rule-A vote above zero on
+    either ballot; a ward called for a party off the roster; wards that are not
+    the schema's. A column off the roster with no vote is accepted, and its
+    vote is recorded per ballot in ``outside_roster`` (zero whenever this
+    returns), so "no mass outside the roster" is a field, not an inference.
     """
-    context, _total, target, _tol, ward_ids = schema_context(schema)
+    import prediction
+
+    context, ward_ids = schema_context(schema)
     roster = list(context["parties"])
-    for label, got in (("ward winner counts", count_parties),
-                       ("combined share draws", share_parties)):
-        if set(got) != set(roster):
-            raise ValueError(
-                f"{label} carry parties {sorted(set(got) - set(roster))} off "
-                f"the roster and lack {sorted(set(roster) - set(got))}")
-    if sorted(map(str, count_wards)) != sorted(ward_ids):
-        raise ValueError("the ward winner counts are not over the schema's wards")
-
-    order = {p: i for i, p in enumerate(roster)}
-    col = {p: j for j, p in enumerate(count_parties)}
-    row = {str(w): i for i, w in enumerate(count_wards)}
-    calls = []
-    for w in ward_ids:
-        counts = {p: ward_winner_counts[row[w]][col[p]] for p in roster}
-        top = max(counts.values())
-        calls.append(min((p for p in roster if counts[p] == top),
-                         key=order.__getitem__))
-
-    j = {p: k for k, p in enumerate(share_parties)}
-    median = {p: statistics.median(float(d[j[p]]) for d in combined_share_draws)
-              for p in roster}
-    scale = math.fsum(median.values())
-    return {"model_ref": None, "ward_calls": calls,
-            "combined_share": {p: median[p] / scale * target for p in roster},
+    columns = [str(c) for c in columns]
+    lacking = sorted(set(roster) - set(columns))
+    if lacking:
+        raise ValueError(f"the vote blocks lack roster parties {lacking}")
+    if sorted(map(str, wards)) != sorted(ward_ids):
+        raise ValueError("the ward winners are not over the schema's wards")
+    pred = prediction.rule_a(ward_winners, ward_parties, wards, ward_votes,
+                             list_votes, columns, ward_ids=ward_ids)
+    off = [c for c in columns if c not in set(roster)]
+    outside = {"ward": sum(pred["ward_votes"][c] for c in off),
+               "list": sum(pred["list_votes"][c] for c in off)}
+    voted = sorted(c for c in off if pred["ward_votes"][c] > 0 or pred["list_votes"][c] > 0)
+    if voted:
+        raise ValueError(f"parties off the roster carry votes {voted}; they would "
+                         f"leave the seat law's pool unseen")
+    stray = sorted({p for p in pred["ward_calls"] if p not in set(roster)})
+    if stray:
+        raise ValueError(f"wards are called for parties off the roster {stray}")
+    ward_v = {p: pred["ward_votes"][p] for p in roster}
+    list_v = {p: pred["list_votes"][p] for p in roster}
+    empty = [b for b, v in (("ward", ward_v), ("list", list_v)) if not sum(v.values()) > 0]
+    if empty:
+        raise ValueError(f"rule A gives no vote on the {' or '.join(empty)} ballot")
+    return {"v": entry_version(schema), "model_ref": None,
+            "ward_calls": pred["ward_calls"],
+            "ward_votes": ward_v, "list_votes": list_v,
+            "outside_roster": outside,
             "coalition": [], "mayor": None, "display_name": None}
 
 
@@ -485,10 +526,10 @@ def wards_called(calls, actual_winners) -> np.ndarray:
 
 
 def list_vote_error(forecast_points: dict, columns, actual_list_points) -> np.ndarray:
-    """Key 3, THE LIST BALLOT: ``Σ_p |forecast share − actual list-ballot
+    """Key 3, THE LIST BALLOT: ``Σ_p |entry share − actual list-ballot
     share|`` in percentage points over every party in either
-    (:func:`aligned`), per row of ``actual_list_points``. The forecast's
-    share is its combined share (module docstring)."""
+    (:func:`aligned`), per row of ``actual_list_points``. The entry's share is
+    its list votes over its own list-ballot total (module docstring)."""
     return _total_gap(forecast_points, columns, actual_list_points)
 
 
@@ -498,7 +539,7 @@ def list_vote_error(forecast_points: dict, columns, actual_list_points) -> np.nd
 
 def score(forecast: dict, schema: dict, result: dict, *,
           seat_source: str | None = None) -> dict:
-    """Score one stored forecast against one ingested result.
+    """Score one stored entry (version 2) against one ingested result.
 
     Returns ``{"ok", "errors", "seat_error", "seat_error_by_party",
     "wards_called", "wards", "wards_missed", "list_vote_error",
@@ -524,7 +565,11 @@ def score(forecast: dict, schema: dict, result: dict, *,
         out["errors"] = ["seat_source 'official' but no official table given"]
         return out
 
-    context, *_rest, ward_ids = schema_context(schema)
+    refused = version_errors(forecast, schema)
+    if refused:
+        out["errors"] = refused
+        return out
+    context, ward_ids = schema_context(schema)
     off_roster = sorted(set(context["parties"]) - set(result["roster_codes"]))
     if off_roster:
         out["errors"].append(
@@ -572,8 +617,10 @@ def score(forecast: dict, schema: dict, result: dict, *,
                     "correct": (fw, fp) == (aw, ap)}
     missed = [w for w in ward_ids
               if seated["ward_winners"][w] != result["wards"][w]]
-    _context, _total, target, _tol, _ids = schema_context(schema)
-    f_points = {p: 100.0 * v / target for p, v in forecast["combined_share"].items()}
+    # Key 3 reads the list ballot only (guard G15): the entry's list votes as
+    # a share of its own list total.
+    list_total = sum(forecast["list_votes"].values())
+    f_points = {p: 100.0 * v / list_total for p, v in forecast["list_votes"].items()}
     actual_points = result["list_share"]
     vote_parties = sorted(set(f_points) | set(actual_points))
     vote_by_party = {p: f_points.get(p, 0.0) - actual_points.get(p, 0.0)

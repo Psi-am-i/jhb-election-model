@@ -39,7 +39,8 @@ from _support import ROOT, run_module  # noqa: E402
 import test_worker_routing as W  # noqa: E402
 
 EDGE = ROOT / "src" / "share-edge.js"
-MIGRATION = ROOT / "migrations" / "0001_entries.sql"
+MIGRATIONS = ROOT / "migrations"
+MIGRATION = MIGRATIONS / "0001_entries.sql"
 PRIVACY = ROOT / "docs-public" / "privacy.md"
 COUNT = f"https://{W.JOBURG}/entries/1/count"
 #: An address and a user agent no stored or logged value may contain.
@@ -56,18 +57,30 @@ def js_list(src: str, name: str) -> list[str]:
     return re.findall(r'"([a-z_]+)"', m.group(1))
 
 
-def migration_columns(text: str | None = None) -> list[str]:
-    text = text if text is not None else MIGRATION.read_text(encoding="utf-8")
-    body = re.search(r"CREATE TABLE entries \((.*?)\n\);", text, re.S).group(1)
-    return [ln.split()[0] for ln in body.splitlines()
-            if ln.strip() and not ln.strip().startswith("--")]
+def migration_texts() -> list[str]:
+    """Every migration of the entries database, in file order."""
+    return [p.read_text(encoding="utf-8") for p in sorted(MIGRATIONS.glob("*.sql"))]
+
+
+def migration_columns(texts: list[str] | None = None) -> list[str]:
+    """The entries table's columns: 0001's CREATE TABLE composed with every
+    later ``ALTER TABLE entries ADD COLUMN``, in file order."""
+    texts = migration_texts() if texts is None else texts
+    cols: list[str] = []
+    for text in texts:
+        m = re.search(r"CREATE TABLE entries \((.*?)\n\);", text, re.S)
+        if m:
+            cols += [ln.split()[0] for ln in m.group(1).splitlines()
+                     if ln.strip() and not ln.strip().startswith("--")]
+        cols += re.findall(r"^ALTER TABLE entries ADD COLUMN (\w+)", text, re.M)
+    return cols
 
 
 def _seal(S, now, *, n="Thandi", f=None, host=W.JOBURG, entries="record", limit=None, ip=IP):
     case = {"url": f"https://{host}/seal/1", "method": "POST", "now": now,
             "env": {"SEAL_KEY": W.TEST_SEAL_KEY},
             "headers": {"content-type": "application/json", "CF-Connecting-IP": ip, "User-Agent": UA},
-            "body": {"v": "1", "c": S["data"]["context_ref"], "f": f or S["f"], "n": n}}
+            "body": {"v": S["fmt"], "c": S["data"]["context_ref"], "f": f or S["f"], "n": n}}
     if entries:
         case["entries"] = entries
     if limit:
@@ -134,16 +147,18 @@ def entry_problems(src: str, overrides: dict | None = None) -> list[str]:
         if list(row) != cols:
             out.append(f"seal {k}: columns {list(row)}, want {cols}")
         want = {"seal_id": sig, "sealed_at": int(t, 36), "label": n, "model_ref": data["model_ref"],
-                "context_ref": data["context_ref"], "state": f}
+                "context_ref": data["context_ref"], "state": f, "version": int(S["fmt"])}
         for c, v in want.items():
             if row.get(c) != v:
                 out.append(f"seal {k}: {c} = {row.get(c)!r}, want {v!r}")
         body = json.loads(row["forecast"])
         wards = data["schema"]["x-ward-ids"]
-        if len(body.get("ward_calls", [])) != len(wards) or set(body.get("combined_share", {})) != \
-                set(data["schema"]["x-seat-context"]["parties"]):
+        roster = set(data["schema"]["x-seat-context"]["parties"])
+        if len(body.get("ward_calls", [])) != len(wards) or set(body.get("ward_votes", {})) != roster \
+                or set(body.get("list_votes", {})) != roster or body.get("v") != S["fmt"]:
             out.append(f"seal {k}: the forecast is not in the stored shape: {sorted(body)}")
-        if k == 0 and (body["ward_calls"] != S["calls"] or body["coalition"] != S["top"]):
+        if k == 0 and (body["ward_calls"] != S["calls"] or body["coalition"] != S["top"]
+                       or body["ward_votes"] != S["ward"] or body["list_votes"] != S["list"]):
             out.append("seal 0: the stored forecast is not the link's")
     if seals[0] != seals[1]:
         out.append("the same fields in the same second sealed differently")
@@ -172,8 +187,11 @@ def test_entry_check_fires_on_each_constructed_violation():
         ("  } catch {\n    console.error({ event: \"entry\", stored: false, reason: \"insert failed\" });\n  }",
          "  } finally {}"),
         ("[sig, parseInt(t, 36), fields.n,", "[sig, parseInt(t, 36), \"\","),
-        ("JSON.stringify(B.forecastBody(got.state, D.ctx, { coalition: got.coalition }))",
-         "JSON.stringify(B.forecastBody(got.state, D.ctx, {}))"),
+        ("const checked = validateForecast(body, D.forecast.schema);",
+         "const checked = validateForecast({ ...body, coalition: [] }, D.forecast.schema);"),
+        ("JSON.stringify(checked.value), Number(MS.FORMAT)]", "JSON.stringify(checked.value), 1]"),
+        ("JSON.stringify(checked.value), Number(MS.FORMAT)]",
+         "JSON.stringify({ ...checked.value, ward_votes: checked.value.list_votes }), Number(MS.FORMAT)]"),
     ):
         assert e.count(a) == 1, a
         assert entry_problems(src, {"share-edge.js": e.replace(a, b)}), f"blind to {b!r}"
@@ -245,17 +263,26 @@ def column_problems(migration: list[str], declared: list[str]) -> list[str]:
 
 
 def test_the_table_holds_exactly_the_entry_columns_both_ways():
+    """Guard G12's column: the table is 0001's CREATE TABLE composed with every
+    later ALTER TABLE ADD COLUMN, and equals ENTRY_COLUMNS both ways."""
     cols = js_list(edge(), "ENTRY_COLUMNS")
-    assert cols == ["seal_id", "sealed_at", "label", "model_ref", "context_ref", "state", "forecast"]
+    assert cols == ["seal_id", "sealed_at", "label", "model_ref", "context_ref", "state", "forecast", "version"]
+    texts = migration_texts()
+    assert len(texts) >= 2 and any("ADD COLUMN version" in t for t in texts)
     assert column_problems(migration_columns(), cols) == []
     # the insert names them in that order
     assert 'ENTRY_INSERT = "INSERT OR IGNORE INTO entries (" + ENTRY_COLUMNS.join(", ")' in edge()
-    # constructed violations, each way
+    # constructed violations, each way: a column in a CREATE TABLE or in a
+    # later ALTER that ENTRY_COLUMNS lacks; ENTRY_COLUMNS without version
     text = MIGRATION.read_text(encoding="utf-8")
     extra = text.replace("  forecast    TEXT NOT NULL", "  forecast    TEXT NOT NULL,\n  ip TEXT")
-    assert column_problems(migration_columns(extra), cols)
+    assert column_problems(migration_columns([extra] + texts[1:]), cols)
+    assert column_problems(migration_columns(texts + ["ALTER TABLE entries ADD COLUMN extra INTEGER;"]), cols)
+    assert column_problems(migration_columns(), [c for c in cols if c != "version"])
     assert column_problems(migration_columns(), cols + ["user_agent"])
     assert column_problems(migration_columns(), cols[:-1])
+    # reverted, quiet
+    assert column_problems(migration_columns(texts), cols) == []
     # the primary key is the seal id, so a repeat cannot insert
     assert re.search(r"seal_id\s+TEXT PRIMARY KEY", text)
 
@@ -459,6 +486,8 @@ PRIVACY_MUST = (
     "## Forecasts entered",
     "the forecast", "the name you typed", "the time of the seal", "the seal's id",
     "the model's version",
+    "each party's vote on the ward ballot and on the list ballot",
+    "the version of the entry",
     "No IP address, browser details, cookie or account",
     "ninety days after the leaderboard is published",
     "within six months of polling day if no leaderboard is published",

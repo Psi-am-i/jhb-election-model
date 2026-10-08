@@ -167,18 +167,19 @@ export function cutAt(list, seats, n) {
 // outcome, words, chance, badge, excess: [sentences], calls, made }.
 //   answer   the seat law's { seats, ward, pr, council_total, majority, excessive }
 //   outcome  { largest, majority_alone, coalition, text, badge } (Python)
-//   vote     { code: percent of the combined vote }
-//   baseline forecast.json `baseline` ({ year, seats, wards, vote }), or null
+//   vote     { code: percent of the list ballot } (the column a prediction is scored on)
+//   baseline forecast.json `baseline` ({ year, seats, wards, list_vote, ward_vote }), or null;
+//            "vs <year>" compares the list vote with list_vote, list with list
 //   made     { at: ms, sealed: bool } or null: when the card says it was made
 export function forecastSpec({ name, answer, outcome, vote, calls, party, baseline, election, made = null }) {
   const { seats, ward = {}, pr = {}, council_total: council, majority, excessive = {} } = answer;
-  const base = baseline || { seats: {}, vote: {} };
+  const base = baseline || { seats: {}, list_vote: {} };
   const order = seatOrder(seats, party);
   const rows = order.map(c => ({
     code: c, name: party(c).name, colour: party(c).colour, logo: !!party(c).logo,
     seats: seats[c], seatPct: seatShare(seats[c], council), ward: ward[c] || 0, pr: pr[c] || 0, vote: vote[c] || 0,
-    seatsVs: c in base.vote ? signed(seats[c] - (base.seats[c] || 0)) : "new",
-    voteVs: c in base.vote ? signed((vote[c] || 0) - base.vote[c], 1) : "new",
+    seatsVs: c in base.list_vote ? signed(seats[c] - (base.seats[c] || 0)) : "new",
+    voteVs: c in base.list_vote ? signed((vote[c] || 0) - base.list_vote[c], 1) : "new",
   }));
   const coalition = order.filter(c => outcome.coalition.includes(c));
   const the = c => (party(c).article || "") + party(c).name;

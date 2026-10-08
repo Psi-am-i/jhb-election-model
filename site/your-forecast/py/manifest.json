@@ -9,25 +9,25 @@
   "fold.py",
   "parties.py",
   "polling.py",
+  "prediction.py",
   "reweight.py",
   "code_ref.py",
   "entry.py"
  ],
- "code_ref": "b2a650e83fd885430a2c202f4ea49051a2296fb118c81846b4d672fba7fac481",
+ "code_ref": "0346c16f962f5f3a6b86163705809423af9e73f283537bc36e63273e1c740ccc",
  "page": {
   "dir": "page",
   "files": [
    "cityconfig.py",
    "polling.py",
+   "prediction.py",
    "render_map.py",
    "reweight.py",
-   "scenarios.py",
-   "start_rule.py",
    "parties.py",
    "score_forecasts.py"
   ],
   "data": [],
   "boot": "pyboot/page.py",
-  "code_ref": "a40e4a9c6ee782bc794fe7a09e074e318b4923765dd01794af0cef11a812e594"
+  "code_ref": "f118e706adc72b9dbcfd3afe936e85b04aa388afb58760fc27747ca19e282b04"
  }
 }

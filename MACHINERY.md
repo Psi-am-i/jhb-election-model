@@ -2057,69 +2057,150 @@ more uses of the same draws, neither of which moves a forecast:
   error of the model's own middle forecast (`middle_seats`, each party's
   median seats), rounded down (JUDGEMENT-CALLS §N4).
 
-## A reader's forecast, seated by the statute alone — `src/reader_seats.py` (2026-09-28)
+## A reader's prediction, seated by the statute alone — `src/reader_seats.py` (2026-09-28; two ballots 2026-10-08)
 
-**What it does.** DESIGN-decided §9: a reader edits the citywide PR vote shares
-and the winner of any ward, and seats follow from Schedule 1 with no model
-level, band or pool involved. `reader_seats.reader_seats(pr_shares,
-ward_winners, context, total_votes)` scales the shares to a combined vote
-(`share × total_votes`), takes the pool through `seats.eligible_parties`, takes
-C and D out through `seats.outside_pool_wards`, and allocates with
-`montecarlo.allocate_with_overhang` at `montecarlo.STATUTORY_VALUES`'
-`overhang_rule`. It returns ward, list and total seats per party (C and D ward
-winners included, so totals sum to the council), the council and majority, the
-item 16 parties and their excess, and the stated assumption. It reimplements
-none of the seat law: since 2026-10-08 the composition is
-`prediction.seats_of`, the one composition for a prediction or a reader's
-forecast (`run_model`'s draw loop and `benchmarks.council_from_shares` are the
-two others), which `reader_seats` calls after its own validation. One precedence changed with it:
-the refusal of a positive share the pool excludes is now checked against the
-pool `seats_of` returns, after the law runs, so where the law itself also
-fails the reader sees the law's error instead.
+**What it does.** DESIGN-decided §9, with BRIEF change 13
+(`audits/2026-10-07-prediction-restructure/`): a reader's prediction holds a
+winner for every ward and each party's whole votes on the ward ballot and on
+the list ballot, and seats follow from Schedule 1 with no model level, band or
+pool involved. `reader_seats.reader_seats(ward_votes, list_votes,
+ward_winners, context)` validates, then calls `prediction.seats_of`, the one
+composition of the seat law for a prediction or a reader's entry (`run_model`'s
+draw loop and `benchmarks.council_from_shares` are the two others):
+`seats.eligible_parties` on the two ballots as given (a party with a list vote
+is pooled on its ward plus list votes), `seats.outside_pool_wards` for C and D,
+and `montecarlo.allocate_with_overhang` at `montecarlo.STATUTORY_VALUES`'
+`overhang_rule`, the pool in the context's roster order. It returns ward, list
+and total seats per party (C and D ward winners included, so totals sum to the
+council), the council and majority, the item 16 parties and their excess, the
+pool (`{party: ward + list votes}`), and the stated assumption. Each ballot's
+total is the sum of its votes; nothing scales them.
 
-**The one assumption** is that the reader's PR shares stand for both ballots
-(JUDGEMENT-CALLS §M1). `total_votes` is a required input because the quota
-depends on the scale.
-
-**It refuses rather than guesses**: unknown parties, missing or unknown wards,
-shares that are not a distribution, a ward won by a zero-share party the roster
-does not list as having no PR list, a share for a list-less party, a share
-below one vote, and an allocation the seat law cannot complete. Each is a
-sentence in `errors`; no seats are returned alongside one.
+**It refuses rather than guesses**: a malformed context; vote maps that are not
+roster parties to whole non-negative votes (`bool` included); a ballot with no
+vote; a list vote for a party the roster lists with no PR list; missing or
+unknown wards; a ward won off the roster; **R1** a ward winner with no ward
+vote; **R2** a ward winner with a PR list and no list vote (guard G14: the
+statute would otherwise move its wards to D in silence); and an allocation the
+seat law cannot complete. Each is a sentence in `errors`; no seats are
+returned alongside one. A ward winner and its citywide ward vote are set
+separately, so an entry can be impossible as a whole (many wards on a small
+ward vote); that is allowed.
 
 **The context** (`city`, `target`, `council`, `wards`, `parties`,
 `no_pr_list`) is built at build time by `context_for` / `context_from_run`,
 with council and ward count from `cities/<city>.toml`, and shipped as JSON.
 Nothing is read from disk at call time.
 
-**Under Pyodide** the module needs `montecarlo` and its module-level imports
-(`cityconfig`, `coalitions`, `fold`, `parties`, `polling`, `seats`): numpy and
-the standard library only. That dependency exists because item 16 lives in
-`montecarlo.allocate_with_overhang`, not in `seats.py`.
+**Under Pyodide** the module needs `prediction`, `montecarlo` and its
+module-level imports (`cityconfig`, `coalitions`, `fold`, `parties`,
+`polling`, `seats`): numpy and the standard library only. That dependency
+exists because item 16 lives in `montecarlo.allocate_with_overhang`, not in
+`seats.py`.
 
 **Tested** in `tests/test_reader_seats.py`: every draw of a native run at
-Johannesburg 2021 and 2026 is reproduced exactly from its own combined tally
-and ward winners; the PR-ballot-only reproduction rate is printed as the
-assumption's measured cost; statute invariants on real draws and random
-reader edits; two item 16 councils worked by hand, including the
-"equal to" trigger moving a seat between two other parties; one refusal per
-validation; and an import-and-allocate run with pandas unimportable and every
-file open refused.
+Johannesburg 2021 and 2026 is reproduced exactly from its own recorded whole
+votes per ballot (`ModelRun.ward_vote_draws`, `pr_vote_draws`) and ward
+winners, the pool equal to the allocator's own input; statute invariants on
+real draws and random reader edits; two item 16 councils worked by hand; one
+refusal per validation, R2 with its no-PR-list counterpart seated through D;
+and an import-and-allocate run with pandas unimportable and every file open
+refused. The seat Worker (`worker-api/seats-py`) passes the same four
+arguments through and copies this module's import closure, which the test
+holds equal to its `FILES` list both ways.
 
-**Amended 2026-09-28 (DESIGN-decided §10, owner, after the blind pollster
-review).** The reader edits each party's COMBINED vote share — its share of all
-votes, ward and list ballots together — which is what Schedule 1 counts, with
-no conversion. The parameter is `combined_shares`
-(`reader_seats(combined_shares, ward_winners, context, total_votes)`), and the
-"PR shares stand for both ballots" assumption above is retired (JUDGEMENT-CALLS
-§M1, amendment). The shares become votes through `reader_seats.combined_votes`:
-scaled to sum to exactly one, floored against `total_votes`, and the leftover
-votes given to the largest fractional parts in the caller's order, so the votes
-sum to `total_votes` exactly; each party rounded on its own could miss the
-total, and the quota is struck from the total. The result carries those votes
-as `votes`. The saved-forecast service (`worker-api/seats-py`) passes the same
-four arguments through, and copies this module's import closure, which
-`tests/test_reader_seats.py` holds equal to its `FILES` list both ways.
+**What was.** Until 2026-10-08 the input was each party's share of the
+COMBINED vote and a fixed `total_votes` (the schema's `x-total-votes`), turned
+into whole votes by largest remainder (`combined_votes`) and handed to the law
+as list votes alone (JUDGEMENT-CALLS §M1 and its amendment; before 2026-09-28,
+PR shares standing for both ballots). A reader could not say which ballot a
+vote was on, and the list ballot an entry is scored on was not something the
+reader set.
+
+## A reader's entry, version 2: encoding, validity and the editor's bounds (2026-10-08)
+
+Slice B of `audits/2026-10-07-prediction-restructure/` (`s1/SPEC-B.md`, as
+amended by `s1/SYNTHESIS.md`). An entry is a reader's prediction (STYLE.md
+rule 11), and our own prediction is held in the same shape.
+
+* **The version.** `interactive/js/make-state.js` `FORMAT` is the one
+  definition; `worker-api/tools/make_schema.mjs` writes it into the schema as
+  `properties.v.const`, and Python reads it there
+  (`score_forecasts.entry_version`). An entry of another version is refused by
+  name: by `validate.js` (field `v`), by `score_forecasts.seat_forecast` and
+  `score`, and by `rank_entries.rank_entries`, which names the seal ids (guard
+  G12). The D1 table carries the version (`migrations/0002_entry_version.sql`;
+  rows stored before it read 1).
+* **The encoding** (`make-state.js`): the palette of ward winners, the calls
+  packed in `ceil(log2 k)` bits, one LEB128 varint per roster party for the
+  ward ballot, one per party for the list ballot, then the coalition. Each
+  ballot's total is the sum of its votes, carried in `f`; no total is fixed by
+  the schema (`x-total-votes` and `x-share-sum` are gone). `context_ref` is a
+  hash of the roster and the wards only, so new bounds or a new roll do not
+  break a link.
+* **Validity**: each ballot holding a vote, R1, R2, no list vote for a party
+  with no PR list, whole non-negative votes, and nothing else, in four
+  readers that differ in one place, a roster party missing from a ballot:
+  `builder-state.js` `invariantErrors` and `worker-api/src/validate.js` refuse
+  it (keys must be exactly the roster); the decoder cannot produce it (the
+  encoding carries one varint per roster party); `reader_seats` takes it as
+  zero votes, because `score_forecasts.ingest_result` passes the real result's
+  counts, in which a party that did not stand on a ballot has no entry. An
+  unknown party is refused by all four.
+* **Our prediction on the page** (`build_make.start_state`): the prediction
+  object plus `start.f`, written by one node call to the page's own encoder,
+  which the build refuses unless `decode(f)` is the object (guard G7); the
+  page opens on `decode(start.f)` and throws if it is not
+  `stateFromPrediction(start)`. `start.out_of_bounds` is the parties outside
+  the editor's bounds, a reported fact. The hand-off from section 1
+  (`page.py` `handoff`) is the same object under the reader's weights;
+  `builder-state.js` `stateFromPrediction` is the one entry from an object,
+  and refuses a missing ballot, party or ward by name. `make.js` `follow()`
+  shows that sentence when a hand-off is refused or fails (guard G8).
+* **The editor's bounds** (`build_make.editor_bounds`, the schema's
+  `x-editor-bounds`; JUDGEMENT-CALLS §R): with `e[w]` each ward's share of the
+  expected ward vote (2026 roll times the preceding local election's VD
+  ward-ballot turnout, `expected_ward_shares`), `won_e[P]` the sum over the
+  wards called for P, a party's ward vote is held in
+  `[q_win · won_e, won_e + q_run · (1 − won_e)]` of the ward ballot (and one
+  vote if it wins a ward), and its list share minus its ward share in
+  `[gap_min, gap_max]` points. The four are the past results' extremes
+  (`panel_extremes` over every cleaned metro LGE file before the target)
+  widened by `EDITOR_WIDEN_PP`, the runner-up's capped at `RUNNER_UP_MAX`. The
+  bounds limit the editor only: a state from a link, a hand-off or our own
+  prediction may lie outside them and opens with a note naming the party
+  (`outOfBounds`); each out-of-bounds value is clamped when it is next edited: a ward vote outside its range by the next change to any ward vote or ward call (the others are rescaled inside their ranges), a list vote outside its gap range only when that party's list vote is next set. The note goes once the state
+  is inside the bounds.
+* **The editor** (`builder-state.js`): `setWardPercent` clamps the party to
+  its range and rescales the others' ward votes inside theirs by bounded
+  largest remainder (water-filling); every list vote then follows its party's
+  new ward share with its gap kept, inside the gap bounds (`listFollow`).
+  `setListGap` sets one party's gap, rescales the others' list votes, and
+  reduces the change to the largest that keeps every gap inside. A change of
+  calls brings every ward vote into its new range (`clampToBounds`) and names
+  the parties it moved. `make.js` shows one row per party: the ward-vote
+  slider (its ends at the party's range), and a collapsed "Adjust list vote"
+  in points; a live line states each ballot's total.
+* **One entry schema** (guard G13): the schema `build_make` writes into
+  `your-forecast/forecast.json`. The site Worker validates a sealed entry
+  against it before storing (`share-edge.js` `entryRow`); the dormant account
+  store (`worker-api/src/forecasts.js`) imports it from there; the placeholder
+  `worker-api/generated/forecast.schema.json` and the prototype modules that
+  read it (`f.js`, `api-stub.js`, `interactive/f/`, the save path of `api.js`)
+  are retired. `tests/test_site_structure.py::test_one_entry_schema` holds the
+  set of files naming or importing a schema both ways.
+* **The old entries** were test entries (owner, 2026-10-08): no export.
+  `rank_entries --clear-version 1` prints the count and deletes only with
+  `--confirm <that count>`, at release, when the owner approves it.
+
+Tests: `tests/test_score_forecasts.py` (version, key 3 on the list ballot),
+`tests/test_rank_entries.py` (version, clearing), `tests/test_entries.py`
+(columns composed from every migration, the stored body),
+`tests/test_your_forecast_page.py` (the start is `decode(f)`, the bounds
+regenerated from the panel), `interactive/tests/builder.test.mjs` (random
+walks valid, inside the bounds, seated by CPython; R1 and R2 on each ballot),
+`interactive/tests/make.test.mjs` (G7, the consumers of `start.f`, G8),
+`worker-api/test/validate.test.js`, `worker-api/test/node/build.test.js`.
 
 ## Mergers — `pools.apply_mergers` (F5, 2026-09-29)
 
@@ -2173,8 +2254,8 @@ INTEGRATION.md §3e); it must be frozen before polls open on 4 November.
   go alias → `parties.canonical`, and a code outside the certified roster
   (`certified_roster`, from `[roster]` via `pools.declared_roster`) is refused
   with the list. Ward MDB ids lose the city's `ward_prefix`; a tied ward is
-  refused. The council is seated by `reader_seats` — the path readers take —
-  with ward-only parties as `no_pr_list`, and an official table is compared
+  refused. The council is seated by `reader_seats` on the actual ward and list
+  votes — the path readers take — with ward-only parties as `no_pr_list`, and an official table is compared
   party by party, chamber, C and D, every disagreement recorded.
 * `seat_error`, `wards_called`, `list_vote_error`: the three ranking
   measures (JUDGEMENT-CALLS §N4), as array functions over a last axis of
@@ -2184,10 +2265,12 @@ INTEGRATION.md §3e); it must be frozen before polls open on 4 November.
   array on the union of their parties, zero where one side lacks a party.
   `reader_seats` is imported inside the functions that seat a council, so the
   page can import the measures without the seat code.
-* `score(forecast, schema, result, seat_source)` takes the stored forecast and
-  the generated schema, re-seats it with `reader_seats` at `x-total-votes`, and
-  returns the seat total error, the correct ward calls and the list-ballot
-  vote error (against `ingest_result`'s `list_share`), each with per-party or
+* `score(forecast, schema, result, seat_source)` takes the stored entry
+  (version 2; another version is refused by name) and the entry schema,
+  re-seats it with `reader_seats` on its two ballots, and returns the seat
+  total error, the correct ward calls and the list-ballot vote error (the
+  entry's list votes as a share of its own list total, against
+  `ingest_result`'s `list_share`: list against list, guard G15), each with per-party or
   per-ward detail, plus, for information, the ward-count error (wards won per
   party, from the ward winners on both sides) and the ward/list split per
   party. It refuses a result whose councils disagree until `seat_source` is
@@ -2195,8 +2278,9 @@ INTEGRATION.md §3e); it must be frozen before polls open on 4 November.
 * `model_forecast(...)` is our prediction as the scorer holds it: rule A
   (`src/prediction.py`) on the draws' ward winners and both vote blocks, in
   the schema's ward order, with `outside_roster` recording the rule-A vote off
-  the roster per ballot (a positive one is refused). Until the reader entry
-  carries both ballots (slice B) it also returns an interim `combined_share`.
+  the roster per ballot (a positive one is refused), in the entry's own shape
+  (`v`, `ward_calls`, `ward_votes`, `list_votes`) so `score` reads it as it
+  reads a reader's.
 * `rank_key` / `rank`: the owner's lexicographic ranking (2026-10-03,
   JUDGEMENT-CALLS §N4, superseding DESIGN-decided §13) — seat total error
   ascending, then correct ward calls descending, then the list-ballot vote

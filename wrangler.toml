@@ -130,7 +130,10 @@ simple = { limit = 30, period = 60 }
 
 # The entries database (owner, 2026-10-03; created 2026-10-06). Each
 # successful seal is stored as one row (src/share-edge.js storeEntry; the table
-# is migrations/0001_entries.sql), and GET /entries/1/count counts them.
+# is migrations/0001_entries.sql with 0002_entry_version.sql), and GET
+# /entries/1/count counts them. Releasing entry version 2: the order of the
+# migration, the seat Worker, this Worker and the clear is in
+# docs/DEPLOY-UAT.md ("Releasing entry version 2").
 # Before the first deploy with this binding, from the repository root:
 #   npx wrangler d1 migrations apply joburg-entries --remote
 [[d1_databases]]
@@ -140,7 +143,7 @@ database_id = "6f3e7b01-4e73-4f76-81b6-486579fb52d6"
 migrations_dir = "migrations"
 #
 # Results night (src/rank_entries.py), once the result is ingested:
-#   npx wrangler d1 execute joburg-entries --remote --json --command "SELECT seal_id, sealed_at, label, model_ref, context_ref, state, forecast FROM entries" > ~/joburg-entries.json
+#   npx wrangler d1 execute joburg-entries --remote --json --command "SELECT seal_id, sealed_at, label, model_ref, context_ref, state, forecast, version FROM entries" > ~/joburg-entries.json
 # Deletion, 90 days after the leaderboard is published, or within six months
 # of polling day if none is (docs-public/privacy.md; JUDGEMENT-CALLS.md §N8):
 #   npx wrangler d1 execute joburg-entries --remote --command "DELETE FROM entries"

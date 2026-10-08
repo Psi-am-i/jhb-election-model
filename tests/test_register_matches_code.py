@@ -185,6 +185,16 @@ DELETED = {
                     "§1.100 added, §1.102 removed",
     "census_blend_wanted": "as census_blend — the lift the roll asked for "
                            "before MAX_CENSUS_LIFT bound it; §1.100/§1.102",
+    # Retired 2026-10-08 with the combined-share reader input (slice B of
+    # audits/2026-10-07-prediction-restructure, MODEL-LOG §1.292): a reader's
+    # entry now holds whole votes on each ballot. JUDGEMENT-CALLS §M1 keeps the
+    # history of the input it replaced, which names these.
+    "combined_shares": "reader_seats' combined-share argument, retired for "
+                       "ward_votes and list_votes; §1.292",
+    "test_the_pr_ballot_assumption_is_measured_not_asserted": (
+        "measured the retired PR-share input against the draws; its premise "
+        "(a share standing for both ballots) ended with the two-ballot entry; "
+        "§1.292"),
 }
 
 

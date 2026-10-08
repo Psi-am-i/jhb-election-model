@@ -35,10 +35,20 @@ order, so the places are renumbered and nothing is re-scored. The board is
 gitignored (``.gitignore``) so a name removed from it is not kept in git.
 
 AN ENTRY THAT CANNOT BE SCORED STOPS THE RANKING, as :func:`score_forecasts.rank`
-does: an entry made under a context (roster, wards, total vote) with no
-forecast.json given is named, as is one the seat law cannot seat. Nothing is
-left out in silence. An earlier context's forecast.json is in git:
+does: an entry made under a context (roster, wards) with no forecast.json
+given is named, as is one the seat law cannot seat. Nothing is left out in
+silence. An earlier context's forecast.json is in git:
 ``git show <commit>:site/your-forecast/forecast.json > <file>``.
+
+ONE ENTRY VERSION (guard G12). An entry is a reader's prediction, entry
+version 2: whole votes on the ward ballot and on the list ballot
+(``interactive/js/make-state.js`` ``FORMAT``; the schema carries it as
+``properties.v.const``). Every row carries its ``version`` column
+(``migrations/0002_entry_version.sql``; rows stored before it read 1), and
+:func:`rank_entries` refuses the whole ranking, naming the seal ids, when any
+row is of another version than the forecast.json schema's. Version 1 entries
+were test entries (owner, 2026-10-08): they are cleared at release by
+``--clear-version 1``, an owner-approved step, and never scored.
 
 The owner's steps, on results night
 ===================================
@@ -46,7 +56,7 @@ The owner's steps, on results night
 1. Export the entries (wrangler.toml, the ENTRIES note)::
 
        npx wrangler d1 execute joburg-entries --remote --json \\
-         --command "SELECT seal_id, sealed_at, label, model_ref, context_ref, state, forecast FROM entries" \\
+         --command "SELECT seal_id, sealed_at, label, model_ref, context_ref, state, forecast, version FROM entries" \\
          > ~/joburg-entries.json
 
 2. Ingest the result (``src/ingest_lge.py``) to its cleaned VD file, then::
@@ -61,6 +71,16 @@ The owner's steps, on results night
 
 3. Set ``published = true`` in ``content/joburg/leaderboard.toml`` and build
    the site.
+
+At release, once the owner approves it (the version 1 rows are test
+entries; BRIEF change 13, owner 2026-10-08), as the last step of the release
+order in ``docs/DEPLOY-UAT.md`` ("Releasing entry version 2")::
+
+       .venv/bin/python src/rank_entries.py --clear-version 1
+       .venv/bin/python src/rank_entries.py --clear-version 1 --confirm <the count it printed>
+
+The first prints how many rows are of that version and deletes nothing; the
+second deletes them only if a fresh count still equals ``--confirm``.
 
 On a reader's request, after publication::
 
@@ -80,6 +100,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -153,6 +174,16 @@ def rank_entries(rows: list[dict], forecasts: dict[str, dict], result: dict, *,
     ``VOTE_DP`` decimals and ranked as rounded. Refuses (ValueError) an entry under a context with no forecast.json,
     and, through :func:`score_forecasts.rank`, any entry that cannot be scored.
     """
+    other = {}
+    for r in rows:
+        f = forecasts.get(r["context_ref"])
+        if f is not None and str(r["version"]) != S.entry_version(f["schema"]):
+            other.setdefault(str(r["version"]), []).append(r["seal_id"])
+    if other:
+        raise ValueError(f"entries of another version than the forecast.json schema's: "
+                         f"{ {v: ids[:10] for v, ids in other.items()} }. Only entry version "
+                         f"{S.entry_version(next(iter(forecasts.values()))['schema'])} is scored; "
+                         f"clear the others (--clear-version) or name why they are here.")
     missing = sorted({r["context_ref"] for r in rows} - set(forecasts))
     if missing:
         named = {c: [r["seal_id"] for r in rows if r["context_ref"] == c][:5] for c in missing}
@@ -183,6 +214,67 @@ def rank_entries(rows: list[dict], forecasts: dict[str, dict], result: dict, *,
                        "seat_source": seat_source or "computed"},
             "entries": len(out), "wards": wards.pop() if wards else 0,
             "id_chars": ID_CHARS, "vote_dp": VOTE_DP, "rows": out}
+
+
+#: The D1 database that holds the entries: wrangler.toml's [[d1_databases]]
+#: block whose binding is ENTRIES is the one definition; read, not retyped.
+WRANGLER = REPO_ROOT / "wrangler.toml"
+
+
+def entries_database() -> str:
+    """The ENTRIES binding's ``database_name`` in ``wrangler.toml``."""
+    import tomllib
+    blocks = tomllib.loads(WRANGLER.read_text(encoding="utf-8")).get("d1_databases", [])
+    names = [b["database_name"] for b in blocks if b.get("binding") == "ENTRIES"]
+    if len(names) != 1:
+        raise SystemExit(f"wrangler.toml has {len(names)} ENTRIES databases, not one")
+    return names[0]
+
+
+def _d1(command: str, run) -> list[dict]:
+    """The rows of one remote D1 query, through ``run`` (``subprocess.run``'s
+    signature; injectable for the tests)."""
+    done = run(["npx", "wrangler", "d1", "execute", entries_database(), "--remote", "--json",
+                "--command", command], capture_output=True, text=True, cwd=REPO_ROOT)
+    if done.returncode:
+        raise SystemExit(f"wrangler d1 execute failed:\n{done.stderr}")
+    data = json.loads(done.stdout)
+    if not all(block.get("success", True) for block in data):
+        raise SystemExit("wrangler d1 execute reports a failed query")
+    return [r for block in data for r in block["results"]]
+
+
+def clear_version(version: int, confirm: int | None = None, *, run=subprocess.run) -> int:
+    """Count the entries of ``version`` and print the count; with ``confirm``
+    equal to a fresh count, delete them. Returns the rows deleted (0 without
+    ``confirm``). Refuses a ``confirm`` that is not the count now, and the
+    version the scorer reads (``FORMAT``)."""
+    version = int(version)
+    if str(version) == _format():
+        raise SystemExit(f"version {version} is the one the scorer reads; it is not cleared")
+    where = f"FROM entries WHERE version = {version}"
+    n = int(_d1(f"SELECT COUNT(*) AS n {where}", run)[0]["n"])
+    print(f"{n} entries of version {version} in {entries_database()}")
+    if confirm is None:
+        print(f"nothing deleted; to delete them: --clear-version {version} --confirm {n}")
+        return 0
+    if int(confirm) != n:
+        raise SystemExit(f"--confirm {confirm} is not the count now ({n}); nothing deleted")
+    _d1(f"DELETE {where}", run)
+    left = int(_d1(f"SELECT COUNT(*) AS n {where}", run)[0]["n"])
+    if left:
+        raise SystemExit(f"{left} entries of version {version} remain after the delete")
+    print(f"deleted {n} entries of version {version}")
+    return n
+
+
+def _format() -> str:
+    """make-state.js ``FORMAT``, the one definition of the entry version."""
+    m = re.search(r'export const FORMAT = "([^"]+)";',
+                  (REPO_ROOT / "interactive" / "js" / "make-state.js").read_text(encoding="utf-8"))
+    if not m:
+        raise SystemExit("interactive/js/make-state.js no longer declares FORMAT")
+    return m.group(1)
 
 
 def edit_board(board: dict, *, drop=(), anonymise: bool = False) -> dict:
@@ -221,8 +313,15 @@ def main(argv=None) -> int:
     ap.add_argument("--seat-source", choices=S.SEAT_SOURCES)
     ap.add_argument("--out", type=Path, default=None,
                     help="default: content/<city>/leaderboard.json")
+    ap.add_argument("--clear-version", type=int, metavar="N",
+                    help="count the entries of version N in D1; with --confirm, delete them (owner-approved, at release)")
+    ap.add_argument("--confirm", type=int, metavar="COUNT",
+                    help="the count --clear-version printed: delete only if it is still the count")
     cityconfig.add_city_argument(ap)
     args = ap.parse_args(argv)
+    if args.clear_version is not None:
+        clear_version(args.clear_version, args.confirm)
+        return 0
     slug = cityconfig.use(args.city).slug
     out = args.out or REPO_ROOT / "content" / slug / "leaderboard.json"
     ranking = (args.entries, args.result, args.forecast)

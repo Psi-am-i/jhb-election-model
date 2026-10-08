@@ -228,14 +228,18 @@ test("the page's engine under Pyodide gives the native answer (F19)", { skip: !p
   // called wards as its council, as native_play.py's held_wards gives it.
   const byName = Object.fromEntries(CASES.map(c => [c.name, c.settings]));
   for (const want of FIXTURE.section2) {
-    const h = await engine.handoff({ settings: byName[want.name], total: SECTION2.total });
+    const h = await engine.handoff({ settings: byName[want.name] });
     assert.deepEqual([h.ward_calls, h.ward_votes, h.list_votes],
                      [want.handoff.ward_calls, want.handoff.ward_votes, want.handoff.list_votes], want.name);
     assert.equal(h.seats, undefined, "the hand-off carries no seats: they are derived");
     const seats = {};
     for (const c of Object.values(h.ward_calls)) seats[c] = (seats[c] || 0) + 1;
     const two = Object.keys(seats).sort((x, y) => seats[y] - seats[x] || (x < y ? -1 : x > y ? 1 : 0)).slice(0, 2);
-    const a = await engine.analyse({ ward_calls: h.ward_calls, share: h.share, seats, coalition: two });
+    // the reader's list-ballot percent, as make.js sends it (B.percentOf "list")
+    const lt = Object.values(h.list_votes).reduce((x, y) => x + y, 0);
+    const share = Object.fromEntries(Object.entries(h.list_votes).map(([c, v]) => [c, 100 * v / lt]));
+    assert.deepEqual(Object.keys(h).sort(), ["list_votes", "ward_calls", "ward_votes"], "the hand-off is the prediction object, nothing more");
+    const a = await engine.analyse({ ward_calls: h.ward_calls, share, seats, coalition: two });
     for (const [got, exp, what] of [[h, want.handoff, "handoff"], [a, want.analyse, "analyse"]]) {
       const d = compareLeaves(got, exp);
       assert.ok(d.maxRel <= 1e-9, `${want.name} ${what}: ${d.maxRel} at ${d.where}`);

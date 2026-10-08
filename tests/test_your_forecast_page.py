@@ -623,16 +623,192 @@ def test_the_start_is_rule_a_on_the_published_draws():
     assert schema["x-placeholder"] is False and not d["model_ref"].startswith("placeholder")
     assert d["model_ref"] == man["published_run"]["model_run_id"]
     assert schema["x-seat-context"]["parties"] == man["parties"]
-    assert isinstance(schema["x-total-votes"], int) and schema["x-total-votes"] > 0
-    # INTERIM (until slice B): the combined share seats the prediction through
-    # the reader path
-    assert math.isclose(math.fsum(start["combined_share"].values()), 100.0, abs_tol=1e-9)
-    assert start["published_middle"] == {}
+    # no total is fixed: each prediction states its own (SPEC-B D1)
+    assert "x-total-votes" not in schema and "x-share-sum" not in schema
+    for gone in ("combined_share", "published_middle"):
+        assert gone not in start, gone
+    # as an entry, it re-seats exactly under reader_seats (the entry path)
     import score_forecasts
-    interim = score_forecasts.seat_forecast({"ward_calls": start["ward_calls"],
-                                            "combined_share": start["combined_share"]}, schema)
-    assert interim["ok"], interim["errors"]
-    assert {p: v["total"] for p, v in interim["seats"].items()} == start["seats"]
+    entry = {"v": score_forecasts.entry_version(schema), "ward_calls": start["ward_calls"],
+             "ward_votes": start["ward_votes"], "list_votes": start["list_votes"]}
+    seated = score_forecasts.seat_forecast(entry, schema)
+    assert seated["ok"], seated["errors"]
+    assert {p: v["total"] for p, v in seated["seats"].items()} == start["seats"]
+
+
+_DECODE = r"""
+import { readFileSync } from "node:fs";
+import * as B from "%s";
+import * as MS from "%s";
+const D = JSON.parse(readFileSync(process.argv[2], "utf8"));
+const ctx = B.contextOf(D.schema);
+const got = MS.decode(D.start.f, ctx);
+process.stdout.write(JSON.stringify({ state: got.state, coalition: got.coalition, format: MS.FORMAT,
+  out_of_bounds: B.outOfBounds(got.state, ctx) }));
+"""
+
+
+def _decode_start(d: dict) -> dict:
+    """``decode(start.f)`` by the page's own decoder, under node."""
+    import subprocess
+    with tempfile.TemporaryDirectory() as t:
+        (Path(t) / "dec.mjs").write_text(_DECODE % ((ROOT / "interactive/js/builder-state.js").as_uri(),
+                                                    (ROOT / "interactive/js/make-state.js").as_uri()))
+        (Path(t) / "data.json").write_text(json.dumps(d))
+        p = subprocess.run(["node", str(Path(t) / "dec.mjs"), str(Path(t) / "data.json")],
+                           capture_output=True, text=True, timeout=120)
+    assert p.returncode == 0, p.stderr
+    return json.loads(p.stdout)
+
+
+def _start_mismatch(start: dict, decoded: dict, roster: list[str]) -> list[str]:
+    st = decoded["state"]
+    out = []
+    if st["calls"] != start["ward_calls"]:
+        out.append("ward calls differ")
+    for ballot, key in (("ward", "ward_votes"), ("list", "list_votes")):
+        if set(st[ballot]) != set(roster) or set(start[key]) != set(roster):
+            out.append(f"{key} are not keyed by the roster, both ways")
+        elif st[ballot] != start[key]:
+            out.append(f"{key} differ")
+    if decoded["coalition"] != []:
+        out.append("the start names a coalition")
+    return out
+
+
+def test_the_start_is_decode_of_its_f():
+    """Guard G7 (encoding side). ``start.f`` decodes, by the page's own
+    decoder, to exactly the prediction object beside it: the 135 calls and
+    both ballots' whole votes over the roster (keys equal both ways); the
+    entry version in the schema is the page's FORMAT; ``out_of_bounds`` is the
+    decoder's own list. A copy with one list vote changed is caught, and the
+    comparison is quiet again once it is reverted."""
+    import copy
+    site = _built()
+    d = _data(site)
+    start, roster = d["start"], d["schema"]["x-seat-context"]["parties"]
+    got = _decode_start(d)
+    assert len(start["ward_calls"]) == len(d["schema"]["x-ward-ids"])
+    assert _start_mismatch(start, got, roster) == []
+    assert d["schema"]["properties"]["v"]["const"] == got["format"]
+    assert start["out_of_bounds"] == got["out_of_bounds"]
+    bad = copy.deepcopy(start)
+    first = roster[0]
+    bad["list_votes"][first] += 1
+    assert _start_mismatch(bad, got, roster) == ["list_votes differ"]
+    bad["list_votes"][first] -= 1
+    assert _start_mismatch(bad, got, roster) == []
+
+
+def _panel_row(ward, ballot, party, votes, vd="1", registered=100, valid=100):
+    return {"Province": "x", "Municipality": "x", "Ward": ward, "VD_Number": vd, "VS_Name": "x",
+            "BallotType": ballot, "Registered_Population": str(registered), "Spoilt_Votes": "0",
+            "Total_Valid_Votes": str(valid), "sPartyName": party, "Party_Votes": str(votes)}
+
+
+def _write_panel(path: Path, rows):
+    with path.open("w", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+
+
+def test_the_editor_bounds_are_regenerated_from_the_panel():
+    """Amendment 1, point 3. ``x-editor-bounds`` names its panel, and the
+    panel is exactly the cleaned metro LGE files before the target, both ways,
+    each with its sha256; ``e`` is over exactly the schema's wards and sums to
+    one; the effective bounds are the panel's extremes widened by
+    ``EDITOR_WIDEN_PP`` (the runner-up's capped at ``RUNNER_UP_MAX``). Each
+    input is shown to move its bound, and each reverted equals the built
+    bounds: a constructed result file moves ``q_win`` (a ward won lower),
+    ``q_run`` (a runner-up higher), ``gap_min`` and ``gap_max`` (a party's list
+    share far below and far above its ward share); lifting the cap moves the
+    capped ``q_run``; a roll with one ward's registration doubled moves that
+    ward's ``e``, and a previous election with one VD's turnout doubled moves
+    its ward's ``e``."""
+    import cityconfig
+    import hashlib
+    import inputs_preflight
+    import montecarlo
+    from _support import scanned
+    city = cityconfig.active()
+    target = str(city.default_target)
+    d = json.loads(json.dumps(build_make.forecast_data()))
+    b = d["schema"]["x-editor-bounds"]
+    wards = d["schema"]["x-ward-ids"]
+    every = sorted((ROOT / "data/raw/elections").glob("lge*_*_vd_party_clean.csv"))
+    files = [f for f in every if f.name[3:7] < target]
+    assert b["panel"] == [f.name for f in files], b["panel"]
+    # it looked: the panel is a two-sided fraction of every cleaned LGE file
+    scanned(files, of=every, low=0.5, high=1.0, what="panel files",
+            denominator="cleaned LGE result files on disk")
+    assert set(b["sources"]) == set(b["panel"])
+    for f in files:
+        assert b["sources"][f.name] == hashlib.sha256(f.read_bytes()).hexdigest(), f.name
+    assert sorted(b["e"], key=int) == sorted(wards, key=int)
+    assert math.isclose(math.fsum(b["e"].values()), 1.0, abs_tol=1e-12)
+    ext, widen = b["panel_extremes"], build_make.EDITOR_WIDEN_PP
+    assert math.isclose(b["q_win"], ext["q_win"]["value"] - widen / 100)
+    assert math.isclose(b["q_run"], min(build_make.RUNNER_UP_MAX, ext["q_run"]["value"] + widen / 100))
+    assert math.isclose(b["gap_min"], ext["gap_min"]["value"] - widen)
+    assert math.isclose(b["gap_max"], ext["gap_max"]["value"] + widen)
+    assert build_make.panel_extremes(files) == ext
+    # the cap: lifted, the capped bound moves to the widened extreme; restored, back
+    real = build_make.RUNNER_UP_MAX
+    try:
+        build_make.RUNNER_UP_MAX = 1.0
+        lifted = build_make.editor_bounds(city, target, wards)["q_run"]
+    finally:
+        build_make.RUNNER_UP_MAX = real
+    assert math.isclose(lifted, ext["q_run"]["value"] + widen / 100)
+    assert (lifted != b["q_run"]) == (ext["q_run"]["value"] + widen / 100 > real)
+    assert build_make.editor_bounds(city, target, wards)["q_run"] == b["q_run"]
+    with tempfile.TemporaryDirectory() as t:
+        odd = Path(t) / "lge2000_XXX_vd_party_clean.csv"
+        # ward 1 won on 11 of 101 votes (ten parties); ward 2's runner-up holds
+        # 49 of 100; on the list P0 is far above its ward share, P2 far below
+        rows = [_panel_row("1", "Ward", f"P{i}", 11 if i == 0 else 10) for i in range(10)]
+        rows += [_panel_row("2", "Ward", "P0", 51), _panel_row("2", "Ward", "P1", 49)]
+        rows += [_panel_row("1", "PR", "P0", 170), _panel_row("1", "PR", "P1", 30),
+                 _panel_row("1", "PR", "P2", 1)]
+        _write_panel(odd, rows)
+        moved = build_make.panel_extremes(files + [odd])
+        for key, lower in (("q_win", True), ("q_run", False), ("gap_min", True), ("gap_max", False)):
+            assert moved[key]["file"] == odd.name, key
+            assert (moved[key]["value"] < ext[key]["value"]) == lower, key
+        assert build_make.panel_extremes(files) == ext
+        e0, _ = build_make.expected_ward_shares(city, target, wards)
+        assert e0 == b["e"]
+        snap = inputs_preflight.roll_snapshot(city.slug)
+        with snap.open(encoding="utf-8", newline="") as fh:
+            roll = list(csv.DictReader(fh))
+        roll[0]["Registered"] = str(2 * int(roll[0]["Registered"]))
+        doubled = Path(t) / snap.name
+        _write_panel(doubled, roll)
+        e1, _ = build_make.expected_ward_shares(city, target, wards, roll=doubled)
+        w0 = str(int(roll[0]["Ward"][len(city.ward_prefix):]))
+        assert e1[w0] > e0[w0]
+        roll[0]["Registered"] = str(int(roll[0]["Registered"]) // 2)
+        _write_panel(doubled, roll)
+        assert build_make.expected_ward_shares(city, target, wards, roll=doubled)[0] == e0
+        # the previous election's turnout: one VD's valid ward votes doubled
+        tgt = cityconfig.Target(city=city, year=target)
+        prev = cityconfig.resolve_path(ROOT / city.path("raw", "elections") / tgt.results(tgt.previous_lge))
+        parts, _label = montecarlo.ward_parts(tgt, ROOT / city.path("raw", "elections"), ROOT / tgt.crosswalk.parent)
+        with prev.open(encoding="utf-8", newline="") as fh:
+            old = list(csv.DictReader(fh))
+        in_file = {r["VD_Number"] for r in old}
+        vd, ward = next((v, w) for v, w, _reg in parts if v in in_file)
+        def turnout(k):
+            out = [dict(r) for r in old]
+            for r in out:
+                if r["VD_Number"] == vd and r["BallotType"].strip().upper() == "WARD":
+                    r["Total_Valid_Votes"] = str(int(r["Total_Valid_Votes"]) * k)
+            path = Path(t) / prev.name
+            _write_panel(path, out)
+            return build_make.expected_ward_shares(city, target, wards, previous=path)[0]
+        assert turnout(2)[str(ward)] > e0[str(ward)]
+        assert turnout(1) == e0
 
 
 def test_the_data_file_is_the_one_the_build_writes():
@@ -658,8 +834,8 @@ def test_the_hand_off_is_the_published_start_untouched_and_section_1s_wards_move
     function, unit weights (ward calls and both ballots' votes). Under every
     other setting its ward calls are exactly the ward winners section 1 shows
     for that setting, and it differs from the published start: the test can
-    see a hand-off that ignored the weights. Its INTERIM share (slice B
-    deletes it) seats through the reader path."""
+    see a hand-off that ignored the weights. It is a prediction object (calls,
+    both ballots' whole votes, nothing else), and as an entry it seats."""
     site = _built()
     d = _data(site)
     NP, ns = _engine()
@@ -684,8 +860,10 @@ def test_the_hand_off_is_the_published_start_untouched_and_section_1s_wards_move
         assert {x["ward"]: x["winner"] for x in r["wards"]} == h["ward_calls"], name
         calls = [h["ward_calls"][w] for w in wards]
         votes = ({p: h["ward_votes"][p] for p in roster}, {p: h["list_votes"][p] for p in roster})
-        assert math.isclose(math.fsum(h["share"].values()), 100.0, abs_tol=1e-9), name
-        seated = score_forecasts.seat_forecast({"ward_calls": calls, "combined_share": h["share"]}, d["schema"])
+        assert set(h) == {"ward_calls", "ward_votes", "list_votes"}, (name, sorted(h))
+        seated = score_forecasts.seat_forecast({"v": score_forecasts.entry_version(d["schema"]),
+                                                "ward_calls": calls, "ward_votes": votes[0],
+                                                "list_votes": votes[1]}, d["schema"])
         assert seated["ok"], (name, seated["errors"])
         if name == "published":
             assert calls == d["start"]["ward_calls"]
@@ -712,7 +890,9 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     other = sorted(set(calls.values()))
     for w in wards[:3]:
         calls[w] = next(c for c in other if c != calls[w])
-    share = dict(d["start"]["combined_share"])
+    # the reader's list-ballot percent, as make.js sends it (B.percentOf "list")
+    list_total = sum(d["start"]["list_votes"].values())
+    share = {c: 100.0 * v / list_total for c, v in d["start"]["list_votes"].items()}
     seats = dict(d["start"]["seats"])
     top2 = sorted(seats, key=lambda c: -seats[c])[:2]
     a = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,

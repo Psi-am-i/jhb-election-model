@@ -28608,3 +28608,92 @@ chances. The reader's stored entry is still a combined share (slice B replaces
 it); until then the start and the hand-off also carry an interim
 `combined_share`, which the build seats through the reader path and refuses to
 write if it does not give the prediction's seats.
+
+## 1.292 A reader's prediction holds both ballots; the editor's bounds (2026-10-08)
+
+Slice B of `audits/2026-10-07-prediction-restructure/` (specification
+`s1/SPEC-B.md`, amended by the coordinator's resolutions and the owner's answers
+in `s1/SYNTHESIS.md`). BRIEF change 13: a reader's entry holds what an election
+produces. JUDGEMENT-CALLS §R registers the editor's bounds; §M1 is superseded.
+
+**What was.**
+- A reader's entry (version 1) held one number per party: its share of the
+  COMBINED vote, both ballots together, in percent. `reader_seats` scaled the
+  shares to a fixed total (`x-total-votes`, two ballots times the median votes
+  cast over the draws), rounded them to whole votes by largest remainder
+  (`combined_votes`) and handed them to the seat law as list votes alone.
+- The list ballot the competition scores (key 3) was compared with that
+  combined share, so an entry exact on the combined vote still scored the gap
+  between the two ballots, and no reader could set the list vote itself.
+- Our prediction on the page carried an interim `combined_share` and an empty
+  `published_middle` (MODEL-LOG §1.291); the hand-off an interim `share` and
+  `middle`.
+- The editor kept the combined vote summing to the fixed total, a ward winner
+  at one vote or more, and no other range.
+- Two entry schemas existed: the page's, and a placeholder
+  (`worker-api/generated/forecast.schema.json`, built from the prototype's
+  synthetic fixture), which the dormant account store and several tests read.
+
+**What is.**
+- An entry is version 2 (`make-state.js` `FORMAT`; the schema's
+  `properties.v.const`): ward calls and each party's whole votes on the ward
+  ballot and on the list ballot. Each ballot's total is the sum of its votes,
+  carried in the link; no schema total exists.
+- `reader_seats(ward_votes, list_votes, ward_winners, context)` validates and
+  calls `prediction.seats_of`; the statute's pool is formed from the two
+  ballots as given. It refuses, beside the structural refusals, R1 (a ward
+  winner with no ward vote) and R2 (a ward winner with a PR list and no list
+  vote); nothing else a reader can choose is refused.
+- Key 3 reads the entry's list votes over its own list total, list against
+  list (guard G15). The previous election's baseline on the cards is per
+  ballot (`list_vote`, `ward_vote`); a card's "vs <year>" compares list with
+  list.
+- The validator, the scorer and `rank_entries` refuse another version by name
+  (G12). D1 carries the version (`migrations/0002_entry_version.sql`; old rows
+  read 1). The old rows are test entries (owner): `rank_entries
+  --clear-version 1` counts them and deletes only with `--confirm <count>`, at
+  release.
+- Our prediction on the page is `decode(start.f)`: the build encodes the
+  object by the page's own encoder and refuses unless the decode is the
+  object (G7); the page refuses to start otherwise. The hand-off is the
+  prediction object only, opened by `stateFromPrediction`, and a refused or
+  failed hand-off is said on the page (G8).
+- The editor holds each party's ward vote inside bounds set by the wards on
+  the map and the past results, and its list vote within a gap of its ward
+  vote (`build_make.editor_bounds`, `builder-state.js`; JUDGEMENT-CALLS §R).
+  The bounds limit the editor only.
+- One entry schema: the one `build_make` writes into
+  `your-forecast/forecast.json` (G13). The placeholder schema, the prototype's
+  shared-forecast page (`interactive/f/`, `js/f.js`), its localStorage stub
+  (`js/api-stub.js`) and the save path of `js/api.js` are deleted.
+
+**Decision.** The owner's, 2026-10-08 (BRIEF revision 4; s1/SYNTHESIS.md
+answers): two ballots per entry, no backward compatibility, the old entries
+cleared as tests, no OTHER party (every party under its own code, "Others" a
+display grouping only), slider bounds at the past extremes widened by 5 points
+with the runner-up's capped at a half.
+
+**Measurements.** The extremes come from a read-only probe of the cleaned
+files on 2026-10-08 (`build_make.panel_extremes`, the generator, and
+`audits/2026-10-07-prediction-restructure/s1/probes-b/bounds.py`, which agree);
+the figures that only the check step's build produces are marked.
+
+| what | value |
+|---|---|
+| panel: cleaned metro LGE files before 2026; wards with a vote | 40 files (8 metros × 2000, 2006, 2011, 2016, 2021); 3,434 wards |
+| lowest winning share of a ward's ward-ballot vote | 23.62% (Johannesburg 2021, ward 79800082) |
+| highest runner-up share | 47.76% (Nelson Mandela Bay 2006, ward 29500041) |
+| list share minus ward share, every party on both ballots in a city-year (831 party-city-years) | −1.76 points (Buffalo City 2011, ANC) to +6.16 points (eThekwini 2016, ANC) |
+| the same over SPEC-B's population (766: names containing "INDEPENDENT" also dropped, which drops real parties such as the AIC) | the same two extremes |
+| winning share, 1st and 5th percentile (SPEC-B probe) | 35.1%, 43.7% |
+| the editor's bounds at the 2026 build, widened by 5 points | `q_win` 18.62%; `q_run` 50% (52.76% capped); gap −6.76 to +11.16 points |
+| expected ward vote: 2026 parts with no 2021 VD record, left out | 6 parts, 4,919 registered |
+| a ward's share of the expected ward vote, range | 0.25% to 1.43% |
+| our prediction outside the editor's bounds (`start.out_of_bounds` of the built `forecast.json`, check-step build 2026-10-08) | none (empty list) |
+| `context_ref` of the built `forecast.json` (roster and wards only, so it changes once from version 1's) | `cf63e052f0a3`; `draws_sha256` `3b25be8f…` (unchanged from §1.291) |
+| longest address query in `make.test.mjs`'s walk (two ballots of varints; the test's limit is 600) | 577 characters |
+| version 1 rows in D1 at the clear (`rank_entries --clear-version 1`, printed; a release step, not run in the check step) | TO-MEASURE |
+
+**Not changed.** No drawn number: the draws, the forecast's seats, shares,
+ranges and chances, and our prediction's calls, votes and seats (rule A,
+§1.291). The scoring keys and their order (JUDGEMENT-CALLS §N4).

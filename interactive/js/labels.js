@@ -15,8 +15,7 @@
 // worker-api tests check every word against the display-name blocklist and
 // against the party roster.
 //
-// PURE: Web Crypto only; the page stub (js/api-stub.js) and the Worker both
-// import it.
+// PURE: Web Crypto only; the Worker (validate.js, forecasts.js) imports it.
 
 export const LABEL_WORDS = [
   "politico", "pollster", "analyst", "swingvoter", "psephologist", "canvasser",

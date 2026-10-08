@@ -350,6 +350,11 @@
 .yf .prrow{position:relative;}
 .yf .prrow .fl{position:absolute;left:17px;bottom:1px;padding:0;font-size:10.5px;line-height:1.2;
   white-space:nowrap;pointer-events:none;}
+/* a row with a list-vote control under it keeps its floor note in the flow,
+   above the control, so the two never overlap; its line is reserved even when
+   empty, so a note appearing never moves what is below (yf_jump_check) */
+.yf .prrow:has(> .prgap) .fl{position:static;padding-left:17px;min-height:1.2em;}
+.yf .prrow:has(> .prgap) .fl:empty{display:block;}
 
 /* ---------- a shared link's arrival view (js/arrival.js) ---------- */
 /* The friend's forecast at the top of the page, read-only, then three ways

@@ -3,12 +3,13 @@ were 2026.
 
 What this module proves:
 
-1. SELF-SCORE. The 2021 result, written as a stored forecast (its own combined
-   shares, its own ward winners), scores perfectly on all three ranking keys
-   and on the reported split, against the computed council and against the
-   IEC's official table.
-2. KNOWN ERRORS, BY HAND. A forecast that moves one ANC ward to the IFP and two
-   quotas of votes from the EFF to the DA scores exactly what the paper
+1. SELF-SCORE. The 2021 result, written as a stored entry (version 2: its own
+   ward and list votes, its own ward winners), scores perfectly on all three
+   ranking keys and on the reported split, against the computed council and
+   against the IEC's official table. Key 3 reads the list ballot only (G15):
+   moving ward votes leaves it unchanged, moving list votes moves it.
+2. KNOWN ERRORS, BY HAND. An entry that moves one ANC ward to the IFP and two
+   quotas of list votes from the EFF to the DA scores exactly what the paper
    arithmetic below says. The quota is read from the IEC's own report, not
    from the code under test.
 3. NAMES. An IEC respelling (`UMKHONTO WESIZWE PARTY` against a roster that
@@ -22,8 +23,9 @@ What this module proves:
    a computed denominator (1); is shown to catch a constructed violation and
    to go quiet when it is reverted (2); and runs on constructed inputs (3).
 5. REFUSALS. A tied ward, a ward without the city prefix, a ward-set
-   mismatch, an official disagreement with no `seat_source`, a forecast the
-   statute cannot seat.
+   mismatch, an official disagreement with no `seat_source`, an entry the
+   statute cannot seat, an entry of another version (G12: a version 1 body,
+   one combined share, is refused by its version).
 6. OUR PREDICTION. `model_forecast` is rule A (`src/prediction.py`): the
    ward each party wins in the most draws (a tie to the code first in string
    order, whatever the column order), each party's mean whole votes on each
@@ -34,6 +36,9 @@ What this module proves:
    shared ranks; the earlier-save tie-break; an unscorable forecast refused.
 
 No model run: every input is the result file, the IEC report or a construction.
+The entry schema is the one ``build_make`` writes into
+``site/your-forecast/forecast.json`` (``YF_FORECAST_JSON`` names another copy,
+e.g. one built to a temporary directory).
 """
 
 from __future__ import annotations
@@ -41,6 +46,8 @@ from __future__ import annotations
 import copy
 import csv
 import json
+import os
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -54,7 +61,12 @@ import score_forecasts as S  # noqa: E402
 
 CITY, AS_IF = "joburg", "2026"
 RESULT = ROOT / "data/raw/elections/lge2021_JHB_vd_party_clean.csv"
-SCHEMA = ROOT / "worker-api/generated/forecast.schema.json"
+FORECAST = Path(os.environ.get("YF_FORECAST_JSON", ROOT / "site/your-forecast/forecast.json"))
+
+
+def _real_schema() -> dict:
+    """The one entry schema (guard G13): forecast.json's ``schema``."""
+    return json.loads(FORECAST.read_text())["schema"]
 
 _CACHE: dict = {}
 
@@ -80,36 +92,34 @@ def _result() -> dict:
 
 
 def _schema(result: dict) -> dict:
-    """A schema in the generated file's shape, over the result's roster.
-
-    The share scale and tolerance are the generated schema's own, so the test
-    types no number the backend owns.
-    """
-    real = json.loads(SCHEMA.read_text())
-    pooled = {c: v for c, v in result["combined"].items()
-              if c not in result["no_pr_list"] and v > 0}
+    """A schema in the generated file's shape, over the result's roster. The
+    entry version is the generated schema's own, so the test types none."""
     wards = sorted(result["wards"], key=int)
     return {
+        "properties": {"v": {"const": S.entry_version(_real_schema())}},
         "x-seat-context": {"city": CITY, "target": AS_IF,
                            "council": result["council"], "wards": wards,
                            "parties": list(result["roster_codes"]),
                            "no_pr_list": list(result["no_pr_list"])},
-        "x-total-votes": sum(pooled.values()),
-        "x-share-sum": real["x-share-sum"],
         "x-ward-ids": wards,
     }
 
 
 def _self_forecast(result: dict, schema: dict) -> dict:
-    total = schema["x-total-votes"]
-    scale = schema["x-share-sum"]["target"]
-    pooled = {c: v for c, v in result["combined"].items()
-              if c not in result["no_pr_list"] and v > 0}
-    return {"model_ref": "test", "coalition": [], "mayor": None,
-            "display_name": None,
+    """The result as an entry: its ward winners and its own whole votes on each
+    ballot, every roster party."""
+    roster = schema["x-seat-context"]["parties"]
+    return {"v": schema["properties"]["v"]["const"], "model_ref": "test",
+            "coalition": [], "mayor": None, "display_name": None,
             "ward_calls": [result["wards"][w] for w in schema["x-ward-ids"]],
-            "combined_share": {c: pooled.get(c, 0) / total * scale
-                               for c in schema["x-seat-context"]["parties"]}}
+            "ward_votes": {c: result["ward_votes"].get(c, 0) for c in roster},
+            "list_votes": {c: result["list_votes"].get(c, 0) for c in roster}}
+
+
+def _pool_total(forecast: dict) -> int:
+    """Both ballots' votes of every party the statute pools (a list vote)."""
+    return sum(forecast["ward_votes"][c] + v
+               for c, v in forecast["list_votes"].items() if v > 0 and c != "INDEPENDENT")
 
 
 def _list_points(result: dict) -> dict:
@@ -126,10 +136,10 @@ def _list_points(result: dict) -> dict:
 
 
 def _vote_gap_by_hand(result: dict, forecast: dict, schema: dict) -> float:
-    """Key 3 by a loop: every party in the forecast or on the list ballot."""
-    scale = schema["x-share-sum"]["target"]
+    """Key 3 by a loop: every party in the entry or on the list ballot."""
     actual = _list_points(result)
-    mine = {c: 100.0 * v / scale for c, v in forecast["combined_share"].items()}
+    total = sum(forecast["list_votes"].values())
+    mine = {c: 100.0 * v / total for c, v in forecast["list_votes"].items()}
     return sum(abs(mine.get(c, 0.0) - actual.get(c, 0.0)) for c in set(mine) | set(actual))
 
 
@@ -158,18 +168,52 @@ def test_the_result_scored_against_itself_is_perfect_on_every_measure():
         # rule 0: the split was judged over exactly the seat holders, both ways
         assert set(got["split_by_party"]) == holders
         assert got["split_correct"] == got["split_parties"] == len(holders)
-        # the vote is scored on the list ballot: exact on the combined vote,
-        # the forecast still carries the gap between the two ballots
+        # the vote is scored on the list ballot, list against list: exact
         assert abs(got["list_vote_error"] - _vote_gap_by_hand(result, forecast, schema)) < 1e-9
-        assert got["list_vote_error"] > 0
-    # a forecast of the list ballot itself scores zero on it
-    listed = dict(forecast, combined_share={
-        c: v * schema["x-share-sum"]["target"] / 100.0 for c, v in _list_points(result).items()})
-    for c in schema["x-seat-context"]["parties"]:
-        listed["combined_share"].setdefault(c, 0.0)
-    got = S.score(listed, schema, result, seat_source="computed")
+        assert got["list_vote_error"] < 1e-9, got["list_vote_error_by_party"]
+
+
+def test_key_three_reads_only_the_list_ballot():
+    """Guard G15. Moving ward votes alone leaves the list-ballot vote error
+    exactly where it was (seats may move: the statute counts both ballots);
+    moving list votes moves it; reverted, it is back."""
+    result = _result()
+    schema = _schema(result)
+    base = _self_forecast(result, schema)
+    before = S.score(base, schema, result, seat_source="computed")
+    ward_only = copy.deepcopy(base)
+    moved = ward_only["ward_votes"]["EFF"] // 2
+    ward_only["ward_votes"]["EFF"] -= moved
+    ward_only["ward_votes"]["DA"] += moved
+    got = S.score(ward_only, schema, result, seat_source="computed")
     assert got["ok"], got["errors"]
-    assert got["list_vote_error"] < 1e-9, got["list_vote_error_by_party"]
+    assert got["list_vote_error"] == before["list_vote_error"]
+    list_too = copy.deepcopy(ward_only)
+    list_too["list_votes"]["EFF"] -= moved
+    list_too["list_votes"]["DA"] += moved
+    got = S.score(list_too, schema, result, seat_source="computed")
+    assert got["list_vote_error"] > before["list_vote_error"] + 1.0
+    list_too["list_votes"]["EFF"] += moved
+    list_too["list_votes"]["DA"] -= moved
+    assert S.score(list_too, schema, result, seat_source="computed")["list_vote_error"] \
+        == before["list_vote_error"]
+
+
+def test_a_v1_body_is_refused_with_a_version_error():
+    """Guard G12. A version 1 body (one combined share, no ``v``) and a body
+    naming version 1 are refused by their version, before anything is seated;
+    the version 2 entry beside them scores."""
+    result = _result()
+    schema = _schema(result)
+    good = _self_forecast(result, schema)
+    assert S.score(good, schema, result, seat_source="computed")["ok"]
+    roster = schema["x-seat-context"]["parties"]
+    v1 = {k: v for k, v in good.items() if k not in ("v", "ward_votes", "list_votes")}
+    v1["combined_share"] = {c: 100.0 / len(roster) for c in roster}
+    for body in (v1, dict(good, v="1")):
+        got = S.score(body, schema, result, seat_source="computed")
+        assert not got["ok"] and "entry version" in got["errors"][0], got
+        assert not S.seat_forecast(body, schema)["ok"]
 
 
 def test_the_computed_council_is_the_one_the_iec_published():
@@ -230,8 +274,8 @@ def test_a_constructed_forecast_gets_the_hand_computed_score():
     no total changes: ANC goes from (w, p) to (w-1, p+1), IFP from (w, p) to
     (w+1, p-1). Two splits wrong, seat error unchanged.
 
-    Edit B: 2Q votes move from the EFF to the DA. The combined total, and so
-    the quota, is unchanged. Each party's votes move by an exact multiple of
+    Edit B: 2Q list votes move from the EFF to the DA. The combined total, and
+    so the quota, is unchanged. Each party's votes move by an exact multiple of
     Q, so its remainder — and the largest-remainder order — is unchanged, and
     its round-one seats move by exactly 2: DA +2, EFF -2. Both on the list
     (neither party's ward count changes). Seat error 4; two more splits
@@ -243,19 +287,17 @@ def test_a_constructed_forecast_gets_the_hand_computed_score():
     """
     result, official = _result(), _official()
     schema = _schema(result)
-    total = schema["x-total-votes"]
-    scale = schema["x-share-sum"]["target"]
     quota = official["quota"]
+    forecast = _self_forecast(result, schema)
+    total = _pool_total(forecast)
     assert total // (result["council"] - result["independent_wards"]
                      - result["no_pr_list_wards"]) + 1 == quota
-    assert result["combined"]["EFF"] > 2 * quota
+    assert forecast["list_votes"]["EFF"] > 2 * quota
 
-    forecast = _self_forecast(result, schema)
     ward = next(w for w in schema["x-ward-ids"] if result["wards"][w] == "ANC")
     forecast["ward_calls"][schema["x-ward-ids"].index(ward)] = "IFP"
-    shift = 2 * quota / total * scale
-    forecast["combined_share"]["DA"] += shift
-    forecast["combined_share"]["EFF"] -= shift
+    forecast["list_votes"]["DA"] += 2 * quota
+    forecast["list_votes"]["EFF"] -= 2 * quota
 
     seated = S.seat_forecast(forecast, schema)
     assert seated["ok"] and not seated["excessive_fired"]
@@ -287,8 +329,8 @@ def test_a_party_the_forecast_never_names_counts_its_actual_seats_as_error():
     result = _result()
     schema = _schema(result)
     forecast = _self_forecast(result, schema)
-    eff = forecast["combined_share"].pop("EFF")
-    forecast["combined_share"]["DA"] += eff
+    for b in ("ward_votes", "list_votes"):
+        forecast[b]["DA"] += forecast[b].pop("EFF")
     schema["x-seat-context"]["parties"].remove("EFF")
     got = S.score(forecast, schema, result, seat_source="computed")
     assert got["ok"], got["errors"]
@@ -421,14 +463,14 @@ def test_ward_set_mismatch_and_an_unseatable_forecast_are_refused():
     got = S.score(forecast, schema, fewer)
     assert not got["ok"] and "ward sets differ" in got["errors"][0]
 
-    # a ward won by a party with a zero share: the statute cannot seat it
+    # a ward won by a party with no list vote (R2): the statute cannot seat it
     bad = copy.deepcopy(forecast)
     bad["ward_calls"][0] = "GOOD"
-    share = bad["combined_share"].pop("GOOD")
-    bad["combined_share"]["DA"] += share
-    bad["combined_share"]["GOOD"] = 0
+    bad["list_votes"]["DA"] += bad["list_votes"]["GOOD"]
+    bad["list_votes"]["GOOD"] = 0
     got = S.score(bad, schema, result)
     assert not got["ok"] and "cannot be seated" in got["errors"][0]
+    assert "no list vote" in got["errors"][0]
 
     # a forecast roster party the result's roster does not know
     odd = copy.deepcopy(schema)
@@ -485,7 +527,6 @@ def test_the_model_forecast_is_rule_a():
     roster = schema["x-seat-context"]["parties"]
     wards = schema["x-ward-ids"]
     truth = _self_forecast(result, schema)
-    scale = schema["x-share-sum"]["target"]
     winners, wv, lv, pair, ward_v, list_v = _rule_a_inputs(result, schema, roster)
     got = S.model_forecast(winners, roster, wards, wv, lv, roster, schema)
 
@@ -504,8 +545,9 @@ def test_the_model_forecast_is_rule_a():
     seated = prediction.seats_of(untouched, schema["x-seat-context"]["council"], order=roster)
     assert {p: v["total"] for p, v in seated["seats"].items()} == \
         {p: v["total"] for p, v in result["computed_seats"].items() if v["total"] > 0}
-    # INTERIM (slice B deletes it): the combined share sums to the scale
-    assert abs(sum(got["combined_share"].values()) - scale) < 1e-9 * scale
+    # it is an entry of the version the scorer reads, so score() reads it as
+    # it reads a reader's
+    assert got["v"] == S.entry_version(schema) and S.version_errors(got, schema) == []
 
     # the column order does not matter: reversed, and the tie still falls to
     # the string-first code, where an order-based rule would follow the columns
@@ -574,17 +616,17 @@ def test_the_owners_ranking_on_constructed_forecasts_by_hand():
     count, v the self forecast's vote error (the gap between the ballots):
 
     ======  ===============================================  =================
-    id      edit to the result-as-forecast                   key (by hand)
+    id      edit to the result-as-entry                      key (by hand)
     ======  ===============================================  =================
-    self    none                                             (0, -W, v)
-    vote    a sliver of share moved, no seat or call moved   (0, -W, v + gap)
-    ifp     one ANC ward called for the IFP                  (0, -(W-1), v)
-    swap1   one ANC ward and one DA ward swap their calls    (0, -(W-2), v)
-    swap2   a different ANC/DA pair swaps                    (0, -(W-2), v)
-    quota   2 quotas of votes moved EFF -> DA, calls as won  (4, -W, v')
+    self    none                                             (0, -W, 0)
+    vote    a sliver of list votes moved, no seat or call    (0, -W, gap)
+    ifp     one ANC ward called for the IFP                  (0, -(W-1), 0)
+    swap1   one ANC ward and one DA ward swap their calls    (0, -(W-2), 0)
+    swap2   a different ANC/DA pair swaps                    (0, -(W-2), 0)
+    quota   2 quotas of list votes moved EFF -> DA           (4, -W, v')
     ======  ===============================================  =================
 
-    Swaps and the IFP call move no share, so no seat total and no vote error
+    Swaps and the IFP call move no vote, so no seat total and no vote error
     moves (the IFP ward is §2's edit A). The quota move is §2's edit B: DA +2,
     EFF −2.
 
@@ -596,8 +638,6 @@ def test_the_owners_ranking_on_constructed_forecasts_by_hand():
     """
     result, official = _result(), _official()
     schema = _schema(result)
-    total = schema["x-total-votes"]
-    scale = schema["x-share-sum"]["target"]
     ids = schema["x-ward-ids"]
     W = len(ids)
     base = _self_forecast(result, schema)
@@ -608,17 +648,13 @@ def test_the_owners_ranking_on_constructed_forecasts_by_hand():
     ifp = copy.deepcopy(base)
     ifp["ward_calls"][ids.index(anc[2])] = "IFP"
     quota = copy.deepcopy(base)
-    shift = 2 * official["quota"] / total * scale
-    quota["combined_share"]["DA"] += shift
-    quota["combined_share"]["EFF"] -= shift
-    # a sliver, far under a quota, moved in the direction that widens both
-    # parties' gap to the list ballot
-    listed = _list_points(result)
-    sliver = 0.01 * official["quota"] / total * scale
+    quota["list_votes"]["DA"] += 2 * official["quota"]
+    quota["list_votes"]["EFF"] -= 2 * official["quota"]
+    # a sliver of list votes, far under a quota, moved from the EFF to the DA
+    sliver = official["quota"] // 100
     vote = copy.deepcopy(base)
-    for c in ("DA", "EFF"):
-        up = vote["combined_share"][c] * 100.0 / scale >= listed[c]
-        vote["combined_share"][c] += sliver if up else -sliver
+    vote["list_votes"]["DA"] += sliver
+    vote["list_votes"]["EFF"] -= sliver
     forecasts = {"self": base, "vote": vote, "ifp": ifp,
                  "swap1": _swap_calls(base, schema, result, [(anc[0], da[0])]),
                  "swap2": _swap_calls(base, schema, result, [(anc[1], da[1])]),
@@ -629,6 +665,7 @@ def test_the_owners_ranking_on_constructed_forecasts_by_hand():
         {i: s["errors"] for i, s in scores.items() if not s["ok"]}
 
     v = _vote_gap_by_hand(result, base, schema)
+    assert v < 1e-9
     by_hand = {"self": (0, -W, v), "ifp": (0, -(W - 1), v),
                "swap1": (0, -(W - 2), v), "swap2": (0, -(W - 2), v),
                "vote": (0, -W, _vote_gap_by_hand(result, vote, schema)),
@@ -636,7 +673,7 @@ def test_the_owners_ranking_on_constructed_forecasts_by_hand():
     got = {i: S.rank_key(s) for i, s in scores.items()}
     for i, key in by_hand.items():
         assert got[i][:2] == key[:2] and abs(got[i][2] - key[2]) < 1e-9, (i, got[i], key)
-    assert abs(by_hand["vote"][2] - v - 2 * sliver * 100.0 / scale) < 1e-9
+    assert abs(by_hand["vote"][2] - 2 * sliver * 100.0 / sum(base["list_votes"].values())) < 1e-9
     # the ward count and the split are reported, and in no key: the swaps
     # get every party's split right and ifp does not, and ifp still ranks first
     assert scores["swap1"]["split_correct"] == scores["swap1"]["split_parties"]
@@ -738,7 +775,7 @@ def test_the_certified_roster_covers_every_party_a_reader_can_pick():
     lacks. Checked now, while the schema and the `[roster]` can still be
     fixed: every code a reader can pick is a certified code. A city-year with
     no declared roster is refused, not read as an empty ballot."""
-    schema = json.loads(SCHEMA.read_text())
+    schema = _real_schema()
     context = S.schema_context(schema)[0]
     roster = S.certified_roster(context["city"], context["target"])
     assert set(roster) >= set(context["parties"]), \
@@ -756,13 +793,20 @@ def test_the_certified_roster_covers_every_party_a_reader_can_pick():
 
 def test_the_generated_schema_carries_what_the_scorer_reads():
     """The scorer and the Worker read one schema: the seat context's roster
-    is the ward-call roster, both directions, and its wards are x-ward-ids."""
-    schema = json.loads(SCHEMA.read_text())
-    context, total, target, tolerance, wards = S.schema_context(schema)
-    assert set(context["parties"]) == set(
-        schema["properties"]["ward_calls"]["items"]["enum"])
+    is the ward-call roster and each ballot's roster, both directions; its
+    wards are x-ward-ids; its entry version is make-state.js FORMAT; and it
+    fixes no ballot total (each entry states its own)."""
+    schema = _real_schema()
+    context, wards = S.schema_context(schema)
+    roster = set(context["parties"])
+    assert roster == set(schema["properties"]["ward_calls"]["items"]["enum"])
+    for b in ("ward_votes", "list_votes"):
+        assert roster == set(schema["properties"][b]["required"]) == set(schema["properties"][b]["properties"])
     assert list(context["wards"]) == wards
-    assert total > 0 and target > 0 and 0 <= tolerance < target
+    fmt = re.search(r'export const FORMAT = "([^"]+)";',
+                    (ROOT / "interactive/js/make-state.js").read_text()).group(1)
+    assert S.entry_version(schema) == fmt
+    assert "x-total-votes" not in schema and "x-share-sum" not in schema
 
 
 if __name__ == "__main__":

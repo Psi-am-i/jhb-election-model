@@ -41,13 +41,18 @@ def test_the_baseline_sums_to_that_elections_council_wards_and_vote():
     year = cityconfig.preceding(city.default_target, "LGE")
     struct = city.structure_for(year)
     assert b["year"] == year
-    # roster parties only, each with all three figures, and only parties that stood
-    assert set(b["seats"]) == set(b["wards"]) == set(b["vote"]) <= set(roster)
-    assert all(v > 0 for v in b["vote"].values())
+    # roster parties only, each with all four figures, and only parties that
+    # stood (on either ballot)
+    assert set(b["seats"]) == set(b["wards"]) == set(b["list_vote"]) == set(b["ward_vote"]) <= set(roster)
+    assert all(b["list_vote"][c] > 0 or b["ward_vote"][c] > 0 for c in b["list_vote"])
+    assert "vote" not in b, "the combined vote is retired: each ballot is its own"
     # the roster filter drops seats only of parties not on today's roster
     assert sum(b["seats"].values()) <= int(struct["council"])
     assert sum(b["wards"].values()) <= int(struct["wards"])
-    assert 0 < sum(b["vote"].values()) <= 100.0 + 1e-9
+    for ballot in ("list_vote", "ward_vote"):
+        assert 0 < sum(b[ballot].values()) <= 100.0 + 1e-9, ballot
+    # the two ballots differ: list is not ward
+    assert b["list_vote"] != b["ward_vote"]
     # it looked: most of the council is held by roster parties
     assert sum(b["seats"].values()) > int(struct["council"]) // 2
 

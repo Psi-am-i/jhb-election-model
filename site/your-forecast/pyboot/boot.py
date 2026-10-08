@@ -34,8 +34,8 @@ def seat_answer(body_json: str) -> str:
     """``[status, payload]`` as JSON, for one request body given as JSON.
 
     Both directions are JSON text: a JavaScript number handed over as a
-    Pyodide object arrives as a float, and ``reader_seats`` refuses a float
-    ``total_votes``.
+    Pyodide object arrives as a float, and ``reader_seats`` refuses a vote
+    count that is not a whole number.
     """
     status, payload = entry.answer(json.loads(body_json))
     return json.dumps([status, payload])

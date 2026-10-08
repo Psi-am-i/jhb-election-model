@@ -12,12 +12,18 @@ of each outcome and its badge from the published draws
 the previous election and polling day from ``build_make``; names, colours and
 logo flags from ``build_play.roster``. The names are invented labels.
 
+Each forecast is a prediction, entry version 2: ward calls and whole votes on
+the ward ballot and on the list ballot. ``vote`` is its list-ballot percent,
+the column a card prints and an entry is scored on.
+
 * **A**: the start's ward calls, except each ward whose most likely winner has
   under 55% (``data/processed/ward_winner_probs.csv``) goes to its second most
-  likely; the start's combined shares; the coalition is parties in seat order
-  until a majority.
-* **B**: the same with a 70% cut; shares halfway between the start's and the
-  previous election's combined vote; the coalition skips the second largest.
+  likely; the start's whole votes on both ballots; the coalition is parties in
+  seat order until a majority.
+* **B**: the same with a 70% cut; each ballot's votes halfway between the
+  start's and the previous election's share of that ballot (at the start's
+  ballot totals, rounded to whole votes); the coalition skips the second
+  largest.
 """
 from __future__ import annotations
 
@@ -53,7 +59,6 @@ def build() -> dict:
     entry = _entry()
     data = build_make.forecast_data()
     ctx = data["schema"]["x-seat-context"]
-    total = int(data["schema"]["x-total-votes"])
     wards = [str(w["id"]) for w in data["geometry"]["wards"]]
     start = data["start"]
     base = data["baseline"]
@@ -67,11 +72,13 @@ def build() -> dict:
         return [probs[w][1][0] if probs[w][0][1] < cut and len(probs[w]) > 1 else c
                 for w, c in zip(wards, start["ward_calls"])]
 
-    def forecast(name, calls, share, skip_second):
-        tot = sum(share.values())
-        pct = {c: share.get(c, 0.0) * 100.0 / tot for c in ctx["parties"]}
-        body = {"combined_shares": {c: pct[c] / 100.0 for c in ctx["parties"]},
-                "ward_winners": dict(zip(wards, calls)), "context": ctx, "total_votes": total}
+    def forecast(name, calls, ward_votes, list_votes, skip_second):
+        ward_votes = {c: int(ward_votes.get(c, 0)) for c in ctx["parties"]}
+        list_votes = {c: int(list_votes.get(c, 0)) for c in ctx["parties"]}
+        tot = sum(list_votes.values())
+        pct = {c: list_votes[c] * 100.0 / tot for c in ctx["parties"]}
+        body = {"ward_votes": ward_votes, "list_votes": list_votes,
+                "ward_winners": dict(zip(wards, calls)), "context": ctx}
         status, ans = entry.answer(body)
         assert status == 200, ans
         seats = ans["seats"]
@@ -88,10 +95,13 @@ def build() -> dict:
         assert status == 200, card
         ans = {k: v for k, v in card.items() if k not in ("code_ref", "draws_sha256")}
         return {"name": name, "calls": calls, "vote": {c: v for c, v in pct.items() if v > 0},
+                "ward_votes": ward_votes, "list_votes": list_votes,
                 "coalition": coalition, "answer": ans}
 
-    share_a = dict(start["combined_share"])
-    share_b = {c: 0.5 * share_a.get(c, 0.0) + 0.5 * base["vote"].get(c, 0.0) for c in ctx["parties"]}
+    def halfway(votes, past):
+        total = sum(votes.values())
+        return {c: round(0.5 * votes.get(c, 0) + 0.5 * past.get(c, 0.0) / 100.0 * total)
+                for c in ctx["parties"]}
     return {
         "_about": "Written by interactive/tools/share_fixture.py. Do not edit.",
         "election": data["election"], "baseline": base, "draws_sha256": data["draws_sha256"],
@@ -99,8 +109,9 @@ def build() -> dict:
         "parties": build_play.roster(),
         "geometry": {"W": data["geometry"]["W"], "H": data["geometry"]["H"],
                      "wards": [{"path": w["path"]} for w in data["geometry"]["wards"]]},
-        "A": forecast("Thandi", calls_with(0.55), share_a, False),
-        "B": forecast("@kgomotso_m", calls_with(0.70), share_b, True),
+        "A": forecast("Thandi", calls_with(0.55), start["ward_votes"], start["list_votes"], False),
+        "B": forecast("@kgomotso_m", calls_with(0.70), halfway(start["ward_votes"], base["ward_vote"]),
+                      halfway(start["list_votes"], base["list_vote"]), True),
     }
 
 

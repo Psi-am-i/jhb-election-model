@@ -23,7 +23,7 @@ const D = JSON.parse(execFileSync(resolve(repo, ".venv/bin/python"), ["-c",
   { cwd: repo, maxBuffer: 1 << 28 }));
 const ctx2 = B.contextOf(D.schema);
 const REF = D.context_ref;
-const start = B.startState(ctx2, { calls: D.start.ward_calls, share: D.start.combined_share }, D.start.ward_calls).state;
+const start = MS.decode(D.start.f, ctx2).state;
 const ctx1 = { pools: ["Black African", "Coloured", "Indian/Asian", "White"], polls: ["srf-2026q2-coj", "ipsos-x"],
                laws: ["deduct", "expand", "level", "cap"], cells: [".", "w_bye-0", "w_bye-1"], modelVersion: "cf665663686d0011" };
 
@@ -39,7 +39,8 @@ function forecasts() {
   let s = start;
   for (let i = 0; i < 6; i++) {
     s = B.assignWards(s, ctx2, [i * 7], ctx2.codes[(i * 5) % ctx2.codes.length]).state;
-    s = B.setPercent(s, ctx2, ctx2.codes[i], 3 + i).state;
+    s = B.setWardPercent(s, ctx2, ctx2.codes[i], 3 + i).state;
+    if (!ctx2.noList.has(ctx2.codes[i + 1])) s = B.setListGap(s, ctx2, ctx2.codes[i + 1], i - 2).state;
     out.push({ state: s, coalition: ctx2.codes.slice(0, i % 3) });
   }
   return out;
@@ -57,7 +58,8 @@ test("both sections and the name survive one address, each part reading only its
     assert.deepEqual(PS.parse(q, ctx1).state, one.state, q);
     const two = MS.parse(YU.partOf(q, YU.BREAK_KEYS), ctx2, REF, start);
     assert.equal(two.note, null, q);
-    assert.deepEqual([two.state.calls, two.state.votes, two.coalition], [f.state.calls, f.state.votes, f.coalition], q);
+    assert.deepEqual([two.state.calls, two.state.ward, two.state.list, two.coalition],
+                     [f.state.calls, f.state.ward, f.state.list, f.coalition], q);
     assert.deepEqual(MS.parse(q, ctx2, REF, start).state, two.state, q);
     assert.equal(YU.nameOf(q), PS.cleanName(name), q);
     n++;

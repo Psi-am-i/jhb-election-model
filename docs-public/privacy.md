@@ -77,13 +77,14 @@ name or changing the forecast with the sheet open seals again, and each seal
 is another entry. A person may enter several. The server stores, for each
 seal, in a database at Cloudflare:
 
-- the forecast: every ward's winner, each party's vote and the governing parties;
+- the forecast: every ward's winner, each party's vote on the ward ballot and
+  on the list ballot, and the governing parties;
 - the forecast as the link carries it, and the version of the page's figures
   it was made against;
 - the name you typed on it, if any;
 - the time of the seal;
 - the seal's id, the part of the link's `s=` after the dot;
-- the model's version when it was sealed.
+- the model's version when it was sealed, and the version of the entry.
 
 No IP address, browser details, cookie or account is stored with it. To limit
 how often one connection can seal, the server counts seals per connection for

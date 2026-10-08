@@ -1,23 +1,25 @@
-// Test fixtures. Every forecast here is built from the generated schema, so a
-// change of roster or ward list moves the fixture with it.
+// Test fixtures. Every entry here is built from the one entry schema (the one
+// src/build_make.py writes into site/your-forecast/forecast.json), so a change
+// of roster or ward list moves the fixture with it.
 import { env } from "cloudflare:test";
-import schema from "../generated/forecast.schema.json";
+import page from "../../site/your-forecast/forecast.json";
 import { randomId, sha256Hex, signToken } from "../src/crypto.js";
 
+const schema = page.schema;
 export { schema };
 export const roster = schema.properties.ward_calls.items.enum;
 export const nWards = schema.properties.ward_calls.minItems;
 
-// A valid forecast: wards called round-robin over the roster, combined shares equal
-// and nudged so they sum to exactly 100.
+// A valid entry (version 2): wards called round-robin over the roster, so every
+// party wins a ward and holds a vote on both ballots (R1, R2); the ballots
+// differ, so a test that confused them would see it.
 export function validForecast() {
-  const share = Math.floor(10000 / roster.length) / 100;
-  const pr = Object.fromEntries(roster.map(c => [c, share]));
-  pr[roster[0]] = Math.round((100 - share * (roster.length - 1)) * 100) / 100;
   return {
+    v: schema.properties.v.const,
     model_ref: schema.properties.model_ref.enum[0],
     ward_calls: Array.from({ length: nWards }, (_, i) => roster[i % roster.length]),
-    combined_share: pr,
+    ward_votes: Object.fromEntries(roster.map((c, i) => [c, 1000 + i])),
+    list_votes: Object.fromEntries(roster.map((c, i) => [c, 2000 - i])),
     coalition: [roster[0], roster[1]],
     mayor: roster[0],
     display_name: "Thandi M.",

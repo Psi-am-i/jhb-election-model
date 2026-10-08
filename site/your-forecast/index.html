@@ -254,7 +254,6 @@
             <div class="strip"></div>
             <div class="cap"><span class="capseats"></span><span class="capmaj"></span></div>
           </div>
-          <p class="stubnote yf-startnote yf-slot"></p>
           <p class="stubnote excess yf-slot"></p>
           <p class="visually-hidden announce" aria-live="polite"></p>
         </section>
@@ -266,13 +265,14 @@
           <div class="body">
             <!-- the footnote marker's number is drawn by css/your-forecast.css
                  (.yf-fnvote): this region holds no build-time digit -->
-            <p class="yf-oneline yf-sub">Each party's share of all votes, ward and list ballots together; moving one scales the
+            <p class="yf-oneline yf-sub">Each party's ward vote, with its list vote following it; moving one scales the
               others.<sup class="fn"><a class="yf-fnvote" href="#note-vote" aria-label="Note on the vote"></a></sup></p>
             <div class="row">
-              <button class="btn small model prmodel" type="button">Back to the start shares</button>
+              <button class="btn small model prmodel" type="button">Back to the start votes</button>
               <label class="find">Find a party <input class="prfind" type="search" autocomplete="off"></label>
             </div>
             <p class="floornote yf-slot" role="status"></p>
+            <p class="yf-totals yf-slot" role="status"></p>
             <div class="prlist"></div>
             <p class="yf-nextrow"><button class="btn small yf-next" type="button">Next: pick who governs</button></p>
           </div>
@@ -411,14 +411,15 @@
         changes larger than that.</li>
       <li id="note-law">The Municipal Structures Act deducts the surplus. Germany's laws are here for comparison, and only a
         council seated under South African law can be shared. Breaking the model always seats by South African law.</li>
-      <li id="note-vote">The vote in "Break the model" is the one the law counts: each party's share of the ward and
-        list ballots together, always adding up to the whole. Moving one party scales the others in proportion. A
-        party that wins a ward on your map always keeps a vote. The start shares give each party named in the
-        forecast its middle seat count, or its ward count where it is called for more wards than that. The middles need
-        not add up to the council's size: the seats left over go to the other parties, in proportion to their average
-        seats in the simulations. The list puts first the parties that hold a seat at the start, most seats first, and
-        the rest under "Other parties". The order stays fixed while you edit, so a party can sit in the first list with
-        no votes.</li>
+      <li id="note-vote">An election has two ballots, and "Break the model" sets both. Each party's ward vote is its
+        share of the ward ballot; its list vote follows it, as many points above or below as "Adjust list vote" says.
+        The law gives each party seats from its votes on both ballots together, and your prediction is scored on the
+        list vote. Moving one party scales the others in proportion. A party that wins a ward on your map keeps a vote on each ballot. The range each slider allows follows the wards on your map and goes a little
+        past the widest results in past local elections; a prediction from a link can lie outside it, and opens as it is. The start
+        is our prediction: each ward to the party that wins it in the most simulations, and each party's average
+        votes on each ballot across them. The list puts first the parties that hold a seat at the start, most seats
+        first, and the rest under "Other parties". The order stays fixed while you edit, so a party can sit in the
+        first list with no votes.</li>
       <li id="note-outcome">"This outcome" is your council's: the party with the most seats on its own, or a tie for
         the most; whether any one party has a majority on its own; and, if you picked who governs, that coalition
         holding a majority. Its chance is the share of the published forecast's <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-current="5,000" data-prov="5,000. Unchanged since 26 September 2026. Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> simulations, each counted

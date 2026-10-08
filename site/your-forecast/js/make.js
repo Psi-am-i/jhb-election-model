@@ -1,6 +1,7 @@
 // "Your forecast", section 2 ("Break the model"): the page. The reader calls
-// every ward, sets each party's share of the combined vote and picks who
-// governs; the seats come from the project's own seat code, run in the
+// every ward, sets each party's vote on the ward ballot (the list vote
+// following it, its gap set on its own) and picks who governs: a prediction
+// (STYLE.md rule 11; BRIEF change 13), entry version make-state.js FORMAT; the seats come from the project's own seat code, run in the
 // browser (js/make-worker.js). "Analyse my forecast" asks section 1's engine
 // what the published forecast gives the reader's (page.py analyse).
 //
@@ -21,18 +22,22 @@
 // are listed alphabetically wherever a reader chooses; nothing is preselected.
 // The vote list is two alphabetical lists, the parties seated at the
 // published start and then the rest, collapsed: an order fixed by the page,
-// not a ranking. §14: the builder can only hold a valid forecast
-// (js/builder-state.js); seats are recomputed after every edit by the seat
-// code the server would run.
+// not a ranking. The builder holds only a valid prediction (the seat law's
+// refusals, js/builder-state.js), and its editor keeps each party inside the
+// bounds the past results allow (schema x-editor-bounds, JUDGEMENT-CALLS §R);
+// a state from a link or a hand-off may lie outside them, opens as it is, and
+// says so. Seats are recomputed after every edit by the seat code the server
+// would run.
 //
 // WHERE IT STARTS (owner, 2026-10-03: section 2 "continues the same
 // forecast"). Untouched, section 1 is the published forecast and section 2
-// opens at the published start (src/build_make.py, your-forecast/forecast.json:
-// each ward's modal winner, and shares that seat each named party at its
-// published middle). Once section 1 moves, its engine hands section 2 the same
-// rule on the reader's weighted draws (page.py handoff, src/start_rule.py):
-// each ward's most likely winner under the reader's changes, and shares that
-// seat each named party at its middle under them.
+// opens at our prediction: decode(start.f) of your-forecast/forecast.json
+// (src/build_make.py), rule A on the published draws (src/prediction.py), and
+// the page refuses to start if that is not the prediction object it was built
+// from (guard G7). Once section 1 moves, its engine hands section 2 rule A on
+// the reader's weighted draws (page.py handoff), a prediction object opened by
+// builder-state.js stateFromPrediction, or a sentence saying why it could not
+// be (guard G8).
 //   * While the reader has not edited section 2, it follows section 1: each
 //     new setting there re-opens section 2 at its hand-off.
 //   * Once the reader has edited section 2, a new setting in section 1 does
@@ -96,6 +101,7 @@ const one = {
   prmodel: document.querySelector('[data-live="b-vote"] .prmodel'),
   prfind: document.querySelector('[data-live="b-vote"] .prfind'),
   floornote: document.querySelector('[data-live="b-vote"] .floornote'),
+  totals: document.querySelector('[data-live="b-vote"] .yf-totals'),
   prlist: document.querySelector('[data-live="b-vote"] .prlist'),
   next2: document.querySelector('[data-live="b-vote"] .yf-next'),
   govRegion: document.querySelector('[data-live="b-govern"]'),
@@ -109,7 +115,6 @@ const one = {
   capseats: document.querySelector('[data-live="b-council"] .capseats'),
   capmaj: document.querySelector('[data-live="b-council"] .capmaj'),
   excess: document.querySelector('[data-live="b-council"] .excess'),
-  startnote: document.querySelector('[data-live="b-council"] .yf-startnote'),
   announce: document.querySelector('[data-live="b-council"] .announce'),
   actions: document.querySelector('[data-live="b-actions"]'),
   analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
@@ -186,10 +191,9 @@ lock(true);
 
 // ---------- state, set when the section starts ----------
 let D, schema, geom, ctx, byCode, name, alpha;
-let pubStart;              // the published start (forecast.json)
+let pubStart;              // our prediction: decode(start.f) of forecast.json
 let from;                  // the start section 2 is open at: pubStart or a hand-off
 let adjusted = false;      // is `from` section 1's hand-off?
-let fromMiddle = {};       // `from`'s middle seat count per named party (start_rule "published")
 let state, S, history, map, worker;
 let result = null, seq = 0;
 let started = false;
@@ -200,8 +204,9 @@ let pinned = false;        // the start is a friend's forecast: section 1 never 
 let friend = null;         // { name, f, state, coalition, answer, outcome, leftOff, seal }
 let ownOutcome = null, outcomeTicket = 0;
 
-const pct = (v, dp = 1) => {
-  const p = v / ctx.T * 100;
+// `v` votes as a percent of `total`, for a reader to hear.
+const pct = (v, total, dp = 1) => {
+  const p = v / total * 100;
   return p > 0 && p < 0.05 ? "under 0.1" : p.toFixed(dp);
 };
 
@@ -210,15 +215,26 @@ let section1 = null;       // { settings, touched }, the newest setting section 
 let handSeq = 0, waiting = null;
 onForecast(f => { section1 = f; if (started) follow(); });
 
-// The forecast this section opens at from section 1's moved `settings`
-// (page.py handoff): { state, middle }, or { refused }. ONE definition: what
-// follow() opens at and what section 1's sheet seals (setHandoff, below) are
-// the same forecast by construction.
+// The prediction this section opens at from section 1's moved `settings`
+// (page.py handoff, rule A on the reader's weights), as builder-state.js
+// handoffResult decides it: { ok: true, state } or { ok: false, text, detail }.
+// ONE definition: what follow() opens at and what section 1's sheet seals
+// (setHandoff, below) are the same prediction by construction. A prediction
+// missing a ballot, a party or a ward is a failure: nothing is filled in.
 async function handoffState(settings) {
-  const h = await engineCall("handoff", { settings, total: ctx.T });
-  if (h.refused) return { refused: h.refused };
-  const calls = ctx.wards.map(w => h.ward_calls[w]);
-  return { state: B.startState(ctx, { calls, share: h.share }, pubStart.calls).state, middle: h.middle };
+  let h;
+  try { h = await engineCall("handoff", { settings }); } catch (e) { h = { threw: e }; }
+  return B.handoffResult(h, ctx);
+}
+
+// Section 2 could not open at section 1's settings: say so in a plain
+// sentence, keep the developer's detail for the console, and stay where it is.
+function followFailed(res) {
+  one.followText.textContent = "Your changes to the model could not be opened here: " + res.text + ".";
+  console.warn("hand-off refused:", res.detail);
+  waiting = null;
+  one.reseed.hidden = true;
+  one.follow.hidden = false;
 }
 
 async function follow() {
@@ -227,30 +243,30 @@ async function follow() {
   // follows once it has
   if (!f || !ctx || !from || arriving) return;
   let next;
-  if (!f.touched) next = { state: pubStart, adjusted: false, middle: D.start.published_middle };
+  if (!f.touched) next = { state: pubStart, adjusted: false };
   else {
-    let h;
-    try { h = await handoffState(f.settings); }
-    catch (e) { return; }                        // section 2 stays where it is
-    if (ticket !== handSeq) return;              // a newer setting is on its way
-    if (h.refused) return;
-    next = { state: h.state, adjusted: true, middle: h.middle };
+    const res = await handoffState(f.settings);
+    if (ticket !== handSeq) return;              // a newer setting is on its way: silent
+    if (!res.ok) { followFailed(res); return; }
+    next = { state: res.state, adjusted: true };
   }
+  one.reseed.hidden = false;
   if (fromLink) {
-    // a forecast opened from a link is the reader's: its start becomes
+    // a prediction opened from a link is the reader's: its start becomes
     // section 1's hand-off without a note, and nothing is overwritten
     fromLink = false;
-    ({ state: from, adjusted, middle: fromMiddle } = next);
+    ({ state: from, adjusted } = next);
     afterEdit();
     return;
   }
   if (MS.sameState(next.state, from, ctx)) { waiting = null; one.follow.hidden = true; return; }
   if (MS.sameState(state, from, ctx) && !pinned) {
     // unedited: section 2 follows section 1
-    ({ state: from, adjusted, middle: fromMiddle } = next);
+    ({ state: from, adjusted } = next);
     waiting = null;
     one.follow.hidden = true;
     state = from;
+    boundsNote(state);
     afterEdit();
   } else {
     waiting = next;
@@ -263,7 +279,7 @@ async function follow() {
 one.reseed.addEventListener("click", () => {
   if (!waiting) return;
   snapshot();
-  ({ state: from, adjusted, middle: fromMiddle } = waiting);
+  ({ state: from, adjusted } = waiting);
   waiting = null;
   one.follow.hidden = true;
   pinned = false;
@@ -307,15 +323,19 @@ async function start() {
   byCode = Object.fromEntries(schema["x-parties"].map(p => [p.code, p]));
   name = c => byCode[c].name;
   alpha = ctx.codes.slice().sort((a, b) => name(a).localeCompare(name(b)));
-  pubStart = B.startState(ctx, { calls: D.start.ward_calls, share: D.start.combined_share }, D.start.ward_calls).state;
+  // our prediction is decode(start.f), and it must be the prediction object
+  // the build wrote beside it (guard G7, page side)
+  pubStart = MS.decode(D.start.f, ctx).state;
+  if (!MS.sameState(pubStart, B.stateFromPrediction(ctx, D.start), ctx))
+    throw new Error("start.f is not our prediction: forecast.json is inconsistent");
   if (geom.wards.map(w => String(w.id)).join() !== ctx.wards.join()) throw new Error("the geometry and the schema disagree about the wards");
   from = pubStart;
-  fromMiddle = D.start.published_middle;
   const opened = MS.parse(YU.partOf(location.search, YU.BREAK_KEYS), ctx, D.context_ref, pubStart,
                           "Break the model opens at its start instead.");
   state = opened.state;
   S = { coalition: opened.coalition.slice(), brush: null };
   if (opened.note) { one.linknote.textContent = opened.note; one.linknote.hidden = false; }
+  else if (!MS.sameState(state, pubStart, ctx)) boundsNote(state);
   history = new B.History();
   map = new WardMap(one.svg, geom, { byCode, onPaint: paintWard, onFocusWard: focusTip });
   map.onClear = () => { one.hint.textContent = "Every ward needs a winner. Choose a party, then tap the ward to change it."; };
@@ -365,7 +385,7 @@ async function checkSeal() {
 const partyOf = c => parties[c] || { name: byCode[c] ? byCode[c].name : c, colour: "#8b918b", article: "", logo: false };
 function friendSpec() {
   return forecastSpec({ name: friend.name, answer: friend.answer, outcome: friend.outcome || { coalition: friend.coalition, text: "", badge: "" },
-    vote: B.percentOf(friend.state, ctx), calls: friend.state.calls, party: partyOf, baseline: D.baseline, election: D.election,
+    vote: B.percentOf(friend.state, ctx, "list"), calls: friend.state.calls, party: partyOf, baseline: D.baseline, election: D.election,
     made: friend.seal && friend.seal.state === "sealed" ? { at: friend.seal.at, sealed: true } : null });
 }
 function paintArrival() {
@@ -378,7 +398,7 @@ function paintArrival() {
 // arrival view, the return card and the reader's own card.
 function outcomeOf(st, coalition, answer) {
   return engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, st.calls[i]])),
-    share: B.percentOf(st, ctx), seats: answer.seats, majority: answer.majority, coalition, keep: [] }).then(a => a.outcome);
+    share: B.percentOf(st, ctx, "list"), seats: answer.seats, majority: answer.majority, coalition, keep: [] }).then(a => a.outcome);
 }
 async function friendOutcome() {
   if (!friend || !friend.answer || friend.outcome) return;
@@ -394,10 +414,11 @@ onChoose(kind => {
   YU.write("friend", YU.friendPart(friend.f, friend.name));
   snapshot();
   if (kind === "friend") {
-    from = friend.state; adjusted = false; fromMiddle = {}; pinned = true;
+    from = friend.state; adjusted = false; pinned = true;
     state = friend.state;
+    boundsNote(state);
   } else {
-    from = pubStart; adjusted = false; fromMiddle = D.start.published_middle; pinned = false;
+    from = pubStart; adjusted = false; pinned = false;
     state = pubStart; S.coalition = [];
   }
   one.status.textContent = "";
@@ -443,7 +464,7 @@ function handoffSeats(st) {
   if (handoffWaiting) handoffWaiting.ok(null);         // the lane answers only its newest request
   return new Promise(ok => {
     handoffWaiting = { seq: ++handoffSeq, ok };
-    worker.postMessage({ type: "seats", seq: handoffSeq, lane: "handoff", forecast: B.forecastBody(st, ctx) });
+    worker.postMessage({ type: "seats", seq: handoffSeq, lane: "handoff", forecast: B.entryBody(st, ctx) });
   });
 }
 setHandoff({
@@ -451,13 +472,13 @@ setHandoff({
     await begin();
     if (!ctx || !(await seatEngine)) throw new Error("the seat law did not load");
     const h = await handoffState(settings);
-    if (h.refused) throw new Error("the model refused these settings: " + h.refused);
+    if (!h.ok) throw new Error(h.text);
     const st = h.state;
     const answer = await handoffSeats(st);
     if (!answer) throw new Error("a newer setting replaced this one");
     const outcome = await outcomeOf(st, [], answer);
     return { fields: { v: MS.FORMAT, c: D.context_ref, f: MS.encode(st, [], ctx) }, answer, outcome,
-             vote: B.percentOf(st, ctx), calls: st.calls, party: partyOf, baseline: D.baseline, election: D.election, geom };
+             vote: B.percentOf(st, ctx, "list"), calls: st.calls, party: partyOf, baseline: D.baseline, election: D.election, geom };
   },
 });
 
@@ -469,22 +490,51 @@ function paintWard(i) {
   if (!S.brush) { one.hint.textContent = "Choose a party first, then tap the ward."; return; }
   if (state.calls[i] === S.brush) return;
   if (!strokeOpen) { snapshot(); strokeOpen = true; }
-  const r = B.assignWards(state, ctx, [i], S.brush);
-  commit(r.state, raisedNote(r.raised));
+  let r;
+  try { r = B.assignWards(state, ctx, [i], S.brush); }
+  catch (e) {
+    console.error("ward not painted:", e);
+    one.hint.textContent = "That ward could not be given to " + name(S.brush) + ": the votes would not fit the map. Try another ward or party.";
+    return;
+  }
+  commit(r.state, movedNote(r.moved));
 }
 window.addEventListener("pointerup", () => { strokeOpen = false; });
 one.svg.addEventListener("keyup", () => { strokeOpen = false; });
 
-function raisedNote(raised) {
-  if (!raised.length) return "";
-  return raised.map(name).join(", ") + (raised.length === 1 ? " had no votes and now wins a ward, so it was" : " had no votes and now win wards, so each was") +
-    " given one vote. A party that wins a ward must have votes.";
+// The parties whose ward vote a change of calls moved into its new range.
+function movedNote(moved) {
+  if (!moved.length) return "";
+  return moved.map(name).join(", ") + (moved.length === 1 ? "'s ward vote was" : "'s ward votes were") +
+    " moved to fit the wards on your map: a party's ward vote follows the wards it wins.";
+}
+// A prediction from a link, a hand-off or a friend that lies outside the
+// editor's range opens as it is, and the note names who. Each value outside
+// is clamped when it is next edited (builder-state.js): a ward vote at the
+// next change of any vote or ward, a list vote when that party's list vote is
+// next set. The note goes once the state is inside (afterEdit).
+let boundsShown = false;
+function boundsNote(st) {
+  const out = B.outOfBounds(st, ctx);
+  if (!out.length) return;
+  const who = [...new Set(out.map(o => o.code))].map(name);
+  one.linknote.textContent = who.join(", ") + (who.length === 1 ? " is" : " are") +
+    " outside the range this page lets you set for the wards on the map. The prediction opens as it is. A ward vote outside" +
+    " its range moves inside at your next change of any vote or ward; a list vote, when you next set that party's list vote.";
+  one.linknote.hidden = false;
+  boundsShown = true;
+}
+function clearBoundsNote() {
+  if (!boundsShown || B.outOfBounds(state, ctx).length) return;
+  one.linknote.textContent = "";
+  one.linknote.hidden = true;
+  boundsShown = false;
 }
 function setCallsFrom(calls) {
   if (locked) return;
   snapshot();
   const r = B.setCalls(state, ctx, calls);
-  commit(r.state, raisedNote(r.raised));
+  commit(r.state, movedNote(r.moved));
 }
 
 // The brush: a chip for each of the parties with the most seats in the
@@ -567,7 +617,7 @@ function buildList() {
       s.addEventListener("change", () => {
         snapshot();
         const r = B.assignWards(state, ctx, [i], s.value);
-        commit(r.state, raisedNote(r.raised));
+        commit(r.state, movedNote(r.moved));
       });
       const got = analysed ? analysed.wards[ctx.wards[i]] : null;
       rows.push(el("tr", {}, el("th", { scope: "row" }, "Ward " + w.id),
@@ -606,12 +656,18 @@ one.undo.addEventListener("click", () => {
 });
 
 // ---------- the vote: a table with the seat table's columns ----------
-// Party | slider | percent, one identical row per party. The parties that
-// hold a seat in the published start come first, most seats first as the
-// seat table orders them; every other party, alphabetical, in a collapsed
-// "Other parties". The order is the published start's, fixed for the page,
-// so a row never moves under the reader's finger; finding a party opens the
-// second list. The percent box is text with a decimal keypad: no spinner.
+// Party | slider | percent, one identical row per party, on the WARD ballot;
+// each row's list vote follows its ward vote, and a collapsed "Adjust list
+// vote" under it sets the list vote as points from the ward vote (STYLE.md
+// rule 11: every vote figure names its ballot). A party with no PR list has
+// no list control. The parties that hold a seat in the published start come
+// first, most seats first as the seat table orders them; every other party,
+// alphabetical, in a collapsed "Other parties". The order is the published
+// start's, fixed for the page, so a row never moves under the reader's
+// finger; finding a party opens the second list. The percent boxes are text
+// with a decimal keypad: no spinner. The slider's ends follow the party's
+// range for the wards on the map (builder-state.js wardBounds), so the reader
+// sees the range move as they paint.
 const rows = {};
 let rest;
 function buildVote() {
@@ -621,19 +677,33 @@ function buildVote() {
   const restList = el("div", { className: "prrest" });
   rest = el("details", { className: "rollup prmore" }, el("summary", {}, el("span", { className: "eyebrow" }, "Other parties")), restList);
   const head = el("div", { className: "prrow prhead", "aria-hidden": "true" },
-    el("span", {}, "Party"), el("span", {}, "Share of all votes"), el("span", { className: "prpct" }, "%"));
+    el("span", {}, "Party"), el("span", {}, "Ward vote"), el("span", { className: "prpct" }, "Ward vote %"));
   one.prlist.append(head);
   for (const c of [...seatedAtStart, ...alpha.filter(x => !seatedAtStart.includes(x))]) {
     const num = el("input", { type: "text", id: "pr-n-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
                               disabled: true, className: "prnum" });
-    const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", share of all votes, percent" });
+    const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", ward vote, percent" });
     const fl = el("span", { className: "fl" });
-    const row = el("div", { className: "prrow" }, el("label", { htmlFor: "pr-n-" + c, className: "prname" }, sw(c), name(c)), rng, num, fl);
+    let gap = null, gapText = null;
+    const parts = [el("label", { htmlFor: "pr-n-" + c, className: "prname" }, sw(c), name(c)), rng, num, fl];
+    if (ctx.noList.has(c)) {
+      parts.push(el("p", { className: "prgap prgap-none" }, "Ward ballot only: no list."));
+    } else {
+      gap = el("input", { type: "text", id: "pr-g-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
+                          disabled: true, className: "prnum prgapnum" });
+      gapText = el("span", { className: "prgaptext" });
+      parts.push(el("details", { className: "prgap" }, el("summary", {}, "Adjust list vote"),
+        el("label", { htmlFor: "pr-g-" + c }, "List vote: points from ward vote "), gap, gapText));
+      gap.addEventListener("change", () => editGap(c, gap.value));
+      gap.addEventListener("keydown", e => { if (e.key === "Enter") editGap(c, gap.value); });
+      editables.push(gap);
+    }
+    const row = el("div", { className: "prrow" }, ...parts);
     num.addEventListener("change", () => editShare(c, num.value, true, null));
     num.addEventListener("keydown", e => { if (e.key === "Enter") editShare(c, num.value, true, null); });
     rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
     rng.addEventListener("change", () => editShare(c, rng.value, true, null));
-    rows[c] = { row, num, rng, fl, seated: seatedAtStart.includes(c) };
+    rows[c] = { row, num, rng, fl, gap, gapText, seated: seatedAtStart.includes(c) };
     if (!firstVote) firstVote = rng;
     editables.push(num, rng);
     (rows[c].seated ? one.prlist : restList).append(row);
@@ -648,15 +718,25 @@ one.prfind.addEventListener("input", () => {
   if (q && alpha.some(c => !rows[c].seated && !rows[c].row.hidden)) rest.open = true;
 });
 
+const signed1 = x => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(1);
 function paintShares(except = null) {
-  const floors = B.floorsOf(state.calls, ctx);
+  const Tw = B.totalOf(state, "ward"), Tl = B.totalOf(state, "list");
+  const { floor, ceil } = B.wardBounds(state.calls, ctx, Tw);
   for (const c of alpha) {
-    const v = state.votes[c], r = rows[c], p = v / ctx.T * 100;
+    const v = state.ward[c], r = rows[c], p = v / Tw * 100;
     if (r.num !== except) r.num.value = p.toFixed(1);
     if (r.rng !== except) r.rng.value = p.toFixed(1);
-    r.rng.setAttribute("aria-valuetext", pct(v) + " percent");
-    r.fl.textContent = floors[c] && v === floors[c] ? "One vote: the least a ward winner may have." : "";
+    r.rng.setAttribute("min", (floor[c] / Tw * 100).toFixed(1));
+    r.rng.setAttribute("max", (ceil[c] / Tw * 100).toFixed(1));
+    r.rng.setAttribute("aria-valuetext", pct(v, Tw) + " percent of the ward vote");
+    r.fl.textContent = floor[c] && v <= floor[c] ? "At the least its wards allow." : v >= ceil[c] ? "At the most its wards allow." : "";
+    if (r.gap) {
+      const g = B.gapOf(state, ctx, c);
+      if (document.activeElement !== r.gap) r.gap.value = signed1(g);
+      r.gapText.textContent = " List vote " + pct(state.list[c], Tl) + "%.";
+    }
   }
+  one.totals.textContent = "Ward ballot: " + Tw.toLocaleString("en-ZA") + " votes. List ballot: " + Tl.toLocaleString("en-ZA") + " votes.";
 }
 let openEdit = null;
 function editShare(c, raw, final, active) {
@@ -665,23 +745,35 @@ function editShare(c, raw, final, active) {
   if (!Number.isFinite(want)) { if (final) paintShares(); return; }
   if (openEdit !== c) { snapshot(); openEdit = c; }
   if (final) openEdit = null;
-  const r = B.setPercent(state, ctx, c, want);
+  const r = B.setWardPercent(state, ctx, c, want);
   let note = "";
   if (r.clamped === "floor") {
-    const held = state.calls.filter(x => x === c).length;
-    note = name(c) + " wins " + held + (held === 1 ? " ward" : " wards") + " on your map, so it keeps at least one vote. Give its wards to other parties to take it to zero.";
+    const Tw = B.totalOf(state, "ward");
+    note = name(c) + "'s ward vote cannot go below " + pct(B.wardBounds(state.calls, ctx, Tw).floor[c], Tw) +
+      "% with the wards it wins on your map. Give its wards to other parties to take it lower.";
   } else if (r.clamped === "ceiling") {
-    note = name(c) + " is at the most it can have: every other party that wins a ward keeps at least one vote.";
+    note = name(c) + " cannot pass the winner in wards it does not win, so its ward vote cannot go higher. Give it more wards to take it higher.";
   }
   state = r.state;
   one.floornote.textContent = note;
   afterEdit(final ? null : active);
 }
+function editGap(c, raw) {
+  if (!engineReady || locked) return;
+  const want = parseFloat(String(raw).replace("−", "-"));
+  if (!Number.isFinite(want)) { paintShares(); return; }
+  snapshot();
+  const r = B.setListGap(state, ctx, c, want);
+  const note = r.clamped === "gap_min" || r.clamped === "gap_max"
+    ? name(c) + "'s list vote is as far from its ward vote as this page allows, past the widest gap in past results."
+    : r.clamped === "others" ? name(c) + "'s list vote moved as far as it can without taking another party's list vote out of range." : "";
+  commit(r.state, note);
+}
 one.prmodel.addEventListener("click", () => {
   if (locked) return;
   snapshot();
-  const r = B.setCalls({ calls: state.calls, votes: { ...from.votes } }, ctx, state.calls);
-  commit(r.state, raisedNote(r.raised));
+  const r = B.setCalls({ calls: state.calls, ward: { ...from.ward }, list: { ...from.list } }, ctx, state.calls);
+  commit(r.state, movedNote(r.moved));
 });
 
 // ---------- recompute ----------
@@ -694,6 +786,7 @@ function commit(next, note = "") {
 function afterEdit(active = null) {
   const bad = B.invariantErrors(state, ctx);
   if (bad.length) throw new Error("the builder reached an invalid state: " + bad.join("; "));
+  clearBoundsNote();
   map.setCalls(state.calls);
   if (!one.listview.hidden) buildList();
   paintShares(active);
@@ -703,30 +796,8 @@ function afterEdit(active = null) {
   const whose = adjusted ? "your adjusted forecast's" : "the model's";
   one.nchanged.textContent = changed ? changed + (changed === 1 ? " changed from " + whose + " call" : " changed from " + whose + " calls")
     : "as " + whose.replace(/'s$/, "") + " calls them";
-  paintStartNote();
   writeURL();
-  if (engineReady) worker.postMessage({ type: "seats", seq: ++seq, forecast: B.forecastBody(state, ctx) });
-}
-
-// While the forecast is still its start: every named party whose start seats
-// were raised from its middle seat count to the wards it is called for, so a
-// start that differs from section 1's middles says where and why
-// (start_rule step 2, the ward floor; review of lane Y, 2026-10-03).
-function raisedAtStart() {
-  if (!MS.sameState(state, from, ctx)) return [];
-  const held = {};
-  for (const c of from.calls) held[c] = (held[c] || 0) + 1;
-  return Object.keys(fromMiddle || {}).filter(c => byCode[c] && (held[c] || 0) > fromMiddle[c])
-    .sort((a, b) => name(a).localeCompare(name(b)))
-    .map(c => ({ code: c, wards: held[c], middle: fromMiddle[c] }));
-}
-function raisedText(raised, whose) {
-  if (!raised.length) return "";
-  return raised.map(r => name(r.code) + " is called for " + r.wards + " wards, more than its middle seat count of " + r.middle +
-    " " + whose).join(". ") + ". " + (raised.length === 1 ? "It starts" : "Each starts") + " at its ward count.";
-}
-function paintStartNote() {
-  one.startnote.textContent = raisedText(raisedAtStart(), adjusted ? "under your changes" : "in the published forecast");
+  if (engineReady) worker.postMessage({ type: "seats", seq: ++seq, forecast: B.entryBody(state, ctx) });
 }
 
 function writeURL() {
@@ -837,17 +908,18 @@ function share() {
   const n = YU.currentName();
   setShareable({
     link: link.href, fields: { v: MS.FORMAT, c: D.context_ref, f, n }, name: n,
-    answer: result, outcome: ownOutcome, vote: B.percentOf(state, ctx), calls: state.calls, coalition: S.coalition,
+    answer: result, outcome: ownOutcome, vote: B.percentOf(state, ctx, "list"), calls: state.calls, coalition: S.coalition,
     party: partyOf, baseline: D.baseline, election: D.election, geom,
-    friend: friend ? { name: friend.name, answer: friend.answer, outcome: friend.outcome, vote: B.percentOf(friend.state, ctx),
+    friend: friend ? { name: friend.name, answer: friend.answer, outcome: friend.outcome, vote: B.percentOf(friend.state, ctx, "list"),
                        calls: friend.state.calls, leftOff: friend.leftOff } : null,
   });
 }
 onNameChange(n => { YU.write("name", n); if (result) share(); });
 
 // ---------- "Analyse my forecast" ----------
-// The reader's forecast, as page.py's analyse reads it: every ward's call, the
-// combined shares, the seats the law gives them. The answer is the published
+// The reader's prediction, as page.py's analyse reads it: every ward's call,
+// each party's percent of the list ballot (the ballot key 3 scores), the
+// seats the law gives them. The answer is the published
 // forecast's chances (page.py says how); shown in "b-analysis", and each
 // ward's chance on hover over the map. Once shown, it follows every edit.
 let analysed = null, analyseTimer = null, analyseTicket = 0;
@@ -867,7 +939,7 @@ async function analyse(scroll) {
   let a;
   try {
     a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
-                                      share: B.percentOf(state, ctx), seats: result.seats,
+                                      share: B.percentOf(state, ctx, "list"), seats: result.seats,
                                       majority: result.majority, coalition: S.coalition,
                                       keep: analysed ? Object.keys(analysed.seats) : [] });
   } catch (e) {
@@ -917,9 +989,9 @@ function paintAnalysis(a) {
   const sb = a.seat_band, pb = a.share_band;
   const head = el("tr", { className: "yf-wide" }, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
     el("th", { scope: "col", className: "num" }, "Our chance, within " + sb + " seats"),
-    el("th", { scope: "col", className: "num" }, "Your vote"),
+    el("th", { scope: "col", className: "num" }, "Your list vote"),
     el("th", { scope: "col", className: "num" }, "Our chance, within " + pb + " points (list ballot)"));
-  const seats = result.seats, share = B.percentOf(state, ctx);
+  const seats = result.seats, share = B.percentOf(state, ctx, "list");
   const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
   // two layouts of the same cells (css/your-forecast.css): one row per party,
   // or on a phone a party's seats and then its vote, each in its own row
@@ -935,7 +1007,7 @@ function paintAnalysis(a) {
       el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0) + " seats"),
       el("td", { className: "num", title: chanceSentence(a.seats[c].text) }, a.seats[c].text)),
     el("tr", { className: "yf-narrow" },
-      el("td", {}), el("td", { className: "num" }, yourVote(c) + " vote"),
+      el("td", {}), el("td", { className: "num" }, yourVote(c) + " list vote"),
       el("td", { className: "num", title: voteTitle(c) }, voteChance(c))),
   ]);
   const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
@@ -1004,7 +1076,7 @@ function onWorker(e) {
     afterEdit();
     one.undo.disabled = !history.size;
     if (friend && !arriving && !friend.answer)
-      worker.postMessage({ type: "seats", seq: 0, lane: "friend", forecast: B.forecastBody(friend.state, ctx, { coalition: friend.coalition }) });
+      worker.postMessage({ type: "seats", seq: 0, lane: "friend", forecast: B.entryBody(friend.state, ctx, { coalition: friend.coalition }) });
   } else if (m.type === "result" && m.lane === "handoff") {
     if (!handoffWaiting || m.seq !== handoffWaiting.seq) return;
     const w = handoffWaiting;

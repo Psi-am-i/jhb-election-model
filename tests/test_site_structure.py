@@ -854,5 +854,64 @@ def test_every_live_claim_passes_the_chance_scale_when_the_sheet_is_regenerated(
         assert r.returncode == 0, r.stdout[-800:] + r.stderr[-800:]
 
 
+
+# -- one entry schema (guard G13, audits/2026-10-07-prediction-restructure) ----
+
+#: Code that may name the retired placeholder ``worker-api/generated/
+#: forecast.schema.json``, and why. Anything else naming it is a second schema
+#: coming back.
+SCHEMA_NAMERS = {
+    "src/build_make.py": "its docstring records the retirement",
+    "worker-api/src/forecasts.js": "its import comment records the retirement",
+    "worker-api/tools/make_schema.mjs": "its header records the retirement",
+    "worker-api/test/node/build.test.js": "asserts the file is absent",
+    "tests/test_site_structure.py": "this guard",
+}
+#: The JavaScript modules that import a JSON file holding the entry schema: the
+#: page's data file, whose ``schema`` the build writes (build_make).
+SCHEMA_IMPORTERS = {"worker-api/src/forecasts.js", "worker-api/test/helpers.js",
+                    "worker-api/test/node/consent-screen.test.js"}
+_CODE = ("*.js", "*.mjs", "*.py", "*.json", "*.jsonc", "*.toml", "*.html")
+
+
+def _tracked_code() -> list[str]:
+    out = subprocess.run(["git", "ls-files", "--", *_CODE], cwd=ROOT, capture_output=True,
+                         text=True, check=True).stdout.split()
+    # a tracked file deleted in the working tree (not yet committed) is not code
+    return [f for f in out if not f.startswith(("site/", "audits/")) and "/node_modules/" not in f
+            and (ROOT / f).is_file()]
+
+
+def schema_problems(files: dict[str, str]) -> list[str]:
+    """Every way a second entry schema could exist, as sentences."""
+    out = []
+    named = {f for f, text in files.items() if "forecast.schema.json" in text}
+    if named != set(SCHEMA_NAMERS):
+        out.append(f"files naming forecast.schema.json: {sorted(named ^ set(SCHEMA_NAMERS))} "
+                   f"differ from the declared list, one way or the other")
+    imports = {f: re.findall(r'^import \w+ from "([^"]+\.json)"', text, re.M) for f, text in files.items()
+               if f.endswith((".js", ".mjs"))}
+    schemas = {f for f, paths in imports.items() if any(p.endswith("forecast.json") or "schema" in p for p in paths)}
+    if schemas != SCHEMA_IMPORTERS:
+        out.append(f"modules importing a schema file: {sorted(schemas ^ SCHEMA_IMPORTERS)} differ from the declared list")
+    if (ROOT / "worker-api" / "generated" / "forecast.schema.json").exists():
+        out.append("the retired placeholder schema exists again")
+    return out
+
+
+def test_one_entry_schema():
+    files = {f: (ROOT / f).read_text(encoding="utf-8", errors="replace") for f in _tracked_code()}
+    # it looked: the population is the repository's code, and holds the declared files
+    assert len(files) > 100 and set(SCHEMA_NAMERS) | SCHEMA_IMPORTERS <= set(files), len(files)
+    assert schema_problems(files) == []
+    # it can see, both ways, and goes quiet again
+    extra = dict(files, **{"interactive/js/x.js": 'fetch("../worker-api/generated/forecast.schema.json")'})
+    assert schema_problems(extra)
+    second = dict(files, **{"interactive/js/y.js": 'import s from "../fixtures/entry.schema.json";'})
+    assert schema_problems(second)
+    lost = {f: t for f, t in files.items() if f != "worker-api/test/helpers.js"}
+    assert schema_problems(lost)
+    assert schema_problems(files) == []
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

@@ -1,0 +1,12 @@
+-- joburg-entries: the entry version (audits/2026-10-07-prediction-restructure,
+-- slice B; owner 2026-10-08). An entry is a reader's prediction; version 2
+-- holds whole votes on the ward ballot and on the list ballot
+-- (interactive/js/make-state.js FORMAT). Rows stored before this migration
+-- were version 1 (one combined share) and read as 1 by the default; the
+-- scorer refuses them by name (src/rank_entries.py). The new site Worker
+-- binds 2 (src/share-edge.js entryRow).
+--
+-- Applied by the owner as step 1 of the release order in docs/DEPLOY-UAT.md
+-- ("Releasing entry version 2"), before the Worker that binds the column is
+-- promoted (the old Worker's seven-column insert still works after it).
+ALTER TABLE entries ADD COLUMN version INTEGER NOT NULL DEFAULT 1;

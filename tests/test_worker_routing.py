@@ -806,26 +806,28 @@ def _share_setup() -> dict:
     data = build_make.forecast_data()
     (t / "forecast.json").write_text(json.dumps(data), encoding="utf-8")
     (t / "parties.json").write_bytes(build_play.roster_json())
-    # the published start with a coalition, through the page's own encoder
+    # our prediction (decode(start.f), what the page opens on) with a
+    # coalition, through the page's own encoder
     script = r"""
 import { readFileSync } from "node:fs";
 import * as B from "%s";
 import * as MS from "%s";
 const D = JSON.parse(readFileSync(process.argv[2], "utf8"));
 const ctx = B.contextOf(D.schema);
-const st = B.startState(ctx, { calls: D.start.ward_calls, share: D.start.combined_share }, D.start.ward_calls).state;
+const st = MS.decode(D.start.f, ctx).state;
 const seats = D.start.seats;
 const top = Object.keys(seats).sort((a, b) => seats[b] - seats[a]).slice(0, 2);
 const other = B.assignWards(st, ctx, [0], st.calls[1] === st.calls[0] ? top[1] : st.calls[1]).state;
 process.stdout.write(JSON.stringify({ f: MS.encode(st, top, ctx), f2: MS.encode(other, [top[0]], ctx),
-  calls: st.calls, top }));
+  calls: st.calls, ward: st.ward, list: st.list, top, fmt: MS.FORMAT }));
 """ % ((ROOT / "interactive/js/builder-state.js").as_uri(), (ROOT / "interactive/js/make-state.js").as_uri())
     (t / "enc.mjs").write_text(script, encoding="utf-8")
     p = subprocess.run([_node(), str(t / "enc.mjs"), str(t / "forecast.json")],
                        capture_output=True, text=True, timeout=120)
     assert p.returncode == 0, p.stderr
     enc = json.loads(p.stdout)
-    _SHARE.update(dir=t, data=data, link=f"v=1&c={data['context_ref']}&f={enc['f']}", f=enc["f"],
+    _SHARE.update(dir=t, data=data, link=f"v={enc['fmt']}&c={data['context_ref']}&f={enc['f']}", f=enc["f"],
+                  fmt=enc["fmt"], ward=enc["ward"], list=enc["list"],
                   f2=enc["f2"], calls=enc["calls"], top=enc["top"],
                   files={"/your-forecast/forecast.json": t / "forecast.json",
                          "/your-forecast/parties.json": t / "parties.json",
@@ -963,7 +965,7 @@ SEAL = f"https://{JOBURG}/seal/1"
 
 def _seal_cases(S, now, env, **body):
     return {"url": SEAL, "method": "POST", "now": now, "env": env,
-            "body": {"v": "1", "c": S["data"]["context_ref"], "f": S["f"], "n": "Thandi", **body}}
+            "body": {"v": S["fmt"], "c": S["data"]["context_ref"], "f": S["f"], "n": "Thandi", **body}}
 
 
 def seal_problems(src: str, overrides: dict | None = None) -> list[str]:

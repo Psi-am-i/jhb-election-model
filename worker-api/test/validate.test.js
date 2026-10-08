@@ -1,6 +1,7 @@
 // Each refusal is tested with a CONSTRUCTED violation of an otherwise valid
-// forecast, and the same forecast without the violation is accepted, so a
-// refusal is caused by the violation and nothing else.
+// entry (version 2: whole votes on the ward and list ballots), and the same
+// entry without the violation is accepted, so a refusal is caused by the
+// violation and nothing else.
 import { describe, it, expect } from "vitest";
 import { validateForecast, cleanDisplayName } from "../src/validate.js";
 import { schema, roster, nWards, validForecast, clone } from "./helpers.js";
@@ -16,9 +17,15 @@ const REFUSALS = [
   ["client sends seats", f => ({ ...f, seats: { [roster[0]]: 270 } }), "seats"],
   ["client sends an id", f => ({ ...f, id: "abcdefghij" }), "id"],
   ["__proto__ key", f => JSON.parse(JSON.stringify(f).replace(/^\{/, '{"__proto__":{"x":1},')), "__proto__"],
+  ["v missing", f => { delete f.v; return f; }, "v"],
+  ["v of another version", f => ({ ...f, v: "1" }), "v"],
+  // guard G12: a version 1 body (one combined share) is refused on its version
+  ["a version 1 body", f => { const { ward_votes, list_votes, ...rest } = f;
+    return { ...rest, v: "1", combined_share: Object.fromEntries(roster.map(c => [c, 100 / roster.length])) }; }, "v"],
   ["model_ref missing", f => { delete f.model_ref; return f; }, "model_ref"],
   ["ward_calls missing", f => { delete f.ward_calls; return f; }, "ward_calls"],
-  ["combined_share missing", f => { delete f.combined_share; return f; }, "combined_share"],
+  ["ward_votes missing", f => { delete f.ward_votes; return f; }, "ward_votes"],
+  ["list_votes missing", f => { delete f.list_votes; return f; }, "list_votes"],
   ["coalition missing", f => { delete f.coalition; return f; }, "coalition"],
   ["model_ref not published", f => ({ ...f, model_ref: "not-a-run" }), "model_ref"],
   ["ward_calls not an array", f => ({ ...f, ward_calls: {} }), "ward_calls"],
@@ -28,18 +35,21 @@ const REFUSALS = [
   ["ward call empty", f => { f.ward_calls[0] = ""; return f; }, "ward_calls[0]"],
   ["ward call null (uncalled ward)", f => { f.ward_calls[nWards - 1] = null; return f; }, `ward_calls[${nWards - 1}]`],
   ["ward call a number", f => { f.ward_calls[3] = 1; return f; }, "ward_calls[3]"],
-  ["combined_share an array", f => ({ ...f, combined_share: [] }), "combined_share"],
-  ["combined_share party missing", f => { delete f.combined_share[last]; return f; }, `combined_share.${last}`],
-  ["combined_share extra party", f => { f.combined_share.NOPE = 0; return f; }, "combined_share.NOPE"],
-  ["combined_share a string", f => { f.combined_share[last] = "5"; return f; }, `combined_share.${last}`],
-  ["combined_share NaN", f => { f.combined_share[last] = NaN; return f; }, `combined_share.${last}`],
-  ["combined_share Infinity", f => { f.combined_share[last] = Infinity; return f; }, `combined_share.${last}`],
-  ["combined_share negative", f => { f.combined_share[roster[0]] += f.combined_share[last] + 1; f.combined_share[last] = -1; return f; }, `combined_share.${last}`],
-  ["combined_share over 100", f => { f.combined_share[last] = 101; return f; }, `combined_share.${last}`],
-  ["combined_share sums to 100.6", f => { f.combined_share[roster[0]] += 0.6; return f; }, "combined_share"],
-  ["combined_share sums to 99.4", f => { f.combined_share[roster[0]] -= 0.6; return f; }, "combined_share"],
+  ...["ward_votes", "list_votes"].flatMap(b => [
+    [`${b} an array`, f => ({ ...f, [b]: [] }), b],
+    [`${b} party missing`, f => { delete f[b][last]; return f; }, `${b}.${last}`],
+    [`${b} extra party`, f => { f[b].NOPE = 0; return f; }, `${b}.NOPE`],
+    [`${b} a string`, f => { f[b][last] = "5"; return f; }, `${b}.${last}`],
+    [`${b} a fraction`, f => { f[b][last] = 5.5; return f; }, `${b}.${last}`],
+    [`${b} NaN`, f => { f[b][last] = NaN; return f; }, `${b}.${last}`],
+    [`${b} negative`, f => { f[b][last] = -1; return f; }, `${b}.${last}`],
+    [`${b} past a safe integer`, f => { f[b][last] = 2 ** 53; return f; }, `${b}.${last}`],
+  ]),
+  // R1 and R2: a ward winner with no ward vote, or no list vote
+  ["R1: a ward winner with no ward vote", f => { f.ward_votes[roster[0]] = 0; return f; }, `ward_votes.${roster[0]}`],
+  ["R2: a ward winner with no list vote", f => { f.list_votes[roster[0]] = 0; return f; }, `list_votes.${roster[0]}`],
+  ["a ballot with no vote", f => { for (const c of roster) f.list_votes[c] = 0; return f; }, "list_votes"],
   ["coalition not an array", f => ({ ...f, coalition: roster[0] }), "coalition"],
-  ["coalition empty", f => ({ ...f, coalition: [], mayor: null }), "coalition"],
   ["coalition off the roster", f => ({ ...f, coalition: [roster[0], "NOPE"] }), "coalition[1]"],
   ["coalition duplicate", f => ({ ...f, coalition: [roster[0], roster[0]] }), "coalition"],
   ["mayor off the roster", f => ({ ...f, mayor: "NOPE" }), "mayor"],
@@ -80,8 +90,17 @@ describe("validateForecast refusals", () => {
 });
 
 describe("validateForecast acceptances", () => {
-  it("accepts PR shares inside the tolerance", () => {
-    const f = validForecast(); f.combined_share[roster[0]] += 0.4;
+  it("accepts any ballot totals: each ballot's total is the sum of its votes", () => {
+    const f = validForecast(); f.list_votes[roster[0]] += 123456;
+    expect(v(f).ok).toBe(true);
+  });
+  it("accepts a party that wins no ward with no vote on either ballot", () => {
+    const f = validForecast(); f.ward_calls = f.ward_calls.map(c => (c === last ? roster[0] : c));
+    f.ward_votes[last] = 0; f.list_votes[last] = 0;
+    expect(v(f).ok).toBe(true);
+  });
+  it("accepts no coalition: who governs is optional and not scored", () => {
+    const f = validForecast(); f.coalition = []; f.mayor = null;
     expect(v(f).ok).toBe(true);
   });
   it("accepts a null mayor and no display name", () => {
@@ -90,12 +109,14 @@ describe("validateForecast acceptances", () => {
     expect(r.ok).toBe(true);
     expect(r.value.display_name).toBe(null);
   });
-  it("rebuilds the value: combined_share in roster order, no caller-attached keys", () => {
+  it("rebuilds the value: both ballots in roster order, no caller-attached keys", () => {
     const f = validForecast();
-    f.combined_share = Object.fromEntries(Object.entries(f.combined_share).reverse());
+    f.ward_votes = Object.fromEntries(Object.entries(f.ward_votes).reverse());
+    f.list_votes = Object.fromEntries(Object.entries(f.list_votes).reverse());
     const r = v(f);
-    expect(Object.keys(r.value.combined_share)).toEqual(roster);
-    expect(Object.keys(r.value).sort()).toEqual(["coalition", "combined_share", "display_name", "mayor", "model_ref", "ward_calls"]);
+    expect(Object.keys(r.value.ward_votes)).toEqual(roster);
+    expect(Object.keys(r.value.list_votes)).toEqual(roster);
+    expect(Object.keys(r.value).sort()).toEqual(["coalition", "display_name", "list_votes", "mayor", "model_ref", "v", "ward_calls", "ward_votes"]);
   });
 });
 
@@ -120,6 +141,7 @@ describe("the schema scanned the right population", () => {
     expect(schema["x-ward-ids"].length).toBe(schema["x-council"].ward_seats);
     expect(nWards).toBe(schema["x-council"].ward_seats);
     expect(roster).toEqual(schema["x-parties"].map(p => p.code));
-    expect(Object.keys(schema.properties.combined_share.properties)).toEqual(roster);
+    expect(Object.keys(schema.properties.ward_votes.properties)).toEqual(roster);
+    expect(Object.keys(schema.properties.list_votes.properties)).toEqual(roster);
   });
 });

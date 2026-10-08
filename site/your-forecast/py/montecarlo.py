@@ -3499,6 +3499,18 @@ class ModelRun:
     # reporting only the seat error hides which of those is happening.
     pr_share_draws: np.ndarray | None = None
     ward_share_draws: np.ndarray | None = None
+    # The whole votes per ballot per draw that the seat law read, (draws,
+    # parties) int64, columns in `universe` order: exactly the two arguments
+    # each draw handed `seats.eligible_parties` (`pr_totals_d`, `ward_totals_d`
+    # in the loop). Recorded from values already computed, so they change no
+    # draw: the one-off proof against the tree before them is
+    # audits/2026-10-07-prediction-restructure/backtest/no_draw_moved.py
+    # (result in MODEL-LOG §1.291), and tests/test_draw_record.py compares
+    # every `*draws` field of the live run with an independently wrapped one.
+    # Rule A (`src/prediction.py`) reduces them to our prediction; shares times
+    # totals cannot reproduce these integers (SPEC-A M4), so they are kept whole.
+    pr_vote_draws: np.ndarray | None = None
+    ward_vote_draws: np.ndarray | None = None
     # The turnout each voter pool received in each draw, (draws, pools), with
     # the pool names in `pool_turnout_names` order. A tied group's members all
     # carry the group's one shared shock. Recorded from values already drawn,
@@ -3867,6 +3879,18 @@ def run_model(target, scenario: dict,
       the local ward terms have nothing to act on. The code path is the same
       one; the evidence does not exist.
     * **Split voting districts.** See :func:`ward_parts`.
+
+    **Two recorded fields, ``pr_vote_draws`` and ``ward_vote_draws``**, hold each
+    draw's whole votes per ballot exactly as the seat law read them
+    (``eligible_parties``' two arguments). They are copied from dicts the loop
+    already built, with no random call and no reordering, so they move no draw.
+    The proof against the tree before them is a one-off,
+    ``audits/2026-10-07-prediction-restructure/backtest/no_draw_moved.py``
+    (result in MODEL-LOG §1.291); ``test_draw_record.py`` compares every
+    ``*draws`` field of the live run with an independently wrapped one, and
+    ``test_chain.py::test_the_seat_law_on_recorded_votes_is_every_draw_s_council``
+    shows they are the integers the law read. Rule A (``src/prediction.py``)
+    reads them.
     """
 
     _reset_cap_counters()
@@ -5135,6 +5159,8 @@ def run_model(target, scenario: dict,
     bounds_checked = 0
     pr_share_draws = np.zeros((draws, npar))
     ward_share_draws = np.zeros((draws, npar))
+    pr_vote_draws = np.zeros((draws, npar), dtype=np.int64)
+    ward_vote_draws = np.zeros((draws, npar), dtype=np.int64)
 
     for d in range(draws):
         pr_target = draw_target()
@@ -5225,6 +5251,8 @@ def run_model(target, scenario: dict,
                          for i in range(npar)}
         pr_totals_d = {universe[i]: int(round(pr_votes[i]))
                        for i in range(npar)}
+        ward_vote_draws[d] = [ward_totals_d[universe[i]] for i in range(npar)]
+        pr_vote_draws[d] = [pr_totals_d[universe[i]] for i in range(npar)]
         combined = eligible_parties(ward_totals_d, pr_totals_d)
 
         # C and D: the ward seats that leave the pool WITH the councillor, and
@@ -5329,6 +5357,8 @@ def run_model(target, scenario: dict,
     })
     trace.put("42_pr_share_draws", pr_share_draws, detail=True)
     trace.put("43_ward_share_draws", ward_share_draws, detail=True)
+    trace.put("42a_pr_vote_draws", pr_vote_draws, detail=True)
+    trace.put("43a_ward_vote_draws", ward_vote_draws, detail=True)
     trace.put("44_seat_draws", seat_draws, detail=True)
     # THE DELIVERY PROOF. Written LAST and after `note_module_constants`, which
     # reads `sys.modules` and imports nothing: by here every module this run
@@ -5360,6 +5390,7 @@ def run_model(target, scenario: dict,
         ipf_headroom=dict(_ipf_stats.get("headroom") or {}),
         notes=notes, gamma_source=gamma_source, ratio=ratio, n_vd=nvd,
         pr_share_draws=pr_share_draws, ward_share_draws=ward_share_draws,
+        pr_vote_draws=pr_vote_draws, ward_vote_draws=ward_vote_draws,
         pool_turnout_draws=pool_turnout_draws,
         pool_turnout_names=_turnout_pools,
         roster_state=_roster_state, roster_size=len(_roster),

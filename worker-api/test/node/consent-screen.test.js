@@ -11,8 +11,9 @@ import { consentScreenHTML, PROVIDERS as PAGE_PROVIDERS } from "../../../interac
 import { LABEL_WORDS, LABEL_MAX_NUMBER, LABEL_RE, randomLabel, randomBelow, handleLabel } from "../../../interactive/js/labels.js";
 import { cleanDisplayName } from "../../src/validate.js";
 import { BLOCKED_NAME_PATTERNS } from "../../src/blocklist.js";
-import schema from "../../generated/forecast.schema.json" with { type: "json" };
+import page from "../../../site/your-forecast/forecast.json" with { type: "json" };
 
+const schema = page.schema;
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const repo = resolve(root, "..");
 const text = html => html.replace(/<[^>]+>/g, " ").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
@@ -41,8 +42,7 @@ describe("the page sends exactly the keys the server accepts (R5 finding 6)", ()
     expect(PAGE_PROVIDERS).toContain("microsoft");
     for (const p of PAGE_PROVIDERS) expect(PROVIDER_LABELS[p]).toBeTruthy();
     const ui = readFileSync(resolve(repo, "interactive/js/auth-ui.js"), "utf8");
-    const stub = readFileSync(resolve(repo, "interactive/js/api-stub.js"), "utf8");
-    for (const t of [ui, stub]) expect(t).not.toMatch(/sign-in link|magic|\/auth\/email/i);
+    expect(ui).not.toMatch(/sign-in link|magic|\/auth\/email/i);
   });
 });
 

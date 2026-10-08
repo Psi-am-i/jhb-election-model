@@ -57,9 +57,10 @@ def _sig(n: int) -> str:
     return f"{n:012d}".replace("0", "A") + "x" * 31
 
 
-def _row(n, forecast, sealed_at, label=""):
+def _row(n, forecast, sealed_at, label="", version=None):
     return {"seal_id": _sig(n), "sealed_at": sealed_at, "label": label, "model_ref": "r-test",
-            "context_ref": CTX, "state": "AAAA", "forecast": json.dumps(forecast)}
+            "context_ref": CTX, "state": "AAAA", "forecast": json.dumps(forecast),
+            "version": int(RE._format()) if version is None else version}
 
 
 def _setup():
@@ -68,20 +69,23 @@ def _setup():
     base = T._self_forecast(result, schema)
     wards = schema["x-ward-ids"]
     parties = schema["x-seat-context"]["parties"]
-    by_size = sorted(base["combined_share"], key=lambda p: -base["combined_share"][p])
-    target = schema["x-share-sum"]["target"]
+    by_size = sorted(base["list_votes"], key=lambda p: -base["list_votes"][p])
+    pool = T._pool_total(base)
 
     def moved(frm, to, frac):
+        """``frac`` of the pooled votes moved on the list ballot."""
         f = copy.deepcopy(base)
-        f["combined_share"][by_size[frm]] -= target * frac
-        f["combined_share"][by_size[to]] += target * frac
+        n = int(pool * frac)
+        f["list_votes"][by_size[frm]] -= n
+        f["list_votes"][by_size[to]] += n
         return f
 
     # ward 0 called for another party, with the seats still right: worse on
     # wards only
     ward_miss = None
     for p in parties:
-        if p == result["wards"][wards[0]] or base["combined_share"].get(p, 0) <= 0:
+        if p == result["wards"][wards[0]] or not (base["list_votes"].get(p, 0) > 0
+                                                  and base["ward_votes"].get(p, 0) > 0):
             continue
         f = copy.deepcopy(base)
         f["ward_calls"][0] = p
@@ -198,10 +202,10 @@ def test_the_board_ranks_on_the_vote_error_it_prints():
     value it would place after them while the page showed the same figures."""
     result, schema, rows = _setup()
     sliver = json.loads(rows[0]["forecast"])
-    big = sorted(sliver["combined_share"], key=lambda p: -sliver["combined_share"][p])[:2]
-    eps = schema["x-share-sum"]["target"] * 1e-5
-    sliver["combined_share"][big[0]] -= eps
-    sliver["combined_share"][big[1]] += eps
+    big = sorted(sliver["list_votes"], key=lambda p: -sliver["list_votes"][p])[:2]
+    eps = max(1, int(sum(sliver["list_votes"].values()) * 1e-5))     # list votes, a sliver
+    sliver["list_votes"][big[0]] -= eps
+    sliver["list_votes"][big[1]] += eps
     raw = S.score(sliver, schema, result)["list_vote_error"]
     perfect = S.score(json.loads(rows[0]["forecast"]), schema, result)["list_vote_error"]
     assert raw != perfect and round(raw, RE.VOTE_DP) == round(perfect, RE.VOTE_DP)
@@ -288,6 +292,69 @@ def test_an_entry_that_cannot_be_ranked_stops_the_ranking():
         raise AssertionError("an unscorable entry was ranked")
     except ValueError as e:
         assert _sig(4) in str(e)
+
+
+def test_a_row_of_another_version_is_refused_by_name():
+    """Guard G12. A row stored under another entry version (version 1 held one
+    combined share) stops the ranking, naming its seal id, before anything is
+    scored; every row of the version the schema reads ranks."""
+    result, schema, rows = _setup()
+    assert _board(rows)["entries"] == len(rows)
+    old = copy.deepcopy(rows)
+    old[4]["version"] = 1
+    try:
+        _board(old)
+        raise AssertionError("a row of another version was ranked")
+    except ValueError as e:
+        assert _sig(5) in str(e) and "version" in str(e)
+        assert _sig(1) not in str(e)
+    old[4]["version"] = int(RE._format())
+    assert _board(old)["entries"] == len(rows)
+
+
+class _D1:
+    """A stand-in for ``npx wrangler d1 execute --json``: answers COUNT(*) from
+    a count it holds and records every command; a DELETE empties it."""
+
+    def __init__(self, n):
+        self.n, self.commands = n, []
+
+    def __call__(self, cmd, **kw):
+        sql = cmd[cmd.index("--command") + 1]
+        self.commands.append(sql)
+        if sql.startswith("DELETE"):
+            self.n = 0
+        body = [{"results": [{"n": self.n}] if "COUNT" in sql else [], "success": True}]
+        return type("Done", (), {"returncode": 0, "stdout": json.dumps(body), "stderr": ""})()
+
+
+def test_clearing_a_version_prints_the_count_first_and_needs_it_confirmed():
+    """The release step for the old test entries (owner, 2026-10-08): counted
+    and printed, nothing deleted without --confirm; a confirm that is not the
+    count now deletes nothing; the version the scorer reads is never cleared."""
+    import contextlib
+    import io
+    d1 = _D1(7)
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        assert RE.clear_version(1, run=d1) == 0
+    assert "7 entries of version 1" in out.getvalue()
+    assert not any(c.startswith("DELETE") for c in d1.commands)
+    try:
+        RE.clear_version(1, 6, run=d1)
+        raise AssertionError("a stale count deleted")
+    except SystemExit as e:
+        assert "not the count now" in str(e)
+    assert not any(c.startswith("DELETE") for c in d1.commands)
+    with contextlib.redirect_stdout(io.StringIO()):
+        assert RE.clear_version(1, 7, run=d1) == 7
+    assert [c for c in d1.commands if c.startswith("DELETE")] == ["DELETE FROM entries WHERE version = 1"]
+    try:
+        RE.clear_version(int(RE._format()), 0, run=_D1(0))
+        raise AssertionError("the version the scorer reads was cleared")
+    except SystemExit as e:
+        assert "the scorer reads" in str(e)
+    assert RE.entries_database() == "joburg-entries"
 
 
 # ----------------------------------------------------------------- 4

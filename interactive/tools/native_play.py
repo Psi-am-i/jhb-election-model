@@ -81,10 +81,9 @@ def run_section2(ns) -> list[dict]:
     the hand-off, then the analysis of the forecast it hands over."""
     doc = json.loads(SETTINGS.read_text())
     by_name = {c["name"]: c["settings"] for c in doc["cases"]}
-    total = doc["section2"]["total"]
     out = []
     for name in doc["section2"]["cases"]:
-        h = json.loads(ns["handoff"](json.dumps({"settings": by_name[name], "total": total})))
+        h = json.loads(ns["handoff"](json.dumps({"settings": by_name[name]})))
         # The hand-off carries no seats (rule A: they are derived, by the seat
         # Worker on the page). The analysis needs a council-shaped input, and
         # this harness compares two runtimes on ONE input, so each party's
@@ -93,7 +92,10 @@ def run_section2(ns) -> list[dict]:
         # the two parties with most seats as the governing coalition, so the
         # outcome's coalition part is exercised (page.test.mjs picks the same)
         two = sorted(seats, key=lambda c: (-seats[c], c))[:2]
-        a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": h["share"],
+        # the reader's list-ballot percent, as make.js sends it (B.percentOf "list")
+        lt = sum(h["list_votes"].values())
+        share = {c: 100.0 * v / lt for c, v in h["list_votes"].items()}
+        a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
                                                  "seats": seats, "coalition": two})))
         out.append({"name": name, "handoff": h, "analyse": a})
     return out

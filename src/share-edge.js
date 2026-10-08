@@ -31,9 +31,9 @@
 // one.
 //
 // ENTRIES (owner, 2026-10-03). Every successful seal is stored as one entry
-// in the D1 database bound as ENTRIES (migrations/0001_entries.sql): the
-// forecast, the name the reader typed, the seal's time and id, and the model
-// version. Nothing about the person who asked: no IP address, user agent,
+// in the D1 database bound as ENTRIES (migrations/0001_entries.sql, then
+// 0002_entry_version.sql): the prediction, the name the reader typed, the
+// seal's time and id, the model version and the entry version. Nothing about the person who asked: no IP address, user agent,
 // cookie or account. Results night ranks every entry (src/rank_entries.py).
 // The insert runs after the seal is answered (ctx.waitUntil): a failed or
 // missing insert is logged with console.error, by reason only, and the reader
@@ -45,6 +45,7 @@
 
 import * as MS from "../interactive/js/make-state.js";
 import * as B from "../interactive/js/builder-state.js";
+import { validateForecast } from "../worker-api/src/validate.js";
 import { cardName } from "../interactive/js/play-state.js";
 import * as SC from "../interactive/js/share-card.js";
 import { seatRequest, checkSeatAnswer } from "../worker-api/src/seats.js";
@@ -172,9 +173,9 @@ function withTimeout(p, ms) {
     .finally(() => clearTimeout(t));
 }
 
-// The seat law's answer and the outcome's chance for one forecast, checked.
+// The seat law's answer and the outcome's chance for one prediction, checked.
 async function cardAnswer(env, D, got) {
-  const body = B.forecastBody(got.state, D.ctx, { coalition: got.coalition });
+  const body = B.entryBody(got.state, D.ctx, { coalition: got.coalition });
   const r = await withTimeout(env.SEATS.fetch("https://seats/v1/card", {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ seats: seatRequest(body, D.forecast.schema), coalition: got.coalition,
@@ -226,7 +227,7 @@ export async function cardFor(url, env, size) {
   const made = seal.sealed ? { at: seal.at, sealed: true } : null;
   const specOf = async (got, name) => {
     const a = await cardAnswer(env, D, got);
-    return SC.forecastSpec({ name, answer: a, outcome: a.outcome, vote: B.percentOf(got.state, D.ctx),
+    return SC.forecastSpec({ name, answer: a, outcome: a.outcome, vote: B.percentOf(got.state, D.ctx, "list"),
       calls: got.state.calls, party, baseline: D.forecast.baseline, election: D.forecast.election, made });
   };
   const friend = q.has("vs") ? decodeLink(q.get("v"), q.get("c"), q.get("vs"), D) : null;
@@ -281,19 +282,22 @@ async function sealBody(request, env, url) {
 // ---------- entries ----------
 
 // The columns of one entry, in the order ENTRY_INSERT binds them. The table
-// (migrations/0001_entries.sql) has exactly these; tests/test_entries.py holds
-// the two to each other both ways.
+// (migrations/0001_entries.sql and every later ALTER TABLE in migrations/) has
+// exactly these; tests/test_entries.py holds the two to each other both ways.
 //   seal_id      the signature half of `s`: the same fields sealed in the same
 //                second give the same seal, so a repeat inserts nothing
 //   sealed_at    the seal's time, seconds since 1970 (the Worker's clock)
 //   label        the name the reader typed (play-state.js cardName), or ""
 //   model_ref    forecast.json's model_ref when it was sealed
-//   context_ref  the link's `c`: the roster, wards and total vote it is over
+//   context_ref  the link's `c`: the roster and wards it is over
 //   state        the link's `f`, as sealed: with label and sealed_at it
 //                rebuilds the seal, so an entry can be checked against SEAL_KEY
-//   forecast     the forecast decoded from `f` by the page's own decoder, as
-//                JSON in the shape src/score_forecasts.py scores
-export const ENTRY_COLUMNS = ["seal_id", "sealed_at", "label", "model_ref", "context_ref", "state", "forecast"];
+//   forecast     the prediction decoded from `f` by the page's own decoder, as
+//                JSON in the shape src/score_forecasts.py scores (B.entryBody,
+//                checked by worker-api/src/validate.js before it is stored)
+//   version      the entry version, make-state.js FORMAT (rows stored before
+//                the column existed read 1; the scorer reads only FORMAT)
+export const ENTRY_COLUMNS = ["seal_id", "sealed_at", "label", "model_ref", "context_ref", "state", "forecast", "version"];
 export const ENTRY_INSERT = "INSERT OR IGNORE INTO entries (" + ENTRY_COLUMNS.join(", ") +
   ") VALUES (" + ENTRY_COLUMNS.map(() => "?").join(", ") + ")";
 export const COUNT_SELECT = "SELECT COUNT(*) AS n FROM entries";
@@ -301,11 +305,16 @@ export const COUNT_SELECT = "SELECT COUNT(*) AS n FROM entries";
 export const COUNT_MAX_AGE_S = 60;
 const COUNT_PATH = "/entries/1/count";
 
-// One entry's values, in ENTRY_COLUMNS order.
+// One entry's values, in ENTRY_COLUMNS order. The stored body must pass the
+// validator on the page's own schema, or the row fails (the seal is kept,
+// storeEntry).
 export function entryRow(s, fields, got, D) {
   const [t, sig] = s.split(".");
+  const body = B.entryBody(got.state, D.ctx, { coalition: got.coalition });
+  const checked = validateForecast(body, D.forecast.schema);
+  if (!checked.ok) throw new Error("the entry is not valid: " + checked.field + " " + checked.reason);
   return [sig, parseInt(t, 36), fields.n, D.forecast.model_ref, fields.c, fields.f,
-          JSON.stringify(B.forecastBody(got.state, D.ctx, { coalition: got.coalition }))];
+          JSON.stringify(checked.value), Number(MS.FORMAT)];
 }
 
 // Store one entry. Never throws: the seal is already the reader's. `makeRow`
@@ -399,8 +408,8 @@ export async function seal(request, env, url, { preview = false, ctx = null } = 
 }
 
 // The signature is checked first, on the fields as the link carries them:
-// a link sealed under an earlier context_ref (a new roster, wards or total
-// vote) is still answered sealed, and when. `readable` says separately
+// a link sealed under an earlier context_ref (a new roster or wards) or entry
+// version is still answered sealed, and when. `readable` says separately
 // whether this page can read its forecast.
 export async function sealCheck(request, env, url) {
   if (!env.SEAL_KEY) return json({ error: "sealing is not set up" }, 503);

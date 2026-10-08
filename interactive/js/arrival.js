@@ -120,7 +120,7 @@ export function showArrival(v) {
         spec.coalition.length ? el("p", { className: "yf-arr-gov" }, "Governing: ", el("b", {}, listAnd(spec.coalitionNames)),
           ", " + spec.coalitionSeats + " of " + spec.council + " seats.") : el("p", { className: "yf-arr-gov" }, "No governing coalition chosen.")),
       el("div", {}, table(spec, logo),
-        el("p", { className: "yf-arr-note" }, "new: not on the " + spec.baseYear + " ballot. Vote: share of all votes, ward and list ballots together."),
+        el("p", { className: "yf-arr-note" }, "new: not on the " + spec.baseYear + " ballot. Vote: share of the list ballot."),
         geom ? el("figure", { className: "yf-arr-fig" }, wardMap(spec, geom),
           el("figcaption", {}, "Each ward in the colour of the party " + name + " called it for.")) : null,
         spec.excess.length ? el("p", { className: "yf-arr-note" }, spec.excess.join(" ")) : null)),

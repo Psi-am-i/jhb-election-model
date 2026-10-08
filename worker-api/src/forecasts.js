@@ -1,6 +1,8 @@
 // Saving, editing, reading, sharing, reporting and deleting readers' forecasts.
 
-import schema from "../generated/forecast.schema.json";
+// The one entry schema (guard G13): the one src/build_make.py writes into the
+// page's data file. The placeholder generated/forecast.schema.json is retired.
+import page from "../../site/your-forecast/forecast.json";
 import geom from "../generated/geometry.json";
 import { HttpError, json, readJsonBody, requireSameOrigin, isLocked, intVar, clientIp } from "./http.js";
 import { requireUser } from "./auth.js";
@@ -13,6 +15,7 @@ import { deleteForecast } from "./deletion.js";
 import { forecastPage, gonePage, cardSVG, renderPNG, cardKey, labelOf } from "./render.js";
 import { randomLabel } from "../../interactive/js/labels.js";
 
+const schema = page.schema;
 export { schema, geom };
 
 export const ID_RE = /^[A-Za-z0-9]{10}$/;

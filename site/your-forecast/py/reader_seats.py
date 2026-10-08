@@ -1,16 +1,23 @@
-"""A reader's own forecast, turned into council seats by the statute alone.
+"""A reader's prediction, turned into council seats by the statute alone.
 
-DESIGN-decided §9 (owner, 2026-09-28). A reader starts from a model state and
-then makes two edits only: each party's citywide COMBINED vote share, and the
-winner of any ward. Seats then follow from Municipal Structures Act Schedule 1
-**as this project implements it**, and from nothing else: no model level, band,
-pool or geography constrains the reader. This module is that arithmetic,
-written to run in the browser under Pyodide.
+DESIGN-decided §9 (owner, 2026-09-28), with the two ballots of the
+prediction restructure (``audits/2026-10-07-prediction-restructure/``, slice
+B; BRIEF change 13, owner 2026-10-08). A reader's prediction holds what an
+election produces: a winner for every ward, and each party's whole votes on
+the WARD ballot and on the LIST ballot. Seats then follow from Municipal
+Structures Act Schedule 1 **as this project implements it**, and from nothing
+else: no model level, band, pool or geography constrains the reader. This
+module is that arithmetic, written to run in the browser under Pyodide.
 
-**It calls the project's seat law; it does not restate it.**
+**It calls the project's seat law; it does not restate it.** The composition
+is :func:`prediction.seats_of`, the one composition of the seat law for a
+prediction or a reader's entry (``run_model``'s draw loop and
+``benchmarks.council_from_shares`` are the two others), which calls in turn:
 
-* :func:`seats.eligible_parties` decides who earns an entitlement (the pool
-  membership test the ground truth uses);
+* :func:`seats.eligible_parties` decides who earns an entitlement, on the
+  two ballots as given: a party is in the pool when it has a list vote, and
+  its entitlement is its ward plus list votes (the combined vote the statute
+  counts; ``seats.py``'s docstring);
 * :func:`seats.outside_pool_wards` takes the C and D ward seats out of the pool
   before the quota is struck;
 * :func:`montecarlo.allocate_with_overhang` strikes the quota
@@ -18,30 +25,27 @@ written to run in the browser under Pyodide.
   under the rule in :data:`montecarlo.STATUTORY_VALUES` — the rule the model
   itself is refused permission to leave without ``--counterfactual``.
 
-**The input is the combined vote, with no conversion** (DESIGN-decided §10,
-owner, after the blind pollster review). Schedule 1 sizes each party's
-entitlement from the COMBINED ward + PR vote (``seats.py``'s docstring; the
-plan's PR-only premise was wrong), so the reader's slider shows exactly that:
-each party's share of all votes cast on both ballots together. A party's
-combined vote is its share of ``total_votes``, rounded by largest remainder so
-the votes sum to ``total_votes`` exactly. Wards are taken as picked, and list
-seats fill each entitlement under item 16 exactly as the model's allocation
-does.
+**Whole votes on each ballot, with no conversion.** The two ballots are the
+statute's own arguments, so a model draw's recorded votes
+(``ModelRun.ward_vote_draws``, ``pr_vote_draws``: the integers that draw's
+``eligible_parties`` read) and its ward winners reproduce that draw's seats
+exactly (``tests/test_reader_seats.py``). The ballot totals are the sums of
+the votes given: a prediction states its own (no total is fixed by a schema).
 
-The earlier input, a PR-ballot share standing for both ballots, is retired:
-MODEL-LOG §1.270 measured that it moves seats against the model's own split
-ballots. A model draw's COMBINED share and combined total reproduce that draw's
-seats at every draw, exactly (``tests/test_reader_seats.py``).
+What was: until 2026-10-08 the input was each party's share of the COMBINED
+vote and a fixed ``total_votes``, rounded to whole votes by largest remainder
+and handed to the law as list votes alone. The retired form could not say
+which ballot a vote was cast on, so the list ballot a reader is scored on
+(``score_forecasts`` key 3) was not something the reader set.
 
 **Inputs, and why each is required**
 
-``combined_shares``
-    ``{party: share}``, each party's share of the combined vote (ward and PR
-    ballots together), a distribution over the context's roster. A roster
-    party that is absent is taken as zero — that is what absence from a
-    distribution means. An unknown party is refused. The shares are scaled to
-    sum to exactly one before the votes are counted, so a sum inside
-    ``tolerance`` moves no vote between parties.
+``ward_votes``, ``list_votes``
+    ``{party: whole votes}`` on each ballot, over the context's roster. A
+    roster party that is absent is taken as zero (absence from a count means
+    no votes). An unknown party is refused, and so is any value that is not a
+    non-negative integer (``bool`` included). Each ballot must total at least
+    one vote.
 ``ward_winners``
     ``{ward: party}`` for EVERY ward in the context. Missing and unknown wards
     are both refused; nothing is filled in.
@@ -51,35 +55,41 @@ seats at every draw, exactly (``tests/test_reader_seats.py``).
     ``target``, ``council`` and ``wards`` from the city config, the roster
     ``parties``, and ``no_pr_list`` — the roster parties with no PR list,
     independents included. Nothing is read from disk at call time.
-``total_votes``
-    The combined valid vote (both ballots) the shares are scaled to. It is REQUIRED because
-    shares alone do not fix seats: the quota is ``total // available + 1``
-    ("disregarding fractions"), so the scale moves a party that sits on a
-    remainder boundary. The page supplies it from the model state the reader
-    started from. It is not defaulted to a typed number.
 
-**What it refuses, rather than guessing:** a malformed context; a
-``total_votes`` that is not a positive integer; shares that are negative, not
-finite, or do not sum to one within ``tolerance``; unknown parties; missing or
-unknown wards; a ward won by a party outside the roster; a ward won by a party
-with a zero share that the context does not list as having no PR list (the
-statute would route it out of the pool as a no-list party — a silent
-reclassification); a positive share for a party the context says has no PR
-list, or one that the statute's pool test excludes anyway, or one too small to
-receive a single vote at ``total_votes`` (its votes would vanish); and an
-allocation the seat law itself cannot complete.
+**What it refuses, rather than guessing:** a malformed context; vote maps that
+are not mappings of roster parties to whole votes; a ballot with no vote; a
+list vote for a party the context lists with no PR list; missing or unknown
+wards; a ward won by a party off the roster; and the two refusals of BRIEF
+change 13 (owner, 2026-10-08), which are the only ones a reader's choices can
+reach:
+
+* **R1** a ward winner with no ward vote (a party that wins a ward has votes
+  on that ballot);
+* **R2** a ward winner the context does not list as having no PR list, with
+  no list vote: ``eligible_parties`` would leave it out of the pool and
+  ``outside_pool_wards`` would move its wards to the D term, a silent
+  reclassification of a party the reader meant to seat (guard G14).
+
+A ward winner and its citywide ward vote are set separately, so an entry can
+be impossible as a whole (130 wards on 5% of the ward vote). That is allowed:
+the editor bounds (``build_make.editor_bounds``) constrain the page's editor
+and never validity here. A party with a ward vote and no list vote that wins
+no ward is not refused either: the statute leaves it out of the pool, which is
+what a party with no list on the ballot paper is.
 
 **Ties.** ``seats.allocate`` breaks an exact tie — equal remainder AND equal
 votes — by the order of its input, where Schedule 1 says "by lot". This module
-passes the pool in the order of ``combined_shares``, so a given input always
-gives the same council; the caller owns that order. The same order breaks an
-exact tie in the vote rounding (:func:`combined_votes`). (A model draw's order comes from a
-set and so from ``PYTHONHASHSEED``; see ``benchmarks.canonical_order``.)
+passes the pool in the context's roster order, so a given input always gives
+the same council. (A model draw's order comes from a set and so from
+``PYTHONHASHSEED``; see ``benchmarks.canonical_order``.)
 
 **No party is special-cased** (DESIGN-decided §8). Which parties sit outside the
-pool is a property of the roster in the context, not of this code.
+pool is a property of the roster in the context and of the votes given, not of
+this code. "Others" on a page or card is a display grouping only: every party
+reaches this function under its own code (JUDGEMENT-CALLS §Q4).
 
-**Pyodide.** Importing this module imports ``montecarlo`` and what it imports at
+**Pyodide.** Importing this module imports ``prediction`` (the composition,
+:func:`prediction.seats_of`), ``montecarlo`` and what it imports at
 module level — ``cityconfig``, ``coalitions``, ``fold``, ``parties``,
 ``polling``, ``seats`` — all numpy and the standard library, with no file read
 at import or at call. :func:`context_for` reads the city TOML and is build-time
@@ -89,17 +99,25 @@ item 16 living in ``montecarlo`` rather than in ``seats``.
 
 from __future__ import annotations
 
-import math
-
-import montecarlo as M
-from seats import eligible_parties, outside_pool_wards
+# ⚠️ `montecarlo` and `seats` are imported here although only `prediction`
+# calls them. The seat Worker's files (worker-api/tools/sync_seats_py.mjs FILES)
+# are held equal to this module's import closure MEASURED in a fresh
+# interpreter (tests/test_reader_seats.py). `prediction.seats_of` imports the
+# seat law lazily, because `prediction.py` also ships to the page; without these
+# two lines the measured closure would lose montecarlo, seats, coalitions,
+# fold and polling, the test would ask for them to be dropped from FILES, and
+# the Worker would ship without the seat law.
+import montecarlo as M  # noqa: F401
+import prediction
+from seats import eligible_parties, outside_pool_wards  # noqa: F401
 
 #: What the input means and how it is seated, carried in every result so the page
 #: cannot show seats without it.
-ASSUMPTION = ("The reader's shares are each party's combined vote, ward and "
-              "list ballots together, which is what the statute counts; wards "
-              "are taken as picked; list seats fill entitlements under the "
-              "excessive-seats clause.")
+ASSUMPTION = ("Each party's votes are given on the ward ballot and on the list "
+              "ballot; wards are taken as picked; a party with a list vote "
+              "earns an entitlement from its votes on both ballots together, "
+              "which is what the statute counts; list seats fill entitlements "
+              "under the excessive-seats clause.")
 
 
 def context_for(city: str, target: str, parties, wards,
@@ -174,35 +192,37 @@ def context_errors(context) -> list[str]:
     return errors
 
 
-def _share_errors(combined_shares, roster, no_list, tolerance) -> list[str]:
-    if not isinstance(combined_shares, dict):
-        return ["combined_shares is not a mapping of party to share"]
+def _is_count(v) -> bool:
+    return isinstance(v, int) and not isinstance(v, bool) and v >= 0
+
+
+def _vote_errors(ward_votes, list_votes, roster, no_list) -> list[str]:
     errors = []
-    unknown = sorted(str(p) for p in set(combined_shares) - set(roster))
-    if unknown:
-        errors.append(f"unknown parties in combined_shares: {unknown}")
-    bad = []
-    for party, share in combined_shares.items():
-        if (isinstance(share, bool) or not isinstance(share, (int, float))
-                or not math.isfinite(share) or share < 0):
-            bad.append(party)
-    if bad:
-        errors.append(f"shares that are not finite non-negative numbers: "
-                      f"{sorted(map(str, bad))}")
+    for name, votes in (("ward_votes", ward_votes), ("list_votes", list_votes)):
+        if not isinstance(votes, dict):
+            errors.append(f"{name} is not a mapping of party to whole votes")
+            continue
+        unknown = sorted(str(p) for p in set(votes) - set(roster))
+        if unknown:
+            errors.append(f"unknown parties in {name}: {unknown}")
+        bad = sorted(str(p) for p, v in votes.items() if not _is_count(v))
+        if bad:
+            errors.append(f"{name} that are not whole non-negative numbers of "
+                          f"votes: {bad}")
+        elif not sum(votes.values()) >= 1:
+            errors.append(f"{name} hold no vote: each ballot needs at least one")
+    if errors:
         return errors
-    total = math.fsum(combined_shares.values())
-    if abs(total - 1.0) > tolerance:
-        errors.append(f"shares sum to {total!r}, not 1 (tolerance {tolerance})")
-    listless = sorted(p for p in no_list if combined_shares.get(p, 0) > 0)
+    listless = sorted(p for p in no_list if list_votes.get(p, 0) > 0)
     if listless:
-        errors.append(f"a combined share for parties the roster says have no "
-                      f"PR list: {listless}. A list-less party's votes are "
-                      f"ward votes only and leave the pool (the D term)")
+        errors.append(f"list votes for parties the roster says have no PR list: "
+                      f"{listless}. A list-less party's votes are ward votes "
+                      f"only and its wards leave the pool (the D term)")
     return errors
 
 
-def _ward_errors(ward_winners, wards, roster, no_list,
-                 combined_shares) -> list[str]:
+def _ward_errors(ward_winners, wards, roster, no_list, ward_votes,
+                 list_votes) -> list[str]:
     if not isinstance(ward_winners, dict):
         return ["ward_winners is not a mapping of ward to party"]
     errors = []
@@ -217,50 +237,27 @@ def _ward_errors(ward_winners, wards, roster, no_list,
     strangers = sorted({str(p) for p in ward_winners.values()} - set(roster))
     if strangers:
         errors.append(f"wards won by parties not on the roster: {strangers}")
-    voteless = sorted({p for p in ward_winners.values()
-                       if p in roster and p not in no_list
-                       and not combined_shares.get(p, 0) > 0})
-    if voteless:
+    winners = {p for p in ward_winners.values() if p in roster}
+    no_ward_vote = sorted(p for p in winners if not ward_votes.get(p, 0) > 0)
+    if no_ward_vote:
         errors.append(
-            f"wards won by parties with a zero share: {voteless}. A party's "
-            f"share is its combined vote on both ballots, and a party that "
-            f"wins a ward has ward votes, so it must have one — unless the "
-            f"roster lists it as having no PR list")
+            f"wards won by parties with no ward vote: {no_ward_vote}. A party "
+            f"that wins a ward has votes on the ward ballot (R1)")
+    no_list_vote = sorted(p for p in winners
+                          if p not in no_list and not list_votes.get(p, 0) > 0)
+    if no_list_vote:
+        errors.append(
+            f"wards won by parties with no list vote: {no_list_vote}. The "
+            f"statute's pool admits a party by its list vote, so its wards "
+            f"would leave the pool through the D term in silence; give it a "
+            f"list vote, or the roster must list it as having no PR list (R2)")
     return errors
 
 
-def combined_votes(combined_shares: dict, total_votes: int) -> dict[str, int]:
-    """Each positive share as a whole number of votes, summing to ``total_votes``.
-
-    Largest remainder: the shares are first scaled to sum to exactly one (they
-    arrive summing to one within a tolerance), each party takes the floor of
-    its share of ``total_votes``, and the votes the floors leave over go one
-    each to the largest fractional parts. An exact tie in the fraction falls to
-    the party earlier in ``combined_shares`` (module docstring, Ties).
-
-    Rounding each party on its own would not do: three shares of a third of
-    1,000 votes round to 333 each, 999 in all, and the quota is struck from the
-    total (``total // available + 1``), so a vote lost to rounding can move a
-    seat. A party whose share is too small to receive a vote is returned with
-    zero, for the caller to refuse.
-    """
-    positive = [(p, s) for p, s in combined_shares.items() if s > 0]
-    scale = math.fsum(s for _, s in positive)
-    raw = [(p, s / scale * total_votes) for p, s in positive]
-    votes = {p: int(math.floor(r)) for p, r in raw}
-    left = total_votes - sum(votes.values())
-    # `sorted` is stable, so equal fractions keep the caller's order.
-    by_fraction = sorted(range(len(raw)),
-                         key=lambda i: -(raw[i][1] - math.floor(raw[i][1])))
-    for i in by_fraction[:max(left, 0)]:
-        votes[raw[i][0]] += 1
-    return votes
-
-
-def reader_seats(combined_shares: dict, ward_winners: dict, context: dict,
-                 total_votes: int, *, tolerance: float = 1e-9) -> dict:
-    """Council seats for a reader's combined vote shares and ward picks, by the
-    statute alone.
+def reader_seats(ward_votes: dict, list_votes: dict, ward_winners: dict,
+                 context: dict) -> dict:
+    """Council seats for a reader's votes on both ballots and ward picks, by
+    the statute alone.
 
     Returns a dict:
 
@@ -281,16 +278,16 @@ def reader_seats(combined_shares: dict, ward_winners: dict, context: dict,
         fire; ``excessive_fired`` says the same as a bool.
     ``independent_wards``, ``no_pr_list_wards``
         The C and D terms.
-    ``votes``
-        ``{party: votes}``, the combined vote each positive share became
-        (:func:`combined_votes`); it sums to ``total_votes``.
+    ``pool``
+        ``{party: combined votes}``, ward plus list, for every party the
+        statute's pool test admitted, in the order the law was given them.
     ``assumption``
         :data:`ASSUMPTION`, verbatim.
     """
     result = {"ok": False, "errors": [], "seats": {}, "council": None,
               "majority": None, "excessive": {}, "excessive_fired": False,
               "independent_wards": 0, "no_pr_list_wards": 0,
-              "votes": {}, "assumption": ASSUMPTION}
+              "pool": {}, "assumption": ASSUMPTION}
 
     errors = context_errors(context)
     if errors:
@@ -299,65 +296,30 @@ def reader_seats(combined_shares: dict, ward_winners: dict, context: dict,
     roster, wards = context["parties"], context["wards"]
     no_list = set(context["no_pr_list"])
 
-    if (not isinstance(total_votes, int) or isinstance(total_votes, bool)
-            or total_votes <= 0):
-        errors.append(f"total_votes {total_votes!r} is not a positive integer")
-    errors += _share_errors(combined_shares, roster, no_list, tolerance)
+    errors = _vote_errors(ward_votes, list_votes, roster, no_list)
     if not errors:
-        errors += _ward_errors(ward_winners, wards, roster, no_list,
-                               combined_shares)
+        errors = _ward_errors(ward_winners, wards, roster, no_list,
+                              ward_votes, list_votes)
     if errors:
         result["errors"] = errors
         return result
 
-    # The combined vote, in the caller's order, summing to total_votes.
-    votes = combined_votes(combined_shares, total_votes)
-    # Every vote goes in as a PR vote: the pool test is "has a PR vote", and a
-    # positive combined share for a party with a PR list is one (a list-less
-    # party's positive share is refused above). Splitting the vote into its
-    # two ballots would change nothing the pool test reads.
-    pooled = eligible_parties({}, votes)
-    dropped = sorted(p for p in votes if p not in pooled)
-    if dropped:
-        result["errors"] = [
-            f"positive shares the statute's pool excludes, or too small to "
-            f"receive one vote of {total_votes}: {dropped}. Their votes would "
-            f"vanish rather than earn an entitlement"]
-        return result
-    # `eligible_parties` builds its dict from a set; restore the caller's order
-    # so an exact tie falls the same way every time (module docstring, Ties).
-    combined = {p: pooled[p] for p in votes}
-
-    wins: dict[str, int] = {}
-    for ward in wards:
-        party = ward_winners[ward]
-        wins[party] = wins.get(party, 0) + 1
-    c_wards, d_wards, pool_wins = outside_pool_wards(dict(wins), combined)
-
-    previous = M.COUNCIL
+    ward = {p: ward_votes.get(p, 0) for p in roster}
+    lst = {p: list_votes.get(p, 0) for p in roster}
     try:
-        # `allocate_with_overhang` reads the council from this module global,
-        # as `benchmarks.council_from_shares` sets it; put back afterwards.
-        M.COUNCIL = context["council"]
-        seats, council, majority, over = M.allocate_with_overhang(
-            combined, pool_wins, M.STATUTORY_VALUES["overhang_rule"],
-            independent_wards=c_wards, no_pr_list_wards=d_wards)
+        seated = prediction.seats_of(
+            {"ward_calls": [ward_winners[w] for w in wards], "ward_votes": ward,
+             "list_votes": lst},
+            context["council"], order=list(roster))
     except (ValueError, RuntimeError) as exc:
         result["errors"] = [f"the seat law could not complete this allocation: "
                             f"{exc}"]
         return result
-    finally:
-        M.COUNCIL = previous
 
-    out: dict[str, dict[str, int]] = {}
-    for party in list(seats) + [p for p in wins if p not in seats]:
-        ward = wins.get(party, 0)
-        total = seats.get(party, 0) if party in combined else ward
-        if total:
-            out[party] = {"ward": ward, "pr": total - ward, "total": total}
-
-    result.update(ok=True, seats=out, council=council, majority=majority,
-                  excessive=dict(over), excessive_fired=bool(over),
-                  independent_wards=c_wards, no_pr_list_wards=d_wards,
-                  votes=dict(votes))
+    result.update(ok=True, seats=seated["seats"], council=seated["council"],
+                  majority=seated["majority"], excessive=seated["excessive"],
+                  excessive_fired=seated["excessive_fired"],
+                  independent_wards=seated["independent_wards"],
+                  no_pr_list_wards=seated["no_pr_list_wards"],
+                  pool={p: ward[p] + lst[p] for p in seated["pool"]})
     return result

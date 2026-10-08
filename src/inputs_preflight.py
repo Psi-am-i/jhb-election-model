@@ -46,6 +46,21 @@ SNAPSHOT_STALE_DAYS = 21
 REQUIRED, ADVISORY = "required", "advisory"
 
 
+def roll_snapshot(city: str) -> Path | None:
+    """The newest registration snapshot's ward file for ``city``
+    (``archive/iec-registration-<date>/<city>_*registration*.csv``), or None.
+    One definition: this check and ``build_make.editor_bounds`` read the same
+    file. Scoped to the city (the comment in :func:`_rows` says why)."""
+    snaps = sorted(d for d in ROOT.glob("archive/iec-registration-*/")
+                   if any(d.glob(f"{city}_*registration*.csv")))
+    if not snaps:
+        return None
+    files = sorted(snaps[-1].glob(f"{city}_*registration*.csv"))
+    if len(files) != 1:
+        raise ValueError(f"{snaps[-1]}: {len(files)} registration files for {city}, not one")
+    return files[0]
+
+
 def _rows(city: str, target: str) -> list[dict]:
     """One row per input. `ok` False means the `fix` line has to be done."""
     out: list[dict] = []
@@ -88,11 +103,13 @@ def _rows(city: str, target: str) -> list[dict]:
     # `archive/iec-registration-*` and a Johannesburg snapshot satisfied a
     # Tshwane preflight. A check that passes for a city it has no data for is
     # the failure it was written to catch, one layer up.
-    snaps = sorted(d for d in ROOT.glob("archive/iec-registration-*/")
-                   if any(d.glob(f"{city}_*registration*.csv")))
-    newest, age = None, None
-    if snaps:
-        newest = snaps[-1]
+    try:
+        snap = roll_snapshot(city)
+    except ValueError as exc:
+        print(f"inputs_preflight: {exc}")
+        snap = None
+    newest, age = (snap.parent if snap else None), None
+    if newest:
         m = re.search(r"(\d{4}-\d{2}-\d{2})", newest.name)
         if m:
             age = (_dt.date.today() - _dt.date.fromisoformat(m.group(1))).days

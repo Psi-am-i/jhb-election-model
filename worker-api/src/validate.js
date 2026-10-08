@@ -1,11 +1,21 @@
-// Validation of a reader's forecast. A forecast is untrusted input.
+// Validation of a reader's entry (a prediction, entry version 2). An entry is
+// untrusted input.
 //
 // PURE: no Worker APIs, no bindings, no I/O. The page can import this module and
 // run exactly the checks the server runs (one definition, INTEGRATION.md §3d).
 //
-// Every rule reads generated/forecast.schema.json: the ward list, the roster,
-// the model_ref and the share-sum tolerance come from the artefact the schema was
-// generated from, never from the request and never from a constant typed here.
+// Every rule reads the entry schema src/build_make.py writes into
+// your-forecast/forecast.json (worker-api/tools/make_schema.mjs build): the
+// entry version, the ward list, the roster and the model_ref come from the
+// artefact the schema was generated from, never from the request and never
+// from a constant typed here.
+//
+// What is valid is the seat law's refusals (src/reader_seats.py) and the
+// shape: whole votes on each ballot for exactly the roster, each ballot
+// holding a vote, a ward winner with a ward vote (R1) and, unless it has no
+// PR list, a list vote (R2), no list vote for a party with no PR list. The
+// editor's bounds (x-editor-bounds) are not validity. An entry of another
+// version (version 1 held one combined share) is refused on `v`.
 //
 // A refusal names the field, so a 400 can say which input was wrong.
 // The accepted value is REBUILT from the schema (roster order, fresh objects),
@@ -57,6 +67,9 @@ export function validateForecast(input, schema) {
   if (!isPlainObject(input)) return refuse("(body)", "must be a JSON object");
 
   const props = schema.properties;
+  // The version first: a body of another version is named as one, whatever
+  // else it carries.
+  if (input.v !== props.v.const) return refuse("v", "made by another version of this page");
   for (const k of Object.keys(input))
     if (!Object.prototype.hasOwnProperty.call(props, k))
       return refuse(k, "not accepted" + (k === "seats" ? " (seats are computed on the server from the calls)" : ""));
@@ -78,26 +91,35 @@ export function validateForecast(input, schema) {
   for (let i = 0; i < wc.length; i++)
     if (!inRoster(wc[i])) return refuse(`ward_calls[${i}]`, "not a party on the roster");
 
-  // combined_share: each party's share of all votes on both ballots, in
-  // percent. Keys exactly the roster, finite values in range, summing to 100.
-  const cs = input.combined_share;
-  if (!isPlainObject(cs)) return refuse("combined_share", "must be an object");
-  for (const k of Object.keys(cs))
-    if (!roster.includes(k)) return refuse(`combined_share.${k}`, "not a party on the roster");
-  const { minimum, maximum } = props.combined_share.properties[roster[0]];
-  let sum = 0;
-  for (const c of roster) {
-    if (!Object.prototype.hasOwnProperty.call(cs, c)) return refuse(`combined_share.${c}`, "required: every party on the roster");
-    const v = cs[c];
-    if (typeof v !== "number" || !Number.isFinite(v)) return refuse(`combined_share.${c}`, "must be a finite number");
-    if (v < minimum || v > maximum) return refuse(`combined_share.${c}`, `must be between ${minimum} and ${maximum}`);
-    sum += v;
+  // ward_votes, list_votes: each party's whole votes on that ballot. Keys
+  // exactly the roster, safe non-negative integers, each ballot holding a vote.
+  const noList = new Set(schema["x-seat-context"].no_pr_list);
+  const ballots = {};
+  for (const name of ["ward_votes", "list_votes"]) {
+    const m = input[name];
+    if (!isPlainObject(m)) return refuse(name, "must be an object");
+    for (const k of Object.keys(m))
+      if (!roster.includes(k)) return refuse(`${name}.${k}`, "not a party on the roster");
+    let sum = 0;
+    for (const c of roster) {
+      if (!Object.prototype.hasOwnProperty.call(m, c)) return refuse(`${name}.${c}`, "required: every party on the roster");
+      const v = m[c];
+      if (!Number.isSafeInteger(v) || v < 0) return refuse(`${name}.${c}`, "must be a whole number of votes, 0 or more");
+      sum += v;
+    }
+    if (!(sum >= 1)) return refuse(name, "must hold at least one vote");
+    ballots[name] = m;
   }
-  const { target, tolerance } = schema["x-share-sum"];
-  if (Math.abs(sum - target) > tolerance)
-    return refuse("combined_share", `must sum to ${target} (±${tolerance}); sums to ${Math.round(sum * 1000) / 1000}`);
+  for (const c of noList)
+    if (ballots.list_votes[c] > 0) return refuse(`list_votes.${c}`, "this party has no PR list");
+  // R1 and R2 (src/reader_seats.py): a ward winner has a ward vote, and a list
+  // vote unless it has no PR list.
+  for (const c of new Set(wc)) {
+    if (!(ballots.ward_votes[c] > 0)) return refuse(`ward_votes.${c}`, "wins a ward, so it needs a ward vote");
+    if (!noList.has(c) && !(ballots.list_votes[c] > 0)) return refuse(`list_votes.${c}`, "wins a ward, so it needs a list vote");
+  }
 
-  // coalition: one or more distinct roster parties.
+  // coalition: distinct roster parties, none or more.
   const co = input.coalition;
   if (!Array.isArray(co)) return refuse("coalition", "must be an array");
   if (co.length < props.coalition.minItems) return refuse("coalition", "must name at least one party");
@@ -126,9 +148,11 @@ export function validateForecast(input, schema) {
   return {
     ok: true,
     value: {
+      v: input.v,
       model_ref: input.model_ref,
       ward_calls: wc.slice(),
-      combined_share: Object.fromEntries(roster.map(c => [c, cs[c]])),
+      ward_votes: Object.fromEntries(roster.map(c => [c, ballots.ward_votes[c]])),
+      list_votes: Object.fromEntries(roster.map(c => [c, ballots.list_votes[c]])),
       coalition: co.slice(),
       mayor,
       display_name,

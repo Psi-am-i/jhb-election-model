@@ -34,7 +34,6 @@ python3 -m http.server 8801 --bind 127.0.0.1 --directory /tmp/yf/site   # port 8
 | page | URL |
 |---|---|
 | Your forecast | http://127.0.0.1:8801/your-forecast/ |
-| A shared forecast (demo), from the repository root | http://127.0.0.1:8801/interactive/f/?id=demo7Qx2Lp |
 | Privacy notice placeholder, from the repository root | http://127.0.0.1:8801/interactive/privacy-placeholder.html |
 
 `python3 -m http.server` listens with a backlog of five, and the page fetches
@@ -122,8 +121,9 @@ why.
 
 ### Section 2, "Break the model"
 
-The same forecast as the reader's own: every ward called, each party's share
-of the combined vote set, a coalition picked, the seats from the seat law
+The reader's own prediction (entry version 2): every ward called, each party's
+ward vote set with its list vote following it (the gap adjustable), a
+coalition picked, the seats from the seat law
 under Pyodide (`reader_seats`, the Worker's own request and check). It loads
 its data and its seat Worker (a second Pyodide) when the reader comes near it,
 or at once for a link carrying a section 2 forecast or `#break`.
@@ -138,11 +138,10 @@ moves, `page.py`'s `handoff` applies the same rule to the reader's weighted
 draws: each ward's call under the reader's changes (exactly the winners
 section 1 shows), and the weighted mean votes on each ballot. While section 2 is unedited it follows section 1;
 once edited, a change in section 1 overwrites nothing, and the status line
-offers to start again from it (undo restores the edits). A link's forecast
-is kept as the reader's. While the forecast is still its start, a line under
-"Your council" names every named party the ward floor raised above its
-middle seat count (`handoff` returns the middles; the published start's are
-`forecast.json`'s `published_middle`), and the share image says the same.
+offers to start again from it (undo restores the edits); a hand-off that is
+refused or fails is said on the same line. A link's forecast is kept as the
+reader's. The page opens on `decode(start.f)` and refuses to start if that is
+not the prediction object beside it.
 
 **The walkthrough.** Four numbered steps: call the wards, set the vote, pick
 who governs, see how likely it is. One is highlighted at a time; "Next" marks
@@ -170,8 +169,8 @@ that call, with the number of calls expected to come true beside it;
 explanation is the note on the outcome. Hovering a ward gives the chance of the reader's call
 there; each party's seats get the chance of landing within
 `reweight.ANALYSIS_SEAT_BAND` seats; its vote the chance its LIST-BALLOT share
-lands within `ANALYSIS_SHARE_BAND_POINTS` points (the draws carry no combined
-share, and the page says so); and the whole forecast the expected number of
+lands within `ANALYSIS_SHARE_BAND_POINTS` points of the reader's list vote,
+list against list; and the whole forecast the expected number of
 the reader's ward calls that come true ("We expect N of your M ward calls to
 come true. But historical trends can always be broken."), with beneath it the
 rank of the reader's calls among the simulations' ward results, worded as a
@@ -237,17 +236,15 @@ refusals, the card, CPython seats, Pyodide = CPython); `page.test.mjs`
 | `tools/yf_screenshots.mjs` | the screenshots |
 | `tools/yf_jump_check.mjs` | the no-jump check: document height, scroll and the landmarks around every lever move, at 375 and 1440 |
 | `css/interactive.css`, `css/play.css`, `css/your-forecast.css` | styles |
-| `js/api.js` | the one backend door: the stub on loopback hosts, the Worker API elsewhere (`?api=stub` / `?api=live` override) |
+| `js/api.js` | the one backend door: the Worker API; a loopback host is a preview with no backend (`?api=stub` / `?api=live` override) |
 | `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; the address; `/api/me` mapping |
-| `f/index.html`, `js/f.js` | the shared forecast page, `/f/<id>` in production |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
 | `js/card.js` | the share image, SVG to PNG, 1200×630 and 1080×1920 |
 | `js/share.js` | the share sheet |
 | `js/auth-ui.js` | sign-in and the consent screen, rendered from `js/consent-terms.js` |
 | `js/consent-terms.js` | the consent wording, its keys and its version hash: one definition, imported by the page and `worker-api` |
 | `js/labels.js` | the default-label word list and generator: one definition, imported by the page stub and `worker-api` |
-| `js/api-stub.js` | **stub** of the API in BACKEND.md, in localStorage; used through `js/api.js` |
-| `js/common.js` | fixture loading, escaping, theme toggle |
+| `js/common.js` | escaping and text helpers the account store's card shares |
 | `fixtures/` | **placeholders**, below |
 | `tools/make_fixtures.py` | writes `fixtures/` |
 
@@ -255,10 +252,9 @@ refusals, the card, CPython seats, Pyodide = CPython); `page.test.mjs`
 
 | stub | stands in for | the real thing |
 |---|---|---|
-| `fixtures/placeholder-model.json` | the model's roster, most likely ward winners, combined vote shares, the combined total they scale to, and published seats | the S2 export (`site/draws/base.bin` + manifest, PLAN.md) and the certified roster in IEC ballot order |
+| `fixtures/placeholder-model.json` | PROTOTYPE ONLY, read by nothing that ships but `js/model-worker.js`'s name fallback: a synthetic roster, ward map and combined shares in the retired version 1 shape | replaced: the entry schema and our prediction come from `src/build_make.py` over the published draws (`site/draws/`) |
 | roster names and colours on the unbuilt model page (`placeholder-model.json`, and the code spaced out for other parties) | the roster | served: `your-forecast/parties.json`, written by `build_play.py` from `render_sheet.NAMES`/`CHIPS` and `parties.display_name` |
 | the ADAPTER block in `pyboot/page.py` | Lane R's `page_polls`, `poll_trust_sd`, `poll_weights(trust=)`, `turnout_tilt(pin_to=)`, `figure()["withheld"]`, `sampling_se`, and Lane E's `model_sha256` | delete the block's fallbacks at merge |
-| `js/api-stub.js` (loopback hosts only) | the Worker API and OAuth | `worker-api/`, reached through `js/api.js` on any other host |
 | `fixtures/geometry.json` sectors | the S5 ward-to-sector file | S5 |
 | `privacy-placeholder.html` | DRAFT privacy notice (placeholders for the owner's decisions), competition rules, report route | the owner's decisions filled in, checked by counsel |
 
@@ -317,8 +313,9 @@ committed. S5 should commit its code and be the one source.
 4. **Ward order and ids** in the forecast body must be the 2026 delimitation's
    135 wards in ward-number order, and the roster the IEC's certified list
    (CLAUDE.md §4b).
-5. **Server-rendered `/f/<id>`** with Open Graph tags; the comment at the top of
-   `f/index.html` lists them.
+5. **Server-rendered `/f/<id>`** with Open Graph tags (the account store's
+   `render.js`). The prototype's `f/index.html`, `js/f.js` and `js/api-stub.js`
+   were retired on 2026-10-08.
 6. **Saving with sign-in is not part of `/your-forecast/`.** The built page is
    anonymous; the old builder's sign-in and save path (`js/api.js`,
    `js/auth-ui.js`, `js/share.js`, `js/card.js`) is no longer imported by it.
@@ -331,7 +328,8 @@ committed. S5 should commit its code and be the one source.
    **Not built:** the Turnstile widget. `POST /api/forecasts` needs its token
    when `TURNSTILE_REQUIRED` is on, so a production save fails until it is.
 7. **What production must serve beside the page:** `worker-api/src/validate.js`,
-   `blocklist.js`, `seats.js`, `http.js`, `generated/forecast.schema.json`, and
+   `blocklist.js`, `seats.js`, `http.js`, the page's `forecast.json` (whose
+   `schema` is the one entry schema), and
    `interactive/py/` + `pyboot/`, at the same relative paths (or rewrite the
    imports in one place at build). The page loads Pyodide 0.29.5 and numpy
    from cdn.jsdelivr.net.
@@ -350,16 +348,18 @@ committed. S5 should commit its code and be the one source.
   the same control with the same range, and nothing is pre-selected: tapping a
   ward before choosing a party asks for a party rather than defaulting to one.
   Result lists sort by the reader's own seats.
-* **An impossible forecast cannot be built (DESIGN-decided §14).** The map
-  starts with every ward at the model's call (or section 1's, under its settings),
-  and the vote at the model's shares. There is no eraser and no "clear": a ward
-  changes winner, it is never empty. The vote is held as whole votes summing
-  exactly to the combined total the seat law scales to, so it always sums to
-  100%; moving one party rescales the others in proportion. A party that wins
-  a ward keeps at least one vote, which is the seat law's own condition
-  (`reader_seats` refuses a ward winner with no votes); giving a ward to a
-  party with none raises it to one vote, with a note. Undo restores the ward
-  calls and the votes together. The only things left for the reader before a
+* **A prediction the seat law refuses cannot be built (DESIGN-decided §14).**
+  The map starts with every ward at our prediction's call (or section 1's,
+  under its settings), and the votes at its whole votes on each ballot. There
+  is no eraser and no "clear": a ward changes winner, it is never empty. Each
+  ballot is held as whole votes, its total the prediction's own; moving one
+  party's ward vote rescales the others in proportion and moves every list vote
+  with its party (its gap kept). A party that wins a ward keeps at least one
+  vote on each ballot, which is the seat law's own condition (`reader_seats`
+  R1 and R2); each slider's range follows the wards on the map and the past
+  results (the schema's `x-editor-bounds`, JUDGEMENT-CALLS §R), and a party
+  moved into range by a change of wards is named in a note. Undo restores the
+  ward calls and both ballots together. The only things left for the reader before a
   save are choices, not repairs: a coalition, and a label the validator
   accepts (checked as they type with the Worker's own `cleanDisplayName`).
   Making does not need an account; saving and sharing do.

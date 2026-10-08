@@ -17,9 +17,8 @@ override it where they differ. Decisions taken here are listed below.
 |---|---|
 | `src/index.js` | router; the endpoint list is its header comment |
 | `src/validate.js` | the forecast validator. Pure: the page can import it |
-| `generated/forecast.schema.json` | the one forecast schema, generated from the model artefact; do not edit |
 | `generated/geometry.json` | ward paths for the server's share card, generated |
-| `tools/make_schema.mjs` | writes `generated/`; `--check` fails if it is stale |
+| `tools/make_schema.mjs` | `build()` makes the one entry schema, which `src/build_make.py` writes into `site/your-forecast/forecast.json` (this Worker imports it from there); the CLI writes `generated/geometry.json`, and `--check` fails if it is stale. The placeholder `generated/forecast.schema.json` was retired on 2026-10-08 |
 | `src/providers.js` | Google, Apple, Facebook, X, Microsoft on `arctic` 3.7.0 |
 | `src/auth.js` | OAuth start/callback, the pending identity, sessions |
 | `src/consent.js` | the consent screen's answer; the append-only log; contact confirmation |
@@ -66,20 +65,19 @@ override it where they differ. Decisions taken here are listed below.
 ## Seats: the contract with `src/reader_seats.py`
 
 `src/seats.js` posts the four arguments of
-`reader_seats.reader_seats(combined_shares, ward_winners, context,
-total_votes)`, by name, to the SEATS service, and `seats-py/src/entry.py`
-passes them through. `combined_shares` is the reader's `combined_share` (each
-party's share of all votes, ward and list ballots together, DESIGN-decided §10)
-divided by its own sum; `ward_winners` keys `ward_calls` by the schema's ward
-ids; `context` and `total_votes` are the schema's `x-seat-context` and
-`x-total-votes`, which `tools/make_schema.mjs` reads from the model artefact and
-refuses to default. The answer is `{seats, ward, pr, council_total, majority,
-excessive, code_ref}`; `seats.js` checks only arithmetic identities (ward counts
-equal the picks, seats = ward + pr, totals add up, majority is half plus one,
-roster parties only), never the law. A 422 from the service (the seat law
-refused the picks, e.g. a ward won by a party given no vote) reaches the reader
-as a 422 naming `combined_share`; any other failure is a 503 and nothing is
-saved.
+`reader_seats.reader_seats(ward_votes, list_votes, ward_winners, context)`, by
+name, to the SEATS service, and `seats-py/src/entry.py` passes them through.
+`ward_votes` and `list_votes` are the entry's whole votes on each ballot (entry
+version 2, BRIEF change 13), in roster order; `ward_winners` keys `ward_calls`
+by the schema's ward ids; `context` is the schema's `x-seat-context`, which
+`tools/make_schema.mjs` reads from the model artefact and refuses to default.
+No total is sent: each ballot's total is the sum of its votes. The answer is
+`{seats, ward, pr, council_total, majority, excessive, code_ref}`; `seats.js`
+checks only arithmetic identities (ward counts equal the picks, seats = ward +
+pr, totals add up, majority is half plus one, roster parties only), never the
+law. A 422 from the service (the seat law refused the picks, e.g. a ward won by
+a party with no list vote) reaches the reader as a 422 naming `ward_votes`; any
+other failure is a 503 and nothing is saved.
 
 `tools/sync_seats_py.mjs` copies `reader_seats.py` and its import closure from
 `src/` (the list is `FILES`; `tests/test_reader_seats.py` holds it equal to the
@@ -155,7 +153,7 @@ the dates `POST_ELECTION_MESSAGE_AT` and `DELETION_AT`.
 | `src/mail.js` sends nothing while unconfigured | written against the Email Service `send_email` binding (`EMAIL`) and `MAIL_FROM`; neither is set. Hard bounces reported after sending need a queue subscribed to the sending domain's events and a consumer (`index.js` exports `queue`, handled by `handleEmailEvents`); none is configured |
 | `seats-py/src/entry.py` answers 501 | `src/reader_seats.py` and its import closure, copied by `tools/sync_seats_py.mjs` (the interface is agreed and tested from both sides) |
 | `/auth/apple/notifications` answers 501 | JWT verification against Apple's JWKS, then deletion |
-| `generated/*` from the prototype's placeholder fixtures | regenerate from the S2 export and the IEC's certified roster (`--model`, `--geometry`) |
+| `generated/geometry.json` from the prototype's fixture | regenerate from the site's geometry (`--geometry`) |
 | `src/blocklist.js` holds only impersonation patterns | the owner's content policy |
 | post-election and confirmation message wording (`src/mail.js`) | owner and counsel |
 | consent wording (`interactive/js/consent-terms.js`), including a placeholder "Where" line | owner and counsel; the "Where" line is R5 finding 3 |

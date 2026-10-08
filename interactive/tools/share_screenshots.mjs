@@ -36,7 +36,8 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", "
 // the link: the fixture's first forecast, against the built page's context
 const D = JSON.parse(readFileSync(join(ROOT, "your-forecast/forecast.json"), "utf8"));
 const ctx = B.contextOf(D.schema);
-const st = B.startState(ctx, { calls: FIXTURE.A.calls, share: FIXTURE.A.vote }, FIXTURE.A.calls).state;
+const st = B.stateFromPrediction(ctx, { ward_calls: FIXTURE.A.calls, ward_votes: FIXTURE.A.ward_votes,
+                                        list_votes: FIXTURE.A.list_votes });
 const fields = { v: MS.FORMAT, c: D.context_ref, f: MS.encode(st, FIXTURE.A.coalition, ctx), n: FIXTURE.A.name };
 const s = await makeSeal(KEY, fields, MADE.at);
 const LINK = ORIGIN + "/your-forecast/?" + new URLSearchParams({ ...fields, s, from: "1" }).toString();

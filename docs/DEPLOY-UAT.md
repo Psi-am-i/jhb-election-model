@@ -199,6 +199,50 @@ env -u CLOUDFLARE_API_TOKEN npx wrangler versions list
 env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy <previous-version-id>@100%
 ```
 
+## Releasing entry version 2 (two ballots)
+
+A reader's entry changed shape on 2026-10-08 (MODEL-LOG §1.292): whole votes
+on the ward and list ballots, entry version 2, with a `version` column in
+`joburg-entries`. Three things change together and their order matters.
+This is the one place the order is written; `migrations/0002_entry_version.sql`,
+`src/rank_entries.py` and `wrangler.toml`'s ENTRIES note point here.
+
+1. **Apply migration 0002** (adds `version`, old rows read 1). The old site
+   Worker's seven-column insert still works after it.
+
+   ```sh
+   env -u CLOUDFLARE_API_TOKEN npx wrangler d1 migrations apply joburg-entries --remote
+   ```
+
+2. **Deploy `joburg-seats`** with the two-ballot body, after
+   `node worker-api/tools/sync_seats_py.mjs`:
+
+   ```sh
+   cd worker-api/seats-py && uvx --from workers-py pywrangler deploy
+   ```
+
+3. **Promote the site Worker** that sends the two-ballot body and binds
+   `version` (sections 1 to 4 above).
+4. **Clear the version 1 rows**, once the owner confirms (they are test
+   entries):
+
+   ```sh
+   .venv/bin/python src/rank_entries.py --clear-version 1
+   .venv/bin/python src/rank_entries.py --clear-version 1 --confirm <the count it printed>
+   ```
+
+**The accepted window between steps 2 and 3:** the old site Worker sends the
+old body to the new seat Worker, which refuses it, so link previews fall back
+to the generic image (`/og.png`). Seals and entry storage do not call the seat
+Worker and are unaffected. Taking the steps in another order makes every
+seal-time insert (after 3 without 1) or every preview (3 before 2) fail.
+
+**Rollback.** Rolling the site Worker back to a version-1 build after step 4
+brings both back: its links decode as version 1 again, and its seat calls send
+the old body, which the new seat Worker refuses (previews fall back to the
+generic image) until `joburg-seats` is rolled back too. Entries it stores are
+version 1 by the column's default.
+
 ## Entries at launch
 
 Every seal the live Worker makes is stored as an entry in the D1 database

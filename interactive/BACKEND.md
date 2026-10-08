@@ -8,8 +8,9 @@ added); `display_name` and `show_name` on the user (no name is collected: each
 forecast carries a label, owner 2026-09-29); an unverified email stored on the
 user (only a confirmed address is stored); the "special personal information"
 framing (owner 2026-09-29: a forecast is a prediction, ordinary personal
-information, counsel to confirm). The prototype pages call `js/api-stub.js`,
-which imitates the built API in the browser's localStorage.
+information, counsel to confirm). The prototype pages called `js/api-stub.js`,
+which imitated the built API in the browser's localStorage; it was retired on
+2026-10-08 with the prototype's shared-forecast page (`js/f.js`).
 
 Secrets, memory and machine policy are global: see `~/CLAUDE.md` rule 4 and
 `~/projects/SECRETS.md`. This file names the secrets this service needs and

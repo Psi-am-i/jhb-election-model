@@ -1,7 +1,7 @@
 // The seam to the seat law. This Worker never computes a seat.
 //
-// DECISION: the server trusts only the reader's picks (ward winners, combined
-// vote shares) and recomputes seats itself by calling the project's own Python
+// DECISION: the server trusts only the reader's picks (ward winners, whole
+// votes on the ward ballot and on the list ballot) and recomputes seats itself by calling the project's own Python
 // seat code, src/reader_seats.py, running in a Python Worker (seats-py/) behind
 // the SEATS service binding. The page runs the same file under Pyodide to show
 // seats while the reader edits; the server's answer is the one stored and drawn
@@ -10,15 +10,15 @@
 // BACKEND.md §6).
 //
 // CONTRACT (POST https://seats/v1/seats, JSON). The request body is the four
-// arguments of reader_seats.reader_seats(combined_shares, ward_winners,
-// context, total_votes), by name, so seats-py/src/entry.py passes them through
-// untouched:
-//   request   { combined_shares: {code: fraction},   each party's share of all
-//                                                     votes on both ballots,
-//                                                     summing to 1, roster order
-//               ward_winners: {ward_id: code},        every ward
-//               context: {city, target, council, wards, parties, no_pr_list},
-//               total_votes: int }                    the combined valid vote
+// arguments of reader_seats.reader_seats(ward_votes, list_votes,
+// ward_winners, context), by name, so seats-py/src/entry.py passes them
+// through untouched:
+//   request   { ward_votes: {code: int},             whole votes on the ward
+//                                                    ballot, roster order
+//               list_votes: {code: int},             whole votes on the list
+//                                                    ballot, roster order
+//               ward_winners: {ward_id: code},       every ward
+//               context: {city, target, council, wards, parties, no_pr_list} }
 //   200       { seats: {code: int},            total seats per party
 //               ward:  {code: int},            wards won (as picked)
 //               pr:    {code: int},            PR councillors
@@ -28,11 +28,12 @@
 //               code_ref: string }             sha256 of the copied seat code
 //   422       { errors: [string] }             the seat law refused the picks
 //                                              (e.g. a ward won by a party
-//                                              given no votes): the READER's
-//                                              input, answered as a 422
+//                                              with no list vote): the
+//                                              READER's input, answered as a 422
 //
-// `context` and `total_votes` come from the generated schema (x-seat-context,
-// x-total-votes), which make_schema.mjs reads from the model artefact.
+// `context` comes from the generated schema (x-seat-context), which
+// make_schema.mjs reads from the model artefact. Each ballot's total is the
+// sum of the entry's votes: no total is supplied.
 //
 // What this module checks of the answer is arithmetic identity, not the law:
 // ward counts equal the counts of the picks, seats = ward + pr per party, the
@@ -45,31 +46,27 @@ export class SeatsUnavailable extends HttpError {
   constructor(why) { super(503, "seats cannot be computed right now; nothing was saved"); this.why = why; }
 }
 
-// The seat law refused the reader's picks. A 422 naming the share field: the
+// The seat law refused the reader's picks. A 422 naming the vote field: the
 // validator accepted the shape, the statute did not accept the combination.
 export class SeatsRefused extends HttpError {
   constructor(errors) {
-    super(422, "the seat law cannot seat this forecast: " + errors.join("; "), "combined_share");
+    super(422, "the seat law cannot seat this prediction: " + errors.join("; "), "ward_votes");
     this.errors = errors;
   }
 }
 
 const isCount = v => Number.isInteger(v) && v >= 0;
 
-// The request body: the reader's validated forecast, as reader_seats takes it.
-// Percent becomes a fraction by dividing by the forecast's own sum, which the
-// validator holds within x-share-sum's tolerance of 100; the shares then sum to
-// 1 to within float error, as reader_seats requires. The ward list is the
+// The request body: the reader's validated entry, as reader_seats takes it.
+// Whole votes pass through as they are, in roster order; the ward list is the
 // schema's, in the order ward_calls is written.
-export function seatRequest(forecast, schema) {
+export function seatRequest(entry, schema) {
   const context = schema["x-seat-context"];
-  const cs = forecast.combined_share;
-  const sum = context.parties.reduce((a, c) => a + cs[c], 0);
   return {
-    combined_shares: Object.fromEntries(context.parties.map(c => [c, cs[c] / sum])),
-    ward_winners: Object.fromEntries(context.wards.map((w, i) => [w, forecast.ward_calls[i]])),
+    ward_votes: Object.fromEntries(context.parties.map(c => [c, entry.ward_votes[c]])),
+    list_votes: Object.fromEntries(context.parties.map(c => [c, entry.list_votes[c]])),
+    ward_winners: Object.fromEntries(context.wards.map((w, i) => [w, entry.ward_calls[i]])),
     context,
-    total_votes: schema["x-total-votes"],
   };
 }
 

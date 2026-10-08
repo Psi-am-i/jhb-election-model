@@ -715,13 +715,14 @@ def test_no_call_site_relies_on_the_signature_default():
     a regime sweep gets ``deduct`` with no error anywhere. Every call site
     passes it explicitly — ``montecarlo.run_model`` passes
     ``scenario["overhang_rule"]``, ``benchmarks.council_from_shares`` passes
-    ``ctx.overhang_rule``, and ``reader_seats.reader_seats`` passes
+    ``ctx.overhang_rule``, and ``prediction.seats_of`` passes
     ``STATUTORY_VALUES["overhang_rule"]`` — and this asserts that.
 
-    ``reader_seats`` is the third site by decision, not by drift: a reader's
-    own forecast is seated by the statute alone (DESIGN-decided §9 and §10), so
-    it passes the statutory rule rather than a scenario's, and it is pinned by
-    name below so a fourth caller still fails.
+    ``prediction.seats_of`` is the third site by decision, not by drift: it is
+    the one composition of the seat law for a prediction or a reader's entry
+    (``reader_seats`` calls it), seated by the statute alone (DESIGN-decided §9
+    and §10), so it passes the statutory rule rather than a scenario's, and it
+    is pinned by name below so a fourth caller still fails.
 
     It also pins the configured default to ``"deduct"``, which is justified by
     the amended Act and the Laingsburg precedent, not by what the code returns.
@@ -749,7 +750,7 @@ def test_no_call_site_relies_on_the_signature_default():
         (ROOT / "src").glob("*.py"))
     # (1) IT LOOKED. `not offenders` is satisfied by finding no calls at all,
     # and the whole population is three, one per file: benchmarks.py,
-    # montecarlo.py and reader_seats.py. If the function is renamed, inlined,
+    # montecarlo.py and prediction.py. If the function is renamed, inlined,
     # or reached through an alias this scan goes to zero and reports success.
     #
     # RE-RECORDED 2026-09-28 from two sites to three, deliberately:
@@ -758,7 +759,12 @@ def test_no_call_site_relies_on_the_signature_default():
     # and passes `STATUTORY_VALUES["overhang_rule"]` explicitly. The files are
     # pinned BY NAME, not only by count, so swapping one caller for another
     # unreviewed one cannot keep the count and pass.
-    expected = {"benchmarks.py", "montecarlo.py", "reader_seats.py"}
+    #
+    # RE-RECORDED 2026-10-08, deliberately: the reader's call moved from
+    # reader_seats.py to prediction.py when `prediction.seats_of` became the
+    # one composition of the seat law for a prediction or a reader's entry
+    # (MODEL-LOG §1.291); `reader_seats` calls it. Same count, the file renamed.
+    expected = {"benchmarks.py", "montecarlo.py", "prediction.py"}
     files = sorted(site.split(":", 1)[0] for site in sites)
     assert len(sites) == len(expected) and set(files) == expected, (
         f"allocate_with_overhang is called at {len(sites)} site(s) in src/ "

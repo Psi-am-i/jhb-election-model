@@ -5,7 +5,7 @@
 // off the page's thread, so the map and sliders stay responsive.
 //
 // Messages in:   {type: "init", schema}
-//                {type: "seats", seq, forecast, lane?}    forecast: builder-state forecastBody
+//                {type: "seats", seq, forecast, lane?}    forecast: builder-state entryBody (entry version 2)
 // Messages out:  {type: "stage", key, label, ms}
 //                {type: "ready", codeRef, times}
 //                {type: "result", seq, lane, ok, answer, errors, ms}

@@ -1,17 +1,17 @@
-// The pages' one door to the backend: the stub (js/api-stub.js, localStorage,
-// no network) for local preview, or the Worker API (worker-api/src/index.js)
-// in production. Every page imports this, never the stub directly.
+// The pages' one door to the backend: the Worker API (worker-api/src/index.js)
+// in production. Every page imports this.
 //
-// MODE: loopback hosts and file: use the stub; anything else is production.
-// `?api=stub` or `?api=live` overrides, for checking one against the other.
+// MODE: loopback hosts and file: are a local preview, which has no backend
+// (the prototype's localStorage stub, js/api-stub.js, was retired on
+// 2026-10-08 with the save path it served: a stored entry is now the site
+// Worker's sealed prediction, src/share-edge.js). `?api=stub` or `?api=live`
+// overrides.
 //
-// A session, as the pages read it (from the stub, or mapped from GET /api/me):
+// A session, as the pages read it (mapped from GET /api/me):
 //   { provider, handle, contact_confirmed, unconfirmed_contact,
 //     deletion_date, wording_version, pending, consent: { store } | null }
 
-import * as stub from "./api-stub.js";
-import { validateForecast } from "../../worker-api/src/validate.js";
-import { loadSchema } from "./common.js";
+const NO_BACKEND = "a local preview has no sign-in backend";
 
 export function modeFor(loc) {
   if (!loc) return "stub";
@@ -57,7 +57,7 @@ export function sessionFromMe(me) {
 }
 
 export async function currentSession() {
-  if (mode() === "stub") return stub.session();
+  if (mode() === "stub") return null;
   return sessionFromMe(await call("GET", "/api/me"));
 }
 
@@ -65,38 +65,14 @@ export async function currentSession() {
 // and its callback brings the reader back to /make?consent=1 (the draft
 // survives in localStorage). The promise never resolves: the page is leaving.
 export async function signIn(provider) {
-  if (mode() === "stub") return stub.signIn(provider);
+  if (mode() === "stub") throw new Error(NO_BACKEND);
   const back = location.pathname;
   location.assign(`/auth/${encodeURIComponent(provider)}/start?return=${encodeURIComponent(back)}`);
   return new Promise(() => {});
 }
 
 export async function recordConsent(body) {
-  if (mode() === "stub") return stub.recordConsent(body);
+  if (mode() === "stub") throw new Error(NO_BACKEND);
   await call("POST", "/api/consent", body);
   return currentSession();
-}
-
-// Save a validated forecast body. `seats` is the answer the page's seat engine
-// gave for it; the stub keeps it as the server keeps its own recomputation.
-// Returns { id, path, label }.
-export async function saveForecast(body, { id = null, seats = null } = {}) {
-  const v = validateForecast(body, await loadSchema());
-  if (!v.ok) throw Object.assign(new Error(`${v.field}: ${v.reason}`), { field: v.field });
-  if (mode() === "stub") return stub.saveForecast({ ...v.value, id, seats });
-  const r = id ? await call("PUT", `/api/forecasts/${encodeURIComponent(id)}`, v.value)
-    : await call("POST", "/api/forecasts", v.value);
-  const newId = r.id || id;
-  return { id: newId, path: `/f/${newId}`, label: r.label ?? v.value.display_name };
-}
-
-export async function deleteForecast(id) {
-  if (mode() === "stub") return stub.deleteForecast(id);
-  await call("DELETE", `/api/forecasts/${encodeURIComponent(id)}`);
-}
-
-export async function getForecast(id) {
-  if (mode() === "stub") return stub.getForecast(id);
-  try { return await call("GET", `/api/forecasts/${encodeURIComponent(id)}`); }
-  catch (e) { if (e.status === 410) return { gone: true }; if (e.status === 404) return null; throw e; }
 }
