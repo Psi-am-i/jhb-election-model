@@ -98,3 +98,37 @@ working around it.
 - Durable counting of reader seal storage failures.
 - The card-image check after promote.
 - Guards owned: G7 (the card and seal side), G11, G16, G17, G18, G19.
+
+## Amendment 1 (owner, 2026-10-08), slice B
+
+The owner, verbatim: "can we not have our vote prediction interface enforce
+this? each ward has a known register. So if they paint various wards there
+shoudl be a cheap check on hwo many votes that is per ward based on past resulst
+and current register. That will at least keep the sliders bounded to a
+reasonable degree. Id also posit that its rare for people to split their vote
+so 1 almost always is 2'"
+
+Coordinator's measurement (Johannesburg, cleaned IEC files, citywide ward share
+minus list share): 2016, every party within 0.9pp; 2021, main parties within
+1.4pp except ActionSA −4.1pp (18.1% list, 14.0% ward); independents about 1.3%
+of the ward vote, no list vote.
+
+Slice B's specification must therefore cover:
+
+1. **One vote row by default.** The list vote follows the ward vote. An
+   optional per-party list adjustment, bounded by the ward-list gaps real
+   elections have produced (derived from the panel's cleaned files, not typed).
+   Independents: ward ballot only.
+2. **Sliders bounded by the painted map.** Each ward's expected votes come from
+   its current roll (`archive/iec-registration-*`, joined through
+   `montecarlo.ward_parts`) times an expected turnout from past results. A party
+   painted to win a ward needs at least a winning share there; the minimum is
+   derived from the lowest winning shares in real wards across the panel. Its
+   votes in wards it does not win stay below that ward's winner. Together these
+   give each party a citywide floor and ceiling that move as the reader paints,
+   computed in the browser, cheaply.
+3. **Where the derived bounds and their cut-offs are recorded** (JUDGEMENT-CALLS
+   for any quantile chosen), and the guard that proves the bounds come from the
+   data and change when the data does.
+4. Whether the "allowed with a note" case still exists once the sliders are
+   bounded, and what the refusals become.
