@@ -1,6 +1,7 @@
 # Brief: forecast, prediction, result (owner, 2026-10-07; revised 2026-10-08)
 
-Terms as defined in `STYLE.md` rule 11. Revision 3, after the blind review
+Terms as defined in `STYLE.md` rule 11. Revision 4 (S0 folded in),
+after revision 3, after the blind review
 (`review/SYNTHESIS.md`), the backtest (`MODEL-LOG.md` §1.290) and the owner's
 answers of 2026-10-08. Earlier revisions are in git history. Under guard and
 provenance review (`FLOW.md`) before it is built.
@@ -37,13 +38,20 @@ Owner decisions, 2026-10-08:
    - `MACHINERY.md`;
    - the docstrings.
 2. **Each simulation's ward-ballot and list-ballot votes are published** in
-   `site/draws/`. Today only the list share is, and `COMBINED_SHARE_REFUSAL`
-   states why the combined vote is not.
+   `site/draws/`, as whole votes. `ModelRun` already returns both share arrays;
+   `run_model` additionally records each draw's two ballot totals (a recorded
+   field: no draw changes, so no early whole suite, FLOW.md). The ward block is
+   exported for the first time, and `COMBINED_SHARE_REFUSAL` is lifted.
+   **OTHER** (mass outside the roster) stays in the quota pool as the
+   simulations have it, shown as "Others" (owner, 2026-10-08).
    - Rule A needs both ballots, on the build and in the page's hand-off.
    - The draws' fingerprint changes and the change is recorded.
-3. **Our prediction is sealed.** Every published version is sealed and dated.
-   The one scored is the last sealed before the lock (07:00 SAST, 4 November),
-   by the same `score()` as readers, in the same ranking, labelled as ours.
+3. **Our prediction is sealed by hand, when the owner is happy with it.** One
+   command seals the live prediction, reads the D1 row back and commits a row to
+   `publications/joburg/seals.jsonl` (`seal_id`, time, `model_ref`,
+   `draws_sha256`, `context_ref`, `v`, `f`). `rank_entries` marks ours by that
+   ledger only, scores the last one sealed before the lock with the same
+   `score()` as readers, and refuses to rank if the ledger and D1 disagree.
 4. **The "typical simulation" bar and strip leave `/forecast`.** They are
    simulation 1622: one draw, which gives BOSA 16 seats against a middle of 1.
    They are replaced by a short pointer to our prediction.
@@ -116,9 +124,33 @@ Owner decisions, 2026-10-08:
     - The competition's scoring keys (`JUDGEMENT-CALLS.md` §N4) do not change
       unless the owner says so; key 3 already compares the list vote with the
       list ballot.
-    - **Open for review:** in a real election the ward votes decide the ward
-      winners. A reader sets both, so they can disagree (130 wards to a party on
-      5% of the ward vote). The review says whether to refuse, warn or allow.
+    - A reader sets ward winners and citywide ward votes separately, so an entry
+      can be impossible as a whole (130 wards on 5% of the ward vote). Allowed,
+      with a note. Refused only: a ward winner with zero ward vote, or with zero
+      list vote (owner, 2026-10-08).
+    - Readers enter percentages; the site converts them to whole votes with
+      stated ballot totals.
+    - Old sealed links open on our prediction with a "made by another version"
+      note, and their previews show the generic image. Accepted (owner).
+
+## The prediction object (the interface every slice shares)
+
+One shape, produced once and decoded everywhere:
+
+    ward_calls   one party code per ward, in the schema's x-ward-ids order
+    ward_votes   {party: whole votes} on the ward ballot, OTHER included
+    list_votes   {party: whole votes} on the list ballot, OTHER included
+    seats        derived by the seat law; never stored as an input
+
+It is encoded once as the make-state `f`. The build block, the page's opening
+state, the card and the sealed entry all equal `decode(f)` (guard G7).
+
+## Guards
+
+The twenty guards of `review/S0-SYNTHESIS.md` (G1-G20) are part of this brief,
+amended there by the owner's decisions (G16: the hand-sealed ledger). Each slice
+lands its own guards with their constructed violations; a slice without them is
+not done.
 
 ## Out of scope
 
@@ -136,8 +168,9 @@ Owner decisions, 2026-10-08:
     card and in the sealed entry (one comparison, all four);
   - re-seats exactly under `reader_seats`.
 - Rule A run on the backtest panel reproduces §1.290's table.
-- Every sealed entry in D1 resolves through the redirect to the same entry, the
-  same seats and the same chance. Previews may re-render.
+- Every entry sealed under the new version resolves through the redirect to the
+  same entry, seats and chance. Entries of the old version are exported, then
+  cleared, and their links open with the version note.
 - No reader-facing "forecast" names a single scenario and no "prediction" names a
   range. Checked by a scan, with a constructed violation it must catch.
 - `/forecast` carries no single simulation.
@@ -149,5 +182,5 @@ Owner decisions, 2026-10-08:
 - Phase 3: cosmetic.
 
 Each phase is reviewed as a diff before it runs, and goes to UAT separately.
-Phase 1 about two days with change 13; Phase 2 two days; Phase 3 a day. The
+Phase 1 about three days with change 13 and its guards; Phase 2 two days; Phase 3 a day. The
 flow that builds it, and when the whole suite runs, is `FLOW.md`.
