@@ -390,16 +390,18 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
     padding:20px 24px 24px;border:1px solid color-mix(in srgb,var(--c) 30%,var(--rule-soft));
     border-left:6px solid var(--c);border-radius:4px;
     background:color-mix(in srgb,var(--c) 7%,var(--paper));}
-:where(.pg-claims) .claim-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+:where(.pg-claims) .claim-top{display:flex;align-items:center;gap:18px;flex-wrap:nowrap;}
 :where(.pg-claims) .plogo{width:96px;height:96px;border-radius:10px;object-fit:contain;
     background:#fff;padding:5px;flex:none;box-shadow:0 0 0 3px var(--c);}
 :where(.pg-claims) .claim-top .pchip{width:28px;height:28px;border-radius:6px;}
-:where(.pg-claims) .claim-who{display:flex;flex-direction:column;gap:2px;line-height:1.35;margin-right:auto;}
+:where(.pg-claims) .claim-who{display:flex;flex-direction:column;gap:2px;line-height:1.35;margin-right:auto;
+    flex:1 1 0;min-width:0;}
 :where(.pg-claims) .claim-who b{font-family:var(--serif);font-size:20px;font-weight:600;}
 :where(.pg-claims) .claim-who span{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
 :where(.pg-claims) .verdict{font-family:var(--sans);font-size:12px;font-weight:750;
     letter-spacing:.12em;padding:5px 12px;border-radius:3px;color:var(--ink);
-    border:1px solid var(--v);background:color-mix(in srgb,var(--v) 28%,var(--paper));}
+    border:1px solid var(--v);background:color-mix(in srgb,var(--v) 28%,var(--paper));
+    flex:none;align-self:flex-start;white-space:nowrap;}
 :where(.pg-claims) .claim-quote{margin:0;font-family:var(--serif);font-weight:600;
     font-size:clamp(21px,3.2vw,27px);line-height:1.25;letter-spacing:-.01em;
     text-wrap:pretty;position:relative;padding-left:30px;}
@@ -416,7 +418,8 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
     font:700 12px/22px var(--mono);text-align:center;}
 :where(.pg-claims) .stepbody{flex:1;}
 @media (max-width:560px){:where(.pg-claims) .claim{padding:16px 14px 18px;border-left-width:4px;}
-:where(.pg-claims) .plogo{width:72px;height:72px;}}
+:where(.pg-claims) .plogo{width:72px;height:72px;}
+:where(.pg-claims) .claim-top{flex-wrap:wrap;}}
 
 /* ---- src/css/page-commentary.css ---- */
 :where(.pg-commentary) .masthead{border-top:3px solid var(--k-article);padding-top:18px;}
