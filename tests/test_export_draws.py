@@ -29,7 +29,12 @@ from `forecast_summary.json`, not typed here), by running the export itself:
    `published_run` names the ledger's newest run (and, on a constructed
    ledger, picks the newest row and reports a spec that differs); `centres`
    are keyed like the seat blocks and refused when metro polls move them
-   after the traced stage; `combined_share` is a stated refusal.
+   after the traced stage.
+7. BOTH BALLOTS (2026-10-08, SPEC-A G2/G5). The `ward_vote` and `list_vote`
+   blocks are, cell for cell, the integers `run_model`'s seat law read, on
+   the run's whole universe; rule A on the unpacked file equals rule A on the
+   run; the `combined_share` refusal is lifted and never sits beside the
+   blocks (`export_draws.ballot_faults`).
 
 The served copy of the file, `site/draws/`, is checked by
 `tests/test_served_draws.py`, not here: this module checks what the export
@@ -269,7 +274,8 @@ def _constructed_runs(draws: int = 6) -> dict:
     rng = np.random.default_rng(1)
     universe = ["A", "B", "C", "Z"]
     turnouts = rng.uniform(0.3, 0.6, size=(draws, 2))
-    shares = rng.dirichlet(np.ones(4), size=draws)
+    ward_votes = rng.integers(1, 50_000, size=(draws, 4)).astype(np.int64)
+    list_votes = rng.integers(1, 50_000, size=(draws, 4)).astype(np.int64)
     winners = rng.integers(0, 2, size=(draws, 3))
     runs = {}
     for k, law in enumerate(("deduct", "expand", "cap")):
@@ -281,7 +287,8 @@ def _constructed_runs(draws: int = 6) -> dict:
         runs[law] = {"universe": universe, "wards": ["w1", "w2", "w3"],
                      "pool_names": ["p", "q"], "seats": seats,
                      "thresholds": council // 2 + 1, "council_sizes": council,
-                     "ward_winners": winners.copy(), "pr_shares": shares.copy(),
+                     "ward_winners": winners.copy(),
+                     "ward_votes": ward_votes.copy(), "list_votes": list_votes.copy(),
                      "pool_turnouts": turnouts.copy(),
                      "centres": {"A": 0.4, "B": 0.3, "C": 0.2, "Z": 0.15},
                      "poll_paths": "off"}
@@ -296,15 +303,19 @@ def test_the_build_puts_every_seat_winner_in_a_column_and_the_rest_in_other():
     assert manifest["parties"] == ["A", "B", "C"]      # Z never seated
     assert manifest["ward_parties"] == ["A", "B"]
     assert _other_seated_draws(arrays, runs) == []
-    other_pr = arrays["pr_share"][:, -1]
-    assert np.allclose(other_pr, runs["deduct"]["pr_shares"][:, 3],
-                       atol=E.PR_SHARE_STEP / 2 + 1e-12)
+    # both ballots on the WHOLE universe: the never-seated Z keeps its own
+    # column, nothing is summed into OTHER, and the integers are exact
+    cols = {b["name"]: b["columns"] for b in manifest["blocks"]}
+    assert cols["ward_vote"] == cols["list_vote"] == ["A", "B", "C", "Z"]
+    assert np.array_equal(arrays["ward_vote"], runs["deduct"]["ward_votes"])
+    assert np.array_equal(arrays["list_vote"], runs["deduct"]["list_votes"])
+    assert "pr_share" not in arrays
     assert np.array_equal(arrays["pool_turnout"], runs["deduct"]["pool_turnouts"])
     # the centres: the seat columns' keys, OTHER summing the never-seated Z
     centres = manifest["centres"]
     assert list(centres["values"]) == ["A", "B", "C", "OTHER"]
     assert centres["values"]["OTHER"] == 0.15 and centres["absent"] == []
-    assert manifest["combined_share"]["refused"] is True
+    assert "combined_share" not in manifest and manifest["vote_blocks"] == E.VOTE_BLOCKS
 
 
 def test_the_centres_are_refused_when_they_are_not_the_drawn_centres():
@@ -380,6 +391,82 @@ def test_a_file_that_disagrees_with_its_manifest_is_refused():
             continue
         raise AssertionError("a draw file that disagrees with its manifest was read")
 
+
+
+def test_the_combined_share_refusal_is_lifted_and_never_both():
+    """G5: the build's manifest carries both vote blocks and no refusal;
+    ``ballot_faults`` complains about a refusal beside the blocks and about a
+    missing block, and is quiet on the clean manifest again."""
+    runs = _constructed_runs()
+    _, manifest = E.build(runs)
+    assert E.ballot_faults(manifest) == []
+    both = dict(manifest, combined_share={"refused": True})
+    assert any("lifted it" in f for f in E.ballot_faults(both))
+    one = dict(manifest, blocks=[b for b in manifest["blocks"] if b["name"] != "list_vote"])
+    assert any("list_vote block is missing" in f for f in E.ballot_faults(one))
+    stepped = dict(manifest, blocks=[dict(b, dtype="<f8") if b["name"] == "ward_vote" else b
+                                     for b in manifest["blocks"]])
+    assert any("not stored as whole votes" in f for f in E.ballot_faults(stepped))
+    assert E.ballot_faults(manifest) == []
+    # and the build itself refuses a run whose two ballots are not on one roster
+    import copy
+    broken = copy.deepcopy(runs)
+    for run in broken.values():
+        run["ward_votes"] = run["ward_votes"][:, :3]
+    try:
+        E.build(broken)
+    except (SystemExit, ValueError):
+        pass
+    else:
+        raise AssertionError("a ward block on three of four parties was accepted")
+
+
+def test_the_vote_blocks_are_run_model_s_integers_and_rule_a_agrees():
+    """G2: the served blocks are, cell for cell, the integers ``run_model``'s
+    seat law read, and rule A on the unpacked file equals rule A on the run:
+    the calls, both vote dicts, the pool and the council. Constructed
+    violation: two list-vote columns swapped in the file move rule A's votes;
+    reverted, they agree again. In-process at a small draw count; needs the
+    fixed hash seed that run_all.py sets."""
+    import montecarlo as M
+    import prediction
+    from seats import eligible_parties
+    if os.environ.get("PYTHONHASHSEED") != str(M.HASH_SEED):
+        from _support import skip
+        skip(f"PYTHONHASHSEED is {os.environ.get('PYTHONHASHSEED')!r}, not "
+             f"{M.HASH_SEED!r}: export_draws._run_law refuses to run without it. "
+             f"Run through tests/run_all.py, which sets it.")
+    seed, _draws = _published_run()
+    r = E._run_law("deduct", "joburg", "2026", 40, seed)
+    blob, manifest = E.build({"deduct": r})
+    arrays = R.unpack(blob, manifest)
+    cols = {b["name"]: b["columns"] for b in manifest["blocks"]}
+    assert cols["ward_vote"] == cols["list_vote"] == r["universe"]
+    assert np.array_equal(arrays["ward_vote"], r["ward_votes"])
+    assert np.array_equal(arrays["list_vote"], r["list_votes"])
+    scanned(arrays["list_vote"].shape[0], of=40, low=1.0, high=1.0,
+            what="draws compared", denominator="draws run")
+
+    run_pred = prediction.rule_a(r["ward_winners"], r["universe"], r["wards"],
+                                 r["ward_votes"], r["list_votes"], r["universe"])
+
+    def served(list_block):
+        return prediction.rule_a(arrays["ward_winner"], manifest["ward_parties"],
+                                 cols["ward_winner"], arrays["ward_vote"],
+                                 list_block, cols["list_vote"])
+    file_pred = served(arrays["list_vote"])
+    assert file_pred == run_pred
+    assert set(eligible_parties(file_pred["ward_votes"], file_pred["list_votes"])) == \
+        set(eligible_parties(run_pred["ward_votes"], run_pred["list_votes"]))
+    assert prediction.seats_of(file_pred, M.COUNCIL) == prediction.seats_of(run_pred, M.COUNCIL)
+
+    # it can see: the two largest list columns swapped
+    means = arrays["list_vote"].astype(np.int64).mean(axis=0)
+    a, b = (int(j) for j in np.argsort(-means)[:2])
+    swapped = np.array(arrays["list_vote"], copy=True)
+    swapped[:, [a, b]] = swapped[:, [b, a]]
+    assert served(swapped)["list_votes"] != run_pred["list_votes"]
+    assert served(arrays["list_vote"]) == run_pred
 
 # -- 3 and 4: the manifest declares, and the file fits ------------------------
 
@@ -470,7 +557,7 @@ def test_published_run_reads_the_newest_row_and_compares_the_inputs():
             "model_run_id"] is None
 
 
-def test_the_manifest_centres_are_the_trace_s_and_combined_share_is_refused():
+def test_the_manifest_centres_are_the_trace_s_and_combined_share_is_lifted():
     st = _export()
     manifest = st["manifest"]
     centres = manifest["centres"]
@@ -481,8 +568,9 @@ def test_the_manifest_centres_are_the_trace_s_and_combined_share_is_refused():
     # levels, not shares: some party carries a real level, none is all of it
     top = max(centres["values"], key=centres["values"].get)
     assert 0.05 < centres["values"][top] < 0.95, top
-    refusal = manifest["combined_share"]
-    assert refusal["refused"] is True and refusal["reason"]
+    assert "combined_share" not in manifest
+    assert manifest["vote_blocks"] == E.VOTE_BLOCKS
+    assert E.ballot_faults(manifest) == []
 
 
 def test_the_file_is_within_the_budget_gzipped():
@@ -492,12 +580,14 @@ def test_the_file_is_within_the_budget_gzipped():
     assert size <= BUDGET_GZIP_BYTES, f"{size:,} bytes gzipped"
 
 
-def test_shares_and_turnouts_are_what_the_model_drew_within_the_declared_step():
+def test_votes_and_turnouts_are_what_the_model_drew():
     st = _export()
     arrays, manifest = st["arrays"], st["manifest"]
-    rows = arrays["pr_share"].sum(axis=1)
-    cols = len(manifest["parties"]) + 1
-    assert np.max(np.abs(rows - 1.0)) <= cols * E.PR_SHARE_STEP / 2 + 1e-9
+    blocks = {b["name"]: b for b in manifest["blocks"]}
+    assert "pr_share" not in blocks and not any("step" in b for b in blocks.values())
+    for name in ("ward_vote", "list_vote"):
+        assert np.dtype(blocks[name]["dtype"]).kind == "u", name
+        assert np.all(arrays[name].astype(np.int64).sum(axis=1) > 0), name
     spec = json.loads((PROCESSED / "pools_2026.json").read_text())["pools"]
     block = next(b for b in manifest["blocks"] if b["name"] == "pool_turnout")
     assert set(block["columns"]) == set(spec)

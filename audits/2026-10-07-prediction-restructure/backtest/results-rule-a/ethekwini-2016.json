@@ -1,0 +1,39 @@
+{
+ "city": "ethekwini",
+ "year": "2016",
+ "draws": 1000,
+ "council": 219,
+ "wards": 109,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "ALLIED_MOVEMENT_FOR_CHANGE": 1,
+   "ANC": 120,
+   "APC": 1,
+   "AZAPO": 1,
+   "DA": 68,
+   "EFF": 6,
+   "IFP": 8,
+   "MINORITY_FRONT": 8,
+   "PAC": 1,
+   "THE_PROMISE_OF_FREEDOM": 1,
+   "TRULY_ALLIANCE": 1,
+   "UNITED_RESIDENTS_FRONT": 1
+  },
+  "seat_err": 36.0,
+  "wards_ok": 97,
+  "ward_vote_err_pp": 23.147119035724856,
+  "list_vote_err_pp": 11.19816422675143,
+  "top": "ANC",
+  "top_wards": 72,
+  "top_actual_wards": 73,
+  "excessive": {},
+  "council": 219,
+  "ward_wins": {
+   "ANC": 72,
+   "DA": 36,
+   "IFP": 1
+  }
+ }
+}

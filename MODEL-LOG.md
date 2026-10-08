@@ -28515,3 +28515,96 @@ real against the model's own mean ward wins, did not appear against real results
 
 **Limit.** The 2026 prediction under A gives the ANC excessive seats (§ SYNTHESIS); no
 city-year in this panel had any, so the backtest cannot test that part of the rule.
+
+## 1.291 Our prediction from one function; both ballots in the draws (2026-10-08)
+
+Slice A of `audits/2026-10-07-prediction-restructure/` (specification
+`s1/SPEC-A.md`, the coordinator's resolutions and the owner's answers in
+`s1/SYNTHESIS.md`). Rule A, chosen on §1.290, is the reduction of the forecast to
+our prediction. JUDGEMENT-CALLS §Q registers it.
+
+**What was.**
+- Section 2's start was `src/start_rule.py`'s seat-first rule: named parties'
+  middle seat counts raised to their called wards, Others filling the council,
+  then vote shares chosen to give those seats. The page's hand-off ran the same
+  rule on the reader's weights.
+- The scorer's model forecast (`score_forecasts.model_forecast`) was the modal
+  ward winner and each party's MEDIAN combined share, renormalised.
+- Six functions called a ward from the simulations, each breaking a tie its own
+  way: `score_forecasts.model_forecast` (earlier roster party; the build's
+  start called it), `page._ward_calls` (stable sort over the draws' ward-party
+  order), `scenarios.modal_winners` (first seen), `diagnose.main` and
+  `score.score_wards` (first in dict order), and `montecarlo.main`'s published
+  winner column (unstable sort). The list is what the widened scan in
+  `tests/test_prediction_rule.py` finds; the first, name-only scan saw three
+  of them (blind diff review, 2026-10-08).
+- `run_model` recorded each draw's shares per ballot but not the whole votes the
+  seat law read. The draw export shipped the list share as a block stored to a
+  step of 1e-5 and refused a combined share (`COMBINED_SHARE_REFUSAL`), because
+  shares alone could not rebuild the statutory pool.
+
+**What is.**
+- `src/prediction.py` is rule A, one definition: `top_party` (the tie rule:
+  the code first in string order), `ward_calls` (most simulations), `mean_votes`
+  (exact integer mean, half to even, under unit or equal weights), `rule_a` (the
+  prediction object `{ward_calls, ward_votes, list_votes}`, refusing a missing
+  or copied ballot), and `seats_of`, the one composition of the seat law for a
+  prediction or a reader's forecast (the two others are `run_model`'s draw loop
+  and `benchmarks.council_from_shares`, which seats the naive baselines).
+  `reader_seats` delegates to `seats_of`; `score_forecasts.model_forecast`,
+  `build_make.start_state` and the page's `handoff` and ward map call the rule;
+  `scenarios.modal_winners`, `diagnose.main` and `score.score_wards` call
+  `top_party`, which changes their output only on an exact tie.
+  `start_rule.py` is deleted.
+- `run_model` records `ModelRun.ward_vote_draws` and `pr_vote_draws`: each draw's
+  whole votes per ballot, the integers `eligible_parties` read, copied from dicts
+  the loop already built. Traced as `42a_pr_vote_draws` and `43a_ward_vote_draws`.
+- The draw export ships them as the `ward_vote` and `list_vote` blocks, on the
+  run's whole universe (no party summed into OTHER); the stepped `pr_share` block
+  and the combined-share refusal are gone (owner, 2026-10-08: the list share is
+  derived exactly from the list votes). `reweight.list_shares` is the one
+  definition of a list share from the file; the poll weights, the page's
+  analysis and the home page's overhang list-share token read it. The page's
+  analysis no longer sums a reader's other parties into an OTHER share; it
+  refuses a party the `list_vote` block does not carry.
+- `backtest.relabel_run`'s merge branch (the arrived party already has a
+  column) now moves the recorded votes and the per-draw ward winners off
+  ENTRANT too, as it moved the shares.
+- The page's hand-off refuses, rather than returning an empty share, when the
+  prediction holds no vote on either ballot.
+- Guards: `tests/test_prediction_rule.py` (one definition both ways, the tie
+  through every caller, the rounding, the refusals, nothing summed);
+  `test_export_draws` and `test_served_draws` (the blocks are the run's
+  integers, rule A agrees on file and run, the refusal never beside the blocks);
+  `test_chain` (the recorded votes move no draw, and the seat law on one draw's
+  recorded votes gives that draw's council); `test_stage_realisation` (every
+  realisation predicate registered with a constructed violation, both ways,
+  replacing QC.md §3's hand-maintained pairing).
+
+**Decision.** The owner's, 2026-10-08: rule A reduces our forecast to our
+prediction; no backward compatibility; whole votes recorded per draw rather than
+two totals per draw (shares times totals miss the model's integers in a measured
+fraction of cells, SPEC-A M4); `pr_share` dropped. The published winner column
+of `montecarlo.main` is exempt from the one-definition guard, pending owner
+decision (s1/SYNTHESIS.md item 8).
+
+**Measurements, from the check step's runs** (none was run while writing):
+
+| what | value |
+|---|---|
+| §1.290's A columns reproduced by `backtest/rule_a.py`, compared by `compare_rule_a.py` (2026-10-08, `PYTHONHASHSEED=0`, 6 in parallel; results in `backtest/results-rule-a/`, the comparison in its `compare.log`) | 23 of 24 identical; the 24th, Joburg 2016, differs only by an exact seat tie. §1.290's Joburg 2016 A row was decided by that tie broken by set iteration order, which depends on the hash seed, and §1.290 did not record its seed: AIC (the relabelled entrant) and TRULY_ALLIANCE hold identical rule-A votes (ward 1,906, list 1,837, combined 3,743), §1.290 seated TRULY_ALLIANCE and the reproduction seats AIC. A's seat error there is 28, not 30, and the panel total 737, not 739. The seat law breaks an exact tie by input order, a property that predates rule A; rule A's input order is now deterministic (`seats_of`'s key order). Record correction, not a rule A failure (coordinator, 2026-10-08) |
+| tied wards per city-year in that reproduction | 0 in every one of the 24 |
+| the recording moved no draw (`backtest/no_draw_moved.py`): pre-change commit (`git archive`) and changed tree, joburg 2026, published seed, 200 draws, every `*draws` field equal, only the two vote arrays new | PASS against 322bcde (2026-10-08): every `*draws` field equal (`draws`, `excessive_draws`, `over_draws`, `pool_turnout_draws`, `pr_share_draws`, `seat_draws`, `ward_seat_draws`, `ward_share_draws`, `ward_winner_draws`); new fields exactly `pr_vote_draws`, `ward_vote_draws` |
+| tied wards at joburg 2026's published seed and draws (the case JUDGEMENT-CALLS §Q2 decides) | none, on the re-exported base cell's ward block |
+| `draws_sha256` of the served cells, before and after the re-export | base `de96d194…5127` → `3b25be8f…484b`; w_bye-0 `e43d6a6b…c5bb` → `372b6442…03f1`; w_bye-1 `823a2d24…e545` → `0474905e…7528` |
+| `model_sha256` of the served cells, before and after | all three `cf665663…70dc` → `7ea27c28…e020` (exported from 322bcde with the slice's uncommitted `src/`, `git.dirty` true) |
+| `base.bin` gzipped, base cell, after (budget `BUDGET_GZIP_BYTES` in `tests/test_export_draws.py`) | 1,418,688 bytes (was 855,507); w_bye-0 1,405,558, w_bye-1 1,408,098; raw 5,375,000 bytes per cell (was 3,165,000) |
+| rule-A ballot totals at joburg 2026 against the schema's `x-total-votes` | ward 984,627, list 984,630, together 1,969,257; `x-total-votes` 1,986,759 |
+| the 2026 prediction against the retired start, party by party (seats, called wards) | Ward calls identical (ANC 70, DA 44, PA 10, MK 9, EFF 2). Seats, rule A against retired start: ANC 70/70, DA 65/66, ASA 28/27, EFF 26/25, PA 24/23, MK 23/22, SACP 4/5, IFP 4/2, RISE 4/2, BOSA 3/3, ALJAMAAH 3/2, ALL_CITIZENS_PARTY 2/3, VFPLUS 2/3, ACDP 2/2, ATM 2/2, AHC 1/2, AIC 1/2, APC 1/1, DUDULA 1/1, PAC 1/1, TRUTH_AND_SOLIDARITY_MOVEMENT 1/1, UDM 1/1, UNITED_AFRICANS_TRANSFORMATION 1/1, ALL_NATIVES_OF_SOUTH_AFRICA 0/1, AZAPO 0/1, NATIONAL_DEMOCRATIC_CONVENTION 0/1 |
+| item 16 under rule A at joburg 2026: which party, its excess | the ANC, excess 11 (70 called wards, all its seats) |
+
+**Not changed.** No drawn number: the forecast's seats, shares, ranges and
+chances. The reader's stored entry is still a combined share (slice B replaces
+it); until then the start and the hand-off also carry an interim
+`combined_share`, which the build seats through the reader path and refuses to
+write if it does not give the prediction's seats.

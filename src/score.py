@@ -1297,11 +1297,12 @@ def score_wards(ward_probs: Mapping[str, Mapping[str, float]],
                 actual_winners: Mapping[str, str],
                 edges: Sequence[float] | None = None) -> dict:
     """Everything ward-shaped in one call: Brier, reliability table, hit rate."""
+    import prediction  # the modal call is rule A's (a tie to the string-first code)
     probs, outcomes = ward_events(ward_probs, actual_winners)
     table = reliability_table(probs, outcomes, edges)
     called = sum(1 for ward, winner in actual_winners.items()
                  if ward_probs.get(ward) and
-                 max(ward_probs[ward], key=ward_probs[ward].get) == winner)
+                 prediction.top_party(ward_probs[ward]) == winner)
     return {"n_wards": len(actual_winners),
             "n_events": int(probs.size),
             "brier_binary": brier_score(probs, outcomes),

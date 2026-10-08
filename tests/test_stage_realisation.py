@@ -1,10 +1,13 @@
 """A stage observer for the REALISATION segment: draws -> shares -> seats.
 
-``run_model`` emits thirteen stages under ``--run-dir``. The last six are this
-file's subject::
+``run_model`` emits fifteen stages under ``--run-dir``. The last eight are
+this file's subject::
 
     40_draws  41_guards  42_pr_share_draws  43_ward_share_draws
-    44_seat_draws  45_delivered
+    42a_pr_vote_draws  43a_ward_vote_draws  44_seat_draws  45_delivered
+
+``42a``/``43a`` (since 2026-10-08) are the whole votes per ballot per draw that
+the seat law read, the arrays rule A (``src/prediction.py``) reduces.
 
 They are where a distribution becomes a council. Seats are a step function of
 votes through a quota, so a vote error is amplified at the quota and rounded
@@ -194,6 +197,73 @@ def faults_in_share_matrix(matrix, *, name="shares", draws=None, parties=None,
                f"row and means the draw loop did not reach them"
                if zero.size else ""))
     return out
+
+
+def faults_in_vote_matrix(matrix, *, name="votes", draws=None,
+                          parties=None) -> list[str]:
+    """Complaints about a ``42a``/``43a`` payload: (draws, parties) whole votes.
+
+    Units: votes cast on one ballot citywide, per party, per draw, exactly the
+    integers ``run_model`` handed ``seats.eligible_parties``. So every entry is
+    a non-negative whole number, and every row has a positive total: the
+    arrays are pre-allocated with zeros and filled inside the draw loop, so an
+    all-zero row is a draw the loop never reached (the share matrices' failure,
+    in votes).
+    """
+    arr = np.asarray(matrix)
+    if arr.ndim != 2:
+        return [f"{name}: expected a 2-D (draws, parties) array, got shape "
+                f"{arr.shape}"]
+    if arr.size == 0:
+        return [f"{name}: the array is empty"]
+    out: list[str] = []
+    if draws is not None and arr.shape[0] != draws:
+        out.append(f"{name}: {arr.shape[0]} rows against {draws} draws")
+    if parties is not None and arr.shape[1] != parties:
+        out.append(f"{name}: {arr.shape[1]} columns against {parties} parties "
+                   f"in the universe")
+    if arr.dtype.kind not in "iu":
+        out.append(f"{name}: stored as {arr.dtype}, not whole votes; a "
+                   f"fractional vote is a share or a mean where a count belongs")
+        return out
+    if arr.min() < 0:
+        out.append(f"{name}: a negative vote ({int(arr.min())})")
+    zero = np.flatnonzero(arr.sum(axis=1) <= 0)
+    if zero.size:
+        out.append(f"{name}: {zero.size} of {arr.shape[0]} rows hold no vote at "
+                   f"all, which is an unfilled row: the draw loop did not reach "
+                   f"them")
+    return out
+
+
+def faults_between_votes_and_shares(votes, shares, *, name="votes") -> list[str]:
+    """Are ``42a``/``43a`` the votes behind ``42``/``43``?
+
+    The shares are each draw's unrounded votes over their sum; the recorded
+    votes are those votes rounded to whole numbers. So each recorded vote over
+    its row total is within ``parties / rowsum`` of the share in every cell (each
+    of ``parties`` roundings moves the total by at most half a vote). A column
+    swap, a row from another draw or a share recorded from a different ballot
+    breaks it by far more.
+    """
+    v = np.asarray(votes, dtype=float)
+    s = np.asarray(shares, dtype=float)
+    if v.shape != s.shape or v.ndim != 2:
+        return [f"{name}: votes {v.shape} and shares {s.shape} are not one "
+                f"(draws, parties) shape"]
+    rows = v.sum(axis=1, keepdims=True)
+    if not np.all(rows > 0):
+        return [f"{name}: a draw with no vote cannot be compared with its shares"]
+    gap = np.abs(v / rows - s)
+    allowed = v.shape[1] / rows
+    bad = np.argwhere(gap > allowed)
+    if bad.size:
+        d, j = (int(x) for x in bad[0])
+        return [f"{name}: {len(bad)} cell(s) whose vote over its row total is "
+                f"not the recorded share (first: draw {d}, column {j}, "
+                f"{gap[d, j]:.3g} apart, allowed {allowed[d, 0]:.3g}); the "
+                f"votes are not the ones the shares were taken from"]
+    return []
 
 
 def faults_in_draws_summary(payload, *, draws=None, universe=None) -> list[str]:
@@ -850,6 +920,22 @@ def _payloads():
     return pr, wd, seat_draws, healthy_draws_summary(pr, wd, seat_draws)
 
 
+def healthy_votes(shares, total=100_000):
+    """Whole votes behind ``shares``: each share times ``total``, rounded, as
+    ``run_model`` rounds each party's ballot total."""
+    return np.rint(np.asarray(shares) * total).astype(np.int64)
+
+
+def healthy_bundle() -> dict:
+    """Every stage of the segment, constructed healthy, keyed by stage name."""
+    pr, wd, seat_draws, summary = _payloads()
+    return {"40_draws": summary, "41_guards": healthy_guards(),
+            "42_pr_share_draws": pr, "43_ward_share_draws": wd,
+            "42a_pr_vote_draws": healthy_votes(pr),
+            "43a_ward_vote_draws": healthy_votes(wd),
+            "44_seat_draws": seat_draws, "45_delivered": healthy_delivery_log()}
+
+
 # --------------------------------------------------------------------------
 # 42 / 43 — the share matrices
 # --------------------------------------------------------------------------
@@ -1407,6 +1493,168 @@ def test_eligible_parties_hands_the_allocator_a_set_ordered_dict():
 
 
 # --------------------------------------------------------------------------
+# every predicate, and the constructed violation that proves it can see
+# --------------------------------------------------------------------------
+#
+# ⛔ EVERY `faults_*` FUNCTION IN THIS FILE IS REGISTERED HERE AND HAS A
+# CONSTRUCTED VIOLATION. Until 2026-10-08 that was maintained by hand (QC.md
+# §3); `test_every_predicate_has_a_constructed_violation` now enforces it both
+# ways, as `test_stage_estimation.py` does for its segment. `run_predicates`
+# is the one place that knows how each predicate is called on a bundle of
+# stage payloads, so the real-trace test and the constructed ones call them the
+# same way.
+
+ALL_PREDICATES = {
+    "faults_in_share_matrix": faults_in_share_matrix,
+    "faults_in_vote_matrix": faults_in_vote_matrix,
+    "faults_between_votes_and_shares": faults_between_votes_and_shares,
+    "faults_in_draws_summary": faults_in_draws_summary,
+    "faults_in_seat_draws": faults_in_seat_draws,
+    "faults_between_summary_and_detail": faults_between_summary_and_detail,
+    "faults_in_guards": faults_in_guards,
+    "faults_in_delivery_log": faults_in_delivery_log,
+}
+
+
+def run_predicates(bundle: dict, *, universe=None, council=COUNCIL,
+                   rule="deduct") -> list[tuple[str, str]]:
+    """Every registered predicate on one bundle of stage payloads: ``(name, fault)``."""
+    universe = PARTIES if universe is None else universe
+    draws = len(bundle["44_seat_draws"])
+    n = len(universe)
+    out: list[tuple[str, str]] = []
+
+    def add(name, faults):
+        out.extend((name, f) for f in faults)
+
+    for stage in ("42_pr_share_draws", "43_ward_share_draws"):
+        add("faults_in_share_matrix", faults_in_share_matrix(
+            bundle[stage], name=stage, draws=draws, parties=n))
+    for stage in ("42a_pr_vote_draws", "43a_ward_vote_draws"):
+        add("faults_in_vote_matrix", faults_in_vote_matrix(
+            bundle[stage], name=stage, draws=draws, parties=n))
+    for votes, shares in (("42a_pr_vote_draws", "42_pr_share_draws"),
+                          ("43a_ward_vote_draws", "43_ward_share_draws")):
+        add("faults_between_votes_and_shares", faults_between_votes_and_shares(
+            bundle[votes], bundle[shares], name=votes))
+    add("faults_in_draws_summary", faults_in_draws_summary(
+        bundle["40_draws"], draws=draws, universe=universe))
+    add("faults_in_seat_draws", faults_in_seat_draws(
+        bundle["44_seat_draws"], council=council, draws=draws,
+        universe=universe, rule=rule))
+    add("faults_between_summary_and_detail", faults_between_summary_and_detail(
+        bundle["40_draws"], bundle["42_pr_share_draws"],
+        bundle["43_ward_share_draws"], bundle["44_seat_draws"]))
+    add("faults_in_guards", faults_in_guards(
+        bundle["41_guards"], draws=draws, universe=universe))
+    add("faults_in_delivery_log", faults_in_delivery_log(bundle["45_delivered"]))
+    return out
+
+
+def _zero_row(stage):
+    def mutate(b):
+        b[stage] = np.array(b[stage], copy=True)
+        b[stage][1] = 0
+    return mutate
+
+
+def _float_votes(b):
+    b["42a_pr_vote_draws"] = np.asarray(b["42a_pr_vote_draws"], dtype=float) + 0.5
+
+
+def _swap_vote_columns(b):
+    v = np.array(b["43a_ward_vote_draws"], copy=True)
+    v[:, [0, 1]] = v[:, [1, 0]]
+    b["43a_ward_vote_draws"] = v
+
+
+def _summary_mean_off(b):
+    b["40_draws"]["pr_mean"][sorted(b["40_draws"]["pr_mean"])[0]] += 0.05
+
+
+def _chamber_too_big(b):
+    first = b["44_seat_draws"][2]
+    first[sorted(first)[0]] += 1
+
+
+def _median_as_mean(b):
+    seat_draws = b["44_seat_draws"]
+    parties = sorted(b["40_draws"]["seat_mean"])
+    b["40_draws"]["seat_mean"] = {
+        p: float(statistics.median([s.get(p, 0) for s in seat_draws]))
+        for p in parties}
+
+
+def _guard_key_dropped(b):
+    b["41_guards"].pop(sorted(b["41_guards"])[0])
+
+
+def _delivery_empty(b):
+    b["45_delivered"] = {}
+
+
+# (predicate, what the corruption is, mutation of a deep copy of the bundle).
+# Every mutation addresses the payload, never a party by name.
+CORRUPTIONS = [
+    ("faults_in_share_matrix", "an unfilled share row", _zero_row("42_pr_share_draws")),
+    ("faults_in_vote_matrix", "an unfilled vote row", _zero_row("42a_pr_vote_draws")),
+    ("faults_in_vote_matrix", "fractional votes", _float_votes),
+    ("faults_between_votes_and_shares", "two ward-vote columns swapped", _swap_vote_columns),
+    ("faults_in_draws_summary", "a mean that no longer sums to one", _summary_mean_off),
+    ("faults_in_seat_draws", "a chamber larger than the statute", _chamber_too_big),
+    ("faults_between_summary_and_detail", "the marginal median stored as the mean", _median_as_mean),
+    ("faults_in_guards", "a declared guard counter missing", _guard_key_dropped),
+    ("faults_in_delivery_log", "an empty delivery log", _delivery_empty),
+]
+
+
+def _apply(mutate, bundle):
+    import copy
+    b = copy.deepcopy(bundle)
+    mutate(b)
+    return b
+
+
+def test_every_predicate_has_a_constructed_violation():
+    """The "it can see" control, enforced: both directions, and it looked.
+
+    Three populations must agree: the module's own ``faults_*`` functions,
+    :data:`ALL_PREDICATES`, and the predicates :data:`CORRUPTIONS` names. A
+    predicate missing from the registry is one no test calls on a real trace;
+    one with no corruption has never been shown to fire; a corruption naming
+    no predicate is a rename that disarmed the control.
+    """
+    module = {name for name, obj in globals().items()
+              if name.startswith("faults_") and callable(obj)}
+    registered = set(ALL_PREDICATES)
+    covered = {name for name, *_ in CORRUPTIONS}
+    assert module == registered, (
+        f"faults_* functions not registered: {sorted(module - registered)}; "
+        f"registered and absent: {sorted(registered - module)}")
+    assert not registered - covered, (
+        f"predicate(s) with no constructed violation: {sorted(registered - covered)}")
+    assert not covered - registered, (
+        f"CORRUPTIONS names predicate(s) that do not exist: {sorted(covered - registered)}")
+    # IT LOOKED: one predicate per stage, roughly, against the stages the
+    # segment emits; far fewer means stages nobody checks, far more means the
+    # registry filled with variations on one claim.
+    scanned(registered, of=len(healthy_bundle()), low=0.75, high=1.5,
+            what="registered realisation predicates",
+            denominator="stage payloads in the realisation segment")
+
+
+def test_each_constructed_violation_is_caught_by_the_predicate_that_owns_it():
+    """Healthy is quiet; each corruption fires its own predicate; reverted, quiet again."""
+    healthy = healthy_bundle()
+    assert not run_predicates(healthy), run_predicates(healthy)
+    for name, what, mutate in CORRUPTIONS:
+        fired = {n for n, _ in run_predicates(_apply(mutate, healthy))}
+        assert name in fired, (
+            f"the corruption {what!r} did not fire {name} (fired: {sorted(fired)})")
+    assert not run_predicates(healthy), "the bundle was mutated in place"
+
+
+# --------------------------------------------------------------------------
 # the integration test — the same predicates, against a REAL trace
 # --------------------------------------------------------------------------
 
@@ -1471,7 +1719,8 @@ def real_trace():
                               verbose=False)
             payloads = {}
             for name in ("40_draws", "41_guards", "42_pr_share_draws",
-                         "43_ward_share_draws", "44_seat_draws",
+                         "43_ward_share_draws", "42a_pr_vote_draws",
+                         "43a_ward_vote_draws", "44_seat_draws",
                          "45_delivered", "_index"):
                 with (Path(tmp) / f"{name}.json").open(encoding="utf-8") as fh:
                     payloads[name] = json.load(fh)
@@ -1487,7 +1736,8 @@ def test_the_realisation_segment_emits_every_stage_it_claims_to():
     payloads, _ = real_trace()
     written = set(payloads["_index"]["written"])
     segment = {"40_draws", "41_guards", "42_pr_share_draws",
-               "43_ward_share_draws", "44_seat_draws", "45_delivered"}
+               "43_ward_share_draws", "42a_pr_vote_draws",
+               "43a_ward_vote_draws", "44_seat_draws", "45_delivered"}
     assert segment <= written, (
         f"the trace index does not list {sorted(segment - written)}. A stage "
         f"that wrote a `(FAILED: ...)` entry is listed here with the reason; "
@@ -1521,30 +1771,10 @@ def test_a_real_trace_passes_every_predicate_in_this_file():
     ``run_model`` actually writes, with the same functions.
     """
     payloads, run = real_trace()
-    draws = len(payloads["44_seat_draws"])
-    universe = run.universe
-    council = int(run.target.council)
-    rule = run.scenario["overhang_rule"]
-
-    complaints: list[str] = []
-    complaints += faults_in_share_matrix(
-        payloads["42_pr_share_draws"], name="42_pr_share_draws", draws=draws,
-        parties=len(universe))
-    complaints += faults_in_share_matrix(
-        payloads["43_ward_share_draws"], name="43_ward_share_draws",
-        draws=draws, parties=len(universe))
-    complaints += faults_in_draws_summary(payloads["40_draws"], draws=draws,
-                                          universe=universe)
-    complaints += faults_in_seat_draws(payloads["44_seat_draws"],
-                                       council=council, draws=draws,
-                                       universe=universe, rule=rule)
-    complaints += faults_between_summary_and_detail(
-        payloads["40_draws"], payloads["42_pr_share_draws"],
-        payloads["43_ward_share_draws"], payloads["44_seat_draws"])
-    complaints += faults_in_guards(payloads["41_guards"], draws=draws,
-                                   universe=universe)
-    complaints += faults_in_delivery_log(payloads["45_delivered"])
-    assert not complaints, "\n".join(complaints)
+    complaints = run_predicates(payloads, universe=run.universe,
+                                council=int(run.target.council),
+                                rule=run.scenario["overhang_rule"])
+    assert not complaints, "\n".join(f"{n}: {t}" for n, t in complaints)
 
 
 def test_the_guard_board_on_a_real_run_can_prove_it_looked():

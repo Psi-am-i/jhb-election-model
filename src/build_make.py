@@ -23,27 +23,23 @@ reader's forecast lives in the page's address (``js/make-state.js``, through
 The start state, stated exactly
 ===============================
 
-* **Ward calls**: the modal winner of each ward over the published draws'
-  ``ward_winner`` block (``site/draws/``), by
-  ``score_forecasts.model_forecast``: the one definition of "the model as a
-  reader who changed nothing". It is the ``winner`` column of
-  ``ward_winner_probs.csv`` that the forecast page's map passes to
-  ``render_map.ward_call`` wherever that column has no tie
-  (``tests/test_your_forecast_page.py``).
-* **Vote shares**: chosen so that the untouched council, under the seat law
-  (``reader_seats``), gives each party the published seat panel names its
-  middle seat count, or its ward count where that is higher, and the other
-  parties the rest of the council (``start_rule.start_seats``, then
-  ``start_rule.start_shares``: the one definition, which the page also runs
-  on the reader's weighted draws when section 1 hands its forecast on). There is no published combined (ward + list) share
-  to start from: the draws' manifest refuses one
-  (``export_draws.COMBINED_SHARE_REFUSAL``), and the list-ballot medians,
-  fed in as the combined vote, open the council far from the forecast's
-  middle (MODEL-LOG §1.270). The rule, in order:
+Section 2 opens on **our prediction**: rule A on the published draws
+(``site/draws/``), each draw counted once, by ``score_forecasts.model_forecast``,
+which calls ``src/prediction.py``, the one definition (JUDGEMENT-CALLS §Q):
 
-  The rule, in order, is ``src/start_rule.py``'s docstring; here it runs
-  with every draw counted once. The build runs ``reader_seats`` on the
-  result and refuses to write a start it does not reproduce.
+* **Ward calls**: each ward to the party that wins it in the most simulations
+  (the ``ward_winner`` block), a tie to the code first in string order.
+* **Votes**: each party's mean ward-ballot and mean list-ballot whole votes
+  across the simulations (the ``ward_vote`` and ``list_vote`` blocks).
+* **Seats**: by the seat law from those wards and votes
+  (``prediction.seats_of``), never stored as an input.
+
+A missing block is a :class:`MakeBuildError` naming it. Until the reader entry
+carries both ballots (slice B), the start also carries an INTERIM
+``combined_share`` (both ballots' votes as one share, the shape a reader's
+forecast has today) and an empty ``published_middle``; the build seats the
+interim share through ``reader_seats`` and refuses to write a start whose
+seats differ from the prediction's.
 
 * **Total combined vote** (``reader_seats``' ``total_votes``, the schema's
   ``x-total-votes``): nothing published carries it. It is two ballots times
@@ -63,7 +59,6 @@ from pathlib import Path
 import numpy as np
 
 import build_play
-import start_rule
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INTERACTIVE = REPO_ROOT / "interactive"
@@ -189,55 +184,74 @@ def make_schema(artefact: dict, geom: dict) -> dict:
     return json.loads(run.stdout)
 
 
-def start_plan(manifest: dict, arrays: dict, calls: list[str], weights=None) -> dict:
-    """``start_rule.start_seats`` on the draws' statutory seats and council,
-    each draw counted once unless ``weights`` are given."""
-    council = np.asarray(arrays["council/deduct"], dtype=float)[
-        :, _columns(manifest, "council/deduct").index("council_size")]
-    try:
-        return start_rule.start_seats(_columns(manifest, "seats/deduct"), arrays["seats/deduct"],
-                                      council, calls, weights)
-    except start_rule.StartRuleError as exc:
-        raise MakeBuildError(f"build_make: {exc}") from None
-
-
 def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
-    """The model's central state as a reader forecast; module docstring."""
+    """Our prediction, the start of section 2; module docstring."""
+    import prediction
     import reader_seats
     import score_forecasts
+    for name in ("ward_winner", "ward_vote", "list_vote"):
+        if name not in arrays:
+            raise MakeBuildError(f"build_make: the draw file carries no {name} block")
     roster = list(schema["x-seat-context"]["parties"])
     wards = _columns(manifest, "ward_winner")
-    codes = manifest["ward_parties"]
-    winners = np.asarray(arrays["ward_winner"], dtype=np.int64)
-    counts = np.zeros((len(wards), len(roster)), dtype=np.int64)
-    col = {p: j for j, p in enumerate(roster)}
-    for k, code in enumerate(codes):
-        counts[:, col[code]] = (winners == k).sum(axis=0)
-    # the ward calls by the scorer's rule (its shares are not used: see the
-    # module docstring)
-    flat = [[1.0 / len(roster)] * len(roster)]
-    calls = score_forecasts.model_forecast(
-        counts.tolist(), roster, wards, flat, roster, schema)["ward_calls"]
+    columns = _columns(manifest, "list_vote")
+    if _columns(manifest, "ward_vote") != columns:
+        raise MakeBuildError("build_make: the ward_vote and list_vote blocks have different columns")
+    try:
+        pred = score_forecasts.model_forecast(
+            arrays["ward_winner"], manifest["ward_parties"], wards,
+            arrays["ward_vote"], arrays["list_vote"], columns, schema)
+    except ValueError as exc:
+        raise MakeBuildError(f"build_make: {exc}") from None
     context, total, target, _tol, ward_ids = score_forecasts.schema_context(schema)
-    plan = start_plan(manifest, arrays, calls)
-    share = start_rule.start_shares(plan["seats"], roster, total)
-    got = reader_seats.reader_seats({p: v / 100 for p, v in share.items()}, dict(zip(ward_ids, calls)),
-                                    context, total)
+    try:
+        seated = prediction.seats_of(pred, context["council"], order=roster)
+    except (ValueError, RuntimeError) as exc:
+        raise MakeBuildError(f"build_make: the seat law cannot seat our prediction: {exc}") from None
+    seats = {p: v["total"] for p, v in seated["seats"].items()}
+    # INTERIM (until slice B): the combined share must seat exactly the
+    # prediction through today's reader path
+    got = reader_seats.reader_seats({p: v / target for p, v in pred["combined_share"].items()},
+                                    dict(zip(ward_ids, pred["ward_calls"])), context, total)
     if not got["ok"]:
-        raise MakeBuildError(f"build_make: the start shares do not seat: {got['errors']}")
-    seated = {p: v["total"] for p, v in got["seats"].items()}
-    if seated != plan["seats"]:
-        raise MakeBuildError(f"build_make: the start shares seat {seated}, not the targets {plan['seats']}")
+        raise MakeBuildError(f"build_make: the interim combined share does not seat: {got['errors']}")
+    interim = {p: v["total"] for p, v in got["seats"].items()}
+    if interim != seats:
+        raise MakeBuildError(f"build_make: the interim combined share seats {interim}, "
+                             f"not the prediction's {seats}")
     return {
-        "ward_calls": calls,
-        "combined_share": {p: v * target / 100 for p, v in share.items()},
-        "seats": plan["seats"],
-        "published_middle": plan["published"],
-        "rule": ("ward calls: score_forecasts.model_forecast's modal winner over the published draws; "
-                 "combined shares: each party's target seats' share of the council, the targets being "
-                 "the published seat panel's middles, raised to the ward floor, with Others taking the "
-                 "seats left to fill the council (src/start_rule.py start_seats)"),
+        "ward_calls": pred["ward_calls"],
+        "ward_votes": pred["ward_votes"],
+        "list_votes": pred["list_votes"],
+        "seats": seats,
+        "combined_share": pred["combined_share"],      # INTERIM, slice B deletes
+        "published_middle": {},                         # INTERIM, slice B deletes
+        "rule": "rule A: src/prediction.py",
     }
+
+
+def _inputs(draws: Path | None = None) -> dict:
+    """What the start and ``forecast.json`` are built from: the served draws,
+    the total vote, the model artefact, the geometry and the generated
+    schema. Reads only."""
+    import cityconfig
+    manifest, arrays, raw = _draws(draws)
+    pools_file = REPO_ROOT / "data" / "processed" / f"pools_{cityconfig.active().default_target}.json"
+    total, total_src = total_votes(manifest, arrays, pools_file)
+    geom = geometry()
+    artefact = model_artefact(manifest, total, build_play.roster())
+    return {"manifest": manifest, "arrays": arrays, "raw": raw, "total_src": total_src,
+            "geometry": geom, "artefact": artefact, "schema": make_schema(artefact, geom)}
+
+
+def our_prediction(draws: Path | None = None, *, inputs: dict | None = None) -> dict:
+    """Our prediction from the served draws, without writing anything: the
+    ``start`` that :func:`forecast_data` puts in ``forecast.json`` (it calls
+    this), and what a caller reads before that file exists (``render_sheet``'s
+    pointer on ``/forecast``). ``inputs`` is :func:`_inputs`' result, when the
+    caller has it already."""
+    inputs = _inputs(draws) if inputs is None else inputs
+    return start_state(inputs["manifest"], inputs["arrays"], inputs["schema"])
 
 
 # --------------------------------------------------------------------------
@@ -314,14 +328,10 @@ def election_of(city) -> dict:
 def forecast_data(draws: Path | None = None) -> dict:
     """Everything ``make/forecast.json`` carries."""
     import cityconfig
-    manifest, arrays, raw = _draws(draws)
-    pools_file = REPO_ROOT / "data" / "processed" / f"pools_{cityconfig.active().default_target}.json"
-    total, total_src = total_votes(manifest, arrays, pools_file)
-    roster = build_play.roster()
-    geom = geometry()
-    artefact = model_artefact(manifest, total, roster)
-    schema = make_schema(artefact, geom)
-    start = start_state(manifest, arrays, schema)
+    inputs = _inputs(draws)
+    schema, geom, artefact = inputs["schema"], inputs["geometry"], inputs["artefact"]
+    raw, total_src = inputs["raw"], inputs["total_src"]
+    start = our_prediction(inputs=inputs)
     ctx = schema["x-seat-context"]
     # What a link is read against: change any of these and an old link's
     # positions mean different parties, wards or votes (js/make-state.js).

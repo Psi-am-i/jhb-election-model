@@ -1291,13 +1291,21 @@ def relabel_run(run, entrant: str | None):
                      for p, i in run.index.items()}
         run.universe = [entrant if p == "ENTRANT" else p for p in run.universe]
     else:                                             # merge into the column it has
-        for arr in (run.pr_share_draws, run.ward_share_draws):
+        # the per-draw arrays keyed by universe column: shares and, since
+        # 2026-10-08, the whole votes the seat law read (rule A reads them)
+        for arr in (run.pr_share_draws, run.ward_share_draws,
+                    getattr(run, "pr_vote_draws", None),
+                    getattr(run, "ward_vote_draws", None)):
             if arr is not None:
                 arr[:, dst] += arr[:, src]
-                arr[:, src] = 0.0
+                arr[:, src] = 0
         if run.ward_winner_counts is not None:
             run.ward_winner_counts[:, dst] += run.ward_winner_counts[:, src]
             run.ward_winner_counts[:, src] = 0
+        # per-draw ward winners hold universe indices: ENTRANT's wins move too
+        winners = getattr(run, "ward_winner_draws", None)
+        if winners is not None:
+            winners[winners == src] = dst
 
     for d in run.seat_draws:
         n = d.pop("ENTRANT", 0)

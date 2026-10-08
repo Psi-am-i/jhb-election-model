@@ -201,7 +201,7 @@ Structural choices the code makes without a constant to name them — the easies
 | PIT seed derived per city-year | `compare_history._pit_seed` | Derived from the city-year name by CRC32; reproducible, and it cannot change a conclusion. | — | §D12 |
 | seat error summed over all parties | `compare_history.py` | Unchanged; parties that won nothing contribute 0, so the wider denominator does not inflate it. | — | §D14 |
 | modal ward winner as "the model's call" | `diagnose.py` | A defensible reading of a probabilistic forecast, and it is a reading. | — | §D15 |
-| a reader edits the combined vote | `reader_seats.reader_seats` | Owner's decision (DESIGN-decided §10, replacing §9's "PR shares stand for both ballots"). The reader's slider is each party's share of all votes on both ballots together (`combined_shares`), what Schedule 1 counts, with no conversion. What remains a choice: `total_votes` is the start state's combined total, and an exact tie falls by roster order where Schedule 1 says "by lot". The retired assumption's cost: `tests/test_reader_seats.py` prints it. | ⚖️ argued | §M1 |
+| a reader edits the combined vote | `reader_seats.reader_seats` | Owner's decision (DESIGN-decided §10, replacing §9's "PR shares stand for both ballots"). The reader's slider is each party's share of all votes on both ballots together (`combined_shares`), what Schedule 1 counts, with no conversion. What remains a choice: `total_votes` is the start state's combined total (the start is our prediction since 2026-10-08, see §Q), and an exact tie falls by roster order where Schedule 1 says "by lot". The retired assumption's cost: `tests/test_reader_seats.py` prints it. | ⚖️ argued | §M1 |
 
 ## 5 · Levers that are INERT, and what it would take to reinstate one
 

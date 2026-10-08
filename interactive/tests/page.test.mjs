@@ -190,6 +190,8 @@ test("the comparison sees a difference and tolerates only the named dust", () =>
 
 test("the page's engine under Pyodide gives the native answer (F19)", { skip: !process.env.PYODIDE_NODE && "PYODIDE_NODE not set" }, async () => {
   const req = createRequire(resolve(process.env.PYODIDE_NODE, "package.json"));
+  // Constructed cells served beside the real ones (G3's node leg, below).
+  const CONSTRUCTED = new Map();
   const mod = await import(pathToFileURL(req.resolve("pyodide")).href);
   const loadPyodide = mod.loadPyodide ?? mod.default.loadPyodide;
   const { loadReweightEngine } = await import("../js/reweight-engine.js");
@@ -198,7 +200,7 @@ test("the page's engine under Pyodide gives the native answer (F19)", { skip: !p
     loadPyodide: ({ indexURL, ...opts }) => loadPyodide({ ...opts, packageBaseUrl: indexURL,
       packageCacheDir: dirname(req.resolve("pyodide")) }),
     readText: async rel => readFileSync(resolve(REPO, "interactive", rel), "utf8"),
-    readBytes: async rel => new Uint8Array(readFileSync(resolve(REPO, rel))),
+    readBytes: async rel => CONSTRUCTED.get(rel) ?? new Uint8Array(readFileSync(resolve(REPO, rel))),
   });
   console.log(`# node Pyodide load: ${Math.round(performance.now() - t0)} ms`, engine.times);
   assert.deepEqual(engine.polls, FIXTURE.polls);
@@ -220,17 +222,57 @@ test("the page's engine under Pyodide gives the native answer (F19)", { skip: !p
     assert.ok(d.maxRel <= 1e-9, `${c.name}: ${d.maxRel} at ${d.where}`);
   }
   assert.equal(compared, CASES.length);
-  // section 2's hand-off and analysis: the ward calls, seats and every
-  // share and chance as CPython gives them
+  // section 2's hand-off and analysis: the prediction (ward calls and both
+  // ballots' whole votes, rule A) and every share and chance as CPython gives
+  // them. The hand-off carries no seats; the analysis is given each party's
+  // called wards as its council, as native_play.py's held_wards gives it.
   const byName = Object.fromEntries(CASES.map(c => [c.name, c.settings]));
   for (const want of FIXTURE.section2) {
     const h = await engine.handoff({ settings: byName[want.name], total: SECTION2.total });
-    assert.deepEqual([h.ward_calls, h.seats], [want.handoff.ward_calls, want.handoff.seats], want.name);
-    const two = Object.keys(h.seats).sort((x, y) => h.seats[y] - h.seats[x] || (x < y ? -1 : x > y ? 1 : 0)).slice(0, 2);
-    const a = await engine.analyse({ ward_calls: h.ward_calls, share: h.share, seats: h.seats, coalition: two });
+    assert.deepEqual([h.ward_calls, h.ward_votes, h.list_votes],
+                     [want.handoff.ward_calls, want.handoff.ward_votes, want.handoff.list_votes], want.name);
+    assert.equal(h.seats, undefined, "the hand-off carries no seats: they are derived");
+    const seats = {};
+    for (const c of Object.values(h.ward_calls)) seats[c] = (seats[c] || 0) + 1;
+    const two = Object.keys(seats).sort((x, y) => seats[y] - seats[x] || (x < y ? -1 : x > y ? 1 : 0)).slice(0, 2);
+    const a = await engine.analyse({ ward_calls: h.ward_calls, share: h.share, seats, coalition: two });
     for (const [got, exp, what] of [[h, want.handoff, "handoff"], [a, want.analyse, "analyse"]]) {
       const d = compareLeaves(got, exp);
       assert.ok(d.maxRel <= 1e-9, `${want.name} ${what}: ${d.maxRel} at ${d.where}`);
     }
   }
+  // G3, under Pyodide (SPEC-A): a cell whose file carries no list_vote block
+  // is refused by the hand-off, naming the block. The cell is the base cell
+  // with that block cut out of both the bytes and the block table, so it is a
+  // real file that unpacks; the same cell with the block kept is answered.
+  const withoutList = cutBlock("site/draws", "list_vote");
+  CONSTRUCTED.set("site/draws/g3-no-list-vote/manifest.json", withoutList.manifest);
+  CONSTRUCTED.set("site/draws/g3-no-list-vote/base.bin", withoutList.blob);
+  const refused = await engine.handoff({ settings: { cell: "g3-no-list-vote" } });
+  assert.ok(refused.refused && refused.refused.includes("list_vote"), JSON.stringify(refused));
+  const kept = cutBlock("site/draws", null);
+  CONSTRUCTED.set("site/draws/g3-kept/manifest.json", kept.manifest);
+  CONSTRUCTED.set("site/draws/g3-kept/base.bin", kept.blob);
+  const answered = await engine.handoff({ settings: { cell: "g3-kept" } });
+  assert.ok(!answered.refused && answered.list_votes, JSON.stringify(answered).slice(0, 200));
 });
+
+// A served cell's manifest and bytes with one block removed (or none, when
+// `name` is null), offsets recomputed, as the bytes the engine would fetch.
+function cutBlock(dir, name) {
+  const manifest = JSON.parse(readFileSync(resolve(REPO, dir, "manifest.json"), "utf8"));
+  const blob = readFileSync(resolve(REPO, dir, "base.bin"));
+  const keep = manifest.blocks.filter(b => b.name !== name);
+  assert.ok(name === null || keep.length === manifest.blocks.length - 1, `no ${name} block to cut`);
+  const parts = [];
+  let offset = 0;
+  const blocks = keep.map(b => {
+    parts.push(blob.subarray(b.offset, b.offset + b.nbytes));
+    const out = { ...b, offset };
+    offset += b.nbytes;
+    return out;
+  });
+  const enc = new TextEncoder();
+  return { manifest: enc.encode(JSON.stringify({ ...manifest, blocks })),
+           blob: new Uint8Array(Buffer.concat(parts)) };
+}

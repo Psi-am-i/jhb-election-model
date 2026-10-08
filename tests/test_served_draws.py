@@ -41,6 +41,11 @@ What it proves, on the base cell (the one with no lever override):
    breaks check 3, each quiet when reverted; a manifest with the wrong run id, or
    none, breaks check 5 and goes quiet when reverted. In memory only: nothing
    here writes under `site/`.
+8. BOTH BALLOTS (2026-10-08, SPEC-A G2). Every cell carries the ``ward_vote``
+   and ``list_vote`` blocks as whole votes on one set of columns, the same in
+   every cell, with no ``combined_share`` refusal beside them
+   (``export_draws.ballot_faults``); a manifest with a block removed, or with
+   the refusal re-added, is caught and quiet when reverted.
 
 Skips loudly, per test, when `site/draws/` is absent.
 """
@@ -214,6 +219,29 @@ def test_every_cell_is_indexed_unpacks_and_sums_to_its_council():
         assert cell["manifest"]["artefact_key"]["overrides"] == \
             cell["entry"]["overrides"], path
 
+
+
+def test_every_cell_carries_both_ballot_blocks():
+    import export_draws as E
+    st = _served()
+    columns = set()
+    for path, cell in st["cells"].items():
+        manifest = cell["manifest"]
+        assert E.ballot_faults(manifest) == [], (path, E.ballot_faults(manifest), REEXPORT)
+        arrays = R.unpack(cell["blob"], manifest)
+        for name in ("ward_vote", "list_vote"):
+            assert arrays[name].dtype.kind == "u", (path, name)
+            assert np.all(arrays[name].astype(np.int64).sum(axis=1) > 0), (path, name)
+        columns.add(tuple(next(b for b in manifest["blocks"] if b["name"] == "list_vote")["columns"]))
+    scanned(len(st["cells"]), of=len(st["index"]["cells"]), low=1.0, high=1.0,
+            what="cells checked", denominator="cells index.json lists")
+    assert len(columns) == 1, "the cells' vote blocks are on different columns"
+    # it can see, in memory: a block removed, and the refusal re-added
+    m = st["manifest"]
+    gone = dict(m, blocks=[b for b in m["blocks"] if b["name"] != "list_vote"])
+    assert E.ballot_faults(gone)
+    assert E.ballot_faults(dict(m, combined_share={"refused": True}))
+    assert E.ballot_faults(m) == []
 
 # -- 5: the run each cell stands for ------------------------------------------
 

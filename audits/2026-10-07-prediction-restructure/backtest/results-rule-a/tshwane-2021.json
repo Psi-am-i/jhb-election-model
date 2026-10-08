@@ -1,0 +1,38 @@
+{
+ "city": "tshwane",
+ "year": "2021",
+ "draws": 1000,
+ "council": 214,
+ "wards": 107,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "AFRICAN_COVENANT": 1,
+   "AIC": 2,
+   "ANC": 78,
+   "ASA": 12,
+   "ATM": 1,
+   "COPE": 1,
+   "DA": 72,
+   "EFF": 31,
+   "GOOD": 1,
+   "IFP": 1,
+   "PAC": 1,
+   "VFPLUS": 11
+  },
+  "seat_err": 32.0,
+  "wards_ok": 105,
+  "ward_vote_err_pp": 16.928149967793438,
+  "list_vote_err_pp": 16.47652064927002,
+  "top": "ANC",
+  "top_wards": 70,
+  "top_actual_wards": 70,
+  "excessive": {},
+  "council": 214,
+  "ward_wins": {
+   "DA": 37,
+   "ANC": 70
+  }
+ }
+}

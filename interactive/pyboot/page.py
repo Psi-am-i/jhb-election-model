@@ -16,8 +16,9 @@ Four calls:
     compute(settings_json) -> json         every figure section 1 ("Adjust the
                                            model") shows for one setting of
                                            the controls
-    handoff(request_json) -> json          where section 2 ("Break the model")
-                                           opens from those settings
+    handoff(request_json) -> json          our prediction under those settings
+                                           (rule A, src/prediction.py), where
+                                           section 2 ("Break the model") opens
     analyse(request_json) -> json          what the model gives a reader's own
                                            forecast ("Analyse my forecast")
 
@@ -49,10 +50,10 @@ import numpy as np
 
 import cityconfig
 import polling
+import prediction as P
 import render_map as RM
 import reweight as R
 import score_forecasts as SF
-import start_rule
 
 #: The cell the published forecast was drawn in (``site/draws/index.json``'s
 #: entry with no overrides). Its pool-turnout means are the published means.
@@ -161,7 +162,6 @@ def _party_columns(cell: dict, law: str) -> tuple[np.ndarray, list[str]]:
 def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
     """The weights for one setting, and what they are; raises ``Refused``."""
     a = cell["arrays"]
-    pr = next(b for b in cell["manifest"]["blocks"] if b["name"] == "pr_share")["columns"]
     trust = float(settings.get("trust", 0.0))
     ids = list(dict.fromkeys(settings.get("polls") or []))
     if len(ids) > 1:
@@ -172,7 +172,10 @@ def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
     base = None
     if trust > 0 and on:
         poll = on[0]
-        base = poll_weights(a["pr_share"], pr, poll, trust)
+        if "list_vote" not in a:
+            raise R.Refused("the draw file carries no list_vote block")
+        lv, lcols = _block(cell, "list_vote")
+        base = poll_weights(R.list_shares(lv), lcols, poll, trust)
         info["poll"] = {"id": poll["id"], "label": R.POLL_LABEL, "trust": trust,
                         "sd": {k: R.poll_trust_sd(poll, v, trust)
                                for k, v in poll["numbers"].items()}}
@@ -188,9 +191,9 @@ def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
 def _ward_calls(cell: dict, w: np.ndarray) -> list[dict]:
     """Every ward under ``w``, drawn by ``render_map.ward_call`` (the forecast map's rule).
 
-    ``winner`` is the party with the highest ``reweight.ward_win_probability``
-    under ``w``. A tie goes to the party first in the draws' ``ward_parties``
-    order (a stable sort): the rule section 2 inherits through :func:`handoff`.
+    ``winner`` is rule A's call under ``w`` (``prediction.ward_calls``: the
+    party that wins the ward in the most weighted simulations, a tie to the
+    code first in string order), the same call :func:`handoff` hands section 2.
 
     ``dist`` is built as ``ward_winner_probs.csv`` carries it: each party that
     wins the ward in any draw with weight, strongest first, at its
@@ -200,13 +203,15 @@ def _ward_calls(cell: dict, w: np.ndarray) -> list[dict]:
     winners, wards = _block(cell, "ward_winner")
     codes = cell["manifest"]["ward_parties"]
     probs = R.ward_win_probability(winners, w, len(codes))
+    called = P.ward_calls(winners, codes, wards, w)
     out = []
     for j, ward in enumerate(wards):
         hit = np.bincount(winners[:, j], weights=w, minlength=len(codes)) > 0
         order = [int(k) for k in np.argsort(-probs[j], kind="stable") if hit[k]]
         dist = "|".join(f"{codes[k]}:{probs[j, k]:.4f}" for k in order)
-        call = RM.ward_call(ward, codes[order[0]], float(probs[j, order[0]]), dist)
-        out.append({"ward": ward, "winner": codes[order[0]], "fill": call["fill"],
+        winner = called[ward]
+        call = RM.ward_call(ward, winner, float(probs[j, codes.index(winner)]), dist)
+        out.append({"ward": ward, "winner": winner, "fill": call["fill"],
                     "bands": RM.toss_bands(call["bands"]) if call["cls"] == "contested" else None,
                     "tip": call["tip"]})
     return out
@@ -418,23 +423,26 @@ def pools_of(path: str = BASE) -> list[str]:
 # ==========================================================================
 
 def handoff(request_json: str) -> str:
-    """Where "Break the model" opens from section 1's settings, as JSON.
+    """Our prediction under section 1's settings: where "Break the model"
+    opens, as JSON.
 
-    Request: ``{"settings": <compute's settings>, "total": <the seat law's
-    total combined vote, the schema's x-total-votes>}``. Returns
-    ``{"ward_calls": {ward: party}, "share": {party: percent}, "seats":
-    {party: n}, "middle": {row: n}}`` or ``{"refused": reason}``. ``middle``
-    is ``start_rule.start_seats``' ``published``: each named row's middle seat
-    count under the weights, from which the page names every party the ward
-    floor raised above it.
+    Request: ``{"settings": <compute's settings>}`` (a ``total`` key is
+    accepted and ignored). Rule A (``prediction.rule_a``, the one definition)
+    on the chosen cell's draws, each weighted as the settings weight it:
 
-    * Ward calls: each ward's most likely winner under the reader's weights,
-      exactly the ``winner`` :func:`compute` returns for the same settings
-      (:func:`_ward_calls`, its tie rule).
-    * Vote shares: ``start_rule`` on the chosen cell's STATUTORY seats
-      (``seats/deduct``: section 2 seats by the law, whatever law section 1
-      shows), each draw weighted as the settings weight it. With unit weights
-      this is the published start ``build_make`` writes.
+    * ``ward_calls``: ``{ward: party}``, each ward to the party that wins it in
+      the most weighted simulations, exactly the ``winner`` :func:`compute`
+      returns for the same settings;
+    * ``ward_votes``, ``list_votes``: ``{party: whole votes}``, each party's
+      weighted mean on each ballot, every column of the draws' vote blocks.
+
+    No seats: the page seats the prediction through the seat Worker. Two
+    INTERIM keys, until the reader entry carries both ballots (slice B):
+    ``share``, both ballots' votes as one percent share (what ``make.js``
+    seats today), and ``middle``, empty (the seat-first start that filled it
+    is retired). Returns ``{"refused": reason}`` when the settings cannot be
+    weighted or the draws cannot give a prediction (a missing vote block
+    included).
     """
     req = json.loads(request_json)
     s = req["settings"]
@@ -447,15 +455,29 @@ def handoff(request_json: str) -> str:
         R.require_effective(w)
     except R.Refused as exc:
         return json.dumps({"refused": str(exc)})
-    calls = {x["ward"]: x["winner"] for x in _ward_calls(cell, w)}
-    seats, parties = _block(cell, f"seats/{PUBLISHED_LAW}")
-    council, ccols = _block(cell, f"council/{PUBLISHED_LAW}")
-    plan = start_rule.start_seats(parties, seats, council[:, ccols.index("council_size")],
-                                  list(calls.values()), w)
-    roster = list(cell["manifest"]["parties"])
-    share = start_rule.start_shares(plan["seats"], roster, int(req["total"]))
-    return json.dumps(_plain({"ward_calls": calls, "share": share, "seats": plan["seats"],
-                              "middle": plan["published"]}), allow_nan=False)
+    for name in ("ward_vote", "list_vote"):
+        if name not in cell["arrays"]:
+            return json.dumps({"refused": f"the draw file carries no {name} block"})
+    winners, wards = _block(cell, "ward_winner")
+    wv, cols = _block(cell, "ward_vote")
+    lv, lcols = _block(cell, "list_vote")
+    if list(cols) != list(lcols):
+        return json.dumps({"refused": "the ward_vote and list_vote blocks have different columns"})
+    try:
+        pred = P.rule_a(winners, cell["manifest"]["ward_parties"], wards, wv, lv, cols, weights=w)
+    except P.RuleAError as exc:
+        return json.dumps({"refused": str(exc)})
+    both = sum(pred["ward_votes"].values()) + sum(pred["list_votes"].values())
+    if not both > 0:
+        return json.dumps({"refused": "the prediction holds no vote on either ballot"})
+    share = {p: 100.0 * (pred["ward_votes"][p] + pred["list_votes"][p]) / both
+             for p in cols}
+    return json.dumps(_plain({"ward_calls": dict(zip(wards, pred["ward_calls"])),
+                              "ward_votes": pred["ward_votes"],
+                              "list_votes": pred["list_votes"],
+                              "share": share,      # INTERIM, slice B deletes
+                              "middle": {}}),      # INTERIM, slice B deletes
+                      allow_nan=False)
 
 
 def analyse(request_json: str) -> str:
@@ -483,10 +505,10 @@ def analyse(request_json: str) -> str:
       it is ``within`` seats or fewer, the line being ``reweight.seat_error_line``
       (the model's own middle forecast, ``reweight.middle_seats``, is that
       close to half the simulations), the expected correct ward calls of
-      ``wards_count``, and the expected list-ballot vote error in points. The
-      draws' ``OTHER`` share sums every party with no column of its own, so
-      the reader's shares for those parties are summed against it; their
-      seats are compared with zero, which is what every draw gives them;
+      ``wards_count``, and the expected list-ballot vote error in points,
+      against each simulation's list votes as shares
+      (``reweight.list_shares`` of the ``list_vote`` block, every party under
+      its own code). A reader party the block does not carry is refused;
     * ``wards``: ``{ward: chance}`` the model gives the reader's winner there
       (``reweight.ward_calls_likelihood``'s Jeffreys-corrected ``p``, the
       published map's estimate; the expected ward count above is the plain
@@ -495,8 +517,8 @@ def analyse(request_json: str) -> str:
       ``reweight.ANALYSIS_SEAT_BAND`` of the reader's figure;
     * ``share``: ``{party: chance}`` that its LIST-BALLOT share lands within
       ``reweight.ANALYSIS_SHARE_BAND_POINTS`` of the reader's combined share.
-      The draws carry no combined share (``export_draws`` refuses one), so the
-      list ballot is the nearest the model has, and the page says so;
+      The list ballot is the one the competition scores (key 3), and the page
+      says so;
     * the two bands, so the page prints them from here.
 
     Each chance carries its text (``reweight.chance_text``). The parties are
@@ -519,7 +541,8 @@ def analyse(request_json: str) -> str:
     k = np.array([index.get(calls[x], len(codes)) for x in wards])
     lik = R.ward_calls_likelihood(winners, w, len(codes) + 1, k)
     seats, cols = _party_columns(cell, PUBLISHED_LAW)
-    pr, prcols = _block(cell, "pr_share")
+    pr = R.list_shares(cell["arrays"]["list_vote"])
+    prcols = list(_block(cell, "list_vote")[1])
     pub = _published()["median"]
     mine = {c: int(v) for c, v in (req.get("seats") or {}).items()}
     keep = set(req.get("keep") or [])
@@ -527,8 +550,10 @@ def analyse(request_json: str) -> str:
                    or c in keep)
     # the reader's forecast against every simulation as if it were the result
     share = {c: float(v) for c, v in (req.get("share") or {}).items()}
-    points = {c: v for c, v in share.items() if c in prcols and c != "OTHER"}
-    points["OTHER"] = sum(v for c, v in share.items() if c not in points)
+    unknown = sorted(c for c in share if c not in prcols)
+    if unknown:
+        raise ValueError(f"shares for parties the draws' list_vote block does not carry: {unknown}")
+    points = dict(share)
     within = R.seat_error_line(SF.seat_error(R.middle_seats(seats, cols, w), cols, seats), w)
     score = R.scored_as_results(SF.seat_error(mine, cols, seats),
                                 SF.wards_called(k, winners),

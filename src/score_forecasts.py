@@ -73,24 +73,21 @@ in the schema's percent scale (``x-share-sum.target``), plus ``coalition``,
 through :func:`reader_seats.reader_seats` at the schema's ``x-total-votes`` —
 never read from the record, so a stored number cannot score itself.
 
-**The model is scored as a reader who saved the model's central state
-untouched** (:func:`model_forecast`): the MODAL winner of each ward, and each
-roster party's MEDIAN combined share, renormalised, then seated by the same
-statute path at the same ``x-total-votes``. Why these two:
+**The model is scored by its PREDICTION** (STYLE.md rule 11: one complete
+result, not the forecast's ranges). :func:`model_forecast` is rule A, from
+``src/prediction.py``, the one definition: each ward to the party that wins it
+in the most simulations (a tie to the code first in string order), and each
+party's mean ward-ballot and mean list-ballot whole votes across the
+simulations; seats then follow by the seat law (``prediction.seats_of``).
+JUDGEMENT-CALLS §Q is the choice and MODEL-LOG §1.290 the backtest behind it.
+The build's start (``build_make.start_state``) and the page's hand-off call the
+same function, so an untouched reader and the model hold one prediction.
 
-* *modal winner* — the call that maximises the model's expected number of
-  correct ward calls (key 3), one ward at a time; an exact tie in the draw counts
-  falls to the earlier party in the schema roster;
-* *median share* — each party's own central vote, robust to the long tails the
-  draws carry, and a vote vector the statute can seat. The model's per-party
-  MEDIAN SEATS are not used: they need not sum to the council and carry no
-  ward/list split, so they are not a council.
-
-⚠️ This council can differ from the published per-party median seats, and the
-modal-ward vector with the median shares need not be any single draw. The
-page's untouched start state (``interactive/js/model.js``, today a weighted
-MEAN of the placeholder ``pr`` share) must be built by this one definition,
-or an untouched reader and the model would score differently.
+Until the reader entry carries both ballots (slice B of
+``audits/2026-10-07-prediction-restructure/``), :func:`model_forecast` also
+returns an INTERIM ``combined_share``: each party's ward plus list votes as a
+share of both ballots, in the schema's percent scale, which is the shape a
+stored reader forecast has today and what :func:`seat_forecast` reads.
 
 The result
 ==========
@@ -139,7 +136,6 @@ from __future__ import annotations
 
 import csv
 import math
-import statistics
 from collections import defaultdict
 from pathlib import Path
 
@@ -402,44 +398,57 @@ def seat_forecast(forecast: dict, schema: dict) -> dict:
     return seated
 
 
-def model_forecast(ward_winner_counts, count_parties, count_wards,
-                   combined_share_draws, share_parties, schema: dict) -> dict:
-    """The model's central state as a stored forecast (module docstring).
+def model_forecast(ward_winners, ward_parties, wards, ward_votes, list_votes,
+                   columns, schema: dict) -> dict:
+    """Our prediction, as the scorer holds it (module docstring): rule A.
 
-    ``ward_winner_counts`` is ``(wards, parties)`` in ``count_wards`` ×
-    ``count_parties`` order (``ModelRun.ward_winner_counts``);
-    ``combined_share_draws`` is ``(draws, parties)`` combined-ballot shares in
-    ``share_parties`` order. Both party lists must be the schema roster
-    exactly; a modal winner off the roster, or a share for a party off it, is
-    refused rather than renormalised away.
+    ``ward_winners`` is ``(draws, wards)`` of indices into ``ward_parties``,
+    columns in ``wards`` order (the draw file's ``ward_winner`` block, or
+    ``ModelRun.ward_winner_draws`` with the universe). ``ward_votes`` and
+    ``list_votes`` are ``(draws, len(columns))`` whole votes per ballot (the
+    ``ward_vote`` and ``list_vote`` blocks). Calls :func:`prediction.rule_a`
+    with the schema's ``x-ward-ids`` order.
+
+    Refuses (``ValueError``, naming them): a roster party missing from
+    ``columns``; a column off the roster with a rule-A vote above zero on
+    either ballot; a ward called for a party off the roster; wards that are not
+    the schema's. A column off the roster with no vote is accepted, and its
+    vote is recorded per ballot in ``outside_roster`` (zero whenever this
+    returns), so "no mass outside the roster" is a field, not an inference.
     """
+    import prediction
+
     context, _total, target, _tol, ward_ids = schema_context(schema)
     roster = list(context["parties"])
-    for label, got in (("ward winner counts", count_parties),
-                       ("combined share draws", share_parties)):
-        if set(got) != set(roster):
-            raise ValueError(
-                f"{label} carry parties {sorted(set(got) - set(roster))} off "
-                f"the roster and lack {sorted(set(roster) - set(got))}")
-    if sorted(map(str, count_wards)) != sorted(ward_ids):
-        raise ValueError("the ward winner counts are not over the schema's wards")
-
-    order = {p: i for i, p in enumerate(roster)}
-    col = {p: j for j, p in enumerate(count_parties)}
-    row = {str(w): i for i, w in enumerate(count_wards)}
-    calls = []
-    for w in ward_ids:
-        counts = {p: ward_winner_counts[row[w]][col[p]] for p in roster}
-        top = max(counts.values())
-        calls.append(min((p for p in roster if counts[p] == top),
-                         key=order.__getitem__))
-
-    j = {p: k for k, p in enumerate(share_parties)}
-    median = {p: statistics.median(float(d[j[p]]) for d in combined_share_draws)
-              for p in roster}
-    scale = math.fsum(median.values())
-    return {"model_ref": None, "ward_calls": calls,
-            "combined_share": {p: median[p] / scale * target for p in roster},
+    columns = [str(c) for c in columns]
+    lacking = sorted(set(roster) - set(columns))
+    if lacking:
+        raise ValueError(f"the vote blocks lack roster parties {lacking}")
+    if sorted(map(str, wards)) != sorted(ward_ids):
+        raise ValueError("the ward winners are not over the schema's wards")
+    pred = prediction.rule_a(ward_winners, ward_parties, wards, ward_votes,
+                             list_votes, columns, ward_ids=ward_ids)
+    off = [c for c in columns if c not in set(roster)]
+    outside = {"ward": sum(pred["ward_votes"][c] for c in off),
+               "list": sum(pred["list_votes"][c] for c in off)}
+    voted = sorted(c for c in off if pred["ward_votes"][c] > 0 or pred["list_votes"][c] > 0)
+    if voted:
+        raise ValueError(f"parties off the roster carry votes {voted}; they would "
+                         f"leave the seat law's pool unseen")
+    stray = sorted({p for p in pred["ward_calls"] if p not in set(roster)})
+    if stray:
+        raise ValueError(f"wards are called for parties off the roster {stray}")
+    ward_v = {p: pred["ward_votes"][p] for p in roster}
+    list_v = {p: pred["list_votes"][p] for p in roster}
+    both = sum(ward_v.values()) + sum(list_v.values())
+    if not both > 0:
+        raise ValueError("rule A gives no vote on either ballot")
+    return {"model_ref": None, "ward_calls": pred["ward_calls"],
+            "ward_votes": ward_v, "list_votes": list_v,
+            "outside_roster": outside,
+            # INTERIM, until the reader entry carries both ballots (slice B)
+            "combined_share": {p: (ward_v[p] + list_v[p]) / both * target
+                               for p in roster},
             "coalition": [], "mayor": None, "display_name": None}
 
 

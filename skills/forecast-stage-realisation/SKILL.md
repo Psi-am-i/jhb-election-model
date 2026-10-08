@@ -1,13 +1,13 @@
 ---
 name: forecast-stage-realisation
-description: Observe the REALISATION segment of the Johannesburg forecast pipeline — stages 40_draws, 41_guards, 42_pr_share_draws, 43_ward_share_draws, 44_seat_draws, 45_delivered. Use when reading or writing anything between the drawn vote shares and the allocated council: the per-draw share arrays, the ~20 guard counters, Schedule 1 seat allocation, overhang, the chamber fill, or the delivery proof. Carries the field inventory with units, the invariants and why each holds, the traps, and what could not be checked.
+description: Observe the REALISATION segment of the Johannesburg forecast pipeline — stages 40_draws, 41_guards, 42_pr_share_draws, 43_ward_share_draws, 42a_pr_vote_draws, 43a_ward_vote_draws, 44_seat_draws, 45_delivered. Use when reading or writing anything between the drawn vote shares and the allocated council: the per-draw share arrays, the per-draw whole votes the seat law read, the ~20 guard counters, Schedule 1 seat allocation, overhang, the chamber fill, or the delivery proof. Carries the field inventory with units, the invariants and why each holds, the traps, and what could not be checked.
 ---
 
 # The realisation segment: draws → shares → seats
 
-`run_model` emits thirteen stages under `--run-dir` (opt-in; `--trace-detail`
+`run_model` emits fifteen stages under `--run-dir` (opt-in; `--trace-detail`
 adds the per-draw arrays; `test_chain` asserts the run is byte-identical with
-and without either). The last six are this skill's subject. Everything here was
+and without either). The last eight are this skill's subject. Everything here was
 established against a real trace — `src/montecarlo.py --city joburg --target
 2021 --draws 400 --seed 12345 --run-dir /tmp/... --trace-detail` — not inferred
 from the source.
@@ -60,6 +60,27 @@ counters.
 Citywide share of one ballot per draw. Every row sums to 1 to floating point
 (normalised in the loop by `votes / max(votes.sum(), 1e-12)`). Written only
 under `--trace-detail`.
+
+### `42a_pr_vote_draws`, `43a_ward_vote_draws` — `(draws, parties)` integer arrays
+
+Since 2026-10-08 (MODEL-LOG §1.291). Whole votes cast on one ballot citywide,
+per party, per draw: exactly the integers the draw loop handed
+`seats.eligible_parties` (`pr_totals_d`, `ward_totals_d`, each party's ballot
+total rounded to a whole vote), columns in `universe` order, the same as 42/43.
+`ModelRun.pr_vote_draws` and `ward_vote_draws` carry them; rule A
+(`src/prediction.py`) reduces them to our prediction, and the draw export ships
+them as the `list_vote` and `ward_vote` blocks. Written only under
+`--trace-detail`, after 42/43 (`42a_` sorts after `42_`; nothing parses the
+stage numbers).
+
+Invariants (`faults_in_vote_matrix`, `faults_between_votes_and_shares`):
+non-negative whole numbers; every row has a positive total (an all-zero row is
+a draw the loop never reached); and each vote over its row total is within
+`parties / rowsum` of the same cell of 42/43, because the shares are the
+unrounded votes over their sum and each of `parties` roundings moves the total
+by at most half a vote. Shares times a total do NOT reproduce these integers
+(measured in `audits/2026-10-07-prediction-restructure/s1/SPEC-A.md` M4), which
+is why the votes are recorded rather than rebuilt.
 
 ### `44_seat_draws` — a list of `{party: int}`, one per draw
 

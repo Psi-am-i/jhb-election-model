@@ -23,11 +23,11 @@ violation and goes quiet when it is reverted (CLAUDE.md §4):
   that is not listed, is refused, on the built files and by the build itself;
 * section 1's engine (``pyboot/page.py``) at uniform weights shows the
   forecast page's rows, and its by-election line is the build's;
-* section 2's start is the published ward calls and panel middles
-  (``start_rule``, through ``build_make``), and the hand-off from section 1
-  is the same rule on the reader's weights: at the published setting it IS
-  the published start, and under any setting its ward calls are the ward
-  winners section 1 shows;
+* section 2's start is our prediction, rule A on the published draws
+  (``src/prediction.py``, through ``build_make``), and the hand-off from
+  section 1 is the same rule on the reader's weights: at the published
+  setting it IS the published start, and under any setting its ward calls are
+  the ward winners section 1 shows;
 * "Analyse my forecast" is ``reweight``'s arithmetic on the published draws.
 """
 from __future__ import annotations
@@ -579,11 +579,37 @@ def test_the_live_by_election_line_is_the_builds_at_every_setting():
 
 # -- section 2: the start, and the hand-off from section 1 ---------------------
 
-def test_the_start_is_the_published_ward_calls_and_the_panel_middles():
+def test_the_start_is_rule_a_on_the_published_draws():
+    """Section 2 opens on our prediction: rule A (``prediction.rule_a``) on the
+    served draws, each draw counted once, in the schema's ward order, seated by
+    ``prediction.seats_of``. Recomputed here from ``site/draws`` and compared
+    with what the build wrote; the ward calls also agree with the forecast
+    page's ``ward_winner_probs.csv`` wherever that file has no tie."""
+    import numpy as np
+    import prediction
+    import reweight as R
     site = _built()
     d = _data(site)
     schema, start = d["schema"], d["start"]
     wards = schema["x-ward-ids"]
+    man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
+    arr = R.unpack((ROOT / "site/draws/base.bin").read_bytes(), man)
+    cols = {b["name"]: b["columns"] for b in man["blocks"]}
+    want = prediction.rule_a(arr["ward_winner"], man["ward_parties"], cols["ward_winner"],
+                             arr["ward_vote"], arr["list_vote"], cols["list_vote"], ward_ids=wards)
+    roster = schema["x-seat-context"]["parties"]
+    assert start["ward_calls"] == want["ward_calls"]
+    assert start["ward_votes"] == {p: want["ward_votes"][p] for p in roster}
+    assert start["list_votes"] == {p: want["list_votes"][p] for p in roster}
+    seated = prediction.seats_of(start, schema["x-seat-context"]["council"], order=roster)
+    assert start["seats"] == {p: v["total"] for p, v in seated["seats"].items()}
+    assert sum(start["seats"].values()) == seated["council"]
+    assert start["rule"] == "rule A: src/prediction.py"
+    # it can see: a different vote block gives a different start
+    other = prediction.rule_a(arr["ward_winner"], man["ward_parties"], cols["ward_winner"],
+                              arr["ward_vote"], np.roll(arr["list_vote"], 1, axis=1),
+                              cols["list_vote"], ward_ids=wards)
+    assert other["list_votes"] != want["list_votes"]
     with (ROOT / "data/processed/ward_winner_probs.csv").open(encoding="utf-8", newline="") as h:
         published = {r["ward"]: r for r in csv.DictReader(h)}
     agree = 0
@@ -595,43 +621,18 @@ def test_the_start_is_the_published_ward_calls_and_the_panel_middles():
         agree += 1
     assert agree >= len(wards) - 2, agree
     assert schema["x-placeholder"] is False and not d["model_ref"].startswith("placeholder")
-    man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
     assert d["model_ref"] == man["published_run"]["model_run_id"]
     assert schema["x-seat-context"]["parties"] == man["parties"]
     assert isinstance(schema["x-total-votes"], int) and schema["x-total-votes"] > 0
+    # INTERIM (until slice B): the combined share seats the prediction through
+    # the reader path
     assert math.isclose(math.fsum(start["combined_share"].values()), 100.0, abs_tol=1e-9)
-    # the middles the start aims at are the forecast page's own
-    import scenarios
-    seat_csv = ROOT / "data/processed/seat_draws.csv"
-    with seat_csv.open(encoding="utf-8", newline="") as h:
-        rows = list(csv.DictReader(h))
-    named = [p for p in scenarios.NAMED_PARTIES if p in rows[0]]
-    page = {p: scenarios.seat_quantiles([float(r[p]) for r in rows])[0] for p in named}
-    page["OTHERS"] = scenarios.seat_quantiles(scenarios.others_per_draw(seat_csv.parent, named))[0]
-    assert {g: v for g, v in start["published_middle"].items() if g in page} == page
-    # the untouched council, seated by the statute from the stored shares
+    assert start["published_middle"] == {}
     import score_forecasts
-    seated = score_forecasts.seat_forecast({"ward_calls": start["ward_calls"],
-                                           "combined_share": start["combined_share"]}, schema)
-    assert seated["ok"], seated["errors"]
-    got = {p: v["total"] for p, v in seated["seats"].items()}
-    assert got == start["seats"]
-    assert sum(got.values()) == seated["council"]
-    held = {}
-    for c in start["ward_calls"]:
-        held[c] = held.get(c, 0) + 1
-    others = sum(n for p, n in got.items() if p not in named)
-    off = {}
-    for g, mid in page.items():
-        if g == "OTHERS":
-            continue
-        n = got.get(g, 0)
-        assert n == max(mid, held.get(g, 0)), (g, n, mid, held.get(g, 0))
-        off[g] = n - mid
-    assert others == seated["council"] - sum(got.get(g, 0) for g in named)
-    assert others >= sum(v for p, v in held.items() if p not in named)
-    off["OTHERS"] = others - page["OTHERS"]
-    print(f"  untouched section 2 against the published middles: {off}")
+    interim = score_forecasts.seat_forecast({"ward_calls": start["ward_calls"],
+                                            "combined_share": start["combined_share"]}, schema)
+    assert interim["ok"], interim["errors"]
+    assert {p: v["total"] for p, v in interim["seats"].items()} == start["seats"]
 
 
 def test_the_data_file_is_the_one_the_build_writes():
@@ -653,16 +654,16 @@ HANDOFF_SETTINGS = (
 
 def test_the_hand_off_is_the_published_start_untouched_and_section_1s_wards_moved():
     """Section 2 "continues the same forecast" (owner, 2026-10-03). At the
-    published setting the hand-off IS the start the build writes (ward calls,
-    shares, seats: one rule, ``start_rule``, unit weights). Under every other
-    setting its ward calls are exactly the ward winners section 1 shows for
-    that setting, its shares seat the targets ``start_rule`` sets on the
-    weighted draws, and they differ from the published start: the test can
-    see a hand-off that ignored the weights."""
+    published setting the hand-off IS the start the build writes: rule A, one
+    function, unit weights (ward calls and both ballots' votes). Under every
+    other setting its ward calls are exactly the ward winners section 1 shows
+    for that setting, and it differs from the published start: the test can
+    see a hand-off that ignored the weights. Its INTERIM share (slice B
+    deletes it) seats through the reader path."""
     site = _built()
     d = _data(site)
     NP, ns = _engine()
-    T, wards = d["schema"]["x-total-votes"], d["schema"]["x-ward-ids"]
+    wards = d["schema"]["x-ward-ids"]
     cells = {c["w_bye"]: c["path"] for c in NP.cells()}
     poll = ns["polls"]()[0]["id"]
     settings = []
@@ -673,22 +674,23 @@ def test_the_hand_off_is_the_published_start_untouched_and_section_1s_wards_move
             s = {**PUBLISHED, "polls": [poll], "trust": 0.5}
         settings.append((name, s))
     import score_forecasts
+    roster = d["schema"]["x-seat-context"]["parties"]
     moved = 0
     for name, s in settings:
-        h = json.loads(ns["handoff"](json.dumps({"settings": s, "total": T})))
+        h = json.loads(ns["handoff"](json.dumps({"settings": s})))
         assert not h.get("refused"), (name, h)
+        assert "seats" not in h, "the hand-off carries no seats: they are derived"
         r = json.loads(ns["compute"](json.dumps(s)))
         assert {x["ward"]: x["winner"] for x in r["wards"]} == h["ward_calls"], name
         calls = [h["ward_calls"][w] for w in wards]
+        votes = ({p: h["ward_votes"][p] for p in roster}, {p: h["list_votes"][p] for p in roster})
         assert math.isclose(math.fsum(h["share"].values()), 100.0, abs_tol=1e-9), name
         seated = score_forecasts.seat_forecast({"ward_calls": calls, "combined_share": h["share"]}, d["schema"])
         assert seated["ok"], (name, seated["errors"])
-        assert {p: v["total"] for p, v in seated["seats"].items()} == h["seats"], name
         if name == "published":
             assert calls == d["start"]["ward_calls"]
-            assert h["seats"] == d["start"]["seats"]
-            assert all(math.isclose(h["share"][p], v, abs_tol=1e-12) for p, v in d["start"]["combined_share"].items())
-        elif calls != d["start"]["ward_calls"] or h["seats"] != d["start"]["seats"]:
+            assert votes == (d["start"]["ward_votes"], d["start"]["list_votes"])
+        elif calls != d["start"]["ward_calls"] or votes != (d["start"]["ward_votes"], d["start"]["list_votes"]):
             moved += 1
     print(f"  {moved} of {len(settings) - 1} settings moved the hand-off from the published start")
     assert moved >= 1, "no setting moved the hand-off: the test cannot see one that ignores the weights"
@@ -723,15 +725,16 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     k = [codes.index(calls[x]) if calls[x] in codes else len(codes) for x in cols("ward_winner")]
     want = R.ward_calls_likelihood(arr["ward_winner"], w, len(codes) + 1, k)
     assert all(math.isclose(a["wards"][x]["p"], p, rel_tol=1e-12) for x, p in zip(cols("ward_winner"), want["p"]))
-    sc, pc = cols("seats/deduct"), cols("pr_share")
+    sc, pc = cols("seats/deduct"), cols("list_vote")
     # the score, by a loop over the draws: the forecast against each draw as
     # if it were the result (JUDGEMENT-CALLS §N4), the competition's three
     # measures written out here, not called
     seat_errs, right, vote_errs = [], [], []
-    seat_rows, pr_rows, win_rows = arr["seats/deduct"], arr["pr_share"], arr["ward_winner"]
-    named = set(pc) - {"OTHER"}
-    mine_pts = {c: v for c, v in share.items() if c in named}
-    mine_pts["OTHER"] = sum(v for c, v in share.items() if c not in named)
+    seat_rows, win_rows = arr["seats/deduct"], arr["ward_winner"]
+    lv = np.asarray(arr["list_vote"], dtype=float)
+    pr_rows = lv / lv.sum(axis=1, keepdims=True)
+    assert set(share) <= set(pc), "a reader party the list_vote block does not carry"
+    mine_pts = dict(share)
     for i in range(int(man["draws"])):
         drawn = {c: int(seat_rows[i, j]) for j, c in enumerate(sc) if c != "OTHER"}
         seat_errs.append(sum(abs(seats.get(c, 0) - drawn.get(c, 0)) for c in set(seats) | set(drawn)))
@@ -762,7 +765,7 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
         assert math.isclose(got["p"], R.within_band(v, w, seats.get(c, 0), R.ANALYSIS_SEAT_BAND), rel_tol=1e-12), c
         assert got["text"] == R.chance_text(got["p"])
     for c, got in a["share"].items():
-        v = arr["pr_share"][:, pc.index(c)] * 100.0
+        v = pr_rows[:, pc.index(c)] * 100.0
         assert math.isclose(got["p"], R.within_band(v, w, share.get(c, 0.0), R.ANALYSIS_SHARE_BAND_POINTS), rel_tol=1e-12), c
     assert (a["seat_band"], a["share_band"]) == (R.ANALYSIS_SEAT_BAND, R.ANALYSIS_SHARE_BAND_POINTS)
     # the headline: the reader's council-level outcome, read off the reader's
@@ -841,9 +844,17 @@ def test_a_poll_at_any_belief_is_not_refused_by_the_tilts_rounding():
     exact Newton step once the dual's decrease fell below what a float
     resolves at its size (``reweight.DUAL_ROUNDING``). Every poll the page
     offers, at a spread of beliefs, now gets weights or an effective-draw
-    refusal, never a convergence one. With the rounding allowance at zero
-    the old refusal comes back for at least one of them (the positive
-    control)."""
+    refusal, never a convergence one, on the served draws.
+
+    The positive control's input is CONSTRUCTED (CLAUDE.md §4, requirement
+    3). It used to be the served draws themselves, and it expired when the
+    served list shares became exact (whole list votes over their total,
+    2026-10-08, MODEL-LOG §1.291): no poll then reproduced the failure. It is
+    now the served list shares stepped to the 1e-5 resolution the draw file
+    stored until then, which does reproduce it: through the same
+    ``poll_weights`` and pinned ``turnout_tilt`` the page runs, with the
+    rounding allowance at zero at least one poll is refused "did not
+    converge", and with the shipped allowance none is."""
     _built()
     NP, ns = _engine()
     R = ns["R"]
@@ -861,12 +872,41 @@ def test_a_poll_at_any_belief_is_not_refused_by_the_tilts_rounding():
         return out
 
     assert refusals() == []
+
+    # the positive control, on constructed shares (docstring)
+    import numpy as np
+    man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
+    arr = R.unpack((ROOT / "site/draws/base.bin").read_bytes(), man)
+    cols = next(b for b in man["blocks"] if b["name"] == "list_vote")["columns"]
+    step = 1e-5                                   # the retired pr_share block's storage step
+    stepped = np.round(R.list_shares(arr["list_vote"]) / step) * step
+    turnout = arr["pool_turnout"]
+    pin = turnout.mean(axis=0)                    # page.py pins to the published mean with a poll on
+    # the full register records, as page.py's poll weights receive them
+    # (``polls()`` returns only the fields the page shows, without ``asof``)
+    records = json.loads((ROOT / "site/draws/index.json").read_text(encoding="utf-8"))["polls"]
+
+    def constructed_refusals():
+        out = []
+        for poll in records:
+            for t in beliefs:
+                try:
+                    w = R.poll_weights(stepped, cols, poll, trust=t)
+                    R.turnout_tilt(turnout, np.zeros(turnout.shape[1]), base=w / w.sum(), pin_to=pin)
+                except R.Refused as exc:
+                    if "did not converge" in str(exc):
+                        out.append((poll["id"], t))
+        return out
+
+    assert constructed_refusals() == [], "the shipped allowance refuses the constructed shares"
     allowance = R.DUAL_ROUNDING
     try:
         R.DUAL_ROUNDING = 0.0
-        assert refusals(), "no convergence refusal without the allowance: the test cannot see the defect"
+        assert constructed_refusals(), \
+            "no convergence refusal without the allowance on the constructed shares: the test cannot see the defect"
     finally:
         R.DUAL_ROUNDING = allowance
+    assert constructed_refusals() == [], "the allowance was not restored"
 
 
 def test_a_refused_option_is_said_beside_its_control():

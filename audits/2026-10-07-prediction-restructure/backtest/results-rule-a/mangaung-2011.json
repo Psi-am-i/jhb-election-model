@@ -1,0 +1,33 @@
+{
+ "city": "mangaung",
+ "year": "2011",
+ "draws": 1000,
+ "council": 97,
+ "wards": 49,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 1,
+   "ANC": 56,
+   "COPE": 12,
+   "DA": 19,
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 1,
+   "PAC": 1,
+   "VFPLUS": 6,
+   "ENTRANT": 1
+  },
+  "seat_err": 34.0,
+  "wards_ok": 49,
+  "ward_vote_err_pp": 34.47749221609681,
+  "list_vote_err_pp": 32.781189520997835,
+  "top": "ANC",
+  "top_wards": 38,
+  "top_actual_wards": 38,
+  "excessive": {},
+  "council": 97,
+  "ward_wins": {
+   "ANC": 38,
+   "DA": 11
+  }
+ }
+}

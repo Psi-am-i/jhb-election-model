@@ -45,15 +45,15 @@ const ENTRY = resolve(REPO, "worker-api/seats-py/src/entry.py");
 export const SERVED = [...ALL, "code_ref.py", "entry.py"];
 
 // The page's Python, in import order: pyboot/page.py imports cityconfig,
-// polling, render_map (the ward rule, ward_call), reweight and start_rule
-// (where section 2 opens; it imports scenarios for the seat panel's named
-// parties) and score_forecasts (the competition's measures, which "Analyse
-// my forecast" scores against every simulation; it imports parties);
+// polling, prediction (rule A: our prediction, the ward map's calls and the
+// hand-off to section 2), render_map (the ward rule, ward_call), reweight
+// and score_forecasts (the competition's measures, which "Analyse my
+// forecast" scores against every simulation; it imports parties);
 // polling and render_map import cityconfig. Measured, not argued:
 // page.test.mjs fails if page.py imports a src/ module missing here or this
 // names one it does not import. When Lane R's reweight.py imports more, the
 // test says which.
-export const PAGE_FILES = ["cityconfig.py", "polling.py", "render_map.py", "reweight.py", "scenarios.py", "start_rule.py",
+export const PAGE_FILES = ["cityconfig.py", "polling.py", "prediction.py", "render_map.py", "reweight.py",
   "parties.py", "score_forecasts.py"];
 // Files the page code opens, relative to the repository root, which is the
 // page's working directory: the poll register (polling.REGISTER) and the city

@@ -24,8 +24,10 @@ What this module proves:
 5. REFUSALS. A tied ward, a ward without the city prefix, a ward-set
    mismatch, an official disagreement with no `seat_source`, a forecast the
    statute cannot seat.
-6. THE MODEL AS A READER. `model_forecast` takes the modal ward winner (ties
-   to the earlier roster party) and the median combined share.
+6. OUR PREDICTION. `model_forecast` is rule A (`src/prediction.py`): the
+   ward each party wins in the most draws (a tie to the code first in string
+   order, whatever the column order), each party's mean whole votes on each
+   ballot; off-roster votes refused and recorded (`outside_roster`).
 7. RANKING. The owner's keys (DESIGN-decided §13) in his order: forecasts
    built on the 2021 result that differ on one key at a time, ranked by hand;
    a forecast better on a later key and worse on an earlier one ranks lower;
@@ -438,63 +440,117 @@ def test_ward_set_mismatch_and_an_unseatable_forecast_are_refused():
 # ------------------------------------------------------ 6. model as reader
 
 
-def test_the_model_forecast_is_the_modal_ward_and_the_median_share():
+def _ballot_votes(result: dict, ballot: str) -> dict:
+    """Each party's whole votes on one ballot (``"PR"`` or ``"Ward"``), read
+    from the file here."""
+    votes: dict[str, int] = {}
+    with RESULT.open(encoding="utf-8", newline="") as fh:
+        for r in csv.DictReader(fh):
+            if r["BallotType"].strip().upper() == ballot.upper():
+                code = result["names"][r["sPartyName"]]
+                votes[code] = votes.get(code, 0) + int(r["Party_Votes"])
+    return votes
+
+
+def _rule_a_inputs(result: dict, schema: dict, parties: list[str]):
+    """Constructed draws, four of them, whose rule-A answer is the 2021 result.
+
+    Each ballot's draws alternate the actual votes minus and plus half of
+    themselves, so the exact mean is the actual vote and no single draw is.
+    Every ward is won by its actual winner in all four draws, except the first,
+    which is tied two-two between its actual winner and a second party.
+    ``parties`` is the column order (any permutation of the roster).
+    """
+    import numpy as np
+    roster = schema["x-seat-context"]["parties"]
+    wards = schema["x-ward-ids"]
+    ward_v, list_v = _ballot_votes(result, "Ward"), _ballot_votes(result, "PR")
+    assert set(ward_v) | set(list_v) <= set(roster)
+    W = np.array([ward_v.get(p, 0) for p in parties], dtype=np.int64)
+    L = np.array([list_v.get(p, 0) for p in parties], dtype=np.int64)
+    sign = np.array([-1, 1, -1, 1])[:, None]
+    ward_draws, list_draws = W + sign * (W // 2), L + sign * (L // 2)
+    actual = result["wards"][wards[0]]
+    rival = "DA" if actual != "DA" else "ANC"
+    winners = np.array([[parties.index(result["wards"][w]) for w in wards]] * 4)
+    winners[:, 0] = [parties.index(actual), parties.index(actual),
+                     parties.index(rival), parties.index(rival)]
+    return winners, ward_draws, list_draws, (actual, rival), ward_v, list_v
+
+
+def test_the_model_forecast_is_rule_a():
+    import prediction
     result = _result()
     schema = _schema(result)
     roster = schema["x-seat-context"]["parties"]
     wards = schema["x-ward-ids"]
     truth = _self_forecast(result, schema)
     scale = schema["x-share-sum"]["target"]
+    winners, wv, lv, pair, ward_v, list_v = _rule_a_inputs(result, schema, roster)
+    got = S.model_forecast(winners, roster, wards, wv, lv, roster, schema)
 
-    # counts: the actual winner leads every ward, except the first, where
-    # two parties tie at the top and the earlier roster party must win.
-    counts = [[0] * len(roster) for _ in wards]
-    for i, w in enumerate(wards):
-        counts[i][roster.index(result["wards"][w])] = 3
-    first = sorted((result["wards"][wards[0]], "ANC"), key=roster.index)
-    if first[0] == first[1]:
-        first = ["ANC", "DA"] if roster.index("ANC") < roster.index("DA") \
-            else ["DA", "ANC"]
-    counts[0] = [0] * len(roster)
-    counts[0][roster.index(first[0])] = counts[0][roster.index(first[1])] = 3
-
-    # share draws whose per-party median is the actual share and whose MEAN
-    # is not: the third draw lifts the DA alone, so a mean would move the
-    # DA's share relative to every other party's.
-    base = [truth["combined_share"][p] / scale for p in roster]
-    draws = [[x * f for x in base] for f in (0.5, 1.0)]
-    draws.append([x * (3.0 if p == "DA" else 1.5) for x, p in zip(base, roster)])
-    got = S.model_forecast(counts, roster, wards, draws, roster, schema)
-    assert got["ward_calls"][0] == first[0]
+    # the tie goes to the code first in string order, and the rest are the
+    # actual winners
+    assert got["ward_calls"][0] == min(pair)
     assert got["ward_calls"][1:] == truth["ward_calls"][1:]
-    assert all(abs(got["combined_share"][p] - truth["combined_share"][p])
-               < 1e-9 * scale for p in roster)
+    # the votes are the exact means, every roster party kept, zero included
+    assert got["ward_votes"] == {p: ward_v.get(p, 0) for p in roster}
+    assert got["list_votes"] == {p: list_v.get(p, 0) for p in roster}
+    assert got["outside_roster"] == {"ward": 0, "list": 0}
 
-    # an untouched reader equals the model: its calls, apart from the tied
-    # first ward, and its shares score perfectly through the one scorer
-    untouched = dict(got, ward_calls=[result["wards"][wards[0]]]
-                     + got["ward_calls"][1:])
-    scored = S.score(untouched, schema, result, seat_source="computed")
-    assert scored["ok"], scored["errors"]
-    assert (scored["seat_error"], scored["ward_count_error"],
-            scored["wards_called"], scored["split_correct"]) == (
-        0, 0, scored["wards"], scored["split_parties"])
+    # with the tied ward given to its actual winner, the prediction's council
+    # is the result's own, by the one seat law
+    untouched = dict(got, ward_calls=[result["wards"][wards[0]]] + got["ward_calls"][1:])
+    seated = prediction.seats_of(untouched, schema["x-seat-context"]["council"], order=roster)
+    assert {p: v["total"] for p, v in seated["seats"].items()} == \
+        {p: v["total"] for p, v in result["computed_seats"].items() if v["total"] > 0}
+    # INTERIM (slice B deletes it): the combined share sums to the scale
+    assert abs(sum(got["combined_share"].values()) - scale) < 1e-9 * scale
 
-    # the order of the columns does not matter; the roster order does
+    # the column order does not matter: reversed, and the tie still falls to
+    # the string-first code, where an order-based rule would follow the columns
     rev = list(reversed(roster))
-    counts_rev = [list(reversed(row)) for row in counts]
-    draws_rev = [list(reversed(d)) for d in draws]
-    again = S.model_forecast(counts_rev, rev, wards, draws_rev, rev, schema)
+    w2, wv2, lv2, *_ = _rule_a_inputs(result, schema, rev)
+    again = S.model_forecast(w2, rev, wards, wv2, lv2, rev, schema)
     assert again["ward_calls"] == got["ward_calls"]
+    assert again["ward_votes"] == got["ward_votes"] and again["list_votes"] == got["list_votes"]
+    # control: in one of the two orders, the first-listed tied party is not
+    # the string-first one, so the test separates the rules
+    assert {min(pair, key=roster.index), min(pair, key=rev.index)} == set(pair)
 
-    # a party off the roster is refused, not renormalised away
+    # a roster party absent from the columns is refused
+    short = [p for p in roster if p != roster[-1]]
+    keep = [roster.index(p) for p in short]
     try:
-        S.model_forecast(counts, roster[:-1] + ["OTHER"], wards, draws,
-                         roster, schema)
+        S.model_forecast(winners, roster, wards, wv[:, keep], lv[:, keep], short, schema)
     except ValueError as exc:
-        assert "OTHER" in str(exc)
+        assert roster[-1] in str(exc)
     else:
-        raise AssertionError("an off-roster party was accepted")
+        raise AssertionError("a roster party missing from the vote blocks was accepted")
+
+
+def test_model_forecast_records_outside_roster_mass_and_refuses_it():
+    """G4's record: votes on a column off the roster are refused, naming it;
+    the same column with no vote is accepted and recorded as zero per ballot."""
+    import numpy as np
+    result = _result()
+    schema = _schema(result)
+    roster = schema["x-seat-context"]["parties"]
+    wards = schema["x-ward-ids"]
+    winners, wv, lv, *_ = _rule_a_inputs(result, schema, roster)
+    cols = roster + ["ZZ_OFF_ROSTER"]
+    zero = np.zeros((wv.shape[0], 1), dtype=np.int64)
+    ok = S.model_forecast(winners, cols, wards, np.hstack([wv, zero]),
+                          np.hstack([lv, zero]), cols, schema)
+    assert ok["outside_roster"] == {"ward": 0, "list": 0}
+    assert "ZZ_OFF_ROSTER" not in ok["list_votes"]
+    try:
+        S.model_forecast(winners, cols, wards, np.hstack([wv, zero]),
+                         np.hstack([lv, zero + 7]), cols, schema)
+    except ValueError as exc:
+        assert "ZZ_OFF_ROSTER" in str(exc)
+    else:
+        raise AssertionError("votes off the roster were accepted")
 
 
 # ------------------------------------------------------------- 7. ranking

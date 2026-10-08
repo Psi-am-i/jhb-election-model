@@ -7,7 +7,10 @@ winner of any ward. Seats then follow from Municipal Structures Act Schedule 1
 pool or geography constrains the reader. This module is that arithmetic,
 written to run in the browser under Pyodide.
 
-**It calls the project's seat law; it does not restate it.**
+**It calls the project's seat law; it does not restate it.** The composition
+is :func:`prediction.seats_of`, the one composition of the seat law for a
+prediction or a reader's forecast (``run_model``'s draw loop and
+``benchmarks.council_from_shares`` are the two others), which calls in turn:
 
 * :func:`seats.eligible_parties` decides who earns an entitlement (the pool
   membership test the ground truth uses);
@@ -79,7 +82,8 @@ set and so from ``PYTHONHASHSEED``; see ``benchmarks.canonical_order``.)
 **No party is special-cased** (DESIGN-decided §8). Which parties sit outside the
 pool is a property of the roster in the context, not of this code.
 
-**Pyodide.** Importing this module imports ``montecarlo`` and what it imports at
+**Pyodide.** Importing this module imports ``prediction`` (the composition,
+:func:`prediction.seats_of`), ``montecarlo`` and what it imports at
 module level — ``cityconfig``, ``coalitions``, ``fold``, ``parties``,
 ``polling``, ``seats`` — all numpy and the standard library, with no file read
 at import or at call. :func:`context_for` reads the city TOML and is build-time
@@ -91,8 +95,17 @@ from __future__ import annotations
 
 import math
 
-import montecarlo as M
-from seats import eligible_parties, outside_pool_wards
+# ⚠️ `montecarlo` and `seats` are imported here although only `prediction`
+# calls them. The seat Worker's files (worker-api/tools/sync_seats_py.mjs FILES)
+# are held equal to this module's import closure MEASURED in a fresh
+# interpreter (tests/test_reader_seats.py). `prediction.seats_of` imports the
+# seat law lazily, because `prediction.py` also ships to the page; without these
+# two lines the measured closure would lose montecarlo, seats, coalitions,
+# fold and polling, the test would ask for them to be dropped from FILES, and
+# the Worker would ship without the seat law.
+import montecarlo as M  # noqa: F401
+import prediction
+from seats import eligible_parties, outside_pool_wards  # noqa: F401
 
 #: What the input means and how it is seated, carried in every result so the page
 #: cannot show seats without it.
@@ -316,48 +329,27 @@ def reader_seats(combined_shares: dict, ward_winners: dict, context: dict,
     # positive combined share for a party with a PR list is one (a list-less
     # party's positive share is refused above). Splitting the vote into its
     # two ballots would change nothing the pool test reads.
-    pooled = eligible_parties({}, votes)
-    dropped = sorted(p for p in votes if p not in pooled)
+    try:
+        seated = prediction.seats_of(
+            {"ward_calls": [ward_winners[w] for w in wards], "ward_votes": {},
+             "list_votes": votes},
+            context["council"], order=list(votes))
+    except (ValueError, RuntimeError) as exc:
+        result["errors"] = [f"the seat law could not complete this allocation: "
+                            f"{exc}"]
+        return result
+    dropped = sorted(p for p in votes if p not in seated["pool"])
     if dropped:
         result["errors"] = [
             f"positive shares the statute's pool excludes, or too small to "
             f"receive one vote of {total_votes}: {dropped}. Their votes would "
             f"vanish rather than earn an entitlement"]
         return result
-    # `eligible_parties` builds its dict from a set; restore the caller's order
-    # so an exact tie falls the same way every time (module docstring, Ties).
-    combined = {p: pooled[p] for p in votes}
 
-    wins: dict[str, int] = {}
-    for ward in wards:
-        party = ward_winners[ward]
-        wins[party] = wins.get(party, 0) + 1
-    c_wards, d_wards, pool_wins = outside_pool_wards(dict(wins), combined)
-
-    previous = M.COUNCIL
-    try:
-        # `allocate_with_overhang` reads the council from this module global,
-        # as `benchmarks.council_from_shares` sets it; put back afterwards.
-        M.COUNCIL = context["council"]
-        seats, council, majority, over = M.allocate_with_overhang(
-            combined, pool_wins, M.STATUTORY_VALUES["overhang_rule"],
-            independent_wards=c_wards, no_pr_list_wards=d_wards)
-    except (ValueError, RuntimeError) as exc:
-        result["errors"] = [f"the seat law could not complete this allocation: "
-                            f"{exc}"]
-        return result
-    finally:
-        M.COUNCIL = previous
-
-    out: dict[str, dict[str, int]] = {}
-    for party in list(seats) + [p for p in wins if p not in seats]:
-        ward = wins.get(party, 0)
-        total = seats.get(party, 0) if party in combined else ward
-        if total:
-            out[party] = {"ward": ward, "pr": total - ward, "total": total}
-
-    result.update(ok=True, seats=out, council=council, majority=majority,
-                  excessive=dict(over), excessive_fired=bool(over),
-                  independent_wards=c_wards, no_pr_list_wards=d_wards,
+    result.update(ok=True, seats=seated["seats"], council=seated["council"],
+                  majority=seated["majority"], excessive=seated["excessive"],
+                  excessive_fired=seated["excessive_fired"],
+                  independent_wards=seated["independent_wards"],
+                  no_pr_list_wards=seated["no_pr_list_wards"],
                   votes=dict(votes))
     return result

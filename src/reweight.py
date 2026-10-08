@@ -2,7 +2,7 @@
 
 The interactive's "play with the model" controls do not re-run the model. The
 published run's draws already vary in the quantities those controls move (each
-draw's four pool turnouts, each draw's PR shares), so a control is a WEIGHT on
+draw's four pool turnouts, each draw's list-ballot votes), so a control is a WEIGHT on
 each draw, and every figure the page shows is a weighted statistic of the same
 draws (``audits/2026-09-28-interactive-architecture/PLAN.md`` §§2-5, build step
 S4). This module is that arithmetic, and it is the ONE definition of it: the
@@ -235,6 +235,21 @@ def unpack(blob: bytes, manifest: dict) -> dict[str, np.ndarray]:
             array = array * float(b["step"])
         out[b["name"]] = array
     return out
+
+
+def list_shares(list_votes) -> np.ndarray:
+    """Each draw's list-ballot shares, ``(draws, parties)``, from the draw
+    file's ``list_vote`` block (whole votes). The one definition of "list share
+    from the draw file"; columns are the block's. Refuses a draw with no list
+    vote, which would be a share of nothing.
+    """
+    votes = np.asarray(list_votes, dtype=float)
+    if votes.ndim != 2:
+        raise Refused(f"list votes are {votes.ndim}-dimensional, not (draws, parties)")
+    totals = votes.sum(axis=1, keepdims=True)
+    if not np.all(totals > 0):
+        raise Refused("a draw has no list vote at all")
+    return votes / totals
 
 
 # ==========================================================================
@@ -547,8 +562,8 @@ def poll_weights(shares, columns, poll: dict, *, sd: float | None = None,
                  trust: float | None = None, asof=None) -> np.ndarray:
     """A poll as a likelihood on each draw, with ONE control: ``trust`` or ``sd``.
 
-    ``shares`` is the draw file's ``pr_share`` block and ``columns`` its
-    column names. ``poll`` is a register record (its ``numbers`` are read) or
+    ``shares`` is :func:`list_shares` of the draw file's ``list_vote`` block
+    and ``columns`` that block's column names. ``poll`` is a register record (its ``numbers`` are read) or
     a bare party-to-share map, in any units. Both the poll and each draw are
     renormalised to the polled parties (PLAN.md §5's "stated base"), so a poll
     that omits parties is compared only on the parties it names. The

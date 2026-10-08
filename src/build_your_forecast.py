@@ -14,8 +14,8 @@ One page, two sections (owner, 2026-10-03; it replaced ``/play/`` and
 2. **Break the model** (``#break``): the same forecast as a reader's own,
    every ward called and the vote set by hand, seated by the statute
    (``js/make.js``, the seat code). It opens from section 1's weighted draws
-   (``page.py``'s ``handoff``, ``src/start_rule.py``), or from the published
-   start :mod:`build_make` writes when section 1 is untouched.
+   (``page.py``'s ``handoff``: rule A, ``src/prediction.py``), or from our
+   prediction, which :mod:`build_make` writes, when section 1 is untouched.
 
 What the served page is made of
 ===============================

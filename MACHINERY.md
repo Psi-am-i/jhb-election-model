@@ -1598,7 +1598,10 @@ MODEL-LOG §1.142 for the seam and how it was closed.
 | `40_draws`, `41_guards` | drawn means and bands, ward wins, mean seats; and every guard counter — IPF failures, capacity moves, bounds violations, overhangs |
 
 `--trace-detail` adds the per-draw arrays, which are tens of megabytes at 1500
-draws and are off for that reason.
+draws and are off for that reason: `42_pr_share_draws`, `43_ward_share_draws`
+(each draw's citywide share of each ballot), `42a_pr_vote_draws`,
+`43a_ward_vote_draws` (the whole votes the seat law read, since 2026-10-08) and
+`44_seat_draws`.
 
 **It changes no number.** With no `run_dir` the `Trace` returns its argument
 untouched and writes nothing, asserted by
@@ -1892,6 +1895,22 @@ number and is then retired, not re-pinned (the test module's docstring).
 `montecarlo.main` does not write the record. `src/export_draws.py` does (next
 section).
 
+**The whole votes per ballot (2026-10-08).** In the same way, each draw's
+whole votes on each ballot, exactly the two dicts the loop hands
+`seats.eligible_parties` (`ward_totals_d`, `pr_totals_d`: each party's ballot
+total rounded to a whole vote), are copied into `ModelRun.ward_vote_draws` and
+`ModelRun.pr_vote_draws`, shape (draws, parties), int64, columns in `universe`
+order, and traced as `42a_pr_vote_draws` / `43a_ward_vote_draws`. No random
+call and no reordering. That they moved no draw is shown once, against the tree
+before them, by `audits/2026-10-07-prediction-restructure/backtest/no_draw_moved.py`
+(result in MODEL-LOG §1.291); `test_draw_record.py` compares every `*draws`
+field of the live run with an independently wrapped one; and
+`test_chain.py::test_the_seat_law_on_recorded_votes_is_every_draw_s_council`
+shows the seat law on one draw's recorded votes and winners gives that draw's
+council. They are kept whole because shares times a total do not reproduce
+the integers (`audits/2026-10-07-prediction-restructure/s1/SPEC-A.md` M4).
+Rule A reads them (below).
+
 ## The interactive's draw file and its re-weighting — `src/export_draws.py`, `src/reweight.py` (2026-09-28)
 
 **Why the page re-weights instead of re-running.** The published draws already
@@ -1908,15 +1927,24 @@ full runs, not built here.
 `montecarlo.HASH_SEED`, and writes `base.bin` and `manifest.json` to `--out`
 (never into `data/`). Per draw: seats for every party that wins a seat in any
 draw under any law, plus `OTHER`, under each law, with each law's majority
-threshold and council size; each ward's winner as a one-byte code; PR shares
-for the same parties plus `OTHER`; and the four pool turnouts. Blocks are
-column-major, little-endian; seats and wards are exact, turnouts are float64,
-PR shares are stored in steps of `export_draws.PR_SHARE_STEP`, declared in the
-block table. The layout has one definition, `reweight.pack` / `reweight.unpack`,
-because the reader is the browser.
+threshold and council size; each ward's winner as a one-byte code; each
+party's whole votes on the ward ballot and on the list ballot (blocks
+`ward_vote` and `list_vote`, the run's whole universe as columns, nothing
+summed into `OTHER`, since 2026-10-08); and the four pool turnouts. Blocks are
+column-major, little-endian; seats, wards and votes are exact unsigned
+integers of the narrowest width, turnouts are float64. A list share is
+`reweight.list_shares(list_vote)`, the one definition; the stepped PR-share
+block it replaced is gone (owner, 2026-10-08), and with it the manifest's
+`combined_share` refusal: the combined tally is
+`seats.eligible_parties(ward_vote, list_vote)` per draw, computed by its
+reader, never stored. `export_draws.ballot_faults` refuses a manifest missing
+either block, storing one as anything but whole votes, putting them on
+different columns, or carrying the refusal beside them. The layout has one
+definition, `reweight.pack` / `reweight.unpack`, because the reader is the
+browser.
 
 Before writing, the export refuses if the four laws did not draw identical
-turnouts, PR shares and ward winners (a weight could then not cross laws by
+turnouts, votes and ward winners (a weight could then not cross laws by
 draw index, PLAN.md §7), if a draw's seats do not sum to its council, or if a
 pool spec's `artefact_key` changed while it ran. The manifest's `artefact_key`
 carries the fields `declares.py` requires of a run, plus `code_sha256` over
@@ -1994,17 +2022,32 @@ defaults (`MIN_EFFECTIVE_DRAWS`, `LAWS`) at call time.
 **Added 2026-10-03, with /your-forecast/ (the owner's sweep, lane Y).** Two
 more uses of the same draws, neither of which moves a forecast:
 
-* **Where a reader's own forecast opens** — `src/start_rule.py`,
-  `start_seats` and `start_shares`, moved out of `build_make` so the build and
-  the page run one definition. Targets are each named party's weighted middle
-  seat count (`weighted_quantile` at one half) raised to its ward count, Others
-  the remainder; shares are the targets' share of the council in whole votes.
-  The build runs it with unit weights (the published start, `forecast.json`);
-  the page's `handoff` (`interactive/pyboot/page.py`) runs it on the reader's
-  weights, with each ward's most likely winner under them as the ward calls.
-  `tests/test_your_forecast_page.py` holds the two equal at the published
-  setting and the hand-off's wards equal to section 1's under every setting
-  it checks.
+* **Our prediction — `src/prediction.py` (rule A, 2026-10-08; replaced
+  `src/start_rule.py`'s seat-first start).** The forecast reduced to one
+  complete result: each ward to the party that wins it in the most
+  simulations (`ward_calls`; a tie to the code first in string order,
+  whatever the column order), each party's mean ward-ballot and list-ballot
+  whole votes (`mean_votes`; exact integer arithmetic, half to even, when the
+  weights are unit or all equal; the weighted mean rounded half to even
+  otherwise), every column kept under its own code; `rule_a` returns
+  `{ward_calls, ward_votes, list_votes}` and refuses, naming it, a missing
+  ballot, a ballot that is a copy of the other, or a call for a party the
+  votes do not carry. Seats are never stored: `seats_of` is the one
+  composition of the seat law for a prediction or a reader's forecast
+  (the two others are `run_model`'s draw loop and
+  `benchmarks.council_from_shares`, which seats the naive baselines)
+  (`eligible_parties` → `outside_pool_wards` → `allocate_with_overhang` under
+  the statutory rule, `montecarlo.COUNCIL` set for the call), and
+  `reader_seats` delegates to it. Callers: `score_forecasts.model_forecast`
+  (the scorer), `build_make.start_state` (section 2's start, unit weights;
+  `build_make.our_prediction` for a caller that needs it before
+  `forecast.json` exists), and the page (`page.handoff` on the reader's
+  weights, and `page._ward_calls`, the map's call). The tie rule alone is
+  `prediction.top_party`, which the ward calls made from counts or
+  probabilities also use (`scenarios.modal_winners` for the published claims,
+  `diagnose.main`, `score.score_wards`). JUDGEMENT-CALLS §Q;
+  `tests/test_prediction_rule.py` holds it to one definition, following
+  renamed copies of the draws' arrays, with its exemptions listed there.
 * **"Analyse my forecast"** — `within_band` (the weighted share of draws within
   a band of a reader's figure) and `ward_calls_likelihood` (each ward call's
   chance, their sum, and the reader's set of ward results ranked among the
@@ -2026,7 +2069,13 @@ C and D out through `seats.outside_pool_wards`, and allocates with
 `overhang_rule`. It returns ward, list and total seats per party (C and D ward
 winners included, so totals sum to the council), the council and majority, the
 item 16 parties and their excess, and the stated assumption. It reimplements
-none of the seat law.
+none of the seat law: since 2026-10-08 the composition is
+`prediction.seats_of`, the one composition for a prediction or a reader's
+forecast (`run_model`'s draw loop and `benchmarks.council_from_shares` are the
+two others), which `reader_seats` calls after its own validation. One precedence changed with it:
+the refusal of a positive share the pool excludes is now checked against the
+pool `seats_of` returns, after the law runs, so where the law itself also
+fails the reader sees the law's error instead.
 
 **The one assumption** is that the reader's PR shares stand for both ballots
 (JUDGEMENT-CALLS §M1). `total_votes` is a required input because the quota
@@ -2143,8 +2192,11 @@ INTEGRATION.md §3e); it must be frozen before polls open on 4 November.
   party, from the ward winners on both sides) and the ward/list split per
   party. It refuses a result whose councils disagree until `seat_source` is
   named.
-* `model_forecast(...)` writes the model's central state as a stored forecast:
-  modal ward winner, median combined share.
+* `model_forecast(...)` is our prediction as the scorer holds it: rule A
+  (`src/prediction.py`) on the draws' ward winners and both vote blocks, in
+  the schema's ward order, with `outside_roster` recording the rule-A vote off
+  the roster per ballot (a positive one is refused). Until the reader entry
+  carries both ballots (slice B) it also returns an interim `combined_share`.
 * `rank_key` / `rank`: the owner's lexicographic ranking (2026-10-03,
   JUDGEMENT-CALLS §N4, superseding DESIGN-decided §13) — seat total error
   ascending, then correct ward calls descending, then the list-ballot vote

@@ -213,11 +213,15 @@ def matching(detail, conditions) -> list[int]:
 
 
 def modal_winners(winners, wards) -> dict[str, str]:
+    """Each ward's party winning it in the most simulations, by rule A's call
+    (``prediction.top_party``: a tie to the code first in string order, where
+    ``Counter.most_common`` gave it to the party first seen)."""
+    import prediction
     counts = {w: Counter() for w in wards}
     for row in winners.values():
         for w, p in row.items():
             counts[w][p] += 1
-    return {w: c.most_common(1)[0][0] for w, c in counts.items()}
+    return {w: prediction.top_party(c) for w, c in counts.items()}
 
 
 def flips(winners, modal, draw) -> list[tuple[str, str, str]]:

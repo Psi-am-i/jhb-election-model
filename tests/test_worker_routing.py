@@ -940,7 +940,21 @@ def test_the_image_asks_the_seat_worker_and_falls_back_to_the_generic_image():
     assert call["body"]["coalition"] == S["top"]
     wards = S["data"]["schema"]["x-seat-context"]["wards"]
     assert call["body"]["seats"]["ward_winners"] == dict(zip(wards, S["calls"]))
-    assert "999" not in json.dumps(call["body"])
+    # The link's seats=999 never reaches the seat Worker. Checked on the
+    # body's VALUES, not as a substring of its JSON: a substring check fires
+    # on any float whose digits happen to contain "999" (it did, on the
+    # rule-A start's shares, 2026-10-08).
+    def leaves(o):
+        if isinstance(o, dict):
+            for v in o.values():
+                yield from leaves(v)
+        elif isinstance(o, list):
+            for v in o:
+                yield from leaves(v)
+        else:
+            yield o
+    assert not [v for v in leaves(call["body"]) if v in (999, "999")]
+    assert [v for v in leaves({"x": [1, {"y": 999}]}) if v in (999, "999")] == [999]
     assert dict(runs[4]["headers"]).get("x-robots-tag") == NOINDEX
 
 

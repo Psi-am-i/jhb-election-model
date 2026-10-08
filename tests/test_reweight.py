@@ -269,17 +269,34 @@ def test_uniform_weights_give_every_published_ward_probability_exactly():
 def test_an_infinite_poll_error_is_uniform_exactly_and_a_finite_one_is_not():
     st = _runs()
     arrays, manifest = st["arrays"], st["manifest"]
-    columns = manifest["parties"] + ["OTHER"]
-    # a constructed poll: the five parties with the largest mean PR share, at
+    columns = next(b for b in manifest["blocks"] if b["name"] == "list_vote")["columns"]
+    shares = R.list_shares(arrays["list_vote"])
+    # a constructed poll: the five parties with the largest mean list share, at
     # equal shares (chosen by a rule, not by name)
-    means = arrays["pr_share"][:, :-1].mean(axis=0)
-    poll = {manifest["parties"][j]: 1.0 for j in np.argsort(-means)[:5]}
-    w0 = R.poll_weights(arrays["pr_share"], columns, poll, sd=math.inf)
+    means = shares.mean(axis=0)
+    poll = {columns[j]: 1.0 for j in np.argsort(-means)[:5]}
+    w0 = R.poll_weights(shares, columns, poll, sd=math.inf)
     assert np.array_equal(w0, R.uniform(st["draws"]))
-    w1 = R.poll_weights(arrays["pr_share"], columns, poll, sd=0.05)
+    w1 = R.poll_weights(shares, columns, poll, sd=0.05)
     assert not np.array_equal(w1, w0)
     assert R.effective_draws(w1) < st["draws"]
 
+
+
+def test_list_shares_are_the_list_votes_over_their_draw_s_total():
+    """``reweight.list_shares``: each draw's list votes over that draw's total,
+    the one definition of a list share from the draw file. A draw with no list
+    vote is refused rather than divided by zero. Constructed, no data."""
+    votes = np.array([[3, 1, 0], [2, 2, 4]], dtype=np.uint32)
+    got = R.list_shares(votes)
+    assert np.allclose(got, [[0.75, 0.25, 0.0], [0.25, 0.25, 0.5]], rtol=0, atol=1e-15)
+    assert np.allclose(got.sum(axis=1), 1.0)
+    try:
+        R.list_shares(np.array([[1, 1], [0, 0]]))
+    except R.Refused as exc:
+        assert "no list vote" in str(exc)
+    else:
+        raise AssertionError("a draw with no list vote was not refused")
 
 # -- 2: the turnout tilt against a paired re-run ------------------------------
 

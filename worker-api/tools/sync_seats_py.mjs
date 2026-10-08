@@ -15,11 +15,13 @@ const here = dirname(fileURLToPath(import.meta.url));
 const SRC = resolve(here, "../../src");
 const DST = resolve(here, "../seats-py/src");
 // reader_seats.py and every project module it imports, directly or through
-// montecarlo (item 16 lives there). tests/test_reader_seats.py holds this list
+// montecarlo (item 16 lives there), and prediction.py (prediction.seats_of, the
+// one composition of the seat law for a prediction or a reader's forecast,
+// which reader_seats delegates to). tests/test_reader_seats.py holds this list
 // equal to the import closure measured in a fresh interpreter, both ways, so a
 // module added to or dropped from that chain turns the suite red.
 export const FILES = ["reader_seats.py", "montecarlo.py", "seats.py", "cityconfig.py",
-  "coalitions.py", "fold.py", "parties.py", "polling.py"];
+  "coalitions.py", "fold.py", "parties.py", "polling.py", "prediction.py"];
 // The card answer's code (/v1/card in seats-py/src/entry.py): the chance of a
 // reader's council-level outcome and its badge. reweight.py has no top-level
 // import from src/ (its docstring), so it is one file. Kept apart from FILES,

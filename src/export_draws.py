@@ -13,7 +13,13 @@ control weights by and everything a figure is computed from:
   ``src/overhang_regimes.py``), with each law's majority threshold and council
   size;
 * **ward winners**, one code per ward;
-* **PR shares**, the same parties plus ``OTHER``;
+* **ward votes** and **list votes**, each party's whole votes on the ward
+  ballot and on the list (PR) ballot, exactly the integers ``run_model``'s seat
+  law read in that draw (``ModelRun.ward_vote_draws`` and ``pr_vote_draws``),
+  with the run's WHOLE universe as columns: every party under its own code,
+  none summed into ``OTHER`` and none dropped. Rule A
+  (``src/prediction.py``) reduces them to our prediction; a list share is
+  ``reweight.list_shares`` of the list block;
 * **pool turnouts**, ``ModelRun.pool_turnout_draws`` (MACHINERY.md, "Per-draw
   pool turnouts").
 
@@ -38,8 +44,8 @@ without it.
 What the export asserts before it writes
 ========================================
 
-* **The draws are shared across seat laws.** Pool turnouts, PR shares and ward
-  winners are stored ONCE, which is only honest if the four runs drew them
+* **The draws are shared across seat laws.** Pool turnouts, both vote blocks
+  and ward winners are stored ONCE, which is only honest if the four runs drew them
   identically — the seat law acts after every random draw. The export compares
   them array for array and refuses if they differ, because a weight computed on
   one law's draws would then not carry to another by draw index (PLAN.md §7).
@@ -47,6 +53,9 @@ What the export asserts before it writes
   before the first run and after the last; a re-emit in between
   (``CLAUDE.md`` §3) is a refusal, not a footnote.
 * **Every draw's seats sum to its council**, per law.
+* **Both ballots are in the file and nothing refuses them**
+  (:func:`ballot_faults`): both vote blocks present, integer, on the same
+  columns, and no ``combined_share`` refusal beside them.
 
 The manifest
 ============
@@ -96,13 +105,12 @@ Four fields answer S6 (``audits/2026-09-30-interactive-s6/SPEC-v2.md``, lane E):
   export refuses. Stage 30 is the drawn centre only while metro polls are not
   blended in afterwards (``poll_paths != "all"``); under ``"all"`` the field
   is a stated refusal, not a number.
-* ``combined_share`` — a STATED REFUSAL. Seats are allocated from the combined
-  ward + PR tally built inside ``run_model``'s draw loop through
-  ``seats.eligible_parties``; ``ModelRun`` exposes ``pr_share_draws`` and
-  ``ward_share_draws`` as shares, without each ballot's vote total or that
-  membership test, so a combined share derived here would be a second
-  definition of the statutory pool. Lifting it needs ``run_model`` to record
-  the per-draw combined tally, which is a model change, not an export one.
+* ``vote_blocks`` — what the two vote blocks are (:data:`VOTE_BLOCKS`). The
+  ``combined_share`` refusal this field replaces was lifted on 2026-10-08:
+  ``run_model`` now records each draw's whole votes per ballot, so the
+  combined tally is ``seats.eligible_parties(ward_vote, list_vote)`` per draw,
+  computed by whoever needs it from the file and never stored here
+  (MODEL-LOG §1.291).
 
 What the manifest and the index do NOT carry
 ============================================
@@ -123,11 +131,13 @@ on the machine that exported them or a note written for the model's authors
 
 Storage choices, stated because they lose information: seats, thresholds and
 councils are unsigned integers of the smallest width that holds the largest
-value (exact); ward winners are one byte per ward (exact); pool turnouts are
-float64, exactly ``ModelRun.pool_turnout_draws``; PR shares are rounded to
-:data:`PR_SHARE_STEP`, an error of at most half a step, declared in
-the block table. ``tests/test_export_draws.py`` checks
-the seat columns byte for byte against the published CSVs.
+value (exact); ward winners are one byte per ward (exact); ward and list votes
+are unsigned integers of the narrowest width (exact); pool turnouts are
+float64, exactly ``ModelRun.pool_turnout_draws``. No stepped (rounded) block
+remains: the PR share block, stored to a step of 1e-5, was dropped for the
+list votes it is derived from (owner, 2026-10-08), which also keeps the file
+under the size budget. ``tests/test_export_draws.py`` checks the seat columns
+byte for byte against the published CSVs.
 """
 
 from __future__ import annotations
@@ -158,30 +168,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 #: The trace stage the deterministic centres are read from, and its key.
 CENTRES_STAGE = ("30_centres", "after_shrink")
 
-#: Why `combined_share` is not in the file. Stated in the manifest.
-COMBINED_SHARE_REFUSAL = {
-    "refused": True,
-    "reason": ("seats are allocated from the combined ward + PR tally built "
-               "inside run_model's draw loop through seats.eligible_parties; "
-               "ModelRun exposes pr_share_draws and ward_share_draws as shares "
-               "only, without each ballot's vote total or that membership "
-               "test, so a combined share derived here would be a second "
-               "definition of the statutory pool"),
-    "exposed": ["ModelRun.pr_share_draws", "ModelRun.ward_share_draws"],
-    "missing": ["per-draw ward and PR vote totals",
-                "seats.eligible_parties membership per draw"],
-    "lift": "run_model records the per-draw combined tally (a model change)",
+#: What the manifest says the two vote blocks are (module docstring).
+VOTE_BLOCKS = {
+    "unit": "whole votes",
+    "columns": "the run's universe; no party summed or dropped",
+    "source": ("ModelRun.ward_vote_draws and pr_vote_draws: the integers "
+               "run_model's seat law read"),
+    "combined": "seats.eligible_parties(ward_vote, list_vote) per draw; not stored",
 }
-
-#: PR shares are stored as whole multiples of this, in 16 bits while every
-#: share is under about 0.65 (32 bits above, for a city where one party takes
-#: more than that): a thousandth
-#: of a percentage point. Storage precision, not a belief about an election —
-#: a poll error or a turnout step on the page is thousands of times larger —
-#: and it is what brings the file under PLAN.md's size budget (float32 shares
-#: alone compressed to more than the whole budget). Recorded in the block
-#: table, so the reader knows the loss.
-PR_SHARE_STEP = 1e-5
 
 #: The four seat laws, statute first. `deduct` is `montecarlo.DEFAULTS`'s
 #: `overhang_rule`; the other three are `overhang_regimes.RULES`.
@@ -291,7 +285,8 @@ def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int,
         "thresholds": np.asarray(run.thresholds, dtype=np.int64),
         "council_sizes": np.asarray(run.council_sizes, dtype=np.int64),
         "ward_winners": np.asarray(run.ward_winner_draws),
-        "pr_shares": np.asarray(run.pr_share_draws, dtype=float),
+        "ward_votes": np.asarray(run.ward_vote_draws),
+        "list_votes": np.asarray(run.pr_vote_draws),
         "pool_turnouts": np.asarray(run.pool_turnout_draws, dtype=float),
         "pool_names": list(run.pool_turnout_names),
         "centres": centres,
@@ -320,7 +315,7 @@ def shared_draw_differences(runs: dict[str, dict]) -> list[str]:
         for key in ("universe", "wards", "pool_names"):
             if run[key] != first[key]:
                 differ.append(f"{rule}:{key}")
-        for key in ("ward_winners", "pr_shares", "pool_turnouts"):
+        for key in ("ward_winners", "ward_votes", "list_votes", "pool_turnouts"):
             a, b = run[key], first[key]
             if a.shape != b.shape or a.dtype != b.dtype or not np.array_equal(a, b):
                 differ.append(f"{rule}:{key}")
@@ -396,9 +391,10 @@ def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
     winners = lookup[first["ward_winners"]]
     blocks.append(("ward_winner", winners.astype(_uint(winners)), first["wards"]))
 
-    pr = first["pr_shares"]
-    pr_cols = np.column_stack([pr[:, keep], pr[:, rest].sum(axis=1)])
-    blocks.append(("pr_share", pr_cols, columns, PR_SHARE_STEP))
+    # both ballots on the run's whole universe: no party summed, none dropped
+    wv, lv = np.asarray(first["ward_votes"]), np.asarray(first["list_votes"])
+    blocks.append(("ward_vote", wv.astype(_uint(wv)), universe))
+    blocks.append(("list_vote", lv.astype(_uint(lv)), universe))
     blocks.append(("pool_turnout", first["pool_turnouts"], first["pool_names"]))
 
     blob, table = reweight.pack(blocks)
@@ -410,9 +406,37 @@ def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
         "ward_parties": ward_parties,
         "blocks": table,
         "centres": centres_block(runs, parties),
-        "combined_share": COMBINED_SHARE_REFUSAL,
+        "vote_blocks": VOTE_BLOCKS,
     }
+    faults = ballot_faults(data)
+    if faults:
+        raise SystemExit("the draw file's ballots are not sound: " + "; ".join(faults))
     return blob, data
+
+
+def ballot_faults(manifest: dict) -> list[str]:
+    """Everything wrong with a manifest's two ballots, as sentences. Empty means sound.
+
+    Both ``ward_vote`` and ``list_vote`` must be present, stored as integers,
+    on identical columns; and the ``combined_share`` refusal the blocks lifted
+    must not sit beside them (lifted and refused at once).
+    """
+    blocks = {b["name"]: b for b in manifest.get("blocks", [])}
+    out = []
+    present = [n for n in ("ward_vote", "list_vote") if n in blocks]
+    for name in ("ward_vote", "list_vote"):
+        if name not in blocks:
+            out.append(f"the {name} block is missing")
+        elif np.dtype(blocks[name]["dtype"]).kind not in "iu" or "step" in blocks[name]:
+            out.append(f"the {name} block is not stored as whole votes "
+                       f"({blocks[name]['dtype']})")
+    if len(present) == 2 and blocks["ward_vote"]["columns"] != blocks["list_vote"]["columns"]:
+        out.append("the ward_vote and list_vote blocks have different columns")
+    if "combined_share" in manifest:
+        out.append("the manifest carries a combined_share refusal beside the "
+                   "vote blocks that lifted it" if present else
+                   "the manifest carries a combined_share refusal and no vote blocks")
+    return out
 
 
 #: ``artefact_key`` fields that describe the exporting machine, not the run.

@@ -127,7 +127,7 @@
     "law": "deduct",
     "majority": 136.0,
     "max_figure_se": 2.5,
-    "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+    "model_version": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
     "others_count": 65,
     "poll": null,
     "refused": null,
@@ -2765,7 +2765,7 @@
     "law": "deduct",
     "majority": 136.0,
     "max_figure_se": 2.5,
-    "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+    "model_version": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
     "others_count": 64,
     "poll": null,
     "refused": null,
@@ -5447,7 +5447,7 @@
     "law": "expand",
     "majority": 138.0,
     "max_figure_se": 2.5,
-    "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+    "model_version": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
     "others_count": 65,
     "poll": null,
     "refused": null,
@@ -8059,7 +8059,7 @@
     "law": "deduct",
     "majority": 136.0,
     "max_figure_se": 2.5,
-    "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+    "model_version": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
     "others_count": 65,
     "poll": null,
     "refused": null,
@@ -10544,7 +10544,7 @@
    "name": "polls-on-trust-0.3",
    "result": {
     "alone": {
-     "p": 0.00047444869682223797,
+     "p": 0.000474437245365668,
      "text": "under 0.1%",
      "vs_published": null
     },
@@ -10629,7 +10629,7 @@
     "centres_source": "run_model trace, stage 30_centres, after_shrink",
     "council": 270.0,
     "draws": 5000,
-    "effective_draws": 3768.211257023792,
+    "effective_draws": 3768.210943689687,
     "flips": [
      {
       "from": "ANC",
@@ -10659,32 +10659,32 @@
     ],
     "largest": {
      "ANC": {
-      "p": 0.3435706869401861,
+      "p": 0.3435704950873532,
       "text": "34%",
       "vs_published": -13
      },
      "ASA": {
-      "p": 0.0038500714234348484,
+      "p": 0.0038500477627528133,
       "text": "0.4%",
       "vs_published": -2
      },
      "DA": {
-      "p": 0.6139956397920658,
+      "p": 0.6139957272949402,
       "text": "61%",
       "vs_published": 16
      },
      "EFF": {
-      "p": 0.00967226093493624,
+      "p": 0.00967236194669742,
       "text": "1.0%",
       "vs_published": -2
      },
      "MK": {
-      "p": 0.008667427932138988,
+      "p": 0.008667398424900831,
       "text": "0.9%",
       "vs_published": 0
      },
      "PA": {
-      "p": 0.005259285565329676,
+      "p": 0.005259262808653109,
       "text": "0.5%",
       "vs_published": 1
      }
@@ -10692,7 +10692,7 @@
     "law": "deduct",
     "majority": 136.0,
     "max_figure_se": 2.5,
-    "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+    "model_version": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
     "others_count": 64,
     "poll": {
      "id": "srf-2026q2-coj",
@@ -10710,36 +10710,36 @@
     "seats": {
      "ALJAMAAH": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008122379176908149,
+       "level_se": 0.00812238049344236,
        "q": 0.5,
-       "quantile_effective_draws": 3777.792843750903,
+       "quantile_effective_draws": 3777.7920751334723,
        "sampling_se": 0.024581623711988167,
-       "tail_effective_draws": 1946.4196637231112,
+       "tail_effective_draws": 1946.4185931361226,
        "value": 2.0,
        "withheld": false
       },
       "median_se": 0.024581623711988167,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.006999928206538773,
+       "level_se": 0.0069999300822464906,
        "q": 0.05,
-       "quantile_effective_draws": 3706.79039578626,
+       "quantile_effective_draws": 3706.7894068569467,
        "sampling_se": 0.000902521470539197,
-       "tail_effective_draws": 877.624715421925,
+       "tail_effective_draws": 877.6247485813626,
        "value": 1.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0037718692529573623,
+       "level_se": 0.003771870829690435,
        "q": 0.95,
-       "quantile_effective_draws": 3815.998444119243,
+       "quantile_effective_draws": 3815.995319553505,
        "sampling_se": 0.11303369188675971,
-       "tail_effective_draws": 220.01751677163196,
+       "tail_effective_draws": 220.01732998279698,
        "value": 6.0,
        "withheld": false
       },
@@ -10747,36 +10747,36 @@
      },
      "ANC": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008127262116758214,
+       "level_se": 0.008127262102844066,
        "q": 0.5,
-       "quantile_effective_draws": 3783.737596021166,
+       "quantile_effective_draws": 3783.7375695565534,
        "sampling_se": 0.3354113165493913,
-       "tail_effective_draws": 1717.0136493241944,
+       "tail_effective_draws": 1717.013863415166,
        "value": 63.0,
        "withheld": false
       },
       "median_se": 0.3354113165493913,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0036654117846425,
+       "level_se": 0.0036654059705105387,
        "q": 0.05,
-       "quantile_effective_draws": 3837.8551860212656,
+       "quantile_effective_draws": 3837.865198798636,
        "sampling_se": 0.601547329863083,
-       "tail_effective_draws": 209.54132570127607,
+       "tail_effective_draws": 209.54178213279997,
        "value": 29.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0025032265600262323,
+       "level_se": 0.002503221234617187,
        "q": 0.95,
-       "quantile_effective_draws": 8302.37845163883,
-       "sampling_se": 0.13072666314421538,
-       "tail_effective_draws": 493.8505070892656,
+       "quantile_effective_draws": 8302.399903217818,
+       "sampling_se": 0.1306613351723815,
+       "tail_effective_draws": 493.8510215506856,
        "value": 84.0,
        "withheld": false
       },
@@ -10784,36 +10784,36 @@
      },
      "ASA": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008132536600573002,
+       "level_se": 0.008132536788299059,
        "q": 0.5,
-       "quantile_effective_draws": 3778.7846464270237,
+       "quantile_effective_draws": 3778.7844408402134,
        "sampling_se": 0.3124786490360538,
-       "tail_effective_draws": 1779.1445358983133,
+       "tail_effective_draws": 1779.145200922547,
        "value": 25.0,
        "withheld": false
       },
       "median_se": 0.3124786490360538,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.004036704985778381,
+       "level_se": 0.00403670527659136,
        "q": 0.05,
-       "quantile_effective_draws": 3579.1530111420143,
-       "sampling_se": 0.20195198993144042,
-       "tail_effective_draws": 221.79655747865982,
+       "quantile_effective_draws": 3579.154111440075,
+       "sampling_se": 0.20195198993144003,
+       "tail_effective_draws": 221.79673830554714,
        "value": 11.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.002706513048131897,
+       "level_se": 0.002706510231524157,
        "q": 0.95,
-       "quantile_effective_draws": 6688.96649559243,
-       "sampling_se": 0.45605928475807245,
-       "tail_effective_draws": 361.7605109831106,
+       "quantile_effective_draws": 6688.966843108879,
+       "sampling_se": 0.4560144705999427,
+       "tail_effective_draws": 361.759718066558,
        "value": 46.0,
        "withheld": false
       },
@@ -10821,73 +10821,73 @@
      },
      "DA": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00817295208370073,
+       "level_se": 0.008172952610709399,
        "q": 0.5,
-       "quantile_effective_draws": 3741.440543394935,
+       "quantile_effective_draws": 3741.44004504589,
        "sampling_se": 0.31741445927650336,
-       "tail_effective_draws": 2378.3446539460856,
+       "tail_effective_draws": 2378.345019347519,
        "value": 70.0,
        "withheld": false
       },
       "median_se": 0.31741445927650336,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.002708778906909875,
+       "level_se": 0.0027087852672459584,
        "q": 0.05,
-       "quantile_effective_draws": 7301.770945544255,
+       "quantile_effective_draws": 7301.755250674745,
        "sampling_se": 0.3174576160051128,
-       "tail_effective_draws": 441.28211051907857,
+       "tail_effective_draws": 441.2823235796056,
        "value": 51.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0042053726357716885,
+       "level_se": 0.0042053788144910025,
        "q": 0.95,
-       "quantile_effective_draws": 2690.4754247098963,
-       "sampling_se": 0.9429090453458094,
-       "tail_effective_draws": 132.65534859061472,
-       "value": 94.66423718718931,
+       "quantile_effective_draws": 2690.470169557455,
+       "sampling_se": 0.9429023488363016,
+       "tail_effective_draws": 132.65521534678257,
+       "value": 94.66451726735936,
        "withheld": false
       },
       "vs_published": 4
      },
      "EFF": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00810877344350856,
+       "level_se": 0.008108773705053302,
        "q": 0.5,
-       "quantile_effective_draws": 3793.5972732290397,
+       "quantile_effective_draws": 3793.5970557724945,
        "sampling_se": 0.42622901282463105,
-       "tail_effective_draws": 1849.2434299743268,
+       "tail_effective_draws": 1849.2425016796644,
        "value": 24.0,
        "withheld": false
       },
       "median_se": 0.42622901282463105,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0037782596041895295,
+       "level_se": 0.00377825674630483,
        "q": 0.05,
-       "quantile_effective_draws": 3777.04903836075,
-       "sampling_se": 0.28941805291577033,
-       "tail_effective_draws": 216.0378840390842,
+       "quantile_effective_draws": 3777.0458958015206,
+       "sampling_se": 0.2894180528480632,
+       "tail_effective_draws": 216.0371544466416,
        "value": 8.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0028420120691477085,
+       "level_se": 0.0028420122737854124,
        "q": 0.95,
-       "quantile_effective_draws": 6144.758449130291,
-       "sampling_se": 0.5200786828537263,
-       "tail_effective_draws": 334.1579603221193,
+       "quantile_effective_draws": 6144.7745503335545,
+       "sampling_se": 0.5201168223591113,
+       "tail_effective_draws": 334.1599450109828,
        "value": 50.0,
        "withheld": false
       },
@@ -10895,36 +10895,36 @@
      },
      "IFP": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00810397710580314,
+       "level_se": 0.00810397782392807,
        "q": 0.5,
-       "quantile_effective_draws": 3759.214454016785,
+       "quantile_effective_draws": 3759.214037637957,
        "sampling_se": 1.4765490417957859e-06,
-       "tail_effective_draws": 2114.576400837984,
+       "tail_effective_draws": 2114.575961153147,
        "value": 2.0,
        "withheld": false
       },
       "median_se": 1.4765490417957859e-06,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00717330521544685,
+       "level_se": 0.007173305726816841,
        "q": 0.05,
-       "quantile_effective_draws": 3852.542460662719,
+       "quantile_effective_draws": 3852.541637790771,
        "sampling_se": 0.0,
-       "tail_effective_draws": 1064.0256221452507,
+       "tail_effective_draws": 1064.0251843310675,
        "value": 0.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.003948259092212837,
+       "level_se": 0.003948261398883098,
        "q": 0.95,
-       "quantile_effective_draws": 3455.7915051699697,
-       "sampling_se": 0.6408575929464081,
-       "tail_effective_draws": 196.399674798735,
+       "quantile_effective_draws": 3455.7937825137933,
+       "sampling_se": 0.6408575929502124,
+       "tail_effective_draws": 196.40019256910472,
        "value": 17.0,
        "withheld": false
       },
@@ -10932,36 +10932,36 @@
      },
      "MK": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008155429570962502,
+       "level_se": 0.008155429879981357,
        "q": 0.5,
-       "quantile_effective_draws": 3757.1273625447184,
+       "quantile_effective_draws": 3757.127056629004,
        "sampling_se": 0.3114762080083453,
-       "tail_effective_draws": 2066.066485006267,
+       "tail_effective_draws": 2066.065490232039,
        "value": 23.0,
        "withheld": false
       },
       "median_se": 0.3114762080083453,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0036677207585920244,
+       "level_se": 0.003667725861252748,
        "q": 0.05,
-       "quantile_effective_draws": 4835.193905075097,
+       "quantile_effective_draws": 4835.181592882237,
        "sampling_se": 0.4904689725235545,
-       "tail_effective_draws": 346.11649300135906,
+       "tail_effective_draws": 346.1156113984624,
        "value": 9.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0033168184332809957,
+       "level_se": 0.003316827113074741,
        "q": 0.95,
-       "quantile_effective_draws": 4368.845423406831,
+       "quantile_effective_draws": 4368.83371136926,
        "sampling_se": 0.6426180000756682,
-       "tail_effective_draws": 223.18055150424993,
+       "tail_effective_draws": 223.18052293375246,
        "value": 50.0,
        "withheld": false
       },
@@ -10969,36 +10969,36 @@
      },
      "OTHERS": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008153929850366793,
+       "level_se": 0.008153930259945184,
        "q": 0.5,
-       "quantile_effective_draws": 3751.9463970745537,
+       "quantile_effective_draws": 3751.9460148203225,
        "sampling_se": 0.31741425423463515,
-       "tail_effective_draws": 2063.385295375064,
+       "tail_effective_draws": 2063.385535399531,
        "value": 20.0,
        "withheld": false
       },
       "median_se": 0.31741425423463515,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0036235602719042314,
+       "level_se": 0.0036235642824374806,
        "q": 0.05,
-       "quantile_effective_draws": 3810.521965617509,
-       "sampling_se": 0.42075672147653875,
-       "tail_effective_draws": 201.41738705128478,
+       "quantile_effective_draws": 3810.513923689967,
+       "sampling_se": 0.4207567248557157,
+       "tail_effective_draws": 201.41695958049954,
        "value": 6.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.003966433366435204,
+       "level_se": 0.003966427157877025,
        "q": 0.95,
-       "quantile_effective_draws": 3324.3513843562428,
+       "quantile_effective_draws": 3324.3558276219105,
        "sampling_se": 0.7417472684444736,
-       "tail_effective_draws": 182.71629368586204,
+       "tail_effective_draws": 182.716206700164,
        "value": 43.0,
        "withheld": false
       },
@@ -11006,36 +11006,36 @@
      },
      "PA": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008112939517505724,
+       "level_se": 0.008112939195809103,
        "q": 0.5,
-       "quantile_effective_draws": 3780.3280741086787,
+       "quantile_effective_draws": 3780.327976927583,
        "sampling_se": 0.009934146622490352,
-       "tail_effective_draws": 1970.7065718088509,
+       "tail_effective_draws": 1970.707560516777,
        "value": 23.0,
        "withheld": false
       },
       "median_se": 0.009934146622490352,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0038173334711325987,
+       "level_se": 0.003817332156233745,
        "q": 0.05,
-       "quantile_effective_draws": 3604.4575596293757,
-       "sampling_se": 0.28115235141124784,
-       "tail_effective_draws": 199.92757953330394,
+       "quantile_effective_draws": 3604.4574246209863,
+       "sampling_se": 0.28117436488250286,
+       "tail_effective_draws": 199.92741875292975,
        "value": 14.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0036295260351750266,
+       "level_se": 0.003629521622169638,
        "q": 0.95,
-       "quantile_effective_draws": 4020.376382463752,
+       "quantile_effective_draws": 4020.3859376944383,
        "sampling_se": 0.6408307029936414,
-       "tail_effective_draws": 226.5441921498534,
+       "tail_effective_draws": 226.54475499739002,
        "value": 35.0,
        "withheld": false
       },
@@ -11043,36 +11043,36 @@
      },
      "RISE": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008145737579193603,
+       "level_se": 0.008145737934943786,
        "q": 0.5,
-       "quantile_effective_draws": 3767.2663346049058,
+       "quantile_effective_draws": 3767.266000456275,
        "sampling_se": 0.4207541810181317,
-       "tail_effective_draws": 1926.550622563385,
+       "tail_effective_draws": 1926.5509405894313,
        "value": 2.0,
        "withheld": false
       },
       "median_se": 0.4207541810181317,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.005838326567717161,
+       "level_se": 0.0058383284894195295,
        "q": 0.05,
-       "quantile_effective_draws": 3722.0670173412864,
+       "quantile_effective_draws": 3722.064807896491,
        "sampling_se": 0.0,
-       "tail_effective_draws": 553.5275071313101,
+       "tail_effective_draws": 553.5271626729792,
        "value": 0.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0039739639106768955,
+       "level_se": 0.0039739572646539665,
        "q": 0.95,
-       "quantile_effective_draws": 3472.1704562672485,
-       "sampling_se": 0.6069240539235334,
-       "tail_effective_draws": 201.12203870991453,
+       "quantile_effective_draws": 3472.1764597616216,
+       "sampling_se": 0.6069240704967682,
+       "tail_effective_draws": 201.12206411375675,
        "value": 15.0,
        "withheld": false
       },
@@ -11080,36 +11080,36 @@
      },
      "SOUTH_AFRICAN_COMMUNIST_PARTY": {
       "median": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.007990044269732764,
+       "level_se": 0.007990043298545664,
        "q": 0.5,
-       "quantile_effective_draws": 3746.131323630314,
+       "quantile_effective_draws": 3746.1318374475723,
        "sampling_se": 0.4207541810181317,
-       "tail_effective_draws": 2302.298573585215,
+       "tail_effective_draws": 2302.297826487519,
        "value": 2.0,
        "withheld": false
       },
       "median_se": 0.4207541810181317,
       "p5": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00750634836259541,
+       "level_se": 0.00750635710168264,
        "q": 0.05,
-       "quantile_effective_draws": 3773.2039158627695,
+       "quantile_effective_draws": 3773.199080298707,
        "sampling_se": 0.0,
-       "tail_effective_draws": 1158.1367462417932,
+       "tail_effective_draws": 1158.1363386652586,
        "value": 0.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3768.211257023792,
+       "effective_draws": 3768.210943689687,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00394185242834585,
+       "level_se": 0.003941864509914755,
        "q": 0.95,
-       "quantile_effective_draws": 3598.24190545772,
+       "quantile_effective_draws": 3598.223226171415,
        "sampling_se": 0.5979809879931641,
-       "tail_effective_draws": 213.2441343065491,
+       "tail_effective_draws": 213.24317027680308,
        "value": 14.0,
        "withheld": false
       },
@@ -11129,25 +11129,25 @@
      "SOUTH_AFRICAN_COMMUNIST_PARTY"
     ],
     "tied": {
-     "p": 0.014984627411908369,
+     "p": 0.014984706674702366,
      "text": "1.5%",
      "vs_published": 0
     },
     "turnout": {
      "Black African": {
-      "mean": 0.37273242981464527,
+      "mean": 0.3727324298146453,
       "published": 0.37273242981464527
      },
      "Coloured": {
-      "mean": 0.5312226518620531,
+      "mean": 0.531222651862053,
       "published": 0.531222651862053
      },
      "Indian/Asian": {
-      "mean": 0.4456790784312874,
+      "mean": 0.44567907843128723,
       "published": 0.44567907843128723
      },
      "White": {
-      "mean": 0.5232231410606092,
+      "mean": 0.5232231410606093,
       "published": 0.5232231410606093
      }
     },
@@ -11560,18 +11560,18 @@
       "bands": [
        {
         "colour": "#1B7A3D",
-        "w": 4.0845,
-        "x": 2.04225
+        "w": 4.0838,
+        "x": 2.0419
        },
        {
         "colour": "#5B6E22",
         "w": 1.911,
-        "x": 5.04
+        "x": 5.0393
        },
        {
         "colour": "#9aa09a",
-        "w": 1.0044999999999997,
-        "x": 6.49775
+        "w": 1.0051999999999996,
+        "x": 6.4974
        }
       ],
       "fill": "#9aa09a",
@@ -13163,7 +13163,7 @@
    "name": "polls-on-trust-0.3-black-african-minus-2",
    "result": {
     "alone": {
-     "p": 0.0007933312022182576,
+     "p": 0.0007933115031200667,
      "text": "0.1%",
      "vs_published": null
     },
@@ -13248,7 +13248,7 @@
     "centres_source": "run_model trace, stage 30_centres, after_shrink",
     "council": 297.0,
     "draws": 5000,
-    "effective_draws": 3071.4519276758983,
+    "effective_draws": 3071.4536233657973,
     "flips": [
      {
       "from": "ANC",
@@ -13288,32 +13288,32 @@
     ],
     "largest": {
      "ANC": {
-      "p": 0.1745913099821935,
+      "p": 0.17459136526995492,
       "text": "17%",
       "vs_published": -30
      },
      "ASA": {
-      "p": 0.0045192965522129385,
+      "p": 0.0045192697136546426,
       "text": "0.5%",
       "vs_published": -2
      },
      "DA": {
-      "p": 0.7985174250210745,
+      "p": 0.7985173219499617,
       "text": "80%",
       "vs_published": 35
      },
      "EFF": {
-      "p": 0.00569669751011686,
+      "p": 0.005696774227925166,
       "text": "0.6%",
       "vs_published": -2
      },
      "MK": {
-      "p": 0.004071613648310963,
+      "p": 0.004071605830241501,
       "text": "0.4%",
       "vs_published": -1
      },
      "PA": {
-      "p": 0.003100392885583729,
+      "p": 0.0031003991305423207,
       "text": "0.3%",
       "vs_published": 0
      }
@@ -13321,7 +13321,7 @@
     "law": "level",
     "majority": 149.0,
     "max_figure_se": 2.5,
-    "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+    "model_version": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
     "others_count": 64,
     "poll": {
      "id": "srf-2026q2-coj",
@@ -13339,36 +13339,36 @@
     "seats": {
      "ALJAMAAH": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008891946548322044,
+       "level_se": 0.008891946655635192,
        "q": 0.5,
-       "quantile_effective_draws": 2954.8194579230967,
+       "quantile_effective_draws": 2954.8211685653687,
        "sampling_se": 1.6576254429052983e-11,
-       "tail_effective_draws": 2046.1489252642737,
+       "tail_effective_draws": 2046.1488931673166,
        "value": 3.0,
        "withheld": false
       },
       "median_se": 1.6576254429052983e-11,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.006651082237000614,
+       "level_se": 0.006651079192434987,
        "q": 0.05,
-       "quantile_effective_draws": 3336.4777839900435,
+       "quantile_effective_draws": 3336.479450612703,
        "sampling_se": 4.5316480284301375e-05,
-       "tail_effective_draws": 615.477699785929,
+       "tail_effective_draws": 615.4776563089149,
        "value": 1.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.005076267232991385,
+       "level_se": 0.005076272472794299,
        "q": 0.95,
-       "quantile_effective_draws": 2531.927016038049,
+       "quantile_effective_draws": 2531.9238525249357,
        "sampling_se": 0.05697029123304082,
-       "tail_effective_draws": 175.14754835839724,
+       "tail_effective_draws": 175.14746044421528,
        "value": 7.0,
        "withheld": false
       },
@@ -13376,36 +13376,36 @@
      },
      "ANC": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008941405390283041,
+       "level_se": 0.008941402584683717,
        "q": 0.5,
-       "quantile_effective_draws": 3118.0197381541066,
+       "quantile_effective_draws": 3118.0216017094963,
        "sampling_se": 0.49175637249913945,
-       "tail_effective_draws": 1429.558612293543,
+       "tail_effective_draws": 1429.5601901882014,
        "value": 63.0,
        "withheld": false
       },
       "median_se": 0.49175637249913945,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.003918193369940063,
+       "level_se": 0.003918197234752626,
        "q": 0.05,
-       "quantile_effective_draws": 3113.085263327252,
-       "sampling_se": 0.6416513911123802,
-       "tail_effective_draws": 156.78644630862905,
+       "quantile_effective_draws": 3113.084919849021,
+       "sampling_se": 0.64166161848451,
+       "tail_effective_draws": 156.78673171702818,
        "value": 31.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0026398273749969163,
+       "level_se": 0.0026398110157356343,
        "q": 0.95,
-       "quantile_effective_draws": 7576.46951182254,
+       "quantile_effective_draws": 7576.535353534809,
        "sampling_se": 0.3354113162697512,
-       "tail_effective_draws": 466.8362045771914,
+       "tail_effective_draws": 466.838863058208,
        "value": 83.0,
        "withheld": false
       },
@@ -13413,36 +13413,36 @@
      },
      "ASA": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.009011670474589714,
+       "level_se": 0.009011668594693665,
        "q": 0.5,
-       "quantile_effective_draws": 3075.970985322721,
+       "quantile_effective_draws": 3075.9723304405534,
        "sampling_se": 0.28942243733149636,
-       "tail_effective_draws": 1540.2436897420696,
+       "tail_effective_draws": 1540.2464776631093,
        "value": 29.0,
        "withheld": false
       },
       "median_se": 0.28942243733149636,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.004092418697573667,
+       "level_se": 0.00409240831686964,
        "q": 0.05,
-       "quantile_effective_draws": 3198.0903370439796,
+       "quantile_effective_draws": 3198.1030105116793,
        "sampling_se": 0.2898781934261936,
-       "tail_effective_draws": 182.08740887861774,
+       "tail_effective_draws": 182.08795622240663,
        "value": 12.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0031823821515581953,
+       "level_se": 0.0031823851971921626,
        "q": 0.95,
-       "quantile_effective_draws": 5153.748688350664,
-       "sampling_se": 0.4950308087204759,
-       "tail_effective_draws": 297.24609288960477,
+       "quantile_effective_draws": 5153.73658357482,
+       "sampling_se": 0.4950307796458609,
+       "tail_effective_draws": 297.24515691388905,
        "value": 56.0,
        "withheld": false
       },
@@ -13450,36 +13450,36 @@
      },
      "DA": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.009024349041059936,
+       "level_se": 0.009024345834077553,
        "q": 0.5,
-       "quantile_effective_draws": 3069.7846097759048,
+       "quantile_effective_draws": 3069.786792984095,
        "sampling_se": 0.5031929365111066,
-       "tail_effective_draws": 2223.807280489466,
+       "tail_effective_draws": 2223.8081134141435,
        "value": 82.0,
        "withheld": false
       },
       "median_se": 0.5031929365111066,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0024337951026074315,
+       "level_se": 0.0024338070391452357,
        "q": 0.05,
-       "quantile_effective_draws": 8477.209118505361,
+       "quantile_effective_draws": 8477.154528874897,
        "sampling_se": 0.4663875159707538,
-       "tail_effective_draws": 501.90231972901836,
+       "tail_effective_draws": 501.9004712236628,
        "value": 57.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00496695899055596,
+       "level_se": 0.004966956928743954,
        "q": 0.95,
-       "quantile_effective_draws": 1958.974077120586,
-       "sampling_se": 0.9585229532575517,
-       "tail_effective_draws": 97.74817668524406,
+       "quantile_effective_draws": 1958.9746562704668,
+       "sampling_se": 0.9585229566067993,
+       "tail_effective_draws": 97.74815071630145,
        "value": 120.0,
        "withheld": false
       },
@@ -13487,36 +13487,36 @@
      },
      "EFF": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.009006141973917626,
+       "level_se": 0.009006139467886592,
        "q": 0.5,
-       "quantile_effective_draws": 3079.357990812188,
+       "quantile_effective_draws": 3079.3597312415204,
        "sampling_se": 0.48785811294954967,
-       "tail_effective_draws": 1520.263968007053,
+       "tail_effective_draws": 1520.2640043660217,
        "value": 28.0,
        "withheld": false
       },
       "median_se": 0.48785811294954967,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00408760644731442,
+       "level_se": 0.004087591728842129,
        "q": 0.05,
-       "quantile_effective_draws": 3311.0200309464512,
+       "quantile_effective_draws": 3311.032008422728,
        "sampling_se": 0.3357795525486398,
-       "tail_effective_draws": 195.628162981225,
+       "tail_effective_draws": 195.62816166676367,
        "value": 9.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0032426781513386154,
+       "level_se": 0.003242686655371148,
        "q": 0.95,
-       "quantile_effective_draws": 5180.740879072035,
-       "sampling_se": 0.47834568925337384,
-       "tail_effective_draws": 313.6223165964459,
+       "quantile_effective_draws": 5180.736811570559,
+       "sampling_se": 0.4783456891142278,
+       "tail_effective_draws": 313.62359134193525,
        "value": 52.0,
        "withheld": false
       },
@@ -13524,36 +13524,36 @@
      },
      "IFP": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008996145098837501,
+       "level_se": 0.008996142624945443,
        "q": 0.5,
-       "quantile_effective_draws": 3074.1857956251342,
+       "quantile_effective_draws": 3074.187537267391,
        "sampling_se": 0.009424036207692691,
-       "tail_effective_draws": 1632.5774478918233,
+       "tail_effective_draws": 1632.5779931547877,
        "value": 2.0,
        "withheld": false
       },
       "median_se": 0.009424036207692691,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008003343576324377,
+       "level_se": 0.008003342161593267,
        "q": 0.05,
-       "quantile_effective_draws": 3082.8451866112814,
+       "quantile_effective_draws": 3082.8464160474336,
        "sampling_se": 0.0,
-       "tail_effective_draws": 836.6657951426275,
+       "tail_effective_draws": 836.6661131271909,
        "value": 0.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.00425618783549835,
+       "level_se": 0.0042561907196201985,
        "q": 0.95,
-       "quantile_effective_draws": 2857.775961937727,
-       "sampling_se": 0.8424693015477865,
-       "tail_effective_draws": 155.84951977254306,
+       "quantile_effective_draws": 2857.77659684788,
+       "sampling_se": 0.8424728784929556,
+       "tail_effective_draws": 155.84981118159232,
        "value": 20.0,
        "withheld": false
       },
@@ -13561,36 +13561,36 @@
      },
      "MK": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.009037501113957186,
+       "level_se": 0.00903749849887664,
        "q": 0.5,
-       "quantile_effective_draws": 3058.225646582684,
+       "quantile_effective_draws": 3058.2273703806827,
        "sampling_se": 0.20868915540637725,
-       "tail_effective_draws": 1702.6165123767457,
+       "tail_effective_draws": 1702.6163413792842,
        "value": 27.0,
        "withheld": false
       },
       "median_se": 0.20868915540637725,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.003497747982973723,
+       "level_se": 0.0034977497591887133,
        "q": 0.05,
-       "quantile_effective_draws": 4468.512372818441,
+       "quantile_effective_draws": 4468.512704788467,
        "sampling_se": 0.2323587315374649,
-       "tail_effective_draws": 267.3234166774661,
+       "tail_effective_draws": 267.323745267247,
        "value": 10.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0035126755840531776,
+       "level_se": 0.003512676457953324,
        "q": 0.95,
-       "quantile_effective_draws": 3866.3274750260666,
+       "quantile_effective_draws": 3866.3336986405698,
        "sampling_se": 0.7256393336507346,
-       "tail_effective_draws": 197.0498845839552,
+       "tail_effective_draws": 197.05066220799236,
        "value": 49.0,
        "withheld": false
       },
@@ -13598,73 +13598,73 @@
      },
      "OTHERS": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0090272547099004,
+       "level_se": 0.00902725218582335,
        "q": 0.5,
-       "quantile_effective_draws": 3067.2488911723435,
+       "quantile_effective_draws": 3067.250612993054,
        "sampling_se": 0.42646478817405975,
-       "tail_effective_draws": 1638.3101591100922,
+       "tail_effective_draws": 1638.3108624378365,
        "value": 22.0,
        "withheld": false
       },
       "median_se": 0.42646478817405975,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0043391925475228105,
+       "level_se": 0.004339191514784492,
        "q": 0.05,
-       "quantile_effective_draws": 3166.734795199063,
-       "sampling_se": 0.4218014217002835,
-       "tail_effective_draws": 202.1163141828318,
+       "quantile_effective_draws": 3166.7318722384134,
+       "sampling_se": 0.42180142170028356,
+       "tail_effective_draws": 202.11580095396005,
        "value": 7.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.004162147408326274,
+       "level_se": 0.0041621503940696795,
        "q": 0.95,
-       "quantile_effective_draws": 2741.6348199639906,
-       "sampling_se": 1.5431939259248186,
-       "tail_effective_draws": 136.25266063273003,
-       "value": 56.05601049898416,
+       "quantile_effective_draws": 2741.625791511807,
+       "sampling_se": 1.5432016317630302,
+       "tail_effective_draws": 136.25192060409833,
+       "value": 56.05580235294296,
        "withheld": false
       },
       "vs_published": null
      },
      "PA": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.009052978236491467,
+       "level_se": 0.00905297597310651,
        "q": 0.5,
-       "quantile_effective_draws": 3046.835983197351,
+       "quantile_effective_draws": 3046.8375023452577,
        "sampling_se": 0.20055817390449487,
-       "tail_effective_draws": 1792.8112363366017,
+       "tail_effective_draws": 1792.8136570944446,
        "value": 27.0,
        "withheld": false
       },
       "median_se": 0.20055817390449487,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0036556559402465905,
+       "level_se": 0.003655660709457618,
        "q": 0.05,
-       "quantile_effective_draws": 3865.769419920645,
-       "sampling_se": 0.312478441439922,
-       "tail_effective_draws": 214.66192607182197,
+       "quantile_effective_draws": 3865.7605491299623,
+       "sampling_se": 0.3124784414400639,
+       "tail_effective_draws": 214.6614584906873,
        "value": 16.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.004377033202011986,
+       "level_se": 0.004377025868958584,
        "q": 0.95,
-       "quantile_effective_draws": 2596.1674246775733,
-       "sampling_se": 0.5785048284072454,
-       "tail_effective_draws": 135.0576840336555,
+       "quantile_effective_draws": 2596.1729220207353,
+       "sampling_se": 0.578504828328813,
+       "tail_effective_draws": 135.05780585070207,
        "value": 44.0,
        "withheld": false
       },
@@ -13672,36 +13672,36 @@
      },
      "RISE": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008921259797909756,
+       "level_se": 0.008921256625453943,
        "q": 0.5,
-       "quantile_effective_draws": 3069.350927822932,
+       "quantile_effective_draws": 3069.3527198497072,
        "sampling_se": 0.11303369188181288,
-       "tail_effective_draws": 1771.3000139527633,
+       "tail_effective_draws": 1771.3014558975885,
        "value": 3.0,
        "withheld": false
       },
       "median_se": 0.11303369188181288,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0061932160782966145,
+       "level_se": 0.006193220672879734,
        "q": 0.05,
-       "quantile_effective_draws": 3076.4697275354024,
+       "quantile_effective_draws": 3076.465992984471,
        "sampling_se": 0.0,
-       "tail_effective_draws": 420.63073688089924,
+       "tail_effective_draws": 420.6302211825434,
        "value": 0.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.003985427448093194,
+       "level_se": 0.0039854225528665925,
        "q": 0.95,
-       "quantile_effective_draws": 3018.0690501881554,
-       "sampling_se": 0.8248362832249877,
-       "tail_effective_draws": 152.22412317448894,
+       "quantile_effective_draws": 3018.077877731211,
+       "sampling_se": 0.8248362832249891,
+       "tail_effective_draws": 152.22466353958782,
        "value": 19.0,
        "withheld": false
       },
@@ -13709,36 +13709,36 @@
      },
      "SOUTH_AFRICAN_COMMUNIST_PARTY": {
       "median": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008963016215580428,
+       "level_se": 0.008963013485875658,
        "q": 0.5,
-       "quantile_effective_draws": 3045.0821090275554,
+       "quantile_effective_draws": 3045.0836989065097,
        "sampling_se": 0.05618041465995876,
-       "tail_effective_draws": 1806.3688778188694,
+       "tail_effective_draws": 1806.3703871537791,
        "value": 2.0,
        "withheld": false
       },
       "median_se": 0.05618041465995876,
       "p5": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.008193163420967771,
+       "level_se": 0.008193163131632498,
        "q": 0.05,
-       "quantile_effective_draws": 3108.69821332552,
+       "quantile_effective_draws": 3108.7006300496987,
        "sampling_se": 0.0,
-       "tail_effective_draws": 930.674950158138,
+       "tail_effective_draws": 930.6769928492337,
        "value": 0.0,
        "withheld": false
       },
       "p95": {
-       "effective_draws": 3071.4519276758983,
+       "effective_draws": 3071.4536233657973,
        "label": "the model's simulations nearest this poll",
-       "level_se": 0.0042144290639933345,
+       "level_se": 0.004214452904139224,
        "q": 0.95,
-       "quantile_effective_draws": 2785.4128296,
-       "sampling_se": 0.7011486351003551,
-       "tail_effective_draws": 144.60653636741907,
+       "quantile_effective_draws": 2785.3924018593652,
+       "sampling_se": 0.7011226226644555,
+       "tail_effective_draws": 144.60602125719652,
        "value": 18.0,
        "withheld": false
       },
@@ -13758,7 +13758,7 @@
      "SOUTH_AFRICAN_COMMUNIST_PARTY"
     ],
     "tied": {
-     "p": 0.009503264400507626,
+     "p": 0.009503263877719815,
      "text": "1.0%",
      "vs_published": 0
     },
@@ -13772,7 +13772,7 @@
       "published": 0.531222651862053
      },
      "Indian/Asian": {
-      "mean": 0.4456790784322941,
+      "mean": 0.44567907843229415,
       "published": 0.44567907843128723
      },
      "White": {
@@ -16311,7 +16311,7 @@
     "law": "deduct",
     "majority": 136.0,
     "max_figure_se": 2.5,
-    "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+    "model_version": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
     "others_count": 64,
     "poll": null,
     "published_cell": {
@@ -19351,7 +19351,7 @@
     "law": "cap",
     "majority": 136.0,
     "max_figure_se": 2.5,
-    "model_version": "cf665663686d44533697ef3c8cd25d3d2c0cb9db91dcf40da21327d962c270dc",
+    "model_version": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
     "others_count": 64,
     "poll": null,
     "published_cell": {
@@ -22030,12 +22030,12 @@
   }
  ],
  "draws": {
-  ".": "8d17b45e71f2bf062c2227951cabc17127b021d4dbdb0d85b24f92493db25456",
-  "w_bye-0": "8d17b45e71f2bf062c2227951cabc17127b021d4dbdb0d85b24f92493db25456",
-  "w_bye-1": "8d17b45e71f2bf062c2227951cabc17127b021d4dbdb0d85b24f92493db25456"
+  ".": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306",
+  "w_bye-0": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306",
+  "w_bye-1": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306"
  },
  "numpy": "2.5.1",
- "page_ref": "df9a49d48428990bc8e7ebbbc6237032b8fc5eed04d0a79767253dfd843b5f30",
+ "page_ref": "221c8752c24d8c672d34283cfffb445979c1908887d0aa8f41d568f708bb12f2",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22098,165 +22098,101 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Safe call",
+     "badge": "Wild call",
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
-     "majority_alone": false,
-     "p": 0.2554,
-     "text": "26%"
+     "majority_alone": true,
+     "p": 0.0002,
+     "text": "under 0.1%"
     },
     "score": {
-     "list_vote_error": 43.5130425,
-     "seat_error": 108.53640000000001,
+     "list_vote_error": 42.19210353324502,
+     "seat_error": 157.82799999999992,
      "seat_error_within": {
-      "p": 0.2984,
-      "text": "30%"
+      "p": 0.0,
+      "text": "under 0.1%"
      },
      "wards_called": 107.94739999999993,
      "within": 90
     },
     "seat_band": 2,
     "seats": {
-     "ACDP": {
-      "p": 0.9112,
-      "text": "91%"
-     },
-     "AHC": {
-      "p": 0.9252,
-      "text": "93%"
-     },
-     "AIC": {
-      "p": 0.9334,
-      "text": "93%"
-     },
      "ALJAMAAH": {
-      "p": 0.8692,
-      "text": "87%"
-     },
-     "ALL_CITIZENS_PARTY": {
-      "p": 0.4926,
-      "text": "49%"
+      "p": 0.5162,
+      "text": "52%"
      },
      "ANC": {
       "p": 0.1046,
       "text": "10%"
      },
      "ASA": {
-      "p": 0.1542,
-      "text": "15%"
-     },
-     "ATM": {
-      "p": 0.9154,
-      "text": "92%"
-     },
-     "BOSA": {
-      "p": 0.5208,
-      "text": "52%"
+      "p": 0.0,
+      "text": "under 0.1%"
      },
      "DA": {
-      "p": 0.1488,
-      "text": "15%"
+      "p": 0.0362,
+      "text": "3.6%"
      },
      "EFF": {
-      "p": 0.1344,
-      "text": "13%"
+      "p": 0.0126,
+      "text": "1.3%"
      },
      "IFP": {
-      "p": 0.6968,
-      "text": "70%"
+      "p": 0.5652,
+      "text": "57%"
      },
      "MK": {
-      "p": 0.1608,
-      "text": "16%"
+      "p": 0.1166,
+      "text": "12%"
      },
      "PA": {
-      "p": 0.3362,
-      "text": "34%"
+      "p": 0.0198,
+      "text": "2.0%"
      },
      "RISE": {
-      "p": 0.6946,
-      "text": "69%"
-     },
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-      "p": 0.2432,
-      "text": "24%"
-     },
-     "VFPLUS": {
-      "p": 0.5514,
-      "text": "55%"
+      "p": 0.5122,
+      "text": "51%"
      }
     },
     "share": {
-     "ACDP": {
-      "p": 0.9492,
-      "text": "95%"
-     },
-     "AHC": {
-      "p": 0.9606,
-      "text": "96%"
-     },
-     "AIC": {
-      "p": 0.971,
-      "text": "97%"
-     },
      "ALJAMAAH": {
-      "p": 0.993,
+      "p": 0.9972,
       "text": "over 99%"
      },
-     "ALL_CITIZENS_PARTY": {
-      "p": 0.9242,
-      "text": "92%"
-     },
      "ANC": {
-      "p": 0.1722,
-      "text": "17%"
+      "p": 0.2032,
+      "text": "20%"
      },
      "ASA": {
-      "p": 0.2932,
+      "p": 0.288,
       "text": "29%"
      },
-     "ATM": {
-      "p": 0.9558,
-      "text": "96%"
-     },
-     "BOSA": {
-      "p": 0.9166,
-      "text": "92%"
-     },
      "DA": {
-      "p": 0.313,
+      "p": 0.3116,
       "text": "31%"
      },
      "EFF": {
-      "p": 0.2938,
-      "text": "29%"
+      "p": 0.2682,
+      "text": "27%"
      },
      "IFP": {
-      "p": 0.8006,
-      "text": "80%"
+      "p": 0.856,
+      "text": "86%"
      },
      "MK": {
-      "p": 0.3352,
-      "text": "34%"
+      "p": 0.3206,
+      "text": "32%"
      },
      "PA": {
-      "p": 0.3652,
-      "text": "37%"
+      "p": 0.2442,
+      "text": "24%"
      },
      "RISE": {
-      "p": 0.8082,
-      "text": "81%"
-     },
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-      "p": 0.9004,
-      "text": "90%"
-     },
-     "VFPLUS": {
-      "p": 0.9488,
-      "text": "95%"
+      "p": 0.8706,
+      "text": "87%"
      }
     },
     "share_band": 2.0,
@@ -22805,121 +22741,158 @@
     "wards_count": 135
    },
    "handoff": {
-    "middle": {
-     "ALJAMAAH": 2,
-     "ANC": 66,
-     "ASA": 27,
-     "DA": 66,
-     "EFF": 25,
-     "IFP": 2,
-     "MK": 22,
-     "OTHERS": 23,
-     "PA": 23,
-     "RISE": 2
+    "list_votes": {
+     "ACDP": 6882,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 713,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 420,
+     "AFRICAN_ECONOMIC_FREEDOM": 691,
+     "AFRICAN_LABOUR_CONVENTION": 416,
+     "AFRICAN_RENAISSANCE_UNITY": 706,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 366,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 621,
+     "AFRICA_RESTORATION_ALLIANCE": 332,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 773,
+     "AFRIKA_UNITE_CONGRESS": 357,
+     "AHC": 4010,
+     "AIC": 3008,
+     "ALJAMAAH": 9036,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 665,
+     "ALL_CITIZENS_PARTY": 8997,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 852,
+     "ANC": 218008,
+     "APC": 1116,
+     "ASA": 122632,
+     "ATM": 4510,
+     "AZANIAN_GROUND_FORCES": 624,
+     "AZANIA_PEACEFUL_REVOLUTION": 201,
+     "AZAPO": 868,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 447,
+     "BOSA": 10148,
+     "CHRIST_KINGDOM_PARTY": 353,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 791,
+     "COMBAT": 448,
+     "COMMUNITY_FIRST_MOVEMENT": 438,
+     "COPE": 544,
+     "DA": 249732,
+     "DUDULA": 1228,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 556,
+     "ECONOMIC_REDRESS_MOVEMENT": 336,
+     "EFF": 99166,
+     "EKHETHU_PEOPLES_PARTY": 718,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 364,
+     "GAZA_DEMOCRATIC_FRONT": 309,
+     "IFP": 16239,
+     "ILIZWE_NATHI": 414,
+     "IMSTAYING": 347,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 701,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 323,
+     "KNOW_YOUR_POWER": 739,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 761,
+     "LAND_PARTY": 314,
+     "LEKWE_BEPE_KINGDOM_PARTY": 335,
+     "MAWUSA_MOVEMENT_PARTY": 325,
+     "MINORITY_FRONT": 665,
+     "MK": 94041,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 338,
+     "MOVE_SA": 730,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 793,
+     "NCC": 727,
+     "NFP": 639,
+     "PA": 62350,
+     "PAC": 3200,
+     "PEOPLE_OF_JOBURG": 644,
+     "PEOPLE_S_CONSENT_PARTY": 298,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 701,
+     "PRO_SOUTH_AFRICA": 523,
+     "RESIDENT_DEVELOPMENT": 265,
+     "RISE": 16619,
+     "SERVICE_DELIVERY_PARTY": 685,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 13773,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 654,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 317,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 879,
+     "UDM": 1458,
+     "UMPHAKATHI_WARONA": 738,
+     "UNITED_AFRICANS_TRANSFORMATION": 1710,
+     "VFPLUS": 8288,
+     "VUKA_SA": 715
     },
-    "seats": {
-     "ACDP": 2,
-     "AHC": 2,
-     "AIC": 2,
-     "ALJAMAAH": 2,
-     "ALL_CITIZENS_PARTY": 3,
-     "ALL_NATIVES_OF_SOUTH_AFRICA": 1,
-     "ANC": 70,
-     "APC": 1,
-     "ASA": 27,
-     "ATM": 2,
-     "AZAPO": 1,
-     "BOSA": 3,
-     "DA": 66,
-     "DUDULA": 1,
-     "EFF": 25,
-     "IFP": 2,
-     "MK": 22,
-     "NATIONAL_DEMOCRATIC_CONVENTION": 1,
-     "PA": 23,
-     "PAC": 1,
-     "RISE": 2,
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": 5,
-     "TRUTH_AND_SOLIDARITY_MOVEMENT": 1,
-     "UDM": 1,
-     "UNITED_AFRICANS_TRANSFORMATION": 1,
-     "VFPLUS": 3
-    },
+    "middle": {},
     "share": {
-     "ACDP": 0.74075,
-     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0,
-     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0,
-     "AFRICAN_ECONOMIC_FREEDOM": 0.0,
-     "AFRICAN_LABOUR_CONVENTION": 0.0,
-     "AFRICAN_RENAISSANCE_UNITY": 0.0,
-     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.0,
-     "AFRICAN_UNEMPLOYED_CONGRESS": 0.0,
-     "AFRICA_RESTORATION_ALLIANCE": 0.0,
-     "AFRIKA_MAYIBUYE_MOVEMENT": 0.0,
-     "AFRIKA_UNITE_CONGRESS": 0.0,
-     "AHC": 0.74075,
-     "AIC": 0.74075,
-     "ALJAMAAH": 0.74075,
-     "ALLIED_INDEPENDENTS_UMBRELLA": 0.0,
-     "ALL_CITIZENS_PARTY": 1.111125,
-     "ALL_NATIVES_OF_SOUTH_AFRICA": 0.370375,
-     "ANC": 25.925916666666666,
-     "APC": 0.370375,
-     "ASA": 10.0,
-     "ATM": 0.74075,
-     "AZANIAN_GROUND_FORCES": 0.0,
-     "AZANIA_PEACEFUL_REVOLUTION": 0.0,
-     "AZAPO": 0.370375,
-     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.0,
-     "BOSA": 1.111125,
-     "CHRIST_KINGDOM_PARTY": 0.0,
-     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.0,
-     "COMBAT": 0.0,
-     "COMMUNITY_FIRST_MOVEMENT": 0.0,
-     "COPE": 0.0,
-     "DA": 24.444416666666665,
-     "DUDULA": 0.370375,
-     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.0,
-     "ECONOMIC_REDRESS_MOVEMENT": 0.0,
-     "EFF": 9.25925,
-     "EKHETHU_PEOPLES_PARTY": 0.0,
-     "GAP_FIXERS_OF_SOUTH_AFRICA": 0.0,
-     "GAZA_DEMOCRATIC_FRONT": 0.0,
-     "IFP": 0.74075,
-     "ILIZWE_NATHI": 0.0,
-     "IMSTAYING": 0.0,
-     "INDEPENDENT_CITIZENS_MOVEMENT": 0.0,
-     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.0,
-     "KNOW_YOUR_POWER": 0.0,
-     "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.0,
-     "LAND_PARTY": 0.0,
-     "LEKWE_BEPE_KINGDOM_PARTY": 0.0,
-     "MAWUSA_MOVEMENT_PARTY": 0.0,
-     "MINORITY_FRONT": 0.0,
-     "MK": 8.148125,
-     "MOVEMENT_OF_RESIDENTS_PARTY": 0.0,
-     "MOVE_SA": 0.0,
-     "NATIONAL_DEMOCRATIC_CONVENTION": 0.370375,
-     "NCC": 0.0,
-     "NFP": 0.0,
-     "PA": 8.5185,
-     "PAC": 0.370375,
-     "PEOPLE_OF_JOBURG": 0.0,
-     "PEOPLE_S_CONSENT_PARTY": 0.0,
-     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.0,
-     "PRO_SOUTH_AFRICA": 0.0,
-     "RESIDENT_DEVELOPMENT": 0.0,
-     "RISE": 0.74075,
-     "SERVICE_DELIVERY_PARTY": 0.0,
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": 1.8518333333333334,
-     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.0,
-     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.0,
-     "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.370375,
-     "UDM": 0.370375,
-     "UMPHAKATHI_WARONA": 0.0,
-     "UNITED_AFRICANS_TRANSFORMATION": 0.370375,
-     "VFPLUS": 1.1110833333333334,
-     "VUKA_SA": 0.0
+     "ACDP": 0.5981443762799878,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.06880767721023716,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.04047211714875204,
+     "AFRICAN_ECONOMIC_FREEDOM": 0.06652255139882707,
+     "AFRICAN_LABOUR_CONVENTION": 0.04006587256005691,
+     "AFRICAN_RENAISSANCE_UNITY": 0.0679951880328469,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.035343279216476065,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 0.05971795453818369,
+     "AFRICA_RESTORATION_ALLIANCE": 0.031991761359741265,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 0.07444432087838206,
+     "AFRIKA_UNITE_CONGRESS": 0.03442922889191202,
+     "AHC": 0.41177967121609826,
+     "AIC": 0.38547533409808876,
+     "ALJAMAAH": 1.022060604583353,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 0.06403430329306942,
+     "ALL_CITIZENS_PARTY": 0.8669259522754014,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 0.08206140691641568,
+     "ANC": 21.72758558177018,
+     "APC": 0.12481864987657781,
+     "ASA": 10.818090274656889,
+     "ATM": 0.49881757434402924,
+     "AZANIAN_GROUND_FORCES": 0.06017497970046571,
+     "AZANIA_PEACEFUL_REVOLUTION": 0.019448959683779212,
+     "AZAPO": 0.0835848241240224,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.06393274214589563,
+     "BOSA": 0.9775260415476497,
+     "CHRIST_KINGDOM_PARTY": 0.03397220372963001,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.07622164095392323,
+     "COMBAT": 0.043112706975270365,
+     "COMMUNITY_FIRST_MOVEMENT": 0.04219865665070633,
+     "COPE": 0.060530443715573944,
+     "DA": 25.268261075116147,
+     "DUDULA": 0.11816639473669512,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.05367506628134367,
+     "ECONOMIC_REDRESS_MOVEMENT": 0.03239800594843639,
+     "EFF": 10.243508084521219,
+     "EKHETHU_PEOPLES_PARTY": 0.06921392179893229,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 0.03508937634854161,
+     "GAZA_DEMOCRATIC_FRONT": 0.029706635548331174,
+     "IFP": 1.5935959603038101,
+     "ILIZWE_NATHI": 0.03986275026570935,
+     "IMSTAYING": 0.0334643979937611,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 0.06753816287056488,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.031077711035177227,
+     "KNOW_YOUR_POWER": 0.07114358359523414,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.07327636768588355,
+     "LAND_PARTY": 0.03016366071061319,
+     "LEKWE_BEPE_KINGDOM_PARTY": 0.032296444801262605,
+     "MAWUSA_MOVEMENT_PARTY": 0.03128083332952479,
+     "MINORITY_FRONT": 0.06393274214589563,
+     "MK": 9.059406669622096,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 0.03255034766919706,
+     "MOVE_SA": 0.07022953327067011,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 0.0763739826746839,
+     "NCC": 0.07002641097632255,
+     "NFP": 0.04621032196407071,
+     "PA": 9.095867121457484,
+     "PAC": 0.3725262878334316,
+     "PEOPLE_OF_JOBURG": 0.06205386092318067,
+     "PEOPLE_S_CONSENT_PARTY": 0.028589462929419572,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.06753816287056488,
+     "PRO_SOUTH_AFRICA": 0.05042510957178266,
+     "RESIDENT_DEVELOPMENT": 0.02549184794061923,
+     "RISE": 1.6003497765908665,
+     "SERVICE_DELIVERY_PARTY": 0.06596396508937127,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 1.3265917043839377,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.06291713067415781,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.030417563578547645,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.08454965502217333,
+     "UDM": 0.14574024619437687,
+     "UMPHAKATHI_WARONA": 0.07099124187447346,
+     "UNITED_AFRICANS_TRANSFORMATION": 0.16473218071587406,
+     "VFPLUS": 0.8237116841529571,
+     "VUKA_SA": 0.06880767721023716
     },
     "ward_calls": {
      "1": "ANC",
@@ -23057,6 +23030,82 @@
      "97": "DA",
      "98": "DA",
      "99": "DA"
+    },
+    "ward_votes": {
+     "ACDP": 4897,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 642,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 377,
+     "AFRICAN_ECONOMIC_FREEDOM": 619,
+     "AFRICAN_LABOUR_CONVENTION": 373,
+     "AFRICAN_RENAISSANCE_UNITY": 633,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 330,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 555,
+     "AFRICA_RESTORATION_ALLIANCE": 298,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 693,
+     "AFRIKA_UNITE_CONGRESS": 321,
+     "AHC": 4099,
+     "AIC": 4583,
+     "ALJAMAAH": 11091,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 596,
+     "ALL_CITIZENS_PARTY": 8075,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 764,
+     "ANC": 209864,
+     "APC": 1342,
+     "ASA": 90404,
+     "ATM": 5313,
+     "AZANIAN_GROUND_FORCES": 561,
+     "AZANIA_PEACEFUL_REVOLUTION": 182,
+     "AZAPO": 778,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 812,
+     "BOSA": 9102,
+     "CHRIST_KINGDOM_PARTY": 316,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 710,
+     "COMBAT": 401,
+     "COMMUNITY_FIRST_MOVEMENT": 393,
+     "COPE": 648,
+     "DA": 247865,
+     "DUDULA": 1099,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 501,
+     "ECONOMIC_REDRESS_MOVEMENT": 302,
+     "EFF": 102555,
+     "EKHETHU_PEOPLES_PARTY": 645,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 327,
+     "GAZA_DEMOCRATIC_FRONT": 276,
+     "IFP": 15143,
+     "ILIZWE_NATHI": 371,
+     "IMSTAYING": 312,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 629,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 289,
+     "KNOW_YOUR_POWER": 662,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 682,
+     "LAND_PARTY": 280,
+     "LEKWE_BEPE_KINGDOM_PARTY": 301,
+     "MAWUSA_MOVEMENT_PARTY": 291,
+     "MINORITY_FRONT": 594,
+     "MK": 84362,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 303,
+     "MOVE_SA": 653,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 711,
+     "NCC": 652,
+     "NFP": 271,
+     "PA": 116771,
+     "PAC": 4136,
+     "PEOPLE_OF_JOBURG": 578,
+     "PEOPLE_S_CONSENT_PARTY": 265,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 629,
+     "PRO_SOUTH_AFRICA": 470,
+     "RESIDENT_DEVELOPMENT": 237,
+     "RISE": 14896,
+     "SERVICE_DELIVERY_PARTY": 614,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 12351,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 585,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 282,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 786,
+     "UDM": 1412,
+     "UMPHAKATHI_WARONA": 660,
+     "UNITED_AFRICANS_TRANSFORMATION": 1534,
+     "VFPLUS": 7933,
+     "VUKA_SA": 640
     }
    },
    "name": "untouched"
@@ -23065,157 +23114,101 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Safe call",
+     "badge": "Wild call",
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
-     "majority_alone": false,
-     "p": 0.2554,
-     "text": "26%"
+     "majority_alone": true,
+     "p": 0.0002,
+     "text": "under 0.1%"
     },
     "score": {
-     "list_vote_error": 44.480587316666664,
-     "seat_error": 110.34800000000001,
+     "list_vote_error": 42.26789482360618,
+     "seat_error": 163.77599999999995,
      "seat_error_within": {
-      "p": 0.288,
-      "text": "29%"
+      "p": 0.0,
+      "text": "under 0.1%"
      },
      "wards_called": 107.72059999999996,
      "within": 90
     },
     "seat_band": 2,
     "seats": {
-     "ACDP": {
-      "p": 0.9112,
-      "text": "91%"
-     },
-     "AHC": {
-      "p": 0.9252,
-      "text": "93%"
-     },
      "ALJAMAAH": {
-      "p": 0.8692,
-      "text": "87%"
-     },
-     "ALL_CITIZENS_PARTY": {
-      "p": 0.4926,
-      "text": "49%"
+      "p": 0.5162,
+      "text": "52%"
      },
      "ANC": {
       "p": 0.1104,
       "text": "11%"
      },
      "ASA": {
-      "p": 0.1566,
-      "text": "16%"
-     },
-     "ATM": {
-      "p": 0.9154,
-      "text": "92%"
-     },
-     "BOSA": {
-      "p": 0.3084,
-      "text": "31%"
+      "p": 0.0,
+      "text": "under 0.1%"
      },
      "DA": {
-      "p": 0.1516,
-      "text": "15%"
+      "p": 0.0234,
+      "text": "2.3%"
      },
      "EFF": {
-      "p": 0.1332,
-      "text": "13%"
+      "p": 0.0202,
+      "text": "2.0%"
      },
      "IFP": {
-      "p": 0.6968,
-      "text": "70%"
+      "p": 0.5652,
+      "text": "57%"
      },
      "MK": {
-      "p": 0.1608,
-      "text": "16%"
+      "p": 0.084,
+      "text": "8.4%"
      },
      "PA": {
-      "p": 0.3366,
-      "text": "34%"
+      "p": 0.013,
+      "text": "1.3%"
      },
      "RISE": {
-      "p": 0.6946,
-      "text": "69%"
-     },
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-      "p": 0.2432,
-      "text": "24%"
-     },
-     "VFPLUS": {
-      "p": 0.5514,
-      "text": "55%"
+      "p": 0.5122,
+      "text": "51%"
      }
     },
     "share": {
-     "ACDP": {
-      "p": 0.9492,
-      "text": "95%"
-     },
-     "AHC": {
-      "p": 0.9606,
-      "text": "96%"
-     },
      "ALJAMAAH": {
-      "p": 0.993,
+      "p": 0.9966,
       "text": "over 99%"
      },
-     "ALL_CITIZENS_PARTY": {
-      "p": 0.9242,
-      "text": "92%"
-     },
      "ANC": {
-      "p": 0.149,
-      "text": "15%"
+      "p": 0.2004,
+      "text": "20%"
      },
      "ASA": {
-      "p": 0.2976,
-      "text": "30%"
-     },
-     "ATM": {
-      "p": 0.9558,
-      "text": "96%"
-     },
-     "BOSA": {
-      "p": 0.9328,
-      "text": "93%"
+      "p": 0.2884,
+      "text": "29%"
      },
      "DA": {
-      "p": 0.285,
-      "text": "28%"
+      "p": 0.3012,
+      "text": "30%"
      },
      "EFF": {
-      "p": 0.2844,
-      "text": "28%"
+      "p": 0.261,
+      "text": "26%"
      },
      "IFP": {
-      "p": 0.8006,
-      "text": "80%"
+      "p": 0.8606,
+      "text": "86%"
      },
      "MK": {
-      "p": 0.3352,
-      "text": "34%"
+      "p": 0.3162,
+      "text": "32%"
      },
      "PA": {
-      "p": 0.4462,
-      "text": "45%"
+      "p": 0.357,
+      "text": "36%"
      },
      "RISE": {
-      "p": 0.8082,
-      "text": "81%"
-     },
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-      "p": 0.9004,
-      "text": "90%"
-     },
-     "VFPLUS": {
-      "p": 0.9488,
-      "text": "95%"
+      "p": 0.8736,
+      "text": "87%"
      }
     },
     "share_band": 2.0,
@@ -23764,121 +23757,158 @@
     "wards_count": 135
    },
    "handoff": {
-    "middle": {
-     "ALJAMAAH": 2,
-     "ANC": 68,
-     "ASA": 26,
-     "DA": 62,
-     "EFF": 26,
-     "IFP": 2,
-     "MK": 22,
-     "OTHERS": 23,
-     "PA": 22,
-     "RISE": 2
+    "list_votes": {
+     "ACDP": 6625,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 690,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 430,
+     "AFRICAN_ECONOMIC_FREEDOM": 622,
+     "AFRICAN_LABOUR_CONVENTION": 434,
+     "AFRICAN_RENAISSANCE_UNITY": 753,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 391,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 914,
+     "AFRICA_RESTORATION_ALLIANCE": 347,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 850,
+     "AFRIKA_UNITE_CONGRESS": 455,
+     "AHC": 4311,
+     "AIC": 2905,
+     "ALJAMAAH": 8492,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 664,
+     "ALL_CITIZENS_PARTY": 9167,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 883,
+     "ANC": 225498,
+     "APC": 1329,
+     "ASA": 123381,
+     "ATM": 4800,
+     "AZANIAN_GROUND_FORCES": 638,
+     "AZANIA_PEACEFUL_REVOLUTION": 209,
+     "AZAPO": 1004,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 390,
+     "BOSA": 10918,
+     "CHRIST_KINGDOM_PARTY": 288,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 724,
+     "COMBAT": 350,
+     "COMMUNITY_FIRST_MOVEMENT": 453,
+     "COPE": 469,
+     "DA": 234512,
+     "DUDULA": 1571,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 683,
+     "ECONOMIC_REDRESS_MOVEMENT": 374,
+     "EFF": 102716,
+     "EKHETHU_PEOPLES_PARTY": 630,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 275,
+     "GAZA_DEMOCRATIC_FRONT": 268,
+     "IFP": 16800,
+     "ILIZWE_NATHI": 363,
+     "IMSTAYING": 334,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 658,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 273,
+     "KNOW_YOUR_POWER": 741,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 766,
+     "LAND_PARTY": 375,
+     "LEKWE_BEPE_KINGDOM_PARTY": 317,
+     "MAWUSA_MOVEMENT_PARTY": 332,
+     "MINORITY_FRONT": 812,
+     "MK": 96839,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 274,
+     "MOVE_SA": 530,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 859,
+     "NCC": 892,
+     "NFP": 591,
+     "PA": 58523,
+     "PAC": 3314,
+     "PEOPLE_OF_JOBURG": 613,
+     "PEOPLE_S_CONSENT_PARTY": 233,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 720,
+     "PRO_SOUTH_AFRICA": 446,
+     "RESIDENT_DEVELOPMENT": 256,
+     "RISE": 17161,
+     "SERVICE_DELIVERY_PARTY": 721,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 14778,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 793,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 284,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 930,
+     "UDM": 1738,
+     "UMPHAKATHI_WARONA": 913,
+     "UNITED_AFRICANS_TRANSFORMATION": 2196,
+     "VFPLUS": 7960,
+     "VUKA_SA": 898
     },
-    "seats": {
-     "ACDP": 2,
-     "AFRICAN_UNEMPLOYED_CONGRESS": 1,
-     "AHC": 2,
-     "AIC": 1,
-     "ALJAMAAH": 2,
-     "ALL_CITIZENS_PARTY": 3,
-     "ANC": 75,
-     "APC": 1,
-     "ASA": 26,
-     "ATM": 2,
-     "AZAPO": 1,
-     "BOSA": 4,
-     "DA": 62,
-     "DUDULA": 1,
-     "EFF": 26,
-     "IFP": 2,
-     "MK": 22,
-     "PA": 22,
-     "PAC": 1,
-     "RISE": 2,
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": 5,
-     "TRUTH_AND_SOLIDARITY_MOVEMENT": 1,
-     "UDM": 1,
-     "UMPHAKATHI_WARONA": 1,
-     "UNITED_AFRICANS_TRANSFORMATION": 1,
-     "VFPLUS": 3
-    },
+    "middle": {},
     "share": {
-     "ACDP": 0.74075,
-     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0,
-     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0,
-     "AFRICAN_ECONOMIC_FREEDOM": 0.0,
-     "AFRICAN_LABOUR_CONVENTION": 0.0,
-     "AFRICAN_RENAISSANCE_UNITY": 0.0,
-     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.0,
-     "AFRICAN_UNEMPLOYED_CONGRESS": 0.370375,
-     "AFRICA_RESTORATION_ALLIANCE": 0.0,
-     "AFRIKA_MAYIBUYE_MOVEMENT": 0.0,
-     "AFRIKA_UNITE_CONGRESS": 0.0,
-     "AHC": 0.74075,
-     "AIC": 0.370375,
-     "ALJAMAAH": 0.74075,
-     "ALLIED_INDEPENDENTS_UMBRELLA": 0.0,
-     "ALL_CITIZENS_PARTY": 1.111125,
-     "ALL_NATIVES_OF_SOUTH_AFRICA": 0.0,
-     "ANC": 27.77775,
-     "APC": 0.370375,
-     "ASA": 9.629625,
-     "ATM": 0.74075,
-     "AZANIAN_GROUND_FORCES": 0.0,
-     "AZANIA_PEACEFUL_REVOLUTION": 0.0,
-     "AZAPO": 0.370375,
-     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.0,
-     "BOSA": 1.4814583333333333,
-     "CHRIST_KINGDOM_PARTY": 0.0,
-     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.0,
-     "COMBAT": 0.0,
-     "COMMUNITY_FIRST_MOVEMENT": 0.0,
-     "COPE": 0.0,
-     "DA": 22.962958333333333,
-     "DUDULA": 0.370375,
-     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.0,
-     "ECONOMIC_REDRESS_MOVEMENT": 0.0,
-     "EFF": 9.629625,
-     "EKHETHU_PEOPLES_PARTY": 0.0,
-     "GAP_FIXERS_OF_SOUTH_AFRICA": 0.0,
-     "GAZA_DEMOCRATIC_FRONT": 0.0,
-     "IFP": 0.74075,
-     "ILIZWE_NATHI": 0.0,
-     "IMSTAYING": 0.0,
-     "INDEPENDENT_CITIZENS_MOVEMENT": 0.0,
-     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.0,
-     "KNOW_YOUR_POWER": 0.0,
-     "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.0,
-     "LAND_PARTY": 0.0,
-     "LEKWE_BEPE_KINGDOM_PARTY": 0.0,
-     "MAWUSA_MOVEMENT_PARTY": 0.0,
-     "MINORITY_FRONT": 0.0,
-     "MK": 8.148125,
-     "MOVEMENT_OF_RESIDENTS_PARTY": 0.0,
-     "MOVE_SA": 0.0,
-     "NATIONAL_DEMOCRATIC_CONVENTION": 0.0,
-     "NCC": 0.0,
-     "NFP": 0.0,
-     "PA": 8.148125,
-     "PAC": 0.370375,
-     "PEOPLE_OF_JOBURG": 0.0,
-     "PEOPLE_S_CONSENT_PARTY": 0.0,
-     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.0,
-     "PRO_SOUTH_AFRICA": 0.0,
-     "RESIDENT_DEVELOPMENT": 0.0,
-     "RISE": 0.74075,
-     "SERVICE_DELIVERY_PARTY": 0.0,
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": 1.8518333333333334,
-     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.0,
-     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.0,
-     "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.370375,
-     "UDM": 0.370375,
-     "UMPHAKATHI_WARONA": 0.370375,
-     "UNITED_AFRICANS_TRANSFORMATION": 0.370375,
-     "VFPLUS": 1.111125,
-     "VUKA_SA": 0.0
+     "ACDP": 0.5768567704247158,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.06682601319356744,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.04148697019691839,
+     "AFRICAN_ECONOMIC_FREEDOM": 0.06007232037081328,
+     "AFRICAN_LABOUR_CONVENTION": 0.04199476664975704,
+     "AFRICAN_RENAISSANCE_UNITY": 0.0728180113370636,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.037830835736480044,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 0.08830580314864268,
+     "AFRICA_RESTORATION_ALLIANCE": 0.03351456588735145,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 0.08216146606929492,
+     "AFRIKA_UNITE_CONGRESS": 0.04402595246111168,
+     "AHC": 0.4437633201357035,
+     "AIC": 0.3721640202854527,
+     "ALJAMAAH": 0.9628328542273801,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 0.06408391234823868,
+     "ALL_CITIZENS_PARTY": 0.885647793395904,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 0.0853098040768946,
+     "ANC": 22.52381946211153,
+     "APC": 0.14868280139115916,
+     "ASA": 10.907874044136651,
+     "ATM": 0.5322214622201978,
+     "AZANIAN_GROUND_FORCES": 0.061697269019896986,
+     "AZANIA_PEACEFUL_REVOLUTION": 0.020210298822978603,
+     "AZAPO": 0.09683678355633214,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.056365406265091074,
+     "BOSA": 1.0552010289987321,
+     "CHRIST_KINGDOM_PARTY": 0.02787802526084234,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.06992357155588326,
+     "COMBAT": 0.033717684468486914,
+     "COMMUNITY_FIRST_MOVEMENT": 0.04377205423469235,
+     "COPE": 0.052252254997097944,
+     "DA": 23.78152971650232,
+     "DUDULA": 0.14985073323268808,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.06606431851430945,
+     "ECONOMIC_REDRESS_MOVEMENT": 0.03610432779682861,
+     "EFF": 10.632039010954692,
+     "EKHETHU_PEOPLES_PARTY": 0.060884794695355134,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 0.026557754483461832,
+     "GAZA_DEMOCRATIC_FRONT": 0.025796059804203842,
+     "IFP": 1.6512525053407492,
+     "ILIZWE_NATHI": 0.035037955245867426,
+     "IMSTAYING": 0.03229585440053867,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 0.06357611589540002,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.026354635902326368,
+     "KNOW_YOUR_POWER": 0.07098994410684444,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.07378282459745705,
+     "LAND_PARTY": 0.03610432779682861,
+     "LEKWE_BEPE_KINGDOM_PARTY": 0.030569346460887232,
+     "MAWUSA_MOVEMENT_PARTY": 0.03204195617411934,
+     "MINORITY_FRONT": 0.07830221302772111,
+     "MK": 9.3501068657635,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 0.026557754483461832,
+     "MOVE_SA": 0.05123666209142062,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 0.08332939791082383,
+     "NCC": 0.08622383769200419,
+     "NFP": 0.042807240974298895,
+     "PA": 8.554440603810606,
+     "PAC": 0.38638232096493513,
+     "PEOPLE_OF_JOBURG": 0.05920906640098756,
+     "PEOPLE_S_CONSENT_PARTY": 0.022495382860752564,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.06956811403889619,
+     "PRO_SOUTH_AFRICA": 0.043111918846002094,
+     "RESIDENT_DEVELOPMENT": 0.02462812796267493,
+     "RISE": 1.656990605257826,
+     "SERVICE_DELIVERY_PARTY": 0.06972045297474778,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 1.4270095917671977,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.07632180686165035,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.02731944916271982,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.08942295534488773,
+     "UDM": 0.17371716651610503,
+     "UMPHAKATHI_WARONA": 0.08830580314864268,
+     "UNITED_AFRICANS_TRANSFORMATION": 0.2121065783507076,
+     "VFPLUS": 0.7930765000434166,
+     "VUKA_SA": 0.08663007485427511
     },
     "ward_calls": {
      "1": "ANC",
@@ -24016,6 +24046,82 @@
      "97": "DA",
      "98": "DA",
      "99": "DA"
+    },
+    "ward_votes": {
+     "ACDP": 4735,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 626,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 387,
+     "AFRICAN_ECONOMIC_FREEDOM": 561,
+     "AFRICAN_LABOUR_CONVENTION": 393,
+     "AFRICAN_RENAISSANCE_UNITY": 681,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 354,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 825,
+     "AFRICA_RESTORATION_ALLIANCE": 313,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 768,
+     "AFRIKA_UNITE_CONGRESS": 412,
+     "AHC": 4428,
+     "AIC": 4424,
+     "ALJAMAAH": 10469,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 598,
+     "ALL_CITIZENS_PARTY": 8274,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 797,
+     "ANC": 218062,
+     "APC": 1599,
+     "ASA": 91427,
+     "ATM": 5681,
+     "AZANIAN_GROUND_FORCES": 577,
+     "AZANIA_PEACEFUL_REVOLUTION": 189,
+     "AZAPO": 903,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 720,
+     "BOSA": 9862,
+     "CHRIST_KINGDOM_PARTY": 261,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 653,
+     "COMBAT": 314,
+     "COMMUNITY_FIRST_MOVEMENT": 409,
+     "COPE": 560,
+     "DA": 233816,
+     "DUDULA": 1380,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 618,
+     "ECONOMIC_REDRESS_MOVEMENT": 337,
+     "EFF": 106660,
+     "EKHETHU_PEOPLES_PARTY": 569,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 248,
+     "GAZA_DEMOCRATIC_FRONT": 240,
+     "IFP": 15718,
+     "ILIZWE_NATHI": 327,
+     "IMSTAYING": 302,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 594,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 246,
+     "KNOW_YOUR_POWER": 657,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 687,
+     "LAND_PARTY": 336,
+     "LEKWE_BEPE_KINGDOM_PARTY": 285,
+     "MAWUSA_MOVEMENT_PARTY": 299,
+     "MINORITY_FRONT": 730,
+     "MK": 87292,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 249,
+     "MOVE_SA": 479,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 782,
+     "NCC": 806,
+     "NFP": 252,
+     "PA": 109939,
+     "PAC": 4295,
+     "PEOPLE_OF_JOBURG": 553,
+     "PEOPLE_S_CONSENT_PARTY": 210,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 650,
+     "PRO_SOUTH_AFRICA": 403,
+     "RESIDENT_DEVELOPMENT": 229,
+     "RISE": 15470,
+     "SERVICE_DELIVERY_PARTY": 652,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 13324,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 710,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 254,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 831,
+     "UDM": 1683,
+     "UMPHAKATHI_WARONA": 826,
+     "UNITED_AFRICANS_TRANSFORMATION": 1981,
+     "VFPLUS": 7658,
+     "VUKA_SA": 808
     }
    },
    "name": "black-african-plus-5"
@@ -24024,165 +24130,101 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Safe call",
+     "badge": "Wild call",
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
-     "majority_alone": false,
-     "p": 0.2554,
-     "text": "26%"
+     "majority_alone": true,
+     "p": 0.0002,
+     "text": "under 0.1%"
     },
     "score": {
-     "list_vote_error": 43.69236981666667,
-     "seat_error": 108.62999999999998,
+     "list_vote_error": 42.207370402661276,
+     "seat_error": 161.33999999999986,
      "seat_error_within": {
-      "p": 0.3012,
-      "text": "30%"
+      "p": 0.0,
+      "text": "under 0.1%"
      },
      "wards_called": 107.73299999999996,
      "within": 90
     },
     "seat_band": 2,
     "seats": {
-     "ACDP": {
-      "p": 0.9112,
-      "text": "91%"
-     },
-     "AHC": {
-      "p": 0.9252,
-      "text": "93%"
-     },
-     "AIC": {
-      "p": 0.9334,
-      "text": "93%"
-     },
      "ALJAMAAH": {
-      "p": 0.9222,
-      "text": "92%"
+      "p": 0.5162,
+      "text": "52%"
      },
      "ANC": {
       "p": 0.1086,
       "text": "11%"
      },
      "ASA": {
-      "p": 0.1562,
-      "text": "16%"
-     },
-     "ATM": {
-      "p": 0.9154,
-      "text": "92%"
-     },
-     "BOSA": {
-      "p": 0.5208,
-      "text": "52%"
+      "p": 0.0,
+      "text": "under 0.1%"
      },
      "DA": {
-      "p": 0.1464,
-      "text": "15%"
+      "p": 0.0234,
+      "text": "2.3%"
      },
      "EFF": {
-      "p": 0.1332,
-      "text": "13%"
+      "p": 0.0202,
+      "text": "2.0%"
      },
      "IFP": {
-      "p": 0.6968,
-      "text": "70%"
+      "p": 0.5652,
+      "text": "57%"
      },
      "MK": {
-      "p": 0.1518,
-      "text": "15%"
+      "p": 0.1166,
+      "text": "12%"
      },
      "PA": {
-      "p": 0.3366,
-      "text": "34%"
-     },
-     "PAC": {
-      "p": 0.9388,
-      "text": "94%"
+      "p": 0.013,
+      "text": "1.3%"
      },
      "RISE": {
-      "p": 0.6028,
-      "text": "60%"
-     },
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-      "p": 0.3272,
-      "text": "33%"
-     },
-     "VFPLUS": {
-      "p": 0.5514,
-      "text": "55%"
+      "p": 0.5122,
+      "text": "51%"
      }
     },
     "share": {
-     "ACDP": {
-      "p": 0.9492,
-      "text": "95%"
-     },
-     "AHC": {
-      "p": 0.9606,
-      "text": "96%"
-     },
-     "AIC": {
-      "p": 0.971,
-      "text": "97%"
-     },
      "ALJAMAAH": {
-      "p": 0.9978,
+      "p": 0.9974,
       "text": "over 99%"
      },
      "ANC": {
-      "p": 0.161,
-      "text": "16%"
+      "p": 0.2008,
+      "text": "20%"
      },
      "ASA": {
-      "p": 0.2954,
-      "text": "30%"
-     },
-     "ATM": {
-      "p": 0.9558,
-      "text": "96%"
-     },
-     "BOSA": {
-      "p": 0.9166,
-      "text": "92%"
+      "p": 0.2924,
+      "text": "29%"
      },
      "DA": {
-      "p": 0.3044,
-      "text": "30%"
+      "p": 0.3112,
+      "text": "31%"
      },
      "EFF": {
-      "p": 0.2844,
-      "text": "28%"
+      "p": 0.2542,
+      "text": "25%"
      },
      "IFP": {
-      "p": 0.8006,
-      "text": "80%"
+      "p": 0.8466,
+      "text": "85%"
      },
      "MK": {
-      "p": 0.322,
-      "text": "32%"
+      "p": 0.3094,
+      "text": "31%"
      },
      "PA": {
-      "p": 0.4462,
-      "text": "45%"
-     },
-     "PAC": {
-      "p": 0.9696,
-      "text": "97%"
+      "p": 0.3756,
+      "text": "38%"
      },
      "RISE": {
-      "p": 0.8344,
-      "text": "83%"
-     },
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-      "p": 0.883,
-      "text": "88%"
-     },
-     "VFPLUS": {
-      "p": 0.9488,
-      "text": "95%"
+      "p": 0.8742,
+      "text": "87%"
      }
     },
     "share_band": 2.0,
@@ -24731,119 +24773,158 @@
     "wards_count": 135
    },
    "handoff": {
-    "middle": {
-     "ALJAMAAH": 3,
-     "ANC": 68,
-     "ASA": 25,
-     "DA": 65,
-     "EFF": 26,
-     "IFP": 2,
-     "MK": 24,
-     "OTHERS": 22,
-     "PA": 22,
-     "RISE": 3
+    "list_votes": {
+     "ACDP": 7158,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 639,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 483,
+     "AFRICAN_ECONOMIC_FREEDOM": 684,
+     "AFRICAN_LABOUR_CONVENTION": 470,
+     "AFRICAN_RENAISSANCE_UNITY": 843,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 359,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 743,
+     "AFRICA_RESTORATION_ALLIANCE": 343,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 700,
+     "AFRIKA_UNITE_CONGRESS": 342,
+     "AHC": 4170,
+     "AIC": 3986,
+     "ALJAMAAH": 9275,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 723,
+     "ALL_CITIZENS_PARTY": 386,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 768,
+     "ANC": 228563,
+     "APC": 1211,
+     "ASA": 115668,
+     "ATM": 4463,
+     "AZANIAN_GROUND_FORCES": 753,
+     "AZANIA_PEACEFUL_REVOLUTION": 207,
+     "AZAPO": 975,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 382,
+     "BOSA": 10424,
+     "CHRIST_KINGDOM_PARTY": 345,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 852,
+     "COMBAT": 406,
+     "COMMUNITY_FIRST_MOVEMENT": 277,
+     "COPE": 670,
+     "DA": 244626,
+     "DUDULA": 1190,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 622,
+     "ECONOMIC_REDRESS_MOVEMENT": 415,
+     "EFF": 104562,
+     "EKHETHU_PEOPLES_PARTY": 655,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 349,
+     "GAZA_DEMOCRATIC_FRONT": 398,
+     "IFP": 14463,
+     "ILIZWE_NATHI": 381,
+     "IMSTAYING": 296,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 748,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 495,
+     "KNOW_YOUR_POWER": 699,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 694,
+     "LAND_PARTY": 330,
+     "LEKWE_BEPE_KINGDOM_PARTY": 366,
+     "MAWUSA_MOVEMENT_PARTY": 350,
+     "MINORITY_FRONT": 782,
+     "MK": 99607,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 392,
+     "MOVE_SA": 769,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 684,
+     "NCC": 860,
+     "NFP": 750,
+     "PA": 57984,
+     "PAC": 3592,
+     "PEOPLE_OF_JOBURG": 719,
+     "PEOPLE_S_CONSENT_PARTY": 293,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 893,
+     "PRO_SOUTH_AFRICA": 501,
+     "RESIDENT_DEVELOPMENT": 229,
+     "RISE": 17473,
+     "SERVICE_DELIVERY_PARTY": 759,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 14297,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 662,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 303,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 759,
+     "UDM": 1458,
+     "UMPHAKATHI_WARONA": 789,
+     "UNITED_AFRICANS_TRANSFORMATION": 1894,
+     "VFPLUS": 8437,
+     "VUKA_SA": 768
     },
-    "seats": {
-     "ACDP": 2,
-     "AHC": 2,
-     "AIC": 2,
-     "ALJAMAAH": 3,
-     "ANC": 73,
-     "APC": 1,
-     "ASA": 25,
-     "ATM": 2,
-     "AZAPO": 1,
-     "BOSA": 3,
-     "DA": 65,
-     "DUDULA": 1,
-     "EFF": 26,
-     "IFP": 2,
-     "MK": 24,
-     "NCC": 1,
-     "PA": 22,
-     "PAC": 2,
-     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 1,
-     "RISE": 3,
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": 4,
-     "UDM": 1,
-     "UNITED_AFRICANS_TRANSFORMATION": 1,
-     "VFPLUS": 3
-    },
+    "middle": {},
     "share": {
-     "ACDP": 0.74075,
-     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0,
-     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0,
-     "AFRICAN_ECONOMIC_FREEDOM": 0.0,
-     "AFRICAN_LABOUR_CONVENTION": 0.0,
-     "AFRICAN_RENAISSANCE_UNITY": 0.0,
-     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.0,
-     "AFRICAN_UNEMPLOYED_CONGRESS": 0.0,
-     "AFRICA_RESTORATION_ALLIANCE": 0.0,
-     "AFRIKA_MAYIBUYE_MOVEMENT": 0.0,
-     "AFRIKA_UNITE_CONGRESS": 0.0,
-     "AHC": 0.74075,
-     "AIC": 0.74075,
-     "ALJAMAAH": 1.111125,
-     "ALLIED_INDEPENDENTS_UMBRELLA": 0.0,
-     "ALL_CITIZENS_PARTY": 0.0,
-     "ALL_NATIVES_OF_SOUTH_AFRICA": 0.0,
-     "ANC": 27.037041666666667,
-     "APC": 0.370375,
-     "ASA": 9.25925,
-     "ATM": 0.74075,
-     "AZANIAN_GROUND_FORCES": 0.0,
-     "AZANIA_PEACEFUL_REVOLUTION": 0.0,
-     "AZAPO": 0.370375,
-     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.0,
-     "BOSA": 1.111125,
-     "CHRIST_KINGDOM_PARTY": 0.0,
-     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.0,
-     "COMBAT": 0.0,
-     "COMMUNITY_FIRST_MOVEMENT": 0.0,
-     "COPE": 0.0,
-     "DA": 24.07408333333333,
-     "DUDULA": 0.370375,
-     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.0,
-     "ECONOMIC_REDRESS_MOVEMENT": 0.0,
-     "EFF": 9.629625,
-     "EKHETHU_PEOPLES_PARTY": 0.0,
-     "GAP_FIXERS_OF_SOUTH_AFRICA": 0.0,
-     "GAZA_DEMOCRATIC_FRONT": 0.0,
-     "IFP": 0.74075,
-     "ILIZWE_NATHI": 0.0,
-     "IMSTAYING": 0.0,
-     "INDEPENDENT_CITIZENS_MOVEMENT": 0.0,
-     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.0,
-     "KNOW_YOUR_POWER": 0.0,
-     "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.0,
-     "LAND_PARTY": 0.0,
-     "LEKWE_BEPE_KINGDOM_PARTY": 0.0,
-     "MAWUSA_MOVEMENT_PARTY": 0.0,
-     "MINORITY_FRONT": 0.0,
-     "MK": 8.888875,
-     "MOVEMENT_OF_RESIDENTS_PARTY": 0.0,
-     "MOVE_SA": 0.0,
-     "NATIONAL_DEMOCRATIC_CONVENTION": 0.0,
-     "NCC": 0.370375,
-     "NFP": 0.0,
-     "PA": 8.148125,
-     "PAC": 0.74075,
-     "PEOPLE_OF_JOBURG": 0.0,
-     "PEOPLE_S_CONSENT_PARTY": 0.0,
-     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.370375,
-     "PRO_SOUTH_AFRICA": 0.0,
-     "RESIDENT_DEVELOPMENT": 0.0,
-     "RISE": 1.1110833333333334,
-     "SERVICE_DELIVERY_PARTY": 0.0,
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": 1.4814583333333333,
-     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.0,
-     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.0,
-     "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.0,
-     "UDM": 0.370375,
-     "UMPHAKATHI_WARONA": 0.0,
-     "UNITED_AFRICANS_TRANSFORMATION": 0.370375,
-     "VFPLUS": 1.1110833333333334,
-     "VUKA_SA": 0.0
+     "ACDP": 0.6225610982345449,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.06149942817212121,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.04646736315234592,
+     "AFRICAN_ECONOMIC_FREEDOM": 0.06591763647185246,
+     "AFRICAN_LABOUR_CONVENTION": 0.045248547069661436,
+     "AFRICAN_RENAISSANCE_UNITY": 0.08125440551229887,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.03453312234272702,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 0.071503876850823,
+     "AFRICA_RESTORATION_ALLIANCE": 0.03311117024626179,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 0.06754272458209844,
+     "AFRIKA_UNITE_CONGRESS": 0.03300960223937142,
+     "AHC": 0.42815993304636984,
+     "AIC": 0.510277666617237,
+     "ALJAMAAH": 1.0500608392361273,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 0.0696248687233511,
+     "ALL_CITIZENS_PARTY": 0.03722467452532192,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 0.07409386102652753,
+     "ANC": 22.798513450651154,
+     "APC": 0.135390153184868,
+     "ASA": 10.209006644579011,
+     "ATM": 0.49433148953544825,
+     "AZANIAN_GROUND_FORCES": 0.07262112492661711,
+     "AZANIA_PEACEFUL_REVOLUTION": 0.01995811335395841,
+     "AZAPO": 0.0938488383667052,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.05515142774147286,
+     "BOSA": 1.0047615081630208,
+     "CHRIST_KINGDOM_PARTY": 0.033212738253152164,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.08196538156053149,
+     "COMBAT": 0.039103682652793834,
+     "COMMUNITY_FIRST_MOVEMENT": 0.026661601808723068,
+     "COPE": 0.07465248506442458,
+     "DA": 24.76979611238297,
+     "DUDULA": 0.11472106378267696,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.06002669207221079,
+     "ECONOMIC_REDRESS_MOVEMENT": 0.03996701071136201,
+     "EFF": 10.81135570944237,
+     "EKHETHU_PEOPLES_PARTY": 0.063073732278922,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 0.03361901028071366,
+     "GAZA_DEMOCRATIC_FRONT": 0.03839270660456122,
+     "IFP": 1.4204285763618747,
+     "ILIZWE_NATHI": 0.03671683449087005,
+     "IMSTAYING": 0.028540609936194977,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 0.07211328489216524,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.047787747241920774,
+     "KNOW_YOUR_POWER": 0.06744115657520806,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.06688253253731101,
+     "LAND_PARTY": 0.031790786156686936,
+     "LEKWE_BEPE_KINGDOM_PARTY": 0.035244098390959634,
+     "MAWUSA_MOVEMENT_PARTY": 0.03377136229104922,
+     "MINORITY_FRONT": 0.0753634611126572,
+     "MK": 9.601629963374577,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 0.037732514559773785,
+     "MOVE_SA": 0.07414464502997271,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 0.06586685246840727,
+     "NCC": 0.0826763576087641,
+     "NFP": 0.054288099682904684,
+     "PA": 8.473107838815636,
+     "PAC": 0.4185617563952296,
+     "PEOPLE_OF_JOBURG": 0.06932016470267997,
+     "PEOPLE_S_CONSENT_PARTY": 0.02818512191207867,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.08597731783270124,
+     "PRO_SOUTH_AFRICA": 0.048244803272927454,
+     "RESIDENT_DEVELOPMENT": 0.022091041498656254,
+     "RISE": 1.6843022582630651,
+     "SERVICE_DELIVERY_PARTY": 0.07323053296795935,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 1.3784302055127051,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.06378470832715462,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.029150017977537218,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.07323053296795935,
+     "UDM": 0.1456993058842409,
+     "UMPHAKATHI_WARONA": 0.07607443716088981,
+     "UNITED_AFRICANS_TRANSFORMATION": 0.18256849238544653,
+     "VFPLUS": 0.8393580089420474,
+     "VUKA_SA": 0.07404307702308234
     },
     "ward_calls": {
      "1": "ANC",
@@ -24981,6 +25062,82 @@
      "97": "DA",
      "98": "DA",
      "99": "DA"
+    },
+    "ward_votes": {
+     "ACDP": 5101,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 572,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 432,
+     "AFRICAN_ECONOMIC_FREEDOM": 614,
+     "AFRICAN_LABOUR_CONVENTION": 421,
+     "AFRICAN_RENAISSANCE_UNITY": 757,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 321,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 665,
+     "AFRICA_RESTORATION_ALLIANCE": 309,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 630,
+     "AFRIKA_UNITE_CONGRESS": 308,
+     "AHC": 4261,
+     "AIC": 6062,
+     "ALJAMAAH": 11402,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 648,
+     "ALL_CITIZENS_PARTY": 347,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 691,
+     "ANC": 220368,
+     "APC": 1455,
+     "ASA": 85360,
+     "ATM": 5271,
+     "AZANIAN_GROUND_FORCES": 677,
+     "AZANIA_PEACEFUL_REVOLUTION": 186,
+     "AZAPO": 873,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 704,
+     "BOSA": 9361,
+     "CHRIST_KINGDOM_PARTY": 309,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 762,
+     "COMBAT": 364,
+     "COMMUNITY_FIRST_MOVEMENT": 248,
+     "COPE": 800,
+     "DA": 243122,
+     "DUDULA": 1069,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 560,
+     "ECONOMIC_REDRESS_MOVEMENT": 372,
+     "EFF": 108327,
+     "EKHETHU_PEOPLES_PARTY": 587,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 313,
+     "GAZA_DEMOCRATIC_FRONT": 358,
+     "IFP": 13507,
+     "ILIZWE_NATHI": 342,
+     "IMSTAYING": 266,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 672,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 446,
+     "KNOW_YOUR_POWER": 629,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 623,
+     "LAND_PARTY": 296,
+     "LEKWE_BEPE_KINGDOM_PARTY": 328,
+     "MAWUSA_MOVEMENT_PARTY": 315,
+     "MINORITY_FRONT": 702,
+     "MK": 89461,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 351,
+     "MOVE_SA": 691,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 613,
+     "NCC": 768,
+     "NFP": 319,
+     "PA": 108862,
+     "PAC": 4650,
+     "PEOPLE_OF_JOBURG": 646,
+     "PEOPLE_S_CONSENT_PARTY": 262,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 800,
+     "PRO_SOUTH_AFRICA": 449,
+     "RESIDENT_DEVELOPMENT": 206,
+     "RISE": 15693,
+     "SERVICE_DELIVERY_PARTY": 683,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 12846,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 594,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 271,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 683,
+     "UDM": 1411,
+     "UMPHAKATHI_WARONA": 709,
+     "UNITED_AFRICANS_TRANSFORMATION": 1701,
+     "VFPLUS": 8091,
+     "VUKA_SA": 690
     }
    },
    "name": "w_bye-0-untouched"
@@ -24989,173 +25146,101 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Bold call",
+     "badge": "Safe call",
      "coalition": [
       "ANC",
       "DA"
      ],
-     "largest": "DA",
+     "largest": "ANC",
      "majority_alone": false,
-     "p": 0.1652,
-     "text": "17%"
+     "p": 0.2554,
+     "text": "26%"
     },
     "score": {
-     "list_vote_error": 43.679267966666686,
-     "seat_error": 110.10680000000002,
+     "list_vote_error": 42.98781744014389,
+     "seat_error": 154.1535999999998,
      "seat_error_within": {
-      "p": 0.2528,
-      "text": "25%"
+      "p": 0.0,
+      "text": "under 0.1%"
      },
      "wards_called": 107.3928,
      "within": 90
     },
     "seat_band": 2,
     "seats": {
-     "ACDP": {
-      "p": 0.9112,
-      "text": "91%"
-     },
-     "AHC": {
-      "p": 0.9252,
-      "text": "93%"
-     },
-     "AIC": {
-      "p": 0.9334,
-      "text": "93%"
-     },
      "ALJAMAAH": {
-      "p": 0.8692,
-      "text": "87%"
-     },
-     "ALL_CITIZENS_PARTY": {
-      "p": 0.4926,
-      "text": "49%"
+      "p": 0.7332,
+      "text": "73%"
      },
      "ANC": {
       "p": 0.1112,
       "text": "11%"
      },
      "ASA": {
-      "p": 0.1562,
-      "text": "16%"
-     },
-     "ATM": {
-      "p": 0.9154,
-      "text": "92%"
-     },
-     "BOSA": {
-      "p": 0.3084,
-      "text": "31%"
+      "p": 0.0,
+      "text": "under 0.1%"
      },
      "DA": {
-      "p": 0.1458,
-      "text": "15%"
+      "p": 0.0468,
+      "text": "4.7%"
      },
      "EFF": {
-      "p": 0.1396,
-      "text": "14%"
+      "p": 0.0126,
+      "text": "1.3%"
      },
      "IFP": {
-      "p": 0.6968,
-      "text": "70%"
+      "p": 0.5652,
+      "text": "57%"
      },
      "MK": {
-      "p": 0.156,
-      "text": "16%"
+      "p": 0.1426,
+      "text": "14%"
      },
      "PA": {
-      "p": 0.3362,
-      "text": "34%"
-     },
-     "PAC": {
-      "p": 0.9388,
-      "text": "94%"
+      "p": 0.013,
+      "text": "1.3%"
      },
      "RISE": {
-      "p": 0.6946,
-      "text": "69%"
-     },
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-      "p": 0.2432,
-      "text": "24%"
-     },
-     "VFPLUS": {
-      "p": 0.5514,
-      "text": "55%"
+      "p": 0.5122,
+      "text": "51%"
      }
     },
     "share": {
-     "ACDP": {
-      "p": 0.9492,
-      "text": "95%"
-     },
-     "AHC": {
-      "p": 0.9606,
-      "text": "96%"
-     },
-     "AIC": {
-      "p": 0.971,
-      "text": "97%"
-     },
      "ALJAMAAH": {
-      "p": 0.993,
+      "p": 0.997,
       "text": "over 99%"
      },
-     "ALL_CITIZENS_PARTY": {
-      "p": 0.9242,
-      "text": "92%"
-     },
      "ANC": {
-      "p": 0.1858,
-      "text": "19%"
+      "p": 0.2068,
+      "text": "21%"
      },
      "ASA": {
-      "p": 0.2954,
-      "text": "30%"
-     },
-     "ATM": {
-      "p": 0.9558,
-      "text": "96%"
-     },
-     "BOSA": {
-      "p": 0.9328,
-      "text": "93%"
+      "p": 0.2928,
+      "text": "29%"
      },
      "DA": {
-      "p": 0.3086,
-      "text": "31%"
+      "p": 0.2852,
+      "text": "29%"
      },
      "EFF": {
-      "p": 0.3,
-      "text": "30%"
+      "p": 0.2824,
+      "text": "28%"
      },
      "IFP": {
-      "p": 0.8006,
-      "text": "80%"
+      "p": 0.8646,
+      "text": "86%"
      },
      "MK": {
-      "p": 0.3324,
-      "text": "33%"
+      "p": 0.3138,
+      "text": "31%"
      },
      "PA": {
-      "p": 0.3652,
-      "text": "37%"
-     },
-     "PAC": {
-      "p": 0.9696,
-      "text": "97%"
+      "p": 0.2492,
+      "text": "25%"
      },
      "RISE": {
-      "p": 0.8082,
-      "text": "81%"
-     },
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": {
-      "p": 0.9004,
-      "text": "90%"
-     },
-     "VFPLUS": {
-      "p": 0.9488,
-      "text": "95%"
+      "p": 0.8742,
+      "text": "87%"
      }
     },
     "share_band": 2.0,
@@ -25704,121 +25789,158 @@
     "wards_count": 135
    },
    "handoff": {
-    "middle": {
-     "ALJAMAAH": 2,
-     "ANC": 63,
-     "ASA": 25,
-     "DA": 70,
-     "EFF": 24,
-     "IFP": 2,
-     "MK": 23,
-     "OTHERS": 23,
-     "PA": 23,
-     "RISE": 2
+    "list_votes": {
+     "ACDP": 6825,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 775,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 428,
+     "AFRICAN_ECONOMIC_FREEDOM": 726,
+     "AFRICAN_LABOUR_CONVENTION": 489,
+     "AFRICAN_RENAISSANCE_UNITY": 742,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 364,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 637,
+     "AFRICA_RESTORATION_ALLIANCE": 331,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 808,
+     "AFRIKA_UNITE_CONGRESS": 389,
+     "AHC": 4356,
+     "AIC": 3042,
+     "ALJAMAAH": 8965,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 695,
+     "ALL_CITIZENS_PARTY": 9227,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 841,
+     "ANC": 202884,
+     "APC": 1081,
+     "ASA": 114381,
+     "ATM": 4765,
+     "AZANIAN_GROUND_FORCES": 628,
+     "AZANIA_PEACEFUL_REVOLUTION": 162,
+     "AZAPO": 897,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 479,
+     "BOSA": 10723,
+     "CHRIST_KINGDOM_PARTY": 374,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 809,
+     "COMBAT": 535,
+     "COMMUNITY_FIRST_MOVEMENT": 472,
+     "COPE": 642,
+     "DA": 268655,
+     "DUDULA": 1299,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 605,
+     "ECONOMIC_REDRESS_MOVEMENT": 398,
+     "EFF": 94096,
+     "EKHETHU_PEOPLES_PARTY": 792,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 395,
+     "GAZA_DEMOCRATIC_FRONT": 356,
+     "IFP": 17396,
+     "ILIZWE_NATHI": 411,
+     "IMSTAYING": 349,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 748,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 366,
+     "KNOW_YOUR_POWER": 805,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 797,
+     "LAND_PARTY": 316,
+     "LEKWE_BEPE_KINGDOM_PARTY": 347,
+     "MAWUSA_MOVEMENT_PARTY": 381,
+     "MINORITY_FRONT": 767,
+     "MK": 98640,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 292,
+     "MOVE_SA": 730,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 764,
+     "NCC": 806,
+     "NFP": 653,
+     "PA": 62185,
+     "PAC": 3436,
+     "PEOPLE_OF_JOBURG": 604,
+     "PEOPLE_S_CONSENT_PARTY": 299,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 678,
+     "PRO_SOUTH_AFRICA": 576,
+     "RESIDENT_DEVELOPMENT": 234,
+     "RISE": 17408,
+     "SERVICE_DELIVERY_PARTY": 693,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 14461,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 674,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 349,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 867,
+     "UDM": 1451,
+     "UMPHAKATHI_WARONA": 756,
+     "UNITED_AFRICANS_TRANSFORMATION": 1750,
+     "VFPLUS": 7788,
+     "VUKA_SA": 802
     },
-    "seats": {
-     "ACDP": 2,
-     "AFRIKA_MAYIBUYE_MOVEMENT": 1,
-     "AHC": 2,
-     "AIC": 2,
-     "ALJAMAAH": 2,
-     "ALL_CITIZENS_PARTY": 3,
-     "ALL_NATIVES_OF_SOUTH_AFRICA": 1,
-     "ANC": 66,
-     "APC": 1,
-     "ASA": 25,
-     "ATM": 2,
-     "AZAPO": 1,
-     "BOSA": 4,
-     "DA": 70,
-     "DUDULA": 1,
-     "EFF": 24,
-     "IFP": 2,
-     "MK": 23,
-     "PA": 23,
-     "PAC": 2,
-     "RISE": 2,
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": 5,
-     "TRUTH_AND_SOLIDARITY_MOVEMENT": 1,
-     "UDM": 1,
-     "UNITED_AFRICANS_TRANSFORMATION": 1,
-     "VFPLUS": 3
-    },
+    "middle": {},
     "share": {
-     "ACDP": 0.74075,
-     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0,
-     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0,
-     "AFRICAN_ECONOMIC_FREEDOM": 0.0,
-     "AFRICAN_LABOUR_CONVENTION": 0.0,
-     "AFRICAN_RENAISSANCE_UNITY": 0.0,
-     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.0,
-     "AFRICAN_UNEMPLOYED_CONGRESS": 0.0,
-     "AFRICA_RESTORATION_ALLIANCE": 0.0,
-     "AFRIKA_MAYIBUYE_MOVEMENT": 0.370375,
-     "AFRIKA_UNITE_CONGRESS": 0.0,
-     "AHC": 0.74075,
-     "AIC": 0.74075,
-     "ALJAMAAH": 0.74075,
-     "ALLIED_INDEPENDENTS_UMBRELLA": 0.0,
-     "ALL_CITIZENS_PARTY": 1.111125,
-     "ALL_NATIVES_OF_SOUTH_AFRICA": 0.370375,
-     "ANC": 24.444416666666665,
-     "APC": 0.370375,
-     "ASA": 9.25925,
-     "ATM": 0.74075,
-     "AZANIAN_GROUND_FORCES": 0.0,
-     "AZANIA_PEACEFUL_REVOLUTION": 0.0,
-     "AZAPO": 0.370375,
-     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.0,
-     "BOSA": 1.4814583333333333,
-     "CHRIST_KINGDOM_PARTY": 0.0,
-     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.0,
-     "COMBAT": 0.0,
-     "COMMUNITY_FIRST_MOVEMENT": 0.0,
-     "COPE": 0.0,
-     "DA": 25.925916666666666,
-     "DUDULA": 0.370375,
-     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.0,
-     "ECONOMIC_REDRESS_MOVEMENT": 0.0,
-     "EFF": 8.888875,
-     "EKHETHU_PEOPLES_PARTY": 0.0,
-     "GAP_FIXERS_OF_SOUTH_AFRICA": 0.0,
-     "GAZA_DEMOCRATIC_FRONT": 0.0,
-     "IFP": 0.74075,
-     "ILIZWE_NATHI": 0.0,
-     "IMSTAYING": 0.0,
-     "INDEPENDENT_CITIZENS_MOVEMENT": 0.0,
-     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.0,
-     "KNOW_YOUR_POWER": 0.0,
-     "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.0,
-     "LAND_PARTY": 0.0,
-     "LEKWE_BEPE_KINGDOM_PARTY": 0.0,
-     "MAWUSA_MOVEMENT_PARTY": 0.0,
-     "MINORITY_FRONT": 0.0,
-     "MK": 8.5185,
-     "MOVEMENT_OF_RESIDENTS_PARTY": 0.0,
-     "MOVE_SA": 0.0,
-     "NATIONAL_DEMOCRATIC_CONVENTION": 0.0,
-     "NCC": 0.0,
-     "NFP": 0.0,
-     "PA": 8.5185,
-     "PAC": 0.74075,
-     "PEOPLE_OF_JOBURG": 0.0,
-     "PEOPLE_S_CONSENT_PARTY": 0.0,
-     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.0,
-     "PRO_SOUTH_AFRICA": 0.0,
-     "RESIDENT_DEVELOPMENT": 0.0,
-     "RISE": 0.74075,
-     "SERVICE_DELIVERY_PARTY": 0.0,
-     "SOUTH_AFRICAN_COMMUNIST_PARTY": 1.8518333333333334,
-     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.0,
-     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.0,
-     "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.370375,
-     "UDM": 0.370375,
-     "UMPHAKATHI_WARONA": 0.0,
-     "UNITED_AFRICANS_TRANSFORMATION": 0.370375,
-     "VFPLUS": 1.111125,
-     "VUKA_SA": 0.0
+     "ACDP": 0.5928520576409617,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.07469682028178626,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.041283830652000156,
+     "AFRICAN_ECONOMIC_FREEDOM": 0.06972041757096706,
+     "AFRICAN_LABOUR_CONVENTION": 0.047021927655291694,
+     "AFRICAN_RENAISSANCE_UNITY": 0.07134536539490802,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.035139496692723385,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 0.06118944149527699,
+     "AFRICA_RESTORATION_ALLIANCE": 0.03194038066433961,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 0.07774359745167557,
+     "AFRIKA_UNITE_CONGRESS": 0.03747535918963852,
+     "AHC": 0.4468098719642674,
+     "AIC": 0.38937812231185387,
+     "ALJAMAAH": 1.0130534089881957,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 0.06687675887907037,
+     "ALL_CITIZENS_PARTY": 0.8882371042617303,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 0.08084115424106304,
+     "ANC": 20.207343342334866,
+     "APC": 0.12085549440560932,
+     "ASA": 10.076606133974916,
+     "ATM": 0.5263307560983784,
+     "AZANIAN_GROUND_FORCES": 0.06052930644180097,
+     "AZANIA_PEACEFUL_REVOLUTION": 0.015640122805431794,
+     "AZAPO": 0.0863253531468638,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.0682985882250187,
+     "BOSA": 1.0321973255390002,
+     "CHRIST_KINGDOM_PARTY": 0.03600275022419202,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 0.07789593631017004,
+     "COMBAT": 0.05138897493213304,
+     "COMMUNITY_FIRST_MOVEMENT": 0.04544775945084888,
+     "COPE": 0.07134536539490802,
+     "DA": 27.163287960050656,
+     "DUDULA": 0.12481630472646542,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.058396562422878454,
+     "ECONOMIC_REDRESS_MOVEMENT": 0.038389392340605316,
+     "EFF": 9.715766157821026,
+     "EKHETHU_PEOPLES_PARTY": 0.07616942924723276,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 0.038033935004118224,
+     "GAZA_DEMOCRATIC_FRONT": 0.034174683922258434,
+     "IFP": 1.706195215138014,
+     "ILIZWE_NATHI": 0.039608103208561035,
+     "IMSTAYING": 0.033666887727276884,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 0.0720562800678822,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.035241055931719695,
+     "KNOW_YOUR_POWER": 0.07738814011518849,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.07672800506171247,
+     "LAND_PARTY": 0.030366212459896794,
+     "LEKWE_BEPE_KINGDOM_PARTY": 0.033362210010287954,
+     "MAWUSA_MOVEMENT_PARTY": 0.036612105658169886,
+     "MINORITY_FRONT": 0.07368122789182316,
+     "MK": 9.494417796428568,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 0.028081129582479814,
+     "MOVE_SA": 0.07027899338544677,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 0.07347810941383054,
+     "NCC": 0.07764203821267926,
+     "NFP": 0.047225046133284314,
+     "PA": 9.061826217923784,
+     "PAC": 0.39928014811399415,
+     "PEOPLE_OF_JOBURG": 0.058091884705889524,
+     "PEOPLE_S_CONSENT_PARTY": 0.028690485016457674,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.06525181105512941,
+     "PRO_SOUTH_AFRICA": 0.05545134449198545,
+     "RESIDENT_DEVELOPMENT": 0.022495371437682744,
+     "RISE": 1.6752704268636374,
+     "SERVICE_DELIVERY_PARTY": 0.06667364040107775,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 1.3918185908249352,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.064794794479646,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.03351454886878242,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.08332935559647264,
+     "UDM": 0.14492503404773488,
+     "UMPHAKATHI_WARONA": 0.07266563550186006,
+     "UNITED_AFRICANS_TRANSFORMATION": 0.16848677749487886,
+     "VFPLUS": 0.7734751641958997,
+     "VUKA_SA": 0.07708346239819956
     },
     "ward_calls": {
      "1": "ANC",
@@ -25956,6 +26078,82 @@
      "97": "DA",
      "98": "DA",
      "99": "DA"
+    },
+    "ward_votes": {
+     "ACDP": 4850,
+     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 696,
+     "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 385,
+     "AFRICAN_ECONOMIC_FREEDOM": 647,
+     "AFRICAN_LABOUR_CONVENTION": 437,
+     "AFRICAN_RENAISSANCE_UNITY": 663,
+     "AFRICAN_ROYAL_RAINBOW_CONGRESS": 328,
+     "AFRICAN_UNEMPLOYED_CONGRESS": 568,
+     "AFRICA_RESTORATION_ALLIANCE": 298,
+     "AFRIKA_MAYIBUYE_MOVEMENT": 723,
+     "AFRIKA_UNITE_CONGRESS": 349,
+     "AHC": 4443,
+     "AIC": 4626,
+     "ALJAMAAH": 10985,
+     "ALLIED_INDEPENDENTS_UMBRELLA": 622,
+     "ALL_CITIZENS_PARTY": 8265,
+     "ALL_NATIVES_OF_SOUTH_AFRICA": 751,
+     "ANC": 195058,
+     "APC": 1299,
+     "ASA": 84057,
+     "ATM": 5600,
+     "AZANIAN_GROUND_FORCES": 564,
+     "AZANIA_PEACEFUL_REVOLUTION": 146,
+     "AZAPO": 803,
+     "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 866,
+     "BOSA": 9604,
+     "CHRIST_KINGDOM_PARTY": 335,
+     "CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS": 725,
+     "COMBAT": 477,
+     "COMMUNITY_FIRST_MOVEMENT": 423,
+     "COPE": 763,
+     "DA": 266270,
+     "DUDULA": 1159,
+     "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 545,
+     "ECONOMIC_REDRESS_MOVEMENT": 358,
+     "EFF": 97236,
+     "EKHETHU_PEOPLES_PARTY": 708,
+     "GAP_FIXERS_OF_SOUTH_AFRICA": 354,
+     "GAZA_DEMOCRATIC_FRONT": 317,
+     "IFP": 16204,
+     "ILIZWE_NATHI": 369,
+     "IMSTAYING": 314,
+     "INDEPENDENT_CITIZENS_MOVEMENT": 671,
+     "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 328,
+     "KNOW_YOUR_POWER": 719,
+     "LABOUR_PARTY_OF_SOUTH_AFRICA": 714,
+     "LAND_PARTY": 282,
+     "LEKWE_BEPE_KINGDOM_PARTY": 310,
+     "MAWUSA_MOVEMENT_PARTY": 340,
+     "MINORITY_FRONT": 684,
+     "MK": 88333,
+     "MOVEMENT_OF_RESIDENTS_PARTY": 261,
+     "MOVE_SA": 654,
+     "NATIONAL_DEMOCRATIC_CONVENTION": 683,
+     "NCC": 723,
+     "NFP": 277,
+     "PA": 116269,
+     "PAC": 4427,
+     "PEOPLE_OF_JOBURG": 540,
+     "PEOPLE_S_CONSENT_PARTY": 266,
+     "PEOPLE_S_MOVEMENT_FOR_CHANGE": 607,
+     "PRO_SOUTH_AFRICA": 516,
+     "RESIDENT_DEVELOPMENT": 209,
+     "RISE": 15583,
+     "SERVICE_DELIVERY_PARTY": 620,
+     "SOUTH_AFRICAN_COMMUNIST_PARTY": 12948,
+     "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 602,
+     "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 311,
+     "TRUTH_AND_SOLIDARITY_MOVEMENT": 774,
+     "UDM": 1403,
+     "UMPHAKATHI_WARONA": 675,
+     "UNITED_AFRICANS_TRANSFORMATION": 1568,
+     "VFPLUS": 7444,
+     "VUKA_SA": 716
     }
    },
    "name": "polls-on-trust-0.3"

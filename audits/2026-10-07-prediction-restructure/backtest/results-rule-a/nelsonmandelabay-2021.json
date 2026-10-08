@@ -1,0 +1,35 @@
+{
+ "city": "nelsonmandelabay",
+ "year": "2021",
+ "draws": 1000,
+ "council": 120,
+ "wards": 60,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "AIC": 1,
+   "ANC": 46,
+   "AZAPO": 1,
+   "DA": 55,
+   "EFF": 10,
+   "GOOD": 1,
+   "PAC": 1,
+   "UDM": 1,
+   "VFPLUS": 2
+  },
+  "seat_err": 20.0,
+  "wards_ok": 57,
+  "ward_vote_err_pp": 18.268425668593316,
+  "list_vote_err_pp": 16.53793315553827,
+  "top": "ANC",
+  "top_wards": 34,
+  "top_actual_wards": 37,
+  "excessive": {},
+  "council": 120,
+  "ward_wins": {
+   "DA": 26,
+   "ANC": 34
+  }
+ }
+}

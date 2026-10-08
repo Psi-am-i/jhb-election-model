@@ -1,0 +1,35 @@
+{
+ "city": "mangaung",
+ "year": "2021",
+ "draws": 1000,
+ "council": 101,
+ "wards": 51,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 1,
+   "AFRICA_S_NEW_DAWN": 1,
+   "AIC": 2,
+   "ANC": 49,
+   "ATM": 1,
+   "DA": 27,
+   "EFF": 13,
+   "PA": 2,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 1,
+   "VFPLUS": 4
+  },
+  "seat_err": 10.0,
+  "wards_ok": 50,
+  "ward_vote_err_pp": 8.58254658055376,
+  "list_vote_err_pp": 9.99951975259024,
+  "top": "ANC",
+  "top_wards": 39,
+  "top_actual_wards": 40,
+  "excessive": {},
+  "council": 101,
+  "ward_wins": {
+   "ANC": 39,
+   "DA": 12
+  }
+ }
+}

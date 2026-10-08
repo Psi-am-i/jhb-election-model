@@ -1575,8 +1575,10 @@ def test_passing_a_run_directory_changes_no_drawn_number():
     # ⛔ AND THE SHARES, because seats are integers allocated through a quota:
     # a share can move by a tenth of a point and leave every seat integer
     # exactly where it was. Asserting seats alone would pass through the most
-    # likely form of this defect.
-    for name in ("pr_share_draws", "ward_share_draws"):
+    # likely form of this defect. And the whole votes the seat law read
+    # (recorded since 2026-10-08, MODEL-LOG §1.291), on the same argument.
+    for name in ("pr_share_draws", "ward_share_draws",
+                 "pr_vote_draws", "ward_vote_draws"):
         a, b = getattr(traced, name), getattr(plain, name)
         assert (a is None) == (b is None), f"{name}: one run produced it, one did not"
         if a is None:
@@ -1587,6 +1589,56 @@ def test_passing_a_run_directory_changes_no_drawn_number():
             f"--run-dir moved {name} while the seat integers were unchanged — "
             f"a share move too small to cross a quota. The trace must not "
             f"touch the draws at all.")
+
+
+def test_the_seat_law_on_recorded_votes_is_every_draw_s_council():
+    """``prediction.seats_of`` on one draw's RECORDED whole votes and winners
+    gives that draw's council, at every draw (SPEC-A G2, M5).
+
+    This is what makes ``ModelRun.ward_vote_draws`` / ``pr_vote_draws`` the
+    integers the seat law read, rather than a reconstruction of them: shares
+    times totals miss them in about 2% of cells (SPEC-A M4). Constructed
+    violation: one party's list votes zeroed in one draw must change that
+    draw's council, so the comparison can see.
+    """
+    import cityconfig
+    import prediction
+
+    cityconfig.use(CITY)
+    target = cityconfig.use_target("2021")
+    mc.apply_city(cityconfig.use(CITY))
+    scenario = mc.load_scenario(argparse.Namespace(
+        config=None, set=[], draws=20, seed=20261104, city=CITY, target="2021"))
+    assert scenario["overhang_rule"] == mc.STATUTORY_VALUES["overhang_rule"], (
+        "the probe must run under the statutory rule seats_of applies")
+    run = mc.run_model(target, scenario, verbose=False)
+    uni = list(run.universe)
+    assert run.ward_vote_draws.shape == run.pr_vote_draws.shape == (len(run.seat_draws), len(uni))
+    assert run.ward_vote_draws.dtype.kind == run.pr_vote_draws.dtype.kind == "i"
+
+    def council_of(d, list_votes=None):
+        lv = run.pr_vote_draws[d] if list_votes is None else list_votes
+        pred = {"ward_calls": [uni[k] for k in run.ward_winner_draws[d]],
+                "ward_votes": dict(zip(uni, map(int, run.ward_vote_draws[d]))),
+                "list_votes": dict(zip(uni, map(int, lv)))}
+        seated = prediction.seats_of(pred, mc.COUNCIL)
+        return {p: v["total"] for p, v in seated["seats"].items()}
+
+    checked = 0
+    for d, drawn in enumerate(run.seat_draws):
+        want = {p: n for p, n in drawn.items() if n}
+        assert council_of(d) == want, (
+            f"draw {d}: the seat law on the recorded votes does not give the "
+            f"draw's council; the recorded votes are not what the law read")
+        checked += 1
+    assert checked == len(run.seat_draws) == 20
+
+    # it can see: take the largest seat-holder's list votes away in draw 0
+    big = max(run.seat_draws[0], key=run.seat_draws[0].get)
+    broken = np.array(run.pr_vote_draws[0], copy=True)
+    broken[uni.index(big)] = 0
+    assert council_of(0, broken) != {p: n for p, n in run.seat_draws[0].items() if n}
+    assert council_of(0) == {p: n for p, n in run.seat_draws[0].items() if n}
 
 
 def test_the_trace_is_inert_without_a_run_directory():

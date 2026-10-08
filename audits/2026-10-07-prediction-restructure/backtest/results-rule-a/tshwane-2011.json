@@ -1,0 +1,37 @@
+{
+ "city": "tshwane",
+ "year": "2011",
+ "draws": 1000,
+ "council": 210,
+ "wards": 99,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 3,
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": 1,
+   "ANC": 107,
+   "AZAPO": 1,
+   "COPE": 16,
+   "DA": 64,
+   "IFP": 1,
+   "MOVEMENT_DEMOCRATIC_PARTY": 1,
+   "PAC": 1,
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 1,
+   "VFPLUS": 11,
+   "ENTRANT": 3
+  },
+  "seat_err": 60.0,
+  "wards_ok": 98,
+  "ward_vote_err_pp": 27.184051369444752,
+  "list_vote_err_pp": 29.330908564600183,
+  "top": "ANC",
+  "top_wards": 62,
+  "top_actual_wards": 68,
+  "excessive": {},
+  "council": 210,
+  "ward_wins": {
+   "DA": 37,
+   "ANC": 62
+  }
+ }
+}

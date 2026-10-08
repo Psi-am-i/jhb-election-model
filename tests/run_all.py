@@ -188,7 +188,12 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_served_draws",
            # One scorer for the model's forecast and every reader's, against
            # a result; must be frozen before 4 November (TODO §0 gate R6).
-           "test_score_forecasts"]
+           "test_score_forecasts",
+           # Added 2026-10-08 with slice A of the prediction restructure
+           # (audits/2026-10-07-prediction-restructure/s1/SPEC-A.md): our
+           # prediction is rule A from one function, and its guards see.
+           # Constructed inputs only; runs no model and reads no data.
+           "test_prediction_rule"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

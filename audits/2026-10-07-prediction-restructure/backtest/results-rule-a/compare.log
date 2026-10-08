@@ -1,0 +1,29 @@
+24 city-years compared; 24 old, 24 new
+DIFFERS joburg-2016.json: A.seats was {'UDM': 1, 'PREM_PEOPLES_AGENDA': 1, 'UNITED_FRONT_OF_CIVICS': 1, 'IFP': 3, 'VFPLUS': 1, 'TRULY_ALLIANCE': 1, 'AZAPO': 1, 'APC': 1, 'EFF': 25, 'ACDP': 1, 'ANC': 120, 'PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA': 1, 'PAC': 1, 'AGANG': 2, 'BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA': 1, 'DA': 109}, now {'ACDP': 1, 'AGANG': 2, 'AIC': 1, 'ANC': 120, 'APC': 1, 'AZAPO': 1, 'BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA': 1, 'DA': 109, 'EFF': 25, 'IFP': 3, 'PAC': 1, 'PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA': 1, 'PREM_PEOPLES_AGENDA': 1, 'UDM': 1, 'UNITED_FRONT_OF_CIVICS': 1, 'VFPLUS': 1}
+DIFFERS joburg-2016.json: A.seat_err was 30.0, now 28.0
+
+city-year              seats  wds | A seat | A ok |  A wv  A lv | top A/actual  excess  tied
+buffalocity 2011         100   50 |     32 |   49 |  31.2  32.2 | ANC 44/43  {}  0
+buffalocity 2016         100   50 |     10 |   48 |  17.3  10.9 | ANC 43/45  {}  0
+buffalocity 2021         100   50 |      8 |   48 |  13.2  10.7 | ANC 44/42  {}  0
+capetown 2011            221  111 |     42 |  111 |  21.3  21.9 | DA 78/78  {}  0
+capetown 2016            231  116 |      8 |  116 |   5.0   4.5 | DA 81/81  {}  0
+capetown 2021            231  116 |     42 |  115 |  19.7  16.8 | DA 82/83  {}  0
+ekurhuleni 2011          202  101 |     36 |   97 |  16.8  18.6 | ANC 71/71  {}  0
+ekurhuleni 2016          224  112 |     28 |  111 |  11.1   9.9 | ANC 75/76  {}  0
+ekurhuleni 2021          224  112 |     30 |  107 |  14.1  15.1 | ANC 78/78  {}  0
+ethekwini 2011           205  103 |     31 |   97 |  20.0  17.5 | ANC 80/78  {}  0
+ethekwini 2016           219  109 |     36 |   97 |  23.1  11.2 | ANC 72/73  {}  0
+ethekwini 2021           222  111 |     34 |  110 |  19.9  15.4 | ANC 76/75  {}  0
+joburg 2011              260  130 |     60 |  126 |  23.7  25.0 | ANC 88/84  {}  0
+joburg 2016              270  135 |     28 |  134 |  10.8   9.1 | ANC 83/84  {}  0
+joburg 2021              270  135 |     86 |  127 |  32.1  35.7 | ANC 86/87  {}  0
+mangaung 2011             97   49 |     34 |   49 |  34.5  32.8 | ANC 38/38  {}  0
+mangaung 2016            100   49 |     10 |   48 |  12.9   8.4 | ANC 36/38  {}  0
+mangaung 2021            101   51 |     10 |   50 |   8.6  10.0 | ANC 39/40  {}  0
+nelsonmandelabay 2011    120   60 |     34 |   59 |  29.6  29.8 | ANC 35/34  {}  0
+nelsonmandelabay 2016    120   60 |      8 |   57 |   9.9   6.0 | ANC 35/36  {}  0
+nelsonmandelabay 2021    120   60 |     20 |   57 |  18.3  16.5 | ANC 34/37  {}  0
+tshwane 2011             210   99 |     60 |   98 |  27.2  29.3 | ANC 62/68  {}  0
+tshwane 2016             214  107 |     18 |  104 |   7.1   7.4 | ANC 67/68  {}  0
+tshwane 2021             214  107 |     32 |  105 |  16.9  16.5 | ANC 70/70  {}  0

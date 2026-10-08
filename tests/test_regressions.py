@@ -507,6 +507,30 @@ def test_the_generic_entrant_is_relabelled_wherever_it_is_reported():
     assert run2.seat_draws[0].get("ENTRANT") == 3, (
         "an entrant drawn where no party arrived must stay visible as error")
 
+    # 2b. The merge branch (the arrived party already holds a column) moves
+    #     every per-draw array, the recorded votes and the per-draw ward
+    #     winners included (2026-10-08): rule A reads all three, so a vote or
+    #     a ward left on ENTRANT would be predicted for a party that does not
+    #     exist. Constructed; the "before" values are asserted first, so the
+    #     check can see a merge that did nothing.
+    run3 = _Run()
+    run3.universe = ["ANC", "NEWCO", "ENTRANT"]
+    run3.index = {"ANC": 0, "NEWCO": 1, "ENTRANT": 2}
+    run3.seat_draws = [{"ANC": 5, "ENTRANT": 1}]
+    run3.ward_win_sum, run3.overhang_count, run3.notes = {}, {}, {}
+    run3.pr_share_draws = np.array([[0.6, 0.1, 0.3]])
+    run3.ward_share_draws = None
+    run3.ward_winner_counts = None
+    run3.pr_vote_draws = np.array([[600, 100, 300]], dtype=np.int64)
+    run3.ward_vote_draws = np.array([[590, 110, 290]], dtype=np.int64)
+    run3.ward_winner_draws = np.array([[0, 2, 1, 2]], dtype=np.int16)
+    assert run3.pr_vote_draws[0, 2] and (run3.ward_winner_draws == 2).any()
+    B.relabel_run(run3, "NEWCO")
+    assert run3.pr_vote_draws.tolist() == [[600, 400, 0]]
+    assert run3.ward_vote_draws.tolist() == [[590, 400, 0]]
+    assert run3.ward_winner_draws.tolist() == [[0, 1, 1, 1]]
+    assert run3.seat_draws == [{"ANC": 5, "NEWCO": 1}]
+
     # 3. Every module that works out WHICH party arrived must then apply it to
     #    the run, not to one call site. This is the fault that got through.
     for module in ("compare_history.py", "diagnose.py"):
@@ -822,12 +846,6 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # `SPINE_K` learns to trust the register less. Added 2026-08-31 (§1.141)
         # after this guard correctly caught a bare `SCHEMA = 1` in a new module.
         "SCHEMA",
-        # `export_draws.PR_SHARE_STEP` — the storage precision of the PR shares
-        # in the interactive's draw file (a thousandth of a percentage point).
-        # OPERATIONAL, the `SCHEMA` argument: it sets how a file is laid out,
-        # moves no draw, seat or published figure, and the block table declares
-        # it to the reader. Added 2026-09-28 with the export (PLAN.md S2).
-        "PR_SHARE_STEP",
         # --- operational residue surfaced by the 2026-08-23 widening ---
         "timeout",        # HTTP timeouts in the three fetch_* tools
         "steps",          # `_scale_into_box` solver iterations

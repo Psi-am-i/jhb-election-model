@@ -47,7 +47,7 @@ The pages are ES modules, so `file://` does not work.
 `node interactive/tools/sync_py.mjs` (`--check` to verify). It writes
 `interactive/py/` (gitignored): the seat code, with worker-api's own copy rule
 and file list, plus the seat Worker's `entry.py`; and, separately, the page
-code in `py/page/` (`PAGE_FILES`: `reweight.py`, `start_rule.py` and their
+code in `py/page/` (`PAGE_FILES`: `reweight.py`, `prediction.py` and their
 import closure; `PAGE_DATA`: files that closure opens, none today).
 `manifest.json` carries both lists and a hash of each. The build runs it.
 
@@ -129,15 +129,14 @@ its data and its seat Worker (a second Pyodide) when the reader comes near it,
 or at once for a link carrying a section 2 forecast or `#break`.
 
 **Where it starts.** Untouched, section 1 is the published forecast and
-section 2 opens at the published start (`build_make.start_state`, written
-into `forecast.json`): each ward's modal winner over the published draws
-(`score_forecasts.model_forecast`), and shares that seat each party the seat
-panel names at its published middle, or its ward count where higher, Others
-taking the rest (`src/start_rule.py`, whose docstring states the rule). Once
-section 1 moves, `page.py`'s `handoff` applies the same rule to the reader's
-weighted draws: each ward's most likely winner under the reader's changes
-(exactly the winners section 1 shows), and shares from the weighted middles
-of the statutory seats. While section 2 is unedited it follows section 1;
+section 2 opens at our prediction (`build_make.start_state`, written into
+`forecast.json`): rule A over the published draws, each ward to the party
+that wins it in the most simulations and each party's mean ward-ballot and
+list-ballot votes, seated by the law (`src/prediction.py`, whose docstring
+states the rule; `score_forecasts.model_forecast` calls it). Once section 1
+moves, `page.py`'s `handoff` applies the same rule to the reader's weighted
+draws: each ward's call under the reader's changes (exactly the winners
+section 1 shows), and the weighted mean votes on each ballot. While section 2 is unedited it follows section 1;
 once edited, a change in section 1 overwrites nothing, and the status line
 offers to start again from it (undo restores the edits). A link's forecast
 is kept as the reader's. While the forecast is still its start, a line under

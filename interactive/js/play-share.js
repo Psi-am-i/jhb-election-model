@@ -9,7 +9,7 @@
 //    not a reader's forecast and not an entry.
 //  * Once a setting is moved, the reader shares a forecast of their own,
 //    like section 2's: section 1's hand-off (the forecast section 2 opens
-//    at from these settings: page.py handoff, src/start_rule.py), seated by
+//    at from these settings: page.py handoff, src/prediction.py), seated by
 //    the seat Worker, its chance worked out by page.py analyse, under the
 //    reader's name, sealed and entered (share-sheet.js). make.js does that
 //    work (setHandoff); the link carries section 1's settings and the sealed

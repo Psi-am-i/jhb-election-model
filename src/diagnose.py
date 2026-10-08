@@ -402,12 +402,15 @@ def main(argv: list[str] | None = None) -> int:
     # comparing it to a chamber was the thing the copy left behind.
     scores = seat_scores(run_.seat_draws, actual_seats, target.council)
     model_seats = scores["marginal"]
-    # Model ward wins: the modal winner of each ward, which is the call it makes.
+    # Model ward wins: the modal winner of each ward, which is the call it
+    # makes, by rule A's call (prediction.top_party; a tie to the code first in
+    # string order, where max() took the first in dict order).
+    import prediction
     model_ward_call: dict[str, str] = {}
     probs = run_.ward_probabilities()
     for ward, dist in probs.items():
         if dist:
-            model_ward_call[ward] = max(dist, key=dist.get)
+            model_ward_call[ward] = prediction.top_party(dist)
     model_wardwins = Counter(model_ward_call.values())
 
     print("\n2. SEATS — total, ward and list, because they fail differently\n")

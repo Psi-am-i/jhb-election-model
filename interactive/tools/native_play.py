@@ -68,6 +68,14 @@ def run(ns) -> list[dict]:
     return out
 
 
+def held_wards(ward_calls: dict) -> dict[str, int]:
+    """Each party's count of called wards (the analysis input this harness uses)."""
+    out: dict[str, int] = {}
+    for party in ward_calls.values():
+        out[party] = out.get(party, 0) + 1
+    return out
+
+
 def run_section2(ns) -> list[dict]:
     """Section 2's two calls on the settings ``play-settings.json`` names:
     the hand-off, then the analysis of the forecast it hands over."""
@@ -77,11 +85,16 @@ def run_section2(ns) -> list[dict]:
     out = []
     for name in doc["section2"]["cases"]:
         h = json.loads(ns["handoff"](json.dumps({"settings": by_name[name], "total": total})))
+        # The hand-off carries no seats (rule A: they are derived, by the seat
+        # Worker on the page). The analysis needs a council-shaped input, and
+        # this harness compares two runtimes on ONE input, so each party's
+        # called wards stand in for its seats (page.test.mjs builds the same).
+        seats = held_wards(h["ward_calls"])
         # the two parties with most seats as the governing coalition, so the
         # outcome's coalition part is exercised (page.test.mjs picks the same)
-        two = sorted(h["seats"], key=lambda c: (-h["seats"][c], c))[:2]
+        two = sorted(seats, key=lambda c: (-seats[c], c))[:2]
         a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": h["share"],
-                                                 "seats": h["seats"], "coalition": two})))
+                                                 "seats": seats, "coalition": two})))
         out.append({"name": name, "handoff": h, "analyse": a})
     return out
 

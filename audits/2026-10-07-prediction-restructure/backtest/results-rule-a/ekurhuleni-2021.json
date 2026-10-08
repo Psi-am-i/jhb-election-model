@@ -1,0 +1,41 @@
+{
+ "city": "ekurhuleni",
+ "year": "2021",
+ "draws": 1000,
+ "council": 224,
+ "wards": 112,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "AIC": 2,
+   "ANC": 96,
+   "APC": 1,
+   "ASA": 9,
+   "ATM": 1,
+   "BLACK_FIRST_LAND_FIRST": 1,
+   "DA": 67,
+   "EFF": 30,
+   "IFP": 3,
+   "NFP": 1,
+   "PA": 1,
+   "PAC": 1,
+   "THE_NATIONALS_OF_SOUTH_AFRICA": 1,
+   "UDM": 1,
+   "VFPLUS": 7
+  },
+  "seat_err": 30.0,
+  "wards_ok": 107,
+  "ward_vote_err_pp": 14.122018053172308,
+  "list_vote_err_pp": 15.088320540529843,
+  "top": "ANC",
+  "top_wards": 78,
+  "top_actual_wards": 78,
+  "excessive": {},
+  "council": 224,
+  "ward_wins": {
+   "DA": 34,
+   "ANC": 78
+  }
+ }
+}

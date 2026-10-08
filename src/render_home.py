@@ -122,7 +122,8 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
     Seats and the clause come from the run's `seat_detail_draws.csv` (its
     `excessive` flag counts a party exactly at its quota, as the statute does);
     the list vote from the published draw export (`site/draws`, block
-    `pr_share`), the only place the run's per-simulation shares are kept. The
+    `list_vote`, whole votes, as a share by `reweight.list_shares`), the only
+    place the run's per-simulation list votes are kept. The
     two are joined by simulation number, and refused unless they hold the same
     seats for ``party`` in every simulation: two different runs would join
     silently otherwise.
@@ -144,7 +145,7 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
     blocks = _rw.unpack((draws / "base.bin").read_bytes(), man)
     cols = {b["name"]: b["columns"] for b in man["blocks"]}
     statute = blocks["seats/deduct"][:, cols["seats/deduct"].index(party)]
-    share = blocks["pr_share"][:, cols["pr_share"].index(party)]
+    share = _rw.list_shares(blocks["list_vote"])[:, cols["list_vote"].index(party)]
     order = sorted(seats)
     if order != list(range(len(statute))) or any(seats[d] != int(statute[d]) for d in order):
         raise SystemExit(
@@ -273,7 +274,7 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
                                    f"seat_detail_draws.csv seats over seat_draws.csv "
                                    f"council_size, median {o_src}"),
         "lede_overhang_votes": tok("home.overhang_list_share", f"{o_votes:.6f}", "pct0",
-                                   f"site/draws pr_share, median {o_src}"),
+                                   f"site/draws list_vote, median {o_src}"),
     }
     assert set(values) == set(LEDE_PLACEHOLDERS), "LEDE_PLACEHOLDERS is the list"
     lede = load_lede(city_dir)

@@ -47,8 +47,8 @@ the one asked (MODEL-LOG §1.231).
 **`run_model` writes each stage of a run as JSON when given `--run-dir`.** That
 trace is the seam every gate hangs on, and the seam is free in both directions:
 
-* **Observing does not perturb.** The drawn seats and both drawn share arrays
-  are identical with and without a run directory —
+* **Observing does not perturb.** The drawn seats, both drawn share arrays
+  and both recorded vote arrays are identical with and without a run directory —
   `test_chain.py::test_passing_a_run_directory_changes_no_drawn_number` runs the
   model twice on one seed and compares them. (It compares the draws, not the
   bytes of the run. Read its docstring before citing it for anything wider.)
@@ -63,8 +63,9 @@ The stages, grouped by the segment that owns them:
 
     00_target · 01_scenario_in · 02_pools_artefact · 03_roster     inputs
     10_theta_prior · 20_spine · 30_centres                         estimation
-    40_draws · 41_guards · 42_pr_share_draws
-    43_ward_share_draws · 44_seat_draws · 45_delivered             realisation
+    40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws
+    42a_pr_vote_draws · 43a_ward_vote_draws
+    44_seat_draws · 45_delivered                                   realisation
 
 Each segment has a skill that documents its stages field by field, with units,
 invariants and the traps that have already caught readers out, and a test module
@@ -96,18 +97,14 @@ and a **constructed** broken one it must catch. Constructed, not copied out of a
 passing run: a fixture lifted from a green tree expires silently on the day the
 tree changes (`CLAUDE.md` §4, requirement 3).
 
-⛔ **The pairing is mechanised in two of the three segments, and this is the one
-place this document's own rule is a convention rather than a guard.** Inputs and
-estimation declare their invariants and their violations in tables and assert
-that the two sets agree **in both directions** —
-`test_the_corruption_table_covers_every_declared_invariant`,
-`test_every_predicate_has_a_constructed_violation` — so a predicate with no
-violation, or a violation naming an invariant nobody declared, is a failure.
-Realisation writes its healthy/broken pairs out test by test and nothing asserts
-the set is complete: a realisation predicate added without its pair is not
-caught. Until then the rule there is maintained by hand. **Done when
-`tests/test_stage_realisation.py` carries a coverage assertion that fails in both
-directions, as the other two do.**
+**The pairing is mechanised in all three segments.** Each declares its
+predicates and their constructed violations in tables and asserts that the sets
+agree **in both directions**: inputs by
+`test_the_corruption_table_covers_every_declared_invariant`, estimation and
+realisation by `test_every_predicate_has_a_constructed_violation` (realisation's
+also holds its registry equal to every `faults_*` function in the module). A
+predicate with no violation, or a violation naming a predicate nobody declared,
+is a failure.
 
 ⚠️ **A positive control can itself be blind, and one here was.**
 `bounds_violations` counted draws rather than bound-checks, so its control could
