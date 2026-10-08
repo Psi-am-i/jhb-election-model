@@ -129,3 +129,27 @@ the specification; this is the index.
 - One whole-suite run moves forward, to after the `run_model` slice, because
   that slice touches `montecarlo.py`.
 - The final whole suite at S5 stays.
+
+## Owner's decisions (2026-10-08) and corrections
+
+1. **Agreed.** Whole votes per ballot. **Correction:** `ModelRun` already returns
+   `ward_share_draws` and `pr_share_draws` (`montecarlo.py:3500-3501`, *verified*).
+   - What is missing: the ward block is not exported, and the two per-draw ballot
+     totals are not recorded.
+   - Recording two computed totals is "adding a recorded field", which FLOW.md
+     exempts from an early whole suite. So no early run is needed.
+   - Targeted modules only: `test_chain`'s no-perturb test, `test_export_draws`,
+     `test_served_draws`, and the stage tests.
+   - The served share step (`PR_SHARE_STEP`) is 1e-5, so rounding matters only
+     for a party under about ten votes. That is incidental.
+2. **Agreed.** OTHER kept in the quota pool, shown as "Others".
+3. **Clarified.** A reader sets ward winners and citywide ward votes separately,
+   and the entry can be internally impossible. Allow it with a note. Refuse
+   only a ward winner with zero ward vote, or a ward winner with zero list vote.
+4. **Changed.** Ours is sealed manually, when the owner is happy with it. One
+   command seals, reads the row back and commits a ledger row.
+   - G16 shrinks to: `rank_entries` marks ours by ledger `seal_id`, and refuses
+     if the ledger and D1 disagree.
+   - "Every version sealed" and the cut-off rule are dropped.
+5. Placeholder schema: to be checked in S1.
+6. Not answered yet.
