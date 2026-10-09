@@ -385,20 +385,49 @@ def test_the_comparator_CAN_SEE_a_stale_file():
         "violation was reverted, so it is not reading the file it names.")
 
 
-def _build_group_share_record(out: Path) -> Path:
-    """Build the record from empty into ``out`` (never into data/processed)."""
+def _build_group_share_record(out: Path, root: Path = ROOT) -> Path:
+    """Build the record from empty into ``out`` (never into data/processed),
+    running the builder in ``root``'s ``src/``."""
     proc = subprocess.run([str(PY), "src/group_share_record.py", "--out",
-                           str(out)], cwd=ROOT, capture_output=True, text=True)
+                           str(out)], cwd=root, capture_output=True, text=True)
     assert proc.returncode == 0, proc.stderr[-400:]
     return out / "group_share_record.json"
+
+
+def _record_staleness(live: Path, fresh: Path) -> str | None:
+    """The G15 detector: why ``live`` is not today's build ``fresh``, or None."""
+    if live.read_bytes() != fresh.read_bytes():
+        return ("group_share_record.json differs from a fresh build: re-emit "
+                "it in a window and measure, as for any precomputed artefact")
+    return None
+
+
+def _scratch_tree(edit=None) -> Path:
+    """A tree whose ``src/`` is a COPY of this one's (``edit`` may rewrite
+    ``group_share_record.py``) and whose every other top-level entry is a
+    link to this one's, so it reads the same data and writes nothing here."""
+    tree = Path(tempfile.mkdtemp(prefix="group-share-tree-"))
+    for entry in ROOT.iterdir():
+        if entry.name in ("src", ".git"):
+            continue
+        (tree / entry.name).symlink_to(entry)
+    shutil.copytree(ROOT / "src", tree / "src",
+                    ignore=shutil.ignore_patterns("__pycache__"))
+    if edit is not None:
+        target = tree / "src" / "group_share_record.py"
+        before = target.read_text(encoding="utf-8")
+        after = edit(before)
+        assert after != before, "the constructed edit changed nothing"
+        target.write_text(after, encoding="utf-8")
+    return tree
 
 
 def test_the_group_share_record_is_a_fresh_build():
     """G15 (BRIEF item 12): the record on disk is what today's code builds.
 
     Rebuilt from an EMPTY directory, so nothing scores current by never being
-    rewritten, and compared byte for byte. It can see: a byte appended to the
-    rebuilt copy is caught, and the detector is quiet once it is removed.
+    rewritten, and compared byte for byte by `_record_staleness`, whose
+    ability to see a real stale record is the next test's.
     Red until the re-emit window runs `--emit` (SPEC R3.6, slice M3).
     """
     live = PROCESSED / "group_share_record.json"
@@ -410,16 +439,47 @@ def test_the_group_share_record_is_a_fresh_build():
     try:
         assert not any(tmp.iterdir()), "the scratch directory is not empty"
         made = _build_group_share_record(tmp)
-        assert made.read_bytes() == live.read_bytes(), (
-            "group_share_record.json differs from a fresh build: re-emit it "
-            "in a window and measure, as for any precomputed artefact")
-        original = made.read_bytes()
-        made.write_bytes(original + b"\n")
-        assert made.read_bytes() != live.read_bytes()
-        made.write_bytes(original)
-        assert made.read_bytes() == live.read_bytes()
+        problem = _record_staleness(live, made)
+        assert problem is None, problem
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_the_group_share_freshness_check_can_see_a_real_stale_record():
+    """G15's "can see", on a REAL stale record (M3 review row 6: until
+    2026-10-09 this step appended a byte to the rebuilt copy and compared it
+    with itself, which tests nothing).
+
+    A stale record is one built by other code. Constructed: the builder run
+    in a scratch tree whose ``group_share_record.py`` covers one city instead
+    of eight. `_record_staleness` must flag it against today's build, and go
+    quiet on a build from the same scratch tree with the edit reverted, which
+    also shows the tree's location is not what differs. Does not need the
+    record on disk. Cost: two full builds and one one-city build.
+    """
+    old = 'CITIES = ("joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",'
+    one_city = (lambda text: text.replace(
+        old, 'CITIES = ("joburg",)\n_WAS = ("joburg", "tshwane", "ekurhuleni", '
+             '"ethekwini", "capetown",', 1))
+    dirs = []
+    try:
+        fresh_dir = Path(tempfile.mkdtemp(prefix="group-share-"))
+        dirs.append(fresh_dir)
+        fresh = _build_group_share_record(fresh_dir)
+        for edit, stale in ((one_city, True), (None, False)):
+            tree = _scratch_tree(edit)
+            out = Path(tempfile.mkdtemp(prefix="group-share-"))
+            dirs += [tree, out]
+            built = _build_group_share_record(out, root=tree)
+            problem = _record_staleness(built, fresh)
+            if stale:
+                assert problem, "a record built by other code read as current"
+            else:
+                assert problem is None, ("a build of today's code from a "
+                                         "scratch tree reads as stale")
+    finally:
+        for d in dirs:
+            shutil.rmtree(d, ignore_errors=True)
 
 
 def test_the_scratch_root_really_was_purged():

@@ -474,37 +474,72 @@ def test_metro_roster_and_vote_presence_still_agree_where_the_poll_path_looks():
 def test_the_size_window_reads_no_election_at_or_after_its_target():
     """G21 (BRIEF item 16). ``levels.size_window`` walks the calendar's
     targets up to the one it is deriving for; every file it opens, for either
-    record, is dated strictly before that target. Population: every runnable
-    target year of every city, asserted equal to ``compare_history.runnable``'s
-    union, plus the live 2026 forecast."""
+    record, is dated strictly before that target.
+
+    The expected sets are built from the calendar and the disk, not from
+    anything ``size_window`` or the record functions return (M3 review row 6:
+    the population check compared the scanned list with itself).
+
+    * **Population:** the target years of the emitted pool specs on disk
+      (``data/processed/**/pools_<year>.json``), every city, asserted equal
+      both ways to a second source: ``compare_history.runnable``'s union over
+      the city configs, plus the live 2026 forecast. Each scanned.
+    * **It looked, and read the right files:** for θ, the set of elections
+      read is exactly every LGE with results before the target and the
+      national election preceding each (``cityconfig.preceding``); for ρ,
+      exactly every LGE with results before the target. Both directions, so
+      a skipped earlier election fails as well as a late one. (This assumes
+      no ``THETA_EXCLUDE_TARGETS`` or ``THETA_WINDOW`` trims the θ record; if
+      one is configured, the expected θ set must say so.)
+    * ``report["targets"]`` is the calendar's LGE years up to the target.
+    """
     sys.path.insert(0, str(ROOT / "src"))
     import cityconfig
     import compare_history
     import levels
     from _support import election_files_read
 
-    runnable = set()
-    slugs = sorted(p.stem for p in (ROOT / "cities").glob("*.toml"))
-    assert slugs, "no city configs: the scan saw nothing"
-    for slug in slugs:
-        years, _refused = compare_history.runnable(cityconfig.load(slug))
-        runnable |= set(years)
-    population = sorted(runnable | {"2026"}, key=int)
-    checked = []
+    on_disk = {p.stem.split("_", 1)[1]
+               for p in (ROOT / "data" / "processed").rglob("pools_*.json")}
+    population = sorted((y for y in on_disk if y.isdigit()), key=int)
+    assert population, "no emitted pool spec on disk: the scan saw nothing"
+    runnable = {"2026"}
+    for toml in sorted((ROOT / "cities").glob("*.toml")):
+        runnable |= set(compare_history.runnable(cityconfig.load(toml.stem))[0])
+    assert set(population) == runnable, (
+        f"spec years on disk {population} and the runnable years plus 2026 "
+        f"{sorted(runnable)} disagree: one of the two populations is wrong")
+    assert not levels.THETA_EXCLUDE_TARGETS and not levels.THETA_WINDOW, (
+        "a θ record trim is configured; the expected θ file set below "
+        "assumes none")
+    cal = cityconfig.CALENDAR
+    lge_results = sorted((y for y, e in cal.items()
+                          if e.kind == "LGE" and e.results), key=int)
     city = cityconfig.load("joburg")
     for year in population:
         target = cityconfig.Target(city=city, year=year)
+        earlier = [y for y in lge_results if int(y) < int(year)]
+        npes = {cityconfig.preceding(y, "NPE") for y in earlier}
+        npes = {n for n in npes if n and cal[n].results}
+        want = {"theta_record": {(y, "LGE") for y in earlier
+                                 if cityconfig.preceding(y, "NPE") in npes}
+                | {(n, "NPE") for n in npes},
+                "local_record": ({(y, "LGE") for y in earlier}
+                                 if len(earlier) >= 2 else set())}
         for record_fn in (levels.theta_record, levels.local_record):
             with election_files_read() as reads:
                 _h, report = levels.size_window(target, record_fn)
-            assert reads, f"size_window at {year} opened no election file"
-            late = sorted({(y, k) for y, k, _ in reads if int(y) >= int(year)})
+            got = {(y, k) for y, k, _ in reads}
+            late = sorted(g for g in got if int(g[0]) >= int(year))
             assert not late, (f"size_window for {year} "
                               f"({record_fn.__name__}) read {late}")
-            assert report["targets"][-1] == year
-        checked.append(year)
-    assert set(checked) == runnable | {"2026"}, (checked, sorted(runnable))
-    assert runnable, "no runnable target: the scan saw nothing"
+            expected = want[record_fn.__name__]
+            assert got == expected, (
+                f"size_window for {year} ({record_fn.__name__}) read "
+                f"{sorted(got)}; the calendar says {sorted(expected)}")
+            assert report["targets"] == [y for y in sorted(
+                (y for y, e in cal.items() if e.kind == "LGE"), key=int)
+                if int(y) <= int(year)], report["targets"]
 
 
 # The two data-coverage tests that lived here from 2026-08-23 moved to

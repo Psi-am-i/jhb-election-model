@@ -1020,7 +1020,12 @@ def test_only_observations_from_a_similar_size_enter_a_partys_own_mean():
     own mean and worth; at ``h = inf`` both do; with every observation outside
     the window, its ``mu`` is the size centre at 3% and its ``worth`` is 0.
     ``theta_prior`` and ``_shrunk`` agree party for party at the same ``h``.
-    ``h = inf`` reproduces item 11a on the real 2021 record exactly.
+    ``h = inf`` reproduces item 11a on the real 2021 record exactly: the shrink
+    is written out here from its definition (own reliability-weighted log-mean
+    over EVERY observation, pulled toward the size centre at the current size
+    by ``worth/(worth + SHRINK)``), not through ``_shrink_one``. (Until
+    2026-10-09 this line compared ``_shrunk`` at its default ``h`` with
+    ``_shrunk`` at ``h = inf``, the same call twice; M3 review row 6.)
     """
     record = _filler()
     near, far = (1.10, 0.03), (3.00, 0.0002)
@@ -1057,9 +1062,26 @@ def test_only_observations_from_a_similar_size_enter_a_partys_own_mean():
 
     baseline_2021 = _real_baseline("2021")
     real = levels.theta_record(_real_target("2021"))
-    a, _m, wa = levels._shrunk(real, current=baseline_2021)
-    b, _m, wb = levels._shrunk(real, current=baseline_2021, h=float("inf"))
-    assert a == b and wa == wb
+    got, _m, worth = levels._shrunk(real, current=baseline_2021,
+                                    h=float("inf"))
+    fit_real = levels.size_centre(real)
+    assert fit_real, "the real 2021 record gave no size fit"
+    checked = 0
+    for party, obs in real.items():
+        size = float(baseline_2021.get(party, 0.0) or 0.0)
+        if size <= 0.0:
+            continue
+        rel = [_rel(sz) for _r, sz in obs]
+        own = sum(w * math.log(r) for w, (r, _sz) in zip(rel, obs)) / sum(rel)
+        target = fit_real[0] + fit_real[1] * math.log(max(size, 1e-6))
+        weight = _weight(sum(rel))
+        assert abs(worth[party] - sum(rel)) < 1e-9, party
+        assert abs(got[party] - (weight * own + (1 - weight) * target)) < 1e-9, party
+        checked += 1
+    # It looked: the parties with a 2021 national share and a θ record.
+    expected = sum(1 for party in real
+                   if float(baseline_2021.get(party, 0.0) or 0.0) > 0.0)
+    assert checked == expected and checked >= 10, (checked, expected)
 
 if __name__ == "__main__":
     raise SystemExit(run_module(sys.modules[__name__]))

@@ -991,7 +991,7 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 
 **Limits.** It reports and changes nothing; a firing pair is a question for a person. The margin is taken from fitted rates, which are noisy in small pools (the Indian/Asian margin is large), so the tripwire is least sensitive there. At a target with one fitted local election before it there is no cycle and the margin is 0. National-election composition is carried forward from the preceding local election (argued).
 
-**How to check it.** `tests/test_stage_realisation.py::test_the_group_share_tripwire_can_see_and_goes_quiet` and `::test_the_group_share_tripwire_scans_every_member_of_a_real_run` (G14); `tests/test_intermediates_are_current.py::test_the_group_share_record_is_a_fresh_build` (G15). The firing rate per arm is the batch's measurement (SPEC §6 item 12, P16).
+**How to check it.** `tests/test_stage_realisation.py::test_the_group_share_tripwire_can_see_and_goes_quiet` and `::test_the_group_share_tripwire_scans_every_member_of_a_real_run` (G14); `tests/test_intermediates_are_current.py::test_the_group_share_record_is_a_fresh_build` and `::test_the_group_share_freshness_check_can_see_a_real_stale_record` (G15). The firing rate per arm is the batch's measurement (SPEC §6 item 12, P16).
 
 
 ## B. Measured, but the form or the selection was chosen
