@@ -193,7 +193,10 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # (audits/2026-10-07-prediction-restructure/s1/SPEC-A.md): our
            # prediction is rule A from one function, and its guards see.
            # Constructed inputs only; runs no model and reads no data.
-           "test_prediction_rule"]
+           "test_prediction_rule",
+           # Added 2026-10-09 with the model correction batch, slice M2 (G7):
+           # unopposed wards, scanned over every metro LGE file on disk.
+           "test_unopposed"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

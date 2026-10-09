@@ -336,7 +336,13 @@ def _citywide_and_roster(path) -> tuple[dict[str, float], set[str]]:
     raw: set[str] = set()
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
-            for row in csv.DictReader(fh):
+            reader = csv.DictReader(fh)
+            # Both columns are read with `.get` or by key below; a renamed
+            # `Party_Votes` would otherwise read as zero votes everywhere.
+            for col in ("sPartyName", "Party_Votes"):
+                if col not in (reader.fieldnames or ()):
+                    raise KeyError(col)
+            for row in reader:
                 name = row["sPartyName"]
                 raw.add(name)
                 if row.get("BallotType") in (None, "", "PR"):
@@ -344,8 +350,11 @@ def _citywide_and_roster(path) -> tuple[dict[str, float], set[str]]:
                         float(row.get("Party_Votes") or 0))
     except FileNotFoundError:
         return _absent(path), set()
-    except KeyError:
-        return {}, set()
+    except KeyError as exc:
+        # A RENAMED COLUMN IS NOT AN EMPTY ELECTION. This returned `{}` until
+        # 2026-10-09, which every caller reads as "nobody voted" (BRIEF item 10).
+        raise SystemExit(f"{path}: column {exc} missing — a renamed column, "
+                         f"not an empty election") from None
     total = sum(counts.values())
     return ({k: v / total for k, v in counts.items()} if total else {},
             {P.canonical(n) for n in raw})
@@ -1577,3 +1586,114 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
             wards[P.canonical(row["sPartyName"])].add(ward)
     n = len(seen)
     return {p: len(w) / n for p, w in wards.items()} if n else {}
+
+
+# ---------------------------------------------------------------------------
+# UNOPPOSED WARDS (Schedule 1 item 12(2), 13(1)(b), 16(5))
+# ---------------------------------------------------------------------------
+# A ward whose only candidate is elected unopposed (item 8A) holds no ward
+# ballot, and the statute counts every PR vote cast for that candidate's party
+# by the ward's voters twice. The seat law takes those votes as an input
+# (`seats.eligible_parties(..., unopposed_pr=)`). The draw loop does not model
+# such a ward: no ward in any metro LGE file 2000-2021 has one, and every 2026
+# Johannesburg ward lists many parties, so a draw-loop branch would have no
+# case to score. `montecarlo.run_model` refuses a target that has one instead.
+# JUDGEMENT-CALLS §Q7.
+
+
+def unopposed_in(ward_parties: dict[str, set[str]],
+                 all_wards) -> dict[str, str | None]:
+    """The unopposed wards in one election, from who stood in each ward.
+
+    ``ward_parties`` maps a ward to the parties on its ward ballot;
+    ``all_wards`` is every ward the election covers. Returns ``{ward: party}``
+    for a ward with exactly one ward-ballot party, ``IND`` counting as a party,
+    and ``{ward: None}`` for a ward with no ward-ballot party at all: a result
+    file shows an unopposed ward that way, with PR rows and no ward rows, and
+    does not say who the candidate was. A pure function so the result-file and
+    the declared-slate readers share one rule.
+    """
+    out: dict[str, str | None] = {}
+    for ward in all_wards:
+        stood = ward_parties.get(ward) or set()
+        if len(stood) == 1:
+            out[ward] = next(iter(stood))
+        elif not stood:
+            out[ward] = None
+    return out
+
+
+def ward_ballots(path) -> tuple[dict[str, set[str]], set[str]]:
+    """Every ward a result file covers, and the parties on each ward ballot.
+
+    Returns ``(ward_parties, all_wards)``: ``all_wards`` is every ward named on
+    a row of either ballot, so a ward with PR rows only is in it and absent
+    from ``ward_parties``. A row is a nomination fact whatever its vote count
+    (see :func:`contestation`). Party names are canonical.
+    """
+    ward_parties: dict[str, set[str]] = defaultdict(set)
+    all_wards: set[str] = set()
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            ward = (row.get("Ward") or "").strip()
+            if not ward:
+                continue
+            all_wards.add(ward)
+            if row.get("BallotType") == "Ward":
+                ward_parties[ward].add(P.canonical(row["sPartyName"]))
+    return dict(ward_parties), all_wards
+
+
+def unopposed_wards(target: cityconfig.Target,
+                    city: cityconfig.City) -> dict[str, str | None]:
+    """``{ward: party}`` for each unopposed ward at ``target``.
+
+    From the target's result file where it exists (:func:`ward_ballots`, every
+    ward on either ballot). Otherwise from the declared slates,
+    ``[roster.wards]`` in the judgement file (``pools.declared_roster``): a
+    ward listed for exactly one party. A ward the declaration does not mention
+    is not reported, because a partial paste cannot say nobody stood there.
+    ``{}`` when neither source exists. ``None`` as a value means the result
+    file shows the ward with no ward ballot and does not name the candidate.
+    """
+    if has_result_file(target, city):
+        ward_parties, all_wards = ward_ballots(result_path(target, city))
+        return unopposed_in(ward_parties, all_wards)
+    import pools as _pools          # lazy: `pools` imports this module
+
+    declared = (_pools.declared_roster(city, target) or {}).get("wards") or {}
+    ward_parties: dict[str, set[str]] = defaultdict(set)
+    for party, wards in declared.items():
+        for ward in wards:
+            ward_parties[str(ward).strip()].add(party)
+    return unopposed_in(ward_parties, set(ward_parties))
+
+
+def unopposed_pr_votes(path, unopposed: dict[str, str | None],
+                       ) -> dict[str, int]:
+    """``{party: its PR votes in the wards it won unopposed}``, from a result file.
+
+    The input :func:`seats.eligible_parties` counts a second time (Schedule 1
+    item 12(2)). Refuses a ward whose candidate the file does not name, since
+    the votes to double cannot then be chosen.
+    """
+    if not unopposed:
+        return {}
+    unnamed = sorted(w for w, p in unopposed.items() if p is None)
+    if unnamed:
+        raise SystemExit(
+            f"{path}: ward(s) {unnamed} hold no ward ballot, so the candidate "
+            f"was elected unopposed, and the file does not say for which "
+            f"party. Schedule 1 item 12(2) doubles that party's PR votes in "
+            f"the ward; name it before the council can be reconstructed "
+            f"(JUDGEMENT-CALLS §Q7).")
+    out: dict[str, int] = defaultdict(int)
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("BallotType") != "PR":
+                continue
+            ward = (row.get("Ward") or "").strip()
+            party = P.canonical(row["sPartyName"])
+            if unopposed.get(ward) == party:
+                out[party] += int(float(row.get("Party_Votes") or 0))
+    return dict(out)

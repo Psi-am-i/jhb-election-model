@@ -35,19 +35,21 @@ constructed corrupted one, and a real 40-draw trace generated in the test.
 parties at joburg 2021). `ward_win_sum` (5 parties) and `seat_mean` are subsets
 — `seat_mean`'s keys are the union of what the seat draws contain.
 
-### `41_guards` — twenty counters. **Exactly twenty; the list is in the test.**
+### `41_guards` — the counters. **The list is in the test (`GUARD_KEYS`).**
 
 Three are **denominators**, not events, and everything else is read against
 them:
 
-* `bounds_checked` — incremented once per draw, so it **IS** the draw count.
-  Nothing else in the payload is, which makes it the only field tying the board
-  to the draws it describes.
+* `draws` — the run's draw count (added 2026-10-09). Nothing else in the
+  payload is, which makes it the only field tying the board to the draws it
+  describes. `bounds_checked` held this role until it became per party (below).
+  `overhang_count` and `excessive_draws` are read against it.
 * `ipf_balances` — one per draw in which the shock was non-degenerate.
 * `solve_calls` — two per draw (`solve_and_predict` runs twice).
 
 The events: `bounds_violations` (per party, §3.5 θ-bound breaches, denominator
-`bounds_checked`), `ipf_failures` (balances that fell back to `partial_balance`,
+`bounds_checked`, the per-party count of draws in which that party was checked,
+since 2026-10-09; a city that declares no §3.5 ranges checks nobody), `ipf_failures` (balances that fell back to `partial_balance`,
 discarding the level shock for **every** party in that draw),
 `ipf_clipped` (per party, draws held at pool capacity), `ipf_headroom`
 (per party, pre-draw ask ÷ capacity — the only sight of who is *about* to be
@@ -120,7 +122,7 @@ about *magnitudes* is checkable here, and everything about *bookkeeping* is.
    returns something, so every draw seats every ward and the total is conserved
    by construction. A remainder means a ward was skipped or double-counted —
    the only way this number can move.
-4. **`bounds_checked == len(44_seat_draws)`.** The board and the draws came
+4. **`draws == len(44_seat_draws)`** (it was `bounds_checked` until 2026-10-09), and every `bounds_checked[p] <= draws`. The board and the draws came
    from one run, or they did not.
 5. **Every dict-valued counter is bounded by its own denominator**, and the
    orderings hold: `ipf_failures ≤ ipf_balances`, `solve_nonconvergent ≤

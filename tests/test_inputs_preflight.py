@@ -102,3 +102,41 @@ def test_a_stale_roll_snapshot_is_not_counted_as_having_it():
     row = _rows()["2026 voters' roll (registration)"]
     assert row["ok"] == (age <= P.SNAPSHOT_STALE_DAYS), \
         f"snapshot is {age} days old and the row says ok={row['ok']}"
+
+
+def test_the_roll_is_reported_present_not_used():
+    """G18 (BRIEF item 10): the model does not read the 2026 roll, so a
+    snapshot in hand prints `present` and says so, never `ok`.
+
+    Constructed rows, not the archive: one roll row in hand and unused, one
+    ordinary row in hand. The roll row prints `present` and "does not read";
+    the ordinary row is unchanged. Reverted (the roll row marked used), the
+    word goes back to `ok` and the note disappears.
+    """
+    import contextlib
+    import io
+
+    def printed(rows):
+        real = P._rows
+        P._rows = lambda city, target: rows
+        try:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                P.main(["--city", "joburg", "--target", "2026"])
+            return buf.getvalue()
+        finally:
+            P._rows = real
+
+    roll = {"input": "2026 voters' roll (registration)", "level": P.REQUIRED,
+            "ok": True, "used": False, "have": "x", "source": "s", "fix": "f"}
+    other = {"input": "2026 split voting districts", "level": P.REQUIRED,
+             "ok": True, "have": "y", "source": "s", "fix": "f"}
+    out = printed([roll, other])
+    assert "[present] 2026 voters' roll" in out, out
+    assert "the model does not read this input" in out, out
+    assert "[   ok  ] 2026 split voting districts" in out, out
+    reverted = printed([dict(roll, used=True), other])
+    assert "[present]" not in reverted and "does not read" not in reverted, \
+        reverted
+    # and the live row carries the flag
+    assert _rows()["2026 voters' roll (registration)"]["used"] is False

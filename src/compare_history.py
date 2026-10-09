@@ -3034,7 +3034,8 @@ def _guard_cell(board: dict, keys: tuple, kind: str) -> str:
                 + (f" ({top / bottom:.1%})" if bottom else ""))
     if kind == "sumrate":                      # a dict of per-party counts
         top = float(sum((board[keys[0]] or {}).values()))
-        bottom = float(board[keys[1]] or 0)
+        _den = board[keys[1]] or 0           # per party since 2026-10-09
+        bottom = float(sum(_den.values()) if isinstance(_den, dict) else _den)
         return (f"{int(top):,}/{int(bottom):,}"
                 + (f" ({top / bottom:.1%})" if bottom else ""))
     return "—"                                 # pragma: no cover

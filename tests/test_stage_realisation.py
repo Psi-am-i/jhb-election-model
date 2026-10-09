@@ -102,7 +102,7 @@ import seats as seats_module  # noqa: E402
 # carry the key, so the "whole board" the `ModelRun.guards` docstring promises
 # is one counter short of whole. See the SKILL.
 GUARD_KEYS = frozenset({
-    "bounds_checked", "bounds_violations",
+    "bounds_checked", "bounds_violations", "draws",
     "cap_moved", "cap_undershoots",
     "excessive_draws", "overhang_count",
     "ipf_balances", "ipf_failures", "ipf_clipped", "ipf_headroom",
@@ -116,17 +116,23 @@ GUARD_KEYS = frozenset({
 
 # Counters that are COUNTS OF DRAWS, and the denominator each is a fraction of.
 # A rate quoted without its denominator is the defect this table exists against.
+# `bounds_checked` is per party (since 2026-10-09, BRIEF item 10): a party's
+# violations are a fraction of the draws in which IT was checked. A dict
+# denominator is read party by party.
 GUARD_DENOMINATORS = {
     "bounds_violations": "bounds_checked",
     "ipf_clipped": "ipf_balances",
-    "overhang_count": "bounds_checked",
+    "overhang_count": "draws",
 }
 
 # The three denominators. If any is zero the whole board is unreadable: every
 # rate computed from it is 0/0, and a payload of zeros is indistinguishable
 # from a run in which nothing was counted. THIS IS THE POSITIVE CONTROL ON THE
 # OBSERVER ITSELF.
-GUARD_DENOMINATOR_KEYS = ("bounds_checked", "ipf_balances", "solve_calls")
+# `bounds_checked` left this tuple when it became per party: a city that
+# declares no §3.5 ranges checks nobody, and an empty dict there is a fact,
+# not an unread board. `draws` took its place as the run-level denominator.
+GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls")
 
 # `note_value`'s vocabulary. `consulted` is the only one that proves a value
 # reached a computation; `resolved` proves only that the process held it, and
@@ -597,11 +603,14 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                        f"non-negative, finite quantity")
 
     for counter, denom_key in GUARD_DENOMINATORS.items():
-        denom = guards.get(denom_key)
+        denom_all = guards.get(denom_key)
         table = guards.get(counter)
-        if not isinstance(table, dict) or not isinstance(denom, (int, float)):
+        if not isinstance(table, dict) or not isinstance(
+                denom_all, (int, float, dict)):
             continue
         for party, n in sorted(table.items()):
+            denom = (denom_all.get(party, 0) if isinstance(denom_all, dict)
+                     else denom_all)
             if n > denom:
                 out.append(
                     f"41_guards.{counter}[{party}] is {n}, above its own "
@@ -628,16 +637,21 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
         "a mean cannot exceed the worst case it is a mean of")
 
     if draws is not None:
-        for key in ("bounds_checked", "ipf_balances", "excessive_draws"):
+        for key in ("ipf_balances", "excessive_draws"):
             n = guards.get(key)
             if isinstance(n, (int, float)) and n > draws:
                 out.append(f"41_guards.{key}={n} exceeds the {draws} draws")
-        if guards.get("bounds_checked") not in (None, draws):
+        for party, n in sorted((guards.get("bounds_checked") or {}).items()):
+            if isinstance(n, (int, float)) and n > draws:
+                out.append(f"41_guards.bounds_checked[{party}]={n} exceeds "
+                           f"the {draws} draws: a party is checked at most "
+                           f"once per draw")
+        if guards.get("draws") not in (None, draws):
             out.append(
-                f"41_guards.bounds_checked={guards['bounds_checked']} is not "
-                f"the {draws} draws. It is incremented exactly once per draw, "
-                f"so it IS the draw count — and it is the only thing tying "
-                f"this payload to the draws it claims to describe")
+                f"41_guards.draws={guards['draws']} is not "
+                f"the {draws} draws. It is the run's draw count, and it is "
+                f"the only thing tying this payload to the draws it claims "
+                f"to describe")
 
     excessive = guards.get("excessive_draws")
     over = guards.get("overhang_count")
@@ -876,8 +890,9 @@ def healthy_draws_summary(pr, wd, seat_draws, wins=None):
 
 def healthy_guards():
     return {
-        "bounds_checked": DRAWS,
+        "bounds_checked": {"AAA": DRAWS},
         "bounds_violations": {"AAA": 2},
+        "draws": DRAWS,
         "cap_moved": 12.5,
         "cap_undershoots": 0,
         "excessive_draws": 1,
@@ -1191,7 +1206,7 @@ def test_a_zero_denominator_makes_the_whole_board_unreadable():
 
 def test_a_counter_above_its_own_denominator_is_caught():
     guards = healthy_guards()
-    guards["bounds_violations"]["AAA"] = guards["bounds_checked"] + 1
+    guards["bounds_violations"]["AAA"] = guards["bounds_checked"]["AAA"] + 1
     faults = faults_in_guards(guards, draws=DRAWS)
     assert faults and "above its own denominator" in " ".join(faults), faults
 
@@ -1210,18 +1225,27 @@ def test_the_orderings_between_guard_counters_are_enforced():
             (small, big, faults)
 
 
-def test_bounds_checked_is_the_draw_count_and_ties_the_board_to_the_draws():
+def test_draws_ties_the_board_to_the_draws_and_bounds_checked_is_per_party():
     """The only field tying `41_guards` to the draws it claims to describe.
 
-    `bounds_checked` is incremented exactly once per draw, so it IS the draw
-    count. Nothing else in the payload is — every other counter is a count of
-    events that may or may not have happened — so a guards payload from one run
-    read beside another run's draws is invisible without it.
+    `draws` is the run's draw count; every other counter is a count of events
+    that may or may not have happened, so a guards payload from one run read
+    beside another run's draws is invisible without it. `bounds_checked` was
+    that field until 2026-10-09, when it became a per-party count of the draws
+    in which the party was checked (BRIEF item 10); a party's count can never
+    exceed the draws, and its violations can never exceed its count.
     """
     guards = healthy_guards()
     assert not faults_in_guards(guards, draws=DRAWS)
     faults = faults_in_guards(guards, draws=DRAWS + 1)
     assert faults and "is not the" in " ".join(faults), faults
+    over = dict(healthy_guards(), bounds_checked={"AAA": DRAWS + 1})
+    faults = faults_in_guards(over, draws=DRAWS)
+    assert any("bounds_checked[AAA]" in f for f in faults), faults
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)   # reverted
+    few = dict(healthy_guards(), bounds_checked={"AAA": 1})
+    faults = faults_in_guards(few, draws=DRAWS)
+    assert any("above its own denominator" in f for f in faults), faults
 
 
 def test_an_overhang_count_that_cannot_explain_its_own_draws_is_caught():
@@ -1788,8 +1812,8 @@ def test_a_real_trace_passes_every_predicate_in_this_file():
 def test_the_guard_board_on_a_real_run_can_prove_it_looked():
     """Not "no guard fired" — "the guards were in a position to fire".
 
-    Three counters are denominators rather than events: `bounds_checked` is
-    incremented once per draw, `ipf_balances` once per shocked draw and
+    Three counters are denominators rather than events: `draws` is the
+    run's draw count, `ipf_balances` once per shocked draw and
     `solve_calls` twice per draw. If any is zero, every rate on the board is
     0/0 and the silence of the event counters means nothing at all. This is the
     check `arrival_reconciliation` did not have.
@@ -1797,7 +1821,9 @@ def test_the_guard_board_on_a_real_run_can_prove_it_looked():
     payloads, _ = real_trace()
     guards = payloads["41_guards"]
     draws = len(payloads["44_seat_draws"])
-    assert guards["bounds_checked"] == draws, guards["bounds_checked"]
+    assert guards["draws"] == draws, guards["draws"]
+    assert all(n <= draws for n in guards["bounds_checked"].values()), \
+        guards["bounds_checked"]
     assert guards["ipf_balances"] > 0, (
         "no IPF balance was attempted, so the level shock never reached the "
         "pools in any draw and every ipf_* counter below is vacuous")
@@ -1817,7 +1843,10 @@ def test_the_real_boards_counters_are_bounded_by_the_real_draws():
     guards = payloads["41_guards"]
     for counter, denom in GUARD_DENOMINATORS.items():
         for party, n in sorted(guards[counter].items()):
-            assert n <= guards[denom], (counter, party, n, guards[denom])
+            d = guards[denom]
+            d = d.get(party, 0) if isinstance(d, dict) else d  # per party
+            assert n <= d, (counter, party, n, d)
+    assert all(n <= guards["draws"] for n in guards["bounds_checked"].values())
     assert sum(guards["overhang_count"].values()) >= guards["excessive_draws"]
 
 

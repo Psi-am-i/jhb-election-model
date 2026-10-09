@@ -148,15 +148,28 @@ class Allocation:
 
 
 def eligible_parties(
-    ward_votes: dict[str, int], pr_votes: dict[str, int]
+    ward_votes: dict[str, int], pr_votes: dict[str, int],
+    unopposed_pr: dict[str, int] | None = None,
 ) -> dict[str, int]:
     """Return combined ward+PR votes for parties that count towards the quota.
 
     Excludes independents and any party with no PR list, both of which are
     handled through ``C`` and ``D`` rather than through the entitlement pool.
+
+    ``unopposed_pr`` is ``{party: its PR votes in the wards its candidate won
+    unopposed}``. Schedule 1 item 12(2) counts each of those votes twice for
+    factor A, and item 13(1)(b) twice for the party's entitlement, so they are
+    added once more to the party's combined votes; item 16(5) (as substituted
+    by Act 3 of 2021) follows because the excessive-seats re-quota reads the
+    same combined tally. A key outside
+    the pool is ignored: an independent or a party with no list never enters
+    it. No result file on disk has an unopposed ward, so every caller passes
+    nothing today (``levels.unopposed_wards``).
     """
+    extra = unopposed_pr or {}
     return {
         party: ward_votes.get(party, 0) + pr_votes.get(party, 0)
+        + extra.get(party, 0)
         for party in set(ward_votes) | set(pr_votes)
         if party != INDEPENDENT and pr_votes.get(party, 0) > 0
     }

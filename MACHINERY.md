@@ -512,7 +512,7 @@ rejected because the group total may only be fitted on the previous cycle, which
 |---|---|---|---|
 | γ per party per ballot | `fold{N}_parameters.csv`, fold precedes the target (asserted) | MEASURED | prior transition ✅ |
 | γ fallback | `gamma_recent.csv` | MEASURED | last LGE→NPE before the target ✅ |
-| γ default 1.0 | `montecarlo.py` | JUDGED | — |
+| γ default 1.0 | `montecarlo.py` | JUDGED (JUDGEMENT-CALLS §A48) | who took it is recorded per run as the delivery note `gamma.default_1.0` |
 | `dev` (logit deviation) | computed from the base | DERIVED | prior NPE ✅ |
 | Share model `expit(level + γ·dev)` | `solve_and_predict` | DERIVED | — |
 | θ calibration (IPF) | `solve_and_predict` | DERIVED | — |
@@ -555,6 +555,7 @@ PA and PAC — a degenerate solution reported as converged.
 | `turnout_noise_sd` = 0.08 | DEFAULTS | JUDGED | i.i.d. per VD, so it vanishes citywide |
 | `turnout_tilt_anc` / `_da` | **DELETED** | — | ⛔ **NOT IN `DEFAULTS` AND NOT READ BY `run_model`.** Verified 2026-08-29: both keys are absent from `montecarlo.DEFAULTS`. They applied a tilt *after* calibration, breaking it. This row said "**OFF** in DEFAULTS" until 2026-08-29 — **claiming a switch that does not exist**, which is precisely the failure `CLAUDE.md` records as having already cost this project once, when ten front-page claims were pinned to a deleted `turnout_tilt_da` (`build_site.py`, `stats.py` — search `turnout_tilt_da`) |
 | κ_bye tilt | `turnout.py` | MEASURED | contests before target ✅ |
+| a VD with no turnout of its own → the city's roll-weighted mean | `montecarlo.run_model` | JUDGED (JUDGEMENT-CALLS §A49) | the VD count and their share of the roll are recorded per run as `turnout.mean_fallback_vds` |
 
 ### Which elections the turnout record is allowed to lose, and how it says so
 
@@ -629,6 +630,7 @@ this; it replaces the held value in the same place when it lands (F4).
 | equal surplus → the higher vote | `seats.allocate` (integer surplus, then votes) | STATUTE, item 13(2)(b), 16(4)(c) | since 2026-10-09; the float remainder it replaced could decide before the vote count was read (law summary D3). This alone moves a council whose cut has an equal whole-vote surplus and unequal votes (the M1 diff review found published ones); the count is TO-MEASURE at the batch's run |
 | equal surplus and equal votes → the seeded lot | `seats.lot_order`, keys from `seats.seat_key` / `draw_key` / `ward_key` on `seats.lot_identity` | JUDGED: the statute is silent (JUDGEMENT-CALLS §Q6) | since 2026-10-09; it was input order, so set order and `PYTHONHASHSEED`. A call with a tie and no key raises. The first `deduct` / `level` iteration reuses round 0's allocation, so one invocation never draws one council twice |
 | `eligible_parties` (C/D exclusions) | `seats.py` | STATUTE | ✅ |
+| an unopposed ward's PR votes counted twice | `seats.eligible_parties(..., unopposed_pr=)`, fed by `levels.unopposed_wards` / `unopposed_pr_votes` in `backtest.actual_result` | STATUTE, items 12(2), 13(1)(b), 16(5) | since 2026-10-09. No metro LGE file on disk and no declared 2026 slate has an unopposed ward (`tests/test_unopposed.py`), so it moves no number. The draws do not model such a ward: `run_model` refuses a target that has one (JUDGEMENT-CALLS §Q7) |
 | `overhang_rule` = deduct | DEFAULTS | STATUTE (Act 3 of 2021) | **anachronistic for 2011/2016** |
 | Coalition enumeration | `coalitions.py` | DERIVED | capped at 12 parties while 21 hold seats |
 

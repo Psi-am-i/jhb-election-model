@@ -1084,3 +1084,28 @@ the step-13 re-export. It is added to R3.2's expected-red list.
 
 It must turn green after the re-export. If it does not, that is a finding.
 
+
+### R3.6 (writer, slice M2 step 3, 2026-10-09): tests red by design until the re-emit
+
+Step 3 changes `src/levels.py` (`unopposed_wards` and its helpers for item 3,
+the renamed-column refusal for item 10). `levels.py` is in
+`pools._EMIT_DEPENDENCIES` and in the citywide table's code key, so every
+emitted spec's `deps_sha` and the table's `levels_sha` no longer match the
+live code. Nothing is re-emitted mid-batch (§5, O6). These are red until the
+step-10 window, and are expected to turn green after it; one that does not is
+a finding:
+
+- `test_chain::test_every_emitted_pool_spec_carries_a_current_artefact_key`:
+  every `pools_*.json` reports `deps_sha` moved.
+- `test_stage_inputs::test_a_real_run_produces_a_trace_that_passes_every_predicate`:
+  the real run's `pools.stale` predicate fires on the same `deps_sha`.
+- `test_citywide_table`: `test_the_table_on_disk_is_a_fresh_build_byte_for_byte`,
+  `test_a_table_holding_the_target_election_is_refused`,
+  `test_a_table_from_other_code_is_refused`,
+  `test_a_missing_entry_stops_the_run_instead_of_falling_back`,
+  `test_the_table_reproduces_every_drawn_array_of_a_native_run`: each refuses
+  `data/processed/citywide_2026.json` on `levels_sha`. The table is rebuilt
+  with the window (`src/citywide_table.py`; the page's copy re-ships with it),
+  which §5's window list did not name and should.
+
+`test_intermediates_are_current` stays green: it does not key on `levels.py`.

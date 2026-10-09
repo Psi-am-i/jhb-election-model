@@ -3489,7 +3489,11 @@ class ModelRun:
     overhang_count: dict[str, int] = field(default_factory=dict)
     excessive_draws: int = 0
     bounds_violations: dict[str, int] = field(default_factory=dict)
-    bounds_checked: int = 0
+    # per party: the draws in which its implied θ was actually tested against
+    # its §3.5 range (it is in the universe and above 0.5% of the baseline).
+    # Was one count per draw, which divided a party's violations by draws in
+    # which it was never checked (BRIEF item 10).
+    bounds_checked: dict[str, int] = field(default_factory=dict)
     # The per-draw IPF that binds the SHOCKED centres, and what it cost.
     # ``ipf_balances`` counts the attempts, ``ipf_failures`` the draws that fell
     # back to the unshocked pool proportions — which discards the level shock
@@ -4171,6 +4175,25 @@ def run_model(target, scenario: dict,
     trace.put("03_roster", {"state": _roster_state, "size": len(_roster),
                             "dropped": sorted(_roster_dropped)})
 
+    # AN UNOPPOSED WARD IS NOT MODELLED IN THE DRAWS, SO A TARGET WITH ONE
+    # REFUSES. Schedule 1 item 12(2) counts the PR votes cast in such a ward
+    # for the winner's party twice, and the ward holds no ward ballot; the draw
+    # loop simulates a ward ballot in every ward. No metro LGE on disk has an
+    # unopposed ward and none is declared for 2026, so a branch here would have
+    # no case to score. The seat law takes the doubled votes as an input
+    # (`seats.eligible_parties(..., unopposed_pr=)`); `backtest.actual_result`
+    # passes them. JUDGEMENT-CALLS §Q7.
+    import levels as _levels_unopposed
+    _unopposed = _levels_unopposed.unopposed_wards(target, target.city)
+    if _unopposed:
+        raise SystemExit(
+            f"{target.city.slug} {target.year}: ward(s) "
+            f"{sorted(_unopposed.items(), key=lambda kv: kv[0])} have a "
+            f"single candidate, elected unopposed. Schedule 1 item 12(2): an "
+            f"uncontested ward is not modelled in the draws, which simulate a "
+            f"ward ballot in every ward. See JUDGEMENT-CALLS §Q7 before "
+            f"running this target.")
+
 
     # A party with no baseline cannot be grown into existence: theta multiplies,
     # and anything times zero is zero. ActionSA held 0.0000% of the 2019
@@ -4613,6 +4636,13 @@ def run_model(target, scenario: dict,
             else:
                 gamma_source.setdefault(p, "default 1.0")
         gamma[ballot] = values
+    # A PARTY WITH NO FOLD γ AND NO RECENT γ GETS 1.0: its share deviates from
+    # the city mean exactly as the baseline's pattern does. A typed default,
+    # registered as JUDGEMENT-CALLS §A48; who took it is recorded per run.
+    note_value(scenario, "gamma.default_1.0",
+               sorted(p for p, src in gamma_source.items()
+                      if src == "default 1.0"),
+               where="montecarlo:run_model (γ: fold, then recent, then 1.0)")
 
     # --- ward parts and registration ----------------------------------------
     # F15: the crosswalk lives at CITY level — `build_concordance` is
@@ -4667,6 +4697,15 @@ def run_model(target, scenario: dict,
     reg = np.array([registered.get(v, 0) for v in vds], dtype=float)
     t_ratio = np.array([ratio_pattern.get(v, np.nan) for v in vds])
     t_level = np.array([level_pattern.get(v, np.nan) for v in vds])
+    # A VD WITH NO TURNOUT OF ITS OWN TAKES THE CITY'S ROLL-WEIGHTED MEAN, on
+    # either pattern. A typed fallback, registered as JUDGEMENT-CALLS §A49; how
+    # many VDs took it, and what share of the roll they hold, is recorded.
+    _fallback_vd = np.isnan(t_ratio) | np.isnan(t_level)
+    note_value(scenario, "turnout.mean_fallback_vds",
+               {"vds": int(_fallback_vd.sum()),
+                "roll_share": (float(reg[_fallback_vd].sum() / reg.sum())
+                               if reg.sum() else 0.0)},
+               where="montecarlo:run_model (turnout patterns, city-mean fill)")
     mean_ratio = np.nansum(t_ratio * reg) / np.nansum(np.where(np.isnan(t_ratio), 0, reg))
     t_ratio = np.where(np.isnan(t_ratio), mean_ratio, t_ratio)
     mean_level = np.nansum(t_level * reg) / np.nansum(np.where(np.isnan(t_level), 0, reg))
@@ -5190,7 +5229,7 @@ def run_model(target, scenario: dict,
     over_draws: list[frozenset] = []
     ward_seat_draws: list[dict[str, int]] = []
     bounds_violations: defaultdict[str, int] = defaultdict(int)
-    bounds_checked = 0
+    bounds_checked: defaultdict[str, int] = defaultdict(int)
     pr_share_draws = np.zeros((draws, npar))
     ward_share_draws = np.zeros((draws, npar))
     pr_vote_draws = np.zeros((draws, npar), dtype=np.int64)
@@ -5200,9 +5239,9 @@ def run_model(target, scenario: dict,
         pr_target = draw_target()
 
         # §3.5 sanity bounds on the implied raw θ (E2). ENTRANT exempt.
-        bounds_checked += 1
         for p, (low, high) in PLAN_BOUNDS.items():
             if p in index and base_city[index[p]] > 0.005:
+                bounds_checked[p] += 1
                 implied = pr_target[index[p]] / base_city[index[p]]
                 if not (low * 0.95 <= implied <= high * 1.05):
                     bounds_violations[p] += 1
@@ -5356,7 +5395,11 @@ def run_model(target, scenario: dict,
         "ipf_clipped": dict(_ipf_stats.get("clipped") or {}),
         "ipf_headroom": dict(_ipf_stats.get("headroom") or {}),
         "bounds_violations": dict(bounds_violations),
-        "bounds_checked": bounds_checked,
+        "bounds_checked": dict(bounds_checked),
+        # the run's draws: the denominator of `overhang_count` and
+        # `excessive_draws`, which `bounds_checked` stood in for until it
+        # became per party.
+        "draws": int(draws),
         "excessive_draws": excessive_draws,
         "overhang_count": dict(overhang_count),
         # `solve_nonconvergent` is expected to equal `solve_calls` on the shipped
@@ -5415,7 +5458,7 @@ def run_model(target, scenario: dict,
         ward_winner_draws=ward_winner_draws, over_draws=over_draws,
         ward_seat_draws=ward_seat_draws,
         overhang_count=dict(overhang_count), excessive_draws=excessive_draws,
-        bounds_violations=dict(bounds_violations), bounds_checked=bounds_checked,
+        bounds_violations=dict(bounds_violations), bounds_checked=dict(bounds_checked),
         ipf_balances=int(_ipf_stats.get("balances", 0)),
         ipf_failures=int(_ipf_stats.get("failures", 0)),
         cap_undershoots=int(capped_targets.undershoots),
@@ -5553,7 +5596,7 @@ def main(argv: list[str] | None = None) -> int:
     if run.bounds_violations:
         print("\nimplied θ outside §3.5 sanity ranges (share of draws):")
         for p in sorted(run.bounds_violations, key=lambda q: -run.bounds_violations[q]):
-            print(f"  {p:<10s} {run.bounds_violations[p] / run.bounds_checked:>6.1%}")
+            print(f"  {p:<10s} {run.bounds_violations[p] / run.bounds_checked[p]:>6.1%}")
 
     # E1: the full coalition arithmetic, per-draw thresholds.
     seats_by_party = {p: series(p) for p in ranked if series(p).mean() >= 0.4}

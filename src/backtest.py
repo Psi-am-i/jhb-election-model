@@ -946,7 +946,14 @@ def actual_result(path: Path, council: int, year: int | None = None,
                 out[party] += n
         return dict(out)
 
-    combined = eligible_parties(totals(ward_votes), totals(pr_votes))
+    # Schedule 1 item 12(2): a party's PR votes in a ward it won unopposed
+    # count twice. Empty at every city-year on disk (JUDGEMENT-CALLS §Q7).
+    import levels as _levels
+    _wp, _all = _levels.ward_ballots(cityconfig.resolve_path(path))
+    unopposed_pr = _levels.unopposed_pr_votes(
+        cityconfig.resolve_path(path), _levels.unopposed_in(_wp, _all))
+    combined = eligible_parties(totals(ward_votes), totals(pr_votes),
+                                unopposed_pr)
 
     per_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(
         lambda: defaultdict(int))
