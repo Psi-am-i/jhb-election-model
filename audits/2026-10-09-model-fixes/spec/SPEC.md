@@ -740,3 +740,267 @@ records 2 h; items 3, 10 2-3 h; item 9 2 h; items 8, 6 4-5 h; item 11 2 h; item
 measurement (eight arms × 24 city-years × 1,000 draws, plus 2026 at 5,000,
 6 in parallel) 4-6 h wall; suite one run; MODEL-LOG 2 h. About 35-45 hours of
 work over 3-4 days.
+
+---
+
+## Revision 2 (2026-10-09, after the owner's decisions on this specification)
+
+The owner's answers (`BRIEF.md`, "Owner's decisions on the specification"):
+O4 accepted; O6 accepted (one re-emit window, this batch only; queue rows 19,
+20, 26-28, 31-33 stay queued); writing approved. Items 16-19 are added; item 19
+replaces item 14 (§1.13, P14, G16 above are superseded by R2.4 and are kept
+only as history). Everything above that this revision does not name stands.
+
+New probe for this revision (read-only, same scratch directory):
+`item16_spine.py` (the spine level with each party's own observations limited
+to those within a log-size window `H16` of its current size, plus 11b).
+
+### R2.1 Item 16 — a party's own record counts only from elections at a similar size
+
+**Mechanism.** In the shared helper `levels._shrink_one` (§1.10), before the
+own mean is taken, keep only the party's observations `(r, sz)` with
+`|ln sz − ln current| ≤ h`, where `current` is the party's current size on that
+record's route (national share for θ, previous-local share for ρ). If none
+survive, the party has no own record on that route: weight 0, and it takes the
+size-group centre at its current size (item 11; item 17 for its width). Applied
+to every party, in `_shrunk` and in `theta_prior` alike, through the one
+helper. `worth` (the spine's blend key) is computed over the surviving
+observations only, so a party whose record is all from another size also loses
+its record's pull in the blend.
+
+**The window is derived, per target, never typed as a value.** New
+`levels.size_window(target, record_fn) -> (h, report)`, called once per record
+(θ via `theta_record`, ρ via `local_record`), so θ and ρ each get their own
+window:
+
+1. Walk the calendar's targets `T_1 < … < T_k ≤ target` (only targets strictly
+   before `target` contribute evaluation data; the window used at `target`
+   reads nothing at or after it, which `test_temporal` asserts).
+2. The *new* observations at `T_j` are `record_fn(T_j)` minus
+   `record_fn(T_{j−1})`, as multisets per party.
+3. For each new observation `(r, sz)` of party `p`, predict `ln r` from `p`'s
+   record at `T_{j−1}` by `_shrink_one` with `current = sz` and window `h`
+   (the size-centre fit also taken from the record at `T_{j−1}`).
+4. Score: reliability-weighted mean absolute error in `ln r`, over every new
+   observation of every party in every metro.
+5. Candidate grid (typed, and registered as such): `h ∈ {0.25, 0.5, 0.75, 1.0,
+   1.5, 2.0, 3.0, ∞}` in natural-log units of size (1.0 ≈ a factor of 2.7).
+   `h` = the grid value with the lowest error; a tie within 0.005 goes to the
+   wider value. Fewer than 20 scored observations → `h = ∞` (no filter, item
+   11a's behaviour), reported as `"underdetermined"`.
+6. `report` carries the error at every grid value, the count scored and the
+   choice; `run_model` records it with `note_value(scenario,
+   "levels.size_window.theta"/"…rho", h)` and writes the table into the
+   `20_spine` trace.
+
+**Register.** JUDGEMENT-CALLS new entry: the window rule (the grid and the
+tie rule are typed; the value is measured per target). 🟡 "measured, the grid
+chosen".
+
+**Guards.**
+
+| # | guard | kind | constructed violation → caught; reverted → quiet | file |
+|---|---|---|---|---|
+| G19 | the filter | value | a party with observations at 0.02% and 3% and current size 3%: at `h = 1` only the 3% observation enters its mean; at `h = ∞` both; with every observation outside the window, its `mu` equals the size centre at 3% and its `worth` is 0. `h = ∞` reproduces item 11a's values exactly on the real record. | `tests/test_theta_prior.py` |
+| G20 | the derivation can see | value | a constructed record whose new observations equal the party's near-size history and differ from its far-size history → the derivation returns a finite `h`; a record where size carries nothing (identical ratios at all sizes) → `∞` by the tie rule; fewer than 20 scored → `"underdetermined"` | `tests/test_spine.py` |
+| G21 | no look-ahead | scan | spying file opens (the existing `test_the_level_prior_reads_no_election_at_or_after_its_target` pattern): `size_window(T)` opens no election file dated at or after `T`; population = every runnable target, asserted equal to `compare_history.runnable`'s | `tests/test_temporal.py` |
+
+**Measured before this draft** (`item16_spine.py`, Johannesburg 2026, spine
+level only, inputs as in §6a, 11b on, against the current tree's level; the
+window is the derivation's to choose, so three candidates are shown):
+
+| party | now | h = 0.5 | h = 1.0 | h = 2.0 |
+|---|---|---|---|---|
+| PA | 6.43% | 2.25% | 2.61% | 2.61% |
+| ANC | 27.99% | 26.24% | within ±5% in log | within ±5% in log |
+| EFF | 12.23% | 11.13% | 11.48% | within ±5% in log |
+| MK | 11.31% | 9.93% | 9.93% | 9.93% (11b, not item 16) |
+| IFP | 1.34% | 1.60% | 1.51% | within ±5% in log |
+| VFPLUS | 0.76% | 0.83% | 0.82% | within ±5% in log |
+| PAC | 0.28% | 0.26% | 0.26% | within ±5% in log |
+
+The PA's θ observations sit at bases of 0.014%-0.29% (item 7) against a
+current 2.9%, a log distance of at least 2.3, so any window below 2.3 removes
+its whole θ record, and its ρ record (2016 local base) likewise. That is the
+b2 candidate's effect, reached by a rule applied to every party: item 7 measured
+b2 at 11.15 PA seats alone and 7.73 on item 6.
+
+### R2.2 Item 17 — no-record parties: their size group's average and range
+
+The average is item 11b (§1.10): `mu = size_centre` at the party's current size.
+The range: a no-record party's level shock sd is the size-group width at its
+current size, from the same function `theta_prior` uses for every party with a
+baseline. That function (`sd_for`, today a closure in `theta_prior`) is lifted
+to module level as `levels.size_sd(size)`, one definition; `theta_prior` calls
+it. In `montecarlo.make_drawer`, `sd_for_party(p)` becomes
+`sd_measured.get(p)` if present, else `levels.size_sd(base_city[p])`; the
+`level_sd_default` fallback remains only for a party with no size at all
+(`base_city[p] ≤ 0`), counted in `41_guards.level_sd_default_parties`.
+
+This replaces §1.7 step 6: the seven item-8 parties take `size_sd` at their
+2021 local share, not `level_sd_default`; §A29 is amended to say
+`level_sd_default` binds only where no size exists. Seeded arrivals keep sd 0
+(item 9's judgement): they are drawn by the pool split, and item 17 does not
+reach them.
+
+Item 17 is arm D (formerly "11b"). Guard G22 (`tests/test_spine.py`): a
+constructed no-record party at 0.1% and at 10% gets `mu = size_centre(size)`
+and `sd = size_sd(size)` at each; `sd_for_party` for a party absent from
+`_theta_sd` returns `size_sd`, and `level_sd_default` only when its base is 0.
+
+### R2.3 Item 18 — the SACP as a normal new party
+
+As §1.12 (item 13), unchanged. The owner's question "split or new entrant?" is
+answered by the specification as "new entrant": no `parent`, no `weights`, no
+`support`. Its alliance status is a comment in the judgement file and a sentence
+in the retired §L13, not a mechanism. P13 stands.
+
+### R2.4 Item 19 — by-elections weighted by their incremental, out-of-sample value
+
+Replaces §1.13, P14 and G16.
+
+**The question.** Did by-election evidence, historically, predict the next real
+result beyond what the model predicted without it? Its weight is the measured
+increment; if none is measurable, the weight is zero. Every party, the same
+rule.
+
+**Population.** Every (party, metro) pair with at least one by-election
+contest in a metro, in `data/raw/byelections/byelections_SA_vd_party.csv`, dated
+before 2024-05-29, and with a list vote at the 2021 LGE or the 2024 provincial
+ballot in that metro. Measured: 30 metro contests, 75 party-metro pairs, 40
+with two or more contests. The next real result after these by-elections is the
+2024 provincial ballot (`npe2024_<CODE>`); the archive starts 2022-02, so no
+local election follows any by-election in it. **This is the whole record, and
+it is a cross-ballot test: by-elections are local ward contests, the outcome is
+a national-provincial ballot.** Stated at every quotation.
+
+**The model's baseline prediction of that result,** without by-elections:
+the 2021 LGE list share converted to the national ballot by the model's own
+national-local relation at the party's size — `B = s_2021 / exp(mu_θ(p))`,
+with `mu_θ` from `_shrunk` on `theta_record` for a 2024 target (items 11, 16
+and 17 applied, the record strictly before 2024). Where the party has no 2021
+list share, `B` is 0.
+
+**The augmented prediction:** `B + w · δ_pr`, where `δ_pr` is `byelections.py`'s
+weighted delta for the party in that metro with the target date set to
+2024-05-29 (same `τ`, same similarity weight), converted to the PR scale as
+`blended_centres` does.
+
+**The test.**
+1. Residual `e = actual_2024 − B`.
+2. `w` is estimated leave-one-metro-out: on the seven other metros, the
+   least-squares slope of `e` on `δ_pr` through the origin, floored at 0.
+   Two size classes, each with its own `w`: parties under 1% of the 2021 list
+   in that metro, and parties at 1% or more.
+3. Out-of-sample gain per class: `G = mean|e| − mean|e − w_(−m) · δ_pr|` over
+   the held-out metros, in points.
+4. Uncertainty: 2,000 bootstrap resamples of metros (the cluster), recomputing
+   steps 2-3; the 5th percentile of `G`.
+5. **Rule, fixed now:** a class's weight is the slope fitted on all eight metros
+   if the 5th percentile of its `G` is above 0; otherwise 0. A class with fewer
+   than 10 pairs takes 0 ("not measurable").
+6. Secondary, reported and not deciding: the same procedure predicting each
+   contest's delta from the party's other contests in the same metro, all 311
+   contests nationally.
+
+**What changes in code.**
+- New `src/bye_value.py` (read-only CLI and importable function) computing the
+  test and writing `data/processed/bye_value.json` with an `artefact_key`
+  (the by-election file's sha, `deps_sha`, its own code sha): both classes'
+  `w`, `G`, its interval, the pair counts and the rule's verdict. Added to
+  `declares.py`, `tests/test_intermediates_are_current.py`, `ENTRY_POINTS` and
+  CLAUDE.md §5's block.
+- `montecarlo.blended_centres`: the blend weight `w = scenario["w_bye"]`
+  becomes the class weight from `bye_value.json` for the party's size class
+  (its previous-LGE list share; MK and others with none use the 2024 national
+  share). `w_bye` stays in `DEFAULTS` as an override for sweeps only, default
+  `None` meaning "derived"; a non-`None` value is recorded as an override.
+  `BYE_MIN_WEIGHT` is unchanged and still gates admission.
+- Missing or stale `bye_value.json` at a target that reads by-elections:
+  `SystemExit` (same class as item 10's stale spec).
+- `export_draws.py` ~621-639 reports the class weight beside `reaches_model`.
+- JUDGEMENT-CALLS §A35 (`w_bye` 0.40) is superseded by a new entry for the
+  derived weights, with the typed parts named (the two classes and their 1%
+  edge, the leave-one-metro-out design, the 5th-percentile rule, the 10-pair
+  floor).
+
+**Guards.**
+
+| # | guard | kind | constructed violation → caught; reverted → quiet | file |
+|---|---|---|---|---|
+| G23 | the test can see an increment | value | constructed pairs where `e = 0.5·δ` exactly → `w ≈ 0.5` and the class is admitted; `e` independent of `δ` → the 5th-percentile `G` ≤ 0 and `w = 0`; 9 pairs → `w = 0`, "not measurable" | `tests/test_bye_value.py` (new) |
+| G24 | one weight reaches the model | value | `blended_centres` on a constructed party in each class uses that class's `w` from a constructed `bye_value.json`; deleting the file refuses; a stale key refuses | `tests/test_blended_centres.py` |
+| G25 | no look-ahead | scan | the test opens no by-election dated on or after 2024-05-29 for the 2024 outcome and reads no file at or after 2024 for `B`; population = the pairs, asserted equal to the count the function reports | `tests/test_temporal.py` |
+| G26 | `export_draws` and the model agree | value | for every row of the real CSV, `export_draws`' reported weight equals `blended_centres`' | `tests/test_export_draws.py` |
+
+### R2.5 Pre-registration arms, revised
+
+Runs as §6. Arms: **A** (pre-batch tree), **B0** (A + items 1-2), **B6** (A +
+item 6), **B8** (A + item 8), **B** (items 1-6, 8-10, 12, 18), **C** (B + 11a),
+**C16** (C + 16), **D** (C16 + 17), **E** (D + 19). B through E share draws
+and seeds. P1-P10, P13 (= item 18) stand as written; P11's "11b" predictions
+now belong to arm D (item 17), unchanged in content, and P14 is withdrawn.
+
+**P16 (arm C16 against C).**
+- The derived windows at each runnable target and at 2026 are reported first.
+  Prediction: finite (below ∞) for θ at 2021 and 2026; "underdetermined" or ∞
+  is possible at 2011, where few transitions precede it.
+- Johannesburg 2026, if `h_θ` and `h_ρ` are below 2.3: the PA's spine level
+  falls to 2.2-2.7% (computed above), its mean seats fall by 8-14 from arm C's
+  value, its ward wins to under 3 on average, and the PA/Coloured tripwire
+  pair fires in under 10% of draws. If either window is 2.3 or above, the PA
+  moves by under 2 seats and the tripwire still fires above 25%: then item 16
+  does not address the PA, and that is reported as the result.
+- Other parties at 2026, within ±10% in spine level for every party at 1% or
+  more except where the table above shows otherwise (ANC −6%, EFF −6 to −9%,
+  IFP +12 to +18% at the windows shown). ANC and DA gain the PA's seats
+  (+3 to +6 each), as item 7 measured for every level candidate.
+- Panel: coherent seat error falls (the PA's 2021 overshoot is the largest
+  single item 7 records); list MAE falls or holds at every city-year where an
+  emergence-era party exists (PA 2021, EFF 2016 if its 2014 base differs by
+  more than `h` from its 2016 size, ASA has no θ evidence and is unaffected).
+  A panel coherent-seat-error rise of more than 4 seats falsifies "own records
+  from other sizes mislead".
+
+**P17 (arm D against C16).** As P11's 11b block (MK −1.5 to −4 seats; small
+national-only parties up by under 0.3 seats each), plus: the seven item-8
+parties' drawn list-share sd(log) moves from `level_sd_default`'s 0.45 to
+`size_sd` at 0.01-0.2%, which is wider; together they still win 0 or 1 seat
+in more than 80% of draws.
+
+**P19 (the test, then arm E against D).**
+- Test prediction, written before it is computed: the under-1% class has
+  fewer than 40 pairs with any contest beyond one, the cross-ballot noise
+  dominates, and its weight comes out 0. The 1%-and-over class: no prediction
+  of sign; its 5th-percentile gain is within ±0.3 points of 0.
+- If both weights are 0, at Johannesburg 2026: the All Citizens Party's centre
+  returns to about its arrival seed (item 9 measured 0.050% list mean at
+  `w_bye = 0`), mean seats from about 2 to under 0.2; Truth and Solidarity
+  0.111% → about 0.06%; the PA loses the 0.78-point by-election tilt (item 7's
+  step table) on top of arm D; the DA's +0.093 and MK's +0.106 weighted deltas
+  no longer reach the centres. Item 7 measured `w_bye = 0` on the published
+  model at PA 22.30 and DA 64.75 seats; the direction (PA down, DA down, ANC
+  up) is predicted again here, the size is not, because arm D's centres differ.
+- No backtest number moves: no backtest target reads the by-election file.
+
+### R2.6 Writing order, revised
+
+Steps 1-6 of §7 stand, with item 11 now: 11a, then item 16 (`size_window`,
+the filter), then item 17 (`size_sd`, the drawer fallback). Step 7 becomes:
+**item 19's test** (`bye_value.py`, read-only, its pre-registered section
+committed first), then its model wiring (G23-G26). Steps 8-13 stand; step 9's
+pre-registration is §6 as amended by R2.5, committed before arm A runs; step
+10's window also runs `bye_value.py` after the re-emit; step 11 runs arms A,
+B0, B6, B8, B, C, C16, D, E.
+
+### R2.7 Targeted tests, added
+
+`-k bye_value` (new). `-k temporal`, `-k spine`, `-k theta_prior` now also
+cover items 16, 17 and 19.
+
+### R2.8 Estimate, revised
+
+Item 16: 4-6 h (the walk over targets, the multiset differencing, G19-G21).
+Item 17: 1-2 h. Item 19: 5-7 h (the 2024 baseline, the bootstrap, the
+artefact, G23-G26), replacing item 14's 4-5 h. Measurement: nine arms instead
+of eight, 5-7 h wall. Total about 42-55 hours of work over 4-5 days.
