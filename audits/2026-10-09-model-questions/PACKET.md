@@ -72,3 +72,31 @@ like an error we introduced that should resolve. have a look."
 Findings ranked by severity, the pre-registration and its scoring, the
 proposed fix with its measured effect, and a list of what is verified and what
 is argued.
+
+## Amendment 1 (owner, 2026-10-09): priorities
+
+The owner, verbatim: "other variance needs to be investigated the last point of
+no variation is the canary look there first."
+
+1. **First priority: the canary.** 46 of the 74 parties have a level-shock
+   sd(log) of 0, including the SACP and the All Citizens Party (best-case
+   analysis, `audits/2026-10-09-site-batch/best-cases/FINDINGS.md`). For them
+   the within-pool split is the only party-specific draw.
+   - Is that a decision (registered where?), a fallback (which code path gives
+     0?), or a defect?
+   - Which parties are affected, and by which route?
+   - What does it do to their seat distributions and to the forecast's width?
+   - Every other variance source the model declares: check that it is actually
+     drawn for every party it should be, with populations stated both ways.
+2. **The within-pool split's machinery, documented precisely.** How the pool
+   concentration is fitted (`pools.dirichlet_alpha`, method of moments over the
+   yearly citywide splits, weighted by member size, `pools.py:~6340-6401`), and
+   what that implies for small members. A single concentration per pool gives
+   member i the concentration α·p_i, so relative variance grows as p_i shrinks.
+   Compare each party's drawn within-pool share range against the range its
+   pool share has had across real elections (the same yearly splits the fit
+   uses), so the owner can see where draws leave history.
+3. Then the PA question as before.
+
+The owner will propose a reformulation of the within-pool split once the
+machinery is clear. Do not design one; describe the current one exactly.
