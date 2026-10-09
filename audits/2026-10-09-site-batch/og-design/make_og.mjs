@@ -47,18 +47,21 @@ function chip(code, x, y, s, colour) {
   return rect(x - 3, y - 3, s + 6, s + 6, colour, ` rx="${n1(rx + 2)}"`) + rect(x, y, s, s, "#ffffff", ` rx="${n1(rx)}"`) +
     `<image x="${n1(x + 2)}" y="${n1(y + 2)}" width="${n1(s - 4)}" height="${n1(s - 4)}" href="${src}" preserveAspectRatio="xMidYMid meet"/>`;
 }
-const mono = (x, y, s, fs, fill, anchor = "") => text(x, y, s.toUpperCase(), fs, "monoSemi", { fill, anchor, ls: 1.5 });
 
-// ---------- the fixed frame: kind bar, kicker, footer with date line and logo ----------
+// ---------- the fixed frame: kind bar, our logo large at the top right, footer date line ----------
+// (owner, 2026-10-09: no kicker; "keep logo same place big and top right for
+// all"; the headline, or a claim's party logo, top-aligned with it.)
 const FOOT = 560;
-function frame(kind, kicker, dateLine, { footRule = true, logo = true } = {}) {
+const TOP = 40;                                   // the logo's top edge, and every headline's cap line
+const LOGO_H = 120, LOGO_W = brandWidth(A, LOGO_H), LOGO_X = R - LOGO_W + 6;
+const HEAD_MAX = LOGO_X - X - 36;                 // a line level with the logo stops short of it
+const capBase = fs => TOP + fs * 0.7;             // baseline of a first line whose cap height starts at TOP (Plex Serif cap ~0.7 em)
+function frame(kind, dateLine) {
   let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` + rect(0, 0, W, H, C.paper);
   s += rect(0, 0, W, 8, KIND[kind]);
-  s += mono(X, 56, kicker, 17, KIND[kind]);
-  if (footRule) s += rect(X, FOOT, R - X, 1, C.rule);
+  s += brand(LOGO_X, TOP, LOGO_H);
+  s += rect(X, FOOT, R - X, 1, C.rule);
   s += text(X, 604, dateLine, 17, "sans", { fill: C.ink3 });
-  const bh = 50, bw = brandWidth(A, bh);
-  if (logo) s += brand(R - bw + 4, 572, bh);
   return s;
 }
 
@@ -136,74 +139,74 @@ const ranges = [...fc.matchAll(/data-code="([^"]*)" data-m="(\d+)" data-p5="(\d+
 // ---------- 1. the claims page ----------
 // One claim per party (owner, 2026-10-09). Where a party has several, the
 // first on the page stands for it. The strip lays out however many parties
-// there are, so a fifth (the EFF claim being researched) needs no layout change.
+// there are, up to five, so the EFF claim being researched needs no layout change.
 const perParty = claims.filter((c, k) => claims.findIndex(d => d.code === c.code) === k);
 const SHORT_NAME = { DA: "DA", ANC: "ANC", MK: "MK Party", ASA: "ActionSA", EFF: "EFF" };
 function claimsIndex(list = perParty) {
-  let s = frame("claim", "The campaign arithmetic", `One claim per party, each tested against the forecast. Latest tested ${list.map(c => c.tested).sort((a, b) => Date.parse(b) - Date.parse(a))[0]}.`);
-  s += text(X, 150, "The parties' claims, tested", 80, "serifSemi");
+  let s = frame("claim", `One claim per party, each tested against the forecast. Latest tested ${list.map(c => c.tested).sort((a, b) => Date.parse(b) - Date.parse(a))[0]}.`);
+  const L = ["The parties' claims,", "tested"], hf = 74;
+  L.forEach((l, k) => { s += text(X, capBase(hf) + k * hf * 1.08, l, hf, "serifSemi"); });
   const n = list.length, cw = (R - X) / Math.max(n, 4), x0 = X + ((R - X) - cw * n) / 2;
-  const r = Math.min(80, cw * 0.36), cy = 278;
+  const r = Math.min(74, cw * 0.34), cy = 292;
   list.forEach((c, k) => {
     const cx = x0 + cw * (k + 0.5);
     s += stamp(cx, cy, r, c.verdict, VERDICT[c.vclass], { ring: false, rot: k % 2 ? 6 : -7 });
-    const ls = 68;
-    s += chip(c.code, cx - ls / 2, 384, ls, colourOf(c.code));
-    s += text(cx, 498, fitText(SHORT_NAME[c.code] || c.party, cw - 12, 32, "sansBold", 22).text, 32, "sansBold", { anchor: "middle" });
+    const ls = 64;
+    s += chip(c.code, cx - ls / 2, 392, ls, colourOf(c.code));
+    s += text(cx, 500, fitText(SHORT_NAME[c.code] || c.party, cw - 12, 30, "sansBold", 22).text, 30, "sansBold", { anchor: "middle" });
     s += text(cx, 530, fitText(c.person.split(",")[0], cw - 12, 19, "sans", 15).text, 19, "sans", { fill: C.ink2, anchor: "middle" });
   });
   return s + "</svg>";
 }
 
 // ---------- 2. one claim ----------
-// The site's logo large at the top right, over the stamp (owner: "make our logo much bigger").
+// The party's logo block top-aligned with ours; the quote and the stamp share the space below.
 function claimCard(c) {
-  let s = frame("claim", "The parties' claims, tested", `Tested ${c.tested}. Quoted from ${c.source}.`, { logo: false });
+  let s = frame("claim", `Tested ${c.tested}. Quoted from ${c.source}.`);
   const col = colourOf(c.code);
-  const bh = 120, bw = brandWidth(A, bh);
-  s += brand(R - bw + 6, 26, bh);
   const ls = 96;
-  s += chip(c.code, X + 3, 82, ls, col);
-  s += text(X + ls + 28, 120, c.party, 32, "serifSemi");
-  s += text(X + ls + 28, 154, fitText(c.person, 640 - ls, 19, "sans", 14).text, 19, "sans", { fill: C.ink2 });
+  s += chip(c.code, X + 3, TOP + 3, ls, col);
+  s += text(X + ls + 28, TOP + 42, c.party, 34, "serifSemi");
+  s += text(X + ls + 28, TOP + 78, fitText(c.person, HEAD_MAX - ls - 28, 19, "sans", 14).text, 19, "sans", { fill: C.ink2 });
   // the quote, as large as fits five lines in its column; past that, the marked cut
-  const QX = X + 52, QW = 690, QTOP = 214, QH = 318;
+  const QX = X + 52, QW = 690, QTOP = 172, QH = 360;
   let q = c.quote, fs, lines;
-  const fit = t => { for (let f = 50; f >= 32; f--) { const L = wrapText(t, QW, f, "serifSemi"); if (L.length * f * 1.22 <= QH && L.length <= 5) return [f, L]; } return null; };
+  const fit = t => { for (let f = 52; f >= 32; f--) { const L = wrapText(t, QW, f, "serifSemi"); if (L.length * f * 1.22 <= QH && L.length <= 5) return [f, L]; } return null; };
   let got = fit(q);
   if (!got || got[0] < 36) { if (SHORT[c.i]) { q = SHORT[c.i]; got = fit(q); } }
   [fs, lines] = got;
   const lh = fs * 1.22, top = QTOP + (QH - lines.length * lh) / 2 + fs * 0.8;
   s += text(X - 6, top + fs * 0.62, "“", fs * 2.6, "serifSemi", { fill: col });
   s += lines.map((l, k) => text(QX, top + k * lh, l + (k === lines.length - 1 ? "”" : ""), fs, "serifSemi")).join("");
-  s += stamp(992, 366, 150, c.verdict, VERDICT[c.vclass]);
+  s += stamp(992, 362, 150, c.verdict, VERDICT[c.vclass]);
   return s + "</svg>";
 }
 
 // ---------- 3a. article: Nobody will win Johannesburg ----------
-// headline on the left in three set lines, the seat ranges against the majority line on the right
+// the headline in three set lines from the top; the seat ranges below the logo
 function nobodyWillWin() {
   const nw = page("nobody-will-win.html");
   const pAlone = token(nw, "p_alone");
-  let s = frame("article", "Article", `Published 8 August 2026. Figures as of ${generated}.`);
-  ["Nobody", "will win", "Johannesburg"].forEach((l, k) => { s += text(X, 168 + k * 86, l, 78, "serifSemi"); });
-  s += text(X, 168 + 2 * 86 + 74, `Chance of 1 party majority: ${pAlone}`, 28, "sansSemi", { fill: C.ink2 });
+  let s = frame("article", `Published 8 August 2026. Figures as of ${generated}.`);
+  const hf = 80;
+  ["Nobody", "will win", "Johannesburg"].forEach((l, k) => { s += text(X, capBase(hf) + k * hf * 1.08, l, hf, "serifSemi"); });
+  s += text(X, capBase(hf) + 2 * hf * 1.08 + 96, `Chance of 1 party majority: ${pAlone}`, 30, "sansSemi", { fill: C.ink2 });
   // ranges: the six largest by middle, ties by name; 5th to 95th percentile, the middle marked
   const rows = ranges.filter(r => r.code !== "OTHERS").sort((a, b) => b.m - a.m || F(a.code).name.localeCompare(F(b.code).name)).slice(0, 6);
-  const gx = 640, gw = R - gx, max = 150, sx = v => gx + gw * v / max;
-  const top = 120, pitch = 64;
+  const gx = 660, gw = R - gx, max = 150, sx = v => gx + gw * v / max;
+  const top = 216, pitch = 52;
   const maj = 136;
-  s += rect(sx(maj) - 1, top - 30, 2.5, rows.length * pitch + 20, C.ink);
-  s += text(sx(maj), top - 38, maj + " for a majority", 16, "sansSemi", { anchor: "end" });
+  s += rect(sx(maj) - 1, top - 24, 2.5, rows.length * pitch + 12, C.ink);
+  s += text(sx(maj), top - 32, maj + " for a majority", 16, "sansSemi", { anchor: "end" });
   rows.forEach((r, k) => {
     const y = top + k * pitch, col = colourOf(r.code);
-    s += text(gx, y + 4, F(r.code).name, 18, "sansSemi", { fill: C.ink2 });
-    s += rect(gx, y + 22, gw, 1, C.rule);
-    s += rect(sx(r.p5), y + 14, sx(r.p95) - sx(r.p5), 17, col, ` rx="8.5" fill-opacity="0.85"`);
-    s += rect(sx(r.m) - 1.5, y + 8, 3, 29, C.ink);
-    s += text(sx(r.p95) + 8, y + 28, String(r.m), 17, "sansSemi");
+    s += text(gx, y + 4, F(r.code).name, 17, "sansSemi", { fill: C.ink2 });
+    s += rect(gx, y + 20, gw, 1, C.rule);
+    s += rect(sx(r.p5), y + 12, sx(r.p95) - sx(r.p5), 16, col, ` rx="8" fill-opacity="0.85"`);
+    s += rect(sx(r.m) - 1.5, y + 6, 3, 28, C.ink);
+    s += text(sx(r.p95) + 8, y + 26, String(r.m), 17, "sansSemi");
   });
-  s += text(gx, top + rows.length * pitch + 6, "Seats: middle, and the range in 9 of 10 simulations", 14, "sans", { fill: C.ink3 });
+  s += text(gx, top + rows.length * pitch + 4, "Seats: middle, and the range in 9 of 10 simulations", 14, "sans", { fill: C.ink3 });
   return s + "</svg>";
 }
 
@@ -217,29 +220,28 @@ const LB = [  // [code, label, votes, ward seats, list seats], in vote order; th
   ["OTHER", "Others", 395 + 248 + 74 + 41, 0, 0],
 ];
 function laingsburg() {
-  let s = frame("article", "Article · the precedent", "Published 8 August 2026. Votes and seats: the IEC's 2021 Laingsburg seat calculation.");
-  s += text(X, 128, "Laingsburg and the quirk about to hit Joburg.", 50, "serifSemi");
-  s += text(X, 172, "Ward wins count more than proportional vote", 26, "sans", { fill: C.ink2 });
+  let s = frame("article", "Published 8 August 2026. Votes and seats: the IEC's 2021 Laingsburg seat calculation.");
+  const hf = 56;
+  ["Laingsburg and the quirk", "about to hit Joburg."].forEach((l, k) => { s += text(X, capBase(hf) + k * hf * 1.1, l, hf, "serifSemi"); });
+  s += text(X, capBase(hf) + hf * 1.1 + 46, "Ward wins count more than proportional vote", 26, "sans", { fill: C.ink2 });
   const votes = LB.reduce((a, r) => a + r[2], 0), seats = LB.reduce((a, r) => a + r[3] + r[4], 0);
-  const LX = X + 96, BW = R - LX, BH = 70;
+  const LX = X + 96, BW = R - LX, BH = 66;
   const col = code => code === "KDF" ? "#9aa09a" : code === "OTHER" ? "#464d47" : colourOf(code);
   const pct = v => (Math.round(v * 1000) / 10).toFixed(1).replace(/\.0$/, "") + "%";
-  // the vote bar
-  const vy = 222;
-  s += text(X, vy + 44, "Votes", 22, "sansSemi", { fill: C.ink2 });
+  const vy = 226;
+  s += text(X, vy + 42, "Votes", 22, "sansSemi", { fill: C.ink2 });
   let x = LX;
   for (const [code, label, v] of LB) {
     const w = BW * v / votes;
     s += rect(x, vy, w - 2, BH, col(code));
     const t = `${label} ${pct(v / votes)}`;
     const ink = code === "KDF" || code === "PA" ? C.paper : "#ffffff";
-    if (textWidth(t, 19, "sansSemi") < w - 16) s += text(x + 10, vy + 44, t, 19, "sansSemi", { fill: ink });
-    else if (textWidth(label, 17, "sansSemi") < w - 12) s += text(x + 8, vy + 30, label, 17, "sansSemi", { fill: ink }) + text(x + 8, vy + 54, pct(v / votes), 17, "sans", { fill: ink });
+    if (textWidth(t, 19, "sansSemi") < w - 16) s += text(x + 10, vy + 42, t, 19, "sansSemi", { fill: ink });
+    else if (textWidth(label, 17, "sansSemi") < w - 12) s += text(x + 8, vy + 28, label, 17, "sansSemi", { fill: ink }) + text(x + 8, vy + 52, pct(v / votes), 17, "sans", { fill: ink });
     x += w;
   }
-  // the seat bar: one cell per seat, ward seats solid, list seats tinted
-  const sy = 330;
-  s += text(X, sy + 44, "Seats", 22, "sansSemi", { fill: C.ink2 });
+  const sy = 328;
+  s += text(X, sy + 42, "Seats", 22, "sansSemi", { fill: C.ink2 });
   x = LX;
   const cell = BW / seats;
   for (const [code, label, , ward, list] of LB) {
@@ -248,13 +250,13 @@ function laingsburg() {
     for (let i = 0; i < n; i++) {
       const isWard = i < ward;
       s += rect(x + i * cell, sy, cell - 2, BH, col(code), isWard ? "" : ` fill-opacity="0.45"`);
-      s += text(x + i * cell + cell / 2, sy + 44, isWard ? "ward" : "list", 18, "sansSemi", { fill: "#ffffff", anchor: "middle" });
+      s += text(x + i * cell + cell / 2, sy + 42, isWard ? "ward" : "list", 18, "sansSemi", { fill: "#ffffff", anchor: "middle" });
     }
     s += text(x, sy + BH + 26, `${label} ${n} of ${seats}`, 18, "sansSemi");
     x += n * cell;
   }
   const da = LB.find(r => r[0] === "DA");
-  s += text(X, 498, `The DA: ${pct(da[2] / votes)} of the vote, 3 of ${seats} seats (${pct(3 / seats)}), all wards.`, 22, "sans", { fill: C.ink });
+  s += text(X, 500, `The DA: ${pct(da[2] / votes)} of the vote, 3 of ${seats} seats (${pct(3 / seats)}), all wards.`, 24, "sans", { fill: C.ink });
   return s + "</svg>";
 }
 
@@ -305,10 +307,10 @@ function stripedMap(svgText) {
 function forecastMap() {
   const m = (() => { const i = fc.indexOf("<pattern"), a = fc.lastIndexOf("<svg", i), b = fc.indexOf("</svg>", i); return fc.slice(a, b); })();
   const inner = stripedMap(m.replace(/<g transform="translate\(532,548\)">[\s\S]*?<\/g>/, ""));
-  let s = frame("forecast", "Our forecast · Johannesburg, 4 November 2026", `Forecast of ${generated}. Johannesburg council, 270 seats, vote on 4 November 2026.`);
-  const head = wrapText("Who governs Johannesburg?", 440, 62, "serifSemi");
-  head.forEach((l, k) => { s += text(X, 160 + k * 70, l, 62, "serifSemi"); });
-  const yA = 160 + head.length * 70 + 20;
+  let s = frame("forecast", `Forecast of ${generated}. Johannesburg council, 270 seats, vote on 4 November 2026.`);
+  const hf = 70, head = ["Who governs", "Johannesburg?"];
+  head.forEach((l, k) => { s += text(X, capBase(hf) + k * hf * 1.08, l, hf, "serifSemi"); });
+  const yA = capBase(hf) + hf * 1.08 + 120;
   const pa = token(fc, "p_anc_largest") || token(page("nobody-will-win.html"), "p_anc_largest");
   const pd = token(fc, "p_da_largest") || token(page("nobody-will-win.html"), "p_da_largest");
   s += text(X, yA, "Most seats:", 20, "sans", { fill: C.ink3 });
@@ -318,8 +320,8 @@ function forecastMap() {
   s += `<defs><clipPath id="key"><rect x="${X}" y="${ky}" width="34" height="22" rx="3"/></clipPath></defs><g clip-path="url(#key)">` + rect(X, ky, 34, 22, "#1B7A3D") +
     `<g transform="rotate(45 ${X + 17} ${ky + 11})">` + [-4, -2, 0, 2, 4].map(k => rect(X + 17 + k * 7 - 1.6, ky - 30, 3.2, 82, "#1B5EA8")).join("") + "</g></g>";
   s += text(X + 46, ky + 17, "Striped: contested wards", 19, "sans", { fill: C.ink2 });
-  const mh = 470, mw = mh * 840 / 596, mx = R + 12 - mw;
-  s += `<svg x="${n1(mx)}" y="${(FOOT - mh) / 2 + 20}" width="${n1(mw)}" height="${n1(mh)}" viewBox="0 0 840 596">${inner}</svg>`;
+  const mh = 384, mw = mh * 840 / 596, mx = R + 10 - mw;
+  s += `<svg x="${n1(mx)}" y="${TOP + LOGO_H + 6}" width="${n1(mw)}" height="${n1(mh)}" viewBox="0 0 840 596">${inner}</svg>`;
   return s + "</svg>";
 }
 
@@ -327,22 +329,24 @@ function forecastMap() {
 function interactive() {
   const { A: spec } = specs();
   const g = A.geom;
-  let s = frame("interactive", "Your prediction", "Johannesburg council, 270 seats, vote on 4 November 2026.");
-  const mw = 600, sc = mw / g.W, mh = g.H * sc;
-  const my = (FOOT - mh) / 2 + 24;
+  let s = frame("interactive", "Johannesburg council, 270 seats, vote on 4 November 2026.");
+  const hf = 84;
+  s += text(X, capBase(hf), "Know Politics?", hf, "serifSemi");
+  const mt = capBase(hf) + 40, mh0 = FOOT - 14 - mt;
+  const mw = Math.min(600, mh0 * g.W / g.H), sc = mw / g.W, mh = g.H * sc;
+  const my = mt + (mh0 - mh) / 2;
   let paths = "";
   g.wards.forEach((wd, k) => {
     const open = k % 4 === 1;
     paths += `<path d="${wd.path}" fill="${open ? C.paper2 : F(spec.calls[k]).colour}" stroke="${open ? "#5a615b" : C.paper}" stroke-width="${n1((open ? 1.4 : 0.8) / sc)}"${open ? ` stroke-dasharray="${n1(4 / sc)} ${n1(3 / sc)}"` : ""} stroke-linejoin="round"/>`;
   });
   s += `<g transform="translate(${X - 8} ${n1(my)}) scale(${sc.toFixed(4)})">${paths}</g>`;
-  const tx = 676;
-  s += text(tx, 196, "Know Politics?", 64, "serifSemi");
-  const y = 258;
+  const tx = 690;
+  const y = 236;
   wrapText("Pick your winners, seal your prediction and let's see if you can beat us on election day.", R - tx, 27, "sans")
     .forEach((l, k) => { s += text(tx, y + k * 38, l, 27, "sans", { fill: C.ink2 }); });
-  s += rect(tx, 446, textWidth("Make yours at " + SITE, 18, "monoSemi") + 36, 48, KIND.interactive, ` rx="24"`);
-  s += text(tx + 18, 476, "Make yours at " + SITE, 18, "monoSemi", { fill: C.paper });
+  s += rect(tx, 420, textWidth("Make yours at " + SITE, 18, "monoSemi") + 36, 48, KIND.interactive, ` rx="24"`);
+  s += text(tx + 18, 450, "Make yours at " + SITE, 18, "monoSemi", { fill: C.paper });
   return s + "</svg>";
 }
 
