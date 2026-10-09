@@ -114,3 +114,35 @@ Sources: `audits/2026-10-09-model-questions/FINDINGS.md` and
 3. **Owner review.**
 4. **One writer.**
 5. **Pre-registered panel measurement, then the whole suite once.**
+
+## Owner's decisions, 2026-10-09 (later), added to the batch
+
+The owner, verbatim: "2. growth changes by size for sure and you seem to have
+modelled that. so yes, lets do that for everyone and see what happens. 3.
+tripwire just tells us but doesnt stop it? if so yes. 4. it's a strange case.
+it's usually in the alliance so strange it is running alone, but only in some
+wards I think. Narrow it and treat like everyone else until we have a mechanism
+to change that has some basis. 5. no. certainly not."
+
+11. **Growth measured at current size, for every party** (item 7, candidate b2).
+    `_shrunk` evaluates the size centre at the party's current base, not at the
+    mean base of its own historical observations. It applies to all parties and
+    singles none out. The effect on every party is pre-registered and measured
+    ("see what happens").
+12. **The group-share tripwire** (item 7, Q4). It counts and reports each
+    party's realised share of each pool's vote above its record plus the
+    largest real one-cycle rise. It changes no number. It is recorded in the
+    run's guards, and the build prints it.
+13. **The SACP treated like everyone else.** Its special owner-declared sizing
+    (JUDGEMENT-CALLS §L13) is retired. It is sized and varied by the same rules
+    as other parties of its kind, until a mechanism with a basis exists for
+    parties that usually stand in an alliance (the SACP stands alone in some
+    wards only; that is noted, not modelled).
+14. **By-election evidence needs a minimum before it moves a small party.** Two
+    contests and 198 votes lifting the All Citizens Party from 0.04% to 1.07%
+    is rejected. The minimum is derived from data: how well by-election swings
+    of a given size and count predicted the next real result. The rule applies
+    to every party.
+15. **Long editor notes are shortened** where they stay understandable;
+    otherwise the note area grows. This is cosmetic and lands with the next
+    editor change.
