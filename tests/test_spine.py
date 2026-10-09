@@ -663,23 +663,43 @@ def _walk(by_year: dict[str, dict]):
     return record_fn
 
 
-def _history(n_parties: int, new_ratio: float, near_ratio: float,
-             far_ratio: float):
-    """Each party has a near-size (5%) and a far-size (0.05%) observation at
-    2016; at 2021 each gains one new observation at the near size."""
-    then = {f"P{i:02d}": [(near_ratio, 0.05), (far_ratio, 0.0005)]
-            for i in range(n_parties)}
-    now = {p: obs + [(new_ratio, 0.05)] for p, obs in then.items()}
-    return {"2016": then, "2021": now}
+def _history(n_parties: int, first_ratio: float, second_ratio: float,
+             jitter: float = 0.02):
+    """Two cycles. At 2011 each party has a near-size (5%) observation at
+    ratio 0.8 and a far-size (0.05%) one at ratio 5.0; at 2016 each gains one
+    new near-size observation near ``first_ratio`` and at 2021 one near
+    ``second_ratio``. ``jitter`` spreads the new ratios across parties so the
+    within-cycle variance is not zero."""
+    then = {f"P{i:02d}": [(0.8, 0.05), (5.0, 0.0005)] for i in range(n_parties)}
+    mid = {p: obs + [(first_ratio * (1 + jitter * (i % 5 - 2)), 0.05)]
+           for i, (p, obs) in enumerate(then.items())}
+    now = {p: obs + [(second_ratio * (1 + jitter * (i % 5 - 2)), 0.05)]
+           for i, (p, obs) in enumerate(mid.items())}
+    return {"2011": then, "2016": mid, "2021": now}
+
+
+def test_the_t_quantile_is_the_published_one():
+    """``levels._t_upper`` against Student's t table values (upper 5% and
+    2.5%), the arithmetic the window rule's critical value rests on."""
+    table = {(0.05, 1): 6.3138, (0.05, 2): 2.9200, (0.05, 3): 2.3534,
+             (0.05, 4): 2.1318, (0.05, 10): 1.8125, (0.025, 1): 12.7062,
+             (0.025, 4): 2.7764, (0.025, 30): 2.0423}
+    for (alpha, df), value in table.items():
+        assert abs(levels._t_upper(alpha, df) - value) < 5e-4, (alpha, df)
 
 
 def test_the_size_window_derivation_can_see():
-    """G20 (SPEC R2.1). A record whose new observations equal each party's
-    near-size history and differ from its far-size history gives a finite
-    window; a record where size carries nothing (one ratio at every size)
-    gives ``inf`` by the tie rule; fewer than ``SIZE_WINDOW_MIN_SCORED``
-    scored observations gives ``"underdetermined"`` and ``inf``. Nothing at
-    or after the target is asked for."""
+    """G20 (SPEC R2.1), on the paired rule (JUDGEMENT-CALLS §A52).
+
+    * New observations that repeat each party's near-size history in both
+      cycles: every finite window predicts them alike and ``inf`` (which
+      lets the far-size ratio in) is measurably worse, so ``h`` is finite.
+    * The same, with the second cycle contradicting the first: ``inf`` has
+      the higher pooled error but the two cycles disagree, so it is not
+      measurably worse and the rule takes it, wider than ``best``.
+    * Fewer than ``SIZE_WINDOW_MIN_SCORED`` scored observations, or one
+      cycle only: ``"underdetermined"`` and ``inf``.
+    Nothing at or after the target is asked for."""
     target = _target("2021")
     asked: list[str] = []
 
@@ -689,19 +709,29 @@ def test_the_size_window_derivation_can_see():
             return fn(t, codes)
         return wrapped
 
-    n = levels.SIZE_WINDOW_MIN_SCORED + 5
-    h, rep = levels.size_window(target, spy(_walk(_history(n, 0.8, 0.8, 5.0))))
-    assert rep["status"] == "derived" and rep["scored"] == n, rep
+    n = levels.SIZE_WINDOW_MIN_SCORED // 2 + 3
+    h, rep = levels.size_window(target, spy(_walk(_history(n, 0.8, 0.8))))
+    assert rep["status"] == "derived" and rep["scored"] == 2 * n, rep
+    assert rep["clusters"] == 2, rep
     assert math.isfinite(h), rep
-    assert rep["errors"]["inf"] > rep["errors"][str(h)] + levels.SIZE_WINDOW_TIE
+    assert rep["paired"]["inf"]["worse"] and rep["paired"]["inf"]["lower"] > 0
     assert all(int(y) <= 2021 for y in asked) and "2021" in asked, asked
 
-    h, rep = levels.size_window(target, _walk(_history(n, 1.0, 1.0, 1.0)))
+    h, rep = levels.size_window(target, _walk(_history(n, 0.8, 3.0)))
     assert rep["status"] == "derived" and h == float("inf"), rep
+    assert rep["best"] != "inf", rep
+    assert rep["errors"]["inf"] > rep["errors"][str(rep["best"])], rep
+    assert not rep["paired"]["inf"]["worse"], rep
 
-    few = levels.SIZE_WINDOW_MIN_SCORED - 1
-    h, rep = levels.size_window(target,
-                                _walk(_history(few, 0.8, 0.8, 5.0)))
+    few = levels.SIZE_WINDOW_MIN_SCORED // 2 - 1
+    h, rep = levels.size_window(target, _walk(_history(few, 0.8, 0.8)))
+    assert rep["status"] == "underdetermined" and h == float("inf"), rep
+
+    one_cycle = {y: r for y, r in _history(levels.SIZE_WINDOW_MIN_SCORED + 5,
+                                           0.8, 0.8).items() if y != "2011"}
+    h, rep = levels.size_window(target, _walk(one_cycle))
+    assert rep["scored"] >= levels.SIZE_WINDOW_MIN_SCORED, rep
+    assert rep["clusters"] == 1, rep
     assert rep["status"] == "underdetermined" and h == float("inf"), rep
 
 

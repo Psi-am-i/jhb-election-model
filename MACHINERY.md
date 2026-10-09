@@ -266,9 +266,11 @@ current size; where none survive, its worth is 0 and it sits on the size centre
 at its current size, and the spine's blend weight on its θ route falls with the
 lost worth. `h` is derived per run, one per route, by `levels.size_window`: the
 calendar is walked up to the target, every party's earlier record predicts each
-new observation, and `h` is the grid value with the lowest reliability-weighted
-mean absolute error in `ln r` (a wider value within the tie tolerance wins;
-too few scored observations leave the filter off). `run_model` passes the θ
+new observation, each candidate is scored by reliability-weighted mean
+absolute error in `ln r`, and `h` is the widest grid value whose paired error
+difference from the best, clustered by cycle, is not measurably worse (one-sided
+5%, Student's t on cycles − 1 degrees of freedom); too few scored observations
+or fewer than two cycles leave the filter off. `run_model` passes the θ
 window to `theta_prior` and `spine` alike. The windows and the error table are
 in the `20_spine` trace.
 

@@ -1572,7 +1572,7 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
     # this module, and it is not counted".
     "levels": ("SD_FLOOR", "SD_CEILING", "SHRINK", "RELIABILITY_HALF",
                "SPINE_K", "SIZE_WINDOW_GRID", "SIZE_WINDOW_MIN_SCORED",
-               "SIZE_WINDOW_TIE", "FILTER_TYPE_A", "EXCLUDE_DEMARCATION_CROSSING",
+               "SIZE_WINDOW_ALPHA", "FILTER_TYPE_A", "EXCLUDE_DEMARCATION_CROSSING",
                "THETA_WINDOW", "THETA_EXCLUDE_TARGETS", "METRO_CODES",
                "TYPE_A_EVENTS", "DEMARCATION_CROSSING", "KNOWN_ABSENT"),
     # POLL_DEFF_STANDALONE is the only one of the four `deff`/`screen`/`drift`

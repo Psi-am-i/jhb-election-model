@@ -354,9 +354,12 @@ THETA_PREDICATES = {fn.__name__: fn for fn in (
 #                the parties dropped and of those whose level nothing can read,
 #                and each route's shrink account. Write-only in the model.
 #   size_window  {theta, rho}: each route's derived size window (BRIEF item 16,
-#                `levels.size_window`): `h` (a grid value, "inf" for no filter),
-#                `status` ("derived" or "underdetermined"), `errors` per grid
-#                value, `scored`, `grid`, `min_scored`, `tie`, `targets`.
+#                `levels.size_window`, JUDGEMENT-CALLS §A52): `h` (a grid
+#                value, "inf" for no filter), `status` ("derived" or
+#                "underdetermined"), `errors` per grid value, `scored`,
+#                `clusters`, `grid`, `min_scored`, `alpha`, `targets`; when
+#                derived also `best`, `t_crit` and `paired` (per grid value
+#                >= best: `mean`, `se`, `lower`, `worse`).
 
 def _spine_rows(stage: dict):
     return (stage.get("detail") or {}), (stage.get("level") or {})
@@ -679,12 +682,15 @@ def spine_the_levels_and_the_group_centres_are_positive(stage: dict) -> list[str
 
 
 def spine_the_size_windows_follow_their_own_rule(stage: dict) -> list[str]:
-    """Each route's window is the one its own error table chooses (item 16).
+    """Each route's window is the one its own report chooses (item 16, §A52).
 
-    ``derived``: enough observations were scored, ``h`` has the lowest error
-    up to the tie tolerance, and no wider grid value is also within it.
-    ``underdetermined``: too few were scored and ``h`` is ``"inf"``. A window
-    the table does not choose is a window someone typed.
+    ``derived``: enough observations over at least two cycles; ``best`` has
+    the lowest error; every grid value from ``best`` up has a paired entry
+    whose ``lower`` is ``mean − t_crit·se`` and whose ``worse`` is
+    ``lower > 0``; and ``h`` is the widest of them not ``worse``.
+    ``underdetermined``: too few scored or fewer than two cycles, and ``h``
+    is ``"inf"``. A window the report does not choose is a window someone
+    typed.
     """
     faults = []
     block = stage.get("size_window")
@@ -698,24 +704,44 @@ def spine_the_size_windows_follow_their_own_rule(stage: dict) -> list[str]:
         grid = [str(g) for g in rep.get("grid") or []]
         h, status = str(rep.get("h")), rep.get("status")
         errors = rep.get("errors") or {}
+        thin = (rep.get("scored", 0) < rep.get("min_scored", 0)
+                or rep.get("clusters", 0) < 2)
         if h not in grid:
             faults.append(f"size_window.{route}: h={h} is not on the grid {grid}")
             continue
         if status == "underdetermined":
-            if h != "inf" or rep.get("scored", 0) >= rep.get("min_scored", 0):
-                faults.append(f"size_window.{route}: underdetermined with h={h} "
-                              f"and {rep.get('scored')} scored")
+            if h != "inf" or not thin:
+                faults.append(f"size_window.{route}: underdetermined with h={h}, "
+                              f"{rep.get('scored')} scored over "
+                              f"{rep.get('clusters')} cycles")
         elif status == "derived":
-            if rep.get("scored", 0) < rep.get("min_scored", 0) or h not in errors:
+            best = str(rep.get("best"))
+            if thin or best not in errors or h not in errors:
                 faults.append(f"size_window.{route}: derived on "
-                              f"{rep.get('scored')} scored, h={h} unscored")
+                              f"{rep.get('scored')} scored over "
+                              f"{rep.get('clusters')} cycles, best={best}, h={h}")
                 continue
-            ok = min(errors.values()) + float(rep.get("tie", 0.0))
-            within = [g for g in grid if g in errors and errors[g] <= ok]
-            if errors[h] > ok or (within and within[-1] != h):
+            if errors[best] > min(errors.values()):
+                faults.append(f"size_window.{route}: best={best} does not have "
+                              f"the lowest error")
+            paired = rep.get("paired") or {}
+            t_crit = float(rep.get("t_crit", float("nan")))
+            wider = grid[grid.index(best):]
+            if sorted(paired, key=grid.index) != wider:
+                faults.append(f"size_window.{route}: paired covers "
+                              f"{sorted(paired)}, not {wider}")
+                continue
+            for g in wider:
+                e = paired[g]
+                lower = e["mean"] - t_crit * e["se"]
+                if not (abs(lower - e["lower"]) <= 1e-12 + 1e-9 * abs(lower)) \
+                        or bool(e["worse"]) != (e["lower"] > 0):
+                    faults.append(f"size_window.{route}: paired[{g}] is not "
+                                  f"mean - t*se, or worse is not lower > 0")
+            ok = [g for g in wider if not paired[g]["worse"]]
+            if not ok or ok[-1] != h:
                 faults.append(f"size_window.{route}: h={h} is not the widest "
-                              f"grid value within the tie of the lowest error "
-                              f"({within})")
+                              f"value not measurably worse than best ({ok})")
         else:
             faults.append(f"size_window.{route}: unknown status {status!r}")
     return faults
@@ -1268,13 +1294,23 @@ def healthy_spine() -> dict:
         },
         "size_window": {
             "theta": {"h": 2.0, "status": "derived", "scored": 40,
-                      "min_scored": 20, "tie": 0.005,
+                      "clusters": 3, "min_scored": 20, "alpha": 0.05,
                       "grid": [0.5, 1.0, 2.0, "inf"],
                       "errors": {"0.5": 0.40, "1.0": 0.39, "2.0": 0.392,
                                  "inf": 0.41},
-                      "targets": ["2016", "2021"]},
+                      "best": 1.0, "t_crit": 2.92,
+                      "paired": {
+                          "1.0": {"mean": 0.0, "se": 0.0, "lower": 0.0,
+                                  "worse": False},
+                          "2.0": {"mean": 0.002, "se": 0.001,
+                                  "lower": 0.002 - 2.92 * 0.001,
+                                  "worse": False},
+                          "inf": {"mean": 0.02, "se": 0.004,
+                                  "lower": 0.02 - 2.92 * 0.004,
+                                  "worse": True}},
+                      "targets": ["2011", "2016", "2021"]},
             "rho": {"h": "inf", "status": "underdetermined", "scored": 3,
-                    "min_scored": 20, "tie": 0.005,
+                    "clusters": 1, "min_scored": 20, "alpha": 0.05,
                     "grid": [0.5, 1.0, 2.0, "inf"], "errors": {},
                     "targets": ["2016", "2021"]},
         },
@@ -1448,7 +1484,7 @@ def _corrupt_spine_shrink(s):
 
 
 def _corrupt_spine_window(s):
-    s["size_window"]["theta"]["h"] = 0.5        # a window its own table did not choose
+    s["size_window"]["theta"]["h"] = 1.0        # best, where a wider one is not worse
 
 
 def _corrupt_spine_positive(s):

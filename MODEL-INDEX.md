@@ -116,11 +116,11 @@ arithmetic test can see.
 |---|---|
 | 0.001 | `polling.POLL_DRIFT_PP_PER_ROOT_DAY`, `pools.NATIONAL_ONLY_FLOOR`, `pools.PRIOR_LOCAL_FLOOR` |
 | 0.002 | `benchmarks.SHARE_FLOOR`, `fold.SHARE_FLOOR`, `levels.RELIABILITY_HALF`, `montecarlo.SHARE_FLOOR` |
-| 0.005 | `gamma_recent.MIN_SHARE`, `levels.SIZE_WINDOW_TIE`, `pools.UNCLASSIFIED_FLOOR`, `render_map.OTHER_FLOOR` |
+| 0.005 | `gamma_recent.MIN_SHARE`, `pools.UNCLASSIFIED_FLOOR`, `render_map.OTHER_FLOOR` |
 | 0.01 | `build_make.VANISH_MIN`, `pools.ALPHA_MIN_SHARE` |
 | 0.015 | `polling.SIGMA_COMMON`, `polling.SIGMA_IDIO`, `pools.ROSTER_DROP_CEILING` |
 | 0.02 | `build_make.COLLAPSE_FROM`, `montecarlo.TURNOUT_DRAW_FLOOR`, `polling.POLL_SCREEN_SD_UNDISCLOSED`, `scenarios.EXCESSIVE_FLOOR` |
-| 0.05 | `build_make.SPLIT_MIN`, `montecarlo.GROUP_SHARE_TRIPWIRE_DRAWS`, `pools.CENSUS_DRIFT_CEILING`, `render_map.TIP_FLOOR` |
+| 0.05 | `build_make.SPLIT_MIN`, `levels.SIZE_WINDOW_ALPHA`, `montecarlo.GROUP_SHARE_TRIPWIRE_DRAWS`, `pools.CENSUS_DRIFT_CEILING`, `render_map.TIP_FLOOR` |
 | 0.25 | `build_make.COLLAPSE_KEEP`, `compare_history.REFERENCE_SLATE` |
 | 0.5 | `areas.SOWETO_CUT`, `build_make.CORRELATION_MIN`, `build_make.RUNNER_UP_MAX`, `montecarlo.WARD_PR_RATIO_MIN`, `score.CLAIM_FRACTION` |
 | 0.9 | `pools.MAX_POOL_CAPTURE`, `pools.SPLIT_SD_FLOOR`, `render_map.SAFE` |
@@ -541,7 +541,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `levels.SPINE_K` | float 1.0 | yes | NO | yes | `montecarlo` |
 | `levels.SIZE_WINDOW_GRID` | (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, float('inf')) | yes | NO | yes | `montecarlo` |
 | `levels.SIZE_WINDOW_MIN_SCORED` | int 20 | yes | NO | yes | `montecarlo` |
-| `levels.SIZE_WINDOW_TIE` | float 0.005 | yes | NO | yes | `montecarlo` |
+| `levels.SIZE_WINDOW_ALPHA` | float 0.05 | yes | NO | yes | `montecarlo` |
 | `levels.METRO_CODES` | tuple[8] | yes | NO | yes | `contested_area`, `montecarlo`, `polling`, `pools`, `theta_residual` |
 | `levels.HELD_BACK` | {} if _HELD_BACK_OFF else {(tag, code): 'pre-2011 history, ingested and  | NO | NO | yes | `pools` |
 | `levels.KNOWN_ABSENT` | dict[0] | yes | NO | NO | `montecarlo` |
@@ -821,7 +821,7 @@ Every name that declares a SPAN — of folds, of history, of recency — matched
 | `SNAPSHOT_STALE_DAYS` | `inputs_preflight` | int 21 | -- |
 | `SIZE_WINDOW_GRID` | `levels` | (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, float('inf')) | -- |
 | `SIZE_WINDOW_MIN_SCORED` | `levels` | int 20 | -- |
-| `SIZE_WINDOW_TIE` | `levels` | float 0.005 | -- |
+| `SIZE_WINDOW_ALPHA` | `levels` | float 0.05 | -- |
 | `THETA_WINDOW` | `levels` | int(_os.environ.get('THETA_WINDOW', '0') or 0) | -- |
 | `SPAN_MARKERS` | `model_index` | tuple[12] | -- |
 | `GAMMA_FOLD` | `montecarlo` | dict[4] | -- |

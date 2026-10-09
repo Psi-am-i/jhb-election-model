@@ -195,13 +195,16 @@ SPINE_K = 1.0
 # ratios count toward its shrunk mean only where they were measured off a size
 # within `h` (natural-log units) of its size now. `h` is DERIVED per target and
 # per record by `size_window`, by scoring every candidate on how well each
-# party's record predicted its next real ratio; what is typed is the grid it
-# chooses from, the minimum number of scored observations below which it does
-# not choose (and leaves the filter off), and the tolerance within which a
-# tie goes to the wider window.
+# party's record predicted its next real ratio, and taking the WIDEST candidate
+# whose cycle-clustered paired error difference from the best is not
+# measurably worse (owner, 2026-10-09: "the window tie is settled by measuring
+# the uncertainty"). What is typed is the grid it chooses from, the minimum
+# number of scored observations below which it does not choose (and leaves the
+# filter off), and the one-sided level at which a wider window counts as
+# measurably worse. The t quantile is arithmetic (`_t_upper`), not a choice.
 SIZE_WINDOW_GRID = (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, float("inf"))
 SIZE_WINDOW_MIN_SCORED = 20
-SIZE_WINDOW_TIE = 0.005
+SIZE_WINDOW_ALPHA = 0.05
 
 
 # Every metro with a VD-level archive. The retention record is a national fact
@@ -1457,6 +1460,48 @@ def _json_h(h: float):
     return float(h) if np.isfinite(h) else "inf"
 
 
+def _t_upper(alpha: float, df: int) -> float:
+    """Student's t upper quantile: ``t`` with ``P(T > t) = alpha`` on ``df``.
+
+    Arithmetic, not judgement (scipy is not a dependency here). For integer
+    ``df`` the two-sided probability ``A(t) = P(|T| < t)`` has a closed form in
+    ``θ = atan(t / √df)`` (Abramowitz and Stegun 26.7.3, 26.7.4); it rises
+    monotonically in ``θ`` on ``(0, π/2)``, so ``A = 1 − 2·alpha`` is solved by
+    bisection on ``θ``. ``tests/test_spine.py`` checks it against the
+    published table values.
+    """
+    df = int(df)
+    if df < 1 or not 0.0 < alpha < 0.5:
+        raise ValueError(f"t quantile needs df >= 1 and 0 < alpha < 0.5, "
+                         f"got df={df}, alpha={alpha}")
+    goal = 1.0 - 2.0 * alpha
+
+    def two_sided(theta: float) -> float:
+        s, c = np.sin(theta), np.cos(theta)
+        if df % 2 == 1:
+            if df == 1:
+                return 2.0 * theta / np.pi
+            term = total = 1.0
+            for k in range(1, (df - 3) // 2 + 1):
+                term *= (2.0 * k) / (2.0 * k + 1.0) * c * c
+                total += term
+            return 2.0 / np.pi * (theta + s * c * total)
+        term = total = 1.0
+        for k in range(1, (df - 2) // 2 + 1):
+            term *= (2.0 * k - 1.0) / (2.0 * k) * c * c
+            total += term
+        return s * total
+
+    lo, hi = 0.0, np.pi / 2
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        if two_sided(mid) < goal:
+            lo = mid
+        else:
+            hi = mid
+    return float(np.sqrt(df) * np.tan(0.5 * (lo + hi)))
+
+
 def size_window(target: cityconfig.Target, record_fn, codes=METRO_CODES,
                 record: dict | None = None) -> tuple[float, dict]:
     """The size window ``h`` for one record at ``target``, derived from data.
@@ -1465,7 +1510,8 @@ def size_window(target: cityconfig.Target, record_fn, codes=METRO_CODES,
     from elections where it stood at a size similar to now, and the
     similarity window is derived, not typed. Called once per record (``θ``
     through :func:`theta_record`, ``ρ`` through :func:`local_record`), so each
-    route gets its own window.
+    route gets its own window. The rule is JUDGEMENT-CALLS §A52, written down
+    (2026-10-09) before it was run on the archive.
 
     The derivation, a walk forward through the calendar:
 
@@ -1473,27 +1519,42 @@ def size_window(target: cityconfig.Target, record_fn, codes=METRO_CODES,
        only transitions strictly before ``T_j``, so nothing at or after
        ``target`` is read (``test_temporal`` watches the file opens).
     2. The NEW observations at ``T_j`` are ``record_fn(T_j)`` minus
-       ``record_fn(T_{j−1})``, as multisets per party.
+       ``record_fn(T_{j−1})``, as multisets per party. The new observations
+       of one step are one CYCLE: the cluster.
     3. Each new observation ``(r, sz)`` of party ``p`` is predicted from
        ``p``'s record at ``T_{j−1}`` by :func:`_shrink_one` with current size
        ``sz`` and window ``h``, the size-centre fit and the common mean also
        taken from the record at ``T_{j−1}``. A party with no earlier record
        is predicted at the size centre (the same for every ``h``).
     4. The score at ``h`` is the reliability-weighted mean of
-       ``|ln r − predicted|`` over every new observation of every party.
-    5. ``h`` is the grid value (``SIZE_WINDOW_GRID``) with the lowest score;
-       any grid value within ``SIZE_WINDOW_TIE`` of that score that is wider
-       wins instead (the widest such). Fewer than ``SIZE_WINDOW_MIN_SCORED``
-       scored observations: ``h = inf`` and the status is
-       ``"underdetermined"``.
+       ``|ln r − predicted|`` over every new observation of every party
+       (``errors``). ``best`` is the grid value with the lowest score.
+    5. For each grid value ``h ≥ best``, the paired difference per
+       observation is ``d_i = |e_i(h)| − |e_i(best)|``; ``mean`` is its
+       reliability-weighted mean ``D``, and ``se`` its cluster-robust (CR1)
+       standard error over the ``G`` cycles:
+       ``se² = G/(G−1) · Σ_g (Σ_{i∈g} w_i (d_i − D))² / (Σ_i w_i)²``.
+       ``h`` is MEASURABLY WORSE than ``best`` when the one-sided lower bound
+       ``D − t·se`` is above 0, with ``t`` the upper ``SIZE_WINDOW_ALPHA``
+       quantile of Student's t on ``G − 1`` degrees of freedom
+       (:func:`_t_upper`).
+    6. The window is the WIDEST grid value ``≥ best`` that is not measurably
+       worse (``status = "derived"``). It need not be adjacent to ``best``:
+       a wider value that is not measurably worse wins even where a value
+       between them is.
+    7. Fewer than ``SIZE_WINDOW_MIN_SCORED`` scored observations, or fewer
+       than two cycles (a cluster-robust error has no degrees of freedom on
+       one): ``h = inf`` and ``status = "underdetermined"``.
 
     ``record`` may carry ``record_fn(target, codes)`` already computed, to
     avoid reading the target's record twice. ``record_fn`` is looked up by
     the caller (a module global swapped by a test is honoured).
 
     Returns ``(h, report)``; ``report`` carries the score at every grid value,
-    the count scored, the targets walked, the choice and the status, all
-    JSON-safe (``"inf"`` for an infinite window).
+    ``best``, the per-value ``paired`` block (``mean``, ``se``, ``lower``,
+    ``worse``), ``clusters``, ``alpha``, ``t_crit``, the count scored, the
+    targets walked, the choice and the status, all JSON-safe (``"inf"`` for an
+    infinite window), so the choice can be re-derived from the report alone.
     """
     year = int(target.year)
     years = sorted(int(y) for y, e in cityconfig.CALENDAR.items()
@@ -1508,10 +1569,10 @@ def size_window(target: cityconfig.Target, record_fn, codes=METRO_CODES,
         records.append(rec or {})
 
     from collections import Counter
-    # (log r, size, reliability, the party's earlier obs, fit, mu_all)
-    scored: list[tuple[float, float, float, list, object, float]] = []
+    # (cycle, log r, size, reliability, the party's earlier obs, fit, mu_all)
+    scored: list[tuple[int, float, float, float, list, object, float]] = []
     nonpositive = 0
-    for prev, cur in zip(records, records[1:]):
+    for cycle, (prev, cur) in enumerate(zip(records, records[1:])):
         everything = [o for v in prev.values() for o in v]
         weights = [_reliability(sz) for _, sz in everything]
         if not everything or sum(weights) <= 0:
@@ -1526,30 +1587,55 @@ def size_window(target: cityconfig.Target, record_fn, codes=METRO_CODES,
                     nonpositive += n
                     continue
                 for _ in range(n):
-                    scored.append((float(np.log(r)), float(sz),
+                    scored.append((cycle, float(np.log(r)), float(sz),
                                    _reliability(sz), prev.get(party, []),
                                    fit, mu_all))
+    cycles = np.array([c for c, *_ in scored], dtype=int)
+    w = np.array([rel for _c, _l, _s, rel, *_ in scored], dtype=float)
+    abs_err: dict[float, np.ndarray] = {}
     errors: dict[str, float] = {}
     for h in SIZE_WINDOW_GRID:
-        total = wsum = 0.0
-        for log_r, sz, rel, earlier, fit, mu_all in scored:
-            mu, _w, _o, _t = _shrink_one(earlier, sz, fit, mu_all, h)
-            total += rel * abs(log_r - mu)
-            wsum += rel
-        if wsum > 0:
-            errors[str(_json_h(h))] = total / wsum
+        e = np.array([abs(log_r - _shrink_one(earlier, sz, fit, mu_all, h)[0])
+                      for _c, log_r, sz, _rel, earlier, fit, mu_all in scored],
+                     dtype=float)
+        abs_err[h] = e
+        if w.sum() > 0:
+            errors[str(_json_h(h))] = float((w * e).sum() / w.sum())
+    n_clusters = len(set(cycles.tolist()))
     report = {"targets": [str(y) for y in years], "scored": len(scored),
               "nonpositive_skipped": nonpositive, "errors": errors,
               "grid": [_json_h(h) for h in SIZE_WINDOW_GRID],
-              "min_scored": SIZE_WINDOW_MIN_SCORED, "tie": SIZE_WINDOW_TIE}
-    if len(scored) < SIZE_WINDOW_MIN_SCORED or not errors:
+              "min_scored": SIZE_WINDOW_MIN_SCORED,
+              "alpha": SIZE_WINDOW_ALPHA, "clusters": n_clusters}
+    if len(scored) < SIZE_WINDOW_MIN_SCORED or not errors or n_clusters < 2:
         report.update(h="inf", status="underdetermined")
         return float("inf"), report
-    best = min(errors.values())
-    chosen = max((h for h in SIZE_WINDOW_GRID
-                  if errors.get(str(_json_h(h)), np.inf) <= best + SIZE_WINDOW_TIE),
-                 default=float("inf"))
-    report.update(h=_json_h(chosen), status="derived")
+    best_score = min(errors.values())
+    best = min(h for h in SIZE_WINDOW_GRID
+               if errors[str(_json_h(h))] == best_score)
+    t_crit = _t_upper(SIZE_WINDOW_ALPHA, n_clusters - 1)
+    W = float(w.sum())
+    paired: dict[str, dict] = {}
+    chosen = best
+    for h in SIZE_WINDOW_GRID:
+        if h < best:
+            continue
+        d = abs_err[h] - abs_err[best]
+        mean = float((w * d).sum() / W)
+        sums = np.zeros(n_clusters)
+        index = {c: i for i, c in enumerate(sorted(set(cycles.tolist())))}
+        for c, wi, di in zip(cycles, w, d):
+            sums[index[int(c)]] += wi * (di - mean)
+        se = float(np.sqrt(n_clusters / (n_clusters - 1)
+                           * float((sums ** 2).sum())) / W)
+        lower = mean - t_crit * se
+        worse = bool(lower > 0.0)
+        paired[str(_json_h(h))] = {"mean": mean, "se": se, "lower": lower,
+                                   "worse": worse}
+        if not worse:
+            chosen = h
+    report.update(best=_json_h(best), t_crit=t_crit, paired=paired,
+                  h=_json_h(chosen), status="derived")
     return float(chosen), report
 
 
