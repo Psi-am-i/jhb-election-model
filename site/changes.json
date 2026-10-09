@@ -855,8 +855,8 @@
       "value": 0.882353
     },
     {
-      "display": "27%",
-      "fmt": "pct0",
+      "display": "2.7%",
+      "fmt": "chance",
       "mode": "generated",
       "movement": "new",
       "pages": [
@@ -867,26 +867,9 @@
       "previous_since": null,
       "previous_value": null,
       "since": null,
-      "source": "vd_ward_2026.csv part_registered over the [areas.soweto] wards: the MDB 2026 voting-district layer's REGPOP, a 2024 registration snapshot",
-      "token": "claim.soweto.roll_share",
-      "value": 0.272717
-    },
-    {
-      "display": "2",
-      "fmt": "int",
-      "mode": "generated",
-      "movement": "new",
-      "pages": [
-        "claims.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
-      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats, the 4,132 where that coalition reaches a majority: small parties needed, largest first",
-      "token": "claim.soweto.small_needed_median",
-      "value": 2.0
+      "source": "ward_draws.csv, 5,000 simulations, the [areas.soweto] wards: the DA wins at least one",
+      "token": "claim.soweto.some_share",
+      "value": 0.0272
     },
     {
       "display": "40",
@@ -4877,23 +4860,6 @@
     {
       "display": "136",
       "fmt": "int",
-      "mode": "fixed",
-      "movement": "new",
-      "pages": [
-        "claims.html"
-      ],
-      "previous": null,
-      "previous_published_at": null,
-      "previous_since": null,
-      "previous_value": null,
-      "since": null,
-      "source": "external:Daily Maverick, 3 October 2022 (https://www.dailymaverick.co.za/opinionista/2022-10-03-the-tragedy-of-johannesburgs-soap-opera-coalition-mess/): the coalition held exactly the majority of the 270-seat council; it lost the majority when the PA left in September 2022 (BizNews, https://www.biznews.com/leadership/coalition-collapse-johannesburg-action-sa-da)",
-      "token": "jhb_2021_coalition_seats",
-      "value": 136
-    },
-    {
-      "display": "136",
-      "fmt": "int",
       "mode": "free",
       "movement": "none",
       "pages": [
@@ -6870,9 +6836,9 @@
     "draws": 5000,
     "forecast_content_sha256": "c68c627d287e5e103ac0effbf1aaab9dbcffdb4d2945720ec43d771a9945efad",
     "forecast_summary_sha256": "97efecf5c70e0020412d801b20bce579c1f7e31e8f5bb8c3e0a8423106bc84bd",
-    "git_commit": "bfa598b230c8b0e70dd21aceb79f330db365d3b6",
+    "git_commit": "588c6350ba6ef06875c4d98fe630534113a894b2",
     "git_dirty": true,
-    "model_run_id": "r-c68c627d287e-bfa598b2-dirty",
+    "model_run_id": "r-c68c627d287e-588c6350-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -6946,11 +6912,9 @@
         "claim.soweto.none_share",
         "claim.soweto.realistic_given_none",
         "claim.soweto.realistic_given_some",
-        "claim.soweto.roll_share",
-        "claim.soweto.small_needed_median",
+        "claim.soweto.some_share",
         "claim.soweto.wards_n",
-        "jhb_2021_coalition_parties",
-        "jhb_2021_coalition_seats"
+        "jhb_2021_coalition_parties"
       ],
       "none": [
         "anc_entitlement",
@@ -7342,7 +7306,7 @@
         "tile.p_tied_largest"
       ]
     },
-    "n": 400,
+    "n": 398,
     "n_rounding": 0,
     "n_visible": 2,
     "nominal": []
