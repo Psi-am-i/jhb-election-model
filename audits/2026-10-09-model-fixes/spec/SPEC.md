@@ -1226,3 +1226,8 @@ them with `size_sd` at their local share.
   `deps_sha` again (`levels.py`, `montecarlo.py`); `test_chain`,
   `test_stage_inputs` and `test_citywide_table` stay red for that cause.
   `test_intermediates_are_current` ×2 stays red for the missing record.
+- **`test_levers_are_live`, run once after the fix round's last code commit
+  (0c82a88): 23 passed, 0 failed.** The `level_sd_default` red is gone with
+  the lever, and `test_no_function_argument_is_accepted_and_never_used` (red
+  in the step-4 addendum on `build_make.npe_priors(wards)`) passed in this
+  run; nothing in this round touched that function.
