@@ -84,3 +84,21 @@ outside the real envelope in more than 1% of draws).
 2026 has no result; F1–F6 are statements about the mechanism. Only B1–B4 are scored
 against real elections, and contestation changes are large for few parties at any
 backtest city-year, so B3 has little power.
+
+## Addendum, 2026-10-09, written before the panel was launched (a control, no prediction above changed)
+
+A third panel arm, **no slate change** (`now / was = 1` for every party, i.e. the
+identity), is run beside the baseline (count form) and the candidate (vote form),
+because the 316-pair test has "none" beating the vote form on the ≥2× subpopulation
+(0.240 against 0.281 pt) and §1.47 had count-as-change beating none on ward MAE at
+four metros at 2021.
+
+- **C1:** panel-mean ward MAE orders vote < none, and vote < count. No prediction
+  about count against none.
+- **C2:** list MAE identical in all three arms.
+- **C3:** coherent seat total: no prediction for the control.
+
+Reproduction check recorded alongside: whether the baseline arm's coherent total
+equals the canonical 733 (`seat_abs_err_coherent=733/@2ac4c1eb/1000d`, MODEL-LOG
+§1.253). If it does not, that is a fact about the tree since 2ac4c1eb, and the
+comparison is made against this run's baseline, not against 733.
