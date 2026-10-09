@@ -104,6 +104,7 @@ import seats as seats_module  # noqa: E402
 GUARD_KEYS = frozenset({
     "bounds_checked", "bounds_violations", "bounds_base", "draws",
     "roster_unrepresented", "level_sd_default_parties", "level_sd_at_size",
+    "group_share_tripwire",
     "cap_moved", "cap_undershoots",
     "excessive_draws", "overhang_count",
     "ipf_balances", "ipf_failures", "ipf_clipped", "ipf_headroom",
@@ -607,8 +608,8 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                        f"{sorted(set(value) - set(universe))[:6]}")
 
     for key, value in sorted(guards.items()):
-        if key in NAME_LIST_KEYS:
-            continue
+        if key in NAME_LIST_KEYS or key == "group_share_tripwire":
+            continue          # the tripwire is `faults_in_group_share`'s
         if isinstance(value, dict):
             for party, n in value.items():
                 if not isinstance(n, (int, float)) or isinstance(n, bool):
@@ -739,6 +740,57 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
             f"capacity still cannot fill the city. It then returns a vector "
             f"with EVERY element above its cap — the opposite of the "
             f"function's name — and the caller's fallback is what reports it")
+    return out
+
+
+def faults_in_group_share(guards, *, draws=None, universe=None) -> list[str]:
+    """`41_guards.group_share_tripwire` (BRIEF item 12) is "no record" or a
+    count that looked and is consistent with its own draws.
+
+    The scan must prove it looked (CLAUDE.md §4): `population` is the member
+    pairs of the run's pools and `scanned` the pairs counted, and they are
+    equal and positive. Each reported pair fired in more than `fire_at` of
+    the draws, its share is its count over the draws, its threshold is a
+    finite non-negative share, and its party is in the universe.
+    """
+    out: list[str] = []
+    value = (guards or {}).get("group_share_tripwire")
+    if value == "no record":
+        return out
+    if not isinstance(value, dict):
+        return [f"41_guards.group_share_tripwire is {value!r}, neither "
+                f"\"no record\" nor a count"]
+    population, scanned = value.get("population"), value.get("scanned")
+    if not isinstance(population, int) or population <= 0 \
+            or population != scanned:
+        out.append(f"41_guards.group_share_tripwire scanned {scanned!r} of a "
+                   f"population of {population!r} member pairs: it did not "
+                   f"look at the set it reports on")
+    n_draws = value.get("draws")
+    if draws is not None and n_draws != draws:
+        out.append(f"41_guards.group_share_tripwire counts over {n_draws!r} "
+                   f"draws, not the run's {draws}")
+    fire_at = value.get("fire_at")
+    for pair, row in sorted((value.get("pairs") or {}).items()):
+        party, _, pool = pair.partition("|")
+        if not pool or not isinstance(row, dict):
+            out.append(f"group_share_tripwire[{pair}] is malformed: {row!r}")
+            continue
+        n, share, thr = row.get("draws"), row.get("share"), row.get("threshold")
+        if not (isinstance(n, int) and isinstance(n_draws, int)
+                and 0 <= n <= n_draws and n_draws > 0
+                and abs(share - n / n_draws) < 1e-12):
+            out.append(f"group_share_tripwire[{pair}]: {n!r} of {n_draws!r} "
+                       f"draws is not share {share!r}")
+        elif isinstance(fire_at, (int, float)) and not share > fire_at:
+            out.append(f"group_share_tripwire[{pair}] is reported at share "
+                       f"{share}, not above its firing rule {fire_at}")
+        if not (isinstance(thr, (int, float)) and math.isfinite(thr)
+                and thr >= 0):
+            out.append(f"group_share_tripwire[{pair}] threshold {thr!r}")
+        if universe is not None and party not in universe:
+            out.append(f"group_share_tripwire names {party}, outside the "
+                       f"universe")
     return out
 
 
@@ -938,6 +990,10 @@ def healthy_guards():
         "roster_unrepresented": ["ZZZ"],
         "level_sd_default_parties": ["CCC"],
         "level_sd_at_size": {"DDD": 0.62},
+        "group_share_tripwire": {
+            "pairs": {"AAA|G1": {"draws": 3, "share": 0.5, "threshold": 0.4}},
+            "population": 5, "scanned": 5, "draws": DRAWS, "fire_at": 0.05,
+            "key_current": True},
         "cap_moved": 12.5,
         "cap_undershoots": 0,
         "excessive_draws": 1,
@@ -1610,6 +1666,7 @@ ALL_PREDICATES = {
     "faults_in_seat_draws": faults_in_seat_draws,
     "faults_between_summary_and_detail": faults_between_summary_and_detail,
     "faults_in_guards": faults_in_guards,
+    "faults_in_group_share": faults_in_group_share,
     "faults_in_delivery_log": faults_in_delivery_log,
 }
 
@@ -1644,6 +1701,8 @@ def run_predicates(bundle: dict, *, universe=None, council=COUNCIL,
         bundle["40_draws"], bundle["42_pr_share_draws"],
         bundle["43_ward_share_draws"], bundle["44_seat_draws"]))
     add("faults_in_guards", faults_in_guards(
+        bundle["41_guards"], draws=draws, universe=universe))
+    add("faults_in_group_share", faults_in_group_share(
         bundle["41_guards"], draws=draws, universe=universe))
     add("faults_in_delivery_log", faults_in_delivery_log(bundle["45_delivered"]))
     return out
@@ -1687,6 +1746,10 @@ def _guard_key_dropped(b):
     b["41_guards"].pop(sorted(b["41_guards"])[0])
 
 
+def _tripwire_blind(b):
+    b["41_guards"]["group_share_tripwire"]["scanned"] = 0
+
+
 def _delivery_empty(b):
     b["45_delivered"] = {}
 
@@ -1702,6 +1765,7 @@ CORRUPTIONS = [
     ("faults_in_seat_draws", "a chamber larger than the statute", _chamber_too_big),
     ("faults_between_summary_and_detail", "the marginal median stored as the mean", _median_as_mean),
     ("faults_in_guards", "a declared guard counter missing", _guard_key_dropped),
+    ("faults_in_group_share", "a tripwire that scanned nothing", _tripwire_blind),
     ("faults_in_delivery_log", "an empty delivery log", _delivery_empty),
 ]
 
@@ -1960,6 +2024,102 @@ def test_the_bounds_population_is_one_cut_on_the_recorded_base():
     assert any("not one cut" in f
                for f in faults_in_guards(skipped, draws=DRAWS))
     assert not faults_in_guards(healthy_guards(), draws=DRAWS)   # reverted
+
+
+def test_the_group_share_tripwire_can_see_and_goes_quiet():
+    """G14, constructed (BRIEF item 12). A party at record + margin + 0.1 in
+    half the draws fires; the same party at its record is quiet; no record
+    is reported as "no record", never as a threshold of zero; and the run's
+    predicate passes both payloads it builds."""
+    draws = 40
+    record = {"record": {"G1": {"AAA": 0.20}}, "margin": {"G1": 0.10},
+              "key_current": True}
+    over = np.full((draws, 2), 0.0)
+    over[:, 0] = 0.20
+    over[: draws // 2, 0] = 0.20 + 0.10 + 0.10
+    over[:, 1] = 1.0 - over[:, 0]
+    out = M.group_share_tripwire({"G1": over}, {"G1": ["AAA", "BBB"]},
+                                 record, draws)
+    assert out["population"] == out["scanned"] == 2
+    assert out["pairs"]["AAA|G1"]["draws"] == draws // 2
+    assert abs(out["pairs"]["AAA|G1"]["threshold"] - 0.30) < 1e-12
+    assert not faults_in_group_share({"group_share_tripwire": out},
+                                     draws=draws)
+    at = np.array(over, copy=True)
+    at[:, 0] = 0.20
+    at[:, 1] = 0.80
+    quiet = M.group_share_tripwire({"G1": at}, {"G1": ["AAA", "BBB"]},
+                                   dict(record, record={"G1": {"AAA": 0.20,
+                                                               "BBB": 0.80}}),
+                                   draws)
+    assert quiet["pairs"] == {}, quiet
+    assert M.group_share_tripwire({"G1": over}, {"G1": ["AAA", "BBB"]},
+                                  None, draws) == "no record"
+
+
+def test_the_group_share_tripwire_scans_every_member_of_a_real_run():
+    """G14, in-process at Johannesburg 2026, 200 draws, with a constructed
+    record handed to the run (`read_group_share_record` patched; the real
+    artefact is the window's to emit). `population` equals the count of
+    positive member weights in the spec among the run's parties, and equals
+    `scanned`. With every record at 1.0 nothing fires; with every record and
+    margin at 0, the pairs that fire are pool members."""
+    spec_path = ROOT / "data" / "processed" / "pools_2026.json"
+    if not spec_path.exists():
+        skip(f"{spec_path} is not on disk")
+    spec = json.loads(spec_path.read_text())
+    real = M.read_group_share_record
+    runs = {}
+    try:
+        for label, value in (("high", 1.0), ("zero", 0.0)):
+            def fake(slug, year, _v=value):
+                return {"record": {g: {p: _v for p in cfg["members"]}
+                                   for g, cfg in spec["pools"].items()},
+                        "margin": {g: 0.0 for g in spec["pools"]},
+                        "key_current": True}
+            M.read_group_share_record = fake
+            city = cityconfig.use("joburg")
+            target = cityconfig.use_target("2026")
+            M.apply_city(city)
+            scenario = M.load_scenario(Namespace(
+                config=None, set=["draws=200", "seed=20260913"],
+                counterfactual=False, draws=200, seed=20260913))
+            runs[label] = M.run_model(target, scenario, verbose=False)
+    finally:
+        M.read_group_share_record = real
+        cityconfig.use("joburg")
+    universe = set(runs["high"].universe)
+    expected = sum(1 for cfg in spec["pools"].values()
+                   for p, w in cfg["members"].items()
+                   if p in universe and float(w) > 0)
+    high = runs["high"].guards["group_share_tripwire"]
+    zero = runs["zero"].guards["group_share_tripwire"]
+    assert high["population"] == high["scanned"] == expected, (high, expected)
+    assert high["pairs"] == {}, sorted(high["pairs"])[:5]
+    assert zero["pairs"], "a zero threshold fired on nobody: the count is blind"
+    members = {(p, g) for g, cfg in spec["pools"].items()
+               for p in cfg["members"]}
+    assert all(tuple(k.split("|")) in members for k in zero["pairs"])
+    assert not faults_in_group_share(runs["zero"].guards, draws=200,
+                                     universe=universe)
+
+
+def test_the_site_build_prints_one_line_per_firing_pair():
+    """Item 12's reporting half: `build_site.group_share_lines` prints a head
+    line and one line per reported pair, says "no record" and "stale" when
+    they hold, and says when a summary predates the tripwire."""
+    import build_site
+    blob = {"guards": {"group_share_tripwire": {
+        "pairs": {"PA|Coloured": {"draws": 30, "share": 0.6, "threshold": 0.8},
+                  "AAA|G1": {"draws": 10, "share": 0.2, "threshold": 0.1}},
+        "population": 9, "scanned": 9, "draws": 50, "fire_at": 0.05,
+        "key_current": False}}}
+    lines = build_site.group_share_lines(blob)
+    assert len(lines) == 3 and "2 of 9" in lines[0] and "STALE" in lines[0]
+    assert "PA|Coloured" in lines[1]
+    assert "no record" in build_site.group_share_lines(
+        {"guards": {"group_share_tripwire": "no record"}})[0]
+    assert "before" in build_site.group_share_lines({})[0]
 
 
 def test_the_real_seat_draws_fill_a_lawful_chamber():

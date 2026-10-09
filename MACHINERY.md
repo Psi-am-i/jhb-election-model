@@ -156,6 +156,12 @@ exactly this. It is now **inert on Johannesburg 2026**: the PA was held at
 capacity in 39.2% of draws with a worst ask of 204%, and after the fix nothing is
 held in any draw.
 
+⚠️ **The capacity cap cannot see a party taking too much of one group**
+(integrity review F2, `audits/2026-10-09-model-questions/integrity/FINDINGS.md`):
+every party has weight in every pool, so a party's capacity is the whole
+electorate. A ×12 PA centre gave a 45% PA with every counter at zero. The
+**group-share tripwire** below is what reports it.
+
 **The honest limit.** Projection removes only *refutable* corners. The PA's
 non-Coloured share reaches 0.58%, not the ~5.7% its ward geography suggests,
 because Duncan-Davis cannot exclude that all 1,173 of its votes in wards under
@@ -428,6 +434,35 @@ this document until 2026-08-17. Both are in `montecarlo.py`.
 | **per-draw balance** | `draw_pools` (`montecarlo.py`) | the level shock is applied to the CENTRES and the matrix re-balanced against the shocked column margin, so the whole shock survives into the draw. Costs ~0.15 ms a draw |
 | per-draw capacity clip | `draw_pools` → `capped_targets` | the shocked centres are water-filled under the same capacity before the balance, because a shock can ask for far more than the run-level centre did — at Johannesburg 2026 the PA has asked for up to **254%** of the Coloured pool |
 | fallback | `partial_balance` (both sites) | when the two margins cannot both hold, alternating row/column scaling ENDING ON THE ROW pass: every pool exactly allocated, the party levels as close as the arithmetic permits. **Counted, not swallowed** — `ModelRun.ipf_failures` / `.ipf_balances`, printed by `main` |
+
+⚠️ The two capacity rows above bind only where a party's pools hold less
+than it asks for, and every party has weight in every pool, so its capacity is
+the whole electorate (integrity review F2). They cannot report a party taking
+more of one group than history allows; the group-share tripwire does.
+
+### The group-share tripwire (reports, changes no number)
+
+BRIEF item 12, JUDGEMENT-CALLS §A54. `make_drawer` keeps each pool's
+within-pool Dirichlet split per draw (values already drawn; no extra call on
+the random stream). `run_model` counts, for every (party, pool) with member
+weight > 0, the draws in which the party's share of that pool's vote exceeds
+its record plus the pool's margin, and reports each pair that does so in more
+than `GROUP_SHARE_TRIPWIRE_DRAWS` of draws in `41_guards.group_share_tripwire`,
+with the population of member pairs and the count scanned. `main` writes it into
+`forecast_summary.json` and `build_site.py` prints one line per pair. Nothing
+reads it back into a draw.
+
+* **record** — the party's largest Duncan-Davis upper bound on its share of the
+  pool's vote in this city's real results before the target: every local
+  election `pools.fit_city` fits and every national election after one, on that
+  local election's wards and composition (carried forward, argued).
+* **margin** — the largest one-cycle rise of a fitted pool rate by any party in
+  any metro, between consecutive fitted local elections before the target.
+
+Both come from `data/processed/group_share_record.json`, written by
+`src/group_share_record.py --emit` in a re-emit window and keyed to its own
+code, `pools.py` and the emit dependencies (`declares.py`, `record` kind). No
+file, or no entry for the city-year: the guard says `"no record"`.
 
 **Why water-filling and not a clip.** Two places rescale the column margin and
 would undo a plain clip: `pool_spec`'s own normalisation, and

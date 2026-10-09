@@ -1175,3 +1175,12 @@ them with `size_sd` at their local share.
   11a too, and were re-recorded in the item-16 commit (a885b28) with the
   paired `key4_delta` measurement in the file. They read no spec, so the
   window does not move them again.
+- **Item 12's record is not on disk until the window** (`group_share_record.py
+  --emit` is a window step, §5). Until then:
+  `test_intermediates_are_current::test_the_group_share_record_is_a_fresh_build`
+  (G15) fails on the missing file, and
+  `test_the_uncovered_set_is_exactly_the_declared_one_BOTH_WAYS` fails on the
+  `group_share_record.json` pattern matching nothing. Both are expected to turn
+  green after the emit; one that does not is a finding. Every run before the
+  emit reports `41_guards.group_share_tripwire = "no record"`. A build into a
+  temporary directory twice, in two processes, gave byte-identical files.

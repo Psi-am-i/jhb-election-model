@@ -506,6 +506,12 @@ WARD_PR_RATIO_MAX = 2.0
 
 LEVEL_DF = 7.0
 
+# THE GROUP-SHARE TRIPWIRE'S FIRING RULE (BRIEF item 12, JUDGEMENT-CALLS §A54).
+# A (party, pool) pair is reported when its share of the pool's vote exceeds
+# its record plus the pool's largest real one-cycle rise in more than this
+# fraction of draws. It reports and changes no number.
+GROUP_SHARE_TRIPWIRE_DRAWS = 0.05
+
 
 def log_shock(rng, sd, size=None, df: float | None = None):
     """exp of a Student-t scaled to have log-sd exactly ``sd``. Median 1.
@@ -1552,7 +1558,8 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
                    "WARD_PR_RATIO_MIN", "WARD_PR_RATIO_MAX", "COUNCIL",
                    "TURNOUT_CORRELATION", "PLAN_BOUNDS",
                    "POOL_CAPACITY_MARGIN", "GAMMA_FOLD",
-                   "PARTIAL_BALANCE_PASSES", "HASH_SEED", "FOLDS"),
+                   "PARTIAL_BALANCE_PASSES", "HASH_SEED", "FOLDS",
+                   "GROUP_SHARE_TRIPWIRE_DRAWS"),
     # FOLDS is declared HERE and not under `fold` on purpose: `montecarlo.py`
     # does `from fold import FOLDS`, and `fold_target_year` resolves the name
     # in THIS module's globals. A record keyed `fold.FOLDS` would report a
@@ -2698,6 +2705,76 @@ def _balance(R, electorate, party_votes):
     return _pl.balance_margins(R, electorate, party_votes)
 
 
+def read_group_share_record(city_slug: str, year: str) -> dict | None:
+    """The group-share record for one city at one target, or None.
+
+    Reads ``data/processed/group_share_record.json`` (written by
+    ``src/group_share_record.py --emit``, which this module does not import)
+    and returns ``{"record", "margin", "margin_cycles", "sources",
+    "key_current"}``. ``key_current`` says whether the file's ``artefact_key``
+    names the live ``group_share_record.py``, ``pools.py`` and emit
+    dependencies. None when the file, the city or the target is absent: the
+    run then reports ``"no record"``, never a threshold of zero. A module
+    function so a test can hand the run a constructed record.
+    """
+    import pools as _pl
+    src = Path(__file__).resolve().parent
+    path = src.parent / "data" / "processed" / _pl.GROUP_SHARE_RECORD
+    if not path.exists():
+        return None
+    blob = json.loads(path.read_text(encoding="utf-8"))
+    entry = ((blob.get("cities") or {}).get(city_slug) or {}).get(str(year))
+    if not entry:
+        return None
+    key = blob.get("artefact_key") or {}
+    live = {"record_sha": _pl._code_sha(src / "group_share_record.py"),
+            "pools_sha": _pl._code_sha(src / "pools.py"),
+            "deps_sha": _pl._deps_sha()}
+    return dict(entry, key_current=all(key.get(k) == v for k, v in live.items()))
+
+
+def group_share_tripwire(splits: dict, members: dict, record: dict | None,
+                         draws: int,
+                         fire_at: float | None = None) -> dict | str:
+    """Count, per (party, pool), the draws in which the party's share of the
+    pool's vote exceeds its record plus the pool's margin (BRIEF item 12).
+
+    ``splits`` is ``{pool: (draws, members) array}``, the within-pool
+    Dirichlet split of every draw in member order; ``members`` is ``{pool:
+    [party, ...]}`` in the same order (every member has weight > 0 in the
+    spec). ``record`` is :func:`read_group_share_record`'s, or None.
+
+    Returns ``"no record"`` when there is none. Otherwise ``{"pairs":
+    {"party|pool": {"draws", "share", "threshold"}}`` for every pair firing in
+    more than ``fire_at`` of the draws, ``"population"`` (the member pairs),
+    ``"scanned"`` (the pairs counted), ``"draws"``, ``"fire_at"`` and
+    ``"key_current"``}. A party with no record in a pool has record 0, so its
+    threshold is the margin. Reads values already drawn; draws nothing.
+    """
+    if record is None:
+        return "no record"
+    fire_at = GROUP_SHARE_TRIPWIRE_DRAWS if fire_at is None else float(fire_at)
+    rec, margin = record.get("record") or {}, record.get("margin") or {}
+    population = sum(len(m) for m in members.values())
+    scanned = 0
+    pairs = {}
+    for pool, names in members.items():
+        shares = np.asarray(splits.get(pool, np.zeros((0, len(names)))))
+        for k, party in enumerate(names):
+            if shares.shape[0] != draws:
+                continue
+            scanned += 1
+            threshold = float((rec.get(pool) or {}).get(party, 0.0)
+                              + margin.get(pool, 0.0))
+            n = int((shares[:, k] > threshold).sum())
+            if draws and n / draws > fire_at:
+                pairs[f"{party}|{pool}"] = {"draws": n, "share": n / draws,
+                                            "threshold": threshold}
+    return {"pairs": dict(sorted(pairs.items())), "population": population,
+            "scanned": scanned, "draws": int(draws), "fire_at": fire_at,
+            "key_current": bool(record.get("key_current"))}
+
+
 def level_shock_sd(party: str, scenario: dict, base_city_d: dict,
                    ) -> tuple[float, str]:
     """A party's level-shock sd in log units, and which rule gave it.
@@ -2960,6 +3037,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # on the ballot is already absent here and gets no column.
     turnout_pools: list[str] = list(pools)
     turnout_record: list[tuple[float, ...]] = []
+    split_record: dict[str, list] = {name: [] for name in pools}
 
     def draw_pools():
         """One draw. Each pool's VOTES are its counted registration times a
@@ -3139,6 +3217,10 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             moved = np.maximum(moved, mean_floor)
             moved = moved / moved.sum()
             split = rng.dirichlet(moved * alpha)
+            # Kept for the group-share tripwire (item 12): the share of this
+            # pool's vote each member took this draw. A record of a value
+            # already drawn; it calls nothing on `rng`.
+            split_record[name].append(split)
             np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
         for i, centre, sd in individual:
             target[i] = centre * log_shock(rng, sd)
@@ -3182,6 +3264,9 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     draw_pools.level_sd_default = took_default
     draw_pools.level_sd_at_size = at_size
     draw_pools.turnout_record = turnout_record
+    draw_pools.split_record = split_record
+    draw_pools.split_members = {name: list(spec[5])
+                                for name, spec in pools.items()}
     draw_pools.turnout_pools = turnout_pools
     return draw_pools
 
@@ -5576,6 +5661,13 @@ def run_model(target, scenario: dict,
     # binds it in one expression, with no second copy to drift. `guards` goes on
     # to `ModelRun` below, which is the only route these counters have to a
     # consumer that did not ask for a `--run-dir`.
+    # THE GROUP-SHARE TRIPWIRE (BRIEF item 12). Reports, changes no number.
+    _gs_record = read_group_share_record(
+        getattr(getattr(target, "city", None), "slug", ""), target.year)
+    _tripwire = group_share_tripwire(
+        {nm: np.asarray(v) for nm, v in
+         getattr(draw_target, "split_record", {}).items()},
+        getattr(draw_target, "split_members", {}), _gs_record, int(draws))
     guards = trace.put("41_guards", {
         "ipf_balances": int(_ipf_stats.get("balances", 0)),
         "ipf_failures": int(_ipf_stats.get("failures", 0)),
@@ -5607,6 +5699,9 @@ def run_model(target, scenario: dict,
             draw_target.level_sd_at_size.items()) if p in index},
         "excessive_draws": excessive_draws,
         "overhang_count": dict(overhang_count),
+        # Item 12: pairs whose drawn share of a pool's vote exceeds their
+        # record plus the pool's largest real rise, or "no record".
+        "group_share_tripwire": _tripwire,
         # `solve_nonconvergent` is expected to equal `solve_calls` on the shipped
         # configuration and that is NOT reassuring — see MODEL-LOG §1.98. Read
         # `solve_nonconvergent_reachable` instead: it excludes parties whose
@@ -5990,6 +6085,10 @@ def main(argv: list[str] | None = None) -> int:
         "mwc": results["mwc"][:15],
         "power": results["power"],
         "minority": results["minority"],
+        # Item 12: the tripwire travels with the run, and the site build
+        # prints one line per firing pair. Nothing reads it back into a draw.
+        "guards": {"group_share_tripwire":
+                   run.guards.get("group_share_tripwire")},
     }
     # ⛔ THE RUN MUST SAY WHEN IT RAN, AND THIS ARTEFACT CARRIED NO TIMESTAMP
     # OF ANY KIND UNTIL 2026-08-30. Consequence: a published figure could not

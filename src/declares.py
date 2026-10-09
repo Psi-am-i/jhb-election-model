@@ -200,6 +200,13 @@ KINDS: dict[str, Kind] = {
         "reduction", ("code", "scope", "inputs"),
         "§1.265 — a precomputed reduction is a second definition of its "
         "function unless it names the code and the input bytes it came from"),
+    # A record a run reads as a threshold (BRIEF item 12): the group-share
+    # record. It names the code that built it and the pools code it fitted
+    # with; a record from other code is a tripwire set somewhere else.
+    "record": Kind(
+        "record", ("code",),
+        "BRIEF item 12 — the group-share tripwire's thresholds come from a "
+        "precomputed record, which must name the code it was built by"),
 }
 
 
@@ -259,7 +266,7 @@ class CannotAudit(SystemExit):
 #: The order `report` prints the kinds in. It must name every kind in `KINDS`:
 #: until 2026-09-28 it was a literal inside `report`, and a fifth kind added to
 #: `KINDS` was counted in the headline and never printed.
-REPORT_ORDER = ("scoreboard", "run", "spec", "reduction", "intermediate")
+REPORT_ORDER = ("scoreboard", "run", "spec", "reduction", "record", "intermediate")
 if set(REPORT_ORDER) != set(KINDS):
     raise CannotAudit(f"REPORT_ORDER {sorted(REPORT_ORDER)} does not name every "
                       f"kind in KINDS {sorted(KINDS)}")
@@ -652,13 +659,51 @@ def _reduction_rows(processed: Path) -> list[Row]:
     return rows
 
 
+def _record_rows(processed: Path) -> list[Row]:
+    """`group_share_record.json`: the code it names against the live code.
+
+    The live key is computed here from the files, not by importing
+    `group_share_record` (an entry point nothing imports, CLAUDE.md §5).
+    """
+    try:
+        import pools as _pl
+        src = Path(_pl.__file__).resolve().parent
+        live = {"record_sha": _pl._code_sha(src / "group_share_record.py"),
+                "pools_sha": _pl._code_sha(src / "pools.py"),
+                "deps_sha": _pl._deps_sha()}
+        name = _pl.GROUP_SHARE_RECORD
+    except Exception as exc:  # the audit must say it could not look
+        raise CannotAudit(f"cannot compute the record key: {exc}") from exc
+    rows = []
+    for p in sorted(processed.rglob(name)):
+        r = Row(_display(p), "record")
+        try:
+            key = json.loads(p.read_text()).get("artefact_key") or {}
+        except Exception as exc:
+            r.states = {f: UNDECLARED for f in KINDS["record"].required}
+            r.notes.append(f"unreadable: {type(exc).__name__}")
+            rows.append(r)
+            continue
+        named = {f: key.get(f) for f in live}
+        if not all(_declared(v) for v in named.values()):
+            r.states["code"] = UNDECLARED
+        elif named != live:
+            r.states["code"] = LYING
+            r.notes.append("names code that is not the live code — rebuild "
+                           "with src/group_share_record.py --emit")
+        else:
+            r.states["code"] = DECLARED
+        rows.append(r)
+    return rows
+
+
 def audit(processed: Path | None = None) -> list[Row]:
     root = _processed_root(processed)
     live_sha = _live_pools_sha()
     spec = _spec_rows(live_sha, root)
     live_keys = {live_sha} if live_sha else set()
     return (spec + _json_rows(live_keys, root) + _reduction_rows(root)
-            + _intermediate_rows(root))
+            + _record_rows(root) + _intermediate_rows(root))
 
 
 def report(rows: list[Row]) -> str:

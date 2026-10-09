@@ -138,6 +138,11 @@ NOT_REGENERATED_HERE: dict[str, str] = {
     "forecast_frozen.json":
         "src/freeze.py — the tripwire. Self-hashed and checked by "
         "tests/test_freeze.py, which is a stronger guard than regeneration.",
+    "group_share_record.json":
+        "src/group_share_record.py --emit (BRIEF item 12): the group-share "
+        "tripwire's record and margins. Carries an artefact_key (declares.py, "
+        "`record` kind), and is regenerated and compared byte for byte by "
+        "test_the_group_share_record_is_a_fresh_build below.",
     "citywide_*.json":
         "src/citywide_table.py — the browser engine's stand-in for "
         "levels._citywide_and_roster, recorded from a model run. Regenerated "
@@ -378,6 +383,43 @@ def test_the_comparator_CAN_SEE_a_stale_file():
     assert str(victim.relative_to(root / "data" / "processed")) not in stale, (
         "the comparator still reports the file as stale after the constructed "
         "violation was reverted, so it is not reading the file it names.")
+
+
+def _build_group_share_record(out: Path) -> Path:
+    """Build the record from empty into ``out`` (never into data/processed)."""
+    proc = subprocess.run([str(PY), "src/group_share_record.py", "--out",
+                           str(out)], cwd=ROOT, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-400:]
+    return out / "group_share_record.json"
+
+
+def test_the_group_share_record_is_a_fresh_build():
+    """G15 (BRIEF item 12): the record on disk is what today's code builds.
+
+    Rebuilt from an EMPTY directory, so nothing scores current by never being
+    rewritten, and compared byte for byte. It can see: a byte appended to the
+    rebuilt copy is caught, and the detector is quiet once it is removed.
+    Red until the re-emit window runs `--emit` (SPEC R3.6, slice M3).
+    """
+    live = PROCESSED / "group_share_record.json"
+    assert live.exists(), (
+        f"{live} is not on disk. It is emitted in the re-emit window "
+        f"(src/group_share_record.py --emit); until then the tripwire reports "
+        f"\"no record\".")
+    tmp = Path(tempfile.mkdtemp(prefix="group-share-"))
+    try:
+        assert not any(tmp.iterdir()), "the scratch directory is not empty"
+        made = _build_group_share_record(tmp)
+        assert made.read_bytes() == live.read_bytes(), (
+            "group_share_record.json differs from a fresh build: re-emit it "
+            "in a window and measure, as for any precomputed artefact")
+        original = made.read_bytes()
+        made.write_bytes(original + b"\n")
+        assert made.read_bytes() != live.read_bytes()
+        made.write_bytes(original)
+        assert made.read_bytes() == live.read_bytes()
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def test_the_scratch_root_really_was_purged():

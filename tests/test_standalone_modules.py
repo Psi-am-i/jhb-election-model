@@ -110,6 +110,13 @@ ENTRY_POINTS: dict[str, str] = {
     "sweep":
         "CLAUDE.md 'Running things': `.venv/bin/python src/sweep.py` — the "
         "obvious-fault sweep. Run by hand before a commit that moves numbers.",
+    "group_share_record":
+        "MACHINERY.md (the group-share tripwire) and its own docstring: "
+        "`.venv/bin/python src/group_share_record.py --emit`, run in a pools "
+        "re-emit window to write the group-share record the tripwire reads "
+        "(BRIEF item 12). Nothing imports it: `montecarlo` reads the JSON, "
+        "and `tests/test_intermediates_are_current.py` rebuilds it by "
+        "subprocess. Added 2026-10-09.",
 
     # --- named in README.md's reproduction recipe --------------------------
     "fetch_iec":

@@ -356,6 +356,12 @@ def _gates_sha() -> str:
 # `read_ward_crosswalk` alone will NOT mark a spec stale.
 _EMIT_DEPENDENCIES = ("parties", "cityconfig", "ingest_lge", "levels")
 
+# The group-share record's file name under `data/processed` (BRIEF item 12).
+# Named once here because two modules need it and neither may import the
+# other: `group_share_record.py` writes it and `montecarlo` reads it, and
+# `group_share_record` is an entry point nothing imports (CLAUDE.md §5).
+GROUP_SHARE_RECORD = "group_share_record.json"
+
 
 def _deps_sha() -> str:
     """The code of the first-party modules the emit leans on, hashed together."""

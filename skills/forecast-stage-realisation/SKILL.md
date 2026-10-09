@@ -59,6 +59,11 @@ counters. Two name records (item 8): `roster_unrepresented` and
 `level_sd_default_parties`; and one width record (item 17):
 `level_sd_at_size`, `{party: sd}` for every drawn party whose level-shock sd is
 the size-group width at its own size (`montecarlo.level_shock_sd`).
+`group_share_tripwire` (item 12) is `"no record"` or `{pairs, population,
+scanned, draws, fire_at, key_current}`: each `party|pool` pair whose drawn
+share of the pool's vote exceeded its record plus the pool's margin in more
+than `fire_at` of draws. It reports and changes no number; `population ==
+scanned` is the proof it looked (`faults_in_group_share`).
 
 ### `42_pr_share_draws`, `43_ward_share_draws` — `(draws, parties)` float arrays
 
