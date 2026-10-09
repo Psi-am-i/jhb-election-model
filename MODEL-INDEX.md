@@ -541,9 +541,9 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `levels.SHRINK` | float 2.0 | yes | NO | yes | `montecarlo`, `theta_residual` |
 | `levels.RELIABILITY_HALF` | float 0.002 | yes | NO | yes | `montecarlo`, `theta_residual` |
 | `levels.SPINE_K` | float 1.0 | yes | NO | yes | `montecarlo` |
-| `levels.SIZE_WINDOW_GRID` | (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, float('inf')) | yes | NO | yes | `montecarlo` |
-| `levels.SIZE_WINDOW_MIN_SCORED` | int 20 | yes | NO | yes | `montecarlo` |
-| `levels.SIZE_WINDOW_ALPHA` | float 0.05 | yes | NO | yes | `montecarlo` |
+| `levels.SIZE_WINDOW_GRID` | (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, float('inf')) | yes | NO | yes | `montecarlo`, `theta_residual` |
+| `levels.SIZE_WINDOW_MIN_SCORED` | int 20 | yes | NO | yes | `montecarlo`, `theta_residual` |
+| `levels.SIZE_WINDOW_ALPHA` | float 0.05 | yes | NO | yes | `montecarlo`, `theta_residual` |
 | `levels.METRO_CODES` | tuple[8] | yes | NO | yes | `contested_area`, `montecarlo`, `polling`, `pools`, `theta_residual` |
 | `levels.HELD_BACK` | {} if _HELD_BACK_OFF else {(tag, code): 'pre-2011 history, ingested and  | NO | NO | yes | `pools` |
 | `levels.KNOWN_ABSENT` | dict[0] | yes | NO | NO | `montecarlo` |
@@ -960,7 +960,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `levels.size_sd` | model+measurement | The size group's width (the RANGE of BRIEF item 17), clamped to | `montecarlo`, `tests/test_spine` |
 | `levels.theta_prior` | model+measurement | Per-party (low, mode, high) on θ, and the groups they were drawn from. | `montecarlo`, `tests/test_drawer`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_theta_prior`, `theta_residual` |
 | `levels.size_centre` | model+measurement | The centre θ shrinks TOWARD, as a function of how big the party is. | `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_theta_prior`, `theta_residual` |
-| `levels.size_window` | model+measurement | The size window ``h`` for one record at ``target``, derived from data. | `montecarlo`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_temporal` |
+| `levels.size_window` | model+measurement | The size window ``h`` for one record at ``target``, derived from data. | `montecarlo`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_temporal`, `theta_residual` |
 | `levels.spine` | model+measurement | Each party's central level at the target, from BOTH of its records. | `backtest`, `montecarlo`, `tests/test_blended_centres`, `tests/test_drawer`, `tests/test_ipf_feasibility`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_stage_inputs` |
 | `levels.ward_pr_ratios` | model+measurement | Each party's ward-ballot share over its PR share, from the last LGE. | `montecarlo`, `tests/test_ward_pr_ratios` |
 | `levels.contestation` | model+measurement | The fraction of wards each party fields a ward candidate in. | `backtest`, `compare_history`, `montecarlo`, `pools`, `tests/test_chain`, `tests/test_declared_ward_slates`, `tests/test_levers_are_live` |

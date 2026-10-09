@@ -80,7 +80,8 @@ def _check_one(rows, year, code):
             before, levels.ballot_roster(
                 "data/raw/elections/" + lge_tpl.replace("{CODE}", code))):
         before.pop(gone, None)
-    _priors, groups = levels.theta_prior(target, before)
+    _priors, groups = levels.theta_prior(target, before,
+                                         h=TR.theta_window(target))
     for size, _resid, width, party, y, c, _had in rows:
         if y != year or c != code:
             continue
@@ -232,6 +233,21 @@ def _bin_of(size: float) -> str:
 # Lower is better; neither fold fails the floor.
 #   before item 11a:  2016 1.1363  2021 1.1425
 #   after  item 11a:  2016 1.1205  2021 1.1299
+#
+# RE-RECORDED 2026-10-09, M3 review row 1: the values above (a885b28) were
+# measured with `theta_prior` called at NO size window, while `run_model`
+# passes each target's derived θ window (item 16). `residuals` now passes
+# each fold's window (`theta_residual.theta_window`, the call `run_model`
+# makes), and its memo keys on the window rule's constants. Under the window
+# rule then in force (a typed tie) the 2021 fold's window was 3.0 and the
+# committed score 1.0391 (coordinator's re-derivation, M3-SUMMARY.md). Under
+# the paired rule that replaced it (JUDGEMENT-CALLS §A52, e6cf058) the window
+# is ∞ at every fold (2006, 2011, 2016, 2021), so the estimator scored is the
+# no-window one and the values are UNCHANGED, re-measured after this change:
+#   2006 0.3027  2011 2.1887  2016 1.1205  2021 1.1299
+# They are re-recorded as measured at the run's windows, not as carried over.
+# A later archive that gives a finite window at a fold moves them, and that
+# move is the window's effect on Key 4: measure it with `key4_delta`.
 KEY4_BASELINE = {"2016": 1.1205, "2021": 1.1299}
 
 
@@ -343,6 +359,49 @@ def test_a_change_to_levels_moves_key_4():
         "that matters — add the constant you just introduced to it.")
 
 
+def test_each_fold_is_scored_at_the_window_run_model_derives():
+    """M3 review row 1. `residuals` passes each fold's θ size window
+    (`theta_window`, the call `run_model` makes) into `theta_prior`, and its
+    memo keys on the window rule's constants.
+
+    Constructed by narrowing `levels.SIZE_WINDOW_GRID` to one finite value:
+    every fold whose window is derived takes it, so a party whose
+    observations lie outside it moves to the size centre and its residual
+    moves; an underdetermined fold (∞ whatever the grid) moves nothing.
+    Restored, the original residuals come back, which they would not if the
+    memo ignored the grid. One metro, as above.
+    """
+    one = ("JHB",)
+    before = {(r[3], r[4]): r[1] for r in TR.residuals(codes=one)}
+    assert before, "no residuals for JHB alone"
+    years = sorted({y for _p, y in before})
+    was = levels.SIZE_WINDOW_GRID
+    try:
+        levels.SIZE_WINDOW_GRID = (0.25,)
+        windows = {y: TR.theta_window(cityconfig.use_target(y), one)
+                   for y in years}
+        during = {(r[3], r[4]): r[1] for r in TR.residuals(codes=one)}
+    finally:
+        levels.SIZE_WINDOW_GRID = was
+    assert during.keys() == before.keys()
+    finite = {y for y, h in windows.items() if math.isfinite(h)}
+    assert finite and finite != set(years), (
+        f"the constructed grid gave windows {windows}; the test needs at least "
+        f"one finite and one underdetermined fold to see both directions")
+    for y in years:
+        moved = [k for k in before if k[1] == y
+                 and abs(before[k] - during[k]) > 1e-12]
+        if y in finite:
+            assert moved, (f"fold {y}: window {windows[y]} and not one "
+                           f"residual moved; `theta_prior` is not given it")
+        else:
+            assert not moved, (f"fold {y}: no window, yet {len(moved)} "
+                               f"residuals moved")
+    after = {(r[3], r[4]): r[1] for r in TR.residuals(codes=one)}
+    assert after == before, ("the memo served the narrowed-grid result after "
+                             "the grid was restored; `_levels_state()` must "
+                             "key on the window constants")
+
 
 def test_key4_delta_is_the_pass_rule_and_has_actually_been_run():
     """`key4_delta` decides an UNTRADEABLE floor and had no caller and no test.
@@ -443,6 +502,12 @@ def test_key4_delta_is_the_pass_rule_and_has_actually_been_run():
 # 11a moves the θ prior's centres, not its widths). Was 2016 cov95 0.784,
 # pit_var 0.1256, κ 1.798; 2021 κ 1.749. cov80 at both folds and 2021's cov95
 # and pit_var did not move beyond the tolerance. Still about 1.7x too narrow.
+#
+# RE-RECORDED 2026-10-09 with KEY4_BASELINE (M3 review row 1): now measured
+# at each fold's derived θ size window, which is ∞ at both folds under
+# §A52's paired rule, so nothing moved. Re-measured after the change:
+# 2016 cov95 0.8041, cov80 0.5670, pit_var 0.1249, κ* 1.7818;
+# 2021 cov95 0.7609, cov80 0.5290, pit_var 0.1221, κ* 1.7386.
 PIT_BASELINE = {
     "2016": {"cov95": 0.804, "cov80": 0.567, "pit_var": 0.1249, "kappa": 1.782},
     "2021": {"cov95": 0.761, "cov80": 0.529, "pit_var": 0.1221, "kappa": 1.739},
