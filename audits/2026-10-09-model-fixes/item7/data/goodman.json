@@ -1,0 +1,20 @@
+{
+ "2021": {
+  "rate_coloured": 0.526221098342101,
+  "rate_other": 0.0,
+  "outside_share": 0.0,
+  "low_wards_rate_coloured": 0.2505171689130453,
+  "low_wards_rate_other": -0.0012733289009136915,
+  "low_wards_outside_votes": 0.0,
+  "pa_votes": 27346.0
+ },
+ "2024": {
+  "rate_coloured": 0.3727961011018724,
+  "rate_other": 0.005092716613660177,
+  "outside_share": 0.16329952996762073,
+  "low_wards_rate_coloured": 0.24299114454486012,
+  "low_wards_rate_other": 0.007024942246878276,
+  "low_wards_outside_votes": 8325.640217901142,
+  "pa_votes": 41143.0
+ }
+}
