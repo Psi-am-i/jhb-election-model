@@ -17,6 +17,12 @@ Status: draft for the owner. `content/joburg/claims.toml` is not changed.
 - Searched without success: a direct quote of the same claim in another
   outlet. Checked TimesLive, 25 July 2026 (mayoral candidates). Malema's
   direct quotes there say nothing about outright winners.
+- News24, searched with the owner's subscription on 2026-10-09. Neither article
+  has the claim in his own words:
+  - 3 October 2026, the Kokstad rally (Suné Payne);
+  - 25 July 2026, "Under 'ANC' skies, Malema launches his shortest manifesto
+    yet".
+  News24's site search did not return the 9 April briefing.
 
 ## Owner decision needed
 1. **Use the reported speech, marked as reported.** For example, the quote box
