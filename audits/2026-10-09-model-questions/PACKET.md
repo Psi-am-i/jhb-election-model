@@ -100,3 +100,30 @@ no variation is the canary look there first."
 
 The owner will propose a reformulation of the within-pool split once the
 machinery is clear. Do not design one; describe the current one exactly.
+
+## Amendment 2 (owner, 2026-10-09): direction for the within-pool split
+
+The owner, verbatim: "history plus record margin. we do want to allow worlds
+where parties do record breaking moves.. but within the bounds of moves by
+anyone thus far! lets see if we learn anything new to add to our thinking."
+
+**Direction (for the design that follows this investigation, not for you to
+design).**
+- Each party's within-group share varies around its history.
+- It may break its own record.
+- It may never move further than the largest move any party has made in that
+  group.
+
+**Measure, in addition to Amendment 1:**
+- **Each party's record:** the range of its share of each voter group across the
+  real elections, and its largest move between consecutive elections, from the
+  same yearly splits the fit uses, pooled across the 8 metros and stated per
+  metro.
+- **The group ceiling:** the largest move any party has made in that group,
+  excluding mergers, splits and collapses; say how each was identified. Name
+  who holds it.
+- **The published draws against these:** how many simulations, for each party
+  and group, exceed (a) the party's own record and (b) the group ceiling.
+- **Anything in the history that the direction does not capture.** For example:
+  moves that depend on the party's size, groups that behave differently,
+  correlated moves between parties.
