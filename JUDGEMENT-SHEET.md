@@ -82,7 +82,7 @@ It also reads 6 key(s) off its `theta_mode` block; those are party codes, not le
 | `LEVEL_DF` | 7.0 | module constant | module constant | no | BOUNDED 2026-08-29 to ν ∈ [5, 15] on four constraints, with the committed 7.0 in the middle. The honest label is no longer 'unmeasured' but 'not resolvable further on this panel'; a joint (κ, ν) fit was designed and NOT built. | 🟡 | §F8 + §A18 |
 | `level_floor` | 1e-6 | lever | not certified dead here | no | 1e-6; separates the level floor from the deviation floor. | 🟢 | §F19 |
 | `LEVEL_FLOOR` vs `SHARE_FLOOR` | — | module constant | module constant | no | Two separate floors, deliberately. On its own it fixed nothing — the 42 phantom seats were the scale drift above it. | 🟢 | §C4 |
-| `level_sd_default` | 0.45 | lever | not certified dead here | no | LIVE since 2026-10-09: binds in the draws for the roster parties whose only record is the previous LGE (item 8), named per run in `41_guards.level_sd_default_parties`. | 🟡 | §A29 |
+| `level_sd_default` | 0.45 | lever | not certified dead here | no | **AMENDED 2026-10-09 (item 17).** Binds only for a party with no size at all (base ≤ 0) or a run with no θ fit; named per run in `41_guards.level_sd_default_parties`. A party with a size and no measured width takes `levels.size_sd` at its size (§A53). Was: live for the roster parties whose only record is the previous LGE (item 8). | 🟡 | §A29 |
 | `level_shrink` (and `level_shrink_scale`) | 0.35 | lever | not certified dead here | no | Adopted 2026-08-17 and unchanged; the largest single improvement this model has had. Two things keep it off green: an L1 form-selection leak, and a tail the uniform renormalisation over-feeds. | 🟡 | §A23 + §F20 |
 | `level_shrink`, `level_shrink_scale` | 0.35, 0.04 | lever | not certified dead here | no | See §A. The scale is a SCALE, not a tuned constant — swept twentyfold with no cliff. | 🟡 | §F20 + §A23 |
 | `LOG_CHI2_BIAS` | — | module constant | module constant | no | Correct, derived, and DELIBERATELY NOT APPLIED: applying it makes the model worse on every metric, because the record it reproduces is marginal and this layer is conditional. | 🟢 | §C5 |
@@ -207,6 +207,7 @@ Structural choices the code makes without a constant to name them — the easies
 | an unopposed ward | `seats.eligible_parties`, `levels.unopposed_wards`, `montecarlo.run_model` | Statute in the seat law (PR votes counted twice); the draws refuse a target with one. None on disk or declared. | ⚖️ | §Q7 |
 | zero level shock for a seeded arrival | `montecarlo.make_drawer`, `pool_sd_shock` | 0; the width is the within-pool split. Registered 2026-10-09 with item 9's measurement. | 🟡 | §A50 |
 | the size the shrink target is evaluated at | `levels._shrink_one` (via `_shrunk`, `theta_prior`) | The party's current size on the route (national share for θ, previous local share for ρ), for every party. Owner's decision 2026-10-09 (BRIEF item 11); was the size its own ratios were measured off. | ⚖️ | §A51 |
+| a party with no record of its own | `levels._shrunk` (average), `levels.size_sd` via `montecarlo.level_shock_sd` (range) | Its size group's average (the size centre) and range (the size-group width) at its current size, for every party. Owner's decision 2026-10-09 (BRIEF item 17). | ⚖️ | §A53 |
 
 ## 5 · Levers that are INERT, and what it would take to reinstate one
 
@@ -278,5 +279,5 @@ Scenario keys with **no register row under their own name**. Each is still a jud
 * `seed` — ⛔ not in the register at all
 * `turnout_correlation` — its row is filed under the shadow constant `montecarlo.TURNOUT_CORRELATION`, tied to it by an assert, so the row does describe it
 
-Register rows parsed: 112 with a symbol, 41 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser's own view and a drop shows up as a missing row here rather than as a mangled one.
+Register rows parsed: 112 with a symbol, 42 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser's own view and a drop shows up as a missing row here rather than as a mangled one.
 

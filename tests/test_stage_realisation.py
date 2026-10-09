@@ -103,7 +103,7 @@ import seats as seats_module  # noqa: E402
 # is one counter short of whole. See the SKILL.
 GUARD_KEYS = frozenset({
     "bounds_checked", "bounds_violations", "bounds_base", "draws",
-    "roster_unrepresented", "level_sd_default_parties",
+    "roster_unrepresented", "level_sd_default_parties", "level_sd_at_size",
     "cap_moved", "cap_undershoots",
     "excessive_draws", "overhang_count",
     "ipf_balances", "ipf_failures", "ipf_clipped", "ipf_headroom",
@@ -937,6 +937,7 @@ def healthy_guards():
         "draws": DRAWS,
         "roster_unrepresented": ["ZZZ"],
         "level_sd_default_parties": ["CCC"],
+        "level_sd_at_size": {"DDD": 0.62},
         "cap_moved": 12.5,
         "cap_undershoots": 0,
         "excessive_draws": 1,

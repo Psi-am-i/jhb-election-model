@@ -1127,7 +1127,13 @@ def cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling(payloads) -> list
     # The exemption reads the drawer's own record, not a proxy for it (M2
     # review S3).
     at_default = set((guards or {}).get("level_sd_default_parties") or ())
-    pinned = sorted(p for p, v in sd.items()
+    # Since item 17 (2026-10-09) a party with no measured width is drawn at
+    # the size group's width at its own size, recorded with that width in
+    # `41_guards.level_sd_at_size`. Its DRAWN width is the one checked.
+    at_size = dict((guards or {}).get("level_sd_at_size") or {})
+    drawn = {p: v for p, v in sd.items() if p not in at_size}
+    drawn.update(at_size)
+    pinned = sorted(p for p, v in drawn.items()
                     if _finite(v) and abs(v - ceiling) < 1e-12 and p in before
                     and p not in at_default)
     if pinned:
@@ -2006,6 +2012,11 @@ def test_the_width_ceiling_tripwire_exempts_only_what_the_drawer_records():
     assert not fn((*payloads, recorded)), "a drawer-recorded party was flagged"
     assert fn((*payloads, {"level_sd_default_parties": ["SOMEONE_ELSE"]}))
     assert fn((*payloads, {})), "an empty drawer record exempted the party"
+    # Item 17: drawn at its size group's width, the drawn width is checked.
+    below = {"level_sd_at_size": {party: payloads[0]["sd_ceiling"] / 2}}
+    assert not fn((*payloads, below)), "a party drawn below the ceiling flagged"
+    at_cap = {"level_sd_at_size": {party: payloads[0]["sd_ceiling"]}}
+    assert fn((*payloads, at_cap)), "a party DRAWN at the ceiling was missed"
 
 
 if __name__ == "__main__":

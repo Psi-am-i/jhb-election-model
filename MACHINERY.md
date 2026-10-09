@@ -281,6 +281,14 @@ almost none of the variance around it.
 
 For VF Plus (worth 6.46, weight 0.763), at target 2021 with the centre taken at its observed size (the rule before 2026-10-09): own 0.785, centre 0.868, **result 0.804**.
 
+**A party with no record of its own** on a route, but a current size there,
+takes its size group's average: `_shrunk` returns it at the size centre for its
+current size (BRIEF item 17, JUDGEMENT-CALLS §A53). The flat common mean
+(`centre_fallback`) is left only where the record is too thin for a size fit.
+Its level-shock width is the size group's range at its size, `levels.size_sd`
+on `theta_prior`'s fit (`montecarlo.level_shock_sd`, the one rule the drawer
+and the poll blend read); `level_sd_default` binds only where no size exists.
+
 ### The blend
 
 `levels.spine` converts each record into a level and interpolates:
@@ -648,7 +656,7 @@ this; it replaces the held value in the same place when it lands (F4).
 | Ward/PR split ratio | previous LGE, per party | MEASURED | ✅ |
 | Ward contestation, as applied to the ward/PR ratio | `levels.slate_coverage`, `montecarlo.slate_change_ratio` | MEASURED | since 2026-10-09 (item 6, owner: "vote weighted"): each slate is the share of the party's own previous-LGE list vote lying in the wards it contests, then and now, on one set of weights; the change `now / was` is capped at `WARD_PR_RATIO_MAX`, not floored. `levels.contestation` (the count of wards, below) stays the who-stands fact |
 | Ward contestation | **MEASURED**, for every party | `levels.contestation`, from nomination lists — the target's result file where it exists, else the slates DECLARED under `[roster.wards]` in the judgement file (2026-09-23, §1.252); only where neither exists does it fall back to the PREVIOUS local election's shares projected by `contestation_expand` | 55 parties at 2021, median party contests 39% of wards; 82 parties at 2026 from the certified list, median 99%. **The declared branch was missing for a week after the lists landed** — they were pasted on 16 September and read only by `pools`, so the correction went on projecting slates it could have read (§1.251), and the PA was carried at a 0.520 slate against a real 1.000. Until 2026-08-18 the not-yet-published branch instead applied `pa_contestation_uplift`, a 1.25 for one named party — deleted, §1.47. This row said "not modelled — all parties contest all wards" until 2026-08-17, contradicting §3 of this same document, which correctly listed it as MEASURED. |
-| a roster party whose only record is the previous LGE | `levels.local_record_only`, `montecarlo.run_model`; guard `montecarlo.roster_universe_check` | MEASURED (its previous-LGE list share) | since 2026-10-09 (item 8): entered at that share, placed by its fitted pool vector, sized on the spine's local route, shock sd `level_sd_default` (§A29). Before, it was not in the run at all. The roster is checked against the run's parties both ways; roster parties with no record are named in `41_guards.roster_unrepresented` |
+| a roster party whose only record is the previous LGE | `levels.local_record_only`, `montecarlo.run_model`; guard `montecarlo.roster_universe_check` | MEASURED (its previous-LGE list share) | since 2026-10-09 (item 8): entered at that share, placed by its fitted pool vector, sized on the spine's local route, shock sd the size-group width at its local share (§A53; was `level_sd_default`, §A29). Before, it was not in the run at all. The roster is checked against the run's parties both ways; roster parties with no record are named in `41_guards.roster_unrepresented` |
 | `ward_noise_sd` = 0.10 | DEFAULTS | JUDGED | applied to ward tallies, not to shares |
 | Schedule 1 quota + highest surplus | `seats.allocate` | STATUTE | ✅ verified against the IEC, 6 city-years; the round-two ranking against Laingsburg 2021's published column (`tests/test_overhang.py`) |
 | equal surplus → the higher vote | `seats.allocate` (integer surplus, then votes) | STATUTE, item 13(2)(b), 16(4)(c) | since 2026-10-09; the float remainder it replaced could decide before the vote count was read (law summary D3). This alone moves a council whose cut has an equal whole-vote surplus and unequal votes (the M1 diff review found published ones); the count is TO-MEASURE at the batch's run |

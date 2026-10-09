@@ -55,7 +55,10 @@ discarding the level shock for **every** party in that draw),
 (per party, pre-draw ask ÷ capacity — the only sight of who is *about* to be
 clipped), `cap_moved` / `cap_undershoots` (`capped_targets`' redistribution),
 `excessive_draws` and `overhang_count` (item 16 triggers), and eight `solve_*`
-counters.
+counters. Two name records (item 8): `roster_unrepresented` and
+`level_sd_default_parties`; and one width record (item 17):
+`level_sd_at_size`, `{party: sd}` for every drawn party whose level-shock sd is
+the size-group width at its own size (`montecarlo.level_shock_sd`).
 
 ### `42_pr_share_draws`, `43_ward_share_draws` — `(draws, parties)` float arrays
 

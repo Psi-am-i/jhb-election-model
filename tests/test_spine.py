@@ -529,24 +529,18 @@ def test_the_spine_returns_nothing_when_neither_record_has_a_single_observation(
     assert level == {} and info == {}
 
 
-def test_a_first_local_election_party_gets_the_flat_group_centre_not_the_size_centre():
-    """WRONG, and already known (§1.93): two estimators for one quantity.
+def test_a_first_local_election_party_gets_the_size_centre_at_its_current_size():
+    """RE-RECORDED 2026-10-09 (BRIEF item 17, SPEC R2.2): the defect §1.93
+    named, and this test pinned as WRONG, is fixed.
 
-    ``_shrunk`` shrinks each party's OWN mean toward ``size_centre`` -- the
-    fitted ``log theta = a + b log(size)`` that §3.5 adopted because small
-    parties gain going into a local election and large ones lose -- but returns
-    the FLAT ``mu_all`` as the group centre, and ``spine`` hands that flat
-    number to every party with no record of its own. ``theta_prior``'s own
-    comment calls the flat centre the wrong one. §1.93: *"theta_prior falls back
-    to the size centre and _shrunk to the flat centre ... and the spine takes
-    _shrunk's. The named case is MK in 2026."*
-
-    The consequence is stated here as an equality that should NOT hold: a party
-    at 0.20% of the national vote and a party at 30% of it, both facing their
-    first local election, get the identical retention multiplier -- the one
-    thing ``size_centre`` was fitted to deny. The record below carries a real
-    size gradient (small parties above 1.0, large ones below) and enough
-    observations for ``size_centre`` to fit, and it changes nothing for either.
+    It was ``..._gets_the_flat_group_centre_not_the_size_centre`` and asserted
+    that a party at 0.20% of the national vote and one at 30%, both facing
+    their first local election, got the identical flat multiplier. The owner
+    decided that a party with no record of its own takes its size group's
+    average at its current size (BRIEF item 17), which is what ``theta_prior``
+    already gave it. The record carries a real size gradient and enough
+    observations for ``size_centre`` to fit; each party now gets the line at
+    its own size, and the flat-centre fallback is not counted for either.
     """
     graded = {}
     for i, size in enumerate([0.0005, 0.001, 0.002, 0.004, 0.01, 0.02,
@@ -561,16 +555,47 @@ def test_a_first_local_election_party_gets_the_flat_group_centre_not_the_size_ce
     baseline = {"TINY": 0.002, "HUGE": 0.30}
     level, info = _spine(theta=graded, rho=RHO, baseline=baseline,
                          prev_local={})
-    tiny = level["TINY"] / 0.002
-    huge = level["HUGE"] / 0.30
     assert info["detail"]["TINY"]["route"].startswith("national only")
-    assert _close(tiny, huge), (tiny, huge)
-    assert _close(tiny, info["theta_centre"]), (
-        "both take the flat group centre")
-    size_tiny = math.exp(fit[0] + fit[1] * math.log(0.002))
-    size_huge = math.exp(fit[0] + fit[1] * math.log(0.30))
-    assert not _close(size_tiny, size_huge, 1e-6), (
-        "the size centre distinguishes them; the spine does not")
+    for party, size in baseline.items():
+        expected = size * math.exp(fit[0] + fit[1] * math.log(size))
+        assert _close(level[party], expected), (party, level[party], expected)
+    assert not _close(level["TINY"] / 0.002, level["HUGE"] / 0.30, 1e-6)
+    assert info["absorption"]["centre_fallback"]["theta"] == 0
+    assert info["absorption"]["theta_shrink"]["at_size_centre"] == 2
+
+
+def test_a_no_record_party_takes_its_size_groups_average_and_range():
+    """G22 (SPEC R2.2). A no-record party at 0.1% and at 10% gets ``mu`` =
+    the size centre at its size and, in the drawer, sd = ``levels.size_sd``
+    at its size. ``montecarlo.level_shock_sd`` gives a party absent from the
+    measured widths ``size_sd`` at its base, an item-8 party ``size_sd`` at
+    its local share even where ``theta_prior`` emitted a width for it, and
+    ``level_sd_default`` only where its base is 0."""
+    import montecarlo as M
+    graded = {f"P{i}": [(1.4 * (sz / 0.0005) ** -0.06, sz)] * 2
+              for i, sz in enumerate([0.0005, 0.001, 0.002, 0.004, 0.01,
+                                      0.02, 0.05, 0.10, 0.20, 0.35])}
+    fit = levels.size_centre(graded)
+    for size in (0.001, 0.10):
+        mus, _m, worth = levels._shrunk(graded, current={"NEW": size})
+        assert abs(mus["NEW"] - (fit[0] + fit[1] * math.log(size))) < 1e-12
+        assert "NEW" not in worth
+
+    sd_fit = {"route": "size_fit", "slope": -0.35, "intercept": -3.1}
+    widths = {s: levels.size_sd(s, sd_fit) for s in (0.001, 0.10)}
+    assert widths[0.001] > widths[0.10], widths
+    scenario = {"_theta_sd": {"OLD": 0.33, "LOCAL": 1.2},
+                "_theta_sd_fit": sd_fit, "_local_record_only": ["LOCAL"],
+                "level_sd_default": 0.45}
+    base = {"OLD": 0.2, "NEW_SMALL": 0.001, "NEW_BIG": 0.10, "LOCAL": 0.001,
+            "NOSIZE": 0.0}
+    assert M.level_shock_sd("OLD", scenario, base) == (0.33, "measured")
+    assert M.level_shock_sd("NEW_SMALL", scenario, base) == (widths[0.001], "size")
+    assert M.level_shock_sd("NEW_BIG", scenario, base) == (widths[0.10], "size")
+    assert M.level_shock_sd("LOCAL", scenario, base) == (widths[0.001], "size")
+    assert M.level_shock_sd("NOSIZE", scenario, base) == (0.45, "default")
+    no_fit = dict(scenario, _theta_sd_fit=None)
+    assert M.level_shock_sd("NEW_BIG", no_fit, base) == (0.45, "default")
 
 
 def test_k_equal_to_zero_puts_a_party_with_no_theta_record_on_its_national_route():

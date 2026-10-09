@@ -2698,6 +2698,36 @@ def _balance(R, electorate, party_votes):
     return _pl.balance_margins(R, electorate, party_votes)
 
 
+def level_shock_sd(party: str, scenario: dict, base_city_d: dict,
+                   ) -> tuple[float, str]:
+    """A party's level-shock sd in log units, and which rule gave it.
+
+    ONE DEFINITION, read by ``make_drawer`` for every pooled and individual
+    party and by the poll blend for the model's own sd. Three rules, in order:
+
+    * ``"measured"`` — ``theta_prior``'s width for the party
+      (``scenario["_theta_sd"]``), the size line at its national share;
+    * ``"size"`` — a party with no such width, or one whose only record is the
+      previous LGE (item 8, whose ``theta_prior`` width is the line at the 1e-5
+      size floor, a size it does not have, SPEC R3.7): the size group's width
+      at its OWN size in the run's baseline, ``levels.size_sd`` on
+      ``theta_prior``'s fit (BRIEF item 17, the RANGE of its size group);
+    * ``"default"`` — ``level_sd_default``, only for a party with no size at
+      all (base ≤ 0) or a run with no θ fit (JUDGEMENT-CALLS §A29).
+    """
+    sd_measured = scenario.get("_theta_sd") or {}
+    local_only = scenario.get("_local_record_only") or ()
+    if party in sd_measured and party not in local_only:
+        return float(sd_measured[party]), "measured"
+    base = float(base_city_d.get(party, 0.0) or 0.0)
+    fit = scenario.get("_theta_sd_fit")
+    if base > 0.0 and fit:
+        import levels as _levels_sd
+        return _levels_sd.size_sd(base, fit), "size"
+    return float(scenario.get("level_sd_default",
+                              DEFAULTS["level_sd_default"])), "default"
+
+
 def make_drawer(scenario, base_city_d, centres, index, rng):
     """Return a function drawing one citywide PR target vector.
 
@@ -2762,31 +2792,28 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # rising to 0.72 at 0.1% — and the draw was ignoring it, taking its spread
     # instead from the 10th and 90th percentiles of that same lognormal squeezed
     # back into a bounded triangular. The measurement now reaches the draw
-    # directly, and unbounded (see LEVEL_DF).
-    sd_measured = (scenario.get("_theta_sd") or {})
-    sd_default = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
+    # directly, and unbounded (see LEVEL_DF). The rule is `level_shock_sd`.
 
     # WHO TOOK `level_sd_default` (JUDGEMENT-CALLS §A29). Recorded at the one
     # place the fallback is applied, for `41_guards.level_sd_default_parties`.
-    # Since item 8 (2026-10-09) it binds for the roster parties whose only
-    # record is the previous LGE: `theta_prior` never saw them.
+    # Since item 17 (2026-10-09) it binds only for a party with no size at all;
+    # a party with a size and no record of its own takes the size group's
+    # width at that size, recorded in `41_guards.level_sd_at_size`.
     took_default: set[str] = set()
+    at_size: dict[str, float] = {}
     # An item-8 party (`levels.local_record_only`) is in `theta_prior`'s record
     # with no national baseline, so where `theta_prior` emits an sd for it, it
-    # is `sd_for(0.0)`: the size line evaluated at the 1e-5 size floor, a
-    # width at a size the party does not have. For some such parties that
-    # lands on `SD_CEILING` (joburg 2011's CHRISTIAN_DEMOCRATIC_PARTY, caught
-    # by `test_stage_estimation`'s width-ceiling tripwire). So every item-8
-    # party takes `level_sd_default`, as SPEC §1.7 step 6 intended, until item
-    # 17 sizes its width at its local share. (§1.7 step 6 assumed these
-    # parties were absent from `theta_prior`'s output; they are not. SPEC R3.7.)
-    local_only = set(scenario.get("_local_record_only") or ())
-
+    # is `sd_for(0.0)`: the size line at the 1e-5 size floor, a width at a size
+    # the party does not have (SPEC R3.7). Item 17 gives it, and any other
+    # party with no measured width, the size group's width at its own size.
+    # The rule is `level_shock_sd`, one definition.
     def sd_for_party(party: str) -> float:
-        if party not in sd_measured or party in local_only:
+        sd, how = level_shock_sd(party, scenario, base_city_d)
+        if how == "default":
             took_default.add(party)
-            return float(sd_default)
-        return float(sd_measured[party])
+        elif how == "size":
+            at_size[party] = sd
+        return sd
 
     individual = []
     for party, i in index.items():
@@ -3153,6 +3180,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
 
     draw_pools.ipf_stats = ipf_stats
     draw_pools.level_sd_default = took_default
+    draw_pools.level_sd_at_size = at_size
     draw_pools.turnout_record = turnout_record
     draw_pools.turnout_pools = turnout_pools
     return draw_pools
@@ -4338,6 +4366,8 @@ def run_model(target, scenario: dict,
             # The measured log-spread per party, carried to the draw. See
             # make_drawer: this is the number the draw was not using.
             scenario["_theta_sd"] = _groups.get("sd", {})
+            # The width fit as a value, for `level_shock_sd` (item 17).
+            scenario["_theta_sd_fit"] = _groups.get("sd_fit")
             # `scenario["_theta_worth"]` was written here and READ BY NOTHING —
             # one occurrence in the whole tree, this line (§1.97 F45). Deleted
             # 2026-08-28. It is `__small__`'s twin (F20, deleted in §1.99): 52
@@ -5237,8 +5267,6 @@ def run_model(target, scenario: dict,
     # change that needs its own justification rather than a free rider on
     # this one. Left as it was, and recorded so it is a decision.
     if _agg:
-        _sd = scenario.get("_theta_sd") or {}
-        _default_sd = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
         # σ_poll IS NO LONGER A CONSTANT. It is decomposed per poll per party —
         # sampling from the achieved sample, a common term no number of houses
         # removes, an idiosyncratic term that shrinks with houses, a declared
@@ -5276,7 +5304,9 @@ def run_model(target, scenario: dict,
             _mu = float(centres.get(_party, 0.0))
             if _mu <= 0:
                 continue
-            _msd = float(_sd.get(_party, _default_sd)) * _mu
+            # The model's own sd, by the drawer's rule (item 17: one
+            # definition, `level_shock_sd`).
+            _msd = level_shock_sd(_party, scenario, base_city_d)[0] * _mu
             # The aggregate's own error: sampling shrinks across waves, the
             # house term shrinks across HOUSES and so does not shrink here.
             _psd = _pg.aggregate_sd(
@@ -5571,6 +5601,10 @@ def run_model(target, scenario: dict,
         # pool members outside the universe (M2 review S1).
         "level_sd_default_parties": sorted(
             p for p in draw_target.level_sd_default if p in index),
+        # Item 17: parties drawn at the size group's width at their own size
+        # (`levels.size_sd`), with that width. Only parties the run draws.
+        "level_sd_at_size": {p: float(v) for p, v in sorted(
+            draw_target.level_sd_at_size.items()) if p in index},
         "excessive_draws": excessive_draws,
         "overhang_count": dict(overhang_count),
         # `solve_nonconvergent` is expected to equal `solve_calls` on the shipped

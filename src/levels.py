@@ -914,6 +914,28 @@ def _reliability(share: float) -> float:
     return float(share) / (float(share) + RELIABILITY_HALF)
 
 
+def size_sd_raw(size: float, sd_fit: dict) -> float:
+    """The size group's width in log θ at ``size``, before the clamp.
+
+    ``sd_fit`` is :func:`theta_prior`'s ``groups["sd_fit"]``: either the
+    dispersion line ``{"route": "size_fit", "slope", "intercept"}``, evaluated
+    as ``exp(½(intercept + slope·log size))`` with ``size`` floored at 1e-5, or
+    ``{"route": "pooled", "pooled"}``, one width for every size.
+    """
+    if sd_fit.get("route") == "pooled":
+        return float(sd_fit["pooled"])
+    x = np.log(max(size, 1e-5))
+    return float(np.exp(0.5 * (sd_fit["intercept"] + sd_fit["slope"] * x)))
+
+
+def size_sd(size: float, sd_fit: dict) -> float:
+    """The size group's width (the RANGE of BRIEF item 17), clamped to
+    ``[SD_FLOOR, SD_CEILING]``. One definition: :func:`theta_prior` gives every
+    party with a baseline this width, and ``montecarlo.level_shock_sd`` gives
+    it to a party with no record of its own, at its own size."""
+    return float(np.clip(size_sd_raw(size, sd_fit), SD_FLOOR, SD_CEILING))
+
+
 def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
                 codes=METRO_CODES, h: float = float("inf"),
                 ) -> tuple[dict[str, tuple], dict]:
@@ -992,11 +1014,9 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     if len(xs) >= 6:
         slope, intercept = np.polyfit(xs, np.log(np.maximum(ys, 1e-6)), 1)
         sd_route = "size_fit"
-
-        def sd_raw(size: float) -> float:
-            x = np.log(max(size, 1e-5))
-            # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
-            return float(np.exp(0.5 * (intercept + slope * x)))
+        # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
+        sd_fit = {"route": "size_fit", "slope": float(slope),
+                  "intercept": float(intercept)}
     else:
         # ddof=1 OVER ONE OBSERVATION IS `nan`, AND IT IS SILENT (§1.97 F21).
         # `np.clip` propagates it, `sd_for` hands the same nan to every party,
@@ -1026,20 +1046,24 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
                 f"See MODEL-LOG §1.121.")
         pooled = float(np.std(np.log(ratios_all), ddof=1))
         sd_route = "pooled"
+        # No correction here: `pooled` is sd(log ratios) computed directly,
+        # not recovered from a fit to squared residuals, so it carries no
+        # log-chi-square bias.
+        #
+        # SIZE DOES NOT ENTER, and that is this branch's absorption: every
+        # party on the ballot is handed one width. `sd_route` reports which
+        # branch ran, because a size sweep against a run in this branch is
+        # a null with a known cause and not a finding.
+        sd_fit = {"route": "pooled", "pooled": pooled}
 
-        def sd_raw(size: float) -> float:
-            # No correction here: `pooled` is sd(log ratios) computed directly,
-            # not recovered from a fit to squared residuals, so it carries no
-            # log-chi-square bias.
-            #
-            # SIZE DOES NOT ENTER, and that is this branch's absorption: every
-            # party on the ballot is handed one width. `sd_route` reports which
-            # branch ran, because a size sweep against a run in this branch is
-            # a null with a known cause and not a finding.
-            return pooled
+    # ONE DEFINITION OF THE SIZE-GROUP WIDTH (BRIEF item 17): the fit is a
+    # value (`sd_fit`), and `size_sd_raw`/`size_sd` evaluate it. The drawer
+    # calls the same function for a party with no record of its own.
+    def sd_raw(size: float) -> float:
+        return size_sd_raw(size, sd_fit)
 
     def sd_for(size: float) -> float:
-        return float(np.clip(sd_raw(size), SD_FLOOR, SD_CEILING))
+        return size_sd(size, sd_fit)
 
     # PATH ONE — a party WITH history. Its own log-mean, shrunk toward the
     # common centre by how much that history is worth rather than by how many
@@ -1187,6 +1211,10 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
         # instead of a triangular fitted to the same band's endpoints.
         "sd": {party: float(sd_for(baseline.get(party, 0.0)))
                for party in priors},
+        # The width fit itself, as a value `size_sd` evaluates (BRIEF item
+        # 17): `make_drawer` sizes a party with no record of its own with it,
+        # at that party's own size, through the same function as `sd` above.
+        "sd_fit": dict(sd_fit),
         # WHAT THIS FUNCTION ABSORBED. See the block above the priors loop.
         # `sd_clip.share` is the fraction of parties whose width is set by the
         # clamp and not by the fit; `shrink.share` is the fraction of the
@@ -1354,6 +1382,9 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
       the level.
     * ``size_fallback`` — parties shrunk at their observed size because
       ``current`` gives them none (no window is applied to them);
+    * ``at_size_centre`` — parties in ``current`` with no record at all,
+      returned at the size centre for their current size (BRIEF item 17);
+      only where the size fit exists;
     * ``outside_window`` — parties whose every observation lay outside the
       size window ``h`` (BRIEF item 16), so their ``mu`` is the size centre
       at their current size and their ``worth`` is 0; ``window`` is ``h``.
@@ -1362,7 +1393,7 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
         report.update({"n": 0, "target": None, "offered": 0.0,
                        "absorbed": 0.0, "share": 0.0, "empty": True,
                        "size_fallback": 0, "outside_window": 0,
-                       "window": _json_h(h)})
+                       "at_size_centre": 0, "window": _json_h(h)})
     everything = [obs for obs in (o for v in record.values() for o in v)]
     if not everything:
         return {}, 0.0, {}
@@ -1392,15 +1423,30 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
         weight = worth[party] / (worth[party] + SHRINK)
         offered += abs(own - target)
         absorbed += (1 - weight) * abs(own - target)
+    # NO RECORD OF ITS OWN: THE SIZE GROUP'S AVERAGE AT ITS CURRENT SIZE (BRIEF
+    # item 17, the "11b" half of item 11). A party with a current size on this
+    # route and no observations takes the size centre at that size, which is
+    # what `theta_prior` already gave it; before this the spine handed it the
+    # flat common mean (`mu_t.get(party, c_t)`), the one place the size signal
+    # was still erased (MK at 2026). Only where the size fit exists: without
+    # it the target IS the flat mean and the spine's fallback says so
+    # (`centre_fallback`). No worth is entered: the party has no evidence.
+    at_size_centre = 0
+    if fit:
+        for party, size in current.items():
+            if party not in mus and size and size > 0.0:
+                mus[party] = float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
+                at_size_centre += 1
     if report is not None:
         report.update({
-            "n": len(mus),
+            "n": len(record),
             "target": "size_centre" if fit else "flat_common_centre",
             "offered": float(offered), "absorbed": float(absorbed),
             "share": float(absorbed / offered) if offered > 0 else 0.0,
             "empty": False,
             "size_fallback": size_fallback,
             "outside_window": outside_window,
+            "at_size_centre": at_size_centre,
             "window": _json_h(h),
         })
     return mus, mu_all, worth
@@ -1590,10 +1636,11 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     # `centre_fallback` counts the OTHER absorber in this function, the one
     # §1.93 named: `mu_t.get(party, c_t)` hands a party with no retention
     # record of its own the flat common centre — the size-blind number
-    # `size_centre` exists to replace. MK at 2026 is the case. It is a
-    # fallback-to-neutral, indistinguishable in the output from a party whose
-    # measured retention happens to equal the group's, and it is counted here
-    # so that it stops being.
+    # `size_centre` exists to replace. MK at 2026 was the case. Since BRIEF
+    # item 17 (2026-10-09) `_shrunk` returns a no-record party at the size
+    # centre for its current size wherever the size fit exists, so this
+    # fallback, and this count, now fire only where there is no size fit
+    # (fewer than twenty observations in the record).
     routes = {"blend": 0, "national_only": 0, "local_only": 0, "dropped": 0}
     # NAMES, NOT JUST COUNTS (§1.97 F5, F6). A count says how much was lost; a
     # reader chasing "why is this party at this number?" needs to know WHICH.

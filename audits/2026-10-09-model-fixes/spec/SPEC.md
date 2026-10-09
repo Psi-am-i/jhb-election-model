@@ -1156,3 +1156,22 @@ explicitly, which is the value §1.7 step 6 intended, and records it in
 `41_guards.level_sd_default_parties`. The width-ceiling tripwire exempts
 exactly the parties in that record. Item 17 (R2.2) replaces the default for
 them with `size_sd` at their local share.
+
+### R3.6, slice M3 addendum (writer, 2026-10-09)
+
+- **`test_drawer`'s two goldens** (`test_party_marginals_match_recorded`,
+  `test_pool_marginals_match_recorded`) are red from item 11a (43f9ddb).
+  Attributed by running the module in clean worktrees: green at 309481f, red
+  at 43f9ddb and at a885b28. Cause: the fixture builds the drawer's inputs
+  with `levels.theta_prior` and `levels.spine` on the real record, and item
+  11a moves both estimators' centres (the size point); item 17 moves them
+  again (no-record parties at the size centre). Item 16 does not reach this
+  fixture: it calls both at their default window, ∞. These are goldens, not a
+  standard: they are re-recorded once, deliberately and with the reason, after
+  the window's re-emit (which moves the 2026 spec they read as well), not
+  twice. The item-11a commit omitted this module from its targeted run; that
+  is how it went unseen until item 17's run.
+- **`test_levels_dispersion`'s Key 4 and PIT constants** went red from item
+  11a too, and were re-recorded in the item-16 commit (a885b28) with the
+  paired `key4_delta` measurement in the file. They read no spec, so the
+  window does not move them again.

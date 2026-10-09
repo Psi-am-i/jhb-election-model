@@ -792,7 +792,10 @@ def test_the_groups_block_is_a_diagnostic_and_is_not_a_partition_of_parties():
     # stage ate the change. It is a diagnostic like the other four and no
     # arithmetic reads it; if that ever stops being true this assertion is the
     # place it will be noticed.
-    assert set(groups) == {"centre", "spread", "worth", "sd", "absorption"}, (
+    # `sd_fit` added 2026-10-09 (BRIEF item 17): the width fit as a value,
+    # read by `montecarlo.level_shock_sd` through `levels.size_sd`.
+    assert set(groups) == {"centre", "spread", "worth", "sd", "absorption",
+                           "sd_fit"}, (
         f"the diagnostic block's keys are now {sorted(groups)}. Every caller "
         f"reads it with `.get(name, <default>)`, so an added or renamed key is "
         f"invisible until someone notices a typed default in the output — "
