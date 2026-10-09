@@ -401,29 +401,23 @@ def test_a_party_with_no_history_does_not_receive_the_prior_of_one_with_history(
         "side effect.")
 
 
-def test_the_shrink_target_is_taken_at_the_size_the_record_was_measured_at():
-    """A party whose national vote has MOVED is shrunk toward the centre for the size it was.
+def test_the_shrink_target_is_taken_at_the_partys_current_size():
+    """RE-RECORDED 2026-10-09 (BRIEF item 11, SPEC §3 G13): the size centre is
+    evaluated at the party's size NOW, its share of the baseline.
 
-    ``theta_prior``'s own comment: *"The size the shrink target is taken at is
-    the party's own observed size, weighted the same way ``_shrunk`` weights
-    it, so the two estimators agree party-for-party rather than merely in
-    form."* Two sizes are in scope at that line and they are the same type —
-    ``size`` (the party's size in the baseline, i.e. at the target) and
-    ``obs_size`` (the reliability-weighted size its ratios were measured off).
-    They coincide for a party whose vote has not moved, so the swap is
-    invisible on any record where the two are equal.
+    Until this batch this test pinned the opposite: the centre at the size the
+    party's ratios were MEASURED off. The owner decided (BRIEF, "Owner's
+    decisions, 2026-10-09 (later)", item 2: "growth changes by size for sure
+    ... lets do that for everyone") that growth is measured at the party's
+    current size, for every party. The PA's θ observations sit at bases of
+    0.014%-0.29% against a current 2.9% (item 7), so the old rule shrank a
+    party of its present size toward the multiplier of a party a tenth of it.
 
-    Here they are made to differ by a factor of twenty: the record is measured
-    off 10% of the vote, the baseline carries 0.5%. The documented rule fixes
-    the answer in closed form — every ratio lies on ``exp(A + B·log size)`` and
-    the party sits ``D`` above the centre for its OBSERVED size, so the mode is
-    ``exp(A + B·log S0 + w·D)`` — and the test asserts first that the two
-    candidate answers are far enough apart to tell apart.
-
-    If this fails, the shrink target is being evaluated at the wrong size. That
-    is not cosmetic: it breaks the party-for-party agreement with ``_shrunk``
-    that §1.49 was made to establish, and the register carried that
-    disagreement at 🔴 as "at least one is wrong" for as long as it existed.
+    The two candidate answers are made to differ by a factor of twenty in size
+    (record off 10%, baseline 0.5%) and asserted apart before the comparison.
+    The closed form is the documented rule: the party sits ``D`` above the
+    line at its observed size, so its own mean is ``A + B·log S0 + D``, and
+    the target is the line at its baseline size.
     """
     record = _filler()
     record["DIVERGED"] = [(_line(S0) * math.exp(D), S0)] * 2
@@ -436,17 +430,55 @@ def test_the_shrink_target_is_taken_at_the_size_the_record_was_measured_at():
 
     w = _weight(2 * _rel(S0))
     at_observed = _line(S0) * math.exp(w * D)
-    at_baseline = math.exp(w * (A + B * math.log(S0) + D)
-                           + (1 - w) * (A + B * math.log(baseline["DIVERGED"])))
-    assert abs(math.log(at_observed / at_baseline)) > 1e-3, (
+    at_current = math.exp(w * (A + B * math.log(S0) + D)
+                          + (1 - w) * (A + B * math.log(baseline["DIVERGED"])))
+    assert abs(math.log(at_observed / at_current)) > 1e-3, (
         "this test cannot discriminate: the two candidate shrink targets have "
         "become numerically indistinguishable on the constructed record")
 
-    assert abs(priors["DIVERGED"][1] - at_observed) < 1e-9, (
+    assert abs(priors["DIVERGED"][1] - at_current) < 1e-9, (
         f"the party came back at {priors['DIVERGED'][1]:.9f}. Shrunk toward "
-        f"the centre for the size it was MEASURED at it is {at_observed:.9f}; "
-        f"toward the centre for its size in the baseline it is "
-        f"{at_baseline:.9f}.")
+        f"the centre for its CURRENT size it is {at_current:.9f}; toward the "
+        f"centre for the size it was measured at (the rule before item 11) it "
+        f"is {at_observed:.9f}.")
+    assert groups["absorption"]["shrink"]["size_fallback"] == 0
+
+
+def test_two_parties_with_one_record_and_different_current_sizes_differ():
+    """G13, the estimator alone. Identical observations, different current
+    sizes: different ``mu``, each the closed form at its own size. Passing the
+    observed sizes as ``current`` reproduces the pre-item-11 value exactly
+    (the line at the observed size), so the change is the evaluation point
+    and nothing else. A party with no current size keeps its observed one and
+    is counted."""
+    record = _filler()
+    obs = [(_line(S0) * math.exp(D), S0)] * 2
+    record["SMALL_NOW"] = list(obs)
+    record["LARGE_NOW"] = list(obs)
+    record["MIRROR"] = [(_line(S0) * math.exp(-D), S0)] * 4
+    current = {p: levels._observed_size(o) for p, o in record.items()}
+    current["SMALL_NOW"], current["LARGE_NOW"] = S0 / 20.0, S0 * 2.0
+    report: dict = {}
+    mus, _mu_all, _worth = levels._shrunk(record, report, current=current)
+    w = _weight(2 * _rel(S0))
+    for party in ("SMALL_NOW", "LARGE_NOW"):
+        expected = (w * (A + B * math.log(S0) + D)
+                    + (1 - w) * (A + B * math.log(current[party])))
+        assert abs(mus[party] - expected) < 1e-9, (party, mus[party], expected)
+    assert abs(mus["SMALL_NOW"] - mus["LARGE_NOW"]) > 1e-3
+    assert report["size_fallback"] == 0
+
+    observed = {p: levels._observed_size(o) for p, o in record.items()}
+    old, _m, _w = levels._shrunk(record, current=observed)
+    assert abs(old["SMALL_NOW"] - (math.log(_line(S0)) + w * D)) < 1e-9
+    assert old["SMALL_NOW"] == old["LARGE_NOW"]
+
+    missing = dict(current)
+    del missing["SMALL_NOW"]
+    report = {}
+    fell, _m, _w = levels._shrunk(record, report, current=missing)
+    assert report["size_fallback"] == 1
+    assert fell["SMALL_NOW"] == old["SMALL_NOW"]
 
 
 def test_theta_and_the_spine_estimator_agree_party_for_party_on_the_same_record():
@@ -462,8 +494,9 @@ def test_theta_and_the_spine_estimator_agree_party_for_party_on_the_same_record(
     1.197). Nothing in the suite could see it.
 
     So the mode ``theta_prior`` returns for a party WITH a record must be
-    ``exp`` of what ``_shrunk`` returns for that party on the same record,
-    exactly. Asserted on a constructed record where the baseline and the
+    ``exp`` of what ``_shrunk`` returns for that party on the same record and
+    the same current sizes (``current=baseline``, widened 2026-10-09 for
+    BRIEF item 11), exactly. Asserted on a constructed record where the baseline and the
     observed sizes deliberately disagree, and again on the real 2021 archive,
     where every party's two sizes differ for real. The reported ``worth`` must
     match too, since ``spine``'s blend weight and this shrinkage are required
@@ -480,7 +513,7 @@ def test_theta_and_the_spine_estimator_agree_party_for_party_on_the_same_record(
     with synthetic_record(record) as calls:
         priors, groups = levels.theta_prior(TARGET_UNUSED, baseline)
     assert len(calls) == 1
-    mus, _mu_all, worth = levels._shrunk(record)
+    mus, _mu_all, worth = levels._shrunk(record, current=baseline)
 
     for party in record:
         assert abs(math.log(priors[party][1]) - mus[party]) < 1e-12, (
@@ -497,7 +530,8 @@ def test_theta_and_the_spine_estimator_agree_party_for_party_on_the_same_record(
                                                   baseline_2021)
     real_record = levels.theta_record(_real_target("2021"))
     assert real_record, "the archive gave no retention record at 2021"
-    real_mus, _mu, real_worth = levels._shrunk(real_record)
+    real_mus, _mu, real_worth = levels._shrunk(real_record,
+                                               current=baseline_2021)
     for party in real_record:
         assert abs(math.log(real_priors[party][1]) - real_mus[party]) < 1e-9, (
             f"{party} at 2021: theta_prior "

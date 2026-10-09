@@ -206,6 +206,7 @@ Structural choices the code makes without a constant to name them — the easies
 | a VD with no turnout of its own | `montecarlo.run_model`, turnout patterns | The city's roll-weighted mean, typed; the VDs and their roll share are recorded per run (`turnout.mean_fallback_vds`). Registered 2026-10-09. | 🔴 | §A49 |
 | an unopposed ward | `seats.eligible_parties`, `levels.unopposed_wards`, `montecarlo.run_model` | Statute in the seat law (PR votes counted twice); the draws refuse a target with one. None on disk or declared. | ⚖️ | §Q7 |
 | zero level shock for a seeded arrival | `montecarlo.make_drawer`, `pool_sd_shock` | 0; the width is the within-pool split. Registered 2026-10-09 with item 9's measurement. | 🟡 | §A50 |
+| the size the shrink target is evaluated at | `levels._shrink_one` (via `_shrunk`, `theta_prior`) | The party's current size on the route (national share for θ, previous local share for ρ), for every party. Owner's decision 2026-10-09 (BRIEF item 11); was the size its own ratios were measured off. | ⚖️ | §A51 |
 
 ## 5 · Levers that are INERT, and what it would take to reinstate one
 
@@ -277,5 +278,5 @@ Scenario keys with **no register row under their own name**. Each is still a jud
 * `seed` — ⛔ not in the register at all
 * `turnout_correlation` — its row is filed under the shadow constant `montecarlo.TURNOUT_CORRELATION`, tied to it by an assert, so the row does describe it
 
-Register rows parsed: 112 with a symbol, 40 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser's own view and a drop shows up as a missing row here rather than as a mangled one.
+Register rows parsed: 112 with a symbol, 41 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser's own view and a drop shows up as a missing row here rather than as a mangled one.
 

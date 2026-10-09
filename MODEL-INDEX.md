@@ -869,7 +869,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `coalitions.minority_viable` | model+measurement | Arithmetic viability of a minority administration, per draw. | -- |
 | `coalitions.mask_label` | model+measurement | -- | -- |
 | `coalitions.analyse` | model+measurement | Run the full §3.8 suite. Returns a dict of result tables. | `montecarlo`, `tests/test_your_forecast_page` |
-| `coalitions.report` | model+measurement | -- | `contested_area`, `declares`, `export_draws`, `fetch_iec`, `fold`, `levels`, `montecarlo`, `tests/test_published_page`, `tests/test_regressions`, `tests/test_scoreboard_disclosure`, `tests/test_scored_universe`, `tests/test_stat_freshness`, `theta_residual` |
+| `coalitions.report` | model+measurement | -- | `contested_area`, `declares`, `export_draws`, `fetch_iec`, `fold`, `levels`, `montecarlo`, `tests/test_published_page`, `tests/test_regressions`, `tests/test_scoreboard_disclosure`, `tests/test_scored_universe`, `tests/test_stat_freshness`, `tests/test_theta_prior`, `theta_residual` |
 | `coalitions.write_outputs` | model+measurement | -- | `montecarlo` |
 | `compare_history.scored_opponents` | measurement | Every reference in `benchmarks.BENCHMARKS` bar those explicitly refused. | `diagnose`, `tests/test_scoreboard_disclosure` |
 | `compare_history.opponent_columns` | measurement | The reference columns a REPORT prints: the scored set, plus the artefact's. | `tests/test_scoreboard_disclosure` |

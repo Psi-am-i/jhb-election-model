@@ -906,8 +906,13 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
                 codes=METRO_CODES) -> tuple[dict[str, tuple], dict]:
     """Per-party (low, mode, high) on θ, and the groups they were drawn from.
 
-    A party's own log-mean is shrunk toward its group's by ``n / (n + SHRINK)``,
-    and the width comes from the group's log-spread. The band is the 10th to
+    A party's own log-mean is shrunk toward the size centre by
+    ``worth / (worth + SHRINK)``, and the width comes from the group's
+    log-spread. The size centre is evaluated at the party's CURRENT size, its
+    share of ``baseline`` (BRIEF item 11, 2026-10-09), through
+    :func:`_shrink_one`, the helper :func:`_shrunk` also calls; a party in the
+    record with no baseline keeps its observed size and is counted in the
+    ``shrink`` block's ``size_fallback``. The band is the 10th to
     90th percentile of that lognormal, so it is wide where the record is wide
     and nothing sits at probability zero.
 
@@ -1078,7 +1083,7 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
                "nonfinite": 0, "mass": 0.0}
     shrink = {"target": "size_centre" if fit else "flat_common_centre",
               "n_shrunk": 0, "n_all_centre": 0, "offered": 0.0,
-              "absorbed": 0.0}
+              "absorbed": 0.0, "size_fallback": 0}
     no_baseline = 0
 
     priors: dict[str, tuple] = {}
@@ -1103,17 +1108,22 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
             sd_clip["mass"] += raw - SD_CEILING
         own = record.get(party, [])
         if own:
-            worth = sum(_reliability(s) for _, s in own)
+            # GROWTH AT CURRENT SIZE (BRIEF item 11, 2026-10-09). The shrink
+            # target is the size centre at the party's size NOW, its share of
+            # the baseline, for every party. Until this batch it was taken at
+            # the size the party's own ratios were measured off, which hands a
+            # party that grew the multiplier of the party it used to be (the
+            # PA's θ, measured off 0.014%-0.29% against a current 2.9%: item 7).
+            # A party in the record with no baseline has no current size, keeps
+            # the observed one, and is counted in `size_fallback`. The body is
+            # `_shrink_one`, which `_shrunk` also calls: one estimator (§A26).
+            if size > 0.0:
+                at = size
+            else:
+                at = _observed_size(own)
+                shrink["size_fallback"] += 1
+            mu, worth, own_mu, centre = _shrink_one(own, at, fit, mu_all)
             weight = worth / (worth + SHRINK)
-            own_mu = float(np.average([np.log(r) for r, _ in own],
-                                      weights=[_reliability(s) for _, s in own]))
-            # The size the shrink target is taken at is the party's own
-            # observed size, weighted the same way `_shrunk` weights it, so the
-            # two estimators agree party-for-party rather than merely in form.
-            w = [_reliability(s) for _, s in own]
-            obs_size = float(np.average([sz for _, sz in own], weights=w))
-            centre = _centre_for(obs_size)
-            mu = weight * own_mu + (1 - weight) * centre
             shrink["n_shrunk"] += 1
             shrink["offered"] += abs(own_mu - centre)
             shrink["absorbed"] += (1 - weight) * abs(own_mu - centre)
@@ -1198,6 +1208,12 @@ def size_centre(record: dict[str, list[tuple[float, float]]]):
     second is why the dispersion stays where it is.
 
     Returns ``(a, b)``; ``centre(size) = exp(a + b·log(size))``.
+
+    **Fitted on one size, evaluated at another.** Each observation enters the
+    fit at the size its ratio was measured off, because that is the size at
+    which it happened. The consumers (:func:`_shrink_one`, so both
+    :func:`_shrunk` and :func:`theta_prior`) evaluate the line at the party's
+    CURRENT size, since BRIEF item 11 (2026-10-09).
     """
     obs = [(np.log(max(sz, 1e-6)), np.log(r))
            for v in record.values() for r, sz in v if r > 0 and sz > 0]
@@ -1220,15 +1236,57 @@ def size_centre(record: dict[str, list[tuple[float, float]]]):
     return float(a), float(b)
 
 
+def _observed_size(obs: list[tuple[float, float]]) -> float:
+    """The reliability-weighted size a party's ratios were measured off."""
+    w = [_reliability(s) for _, s in obs]
+    return float(np.average([sz for _, sz in obs], weights=w))
+
+
+def _shrink_one(obs: list[tuple[float, float]], size: float, fit,
+                mu_all: float) -> tuple[float, float, float, float]:
+    """One party's shrunk log-mean: ``(mu, worth, own, target)``.
+
+    ``own`` is the reliability-weighted mean of ``log r`` over ``obs``;
+    ``worth`` is the sum of the reliabilities; ``target`` is the size centre
+    evaluated at ``size`` (the flat ``mu_all`` where ``fit`` is None); and
+    ``mu = w·own + (1 − w)·target`` with ``w = worth / (worth + SHRINK)``.
+
+    **``size`` is the party's CURRENT size** on the route the record belongs
+    to (its national share for θ, its previous local share for ρ), since
+    BRIEF item 11 (2026-10-09). The size centre says how parties of a given
+    size retain their vote; the size that matters is the one the party has
+    at the target, not the one its historical ratios were measured off.
+
+    The per-party body of both :func:`_shrunk` and :func:`theta_prior`, so
+    the spine's estimator and the θ prior's cannot drift apart (§A26).
+    """
+    w = [_reliability(s) for _, s in obs]
+    worth = float(sum(w))
+    weight = worth / (worth + SHRINK)
+    own = float(np.average([np.log(r) for r, _ in obs], weights=w))
+    target = (float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
+              if fit else mu_all)
+    return weight * own + (1 - weight) * target, worth, own, target
+
+
 def _shrunk(record: dict[str, list[tuple[float, float]]],
-            report: dict | None = None,
+            report: dict | None = None, *,
+            current: dict[str, float],
             ) -> tuple[dict[str, float], float, dict[str, float]]:
-    """Per-party log-mean shrunk to the weighted common centre, and the worth.
+    """Per-party log-mean shrunk to the size centre at its current size, and the worth.
 
     The estimator :func:`theta_prior` uses on θ, extracted so ρ gets exactly the
     same treatment. If the two routes were shrunk differently, the comparison
     between them in :func:`spine` would be measuring the estimators rather than
-    the evidence.
+    the evidence. The per-party body is :func:`_shrink_one`.
+
+    ``current`` is each party's size now on this record's route: the national
+    baseline for θ, the previous local result for ρ (BRIEF item 11). The size
+    centre is evaluated there. A party in ``record`` with no positive
+    ``current`` size keeps the reliability-weighted size of its own
+    observations and is counted in ``report["size_fallback"]``; no level reads
+    such a party, because the spine consults ``mu_t`` only where the national
+    share is positive and ``mu_r`` only where the local share is.
 
     **``report`` is an absorption account, written and never read.** The return
     is a three-tuple that two test files pin exactly (``({}, 0.0, {})`` on an
@@ -1245,10 +1303,13 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
       shrink took back, and ``share`` = absorbed / offered. At share ≈ 1 this
       is an attractor and a change to a party's own observations cannot reach
       the level.
+    * ``size_fallback`` — parties shrunk at their observed size because
+      ``current`` gives them none.
     """
     if report is not None:
         report.update({"n": 0, "target": None, "offered": 0.0,
-                       "absorbed": 0.0, "share": 0.0, "empty": True})
+                       "absorbed": 0.0, "share": 0.0, "empty": True,
+                       "size_fallback": 0})
     everything = [obs for obs in (o for v in record.values() for o in v)]
     if not everything:
         return {}, 0.0, {}
@@ -1259,20 +1320,19 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
     mu_all = float(np.average(np.log(ratios), weights=weights))
     fit = size_centre(record)
     offered = absorbed = 0.0
+    size_fallback = 0
     mus: dict[str, float] = {}
     worth: dict[str, float] = {}
     for party, obs in record.items():
-        w = [_reliability(s) for _, s in obs]
-        worth[party] = float(sum(w))
+        # Shrink toward the centre for a party THIS SIZE NOW, not toward one
+        # number for the whole ballot and not toward the size it used to be.
+        size = float(current.get(party, 0.0) or 0.0)
+        if size <= 0.0:
+            size = _observed_size(obs)
+            size_fallback += 1
+        mus[party], worth[party], own, target = _shrink_one(
+            obs, size, fit, mu_all)
         weight = worth[party] / (worth[party] + SHRINK)
-        own = float(np.average([np.log(r) for r, _ in obs], weights=w))
-        # Shrink toward the centre for a party THIS SIZE, not toward one number
-        # for the whole ballot. See size_centre: the size of the party is the
-        # single thing that moves the centre, and a party with little history of
-        # its own is almost entirely this term.
-        size = float(np.average([sz for _, sz in obs], weights=w))
-        target = (fit[0] + fit[1] * np.log(max(size, 1e-6))) if fit else mu_all
-        mus[party] = weight * own + (1 - weight) * target
         offered += abs(own - target)
         absorbed += (1 - weight) * abs(own - target)
     if report is not None:
@@ -1282,6 +1342,7 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
             "offered": float(offered), "absorbed": float(absorbed),
             "share": float(absorbed / offered) if offered > 0 else 0.0,
             "empty": False,
+            "size_fallback": size_fallback,
         })
     return mus, mu_all, worth
 
@@ -1342,8 +1403,11 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     # test_theta_prior — so it fills a dict handed in. See its docstring.
     theta_shrink: dict = {}
     rho_shrink: dict = {}
-    mu_t, c_t, worth_t = _shrunk(theta_obs, theta_shrink)
-    mu_r, c_r, _worth_r = _shrunk(rho_obs, rho_shrink)
+    # Each route's size centre is evaluated at the party's current size on
+    # that route (BRIEF item 11): its national share for θ, its previous
+    # local share for ρ.
+    mu_t, c_t, worth_t = _shrunk(theta_obs, theta_shrink, current=baseline)
+    mu_r, c_r, _worth_r = _shrunk(rho_obs, rho_shrink, current=prev_local)
     if not mu_t and not mu_r:
         return {}, {}
 

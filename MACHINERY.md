@@ -242,6 +242,16 @@ the vote are three weak statements, not three strong ones.*
     weight = worth / (worth + SHRINK)                       SHRINK = 2.0
     mu     = weight * own_weighted_mean + (1 - weight) * target
     target = size_centre(size) = a + b * log(size)
+    size   = the party's CURRENT size on the route           (since 2026-10-09)
+
+**`size` is the party's size now** — its national share for θ, its previous
+local share for ρ — for every party (BRIEF item 11, JUDGEMENT-CALLS §A51). The
+line is fitted on the sizes the ratios were measured off and evaluated at the
+current one. Until 2026-10-09 it was evaluated at the reliability-weighted size
+of the party's own observations, which gave a party that had grown the
+multiplier of its former size. The per-party body is `levels._shrink_one`,
+called by both `_shrunk` and `theta_prior` (§A26). A party in a record with no
+current size keeps its observed one and is counted (`size_fallback`).
 
 **Both halves are load-bearing and both are measured.** Forward validation:
 adding the party term takes RMSE(log θ) from 0.8045 to **0.7150**, so a party's
@@ -256,7 +266,7 @@ at 0.05% of the vote and 0.80 at 45%. **The slope is nearly flat and R² ≈ 0.0
 it moves the centre by about a quarter across the whole ballot and explains
 almost none of the variance around it.
 
-For VF Plus (worth 6.46, weight 0.763): own 0.785, centre 0.868, **result 0.804**.
+For VF Plus (worth 6.46, weight 0.763), at target 2021 with the centre taken at its observed size (the rule before 2026-10-09): own 0.785, centre 0.868, **result 0.804**.
 
 ### The blend
 
@@ -318,13 +328,11 @@ The parameter was **not** chosen on the nine city-years it is scored against —
 see `MODEL-LOG` §1.44 for the forward test that picked it and for the cost,
 which is a tail band that was unbiased and is now slightly over-forecast.
 
-### Known divergence, unresolved
+### One estimator
 
-`theta_prior` and `_shrunk` are **two different estimators of the same quantity**.
-`_shrunk` shrinks toward `size_centre`; `theta_prior` shrinks toward the flat
-`mu_all` and ignores `size_centre`. They disagree by construction — ANC 0.869
-against 0.862, PA 1.115 against 1.197 — and the drawer uses one while the spine
-uses the other. At least one is wrong.
+`theta_prior` and `_shrunk` share one per-party body, `levels._shrink_one`,
+and agree party for party (JUDGEMENT-CALLS §A26, resolved 2026-08-18;
+`tests/test_theta_prior.py` asserts it on the constructed and the real record).
 
 ### The ceiling
 
