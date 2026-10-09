@@ -988,9 +988,9 @@ function paintAnalysis(a) {
   // citywide: each party's seats and vote beside its chance
   const sb = a.seat_band, pb = a.share_band;
   const head = el("tr", { className: "yf-wide" }, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
-    el("th", { scope: "col", className: "num" }, "Our chance, within " + sb + " seats"),
+    el("th", { scope: "col", className: "num" }, "The odds we give this*"),
     el("th", { scope: "col", className: "num" }, "Your list vote"),
-    el("th", { scope: "col", className: "num" }, "Our chance, within " + pb + " points (list ballot)"));
+    el("th", { scope: "col", className: "num" }, "The odds we give this†"));
   const seats = result.seats, share = B.percentOf(state, ctx, "list");
   const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
   // two layouts of the same cells (css/your-forecast.css): one row per party,
@@ -1012,8 +1012,10 @@ function paintAnalysis(a) {
   ]);
   const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
     el("th", { scope: "col", className: "num" }, "Yours"),
-    el("th", { scope: "col", className: "num" }, "Our chance, within " + sb + " seats, or " + pb + " points (list ballot)"));
-  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)));
+    el("th", { scope: "col", className: "num" }, "The odds we give this*†"));
+  // the caveat the two odds columns carry, once, under the table
+  const caveat = el("p", { className: "yf-alegend" }, "* Within " + sb + " seats of yours. † Within " + pb + " points of yours, on the list ballot.");
+  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)), caveat);
   // the totals, every party added up
   one.sseats.replaceChildren(el("b", {}, "All seats: "), "we expect your seat counts to be off by " + Math.round(sc.seat_error) +
     " in total across the parties, and give " + aChance(sc.seat_error_within.text) + " that they are off by " + sc.within + " or fewer.");
