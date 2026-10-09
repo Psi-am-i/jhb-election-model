@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item 2: prediction callout</title>
+<link rel="stylesheet" href="../../../site/css/site.css">
+<link rel="stylesheet" href="mock.css">
+</head>
+<body class="mock">
+<div class="wrap">
+  <h1 class="mk-title">Item 2: what you changed from our prediction, what it does to the council</h1>
+  <p class="mk-note">Mock-up. The same box as item 1, at the top and bottom of "Break the model" on <code>/your-prediction/</code>,
+    in two wordings (A and B). Dotted-underlined figures are placeholders. Rendered by <code>make.js</code> today: the count of
+    changed ward calls, seats per party with wards and list, the council size and majority, the coalition's seats against
+    the majority, the excessive-seats note, and the outcome sentence (<code>share-card.js outcomeWords</code>). Held by the
+    page but not rendered today: the ward calls grouped from→to, each party's vote change against the start, and each
+    party's seats against the start (<code>D.start.seats</code>).</p>
+
+  <!-- ================= STATE 1: untouched ================= -->
+  <p class="mk-state">State 1 · <b>no changes</b> · quiet one-line box</p>
+  <div class="cb quiet">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your changes</span><span class="cb-wordopt">Wording A</span>
+      <p class="cb-quietline">This is our prediction. Call a ward differently or move a vote, and this box lists what you changed and what it does to the council.</p>
+    </div>
+  </div>
+  <div class="cb quiet">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your prediction against ours</span><span class="cb-wordopt">Wording B</span>
+      <p class="cb-quietline">You are looking at our prediction. Call a ward differently or move a vote, and your council appears here beside ours.</p>
+    </div>
+  </div>
+
+  <!-- ================= STATE 2: one change, wording A ================= -->
+  <p class="mk-state">State 2 · <b>one change</b> · wording A</p>
+  <section class="cb">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your changes</span><span class="cb-wordopt">Wording A</span>
+      <button class="cb-back" type="button">Back to our prediction</button>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">1</span><h4>What you changed</h4></div>
+        <p class="cb-sub">Wards</p>
+        <p class="cb-line"><b><span class="ph">N</span> ward called differently from our prediction.</b></p>
+        <dl class="cb-flip">
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: ward <span class="ph">w</span></dd>
+        </dl>
+      </div>
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">2</span><h4>What it does to the council</h4></div>
+        <p class="cb-verdict">The ANC is the largest party, no party has a majority.</p>
+        <table class="cb-ctab">
+          <thead><tr><th>party</th><th>yours</th><th>ours</th><th>change</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pchip pc-ANC"></span>ANC</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▼n</span></td></tr>
+            <tr><td><span class="pchip pc-DA"></span>DA</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▲n</span></td></tr>
+          </tbody>
+        </table>
+        <p class="cb-foot">Parties whose seats moved. Seats are each party's wards plus its list seats, of <span class="ph">N</span>; <span class="ph">N</span> to govern.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATE 2: one change, wording B ================= -->
+  <p class="mk-state">State 2 · <b>one change</b> · wording B</p>
+  <section class="cb">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your prediction against ours</span><span class="cb-wordopt">Wording B</span>
+      <button class="cb-back" type="button">Back to our prediction</button>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">1</span><h4>Where you differ from us</h4></div>
+        <p class="cb-line">You gave <span class="ph">N</span> ward to a different party.</p>
+        <dl class="cb-flip">
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: ward <span class="ph">w</span></dd>
+        </dl>
+      </div>
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">2</span><h4>Your council beside ours</h4></div>
+        <p class="cb-line"><b>Largest party:</b> the ANC.</p>
+        <p class="cb-line"><b>Majority on its own:</b> no party.</p>
+        <table class="cb-ctab" style="margin-top:8px">
+          <thead><tr><th>party</th><th>yours</th><th>ours</th><th>change</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pchip pc-ANC"></span>ANC</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▼n</span></td></tr>
+            <tr><td><span class="pchip pc-DA"></span>DA</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▲n</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="mk-skel"><div>call the wards · set the vote · pick who governs</div><div>your council (the seat table and chamber strip)</div></div>
+
+  <!-- ================= STATE 3: many changes, wording A ================= -->
+  <p class="mk-state">State 3 · <b>many changes</b> · wording A · lists clamped with "+N more"</p>
+  <section class="cb">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your changes</span><span class="cb-wordopt">Wording A</span>
+      <button class="cb-back" type="button">Back to our prediction</button>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">1</span><h4>What you changed</h4></div>
+        <p class="cb-sub">Wards</p>
+        <p class="cb-line"><b><span class="ph">N</span> wards called differently from our prediction.</b></p>
+        <dl class="cb-flip">
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-ASA"></span>ActionSA</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w, w</span></dd>
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w, w, w, w, w, w, w, w</span></dd>
+          <dt><span class="pchip pc-EFF"></span>EFF <span class="cb-to">to</span> <span class="pchip pc-MK"></span>MK Party</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w</span></dd>
+        </dl>
+        <button class="cb-more" type="button">+<span class="ph">N</span> more</button>
+        <p class="cb-sub">List vote, against ours</p>
+        <div class="cb-seats">
+          <span class="cb-chip"><span class="pchip pc-ASA"></span>ActionSA <span class="arrow reader">▲n</span> pts</span>
+          <span class="cb-chip"><span class="pchip pc-ANC"></span>ANC <span class="arrow reader">▼n</span> pts</span>
+          <span class="cb-chip"><span class="pchip pc-DA"></span>DA <span class="arrow reader">▲n</span> pts</span>
+          <span class="cb-chip"><span class="pchip pc-EFF"></span>EFF <span class="arrow reader">▼n</span> pts</span>
+        </div>
+        <p class="cb-sub">Ward vote, against ours</p>
+        <div class="cb-seats">
+          <span class="cb-chip"><span class="pchip pc-ASA"></span>ActionSA <span class="arrow reader">▲n</span> pts</span>
+          <span class="cb-chip"><span class="pchip pc-ANC"></span>ANC <span class="arrow reader">▼n</span> pts</span>
+          <span class="cb-chip"><span class="pchip pc-DA"></span>DA <span class="arrow reader">▲n</span> pts</span>
+        </div>
+      </div>
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">2</span><h4>What it does to the council</h4></div>
+        <p class="cb-verdict">The DA is the largest party, no party has a majority, and ActionSA and the DA govern.</p>
+        <table class="cb-ctab">
+          <thead><tr><th>party</th><th>yours</th><th>ours</th><th>change</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pchip pc-ASA"></span>ActionSA</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▲n</span></td></tr>
+            <tr><td><span class="pchip pc-ANC"></span>ANC</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▼n</span></td></tr>
+            <tr><td><span class="pchip pc-DA"></span>DA</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▲n</span></td></tr>
+            <tr><td><span class="pchip pc-EFF"></span>EFF</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▼n</span></td></tr>
+            <tr><td><span class="pchip pc-MK"></span>MK Party</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▲n</span></td></tr>
+          </tbody>
+        </table>
+        <p class="cb-line" style="margin-top:10px">Your coalition: <span class="ph">N</span> of <span class="ph">N</span> seats. <span class="cb-ok">Enough to govern.</span></p>
+        <p class="cb-foot">The ANC wins at least as many wards as its share of the vote earns, so it keeps its wards and the list seats go to the others.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATE 3: many changes, wording B ================= -->
+  <p class="mk-state">State 3 · <b>many changes</b> · wording B</p>
+  <section class="cb">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your prediction against ours</span><span class="cb-wordopt">Wording B</span>
+      <button class="cb-back" type="button">Back to our prediction</button>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">1</span><h4>Where you differ from us</h4></div>
+        <p class="cb-line">You gave <span class="ph">N</span> wards to a different party.</p>
+        <dl class="cb-flip">
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-ASA"></span>ActionSA</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w, w</span></dd>
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w, w, w, w, w, w, w, w</span></dd>
+          <dt><span class="pchip pc-EFF"></span>EFF <span class="cb-to">to</span> <span class="pchip pc-MK"></span>MK Party</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w</span></dd>
+        </dl>
+        <button class="cb-more" type="button">+<span class="ph">N</span> more</button>
+        <p class="cb-line" style="margin-top:10px">You moved the list vote, in points:</p>
+        <div class="cb-seats" style="margin-top:6px">
+          <span class="cb-chip"><span class="pchip pc-ASA"></span>ActionSA <span class="arrow reader">▲n</span></span>
+          <span class="cb-chip"><span class="pchip pc-ANC"></span>ANC <span class="arrow reader">▼n</span></span>
+          <span class="cb-chip"><span class="pchip pc-DA"></span>DA <span class="arrow reader">▲n</span></span>
+          <span class="cb-chip"><span class="pchip pc-EFF"></span>EFF <span class="arrow reader">▼n</span></span>
+        </div>
+      </div>
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">2</span><h4>Your council beside ours</h4></div>
+        <p class="cb-line"><b>Largest party:</b> the DA. Ours: the ANC.</p>
+        <p class="cb-line"><b>Majority on its own:</b> no party.</p>
+        <p class="cb-line"><b>Who governs:</b> ActionSA and the DA, with <span class="ph">N</span> of <span class="ph">N</span> seats. <span class="cb-ok">Enough to govern.</span></p>
+        <table class="cb-ctab" style="margin-top:8px">
+          <thead><tr><th>party</th><th>yours</th><th>ours</th><th>change</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pchip pc-ASA"></span>ActionSA</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▲n</span></td></tr>
+            <tr><td><span class="pchip pc-ANC"></span>ANC</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▼n</span></td></tr>
+            <tr><td><span class="pchip pc-DA"></span>DA</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▲n</span></td></tr>
+            <tr><td><span class="pchip pc-EFF"></span>EFF</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▼n</span></td></tr>
+            <tr><td><span class="pchip pc-MK"></span>MK Party</td><td class="ph">N</td><td class="ours ph">N</td><td><span class="arrow reader">▲n</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <p class="mk-state">Opened from a forecast hand-off · <b>the baseline is not ours</b></p>
+  <p class="mk-note">When "Make this your prediction" opens the page, the start is the prediction from the reader's own
+    forecast settings. Every "our prediction" / "ours" above then becomes "the prediction from your settings" /
+    "from your settings", and the button "Back to the prediction from your settings". Needs the owner's wording.</p>
+</div>
+</body>
+</html>
