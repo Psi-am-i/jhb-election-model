@@ -998,6 +998,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `montecarlo.blended_centres` | model+measurement | Central citywide level per party at the target, from θ modes tilted by evidence. | `tests/test_blended_centres`, `tests/test_drawer`, `tests/test_ipf_feasibility` |
 | `montecarlo.compress_levels` | model+measurement | Pull each central level down by its own size, then give the mass back. | `tests/test_chain`, `tests/test_stage_estimation` |
 | `montecarlo.pool_spec` | model+measurement | Build the per-pool draw specification for the weighted engine (§1.29). | `tests/test_drawer`, `tests/test_pool_conservation` |
+| `montecarlo.record_city_slug` | model+measurement | The city slug the group-share record is keyed on, for ``target``. | `tests/test_stage_realisation` |
 | `montecarlo.read_group_share_record` | model+measurement | The group-share record for one city at one target, or None. | `tests/test_stage_realisation` |
 | `montecarlo.group_share_tripwire` | model+measurement | Count, per (party, pool), the draws in which the party's share of the | `build_site`, `tests/test_stage_realisation` |
 | `montecarlo.level_shock_sd` | model+measurement | A party's level-shock sd in log units, and which rule gave it. | `tests/test_spine` |

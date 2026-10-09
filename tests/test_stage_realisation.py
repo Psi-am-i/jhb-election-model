@@ -741,9 +741,16 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     return out
 
 
-def faults_in_group_share(guards, *, draws=None, universe=None) -> list[str]:
+def faults_in_group_share(guards, *, draws=None, universe=None,
+                          covered=None) -> list[str]:
     """`41_guards.group_share_tripwire` (BRIEF item 12) is "no record" or a
     count that looked and is consistent with its own draws.
+
+    "no record" is a fault where ``covered`` is True: the record on disk holds
+    this city-year, so the run should have read it (M3 review row 5). The
+    caller works ``covered`` out from the file itself (`record_covers`), not
+    from the reader the run used, or a reader that looks in the wrong place
+    would agree with itself.
 
     The scan must prove it looked (CLAUDE.md §4): `population` is the member
     pairs of the run's pools and `scanned` the pairs counted, and they are
@@ -754,6 +761,10 @@ def faults_in_group_share(guards, *, draws=None, universe=None) -> list[str]:
     out: list[str] = []
     value = (guards or {}).get("group_share_tripwire")
     if value == "no record":
+        if covered:
+            out.append("41_guards.group_share_tripwire is \"no record\" at a "
+                       "city-year the record on disk covers: the run did not "
+                       "read it")
         return out
     if not isinstance(value, dict):
         return [f"41_guards.group_share_tripwire is {value!r}, neither "
@@ -1671,7 +1682,7 @@ ALL_PREDICATES = {
 
 
 def run_predicates(bundle: dict, *, universe=None, council=COUNCIL,
-                   rule="deduct") -> list[tuple[str, str]]:
+                   rule="deduct", covered=None) -> list[tuple[str, str]]:
     """Every registered predicate on one bundle of stage payloads: ``(name, fault)``."""
     universe = PARTIES if universe is None else universe
     draws = len(bundle["44_seat_draws"])
@@ -1702,7 +1713,7 @@ def run_predicates(bundle: dict, *, universe=None, council=COUNCIL,
     add("faults_in_guards", faults_in_guards(
         bundle["41_guards"], draws=draws, universe=universe))
     add("faults_in_group_share", faults_in_group_share(
-        bundle["41_guards"], draws=draws, universe=universe))
+        bundle["41_guards"], draws=draws, universe=universe, covered=covered))
     add("faults_in_delivery_log", faults_in_delivery_log(bundle["45_delivered"]))
     return out
 
@@ -1934,8 +1945,45 @@ def test_a_real_trace_passes_every_predicate_in_this_file():
     payloads, run = real_trace()
     complaints = run_predicates(payloads, universe=run.universe,
                                 council=int(run.target.council),
-                                rule=run.scenario["overhang_rule"])
+                                rule=run.scenario["overhang_rule"],
+                                covered=record_covers(run.target.city.slug,
+                                                      run.target.year))
     assert not complaints, "\n".join(f"{n}: {t}" for n, t in complaints)
+
+
+def record_covers(slug: str, year: str) -> bool:
+    """Does `group_share_record.json` on disk hold this city-year? Read off
+    the file directly, not through `montecarlo.read_group_share_record`."""
+    path = ROOT / "data" / "processed" / "group_share_record.json"
+    if not path.exists():
+        return False
+    blob = json.loads(path.read_text(encoding="utf-8"))
+    return bool(((blob.get("cities") or {}).get(slug) or {}).get(str(year)))
+
+
+def test_no_record_at_a_covered_city_year_is_caught_and_a_slugless_target_refused():
+    """M3 review row 5. Constructed: "no record" passes where the record does
+    not cover the city-year and is a fault where it does; a count passes
+    either way. A target with no city slug stops the lookup instead of
+    reading the record under ``""``."""
+    blank = {"group_share_tripwire": "no record"}
+    assert not faults_in_group_share(blank, covered=False)
+    assert not faults_in_group_share(blank, covered=None)
+    assert faults_in_group_share(blank, covered=True)
+    count = {"group_share_tripwire": {"pairs": {}, "population": 2,
+                                      "scanned": 2, "draws": 4,
+                                      "fire_at": 0.05, "key_current": True}}
+    assert not faults_in_group_share(count, draws=4, covered=True)
+    for target in (Namespace(city=None, year="2026"),
+                   Namespace(city=Namespace(slug=""), year="2026")):
+        try:
+            M.record_city_slug(target)
+        except SystemExit as exc:
+            assert "no city slug" in str(exc)
+        else:
+            raise AssertionError(f"{target!r} was looked up")
+    assert M.record_city_slug(
+        cityconfig.Target(city=cityconfig.load("joburg"), year="2026")) == "joburg"
 
 
 def test_the_guard_board_on_a_real_run_can_prove_it_looked():

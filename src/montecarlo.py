@@ -2706,6 +2706,22 @@ def _balance(R, electorate, party_votes):
     return _pl.balance_margins(R, electorate, party_votes)
 
 
+def record_city_slug(target) -> str:
+    """The city slug the group-share record is keyed on, for ``target``.
+
+    REFUSES a target with no city or no slug (M3 review row 5). Until
+    2026-10-09 the lookup fell back to ``""``, which no record holds, so the
+    run reported ``"no record"`` in silence: indistinguishable from a target
+    the record does not cover.
+    """
+    slug = getattr(getattr(target, "city", None), "slug", None)
+    if not isinstance(slug, str) or not slug:
+        raise SystemExit(
+            f"the target {target!r} carries no city slug, so the group-share "
+            f"record cannot be looked up. A run is for one city.")
+    return slug
+
+
 def read_group_share_record(city_slug: str, year: str) -> dict | None:
     """The group-share record for one city at one target, or None.
 
@@ -5671,8 +5687,7 @@ def run_model(target, scenario: dict,
     # to `ModelRun` below, which is the only route these counters have to a
     # consumer that did not ask for a `--run-dir`.
     # THE GROUP-SHARE TRIPWIRE (BRIEF item 12). Reports, changes no number.
-    _gs_record = read_group_share_record(
-        getattr(getattr(target, "city", None), "slug", ""), target.year)
+    _gs_record = read_group_share_record(record_city_slug(target), target.year)
     _tripwire = group_share_tripwire(
         {nm: np.asarray(v) for nm, v in
          getattr(draw_target, "split_record", {}).items()},

@@ -1202,3 +1202,27 @@ them with `size_sd` at their local share.
   (the group-share record), `test_drawer` ×2 (goldens, re-recorded once after
   the re-emit); R3.5 — `test_draw_record`; R3.2 — `test_export_draws` and the
   tests it names; and the `level_sd_default` lever above, pending a decision.
+
+### R3.6, M3 fix-round addendum (writer, after the M3 review, 2026-10-09)
+
+- **The window gains one check (M3 review row 5).** After
+  `group_share_record.py --emit`, a real run at a city-year the record covers
+  must report a count in `41_guards.group_share_tripwire`, not "no record".
+  `test_stage_realisation::test_a_real_trace_passes_every_predicate_in_this_file`
+  now enforces it: it reads the record file directly (`record_covers`) and
+  `faults_in_group_share` faults "no record" where the file covers the run's
+  city-year. Before the emit the file is absent, so the test passes on "no
+  record"; after the emit it is green only if the run read the record. A
+  window step that leaves it passing without the file present has not run
+  the emit.
+- **`test_drawer`'s goldens** stay red for the slice-M3 cause and are
+  re-recorded once, after the re-emit, at the run's windows (M3 review row
+  1). Under §A52's paired rule (e6cf058) every window is ∞ on the current
+  archive, so the windows add no movement to that fixture.
+- **The `level_sd_default` lever is resolved: deleted** (6074382, owner).
+  `test_levers_are_live` no longer sweeps it; whether the module is green
+  is recorded below.
+- **No new expected red from this round's code.** Each commit moves
+  `deps_sha` again (`levels.py`, `montecarlo.py`); `test_chain`,
+  `test_stage_inputs` and `test_citywide_table` stay red for that cause.
+  `test_intermediates_are_current` ×2 stays red for the missing record.
