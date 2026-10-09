@@ -83,3 +83,16 @@ every party; whether it is a defect is a judgement.
 | d2 | cap at record + the largest real rise | 20.95 | 14.72 | 67.06 |
 
 The ANC gains about 3.5–4.2 seats under every level candidate.
+
+## Correction (2026-10-09, after the specification review)
+
+Candidate b2 was labelled "size centre at current size, for all parties". The
+script (`scripts/variants.py`, lines 15-17 and 46) patches the **PA alone**, and
+replaces the PA's own θ/ρ with the size centre, which also drops the PA's own
+record. The "PA 11.15 seats" result belongs to that PA-only change.
+
+The general rule the owner chose (item 11: every party's size centre evaluated
+at its current size, own records kept) moves the PA's spine level only from
+6.43% to 6.05% (`spec/SPEC.md` §0 O1, computed from the spine, no model run).
+The coordinator relayed the mislabelled result to the owner as the effect of
+the general rule. That was wrong.

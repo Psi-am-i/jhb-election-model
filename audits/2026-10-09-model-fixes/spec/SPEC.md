@@ -1,0 +1,742 @@
+# Model correction batch, 2026-10-09: the specification
+
+Designer: one, read-only (`SPEC-PACKET.md`), plus items 11-14 from the BRIEF's
+"Owner's decisions, 2026-10-09 (later)". Scope: items 1-6, 8-14 of
+`BRIEF.md`. Out of scope: item 7's level fix as such, item 15 (cosmetic), any
+change to the SACP beyond item 13 and to the All Citizens Party beyond item 14.
+
+Probes run for this specification are read-only, wrote nothing under `data/`,
+and live in `/Users/simondavis/.claude/jobs/26965cd4/tmp/modelspec/`
+(`universe_gap.py`, `unopposed.py`, `floor_check.py`, `item11_spine.py`, with
+their `.json` outputs). Each figure below names the probe that produced it.
+"Measured" means a probe printed it; "read" means a file or the code says it;
+"argued" means neither.
+
+---
+
+## 0. Decisions this specification takes that the owner should see first
+
+| # | the decision | why | what the brief said |
+|---|---|---|---|
+| O1 | **Item 11 as specified is not candidate b2 as measured.** b2 (`item7/scripts/variants.py`, `spine_with(0.921, 0.762)`) replaced the PA's θ and ρ multipliers with the size-centre value at its current size and **dropped the PA's own record**; it touched the PA only. The general change ("`_shrunk` evaluates the size centre at the party's current base, for every party") keeps every party's own record, weighted `worth/(worth+SHRINK)` as now. Measured (`item11_spine.py`, joburg 2026, spine level before by-elections, shrink and renormalisation): the PA's spine level moves 6.43% → 6.05% (Δlog −0.061), not to b2's level. The 23.95 → 11.15 seat move in item 7's table came from dropping the PA's own record, which nobody has approved. **Consequence:** after this batch the PA's centre still exceeds the whole Coloured pool (item 7's defect stands), and item 12's tripwire will report it: predicted PA/Coloured firing above 25% of draws on arm D (§6, item 12 under "nulls"). | The owner approved "for everyone"; the measured candidate was PA-only and did something else as well. | "candidate b2 of item7/FINDINGS.md" |
+| O2 | **Item 11 includes the no-record case (11b).** A party with no θ (or ρ) record of its own currently takes the flat common mean `mu_all` in `levels.spine` (`mu_t.get(party, c_t)`), while `levels.theta_prior` already gives such a party the size centre at its current size. 11b makes the spine do what `theta_prior` does. It is the larger half of item 11 at 2026: MK's spine level 11.31% → 9.93% (Δlog −0.130), seven small national-only parties +0.24 to +0.30 in log, local-only parties +0.12 (measured, `item11_spine.py`, B11=1 against B11=0). Measured and reported as its own arm so the owner can strike it. | "growth measured at current size for every party" covers a party with no history; leaving it on the flat mean is the one place the size signal is still erased. | not addressed |
+| O3 | **Item 6's clip: the upper bound becomes `WARD_PR_RATIO_MAX`; no lower clip is added.** Replacing `[0, 2.0]` with `[WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX] = [0.5, 2.0]` raises the floor from 0 to 0.5. Measured (`floor_check.py`, joburg 2026): one party falls below 0.5, CHANGE, whose 2026 slate is empty (PR list only, `declared_contestation`'s complete roster gives 0.0) — the 0.5 floor would give it ward votes in wards where it has no candidate. Every term of `ratio × now/was` is non-negative, so no lower clip is needed. `WARD_PR_RATIO_MIN` is the floor on the *measured* ratio, a different quantity. | Item 8 brings CHANGE into the run, so the brief's literal reading would create a ward candidate that does not exist. | "the registered `WARD_PR_RATIO_MIN/MAX` is used instead" |
+| O4 | **Item 3 is implemented as statute in the seat law and as a refusal in the draw loop.** No ward in any metro LGE file 2000-2021 (40 files) has fewer than two ward-ballot parties, and none has PR rows without ward rows (`unopposed.py`); every 2026 Johannesburg ward lists at least 49 parties in `[roster.wards]` (read, `pools.declared_roster`). Modelling an uncontested ward inside the draw loop (fixed winner, no ward ballot, PR doubled) has no case to score. The seat law takes the extra votes as an input; `run_model` refuses a target with an unopposed ward, naming it. | A draw-loop branch nothing exercises is argued, not tested. | "counted twice" |
+| O5 | **Item 8's guard refuses only for parties with a previous-LGE record; it reports the rest.** Backtest city-years carry roster parties with no national baseline, no previous-LGE list vote and no seed (probe `universe_gap.py`: joburg 2011 7, capetown 2011 21, ethekwini 2011 8, 2021 9, and others; 2026: 0). These are pools' unseeded arrivals (`no_measured_vector` in the spec), a pools question outside this batch. The guard refuses at every target for the with-record class and, at a target with no result file (2026), for the no-record class too. | A two-way guard that refuses at most backtest city-years stops the panel. | "a guard checks the certified roster against the run's parties in both directions" |
+| O6 | **One `pools.py` re-emit window, for this batch's changes only.** `levels.py` is in `pools._EMIT_DEPENDENCIES`; items 10 and 11 change its code, so the window is forced. Queue rows 19, 20, 26, 27, 28, 31, 32 and 33 stay queued: four of them move numbers under their own pre-registrations, and folding them in would make this batch's measurement unattributable. This departs from the queue's "land every queued change in one commit", which is why it is the owner's. | §5 | — |
+| O7 | **Item 14's derivation has a thin record.** The by-election archive starts 2022-02. The only real result after a by-election run in it is the 2024 national ballot (metro VD files only): 30 metro contests before 2024-05-29, 75 party-metro pairs, 40 with two or more contests (measured, inline probe; the method is §6, P14). The pre-registered rule says what happens if the data do not settle a minimum. The derived minimum is not chosen to exclude the All Citizens Party; if it admits it, that goes to the owner. | — | "derived from data" |
+| O8 | **Item 13 makes the SACP a generic entrant.** Deleting `weights` and `support` from `[party.SOUTH_AFRICAN_COMMUNIST_PARTY]` sends it down `arrival_rules`' entrant branch: reach-matched comparators (it is listed in all 135 wards of `[roster.wards]`), the even pool spread, the group rescale, zero level shock, the pool split. §L13 measured this route at about 0.06%. The owner's note that the SACP stands "only in some wards" disagrees with the declared slate (135 of 135, read); noted, not changed. | "sized and varied by the same rules as other parties of its kind" | — |
+
+---
+
+## 1. Item by item
+
+Line numbers are at commit 597ec38 and are for finding the place; the function
+name is the address.
+
+### 1.1 Item 1 — ties settled by a seeded lot
+
+**One definition, in `src/seats.py`** (stdlib only, so it ships to Pyodide and
+the seat Worker unchanged):
+
+```python
+def lot_identity(city: str, target: str, seed) -> str:
+    """The run's identity for the lot: f"{city}|{target}|{seed}". No party enters it."""
+
+def lot_order(tied, key: str) -> list[str]:
+    """The tied codes in the order the lot draws them.
+    canon = sorted(set(str(p) for p in tied))      # enumeration only
+    ticket(i) = hashlib.sha256(f"{key}#{i}".encode()).digest()
+    return [p for _, p in sorted(zip((ticket(i) for i in range(len(canon))), canon))]"""
+```
+
+The seed (`key`) never contains a party code. String order only numbers the
+tied codes; which number wins is the key's.
+
+**What the lot guarantees, and what no lot can.** For an exact tie the inputs
+of the tied parties are identical, so only their codes tell them apart. For one
+fixed key, renaming a tied party so that it sorts on the other side of its
+rival hands the event to the rival: that is unavoidable for any deterministic
+rule. What the lot guarantees is that no code is favoured across events: over
+many keys each tied party wins with equal frequency, whatever the codes (G1b).
+The alphabetical rule favoured the earlier code at every event. Untied events
+never read the lot, and there a code swap gives the swapped answer (G4). Key forms, fixed:
+
+| event | key |
+|---|---|
+| ward call | `f"{run_lot}|ward|{ward_id}"` |
+| seat, prediction / reader / truth | `f"{run_lot}|seat|{round}"` |
+| seat, inside a draw | `f"{run_lot}|draw{d}|seat|{round}"` |
+
+`round` is the allocation round: 0 for the first `allocate`, then the index of
+each re-allocation in `allocate_with_overhang`'s `deduct` and `level` loops.
+
+**`seats.allocate(combined, total_seats=270, independent_wards=0,
+no_pr_list_wards=0, *, lot: str | None = None)`**: after item 2's ranking, find
+the group of parties whose `(surplus, votes)` equals that of `ranked[shortfall-1]`.
+If that group extends past the cut, the `m` seats falling to it go to
+`lot_order(group, lot)[:m]`; if `lot is None` raise `ValueError` naming the tied
+codes and Schedule 1 item 13(2)(b). Untied allocations do not read `lot`.
+Delete the comment at `seats.py:133-134`.
+
+**`montecarlo.allocate_with_overhang(..., *, lot: str | None = None)`**: pass
+`f"{lot}|seat|{r}"` to every `allocate` call, `r` counting from 0 across the
+function (the first call, then each `level` or `deduct` round).
+
+**`ModelRun` gains `lot: str`**, set in `run_model` as
+`seats.lot_identity(target.city.slug, str(target.year), scenario["seed"])`.
+The draw loop passes `lot=f"{run.lot}|draw{d}"` to `allocate_with_overhang`.
+
+**Ward calls, `src/prediction.py`:**
+- `top_party(scores, *, lot: str | None = None)`: on a tie at the top, return
+  `seats.lot_order(tied, lot)[0]`; `lot is None` with a tie raises `RuleAError`.
+  The caller passes the ward's key.
+- `ward_calls(..., weights=None, *, lot)` builds `f"{lot}|ward|{ward}"` per ward.
+- `rule_a(..., *, weights=None, ward_ids=None, lot)` passes it to `ward_calls`.
+- `seats_of(prediction, council, *, order=None, lot)` passes `lot` to
+  `allocate_with_overhang`. `order` stays (it fixes the pool's key order for
+  the trace); it no longer decides anything.
+- Module docstring "Ties": rewritten to the lot (§2 records).
+
+`prediction` imports `seats` lazily inside `top_party` (the page's ward map
+must not load the model; `seats` is stdlib-only, so this is cheap).
+
+**Callers, every one:**
+
+| caller | lot it passes |
+|---|---|
+| `build_make.forecast_data` | writes `schema["x-seat-context"]["lot"] = seats.lot_identity(ak["city"], ak["target"], ak["seed"])` from the draws manifest's `artefact_key`; `context_ref` (roster and wards only) does not move |
+| `build_make.start_state` | the schema's `x-seat-context["lot"]` to `model_forecast` and `seats_of` |
+| `score_forecasts.model_forecast` | `schema_context(schema)[0]["lot"]` to `rule_a` |
+| `reader_seats.context_errors` | requires `"lot"`, a non-empty `str` |
+| `reader_seats.reader_seats` | `context["lot"]` to `seats_of` |
+| `reader_seats.context_for(..., lot)` / `context_from_run` | `context_from_run` passes `run.lot` |
+| `interactive/pyboot/page.py` `_ward_calls`, `handoff` | `seats.lot_identity(*(manifest["artefact_key"][k] for k in ("city","target","seed")))` |
+| `scenarios.modal_winners(winners, wards, *, lot)` and its callers `scenarios.main`, `render_sheet` (`_sc.modal_winners`, ~709) | `seats.lot_identity` from `forecast_summary.json`'s `scenario` (city, target, seed); refuse if any is missing |
+| `diagnose.main` | `run_.lot` |
+| `score.score_wards(ward_probs, actual, edges=None, *, lot)` | `compare_history` (~1528) `run.lot`; `backtest` (~1428) `run.lot`; `benchmarks` (~1133) `seats.lot_identity(city, year, f"benchmark:{name}")` |
+| `montecarlo.main`, `ward_winner_probs.csv` (~5621) | `winner = prediction.top_party({universe[i]: count}, lot=f"{run.lot}|ward|{w}")`; `dist` keeps its order by count (display) |
+| `benchmarks.council_from_shares` | `seats.lot_identity(city, year, f"benchmark:{name}")`; `canonical_order` is deleted (§1.1a) |
+| `backtest.actual_result` (~994) | `seats.lot_identity(city, year, "actual")` |
+| `fold.py` (~682, ~700) | `f"{fold_label}|actual"`, `f"{fold_label}|predicted"` |
+| `validate_seats.py` (~86) | `seats.lot_identity(city, year, "validate")` |
+| `audits/2026-10-07-prediction-restructure/backtest/rule_a.py` | `seats.lot_identity(city, year, seed)` of the run it reduces |
+
+**1.1a `benchmarks.canonical_order` is deleted** and `council_from_shares`
+passes the tally straight through. Its name rule was the only thing making the
+baselines reproducible; the lot does that without a name. Its 837/841 band
+(name rule and its mirror) is replaced by one figure per seed.
+
+**Not in the population, stated:** within one draw, `ward_tally.argmax`
+(`run_model` ~5231) breaks an exact float tie by universe order; the tally
+carries multiplicative lognormal ward noise, so an exact tie needs two equal
+floats (argued, not measured). `fold.py`'s diagnostic `max(wards[w], key=...)`
+ward calls (~672) are a printed fold diagnostic. Neither is changed; both are
+named in §Q2's rewrite.
+
+**`src/interactive_template.html`'s JS `allocate`** is dead:
+`build_interactive.py` raises `SystemExit` at import ("not ported",
+`build_all.py:104`). Not changed; named in §Q2 so nobody reads it as a second
+seat law.
+
+### 1.2 Item 2 — integer surpluses
+
+`seats.allocate`:
+```python
+surpluses = {p: v - round_one[p] * quota for p, v in combined.items()}   # int
+ranked = sorted(combined, key=lambda p: (-surpluses[p], -combined[p]))
+remainders = {p: surpluses[p] / quota for p in combined}                  # derived, display
+```
+`Allocation` gains `surpluses: dict[str, int]` and `ranking: list[str]`
+(`ranked` after the lot). `remainders` stays, derived from `surpluses`.
+
+Two parties with equal integer surplus are ordered by votes (13(2)(b), 16(4)(c));
+only equal surplus *and* equal votes reaches the lot. Module docstring: add one
+paragraph on the rule and the lot.
+
+### 1.3 Item 3 — unopposed wards
+
+- `seats.eligible_parties(ward_votes, pr_votes, unopposed_pr=None)`:
+  `unopposed_pr` is `{party: its PR votes in the wards it won unopposed}`, added
+  to that party's combined votes (items 12(2), 13(1)(b)); item 16(5) follows
+  because `allocate_with_overhang` reads `combined`. A key not in the pool is
+  ignored (an independent or a no-list party is outside it anyway).
+- `levels.unopposed_wards(target, city) -> dict[str, str]`: `{ward: party}` for
+  each ward with exactly one ward-ballot party — from the result file's
+  `BallotType == "Ward"` rows where it exists, else from
+  `pools.declared_roster(...)["wards"]` (a ward listed for exactly one party,
+  `IND` counting as a party). `{}` when neither exists.
+- `run_model`: after the roster block, `if levels.unopposed_wards(...)` raise
+  `SystemExit` naming the wards: "Schedule 1 item 12(2): an uncontested ward is
+  not modelled in the draws (MODEL-LOG §<new>)".
+- `backtest.actual_result`: computes `unopposed_pr` from the result file's PR
+  rows in those wards and passes it. `{}` at every city-year today.
+- `prediction.seats_of` and `reader_seats` are not changed: no run, and so no
+  draws file, can exist for a target with an unopposed ward.
+
+### 1.4 Item 4 — `test_overhang` on Laingsburg's real votes
+
+`tests/test_overhang.py`: replace `LAINGSBURG_VOTES` with the IEC's published
+totals (`audits/2026-10-09-site-batch/law/sources/iec-lge2021-seat-calculation-detail-wc051-laingsburg.pdf`, read):
+
+```python
+LAINGSBURG_VOTES = {"ANC": 1694, "DA": 1530, "EFF": 74, "KDF": 1576,
+                    "KGP": 41, "KOP": 395, "PA": 895, "VFPLUS": 248}   # A = 6,453
+LAINGSBURG_WINS = {"DA": 3, "ANC": 1}
+LAINGSBURG_COUNCIL = 7
+```
+Rewrite the block comment's hand arithmetic: at 7 seats, quota 922, DA
+entitled to 2 against 3 wards; requota (6453 − 1530)//(7 − 3) + 1 = 1,231; the
+published council ANC 2, DA 3, KDF 1, PA 1. Assertions:
+- `test_the_constructed_entitlements_...`: total 6,453, DA entitlement 2;
+- `test_the_laingsburg_2021_requota_...`: `seats == {"ANC": 2, "DA": 3, "KDF": 1, "PA": 1}`,
+  council 7, `over == {"DA": 1}`, and the published round-two ranking:
+  `allocate({k: v for k, v in LAINGSBURG_VOTES.items() if k != "DA"},
+  total_seats=4).ranking == ["PA", "ANC", "KOP", "KDF", "VFPLUS", "EFF", "KGP"]`
+  and its `quota == 1231`. This pins item 2's ordering to the counting
+  authority's own column.
+- KDF at the original quota is 2 and after the requota 1: assert both (the
+  seat the clause cost it).
+The other three call sites (~385, ~566, ~591) use the new constants unchanged.
+
+### 1.5 Item 5 — records
+
+In §2.
+
+### 1.6 Item 6 — PA contestation, vote-weighted
+
+- **New** `levels.slate_coverage(target, city, weights_lge) -> dict[str, float]`:
+  the prototype `audits/2026-10-09-model-questions/data/scripts/votecov.py`,
+  as one function. For each party `p` that `levels.contestation(target, city)`
+  returns: weights = `p`'s PR votes per VD at `weights_lge` (the forecast
+  target's previous LGE, for both `now` and `was`); each VD placed in its ward
+  by `pools.vd_map(city, target.year)` (split VD → part with most registered);
+  coverage = Σ weights in wards `p` contests at `target` / Σ weights. Slates:
+  the result file's ward rows where it exists, else `[roster.wards]`. A party
+  with no PR vote at `weights_lge` keeps `contestation`'s count fraction.
+  `levels.contestation` is unchanged (it is the who-stands fact that
+  `declared_contestation`'s completeness logic and `compare_history` ~653 read).
+- `run_model` ~4238 and ~4242: `_contest` and `_contest_prev` come from
+  `slate_coverage(..., weights_lge=target.previous_lge)`. The projected and
+  partial paths (`projected_contestation`) run on these values as now.
+- `run_model` ~4802:
+  `ratio[i] = float(min(ratio[i] * (now / was), WARD_PR_RATIO_MAX))`. Delete
+  the `np.clip(..., 0.0, 2.0)` literal. (Decision O3.)
+- Comment ~4792-4795 (integrity F1, stale) rewritten: the change is the share
+  of the party's own previous list vote in wards it contests.
+- `note_constant(scenario, "contestation", ...)`: the note says "vote-weighted".
+
+### 1.7 Item 8 — the seven certified parties, and the roster ↔ universe guard
+
+The seven (measured, roster minus run universe, joburg 2026):
+AMALGAMATED_RAINBOW_MOVEMENT, CHANGE, ECONOMIC_EMANCIPATION_FORUM,
+INTERNATIONAL_REVELATION_CONGRESS, SHOSHOLOZA_PROGRESSIVE_PARTY,
+THE_ORGANIC_HUMANITY_MOVEMENT, UIM. All are pool members in `pools_2026.json`,
+none is seeded, all have a 2021 Johannesburg list vote (0.377% together on the
+raw 2021 PR file, `universe_gap.py`; integrity F4's 0.30% was a different
+measure).
+
+`run_model`:
+1. **Hoist** the previous-LGE read (`prior_lge_file`, `prior_ward`, `prior_pr`,
+   `wc`, `pc`, `scenario["_prior_ward_share"]`, `prior_pr_share`, ~4690-4706)
+   to just before `baseline_before_seeds` (~4330). It is moved, not copied;
+   nothing between the two sites rebinds those names (read).
+2. **Classify**, one function, `levels.local_record_only(roster, baseline,
+   prev_local, seeds) -> list[str]`: roster parties, not `IND`/`INDEPENDENT`,
+   not in `baseline`, not seeded (`seed > 0`), with `prev_local[p] > 0`.
+   Called with `base_city_d` after the off-ballot drop, `prior_pr_share`, and
+   `scenario["pool_seeds"]`. Stored as `scenario["_local_record_only"]`.
+3. **Enter them**: `base_city_d[p] = prior_pr_share[p]` for each.
+4. **Geography**: the seed placement loop (~4349-4361) runs over
+   `seeds ∪ local_record_only` (one loop; the condition reads "a party with no
+   national geography"). They are pool members, so `members_by_party` has
+   their 2021-fitted vectors.
+5. **Spine**: `_levels.spine(target, {p: v for p, v in base_city_d.items() if
+   p not in local_record_only}, prior_pr_share, k=..., read_local_only=
+   set(local_record_only))`. They take the spine's local-only route
+   (`local × exp(mu_r)`), which `blended_centres` reads as "spine level" because
+   they are in `base_city` and `spine_level`. `levels.spine` gains
+   `read_local_only: frozenset = frozenset()`; a party in it is not appended to
+   `local_only_unused`. Rewrite F6's comment (~1427-1436) to say who reads it.
+6. **Width**: they are not seeded, so `pool_sd_shock` gives them `sd_for_party`,
+   which is `level_sd_default` (they are absent from `theta_prior`'s baseline).
+   JUDGEMENT-CALLS §A29 is amended: `level_sd_default` now binds, for these
+   parties, named per run in `41_guards.level_sd_default_parties`.
+7. **Guard**, after `universe` is built (~4387), `_roster_universe_check(roster,
+   roster_state, universe, prior_pr_share, seeds, base_npe)` returning
+   `{"missing_with_record", "extra", "unrepresented_no_record"}`:
+   - `missing_with_record`: roster parties (not IND) with a previous-LGE list
+     vote or a baseline or a seed, absent from `universe` → **SystemExit**.
+   - `extra`: universe parties not on the roster, except `ENTRANT` where the
+     generic slot is legitimately present → **SystemExit** when the roster
+     state is `published` or `projected`.
+   - `unrepresented_no_record`: roster parties (not IND) with none of the
+     three → recorded in `41_guards.roster_unrepresented` (sorted names); at a
+     target with no result file, **SystemExit** if non-empty.
+   - Skipped (recorded as `"not_checked"`) when `roster_state == "not_yet_held"`.
+
+### 1.8 Item 9 — the band correction (item9 FINDINGS Q5, all 15 rows)
+
+| Q5 # | file, function | change |
+|---|---|---|
+| 1 | `montecarlo.make_drawer`, `pool_sd_shock` comment (~2874-2884) | Say: seeded arrivals take 0; their width is the within-pool Dirichlet (α = m·A_pool); JUDGEMENT-CALLS §<new, row 12>. Code unchanged. |
+| 2 | `montecarlo.make_drawer`, `individual` loop (~2774-2786) | Delete the `seed_band` lookup and the triangular branch. A non-pooled seeded party falls to the ordinary `(centre, sd)` path; `test_pool_conservation`'s every-seeded-party-in-a-pool test keeps that unreachable. |
+| 3 | `montecarlo.blended_centres` (~2036-2066) | Delete `bands`; the seeded route is `mode_level = base`. `tests/test_blended_centres.py` drops `pool_seed_bands` from its scenarios (~175-989) and the case at ~340 ("no pool_seed_bands") becomes the only form. |
+| — | `montecarlo.run_model` (~4001) | Delete `scenario["pool_seed_bands"] = ...`. Rewrite the dead-store comment at ~4365-4382 to past tense, one paragraph. |
+| 4 | `pools.arrival_rules` entrant note (~5106-5112) | Drop "Band … carried across as a RELATIVE width"; say "the draw's width comes from the pool split". |
+| 5 | `pools.arrival_rules` weights-branch note (~4938-4941) | Drop "Band … — the declaration sets the level, the record sets the width"; same replacement. |
+| 6 | `pools.py` ~4187-4193 | Delete `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI`, their comment, `lo_e`/`hi_e` (~4896-4897), the `"band"` key of `rules[party]` (~5110-5112), `seed_bands` (~6323) and its emission (~6460). `band_for` and `_band_from` keep their four-tuple signature unchanged (`f_mid` sizes splits); at the call site `f_lo`, `f_hi` are bound to `_`. |
+| 7 | `pools.py` ~5058-5066 | Comment: superseded, the band was never read (§1.198). |
+| 8 | `pools.arrival_rules` docstring (~4752) | "the band on the whole thing" removed. |
+| 9 | `JUDGEMENT-CALLS.md` §L2 | Retired, citing item9 finding 5. |
+| 10 | `JUDGEMENT-CALLS.md` register row (~100) and §F32 (~1472) | Deleted with the constants; `tests/test_register_matches_code.py`'s `DELETED` note records it. |
+| 11 | `JUDGEMENT-CALLS.md` §L13 "How to check it" | Moot: §L13 is retired by item 13. |
+| 12 | `JUDGEMENT-CALLS.md`, new entry | Zero level shock for seeded arrivals: value 0; why (the split carries the width); evidence item9 finding 4 (P(≥1 seat) 0.059 → 0.064 with the size-line shock); how to check. 🟡 |
+| 13 | `MACHINERY.md` ~282-285 | "each draw applies a Student-t level shock (sd 0 for seeded arrivals), …". |
+| 14 | `tests/test_levers_are_live.py:840` | Delete the `pool_seed_bands` entry. |
+| 15 | `tests/test_pool_conservation.py` (~550-598) | Message and docstring: no seed band exists; "2026 has no roster" corrected (the 2026 spec carries seeds). |
+
+Also: `tests/test_chain.py` ~1819-1820 and `tests/test_regressions.py` ~196-206
+read `ARRIVAL_BAND_LO/HI` and `seed_bands`; delete those assertions with the
+band, each with a one-line note naming this batch. `montecarlo.py` ~1605
+comment drops `ARRIVAL_BAND_LO/HI` from its list.
+
+### 1.9 Item 10 — the smaller items
+
+| item | file, function | change |
+|---|---|---|
+| a stale or unreadable pool spec stops the run | `montecarlo.run_model` (~3929-3945) | `_stale` truthy → `SystemExit(f"pools_{year}.json is stale: {_stale}. Re-emit (POOLS-REEMIT-QUEUE.md).")`. The `except Exception` sets the same refusal with `exc!r`. An escape exists only as `scenario["allow_stale_pools"] = True` (not in `DEFAULTS`; a diagnostic run sets it explicitly; the trace and `forecast_summary.json` record it). |
+| γ = 1.0 default registered | `run_model` (~4568-4582); `JUDGEMENT-CALLS.md` new entry | `note_value(scenario, "gamma.default_1.0", sorted(parties), ...)`; the register entry names the rule (no fold γ and no recent γ → 1.0) and points at the note for the count. |
+| city-mean turnout fallback registered | `run_model` (~4634-4640); new register entry | `note_value(scenario, "turnout.mean_fallback_vds", n, ...)` with the share of the roll; entry as above. |
+| turnout band width reviewed | the writer, read-only, after the window (step 11), from arm B's runs (`ModelRun.pool_turnout_draws` and the citywide turnout per draw) | A table per pool and citywide: drawn turnout q5/q95 at joburg 2026 and at each panel city-year against the observed min/max over that city's LGEs 2000-2021, into the batch's MODEL-LOG entry. **No code change in this batch**; any change is the owner's. |
+| preflight says "present" | `inputs_preflight._rows` (roll row, ~115) and `main` (~186) | The roll row carries `"used": False`; `main` prints `present` (not `ok`) for a row with `ok and not used`, and adds "the model does not read this input". `tests/test_inputs_preflight.py` asserts the word. |
+| `levels._citywide` refuses a renamed column | `levels._citywide_and_roster` (~346-347) | `except KeyError as exc: raise SystemExit(f"{path}: column {exc} missing — a renamed column, not an empty election")`. |
+| `bounds_checked` counts checks | `montecarlo.run_model` (~5159-5174), `ModelRun.bounds_checked` (~3469), `main` (~5505), `compare_history` (~3012) | `bounds_checked: dict[str, int]`, incremented per party inside the `if p in index and base > 0.005` test; `main` divides by `bounds_checked[p]`; `compare_history`'s `sumrate` sums both dicts. `41_guards` gains `"draws": draws`. |
+
+### 1.9a Every change to `41_guards`, in one place
+
+`tests/test_stage_realisation.py` (~104-128) pins the field set; change the pin
+once, with all five:
+
+| field | type | item |
+|---|---|---|
+| `bounds_checked` | `int` → `dict[str, int]` (per-party checks) | 10 |
+| `draws` (new) | `int`, the run's draws; denominator of `overhang_count` (was mapped to `bounds_checked`, ~121) and `excessive_draws` | 10 |
+| `roster_unrepresented` (new) | sorted `list[str]`, or `"not_checked"` | 8 |
+| `level_sd_default_parties` (new) | sorted `list[str]` | 8 |
+| `group_share_tripwire` (new) | `dict` as §1.11, or `"no record"` | 12 |
+
+`GUARD_DENOMINATOR_KEYS` gains `draws`; the rate map: `bounds_violations →
+bounds_checked` (per party), `overhang_count → draws`.
+
+### 1.10 Item 11 — growth measured at current size
+
+`src/levels.py`:
+- New private helper `_shrink_one(obs, size, fit, mu_all) -> (mu, worth, own, target)`:
+  the per-party body of `_shrunk` with the target taken at `size`. `_shrunk`
+  and `theta_prior` both call it (one estimator, as §A26 requires).
+- `_shrunk(record, report=None, *, current: dict[str, float])`: `size =
+  current.get(party)`; a party in `record` with no positive `current` size
+  keeps the observation-weighted mean size and is counted in
+  `report["size_fallback"]` (no level reads it: the spine consults `mu_t` only
+  where `national > 0`, `mu_r` only where `local > 0`).
+- **11b**: `_shrunk` also returns, for every party in `current` with no record
+  and `size > 0`, `mu = target(size)` (weight 0 on its own record). `report`
+  counts them as `"at_size_centre"`. The spine's `mu_t.get(party, c_t)` and
+  `mu_r.get(party, c_r)` then find them; `centre_fallback` counts only parties
+  where `fit is None`.
+- `spine`: `_shrunk(theta_obs, theta_shrink, current=baseline)`,
+  `_shrunk(rho_obs, rho_shrink, current=prev_local)`.
+- `theta_prior`: `obs_size` → `baseline.get(party)` (falls back to `obs_size`
+  where it is 0, counted in its `shrink` block).
+- The return stays a three-tuple; `tests/test_theta_prior.py` (~483, ~500)
+  pass `current=` explicitly.
+- Docstrings of `_shrunk`, `size_centre`, `theta_prior` say the size is the
+  party's current one. `MACHINERY.md` §spine says so.
+
+### 1.11 Item 12 — the group-share tripwire (reports, changes no number)
+
+- **Record artefact.** New `src/group_share_record.py` with `--emit`, writing
+  `data/processed/group_share_record.json`: for each city, each target in
+  `{2011, 2016, 2021, 2026}`, `record[pool][party]` = the party's largest
+  Duncan-Davis upper bound in that pool over this city's real results strictly
+  before the target (LGEs and NPE files), and `margin[pool]` = the largest
+  one-cycle rise of a fitted pool rate (`pools.fit_city`) by any party in any
+  metro strictly before the target. The method is
+  `item7/scripts/panel_rates.py`, `panel_2024.py` and `guard_probe.py`'s
+  `thresholds`, as functions. The file carries an `artefact_key`
+  (`pools_sha`, `deps_sha`, its own code sha) and is added to
+  `declares.py` and to `tests/test_intermediates_are_current.py`.
+- **Counting.** `montecarlo.make_drawer` records, per draw, each pool's
+  within-pool member shares after the Dirichlet split (the quantity
+  `capture.py` read from the Dirichlet call). `run_model` counts, per
+  `(party, pool)` with member weight > 0, the draws in which the share exceeds
+  `record + margin`; `41_guards.group_share_tripwire = {f"{party}|{pool}":
+  {"draws": n, "share": n/draws, "threshold": t}}` for every pair with `share
+  > 0.05`, plus `"population"` and `"scanned"` counts. Missing record file:
+  `"group_share_tripwire": "no record"` (stated, not zero).
+- **Reporting.** `montecarlo.main` writes `guards.group_share_tripwire` into
+  `forecast_summary.json`; `build_site.py` prints one line per firing pair.
+  Nothing reads it back into a draw.
+
+### 1.12 Item 13 — the SACP like everyone else
+
+- `judgements/joburg-2026.toml`: delete `weights` and `support` under
+  `[party.SOUTH_AFRICAN_COMMUNIST_PARTY]` and the comment block above it
+  (~501-509); keep the header line with a one-line pointer to the retired
+  §L13. Line ~427's summary comment: the SACP is a generic entrant.
+- `JUDGEMENT-CALLS.md` §L13: retired (⚪), with the owner's words and the
+  pointer to this batch's MODEL-LOG entry.
+- No code change. `judgements_sha` moves for the 2026 specs only.
+
+### 1.13 Item 14 — a derived minimum before by-election evidence moves a small party
+
+- **Derivation first, as a pre-registered measurement** (§6, P14), before any
+  code. It produces two numbers: `BYE_MIN_CONTESTS` and `BYE_MIN_PARTY_VOTES`.
+- **Code**, `montecarlo.blended_centres` ~2105: the gate becomes
+  `weight_sum >= BYE_MIN_WEIGHT and contests >= BYE_MIN_CONTESTS and
+  party_votes >= BYE_MIN_PARTY_VOTES`, the same for every party.
+  `party_votes` is a new column of `byelection_party_deltas.csv`, written by
+  `src/byelections.py` (the party's own votes summed over the contests that
+  enter `weight_sum`). `_bye_spread` carries it.
+- `montecarlo.py` module constants `BYE_MIN_CONTESTS`, `BYE_MIN_PARTY_VOTES`,
+  each in `CONSTANTS_READ` (~1551) and the register, with the derivation's
+  MODEL-LOG § as evidence.
+- `export_draws.py` ~621-639: `reaches_model` uses the same three-part test,
+  through one function `montecarlo.bye_admitted(weight_sum, contests,
+  party_votes) -> bool` that `blended_centres` also calls.
+- If the derivation does not settle (P14's rule), no code changes and the
+  owner decides.
+
+---
+
+## 2. Records to change
+
+| file | where | change | item |
+|---|---|---|---|
+| `JUDGEMENT-CALLS.md` | §Q2 | Rewritten: a ward tie in the simulations goes by seeded lot (key form, `seats.lot_order`); Schedule 1 item 8(2) settles a real ward tie by lot (D9: the old text said Schedule 1 has no rule). The site table keeps its history rows and gains "now: the lot" for all six, including `montecarlo.main`. Status ⚖️ statute-shaped. Names the two sites outside the population (§1.1). | 1, 5 |
+| `JUDGEMENT-CALLS.md` | register row ~249 ("a reader edits the combined vote") and §M1 | Amended: an equal surplus goes to the higher vote (13(2)(b), 16(4)(c)); only an equal surplus and equal vote reaches the lot, where the statute is silent. Dated amendment, original text kept. | 1, 2, 5 |
+| `JUDGEMENT-CALLS.md` | new §Q5 (or next free) | D1/D2: a party with ward candidates and no list is removed from A and its ward seats from the denominator (`seats.outside_pool_wards`), and the re-quota denominator is C − (D + E + F): both follow the IEC's published formula (the Laingsburg report prints Q = (A−B)/(C−(D+E+F))+1), not the statute's text, which has no such term. ⚖️ judgement, the counting authority's practice. How to check: a Seat Calculation Detail with F > 0. | 5 |
+| `JUDGEMENT-CALLS.md` | new entries | the seeded lot for exact remainder ties (statute silent); zero level shock for seeded arrivals (Q5 #12); γ = 1.0 default; city-mean turnout fallback; `BYE_MIN_CONTESTS`, `BYE_MIN_PARTY_VOTES`; the group-share tripwire's threshold (record + largest one-cycle rise, 5% of draws) | 1, 9, 10, 12, 14 |
+| `JUDGEMENT-CALLS.md` | §L2 retired; §L13 retired; §F32 and register row deleted; §A29 amended; §F35 notes the contestation change's upper clip | 9, 13, 8, 6 |
+| `JUDGEMENT-CALLS.md` | §A42 ("the arrival boundary") | Note: a roster party with a previous-LGE record and no national baseline is no longer outside the run (item 8); the no-record residual is named per run. | 8 |
+| `src/seats.py` | module docstring, `allocate` | integer surplus, the lot; delete the "lot … unreachable" comment | 1, 2 |
+| `src/reader_seats.py` | docstring "Ties" (~80-84) | the lot, key from the context | 1 |
+| `src/prediction.py` | docstring "Ties" | the lot | 1 |
+| `src/benchmarks.py` | module docstring (~48), `uniform_swing_roster` (~798-883) | the name rule is gone; the ActionSA "coin toss" paragraph says the lot decides it, by seed | 1 |
+| `src/export_draws.py` ~40, `src/overhang_regimes.py` ~71 | comments on the tie order | the lot | 1 |
+| `src/levels.py` | `spine` F6 comment; `_shrunk`, `theta_prior` docstrings | items 8, 11 | 8, 11 |
+| `MACHINERY.md` | ~282-285; the spine section; the seat section | items 9, 11, 1-2 | |
+| `MACHINERY.md` lines 154 and 426-429 | the capacity guard described as if it fires (integrity F2) | say it cannot fire (every party has weight in every pool) and point at the tripwire | 12 |
+| `MODEL-LOG.md` | new § (append) | what was / what is / measurements, per §6's runs; Johannesburg 2016's rule-A row recomputed; tie counts; the empty unopposed population; the re-emit's `pools_sha` | all |
+| `DATA-QUALITY.md` | new item | the roster's no-record residual per backtest city-year (`41_guards.roster_unrepresented`) | 8 |
+| `POOLS-REEMIT-QUEUE.md` | new row (next number above the highest in this file and in `audits/ULTRA-REVIEW-1-pools-reemit.md`) | this batch's `pools.py` and `levels.py` changes, landed in the window; rows 19, 20, 26-28, 31-33 stay queued (O6) | 9, 10, 11, 12 |
+| `prereg/` | new file, before the run | §6 | |
+| `site/` and `content/` copy that quotes the SACP's 1.31% or describes the seat tie rule | owner's publication process | not this batch's; listed for the next site brief | 13, 1 |
+
+---
+
+## 3. Guards
+
+Each guard: population (and how it is asserted to be the scanned set), the
+constructed violation, the revert, and the file. "Value" guards are not
+absence-shaped; "scan" guards meet CLAUDE.md §4's four requirements.
+
+| # | guard | kind | population | constructed violation → caught; reverted → quiet | file |
+|---|---|---|---|---|---|
+| G1 | the lot decides an exact tie, deterministically, name-free | value | constructed councils | (a) two parties equal on surplus and votes straddling the cut: winner = `lot_order(...)[0]` for key K, identical on 3 calls; a different key K' (search the first 20 keys for one) gives the other party. (b) Over 1,000 keys, each of two tied parties wins between 0.45 and 0.55; renaming one code to sort last leaves both inside the band. (c) `lot=None` with that tie raises; with no tie, `lot=None` returns the old council. | `tests/test_seats.py` |
+| G2 | the ward lot, same three properties, through every caller | value | the six ward-call sites | a constructed `ward_winners` with ward W tied: `prediction.ward_calls`, `score_forecasts.model_forecast`, `build_make.start_state`, `page._ward_calls`/`handoff`, `scenarios.modal_winners`, `score.score_wards`, `montecarlo.main`'s winner column give one party, the same one, for one lot; another lot flips it (key searched as G1). Extends `tests/test_prediction_rule.py`'s existing tie-through-every-caller test (~373-464). | `tests/test_prediction_rule.py` |
+| G3 | build, page and scorer hold one lot | value | `forecast.json` | `x-seat-context["lot"] == seats.lot_identity(manifest artefact_key)`; mutate the manifest seed → the build's lot changes and the page's (computed from the manifest) agrees | `tests/test_prediction_rule.py`, `tests/test_served_draws.py` |
+| G4 | no name order reaches a result | value | constructed | swap two codes in an untied council and in an untied ward set → the swapped answer; shuffle the input dict order of a tied council 24 ways (`allocation_outcomes_over_orderings`, `test_stage_realisation` ~817) → one outcome (was: more than one) | `tests/test_stage_realisation.py`, `tests/test_roster_aware_baseline.py` (replacing its `canonical_order` tests at ~118 and ~590-608) |
+| G5 | integer surplus | value | constructed | two parties whose float remainders misorder but integer surpluses are equal: the higher vote wins; with float ranking restored (mutation) the test fails | `tests/test_seats.py` |
+| G6 | Laingsburg | value | the IEC's published case | §1.4; mutation: re-quota denominator `C − D + 1` or float ranking → fails | `tests/test_overhang.py` |
+| G7 | unopposed wards | scan + value | every ward of the 40 metro LGE files and the 2026 declared slates; asserts the count of wards scanned equals the sum of the files' ward counts (two-sided, `_support.scanned`) | constructed slates with one ward listing one party → `unopposed_wards` returns it and `run_model`'s check refuses; reverted → `{}`. Seat law: hand-computed council with an unopposed ward, counted twice | `tests/test_unopposed.py` (new) |
+| G8 | roster ↔ universe | scan | the roster at each runnable target, classified into the three classes; asserts classes partition the roster | constructed `roster/universe/prev_local/seeds` dicts: a with-record party missing → refused; an extra universe party → refused; a no-record party → recorded, refused only when `has_result_file` is false; reverted → quiet. Plus one in-process `run_model` at joburg 2026, 20 draws, asserting the seven are in `run.universe` | `tests/test_roster_universe.py` (new) |
+| G9 | the contestation change has one definition and the upper clip | value | constructed `now/was` | `slate_coverage` on a constructed 3-ward city equals the hand value; a party with `now = 0` gets ratio 0 (would be 0.5 under the brief's literal floor); `ratio·now/was = 3` → 2.0 | `tests/test_declared_ward_slates.py` |
+| G10 | stale spec stops the run | value | constructed | a spec dict with a moved `pools_sha` → `run_model` raises; `stale_reason` raising → refuses; `allow_stale_pools=True` → runs and records it | `tests/test_stage_inputs.py` |
+| G11 | `_citywide` refuses a renamed column | value | constructed CSV | a file with `Party_Votes` renamed → `SystemExit`; original → shares | `tests/test_citywide_table.py` |
+| G12 | `bounds_checked` is a per-party denominator | value | constructed | `test_stage_realisation`'s denominator predicate (~630-636) checks `bounds_checked[p] <= draws` and `bounds_violations[p] <= bounds_checked[p]`; `overhang_count` maps to `draws`; violation: a payload with `bounds_violations[p] > bounds_checked[p]` → caught | `tests/test_stage_realisation.py`, `tests/test_scoreboard_disclosure.py` (~81) |
+| G13 | item 11's size is the current one | value | constructed record | two parties with identical observations and different `current` sizes get different `mu`; passing obs-mean sizes as `current` reproduces the old values exactly; `theta_prior` and `_shrunk` agree party for party (existing §A26 test, widened to `current`) | `tests/test_theta_prior.py`, `tests/test_spine.py` |
+| G14 | the tripwire can see | scan | every `(party, pool)` with member weight > 0; `population == scanned` asserted | constructed drawer output with one party at `record + margin + 0.1` in 50% of draws → fires; at `record` → quiet. In-process at joburg 2026 (200 draws): `population` equals the count of positive member weights in the spec | `tests/test_stage_realisation.py` (new predicate `faults_group_share`, registered in its table) |
+| G15 | the record file is current | regenerate | `group_share_record.json` | purge and rebuild in an isolated tree; byte-equal | `tests/test_intermediates_are_current.py` |
+| G16 | by-election gate, one definition | value | constructed rows | `bye_admitted` on rows at, below and above each threshold; `export_draws`' `reaches_model` equals `blended_centres`' admission for every row of the real CSV | `tests/test_export_draws.py`, `tests/test_blended_centres.py` |
+| G17 | no `seed_bands` reader survives | scan | `src/*.py` | grep for `pool_seed_bands`, `seed_bands`, `ARRIVAL_BAND_` → empty; a constructed source string containing one is caught | `tests/test_levers_are_live.py` (the register's own deleted-name check) |
+| G18 | the preflight word | value | `inputs_preflight._rows` on a constructed snapshot dir | the roll row prints `present` and "does not read"; the other rows unchanged | `tests/test_inputs_preflight.py` |
+
+---
+
+## 4. Targeted tests (iterate with these; the whole suite once, §7)
+
+```
+.venv/bin/python tests/run_all.py -k seats -k overhang -k prediction_rule \
+  -k reader_seats -k score_forecasts -k stage_realisation -k roster_aware_baseline \
+  -k scenarios -k unopposed -k roster_universe -k declared_ward_slates \
+  -k stage_inputs -k stage_estimation -k citywide_table -k inputs_preflight \
+  -k scoreboard_disclosure -k theta_prior -k spine -k blended_centres \
+  -k pool_conservation -k chain -k regressions -k register_matches_code \
+  -k intermediates_are_current -k export_draws -k served_draws -k levers_are_live \
+  -k standalone_modules -k model_index -k temporal
+```
+`-k levers_are_live` is the slow one: run it once, after item 9 and item 14.
+`test_temporal` because items 8, 12 and 14 add reads of past elections.
+`test_standalone_modules` because `group_share_record.py` is a new entry point
+(add it to CLAUDE.md §5's block and to `ENTRY_POINTS`).
+
+---
+
+## 5. Re-emit and batching
+
+**A re-emit is required.** `levels.py` is in `pools._EMIT_DEPENDENCIES`
+(`pools.py:357`), so items 10 (`_citywide_and_roster`), 11 (`_shrunk`,
+`theta_prior`, `spine`), 3 (`unopposed_wards`), 6 (`slate_coverage`) and 8
+(`local_record_only`) move `deps_sha` for every spec. Item 9 rows 4-6 move
+`pools_sha`. Item 13 moves `judgements_sha` for the two 2026 Johannesburg
+specs. With item 10's refusal, an un-emitted spec stops every run, the suite
+included: **the emit must come before any measurement and before the suite.**
+
+Current state (measured, `stale_reason` over every spec): 27 specs, one
+`pools_sha` (`c70b8fc5bcd79279`), none stale.
+
+**Item 10's `_citywide` refusal cannot fire inside the window** (measured,
+inline probe over `data/raw/elections/*.csv`): 88 of 90 files carry
+`sPartyName` and `Party_Votes`; the two that do not are the original
+downloads `lge2016_JHB_vd_party.csv` and `lge2021_JHB_vd_party.csv`, and
+`cityconfig`'s LGE template names the `_clean` files (read: `Target.results`
+returns `lge{year}_{CODE}_vd_party_clean.csv`), so no run or emit opens them.
+
+**Is the re-emit number-neutral?** Expected yes for items 3, 6, 8, 9, 10, 11:
+`pools.py` calls `levels._citywide`, `_held_back`, `HELD_BACK`,
+`absent_from_ballot`, `contestation` and `projected_contestation` only (read),
+none of which changes behaviour on present inputs. Item 13 is not neutral: it
+re-sizes the SACP and, through the group rescale, every generic entrant in the
+2026 spec. Check: before the batch's measurement, diff each re-emitted spec
+against its predecessor field by field (excluding `artefact_key`,
+`seed_notes`, `seed_bands`); only `pools_2026.json` and
+`pools_2026_simulation.json` may differ, and only in `seeds`, `seed_notes`,
+`seeded_arrival_mass`, the SACP's pool membership, and fields derived from
+those.
+
+**The window** (`POOLS-REEMIT-QUEUE.md` steps 1-4): one commit with every
+`pools.py`/`levels.py`/judgement change of this batch; the loop including 2011
+and both 2026 Johannesburg specs and Tshwane 2026; count against the loop;
+`group_share_record.py --emit`; then the measurement. Nobody else runs the
+model while it runs. Queue rows 19, 20, 26, 27, 28, 31, 32, 33 stay queued
+(O6).
+
+---
+
+## 6. Pre-registration draft
+
+To be committed as `prereg/2026-10-09-model-correction-batch.md` **before** the
+first measurement run, and never edited after. Every prediction is against the
+world or the mechanism; none is against a published or earlier output. Runs:
+in-process `run_model` + `compare_history.run_city_year` (no `history.json`
+written), the 24 city-years `compare_history.runnable` returns, 1,000 draws,
+seeds as `compare_history` derives them, `PYTHONHASHSEED=0`; Johannesburg 2026
+at the published seed, 5,000 draws. Arms: **A** the tree before the batch
+(re-emitted? no: the pre-batch tree with its own specs, run from a `git
+archive` of 597ec38 into a scratch tree), **B** items 1-6, 8-10, 12, 13 (the
+batch without 11 and 14), **C** = B + 11a, **D** = C + 11b, **E** = D + 14.
+B-E share draws and seeds. Separating 11a, 11b and 14 is what makes each
+attributable; B carries everything predicted to be near-null on the panel.
+
+### P1-P2 (items 1, 2): ties
+- **P1.** Johannesburg 2026, 5,000 draws: the number of draws in which an
+  `allocate` call meets an exact tie (equal integer surplus and equal votes)
+  straddling the cut is reported per arm (instrument: a counter on
+  `seats.allocate`, the `tie_at_the_cut` detector rewritten to integer
+  surpluses). Prediction: more than 0 (joburg 2021 hit three in 400 draws,
+  `test_stage_realisation` docstring), under 2% of draws. In draws without a
+  tie the seat vector is identical between A and B **if nothing else in B moved
+  that draw**; since items 6, 8 and 13 move every draw, this is asserted on a
+  separate arm B0 = A + items 1-2 only, where it must hold exactly.
+- **P2.** On the panel, rule A's prediction (`backtest/rule_a.py`, `seats_of`
+  with the lot) differs from A's only at city-years with an exact seat tie; at
+  Johannesburg 2016 (AIC and TRULY_ALLIANCE tied on 3,743, MODEL-LOG §1.291)
+  rule A's seat error is 28 or 30, by the lot. Tied wards per city-year: 0 at
+  all 24 (as measured in §1.291) — a non-zero count falsifies that record.
+- **P2b.** Baselines (`benchmarks`): `uniform-swing+roster`'s panel total lies
+  inside [837, 841], the band the name rule and its mirror spanned.
+
+### P3-P5, P9, P10 (items 3, 4, 5, 9, 10): nulls
+- Item 3: `unopposed_wards` returns `{}` at all 24 city-years and at 2026; no
+  number moves.
+- Item 4: the test pins the IEC's council; no model number moves.
+- Item 9: on arm B0 + item 9, `pr_share_draws`, `seat_draws` bit-identical to
+  B0 (`band[1] = 1.0`; the branch is unreachable).
+- Item 10: bit-identical draws, except that a stale spec now refuses (none is
+  stale after the window).
+- Item 12: bit-identical draws with and without the tripwire's counting.
+  Prediction at joburg 2026 on arm B: the PA/Coloured pair fires in more than
+  50% of draws (item 7 measured 69% before items 6 and 8); after D, still
+  above 25% (item 11 moves the PA's spine level by −6%, measured, so the
+  overrun is not removed by this batch).
+
+### P6 (item 6): restated from `PREREG-ward-list-fix.md`, plus the clip
+F1-F6 and B1-B3 as written there, scored on arm B against arm A, with one
+amendment registered here before the run: CHANGE enters the run (item 8) with
+an empty 2026 slate, so its ratio is 0 and its ward vote is 0 in every draw
+(under the brief's literal `[0.5, 2.0]` clip it would be 0.5 × its list share).
+Because item 8 and item 13 also move every draw in B, F2/F4/F5 are scored on
+B and on an arm B6 = A + item 6 alone; B6 must reproduce the investigation's
+numbers within draw noise (PA seats 16.85 ± 0.5, PA gap −0.19 ± 0.1).
+
+### P8 (item 8): the seven, and the panel
+- 2026: the seven take, together, a mean list share of 0.2-0.5% (their 2021
+  raw share 0.377%, times the local-only route's ρ centre for parties of their
+  size, before renormalisation; argued from the spine route). Each is below
+  0.15%; together they win 0 or 1 seat in more than 80% of draws.
+  CHANGE's mean ward share is 0. The mass comes out of every other party in
+  proportion (renormalisation).
+- Panel: the city-years with with-record roster parties outside the universe
+  (from `universe_gap.py`): joburg 2011 (3, 0.857% of the previous LGE list),
+  2016 (3, 0.553%), 2021 (1, 0.005%); tshwane 2011 (2, 0.403%), 2016 (2,
+  0.162%); ekurhuleni 2011 (1, 0.215%); ethekwini 2021 (1, 0.080%); capetown
+  2011 (1, 0.152%), 2016 (2, 0.320%); mangaung 2016 (1, 0.012%);
+  nelsonmandelabay 2011 (2, 0.367%), 2016 (1, 0.092%). At these 12, list MAE
+  falls or holds (those parties' predicted share moves from 0 toward a real
+  positive result); at the other 12, item 8 moves nothing. Panel coherent seat
+  error: falls by 0-6 seats from item 8 alone (scored on B8 = A + item 8).
+- `41_guards.roster_unrepresented` non-empty at the city-years `universe_gap.py`
+  lists and empty at 2026.
+
+### P11 (item 11): per party, against the mechanism
+The spine-level change is computed, not run (`item11_spine.py`), so the
+prediction is the propagation through the rest of the model, which is
+monotone in a party's centre before renormalisation.
+- **11a (arm C against B), joburg 2026.** Spine-level Δlog: PA −0.061, AIC
+  +0.022, GOOD +0.039, UDM +0.013, every other party within ±0.01. Prediction:
+  PA mean seats fall by 0.5-2.5 from arm B's value; no other party moves by
+  more than 0.6 seats; the DA and ANC each gain 0-1.5. **Not** b2's −12.8:
+  that came from dropping the PA's own record.
+- **11b (arm D against C), joburg 2026.** Spine-level Δlog: MK −0.130; BOSA
+  +0.087; RISE +0.049; ASA −0.033; national-only small parties (ARISE_SOUTH_AFRICA,
+  UNITED_AFRICANS_TRANSFORMATION, ALLIED_MOVEMENT_FOR_CHANGE, HOPE4SA, DUDULA,
+  ACTION_ALLIANCE_DEVELOPMENT_PARTY, SOUTH_AFRICAN_RAINBOW_ALLIANCE) +0.24 to
+  +0.30; local-only parties (PARTY_OF_ACTION, ABANTU_BATHO_CONGRESS, UIM, DOP,
+  BLACK_FIRST_LAND_FIRST, …) +0.12. Prediction: MK mean seats fall by 1.5-4;
+  ASA by 0-1.5; BOSA, RISE each gain 0-0.7; each small party gains under 0.3;
+  ANC, DA, EFF each gain 0-1.5 from MK's loss.
+- **Panel (arms C and D against B).** The panel's spine-level changes are in
+  `item11_<city>_<year>_b{0,1}.json` (computed before this draft; summarised in
+  §6a below). Prediction: list MAE moves by less than 0.05 points at every
+  city-year under 11a; under 11b the panel-mean list MAE falls (small
+  national-only parties gain going local, which is what `size_centre` measured
+  and what the flat mean erased), by 0.00-0.05 points; coherent seat error
+  moves by at most ±6 seats under each. A panel-mean list MAE rise above 0.05
+  points under 11b falsifies the mechanism account.
+
+### P13 (item 13): the SACP
+SACP centre falls from 1.62% (stage 30_centres, item 9 table) to the generic
+entrant level for its reach, 0.06-0.10% (§L13 measured ≈0.06% for this route;
+item 9's reach-1 entrants sit at 0.086% centre). Its mean seats fall from 3.49
+to under 0.3; P(≥1 seat) from 0.69 to under 0.12. Its ~1.3 points of mass go
+mostly to the ANC (its pool vector is now the even city spread, not ANC-shaped,
+so ANC gains less than the whole: predict ANC +1 to +3.5 seats, DA +0 to +1.5).
+Every generic entrant's seed moves by under 3% (the group rescale gains one
+member). No backtest number moves.
+
+### P14 (item 14): the derivation, then the effect
+**Derivation (before the gate is coded).**
+- Population: every (party, metro) with by-election evidence dated before
+  2024-05-29 in `data/raw/byelections/byelections_SA_vd_party.csv` (measured:
+  30 contests, 75 pairs, 40 with ≥ 2 contests). Outcome: the party's change in
+  citywide share from the 2021 LGE list ballot to the 2024 provincial ballot
+  in that metro (`npe2024_<CODE>`), the only real result after these
+  by-elections. The cross-ballot step is a limit, stated wherever the result is
+  quoted.
+- Predictor: the model's own tilt — `byelections.py`'s weighted delta for that
+  party, computed with the 2024 election date as the target date — against no
+  tilt. Error: absolute error of `base + w_bye × delta_pr` against `base`,
+  in points, by bins of contests (1, 2, 3-4, 5+) × party votes
+  (< 250, 250-1,000, > 1,000), for parties under 1% base and over 1%.
+- Rule, fixed now: `BYE_MIN_CONTESTS` and `BYE_MIN_PARTY_VOTES` are the
+  smallest bin edges at which the tilted error is below the untilted error for
+  parties under 1%, with every larger bin also below. If no bin under 1% beats
+  no tilt, the minimum is "never for a party under 1%" and that goes to the
+  owner as the derived answer. If any cell holds fewer than 5 pairs, the
+  adjacent bins merge before the rule is applied. Secondary (reported, not
+  deciding): leave-one-contest-out within the 311 contests nationally, the same
+  bins, predicting a held-out contest's delta from the others'.
+- Not chosen against the All Citizens Party (2 contests, 198 party votes,
+  weight 49.55): whatever the rule yields is applied to it, and if it is
+  admitted the owner is told before the code lands.
+**Effect (arm E against D), joburg 2026.** Parties at or above weight 30
+today: ANC, EFF, DA, MK, AIC, PA, ASA, ALL_CITIZENS_PARTY, ATM, IFP,
+TRUTH_AND_SOLIDARITY_MOVEMENT (`byelection_party_deltas.csv`, read). Predicted
+per party: those with ≥ 4 contests are unaffected unless the derived vote
+minimum exceeds their party votes. If ALL_CITIZENS_PARTY is excluded, its
+centre returns to its arrival seed region (item 9 measured 0.050% list mean at
+`w_bye = 0`), its mean seats fall from about 2 to under 0.2, and TRUTH_AND_SOLIDARITY
+(2 contests) falls from 0.111% to about 0.06% centre. No backtest number moves
+(the by-election archive starts 2022; no backtest target reads it).
+
+### 6a. Item 11 on the panel (computed before this draft)
+Measured, `item11_spine.py` over the 24 panel city-years (spine level only,
+inputs approximating the run's: raw previous-NPE and previous-LGE list shares,
+no mergers, drop or seeds). Parties at 0.1% or more in either arm:
+
+| arm | party-city-years | median abs Δlog | 90th percentile abs Δlog | parties ≥ 0.5% with abs Δlog ≥ 0.10 |
+|---|---|---|---|---|
+| 11a alone | 398 | 0.001 | 0.012 | none |
+| 11a + 11b | 379 | 0.006 | 0.133 | NFP at Ekurhuleni 2016 (0.624% → 0.554%) and eThekwini 2016 (2.464% → 2.783%) |
+
+So on the panel 11a is near-inert and 11b reaches mainly parties under 0.5%.
+The P11 panel predictions above are stated against these figures.
+
+---
+
+## 7. Writing order, and where the suite runs
+
+One writer. Each step ends with its targeted modules (§4) green.
+
+1. **Law layer.** Item 2 (`seats.allocate` integer surplus, `Allocation`
+   fields), then item 1 (`lot_identity`, `lot_order`, `allocate(lot=)`,
+   `allocate_with_overhang(lot=)`, `ModelRun.lot`, every caller in §1.1, delete
+   `canonical_order`), then item 4's test. Tests: G1-G6.
+2. **Records for 1, 2, 5** (§2 rows marked 1, 2, 5).
+3. **Item 3** (G7). **Item 10** except the stale-spec refusal (G11, G12, G18;
+   register entries).
+4. **Item 9** montecarlo/test/record parts (rows 1-3, 9-15), then its
+   `pools.py` rows 4-8 (G17).
+5. **Item 8** (G8), **item 6** (G9).
+6. **Item 11** (G13). **Item 12** code and `group_share_record.py` (G14,
+   G15). **Item 13** judgement file and register.
+7. **Item 14 derivation** (read-only, its own pre-registered section),
+   then the gate (G16) — or, if the derivation does not settle, stop and report.
+8. **Item 10's stale-spec refusal last** (G10), so steps 1-7 can run the model.
+9. **Commit the pre-registration** (§6, filled: P14's derived thresholds go in
+   before arm E runs).
+10. **The window**: commit, re-emit, count, `group_share_record.py --emit`,
+    the spec diff check (§5).
+11. **Measurement**: arms A, B0, B6, B8, B, C, D, E on the panel and 2026, on
+    the settled tree, nothing else running.
+12. **Regenerate generated documents** (`src/model_index.py`), then
+    **the whole suite once** (`tests/run_all.py`, full log read, no pipe).
+13. **MODEL-LOG** entry with the scored pre-registration; `prereg/README.md`
+    row; then the publishing run (`montecarlo.py` without `--run-dir`) and
+    the draws export are the owner's.
+
+---
+
+## 8. Risks and estimate
+
+| risk | where | mitigation |
+|---|---|---|
+| A caller of `allocate`/`top_party` is missed and meets a tie with `lot=None` | §1.1's table | fail-closed by design (raises on a tie only); G2's every-caller test; `test_prediction_rule`'s scan |
+| The page computes a different lot from the build | `page.py` reads the manifest; build writes the schema | G3 |
+| Item 11 and 11b move MK and small parties more than predicted | `levels` | arms C and D separate it; the owner may strike 11b |
+| Owner expected b2's PA effect from item 11 | O1 | stated first in this document |
+| Item 8 adds parties at `level_sd_default` | `pool_sd_shock` | named per run; §A29 amended |
+| The re-emit is not neutral beyond the 2026 specs | §5 | the field-by-field diff before measuring |
+| Item 14's record is too thin to settle | O7 | the rule says what happens; owner decides |
+| The stale-spec refusal blocks the writer mid-batch | item 10 | landed last (step 8) |
+| `group_share_record.py` is slow (one `fit_city` per metro-year) | item 12 | run once per window, keyed |
+| The seven parties' `_vd_pool_composition` placement differs from their real 2021 geography | item 8, step 4 | argued: the vectors are fitted on 2021 ward data; their own per-VD shares were rejected because the 2021 and 2024 VD keys differ and it would be a second placement rule |
+
+**Estimate** (writer time, excluding the owner): law layer and callers 5-7 h;
+records 2 h; items 3, 10 2-3 h; item 9 2 h; items 8, 6 4-5 h; item 11 2 h; item
+12 4-6 h; item 13 0.5 h; item 14 derivation 3-4 h and gate 1 h; window 1 h;
+measurement (eight arms × 24 city-years × 1,000 draws, plus 2026 at 5,000,
+6 in parallel) 4-6 h wall; suite one run; MODEL-LOG 2 h. About 35-45 hours of
+work over 3-4 days.
