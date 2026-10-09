@@ -87,3 +87,29 @@ Design ward-by-ward bounds that follow how a ward is actually won:
 
 Return the specification as your final message, and save it as `SPEC-B2.md` in
 your scratch directory.
+
+## Owner's decisions on SPEC-B2 (2026-10-09, verbatim then interpreted)
+
+> "1. widest allowed swings. Now that I think of it, this can be measured. when a
+> party moved up or down more than it ever had previuously, what was the delta
+> of that new swing? Leave out mergers splits and collapse (cope) then avereage
+> it out and set the allowable swing (does taght work in yoru estimation?)
+> 2. new parties... 2024 result plus usual party vote deterioration if one
+> exists. 3. add scipy yes - but if this will take 5 days, keep the allowed
+> swing to previous history while we work on it. 4. agreed, it is reasonable.
+> but same as 3."
+
+- **O1, the widening is measured, not a flat 5 points.** Each time a party's swing
+  broke its own previous record (up or down), the amount by which the new
+  record exceeded the old one is a record exceedance. Mergers, splits and
+  collapses are excluded (COPE named). The mean exceedance replaces
+  `EDITOR_WIDEN_PP`. The coordinator is asked whether this works; the designer
+  measures it.
+- **O2, parties new to local elections** take their 2024 national result as the
+  prior, adjusted by the usual national-to-local change for parties where one
+  can be measured.
+- **O3, scipy is approved.** The witness editor is staged:
+  - **B2a, fast:** history-based ward ranges, the per-party box, and the
+    citywide swing limit, with no solver.
+  - **B2b:** the witness editor, which needs scipy.
+- **O4, the citywide swing limit is agreed.** It lands in B2a.
