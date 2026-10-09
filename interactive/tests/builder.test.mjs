@@ -166,7 +166,7 @@ test("random edits: every state is valid, inside the editor's bounds, passes val
   assert.ok(states.length > 12 * 140, states.length);
   // It looked where it matters: a party at its ward floor or ceiling, a gap
   // at its bound, and a party with no vote at all.
-  const atWard = states.filter(s => { const b = B.wardBounds(s.calls, ctx, B.totalOf(s, "ward"));
+  const atWard = states.filter(s => { const b = B.wardLimits(s.calls, ctx, B.totalOf(s, "ward"));
     return ctx.codes.some(c => s.ward[c] === b.floor[c] && b.floor[c] > 1 || s.ward[c] === b.ceil[c]); }).length;
   const atGap = states.filter(s => ctx.codes.some(c => !ctx.noList.has(c) &&
     Math.min(Math.abs(B.gapOf(s, ctx, c) - ctx.bounds.gap_min), Math.abs(B.gapOf(s, ctx, c) - ctx.bounds.gap_max)) < 0.01)).length;
@@ -233,11 +233,13 @@ test("the editor clamps to the bounds and says which", () => {
   const c = start.calls[0];
   const lo = B.setWardPercent(start, ctx, c, 0);
   assert.equal(lo.clamped, "floor");
-  const b = B.wardBounds(start.calls, ctx, B.totalOf(start, "ward"));
+  const b = B.wardLimits(start.calls, ctx, B.totalOf(start, "ward"));
   assert.equal(lo.state.ward[c], b.floor[c]);
+  assert.equal(lo.by, b.bind[c].floor);
   const hi = B.setWardPercent(start, ctx, c, 100);
   assert.equal(hi.clamped, "ceiling");
   assert.equal(hi.state.ward[c], b.ceil[c]);
+  assert.equal(hi.by, b.bind[c].ceil);
   const gap = B.setListGap(start, ctx, c, 1000);
   assert.ok(gap.clamped === "gap_max" || gap.clamped === "others", gap.clamped);
   assert.ok(B.gapOf(gap.state, ctx, c) <= ctx.bounds.gap_max + 0.01);
@@ -256,9 +258,14 @@ test("a prediction is opened whole or refused by name: no fallback", () => {
 });
 
 // The bounds arithmetic: every function that turns the schema's bounds into
-// votes or points. A number in it other than 0, 1 (a vote; the rest of the
-// wards) and 100 (points) is a bound typed rather than read.
-const BOUND_FUNCTIONS = ["wonE", "wardBounds", "gapOf", "listBounds", "contextOf"];
+// shares, votes or points. A number in it other than 0, 1 (a vote; the whole
+// ward; the rest of the wards) and 100 (points) is a bound typed rather than
+// read; wardRange alone may also hold 2, because its closed form takes the
+// midpoint of an interval, (1 - Lp) / 2 (SPEC-B2 §3), which is geometry and
+// not a bound. Anywhere else a 2 is found. The closed form's float tolerance is the module constant EPS,
+// outside every function, so it is not a literal here.
+const BOUND_FUNCTIONS = ["sigmaMin", "wardRange", "wardCell", "boxOf", "limits", "wardLimits",
+  "gapOf", "listBounds", "contextOf"];
 function bodyOf(src, fn) {
   const at = src.search(new RegExp("(export )?function " + fn + "\\("));
   if (at < 0) return null;
@@ -272,7 +279,7 @@ function typedBounds(src) {
     if (body === null) { out.push(fn + " not found"); continue; }
     const code = body.replace(/\/\/.*$/gm, "").replace(/"[^"]*"/g, '""');
     for (const m of code.matchAll(/(?<![\w.$])\d+(\.\d+)?(e-?\d+)?\b/g))
-      if (!["0", "1", "100"].includes(m[0])) out.push(fn + ": " + m[0]);
+      if (!["0", "1", "100", ...(fn === "wardRange" ? ["2"] : [])].includes(m[0])) out.push(fn + ": " + m[0]);
   }
   return out;
 }
@@ -281,10 +288,153 @@ test("the bounds are read from the schema, not typed", () => {
   assert.deepEqual(typedBounds(src), []);
   // it can see: a typed bound anywhere in the arithmetic is found, and the
   // scan is quiet again on the real source
-  assert.deepEqual(typedBounds(src.replace("q_win * won[c]", "0.186 * won[c]")), ["wardBounds: 0.186"]);
+  assert.deepEqual(typedBounds(src.replace("Math.max(lo[W], q_win)", "Math.max(lo[W], 0.186)")), ["wardCell: 0.186"]);
   assert.deepEqual(typedBounds(src.replace("Math.max(gap_max, g)", "Math.max(11.16, g)")), ["listBounds: 11.16"]);
-  assert.ok(typedBounds(src.replace("function wonE(", "function wonX(")).length, "a renamed function is not scanned in silence");
+  assert.deepEqual(typedBounds(src.replace("smin > smax + EPS", "smin > smax + 1e-9")), ["wardRange: 1e-9"]);
+  // the 2 is allowed in wardRange only: typed into limits, it is found
+  assert.deepEqual(typedBounds(src.replace("cl = city.lo[k]", "cl = city.lo[k] / 2")), ["limits: 2"]);
+  assert.deepEqual(typedBounds(src.replace("cl = city.lo[k]", "cl = 0.05")), ["limits: 0.05"]);
+  assert.ok(typedBounds(src.replace("function wardRange(", "function wardRangeX(")).length, "a renamed function is not scanned in silence");
   assert.deepEqual(typedBounds(src), []);
+});
+
+// ---- the ward-by-ward bounds (slice B2a, SPEC-B2r2 §4-§5) ----
+
+// Every vertex of one ward's set {lo <= x <= hi, sum x = 1, x_W >= x_q}, by
+// brute force: each choice of n - 1 inequalities held tight with the sum,
+// solved by Gaussian elimination and kept if it satisfies every inequality.
+// No LP library; the population is small (2 to 5 parties).
+function vertices(lo, hi, W, { winner = true } = {}) {
+  const n = lo.length, rows = [];
+  for (let k = 0; k < n; k++) {
+    rows.push({ a: Array.from({ length: n }, (_, j) => (j === k ? 1 : 0)), b: lo[k], ge: true });
+    rows.push({ a: Array.from({ length: n }, (_, j) => (j === k ? 1 : 0)), b: hi[k], ge: false });
+    if (winner && k !== W) rows.push({ a: Array.from({ length: n }, (_, j) => (j === W ? 1 : j === k ? -1 : 0)), b: 0, ge: true });
+  }
+  const out = [];
+  const pick = (from, need, chosen) => {
+    if (need === 0) {
+      const A = [Array(n).fill(1), ...chosen.map(i => rows[i].a)], y = [1, ...chosen.map(i => rows[i].b)];
+      const M = A.map((r, i) => [...r, y[i]]);
+      for (let c = 0; c < n; c++) {
+        let piv = c;
+        for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+        if (Math.abs(M[piv][c]) < 1e-12) return;
+        [M[c], M[piv]] = [M[piv], M[c]];
+        for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; }
+      }
+      const x = M.map((r, i) => r[n] / r[i]);
+      if (rows.every(r => { const v = r.a.reduce((t, a, j) => t + a * x[j], 0); return r.ge ? v >= r.b - 1e-9 : v <= r.b + 1e-9; }))
+        out.push(x);
+      return;
+    }
+    for (let i = from; i <= rows.length - need; i++) pick(i + 1, need - 1, [...chosen, i]);
+  };
+  pick(0, n - 1, []);
+  return out;
+}
+function projection(lo, hi, W, opts) {
+  const vs = vertices(lo, hi, W, opts);
+  if (!vs.length) return { ok: false };
+  return { ok: true, min: lo.map((_, k) => Math.min(...vs.map(v => v[k]))), max: lo.map((_, k) => Math.max(...vs.map(v => v[k]))) };
+}
+function randomWard(r) {
+  const n = 2 + Math.floor(r() * 4), lo = [], hi = [];
+  for (let k = 0; k < n; k++) {
+    const a = r() * [0.05, 0.3, 0.6][Math.floor(r() * 3)];
+    lo.push(a); hi.push(Math.min(1, a + r() * [0.1, 0.5, 1][Math.floor(r() * 3)]));
+  }
+  return { lo, hi, W: Math.floor(r() * n) };
+}
+function disagreements(closed, wards) {
+  let bad = 0;
+  for (const { lo, hi, W } of wards) {
+    const a = closed(lo, hi, W), b = projection(lo, hi, W);
+    if (a.ok !== b.ok) { bad++; continue; }
+    if (a.ok && lo.some((_, k) => Math.abs(a.min[k] - b.min[k]) > 1e-9 || Math.abs(a.max[k] - b.max[k]) > 1e-9)) bad++;
+  }
+  return bad;
+}
+test("the ward range is the set's projection", () => {
+  const r = rng(2026), wards = Array.from({ length: 400 }, () => randomWard(r));
+  const feasible = wards.filter(w => projection(w.lo, w.hi, w.W).ok).length;
+  // it looked: both feasible and infeasible wards are in the population
+  assert.ok(feasible > wards.length / 10 && feasible < wards.length, `feasible wards: ${feasible} of ${wards.length}`);
+  assert.equal(disagreements(B.wardRange, wards), 0);
+  // it can see: a closed form with the winner condition dropped is caught,
+  // and the comparison is quiet again on the real one
+  const noWinner = (lo, hi) => {
+    const L = lo.reduce((a, b) => a + b, 0), H = hi.reduce((a, b) => a + b, 0);
+    if (L > 1 || H < 1) return { ok: false };
+    return { ok: true, min: lo.map((l, k) => Math.max(l, 1 - (H - hi[k]))), max: hi.map((h, k) => Math.min(h, 1 - (L - lo[k]))) };
+  };
+  assert.ok(disagreements(noWinner, wards) > 0, "a closed form without the winner condition passed");
+  assert.equal(disagreements(B.wardRange, wards), 0);
+});
+
+// A copy of the context with other citywide limits or ward ranges: a
+// constructed input, so the case is present whatever the data say.
+const withCity = (lo, hi) => ({ ...ctx, bounds: { ...ctx.bounds, city: { lo, hi } } });
+test("the limits are the box inside the citywide limit, and the map wins where they do not meet", () => {
+  const L = B.limits(start.calls, ctx);
+  for (const [k, c] of ctx.codes.entries()) {
+    assert.equal(L.lo[c], Math.max(L.box.floor[c], ctx.bounds.city.lo[k]), c);
+    assert.equal(L.hi[c], Math.min(L.box.ceil[c], ctx.bounds.city.hi[k]), c);
+  }
+  assert.deepEqual(L.conflict, []);
+  // a map whose box floor passes a party's citywide ceiling: the conflict is
+  // named and the ceiling is raised to the floor
+  const c = start.calls[0], k = ctx.codes.indexOf(c);
+  const hi = ctx.bounds.city.hi.slice(); hi[k] = L.box.floor[c] / 2;
+  const bad = withCity(ctx.bounds.city.lo, hi);
+  const C = B.limits(start.calls, bad);
+  assert.deepEqual(C.conflict, [{ code: c, side: "floor" }]);
+  assert.equal(C.lo[c], L.box.floor[c]);
+  assert.equal(C.hi[c], L.box.floor[c]);
+  const r = B.setCalls(start, bad, start.calls);
+  assert.deepEqual(r.conflict, [{ code: c, side: "floor" }]);
+  assert.deepEqual(B.invariantErrors(r.state, bad), []);
+  assert.deepEqual(B.outOfBounds(r.state, bad).filter(o => o.ballot === "ward"), []);
+  // and the other way: a citywide floor above what the map allows
+  const lo2 = ctx.bounds.city.lo.slice(); lo2[k] = Math.min(1, L.box.ceil[c] * 2);
+  assert.deepEqual(B.limits(start.calls, withCity(lo2, ctx.bounds.city.hi)).conflict, [{ code: c, side: "ceiling" }]);
+  // reverted: quiet
+  assert.deepEqual(B.limits(start.calls, withCity(ctx.bounds.city.lo, ctx.bounds.city.hi)).conflict, []);
+});
+
+test("floors that sum past the ballot, or ceilings short of it, are eased until the votes fit", () => {
+  const n = ctx.codes.length;
+  const high = withCity(Array(n).fill(0.5), ctx.bounds.city.hi.map(h => Math.max(h, 0.5)));
+  const H = B.limits(start.calls, high);
+  assert.equal(H.eased, "floors");
+  assert.equal(B.setCalls(start, high, start.calls).eased, "floors", "a change of calls passes the easing to the page");
+  assert.ok(ctx.codes.reduce((t, c) => t + H.lo[c], 0) <= 1 + 1e-9);
+  const low = withCity(Array(n).fill(0), Array(n).fill(0.001));
+  const W = B.limits(start.calls, low);
+  assert.ok(W.eased === "ceilings" || W.eased === "both", W.eased);
+  assert.ok(ctx.codes.reduce((t, c) => t + W.hi[c], 0) >= 1 - 1e-9);
+  for (const x of [high, low]) {
+    const Tw = B.totalOf(start, "ward"), v = B.wardLimits(start.calls, x, Tw);
+    assert.ok(ctx.codes.reduce((t, c) => t + v.floor[c], 0) <= Tw);
+    assert.ok(ctx.codes.reduce((t, c) => t + v.ceil[c], 0) >= Tw);
+    const s = B.setWardPercent(start, x, start.calls[0], 30).state;
+    assert.deepEqual(B.invariantErrors(s, x), []);
+  }
+  assert.equal(B.limits(start.calls, ctx).eased, null);
+});
+
+test("a painted ward no past result fits uses the shape alone, and is named", () => {
+  const i = 0, W = ctx.codes.indexOf(start.calls[i]);
+  const base = ctx.bounds.base.slice();
+  base[i] = { lo: base[i].lo.slice(), hi: base[i].hi.slice() };
+  base[i].hi[W] = ctx.bounds.q_win / 2;               // the winner cannot reach q_win here
+  const bad = { ...ctx, bounds: { ...ctx.bounds, base } };
+  const box = B.boxOf(start.calls, bad);
+  assert.deepEqual(box.fallback, [{ ward: ctx.wards[i], code: start.calls[i] }]);
+  // the ward's own ranges with the shape applied hold no share vector
+  const lo = base[i].lo.slice(); lo[W] = Math.max(lo[W], ctx.bounds.q_win);
+  assert.equal(B.wardRange(lo, base[i].hi.map((h, k) => (k === W ? h : Math.min(h, ctx.bounds.q_run))), W).ok, false);
+  assert.deepEqual(B.boxOf(start.calls, ctx).fallback, []);
 });
 
 test("undo restores calls and both ballots together", () => {

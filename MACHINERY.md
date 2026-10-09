@@ -2158,29 +2158,61 @@ rule 11), and our own prediction is held in the same shape.
   and refuses a missing ballot, party or ward by name. `make.js` `follow()`
   shows that sentence when a hand-off is refused or fails (guard G8).
 * **The editor's bounds** (`build_make.editor_bounds`, the schema's
-  `x-editor-bounds`; JUDGEMENT-CALLS §R): with `e[w]` each ward's share of the
-  expected ward vote (2026 roll times the preceding local election's VD
-  ward-ballot turnout, `expected_ward_shares`), `won_e[P]` the sum over the
-  wards called for P, a party's ward vote is held in
-  `[q_win · won_e, won_e + q_run · (1 − won_e)]` of the ward ballot (and one
-  vote if it wins a ward), and its list share minus its ward share in
-  `[gap_min, gap_max]` points. The four are the past results' extremes
-  (`panel_extremes` over every cleaned metro LGE file before the target)
-  widened by `EDITOR_WIDEN_PP`, the runner-up's capped at `RUNNER_UP_MAX`. The
-  bounds limit the editor only: a state from a link, a hand-off or our own
-  prediction may lie outside them and opens with a note naming the party
-  (`outOfBounds`); each out-of-bounds value is clamped when it is next edited: a ward vote outside its range by the next change to any ward vote or ward call (the others are rescaled inside their ranges), a list vote outside its gap range only when that party's list vote is next set. The note goes once the state
-  is inside the bounds.
-* **The editor** (`builder-state.js`): `setWardPercent` clamps the party to
-  its range and rescales the others' ward votes inside theirs by bounded
-  largest remainder (water-filling); every list vote then follows its party's
-  new ward share with its gap kept, inside the gap bounds (`listFollow`).
-  `setListGap` sets one party's gap, rescales the others' list votes, and
-  reduces the change to the largest that keeps every gap inside. A change of
-  calls brings every ward vote into its new range (`clampToBounds`) and names
-  the parties it moved. `make.js` shows one row per party: the ward-vote
-  slider (its ends at the party's range), and a collapsed "Adjust list vote"
-  in points; a live line states each ballot's total.
+  `x-editor-bounds`; JUDGEMENT-CALLS §R; slice B2a since 2026-10-09,
+  MODEL-LOG §1.294). Regenerated from the result files at every build, each
+  with its provenance; the page reads every figure from there.
+  * **Shape**: `q_win` and `q_run` (the lowest winning and highest runner-up
+    share of a ward's vote) and `gap_min`, `gap_max` (list share minus ward
+    share, in points): the past extremes (`panel_extremes` per election, every
+    metro) widened by the mean of each quantity's record events, or by
+    `EDITOR_WIDEN_PP` where it has fewer than `MIN_RECORD_EVENTS`
+    (`shape_allowances`); `q_run` capped at `RUNNER_UP_MAX`.
+  * **Ward ranges** (`ward_ranges`): a party's share in a ward at the
+    preceding local election (`ward_priors`, through `montecarlo.ward_parts`),
+    moved by the least and greatest swing of its starting-share bin
+    (`SWING_BINS`) over every metro's consecutive local pairs, parties standing
+    both times (`swing_panel`, `swing_extremes`), widened by the ward
+    allowance. A party with no vote in the ward takes its citywide share; a
+    party new to local elections its national share (`npe_priors`) and the
+    national-to-local changes; a party with neither the newcomer cap
+    (`party_ranges`).
+  * **Citywide limits** (`city_limits`): the same rule on citywide shares, the
+    kind of history (`party_kind`) shared with the ward ranges,
+    the prior weighted by `e[w]`, each ward's share of the expected ward vote
+    (2026 roll times the preceding local election's VD ward-ballot turnout,
+    `expected_ward_shares`).
+  * **Allowances** (`allowances`): the mean of the pooled record events
+    (`record_events`; a record per bin and direction, rounds by election)
+    of ward swings and of citywide swings, mergers, splits and collapses left
+    out (`exclusions`, thresholds in JUDGEMENT-CALLS §R13).
+  The bounds limit the editor only: a state from a link, a hand-off or our
+  own prediction may lie outside them and opens with a note naming the party
+  (`outOfBounds`); each out-of-bounds value is clamped when it is next edited:
+  a ward vote outside its limits by the next change to any ward vote or ward
+  call (the others are rescaled inside theirs), a list vote outside its gap
+  range only when that party's list vote is next set. The note goes once the
+  state is inside the bounds.
+* **The editor** (`builder-state.js`). For the calls on the map: each ward's
+  ranges with the shape applied (`wardCell`; the winner at least `q_win`, the
+  others at most `q_run`), the least and greatest share each party can hold
+  there in closed form (`wardRange`; a ward with no share vector falls back to
+  the shape alone and is named), summed by `e[w]` into the per-party box
+  (`boxOf`, each (ward, winner) computed once), intersected with the citywide
+  limit (`limits`; where they do not meet the map wins and the conflict is
+  named; floors past the ballot or ceilings short of it are eased in
+  proportion), in whole votes (`wardLimits`, a ward winner keeping one vote).
+  `setWardPercent` clamps the party to its limits, says what set the clamp
+  (its wards, its citywide limit, or the other parties' limits), and rescales
+  the others' ward votes inside theirs by bounded largest remainder
+  (water-filling); every list vote then follows its party's new ward share
+  with its gap kept, inside the gap bounds (`listFollow`). `setListGap` sets
+  one party's gap, rescales the others' list votes, and reduces the change to
+  the largest that keeps every gap inside. A change of calls brings every
+  ward vote into its new limits (`clampToBounds`) and names the parties it
+  moved, the conflicts and the fallback wards. `make.js` shows one row per
+  party: the ward-vote slider (its ends at the party's limits), and a
+  collapsed "Adjust list vote" in points; a live line states each ballot's
+  total.
 * **One entry schema** (guard G13): the schema `build_make` writes into
   `your-forecast/forecast.json`. The site Worker validates a sealed entry
   against it before storing (`share-edge.js` `entryRow`); the dormant account

@@ -28731,3 +28731,130 @@ simulations and the ANC in 48.1% (re-derived by the coordinator from the served
 draws); and the model's PA list share averages 5.53 points below its ward share,
 against a real-result extreme of 1.76 points. Neither is changed here.
 
+
+## 1.294 The editor's bounds, ward by ward, with a measured allowance (slice B2a, 2026-10-09)
+
+Slice B2a of `audits/2026-10-07-prediction-restructure/` (`s1b/SPEC-B2r2.md`
+§4-§5, on `s1b/SPEC-B2.md`; the owner's O1-O4 and the coordinator's D1/D2 at
+the end of `s1b/PACKET.md`). JUDGEMENT-CALLS §R5 is superseded; §R6-§R10 and
+§R12-§R14 are new; §R2 is amended. B2b (the witness editor, scipy) is not in
+this slice.
+
+**What was.**
+- A party's ward vote was held between `q_win` times the expected-vote share
+  of the wards it was painted to win and that share plus `q_run` times the
+  rest (`builder-state.js` `wonE`, `wardBounds`): each ward alone, the same in
+  every ward whatever its history. The ANC could be held at 8.4% of the ward
+  vote while painted to win 70 wards (`s1b/PACKET.md`, the screenshot).
+- All four shape bounds were the past extremes widened by a flat
+  `EDITOR_WIDEN_PP`.
+
+**What is.**
+- Each (ward, party) has a range: its share there at the preceding local
+  election moved by the least and greatest swing of its starting-share bin
+  over every metro's consecutive local pairs (parties standing both times),
+  widened by the ward allowance; its citywide share where it has no vote in
+  the ward; its national share and the national-to-local changes for a party
+  new to local elections; the newcomer cap otherwise (`build_make.ward_ranges`).
+- In a painted ward the winner holds at least `q_win` and every other party at
+  most `q_run`; the least and greatest share each party can hold there, in
+  closed form, summed over the wards by expected ward vote, make the
+  per-party box (`builder-state.js` `wardRange`, `boxOf`). A ward whose
+  ranges cannot hold its painted winner uses the shape alone and is named.
+- Each party has a citywide limit by the same rule on citywide swings
+  (`build_make.city_limits`). The editor holds each party's ward vote inside
+  the box intersected with it (`limits`, `wardLimits`); where they do not meet
+  the map wins and the page says so; floors past the whole ballot, or
+  ceilings short of it, are eased in proportion.
+- The ward and city allowances, and each shape quantity's widening, are the
+  mean of their record events (a swing beating the previous record of its bin
+  and direction, rounds by election, mergers, splits and collapses left out),
+  or `EDITOR_WIDEN_PP` where a quantity has fewer than `MIN_RECORD_EVENTS`.
+- `score_forecasts._read_rows` returns each VD's ward votes when asked
+  (`vd_votes=True`); `score_forecasts._read_npe` reads the one-ballot national
+  layout. `build_make.expected_ward_shares` and the citywide swings share one
+  definition of a ward's expected turnout (`_turnout_parts`).
+- The slider's ends are the party's limits; the clamp note says whether its
+  wards, its citywide limit or the other parties' limits set it.
+
+**Decision.** The owner's, 2026-10-09: ward by ward ("1 ward by ward is
+certainly preferred"); the widening measured as the mean record exceedance
+(O1); the 2024 national result as the prior of parties new to local
+elections (O2); B2a without a solver first, B2b with scipy after (O3, D2); the
+citywide limit (O4). The coordinator's D1: the measured mean only where a
+quantity has at least two events.
+
+**Measurements.**
+- Every value the bounds use at a build (the allowances with their events,
+  the shape widenings with their rule, the exclusions detected, the swing
+  extremes per bin, the newcomer caps and where each was set, every ward range
+  and citywide limit, the files read with their sha256) is generated into the
+  schema's `x-editor-bounds` of `your-forecast/forecast.json` by the build. It
+  is read there, not copied here.
+- The writer's in-process run of `build_make.editor_bounds` for Johannesburg
+  2026 (read-only, 2026-10-09) reproduced the designer's probe
+  (`s1b/probes/b2r2.py 2026`, run with `SHAPE_MIN_EVENTS=2`) on every figure
+  compared: both allowances and their event counts, `q_win`, `q_run`,
+  `gap_min`, `gap_max`, the exclusions listed in SPEC-B2r2 §1, both newcomer
+  caps, the citywide limits of the eight parties in SPEC-B2r2 §7, and every
+  per-ward range before the shape (all 9,990 (ward, party) pairs, compared one
+  by one).
+- **SPEC-B2r2 §7's "box" column mixes two runs.** Its ANC row matches the
+  probe at `SHAPE_MIN_EVENTS=2` (the recommended rule, which leaves `q_run` at
+  the cap); its other rows match a run at the probe's default of 1, where
+  `q_run` takes its one event and sits below the cap. Rerun at 2, the probe's
+  box equals the generator's for all eight parties. The "B2a limits" column is
+  not affected: the citywide limit binds every ceiling there.
+- The record-event, national-to-local and backtest tables (SPEC-B2r2 §1, §3,
+  §7) are the designer's measurements (`s1b/probes/records.py`, `npe.py`,
+  `loo.py`, `b2r2.py` → `b2r2.log`). The blind diff reviewer (in-process,
+  2026-10-09) found the generator equal to `b2r2.py` on all 9,990 ward ranges
+  and all 74 citywide limits of the 2026 build, 0 mismatches, so the
+  designer's backtest describes this rule. **Limit:** the generator itself has
+  not been run on a held year; it builds the target's own year (it reads the
+  2026 roll and crosswalk), and a held-target harness is not part of B2a.
+- Measured in-process by the reviewer, 2026-10-09, from
+  `build_make.forecast_data()` (which writes nothing):
+  - our prediction (rule A) inside the new bounds: `start.out_of_bounds` is
+    `[]`;
+  - `forecast_data` about 256 KB as compact JSON, of which `x-editor-bounds`
+    about 170 KB and `ward_ranges` about 125 KB;
+  - `limits` on rule A's map, desktop node: about 8 ms cold, 0.08 ms warm
+    (each (ward, winner) cached).
+  The check step's build re-reads `start.out_of_bounds` and the file size
+  from the built `forecast.json`.
+- Check step build (`src/build_site.py`, no `--publish`, 2026-10-09), read
+  from the built `site/your-forecast/forecast.json`: `start.out_of_bounds` is
+  `[]`; the file is 239,613 bytes; `x-editor-bounds` 156,701 bytes and
+  `ward_ranges` 114,989 bytes as compact JSON; `context_ref` `cf63e052f0a3`
+  and `draws_sha256` `3b25be8f…`, both unchanged from §1.292.
+- Found at the check step's screenshots and fixed (`make.js`): after Enter in
+  a party's percent box, the browser's `change` event re-sent the value the
+  clamp had painted back, and that second call cleared the note the first had
+  written. The `change` handler now ignores a value equal to what the box last
+  showed. Not fixed, for the owner: the vote section's reserved note region
+  (`.floornote`, fixed height so the page does not jump) clips the longer
+  notes (the fallback ward, the newcomer's ceiling, the eased limits) to about
+  two lines at both widths (`s2/screens-b2a/`).
+- The citywide swings weight each ward of a past election by its roll times
+  the earlier election's turnout in its VDs; a ward none of whose VDs was
+  recorded at the earlier election takes the mean turnout of the other wards.
+  Writer, in-process, 2026-10-09: 8 of the panel's 2,819 wards. They are
+  listed at each build in `x-editor-bounds` (`swing.mean_turnout_wards`,
+  `swing.panel_wards`); JUDGEMENT-CALLS §R12.
+- One rule now gives a party's kind for its ward ranges and its citywide limit
+  (`build_make.party_kind`); before the fix round, the citywide limit asked
+  whether the e-weighted prior was positive. Writer, in-process, 2026-10-09:
+  no 2026 limit changed.
+
+**Not changed.** No drawn number: the draws, the forecast's seats, shares,
+ranges and chances, and our prediction's calls, votes and seats. The entry
+version, validity (R1, R2), the encoding and `context_ref` (the roster and the
+wards only). The scoring keys. The gap rule's mechanism (its bounds are now
+widened by the measured rule of §R14).
+
+**Open.** The PA's gap between the model's list and ward shares (§1.293), on
+which D1 rests. B2b: with repainting, B2a's limits can still hold a state no
+ward-vote matrix produces (SPEC-B2r2 §5, measured by the designer); the
+witness editor closes it. Local surges of the 2021 kind lie outside any
+average allowance (SPEC-B2r2 §1).

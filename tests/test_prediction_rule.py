@@ -310,7 +310,12 @@ def _tie_schema(cols) -> dict:
                                "wards": list(TIE_WARDS), "parties": list(cols),
                                "no_pr_list": []},
             "x-editor-bounds": {"e": {w: 1 / len(TIE_WARDS) for w in TIE_WARDS},
-                                "q_win": 0.0, "q_run": 1.0, "gap_min": -100.0, "gap_max": 100.0},
+                                "q_win": 0.0, "q_run": 1.0, "gap_min": -100.0, "gap_max": 100.0,
+                                "ward_ranges": {},
+                                "party_ranges": {c: {"kind": "newcomer", "prior": 0.0, "lo": 0.0, "hi": 1.0}
+                                                 for c in cols},
+                                "city_limits": {c: {"kind": "newcomer", "prior": 0.0, "lo": 0.0, "hi": 1.0}
+                                                for c in cols}},
             "x-ward-ids": list(TIE_WARDS)}
 
 

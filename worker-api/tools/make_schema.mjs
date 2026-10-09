@@ -70,6 +70,34 @@ export function build(modelBuf, geomBuf, srcNames) {
   const eWards = Object.keys(model.editor_bounds.e || {});
   if (eWards.length !== wardIds.length || !wardIds.every(w => eWards.includes(w)))
     throw new Error("the editor bounds' wards are not the geometry's");
+  // The ward-by-ward bounds (slice B2a; build_make.editor_bounds): a range per
+  // party for every ward without its own, a citywide limit per party, both
+  // keyed by exactly the roster; the ward ranges only on the geometry's wards
+  // and the roster's parties.
+  // A range is two shares, the first not above the second.
+  const isRange = (lo, hi) => Number.isFinite(lo) && Number.isFinite(hi) && 0 <= lo && lo <= hi && hi <= 1;
+  for (const k of ["party_ranges", "city_limits"]) {
+    const m = model.editor_bounds[k];
+    if (!m || typeof m !== "object") throw new Error(`the editor bounds have no ${k}`);
+    const keys = Object.keys(m);
+    if (keys.length !== codes.length || !codes.every(c => keys.includes(c)))
+      throw new Error(`the editor bounds' ${k} are not keyed by exactly the roster`);
+    for (const [c, r] of Object.entries(m)) {
+      if (!r || !isRange(r.lo, r.hi)) throw new Error(`the editor bounds' ${k} of ${c} is not a range of shares`);
+      if (!["local", "national", "newcomer"].includes(r.kind))
+        throw new Error(`the editor bounds' ${k} of ${c} names no kind of history`);
+    }
+  }
+  const cells = model.editor_bounds.ward_ranges;
+  if (!cells || typeof cells !== "object") throw new Error("the editor bounds have no ward_ranges");
+  for (const [w, row] of Object.entries(cells)) {
+    if (!wardIds.includes(w)) throw new Error(`the editor bounds' ward_ranges name a ward not in the geometry: ${w}`);
+    const stray = Object.keys(row).filter(c => !codes.includes(c));
+    if (stray.length) throw new Error(`the editor bounds' ward_ranges name parties not on the roster: ${stray}`);
+    for (const [c, r] of Object.entries(row))
+      if (!Array.isArray(r) || r.length !== 2 || !isRange(r[0], r[1]))
+        throw new Error(`the editor bounds' ward_ranges of ${c} in ward ${w} is not a range of shares`);
+  }
 
   const code = { type: "string", enum: codes };
   // Whole votes on one ballot, every roster party (BRIEF change 13).

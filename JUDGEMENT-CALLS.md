@@ -3744,7 +3744,7 @@ with no ward vote; R2: a ward winner with a PR list and no list vote;
 `reader_seats`, MACHINERY.md). What the page's EDITOR lets a reader set is
 narrower, and the calls below are what narrows it. The mechanism is
 `build_make.editor_bounds` and `interactive/js/builder-state.js`; the values
-each build produces are in the schema's `x-editor-bounds` and MODEL-LOG §1.292,
+each build produces are in the schema's `x-editor-bounds` and MODEL-LOG §1.292 and §1.294,
 not here.
 
 ### §R1 · the editor's bounds are read from every metro's past local elections — ⚖️ argued
@@ -3787,6 +3787,13 @@ capped at 0.5 of the ward's vote: a runner-up holding more than half would be
 the winner. The owner's words: "the historical extremes, widened by 5 points
 either side"; "highest runner-up 50%: 52.8% capped, because a runner-up cannot
 exceed half" (s1/SYNTHESIS.md, owner's answers, 4).
+
+**Since 2026-10-09 (slice B2a, §R9 and §R14)** the widening of each bound is
+the mean of its quantity's record events where it has at least
+`MIN_RECORD_EVENTS` of them, and `EDITOR_WIDEN_PP` only where it has fewer.
+Which rule each of the four takes at a build is written beside it in the
+schema's `x-editor-bounds` (`shape.allowance`, each with its `rule` and
+`events`); the cap at `RUNNER_UP_MAX` is unchanged.
 
 **What it decides.** How far a reader may take a party past anything a metro
 has produced. Unwidened, the editor would say no ward was ever won lower than
@@ -3833,18 +3840,242 @@ outside them.
 would invalidate sealed links and our own encoded prediction whenever a result
 file or the roll changed.
 
-### §R5 · the bound on a party's ward vote treats each ward alone — 🔴 typed
+### §R5 · the bound on a party's ward vote treats each ward alone — ⚪ superseded 2026-10-09
 
-**Now.** For the wards on the map, with `won_e[P]` the expected-vote share of
-the wards called for party P: its ward vote is at least `q_win · won_e[P]` of
-the ward ballot (and one vote if it wins a ward), and at most
-`won_e[P] + q_run · (1 − won_e[P])`. Each ward is treated as won on at least
-`q_win` of its expected vote, and as giving a party that does not win it at
-most `q_run`. It is a bound on the citywide ward vote, not on a seat count, and
-it is loose: no reader can be refused a combination real wards have produced.
+**Was (slice B, 2026-10-08 to 2026-10-09).** For the wards on the map, with
+the expected-vote share of the wards called for party P summed: its ward vote
+at least `q_win` times that sum (and one vote if it wins a ward), and at most
+that sum plus `q_run` times the rest. Each ward treated as won on at least
+`q_win` of its expected vote and as giving any other party at most `q_run`,
+whatever that ward's own history (`builder-state.js` `wonE`, `wardBounds`,
+deleted).
 
-**How to check it.** `interactive/tests/builder.test.mjs`: random walks stay
-inside the bounds and valid, and are seated by the CPython seat law.
+**Is.** §R6-§R10 and §R12-§R14: ward-by-ward ranges from each ward's own
+history, the per-party box they allow on the painted map, and a citywide limit.
+
+**Decision.** The owner's, 2026-10-09 (PACKET.md of
+`audits/2026-10-07-prediction-restructure/s1b/`): "1 ward by ward is certainly
+preferred". The screenshot that prompted it (PACKET.md, "Why") held a party
+painted to win most wards at a small share of the ward vote, inside this
+bound. MODEL-LOG §1.294.
+
+### §R6 · a party's range in a ward: its share there at the preceding local election, moved by the swings of consecutive local elections in every metro, of parties standing both times — ⚖️ argued
+
+**Now.** `build_make.ward_priors` joins the preceding local election's VD votes
+onto the target's wards through `montecarlo.ward_parts` (a split VD's votes
+apportioned by `part_registered`). `build_make.swing_panel` reads every metro's
+consecutive local pairs (a, b), a the calendar's local election before b, b
+before the target, each b's wards taking a's VD votes through b's own VDs
+(`build_make._held_parts`, `ward_parts`' held-election rule). Over the (ward,
+party) swings where the party stood both times (a share at a and at b), the
+merged `IND` row left out (DATA-QUALITY item 12), `build_make.swing_extremes`
+takes the least and greatest swing per `SWING_BINS` bin of the starting share.
+A party's range in a ward is its prior plus its bin's least and greatest swing,
+widened by the ward allowance (§R9) and kept in [0, 1]
+(`build_make.ward_ranges`, served as `ward_ranges`). Every real swing is kept in
+the extremes; the exclusions of §R13 act on the allowance only.
+
+**Alternatives.** Swings not conditioned on standing both times: candidacy
+lapses then set the extremes (a party that stood in a ward and then did not
+reads as a fall to zero), SPEC-B2 §2. The city's own transitions only: four
+pairs, too few per bin. Percentiles instead of extremes: they make real 2026
+(ward, party) pairs unpaintable and exclude real past results (SPEC-B2 §11 O1;
+the owner chose extremes).
+
+**Limit.** The join is by VD number; a number reused for another place cannot
+be seen (SPEC-B2 §10). A party's candidacy in a ward is not known before the
+IEC lists are read, so a party that will not stand still gets a range there.
+
+**How to check it.** `tests/test_your_forecast_page.py::test_the_ward_ranges_are_regenerated_from_the_panel`:
+the pairs and the cells recomputed from the files, both ways; a VD's votes
+raised moves exactly its wards; a swing pushed past its bin moves that bin
+alone.
+
+### §R7 · `SWING_BINS` = (0.01, 0.05, 0.15, 0.35, 0.60) — 🔴 typed
+
+**Now.** The interior edges of the starting-share bins a swing is grouped by,
+as shares of a ward's (or a city's) ward-ballot votes: bin i holds starting
+shares in (edge i-1, edge i], the first from zero. Seven edges, six bins, used
+for ward swings, citywide swings and the national-to-local changes alike.
+
+**Why it matters.** The spread of swings grows with the share a party starts
+from (SPEC-B2 §2's table), so one pair of extremes for every party would give
+a party at 1% the swings of a party at 60%.
+
+**Alternatives.** Other edges; a continuous rule (swing extremes as a
+function of the starting share). Neither was measured.
+
+**How to check it.** The same test: a swing pushed past its bin's greatest
+moves that bin's extreme and no other.
+
+### §R8 · a party with no ward record: its citywide share; new to local elections: its national share; neither: the newcomer caps — ⚖️ argued (O2: owner's call)
+
+**Now.**
+- A party with no vote in a ward at the preceding local election, but a vote
+  elsewhere in the city, takes its citywide share there as the prior, by the
+  rule of §R6 (`party_ranges`, kind `local`).
+- A party with no ward vote anywhere in the city at the preceding local
+  election but a vote at the preceding national election
+  (`Target.previous_npe`; `build_make.npe_priors`) takes its national share in
+  the ward, joined the same way, or its citywide national share where it has
+  none in the ward (kind `national`). Its range is moved by the least and
+  greatest change from a national election to the next local election, per
+  bin, over every metro's pairs (n, l) before the target, the party on both;
+  a party's collapse at the local election (from at least `COLLAPSE_FROM` of
+  the national vote to under `COLLAPSE_KEEP` of that) is left out of those
+  extremes. The same rule on citywide shares gives its citywide limit (§R12).
+- A party with neither (kind `newcomer`) ranges from zero to the greatest
+  ward share taken by any party new to its city with no vote at the national
+  election before, plus the ward allowance; its citywide limit, from zero to
+  the greatest such citywide share plus the city allowance. Both caps, and
+  where each was set, are served under `swing.newcomer`.
+- A national file whose calendar template names an approximation
+  (`APPROXIMATE`; the 1999 footprint) is never a prior and never a pair.
+
+**Evidence.** The owner's O2 (2026-10-09): "new parties... 2024 result plus
+usual party vote deterioration if one exists". The designer measured the
+deterioration for parties new to local elections (SPEC-B2r2 §3): none beyond
+COPE's collapse, so no centring adjustment moves a bound; it is recorded, not
+applied.
+
+**Limit.** A COPE-type collapse at a party's first local election falls
+outside its national-prior range: that is the measured cost of O2 (SPEC-B2r2
+§7, §8.4).
+
+**How to check it.** The same test: each `party_ranges` entry is of the kind
+its party's history says, recomputed from the files; a party deleted from the
+preceding local file takes its national prior, and deleted from the national
+file too becomes a newcomer.
+
+### §R9 · the allowance is the mean of the pooled record exceedances — ⚖️ owner's call (O1), measured
+
+**Now.** `build_make.record_events` takes rounds in order (the later election
+of each local pair; every metro of one election in one round). The first
+round in which a key appears sets its record in each direction; a later
+round whose greatest (least) swing beats it is an event of size new record
+minus old. `build_make.allowances` keys the records by bin, pooled over every
+party and metro (the quantity the bins' extremes are made of), for ward swings
+and for citywide swings, after §R13's exclusions; each allowance is the mean of
+its events (`allowance.ward`, `allowance.city`, each served with its events).
+With fewer than `MIN_RECORD_EVENTS` events, `EDITOR_WIDEN_PP` (§R14).
+
+**Evidence.** The owner's O1 (2026-10-09): "when a party moved up or down more
+than it ever had previously, what was the delta of that new swing? Leave out
+mergers splits and collapse (cope) then average it out". The designer's
+leave-one-election-out check (SPEC-B2r2 §1) against the flat 5 points and the
+alternatives (median, party-own records, the max).
+
+**Limit.** Few events, and they do not shrink from round to round; one event
+moves the ward mean appreciably (SPEC-B2r2 §8.1). The values and their
+events at each build are in `x-editor-bounds`, not here.
+
+**How to check it.** `tests/test_your_forecast_page.py::test_the_allowance_is_the_mean_of_record_events`.
+
+### §R10 · the per-ward shape inside each ward's ranges, and the shape alone where they cannot hold the painted winner — ⚖️ argued
+
+**Now.** In a ward painted for W, W's share is at least `q_win` and every other
+party's at most `q_run`, on top of each party's range. The least and greatest
+share each party can hold there, with the shares summing to one and W at
+least each other party, are taken in closed form (`builder-state.js`
+`wardRange`, SPEC-B2 §3). A ward where no share vector satisfies them uses the
+shape alone (W in [`q_win`, 1], the others in [0, `q_run`]), and the page names
+the ward and party. The per-party BOX is those least and greatest shares
+summed over the wards, each weighted by its share of the expected ward vote
+(§R3).
+
+**Alternatives.** Refusing the paint (readers hand-pick every ward); the bare
+ranges with no shape, which lower the largest party's floor on rule A's map
+far below what the shape gives it (SPEC-B2 §2).
+
+**How to check it.** `interactive/tests/builder.test.mjs`: "the ward range is
+the set's projection" (against vertex enumeration on random wards, and a
+closed form without the winner condition caught); "a painted ward no past
+result fits uses the shape alone, and is named".
+
+§R11 is reserved for slice B2b (the witness editor, which needs scipy).
+
+### §R12 · each party's citywide limit on its ward vote — ⚖️ owner's call (O4)
+
+**Now.** `build_make.city_limits`, by the party's kind
+(`build_make.party_kind`, the same rule as its ward ranges, §R8): a party's share of the preceding local
+election's ward vote on the target's wards, weighted by each ward's expected
+ward vote, moved by the least and greatest citywide swing of its bin
+(citywide stood-both swings over the same pairs), widened by the city
+allowance (§R9); a party new to local elections by its national share and the
+national-to-local citywide changes (§R8); a party with neither, the newcomer
+cap. The editor keeps each party's ward vote inside the box (§R10) intersected
+with this limit (`builder-state.js` `limits`). Where they do not meet, the map
+wins: the party is held to its box, and the page says its wards need more (or
+leave it less) of the vote than past elections give it. Where the floors sum
+past the whole ballot, or the ceilings fall short of it, the citywide parts are
+eased in proportion until they fit.
+
+**The weights of the citywide swings.** Each ward of a past local election
+is weighted by its roll times the earlier election's turnout in its VDs
+(`build_make._turnout_parts`, the definition `expected_ward_shares` uses). A
+ward none of whose VDs was recorded at the earlier election takes the mean
+turnout of the election's other wards, where the target's own build refuses:
+a past record cannot be repaired, and leaving the ward out would drop its
+votes from the citywide share. Each such ward is listed at each build in
+`x-editor-bounds` (`mean_turnout_wards`, with `panel_wards` as the
+denominator); the count is in MODEL-LOG §1.294. ⚖️ argued.
+
+**Evidence.** The designer's walks on rule A's map (SPEC-B2 §0 and §3,
+SPEC-B2r2 §5): the per-party box alone left most far-move states with no
+ward-vote matrix behind them, and with the citywide limit none were. With
+repainting, B2a leaves a joint gap that B2b closes (SPEC-B2r2 §5).
+
+**How to check it.** `interactive/tests/builder.test.mjs`: "the limits are the
+box inside the citywide limit, and the map wins where they do not meet";
+"floors that sum past the ballot, or ceilings short of it, are eased until the
+votes fit"; the random walk, every state inside the limits.
+
+### §R13 · the exclusions of the record events — 🔴 typed
+
+**Now.** `build_make.exclusions`, per metro and local pair (a → b), on the
+city's ward-vote shares:
+- **merger**: a party holding at least `VANISH_MIN` = 0.01 at a and standing
+  nowhere at b (no ward or list vote); its absorber, the party standing at both
+  whose ward swings correlate best with the vanished party's ward shares at a,
+  if the correlation is at least `CORRELATION_MIN` = 0.5. The absorber's swings
+  at b are left out. Below it, a dissolution, recorded, excluding nothing.
+- **split**: a party new to the city with at least `SPLIT_MIN` = 0.05 at b; its
+  source, the party whose ward swings correlate most negatively with the
+  newcomer's ward shares, if at or below minus `CORRELATION_MIN`. The source's
+  swings are left out. Otherwise a new party, recorded.
+- **collapse**: a party falling from at least `COLLAPSE_FROM` = 0.02 to under
+  `COLLAPSE_KEEP` = 0.25 of that share; its own swings are left out.
+
+Exclusions act on the record events only; the bounds keep every real swing.
+Each detected case, with its partner and correlation, is served under
+`exclusions`.
+
+**Known misfires.** The detector names two splits that did not happen: the EFF
+"from the VF+" in Mangaung 2016 and COPE "from the DA" in Nelson Mandela Bay
+2011 (COPE came from the ANC). It calls the NFP's failure to register in
+eThekwini 2016 a merger into the IFP. The choice of exclusion rule moved the
+allowance little in the designer's measurement (SPEC-B2r2 §1).
+
+**How to check it.** `tests/test_your_forecast_page.py::test_the_allowance_is_the_mean_of_record_events`:
+a constructed vanished party correlated with one party's swings is a merger,
+and that party's event is gone.
+
+### §R14 · `MIN_RECORD_EVENTS` = 2: below it a widening stays `EDITOR_WIDEN_PP` — 🔴 typed (coordinator's D1)
+
+**Now.** A widening (the ward and city allowances of §R9, and each shape
+quantity's of §R2) is the mean of its record events where there are at least
+two, and `EDITOR_WIDEN_PP` where there are fewer
+(`build_make._allowance`, `build_make.shape_allowances`).
+
+**Why.** One event is not a mean. Measuring everywhere would set `gap_min`
+from one event and put our own prediction outside on the PA's gap (rule A has
+the PA's list share far below its ward share, MODEL-LOG §1.293), which the
+model investigation is treating as a likely defect of the model's draws. The
+coordinator's D1 (PACKET.md, 2026-10-09), to be revisited once that is
+settled; the owner can overrule.
+
+**How to check it.** The allowance test: a shape quantity with one event
+keeps `EDITOR_WIDEN_PP`, and a second event makes it their mean.
 
 ## Appendix — how this register has failed before
 

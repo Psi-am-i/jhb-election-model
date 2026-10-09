@@ -24,10 +24,13 @@ const read = p => readFileSync(resolve(repo, p));
 
 // The artefact build_make writes carries the editor's bounds; the prototype's
 // placeholder fixture has none, so the test adds them: equal ward shares over
-// the geometry's wards and four finite bounds. Constructed, not measured.
+// the geometry's wards, four finite bounds, every party's range and citywide
+// limit the whole ballot, and no ward range of its own. Constructed, not
+// measured.
 const geomWards = JSON.parse(read(GEOM)).wards.map(w => String(w.id));
+const whole = m => Object.fromEntries(m.parties.map(p => [p.code, { kind: "newcomer", prior: 0, lo: 0, hi: 1 }]));
 const withBounds = m => ({ ...m, editor_bounds: { e: Object.fromEntries(geomWards.map(w => [w, 1 / geomWards.length])),
-  q_win: 0.2, q_run: 0.5, gap_min: -5, gap_max: 10 } });
+  q_win: 0.2, q_run: 0.5, gap_min: -5, gap_max: 10, ward_ranges: {}, party_ranges: whole(m), city_limits: whole(m) } });
 const schemaOf = m => build(Buffer.from(JSON.stringify(m)), read(GEOM), names).schema;
 
 describe("generated/geometry.json is current", () => {
@@ -46,7 +49,7 @@ describe("the generator reads the artefact", () => {
     expect(schemaOf(model).properties.v.const).toBe(FORMAT);
   });
   it("a new party in the artefact appears in the schema, on both ballots", () => {
-    const m = { ...model, parties: [...model.parties, { code: "NEWP", name: "New", colour: "#000" }] };
+    const m = withBounds({ ...model, parties: [...model.parties, { code: "NEWP", name: "New", colour: "#000" }] });
     const s = schemaOf(m);
     expect(s.properties.ward_calls.items.enum).toContain("NEWP");
     expect(s.properties.ward_votes.required).toContain("NEWP");
@@ -79,6 +82,33 @@ describe("the generator reads the artefact", () => {
     expect(() => schemaOf(stray)).toThrow(/no_pr_list/);
     const short = { ...model, editor_bounds: { ...model.editor_bounds, e: { [geomWards[0]]: 1 } } };
     expect(() => schemaOf(short)).toThrow(/editor bounds/);
+    // the ward-by-ward bounds: each map keyed by exactly the roster, the ward
+    // ranges on the map's wards and the roster's parties; each constructed
+    // violation is named, and the unbroken artefact still builds
+    for (const k of ["party_ranges", "city_limits"]) {
+      const less = { ...model.editor_bounds[k] }; delete less[model.parties[0].code];
+      expect(() => schemaOf({ ...model, editor_bounds: { ...model.editor_bounds, [k]: less } })).toThrow(new RegExp(k));
+      const none = { ...model.editor_bounds }; delete none[k];
+      expect(() => schemaOf({ ...model, editor_bounds: none })).toThrow(new RegExp(k));
+    }
+    const offMap = { ...model.editor_bounds, ward_ranges: { NOWARD: {} } };
+    expect(() => schemaOf({ ...model, editor_bounds: offMap })).toThrow(/ward not in the geometry/);
+    const offRoster = { ...model.editor_bounds, ward_ranges: { [geomWards[0]]: { NOPE: [0, 1] } } };
+    expect(() => schemaOf({ ...model, editor_bounds: offRoster })).toThrow(/not on the roster/);
+    // the values' shapes: a range upside down, out of [0, 1], or not a pair,
+    // and a limit naming no kind of history, are each refused
+    const first = model.parties[0].code;
+    const flipped = { ...model.editor_bounds.party_ranges, [first]: { kind: "local", prior: 0, lo: 0.6, hi: 0.4 } };
+    expect(() => schemaOf({ ...model, editor_bounds: { ...model.editor_bounds, party_ranges: flipped } })).toThrow(/not a range/);
+    const kindless = { ...model.editor_bounds.city_limits, [first]: { prior: 0, lo: 0, hi: 1 } };
+    expect(() => schemaOf({ ...model, editor_bounds: { ...model.editor_bounds, city_limits: kindless } })).toThrow(/kind/);
+    for (const bad of [[0, 1.5], [0.2], "0-1"]) {
+      const cell = { ...model.editor_bounds, ward_ranges: { [geomWards[0]]: { [first]: bad } } };
+      expect(() => schemaOf({ ...model, editor_bounds: cell })).toThrow(/not a range/);
+    }
+    const good = { ...model.editor_bounds, ward_ranges: { [geomWards[0]]: { [first]: [0.1, 0.3] } } };
+    expect(() => schemaOf({ ...model, editor_bounds: good })).not.toThrow();
+    expect(() => schemaOf(model)).not.toThrow();
   });
   it("records the sha256 of each source", () => {
     expect(Object.keys(schemaOf(model)["x-sources"])).toEqual([MODEL, GEOM]);

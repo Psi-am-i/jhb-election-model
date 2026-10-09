@@ -713,12 +713,28 @@ def _write_panel(path: Path, rows):
         w.writerows(rows)
 
 
+_FRESH: dict = {}
+
+
+def _fresh() -> dict:
+    """``forecast.json`` as the build makes it now (``build_make.forecast_data``,
+    which reads and writes nothing), once per run: what "the served bounds"
+    means below."""
+    if "d" not in _FRESH:
+        _FRESH["d"] = json.loads(json.dumps(build_make.forecast_data()))
+    return _FRESH["d"]
+
+
 def test_the_editor_bounds_are_regenerated_from_the_panel():
-    """Amendment 1, point 3. ``x-editor-bounds`` names its panel, and the
-    panel is exactly the cleaned metro LGE files before the target, both ways,
-    each with its sha256; ``e`` is over exactly the schema's wards and sums to
-    one; the effective bounds are the panel's extremes widened by
-    ``EDITOR_WIDEN_PP`` (the runner-up's capped at ``RUNNER_UP_MAX``). Each
+    """Amendment 1, point 3, and slice B2a. ``x-editor-bounds`` names its
+    panel, and the panel is exactly the cleaned metro LGE files before the
+    target, both ways, each with its sha256 (``sources`` holds every file the
+    bounds read, the national files of the prior among them); ``e`` is over
+    exactly the schema's wards and sums to one; each election's extremes are
+    ``panel_extremes`` over that election's files, and the effective bounds
+    are the panel's extremes widened by their shape allowance (the mean of the
+    record events, or ``EDITOR_WIDEN_PP`` with fewer than
+    ``MIN_RECORD_EVENTS``), the runner-up's capped at ``RUNNER_UP_MAX``. Each
     input is shown to move its bound, and each reverted equals the built
     bounds: a constructed result file moves ``q_win`` (a ward won lower),
     ``q_run`` (a runner-up higher), ``gap_min`` and ``gap_max`` (a party's list
@@ -733,36 +749,56 @@ def test_the_editor_bounds_are_regenerated_from_the_panel():
     from _support import scanned
     city = cityconfig.active()
     target = str(city.default_target)
-    d = json.loads(json.dumps(build_make.forecast_data()))
+    d = _fresh()
     b = d["schema"]["x-editor-bounds"]
     wards = d["schema"]["x-ward-ids"]
+    roster = d["schema"]["x-seat-context"]["parties"]
     every = sorted((ROOT / "data/raw/elections").glob("lge*_*_vd_party_clean.csv"))
     files = [f for f in every if f.name[3:7] < target]
     assert b["panel"] == [f.name for f in files], b["panel"]
     # it looked: the panel is a two-sided fraction of every cleaned LGE file
     scanned(files, of=every, low=0.5, high=1.0, what="panel files",
             denominator="cleaned LGE result files on disk")
-    assert set(b["sources"]) == set(b["panel"])
-    for f in files:
-        assert b["sources"][f.name] == hashlib.sha256(f.read_bytes()).hexdigest(), f.name
+    # every file the bounds read, recomputed from the pairs and the priors, both ways
+    tgt = cityconfig.Target(city=city, year=target)
+    read = set(b["panel"])
+    read |= {f"lge{y}_{c}_vd_party_clean.csv" for c, a_, b_ in b["swing"]["pairs"] for y in (a_, b_)}
+    read |= {f"npe{n}_{c}_vd_party.csv" for c, n, _l in b["swing"]["npe_pairs"]}
+    read |= {f"lge{l}_{c}_vd_party_clean.csv" for c, _n, l in b["swing"]["npe_pairs"]}
+    read |= {f"lge{tgt.previous_lge}_{city.code}_vd_party_clean.csv", f"npe{tgt.previous_npe}_{city.code}_vd_party.csv"}
+    assert set(b["sources"]) == read, (sorted(set(b["sources"]) ^ read))
+    for name, sha in b["sources"].items():
+        assert sha == hashlib.sha256((ROOT / "data/raw/elections" / name).read_bytes()).hexdigest(), name
     assert sorted(b["e"], key=int) == sorted(wards, key=int)
     assert math.isclose(math.fsum(b["e"].values()), 1.0, abs_tol=1e-12)
-    ext, widen = b["panel_extremes"], build_make.EDITOR_WIDEN_PP
-    assert math.isclose(b["q_win"], ext["q_win"]["value"] - widen / 100)
-    assert math.isclose(b["q_run"], min(build_make.RUNNER_UP_MAX, ext["q_run"]["value"] + widen / 100))
-    assert math.isclose(b["gap_min"], ext["gap_min"]["value"] - widen)
-    assert math.isclose(b["gap_max"], ext["gap_max"]["value"] + widen)
+    per_year, ext, shape = b["shape"]["per_year"], b["panel_extremes"], b["shape"]["allowance"]
+    assert sorted(per_year) == sorted({f.name[3:7] for f in files})
+    for y, got in per_year.items():
+        assert build_make.panel_extremes([f for f in files if f.name[3:7] == y]) == got, y
     assert build_make.panel_extremes(files) == ext
+    for q in ("q_win", "q_run", "gap_min", "gap_max"):
+        a = shape[q]
+        assert (len(a["events"]) >= build_make.MIN_RECORD_EVENTS) == a["rule"].startswith("mean"), q
+        if a["rule"].startswith("mean"):
+            assert math.isclose(a["value"], math.fsum(e["exceedance"] for e in a["events"]) / len(a["events"])), q
+        else:
+            unit = 100.0 if q.startswith("q_") else 1.0
+            assert a["value"] == build_make.EDITOR_WIDEN_PP / unit, q
+    assert math.isclose(b["q_win"], max(0.0, ext["q_win"]["value"] - shape["q_win"]["value"]))
+    assert math.isclose(b["q_run"], min(build_make.RUNNER_UP_MAX, ext["q_run"]["value"] + shape["q_run"]["value"]))
+    assert math.isclose(b["gap_min"], ext["gap_min"]["value"] - shape["gap_min"]["value"])
+    assert math.isclose(b["gap_max"], ext["gap_max"]["value"] + shape["gap_max"]["value"])
     # the cap: lifted, the capped bound moves to the widened extreme; restored, back
+    widened = ext["q_run"]["value"] + shape["q_run"]["value"]
     real = build_make.RUNNER_UP_MAX
     try:
         build_make.RUNNER_UP_MAX = 1.0
-        lifted = build_make.editor_bounds(city, target, wards)["q_run"]
+        lifted = build_make.editor_bounds(city, target, wards, roster)["q_run"]
     finally:
         build_make.RUNNER_UP_MAX = real
-    assert math.isclose(lifted, ext["q_run"]["value"] + widen / 100)
-    assert (lifted != b["q_run"]) == (ext["q_run"]["value"] + widen / 100 > real)
-    assert build_make.editor_bounds(city, target, wards)["q_run"] == b["q_run"]
+    assert math.isclose(lifted, widened)
+    assert (lifted != b["q_run"]) == (widened > real)
+    assert build_make.editor_bounds(city, target, wards, roster)["q_run"] == b["q_run"]
     with tempfile.TemporaryDirectory() as t:
         odd = Path(t) / "lge2000_XXX_vd_party_clean.csv"
         # ward 1 won on 11 of 101 votes (ten parties); ward 2's runner-up holds
@@ -809,6 +845,500 @@ def test_the_editor_bounds_are_regenerated_from_the_panel():
             return build_make.expected_ward_shares(city, target, wards, previous=path)[0]
         assert turnout(2)[str(ward)] > e0[str(ward)]
         assert turnout(1) == e0
+
+
+def _mirror(t: str, replace: dict | None = None) -> Path:
+    """A directory standing in for ``data/raw/elections``: a link to every file
+    there, except the ones named in ``replace`` (``{name: rows}``), written as
+    constructed copies. The bounds read it through their ``elections``
+    argument; nothing under ``data/`` is touched."""
+    src = ROOT / "data/raw/elections"
+    out = Path(t) / "elections"
+    out.mkdir()
+    for f in src.iterdir():
+        if f.is_file() and f.name not in (replace or {}):
+            (out / f.name).symlink_to(f)
+    for name, rows in (replace or {}).items():
+        _write_panel(out / name, rows)
+    return out
+
+
+def _rows(name: str) -> list[dict]:
+    with (ROOT / "data/raw/elections" / name).open(encoding="utf-8", newline="") as fh:
+        return list(csv.DictReader(fh))
+
+
+def _ranges_from(b: dict, wards, roster, **where) -> tuple[dict, dict]:
+    """``(ward_ranges, party_ranges)`` from the priors read at ``where``
+    (``elections``, ``processed``) under the served swings and allowance, so a
+    change to a prior is seen alone."""
+    import cityconfig
+    city = cityconfig.active()
+    target = str(city.default_target)
+    local = build_make.ward_priors(city, target, wards, **where)
+    national = build_make.npe_priors(city, target, wards, **where)
+    bins = {k: b["swing"]["extremes"][k] for k in ("ward", "npe_ward")}
+    cells, party = build_make.ward_ranges(roster, wards, local, national, bins, b["allowance"],
+                                          b["swing"]["newcomer"])
+    return json.loads(json.dumps(cells)), json.loads(json.dumps(party))
+
+
+def _changed(a: dict, b: dict) -> set[str]:
+    """The wards whose ward ranges differ between two ``ward_ranges``."""
+    return {w for w in set(a) | set(b) if a.get(w) != b.get(w)}
+
+
+def test_the_ward_ranges_are_regenerated_from_the_panel():
+    """Slice B2a (SPEC-B2r2 §4-§5). Populations, each recomputed here from the
+    files and compared both ways: ``swing.pairs`` is every (metro, a, b) of
+    consecutive cleaned local files before the target, a the calendar's local
+    election before b; ``swing.npe_pairs`` every (metro, n, l), n the
+    calendar's national election before l, the approximation left out; the
+    ``ward_ranges`` cells are exactly the (ward, party) pairs with a ward vote
+    in the ward's parts at the preceding local election, or, for a party with
+    no ward vote anywhere in the city then, a national vote in them; each
+    ``party_ranges`` entry is of the kind its party's history says (local,
+    national or newcomer); ``party_ranges`` and ``city_limits`` are keyed by
+    exactly the roster.
+
+    Constructed violations, each on a mirror of the result files with one
+    file rewritten (or one crosswalk), each seen and each quiet when reverted:
+    (1) one VD's party votes in the preceding file raised: exactly the wards
+    that VD's parts lie in change their ranges; (2) a split VD's
+    ``part_registered`` changed: both its wards' priors and ``e`` move; (3) a
+    stood-both swing pushed past its bin's greatest: that bin's extreme moves,
+    no other; (4) a party's ward rows deleted in one ward's VDs: its range
+    there becomes its citywide one; (5) a party deleted from the preceding
+    file: its national vote becomes its prior, and deleted from the national
+    file too it becomes a newcomer; (6) a party new to local
+    elections deleted from the national file: it becomes a newcomer; (7) one
+    VD's national votes raised: exactly that VD's wards move."""
+    import collections
+    import cityconfig
+    import montecarlo
+    import parties as P
+    from _support import scanned
+    city = cityconfig.active()
+    target = str(city.default_target)
+    d = _fresh()
+    b = d["schema"]["x-editor-bounds"]
+    wards = d["schema"]["x-ward-ids"]
+    roster = d["schema"]["x-seat-context"]["parties"]
+    tgt = cityconfig.Target(city=city, year=target)
+    el = ROOT / "data/raw/elections"
+    # -- the pairs, recomputed from the file names and the calendar
+    lge = {(m.group(2), m.group(1)) for f in el.glob("lge*_*_vd_party_clean.csv")
+           if (m := re.fullmatch(r"lge(\d{4})_([A-Z]+)_vd_party_clean\.csv", f.name))}
+    npe = {(m.group(2), m.group(1)) for f in el.glob("npe*_*_vd_party.csv")
+           if (m := re.fullmatch(r"npe(\d{4})_([A-Z]+)_vd_party\.csv", f.name))}
+    pairs = {(c, cityconfig.preceding(y, "LGE"), y) for c, y in lge
+             if y < target and (c, cityconfig.preceding(y, "LGE")) in lge}
+    npe_pairs = {(c, cityconfig.preceding(y, "NPE"), y) for c, y in lge
+                 if y < target and (c, cityconfig.preceding(y, "NPE")) in npe}
+    assert {tuple(x) for x in b["swing"]["pairs"]} == pairs
+    assert {tuple(x) for x in b["swing"]["npe_pairs"]} == npe_pairs
+    scanned(pairs, of=[x for x in lge if x[1] < target], low=0.5, high=1.0,
+            what="local pairs", denominator="cleaned local files before the target")
+    assert all(build_make.APPROXIMATE not in cityconfig.CALENDAR[n].results for _c, n, _l in b["swing"]["npe_pairs"])
+    # -- the cells and the kinds, recomputed with a join written here
+    parts, _label = montecarlo.ward_parts(tgt, el, ROOT / tgt.crosswalk.parent)
+    prev = f"lge{tgt.previous_lge}_{city.code}_vd_party_clean.csv"
+    nat = f"npe{tgt.previous_npe}_{city.code}_vd_party.csv"
+    local_by_vd = collections.defaultdict(set)
+    for r in _rows(prev):
+        if r["BallotType"].strip().upper() == "WARD" and int(r["Party_Votes"]) > 0:
+            local_by_vd[r["VD_Number"].strip()].add(P.canonical(r["sPartyName"]))
+    national_by_vd = collections.defaultdict(set)
+    for r in _rows(nat):
+        if int(r["Party_Votes"]) > 0:
+            national_by_vd[r["VD_Number"].strip()].add(P.canonical(r["sPartyName"]))
+    stood_local = set().union(*local_by_vd.values())
+    stood_national = set().union(*national_by_vd.values())
+    kind = {c: "local" if c in stood_local else "national" if c in stood_national else "newcomer"
+            for c in roster}
+    want = set()
+    for vd, w, reg in parts:
+        if reg > 0:
+            want |= {(str(w), c) for c in local_by_vd.get(vd, ()) if c in kind}
+            want |= {(str(w), c) for c in national_by_vd.get(vd, ()) if kind.get(c) == "national"}
+    got = {(w, c) for w, row in b["ward_ranges"].items() for c in row}
+    assert got == want, (sorted(got - want)[:5], sorted(want - got)[:5])
+    scanned(got, of=len(wards) * len(roster), low=0.05, high=0.95, what="(ward, party) cells",
+            denominator="wards times roster parties")
+    assert {c: v["kind"] for c, v in b["party_ranges"].items()} == kind
+    assert set(b["city_limits"]) == set(roster)
+    assert {"local", "national", "newcomer"} == set(kind.values())
+    for w, row in b["ward_ranges"].items():
+        for c, (lo, hi) in row.items():
+            assert 0.0 <= lo <= hi <= 1.0, (w, c)
+    # -- the constructed violations
+    served = (b["ward_ranges"], b["party_ranges"])
+    vd_wards = collections.defaultdict(set)
+    for vd, w, reg in parts:
+        if reg > 0:
+            vd_wards[vd].add(str(w))
+    with tempfile.TemporaryDirectory() as t:
+        assert _ranges_from(b, wards, roster, elections=_mirror(t)) == served
+    # (1) one VD's party votes raised in the preceding file
+    rows = _rows(prev)
+    vd = next(v for v in sorted(vd_wards) if len(vd_wards[v]) == 1 and v in local_by_vd)
+    for r in rows:
+        if r["VD_Number"].strip() == vd and r["BallotType"].strip().upper() == "WARD" and int(r["Party_Votes"]) > 0:
+            r["Party_Votes"] = str(int(r["Party_Votes"]) * 3 + 100)
+            break
+    with tempfile.TemporaryDirectory() as t:
+        cells, _party = _ranges_from(b, wards, roster, elections=_mirror(t, {prev: rows}))
+    assert _changed(cells, b["ward_ranges"]) == vd_wards[vd]
+    # (2) a split VD's part_registered changed in a copied crosswalk
+    with tgt.crosswalk.open(encoding="utf-8", newline="") as fh:
+        xw = list(csv.DictReader(fh))
+    split = next(r["VD_Number"] for r in xw if r.get("is_split") == "Y" and r["VD_Number"] in local_by_vd)
+    both = {r[f"Ward_{target}"] for r in xw if r["VD_Number"] == split}
+    first = next(r for r in xw if r["VD_Number"] == split)
+    first["part_registered"] = str(int(first["part_registered"]) * 2 + 1)
+    e0 = b["e"]
+    with tempfile.TemporaryDirectory() as t:
+        proc = Path(t) / "processed"
+        proc.mkdir()
+        _write_panel(proc / tgt.crosswalk.name, xw)
+        h0 = build_make.ward_priors(city, target, wards)["h"]
+        h1 = build_make.ward_priors(city, target, wards, processed=proc)["h"]
+        e1, _ = build_make.expected_ward_shares(city, target, wards, processed=proc)
+    assert len(both) == 2
+    assert {w for w in wards if h0.get(w) != h1.get(w)} == both
+    assert all(e1[w] != e0[w] for w in both)
+    # (3) one stood-both swing pushed past its bin's greatest, by rewriting the
+    # later file of a transition (one whose later election starts no pair, of
+    # another metro), read by swing_panel from a mirror
+    panel = build_make.swing_panel(city, target)
+    ext = build_make.swing_extremes(panel)
+    assert json.loads(json.dumps({k: ext[k] for k in ("ward", "city", "npe_ward", "npe_city")})) \
+        == b["swing"]["extremes"]
+    last = max(y for _c, _a, y in pairs)
+    code3, _a3, b3, w3, p3, h3, _s3 = next(r for r in panel["ward_rows"] if r[0] != city.code and r[2] == last
+                                          and 0.05 < r[5] <= 0.15 and r[6] > 0)
+    k = build_make._bin(h3)
+    want = h3 + ext["ward"][k][1] + 0.05
+    assert want < 1
+    name3 = f"lge{b3}_{code3}_vd_party_clean.csv"
+    rows3 = _rows(name3)
+    in_ward = [r for r in rows3 if r["BallotType"].strip().upper() == "WARD" and r["Ward"].strip() == w3]
+    mine = [r for r in in_ward if P.canonical(r["sPartyName"]) == p3]
+    rest = sum(int(r["Party_Votes"]) for r in in_ward if P.canonical(r["sPartyName"]) != p3)
+    for r in mine:
+        r["Party_Votes"] = "0"
+    mine[0]["Party_Votes"] = str(math.ceil(want * rest / (1 - want)))
+    with tempfile.TemporaryDirectory() as t:
+        moved = build_make.swing_extremes(build_make.swing_panel(city, target, elections=_mirror(t, {name3: rows3})))["ward"]
+    assert moved[k][1] >= want - h3 - 1e-9 > ext["ward"][k][1]
+    assert [j for j in range(len(moved)) if moved[j][1] != ext["ward"][j][1]] == [k]
+    with tempfile.TemporaryDirectory() as t:
+        assert build_make.swing_extremes(build_make.swing_panel(city, target, elections=_mirror(t)))["ward"] \
+            == ext["ward"]
+    # (4) a party's ward rows deleted in one ward's VDs
+    w = next(w for w in wards if any(kind[c] == "local" for c in b["ward_ranges"].get(w, {})))
+    c = next(c for c in sorted(b["ward_ranges"][w]) if kind[c] == "local")
+    its = {vd for vd, ws in vd_wards.items() if w in ws}
+    cut = [r for r in _rows(prev) if not (r["VD_Number"].strip() in its and P.canonical(r["sPartyName"]) == c
+                                         and r["BallotType"].strip().upper() == "WARD")]
+    with tempfile.TemporaryDirectory() as t:
+        cells, party = _ranges_from(b, wards, roster, elections=_mirror(t, {prev: cut}))
+    assert c not in cells.get(w, {}) and party[c]["kind"] == "local"
+    lost = {x for x in wards if c in b["ward_ranges"].get(x, {}) and c not in cells.get(x, {})}
+    assert w in lost and lost <= set().union(*(vd_wards[v] for v in its))
+    # (5) a party deleted from the preceding file: its national vote becomes
+    # its prior; deleted from the national file too, it is a newcomer
+    c5 = min((c for c in roster if kind[c] == "local" and c in stood_national),
+             key=lambda c: b["party_ranges"][c]["prior"])
+    gone = [r for r in _rows(prev) if P.canonical(r["sPartyName"]) != c5]
+    with tempfile.TemporaryDirectory() as t:
+        cells, party = _ranges_from(b, wards, roster, elections=_mirror(t, {prev: gone}))
+    assert party[c5]["kind"] == "national"
+    assert {w for w, row in cells.items() if c5 in row} == \
+        {str(w) for vd, w, reg in parts if reg > 0 and c5 in national_by_vd.get(vd, ())}
+    nat_gone = [r for r in _rows(nat) if P.canonical(r["sPartyName"]) != c5]
+    with tempfile.TemporaryDirectory() as t:
+        cells, party = _ranges_from(b, wards, roster, elections=_mirror(t, {prev: gone, nat: nat_gone}))
+    assert party[c5]["kind"] == "newcomer" and not any(c5 in row for row in cells.values())
+    # (6) a party new to local elections deleted from the national file
+    c6 = max((c for c in roster if kind[c] == "national"), key=lambda c: b["party_ranges"][c]["prior"])
+    nrows = [r for r in _rows(nat) if P.canonical(r["sPartyName"]) != c6]
+    with tempfile.TemporaryDirectory() as t:
+        cells, party = _ranges_from(b, wards, roster, elections=_mirror(t, {nat: nrows}))
+    assert party[c6]["kind"] == "newcomer" and not any(c6 in row for row in cells.values())
+    # (7) one VD's national votes raised
+    nrows = _rows(nat)
+    vd7 = next(v for v in sorted(vd_wards) if len(vd_wards[v]) == 1
+               and c6 in national_by_vd.get(v, ()))
+    for r in nrows:
+        if r["VD_Number"].strip() == vd7 and P.canonical(r["sPartyName"]) == c6:
+            r["Party_Votes"] = str(int(r["Party_Votes"]) * 3 + 100)
+    with tempfile.TemporaryDirectory() as t:
+        cells, _party = _ranges_from(b, wards, roster, elections=_mirror(t, {nat: nrows}))
+    assert _changed(cells, b["ward_ranges"]) == vd_wards[vd7]
+    # reverted: the plain mirror again gives the served ranges
+    with tempfile.TemporaryDirectory() as t:
+        assert _ranges_from(b, wards, roster, elections=_mirror(t)) == served
+
+
+def _parts_differ(ours, theirs) -> list:
+    """The parts in one list and not the other, both ways."""
+    a, b = set(ours), set(theirs)
+    return sorted(a - b)[:3] + sorted(b - a)[:3]
+
+
+def test_the_panel_reads_a_held_election_as_ward_parts_does():
+    """``build_make._held_parts`` restates ``montecarlo.ward_parts``' rule for
+    a held election (every VD whole, in the ward its own file names), because
+    that function resolves the file through the ACTIVE city and the panel
+    reads every metro. Held equal on every held local election of every metro
+    on disk, both ways, each metro made the active city for its own call (and
+    the active city restored after); a constructed difference (one VD moved to
+    another ward) is found by the same comparison, which is quiet again on the
+    real lists."""
+    import cityconfig
+    import montecarlo
+    from _support import scanned
+    el = ROOT / "data/raw/elections"
+    slugs = sorted(f.stem for f in (ROOT / "cities").glob("*.toml"))
+    saved = (cityconfig._ACTIVE, cityconfig._TARGET)
+    compared = []
+    try:
+        for slug in slugs:
+            city = cityconfig.use(slug)
+            for y, e in cityconfig.CALENDAR.items():
+                if e.kind != "LGE" or not e.results:
+                    continue
+                path = el / e.results.replace("{CODE}", city.code)
+                if not path.is_file():
+                    continue
+                tgt = cityconfig.Target(city=city, year=y)
+                theirs, _label = montecarlo.ward_parts(tgt, el, ROOT / tgt.crosswalk.parent)
+                ours = build_make._held_parts(build_make._lge(path))
+                assert _parts_differ(ours, theirs) == [], (slug, y)
+                assert len(ours) == len(theirs), (slug, y)
+                compared.append((slug, y))
+    finally:
+        cityconfig._ACTIVE, cityconfig._TARGET = saved
+    every = list(el.glob("lge*_*_vd_party_clean.csv"))
+    scanned(compared, of=every, low=0.9, high=1.0, what="held local elections compared",
+            denominator="cleaned local result files on disk")
+    # it can see: one VD moved to another ward is found, both ways
+    moved = list(ours)
+    moved[0] = (moved[0][0], moved[0][1] + "x", moved[0][2])
+    assert len(_parts_differ(moved, theirs)) == 2
+    assert _parts_differ(ours, theirs) == []
+
+
+def test_the_city_limits_are_regenerated_from_the_panel():
+    """Slice B2a, JUDGEMENT-CALLS §R12. Every party's ``city_limits`` entry is
+    recomputed here: its kind from the files (``local`` with a ward vote in the
+    city at the preceding local election, else ``national`` with a vote at the
+    preceding national one, else ``newcomer``), equal to its ``party_ranges``
+    kind (one rule); a local party's prior is its share of the preceding
+    election joined onto the target's wards by a join written here and
+    weighted by the served ``e``, moved by the citywide extremes of its bin and
+    the city allowance; a national party's, its national citywide share moved
+    by the national-to-local citywide extremes; a newcomer's, zero to the
+    citywide newcomer cap plus the city allowance. Constructed, each seen and
+    quiet when reverted: one citywide swing pushed past its bin moves that
+    bin's extreme and exactly the limits of the local parties starting in it;
+    a party's collapse from a national to a local election is left out of the
+    national-to-local citywide extremes, and the same swing short of a
+    collapse moves them."""
+    import bisect
+    import collections
+    import cityconfig
+    import montecarlo
+    import parties as P
+    city = cityconfig.active()
+    target = str(city.default_target)
+    d = _fresh()
+    b = d["schema"]["x-editor-bounds"]
+    wards = d["schema"]["x-ward-ids"]
+    roster = d["schema"]["x-seat-context"]["parties"]
+    tgt = cityconfig.Target(city=city, year=target)
+    el = ROOT / "data/raw/elections"
+    parts, _label = montecarlo.ward_parts(tgt, el, ROOT / tgt.crosswalk.parent)
+    prev = f"lge{tgt.previous_lge}_{city.code}_vd_party_clean.csv"
+    nat = f"npe{tgt.previous_npe}_{city.code}_vd_party.csv"
+    by_vd = collections.defaultdict(collections.Counter)
+    for r in _rows(prev):
+        if r["BallotType"].strip().upper() == "WARD":
+            by_vd[r["VD_Number"].strip()][P.canonical(r["sPartyName"])] += int(r["Party_Votes"])
+    national = collections.Counter()
+    for r in _rows(nat):
+        national[P.canonical(r["sPartyName"])] += int(r["Party_Votes"])
+    nat_total = sum(national.values())
+    local_city = collections.Counter()
+    for c in by_vd.values():
+        local_city.update(c)
+    vd_reg = collections.Counter()
+    for vd, _w, reg in parts:
+        vd_reg[vd] += reg
+    acc = collections.defaultdict(collections.Counter)
+    for vd, w, reg in parts:
+        if vd in by_vd and vd_reg[vd]:
+            for c, v in by_vd[vd].items():
+                acc[str(w)][c] += v * reg / vd_reg[vd]
+    prior_e = collections.Counter()
+    for w, c in acc.items():
+        t = sum(c.values())
+        for code, v in c.items():
+            prior_e[code] += b["e"][w] * v / t
+    kind = {c: "local" if local_city[c] > 0 else "national" if national[c] > 0 else "newcomer" for c in roster}
+    assert {c: v["kind"] for c, v in b["city_limits"].items()} == kind
+    assert {c: v["kind"] for c, v in b["party_ranges"].items()} == kind
+    ext, A = b["swing"]["extremes"], b["allowance"]["city"]["value"]
+    def moved(x, bins):
+        lo, hi = bins[bisect.bisect_left(b["swing"]["bins"], x)]
+        return max(0.0, x + lo - A), min(1.0, x + hi + A)
+    for c in roster:
+        got = b["city_limits"][c]
+        if kind[c] == "local":
+            want = moved(prior_e[c], ext["city"])
+        elif kind[c] == "national":
+            want = moved(national[c] / nat_total, ext["npe_city"])
+        else:
+            want = (0.0, min(1.0, b["swing"]["newcomer"]["city"]["value"] + A))
+        assert math.isclose(got["lo"], want[0], abs_tol=1e-12) and math.isclose(got["hi"], want[1], abs_tol=1e-12), c
+    # constructed: one citywide swing past its bin
+    panel = build_make.swing_panel(city, target)
+    bins = build_make.swing_extremes(panel)
+    local = build_make.ward_priors(city, target, wards)
+    npe = build_make.npe_priors(city, target, wards)
+    pe = collections.Counter()
+    for w in wards:
+        for c, v in local["h"].get(w, {}).items():
+            pe[c] += b["e"][w] * v
+    limits = lambda bs: build_make.city_limits(roster, pe, npe, local["city"], bs, b["allowance"], b["swing"]["newcomer"])
+    assert json.loads(json.dumps(limits(bins))) == b["city_limits"]
+    k = build_make._bin(pe["DA"])
+    pushed = dict(panel, city_rows=panel["city_rows"] + [("ZZZ", "2021", "ZZ", pe["DA"],
+                                                          pe["DA"] + bins["city"][k][1] + 0.01)])
+    nb = build_make.swing_extremes(pushed)
+    assert [j for j in range(len(nb["city"])) if nb["city"][j] != bins["city"][j]] == [k]
+    lim = limits(nb)
+    moved_parties = {c for c in roster if lim[c] != limits(bins)[c]}
+    assert moved_parties == {c for c in roster if kind[c] == "local" and build_make._bin(pe[c]) == k}
+    assert "DA" in moved_parties
+    # constructed: a collapse from national to local, and the same swing short of one
+    top = 0.5
+    collapse = dict(panel, npe_city_rows=panel["npe_city_rows"]
+                    + [("ZZZ", "2019", "2021", "ZZ", top, build_make.COLLAPSE_KEEP * top / 2)])
+    kept = build_make.swing_extremes(collapse)
+    assert kept["npe_city"] == bins["npe_city"] and ["ZZZ", "2021", "ZZ"] in [list(x) for x in kept["npe_collapses"]]
+    near = top * build_make.COLLAPSE_KEEP * 1.01
+    short = dict(panel, npe_city_rows=panel["npe_city_rows"] + [("ZZZ", "2019", "2021", "ZZ", top, near)])
+    if near - top < bins["npe_city"][build_make._bin(top)][0]:
+        assert build_make.swing_extremes(short)["npe_city"] != bins["npe_city"]
+    else:
+        raise AssertionError("the constructed swing does not reach past its bin; choose a larger drop")
+    assert build_make.swing_extremes(panel) == bins
+
+
+def test_the_allowance_is_the_mean_of_record_events():
+    """SPEC-B2r2 §1-§2. ``allowance`` and ``exclusions`` are regenerated from
+    the panel (equal to the served ones), each allowance is the mean of its
+    events where there are at least ``MIN_RECORD_EVENTS`` and
+    ``EDITOR_WIDEN_PP`` otherwise, and the events of the served panel are
+    there in both scopes (ward and city). Constructed inputs, each seen and
+    each quiet when reverted: a later round with a swing 3 points beyond a
+    bin's record adds one event of 3 points and moves the allowance to the new
+    mean; a vanished party whose ward shares correlate perfectly with one
+    party's swings is a merger, and that party's event is gone; a later
+    election with a lower winning share adds a ``q_win`` event; and a shape
+    quantity with one event keeps ``EDITOR_WIDEN_PP`` until a second
+    arrives."""
+    import cityconfig
+    import copy
+    city = cityconfig.active()
+    target = str(city.default_target)
+    b = _fresh()["schema"]["x-editor-bounds"]
+    panel = build_make.swing_panel(city, target)
+    excl = build_make.exclusions(panel)
+    allow = build_make.allowances(panel, excl)
+    assert json.loads(json.dumps(excl)) == b["exclusions"]
+    assert json.loads(json.dumps(allow)) == b["allowance"]
+    fallback = build_make.EDITOR_WIDEN_PP / 100.0
+    for scope in ("ward", "city"):
+        a = allow[scope]
+        assert a["events"], scope
+        if len(a["events"]) >= build_make.MIN_RECORD_EVENTS:
+            assert math.isclose(a["value"], math.fsum(e["exceedance"] for e in a["events"]) / len(a["events"]))
+        else:
+            assert a["value"] == fallback
+        assert all(e["round"] < target and e["direction"] in ("up", "down") for e in a["events"])
+    # a later round 3 points beyond a bin's record
+    skip = {(e["metro"], e["b"], e["excludes"]) for e in excl if e["excludes"]}
+    record = max(s - h for c, _a, y, _w, p, h, s in panel["ward_rows"]
+                 if 0.15 < h <= 0.35 and s > 0 and (c, y, p) not in skip)
+    later = dict(panel, ward_rows=panel["ward_rows"] + [("ZZZ", "2021", "2099", "1", "P", 0.25, 0.25 + record + 0.03)])
+    more = build_make.allowances(later, excl)["ward"]
+    new = [e for e in more["events"] if e not in allow["ward"]["events"]]
+    assert len(new) == 1 and new[0]["round"] == "2099" and new[0]["direction"] == "up"
+    assert math.isclose(new[0]["exceedance"], 0.03)
+    assert math.isclose(more["value"], (math.fsum(e["exceedance"] for e in allow["ward"]["events"]) + 0.03)
+                        / (len(allow["ward"]["events"]) + 1))
+    assert build_make.allowances(panel, excl) == allow
+    # a vanished party absorbed by the party that set an event
+    event = next(e for e in allow["ward"]["events"] if e["direction"] == "up")
+    code, a, by, _w, party, _h, _s = next(
+        r for r in panel["ward_rows"] if r[2] == event["round"] and r[5] > 0 and r[6] > 0
+        and build_make._bin(r[5]) == event["key"] and r[6] - r[5] == event["new"])
+    absorbed = copy.deepcopy(panel)
+    data = absorbed["pair_data"][(code, a, by)]
+    wards = sorted(w for w in data["s"] if w in data["h"])
+    swing = [data["s"][w].get(party, 0.0) - data["h"][w].get(party, 0.0) for w in wards]
+    for w, x in zip(wards, swing):
+        data["h"][w]["ZZ_GONE"] = x - min(swing) + 0.001
+    data["Ha"]["ZZ_GONE"] = 2 * build_make.VANISH_MIN
+    merged = build_make.exclusions(absorbed)
+    found = [e for e in merged if e["party"] == "ZZ_GONE"]
+    assert len(found) == 1 and found[0]["kind"] == "merger" and found[0]["excludes"] == party
+    after = build_make.allowances(absorbed, merged)["ward"]["events"]
+    key = (event["round"], event["key"], event["direction"], event["new"])
+    assert key not in {(e["round"], e["key"], e["direction"], e["new"]) for e in after}
+    assert build_make.exclusions(panel) == excl
+    # a party new to the city drawing from the party that set the event: a
+    # split, which leaves out the source's swings
+    split = copy.deepcopy(panel)
+    data = split["pair_data"][(code, a, by)]
+    for w, x in zip(wards, swing):
+        data["s"][w]["ZZ_NEW"] = max(swing) - x + 0.001
+    data["Hb"]["ZZ_NEW"] = 2 * build_make.SPLIT_MIN
+    found = [e for e in build_make.exclusions(split) if e["party"] == "ZZ_NEW"]
+    assert len(found) == 1 and found[0]["kind"] == "split" and found[0]["excludes"] == party
+    after = build_make.allowances(split, build_make.exclusions(split))["ward"]["events"]
+    assert key not in {(e["round"], e["key"], e["direction"], e["new"]) for e in after}
+    # the party that set the event collapsing citywide: its own swings left out
+    fall = copy.deepcopy(panel)
+    data = fall["pair_data"][(code, a, by)]
+    data["Ha"][party] = 2 * build_make.COLLAPSE_FROM
+    data["Hb"][party] = build_make.COLLAPSE_KEEP * build_make.COLLAPSE_FROM
+    found = [e for e in build_make.exclusions(fall) if e["kind"] == "collapse" and e["party"] == party
+             and e["b"] == by and e["metro"] == code]
+    assert len(found) == 1 and found[0]["excludes"] == party
+    after = build_make.allowances(fall, build_make.exclusions(fall))["ward"]["events"]
+    assert key not in {(e["round"], e["key"], e["direction"], e["new"]) for e in after}
+    # reverted: the real panel's events again
+    assert build_make.allowances(panel, build_make.exclusions(panel)) == allow
+    # the shape: a later election with a lower winning share
+    per_year = b["shape"]["per_year"]
+    low = min(v["q_win"]["value"] for v in per_year.values())
+    later = dict(per_year, **{"2099": {**per_year[max(per_year)],
+                                      "q_win": {"value": low - 0.03, "file": "constructed", "ward": "1"}}})
+    got = build_make.shape_allowances(later)["q_win"]["events"]
+    assert [e["round"] for e in got if e not in b["shape"]["allowance"]["q_win"]["events"]] == ["2099"]
+    assert json.loads(json.dumps(build_make.shape_allowances(per_year))) == b["shape"]["allowance"]
+    # one event keeps EDITOR_WIDEN_PP; a second makes it the mean
+    def year(q_win):
+        return {"q_win": {"value": q_win}, "q_run": {"value": 0.4},
+                "gap_min": {"value": -1.0}, "gap_max": {"value": 2.0}}
+    one = build_make.shape_allowances({"a": year(0.30), "b": year(0.28)})["q_win"]
+    assert len(one["events"]) == 1 and one["value"] == fallback
+    two = build_make.shape_allowances({"a": year(0.30), "b": year(0.28), "c": year(0.24)})["q_win"]
+    assert len(two["events"]) == 2 and math.isclose(two["value"], 0.03)
 
 
 def test_the_data_file_is_the_one_the_build_writes():

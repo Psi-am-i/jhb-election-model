@@ -132,7 +132,10 @@ those canonicalise names on read (``fold.load``) or keep no per-ward tally
 (``validate_seats``), so neither can refuse an unmapped IEC name or see a
 tied ward. It reads the four columns scoring needs and, for
 ``build_make.editor_bounds`` (``roll=True``), the three that carry each VD's
-ward and roll: one reader of the cleaned layout, not a second.
+ward and roll, and (``vd_votes=True``) each VD's ward-ballot votes per party:
+one reader of the cleaned layout, not a second. :func:`_read_npe` beside it
+reads the one-ballot national layout (no ``BallotType``, no ward) for the
+editor's national prior (``build_make.npe_priors``).
 """
 
 from __future__ import annotations
@@ -231,25 +234,33 @@ def certified_roster(city: str, target: str) -> list[str]:
 ROLL_COLUMNS = ("VD_Number", "Registered_Population", "Total_Valid_Votes")
 
 
-def _read_rows(path: Path, *, roll: bool = False):
-    """``(ward_votes, pr_votes, names, vd_roll)`` from a cleaned IEC VD-level file.
+def _read_rows(path: Path, *, roll: bool = False, vd_votes: bool = False):
+    """``(ward_votes, pr_votes, names, vd_roll, vd_ward_votes)`` from a cleaned
+    IEC VD-level file.
 
     ``ward_votes`` is ``{mdb ward: {IEC name: votes}}`` on the ward ballot;
     ``pr_votes`` is ``{IEC name: votes}`` on the PR ballot. ``vd_roll`` is
     ``{vd: (mdb ward, registered, valid ward-ballot votes)}`` from each VD's
     ward-ballot rows when ``roll`` is true (the :data:`ROLL_COLUMNS` are then
     required, and a VD whose ward rows disagree on any of the three is
-    refused), else ``None``.
+    refused), else ``None``. ``vd_ward_votes`` is ``{vd: {IEC name: votes}}``
+    on the ward ballot when ``vd_votes`` is true (``VD_Number`` is then
+    required), else ``None``: what ``build_make`` joins onto another
+    election's wards through each VD.
     """
     ward_votes: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     pr_votes: dict[str, int] = defaultdict(int)
     names: set[str] = set()
     vd_roll: dict[str, tuple[str, int, int]] | None = {} if roll else None
+    by_vd: dict[str, dict[str, int]] | None = \
+        defaultdict(lambda: defaultdict(int)) if vd_votes else None
     with Path(path).open(encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         need = {"Ward", "BallotType", "sPartyName", "Party_Votes"}
         if roll:
             need |= set(ROLL_COLUMNS)
+        if vd_votes:
+            need.add("VD_Number")
         missing = need - set(reader.fieldnames or ())
         if missing:
             raise ValueError(f"{path}: not a cleaned IEC VD result file; "
@@ -260,6 +271,8 @@ def _read_rows(path: Path, *, roll: bool = False):
             names.add(name)
             if ballot == "WARD":
                 ward_votes[row["Ward"].strip()][name] += votes
+                if vd_votes:
+                    by_vd[row["VD_Number"].strip()][name] += votes
                 if roll:
                     vd = row["VD_Number"].strip()
                     raw = str(row["Registered_Population"]).strip()
@@ -276,7 +289,28 @@ def _read_rows(path: Path, *, roll: bool = False):
                 pr_votes[name] += votes
             else:
                 raise ValueError(f"{path}: unknown BallotType {ballot!r}")
-    return ward_votes, dict(pr_votes), names, vd_roll
+    vd_ward = None if by_vd is None else {vd: dict(c) for vd, c in by_vd.items()}
+    return ward_votes, dict(pr_votes), names, vd_roll, vd_ward
+
+
+def _read_npe(path: Path) -> dict[str, dict[str, int]]:
+    """``{vd: {IEC name: votes}}`` from a national (NPE) VD-level file: one
+    ballot, no ``BallotType`` and no ward. A file carrying ``BallotType`` is a
+    local file and is refused, as is one missing a column the read needs."""
+    by_vd: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    with Path(path).open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        fields = set(reader.fieldnames or ())
+        if "BallotType" in fields:
+            raise ValueError(f"{path}: carries BallotType, so it is not a "
+                             f"one-ballot national file")
+        missing = {"VD_Number", "sPartyName", "Party_Votes"} - fields
+        if missing:
+            raise ValueError(f"{path}: not an IEC national VD result file; "
+                             f"missing columns {sorted(missing)}")
+        for row in reader:
+            by_vd[row["VD_Number"].strip()][row["sPartyName"]] += int(row["Party_Votes"])
+    return {vd: dict(c) for vd, c in by_vd.items()}
 
 
 def ingest_result(path, *, city: str, target: str, roster, aliases=None,
@@ -300,7 +334,7 @@ def ingest_result(path, *, city: str, target: str, roster, aliases=None,
 
     city_cfg = cityconfig.load(city)
     roster_codes = list(dict.fromkeys(P.canonical(r) for r in roster))
-    ward_raw, pr_raw, names, _roll = _read_rows(path)
+    ward_raw, pr_raw, names, _roll, _vd = _read_rows(path)
     codes = name_map(names, roster_codes, aliases)
 
     # Ward winners, on canonical codes (two IEC strings of one party add up).

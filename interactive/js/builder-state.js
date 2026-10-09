@@ -27,17 +27,31 @@
 // may lie outside them and still opens (outOfBounds names who). Each
 // out-of-bounds value is clamped when it is next edited: every ward vote by
 // the next change to any ward vote or ward call (setWardPercent rescales the
-// others inside their ranges; clampToBounds after a change of calls), a list
+// others inside their limits; clampToBounds after a change of calls), a list
 // vote outside its gap range only when that party's gap is next set
 // (setListGap; listFollow keeps a gap that is already outside where it is,
-// never further out). For the
-// calls on the map, with e[w] each ward's share of the expected ward vote:
-//   won_e[P]   = sum of e[w] over the wards P is called for
-//   floor[P]   = q_win * won_e[P] of the ward ballot, and one vote if P wins a ward
-//   ceiling[P] = won_e[P] + q_run * (1 - won_e[P]) of the ward ballot
-// a bound on the citywide ward vote, each ward treated alone; and each party's
-// list share minus its ward share stays within [gap_min, gap_max] points.
-// Every number is read from the schema; none is typed here.
+// never further out). Every number is read from the schema; none is typed
+// here. For the calls on the map (slice B2a, SPEC-B2r2 §4-§5):
+//   * each ward w and party P has a RANGE for P's share of w's ward vote:
+//     ward_ranges[w][P] where P has a prior in w, else party_ranges[P]
+//     (wardCell). The painted winner holds at least q_win of the ward, every
+//     other party at most q_run (the shape).
+//   * wardRange gives, in closed form, the least and greatest share each
+//     party can hold in a ward whose winner is W, with every share in its
+//     range, the shares summing to one and W at least each other party. A
+//     ward whose ranges no share vector satisfies falls back to the shape
+//     alone, and is named (the fallback).
+//   * boxOf sums those least and greatest shares over the wards, weighted by
+//     e[w], each ward's share of the expected ward vote: the BOX.
+//   * limits intersects the box with each party's CITYWIDE LIMIT
+//     (city_limits). Where they do not meet, the map wins: the party is held
+//     at its box (a conflict, named). Where the floors sum past the whole
+//     ballot, or the ceilings fall short of it, the citywide parts are eased
+//     in proportion until they fit.
+//   * wardLimits turns the limits into whole votes of the state's own ward
+//     total, a ward winner keeping one vote (R1).
+// Each party's list share minus its ward share stays within [gap_min,
+// gap_max] points.
 //
 // THE LIST FOLLOWS THE WARD: a party's list share is its ward share plus its
 // own gap. Setting a ward vote rescales the others' ward votes inside their
@@ -57,14 +71,53 @@ export function contextOf(schema) {
     throw new Error("the editor bounds' wards are not the schema's wards");
   for (const k of ["q_win", "q_run", "gap_min", "gap_max"])
     if (!Number.isFinite(bounds[k])) throw new Error("the editor bounds have no " + k);
+  const codes = seat.parties.slice();
+  const range = (name, r) => {
+    if (!r || !Number.isFinite(r.lo) || !Number.isFinite(r.hi) || r.lo > r.hi)
+      throw new Error("the editor bounds' " + name + " is not a range");
+    return [r.lo, r.hi];
+  };
+  const byRoster = name => {
+    const m = bounds[name];
+    if (!m || typeof m !== "object") throw new Error("the editor bounds have no " + name);
+    const keys = Object.keys(m);
+    if (keys.length !== codes.length || !codes.every(c => Object.prototype.hasOwnProperty.call(m, c)))
+      throw new Error("the editor bounds' " + name + " are not keyed by exactly the roster");
+    return codes.map(c => range(name + " of " + c, m[c]));
+  };
+  const party = byRoster("party_ranges"), city = byRoster("city_limits");
+  for (const c of codes)
+    if (!["local", "national", "newcomer"].includes(bounds.city_limits[c].kind))
+      throw new Error("the editor bounds' city_limits of " + c + " name no kind of history");
+  const cells = bounds.ward_ranges;
+  if (!cells || typeof cells !== "object") throw new Error("the editor bounds have no ward_ranges");
+  for (const w of Object.keys(cells)) {
+    if (!seat.wards.includes(w)) throw new Error("the editor bounds' ward_ranges name a ward not on the map: " + w);
+    for (const c of Object.keys(cells[w]))
+      if (!codes.includes(c)) throw new Error("the editor bounds' ward_ranges name a party off the roster: " + c);
+  }
+  // each ward's base ranges, party by party in roster order (wardCell)
+  const base = seat.wards.map(w => {
+    const lo = [], hi = [];
+    codes.forEach((c, k) => {
+      const r = cells[w] && cells[w][c] ? cells[w][c] : party[k];
+      if (!Array.isArray(r) || !Number.isFinite(r[0]) || !Number.isFinite(r[1]) || r[0] > r[1])
+        throw new Error("the editor bounds' range of " + c + " in ward " + w + " is not a range");
+      lo.push(r[0]); hi.push(r[1]);
+    });
+    return { lo, hi };
+  });
   return {
-    codes: seat.parties.slice(),
+    codes,
     wards: seat.wards.slice(),
     noList: new Set(seat.no_pr_list),
     model_ref: schema.properties.model_ref.enum[0],
     v: String(schema.properties.v.const),       // the entry version; make-state.js FORMAT must equal it
     bounds: { e: seat.wards.map(w => bounds.e[w]), q_win: bounds.q_win, q_run: bounds.q_run,
-              gap_min: bounds.gap_min, gap_max: bounds.gap_max },
+              gap_min: bounds.gap_min, gap_max: bounds.gap_max, base,
+              city: { lo: city.map(r => r[0]), hi: city.map(r => r[1]),
+                      // which history each limit comes from: "local", "national" or "newcomer"
+                      kind: Object.fromEntries(codes.map(c => [c, bounds.city_limits[c].kind])) } },
   };
 }
 
@@ -96,24 +149,171 @@ export function seatedIn(seats, order = Object.keys(seats || {})) {
 const sum = m => Object.values(m).reduce((a, b) => a + b, 0);
 export const totalOf = (state, ballot) => sum(ballot === "ward" ? state.ward : state.list);
 
-// Each party's share of the expected ward vote of the wards it is called for.
-function wonE(calls, ctx) {
-  const won = Object.fromEntries(ctx.codes.map(c => [c, 0]));
-  calls.forEach((c, i) => { won[c] += ctx.bounds.e[i]; });
-  return won;
+// The float tolerance of the closed form below: a comparison of two sums of
+// shares, not a bound.
+const EPS = 1e-12;
+
+// The least sigma >= a with sigma + sum(min(hi_q, sigma)) >= 1: the least the
+// winner can hold when every other party is capped at the winner's share.
+function sigmaMin(a, his) {
+  const g = x => his.reduce((t, h) => t + Math.min(h, x), x);
+  if (g(a) >= 1) return a;
+  const pts = his.filter(h => h > a).sort((x, y) => x - y);
+  let lo = a;
+  for (const b of [...pts, 1]) {
+    if (g(b) >= 1) return lo + (1 - g(lo)) / (1 + his.filter(h => h > lo).length);
+    lo = b;
+  }
+  return 1;
 }
 
-// The editor's bounds on each party's WARD votes, in votes of the state's
-// own ward total: { floor: {code: n}, ceil: {code: n} } (module comment).
-export function wardBounds(calls, ctx, wardTotal) {
-  const won = wonE(calls, ctx), held = wardCounts(calls);
-  const { q_win, q_run } = ctx.bounds;
-  const floor = {}, ceil = {};
-  for (const c of ctx.codes) {
-    floor[c] = Math.max(Math.ceil(q_win * won[c] * wardTotal), held[c] ? 1 : 0);
-    ceil[c] = Math.max(floor[c], Math.floor((won[c] + q_run * (1 - won[c])) * wardTotal));
+// One ward whose painted winner is party index W, each party k's share in
+// [lo[k], hi[k]], the shares summing to one and W's at least each other's:
+// { ok, min, max }, the least and greatest share each party can hold there
+// (arrays in roster order), or { ok: false } when no share vector fits. The
+// closed form of SPEC-B2 §3, checked against vertex enumeration in
+// interactive/tests/builder.test.mjs.
+export function wardRange(lo, hi, W) {
+  const n = lo.length, oth = [];
+  for (let k = 0; k < n; k++) if (k !== W) oth.push(k);
+  const L = oth.reduce((t, k) => t + lo[k], 0);
+  const his = oth.map(k => hi[k]);
+  const a = oth.reduce((m, k) => Math.max(m, lo[k]), lo[W]);
+  const smax = Math.min(hi[W], 1 - L);
+  const smin = sigmaMin(a, his);
+  if (smin > smax + EPS) return { ok: false };
+  const capmax = oth.reduce((t, k) => t + Math.min(hi[k], smax), 0);
+  // the two largest lower bounds among the others, for "the rest" of each
+  let top = -1, second = -1;
+  for (const k of oth) {
+    if (top < 0 || lo[k] > lo[top]) { second = top; top = k; } else if (second < 0 || lo[k] > lo[second]) second = k;
   }
-  return { floor, ceil };
+  const min = new Array(n), max = new Array(n);
+  min[W] = smin; max[W] = smax;
+  for (const p of oth) {
+    const Lp = L - lo[p];
+    const other = p === top ? second : top;
+    const restLo = Math.max(lo[W], other < 0 ? lo[W] : lo[other]);
+    min[p] = Math.max(lo[p], 1 - smax - (capmax - Math.min(hi[p], smax)));
+    let best = lo[p];
+    const sStar = Math.min(Math.max((1 - Lp) / 2, restLo), hi[W]);
+    const u = Math.min(hi[p], sStar, 1 - sStar - Lp);
+    if (u >= lo[p]) {
+      const sig = Math.max(Math.min(hi[W], 1 - u - Lp), restLo, u);
+      const rest = oth.reduce((t, k) => t + (k === p ? 0 : Math.min(hi[k], sig)), 0);
+      if (sig + u + rest >= 1 - EPS && sig <= hi[W] + EPS) best = u;
+      else best = Math.min(Math.max(lo[p], 1 - sig - rest), hi[p], sig);
+    }
+    max[p] = Math.max(best, min[p]);
+  }
+  return { ok: true, min, max };
+}
+
+// Ward i's ranges when party index W is painted there: its base ranges with
+// the shape applied (W at least q_win, every other party at most q_run), or,
+// when those leave no share vector, the shape alone (fallback: true).
+// { lo, hi, fallback, min, max }.
+function wardCell(ctx, i, W) {
+  const { q_win, q_run, base } = ctx.bounds;
+  const lo = base[i].lo.slice(), hi = base[i].hi.map((h, k) => (k === W ? h : Math.min(h, q_run)));
+  lo[W] = Math.max(lo[W], q_win);
+  let r = wardRange(lo, hi, W);
+  if (r.ok) return { lo, hi, fallback: false, min: r.min, max: r.max };
+  const flo = lo.map(() => 0), fhi = hi.map(() => q_run);
+  flo[W] = q_win; fhi[W] = 1;
+  r = wardRange(flo, fhi, W);
+  if (!r.ok) throw new Error("ward " + ctx.wards[i] + " has no share vector even under the shape alone");
+  return { lo: flo, hi: fhi, fallback: true, min: r.min, max: r.max };
+}
+
+// Each (ward, winner) is computed once per context: a paint stroke
+// recomputes only the wards it repaints.
+const CELLS = new WeakMap();
+function cellOf(ctx, i, W) {
+  let m = CELLS.get(ctx);
+  if (!m) { m = new Map(); CELLS.set(ctx, m); }
+  const key = i * ctx.codes.length + W;
+  if (!m.has(key)) m.set(key, wardCell(ctx, i, W));
+  return m.get(key);
+}
+
+// The per-party BOX for the calls on the map: { floor, ceil } in shares of the
+// ward ballot, each the sum over the wards of e[w] times the least (greatest)
+// share the party can hold there; fallback: [{ ward, code }] for each painted
+// ward that uses the shape alone.
+export function boxOf(calls, ctx) {
+  const n = ctx.codes.length, e = ctx.bounds.e;
+  const floor = new Array(n).fill(0), ceil = new Array(n).fill(0), fallback = [];
+  calls.forEach((c, i) => {
+    const W = ctx.codes.indexOf(c);
+    if (W < 0) throw new Error("not on the roster: " + c);
+    const cell = cellOf(ctx, i, W);
+    if (cell.fallback) fallback.push({ ward: ctx.wards[i], code: c });
+    for (let k = 0; k < n; k++) { floor[k] += e[i] * cell.min[k]; ceil[k] += e[i] * cell.max[k]; }
+  });
+  return { floor: Object.fromEntries(ctx.codes.map((c, k) => [c, floor[k]])),
+           ceil: Object.fromEntries(ctx.codes.map((c, k) => [c, ceil[k]])), fallback };
+}
+
+// The editor's limits on each party's share of the ward ballot for the calls
+// on the map: the box intersected with the citywide limit (module comment).
+// { lo, hi: {code: share}, bind: {code: { floor, ceil }} ("box" or "city":
+// which side sets each), conflict: [{ code, side }] (side "floor": its wards
+// need more than its citywide limit allows; "ceiling": they leave it less),
+// eased: null | "floors" | "ceilings", fallback, box }.
+export function limits(calls, ctx) {
+  const box = boxOf(calls, ctx);
+  const city = ctx.bounds.city;
+  const lo = {}, hi = {}, bind = {}, conflict = [];
+  ctx.codes.forEach((c, k) => {
+    const bf = box.floor[c], bc = box.ceil[c], cl = city.lo[k], ch = city.hi[k];
+    let a = Math.max(bf, cl), b = Math.min(bc, ch);
+    bind[c] = { floor: cl > bf ? "city" : "box", ceil: ch < bc ? "city" : "box" };
+    if (a > b) {
+      conflict.push({ code: c, side: bf > ch ? "floor" : "ceiling" });
+      a = bf; b = Math.max(bf, Math.min(bc, ch));
+      bind[c] = { floor: "box", ceil: "box" };
+    }
+    lo[c] = a; hi[c] = b;
+  });
+  const sum = m => ctx.codes.reduce((t, c) => t + m[c], 0);
+  let eased = null;
+  const over = sum(lo) - 1;
+  if (over > 0) {
+    // the citywide parts of the floors, eased in proportion until they fit
+    const room = ctx.codes.reduce((t, c) => t + (lo[c] - box.floor[c]), 0);
+    const k = room > 0 ? Math.max(0, 1 - over / room) : 0;
+    for (const c of ctx.codes) lo[c] = box.floor[c] + k * (lo[c] - box.floor[c]);
+    eased = "floors";
+  }
+  const under = 1 - sum(hi);
+  if (under > 0) {
+    const room = ctx.codes.reduce((t, c) => t + (box.ceil[c] - hi[c]), 0);
+    const k = room > 0 ? Math.max(0, 1 - under / room) : 0;
+    for (const c of ctx.codes) hi[c] = box.ceil[c] - k * (box.ceil[c] - hi[c]);
+    eased = eased ? "both" : "ceilings";
+  }
+  return { lo, hi, bind, conflict, eased, fallback: box.fallback, box };
+}
+
+// The limits in whole votes of a ward total `wardTotal`: { floor, ceil:
+// {code: n} } and the rest of limits(). A ward winner keeps one vote (R1);
+// rounding never leaves the floors above the total or the ceilings below it.
+export function wardLimits(calls, ctx, wardTotal) {
+  const L = limits(calls, ctx), held = wardCounts(calls);
+  const floor = {}, ceil = {}, least = {};
+  for (const c of ctx.codes) {
+    least[c] = held[c] ? 1 : 0;
+    floor[c] = Math.min(wardTotal, Math.max(Math.ceil(L.lo[c] * wardTotal), least[c]));
+    ceil[c] = Math.max(floor[c], Math.min(wardTotal, Math.floor(L.hi[c] * wardTotal)));
+  }
+  const total = m => ctx.codes.reduce((t, c) => t + m[c], 0);
+  if (total(least) > wardTotal) throw new Error("the ward winners need more votes than the ward ballot holds");
+  for (let spare = total(floor) - wardTotal; spare > 0;)
+    for (const c of ctx.codes) if (spare > 0 && floor[c] > least[c]) { floor[c] -= 1; spare -= 1; }
+  for (let short = wardTotal - total(ceil); short > 0;)
+    for (const c of ctx.codes) if (short > 0 && ceil[c] < wardTotal) { ceil[c] += 1; short -= 1; }
+  return { ...L, floor, ceil };
 }
 
 // A party's list share minus its ward share, in points.
@@ -196,13 +396,14 @@ function listFollow(calls, prev, ward, ctx) {
 }
 
 // Set one party's ward vote, as a percent of the ward ballot. The target is
-// clamped to the party's bounds (and to what the others' bounds leave); the
-// others' ward votes are rescaled inside their bounds, and every list vote
-// follows its party's ward share. Returns { state, clamped: null|"floor"|"ceiling", which }.
+// clamped to the party's limits (and to what the others' limits leave); the
+// others' ward votes are rescaled inside their limits, and every list vote
+// follows its party's ward share. Returns { state, clamped: null|"floor"|"ceiling",
+// which, by: null|"box"|"city"|"others" (what set the clamp) }.
 export function setWardPercent(state, ctx, code, pct) {
   if (!ctx.codes.includes(code)) throw new Error("not on the roster: " + code);
   const Tw = totalOf(state, "ward");
-  const { floor, ceil } = wardBounds(state.calls, ctx, Tw);
+  const { floor, ceil, bind } = wardLimits(state.calls, ctx, Tw);
   const others = ctx.codes.filter(c => c !== code);
   const lo = Math.max(floor[code], Tw - others.reduce((a, c) => a + ceil[c], 0));
   const hi = Math.min(ceil[code], Tw - others.reduce((a, c) => a + floor[c], 0));
@@ -212,7 +413,9 @@ export function setWardPercent(state, ctx, code, pct) {
   const ward = Object.fromEntries(ctx.codes.map(c => [c, c === code ? v : rest[c]]));
   const list = listFollow(state.calls, state, ward, ctx);
   const clamped = v !== want ? (want < v ? "floor" : "ceiling") : null;
-  return { state: { calls: state.calls, ward, list }, clamped, which: clamped ? code : null };
+  const by = !clamped ? null : clamped === "floor" ? (v > floor[code] ? "others" : bind[code].floor)
+    : (v < ceil[code] ? "others" : bind[code].ceil);
+  return { state: { calls: state.calls, ward, list }, clamped, which: clamped ? code : null, by };
 }
 
 // Set one party's list vote as its ward share plus `points`. The points are
@@ -254,20 +457,21 @@ export function setListGap(state, ctx, code, points) {
   return { state: { calls: state.calls, ward: { ...state.ward }, list }, clamped };
 }
 
-// Bring every party's ward vote inside its bounds for the calls on the map
+// Bring every party's ward vote inside its limits for the calls on the map
 // (others rescaled), the list following; and give a ward winner the one ward
-// and list vote R1 and R2 need. Returns { state, moved }: the codes whose ward
-// vote was outside its bounds, for the page's note.
+// and list vote R1 and R2 need. Returns { state, moved, conflict, fallback,
+// eased }: the codes whose ward vote was outside its limits, and limits()'
+// conflicts, fallback wards and easing for the calls, for the page's note.
 export function clampToBounds(state, ctx) {
   const Tw = totalOf(state, "ward");
-  const { floor, ceil } = wardBounds(state.calls, ctx, Tw);
+  const { floor, ceil, conflict, fallback, eased } = wardLimits(state.calls, ctx, Tw);
   const moved = ctx.codes.filter(c => state.ward[c] < floor[c] || state.ward[c] > ceil[c]);
   const mins = lawBounds(state.calls, ctx, totalOf(state, "list")).mins;
   if (!moved.length && ctx.codes.every(c => state.list[c] >= mins[c]))
-    return { state: { calls: state.calls, ward: { ...state.ward }, list: { ...state.list } }, moved };
+    return { state: { calls: state.calls, ward: { ...state.ward }, list: { ...state.list } }, moved, conflict, fallback, eased };
   const ward = moved.length ? apportion(ctx.codes, state.ward, Tw, floor, ceil) : { ...state.ward };
   const list = listFollow(state.calls, state, ward, ctx);
-  return { state: { calls: state.calls, ward, list }, moved };
+  return { state: { calls: state.calls, ward, list }, moved, conflict, fallback, eased };
 }
 
 // Give wards to a party, then clampToBounds.
@@ -346,12 +550,12 @@ export function handoffResult(h, ctx) {
 
 // The parties outside the editor's bounds: [{ code, ballot, kind, have, bound }],
 // `have` and `bound` in votes for the ward ballot and in points for a gap. Not
-// an error: such a state is valid. A ward vote outside its range is clamped by
-// the next change to any ward vote or call; a gap, when that party's gap is
+// an error: such a state is valid. A ward vote outside its limits is clamped
+// by the next change to any ward vote or call; a gap, when that party's gap is
 // next set (module comment).
 export function outOfBounds(state, ctx) {
   const Tw = totalOf(state, "ward");
-  const { floor, ceil } = wardBounds(state.calls, ctx, Tw);
+  const { floor, ceil } = wardLimits(state.calls, ctx, Tw);
   const { gap_min, gap_max } = ctx.bounds;
   const out = [];
   for (const c of ctx.codes) {

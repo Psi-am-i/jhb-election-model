@@ -497,16 +497,35 @@ function paintWard(i) {
     one.hint.textContent = "That ward could not be given to " + name(S.brush) + ": the votes would not fit the map. Try another ward or party.";
     return;
   }
-  commit(r.state, movedNote(r.moved));
+  commit(r.state, mapNote(r));
 }
 window.addEventListener("pointerup", () => { strokeOpen = false; });
 one.svg.addEventListener("keyup", () => { strokeOpen = false; });
 
-// The parties whose ward vote a change of calls moved into its new range.
-function movedNote(moved) {
-  if (!moved.length) return "";
-  return moved.map(name).join(", ") + (moved.length === 1 ? "'s ward vote was" : "'s ward votes were") +
-    " moved to fit the wards on your map: a party's ward vote follows the wards it wins.";
+// What a change of calls did to the ward votes (builder-state.js
+// clampToBounds): the parties it moved into their new limits, the parties
+// whose wards and citywide limit do not meet (the map wins), the painted
+// wards no past result fits (only the general ward rule applies there), and
+// citywide limits loosened so the ward vote can add up (SPEC-B2 §4,
+// SPEC-B2r2 §5).
+const FALLBACK_NAMED = 5;  // presentation: how many wards the note names before "and N more"
+function mapNote(r) {
+  const out = [];
+  const moved = r.moved || [];
+  if (moved.length) out.push(moved.map(name).join(", ") + (moved.length === 1 ? "'s ward vote was" : "'s ward votes were") +
+    " moved to fit the wards on your map: a party's ward vote follows the wards it wins.");
+  for (const { code, side } of r.conflict || [])
+    out.push(name(code) + "'s wards on your map " + (side === "floor" ? "need more" : "leave it less") +
+      " of the ward vote than past elections give it. Its range follows the map.");
+  const fb = r.fallback || [];
+  if (fb.length) {
+    const named = fb.slice(0, FALLBACK_NAMED).map(f => "ward " + f.ward + " (" + name(f.code) + ")").join(", ");
+    const more = fb.length > FALLBACK_NAMED ? " and " + (fb.length - FALLBACK_NAMED) + " more" : "";
+    out.push("No past result has these winners winning there: " + named + more + "." +
+      " There, the winner needs only the lowest winning share on record, and every other party can hold up to the highest runner-up share on record.");
+  }
+  if (r.eased) out.push("On this map the parties' citywide limits do not all fit in one ward ballot, so they were loosened evenly until they do.");
+  return out.join(" ");
 }
 // A prediction from a link, a hand-off or a friend that lies outside the
 // editor's range opens as it is, and the note names who. Each value outside
@@ -534,7 +553,7 @@ function setCallsFrom(calls) {
   if (locked) return;
   snapshot();
   const r = B.setCalls(state, ctx, calls);
-  commit(r.state, movedNote(r.moved));
+  commit(r.state, mapNote(r));
 }
 
 // The brush: a chip for each of the parties with the most seats in the
@@ -617,7 +636,7 @@ function buildList() {
       s.addEventListener("change", () => {
         snapshot();
         const r = B.assignWards(state, ctx, [i], s.value);
-        commit(r.state, movedNote(r.moved));
+        commit(r.state, mapNote(r));
       });
       const got = analysed ? analysed.wards[ctx.wards[i]] : null;
       rows.push(el("tr", {}, el("th", { scope: "row" }, "Ward " + w.id),
@@ -666,9 +685,15 @@ one.undo.addEventListener("click", () => {
 // start's, fixed for the page, so a row never moves under the reader's
 // finger; finding a party opens the second list. The percent boxes are text
 // with a decimal keypad: no spinner. The slider's ends follow the party's
-// range for the wards on the map (builder-state.js wardBounds), so the reader
-// sees the range move as they paint.
+// limits for the wards on the map (builder-state.js wardLimits: what its
+// wards allow, inside its citywide limit), so the reader sees the range move
+// as they paint.
 const rows = {};
+// The percent each row's box last showed (paintShares). Enter edits a box and
+// then the browser fires "change" with the value the edit painted back; that
+// second call is no edit, and answering it would clear the note the first
+// one wrote (check step of slice B2a, 2026-10-09).
+const shown = {};
 let rest;
 function buildVote() {
   const start = D.start.seats;
@@ -699,7 +724,7 @@ function buildVote() {
       editables.push(gap);
     }
     const row = el("div", { className: "prrow" }, ...parts);
-    num.addEventListener("change", () => editShare(c, num.value, true, null));
+    num.addEventListener("change", () => { if (num.value !== shown[c]) editShare(c, num.value, true, null); });
     num.addEventListener("keydown", e => { if (e.key === "Enter") editShare(c, num.value, true, null); });
     rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
     rng.addEventListener("change", () => editShare(c, rng.value, true, null));
@@ -721,15 +746,17 @@ one.prfind.addEventListener("input", () => {
 const signed1 = x => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(1);
 function paintShares(except = null) {
   const Tw = B.totalOf(state, "ward"), Tl = B.totalOf(state, "list");
-  const { floor, ceil } = B.wardBounds(state.calls, ctx, Tw);
+  const { floor, ceil, bind } = B.wardLimits(state.calls, ctx, Tw);
+  const what = side => (side === "box" ? "its wards allow." : "past results allow.");
   for (const c of alpha) {
     const v = state.ward[c], r = rows[c], p = v / Tw * 100;
-    if (r.num !== except) r.num.value = p.toFixed(1);
+    if (r.num !== except) r.num.value = shown[c] = p.toFixed(1);
     if (r.rng !== except) r.rng.value = p.toFixed(1);
     r.rng.setAttribute("min", (floor[c] / Tw * 100).toFixed(1));
     r.rng.setAttribute("max", (ceil[c] / Tw * 100).toFixed(1));
     r.rng.setAttribute("aria-valuetext", pct(v, Tw) + " percent of the ward vote");
-    r.fl.textContent = floor[c] && v <= floor[c] ? "At the least its wards allow." : v >= ceil[c] ? "At the most its wards allow." : "";
+    r.fl.textContent = floor[c] && v <= floor[c] ? "At the least " + what(bind[c].floor)
+      : v >= ceil[c] ? "At the most " + what(bind[c].ceil) : "";
     if (r.gap) {
       const g = B.gapOf(state, ctx, c);
       if (document.activeElement !== r.gap) r.gap.value = signed1(g);
@@ -746,13 +773,27 @@ function editShare(c, raw, final, active) {
   if (openEdit !== c) { snapshot(); openEdit = c; }
   if (final) openEdit = null;
   const r = B.setWardPercent(state, ctx, c, want);
+  const at = pct(r.state.ward[c], B.totalOf(r.state, "ward"));
+  const lower = r.clamped === "floor";
+  // why the citywide limit stops it, by the history the limit comes from
+  const history = {
+    local: "no party in past local elections moved that far from its previous result.",
+    national: "no party new to local elections moved that far from its last national result.",
+    newcomer: "this party has no previous local result, and no party new to a city has taken more in past local elections.",
+  };
   let note = "";
-  if (r.clamped === "floor") {
-    const Tw = B.totalOf(state, "ward");
-    note = name(c) + "'s ward vote cannot go below " + pct(B.wardBounds(state.calls, ctx, Tw).floor[c], Tw) +
-      "% with the wards it wins on your map. Give its wards to other parties to take it lower.";
+  if (r.by === "others") {
+    note = name(c) + "'s ward vote cannot go " + (lower ? "lower" : "higher") +
+      ": the other parties are at the limits of their own ward votes.";
+  } else if (r.by === "city") {
+    note = name(c) + "'s ward vote cannot go " + (lower ? "below " : "above ") + at + "%: " +
+      history[ctx.bounds.city.kind[c]];
+  } else if (lower) {
+    note = name(c) + "'s ward vote cannot go below " + at +
+      "% with the wards it wins on your map and their past results. Give its wards to other parties to take it lower.";
   } else if (r.clamped === "ceiling") {
-    note = name(c) + " cannot pass the winner in wards it does not win, so its ward vote cannot go higher. Give it more wards to take it higher.";
+    note = name(c) + "'s ward vote cannot go above " + at + "% with the wards on your map: it cannot pass the winner" +
+      " in a ward it does not win, nor go past what each ward's past results allow. Give it more wards to take it higher.";
   }
   state = r.state;
   one.floornote.textContent = note;
@@ -773,7 +814,7 @@ one.prmodel.addEventListener("click", () => {
   if (locked) return;
   snapshot();
   const r = B.setCalls({ calls: state.calls, ward: { ...from.ward }, list: { ...from.list } }, ctx, state.calls);
-  commit(r.state, movedNote(r.moved));
+  commit(r.state, mapNote(r));
 });
 
 // ---------- recompute ----------
@@ -988,9 +1029,9 @@ function paintAnalysis(a) {
   // citywide: each party's seats and vote beside its chance
   const sb = a.seat_band, pb = a.share_band;
   const head = el("tr", { className: "yf-wide" }, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
-    el("th", { scope: "col", className: "num" }, "Our chance, within " + sb + " seats"),
+    el("th", { scope: "col", className: "num" }, "The odds we give this*"),
     el("th", { scope: "col", className: "num" }, "Your list vote"),
-    el("th", { scope: "col", className: "num" }, "Our chance, within " + pb + " points (list ballot)"));
+    el("th", { scope: "col", className: "num" }, "The odds we give this†"));
   const seats = result.seats, share = B.percentOf(state, ctx, "list");
   const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
   // two layouts of the same cells (css/your-forecast.css): one row per party,
@@ -1012,8 +1053,10 @@ function paintAnalysis(a) {
   ]);
   const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
     el("th", { scope: "col", className: "num" }, "Yours"),
-    el("th", { scope: "col", className: "num" }, "Our chance, within " + sb + " seats, or " + pb + " points (list ballot)"));
-  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)));
+    el("th", { scope: "col", className: "num" }, "The odds we give this*†"));
+  // the caveat the two odds columns carry, once, under the table
+  const caveat = el("p", { className: "yf-alegend" }, "* Within " + sb + " seats of yours. † Within " + pb + " points of yours, on the list ballot.");
+  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)), caveat);
   // the totals, every party added up
   one.sseats.replaceChildren(el("b", {}, "All seats: "), "we expect your seat counts to be off by " + Math.round(sc.seat_error) +
     " in total across the parties, and give " + aChance(sc.seat_error_within.text) + " that they are off by " + sc.within + " or fewer.");
