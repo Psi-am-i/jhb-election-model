@@ -1109,3 +1109,15 @@ a finding:
   which §5's window list did not name and should.
 
 `test_intermediates_are_current` stays green: it does not key on `levels.py`.
+
+### R3.6, step 4 addendum (writer, 2026-10-09)
+
+Step 4 changes `src/pools.py` code (item 9 rows 4-8), so every spec's
+`pools_sha` now moves as well as its `deps_sha`. The same tests are red for
+that second cause; no new test joins the list. Emitted specs still carry a
+`seed_bands` field until the re-emit, which nothing reads.
+
+`test_levers_are_live::test_no_function_argument_is_accepted_and_never_used`
+is red on `build_make.npe_priors(wards)`, a parameter introduced by slice B2a
+(8dffae8) and untouched by this batch. It is not a stale-spec failure and not
+this batch's; it is reported to the coordinator, not fixed here.

@@ -116,10 +116,9 @@ arithmetic test can see.
 | 0.015 | `polling.SIGMA_COMMON`, `polling.SIGMA_IDIO`, `pools.ROSTER_DROP_CEILING` |
 | 0.02 | `build_make.COLLAPSE_FROM`, `montecarlo.TURNOUT_DRAW_FLOOR`, `polling.POLL_SCREEN_SD_UNDISCLOSED`, `scenarios.EXCESSIVE_FLOOR` |
 | 0.05 | `build_make.SPLIT_MIN`, `pools.CENSUS_DRIFT_CEILING`, `render_map.TIP_FLOOR` |
-| 0.25 | `build_make.COLLAPSE_KEEP`, `compare_history.REFERENCE_SLATE`, `pools.ARRIVAL_BAND_LO` |
+| 0.25 | `build_make.COLLAPSE_KEEP`, `compare_history.REFERENCE_SLATE` |
 | 0.5 | `areas.SOWETO_CUT`, `build_make.CORRELATION_MIN`, `build_make.RUNNER_UP_MAX`, `montecarlo.WARD_PR_RATIO_MIN`, `score.CLAIM_FRACTION` |
 | 0.9 | `pools.MAX_POOL_CAPTURE`, `pools.SPLIT_SD_FLOOR`, `render_map.SAFE` |
-| 0.95 | `montecarlo.TURNOUT_DRAW_CEILING`, `pools.ARRIVAL_BAND_HI` |
 | 12 | `montecarlo.DELIVERY_MAX_VALUES`, `pools.ALPHA_FALLBACK`, `stats.DECLARATION_MIN_CHARS` |
 | 2.0 | `benchmarks.MAX_SIGMA`, `build_make.MIN_RECORD_EVENTS`, `hex_cartogram.GRID_MARGIN_CELLS`, `levels.SHRINK`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.WARD_PR_RATIO_MAX`, `pools.MIN_HOME_SPLITS`, `pools.REGISTRATION_MAX`, `reweight.ANALYSIS_SEAT_BAND`, `reweight.ANALYSIS_SHARE_BAND_POINTS` |
 | 200 | `montecarlo.OVERHANG_LEVEL_MAX_ROUNDS`, `montecarlo.PARTIAL_BALANCE_PASSES`, `pools.ALPHA_CEILING`, `reweight.MIN_EFFECTIVE_DRAWS` |
@@ -166,6 +165,8 @@ Matched on the SHAPE of largest-remainder apportionment (a whole part, an orderi
 
 | name | named by register | still referenced in src |
 |---|---|---|
+| `ARRIVAL_BAND_HI` | yes | -- |
+| `ARRIVAL_BAND_LO` | yes | -- |
 | `DA_LED_COALITION` | NO | -- |
 | `F_OTHER` | yes | -- |
 | `POLL_K` | yes | -- |
@@ -181,6 +182,7 @@ Matched on the SHAPE of largest-remainder apportionment (a whole part, an orderi
 | `poll_weight` | yes | -- |
 | `polling_lean` | yes | -- |
 | `polling_span` | NO | -- |
+| `seed_bands` | yes | -- |
 | `test_the_pr_ballot_assumption_is_measured_not_asserted` | yes | -- |
 | `theta_mode` | yes | `build_interactive` |
 | `total_log_median` | yes | -- |
@@ -618,8 +620,6 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `pools.MERGERS` | (Merger(frozenset({'GOOD', 'RISE'}), _date(2026, 5, 25), 'GOOD and RISE  | NO | NO | NO | `theta_residual` |
 | `pools.MERGER_CONSUMERS` | frozenset({'montecarlo.run_model', 'pools.emit_pools', 'theta_residual._ | NO | NO | NO | -- |
 | `pools.ARRIVAL_DEFINITIONS` | {'ARRIVED_VS_NATIONAL': ArrivalDefinition(predicate='local share > 0 and | NO | NO | NO | `model_index` |
-| `pools.ARRIVAL_BAND_LO` | float 0.25 | NO | NO | yes | -- |
-| `pools.ARRIVAL_BAND_HI` | float 0.95 | NO | NO | yes | -- |
 | `pools.ALPHA_MIN_SHARE` | float 0.01 | NO | NO | yes | -- |
 | `pools.ALPHA_FLOOR` | float 1.0 | NO | NO | yes | -- |
 | `pools.ALPHA_CEILING` | float 200.0 | NO | NO | yes | -- |

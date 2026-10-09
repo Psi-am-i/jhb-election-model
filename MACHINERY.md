@@ -281,8 +281,9 @@ error 338 against 312, CRPS 280.8 against 264.8 (§1.43).
 The level becomes `centres[party]` in `montecarlo.blended_centres`, whose
 precedence is `poll_levels` → seeded arrival → `spine_level` → `theta_prior` →
 (four dead branches). `pool_spec` then runs IPF so a party's **expected** citywide
-share *is* its centre, and each draw applies a Student-t level shock, the
-correlated turnout copula and a within-pool Dirichlet.
+share *is* its centre, and each draw applies a Student-t level shock (sd 0 for
+seeded arrivals, whose width is the within-pool split; JUDGEMENT-CALLS §A50),
+the correlated turnout copula and a within-pool Dirichlet.
 
 **The draw adds spread, not information.** Measured at Tshwane 2021, drawn mean
 against spine centre: ANC 0.950, DA 0.942, VF Plus 0.956. The forecast is decided

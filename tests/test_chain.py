@@ -1815,16 +1815,12 @@ def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
        would have produced a 95th percentile at 7.7% of its own mean: the act
        of admitting a guess made the forecast 36x sharper.
 
-    The rule: **the declaration sets the level, the record sets the width.**
+    The rule was: **the declaration sets the level, the record sets the
+    width.** The width half is gone: the emitted band was never drawn from and
+    was deleted 2026-10-09 with `ARRIVAL_BAND_LO/HI` (item9/FINDINGS.md Q5),
+    so its assertions here were deleted with it. The level assertions stand.
     """
     kw = _arrival_kw()
-    peers = [s for s, _ in kw["record"]]
-    expect_lo = float(np.quantile(peers, pools.ARRIVAL_BAND_LO)) / float(np.mean(peers))
-    expect_hi = float(np.quantile(peers, pools.ARRIVAL_BAND_HI)) / float(np.mean(peers))
-    assert expect_hi / expect_lo > 3.0, (
-        f"IT LOOKED: the constructed record's band spans only "
-        f"{expect_hi / expect_lo:.1f}x. Too narrow to show a band collapsing, "
-        f"so widen the record before trusting what follows.")
 
     def rules_for(lineage, others=()):
         r, notes = pools.arrival_rules({"NEWPARTY", *others}, lineage, **kw)
@@ -1845,7 +1841,6 @@ def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
 
     # (1) weights + support, sole newcomer. This raised UnboundLocalError.
     got, why = rules_for({"NEWPARTY": {"weights": [1.0, 0.0], "support": 0.12}})
-    assert _close(got["band"], [expect_lo, 1.0, expect_hi]), got["band"]
     assert "DECLARED" in why, why
     assert _close([implied_share(got)], [0.12], rel=1e-6), (
         f"declared 12% with weights, bought {implied_share(got):.4%}")
@@ -1854,15 +1849,13 @@ def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
     #     branch, which is what used to leave lo_e/hi_e lying around.
     other, _ = rules_for({"NEWPARTY": {"weights": [1.0, 0.0], "support": 0.12}},
                          others=("AAAOTHER",))
-    assert _close(other["band"], got["band"]), (
-        f"a party's band changed because another party was emitted first: "
-        f"{other['band']} vs {got['band']}. The band is a property of the "
-        f"arrival record, not of the loop's iteration order.")
+    assert _close([implied_share(other)], [implied_share(got)], rel=1e-9), (
+        f"a party's size changed because another party was emitted first: "
+        f"{implied_share(other):.4%} vs {implied_share(got):.4%}.")
 
     # (3) `support` WITHOUT weights — the case that was silently discarded.
     got3, why3 = rules_for({"NEWPARTY": {"support": 0.12}})
     assert "DECLARED 12.00%" in why3, why3
-    assert _close(got3["band"], [expect_lo, 1.0, expect_hi])
     assert _close([implied_share(got3)], [0.12], rel=1e-6), (
         f"a `support` declared WITHOUT `weights` bought "
         f"{implied_share(got3):.4%} of the city, not the 12% stated. It was "
@@ -1878,11 +1871,6 @@ def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
     # (4) A LEVEL DOES NOT BUY SHARPNESS. x36 is the ActionSA judgement.
     plain, _ = rules_for({})
     loud, _ = rules_for({"NEWPARTY": {"overperform": 36.0}})
-    assert _close(loud["band"], plain["band"]), (
-        f"a x36 judgement moved the band from {plain['band']} to "
-        f"{loud['band']}. Stating that a party is bigger than its comparators "
-        f"says nothing about how well we know it, and dividing the record's "
-        f"quantiles by the raised centre made the forecast 36x sharper.")
     assert _close([sum(loud["capture"].values())],
                   [36.0 * sum(plain["capture"].values())]), (
         "the multiplier must still move the LEVEL — this test must not pass "
@@ -1948,9 +1936,6 @@ def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
         f"{implied_share(vec_loud):.4%} against the undeclared "
         f"{implied_share(vec_only):.4%}. The multiplier was read only in the "
         f"entrant branch, so declaring the pools discarded it silently.")
-    assert _close(vec_loud["band"], vec_only["band"]), (
-        f"the multiplier moved the band {vec_only['band']} -> "
-        f"{vec_loud['band']}; the record sets the width, not the level.")
 
     #     and a multiplier is a SIZING, so it leaves the group budget too.
     r6 = with_budget({"NEWPARTY": {"weights": [1.0, 0.0], "overperform": 3.0}})

@@ -1602,7 +1602,7 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
 #
 # THE ARTEFACT-BORNE CLASS -- eleven of sixteen constants in `pools.py`, both
 # floors in `fold.py`, and everything in `turnout.py`. `pools.ALPHA_MIN_SHARE`,
-# `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK`, `ARRIVAL_BAND_LO/HI`,
+# `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK`,
 # `SPLINTER_PARENT_WEIGHT`, `SPLIT_SD_FLOOR`, `MIN_HOME_SPLITS`, `SPLITS`,
 # `SOLVE_TOL`; `fold.SHARE_FLOOR`, `fold.LEVEL_FLOOR`; `turnout.ELECTIONS`,
 # `turnout.LAMBDA_PAIRS`. Every one is read only while `pools --emit`, `fold`
@@ -2034,7 +2034,6 @@ def blended_centres(
     # common centre, or the centre itself for a party holding a national vote
     # that has not yet faced a local election (MK in 2026).
     seeded = scenario.get("pool_seeds") or {}
-    bands = scenario.get("pool_seed_bands") or {}
     # THE SPINE (task #22). Where ``levels.spine`` has a level for a party, it
     # is the answer: it already weighed the party's national route against its
     # own last local result by how much θ evidence the party has, and returned
@@ -2066,8 +2065,10 @@ def blended_centres(
             route = "poll level"
             notes[party] = f"level from poll: {mode_level:.2%}"
         elif seeded.get(party, 0.0) > 0:
-            band = bands.get(party)
-            mode_level = base * (float(band[1]) if band else 1.0)
+            # The seed is the level. The emitted band's middle was 1.0 by
+            # construction and its ends were read by nothing; the band was
+            # deleted 2026-10-09 (item9/FINDINGS.md Q5).
+            mode_level = base
             route = "seeded level"
         elif party in spine_level:
             mode_level = spine_level[party]
@@ -2771,27 +2772,18 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     for party, i in index.items():
         if party in handled or party == "ENTRANT":
             continue
-        # Same two paths as blended_centres, in the same order: a seeded
-        # arrival is drawn against the arrival record's band, never against a
-        # retention prior it has no history to have earned.
-        seed_band = (scenario.get("pool_seed_bands") or {}).get(party) \
-            if (scenario.get("pool_seeds") or {}).get(party, 0.0) > 0 else None
-        if seed_band is not None:
-            # An arrival's band IS the estimate, so it keeps its triangular:
-            # the arrival record is a set of observed entry sizes, not a
-            # dispersion around a centre, and widening it with a t-tail would
-            # be inventing evidence the record does not contain.
-            low, _, high = seed_band
-            mode = min(max(centres[party] / max(base_city[i], 1e-9), low), high)
-            individual.append((i, (low, mode, high), None))
-            continue
+        # A seeded arrival never reaches here: every seeded party is a pool
+        # member (`test_pool_conservation`), so `handled` skipped it above. The
+        # triangular branch on its band that stood here could not run and was
+        # deleted 2026-10-09 with the band (item9/FINDINGS.md Q5); a non-pooled
+        # seed would take the ordinary (centre, sd) path below.
         # The CENTRE is the spine's, and it is no longer clamped into the θ
         # band. That clamp existed when the centre and the band came from the
         # same θ; now they do not, and it was silently undoing task #22 — it
         # would have pulled ActionSA's 15.2% blended level back to about 11%
         # because the ratio it implies against a 6.2% national base sits above
         # the top of a band measured on parties that have a θ at all.
-        individual.append((i, None, (centres[party], sd_for_party(party))))
+        individual.append((i, centres[party], sd_for_party(party)))
 
     entrant_index = index.get("ENTRANT")
 
@@ -2875,10 +2867,11 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         ties[scenario["pools"][name].get("tie") or name].append(name)
 
     # Each pooled party's own level spread, looked up once rather than per draw.
-    # A seeded arrival is excluded (its band, not a dispersion, is the estimate)
-    # by giving it zero: its size comes from the arrival record and the pool
-    # split, and a t-shock on top would double-count the uncertainty the band
-    # already carries.
+    # A seeded arrival takes 0. Its width comes from the within-pool Dirichlet
+    # split (member concentration α = m·A_pool), not from a band: the arrival
+    # band was never read and is deleted (item9/FINDINGS.md Q5). Adding the
+    # size-line shock moved little (item 9 finding 4), so zero is kept as a
+    # registered judgement, JUDGEMENT-CALLS §A50.
     seeded_set = {p for p, s in (scenario.get("pool_seeds") or {}).items() if s > 0}
     pool_sd_shock = {p: (0.0 if p in seeded_set else sd_for_party(p))
                      for cfg in scenario["pools"].values() for p in cfg["members"]}
@@ -3100,12 +3093,8 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             moved = moved / moved.sum()
             split = rng.dirichlet(moved * alpha)
             np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
-        for i, tri, level in individual:
-            if tri is not None:
-                target[i] = base_city[i] * triangular(rng, tri)
-            else:
-                centre, sd = level
-                target[i] = centre * log_shock(rng, sd)
+        for i, centre, sd in individual:
+            target[i] = centre * log_shock(rng, sd)
         total = target.sum()
         if total > 0:
             target = target / total
@@ -4034,7 +4023,6 @@ def run_model(target, scenario: dict,
                               f"measured at {', '.join(home['measured_at'])}")
             scenario["pools"] = spec["pools"]
             scenario["pool_seeds"] = spec.get("seeds", {})
-            scenario["pool_seed_bands"] = spec.get("seed_bands", {})
             scenario["pool_seed_notes"] = spec.get("seed_notes", {})
             scenario["arrival_group"] = spec.get("arrival_group")
             # ⛔ NOTHING IS CAUGHT HERE (2026-09-22, MODEL-LOG §1.250). This was
@@ -4416,27 +4404,15 @@ def run_model(target, scenario: dict,
                     if place > 0:
                         base_share_d.setdefault(vd, {})[party] = max(
                             place * base_city_d[party], SHARE_FLOOR)
-        # The band is what the record says an arrival can be worth, and it is
-        # wide because arrivals genuinely are. Carrying it as this party's own
-        # theta range is what stops a seeded party being pinned to its seed.
-        # A DEAD STORE, REMOVED 2026-08-19. This wrote each seeded arrival's
-        # band into `individual_theta`, and nothing read it back. Confirmed
-        # three ways in §1.41 -- multiplying every written band by 100,
-        # setting the whole dict to [50,80,99], and deleting all 32 keys, all
-        # byte-identical. The key it wrote into no longer exists.
-        #
-        # ⛔ THE SENTENCE THAT USED TO SIT HERE WAS FALSE ABOUT `make_drawer`,
-        # AND IT IS THE SENTENCE A READER CONSULTS. It said "`blended_centres`
-        # and `make_drawer` both take `pool_seed_bands` directly and
-        # short-circuit before any membership test". True of the first, false
-        # of the second: `make_drawer` skips every party in `handled` -- i.e.
-        # every pool member -- BEFORE it looks a seed band up, and every seeded
-        # arrival is a pool member (32 of 32 in the emitted 2021 spec). So the
-        # triangular branch below is not taken for any arrival, the emitted
-        # band's `lo` and `hi` are read by NOTHING, and `blended_centres` uses
-        # only `band[1]`, which is 1.0 by construction. Measured 2026-09-06:
-        # replacing every seeded band with [0.001, 1.0, 50.0] leaves
-        # `pr_share_draws` and the seat totals byte-identical. §1.198.
+        # THE ARRIVAL BAND WAS NEVER READ, AND IS GONE. Each seeded arrival's
+        # band was once written into `individual_theta` (a dead store, removed
+        # 2026-08-19, §1.41), then carried into the scenario, of which
+        # `blended_centres` read only the middle (1.0 by construction) and
+        # `make_drawer` nothing, because every seeded arrival is a pool member
+        # and pool members are skipped before the lookup (§1.198, measured
+        # byte-identical draws with every band replaced). The band, its emission
+        # and its constants were deleted 2026-10-09 (item9/FINDINGS.md Q5); a
+        # seeded arrival's width is the within-pool split.
         if verbose:
             for party in sorted(seeds, key=lambda p: -abs(seeds[p]))[:8]:
                 why = notes_by_party.get(party, "parent debited")

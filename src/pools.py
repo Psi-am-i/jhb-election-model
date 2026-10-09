@@ -4183,14 +4183,9 @@ def splinter_record(city: cityconfig.City | None, before_year: str | None = None
 # cut "every pool pinned to the 200 ceiling", i.e. the simulation far more
 # confident than the evidence warrants. A constant that can saturate the
 # dominant width lever is not a tidying detail.
-# THE TRIANGULAR SUPPORT OF EVERY SEEDED ARRIVAL, consumed in `montecarlo`
-# as `low, _, high = seed_band`. The long comment beside the code narrates why
-# the CENTRE moved from median to mean and why a `clip(reach, 0.05, 0.95)` was
-# a disaster — and never mentions that the surviving percentile pair is itself
-# a choice. 25/95 rather than 10/90 or 5/95 sets how wide an ActionSA-class
-# arrival's band is. Promoted 2026-08-22, §1.69.
-ARRIVAL_BAND_LO = 0.25
-ARRIVAL_BAND_HI = 0.95
+# The two percentile constants of an arrival's emitted band (0.25 / 0.95)
+# were DELETED 2026-10-09 with the band itself: nothing drew from it
+# (MODEL-LOG §1.198; item9/FINDINGS.md Q5).
 
 ALPHA_MIN_SHARE = 0.01     # pool members below this are noise floor, not signal
 ALPHA_FLOOR = 1.0          # a Dirichlet concentration below 1 is a spike
@@ -4749,8 +4744,11 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     actually contests — a party fielding candidates in a third of the wards
     cannot win what one fielding everywhere can.
 
-    Returns, per party, a dict of ``pool -> capture rate`` plus the band on the
-    whole thing, and a note explaining where each number came from.
+    Returns, per party, a dict of ``pool -> capture rate`` and a note
+    explaining where each number came from. (It also returned a band on the
+    whole thing; that band was emitted and never drawn from, and was deleted
+    2026-10-09, item9/FINDINGS.md Q5. A seeded arrival's width is the
+    within-pool split.)
     """
     if not record:
         return {}, {}
@@ -4858,7 +4856,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         # splinter record of its own took the entrant branch and then divided
         # None by None building its band. Tshwane, Ekurhuleni and eThekwini
         # all hit it the moment ActionSA got a parent.
-        f_lo, f_mid, f_hi, f_kind = band_for(party)
+        # The band's ends are not used: the emitted band was deleted
+        # 2026-10-09 (item9/FINDINGS.md Q5). `f_mid` sizes the split.
+        _, f_mid, _, f_kind = band_for(party)
         as_split = bool(parent and parent in index and f_mid is not None)
 
         # ⛔ THE BAND IS A PROPERTY OF THE ARRIVAL RECORD, NOT OF OUR OWN CENTRE.
@@ -4893,8 +4893,6 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         # and every emitted band is unchanged. Verified against all 26 specs.
         peers = comparators(reach)
         base = max(float(np.mean(peers)), 1e-9)
-        lo_e = float(np.quantile(peers, ARRIVAL_BAND_LO))
-        hi_e = float(np.quantile(peers, ARRIVAL_BAND_HI))
 
         if weights:
             vec = np.array([float(w) for w in weights], dtype=float)
@@ -4935,9 +4933,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                     f"record. Set `support` to state it")
                    + (f", after a x{mult:g} judgement — seeded at {size:.2%}"
                       if mult != 1.0 else "")
-                   + f". Band {lo_e / base:.2f}-{hi_e / base:.2f}x that centre "
-                   + "— the declaration sets the level, the record sets the "
-                     "width."
+                   + ". The draw's width comes from the pool split."
                    + (f" ⚠️ {short:.0%} of the declared share DID NOT FIT: the "
                       f"{MAX_POOL_CAPTURE:.0%} per-pool cap binds on this "
                       f"vector, so the party is seeded at "
@@ -4986,9 +4982,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             why = (f"SPLIT from {parent} ({lineage_why}): takes {f_mid:.1%} of a "
                    f"vector that is {alpha:.0%} {parent}'s pool rates and "
                    f"{1 - alpha:.0%} the city's own composition — measured, "
-                   f"median over 22 splinter-metro cases. Band {f_lo:.1%}-"
-                   f"{f_hi:.1%} from the {f_kind} splinter record. Every party "
-                   f"in those pools gives up the same proportion; none is named.")
+                   f"median over 22 splinter-metro cases, from the {f_kind} "
+                   f"splinter record; the draw's width comes from the pool "
+                   f"split. Every party in those pools gives up the same proportion; none is named.")
         else:
             # AN ENTRANT NOBODY HAS MEASURED DRAWS LIKE THE CITY, NOT LIKE A
             # UNIFORM DISTRIBUTION OVER CATEGORIES OF WILDLY DIFFERENT SIZE.
@@ -5055,7 +5051,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # the median is therefore seeding at a value four fifths of arrivals
             # exceed in expectation.
             #
-            # The band below already carried the skew — a triangular running to
+            # SUPERSEDED (2026-10-09): the band this paragraph describes was
+            # never read at all (§1.198) and is deleted. As written: the band
+            # carried the skew — a triangular running to
             # the 95th percentile, typically 17-24x the seed. It could not do
             # anything with it, because `pool_spec` balances both margins by IPF
             # (MODEL-LOG 'The centres now BIND') and IPF pins each party's MEAN
@@ -5103,13 +5101,10 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                       f"({reach_used:.0%} of wards): mean {base:.2%}, median "
                       f"{np.median(peers):.2%}")
                    + (f" after a x{mult:g} judgement" if mult != 1.0 else "")
-                   + f". Band {lo_e:.2%}-{hi_e:.2%} on the record, carried "
-                   + "across as a RELATIVE width. THE EVEN SPREAD IS A "
-                     "PLACEHOLDER: declare which pools it pulls from and what "
+                   + ". The draw's width comes from the pool split. THE "
+                     "EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what "
                      "support you expect.")
-        rules[party] = {"capture": capture,
-                        "band": [f_lo / f_mid, 1.0, f_hi / f_mid] if as_split
-                                else [lo_e / base, 1.0, hi_e / base]}
+        rules[party] = {"capture": capture}
         # ⛔ A JUDGED SIZE IS OUTSIDE THE GROUP BUDGET, OR IT IS NOT A SIZE.
         #
         # The rescale below holds the entrant GROUP to the arrival-total record.
@@ -6320,7 +6315,6 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                       / max(registered.sum(), 1e-9))
              for p, rule in arrivals.items()}
 
-    seed_bands = {p: rule["band"] for p, rule in arrivals.items()}
     # no_vector, NOT newcomers: the file exists to ask a human which parent a
     # party with no measured vector belongs to, and MK is the case it was built
     # for. Passing the seed set generated an EMPTY template for 2026, so a
@@ -6457,7 +6451,6 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             **marker,
             "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
-            "seed_bands": {p: list(v) for p, v in seed_bands.items()},
             # ⛔ TRANSITIONS OFFERED vs USED, PER RECORD. Batch plan R4, risk
             # item 5: `HELD_BACK_OFF=1` is one env var from being load-bearing
             # on the arrival record, because `_npe_citywide_for` returns `{}`

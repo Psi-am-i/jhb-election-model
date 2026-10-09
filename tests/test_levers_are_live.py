@@ -837,7 +837,6 @@ STATUTORY: dict[str, str] = {
 RUNTIME_INJECTED: dict[str, str] = {
     "theta_prior": "written by run_model from levels.theta_prior",
     "pool_seeds": "written by the seeding stage for the draw stage",
-    "pool_seed_bands": "the same, the bands beside the seeds",
     "pool_seed_notes": "the same, the reasons, for the verbose line and the trace",
     "spine_level": "written by run_model from levels.spine",
     "poll_levels": "written by the polling stage where a usable poll exists",
@@ -3010,6 +3009,36 @@ def test_no_numeric_module_constant_is_reachable_only_as_a_default_argument():
           "and every null measured on it is UNDELIVERED. Resolve it at call "
           "time — `df = LEVEL_DF if df is None else float(df)` is the fix that "
           "was applied to the original.")
+
+
+# G17 (model correction batch 2026-10-09, item 9): the arrival band is deleted,
+# and nothing in `src/` may read it again. `pool_seed_bands` was exempt from
+# this module's register as RUNTIME_INJECTED, "not a lever", which is how a
+# dead artefact survived two rounds of repair (item9/FINDINGS.md Q5 row 14).
+DELETED_BAND_NAMES = ("pool_seed_bands", "seed_bands", "ARRIVAL_BAND_")
+
+
+def _band_readers(sources: dict[str, str]) -> dict[str, list[str]]:
+    """{file: [deleted band names it contains]} over the given sources."""
+    return {name: [n for n in DELETED_BAND_NAMES if n in text]
+            for name, text in sources.items()
+            if any(n in text for n in DELETED_BAND_NAMES)}
+
+
+def test_no_source_reads_the_deleted_arrival_band():
+    files = sorted((ROOT / "src").glob("*.py"))
+    sources = {f.name: f.read_text(encoding="utf-8") for f in files}
+    # It scanned the right thing, and all of it: every .py file in src/.
+    scanned(sources, of=files, low=1.0, high=1.0,
+            what="src/*.py files read", denominator="src/*.py files on disk")
+    assert not _band_readers(sources), _band_readers(sources)
+    # It can see: a constructed source naming each deleted name is caught...
+    for name in DELETED_BAND_NAMES:
+        planted = dict(sources, planted_py=f"x = scenario.get('{name}LO')\n")
+        hits = _band_readers(planted)
+        assert set(hits) == {"planted_py"} and name in hits["planted_py"], name
+    # ...and goes quiet when the plant is removed.
+    assert not _band_readers(sources)
 
 
 if __name__ == "__main__":

@@ -194,6 +194,12 @@ DELETED = {
     # Deleted 2026-10-09 by the model correction batch (item 1): the baselines'
     # name rule for an exact seat tie, replaced by the seeded lot
     # (`benchmarks.benchmark_lot`). JUDGEMENT-CALLS §Q6 records what it did.
+    "ARRIVAL_BAND_LO": "the arrival band's lower percentile, deleted with "
+                       "the band nothing drew from; model correction batch "
+                       "2026-10-09, item 9, §F32",
+    "ARRIVAL_BAND_HI": "its upper percentile, deleted with it; §F32",
+    "seed_bands": "the spec field that carried the band, no longer emitted; "
+                  "§F32",
     "canonical_order": "benchmarks' name tie-break, replaced by the seeded "
                        "lot; model correction batch 2026-10-09, §Q6",
     "test_the_pr_ballot_assumption_is_measured_not_asserted": (
