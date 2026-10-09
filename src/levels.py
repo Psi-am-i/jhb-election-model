@@ -191,6 +191,18 @@ RELIABILITY_HALF = 0.002
 # than a point estimate. See the module docstring.
 SPINE_K = 1.0
 
+# THE SIZE WINDOW'S RULE (BRIEF item 16, JUDGEMENT-CALLS §A52). A party's own
+# ratios count toward its shrunk mean only where they were measured off a size
+# within `h` (natural-log units) of its size now. `h` is DERIVED per target and
+# per record by `size_window`, by scoring every candidate on how well each
+# party's record predicted its next real ratio; what is typed is the grid it
+# chooses from, the minimum number of scored observations below which it does
+# not choose (and leaves the filter off), and the tolerance within which a
+# tie goes to the wider window.
+SIZE_WINDOW_GRID = (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, float("inf"))
+SIZE_WINDOW_MIN_SCORED = 20
+SIZE_WINDOW_TIE = 0.005
+
 
 # Every metro with a VD-level archive. The retention record is a national fact
 # about how parties behave between election types, not a Johannesburg one, and
@@ -903,7 +915,8 @@ def _reliability(share: float) -> float:
 
 
 def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
-                codes=METRO_CODES) -> tuple[dict[str, tuple], dict]:
+                codes=METRO_CODES, h: float = float("inf"),
+                ) -> tuple[dict[str, tuple], dict]:
     """Per-party (low, mode, high) on θ, and the groups they were drawn from.
 
     A party's own log-mean is shrunk toward the size centre by
@@ -912,7 +925,9 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     share of ``baseline`` (BRIEF item 11, 2026-10-09), through
     :func:`_shrink_one`, the helper :func:`_shrunk` also calls; a party in the
     record with no baseline keeps its observed size and is counted in the
-    ``shrink`` block's ``size_fallback``. The band is the 10th to
+    ``shrink`` block's ``size_fallback``. ``h`` is the θ size window (BRIEF
+    item 16, :func:`size_window`), the same value ``run_model`` passes to
+    :func:`spine`; the default, ``inf``, filters nothing. The band is the 10th to
     90th percentile of that lognormal, so it is wide where the record is wide
     and nothing sits at probability zero.
 
@@ -1083,10 +1098,12 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
                "nonfinite": 0, "mass": 0.0}
     shrink = {"target": "size_centre" if fit else "flat_common_centre",
               "n_shrunk": 0, "n_all_centre": 0, "offered": 0.0,
-              "absorbed": 0.0, "size_fallback": 0}
+              "absorbed": 0.0, "size_fallback": 0, "outside_window": 0,
+              "window": _json_h(h)}
     no_baseline = 0
 
     priors: dict[str, tuple] = {}
+    worth_of: dict[str, float] = {}
     for party in set(record) | set(baseline):
         size = baseline.get(party, 0.0)
         sd = sd_for(size)
@@ -1118,11 +1135,15 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
             # the observed one, and is counted in `size_fallback`. The body is
             # `_shrink_one`, which `_shrunk` also calls: one estimator (§A26).
             if size > 0.0:
-                at = size
+                at, window = size, h
             else:
-                at = _observed_size(own)
+                at, window = _observed_size(own), float("inf")
                 shrink["size_fallback"] += 1
-            mu, worth, own_mu, centre = _shrink_one(own, at, fit, mu_all)
+            mu, worth, own_mu, centre = _shrink_one(own, at, fit, mu_all,
+                                                    window)
+            worth_of[party] = worth
+            if worth == 0.0:
+                shrink["outside_window"] += 1
             weight = worth / (worth + SHRINK)
             shrink["n_shrunk"] += 1
             shrink["offered"] += abs(own_mu - centre)
@@ -1159,8 +1180,9 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
         # observation scale the shrinkage uses. This is the quantity the spine
         # blend is keyed on, and it is reported rather than recomputed so the
         # weight and the shrinkage can never be keyed on different numbers.
-        "worth": {party: float(sum(_reliability(s) for _, s in obs))
-                  for party, obs in record.items()},
+        # Over the observations inside the size window only (BRIEF item 16),
+        # which is what `_shrunk` reports, since both come from `_shrink_one`.
+        "worth": dict(worth_of),
         # Per-party log-spread, so the draw can use the width that was measured
         # instead of a triangular fitted to the same band's endpoints.
         "sd": {party: float(sd_for(baseline.get(party, 0.0)))
@@ -1242,8 +1264,24 @@ def _observed_size(obs: list[tuple[float, float]]) -> float:
     return float(np.average([sz for _, sz in obs], weights=w))
 
 
+def _in_window(obs: list[tuple[float, float]], size: float,
+               h: float) -> list[tuple[float, float]]:
+    """The observations measured off a size within ``h`` (log units) of ``size``.
+
+    No filter where ``h`` is infinite or ``size`` is not positive (BRIEF item
+    16: the window is centred on the party's current size, and a party with
+    no current size on the route is read by no level).
+    """
+    if not np.isfinite(h) or size <= 0.0:
+        return list(obs)
+    centre = np.log(size)
+    return [(r, sz) for r, sz in obs
+            if sz > 0.0 and abs(np.log(sz) - centre) <= h]
+
+
 def _shrink_one(obs: list[tuple[float, float]], size: float, fit,
-                mu_all: float) -> tuple[float, float, float, float]:
+                mu_all: float, h: float = float("inf"),
+                ) -> tuple[float, float, float, float]:
     """One party's shrunk log-mean: ``(mu, worth, own, target)``.
 
     ``own`` is the reliability-weighted mean of ``log r`` over ``obs``;
@@ -1257,21 +1295,32 @@ def _shrink_one(obs: list[tuple[float, float]], size: float, fit,
     size retain their vote; the size that matters is the one the party has
     at the target, not the one its historical ratios were measured off.
 
+    **Only observations from a similar size count** (BRIEF item 16): those
+    measured off a size within ``h`` of ``size`` (:func:`_in_window`). If none
+    survive, the party has no own record on this route: ``worth`` is 0 and
+    ``mu`` is the target, the size centre at its current size. ``worth`` is
+    over the surviving observations only, so the spine's blend weight loses
+    the filtered record's pull as well. ``h`` is :func:`size_window`'s; at
+    ``h = inf`` nothing is filtered (item 11a alone).
+
     The per-party body of both :func:`_shrunk` and :func:`theta_prior`, so
     the spine's estimator and the θ prior's cannot drift apart (§A26).
     """
+    target = (float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
+              if fit else mu_all)
+    obs = _in_window(obs, size, h)
+    if not obs:
+        return target, 0.0, target, target
     w = [_reliability(s) for _, s in obs]
     worth = float(sum(w))
     weight = worth / (worth + SHRINK)
     own = float(np.average([np.log(r) for r, _ in obs], weights=w))
-    target = (float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
-              if fit else mu_all)
     return weight * own + (1 - weight) * target, worth, own, target
 
 
 def _shrunk(record: dict[str, list[tuple[float, float]]],
             report: dict | None = None, *,
-            current: dict[str, float],
+            current: dict[str, float], h: float = float("inf"),
             ) -> tuple[dict[str, float], float, dict[str, float]]:
     """Per-party log-mean shrunk to the size centre at its current size, and the worth.
 
@@ -1304,12 +1353,16 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
       is an attractor and a change to a party's own observations cannot reach
       the level.
     * ``size_fallback`` — parties shrunk at their observed size because
-      ``current`` gives them none.
+      ``current`` gives them none (no window is applied to them);
+    * ``outside_window`` — parties whose every observation lay outside the
+      size window ``h`` (BRIEF item 16), so their ``mu`` is the size centre
+      at their current size and their ``worth`` is 0; ``window`` is ``h``.
     """
     if report is not None:
         report.update({"n": 0, "target": None, "offered": 0.0,
                        "absorbed": 0.0, "share": 0.0, "empty": True,
-                       "size_fallback": 0})
+                       "size_fallback": 0, "outside_window": 0,
+                       "window": _json_h(h)})
     everything = [obs for obs in (o for v in record.values() for o in v)]
     if not everything:
         return {}, 0.0, {}
@@ -1320,18 +1373,22 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
     mu_all = float(np.average(np.log(ratios), weights=weights))
     fit = size_centre(record)
     offered = absorbed = 0.0
-    size_fallback = 0
+    size_fallback = outside_window = 0
     mus: dict[str, float] = {}
     worth: dict[str, float] = {}
     for party, obs in record.items():
         # Shrink toward the centre for a party THIS SIZE NOW, not toward one
         # number for the whole ballot and not toward the size it used to be.
         size = float(current.get(party, 0.0) or 0.0)
+        window = h
         if size <= 0.0:
             size = _observed_size(obs)
             size_fallback += 1
+            window = float("inf")
         mus[party], worth[party], own, target = _shrink_one(
-            obs, size, fit, mu_all)
+            obs, size, fit, mu_all, window)
+        if worth[party] == 0.0:
+            outside_window += 1
         weight = worth[party] / (worth[party] + SHRINK)
         offered += abs(own - target)
         absorbed += (1 - weight) * abs(own - target)
@@ -1343,14 +1400,118 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
             "share": float(absorbed / offered) if offered > 0 else 0.0,
             "empty": False,
             "size_fallback": size_fallback,
+            "outside_window": outside_window,
+            "window": _json_h(h),
         })
     return mus, mu_all, worth
+
+
+def _json_h(h: float):
+    """A window as JSON can carry it: ``"inf"`` for no filter."""
+    return float(h) if np.isfinite(h) else "inf"
+
+
+def size_window(target: cityconfig.Target, record_fn, codes=METRO_CODES,
+                record: dict | None = None) -> tuple[float, dict]:
+    """The size window ``h`` for one record at ``target``, derived from data.
+
+    BRIEF item 16 (owner, 2026-10-09): a party's own growth record counts only
+    from elections where it stood at a size similar to now, and the
+    similarity window is derived, not typed. Called once per record (``θ``
+    through :func:`theta_record`, ``ρ`` through :func:`local_record`), so each
+    route gets its own window.
+
+    The derivation, a walk forward through the calendar:
+
+    1. The LGE targets ``T_1 < … < T_k ≤ target``. ``record_fn(T_j)`` holds
+       only transitions strictly before ``T_j``, so nothing at or after
+       ``target`` is read (``test_temporal`` watches the file opens).
+    2. The NEW observations at ``T_j`` are ``record_fn(T_j)`` minus
+       ``record_fn(T_{j−1})``, as multisets per party.
+    3. Each new observation ``(r, sz)`` of party ``p`` is predicted from
+       ``p``'s record at ``T_{j−1}`` by :func:`_shrink_one` with current size
+       ``sz`` and window ``h``, the size-centre fit and the common mean also
+       taken from the record at ``T_{j−1}``. A party with no earlier record
+       is predicted at the size centre (the same for every ``h``).
+    4. The score at ``h`` is the reliability-weighted mean of
+       ``|ln r − predicted|`` over every new observation of every party.
+    5. ``h`` is the grid value (``SIZE_WINDOW_GRID``) with the lowest score;
+       any grid value within ``SIZE_WINDOW_TIE`` of that score that is wider
+       wins instead (the widest such). Fewer than ``SIZE_WINDOW_MIN_SCORED``
+       scored observations: ``h = inf`` and the status is
+       ``"underdetermined"``.
+
+    ``record`` may carry ``record_fn(target, codes)`` already computed, to
+    avoid reading the target's record twice. ``record_fn`` is looked up by
+    the caller (a module global swapped by a test is honoured).
+
+    Returns ``(h, report)``; ``report`` carries the score at every grid value,
+    the count scored, the targets walked, the choice and the status, all
+    JSON-safe (``"inf"`` for an infinite window).
+    """
+    year = int(target.year)
+    years = sorted(int(y) for y, e in cityconfig.CALENDAR.items()
+                   if e.kind == "LGE" and int(y) <= year)
+    records = []
+    for y in years:
+        if y == year:
+            rec = record if record is not None else record_fn(target, codes)
+        else:
+            rec = record_fn(cityconfig.Target(city=target.city, year=str(y)),
+                            codes)
+        records.append(rec or {})
+
+    from collections import Counter
+    # (log r, size, reliability, the party's earlier obs, fit, mu_all)
+    scored: list[tuple[float, float, float, list, object, float]] = []
+    nonpositive = 0
+    for prev, cur in zip(records, records[1:]):
+        everything = [o for v in prev.values() for o in v]
+        weights = [_reliability(sz) for _, sz in everything]
+        if not everything or sum(weights) <= 0:
+            continue
+        mu_all = float(np.average([np.log(r) for r, _ in everything],
+                                  weights=weights))
+        fit = size_centre(prev)
+        for party, obs in cur.items():
+            new = Counter(obs) - Counter(prev.get(party, []))
+            for (r, sz), n in sorted(new.items()):
+                if r <= 0 or sz <= 0:
+                    nonpositive += n
+                    continue
+                for _ in range(n):
+                    scored.append((float(np.log(r)), float(sz),
+                                   _reliability(sz), prev.get(party, []),
+                                   fit, mu_all))
+    errors: dict[str, float] = {}
+    for h in SIZE_WINDOW_GRID:
+        total = wsum = 0.0
+        for log_r, sz, rel, earlier, fit, mu_all in scored:
+            mu, _w, _o, _t = _shrink_one(earlier, sz, fit, mu_all, h)
+            total += rel * abs(log_r - mu)
+            wsum += rel
+        if wsum > 0:
+            errors[str(_json_h(h))] = total / wsum
+    report = {"targets": [str(y) for y in years], "scored": len(scored),
+              "nonpositive_skipped": nonpositive, "errors": errors,
+              "grid": [_json_h(h) for h in SIZE_WINDOW_GRID],
+              "min_scored": SIZE_WINDOW_MIN_SCORED, "tie": SIZE_WINDOW_TIE}
+    if len(scored) < SIZE_WINDOW_MIN_SCORED or not errors:
+        report.update(h="inf", status="underdetermined")
+        return float("inf"), report
+    best = min(errors.values())
+    chosen = max((h for h in SIZE_WINDOW_GRID
+                  if errors.get(str(_json_h(h)), np.inf) <= best + SIZE_WINDOW_TIE),
+                 default=float("inf"))
+    report.update(h=_json_h(chosen), status="derived")
+    return float(chosen), report
 
 
 def spine(target: cityconfig.Target, baseline: dict[str, float],
           prev_local: dict[str, float], codes=METRO_CODES,
           k: float | None = None,
           read_local_only: frozenset = frozenset(),
+          h_theta: float = float("inf"), h_rho: float = float("inf"),
           ) -> tuple[dict[str, float], dict]:
     """Each party's central level at the target, from BOTH of its records.
 
@@ -1380,6 +1541,12 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     record is the previous LGE (:func:`local_record_only`, BRIEF item 8). They
     are not reported in ``local_only_unused``.
 
+    ``h_theta`` and ``h_rho`` are the size windows (BRIEF item 16): a party's
+    own θ (ρ) observations count only where measured off a national (local)
+    share within that log distance of its current one. ``run_model`` derives
+    them with :func:`size_window` and passes the θ window to
+    :func:`theta_prior` as well; the default, ``inf``, filters nothing.
+
     **The diagnostic block carries an ``absorption`` account** (NULL-RESULTS.md
     4.3): the route census, how much of the two routes' disagreement the blend
     weight took from each, how many parties fell back to the flat group centre
@@ -1406,8 +1573,10 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     # Each route's size centre is evaluated at the party's current size on
     # that route (BRIEF item 11): its national share for θ, its previous
     # local share for ρ.
-    mu_t, c_t, worth_t = _shrunk(theta_obs, theta_shrink, current=baseline)
-    mu_r, c_r, _worth_r = _shrunk(rho_obs, rho_shrink, current=prev_local)
+    mu_t, c_t, worth_t = _shrunk(theta_obs, theta_shrink, current=baseline,
+                                 h=h_theta)
+    mu_r, c_r, _worth_r = _shrunk(rho_obs, rho_shrink, current=prev_local,
+                                  h=h_rho)
     if not mu_t and not mu_r:
         return {}, {}
 

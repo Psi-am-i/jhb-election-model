@@ -1011,5 +1011,52 @@ def test_a_party_missing_from_the_baseline_is_dropped_from_the_dispersion_fit():
         "the pooled fallback is no longer handing every party one width")
 
 
+def test_only_observations_from_a_similar_size_enter_a_partys_own_mean():
+    """G19 (BRIEF item 16, SPEC R2.1). A party with observations at 0.02% and
+    at 3%, current size 3%: at ``h = 1`` only the 3% observation enters its
+    own mean and worth; at ``h = inf`` both do; with every observation outside
+    the window, its ``mu`` is the size centre at 3% and its ``worth`` is 0.
+    ``theta_prior`` and ``_shrunk`` agree party for party at the same ``h``.
+    ``h = inf`` reproduces item 11a on the real 2021 record exactly.
+    """
+    record = _filler()
+    near, far = (1.10, 0.03), (3.00, 0.0002)
+    record["TWO_SIZES"] = [near, far]
+    record["ALL_FAR"] = [far, far]
+    baseline = _baseline(record)
+    baseline["TWO_SIZES"] = baseline["ALL_FAR"] = 0.03
+    # The test is about the filter, not the fit: the two parties under test
+    # are off the line, so the centre is read from `size_centre` on this
+    # record (its own closed-form tests are above).
+    fit = levels.size_centre(record)
+    centre = fit[0] + fit[1] * math.log(0.03)
+
+    narrow, _m, worth_n = levels._shrunk(record, current=baseline, h=1.0)
+    wide, _m, worth_w = levels._shrunk(record, current=baseline)
+    w1 = _weight(_rel(0.03))
+    assert abs(narrow["TWO_SIZES"]
+               - (w1 * math.log(1.10) + (1 - w1) * centre)) < 1e-9
+    assert abs(worth_n["TWO_SIZES"] - _rel(0.03)) < 1e-12
+    assert abs(worth_w["TWO_SIZES"] - (_rel(0.03) + _rel(0.0002))) < 1e-12
+    assert abs(narrow["TWO_SIZES"] - wide["TWO_SIZES"]) > 1e-3
+    report: dict = {}
+    narrow, _m, worth_n = levels._shrunk(record, report, current=baseline,
+                                         h=1.0)
+    assert abs(narrow["ALL_FAR"] - centre) < 1e-9 and worth_n["ALL_FAR"] == 0.0
+    assert report["outside_window"] == 1 and report["window"] == 1.0
+
+    with synthetic_record(record):
+        priors, groups = levels.theta_prior(TARGET_UNUSED, baseline, h=1.0)
+    for party in record:
+        assert abs(math.log(priors[party][1]) - narrow[party]) < 1e-12, party
+        assert abs(groups["worth"][party] - worth_n[party]) < 1e-12, party
+    assert groups["absorption"]["shrink"]["outside_window"] == 1
+
+    baseline_2021 = _real_baseline("2021")
+    real = levels.theta_record(_real_target("2021"))
+    a, _m, wa = levels._shrunk(real, current=baseline_2021)
+    b, _m, wb = levels._shrunk(real, current=baseline_2021, h=float("inf"))
+    assert a == b and wa == wb
+
 if __name__ == "__main__":
     raise SystemExit(run_module(sys.modules[__name__]))

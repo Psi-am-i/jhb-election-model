@@ -629,5 +629,70 @@ def test_the_diagnostic_counts_the_observations_the_blend_was_actually_built_fro
     assert fatter["n_theta"] == 7, fatter["n_theta"]
 
 
+def _walk(by_year: dict[str, dict]):
+    """A ``record_fn`` for ``levels.size_window``: the record at each target
+    year, empty before the first one given."""
+    def record_fn(target, codes=levels.METRO_CODES):
+        held = [y for y in by_year if int(y) <= int(target.year)]
+        return by_year[max(held, key=int)] if held else {}
+    return record_fn
+
+
+def _history(n_parties: int, new_ratio: float, near_ratio: float,
+             far_ratio: float):
+    """Each party has a near-size (5%) and a far-size (0.05%) observation at
+    2016; at 2021 each gains one new observation at the near size."""
+    then = {f"P{i:02d}": [(near_ratio, 0.05), (far_ratio, 0.0005)]
+            for i in range(n_parties)}
+    now = {p: obs + [(new_ratio, 0.05)] for p, obs in then.items()}
+    return {"2016": then, "2021": now}
+
+
+def test_the_size_window_derivation_can_see():
+    """G20 (SPEC R2.1). A record whose new observations equal each party's
+    near-size history and differ from its far-size history gives a finite
+    window; a record where size carries nothing (one ratio at every size)
+    gives ``inf`` by the tie rule; fewer than ``SIZE_WINDOW_MIN_SCORED``
+    scored observations gives ``"underdetermined"`` and ``inf``. Nothing at
+    or after the target is asked for."""
+    target = _target("2021")
+    asked: list[str] = []
+
+    def spy(fn):
+        def wrapped(t, codes=levels.METRO_CODES):
+            asked.append(t.year)
+            return fn(t, codes)
+        return wrapped
+
+    n = levels.SIZE_WINDOW_MIN_SCORED + 5
+    h, rep = levels.size_window(target, spy(_walk(_history(n, 0.8, 0.8, 5.0))))
+    assert rep["status"] == "derived" and rep["scored"] == n, rep
+    assert math.isfinite(h), rep
+    assert rep["errors"]["inf"] > rep["errors"][str(h)] + levels.SIZE_WINDOW_TIE
+    assert all(int(y) <= 2021 for y in asked) and "2021" in asked, asked
+
+    h, rep = levels.size_window(target, _walk(_history(n, 1.0, 1.0, 1.0)))
+    assert rep["status"] == "derived" and h == float("inf"), rep
+
+    few = levels.SIZE_WINDOW_MIN_SCORED - 1
+    h, rep = levels.size_window(target,
+                                _walk(_history(few, 0.8, 0.8, 5.0)))
+    assert rep["status"] == "underdetermined" and h == float("inf"), rep
+
+
+def test_the_spine_filters_each_route_on_its_own_window():
+    """Item 16 through ``spine``: a party whose only θ observation lies
+    outside ``h_theta`` loses its θ worth, so it sits on the size centre and
+    its blend weight goes to full local; at ``h_theta = inf`` it keeps both."""
+    theta = {"BOTH": [(2.0, 0.0005)]}
+    _lvl, open_ = _spine(theta=theta)
+    with records(theta, RHO):
+        _lvl, shut = levels.spine(_target(), BASELINE, PREV_LOCAL, k=1.0,
+                                  h_theta=1.0)
+    assert open_["detail"]["BOTH"]["worth"] > 0
+    assert shut["detail"]["BOTH"]["worth"] == 0.0
+    assert shut["detail"]["BOTH"]["w_local"] == 1.0
+    assert shut["absorption"]["theta_shrink"]["outside_window"] == 1
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

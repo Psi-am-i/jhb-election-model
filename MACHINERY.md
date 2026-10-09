@@ -253,6 +253,19 @@ multiplier of its former size. The per-party body is `levels._shrink_one`,
 called by both `_shrunk` and `theta_prior` (§A26). A party in a record with no
 current size keeps its observed one and is counted (`size_fallback`).
 
+**Only observations from a similar size count** (BRIEF item 16,
+JUDGEMENT-CALLS §A52). A party's own ratios enter `own_weighted_mean` and
+`worth` only where measured off a size within `h` (natural-log units) of its
+current size; where none survive, its worth is 0 and it sits on the size centre
+at its current size, and the spine's blend weight on its θ route falls with the
+lost worth. `h` is derived per run, one per route, by `levels.size_window`: the
+calendar is walked up to the target, every party's earlier record predicts each
+new observation, and `h` is the grid value with the lowest reliability-weighted
+mean absolute error in `ln r` (a wider value within the tie tolerance wins;
+too few scored observations leave the filter off). `run_model` passes the θ
+window to `theta_prior` and `spine` alike. The windows and the error table are
+in the `20_spine` trace.
+
 **Both halves are load-bearing and both are measured.** Forward validation:
 adding the party term takes RMSE(log θ) from 0.8045 to **0.7150**, so a party's
 own record carries real signal; but **unpooled** party dummies score **1.0308**,

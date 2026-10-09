@@ -1564,7 +1564,8 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
     # removed. KNOWN_ABSENT's own docstring calls it "the largest absorber in
     # this module, and it is not counted".
     "levels": ("SD_FLOOR", "SD_CEILING", "SHRINK", "RELIABILITY_HALF",
-               "SPINE_K", "FILTER_TYPE_A", "EXCLUDE_DEMARCATION_CROSSING",
+               "SPINE_K", "SIZE_WINDOW_GRID", "SIZE_WINDOW_MIN_SCORED",
+               "SIZE_WINDOW_TIE", "FILTER_TYPE_A", "EXCLUDE_DEMARCATION_CROSSING",
                "THETA_WINDOW", "THETA_EXCLUDE_TARGETS", "METRO_CODES",
                "TYPE_A_EVENTS", "DEMARCATION_CROSSING", "KNOWN_ABSENT"),
     # POLL_DEFF_STANDALONE is the only one of the four `deff`/`screen`/`drift`
@@ -4296,7 +4297,22 @@ def run_model(target, scenario: dict,
     # growing 30% into a local election; the record says they retain 0.79.
     try:
         import levels as _levels
-        _prior, _groups = _levels.theta_prior(target, base_city_d)
+        # THE SIZE WINDOWS (BRIEF item 16, JUDGEMENT-CALLS §A52), derived once
+        # per run from the real record before the target, one per route, and
+        # passed to BOTH estimators: `theta_prior` here and `spine` below must
+        # filter on the same θ window or they stop agreeing party for party
+        # (§A26). Each report is JSON-safe ("inf" for no filter) and goes into
+        # the `20_spine` trace.
+        _h_theta, _win_theta = _levels.size_window(
+            target, _levels.theta_record, record=_levels.theta_record(target))
+        _h_rho, _win_rho = _levels.size_window(target, _levels.local_record)
+        scenario["_size_window"] = {"theta": _win_theta, "rho": _win_rho}
+        note_value(scenario, "levels.size_window.theta", _win_theta["h"],
+                   where="montecarlo:run_model -> levels.size_window")
+        note_value(scenario, "levels.size_window.rho", _win_rho["h"],
+                   where="montecarlo:run_model -> levels.size_window")
+        _prior, _groups = _levels.theta_prior(target, base_city_d,
+                                              h=_h_theta)
         if _prior:
             # `__small__` WAS HERE, AND IT WAS A HAND-TYPED 0.8 (MODEL-LOG §1.98).
             #
@@ -5094,7 +5110,14 @@ def run_model(target, scenario: dict,
             target, {p: v for p, v in base_city_d.items() if p not in _lro},
             prior_pr_share,
             k=float(_levels.SPINE_K if _spine_k is None else _spine_k),
-            read_local_only=frozenset(_lro))
+            read_local_only=frozenset(_lro),
+            # The size windows derived above (item 16); "inf" reads as no
+            # filter. Absent only if the θ block above raised, and then the
+            # spine runs unfiltered, as before item 16.
+            h_theta=float((scenario.get("_size_window") or {})
+                          .get("theta", {}).get("h", "inf")),
+            h_rho=float((scenario.get("_size_window") or {})
+                        .get("rho", {}).get("h", "inf")))
         # F4: THE WHOLE BLOCK USED TO BE GATED ON `if _spine:`, so a spine that
         # reached NOBODY wrote no `spine_level`, no `20_spine` trace and no
         # `note_constant` — and a run where the spine placed no party was
@@ -5127,6 +5150,9 @@ def run_model(target, scenario: dict,
             # discarded all of it. "Written, never read" was true of the
             # producer and the reason was here.
             "absorption": _spine_info.get("absorption"),
+            # BRIEF item 16: each route's derived size window, with the score
+            # at every grid value, the count scored and the status.
+            "size_window": scenario.get("_size_window"),
         })
         # `spine_k` is the constant ARCHITECTURE.md records as UNSETTABLE
         # -- `scenario.get("spine_k") or SPINE_K`, and `0.0 or 1.0` is 1.0.

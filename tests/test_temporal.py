@@ -471,6 +471,42 @@ def test_metro_roster_and_vote_presence_still_agree_where_the_poll_path_looks():
         assert roster, f"{party} has an empty {year} roster — the archive moved"
 
 
+def test_the_size_window_reads_no_election_at_or_after_its_target():
+    """G21 (BRIEF item 16). ``levels.size_window`` walks the calendar's
+    targets up to the one it is deriving for; every file it opens, for either
+    record, is dated strictly before that target. Population: every runnable
+    target year of every city, asserted equal to ``compare_history.runnable``'s
+    union, plus the live 2026 forecast."""
+    sys.path.insert(0, str(ROOT / "src"))
+    import cityconfig
+    import compare_history
+    import levels
+    from _support import election_files_read
+
+    runnable = set()
+    slugs = sorted(p.stem for p in (ROOT / "cities").glob("*.toml"))
+    assert slugs, "no city configs: the scan saw nothing"
+    for slug in slugs:
+        years, _refused = compare_history.runnable(cityconfig.load(slug))
+        runnable |= set(years)
+    population = sorted(runnable | {"2026"}, key=int)
+    checked = []
+    city = cityconfig.load("joburg")
+    for year in population:
+        target = cityconfig.Target(city=city, year=year)
+        for record_fn in (levels.theta_record, levels.local_record):
+            with election_files_read() as reads:
+                _h, report = levels.size_window(target, record_fn)
+            assert reads, f"size_window at {year} opened no election file"
+            late = sorted({(y, k) for y, k, _ in reads if int(y) >= int(year)})
+            assert not late, (f"size_window for {year} "
+                              f"({record_fn.__name__}) read {late}")
+            assert report["targets"][-1] == year
+        checked.append(year)
+    assert set(checked) == runnable | {"2026"}, (checked, sorted(runnable))
+    assert runnable, "no runnable target: the scan saw nothing"
+
+
 # The two data-coverage tests that lived here from 2026-08-23 moved to
 # tests/test_data_coverage.py, which owns that subject in full. This file
 # is about TEMPORAL leakage. MODEL-LOG §1.78.

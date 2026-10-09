@@ -220,7 +220,19 @@ def _bin_of(size: float) -> str:
 # 2.3x apart, and under the predictive the model actually draws they are within
 # 0.006 nats of each other. The spread was the Gaussian tail penalty on three
 # known party-structural events, not a property of the width layer.
-KEY4_BASELINE = {"2016": 1.1363, "2021": 1.1425}
+#
+# RE-RECORDED 2026-10-09, model correction batch item 11a (commit 43f9ddb):
+# `theta_prior` evaluates the size centre at the party's CURRENT size, its
+# share of the baseline, instead of the size its ratios were measured off
+# (JUDGEMENT-CALLS §A51, the owner's decision). Both folds' committed centres
+# move; the widths do not. Paired with `theta_residual.key4_delta`, candidate
+# minus incumbent, the incumbent reproducing 1.1363 / 1.1425 exactly:
+#   2016: cluster delta −0.0157, 95% CI (−0.0219, −0.0095), 0 of 8 worse
+#   2021: cluster delta −0.0113, 95% CI (−0.0226, −0.00004), 2 of 8 worse
+# Lower is better; neither fold fails the floor.
+#   before item 11a:  2016 1.1363  2021 1.1425
+#   after  item 11a:  2016 1.1205  2021 1.1299
+KEY4_BASELINE = {"2016": 1.1205, "2021": 1.1299}
 
 
 def test_key_4_is_scored_on_the_width_the_model_actually_used():
@@ -426,9 +438,14 @@ def test_key4_delta_is_the_pass_rule_and_has_actually_been_run():
 # roughly 1.8x too narrow on both Key-4 folds, so a change that moves them is
 # either a repair or a regression and is never nothing. **Re-record deliberately
 # and say why here.**
+#
+# RE-RECORDED 2026-10-09 with KEY4_BASELINE above, for the same reason (item
+# 11a moves the θ prior's centres, not its widths). Was 2016 cov95 0.784,
+# pit_var 0.1256, κ 1.798; 2021 κ 1.749. cov80 at both folds and 2021's cov95
+# and pit_var did not move beyond the tolerance. Still about 1.7x too narrow.
 PIT_BASELINE = {
-    "2016": {"cov95": 0.784, "cov80": 0.567, "pit_var": 0.1256, "kappa": 1.798},
-    "2021": {"cov95": 0.761, "cov80": 0.529, "pit_var": 0.1221, "kappa": 1.749},
+    "2016": {"cov95": 0.804, "cov80": 0.567, "pit_var": 0.1249, "kappa": 1.782},
+    "2021": {"cov95": 0.761, "cov80": 0.529, "pit_var": 0.1221, "kappa": 1.739},
 }
 
 

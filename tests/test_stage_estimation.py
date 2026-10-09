@@ -353,6 +353,10 @@ THETA_PREDICATES = {fn.__name__: fn for fn in (
 #   absorption   routes census, the blend's disagreement accounting, the names of
 #                the parties dropped and of those whose level nothing can read,
 #                and each route's shrink account. Write-only in the model.
+#   size_window  {theta, rho}: each route's derived size window (BRIEF item 16,
+#                `levels.size_window`): `h` (a grid value, "inf" for no filter),
+#                `status` ("derived" or "underdetermined"), `errors` per grid
+#                value, `scored`, `grid`, `min_scored`, `tie`, `targets`.
 
 def _spine_rows(stage: dict):
     return (stage.get("detail") or {}), (stage.get("level") or {})
@@ -674,7 +678,51 @@ def spine_the_levels_and_the_group_centres_are_positive(stage: dict) -> list[str
     return faults
 
 
+def spine_the_size_windows_follow_their_own_rule(stage: dict) -> list[str]:
+    """Each route's window is the one its own error table chooses (item 16).
+
+    ``derived``: enough observations were scored, ``h`` has the lowest error
+    up to the tie tolerance, and no wider grid value is also within it.
+    ``underdetermined``: too few were scored and ``h`` is ``"inf"``. A window
+    the table does not choose is a window someone typed.
+    """
+    faults = []
+    block = stage.get("size_window")
+    if not isinstance(block, dict):
+        return [f"size_window is {block!r}, not a per-route block"]
+    for route in ("theta", "rho"):
+        rep = block.get(route)
+        if not isinstance(rep, dict):
+            faults.append(f"size_window.{route} is {rep!r}")
+            continue
+        grid = [str(g) for g in rep.get("grid") or []]
+        h, status = str(rep.get("h")), rep.get("status")
+        errors = rep.get("errors") or {}
+        if h not in grid:
+            faults.append(f"size_window.{route}: h={h} is not on the grid {grid}")
+            continue
+        if status == "underdetermined":
+            if h != "inf" or rep.get("scored", 0) >= rep.get("min_scored", 0):
+                faults.append(f"size_window.{route}: underdetermined with h={h} "
+                              f"and {rep.get('scored')} scored")
+        elif status == "derived":
+            if rep.get("scored", 0) < rep.get("min_scored", 0) or h not in errors:
+                faults.append(f"size_window.{route}: derived on "
+                              f"{rep.get('scored')} scored, h={h} unscored")
+                continue
+            ok = min(errors.values()) + float(rep.get("tie", 0.0))
+            within = [g for g in grid if g in errors and errors[g] <= ok]
+            if errors[h] > ok or (within and within[-1] != h):
+                faults.append(f"size_window.{route}: h={h} is not the widest "
+                              f"grid value within the tie of the lowest error "
+                              f"({within})")
+        else:
+            faults.append(f"size_window.{route}: unknown status {status!r}")
+    return faults
+
+
 SPINE_PREDICATES = {fn.__name__: fn for fn in (
+    spine_the_size_windows_follow_their_own_rule,
     spine_every_level_has_a_detail_row,
     spine_the_level_is_the_geometric_blend_of_its_two_routes,
     spine_a_blended_level_is_bracketed_by_its_routes,
@@ -1212,6 +1260,18 @@ def healthy_spine() -> dict:
             "rho_shrink": {"n": 2, "target": "size_centre", "offered": 2.0,
                            "absorbed": 1.4, "share": 0.7, "empty": False},
         },
+        "size_window": {
+            "theta": {"h": 2.0, "status": "derived", "scored": 40,
+                      "min_scored": 20, "tie": 0.005,
+                      "grid": [0.5, 1.0, 2.0, "inf"],
+                      "errors": {"0.5": 0.40, "1.0": 0.39, "2.0": 0.392,
+                                 "inf": 0.41},
+                      "targets": ["2016", "2021"]},
+            "rho": {"h": "inf", "status": "underdetermined", "scored": 3,
+                    "min_scored": 20, "tie": 0.005,
+                    "grid": [0.5, 1.0, 2.0, "inf"], "errors": {},
+                    "targets": ["2016", "2021"]},
+        },
     }
 
 
@@ -1381,6 +1441,10 @@ def _corrupt_spine_shrink(s):
     block["absorbed"] = (block.get("offered") or 0.0) * 2 + 1.0   # ate more than offered
 
 
+def _corrupt_spine_window(s):
+    s["size_window"]["theta"]["h"] = 0.5        # a window its own table did not choose
+
+
 def _corrupt_spine_positive(s):
     s["level"][sorted(s["level"])[0]] = 0.0     # a party the blend lost, reading as a level
 
@@ -1497,6 +1561,8 @@ CORRUPTIONS = [
      "spine", _corrupt_spine_shrink),
     ("spine_the_levels_and_the_group_centres_are_positive", "a level at zero",
      "spine", _corrupt_spine_positive),
+    ("spine_the_size_windows_follow_their_own_rule", "a window the table did not choose",
+     "spine", _corrupt_spine_window),
     ("centres_the_three_vectors_cover_the_same_parties", "an extra key in after_shrink",
      "centres", _corrupt_centres_keys),
     ("centres_the_shrink_conserves_the_total", "mass created by the shrink",
