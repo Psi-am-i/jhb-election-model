@@ -60,3 +60,18 @@ Any forecast number or model change. The prediction restructure's own items.
   screenshots).
 - Items 3, 5 and 6: cosmetic (page modules, `number_scan`, screenshots).
 - Item 7: generation only, with no site change until approved.
+
+8. **Each party's best case, and what had to happen** (owner, 2026-10-09). The
+   owner, verbatim: "find a per party best result map and analyse what happened
+   for this to occur (everything is within historical bounds... which means
+   it's possible) What happened in these simulations to give these outcomes?"
+   - For each party, the best 1% of simulations by its seats is analysed. The
+     single most extreme draw is one in 5,000 and says little.
+   - The analysis covers what those simulations have in common: turnout by
+     voter group, each party's vote on both ballots, which wards flipped from
+     the usual winner, and whether excessive seats fired.
+   - One representative map is drawn from the group.
+   - Under STYLE.md rule 11 a single simulation is neither our forecast nor our
+     prediction, and is labelled "one of the simulations".
+   - Read-only analysis into `best-cases/` first; publishing is a later
+     decision.
