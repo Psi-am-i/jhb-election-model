@@ -342,9 +342,10 @@ DEFAULTS: dict = {
     # registered constant that cannot be swept is `LEVEL_DF` again.
     #
     # Declared at exactly the values they were already frozen at, so nothing
-    # moves. What changes is that they can now be swept, and that the guards can
-    # see them.
-    "level_sd_default": 0.45,
+    # moved. The other, the fallback level-shock sd for a party with no size,
+    # was DELETED 2026-10-09 (owner, M3 review row 7): after item 17 it bound
+    # nowhere, and a party with no size and no θ fit now stops the run
+    # (`level_shock_sd`, JUDGEMENT-CALLS §A29).
     "turnout_correlation": 0.63,   # == TURNOUT_CORRELATION, asserted below
 
     "entrant_prob": 0.25,
@@ -2788,9 +2789,15 @@ def level_shock_sd(party: str, scenario: dict, base_city_d: dict,
       previous LGE (item 8, whose ``theta_prior`` width is the line at the 1e-5
       size floor, a size it does not have, SPEC R3.7): the size group's width
       at its OWN size in the run's baseline, ``levels.size_sd`` on
-      ``theta_prior``'s fit (BRIEF item 17, the RANGE of its size group);
-    * ``"default"`` — ``level_sd_default``, only for a party with no size at
-      all (base ≤ 0) or a run with no θ fit (JUDGEMENT-CALLS §A29).
+      ``theta_prior``'s fit (BRIEF item 17, the RANGE of its size group).
+
+    **There is no third rule.** A party with no measured width, no size in
+    the baseline (base ≤ 0) or no θ fit in the run STOPS THE RUN. The typed
+    fallback that stood here (``level_sd_default``, 0.45) was deleted
+    2026-10-09 (owner, M3 review row 7: "If the old constant has been replaced
+    with new machinery it should be deleted"); an in-process scan at every
+    emitted city-year found no drawn party reaching it (JUDGEMENT-CALLS §A29).
+    Callers ask only for parties the run draws.
     """
     sd_measured = scenario.get("_theta_sd") or {}
     local_only = scenario.get("_local_record_only") or ()
@@ -2801,8 +2808,12 @@ def level_shock_sd(party: str, scenario: dict, base_city_d: dict,
     if base > 0.0 and fit:
         import levels as _levels_sd
         return _levels_sd.size_sd(base, fit), "size"
-    return float(scenario.get("level_sd_default",
-                              DEFAULTS["level_sd_default"])), "default"
+    raise SystemExit(
+        f"{party}: no level-shock width. It has no measured width "
+        f"(theta_prior), and {'no size in the baseline' if base <= 0.0 else 'the run has no theta fit'}, "
+        f"so the size group's width cannot be read. There is no typed fallback "
+        f"(level_sd_default was deleted 2026-10-09, JUDGEMENT-CALLS §A29): "
+        f"give the party a baseline share or a measured width.")
 
 
 def make_drawer(scenario, base_city_d, centres, index, rng):
@@ -2871,12 +2882,9 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # back into a bounded triangular. The measurement now reaches the draw
     # directly, and unbounded (see LEVEL_DF). The rule is `level_shock_sd`.
 
-    # WHO TOOK `level_sd_default` (JUDGEMENT-CALLS §A29). Recorded at the one
-    # place the fallback is applied, for `41_guards.level_sd_default_parties`.
-    # Since item 17 (2026-10-09) it binds only for a party with no size at all;
-    # a party with a size and no record of its own takes the size group's
-    # width at that size, recorded in `41_guards.level_sd_at_size`.
-    took_default: set[str] = set()
+    # A party with a size and no record of its own takes the size group's
+    # width at that size (item 17), recorded in `41_guards.level_sd_at_size`.
+    # A party with neither stops the run in `level_shock_sd` (§A29).
     at_size: dict[str, float] = {}
     # An item-8 party (`levels.local_record_only`) is in `theta_prior`'s record
     # with no national baseline, so where `theta_prior` emits an sd for it, it
@@ -2886,9 +2894,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # The rule is `level_shock_sd`, one definition.
     def sd_for_party(party: str) -> float:
         sd, how = level_shock_sd(party, scenario, base_city_d)
-        if how == "default":
-            took_default.add(party)
-        elif how == "size":
+        if how == "size":
             at_size[party] = sd
         return sd
 
@@ -2997,8 +3003,12 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # size-line shock moved little (item 9 finding 4), so zero is kept as a
     # registered judgement, JUDGEMENT-CALLS §A50.
     seeded_set = {p for p, s in (scenario.get("pool_seeds") or {}).items() if s > 0}
+    # Only members the run draws: the IPF's party list is the pool members in
+    # `index` (`pool_spec`), and a member outside it has no baseline size, so
+    # asking for its width would stop the run over a party it never draws.
     pool_sd_shock = {p: (0.0 if p in seeded_set else sd_for_party(p))
-                     for cfg in scenario["pools"].values() for p in cfg["members"]}
+                     for cfg in scenario["pools"].values() for p in cfg["members"]
+                     if p in index}
 
     rho_t = float(scenario.get("turnout_correlation", TURNOUT_CORRELATION))
     # The ONLY job of this floor is to keep every Dirichlet concentration
@@ -3261,7 +3271,6 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         return target
 
     draw_pools.ipf_stats = ipf_stats
-    draw_pools.level_sd_default = took_default
     draw_pools.level_sd_at_size = at_size
     draw_pools.turnout_record = turnout_record
     draw_pools.split_record = split_record
@@ -5685,14 +5694,8 @@ def run_model(target, scenario: dict,
         # became per party.
         "draws": int(draws),
         # Item 8: roster parties with no record, not drawn (a sorted list, or
-        # "not_checked" when the target has no roster), and the parties whose
-        # level-shock sd is `level_sd_default` because no size record covers
-        # them (JUDGEMENT-CALLS §A29).
+        # "not_checked" when the target has no roster).
         "roster_unrepresented": roster_unrepresented,
-        # Only parties the run draws: `sd_for_party` is also consulted for
-        # pool members outside the universe (M2 review S1).
-        "level_sd_default_parties": sorted(
-            p for p in draw_target.level_sd_default if p in index),
         # Item 17: parties drawn at the size group's width at their own size
         # (`levels.size_sd`), with that width. Only parties the run draws.
         "level_sd_at_size": {p: float(v) for p, v in sorted(

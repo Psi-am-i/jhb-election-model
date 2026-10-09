@@ -295,7 +295,8 @@ current size (BRIEF item 17, JUDGEMENT-CALLS §A53). The flat common mean
 (`centre_fallback`) is left only where the record is too thin for a size fit.
 Its level-shock width is the size group's range at its size, `levels.size_sd`
 on `theta_prior`'s fit (`montecarlo.level_shock_sd`, the one rule the drawer
-and the poll blend read); `level_sd_default` binds only where no size exists.
+and the poll blend read). A drawn party with no measured width, no size and
+no θ fit stops the run: there is no typed fallback width (JUDGEMENT-CALLS §A29).
 
 ### The blend
 
@@ -937,8 +938,9 @@ the seeds it destroys were doing the work.
 
 At 2026 it is inert for a further reason no code change can fix —
 `pools.arrival_group_spec` needs a real roster, and the IEC publishes the 2026
-candidate list on 16 September. `level_sd_default` and `turnout_correlation` had
-the identical declaration defect and are now declared too. MODEL-LOG §1.63,
+candidate list on 16 September. `level_sd_default` (deleted 2026-10-09, §A29)
+and `turnout_correlation` had the identical declaration defect and were declared
+too. MODEL-LOG §1.63,
 §1.133, §1.136.
 
 ### Who is on the ballot — `pools.resolve_roster`
@@ -1122,7 +1124,7 @@ mismatch across a delimitation produced for Tshwane 2026.
 ## Summary of what is judged and saw the targets
 
 `entrant_prob` · `entrant_share` · `MIN_HOME_SPLITS` ·
-`SPLIT_SD_FLOOR` · `LEVEL_DF` · `level_sd_default` · `w_bye` ·
+`SPLIT_SD_FLOOR` · `LEVEL_DF` · `w_bye` ·
 `ward_pr_ratio_overrides` was here until 2026-08-17 and is **deleted**: consumed at no target at all. `pa_contestation_uplift` was here until 2026-08-18 and is **deleted** too — it was consumed at 2026 only, which was offered as a reason it could not contaminate a backtest, and is better read as the reason nothing could test it.
 
 `level_shrink` belongs here with a distinction that matters. Its **value** did

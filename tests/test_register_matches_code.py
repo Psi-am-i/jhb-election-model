@@ -202,6 +202,16 @@ DELETED = {
                   "§F32",
     "canonical_order": "benchmarks' name tie-break, replaced by the seeded "
                        "lot; model correction batch 2026-10-09, §Q6",
+    "level_sd_default": "the typed fallback level-shock sd (0.45), replaced "
+                        "by the size group's width (item 17) and deleted; a "
+                        "party with no size and no theta fit stops the run. "
+                        "Model correction batch 2026-10-09, M3 review row 7, "
+                        "§A29",
+    "level_sd_default_parties": "the 41_guards field naming who took it, "
+                                "deleted with it; §A29",
+    "SIZE_WINDOW_TIE": "the size window's typed tie tolerance (0.005), "
+                       "replaced by the paired cycle-clustered rule; M3 "
+                       "review row 2, §A52",
     "test_the_pr_ballot_assumption_is_measured_not_asserted": (
         "measured the retired PR-share input against the draws; its premise "
         "(a share standing for both ballots) ended with the two-ballot entry; "

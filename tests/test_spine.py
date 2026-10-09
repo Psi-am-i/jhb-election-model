@@ -570,7 +570,8 @@ def test_a_no_record_party_takes_its_size_groups_average_and_range():
     at its size. ``montecarlo.level_shock_sd`` gives a party absent from the
     measured widths ``size_sd`` at its base, an item-8 party ``size_sd`` at
     its local share even where ``theta_prior`` emitted a width for it, and
-    ``level_sd_default`` only where its base is 0."""
+    stops the run where its base is 0 or the run has no θ fit (the typed
+    fallback was deleted 2026-10-09, JUDGEMENT-CALLS §A29)."""
     import montecarlo as M
     graded = {f"P{i}": [(1.4 * (sz / 0.0005) ** -0.06, sz)] * 2
               for i, sz in enumerate([0.0005, 0.001, 0.002, 0.004, 0.01,
@@ -585,17 +586,23 @@ def test_a_no_record_party_takes_its_size_groups_average_and_range():
     widths = {s: levels.size_sd(s, sd_fit) for s in (0.001, 0.10)}
     assert widths[0.001] > widths[0.10], widths
     scenario = {"_theta_sd": {"OLD": 0.33, "LOCAL": 1.2},
-                "_theta_sd_fit": sd_fit, "_local_record_only": ["LOCAL"],
-                "level_sd_default": 0.45}
+                "_theta_sd_fit": sd_fit, "_local_record_only": ["LOCAL"]}
     base = {"OLD": 0.2, "NEW_SMALL": 0.001, "NEW_BIG": 0.10, "LOCAL": 0.001,
             "NOSIZE": 0.0}
     assert M.level_shock_sd("OLD", scenario, base) == (0.33, "measured")
     assert M.level_shock_sd("NEW_SMALL", scenario, base) == (widths[0.001], "size")
     assert M.level_shock_sd("NEW_BIG", scenario, base) == (widths[0.10], "size")
     assert M.level_shock_sd("LOCAL", scenario, base) == (widths[0.001], "size")
-    assert M.level_shock_sd("NOSIZE", scenario, base) == (0.45, "default")
     no_fit = dict(scenario, _theta_sd_fit=None)
-    assert M.level_shock_sd("NEW_BIG", no_fit, base) == (0.45, "default")
+    for party, scen in (("NOSIZE", scenario), ("NEW_BIG", no_fit)):
+        try:
+            M.level_shock_sd(party, scen, base)
+        except SystemExit as exc:
+            assert party in str(exc) and "no level-shock width" in str(exc)
+        else:
+            raise AssertionError(f"{party} was given a width with no size or fit")
+    # A measured party needs neither, so the stop is not a blanket refusal.
+    assert M.level_shock_sd("OLD", no_fit, base) == (0.33, "measured")
 
 
 def test_k_equal_to_zero_puts_a_party_with_no_theta_record_on_its_national_route():

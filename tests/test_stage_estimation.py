@@ -1146,22 +1146,17 @@ def cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling(payloads) -> list
     if not _finite(ceiling):
         return []
     before = centres.get("before_shrink") or {}
-    # A party the drawer itself records as drawn at `level_sd_default`
-    # (`41_guards.level_sd_default_parties`) is not drawn at its θ-prior sd,
-    # so its sd at the ceiling is not a drawn width. Since item 8 (2026-10-09)
-    # that includes the roster parties whose only record is the previous LGE.
-    # The exemption reads the drawer's own record, not a proxy for it (M2
-    # review S3).
-    at_default = set((guards or {}).get("level_sd_default_parties") or ())
-    # Since item 17 (2026-10-09) a party with no measured width is drawn at
-    # the size group's width at its own size, recorded with that width in
-    # `41_guards.level_sd_at_size`. Its DRAWN width is the one checked.
+    # Since item 17 (2026-10-09) a party with no measured width, or one whose
+    # only record is the previous LGE, is drawn at the size group's width at
+    # its own size, recorded with that width in `41_guards.level_sd_at_size`.
+    # Its DRAWN width is the one checked, read from the drawer's own record
+    # (M2 review S3). There is no other exemption: the typed fallback width
+    # (`level_sd_default`) was deleted 2026-10-09, M3 review row 7.
     at_size = dict((guards or {}).get("level_sd_at_size") or {})
     drawn = {p: v for p, v in sd.items() if p not in at_size}
     drawn.update(at_size)
     pinned = sorted(p for p, v in drawn.items()
-                    if _finite(v) and abs(v - ceiling) < 1e-12 and p in before
-                    and p not in at_default)
+                    if _finite(v) and abs(v - ceiling) < 1e-12 and p in before)
     if pinned:
         return [f"a party with a forecast level is drawn at the width CEILING "
                 f"{ceiling}: {pinned[:6]}. Its width is a clamp, not a measurement."]
@@ -2033,21 +2028,20 @@ def test_the_spine_reads_no_election_at_or_after_its_target():
 
 
 def test_the_width_ceiling_tripwire_exempts_only_what_the_drawer_records():
-    """Item 8 (2026-10-09), M2 review S3: a party the drawer records in
-    `41_guards.level_sd_default_parties` is drawn at `level_sd_default`, so
-    its θ-prior sd at the ceiling is not a drawn width. Constructed: a
-    forecast party at the ceiling is caught; named in the drawer's record it
-    goes quiet; named in no record (or another party named), caught again.
+    """M2 review S3, item 17: the tripwire checks the width the drawer
+    records drawing (`41_guards.level_sd_at_size`) in place of the θ-prior
+    sd. Constructed: a forecast party at the ceiling is caught; with no
+    record, or another party recorded, caught again; recorded below the
+    ceiling it goes quiet; recorded AT the ceiling, caught.
     """
     payloads = [copy.deepcopy(x) for x in healthy_payloads()]
     _corrupt_cross_ceiling(payloads)
     fn = cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling
     party = sorted(set(payloads[0]["sd"]) & set(payloads[2]["before_shrink"]))[0]
     assert fn(tuple(payloads)), "the constructed ceiling party was not caught"
-    recorded = {"level_sd_default_parties": [party]}
-    assert not fn((*payloads, recorded)), "a drawer-recorded party was flagged"
-    assert fn((*payloads, {"level_sd_default_parties": ["SOMEONE_ELSE"]}))
     assert fn((*payloads, {})), "an empty drawer record exempted the party"
+    other = {"level_sd_at_size": {"SOMEONE_ELSE": 0.1}}
+    assert fn((*payloads, other)), "another party's record exempted this one"
     # Item 17: drawn at its size group's width, the drawn width is checked.
     below = {"level_sd_at_size": {party: payloads[0]["sd_ceiling"] / 2}}
     assert not fn((*payloads, below)), "a party drawn below the ceiling flagged"

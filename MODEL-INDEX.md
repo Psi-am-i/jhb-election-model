@@ -178,11 +178,14 @@ Matched on the SHAPE of largest-remainder apportionment (a whole part, an orderi
 | `F_OTHER` | yes | -- |
 | `POLL_K` | yes | -- |
 | `POLL_RMS_ERROR` | yes | -- |
+| `SIZE_WINDOW_TIE` | NO | -- |
 | `THETA_CENTRAL` | yes | -- |
 | `canonical_order` | yes | -- |
 | `census_blend` | yes | -- |
 | `census_blend_wanted` | yes | -- |
 | `combined_shares` | yes | -- |
+| `level_sd_default` | yes | -- |
+| `level_sd_default_parties` | NO | -- |
 | `pa_contestation_uplift` | yes | -- |
 | `poll_id` | NO | `build_play`, `polling` |
 | `poll_k` | yes | -- |
@@ -285,7 +288,6 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `entrant_prob` | `0.25` | `FITTED_ON_UNINSTRUMENTED` | `2021`, `2026` | -- | yes | `backtest`, `build_interactive`, `compare_history`, `montecarlo` |
 | `entrant_share` | `list[3]` | `FITTED_ON_UNINSTRUMENTED` | `2021`, `2026` | -- | yes | `backtest`, `build_interactive`, `compare_history`, `montecarlo` |
 | `level_floor` | `1e-06` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo` |
-| `level_sd_default` | `0.45` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `level_shrink` | `0.35` | `FITTED_ON_UNINSTRUMENTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `level_shrink_scale` | `0.04` | `FITTED_ON_UNINSTRUMENTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `overhang_rule` | `'deduct'` | `NOT_FITTED` | -- | -- | yes | `backtest`, `benchmarks`, `montecarlo`, `prediction` |
@@ -330,7 +332,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `backtest.FITTED_ON` | dict[9] | NO | NO | NO | `model_index` |
 | `backtest.FITTED_ON_UNINSTRUMENTED` | dict[7] | NO | NO | NO | `model_index` |
 | `backtest.PROVENANCE_UNSETTLED` | dict[1] | NO | NO | NO | `model_index` |
-| `backtest.NOT_FITTED` | dict[25] | NO | NO | NO | `model_index` |
+| `backtest.NOT_FITTED` | dict[24] | NO | NO | NO | `model_index` |
 | `backup_ignored.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `areas`, `deploy_check`, `edit_mode`, `export_draws`, `group_share_record`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `render_sheet`, `site_text` |
 | `backup_ignored.BACKUPS` | ROOT / 'backups' | NO | NO | NO | -- |
 | `backup_ignored.SKIP_PREFIXES` | tuple[5] | NO | NO | NO | -- |

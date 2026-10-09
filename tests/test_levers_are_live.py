@@ -443,7 +443,8 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
         "precisions, instead of a typed 0.40. Adopted as a LEVER rather than a "
         "default on 2026-08-28: switching it moves the published 2026 forecast "
         "and nothing can score it, so it is the owner's decision. §1.122"),
-    # `level_sd_default` was excused here as inert at 2021 and 2026 until
+    # `level_sd_default` (DELETED 2026-10-09 after item 17 made it bind
+    # nowhere, M3 review row 7) was excused here as inert at 2021 and 2026 until
     # 2026-10-09. Item 8 of the model correction batch made it bind in the
     # draws (the roster parties whose only record is the previous LGE take it,
     # JUDGEMENT-CALLS §A29), and this harness then measured it live at both
@@ -822,7 +823,6 @@ PERTURB: dict[str, object] = {
     "poll_drift_per_root_day": 0.02,   # opinion moving very fast
     "poll_min_n": 5000,           # admits nothing under 5,000 respondents
     "poll_half_life_days": 5.0,   # only the freshest wave counts
-    "level_sd_default": 1.60,     # was frozen at 0.45 and unreachable
     "contestation_expand": 1.0,   # every party in every ward
     "w_bye_local_ward": 0.90,
     "w_bye_local_pr": 0.90,

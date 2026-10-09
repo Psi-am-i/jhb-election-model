@@ -103,7 +103,7 @@ import seats as seats_module  # noqa: E402
 # is one counter short of whole. See the SKILL.
 GUARD_KEYS = frozenset({
     "bounds_checked", "bounds_violations", "bounds_base", "draws",
-    "roster_unrepresented", "level_sd_default_parties", "level_sd_at_size",
+    "roster_unrepresented", "level_sd_at_size",
     "group_share_tripwire",
     "cap_moved", "cap_undershoots",
     "excessive_draws", "overhang_count",
@@ -137,7 +137,9 @@ GUARD_DENOMINATORS = {
 GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls")
 
 # Not counters: lists of party codes the run records (item 8, 2026-10-09).
-NAME_LIST_KEYS = ("roster_unrepresented", "level_sd_default_parties")
+# `level_sd_default_parties` was the second until 2026-10-09, deleted with the
+# typed fallback width it named (M3 review row 7, JUDGEMENT-CALLS §A29).
+NAME_LIST_KEYS = ("roster_unrepresented",)
 
 # `note_value`'s vocabulary. `consulted` is the only one that proves a value
 # reached a computation; `resolved` proves only that the process held it, and
@@ -602,10 +604,6 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                 or value != sorted(set(value))):
             out.append(f"41_guards.{key} is {value!r}, not a sorted list of "
                        f"distinct party codes")
-        elif universe is not None and key == "level_sd_default_parties" \
-                and set(value) - set(universe):
-            out.append(f"41_guards.{key} names parties outside the universe: "
-                       f"{sorted(set(value) - set(universe))[:6]}")
 
     for key, value in sorted(guards.items()):
         if key in NAME_LIST_KEYS or key == "group_share_tripwire":
@@ -988,7 +986,6 @@ def healthy_guards():
         "bounds_base": {"AAA": 0.20, "BBB": 0.001},
         "draws": DRAWS,
         "roster_unrepresented": ["ZZZ"],
-        "level_sd_default_parties": ["CCC"],
         "level_sd_at_size": {"DDD": 0.62},
         "group_share_tripwire": {
             "pairs": {"AAA|G1": {"draws": 3, "share": 0.5, "threshold": 0.4}},
@@ -1350,9 +1347,11 @@ def test_draws_ties_the_board_to_the_draws_and_bounds_checked_is_per_party():
 
 
 def test_the_two_name_lists_are_sorted_party_codes():
-    """Item 8's two 41_guards fields are lists, not counters. A healthy board
-    passes; an unsorted list, a non-string entry, a count in place of the list,
-    or a default-sd party outside the universe is caught; each reverted, quiet.
+    """Item 8's name list is a list, not a counter, and item 17's at-size
+    record names only parties the run draws. A healthy board passes; an
+    unsorted list, a non-string entry or a count in place of the list is
+    caught, and so is an at-size party outside the universe; each reverted,
+    quiet.
     """
     assert not faults_in_guards(healthy_guards(), draws=DRAWS)
     assert not faults_in_guards(
@@ -1364,7 +1363,7 @@ def test_the_two_name_lists_are_sorted_party_codes():
             faults = faults_in_guards(dict(healthy_guards(), **{key: bad}),
                                       draws=DRAWS)
             assert any(f"41_guards.{key}" in f for f in faults), (key, bad)
-    outside = dict(healthy_guards(), level_sd_default_parties=["QQQ"])
+    outside = dict(healthy_guards(), level_sd_at_size={"QQQ": 0.5})
     assert any("outside the universe" in f
                for f in faults_in_guards(outside, universe=PARTIES))
     assert not faults_in_guards(healthy_guards(), universe=PARTIES)
