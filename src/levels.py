@@ -1756,11 +1756,12 @@ def unopposed_pr_votes(path, unopposed: dict[str, str | None],
     unnamed = sorted(w for w, p in unopposed.items() if p is None)
     if unnamed:
         raise SystemExit(
-            f"{path}: ward(s) {unnamed} hold no ward ballot, so the candidate "
-            f"was elected unopposed, and the file does not say for which "
-            f"party. Schedule 1 item 12(2) doubles that party's PR votes in "
-            f"the ward; name it before the council can be reconstructed "
-            f"(JUDGEMENT-CALLS §Q7).")
+            f"{path}: ward(s) {unnamed} have PR rows and no ward-ballot rows. "
+            f"That is how an unopposed ward would appear, but the file does "
+            f"not say so or name a candidate. If it was unopposed, Schedule 1 "
+            f"item 12(2) doubles its winner's PR votes in the ward; establish "
+            f"what happened there and name the party before the council can "
+            f"be reconstructed (JUDGEMENT-CALLS §Q7).")
     out: dict[str, int] = defaultdict(int)
     with open(path, encoding="utf-8", errors="replace") as fh:
         for row in csv.DictReader(fh):

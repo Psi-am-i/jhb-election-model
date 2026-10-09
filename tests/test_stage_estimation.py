@@ -952,7 +952,7 @@ def cross_the_two_stages_read_one_theta_record(payloads) -> list[str]:
     ``THETA_WINDOW`` or an exclusion applied on one path and not the other — and
     every downstream comparison between them is meaningless.
     """
-    theta, spine, _ = payloads
+    theta, spine, _ = payloads[:3]
     faults = []
     geo = (theta.get("centre") or {}).get("weighted_geomean")
     centre = spine.get("theta_centre")
@@ -981,7 +981,7 @@ def cross_the_blend_weight_and_the_shrink_use_one_worth(payloads) -> list[str]:
     party with no theta record at all means the two stages disagree about who has
     a record, not merely about how much it is worth.
     """
-    theta, spine, _ = payloads
+    theta, spine, _ = payloads[:3]
     worth, detail = theta.get("worth") or {}, spine.get("detail") or {}
     faults, shared = [], 0
     for party, row in detail.items():
@@ -1014,7 +1014,7 @@ def cross_every_centre_has_a_level_behind_it(payloads) -> list[str]:
     record behind it means a fifth route has appeared with nothing recorded about
     where its number came from.
     """
-    theta, spine, centres = payloads
+    theta, spine, centres = payloads[:3]
     before = centres.get("before_shrink") or {}
     known = set(spine.get("level") or {}) | set(theta.get("prior") or {})
     orphans = sorted(set(before) - known)
@@ -1037,7 +1037,7 @@ def cross_the_spine_still_reaches_the_centres(payloads) -> list[str]:
     floor is set well under the observed minimum; what it catches is the seam
     going to ZERO, which is the failure that reads as a working model.
     """
-    _, spine, centres = payloads
+    _, spine, centres = payloads[:3]
     level = spine.get("level") or {}
     before = centres.get("before_shrink") or {}
     shared = [p for p in before if p in level]
@@ -1066,22 +1066,22 @@ def cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling(payloads) -> list
     would be set by a clamp rather than by the fit, and the sd sweep would be
     measuring a constant for it. Go and look; do not relax this.
     """
-    theta, spine, centres = payloads
+    theta, _spine, centres = payloads[:3]
+    guards = payloads[3] if len(payloads) > 3 else {}
     ceiling, sd = theta.get("sd_ceiling"), theta.get("sd") or {}
     if not _finite(ceiling):
         return []
     before = centres.get("before_shrink") or {}
-    # A party read on the spine's LOCAL-ONLY route has no national baseline:
-    # since item 8 (2026-10-09) that is a roster party whose only record is
-    # the previous LGE, and `make_drawer` draws it at `level_sd_default`, not
-    # at the θ prior's sd (which is fitted at a size it does not have). It is
-    # not drawn at the ceiling, so it is not this tripwire's case.
-    detail = (spine or {}).get("detail") or {}
-    local_only = {p for p, d in detail.items()
-                  if str((d or {}).get("route", "")).startswith("local only")}
+    # A party the drawer itself records as drawn at `level_sd_default`
+    # (`41_guards.level_sd_default_parties`) is not drawn at its θ-prior sd,
+    # so its sd at the ceiling is not a drawn width. Since item 8 (2026-10-09)
+    # that includes the roster parties whose only record is the previous LGE.
+    # The exemption reads the drawer's own record, not a proxy for it (M2
+    # review S3).
+    at_default = set((guards or {}).get("level_sd_default_parties") or ())
     pinned = sorted(p for p, v in sd.items()
                     if _finite(v) and abs(v - ceiling) < 1e-12 and p in before
-                    and p not in local_only)
+                    and p not in at_default)
     if pinned:
         return [f"a party with a forecast level is drawn at the width CEILING "
                 f"{ceiling}: {pinned[:6]}. Its width is a clamp, not a measurement."]
@@ -1100,8 +1100,12 @@ ALL_PREDICATES = {**THETA_PREDICATES, **SPINE_PREDICATES,
                   **CENTRES_PREDICATES, **CROSS_PREDICATES}
 
 
-def faults_in(theta: dict, spine: dict, centres: dict) -> list[tuple[str, str]]:
-    """Every predicate against one set of stage payloads. ``(predicate, fault)``."""
+def faults_in(theta: dict, spine: dict, centres: dict,
+              guards: dict | None = None) -> list[tuple[str, str]]:
+    """Every predicate against one set of stage payloads. ``(predicate, fault)``.
+
+    ``guards`` is the run's ``41_guards`` payload, read by the cross predicates
+    that need the drawer's own record (the width-ceiling tripwire)."""
     found: list[tuple[str, str]] = []
     for name, fn in THETA_PREDICATES.items():
         found += [(name, text) for text in fn(theta)]
@@ -1110,7 +1114,7 @@ def faults_in(theta: dict, spine: dict, centres: dict) -> list[tuple[str, str]]:
     for name, fn in CENTRES_PREDICATES.items():
         found += [(name, text) for text in fn(centres)]
     for name, fn in CROSS_PREDICATES.items():
-        found += [(name, text) for text in fn((theta, spine, centres))]
+        found += [(name, text) for text in fn((theta, spine, centres, guards or {}))]
     return found
 
 
@@ -1622,6 +1626,14 @@ def _stages(year: str) -> tuple[dict, dict, dict]:
     return tuple(out)                                        # type: ignore[return-value]
 
 
+def _guards(year: str) -> dict:
+    """The same run's ``41_guards`` payload."""
+    path = _trace_dir(year) / "41_guards.json"
+    if not path.exists():
+        skip(f"the {year} run wrote no 41_guards.json")
+    return json.loads(path.read_text())
+
+
 def _apply(corruption, payloads):
     """Deep-copy the payloads and apply one corruption. Returns the new triple."""
     _name, _what, which, mutate = corruption
@@ -1742,7 +1754,8 @@ def test_the_predicates_hold_on_a_real_trace():
     """
     for year in TRACE_YEARS:
         theta, spine, centres = _stages(year)
-        found = faults_in(theta, spine, centres)
+        guards = _guards(year)
+        found = faults_in(theta, spine, centres, guards)
         assert not found, (
             f"the estimation segment of the {CITY} {year} run is not "
             f"self-consistent:\n  "
@@ -1911,23 +1924,22 @@ def test_the_spine_reads_no_election_at_or_after_its_target():
             f"measured across the election being forecast")
 
 
-def test_the_width_ceiling_tripwire_skips_only_a_local_only_party():
-    """Item 8 (2026-10-09): a party read on the spine's local-only route is
-    drawn at `level_sd_default`, so its θ-prior sd at the ceiling is not a
-    drawn width. Constructed: a forecast party at the ceiling is caught; the
-    same party marked local-only goes quiet; the mark removed, caught again.
+def test_the_width_ceiling_tripwire_exempts_only_what_the_drawer_records():
+    """Item 8 (2026-10-09), M2 review S3: a party the drawer records in
+    `41_guards.level_sd_default_parties` is drawn at `level_sd_default`, so
+    its θ-prior sd at the ceiling is not a drawn width. Constructed: a
+    forecast party at the ceiling is caught; named in the drawer's record it
+    goes quiet; named in no record (or another party named), caught again.
     """
     payloads = [copy.deepcopy(x) for x in healthy_payloads()]
     _corrupt_cross_ceiling(payloads)
     fn = cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling
-    assert fn(tuple(payloads)), "the constructed ceiling party was not caught"
     party = sorted(set(payloads[0]["sd"]) & set(payloads[2]["before_shrink"]))[0]
-    row = payloads[1]["detail"].setdefault(party, {})
-    route = row.get("route")
-    row["route"] = "local only (no national record)"
-    assert not fn(tuple(payloads)), "a local-only party was still flagged"
-    row["route"] = route
-    assert fn(tuple(payloads)), "restoring the route did not restore the catch"
+    assert fn(tuple(payloads)), "the constructed ceiling party was not caught"
+    recorded = {"level_sd_default_parties": [party]}
+    assert not fn((*payloads, recorded)), "a drawer-recorded party was flagged"
+    assert fn((*payloads, {"level_sd_default_parties": ["SOMEONE_ELSE"]}))
+    assert fn((*payloads, {})), "an empty drawer record exempted the party"
 
 
 if __name__ == "__main__":

@@ -2770,12 +2770,15 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # Since item 8 (2026-10-09) it binds for the roster parties whose only
     # record is the previous LGE: `theta_prior` never saw them.
     took_default: set[str] = set()
-    # An item-8 party's measured sd, where `theta_prior` emits one, was fitted
-    # at the size of its (absent) national baseline, which pins it to
-    # `SD_CEILING`: a clamp, not a measurement (caught by
-    # `test_stage_estimation`'s width-ceiling tripwire on joburg 2011's
-    # CHRISTIAN_DEMOCRATIC_PARTY). It takes `level_sd_default`, as SPEC §1.7
-    # step 6 intended, until item 17 sizes its width at its local share.
+    # An item-8 party (`levels.local_record_only`) is in `theta_prior`'s record
+    # with no national baseline, so where `theta_prior` emits an sd for it, it
+    # is `sd_for(0.0)`: the size line evaluated at the 1e-5 size floor, a
+    # width at a size the party does not have. For some such parties that
+    # lands on `SD_CEILING` (joburg 2011's CHRISTIAN_DEMOCRATIC_PARTY, caught
+    # by `test_stage_estimation`'s width-ceiling tripwire). So every item-8
+    # party takes `level_sd_default`, as SPEC §1.7 step 6 intended, until item
+    # 17 sizes its width at its local share. (§1.7 step 6 assumed these
+    # parties were absent from `theta_prior`'s output; they are not. SPEC R3.7.)
     local_only = set(scenario.get("_local_record_only") or ())
 
     def sd_for_party(party: str) -> float:
@@ -4271,11 +4274,12 @@ def run_model(target, scenario: dict,
     if _unopposed:
         raise SystemExit(
             f"{target.city.slug} {target.year}: ward(s) "
-            f"{sorted(_unopposed.items(), key=lambda kv: kv[0])} have a "
-            f"single candidate, elected unopposed. Schedule 1 item 12(2): an "
-            f"uncontested ward is not modelled in the draws, which simulate a "
-            f"ward ballot in every ward. See JUDGEMENT-CALLS §Q7 before "
-            f"running this target.")
+            f"{sorted(_unopposed.items(), key=lambda kv: kv[0])} show one "
+            f"ward-ballot party, or (party None) no ward ballot at all: the "
+            f"evidence of an unopposed ward, which Schedule 1 item 12(2) "
+            f"treats differently. An uncontested ward is not modelled in the "
+            f"draws, which simulate a ward ballot in every ward. See "
+            f"JUDGEMENT-CALLS §Q7 before running this target.")
 
 
     # A party with no baseline cannot be grown into existence: theta multiplies,
@@ -5524,7 +5528,10 @@ def run_model(target, scenario: dict,
         # level-shock sd is `level_sd_default` because no size record covers
         # them (JUDGEMENT-CALLS §A29).
         "roster_unrepresented": roster_unrepresented,
-        "level_sd_default_parties": sorted(draw_target.level_sd_default),
+        # Only parties the run draws: `sd_for_party` is also consulted for
+        # pool members outside the universe (M2 review S1).
+        "level_sd_default_parties": sorted(
+            p for p in draw_target.level_sd_default if p in index),
         "excessive_draws": excessive_draws,
         "overhang_count": dict(overhang_count),
         # `solve_nonconvergent` is expected to equal `solve_calls` on the shipped

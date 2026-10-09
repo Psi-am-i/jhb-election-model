@@ -443,61 +443,13 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
         "precisions, instead of a typed 0.40. Adopted as a LEVER rather than a "
         "default on 2026-08-28: switching it moves the published 2026 forecast "
         "and nothing can score it, so it is the owner's decision. §1.122"),
-    ("level_sd_default", "2021"): Null(
-        cause="UNDELIVERED",
-        where="`sd_for_party` is never called. `handled` is every party holding "
-              "membership of any pool, `pools.emit_pools` gives every baseline "
-              "party a vector, so the `individual` list the fallback serves is "
-              "EMPTY — the fallback is not merely unused, its consumer does not "
-              "run",
-        blocker="DATA",
-        gate_check="level_sd_fallback_never_binds",
-        evidence="measured 2026-08-27 against the base run and the emitted "
-                 "spec: every party in the run's index is a pool member, at "
-                 "both targets (56 of 56 at 2021, 44 of 44 at 2026), so "
-                 "`individual` is empty at both.\n"
-                 "  **THE REASON BELOW IS WRONG AND IS KEPT AS WRITTEN.** It "
-                 "says `levels.theta_prior` returns an sd for EVERY party in "
-                 "the baseline. At 2021 it does not: 33 of the 56 parties in "
-                 "the index have no measured sd — ActionSA among them — so if "
-                 "the individual path ever ran, this fallback would bind for a "
-                 "third of the ballot at 1.60 instead of 0.45. The null is "
-                 "real; the stated cause of it is not, and the entry has been "
-                 "right by luck since 2026-08-20. Corrected here rather than "
-                 "silently rewritten, per `_LEGACY_POLL`. At 2026 the second "
-                 "consumer (`_sd.get(party, default)` in the poll blend) does "
-                 "run, and every party it reaches has a measured sd.",
-        reason=
-        "the fallback level spread for a party with no measured sd(log theta), "
-        "and `levels.theta_prior` returns an `sd` for EVERY party in the "
-        "baseline — so `sd_for_party` takes the measured branch every time and "
-        "the default never binds. JUDGEMENT-CALLS.md predicted exactly this "
-        "('binds only on parties outside it') before there was a test to show "
-        "it. **It was also not a DEFAULTS key at all until 2026-08-20**, so it "
-        "was frozen at 0.45 and unreachable; the register's own instruction was "
-        "'either measure it or promote it', and it is now promoted. Inert is "
-        "the honest reading and not a defect: a fallback that never fires is "
-        "what you want, and the value only matters if the baseline ever stops "
-        "covering the ballot. MODEL-LOG §1.63."),
-    ("level_sd_default", "2026"): Null(
-        cause="UNDELIVERED",
-        where="both consumers are unreachable: `sd_for_party` sees only the "
-              "`individual` path, which is empty (every index party is a pool "
-              "member), and the poll blend's `_sd.get(party, default)` runs "
-              "only when `poll_paths == 'all'` — it has been 'off' since "
-              "2026-09-12",
-        blocker="DATA",
-        gate_check="level_sd_fallback_never_binds",
-        evidence="2026-09-17 suite: perturbed to 1.60 at 2026 nothing moved, "
-                 "although 44 parties on the certified ballot have no measured "
-                 "sd. The gate reported them EXPOSED because it asked whether a "
-                 "metro poll exists rather than whether polls are on; fixed in "
-                 "`_gate_no_metro_poll` the same day. Removing this entry on the "
-                 "gate's word, before measuring, was a mistake — restored with "
-                 "the measured reason.",
-        reason="a fallback no consumer can reach; it binds again the day polls "
-               "are switched back on, for the 44 unmeasured 2026 parties. "
-               "JUDGEMENT-CALLS §A29."),
+    # `level_sd_default` was excused here as inert at 2021 and 2026 until
+    # 2026-10-09. Item 8 of the model correction batch made it bind in the
+    # draws (the roster parties whose only record is the previous LGE take it,
+    # JUDGEMENT-CALLS §A29), and this harness then measured it live at both
+    # targets, so both entries and their gate (`level_sd_fallback_never_binds`)
+    # were deleted. The gate's premise was also wrong: `sd_for_party` serves
+    # every pool member's shock in `make_drawer`, not only the individual path.
     ("poll_house_k", "2021"): _NO_METRO_POLL_NULL,
     ("poll_house_k", "2026"): Null(
         cause="UNDELIVERED",
@@ -1274,41 +1226,6 @@ def _gate_polls_shipped_off(year: str) -> tuple[bool, str]:
         + ("" if shipped == "off" else " — THE GATE IS OPEN"))
 
 
-def _gate_level_sd_fallback_never_binds(year: str) -> tuple[bool, str]:
-    """No party can reach `sd_measured.get(party, sd_default)`'s second argument.
-
-    Two consumers, and the gate must be shut for both: `sd_for_party`, which
-    only sees parties on the `individual` path, and the poll blend's
-    `_sd.get(party, default)`, which only runs where a metro poll is admitted.
-
-    This is the one gate that needs the model. It reads the base run's index and
-    the base run's own trace — the measured sd(log θ) as the run actually had
-    it — rather than recomputing either, because a check that recomputes its
-    subject is checking its own arithmetic.
-    """
-    base = _base(year)
-    index = set(base[4])
-    _, target = _joburg(year)
-    spec = json.loads(_spec_path(target).read_text())
-    members = {p for cfg in spec["pools"].values() for p in cfg["members"]}
-    measured = set(_trace(year, "10_theta_prior").get("sd") or {})
-    # `handled` is exactly this, in make_drawer: a party in any pool.
-    individual = index - members - {"ENTRANT"}
-    exposed = individual - measured
-    detail = (f"{len(index)} parties in the index, {len(index & members)} of "
-              f"them pool members, so the individual path holds "
-              f"{len(individual)}")
-    if _gate_no_metro_poll(year)[0]:
-        detail += "; the poll blend does not run at this target"
-    else:
-        polled = index - {"ENTRANT"} - measured
-        exposed |= polled
-        detail += (f"; the poll blend runs and {len(polled)} of the index has "
-                   f"no measured sd")
-    return not exposed, detail + (f"; EXPOSED TO THE FALLBACK: {sorted(exposed)}"
-                                  if exposed else "")
-
-
 def _gate_arrivals_are_named(year: str) -> tuple[bool, str]:
     """The ballot is known and the arrivals are seeded BY NAME, so the generic
     slot is not in the universe and nothing that sizes it can move.
@@ -1349,15 +1266,14 @@ GATES = {
     "sigma_two_term_shipped_on": _gate_sigma_two_term_shipped_on,
     "local_bye_weights_shipped_off": _gate_local_bye_weights_shipped_off,
     "polls_shipped_off": _gate_polls_shipped_off,
-    "level_sd_fallback_never_binds": _gate_level_sd_fallback_never_binds,
 }
 
-# Gates that need NO model run. Nine of the ten; only
-# `level_sd_fallback_never_binds` calls `_base`. An entry may only generalise
+# Gates that need NO model run: all of them since the one that called `_base`
+# was deleted (2026-10-09, see the level_sd_default note). An entry may only generalise
 # past its own target (`Null.claimed_targets`) if its gate is in here, because
 # the point of generalising cheaply is that the extra targets get CHECKED —
 # and a check that costs a run at every runnable target would not be made.
-MODEL_FREE_GATES = frozenset(GATES) - {"level_sd_fallback_never_binds"}
+MODEL_FREE_GATES = frozenset(GATES)
 
 # The gates whose evidence is the emitted pool spec. Both report a MISSING file
 # as a shut gate — correct for their own use (no spec, nothing to draw) and a

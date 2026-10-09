@@ -123,6 +123,11 @@ def test_the_seven_certified_parties_reach_the_2026_run():
     assert seven <= set(run.universe), sorted(seven - set(run.universe))
     assert set(run.scenario["_local_record_only"]) == seven
     assert run.guards["roster_unrepresented"] == []
+    # M2 review S3: every item-8 party is drawn at `level_sd_default`, and the
+    # drawer's record says so; the record names only parties the run draws.
+    assert set(run.scenario["_local_record_only"]) <= set(
+        run.guards["level_sd_default_parties"]), run.guards
+    assert set(run.guards["level_sd_default_parties"]) <= set(run.universe)
 
 
 class _Args:

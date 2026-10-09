@@ -1892,6 +1892,38 @@ def test_the_real_boards_counters_are_bounded_by_the_real_draws():
             d = d.get(party, 0) if isinstance(d, dict) else d  # per party
             assert n <= d, (counter, party, n, d)
     assert all(n <= guards["draws"] for n in guards["bounds_checked"].values())
+
+
+def test_bounds_checked_covers_exactly_the_declared_ranges_in_the_run():
+    """M2 review S4. With `bounds_checked` per party and out of the denominator
+    keys, an empty board would pass. So its population is pinned: its keys are
+    the parties with a declared §3.5 range (`cityconfig` `plan_bounds`) that
+    are in the run's universe above 0.5% of the baseline, each checked in
+    every draw. The ranges are read from the city's config and compared with
+    the ones the model holds, so a run where `apply_city` never ran is told
+    apart from a city that declares none.
+
+    The run-time baseline is the pre-seed baseline plus the party's seed (ASA
+    has a declared range and is seeded at 2021). An item-8 entrant's baseline
+    is its previous-LGE share, which the run does not record, so the test
+    asserts no declared-range party is one in this trace.
+    """
+    payloads, run = real_trace()
+    guards = payloads["41_guards"]
+    declared = cityconfig.load("joburg").plan_bounds
+    assert dict(M.PLAN_BOUNDS) == dict(declared), (
+        "the model's §3.5 ranges are not the city's declared ones: apply_city "
+        "did not run, and bounds_checked would be empty for that reason")
+    assert not set(declared) & set(run.scenario.get("_local_record_only") or ())
+    before = run.scenario["_baseline_before_seeds"]
+    seeds = run.scenario.get("pool_seeds") or {}
+    base = {p: max(before.get(p, 0.0) + seeds.get(p, 0.0), 0.0) for p in declared}
+    expected = {p for p in declared
+                if p in run.universe and base[p] > 0.005}
+    assert expected, "no declared range reaches this run: the check saw nothing"
+    assert set(guards["bounds_checked"]) == expected, (
+        sorted(guards["bounds_checked"]), sorted(expected))
+    assert all(n == guards["draws"] for n in guards["bounds_checked"].values())
     assert sum(guards["overhang_count"].values()) >= guards["excessive_draws"]
 
 

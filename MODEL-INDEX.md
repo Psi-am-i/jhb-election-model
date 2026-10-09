@@ -276,7 +276,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `entrant_prob` | `0.25` | `FITTED_ON_UNINSTRUMENTED` | `2021`, `2026` | -- | yes | `backtest`, `build_interactive`, `compare_history`, `montecarlo` |
 | `entrant_share` | `list[3]` | `FITTED_ON_UNINSTRUMENTED` | `2021`, `2026` | -- | yes | `backtest`, `build_interactive`, `compare_history`, `montecarlo` |
 | `level_floor` | `1e-06` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo` |
-| `level_sd_default` | `0.45` | `NOT_FITTED` | `2021`, `2026` | -- | yes | `backtest`, `montecarlo` |
+| `level_sd_default` | `0.45` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `level_shrink` | `0.35` | `FITTED_ON_UNINSTRUMENTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `level_shrink_scale` | `0.04` | `FITTED_ON_UNINSTRUMENTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `overhang_rule` | `'deduct'` | `NOT_FITTED` | -- | -- | yes | `backtest`, `benchmarks`, `montecarlo`, `prediction` |

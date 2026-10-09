@@ -1126,3 +1126,33 @@ this batch's; it is reported to the coordinator, not fixed here.
 
 Step 5's `levels.py` and `montecarlo.py` changes move `deps_sha` again; the
 same three tests stay red for the same cause, and no new test joins the list.
+
+### R3.6, fix-round addendum (writer, after the M2 review, 2026-10-09)
+
+- **Generated documents.** `JUDGEMENT-SHEET.md` (`src/judgement_sheet.py`)
+  joins the register, so `test_judgement_sheet` goes red whenever
+  JUDGEMENT-CALLS.md changes; it was red from M1 until this round regenerated
+  it (M2 review S5). It is regenerated with `MODEL-INDEX.md` before every
+  quoted run and at step 12, and is red by design only between a register
+  edit and that regeneration.
+- **The window (step 10) also rebuilds three things**, each red until rebuilt
+  (M2 review N7):
+  - the citywide table, `src/citywide_table.py` (`levels_sha`), and the
+    page's served copy, re-shipped from it;
+  - `JUDGEMENT-SHEET.md`, after the batch's last register edit;
+  - and, as already listed, the pool specs.
+
+### R3.7 (writer, after the M2 review, 2026-10-09): item 8's width departs from §1.7 step 6's premise
+
+§1.7 step 6 gives the item-8 parties `level_sd_default` because "they are
+absent from `theta_prior`'s baseline", so `sd_for_party` would fall back. They
+are absent from the baseline but present in its θ record, and `theta_prior`
+emits an sd for every party in the record: for a party with no baseline,
+`sd_for(0.0)`, the size line evaluated at the 1e-5 size floor. That is a width
+at a size the party does not have, and for some it is `SD_CEILING` (joburg
+2011's CHRISTIAN_DEMOCRATIC_PARTY tripped the estimation width-ceiling
+tripwire). `make_drawer` therefore gives every item-8 party `level_sd_default`
+explicitly, which is the value §1.7 step 6 intended, and records it in
+`41_guards.level_sd_default_parties`. The width-ceiling tripwire exempts
+exactly the parties in that record. Item 17 (R2.2) replaces the default for
+them with `size_sd` at their local share.

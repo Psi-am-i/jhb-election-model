@@ -766,7 +766,7 @@ def ward_priors(city, target: str, wards: list[str], *, elections: Path | None =
             "parts": label, "wards_without_prior": sorted((w for w in wards if w not in h), key=int)}
 
 
-def npe_priors(city, target: str, wards: list[str], *, elections: Path | None = None,
+def npe_priors(city, target: str, *, elections: Path | None = None,
                processed: Path | None = None) -> dict:
     """The same from the national election before the target
     (``Target.previous_npe``): ``{"h", "city", "file", "sha256", "year"}``. A
@@ -951,7 +951,7 @@ def editor_bounds(city, target: str, wards: list[str], roster: list[str], *,
     allow = allowances(panel, excl)
     bins = swing_extremes(panel)
     local = ward_priors(city, target, wards, elections=elections)
-    national = npe_priors(city, target, wards, elections=elections)
+    national = npe_priors(city, target, elections=elections)
     cells, party = ward_ranges(roster, wards, local, national, bins, allow, panel["newcomer"])
     prior_e = collections.Counter()
     for w in wards:

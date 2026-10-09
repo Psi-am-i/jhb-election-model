@@ -883,7 +883,7 @@ def _ranges_from(b: dict, wards, roster, **where) -> tuple[dict, dict]:
     city = cityconfig.active()
     target = str(city.default_target)
     local = build_make.ward_priors(city, target, wards, **where)
-    national = build_make.npe_priors(city, target, wards, **where)
+    national = build_make.npe_priors(city, target, **where)
     bins = {k: b["swing"]["extremes"][k] for k in ("ward", "npe_ward")}
     cells, party = build_make.ward_ranges(roster, wards, local, national, bins, b["allowance"],
                                           b["swing"]["newcomer"])
@@ -1213,7 +1213,7 @@ def test_the_city_limits_are_regenerated_from_the_panel():
     panel = build_make.swing_panel(city, target)
     bins = build_make.swing_extremes(panel)
     local = build_make.ward_priors(city, target, wards)
-    npe = build_make.npe_priors(city, target, wards)
+    npe = build_make.npe_priors(city, target)
     pe = collections.Counter()
     for w in wards:
         for c, v in local["h"].get(w, {}).items():

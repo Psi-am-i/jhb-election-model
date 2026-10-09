@@ -557,9 +557,9 @@ NOT_FITTED: dict[str, str] = {
     "dirichlet_floor": "the same clamp on deviation inputs, mirrored as a "
                        "scenario key so the sweep that chose it is reproducible",
     "level_sd_default": "the fallback level spread for a party with no measured "
-                        "sd(log theta). It binds on no party at either target "
-                        "(GATES['level_sd_fallback_never_binds']) and is a "
-                        "fallback, not a fit",
+                        "sd(log theta). Since 2026-10-09 it binds for the "
+                        "roster parties whose only record is the previous LGE "
+                        "(JUDGEMENT-CALLS §A29); typed, not fitted",
     # --- statute and switches ---------------------------------------------
     "overhang_rule": "the excessive-seats provision. Municipal Structures Act "
                      "Schedule 1 item 16 as amended by Act 3 of 2021 — the "

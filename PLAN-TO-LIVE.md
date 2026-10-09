@@ -456,7 +456,8 @@ this week.
 
 It is the only measurement that says **how much of the November forecast is
 decided by typed constants**. With the arrivals poll path dark, 2026's entrant
-handling rests on `entrant_prob = 0.25`, `ARRIVAL_BAND_LO/HI` and the
+handling rests on `entrant_prob = 0.25`, the arrival band's percentile pair
+(deleted 2026-10-09: the band was never drawn from) and the
 never-swept `ALPHA_*` family that feeds *83–98% of drawn variance*. That is the
 second-largest live risk after the poll channel and the first draft did not name
 it as a risk at all.
