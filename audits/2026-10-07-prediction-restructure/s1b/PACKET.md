@@ -113,3 +113,13 @@ your scratch directory.
     citywide swing limit, with no solver.
   - **B2b:** the witness editor, which needs scipy.
 - **O4, the citywide swing limit is agreed.** It lands in B2a.
+
+## Coordinator's decisions on SPEC-B2r2 (2026-10-09), within the owner's rules
+
+- **D2: B2a first, then B2b,** as the owner directed ("keep the allowed swing to
+  previous history while we work on it").
+- **D1: the measured mean where a quantity has at least 2 record events;**
+  `EDITOR_WIDEN_PP` where it has fewer. Measuring everywhere would set `gap_min`
+  at −2.91 and put our own prediction outside, because of the model's PA split
+  (−5.53 points), which the model investigation is treating as a likely defect.
+  Revisit once that is fixed. The owner can overrule.
