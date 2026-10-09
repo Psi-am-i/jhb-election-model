@@ -1066,13 +1066,22 @@ def cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling(payloads) -> list
     would be set by a clamp rather than by the fit, and the sd sweep would be
     measuring a constant for it. Go and look; do not relax this.
     """
-    theta, _, centres = payloads
+    theta, spine, centres = payloads
     ceiling, sd = theta.get("sd_ceiling"), theta.get("sd") or {}
     if not _finite(ceiling):
         return []
     before = centres.get("before_shrink") or {}
+    # A party read on the spine's LOCAL-ONLY route has no national baseline:
+    # since item 8 (2026-10-09) that is a roster party whose only record is
+    # the previous LGE, and `make_drawer` draws it at `level_sd_default`, not
+    # at the θ prior's sd (which is fitted at a size it does not have). It is
+    # not drawn at the ceiling, so it is not this tripwire's case.
+    detail = (spine or {}).get("detail") or {}
+    local_only = {p for p, d in detail.items()
+                  if str((d or {}).get("route", "")).startswith("local only")}
     pinned = sorted(p for p, v in sd.items()
-                    if _finite(v) and abs(v - ceiling) < 1e-12 and p in before)
+                    if _finite(v) and abs(v - ceiling) < 1e-12 and p in before
+                    and p not in local_only)
     if pinned:
         return [f"a party with a forecast level is drawn at the width CEILING "
                 f"{ceiling}: {pinned[:6]}. Its width is a clamp, not a measurement."]
@@ -1900,6 +1909,25 @@ def test_the_spine_reads_no_election_at_or_after_its_target():
         assert not late, (
             f"the spine for target {year} read {late} — a retention ratio "
             f"measured across the election being forecast")
+
+
+def test_the_width_ceiling_tripwire_skips_only_a_local_only_party():
+    """Item 8 (2026-10-09): a party read on the spine's local-only route is
+    drawn at `level_sd_default`, so its θ-prior sd at the ceiling is not a
+    drawn width. Constructed: a forecast party at the ceiling is caught; the
+    same party marked local-only goes quiet; the mark removed, caught again.
+    """
+    payloads = [copy.deepcopy(x) for x in healthy_payloads()]
+    _corrupt_cross_ceiling(payloads)
+    fn = cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling
+    assert fn(tuple(payloads)), "the constructed ceiling party was not caught"
+    party = sorted(set(payloads[0]["sd"]) & set(payloads[2]["before_shrink"]))[0]
+    row = payloads[1]["detail"].setdefault(party, {})
+    route = row.get("route")
+    row["route"] = "local only (no national record)"
+    assert not fn(tuple(payloads)), "a local-only party was still flagged"
+    row["route"] = route
+    assert fn(tuple(payloads)), "restoring the route did not restore the catch"
 
 
 if __name__ == "__main__":

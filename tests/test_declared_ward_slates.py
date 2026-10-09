@@ -148,5 +148,56 @@ def test_the_live_tree_really_does_declare_its_ward_slates():
         f"reason this path exists.")
 
 
+def test_vote_weighted_coverage_and_the_slate_change_ratio():
+    """G9 (model correction batch item 6, owner: "vote weighted").
+
+    A constructed complete roster for Johannesburg 2026 puts the ANC on wards
+    1-20 and the DA on none. `levels.slate_coverage`, weighted by the 2021
+    PR votes, must equal the ANC's 2021 list vote in VDs that lie in those
+    wards (by `pools.vd_map` for 2026) over its list vote in every mapped VD,
+    computed here from the file directly; the DA, on the roster with no ward
+    candidates, gets 0. Then the ratio: a party at now = 0 gets 0, not
+    `WARD_PR_RATIO_MIN`'s 0.5; ratio x now / was = 3 is capped at 2.0.
+    """
+    import csv
+    from collections import defaultdict
+    import montecarlo as M
+    import parties as PP
+
+    wards = [f"7980{n:04d}" for n in range(1, 21)]
+    body = ('[roster]\nparties = ["ANC", "DA"]\ncomplete = true\n'
+            '[roster.wards]\n"AFRICAN NATIONAL CONGRESS" = ['
+            + ", ".join(f'"{w}"' for w in wards) + "]\n")
+    city = cityconfig.use(CITY)
+    target = cityconfig.use_target(LIVE)
+    original = pools.lineage_path
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / f"{CITY}-{LIVE}.toml"
+        path.write_text(body)
+        try:
+            pools.lineage_path = lambda c, t: path
+            cov = levels.slate_coverage(target, city, PAST)
+            count = levels.contestation(target, city)
+        finally:
+            pools.lineage_path = original
+    ward_of, _ = pools.vd_map(city, LIVE)
+    votes = defaultdict(int)
+    prev = levels.result_path(cityconfig.Target(city=city, year=PAST), city)
+    with open(prev, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            if (row["BallotType"] == "PR" and PP.canonical(row["sPartyName"]) == "ANC"
+                    and row["VD_Number"] in ward_of):
+                votes[ward_of[row["VD_Number"]]] += int(float(row["Party_Votes"]))
+    hand = sum(v for w, v in votes.items() if w in set(wards)) / sum(votes.values())
+    assert abs(cov["ANC"] - hand) < 1e-12, (cov["ANC"], hand)
+    assert abs(cov["ANC"] - count["ANC"]) > 1e-3, (
+        "vote-weighted coverage equals the ward count here, so this test "
+        "could not tell the two definitions apart")
+    assert cov["DA"] == 0.0
+    assert M.slate_change_ratio(0.9, 0.0, 0.6) == 0.0
+    assert M.slate_change_ratio(1.5, 1.0, 0.5) == M.WARD_PR_RATIO_MAX == 2.0
+    assert abs(M.slate_change_ratio(0.8, 0.5, 0.5) - 0.8) < 1e-12
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

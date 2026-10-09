@@ -2765,8 +2765,24 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     sd_measured = (scenario.get("_theta_sd") or {})
     sd_default = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
 
+    # WHO TOOK `level_sd_default` (JUDGEMENT-CALLS §A29). Recorded at the one
+    # place the fallback is applied, for `41_guards.level_sd_default_parties`.
+    # Since item 8 (2026-10-09) it binds for the roster parties whose only
+    # record is the previous LGE: `theta_prior` never saw them.
+    took_default: set[str] = set()
+    # An item-8 party's measured sd, where `theta_prior` emits one, was fitted
+    # at the size of its (absent) national baseline, which pins it to
+    # `SD_CEILING`: a clamp, not a measurement (caught by
+    # `test_stage_estimation`'s width-ceiling tripwire on joburg 2011's
+    # CHRISTIAN_DEMOCRATIC_PARTY). It takes `level_sd_default`, as SPEC §1.7
+    # step 6 intended, until item 17 sizes its width at its local share.
+    local_only = set(scenario.get("_local_record_only") or ())
+
     def sd_for_party(party: str) -> float:
-        return float(sd_measured.get(party, sd_default))
+        if party not in sd_measured or party in local_only:
+            took_default.add(party)
+            return float(sd_default)
+        return float(sd_measured[party])
 
     individual = []
     for party, i in index.items():
@@ -3132,6 +3148,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         return target
 
     draw_pools.ipf_stats = ipf_stats
+    draw_pools.level_sd_default = took_default
     draw_pools.turnout_record = turnout_record
     draw_pools.turnout_pools = turnout_pools
     return draw_pools
@@ -3870,6 +3887,84 @@ def _projected_roster_declaration(target, roster: set[str],
     return "\n".join(lines)
 
 
+def slate_change_ratio(ratio: float, now: float, was: float) -> float:
+    """A party's ward/PR ratio moved by the change in its slate (item 6).
+
+    ``ratio × now / was``, capped at :data:`WARD_PR_RATIO_MAX` and not floored:
+    every term is non-negative, so a party fielding no ward candidate now gets
+    0, never :data:`WARD_PR_RATIO_MIN` (SPEC O3). One definition, so the cap is
+    the registered constant rather than a second literal.
+    """
+    return float(min(ratio * (now / was), WARD_PR_RATIO_MAX))
+
+
+def roster_universe_check(roster, roster_state: str, universe,
+                          prev_local: dict[str, float],
+                          seeds: dict[str, float],
+                          baseline: dict[str, float], *,
+                          has_result: bool) -> dict:
+    """Check the target's roster against the run's parties, both ways (G8).
+
+    Model correction batch item 8 (2026-10-09). Every roster party (not an
+    independent) is in exactly one class:
+
+    * **with a record** -- a previous-LGE list vote, a national baseline or an
+      arrival seed. Absent from ``universe``: the run would forecast a ballot
+      without it, so this refuses (``missing_with_record``).
+    * **no record** -- none of the three. ``pools`` has no vector for it, so
+      it cannot be drawn; returned as ``unrepresented_no_record`` and recorded
+      in ``41_guards.roster_unrepresented``. At a target with no result file
+      (a live forecast) this refuses too, because the ballot the forecast is
+      read against would be missing a party. At a backtest it is recorded:
+      those are `pools`' unseeded arrivals, outside this batch (SPEC O5).
+
+    And the other direction: a ``universe`` party not on the roster, except
+    the generic ``ENTRANT`` slot, refuses when the roster is ``published`` or
+    ``projected`` (``extra``). Skipped, and recorded ``"not_checked"``, when
+    the roster state is ``not_yet_held``: there is no roster to check.
+
+    Returns ``{"missing_with_record", "extra", "unrepresented_no_record",
+    "population"}``, each a sorted list (or ``"not_checked"``) and
+    ``population`` the roster parties classified, which the three record
+    classes partition.
+    """
+    if roster_state == "not_yet_held":
+        return {"missing_with_record": "not_checked", "extra": "not_checked",
+                "unrepresented_no_record": "not_checked", "population": 0}
+    universe = set(universe)
+    population = sorted(p for p in roster or () if p not in (INDEPENDENT, "IND"))
+    with_record, no_record = [], []
+    for party in population:
+        if (prev_local.get(party, 0.0) > 0 or baseline.get(party, 0.0) > 0
+                or seeds.get(party, 0.0) > 0):
+            with_record.append(party)
+        else:
+            no_record.append(party)
+    missing = sorted(p for p in with_record if p not in universe)
+    extra = sorted(p for p in universe
+                   if p not in set(population) and p != "ENTRANT")
+    unrepresented = sorted(p for p in no_record if p not in universe)
+    if missing:
+        raise SystemExit(
+            f"roster parties with a record are missing from the run: {missing}. "
+            f"Each has a previous-LGE list vote, a national baseline or a seed, "
+            f"so the run can forecast it; leaving it out forecasts a ballot "
+            f"without it (BRIEF item 8, levels.local_record_only).")
+    if extra and roster_state in ("published", "projected"):
+        raise SystemExit(
+            f"the run forecasts parties that are not on the {roster_state} "
+            f"roster: {extra}. The off-ballot drop should have removed them.")
+    if unrepresented and not has_result:
+        raise SystemExit(
+            f"roster parties with no record are not in the run: {unrepresented}. "
+            f"At a live forecast every party on the ballot must be drawn; "
+            f"`pools` should have seeded these as arrivals. Re-emit the pool "
+            f"spec or declare them (SPEC O5).")
+    return {"missing_with_record": missing, "extra": extra,
+            "unrepresented_no_record": unrepresented,
+            "population": len(population)}
+
+
 def run_model(target, scenario: dict,
               data_dir: Path = Path("data/raw/elections"),
               processed: Path | None = None,
@@ -4280,12 +4375,15 @@ def run_model(target, scenario: dict,
         # `_contestation` is who stands at the TARGET; `_contestation_prev` is
         # who stood at the election the ward/PR ratio was measured from, which
         # is `target.previous_lge` — the same one `ward_pr_ratios` reads.
-        _contest = _levels.contestation(target, target.city)
+        # VOTE-WEIGHTED (item 6, owner: "vote weighted", 2026-10-09): each
+        # slate is the share of the party's own previous-LGE list vote lying
+        # in the wards it contests, then and now, on the same weights.
         _prev_lge = target.previous_lge
+        _contest = _levels.slate_coverage(target, target.city, _prev_lge)
         _contest_prev = {}
         if _prev_lge:
-            _contest_prev = _levels.contestation(
-                cityconfig.use_target(_prev_lge), target.city)
+            _contest_prev = _levels.slate_coverage(
+                cityconfig.use_target(_prev_lge), target.city, _prev_lge)
             cityconfig.use_target(target.year)   # restore the active target
         # NO TARGET LISTS -> PROJECT THEM, and say so. `contestation` reads who
         # stood from the target's own result file, which exists for every
@@ -4352,7 +4450,7 @@ def run_model(target, scenario: dict,
                     ", from published lists" if not _live else
                     ", from the declared nomination lists")
             note_constant(scenario, "contestation",
-                          f"{target.year} against {_prev_lge}, "
+                          f"{target.year} against {_prev_lge}, vote-weighted, "
                           f"{len(_contest)} parties" + _how)
             if verbose:
                 vals = sorted(_contest.values())
@@ -4367,6 +4465,29 @@ def run_model(target, scenario: dict,
         print(f"  ! level priors unavailable ({_exc}); falling back to the "
               f"hand-typed constants, WHICH SAW THE TARGET")
 
+    # --- the previous local election's ballots ------------------------------
+    # HOISTED 2026-10-09 (item 8) from the ward/PR ratio block below, moved and
+    # not copied: nothing between the two sites rebinds these names. Item 8
+    # needs `prior_pr_share` before the seeds, to enter the roster parties
+    # whose only record is this election.
+    prior_lge_file = data_dir / target.results(target.previous_lge)
+    prior_ward, _ = load(prior_lge_file, "Ward")
+    prior_pr, _ = load(prior_lge_file, "PR")
+    wc, pc = citywide(prior_ward), citywide(prior_pr)
+    # F34 case (3): `blended_centres` cannot otherwise tell a party that DID
+    # NOT STAND from one that stood on the WARD ballot only. At joburg 2021 the
+    # second is real — IND at 1.290% of the ward ballot with no PR line, and
+    # SAKHISIZWE_CONVENTION and AFRICAN_COVENANT beside it. For such a party
+    # the PR base is UNKNOWN, not zero, and `0 + delta` is neither a level nor
+    # a swing. Recorded here rather than recomputed there: one definition.
+    scenario["_prior_ward_share"] = dict(wc)
+    # MERGERS on `prev_local`, the spine's local route and `blended_centres`'
+    # PR base. Same function and rule as the national baseline above: a
+    # successor with no local record (RISE at 2026) is given none. `pc` itself
+    # is left as read, because the ward/PR ratios below are per-party
+    # measurements of the 2021 ballots and a merger did not happen on them.
+    prior_pr_share, _, _ = _pools_merge.apply_mergers(pc, _roster, target.year)
+
     # The baseline AS THE ELECTION LEFT IT, before any seed is added. "Has a
     # record" has to mean the party took votes at the preceding national
     # election, not that this model handed it a starting share five lines ago —
@@ -4376,7 +4497,21 @@ def run_model(target, scenario: dict,
     scenario["_baseline_before_seeds"] = baseline_before_seeds
 
     seeds = scenario.get("pool_seeds") or {}
-    if seeds:
+    # ROSTER PARTIES WHOSE ONLY RECORD IS THE PREVIOUS LOCAL ELECTION (item 8,
+    # 2026-10-09). The run's party list is the national baseline plus the
+    # seeds, and `pools` seeds only parties with no record, so a party on the
+    # ballot with a previous-LGE list vote and no national vote was in neither
+    # and was not forecast at all: seven certified Johannesburg 2026 parties.
+    # Each enters at its previous-LGE list share, is placed by its fitted pool
+    # vector below, and is sized on the spine's local route. One classifier,
+    # `levels.local_record_only`; the guard after `universe` checks the result.
+    import levels as _levels_lro
+    local_record_only = _levels_lro.local_record_only(
+        _roster, base_city_d, prior_pr_share, seeds)
+    scenario["_local_record_only"] = local_record_only
+    for party in local_record_only:
+        base_city_d[party] = prior_pr_share[party]
+    if seeds or local_record_only:
         notes_by_party = scenario.get("pool_seed_notes") or {}
         for party, seed in seeds.items():
             base_city_d[party] = max(base_city_d.get(party, 0.0) + seed, 0.0)
@@ -4394,7 +4529,9 @@ def run_model(target, scenario: dict,
                 members_by_party[party][pool_name] = float(weight)
         vd_pool = scenario.get("_vd_pool_composition") or {}
         if vd_pool:
-            for party in seeds:
+            # Every party with no national geography: the seeded arrivals and
+            # the roster parties whose only record is local (item 8).
+            for party in [*seeds, *local_record_only]:
                 weights = members_by_party.get(party)
                 if not weights or base_city_d.get(party, 0.0) <= 0:
                     continue
@@ -4452,6 +4589,12 @@ def run_model(target, scenario: dict,
                       if v > 0}
     if scenario["entrant_prob"] > 0 and not named_arrivals:
         universe.append("ENTRANT")
+    # THE ROSTER AGAINST THE RUN'S PARTIES, BOTH WAYS (item 8, guard G8).
+    _roster_check = roster_universe_check(
+        _roster, _roster_state, universe, prior_pr_share,
+        scenario.get("pool_seeds") or {}, baseline_before_seeds,
+        has_result=_levels_lro.has_result_file(target, target.city))
+    roster_unrepresented = _roster_check["unrepresented_no_record"]
     index = {party: i for i, party in enumerate(universe)}
     vds = sorted(base_share_d)
     nvd, npar = len(vds), len(universe)
@@ -4736,23 +4879,8 @@ def run_model(target, scenario: dict,
     part_reg = np.array([r for _vd, _w, r in usable], dtype=float)
 
     # --- ward/PR split-ticket ratios (A1) ------------------------------------
-    prior_lge_file = data_dir / target.results(target.previous_lge)
-    prior_ward, _ = load(prior_lge_file, "Ward")
-    prior_pr, _ = load(prior_lge_file, "PR")
-    wc, pc = citywide(prior_ward), citywide(prior_pr)
-    # F34 case (3): `blended_centres` cannot otherwise tell a party that DID
-    # NOT STAND from one that stood on the WARD ballot only. At joburg 2021 the
-    # second is real — IND at 1.290% of the ward ballot with no PR line, and
-    # SAKHISIZWE_CONVENTION and AFRICAN_COVENANT beside it. For such a party
-    # the PR base is UNKNOWN, not zero, and `0 + delta` is neither a level nor
-    # a swing. Recorded here rather than recomputed there: one definition.
-    scenario["_prior_ward_share"] = dict(wc)
-    # MERGERS on `prev_local`, the spine's local route and `blended_centres`'
-    # PR base. Same function and rule as the national baseline above: a
-    # successor with no local record (RISE at 2026) is given none. `pc` itself
-    # is left as read, because the ward/PR ratios below are per-party
-    # measurements of the 2021 ballots and a merger did not happen on them.
-    prior_pr_share, _, _ = _pools_merge.apply_mergers(pc, _roster, target.year)
+    # (The previous LGE's ballots, `wc`/`pc` and `prior_pr_share`, are read
+    # above, before the seeds: item 8 enters roster parties from them.)
     ratio = np.ones(npar)
     # THE SAME RATIOS, KEYED BY PARTY, for the by-election conversion (F46,
     # §1.113). Recorded in this loop rather than recomputed, because two
@@ -4839,16 +4967,25 @@ def run_model(target, scenario: dict,
     # level made ward MAE 10.79 against 8.90 with no adjustment at all.
     #
     # What the ratio does NOT know is how a party's slate has CHANGED since
-    # then, so that is what is applied. It is 1.0 when the target's nomination
-    # lists are not published — the live forecast's case — which is why 2026
-    # correctly gets no adjustment rather than a constant for one party.
+    # then, so that is what is applied: `now / was`, where each is the share of
+    # the party's own previous-LGE list vote lying in the wards it contests
+    # (`levels.slate_coverage`, vote-weighted since 2026-10-09, item 6; it was
+    # the count of wards). Where the target's lists are not published the
+    # projected slate stands in for `now`.
+    #
+    # Clipped above at `WARD_PR_RATIO_MAX`, one definition with the measured
+    # ratios' clip. No lower clip: every term is non-negative, and
+    # `WARD_PR_RATIO_MIN` is a floor on the MEASURED ratio, a different
+    # quantity. Applying it here would give a party with no ward candidate
+    # (CHANGE at 2026, a list only) half its list share on the ward ballot
+    # (SPEC O3).
     contest = scenario.get("_contestation") or {}
     prev = scenario.get("_contestation_prev") or {}
     if contest and prev:
         for p, i in index.items():
             now, was = contest.get(p), prev.get(p)
             if now is not None and was:
-                ratio[i] = float(np.clip(ratio[i] * (now / was), 0.0, 2.0))
+                ratio[i] = slate_change_ratio(ratio[i], now, was)
 
     # --- by-election evidence (E4) -------------------------------------------
     bye: dict[str, tuple[float, float]] = {}
@@ -4945,9 +5082,15 @@ def run_model(target, scenario: dict,
         # idiom looked right; None is the only value it ever had to resolve.
         # Resolved on `is None` so zero is a value like any other.
         _spine_k = scenario.get("spine_k")
+        # Item 8's local-record-only parties are kept out of the national
+        # input and named, so the spine takes them on its local route and
+        # `blended_centres` reads that level (they are in `base_city_d`).
+        _lro = set(scenario.get("_local_record_only") or ())
         _spine, _spine_info = _levels.spine(
-            target, base_city_d, prior_pr_share,
-            k=float(_levels.SPINE_K if _spine_k is None else _spine_k))
+            target, {p: v for p, v in base_city_d.items() if p not in _lro},
+            prior_pr_share,
+            k=float(_levels.SPINE_K if _spine_k is None else _spine_k),
+            read_local_only=frozenset(_lro))
         # F4: THE WHOLE BLOCK USED TO BE GATED ON `if _spine:`, so a spine that
         # reached NOBODY wrote no `spine_level`, no `20_spine` trace and no
         # `note_constant` — and a run where the spine placed no party was
@@ -5376,6 +5519,12 @@ def run_model(target, scenario: dict,
         # `excessive_draws`, which `bounds_checked` stood in for until it
         # became per party.
         "draws": int(draws),
+        # Item 8: roster parties with no record, not drawn (a sorted list, or
+        # "not_checked" when the target has no roster), and the parties whose
+        # level-shock sd is `level_sd_default` because no size record covers
+        # them (JUDGEMENT-CALLS §A29).
+        "roster_unrepresented": roster_unrepresented,
+        "level_sd_default_parties": sorted(draw_target.level_sd_default),
         "excessive_draws": excessive_draws,
         "overhang_count": dict(overhang_count),
         # `solve_nonconvergent` is expected to equal `solve_calls` on the shipped

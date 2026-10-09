@@ -621,6 +621,8 @@ too high. It cannot be changed on [your forecast](your-forecast/).
 
 3. **THE BASELINE STOPPED COVERING THE BALLOT, 2026-09-16 — the case item 2 said it "matters only if".** The declared certified roster names 82 parties; the lever harness's fallback gate reports 74 parties in the 2026 index, all pool members, and 44 with no measured sd — EXPOSED TO THE FALLBACK. The `EXPECTED_INERT` excuse at 2026 was removed in the same commit. **⛔ CORRECTED THE SAME NIGHT, BY MEASUREMENT.** The line above was written from the gate's report, and the suite then perturbed the lever: nothing moved. The gate was wrong — it asked whether a metro poll exists, not whether polls are on — and is fixed. So 0.45 does NOT shape tonight's forecast; it would shape 44 small parties' level spread if `poll_paths` returns to "all". How to check it then: the arrival record's own dispersion for comparable parties. 🟡.
 
+4. **AMENDED 2026-10-09 (model correction batch, item 8): it now binds in the draws, outside the poll blend.** The roster parties whose only record is the previous LGE (`levels.local_record_only`) enter the run after `levels.theta_prior` has run, and `make_drawer` gives them `level_sd_default`. Where `theta_prior` does emit an sd for one (a party with a θ record and no national baseline), that sd was fitted at a size the party does not have and sits at `SD_CEILING`; `make_drawer` does not use it for these parties (the estimation width-ceiling tripwire caught it at joburg 2011). Which parties took it is named per run in `41_guards.level_sd_default_parties`. Item 17 (a later step of the same batch) replaces it for them with the size-group width; after that it binds only where no size exists.
+
 ### §A30 · Dirichlet floor — `1e-4` — 🟢
 
 **Where.** `montecarlo.py` (`DIRICHLET_FLOOR`)
@@ -813,6 +815,8 @@ correctly — not a ward that was lost because the level was wrong.
 **Now.** Still nobody's choice. 16 of the 79 mid-ballot parties sit on the wrong side of it and carry +16.4pp of the −37.4pp band deficit.
 
 **Record.** Which parties reach `pools.arrival_rules` rather than θ × baseline. A party with a *trace* in the preceding national election — 0.05–0.17% in that metro — is treated as a retention case, and θ near 0.9 pins it there. **16 of the 79 parties in ranks 4-12 are in this position and are under-forecast by more than 5×, carrying +16.4pp of the −37.4pp band deficit** (§1.31). The code already knows those records are worthless: `RELIABILITY_HALF = 0.002` gives a 0.07% baseline a reliability of 0.26. The arrival record for the same city-years says a typical arrival takes 1.64% (IQR 1.43–2.29%), which is close to what they got. **A boundary nobody chose is still a judgement call.**
+
+**Note, 2026-10-09 (model correction batch, item 8).** A roster party with a previous-LGE list vote and no national baseline is no longer outside the run: `levels.local_record_only` enters it at its previous-LGE list share, sized on the spine's local route. The residual, roster parties with no record at all, is named per run in `41_guards.roster_unrepresented` (`montecarlo.roster_universe_check`) and refuses a live forecast.
 
 ### §A43 · `apply_city` never resets `DEFAULTS` — 🔴
 
@@ -1534,6 +1538,8 @@ that survives contact with a long session.
 **Now.** 0.5 / 2.0 — the clip that overrides the record §E says the ward/PR ratio comes from. How often it binds is unmeasured.
 
 **Record.** `montecarlo`. Clip on the **ward/PR split-ticket ratio**, which multiplies the PR target to make the ward target and so drives ward wins and overhang. §E lists "ward/PR split ratios" as coming FROM THE RECORD — this is the clip that overrides the record where it disagrees, and it was undeclared. Promoted §1.69
+
+**Note, 2026-10-09 (model correction batch, item 6).** The slate-change multiplier on the ratio (`montecarlo.slate_change_ratio`, `ratio × now / was`, now vote-weighted) is capped at `WARD_PR_RATIO_MAX`; it carried a second literal `[0, 2.0]` clip until then. It is not floored at `WARD_PR_RATIO_MIN`, which is a floor on the measured ratio: a party fielding no ward candidate keeps 0 (SPEC O3).
 
 ### §F36 · `PROJECTED_METRO_SHARE` — eight per-metro shares of the national vote, 2021 values — 🔴
 

@@ -1288,7 +1288,9 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
 
 def spine(target: cityconfig.Target, baseline: dict[str, float],
           prev_local: dict[str, float], codes=METRO_CODES,
-          k: float | None = None) -> tuple[dict[str, float], dict]:
+          k: float | None = None,
+          read_local_only: frozenset = frozenset(),
+          ) -> tuple[dict[str, float], dict]:
     """Each party's central level at the target, from BOTH of its records.
 
     ``baseline`` is the preceding national election's citywide shares;
@@ -1311,6 +1313,11 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
 
     A party with neither is an arrival and is not here at all;
     ``pools.arrival_rules`` sizes it from the arrival record.
+
+    ``read_local_only`` names parties the caller will read on the local route
+    although they are absent from ``baseline``: the roster parties whose only
+    record is the previous LGE (:func:`local_record_only`, BRIEF item 8). They
+    are not reported in ``local_only_unused``.
 
     **The diagnostic block carries an ``absorption`` account** (NULL-RESULTS.md
     4.3): the route census, how much of the two routes' disagreement the blend
@@ -1433,16 +1440,16 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
         elif local > 0:
             w, level, route = 1.0, loc_level, "local only (no national record)"
             routes["local_only"] += 1
-            # F6: THIS LEVEL MAY HAVE NO READER. `spine` walks
-            # `set(baseline) | set(prev_local)`, but its only consumer —
-            # `montecarlo.blended_centres` — iterates `base_city`, which IS
-            # `baseline`. So a party with a local record and no entry in the
-            # baseline at all gets a level computed here that nothing can ever
-            # look up. Named rather than repaired: widening the consumer's loop
-            # is a MODEL change (it would add parties to `centres`, and
-            # `compress_levels` renormalises over that membership), so this
-            # records the fact and leaves the decision.
-            if party not in baseline:
+            # F6: WHO READS THIS LEVEL. `spine` walks
+            # `set(baseline) | set(prev_local)`, and its only consumer,
+            # `montecarlo.blended_centres`, iterates `base_city`. A party on
+            # the target's roster whose only record is the previous LGE is
+            # entered into `base_city` by `run_model` and named here in
+            # `read_local_only` (item 8, 2026-10-09), so its level is read.
+            # Any other party with a local record and no baseline entry, which
+            # means one not on the target's roster, gets a level nothing looks
+            # up, and is named in `local_only_unused`.
+            if party not in baseline and party not in read_local_only:
                 local_only_unused.append(party)
         else:
             # Present in one of the two inputs at exactly zero, and dropped
@@ -1572,7 +1579,15 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
         # MODEL-LOG §1.251, prereg/2026-09-23-declared-ward-slates.md.
         slates, _complete = declared_contestation(target, city)
         return slates
-    path = result_path(target, city)
+    wards, seen = _result_slates(result_path(target, city))
+    n = len(seen)
+    return {p: len(w) / n for p, w in wards.items()} if n else {}
+
+
+def _result_slates(path) -> tuple[dict[str, set], set]:
+    """``({party: wards it fields a ward candidate in}, every ward on the ward
+    ballot)`` from a result file. One reader for :func:`contestation` and
+    :func:`slate_coverage`."""
     wards: dict[str, set] = defaultdict(set)
     seen: set = set()
     with open(path, encoding="utf-8", errors="replace") as fh:
@@ -1584,8 +1599,67 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
                 continue
             seen.add(ward)
             wards[P.canonical(row["sPartyName"])].add(ward)
-    n = len(seen)
-    return {p: len(w) / n for p, w in wards.items()} if n else {}
+    return dict(wards), seen
+
+
+def slate_coverage(target: cityconfig.Target, city: cityconfig.City,
+                   weights_lge: str | None) -> dict[str, float]:
+    """Each party's slate, weighted by where its own list vote lies.
+
+    BRIEF item 6 (owner: "vote weighted"), model correction batch 2026-10-09.
+    For every party :func:`contestation` returns at ``target``: the share of
+    the party's own PR votes at ``weights_lge`` that were cast in voting
+    districts lying in wards where it fields a ward candidate at ``target``.
+    ``montecarlo.run_model`` passes the forecast target's previous LGE for
+    both the target's slate and the previous one, so the change ``now / was``
+    compares two slates on one set of weights.
+
+    Each VD is placed in its ward at ``target`` by ``pools.vd_map`` (a split VD
+    goes to the part with the most registered voters); a VD with no ward there
+    is left out. Slates come from the target's result file where it exists,
+    else from ``[roster.wards]``; a party absent from the declared slates
+    fields none (0.0, as :func:`declared_contestation` gives it under a
+    complete roster). A party with no PR vote at ``weights_lge`` keeps
+    :func:`contestation`'s count fraction, as does every party when the
+    weights' file is missing. The prototype is
+    ``audits/2026-10-09-model-questions/data/scripts/votecov.py``.
+
+    :func:`contestation` itself is unchanged: it is the who-stands fact that
+    ``declared_contestation``'s completeness logic and ``compare_history``
+    read.
+    """
+    base = contestation(target, city)
+    if not base or not weights_lge:
+        return base
+    wpath = result_path(cityconfig.Target(city=city, year=weights_lge), city)
+    if not wpath or not wpath.exists():
+        return base
+    import pools as _pools          # lazy: `pools` imports this module
+
+    pr: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    with open(wpath, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("BallotType") != "PR":
+                continue
+            pr[P.canonical(row["sPartyName"])][row["VD_Number"]] += int(
+                float(row.get("Party_Votes") or 0))
+    if has_result_file(target, city):
+        slates, _seen = _result_slates(result_path(target, city))
+    else:
+        declared = (_pools.declared_roster(city, target) or {}).get("wards") or {}
+        slates = {p: {str(w).strip() for w in ws} for p, ws in declared.items()}
+    ward_of, _registered = _pools.vd_map(city, target.year)
+    out: dict[str, float] = {}
+    for party, frac in base.items():
+        pairs = [(ward_of[vd], v) for vd, v in (pr.get(party) or {}).items()
+                 if vd in ward_of]
+        total = sum(v for _w, v in pairs)
+        if total <= 0:
+            out[party] = frac
+            continue
+        stood = slates.get(party, set())
+        out[party] = sum(v for w, v in pairs if w in stood) / total
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -1697,3 +1771,32 @@ def unopposed_pr_votes(path, unopposed: dict[str, str | None],
             if unopposed.get(ward) == party:
                 out[party] += int(float(row.get("Party_Votes") or 0))
     return dict(out)
+
+
+def local_record_only(roster, baseline: dict[str, float],
+                      prev_local: dict[str, float],
+                      seeds: dict[str, float]) -> list[str]:
+    """Roster parties whose only record is the previous local election.
+
+    **The one classifier** for BRIEF item 8 (model correction batch,
+    2026-10-09). A party on the target's roster, not an independent, with no
+    national baseline, no arrival seed, and a positive list vote at the
+    previous LGE. Before this, such a party was in no input the run read: the
+    national baseline did not carry it, `pools` did not seed it (it has a
+    record), and the run's party list is built from the baseline plus the
+    seeds. Seven certified Johannesburg 2026 parties fell through that gap.
+    `montecarlo.run_model` enters each at its previous-LGE list share, places
+    it by its fitted pool vector, and sizes it on the spine's local route
+    (``spine(..., read_local_only=...)``).
+
+    Returns the parties sorted.
+    """
+    out = []
+    for party in roster or ():
+        if party in (_INDEPENDENT, "IND"):
+            continue
+        if baseline.get(party, 0.0) > 0 or (seeds or {}).get(party, 0.0) > 0:
+            continue
+        if prev_local.get(party, 0.0) > 0:
+            out.append(party)
+    return sorted(out)

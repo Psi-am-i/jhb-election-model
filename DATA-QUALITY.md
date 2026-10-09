@@ -1205,3 +1205,20 @@ entry 22, which only makes the existing refusal audible. **The class is OPEN:**
 nothing has yet measured what the model's trends would do with those three cycles
 restored, and until something does, "the trend is measured over many cycles" is a
 claim about eight of them.
+
+## 19. 🟡 Roster parties with no record of any kind are not drawn at a backtest (named 2026-10-09)
+
+**The class.** A party on a backtest target's ballot with no previous-LGE list
+vote, no national baseline and no arrival seed has no pool vector, so the run
+cannot draw it. Since the model correction batch (item 8) the run names these
+parties per city-year in `41_guards.roster_unrepresented`
+(`montecarlo.roster_universe_check`) instead of omitting them in silence. At a
+live forecast the same class refuses the run.
+
+**Where it comes from.** These are `pools`' unseeded arrivals (the spec's
+`no_measured_vector`): `pools` seeds an arrival only where its comparator
+record allows. Repairing that is a pools question outside the batch (SPEC O5).
+
+**How to read the size of it.** Run any city-year with `--run-dir` and read
+`41_guards.roster_unrepresented`; the batch's MODEL-LOG entry tabulates it over
+the panel.

@@ -103,6 +103,7 @@ import seats as seats_module  # noqa: E402
 # is one counter short of whole. See the SKILL.
 GUARD_KEYS = frozenset({
     "bounds_checked", "bounds_violations", "draws",
+    "roster_unrepresented", "level_sd_default_parties",
     "cap_moved", "cap_undershoots",
     "excessive_draws", "overhang_count",
     "ipf_balances", "ipf_failures", "ipf_clipped", "ipf_headroom",
@@ -133,6 +134,9 @@ GUARD_DENOMINATORS = {
 # declares no §3.5 ranges checks nobody, and an empty dict there is a fact,
 # not an unread board. `draws` took its place as the run-level denominator.
 GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls")
+
+# Not counters: lists of party codes the run records (item 8, 2026-10-09).
+NAME_LIST_KEYS = ("roster_unrepresented", "level_sd_default_parties")
 
 # `note_value`'s vocabulary. `consulted` is the only one that proves a value
 # reached a computation; `resolved` proves only that the process held it, and
@@ -586,7 +590,25 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                 f"0/0 and the whole board is unreadable. This is not a clean "
                 f"run; it is a run that counted nothing")
 
+    # The two NAME LISTS (item 8, 2026-10-09): sorted lists of party codes;
+    # `roster_unrepresented` may instead be "not_checked" (no roster).
+    for key in NAME_LIST_KEYS:
+        value = guards.get(key)
+        if key == "roster_unrepresented" and value == "not_checked":
+            continue
+        if (not isinstance(value, list)
+                or not all(isinstance(x, str) for x in value)
+                or value != sorted(set(value))):
+            out.append(f"41_guards.{key} is {value!r}, not a sorted list of "
+                       f"distinct party codes")
+        elif universe is not None and key == "level_sd_default_parties" \
+                and set(value) - set(universe):
+            out.append(f"41_guards.{key} names parties outside the universe: "
+                       f"{sorted(set(value) - set(universe))[:6]}")
+
     for key, value in sorted(guards.items()):
+        if key in NAME_LIST_KEYS:
+            continue
         if isinstance(value, dict):
             for party, n in value.items():
                 if not isinstance(n, (int, float)) or isinstance(n, bool):
@@ -893,6 +915,8 @@ def healthy_guards():
         "bounds_checked": {"AAA": DRAWS},
         "bounds_violations": {"AAA": 2},
         "draws": DRAWS,
+        "roster_unrepresented": ["ZZZ"],
+        "level_sd_default_parties": ["CCC"],
         "cap_moved": 12.5,
         "cap_undershoots": 0,
         "excessive_draws": 1,
@@ -1246,6 +1270,27 @@ def test_draws_ties_the_board_to_the_draws_and_bounds_checked_is_per_party():
     few = dict(healthy_guards(), bounds_checked={"AAA": 1})
     faults = faults_in_guards(few, draws=DRAWS)
     assert any("above its own denominator" in f for f in faults), faults
+
+
+def test_the_two_name_lists_are_sorted_party_codes():
+    """Item 8's two 41_guards fields are lists, not counters. A healthy board
+    passes; an unsorted list, a non-string entry, a count in place of the list,
+    or a default-sd party outside the universe is caught; each reverted, quiet.
+    """
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    assert not faults_in_guards(
+        dict(healthy_guards(), roster_unrepresented="not_checked"), draws=DRAWS)
+    for key in NAME_LIST_KEYS:
+        for bad in (["ZZZ", "AAA"], [1], 3, "not_checked"):
+            if key == "roster_unrepresented" and bad == "not_checked":
+                continue
+            faults = faults_in_guards(dict(healthy_guards(), **{key: bad}),
+                                      draws=DRAWS)
+            assert any(f"41_guards.{key}" in f for f in faults), (key, bad)
+    outside = dict(healthy_guards(), level_sd_default_parties=["QQQ"])
+    assert any("outside the universe" in f
+               for f in faults_in_guards(outside, universe=PARTIES))
+    assert not faults_in_guards(healthy_guards(), universe=PARTIES)
 
 
 def test_an_overhang_count_that_cannot_explain_its_own_draws_is_caught():

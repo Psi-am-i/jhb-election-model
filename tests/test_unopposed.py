@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _support import ROOT, scanned  # noqa: E402
+from _support import ROOT, run_module, scanned  # noqa: E402
 
 import cityconfig  # noqa: E402
 import levels  # noqa: E402
@@ -164,3 +164,7 @@ class _Args:
         self.set = None
         self.draws = draws
         self.seed = None
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_module(globals()))

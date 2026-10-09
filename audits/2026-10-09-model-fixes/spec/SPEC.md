@@ -1121,3 +1121,8 @@ that second cause; no new test joins the list. Emitted specs still carry a
 is red on `build_make.npe_priors(wards)`, a parameter introduced by slice B2a
 (8dffae8) and untouched by this batch. It is not a stale-spec failure and not
 this batch's; it is reported to the coordinator, not fixed here.
+
+### R3.6, step 5 addendum (writer, 2026-10-09)
+
+Step 5's `levels.py` and `montecarlo.py` changes move `deps_sha` again; the
+same three tests stay red for the same cause, and no new test joins the list.

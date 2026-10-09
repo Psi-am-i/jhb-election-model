@@ -196,7 +196,9 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_prediction_rule",
            # Added 2026-10-09 with the model correction batch, slice M2 (G7):
            # unopposed wards, scanned over every metro LGE file on disk.
-           "test_unopposed"]
+           "test_unopposed",
+           # Slice M2 (G8): the roster against the run's parties, both ways.
+           "test_roster_universe"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.
