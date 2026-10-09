@@ -49,7 +49,7 @@ them:
 
 The events: `bounds_violations` (per party, §3.5 θ-bound breaches, denominator
 `bounds_checked`, the per-party count of draws in which that party was checked,
-since 2026-10-09; a city that declares no §3.5 ranges checks nobody), `ipf_failures` (balances that fell back to `partial_balance`,
+since 2026-10-09; a city that declares no §3.5 ranges checks nobody; its population is `bounds_base`, every declared-range party in the universe with its drawn base, checked or not, and the checked parties are one cut on that base, M2 review S4), `ipf_failures` (balances that fell back to `partial_balance`,
 discarding the level shock for **every** party in that draw),
 `ipf_clipped` (per party, draws held at pool capacity), `ipf_headroom`
 (per party, pre-draw ask ÷ capacity — the only sight of who is *about* to be

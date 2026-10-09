@@ -102,7 +102,7 @@ import seats as seats_module  # noqa: E402
 # carry the key, so the "whole board" the `ModelRun.guards` docstring promises
 # is one counter short of whole. See the SKILL.
 GUARD_KEYS = frozenset({
-    "bounds_checked", "bounds_violations", "draws",
+    "bounds_checked", "bounds_violations", "bounds_base", "draws",
     "roster_unrepresented", "level_sd_default_parties",
     "cap_moved", "cap_undershoots",
     "excessive_draws", "overhang_count",
@@ -675,6 +675,25 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                 f"the only thing tying this payload to the draws it claims "
                 f"to describe")
 
+    # THE §3.5 CHECK'S POPULATION (M2 review S4). `bounds_base` is every
+    # declared-range party in the universe with its drawn base; the checked
+    # parties are those above the run's base cut. So the checked set is a
+    # subset of it, and every checked base is above every unchecked one: a
+    # board that checked a small party and skipped a larger one did not apply
+    # one cut. The cut itself is the run's, and is not restated here.
+    base = guards.get("bounds_base")
+    checked = guards.get("bounds_checked")
+    if isinstance(base, dict) and isinstance(checked, dict):
+        if set(checked) - set(base):
+            out.append(f"41_guards.bounds_checked names parties outside "
+                       f"bounds_base: {sorted(set(checked) - set(base))[:6]}")
+        inside = [b for p, b in base.items() if p in checked]
+        outside = [b for p, b in base.items() if p not in checked]
+        if inside and outside and min(inside) <= max(outside):
+            out.append(f"41_guards.bounds_checked skips a party with base "
+                       f"{max(outside)} while checking one at {min(inside)}: "
+                       f"the §3.5 population is not one cut on the base")
+
     excessive = guards.get("excessive_draws")
     over = guards.get("overhang_count")
     if isinstance(excessive, int) and isinstance(over, dict):
@@ -914,6 +933,7 @@ def healthy_guards():
     return {
         "bounds_checked": {"AAA": DRAWS},
         "bounds_violations": {"AAA": 2},
+        "bounds_base": {"AAA": 0.20, "BBB": 0.001},
         "draws": DRAWS,
         "roster_unrepresented": ["ZZZ"],
         "level_sd_default_parties": ["CCC"],
@@ -1896,17 +1916,17 @@ def test_the_real_boards_counters_are_bounded_by_the_real_draws():
 
 def test_bounds_checked_covers_exactly_the_declared_ranges_in_the_run():
     """M2 review S4. With `bounds_checked` per party and out of the denominator
-    keys, an empty board would pass. So its population is pinned: its keys are
-    the parties with a declared §3.5 range (`cityconfig` `plan_bounds`) that
-    are in the run's universe above 0.5% of the baseline, each checked in
+    keys, an empty board would pass. So its population is pinned: the run
+    records every declared §3.5 range (`cityconfig` `plan_bounds`) that is in
+    its universe, with the drawn base, as `41_guards.bounds_base`; the
+    checked parties are the ones above the run's base cut, each checked in
     every draw. The ranges are read from the city's config and compared with
     the ones the model holds, so a run where `apply_city` never ran is told
     apart from a city that declares none.
 
-    The run-time baseline is the pre-seed baseline plus the party's seed (ASA
-    has a declared range and is seeded at 2021). An item-8 entrant's baseline
-    is its previous-LGE share, which the run does not record, so the test
-    asserts no declared-range party is one in this trace.
+    The bases are the run's own record (one definition, M3): this test no
+    longer rebuilds "pre-seed baseline plus seed" outside the run, which could
+    not see an item-8 entrant's baseline at all.
     """
     payloads, run = real_trace()
     guards = payloads["41_guards"]
@@ -1914,17 +1934,31 @@ def test_bounds_checked_covers_exactly_the_declared_ranges_in_the_run():
     assert dict(M.PLAN_BOUNDS) == dict(declared), (
         "the model's §3.5 ranges are not the city's declared ones: apply_city "
         "did not run, and bounds_checked would be empty for that reason")
-    assert not set(declared) & set(run.scenario.get("_local_record_only") or ())
-    before = run.scenario["_baseline_before_seeds"]
-    seeds = run.scenario.get("pool_seeds") or {}
-    base = {p: max(before.get(p, 0.0) + seeds.get(p, 0.0), 0.0) for p in declared}
-    expected = {p for p in declared
-                if p in run.universe and base[p] > 0.005}
-    assert expected, "no declared range reaches this run: the check saw nothing"
-    assert set(guards["bounds_checked"]) == expected, (
-        sorted(guards["bounds_checked"]), sorted(expected))
+    base = guards["bounds_base"]
+    assert set(base) == set(declared) & set(run.universe), (
+        sorted(base), sorted(set(declared) & set(run.universe)))
+    assert set(guards["bounds_checked"]) <= set(base)
+    assert guards["bounds_checked"], (
+        "no declared range reaches this run: the check saw nothing")
+    unchecked = set(base) - set(guards["bounds_checked"])
+    assert all(base[p] > base[q] for p in guards["bounds_checked"]
+               for q in unchecked), (base, sorted(guards["bounds_checked"]))
     assert all(n == guards["draws"] for n in guards["bounds_checked"].values())
     assert sum(guards["overhang_count"].values()) >= guards["excessive_draws"]
+
+
+def test_the_bounds_population_is_one_cut_on_the_recorded_base():
+    """The constructed side of S4: a board that checks a party outside
+    `bounds_base`, or skips a larger party while checking a smaller one, is
+    caught; the healthy board passes; each reverted, quiet."""
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    stray = dict(healthy_guards(), bounds_checked={"AAA": DRAWS, "ZZZ": DRAWS})
+    assert any("outside bounds_base" in f
+               for f in faults_in_guards(stray, draws=DRAWS))
+    skipped = dict(healthy_guards(), bounds_base={"AAA": 0.20, "BBB": 0.30})
+    assert any("not one cut" in f
+               for f in faults_in_guards(skipped, draws=DRAWS))
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)   # reverted
 
 
 def test_the_real_seat_draws_fill_a_lawful_chamber():

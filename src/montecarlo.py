@@ -5353,6 +5353,16 @@ def run_model(target, scenario: dict,
     ward_seat_draws: list[dict[str, int]] = []
     bounds_violations: defaultdict[str, int] = defaultdict(int)
     bounds_checked: defaultdict[str, int] = defaultdict(int)
+    # THE POPULATION OF THE §3.5 CHECK, recorded where it is decided (M2 review
+    # S4). Every declared-range party in the universe, with the drawn base its
+    # implied θ is measured against, whether or not it is checked: a party
+    # below the base cut is not checked, and a reader of `bounds_checked` alone
+    # cannot tell that from a check that never ran. `41_guards.bounds_base`
+    # carries this, so the population test reads the run's own record instead
+    # of recomputing the baseline outside it.
+    bounds_base = {p: float(base_city[index[p]]) for p in PLAN_BOUNDS
+                   if p in index}
+    bounds_population = [p for p, b in bounds_base.items() if b > 0.005]
     pr_share_draws = np.zeros((draws, npar))
     ward_share_draws = np.zeros((draws, npar))
     pr_vote_draws = np.zeros((draws, npar), dtype=np.int64)
@@ -5362,12 +5372,12 @@ def run_model(target, scenario: dict,
         pr_target = draw_target()
 
         # §3.5 sanity bounds on the implied raw θ (E2). ENTRANT exempt.
-        for p, (low, high) in PLAN_BOUNDS.items():
-            if p in index and base_city[index[p]] > 0.005:
-                bounds_checked[p] += 1
-                implied = pr_target[index[p]] / base_city[index[p]]
-                if not (low * 0.95 <= implied <= high * 1.05):
-                    bounds_violations[p] += 1
+        for p in bounds_population:
+            low, high = PLAN_BOUNDS[p]
+            bounds_checked[p] += 1
+            implied = pr_target[index[p]] / base_city[index[p]]
+            if not (low * 0.95 <= implied <= high * 1.05):
+                bounds_violations[p] += 1
 
         ward_target = pr_target * ratio
         ward_target /= ward_target.sum()
@@ -5519,6 +5529,9 @@ def run_model(target, scenario: dict,
         "ipf_headroom": dict(_ipf_stats.get("headroom") or {}),
         "bounds_violations": dict(bounds_violations),
         "bounds_checked": dict(bounds_checked),
+        # The check's population with its bases (S4): every declared-range
+        # party in the universe, checked or not. See `bounds_population`.
+        "bounds_base": dict(bounds_base),
         # the run's draws: the denominator of `overhang_count` and
         # `excessive_draws`, which `bounds_checked` stood in for until it
         # became per party.
