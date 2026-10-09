@@ -333,6 +333,9 @@ let that test, not this file, be the authority on how many there are:
     .venv/bin/python src/arrivals.py                    # arrival machinery, scored alone
     .venv/bin/python src/contested_area.py              # poll path's contested-area conversion
     .venv/bin/python src/sweep.py                       # obvious-fault sweep
+    .venv/bin/python src/group_share_record.py --emit   # group-share tripwire
+                                                        #   record; re-emit
+                                                        #   window only
 
 **`src/diagnose.py` was in that list until 2026-09-12 and is not any more** —
 `tests/test_diagnose_baselines.py` imports it, so it satisfies the rule on its
