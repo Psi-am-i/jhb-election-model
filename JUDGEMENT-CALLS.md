@@ -2714,18 +2714,27 @@ failure with the sign reversed.
 instruction was that uncertain names be registered as judgement calls unless they
 can be certified automatically, and nothing available certifies these. §1.242.
 
-### §L13 · The SACP's first general ballot is sized by hand from its by-elections — 🔴 typed, and it is the largest single newcomer
+### §L13 · The SACP's first general ballot is sized by hand from its by-elections — ⚪ RETIRED 2026-10-09
 
-**Plain — The SACP's first ballot under its own name.** The South African
-Communist Party has stood on ANC lists until now, so it has no Johannesburg
-record of its own. We sized it by hand from the ward by-elections it has fought
-elsewhere since July 2025, all in wards it chose to contest. The size is the
-average of two readings: its typical share of the vote in those wards, and its
-typical share of the combined SACP and ANC vote there, applied to the ANC's
-expected Johannesburg share. Sized as a breakaway from the ANC it came out
-several times larger, and sized as a brand-new party it came out below every
-by-election result it has had; its own record rejects both. It cannot be changed
-on [your forecast](your-forecast/).
+⚪ **RETIRED 2026-10-09 (model correction batch, BRIEF items 13 and 18).** The
+owner: "it's a strange case. it's usually in the alliance so strange it is
+running alone, but only in some wards I think. Narrow it and treat like
+everyone else until we have a mechanism to change that has some basis", and on
+the specification, "SACP normal. Is it treated as a split or new entrant? ...
+But leave it as a normal new party". The
+`weights` and `support` lines are deleted from
+`[party.SOUTH_AFRICAN_COMMUNIST_PARTY]`, so `arrival_rules` sizes it as a
+generic entrant (reach-matched comparators, the even pool spread, zero level
+shock, the pool split), the route this entry measured at about 0.06% (item (b)
+below). Its alliance status is a comment in the judgement file, not a
+mechanism; the owner's note that it stands "only in some wards" disagrees with
+the declared slate, which lists it in every ward (SPEC §0 O8), and is noted,
+not changed. The effect on the forecast is pre-registered (SPEC §6 P13) and
+measured in the batch's window; the MODEL-LOG entry is the batch's (step 13).
+The entry below is kept as written.
+
+(Its reader-facing Plain field was removed on retirement: a retired call is not
+shown to a reader as a live choice, `judgement_sheet.plain_calls`.)
 
 **Where.** `judgements/joburg-2026.toml`, `[party.SOUTH_AFRICAN_COMMUNIST_PARTY]`:
 `weights` and `support`. No symbol in `src/`.
