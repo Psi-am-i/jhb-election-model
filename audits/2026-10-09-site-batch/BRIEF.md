@@ -75,3 +75,21 @@ Any forecast number or model change. The prediction restructure's own items.
      prediction, and is labelled "one of the simulations".
    - Read-only analysis into `best-cases/` first; publishing is a later
      decision.
+
+9. **Each page gets its own share image** (owner, 2026-10-09, screenshot 03.29.10).
+   Today every page's `og:image` is the one logo picture (`site/og.png`,
+   `build_site.py:219`), and X adds the page title only as a small caption. The
+   owner: "put the linked article more prominently ... need to think about how
+   to keep visuals fresh or every post I like looks the same".
+   - One 1200×630 image per page, generated at build.
+   - The article's headline is the largest element. Each image carries one
+     visual that belongs to the page, with its figures drawn from the page's own
+     tokens and none typed.
+   - A layout per page type (claims, articles, forecast, interactive) in the
+     house style.
+   - A date line in small print.
+   - The image is regenerated when the page's numbers change.
+   - Each claim also gets its own image, quote plus verdict stamp.
+   - Rendered with the share cards' existing raster path (`src/og-raster.js`,
+     card fonts), so there is one image pipeline.
+   - Mock-ups first.
