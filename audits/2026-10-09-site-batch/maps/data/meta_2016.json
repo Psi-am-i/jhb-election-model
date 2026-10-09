@@ -1,0 +1,22 @@
+{
+ "year": "2016",
+ "draws": 1000,
+ "n_run_wards": 135,
+ "n_result_wards": 135,
+ "matched": 135,
+ "called_pre_relabel": 134,
+ "called_post_relabel": 134,
+ "entrant_actual": "AIC",
+ "modal_entrant_wards": [],
+ "top_party_vs_argmax_mismatch": [],
+ "solid": 120,
+ "sample_run_ward": "79800001",
+ "sample_result_ward": "79800001",
+ "modal_calls_wrong": [
+  [
+   "79800011",
+   "DA",
+   "ANC"
+  ]
+ ]
+}

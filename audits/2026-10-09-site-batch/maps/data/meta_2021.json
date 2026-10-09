@@ -1,0 +1,57 @@
+{
+ "year": "2021",
+ "draws": 1000,
+ "n_run_wards": 135,
+ "n_result_wards": 135,
+ "matched": 135,
+ "called_pre_relabel": 127,
+ "called_post_relabel": 127,
+ "entrant_actual": "ASA",
+ "modal_entrant_wards": [],
+ "top_party_vs_argmax_mismatch": [],
+ "solid": 115,
+ "sample_run_ward": "79800001",
+ "sample_result_ward": "79800001",
+ "modal_calls_wrong": [
+  [
+   "79800007",
+   "DA",
+   "ANC"
+  ],
+  [
+   "79800009",
+   "DA",
+   "ALJAMAAH"
+  ],
+  [
+   "79800017",
+   "DA",
+   "PA"
+  ],
+  [
+   "79800018",
+   "DA",
+   "PA"
+  ],
+  [
+   "79800058",
+   "DA",
+   "ANC"
+  ],
+  [
+   "79800061",
+   "ANC",
+   "IFP"
+  ],
+  [
+   "79800068",
+   "DA",
+   "ANC"
+  ],
+  [
+   "79800081",
+   "ANC",
+   "DA"
+  ]
+ ]
+}
