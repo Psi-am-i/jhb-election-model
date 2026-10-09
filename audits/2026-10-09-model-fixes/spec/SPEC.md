@@ -1184,3 +1184,21 @@ them with `size_sd` at their local share.
   green after the emit; one that does not is a finding. Every run before the
   emit reports `41_guards.group_share_tripwire = "no record"`. A build into a
   temporary directory twice, in two processes, gave byte-identical files.
+- **`test_levers_are_live::test_every_tunable_lever_actually_moves_the_forecast`**
+  is red after item 17 (run once, after ee16123): `level_sd_default` does not
+  move the forecast at 2021 or 2026 (perturbed to 1.6). Cause: item 17 (R2.2)
+  gives every drawn party with a size the size-group width, so the default
+  binds only where a drawn party has no size or the run has no θ fit, which
+  no swept target has. This is what R2.2 intended. Not resolved by the writer:
+  the harness accepts an inert excuse only with a model-free gate that proves
+  the gate shut, and the last gate written for this lever
+  (`level_sd_fallback_never_binds`) was deleted for being wrong. Options for
+  the coordinator: an `EXPECTED_INERT` entry with such a gate, or deleting the
+  lever (and keeping a refusal for the no-size case). The rest of the module:
+  22 passed.
+- **Consolidated expected red for the end-of-batch suite, as of slice M3:**
+  R3.6 — `test_chain` (spec keys), `test_stage_inputs` (real-run stale
+  predicate), `test_citywide_table` ×5, `test_intermediates_are_current` ×2
+  (the group-share record), `test_drawer` ×2 (goldens, re-recorded once after
+  the re-emit); R3.5 — `test_draw_record`; R3.2 — `test_export_draws` and the
+  tests it names; and the `level_sd_default` lever above, pending a decision.

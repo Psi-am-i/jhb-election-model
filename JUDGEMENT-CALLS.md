@@ -616,7 +616,7 @@ too high. It cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.py`
 
-**Now.** LIVE at 2021 and 2026 since 2026-10-09 (item 8; record 4 below): `test_levers_are_live` measures it moving the forecast at both targets, and its inert excuses were deleted. Before that: MEASURED INERT at 2021 and 2026 (perturbed to 1.60, nothing moves). At 2026 44 parties on the certified ballot have no measured `sd(log θ)`, so it would bind for them through the poll blend — which does not run while `poll_paths` is "off" (since 2026-09-12). It becomes live the day polls are switched back on. Declared in `DEFAULTS` since §1.63.
+**Now.** Since item 17 (2026-10-09, cdcf517; record 5 below) it binds only for a drawn party with no size (base ≤ 0) or a run with no θ fit, and `test_levers_are_live` measured it INERT at 2021 and 2026 (perturbed to 1.60, nothing moved). Its disposition (an `EXPECTED_INERT` entry with a model-free gate, or deletion) is open, SPEC R3.6 slice-M3 addendum. Was, between item 8 and item 17: LIVE at 2021 and 2026 since 2026-10-09 (item 8; record 4 below): `test_levers_are_live` measures it moving the forecast at both targets, and its inert excuses were deleted. Before that: MEASURED INERT at 2021 and 2026 (perturbed to 1.60, nothing moves). At 2026 44 parties on the certified ballot have no measured `sd(log θ)`, so it would bind for them through the poll blend — which does not run while `poll_paths` is "off" (since 2026-09-12). It becomes live the day polls are switched back on. Declared in `DEFAULTS` since §1.63.
 
 **Record**, oldest first:
 
