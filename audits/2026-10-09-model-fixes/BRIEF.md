@@ -146,3 +146,34 @@ to change that has some basis. 5. no. certainly not."
 15. **Long editor notes are shortened** where they stay understandable;
     otherwise the note area grows. This is cosmetic and lands with the next
     editor change.
+
+## Owner's decisions on the specification (2026-10-09)
+
+The owner, verbatim: "PA fix agree - no growth record we should have size ranges
+and maintain averages for each. SACP normal. Is it treated as a split or new
+entrant? Part of me thinks it should be a split but it's really just an
+alliance partner. Really not sure. But leave it as a normal new party. 3. ok 4.
+agree. 5. by elections we need to use history as the judge of whether they
+predicted anything not already predicted by model... lets see. decisions 1.
+yes. 2. ok. 3. yes. 4. yes"
+
+16. **A party's own growth record counts only from elections where it stood at a
+    size similar to now** (new arm, all parties). The similarity window is
+    derived from data, not typed. Where a party's own similar-size record is
+    empty, the size-group centre applies (item 11). This addresses the PA's
+    emergence-era multipliers without singling it out.
+17. **Parties with no own record** (item 11b, its own arm) take the average and
+    the range of their size group, at their current size.
+18. **The SACP is a normal new party** (item 13 as specified). Its alliance
+    status is noted, not modelled.
+19. **Item 14 redefined: by-elections are judged by history.**
+    - By-election evidence gets weight only to the extent that, historically,
+      it predicted the next real result beyond what the model predicted
+      without it. That is incremental, out-of-sample value against the model's
+      own baseline.
+    - If it adds nothing measurable, its weight is zero.
+    - It applies to every party. Pre-registered; the thin data (from 2022, and
+      the 2024 national election as the only later result) is stated.
+- **O4** unopposed: OK.
+- **O6** the re-emit for this batch only: yes.
+- **Writing is approved.**
