@@ -71,6 +71,12 @@ name, to the SEATS service, and `seats-py/src/entry.py` passes them through.
 version 2, BRIEF change 13), in roster order; `ward_winners` keys `ward_calls`
 by the schema's ward ids; `context` is the schema's `x-seat-context`, which
 `tools/make_schema.mjs` reads from the model artefact and refuses to default.
+Since 2026-10-09 the context carries `lot`, the published run's identity for
+the seeded lot (JUDGEMENT-CALLS §Q6), and `reader_seats` refuses a context
+without it. **Deploy order: the site Worker serving a `forecast.json` with
+`x-seat-context.lot` goes live BEFORE `seats-py` is synced and redeployed; the
+reverse refuses every entry with a 422.** The steps are in
+`docs/DEPLOY-UAT.md`, "Releasing the seeded lot".
 No total is sent: each ballot's total is the sum of its votes. The answer is
 `{seats, ward, pr, council_total, majority, excessive, code_ref}`; `seats.js`
 checks only arithmetic identities (ward counts equal the picks, seats = ward +

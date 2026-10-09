@@ -191,6 +191,11 @@ DELETED = {
     # history of the input it replaced, which names these.
     "combined_shares": "reader_seats' combined-share argument, retired for "
                        "ward_votes and list_votes; §1.292",
+    # Deleted 2026-10-09 by the model correction batch (item 1): the baselines'
+    # name rule for an exact seat tie, replaced by the seeded lot
+    # (`benchmarks.benchmark_lot`). JUDGEMENT-CALLS §Q6 records what it did.
+    "canonical_order": "benchmarks' name tie-break, replaced by the seeded "
+                       "lot; model correction batch 2026-10-09, §Q6",
     "test_the_pr_ballot_assumption_is_measured_not_asserted": (
         "measured the retired PR-share input against the draws; its premise "
         "(a share standing for both ballots) ended with the two-ballot entry; "

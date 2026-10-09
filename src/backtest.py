@@ -83,7 +83,7 @@ import official_seats
 import parties as P
 import score as S
 from fold import citywide, load
-from seats import INDEPENDENT, allocate, eligible_parties
+from seats import INDEPENDENT, allocate, eligible_parties, lot_identity
 
 def runnable_targets(city=None) -> tuple[str, ...]:
     """Past local elections this harness can actually run, for one city.
@@ -991,9 +991,15 @@ def actual_result(path: Path, council: int, year: int | None = None,
               f"the counted figure is an upper bound (DATA-QUALITY.md item 12).")
         outside["IND"] = independent_wards
 
+    # An exact tie at the last seat in a real count is the IEC's to settle; the
+    # reconstruction draws it under the truth's own lot key (JUDGEMENT-CALLS
+    # §Q6), and the party-by-party check against the published table below
+    # catches a draw that disagrees with the Commission.
     seats = allocate(combined, total_seats=council,
                      independent_wards=independent_wards,
-                     no_pr_list_wards=no_pr_list_wards).seats
+                     no_pr_list_wards=no_pr_list_wards,
+                     lot=lot_identity(cityconfig.active().slug, str(year),
+                                      "actual")).seats
     seats = {p: s for p, s in seats.items() if s > 0}
     if official is None:
         print(f"  !! no Seat Calculation Detail for {code} {year}: the "
@@ -1426,7 +1432,8 @@ def main(argv: list[str] | None = None) -> int:
                                read, run.scenario))
         seats = S.score_seats(run.seat_draws, actual_seats, entrant, seed=args.seed)
         wards = S.score_wards(
-            relabel_entrant(run.ward_probabilities(), entrant), actual_winners)
+            relabel_entrant(run.ward_probabilities(), entrant), actual_winners,
+            lot=run.lot)
         print()
         print(S.format_report(seats, wards, label=label,
                               top=None if args.all_parties else 12))

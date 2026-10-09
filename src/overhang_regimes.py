@@ -68,9 +68,11 @@ entry point in ``src/`` pins the hash seed for exactly that reason —
 ``freeze.py`` all call it. This one did not, so all four runs executed under a
 RANDOM ``PYTHONHASHSEED`` while the published reference was produced under 0.
 
-That compounds with a defect measured on 2026-09-14: ``seats.allocate``'s
-largest-remainder key is not a total order, so under a random hash seed a tied
-last seat is a coin flip. The "restore" could therefore write a
+That compounded with a defect measured on 2026-09-14: ``seats.allocate``'s
+largest-remainder key was not a total order, so under a random hash seed a tied
+last seat was a coin flip (closed 2026-10-09: an exact tie is drawn by the
+seeded lot under the run's identity, ``seats.lot_order``, JUDGEMENT-CALLS §Q6).
+The "restore" could therefore write a
 ``forecast_summary.json`` differing from the published one by a whole seat, and
 call it bit-identical. ``fix_hash_seed()`` is now the first statement under
 this file's ``__main__`` guard.

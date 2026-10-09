@@ -50,6 +50,12 @@ item is pinned to the statute text saved in
   constructed case gives the swapped answer.
 - Rule A's 2026 prediction and the published draws are unchanged where no tie
   exists. The re-run says how many ties there were.
+  - *Amended 2026-10-09 (M1 diff review):* "no tie" means no equal whole-vote
+    surplus at the cut. Item 2 alone moves a draw whose last seat sits between
+    two parties with an equal whole-vote surplus and unequal votes: the float
+    remainder put the smaller party first, the statute gives the seat to the
+    higher vote. Those draws may move; every other draw is identical. The
+    count of each is TO-MEASURE at the run (SPEC Revision 3, R3.1).
 - The backtest's Johannesburg 2016 row is recomputed and recorded in MODEL-LOG.
 
 

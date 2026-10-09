@@ -71,6 +71,7 @@ import benchmarks as BM  # noqa: E402
 import cityconfig  # noqa: E402
 import montecarlo as M  # noqa: E402
 import pools  # noqa: E402
+import seats  # noqa: E402
 
 CITY = "joburg"
 TARGET = 2021          # the city-year the whole finding is about
@@ -82,8 +83,7 @@ NAME = "uniform-swing+roster"
 #
 # ⛔ THESE ARE NOT A GOLDEN AND THEY ARE NOT A STANDARD OF CORRECTNESS
 # (CLAUDE.md §1). Nothing here says the reference is right. They are the
-# numbers `benchmarks.uniform_swing_roster` and `benchmarks.canonical_order`
-# QUOTE IN PROSE, pinned so the prose cannot go stale in silence — §2's rule,
+# numbers `benchmarks.uniform_swing_roster` QUOTES IN PROSE, pinned so the prose cannot go stale in silence — §2's rule,
 # applied to a docstring that has already been wrong once: it claimed the
 # reference was deterministic and that ActionSA "takes one seat", while the
 # seat was a coin toss between two tied parties.
@@ -95,27 +95,30 @@ ASA_WARDS_CONTESTED = 134       # of 135; the one ward it did not nominate in
 JHB_2021_WARDS = 135
 ASA_ENTRY_SHARE = 0.00163835    # budget x reach / sum(reach), to 6 s.f.
 ASA_NEWCOMERS_STRICTLY_ABOVE = 5        # parties at reach 1.000
-ASA_TIED_WITH = "CHANGE"                # same reach, same votes, same remainder
-ASA_SEATS_IN_THE_REFERENCE = 1          # and it is the tie-break that says so
+ASA_TIED_WITH = "CHANGE"                # same reach, same votes, same surplus
+TIED_PAIR_SEATS = 1     # ASA and CHANGE between them; the seeded lot says which
 ASA_SEATS_ACTUAL = 44                   # ACTUAL
 PA_SEATS_IN_THE_REFERENCE = 0
 PA_SEATS_ACTUAL = 8                     # ACTUAL
 WHOLE_BUDGET_SEATS = 5          # what ONE party holding all 1.9562% takes
 
 # Hash seeds for the cross-process determinism test. 0 and 4 are the pair that
-# DISAGREE with the tie-break removed (measured 2026-09-13), which is what makes
-# the positive control sharp; they are tried first so it usually costs two
-# interpreter starts rather than six.
+# DISAGREED with the tie-break removed (measured 2026-09-13, under the name
+# rule), which is what makes the positive control sharp; they are tried first
+# so it usually costs two interpreter starts rather than six.
 HASH_SEEDS = ("0", "4", "1", "2", "3", "5")
 
-# A child that prints one council as sorted JSON. `TIE_OFF` removes the
-# canonical ordering and nothing else — the constructed violation.
+# A child that prints one council as sorted JSON. `TIE_OFF` replaces the seeded
+# lot with the tie group's arrival order (which comes from iterating a set of
+# strings, so from PYTHONHASHSEED) and nothing else — the defect the lot
+# closes, restored exactly: before any tie rule, the stable sort kept the tied
+# parties in that order.
 _CHILD = """
 import json, os, sys
 sys.path.insert(0, "src")
-import benchmarks as BM, cityconfig, montecarlo as M
+import benchmarks as BM, cityconfig, montecarlo as M, seats
 if os.environ.get("TIE_OFF"):
-    BM.canonical_order = dict           # the defect, restored exactly
+    seats.lot_order = lambda tied, key: list(tied)   # the defect, restored
 city = cityconfig.use("%s")
 M.apply_city(city)
 ctx = BM.build_context(%d)
@@ -583,64 +586,83 @@ def test_a_newcomer_with_no_measured_reach_is_not_given_a_reach_of_one():
 
 
 # --------------------------------------------------------------------------
-# 6. it is reproducible: the tie-break is a rule, not the interpreter
+# 6. it is reproducible: the seeded lot decides a tie, not the interpreter
 # --------------------------------------------------------------------------
 
-def test_the_tally_is_ordered_the_same_way_whatever_order_it_arrives_in():
-    """``canonical_order`` must be a function of the TALLY and nothing else.
+def test_a_tied_tally_seats_one_way_whatever_order_it_arrives_in():
+    """The seat law, given one tally in four key orders, must seat it one way.
 
     Constructed input, and the detector is a pure predicate, so requirement 2
     is mechanical: the same tally is built four times with its keys inserted in
     four different orders — which is what a differently-seeded interpreter hands
     ``seats.eligible_parties``, since that function iterates
-    ``set(ward_votes) | set(pr_votes)`` — and the canonical order must be one
-    order, while the unordered dict must be four.
+    ``set(ward_votes) | set(pr_votes)`` — and the council must be one council.
 
-    The tie is the point: ``B`` and ``A`` carry the SAME vote total, so
-    ``seats.allocate``'s ``(-remainder, -combined)`` key cannot separate them
-    and its stable sort falls back to insertion order. Name is the residual.
+    The tie is the point: ``A`` and ``B`` carry the SAME votes and so the same
+    surplus, and over two seats (quota 229) one of them takes the last seat.
+    The lot's key is :func:`benchmarks.benchmark_lot`'s, which names the city,
+    the target and the baseline and no party.
+
+    Replaces the test of ``canonical_order`` (deleted 2026-10-09), which held
+    the ORDER fixed by name; the lot holds the OUTCOME fixed without one.
     """
     tally = {"A": 100, "B": 100, "C": 250, "D": 7}
     permutations = [("A", "B", "C", "D"), ("B", "A", "D", "C"),
                     ("D", "C", "B", "A"), ("C", "D", "A", "B")]
     built = [{k: tally[k] for k in order} for order in permutations]
+    ctx = BM.Context(target=TARGET, spec={}, council=2, city=CITY)
+    lot = BM.benchmark_lot(NAME, ctx)
+    assert lot == seats.lot_identity(CITY, str(TARGET), f"benchmark:{NAME}")
+    assert not any(code in lot for code in tally), "a party code entered the key"
 
-    canonical = {tuple(BM.canonical_order(d)) for d in built}
-    assert len(canonical) == 1, (
-        f"`canonical_order` returned {len(canonical)} different orders for one "
-        f"tally: {sorted(canonical)}. It is not canonical, so the last "
-        f"largest-remainder seat is still decided by PYTHONHASHSEED.")
-    assert tuple(BM.canonical_order(built[0])) == ("C", "A", "B", "D"), (
-        "the rule is (most votes first, then by NAME). A tied pair must come "
-        "out in name order or the residual tie-break has changed, and every "
-        "figure quoted against this reference moves with it.")
+    outcomes = {tuple(sorted(seats.allocate(d, total_seats=2, lot=lot).seats.items()))
+                for d in built}
+    assert len(outcomes) == 1, (
+        f"one tally seated {len(outcomes)} ways across key orders: "
+        f"{sorted(outcomes)}. The lot is not deciding the tie.")
+    (council,) = outcomes
+    assert dict(council)["C"] == 1 and dict(council)["A"] + dict(council)["B"] == 1
 
-    # THE CONSTRUCTED VIOLATION: the same dicts without the rule. If these
-    # agree, the four permutations are not exercising the defect and the
-    # assertion above is vacuous.
-    unruled = {tuple(d) for d in built}
-    assert len(unruled) == len(permutations), (
-        f"the four constructed tallies produced only {len(unruled)} distinct "
-        f"key orders, so they do not demonstrate the defect and the canonical "
-        f"assertion above proves nothing. Fix the fixture, not the bound.")
+    # THE CONSTRUCTED VIOLATION: the tie group in arrival order, which is what
+    # the stable sort gave before any rule. If these agree, the permutations do
+    # not exercise the defect and the assertion above is vacuous.
+    real = seats.lot_order
+    try:
+        seats.lot_order = lambda tied, key: list(tied)
+        unruled = {tuple(sorted(seats.allocate(d, total_seats=2, lot=lot).seats.items()))
+                   for d in built}
+    finally:
+        seats.lot_order = real
+    assert len(unruled) > 1, (
+        f"the four constructed tallies seated only {len(unruled)} way(s) with "
+        f"the tie left to arrival order, so they do not demonstrate the defect "
+        f"and the assertion above proves nothing. Fix the fixture, not the bound.")
+    try:
+        seats.allocate(built[0], total_seats=2)
+    except ValueError as exc:
+        assert "lot" in str(exc)
+    else:
+        raise AssertionError("a tie at the last seat with no lot key was seated "
+                             "by input order instead of refused")
 
 
 def test_the_reference_returns_the_identical_council_in_every_fresh_process():
     """⛔ THE CLAIM THE DOCSTRING GOT WRONG: same inputs, same council, in a
     NEW interpreter, at any hash seed.
 
-    This is the one that blocks a canonical measurement. Before
-    ``canonical_order``, Johannesburg 2021 came back with a seat error of 128 or
-    130 depending on how the interpreter hashed strings that morning — 8 runs to
-    6 over fourteen starts — and the 24-city-year panel totalled 837, 839 or 841
-    for the same reason. A reference that moves between runs cannot anchor
-    anything, and agreement between two runs of it is not evidence of anything
-    either.
+    This is the one that blocks a canonical measurement. With the tie left to
+    set order, Johannesburg 2021 came back with a seat error of 128 or 130
+    depending on how the interpreter hashed strings that morning — 8 runs to 6
+    over fourteen starts — and the 24-city-year panel totalled 837, 839 or 841
+    for the same reason (measured 2026-09-13). A reference that moves between
+    runs cannot anchor anything, and agreement between two runs of it is not
+    evidence of anything either.
 
     Requirement 2 is supplied per-test because the detector is a subprocess:
-    the same harness runs the same child with ``canonical_order`` replaced by
-    ``dict`` — the defect exactly — and that leg must produce two different
-    councils, or this test cannot see what it claims to have ruled out.
+    the same harness runs the same child with ``seats.lot_order`` replaced by
+    the tie group's arrival order — the defect exactly — and that leg must
+    produce two different councils, or this test cannot see what it claims to
+    have ruled out.
     """
     _context()          # skips here rather than in a child if there is no data
     with tempfile.TemporaryDirectory() as tmp:
@@ -655,7 +677,7 @@ def test_the_reference_returns_the_identical_council_in_every_fresh_process():
             + "\n".join(f"  PYTHONHASHSEED={s}: {c[:160]}"
                         for s, c in fixed.items())
             + "\n\n  Something in the path is still ordered by a set of "
-              "strings. `canonical_order` covers `seats.eligible_parties`; a "
+              "strings. The seeded lot covers an exact tie at the last seat; a "
               "second source would have to be found the same way.")
         assert fixed[HASH_SEEDS[0]].count('"') > 4, (
             f"the child printed {fixed[HASH_SEEDS[0]]!r}, which is not a "
@@ -668,10 +690,10 @@ def test_the_reference_returns_the_identical_council_in_every_fresh_process():
             if len(broken) > 1:
                 break
     assert len(broken) > 1, (
-        f"with `canonical_order` removed the reference STILL returned one "
-        f"council across PYTHONHASHSEED {', '.join(HASH_SEEDS)}, so this test "
-        f"has not been shown able to detect the defect it rules out and its "
-        f"pass above means nothing.\n"
+        f"with the lot replaced by arrival order the reference STILL returned "
+        f"one council across PYTHONHASHSEED {', '.join(HASH_SEEDS)}, so this "
+        f"test has not been shown able to detect the defect it rules out and "
+        f"its pass above means nothing.\n"
         f"\n"
         f"  The seeds are a fixture, not a fact: they were picked in 2026-09-13 "
         f"because 0 and 4 straddled the ActionSA/CHANGE tie. If the ballot, the "
@@ -680,53 +702,48 @@ def test_the_reference_returns_the_identical_council_in_every_fresh_process():
         f"TIE_OFF=1 across a range of seeds. Do NOT delete this leg.")
 
 
-def test_the_last_seat_is_an_exact_tie_and_the_name_rule_is_what_decides_it():
-    """ActionSA's single seat in this reference is a coin toss that the
-    tie-break froze, and the docstring now says so. This is what licenses that
-    sentence — and bounds it.
+def test_the_last_seat_is_an_exact_tie_and_the_lot_is_what_decides_it():
+    """ActionSA's seat in this reference is a coin toss, and the docstring says
+    so. This is what licenses that sentence — and bounds it.
 
     ``ASA`` and ``CHANGE`` both nominated in 134 of 135 wards, so
     :func:`benchmarks.newcomer_shares` gives them the SAME share, the flat
     geography gives them the SAME votes in every voting district, and the
-    allocator's ``(-remainder, -combined)`` key cannot tell them apart. Exactly
-    one of them takes the last seat of the shortfall.
+    allocator's surplus-then-votes key cannot tell them apart. Exactly one of
+    them takes the last seat of the shortfall, by the seeded lot.
 
-    Constructed counterfactual rather than an observation: the rule is mirrored
-    — same key, name descending — and the seat must move to the other party and
-    nowhere else. If it does not move, the seat is not decided by the tie-break
-    and the docstring's warning is wrong in the other direction.
+    Constructed counterfactual rather than an observation: the lot's order is
+    reversed, and the seat must move to the other party and nowhere else. If
+    it does not move, the seat is not decided by the lot and the docstring's
+    warning is wrong in the other direction. Which of the two the real lot
+    seats is not asserted: it is a property of the key, not of either party.
     """
     ctx = _context()
     straight = BM.uniform_swing_roster(ctx, draws=1)[0][0]
 
-    real = BM.canonical_order
+    real = seats.lot_order
     try:
-        BM.canonical_order = lambda c: {p: c[p] for p in sorted(
-            sorted(c, reverse=True), key=lambda p: -c[p])}
+        seats.lot_order = lambda tied, key: list(reversed(real(tied, key)))
         mirrored = BM.uniform_swing_roster(ctx, draws=1)[0][0]
     finally:
-        BM.canonical_order = real
+        seats.lot_order = real
 
-    assert straight.get("ASA", 0) == ASA_SEATS_IN_THE_REFERENCE
-    assert straight.get(ASA_TIED_WITH, 0) == 0
-    assert mirrored.get("ASA", 0) == 0, (
-        f"mirroring the NAME half of the tie-break left ActionSA on "
-        f"{mirrored.get('ASA', 0)} seats. Either the tie with {ASA_TIED_WITH} "
+    pair = ("ASA", ASA_TIED_WITH)
+    assert sum(straight.get(p, 0) for p in pair) == TIED_PAIR_SEATS
+    assert sum(mirrored.get(p, 0) for p in pair) == TIED_PAIR_SEATS
+    assert all(straight.get(p, 0) != mirrored.get(p, 0) for p in pair), (
+        f"reversing the lot left ActionSA on {mirrored.get('ASA', 0)} and "
+        f"{ASA_TIED_WITH} on {mirrored.get(ASA_TIED_WITH, 0)}. Either the tie "
         f"has gone — in which case the docstring's 'coin toss' warning is now "
-        f"false and must be rewritten — or the mirror is not reaching the "
+        f"false and must be rewritten — or the reversal is not reaching the "
         f"allocator.")
-    assert mirrored.get(ASA_TIED_WITH, 0) == ASA_SEATS_IN_THE_REFERENCE, (
-        f"the seat ActionSA lost did not go to {ASA_TIED_WITH}. The pair is no "
-        f"longer the straddling tie group and the quoted figures are about a "
-        f"different election than the one this code runs.")
 
     moved = {p for p in set(straight) | set(mirrored)
              if straight.get(p, 0) != mirrored.get(p, 0)}
-    assert moved == {"ASA", ASA_TIED_WITH}, (
-        f"mirroring the tie-break moved {sorted(moved)}, not just the tied "
-        f"pair. The arbitrary component of this reference is wider than the "
-        f"one seat the docstring declares, and the declaration is now the "
-        f"stale half.")
+    assert moved == set(pair), (
+        f"reversing the lot moved {sorted(moved)}, not just the tied pair. The "
+        f"arbitrary component of this reference is wider than the one seat "
+        f"the docstring declares, and the declaration is now the stale half.")
     assert sum(straight.values()) == sum(mirrored.values()) == ctx.council
 
 
@@ -785,7 +802,7 @@ def test_the_action_sa_figures_quoted_in_the_docstring_are_the_measured_ones():
     seats = BM.uniform_swing_roster(ctx, draws=1)[0][0]
     actual, _winners = B.actual_result(
         Path("data/raw/elections") / ctx.spec["actual"], ctx.council)
-    assert seats.get("ASA", 0) == ASA_SEATS_IN_THE_REFERENCE
+    assert seats.get("ASA", 0) + seats.get(ASA_TIED_WITH, 0) == TIED_PAIR_SEATS
     assert actual["ASA"] == ASA_SEATS_ACTUAL
     assert seats.get("PA", 0) == PA_SEATS_IN_THE_REFERENCE, (
         f"the PA takes {seats.get('PA', 0)} seats in this reference. The "
@@ -795,9 +812,11 @@ def test_the_action_sa_figures_quoted_in_the_docstring_are_the_measured_ones():
         f"the PA won {actual['PA']} seats, not {PA_SEATS_ACTUAL}; the "
         f"docstring quotes the published figure and it does not match the "
         f"file.")
-    shells = [p for p in newcomers if p != "ASA" and seats.get(p, 0) > 0]
+    shells = [p for p in newcomers
+              if p not in ("ASA", ASA_TIED_WITH) and seats.get(p, 0) > 0]
     assert len(shells) == ASA_NEWCOMERS_STRICTLY_ABOVE, (
-        f"{len(shells)} newcomers other than ActionSA take a seat, not "
+        f"{len(shells)} newcomers other than ActionSA and {ASA_TIED_WITH} take "
+        f"a seat, not "
         f"{ASA_NEWCOMERS_STRICTLY_ABOVE}: {sorted(shells)}. 'Six of those "
         f"thirty-two take a seat each' is the docstring's count.")
 

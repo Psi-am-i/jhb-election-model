@@ -679,8 +679,13 @@ def main(argv: list[str] | None = None) -> int:
     print("  --- seat allocation (combined ward+PR, per §0) ---")
     actual_ward, _ = load(args.data_dir / spec["target"][0], "Ward")
     actual_pr, _ = load(args.data_dir / spec["target"][0], "PR")
+    # The seeded lot's keys for an exact tie at the last seat (JUDGEMENT-CALLS
+    # §Q6): one for the real count, one for this fold's prediction. No party
+    # name enters either.
+    fold_label = f"{city.slug}|fold{args.fold}"
     actual_seats = allocate(
-        eligible_parties(citywide_counts(actual_ward), citywide_counts(actual_pr))
+        eligible_parties(citywide_counts(actual_ward), citywide_counts(actual_pr)),
+        lot=f"{fold_label}|actual",
     ).seats
 
     predicted_counts = {}
@@ -698,7 +703,8 @@ def main(argv: list[str] | None = None) -> int:
             for p in fitted[ballot]["theta"]
         }
     predicted_seats = allocate(
-        eligible_parties(predicted_counts["Ward"], predicted_counts["PR"])
+        eligible_parties(predicted_counts["Ward"], predicted_counts["PR"]),
+        lot=f"{fold_label}|predicted",
     ).seats
 
     everyone = sorted(set(actual_seats) | set(predicted_seats), key=lambda p: -actual_seats.get(p, 0))

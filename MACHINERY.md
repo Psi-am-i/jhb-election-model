@@ -625,7 +625,9 @@ this; it replaces the held value in the same place when it lands (F4).
 | Ward/PR split ratio | previous LGE, per party | MEASURED | ✅ |
 | Ward contestation | **MEASURED**, for every party | `levels.contestation`, from nomination lists — the target's result file where it exists, else the slates DECLARED under `[roster.wards]` in the judgement file (2026-09-23, §1.252); only where neither exists does it fall back to the PREVIOUS local election's shares projected by `contestation_expand` | 55 parties at 2021, median party contests 39% of wards; 82 parties at 2026 from the certified list, median 99%. **The declared branch was missing for a week after the lists landed** — they were pasted on 16 September and read only by `pools`, so the correction went on projecting slates it could have read (§1.251), and the PA was carried at a 0.520 slate against a real 1.000. Until 2026-08-18 the not-yet-published branch instead applied `pa_contestation_uplift`, a 1.25 for one named party — deleted, §1.47. This row said "not modelled — all parties contest all wards" until 2026-08-17, contradicting §3 of this same document, which correctly listed it as MEASURED. |
 | `ward_noise_sd` = 0.10 | DEFAULTS | JUDGED | applied to ward tallies, not to shares |
-| Schedule 1 quota + largest remainder | `seats.py` | STATUTE | ✅ verified against the IEC, 6 city-years |
+| Schedule 1 quota + highest surplus | `seats.allocate` | STATUTE | ✅ verified against the IEC, 6 city-years; the round-two ranking against Laingsburg 2021's published column (`tests/test_overhang.py`) |
+| equal surplus → the higher vote | `seats.allocate` (integer surplus, then votes) | STATUTE, item 13(2)(b), 16(4)(c) | since 2026-10-09; the float remainder it replaced could decide before the vote count was read (law summary D3). This alone moves a council whose cut has an equal whole-vote surplus and unequal votes (the M1 diff review found published ones); the count is TO-MEASURE at the batch's run |
+| equal surplus and equal votes → the seeded lot | `seats.lot_order`, keys from `seats.seat_key` / `draw_key` / `ward_key` on `seats.lot_identity` | JUDGED: the statute is silent (JUDGEMENT-CALLS §Q6) | since 2026-10-09; it was input order, so set order and `PYTHONHASHSEED`. A call with a tie and no key raises. The first `deduct` / `level` iteration reuses round 0's allocation, so one invocation never draws one council twice |
 | `eligible_parties` (C/D exclusions) | `seats.py` | STATUTE | ✅ |
 | `overhang_rule` = deduct | DEFAULTS | STATUTE (Act 3 of 2021) | **anachronistic for 2011/2016** |
 | Coalition enumeration | `coalitions.py` | DERIVED | capped at 12 parties while 21 hold seats |
@@ -1687,6 +1689,14 @@ largest-remainder **tie** between two micro-parties is broken by iteration order
 A 1e-16 perturbation crosses the tie. The old claim was true of the continuous
 quantity and false of the published one. MODEL-LOG §1.145.
 
+**Amended 2026-10-09.** An exact tie at the last seat (equal whole-vote surplus
+and equal votes) is no longer broken by iteration order: the seeded lot draws it
+under the run's identity and the allocation round (`seats.lot_order`,
+JUDGEMENT-CALLS §Q6), so the order a set hands the allocator decides nothing. A
+perturbation that changes a party's whole-vote count can still move a seat.
+Whether the Mangaung case above was an exact tie or a rounding crossing is
+TO-MEASURE on the next run of that baseline.
+
 **MEASURED on a BASELINE, ARGUED for `run_model`** — and this file's own rule is
 that the distinction is stated wherever the claim is quoted. The seat that moved
 was `benchmarks.prior_lge_noise`'s. `run_model` shares the allocator, so the
@@ -2025,8 +2035,10 @@ more uses of the same draws, neither of which moves a forecast:
 * **Our prediction — `src/prediction.py` (rule A, 2026-10-08; replaced
   `src/start_rule.py`'s seat-first start).** The forecast reduced to one
   complete result: each ward to the party that wins it in the most
-  simulations (`ward_calls`; a tie to the code first in string order,
-  whatever the column order), each party's mean ward-ballot and list-ballot
+  simulations (`ward_calls`; a tie drawn by the seeded lot under
+  `seats.ward_key(lot, ward)`, `lot` being the run's identity, whatever the column
+  order; the code first in string order until 2026-10-09), each party's mean
+  ward-ballot and list-ballot
   whole votes (`mean_votes`; exact integer arithmetic, half to even, when the
   weights are unit or all equal; the weighted mean rounded half to even
   otherwise), every column kept under its own code; `rule_a` returns
@@ -2045,7 +2057,13 @@ more uses of the same draws, neither of which moves a forecast:
   weights, and `page._ward_calls`, the map's call). The tie rule alone is
   `prediction.top_party`, which the ward calls made from counts or
   probabilities also use (`scenarios.modal_winners` for the published claims,
-  `diagnose.main`, `score.score_wards`). JUDGEMENT-CALLS §Q;
+  `diagnose.main`, `score.score_wards`, and since 2026-10-09 the winner
+  column `montecarlo.main` writes). The run's identity reaches each caller
+  one way: `ModelRun.lot` in a run, `x-seat-context["lot"]` in the schema
+  (written only by `worker-api/tools/make_schema.mjs`, from the model
+  artefact `build_make.run_lot` fills from the served manifest's
+  `artefact_key`), and the
+  same manifest on the page (`page._lot`). JUDGEMENT-CALLS §Q;
   `tests/test_prediction_rule.py` holds it to one definition, following
   renamed copies of the draws' arrays, with its exemptions listed there.
 * **"Analyse my forecast"** — `within_band` (the weighted share of draws within
@@ -2070,7 +2088,9 @@ draw loop and `benchmarks.council_from_shares` are the two others):
 `seats.eligible_parties` on the two ballots as given (a party with a list vote
 is pooled on its ward plus list votes), `seats.outside_pool_wards` for C and D,
 and `montecarlo.allocate_with_overhang` at `montecarlo.STATUTORY_VALUES`'
-`overhang_rule`, the pool in the context's roster order. It returns ward, list
+`overhang_rule`, the pool in the context's roster order (which decides nothing:
+an exact tie at the last seat is drawn by the seeded lot under the context's
+`lot`). It returns ward, list
 and total seats per party (C and D ward winners included, so totals sum to the
 council), the council and majority, the item 16 parties and their excess, the
 pool (`{party: ward + list votes}`), and the stated assumption. Each ballot's
@@ -2088,7 +2108,7 @@ separately, so an entry can be impossible as a whole (many wards on a small
 ward vote); that is allowed.
 
 **The context** (`city`, `target`, `council`, `wards`, `parties`,
-`no_pr_list`) is built at build time by `context_for` / `context_from_run`,
+`no_pr_list`, `lot`) is built at build time by `context_for` / `context_from_run`,
 with council and ward count from `cities/<city>.toml`, and shipped as JSON.
 Nothing is read from disk at call time.
 

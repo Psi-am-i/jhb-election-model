@@ -41,12 +41,16 @@ Four baselines, in increasing order of how much they are allowed to know:
     worth of uncertainty", its distributional layer is adding nothing.
 
 **A deterministic rule is not automatically a REPRODUCIBLE one, and this module
-shipped without noticing.** The allocator breaks an exact largest-remainder tie
+shipped without noticing.** The allocator broke an exact largest-remainder tie
 by insertion order; insertion order came from iterating a set of strings; and
 CPython randomises string hashing per process. So two identical runs of
 ``uniform-swing+roster`` returned different councils, and the 24-city-year panel
-returned one of three totals. :func:`canonical_order` is the stated rule that
-replaces the accident — read it before touching the allocation path.
+returned one of three totals (measured 2026-09-13). From 2026-09-13 to
+2026-10-09 a name rule (``canonical_order``, deleted: most votes, then the
+code) fixed the order; since 2026-10-09 an exact tie at the last seat is drawn by the seeded lot
+(``seats.lot_order``) under :func:`benchmark_lot`, which names the city, the
+target and the baseline and no party, so no code is favoured across ties and a
+re-run gives the same council. JUDGEMENT-CALLS §Q6.
 
 **Every baseline sees only pre-election data.** Same rule as the backtest
 harness, same reasoning: ward boundaries, the voters' roll and — for
@@ -81,7 +85,8 @@ import montecarlo as M
 import pools as _pools
 import score as S
 from fold import citywide, load, shares
-from seats import eligible_parties, outside_pool_wards  # allocate itself is reached via montecarlo
+from seats import (draw_key, eligible_parties, lot_identity,
+                   outside_pool_wards, ward_key)  # allocate itself is reached via montecarlo
 
 def sources_for(target: int) -> dict[str, str | None]:
     """Files each baseline needs that the backtest's TARGETS table does not name.
@@ -155,6 +160,8 @@ class Context:
     earlier_lge_city: dict[str, float] = field(default_factory=dict)
     prior_lge_city: dict[str, float] = field(default_factory=dict)
     overhang_rule: str = M.DEFAULTS["overhang_rule"]
+    #: the city's slug, for the seeded lot's key (:func:`benchmark_lot`)
+    city: str = ""
 
 
 def _city_shares(path: Path, ballot: str | None) -> dict[str, float]:
@@ -283,6 +290,7 @@ def build_context(target: int, data_dir: Path = Path("data/raw/elections"),
         earlier_lge_city=earlier_lge_city,
         prior_lge_city=citywide(prior_all_votes),
         overhang_rule=overhang_rule or M.DEFAULTS["overhang_rule"],
+        city=cityconfig.active().slug,
     )
 
 
@@ -291,81 +299,28 @@ def build_context(target: int, data_dir: Path = Path("data/raw/elections"),
 # ---------------------------------------------------------------------------
 
 
-def canonical_order(combined: dict[str, int]) -> dict[str, int]:
-    """The same tally, ordered ``(most votes first, then by NAME)``.
+def benchmark_lot(which, ctx: Context) -> str:
+    """The seeded lot's key for one baseline at one city-year:
+    ``seats.lot_identity(city, target, f"benchmark:{name}")``.
 
-    ⛔ **THIS IS THE TIE-BREAK, AND WITHOUT IT A BASELINE IS NOT REPRODUCIBLE.**
-
-    ``seats.allocate`` hands out the remainder seats by
-    ``sorted(remainders, key=lambda p: (-remainders[p], -combined[p]))``. Python's
-    sort is stable, so two parties with the **same remainder and the same vote
-    total** keep the order they had in ``combined`` — and ``combined`` comes back
-    from ``seats.eligible_parties``, which builds itself by iterating
-    ``set(ward_votes) | set(pr_votes)``. Iteration order of a set of **strings**
-    is a function of ``PYTHONHASHSEED``, which CPython randomises per process.
-    So the last seat went to whichever of the tied parties the interpreter
-    happened to hash first that morning.
-
-    Exact ties are not a curiosity here, they are the normal case, because
-    :func:`newcomer_shares` gives every newcomer with the same ward reach
-    **exactly** the same share, and the flat geography then gives them the same
-    votes in every voting district. Johannesburg 2021, measured 2026-09-13 —
-    seven groups of parties on identical combined vote totals, of which the top
-    two are::
-
-        4,176 votes   5 parties, reach 1.000
-        4,146 votes   2 parties, reach 0.99259 — ASA and CHANGE
-
-    The five are comfortably inside the shortfall. **The pair straddles the
-    cut**: one of ActionSA and CHANGE took the last seat and the other did not,
-    decided by nothing. Measured: Johannesburg 2021 returned a seat error of
-    **128 under some interpreter starts and 130 under others**, 8 to 6 over
-    fourteen starts, from identical inputs — ``reach`` and the entry shares hash
-    identically across every run, and only the council moves.
-
-    **A STATED RULE, NOT AN ACCIDENT — the precedent is ``backtest.
-    entrant_actual_for``**, which sorts by ``(seats, name)`` for exactly this
-    class of defect after two identical runs produced three different hashes.
-    Name is the only discriminator left once votes are equal; it decides nothing
-    on the merits and it decides the same way every time, which is the whole
-    requirement. ⚠️ It is *arbitrary*, and where a tie-break decides a number
-    that gets quoted, the quote has to say so — see :func:`uniform_swing_roster`
-    on ActionSA, whose single seat is one of these.
-
-    **HOW MUCH OF THE PANEL THE ARBITRARY HALF DECIDES, MEASURED RATHER THAN
-    ASSERTED** (2026-09-13, 24 city-years, seat error against the published
-    results). Run the same panel with the name rule sorted the other way and
-    only two city-years move — Johannesburg 2021 by 2 seats and Nelson Mandela
-    Bay 2021 by 2 — so ``uniform-swing+roster`` totals **837 under this rule and
-    841 under its mirror**, against ``uniform-swing``'s 885, which has no exact
-    ties and does not move at all. The band is 4 seats wide and the name rule
-    sits at the favourable end of it; that is worth saying out loud, and it is
-    also why the rule was fixed as the established precedent BEFORE the panel
-    was re-measured rather than chosen afterwards. ⚠️ **Quote 837 with the
-    band, never alone.** The margin being argued about is 48 seats and the
-    arbitrary component is 4, so the conclusion does not turn on it — but a
-    reader who discovers the 4 unaided is entitled to disbelieve the 48.
-
-    (Before the fix the same panel returned 837, 839 or 841 depending on which
-    way the interpreter hashed that morning; all three were observed over eight
-    process starts. A review that measured 839 measured one draw of that.)
-
-    Sorting by ``-votes`` first is not needed for determinism (the allocator
-    re-sorts) and is kept because it makes the order readable in a trace and
-    makes the name rule visibly the *residual*, applying only where the votes
-    are equal.
-
-    **The fix is here rather than in ``seats.eligible_parties``** because the
-    defect is shared: any caller of the allocator with two exactly-equal parties
-    has it. Doing it at this one site fixes all five baselines, which is every
-    consumer in this module, and leaves the model's own path untouched rather
-    than moving numbers in a file this change has no measurement for.
+    ``which`` is the baseline's registered name or its function (looked up in
+    :data:`BENCHMARKS`). No party enters the key, so an exact tie at the last
+    seat (equal surplus and equal votes) is drawn without favouring a code, and
+    the same baseline at the same city-year draws it the same way on every run.
+    It replaced ``canonical_order`` (most votes, then the code: the name rule)
+    on 2026-10-09; JUDGEMENT-CALLS §Q6.
     """
-    return {p: combined[p] for p in sorted(combined, key=lambda p: (-combined[p], p))}
+    name = which if isinstance(which, str) else next(
+        (k for k, f in BENCHMARKS.items() if f is which), None)
+    if name is None:
+        raise ValueError(f"{which!r} is not a registered baseline")
+    return lot_identity(ctx.city or cityconfig.active().slug, str(ctx.target),
+                        f"benchmark:{name}")
 
 
 def council_from_shares(ctx: Context, ward_share: np.ndarray,
-                        pr_share: np.ndarray) -> tuple[dict[str, int], dict[str, str]]:
+                        pr_share: np.ndarray, *,
+                        lot: str) -> tuple[dict[str, int], dict[str, str]]:
     """Turn VD-level ballot shares into ``({party: seats}, {ward: winner})``.
 
     Uses the project's own allocator, including the excessive-seats rule, so a
@@ -374,17 +329,33 @@ def council_from_shares(ctx: Context, ward_share: np.ndarray,
     it is set for the target and restored -- the same thing ``backtest.main``
     does, done locally and put back.
 
-    The tally goes in through :func:`canonical_order`, which is what makes every
-    baseline in this module reproducible across processes. Read it before
-    changing anything here.
+    ``lot`` keys the seeded lot for an exact tie at the last seat and for an
+    exact tie at the top of a ward (:func:`benchmark_lot`, made per draw by
+    ``seats.draw_key`` for a baseline that draws). Exact ties are the normal case here, not a curiosity:
+    :func:`newcomer_shares` gives every newcomer with the same ward reach the
+    same share, and the flat geography gives them the same votes in every
+    voting district (:func:`uniform_swing_roster`). The tally's order decides
+    nothing, so it goes in as ``eligible_parties`` returns it.
     """
     ward_votes = ctx.weight[:, None] * ward_share
     pr_votes = ctx.weight[:, None] * pr_share
 
     per_ward = np.zeros((len(ctx.ward_list), len(ctx.universe)))
     np.add.at(per_ward, ctx.vd_ward, ward_votes)
-    winners = {ctx.ward_list[i]: ctx.universe[j]
-               for i, j in enumerate(per_ward.argmax(axis=1))}
+    # Each ward to its top party; an exact tie at the top is drawn by the
+    # seeded lot under `seats.ward_key(lot, ward)` (JUDGEMENT-CALLS §Q2), as
+    # every other ward call is. It was the argmax's first column, so universe
+    # order, until 2026-10-09. Only tied rows reach `prediction.top_party`.
+    import prediction
+    winners = {}
+    for i, j in enumerate(per_ward.argmax(axis=1)):
+        ward, row = ctx.ward_list[i], per_ward[i]
+        if np.count_nonzero(row == row[j]) > 1:
+            winners[ward] = prediction.top_party(
+                {p: float(v) for p, v in zip(ctx.universe, row) if v == row[j]},
+                lot=ward_key(lot, ward))
+        else:
+            winners[ward] = ctx.universe[j]
     wins: defaultdict[str, int] = defaultdict(int)
     for party in winners.values():
         wins[party] += 1
@@ -393,7 +364,7 @@ def council_from_shares(ctx: Context, ward_share: np.ndarray,
                    for i, p in enumerate(ctx.universe)}
     pr_totals = {p: int(round(pr_votes[:, i].sum()))
                  for i, p in enumerate(ctx.universe)}
-    combined = canonical_order(eligible_parties(ward_totals, pr_totals))
+    combined = eligible_parties(ward_totals, pr_totals)
 
     previous = M.COUNCIL
     try:
@@ -422,7 +393,7 @@ def council_from_shares(ctx: Context, ward_share: np.ndarray,
         c_wards, d_wards, pool_wins = outside_pool_wards(dict(wins), combined)
         seats, _council, _thr, _over = M.allocate_with_overhang(
             combined, pool_wins, rule=ctx.overhang_rule,
-            independent_wards=c_wards, no_pr_list_wards=d_wards)
+            independent_wards=c_wards, no_pr_list_wards=d_wards, lot=lot)
     finally:
         M.COUNCIL = previous
     return {p: s for p, s in seats.items() if s > 0}, winners
@@ -457,7 +428,8 @@ def last_lge(ctx: Context, draws: int = 1, seed: int | None = None):
     scored as a model error. Ward and PR ballots are kept separate, because
     seats follow the combined vote while ward wins follow the ward ballot alone.
     """
-    seats, winners = council_from_shares(ctx, ctx.ward_share, ctx.pr_share)
+    seats, winners = council_from_shares(ctx, ctx.ward_share, ctx.pr_share,
+                                         lot=benchmark_lot(last_lge, ctx))
     return _repeat(seats, winners, draws)
 
 
@@ -499,7 +471,8 @@ def uniform_swing(ctx: Context, draws: int = 1, seed: int | None = None):
                       for p in ctx.universe])
     ward = _renormalise(np.clip(ctx.ward_share + swing[None, :], 0.0, None))
     pr = _renormalise(np.clip(ctx.pr_share + swing[None, :], 0.0, None))
-    seats, winners = council_from_shares(ctx, ward, pr)
+    seats, winners = council_from_shares(ctx, ward, pr,
+                                         lot=benchmark_lot(uniform_swing, ctx))
     return _repeat(seats, winners, draws)
 
 
@@ -559,7 +532,8 @@ def blended_swing(ctx: Context, draws: int = 1, seed: int | None = None):
          for p in ctx.universe])
     ward = _renormalise(np.clip(ctx.ward_share + swing[None, :], 0.0, None))
     pr = _renormalise(np.clip(ctx.pr_share + swing[None, :], 0.0, None))
-    seats, winners = council_from_shares(ctx, ward, pr)
+    seats, winners = council_from_shares(ctx, ward, pr,
+                                         lot=benchmark_lot(blended_swing, ctx))
     return _repeat(seats, winners, draws)
 
 
@@ -794,14 +768,15 @@ def uniform_swing_roster(ctx: Context, draws: int = 1, seed: int | None = None):
     Uses everything :func:`uniform_swing` uses, plus the target's nomination
     roster and the pre-target arrival record.
 
-    **Deterministic, and reproducible across processes only because of
-    :func:`canonical_order`.** This docstring said "Deterministic" flat, and it
-    was wrong: the newcomer block hands parties with equal ward reach exactly
-    equal vote totals, the allocator's largest-remainder tie then fell to set
-    iteration order, and Johannesburg 2021 returned a seat error of 128 or 130
-    depending on ``PYTHONHASHSEED`` — 8 runs to 6 over fourteen interpreter
-    starts, measured 2026-09-13. ``canonical_order`` has the mechanism and the
-    tie-break rule that replaces it.
+    **Deterministic, and reproducible across processes because an exact tie
+    at the last seat is drawn by the seeded lot** (:func:`benchmark_lot`). The
+    newcomer block hands parties with equal ward reach exactly equal vote
+    totals. Before 2026-09-13 the allocator's tie then fell to set iteration
+    order, and Johannesburg 2021 returned a seat error of 128 or 130 depending
+    on ``PYTHONHASHSEED`` (8 runs to 6 over fourteen interpreter starts). From
+    2026-09-13 a name rule (``canonical_order``: most votes, then the code)
+    fixed it, at the cost of deciding every such tie for the earlier code; it
+    was deleted on 2026-10-09 for the lot, which names no party.
 
     ⛔ **THE COMPARISON THIS REPAIRS WAS NOT A COMPARISON.** ``run_model`` reads
     ``pools.contesting_parties(target.city, target.year)`` and uses it twice: to
@@ -880,23 +855,24 @@ def uniform_swing_roster(ctx: Context, draws: int = 1, seed: int | None = None):
     other thirty-one names on that ballot was polling, which no member of this
     family is allowed to see.
 
-    ⚠️ **ActionSA's ONE SEAT IS A COIN TOSS THAT `canonical_order` FIXED IN
-    PLACE, and a figure that survives only by the tie-break must say so.**
-    ActionSA and CHANGE come out on identical combined votes (4,146) and
-    identical remainders; the last seat of the shortfall goes to exactly one of
-    them, and the stated rule — equal votes break by NAME — gives it to ASA.
-    Johannesburg 2021 therefore scores a seat error of **128**, and would score
-    **130** had the same arbitrary rule sorted the other way. The uncertainty on
-    this city-year's figure is that 2 seats wide and no narrower, and it is
-    arithmetic, not forecasting. (Measured 2026-09-13; every number in these two
-    paragraphs is a property of the reference's own inputs except ActionSA's
-    realised share and seats, which are the result and are quoted as the thing
-    being missed.)
+    ⚠️ **ActionSA's seat is a coin toss, and a figure that survives only by the
+    tie must say so.** ActionSA and CHANGE come out on identical combined votes
+    (4,146) and identical surpluses; the last seat of the shortfall goes to
+    exactly one of them, and the seeded lot under this baseline's key
+    (:func:`benchmark_lot`) decides which. Johannesburg 2021 scores a seat error
+    of **128** with ASA seated and **130** with CHANGE seated (measured
+    2026-09-13, when the name rule seated ASA); which one the lot gives is
+    TO-MEASURE on the next panel run. The uncertainty on this city-year's
+    figure is that 2 seats wide and no narrower, and it is arithmetic, not
+    forecasting. (Every number in these two paragraphs is a property of the
+    reference's own inputs except ActionSA's realised share and seats, which are
+    the result and are quoted as the thing being missed.)
 
     So what this reference changes is the OTHER two mechanisms: thirty
     off-ballot parties stop being forecast a share they could not have won, and
     thirty-two on-ballot parties stop being forecast a structural zero. Six of
-    those thirty-two take a seat each — ActionSA and five shells. **That is the
+    those thirty-two take a seat each — five shells, and one of ActionSA and
+    CHANGE by the lot. **That is the
     known cost and it is stated, not hidden**: largest-remainder allocation
     rewards fragmentation, so spreading a measured 1.96% across a long ballot
     buys columns that are right in kind and wrong in detail. It is realised at
@@ -955,7 +931,8 @@ def uniform_swing_roster(ctx: Context, draws: int = 1, seed: int | None = None):
         pr = np.hstack([pr * (1.0 - mass), block])
 
     seats, winners = council_from_shares(replace(ctx, universe=universe),
-                                         ward, pr)
+                                         ward, pr,
+                                         lot=benchmark_lot(uniform_swing_roster, ctx))
     return _repeat(seats, winners, draws)
 
 
@@ -995,11 +972,12 @@ def prior_lge_noise(ctx: Context, draws: int = 2000, seed: int | None = 20211101
     rng = np.random.default_rng(seed)
 
     seat_draws, ward_draws = [], []
-    for _ in range(draws):
+    lot = benchmark_lot(prior_lge_noise, ctx)
+    for i in range(draws):
         z = rng.normal(0.0, sigma)
         ward = _shift(ctx.ward_share, ctx.ward_city, z)
         pr = _shift(ctx.pr_share, ctx.pr_city, z)
-        seats, winners = council_from_shares(ctx, ward, pr)
+        seats, winners = council_from_shares(ctx, ward, pr, lot=draw_key(lot, i))
         seat_draws.append(seats)
         ward_draws.append(winners)
     return seat_draws, ward_draws
@@ -1130,7 +1108,8 @@ def main(argv: list[str] | None = None) -> int:
         seat_draws, ward_draws = runs[name]
         seats = S.score_seats(seat_draws, actual_seats, seed=args.seed,
                               parties=shared)
-        wards = S.score_wards(ward_probabilities(ward_draws), actual_winners)
+        wards = S.score_wards(ward_probabilities(ward_draws), actual_winners,
+                              lot=benchmark_lot(name, ctx))
         print()
         print(S.format_report(seats, wards, label=name))
         summary.append((name, seats, wards))

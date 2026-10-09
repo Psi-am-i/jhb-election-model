@@ -49,8 +49,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _support import ROOT, run_module, skip  # noqa: E402
 
 import official_seats  # noqa: E402
+import seats as seats_module  # noqa: E402
 from seats import (INDEPENDENT, allocate, eligible_parties,  # noqa: E402
-                   outside_pool_wards, overhang, pr_seats)
+                   lot_identity, lot_order, outside_pool_wards, overhang,
+                   pr_seats)
 
 ELECTIONS = ROOT / "data" / "raw" / "elections"
 REPORTS = ELECTIONS / "_reports"
@@ -573,6 +575,207 @@ def test_allocate_fills_a_shortfall_equal_to_the_party_count_and_refuses_more():
     else:
         raise AssertionError("allocate handed out 5 seats to 2 one-vote parties "
                              "with a shortfall it cannot fill")
+
+
+# --------------------------------------------------------------------------
+# item 2: whole-vote surpluses, an equal surplus to the higher vote (G5)
+#
+#   votes  BIG 23   SMALL 3   FILL 1      total 27, three seats
+#   quota  27 // 3 + 1 = 10
+#   floors BIG 2   SMALL 0   FILL 0  = 2, one seat by surplus
+#   surplus BIG 23 - 20 = 3   SMALL 3   FILL 1
+#
+# BIG and SMALL have the SAME surplus, 3 votes, so Schedule 1 item 13(2)(b)
+# gives the seat to the party with more valid votes: BIG 3, SMALL 0. As floats
+# the two remainders are 23/10 - 2 = 0.29999999999999982 and 3/10 = 0.3, so a
+# float ranking hands the seat to SMALL before the vote count is read.
+# --------------------------------------------------------------------------
+SURPLUS_VOTES = {"BIG": 23, "SMALL": 3, "FILL": 1}
+
+
+def test_an_equal_surplus_goes_to_the_higher_vote_not_to_a_float_remainder():
+    """G5. Item 13(2)(b) by hand (block comment above); the float ranking the
+    allocator used until 2026-10-09 is run beside it as the mutation, and it
+    must give the other answer, or this fixture cannot tell the two apart."""
+    got = allocate(dict(SURPLUS_VOTES), total_seats=3)
+    assert got.quota == 10
+    assert got.surpluses == {"BIG": 3, "SMALL": 3, "FILL": 1}, got.surpluses
+    assert got.seats == {"BIG": 3, "SMALL": 0, "FILL": 0}, got.seats
+    assert got.ranking[:2] == ["BIG", "SMALL"], got.ranking
+
+    # THE MUTATION: rank the float remainder, then votes, as before.
+    floats = {p: v / 10 - v // 10 for p, v in SURPLUS_VOTES.items()}
+    mutant = sorted(SURPLUS_VOTES, key=lambda p: (-floats[p], -SURPLUS_VOTES[p]))
+    assert mutant[0] == "SMALL", (
+        "the float ranking no longer misorders this fixture, so the test cannot "
+        "see a reversion to it; find another case")
+
+
+# --------------------------------------------------------------------------
+# item 1: an exact tie at the last seat, drawn by the seeded lot (G1)
+#
+#   votes  BIG1 101  BIG2 101  AAA 49  BBB 49     total 300, three seats
+#   quota  300 // 3 + 1 = 101; floors BIG1 1, BIG2 1 = 2, one seat by surplus
+#   surplus BIG1 0  BIG2 0  AAA 49  BBB 49  -> AAA and BBB equal on surplus AND
+#   votes, and one seat falls to them: the statute is silent, the lot decides.
+# --------------------------------------------------------------------------
+TIE_VOTES = {"BIG1": 101, "BIG2": 101, "AAA": 49, "BBB": 49}
+
+
+def _tie_winner(votes, key):
+    seated = allocate(dict(votes), total_seats=3, lot=key).seats
+    won = [p for p in ("AAA", "BBB", "ZZZ") if seated.get(p) == 1]
+    assert len(won) == 1 and seated["BIG1"] == seated["BIG2"] == 1, seated
+    return won[0]
+
+
+def test_the_lot_decides_an_exact_tie_deterministically_and_by_the_key():
+    """G1(a): for one key the answer is ``lot_order``'s first code, the same on
+    every call; some other key (searched among the first twenty) gives the
+    other party. No name enters the key."""
+    key = "joburg|2026|20261104|draw0|seat|0"
+    first = lot_order(["AAA", "BBB"], key)[0]
+    assert [_tie_winner(TIE_VOTES, key) for _ in range(3)] == [first] * 3
+    other = next((k for k in (f"{key}#{i}" for i in range(20))
+                  if _tie_winner(TIE_VOTES, k) != first), None)
+    assert other is not None, (
+        "twenty keys all gave the same party: the key does not reach the lot")
+    assert lot_identity("joburg", "2026", 20261104) == "joburg|2026|20261104"
+
+
+def test_over_many_keys_each_tied_party_wins_about_half_whatever_its_code():
+    """G1(b): the property that separates a lot from a name rule. Over 1,000
+    keys each of two tied parties takes the seat between 45% and 55% of the
+    time, and renaming one of them to sort LAST keeps both inside that band.
+    The alphabetical rule this replaced gave the earlier code 100%."""
+    keys = [f"panel|2021|{i}|seat|0" for i in range(1000)]
+    for votes, pair in ((TIE_VOTES, ("AAA", "BBB")),
+                        ({"BIG1": 101, "BIG2": 101, "ZZZ": 49, "BBB": 49},
+                         ("BBB", "ZZZ"))):
+        wins = Counter(_tie_winner(votes, k) for k in keys)
+        for p in pair:
+            assert 0.45 <= wins[p] / len(keys) <= 0.55, (pair, dict(wins))
+
+
+def test_a_tie_with_no_lot_refuses_and_an_untied_council_never_reads_one():
+    """G1(c): ``lot=None`` with a tie at the cut raises, naming the codes and
+    the statute; with no tie, ``lot=None`` seats exactly what any key seats."""
+    try:
+        allocate(dict(TIE_VOTES), total_seats=3)
+    except ValueError as exc:
+        assert "AAA" in str(exc) and "BBB" in str(exc), str(exc)
+        assert "13(2)(b)" in str(exc), str(exc)
+    else:
+        raise AssertionError("an exact tie at the last seat was seated with no "
+                             "lot key, by input order")
+    untied = dict(TIE_VOTES, BBB=48)
+    plain = allocate(dict(untied), total_seats=3)
+    assert plain.seats == {"BIG1": 1, "BIG2": 1, "AAA": 1, "BBB": 0}, plain.seats
+    for k in ("a", "b", "c"):
+        assert allocate(dict(untied), total_seats=3, lot=k).seats == plain.seats
+    # a tie wholly inside the cut needs no lot: quota 208 // 4 + 1 = 53, X 1
+    # (surplus 47), three seats by surplus to AAA 49, BBB 49 and X 47
+    inside = allocate({"X": 100, "AAA": 49, "BBB": 49, "Y": 10}, total_seats=4)
+    assert inside.seats == {"X": 2, "AAA": 1, "BBB": 1, "Y": 0}, inside.seats
+
+
+def test_the_overhang_rounds_key_the_lot_by_round():
+    """Every ``allocate`` call inside ``allocate_with_overhang`` gets
+    ``seats.seat_key(lot, r)``, ``r`` from 0, and ``lot=None`` passes ``None``
+    on. Recorded by wrapping the allocator ``montecarlo`` calls."""
+    import montecarlo as M
+    seen = []
+    real = M.allocate
+
+    def spy(*args, lot=None, **kwargs):
+        seen.append(lot)
+        return real(*args, lot=lot, **kwargs)
+
+    previous = M.COUNCIL
+    M.allocate, M.COUNCIL = spy, 10
+    try:
+        M.allocate_with_overhang({"A": 450, "B": 250, "C": 300}, {"C": 4},
+                                 "deduct", lot="K")
+        keyed, seen[:] = list(seen), []
+        M.allocate_with_overhang({"A": 450, "B": 250, "C": 300}, {"C": 4},
+                                 "deduct")
+        unkeyed = list(seen)
+    finally:
+        M.allocate, M.COUNCIL = real, previous
+    assert keyed == [seats_module.seat_key("K", r) for r in range(len(keyed))], keyed
+    assert keyed[0] == "K|seat|0"
+    assert len(keyed) >= 2, "the deduct rule re-allocated, so two calls at least"
+    assert unkeyed == [None] * len(keyed), unkeyed
+
+
+def test_the_first_deduct_round_reuses_round_zero_instead_of_redrawing_it():
+    """S5 of the M1 diff review. Seven seats, quota 526 // 7 + 1 = 76:
+    BIG 3 (surplus 72), C 1 (52), AAA 0 (49), BBB 0 (49) = 4, three seats by
+    surplus to BIG, C and one of AAA and BBB, who tie on surplus and votes. C
+    wins 3 wards against an entitlement of 2, so item 16 fires.
+
+    The excess is measured on round 0's council. The first ``deduct`` (and
+    ``level``) iteration allocates that same council again; drawn under a new
+    key, the tie could fall the other way there, so the council returned and
+    the excess reported would come from two different draws. It reuses round
+    0 instead: no two ``allocate`` calls in one invocation take the same
+    inputs, under any key."""
+    import montecarlo as M
+    votes, wins = {"C": 128, "AAA": 49, "BBB": 49, "BIG": 300}, {"C": 3}
+    real, previous, seen = M.allocate, M.COUNCIL, []
+
+    def spy(combined, total_seats=270, independent_wards=0, no_pr_list_wards=0,
+            *, lot=None):
+        seen.append((tuple(sorted(combined.items())), total_seats))
+        return real(combined, total_seats=total_seats,
+                    independent_wards=independent_wards,
+                    no_pr_list_wards=no_pr_list_wards, lot=lot)
+
+    M.allocate, M.COUNCIL = spy, 7
+    try:
+        for rule in ("deduct", "level"):
+            for k in range(20):
+                seen.clear()
+                key = f"t|7|{k}"
+                seated, _council, _thr, over = M.allocate_with_overhang(
+                    dict(votes), dict(wins), rule, lot=key)
+                assert len(seen) == len(set(seen)), (rule, key, seen)
+                first = real(dict(votes), total_seats=7,
+                             lot=seats_module.seat_key(key, 0))
+                assert over == {"C": 3 - first.seats["C"]}, (rule, key, over)
+                assert seated["C"] >= 3
+    finally:
+        M.allocate, M.COUNCIL = real, previous
+
+
+def test_the_lot_order_is_the_same_set_and_needs_a_key():
+    """``lot_order`` returns the tied codes, each once, and refuses an empty
+    key rather than drawing under one nobody chose."""
+    assert sorted(lot_order(["B", "A", "C"], "k")) == ["A", "B", "C"]
+    assert lot_order(["B", "A"], "k") == lot_order(["A", "B"], "k"), (
+        "the input order of the tied codes reached the lot")
+    try:
+        lot_order(["A", "B"], "")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("lot_order drew with an empty key")
+    assert seats_module.lot_order is lot_order
+    # N1: no key is built from a missing part or an empty run identity
+    for bad in ((None, "2026", 7), ("joburg", "", 7), ("joburg", "2026", None)):
+        try:
+            lot_identity(*bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"lot_identity accepted {bad}")
+    for build in (seats_module.ward_key, seats_module.draw_key, seats_module.seat_key):
+        try:
+            build("", 0)
+        except ValueError:
+            continue
+        raise AssertionError(f"{build.__name__} built a key from an empty lot")
+    assert seats_module.ward_key("a|b|1", "W") == "a|b|1|ward|W"
+    assert seats_module.seat_key(seats_module.draw_key("a|b|1", 3), 0) == "a|b|1|draw3|seat|0"
 
 
 def _make(code: str, year: int, has_votes: bool, has_official: bool):

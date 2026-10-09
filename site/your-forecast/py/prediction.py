@@ -24,11 +24,18 @@ for any other modal or mean reduction over the draws' ward winners or votes,
 following renamed copies of them, and fails on one it was not told about; its
 ``EXEMPT`` table lists, with reasons, the sites that are not a second rule A.
 
-**Ties.** A ward whose top count is shared goes to the party code first in
-Python string order (``min`` over the tied codes), whatever order the arrays
-or ``ward_parties`` are in. With unit weights the counts are integers and a
-tie is exact; with other weights a tie is exact equality of two weighted sums
-computed by the same arithmetic, so it is deterministic. JUDGEMENT-CALLS §Q2.
+**Ties.** A ward whose top count is shared goes to the party the seeded lot
+draws (``seats.lot_order``) under the ward's key ``seats.ward_key(lot, ward)``,
+where ``lot`` is the run's identity (``seats.lot_identity``: city, target,
+seed; no party name). Schedule 1 item 8(2) settles a real ward tie by lot; this
+is the same rule for a tie in the count of simulations. With unit weights the
+counts are integers and a tie is exact; with other weights a tie is exact
+equality of two weighted sums computed by the same arithmetic, so it is
+deterministic. A tie with no key raises :class:`RuleAError`. An exact tie at
+the last seat in :func:`seats_of` is drawn the same way under
+``seats.seat_key(lot, round)``. JUDGEMENT-CALLS §Q2, §Q6. (Until 2026-10-09 a ward
+tie went to the code first in string order, which favoured the same names at
+every tie.)
 
 **Rounding.** A mean is rounded to a whole vote, half to even. With unit
 weights (none given, or every weight equal, which is what the page's untouched
@@ -51,6 +58,8 @@ Imports: ``numpy`` only at module level. This file ships to the
 page under Pyodide (``interactive/tools/sync_py.mjs`` PAGE_FILES) and, through
 ``reader_seats``, to the seat Worker; :func:`seats_of` imports the seat law
 when it is called, so the page's ward map does not load the model.
+:func:`top_party` imports ``seats`` (standard library only) when a tie needs
+the lot.
 """
 from __future__ import annotations
 
@@ -88,26 +97,44 @@ def _round_half_even(numerator: int, denominator: int) -> int:
     return q
 
 
-def top_party(scores) -> str:
-    """The party with the largest score; a tie to the code first in string order.
+def top_party(scores, *, lot: str | None = None) -> str:
+    """The party with the largest score; a tie drawn by the seeded lot.
 
-    ``scores`` is ``{party: count, weight or probability}``. The one tie rule
-    for every ward call (module docstring): :func:`ward_calls` uses it, and so
-    do the callers that hold a ward's counts or probabilities rather than the
-    draws (``scenarios.modal_winners``, ``score.score_wards``, ``diagnose``).
+    ``scores`` is ``{party: count, weight or probability}``. ``lot`` is the
+    event's own key (a ward's is ``seats.ward_key(run_lot, ward)``; module
+    docstring). The one tie rule for every ward call: :func:`ward_calls` uses
+    it, and so do the callers that hold a ward's counts or probabilities rather
+    than the draws (``scenarios.modal_winners``, ``score.score_wards``,
+    ``diagnose``, ``montecarlo.main``'s winner column). A tie with
+    ``lot=None`` raises :class:`RuleAError`; an untied call never reads ``lot``.
     """
     if not scores:
         raise RuleAError("no party to call: the scores are empty")
     top = max(scores.values())
-    return min(str(p) for p, v in scores.items() if v == top)
+    tied = [str(p) for p, v in scores.items() if v == top]
+    if len(tied) == 1:
+        return tied[0]
+    if not lot:
+        raise RuleAError(f"a tie at the top between {sorted(tied)} and no lot "
+                         f"key to draw it (JUDGEMENT-CALLS §Q2)")
+    import seats
+    return seats.lot_order(tied, lot)[0]
 
 
-def ward_calls(ward_winners, ward_parties, wards, weights=None) -> dict[str, str]:
+def _ward_key(lot: str, ward) -> str:
+    """``seats.ward_key``, imported when a lot is given (module docstring)."""
+    import seats
+    return seats.ward_key(lot, ward)
+
+
+def ward_calls(ward_winners, ward_parties, wards, weights=None, *,
+               lot: str | None = None) -> dict[str, str]:
     """``{ward: party}``: each ward's party with the most (weighted) wins.
 
     ``ward_winners`` is ``(draws, wards)`` of indices into ``ward_parties``,
-    columns in ``wards`` order. A tie goes to the code first in string order
-    (module docstring).
+    columns in ``wards`` order. A tie is drawn by the seeded lot under
+    ``seats.ward_key(lot, ward)``, ``lot`` being the run's identity (module
+    docstring); with ``lot=None`` a tie raises.
     """
     winners = np.asarray(ward_winners)
     parties = [str(p) for p in ward_parties]
@@ -127,7 +154,8 @@ def ward_calls(ward_winners, ward_parties, wards, weights=None) -> dict[str, str
     for j, ward in enumerate(wards):
         counts = np.bincount(winners[:, j].astype(np.int64), weights=w,
                              minlength=len(parties))
-        out[ward] = top_party(dict(zip(parties, counts.tolist())))
+        out[ward] = top_party(dict(zip(parties, counts.tolist())),
+                              lot=None if lot is None else _ward_key(lot, ward))
     return out
 
 
@@ -164,8 +192,11 @@ def mean_votes(votes, columns, weights=None, *, name: str = "votes") -> dict[str
 
 
 def rule_a(ward_winners, ward_parties, wards, ward_votes, list_votes, columns,
-           *, weights=None, ward_ids=None) -> dict:
+           *, weights=None, ward_ids=None, lot: str | None = None) -> dict:
     """The prediction object: rule A on the draws (module docstring).
+
+    ``lot`` is the run's identity (``seats.lot_identity``); a tied ward is
+    drawn under ``seats.ward_key(lot, ward)``.
 
     Returns ``{"ward_calls": [party, ...] in ward_ids order (default: wards),
     "ward_votes": {party: int}, "list_votes": {party: int}}``, every column of
@@ -190,7 +221,7 @@ def rule_a(ward_winners, ward_parties, wards, ward_votes, list_votes, columns,
     order = wards if ward_ids is None else [str(x) for x in ward_ids]
     if sorted(order) != sorted(wards) or len(set(order)) != len(order):
         raise RuleAError("ward_ids are not the draws' wards reordered")
-    calls = ward_calls(ward_winners, ward_parties, wards, weights)
+    calls = ward_calls(ward_winners, ward_parties, wards, weights, lot=lot)
     columns = [str(c) for c in columns]
     absent = sorted({p for p in calls.values() if p not in columns})
     if absent:
@@ -201,7 +232,8 @@ def rule_a(ward_winners, ward_parties, wards, ward_votes, list_votes, columns,
             "list_votes": mean_votes(lv, columns, weights, name="list_vote")}
 
 
-def seats_of(prediction: dict, council: int, *, order=None) -> dict:
+def seats_of(prediction: dict, council: int, *, order=None,
+             lot: str | None = None) -> dict:
     """The council the seat law gives a prediction: the one composition of
     the seat law for a prediction or a reader's forecast (``reader_seats``
     calls it). Two others exist and are not predictions: ``run_model``'s draw
@@ -211,8 +243,11 @@ def seats_of(prediction: dict, council: int, *, order=None) -> dict:
     ``prediction`` carries ``ward_calls`` (one party per ward), ``ward_votes``
     and ``list_votes`` (``{party: whole votes}``; ``ward_votes`` may be empty).
     ``seats.eligible_parties`` decides the pool, which is then re-keyed in
-    ``order`` (default: the key order of ``list_votes``), so an exact
-    remainder tie falls the same way on every call; ``seats.outside_pool_wards``
+    ``order`` (default: the key order of ``list_votes``); the order fixes how
+    the pool is listed and decides nothing, because an exact tie at the last
+    seat is drawn by the seeded lot under ``seats.seat_key(lot, round)``
+    (``lot`` is the run's identity; ``None`` raises on such a tie);
+    ``seats.outside_pool_wards``
     takes out the C and D wards; ``montecarlo.allocate_with_overhang`` under
     ``montecarlo.STATUTORY_VALUES["overhang_rule"]`` strikes the quota and
     applies item 16, with ``montecarlo.COUNCIL`` set to ``council`` for the
@@ -247,7 +282,7 @@ def seats_of(prediction: dict, council: int, *, order=None) -> dict:
         M.COUNCIL = int(council)
         seats, size, majority, over = M.allocate_with_overhang(
             combined, pool_wins, M.STATUTORY_VALUES["overhang_rule"],
-            independent_wards=c_wards, no_pr_list_wards=d_wards)
+            independent_wards=c_wards, no_pr_list_wards=d_wards, lot=lot)
     finally:
         M.COUNCIL = previous
 

@@ -31,7 +31,9 @@ Section 2 opens on **our prediction**: rule A on the published draws
 which calls ``src/prediction.py``, the one definition (JUDGEMENT-CALLS §Q):
 
 * **Ward calls**: each ward to the party that wins it in the most simulations
-  (the ``ward_winner`` block), a tie to the code first in string order.
+  (the ``ward_winner`` block), a tie drawn by the seeded lot under the published
+  run's identity (``run_lot``, carried by the model artefact into
+  ``x-seat-context["lot"]`` by ``make_schema.mjs``).
 * **Votes**: each party's mean ward-ballot and mean list-ballot whole votes
   across the simulations (the ``ward_vote`` and ``list_vote`` blocks).
 * **Seats**: by the seat law from those wards and votes
@@ -1025,6 +1027,9 @@ def model_artefact(manifest: dict, roster: dict, bounds: dict) -> dict:
         "ward_seats": int(structure["wards"]),
         "majority": council // 2 + 1,
         "no_pr_list": [],
+        # the seeded lot's run identity; make_schema.mjs writes it into
+        # x-seat-context, its one writer
+        "lot": run_lot(manifest),
         "editor_bounds": bounds,
         "parties": [{"code": c, "name": roster[c]["name"], "colour": roster[c]["colour"]} for c in parties],
         "placeholder": False,
@@ -1123,8 +1128,13 @@ def start_state(manifest: dict, arrays: dict, schema: dict) -> dict:
     except ValueError as exc:
         raise MakeBuildError(f"build_make: {exc}") from None
     context, _ward_ids = score_forecasts.schema_context(schema)
+    if not context.get("lot"):
+        raise MakeBuildError("build_make: the schema's x-seat-context has no lot "
+                             "(model_artefact carries it and make_schema.mjs writes it), so an exact seat tie "
+                             "cannot be drawn")
     try:
-        seated = prediction.seats_of(pred, context["council"], order=roster)
+        seated = prediction.seats_of(pred, context["council"], order=roster,
+                                     lot=context["lot"])
     except (ValueError, RuntimeError) as exc:
         raise MakeBuildError(f"build_make: the seat law cannot seat our prediction: {exc}") from None
     seats = {p: v["total"] for p, v in seated["seats"].items()}
@@ -1159,6 +1169,25 @@ def _inputs(draws: Path | None = None) -> dict:
     artefact = model_artefact(manifest, build_play.roster(), bounds)
     return {"manifest": manifest, "arrays": arrays, "raw": raw,
             "geometry": geom, "artefact": artefact, "schema": make_schema(artefact, geom)}
+
+
+def run_lot(manifest: dict) -> str:
+    """The published run's identity for the seeded lot, from the served draws'
+    ``artefact_key`` (city, target, seed): ``seats.lot_identity``. Written into
+    the model artefact (:func:`model_artefact`), from which
+    ``worker-api/tools/make_schema.mjs`` alone writes the schema's
+    ``x-seat-context["lot"]``, which the start (:func:`start_state`),
+    the scorer (``score_forecasts.model_forecast``), the seat Worker (it sends
+    the context with each entry) and the page (``interactive/pyboot/page.py``
+    computes the same from the same manifest) all read, so a tied ward or an
+    exact seat tie falls one way everywhere. JUDGEMENT-CALLS §Q2, §Q6."""
+    import seats
+    key = manifest.get("artefact_key") or {}
+    missing = [k for k in ("city", "target", "seed") if key.get(k) in (None, "")]
+    if missing:
+        raise MakeBuildError(f"build_make: the draws' artefact_key lacks {missing}, "
+                             f"so the run's lot cannot be named")
+    return seats.lot_identity(key["city"], str(key["target"]), key["seed"])
 
 
 def our_prediction(draws: Path | None = None, *, inputs: dict | None = None) -> dict:

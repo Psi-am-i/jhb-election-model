@@ -79,6 +79,7 @@ from _support import ROOT, run_module, scanned, skip  # noqa: E402
 import cityconfig  # noqa: E402
 import montecarlo as M  # noqa: E402
 from seats import allocate, eligible_parties  # noqa: E402
+import seats as seats_module  # noqa: E402
 
 
 # --------------------------------------------------------------------------
@@ -779,49 +780,45 @@ def absent_constants(payload) -> list[str]:
 
 def tie_at_the_cut(combined, total_seats, independent_wards=0,
                    no_pr_list_wards=0):
-    """The pair straddling the largest-remainder cut when it is an EXACT tie.
+    """The pair straddling the last seat when it is an EXACT tie.
 
     Returns ``(inside, outside, votes, shortfall)`` or ``None``.
 
-    ``seats.allocate`` ranks remainders by ``(-remainder, -combined)``. For two
-    parties with the same combined vote total that key is IDENTICAL, Python's
-    sort is stable, and the seat therefore goes to whichever party came first
-    in the dict — which for a dict built by ``seats.eligible_parties`` is a
-    SET-OF-STRINGS iteration order, i.e. a function of how the party's NAME
-    hashes and of nothing electoral whatsoever.
+    ``seats.allocate`` ranks by ``(-surplus, -combined)``, the surplus being
+    the WHOLE votes left after the quotas (Schedule 1 item 13(2)(a)); an equal
+    surplus goes to the higher vote (13(2)(b)). Two parties equal on both reach
+    the seeded lot (``seats.lot_order``), which this detector does not run: it
+    names the pair, so a caller can count how often the lot decides a seat.
 
-    Schedule 1 breaks an exact tie by lot. `allocate`'s docstring says float
-    remainders make an exact tie unreachable; they do not, because equal
-    integer vote totals give bit-identical remainders. Measured at joburg 2021,
-    400 draws: three allocations hit this, and reversing the key order moved a
-    seat between ALJAMAAH and UIM in one of them.
+    Rewritten to integer surpluses on 2026-10-09 with the allocator. Measured at
+    joburg 2021, 400 draws, under the float key and set order: three
+    allocations hit an exact tie, and reversing the key order moved a seat
+    between ALJAMAAH and UIM in one of them.
     """
     available = total_seats - independent_wards - no_pr_list_wards
     if available <= 0 or not combined:
         return None
     total = sum(combined.values())
     quota = total // available + 1
-    round_one = {p: v // quota for p, v in combined.items()}
-    remainders = {p: v / quota - round_one[p] for p, v in combined.items()}
-    shortfall = available - sum(round_one.values())
-    if shortfall <= 0 or shortfall >= len(remainders):
+    surplus = {p: v - (v // quota) * quota for p, v in combined.items()}
+    shortfall = available - sum(v // quota for v in combined.values())
+    if shortfall <= 0 or shortfall >= len(surplus):
         return None
-    ranked = sorted(remainders, key=lambda p: (-remainders[p], -combined[p]))
+    ranked = sorted(surplus, key=lambda p: (-surplus[p], -combined[p]))
     inside, outside = ranked[shortfall - 1], ranked[shortfall]
-    if (remainders[inside], combined[inside]) \
-            == (remainders[outside], combined[outside]):
+    if (surplus[inside], combined[inside]) == (surplus[outside], combined[outside]):
         return (inside, outside, combined[inside], shortfall)
     return None
 
 
 def allocation_outcomes_over_orderings(combined, *, total_seats,
                                        independent_wards=0, no_pr_list_wards=0,
-                                       orderings=24):
+                                       orderings=24, lot="test|lot|seat|0"):
     """Distinct seat vectors ``seats.allocate`` gives over key permutations.
 
     More than one means the allocation is decided by dict order rather than by
-    votes. The permutations are the detector; the input is constructed, so this
-    does not expire when the tree changes.
+    votes and the lot. The permutations are the detector; the input is
+    constructed, so this does not expire when the tree changes.
     """
     parties = list(combined)
     seen = set()
@@ -831,7 +828,7 @@ def allocation_outcomes_over_orderings(combined, *, total_seats,
         shuffled = {p: combined[p] for p in order}
         alloc = allocate(shuffled, total_seats=total_seats,
                          independent_wards=independent_wards,
-                         no_pr_list_wards=no_pr_list_wards)
+                         no_pr_list_wards=no_pr_list_wards, lot=lot)
         seen.add(tuple(sorted(alloc.seats.items())))
     return seen
 
@@ -1322,7 +1319,7 @@ def test_an_absent_constant_is_named_rather_than_silent():
 
 
 # --------------------------------------------------------------------------
-# the tie — a CHARACTERISATION test, recording a live defect
+# the tie — decided by the seeded lot, whatever order the tally arrives in
 # --------------------------------------------------------------------------
 
 def test_the_tie_detector_can_see_a_tie_and_stays_quiet_without_one():
@@ -1335,47 +1332,60 @@ def test_the_tie_detector_can_see_a_tie_and_stays_quiet_without_one():
     assert tie_at_the_cut(untied, 3) is None, tie_at_the_cut(untied, 3)
 
 
-def test_largest_remainder_is_decided_by_dict_order_at_an_exact_tie():
-    """⛔ CHARACTERISATION, NOT AN INVARIANT: this records a DEFECT.
+def test_an_exact_tie_at_the_last_seat_is_decided_by_the_lot_not_dict_order():
+    """THE INVARIANT (G4), replacing the characterisation that recorded the
+    defect until 2026-10-09: one seat vector over every ordering of a tied
+    tally.
 
-    ``seats.allocate`` ranks remainders by ``(-remainder, -combined)``. Two
-    parties with equal combined votes produce a bit-identical key, Python's
-    sort is stable, and the last seat therefore goes to whoever came first in
-    the dict. ``seats.eligible_parties`` builds that dict by iterating
-    ``set(ward_votes) | set(pr_votes)``, so the order is a function of how the
-    party NAME hashes — nothing electoral. Schedule 1 breaks an exact tie BY
-    LOT; `allocate`'s own docstring asserts float remainders make an exact tie
-    unreachable, and equal integer vote totals reach it directly.
+    ``seats.eligible_parties`` still builds its dict by iterating
+    ``set(ward_votes) | set(pr_votes)``, so the order the allocator receives
+    is a function of how the party NAME hashes
+    (``test_eligible_parties_hands_the_allocator_a_set_ordered_dict`` below
+    characterises that and is unchanged). Two parties equal on surplus and
+    votes used to keep that order through a stable sort, so renaming a party
+    could move a seat. They now go in the order :func:`seats.lot_order` draws
+    for the call's key, which names no party.
 
-    ``montecarlo.fix_hash_seed`` pins ``PYTHONHASHSEED=0`` at seven entry
-    points, so the shipped runs are at least repeatable — but repeatable is not
-    the same as correct, and the residue is that RENAMING A PARTY can move a
-    seat while nothing else changes.
-
-    **WHEN THIS TEST FAILS, THE DEFECT HAS BEEN FIXED.** Delete it and assert
-    the invariant instead: one seat vector over every ordering.
-
-    ⛔ **THREE SIBLING CONTROLS MUST BE RE-POINTED IN THE SAME COMMIT**, and
-    they are listed here because they will each announce themselves separately
-    and look like three unrelated regressions:
-
-    * ``tests/test_roster_aware_baseline.py:117`` restores the defect with
-      ``BM.canonical_order = dict`` — once the order no longer comes from a set,
-      that monkeypatch stops restoring anything and the control is testing the
-      fixed path while claiming to test the broken one;
-    * ``test_eligible_parties_hands_the_allocator_a_set_ordered_dict`` below,
-      whose bound is written as the negation of each plausible repair
-      **precisely so that it fires here**;
-    * this test, the exact-tie mirror.
+    Constructed violation, and its revert: with ``seats.lot_order`` replaced by
+    the tie group's arrival order (the old behaviour exactly) the same 24
+    orderings give more than one council; with the real lot, one.
     """
     tied = {"BIG1": 101, "BIG2": 101, "AAA": 49, "BBB": 49}
     outcomes = allocation_outcomes_over_orderings(tied, total_seats=3)
-    assert len(outcomes) > 1, (
-        "seats.allocate is now order-invariant at an exact tie, which is what "
-        "this repository wants. Replace this characterisation test with the "
-        "invariant and note the change in MODEL-LOG.")
+    assert len(outcomes) == 1, (
+        f"an exact tie seated {len(outcomes)} ways over 24 orderings of one "
+        f"tally: {sorted(outcomes)}. Dict order is deciding a seat again.")
+
+    real = seats_module.lot_order
+    try:
+        seats_module.lot_order = lambda tied_, key: list(tied_)
+        broken = allocation_outcomes_over_orderings(tied, total_seats=3)
+    finally:
+        seats_module.lot_order = real
+    assert len(broken) > 1, (
+        "with the lot replaced by arrival order the 24 orderings still gave one "
+        "council, so the fixture does not exercise a tie and the invariant "
+        "above proves nothing. Fix the fixture.")
+    assert len(allocation_outcomes_over_orderings(tied, total_seats=3)) == 1, (
+        "the revert did not restore the lot")
+
     untied = dict(tied, BBB=48)
     assert len(allocation_outcomes_over_orderings(untied, total_seats=3)) == 1
+
+
+def test_swapping_two_codes_in_an_untied_council_swaps_the_answer():
+    """G4: no name order reaches a result where there is no tie. Constructed:
+    a council with distinct votes and surpluses everywhere, then the same
+    council with two codes exchanged; the seats exchange and nothing else
+    moves, and no lot key is needed for either."""
+    votes = {"ALPHA": 5210, "ZULU": 3120, "MIKE": 990, "BRAVO": 680}
+    swapped = {{"ALPHA": "ZULU", "ZULU": "ALPHA"}.get(p, p): v
+               for p, v in votes.items()}
+    a = allocate(votes, total_seats=7).seats
+    b = allocate(swapped, total_seats=7).seats
+    assert b == {{"ALPHA": "ZULU", "ZULU": "ALPHA"}.get(p, p): n
+                 for p, n in a.items()}, (a, b)
+    assert a["ALPHA"] != a["ZULU"], "the fixture must give the two codes different seats"
 
 
 def _output_orders(builder, names, votes):
@@ -1454,17 +1464,15 @@ def test_eligible_parties_hands_the_allocator_a_set_ordered_dict():
     assert len(distinct) < n, (
         f"eligible_parties produced a different output order for every one of "
         f"the {n} input permutations, so its output order now IS derived from "
-        f"its inputs. That is what this repository wants — the seat handed out "
-        f"at an exact tie would follow the caller's ordering rather than a "
-        f"string hash. Delete this characterisation and "
-        f"`test_largest_remainder_is_decided_by_dict_order_at_an_exact_tie` "
-        f"and assert the invariant: one seat vector over every ordering.")
+        f"its inputs. Since 2026-10-09 no seat depends on this order (the "
+        f"seeded lot decides an exact tie: "
+        f"`test_an_exact_tie_at_the_last_seat_is_decided_by_the_lot_not_dict_order`), "
+        f"so this characterisation can be deleted.")
     assert distinct != {in_sorted_order}, (
         f"eligible_parties now hands the allocator a SORTED dict "
-        f"({in_sorted_order}), so the tie-break is no longer decided by a "
-        f"string hash. The defect is fixed. Replace this and the tie-break "
-        f"test above with the invariant, and re-point the three sibling "
-        f"controls listed in this test's module docstring.")
+        f"({in_sorted_order}). Since 2026-10-09 no seat depends on this order "
+        f"(the seeded lot decides an exact tie), so this characterisation can "
+        f"be deleted.")
 
     # ⛔ CAN THE BOUND SEE A REPAIR? Both plausible fixes, through the SAME
     #    predicate. If either got past it, everything above is decoration.
@@ -1700,7 +1708,7 @@ def real_trace():
     original = M.allocate
 
     def probe(combined, total_seats=270, independent_wards=0,
-              no_pr_list_wards=0):
+              no_pr_list_wards=0, *, lot=None):
         calls[0] += 1
         hit = tie_at_the_cut(combined, total_seats, independent_wards,
                              no_pr_list_wards)
@@ -1708,7 +1716,7 @@ def real_trace():
             ties.append(hit)
         return original(combined, total_seats=total_seats,
                         independent_wards=independent_wards,
-                        no_pr_list_wards=no_pr_list_wards)
+                        no_pr_list_wards=no_pr_list_wards, lot=lot)
 
     M.allocate = probe
     try:
@@ -1886,10 +1894,13 @@ def test_the_real_trace_names_a_tie_rate_rather_than_assuming_there_is_none():
     `deduct` round), and the population it scanned is asserted so the answer
     "no ties" cannot come from having looked at nothing.
 
-    MEASURED, joburg 2021, 400 draws, seed 12345: three allocations hit an
-    exact tie at the cut (ATM/UNITED_CULTURAL_MOVEMENT twice at 3,409 combined
-    votes, UIM/ALJAMAAH once at 4,371), and reversing the key order moved a
-    seat in one draw of the four hundred. It is rare here and it is not rare
+    MEASURED, joburg 2021, 400 draws, seed 12345, under the float key before
+    2026-10-09: three allocations hit an exact tie at the cut
+    (ATM/UNITED_CULTURAL_MOVEMENT twice at 3,409 combined votes, UIM/ALJAMAAH
+    once at 4,371), and reversing the key order moved a seat in one draw of
+    the four hundred. Each such tie is now drawn by the seeded lot under the
+    draw's key; the count under the integer surplus is TO-MEASURE (printed
+    below on each run). It is rare here and it is not rare
     everywhere: a sibling reference that gives identically-reached parties
     identical shares manufactures whole GROUPS of exact ties.
     """

@@ -1621,7 +1621,10 @@ def test_the_seat_law_on_recorded_votes_is_every_draw_s_council():
         pred = {"ward_calls": [uni[k] for k in run.ward_winner_draws[d]],
                 "ward_votes": dict(zip(uni, map(int, run.ward_vote_draws[d]))),
                 "list_votes": dict(zip(uni, map(int, lv)))}
-        seated = prediction.seats_of(pred, mc.COUNCIL)
+        import seats
+        # the draw's own lot key, so an exact tie at the last seat falls as
+        # it did in the draw (JUDGEMENT-CALLS §Q6)
+        seated = prediction.seats_of(pred, mc.COUNCIL, lot=seats.draw_key(run.lot, d))
         return {p: v["total"] for p, v in seated["seats"].items()}
 
     checked = 0

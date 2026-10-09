@@ -13,9 +13,12 @@ What it proves, on the base cell (the one with no lever override):
    `test_export_draws` (one definition), are byte-equal to the published files.
 2. WARD PROBABILITIES. `ward_winner_probs.csv` is reproduced from the ward
    block: every ward, every party's Jeffreys `p_win` at the file's four
-   decimals, and the winner wherever the top count is unique. The `dist`
-   ordering is compared as a set, not a string: `main` orders it with an
-   unstable sort and ties exist.
+   decimals, and the winner of every ward by rule A's call
+   (`prediction.top_party`, a tie drawn by the seeded lot under the run's
+   identity from the manifest's `artefact_key`, as `montecarlo.main` writes it
+   since 2026-10-09; before that the winner was compared only where the top
+   count is unique). The `dist` ordering is compared as a set, not a string:
+   `main` orders it with an unstable sort and ties exist.
 3. SUMMARY. `forecast_summary.json`'s per-party `median`, `p5`, `p95` and
    `ward_wins_mean`, its `threshold_median`, `_draws` and seed. The party set
    is the summary's own (its membership rule is not re-derived here).
@@ -64,7 +67,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _support import ROOT, run_module, scanned, skip  # noqa: E402
 
+import prediction  # noqa: E402
 import reweight as R  # noqa: E402
+import seats  # noqa: E402
 from test_export_draws import (PROCESSED, PUBLISHED, SUMMARY,  # noqa: E402
                                _council_misses, seat_csv_bytes,
                                ward_csv_bytes)
@@ -132,6 +137,8 @@ def _ward_prob_differences(arrays: dict, manifest: dict) -> list[str]:
     codes = manifest["ward_parties"]
     winners = arrays["ward_winner"].astype(np.int64)
     draws = winners.shape[0]
+    key = manifest["artefact_key"]
+    lot = seats.lot_identity(key["city"], str(key["target"]), key["seed"])
     with WARD_PROBS.open(encoding="utf-8", newline="") as handle:
         published = {row["ward"]: row for row in csv.DictReader(handle)}
     if set(published) != set(block["columns"]):
@@ -149,8 +156,10 @@ def _ward_prob_differences(arrays: dict, manifest: dict) -> list[str]:
         if mine != theirs or row["p_win"] != max(mine.values(), key=float):
             out.append(ward)
             continue
-        top = np.flatnonzero(counts == counts.max())
-        if len(top) == 1 and row["winner"] != codes[top[0]]:
+        called = prediction.top_party(
+            {codes[k]: int(c) for k, c in enumerate(counts) if c > 0},
+            lot=seats.ward_key(lot, ward))
+        if row["winner"] != called:
             out.append(ward)
     return out
 

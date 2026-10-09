@@ -54,7 +54,7 @@ export const SERVED = [...ALL, "code_ref.py", "entry.py"];
 // names one it does not import. When Lane R's reweight.py imports more, the
 // test says which.
 export const PAGE_FILES = ["cityconfig.py", "polling.py", "prediction.py", "render_map.py", "reweight.py",
-  "parties.py", "score_forecasts.py"];
+  "parties.py", "score_forecasts.py", "seats.py"];
 // Files the page code opens, relative to the repository root, which is the
 // page's working directory: the poll register (polling.REGISTER) and the city
 // file (cityconfig.CITIES_DIR). Measured the same way, with an audit hook.

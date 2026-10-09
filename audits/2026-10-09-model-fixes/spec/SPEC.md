@@ -1004,3 +1004,83 @@ Item 16: 4-6 h (the walk over targets, the multiset differencing, G19-G21).
 Item 17: 1-2 h. Item 19: 5-7 h (the 2024 baseline, the bootstrap, the
 artefact, G23-G26), replacing item 14's 4-5 h. Measurement: nine arms instead
 of eight, 5-7 h wall. Total about 42-55 hours of work over 4-5 days.
+
+---
+
+## Revision 3 (2026-10-09, after the M1 blind diff review; coordinator-accepted)
+
+Notes appended, not edits to the text above, which stands where these do not
+name it.
+
+### R3.1 P1, split into two populations
+
+P1's "in draws without a tie the seat vector is identical between A and B0"
+used "tie" for equal surplus AND equal votes. Item 2 alone also moves a draw
+whose last seat falls between parties with an **equal whole-vote surplus and
+unequal votes**: the float remainder `votes/quota − floor` can put the smaller
+party first, where items 13(2)(b) and 16(4)(c) give the seat to the higher vote.
+The review found published councils in that class. So on arm B0 against A:
+
+- **Population 1**, draws in which some `allocate` call has an equal whole-vote
+  surplus straddling the cut (equal votes or not): the council may move. Counted
+  per arm, split into "unequal votes" (item 2, statute-required) and "equal
+  votes" (item 1, the lot).
+- **Population 2**, every other draw: the seat vector is identical, exactly.
+
+Both counts are TO-MEASURE at the run. The instrument is P1's counter on
+`seats.allocate`, keyed on the integer surplus. The brief's acceptance line
+carries the same amendment.
+
+### R3.2 Expected red during the batch: `test_export_draws`
+
+`test_export_draws` compares the published seat files with a re-run under the
+current seat law. Item 2 (R3.1, population 1) changes councils, so it is red by
+design from M1 until the publishing run and the draws export at step 13. That
+is not a regression, and nobody re-exports mid-batch: an export before the
+window and the measurement would publish a model the batch has not measured.
+The end-of-batch suite reads this module's failure against R3.1's population 1.
+The same holds for anything that compares the committed `site/` or
+`data/processed` artefacts with the current law (`test_served_draws` check 2 on
+a tied ward; `test_score_forecasts`, `test_entries` and `test_rank_entries`
+against a `forecast.json` without `x-seat-context.lot` until the site build).
+
+### R3.3 G6 cannot see float ranking
+
+G6 (`test_overhang`, Laingsburg) pins the published council, the re-quota
+quota and the published round-two ranking, and catches a wrong re-quota
+denominator. Laingsburg's surpluses are all distinct, so a reversion to float
+ranking orders them identically and G6 stays green. **G5 (`test_seats`) is the
+detector for float ranking.** G6's row in §3 is read with this note.
+
+### R3.4 Deduct and level reuse round 0
+
+`allocate_with_overhang`'s first `deduct` or `level` iteration allocates the
+same council as round 0. It reuses round 0's allocation instead of re-drawing it
+under round 1's key, so an exact tie cannot fall one way where the excess is
+measured and the other way in the council returned. Round keys therefore count
+real re-allocations only: round 1 is the first re-quota.
+`tests/test_seats.py::test_the_first_deduct_round_reuses_round_zero_instead_of_redrawing_it`.
+
+### R3.5 One key scheme, one writer
+
+Keys are built only by `seats.ward_key`, `seats.draw_key` and `seats.seat_key`
+from `seats.lot_identity`, which refuses a missing part. `x-seat-context.lot`
+has one writer, `worker-api/tools/make_schema.mjs`, from the model artefact
+(`build_make.model_artefact` → `build_make.run_lot`). The baselines' ward calls
+(`benchmarks.council_from_shares`) route a tie through `prediction.top_party`
+under the baseline's lot. Deploy order: `docs/DEPLOY-UAT.md`, "Releasing the
+seeded lot".
+
+### R3.5 (coordinator, 2026-10-09): one more test is red by design
+
+`test_draw_record::test_the_published_seats_are_byte_equal_with_recording_on`
+re-runs the published 2026 run under the current seat law and compares it byte
+for byte with the published `seat_draws.csv`. It fails in the M1 check step.
+
+**Cause** (argued from the M1 review's measurement that item 2 moves 5 of
+5,000 published councils, and not counted draw by draw here): the same as
+`test_export_draws`. The published file is stale under the corrected law until
+the step-13 re-export. It is added to R3.2's expected-red list.
+
+It must turn green after the re-export. If it does not, that is a finding.
+

@@ -706,7 +706,7 @@ def main(argv: list[str] | None = None) -> int:
         # every clause of the narrative points at simulations that exist.
         import scenarios as _sc
         _detail, _winners, _wards = _sc.load(args.processed)
-        _modal = _sc.modal_winners(_winners, _wards)
+        _modal = _sc.modal_winners(_winners, _wards, lot=_sc.summary_lot(args.processed))
         _da = _sc.matching(_detail, [("DA", ">=", int(np.median(thr)))])
         _wall = [d for d in _da if sum(1 for _, a, b in _sc.flips(_winners, _modal, d)
                                          if a == "ANC" and b == "DA") >= WALL_FLIPS]

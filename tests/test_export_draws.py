@@ -430,7 +430,7 @@ def test_the_vote_blocks_are_run_model_s_integers_and_rule_a_agrees():
     fixed hash seed that run_all.py sets."""
     import montecarlo as M
     import prediction
-    from seats import eligible_parties
+    from seats import eligible_parties, lot_identity
     if os.environ.get("PYTHONHASHSEED") != str(M.HASH_SEED):
         from _support import skip
         skip(f"PYTHONHASHSEED is {os.environ.get('PYTHONHASHSEED')!r}, not "
@@ -447,18 +447,22 @@ def test_the_vote_blocks_are_run_model_s_integers_and_rule_a_agrees():
     scanned(arrays["list_vote"].shape[0], of=40, low=1.0, high=1.0,
             what="draws compared", denominator="draws run")
 
+    # the run's identity for the seeded lot (ModelRun.lot), as the build names it
+    lot = lot_identity("joburg", "2026", seed)
     run_pred = prediction.rule_a(r["ward_winners"], r["universe"], r["wards"],
-                                 r["ward_votes"], r["list_votes"], r["universe"])
+                                 r["ward_votes"], r["list_votes"], r["universe"],
+                                 lot=lot)
 
     def served(list_block):
         return prediction.rule_a(arrays["ward_winner"], manifest["ward_parties"],
                                  cols["ward_winner"], arrays["ward_vote"],
-                                 list_block, cols["list_vote"])
+                                 list_block, cols["list_vote"], lot=lot)
     file_pred = served(arrays["list_vote"])
     assert file_pred == run_pred
     assert set(eligible_parties(file_pred["ward_votes"], file_pred["list_votes"])) == \
         set(eligible_parties(run_pred["ward_votes"], run_pred["list_votes"]))
-    assert prediction.seats_of(file_pred, M.COUNCIL) == prediction.seats_of(run_pred, M.COUNCIL)
+    assert prediction.seats_of(file_pred, M.COUNCIL, lot=lot) == \
+        prediction.seats_of(run_pred, M.COUNCIL, lot=lot)
 
     # it can see: the two largest list columns swapped
     means = arrays["list_vote"].astype(np.int64).mean(axis=0)

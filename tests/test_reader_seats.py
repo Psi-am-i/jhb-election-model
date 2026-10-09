@@ -70,12 +70,12 @@ import montecarlo as mc
 calls = []
 real = mc.allocate_with_overhang
 def capturing(combined, ward_wins, rule="deduct", independent_wards=0,
-              no_pr_list_wards=0):
+              no_pr_list_wards=0, *, lot=None):
     value = real(combined, ward_wins, rule, independent_wards=independent_wards,
-                 no_pr_list_wards=no_pr_list_wards)
+                 no_pr_list_wards=no_pr_list_wards, lot=lot)
     calls.append({"combined": list(combined.items()), "pool_wins": dict(ward_wins),
                   "rule": rule, "c": independent_wards, "d": no_pr_list_wards,
-                  "council": mc.COUNCIL})
+                  "council": mc.COUNCIL, "lot": lot})
     return value
 mc.allocate_with_overhang = capturing
 class Args:
@@ -90,7 +90,7 @@ payload = {
     "over_draws": [sorted(o) for o in run.over_draws],
     "council_sizes": run.council_sizes,
     "ward_vote_draws": run.ward_vote_draws, "pr_vote_draws": run.pr_vote_draws,
-    "council": t.council, "wards_configured": t.wards,
+    "council": t.council, "wards_configured": t.wards, "lot": run.lot,
 }
 with open(out, "wb") as handle:
     pickle.dump(payload, handle)
@@ -134,7 +134,16 @@ def _winners(run: dict, d: int) -> dict[str, str]:
 
 
 def _context(run: dict) -> dict:
-    return R.context_for(CITY, run["target"], run["universe"], run["wards"])
+    return R.context_for(CITY, run["target"], run["universe"], run["wards"],
+                         lot=run["lot"])
+
+
+def _draw_context(run: dict, d: int) -> dict:
+    """The context with draw ``d``'s own lot key, ``seats.draw_key(run.lot, d)``:
+    the key the draw loop gave that draw's seat law, so an exact tie at the
+    last seat inside the draw falls the same way here (JUDGEMENT-CALLS §Q6)."""
+    import seats
+    return dict(_context(run), lot=seats.draw_key(run["lot"], d))
 
 
 def _draw_disagreements(run: dict, d: int, result: dict) -> list[str]:
@@ -202,10 +211,11 @@ def test_every_draw_is_reproduced_from_its_two_ballots_and_ward_winners():
     fired = unfired = 0
     for target in TARGETS:
         run = runs[target]
-        context = _context(run)
         for d in range(DRAWS):
+            assert run["calls"][d]["lot"] == _draw_context(run, d)["lot"], (target, d)
             ward, lst = _ballots(run, d)
-            result = R.reader_seats(ward, lst, _winners(run, d), context)
+            result = R.reader_seats(ward, lst, _winners(run, d),
+                                    _draw_context(run, d))
             # the pool is the allocator's own input, party for party
             assert result["ok"] and result["pool"] == dict(run["calls"][d]["combined"]), (target, d)
             problems = _draw_disagreements(run, d, result)
@@ -221,7 +231,7 @@ def test_every_draw_is_reproduced_from_its_two_ballots_and_ward_winners():
 
 def test_the_reproduction_comparator_sees_a_constructed_disagreement():
     run = _prepared()["2026"]
-    context = _context(run)
+    context = _draw_context(run, 0)
     ward, lst = _ballots(run, 0)
     good = R.reader_seats(ward, lst, _winners(run, 0), context)
     assert not _draw_disagreements(run, 0, good)
@@ -315,7 +325,8 @@ def _toy_context(no_pr_list=()) -> dict:
     """
     return {"city": "toy", "target": "toy", "council": 10,
             "wards": ["W1", "W2", "W3", "W4", "W5"],
-            "parties": ["A", "B", "C", "X"], "no_pr_list": list(no_pr_list)}
+            "parties": ["A", "B", "C", "X"], "no_pr_list": list(no_pr_list),
+            "lot": "toy|toy|0"}
 
 
 def _split(result):
@@ -432,6 +443,9 @@ def test_each_violation_is_refused_and_named():
         "a party twice": dict(context={**_toy_context(),
                                        "parties": ["A", "B", "C", "A"]}),
         "cannot fit": dict(context={**_toy_context(), "council": 4}),
+        "context has no 'lot'": dict(context={k: v for k, v in _toy_context().items()
+                                              if k != "lot"}),
+        "is not a non-empty string": dict(context={**_toy_context(), "lot": ""}),
     }
     for needle, kwargs in cases.items():
         message = _refusal(**kwargs)
@@ -488,7 +502,8 @@ def test_the_context_comes_from_the_city_config_and_round_trips_as_json():
     assert len(context["wards"]) == run["wards_configured"]
     assert json.loads(json.dumps(context)) == context
     try:
-        R.context_for(CITY, "2026", run["universe"], run["wards"][:-1])
+        R.context_for(CITY, "2026", run["universe"], run["wards"][:-1],
+                      lot=run["lot"])
     except ValueError as exc:
         assert "city config says" in str(exc)
     else:
@@ -502,6 +517,7 @@ class _RunStub:
         import cityconfig
         self.target = cityconfig.Target(cityconfig.load(CITY), run["target"])
         self.universe, self.wards = run["universe"], run["wards"]
+        self.lot = run["lot"]
 
 
 _PYODIDE_PROBE = r'''

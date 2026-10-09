@@ -196,8 +196,10 @@ are typed and admitted (`w_bye`), and at least one is a known open question
   right opponent to headline**: `benchmarks.uniform_swing_roster` gives the
   reference the same nomination roster the model reads, so it is the honest
   comparison at 2021 and the margin against it is much the smaller one
-  (MODEL-LOG §1.229). Two of its panel figures carry an arbitrary tie-break
-  band that must be quoted with them — `benchmarks.canonical_order`;
+  (MODEL-LOG §1.229). Two of its panel figures carried an arbitrary
+  tie-break band under the name rule; since 2026-10-09 the seeded lot
+  (`benchmarks.benchmark_lot`) decides the tie and the figure is re-measured
+  on the next panel run;
 * that ranks 4-12 are under-forecast and the model knows it — ⚠️ the "22.76pp"
   that stood here is a nine-panel figure (§1.36) and is not the current reading;
 * that the tail is over-forecast as a *deliberate* trade (§1.54) — ⚠️ likewise

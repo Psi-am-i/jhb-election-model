@@ -182,27 +182,27 @@ means to exactly **270**. Storing one under the other's name is a defect this
 project has had twice. `40_draws.seat_mean` is a mean; the test asserts it and
 names the median explicitly in the failure message when it is not.
 
-### 4. ⛔ Exact ties are manufactured, and the tie-break is a string hash
+### 4. ⛔ Exact ties are manufactured, and the seeded lot decides them
 
-`seats.allocate` ranks remainders by `(-remainder, -combined)`. Two parties
-with **equal integer combined votes** produce a bit-identical key; Python's sort
-is stable; so the seat goes to whoever came first in the dict. That dict comes
-from `seats.eligible_parties`, which iterates `set(ward_votes) | set(pr_votes)`
-— a set-of-strings order, i.e. a function of how the party NAME hashes and of
-nothing electoral. `allocate`'s own docstring says float remainders make an
-exact tie unreachable; equal integers reach it directly, and Schedule 1 breaks
-an exact tie **by lot**.
+`seats.allocate` ranks by the whole-vote surplus, then the votes (Schedule 1
+item 13(2)(a),(b)). Two parties with **equal integer combined votes** have equal
+surpluses and equal votes, and the statute says nothing more; since 2026-10-09
+such a pair straddling the last seat is ordered by `seats.lot_order` under the
+draw's key `seat_key(draw_key(ModelRun.lot, d), round)` (`seats`), which names no party. A
+call with such a tie and no key raises.
 
-**Measured, joburg 2021, 400 draws, seed 12345:** three allocations hit an
-exact tie straddling the cut (ATM / UNITED\_CULTURAL\_MOVEMENT twice at 3,409
-combined votes; UIM / ALJAMAAH once at 4,371), and reversing the key order of
-`combined` moved a seat in **1 of 400 draws**.
+Until 2026-10-09 the seat went to whoever came first in the dict, and that dict
+comes from `seats.eligible_parties`, which iterates `set(ward_votes) |
+set(pr_votes)`: a function of how the party NAME hashes. **Measured then,
+joburg 2021, 400 draws, seed 12345:** three allocations hit an exact tie
+straddling the cut (ATM / UNITED\_CULTURAL\_MOVEMENT twice at 3,409 combined
+votes; UIM / ALJAMAAH once at 4,371), and reversing the key order of
+`combined` moved a seat in **1 of 400 draws**. The rate under the integer
+surplus is printed by
+`test_the_real_trace_names_a_tie_rate_rather_than_assuming_there_is_none`.
 
-`montecarlo.fix_hash_seed` pins `PYTHONHASHSEED=0` at seven entry points, so
-shipped runs are repeatable — but repeatable is not correct, and the residue is
-that **renaming a party can move a seat**. The rate is small here and will not
-be small everywhere: a sibling reference that gives identically-reached parties
-identical shares manufactures whole groups of exact ties.
+A sibling reference that gives identically-reached parties identical shares
+manufactures whole groups of exact ties (`benchmarks.uniform_swing_roster`).
 
 ### 5. The pool-capacity cap is INERT on everything the backtest can see
 

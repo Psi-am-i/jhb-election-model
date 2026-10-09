@@ -14,7 +14,7 @@
   "code_ref.py",
   "entry.py"
  ],
- "code_ref": "0346c16f962f5f3a6b86163705809423af9e73f283537bc36e63273e1c740ccc",
+ "code_ref": "865e2f85f7b42d117756ac615a21ff9ff9019aaa979ee2063ab3064de7615c10",
  "page": {
   "dir": "page",
   "files": [
@@ -24,10 +24,11 @@
    "render_map.py",
    "reweight.py",
    "parties.py",
-   "score_forecasts.py"
+   "score_forecasts.py",
+   "seats.py"
   ],
   "data": [],
   "boot": "pyboot/page.py",
-  "code_ref": "2a9db3f52b822155378fe8914f43a641bda661c8f954dd311892731861f836b1"
+  "code_ref": "3d8c3d07682160b7ee81f939ee197e28873fe2e5c3d2ffaa283d37ebaa1adf38"
  }
 }

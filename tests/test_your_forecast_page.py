@@ -595,20 +595,27 @@ def test_the_start_is_rule_a_on_the_published_draws():
     man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
     arr = R.unpack((ROOT / "site/draws/base.bin").read_bytes(), man)
     cols = {b["name"]: b["columns"] for b in man["blocks"]}
+    lot = schema["x-seat-context"]["lot"]
+    # the built schema's lot is the served run's identity (S8, M1 review):
+    # make_schema.mjs writes it from the artefact build_make.run_lot fills
+    import build_make
+    assert lot == build_make.run_lot(man), (lot, build_make.run_lot(man))
     want = prediction.rule_a(arr["ward_winner"], man["ward_parties"], cols["ward_winner"],
-                             arr["ward_vote"], arr["list_vote"], cols["list_vote"], ward_ids=wards)
+                             arr["ward_vote"], arr["list_vote"], cols["list_vote"], ward_ids=wards,
+                             lot=lot)
     roster = schema["x-seat-context"]["parties"]
     assert start["ward_calls"] == want["ward_calls"]
     assert start["ward_votes"] == {p: want["ward_votes"][p] for p in roster}
     assert start["list_votes"] == {p: want["list_votes"][p] for p in roster}
-    seated = prediction.seats_of(start, schema["x-seat-context"]["council"], order=roster)
+    seated = prediction.seats_of(start, schema["x-seat-context"]["council"], order=roster,
+                                 lot=lot)
     assert start["seats"] == {p: v["total"] for p, v in seated["seats"].items()}
     assert sum(start["seats"].values()) == seated["council"]
     assert start["rule"] == "rule A: src/prediction.py"
     # it can see: a different vote block gives a different start
     other = prediction.rule_a(arr["ward_winner"], man["ward_parties"], cols["ward_winner"],
                               arr["ward_vote"], np.roll(arr["list_vote"], 1, axis=1),
-                              cols["list_vote"], ward_ids=wards)
+                              cols["list_vote"], ward_ids=wards, lot=lot)
     assert other["list_votes"] != want["list_votes"]
     with (ROOT / "data/processed/ward_winner_probs.csv").open(encoding="utf-8", newline="") as h:
         published = {r["ward"]: r for r in csv.DictReader(h)}

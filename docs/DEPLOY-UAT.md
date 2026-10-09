@@ -243,6 +243,34 @@ the old body, which the new seat Worker refuses (previews fall back to the
 generic image) until `joburg-seats` is rolled back too. Entries it stores are
 version 1 by the column's default.
 
+## Releasing the seeded lot (model correction batch, 2026-10-09)
+
+The seat law draws an exact tie by a seeded lot keyed by the published run's
+identity (JUDGEMENT-CALLS §Q2, §Q6). The identity travels in the schema's
+`x-seat-context.lot`, which the site Worker sends to the seat Worker with every
+entry, and the new `reader_seats` refuses a context without it. This is the one
+place the order is written; `worker-api/README.md` and `src/reader_seats.py`'s
+docstring point here.
+
+1. **Promote the rebuilt site Worker first** (sections 0 to 4 above), with a
+   `your-forecast/forecast.json` whose `x-seat-context` carries `lot`. Check:
+   `jq '.schema["x-seat-context"].lot' site/your-forecast/forecast.json` prints
+   `"<city>|<target>|<seed>"`, not `null`. The old seat Worker ignores the
+   extra key, so nothing changes for readers yet.
+2. **Then sync and deploy `joburg-seats`**:
+
+   ```sh
+   node worker-api/tools/sync_seats_py.mjs
+   cd worker-api/seats-py && uvx --from workers-py pywrangler deploy
+   ```
+
+**The reverse order refuses every entry.** A new seat Worker behind an old
+site Worker receives a context with no `lot`; `reader_seats` refuses it
+("context has no 'lot'"), the site Worker answers 422, and nothing is saved.
+
+**Rollback.** Roll back `joburg-seats` before the site Worker, for the same
+reason.
+
 ## Entries at launch
 
 Every seal the live Worker makes is stored as an entry in the D1 database

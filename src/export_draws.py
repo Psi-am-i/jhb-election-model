@@ -36,10 +36,12 @@ columns sum to its council.
 bare ``python src/montecarlo.py`` or ``overhang_regimes.py`` run overwrites the
 site's inputs (``overhang_regimes.py``'s docstring is the incident). This module
 writes only to ``--out`` and refuses an ``--out`` inside ``data/``. Each seat
-law runs in its own process under ``montecarlo.HASH_SEED``, as ``main`` does;
-a run under a random hash seed can move a tied last seat (``seats.allocate``'s
-largest-remainder key is not a total order), so the export refuses to run
-without it.
+law runs in its own process under ``montecarlo.HASH_SEED``, as ``main`` does,
+and the export refuses to run without it: a random hash seed reorders float
+summations at machine epsilon (MODEL-LOG §1.104). An exact tie at the last
+seat no longer depends on it: since 2026-10-09 the seeded lot draws it under
+the run's identity (``seats.lot_order``, JUDGEMENT-CALLS §Q6), where until then
+it fell to the dict's order and so to the hash seed.
 
 What the export asserts before it writes
 ========================================

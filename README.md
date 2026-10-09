@@ -22,9 +22,10 @@ table rather than about the seat totals (MODEL-LOG §1.229).
 ⚠️ **Plain uniform swing is not the hardest baseline available.** It is not
 given the nomination roster and the model is; `benchmarks.uniform_swing_roster`
 is the reference that is, and it is the honest opponent at 2021. Read the margin
-against **that**, from the run. The roster reference's panel figures carry an
-arbitrary tie-break band that must be quoted with them —
-`benchmarks.canonical_order` holds the measurement and the rule.
+against **that**, from the run. The roster reference's exact ties are drawn by
+the seeded lot (`benchmarks.benchmark_lot`, since 2026-10-09; it was a name
+rule, `canonical_order`, with a band that had to be quoted beside it); the seat
+it decides at Johannesburg 2021 is described in `benchmarks.uniform_swing_roster`.
 
 Regenerate the full comparison with `.venv/bin/python src/compare_history.py`.
 The 2021 scoring page is `.venv/bin/python src/build_validation.py --target 2021`;

@@ -1295,14 +1295,23 @@ def brier_decomposition(probs: np.ndarray, outcomes: np.ndarray,
 
 def score_wards(ward_probs: Mapping[str, Mapping[str, float]],
                 actual_winners: Mapping[str, str],
-                edges: Sequence[float] | None = None) -> dict:
-    """Everything ward-shaped in one call: Brier, reliability table, hit rate."""
-    import prediction  # the modal call is rule A's (a tie to the string-first code)
+                edges: Sequence[float] | None = None, *,
+                lot: str | None = None) -> dict:
+    """Everything ward-shaped in one call: Brier, reliability table, hit rate.
+
+    The modal call is rule A's (``prediction.top_party``); a tie at the top of
+    a ward is drawn by the seeded lot under ``seats.ward_key(lot, ward)``, ``lot``
+    being the forecaster's run identity (``seats.lot_identity``). With
+    ``lot=None`` a tied ward raises."""
+    import prediction
+    from seats import ward_key
     probs, outcomes = ward_events(ward_probs, actual_winners)
     table = reliability_table(probs, outcomes, edges)
     called = sum(1 for ward, winner in actual_winners.items()
                  if ward_probs.get(ward) and
-                 prediction.top_party(ward_probs[ward]) == winner)
+                 prediction.top_party(
+                     ward_probs[ward],
+                     lot=None if lot is None else ward_key(lot, ward)) == winner)
     return {"n_wards": len(actual_winners),
             "n_events": int(probs.size),
             "brier_binary": brier_score(probs, outcomes),
