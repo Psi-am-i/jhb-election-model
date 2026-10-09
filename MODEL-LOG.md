@@ -28697,3 +28697,37 @@ the figures that only the check step's build produces are marked.
 **Not changed.** No drawn number: the draws, the forecast's seats, shares,
 ranges and chances, and our prediction's calls, votes and seats (rule A,
 §1.291). The scoring keys and their order (JUDGEMENT-CALLS §N4).
+
+## 1.293 Record corrections from the total review of the prediction restructure (2026-10-09)
+
+Total review: `audits/2026-10-07-prediction-restructure/total-review/SYNTHESIS.md`.
+
+**Measured (read-only probe, slice B writer, 2026-10-08), moved here from
+JUDGEMENT-CALLS §R1 where it had been typed:** the merged `INDEPENDENT` row is
+present in 719 of the panel's 3,434 wards and wins 12; its lowest winning share,
+29.6% (eThekwini 2006), is above the lowest win on record, so it sets no editor
+bound today.
+
+**Corrections.**
+- JUDGEMENT-CALLS §Q4's "no OTHER party" was labelled the owner's decision. The
+  owner decided to keep every party's votes in the pool (S0 decision 2); that
+  the model has no OTHER party was the coordinator's S1 resolution. Relabelled.
+- JUDGEMENT-CALLS §Q1 copied the ANC's excess from §1.291; it now points.
+- `prereg/README.md` quoted 739 for rule A's panel seat error; §1.291 corrected
+  it to 737. Noted there, dated; the row is not rewritten.
+- The editor's note said a prediction "is scored on the list vote". The keys are
+  seats, then ward calls, then the list vote (JUDGEMENT-CALLS §N4). Reworded.
+- QC.md §6 now records that `declares.py` cannot see served artefacts or D1
+  rows.
+
+**Owner's answers recorded where the review found them missing** (all
+2026-10-08): "old sealed links - fine"; "1. agree 2. agree" to S0 decisions 1
+(whole votes) and 2 (every party's votes kept in the pool). S1 item 9 (the claims
+release) remains open: 94bbd6e committed the build and released nothing.
+
+**Found by the total review and open for the owner:** our prediction (rule A)
+gives the ANC most seats while the forecast gives the DA more seats in 50.4% of
+simulations and the ANC in 48.1% (re-derived by the coordinator from the served
+draws); and the model's PA list share averages 5.53 points below its ward share,
+against a real-result extreme of 1.76 points. Neither is changed here.
+

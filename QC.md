@@ -232,6 +232,7 @@ no predicate at all is a note, not a plan.
 | `CLAUDE.md`'s entry-point block is still true of the tree | `tests/test_standalone_modules.py` |
 | every tunable constant is in the register | `test_regressions.py::test_every_tunable_constant_is_in_the_judgement_register` for membership, `tests/test_register_matches_code.py` for both directions — ⚠️ membership is a bare substring test and one pair passes on an accident (MODEL-LOG §1.230) |
 | an artefact declares what produced it | `src/declares.py --verify` |
+| a served artefact (`site/draws/`, `forecast.json`) or a D1 row declares what produced it | **nothing in `declares.py`**, which scans `data/processed` only; `test_served_draws` and the page's regeneration test cover `site/draws/` and `forecast.json`; D1 rows are covered by nothing (total review, 2026-10-09) |
 | **this document is read at all** | **nothing** |
 
 That last row is the point of the table. The pointer in `CLAUDE.md` §4 is the

@@ -3665,7 +3665,7 @@ order (MODEL-LOG §1.291).
 rule A a party whose called wards met its entitlement, so the item-16 path of
 the reduction is unexercised by the backtest. At Johannesburg 2026 it fires
 for the ANC (SPEC-A M6 is the probe's preview; the figure from the run that
-publishes: the ANC, excess 11, MODEL-LOG §1.291). That case is argued from the statute and
+publishes is in MODEL-LOG §1.291). That case is argued from the statute and
 `tests/test_overhang.py`, not tested against a result.
 
 **How to check it.** `tests/test_prediction_rule.py` (one definition, the tie,
@@ -3718,7 +3718,7 @@ M7 found the two agree for every party at the published draw count).
 **How to check it.** `tests/test_prediction_rule.py::test_rule_a_whole_votes_are_the_exact_mean`
 separates half-to-even from half-up on constructed halves.
 
-### §Q4 · nothing summed, nothing dropped — ⚖️ owner's decision (2026-10-08)
+### §Q4 · nothing summed, nothing dropped — ⚖️ coordinator's resolution (2026-10-08), under the owner's decision to keep every party's votes in the pool
 
 **Now.** Every party the simulations carry enters the prediction and the seat
 law's pool under its own code, zero votes included; "Others" is a display
@@ -3769,10 +3769,8 @@ one `INDEPENDENT` row (DATA-QUALITY.md item 12), so a ward where several
 independents stood records one share larger than any one candidate's. Where
 that row is the runner-up it can raise `q_run` (widening the editor); where it
 wins it raises the recorded winning share, so it can raise `q_win` and narrow
-the editor. Measured on the panel (read-only probe, 2026-10-08): the row is
-present in 719 of 3,434 wards and wins 12; its lowest winning share, 29.6%
-(eThekwini 2006), is above the lowest win on record, so it sets no bound
-today.
+the editor. How often the row is present, wins, and whether it sets a bound today:
+MODEL-LOG §1.293.
 
 **How to check it.** `tests/test_your_forecast_page.py::test_the_editor_bounds_are_regenerated_from_the_panel`:
 the panel is the glob, both ways, each file's sha256 recorded; a constructed

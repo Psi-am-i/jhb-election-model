@@ -153,3 +153,8 @@ the specification; this is the index.
    - "Every version sealed" and the cut-off rule are dropped.
 5. Placeholder schema: to be checked in S1.
 6. Not answered yet.
+
+## Owner's answers recorded later (2026-10-08)
+
+- Decisions 1 and 2: "1. agree 2. agree".
+- Decision 6, old sealed links: "old sealed links - fine".
