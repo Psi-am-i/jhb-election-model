@@ -277,3 +277,11 @@ ported. A second is one `toPNG` on `prediction.webp`, or its PNG conversion.
   image; a page default that `share-edge.js` fails to replace would put the
   generic interactive image on every shared reader forecast.
 - **Fonts' Latin-1 subset**: names and quotes with characters outside it.
+
+---
+
+## Addendum (2026-10-10, owner's stamp set)
+- **D5 is resolved:** the owner drew all nine verdict badges. The badge source
+  is `audits/2026-10-07-stamp-design/owner-stamps/2026-10-10/svg/verdict-*.svg`,
+  replacing `owner-stamps/verdicts/`.
+- The reader badges, their measure and their edges: `BADGE-DECISION.md`.
