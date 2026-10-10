@@ -37,7 +37,11 @@ const LOGO_H = 120;
 const ASSETS = { brand: SC.brandOf(readFileSync(resolve(REPO, "src/brand/logo.svg"), "utf8")), logos: {} };
 const LOGO_W = brandWidth(ASSETS, LOGO_H), LOGO_X = R - LOGO_W + 6;
 const HEAD_MAX = LOGO_X - X - 36;                  // a line level with the logo stops short of it
-const capBase = fs => TOP + fs * 0.7;              // a first line whose cap height starts at TOP
+const capBase = (fs, top = TOP) => top + fs * 0.7; // a first line whose cap height starts at `top`
+// The top of the logo's wordmark ("ELECTION FORECAST"), as a share of the
+// logo's height: measured on the drawn card, its letters start 41px below the
+// logo's top at LOGO_H (2026-10-10).
+const WORDMARK_TOP = TOP + LOGO_H * 41 / 120;
 const HEAD_LEADING = 1.08;
 
 function frame(spec) {
@@ -54,12 +58,12 @@ function frame(spec) {
 // The headline, top left: the largest size from `big` down to `least` at which
 // it takes at most `lines` lines of `maxW`. Returns { svg, last } (the last
 // baseline). A headline that will not fit at `least` is refused.
-function headline(words, maxW, big, least, lines) {
+function headline(words, maxW, big, least, lines, top = TOP) {
   for (let fs = big; fs >= least; fs -= 2) {
     const L = wrapText(words, maxW, fs, "serifSemi");
     if (L.length <= lines) {
-      return { svg: L.map((l, k) => text(X, capBase(fs) + k * fs * HEAD_LEADING, l, fs, "serifSemi")).join(""),
-        last: capBase(fs) + (L.length - 1) * fs * HEAD_LEADING, fs };
+      return { svg: L.map((l, k) => text(X, capBase(fs, top) + k * fs * HEAD_LEADING, l, fs, "serifSemi")).join(""),
+        last: capBase(fs, top) + (L.length - 1) * fs * HEAD_LEADING, fs };
     }
   }
   throw new Error(`headline "${words}" does not fit ${lines} lines at ${least}px`);
@@ -109,8 +113,10 @@ const RANGES = { x: 660, top: 216, pitch: 52, name: 17, bar: 16, value: 17, note
 function article(spec) {
   let s = frame(spec);
   if (!spec.ranges) {
-    // headline only: as large as fits the page under the logo's line
-    s += headline(spec.headline, HEAD_MAX, ART_HEAD.big, ART_HEAD.least, ART_HEAD.lines).svg;
+    // headline only: as large as fits the page under the logo's line, its
+    // cap line level with the top of the logo's wordmark rather than the
+    // tower's tip, clear of the bar (owner, 2026-10-10: it crowded the top)
+    s += headline(spec.headline, HEAD_MAX, ART_HEAD.big, ART_HEAD.least, ART_HEAD.lines, WORDMARK_TOP).svg;
     return s + "</svg>";
   }
   const g = spec.ranges;
