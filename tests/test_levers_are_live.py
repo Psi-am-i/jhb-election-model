@@ -1502,8 +1502,9 @@ MODULE_PERTURB: tuple = (
      "to theta entirely — so what it does at 25x is worth having measured."),
     ("montecarlo", "BYE_MIN_WEIGHT", "2026", 1.0,
      "how much by-election weight a party needs before its evidence is used at "
-     "all. It gates `w_bye`, which is 🔴 argued-not-tested, and nothing has "
-     "ever swept it."),
+     "all. It gates each party's by-election weight, which is its size "
+     "class's weight from bye_value.json (JUDGEMENT-CALLS §A55) unless "
+     "`w_bye` overrides it."),
     ("montecarlo", "TURNOUT_DRAW_CEILING", "2026", 0.50,
      "the ceiling on a drawn turnout. A guard that has gone blind reports "
      "exactly what a guard that never fires reports."),
