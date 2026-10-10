@@ -10,6 +10,17 @@ So `pools.py` changes are **batched**, and this file is the batch. Opened
 2026-08-28 at the owner's instruction: *"batch it. keep a log of what goes in it
 as we move along."*
 
+⛔ **A STALE SPEC NOW STOPS THE RUN (2026-10-10, model batch item 10).**
+`run_model` used to print `pools_<year>.json is STALE` and carry on; it now
+raises `SystemExit` naming the spec, the reason and this file. From the moment a
+queued change lands until the re-emit, every run on an emitted spec refuses —
+`compare_history`, `export_draws`, `citywide_table.py`'s rebuild, the levers
+sweep and every test that runs the model. **So the re-emit (step 2) is the first
+thing the window does**, before any table rebuild, record emit or measurement.
+The only escape is `scenario["allow_stale_pools"] = True`, in-process, for
+diagnosis; nothing it produces is a measurement (MACHINERY.md, "Knowing whether
+the pool spec is stale").
+
 **A comment-or-docstring-only change to `pools.py` does NOT move the hash** and
 does not belong here — verified again on 2026-08-28 (`dbdf171344ffd5` before and
 after declaring `_LOG_FLOOR`). Only changes to what the code *computes* qualify.

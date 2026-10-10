@@ -795,6 +795,14 @@ RUNTIME_INJECTED: dict[str, str] = {
     "poll_levels": "written by the polling stage where a usable poll exists",
     "arrival_group": "read out of the emitted pool spec; None where the target "
                      "has no roster, which is every unheld election",
+    # Not written by a stage: set in-process by a diagnostic run, and kept out
+    # of `DEFAULTS` for the reason this table gives, more strongly -- it is
+    # not a number and moves no draw on a run that is allowed to happen, and
+    # being undeclared is what makes `--set`, a scenario file and a city file
+    # refuse it. `test_stage_inputs`' G10 tests prove those three refusals.
+    "allow_stale_pools": "the stale-pool-spec escape (item 10): a diagnostic "
+                         "run sets it to True in-process; run_model refuses a "
+                         "stale spec otherwise",
 }
 
 PERTURB: dict[str, object] = {

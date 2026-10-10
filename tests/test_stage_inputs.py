@@ -152,7 +152,8 @@ INVARIANTS: dict[str, str] = {
 
     # --- 02_pools_artefact -----------------------------------------------
     "pools.fields":
-        "the stage must carry path, artefact_key, stale_reason and fitted_on.",
+        "the stage must carry path, artefact_key, stale_reason, stale_allowed "
+        "and fitted_on.",
     "pools.no_artefact_key":
         "a spec emitted before artefact keys existed cannot be shown to match "
         "the code that is running, so no measurement taken against it means "
@@ -170,8 +171,15 @@ INVARIANTS: dict[str, str] = {
         "silently, which is the whole failure mode the key was built against.",
     "pools.stale":
         "`stale_reason` is non-null when the spec no longer matches live code, "
-        "config, cities, judgements or gates. run_model PRINTS this and "
-        "continues, so nothing refuses; a trace is the only place it survives.",
+        "config, cities, judgements or gates. Since 2026-10-10 run_model "
+        "refuses such a spec after writing this stage, so a stale reason here "
+        "comes from a refused run or from one let through by the diagnostic "
+        "escape -- neither is a measurement.",
+    "pools.stale_allowed":
+        "`stale_allowed` is true only when `scenario['allow_stale_pools']` let "
+        "a stale or unverifiable spec through (item 10, G10). That run read a "
+        "spec the current code would not produce; nothing it measured "
+        "describes the model, whatever else the trace says.",
     "pools.key_identity_mismatch":
         "the key records the city and target it was built for. A spec copied "
         "between city-years matches on filename and not on this.",
@@ -391,7 +399,8 @@ def offences_pools_artefact(payload, *, target=None,
     checks cannot run, and their absence is reported rather than skipped.
     """
     out: list = []
-    expected = {"path", "artefact_key", "stale_reason", "fitted_on"}
+    expected = {"path", "artefact_key", "stale_reason", "stale_allowed",
+                "fitted_on"}
     if not isinstance(payload, dict) or set(payload) != expected:
         _off(out, "pools.fields",
              f"expected exactly {sorted(expected)}, got "
@@ -401,6 +410,9 @@ def offences_pools_artefact(payload, *, target=None,
 
     if payload.get("stale_reason") is not None:
         _off(out, "pools.stale", str(payload.get("stale_reason")))
+    if "stale_allowed" in payload and payload.get("stale_allowed") is not False:
+        _off(out, "pools.stale_allowed",
+             f"stale_allowed={payload.get('stale_allowed')!r}")
 
     key = payload.get("artefact_key")
     if not isinstance(key, dict) or not key:
@@ -673,7 +685,7 @@ def healthy() -> dict:
                            "pools": {}, "turnout_correlation": 0.63},
         "02_pools_artefact": {"path": "data/processed/pools_2021.json",
                               "artefact_key": key, "stale_reason": None,
-                              "fitted_on": "2016"},
+                              "stale_allowed": False, "fitted_on": "2016"},
         "03_roster": {"state": "published", "size": 57,
                       "dropped": ["ALPHA", "BETA"]},
         "_index": {"constants_read": ["pools", "spine"],
@@ -694,7 +706,7 @@ def healthy_not_yet_held() -> dict:
         "path": "data/processed/pools_2026.json",
         "artefact_key": {**trace["02_pools_artefact"]["artefact_key"],
                          "target": "2026"},
-        "stale_reason": None, "fitted_on": "2021"}
+        "stale_reason": None, "stale_allowed": False, "fitted_on": "2021"}
     trace["45_delivered"]["pools"]["values"] = [
         trace["02_pools_artefact"]["artefact_key"]]
     trace["45_delivered"]["pools"]["who"] = ["fitted on 2021"]
@@ -810,6 +822,8 @@ CORRUPTIONS: dict[str, tuple] = {
     "pools.stale":
         (_mut(("02_pools_artefact", "stale_reason"), "src/pools.py changed"),
          healthy),
+    "pools.stale_allowed":
+        (_mut(("02_pools_artefact", "stale_allowed"), True), healthy),
     "pools.key_identity_mismatch":
         (_mut(("02_pools_artefact", "artefact_key", "target"), "2016"), healthy),
     "pools.path_not_for_target":
@@ -1206,6 +1220,241 @@ def test_a_real_run_produces_a_trace_that_passes_every_predicate():
         "a 2021 backtest consumes levers fitted on 2021 and the banner says "
         "so; an empty report here means the reader has gone blind, not that "
         "the run became clean.")
+
+
+# --------------------------------------------------------------------------
+# 6. G10 -- a stale or unverifiable pool spec stops the run
+# --------------------------------------------------------------------------
+#
+# ⛔ CONSTRUCTED, NOT OBSERVED (CLAUDE.md §4, requirement 3). Whether the specs
+# on disk are current depends on the day -- every one is stale between a
+# `pools.py` change and its re-emit window -- so a test that read one as it is
+# would change its verdict with the tree. These build their own: a copy of the
+# joburg 2021 spec whose `artefact_key` is set to what the code produces NOW
+# (current by construction, and asserted to be), then one field moved. The run
+# reads that copy through a city whose `processed` points at a temporary
+# directory in which every other entry is a symlink to the real one, so the run
+# that is let through reads what a real run reads and nothing is written under
+# `data/`.
+
+_G10_YEAR = "2021"
+_G10_REFUSAL = "Re-emit (POOLS-REEMIT-QUEUE.md)"
+
+
+class _G10Args:
+    config = None
+    set = None
+    draws = 24
+    seed = None
+    counterfactual = False
+
+
+def _g10_target(tmp: Path, mutate=None):
+    """``(target, scenario, spec_path)`` for a run that reads a doctored spec.
+
+    The city is the real ``City`` re-classed to a subclass that overrides
+    ``processed`` alone, so every other property and every ``isinstance``
+    behaves as the real one does. ``pools.artefact_key`` reads nothing under
+    ``processed``, so the key computed for the doctored target is the real one.
+    """
+    import copy
+    import dataclasses
+    import pools
+
+    city = cityconfig.use("joburg")
+    target = cityconfig.use_target(_G10_YEAR)
+    mc.apply_city(city)
+    real = Path(city.processed)
+    name = f"pools_{_G10_YEAR}.json"
+    farm = tmp / "processed"
+    farm.mkdir()
+    for entry in real.iterdir():
+        if entry.name != name:
+            (farm / entry.name).symlink_to(entry.resolve())
+
+    class _HereCity(type(city)):
+        @property
+        def processed(self):
+            return farm
+
+    here = copy.copy(city)
+    here.__class__ = _HereCity
+    doctored = dataclasses.replace(target, city=here)
+
+    spec = json.loads((real / name).read_text())
+    spec["artefact_key"] = pools.artefact_key(here, doctored)
+    assert pools.stale_reason(spec, here, doctored) is None, (
+        "the constructed baseline is not current, so a refusal below could "
+        "not be told apart from a refusal for something else")
+    if mutate is not None:
+        mutate(spec)
+    path = farm / name
+    path.write_text(json.dumps(spec))
+    return doctored, mc.load_scenario(_G10Args()), path
+
+
+def _move_pools_sha(spec):
+    key = spec["artefact_key"]
+    key["pools_sha"] = "0" * 16 if key["pools_sha"] != "0" * 16 else "1" * 16
+
+
+def _refusal(target, scenario, run_dir) -> str:
+    """The ``SystemExit`` text, or fail if the run did not refuse."""
+    try:
+        mc.run_model(target, scenario, verbose=False, run_dir=run_dir)
+    except SystemExit as exc:
+        return str(exc)
+    raise AssertionError("run_model ran to the end on a spec it must refuse")
+
+
+def test_a_current_spec_is_not_refused():
+    """The positive control: on a current spec the refusal stays quiet.
+
+    Without it, the two refusal tests below pass on a ``run_model`` that
+    refuses every spec, which is a model that cannot run rather than one that
+    refuses stale input.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        target, scenario, _ = _g10_target(tmp)
+        run = mc.run_model(target, scenario, verbose=False,
+                           run_dir=tmp / "trace")
+        stages = _read_trace(tmp / "trace")
+    assert stages["02_pools_artefact"]["stale_reason"] is None
+    assert stages["02_pools_artefact"]["stale_allowed"] is False
+    assert run.scenario["_pools_stale_allowed"] is False
+    assert "03_roster" in stages, "the run stopped before the roster stage"
+
+
+def test_a_spec_with_a_moved_pools_sha_stops_the_run():
+    """G10 (a): ``stale_reason`` names ``pools_sha``, and the run refuses.
+
+    The refusal names the file, the reason and the remedy, and comes before
+    anything downstream reads the spec: ``02_pools_artefact`` records the
+    reason, and no later stage is written.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        target, scenario, path = _g10_target(tmp, _move_pools_sha)
+        text = _refusal(target, scenario, tmp / "trace")
+        stages = _read_trace(tmp / "trace")
+    assert str(path) in text, text
+    assert "pools_sha" in text and _G10_REFUSAL in text, text
+    assert "pools_sha" in stages["02_pools_artefact"]["stale_reason"]
+    assert stages["02_pools_artefact"]["stale_allowed"] is False
+    assert "03_roster" not in stages, (
+        f"the run went on past the refusal: {sorted(stages)}")
+
+
+def test_a_staleness_check_that_raises_stops_the_run():
+    """G10 (b): the ``except`` path refuses, with the exception's repr.
+
+    On a CURRENT spec, so the only thing that can refuse is the raise. A
+    ``SystemExit`` is required, not any exception: an ``except`` that failed
+    open would let the run finish (the spec is current), and one that
+    re-raised would surface the probe's ``RuntimeError`` instead.
+    """
+    import pools
+    real = pools.stale_reason
+
+    def broken(*args, **kwargs):
+        raise RuntimeError("probe: stale_reason could not run")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        target, scenario, path = _g10_target(tmp)
+        pools.stale_reason = broken
+        try:
+            text = _refusal(target, scenario, tmp / "trace")
+        finally:
+            pools.stale_reason = real
+    assert str(path) in text and _G10_REFUSAL in text, text
+    assert repr(RuntimeError("probe: stale_reason could not run")) in text, text
+
+
+def test_the_escape_runs_a_stale_spec_and_records_that_it_did():
+    """G10 (c): ``allow_stale_pools=True`` runs, and says so everywhere.
+
+    The trace's ``02_pools_artefact`` carries ``stale_allowed: true``, the
+    scenario (which ``main`` writes into ``forecast_summary.json`` whole)
+    carries ``_pools_stale_allowed``, and the stage predicates flag the trace
+    as stale and as escaped. Only ``True`` opens it: a truthy stand-in is
+    refused, so a stray ``1`` or ``"yes"`` cannot.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        target, scenario, _ = _g10_target(tmp, _move_pools_sha)
+        for truthy in (1, "yes"):
+            scenario["allow_stale_pools"] = truthy
+            assert _G10_REFUSAL in _refusal(target, scenario,
+                                            tmp / f"t_{truthy}")
+        scenario = mc.load_scenario(_G10Args())
+        scenario["allow_stale_pools"] = True
+        run = mc.run_model(target, scenario, verbose=False,
+                           run_dir=tmp / "trace")
+        stages = _read_trace(tmp / "trace")
+    artefact = stages["02_pools_artefact"]
+    assert artefact["stale_allowed"] is True, artefact
+    assert "pools_sha" in artefact["stale_reason"], artefact
+    assert run.scenario["_pools_stale_allowed"] is True
+    assert "pools_sha" in run.scenario["_pools_stale"]
+    assert "03_roster" in stages, "the escape did not let the run through"
+    found = ids(offences_pools_artefact(artefact,
+                                        target=stages["00_target"]))
+    assert {"pools.stale", "pools.stale_allowed"} <= found, found
+
+
+def test_the_escape_cannot_be_set_from_outside_the_process():
+    """The escape is not a lever: no command line, scenario or city file.
+
+    It is not in ``DEFAULTS``, and the three existing unknown-key refusals
+    therefore cover it with no second mechanism: ``parse_set`` (``--set``),
+    ``read_scenario_file`` and ``apply_city``. Each is exercised on a
+    constructed input, against a known lever that the same path accepts, so a
+    pass is not a path that refuses everything.
+    """
+    import copy
+    key = "allow_stale_pools"
+    assert key not in mc.DEFAULTS, f"{key} is in DEFAULTS, so it is a lever"
+
+    scenario = mc.load_scenario(_G10Args())
+    try:
+        mc.parse_set([f"{key}=true"], scenario)
+    except SystemExit as exc:
+        assert key in str(exc), exc
+    else:
+        raise AssertionError(f"--set {key}=true was accepted")
+    mc.parse_set(["draws=30"], scenario)
+    assert scenario["draws"] == 30
+
+    with tempfile.TemporaryDirectory() as tmp:
+        bad = Path(tmp) / "bad.json"
+        bad.write_text(json.dumps({key: True}))
+        try:
+            mc.read_scenario_file(bad)
+        except SystemExit as exc:
+            assert key in str(exc), exc
+        else:
+            raise AssertionError(f"a scenario file setting {key} was accepted")
+        good = Path(tmp) / "good.json"
+        good.write_text(json.dumps({"draws": 30}))
+        assert mc.read_scenario_file(good)[0] == {"draws": 30}
+
+    city = cityconfig.use("joburg")
+    try:
+        for scalars, refused in (({key: True}, True), ({}, False)):
+            fake = copy.copy(city)
+            fake.judgements = {**city.judgements,
+                               "scalars": {**city.judgements.get("scalars", {}),
+                                           **scalars}}
+            try:
+                mc.apply_city(fake)
+            except SystemExit as exc:
+                assert refused and key in str(exc), exc
+            else:
+                assert not refused, f"a city file setting {key} was accepted"
+    finally:
+        mc.apply_city(city)
 
 
 if __name__ == "__main__":

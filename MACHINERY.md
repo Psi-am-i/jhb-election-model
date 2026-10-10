@@ -1441,11 +1441,35 @@ implied:**
   `pools_2026.json` and `pools_2026_simulation.json` carry byte-identical keys.
   The `simulation_only` marker is the compensating control.
 
-`run_model` compares it against what the current code would produce and prints a
-named reason when it differs. The check is a **report, not a refusal** — an
-unreadable spec should not take the forecast down — and it is held up by two
-tests: every committed spec must be current, and a perturbed key must actually
-be reported.
+`run_model` compares it against what the current code would produce and, when
+it differs, **refuses** (since 2026-10-10, batch item 10): `SystemExit` naming
+the spec's path, `stale_reason`'s sentence and "Re-emit
+(POOLS-REEMIT-QUEUE.md)". A `stale_reason` that itself raises refuses the same
+way, with the exception's repr. The refusal comes after `02_pools_artefact` is
+written (so a refused run's trace says why) and before anything reads the spec.
+Until then it printed a warning and carried on, so a run between a `pools.py`
+change and its re-emit measured a model nobody had built.
+
+**The escape**, for diagnosis only: `scenario["allow_stale_pools"] = True`, set
+in-process. It is not in `DEFAULTS`, so `--set`, a scenario file and a city file
+refuse it as an unknown key; it is listed in `test_levers_are_live`'s
+`RUNTIME_INJECTED` so the declared-key scan accepts the read, and it is not a
+lever (it moves no draw on a run that is allowed to happen), so it has no
+`JUDGEMENT-CALLS.md` entry. Only `True` opens it. A run through it prints the
+reason, records `02_pools_artefact.stale_allowed: true` and
+`_pools_stale_allowed: true` (which travels into `forecast_summary.json` with the
+scenario), and its trace fails `pools.stale` and `pools.stale_allowed`.
+
+Held up by: every committed spec must be current
+(`test_chain::test_every_emitted_pool_spec_carries_a_current_artefact_key`), a
+perturbed key must be reported (`test_chain`), and G10
+(`tests/test_stage_inputs.py`, section 6) on a constructed spec: a moved
+`pools_sha` refuses, a raising `stale_reason` refuses, a current spec runs, and
+the escape runs and records itself.
+
+⚠️ **Consequence: between a `pools.py`/emit-dependency change and the re-emit,
+no run on an emitted spec is possible**, the suite's model runs included. That
+is the point; the window's first step is the re-emit.
 
 It does not replace `CLAUDE.md`'s one-writer rule. It stops a stale result being
 believed afterwards; it does not stop the artefacts moving under a measurement

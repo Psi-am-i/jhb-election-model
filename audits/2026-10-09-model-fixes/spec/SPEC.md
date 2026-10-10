@@ -1306,3 +1306,106 @@ each refused for the missing `bye_value.json`. `w_bye` stays in `PERTURB` at
 0.95: an override against the derived weight is still a lever that must move
 the 2026 forecast, and that is checkable only after the window. Its 2021
 excuse (`bye_deltas_absent`) is unchanged and its gate-shut check passed.
+
+### R3.6, step 8 addendum (writer, 2026-10-10): a stale spec now stops every run
+
+Step 8 makes `run_model` refuse a stale or unverifiable pool spec (§1.9 item
+10, G10). Every emitted spec is stale until the window (`stale_reason` names
+`cities_sha`, `deps_sha` and `pools_sha` for each), so every run on an emitted
+spec refuses from this commit until the re-emit. Each test below is expected to
+turn green after the window; one that does not is a finding.
+
+**Attribution.** The targeted modules were run on the tree before the change
+(5cf36af) and after it, the same module set both times; this list is the
+difference, and the "was already red" groups are read from the before-run's
+failure messages. No test sets `allow_stale_pools` to stay green: G10's escape
+test is the only setter, and its subject is the escape.
+
+**Newly red, refused on a stale spec (19):**
+- `test_stage_realisation` (10): `test_a_real_trace_passes_every_predicate_in_this_file`,
+  `test_bounds_checked_covers_exactly_the_declared_ranges_in_the_run`,
+  `test_the_guard_board_on_a_real_run_can_prove_it_looked`,
+  `test_the_real_boards_counters_are_bounded_by_the_real_draws`,
+  `test_the_real_delivery_log_proves_something_was_actually_read`,
+  `test_the_real_seat_draws_fill_a_lawful_chamber`,
+  `test_the_real_seat_mean_is_a_mean_and_the_marginal_median_is_not_a_council`,
+  `test_the_real_trace_names_a_tie_rate_rather_than_assuming_there_is_none`,
+  `test_the_realisation_segment_emits_every_stage_it_claims_to`,
+  `test_the_unlabelled_arrays_are_readable_at_all` (joburg 2021).
+- `test_chain` (3): `test_a_trace_records_the_level_chain_without_touching_it`,
+  `test_passing_a_run_directory_changes_no_drawn_number`,
+  `test_the_seat_law_on_recorded_votes_is_every_draw_s_council` (joburg 2021).
+- `test_calibration_report` (1): `test_the_relabel_ablation_actually_withholds_the_label` (ekurhuleni 2011).
+- `test_census_refusal_is_not_swallowed` (1): `test_run_models_geography_does_not_swallow_a_missing_census_reader` (joburg 2026).
+- `test_pool_conservation` (1): `test_a_seeded_arrival_is_drawn_CONCENTRATED_not_evenly` (capetown 2016).
+- `test_projected_roster_declaration` (1): `test_run_model_prints_the_declaration_without_verbose` (joburg 2026).
+- `test_roster_fails_closed` (1): `test_run_model_resolves_its_roster_through_the_checked_path` (joburg 2026).
+- `test_unopposed` (1): `test_run_model_refuses_a_target_with_an_unopposed_ward` (joburg 2021).
+
+**Newly skipped, refused on a stale spec (5), which a run reads as SKIP, not
+FAIL:** `test_stage_estimation` `test_a_corrupted_real_trace_is_caught`,
+`test_the_constructed_payloads_carry_a_real_trace_s_fields`,
+`test_the_level_shrink_is_cycle_blind_by_construction`,
+`test_the_predicates_hold_on_a_real_trace`,
+`test_the_real_trace_is_substantial_enough_to_have_been_examined`. The module
+skips when "no joburg 2011 (or 2021) run is possible here" and catches the
+refusal as that case. Not changed here (the brief forbids weakening a test and
+this module is outside step 8); the end-of-batch suite must see these five
+PASS, not skip, and a skip there is a finding.
+
+**Already red before step 8, now refused earlier on the stale spec (the
+earlier cause is masked until the window, then must be re-read):**
+- was `bye_value.json` missing (R3.6 step 7c): `test_chain` ×3
+  (`test_the_forecast_runs_and_fills_the_council`,
+  `test_the_model_is_reproducible_from_its_seed`,
+  `test_a_diagnostic_run_does_not_overwrite_the_published_artefacts`);
+  `test_regressions::test_the_polling_channel_actually_runs`;
+  `test_roster_universe::test_the_seven_certified_parties_reach_the_2026_run`;
+  `test_stage_realisation::test_the_group_share_tripwire_scans_every_member_of_a_real_run`;
+  `test_citywide_table` ×3 (`test_every_control_asks_for_exactly_the_tables_files`,
+  `test_the_table_on_disk_is_a_fresh_build_byte_for_byte`,
+  `test_the_table_reproduces_every_drawn_array_of_a_native_run`);
+  `test_draw_record` ×4 of 5; `test_export_draws` ×12 (the export refuses);
+  and, not listed in the step 7c addendum though red on the same cause before
+  this step: `test_reweight` ×8 (its `export_draws.py` subprocess),
+  `test_roster_fails_closed::test_the_run_records_which_roster_state_it_was_in`,
+  `test_projected_roster_declaration::test_a_published_or_not_yet_held_roster_prints_no_such_warning`,
+  `test_roster_aware_baseline::test_the_run_model_mergers_reach_the_spine`.
+- was `KeyError: '2026'` or the 2026 run failing: `test_reader_seats` ×5
+  (`test_every_draw_is_reproduced_from_its_two_ballots_and_ward_winners`,
+  `test_statute_invariants_hold_on_real_draws_and_on_reader_edits`,
+  `test_the_capture_is_one_call_per_draw_on_the_configured_council`,
+  `test_the_context_comes_from_the_city_config_and_round_trips_as_json`,
+  `test_the_reproduction_comparator_sees_a_constructed_disagreement`; five
+  names, the module counts six failures with
+  `test_the_seat_service_copies_exactly_the_import_closure_of_reader_seats`,
+  which fails on `byelections.py` missing from the copied closure and is not a
+  stale-spec failure). Not listed in any earlier addendum.
+- was the `pools.stale` predicate (R3.6 step 3):
+  `test_stage_inputs::test_a_real_run_produces_a_trace_that_passes_every_predicate`.
+
+**Unchanged by step 8** (same test, same cause before and after):
+`test_drawer` ×5 and `test_ipf_feasibility` ×4 (`bye_value.json` missing; their
+path reaches that refusal first), `test_draw_record` ×1, `test_intermediates_are_current`
+×3, `test_citywide_table` ×3 (`levels_sha`), `test_chain::test_every_emitted_pool_spec_carries_a_current_artefact_key`,
+`test_provenance_dates::test_every_registered_entry_clears_something_on_every_page_it_names`.
+The last, `test_ipf_feasibility::test_no_numeric_module_constant_is_a_default_argument`
+and `test_reader_seats::test_the_seat_service_copies_exactly_the_import_closure_of_reader_seats`
+are red on causes that are not a stale spec or a missing record and appear in
+no earlier addendum; they are reported to the coordinator, not fixed here.
+
+`test_levers_are_live`, run once after the step-8 code: 20 passed, 3 failed,
+the same three as step 7c (`test_every_tunable_lever_actually_moves_the_forecast`,
+`test_module_constants_are_swept_for_liveness_too`,
+`test_a_lever_whose_gate_the_harness_can_open_is_measured_with_it_open`), now
+refused on the stale spec; the first now refuses at its 2021 sweep, where in
+step 7c only the 2026 sweeps refused. The declared-key scan
+(`test_no_scenario_key_is_read_without_being_declared`) passes with
+`allow_stale_pools` in `RUNTIME_INJECTED`.
+
+**For the window.** The re-emit is its first step: `citywide_table.py`
+(which calls `run_model`), `compare_history`, `export_draws`, the levers sweep
+and `bye_value.py`'s and `group_share_record.py`'s consumers all refuse until
+then. A run under `HELD_BACK_OFF=1` moves `gates_sha` and is therefore refused
+on every spec emitted without it; that experiment needs its own emit or the
+escape, and a run through the escape is not a measurement.

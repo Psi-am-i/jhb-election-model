@@ -4273,6 +4273,16 @@ def run_model(target, scenario: dict,
       one; the evidence does not exist.
     * **Split voting districts.** See :func:`ward_parts`.
 
+    **A stale or unverifiable pool spec stops the run** (``SystemExit`` naming
+    the file, the reason, and "Re-emit (POOLS-REEMIT-QUEUE.md)"), whether
+    ``pools.stale_reason`` reports a moved key or itself raises. The one
+    escape is ``scenario["allow_stale_pools"] = True``, set in-process by a
+    diagnostic run; it is not in ``DEFAULTS``, so no command line, scenario
+    file or city file can set it. A run through it records
+    ``02_pools_artefact.stale_allowed`` and ``_pools_stale_allowed``. A caller
+    that supplies ``scenario["pools"]`` itself skips the spec, and the check,
+    entirely; ``02_pools_artefact`` is then absent from its trace.
+
     **Two recorded fields, ``pr_vote_draws`` and ``ward_vote_draws``**, hold each
     draw's whole votes per ballot exactly as the seat law read them
     (``eligible_parties``' two arguments). They are copied from dicts the loop
@@ -4330,12 +4340,48 @@ def run_model(target, scenario: dict,
                 # docstring records, was REPORTED AS FRESH. A guard that
                 # answers "fine" when it could not run is worse than no guard,
                 # and it is this project's empty-record-vs-unreachable-record
-                # class exactly. The run still does not fail; it says so.
+                # class exactly. A spec whose staleness cannot be determined
+                # is refused below exactly as a stale one is.
                 _stale = (f"staleness could not be determined ({exc!r}) — "
                           f"treat this spec as UNVERIFIED, not as current")
+            # ⛔ A STALE OR UNVERIFIABLE SPEC STOPS THE RUN (item 10,
+            # 2026-10-10). Until then this printed a warning and carried on,
+            # so every number measured across a `pools.py` change and before
+            # its re-emit was a measurement of a model that did not exist,
+            # and only a trace reader could tell. The refusal comes before
+            # anything below reads the spec.
+            #
+            # The ONE escape is `scenario["allow_stale_pools"] is True`, set
+            # in-process by a diagnostic run. It is not in `DEFAULTS`, so
+            # `--set`, a scenario file and a city file all refuse it as an
+            # unknown key (`parse_set`, `read_scenario_file`, `apply_city`):
+            # no published or measured run can reach it. When it lets a stale
+            # spec through, the run prints the reason, `02_pools_artefact`
+            # records `stale_allowed: true`, and `_pools_stale_allowed`
+            # travels with the scenario into `forecast_summary.json`. A trace
+            # from such a run fails `pools.stale` and `pools.stale_allowed`
+            # in `tests/test_stage_inputs.py`, and `01_scenario_in` shows the
+            # extra key, by design: it is not a measurement.
+            _allowed = bool(_stale) and scenario.get("allow_stale_pools") is True
             if _stale:
-                print(f"  ! pools_{target.year}.json is STALE: {_stale}")
+                print(f"  ! {spec_path} is STALE: {_stale}")
             scenario["_pools_stale"] = _stale
+            scenario["_pools_stale_allowed"] = _allowed
+            trace.put("02_pools_artefact", {
+                "path": str(spec_path),
+                "artefact_key": spec.get("artefact_key"),
+                "stale_reason": _stale,
+                "stale_allowed": _allowed,
+                "fitted_on": spec.get("fitted_on"),
+            })
+            if _stale and not _allowed:
+                raise SystemExit(
+                    f"{spec_path} is stale: {_stale}. "
+                    f"Re-emit (POOLS-REEMIT-QUEUE.md).")
+            if _allowed:
+                print(f"  ! allow_stale_pools: this diagnostic run reads "
+                      f"{spec_path} although it is stale. Nothing it "
+                      f"produces is a measurement of the current model.")
             scenario["_pools_artefact_key"] = spec.get("artefact_key")
             # What the SPEC's own roster resolution decided, so a not-yet-held
             # target's off-ballot drop (`roster_for_target`, below) can run
@@ -4347,7 +4393,8 @@ def run_model(target, scenario: dict,
             # ⚠️ NOT added to `02_pools_artefact`'s own payload:
             # `tests/test_stage_inputs.py::offences_pools_artefact` pins that
             # stage's field set to exactly {path, artefact_key, stale_reason,
-            # fitted_on}. The state this unlocks is visible at `03_roster`
+            # stale_allowed, fitted_on}. The state this unlocks is visible at
+            # `03_roster`
             # instead (`state` gains a `"projected"` value) and in the spec
             # itself, which `path` above already points at.
             scenario["_pools_roster"] = spec.get("roster")
@@ -4367,12 +4414,6 @@ def run_model(target, scenario: dict,
             # says so instead of guessing.
             scenario["_pools_spec_path"] = str(spec_path)
             scenario["_pools_reach_source"] = spec.get("reach_source")
-            trace.put("02_pools_artefact", {
-                "path": str(spec_path),
-                "artefact_key": spec.get("artefact_key"),
-                "stale_reason": _stale,
-                "fitted_on": spec.get("fitted_on"),
-            })
             # `artefact_key` is the DELIVERY PROOF for the precomputed-artefact
             # class: city, target, and five hashes — `pools.py`'s code, every
             # `config/*.toml`, every `cities/*.toml`, the first-party modules
