@@ -604,14 +604,17 @@ def test_votes_and_turnouts_are_what_the_model_drew():
 
 def test_the_reported_bye_weight_is_the_one_blended_centres_applied():
     """G26 (BRIEF item 19). For every row of the real
-    ``byelection_party_deltas.csv``, the weight ``byelection_index`` reports
-    equals the one ``blended_centres`` gave that party, carried as the export
+    ``byelection_party_deltas.csv``, the weight the index reports equals the
+    one ``blended_centres`` gave that party, carried every step the export
     carries it: ``30_centres``' ``bye_weight`` in a run directory, read by
-    ``_bye_weight_from_trace``. Constructed sizes put parties in both classes
-    and constructed class weights (0.2, 0.7) differ, so a report that ignored
-    the class, or used a typed weight, would disagree. Both directions: every
-    row but ``UNKNOWN`` is reported, and every weighed party is a row. No
-    model run.
+    ``_bye_weight_from_trace``, put in the manifest by ``build``, written as
+    the published cell's ``manifest.json``, read back by ``write_index`` and
+    reported in ``index.json``'s ``byelection`` rows. Constructed sizes put
+    parties in both classes and constructed class weights (0.2, 0.7) differ,
+    so a report that ignored the class, or used a typed weight, would
+    disagree; a step that dropped the weight reports ``None``. Both
+    directions: every row but ``UNKNOWN`` is reported, and every weighed party
+    is a row. The runs are constructed (``_constructed_runs``); no model run.
     """
     import montecarlo as M
     bye_path = PROCESSED / "byelection_party_deltas.csv"
@@ -646,7 +649,28 @@ def test_the_reported_bye_weight_is_the_one_blended_centres_applied():
         M.PLAN_BOUNDS = saved
     applied = scenario["_bye_weight"]
     assert {applied[p]["class"] for p in applied} == {"under", "at_or_over"}
-    report = E.byelection_index(bye_path, carried)
+    # through the export: build's manifest, the published cell's manifest.json
+    # on disk, and write_index's read of it
+    runs = _constructed_runs()
+    for run in runs.values():
+        run["bye_weight"] = carried
+    _blob, data = E.build(runs)
+    import cityconfig
+    city, target = cityconfig.active().slug, cityconfig.target().year
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = dict(data, artefact_key={
+                "config": {"deduct": {"w_bye": None}}, "overrides": [],
+                "code_sha256": "c", "draws": 6, "seed": 1,
+                "city": "joburg", "target": "2026"})
+            (root / "manifest.json").write_text(json.dumps(manifest))
+            index = E.write_index(root)
+            assert json.loads((root / "index.json").read_text()) == index
+    finally:
+        cityconfig.use(city)
+        cityconfig.use_target(target)
+    report = index["byelection"]
     assert [r["party"] for r in report] == parties
     assert set(applied) == set(parties)
     for r in report:
