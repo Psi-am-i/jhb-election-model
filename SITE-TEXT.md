@@ -1823,7 +1823,7 @@ gives to the wrong party (lower is better in every column):
 
 <!-- /block e4b095e0 -->
 
-<!-- block 5dde2a69 -->
+<!-- block 321dd668 -->
 *md*
 
 | metro | model's error (CRPS) | best baseline's error (CRPS) | best baseline | seats given to the wrong party: model | seats given to the wrong party: best baseline |
@@ -1836,9 +1836,9 @@ gives to the wrong party (lower is better in every column):
 | Mangaung | {{val_mangaung_crps}} | {{val_mangaung_best_crps}} | {{val_mangaung_best}} | {{val_mangaung_wrong}} | {{val_mangaung_best_wrong}} |
 | Nelson Mandela Bay | {{val_nelsonmandelabay_crps}} | {{val_nelsonmandelabay_best_crps}} | {{val_nelsonmandelabay_best}} | {{val_nelsonmandelabay_wrong}} | {{val_nelsonmandelabay_best_wrong}} |
 | Buffalo City | {{val_buffalocity_crps}} | {{val_buffalocity_best_crps}} | {{val_buffalocity_best}} | {{val_buffalocity_wrong}} | {{val_buffalocity_best_wrong}} |
-| all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{val_total_wrong}} | {{val_total_best_wrong}} |
+| all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{backtest_seat_err_model}} | {{backtest_seat_err_baseline}} |
 
-<!-- /block 5dde2a69 -->
+<!-- /block 321dd668 -->
 
 <!-- block 9ea3cc5d -->
 *md*

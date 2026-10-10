@@ -203,7 +203,7 @@ gives to the wrong party (lower is better in every column):
 | Mangaung | {{val_mangaung_crps}} | {{val_mangaung_best_crps}} | {{val_mangaung_best}} | {{val_mangaung_wrong}} | {{val_mangaung_best_wrong}} |
 | Nelson Mandela Bay | {{val_nelsonmandelabay_crps}} | {{val_nelsonmandelabay_best_crps}} | {{val_nelsonmandelabay_best}} | {{val_nelsonmandelabay_wrong}} | {{val_nelsonmandelabay_best_wrong}} |
 | Buffalo City | {{val_buffalocity_crps}} | {{val_buffalocity_best_crps}} | {{val_buffalocity_best}} | {{val_buffalocity_wrong}} | {{val_buffalocity_best_wrong}} |
-| all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{val_total_wrong}} | {{val_total_best_wrong}} |
+| all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{backtest_seat_err_model}} | {{backtest_seat_err_baseline}} |
 
 The seat columns judge only the single most likely outcome, so their margins
 are smaller. It calls the winner in **{{backtest_wards_called}} of {{backtest_wards}}**

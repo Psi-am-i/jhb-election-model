@@ -4176,6 +4176,27 @@ confirm.
 to this list and each figure to the string a page printed. Nothing in the
 model reads it.
 
+### §S2 · `SMALL_PARTY_SHARE` = 0.01 and `SMALL_PARTY_SURGE` = 0.05: the small-party note's test — ⚖️ the record's own thresholds (2026-10-10)
+
+**Where.** `stats.small_party_surge`, read by the token `small_party_surge`
+(source `published:small_party_surge`) and printed, with both thresholds as
+tokens, in the small-party note on /methodology ("What this does not cover").
+
+**Now.** The share of the published simulations in which at least one
+established party (one that stood at the preceding local election) whose mean
+list share over the simulations is under 1% takes more than 5% of the list
+vote.
+
+**Why these.** They are the thresholds of the record test the note sets the
+simulations against: MODEL-LOG §1.296 counted the cases of a party under 1%
+of the list vote at one local election in the eight metros, 2006 to 2021, and
+found none that reached 5% at the next. The same two lines on both sides
+compare like with like. They describe the model; nothing in it reads them.
+
+**How to check it.** `tests/test_stat_sources.py` holds the measure on
+constructed draws and the registered source to a direct computation on the
+published draws.
+
 ## Appendix — how this register has failed before
 
 Kept because it is the argument for every guard above, and because a register

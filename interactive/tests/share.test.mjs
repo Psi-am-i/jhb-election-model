@@ -330,10 +330,14 @@ function rightEdges(svg) {
 }
 
 // Each name's clip box, and the left edge of the first figure drawn after it
-// on its row: a name may not reach the figure beside it.
+// on its row: a name may not reach the figure beside it. A name's clip is one
+// a <text> uses; a stamp's clip (share-card.js stampSVG) is on a <g>, and is
+// not a name's.
 function nameClips(svg) {
   const out = [];
+  const onText = new Set([...svg.matchAll(/<text [^>]*clip-path="url\(#([\w-]+)\)"/g)].map(m => m[1]));
   for (const m of svg.matchAll(/<clipPath id="([\w-]+)"><rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)"/g)) {
+    if (!onText.has(m[1])) continue;
     const after = svg.slice(m.index + m[0].length);
     const fig = /<text x="([\d.]+)" y="[\d.]+" font-family="[^"]+" font-weight="(\d+)" font-size="([\d.]+)" text-anchor="end"[^>]*>([^<]*)<\/text>/.exec(after);
     const face = { 400: "sans", 600: "sansSemi", 700: "sansBold" }[fig[2]];

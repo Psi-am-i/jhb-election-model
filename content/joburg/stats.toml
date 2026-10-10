@@ -1408,19 +1408,19 @@ format = "one_dp"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, all metros"
 
-[val_total_wrong]
+[backtest_seat_err_model]
 mode = "free"
 source = "validation:total.model.wrong_party_seats"
 format = "half"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, all metros"
+inserted = "2026-09-18"
+used_in = "methodology — seats given to the wrong party, model, all metros (half the summed absolute seat error since 2026-10-10; it printed the summed error before)"
 
-[val_total_best_wrong]
+[backtest_seat_err_baseline]
 mode = "free"
 source = "validation:total.best.wrong_party_seats"
 format = "half"
-inserted = "2026-10-10"
-used_in = "methodology — the per-metro backtest table, all metros"
+inserted = "2026-09-18"
+used_in = "methodology — seats given to the wrong party, best baseline per metro by CRPS, all metros (half the summed absolute seat error since 2026-10-10; it printed the summed error before)"
 
 [backtest_wards_called]
 mode = "free"
