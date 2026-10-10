@@ -4,8 +4,9 @@ G23: the test can see an increment. On constructed pairs, where the outcome's
 residual is exactly half the by-election delta the class is admitted at a
 slope of 0.5; where the residual is independent of the delta the
 5th-percentile gain is at or below 0 and the weight is 0; with 9 pairs the
-class is "not measurable" whatever the data say. Every input in those tests is
-a literal or a seeded draw; nothing is read from disk.
+class is "not measurable" whatever the data say; and the bootstrap resamples
+metros, not pairs (a case where the two give different verdicts). Every input
+in those tests is a literal or a seeded draw; nothing is read from disk.
 
 Beside G23, the pieces the test is built from, each pinned by hand arithmetic:
 the hold-out by metro identity (a metro's own pairs never enter its fit, also
@@ -109,6 +110,37 @@ def test_the_bootstrap_is_reproducible_from_its_seed():
     c = BV.evaluate(pairs, resamples=300, seed=2)["under"]["G_percentile"]
     assert a == b
     assert a != c
+
+
+def test_the_bootstrap_resamples_metros_not_pairs():
+    """Fix row 4 of the M4 review: G23 must see a bootstrap that resamples
+    pairs. Two metros, six pairs each, ``e = 0.5·δ`` in both. Resampling the
+    two METROS, a draw is {A, B} with probability ½, and {A, A} or {B, B}
+    otherwise; a draw holding one metro has no fit set, so its ``G`` is 0
+    exactly (the pre-registered rule), and {A, B} gains. So about half the
+    draws score exactly 0 and the 5th percentile is exactly 0: the class is
+    not admitted. Resampling the twelve PAIRS (computed here, with the same
+    ``lomo_gain``), a draw holds one metro only with probability
+    2·(½)^12, so almost every draw gains and the 5th percentile is positive:
+    a pair bootstrap would admit the class. The two differ in verdict, so a
+    pair-resampling mutation of ``evaluate`` cannot pass."""
+    d = np.array([0.01, 0.02, 0.03, 0.05, 0.08, 0.13])
+    pairs = [{"metro": m, "class": "under", "delta_pr": float(x),
+              "e": 0.5 * float(x), "contests": 2} for m in ("A", "B") for x in d]
+    c = BV.evaluate(pairs, resamples=2000)["under"]
+    assert c["G"] > 0
+    assert c["G_percentile"] == 0.0, c["G_percentile"]
+    assert c["verdict"] == "no measurable gain" and c["weight"] == 0.0
+    # it can see: the same pairs resampled as pairs give a positive percentile
+    rng = np.random.default_rng(BV.BYE_VALUE_SEED)
+    boot = []
+    for _ in range(2000):
+        pick = [pairs[i] for i in rng.integers(0, len(pairs), size=len(pairs))]
+        groups = [(m, np.array([p["e"] for p in pick if p["metro"] == m]),
+                   np.array([p["delta_pr"] for p in pick if p["metro"] == m]))
+                  for m in ("A", "B")]
+        boot.append(BV.lomo_gain([g for g in groups if len(g[1])])[0])
+    assert float(np.percentile(boot, BV.BYE_VALUE_PERCENTILE)) > 0.0
 
 
 def test_a_metro_is_held_out_by_identity_including_its_bootstrap_copies():
