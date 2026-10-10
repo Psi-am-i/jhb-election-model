@@ -1712,7 +1712,8 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
     forecast" is the same button in step 4. Each button is followed by its
     one line on what it gives, and section 2's names the map, the seats, our
     chance and the sealed link. A share box moved back into the levers'
-    column is caught, and so is a button drawn the row's full width."""
+    column is caught, and so is a button style of the page's own: the buttons
+    are the site's one ``cta`` (src/css/components.css)."""
     site = _built()
     html = _html(site)
     css = (site / D / "css" / "your-forecast.css").read_text(encoding="utf-8")
@@ -1728,13 +1729,13 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
             out.append("section 1's share row is inside the levers' column")
         if not (at('class="yf-analysis"') < s2 < notes):
             out.append("section 2's share row is not between the analysis and the notes")
-        share = 'class="btn primary shareopen yf-ctabtn"'
+        share = 'class="cta shareopen"'
         if page.count(share) != 2:
             out.append("not one share row in each section")
         # each row, in its own section, with its one line
         rows = (("section 1", page.find(share, s1) if s1 > 0 else -1, ("map", "council", "seats", "sealed")),
                 ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "chance", "sealed link")),
-                ("step 4", at('class="btn primary yf-analyse yf-ctabtn"'), ()))
+                ("step 4", at('class="cta yf-analyse"'), ()))
         for where, i, words in rows:
             end = page.find("</button>", i) if i >= 0 else -1
             after = page[end + len("</button>"):] if end >= 0 else ""
@@ -1753,8 +1754,8 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
     moved = html.replace(row, "").replace('<div class="pl-controls">', '<div class="pl-controls">' + row, 1)
     assert misplaced(moved)
     assert misplaced(html.replace('<p class="yf-ctanote">', '<p class="yf-note">', 1))
-    button = re.search(r"\.yf \.yf-ctabtn\{([^}]*)\}", css)
-    assert button and "font:700" in button.group(1) and "width:100%" not in button.group(1), button
+    # the site's one button (components.css), not a second style here
+    assert not re.search(r"\.yf-ctabtn|\.yf \.cta\{", css)
     # step 4 names what it holds now
     assert "Next: see how likely it is" in html and "Share it, or see how likely it is" not in html
 

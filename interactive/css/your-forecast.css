@@ -174,21 +174,18 @@
 @media (prefers-reduced-motion:reduce){.yf-step{transition:none;}}
 
 
-/* ---------- the calls to act: large buttons (owner, 2026-10-10) ---------- */
+/* ---------- the calls to act: the site's button (owner, 2026-10-10) ---------- */
 /* "Share this forecast" after section 1 and at the foot of section 2, and
-   "Analyse my forecast" in step 4: one large button, and beside it a short
-   line on what it gives. On a phone the button is the column's width and the
-   line goes under it. Any other line in the row (why sharing is refused)
-   takes a row of its own. */
+   "Analyse my forecast" in step 4, are the site's one large button, `cta`
+   (src/css/components.css, as the home page's), and beside it a short line
+   on what it gives. Its own rule puts it the column's width on a phone, the
+   line under it. Any other line in the row (why sharing is refused) takes a
+   row of its own. Here only its place in the row, and its disabled state
+   while the page loads, which the component does not draw. */
 .yf .yf-cta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;border:0;padding:0;margin:22px 0 0;}
-.yf .yf-cta > :not(.yf-ctabtn):not(.yf-ctanote){flex:1 0 100%;}
-.yf .yf-ctabtn{flex:none;min-height:60px;padding:16px 34px;border-radius:8px;justify-content:center;text-align:center;
-  font:700 21px/1.2 var(--sans);letter-spacing:.005em;white-space:nowrap;
-  box-shadow:0 2px 0 color-mix(in srgb,var(--ink) 18%,transparent);}
+.yf .yf-cta > :not(.cta):not(.yf-ctanote){flex:1 0 100%;}
+.yf .cta[disabled]{opacity:.45;cursor:not-allowed;}
 .yf .yf-ctanote{flex:1 1 28ch;margin:0;font-size:15px;line-height:1.45;color:var(--ink-2);}
-@media (max-width:559px){
-  .yf .yf-ctabtn{flex:1 0 100%;}
-}
 .yf .yf-actions .yf-ctanote{margin-top:10px;}
 .yf-ctafoot{margin-top:26px;}
 /* "Next" scrolls a step to the top of the window: a little air above it */

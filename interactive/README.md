@@ -155,8 +155,9 @@ wards are every party seated in the reader's council or at its start, and
 the party chosen (`builder-state.chipParties`, one rule for every party);
 every other party is in the select beside them.
 
-**The calls to act** (owner, 2026-10-10) are large buttons, each followed by
-one line on what it gives: "Share this forecast" at the end of section 1
+**The calls to act** (owner, 2026-10-10) are the site's one large button,
+`cta` (`src/css/components.css`, as the home page's), each followed by one
+line on what it gives: "Share this forecast" at the end of section 1
 (section 1's sheet) and at the foot of section 2, before the notes (section
 2's sheet: the map, the seats, our chance, a sealed link); "Analyse my
 forecast" in step 4.
