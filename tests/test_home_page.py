@@ -509,8 +509,6 @@ def test_an_article_lists_the_others_but_not_itself():
     The article list is the shipped articles.toml (the only list there is);
     the page is constructed."""
     import build_site as BS
-    import cityconfig
-    cityconfig.use("joburg")
     articles = BS.article_meta("joburg")
     assert len(articles) >= 2, f"articles.toml lists {len(articles)}"
     page = "<div class=\"sheet\"><p>body</p>\n" + BS.SHEET_END

@@ -13,3 +13,5 @@
   /* the other articles, under each article (build_site.more_commentary) */
   .more-commentary{margin-top:44px;border-top:3px solid var(--k-article);padding-top:16px;}
   .more-commentary .feed{margin-top:8px;}
+  /* the lead keeps the list's own size here, under another article's headline */
+  .more-commentary .feed .lead-item .t{font-size:19px;}
