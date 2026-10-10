@@ -1186,6 +1186,22 @@ def _refuse_non_statutory(key: str, value) -> None:
             f"table. They must not reach a forecast. MODEL-LOG §1.165.")
 
 
+#: ``DEFAULTS`` keys a city file may not set: each is derived per run, and
+#: ``apply_city`` writes a city's ``[judgements.scalars]`` over ``DEFAULTS``,
+#: so a number there would override the derivation on every run of that city.
+#: ``w_bye`` (BRIEF item 19): ``None`` derives each party's class weight from
+#: ``bye_value.json``; ``w_bye = 0.4`` sat in two city files until 2026-10-10
+#: and would have done exactly that. A sweep or scenario file may still set
+#: it (an override, recorded); only a city file may not.
+DERIVED_NOT_CITY = ("w_bye",)
+
+
+def city_derived_keys(city) -> list[str]:
+    """The :data:`DERIVED_NOT_CITY` keys ``city``'s file sets, sorted."""
+    return sorted(k for k in city.judgements.get("scalars", {})
+                  if k in DERIVED_NOT_CITY)
+
+
 def apply_city(city) -> None:
     """Point the module's constants at this city, from a CLEAN baseline.
 
@@ -1212,6 +1228,15 @@ def apply_city(city) -> None:
     why this is fixed here rather than worked around in `compare_history`.
     """
     global COUNCIL, PLAN_BOUNDS
+    # Refused before anything is reset, so a refusal leaves the module as it was.
+    derived = city_derived_keys(city)
+    if derived:
+        raise SystemExit(
+            f"cities/{city.slug}.toml sets {', '.join(derived)} in "
+            f"[judgements.scalars], which the model derives "
+            f"(montecarlo.DERIVED_NOT_CITY). A city value would override the "
+            f"derivation on every run of this city; delete the line, or "
+            f"override it for a sweep with --set.")
     # Restore the module's own defaults before applying this city's, so a run
     # never inherits the previous city's judgements.
     DEFAULTS.clear()

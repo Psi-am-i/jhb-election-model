@@ -88,7 +88,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _support import run_module  # noqa: E402
+from _support import ROOT, run_module, scanned  # noqa: E402
 
 import montecarlo as M  # noqa: E402
 
@@ -1218,6 +1218,58 @@ def test_the_class_edge_is_the_one_constant_both_sides_use():
                               {"X": (100.0, 0.02)})
             assert scenario["_bye_weight"]["X"]["class"] == cls, size
 
+
+
+def test_no_city_file_sets_a_derived_lever_and_apply_city_refuses_one():
+    """Fix row 6 of the M4 review. ``w_bye = 0.4`` sat in two city files
+    until 2026-10-10, and ``apply_city`` writes a city's scalars over
+    ``DEFAULTS``, so it overrode the derived weight on every run of those
+    cities. ``montecarlo.DERIVED_NOT_CITY`` names the levers a city file may
+    not set; ``apply_city`` refuses one, before it resets anything.
+
+    The scan: every ``cities/*.toml``, its population asserted equal to the
+    metros (``levels.METRO_CODES``, through each file's ``code``) both ways,
+    none setting a derived key. It can see: ``joburg.toml`` with ``w_bye``
+    written into its ``[judgements.scalars]``, in a temp directory, is named
+    by the scan and refused by ``apply_city``, leaving ``DEFAULTS`` as it
+    was; the unedited file is quiet and applies."""
+    import shutil
+    import tempfile
+    import cityconfig
+    import levels
+    assert M.DERIVED_NOT_CITY == ("w_bye",) and M.DEFAULTS["w_bye"] is None
+    cities_dir = ROOT / "cities"
+    files = sorted(cities_dir.glob("*.toml"))
+    loaded = [cityconfig.load(f.stem, cities_dir=cities_dir) for f in files]
+    codes = [c.code for c in loaded]
+    assert sorted(codes) == sorted(levels.METRO_CODES), codes
+    assert len(set(codes)) == len(codes)
+    scanned(files, of=levels.METRO_CODES, low=1.0, high=1.0,
+            what="city files scanned", denominator="levels.METRO_CODES")
+    assert [c.slug for c in loaded if M.city_derived_keys(c)] == []
+    with tempfile.TemporaryDirectory() as tmp:
+        shutil.copy(cities_dir / "joburg.toml", Path(tmp) / "joburg.toml")
+        path = Path(tmp) / "joburg.toml"
+        clean = path.read_text(encoding="utf-8")
+        assert clean.count("[judgements.scalars]\n") == 1
+        path.write_text(clean.replace("[judgements.scalars]\n",
+                                      "[judgements.scalars]\nw_bye = 0.4\n"),
+                        encoding="utf-8")
+        bad = cityconfig.load("joburg", cities_dir=Path(tmp))
+        assert M.city_derived_keys(bad) == ["w_bye"]
+        before = dict(M.DEFAULTS)
+        try:
+            M.apply_city(bad)
+        except SystemExit as exc:
+            assert "w_bye" in str(exc)
+        else:
+            raise AssertionError("apply_city accepted a city file setting w_bye")
+        assert dict(M.DEFAULTS) == before
+        path.write_text(clean, encoding="utf-8")
+        good = cityconfig.load("joburg", cities_dir=Path(tmp))
+        assert M.city_derived_keys(good) == []
+        M.apply_city(good)
+        assert M.DEFAULTS["w_bye"] is None
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
