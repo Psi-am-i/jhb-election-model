@@ -728,6 +728,8 @@ const STORY_TYPE = { large: [27, 42, 22], middle: [24, 36, 20], small: [22, 32, 
 const STORY_GAP = 22;
 // The reader's badge on the story card, its height.
 const STORY_STAMP = 132;
+// Its top edge in the headline band, clear of the headline's baseline.
+const STORY_STAMP_TOP = 28;
 // The least width the reader's map is tried at, and the step between tries.
 const STORY_MAP_LEAST = 300, STORY_MAP_STEP = 10;
 // A reader's story card's map, as a share of the card's width, is held to
@@ -748,10 +750,15 @@ export function storyCardSVG(spec, assets = {}, party) {
   const headSVG = textPlate(top, X, STORY_HEAD_Y, textWidth(head.text, head.fs, "serifSemi"), head.fs) +
     text(X, STORY_HEAD_Y, head.text, head.fs, "serifSemi", { fill: top.ink });
   s += headSVG;
+  // the owner's badge in the band, at its right; the sealed date and the
+  // days to the vote right-aligned beside it, clear of the logo
+  s += readerBadge(spec.badge, assets, "sb", R - STORY_STAMP, STORY_STAMP_TOP, STORY_STAMP);
   if (made) {
+    const right = R - STORY_STAMP - 24, room = right - (X + brandWidth(assets, bh) + 24);
     [made, cap(daysText(daysToVote(spec.made.at, spec.election), false))].forEach((l, k) => {
-      const w = textWidth(l, 28);
-      s += textPlate(top, R - w, 82 + k * 38, w, 28) + text(R, 82 + k * 38, l, 28, "sans", { fill: top.ink, anchor: "end" });
+      const f = fitText(l, room, 28, "sans", 20);
+      const w = textWidth(f.text, f.fs);
+      s += textPlate(top, right - w, 82 + k * 38, w, f.fs) + text(right, 82 + k * 38, f.text, f.fs, "sans", { fill: top.ink, anchor: "end" });
     });
   }
   s += text(X, 326, spec.election.city + " council, " + dateText(spec.election.date) + ". " + spec.council + " seats.", 30, "sans", { fill: C.ink2 });
@@ -778,15 +785,10 @@ export function storyCardSVG(spec, assets = {}, party) {
     for (const l of wrapText(spec.words, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
     oy += fc * 0.45;
     for (const l of wrapText(spec.chance, ow, fc, "serifSemi")) { if (draw) out += text(draw.x, oy, l, fc, "serifSemi"); oy += fc * 1.15; }
-    // the owner's badge, and beside it the boldest call it judges
-    const top = oy - fc * 0.4, bw = ow - STORY_STAMP - 20;
-    const call = wrapText(spec.boldestLine, bw, fw);
-    if (draw) {
-      out += readerBadge(spec.badge, assets, "sb", draw.x, top, STORY_STAMP);
-      const cy0 = top + (STORY_STAMP - call.length * fw * 1.37) / 2 + fw;
-      call.forEach((l, k) => { out += text(draw.x + STORY_STAMP + 20, cy0 + k * fw * 1.37, l, fw, "sans", { fill: C.ink2 }); });
-    }
-    oy = top + Math.max(STORY_STAMP, call.length * fw * 1.37) + fn * 1.6;
+    // the boldest call the badge in the band judges
+    oy += fw * 0.3;
+    for (const l of wrapText(spec.boldestLine, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
+    oy += fn * 0.6;
     for (const l of wrapText(spec.excess.join(" "), ow, fn)) { if (draw) out += text(draw.x, oy, l, fn, "sans", { fill: C.ink3 }); oy += fn * 1.4; }
     return { out, h: oy - fn - y0 };
   };
