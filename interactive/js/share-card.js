@@ -671,23 +671,29 @@ export function linkCardSVG(spec, assets = {}, party) {
   // its badge, the outcome; the map takes the height between
   s += text(X, H - 44, "A reader's forecast, not the model's.", 15, "sans", { fill: C.ink3 }) +
     text(X, H - 18, "Make yours at ", 18, "sans", { fill: C.ink2 }) + text(X + textWidth("Make yours at ", 18), H - 18, SITE, 18, "monoSemi");
-  // the owner's badge, and beside it the chance (never cut: wrapped) and
-  // the boldest call the badge judges
-  const sb = H - 66, st = sb - LINK_STAMP;
-  s += readerBadge(spec.badge, assets, "lb", X, st, LINK_STAMP);
-  const bx = X + LINK_STAMP + 18, bwid = LINK_LEFT - LINK_STAMP - 18;
-  const chance = wrapText(spec.chance, bwid, 22, "serifSemi");
-  const bold = wrapText(spec.boldestLine, bwid, 17);
-  let by = st + (LINK_STAMP - chance.length * 27 - bold.length * 21) / 2 + 20;
-  for (const l of chance) { s += text(bx, by, l, 22, "serifSemi"); by += 27; }
-  for (const l of bold) { s += text(bx, by, l, 17, "sans", { fill: C.ink2 }); by += 21; }
-  const upper = st - 6;
+  // ... the boldest call the badge judges, the chance (never cut: on one
+  // line where it fits at 22 px or more, else wrapped), the outcome; the map
+  // takes the height between, and the owner's badge stands beside the map
+  const bold = fitText(spec.boldestLine, LINK_LEFT, 17, "sans", 14);
+  s += text(X, H - 70, bold.text, bold.fs, "sans", { fill: C.ink2 });
+  const one = fitText(spec.chance, LINK_LEFT, 28, "serifSemi", 22);
+  let cy = H - 100, upper;
+  if (one.text === spec.chance) {
+    s += text(X, cy, one.text, one.fs, "serifSemi");
+    upper = cy;
+  } else {
+    const lines = wrapText(spec.chance, LINK_LEFT, 22, "serifSemi");
+    cy -= (lines.length - 1) * 26;
+    s += lines.map((l, k) => text(X, cy + k * 26, l, 22, "serifSemi")).join("");
+    upper = cy;
+  }
   const words = wrapText(spec.words, LINK_LEFT, 17);
-  const wy = upper - 14 - (words.length - 1) * 21;
+  const wy = upper - 40 - (words.length - 1) * 21;
   s += words.map((l, k) => text(X, wy + k * 21, l, 17, "sans", { fill: C.ink2 })).join("");
+  const mt = y - 6, mb = wy - 17 - 14;
+  s += readerBadge(spec.badge, assets, "lb", X + LINK_LEFT - LINK_STAMP, mb - LINK_STAMP, LINK_STAMP);
   if (assets.geom) {
-    const mt = y - 6, mb = wy - 17 - 14;
-    const mw = Math.min(LINK_LEFT, (mb - mt) * assets.geom.W / assets.geom.H);
+    const mw = Math.min(LINK_LEFT - LINK_STAMP - 12, (mb - mt) * assets.geom.W / assets.geom.H);
     s += wardMap(mapOf(spec, assets.geom, party), X, mt, mw).svg;
   }
   // the right column: the council, who governs, then the table, clear of it
@@ -721,7 +727,7 @@ const STORY_TYPE = { large: [27, 42, 22], middle: [24, 36, 20], small: [22, 32, 
 // "use the canvas").
 const STORY_GAP = 22;
 // The reader's badge on the story card, its height.
-const STORY_STAMP = 170;
+const STORY_STAMP = 132;
 // The least width the reader's map is tried at, and the step between tries.
 const STORY_MAP_LEAST = 300, STORY_MAP_STEP = 10;
 // A reader's story card's map, as a share of the card's width, is held to
@@ -772,10 +778,15 @@ export function storyCardSVG(spec, assets = {}, party) {
     for (const l of wrapText(spec.words, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
     oy += fc * 0.45;
     for (const l of wrapText(spec.chance, ow, fc, "serifSemi")) { if (draw) out += text(draw.x, oy, l, fc, "serifSemi"); oy += fc * 1.15; }
-    if (draw) out += readerBadge(spec.badge, assets, "sb", draw.x, oy - fc * 0.4, STORY_STAMP);
-    oy += STORY_STAMP + fn * 0.8;
-    for (const l of wrapText(spec.boldestLine, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
-    oy += fn;
+    // the owner's badge, and beside it the boldest call it judges
+    const top = oy - fc * 0.4, bw = ow - STORY_STAMP - 20;
+    const call = wrapText(spec.boldestLine, bw, fw);
+    if (draw) {
+      out += readerBadge(spec.badge, assets, "sb", draw.x, top, STORY_STAMP);
+      const cy0 = top + (STORY_STAMP - call.length * fw * 1.37) / 2 + fw;
+      call.forEach((l, k) => { out += text(draw.x + STORY_STAMP + 20, cy0 + k * fw * 1.37, l, fw, "sans", { fill: C.ink2 }); });
+    }
+    oy = top + Math.max(STORY_STAMP, call.length * fw * 1.37) + fn * 1.6;
     for (const l of wrapText(spec.excess.join(" "), ow, fn)) { if (draw) out += text(draw.x, oy, l, fn, "sans", { fill: C.ink3 }); oy += fn * 1.4; }
     return { out, h: oy - fn - y0 };
   };
