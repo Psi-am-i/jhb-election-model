@@ -80,3 +80,19 @@ its 18-of-24 falsification cannot separate item 11a from draw noise.
 - D → E moves EFF +2.58, ACP −2.22, ASA −1.41 seats.
 - Item 6 worsens ward MAE by more than 0.15 at four city-years while the panel
   mean falls 0.089; mangaung 2011 supplies 0.078 of that fall (scorer 1).
+
+## Addendum: seed noise measured directly (coordinator, 2026-10-10)
+
+Arm E rerun on the 24 panel city-years at 1,000 draws with `--set seed=1` and
+`--set seed=2` (harness `arm_run.py`, E's tree, outputs in the session
+scratchpad). Panel-mean list MAE by seed: 3.2572 (20261104), 3.2391, 3.2310;
+spread 0.0262. Per-city-year spread across the three seeds: 0.042-0.667.
+
+| Change (unpaired comparison) | Panel-mean list MAE change | City-years moving more than their own seed spread |
+|---|---|---|
+| Item 8, B8 − A | +0.0754 | 13 of 24 |
+| Item 11a, C − B | −0.0115 | 4 of 24 |
+| Item 17, D − C16 | +0.0336 | 10 of 24 |
+
+Three seeds understate the full seed range. Item 11a's panel change is
+smaller than the seed spread alone.
