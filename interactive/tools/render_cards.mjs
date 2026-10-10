@@ -26,7 +26,13 @@ export function assets(F = FIXTURE) {
   for (const [c, p] of Object.entries(F.parties)) {
     if (p.logo && have.has(c + ".png")) logos[c] = "data:image/png;base64," + readFileSync(resolve(REPO, "site/logos", c + ".png")).toString("base64");
   }
-  return { logos, brand: SC.brandOf(readFileSync(resolve(REPO, "site/logo.svg"), "utf8")), geom: F.geometry };
+  // the owner's badges for the fixture's forecasts (src/stamps/, served at /stamps/)
+  const badges = {};
+  for (const X of [F.A, F.B]) {
+    const w = X.answer.outcome.badge;
+    badges[w] = SC.stampOf(readFileSync(resolve(REPO, "src/stamps", SC.badgeFile(w)), "utf8"));
+  }
+  return { logos, badges, brand: SC.brandOf(readFileSync(resolve(REPO, "site/logo.svg"), "utf8")), geom: F.geometry };
 }
 
 // A fixed sealing instant for the pictures: noon in Johannesburg, 3 October 2026.

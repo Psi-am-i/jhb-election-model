@@ -62,7 +62,7 @@ export const STORY_MAP_MIN_SHARE = 0.55;
 // How near STORY_TEXT_BOTTOM a story card's lowest words must reach, in px:
 // the space between the blocks is spread evenly until the foot sits there.
 export const STORY_FILL_SLACK = 24;
-const C = { paper: "#141715", paper2: "#1c201d", rule: "#333833", ink: "#eceee9", ink2: "#b6bcb6", ink3: "#868d86", chip: "#ffffff" };
+export const C = { paper: "#141715", paper2: "#1c201d", rule: "#333833", ink: "#eceee9", ink2: "#b6bcb6", ink3: "#868d86", chip: "#ffffff" };
 const MONTHS = "January February March April May June July August September October November December".split(" ");
 const DAY_MS = 864e5;
 

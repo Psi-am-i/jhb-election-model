@@ -49,7 +49,11 @@ Source grammar:
 * ``regime:<rule>:<dotted path>`` — into ``regime_<rule>_summary.json``,
   the counterfactual runs (``cap`` is the pure-proportional entitlement).
 * ``derived:<name>`` — a named computation over ``seat_draws.csv`` (see
-  ``DERIVED``).
+  ``_derived``); ``derived:coalition_majority.<A>+<B>+…`` reads every
+  party's seats (``scenarios.all_party_seats``).
+* ``history:<city>:<year>:<dotted path>`` — into the record of that city-year
+  in ``history.json`` (``compare_history``'s backtest of past elections):
+  ``history:joburg:2011:wards.called``. See :func:`history_value`.
 * ``run:<description>`` / ``external:<description>`` — never auto-resolved;
   legal only for ``fixed`` entries (a scenario run, or a fact from outside
   the model such as an IEC record).
@@ -425,7 +429,40 @@ def _derived(name: str, ctx: dict):
         if name == "largest_tied":
             return got["tied"]
         return got["outright"].get(name[len("largest_outright."):])
+    if name.startswith(COALITION_MAJORITY):
+        return coalition_majority(name[len(COALITION_MAJORITY):].split("+"), ctx)
     return None
+
+
+#: ``derived:coalition_majority.<A>+<B>+…``: the share of simulations in which
+#: the named parties together hold at least that simulation's majority.
+COALITION_MAJORITY = "coalition_majority."
+
+
+def coalition_majority(members: list[str], ctx: dict):
+    """The share of simulations in which ``members`` together reach that
+    simulation's threshold, over EVERY party's seats
+    (``scenarios.all_party_seats``, the one definition of the whole council:
+    ``seat_draws.csv`` keeps only the largest parties, so a coalition with a
+    small partner summed over its columns would drop that partner's seats).
+    A member with no seats in the run counts none. None without draws or a
+    processed directory; refuses an empty or repeated member list."""
+    draws = ctx.get("draws") or []
+    processed = ctx.get("processed")
+    if not draws or processed is None:
+        return None
+    if not members or len(set(members)) != len(members) or not all(members):
+        raise SystemExit(f"derived:{COALITION_MAJORITY}{'+'.join(members)}: "
+                         "name each party once, joined by '+'")
+    cache = ctx.setdefault("_all_party_seats", {})
+    if "seats" not in cache:
+        import scenarios as _sc
+        cache["seats"], cache["thr"], _council = _sc.all_party_seats(processed, rows=draws)
+    seats, thr = cache["seats"], cache["thr"]
+    total = sum(seats[m] for m in members if m in seats)
+    if isinstance(total, int):          # no member holds a seat in any simulation
+        return 0.0
+    return float((total >= thr).mean())
 
 
 def resolve(source: str, ctx: dict):
@@ -440,7 +477,25 @@ def resolve(source: str, ctx: dict):
                     source[len("validation:"):])
     if source.startswith("derived:"):
         return _derived(source[len("derived:"):], ctx)
+    if source.startswith("history:"):
+        return history_value(source, ctx)
     return None                      # run: / external: — pinned only
+
+
+def history_value(source: str, ctx: dict):
+    """``history:<city>:<year>:<dotted path>``: the value at that path in the
+    one ``history.json`` record for that city slug and election year, or None
+    when the file, the record or the path is absent. Two records for one
+    city-year is refused: which one a page quoted would be an accident."""
+    parts = source.split(":", 3)
+    if len(parts) != 4 or not all(parts[1:]):
+        raise SystemExit(f"{source!r}: a history source is history:<city>:<year>:<path>")
+    _, slug, year, path = parts
+    rows = [r for r in (ctx.get("history") or {}).get("records", [])
+            if r.get("slug") == slug and str(r.get("year")) == year]
+    if len(rows) > 1:
+        raise SystemExit(f"history.json holds {len(rows)} records for {slug} {year}")
+    return _dig(rows[0], path) if rows else None
 
 
 def load_context(processed: Path) -> dict:
@@ -453,7 +508,7 @@ def load_context(processed: Path) -> dict:
     why that question was not being asked.
     """
     ctx: dict = {"summary": {}, "draws": [], "regimes": {},
-                 "files": {}, "reference": None}
+                 "files": {}, "reference": None, "processed": processed}
     summary = processed / REFERENCE_ARTEFACT
     if summary.exists():
         ctx["summary"] = json.loads(summary.read_text(encoding="utf-8"))
@@ -468,6 +523,13 @@ def load_context(processed: Path) -> dict:
     for path in sorted(processed.glob("validation_*.json")):
         ctx["validation"] = json.loads(path.read_text(encoding="utf-8"))
         ctx["files"]["validation"] = path
+    # The backtest of past elections, for `history:` tokens. Not entered in
+    # ctx["files"]: `freshness_problems` dates a file against the forecast
+    # run, and history.json is a different run (compare_history over the
+    # past elections), so "older than the forecast" says nothing about it.
+    hist = processed / "history.json"
+    if hist.exists():
+        ctx["history"] = json.loads(hist.read_text(encoding="utf-8"))
     for path in processed.glob("regime_*_summary.json"):
         rule = path.stem[len("regime_"):-len("_summary")]
         ctx["regimes"][rule] = json.loads(path.read_text(encoding="utf-8"))

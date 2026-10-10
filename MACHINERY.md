@@ -2343,16 +2343,21 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   forecast, sealed through the same `/seal/1` (`make.js` `setHandoff`: the
   hand-off seated in the seat Worker's `handoff` lane, its chance from
   `analyse`).
-  `forecastSpec` takes the seat law's answer, the chance and badge of the
-  reader's council-level outcome, the reader's vote, and forecast.json's
+  `forecastSpec` takes the seat law's answer, the chance of the reader's
+  council-level outcome and the badge of the forecast's boldest call, the
+  reader's vote, and forecast.json's
   `baseline` (the previous council election per roster party, from
   `build_make.baseline`); it adds no figure of its own. The council graphic's
   geometry (`councilLayout`, `stepPath`) is shared with the arrival view.
   Text is measured with the IBM Plex faces that draw it (`card-fonts.js`,
   generated from `src/card-fonts/` by `interactive/tools/card_fonts.mjs`).
 * **The chance and the badge** come only from Python:
-  `reweight.outcome_chance` (council_outcome, chance_text, and `boldness`,
-  JUDGEMENT-CALLS §N6). The page reaches it through `page.py`'s `analyse`;
+  `reweight.outcome_chance` (council_outcome and chance_text for the chance;
+  `boldest_call` and `boldness` for the badge and the call it names,
+  JUDGEMENT-CALLS §N10). The cards draw the owner's badge for the words
+  (`src/stamps/reader-*.svg`, served at `/stamps/`) through share-card.js
+  `stampSVG`, the one function that places a stamp, which prefixes the
+  stamp's internal ids per embed. The page reaches it through `page.py`'s `analyse`;
   the Worker through the seat Worker's `/v1/card`
   (`worker-api/seats-py/src/entry.py`), which seats the link's picks with
   `reader_seats` and reads the published draws from the site. A link's own

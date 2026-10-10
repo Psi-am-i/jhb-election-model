@@ -94,6 +94,27 @@ def load_lede(city_dir: Path) -> dict:
     return items[0]
 
 
+def load_intro(city_dir: Path) -> dict:
+    """content/<city>/home.toml's ``[intro]``: the introduction's heading and
+    paragraphs (owner-approved, 2026-10-10)."""
+    path = city_dir / "home.toml"
+    intro = tomllib.loads(path.read_text(encoding="utf-8")).get("intro")
+    if (not isinstance(intro, dict) or not isinstance(intro.get("heading"), str)
+            or not intro.get("paragraphs")
+            or not all(isinstance(p, str) for p in intro["paragraphs"])):
+        raise SystemExit(f"{path} must hold one [intro] with `heading` and `paragraphs`.")
+    return intro
+
+
+def _intro(city_dir: Path) -> str:
+    """The introduction, as written in home.toml: its heading as the section's
+    eyebrow and each paragraph as one. Its words carry markup (links) and
+    registry tokens, which the build resolves; nothing here is filled in."""
+    intro = load_intro(city_dir)
+    paras = "\n".join(f"  <p>{' '.join(p.split())}</p>" for p in intro["paragraphs"])
+    return f'  <div class="eyebrow">{html.escape(intro["heading"])}</div>\n{paras}'
+
+
 def fill_lede(template: str, values: dict, where: str) -> str:
     """``template`` with each ``{{lede_…}}`` replaced by its value. Refuses a
     placeholder it has no value for, rather than printing the braces."""
@@ -464,6 +485,7 @@ def main(argv: list[str] | None = None) -> int:
                         ROOT / "content" / city.slug))
     page = region(page, "HOMESEATS", _seats(summary, tok, city.processed))
     city_dir = ROOT / "content" / city.slug
+    page = region(page, "HOMEINTRO", _intro(city_dir))
     page = region(page, "HOMEARTICLES", _articles(city_dir))
     page = region(page, "HOMECLAIMS", _claims(city_dir))
     args.page.write_text(page, encoding="utf-8")

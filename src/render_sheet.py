@@ -74,6 +74,21 @@ SETTLED_VERDICTS = {"FALSE": "false", "TRUE": "true"}
 from stats import DECLARATION_MIN_CHARS as SETTLED_MIN_CHARS  # noqa: E402
 VERDICT_STEP = {**SETTLED_VERDICTS,
                 **{word: step for _edge, word, step in CHANCE_SCALE}}
+#: The owner's badge for each verdict (src/stamps/, drawn 2026-10-10), as the
+#: share images draw it (src/og_pages.py). Two files are named, and drawn,
+#: with words that differ from the verdict's: UNLIKELY's says QUITE UNLIKELY
+#: and A COIN FLIP's says COIN FLIP. tests/test_og_pages.py holds this table
+#: equal to VERDICT_STEP's words and to the files, both ways.
+VERDICT_BADGE = {
+    "FALSE": "verdict-false.svg", "TRUE": "verdict-true.svg",
+    "NEAR IMPOSSIBLE": "verdict-near-impossible.svg",
+    "EXTREMELY UNLIKELY": "verdict-extremely-unlikely.svg",
+    "UNLIKELY": "verdict-quite-unlikely.svg",
+    "A COIN FLIP": "verdict-coin-flip.svg",
+    "QUITE LIKELY": "verdict-quite-likely.svg",
+    "VERY LIKELY": "verdict-very-likely.svg",
+    "NEAR CERTAIN": "verdict-near-certain.svg",
+}
 
 
 def _printed_chance(p: float) -> float:

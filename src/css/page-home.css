@@ -43,6 +43,8 @@
   .kind-claim{--k:var(--k-claim);}
   .kind-explain{--k:var(--k-explain);}
   .kind-interactive{--k:var(--k-interactive);}
+  /* the introduction under the headline (content/joburg/home.toml [intro]) */
+  .home-intro p{max-width:68ch;margin:10px 0 0;line-height:1.55;}
   .two > .kind{margin-top:0;align-self:stretch;}
   .two.kinds{margin-top:28px;}
   @media (max-width:560px){.kind{padding:14px 14px 16px;border-radius:4px;}}

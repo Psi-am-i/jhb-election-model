@@ -11,6 +11,11 @@
 # "Since then" note and the original is never rewritten (PUBLISHING-BACKLOG §8).
 # `date` is the day it was published and is what the page shows.
 #
+# `og_headline` (optional): the words the page's share image sets large, where
+# they differ from `title` (src/og_pages.py). `og_visual` (optional): the
+# image's visual, "seat-ranges" (the largest parties' seat ranges from the
+# forecast's tokens); without one the image is the headline alone.
+#
 # `lead = true` marks the piece the home page runs as its lead. EXACTLY ONE may
 # carry it. Retiring a stale lead is moving that one line — which is the whole
 # reason the home page exists: before it, the article WAS the front page and a
@@ -32,6 +37,8 @@ share entitles it to — and nobody unseats a ward winner. The shortfall is take
 from every other party. The clause has fired exactly once before, in a Karoo
 town of seven seats."""
 href = "nobody-will-win"
+og_headline = "Nobody will win Johannesburg"
+og_visual = "seat-ranges"
 
 [[article]]
 date = "2026-08-08"

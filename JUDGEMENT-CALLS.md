@@ -3166,6 +3166,12 @@ those functions on the published draws for a constructed forecast. A
 different band changes only which chance is printed; nothing in the model
 reads it.
 
+**Amended 2026-10-10 (§N10).** The badge on a reader's forecast no longer
+reads `council_outcome`: it is judged by the forecast's boldest single call
+(`reweight.boldest_call`). The "this outcome" chance line in "Analyse my
+forecast", on the share cards and in the arrival view still prints
+`council_outcome`'s figure, unchanged.
+
 ### §N4 · The competition rule: seats, then ward calls, then vote (list ballot); and the seat line — ⚖️ owner's order, the line derived (2026-10-03)
 
 **Where.** `src/score_forecasts.py` (`seat_error`, `wards_called`,
@@ -3275,7 +3281,7 @@ wide; its section 2 moves include a party's vote set to 0, a typed vote over
 100, and a party from "Other parties" given its first seats. Nothing in the
 model reads this value.
 
-### §N6 · The boldness badge: Safe call at 20% or more, Bold call from 5% to under 20%, Wild call under 5% — ⚖️ owner's bands (2026-10-03)
+### §N6 · The boldness badge: Safe call at 20% or more, Bold call from 5% to under 20%, Wild call under 5% — ⚪ superseded 2026-10-10 by §N10
 
 **Where.** `reweight.BOLDNESS`, read only by `reweight.boldness`, which
 `reweight.outcome_chance` calls for `interactive/pyboot/page.py`'s `analyse`
@@ -3389,6 +3395,58 @@ or sixty seconds only.
 **How to check it.** `tests/test_entries.py` runs the limit at three and shows
 the fourth seal refused, another address and a new period passed, and a
 preview refused before it is counted.
+
+### §N10 · The reader's badge: the boldest single call, in five bands (45, 30, 15, 5%) — ⚖️ owner's measure and bands (2026-10-10)
+
+**Where.** `reweight.boldest_call` and `reweight.BOLDNESS`, read only by
+`reweight.boldness`; both called by `reweight.outcome_chance` for
+`interactive/pyboot/page.py`'s `analyse` and the seat Worker's card answer
+(`worker-api/seats-py/src/entry.py`, `/v1/card`). The share cards, the link
+preview and the arrival view on /your-forecast/ draw the owner's badge for
+the words they are handed (`src/stamps/reader-<words>.svg`, served at
+`/stamps/`) and name the call; no JavaScript computes either.
+
+**Now.** For each party whose seats in the reader's forecast differ from the
+model's middle forecast (`reweight.middle_seats`, each party's median seats
+over the published draws), the share of simulations at least that far out on
+the reader's side: `P(seats ≥ x)` when the reader's `x` is above the middle,
+`P(seats ≤ x)` when below. The smallest of these is the boldest call; the
+badge comes from it and the card names the party and its seats ("Boldest
+call: the PA at 38 seats."). A tie goes to the party first in the draws'
+column order. A party with no column in the draws holds no seats in any
+simulation, as in §N3.
+
+| badge | chance of the boldest call |
+|---|---|
+| Safe bet | 45% or more |
+| Steady as she goes | 30% to under 45% |
+| Long shot | 15% to under 30% |
+| Wild call | 5% to under 15% |
+| Hail Mary | under 5% |
+
+A chance exactly at an edge takes the higher band. A forecast equal to the
+middle forecast has no call and is a Safe bet. The badge reads the exact
+chance, not a printed one; the card prints no chance for the call, so no
+printed figure can disagree with it.
+
+**Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`:
+§N6's badge read §N3's council outcome, which on the published draws
+(model 7ea27c28) is near 46% for almost every forecast and 1.4% for the
+model's own middle forecast. The owner's words: "Our score is a little
+informational but mainly just fun. All forecasts get judged against the real
+result." The edges are the ones printed on his badges; nothing is fitted.
+
+**Known limit, accepted by the owner.** A forecast that moves every party a
+little takes its badge from some small party's tail: each simulation taken as
+a forecast scores a median of 1.0% this way (BADGE-DECISION.md). The share
+fixture's two readers both take theirs from a one-seat party.
+
+**How to check it.** `tests/test_reweight.py` holds the four edges, the
+measure on constructed draws, and the eight constructed forecasts of
+BADGE-DECISION.md's table re-measured on the published draws (it fails, and
+says to re-measure, when the published model is no longer 7ea27c28); and that
+every badge word has the owner's file and every file a word. Nothing in the
+model reads the badge.
 
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 

@@ -253,7 +253,9 @@ test("the card modules name no party, hold no party's colour, and compute no bad
     }
   }
   assert.ok(looked.length > 20, "the scan looked at the roster");
-  for (const [f, text] of files) for (const w of ["Safe call", "Bold call", "Wild call"]) assert.ok(!text.includes(w), `${f} types ${w}`);
+  // the badge words (reweight.BOLDNESS) and the retired ones
+  for (const [f, text] of files) for (const w of ["Safe bet", "Steady as she goes", "Long shot", "Wild call", "Hail Mary", "Safe call", "Bold call"])
+    assert.ok(!text.includes(w), `${f} types ${w}`);
   // it can see: a module that typed a party's code is caught
   const code = Object.keys(FIXTURE.parties).find(c => c.length > 2);
   assert.ok(new RegExp(`["'\\b]${code}["'\\b]`).test(`x = "${code}";`));
@@ -452,6 +454,7 @@ function fakeEnv({ seats = true, key = KEY } = {}) {
     "/your-forecast/parties.json": JSON.stringify(FIXTURE.parties),
     "/logo.svg": readFileSync(resolve(repo, "site/logo.svg"), "utf8") };
   const logos = new Set(readdirSync(resolve(repo, "site/logos")));
+  const stamps = new Set(readdirSync(resolve(repo, "src/stamps")));
   const asked = [];
   return { asked, env: {
     ...(key ? { SEAL_KEY: key } : {}),
@@ -460,6 +463,9 @@ function fakeEnv({ seats = true, key = KEY } = {}) {
       if (files[p]) return new Response(files[p], { status: 200 });
       const m = /^\/logos\/(.+)$/.exec(p);
       if (m && logos.has(m[1])) return new Response(readFileSync(resolve(repo, "site/logos", m[1])), { status: 200 });
+      // the owner's badges, served at /stamps/ from src/stamps/ (site_assets)
+      const st = /^\/stamps\/(reader-[a-z-]+\.svg)$/.exec(p);
+      if (st && stamps.has(st[1])) return new Response(readFileSync(resolve(repo, "src/stamps", st[1]), "utf8"), { status: 200 });
       return new Response("missing", { status: 404 });
     } },
     ...(seats ? { SEATS: { async fetch(u, init) {
@@ -484,7 +490,10 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   assert.match(EDGE.imageCache(card.sealed), /immutable/);
   assert.ok(svg.includes("Thandi's Election Forecast"));
   assert.ok(svg.includes(SC.chanceSentence(FIXTURE.A.answer.outcome.text).replace(/'/g, "'")));
-  assert.ok(svg.includes(">" + FIXTURE.A.answer.outcome.badge + "<"));
+  // the owner's badge for the outcome's words, embedded with its ids prefixed, and the call it judges
+  const badge = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(FIXTURE.A.answer.outcome.badge)), "utf8"));
+  assert.ok(svg.includes(SC.prefixIds(badge.body, "lb")));
+  assert.ok(FIXTURE.A.answer.outcome.boldest.party && svg.includes(">Boldest call: "));
   assert.ok(svg.includes("Sealed " + SC.localStamp(at, D.election)));
   assert.equal(asked.length, 1);
   assert.deepEqual(asked[0].coalition, FIXTURE.A.coalition);

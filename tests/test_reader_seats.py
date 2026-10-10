@@ -629,7 +629,12 @@ def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_dr
     assert got["seats"] == {"A": 5, "B": 3, "C": 2} and got["majority"] == 6
     # A largest, no majority alone, A + C reach 6: draws 0 and 2 have A
     # alone on top; in draw 2 A has 6 alone, so only draw 0 counts
-    assert got["outcome"]["p"] == 0.25 and got["outcome"]["badge"] == reweight.boldness(0.25)
+    assert got["outcome"]["p"] == 0.25
+    # the badge is the boldest call's (JUDGEMENT-CALLS §N10): middles A 5, B 4,
+    # C 2; B at 3 is below its middle, P(B <= 3) = 2/4
+    assert got["outcome"]["boldest"] == {"party": "B", "seats": 3, "middle": 4, "p": 0.5,
+                                         "text": reweight.chance_text(0.5)}
+    assert got["outcome"]["badge"] == reweight.boldness(0.5)
     assert got["outcome"] == reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"],
                                                      None, got["seats"], 6, ["A", "C"])
     assert got["draws_sha256"] == "ab" * 32
