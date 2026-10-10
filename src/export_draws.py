@@ -593,6 +593,13 @@ def write_index(root: Path) -> dict:
     rewritten without it first (:func:`public_manifest`); its ``base.bin`` is
     not opened. The polls carry their reader caveats (:func:`reader_polls`).
 
+    The cells are listed from least to most by-election weight
+    (:func:`order_bye_cells`), each with its ``bye_weight_range`` (the least
+    and greatest weight its run gave any party, :func:`bye_weight_range`) and
+    its ``bye_order``. ``w_bye`` stays the cell's override, ``None`` for the
+    published cell, whose weight is per class (BRIEF item 19); the page and
+    ``build_play`` order and compare by the range, never by ``w_bye``.
+
     ⚠️ THE CELLS ARE NOT PAIRED (measured 2026-09-30, MODEL-LOG §1.283): a
     `w_bye` override shifts the random stream after the first few draws, so
     draw i of one cell is not draw i of another. A weight computed on one
@@ -609,22 +616,16 @@ def write_index(root: Path) -> dict:
             # base.bin is not touched
             whole = public_manifest(whole)
             manifest.write_text(json.dumps(whole, indent=1), encoding="utf-8")
-        key = whole["artefact_key"]
-        cells.append({
-            "path": manifest.parent.relative_to(root).as_posix() or ".",
-            "overrides": key.get("overrides", []),
-            "w_bye": key["config"]["deduct"].get("w_bye"),
-            "code_sha256": key["code_sha256"],
-            # absent from a cell exported before S6; test_served_draws says so
-            "model_sha256": key.get("model_sha256"),
-            "published_run": (whole.get("published_run") or {}).get(
-                "model_run_id"),
-            "draws": key["draws"],
-            "seed": key["seed"],
-        })
+        cells.append(index_cell(whole,
+                                manifest.parent.relative_to(root).as_posix() or "."))
     if len({c["code_sha256"] for c in cells}) > 1:
         raise SystemExit("the cells were exported by different code; re-export "
                          "them together so the page compares like with like")
+    # The page and /play/ show the cells in this order (one definition:
+    # `order_bye_cells`), each carrying its position.
+    cells = order_bye_cells(cells)
+    for i, c in enumerate(cells):
+        c["bye_order"] = i
     # The poll set the page offers, selected here at build time by the one
     # definition (`reweight.page_polls`), so the browser need not import the
     # model to apply the screening rules. Records carry `asof`.
@@ -648,6 +649,65 @@ def write_index(root: Path) -> dict:
                      "across cells by draw index"}
     (root / "index.json").write_text(json.dumps(index, indent=1) + "\n")
     return index
+
+
+def index_cell(manifest: dict, path: str) -> dict:
+    """One cell's row in ``index.json``, from its manifest."""
+    key = manifest["artefact_key"]
+    w_bye = key["config"]["deduct"].get("w_bye")
+    return {
+        "path": path,
+        "overrides": key.get("overrides", []),
+        "w_bye": w_bye,
+        "bye_weight_range": bye_weight_range(manifest.get("bye_weight"), w_bye),
+        "code_sha256": key["code_sha256"],
+        # absent from a cell exported before S6; test_served_draws says so
+        "model_sha256": key.get("model_sha256"),
+        "published_run": (manifest.get("published_run") or {}).get(
+            "model_run_id"),
+        "draws": key["draws"],
+        "seed": key["seed"],
+    }
+
+
+def bye_weight_range(bye_weight: dict | None, w_bye) -> list[float]:
+    """A cell's effective by-election weight: ``[least, greatest]`` over the
+    weights its run gave each party (the manifest's ``bye_weight``, BRIEF item
+    19).
+
+    The published cell has ``w_bye = None`` and per-party class weights, which
+    differ between classes when the measured weights do, so one number cannot
+    stand for it; the range can, and it is a single point for an override cell
+    (every party at the override). A manifest with no ``bye_weight`` was
+    exported before item 19, when ``w_bye`` was the one weight for every party,
+    and its range is that point. A derived cell whose run weighed no party
+    gave by-elections no weight: ``[0, 0]``.
+    """
+    weights = [float(v["weight"]) for v in (bye_weight or {}).values()]
+    if weights:
+        return [min(weights), max(weights)]
+    if w_bye is not None:
+        return [float(w_bye), float(w_bye)]
+    return [0.0, 0.0]
+
+
+def order_bye_cells(cells: list[dict]) -> list[dict]:
+    """The by-election cells from least to most weight, the one order the page
+    and ``build_play`` use.
+
+    Sorted by :func:`bye_weight_range` (least weight, then greatest), never by
+    ``w_bye``, which is ``None`` for the published cell. A cell with no
+    ``bye_weight_range`` (an index written before the field) is read from its
+    ``w_bye``. On a tie the published cell (``"."``) sits between the cells
+    either side of it: an override of 0 before it, any other override after,
+    so with every class weight at 0 the "not at all" cell still comes first and
+    the published one stays in the middle.
+    """
+    def key(c: dict):
+        lo, hi = c.get("bye_weight_range") or bye_weight_range(None, c["w_bye"])
+        tie = 1 if c["path"] == "." else (0 if c["w_bye"] == 0 else 2)
+        return (lo, hi, tie, c["path"])
+    return sorted(cells, key=key)
 
 
 def byelection_index(bye_path: Path, bye_weight: dict) -> list[dict]:

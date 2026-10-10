@@ -658,5 +658,61 @@ def test_the_reported_bye_weight_is_the_one_blended_centres_applied():
                for r in E.byelection_index(bye_path, wrong))
 
 
+
+def _cell_manifest(w_bye, bye_weight=None) -> dict:
+    """A constructed cell manifest: only the fields ``index_cell`` reads."""
+    m = {"artefact_key": {"config": {"deduct": {"w_bye": w_bye}},
+                          "overrides": [] if w_bye is None else [f"w_bye={w_bye}"],
+                          "code_sha256": "c", "draws": 10, "seed": 1}}
+    if bye_weight is not None:
+        m["bye_weight"] = bye_weight
+    return m
+
+
+def test_the_cells_order_and_compare_by_effective_weight_not_w_bye():
+    """Fix row 2 of the M4 review (BRIEF item 19). The published cell's
+    ``w_bye`` is ``None``; its weight is the per-party class weights in its
+    manifest's ``bye_weight``. On constructed manifests: the index orders the
+    cells by that effective weight, the published cell in the middle, and
+    ``build_play.bye_ends`` labels the override cells at either end by their
+    side of it. Three cases: class weights strictly inside (0.2, 0.7); every
+    class weight 0, which ties the published cell with the "not at all" cell;
+    every class weight 1, the tie at the other end. A cell exported before
+    item 19 (no ``bye_weight``, numeric ``w_bye``) is ordered by its
+    ``w_bye``. No file and no model run."""
+    import build_play
+    over = lambda w: {"A": {"weight": w, "class": "override"},  # noqa: E731
+                      "B": {"weight": w, "class": "override"}}
+    for under, at_or_over in ((0.2, 0.7), (0.0, 0.0), (1.0, 1.0)):
+        published = _cell_manifest(None, {
+            "A": {"weight": under, "class": "under"},
+            "B": {"weight": at_or_over, "class": "at_or_over"}})
+        # deliberately listed out of order
+        cells = [E.index_cell(_cell_manifest(1, over(1.0)), "w_bye-1"),
+                 E.index_cell(published, "."),
+                 E.index_cell(_cell_manifest(0, over(0.0)), "w_bye-0")]
+        assert cells[1]["w_bye"] is None
+        assert cells[1]["bye_weight_range"] == [min(under, at_or_over),
+                                                max(under, at_or_over)]
+        ordered = [c["path"] for c in E.order_bye_cells(cells)]
+        assert ordered == ["w_bye-0", ".", "w_bye-1"], (under, ordered)
+        ends = [(label, c["path"]) for label, c in
+                build_play.bye_ends(E.order_bye_cells(cells))]
+        assert ends == [("Fully", "w_bye-1"), ("Not at all", "w_bye-0")], ends
+    # an index written before item 19: no range, ordered by w_bye
+    old = [{"path": p, "w_bye": w} for p, w in
+           (("w_bye-1", 1), (".", 0.4), ("w_bye-0", 0))]
+    assert [c["path"] for c in E.order_bye_cells(old)] == ["w_bye-0", ".", "w_bye-1"]
+    assert E.bye_weight_range(None, 0.4) == [0.4, 0.4]
+    assert E.bye_weight_range({}, None) == [0.0, 0.0]
+    # it can see: ordering by w_bye, as before the fix, cannot order the
+    # published cell at all
+    try:
+        sorted(cells, key=lambda c: c["w_bye"])
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("w_bye ordered a cell whose w_bye is None")
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
