@@ -685,3 +685,126 @@ bounds; panel identity; the two inertness checks exactly.
 | the PA's spine level falls to 2.2-2.7% under item 16 | SPEC R2.1, R2.5 P16 | the window rule gives h = inf at every target (§1.2) |
 | the PA/Coloured tripwire pair fires above 25% (O1) or under 10% (P16) of draws | SPEC O1, §6, R2.5 | it cannot fire under the owner's rule (M3) |
 | arm E equals arm D on every centre and draw | `M4-SUMMARY.md`, step 9 brief | true of D at weight 0 (D0); D at the pre-item-19 weight 0.4 differs at 2026 (P19) |
+
+---
+
+## Amendments before any run (2026-10-10)
+
+Appended after the blind review of 3170ede and before any arm has been emitted
+or run. Nothing above is edited; where an item below restates a prediction,
+this section's version is the one scored.
+
+**A1. P17: the item-8 parties' width does not widen for every party.**
+"which is wider" is false for UIM. Re-derived at `acbd9f8` (`levels.theta_prior`
+on the §1.1 inputs, `h = inf`, fit slope −0.4546, intercept −4.756;
+`levels.size_sd` at each party's 2021 list share), against `level_sd_default`
+0.45: SHOSHOLOZA_PROGRESSIVE_PARTY 0.674, AMALGAMATED_RAINBOW_MOVEMENT 0.599,
+ECONOMIC_EMANCIPATION_FORUM 0.557, CHANGE 0.555, THE_ORGANIC_HUMANITY_MOVEMENT
+0.541 (wider); INTERNATIONAL_REVELATION_CONGRESS 0.457 (wider by under 0.01);
+UIM 0.423 (narrower). The coordinator's re-derivation gave the same values to
+three decimals (IRC 0.458). Scored party by party: in C16 all seven are in
+`41_guards.level_sd_default_parties` at 0.45; in D each carries the value above
+in `41_guards.level_sd_at_size`, within ±0.005. Holds: all seven. Falsified: any
+party absent from either record or outside ±0.005. The seat clause of P17 for
+these parties stands.
+
+**A2. Middle regions for the seat-error clauses.** Three outcomes for each:
+
+| clause | holds | inconclusive (neither) | falsified |
+|---|---|---|---|
+| P8, coherent seat error summed over the panel, B8 − A | −12 to 0 | +1 to +4, or below −12 | above +4 |
+| P6 / `PREREG-ward-list-fix.md` B3, B6 − A | −15 to 0 | +1 to +4, or below −15 | above +4 |
+
+A fall larger than the bound is inconclusive rather than confirming: it is more
+than the mechanism's account covers and is investigated before it is reported.
+P8's bound is 0-12 against SPEC §6's 0-6 because the population is the
+re-measured one: 20 city-years and 12.95 points of entered previous-LGE list
+share summed over them (§1.1), against SPEC's 12 city-years and 3.22 points.
+The bound scales by less than the mass because much of the entered mass sits in
+large councils where 1% is under three seats. B3's bounds are that file's.
+
+**A3. Predictions already known before writing.** Each line below was measured,
+or holds by construction, before this document was written. Each is still
+scored (a failure is a finding), but none counts toward a tally of confirmed
+predictions.
+
+| prediction | why it is not blind |
+|---|---|
+| P16: every window infinite; C16 identical to C | windows measured, §1.2 and the R3.6 M3 fix-round addendum |
+| P19: E identical to D0; the `bye_weight_mode` and `BYE_MIN_WEIGHT` inertness checks | both class weights measured 0 (MODEL-LOG §1.295); the blend is entered only when `w > 0` |
+| P19: E identical to D on the panel | backtest targets' processed directories hold no by-election deltas file (`cityconfig.py` ~382), so `bye` is empty |
+| P12 clause 1 (record present or absent changes no draw) | M3 review measured it at 200 draws |
+| P12: `PA\|Coloured` does not fire | cannot fire by construction under the owner's rule (M3) |
+| P8: `roster_unrepresented` lists | measured, §1.1 |
+| P8: the seven's 2026 list share 0.2-0.5% | M2 reviewer measured 0.42% |
+| P6: F1-F6 and B1-B4 | measured on the prototype in the investigation (BRIEF item 6, `FINDINGS.md`) |
+| E1: `artefact_key` identical in B0 | none of the hashed files differs between 597ec38 and 954086b (read) |
+| P2: the Johannesburg 2016 tie | recorded in MODEL-LOG §1.291 |
+| P1: class item 2 non-empty | M1 review measured 5 of 5,000 published councils |
+
+**A4. SPEC P9 and P10 were restated without a dated note; this is that note.**
+SPEC §6 scored item 9 on "B0 + item 9" and item 10 as "bit-identical draws"
+between arms. No arm in R2.5's list isolates item 9 or item 10 (source: R2.5's
+arm list; the step 9 brief's item-10 wording), so §4 left both argued. Item 10's
+checkable part is now scored:
+- every run of every arm reports `02_pools_artefact.stale_reason` null;
+- in each W-based tree (B, C, C16, E), after its emit,
+  `tests/test_stage_inputs.py::test_a_current_spec_is_not_refused`,
+  `test_a_spec_with_a_moved_pools_sha_stops_the_run` and
+  `test_a_staleness_check_that_raises_stops_the_run` pass (G10: a constructed
+  stale spec refuses).
+Holds: both. Falsified: any non-null `stale_reason`, or any of the three tests
+failing or skipping. "Bit-identical draws from item 10" stays argued.
+
+**A5. P19, E against D, restated against E's own inputs.**
+- The All Citizens Party and Truth and Solidarity are seeded arrivals. At weight
+  0 a seeded party's `30_centres` level is its seed (by construction:
+  `blended_centres` gives a seeded arrival `mode_level = base`, and no tilt is
+  applied). Scored: in E, each one's `30_centres` level equals the seed in E's
+  own `pools_2026.json` within ±1% of that seed (relative); in D each is above
+  its E value (argued from the sign of their weighted deltas as SPEC R2.5 read
+  them from `byelection_party_deltas.csv`).
+- The All Citizens Party's mean seats in E are under 0.2. Argued: at its seed
+  (0.036% in the pre-window spec, read) a seat needs a draw of about ten times
+  its centre. "from about 2" is withdrawn: it was the published model's value.
+- "The DA's and MK's weighted deltas no longer reach their centres" is true by
+  construction at weight 0, and is moved to A3's class: not counted.
+- The direction clause (PA down, DA down, ANC up in mean seats, E against D)
+  stands as the only blind part of this block.
+
+**A6. The B8 recipe, made exact.** The resolution in §3.2 as written produces a
+338-line diff (`d0897b37…`). The stated hash `eea149ebfa404314…` (341 lines) is
+the authority, and is produced when the resolution also (a) leaves two blank
+lines before `def local_record_only(`, and (b) writes the second guard key as
+03e0b3c formats it, on two lines:
+`"level_sd_default_parties": sorted(` / `    p for p in draw_target.level_sd_default if p in index),`.
+A tree whose diff hash is not `eea149ebfa404314…` is not arm B8.
+
+**A7. Arm A's specs are saved and verified.** The reviewer verified that the
+pre-batch specs are current under 597ec38's key at all 25 targets. They are
+saved at `data/arms/A-specs-pre-batch/` with `SHA256SUMS` (27 files) and in
+`backups/2026-10-10T052034Z`. Arm A reads them from
+`data/arms/A-specs-pre-batch/`, copied into its tree, checked against
+`SHA256SUMS` before its first run. §2's "copied before the window" is met by
+this copy.
+
+**A8. Two clarifications of status.**
+- P6: if B6 misses the 16.85 ± 0.5 or −0.19 ± 0.1 implementation check, the
+  arm is investigated before any P6 line is scored; the check does not become a
+  prediction, and a miss is not scored as one.
+- P13: in B the SACP is a seeded generic entrant, so its `30_centres` level is
+  the seed in B's own `pools_2026.json` (by construction; scored as equal within
+  ±1%). The range 0.06-0.10% for that seed is sized from §L13's earlier
+  measurement of the entrant route, which is a model output; it is labelled so
+  and is not counted as confirmed.
+
+**A9. B, C and C16 restore `level_sd_default`.** The owner deleted it at M3
+(6074382). These three arms put it back because without item 17 a no-record
+party has no other width. They are intermediate code states for attribution;
+none is shipped, and nothing in them is a proposal to restore the constant.
+
+**A10. B8's `extra` refusal on a 597ec38 base.** B8 runs
+`roster_universe_check`, whose `extra` direction refuses a universe party not
+on the roster. The §1.1 composition found `extra` empty at all 25 targets, but
+B8 was build-tested at two targets only (§1.4). If B8 refuses at any
+city-year, the arm is stopped and reported; it is never patched to proceed.
