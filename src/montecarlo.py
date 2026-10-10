@@ -30,7 +30,8 @@ This is a rewrite of the first implementation, fixing the review findings:
   overhang expands the council and moves the majority threshold (plan §3.7
   step 5). Threshold is per-draw, not a constant 136.
 * **E4** — by-election evidence (`byelections.py`, plan §3.6) tilts each
-  party's central level at weight ``w_bye``, clamped to §3.5's ranges so a
+  party's central level at its size class's measured weight (``bye_value.py``,
+  BRIEF item 19; ``w_bye`` overrides it), clamped to §3.5's ranges so a
   concentrated party's stronghold deltas cannot claim an absurd citywide
   level (the A4 selection caveat, enforced numerically). A polling lever
   spans the SRF↔Ipsos disagreement (§8.3): ±1 moves the pool modes ±4 points,
@@ -146,7 +147,15 @@ DEFAULTS: dict = {
     # 2026-08-17 once CLASS 12 showed it was computed, passed to `pool_spec`
     # as an argument that function never read, and printed. Three appearances,
     # no effect. See MODEL-LOG §1.35.
-    "w_bye": 0.40,
+    #
+    # ⛔ NONE MEANS DERIVED (BRIEF item 19, 2026-10-10). The weight each party's
+    # by-election evidence gets is its size class's weight from
+    # `data/processed/bye_value.json` (`src/bye_value.py`, JUDGEMENT-CALLS
+    # §A55): the measured out-of-sample increment over the model's own
+    # baseline, 0 where none is measurable. A NUMBER here is an override for
+    # sweeps and the reader page's cells, applied to every party and recorded
+    # (`w_bye.override`). It replaced the typed 0.40 (§A35, superseded).
+    "w_bye": None,
     # HOW the by-election reading is weighed against the spine. "fixed" is
     # w_bye above, typed and untested. "inverse_variance" DERIVES it from the
     # two estimates' own precisions — the minimum-variance combination, which
@@ -482,8 +491,9 @@ def triangular(rng, spec, size=None):
 # 0.02% — two orders of magnitude more room for the surprise this model has
 # repeatedly been surprised by.
 # THE ADMISSION GATE ON THE WHOLE BY-ELECTION CHANNEL, promoted from an
-# inline literal 2026-08-22 (MODEL-LOG §1.69). `w_bye` = 0.40 is registered at
-# 🔴 as "live in the 2026 forecast, untested by anything here" — and the
+# inline literal 2026-08-22 (MODEL-LOG §1.69). `w_bye` was then a typed 0.40,
+# 🔴 as "live in the 2026 forecast, untested by anything here" (since
+# 2026-10-10 it is derived per size class, §A55) — and the
 # threshold deciding whether it fires for a given party was a bare `30` in the
 # function body, in the same untestable branch and with the same reach into the
 # published forecast. Below this many weighted contests the by-election
@@ -2004,6 +2014,82 @@ def load_scenario(args) -> dict:
 # evidence blending (E2 + E4)
 # --------------------------------------------------------------------------
 
+def bye_value_path() -> Path:
+    """Where ``src/bye_value.py --emit`` writes the item-19 weights."""
+    return (Path(__file__).resolve().parents[1] / "data" / "processed"
+            / _byelections.BYE_VALUE)
+
+
+def read_bye_value(path: Path | None = None) -> dict:
+    """The by-election class weights (BRIEF item 19), or a refusal.
+
+    Refuses (``SystemExit``) a missing file and a file whose
+    ``artefact_key`` is not the live ``byelections.bye_value_key``: a weight
+    measured by other code, on another by-election file or under another
+    ward/PR clip is a weight set somewhere else (the same class as a stale
+    pool spec). Called by ``run_model`` only where the target reads
+    by-elections and ``w_bye`` is not overridden. Returns ``{"weights":
+    {class: w}, "artefact_key": ..., "path": ...}``.
+    """
+    path = bye_value_path() if path is None else Path(path)
+    if not path.exists():
+        raise SystemExit(
+            f"{path} is missing. This target reads by-elections and w_bye is "
+            f"derived (BRIEF item 19): build the weights with "
+            f"`src/bye_value.py --emit` in a re-emit window, or override "
+            f"w_bye for a sweep (--set w_bye=<number>).")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    live = _byelections.bye_value_key((WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX))
+    named = payload.get("artefact_key") or {}
+    if named != live:
+        moved = sorted(k for k in set(live) | set(named)
+                       if live.get(k) != named.get(k))
+        raise SystemExit(
+            f"{path} is stale: its artefact_key differs from the live one in "
+            f"{moved}. Rebuild it with `src/bye_value.py --emit` (BRIEF item "
+            f"19); a weight from other code or data is not this model's.")
+    weights = payload.get("weights") or {}
+    if set(weights) != set(_byelections.SIZE_CLASSES) or not all(
+            isinstance(v, (int, float)) and v >= 0 for v in weights.values()):
+        raise SystemExit(f"{path}: weights {weights!r} do not name one "
+                         f"non-negative weight per class "
+                         f"{_byelections.SIZE_CLASSES}")
+    return {"weights": {k: float(v) for k, v in weights.items()},
+            "artefact_key": named, "path": str(path)}
+
+
+def bye_class_size(party: str, prior_pr_share: dict[str, float],
+                   base_city: dict[str, float]) -> float:
+    """The size a party's by-election class is read at (SPEC R2.4): its
+    previous-LGE list share, or, with none, its share in the run's baseline
+    (the national election before the target; a seeded arrival's seed)."""
+    share = float(prior_pr_share.get(party, 0.0) or 0.0)
+    return share if share > 0 else float(base_city.get(party, 0.0) or 0.0)
+
+
+def bye_weight(scenario: dict, party: str, prior_pr_share: dict[str, float],
+               base_city: dict[str, float]) -> tuple[float, str]:
+    """The weight one party's by-election evidence gets, and where it came from.
+
+    ``scenario["w_bye"]`` is read with no default. A number is an override,
+    the same for every party (``"override"``). ``None`` is derived: the
+    party's class (``byelections.size_class`` at :func:`bye_class_size`)
+    weight from ``scenario["_bye_value"]``, which ``run_model`` fills from
+    :func:`read_bye_value`; absent, it is read here, so a direct call refuses
+    a missing or stale file exactly as a run does.
+    """
+    w = scenario["w_bye"]
+    if w is not None:
+        return float(w), "override"
+    value = scenario.get("_bye_value")
+    if value is None:
+        value = read_bye_value()
+        scenario["_bye_value"] = value
+    cls = _byelections.size_class(bye_class_size(party, prior_pr_share,
+                                                 base_city))
+    return float(value["weights"][cls]), cls
+
+
 def blended_centres(
     scenario: dict,
     base_city: dict[str, float],
@@ -2017,9 +2103,18 @@ def blended_centres(
     with meaningful by-election weight, the implied level (the previous LGE's PR
     share + weighted delta) is clamped to §3.5's range — a concentrated party's
     stronghold swing cannot claim an absurd citywide level — and blended in at
-    w_bye. Returns the centres and a note per adjusted party for the report.
+    the party's by-election weight (:func:`bye_weight`: its size class's
+    measured weight, or a ``w_bye`` override). Returns the centres and a note
+    per adjusted party for the report; the weight each party with evidence
+    was given is ``scenario["_bye_weight"]`` and the ``30_centres`` trace's
+    ``bye_weight``.
     """
-    w = scenario["w_bye"]
+    # Read with no default: a scenario without the key fails here, not as 0.
+    w_override = scenario["w_bye"]
+    if w_override is not None:
+        note_value(scenario, "w_bye.override", w_override,
+                   where="montecarlo:blended_centres", kind="consulted")
+    bye_weights: dict[str, dict] = {}
     notes: dict[str, str] = {}
     centres: dict[str, float] = {}
     prior = scenario.get("theta_prior") or {}
@@ -2107,6 +2202,10 @@ def blended_centres(
                 f"See MODEL-LOG §1.52.")
 
         centre = mode_level
+        w = 0.0
+        if party in bye:
+            w, _cls = bye_weight(scenario, party, prior_pr_share, base_city)
+            bye_weights[party] = {"weight": w, "class": _cls}
         if party in bye and w > 0:
             weight_sum, delta = bye[party]
             # The SPREAD beside the mean: how many contests, and how far apart
@@ -2334,9 +2433,9 @@ def blended_centres(
                     + (f", {_n_bye} contests sd {_sd_bye:.1%}" if _n_bye
                        else "")
                     + (f", clamped to {clamped:.1%}" if clamped != implied else "")
-                    + (f", w_bye {w})" if w_used == w
+                    + (f", w_bye {w} {_cls})" if w_used == w
                        else f", w_bye {w_used:.3f} derived from "
-                            f"sd_bye/sd_spine, typed {w})")
+                            f"sd_bye/sd_spine, class weight {w} {_cls})")
                 )
         centres[party] = centre
     # F35 — THE LOOP IS OVER `base_city`, SO A `poll_levels` ENTRY FOR A PARTY
@@ -2371,6 +2470,9 @@ def blended_centres(
             f"renormalises over this membership at level_shrink="
             f"{scenario.get('level_shrink')}, so this moved every party. See "
             f"the comment above — the repair spans three places or it is none.")
+    # THE WEIGHT EACH PARTY WITH BY-ELECTION EVIDENCE WAS GIVEN (BRIEF item 19),
+    # and its class or "override". Record only; `export_draws` reports it.
+    scenario["_bye_weight"] = bye_weights
     before = dict(centres)
     centres = compress_levels(centres, scenario)
     if trace:
@@ -2386,6 +2488,7 @@ def blended_centres(
             "level_shrink": scenario.get("level_shrink"),
             "level_shrink_scale": scenario.get("level_shrink_scale"),
             "route_notes": notes,
+            "bye_weight": bye_weights,
         })
     return centres, notes
 
@@ -5170,6 +5273,16 @@ def run_model(target, scenario: dict,
                 _spread[row["party"]] = (int(row.get("contests") or 0),
                                          float(row.get("delta_sd") or 0.0))
             scenario["_bye_spread"] = _spread
+    # THE WEIGHT IS DERIVED (BRIEF item 19). A target that reads by-elections
+    # with no `w_bye` override needs the measured class weights, and a missing
+    # or stale `bye_value.json` stops the run here rather than at the first
+    # party (same class as a stale pool spec). Read once; `blended_centres`
+    # takes them from the scenario.
+    if bye and scenario["w_bye"] is None:
+        scenario["_bye_value"] = read_bye_value()
+        note_value(scenario, "bye_value.weights",
+                   scenario["_bye_value"]["weights"],
+                   where="montecarlo:run_model -> read_bye_value")
     # --- polls, for the parties nothing else can see (task #23) ------------
     # ONLY arrivals. An established party has a record and the spine uses it;
     # a poll is a competing estimate of the same quantity there and blending
@@ -5493,7 +5606,7 @@ def run_model(target, scenario: dict,
         print(f"target {target.year} ({target.date}), council {target.council}, "
               f"base {cityconfig.resolve_path(target.results(target.previous_npe)).name}, "
               f"γ fold {fold}, wards from {parts_source}")
-        print(f"w_bye {scenario['w_bye']}, "
+        print(f"w_bye {scenario['w_bye'] if scenario['w_bye'] is not None else 'derived (bye_value.json)'}, "
               f"turnout blend {scenario['turnout_pattern_blend']} "
               f"± {scenario['turnout_blend_jitter']} (σ {scenario['turnout_noise_sd']}), "
               f"entrant P {scenario['entrant_prob']}")

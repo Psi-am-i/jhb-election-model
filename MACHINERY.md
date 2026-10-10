@@ -389,7 +389,7 @@ touched.
 | Per-party spread | `levels.theta_prior` | MEASURED size-dispersion line | 0.19 at 40% of the vote rising to ~0.9 at 0.1% |
 | by-election deltas | `byelections.py` | MEASURED, contests before the target | **inert in every backtest** — the scrape covers 2022-06 to 2026-02 only |
 | ward→PR conversion of the delta | `montecarlo.blended_centres` | MEASURED out-of-sample | the delta is a within-ward change on the **ward** ballot and the level it joins is on **PR**, so it is divided by the party's measured ward/PR ratio — on the population and clip `ward_pr_ratios` already uses (`pc > 0.001`, `[0.5, 2.0]`). Additive below that: the ratio is then a quotient of two noisy numbers. §1.113, §1.114 |
-| `w_bye` = 0.40 | DEFAULTS | **JUDGED** | live in 2026, untestable historically |
+| by-election weight per size class | `bye_value.py` → `montecarlo.bye_weight` | **MEASURED** against the 2024 provincial ballot, leave one metro out (JUDGEMENT-CALLS §A55) | a cross-ballot test on the whole record; 0 where no gain is measurable. `w_bye` (DEFAULTS `None`) overrides it for sweeps. Was a typed 0.40 (§A35) |
 | **Metro polls** | `polling.py` | DECLARED decomposition + inverse-variance blend | σ is `_sigma_total` — sampling + σ_common² + σ_idio²/H_eff + screen² + drift² + σ_volatility², and **only σ_idio shrinks with houses**. Adopted 2026-08-24 (§1.91), replacing the measured 3.03pp Ipsos-2016 track record, which could not say which part of the error more houses would remove |
 | Several waves | `polling.aggregate` | recency-weighted, 120-day half-life | combined ONCE; applying them in sequence let the oldest win |
 | Admission | `polling.usable_for` | rules, not judgement | must be dated, must declare its election (or fall inside 550 days), must NAME ITS CITY, and party-commissioned polls are excluded |
@@ -1107,8 +1107,11 @@ in proportion to it — ActionSA's ×36 would have produced a 95th percentile at
 7.7% of its own mean. JUDGEMENT-CALLS §L2, §1.178.
 
 Two things are switched ON but cannot be exercised by any backtest, and must be
-labelled as argued rather than tested wherever they are quoted: `w_bye` (the
-by-election scrape covers 2022-06 to 2026-02, so no past target has any) and the
+labelled as argued rather than tested wherever they are quoted: the by-election
+weights (the scrape covers 2022-06 to 2026-02, so no past target has any; since
+2026-10-10 each class's weight is measured against the 2024 provincial ballot by
+`bye_value.py`, a cross-ballot test, and a missing or stale `bye_value.json`
+stops a run that reads by-elections) and the
 15% under-bias correction on the first-local-election path (**42** of its 45 cases
 fall at 2021, so a backtest there has one prior case to fit on) — the latter
 identified but NOT applied.

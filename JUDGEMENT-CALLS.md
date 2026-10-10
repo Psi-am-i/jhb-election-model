@@ -195,7 +195,7 @@ promotion note in §F.
 | `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` | 0.02, 0.95 | — | 0.02 / 0.95, applied per draw. They contradict §C's claim that the turnout band 'removes caps rather than adding one'; whether the ceiling ever binds is unmeasured. | 🔴 | §F34 |
 | `turnout_noise_sd`, `turnout_blend_jitter` | 0.08, 0.25 | — | Typed; ~0.003 citywide, i.e. nothing. | 🟡 | §F23 + §A41 |
 | `turnout_pattern_blend` / `turnout_blend_jitter` / `turnout_noise_sd` | 0.5 / 0.25 / 0.08 | `montecarlo.py` | Typed. The citywide effect of the 0.08 is ~0.003, i.e. nothing — but see §G-R5: the turnout knobs move 46 ward wins, so the citywide null is not the whole story. | 🟡 | §A41 + §F23 |
-| `w_bye` | 0.40 | `montecarlo.py` | Typed at 0.40, live in the 2026 forecast and inert in every backtest. Only the 2026 result can bound it. | 🔴 | §A35 |
+| `w_bye` | None (derived) | `montecarlo.py` | **SUPERSEDED 2026-10-10 by §A55.** Each party's by-election weight is its size class's weight from `bye_value.json`; a number in `w_bye` is a sweep override for every party, recorded. Was: typed at 0.40. | — | §A35 |
 | `w_bye_local_ward` / `w_bye_local_pr` | 0.0 / 0.0 | `montecarlo.py` | Built and disabled at 0.0 / 0.0. Untestable for the same reason as `w_bye`. | 🟡 | §A37 + §F25 |
 | `w_bye_local_ward`, `w_bye_local_pr` | 0.0, 0.0 | — | Built, disabled, untestable. | 🟡 | §F25 + §A37 |
 | `w_recency` | 0.70 | `turnout.py --w-recency` | 0.70, verbatim from the original plan. It reaches the model through 20 committed `turnout.csv` files that carry no artefact key, so changing it does nothing until someone re-runs the script. | 🔴 | §H2 |
@@ -672,21 +672,11 @@ too high. It cannot be changed on [your forecast](your-forecast/).
 
 **Record.** **CONSIDERED AND REFUSED 2026-08-28, with the measurement.** Leave-one-contest-out on the by-election data — the only out-of-sample test this channel will ever have before an election — gives RMSE **36.46pp against uniform's 24.66pp**. The aggregate hides the reason: it *helps* ANC, EFF, MK and AIC and is catastrophic for the **DA (47.30 → 78.98pp)**, because turnout sensitivity is **party-specific and signed** — DA **−0.925**, EFF **+0.842**, ANC **+0.720**. A uniform ratio applies one sign to every party. A PER-PARTY sensitivity is worth pre-registering; the uniform form is not. §1.122
 
-### §A35 · `w_bye` — 0.40 — 🔴
+### §A35 · `w_bye` — 0.40 — SUPERSEDED 2026-10-10 by §A55
 
-**Plain — How much recent by-elections count.** A party's swing in the
-by-elections held since the last local election is applied to its last local
-result. The result is held within a set range where the party has one, and
-blended into its expected share at a weight of 40%; the rest comes from its
-national and local record. The same weight applies to every party. The
-alternative, built and not used, gives each party its own weight from how many
-by-elections it fought, how much they varied and how uncertain its record is;
-some parties would get almost no by-election weight and others more than 40%.
-The by-election data starts in 2022, so no past election can test the weight or
-the choice between the two rules, and only the November result will. We kept the
-simpler rule. A higher weight moves parties toward their by-election swings. On
-[your forecast](your-forecast/) by-elections can count not at all, partly as the
-forecast does, or fully. The rule stays the same.
+**SUPERSEDED 2026-10-10 (BRIEF item 19).** `DEFAULTS["w_bye"]` is `None`: each party's by-election evidence is weighted by its size class's weight, measured by `src/bye_value.py` and read from `data/processed/bye_value.json` (§A55). A number in `w_bye` remains as an override for sweeps and for the reader page's cells; it applies to every party and is recorded as `w_bye.override`. A missing or stale `bye_value.json` at a target that reads by-elections stops the run. The text below describes the typed 0.40 it replaced; the reader-facing paragraph is the site's and changes with the next publication.
+
+*(Its reader-facing Plain field moved to §A55 on 2026-10-10: a retired call is not shown to a reader as a live choice.)*
 
 **Where.** `montecarlo.py`
 
@@ -997,6 +987,18 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 
 ### §A55 · the by-election value test — `BYE_CLASS_EDGE` 1% · leave one metro out · 5th percentile of `BYE_VALUE_RESAMPLES` 2,000 · `BYE_VALUE_MIN_PAIRS` 10 — 🟡
 
+**Plain — How much recent by-elections count.** A party's swing in the
+by-elections held since the last local election can move its expected share.
+How far is measured, not chosen. We checked whether by-election swings before
+the 2024 national election predicted that election's result better than the
+model did without them, separately for small parties and larger ones. A group of parties gets weight only if
+the improvement held when each metro was left out in turn and across resampled
+sets of metros; otherwise its by-elections count for nothing. By-elections are
+ward contests and the 2024 result was a national and provincial list vote, so
+this is the only test the record allows, and a weak one. On
+[your forecast](your-forecast/) you can make by-elections count not at all or
+fully.
+
 **Where.** `src/bye_value.py` measures; `byelections.size_class` and `byelections.BYE_CLASS_EDGE` define the classes for the test and for the model; `byelections.weighted_deltas`, `byelections.delta_pr` and `levels.trusted_ward_pr` are the deltas and their list-scale conversion, one definition each with the model's.
 
 **Now.** For every (party, metro) pair with a by-election in the metro between the 2021 LGE and 2024-05-29 and a list vote at the 2021 LGE or on the 2024 provincial ballot: the residual `e = actual_2024 − B`, where `B = s_2021 / exp(mu_θ)` is the model's own baseline (its 2021 list share through `levels._shrunk` on the θ record before 2024, at its 2019 national share, with `size_window`'s window), and `δ_pr` is the party's weighted by-election delta in the metro on the list scale. Typed, all fixed in `prereg/2026-10-10-byelection-value-test.md` before the first run:
@@ -1018,7 +1020,9 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 - **No admission gate in the test.** `BYE_MIN_WEIGHT` gates the model's use of a party's evidence; the test scores every pair (each pair's weight sum is in the artefact).
 - **A label that is not a party.** Independent candidates canonicalise to one label; where the 2024 provincial ballot carried independents, that label has a list vote and enters the population.
 
-**How to check it.** `tests/test_bye_value.py` (G23: an exact half increment is admitted at 0.5; an independent residual earns 0; nine pairs are not measurable; the hold-out by identity; the slope; the edge); `tests/test_temporal.py::test_the_byelection_value_test_reads_no_byelection_or_result_from_its_outcome_on` (G25); `tests/test_intermediates_are_current.py::test_the_bye_value_record_is_a_fresh_build` and `::test_the_bye_value_freshness_check_can_see_a_real_stale_record`.
+**In the model (2026-10-10).** `montecarlo.blended_centres` gives each party with by-election evidence the weight of its class (`montecarlo.bye_weight`), read at `montecarlo.bye_class_size`: its previous-LGE list share, or with none its share in the run's baseline (the national election before the target; a seeded arrival's seed). `run_model` reads the file once through `montecarlo.read_bye_value` wherever the target reads by-elections and `w_bye` is `None`, and refuses a missing file or an `artefact_key` other than the live `byelections.bye_value_key`. `BYE_MIN_WEIGHT` still gates admission (§F33). A class weight of 0 switches the party's by-election term off, `bye_weight_mode` included. The weight each party was given is in the `30_centres` trace (`bye_weight`) and `export_draws` reports it beside `reaches_model`. Supersedes §A35.
+
+**How to check it.** `tests/test_blended_centres.py::test_each_class_takes_its_own_weight_from_the_file`, `::test_a_missing_or_stale_bye_value_file_refuses`, `::test_an_override_needs_no_file_and_is_recorded`, `::test_the_class_edge_is_the_one_constant_both_sides_use` (G24); `tests/test_export_draws.py::test_the_reported_bye_weight_is_the_one_blended_centres_applied` (G26); `tests/test_bye_value.py` (G23: an exact half increment is admitted at 0.5; an independent residual earns 0; nine pairs are not measurable; the hold-out by identity; the slope; the edge); `tests/test_temporal.py::test_the_byelection_value_test_reads_no_byelection_or_result_from_its_outcome_on` (G25); `tests/test_intermediates_are_current.py::test_the_bye_value_record_is_a_fresh_build` and `::test_the_bye_value_freshness_check_can_see_a_real_stale_record`.
 
 
 ## B. Measured, but the form or the selection was chosen

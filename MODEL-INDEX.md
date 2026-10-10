@@ -258,7 +258,7 @@ The intermediates register names the script that writes each artefact. `agrees` 
 
 | artefact | register claims | modules naming it | agrees |
 |---|---|---|---|
-| `bye_value.json` | `bye_value` | `bye_value`, `byelections` | yes |
+| `bye_value.json` | `bye_value` | `bye_value`, `byelections`, `montecarlo` | yes |
 | `citywide_*.json` | `citywide_table` | `archive`, `citywide_table`, `declares`, `export_interactive`, `fold`, `levels`, `pools`, `theta_residual` | yes |
 | `forecast_frozen.json` | `freeze` | `compare_history`, `declares`, `freeze`, `montecarlo` | yes |
 | `forecast_summary.json` | `montecarlo` | `build_interactive`, `build_portal`, `build_site`, `coalitions`, `declares`, `freeze`, `levels`, `montecarlo`, `overhang_regimes`, `publication`, `render_home`, `render_sheet`, `scenarios`, `stats` | yes |
@@ -310,7 +310,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `turnout_correlation` | `0.63` | `FITTED_ON_UNINSTRUMENTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `turnout_noise_sd` | `0.08` | `NOT_FITTED` | -- | -- | yes | `backtest`, `build_interactive`, `montecarlo` |
 | `turnout_pattern_blend` | `0.5` | `NOT_FITTED` | -- | -- | yes | `backtest`, `build_interactive`, `montecarlo` |
-| `w_bye` | `0.4` | `NOT_FITTED` | `2021` | -- | yes | `backtest`, `build_interactive`, `build_play`, `export_draws`, `montecarlo` |
+| `w_bye` | `None` | `NOT_FITTED` | `2021` | -- | yes | `backtest`, `build_interactive`, `build_play`, `export_draws`, `montecarlo` |
 | `w_bye_local_pr` | `0.0` | `NOT_FITTED` | `2021` | -- | yes | `backtest`, `montecarlo` |
 | `w_bye_local_ward` | `0.0` | `NOT_FITTED` | `2021` | -- | yes | `backtest`, `montecarlo` |
 | `ward_noise_sd` | `0.1` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo` |
@@ -447,9 +447,9 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `bye_value.CAVEAT` | str | NO | NO | NO | -- |
 | `byelections.TAU_MONTHS` | float 18.0 | NO | NO | yes | `bye_value` |
 | `byelections.BYE_CLASS_EDGE` | float 0.01 | NO | NO | yes | `bye_value` |
-| `byelections.SIZE_CLASSES` | tuple[2] | NO | NO | NO | `bye_value` |
+| `byelections.SIZE_CLASSES` | tuple[2] | NO | NO | NO | `bye_value`, `montecarlo` |
 | `byelections.SA_FILE` | Path('data/raw/byelections/byelections_SA_vd_party.csv') | NO | NO | NO | `bye_value` |
-| `byelections.BYE_VALUE` | str 'bye_value.json' | NO | NO | NO | `bye_value`, `declares` |
+| `byelections.BYE_VALUE` | str 'bye_value.json' | NO | NO | NO | `bye_value`, `declares`, `montecarlo` |
 | `cityconfig.CITIES_DIR` | Path('cities') | NO | NO | NO | `pools` |
 | `cityconfig.DEFAULT_CITY` | str 'joburg' | NO | NO | NO | `areas` |
 | `cityconfig.CALENDAR` | {'1999': Election('1999', 'NPE', _date(1999, 6, 2), 'npe1999_approx_{COD | NO | NO | NO | `backtest`, `benchmarks`, `build_make`, `build_play`, `bye_value`, `byelections`, `group_share_record`, `levels`, `montecarlo`, `pools`, `theta_residual`, `turnout` |
@@ -587,7 +587,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `montecarlo.COUNCIL` | int 270 | yes | NO | yes | `benchmarks`, `prediction` |
 | `montecarlo.DIRICHLET_FLOOR` | float 0.0001 | yes | NO | yes | -- |
 | `montecarlo.PLAN_BOUNDS` | dict[0] | yes | NO | yes | `export_interactive` |
-| `montecarlo.DEFAULTS` | {'draws': 5000, 'seed': 20261104, 'w_bye': 0.4, 'bye_weight_mode': 'fixe | NO | NO | yes | `backtest`, `benchmarks`, `build_validation`, `compare_history`, `export_draws`, `export_interactive`, `freeze`, `judgement_sheet`, `model_index`, `reweight`, `stats` |
+| `montecarlo.DEFAULTS` | {'draws': 5000, 'seed': 20261104, 'w_bye': None, 'bye_weight_mode': 'fix | NO | NO | yes | `backtest`, `benchmarks`, `build_validation`, `compare_history`, `export_draws`, `export_interactive`, `freeze`, `judgement_sheet`, `model_index`, `reweight`, `stats` |
 | `montecarlo.BYE_MIN_WEIGHT` | float 30.0 | yes | yes | yes | `export_draws` |
 | `montecarlo.TURNOUT_DRAW_FLOOR` | float 0.02 | yes | NO | yes | -- |
 | `montecarlo.TURNOUT_DRAW_CEILING` | float 0.95 | yes | yes | yes | -- |
@@ -896,9 +896,9 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `benchmarks.run_one` | measurement | Seat draws only -- the shape ``score.score_seats`` takes. | `diagnose` |
 | `benchmarks.run_with_wards` | measurement | ``(seat_draws, ward_winner_draws)``. | `compare_history`, `tests/test_panel_wiring` |
 | `benchmarks.ward_probabilities` | measurement | ``{ward: {party: P(win)}}`` from a list of per-draw winner maps. | `backtest`, `compare_history`, `diagnose`, `montecarlo`, `tests/test_prediction_rule` |
-| `byelections.size_class` | model+measurement | The by-election size class of a party at ``size`` (a share, 0-1). | `bye_value`, `tests/test_bye_value` |
+| `byelections.size_class` | model+measurement | The by-election size class of a party at ``size`` (a share, 0-1). | `bye_value`, `export_draws`, `montecarlo`, `tests/test_bye_value`, `tests/test_export_draws` |
 | `byelections.delta_pr` | model+measurement | A ward-ballot by-election delta on the list (PR) scale. | `bye_value`, `montecarlo`, `tests/test_bye_value` |
-| `byelections.bye_value_key` | model+measurement | What ``bye_value.json`` was built from, computed from the files. | `bye_value`, `declares`, `tests/test_bye_value` |
+| `byelections.bye_value_key` | model+measurement | What ``bye_value.json`` was built from, computed from the files. | `bye_value`, `declares`, `montecarlo`, `tests/test_blended_centres`, `tests/test_bye_value` |
 | `byelections.load_byelections` | model+measurement | Return (date, ward) -> {party: votes} for this city's contests. | `bye_value`, `tests/test_temporal` |
 | `byelections.ward_ballot` | model+measurement | Ward-ballot votes per ward, and registered voters per ward. | `bye_value` |
 | `byelections.similarity` | model+measurement | 1 − total-variation distance between a ward's shares and the citywide mix. | -- |
@@ -920,7 +920,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `coalitions.minority_viable` | model+measurement | Arithmetic viability of a minority administration, per draw. | -- |
 | `coalitions.mask_label` | model+measurement | -- | -- |
 | `coalitions.analyse` | model+measurement | Run the full §3.8 suite. Returns a dict of result tables. | `montecarlo`, `tests/test_your_forecast_page` |
-| `coalitions.report` | model+measurement | -- | `contested_area`, `declares`, `export_draws`, `fetch_iec`, `fold`, `levels`, `montecarlo`, `tests/test_published_page`, `tests/test_regressions`, `tests/test_scoreboard_disclosure`, `tests/test_scored_universe`, `tests/test_stat_freshness`, `tests/test_temporal`, `tests/test_theta_prior`, `theta_residual` |
+| `coalitions.report` | model+measurement | -- | `contested_area`, `declares`, `export_draws`, `fetch_iec`, `fold`, `levels`, `montecarlo`, `tests/test_export_draws`, `tests/test_published_page`, `tests/test_regressions`, `tests/test_scoreboard_disclosure`, `tests/test_scored_universe`, `tests/test_stat_freshness`, `tests/test_temporal`, `tests/test_theta_prior`, `theta_residual` |
 | `coalitions.write_outputs` | model+measurement | -- | `montecarlo` |
 | `compare_history.scored_opponents` | measurement | Every reference in `benchmarks.BENCHMARKS` bar those explicitly refused. | `diagnose`, `tests/test_scoreboard_disclosure` |
 | `compare_history.opponent_columns` | measurement | The reference columns a REPORT prints: the scored set, plus the artefact's. | `tests/test_scoreboard_disclosure` |
@@ -1024,7 +1024,11 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `montecarlo.blend_poll_centre` | model+measurement | Blend a poll reading into a modelled centre. Returns ``(centre, w)``. | `tests/test_blended_centres`, `tests/test_regressions` |
 | `montecarlo.apply_overrides` | model+measurement | Merge a validated override dict into a scenario, dicts key by key. | `backtest` |
 | `montecarlo.load_scenario` | model+measurement | -- | `arrivals`, `citywide_table`, `compare_history`, `diagnose`, `export_draws`, `freeze`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_levers_are_live`, `tests/test_pool_conservation`, `tests/test_projected_roster_declaration`, `tests/test_regressions`, `tests/test_roster_fails_closed`, `tests/test_roster_universe`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_unopposed`, `width_budget` |
-| `montecarlo.blended_centres` | model+measurement | Central citywide level per party at the target, from θ modes tilted by evidence. | `tests/test_blended_centres`, `tests/test_drawer`, `tests/test_ipf_feasibility` |
+| `montecarlo.bye_value_path` | model+measurement | Where ``src/bye_value.py --emit`` writes the item-19 weights. | `tests/test_blended_centres` |
+| `montecarlo.read_bye_value` | model+measurement | The by-election class weights (BRIEF item 19), or a refusal. | -- |
+| `montecarlo.bye_class_size` | model+measurement | The size a party's by-election class is read at (SPEC R2.4): its | `tests/test_blended_centres` |
+| `montecarlo.bye_weight` | model+measurement | The weight one party's by-election evidence gets, and where it came from. | `export_draws`, `tests/test_stage_estimation` |
+| `montecarlo.blended_centres` | model+measurement | Central citywide level per party at the target, from θ modes tilted by evidence. | `tests/test_blended_centres`, `tests/test_drawer`, `tests/test_export_draws`, `tests/test_ipf_feasibility` |
 | `montecarlo.compress_levels` | model+measurement | Pull each central level down by its own size, then give the mass back. | `tests/test_chain`, `tests/test_stage_estimation` |
 | `montecarlo.pool_spec` | model+measurement | Build the per-pool draw specification for the weighted engine (§1.29). | `tests/test_drawer`, `tests/test_pool_conservation` |
 | `montecarlo.record_city_slug` | model+measurement | The city slug the group-share record is keyed on, for ``target``. | `tests/test_stage_realisation` |
@@ -1065,7 +1069,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `polling.votes_by_metro` | model+measurement | Votes cast per metro on the PR ballot, from the published result files. | `contested_area`, `montecarlo` |
 | `polling.metro_estimate` | model+measurement | A national poll number converted to a share of each contested metro. | `montecarlo` |
 | `pools.artefact_lock` | model+measurement | Hold the pool-artefact lock. ``mode`` is "emit" (exclusive) or "read". | `compare_history`, `tests/run_all` |
-| `pools.artefact_key` | model+measurement | What an emitted spec was built FROM, so staleness can be detected. | `build_make`, `bye_value`, `citywide_table`, `declares`, `export_draws`, `freeze`, `group_share_record`, `montecarlo`, `tests/test_artefact_key_discriminates`, `tests/test_bye_value`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_provenance_gates`, `tests/test_served_draws`, `tests/test_stage_inputs` |
+| `pools.artefact_key` | model+measurement | What an emitted spec was built FROM, so staleness can be detected. | `build_make`, `bye_value`, `citywide_table`, `declares`, `export_draws`, `freeze`, `group_share_record`, `montecarlo`, `tests/test_artefact_key_discriminates`, `tests/test_blended_centres`, `tests/test_bye_value`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_provenance_gates`, `tests/test_served_draws`, `tests/test_stage_inputs` |
 | `pools.stale_reason` | model+measurement | Why this spec should not be trusted for this run, or None. | `citywide_table`, `montecarlo`, `tests/test_artefact_key_discriminates`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_stage_inputs` |
 | `pools.load_config` | model+measurement | -- | `group_share_record`, `montecarlo`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_pool_bounds` |
 | `pools.read_census` | model+measurement | One census: ward -> composition over this dimension, summing to 1. | `tests/test_census_refusal_is_not_swallowed` |
@@ -1189,7 +1193,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `build_validation` | neither | yes | -- | Run the validation across every metro and write the section that reports it. |
 | `build_your_forecast` | neither | NO | `src/build_site`, `tests/test_edit_mode`, `tests/test_provenance_dates`, `tests/test_site_assets`, `tests/test_site_structure`, `tests/test_your_forecast_page` | Build "your forecast" (``/your-forecast/``) from ``interactive/`` into the site. |
 | `bye_value` | neither | NO | `tests/test_bye_value`, `tests/test_temporal` | Did by-election evidence predict the next real result beyond the model? (BRIEF item 19) |
-| `byelections` | model+measurement | NO | `src/bye_value`, `src/declares`, `src/montecarlo`, `tests/test_bye_value`, `tests/test_temporal` | By-election evidence for the target election (plan §3.6, §3.3 covariate). |
+| `byelections` | model+measurement | NO | `src/bye_value`, `src/declares`, `src/montecarlo`, `tests/test_blended_centres`, `tests/test_bye_value`, `tests/test_stage_estimation`, `tests/test_temporal` | By-election evidence for the target election (plan §3.6, §3.3 covariate). |
 | `cityconfig` | model+measurement | NO | `src/areas`, `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/build_all`, `src/build_concordance`, `src/build_crosswalk`, `src/build_geo`, `src/build_interactive`, `src/build_make`, `src/build_play`, `src/build_portal`, `src/build_site`, `src/bye_value`, `src/byelections`, `src/citywide_table`, `src/coalitions`, `src/compare_history`, `src/diagnose`, `src/export_draws`, `src/export_interactive`, `src/fold`, `src/freeze`, `src/gamma_recent`, `src/group_share_record`, `src/iec_csv`, `src/ingest_historic`, `src/ingest_lge`, `src/ingest_npe`, `src/inputs_preflight`, `src/levels`, `src/montecarlo`, `src/polling`, `src/pools`, `src/publication`, `src/rank_entries`, `src/reader_seats`, `src/render_home`, `src/render_map`, `src/render_sheet`, `src/scenarios`, `src/score_forecasts`, `src/site_text`, `src/sweep`, `src/theta_residual`, `src/turnout`, `src/validate_seats`, `src/width_budget`, `tests/_support`, `tests/test_artefact_key_discriminates`, `tests/test_build_all`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_covariate_fail_open`, `tests/test_data_coverage`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_drawer`, `tests/test_export_draws`, `tests/test_inputs_preflight`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_polling_register`, `tests/test_pool_bounds`, `tests/test_pool_conservation`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_provenance_dates`, `tests/test_provenance_gates`, `tests/test_publication_ledger`, `tests/test_reader_seats`, `tests/test_regressions`, `tests/test_reweight`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_roster_universe`, `tests/test_scoreboard_disclosure`, `tests/test_share`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_temporal`, `tests/test_theta_prior`, `tests/test_unopposed`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios`, `tests/test_your_forecast_page` | The city and the target election are parameters, not assumptions. |
 | `citywide_table` | neither | NO | `src/declares`, `tests/test_citywide_table` | The browser engine's stand-in for re-reading 65 election files. |
 | `coalitions` | model+measurement | NO | `src/montecarlo` | Coalition arithmetic over Monte Carlo seat draws (plan §3.8). |

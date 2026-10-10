@@ -974,8 +974,12 @@ def test_every_centre_is_finite_and_positive_on_a_mixed_scenario():
     renormalises.
     """
     base = {"P": 0.30, "Q": 0.10, "R": 0.06, "S": 0.02}
+    # `w_bye` ships as None (derived, BRIEF item 19): the class weights are
+    # constructed and positive so the by-election block is live.
+    assert M.DEFAULTS["w_bye"] is None
     scenario = _scenario(
         w_bye=M.DEFAULTS["w_bye"],
+        _bye_value={"weights": {"under": 0.4, "at_or_over": 0.4}},
         level_shrink=M.DEFAULTS["level_shrink"],
         level_shrink_scale=M.DEFAULTS["level_shrink_scale"],
         poll_levels={"P": 0.28},
@@ -1096,6 +1100,123 @@ def test_the_trace_records_the_shrink_and_changes_no_number():
     assert math.isclose(recorded["ratio"]["A"],
                         traced["A"] / recorded["before_shrink"]["A"],
                         rel_tol=1e-12)
+
+
+# --------------------------------------------------------------------------
+# 5. the derived by-election weight (BRIEF item 19, G24)
+# --------------------------------------------------------------------------
+
+def _bye_file(directory: Path, weights: dict, key: dict | None = None) -> Path:
+    """A constructed ``bye_value.json`` carrying ``weights`` and the live key
+    (or ``key``)."""
+    import json
+    import byelections as BY
+    path = directory / BY.BYE_VALUE
+    live = BY.bye_value_key((M.WARD_PR_RATIO_MIN, M.WARD_PR_RATIO_MAX))
+    path.write_text(json.dumps({"artefact_key": live if key is None else key,
+                                "weights": weights}), encoding="utf-8")
+    return path
+
+
+@contextmanager
+def _bye_value_at(path: Path):
+    """Point ``montecarlo.bye_value_path`` at a constructed file."""
+    saved = M.bye_value_path
+    M.bye_value_path = lambda: path
+    try:
+        yield
+    finally:
+        M.bye_value_path = saved
+
+
+def test_each_class_takes_its_own_weight_from_the_file():
+    """G24. Two parties with by-election evidence, one under 1% of the
+    previous list and one over, read their class's weight from a constructed
+    ``bye_value.json`` (0.25 and 0.75). Hand arithmetic, additive
+    conversion, no clamp (no bound, no θ band):
+
+        S: prior 0.005 + δ 0.02 = 0.025;  centre = 0.75·0.10 + 0.25·0.025
+        L: prior 0.200 + δ 0.02 = 0.220;  centre = 0.25·0.10 + 0.75·0.220
+
+    A party with no previous list share is classed by its baseline share.
+    """
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp, _plan_bounds({}):
+        path = _bye_file(Path(tmp), {"under": 0.25, "at_or_over": 0.75})
+        with _bye_value_at(path):
+            scenario = _scenario(w_bye=None, spine_level={"S": 0.10, "L": 0.10})
+            centres, _ = M.blended_centres(
+                scenario, {"S": 0.10, "L": 0.10}, {"S": 0.005, "L": 0.20},
+                {"S": (100.0, 0.02), "L": (100.0, 0.02)})
+    assert math.isclose(centres["S"], 0.75 * 0.10 + 0.25 * 0.025, rel_tol=1e-12)
+    assert math.isclose(centres["L"], 0.25 * 0.10 + 0.75 * 0.220, rel_tol=1e-12)
+    assert scenario["_bye_weight"] == {
+        "S": {"weight": 0.25, "class": "under"},
+        "L": {"weight": 0.75, "class": "at_or_over"}}
+    assert M.bye_class_size("N", {}, {"N": 0.03}) == 0.03
+    assert M.bye_class_size("N", {"N": 0.004}, {"N": 0.03}) == 0.004
+
+
+def test_a_missing_or_stale_bye_value_file_refuses():
+    """G24. Deleting the file refuses; a key naming other code refuses; the
+    live key with the same weights is accepted (so the refusal is about the
+    key, not the reading)."""
+    import tempfile
+    args = ({"X": 0.10}, {"X": 0.20}, {"X": (100.0, 0.02)})
+    with tempfile.TemporaryDirectory() as tmp, _plan_bounds({}):
+        path = _bye_file(Path(tmp), {"under": 0.3, "at_or_over": 0.3})
+        with _bye_value_at(path):
+            M.blended_centres(_scenario(w_bye=None, spine_level={"X": 0.1}), *args)
+            path.unlink()
+            try:
+                M.blended_centres(_scenario(w_bye=None,
+                                            spine_level={"X": 0.1}), *args)
+            except SystemExit as exc:
+                assert "missing" in str(exc)
+            else:
+                raise AssertionError("a missing bye_value.json was not refused")
+            import byelections as BY
+            stale = dict(BY.bye_value_key((M.WARD_PR_RATIO_MIN,
+                                           M.WARD_PR_RATIO_MAX)),
+                         bye_value_sha="0000000000000000")
+            _bye_file(Path(tmp), {"under": 0.3, "at_or_over": 0.3}, key=stale)
+            try:
+                M.blended_centres(_scenario(w_bye=None,
+                                            spine_level={"X": 0.1}), *args)
+            except SystemExit as exc:
+                assert "stale" in str(exc) and "bye_value_sha" in str(exc)
+            else:
+                raise AssertionError("a stale bye_value.json was not refused")
+
+
+def test_an_override_needs_no_file_and_is_recorded():
+    """A number in ``w_bye`` is the same weight for every party, reads no
+    file (the path points nowhere) and is recorded as an override."""
+    with _bye_value_at(Path("/nonexistent/bye_value.json")), _plan_bounds({}):
+        scenario = _scenario(w_bye=0.5, spine_level={"S": 0.10, "L": 0.10})
+        M.blended_centres(scenario, {"S": 0.10, "L": 0.10},
+                          {"S": 0.005, "L": 0.20},
+                          {"S": (100.0, 0.02), "L": (100.0, 0.02)})
+    assert scenario["_bye_weight"] == {
+        "S": {"weight": 0.5, "class": "override"},
+        "L": {"weight": 0.5, "class": "override"}}
+    assert "w_bye.override" in str(scenario.get("_constants_read") or
+                                   scenario), "the override was not recorded"
+
+
+def test_the_class_edge_is_the_one_constant_both_sides_use():
+    """A party at exactly the edge is "at_or_over" in the model as in the
+    test, through ``byelections.size_class``; just below, "under"."""
+    import byelections as BY
+    with _plan_bounds({}):
+        for size, cls in ((BY.BYE_CLASS_EDGE, "at_or_over"),
+                          (BY.BYE_CLASS_EDGE * 0.999, "under")):
+            scenario = _scenario(
+                w_bye=None, spine_level={"X": 0.10},
+                _bye_value={"weights": {"under": 0.1, "at_or_over": 0.9}})
+            M.blended_centres(scenario, {"X": 0.10}, {"X": size},
+                              {"X": (100.0, 0.02)})
+            assert scenario["_bye_weight"]["X"]["class"] == cls, size
 
 
 if __name__ == "__main__":

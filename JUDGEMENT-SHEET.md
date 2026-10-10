@@ -39,6 +39,7 @@ Controls the interactive reads off its `scalars` block that **no city declares**
 * `f_other`
 * `turnout_tilt_anc`
 * `turnout_tilt_da`
+* `w_bye`
 
 It also reads 1 key(s) off its `individual_theta` block; those are party codes, not levers, and are not checked against `[judgements.scalars]` here.
 It also reads 6 key(s) off its `theta_mode` block; those are party codes, not levers, and are not checked against `[judgements.scalars]` here.
@@ -151,7 +152,7 @@ It also reads 6 key(s) off its `theta_mode` block; those are party codes, not le
 | `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` | 0.02, 0.95 | module constant | module constant | no | 0.02 / 0.95, applied per draw. They contradict §C's claim that the turnout band 'removes caps rather than adding one'; whether the ceiling ever binds is unmeasured. | 🔴 | §F34 |
 | `turnout_noise_sd`, `turnout_blend_jitter` | 0.08, 0.25 | lever | not certified dead here | named by the interactive, which is WITHHELD | Typed; ~0.003 citywide, i.e. nothing. | 🟡 | §F23 + §A41 |
 | `turnout_pattern_blend` / `turnout_blend_jitter` / `turnout_noise_sd` | 0.5 / 0.25 / 0.08 | lever | not certified dead here | named by the interactive, which is WITHHELD | Typed. The citywide effect of the 0.08 is ~0.003, i.e. nothing — but see §G-R5: the turnout knobs move 46 ward wins, so the citywide null is not the whole story. | 🟡 | §A41 + §F23 |
-| `w_bye` | 0.40 | lever | not certified dead here | named by the interactive, which is WITHHELD | Typed at 0.40, live in the 2026 forecast and inert in every backtest. Only the 2026 result can bound it. | 🔴 | §A35 |
+| `w_bye` | None (derived) | lever | not certified dead here | named by the interactive, which is WITHHELD | **SUPERSEDED 2026-10-10 by §A55.** Each party's by-election weight is its size class's weight from `bye_value.json`; a number in `w_bye` is a sweep override for every party, recorded. Was: typed at 0.40. | — | §A35 |
 | `w_bye_local_ward` / `w_bye_local_pr` | 0.0 / 0.0 | lever | not certified dead here | no | Built and disabled at 0.0 / 0.0. Untestable for the same reason as `w_bye`. | 🟡 | §A37 + §F25 |
 | `w_bye_local_ward`, `w_bye_local_pr` | 0.0, 0.0 | lever | not certified dead here | no | Built, disabled, untestable. | 🟡 | §F25 + §A37 |
 | `w_recency` | 0.70 | unlinked | not linked to a scenario key or module constant | no | 0.70, verbatim from the original plan. It reaches the model through 20 committed `turnout.csv` files that carry no artefact key, so changing it does nothing until someone re-runs the script. | 🔴 | §H2 |

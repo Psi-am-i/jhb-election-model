@@ -780,6 +780,11 @@ SPINE_PREDICATES = {fn.__name__: fn for fn in (
 #                  by-election tilt. Empty at every backtest target, so the trace
 #                  cannot say which route placed a party. See the module
 #                  docstring.
+#   bye_weight     {party: {"weight", "class"}} — the by-election weight
+#                  `blended_centres` gave each party with evidence (BRIEF item
+#                  19): its size class's measured weight ("under" /
+#                  "at_or_over") or a `w_bye` "override". Empty at every
+#                  backtest target (no by-election file).
 
 def centres_the_three_vectors_cover_the_same_parties(stage: dict) -> list[str]:
     """``before_shrink``, ``after_shrink`` and ``ratio`` are keyed alike; notes are inside.
@@ -995,7 +1000,33 @@ def centres_the_recorded_levers_reproduce_the_shrink(stage: dict) -> list[str]:
     return faults[:8]
 
 
+def centres_the_bye_weights_belong_to_centred_parties(stage: dict) -> list[str]:
+    """``bye_weight`` names only parties with a centre, each with a finite
+    non-negative weight and a class that is a size class or ``"override"``;
+    an override is one weight for every party (BRIEF item 19)."""
+    import byelections as _by
+    before = stage.get("before_shrink") or {}
+    given = stage.get("bye_weight") or {}
+    faults = []
+    stray = set(given) - set(before)
+    if stray:
+        faults.append(f"a by-election weight for a party with no centre: "
+                      f"{sorted(stray)[:6]}")
+    for party, v in sorted(given.items()):
+        w, cls = (v or {}).get("weight"), (v or {}).get("class")
+        if not _finite(w) or w < 0:
+            faults.append(f"{party}: by-election weight {w!r} is not a weight")
+        if cls not in (*_by.SIZE_CLASSES, "override"):
+            faults.append(f"{party}: by-election class {cls!r} is no class")
+    overrides = {v.get("weight") for v in given.values()
+                 if (v or {}).get("class") == "override"}
+    if len(overrides) > 1:
+        faults.append(f"an override gave different weights: {sorted(overrides)}")
+    return faults[:8]
+
+
 CENTRES_PREDICATES = {fn.__name__: fn for fn in (
+    centres_the_bye_weights_belong_to_centred_parties,
     centres_the_three_vectors_cover_the_same_parties,
     centres_the_shrink_conserves_the_total,
     centres_the_total_is_a_plausible_ballot,
@@ -1330,6 +1361,8 @@ def healthy_centres() -> dict:
         "level_shrink": scenario["level_shrink"],
         "level_shrink_scale": scenario["level_shrink_scale"],
         "route_notes": {"MID": "level from poll: 15.00%"},
+        "bye_weight": {"MID": {"weight": 0.0, "class": "at_or_over"},
+                       "NATONLY": {"weight": 0.0, "class": "under"}},
     }
 
 
@@ -1532,6 +1565,10 @@ def _corrupt_centres_off_switch(s):
     s["level_shrink"] = 0.0                     # off, and the vector moved anyway
 
 
+def _corrupt_centres_bye_weight(s):
+    s["bye_weight"]["GHOST"] = {"weight": 0.5, "class": "medium"}
+
+
 def _corrupt_centres_levers(s):
     s["level_shrink_scale"] = (s["level_shrink_scale"] or 0.04) * 2.5
 
@@ -1600,6 +1637,8 @@ CORRUPTIONS = [
      "spine", _corrupt_spine_positive),
     ("spine_the_size_windows_follow_their_own_rule", "a window the table did not choose",
      "spine", _corrupt_spine_window),
+    ("centres_the_bye_weights_belong_to_centred_parties", "a weight for no party, of no class",
+     "centres", _corrupt_centres_bye_weight),
     ("centres_the_three_vectors_cover_the_same_parties", "an extra key in after_shrink",
      "centres", _corrupt_centres_keys),
     ("centres_the_shrink_conserves_the_total", "mass created by the shrink",

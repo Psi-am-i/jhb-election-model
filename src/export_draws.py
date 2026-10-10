@@ -222,6 +222,16 @@ def model_closure(src: Path) -> list[str]:
     return sorted(names)
 
 
+def _bye_weight_from_trace(run_dir: Path) -> dict[str, dict]:
+    """Stage ``30_centres``' ``bye_weight``: the weight ``blended_centres``
+    gave each party with by-election evidence, and its class or
+    ``"override"`` (BRIEF item 19). Taken from the run, so the report cannot
+    differ from what the model applied."""
+    trace = json.loads((run_dir / f"{CENTRES_STAGE[0]}.json").read_text())
+    return {p: {"weight": float(v["weight"]), "class": str(v["class"])}
+            for p, v in (trace.get("bye_weight") or {}).items()}
+
+
 def _centres_from_trace(run_dir: Path) -> dict[str, float]:
     """Stage ``30_centres`` of a trace: each party's deterministic centre."""
     stage, key = CENTRES_STAGE
@@ -274,6 +284,7 @@ def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int,
     with tempfile.TemporaryDirectory(prefix="export_draws_trace_") as trace_dir:
         run = M.run_model(target, scenario, verbose=False, run_dir=trace_dir)
         centres = _centres_from_trace(Path(trace_dir))
+        bye_weight = _bye_weight_from_trace(Path(trace_dir))
     src = Path(M.__file__).resolve().parent
     universe = list(run.universe)
     seats = np.array([[s.get(p, 0) for p in universe] for s in run.seat_draws],
@@ -292,6 +303,7 @@ def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int,
         "pool_turnouts": np.asarray(run.pool_turnout_draws, dtype=float),
         "pool_names": list(run.pool_turnout_names),
         "centres": centres,
+        "bye_weight": bye_weight,
         "poll_paths": scenario.get("poll_paths", M.DEFAULTS["poll_paths"]),
         "model_file": str(Path(M.__file__).resolve()),
         "model_modules": model_closure(src),
@@ -408,6 +420,7 @@ def build(runs: dict[str, dict]) -> tuple[bytes, dict]:
         "ward_parties": ward_parties,
         "blocks": table,
         "centres": centres_block(runs, parties),
+        "bye_weight": first.get("bye_weight") or {},
         "vote_blocks": VOTE_BLOCKS,
     }
     faults = ballot_faults(data)
@@ -586,8 +599,11 @@ def write_index(root: Path) -> dict:
     cell's draws must never be applied to another's; the index says so.
     """
     cells = []
+    published_bye_weight: dict = {}
     for manifest in sorted(root.rglob("manifest.json")):
         whole = json.loads(manifest.read_text())
+        if manifest.parent == root:
+            published_bye_weight = whole.get("bye_weight") or {}
         if any(k in whole["artefact_key"] for k in PRIVATE_KEYS):
             # a manifest written before PRIVATE_KEYS: the JSON is rewritten,
             # base.bin is not touched
@@ -622,20 +638,9 @@ def write_index(root: Path) -> dict:
     # (DESIGN-decided §11): the model's own input file, with whether each
     # party reaches `montecarlo.BYE_MIN_WEIGHT` (the same rule for every
     # party). `UNKNOWN` is not a party and is left out (review F20).
-    import csv
     import montecarlo
     bye_path = Path(montecarlo.__file__).resolve().parents[1] / "data/processed/byelection_party_deltas.csv"
-    byelection = []
-    if bye_path.exists():
-        with bye_path.open(encoding="utf-8", newline="") as fh:
-            for row in csv.DictReader(fh):
-                if row["party"] == "UNKNOWN":
-                    continue
-                byelection.append({
-                    "party": row["party"], "contests": int(row["contests"]),
-                    "weight_sum": float(row["weight_sum"]),
-                    "weighted_delta": float(row["weighted_delta"]),
-                    "reaches_model": float(row["weight_sum"]) >= montecarlo.BYE_MIN_WEIGHT})
+    byelection = byelection_index(bye_path, published_bye_weight)
     index = {"cells": cells, "paired": False, "polls": polls,
              "byelection": byelection,
              "byelection_min_weight": montecarlo.BYE_MIN_WEIGHT,
@@ -643,6 +648,36 @@ def write_index(root: Path) -> dict:
                      "across cells by draw index"}
     (root / "index.json").write_text(json.dumps(index, indent=1) + "\n")
     return index
+
+
+def byelection_index(bye_path: Path, bye_weight: dict) -> list[dict]:
+    """The by-election rows the page shows beside the ``w_bye`` control.
+
+    One per party in the model's input file (``UNKNOWN`` is not a party,
+    review F20): its contests, weight sum and weighted delta, whether it
+    reaches ``montecarlo.BYE_MIN_WEIGHT`` (the same rule for every party), and
+    beside that its ``class_weight`` and ``size_class`` (BRIEF item 19): the
+    weight the published run's ``blended_centres`` gave it, read from that
+    run's trace via the cell manifest (``bye_weight``), ``None`` for a party
+    the run did not weigh.
+    """
+    import csv
+    import montecarlo
+    rows = []
+    if bye_path.exists():
+        with bye_path.open(encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if row["party"] == "UNKNOWN":
+                    continue
+                given = bye_weight.get(row["party"]) or {}
+                rows.append({
+                    "party": row["party"], "contests": int(row["contests"]),
+                    "weight_sum": float(row["weight_sum"]),
+                    "weighted_delta": float(row["weighted_delta"]),
+                    "reaches_model": float(row["weight_sum"]) >= montecarlo.BYE_MIN_WEIGHT,
+                    "class_weight": given.get("weight"),
+                    "size_class": given.get("class")})
+    return rows
 
 
 def main(argv: list[str] | None = None) -> int:

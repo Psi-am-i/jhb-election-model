@@ -602,5 +602,61 @@ def test_votes_and_turnouts_are_what_the_model_drew():
         assert np.std(t[:, j]) > 0, name
 
 
+def test_the_reported_bye_weight_is_the_one_blended_centres_applied():
+    """G26 (BRIEF item 19). For every row of the real
+    ``byelection_party_deltas.csv``, the weight ``byelection_index`` reports
+    equals the one ``blended_centres`` gave that party, carried as the export
+    carries it: ``30_centres``' ``bye_weight`` in a run directory, read by
+    ``_bye_weight_from_trace``. Constructed sizes put parties in both classes
+    and constructed class weights (0.2, 0.7) differ, so a report that ignored
+    the class, or used a typed weight, would disagree. Both directions: every
+    row but ``UNKNOWN`` is reported, and every weighed party is a row. No
+    model run.
+    """
+    import montecarlo as M
+    bye_path = PROCESSED / "byelection_party_deltas.csv"
+    with open(bye_path, encoding="utf-8", newline="") as fh:
+        rows = [r for r in csv.DictReader(fh)]
+    parties = [r["party"] for r in rows if r["party"] != "UNKNOWN"]
+    scanned(parties, of=rows, low=0.5, high=1.0, what="by-election rows "
+            "weighed", denominator="rows of byelection_party_deltas.csv")
+    bye = {r["party"]: (float(r["weight_sum"]), float(r["weighted_delta"]))
+           for r in rows if r["party"] != "UNKNOWN"}
+    base = {p: 0.05 for p in parties}
+    prior = {p: (0.004 if i % 2 else 0.05) for i, p in enumerate(parties)}
+    scenario = {"w_bye": None, "level_shrink": 0.0,
+                "spine_level": {p: 0.05 for p in parties},
+                "_bye_value": {"weights": {"under": 0.2, "at_or_over": 0.7}}}
+
+    class _Trace:
+        def __init__(self, root):
+            self.root = root
+
+        def put(self, name, value=None, **_kw):
+            (self.root / f"{name}.json").write_text(json.dumps(value))
+            return value
+
+    saved = M.PLAN_BOUNDS
+    M.PLAN_BOUNDS = {}
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            M.blended_centres(scenario, base, prior, bye, trace=_Trace(Path(tmp)))
+            carried = E._bye_weight_from_trace(Path(tmp))
+    finally:
+        M.PLAN_BOUNDS = saved
+    applied = scenario["_bye_weight"]
+    assert {applied[p]["class"] for p in applied} == {"under", "at_or_over"}
+    report = E.byelection_index(bye_path, carried)
+    assert [r["party"] for r in report] == parties
+    assert set(applied) == set(parties)
+    for r in report:
+        assert r["class_weight"] == applied[r["party"]]["weight"], r
+        assert r["size_class"] == applied[r["party"]]["class"], r
+    # it can see: a report built from a weight the model did not apply differs
+    wrong = {p: {"weight": 0.4, "class": "under"} for p in carried}
+    assert any(r["class_weight"] != applied[r["party"]]["weight"]
+               for r in E.byelection_index(bye_path, wrong))
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

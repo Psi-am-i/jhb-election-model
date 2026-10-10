@@ -1252,3 +1252,47 @@ them with `size_sd` at their local share.
   gone. `bye_value` is imported by its test, so it gets no `ENTRY_POINTS`
   entry and its CLAUDE.md §5 line sits outside the no-importer block (R2.4
   asked for both; the two guards forbid them for an imported module).
+
+### R3.6, slice M4 step 7c addendum (writer, 2026-10-10): the wiring refuses until the window
+
+The wiring makes Johannesburg 2026, the one target with a
+`byelection_party_deltas.csv`, refuse while `data/processed/bye_value.json`
+is absent (R2.4: "missing or stale ... SystemExit"). `cities/joburg.toml` and
+`cities/tshwane.toml` carried `w_bye = 0.4` under `[judgements.scalars]`,
+which `apply_city` writes over `DEFAULTS`; left there, it would have been an
+override on every run and the derivation would never have run. Both lines are
+deleted (this moves `cities_sha` for every spec, which is already stale).
+
+Red by design from this commit until the window writes `bye_value.json`
+(each fails on the refusal, `SystemExit` naming the missing file; all were
+checked in the run below). Each is expected to turn green after the window;
+one that does not is a finding:
+
+- `test_drawer`: all five (its fixture builds joburg 2026 inputs through
+  `run_model`); its two goldens were already red (slice M3) and are
+  re-recorded once after the window.
+- `test_chain`: `test_the_forecast_runs_and_fills_the_council`,
+  `test_the_model_is_reproducible_from_its_seed`,
+  `test_a_diagnostic_run_does_not_overwrite_the_published_artefacts`
+  (`test_every_emitted_pool_spec_carries_a_current_artefact_key` stays red
+  for the spec-key cause).
+- `test_regressions::test_the_polling_channel_actually_runs`.
+- `test_stage_realisation::test_the_group_share_tripwire_scans_every_member_of_a_real_run`.
+- `test_roster_universe::test_the_seven_certified_parties_reach_the_2026_run`.
+- `test_citywide_table`: `test_every_control_asks_for_exactly_the_tables_files`
+  joins the five already red for `levels_sha`.
+- `test_draw_record`: all five (`_runs` refuses), four of them already red
+  under R3.5.
+- `test_export_draws`: every test that needs the export (the export refuses);
+  `test_the_reported_bye_weight_is_the_one_blended_centres_applied` (G26)
+  does not need it and passes. Already red under R3.2 for the seat law.
+- `test_levers_are_live`: every 2026 sweep, base run included (recorded
+  below after its one run).
+
+`test_stage_inputs::test_a_real_run_produces_a_trace_that_passes_every_predicate`
+stays red for the spec-key cause only (its real run is not at joburg 2026).
+
+**Ordering, for the coordinator.** §7 put item 10's stale-spec refusal last
+(step 8) so that steps 1-7 could run the model; R2.4 puts this refusal in
+step 7, so from here to the window no joburg 2026 run is possible without
+`--set w_bye=<number>`. The brief asked for it in step 7; it is done as asked.
