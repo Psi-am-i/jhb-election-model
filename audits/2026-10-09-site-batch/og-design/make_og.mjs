@@ -61,7 +61,7 @@ function frame(kind, dateLine) {
   s += rect(0, 0, W, 8, KIND[kind]);
   s += brand(LOGO_X, TOP, LOGO_H);
   s += rect(X, FOOT, R - X, 1, C.rule);
-  s += text(X, 604, dateLine, 17, "sans", { fill: C.ink3 });
+  s += text(X, 606, dateLine, 21, "sans", { fill: C.ink3 });
   return s;
 }
 
@@ -310,16 +310,19 @@ function forecastMap() {
   let s = frame("forecast", `Forecast of ${generated}. Johannesburg council, 270 seats, vote on 4 November 2026.`);
   const hf = 70, head = ["Who governs", "Johannesburg?"];
   head.forEach((l, k) => { s += text(X, capBase(hf) + k * hf * 1.08, l, hf, "serifSemi"); });
-  const yA = capBase(hf) + hf * 1.08 + 120;
+  const yA = capBase(hf) + hf * 1.08 + 92;
   const pa = token(fc, "p_anc_largest") || token(page("nobody-will-win.html"), "p_anc_largest");
   const pd = token(fc, "p_da_largest") || token(page("nobody-will-win.html"), "p_da_largest");
-  s += text(X, yA, "Most seats:", 20, "sans", { fill: C.ink3 });
-  s += text(X, yA + 34, `ANC ${pa} chance`, 26, "sansSemi") + text(X, yA + 68, `DA ${pd} chance`, 26, "sansSemi");
+  const p1 = token(page("nobody-will-win.html"), "p_alone");
+  s += text(X, yA, "Most seats:", 25, "sans", { fill: C.ink3 });
+  s += text(X, yA + 42, `ANC ${pa} chance`, 34, "sansSemi") + text(X, yA + 84, `DA ${pd} chance`, 34, "sansSemi");
+  s += text(X, yA + 136, "One party with a majority:", 25, "sans", { fill: C.ink3 });
+  s += text(X, yA + 178, `${p1} chance`, 34, "sansSemi");
   // the key: a swatch of two-colour stripes, and the words
-  const ky = yA + 108;
+  const ky = yA + 214;
   s += `<defs><clipPath id="key"><rect x="${X}" y="${ky}" width="34" height="22" rx="3"/></clipPath></defs><g clip-path="url(#key)">` + rect(X, ky, 34, 22, "#1B7A3D") +
     `<g transform="rotate(45 ${X + 17} ${ky + 11})">` + [-4, -2, 0, 2, 4].map(k => rect(X + 17 + k * 7 - 1.6, ky - 30, 3.2, 82, "#1B5EA8")).join("") + "</g></g>";
-  s += text(X + 46, ky + 17, "Striped: contested wards", 19, "sans", { fill: C.ink2 });
+  s += text(X + 46, ky + 18, "Striped: contested wards", 22, "sans", { fill: C.ink2 });
   const mh = 384, mw = mh * 840 / 596, mx = R + 10 - mw;
   s += `<svg x="${n1(mx)}" y="${TOP + LOGO_H + 6}" width="${n1(mw)}" height="${n1(mh)}" viewBox="0 0 840 596">${inner}</svg>`;
   return s + "</svg>";
@@ -330,7 +333,7 @@ function interactive() {
   const { A: spec } = specs();
   const g = A.geom;
   let s = frame("interactive", "Johannesburg council, 270 seats, vote on 4 November 2026.");
-  const hf = 84;
+  const hf = 96;
   s += text(X, capBase(hf), "Know Politics?", hf, "serifSemi");
   const mt = capBase(hf) + 40, mh0 = FOOT - 14 - mt;
   const mw = Math.min(600, mh0 * g.W / g.H), sc = mw / g.W, mh = g.H * sc;
@@ -341,12 +344,15 @@ function interactive() {
     paths += `<path d="${wd.path}" fill="${open ? C.paper2 : F(spec.calls[k]).colour}" stroke="${open ? "#5a615b" : C.paper}" stroke-width="${n1((open ? 1.4 : 0.8) / sc)}"${open ? ` stroke-dasharray="${n1(4 / sc)} ${n1(3 / sc)}"` : ""} stroke-linejoin="round"/>`;
   });
   s += `<g transform="translate(${X - 8} ${n1(my)}) scale(${sc.toFixed(4)})">${paths}</g>`;
-  const tx = 690;
-  const y = 236;
-  wrapText("Pick your winners, seal your prediction and let's see if you can beat us on election day.", R - tx, 27, "sans")
-    .forEach((l, k) => { s += text(tx, y + k * 38, l, 27, "sans", { fill: C.ink2 }); });
-  s += rect(tx, 420, textWidth("Make yours at " + SITE, 18, "monoSemi") + 36, 48, KIND.interactive, ` rx="24"`);
-  s += text(tx + 18, 450, "Make yours at " + SITE, 18, "monoSemi", { fill: C.paper });
+  const tx = 670, tw = R - tx;
+  const y = 222;
+  const body = wrapText("Pick your winners, seal your prediction and let's see if you can beat us on election day.", tw, 34, "sans");
+  body.forEach((l, k) => { s += text(tx, y + k * 46, l, 34, "sans", { fill: C.ink }); });
+  // the call to action: words, no button (owner, 2026-10-10)
+  const cy = y + body.length * 46 + 44;
+  s += text(tx, cy, "Make yours at", 28, "sans", { fill: C.ink2 });
+  const url = fitText(SITE, tw, 34, "monoSemi", 24);
+  s += text(tx, cy + 44, url.text, url.fs, "monoSemi", { fill: C.ink });
   return s + "</svg>";
 }
 
