@@ -1491,3 +1491,9 @@ No test sets `allow_stale_pools` to stay green; the page readers have no escape.
 **Row 2** adds no red: G10 (a), (b) and (d) assert that a refused run has
 consumed nothing (`scenario["pools"]` empty, no `_vd_pool_composition`, no stage
 after `02_pools_artefact`).
+
+**Row 3** adds no red: `test_stage_estimation::test_a_stopped_run_fails_and_only_a_missing_raw_file_skips`
+constructs `_trace_dir`'s two branches (a refusing `run_model` with the raw
+file present FAILS, once, with the run's message; an absent raw file SKIPS
+without running) and restores the helper's state, so the five real-trace tests
+still fail on the real stale spec, not on the probe.

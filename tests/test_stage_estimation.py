@@ -1826,6 +1826,84 @@ def _apply(corruption, payloads):
 # the tests
 # ==========================================================================
 
+def test_a_stopped_run_fails_and_only_a_missing_raw_file_skips():
+    """``_trace_dir``'s two outcomes, on constructed inputs (step 8 review row 3).
+
+    The five real-trace tests below are only as honest as ``_trace_dir``: until
+    2026-10-10 it turned a refusing run into SKIP, so a model that could not
+    run read as "no run possible here". Two cases, neither touching the model
+    or ``data/``:
+
+    * the raw results file is present (a path that exists stands in for it)
+      and ``run_model`` refuses: ``_trace_dir`` FAILS with the run's own
+      message, and a second call fails the same way without running again;
+    * the raw file is absent: it SKIPS, and ``run_model`` is never called.
+
+    Everything the helper keeps between calls (``_TRACES``, ``_REFUSED``,
+    ``_TRACE_ROOT``, ``STAGE_TRACE_DIR``, ``mc.run_model``,
+    ``_raw_results_file``) is restored afterwards, so the real-trace tests do
+    not inherit the probe's refusal.
+    """
+    import os
+    from _support import SKIP_EXCEPTIONS
+
+    global _TRACE_ROOT
+    year = "2021"
+    here = globals()
+    saved = (dict(_TRACES), dict(_REFUSED), _TRACE_ROOT,
+             os.environ.pop("STAGE_TRACE_DIR", None), mc.run_model,
+             here["_raw_results_file"])
+    calls = []
+
+    def refusing(*args, **kwargs):
+        calls.append(1)
+        raise SystemExit("probe: the run refused")
+
+    try:
+        mc.run_model = refusing
+        _TRACES.pop(year, None)
+        _REFUSED.pop(year, None)
+        here["_raw_results_file"] = lambda y: Path(__file__)
+        for attempt in (1, 2):
+            try:
+                _trace_dir(year)
+            except SKIP_EXCEPTIONS as exc:
+                raise AssertionError(
+                    f"a run that refused was SKIPPED (attempt {attempt}): {exc}")
+            except AssertionError as exc:
+                assert "probe: the run refused" in str(exc), exc
+            else:
+                raise AssertionError("a run that refused returned a trace")
+        assert len(calls) == 1, (
+            f"the refused run was re-run {len(calls)} times; the second call "
+            f"should report the remembered refusal")
+
+        _REFUSED.pop(year, None)
+        calls.clear()
+        with tempfile.TemporaryDirectory() as tmp:
+            here["_raw_results_file"] = lambda y: Path(tmp) / "absent.csv"
+            try:
+                _trace_dir(year)
+            except SKIP_EXCEPTIONS:
+                pass
+            except AssertionError as exc:
+                raise AssertionError(
+                    f"an absent raw file FAILED instead of skipping: {exc}")
+            else:
+                raise AssertionError("an absent raw file returned a trace")
+        assert not calls, "the model was run with no raw results file"
+    finally:
+        _TRACES.clear()
+        _TRACES.update(saved[0])
+        _REFUSED.clear()
+        _REFUSED.update(saved[1])
+        _TRACE_ROOT = saved[2]
+        if saved[3] is not None:
+            os.environ["STAGE_TRACE_DIR"] = saved[3]
+        mc.run_model = saved[4]
+        here["_raw_results_file"] = saved[5]
+
+
 def test_a_constructed_healthy_payload_passes_every_predicate():
     """The floor of the whole file: a clean trace must read as clean.
 
