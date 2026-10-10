@@ -7,6 +7,15 @@
 
 .yf{counter-reset:yfsec;}
 
+/* ---------- the shared widths (src/css/tokens.css; one definition for every page) ---------- */
+/* The page's column at the one wider width the map pages share, with the
+   site's gutter each side, as every page's column is (src/css/chrome.css,
+   THE COLUMN); the text blocks at the text width. The toolbar's width is
+   chrome.css's (THE FRAME), the same on every page (owner, 2026-10-10,
+   LAYOUT-BRIEF item 6). */
+.yf .yf-wrap{box-sizing:content-box;max-width:var(--wide-width);padding-left:var(--gutter);padding-right:var(--gutter);}
+.yf .lede,.yf-sdek,.yf .pl-notes,.yf .yf-ctanote{max-width:var(--text-width);}
+
 /* ---------- the two sections ---------- */
 .yf-jump{display:flex;flex-wrap:wrap;gap:6px 18px;font:600 14px var(--sans);margin:0 0 8px;counter-reset:yfjump;}
 .yf-jump a{text-decoration:none;color:var(--ink-2);}
@@ -17,7 +26,7 @@
 .yf-shead{font:600 clamp(24px,3.4vw,32px)/1.15 var(--serif);margin:18px 0 6px;color:var(--ink);}
 .yf-shead::before{counter-increment:yfsec;content:counter(yfsec);display:inline-block;min-width:1.4em;
   color:var(--reader);margin-right:10px;}
-.yf-sdek{max-width:72ch;margin:0 0 6px;}
+.yf-sdek{margin:0 0 6px;}
 /* the line under a heading that says what the section, lever or step does:
    one style for every one of them on the page (owner, 2026-10-05) */
 .yf.pl .yf-sub{font-size:17px;line-height:1.5;color:var(--ink-2);}
@@ -29,7 +38,6 @@
    map as wide as the column, capped only so the whole city fits in one
    window; the seat table in larger type with every party on its own row. */
 @media (min-width:1100px){
-  .yf .yf-wrap,.yf .pl-banner{max-width:1760px;}
   .yf .pl-seatfig .pl-fhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;}
   .yf .pl-seatfig .pl-fhead h2{margin:0;}
   .yf .pl-rgrid{gap:22px;}
@@ -166,14 +174,19 @@
 @media (prefers-reduced-motion:reduce){.yf-step{transition:none;}}
 
 
-/* ---------- the calls to act: full-width rows (owner, 2026-10-05) ---------- */
+/* ---------- the calls to act: the site's button (owner, 2026-10-10) ---------- */
 /* "Share this forecast" after section 1 and at the foot of section 2, and
-   "Analyse my forecast" in step 4: one bold button the row's full width, a
-   short line inside it on what it gives */
-.yf .yf-cta{border:0;padding:0;margin:18px 0 0;}
-.yf .yf-ctabtn{display:block;width:100%;box-sizing:border-box;text-align:left;padding:14px 18px;
-  font:650 18px/1.3 var(--sans);white-space:normal;}
-.yf .yf-ctabtn small{display:block;font-weight:400;font-size:13.5px;line-height:1.4;margin-top:3px;opacity:.88;}
+   "Analyse my forecast" in step 4, are the site's one large button, `cta`
+   (src/css/components.css, as the home page's), and beside it a short line
+   on what it gives. Its own rule puts it the column's width on a phone, the
+   line under it. Any other line in the row (why sharing is refused) takes a
+   row of its own. Here only its place in the row, and its disabled state
+   while the page loads, which the component does not draw. */
+.yf .yf-cta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;border:0;padding:0;margin:22px 0 0;}
+.yf .yf-cta > :not(.cta):not(.yf-ctanote){flex:1 0 100%;}
+.yf .cta[disabled]{opacity:.45;cursor:not-allowed;}
+.yf .yf-ctanote{flex:1 1 28ch;margin:0;font-size:15px;line-height:1.45;color:var(--ink-2);}
+.yf .yf-actions .yf-ctanote{margin-top:10px;}
 .yf-ctafoot{margin-top:26px;}
 /* "Next" scrolls a step to the top of the window: a little air above it */
 .yf-step{scroll-margin-top:12px;}
@@ -185,7 +198,7 @@
 
 /* ---------- "Analyse my forecast" ---------- */
 .yf-analysis{border:1px solid var(--rule-soft);border-top:3px solid var(--reader);background:var(--paper-2);
-  padding:16px;margin-top:22px;max-width:980px;scroll-margin-top:60px;}
+  padding:16px;margin-top:22px;scroll-margin-top:60px;}
 .yf-analysis:has(> [data-live="b-analysis"][hidden]){display:none;}
 /* the reader is scrolled to the region; the heading above it stays in view */
 .yf-analysis [data-live="b-analysis"]{scroll-margin-top:110px;}
@@ -303,7 +316,9 @@
 @media (min-width:1100px){
   .yf .pl-engine.yf-slot{height:2lh;}
   .yf .pl-status.yf-slot{height:calc(3lh + 20px);}
-  .yf .pl-oneline.yf-slot{height:3lh;}
+  /* "Most seats: …" runs to four lines in the results column at the page's
+     column width (--wide-width) */
+  .yf .pl-oneline.yf-slot{height:4lh;}
   .yf .pl-flips.yf-slot{height:4.7em;}
   .yf [data-live="b-status"].yf-slot{height:70px;}
   .yf .nchanged.yf-slot{display:inline;height:auto;}
@@ -316,10 +331,6 @@
   .yf .yf-outcome.yf-slot{height:2lh;}
   .yf .floornote.yf-slot{height:calc(2lh + 12px);}
 }
-/* the narrowest wide screens: "Most seats: …" runs to a fourth line in
-   the results column, which three lines would scroll beside (owner,
-   2026-10-05: no visible inner scroll bar) */
-@media (min-width:1100px) and (max-width:1279px){.yf .pl-oneline.yf-slot{height:4lh;}}
 /* the legend lines that name the reader's changes take their place whether
    or not they show */
 .yf.pl .pl-key .pl-live{display:inline;visibility:hidden;}
@@ -344,6 +355,9 @@
   padding-bottom:calc(var(--yf-spare-rows) * var(--yf-new-row));}
 .yf [data-live="b-council"] .bars[data-extra="1"]{padding-bottom:calc((var(--yf-spare-rows) - 1) * var(--yf-new-row));}
 .yf [data-live="b-council"] .bars:not([data-extra="0"]):not([data-extra="1"]){padding-bottom:0;}
+/* the council's caption line keeps its line while its figures are on their
+   way (make.js paintPending draws the rows and the chips meanwhile) */
+.yf [data-live="b-council"] .cap{min-height:1lh;}
 .yf [data-live="b-council"] .bars .st-row[data-new]{box-sizing:border-box;height:var(--yf-new-row);min-height:0;overflow:hidden;}
 .yf [data-live="b-council"] .bars .st-row[data-new] .st-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* a vote row at the floor says so over its own slider's foot, inside the row */
@@ -360,7 +374,7 @@
 /* The friend's forecast at the top of the page, read-only, then three ways
    on (audits/2026-10-03-share-design §4). Party colours are site.css's
    pc-<code> classes; no colour of a party is written here. */
-.yf-arrival{max-width:1180px;margin:8px auto 40px;padding-bottom:28px;border-bottom:4px double var(--rule);}
+.yf-arrival{margin:8px auto 40px;padding-bottom:28px;border-bottom:4px double var(--rule);}
 .yf-arr-from{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:14px;color:var(--ink-3);margin:0;}
 .yf-arr-from .sw{width:10px;height:10px;border-radius:2px;display:inline-block;}
 .yf-arr-seal[data-seal="sealed"]{color:var(--ink-2);}
@@ -369,8 +383,10 @@
 .yf-arr-verdict{border:1px solid var(--rule);background:var(--paper-2);border-radius:8px;padding:16px;margin-top:20px;}
 .yf-arr-what{color:var(--ink-2);font-size:15px;line-height:1.45;margin:0;}
 .yf-arr-chance{font:600 clamp(24px,2.6vw,30px)/1.2 var(--serif);color:var(--ink);margin:6px 0 0;}
-.yf-badge{display:inline-block;font:600 14px/1.4 var(--sans);border:1.5px solid var(--ink-2);border-radius:20px;
-  padding:1px 10px;margin-left:4px;vertical-align:4px;color:var(--ink);white-space:nowrap;}
+/* the owner's badge (src/stamps/reader-*.svg) beside the chance and the boldest call */
+.yf-arr-badge{display:flex;align-items:center;gap:16px;margin:8px 0 0;}
+.yf-stamp{width:112px;height:auto;flex:none;}
+.yf-arr-bold{font-size:15px;color:var(--ink-2);margin:6px 0 0;line-height:1.4;}
 .yf-arr-how{font-size:13px;color:var(--ink-3);margin:8px 0 0;line-height:1.45;}
 .yf-arr-quick{margin:16px 0 0;}
 .yf-arr-quick .btn{width:100%;}
@@ -425,6 +441,4 @@
 .sheet .shseal{margin:6px 0 0;}
 .sheet .shseal[hidden],.sheet .shentry[hidden]{display:none;}
 .sheet .shimgpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:10px 0 6px;}
-.sheet .shfriend{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:8px 0 0;}
-.sheet .shfriend[hidden]{display:none;}
 .sheet .shwa,.sheet .shx{text-decoration:none;}

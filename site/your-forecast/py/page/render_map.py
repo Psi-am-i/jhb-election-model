@@ -257,7 +257,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--paths-out", type=Path, default=Path("data/processed/ward_paths.json"),
                         help="where the ward geometry is written (/your-forecast/ section 1 and the cartogram read it)")
     parser.add_argument("--into", type=Path, nargs="+",
-                        default=[Path("forecast-sheet.html"), Path("home.html"),
+                        # not home.html: its map is cut from forecast-sheet.html's
+                        # at build time (render_home.home_map, 2026-10-10)
+                        default=[Path("forecast-sheet.html"),
                                  Path("drafts/forecast-draft.html")],
                         help="the pages whose __MAP_ markers take the snippet")
     cityconfig.add_city_argument(parser)

@@ -13,9 +13,8 @@
 // textContent and properties, never markup.
 //
 // The controls, in both sections: the name on the image, the link and Copy
-// link, the image (a select: the link preview, the story card, and the
-// side-by-side card where a friend's forecast is kept), the preview, and
-// Share…, WhatsApp, X and Download image.
+// link, the image (a select: the link preview and the story card), the
+// preview, and Share…, WhatsApp, X and Download image.
 //
 // THE SEAL. When a section hands it a forecast to seal (`fields`: v, c, f and
 // the name; section 2's forecast, or section 1's hand-off once a setting is
@@ -47,7 +46,7 @@
 //    and focus returns to the button that opened it.
 
 import { svgToPNG } from "./card-text.js";
-import { brandOf, localStamp, SIZES } from "./share-card.js";
+import { brandOf, stampOf, badgeFile, STAMP_DIR, localStamp, SIZES } from "./share-card.js";
 import { FACES } from "./card-fonts.js";
 import { cardName, nameBlocked, NAME_MAX } from "./play-state.js";
 
@@ -67,9 +66,11 @@ async function asset(path) {
 }
 // The site's IBM Plex faces as data: URIs (an SVG drawn as an image cannot
 // fetch web fonts, so the card carries the faces it is measured in), the
-// site's logo (site/logo.svg), and the logo of each party in `codes` that has
-// one (`party(code).logo`). Loaded once; logos added as parties appear.
-export function loadAssets(codes, party) {
+// site's logo (site/logo.svg), the logo of each party in `codes` that has
+// one (`party(code).logo`), and the owner's badge for each of `badges` (the
+// badge words, share-card.js badgeFile). Loaded once; logos and badges added
+// as they are asked for. A badge that cannot be fetched is drawn as its words.
+export function loadAssets(codes, party, badges = []) {
   assetsReady ??= (async () => {
     const faces = await Promise.all(Object.values(FACES).map(async f => {
       const file = { "400": "Regular", "600": "SemiBold", "700": "Bold" }[String(f.weight)];
@@ -81,11 +82,14 @@ export function loadAssets(codes, party) {
     }));
     let brand = null;
     try { brand = brandOf(await (await asset("logo.svg")).text()); } catch (e) { brand = null; }
-    return { fontCSS: faces.join(""), brand, logos: {} };
+    return { fontCSS: faces.join(""), brand, logos: {}, badges: {} };
   })();
   return assetsReady.then(async a => {
     await Promise.all(codes.filter(c => c && !(c in a.logos) && party(c).logo).map(async c => {
       try { a.logos[c] = await dataURL(await (await asset("logos/" + c + ".png")).blob()); } catch (e) { a.logos[c] = null; }
+    }));
+    await Promise.all(badges.filter(w => w && !(w in a.badges)).map(async w => {
+      try { a.badges[w] = stampOf(await (await asset(STAMP_DIR + "/" + badgeFile(w))).text()); } catch (e) { a.badges[w] = null; }
     }));
     return a;
   });
@@ -141,7 +145,7 @@ function requestSeal(fields) {
 }
 
 // E: the sheet's elements, from the section's own region: { open, dlg, close,
-//   name, namenote, url, copy, seal, entry, kind, duelOpt, img, wa, x,
+//   name, namenote, url, copy, seal, entry, kind, img, wa, x,
 //   native, dl, toast }.
 // H: what the section shares, as functions of what its page shows now:
 //   canOpen()          may the sheet open

@@ -32,7 +32,7 @@
 .pl-bannerwrap{position:sticky;top:0;z-index:18;background:var(--paper);border-bottom:1px solid var(--rule);}
 /* on a phone the banner wraps rather than scrolls: every party it names and
    the majority stay in view (critic S5) */
-.pl-banner{display:flex;flex-wrap:wrap;max-width:1180px;margin:0 auto;padding:6px 16px;gap:4px 12px;align-items:center;
+.pl-banner{display:flex;flex-wrap:wrap;margin:0 auto;padding:6px 16px;gap:4px 12px;align-items:center;
   font:13px var(--sans);}
 @media (min-width:720px){.pl-banner{flex-wrap:nowrap;white-space:nowrap;padding:8px 24px;gap:10px 14px;}}
 .pl-bstate{font-weight:700;font-size:12px;padding:2px 8px;border-radius:10px;background:var(--paper-2);color:var(--ink-3);}
@@ -187,7 +187,7 @@
 .pl-lawnow{display:block;font-size:13px;color:var(--ink-3);margin-top:4px;}
 
 /* ---------- notes ---------- */
-.pl-notes{border-top:1px solid var(--rule);margin-top:34px;padding-top:12px;max-width:820px;}
+.pl-notes{border-top:1px solid var(--rule);margin-top:34px;padding-top:12px;}
 .pl-notes h2{font:600 16px var(--serif);margin:0 0 6px;}
 .pl-notes ol{margin:0;padding-left:20px;color:var(--ink-3);font-size:13px;}
 .pl-notes li{margin:0 0 6px;}

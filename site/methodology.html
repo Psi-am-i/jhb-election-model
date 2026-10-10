@@ -190,19 +190,105 @@ the Commission&rsquo;s own count of independent ward councillors.</p>
 totals for 2021, the model placed the votes well enough to call
 <span class="mstat" data-mode="fixed" data-token="blind_test_called" data-when="2026-08-04" data-prov="129. Unchanged since 8 August 2026. Source: external:fold-2 blind validation (MODEL-LOG 1.9). Pinned 2026-08-04." tabindex="0">129</span> of <span class="mstat" data-mode="fixed" data-token="blind_test_of" data-when="2026-08-04" data-prov="135. Unchanged since 8 August 2026. Source: external:ward count at the 2021 delimitation. Pinned 2026-08-04." tabindex="0">135</span> ward winners. That test was run on 4
 August 2026 and has not been re-run on the current model.</span></p>
-<p><strong>The whole model beats simple baselines, in cities it was not built for.</strong> It
-is run on the 2021 election in <span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-current="8" data-prov="8. Unchanged since 26 September 2026. Source: validation:cities, live from the current model run." tabindex="0">8</span> cities and wins in
-<strong><span class="mstat" data-mode="free" data-token="backtest_wins" data-when="2026-09-18" data-current="7" data-prov="7. Unchanged since 26 September 2026. Source: validation:wins, live from the current model run." tabindex="0">7</span></strong> of them on the measure that scores a forecast&rsquo;s whole
-range (CRPS), with <strong><span class="mstat" data-mode="free" data-token="backtest_crps_better" data-when="2026-09-18" data-current="34%" data-prov="34%. Unchanged since 27 September 2026. Source: validation:crps_better_pct, live from the current model run." tabindex="0">34%</span></strong> less error in total. Counted in
-seats put in the wrong column, it misses <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-current="297" data-prov="297. Unchanged since 30 September 2026. Source: validation:seat_err_model, live from the current model run." tabindex="0">297</span></strong> against
-the baselines&rsquo; <strong><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-current="353" data-prov="353. Unchanged since 26 September 2026. Source: validation:seat_err_baseline, live from the current model run." tabindex="0">353</span></strong>, a smaller margin because that
-measure looks only at the single most likely outcome. It calls the winner in
-<strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-current="719" data-prov="719. Unchanged since 27 September 2026. Source: validation:wards_called, live from the current model run." tabindex="0">719</span> of <span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-current="742" data-prov="742. Unchanged since 26 September 2026. Source: validation:wards, live from the current model run." tabindex="0">742</span></strong> wards.</p>
+<p><strong>The whole model beats simple baselines.</strong> It is run on the 2021 election in
+<span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-current="8" data-prov="8. Unchanged since 26 September 2026. Source: validation:cities, live from the current model run." tabindex="0">8</span> metros and wins in <strong><span class="mstat" data-mode="free" data-token="backtest_wins" data-when="2026-09-18" data-current="7" data-prov="7. Unchanged since 26 September 2026. Source: validation:total.wins, live from the current model run." tabindex="0">7</span></strong> of them on the measure that
+scores a forecast&rsquo;s whole range (CRPS), with <strong><span class="mstat" data-mode="free" data-token="backtest_crps_better" data-when="2026-09-18" data-current="34%" data-prov="34%. Unchanged since 27 September 2026. Source: validation:total.crps_better, live from the current model run." tabindex="0">34%</span></strong> less error in
+total. Each metro against its best baseline by that measure, and the seats each
+gives to the wrong party (lower is better in every column):</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>metro</th>
+<th>model&rsquo;s error (CRPS)</th>
+<th>best baseline&rsquo;s error (CRPS)</th>
+<th>best baseline</th>
+<th>seats given to the wrong party: model</th>
+<th>seats given to the wrong party: best baseline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Johannesburg</td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_crps" data-when="2026-10-10" data-current="66.8" data-prov="66.8. First published in this edition (10 October 2026). Source: validation:cities.joburg.model.crps, live from the current model run." tabindex="0">66.8</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_best_crps" data-when="2026-10-10" data-current="114.1" data-prov="114.1. First published in this edition (10 October 2026). Source: validation:cities.joburg.best.crps, live from the current model run." tabindex="0">114.1</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_best" data-when="2026-10-10" data-current="last result plus noise" data-prov="last result plus noise. First published in this edition (10 October 2026). Source: validation:cities.joburg.best.name, live from the current model run." tabindex="0">last result plus noise</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_wrong" data-when="2026-10-10" data-current="48" data-prov="48. First published in this edition (10 October 2026). Source: validation:cities.joburg.model.wrong_party_seats, live from the current model run." tabindex="0">48</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_joburg_best_wrong" data-when="2026-10-10" data-current="63" data-prov="63. First published in this edition (10 October 2026). Source: validation:cities.joburg.best.wrong_party_seats, live from the current model run." tabindex="0">63</span></td>
+</tr>
+<tr>
+<td>Tshwane</td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_crps" data-when="2026-10-10" data-current="27.7" data-prov="27.7. First published in this edition (10 October 2026). Source: validation:cities.tshwane.model.crps, live from the current model run." tabindex="0">27.7</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_best_crps" data-when="2026-10-10" data-current="60.0" data-prov="60.0. First published in this edition (10 October 2026). Source: validation:cities.tshwane.best.crps, live from the current model run." tabindex="0">60.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing. First published in this edition (10 October 2026). Source: validation:cities.tshwane.best.name, live from the current model run." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_wrong" data-when="2026-10-10" data-current="18" data-prov="18. First published in this edition (10 October 2026). Source: validation:cities.tshwane.model.wrong_party_seats, live from the current model run." tabindex="0">18</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_tshwane_best_wrong" data-when="2026-10-10" data-current="30" data-prov="30. First published in this edition (10 October 2026). Source: validation:cities.tshwane.best.wrong_party_seats, live from the current model run." tabindex="0">30</span></td>
+</tr>
+<tr>
+<td>Ekurhuleni</td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_crps" data-when="2026-10-10" data-current="29.8" data-prov="29.8. First published in this edition (10 October 2026). Source: validation:cities.ekurhuleni.model.crps, live from the current model run." tabindex="0">29.8</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_best_crps" data-when="2026-10-10" data-current="48.0" data-prov="48.0. First published in this edition (10 October 2026). Source: validation:cities.ekurhuleni.best.crps, live from the current model run." tabindex="0">48.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing. First published in this edition (10 October 2026). Source: validation:cities.ekurhuleni.best.name, live from the current model run." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_wrong" data-when="2026-10-10" data-current="19" data-prov="19. First published in this edition (10 October 2026). Source: validation:cities.ekurhuleni.model.wrong_party_seats, live from the current model run." tabindex="0">19</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ekurhuleni_best_wrong" data-when="2026-10-10" data-current="24" data-prov="24. First published in this edition (10 October 2026). Source: validation:cities.ekurhuleni.best.wrong_party_seats, live from the current model run." tabindex="0">24</span></td>
+</tr>
+<tr>
+<td>eThekwini</td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_crps" data-when="2026-10-10" data-current="31.0" data-prov="31.0. First published in this edition (10 October 2026). Source: validation:cities.ethekwini.model.crps, live from the current model run." tabindex="0">31.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_best_crps" data-when="2026-10-10" data-current="36.0" data-prov="36.0. First published in this edition (10 October 2026). Source: validation:cities.ethekwini.best.crps, live from the current model run." tabindex="0">36.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing. First published in this edition (10 October 2026). Source: validation:cities.ethekwini.best.name, live from the current model run." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_wrong" data-when="2026-10-10" data-current="21" data-prov="21. First published in this edition (10 October 2026). Source: validation:cities.ethekwini.model.wrong_party_seats, live from the current model run." tabindex="0">21</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_ethekwini_best_wrong" data-when="2026-10-10" data-current="18" data-prov="18. First published in this edition (10 October 2026). Source: validation:cities.ethekwini.best.wrong_party_seats, live from the current model run." tabindex="0">18</span></td>
+</tr>
+<tr>
+<td>Cape Town</td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_crps" data-when="2026-10-10" data-current="34.2" data-prov="34.2. First published in this edition (10 October 2026). Source: validation:cities.capetown.model.crps, live from the current model run." tabindex="0">34.2</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_best_crps" data-when="2026-10-10" data-current="38.0" data-prov="38.0. First published in this edition (10 October 2026). Source: validation:cities.capetown.best.crps, live from the current model run." tabindex="0">38.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing. First published in this edition (10 October 2026). Source: validation:cities.capetown.best.name, live from the current model run." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_wrong" data-when="2026-10-10" data-current="22" data-prov="22. First published in this edition (10 October 2026). Source: validation:cities.capetown.model.wrong_party_seats, live from the current model run." tabindex="0">22</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_capetown_best_wrong" data-when="2026-10-10" data-current="19" data-prov="19. First published in this edition (10 October 2026). Source: validation:cities.capetown.best.wrong_party_seats, live from the current model run." tabindex="0">19</span></td>
+</tr>
+<tr>
+<td>Mangaung</td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_crps" data-when="2026-10-10" data-current="9.2" data-prov="9.2. First published in this edition (10 October 2026). Source: validation:cities.mangaung.model.crps, live from the current model run." tabindex="0">9.2</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_best_crps" data-when="2026-10-10" data-current="8.0" data-prov="8.0. First published in this edition (10 October 2026). Source: validation:cities.mangaung.best.crps, live from the current model run." tabindex="0">8.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing. First published in this edition (10 October 2026). Source: validation:cities.mangaung.best.name, live from the current model run." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_wrong" data-when="2026-10-10" data-current="4" data-prov="4. First published in this edition (10 October 2026). Source: validation:cities.mangaung.model.wrong_party_seats, live from the current model run." tabindex="0">4</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_mangaung_best_wrong" data-when="2026-10-10" data-current="4" data-prov="4. First published in this edition (10 October 2026). Source: validation:cities.mangaung.best.wrong_party_seats, live from the current model run." tabindex="0">4</span></td>
+</tr>
+<tr>
+<td>Nelson Mandela Bay</td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_crps" data-when="2026-10-10" data-current="17.1" data-prov="17.1. First published in this edition (10 October 2026). Source: validation:cities.nelsonmandelabay.model.crps, live from the current model run." tabindex="0">17.1</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_best_crps" data-when="2026-10-10" data-current="22.0" data-prov="22.0. First published in this edition (10 October 2026). Source: validation:cities.nelsonmandelabay.best.crps, live from the current model run." tabindex="0">22.0</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_best" data-when="2026-10-10" data-current="uniform swing" data-prov="uniform swing. First published in this edition (10 October 2026). Source: validation:cities.nelsonmandelabay.best.name, live from the current model run." tabindex="0">uniform swing</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_wrong" data-when="2026-10-10" data-current="11" data-prov="11. First published in this edition (10 October 2026). Source: validation:cities.nelsonmandelabay.model.wrong_party_seats, live from the current model run." tabindex="0">11</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_nelsonmandelabay_best_wrong" data-when="2026-10-10" data-current="11" data-prov="11. First published in this edition (10 October 2026). Source: validation:cities.nelsonmandelabay.best.wrong_party_seats, live from the current model run." tabindex="0">11</span></td>
+</tr>
+<tr>
+<td>Buffalo City</td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_crps" data-when="2026-10-10" data-current="8.3" data-prov="8.3. First published in this edition (10 October 2026). Source: validation:cities.buffalocity.model.crps, live from the current model run." tabindex="0">8.3</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_best_crps" data-when="2026-10-10" data-current="11.3" data-prov="11.3. First published in this edition (10 October 2026). Source: validation:cities.buffalocity.best.crps, live from the current model run." tabindex="0">11.3</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_best" data-when="2026-10-10" data-current="last result plus noise" data-prov="last result plus noise. First published in this edition (10 October 2026). Source: validation:cities.buffalocity.best.name, live from the current model run." tabindex="0">last result plus noise</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_wrong" data-when="2026-10-10" data-current="6" data-prov="6. First published in this edition (10 October 2026). Source: validation:cities.buffalocity.model.wrong_party_seats, live from the current model run." tabindex="0">6</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_buffalocity_best_wrong" data-when="2026-10-10" data-current="8" data-prov="8. First published in this edition (10 October 2026). Source: validation:cities.buffalocity.best.wrong_party_seats, live from the current model run." tabindex="0">8</span></td>
+</tr>
+<tr>
+<td>all <span class="mstat" data-mode="free" data-token="backtest_cities" data-when="2026-09-18" data-current="8" data-prov="8. Unchanged since 26 September 2026. Source: validation:cities, live from the current model run." tabindex="0">8</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_total_crps" data-when="2026-10-10" data-current="224.2" data-prov="224.2. First published in this edition (10 October 2026). Source: validation:total.model.crps, live from the current model run." tabindex="0">224.2</span></td>
+<td><span class="mstat" data-mode="free" data-token="val_total_best_crps" data-when="2026-10-10" data-current="337.4" data-prov="337.4. First published in this edition (10 October 2026). Source: validation:total.best.crps, live from the current model run." tabindex="0">337.4</span></td>
+<td></td>
+<td><span class="mstat" data-mode="free" data-token="backtest_seat_err_model" data-when="2026-09-18" data-current="149" data-prov="149. Was 297. Published 30 September 2026; now 10 October 2026. Source: validation:total.model.wrong_party_seats, live from the current model run." tabindex="0">149</span><span class="arrow mstat-move down" data-prov="Was 297.">▼</span></td>
+<td><span class="mstat" data-mode="free" data-token="backtest_seat_err_baseline" data-when="2026-09-18" data-current="177" data-prov="177. Was 353. Published 26 September 2026; now 10 October 2026. Source: validation:total.best.wrong_party_seats, live from the current model run." tabindex="0">177</span><span class="arrow mstat-move down" data-prov="Was 353.">▼</span></td>
+</tr>
+</tbody>
+</table></div>
+<p>The seat columns judge only the single most likely outcome, so their margins
+are smaller. It calls the winner in <strong><span class="mstat" data-mode="free" data-token="backtest_wards_called" data-when="2026-09-18" data-current="719" data-prov="719. Unchanged since 27 September 2026. Source: validation:wards_called, live from the current model run." tabindex="0">719</span> of <span class="mstat" data-mode="free" data-token="backtest_wards" data-when="2026-09-18" data-current="742" data-prov="742. Unchanged since 26 September 2026. Source: validation:wards, live from the current model run." tabindex="0">742</span></strong>
+wards.</p>
 <!-- __VALIDATION_START__ -->
 <p>Every result in this section comes from the model run described at its end. The forecasts and scores used as examples under <em>The technical measures</em> are made up to explain the measures; they are not results.</p>
 <h3 id="how-it-was-tested">How it was tested</h3>
 <p>Each forecast used what a forecaster had before polling day: the previous local election for its geography, the national election before it for each party&rsquo;s starting level, and the voters&rsquo; roll. It also used the 2022 census, taken after the election; <em>What this does not prove</em> says why that cannot leak a result.</p>
-<p>It was done in <strong>eight metros, not one</strong>. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.</p>
+<p>It was done in <strong>eight metros, not one</strong>. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg.</p>
 <h4 id="the-three-baselines">The three baselines</h4>
 <p>The same scoring is applied to three baselines that need no model:</p>
 <div class="tablewrap"><table>
@@ -1205,6 +1291,13 @@ measure looks only at the single most likely outcome. It calls the winner in
 <li><strong>No poll is used in the forecast.</strong> Polls were an input until 12 September
   2026 and are not one now. Why they were taken out, what they were worth, and
   what is planned are under <em>Where polls fit</em>, below.</li>
+<li><strong>Small parties&rsquo; range is wider than the record.</strong> In the simulations, a
+  party that is established but small sometimes reaches a share no such party
+  has reached in the record. In the eight metros&rsquo; consecutive local elections
+  from 2006 to 2021, 337 times a party had under <span class="mstat" data-mode="free" data-token="small_party_share" data-when="2026-10-10" data-current="1%" data-prov="1%. First published in this edition (10 October 2026). Source: derived:small_party_share, live from the current model run." tabindex="0">1%</span> of the list vote at
+  one election, and none reached <span class="mstat" data-mode="free" data-token="small_party_surge_share" data-when="2026-10-10" data-current="5%" data-prov="5%. First published in this edition (10 October 2026). Source: derived:small_party_surge_share, live from the current model run." tabindex="0">5%</span> at the next (<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md">model log, §1.296</a>).
+  In this forecast, <span class="mstat" data-mode="free" data-token="small_party_surge" data-when="2026-10-10" data-current="9.0%" data-prov="9.0%. First published in this edition (10 October 2026). Source: published:small_party_surge, live from the current model run." tabindex="0">9.0%</span> of the simulations give at least one such
+  party more than <span class="mstat" data-mode="free" data-token="small_party_surge_share" data-when="2026-10-10" data-current="5%" data-prov="5%. First published in this edition (10 October 2026). Source: derived:small_party_surge_share, live from the current model run." tabindex="0">5%</span>. A fix is in progress.</li>
 <li><strong>Arithmetic is not politics.</strong> The model says which governments are
   numerically possible, not which will form.</li>
 </ul>
@@ -1263,7 +1356,7 @@ defects in the public records the model depends on are published:</p>
 <li><code>SOURCES.md</code>: where every input came from and how to fetch it again</li>
 </ul>
 <div class="colophon">
-  Reader edition, generated from docs-public/methodology.md on 2026-10-09. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
+  Reader edition, generated from docs-public/methodology.md on 2026-10-10. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div class="foot-top"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="440 272 1984 1016" aria-hidden="true" focusable="false"><use href="whysoserious.svg#wsc"></use></svg></a>

@@ -72,6 +72,22 @@
   --reader:var(--k-interactive);
 }
 
+/* THE SITE'S WIDTHS (owner, 2026-10-10: "one layout across pages"; brief
+   audits/2026-10-09-site-batch/LAYOUT-BRIEF.md item 6). The party-claims page
+   is the reference: its bar and its text block, taken as they were, apply to
+   every page. Their one definition is here; chrome.css applies them.
+     --page-width  the bar's width (the nav, the strapline and the footer),
+                   the same on every page, centred on the viewport;
+     --text-width  the text block's width (the claims page's column), wider
+                   on a wide screen, as that page always was;
+     --wide-width  the one wider width a map page may take where it needs
+                   the room: the bar's own, so a wide page's edges are the
+                   bar's edges;
+     --gutter      the space each side of the column and of the bar. */
+:root{--page-width:1160px;--text-width:900px;--wide-width:var(--page-width);--gutter:24px;}
+@media (min-width:1440px){:root{--text-width:1040px;}}
+@media (max-width:560px){:root{--gutter:16px;}}
+
 /* ---- src/css/toggle.css ---- */
 /* The light/dark toggle in the nav bar (build_site.nav_for). The sun shows
    while dark (click for light), the moon while light. js/theme.js wires it. */
@@ -90,7 +106,6 @@ body:where(.pg-doc){background:var(--paper);color:var(--ink-2);font-family:var(-
 :where(.pg-doc) h1,:where(.pg-doc) h2,:where(.pg-doc) h3,:where(.pg-doc) h4,:where(.pg-doc) .standfirst,:where(.pg-doc) strong,:where(.pg-doc) b{color:var(--ink);}
 :where(.pg-doc) figcaption,:where(.pg-doc) .small,:where(.pg-doc) .colophon{color:var(--ink-3);}
 :where(.pg-doc) figcaption b,:where(.pg-doc) figcaption strong,:where(.pg-doc) .small b{color:inherit;}
-:where(.pg-doc) .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
 :where(.pg-doc) .kicker{color:var(--accent);margin-bottom:10px;}
 :where(.pg-doc) h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,40px);
     line-height:1.12;letter-spacing:-.012em;text-wrap:balance;margin:0 0 10px;}
@@ -144,7 +159,6 @@ body:where(.pg-doc){background:var(--paper);color:var(--ink-2);font-family:var(-
 :where(.pg-doc) .card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
     text-transform:uppercase;color:var(--accent);}
 @media print{body:where(.pg-doc){background:#fff;color:#000;font-size:10pt;}
-:where(.pg-doc) .page{max-width:none;padding:0;}
 :where(.pg-doc) h2,:where(.pg-doc) h3{break-after:avoid;}
 :where(.pg-doc) table,:where(.pg-doc) blockquote,:where(.pg-doc) pre{break-inside:avoid;}}
 
@@ -155,8 +169,6 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) h1,:where(.pg-sheet) h2,:where(.pg-sheet) h3,:where(.pg-sheet) h4,:where(.pg-sheet) .standfirst,:where(.pg-sheet) strong,:where(.pg-sheet) b{color:var(--ink);}
 :where(.pg-sheet) figcaption,:where(.pg-sheet) .small,:where(.pg-sheet) .colophon,:where(.pg-sheet) .derived{color:var(--ink-3);}
 :where(.pg-sheet) figcaption b,:where(.pg-sheet) figcaption strong{color:inherit;}
-:where(.pg-sheet) .sheet{max-width:860px;margin:0 auto;padding:28px 24px 64px;}
-@media (min-width:1440px){:where(.pg-sheet) .sheet{max-width:1040px;}}
 :where(.pg-sheet) .page{display:flex;flex-direction:column;gap:24px;}
 :where(.pg-sheet) .page + .page{margin-top:34px;padding-top:30px;border-top:1px solid var(--rule);}
 :where(.pg-sheet) .masthead{display:flex;flex-direction:column;gap:10px;}
@@ -230,12 +242,10 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) .colophon{font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink-3);
     border-top:1px solid var(--rule);padding-top:12px;}
 @media print{body:where(.pg-sheet){background:#fff;color:#000;font-size:10.5pt;}
-:where(.pg-sheet) .sheet{max-width:none;padding:0;}
 :where(.pg-sheet) .page{break-after:page;}
 :where(.pg-sheet) .page:last-child{break-after:auto;}
 :where(.pg-sheet) .page + .page{margin-top:0;border-top:none;padding-top:0;}}
-@media (max-width:560px){:where(.pg-sheet) .sheet{padding:20px 14px 48px;}
-:where(.pg-sheet) h1{text-wrap:pretty;}}
+@media (max-width:560px){:where(.pg-sheet) h1{text-wrap:pretty;}}
 :where(.pg-sheet) .govfilter{margin:14px 0 0;padding:12px 14px;border:1px solid var(--rule);border-radius:6px 6px 0 0;
     border-bottom:none;background:color-mix(in srgb,var(--ink) 3%,transparent);}
 :where(.pg-sheet) .govfilter-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;}
@@ -286,13 +296,15 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-home) .hero{padding:44px 0 8px;position:relative;}
 :where(.pg-home) .hero .state{font-family:var(--serif);font-size:clamp(30px,4.2vw,52px);
     line-height:1.12;color:var(--ink);letter-spacing:-.01em;max-width:none;}
-:where(.pg-home) .hero .state em{font-style:normal;color:var(--accent);}
+:where(.pg-home) .hero .state em{display:block;font-style:normal;color:var(--accent);}
 :where(.pg-home) .hero p.sub{margin-top:16px;max-width:none;font-size:16.5px;
     line-height:1.55;color:var(--ink-2);}
 :where(.pg-home) .hero .stamp{margin-top:16px;}
-:where(.pg-home) .mapwrap svg{width:100%;height:auto;display:block;}
-:where(.pg-home) .maphead{display:flex;justify-content:space-between;align-items:baseline;
-    gap:16px;margin-bottom:10px;}
+:where(.pg-home) .hf-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px 34px;margin-top:12px;}
+@media (min-width:900px){:where(.pg-home) .hf-grid{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;}}
+:where(.pg-home) .homemap{margin:0;}
+:where(.pg-home) .homemap .mapcaption{margin-top:8px;font-size:12.5px;}
+:where(.pg-home) .hf-h{font-family:var(--serif);font-size:20px;line-height:1.25;font-weight:600;margin-bottom:10px;}
 :where(.pg-home) .two{display:grid;grid-template-columns:1fr;gap:26px;}
 @media (min-width:900px){:where(.pg-home) .two{grid-template-columns:1fr 1fr;gap:38px;}}
 :where(.pg-home) .kind{--k:var(--accent);background:var(--paper-2);border:1px solid var(--rule-soft);
@@ -304,6 +316,7 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-home) .kind-claim{--k:var(--k-claim);}
 :where(.pg-home) .kind-explain{--k:var(--k-explain);}
 :where(.pg-home) .kind-interactive{--k:var(--k-interactive);}
+:where(.pg-home) .home-intro p{max-width:68ch;margin:10px 0 0;line-height:1.55;}
 :where(.pg-home) .two > .kind{margin-top:0;align-self:stretch;}
 :where(.pg-home) .two.kinds{margin-top:28px;}
 @media (max-width:560px){:where(.pg-home) .kind{padding:14px 14px 16px;border-radius:4px;}}
@@ -330,15 +343,16 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-home) .comingsoon p{margin-top:10px;max-width:66ch;}
 :where(.pg-home) .comingsoon ul{margin:12px 0 0 18px;font-size:14px;}
 :where(.pg-home) .comingsoon li{margin:4px 0;}
-:where(.pg-home) .wrap{max-width:1040px;margin:0 auto;padding:28px 24px 80px;}
-@media (max-width:560px){:where(.pg-home) .wrap{padding:20px 14px 56px;}}
 :where(.pg-home) .comingsoon .stamp.more{margin-top:14px;}
 :where(.pg-home) .feed.explain{display:grid;grid-template-columns:1fr;gap:16px 38px;margin-top:12px;}
 @media (min-width:900px){:where(.pg-home) .feed.explain{grid-template-columns:1fr 1fr;}}
 :where(.pg-home) .feed.explain .item{display:block;padding:0;border-bottom:none;}
 :where(.pg-home) .seatnote{margin-top:12px;}
+:where(.pg-home) .kind-claim .feed{display:grid;grid-template-columns:minmax(0,1fr);gap:0 18px;}
+@media (min-width:900px){:where(.pg-home) .kind-claim .feed{grid-template-columns:repeat(2,minmax(0,1fr));}}
 
 /* ---- src/css/page-portal.css ---- */
+:where(.pg-portal) .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
 :where(.pg-portal) .portal{display:flex;flex-direction:column;gap:26px;}
 :where(.pg-portal) .pmast{display:flex;flex-direction:column;gap:10px;}
 :where(.pg-portal) .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -366,10 +380,7 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 
 /* ---- src/css/page-art.css ---- */
 :where(.pg-art) a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
-:where(.pg-art) .sheet{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
-@media (min-width:1440px){:where(.pg-art) .sheet{max-width:1040px;}}
-@media (max-width:560px){:where(.pg-art) .sheet{padding:20px 14px 56px;}
-:where(.pg-art) h1{text-wrap:pretty;}}
+@media (max-width:560px){:where(.pg-art) h1{text-wrap:pretty;}}
 :where(.pg-art) .layout{grid-template-columns:minmax(0,270px) minmax(0,1fr);}
 @media (max-width:840px){:where(.pg-art) .layout{grid-template-columns:1fr;}}
 
@@ -429,6 +440,9 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-commentary) .sheet .feed .t a{color:var(--ink);text-decoration:none;}
 :where(.pg-commentary) .sheet .feed .t a:hover{color:var(--k-article);text-decoration:underline;
     text-decoration-thickness:1px;text-underline-offset:3px;}
+:where(.pg-commentary) .more-commentary{margin-top:44px;border-top:3px solid var(--k-article);padding-top:16px;}
+:where(.pg-commentary) .more-commentary .feed{margin-top:8px;}
+:where(.pg-commentary) .more-commentary .feed .lead-item .t{font-size:19px;}
 
 /* ---- src/css/page-methodology.css ---- */
 :where(.pg-methodology) .kicker{color:var(--k-explain);}
@@ -446,10 +460,8 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
    (build_site.nav_for) on the line of the logo's "Johannesburg", the record
    and the method following the forecasts on that line where there is room
    and dropping to a row of their own, as a group, where there is not; the
-   theme toggle at the right end of the first line. From 1200px the bar is at
-   least 1160px wide, centred on the page's own column and wider than it
-   where the column is narrower (852px on a document page), so every page's
-   bar is the same.
+   theme toggle at the right end of the first line. Its width is THE FRAME,
+   below: --page-width on every page, whatever that page's column.
 
    --logo-h is the logo's height; the baseline of its "Johannesburg" sits at
    .722 of it (src/brand/logo.svg: the flat feet of h, n and r at 1022.73 in
@@ -460,10 +472,6 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
   display:flex;align-items:flex-start;gap:0 24px;
   font-family:var(--mono);font-size:12.5px;line-height:18px;color:var(--ink);
   border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:0;}
-@media (min-width:1200px){
-  .topnav{box-sizing:border-box;width:max(100%,1160px);
-    margin-left:min(0px,calc((100% - 1160px) / 2));}
-}
 .topnav a.home{flex:none;display:block;line-height:0;color:var(--ink);}
 .topnav a.home:hover{color:var(--accent);}
 .topnav .logo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 2826 / 1296);}
@@ -493,17 +501,21 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
    below it kept (owner, 2026-10-05: it sat too far below the rule). */
 .strapline{font-family:var(--sans);font-size:11px;line-height:1.5;color:var(--ink-3);
   max-width:none;margin:5px 0 26px;}
-@media (min-width:1200px){
-  .strapline{box-sizing:border-box;width:max(100%,1160px);
-    margin-left:min(0px,calc((100% - 1160px) / 2));}
-}
 
-/* The footer: the credits, a rule, then the independence statement with the
-   support link set larger, in the accent colour, at the right (owner's sweep,
-   2026-10-03). The support rule is specific enough to win over any page's own
+/* The footer: the credits, then the independence statement with the support
+   link set larger, in the accent colour, at the right (owner's sweep,
+   2026-10-03). The two notes side by side in two columns (owner, 2026-10-10),
+   the credits at the left; stacked, with the rule between them, on a narrow
+   screen. The support rule is specific enough to win over any page's own
    `footer.sitefooter a`. */
 .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
-  border-top:1px solid var(--rule);padding-top:14px;margin-top:40px;}
+  border-top:1px solid var(--rule);padding-top:14px;margin-top:40px;
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 48px;align-items:start;}
+.sitefooter .foot-rule{display:none;}
+@media (max-width:760px){
+  .sitefooter{grid-template-columns:minmax(0,1fr);gap:0;}
+  .sitefooter .foot-rule{display:block;}
+}
 .sitefooter p{margin:0;color:var(--ink-3);}
 /* the umbrella site's logo, small, beside the credits that name it */
 .sitefooter .foot-top{display:flex;align-items:flex-start;gap:12px 24px;}
@@ -521,14 +533,39 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 .sitefooter .foot-rule{border:none;border-top:1px solid var(--rule-soft);margin:12px 0;}
 .sitefooter .foot-independence{display:flex;flex-wrap:wrap;align-items:flex-end;
   justify-content:space-between;gap:10px 28px;}
-.sitefooter .foot-independence p{flex:1 1 40ch;max-width:110ch;}
+.sitefooter .foot-independence p{flex:1 1 30ch;}
 .sitefooter a.foot-support{margin-left:auto;font-family:var(--sans);font-size:18px;
   font-weight:650;line-height:1.3;color:var(--accent);text-align:right;white-space:nowrap;
   text-decoration:none;}
 .sitefooter a.foot-support:hover{text-decoration:underline;}
 
+/* THE FRAME (owner, 2026-10-10: "the toolbar is identical on every page").
+   The bar, the strapline and the footer are --page-width wide on every page,
+   or the viewport less a gutter each side where that is narrower, and
+   centred on the page whatever its column: wider than a text column, inside
+   a column wider than the bar. --frame is that width; the margin centres it
+   on the column, which is centred on the page. On a phone it is the column's
+   own width (the max), so the bar's edges are the text's. The apex portal's
+   footer keeps its column (THE COLUMN, below). */
+.topnav,.strapline,body:not(.pg-portal) .sitefooter{
+  --frame:min(var(--page-width),max(100%,100vw - 2 * var(--gutter)));
+  box-sizing:border-box;width:var(--frame);margin-left:calc((100% - var(--frame)) / 2);}
+
+/* THE COLUMN: every page's content container, one rule (tokens.css holds
+   the widths). The forecast sheet's pages (.sheet), the home page (.wrap) and
+   the rendered documents (.page) take --text-width; the home page, a map
+   page, --wide-width. The apex portal keeps its own (page-portal.css): it is
+   another site's page and carries no bar. /your-forecast/ sizes its own
+   column from the same tokens (interactive/css/). */
+body.pg-art,body.pg-doc{margin:0;}
+body.pg-art > .sheet,body.pg-art > .wrap,body.pg-doc:not(.pg-portal) > .page{
+  box-sizing:content-box;max-width:var(--text-width);margin:0 auto;
+  padding:28px var(--gutter) 72px;}
+body.pg-home > .wrap{max-width:var(--wide-width);}
+
 @media print{
   .topnav,.strapline{display:none;}
+  body.pg-art > .sheet,body.pg-art > .wrap,body.pg-doc > .page{max-width:none;padding:0;}
 }
 
 /* ---- src/css/stat.css ---- */
@@ -778,6 +815,28 @@ details.rollup>summary h2{margin:0;}
    looking for it, which is what a minor boundary is. */
 details.rollup + details.rollup{margin-top:30px;padding-top:26px;
   border-top:1px solid var(--rule-soft);}
+
+/* THE BUTTON (owner, 2026-10-10: "a big, obvious PREDICT THE ELECTION
+   YOURSELF button"; "large, prominent buttons"). A link or a <button> with
+   the class `cta`: large capitals on a solid ground in the reader's hue, the
+   colour of everything the reader makes. `cta-quiet` is the same button in
+   outline, in the model's accent, for a second way out beside a first. */
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  box-sizing:border-box;min-height:56px;padding:14px 30px;border:2px solid var(--reader);
+  border-radius:6px;background:var(--reader);color:var(--paper);
+  font:750 clamp(16px,1.9vw,20px)/1.2 var(--sans);letter-spacing:.07em;text-transform:uppercase;
+  text-align:center;text-decoration:none;cursor:pointer;
+  box-shadow:0 2px 0 color-mix(in srgb,var(--reader) 55%,var(--paper));}
+.cta:hover,.cta:focus-visible{background:color-mix(in srgb,var(--reader) 82%,var(--ink));
+  border-color:color-mix(in srgb,var(--reader) 82%,var(--ink));color:var(--paper);text-decoration:none;}
+.cta-quiet{min-height:46px;padding:10px 22px;background:transparent;color:var(--accent);
+  border-color:var(--accent);box-shadow:none;font-size:14.5px;}
+.cta-quiet::after{content:"\2192";}
+/* hovered, it fills: the page's ground on the accent clears 4.5:1 in both
+   palettes, where the accent on --accent-soft did not in the light one */
+.cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+.cta-row{margin:22px 0 0;}
+@media (max-width:560px){.cta{display:flex;width:100%;padding:14px 18px;}}
 
 /* generated by src/site_assets.py from render_sheet.CHIPS and cities/*.toml: do not edit */
 :root{--pc-other:#8b918b;}
