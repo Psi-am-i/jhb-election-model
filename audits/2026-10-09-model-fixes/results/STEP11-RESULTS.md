@@ -315,7 +315,12 @@ every draw of every arm (0 draws at or above 1e-5); 0 ward wins.
 - **E against D on the panel:** identical at 24 of 24.
 - **Inertness in E at 2026:** `--set bye_weight_mode=inverse_variance` and
   `montecarlo.BYE_MIN_WEIGHT = 1.0` (from 30.0) each give a run identical to
-  E's on every drawn array and on `30_centres`.
+  E's on every drawn array and on `30_centres`. Delivery: the
+  inverse-variance run's scenario and `01_scenario_in` carry
+  `bye_weight_mode: "inverse_variance"` (E's: `"fixed"`); the key has no entry
+  in `45_delivered` in any of the three runs. `45_delivered` records
+  `montecarlo.BYE_MIN_WEIGHT` read once at `montecarlo:run_model` with value
+  1.0 in the modified run and 30.0 in E's and in the inverse-variance run.
 - A5, Johannesburg 2026:
 
   | quantity | E | D |
