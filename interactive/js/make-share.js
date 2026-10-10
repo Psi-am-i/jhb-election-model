@@ -13,7 +13,7 @@
 // and handed to share-sheet.js. It writes with textContent and properties,
 // never markup.
 
-import { forecastSpec, linkCardSVG, storyCardSVG, duelCardSVG, cardAlt, duelAlt, cardTitle } from "./share-card.js";
+import { forecastSpec, linkCardSVG, storyCardSVG, cardAlt, cardTitle } from "./share-card.js";
 import { shareSheet, loadAssets } from "./share-sheet.js";
 
 const E = {
@@ -27,9 +27,6 @@ const E = {
   seal: document.querySelector('[data-live="b-share"] .shseal'),
   entry: document.querySelector('[data-live="b-share"] .shentry'),
   kind: document.querySelector('[data-live="b-share"] .shimg'),
-  duelOpt: document.querySelector('[data-live="b-share"] .shimg .shduel'),
-  friend: document.querySelector('[data-live="b-share"] .shfriend'),
-  off: document.querySelector('[data-live="b-share"] .shoff'),
   img: document.querySelector('[data-live="b-share"] .preview img'),
   wa: document.querySelector('[data-live="b-share"] .shwa'),
   x: document.querySelector('[data-live="b-share"] .shx'),
@@ -39,14 +36,12 @@ const E = {
 };
 
 let now = null;
-let nameCb = () => {}, openCb = () => {}, friendNameCb = () => {};
+let nameCb = () => {}, openCb = () => {};
 export function onNameChange(cb) { nameCb = cb; }
 // cb(): the sheet opened, so the page should work out the reader's outcome
 export function onOpen(cb) { openCb = cb; }
-// cb(leaveOff): the reader chose whether the return link names the friend
-export function onFriendName(cb) { friendNameCb = cb; }
 
-const specOf = (F, name, made) => forecastSpec({ name, answer: F.answer, outcome: F.outcome, vote: F.vote, calls: F.calls,
+const specOf = (F, made) => forecastSpec({ name: F.name, answer: F.answer, outcome: F.outcome, vote: F.vote, calls: F.calls,
   party: now.party, baseline: now.baseline, election: now.election, made });
 
 const sheet = shareSheet(E, {
@@ -63,14 +58,8 @@ const sheet = shareSheet(E, {
   async card(kind, made) {
     const info = now;
     if (!info.outcome) { openCb(); return { wait: "Working out the chance we give your outcome." }; }
-    const friend = info.friend;
-    const A = specOf(info, info.name, made);
-    const B = kind === "duel" && friend && friend.outcome ? specOf(friend, friend.leftOff ? "a friend" : friend.name || "a friend", made) : null;
-    if (kind === "duel" && !B) return { wait: "Working out the chance we give your friend's outcome." };
-    const codes = [...new Set([...A.rows, ...(B ? B.rows : [])].map(r => r.code))];
-    // the owner's badge is drawn on the link and story cards; the duel card names it in words
-    const assets = { ...(await loadAssets(codes, info.party, B ? [] : [A.badge])), geom: info.geom };
-    if (B) return { svg: duelCardSVG({ ...A, name: A.name || "A reader" }, B, assets, info.party), size: "duel", alt: duelAlt(A, B) };
+    const A = specOf(info, made);
+    const assets = { ...(await loadAssets(A.rows.map(r => r.code), info.party, [A.badge])), geom: info.geom };
     return { svg: kind === "story" ? storyCardSVG(A, assets, info.party) : linkCardSVG(A, assets, info.party), size: kind, alt: cardAlt(A) };
   },
 });
@@ -78,19 +67,10 @@ const sheet = shareSheet(E, {
 // What the page is showing now:
 //   { link, fields: { v, c, f, n }, name, answer, outcome (null until worked
 //     out), vote, calls, party(code) -> { name, colour, article, logo },
-//     baseline, election, geom, friend: null | { name, answer, outcome, vote,
-//     calls, leftOff } }
+//     baseline, election, geom }
 export function setShareable(info) {
   now = info;
   E.open.disabled = false;
   sheet.setName(info.name || "");
-  const hasFriend = !!(info.friend && info.friend.answer);
-  E.duelOpt.hidden = !hasFriend;
-  E.duelOpt.disabled = !hasFriend;   // Safari has ignored `hidden` on an option
-  E.friend.hidden = !info.friend;
-  E.off.checked = !!(info.friend && info.friend.leftOff);
-  if (!hasFriend && E.kind.value === "duel") E.kind.value = "link";
   sheet.update();
 }
-
-E.off.addEventListener("change", () => friendNameCb(E.off.checked));

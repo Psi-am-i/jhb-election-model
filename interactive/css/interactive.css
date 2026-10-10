@@ -22,9 +22,9 @@ a:hover{color:var(--ink);}
 .wrap{max-width:1180px;margin:0 auto;padding:22px 16px 72px;}
 @media (min-width:720px){.wrap{padding:28px 24px 80px;}}
 
-/* the site's nav bar and footer are site.css's (src/css/chrome.css); here,
-   only the reader's page lit in the reader's colour */
-.topnav a.active{color:var(--reader);}
+/* the site's nav bar and footer are site.css's (src/css/chrome.css), the
+   same on every page, the current page's link included (owner, 2026-10-10:
+   "the toolbar is identical on every page"): nothing here restyles them */
 
 /* ⚠ the prototype says what it is on every screen */
 .proto{font-family:var(--mono);font-size:11.5px;line-height:1.5;color:var(--ink-2);

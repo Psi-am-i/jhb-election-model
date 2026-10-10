@@ -59,17 +59,18 @@
 // sends arrives with `from=1` (src/share-edge.js's /s/ redirect): the
 // friend's forecast is shown read-only at the top of the page (js/arrival.js)
 // and section 2 stays locked until the reader picks a start: the friend's
-// forecast (their name is not carried over) or the published one. Either way
-// the friend's forecast is kept in the address (`vs`, `vn`) so the share sheet
-// can draw the return card, both forecasts side by side. Its seats come from
-// the same seat Worker, in a lane of their own, and its chance from the same
-// analysis.
+// forecast (their name is not carried over) or the published one. The
+// friend's forecast stays on the page only: neither the address nor the
+// reader's share link carries it, so no link draws the two forecasts side by
+// side (owner, 2026-10-10: that card is off the share choices). Its seats come
+// from the same seat Worker, in a lane of their own, and its chance from the
+// same analysis.
 
 import * as B from "./builder-state.js";
 import * as MS from "./make-state.js";
 import * as YU from "./yf-url.js";
 import { WardMap } from "./map.js";
-import { setShareable, onNameChange, onOpen, onFriendName } from "./make-share.js";
+import { setShareable, onNameChange, onOpen } from "./make-share.js";
 import { setHandoff } from "./play-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
 import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
@@ -201,7 +202,7 @@ let fromLink = false;      // opened from a link's forecast, not yet measured ag
 let parties = {};          // parties.json: name, colour, article, logo per party
 let arriving = false;      // a shared link's arrival view is up; section 2 is locked
 let pinned = false;        // the start is a friend's forecast: section 1 never replaces it unasked
-let friend = null;         // { name, f, state, coalition, answer, outcome, leftOff, seal }
+let friend = null;         // { name, f, state, coalition, answer, outcome, seal }
 let ownOutcome = null, outcomeTicket = 0;
 
 // `v` votes as a percent of `total`, for a reader to hear.
@@ -213,7 +214,7 @@ const pct = (v, total, dp = 1) => {
 // ---------- following section 1 ----------
 let section1 = null;       // { settings, touched }, the newest setting section 1 shows
 let handSeq = 0, waiting = null;
-onForecast(f => { section1 = f; if (started) follow(); });
+onForecast(f => { section1 = f; if (near) follow(); });
 
 // The prediction this section opens at from section 1's moved `settings`
 // (page.py handoff, rule A on the reader's weights), as builder-state.js
@@ -239,7 +240,7 @@ function followFailed(res) {
 
 async function follow() {
   const f = section1, ticket = ++handSeq;
-  // before start() has its data, there is nothing to follow with: start()
+  // before start() has its data, there is nothing to follow with: begin()
   // follows once it has
   if (!f || !ctx || !from || arriving) return;
   let next;
@@ -286,10 +287,10 @@ one.reseed.addEventListener("click", () => {
   commit(from);
 });
 
-// ---------- start when the reader comes near ----------
+// ---------- start: laid out at load, live when the reader comes near ----------
 // The section's data (forecast.json, parties.json), loaded once: by the
-// section when the reader comes near, or by section 1's share sheet, which
-// draws the start's council on the model's card (setHandoff, below).
+// section's start, or by section 1's share sheet, which draws the start's
+// council on the model's card (setHandoff, below).
 let dataP = null;
 function loadData() {
   dataP ??= Promise.all([fetch(new URL("../forecast.json", import.meta.url)), fetch(new URL("../parties.json", import.meta.url))])
@@ -301,11 +302,27 @@ function loadData() {
   dataP.catch(() => { dataP = null; });
   return dataP;
 }
-// The section started, once: every caller waits on the same start.
-let startP = null;
-function begin() {
+// Two steps. build(): the data and the controls, once, when the page loads,
+// so the section has its full height before the reader reaches it (owner,
+// 2026-10-10: the layout must not shift; filling it on arrival moved
+// everything under its map by the height of its vote list). begin(): when
+// the reader comes near, the seat Worker, which loads the seat law, and from
+// then on the section follows section 1's settings. Every caller waits on the
+// same build.
+let startP = null, near = false;
+function build() {
   startP ??= start().then(() => { if (!started) startP = null; });
   return startP;
+}
+function begin() {
+  near = true;
+  return build().then(() => {
+    if (!started || worker) return;
+    worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
+    worker.onmessage = onWorker;
+    worker.postMessage({ type: "init", schema });
+    if (section1) follow();        // section 1 may have spoken before the reader came near
+  });
 }
 async function start() {
   if (started) return;
@@ -347,21 +364,19 @@ async function start() {
     // a shared link: the friend's forecast, read-only until a start is picked
     arriving = true;
     fromLink = false;
-    friend = { name: YU.currentName(), f: linkF, state, coalition: S.coalition.slice(), answer: null, outcome: null, leftOff: false,
+    friend = { name: YU.currentName(), f: linkF, state, coalition: S.coalition.slice(), answer: null, outcome: null,
                seal: { state: "checking", at: null } };
     one.status.textContent = "This is " + (friend.name || "a reader") + "'s forecast. Pick where to start, above, to make your own.";
     checkSeal();
   } else if (YU.friend()) {
-    // a return link carries the friend's forecast for the side-by-side card
+    // an address from before 2026-10-10 carries a friend's forecast: its
+    // parties keep their council rows; the address drops it
     const fr = YU.friend();
     const got = MS.parse("?" + new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fr.f }).toString(), ctx, D.context_ref, pubStart);
-    if (!got.note) friend = { name: fr.name, f: fr.f, state: got.state, coalition: got.coalition, answer: null, outcome: null, leftOff: !fr.name };
+    if (!got.note) friend = { name: fr.name, f: fr.f, state: got.state, coalition: got.coalition, answer: null, outcome: null };
+    YU.write("friend", "");
   }
   afterEdit();
-  if (section1) follow();          // section 1 may have spoken while the data loaded
-  worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
-  worker.onmessage = onWorker;
-  worker.postMessage({ type: "init", schema });
 }
 const wantsNow = /(^|[?&])f=/.test(location.search) || location.hash === "#break";
 
@@ -404,14 +419,12 @@ async function friendOutcome() {
   if (!friend || !friend.answer || friend.outcome) return;
   try { friend.outcome = await outcomeOf(friend.state, friend.coalition, friend.answer); } catch (e) { return; }
   paintArrival();
-  if (result) share();
 }
 onChoose(kind => {
   arriving = false;
   hideArrival();
   YU.write("arrival", "");
   YU.write("name", "");                       // the friend's label is not carried over
-  YU.write("friend", YU.friendPart(friend.f, friend.name));
   snapshot();
   if (kind === "friend") {
     from = friend.state; adjusted = false; pinned = true;
@@ -428,12 +441,6 @@ onChoose(kind => {
   if (section1 && kind === "ours") follow();
   one.statusRegion.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 });
-onFriendName(off => {
-  if (!friend) return;
-  friend.leftOff = off;
-  YU.write("friend", YU.friendPart(friend.f, off ? "" : friend.name));
-  if (result) share();
-});
 // the share sheet opened: work out the reader's own outcome if not yet known
 onOpen(async () => {
   if (ownOutcome || !result) return;
@@ -444,6 +451,7 @@ onOpen(async () => {
   ownOutcome = o;
   share();
 });
+build();
 if (wantsNow) begin();
 else new IntersectionObserver((es, io) => {
   if (es.some(e => e.isIntersecting)) { io.disconnect(); begin(); }
@@ -944,15 +952,13 @@ function share() {
   // the link always carries the forecast, the untouched start included, so
   // its preview and its seal have a forecast to show
   const f = MS.encode(state, S.coalition, ctx);
-  const link = new URL(YU.linkTo("break", "#break", { withFriend: !!friend }));
+  const link = new URL(YU.linkTo("break", "#break"));
   link.searchParams.set("v", MS.FORMAT); link.searchParams.set("c", D.context_ref); link.searchParams.set("f", f);
   const n = YU.currentName();
   setShareable({
     link: link.href, fields: { v: MS.FORMAT, c: D.context_ref, f, n }, name: n,
     answer: result, outcome: ownOutcome, vote: B.percentOf(state, ctx, "list"), calls: state.calls, coalition: S.coalition,
     party: partyOf, baseline: D.baseline, election: D.election, geom,
-    friend: friend ? { name: friend.name, answer: friend.answer, outcome: friend.outcome, vote: B.percentOf(friend.state, ctx, "list"),
-                       calls: friend.state.calls, leftOff: friend.leftOff } : null,
   });
 }
 onNameChange(n => { YU.write("name", n); if (result) share(); });

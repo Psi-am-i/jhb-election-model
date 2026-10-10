@@ -124,9 +124,12 @@ why.
 The reader's own prediction (entry version 2): every ward called, each party's
 ward vote set with its list vote following it (the gap adjustable), a
 coalition picked, the seats from the seat law
-under Pyodide (`reader_seats`, the Worker's own request and check). It loads
-its data and its seat Worker (a second Pyodide) when the reader comes near it,
-or at once for a link carrying a section 2 forecast or `#break`.
+under Pyodide (`reader_seats`, the Worker's own request and check). Its data
+and its controls are built when the page loads, so it has its full height
+before the reader reaches it (owner, 2026-10-10: the layout must not shift);
+its seat Worker (a second Pyodide) loads, and it starts following section 1,
+when the reader comes near it, or at once for a link carrying a section 2
+forecast or `#break`.
 
 **Where it starts.** Untouched, section 1 is the published forecast and
 section 2 opens at our prediction (`build_make.start_state`, written into
@@ -152,8 +155,8 @@ wards are every party seated in the reader's council or at its start, and
 the party chosen (`builder-state.chipParties`, one rule for every party);
 every other party is in the select beside them.
 
-**The calls to act** (owner, 2026-10-05) are full-width rows, each with one
-line on what it gives: "Share this forecast" at the end of section 1
+**The calls to act** (owner, 2026-10-10) are large buttons, each followed by
+one line on what it gives: "Share this forecast" at the end of section 1
 (section 1's sheet) and at the foot of section 2, before the notes (section
 2's sheet: the map, the seats, our chance, a sealed link); "Analyse my
 forecast" in step 4.
@@ -204,7 +207,12 @@ shares section 1's hand-off) has the reader's card: "[Name]'s Election
 Forecast" on a band in the largest party's colour, the council graphic, the
 table, the ward map, our chance for its outcome. **One share sheet**
 (`js/share-sheet.js`) serves both sections with the same controls; a reader's
-forecast is sealed and entered, the model's is not.
+forecast is sealed and entered, the model's is not. Its images are the link preview and
+the story card. The side-by-side card of two readers' forecasts is off the
+share choices (owner, 2026-10-10), and no link the page makes carries a
+friend's forecast (`vs`); `share-card.duelCardSVG` stays for the site's
+Worker (`src/share-edge.js`), which still draws it for a link from before
+then that carries one.
 
 Tests: `tests/test_your_forecast_page.py` (the gate, both directions, guards
 firing and going quiet, section 1's rows at uniform weights, the start's

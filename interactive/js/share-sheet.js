@@ -13,9 +13,8 @@
 // textContent and properties, never markup.
 //
 // The controls, in both sections: the name on the image, the link and Copy
-// link, the image (a select: the link preview, the story card, and the
-// side-by-side card where a friend's forecast is kept), the preview, and
-// Share…, WhatsApp, X and Download image.
+// link, the image (a select: the link preview and the story card), the
+// preview, and Share…, WhatsApp, X and Download image.
 //
 // THE SEAL. When a section hands it a forecast to seal (`fields`: v, c, f and
 // the name; section 2's forecast, or section 1's hand-off once a setting is
@@ -146,7 +145,7 @@ function requestSeal(fields) {
 }
 
 // E: the sheet's elements, from the section's own region: { open, dlg, close,
-//   name, namenote, url, copy, seal, entry, kind, duelOpt, img, wa, x,
+//   name, namenote, url, copy, seal, entry, kind, img, wa, x,
 //   native, dl, toast }.
 // H: what the section shares, as functions of what its page shows now:
 //   canOpen()          may the sheet open

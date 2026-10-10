@@ -1,7 +1,9 @@
 // Screenshots of sharing a reader's forecast (audits/2026-10-03-share-design):
-// the arrival view a shared link opens, at 375 and 1440 wide; the return
-// card's share sheet after starting from the friend's forecast; and the three
-// cards as the edge draws them (render_cards.mjs). Into <out>/share-*.png.
+// the arrival view a shared link opens, at 375 and 1440 wide; the share
+// sheet after starting from the friend's forecast, which offers the link and
+// story cards only (owner, 2026-10-10: the side-by-side card is off the
+// share choices); and those two cards as the edge draws them
+// (render_cards.mjs). Into <out>/share-*.png.
 //
 //   build the site into a scratch directory with site/draws and site/logos
 //   linked beside it (interactive/README.md), then
@@ -88,28 +90,29 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
   });
   if (locked.open.length || !locked.count || !locked.same) throw new Error("the arrival view left section 2 editable: " + JSON.stringify(locked));
   if (w === 1440) {
-    // start from the friend's forecast, open the share sheet, pick both forecasts
+    // start from the friend's forecast and open the share sheet: the reader's
+    // own link card, and no side-by-side choice
     await pg.click('[data-live="arrival"] .yf-arr-btns .btn.primary');
     await pg.waitForFunction(() => !document.querySelector('[data-live="b-share"] .shareopen').disabled, null, { timeout: 120000 });
     await pg.click('[data-live="b-share"] .shareopen');
     await pg.fill('[data-live="b-share"] .shname', "Kgomotso");
-    await pg.waitForFunction(() => !document.querySelector('[data-live="b-share"] .shduel').hidden, null, { timeout: 120000 });
-    await pg.selectOption('[data-live="b-share"] .shimg', "duel");
+    const kinds = await pg.$$eval('[data-live="b-share"] .shimg option', os => os.map(o => o.value));
+    if (kinds.join() !== "link,story") throw new Error("the share sheet offers " + kinds.join());
     await pg.waitForFunction(() => { const i = document.querySelector('[data-live="b-share"] .preview img');
       return i.src.startsWith("blob:") && i.complete && i.naturalWidth > 0 && /Kgomotso/.test(i.alt); }, null, { timeout: 120000 });
     await pg.waitForFunction(() => /^Sealed/.test(document.querySelector('[data-live="b-share"] .shseal').textContent), null, { timeout: 30000 });
     await pg.waitForTimeout(300);
-    await pg.screenshot({ path: `${OUT}/share-sheet-duel.png` });
+    await pg.screenshot({ path: `${OUT}/share-sheet.png` });
   }
   await pg.context().close();
 }
 await b.close();
 
 // the cards, as the edge draws them
-const { party, A, B: Bs } = specs();
+const { party, A } = specs();
 const a = assets();
-for (const [name, svg] of [["share-card-link.png", SC.linkCardSVG(A, a, party)], ["share-card-story.png", SC.storyCardSVG(A, a, party)],
-  ["share-duel.png", SC.duelCardSVG(A, Bs, a, party)]]) writeFileSync(join(OUT, name), await toPNG(svg));
+for (const [name, svg] of [["share-card-link.png", SC.linkCardSVG(A, a, party)], ["share-card-story.png", SC.storyCardSVG(A, a, party)]])
+  writeFileSync(join(OUT, name), await toPNG(svg));
 
-console.log("wrote share-arrival-375.png, share-arrival-1440.png, share-sheet-duel.png, share-card-link.png, share-card-story.png, share-duel.png");
+console.log("wrote share-arrival-375.png, share-arrival-1440.png, share-sheet.png, share-card-link.png, share-card-story.png");
 if (errors.length) { console.error("page errors:\n" + errors.join("\n")); process.exitCode = 1; }

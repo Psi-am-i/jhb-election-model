@@ -1704,13 +1704,15 @@ def test_refusal_lines_are_live_readable_and_revert_one_control():
     assert broken(js.replace("if (slider && from === to)", "if (false)"), html)
 
 
-def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
-    """B3. "Share this forecast" is a full-width row at the end of section 1
-    (section 1's sheet) and at the foot of section 2, after the analysis and
-    before the notes (section 2's sheet); "Analyse my forecast" is the same
-    bold row in step 4. Each button carries its one line on what it gives,
-    and section 2's names the map, the seats, our chance and the sealed link.
-    A share box moved back into the levers' column is caught."""
+def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
+    """B3, and the owner's layout notes of 2026-10-10 (large buttons in place
+    of the full-width rows). "Share this forecast" is a large button at the
+    end of section 1 (section 1's sheet) and at the foot of section 2, after
+    the analysis and before the notes (section 2's sheet); "Analyse my
+    forecast" is the same button in step 4. Each button is followed by its
+    one line on what it gives, and section 2's names the map, the seats, our
+    chance and the sealed link. A share box moved back into the levers'
+    column is caught, and so is a button drawn the row's full width."""
     site = _built()
     html = _html(site)
     css = (site / D / "css" / "your-forecast.css").read_text(encoding="utf-8")
@@ -1734,9 +1736,12 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
                 ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "chance", "sealed link")),
                 ("step 4", at('class="btn primary yf-analyse yf-ctabtn"'), ()))
         for where, i, words in rows:
-            line = page[i:page.index("</button>", i)] if i >= 0 else ""
-            if "<small>" not in line:
-                out.append(f"no full-width row with its line: {where}")
+            end = page.find("</button>", i) if i >= 0 else -1
+            after = page[end + len("</button>"):] if end >= 0 else ""
+            m = re.match(r'\s*<p class="yf-ctanote">([^<]+)</p>', after)
+            line = m.group(1) if m else ""
+            if not m:
+                out.append(f"no button followed by its line: {where}")
             for w in words:
                 if w not in line:
                     out.append(f"{where}'s line does not name {w}")
@@ -1747,7 +1752,9 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
     row = row[:row.index("</dialog>") + len("</dialog>\n    </div>")]
     moved = html.replace(row, "").replace('<div class="pl-controls">', '<div class="pl-controls">' + row, 1)
     assert misplaced(moved)
-    assert re.search(r"\.yf \.yf-ctabtn\{[^}]*display:block;width:100%", css)
+    assert misplaced(html.replace('<p class="yf-ctanote">', '<p class="yf-note">', 1))
+    button = re.search(r"\.yf \.yf-ctabtn\{([^}]*)\}", css)
+    assert button and "font:700" in button.group(1) and "width:100%" not in button.group(1), button
     # step 4 names what it holds now
     assert "Next: see how likely it is" in html and "Share it, or see how likely it is" not in html
 
@@ -1755,15 +1762,13 @@ def test_the_calls_to_act_are_full_width_rows_where_the_owner_put_them():
 def test_both_share_sheets_are_one_sheet_with_one_set_of_controls():
     """Amendment A (owner, 2026-10-06): one sheet, one set of options, the
     same words. Each section's <dialog> carries the same controls, by class
-    and by visible words, in the same order; what differs is content only
-    (section 2's friend checkbox, which section 1 never has). A control
-    missing from one sheet, or one worded differently, is caught."""
+    and by visible words, in the same order; what differs is content only.
+    A control missing from one sheet, or one worded differently, is caught."""
     html = _html(_built())
 
     def controls(region: str) -> list[tuple[str, str]]:
         start = html.index(f'data-live="{region}"')
         dlg = html[html.index("<dialog", start):html.index("</dialog>", start)]
-        dlg = re.sub(r'<label class="shfriend".*?</label>', "", dlg, flags=re.S)
         return [(re.search(r'class="([^"]+)"', m.group(1)).group(1) if 'class="' in m.group(1) else m.group(0)[:12],
                  re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", m.group(2))).strip())
                 for m in re.finditer(r"<(?:button|a|input|select|option)\b([^>]*)>([^<]*)", dlg)]

@@ -55,7 +55,6 @@ const E = {
   seal: document.querySelector('[data-live="share"] .shseal'),
   entry: document.querySelector('[data-live="share"] .shentry'),
   kind: document.querySelector('[data-live="share"] .shimg'),
-  duelOpt: document.querySelector('[data-live="share"] .shimg .shduel'),
   img: document.querySelector('[data-live="share"] .preview img'),
   wa: document.querySelector('[data-live="share"] .shwa'),
   x: document.querySelector('[data-live="share"] .shx'),
@@ -63,9 +62,6 @@ const E = {
   dl: document.querySelector('[data-live="share"] .shdl'),
   toast: document.querySelector('[data-live="share"] .toast'),
 };
-// section 1 keeps no friend's forecast: no side-by-side card
-E.duelOpt.hidden = true;
-E.duelOpt.disabled = true;
 
 // What the page is showing now: { r, st, ctx, party, made, when, geometry,
 // touched, shareable, lawName, onName }.
