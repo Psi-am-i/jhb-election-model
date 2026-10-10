@@ -1711,6 +1711,7 @@ def _files_opened():
 
 
 _TRACES: dict[str, Path] = {}
+_REFUSED: dict[str, str] = {}
 _TRACE_ROOT: Path | None = None
 
 
@@ -1723,6 +1724,16 @@ def _trace_dir(year: str) -> Path:
     directory is given, and this calls ``run_model`` rather than ``main`` anyway.
     ``STAGE_TRACE_DIR`` in the environment points the integration tests at a
     trace that already exists instead, for a human chasing one by hand.
+
+    It SKIPS on one named condition only: the target's raw IEC results file
+    is not on this machine (``data/**`` is gitignored, so a clone without
+    Atlas's data has none, and there is nothing to run on). Every other way
+    the run can stop, a ``SystemExit`` refusal or a ``FileNotFoundError``
+    raised inside it included, FAILS with the run's own message: a model that
+    refuses must not leave these tests unexercised while the module reads
+    green (CLAUDE.md §4, "it looked"; step 8 fix row 3, 2026-10-10). Until
+    then both were turned into SKIP, so the step-8 stale-spec refusal read as
+    "no run is possible here".
     """
     global _TRACE_ROOT
     import os
@@ -1736,6 +1747,13 @@ def _trace_dir(year: str) -> Path:
         return path
     if year in _TRACES:
         return _TRACES[year]
+    if year in _REFUSED:
+        raise AssertionError(_REFUSED[year])
+    raw = _raw_results_file(year)
+    if not raw.exists():
+        skip(f"{raw} is not on this machine (data/** is gitignored), so no "
+             f"{CITY} {year} run is possible here and there is no trace to "
+             f"observe")
     if _TRACE_ROOT is None:
         _TRACE_ROOT = Path(tempfile.mkdtemp(prefix="stage-estimation-"))
         atexit.register(shutil.rmtree, _TRACE_ROOT, True)
@@ -1749,10 +1767,23 @@ def _trace_dir(year: str) -> Path:
         mc.run_model(target, scenario, ROOT / "data/raw/elections",
                      verbose=False, run_dir=run_dir)
     except (FileNotFoundError, SystemExit) as exc:
-        skip(f"no {CITY} {year} run is possible here, so no trace to observe: "
-             f"{type(exc).__name__}: {exc}")
+        # The raw file is present, so the run was possible and stopped: that
+        # is a failure of the run, not an absence of one. Remembered, so the
+        # other tests reading this year report the same message without
+        # re-running a model that refuses.
+        _REFUSED[year] = (f"the {CITY} {year} run stopped, so there is no "
+                          f"trace to observe: {type(exc).__name__}: {exc}")
+        raise AssertionError(_REFUSED[year]) from exc
     _TRACES[year] = run_dir
     return run_dir
+
+
+def _raw_results_file(year: str) -> Path:
+    """The target's own IEC results file (``CALENDAR[year].results`` with the
+    city's code), the marker for "this machine has the raw elections"."""
+    city = cityconfig.load(CITY)
+    return ROOT / "data/raw/elections" / cityconfig.CALENDAR[year].results.replace(
+        "{CODE}", city.code)
 
 
 def _stages(year: str) -> tuple[dict, dict, dict]:

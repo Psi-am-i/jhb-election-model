@@ -1409,3 +1409,45 @@ and `bye_value.py`'s and `group_share_record.py`'s consumers all refuse until
 then. A run under `HELD_BACK_OFF=1` moves `gates_sha` and is therefore refused
 on every spec emitted without it; that experiment needs its own emit or the
 escape, and a run through the escape is not a measurement.
+
+#### Step 8 addendum, fix-round addition (writer, 2026-10-10, `STEP8-FIX-BRIEF.md`)
+
+**Moved from SKIP to FAIL (5), refused on a stale spec:** `test_stage_estimation`
+`test_a_corrupted_real_trace_is_caught`,
+`test_the_constructed_payloads_carry_a_real_trace_s_fields`,
+`test_the_level_shrink_is_cycle_blind_by_construction`,
+`test_the_predicates_hold_on_a_real_trace`,
+`test_the_real_trace_is_substantial_enough_to_have_been_examined`. Fix row 3:
+`_trace_dir` no longer turns a `SystemExit` or `FileNotFoundError` from the
+real run into SKIP; it fails with the run's message (joburg 2011 and 2021,
+`pools_<year>.json is stale`). It skips on one named condition only: the
+target's raw IEC results file (`data/raw/elections/`, gitignored) is not on
+the machine, which is the case on a clone without Atlas's data. Constructed
+checks, each in a fresh interpreter: a `run_model` forced to raise
+`SystemExit` makes all five FAIL (the previous code SKIPS all five on the same
+input); a missing raw file makes all five SKIP; a run through
+`allow_stale_pools` (a probe, not a measurement) makes all five PASS under both
+the new and the previous code. These replace the "Newly skipped" paragraph
+above: the end-of-batch suite must see them PASS, and a FAIL there is a
+finding.
+
+**Owned by the site step:**
+`test_provenance_dates::test_every_registered_entry_clears_something_on_every_page_it_names`
+(listed above as unchanged by step 8, cause not given). The two `fixed '40%'`
+entries in `content/joburg/stats.toml` ("at a weight of 40%", "others more than
+40%", both sourced to §A35) clear nothing on the built `methodology.html`.
+Cause: `e0ce282` (M4 step 7c) superseded §A35 and moved its reader-facing
+Plain field to §A55 with new wording that names no weight; the methodology
+page's judgement-call section is generated from the register's Plain fields
+(`bcd3b87`), so a fresh build no longer carries either phrase. `content/` is
+not touched here. The site step retires or replaces both entries together
+with the rest of the `w_bye` reader copy: `interactive/js/play-card.js` ("Partly,
+as the forecast does") and `interactive/your-forecast.html` ("The forecast
+counts them partly"), which describe the weight the window will measure.
+
+**Now green (fix rows 1 and 2), removed from the reported-to-coordinator list
+above:** `test_ipf_feasibility::test_no_numeric_module_constant_is_a_default_argument`
+(`bye_value.py` and also `group_share_record.py`, M3, held module constants in
+default arguments) and
+`test_reader_seats::test_the_seat_service_copies_exactly_the_import_closure_of_reader_seats`
+(`byelections.py` added to `sync_seats_py.mjs` `FILES`).
