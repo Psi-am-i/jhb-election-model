@@ -1231,3 +1231,24 @@ them with `size_sd` at their local share.
   the lever, and `test_no_function_argument_is_accepted_and_never_used` (red
   in the step-4 addendum on `build_make.npe_priors(wards)`) passed in this
   run; nothing in this round touched that function.
+
+### R3.6, slice M4 step 7b addendum (writer, 2026-10-10)
+
+- **`bye_value.json` is not on disk until the window** (`src/bye_value.py
+  --emit`, after the re-emit, R2.6). Until then
+  `test_intermediates_are_current::test_the_bye_value_record_is_a_fresh_build`
+  fails on the missing file, and
+  `test_the_uncovered_set_is_exactly_the_declared_one_BOTH_WAYS` (already red
+  on `group_share_record.json`) also names the `bye_value.json` pattern. Both
+  are expected to turn green after the window; one that does not is a finding.
+  Two builds into temporary directories, under different `PYTHONHASHSEED`
+  values, gave byte-identical files (the module pins the hash seed as
+  `montecarlo` does).
+- **`levels.py` moved again** (`trusted_ward_pr`, lifted from `run_model`):
+  `test_chain`, `test_stage_inputs` and `test_citywide_table` stay red for
+  the spec-key cause. No new red from it.
+- **`byelections` left `ENTRY_POINTS`**: it is now imported (`montecarlo`,
+  `bye_value`, `declares`), so `test_standalone_modules` requires the entry
+  gone. `bye_value` is imported by its test, so it gets no `ENTRY_POINTS`
+  entry and its CLAUDE.md §5 line sits outside the no-importer block (R2.4
+  asked for both; the two guards forbid them for an imported module).

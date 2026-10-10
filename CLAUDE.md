@@ -366,6 +366,11 @@ And one imported by `test_levels_dispersion.py` rather than orphaned:
 
     .venv/bin/python src/theta_residual.py      # conditional sd(log theta), §1.59
 
+And one imported by `tests/test_bye_value.py`, run in a re-emit window after the
+pool specs (`--out DIR` to build it elsewhere):
+
+    .venv/bin/python src/bye_value.py --emit    # item 19's by-election weights
+
 ### Targeted modules per change; the SUITE once per commit
 
 * **iterating** — `-k` the modules your change reaches. `-x levers` is a large

@@ -82,6 +82,7 @@ from pathlib import Path
 
 import numpy as np
 
+import byelections as _byelections
 import cityconfig
 import coalitions
 from fold import FOLDS, citywide, load, load_parameters, shares
@@ -2180,7 +2181,9 @@ def blended_centres(
                     centres[party] = centre
                     continue
                 _r = (scenario.get("_ward_pr_trusted") or {}).get(party)
-                delta_pr = (delta / _r) if _r else delta
+                # `byelections.delta_pr`, one definition with `bye_value.py`'s
+                # test (BRIEF item 19); lifted from here 2026-10-10.
+                delta_pr = _byelections.delta_pr(delta, _r)
                 implied = prior_pr_share.get(party, 0.0) + delta_pr
                 if party in prior:
                     low, high = prior[party][0], prior[party][2]
@@ -5049,12 +5052,14 @@ def run_model(target, scenario: dict,
     # threshold has a ratio that is a quotient of two noisy numbers, and
     # dividing a delta by it amplifies noise faster than it removes bias —
     # measured, and it is why `blended_centres` falls back to additive there.
-    trusted_ward_pr: dict[str, float] = {}
+    # One definition with `bye_value.py`'s conversion: `levels.trusted_ward_pr`
+    # (lifted out of this loop 2026-10-10, BRIEF item 19; no behaviour change).
+    import levels as _levels_ratio
+    trusted_ward_pr = _levels_ratio.trusted_ward_pr(
+        wc, pc, WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX, parties=index)
     for p, i in index.items():
-        if pc.get(p, 0) > 0.001:
-            ratio[i] = np.clip(wc.get(p, 0.0) / pc[p],
-                               WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX)
-            trusted_ward_pr[p] = float(ratio[i])
+        if p in trusted_ward_pr:
+            ratio[i] = trusted_ward_pr[p]
     # A party with no ward history at the previous LGE gets the median of the
     # parties that have one — a rule that applies to whoever turns up next,
     # rather than the two hand-set numbers this replaces (MK 0.80 "bounded by

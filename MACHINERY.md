@@ -1113,6 +1113,24 @@ by-election scrape covers 2022-06 to 2026-02, so no past target has any) and the
 fall at 2021, so a backtest there has one prior case to fit on) — the latter
 identified but NOT applied.
 
+**The by-election value test (BRIEF item 19, JUDGEMENT-CALLS §A55).**
+`src/bye_value.py` asks whether by-election evidence predicted the next real
+result beyond the model's own baseline. Per (party, metro) pair with a
+by-election between the 2021 LGE and 2024-05-29: the baseline `B` is the 2021
+list share through the θ relation the model uses (`levels._shrunk` on the θ
+record before 2024, at the party's 2019 national share); the residual
+`e = actual_2024 − B` is regressed through the origin on the party's
+list-scale weighted delta, `δ_pr` (`byelections.weighted_deltas`, converted by
+`byelections.delta_pr` with `levels.trusted_ward_pr`, the model's own
+definitions), leave one metro out, separately for parties under and over 1%
+of the 2021 list (`byelections.size_class`). A class keeps its slope only if
+the 5th percentile of its out-of-sample gain over 2,000 metro-cluster
+bootstrap resamples is above 0, and under 10 pairs it takes 0. The output is
+`data/processed/bye_value.json`, with an `artefact_key`
+(`byelections.bye_value_key`). **A cross-ballot test on the whole record:**
+the by-elections are ward contests, the outcome a national-provincial list
+ballot, and nothing later exists to test against.
+
 `pools` runs by default — `run_model` loads
 `data/processed/{city}/pools_{target}.json` when the scenario does not carry
 pools, and prints the provenance and any pool whose members are unidentified.

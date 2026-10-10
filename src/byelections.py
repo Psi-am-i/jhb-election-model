@@ -60,6 +60,70 @@ from pathlib import Path
 
 import parties as P
 
+#: The recency half-life, in months, of a by-election's weight (plan §3.5,
+#: range 6-36). One definition: ``main``'s ``--tau`` default and
+#: ``bye_value.py``'s test (BRIEF item 19) both read it.
+TAU_MONTHS = 18.0
+
+#: The size-class edge for the by-election weight (BRIEF item 19, SPEC R2.4):
+#: a party under 1% of the previous local list is in one class, at 1% or more
+#: in the other, and each class carries its own derived weight. One named
+#: constant used by ``bye_value.py`` (which measures each class's weight) and
+#: ``montecarlo.blended_centres`` (which applies it), through
+#: :func:`size_class`. JUDGEMENT-CALLS §A55.
+BYE_CLASS_EDGE = 0.01
+
+#: The class names, in the order the artefact and every report print them.
+SIZE_CLASSES = ("under", "at_or_over")
+
+#: The national by-election file the item-19 test reads (all eight metros).
+SA_FILE = Path("data/raw/byelections/byelections_SA_vd_party.csv")
+
+#: The item-19 artefact's name under ``data/processed``. Named here because
+#: three modules need it and ``montecarlo`` may not import ``bye_value``.
+BYE_VALUE = "bye_value.json"
+
+
+def size_class(size: float) -> str:
+    """The by-election size class of a party at ``size`` (a share, 0-1).
+
+    ``"under"`` below :data:`BYE_CLASS_EDGE`, ``"at_or_over"`` at or above
+    it. No party is named: the class is a function of size alone.
+    """
+    return "under" if size < BYE_CLASS_EDGE else "at_or_over"
+
+
+def delta_pr(delta: float, ratio: float | None) -> float:
+    """A ward-ballot by-election delta on the list (PR) scale.
+
+    Divided by the party's trusted ward/PR ratio where it has one
+    (``levels.trusted_ward_pr``), additive otherwise. The conversion
+    ``montecarlo.blended_centres`` applies (§1.113, JUDGEMENT-CALLS §A36), as
+    one definition so the item-19 test measures the quantity the model uses.
+    """
+    return delta / ratio if ratio else delta
+
+
+def bye_value_key(ward_pr_clip: tuple[float, float]) -> dict:
+    """What ``bye_value.json`` was built from, computed from the files.
+
+    The test's code (``bye_value.py``), the delta code (this module), the
+    emit's dependencies (``pools._deps_sha``: ``levels`` for ``_shrunk``,
+    ``theta_record``, ``size_window``, ``_citywide`` and
+    ``trusted_ward_pr``), the by-election file's bytes, and the ward/PR clip
+    the conversion used (``montecarlo.WARD_PR_RATIO_MIN/MAX``, passed in by
+    the caller so this module need not import ``montecarlo``). The writer
+    stamps it; ``montecarlo`` and ``declares`` compare it with the live one.
+    """
+    import pools
+    src = Path(__file__).resolve().parent
+    return {"schema": 1,
+            "bye_value_sha": pools._code_sha(src / "bye_value.py"),
+            "byelections_sha": pools._code_sha(src / "byelections.py"),
+            "deps_sha": pools._deps_sha(),
+            "byelection_file_sha": pools._sha(src.parent / SA_FILE),
+            "ward_pr_clip": [float(ward_pr_clip[0]), float(ward_pr_clip[1])]}
+
 
 def load_byelections(path: Path, prefix: str,
                      after: date, before: date) -> dict[tuple[str, str], dict]:
@@ -130,9 +194,83 @@ def age_months(when: str, election_day: date) -> float:
     ) / 30.0
 
 
+def weighted_deltas(contests: dict[tuple[str, str], dict[str, int]],
+                    votes: dict[str, dict[str, int]],
+                    registered: dict[str, int], election_day: date,
+                    tau: float, base_lge: str) -> dict:
+    """Per-contest deltas and weights, and each party's weighted sums.
+
+    The arithmetic of the module docstring, lifted out of :func:`main` so the
+    item-19 test (``bye_value.py``) takes its deltas from the one definition
+    (SPEC R2.4: "byelections.py's weighted delta ... same τ, same similarity
+    weight"). ``contests`` is :func:`load_byelections`' output, ``votes`` and
+    ``registered`` :func:`ward_ballot`'s for the previous LGE ``base_lge``,
+    and ``election_day`` the date ages are taken to.
+
+    Returns ``delta_rows`` and ``turnout_rows`` (formatted as the CSVs carry
+    them), ``weighted`` and ``weight_sum`` per party (``Σ w·d`` and ``Σ w``;
+    the weighted delta is their quotient), and ``skipped``, the
+    ``(ward, date)`` of each contest with no ``base_lge`` ward base.
+    """
+    share_col, turnout_col = f"share_{base_lge}", f"turnout_{base_lge}"
+    votes21, registered21 = votes, registered
+    skipped: list[tuple[str, str]] = []
+    city_totals: defaultdict[str, int] = defaultdict(int)
+    for tally in votes21.values():
+        for party, count in tally.items():
+            city_totals[party] += count
+    city_cast = sum(city_totals.values())
+    city_share = {p: v / city_cast for p, v in city_totals.items()}
+
+    # --- per-contest deltas and weights -------------------------------------
+    delta_rows = []
+    turnout_rows = []
+    weighted: defaultdict[str, float] = defaultdict(float)
+    weight_sum: defaultdict[str, float] = defaultdict(float)
+
+    for (when, ward), tally in sorted(contests.items()):
+        base = votes21.get(ward)
+        if not base:
+            skipped.append((ward, when))
+            continue
+        base_cast = sum(base.values())
+        bye_cast = sum(tally.values())
+        base_share = {p: v / base_cast for p, v in base.items()}
+        rho = similarity(base_share, city_share)
+        w = math.exp(-age_months(when, election_day) / tau) * math.sqrt(bye_cast) * rho
+
+        reg = registered21.get(ward, 0)
+        t21 = base_cast / reg if reg else float("nan")
+        t_bye = bye_cast / reg if reg else float("nan")
+        turnout_rows.append(
+            {"ward": ward, "date": when, turnout_col: t21, "turnout_bye": t_bye,
+             "ratio": t_bye / t21 if t21 else float("nan"), "votes_cast": bye_cast}
+        )
+
+        # Only parties that contested (A4: absence ≠ collapse). Sorted because
+        # set iteration order varies with the interpreter's hash seed, which
+        # made byelection_contest_detail.csv differ on every run of identical
+        # code — noise that hid real diffs. The values were never affected.
+        for party in sorted(tally):
+            d = tally[party] / bye_cast - base_share.get(party, 0.0)
+            weighted[party] += w * d
+            weight_sum[party] += w
+            delta_rows.append(
+                {"ward": ward, "date": when, "party": party,
+                 share_col: f"{base_share.get(party, 0.0):.4f}",
+                 "share_bye": f"{tally[party] / bye_cast:.4f}",
+                 "delta": f"{d:+.4f}", "weight": f"{w:.2f}", "rho": f"{rho:.3f}"}
+            )
+
+
+    return {"delta_rows": delta_rows, "turnout_rows": turnout_rows,
+            "weighted": dict(weighted), "weight_sum": dict(weight_sum),
+            "skipped": skipped}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tau", type=float, default=18.0,
+    parser.add_argument("--tau", type=float, default=TAU_MONTHS,
                         help="recency half-life in months (plan §3.5, range 6-36)")
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw"))
     # Defaults to the ACTIVE TARGET's processed directory, resolved after
@@ -161,52 +299,12 @@ def main(argv: list[str] | None = None) -> int:
         args.data_dir / "elections" / target.results(base_lge)
     )
 
-    city_totals: defaultdict[str, int] = defaultdict(int)
-    for tally in votes21.values():
-        for party, count in tally.items():
-            city_totals[party] += count
-    city_cast = sum(city_totals.values())
-    city_share = {p: v / city_cast for p, v in city_totals.items()}
-
-    # --- per-contest deltas and weights -------------------------------------
-    delta_rows = []
-    turnout_rows = []
-    weighted: defaultdict[str, float] = defaultdict(float)
-    weight_sum: defaultdict[str, float] = defaultdict(float)
-
-    for (when, ward), tally in sorted(contests.items()):
-        base = votes21.get(ward)
-        if not base:
-            print(f"  ! no {base_lge} ward-ballot base for {ward} ({when}); skipped")
-            continue
-        base_cast = sum(base.values())
-        bye_cast = sum(tally.values())
-        base_share = {p: v / base_cast for p, v in base.items()}
-        rho = similarity(base_share, city_share)
-        w = math.exp(-age_months(when, target.date) / args.tau) * math.sqrt(bye_cast) * rho
-
-        reg = registered21.get(ward, 0)
-        t21 = base_cast / reg if reg else float("nan")
-        t_bye = bye_cast / reg if reg else float("nan")
-        turnout_rows.append(
-            {"ward": ward, "date": when, turnout_col: t21, "turnout_bye": t_bye,
-             "ratio": t_bye / t21 if t21 else float("nan"), "votes_cast": bye_cast}
-        )
-
-        # Only parties that contested (A4: absence ≠ collapse). Sorted because
-        # set iteration order varies with the interpreter's hash seed, which
-        # made byelection_contest_detail.csv differ on every run of identical
-        # code — noise that hid real diffs. The values were never affected.
-        for party in sorted(tally):
-            d = tally[party] / bye_cast - base_share.get(party, 0.0)
-            weighted[party] += w * d
-            weight_sum[party] += w
-            delta_rows.append(
-                {"ward": ward, "date": when, "party": party,
-                 share_col: f"{base_share.get(party, 0.0):.4f}",
-                 "share_bye": f"{tally[party] / bye_cast:.4f}",
-                 "delta": f"{d:+.4f}", "weight": f"{w:.2f}", "rho": f"{rho:.3f}"}
-            )
+    found = weighted_deltas(contests, votes21, registered21, target.date,
+                            args.tau, base_lge)
+    for ward, when in found["skipped"]:
+        print(f"  ! no {base_lge} ward-ballot base for {ward} ({when}); skipped")
+    delta_rows, turnout_rows = found["delta_rows"], found["turnout_rows"]
+    weighted, weight_sum = found["weighted"], found["weight_sum"]
 
     ratios = [r["ratio"] for r in turnout_rows if r["ratio"] == r["ratio"]]
     # No contest in the window is the normal state for an early target, not a

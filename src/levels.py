@@ -1897,6 +1897,31 @@ def ward_pr_ratios(target: cityconfig.Target, city: cityconfig.City,
     return ratios, fallback
 
 
+def trusted_ward_pr(wc: dict[str, float], pc: dict[str, float],
+                    lo: float, hi: float, parties=None) -> dict[str, float]:
+    """Each party's ward/PR split-ticket ratio, where it is trustworthy.
+
+    ``wc`` and ``pc`` are the previous LGE's citywide ward-ballot and PR
+    shares. A party whose PR share exceeds 0.001 gets ``wc/pc`` clipped to
+    ``[lo, hi]`` (``montecarlo.WARD_PR_RATIO_MIN/MAX``); below that the ratio
+    is a quotient of two noisy numbers and the party is left out (F46,
+    §1.113). Over ``parties`` where given (the run's index), else over
+    ``pc``.
+
+    One definition for two consumers: ``montecarlo.run_model``'s ratio array
+    (the draws' ward/PR split, and ``_ward_pr_trusted`` for the by-election
+    conversion in ``blended_centres``), and ``bye_value.py``'s conversion of
+    each metro's by-election delta (BRIEF item 19). Lifted out of
+    ``run_model``'s loop 2026-10-10, no behaviour change. Not
+    :func:`ward_pr_ratios`, which applies neither the threshold nor the clip.
+    """
+    out: dict[str, float] = {}
+    for p in (pc if parties is None else parties):
+        if pc.get(p, 0) > 0.001:
+            out[p] = float(np.clip(wc.get(p, 0.0) / pc[p], lo, hi))
+    return out
+
+
 def contestation(target: cityconfig.Target, city: cityconfig.City,
                  ) -> dict[str, float]:
     """The fraction of wards each party fields a ward candidate in.

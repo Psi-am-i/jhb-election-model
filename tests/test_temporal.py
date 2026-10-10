@@ -542,6 +542,130 @@ def test_the_size_window_reads_no_election_at_or_after_its_target():
                 if int(y) <= int(year)], report["targets"]
 
 
+def _late_reads(fn, year: int) -> tuple[list, object]:
+    """Run ``fn`` under the file-open spy; the election files it read dated
+    ``year`` or later, and its return value."""
+    from _support import election_files_read
+    with election_files_read() as reads:
+        result = fn()
+    return sorted({(y, k) for y, k, _ in reads if int(y) >= year}), result
+
+
+def test_the_byelection_value_test_reads_no_byelection_or_result_from_its_outcome_on():
+    """G25 (BRIEF item 19, SPEC R2.4). ``bye_value`` predicts the 2024
+    provincial ballot, so:
+
+    * **``B`` reads nothing dated 2024 or later.** ``bye_value.baselines``
+      runs under the file-open spy; the set of elections it reads is exactly
+      the θ record's at a 2024 target (every LGE with results before 2024 and
+      the national election preceding each, from the calendar) plus each
+      metro's 2021 LGE and 2019 national election. Both directions.
+    * **It can see.** The same spy over ``bye_value.outcomes`` (which reads
+      the 2024 result, as it must) reports it late; over ``baselines`` it is
+      quiet.
+    * **No by-election on or after 2024-05-29.** Every pair's contest dates
+      lie strictly between the 2021 LGE and the outcome; a constructed
+      by-election file with contests on 2024-05-28, on 2024-05-29 and after
+      it keeps only the first, and a cutoff moved a day later lets the
+      second through (the filter is what decides, not the file).
+    * **Population.** The pairs ``collect`` returns equal, both ways, a set
+      built here from the raw files with the csv module: (party, metro) from
+      the by-election rows in the window, in a ward with a 2021 ward-ballot
+      result, with positive list votes on the 2021 PR ballot or the 2024
+      ballot; and the count the artefact would report. Scanned against the
+      (party, metro) pairs in the window before the list-vote condition.
+    """
+    import csv
+    import datetime as dt
+    import tempfile
+    sys.path.insert(0, str(ROOT / "src"))
+    import bye_value as BV
+    import byelections as BY
+    import cityconfig
+    import levels
+    import parties as P
+    from _support import election_files_read, scanned
+
+    assert not levels.THETA_EXCLUDE_TARGETS and not levels.THETA_WINDOW, (
+        "a θ record trim is configured; the expected file set assumes none")
+    cal = cityconfig.CALENDAR
+    lge_results = sorted((y for y, e in cal.items()
+                          if e.kind == "LGE" and e.results), key=int)
+    earlier = [y for y in lge_results if int(y) < 2024]
+    npes = {cityconfig.preceding(y, "NPE") for y in earlier}
+    npes = {n for n in npes if n and cal[n].results}
+    want = ({(y, "LGE") for y in earlier
+             if cityconfig.preceding(y, "NPE") in npes}
+            | {(n, "NPE") for n in npes} | {("2021", "LGE"), ("2019", "NPE")})
+    with election_files_read() as reads:
+        _base, _window = BV.baselines()
+    got = {(y, k) for y, k, _ in reads}
+    late = sorted(g for g in got if int(g[0]) >= 2024)
+    assert not late, f"B read {late}"
+    assert got == want, f"B read {sorted(got)}; the calendar says {sorted(want)}"
+
+    late_outcome, _ = _late_reads(BV.outcomes, 2024)
+    assert late_outcome == [("2024", "NPE")], late_outcome
+    quiet, _ = _late_reads(BV.baselines, 2024)
+    assert quiet == []
+
+    lo, cut = cal["2021"].date, cal["2024"].date
+    with tempfile.TemporaryDirectory() as tmp:
+        f = Path(tmp) / "bye.csv"
+        f.write_text("WardID,ByElectionDate,PartyFullName,Party_Votes\n"
+                     "79800001,2024-05-28,PARTY A,10\n"
+                     "79800002,2024-05-29,PARTY A,10\n"
+                     "79800003,2024-06-01,PARTY A,10\n", encoding="utf-8")
+        kept = BY.load_byelections(f, "798", lo, cut)
+        assert sorted(w for _d, w in kept) == ["79800001"], kept
+        later = BY.load_byelections(f, "798", lo, cut + dt.timedelta(days=1))
+        assert sorted(w for _d, w in later) == ["79800001", "79800002"]
+
+    found = BV.collect()
+    pairs = found["pairs"]
+    for p in pairs:
+        for d in p["dates"]:
+            assert lo < dt.date.fromisoformat(d) < cut, (p["party"], d)
+
+    window_pairs: set[tuple[str, str]] = set()
+    expected: set[tuple[str, str]] = set()
+    for slug in BV.CITIES:
+        city = cityconfig.load(slug)
+        raw = ROOT / "data" / "raw" / "elections"
+        lge = raw / cal["2021"].results.replace("{CODE}", city.code)
+        out = raw / cal["2024"].results.replace("{CODE}", city.code)
+        wards, listed = set(), set()
+        with open(lge, encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if row["BallotType"].upper() == "WARD":
+                    wards.add(row["Ward"])
+                elif (row["BallotType"].upper() == "PR"
+                      and int(row["Party_Votes"]) > 0):
+                    listed.add(P.canonical(row["sPartyName"]))
+        with open(out, encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if float(row["Party_Votes"] or 0) > 0:
+                    listed.add(P.canonical(row["sPartyName"]))
+        with open(ROOT / BY.SA_FILE, encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if not row["WardID"].startswith(city.ward_prefix):
+                    continue
+                if not lo < dt.date.fromisoformat(row["ByElectionDate"]) < cut:
+                    continue
+                key = (P.canonical(row["PartyFullName"]), slug)
+                window_pairs.add(key)
+                if row["WardID"] in wards and key[0] in listed:
+                    expected.add(key)
+    got_pairs = {(p["party"], p["metro"]) for p in pairs}
+    assert len(got_pairs) == len(pairs), "a pair appears twice"
+    assert got_pairs == expected, (
+        f"collect has {sorted(got_pairs - expected)} the raw files do not, "
+        f"and misses {sorted(expected - got_pairs)}")
+    scanned(got_pairs, of=window_pairs, low=0.5, high=1.0,
+            what="item-19 pairs", denominator="(party, metro) pairs with a "
+            "by-election in the window")
+
+
 # The two data-coverage tests that lived here from 2026-08-23 moved to
 # tests/test_data_coverage.py, which owns that subject in full. This file
 # is about TEMPORAL leakage. MODEL-LOG §1.78.

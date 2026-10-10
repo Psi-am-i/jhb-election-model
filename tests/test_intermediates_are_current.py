@@ -143,6 +143,12 @@ NOT_REGENERATED_HERE: dict[str, str] = {
         "tripwire's record and margins. Carries an artefact_key (declares.py, "
         "`record` kind), and is regenerated and compared byte for byte by "
         "test_the_group_share_record_is_a_fresh_build below.",
+    "bye_value.json":
+        "src/bye_value.py --emit (BRIEF item 19): the by-election value test, "
+        "whose class weights `montecarlo.blended_centres` applies. Carries an "
+        "artefact_key (declares.py, `record` kind; montecarlo refuses a stale "
+        "one), and is regenerated and compared byte for byte by "
+        "test_the_bye_value_record_is_a_fresh_build below.",
     "citywide_*.json":
         "src/citywide_table.py — the browser engine's stand-in for "
         "levels._citywide_and_roster, recorded from a model run. Regenerated "
@@ -402,11 +408,11 @@ def _record_staleness(live: Path, fresh: Path) -> str | None:
     return None
 
 
-def _scratch_tree(edit=None) -> Path:
+def _scratch_tree(edit=None, module: str = "group_share_record.py") -> Path:
     """A tree whose ``src/`` is a COPY of this one's (``edit`` may rewrite
-    ``group_share_record.py``) and whose every other top-level entry is a
-    link to this one's, so it reads the same data and writes nothing here."""
-    tree = Path(tempfile.mkdtemp(prefix="group-share-tree-"))
+    ``module``) and whose every other top-level entry is a link to this
+    one's, so it reads the same data and writes nothing here."""
+    tree = Path(tempfile.mkdtemp(prefix="record-tree-"))
     for entry in ROOT.iterdir():
         if entry.name in ("src", ".git"):
             continue
@@ -414,7 +420,7 @@ def _scratch_tree(edit=None) -> Path:
     shutil.copytree(ROOT / "src", tree / "src",
                     ignore=shutil.ignore_patterns("__pycache__"))
     if edit is not None:
-        target = tree / "src" / "group_share_record.py"
+        target = tree / "src" / module
         before = target.read_text(encoding="utf-8")
         after = edit(before)
         assert after != before, "the constructed edit changed nothing"
@@ -472,6 +478,74 @@ def test_the_group_share_freshness_check_can_see_a_real_stale_record():
             dirs += [tree, out]
             built = _build_group_share_record(out, root=tree)
             problem = _record_staleness(built, fresh)
+            if stale:
+                assert problem, "a record built by other code read as current"
+            else:
+                assert problem is None, ("a build of today's code from a "
+                                         "scratch tree reads as stale")
+    finally:
+        for d in dirs:
+            shutil.rmtree(d, ignore_errors=True)
+
+
+def _build_bye_value(out: Path, root: Path = ROOT) -> Path:
+    """Build the item-19 record from empty into ``out`` (never into
+    data/processed), running the builder in ``root``'s ``src/``."""
+    proc = subprocess.run([str(PY), "src/bye_value.py", "--out", str(out)],
+                          cwd=root, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-400:]
+    return out / "bye_value.json"
+
+
+def _bye_value_staleness(live: Path, fresh: Path) -> str | None:
+    """The detector: why ``live`` is not today's build ``fresh``, or None."""
+    if live.read_bytes() != fresh.read_bytes():
+        return ("bye_value.json differs from a fresh build: rebuild it in a "
+                "window (src/bye_value.py --emit) and measure")
+    return None
+
+
+def test_the_bye_value_record_is_a_fresh_build():
+    """BRIEF item 19: the by-election value record on disk is what today's
+    code builds, rebuilt from an EMPTY directory and compared byte for byte
+    by `_bye_value_staleness` (whose ability to see is the next test's).
+    Red until the re-emit window runs `--emit` (SPEC R3.6, slice M4).
+    """
+    live = PROCESSED / "bye_value.json"
+    assert live.exists(), (
+        f"{live} is not on disk. It is written in the re-emit window "
+        f"(src/bye_value.py --emit); until then every run that reads "
+        f"by-elections refuses.")
+    tmp = Path(tempfile.mkdtemp(prefix="bye-value-"))
+    try:
+        assert not any(tmp.iterdir()), "the scratch directory is not empty"
+        made = _build_bye_value(tmp)
+        problem = _bye_value_staleness(live, made)
+        assert problem is None, problem
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_the_bye_value_freshness_check_can_see_a_real_stale_record():
+    """The detector's "can see", on a REAL stale record: one built by other
+    code, a scratch tree whose ``bye_value.py`` draws 200 bootstrap resamples
+    instead of 2,000. Flagged against today's build; quiet on a build from
+    the same scratch tree with the edit reverted (so the tree's location is
+    not what differs). Does not need the record on disk.
+    """
+    old = "BYE_VALUE_RESAMPLES = 2000"
+    fewer = (lambda text: text.replace(old, "BYE_VALUE_RESAMPLES = 200", 1))
+    dirs = []
+    try:
+        fresh_dir = Path(tempfile.mkdtemp(prefix="bye-value-"))
+        dirs.append(fresh_dir)
+        fresh = _build_bye_value(fresh_dir)
+        for edit, stale in ((fewer, True), (None, False)):
+            tree = _scratch_tree(edit, module="bye_value.py")
+            out = Path(tempfile.mkdtemp(prefix="bye-value-"))
+            dirs += [tree, out]
+            built = _build_bye_value(out, root=tree)
+            problem = _bye_value_staleness(built, fresh)
             if stale:
                 assert problem, "a record built by other code read as current"
             else:

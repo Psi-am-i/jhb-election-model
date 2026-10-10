@@ -155,10 +155,8 @@ ENTRY_POINTS: dict[str, str] = {
         "README.md step 3: `python src/build_geo.py`. Clips the national ward "
         "shapefiles to the city; cited as the provenance of the "
         "`data/raw/geo/wards*_` entries in `archive.py`.",
-    "byelections":
-        "README.md step 3: `python src/byelections.py`. Turns the by-elections "
-        "in the window into the two signals `fold`/`levels` consume from the "
-        "processed directory, not by import.",
+    # `byelections` left this list 2026-10-10: `montecarlo`, `bye_value` and
+    # `declares` import it (BRIEF item 19). README.md step 3 still runs it.
     "gamma_recent":
         "README.md step 3: `python src/gamma_recent.py`. Fits γ for parties "
         "fold 1 never saw and writes `gamma_recent.csv`, which `montecarlo.py` "

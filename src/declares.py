@@ -200,13 +200,15 @@ KINDS: dict[str, Kind] = {
         "reduction", ("code", "scope", "inputs"),
         "§1.265 — a precomputed reduction is a second definition of its "
         "function unless it names the code and the input bytes it came from"),
-    # A record a run reads as a threshold (BRIEF item 12): the group-share
-    # record. It names the code that built it and the pools code it fitted
-    # with; a record from other code is a tripwire set somewhere else.
+    # A record a run reads as a threshold or a weight: the group-share
+    # record (BRIEF item 12) and the by-election value test (item 19). Each
+    # names the code that built it; a record from other code is a tripwire
+    # or a weight set somewhere else.
     "record": Kind(
         "record", ("code",),
-        "BRIEF item 12 — the group-share tripwire's thresholds come from a "
-        "precomputed record, which must name the code it was built by"),
+        "BRIEF items 12 and 19 — the group-share tripwire's thresholds and "
+        "the by-election class weights come from precomputed records, which "
+        "must name the code they were built by"),
 }
 
 
@@ -659,41 +661,73 @@ def _reduction_rows(processed: Path) -> list[Row]:
     return rows
 
 
-def _record_rows(processed: Path) -> list[Row]:
-    """`group_share_record.json`: the code it names against the live code.
+def _group_share_key() -> dict:
+    """The group-share record's live key, from the files (BRIEF item 12)."""
+    import pools as _pl
+    src = Path(_pl.__file__).resolve().parent
+    return {"record_sha": _pl._code_sha(src / "group_share_record.py"),
+            "pools_sha": _pl._code_sha(src / "pools.py"),
+            "deps_sha": _pl._deps_sha()}
 
-    The live key is computed here from the files, not by importing
-    `group_share_record` (an entry point nothing imports, CLAUDE.md §5).
+
+def _bye_value_key() -> dict:
+    """The by-election value test's live key (BRIEF item 19), by the one
+    definition the writer and `montecarlo`'s reader also use."""
+    import byelections as _by
+    import montecarlo as _mc
+    return _by.bye_value_key((_mc.WARD_PR_RATIO_MIN, _mc.WARD_PR_RATIO_MAX))
+
+
+def _record_files() -> list[tuple[str, object, str]]:
+    """Every `record` artefact: (file name, live-key function, rebuild hint).
+
+    Both are read by a run as thresholds or weights and carry an
+    `artefact_key` naming their code. Neither writer is imported here.
     """
-    try:
-        import pools as _pl
-        src = Path(_pl.__file__).resolve().parent
-        live = {"record_sha": _pl._code_sha(src / "group_share_record.py"),
-                "pools_sha": _pl._code_sha(src / "pools.py"),
-                "deps_sha": _pl._deps_sha()}
-        name = _pl.GROUP_SHARE_RECORD
-    except Exception as exc:  # the audit must say it could not look
-        raise CannotAudit(f"cannot compute the record key: {exc}") from exc
+    import byelections as _by
+    import pools as _pl
+    return [(_pl.GROUP_SHARE_RECORD, _group_share_key,
+             "src/group_share_record.py --emit"),
+            (_by.BYE_VALUE, _bye_value_key, "src/bye_value.py --emit")]
+
+
+def _record_rows(processed: Path) -> list[Row]:
+    """Each `record` artefact: the code its key names against the live code.
+
+    The live key is computed here from the files, not by importing the
+    writer (`group_share_record` is an entry point nothing imports,
+    CLAUDE.md §5; `bye_value` is read by `montecarlo` as JSON only).
+    """
     rows = []
-    for p in sorted(processed.rglob(name)):
-        r = Row(_display(p), "record")
+    try:
+        files = _record_files()
+    except Exception as exc:  # the audit must say it could not look
+        raise CannotAudit(f"cannot list the record files: {exc}") from exc
+    for name, key_fn, rebuild in files:
         try:
-            key = json.loads(p.read_text()).get("artefact_key") or {}
-        except Exception as exc:
-            r.states = {f: UNDECLARED for f in KINDS["record"].required}
-            r.notes.append(f"unreadable: {type(exc).__name__}")
+            live = key_fn()
+        except Exception as exc:  # the audit must say it could not look
+            raise CannotAudit(f"cannot compute the key of {name}: "
+                              f"{exc}") from exc
+        for p in sorted(processed.rglob(name)):
+            r = Row(_display(p), "record")
+            try:
+                key = json.loads(p.read_text()).get("artefact_key") or {}
+            except Exception as exc:
+                r.states = {f: UNDECLARED for f in KINDS["record"].required}
+                r.notes.append(f"unreadable: {type(exc).__name__}")
+                rows.append(r)
+                continue
+            named = {f: key.get(f) for f in live}
+            if not all(_declared(v) for v in named.values()):
+                r.states["code"] = UNDECLARED
+            elif named != live:
+                r.states["code"] = LYING
+                r.notes.append(f"names code that is not the live code — "
+                               f"rebuild with {rebuild}")
+            else:
+                r.states["code"] = DECLARED
             rows.append(r)
-            continue
-        named = {f: key.get(f) for f in live}
-        if not all(_declared(v) for v in named.values()):
-            r.states["code"] = UNDECLARED
-        elif named != live:
-            r.states["code"] = LYING
-            r.notes.append("names code that is not the live code — rebuild "
-                           "with src/group_share_record.py --emit")
-        else:
-            r.states["code"] = DECLARED
-        rows.append(r)
     return rows
 
 
