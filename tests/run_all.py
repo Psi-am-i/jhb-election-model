@@ -193,7 +193,13 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # (audits/2026-10-07-prediction-restructure/s1/SPEC-A.md): our
            # prediction is rule A from one function, and its guards see.
            # Constructed inputs only; runs no model and reads no data.
-           "test_prediction_rule"]
+           "test_prediction_rule",
+           # Added 2026-10-10 with the site release's share images
+           # (audits/2026-10-09-site-batch/OG-IMPLEMENTATION-SPEC.md §6): one
+           # site build into a temporary directory, then constructed inputs;
+           # and the history: and coalition_majority token sources, on
+           # constructed inputs. Neither runs the model.
+           "test_og_pages", "test_stat_sources"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

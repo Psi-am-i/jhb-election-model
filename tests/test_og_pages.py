@@ -77,6 +77,8 @@ def built() -> Path:
                         "--ledger-root", str(tmp / "led"), "--allow-orphans", "--allow-stale-sources"],
                        capture_output=True, text=True, cwd=ROOT)
     assert r.returncode == 0, r.stdout[-2000:] + r.stderr[-2000:]
+    import atexit
+    atexit.register(shutil.rmtree, tmp, ignore_errors=True)
     _BUILT["out"] = tmp / "site"
     return _BUILT["out"]
 
@@ -84,10 +86,14 @@ def built() -> Path:
 def expected_pages() -> dict[str, str | None]:
     """Every page build_site writes, from its own tables, and the slug of its
     share image (None: it keeps og.png)."""
+    import build_leaderboard as lb
     import build_site
     import build_your_forecast as yf
+    import cityconfig
     arts = build_site.article_meta()
     pages = [spec[0] for spec in build_site.DOCS.values()] + list(build_site.ARTEFACTS) + [yf.YF_PAGE]
+    if lb.published(cityconfig.active().slug):
+        pages.append(lb.LB_PAGE)
     return {p: (og_pages.designed(p, arts) or (None,))[0] for p in pages}
 
 
