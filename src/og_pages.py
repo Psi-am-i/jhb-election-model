@@ -117,22 +117,25 @@ def fill(html: str, site: str, slug: str, filename: str, alt: str) -> str:
 # figures
 
 
+#: The marker figure_pool leaves for a token pages printed in more than one
+#: way: drawing it is refused (``_fig``), carrying it is not.
+AMBIGUOUS = "\x00ambiguous"
+
+
 def figure_pool(published: list[dict], registry: dict, ctx: dict, extra=()) -> dict[str, str]:
     """Every token a page printed, by name, with the string it printed. A
-    token printed differently on two pages is refused (the image could show
-    only one). ``extra`` names registry tokens no page prints (the forecast
-    card's coalitions); each is rendered by ``stats.render`` exactly as a page
-    renders it, with no provenance markup."""
+    token printed differently on two pages is marked :data:`AMBIGUOUS`, and an
+    image that draws it is refused (it could show only one). ``extra`` names
+    registry tokens no page prints (the forecast card's coalitions); each is
+    rendered by ``stats.render`` exactly as a page renders it, with no
+    provenance markup."""
     import stats as statlib
     seen: dict[str, str] = {}
     for r in published:
         t = r.get("token")
         if not t:
             continue
-        if t in seen and seen[t] != r["display"]:
-            raise OgError(f"token {t} prints as {seen[t]!r} and {r['display']!r} on different "
-                          f"pages; a share image cannot show both")
-        seen[t] = r["display"]
+        seen[t] = r["display"] if seen.get(t, r["display"]) == r["display"] else AMBIGUOUS
     for t in extra:
         if t in seen:
             continue
@@ -146,6 +149,8 @@ def figure_pool(published: list[dict], registry: dict, ctx: dict, extra=()) -> d
 def _fig(pool: dict, token: str) -> dict:
     if token not in pool:
         raise OgError(f"the share image needs {token}, which no page printed")
+    if pool[token] == AMBIGUOUS:
+        raise OgError(f"the share image needs {token}, which pages print in more than one way")
     return {"token": token, "display": pool[token]}
 
 
