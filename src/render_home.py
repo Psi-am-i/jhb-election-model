@@ -387,7 +387,13 @@ def home_map(sheet: str) -> str:
     ward tips and the key's party colours and its solid/stripes line; not the
     heading, the explanation, the Normal/Equal Sized switch, the equal-ward
     map or the key's long note, which /forecast carries. Refuses a sheet
-    whose map has lost a piece it cuts by."""
+    whose map has lost a piece it cuts by.
+
+    The cut keeps ``render_map``'s own region markers round it: its figures
+    (the key's thresholds and ward counts) are the map generator's, and the
+    number scan lists them as such (``stats.GENERATED_MARKERS``), as it does
+    on /forecast. Only the built page carries them; home.html's source has
+    the build-time marker alone, so ``render_map`` never writes into it."""
     import render_map
     if sheet.count(render_map.MARK_START) != 1:
         raise SystemExit("forecast-sheet.html has no single map region for the "
@@ -402,10 +408,10 @@ def home_map(sheet: str) -> str:
         return region[i:region.index(end, i)]
     box = cut('<div class="mapbox">', "\n      <figcaption")
     key = cut('<span class="mapkey-parties">', '<br><span class="mapkey-note">')
-    return (f'<figure class="homemap">\n      {box.strip()}\n'
+    return (f'{render_map.MARK_START}\n    <figure class="homemap">\n      {box.strip()}\n'
             f'      <figcaption class="mapcaption"><span>{key.strip()}</span>\n'
             '        <span>Touch or hover any ward for its numbers.</span></figcaption>\n'
-            '    </figure>')
+            f'    </figure>\n    {render_map.MARK_END}')
 
 
 def load_articles(city_dir: Path) -> list[dict]:

@@ -490,6 +490,16 @@ def test_the_home_map_is_cut_from_the_forecast_map():
         assert kept in out, (kept, out)
     for dropped in ("maptoggle", "Normal Map", "mapkey-note", "<details", "before", "after"):
         assert dropped not in out, (dropped, out)
+    # inside the map generator's own markers, so the scan lists its figures
+    # as the generator's, exactly as on /forecast
+    assert out.startswith(RM.MARK_START) and out.endswith(RM.MARK_END), out
+    figured = out.replace("Solid colour", "Solid colour 9 of 10")
+    regions = {h["region"] for h in statlib.scan_numbers(figured)}
+    assert regions and all(r.startswith("generated:MAP") for r in regions), regions
+    # IT CAN SEE: the same cut without the markers is prose, and blocks
+    bare = figured.replace(RM.MARK_START, "").replace(RM.MARK_END, "")
+    bare_regions = {h["region"] for h in statlib.scan_numbers(bare)}
+    assert bare_regions and all(r.startswith("prose") for r in bare_regions), bare_regions
     # IT CAN SEE: a sheet whose map lost its box is refused
     try:
         RH.home_map(sheet.replace('<div class="mapbox">', '<div class="box">'))
