@@ -55,4 +55,4 @@ them, never against a prior output.
 
 ## Return
 The verdict table (prediction, verdict, deciding number), the departures, the
-unpredicted findings, the commit hash.
+unpredicted findings, the path of your file.
