@@ -282,15 +282,15 @@ export function wrapText(s, maxW, fs, face = "sans") {
   return out;
 }
 
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+export const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const n1 = v => Number(v.toFixed(1));
-function text(x, y, s, fs, face = "sans", { fill = C.ink, anchor = "", opacity = null, clip = "" } = {}) {
+export function text(x, y, s, fs, face = "sans", { fill = C.ink, anchor = "", opacity = null, clip = "" } = {}) {
   const f = FACES[face];
   return `<text x="${n1(x)}" y="${n1(y)}" font-family="${f.family}" font-weight="${f.weight}" font-size="${n1(fs)}"` +
     `${anchor ? ` text-anchor="${anchor}"` : ""}${opacity == null ? "" : ` fill-opacity="${opacity}"`} fill="${fill}"` +
     `${clip ? ` clip-path="url(#${clip})"` : ""}>${esc(s)}</text>`;
 }
-const rect = (x, y, w, h, fill, extra = "") => `<rect x="${n1(x)}" y="${n1(y)}" width="${n1(w)}" height="${n1(h)}" fill="${fill}"${extra}/>`;
+export const rect = (x, y, w, h, fill, extra = "") => `<rect x="${n1(x)}" y="${n1(y)}" width="${n1(w)}" height="${n1(h)}" fill="${fill}"${extra}/>`;
 
 // ---------- pieces ----------
 
@@ -387,7 +387,7 @@ function nameCell(id, s, x, y, w, fs, face, fill) {
 
 // The site's logo (site/logo.svg, the tower J and lettering), `h` tall, in
 // `ink` (the card's ink, or the ink that reads on the band it sits on).
-function brand(assets, x, y, h, ink = C.ink) {
+export function brand(assets, x, y, h, ink = C.ink) {
   const b = assets.brand;
   if (!b) return "";
   const [, , vw, vh] = b.viewBox.split(/\s+/).map(Number);
@@ -402,7 +402,7 @@ export function brandWidth(assets, h) {
 
 // A party's chip: its logo on white where it has one, else its colour,
 // outlined in `outline` when it sits on a band of that colour.
-function chip(r, x, y, s, assets, outline = null) {
+export function chip(r, x, y, s, assets, outline = null) {
   const src = r.logo && r.code ? (assets.logos || {})[r.code] : null;
   const rx = Math.max(2, s / 6.5);
   if (!src) return rect(x, y, s, s, r.colour, ` rx="${n1(rx)}"${outline ? ` stroke="${outline}" stroke-width="2"` : ""}`);

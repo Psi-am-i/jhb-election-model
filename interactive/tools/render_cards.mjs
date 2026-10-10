@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The share cards as the edge draws them: share-card.js's SVG, rasterised by
-// resvg-wasm with src/card-fonts/ (src/og-raster.js, the call src/og-render.js
+// resvg-wasm with src/card-fonts/ (src/og-raster-node.mjs, the call src/og-render.js
 // makes in the Worker), for the two forecasts of interactive/tests/
 // share-fixture.json. Writes interactive/screenshots/share-card-link.png,
 // share-card-story.png and share-duel.png, or the directory given.
@@ -9,22 +9,16 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { initWasm, Resvg } from "../../worker-api/node_modules/@resvg/resvg-wasm/index.mjs";
-import { rasterise } from "../../src/og-raster.js";
+import { toPNG } from "../../src/og-raster-node.mjs";
 import * as SC from "../js/share-card.js";
-import { FACES } from "./card_fonts.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(here, "../..");
 export const FIXTURE = JSON.parse(readFileSync(resolve(REPO, "interactive/tests/share-fixture.json"), "utf8"));
 
-let ready;
-export async function toPNG(svg) {
-  ready ??= initWasm(readFileSync(resolve(REPO, "worker-api/node_modules/@resvg/resvg-wasm/index_bg.wasm")));
-  await ready;
-  const fonts = Object.values(FACES).map(([file]) => readFileSync(resolve(REPO, "src/card-fonts", file)));
-  return rasterise(Resvg, svg, fonts);
-}
+// The rasteriser is src/og-raster-node.mjs's, re-exported for the tools and
+// tests that import it from here.
+export { toPNG };
 
 export function assets(F = FIXTURE) {
   const logos = {};
