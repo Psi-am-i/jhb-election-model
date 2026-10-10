@@ -33,7 +33,7 @@ override it where they differ. Decisions taken here are listed below.
 | `migrations/0001_init.sql` | D1 schema, including the consent-log triggers |
 | `migrations/0002_message_confirmation_labels.sql` | per-account message stamps, the confirmation stamp, default labels |
 | `seats-py/` | the Python Worker that runs `src/reader_seats.py` (stub) |
-| `tools/sync_seats_py.mjs` | copies `src/seats.py` and `src/reader_seats.py` into `seats-py/`, byte for byte |
+| `tools/sync_seats_py.mjs` | copies `src/reader_seats.py` and its import closure (`FILES`) into `seats-py/`, byte for byte |
 
 ## Decisions taken here
 
