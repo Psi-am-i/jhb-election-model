@@ -37,6 +37,19 @@ Any forecast number; the model; the "X vs Y" card itself.
 - Article share images: remove, or move the headline down (owner's line).
 - FALSE badge: owner re-export, or redraw the flattened spikes in our copy.
 
-## Process
-Design mock-ups for items 2, 3 and 6 first (screenshots of the proposed
-layout), owner approves, then code, diff review, checks, preview.
+## Process (owner, 2026-10-10: "I want the layout work done right now")
+Approved. No mock-up stage: the owner reviews in the local preview. Two
+writers in parallel, split by file ownership:
+- **Writer S (site):** items 2, 4, 5 and 6 for every page `build_site.py`
+  builds. Owns `src/build_site.py`, `src/render_home.py`, `src/render_sheet.py`
+  page assembly, `content/`, `docs-public/`, `site/css/` sources and
+  `tokens.css`. Defines the shared widths as CSS custom properties in
+  `tokens.css`: `--page-width` (the party-claims page's toolbar/page width),
+  `--text-width` (its text-block width), `--wide-width` (map pages, one value),
+  and the one toolbar markup/CSS.
+- **Writer I (interactive):** items 1, 3 and the Your Forecast half of item 6.
+  Owns `interactive/` and `src/build_make.py`/`build_your_forecast.py` page
+  markup. Uses the three custom properties and the shared toolbar as defined
+  by writer S (names fixed above); does not edit `tokens.css` or `site.css`.
+- Each writer: write, self-check (imports, a scratch build), commit, report;
+  diff review; then targeted checks; preview rebuilt for the owner.
