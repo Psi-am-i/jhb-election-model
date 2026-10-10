@@ -16,7 +16,8 @@
 // of forecasts sealed so far (entries.js, the server's count).
 
 import { entryCount, countLine } from "./entries.js";
-import { councilLayout, stepPath, listedRows, cardTitle, chanceSentence, dateText, daysToVote, localStamp, ROWS, PR_OPACITY } from "./share-card.js";
+import { councilLayout, stepPath, listedRows, cardTitle, chanceSentence, dateText, daysToVote, localStamp, ROWS, PR_OPACITY,
+  boldestLine, badgeFile, STAMP_DIR } from "./share-card.js";
 
 const R = document.querySelector('[data-live="arrival"]');
 const SVG = "http://www.w3.org/2000/svg";
@@ -92,7 +93,7 @@ function sealLine(seal, election) {
   return "Checking the seal.";
 }
 
-// The view. `v`: { spec, geom, logo(code) -> src, seal: { state: "checking" |
+// The view. `v`: { spec, geom, party(code) -> { name, article }, logo(code) -> src, seal: { state: "checking" |
 // "sealed" | "not" | "unknown", at }, now (ms) }. spec.outcome is null while
 // the chance is being worked out.
 export function showArrival(v) {
@@ -109,7 +110,10 @@ export function showArrival(v) {
       spec.council + " seats, " + spec.majority + " for a majority."),
     el("div", { className: "yf-arr-verdict", "aria-live": "polite" },
       el("p", { className: "yf-arr-what" }, o ? spec.words : "Working out the chance we give this outcome."),
-      o ? el("p", { className: "yf-arr-chance" }, spec.chance + " ", el("span", { className: "yf-badge" }, spec.badge)) : null,
+      o ? el("div", { className: "yf-arr-badge" },
+        el("img", { src: "../" + STAMP_DIR + "/" + badgeFile(spec.badge), alt: spec.badge, className: "yf-stamp" }),
+        el("div", {}, el("p", { className: "yf-arr-chance" }, spec.chance),
+          el("p", { className: "yf-arr-bold" }, boldestLine(spec.boldest, v.party, poss(name) + " boldest call")))) : null,
       el("p", { className: "yf-arr-how" }, "The chance is ours, from the forecast as published today. The seats are " + poss(name) +
         ": every ward called, the vote set, and the law seating the result.")),
     el("p", { className: "yf-arr-quick" }, chooseButton("friend", "Make your own, starting from " + poss(name), null, "btn primary")),

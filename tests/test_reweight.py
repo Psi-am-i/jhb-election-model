@@ -1302,18 +1302,107 @@ def test_the_seat_line_is_the_middle_forecasts_median_error_by_hand():
 
 
 def test_boldness_bands_at_their_edges():
-    """JUDGEMENT-CALLS §N6: Safe at 20% or more, Bold from 5% to under 20%,
-    Wild under 5%; an edge takes the higher band. Constructed chances either
-    side of each edge, so a band moved or reordered turns this red."""
-    assert R.boldness(1.0) == "Safe call"
-    assert R.boldness(0.20) == "Safe call"
-    assert R.boldness(0.1999) == "Bold call"
-    assert R.boldness(0.05) == "Bold call"
-    assert R.boldness(0.0499) == "Wild call"
-    assert R.boldness(0.0) == "Wild call"
+    """JUDGEMENT-CALLS §N10 (superseding §N6): Safe bet at 45% or more,
+    Steady as she goes from 30%, Long shot from 15%, Wild call from 5%, Hail
+    Mary under 5%; an edge takes the higher band. Constructed chances on and
+    just under each of the four edges, so a band moved, reordered or renamed
+    turns this red."""
+    assert R.boldness(1.0) == "Safe bet"
+    assert R.boldness(0.45) == "Safe bet"
+    assert R.boldness(0.4499) == "Steady as she goes"
+    assert R.boldness(0.30) == "Steady as she goes"
+    assert R.boldness(0.2999) == "Long shot"
+    assert R.boldness(0.15) == "Long shot"
+    assert R.boldness(0.1499) == "Wild call"
+    assert R.boldness(0.05) == "Wild call"
+    assert R.boldness(0.0499) == "Hail Mary"
+    assert R.boldness(0.0) == "Hail Mary"
     # the table is read highest band first and ends at zero
     lows = [low for low, _ in R.BOLDNESS]
     assert lows == sorted(lows, reverse=True) and lows[-1] == 0.0
+    assert lows == [0.45, 0.30, 0.15, 0.05, 0.0]
+
+
+def test_every_badge_word_has_the_owners_file_and_every_file_a_word():
+    """The badge words name the owner's files (``src/stamps/reader-<words>.svg``,
+    lower case, spaces as hyphens: share-card.js ``badgeFile``). Both
+    directions, each population asserted equal to what was compared; and a
+    constructed word with no file is caught."""
+    stamps = ROOT / "src" / "stamps"
+    files = {f.name for f in stamps.glob("reader-*.svg")}
+    named = {"reader-" + words.lower().replace(" ", "-") + ".svg" for _low, words in R.BOLDNESS}
+    assert len(named) == len(R.BOLDNESS) == 5
+    assert named == files, (named ^ files)
+    assert "reader-bold-call.svg" not in files   # a retired word, constructed: no file
+
+
+def test_boldest_call_by_hand():
+    """boldest_call on constructed draws: the middle is each column's median;
+    a party above its middle is scored P(seats >= x), below P(seats <= x);
+    the smallest names the badge; a forecast at the middle has no call."""
+    # A's seats 10..19 (median 14.5 -> 15 rounded half up), B's 30 throughout
+    seats = np.array([[10 + i, 30] for i in range(10)], dtype=float)
+    assert R.middle_seats(seats, ["A", "B"], R.uniform(10)) == {"A": 15, "B": 30}
+    # A at 18: P(A >= 18) = 2/10; B at its middle is no call
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 18, "B": 30})
+    assert got == {"party": "A", "seats": 18, "middle": 15, "p": 0.2, "text": R.chance_text(0.2)}
+    # A at 11: P(A <= 11) = 2/10; B at 29: P(B <= 29) = 0, the bolder
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 11, "B": 29})
+    assert got["party"] == "B" and got["seats"] == 29 and got["p"] == 0.0
+    # a party with no column holds no seats in any simulation
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 15, "B": 30, "C": 1})
+    assert got["party"] == "C" and got["p"] == 0.0
+    # the middle forecast itself: no call, a Safe bet
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 15, "B": 30})
+    assert got["party"] is None and got["seats"] is None and got["p"] == 1.0
+    assert R.boldness(got["p"]) == "Safe bet"
+    # a column missing from the reader's forecast is a reader's 0
+    got = R.boldest_call(seats, ["A", "B"], None, {"B": 30})
+    assert got["party"] == "A" and got["seats"] == 0 and got["p"] == 0.0
+
+
+#: BADGE-DECISION.md's table (audits/2026-10-09-site-batch/), measured on the
+#: published draws of model 7ea27c28: each forecast is the model's middle
+#: forecast with the named moves (("=", n): set to n seats), and its boldest
+#: call and chance (printed to 0.1 point there).
+BADGE_TABLE_MODEL = "7ea27c28"
+BADGE_TABLE = [
+    ({"ANC": +3, "DA": -3}, "DA", 63, 0.432),
+    ({"ANC": +10, "DA": -10}, "DA", 56, 0.236),
+    ({"EFF": +10, "ANC": -10}, "EFF", 35, 0.264),
+    ({"DA": +15, "ANC": -15}, "DA", 81, 0.143),
+    ({"PA": +8, "DA": -8}, "PA", 31, 0.128),
+    ({"PA": +15, "DA": -15}, "PA", 38, 0.041),
+    ({"ANC": +25, "DA": -25}, "DA", 41, 0.025),
+    ({"DA": ("=", 106)}, "DA", 106, 0.009),
+]
+
+
+def test_the_owners_table_on_the_published_draws():
+    """The eight constructed forecasts of BADGE-DECISION.md, re-measured on
+    the published draws (site/draws/) under the published law. The table was
+    measured on model 7ea27c28; on any other published model this test fails
+    and says so, rather than passing on numbers nobody re-measured."""
+    man_bytes = (ROOT / "site" / "draws" / "manifest.json").read_bytes()
+    manifest = json.loads(man_bytes)
+    model = manifest["artefact_key"]["model_sha256"]
+    assert model.startswith(BADGE_TABLE_MODEL), (
+        f"the published draws are model {model[:8]}, not {BADGE_TABLE_MODEL}: re-measure "
+        "BADGE-DECISION.md's table on them and update BADGE_TABLE")
+    arrays = R.unpack((ROOT / "site" / "draws" / "base.bin").read_bytes(), manifest)
+    law = R.PUBLISHED_LAW
+    cols = next(b for b in manifest["blocks"] if b["name"] == f"seats/{law}")["columns"]
+    seats, parties = R.party_columns(arrays[f"seats/{law}"], cols)
+    middle = R.middle_seats(seats, parties, R.uniform(seats.shape[0]))
+    assert middle["ANC"] == middle["DA"]          # the table's premise: tied at the middle
+    for moves, party, at, chance in BADGE_TABLE:
+        mine = dict(middle)
+        for c, d in moves.items():
+            mine[c] = d[1] if isinstance(d, tuple) else middle[c] + d
+        got = R.boldest_call(seats, parties, None, mine)
+        assert (got["party"], got["seats"]) == (party, at), (moves, got)
+        assert abs(got["p"] - chance) <= 0.0005, (moves, got["p"], chance)
+    assert len(BADGE_TABLE) == 8
 
 
 def test_reader_outcome_and_its_chance_by_hand():
@@ -1328,7 +1417,11 @@ def test_reader_outcome_and_its_chance_by_hand():
     got = R.outcome_chance(seats, ["A", "B"], thr, None, {"A": 140, "B": 130}, 136)
     # "A largest with a majority alone": draws 0 and 3
     assert math.isclose(got["p"], 0.5) and got["text"] == R.chance_text(0.5)
-    assert got["badge"] == "Safe call" and got["largest"] == "A" and got["majority_alone"] is True
+    assert got["largest"] == "A" and got["majority_alone"] is True
+    # the badge is the boldest call's, not the outcome's (§N10): A at 140 and
+    # B at 130 against middles of 130 and 140: P(A >= 140) = P(B <= 130) = 0.5
+    assert got["boldest"] == R.boldest_call(seats, ["A", "B"], None, {"A": 140, "B": 130})
+    assert got["badge"] == R.boldness(got["boldest"]["p"])
 
 
 def test_party_columns_drop_the_remainder_column_only():

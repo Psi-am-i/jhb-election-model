@@ -186,7 +186,7 @@ async function cardAnswer(env, D, got) {
   const seats = checkSeatAnswer(ans, body, D.forecast.schema);   // arithmetic identities, or throws
   const o = ans.outcome;
   if (!o || typeof o.text !== "string" || typeof o.badge !== "string" || !Array.isArray(o.coalition) ||
-      ans.draws_sha256 !== D.forecast.draws_sha256) throw new Error("the card answer is incomplete");
+      !o.boldest || typeof o.boldest !== "object" || ans.draws_sha256 !== D.forecast.draws_sha256) throw new Error("the card answer is incomplete");
   return { ...seats, outcome: o };
 }
 
@@ -197,14 +197,20 @@ function dataURI(bytes, type) {
   return `data:${type};base64,${btoa(bin)}`;
 }
 
-async function cardAssets(env, url, D, codes) {
+async function cardAssets(env, url, D, codes, badges = []) {
   const logos = {};
   await Promise.all(codes.filter(c => D.parties[c]?.logo).map(async c => {
     const r = await env.ASSETS.fetch(new Request(new URL(`/logos/${c}.png`, url)));
     if (r.ok) logos[c] = dataURI(await r.arrayBuffer(), "image/png");
   }));
+  // the owner's badge for each badge's words (src/stamps/, served at /stamps/)
+  const stamps = {};
+  await Promise.all([...new Set(badges.filter(Boolean))].map(async w => {
+    const r = await env.ASSETS.fetch(new Request(new URL(`/${SC.STAMP_DIR}/${SC.badgeFile(w)}`, url)));
+    if (r.ok) stamps[w] = SC.stampOf(await r.text());
+  }));
   const b = await env.ASSETS.fetch(new Request(new URL("/logo.svg", url)));
-  return { logos, brand: b.ok ? SC.brandOf(await b.text()) : null,
+  return { logos, badges: stamps, brand: b.ok ? SC.brandOf(await b.text()) : null,
            geom: { W: D.forecast.geometry.W, H: D.forecast.geometry.H, wards: D.forecast.geometry.wards } };
 }
 
@@ -238,7 +244,7 @@ export async function cardFor(url, env, size) {
     const codes = [...new Set([...A.rows, ...Bspec.rows].map(r => r.code))];
     return { svg: SC.duelCardSVG(A, Bspec, await cardAssets(env, url, D, codes), party), sealed: !!made };
   }
-  const assets = await cardAssets(env, url, D, A.rows.map(r => r.code));
+  const assets = await cardAssets(env, url, D, A.rows.map(r => r.code), [A.badge]);
   return { svg: size === "story" ? SC.storyCardSVG(A, assets, party) : SC.linkCardSVG(A, assets, party), sealed: !!made };
 }
 

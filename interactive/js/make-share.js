@@ -68,7 +68,7 @@ const sheet = shareSheet(E, {
     const B = kind === "duel" && friend && friend.outcome ? specOf(friend, friend.leftOff ? "a friend" : friend.name || "a friend", made) : null;
     if (kind === "duel" && !B) return { wait: "Working out the chance we give your friend's outcome." };
     const codes = [...new Set([...A.rows, ...(B ? B.rows : [])].map(r => r.code))];
-    const assets = { ...(await loadAssets(codes, info.party)), geom: info.geom };
+    const assets = { ...(await loadAssets(codes, info.party, [A.badge, B && B.badge])), geom: info.geom };
     if (B) return { svg: duelCardSVG({ ...A, name: A.name || "A reader" }, B, assets, info.party), size: "duel", alt: duelAlt(A, B) };
     return { svg: kind === "story" ? storyCardSVG(A, assets, info.party) : linkCardSVG(A, assets, info.party), size: kind, alt: cardAlt(A) };
   },

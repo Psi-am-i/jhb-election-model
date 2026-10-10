@@ -72,3 +72,51 @@ the batch's by-election wording (the existing 40% copy stays); BRIEF items
 ## Return
 Commit hashes, the first-checkpoint PNG path, the diff summary by file, and
 anything in the spec you could not follow.
+
+## Addendum, 2026-10-10 (owner-approved text and two methodology changes)
+
+3. **Home introduction: approved text** (owner, 2026-10-10), replacing the
+   draft's corresponding paragraphs; the draft's first paragraph ("What this
+   is") stays as drafted. Figures in braces are tokens, never typed:
+
+   > The model simulates the election thousands of times. Each run uses
+   > different values for turnout and for every party's support, but not just
+   > any values: each is drawn from how far turnout and parties have moved in
+   > past elections.
+   >
+   > Run on Johannesburg's last three elections, it called
+   > {wards called 2011} of {wards 2011}, {… 2016} of {… 2016} and {… 2021} of
+   > {… 2021} ward winners.
+   >
+   > It uses as few judgement calls as possible. Each one is listed, with its
+   > evidence, on the [judgement calls] page, and several can be changed on
+   > your forecast.
+
+   - The ward figures come from `data/processed/history.json`, joburg rows,
+     `wards.called` / `wards.n_wards` (its `pool_artefact_keys` carry
+     pools_sha c70b8fc5, the live model's specs). Add a token source for it in
+     `stats.py` (one resolver, tested), registered in `content/joburg/stats.toml`.
+   - "[judgement calls]" links to the methodology page's "The judgement calls"
+     section (anchor).
+   - No 8-metro totals and no "34%" on the home page.
+   - *Tier:* cosmetic plus the stats resolver's test.
+
+4. **Methodology (docs-public/methodology.md), drafted for the owner, built
+   only after he approves the wording:**
+   a. **Correction.** The page says the model "beats simple baselines, in
+      cities it was not built for". `validation_2021.json` marks all eight
+      cities `in_sample: true`, and `history.json` marks all 24 city-years
+      in-sample (settings chosen with those elections in view). Replace the
+      claim with what is true, and add a corrections entry under the site's
+      correction rules (heading = the error; published date; corrected date;
+      what was wrong and what changed, nothing else). Find the date the claim
+      first went live from the publication ledger / git history.
+   b. **Per-metro table** in place of the combined totals (297 / 353, 7 of 8,
+      34%): for each metro, the model's seat error and the best baseline's,
+      from one artefact, as tokens. Say which artefact and why.
+   c. **Small parties' range.** A short note: in the simulations, established
+      small parties sometimes reach shares no established small party has
+      reached in the record (parties under 1% at one local election: none
+      reached 5% at the next); a fix is in progress. Figures as tokens where
+      they are model outputs; the record figures cite their source.
+   Return the drafted wording in your report before building it.

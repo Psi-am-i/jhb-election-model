@@ -14,8 +14,9 @@
 // §2; its decisions DECISIONS.md.
 //
 // PURE: no DOM, no fetch, no figure of its own. The caller hands it the seats
-// the seat law gave the reader's picks, the chance and badge the published
-// forecast gives the reader's outcome (reweight.outcome_chance, in Python),
+// the seat law gave the reader's picks, the chance the published forecast
+// gives the reader's outcome and the badge of the forecast's boldest call
+// (reweight.outcome_chance, in Python), the owner's badge as a stamp,
 // the reader's vote shares, the previous election's figures (forecast.json
 // `baseline`), each party's name, article, colour and logo flag, and every
 // image as a data: URI. It names no party and holds no colour of one (DESIGN
@@ -88,6 +89,24 @@ export function chanceSentence(text) {
 // A ward on the reader's map: "We give your call in this ward an 18% chance."
 export function wardChanceSentence(text) {
   return "We give your call in this ward " + aChance(text) + ".";
+}
+
+// The forecast's boldest call (reweight.boldest_call, in Python), named as
+// the badge beside it judges it: "Boldest call: the PA at 38 seats." `lead`
+// replaces "Boldest call" (the arrival view names whose). A forecast at the
+// model's middle has no call. "" while the outcome is still being worked out.
+export function boldestLine(boldest, party, lead = "Boldest call") {
+  if (!boldest) return "";
+  if (!boldest.party) return "Every party at the model's middle forecast.";
+  const p = party(boldest.party);
+  return lead + ": " + (p.article || "") + p.name + " at " + boldest.seats + (boldest.seats === 1 ? " seat." : " seats.");
+}
+
+// The owner's badge for a badge's words (reweight.BOLDNESS): the file
+// src/stamps/reader-<words>.svg, which the build serves at /stamps/.
+export const STAMP_DIR = "stamps";
+export function badgeFile(words) {
+  return "reader-" + words.toLowerCase().replace(/ /g, "-") + ".svg";
 }
 
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -164,9 +183,10 @@ export function cutAt(list, seats, n) {
 // The forecast every card and the arrival view draw: { name, title, council,
 // majority, rows: [{ code, name, colour, logo, seats, ward, pr, vote,
 // seatsVs, voteVs }] in seat order, coalition (in seat order), coalitionSeats,
-// outcome, words, chance, badge, excess: [sentences], calls, made }.
+// outcome, words, chance, badge, boldest, boldestLine, excess: [sentences],
+// calls, made }.
 //   answer   the seat law's { seats, ward, pr, council_total, majority, excessive }
-//   outcome  { largest, majority_alone, coalition, text, badge } (Python)
+//   outcome  { largest, majority_alone, coalition, text, badge, boldest } (Python)
 //   vote     { code: percent of the list ballot } (the column a prediction is scored on)
 //   baseline forecast.json `baseline` ({ year, seats, wards, list_vote, ward_vote }), or null;
 //            "vs <year>" compares the list vote with list_vote, list with list
@@ -188,6 +208,7 @@ export function forecastSpec({ name, answer, outcome, vote, calls, party, baseli
     coalition, coalitionNames: coalition.map(c => party(c).name),
     coalitionSeats: coalition.reduce((a, c) => a + seats[c], 0),
     outcome, words: outcomeWords(outcome, party), chance: chanceSentence(outcome.text), badge: outcome.badge,
+    boldest: outcome.boldest || null, boldestLine: boldestLine(outcome.boldest, party),
     // the most seats: one party, or every party tied for them (the band splits)
     top: order.filter(c => seats[c] === seats[order[0]]),
     excess: Object.entries(excessive).filter(([, v]) => v > 0).map(([c, v]) =>
@@ -400,6 +421,37 @@ export function brandWidth(assets, h) {
   return h * vw / vh;
 }
 
+// An owner's stamp (src/stamps/*.svg: the reader badges, the verdict badges,
+// the prediction seal), parsed as brandOf parses the logo: { viewBox, body }.
+// The files define their glyphs, masks, clips and filters by ids that repeat
+// from file to file (glyph-0-0, filter-remove-color, ...), so a body is never
+// placed as it is: stampSVG prefixes them.
+export const stampOf = svgText => brandOf(svgText);
+// `body` with every id it defines renamed `<prefix>-<id>`, and every
+// reference to one (href="#…", xlink:href="#…", url(#…)) renamed with it. A
+// reference to an id the body does not define is left alone.
+export function prefixIds(body, prefix) {
+  const ids = new Set([...body.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
+  return body.replace(/(\bid=")([^"]+)(")|(href=")#([^"]+)(")|url\(#([^)]+)\)/g, (m, a, id, z, h, ref, hz, u) => {
+    if (id !== undefined) return ids.has(id) ? a + prefix + "-" + id + z : m;
+    if (ref !== undefined) return ids.has(ref) ? h + "#" + prefix + "-" + ref + hz : m;
+    return ids.has(u) ? "url(#" + prefix + "-" + u + ")" : m;
+  });
+}
+// THE ONE WAY A STAMP GOES ON A CARD: `st` (stampOf) `h` tall at (x, y), its
+// ids prefixed by `prefix`, which must be unique in the card.
+export function stampSVG(st, prefix, x, y, h) {
+  const [, , vw, vh] = st.viewBox.split(/\s+/).map(Number);
+  return `<svg xmlns:xlink="http://www.w3.org/1999/xlink" x="${n1(x)}" y="${n1(y)}" width="${n1(h * vw / vh)}" height="${n1(h)}" viewBox="${st.viewBox}">${prefixIds(st.body, prefix)}</svg>`;
+}
+// The reader's badge `h` tall at (x, y): the owner's stamp for the words when
+// the card was handed it (assets.badges[words]), else the words in a pill.
+function readerBadge(words, assets, prefix, x, y, h) {
+  const st = (assets.badges || {})[words];
+  if (st) return stampSVG(st, prefix, x, y, h);
+  return badge(words, x, y + h / 2 + 6, 17).svg;
+}
+
 // A party's chip: its logo on white where it has one, else its colour,
 // outlined in `outline` when it sits on a band of that colour.
 export function chip(r, x, y, s, assets, outline = null) {
@@ -590,6 +642,8 @@ export const LINK_PITCH = 30;
 // the council graphic and the table take the rest (owner, 2026-10-06: the
 // map on every card, and the table clear of the council graphic).
 const LINK_LEFT = 500, LINK_GUTTER = 32;
+// The reader's badge on the link preview, its height.
+const LINK_STAMP = 108;
 
 export function linkCardSVG(spec, assets = {}, party) {
   const [W, H] = SIZES.link;
@@ -617,23 +671,19 @@ export function linkCardSVG(spec, assets = {}, party) {
   // its badge, the outcome; the map takes the height between
   s += text(X, H - 44, "A reader's forecast, not the model's.", 15, "sans", { fill: C.ink3 }) +
     text(X, H - 18, "Make yours at ", 18, "sans", { fill: C.ink2 }) + text(X + textWidth("Make yours at ", 18), H - 18, SITE, 18, "monoSemi");
-  // the chance is never cut: with its badge on one line where both fit at
-  // 22 px or more, else on lines of its own and the badge under them
-  const bw2 = textWidth(spec.badge, 17, "sansSemi") + 17 * 1.4 + 14;
-  const one = fitText(spec.chance, LINK_LEFT - bw2, 28, "serifSemi", 22);
-  let cy = H - 76, upper;
-  if (one.text === spec.chance) {
-    s += text(X, cy, one.text, one.fs, "serifSemi") + badge(spec.badge, X + textWidth(one.text, one.fs, "serifSemi") + 14, cy - 4, 17).svg;
-    upper = cy;
-  } else {
-    s += badge(spec.badge, X, cy - 4, 17).svg;
-    const lines = wrapText(spec.chance, LINK_LEFT, 22, "serifSemi");
-    cy -= 34 + (lines.length - 1) * 26;
-    s += lines.map((l, k) => text(X, cy + k * 26, l, 22, "serifSemi")).join("");
-    upper = cy;
-  }
+  // the owner's badge, and beside it the chance (never cut: wrapped) and
+  // the boldest call the badge judges
+  const sb = H - 66, st = sb - LINK_STAMP;
+  s += readerBadge(spec.badge, assets, "lb", X, st, LINK_STAMP);
+  const bx = X + LINK_STAMP + 18, bwid = LINK_LEFT - LINK_STAMP - 18;
+  const chance = wrapText(spec.chance, bwid, 22, "serifSemi");
+  const bold = wrapText(spec.boldestLine, bwid, 17);
+  let by = st + (LINK_STAMP - chance.length * 27 - bold.length * 21) / 2 + 20;
+  for (const l of chance) { s += text(bx, by, l, 22, "serifSemi"); by += 27; }
+  for (const l of bold) { s += text(bx, by, l, 17, "sans", { fill: C.ink2 }); by += 21; }
+  const upper = st - 6;
   const words = wrapText(spec.words, LINK_LEFT, 17);
-  const wy = upper - 40 - (words.length - 1) * 21;
+  const wy = upper - 14 - (words.length - 1) * 21;
   s += words.map((l, k) => text(X, wy + k * 21, l, 17, "sans", { fill: C.ink2 })).join("");
   if (assets.geom) {
     const mt = y - 6, mb = wy - 17 - 14;
@@ -670,6 +720,8 @@ const STORY_TYPE = { large: [27, 42, 22], middle: [24, 36, 20], small: [22, 32, 
 // above STORY_TEXT_BOTTOM is spread evenly over the gaps (owner, 2026-10-06:
 // "use the canvas").
 const STORY_GAP = 22;
+// The reader's badge on the story card, its height.
+const STORY_STAMP = 170;
 // The least width the reader's map is tried at, and the step between tries.
 const STORY_MAP_LEAST = 300, STORY_MAP_STEP = 10;
 // A reader's story card's map, as a share of the card's width, is held to
@@ -720,8 +772,10 @@ export function storyCardSVG(spec, assets = {}, party) {
     for (const l of wrapText(spec.words, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
     oy += fc * 0.45;
     for (const l of wrapText(spec.chance, ow, fc, "serifSemi")) { if (draw) out += text(draw.x, oy, l, fc, "serifSemi"); oy += fc * 1.15; }
-    if (draw) out += badge(spec.badge, draw.x, oy + 16, 26, 2).svg;
-    oy += 64;
+    if (draw) out += readerBadge(spec.badge, assets, "sb", draw.x, oy - fc * 0.4, STORY_STAMP);
+    oy += STORY_STAMP + fn * 0.8;
+    for (const l of wrapText(spec.boldestLine, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
+    oy += fn;
     for (const l of wrapText(spec.excess.join(" "), ow, fn)) { if (draw) out += text(draw.x, oy, l, fn, "sans", { fill: C.ink3 }); oy += fn * 1.4; }
     return { out, h: oy - fn - y0 };
   };
@@ -963,7 +1017,7 @@ export function cardAlt(spec) {
   const rows = listedRows(spec, ROWS.link).map(r => r.name + " " + r.seats).join(", ");
   return [spec.title, spec.election.city + " council, " + spec.council + " seats", "Seats: " + rows,
     spec.coalition.length ? "Governing: " + listAnd(spec.coalitionNames) + ", " + spec.coalitionSeats + " seats" : "",
-    spec.words, spec.chance, spec.badge, "A reader's forecast, not the model's"]
+    spec.words, spec.chance, spec.badge, spec.boldestLine, "A reader's forecast, not the model's"]
     .filter(Boolean).map(s => s.replace(/\.$/, "")).join(". ") + ".";
 }
 export function duelAlt(a, b) {

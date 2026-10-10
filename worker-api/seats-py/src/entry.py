@@ -19,7 +19,8 @@ name, a reader's prediction (entry version 2):
                      "draws_sha256": hex}
     200             the /v1/seats answer, plus
                     {"outcome": reweight.outcome_chance's answer, with
-                                "p", "text" and "badge",
+                                "p", "text", "badge" and "boldest" (the
+                                call the badge judges),
                      "draws_sha256": hex}
     409             {"error": ...}      the published draws this Worker holds
                                         are not the ones the caller's page was
@@ -28,8 +29,8 @@ name, a reader's prediction (entry version 2):
 
 ``/v1/card`` is the link preview's answer (src/worker.js, audits/
 2026-10-03-share-design/DESIGN.md §3): the seats the law gives the reader's
-forecast, and the chance the PUBLISHED forecast gives its council-level
-outcome with its badge (``reweight.outcome_chance``, the one definition the
+forecast, the chance the PUBLISHED forecast gives its council-level
+outcome, and the badge of its boldest call (``reweight.outcome_chance``, the one definition the
 page's analysis also calls). The draws are the site's own
 ``/draws/manifest.json`` and ``/draws/base.bin``, fetched from SITE_ORIGIN
 once per isolate.

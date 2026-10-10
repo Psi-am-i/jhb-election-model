@@ -128,7 +128,7 @@ const sheet = shareSheet(E, {
     const F = content.ready().forecast;
     const A = forecastSpec({ name: nameNow(), answer: F.answer, outcome: F.outcome, vote: F.vote, calls: F.calls, party: F.party,
       baseline: F.baseline, election: F.election, made });
-    const assets = { ...(await loadAssets(A.rows.map(r => r.code), F.party)), geom: F.geom };
+    const assets = { ...(await loadAssets(A.rows.map(r => r.code), F.party, [A.badge])), geom: F.geom };
     return { svg: size === "story" ? storyCardSVG(A, assets, F.party) : linkCardSVG(A, assets, F.party), size, alt: cardAlt(A) };
   },
 });

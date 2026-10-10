@@ -25,6 +25,12 @@ What this module owns
 ``site/logo.svg``, ``whysoserious.svg``, ``favicon.svg``, ``favicon-32.png``, ``apple-touch-icon.png``, ``og.png``
     The owner's logo and what is made from it (:data:`BRAND_FILES`), byte
     copies of ``src/brand/``.
+``site/stamps/``
+    The owner's reader badges (:data:`STAMPS_SERVED`), byte copies of
+    ``src/stamps/reader-*.svg``, which the share cards and the arrival view
+    on /your-forecast/ draw, in the browser and in the site's Worker. The
+    verdict badges and the prediction seal in ``src/stamps/`` are drawn only
+    into the build's share images (``og_pages``) and are not served.
 ``site/js/``
     The site's scripts, byte copies of ``src/js/*.js``: the theme (in <head>,
     before first paint), the provenance pop-over, the maps, the forecast
@@ -85,6 +91,18 @@ def umbrella_svg(cls: str) -> str:
 
 
 BRAND_FILES = ("logo.svg", "whysoserious.svg", "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png")
+
+#: The owner's stamps (2026-10-10): the reader badges, the verdict badges and
+#: the prediction seal, as he drew them.
+STAMP_SRC = REPO_ROOT / "src" / "stamps"
+#: Where the served ones go, and which they are: the reader badges, named by
+#: their words (``reweight.BOLDNESS``; share-card.js ``badgeFile``).
+STAMP_DIR = "stamps"
+STAMPS_SERVED = "reader-*.svg"
+
+
+def stamp_files() -> list[Path]:
+    return sorted(STAMP_SRC.glob(STAMPS_SERVED))
 
 #: The stylesheet's parts, in cascade order. A ``page-<name>.css`` is scoped to
 #: ``.pg-<name>`` (:func:`scope_css`); every other file applies to every page.
@@ -290,11 +308,11 @@ def font_files() -> list[Path]:
 
 
 def write(out: Path) -> list[str]:
-    """Write ``css/site.css``, ``js/*.js`` and ``fonts/`` under ``out``;
+    """Write ``css/site.css``, ``js/*.js``, ``fonts/`` and ``stamps/`` under ``out``;
     returns the paths."""
     written = []
-    css_dir, js_dir, font_dir = out / "css", out / JS_DIR, out / FONT_DIR
-    for d in (css_dir, js_dir, font_dir):
+    css_dir, js_dir, font_dir, stamp_dir = out / "css", out / JS_DIR, out / FONT_DIR, out / STAMP_DIR
+    for d in (css_dir, js_dir, font_dir, stamp_dir):
         if d.exists():
             shutil.rmtree(d)
         d.mkdir(parents=True)
@@ -309,6 +327,9 @@ def write(out: Path) -> list[str]:
     for name in BRAND_FILES:
         shutil.copyfile(BRAND_SRC / name, out / name)
         written.append(name)
+    for f in stamp_files():
+        shutil.copyfile(f, stamp_dir / f.name)
+        written.append(f"{STAMP_DIR}/{f.name}")
     return written
 
 

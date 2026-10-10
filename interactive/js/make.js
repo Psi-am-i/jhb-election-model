@@ -392,7 +392,7 @@ function paintArrival() {
   if (!arriving || !friend.answer) return;
   const spec = friendSpec();
   if (!friend.outcome) spec.outcome = null;
-  showArrival({ spec, geom, seal: friend.seal, now: Date.now(), logo: c => new URL("logos/" + c + ".png", pageRoot).href });
+  showArrival({ spec, geom, seal: friend.seal, now: Date.now(), party: partyOf, logo: c => new URL("logos/" + c + ".png", pageRoot).href });
 }
 // The chance and badge of a forecast's outcome (page.py analyse), for the
 // arrival view, the return card and the reader's own card.
