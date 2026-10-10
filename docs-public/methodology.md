@@ -187,14 +187,27 @@ totals for 2021, the model placed the votes well enough to call
 {{blind_test_called}} of {{blind_test_of}} ward winners. That test was run on 4
 August 2026 and has not been re-run on the current model.</span>
 
-**The whole model beats simple baselines, in cities it was not built for.** It
-is run on the 2021 election in {{backtest_cities}} cities and wins in
-**{{backtest_wins}}** of them on the measure that scores a forecast's whole
-range (CRPS), with **{{backtest_crps_better}}** less error in total. Counted in
-seats put in the wrong column, it misses **{{backtest_seat_err_model}}** against
-the baselines' **{{backtest_seat_err_baseline}}**, a smaller margin because that
-measure looks only at the single most likely outcome. It calls the winner in
-**{{backtest_wards_called}} of {{backtest_wards}}** wards.
+**The whole model beats simple baselines.** It is run on the 2021 election in
+{{backtest_cities}} metros and wins in **{{backtest_wins}}** of them on the measure that
+scores a forecast's whole range (CRPS), with **{{backtest_crps_better}}** less error in
+total. Each metro against its best baseline by that measure, and the seats each
+gives to the wrong party (lower is better in every column):
+
+| metro | model's error (CRPS) | best baseline's error (CRPS) | best baseline | seats given to the wrong party: model | seats given to the wrong party: best baseline |
+|---|---|---|---|---|---|
+| Johannesburg | {{val_joburg_crps}} | {{val_joburg_best_crps}} | {{val_joburg_best}} | {{val_joburg_wrong}} | {{val_joburg_best_wrong}} |
+| Tshwane | {{val_tshwane_crps}} | {{val_tshwane_best_crps}} | {{val_tshwane_best}} | {{val_tshwane_wrong}} | {{val_tshwane_best_wrong}} |
+| Ekurhuleni | {{val_ekurhuleni_crps}} | {{val_ekurhuleni_best_crps}} | {{val_ekurhuleni_best}} | {{val_ekurhuleni_wrong}} | {{val_ekurhuleni_best_wrong}} |
+| eThekwini | {{val_ethekwini_crps}} | {{val_ethekwini_best_crps}} | {{val_ethekwini_best}} | {{val_ethekwini_wrong}} | {{val_ethekwini_best_wrong}} |
+| Cape Town | {{val_capetown_crps}} | {{val_capetown_best_crps}} | {{val_capetown_best}} | {{val_capetown_wrong}} | {{val_capetown_best_wrong}} |
+| Mangaung | {{val_mangaung_crps}} | {{val_mangaung_best_crps}} | {{val_mangaung_best}} | {{val_mangaung_wrong}} | {{val_mangaung_best_wrong}} |
+| Nelson Mandela Bay | {{val_nelsonmandelabay_crps}} | {{val_nelsonmandelabay_best_crps}} | {{val_nelsonmandelabay_best}} | {{val_nelsonmandelabay_wrong}} | {{val_nelsonmandelabay_best_wrong}} |
+| Buffalo City | {{val_buffalocity_crps}} | {{val_buffalocity_best_crps}} | {{val_buffalocity_best}} | {{val_buffalocity_wrong}} | {{val_buffalocity_best_wrong}} |
+| all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{val_total_wrong}} | {{val_total_best_wrong}} |
+
+The seat columns judge only the single most likely outcome, so their margins
+are smaller. It calls the winner in **{{backtest_wards_called}} of {{backtest_wards}}**
+wards.
 
 <!-- __VALIDATION__ -->
 
@@ -250,6 +263,13 @@ These are choices about how the model works that the data did not make for us. E
 - **No poll is used in the forecast.** Polls were an input until 12 September
   2026 and are not one now. Why they were taken out, what they were worth, and
   what is planned are under *Where polls fit*, below.
+- **Small parties' range is wider than the record.** In the simulations, a
+  party that is established but small sometimes reaches a share no such party
+  has reached in the record. In the eight metros' consecutive local elections
+  from 2006 to 2021, 337 times a party had under {{small_party_share}} of the list vote at
+  one election, and none reached {{small_party_surge_share}} at the next ([model log, §1.296](https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md)).
+  In this forecast, {{small_party_surge}} of the simulations give at least one such
+  party more than {{small_party_surge_share}}. A fix is in progress.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible, not which will form.
 

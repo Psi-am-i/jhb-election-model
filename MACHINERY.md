@@ -1366,6 +1366,8 @@ token resolves out of a FILE, and the file has a date:
 | `model:` | `forecast_summary.json` — the reference run, by definition current |
 | `derived:` | `seat_draws.csv`, written by the same run |
 | `regime:<rule>:` | `regime_<rule>_summary.json`, written by `overhang_regimes.py`, which is **opt-in** (`build_all.py --regimes`) and therefore lags |
+| `validation:` | `validation_<year>.json`, written by `build_validation.py`: its `headline` as written, or (`stats.validation_value`) `cities.<slug>.<model|best>.<field>`, one metro and its best baseline by CRPS, and `total.*`, the sums of those same per-metro figures, so a printed total is the sum of its printed rows. "Seats given to the wrong party" is `stats.wrong_party_seats`, half the summed absolute seat error, the one definition |
+| `published:small_party_surge` | the published draws (`site/draws/`): the share of simulations in which an established party under `stats.SMALL_PARTY_SHARE` mean list share exceeds `stats.SMALL_PARTY_SURGE` (the record's test, MODEL-LOG §1.296) |
 | `history:<city>:<year>:` | `history.json`, written by `compare_history.py`: the backtest of past elections, a different run from the forecast's. Not dated against the forecast run; `stats.history_key_fault` instead refuses a record whose manifest's artefact key for `pools_<year>.json` is not the current spec's, and its tooltip names the backtest run (`stats.history_provenance`) |
 
 So a `regime:` token republishes its file's number on every build while reading

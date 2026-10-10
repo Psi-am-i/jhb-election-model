@@ -639,7 +639,7 @@ def test_every_verdict_takes_its_step_on_the_one_scale_whatever_the_party():
     assert list(inspect.signature(RS.verdict_class).parameters) == ["verdict"]
     # the ends and the middle are where the owner put them
     assert RS.verdict_class("FALSE") == "v-false" and RS.verdict_class("TRUE") == "v-true"
-    assert RS.verdict_class("A COIN FLIP") == "v-open"
+    assert RS.verdict_class("COIN FLIP") == "v-open"
     assert RS.verdict_class("near  impossible") == "v-false"
     # it can see: a verdict off the scale stops the build, not a default colour
     try:
@@ -673,7 +673,7 @@ def test_every_verdict_takes_its_step_on_the_one_scale_whatever_the_party():
 
 def test_the_chance_scale_puts_each_edge_on_the_side_nearer_a_coin_flip():
     """Owner, 2026-10-07: under 1% NEAR IMPOSSIBLE, 1-15% EXTREMELY UNLIKELY,
-    15-45% UNLIKELY, 45-55% A COIN FLIP, 55-75% QUITE LIKELY, 75-90% VERY
+    15-45% QUITE UNLIKELY, 45-55% COIN FLIP, 55-75% QUITE LIKELY, 75-90% VERY
     LIKELY, over 90% NEAR CERTAIN. The documented edge rule: a chance exactly
     on an edge takes the band nearer a coin flip. Each edge is tested on, just
     under and just over (as printed: 1.0% / 0.9% / 1.1%, 15% / 14% / 16%)."""
@@ -681,14 +681,14 @@ def test_the_chance_scale_puts_each_edge_on_the_side_nearer_a_coin_flip():
     cases = [
         (0.0, "NEAR IMPOSSIBLE"), (0.0002, "NEAR IMPOSSIBLE"),
         (0.009, "NEAR IMPOSSIBLE"), (0.01, "EXTREMELY UNLIKELY"), (0.011, "EXTREMELY UNLIKELY"),
-        (0.14, "EXTREMELY UNLIKELY"), (0.15, "UNLIKELY"), (0.16, "UNLIKELY"),
-        (0.44, "UNLIKELY"), (0.45, "A COIN FLIP"), (0.46, "A COIN FLIP"),
-        (0.54, "A COIN FLIP"), (0.55, "A COIN FLIP"), (0.56, "QUITE LIKELY"),
+        (0.14, "EXTREMELY UNLIKELY"), (0.15, "QUITE UNLIKELY"), (0.16, "QUITE UNLIKELY"),
+        (0.44, "QUITE UNLIKELY"), (0.45, "COIN FLIP"), (0.46, "COIN FLIP"),
+        (0.54, "COIN FLIP"), (0.55, "COIN FLIP"), (0.56, "QUITE LIKELY"),
         (0.74, "QUITE LIKELY"), (0.75, "QUITE LIKELY"), (0.76, "VERY LIKELY"),
         (0.89, "VERY LIKELY"), (0.90, "VERY LIKELY"), (0.91, "NEAR CERTAIN"),
         (0.999, "NEAR CERTAIN"), (1.0, "NEAR CERTAIN"),
         # judged as printed: 14.96% prints "15%", 0.996% prints "1.0%"
-        (0.1496, "UNLIKELY"), (0.00996, "EXTREMELY UNLIKELY"),
+        (0.1496, "QUITE UNLIKELY"), (0.00996, "EXTREMELY UNLIKELY"),
     ]
     for p, want in cases:
         assert RS.scale_verdict(p) == want, (p, RS.scale_verdict(p), want)
@@ -696,7 +696,8 @@ def test_the_chance_scale_puts_each_edge_on_the_side_nearer_a_coin_flip():
     assert {w for _e, w, _s in RS.CHANCE_SCALE} == {w for _p, w in cases}
     assert set(RS.VERDICT_STEP) == set(RS.SETTLED_VERDICTS) | {w for _e, w, _s in RS.CHANCE_SCALE}
     # the retired words are off the scale, so a stale label stops the build
-    for old in ("OUT OF REACH", "VERY UNLIKELY", "MORE LIKELY THAN NOT", "LIKELY"):
+    # (UNLIKELY and A COIN FLIP retired 2026-10-10 for the badges' words)
+    for old in ("OUT OF REACH", "VERY UNLIKELY", "MORE LIKELY THAN NOT", "LIKELY", "UNLIKELY", "A COIN FLIP"):
         assert old not in RS.VERDICT_STEP, old
 
 
@@ -704,16 +705,16 @@ def test_a_verdict_that_disagrees_with_its_chance_is_refused():
     import render_sheet as RS
     vals = {"x": 0.30, "y": 0.86}
     why = "arithmetic, set out in the claim's steps"
-    ok = [{"verdict": "UNLIKELY", "chance": "x"},
+    ok = [{"verdict": "QUITE UNLIKELY", "chance": "x"},
           {"verdict": "EXTREMELY UNLIKELY", "chance": "1 - y"},
           {"verdict": "FALSE", "settled": why},
           {"verdict": "TRUE", "settled": why}]
     for c in ok:
         assert RS.verdict_fault(c, vals) is None, c
     bad = [{"verdict": "QUITE LIKELY", "chance": "x"},          # wrong word
-           {"verdict": "UNLIKELY", "chance": "1 - y"},           # complement ignored
+           {"verdict": "QUITE UNLIKELY", "chance": "1 - y"},           # complement ignored
            {"verdict": "NEAR CERTAIN", "chance": "y"},           # one band too far
-           {"verdict": "UNLIKELY"},                              # no chance named
+           {"verdict": "QUITE UNLIKELY"},                              # no chance named
            {"verdict": "FALSE", "chance": "x", "settled": why},  # settled, yet rated
            {"verdict": "FALSE"},                                 # relabelled, no reason
            {"verdict": "TRUE", "settled": "yes"},                # a reason too short
@@ -722,11 +723,11 @@ def test_a_verdict_that_disagrees_with_its_chance_is_refused():
         assert RS.verdict_fault(c, vals), c
     # the form-only check (the home page's) sees the same structural faults
     assert RS.verdict_fault({"verdict": "FALSE"}, None)
-    assert RS.verdict_fault({"verdict": "UNLIKELY"}, None)
-    assert RS.verdict_fault({"verdict": "UNLIKELY", "chance": "x"}, None) is None
+    assert RS.verdict_fault({"verdict": "QUITE UNLIKELY"}, None)
+    assert RS.verdict_fault({"verdict": "QUITE UNLIKELY", "chance": "x"}, None) is None
     # stops the build, not a TypeError: an unknown name, or a typed number
-    for c in ({"verdict": "UNLIKELY", "chance": "nope"},
-              {"verdict": "UNLIKELY", "chance": 0.3}):
+    for c in ({"verdict": "QUITE UNLIKELY", "chance": "nope"},
+              {"verdict": "QUITE UNLIKELY", "chance": 0.3}):
         try:
             RS.verdict_fault(c, vals)
         except SystemExit:
@@ -751,8 +752,8 @@ def test_the_holds_sentence_follows_the_verdict():
         "NEAR CERTAIN": "Mashaba is almost certainly correct.",
         "VERY LIKELY": "Mashaba is very likely correct.",
         "QUITE LIKELY": "Mashaba is probably correct.",
-        "A COIN FLIP": "Mashaba is as likely right as wrong.",
-        "UNLIKELY": "Mashaba is probably wrong.",
+        "COIN FLIP": "Mashaba is as likely right as wrong.",
+        "QUITE UNLIKELY": "Mashaba is probably wrong.",
         "EXTREMELY UNLIKELY": "Mashaba is very likely wrong.",
         "NEAR IMPOSSIBLE": "Mashaba is almost certainly wrong.",
         "TRUE": "Mashaba is correct.",
@@ -763,7 +764,7 @@ def test_the_holds_sentence_follows_the_verdict():
         assert RS.holds_sentence(dict(c, verdict=v)) == sentence, v
     assert (RS.with_holds(dict(c, verdict="VERY LIKELY"), "**All told, [[holds]]** X")
             == "**All told, Mashaba is very likely correct.** X")
-    assert RS.with_holds({"verdict": "UNLIKELY"}, "no placeholder") == "no placeholder"
+    assert RS.with_holds({"verdict": "QUITE UNLIKELY"}, "no placeholder") == "no placeholder"
     try:
         RS.with_holds({"verdict": "VERY LIKELY", "label": "m"}, "[[holds]]")
     except SystemExit:
@@ -776,8 +777,8 @@ def test_the_holds_sentence_follows_the_verdict():
     floor = {"requires_at_least": "QUITE LIKELY", "label": "m"}
     assert RS.verdict_fault(dict(floor, verdict="QUITE LIKELY", chance="y"), vals) is None
     assert RS.verdict_fault(dict(floor, verdict="VERY LIKELY", chance="z"), vals) is None
-    assert RS.verdict_fault(dict(floor, verdict="UNLIKELY", chance="x"), vals)
-    assert RS.verdict_fault(dict(floor, verdict="UNLIKELY", chance="x"), None)
+    assert RS.verdict_fault(dict(floor, verdict="QUITE UNLIKELY", chance="x"), vals)
+    assert RS.verdict_fault(dict(floor, verdict="QUITE UNLIKELY", chance="x"), None)
     assert RS.verdict_fault(dict(floor, verdict="FALSE", settled="arithmetic, in the steps"), vals)
     assert RS.verdict_fault(dict(floor, verdict="TRUE", settled="arithmetic, in the steps"), vals) is None
     assert RS.verdict_fault({"verdict": "QUITE LIKELY", "chance": "y",

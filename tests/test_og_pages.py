@@ -389,10 +389,10 @@ def test_every_verdict_has_a_badge_and_every_badge_a_verdict():
     assert badge_faults(render_sheet.VERDICT_BADGE, words, files) == []
     # it can see: a row removed is caught both ways, and restored is quiet
     cut = dict(render_sheet.VERDICT_BADGE)
-    gone = cut.pop("UNLIKELY")
+    gone = cut.pop("QUITE UNLIKELY")
     got = badge_faults(cut, words, files)
-    assert got == ["UNLIKELY: no badge", f"{gone}: in no row"], got
-    cut["UNLIKELY"] = gone
+    assert got == ["QUITE UNLIKELY: no badge", f"{gone}: in no row"], got
+    cut["QUITE UNLIKELY"] = gone
     assert badge_faults(cut, words, files) == []
 
 
@@ -516,6 +516,76 @@ def test_two_badges_on_one_card_keep_their_own_glyphs_and_masks():
     # the population: both embeds carry references, and every one was checked
     for e in got["placed"]:
         assert re.search(r'href="#', e) and re.search(r"url\(#", e)
+
+
+_EMBED = ("import * as SC from " + json.dumps((ROOT / "interactive" / "js" / "share-card.js").as_uri()) + ";\n"
+          "import { toPNG } from " + json.dumps((ROOT / "src" / "og-raster-node.mjs").as_uri()) + ";\n"
+          "import { readFileSync } from 'node:fs';\n"
+          "const GROUND = '#333333', M = 40;\n"
+          "let s = ''; process.stdin.on('data', d => s += d).on('end', async () => {\n"
+          "  const { files, unclipped } = JSON.parse(s); const out = [];\n"
+          "  for (const f of files) {\n"
+          "    const text = readFileSync(f, 'utf8'); const st = SC.stampOf(text);\n"
+          "    const [vx, vy, vw, vh] = st.viewBox.split(/\\s+/).map(Number);\n"
+          "    // the file alone, one unit to the pixel, on the ground\n"
+          "    const alone = text.replace(/<svg[^>]*>/, m => m.replace(/width=\"[^\"]*\"/, 'width=\"' + vw + '\"')\n"
+          "      .replace(/height=\"[^\"]*\"/, 'height=\"' + vh + '\"') + '<rect x=\"' + vx + '\" y=\"' + vy + '\" width=\"' + vw + '\" height=\"' + vh + '\" fill=\"' + GROUND + '\"/>');\n"
+          "    // the same file embedded at (M, M), one unit to the pixel, on a larger ground\n"
+          "    const placed = unclipped\n"
+          "      ? '<g transform=\"translate(' + M + ' ' + M + ')\"><g transform=\"translate(' + (-vx) + ' ' + (-vy) + ')\">' + SC.prefixIds(st.body, 'e') + '</g></g>'\n"
+          "      : SC.stampSVG(st, 'e', M, M, vh);\n"
+          "    const card = '<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"' + (vw + 2 * M) + '\" height=\"' + (vh + 2 * M) + '\">' +\n"
+          "      SC.rect(0, 0, vw + 2 * M, vh + 2 * M, GROUND) + placed + '</svg>';\n"
+          "    out.push({ file: f, m: M, alone: Buffer.from(await toPNG(alone)).toString('base64'), card: Buffer.from(await toPNG(card)).toString('base64') });\n"
+          "  }\n"
+          "  process.stdout.write(JSON.stringify(out));\n"
+          "});\n")
+
+
+def embed_render_faults(files: list[str], unclipped: bool = False) -> list[str]:
+    """For each stamp: its embedded render (share-card.js stampSVG, at one unit
+    to the pixel) equals the file drawn alone within the badge's box, and the
+    embed draws nothing outside the box. ``unclipped`` places the body by its
+    viewBox with no clip: the constructed violation."""
+    import base64
+    import io
+    import numpy as np
+    from PIL import Image
+    got = json.loads(_node(_EMBED, {"files": files, "unclipped": unclipped}))
+    faults = []
+    for g in got:
+        alone = np.asarray(Image.open(io.BytesIO(base64.b64decode(g["alone"]))).convert("RGB"), dtype=int)
+        card = np.asarray(Image.open(io.BytesIO(base64.b64decode(g["card"]))).convert("RGB"), dtype=int)
+        m, (h, w) = g["m"], alone.shape[:2]
+        inside = card[m:m + h, m:m + w]
+        name = Path(g["file"]).name
+        # equal up to anti-aliasing: a pixel differing by more than 8 levels in
+        # any channel is a difference, and they may be at most 1 in 2,000 of
+        # the box (reader-hail-mary's masks rasterise 22 pixels of its 257,536
+        # differently in the two renders; a misplaced or missing part of a
+        # badge moves thousands)
+        if inside.shape != alone.shape:
+            faults.append(f"{name}: the embed's box is not the file's size")
+        elif (np.abs(inside - alone).max(axis=2) > 8).sum() > h * w / 2000:
+            faults.append(f"{name}: the embed differs from the file inside the badge's box")
+        ground = card[0, 0]
+        outside = card.copy()
+        outside[m:m + h, m:m + w] = ground
+        if np.abs(outside - ground).max() > 8:
+            faults.append(f"{name}: the embed draws outside the badge's box")
+    return faults
+
+
+def test_every_stamp_embeds_as_the_file_draws_alone_and_nothing_outside_it():
+    """Each of the owner's stamps, embedded by stampSVG, draws exactly what the
+    file draws alone within its viewBox and nothing outside it. Constructed:
+    the same bodies placed without the clip draw outside their box (the files
+    carry drawing past their viewBox), and are caught."""
+    files = sorted(str(f) for f in og_pages.STAMPS.glob("*.svg"))
+    assert len(files) == 15
+    assert embed_render_faults(files) == []
+    caught = embed_render_faults(files, unclipped=True)
+    assert any("outside the badge's box" in f for f in caught), caught
 
 
 if __name__ == "__main__":

@@ -115,6 +115,29 @@ format = "int"
 inserted = "2026-10-10"
 used_in = "the home page's introduction"
 
+# The small-party note on /methodology (owner, 2026-10-10): the record's test
+# (MODEL-LOG §1.296) and how often the published simulations fail it.
+[small_party_share]
+mode = "free"
+source = "derived:small_party_share"
+format = "pct0"
+inserted = "2026-10-10"
+used_in = "methodology — the small-party note: the record test's 'under' line"
+
+[small_party_surge_share]
+mode = "free"
+source = "derived:small_party_surge_share"
+format = "pct0"
+inserted = "2026-10-10"
+used_in = "methodology — the small-party note: the record test's 'reached' line"
+
+[small_party_surge]
+mode = "free"
+source = "published:small_party_surge"
+format = "chance"
+inserted = "2026-10-10"
+used_in = "methodology — the small-party note: published simulations in which an established party under the line exceeds the other"
+
 [p_excessive_anc]
 mode = "free"
 source = "model:p_excessive_by_party.ANC"
@@ -1075,31 +1098,329 @@ used_in = "methodology — how many cities the backtest covers"
 
 [backtest_wins]
 mode = "free"
-source = "validation:wins"
+source = "validation:total.wins"
 format = "int"
 inserted = "2026-09-18"
 used_in = "methodology — cities where the model beats the toughest baseline"
 
 [backtest_crps_better]
 mode = "free"
-source = "validation:crps_better_pct"
+source = "validation:total.crps_better"
 format = "pct0"
 inserted = "2026-09-18"
 used_in = "methodology — how much lower the model's distributional error is"
 
-[backtest_seat_err_model]
+# The backtest, metro by metro (owner, 2026-10-10): each metro's CRPS against
+# its best baseline's by CRPS, and the seats given to the wrong party
+# (stats.wrong_party_seats: half the summed absolute seat error), model and
+# that baseline. Totals are sums of these same figures (validation:total.*).
+[val_joburg_crps]
 mode = "free"
-source = "validation:seat_err_model"
-format = "int"
-inserted = "2026-09-18"
-used_in = "methodology — seats misallocated, model"
+source = "validation:cities.joburg.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
 
-[backtest_seat_err_baseline]
+[val_joburg_best_crps]
 mode = "free"
-source = "validation:seat_err_baseline"
-format = "int"
-inserted = "2026-09-18"
-used_in = "methodology — seats misallocated, best baseline per city"
+source = "validation:cities.joburg.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_joburg_best]
+mode = "free"
+source = "validation:cities.joburg.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_joburg_wrong]
+mode = "free"
+source = "validation:cities.joburg.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_joburg_best_wrong]
+mode = "free"
+source = "validation:cities.joburg.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_tshwane_crps]
+mode = "free"
+source = "validation:cities.tshwane.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_tshwane_best_crps]
+mode = "free"
+source = "validation:cities.tshwane.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_tshwane_best]
+mode = "free"
+source = "validation:cities.tshwane.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_tshwane_wrong]
+mode = "free"
+source = "validation:cities.tshwane.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_tshwane_best_wrong]
+mode = "free"
+source = "validation:cities.tshwane.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_ekurhuleni_crps]
+mode = "free"
+source = "validation:cities.ekurhuleni.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ekurhuleni_best_crps]
+mode = "free"
+source = "validation:cities.ekurhuleni.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ekurhuleni_best]
+mode = "free"
+source = "validation:cities.ekurhuleni.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ekurhuleni_wrong]
+mode = "free"
+source = "validation:cities.ekurhuleni.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ekurhuleni_best_wrong]
+mode = "free"
+source = "validation:cities.ekurhuleni.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ethekwini_crps]
+mode = "free"
+source = "validation:cities.ethekwini.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_ethekwini_best_crps]
+mode = "free"
+source = "validation:cities.ethekwini.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_ethekwini_best]
+mode = "free"
+source = "validation:cities.ethekwini.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_ethekwini_wrong]
+mode = "free"
+source = "validation:cities.ethekwini.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_ethekwini_best_wrong]
+mode = "free"
+source = "validation:cities.ethekwini.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_capetown_crps]
+mode = "free"
+source = "validation:cities.capetown.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_capetown_best_crps]
+mode = "free"
+source = "validation:cities.capetown.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_capetown_best]
+mode = "free"
+source = "validation:cities.capetown.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_capetown_wrong]
+mode = "free"
+source = "validation:cities.capetown.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_capetown_best_wrong]
+mode = "free"
+source = "validation:cities.capetown.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_mangaung_crps]
+mode = "free"
+source = "validation:cities.mangaung.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_mangaung_best_crps]
+mode = "free"
+source = "validation:cities.mangaung.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_mangaung_best]
+mode = "free"
+source = "validation:cities.mangaung.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_mangaung_wrong]
+mode = "free"
+source = "validation:cities.mangaung.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_mangaung_best_wrong]
+mode = "free"
+source = "validation:cities.mangaung.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_nelsonmandelabay_crps]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_nelsonmandelabay_best_crps]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_nelsonmandelabay_best]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_nelsonmandelabay_wrong]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_nelsonmandelabay_best_wrong]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_buffalocity_crps]
+mode = "free"
+source = "validation:cities.buffalocity.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_buffalocity_best_crps]
+mode = "free"
+source = "validation:cities.buffalocity.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_buffalocity_best]
+mode = "free"
+source = "validation:cities.buffalocity.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_buffalocity_wrong]
+mode = "free"
+source = "validation:cities.buffalocity.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_buffalocity_best_wrong]
+mode = "free"
+source = "validation:cities.buffalocity.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_total_crps]
+mode = "free"
+source = "validation:total.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, all metros"
+
+[val_total_best_crps]
+mode = "free"
+source = "validation:total.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, all metros"
+
+[val_total_wrong]
+mode = "free"
+source = "validation:total.model.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, all metros"
+
+[val_total_best_wrong]
+mode = "free"
+source = "validation:total.best.wrong_party_seats"
+format = "half"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, all metros"
 
 [backtest_wards_called]
 mode = "free"
@@ -1263,4 +1584,22 @@ context = "recommended 50%"
 kind = "judgement"
 source = "JUDGEMENT-CALLS.md §O1 (the blind review of 2026-09-29 recommended a retention of 0.5, the low end of the range in the entry's heading; recorded, not adopted)"
 reviewed = "2026-10-02"
+page = "methodology.html"
+
+# The small-party note on /methodology (2026-10-10): the record's count, and
+# the reference to where it was measured.
+[[audit.fixed]]
+value = "337"
+context = "337 times a party had under"
+kind = "history"
+source = "MODEL-LOG §1.296, 'The real record': levels._citywide for the eight metros, consecutive local elections 2006 to 2021, read 2026-10-10"
+reviewed = "2026-10-10"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "1.296"
+context = "model log, §1.296"
+kind = "convention"
+source = "a reference to MODEL-LOG.md's section number"
+reviewed = "2026-10-10"
 page = "methodology.html"

@@ -440,9 +440,22 @@ export function prefixIds(body, prefix) {
 }
 // THE ONE WAY A STAMP GOES ON A CARD: `st` (stampOf) `h` tall at (x, y), its
 // ids prefixed by `prefix`, which must be unique in the card.
+//
+// Placed by its viewBox and CLIPPED TO IT, explicitly: the files carry drawing
+// past their viewBox (verdict-false.svg's right-hand spikes run past it), which
+// the file drawn alone never shows because its own viewport clips it. A group
+// scaled and translated by the viewBox, under a clip of exactly the viewBox,
+// draws what the file draws alone and nothing else, whatever a renderer does
+// with a nested <svg>'s viewport (tests/test_og_pages.py holds every stamp to
+// that, pixel by pixel). NOT FIXED HERE, because it is in the file: the white
+// "P" beside verdict-false.svg's arc lettering lies inside its viewBox; drawn
+// alone on a white ground it is invisible, on the cards' dark ground it shows.
 export function stampSVG(st, prefix, x, y, h) {
-  const [, , vw, vh] = st.viewBox.split(/\s+/).map(Number);
-  return `<svg xmlns:xlink="http://www.w3.org/1999/xlink" x="${n1(x)}" y="${n1(y)}" width="${n1(h * vw / vh)}" height="${n1(h)}" viewBox="${st.viewBox}">${prefixIds(st.body, prefix)}</svg>`;
+  const [vx, vy, vw, vh] = st.viewBox.split(/\s+/).map(Number);
+  const k = h / vh;
+  return `<g xmlns:xlink="http://www.w3.org/1999/xlink" transform="translate(${n1(x)} ${n1(y)}) scale(${k.toFixed(6)})">` +
+    `<clipPath id="${prefix}-viewbox"><rect x="0" y="0" width="${vw}" height="${vh}"/></clipPath>` +
+    `<g clip-path="url(#${prefix}-viewbox)"><g transform="translate(${-vx} ${-vy})">${prefixIds(st.body, prefix)}</g></g></g>`;
 }
 // The reader's badge `h` tall at (x, y): the owner's stamp for the words when
 // the card was handed it (assets.badges[words]), else the words in a pill.

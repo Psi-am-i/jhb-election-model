@@ -3517,8 +3517,8 @@ claim holds:
 |---|---|---|
 | under 1% | NEAR IMPOSSIBLE | false |
 | 1% to 15% | EXTREMELY UNLIKELY | unlikely |
-| 15% to 45% | UNLIKELY | unlikely |
-| 45% to 55% | A COIN FLIP | open |
+| 15% to 45% | QUITE UNLIKELY | unlikely |
+| 45% to 55% | COIN FLIP | open |
 | 55% to 75% | QUITE LIKELY | likely |
 | 75% to 90% | VERY LIKELY | likely |
 | over 90% | NEAR CERTAIN | true |
@@ -3526,8 +3526,15 @@ claim holds:
 FALSE (step false) and TRUE (step true) are for claims settled by fact or
 arithmetic, not chance, and carry no `chance` field.
 
+**Amended 2026-10-10.** The words are the owner's badges' words ("We
+standardised badges, so adjust pages to match the badge"): 15% to 45% is
+QUITE UNLIKELY (was UNLIKELY) and 45% to 55% COIN FLIP (was A COIN FLIP). The
+edges and colour steps are unchanged, and no claim carried either word.
+Each verdict's badge file is named by its words
+(`render_sheet.verdict_badge_file`).
+
 **The edge rule.** A chance exactly on an edge takes the band nearer a coin
-flip: 1% is EXTREMELY UNLIKELY, 15% UNLIKELY, 45% and 55% A COIN FLIP, 75%
+flip: 1% is EXTREMELY UNLIKELY, 15% QUITE UNLIKELY, 45% and 55% COIN FLIP, 75%
 QUITE LIKELY, 90% VERY LIKELY. This agrees with the owner's "under 1%" and
 "over 90%". The chance is judged as the page prints it
 (`reweight.chance_text`), so the verdict never disagrees with the figure beside
@@ -3537,8 +3544,9 @@ it.
 its figure: `chance = "<name>"`, or `chance = "1 - <name>"` when the claim
 holds where that figure's event does not. The build reads the value out of
 that figure's own token and refuses a verdict the scale does not give it. The
-words it replaced (OUT OF REACH, VERY UNLIKELY, MORE LIKELY THAN NOT, LIKELY)
-are off the table, so a stale label stops the build. A chance written as a
+words it replaced (OUT OF REACH, VERY UNLIKELY, MORE LIKELY THAN NOT, LIKELY,
+and on 2026-10-10 UNLIKELY and A COIN FLIP) are off the table, so a stale
+label stops the build. A chance written as a
 number instead of a name stops the build.
 
 FALSE and TRUE need a `settled` field saying what fact or arithmetic settles
@@ -3550,8 +3558,8 @@ page's claims list runs it on the form alone, since it computes no figure.
 **The sentence that follows the verdict.** A claim may write `[[holds]]` and
 name its subject in `holds_subject`; `render_sheet.HOLDS` gives the
 predicate (owner, 2026-10-07): NEAR CERTAIN "is almost certainly correct",
-VERY LIKELY "is very likely correct", QUITE LIKELY "is probably correct", A
-COIN FLIP "is as likely right as wrong", UNLIKELY "is probably wrong",
+VERY LIKELY "is very likely correct", QUITE LIKELY "is probably correct",
+COIN FLIP "is as likely right as wrong", QUITE UNLIKELY "is probably wrong",
 EXTREMELY UNLIKELY "is very likely wrong", NEAR IMPOSSIBLE "is almost
 certainly wrong", TRUE "is correct", FALSE "is wrong". So "Mashaba is very
 likely correct" cannot outlive its verdict.

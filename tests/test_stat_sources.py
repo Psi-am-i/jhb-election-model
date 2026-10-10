@@ -153,5 +153,109 @@ def test_a_coalition_majority_counts_its_small_partner_and_refuses_an_unknown_pa
         assert stats.coalition_majority(["A"], {}) is None
 
 
+def _validation():
+    """A constructed validation artefact: two cities, three baselines each."""
+    return {"validation": {"headline": {"cities": 2, "_best_baseline_per_city": {"a": "uniform-swing", "b": "prior-lge-noise"}},
+                           "cities": {
+        "a": {"model": {"crps": 10.0, "seat_mae": 20},
+              "baselines": {"uniform-swing": {"crps": 15.0, "seat_mae": 30}, "prior-lge-noise": {"crps": 18.0, "seat_mae": 10},
+                            "last-lge": {"crps": 40.0, "seat_mae": 50}}},
+        "b": {"model": {"crps": 9.0, "seat_mae": 7},
+              "baselines": {"uniform-swing": {"crps": 6.0, "seat_mae": 4}, "prior-lge-noise": {"crps": 5.0, "seat_mae": 9},
+                            "last-lge": {"crps": 7.0, "seat_mae": 3}}}}}}
+
+
+def test_the_validation_source_reads_each_metro_and_sums_its_own_figures():
+    """validation:cities.<slug>.<model|best>.<field> reads one metro, its best
+    baseline being the artefact's named one (by CRPS), not the lowest seat
+    error; validation:total.* is the sum of those same figures; wins counts
+    metros whose model CRPS is below their best baseline's; seats given to
+    the wrong party are half the summed absolute error (stats.wrong_party_seats)."""
+    ctx = _validation()
+    r = lambda p: stats.resolve("validation:" + p, ctx)
+    assert r("cities") == 2                                       # the headline, as before
+    assert r("cities.a.model.crps") == 10.0 and r("cities.a.best.crps") == 15.0
+    assert r("cities.b.best.crps") == 5.0 and r("cities.b.best.seat_mae") == 9   # named, not the lowest seat error
+    assert r("cities.a.best.name") == "uniform swing" and r("cities.b.best.name") == "last result plus noise"
+    assert r("cities.a.model.wrong_party_seats") == 10 and r("cities.b.model.wrong_party_seats") == 3.5
+    assert r("total.model.crps") == 19.0 and r("total.best.crps") == 20.0
+    assert r("total.model.wrong_party_seats") == 13.5 and r("total.best.wrong_party_seats") == 19.5
+    assert r("total.wins") == 1
+    assert abs(r("total.crps_better") - 0.05) < 1e-12
+    assert r("cities.c.model.crps") is None
+    for bad in ("cities.a.crps", "cities.a.other.crps", "total.best.name", "total.x"):
+        try:
+            r(bad)
+        except SystemExit:
+            continue
+        raise AssertionError(f"{bad} was resolved")
+    assert stats._fmt(r("cities.b.model.wrong_party_seats"), "half") == "3.5"
+    assert stats._fmt(r("cities.a.model.wrong_party_seats"), "half") == "10"
+
+
+def test_the_live_validation_totals_are_the_artefacts_own():
+    """On the real artefact, the totals the methodology prints (sums of its
+    per-metro tokens) equal the headline build_validation wrote, so a total
+    and its rows cannot disagree; and the metro tokens are one per metro."""
+    from pathlib import Path as _P
+    ctx = stats.load_context(ROOT / "data" / "processed")
+    if not ctx.get("validation"):
+        return
+    head = ctx["validation"]["headline"]
+    r = lambda p: stats.resolve("validation:" + p, ctx)
+    assert abs(r("total.model.crps") - head["crps_model"]) < 0.01
+    assert abs(r("total.best.crps") - head["crps_baseline"]) < 0.01
+    assert r("total.wins") == head["wins"]
+    assert r("total.model.wrong_party_seats") == stats.wrong_party_seats(head["seat_err_model"])
+    assert r("total.best.wrong_party_seats") == stats.wrong_party_seats(head["seat_err_baseline"])
+    reg = tomllib.loads((ROOT / "content/joburg/stats.toml").read_text(encoding="utf-8"))
+    metros = {k.split("_")[1] for k in reg if k.startswith("val_") and not k.startswith("val_total")}
+    assert metros == set(ctx["validation"]["cities"]), metros ^ set(ctx["validation"]["cities"])
+
+
+def test_the_small_party_surge_counts_established_small_parties_only():
+    """Twenty draws of four parties' list shares: A large; B established, under
+    1% on average (0.65%), above 5% in draws 18 and 19; C under 1% on average
+    (0.9%) and above 5% in draws 0 to 2, but new to the ballot; D established
+    and always 0.4%. The surge is 2 of 20; counting C as established makes it
+    5 of 20; with no established small party it is refused."""
+    import numpy as np
+    n = 20
+    B = [0.0] * 18 + [0.06, 0.07]
+    C = [0.06] * 3 + [0.0] * 17
+    sh = np.array([[0.9, B[i], C[i], 0.004] for i in range(n)])
+    cols = ["A", "B", "C", "D"]
+    assert stats.small_party_surge(sh, cols, {"A", "B", "D"}) == 0.1
+    assert stats.small_party_surge(sh, cols, {"A", "B", "C", "D"}) == 0.25
+    assert stats.small_party_surge(sh, cols, {"A", "D"}) == 0.0
+    try:
+        stats.small_party_surge(sh, cols, {"A"})
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("no established small party was measured as nothing")
+
+
+def test_the_published_small_party_surge_reads_the_published_draws():
+    """The registered token's source runs small_party_surge over the published
+    draws' list vote, with the established parties those that stood at the
+    preceding local election; cached once per context."""
+    import build_make
+    import cityconfig
+    import reweight
+    if not (build_make.DRAWS / "manifest.json").exists():
+        return
+    cityconfig.use(None)
+    reg = tomllib.loads((ROOT / "content/joburg/stats.toml").read_text(encoding="utf-8"))
+    assert reg["small_party_surge"]["source"] == "published:small_party_surge"
+    ctx = stats.load_context(ROOT / "data" / "processed")
+    got = stats.resolve("published:small_party_surge", ctx)
+    manifest, arrays, _raw = build_make._draws()
+    cols = build_make._columns(manifest, "list_vote")
+    est = build_make.baseline(cityconfig.active(), cols)["list_vote"]
+    assert got == stats.small_party_surge(reweight.list_shares(arrays["list_vote"]), cols, est)
+    assert 0.0 <= got <= 1.0
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

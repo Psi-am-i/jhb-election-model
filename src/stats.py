@@ -53,6 +53,8 @@ Source grammar:
 * ``history:<city>:<year>:<dotted path>`` — into the record of that city-year
   in ``history.json`` (``compare_history``'s backtest of past elections):
   ``history:joburg:2011:wards.called``. See :func:`history_value`.
+* ``published:small_party_surge`` — :func:`small_party_surge` over the
+  published draws (``site/draws/``, the files the site's pages read).
 * ``run:<description>`` / ``external:<description>`` — never auto-resolved;
   legal only for ``fixed`` entries (a scenario run, or a fact from outside
   the model such as an IEC record).
@@ -354,6 +356,9 @@ def _fmt(value, spec: str | None):
         return "over 99%" if v > 0.99 and v < 1.0 else f"{v * 100:.0f}%"
     if spec == "one_dp":
         return f"{float(value):.1f}"
+    if spec == "half":                # a count that can end in .5: 48, 20.5
+        v = round(float(value) * 2) / 2
+        return f"{v:.0f}" if v == int(v) else f"{v:.1f}"
     if spec == "date_long":           # 2026-09-16T21:46:15Z -> 16 September 2026
         from datetime import datetime
         d = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
@@ -400,6 +405,10 @@ def _derived(name: str, ctx: dict):
     """Named computations over the draw-level outputs."""
     draws = ctx.get("draws") or []
     summary = ctx.get("summary") or {}
+    if name == "small_party_share":          # the record test's two thresholds
+        return SMALL_PARTY_SHARE             # (MODEL-LOG §1.296), printed from
+    if name == "small_party_surge_share":    # the constants the measure uses
+        return SMALL_PARTY_SURGE
     if name == "n_draws":
         return len(draws) or summary.get("scenario", {}).get("draws")
     if name == "council_size":
@@ -470,13 +479,130 @@ def resolve(source: str, ctx: dict):
         _, rule, path = source.split(":", 2)
         return _dig((ctx.get("regimes") or {}).get(rule) or {}, path)
     if source.startswith("validation:"):
-        return _dig((ctx.get("validation") or {}).get("headline") or {},
-                    source[len("validation:"):])
+        return validation_value(source[len("validation:"):], ctx)
     if source.startswith("derived:"):
         return _derived(source[len("derived:"):], ctx)
     if source.startswith("history:"):
         return history_value(source, ctx)
+    if source == "published:small_party_surge":
+        return published_small_party_surge(ctx)
     return None                      # run: / external: — pinned only
+
+
+#: The record's own test of a small party's range (MODEL-LOG §1.296): a party
+#: under 1% of the list vote at one local election, and whether it reached 5%
+#: at the next. In the eight metros' consecutive local elections from 2006 to
+#: 2021 none did. :func:`small_party_surge` asks the same of the simulations.
+SMALL_PARTY_SHARE = 0.01
+SMALL_PARTY_SURGE = 0.05
+
+
+def small_party_surge(shares, columns, established) -> float:
+    """The share of draws in which at least one ESTABLISHED small party (in
+    ``established``: it stood at the preceding local election) whose mean list
+    share over the draws is under :data:`SMALL_PARTY_SHARE` takes more than
+    :data:`SMALL_PARTY_SURGE` of the list vote. ``shares`` is
+    ``reweight.list_shares``' ``(draws, len(columns))``. Refuses when no
+    column is an established small party: a share of nothing measured."""
+    import numpy as _np
+    s = _np.asarray(shares, dtype=float)
+    est = set(established)
+    small = [j for j, c in enumerate(columns) if c in est and s[:, j].mean() < SMALL_PARTY_SHARE]
+    if not small:
+        raise SystemExit("small_party_surge: no established party is under the small-party share")
+    return float((s[:, small] > SMALL_PARTY_SURGE).any(axis=1).mean())
+
+
+def published_small_party_surge(ctx: dict):
+    """:func:`small_party_surge` over the published draws' list vote
+    (``build_make``'s reader of ``site/draws/``), the established parties
+    being those with a list vote at the preceding local election
+    (``build_make.baseline``). Cached in ``ctx``; ``ctx["draws_dir"]`` points
+    a test at constructed draws, and ``ctx["established"]`` at its parties."""
+    if "_small_party_surge" not in ctx:
+        import build_make as _bm
+        import cityconfig as _cc
+        import reweight as _rw
+        manifest, arrays, _raw = _bm._draws(ctx.get("draws_dir"))
+        cols = _bm._columns(manifest, "list_vote")
+        est = ctx.get("established")
+        if est is None:
+            est = _bm.baseline(_cc.active(), cols)["list_vote"]
+        ctx["_small_party_surge"] = small_party_surge(_rw.list_shares(arrays["list_vote"]), cols, est)
+    return ctx["_small_party_surge"]
+
+
+def wrong_party_seats(summed_abs_error) -> float:
+    """Seats given to the wrong party: half the summed absolute seat error,
+    which counts every misplaced seat twice, once where it went and once where
+    it should have gone (owner, 2026-10-10: "if 43 seats are the wrong party
+    then the error is 43. Why double it."). THE ONE DEFINITION; where a
+    forecast's middles do not sum to the council the half can end in .5."""
+    return float(summed_abs_error) / 2
+
+
+def validation_value(path: str, ctx: dict):
+    """A ``validation:`` source over ``validation_<year>.json``:
+
+    * ``<headline field>``: the artefact's ``headline`` block, as written;
+    * ``cities.<slug>.model.<field>`` / ``cities.<slug>.best.<field>``: that
+      city's model, or its best baseline by CRPS (the artefact's
+      ``_best_baseline_per_city``), field ``crps``, ``seat_mae``,
+      ``wrong_party_seats`` (:func:`wrong_party_seats`) or, for ``best``,
+      ``name`` (``build_validation.BASELINES``' words);
+    * ``total.model.<field>`` / ``total.best.<field>``: the sum over the
+      cities of the same field, so a total is the sum of the table's own
+      figures; ``total.wins`` (cities where the model's CRPS is below its best
+      baseline's) and ``total.crps_better`` (one minus the ratio of the CRPS
+      totals).
+
+    None where the artefact, the city or the field is absent."""
+    v = ctx.get("validation") or {}
+    head = v.get("headline") or {}
+    if not path.startswith(("cities.", "total.")):
+        return _dig(head, path)
+    cities = v.get("cities") or {}
+    best = head.get("_best_baseline_per_city") or {}
+
+    def one(slug, side, field):
+        c = cities.get(slug)
+        if c is None:
+            return None
+        if side == "model":
+            block = c.get("model") or {}
+        elif side == "best":
+            name = best.get(slug)
+            if name is None:
+                return None
+            if field == "name":
+                import build_validation as _bv
+                return _bv.BASELINES[name]
+            block = (c.get("baselines") or {}).get(name) or {}
+        else:
+            raise SystemExit(f"validation:{path}: the side is model or best, not {side!r}")
+        if field == "wrong_party_seats":
+            return None if block.get("seat_mae") is None else wrong_party_seats(block["seat_mae"])
+        return block.get(field)
+
+    parts = path.split(".")
+    if parts[0] == "cities":
+        if len(parts) != 4:
+            raise SystemExit(f"validation:{path}: write cities.<slug>.<model|best>.<field>")
+        return one(*parts[1:])
+    if path == "total.wins":
+        return sum(1 for slug in cities
+                   if one(slug, "model", "crps") is not None
+                   and one(slug, "model", "crps") < one(slug, "best", "crps"))
+    if path == "total.crps_better":
+        m, b = validation_value("total.model.crps", ctx), validation_value("total.best.crps", ctx)
+        return None if not b else 1 - m / b
+    if len(parts) != 3 or parts[2] == "name":
+        raise SystemExit(f"validation:{path}: write total.<model|best>.<field>, total.wins "
+                         "or total.crps_better")
+    vals = [one(slug, parts[1], parts[2]) for slug in cities]
+    if not vals or any(x is None for x in vals):
+        return None
+    return sum(vals)
 
 
 def history_value(source: str, ctx: dict):
