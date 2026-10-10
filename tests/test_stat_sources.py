@@ -177,9 +177,10 @@ def test_the_validation_source_reads_each_metro_and_sums_its_own_figures():
     assert r("cities.a.model.crps") == 10.0 and r("cities.a.best.crps") == 15.0
     assert r("cities.b.best.crps") == 5.0 and r("cities.b.best.seat_mae") == 9   # named, not the lowest seat error
     assert r("cities.a.best.name") == "uniform swing" and r("cities.b.best.name") == "last result plus noise"
-    assert r("cities.a.model.wrong_party_seats") == 10 and r("cities.b.model.wrong_party_seats") == 3.5
+    assert r("cities.a.model.wrong_party_seats") == 10 and r("cities.b.model.wrong_party_seats") == 4   # 3.5, up
     assert r("total.model.crps") == 19.0 and r("total.best.crps") == 20.0
-    assert r("total.model.wrong_party_seats") == 13.5 and r("total.best.wrong_party_seats") == 19.5
+    # totals are sums of the rounded metro figures: 10 + 4, and 15 + 5 (4.5, up)
+    assert r("total.model.wrong_party_seats") == 14 and r("total.best.wrong_party_seats") == 20
     assert r("total.wins") == 1
     assert abs(r("total.crps_better") - 0.05) < 1e-12
     assert r("cities.c.model.crps") is None
@@ -189,8 +190,7 @@ def test_the_validation_source_reads_each_metro_and_sums_its_own_figures():
         except SystemExit:
             continue
         raise AssertionError(f"{bad} was resolved")
-    assert stats._fmt(r("cities.b.model.wrong_party_seats"), "half") == "3.5"
-    assert stats._fmt(r("cities.a.model.wrong_party_seats"), "half") == "10"
+    assert stats.wrong_party_seats(41) == 21 and stats.wrong_party_seats(40) == 20 and stats.wrong_party_seats(0) == 0
 
 
 def test_the_live_validation_totals_are_the_artefacts_own():
@@ -206,8 +206,9 @@ def test_the_live_validation_totals_are_the_artefacts_own():
     assert abs(r("total.model.crps") - head["crps_model"]) < 0.01
     assert abs(r("total.best.crps") - head["crps_baseline"]) < 0.01
     assert r("total.wins") == head["wins"]
-    assert r("total.model.wrong_party_seats") == stats.wrong_party_seats(head["seat_err_model"])
-    assert r("total.best.wrong_party_seats") == stats.wrong_party_seats(head["seat_err_baseline"])
+    for side in ("model", "best"):
+        assert r(f"total.{side}.wrong_party_seats") == sum(
+            r(f"cities.{c}.{side}.wrong_party_seats") for c in ctx["validation"]["cities"])
     reg = tomllib.loads((ROOT / "content/joburg/stats.toml").read_text(encoding="utf-8"))
     metros = {k.split("_")[1] for k in reg if k.startswith("val_") and not k.startswith("val_total")}
     assert metros == set(ctx["validation"]["cities"]), metros ^ set(ctx["validation"]["cities"])

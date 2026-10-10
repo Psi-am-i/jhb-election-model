@@ -1138,14 +1138,14 @@ used_in = "methodology — the per-metro backtest table, joburg"
 [val_joburg_wrong]
 mode = "free"
 source = "validation:cities.joburg.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, joburg"
 
 [val_joburg_best_wrong]
 mode = "free"
 source = "validation:cities.joburg.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, joburg"
 
@@ -1173,14 +1173,14 @@ used_in = "methodology — the per-metro backtest table, tshwane"
 [val_tshwane_wrong]
 mode = "free"
 source = "validation:cities.tshwane.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, tshwane"
 
 [val_tshwane_best_wrong]
 mode = "free"
 source = "validation:cities.tshwane.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, tshwane"
 
@@ -1208,14 +1208,14 @@ used_in = "methodology — the per-metro backtest table, ekurhuleni"
 [val_ekurhuleni_wrong]
 mode = "free"
 source = "validation:cities.ekurhuleni.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, ekurhuleni"
 
 [val_ekurhuleni_best_wrong]
 mode = "free"
 source = "validation:cities.ekurhuleni.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, ekurhuleni"
 
@@ -1243,14 +1243,14 @@ used_in = "methodology — the per-metro backtest table, ethekwini"
 [val_ethekwini_wrong]
 mode = "free"
 source = "validation:cities.ethekwini.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, ethekwini"
 
 [val_ethekwini_best_wrong]
 mode = "free"
 source = "validation:cities.ethekwini.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, ethekwini"
 
@@ -1278,14 +1278,14 @@ used_in = "methodology — the per-metro backtest table, capetown"
 [val_capetown_wrong]
 mode = "free"
 source = "validation:cities.capetown.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, capetown"
 
 [val_capetown_best_wrong]
 mode = "free"
 source = "validation:cities.capetown.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, capetown"
 
@@ -1313,14 +1313,14 @@ used_in = "methodology — the per-metro backtest table, mangaung"
 [val_mangaung_wrong]
 mode = "free"
 source = "validation:cities.mangaung.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, mangaung"
 
 [val_mangaung_best_wrong]
 mode = "free"
 source = "validation:cities.mangaung.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, mangaung"
 
@@ -1348,14 +1348,14 @@ used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
 [val_nelsonmandelabay_wrong]
 mode = "free"
 source = "validation:cities.nelsonmandelabay.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
 
 [val_nelsonmandelabay_best_wrong]
 mode = "free"
 source = "validation:cities.nelsonmandelabay.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
 
@@ -1383,14 +1383,14 @@ used_in = "methodology — the per-metro backtest table, buffalocity"
 [val_buffalocity_wrong]
 mode = "free"
 source = "validation:cities.buffalocity.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, buffalocity"
 
 [val_buffalocity_best_wrong]
 mode = "free"
 source = "validation:cities.buffalocity.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-10-10"
 used_in = "methodology — the per-metro backtest table, buffalocity"
 
@@ -1411,14 +1411,14 @@ used_in = "methodology — the per-metro backtest table, all metros"
 [backtest_seat_err_model]
 mode = "free"
 source = "validation:total.model.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-09-18"
 used_in = "methodology — seats given to the wrong party, model, all metros (half the summed absolute seat error since 2026-10-10; it printed the summed error before)"
 
 [backtest_seat_err_baseline]
 mode = "free"
 source = "validation:total.best.wrong_party_seats"
-format = "half"
+format = "int"
 inserted = "2026-09-18"
 used_in = "methodology — seats given to the wrong party, best baseline per metro by CRPS, all metros (half the summed absolute seat error since 2026-10-10; it printed the summed error before)"
 

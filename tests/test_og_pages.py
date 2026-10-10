@@ -576,16 +576,29 @@ def embed_render_faults(files: list[str], unclipped: bool = False) -> list[str]:
     return faults
 
 
+#: A constructed stamp drawing past its viewBox, as the owner's FALSE badge
+#: did until its stray lettering was removed (2026-10-10).
+SPILL = ('<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" '
+         'xmlns:xlink="http://www.w3.org/1999/xlink" width="100pt" height="100pt" viewBox="50 50 100 100">'
+         '<defs><clipPath id="clip-0"><rect x="0" y="0" width="400" height="400"/></clipPath></defs>'
+         '<g clip-path="url(#clip-0)"><circle cx="100" cy="100" r="40" fill="#ff0000"/>'
+         '<rect x="160" y="60" width="20" height="20" fill="#ffffff"/></g></svg>')
+
+
 def test_every_stamp_embeds_as_the_file_draws_alone_and_nothing_outside_it():
     """Each of the owner's stamps, embedded by stampSVG, draws exactly what the
-    file draws alone within its viewBox and nothing outside it. Constructed:
-    the same bodies placed without the clip draw outside their box (the files
-    carry drawing past their viewBox), and are caught."""
+    file draws alone within its viewBox and nothing outside it. Constructed: a
+    stamp with drawing past its viewBox is clean through stampSVG and caught
+    when its body is placed without the clip."""
     files = sorted(str(f) for f in og_pages.STAMPS.glob("*.svg"))
     assert len(files) == 15
     assert embed_render_faults(files) == []
-    caught = embed_render_faults(files, unclipped=True)
-    assert any("outside the badge's box" in f for f in caught), caught
+    with tempfile.TemporaryDirectory() as t:
+        spill = Path(t) / "spill.svg"
+        spill.write_text(SPILL, encoding="utf-8")
+        assert embed_render_faults([str(spill)]) == []
+        caught = embed_render_faults([str(spill)], unclipped=True)
+        assert caught == ["spill.svg: the embed draws outside the badge's box"], caught
 
 
 if __name__ == "__main__":

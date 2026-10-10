@@ -104,12 +104,12 @@ SEAT_RANGE_ROWS = 6
 VISUALS = {"seat-ranges"}
 
 #: The interactive card's words (the approved mock-up, og-design/make_og.mjs,
-#: 43bbf59). The map is our prediction's, labelled as such.
+#: 43bbf59). The map is our prediction's, labelled as such by the owner's
+#: OFFICIAL PREDICTION seal over its corner.
 INTERACTIVE_HEAD = "Know Politics?"
 INTERACTIVE_BODY = ("Pick your winners, seal your prediction and let's see if you "
                     "can beat us on election day.")
 INTERACTIVE_CTA = "Make yours at"
-INTERACTIVE_MAP_LABEL = "Our prediction"
 PREDICTION_SEAL = "seal-official-prediction.svg"
 
 
@@ -441,7 +441,7 @@ def interactive_spec(forecast_json: dict, pool: dict, *, election: dict, site: s
     wards = [{"path": w["path"], "colour": roster[c]["colour"]} for w, c in zip(geom["wards"], calls)]
     return {"layout": "interactive", "headline": INTERACTIVE_HEAD, "body": INTERACTIVE_BODY,
             "cta": INTERACTIVE_CTA, "site": site, "date_line": date,
-            "map_label": INTERACTIVE_MAP_LABEL, "seal": stamp_path(PREDICTION_SEAL),
+            "seal": stamp_path(PREDICTION_SEAL),
             "map": {"W": geom["W"], "H": geom["H"], "wards": wards},
             "figures": figures,
             "alt": f"{INTERACTIVE_HEAD} {INTERACTIVE_BODY} Our prediction's ward map, each ward in "

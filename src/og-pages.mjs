@@ -83,7 +83,8 @@ function logoOf(file) {
 
 // ---------- /claims: the headline, then one badge per party ----------
 const CLAIM_HEAD = { big: 74, least: 52, lines: 2 };
-const CLAIM_STRIP = { minCols: 4, badge: 168, cy: 300, chip: 56, chipTop: 396, name: 30, nameY: 494, who: 19, whoY: 526 };
+// the party logos large (owner's notes, 2026-10-10: "Much bigger party logos")
+const CLAIM_STRIP = { minCols: 4, badge: 140, cy: 270, chip: 112, chipTop: 348, name: 30, nameY: 496, who: 19, whoY: 528 };
 function claims(spec) {
   let s = frame(spec);
   s += headline(spec.headline, HEAD_MAX, CLAIM_HEAD.big, CLAIM_HEAD.least, CLAIM_HEAD.lines).svg;
@@ -210,25 +211,29 @@ function forecast(spec) {
   return s + "</svg>";
 }
 
-// ---------- /your-forecast/: the call to make one, and our prediction's map with its seal ----------
-const YF = { head: 96, mapMaxW: 600, textX: 670, body: 34, bodyPitch: 46, y: 222, cta: 28, url: 34, seal: 132, label: 20 };
+// ---------- /your-forecast/: our prediction's map, its seal large over the
+// map's top-left, and the call to make one (owner's notes, 2026-10-10) ----------
+const YF = { head: 96, mapMaxW: 600, mapTop: 132, textX: 670, body: 34, bodyPitch: 46, cta: 28, ctaGap: 72, url: 34, seal: 190, textBottom: 528 };
 function interactive(spec) {
   let s = frame(spec);
   const h = headline(spec.headline, HEAD_MAX, YF.head, YF.head * 0.6, 1);
   s += h.svg;
   const g = spec.map;
-  const mt = h.last + 40, mh0 = FOOT - 14 - mt - YF.label * 1.6;
+  const mt = Math.max(YF.mapTop, h.last + 24), mh0 = FOOT - 12 - mt;
   const mw = Math.min(YF.mapMaxW, mh0 * g.W / g.H), sc = mw / g.W, mh = g.H * sc;
-  const my = mt + YF.label * 1.6 + (mh0 - mh) / 2;
-  s += text(X, my - YF.label * 0.6, spec.map_label, YF.label, "sansSemi", { fill: C.ink2 });
+  const mx = X + 20, my = mt + (mh0 - mh) / 2;
   let paths = "";
   for (const w of g.wards) paths += `<path d="${w.path}" fill="${w.colour}" stroke="${C.paper}" stroke-width="${n1(0.8 / sc)}" stroke-linejoin="round"/>`;
-  s += `<g transform="translate(${X - 8} ${n1(my)}) scale(${sc.toFixed(4)})">${paths}</g>`;
-  s += stamp(spec.seal, "ps", X - 8 + mw - YF.seal * 0.45, my + mh - YF.seal * 0.45, YF.seal);
+  s += `<g transform="translate(${n1(mx)} ${n1(my)}) scale(${sc.toFixed(4)})">${paths}</g>`;
+  // the owner's seal says whose map it is: OFFICIAL PREDICTION
+  s += stamp(spec.seal, "ps", X - 8 + YF.seal / 2, mt - 8 + YF.seal / 2, YF.seal);
+  // the text, right, its last line at YF.textBottom
   const tw = R - YF.textX;
   const body = wrapText(spec.body, tw, YF.body, "sans");
-  body.forEach((l, k) => { s += text(YF.textX, YF.y + k * YF.bodyPitch, l, YF.body, "sans", { fill: C.ink }); });
-  const cy = YF.y + body.length * YF.bodyPitch + 44;
+  const blockH = (body.length - 1) * YF.bodyPitch + YF.ctaGap + 44;
+  const y0 = YF.textBottom - blockH;
+  body.forEach((l, k) => { s += text(YF.textX, y0 + k * YF.bodyPitch, l, YF.body, "sans", { fill: C.ink }); });
+  const cy = y0 + (body.length - 1) * YF.bodyPitch + YF.ctaGap;
   s += text(YF.textX, cy, spec.cta, YF.cta, "sans", { fill: C.ink2 });
   const url = fitText(spec.site, tw, YF.url, "monoSemi", 24);
   s += text(YF.textX, cy + 44, url.text, url.fs, "monoSemi", { fill: C.ink });

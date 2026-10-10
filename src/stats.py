@@ -356,9 +356,6 @@ def _fmt(value, spec: str | None):
         return "over 99%" if v > 0.99 and v < 1.0 else f"{v * 100:.0f}%"
     if spec == "one_dp":
         return f"{float(value):.1f}"
-    if spec == "half":                # a count that can end in .5: 48, 20.5
-        v = round(float(value) * 2) / 2
-        return f"{v:.0f}" if v == int(v) else f"{v:.1f}"
     if spec == "date_long":           # 2026-09-16T21:46:15Z -> 16 September 2026
         from datetime import datetime
         d = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
@@ -532,13 +529,18 @@ def published_small_party_surge(ctx: dict):
     return ctx["_small_party_surge"]
 
 
-def wrong_party_seats(summed_abs_error) -> float:
+def wrong_party_seats(summed_abs_error) -> int:
     """Seats given to the wrong party: half the summed absolute seat error,
     which counts every misplaced seat twice, once where it went and once where
     it should have gone (owner, 2026-10-10: "if 43 seats are the wrong party
-    then the error is 43. Why double it."). THE ONE DEFINITION; where a
-    forecast's middles do not sum to the council the half can end in .5."""
-    return float(summed_abs_error) / 2
+    then the error is 43. Why double it."), in WHOLE seats (owner, 2026-10-10:
+    half seats are not shown). Where a forecast's middles do not sum to the
+    council the half ends in .5, and it is rounded up: a misplaced half seat
+    counts as a seat. THE ONE DEFINITION, and the rounding is applied per
+    metro, so a total (``validation:total.*``, a sum) equals the sum of the
+    metro figures printed beside it."""
+    import math
+    return int(math.floor(float(summed_abs_error) / 2 + 0.5))
 
 
 def validation_value(path: str, ctx: dict):
