@@ -459,8 +459,8 @@ def test_a_character_the_card_faces_lack_is_refused():
     assert all(200 <= len(v) <= 300 for v in have.values()), {k: len(v) for k, v in have.items()}
     ok = _toy()
     assert og_pages.uncovered(ok, have) == []
-    bad = {**ok, "headline": "A price in €"}
-    assert og_pages.uncovered(bad, have) and "€" in og_pages.uncovered(bad, have)[0]
+    bad = {**ok, "headline": "Ten \u2192 eleven"}      # an arrow: in no card face
+    assert og_pages.uncovered(bad, have) and "\u2192" in og_pages.uncovered(bad, have)[0]
     try:
         og_pages.check(bad)
     except SystemExit as e:
@@ -506,7 +506,8 @@ def test_two_badges_on_one_card_keep_their_own_glyphs_and_masks():
     placed by stampSVG, each keeps its own glyphs, masks, clips and filters.
     Constructed: the same two bodies placed WITHOUT the prefixing collide (the
     files share ids such as glyph-0-0), and the detector reports it."""
-    files = [str(og_pages.STAMPS / "verdict-false.svg"), str(og_pages.STAMPS / "verdict-true.svg")]
+    # two different badges that both carry glyphs (href="#…") and masks (url(#…))
+    files = [str(og_pages.STAMPS / "verdict-false.svg"), str(og_pages.STAMPS / "reader-safe-bet.svg")]
     got = json.loads(_node(_STAMPS, files))
     raw_faults = embed_faults(got["raw"])
     assert raw_faults, "the unprefixed bodies did not collide: the test cannot see"

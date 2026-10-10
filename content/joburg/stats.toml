@@ -70,6 +70,51 @@ used_in = "the 'viability is not intent' note under the coalition table"
 # that said 58%. A registered token no page uses is a guard that was never
 # armed. Tokenised 2026-08-30. MODEL-LOG §1.140.
 
+# The home page's introduction: wards whose winner the backtest called, of the
+# wards there were, at each of Johannesburg's past elections
+# (history.json, compare_history; owner-approved text, 2026-10-10).
+[hist_jhb_wards_called_2011]
+mode = "free"
+source = "history:joburg:2011:wards.called"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_2011]
+mode = "free"
+source = "history:joburg:2011:wards.n_wards"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_called_2016]
+mode = "free"
+source = "history:joburg:2016:wards.called"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_2016]
+mode = "free"
+source = "history:joburg:2016:wards.n_wards"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_called_2021]
+mode = "free"
+source = "history:joburg:2021:wards.called"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_2021]
+mode = "free"
+source = "history:joburg:2021:wards.n_wards"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
 [p_excessive_anc]
 mode = "free"
 source = "model:p_excessive_by_party.ANC"
