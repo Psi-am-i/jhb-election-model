@@ -77,8 +77,7 @@
   .comingsoon p{margin-top:10px;max-width:66ch;}
   .comingsoon ul{margin:12px 0 0 18px;font-size:14px;}
   .comingsoon li{margin:4px 0;}
-  .wrap{max-width:1040px;margin:0 auto;padding:28px 24px 80px;}
-  @media (max-width:560px){.wrap{padding:20px 14px 56px;}}
+  /* .wrap's width and padding: src/css/chrome.css, THE COLUMN */
 
   /* the parts of the page the template writes by hand */
   .comingsoon .stamp.more{margin-top:14px;}

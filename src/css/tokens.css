@@ -46,3 +46,19 @@
   /* anything the READER made wears this hue; anything the MODEL made, --accent */
   --reader:var(--k-interactive);
 }
+
+/* THE SITE'S WIDTHS (owner, 2026-10-10: "one layout across pages"; brief
+   audits/2026-10-09-site-batch/LAYOUT-BRIEF.md item 6). The party-claims page
+   is the reference: its bar and its text block, taken as they were, apply to
+   every page. Their one definition is here; chrome.css applies them.
+     --page-width  the bar's width (the nav, the strapline and the footer),
+                   the same on every page, centred on the viewport;
+     --text-width  the text block's width (the claims page's column), wider
+                   on a wide screen, as that page always was;
+     --wide-width  the one wider width a map page may take where it needs
+                   the room: the bar's own, so a wide page's edges are the
+                   bar's edges;
+     --gutter      the space each side of the column and of the bar. */
+:root{--page-width:1160px;--text-width:900px;--wide-width:var(--page-width);--gutter:24px;}
+@media (min-width:1440px){:root{--text-width:1040px;}}
+@media (max-width:560px){:root{--gutter:16px;}}

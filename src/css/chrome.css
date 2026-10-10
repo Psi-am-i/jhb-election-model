@@ -7,10 +7,8 @@
    (build_site.nav_for) on the line of the logo's "Johannesburg", the record
    and the method following the forecasts on that line where there is room
    and dropping to a row of their own, as a group, where there is not; the
-   theme toggle at the right end of the first line. From 1200px the bar is at
-   least 1160px wide, centred on the page's own column and wider than it
-   where the column is narrower (852px on a document page), so every page's
-   bar is the same.
+   theme toggle at the right end of the first line. Its width is THE FRAME,
+   below: --page-width on every page, whatever that page's column.
 
    --logo-h is the logo's height; the baseline of its "Johannesburg" sits at
    .722 of it (src/brand/logo.svg: the flat feet of h, n and r at 1022.73 in
@@ -21,10 +19,6 @@
   display:flex;align-items:flex-start;gap:0 24px;
   font-family:var(--mono);font-size:12.5px;line-height:18px;color:var(--ink);
   border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:0;}
-@media (min-width:1200px){
-  .topnav{box-sizing:border-box;width:max(100%,1160px);
-    margin-left:min(0px,calc((100% - 1160px) / 2));}
-}
 .topnav a.home{flex:none;display:block;line-height:0;color:var(--ink);}
 .topnav a.home:hover{color:var(--accent);}
 .topnav .logo{display:block;height:var(--logo-h);width:calc(var(--logo-h) * 2826 / 1296);}
@@ -54,10 +48,6 @@
    below it kept (owner, 2026-10-05: it sat too far below the rule). */
 .strapline{font-family:var(--sans);font-size:11px;line-height:1.5;color:var(--ink-3);
   max-width:none;margin:5px 0 26px;}
-@media (min-width:1200px){
-  .strapline{box-sizing:border-box;width:max(100%,1160px);
-    margin-left:min(0px,calc((100% - 1160px) / 2));}
-}
 
 /* The footer: the credits, a rule, then the independence statement with the
    support link set larger, in the accent colour, at the right (owner's sweep,
@@ -88,6 +78,31 @@
   text-decoration:none;}
 .sitefooter a.foot-support:hover{text-decoration:underline;}
 
+/* THE FRAME (owner, 2026-10-10: "the toolbar is identical on every page").
+   The bar, the strapline and the footer are --page-width wide on every page,
+   or the viewport less a gutter each side where that is narrower, and
+   centred on the page whatever its column: wider than a text column, inside
+   a column wider than the bar. --frame is that width; the margin centres it
+   on the column, which is centred on the page. On a phone it is the column's
+   own width (the max), so the bar's edges are the text's. The apex portal's
+   footer keeps its column (THE COLUMN, below). */
+.topnav,.strapline,body:not(.pg-portal) .sitefooter{
+  --frame:min(var(--page-width),max(100%,100vw - 2 * var(--gutter)));
+  box-sizing:border-box;width:var(--frame);margin-left:calc((100% - var(--frame)) / 2);}
+
+/* THE COLUMN: every page's content container, one rule (tokens.css holds
+   the widths). The forecast sheet's pages (.sheet), the home page (.wrap) and
+   the rendered documents (.page) take --text-width; the home page, a map
+   page, --wide-width. The apex portal keeps its own (page-portal.css): it is
+   another site's page and carries no bar. /your-forecast/ sizes its own
+   column from the same tokens (interactive/css/). */
+body.pg-art,body.pg-doc{margin:0;}
+body.pg-art > .sheet,body.pg-art > .wrap,body.pg-doc:not(.pg-portal) > .page{
+  box-sizing:content-box;max-width:var(--text-width);margin:0 auto;
+  padding:28px var(--gutter) 72px;}
+body.pg-home > .wrap{max-width:var(--wide-width);}
+
 @media print{
   .topnav,.strapline{display:none;}
+  body.pg-art > .sheet,body.pg-art > .wrap,body.pg-doc > .page{max-width:none;padding:0;}
 }
