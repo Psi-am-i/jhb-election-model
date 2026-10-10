@@ -808,3 +808,34 @@ none is shipped, and nothing in them is a proposal to restore the constant.
 on the roster. The §1.1 composition found `extra` empty at all 25 targets, but
 B8 was build-tested at two targets only (§1.4). If B8 refuses at any
 city-year, the arm is stopped and reported; it is never patched to proceed.
+
+### Second note, after the step 10 window (2026-10-10, before any arm runs)
+
+**A11. E3's `seed_notes` exemption covers every spec.** E3 exempted
+`seed_notes` only at the two Johannesburg 2026 specs. The window's
+field-by-field diff of every new spec against arm A's copy (2d73de7, commit
+body) found `seed_notes` changed, text only, in the 2016 and 2021 specs: 230
+notes have the "Band x%-y% on the record …" sentence replaced by "The draw's
+width comes from the pool split.", and four ASA splinter notes lose their band
+the same way. That is item 9's deletion of the band (SPEC §1.8 rows 4-5),
+which §5 already allows. E3 is scored with `seed_notes` exempt at every spec,
+for text changes of that kind only; any other change to a note's content is
+still a falsification. The same diff reports no pool member weight moved in
+any backtest spec, and seeds, seeded mass and the SACP's membership moved only
+at the two Johannesburg 2026 specs, as E3 predicts.
+
+**A12. Recorded from the window.** All 27 re-emitted specs carry one
+`pools_sha`, `a58f884b337a7735` (2d73de7). E4 held: every one of the eight
+2011 specs carries 0 seeds (read from the emitted files, 2026-10-10).
+
+**A13. W's `src/` changed after 3170ede.** The step 8 review fix round
+(60bea4f..8c1ca90) edited `src/` after this document's recipes were built at
+`acbd9f8`. Therefore:
+- the W-based diff sha256s and tree hashes in §3 (C16, C, B, D, D0, E) no
+  longer describe W and are recomputed at step 11;
+- the recipes still apply to W, with hunk offsets shifted (checked by the
+  fix-round writer, not by this document's author);
+- step 11 records the recomputed diff sha256 and tree hash of every W-based
+  arm in its run record before any run, and a recipe that fails
+  `git apply --check` on W stops that arm (§3).
+The 597ec38-based arms (A, B0, B6, B8) and their hashes are unaffected.
