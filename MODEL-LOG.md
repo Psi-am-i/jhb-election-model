@@ -28858,3 +28858,62 @@ which D1 rests. B2b: with repainting, B2a's limits can still hold a state no
 ward-vote matrix produces (SPEC-B2r2 §5, measured by the designer); the
 witness editor closes it. Local surges of the 2021 kind lie outside any
 average allowance (SPEC-B2r2 §1).
+
+## 1.295 The by-election value test, first run and its pre-registration scored (model batch M4, 2026-10-10)
+
+Item 19 of `audits/2026-10-09-model-fixes/` (SPEC R2.4; BRIEF decision 19).
+`src/bye_value.py` (03bf2f0) measures whether by-election deltas predicted the
+next real result beyond the model's own baseline, per size class; the model
+reads the class weights from `data/processed/bye_value.json` (e0ce282,
+JUDGEMENT-CALLS §A55, superseding §A35). The real artefact is written in the
+batch's re-emit window, not yet.
+
+**Cross-ballot, on the whole record.** By-elections are local ward contests
+from 2022-02; the only real result after them is the 2024 provincial ballot, a
+national-provincial list ballot. Every figure below is that test.
+
+**Measurements.** Writer, `src/bye_value.py --out` into a scratch directory on
+the tree at 6c570be, `PYTHONHASHSEED=0`, 2026-10-10. The coordinator's
+re-derivation and the blind reviewer's independent implementation reproduced
+both classes exactly (`reviews/M4-SUMMARY.md`).
+
+| class (2021 list share in the metro) | pairs | pairs with 2+ contests | slope, all metros | G, points | 5th percentile of G, points (2,000 metro resamples) | verdict | weight |
+|---|---|---|---|---|---|---|---|
+| under 1% | 34 | 11 | 0.025 | −0.017 | −0.043 | no measurable gain | 0 |
+| 1% or more | 35 | 27 | 0 (floored) | −0.070 | −0.318 | no measurable gain | 0 |
+
+30 metro contests (Buffalo City none); 69 pairs; `size_window` at the 2024
+target gives `h = inf`; 17 pairs take the common-mean fallback for `mu_θ`.
+Secondary (reported, not deciding): over 134 party-contests, a contest's delta
+predicted from the same party's other contests in the metro is 0.46 points
+worse than predicting 0.
+
+**The pre-registration** (`prereg/2026-10-10-byelection-value-test.md`, scored
+there): of P19's first bullet, the under-1% class's pair count, noise and
+weight 0 held; the ≥1% class's 5th-percentile gain within ±0.3 points of 0 was
+**falsified** (−0.318). Arm E's bullets are open until step 11.
+
+**What the pre-registration got wrong.** Method decision 1 said an independent
+candidate falls out by the list-vote condition. The 2024 provincial ballot
+carried independents, so `IND` has a 2024 share in eThekwini, Johannesburg
+and Mangaung and enters the under-1% class as three pairs (writer, measured).
+Without them (writer, measured; the reviewer reported the same): under-1%
+class 31 pairs, 5th percentile −0.0435 → −0.0351 points, weight 0; the ≥1%
+class unchanged. The population stays as pre-registered.
+
+**Limits of the result**, stated where it is used (§A55):
+- **`B` is a stand-in.** The test's baseline is the 2021 list share through
+  the θ record at the 2019 national share, not the 2026 spine; its residuals
+  carry a party-signed bias: the DA's `e` is positive in all six metros where
+  it is in the population, the ANC's negative in all seven (writer, measured;
+  the reviewer reported "all six" for the ANC).
+- **One pair dominates the ≥1% class.** eThekwini ANC, `e` = −34.1 points
+  against a by-election `δ_pr` of +15.6 points: MK's arrival at the 2024
+  ballot. Without that pair the class's 5th percentile is −0.150 points and
+  its G +0.144 points (writer, measured; the reviewer reported −0.150); the
+  verdict does not move.
+- **At most eight clusters**, so the interval is coarse.
+
+**Not changed.** No drawn number: the joburg 2026 target refuses until the
+window writes `bye_value.json` (SPEC R3.6, M4 step 7c addendum). No backtest
+target reads by-elections.

@@ -115,3 +115,36 @@ are those of the M3 tree, not of the tree P19 was drafted on.
     weighted mean), against predicting 0. R2.4 names "all 311 contests
     nationally"; the 2021 ward bases on disk cover the eight metros only, so
     the secondary covers the metro contests in the window, and says so.
+
+## Scored, 2026-10-10 (appended after the run; nothing above is edited)
+
+Scored against a `src/bye_value.py --out` build of commit 03bf2f0's test on
+the tree at 6c570be, into a scratch directory, `PYTHONHASHSEED=0` (writer,
+measured). The coordinator's re-derivation and the blind reviewer's
+independent plain-loop implementation reproduced the same class figures
+(`reviews/M4-SUMMARY.md`). Cross-ballot: ward by-elections from 2022-02
+against the 2024 provincial list ballot.
+
+| P19, first bullet | measured | scored |
+|---|---|---|
+| the under-1% class has fewer than 40 pairs with any contest beyond one | 34 pairs, 11 with two or more contests | **held** |
+| the cross-ballot noise dominates | G −0.017 points, 5th percentile −0.043 points: no out-of-sample gain to separate from noise | **held** (qualitative; no threshold was stated) |
+| its weight comes out 0 | weight 0, "no measurable gain" | **held** |
+| the 1%-and-over class: no prediction of sign | G −0.070 points | not scored (no prediction) |
+| its 5th-percentile gain is within ±0.3 points of 0 | 5th percentile −0.318 points | **falsified**, by 0.018 points |
+
+The second and third bullets are arm E's and stay open until the batch's
+measurement (SPEC §7 step 11).
+
+**Method decision 1 was wrong about independents.** It says "a label with no
+list vote (an independent candidate) falls out by the list-vote condition".
+It does not: the 2024 provincial ballot carried independent candidates, so the
+canonical `IND` label has a positive 2024 share in eThekwini, Johannesburg and
+Mangaung and enters the under-1% class as three pairs (writer, measured from
+the scratch build's `pairs`). `IND` is a label covering several candidates, not
+a party in the sense the model forecasts. Removing the three pairs (measured,
+`bye_value.evaluate` on the remaining pairs, same seed): under-1% class 31
+pairs, 9 with two or more contests, G −0.017 points, 5th percentile −0.0435 →
+−0.0351 points, weight 0; the ≥1% class is unchanged (it holds no `IND`
+pair). The verdict does not move. The population stays as pre-registered;
+changing it after the result would be a second, unregistered test.
