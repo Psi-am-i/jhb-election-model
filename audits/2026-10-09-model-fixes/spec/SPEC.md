@@ -1296,3 +1296,13 @@ stays red for the spec-key cause only (its real run is not at joburg 2026).
 (step 8) so that steps 1-7 could run the model; R2.4 puts this refusal in
 step 7, so from here to the window no joburg 2026 run is possible without
 `--set w_bye=<number>`. The brief asked for it in step 7; it is done as asked.
+
+`test_levers_are_live`, run once after the step-7c commit (e0ce282): 20
+passed, 3 failed. The three are the three sweeps that run joburg 2026
+(`test_every_tunable_lever_actually_moves_the_forecast`,
+`test_module_constants_are_swept_for_liveness_too`,
+`test_a_lever_whose_gate_the_harness_can_open_is_measured_with_it_open`),
+each refused for the missing `bye_value.json`. `w_bye` stays in `PERTURB` at
+0.95: an override against the derived weight is still a lever that must move
+the 2026 forecast, and that is checkable only after the window. Its 2021
+excuse (`bye_deltas_absent`) is unchanged and its gate-shut check passed.
