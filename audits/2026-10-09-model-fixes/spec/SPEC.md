@@ -1497,3 +1497,28 @@ constructs `_trace_dir`'s two branches (a refusing `run_model` with the raw
 file present FAILS, once, with the run's message; an absent raw file SKIPS
 without running) and restores the helper's state, so the five real-trace tests
 still fail on the real stale spec, not on the probe.
+
+**Row 6: the unlisted reds, all red before step 8.**
+- `test_freeze::test_the_freeze_covers_every_declared_lever`: the freeze still
+  carries `level_sd_default`, deleted in 6074382. **Re-freeze at the end of the
+  batch, after the window**, not before: a freeze taken now records stale specs.
+- `test_published_page::test_the_published_pages_are_what_this_tree_builds_today`:
+  the 40% prose, owned by the site step with the previous round's fix row 4
+  (step 8 fix-round addition above); now masked by the row-4 refusal.
+- `test_pool_bounds::test_no_emitted_composition_weight_is_arithmetically_impossible`:
+  **a pre-existing defect, left for the owner.** It is red on the pre-batch tree
+  (597ec38, run on a copy of today's `data/processed`, population 27 specs) with
+  the same three cases it reports at HEAD: DA in White at buffalocity, capetown
+  and nelsonmandelabay 2011. Its verdict is a function of the emitted specs
+  (gitignored, unchanged since 2026-09-30) and `history.json`, so no batch
+  commit moved it; it was recorded red with these cases in MODEL-LOG §1.248
+  (2026-09-19), whose diagnosis is that the 2011 seeds are fitted on 2006.
+  **The window's re-emit will not clear it at this code.** A read-only probe
+  built all 24 backtest specs in-process with `pools.emit_pools` at `dc6d4fe`
+  (nothing written) and ran the test's own arithmetic (`_capacity_cases`):
+  every member weight equals the spec on disk, and the fatal cases are the same
+  three, at the same ratios. The window's spec diff (§5) is the check of
+  record; the probe predicts it.
+- `test_artefact_key_discriminates::test_the_specs_on_disk_agree_with_the_constructed_one`
+  SKIPS while every spec is stale. **The window gains one check:** after the
+  re-emit this test must PASS, not skip; a skip there means a spec was missed.
