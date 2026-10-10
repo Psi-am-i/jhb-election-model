@@ -49,8 +49,7 @@ Source grammar:
 * ``regime:<rule>:<dotted path>`` — into ``regime_<rule>_summary.json``,
   the counterfactual runs (``cap`` is the pure-proportional entitlement).
 * ``derived:<name>`` — a named computation over ``seat_draws.csv`` (see
-  ``_derived``); ``derived:coalition_majority.<A>+<B>+…`` reads every
-  party's seats (``scenarios.all_party_seats``).
+  ``_derived``).
 * ``history:<city>:<year>:<dotted path>`` — into the record of that city-year
   in ``history.json`` (``compare_history``'s backtest of past elections):
   ``history:joburg:2011:wards.called``. See :func:`history_value`.
@@ -429,14 +428,7 @@ def _derived(name: str, ctx: dict):
         if name == "largest_tied":
             return got["tied"]
         return got["outright"].get(name[len("largest_outright."):])
-    if name.startswith(COALITION_MAJORITY):
-        return coalition_majority(name[len(COALITION_MAJORITY):].split("+"), ctx)
     return None
-
-
-#: ``derived:coalition_majority.<A>+<B>+…``: the share of simulations in which
-#: the named parties together hold at least that simulation's majority.
-COALITION_MAJORITY = "coalition_majority."
 
 
 def coalition_majority(members: list[str], ctx: dict):
@@ -445,23 +437,28 @@ def coalition_majority(members: list[str], ctx: dict):
     (``scenarios.all_party_seats``, the one definition of the whole council:
     ``seat_draws.csv`` keeps only the largest parties, so a coalition with a
     small partner summed over its columns would drop that partner's seats).
-    A member with no seats in the run counts none. None without draws or a
-    processed directory; refuses an empty or repeated member list."""
+    The forecast share image's coalitions (``og_pages.coalition_figure``).
+    None without draws or a processed directory. Refuses an empty or repeated
+    member list, and a party the run's seat file does not name. That file
+    holds rows only for parties with seats, so a party that wins no seat in
+    any simulation is refused with a misspelt code: it cannot be told apart,
+    and a coalition naming it is worth a look either way."""
     draws = ctx.get("draws") or []
     processed = ctx.get("processed")
     if not draws or processed is None:
         return None
     if not members or len(set(members)) != len(members) or not all(members):
-        raise SystemExit(f"derived:{COALITION_MAJORITY}{'+'.join(members)}: "
-                         "name each party once, joined by '+'")
+        raise SystemExit(f"coalition {'+'.join(members)!r}: name each party once")
     cache = ctx.setdefault("_all_party_seats", {})
     if "seats" not in cache:
         import scenarios as _sc
         cache["seats"], cache["thr"], _council = _sc.all_party_seats(processed, rows=draws)
     seats, thr = cache["seats"], cache["thr"]
-    total = sum(seats[m] for m in members if m in seats)
-    if isinstance(total, int):          # no member holds a seat in any simulation
-        return 0.0
+    unknown = [m for m in members if m not in seats]
+    if unknown:
+        raise SystemExit(f"coalition {'+'.join(members)!r}: {unknown} not in the run's "
+                         "seat_detail_draws.csv")
+    total = sum(seats[m] for m in members)
     return float((total >= thr).mean())
 
 
@@ -486,16 +483,58 @@ def history_value(source: str, ctx: dict):
     """``history:<city>:<year>:<dotted path>``: the value at that path in the
     one ``history.json`` record for that city slug and election year, or None
     when the file, the record or the path is absent. Two records for one
-    city-year is refused: which one a page quoted would be an accident."""
+    city-year is refused: which one a page quoted would be an accident. So is
+    a record scored on specs other than the current ones
+    (:func:`history_key_fault`): history.json is a separate run, and nothing
+    else notices when it falls behind a re-emit."""
     parts = source.split(":", 3)
     if len(parts) != 4 or not all(parts[1:]):
         raise SystemExit(f"{source!r}: a history source is history:<city>:<year>:<path>")
     _, slug, year, path = parts
-    rows = [r for r in (ctx.get("history") or {}).get("records", [])
+    hist = ctx.get("history") or {}
+    rows = [r for r in hist.get("records", [])
             if r.get("slug") == slug and str(r.get("year")) == year]
     if len(rows) > 1:
         raise SystemExit(f"history.json holds {len(rows)} records for {slug} {year}")
-    return _dig(rows[0], path) if rows else None
+    if not rows:
+        return None
+    fault = history_key_fault(hist, slug, year, ctx.get("spec_root"))
+    if fault:
+        raise SystemExit(f"{source}: {fault}. Re-run src/compare_history.py on the current "
+                         "specs before quoting it.")
+    return _dig(rows[0], path)
+
+
+def history_key_fault(hist: dict, slug: str, year: str, root: Path | None = None) -> str | None:
+    """Why history.json's record for ``slug`` ``year`` was not scored on the
+    current spec, or None: the artefact key its manifest records for
+    ``pools_<year>.json`` must equal the one the spec on disk declares
+    (``pools.artefact_key``). ``root`` is the repository (a test passes a
+    constructed one)."""
+    import cityconfig as _cc
+    root = Path(__file__).resolve().parents[1] if root is None else Path(root)
+    name = f"pools_{year}.json"
+    scored = ((hist.get("manifest") or {}).get("pool_artefact_keys") or {}).get(slug, {}).get(name)
+    if scored is None:
+        return f"history.json records no artefact key for {slug} {name}"
+    spec = root / _cc.load(slug).processed / name
+    if not spec.is_file():
+        return f"no current spec {spec.relative_to(root)} to compare history.json with"
+    current = json.loads(spec.read_text(encoding="utf-8")).get("artefact_key")
+    if current != scored:
+        return f"history.json scored {slug} {year} on a different spec than {spec.relative_to(root)}"
+    return None
+
+
+def history_provenance(ctx: dict) -> str:
+    """The reader's source line for a ``history:`` figure: the backtest run,
+    not the forecast's."""
+    m = (ctx.get("history") or {}).get("manifest") or {}
+    when = _fmt(m["generated"], "date_long") if m.get("generated") else "an undated run"
+    draws = f"{int(m['draws']):,} simulations of each election" if m.get("draws") else "simulations"
+    code = f", code version {str(m['git_commit'])[:7]}" if m.get("git_commit") else ""
+    return (f"Source: the model's test against past elections (src/compare_history.py), "
+            f"{draws}, run on {when}{code}.")
 
 
 def load_context(processed: Path) -> dict:
@@ -766,6 +805,8 @@ def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
             tip += f" The current model gives {live_str}."
     elif mode == "generated":
         tip = f"Source: {src}, computed at build from the current model run."
+    elif entry.get("_provenance"):
+        tip = entry["_provenance"]
     else:
         tip = f"Source: {src}, live from the current model run."
     # the tip goes into an attribute: escape before anything else can break out
@@ -812,6 +853,8 @@ def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
         spec = entry.get("format")
         live = resolve(entry.get("source", ""), ctx)
         live_str = None if live is None else _fmt(live, spec)
+        if str(entry.get("source", "")).startswith("history:"):
+            entry = {**entry, "_provenance": history_provenance(ctx)}
 
         if entry.get("mode") == "fixed":
             if "value" not in entry:

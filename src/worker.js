@@ -61,8 +61,9 @@
  * share sheet's links: counted as channel "share", with the button used, then
  * 302 to the arrival view on /your-forecast/), /your-forecast/ with a forecast
  * in its query (its og: tags rewritten to the forecast's own image),
- * /og/1/link.png and /og/1/story.png (that image, drawn here from the seat
- * Worker's answer over the SEATS service binding; /og.png when anything
+ * /og/2/link.png and /og/2/story.png (that image, drawn here from the seat
+ * Worker's answer over the SEATS service binding, its address versioned by
+ * share-edge.js CARD_VERSION, an earlier version's answering 301; /og.png when anything
  * fails), POST /seal/1 and /seal/1/check (sealed links, under the Worker
  * secret SEAL_KEY; each seal stored as one entry in the D1 database ENTRIES,
  * /seal/1 rate-limited by SEAL_LIMIT), and GET /entries/1/count (how many

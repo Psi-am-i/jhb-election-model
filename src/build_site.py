@@ -644,9 +644,11 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
                  registry: dict, ctx: dict, articles: dict[str, dict]) -> dict[str, tuple[str, str]]:
     """Draw the share image of every page in ``held`` (``(output, slug,
     layout, rendered html)``) into ``<out>/og-page/``: ``{slug: (file name,
-    alt text)}``. Every figure is one a page printed (``published``), or one
-    of the forecast card's coalitions rendered from the registry the same
-    way. Refuses on any failure (``og_pages``)."""
+    alt text)}``. Every figure is one a page printed (``published``), or a
+    forecast-card coalition no page prints, rendered as a generated token.
+    Every figure an image prints is appended to ``published`` under the page
+    that carries the image, so it is ledgered like the page's own. Refuses on
+    any failure (``og_pages``)."""
     import build_make
     import build_your_forecast as yf
     import og_pages
@@ -654,8 +656,7 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
     import tomllib
     city = cityconfig.active()
     election = build_make.election_of(city)
-    pool = og_pages.figure_pool(published, registry, ctx,
-                                extra=[tok for _g, tok in og_pages.FORECAST_COALITIONS])
+    pool, records = og_pages.figure_pool(published, registry, ctx)
     pages = {output: html for output, _s, _l, html in held}
     forecast_html = pages.get("forecast.html")
     yf_data = None
@@ -681,8 +682,10 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
         else:
             raise SystemExit(f"no share-image layout {layout!r} ({output})")
         spec["slug"] = slug
+        spec["page"] = output
         specs.append(og_pages.check(spec))
     names = og_pages.render_all(specs, out / og_pages.OG_DIR)
+    published += og_pages.ledger_records(specs, records)
     return {s["slug"]: (names[s["slug"]], s["alt"]) for s in specs}
 
 

@@ -173,7 +173,7 @@ def test_every_designed_page_has_its_own_image_and_every_image_a_page():
 def _rebuild_specs(out: Path) -> list[dict]:
     """The specs, rebuilt from the BUILT pages: the pool is every token span the
     pages carry (the string each printed), plus the forecast card's coalition
-    tokens, rendered as og_pages.figure_pool renders them."""
+    tokens no page prints, computed as og_pages.figure_pool computes them."""
     import build_make
     import build_site
     import build_your_forecast as yf
@@ -187,7 +187,7 @@ def _rebuild_specs(out: Path) -> list[dict]:
             records.append({"token": tok, "display": htmllib.unescape(disp)})
     reg = stats.load_registry(ROOT / "content/joburg/stats.toml")
     ctx = stats.load_context(ROOT / "data/processed")
-    pool = og_pages.figure_pool(records, reg, ctx, extra=[t for _g, t in og_pages.FORECAST_COALITIONS])
+    pool, _records = og_pages.figure_pool(records, reg, ctx)
     el = build_make.election_of(cityconfig.active())
     yfd = json.loads((out / yf.YF_DIR / build_make.DATA).read_text(encoding="utf-8"))
     arts = build_site.article_meta()
@@ -214,27 +214,91 @@ def _rebuild_specs(out: Path) -> list[dict]:
     return specs, pool
 
 
+_DRAWN = ("import { cardSVG, imageName } from " + json.dumps((ROOT / "src" / "og-pages.mjs").as_uri()) + ";\n"
+          "let s = ''; process.stdin.on('data', d => s += d).on('end', () => {\n"
+          "  process.stdout.write(JSON.stringify(JSON.parse(s).map(x => { const v = cardSVG(x); return { name: imageName(v), svg: v }; })));\n"
+          "});\n")
+
+
+def expected_figures(spec: dict, forecast_html: str) -> set[str]:
+    """The figure fields each layout must carry, written from og_pages' own
+    declarations, not from the spec: the population the comparison covers."""
+    import seat_table  # noqa: F401
+    if spec["layout"] == "forecast":
+        return ({t for _c, t in og_pages.FORECAST_LARGEST} | {og_pages.FORECAST_ALONE}
+                | {og_pages.coalition_token(g) for g in og_pages.FORECAST_COALITIONS}
+                | {"generated_date", "council_size"})
+    if spec["layout"] == "interactive":
+        return {"council_size"}
+    if spec["layout"] == "claims":
+        return set()
+    arts = __import__("build_site").article_meta()
+    if arts[spec["page"]].get("og_visual") != "seat-ranges":
+        return set()
+    rows = og_pages.seat_rows(forecast_html)[:og_pages.SEAT_RANGE_ROWS]
+    return ({f"seats.{r['code']}.{q}" for r in rows for q in ("median", "p5", "p95")}
+            | {"majority", og_pages.FORECAST_ALONE, "seats.band", "generated_date"})
+
+
+def figure_faults(specs: list[dict], pool: dict, out: Path) -> tuple[list[str], int, int]:
+    """``(faults, compared, denominator)``. For each image: its figure fields
+    are exactly the layout's (:func:`expected_figures`); each is the string a
+    page printed; each is drawn in the image's SVG; and the image the page
+    names is the one these figures draw (its name regenerated)."""
+    fc = (out / "forecast.html").read_text(encoding="utf-8")
+    drawn = json.loads(_node(_DRAWN, specs))
+    faults, compared, denominator = [], 0, 0
+    for s, d in zip(specs, drawn):
+        want = expected_figures(s, fc)
+        denominator += len(want)
+        if set(s["figures"]) != want:
+            faults.append(f"{s['slug']}: carries {sorted(set(s['figures']) ^ want)} against its layout")
+        for tok in sorted(want & set(s["figures"])):
+            f = s["figures"][tok]
+            compared += 1
+            if f["display"] != pool.get(tok):
+                faults.append(f"{s['slug']}: {tok} is {f['display']!r}, the pages print {pool.get(tok)!r}")
+            if htmllib.escape(f["display"], quote=False) not in d["svg"]:
+                faults.append(f"{s['slug']}: {tok} ({f['display']!r}) is not drawn")
+        og = meta((out / s["page"]).read_text(encoding="utf-8"), "og:image")[0]
+        if not og.endswith(f"/{s['slug']}-{d['name']}.png"):
+            faults.append(f"{s['slug']}: the page names {og}, these figures draw {d['name']}")
+    return faults, compared, denominator
+
+
 def test_every_figure_in_an_image_is_a_figure_a_page_printed():
     out = built()
     specs, pool = _rebuild_specs(out)
     pages = expected_pages()
-    assert {s["slug"] for s in specs} == {v for v in pages.values() if v}   # population
-    compared = 0
-    for s in specs:
-        for tok, f in s["figures"].items():
-            assert f["token"] == tok and f["display"] == pool[tok], (s["slug"], tok, f, pool.get(tok))
-            compared += 1
-    assert 10 <= compared <= 200, compared                                   # it looked, two-sided
-    # the image each page names is the image of THESE figures: regenerated names
-    names = image_names(specs)
-    for s, name in zip(specs, names):
-        og = meta((out / s["page"]).read_text(encoding="utf-8"), "og:image")[0]
-        assert og.endswith(f"/{s['slug']}-{name}.png"), (s["slug"], og, name)
-    # it can see: one figure altered gives a different image
+    assert {s["slug"] for s in specs} == {v for v in pages.values() if v}   # the images scanned
+    faults, compared, denominator = figure_faults(specs, pool, out)
+    assert faults == [], faults
+    # every field of every layout was compared; the denominator lies between
+    # the forecast layout's own count and that plus a seat-range article's
+    # (at most 22 fields) for every other image
     fc = next(s for s in specs if s["layout"] == "forecast")
-    altered = json.loads(json.dumps(fc))
-    altered["rows"][0]["value"] = "99%"
-    assert image_names([altered])[0] != image_names([fc])[0]
+    n_fc = len(expected_figures(fc, (out / "forecast.html").read_text(encoding="utf-8")))
+    assert compared == denominator and n_fc <= denominator <= n_fc + 22 * (len(specs) - 1), (compared, denominator)
+    # it can see: the forecast image drawing a different figure from the one
+    # the page printed is caught, and the detector is quiet when it is reverted
+    keep = fc["rows"][0]["value"]
+    fc["rows"][0]["value"] = "99.9%"
+    got, _c, _d = figure_faults(specs, pool, out)
+    assert any("these figures draw" in f for f in got), got
+    fc["rows"][0]["value"] = keep
+    # a carried figure that is not the page's and is not drawn
+    tok = next(iter(fc["figures"]))
+    keep = fc["figures"][tok]["display"]
+    fc["figures"][tok]["display"] = "no such figure"
+    got, _c, _d = figure_faults(specs, pool, out)
+    assert any("the pages print" in f for f in got) and any("is not drawn" in f for f in got), got
+    fc["figures"][tok]["display"] = keep
+    # and an image carrying a field its layout does not declare
+    fc["figures"]["n_draws"] = {"token": "n_draws", "display": pool.get("n_draws", "x")}
+    got, _c, _d = figure_faults(specs, pool, out)
+    assert any("against its layout" in f for f in got), got
+    del fc["figures"]["n_draws"]
+    assert figure_faults(specs, pool, out)[0] == []
 
 
 def test_the_renderer_types_no_figure_list():
@@ -253,7 +317,7 @@ def test_the_forecast_map_must_be_cut_out_whole():
     page = ('<svg viewBox="0 0 10 10"><defs><pattern id="p"><line x1="1" stroke="#000000" stroke-width="1"/>'
             '</pattern></defs><path d="M0 0L1 1Z" fill="#111111"/><path d="M2 2L3 3Z" fill="url(#p)"/></svg>')
     assert og_pages.ward_shapes(og_pages.map_paths(page)) == 2
-    pool = {t: "1%" for _g, t in og_pages.FORECAST_COALITIONS}
+    pool = {og_pages.coalition_token(g): "1%" for g in og_pages.FORECAST_COALITIONS}
     pool.update({t: "1%" for _c, t in og_pages.FORECAST_LARGEST})
     pool.update({og_pages.FORECAST_ALONE: "1%", "generated_date": "1 October 2026", "council_size": "270"})
     el = {"city": "Johannesburg", "date": "2026-11-04"}
@@ -272,7 +336,8 @@ def test_the_forecast_map_must_be_cut_out_whole():
 
 def _toy() -> dict:
     return {"slug": "toy", "layout": "article", "headline": "A constructed headline",
-            "date_line": "Published 1 October 2026.", "ranges": None, "figures": {}, "alt": "x"}
+            "date_line": "Published 1 October 2026.", "ranges": None, "figures": {}, "alt": "x",
+            "kind_colour": og_pages.kind_colour("article")}
 
 
 def test_the_image_name_moves_with_the_content_and_only_with_it():
@@ -291,6 +356,17 @@ def test_the_image_name_moves_with_the_content_and_only_with_it():
         (Path(t1) / "old-aaaaaaaaaaaa.png").write_bytes(b"x")
         og_pages.render_all([a], Path(t1))
         assert sorted(f.name for f in Path(t1).iterdir()) == [m1["toy"]]
+        # and refuses, rather than removes, a directory it finds there
+        (Path(t1) / "sub").mkdir()
+        try:
+            og_pages.render_all([a], Path(t1))
+        except SystemExit as e:
+            assert "is a directory" in str(e)
+        else:
+            raise AssertionError("a directory in og-page/ was passed over")
+        assert (Path(t1) / "sub").is_dir()
+        (Path(t1) / "sub").rmdir()
+        og_pages.render_all([a], Path(t1))
 
 
 # ---------------------------------------------------------------------------

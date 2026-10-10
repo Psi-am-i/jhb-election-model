@@ -484,7 +484,7 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   const s = await makeSeal(KEY, fields, at);
   const q = new URLSearchParams({ ...fields, s }).toString();
   const { env, asked } = fakeEnv();
-  const card = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), env, "link");
+  const card = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q), env, "link");
   const svg = card.svg;
   assert.equal(card.sealed, true);
   assert.match(EDGE.imageCache(card.sealed), /immutable/);
@@ -500,19 +500,19 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   assert.equal(asked[0].draws_sha256, D.draws_sha256);
   // relabelled: the seal no longer holds, and the card says nothing about when
   const q2 = new URLSearchParams({ ...fields, n: "Someone", s }).toString();
-  const card2 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q2), fakeEnv().env, "link");
+  const card2 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q2), fakeEnv().env, "link");
   const svg2 = card2.svg;
   assert.equal(card2.sealed, false);
   assert.equal(EDGE.imageCache(card2.sealed), "public, max-age=" + EDGE.UNSEALED_MAX_AGE_S);
   assert.ok(!svg2.includes("Sealed") && !svg2.includes("Made "));
   // no key: the same sealed link draws unsealed
-  assert.equal((await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), fakeEnv({ key: null }).env, "link")).sealed, false);
+  assert.equal((await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q), fakeEnv({ key: null }).env, "link")).sealed, false);
   // a return link draws both forecasts
   const q3 = new URLSearchParams({ ...fields, vs: fA, vn: "Kgomotso" }).toString();
-  const svg3 = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q3), fakeEnv().env, "link")).svg;
+  const svg3 = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q3), fakeEnv().env, "link")).svg;
   assert.ok(svg3.includes(">Thandi<") && svg3.includes(">Kgomotso<") && svg3.includes("Difference"));
   // no seat Worker: no card
-  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), fakeEnv({ seats: false }).env, "link"));
+  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q), fakeEnv({ seats: false }).env, "link"));
 });
 
 test("section 1's hand-off, a start with no coalition, is a forecast the edge and the seal read unchanged", async () => {
@@ -539,7 +539,7 @@ test("an answer that breaks the seat law's arithmetic draws no card", async () =
     return new Response(JSON.stringify({ ...a, seats: { ...a.seats, [k]: a.seats[k] + 5 }, code_ref: "ab".repeat(32), draws_sha256: D.draws_sha256 }), { status: 200 });
   } } };
   const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA }).toString();
-  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), bad, "link"));
+  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q), bad, "link"));
 });
 
 // ---------- the seal ----------

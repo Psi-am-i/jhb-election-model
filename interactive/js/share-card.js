@@ -941,6 +941,10 @@ const DUEL_TITLE = { large: 48, middle: 44, small: 40, least: 36 };
 // second's.
 export const DUEL_BAND = 120;
 export const DUEL_HEAD_Y = 88;
+// Each forecast's bar width, its council's cell, and the two bars' baselines:
+// a bar, its council and the line naming its boldest call stack in each.
+const DUEL_BAR_W = 470, DUEL_CELL = 10;
+const DUEL_PAIR_Y = { first: 206, second: 392 };
 
 export function duelCardSVG(a, b, assets = {}, party) {
   const [W, H] = SIZES.duel;
@@ -971,17 +975,22 @@ export function duelCardSVG(a, b, assets = {}, party) {
   }
   // each forecast's line on a bar in its own largest party's colour, over
   // its council
+  // each forecast's line on a bar in its own largest party's colour, with its
+  // badge's words, over its council, and under the council the boldest call
+  // the badge judges
   const pair = (F, y) => {
     const who = F.name + " ";
     const rest = "We give it " + aChance(F.outcome.text) + ". " + F.badge + ".";
-    const bar = colourBand(F, X, y - 22, 470, 30);
-    const tail = fitText(rest, 454 - textWidth(who, 20, "sansSemi"), 20, "sans", 15).text;
-    return bar.svg + textPlate(bar, X + 8, y, textWidth(who, 20, "sansSemi") + textWidth(tail, 20), 20) +
+    const bar = colourBand(F, X, y - 22, DUEL_BAR_W, 30);
+    const tail = fitText(rest, DUEL_BAR_W - 16 - textWidth(who, 20, "sansSemi"), 20, "sans", 15);
+    const g = council(F, X, y + 14, { width: 350, cell: DUEL_CELL, gap: 2, label: false });
+    const call = F.boldest ? fitText(boldestLine(F.boldest, party), DUEL_BAR_W, 16, "sans", 13) : null;
+    return bar.svg + textPlate(bar, X + 8, y, textWidth(who, 20, "sansSemi") + textWidth(tail.text, tail.fs), 20) +
       text(X + 8, y, who, 20, "sansSemi", { fill: bar.ink }) +
-      text(X + 8 + textWidth(who, 20, "sansSemi"), y, tail, 20, "sans", { fill: bar.ink }) +
-      council(F, X, y + 14, { width: 350, cell: 11, gap: 2, label: false }).svg;
+      text(X + 8 + textWidth(who, 20, "sansSemi"), y, tail.text, tail.fs, "sans", { fill: bar.ink }) +
+      g.svg + (call ? text(X, y + 14 + g.h + 18, call.text, call.fs, "sans", { fill: C.ink2 }) : "");
   };
-  s += pair(a, 216) + pair(b, 396);
+  s += pair(a, DUEL_PAIR_Y.first) + pair(b, DUEL_PAIR_Y.second);
   // the table: each party in either top seven, in the first forecast's seat order
   const seatsA = Object.fromEntries(a.rows.map(r => [r.code, r.seats]));
   const seatsB = Object.fromEntries(b.rows.map(r => [r.code, r.seats]));
@@ -1022,8 +1031,8 @@ export function cardAlt(spec) {
 }
 export function duelAlt(a, b) {
   return [a.name + " and " + b.name + ": two forecasts of the " + a.election.city + " council",
-    a.name + ": " + a.words + " " + a.chance + " " + a.badge,
-    b.name + ": " + b.words + " " + b.chance + " " + b.badge]
+    a.name + ": " + a.words + " " + a.chance + " " + a.badge + ". " + a.boldestLine,
+    b.name + ": " + b.words + " " + b.chance + " " + b.badge + ". " + b.boldestLine]
     .map(s => s.replace(/\.$/, "")).join(". ") + ".";
 }
 

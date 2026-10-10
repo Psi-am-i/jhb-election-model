@@ -33,26 +33,67 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
+import site_assets
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RENDERER = REPO_ROOT / "src" / "og-pages.mjs"
-STAMPS = REPO_ROOT / "src" / "stamps"
+#: The owner's stamps: site_assets' one definition.
+STAMPS = site_assets.STAMP_SRC
 CARD_FONTS_JS = REPO_ROOT / "interactive" / "js" / "card-fonts.js"
+TOKENS_CSS = site_assets.CSS_SRC / "tokens.css"
 
-#: Where the images are served, beside the pages. Not /og/: /og/1/… are the
+#: Each layout's colour bar: the site's colour for that kind of page, read
+#: from tokens.css (its dark theme, the images' ground). The forecast's bar is
+#: the ink, as in the approved mock-up: the site's forecast kind (--accent)
+#: is the claims' colour too.
+KIND_TOKEN = {"claims": "--k-claim", "article": "--k-article", "forecast": "--ink",
+              "interactive": "--k-interactive"}
+
+
+def kind_colour(layout: str) -> str:
+    """The colour of ``layout``'s bar, from the first :root block of
+    tokens.css."""
+    css = TOKENS_CSS.read_text(encoding="utf-8")
+    block = re.search(r":root\s*\{([^}]*)\}", css)
+    m = block and re.search(rf"{re.escape(KIND_TOKEN[layout])}\s*:\s*(#[0-9a-fA-F]{{6}})", block.group(1))
+    if not m:
+        raise OgError(f"tokens.css: no {KIND_TOKEN[layout]} in its first :root block")
+    return m.group(1)
+
+
+def stamp_path(file: str) -> str:
+    """A stamp as og-pages.mjs reads it: its path from the repository root."""
+    return (STAMPS / file).relative_to(REPO_ROOT).as_posix()
+
+#: Where the images are served, beside the pages. Not /og/: /og/<n>/… are the
 #: Worker's reader-card routes and /og.png its fallback (src/share-edge.js).
 OG_DIR = "og-page"
 
 #: The forecast card's coalitions (owner, 2026-10-10, "looks good" on the mock
-#: in og-design/make_og.mjs): each a list of groups of party codes, written
-#: with ", " inside a group and " + " between groups, and the token holding the
-#: share of simulations in which they hold a majority together
-#: (content/joburg/stats.toml).
+#: in og-design/make_og.mjs; JUDGEMENT-CALLS §S1). THE ONE DEFINITION of each
+#: set: its parties, in groups. The label is written from it (", " inside a
+#: group, " + " between groups, the parties' names), and so is its figure, the
+#: token ``coal.<render_sheet.coalition_key>.majority``: the share of
+#: simulations in which they hold a majority together. /forecast's coalition
+#: table prints that token for the sets it lists; for a set it does not, the
+#: image computes it over every party's seats (``stats.coalition_majority``)
+#: and records it, as a generated token, under the forecast page.
 FORECAST_COALITIONS = (
-    ((("ANC",), ("DA",)), "p_anc_da"),
-    ((("DA", "ASA", "PA"), ("IFP", "VFPLUS", "ACDP")), "p_majority_da_asa_pa_ifp_vfplus_acdp"),
-    ((("ANC", "EFF", "PA"), ("ALJAMAAH",)), "p_majority_anc_eff_pa_aljamaah"),
-    ((("ANC",), ("EFF",), ("MK",)), "p_majority_anc_eff_mk"),
+    (("ANC",), ("DA",)),
+    (("DA", "ASA", "PA"), ("IFP", "VFPLUS", "ACDP")),
+    (("ANC", "EFF", "PA"), ("ALJAMAAH",)),
+    (("ANC",), ("EFF",), ("MK",)),
 )
+
+
+def coalition_token(groups) -> str:
+    """The token holding a coalition's majority chance, as /forecast names it."""
+    import render_sheet
+    return f"coal.{render_sheet.coalition_key([c for g in groups for c in g])}.majority"
+
+
+def coalition_label(groups, roster: dict) -> str:
+    return " + ".join(", ".join(roster[c]["name"] for c in g) for g in groups)
 #: The forecast card's other figures: most seats, one party alone.
 FORECAST_LARGEST = (("ANC", "p_anc_largest"), ("DA", "p_da_largest"))
 FORECAST_ALONE = "p_alone"
@@ -122,28 +163,54 @@ def fill(html: str, site: str, slug: str, filename: str, alt: str) -> str:
 AMBIGUOUS = "\x00ambiguous"
 
 
-def figure_pool(published: list[dict], registry: dict, ctx: dict, extra=()) -> dict[str, str]:
-    """Every token a page printed, by name, with the string it printed. A
-    token printed differently on two pages is marked :data:`AMBIGUOUS`, and an
-    image that draws it is refused (it could show only one). ``extra`` names
-    registry tokens no page prints (the forecast card's coalitions); each is
-    rendered by ``stats.render`` exactly as a page renders it, with no
-    provenance markup."""
-    import stats as statlib
+def figure_pool(published: list[dict], registry: dict, ctx: dict) -> tuple[dict[str, str], dict[str, dict]]:
+    """``(pool, records)``: every token a page printed, by name, with the
+    string it printed, and the record ``stats.render`` made of it (what the
+    publication ledger takes). A token printed differently on two pages is
+    marked :data:`AMBIGUOUS`, and an image that draws it is refused (it could
+    show only one). Each forecast-card coalition no page prints is added as a
+    generated token (:func:`coalition_figure`)."""
     seen: dict[str, str] = {}
+    records: dict[str, dict] = {}
     for r in published:
         t = r.get("token")
         if not t:
             continue
         seen[t] = r["display"] if seen.get(t, r["display"]) == r["display"] else AMBIGUOUS
-    for t in extra:
-        if t in seen:
-            continue
-        out, _drift, unresolved = statlib.render("{{" + t + "}}", registry, ctx, wrap=False)
-        if unresolved:
-            raise OgError(f"share image token {t} does not resolve: {unresolved}")
-        seen[t] = out
-    return seen
+        records.setdefault(t, r)
+    for groups in FORECAST_COALITIONS:
+        t = coalition_token(groups)
+        if t not in seen:
+            seen[t], records[t] = coalition_figure(groups, registry, ctx)
+    return seen, records
+
+
+def coalition_figure(groups, registry: dict, ctx: dict) -> tuple[str, dict]:
+    """A coalition's majority chance as a generated token, rendered by
+    ``stats.render`` as a page renders one (format "chance", as /forecast's
+    coalition table prints it): ``(display, record)``."""
+    import stats as statlib
+    members = [c for g in groups for c in g]
+    p = statlib.coalition_majority(members, ctx)
+    if p is None:
+        raise OgError(f"no draws to compute {coalition_token(groups)} from")
+    n = len(ctx.get("draws") or [])
+    text = (f"{{{{@{coalition_token(groups)}={p:.6f};chance;seat_detail_draws.csv, {n:,} "
+            f"simulations, every party's seats}}}}")
+    rec: list[dict] = []
+    out, _drift, unresolved = statlib.render(text, registry, ctx, wrap=False, record=rec)
+    if unresolved or len(rec) != 1:
+        raise OgError(f"{coalition_token(groups)} did not render: {unresolved}")
+    return out, rec[0]
+
+
+def ledger_records(specs: list[dict], records: dict[str, dict]) -> list[dict]:
+    """One publication-ledger record per figure each image prints, under the
+    page that carries the image (``spec["page"]``), so the image's figures
+    get ledger rows, change diffs and drift checks like the page's own. An
+    image is not a dated passage, whatever the page the figure came from."""
+    return [{**records[tok], "page": s["page"], "dated": False, "asof": ""}
+            for s in specs for tok in s["figures"]]
 
 
 def _fig(pool: dict, token: str) -> dict:
@@ -181,7 +248,7 @@ def uncovered(spec: dict, have: dict[str, set[int]] | None = None) -> list[str]:
     def walk(v, where):
         if isinstance(v, dict):
             for k, x in v.items():
-                if k not in ("map", "map_svg", "badge", "logo", "seal", "slug", "layout"):
+                if k not in ("map", "map_svg", "badge", "logo", "seal", "slug", "layout", "page", "kind_colour"):
                     walk(x, f"{where}.{k}")
         elif isinstance(v, list):
             for i, x in enumerate(v):
@@ -210,14 +277,23 @@ def _vote_line(election: dict, pool: dict, figures: dict) -> str:
 
 
 def map_paths(html: str) -> str:
-    """The forecast page's ward map, as the page draws it, without its key:
-    the <svg> holding the first <pattern> (contested wards are striped)."""
+    """The forecast page's ward map as the image draws it: the <svg> that
+    holds the first <pattern> (contested wards are striped), reduced to its
+    viewBox, its <pattern> definitions and its <path> elements. The key, the
+    north mark and anything else the page draws in other elements are left
+    out by what they are, not by where the page puts them."""
     i = html.find("<pattern")
     if i < 0:
         raise OgError("forecast.html: no striped ward map (<pattern>) to draw")
     a, b = html.rfind("<svg", 0, i), html.find("</svg>", i)
-    m = html[a:b + len("</svg>")]
-    return re.sub(r'<g transform="translate\(532,548\)">[\s\S]*?</g>', "", m, count=1)
+    m = html[a:b]
+    vb = re.search(r'viewBox="([^"]+)"', m[:m.find(">") + 1])
+    if not vb:
+        raise OgError("forecast.html: the ward map's <svg> has no viewBox")
+    patterns = re.findall(r"<pattern\b[\s\S]*?</pattern>", m)
+    paths = re.findall(r"<path\b[^>]*>", m)
+    return (f'<svg viewBox="{vb.group(1)}"><defs>{"".join(patterns)}</defs>'
+            + "".join(paths) + "</svg>")
 
 
 def ward_shapes(map_svg: str) -> int:
@@ -237,10 +313,10 @@ def forecast_spec(html: str, pool: dict, *, election: dict, wards: int, headline
         rows.append({"label": roster[code]["name"], "value": pool[tok]})
     figures[FORECAST_ALONE] = _fig(pool, FORECAST_ALONE)
     coalitions = []
-    for groups, tok in FORECAST_COALITIONS:
+    for groups in FORECAST_COALITIONS:
+        tok = coalition_token(groups)
         figures[tok] = _fig(pool, tok)
-        label = " + ".join(", ".join(roster[c]["name"] for c in g) for g in groups)
-        coalitions.append({"label": label, "value": pool[tok]})
+        coalitions.append({"label": coalition_label(groups, roster), "value": pool[tok]})
     figures["generated_date"] = _fig(pool, "generated_date")
     m = map_paths(html)
     if ward_shapes(m) != wards:
@@ -285,7 +361,7 @@ def claims_spec(html: str, claims: list[dict], *, headline: str) -> dict:
             continue
         seen.add(c["party"])
         logo = REPO_ROOT / "site" / "logos" / f"{c.get('logo', c['party'])}.png"
-        items.append({"verdict": c["verdict"], "badge": verdict_badge(c["verdict"]),
+        items.append({"verdict": c["verdict"], "badge": stamp_path(verdict_badge(c["verdict"])),
                       "code": c["party"], "party": roster[c["party"]]["name"],
                       "colour": roster[c["party"]]["colour"],
                       "logo": logo.name if logo.is_file() else None,
@@ -365,7 +441,7 @@ def interactive_spec(forecast_json: dict, pool: dict, *, election: dict, site: s
     wards = [{"path": w["path"], "colour": roster[c]["colour"]} for w, c in zip(geom["wards"], calls)]
     return {"layout": "interactive", "headline": INTERACTIVE_HEAD, "body": INTERACTIVE_BODY,
             "cta": INTERACTIVE_CTA, "site": site, "date_line": date,
-            "map_label": INTERACTIVE_MAP_LABEL, "seal": PREDICTION_SEAL,
+            "map_label": INTERACTIVE_MAP_LABEL, "seal": stamp_path(PREDICTION_SEAL),
             "map": {"W": geom["W"], "H": geom["H"], "wards": wards},
             "figures": figures,
             "alt": f"{INTERACTIVE_HEAD} {INTERACTIVE_BODY} Our prediction's ward map, each ward in "
@@ -375,6 +451,7 @@ def interactive_spec(forecast_json: dict, pool: dict, *, election: dict, site: s
 def check(spec: dict) -> dict:
     """Refuse a spec with a character no card face draws, or a figure whose
     string does not appear in the text it carries."""
+    spec.setdefault("kind_colour", kind_colour(spec["layout"]))
     bad = uncovered(spec)
     if bad:
         raise OgError("characters the card faces do not carry: " + "; ".join(bad))
@@ -393,8 +470,8 @@ def check(spec: dict) -> dict:
 def render_all(specs: list[dict], out_dir: Path) -> dict[str, str]:
     """Draw every spec with ``src/og-pages.mjs`` (one node process, one wasm
     initialisation) into ``out_dir``; returns ``{slug: file name}``. Every
-    other file in ``out_dir`` is deleted, so it holds exactly what pages name.
-    Any failure stops the build."""
+    other file in ``out_dir`` is deleted, so it holds exactly what pages name;
+    a directory there is refused, never removed. Any failure stops the build."""
     out_dir.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(specs, ensure_ascii=False)
     try:
@@ -410,6 +487,9 @@ def render_all(specs: list[dict], out_dir: Path) -> dict[str, str]:
         raise OgError(f"og_pages: drew {sorted(manifest)}, asked for {sorted(want)}")
     keep = set(manifest.values())
     for f in out_dir.iterdir():
+        if f.is_dir():
+            raise OgError(f"og_pages: {f} is a directory; {out_dir.name}/ holds the share "
+                          "images only, and nothing here removes a directory")
         if f.name not in keep:
             f.unlink()
     return manifest

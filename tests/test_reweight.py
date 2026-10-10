@@ -1324,16 +1324,25 @@ def test_boldness_bands_at_their_edges():
 
 
 def test_every_badge_word_has_the_owners_file_and_every_file_a_word():
-    """The badge words name the owner's files (``src/stamps/reader-<words>.svg``,
-    lower case, spaces as hyphens: share-card.js ``badgeFile``). Both
+    """The badge words name the owner's files by share-card.js ``badgeFile``
+    (the one rule; asked of the module, not retyped), served from
+    site_assets.STAMP_DIR, which share-card.js STAMP_DIR must equal. Both
     directions, each population asserted equal to what was compared; and a
     constructed word with no file is caught."""
-    stamps = ROOT / "src" / "stamps"
-    files = {f.name for f in stamps.glob("reader-*.svg")}
-    named = {"reader-" + words.lower().replace(" ", "-") + ".svg" for _low, words in R.BOLDNESS}
-    assert len(named) == len(R.BOLDNESS) == 5
+    import site_assets
+    words = [w for _low, w in R.BOLDNESS]
+    script = ("import { badgeFile, STAMP_DIR } from " + json.dumps((ROOT / "interactive/js/share-card.js").as_uri())
+              + "; process.stdout.write(JSON.stringify({ dir: STAMP_DIR, files: "
+              + json.dumps(words + ["Bold call"]) + ".map(badgeFile) }));")
+    run = subprocess.run(["node", "--input-type=module", "-e", script], capture_output=True, text=True, cwd=ROOT)
+    assert run.returncode == 0, run.stderr
+    got = json.loads(run.stdout)
+    assert got["dir"] == site_assets.STAMP_DIR
+    named, retired = set(got["files"][:-1]), got["files"][-1]
+    files = {f.name for f in site_assets.stamp_files()}
+    assert len(named) == len(words) == 5
     assert named == files, (named ^ files)
-    assert "reader-bold-call.svg" not in files   # a retired word, constructed: no file
+    assert retired not in files      # a retired word, constructed: no file
 
 
 def test_boldest_call_by_hand():

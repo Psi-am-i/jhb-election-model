@@ -28858,3 +28858,267 @@ which D1 rests. B2b: with repainting, B2a's limits can still hold a state no
 ward-vote matrix produces (SPEC-B2r2 §5, measured by the designer); the
 witness editor closes it. Local surges of the 2021 kind lie outside any
 average allowance (SPEC-B2r2 §1).
+
+## 1.295 The by-election value test, first run and its pre-registration scored (model batch M4, 2026-10-10)
+
+Item 19 of `audits/2026-10-09-model-fixes/` (SPEC R2.4; BRIEF decision 19).
+`src/bye_value.py` (03bf2f0) measures whether by-election deltas predicted the
+next real result beyond the model's own baseline, per size class; the model
+reads the class weights from `data/processed/bye_value.json` (e0ce282,
+JUDGEMENT-CALLS §A55, superseding §A35). The real artefact is written in the
+batch's re-emit window, not yet.
+
+**Cross-ballot, on the whole record.** By-elections are local ward contests
+from 2022-02; the only real result after them is the 2024 provincial ballot, a
+national-provincial list ballot. Every figure below is that test.
+
+**Measurements.** Writer, `src/bye_value.py --out` into a scratch directory on
+the tree at 6c570be, `PYTHONHASHSEED=0`, 2026-10-10. The coordinator's
+re-derivation and the blind reviewer's independent implementation reproduced
+both classes exactly (`reviews/M4-SUMMARY.md`).
+
+| class (2021 list share in the metro) | pairs | pairs with 2+ contests | slope, all metros | G, points | 5th percentile of G, points (2,000 metro resamples) | verdict | weight |
+|---|---|---|---|---|---|---|---|
+| under 1% | 34 | 11 | 0.025 | −0.017 | −0.043 | no measurable gain | 0 |
+| 1% or more | 35 | 27 | 0 (floored) | −0.070 | −0.318 | no measurable gain | 0 |
+
+30 metro contests (Buffalo City none); 69 pairs; `size_window` at the 2024
+target gives `h = inf`; 17 pairs take the common-mean fallback for `mu_θ`.
+Secondary (reported, not deciding): over 134 party-contests, a contest's delta
+predicted from the same party's other contests in the metro is 0.46 points
+worse than predicting 0.
+
+**The pre-registration** (`prereg/2026-10-10-byelection-value-test.md`, scored
+there): of P19's first bullet, the under-1% class's pair count, noise and
+weight 0 held; the ≥1% class's 5th-percentile gain within ±0.3 points of 0 was
+**falsified** (−0.318). Arm E's bullets are open until step 11.
+
+**What the pre-registration got wrong.** Method decision 1 said an independent
+candidate falls out by the list-vote condition. The 2024 provincial ballot
+carried independents, so `IND` has a 2024 share in eThekwini, Johannesburg
+and Mangaung and enters the under-1% class as three pairs (writer, measured).
+Without them (writer, measured; the reviewer reported the same): under-1%
+class 31 pairs, 5th percentile −0.0435 → −0.0351 points, weight 0; the ≥1%
+class unchanged. The population stays as pre-registered.
+
+**Limits of the result**, stated where it is used (§A55):
+- **`B` is a stand-in.** The test's baseline is the 2021 list share through
+  the θ record at the 2019 national share, not the 2026 spine; its residuals
+  carry a party-signed bias: the DA's `e` is positive in all six metros where
+  it is in the population, the ANC's negative in all seven (writer, measured;
+  the reviewer reported "all six" for the ANC).
+- **One pair dominates the ≥1% class.** eThekwini ANC, `e` = −34.1 points
+  against a by-election `δ_pr` of +15.6 points: MK's arrival at the 2024
+  ballot. Without that pair the class's 5th percentile is −0.150 points and
+  its G +0.144 points (writer, measured; the reviewer reported −0.150); the
+  verdict does not move.
+- **At most eight clusters**, so the interval is coarse.
+
+**Not changed.** No drawn number: the joburg 2026 target refuses until the
+window writes `bye_value.json` (SPEC R3.6, M4 step 7c addendum). No backtest
+target reads by-elections.
+
+## 1.296 The model correction batch measured against its pre-registration (2026-10-10)
+
+Batch: `audits/2026-10-09-model-fixes/` (BRIEF items 1-19). Pre-registration:
+`prereg/2026-10-10-model-correction-batch.md` with amendments A1-A13. Runs:
+`results/STEP11-RUNS.md` (builds, hashes, commands) and `results/STEP11-RESULTS.md`
+(measurements). Scoring: `results/STEP12-SCORING-1.md` and
+`results/STEP12-SCORING-2.md`, two scorers working independently, each
+re-deriving the panel scores of all 240 runs from the raw arrays and matching
+every run's `result.json`; compared in `results/STEP12-RECONCILE.md`.
+
+Runs (STEP11-RUNS §3): ten arms; the 24 panel city-years at 1,000 draws and
+Johannesburg 2026 at 5,000 draws, seed 20261104, `PYTHONHASHSEED=0`, each arm
+in its own tree outside the repository.
+
+### What the batch changed, and the arms that separate each change
+
+| change (item) | arms compared |
+|---|---|
+| ties at the cut settled by a seeded lot; surpluses ranked as whole votes (1, 2) | A against B0 |
+| unopposed wards counted twice (3) | none; `levels.unopposed_wards` checked in B, C, C16, E |
+| `test_overhang` pinned to real votes; records corrected (4, 5) | none; a test and records |
+| a party's ward/list ratio scaled by the share of its previous list vote in the wards it contests (6) | B6 against A |
+| parties with a 2021 local record on the certified roster enter the run; a two-way roster guard (8) | B8 against A |
+| the unread draw band deleted from the code and the spec notes (9) | none; argued null |
+| a stale or unreadable pool spec stops the run, and the smaller items of BRIEF 10 (10) | none; every run's `stale_reason` checked |
+| growth centre evaluated at the party's current size (11a) | C against B |
+| the group-share tripwire, a report that changes no number (12) | E with the record present against E with it moved aside |
+| a party's own growth record counted only from elections at a similar size (16) | C16 against C |
+| parties with no own record take their size group's centre and width (17) | D against C16 |
+| the SACP sized as a normal new entrant (18) | B against A, the SACP's own figures only |
+| by-election weight set by its measured predictive value (19) | E against D (`w_bye` 0.4) and E against D0 (`w_bye` 0) |
+
+A is the tree before the batch (597ec38); E is the batch (W, e70116b).
+
+### The pre-registration scored
+
+The scorers' agreed verdicts (STEP12-RECONCILE.md). Seats are mean seats over
+draws; list MAE and ward MAE are `compare_history`'s `pr_mae` and `ward_mae` in
+points; coherent seat error is `seat_abs_err_coherent` summed over the 24
+city-years.
+
+| prediction | verdict | deciding number |
+|---|---|---|
+| E1, E2, E4, P10, P1, P2, P2b, P3, P16, P13, P19 (with A5) | held | as in both scoring files |
+| P6 F1-F6, B1, B3, CHANGE | held | PA ward/list ratio 2.000 → 1.029; PA 16.92 seats; coherent seat error 735 → 721 |
+| P8: the four city-years with no entered party, the guard lists, the 2026 clauses | held | the seven parties 0.415% of the list vote together; 0 or 1 seat in 84.3% of draws |
+| P8: panel-mean list MAE, B8 − A ≤ +0.005 | falsified | +0.0754 |
+| P8: list MAE falls at the three city-years where the entered mass exceeds 1% | falsified, 0 of 3 | ekurhuleni 2011 +0.940, mangaung 2021 +0.611, nelsonmandelabay 2021 +0.029 |
+| P8: coherent seat error | inconclusive (A2 middle region) | +2 |
+| P11: PA falls, DA gains, coherent seat error | held | PA −0.78, DA +0.51, −2 |
+| P11: no other party moves more than 0.6 seats | falsified | EFF +0.98 |
+| P11: ANC gains 0-1.5 seats | falsified | ANC −0.33 |
+| P11: list MAE moves less than 0.05 at every city-year | falsified | 18 of 24 at 0.05 or more; largest 0.603 |
+| P17: MK falls 1.5-4 seats | falsified | −1.40 |
+| P17: EFF gains 0-1.5 seats | falsified | −0.84 |
+| P17: GOOD gains under 0.3 seats | not scorable | GOOD is off the 2026 ballot (merged into RISE) |
+| P17: panel-mean list MAE falls 0.00-0.05 | ambiguous | +0.0336: outside the predicted range, below the stated falsifier of +0.05 |
+| P17: all other clauses, and A1 | held | |
+| P12 clause 1 | held | |
+| P12 clause 3: `PA\|Coloured` does not fire at Johannesburg 2026 | falsified | fires in 47.9-67.9% of draws in every W-based arm against `fire_at` 0.05 |
+| E3 | held under A11 | A11 was committed (ec2d602) before any arm ran |
+
+**The coordinator's rulings, 2026-10-10**, on the points where the
+pre-registration's text allowed more than one reading:
+
+| point | ruling | what the other reading would have done |
+|---|---|---|
+| C16's recipe fails `git apply --check` (A13 says such a recipe stops the arm) | The arm stands. §3.3 specified a three-way merge with one named conflict from the start, so the recipe could never pass a plain `git apply --check`, at W or at acbd9f8 where the prereg built it; at acbd9f8 the stated resolution reproduces the prereg's own hash (`81d681500680923d…`, tree `e2ab33c6ebdd48d6`). | Read literally, A13 stops C16, and C and B with it, since both are built on C16. Not scorable: P16, P17, P11, P13, and the B, C and C16 parts of E3, P1's lot clause, CHANGE, P8's guard clause and P12 clauses 2-3. The P11 and P17 falsifications go with them. P8, P6, P12 on D and E, and P19 stand. |
+| B6's recipe text gives a 235-line diff (`2e0d65f81b3b9205…`); the stated hash `9ed8630ee0f952f6…` has 236 lines | The stated hash governs, as A6 rules for B8. The difference is one trailing newline after `return out` at the end of `levels.py`. | B6 is not the pre-registered arm, and P6 and E2's B6 half are not scorable on it. |
+| P12 clause 2, "every run at a city-year the record covers" | Scored on the 17 runs per arm the record covers (2016, 2021, Johannesburg 2026): held. The record has no 2011. | Read as every run, it fails at the eight 2011 runs per arm, which report `"no record"`. |
+| P6 B2: "the named city-years improve or hold; none worse by more than 0.15" | Falsified on both clauses (the stricter reading). | Scorer 1: partly held, failing only if "hold" allows no rise and only if "I expect" is a prediction. Same numbers: joburg 2021 +0.154 and ekurhuleni 2021 +0.015 worse; four city-years worse by more than 0.15, the largest ethekwini 2016 +0.425. |
+
+A3 marked several of the held and falsified lines as known before writing
+(P16, P12 clauses 1 and 3, most of P6, the P8 guard lists); they are scored and
+do not count as confirmed predictions.
+
+### The draws were not paired between three of the compared arm pairs
+
+§3 of the pre-registration said B, C, C16, D, D0 and E share draws and seeds, as
+do A, B0, B6 and B8. The seed is shared; the per-draw values are not for every
+pair (found by scorer 2). Coordinator's check, median over parties of the
+per-draw correlation of drawn list shares between the two arms:
+
+| arms | ekurhuleni 2011 | mangaung 2021 | joburg 2021 |
+|---|---|---|---|
+| A / B0 | 1.000 | 1.000 | 1.000 |
+| A / B6 | 1.000 | 1.000 | 1.000 |
+| A / B8 | 0.005 | 0.005 | −0.002 |
+| C16 / C | 1.000 | 1.000 | 1.000 |
+| C / B | 0.965 | 0.041 | 0.664 |
+| C16 / D | 0.159 | 0.202 | 0.055 |
+
+P8 (A/B8), P11 (C/B) and P17 (C16/D) therefore compare unpaired runs. Scorer
+2's bootstrap (300 resamples of each run's 1,000 draws) puts the Monte Carlo
+error of an unpaired list-MAE difference at about 0.19-0.20 points per
+city-year and 0.041 points on the panel mean.
+
+**Seed noise, measured directly** (coordinator, 2026-10-10; arm E's tree, the
+24 city-years at 1,000 draws, seeds 20261104, 1 and 2). Panel-mean list MAE:
+3.2572, 3.2391, 3.2310; spread 0.0262 points. Per-city-year spread across the
+three seeds: 0.042-0.667 points.
+
+| change, unpaired comparison | panel-mean list MAE change, points | city-years moving more than their own three-seed spread |
+|---|---|---|
+| item 8, B8 − A | +0.0754 | 13 of 24 |
+| item 11a, C − B | −0.0115 | 4 of 24 |
+| item 17, D − C16 | +0.0336 | 10 of 24 |
+
+Item 11a's panel effect (−0.0115) is smaller than the spread of three seeds of
+one arm. Item 8's worsening (+0.0754) is about three times that spread, and 13
+of 24 city-years move beyond their own seed spread. Three seeds understate the
+full seed range.
+
+### What the pre-registration did not predict (both scorers unless named)
+
+- **`PA|Coloured` fires at Johannesburg 2026 in every W-based arm.** Share of
+  5,000 draws in which the PA's share of the Coloured pool exceeds the
+  threshold 0.8123 (its record 0.4290 plus the pool's margin 0.3832), against
+  `fire_at` 0.05: B 67.9%, C and C16 61.1%, D 60.7%, D0 and E 47.9%. It is the
+  only firing pair at 2026 in each arm. The pre-registration (P12, A3, §6) said
+  it cannot fire under the owner's rule. Read from each run's
+  `41_guards.group_share_tripwire`; the per-pool draws are not saved, so
+  neither scorer recomputed it. D (`w_bye` 0.4) fires 12.7 points more often
+  than D0 and E.
+- **The tripwire on the panel** (arm B, scorer 1): 19-89 firing pairs per 2016
+  run (buffalocity 19 to capetown 89), 0-2 per 2021 run.
+- **Item 11a moves the EFF +0.98 seats and the ANC −0.33** at 2026, where
+  §1.3 of the pre-registration measured their spine levels moving −0.003 and
+  +0.003 in log. On the panel it moves list MAE by 0.3-0.6 points at four
+  city-years (mangaung 2021 −0.603, mangaung 2011 −0.472, capetown 2016
+  +0.344, capetown 2011 +0.321). At mangaung 2011 no centre above 0.01% moved
+  by more than 0.006 in log, and the per-draw correlation of the ANC's list
+  share between B and C is 0.24 (scorer 2), consistent with draw noise
+  between unpaired runs.
+- **Item 17 moves the EFF −0.84 seats and the IFP +0.19** at 2026, though
+  neither's `20_spine.level` changes between C16 and D.
+- **Item 8 raises list MAE** at 9 of the 20 city-years it enters parties at,
+  five of them among the six 2011 city-years with an entered party (joburg
+  2011 +0.651, tshwane 2011 +0.478, ethekwini 2011 +0.466, besides the named
+  three), and lowers it at 11 (largest capetown 2021 −0.390) (scorer 2).
+- **Item 6 worsens ward MAE by more than 0.15 points at four city-years**
+  (ethekwini 2016 +0.4248, capetown 2021 +0.2499, ethekwini 2021 +0.1762,
+  joburg 2021 +0.1541) while the panel mean falls 0.0891; mangaung 2011's
+  improvement of 1.8748 supplies 0.078 of that fall (scorer 1).
+- **E against D at 2026 moves more than the three predicted parties:** ANC
+  +2.64, EFF +2.58, ACP −2.22, ASA −1.41, PA −1.11, IFP −0.61, DA −0.35 mean
+  seats.
+- **GOOD is off the 2026 ballot** (`03_roster.dropped`), though the
+  pre-registration sized its spine move.
+- Other members' pool weights in the two Johannesburg 2026 specs differ from
+  A's by at most 1.1e-16 and 2.2e-16 (floating point).
+
+### Extreme small-party draws, outside the pre-registration
+
+Measured 2026-10-10 by the coordinator; recomputed by this entry's writer from
+`data/arms/step11/<arm>/joburg-2026/arrays.npz` (`pr_share_draws`, the list
+vote), same figures.
+
+**Johannesburg 2026, 5,000 draws.** "Small" is a party whose mean list share
+over the 5,000 draws is under 1%: 72 of arm E's 81 parties, 64 of arm A's 74.
+
+| arm | draws with a small party above 5% of the list vote | above 10% |
+|---|---|---|
+| E (the batch) | 853 | 105 |
+| A (before the batch) | 866 | 90 |
+
+In arm E the AIC's list share has median 0.008% and maximum 25.39%; the ATM's
+median 0.014%, above 5% in 94 draws. The batch moved centres; the range of a
+single draw is about the same in A and E.
+
+**The real record.** `levels._citywide` for the eight metros, consecutive LGE
+pairs 2006→2011, 2011→2016 and 2016→2021 (writer, read-only, 2026-10-10):
+
+- 337 cases of a party under 1% of the list vote at the earlier election of a
+  pair, counting a party that did not stand at the later one at 0 (175 of the
+  337 stood at both).
+- None reached 5% at the next election. Two reached 2%: VFPLUS in Ekurhuleni,
+  0.90% → 3.48% (2016 → 2021), and the PA in Johannesburg, 0.17% → 2.96%
+  (2016 → 2021).
+- Every rise past 5% from under 1% in these pairs was a party absent from the
+  earlier election: the EFF in 2016 (Buffalo City, Ekurhuleni, Johannesburg,
+  Mangaung, Nelson Mandela Bay, Tshwane) and ActionSA in 2021 (Ekurhuleni,
+  Johannesburg, Tshwane). The ID's first local election, 2006 (11.02% in Cape
+  Town), lies before these pairs; `_citywide` returns no 2000 result for seven
+  of the eight metros.
+
+A design for limiting the draw range from the record is under way and is not
+part of this batch.
+
+### Status
+
+The batch is committed on `remediation` and is not published. Owner's
+decision, 2026-10-10: the site ships next on the forecast as it stands, without
+the batch. Outstanding before the batch can ship:
+
+- `test_roster_aware_baseline`: its premise under item 11a;
+- `judgement_sheet`: the `BYE_MIN_WEIGHT` row;
+- `test_reweight`: the paired-rerun z > 3 for two tiny seeded parties;
+- the drawer goldens, re-recorded deliberately;
+- re-freeze;
+- the model index;
+- the whole suite, once;
+- the draws re-export;
+- `test_pool_bounds` (failing before the batch).

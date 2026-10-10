@@ -29,7 +29,7 @@ const n1 = v => Number(v.toFixed(1));
 // ---------- the frame: a bar in the page kind's colour, our logo large at the
 // top right, the headline's cap line level with it, the date line at the foot
 // (owner, 2026-10-09: "keep logo same place big and top right for all") ----------
-const KIND = { claims: "#d9954f", article: "#7aa6d6", forecast: "#eceee9", interactive: "#b98ad6" };
+// The bar's colour is the spec's (og_pages.kind_colour, from tokens.css).
 const KIND_BAR = 8;
 const FOOT = 560, FOOT_TEXT = 606, FOOT_FS = 21;
 const TOP = 40;
@@ -40,9 +40,11 @@ const HEAD_MAX = LOGO_X - X - 36;                  // a line level with the logo
 const capBase = fs => TOP + fs * 0.7;              // a first line whose cap height starts at TOP
 const HEAD_LEADING = 1.08;
 
-function frame(kind, dateLine) {
+function frame(spec) {
+  const dateLine = spec.date_line;
+  if (!/^#[0-9a-fA-F]{6}$/.test(spec.kind_colour || "")) throw new Error(`${spec.slug}: no kind colour`);
   let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` + rect(0, 0, W, H, C.paper);
-  s += rect(0, 0, W, KIND_BAR, KIND[kind]);
+  s += rect(0, 0, W, KIND_BAR, spec.kind_colour);
   s += brand(ASSETS, LOGO_X, TOP, LOGO_H);
   s += rect(X, FOOT, R - X, 1, C.rule);
   s += text(X, FOOT_TEXT, fitText(dateLine, R - X, FOOT_FS, "sans", FOOT_FS * 0.75).text, FOOT_FS, "sans", { fill: C.ink3 });
@@ -64,10 +66,11 @@ function headline(words, maxW, big, least, lines) {
 }
 
 // An owner's stamp centred on (cx, cy), `h` tall: share-card.js stampSVG, the
-// one function that places a stamp (its ids prefixed by `prefix`).
+// one function that places a stamp (its ids prefixed by `prefix`). `file` is
+// its path from the repository root, as the spec carries it.
 const STAMPS = {};
 function stamp(file, prefix, cx, cy, h) {
-  STAMPS[file] ??= stampOf(readFileSync(resolve(REPO, "src/stamps", file), "utf8"));
+  STAMPS[file] ??= stampOf(readFileSync(resolve(REPO, file), "utf8"));
   const st = STAMPS[file];
   const [, , vw, vh] = st.viewBox.split(/\s+/).map(Number);
   return stampSVG(st, prefix, cx - h * vw / vh / 2, cy - h / 2, h);
@@ -82,7 +85,7 @@ function logoOf(file) {
 const CLAIM_HEAD = { big: 74, least: 52, lines: 2 };
 const CLAIM_STRIP = { minCols: 4, badge: 168, cy: 300, chip: 56, chipTop: 396, name: 30, nameY: 494, who: 19, whoY: 526 };
 function claims(spec) {
-  let s = frame("claims", spec.date_line);
+  let s = frame(spec);
   s += headline(spec.headline, HEAD_MAX, CLAIM_HEAD.big, CLAIM_HEAD.least, CLAIM_HEAD.lines).svg;
   const n = spec.items.length, cw = (R - X) / Math.max(n, CLAIM_STRIP.minCols), x0 = X + ((R - X) - cw * n) / 2;
   const bh = Math.min(CLAIM_STRIP.badge, cw * 0.92);
@@ -103,7 +106,7 @@ const ART_HEAD = { big: 88, least: 52, lines: 4 };
 const ART_HEAD_BESIDE = { big: 80, least: 48, lines: 3 };
 const RANGES = { x: 660, top: 216, pitch: 52, name: 17, bar: 16, value: 17, note: 14, lead: 30 };
 function article(spec) {
-  let s = frame("article", spec.date_line);
+  let s = frame(spec);
   if (!spec.ranges) {
     // headline only: as large as fits the page under the logo's line
     s += headline(spec.headline, HEAD_MAX, ART_HEAD.big, ART_HEAD.least, ART_HEAD.lines).svg;
@@ -177,7 +180,7 @@ const FC_HEAD = { big: 64, least: 44, lines: 2 };
 const FC = { left: 600, gapHead: 58, head: 24, row: 30, alone: 26, coal: 26, pitch: 36, coalPitch: 35, mapH: 330 };
 const KEY = { w: 34, h: 22, bands: 5 };
 function forecast(spec) {
-  let s = frame("forecast", spec.date_line);
+  let s = frame(spec);
   const h = headline(spec.headline, HEAD_MAX, FC_HEAD.big, FC_HEAD.least, FC_HEAD.lines);
   s += h.svg;
   const LW = FC.left - X;
@@ -210,7 +213,7 @@ function forecast(spec) {
 // ---------- /your-forecast/: the call to make one, and our prediction's map with its seal ----------
 const YF = { head: 96, mapMaxW: 600, textX: 670, body: 34, bodyPitch: 46, y: 222, cta: 28, url: 34, seal: 132, label: 20 };
 function interactive(spec) {
-  let s = frame("interactive", spec.date_line);
+  let s = frame(spec);
   const h = headline(spec.headline, HEAD_MAX, YF.head, YF.head * 0.6, 1);
   s += h.svg;
   const g = spec.map;

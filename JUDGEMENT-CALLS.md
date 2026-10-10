@@ -3429,17 +3429,18 @@ middle forecast has no call and is a Safe bet. The badge reads the exact
 chance, not a printed one; the card prints no chance for the call, so no
 printed figure can disagree with it.
 
-**Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`:
-§N6's badge read §N3's council outcome, which on the published draws
-(model 7ea27c28) is near 46% for almost every forecast and 1.4% for the
-model's own middle forecast. The owner's words: "Our score is a little
-informational but mainly just fun. All forecasts get judged against the real
-result." The edges are the ones printed on his badges; nothing is fitted.
+**Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`,
+which records the measurements behind it: what §N6's badge gave the common
+forecasts and the model's own middle forecast on the published draws, and
+the chances of eight constructed forecasts under this measure. The owner's
+words: "Our score is a little informational but mainly just fun. All
+forecasts get judged against the real result." The edges are the ones
+printed on his badges; nothing is fitted.
 
 **Known limit, accepted by the owner.** A forecast that moves every party a
-little takes its badge from some small party's tail: each simulation taken as
-a forecast scores a median of 1.0% this way (BADGE-DECISION.md). The share
-fixture's two readers both take theirs from a one-seat party.
+little takes its badge from some small party's tail (BADGE-DECISION.md
+measures how often). The share fixture's two readers both take theirs from a
+one-seat party.
 
 **How to check it.** `tests/test_reweight.py` holds the four edges, the
 measure on constructed draws, and the eight constructed forecasts of
@@ -4134,6 +4135,38 @@ settled; the owner can overrule.
 
 **How to check it.** The allowance test: a shape quantity with one event
 keeps `EDITOR_WIDEN_PP`, and a second event makes it their mean.
+
+## S. Added 2026-10-10 — the share images (OG-IMPLEMENTATION-SPEC.md, audits/2026-10-09-site-batch/)
+
+### §S1 · The forecast image's four coalitions — ⚖️ owner's choice (2026-10-10)
+
+**Where.** `og_pages.FORECAST_COALITIONS`, the one definition of each set's
+parties; its label and its figure (`coal.<key>.majority`, the share of
+simulations in which the set holds a majority) are both written from it.
+
+**Now.** Four sets, as the image labels them:
+
+| set | parties |
+|---|---|
+| ANC + DA | ANC; DA |
+| DA, ActionSA, PA + IFP, VF+, ACDP | DA, ASA, PA; IFP, VFPLUS, ACDP |
+| ANC, EFF, PA + Al Jama-ah | ANC, EFF, PA; ALJAMAAH |
+| ANC + EFF + MK Party | ANC; EFF; MK |
+
+A set /forecast's coalition table prints takes the page's figure; a set the
+table does not list is computed over every party's seats
+(`stats.coalition_majority`) and recorded in the publication ledger under
+/forecast as a generated token.
+
+**Why.** The owner's choice on the mock-up (`og-design/make_og.mjs`,
+6cc87fb): "looks good". These are the coalitions in the news, not a ranking:
+nothing in the model chose them, and the image shows nothing about sets left
+out. Whether /forecast's coalition table uses the same list is the owner's to
+confirm.
+
+**How to check it.** `tests/test_og_pages.py` holds the image's figure fields
+to this list and each figure to the string a page printed. Nothing in the
+model reads it.
 
 ## Appendix — how this register has failed before
 

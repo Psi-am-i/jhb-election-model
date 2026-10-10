@@ -1366,6 +1366,7 @@ token resolves out of a FILE, and the file has a date:
 | `model:` | `forecast_summary.json` — the reference run, by definition current |
 | `derived:` | `seat_draws.csv`, written by the same run |
 | `regime:<rule>:` | `regime_<rule>_summary.json`, written by `overhang_regimes.py`, which is **opt-in** (`build_all.py --regimes`) and therefore lags |
+| `history:<city>:<year>:` | `history.json`, written by `compare_history.py`: the backtest of past elections, a different run from the forecast's. Not dated against the forecast run; `stats.history_key_fault` instead refuses a record whose manifest's artefact key for `pools_<year>.json` is not the current spec's, and its tooltip names the backtest run (`stats.history_provenance`) |
 
 So a `regime:` token republishes its file's number on every build while reading
 as the model speaking now, and the drift report says nothing — correctly, since
@@ -2365,7 +2366,7 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
 * **The edge** (`share-edge.js`, routed by `src/worker.js`): `/s/` counts a
   share arrival (channel `share`, the button) and redirects to the arrival
   view; `/your-forecast/?f=…` gets its og: tags pointed at
-  `/og/1/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
+  `/og/2/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
   rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
   the draws' hash (a year when the link's seal checks, an hour otherwise), and
   is `/og.png` on any failure.
@@ -2392,3 +2393,48 @@ Tests: `tests/test_worker_routing.py` (routes, counting, fallback, seal),
 `tests/test_share.py` (baseline, polls open), `tests/test_reweight.py`
 (badge edges), `tests/test_reader_seats.py` (`/v1/card`),
 `interactive/tests/share.test.mjs` (cards, fonts, the edge's card, seals).
+
+## A share image for each page — `src/og_pages.py`, `src/og-pages.mjs` (2026-10-10)
+
+`/forecast`, `/claims`, each article and `/your-forecast/` carry an image of
+their own in `og:image`, `twitter:image` and `og:image:alt`
+(`og_pages.designed`); the home page, `/commentary` and the documents keep
+`og.png`. OG-IMPLEMENTATION-SPEC.md (audits/2026-10-09-site-batch/) is the
+design; this is what runs.
+
+* **Python resolves, node draws.** `og_pages` builds one card spec per page
+  from the build's own render: every figure is the `display` string a page
+  printed for its token (`stats.render`'s record), and every word is the
+  page's or a declared constant. `src/og-pages.mjs` draws each spec with
+  share-card.js's primitives, the owner's stamps (`src/stamps/`, placed only
+  by share-card.js `stampSVG`, which prefixes each stamp's internal ids per
+  embed) and the party logos, and rasterises it through
+  `src/og-raster-node.mjs`. It holds layout constants only; the page-kind
+  colours come from `tokens.css` (`og_pages.kind_colour`).
+* **The build order.** `build_site.main` renders each designed page with
+  placeholders in its head (`og_pages.pending`) and holds it. Once every page
+  is rendered, `build_site.share_images` builds the specs from the figures
+  the pages printed (`og_pages.figure_pool`; a figure printed two ways is
+  refused where an image draws it), draws them all in one node process into
+  `<out>/og-page/` (`og_pages.render_all`, which deletes every other file
+  there and refuses a directory), fills each held page (`og_pages.fill`),
+  and only then audits, scans and writes it. Every figure an image prints is
+  appended to the publication record under that page
+  (`og_pages.ledger_records`). A node failure stops the build; there is no
+  fallback image.
+* **Names.** `<slug>-<12 letters>.png`: sha256 of the SVG, the card faces and
+  resvg's version, written a-p, so the address changes with any figure, word,
+  layout, badge or face, and the number scan finds no digit in it.
+* **The forecast image's coalitions** are `og_pages.FORECAST_COALITIONS`
+  (JUDGEMENT-CALLS §S1): each set's figure is `coal.<key>.majority`, /forecast's
+  own token where its coalition table prints one, else computed over every
+  party's seats by `stats.coalition_majority`, which refuses a party the
+  run's seat file does not name.
+* **The forecast map** is the page's own map cut to its `<pattern>`s and
+  `<path>`s (`og_pages.map_paths`), and refused unless it holds one outline
+  per ward of the geometry.
+
+Tests: `tests/test_og_pages.py` (spec §6: every page its image and every
+image a page, every figure a page's, names, badges both ways, tags, glyphs,
+the stamps' ids), `tests/test_stat_sources.py` (`history:`,
+`coalition_majority`).
