@@ -179,12 +179,14 @@ def _npe_after(lge: str) -> list[str]:
                    and int(lge) < int(y) < stop), key=int)
 
 
-def panel(cities=CITIES, years=FITTED_LGE) -> dict:
+def panel(cities=None, years=None) -> dict:
     """Every city's fitted local elections and the national ones after them.
 
     ``{slug: [(election year, kind, rows, coverage)]}``, kind ``"LGE"`` or
-    ``"NPE"``.
+    ``"NPE"``. ``None`` reads ``CITIES`` / ``FITTED_LGE`` at call time.
     """
+    cities = CITIES if cities is None else cities
+    years = FITTED_LGE if years is None else years
     cfg = pools.load_config()
     out: dict[str, list] = {}
     for slug in cities:
@@ -236,7 +238,11 @@ def thresholds(data: dict, slug: str, target: str) -> dict | None:
     }
 
 
-def build(cities=CITIES, targets=TARGETS) -> dict:
+def build(cities=None, targets=None) -> dict:
+    """The record for ``cities`` x ``targets``; ``None`` reads ``CITIES`` /
+    ``TARGETS`` at call time, so rebinding either reaches the build."""
+    cities = CITIES if cities is None else cities
+    targets = TARGETS if targets is None else targets
     data = panel(cities)
     out = {"artefact_key": artefact_key(), "cities": {}}
     for slug in cities:

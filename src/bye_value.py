@@ -115,7 +115,7 @@ def _election(slug: str, year: str) -> Path:
         year].results.replace("{CODE}", city.code)
 
 
-def baselines(cities=CITIES) -> tuple[dict, dict]:
+def baselines(cities=None) -> tuple[dict, dict]:
     """``B`` per metro and party, from files strictly before 2024 only.
 
     Returns ``({slug: {"s2021": {...}, "B": {...}, "fallback": [...]}},
@@ -123,6 +123,7 @@ def baselines(cities=CITIES) -> tuple[dict, dict]:
     opens (G25): it reads the θ record before 2024, each metro's 2021 LGE and
     2019 national files, and nothing dated 2024 or later.
     """
+    cities = CITIES if cities is None else cities
     target = cityconfig.Target(city=cityconfig.load(cities[0]), year=OUTCOME)
     record = levels.theta_record(target)
     h, window = levels.size_window(target, levels.theta_record, record=record)
@@ -142,9 +143,10 @@ def baselines(cities=CITIES) -> tuple[dict, dict]:
     return out, window
 
 
-def outcomes(cities=CITIES) -> dict[str, dict[str, float]]:
+def outcomes(cities=None) -> dict[str, dict[str, float]]:
     """Each metro's 2024 provincial-ballot shares: the outcome, read apart
     from ``B`` so the temporal spy can scope one without the other."""
+    cities = CITIES if cities is None else cities
     return {slug: levels._citywide(_election(slug, OUTCOME)) for slug in cities}
 
 
@@ -190,13 +192,14 @@ def deltas(slug: str, s2021: dict[str, float]) -> dict:
             "parties": parties, "delta_rows": found["delta_rows"]}
 
 
-def collect(cities=CITIES) -> dict:
+def collect(cities=None) -> dict:
     """Every pair of the population, with ``B``, ``actual``, ``e`` and ``δ_pr``.
 
     Quiet: the helpers' prints are swallowed. Returns ``{"pairs": [...],
     "window": ..., "metros": {slug: {contests, skipped}}, "delta_rows":
     {slug: [...]}}``.
     """
+    cities = CITIES if cities is None else cities
     with contextlib.redirect_stdout(io.StringIO()):
         base, window = baselines(cities)
         actual = outcomes(cities)
@@ -262,15 +265,21 @@ def lomo_gain(groups: list[tuple[object, np.ndarray, np.ndarray]]
     return (before - after) / n, weights
 
 
-def evaluate(pairs: list[dict], resamples: int = BYE_VALUE_RESAMPLES,
-             seed: int = BYE_VALUE_SEED,
-             percentile: float = BYE_VALUE_PERCENTILE,
-             min_pairs: int = BYE_VALUE_MIN_PAIRS) -> dict:
+def evaluate(pairs: list[dict], resamples: int | None = None,
+             seed: int | None = None,
+             percentile: float | None = None,
+             min_pairs: int | None = None) -> dict:
     """Steps 2-5 of SPEC R2.4 on ``pairs`` (each with ``metro``, ``class``,
     ``e``, ``delta_pr``, ``contests``). Data-free: G23 runs it on
     constructed pairs. Every number is in shares (0-1); the artefact's
-    ``*_points`` fields are the same in points.
+    ``*_points`` fields are the same in points. A ``None`` argument reads
+    the module constant at call time (``BYE_VALUE_RESAMPLES``, ``_SEED``,
+    ``_PERCENTILE``, ``_MIN_PAIRS``), so rebinding one reaches the call.
     """
+    resamples = BYE_VALUE_RESAMPLES if resamples is None else resamples
+    seed = BYE_VALUE_SEED if seed is None else seed
+    percentile = BYE_VALUE_PERCENTILE if percentile is None else percentile
+    min_pairs = BYE_VALUE_MIN_PAIRS if min_pairs is None else min_pairs
     metros = sorted({p["metro"] for p in pairs})
     rng = np.random.default_rng(seed)
     draws = [rng.integers(0, len(metros), size=len(metros)).tolist()
@@ -354,7 +363,7 @@ def secondary(delta_rows: dict[str, list[dict]]) -> dict:
                      "other contest by the same party in the same metro"}
 
 
-def build(cities=CITIES) -> dict:
+def build(cities=None) -> dict:
     """The artefact: key, caveat, method, both classes, every pair."""
     found = collect(cities)
     pairs = found["pairs"]
