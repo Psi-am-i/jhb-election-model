@@ -8,8 +8,10 @@
 //   section 1, "Adjust the model"   play-state.js serialize:  t p k l b mv
 //   section 2, "Break the model"    make-state.js serialize:  v c f
 //   the name on either share image  n (play-state.cardName, the one rule)
-//   a friend's forecast, kept for   vs vn (make.js: the forecast a shared
-//     the return card                link opened with, and its name)
+//   a friend's forecast             vs vn (read only, from an address made
+//                                    before 2026-10-10, when the share sheet
+//                                    had a side-by-side card; make.js reads
+//                                    it, then drops it)
 //   a shared link's arrival         from s (read only: `from=1` opens the
 //                                    arrival view, `s` is the link's seal;
 //                                    kept until the reader picks a start,
@@ -92,8 +94,7 @@ export function arrival() {
   return { from: q.get("from") === "1", s: q.get("s") || "" };
 }
 
-// The friend's forecast the address carries for the return card:
-// { f, name } or null. The name is the page's one rule's (cardName).
+// The friend's forecast an older address carries: { f, name } or null. The name is the page's one rule's (cardName).
 export function friend() {
   const q = new URLSearchParams(parts.friend);
   if (!q.get("vs")) return null;
@@ -111,24 +112,15 @@ export function write(which, value) {
   return q;
 }
 
-// The friend part for a forecast `f` and its name ("" leaves the name off).
-export function friendPart(f, n) {
-  if (!f) return "";
-  const q = new URLSearchParams({ vs: f });
-  const nm = cardName(n);
-  if (nm) q.set("vn", nm);
-  return "?" + q.toString();
-}
-
 // The link to one section as it stands: section 1's share link carries only
 // section 1 and the name; section 2's carries both, since it continues
 // section 1. `hash` is the section's anchor.
-// The return card's link adds the friend's part (`withFriend`); a link never
-// carries the arrival part: a seal is added by the share sheet for the state
-// it shares, and `from` by the server's /s/ redirect.
-export function linkTo(which, hash, { withFriend = false } = {}) {
+// A link never carries the friend part or the arrival part: a seal is added
+// by the share sheet for the state it shares, and `from` by the server's /s/
+// redirect.
+export function linkTo(which, hash) {
   const q = which === "adjust" ? compose(parts.adjust, "", name)
-    : compose(parts.adjust, parts.break, name, withFriend ? parts.friend : "");
+    : compose(parts.adjust, parts.break, name);
   return new URL(location.pathname + q + (hash || ""), location.href).href;
 }
 

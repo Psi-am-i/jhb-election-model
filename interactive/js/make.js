@@ -358,6 +358,7 @@ async function start() {
   map.onClear = () => { one.hint.textContent = "Every ward needs a winner. Choose a party, then tap the ward to change it."; };
   buildVote();
   paintBrush();
+  paintPending();
   fromLink = !MS.sameState(state, pubStart, ctx);
   const linkF = new URLSearchParams(YU.partOf(location.search, YU.BREAK_KEYS)).get("f");
   if (YU.arrival().from && linkF && !opened.note) {
@@ -857,20 +858,22 @@ function writeURL() {
 }
 
 // ---------- coalition ----------
+// One coalition chip: party `c`, its seats as `n` (words).
+function coalChip(c, n) {
+  const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)), disabled: locked },
+    sw(c), name(c) + " ", el("span", { className: "chipn" }, n));
+  b.addEventListener("click", () => {
+    if (locked || !result) return;
+    S.coalition = S.coalition.includes(c) ? S.coalition.filter(x => x !== c) : [...S.coalition, c];
+    writeURL();
+    paintCoalition();
+  });
+  return b;
+}
 function paintCoalition() {
   const seats = result.seats;
   const shown = alpha.filter(c => shownRows.includes(c) || S.coalition.includes(c));
-  one.coal.replaceChildren(...shown.map(c => {
-    const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)), disabled: locked },
-      sw(c), name(c) + " ", el("span", { className: "chipn" }, String(seats[c] || 0)));
-    b.addEventListener("click", () => {
-      if (locked) return;
-      S.coalition = S.coalition.includes(c) ? S.coalition.filter(x => x !== c) : [...S.coalition, c];
-      writeURL();
-      paintCoalition();
-    });
-    return b;
-  }));
+  one.coal.replaceChildren(...shown.map(c => coalChip(c, String(seats[c] || 0))));
   const cs = S.coalition.reduce((a, c) => a + (seats[c] || 0), 0);
   const { council_total: council, majority } = result;
   if (!S.coalition.length) one.coalstat.textContent = "No party chosen. A council of " + council + " needs " + majority + " votes to elect a mayor and pass a budget.";
@@ -903,25 +906,50 @@ function councilRows(seats) {
   return { list: [...known, ...fresh].sort((a, b) => (seats[b] || 0) - (seats[a] || 0) || name(a).localeCompare(name(b))), fresh };
 }
 let shownRows = [];        // councilRows' list for the result shown
-function paintCouncil() {
-  const { seats, ward, council_total: council, majority, excessive } = result;
-  const { list, fresh } = councilRows(seats);
-  shownRows = list;
-  const max = Math.max(1, ...list.map(c => seats[c]));
-  one.restate.textContent = "Each party's wards plus its list seats, of " + council + ".";
-  // The site's one seat table (js/seat-table.js). A single council has no
-  // range: the mark is the party's seats, and the range column is empty. The
-  // axis is the site's, widened in steps of its own tick spacing when a party
-  // the reader built holds more seats than it reaches.
+// The site's one seat table (js/seat-table.js) for the parties `list`. A
+// single council has no range: the mark is the party's seats, and the range
+// column is empty. The axis is the site's, widened in steps of its own tick
+// spacing when a party the reader built holds more seats than it reaches.
+// `seats` null draws the rows with no figures (paintPending); `ward` null
+// leaves out each row's wards-and-list title.
+function councilTable(list, seats, ward) {
+  const max = seats ? Math.max(1, ...list.map(c => seats[c] || 0)) : 0;
   const T = TABLE.ticks, tick = T[1] - T[0];
   const scale = max <= TABLE.scale ? TABLE.scale : Math.ceil(max / tick) * tick;
   const every = tick * Math.ceil(scale / tick / (T.length - 1));
   const ticks = scale === TABLE.scale ? T : Array.from({ length: Math.floor(scale / every) + 1 }, (_, i) => i * every);
-  const table = seatTable(document, list.map(c => ({
-    code: c, name: name(c), sub: null, seats: String(seats[c] || 0), lo: null, hi: null,
-    m: seats[c] || 0, p5: null, p95: null, ghost: null, arrow: null,
-    title: (ward[c] || 0) + " wards, " + ((seats[c] || 0) - (ward[c] || 0)) + " list",
+  return seatTable(document, list.map(c => ({
+    code: c, name: name(c), sub: null, seats: seats ? String(seats[c] || 0) : "", lo: null, hi: null,
+    m: seats ? seats[c] || 0 : null, p5: null, p95: null, ghost: null, arrow: null,
+    title: seats && ward ? (ward[c] || 0) + " wards, " + ((seats[c] || 0) - (ward[c] || 0)) + " list" : null,
   })), { scale, ticks, head: TABLE.head, label: "Your council" });
+}
+// Before the seat Worker's first answer: the council's rows and the
+// coalition's chips for every party seated at the start, so the section has
+// its height before its figures arrive (owner, 2026-10-10: the layout must
+// not shift; the council grew by its whole table, and the chips by theirs,
+// when the Worker answered). At the start itself the figures are the
+// start's own seats (forecast.json, seated by the law when the site was
+// built); a forecast from a link shows the rows without figures until its
+// own seats arrive.
+function paintPending() {
+  if (result) return;
+  const seats = D.start.seats;
+  const rows = Object.keys(seats).filter(c => seats[c] > 0)
+    .sort((a, b) => seats[b] - seats[a] || name(a).localeCompare(name(b)));
+  const shown = MS.sameState(state, pubStart, ctx) ? seats : null;
+  one.bars.setAttribute("data-extra", "0");
+  one.bars.replaceChildren(councilTable(rows, shown, null));
+  one.strip.replaceChildren(sv("svg", { class: "stripbar", width: "100%", height: 16 }));
+  one.coal.replaceChildren(...alpha.filter(c => rows.includes(c) || S.coalition.includes(c))
+    .map(c => coalChip(c, shown ? String(shown[c] || 0) : "")));
+}
+function paintCouncil() {
+  const { seats, ward, council_total: council, majority, excessive } = result;
+  const { list, fresh } = councilRows(seats);
+  shownRows = list;
+  one.restate.textContent = "Each party's wards plus its list seats, of " + council + ".";
+  const table = councilTable(list, seats, ward);
   for (const row of table.children) if (fresh.includes(row.getAttribute("data-code"))) row.setAttribute("data-new", "");
   one.bars.setAttribute("data-extra", String(fresh.length));
   one.bars.replaceChildren(table);

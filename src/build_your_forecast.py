@@ -25,7 +25,8 @@ What the served page is made of
     (``__DEVONLY__`` spans), the site's head (``build_site.SITE_HEAD``), nav
     and footer put in one level down, section 1's published figures at its
     ``<!-- __PLAY:<name>__ -->`` markers (``build_play.FILL``) and section 2's
-    seat-table attributes at its ``<!-- __MAKE:<name>__ -->`` markers.
+    seat-table attributes and its ward map's viewBox at its
+    ``<!-- __MAKE:<name>__ -->`` markers.
 ``your-forecast/js/``, ``css/``, ``pyboot/``
     Byte copies of the page's modules (:data:`JS`), stylesheets and Python
     entries, except ONE declared line of each Worker's loader: where the draws
@@ -118,7 +119,7 @@ def assemble(*, site_head: str, nav: str, footer: str, processed: Path) -> str:
              "<!-- __YFNAV__ -->": build_play.one_level_down(nav),
              "<!-- __YFFOOT__ -->": build_play.one_level_down(footer),
              **{f"<!-- __PLAY:{k}__ -->": v for k, v in build_play.fills(Path(processed)).items()},
-             **build_make.seat_attrs()}
+             **build_make.seat_attrs(), **build_make.map_attrs()}
     for marker, value in fills.items():
         build_play.occurs_once(page, marker, SOURCE.name)
         page = page.replace(marker, value)

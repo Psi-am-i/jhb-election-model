@@ -26,7 +26,8 @@
     <!- - __PLAY:<name>__ - ->              section 1's published figures, as
                                           ledgered tokens (build_play.FILL)
     <!- - __MAKE:<name>__ - ->              section 2's seat-table attributes
-                                          (build_make.seat_attrs)
+                                          and its ward map's viewBox
+                                          (build_make.seat_attrs, map_attrs)
 
   Every section 1 results element exists twice (DESIGN §4): a build twin of
   tokens (class "pl-pub") and a LIVE region (data-live) that js/model.js
@@ -201,7 +202,7 @@
             <option value="link">Link preview</option>
             <option value="story">Story, for a phone</option></select></label>
           <div class="preview"><img alt=""></div>
-          <div class="cta shcta">
+          <div class="shcta">
             <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
             <a class="btn shwa" href="#" target="_blank" rel="noopener">WhatsApp</a>
             <a class="btn shx" href="#" target="_blank" rel="noopener">X</a>
@@ -242,7 +243,7 @@
             </div>
           </div>
           <div class="mapscroll">
-            <svg class="wardmap" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
+            <svg class="wardmap" viewBox="<!-- __MAKE:mapviewbox__ -->" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
           </div>
           <div class="listview" hidden></div>
           <p class="maphint painthint yf-slot">Choose a party, then tap or drag across wards to give them to it.</p>
@@ -389,7 +390,7 @@
               <option value="link">Link preview</option>
               <option value="story">Story, for a phone</option></select></label>
             <div class="preview"><img alt=""></div>
-            <div class="cta shcta">
+            <div class="shcta">
               <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
               <a class="btn shwa" href="#" target="_blank" rel="noopener">WhatsApp</a>
               <a class="btn shx" href="#" target="_blank" rel="noopener">X</a>

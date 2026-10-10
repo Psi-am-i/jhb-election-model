@@ -355,6 +355,9 @@
   padding-bottom:calc(var(--yf-spare-rows) * var(--yf-new-row));}
 .yf [data-live="b-council"] .bars[data-extra="1"]{padding-bottom:calc((var(--yf-spare-rows) - 1) * var(--yf-new-row));}
 .yf [data-live="b-council"] .bars:not([data-extra="0"]):not([data-extra="1"]){padding-bottom:0;}
+/* the council's caption line keeps its line while its figures are on their
+   way (make.js paintPending draws the rows and the chips meanwhile) */
+.yf [data-live="b-council"] .cap{min-height:1lh;}
 .yf [data-live="b-council"] .bars .st-row[data-new]{box-sizing:border-box;height:var(--yf-new-row);min-height:0;overflow:hidden;}
 .yf [data-live="b-council"] .bars .st-row[data-new] .st-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* a vote row at the floor says so over its own slider's foot, inside the row */
@@ -438,6 +441,4 @@
 .sheet .shseal{margin:6px 0 0;}
 .sheet .shseal[hidden],.sheet .shentry[hidden]{display:none;}
 .sheet .shimgpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:10px 0 6px;}
-.sheet .shfriend{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:8px 0 0;}
-.sheet .shfriend[hidden]{display:none;}
 .sheet .shwa,.sheet .shx{text-decoration:none;}

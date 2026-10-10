@@ -60,7 +60,11 @@ says when). Screenshots at 375 px and 1440 px are in `screenshots/yf-*.png`
 itself with `YF_ROOT`, no port). Whether the page jumps when a lever moves:
 `PLAYWRIGHT=<playwright index.mjs> YF_ROOT=site node
 interactive/tools/yf_jump_check.mjs` (exit 1 on a jump or an overflowing
-reserved region; `YF_JUMP_DEBUG=1` names the blocks that changed height).
+reserved region; `YF_JUMP_DEBUG=1` names the blocks that changed height). Whether it shifts
+while it loads: `PLAYWRIGHT=… YF_ROOT=… node interactive/tools/yf_shift_check.mjs`
+(the browser's layout-shift entries at 375 and 1440 on the way to
+`#break`: exit 1 on a shift once section 2 is built; the shift while
+`forecast.json` is still on its way is printed, not gated).
 
 To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 

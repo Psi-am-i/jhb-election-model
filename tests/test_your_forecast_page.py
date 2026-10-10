@@ -1754,8 +1754,7 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
     moved = html.replace(row, "").replace('<div class="pl-controls">', '<div class="pl-controls">' + row, 1)
     assert misplaced(moved)
     assert misplaced(html.replace('<p class="yf-ctanote">', '<p class="yf-note">', 1))
-    # the site's one button (components.css), not a second style here
-    assert not re.search(r"\.yf-ctabtn|\.yf \.cta\{", css)
+    assert "yf-ctabtn" not in css
     # step 4 names what it holds now
     assert "Next: see how likely it is" in html and "Share it, or see how likely it is" not in html
 
@@ -1785,6 +1784,107 @@ def test_both_share_sheets_are_one_sheet_with_one_set_of_controls():
     # it can see: a sheet without WhatsApp, or with Copy link worded otherwise
     assert differ([c for c in one if c[0] != "btn shwa"], two)
     assert differ([(c, "Copy") if c == "btn shcopy" else (c, w) for c, w in one], two)
+
+
+def _cta_rules(css: str) -> list[str]:
+    """The selectors in a stylesheet that style the class ``cta``, outside a
+    ``:not(...)`` and other than its ``[disabled]`` state."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    out = []
+    for head in re.findall(r"([^{}]+)\{", css):
+        if head.strip().startswith("@"):
+            continue
+        for sel in head.split(","):
+            bare = re.sub(r":not\([^)]*\)", "", sel)
+            if re.search(r"\.cta(?![-\w\[])", bare):
+                out.append(sel.strip())
+    return out
+
+
+def test_the_calls_to_act_are_the_sites_one_button_and_nothing_else_is_cta():
+    """Owner, 2026-10-10: the three calls to act are the site's one large
+    button, ``cta`` (src/css/components.css), as the home page's. Every
+    stylesheet the page loads is scanned: only the site's (which bundles
+    components.css) may style ``.cta``, and only the three buttons carry the
+    class. interactive.css once styled the share sheet's row of ways to share
+    as ``.cta``, which turned that row into a purple slab and moved the
+    buttons: that rule, and a page sheet restyling the button, are caught."""
+    site = _built()
+    html = _html(site)
+    hrefs = re.findall(r'<link rel="stylesheet" href="([^"]+)"', html)
+    # it scanned the right set: the site's sheet and every one the build copies
+    assert sorted(h for h in hrefs if h.startswith("css/")) == sorted(f"css/{n}" for n in YF.CSS), hrefs
+    site_sheet = [h for h in hrefs if not h.startswith("css/")]
+    assert len(site_sheet) == 1, hrefs
+    sheets = {h: (site / D / h).resolve().read_text(encoding="utf-8") for h in hrefs}
+    # it looked: the site's sheet holds the one definition
+    assert _cta_rules(sheets[site_sheet[0]]), "the site's stylesheet styles no .cta"
+    assert {h: _cta_rules(c) for h, c in sheets.items() if h != site_sheet[0] and _cta_rules(c)} == {}
+    # it can see: the old sheet row, and a page sheet restyling the button
+    for planted in (".cta{display:flex;margin-top:14px;}", ".cta.shcta{margin-top:0;}", ".yf .cta{padding:0;}"):
+        assert _cta_rules(sheets["css/interactive.css"] + planted), planted
+    # the disabled state and a :not() are not a second definition
+    assert _cta_rules(".yf .cta[disabled]{opacity:.45;} .yf .yf-cta > :not(.cta){flex:1;}") == []
+    # only the three buttons carry the class
+    tagged = [m.group(0) for m in re.finditer(r"<(\w+)\b[^>]*\bclass=\"([^\"]*)\"", html)
+              if "cta" in m.group(2).split()]
+    assert len(tagged) == 3 and all(t.startswith("<button") for t in tagged), tagged
+
+
+def test_no_share_choice_or_link_draws_two_forecasts_side_by_side():
+    """Owner, 2026-10-10: the two-name card is off the share choices. Each
+    built sheet offers the link preview and the story card and nothing else,
+    with no friend's-name checkbox; make.js writes the friend part of the
+    address only to drop it; neither share module draws the card. The links
+    themselves are yf.test.mjs's ("no link the page writes carries a friend's
+    forecast"). A duel option put back is caught."""
+    site = _built()
+    html = _html(site)
+    make = (site / BREAK).read_text(encoding="utf-8")
+    share_js = (site / D / "js" / "make-share.js").read_text(encoding="utf-8")
+
+    def offered(page: str) -> dict[str, list[str]]:
+        out = {}
+        for region in ("share", "b-share"):
+            start = page.index(f'data-live="{region}"')
+            dlg = page[page.index("<dialog", start):page.index("</dialog>", start)]
+            sel = re.search(r'<select class="shimg">(.*?)</select>', dlg, re.S)
+            out[region] = re.findall(r'<option value="([^"]+)"', sel.group(1)) if sel else []
+        return out
+
+    assert offered(html) == {"share": ["link", "story"], "b-share": ["link", "story"]}, offered(html)
+    assert "shfriend" not in html and "shduel" not in html
+    writes = re.findall(r'YU\.write\("friend",\s*([^)]*)\)', make)
+    assert writes and all(w.strip() == '""' for w in writes), writes
+    assert "duelCardSVG" not in share_js and "withFriend" not in make
+    # it can see
+    back = html.replace('<option value="story">Story, for a phone</option>',
+                        '<option value="story">Story, for a phone</option><option value="duel">Both</option>', 1)
+    assert offered(back) != offered(html)
+
+
+def test_the_ward_maps_viewbox_is_in_the_page_and_is_map_js_s():
+    """Section 2's map has its height before forecast.json arrives: the build
+    writes its viewBox (build_make.map_attrs), and js/map.js sets the same
+    string from the same geometry when the map is drawn. The two are held to
+    each other through the built forecast.json, and map.js's formula is
+    pinned, so a change to it alone turns this red."""
+    site = _built()
+    html = _html(site)
+    geom = _data(site)["geometry"]
+    js = (site / D / "js" / "map.js").read_text(encoding="utf-8")
+    m = re.search(r'<svg class="wardmap" viewBox="([^"]*)"', html)
+    assert m, "section 2's map carries no viewBox in the page"
+
+    def js_number(x) -> str:
+        x = float(x)
+        return str(int(x)) if x.is_integer() else repr(x)
+
+    want = f"0 0 {js_number(geom['W'])} {math.ceil(geom['H'])}"
+    assert m.group(1) == want, (m.group(1), want)
+    # map.js's own formula, the one it sets at view time
+    formula = 'svg.setAttribute("viewBox", "0 0 " + geom.W + " " + Math.ceil(geom.H));'
+    assert js.count(formula) == 1, "js/map.js sets the viewBox another way: re-check build_make.map_attrs"
 
 
 def test_a_chip_pressed_keeps_its_focus():
