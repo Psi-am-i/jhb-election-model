@@ -90,7 +90,7 @@ CITIES = ("joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",
           "nelsonmandelabay", "buffalocity", "mangaung")
 #: The outcome election, the local election the deltas are taken against, and
 #: the national election before the outcome (the size ``mu_θ`` is taken at).
-OUTCOME, BASE_LGE, BASE_NPE = "2024", "2021", "2019"
+OUTCOME, BASE_LGE, BASE_NPE = BY.BYE_VALUE_OUTCOME, "2021", "2019"
 
 #: Typed parts of the test (JUDGEMENT-CALLS §A55), fixed in the
 #: pre-registration before the run.

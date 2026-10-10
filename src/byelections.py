@@ -85,6 +85,12 @@ SA_FILE = Path("data/raw/byelections/byelections_SA_vd_party.csv")
 #: three modules need it and ``montecarlo`` may not import ``bye_value``.
 BYE_VALUE = "bye_value.json"
 
+#: The item-19 test's outcome election: the only real result after the
+#: archive's by-elections (BRIEF item 19). Named here because
+#: :func:`bye_value_files` needs it and this module may not import
+#: ``bye_value``.
+BYE_VALUE_OUTCOME = "2024"
+
 
 def size_class(size: float) -> str:
     """The by-election size class of a party at ``size`` (a share, 0-1).
@@ -106,24 +112,66 @@ def delta_pr(delta: float, ratio: float | None) -> float:
     return delta / ratio if ratio else delta
 
 
+def bye_value_files(root: Path | None = None) -> list[Path]:
+    """The raw election files ``bye_value.json`` can be built from.
+
+    Every calendar election with a result template, up to and including
+    :data:`BYE_VALUE_OUTCOME`, in every metro (``levels.METRO_CODES``): the
+    files ``levels.theta_record`` and ``levels.size_window`` read for ``B``'s
+    ``mu_θ`` (every LGE transition before 2024 that the calendar holds), each
+    metro's 2021 LGE (``s_2021`` and the ward bases the deltas are taken
+    against) and 2019 national file (the size ``mu_θ`` is taken at), and the
+    2024 provincial file (the outcome). Derived from the calendar, not from
+    ``theta_record``'s own filters (``THETA_WINDOW``, the demarcation and
+    held-back exclusions), so it is a superset: a file the test skips can
+    still mark the artefact stale, which errs toward refusing. A file not on
+    disk is hashed as ``pools._sha``'s ``"missing"``.
+    """
+    import levels
+    root = Path(__file__).resolve().parent.parent if root is None else root
+    years = [y for y, e in cityconfig.CALENDAR.items()
+             if e.results and int(y) <= int(BYE_VALUE_OUTCOME)]
+    return sorted({root / "data" / "raw" / "elections"
+                   / cityconfig.CALENDAR[y].results.replace("{CODE}", code)
+                   for y in years for code in levels.METRO_CODES})
+
+
 def bye_value_key(ward_pr_clip: tuple[float, float]) -> dict:
     """What ``bye_value.json`` was built from, computed from the files.
 
     The test's code (``bye_value.py``), the delta code (this module), the
     emit's dependencies (``pools._deps_sha``: ``levels`` for ``_shrunk``,
     ``theta_record``, ``size_window``, ``_citywide`` and
-    ``trusted_ward_pr``), the by-election file's bytes, and the ward/PR clip
+    ``trusted_ward_pr``), the by-election file's bytes, the raw election
+    files ``B``, the outcome and the θ record are built from
+    (:func:`bye_value_files`, one hash over each file's name and bytes),
+    every ``cities/*.toml`` (as ``pools._cities_sha`` hashes them: the ward
+    prefixes and codes that select each metro's contests and files), and the
+    ward/PR clip
     the conversion used (``montecarlo.WARD_PR_RATIO_MIN/MAX``, passed in by
     the caller so this module need not import ``montecarlo``). The writer
     stamps it; ``montecarlo`` and ``declares`` compare it with the live one.
+    Every path resolves from the repository this module sits in, never from
+    the working directory.
     """
+    import hashlib
     import pools
     src = Path(__file__).resolve().parent
-    return {"schema": 1,
+    files = "|".join(f"{f.name}:{pools._sha(f)}"
+                     for f in bye_value_files(src.parent))
+    # pools._cities_sha's population and format, read from this repository's
+    # cities/ rather than the working directory's (declares --verify runs from
+    # any directory); pools.py is not edited because its code hash is in
+    # every pool spec's key.
+    cities = "|".join(f"{f.name}:{pools._sha(f)}" for f in pools._toml_population(
+        src.parent / "cities", "bye_value_key's cities_sha"))
+    return {"schema": 2,
             "bye_value_sha": pools._code_sha(src / "bye_value.py"),
             "byelections_sha": pools._code_sha(src / "byelections.py"),
             "deps_sha": pools._deps_sha(),
             "byelection_file_sha": pools._sha(src.parent / SA_FILE),
+            "election_files_sha": hashlib.sha256(files.encode()).hexdigest()[:16],
+            "cities_sha": hashlib.sha256(cities.encode()).hexdigest()[:16],
             "ward_pr_clip": [float(ward_pr_clip[0]), float(ward_pr_clip[1])]}
 
 

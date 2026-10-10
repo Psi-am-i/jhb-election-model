@@ -1130,7 +1130,10 @@ of the 2021 list (`byelections.size_class`). A class keeps its slope only if
 the 5th percentile of its out-of-sample gain over 2,000 metro-cluster
 bootstrap resamples is above 0, and under 10 pairs it takes 0. The output is
 `data/processed/bye_value.json`, with an `artefact_key`
-(`byelections.bye_value_key`). **A cross-ballot test on the whole record:**
+(`byelections.bye_value_key`: the test's and the delta code, the emit's
+dependencies, the by-election file, every raw election file up to 2024 in
+every metro (`byelections.bye_value_files`), every `cities/*.toml`, and the
+ward/PR clip). **A cross-ballot test on the whole record:**
 the by-elections are ward contests, the outcome a national-provincial list
 ballot, and nothing later exists to test against.
 

@@ -22,8 +22,13 @@ Run:
 
 from __future__ import annotations
 
+import json
 import math
+import os
+import shutil
+import subprocess
 import sys
+import tempfile
 from datetime import date
 from pathlib import Path
 
@@ -31,7 +36,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _support import run_module  # noqa: E402
+from _support import ROOT, run_module, scanned  # noqa: E402
 
 import bye_value as BV  # noqa: E402
 import byelections as BY  # noqa: E402
@@ -202,6 +207,113 @@ def test_the_real_artefact_states_its_caveat_and_its_counts_add_up():
     assert payload["artefact_key"] == BY.bye_value_key(
         tuple(payload["artefact_key"]["ward_pr_clip"]))
 
+
+
+# The scratch leg of the key test, run with the scratch tree as the working
+# directory and its own copy of src/ first on the path, so every path the key
+# reads resolves inside the scratch tree. Prints one JSON object.
+_KEY_PROBE = r"""
+import json, os, sys
+from pathlib import Path
+sys.path.insert(0, str(Path("src").resolve()))
+import byelections as BY
+import montecarlo as M
+here = Path(".").resolve()
+clip = (M.WARD_PR_RATIO_MIN, M.WARD_PR_RATIO_MAX)
+out = {"src": str(Path(BY.__file__).resolve().parent.parent) == str(here),
+       "files": [str(f.relative_to(here)) for f in BY.bye_value_files()]}
+art = here / "data" / "processed" / BY.BYE_VALUE
+art.parent.mkdir(parents=True, exist_ok=True)
+art.write_text(json.dumps({"artefact_key": BY.bye_value_key(clip),
+                           "weights": {c: 0.0 for c in BY.SIZE_CLASSES}}))
+
+def read():
+    try:
+        M.read_bye_value(art)
+        return "accepted"
+    except SystemExit as exc:
+        return str(exc)
+
+def edit(rel):
+    # replace the symlink (or file) with a copy that differs in one byte
+    p = here / rel
+    data = bytearray(p.read_bytes())
+    p.unlink()
+    data[-1] ^= 1
+    p.write_bytes(bytes(data))
+    data[-1] ^= 1
+    return p, bytes(data)
+
+out["fresh"] = read()
+for rel in (sys.argv[1], "cities/joburg.toml"):
+    p, original = edit(rel)
+    out["edited " + rel] = read()
+    p.write_bytes(original)
+    out["reverted " + rel] = read()
+print(json.dumps(out))
+"""
+
+
+def _scratch_tree(root: Path) -> None:
+    """``root`` holding a copy of ``src/`` and ``cities/``, and links to the
+    raw election and by-election files (each election file its own link, so
+    one can be replaced by an edited copy without touching the original)."""
+    shutil.copytree(ROOT / "src", root / "src",
+                    ignore=shutil.ignore_patterns("__pycache__"))
+    shutil.copytree(ROOT / "cities", root / "cities")
+    for sub in ("config", "judgements"):
+        if (ROOT / sub).exists():
+            shutil.copytree(ROOT / sub, root / sub)
+    raw = root / "data" / "raw"
+    (raw / "elections").mkdir(parents=True)
+    for f in (ROOT / "data" / "raw" / "elections").iterdir():
+        (raw / "elections" / f.name).symlink_to(f)
+    (raw / "byelections").symlink_to(ROOT / "data" / "raw" / "byelections")
+
+
+def test_the_key_covers_the_raw_election_files_and_the_city_files():
+    """Fix row 3 of the M4 review. ``bye_value_key`` carries the raw election
+    files ``B``, the outcome and the θ record are read from
+    (``bye_value_files``) and every ``cities/*.toml``. In a scratch tree (a
+    copy of ``src/`` and ``cities/``, links to the raw files; no file under
+    this repository's ``data/`` is written): an artefact stamped with the
+    scratch tree's key is accepted by ``montecarlo.read_bye_value``; one byte
+    changed in a raw election file ``theta_record`` reads, and then in
+    ``cities/joburg.toml``, each makes it refuse, naming the field that
+    moved; each reverted, it is accepted again.
+
+    The population: ``bye_value_files`` is every calendar election with a
+    result template up to the outcome, in every metro, scanned against a
+    construction from the calendar here, both ways."""
+    import cityconfig
+    built = [Path(f).name for f in BY.bye_value_files()]
+    want = sorted(cityconfig.CALENDAR[y].results.replace("{CODE}", c)
+                  for y, e in cityconfig.CALENDAR.items()
+                  if e.results and int(y) <= int(BV.OUTCOME)
+                  for c in levels.METRO_CODES)
+    assert sorted(built) == want
+    on_disk = [f for f in BY.bye_value_files() if f.exists()]
+    scanned(on_disk, of=want, low=1.0, high=1.0, what="raw election files "
+            "on disk", denominator="calendar elections up to the outcome x metros")
+    edited = "data/raw/elections/" + cityconfig.CALENDAR["2016"].results.replace(
+        "{CODE}", "JHB")
+    with tempfile.TemporaryDirectory(prefix="bye_value_key_") as tmp:
+        root = Path(tmp)
+        _scratch_tree(root)
+        env = dict(os.environ, PYTHONHASHSEED="0")
+        done = subprocess.run([sys.executable, "-c", _KEY_PROBE, edited],
+                              cwd=root, capture_output=True, text=True,
+                              timeout=600, env=env)
+        assert done.returncode == 0, done.stderr[-3000:]
+        got = json.loads(done.stdout.strip().splitlines()[-1])
+    assert got["src"], "the probe imported this repository's src/, not the copy"
+    assert edited in got["files"]
+    assert got["fresh"] == "accepted", got["fresh"]
+    for rel, field in ((edited, "election_files_sha"),
+                       ("cities/joburg.toml", "cities_sha")):
+        assert "is stale" in got["edited " + rel] and field in got["edited " + rel], (
+            rel, got["edited " + rel])
+        assert got["reverted " + rel] == "accepted", (rel, got["reverted " + rel])
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
