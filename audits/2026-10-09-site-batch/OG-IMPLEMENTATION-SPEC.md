@@ -285,3 +285,9 @@ ported. A second is one `toPNG` on `prediction.webp`, or its PNG conversion.
   is `audits/2026-10-07-stamp-design/owner-stamps/2026-10-10/svg/verdict-*.svg`,
   replacing `owner-stamps/verdicts/`.
 - The reader badges, their measure and their edges: `BADGE-DECISION.md`.
+- **Forecast card (owner, 2026-10-10, "looks good"):** most seats (ANC, DA),
+  one party alone with a majority, and four named coalitions with their
+  majority chance: ANC + DA; DA, ActionSA, PA + IFP, VF+, ACDP; ANC, EFF, PA +
+  Al Jama-ah; ANC + EFF + MK. Mock in `og-design/make_og.mjs` (6cc87fb). The
+  last three need tokens; the set is a registered owner's choice, and the
+  forecast page's coalition table uses the same list (to confirm with owner).
