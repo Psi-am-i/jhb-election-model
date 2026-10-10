@@ -386,7 +386,9 @@ def home_map(sheet: str) -> str:
     time, so the two maps are always the same run. The map itself with its
     ward tips and the key's party colours and its solid/stripes line; not the
     heading, the explanation, the Normal/Equal Sized switch, the equal-ward
-    map or the key's long note, which /forecast carries. Refuses a sheet
+    map or the key's long note, which /forecast carries. The caption is
+    /forecast's own, note removed, so its words about the council bar the
+    map still draws come from where /forecast's do. Refuses a sheet
     whose map has lost a piece it cuts by.
 
     The cut keeps ``render_map``'s own region markers round it: its figures
@@ -407,10 +409,14 @@ def home_map(sheet: str) -> str:
         i = region.index(start)
         return region[i:region.index(end, i)]
     box = cut('<div class="mapbox">', "\n      <figcaption")
-    key = cut('<span class="mapkey-parties">', '<br><span class="mapkey-note">')
+    caption = cut('<figcaption class="mapcaption">', "</figcaption>") + "</figcaption>"
+    import re as _re
+    caption, n = _re.subn(r'\s*<br><span class="mapkey-note">[^<]*</span>', "", caption)
+    if n != 1:
+        raise SystemExit(f"the forecast map's key has {n} long notes, not one, "
+                         "for the home page's map to leave out")
     return (f'{render_map.MARK_START}\n    <figure class="homemap">\n      {box.strip()}\n'
-            f'      <figcaption class="mapcaption"><span>{key.strip()}</span>\n'
-            '        <span>Touch or hover any ward for its numbers.</span></figcaption>\n'
+            f'      {caption.strip()}\n'
             f'    </figure>\n    {render_map.MARK_END}')
 
 

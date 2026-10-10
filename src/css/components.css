@@ -105,6 +105,8 @@ details.rollup + details.rollup{margin-top:30px;padding-top:26px;
 .cta-quiet{min-height:46px;padding:10px 22px;background:transparent;color:var(--accent);
   border-color:var(--accent);box-shadow:none;font-size:14.5px;}
 .cta-quiet::after{content:"\2192";}
-.cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+/* hovered, it fills: the page's ground on the accent clears 4.5:1 in both
+   palettes, where the accent on --accent-soft did not in the light one */
+.cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--paper);}
 .cta-row{margin:22px 0 0;}
 @media (max-width:560px){.cta{display:flex;width:100%;padding:14px 18px;}}

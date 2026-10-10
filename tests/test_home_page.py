@@ -481,12 +481,14 @@ def test_the_home_map_is_cut_from_the_forecast_map():
         <span><span class="mapkey-parties">ANC DA</span>
     <span class="mapkey-item"><b>Solid colour</b></span>
     <br><span class="mapkey-note">A stripe for every party</span></span>
+        <span>The bar shows the whole council, in one typical simulation.</span>
       </figcaption>
     </figure>
   </details>
   """ + RM.MARK_END + "\n<p>after</p>")
     out = RH.home_map(sheet)
-    for kept in ('id="wardmap"', 'id="maptip"', "mapkey-parties", "Solid colour"):
+    for kept in ('id="wardmap"', 'id="maptip"', "mapkey-parties", "Solid colour",
+                 "one typical simulation", "</figcaption>"):
         assert kept in out, (kept, out)
     for dropped in ("maptoggle", "Normal Map", "mapkey-note", "<details", "before", "after"):
         assert dropped not in out, (dropped, out)
@@ -513,22 +515,58 @@ def test_the_home_map_is_cut_from_the_forecast_map():
     assert RM.MARK_START not in page and HC.MARK_START not in page
 
 
+def _listing_faults(out: str, own: str, others: list[str], sheet_end: str) -> list[str]:
+    """What is wrong with the list under the article ``own``: itself listed,
+    another missing, or a count that is not exactly the others'."""
+    listed = out[out.index("more-commentary"):out.index(sheet_end)]
+    faults = []
+    if f'href="{own}"' in listed:
+        faults.append(f"{own} lists itself")
+    faults += [f"{own} misses {h}" for h in others if f'href="{h}"' not in listed]
+    n = listed.count('<div class="item')
+    if n != len(others):
+        faults.append(f"{own} lists {n} items, not the {len(others)} others")
+    return faults
+
+
 def test_an_article_lists_the_others_but_not_itself():
     """`build_site.more_commentary` lists every OTHER article under an
-    article, before the sheet's end marker, and leaves any other page alone.
-    The article list is the shipped articles.toml (the only list there is);
-    the page is constructed."""
+    article, exactly once each and not itself, before the sheet's end marker,
+    and leaves any other page alone.
+
+    CONSTRUCTED: three articles in a scratch articles.toml and a toy page.
+    TWO-SIDED: the list holds exactly the others, no fewer and no more.
+    IT CAN SEE: the article's own entry put into its list is caught, and the
+    check goes quiet again when it is taken out."""
     import build_site as BS
-    articles = BS.article_meta("joburg")
-    assert len(articles) >= 2, f"articles.toml lists {len(articles)}"
+    toml = "".join(
+        f'[[article]]\n{"lead = true" + chr(10) if k == 0 else ""}date = "2026-08-0{k + 1}"\n'
+        f'title = "Piece {k}"\nhref = "piece-{k}"\nstandfirst = "About piece {k}."\n\n'
+        for k in range(3))
     page = "<div class=\"sheet\"><p>body</p>\n" + BS.SHEET_END
-    for output, art in articles.items():
-        out = BS.more_commentary(page, output, articles, city="joburg")
-        listed = out[out.index("more-commentary"):out.index(BS.SHEET_END)]
-        assert f'href="{art["href"]}"' not in listed, f"{output} lists itself"
-        others = [a["href"] for o, a in articles.items() if o != output]
-        assert all(f'href="{h}"' in listed for h in others), (output, others)
-    assert BS.more_commentary(page, "forecast.html", articles, city="joburg") == page
+    with tempfile.TemporaryDirectory() as tmp:
+        city_dir = Path(tmp)
+        (city_dir / "articles.toml").write_text(toml, encoding="utf-8")
+        articles = {f"{a['href']}.html": a for a in RH.load_articles(city_dir)}
+        assert len(articles) == 3, articles
+        outs = {}
+        for output, art in articles.items():
+            others = [a["href"] for o, a in articles.items() if o != output]
+            out = BS.more_commentary(page, output, articles, city_dir=city_dir)
+            assert _listing_faults(out, art["href"], others, BS.SHEET_END) == [], output
+            outs[output] = (out, art["href"], others)
+        assert BS.more_commentary(page, "forecast.html", articles, city_dir=city_dir) == page
+
+        # IT CAN SEE: a self-listing, then reverted
+        output, (out, own, others) = next(iter(outs.items()))
+        own_item = RH._articles(city_dir).split('<div class="item')
+        own_item = next('<div class="item' + p for p in own_item[1:] if f'href="{own}"' in p)
+        broken = out.replace(BS.SHEET_END, own_item + BS.SHEET_END, 1)
+        faults = _listing_faults(broken, own, others, BS.SHEET_END)
+        assert any("lists itself" in f for f in faults), faults
+        reverted = broken.replace(own_item, "", 1)
+        assert reverted == out
+        assert _listing_faults(reverted, own, others, BS.SHEET_END) == []
 
 
 if __name__ == "__main__":

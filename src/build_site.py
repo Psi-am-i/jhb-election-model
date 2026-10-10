@@ -626,11 +626,12 @@ SHEET_END = "</div><!-- /sheet -->"
 
 
 def more_commentary(html: str, output: str, articles: dict[str, dict],
-                    city: str | None = None) -> str:
+                    city: str | None = None, city_dir: Path | None = None) -> str:
     """An article page with the other articles listed under it (owner,
     2026-10-10: a reader moves between items without going back to
     /commentary). The list is /commentary's own (`render_home._articles`),
-    without the article itself. Any other page is returned unchanged."""
+    without the article itself, read from ``city_dir`` (default
+    ``content/<city>``). Any other page is returned unchanged."""
     art = articles.get(output)
     if art is None:
         return html
@@ -638,8 +639,9 @@ def more_commentary(html: str, output: str, articles: dict[str, dict],
         raise SystemExit(f"{output}: no single {SHEET_END} marker to put the "
                          "other articles before")
     import render_home
-    city = city or cityconfig.active().slug
-    feed = render_home._articles(REPO_ROOT / "content" / city, exclude=art["href"]).strip()
+    if city_dir is None:
+        city_dir = REPO_ROOT / "content" / (city or cityconfig.active().slug)
+    feed = render_home._articles(city_dir, exclude=art["href"]).strip()
     section = ('<section class="more-commentary" aria-label="More commentary">\n'
                '  <div class="kicker">More commentary</div>\n'
                f'  {feed}\n</section>\n')
