@@ -359,10 +359,22 @@ def turnout() -> str:
 
 
 def _spec(processed: Path) -> tuple[dict, str]:
+    """The target's pool spec and its file name, or ``SystemExit`` when it is
+    stale, unverifiable or unreadable.
+
+    Through ``montecarlo.read_pool_spec``, the check ``run_model`` applies, and
+    with its refusal text (step 8 review row 4): the composition this page
+    prints must come from a spec the forecast would accept. Until 2026-10-10
+    this read the file with no check.
+    """
     import cityconfig
-    year = cityconfig.target().year
-    name = f"pools_{year}.json"
-    return json.loads((processed / name).read_text(encoding="utf-8")), name
+    import montecarlo
+    target = cityconfig.target()
+    name = f"pools_{target.year}.json"
+    spec, why_not = montecarlo.read_pool_spec(processed / name, target.city, target)
+    if why_not:
+        raise montecarlo.stale_pool_spec_refusal(processed / name, why_not)
+    return spec, name
 
 
 def _new_parties(spec: dict, codes) -> dict:

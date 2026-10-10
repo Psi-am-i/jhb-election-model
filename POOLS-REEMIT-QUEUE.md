@@ -15,7 +15,9 @@ as we move along."*
 raises `SystemExit` naming the spec, the reason and this file. From the moment a
 queued change lands until the re-emit, every run on an emitted spec refuses —
 `compare_history`, `export_draws`, `citywide_table.py`'s rebuild, the levers
-sweep and every test that runs the model. **So the re-emit (step 2) is the first
+sweep and every test that runs the model — and so do the two page builders
+that read `pools_2026.json` directly (`export_interactive`, `build_play`'s
+composition block; same check, same message, no escape). **So the re-emit (step 2) is the first
 thing the window does**, before any table rebuild, record emit or measurement.
 The only escape is `scenario["allow_stale_pools"] = True`, in-process, for
 diagnosis; nothing it produces is a measurement (MACHINERY.md, "Knowing whether

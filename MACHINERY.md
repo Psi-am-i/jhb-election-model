@@ -1445,8 +1445,20 @@ implied:**
 it differs, **refuses** (since 2026-10-10, batch item 10): `SystemExit` naming
 the spec's path, `stale_reason`'s sentence and "Re-emit
 (POOLS-REEMIT-QUEUE.md)". A `stale_reason` that itself raises refuses the same
-way, with the exception's repr. The refusal comes after `02_pools_artefact` is
-written (so a refused run's trace says why) and before anything reads the spec.
+way, with the exception's repr, and so does a file that is not readable JSON
+(`02_pools_artefact` then records `artefact_key` and `fitted_on` as null). The
+refusal comes after `02_pools_artefact` is written (so a refused run's trace
+says why) and before anything reads the spec: a refused run leaves
+`scenario["pools"]` empty, builds no `_vd_pool_composition`, and writes no later
+stage.
+
+**One check, three readers.** `montecarlo.read_pool_spec` reads the file and
+returns the spec with `stale_reason`'s sentence (or the parse or check error);
+`montecarlo.stale_pool_spec_refusal` builds the refusal text. `run_model`,
+`export_interactive.read_pool_spec_or_refuse` (the interactive's
+`pools_2026.json`) and `build_play._spec` (the /play/ composition block) all call
+them, so the published interactive refuses exactly what the forecast refuses.
+The two page readers have no escape.
 Until then it printed a warning and carried on, so a run between a `pools.py`
 change and its re-emit measured a model nobody had built.
 
@@ -1464,8 +1476,10 @@ Held up by: every committed spec must be current
 (`test_chain::test_every_emitted_pool_spec_carries_a_current_artefact_key`), a
 perturbed key must be reported (`test_chain`), and G10
 (`tests/test_stage_inputs.py`, section 6) on a constructed spec: a moved
-`pools_sha` refuses, a raising `stale_reason` refuses, a current spec runs, and
-the escape runs and records itself.
+`pools_sha` refuses, a raising `stale_reason` refuses, a spec that is not JSON
+refuses even through the escape, a current spec runs, the escape runs and
+records itself, a refused run has consumed nothing, and both page readers
+refuse the same three cases through the shared check.
 
 ⚠️ **Consequence: between a `pools.py`/emit-dependency change and the re-emit,
 no run on an emitted spec is possible**, the suite's model runs included. That

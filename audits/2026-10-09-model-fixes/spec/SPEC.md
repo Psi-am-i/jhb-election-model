@@ -1451,3 +1451,43 @@ above:** `test_ipf_feasibility::test_no_numeric_module_constant_is_a_default_arg
 default arguments) and
 `test_reader_seats::test_the_seat_service_copies_exactly_the_import_closure_of_reader_seats`
 (`byelections.py` added to `sync_seats_py.mjs` `FILES`).
+
+### R3.6, step 8 review fix-round addendum (writer, 2026-10-10, `STEP8-SUMMARY.md` rows 2-6)
+
+**Rows 4 and 5: the site build now refuses a stale spec until the window.**
+`export_interactive.read_pool_spec_or_refuse` and `build_play._spec` read their
+spec through `montecarlo.read_pool_spec`, the check `run_model` uses, and refuse
+with `montecarlo.stale_pool_spec_refusal`'s text; an unreadable spec refuses in
+all three. `build_play._spec` feeds the /play/ composition block, which every
+full site build renders, so every test that builds the site refuses on the
+stale `pools_2026.json` from this commit until the re-emit. Each must turn
+green after the window; one that does not is a finding. Attribution: the same
+modules run before the change (`d9f35be`; `test_publication_ledger` and
+`test_provenance_dates` on `467ac2b`, which differs from it in
+`MODEL-INDEX.md` and `prereg/` only) and after it, failure messages read.
+
+- **Newly red, the site build refuses on the stale spec (30):**
+  `test_your_forecast_page` (25 of 31; the 25 that call `_built()`),
+  `test_publication_ledger` (3: `test_a_published_token_that_left_the_registry_stops_the_build`,
+  `test_the_ledger_block_in_the_real_build_actually_executes`,
+  `test_the_real_build_refuses_to_publish_an_unattributable_run`),
+  `test_provenance_dates` (`test_a_figure_typed_before_it_was_a_token_is_dated_from_its_first_publication`,
+  `test_the_build_refuses_a_live_figure_in_a_dated_passage`,
+  `test_the_built_tooltip_dates_an_unchanged_figure_to_its_first_edition`),
+  `test_published_page::test_the_page_diff_is_readable_and_names_the_token_first`.
+- **Already red, now refused earlier on the same spec (earlier cause masked
+  until the window, then re-read):**
+  `test_published_page::test_the_published_pages_are_what_this_tree_builds_today`
+  and `test_provenance_dates::test_every_registered_entry_clears_something_on_every_page_it_names`
+  (both the 40% methodology prose, owned by the site step; step 8
+  fix-round addition above).
+- **Fixed in the same commit:** `test_standalone_modules::test_the_allowlist_exempts_nothing_that_is_already_imported`
+  turned red because G10's reader test imports `export_interactive`; its
+  `ENTRY_POINTS` exemption was deleted and its text moved to the module's
+  docstring, as the test prescribes.
+
+No test sets `allow_stale_pools` to stay green; the page readers have no escape.
+
+**Row 2** adds no red: G10 (a), (b) and (d) assert that a refused run has
+consumed nothing (`scenario["pools"]` empty, no `_vd_pool_composition`, no stage
+after `02_pools_artefact`).

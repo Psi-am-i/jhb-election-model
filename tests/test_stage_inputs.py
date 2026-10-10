@@ -1307,6 +1307,30 @@ def _refusal(target, scenario, run_dir) -> str:
     raise AssertionError("run_model ran to the end on a spec it must refuse")
 
 
+_G10_LAST_STAGE = "02_pools_artefact"
+
+
+def _assert_refused_before_the_spec_is_consumed(scenario, stages):
+    """The refusal comes BEFORE anything reads the spec (step 8 review row 2).
+
+    ``run_model`` fills ``scenario`` in place, so the dict the caller passed
+    shows what was consumed: a refused run leaves ``pools`` at its ``DEFAULTS``
+    value (empty) and never builds ``_vd_pool_composition``, and its trace
+    holds no stage after ``02_pools_artefact``. Checking only for
+    ``03_roster`` could not see a refusal moved down to just before the first
+    random draw, which runs after the spec is copied in and the census and
+    VD map are read; this sees it.
+    """
+    assert not scenario.get("pools"), (
+        f"the refused run copied the spec's pools in first: "
+        f"{sorted(scenario.get('pools') or {})[:5]}")
+    assert "_vd_pool_composition" not in scenario, (
+        "the refused run read the census and VD map before refusing")
+    later = sorted(k for k in stages if k > _G10_LAST_STAGE)
+    assert not later, f"stages written after the refusal: {later}"
+    assert _G10_LAST_STAGE in stages, sorted(stages)
+
+
 def test_a_current_spec_is_not_refused():
     """The positive control: on a current spec the refusal stays quiet.
 
@@ -1344,6 +1368,7 @@ def test_a_spec_with_a_moved_pools_sha_stops_the_run():
     assert stages["02_pools_artefact"]["stale_allowed"] is False
     assert "03_roster" not in stages, (
         f"the run went on past the refusal: {sorted(stages)}")
+    _assert_refused_before_the_spec_is_consumed(scenario, stages)
 
 
 def test_a_staleness_check_that_raises_stops_the_run():
@@ -1368,8 +1393,105 @@ def test_a_staleness_check_that_raises_stops_the_run():
             text = _refusal(target, scenario, tmp / "trace")
         finally:
             pools.stale_reason = real
+        stages = _read_trace(tmp / "trace")
     assert str(path) in text and _G10_REFUSAL in text, text
     assert repr(RuntimeError("probe: stale_reason could not run")) in text, text
+    _assert_refused_before_the_spec_is_consumed(scenario, stages)
+
+
+def test_a_spec_that_is_not_json_stops_the_run_even_through_the_escape():
+    """G10 (d): an unreadable spec refuses with the same message form.
+
+    Until step 8 review row 5 the file was parsed outside the check, so a
+    truncated or corrupt spec raised ``JSONDecodeError`` instead of the
+    refusal. It now refuses naming the file, the decoder's error and the
+    remedy, records ``artefact_key``/``fitted_on`` as null, and the escape
+    does not open it: there is nothing to run on.
+    """
+    import json as _json
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        target, scenario, path = _g10_target(tmp)
+        path.write_text(path.read_text()[:-40])
+        for escape in (False, True):
+            scenario = mc.load_scenario(_G10Args())
+            if escape:
+                scenario["allow_stale_pools"] = True
+            run_dir = tmp / f"trace_{escape}"
+            text = _refusal(target, scenario, run_dir)
+            stages = _read_trace(run_dir)
+            assert str(path) in text and _G10_REFUSAL in text, text
+            assert _json.JSONDecodeError.__name__ in text, text
+            artefact = stages["02_pools_artefact"]
+            assert artefact["artefact_key"] is None, artefact
+            assert artefact["fitted_on"] is None, artefact
+            assert artefact["stale_allowed"] is False, artefact
+            _assert_refused_before_the_spec_is_consumed(scenario, stages)
+
+
+def test_the_interactive_readers_refuse_what_run_model_refuses():
+    """Step 8 review row 4: ``export_interactive`` and ``build_play`` read the
+    2026 spec that feeds the published interactive, and both now refuse a
+    stale, unverifiable or unreadable spec through ``mc.read_pool_spec`` with
+    ``mc.stale_pool_spec_refusal``'s text.
+
+    Constructed on G10's doctored joburg 2021 spec (each reader takes its
+    target from its caller, so the year is the test's choice): current is
+    read, a moved ``pools_sha`` refuses, invalid JSON refuses. Then the
+    delegation itself: ``mc.read_pool_spec`` replaced by one that rejects a
+    current spec with a probe reason makes BOTH readers refuse with that
+    reason, so neither carries a copy of the check.
+    """
+    import build_play
+    import export_interactive as EI
+
+    def readers(target, path):
+        return {
+            "export_interactive": lambda: EI.read_pool_spec_or_refuse(
+                target.city, target.year),
+            "build_play": lambda: build_play._spec(path.parent)[0],
+        }
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        target, _, path = _g10_target(tmp)
+        cityconfig.use_target(_G10_YEAR)
+        current = json.loads(path.read_text())
+        for name, read in readers(target, path).items():
+            assert read() == current, f"{name} did not read the current spec"
+
+        real = mc.read_pool_spec
+        mc.read_pool_spec = lambda *a, **k: (current, "probe: rejected")
+        try:
+            for name, read in readers(target, path).items():
+                try:
+                    read()
+                except SystemExit as exc:
+                    assert "probe: rejected" in str(exc), (name, exc)
+                    assert _G10_REFUSAL in str(exc), (name, exc)
+                else:
+                    raise AssertionError(
+                        f"{name} does not read through mc.read_pool_spec")
+        finally:
+            mc.read_pool_spec = real
+
+        for label, damage in (
+                ("pools_sha", lambda: path.write_text(json.dumps(
+                    {**current, "artefact_key": {
+                        **current["artefact_key"],
+                        "pools_sha": "0" * 16}}))),
+                ("JSONDecodeError", lambda: path.write_text(
+                    json.dumps(current)[:-40]))):
+            damage()
+            for name, read in readers(target, path).items():
+                try:
+                    read()
+                except SystemExit as exc:
+                    text = str(exc)
+                    assert str(path) in text and _G10_REFUSAL in text, (name, text)
+                    assert label in text, (name, label, text)
+                else:
+                    raise AssertionError(f"{name} read a spec with {label}")
 
 
 def test_the_escape_runs_a_stale_spec_and_records_that_it_did():

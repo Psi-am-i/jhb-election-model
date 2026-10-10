@@ -175,14 +175,6 @@ ENTRY_POINTS: dict[str, str] = {
         "counterfactuals'), run as a subprocess; also `python "
         "src/overhang_regimes.py` in its own docstring. Produces the "
         "regime-comparison table `render_sheet.py` publishes.",
-    "export_interactive":
-        "The `--interactive` step in `build_all.plan` ('interactive data "
-        "pack'), run as a subprocess. OPTIONAL and currently off by design — "
-        "it feeds `build_interactive.py`, which refuses. ⚠️ ON NOTICE: it is "
-        "the closest thing here to `leverage.py`'s position, because the only "
-        "thing that runs it is a flag nobody sets. PUBLISHING-BACKLOG.md §308 "
-        "carries the decision to port it; if that decision is reversed, this "
-        "module is retired, not left here.",
     "build_interactive":
         "The `--interactive` step in `build_all.plan` ('interactive page'), "
         "run as a subprocess. ⚠️ IT REFUSES AT IMPORT ON PURPOSE — its "

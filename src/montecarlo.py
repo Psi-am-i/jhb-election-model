@@ -4238,6 +4238,47 @@ def roster_universe_check(roster, roster_state: str, universe,
             "population": len(population)}
 
 
+def read_pool_spec(spec_path: Path, city, target) -> tuple[dict | None, str | None]:
+    """Read a pool spec and say why it must not be trusted, or None if current.
+
+    Returns ``(spec, why_not)``: ``why_not`` is ``None`` only when the spec at
+    ``spec_path`` is current for ``target``.
+
+    The ONE staleness check for every reader of an emitted ``pools_*.json``
+    (``run_model``, ``export_interactive.read_pool_spec_or_refuse``,
+    ``build_play._spec``). Three ways it is not current, each a sentence:
+
+    * the file is not readable JSON: ``spec`` is ``None`` and the reason says
+      so (it used to raise ``JSONDecodeError`` past the check; step 8 review
+      row 5);
+    * ``pools.stale_reason`` names a moved key;
+    * ``pools.stale_reason`` itself raises: UNVERIFIED, never current. This
+      once set "no reason", which is the value meaning "fresh", so any error
+      inside the check reported the spec as current.
+    """
+    try:
+        spec = json.loads(Path(spec_path).read_text(encoding="utf-8"))
+    except Exception as exc:
+        return None, (f"it could not be read as a spec ({exc!r}) — treat "
+                      f"this file as UNREADABLE, not as current")
+    try:
+        import pools as _pools_key
+        stale = _pools_key.stale_reason(spec, city, target)
+    except Exception as exc:
+        stale = (f"staleness could not be determined ({exc!r}) — "
+                 f"treat this spec as UNVERIFIED, not as current")
+    return spec, stale
+
+
+def stale_pool_spec_refusal(spec_path, why_not: str) -> SystemExit:
+    """The SystemExit every reader raises for a spec ``read_pool_spec`` rejects.
+
+    It names the file, the reason, and the remedy. One text, so a reader's
+    message cannot drift from ``run_model``'s."""
+    return SystemExit(f"{spec_path} is stale: {why_not}. "
+                      f"Re-emit (POOLS-REEMIT-QUEUE.md).")
+
+
 def run_model(target, scenario: dict,
               data_dir: Path = Path("data/raw/elections"),
               processed: Path | None = None,
@@ -4275,10 +4316,12 @@ def run_model(target, scenario: dict,
 
     **A stale or unverifiable pool spec stops the run** (``SystemExit`` naming
     the file, the reason, and "Re-emit (POOLS-REEMIT-QUEUE.md)"), whether
-    ``pools.stale_reason`` reports a moved key or itself raises. The one
-    escape is ``scenario["allow_stale_pools"] = True``, set in-process by a
-    diagnostic run; it is not in ``DEFAULTS``, so no command line, scenario
-    file or city file can set it. A run through it records
+    ``pools.stale_reason`` reports a moved key or itself raises, or the file is
+    not readable JSON (:func:`read_pool_spec`, the one check every spec reader
+    shares). The one escape is ``scenario["allow_stale_pools"] = True``, set
+    in-process by a diagnostic run; it is not in ``DEFAULTS``, so no command
+    line, scenario file or city file can set it, and it does not open an
+    unreadable spec. A run through it records
     ``02_pools_artefact.stale_allowed`` and ``_pools_stale_allowed``. A caller
     that supplies ``scenario["pools"]`` itself skips the spec, and the check,
     entirely; ``02_pools_artefact`` is then absent from its trace.
@@ -4325,25 +4368,19 @@ def run_model(target, scenario: dict,
     if not scenario.get("pools"):
         spec_path = target.city.processed / f"pools_{target.year}.json"
         if spec_path.exists():
-            spec = json.loads(spec_path.read_text())
             # IS THIS SPEC STILL THE ONE THIS CODE WOULD PRODUCE? The artefact
             # is precomputed, so `pools.py` can change without it changing, and
             # a measurement taken across that gap is not a measurement. This
             # has already cost twice; see `pools.artefact_key`.
-            try:
-                import pools as _pools_key
-                _stale = _pools_key.stale_reason(spec, target.city, target)
-            except Exception as exc:
-                # ⛔ DO NOT FAIL OPEN. This used to set `_stale = None`, which
-                # is the value meaning "this spec is current" — so any error
-                # inside `stale_reason`, including the `KeyError` its own
-                # docstring records, was REPORTED AS FRESH. A guard that
-                # answers "fine" when it could not run is worse than no guard,
-                # and it is this project's empty-record-vs-unreachable-record
-                # class exactly. A spec whose staleness cannot be determined
-                # is refused below exactly as a stale one is.
-                _stale = (f"staleness could not be determined ({exc!r}) — "
-                          f"treat this spec as UNVERIFIED, not as current")
+            #
+            # ⛔ DO NOT FAIL OPEN. `read_pool_spec` returns a reason, never
+            # None, when the file is not JSON or `stale_reason` itself raises
+            # (empty-record-vs-unreachable-record): a spec whose staleness
+            # cannot be determined is refused below exactly as a stale one
+            # is. The same function serves `export_interactive` and
+            # `build_play`, so the published interactive refuses what this
+            # refuses.
+            spec, _stale = read_pool_spec(spec_path, target.city, target)
             # ⛔ A STALE OR UNVERIFIABLE SPEC STOPS THE RUN (item 10,
             # 2026-10-10). Until then this printed a warning and carried on,
             # so every number measured across a `pools.py` change and before
@@ -4361,23 +4398,24 @@ def run_model(target, scenario: dict,
             # travels with the scenario into `forecast_summary.json`. A trace
             # from such a run fails `pools.stale` and `pools.stale_allowed`
             # in `tests/test_stage_inputs.py`, and `01_scenario_in` shows the
-            # extra key, by design: it is not a measurement.
-            _allowed = bool(_stale) and scenario.get("allow_stale_pools") is True
+            # extra key, by design: it is not a measurement. An UNREADABLE
+            # spec (`spec is None`) refuses even through the escape: there is
+            # nothing to run on.
+            _allowed = (bool(_stale) and spec is not None
+                        and scenario.get("allow_stale_pools") is True)
             if _stale:
                 print(f"  ! {spec_path} is STALE: {_stale}")
             scenario["_pools_stale"] = _stale
             scenario["_pools_stale_allowed"] = _allowed
             trace.put("02_pools_artefact", {
                 "path": str(spec_path),
-                "artefact_key": spec.get("artefact_key"),
+                "artefact_key": (spec or {}).get("artefact_key"),
                 "stale_reason": _stale,
                 "stale_allowed": _allowed,
-                "fitted_on": spec.get("fitted_on"),
+                "fitted_on": (spec or {}).get("fitted_on"),
             })
             if _stale and not _allowed:
-                raise SystemExit(
-                    f"{spec_path} is stale: {_stale}. "
-                    f"Re-emit (POOLS-REEMIT-QUEUE.md).")
+                raise stale_pool_spec_refusal(spec_path, _stale)
             if _allowed:
                 print(f"  ! allow_stale_pools: this diagnostic run reads "
                       f"{spec_path} although it is stale. Nothing it "
