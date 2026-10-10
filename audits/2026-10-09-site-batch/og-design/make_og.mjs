@@ -310,20 +310,33 @@ function forecastMap() {
   let s = frame("forecast", `Forecast of ${generated}. Johannesburg council, 270 seats, vote on 4 November 2026.`);
   const hf = 70, head = ["Who governs", "Johannesburg?"];
   head.forEach((l, k) => { s += text(X, capBase(hf) + k * hf * 1.08, l, hf, "serifSemi"); });
-  const yA = capBase(hf) + hf * 1.08 + 92;
+  const yA = capBase(hf) + hf * 1.08 + 64;
   const pa = token(fc, "p_anc_largest") || token(page("nobody-will-win.html"), "p_anc_largest");
   const pd = token(fc, "p_da_largest") || token(page("nobody-will-win.html"), "p_da_largest");
   const p1 = token(page("nobody-will-win.html"), "p_alone");
-  s += text(X, yA, "Most seats:", 25, "sans", { fill: C.ink3 });
-  s += text(X, yA + 42, `ANC ${pa} chance`, 34, "sansSemi") + text(X, yA + 84, `DA ${pd} chance`, 34, "sansSemi");
-  s += text(X, yA + 136, "One party with a majority:", 25, "sans", { fill: C.ink3 });
-  s += text(X, yA + 178, `${p1} chance`, 34, "sansSemi");
-  // the key: a swatch of two-colour stripes, and the words
-  const ky = yA + 214;
-  s += `<defs><clipPath id="key"><rect x="${X}" y="${ky}" width="34" height="22" rx="3"/></clipPath></defs><g clip-path="url(#key)">` + rect(X, ky, 34, 22, "#1B7A3D") +
-    `<g transform="rotate(45 ${X + 17} ${ky + 11})">` + [-4, -2, 0, 2, 4].map(k => rect(X + 17 + k * 7 - 1.6, ky - 30, 3.2, 82, "#1B5EA8")).join("") + "</g></g>";
-  s += text(X + 46, ky + 18, "Striped: contested wards", 22, "sans", { fill: C.ink2 });
-  const mh = 384, mw = mh * 840 / 596, mx = R + 10 - mw;
+  // Named coalitions, each the chance its parties together hold a majority.
+  // MOCK VALUES: ANC + DA is the page's token p_anc_da; the other three were
+  // computed on the published draws (5,000, law deduct) on 2026-10-10 and need
+  // tokens of their own before the build can draw this card.
+  const COALITIONS = [
+    ["ANC + DA", token(fc, "p_anc_da")],
+    ["DA, ActionSA, PA + smaller partners", "29%"],
+    ["ANC, EFF, PA + Al Jama-ah", "18%"],
+    ["ANC + EFF + MK", "12%"],
+  ];
+  const LW = 600 - X;                                // the left column, clear of the map
+  const row = (y, label, value, fs) => text(X, y, label, fs, "sans", { fill: C.ink2 }) + text(X + LW, y, value, fs, "sansSemi", { anchor: "end" });
+  s += text(X, yA, "Most seats", 24, "sans", { fill: C.ink3 });
+  s += row(yA + 38, "ANC", pa, 30) + row(yA + 74, "DA", pd, 30);
+  s += row(yA + 116, "One party alone, a majority", p1, 26);
+  s += text(X, yA + 160, "Coalitions with a majority", 24, "sans", { fill: C.ink3 });
+  COALITIONS.forEach(([l, v], k) => { s += row(yA + 196 + k * 35, l, v, 26); });
+  // the key sits under the map
+  const ky = FOOT - 34, kx = 700;
+  s += `<defs><clipPath id="key"><rect x="${kx}" y="${ky}" width="34" height="22" rx="3"/></clipPath></defs><g clip-path="url(#key)">` + rect(kx, ky, 34, 22, "#1B7A3D") +
+    `<g transform="rotate(45 ${kx + 17} ${ky + 11})">` + [-4, -2, 0, 2, 4].map(k => rect(kx + 17 + k * 7 - 1.6, ky - 30, 3.2, 82, "#1B5EA8")).join("") + "</g></g>";
+  s += text(kx + 46, ky + 18, "Striped: contested wards", 20, "sans", { fill: C.ink2 });
+  const mh = 330, mw = mh * 840 / 596, mx = R + 10 - mw;
   s += `<svg x="${n1(mx)}" y="${TOP + LOGO_H + 6}" width="${n1(mw)}" height="${n1(mh)}" viewBox="0 0 840 596">${inner}</svg>`;
   return s + "</svg>";
 }
