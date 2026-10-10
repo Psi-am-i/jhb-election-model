@@ -88,3 +88,23 @@ details.rollup>summary h2{margin:0;}
    looking for it, which is what a minor boundary is. */
 details.rollup + details.rollup{margin-top:30px;padding-top:26px;
   border-top:1px solid var(--rule-soft);}
+
+/* THE BUTTON (owner, 2026-10-10: "a big, obvious PREDICT THE ELECTION
+   YOURSELF button"; "large, prominent buttons"). A link or a <button> with
+   the class `cta`: large capitals on a solid ground in the reader's hue, the
+   colour of everything the reader makes. `cta-quiet` is the same button in
+   outline, in the model's accent, for a second way out beside a first. */
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  box-sizing:border-box;min-height:56px;padding:14px 30px;border:2px solid var(--reader);
+  border-radius:6px;background:var(--reader);color:var(--paper);
+  font:750 clamp(16px,1.9vw,20px)/1.2 var(--sans);letter-spacing:.07em;text-transform:uppercase;
+  text-align:center;text-decoration:none;cursor:pointer;
+  box-shadow:0 2px 0 color-mix(in srgb,var(--reader) 55%,var(--paper));}
+.cta:hover,.cta:focus-visible{background:color-mix(in srgb,var(--reader) 82%,var(--ink));
+  border-color:color-mix(in srgb,var(--reader) 82%,var(--ink));color:var(--paper);text-decoration:none;}
+.cta-quiet{min-height:46px;padding:10px 22px;background:transparent;color:var(--accent);
+  border-color:var(--accent);box-shadow:none;font-size:14.5px;}
+.cta-quiet::after{content:"\2192";}
+.cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+.cta-row{margin:22px 0 0;}
+@media (max-width:560px){.cta{display:flex;width:100%;padding:14px 18px;}}

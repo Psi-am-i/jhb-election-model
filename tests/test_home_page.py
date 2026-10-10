@@ -161,7 +161,11 @@ def test_regenerating_clears_exactly_the_regions_render_home_owns():
 
     kept = {n for n in names if sentinel in _body(filled, n)}
     cleared = names - kept
-    map_regions = {_marker_name(RM.MARK_START), _marker_name(HC.MARK_START)}
+    # The map generators' regions, where the page carries them. Since
+    # 2026-10-10 it carries neither: its map is cut from /forecast's at build
+    # time (`render_home.home_map`, the HOMEMAP marker), so every region the
+    # page declares is render_home's own.
+    map_regions = {_marker_name(RM.MARK_START), _marker_name(HC.MARK_START)} & names
 
     assert kept == map_regions, (
         f"render_home left {sorted(kept)} untouched; the regions it does not "
@@ -458,6 +462,65 @@ def test_the_typed_figure_gate_reaches_the_home_page():
     reverted = broken.replace(fault, "")
     assert reverted == rendered, "the mutation did not revert byte-exact"
     assert statlib.audit(reverted, page="index.html", **audit_cfg)[0] == before
+
+
+def test_the_home_map_is_cut_from_the_forecast_map():
+    """The home page's map (`render_home.home_map`) is /forecast's map without
+    its switch, its equal-ward map or its long key, cut from the map region of
+    a CONSTRUCTED sheet; and a sheet that has lost a piece it cuts by is
+    refused, not cut wrongly."""
+    sheet = ("<p>before</p>\n" + RM.MARK_START + """
+  <details class="rollup"><summary>The map</summary>
+    <div class="maptoggle"><button data-show="geo">Normal Map</button></div>
+    <figure>
+      <div class="mapbox">
+      <svg id="wardmap" class="mapsvg"><path data-tip="Ward 1"></path></svg>
+      <div id="maptip" class="maptip" hidden></div>
+      </div>
+      <figcaption class="mapcaption">
+        <span><span class="mapkey-parties">ANC DA</span>
+    <span class="mapkey-item"><b>Solid colour</b></span>
+    <br><span class="mapkey-note">A stripe for every party</span></span>
+      </figcaption>
+    </figure>
+  </details>
+  """ + RM.MARK_END + "\n<p>after</p>")
+    out = RH.home_map(sheet)
+    for kept in ('id="wardmap"', 'id="maptip"', "mapkey-parties", "Solid colour"):
+        assert kept in out, (kept, out)
+    for dropped in ("maptoggle", "Normal Map", "mapkey-note", "<details", "before", "after"):
+        assert dropped not in out, (dropped, out)
+    # IT CAN SEE: a sheet whose map lost its box is refused
+    try:
+        RH.home_map(sheet.replace('<div class="mapbox">', '<div class="box">'))
+    except SystemExit as exc:
+        assert "mapbox" in str(exc), exc
+    else:
+        raise AssertionError("a map without its box was cut anyway")
+    # the shipped page carries the marker once, and no map region of its own
+    page = PAGE.read_text(encoding="utf-8")
+    assert page.count(RH.HOME_MAP_MARKER) == 1, "home.html has no single map marker"
+    assert RM.MARK_START not in page and HC.MARK_START not in page
+
+
+def test_an_article_lists_the_others_but_not_itself():
+    """`build_site.more_commentary` lists every OTHER article under an
+    article, before the sheet's end marker, and leaves any other page alone.
+    The article list is the shipped articles.toml (the only list there is);
+    the page is constructed."""
+    import build_site as BS
+    import cityconfig
+    cityconfig.use("joburg")
+    articles = BS.article_meta("joburg")
+    assert len(articles) >= 2, f"articles.toml lists {len(articles)}"
+    page = "<div class=\"sheet\"><p>body</p>\n" + BS.SHEET_END
+    for output, art in articles.items():
+        out = BS.more_commentary(page, output, articles, city="joburg")
+        listed = out[out.index("more-commentary"):out.index(BS.SHEET_END)]
+        assert f'href="{art["href"]}"' not in listed, f"{output} lists itself"
+        others = [a["href"] for o, a in articles.items() if o != output]
+        assert all(f'href="{h}"' in listed for h in others), (output, others)
+    assert BS.more_commentary(page, "forecast.html", articles, city="joburg") == page
 
 
 if __name__ == "__main__":

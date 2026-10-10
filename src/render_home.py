@@ -374,6 +374,40 @@ def _seats(summary: dict, tok, processed: Path) -> str:
             + "\n" + note)
 
 
+#: Where the home page's map goes (home.html), filled at build time by
+#: :func:`home_map` (`build_site.fill_home_map`).
+HOME_MAP_MARKER = "<!-- __HOMEMAP__ -->"
+
+
+def home_map(sheet: str) -> str:
+    """The home page's map: the simplified version of the forecast page's
+    (owner, 2026-10-10: "a simplified version, not a copy"), cut from the
+    map ``render_map`` wrote into ``sheet`` (forecast-sheet.html) at build
+    time, so the two maps are always the same run. The map itself with its
+    ward tips and the key's party colours and its solid/stripes line; not the
+    heading, the explanation, the Normal/Equal Sized switch, the equal-ward
+    map or the key's long note, which /forecast carries. Refuses a sheet
+    whose map has lost a piece it cuts by."""
+    import render_map
+    if sheet.count(render_map.MARK_START) != 1:
+        raise SystemExit("forecast-sheet.html has no single map region for the "
+                         "home page's map")
+    region = sheet[sheet.index(render_map.MARK_START):sheet.index(render_map.MARK_END)]
+
+    def cut(start: str, end: str) -> str:
+        if region.count(start) != 1 or end not in region[region.index(start):]:
+            raise SystemExit(f"the forecast map no longer has {start!r} ... {end!r}, "
+                             "which the home page's map is cut by")
+        i = region.index(start)
+        return region[i:region.index(end, i)]
+    box = cut('<div class="mapbox">', "\n      <figcaption")
+    key = cut('<span class="mapkey-parties">', '<br><span class="mapkey-note">')
+    return (f'<figure class="homemap">\n      {box.strip()}\n'
+            f'      <figcaption class="mapcaption"><span>{key.strip()}</span>\n'
+            '        <span>Touch or hover any ward for its numbers.</span></figcaption>\n'
+            '    </figure>')
+
+
 def load_articles(city_dir: Path) -> list[dict]:
     """The articles in content/<city>/articles.toml: the one reader of that
     file. The home page's and /commentary's lists, and each article page's
@@ -391,8 +425,11 @@ def load_articles(city_dir: Path) -> list[dict]:
     return items
 
 
-def _articles(city_dir: Path) -> str:
-    items = load_articles(city_dir)
+def _articles(city_dir: Path, exclude: str | None = None) -> str:
+    """The list of articles: the home page's, /commentary's and, without the
+    article itself (``exclude``, its href), the one under each article
+    (``build_site.more_commentary``). One definition for all three."""
+    items = [a for a in load_articles(city_dir) if a["href"] != exclude]
     out = []
     # The lead first, then the rest newest first.
     for a in sorted(items, key=lambda x: (bool(x.get("lead")), x["date"]),

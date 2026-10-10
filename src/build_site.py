@@ -307,7 +307,7 @@ def inject_nav(html: str, active_href: str, og_meta: str | None = None) -> str:
     # Footer goes at the end of the content container so it aligns with it.
     # Marker only — an earlier fallback guessed at closing tags and prepended
     # the footer above the doctype on the sheet. Fail loudly instead.
-    marker_close = "</div><!-- /sheet -->"
+    marker_close = SHEET_END
     if marker_close not in html:
         raise SystemExit("artefact page lacks the </div><!-- /sheet --> container marker")
     return html.replace(marker_close, FOOTER + "\n" + marker_close, 1)
@@ -604,6 +604,46 @@ def fill_commentary(html: str, city: str | None = None) -> str:
     city = city or cityconfig.active().slug
     return html.replace(COMMENTARY_MARKER,
                         render_home._articles(REPO_ROOT / "content" / city).strip(), 1)
+
+
+def fill_home_map(html: str) -> str:
+    """The home page's map (`render_home.home_map`), cut at build time from
+    the map in forecast-sheet.html. A page without the marker is returned
+    unchanged; a page with two is refused."""
+    import render_home
+    n = html.count(render_home.HOME_MAP_MARKER)
+    if n == 0:
+        return html
+    if n > 1:
+        raise SystemExit(f"{n} {render_home.HOME_MAP_MARKER} markers on one page")
+    sheet = (REPO_ROOT / "forecast-sheet.html").read_text(encoding="utf-8")
+    return html.replace(render_home.HOME_MAP_MARKER, render_home.home_map(sheet), 1)
+
+
+#: The end of the forecast sheet's content container (`inject_nav` puts the
+#: footer before it).
+SHEET_END = "</div><!-- /sheet -->"
+
+
+def more_commentary(html: str, output: str, articles: dict[str, dict],
+                    city: str | None = None) -> str:
+    """An article page with the other articles listed under it (owner,
+    2026-10-10: a reader moves between items without going back to
+    /commentary). The list is /commentary's own (`render_home._articles`),
+    without the article itself. Any other page is returned unchanged."""
+    art = articles.get(output)
+    if art is None:
+        return html
+    if html.count(SHEET_END) != 1:
+        raise SystemExit(f"{output}: no single {SHEET_END} marker to put the "
+                         "other articles before")
+    import render_home
+    city = city or cityconfig.active().slug
+    feed = render_home._articles(REPO_ROOT / "content" / city, exclude=art["href"]).strip()
+    section = ('<section class="more-commentary" aria-label="More commentary">\n'
+               '  <div class="kicker">More commentary</div>\n'
+               f'  {feed}\n</section>\n')
+    return html.replace(SHEET_END, section + SHEET_END, 1)
 
 
 def page_og(og: str, page_title: str, href: str, image: str | None = None,
@@ -1221,6 +1261,8 @@ def main(argv: list[str] | None = None) -> int:
         html = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{title}</title>",
                       html, count=1, flags=re.S)
         html = fill_commentary(html)
+        html = fill_home_map(html)
+        html = more_commentary(html, output, articles)
         html = inject_nav(html, href, og_meta)
         if page_type(href):
             html = html.replace('<body class="', f'<body class="{page_type(href).strip()} ', 1)
