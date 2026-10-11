@@ -34,3 +34,8 @@ export · 10 site UAT, promote, then redeploy joburg-seats.
   next round's work.
 - The `compress_levels` small-party lift: designed and reviewed now; included in
   this round only if it passes review before the canonical run.
+- 2026-10-12: owner moved the small-party line to 5% after the randomness audit
+  (1-5% parties behave like sub-1% in the record), and asked for a literature
+  review before more fixes: if the draw is wrong across the spectrum, a fix at one
+  end is a bandage. Turnout's two unconnected calculations: measured in this
+  round's plausibility check, fixed next round.
