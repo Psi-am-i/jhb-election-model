@@ -438,7 +438,7 @@
 }
 
 /* ---------- the share sheet, both sections (js/share-sheet.js): the seal, the image picker, the links ---------- */
-.sheet .shseal{margin:6px 0 0;}
-.sheet .shseal[hidden],.sheet .shentry[hidden]{display:none;}
-.sheet .shimgpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:10px 0 6px;}
-.sheet .shwa,.sheet .shx{text-decoration:none;}
+.sharesheet .shseal{margin:6px 0 0;}
+.sharesheet .shseal[hidden],.sharesheet .shentry[hidden]{display:none;}
+.sharesheet .shimgpick{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-2);margin:10px 0 6px;}
+.sharesheet .shwa,.sharesheet .shx{text-decoration:none;}

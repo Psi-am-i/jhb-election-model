@@ -161,35 +161,34 @@
       <button class="cta shareopen" type="button" disabled>Share this forecast</button>
       <p class="yf-ctanote">The map, the council and the seats as an image, and a link. Move a setting and it is your own forecast, sealed.</p>
       <p class="pl-note pl-sharewhy yf-slot"></p>
-      <dialog class="sheet" aria-labelledby="share-title">
-        <div class="dh"><h2 id="share-title">Share this forecast</h2>
-          <button class="x" type="button" aria-label="Close">×</button></div>
-        <div class="db">
-          <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
-            <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
-          <p class="stubnote shnamenote" role="status"></p>
-          <div class="urlrow">
-            <label class="visually-hidden" for="shurl">Link to this forecast</label>
-            <input class="shurl" id="shurl" type="text" readonly value="">
-            <button class="btn shcopy" type="button">Copy link</button>
-          </div>
-          <p class="stubnote shseal yf-slot" role="status"></p>
-          <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
-            against the result, under the name above, and a new name or a changed forecast is another entry.
-            The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>
-          <label class="shimgpick">Image <select class="shimg">
-            <option value="link">Link preview</option>
-            <option value="story">Story, for a phone</option></select></label>
-          <div class="preview"><img alt=""></div>
-          <div class="shcta">
-            <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
-            <a class="btn shwa" href="#" target="_blank" rel="noopener">WhatsApp</a>
-            <a class="btn shx" href="#" target="_blank" rel="noopener">X</a>
-            <button class="btn shdl" type="button" disabled>Download image</button>
-          </div>
-          <p class="toast" role="status" aria-live="polite"></p>
-        </div>
-      </dialog>
+      <dialog class="sharesheet" aria-labelledby="share-title">
+  <div class="dh"><h2 id="share-title">Share this forecast</h2>
+    <button class="x" type="button" aria-label="Close">×</button></div>
+  <div class="db">
+    <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
+      <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
+    <p class="stubnote shnamenote" role="status"></p>
+    <div class="urlrow">
+      <input class="shurl" type="text" readonly value="" aria-label="Link to this forecast">
+      <button class="btn shcopy" type="button">Copy link</button>
+    </div>
+    <p class="stubnote shseal yf-slot" role="status"></p>
+    <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
+      against the result, under the name above, and a new name or a changed forecast is another entry.
+      The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>
+    <label class="shimgpick">Image <select class="shimg">
+      <option value="link">Link preview</option>
+      <option value="story">Story, for a phone</option></select></label>
+    <div class="preview"><img alt=""></div>
+    <div class="shcta">
+      <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
+      <a class="btn shwa" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn shx" target="_blank" rel="noopener">X</a>
+      <button class="btn shdl" type="button" disabled>Download image</button>
+    </div>
+    <p class="toast" role="status" aria-live="polite"></p>
+  </div>
+</dialog>
     </div>
   </section>
 
@@ -349,35 +348,34 @@
       <div class="sharebox yf-cta" data-live="b-share">
         <button class="cta shareopen" type="button" disabled>Share this forecast</button>
         <p class="yf-ctanote">Your map, your seats, our chance for your outcome, and a sealed link.</p>
-        <dialog class="sheet" aria-labelledby="b-share-title">
-          <div class="dh"><h2 id="b-share-title">Share this forecast</h2>
-            <button class="x" type="button" aria-label="Close">×</button></div>
-          <div class="db">
-            <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
-              <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
-            <p class="stubnote shnamenote" role="status"></p>
-            <div class="urlrow">
-              <label class="visually-hidden" for="b-shurl">Link to this forecast</label>
-              <input class="shurl" id="b-shurl" type="text" readonly value="">
-              <button class="btn shcopy" type="button">Copy link</button>
-            </div>
-            <p class="stubnote shseal yf-slot" role="status"></p>
-            <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
-              against the result, under the name above, and a new name or a changed forecast is another entry.
-              The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>
-            <label class="shimgpick">Image <select class="shimg">
-              <option value="link">Link preview</option>
-              <option value="story">Story, for a phone</option></select></label>
-            <div class="preview"><img alt=""></div>
-            <div class="shcta">
-              <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
-              <a class="btn shwa" href="#" target="_blank" rel="noopener">WhatsApp</a>
-              <a class="btn shx" href="#" target="_blank" rel="noopener">X</a>
-              <button class="btn shdl" type="button" disabled>Download image</button>
-            </div>
-            <p class="toast" role="status" aria-live="polite"></p>
-          </div>
-        </dialog>
+        <dialog class="sharesheet" aria-labelledby="b-share-title">
+  <div class="dh"><h2 id="b-share-title">Share this forecast</h2>
+    <button class="x" type="button" aria-label="Close">×</button></div>
+  <div class="db">
+    <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
+      <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
+    <p class="stubnote shnamenote" role="status"></p>
+    <div class="urlrow">
+      <input class="shurl" type="text" readonly value="" aria-label="Link to this forecast">
+      <button class="btn shcopy" type="button">Copy link</button>
+    </div>
+    <p class="stubnote shseal yf-slot" role="status"></p>
+    <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
+      against the result, under the name above, and a new name or a changed forecast is another entry.
+      The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>
+    <label class="shimgpick">Image <select class="shimg">
+      <option value="link">Link preview</option>
+      <option value="story">Story, for a phone</option></select></label>
+    <div class="preview"><img alt=""></div>
+    <div class="shcta">
+      <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
+      <a class="btn shwa" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn shx" target="_blank" rel="noopener">X</a>
+      <button class="btn shdl" type="button" disabled>Download image</button>
+    </div>
+    <p class="toast" role="status" aria-live="polite"></p>
+  </div>
+</dialog>
       </div>
       <p class="stubnote yf-entries" data-live="entries" role="status" hidden></p>
     </div>

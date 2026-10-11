@@ -256,7 +256,7 @@ body:where(.pg-sheet){background:var(--paper); color:var(--ink-2);
 :where(.pg-sheet) .govfilter-label{font:650 11px var(--sans,sans-serif);letter-spacing:.08em;text-transform:uppercase;
     color:var(--ink-3);}
 :where(.pg-sheet) .govfilter select{font:500 13px var(--sans,sans-serif);padding:5px 8px;border:1px solid var(--rule);
-    border-radius:4px;background:var(--paper);color:var(--ink);min-width:118px;}
+    border-radius:4px;background:var(--paper);color:var(--ink);min-width:118px;min-height:auto;}
 :where(.pg-sheet) .govfilter button{font:600 12.5px var(--sans,sans-serif);padding:6px 12px;border:1px solid var(--rule);
     border-radius:4px;background:transparent;color:var(--ink-2);cursor:pointer;}
 :where(.pg-sheet) .govfilter button:hover{border-color:var(--accent);color:var(--accent);}
@@ -837,6 +837,80 @@ details.rollup + details.rollup{margin-top:30px;padding-top:26px;
 .cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--paper);}
 .cta-row{margin:22px 0 0;}
 @media (max-width:560px){.cta{display:flex;width:100%;padding:14px 18px;}}
+
+/* the site's ordinary button (the share sheet's, src/css/share-sheet.css, and
+   every control on "Your forecast"): outlined; `primary` filled in the
+   reader's colour, `model` outlined in the model's accent */
+.btn{box-sizing:border-box;font:600 14px/1 var(--sans);border-radius:4px;padding:11px 16px;cursor:pointer;
+  border:1px solid var(--rule);background:transparent;color:var(--ink);
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;min-height:44px;}
+.btn:hover{border-color:var(--reader);color:var(--ink);}
+.btn.primary{background:var(--reader);border-color:var(--reader);color:var(--paper);}
+.btn.primary:hover{filter:brightness(1.08);color:var(--paper);}
+.btn.model{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);}
+.btn.small{font-size:13px;padding:7px 11px;min-height:36px;}
+.btn[disabled],a.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
+/* `display` above would show a button the page hides (the share sheet's
+   Share…, where the browser has no Web Share) */
+.btn[hidden]{display:none;}
+
+/* the site's form controls: the share sheet's link on every page, and every
+   field and select on "Your forecast" (a page that styles its own, like the
+   forecast's coalition filter, says so in its own rule) */
+select,input[type="text"],input[type="email"],input[type="number"]{font:14px var(--sans);
+  color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;
+  padding:8px 10px;min-height:40px;}
+
+/* ---- src/css/share-sheet.css ---- */
+/* THE ONE SHARE SHEET (src/js/share-dialog.js), on every page that has one:
+   each site page's (the share button by its title, build_site.share_button,
+   js/page-share.js) and the two on "Your forecast" (interactive/js/
+   share-sheet.js), which add the name, the seal and the image picker in
+   interactive/css/your-forecast.css. Every rule is under the dialog's class,
+   `sharesheet`: `sheet` is the forecast pages' column (page-sheet.css). */
+
+/* the button by the page title */
+.pgshare{margin:12px 0 4px;}
+.pgshare .pgshare-open{min-height:38px;padding:8px 16px;}
+
+/* the dialog */
+/* sized by its border box whatever the page's own rule (the forecast
+   sheet's pages are content-box), so the phone's bottom sheet fits the screen */
+dialog.sharesheet,dialog.sharesheet *,dialog.sharesheet *::before,dialog.sharesheet *::after{box-sizing:border-box;}
+dialog.sharesheet{margin:auto;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2);padding:0;
+  border-radius:6px;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);
+  font-family:var(--sans);font-size:15px;line-height:1.6;}
+dialog.sharesheet::backdrop{background:rgba(0,0,0,.55);}
+dialog.sharesheet .dh{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:14px 16px;border-bottom:1px solid var(--rule-soft);}
+dialog.sharesheet .dh h2{font-family:var(--serif);font-weight:600;font-size:20px;line-height:1.2;
+  color:var(--ink);margin:0;padding:0;border:0;}
+dialog.sharesheet .db{padding:16px;overflow:auto;}
+dialog.sharesheet .x{background:none;border:0;color:var(--ink-3);cursor:pointer;width:40px;height:40px;
+  font-size:22px;line-height:1;border-radius:4px;}
+dialog.sharesheet .x:hover{color:var(--ink);}
+@media (max-width:559px){
+  dialog.sharesheet{margin:auto 0 0;width:100vw;max-width:100vw;border-radius:12px 12px 0 0;
+    border-bottom:0;max-height:92dvh;}
+}
+@media (prefers-reduced-motion: no-preference){
+  dialog.sharesheet[open]{animation:rise .18s ease-out;}
+  @keyframes rise{from{transform:translateY(12px);opacity:0;}to{transform:none;opacity:1;}}
+}
+
+/* the image, the link, the ways to share (the site's `cta` is its large
+   button, components.css: a different thing, so a different name) */
+.sharesheet .preview{border:1px solid var(--rule-soft);background:var(--paper-2);display:flex;justify-content:center;
+  padding:8px;margin:0 0 12px;}
+.sharesheet .preview img{max-width:100%;max-height:44dvh;height:auto;display:block;}
+.sharesheet .urlrow{display:flex;gap:6px;margin:10px 0;}
+/* the field itself is the site's (components.css); here only its place and face */
+.sharesheet .urlrow input{flex:1;min-width:0;font-family:var(--mono);font-size:12.5px;}
+.sharesheet .shcta{display:flex;flex-direction:column;gap:8px;}
+@media (min-width:560px){.sharesheet .shcta{flex-direction:row;flex-wrap:wrap;}}
+.sharesheet a.btn,.sharesheet a.btn:hover{color:var(--ink);text-decoration:none;}
+.sharesheet .toast{font-size:13px;color:var(--good);min-height:1.4em;margin:0;}
+.pgshare .sharesheet .toast{margin-top:8px;}
 
 /* generated by src/site_assets.py from render_sheet.CHIPS and cities/*.toml: do not edit */
 :root{--pc-other:#8b918b;}
