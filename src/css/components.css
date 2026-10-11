@@ -114,7 +114,7 @@ details.rollup + details.rollup{margin-top:30px;padding-top:26px;
 /* the site's ordinary button (the share sheet's, src/css/share-sheet.css, and
    every control on "Your forecast"): outlined; `primary` filled in the
    reader's colour, `model` outlined in the model's accent */
-.btn{font:600 14px/1 var(--sans);border-radius:4px;padding:11px 16px;cursor:pointer;
+.btn{box-sizing:border-box;font:600 14px/1 var(--sans);border-radius:4px;padding:11px 16px;cursor:pointer;
   border:1px solid var(--rule);background:transparent;color:var(--ink);
   display:inline-flex;align-items:center;gap:8px;text-decoration:none;min-height:44px;}
 .btn:hover{border-color:var(--reader);color:var(--ink);}
@@ -123,6 +123,9 @@ details.rollup + details.rollup{margin-top:30px;padding-top:26px;
 .btn.model{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);}
 .btn.small{font-size:13px;padding:7px 11px;min-height:36px;}
 .btn[disabled],a.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
+/* `display` above would show a button the page hides (the share sheet's
+   Share…, where the browser has no Web Share) */
+.btn[hidden]{display:none;}
 
 /* the site's form controls: the share sheet's link on every page, and every
    field and select on "Your forecast" (a page that styles its own, like the

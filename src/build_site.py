@@ -751,6 +751,9 @@ def load_claims(city: str | None = None) -> list[dict]:
         raise SystemExit(f"claims.toml: no slug of lowercase words and hyphens on {bad}")
     if len(set(slugs)) != len(slugs):
         raise SystemExit(f"claims.toml: two claims share a slug ({slugs})")
+    unnamed = [c["slug"] for c in claims if not str(c.get("party_name", "")).strip()]
+    if unnamed:
+        raise SystemExit(f"claims.toml: no party_name on {unnamed} (its page, title and image name the party by it)")
     return claims
 
 
@@ -759,13 +762,14 @@ def claim_articles(html: str, claims: list[dict]) -> list[re.Match]:
     ``<article class="claim">`` per claim, in claims.toml order), refusing
     unless there is one per claim and each carries that claim's party, quote
     and verdict."""
+    import og_pages
     arts = list(_CLAIM_ARTICLE.finditer(html))
     if len(arts) != len(claims):
         raise SystemExit(f"the claims page has {len(arts)} claim cards, claims.toml {len(claims)}")
     for m, c in zip(arts, claims):
-        verdict = re.findall(r'<span class="verdict v-[a-z]+">([^<]+)</span>', m.group(0))
+        verdict = og_pages.printed_verdicts(m.group(0))
         quote = re.search(r'<blockquote class="claim-quote">(.*?)<span class="q-close">', m.group(0), re.S)
-        if (m.group(1) != c["party"] or verdict != [" ".join(c["verdict"].upper().split())]
+        if (m.group(1) != c["party"] or verdict != [og_pages.verdict_word(c["verdict"])]
                 or not quote or " ".join(quote.group(1).split()) != " ".join(c["quote"].split())):
             raise SystemExit(f"claims page card {m.group(1)} does not match claims.toml's "
                              f"{c['slug']!r} (party, verdict or quote): forecast-sheet.html "
@@ -805,8 +809,9 @@ def claim_title(claim: dict) -> str:
     audit wherever no dated passage can hold it (the page's title is plain
     text); the label is the page's <h1>, dated by when the claim was made."""
     from html import escape
-    return escape(f"{claim['speaker'].split(',')[0]} ({claim.get('party_name', claim['party'])}): "
-                  f"{claim['verdict'].upper()} \u00b7 {CLAIM_KICKER}", quote=False)
+    import og_pages
+    return escape(f"{og_pages.speaker_name(claim)} ({og_pages.claim_party(claim)}): "
+                  f"{og_pages.verdict_word(claim['verdict'])} \u00b7 {CLAIM_KICKER}", quote=False)
 
 
 def claim_pages(html: str, claims: list[dict]) -> list[tuple[str, dict, str]]:

@@ -2461,7 +2461,10 @@ SHARE-BRIEF.md (audits/2026-10-09-site-batch/).
   (`link_claims`), and so does the home page's list of claims
   (`render_home._claims`). Its image is the `claim` layout: the quote, the verdict
   badge, the party logo, the party and the speaker; no figure
-  (`og_pages.claim_spec`, image slug `claim-<slug>`).
+  (`og_pages.claim_spec`, image slug `claim-<slug>`). A claim is read one way
+  everywhere: `og_pages.printed_verdicts`/`verdict_word`, `claim_logo`,
+  `speaker_name`, and `claim_party` (claims.toml's `party_name`, the name the
+  card prints, for the page's title, its image and the image's alt text).
 * **The share button** (`build_site.share_button`) is one component after
   each page's one `</h1>`, on every page the build writes except
   `/your-forecast/` (its own two sheets) and the portal. Its preview and
@@ -2486,5 +2489,7 @@ SHARE-BRIEF.md (audits/2026-10-09-site-batch/).
 
 Tests: `tests/test_page_share.py` (the page set both ways, one button per
 page wired to its own image and address, a constructed missing, miswired or
-extra button caught, each claim's page, image and links, a mismatched card
-refused).
+extra button caught, a wrong canonical, og:url, placement or script caught,
+each claim's page, image and links, a mismatched card refused, and in a
+browser at 375 wide: Share… shown exactly where the Web Share API exists,
+the sheet inside the screen on a content-box page).

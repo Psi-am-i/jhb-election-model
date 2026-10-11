@@ -39,6 +39,10 @@ const X = "https://x.com/intent/post?url=";
 export function shareDialog(E, H) {
   let opener = null;
   const say = s => { E.toast.textContent = s; };
+  // Share… exists only where the browser has the Web Share API: hidden and
+  // off everywhere else, from the start
+  const hasWebShare = () => typeof navigator.share === "function";
+  E.native.hidden = !hasWebShare();
 
   function buttons() {
     const on = !!H.on();
@@ -48,7 +52,8 @@ export function shareDialog(E, H) {
       if (on) a.href = base + encodeURIComponent(H.link(ch)); else a.removeAttribute("href");
       a.setAttribute("aria-disabled", String(!on));
     }
-    E.native.disabled = !(on && (H.nativeOn ? H.nativeOn() : true));
+    E.native.hidden = !hasWebShare();
+    E.native.disabled = !(hasWebShare() && on && (H.nativeOn ? H.nativeOn() : true));
   }
 
   E.open.addEventListener("click", async () => {
@@ -57,7 +62,7 @@ export function shareDialog(E, H) {
     say("");
     await H.prepare?.();
     E.dlg.showModal();
-    E.native.hidden = typeof navigator.share !== "function";
+    E.native.hidden = !hasWebShare();
     H.opened?.();
     E.copy.focus();
   });
@@ -74,6 +79,7 @@ export function shareDialog(E, H) {
     say(ok ? "Link copied." : "Copying did not work here. The link is selected: copy it from the box.");
   });
   E.native.addEventListener("click", () => {
+    if (!hasWebShare()) return;
     const data = { ...H.shareWords(), url: H.link("native") };
     const f = H.file?.();
     if (f && navigator.canShare?.({ files: [f] })) data.files = [f];

@@ -359,13 +359,49 @@ def verdict_badge(word: str) -> str:
     return f
 
 
+# --------------------------------------------------------------------------
+# a claim, read the one way every claim page, card and image reads it
+
+_VERDICT_SPAN = re.compile(r'<span class="verdict v-[a-z]+">([^<]+)</span>')
+
+
+def verdict_word(verdict: str) -> str:
+    """A verdict as a page prints it: upper case, single spaces."""
+    return " ".join(str(verdict).upper().split())
+
+
+def printed_verdicts(html: str) -> list[str]:
+    """Every verdict badge's words in ``html``, in page order (render_sheet's
+    ``<span class="verdict v-…">``)."""
+    return _VERDICT_SPAN.findall(html)
+
+
+def claim_logo(claim: dict) -> str | None:
+    """The file name of a claim's party logo in site/logos/, or None."""
+    logo = REPO_ROOT / "site" / "logos" / f"{claim.get('logo', claim['party'])}.png"
+    return logo.name if logo.is_file() else None
+
+
+def speaker_name(claim: dict) -> str:
+    """Who said it, without their role: the part of ``speaker`` before its
+    first comma."""
+    return claim["speaker"].split(",")[0].strip()
+
+
+def claim_party(claim: dict) -> str:
+    """The party's name on a claim's own page, its tab title and its image:
+    claims.toml's ``party_name``, the name the claim's card prints, so the
+    three cannot name the party differently from the card under them."""
+    return claim["party_name"]
+
+
 def claims_spec(html: str, claims: list[dict], *, headline: str) -> dict:
     """/claims: one badge per party, the first claim per party in claims.toml
     order. Each verdict is the one the page prints (checked against it)."""
     import build_play
     roster = build_play.roster()
-    printed = Counter(re.findall(r'<span class="verdict v-[a-z]+">([^<]+)</span>', html))
-    typed = Counter(" ".join(c["verdict"].upper().split()) for c in claims)
+    printed = Counter(printed_verdicts(html))
+    typed = Counter(verdict_word(c["verdict"]) for c in claims)
     if printed != typed:
         raise OgError(f"claims.html prints verdicts {dict(printed)}, claims.toml has "
                       f"{dict(typed)}: the image would not show the page's verdicts")
@@ -374,12 +410,11 @@ def claims_spec(html: str, claims: list[dict], *, headline: str) -> dict:
         if c["party"] in seen:
             continue
         seen.add(c["party"])
-        logo = REPO_ROOT / "site" / "logos" / f"{c.get('logo', c['party'])}.png"
+        # the roster's short name: the strip's columns are narrow
         items.append({"verdict": c["verdict"], "badge": stamp_path(verdict_badge(c["verdict"])),
                       "code": c["party"], "party": roster[c["party"]]["name"],
                       "colour": roster[c["party"]]["colour"],
-                      "logo": logo.name if logo.is_file() else None,
-                      "speaker": c["speaker"].split(",")[0]})
+                      "logo": claim_logo(c), "speaker": speaker_name(c)})
     latest = max((c["published"] for c in claims),
                  key=lambda d: datetime.strptime(d, "%d %B %Y"))
     alt = (f"{headline}. " + "; ".join(f"{i['party']}: {i['verdict']} ({i['speaker']})" for i in items) + ".")
@@ -395,19 +430,16 @@ def claim_spec(html: str, claim: dict) -> dict:
     page's."""
     import build_play
     roster = build_play.roster()
-    printed = re.findall(r'<span class="verdict v-[a-z]+">([^<]+)</span>', html)
-    word = " ".join(claim["verdict"].upper().split())
+    printed, word = printed_verdicts(html), verdict_word(claim["verdict"])
     if printed != [word]:
         raise OgError(f"claims/{claim.get('slug')}: the page prints verdicts {printed}, "
                       f"claims.toml has {word!r}")
-    logo = REPO_ROOT / "site" / "logos" / f"{claim.get('logo', claim['party'])}.png"
-    party = roster[claim["party"]]["name"]
-    speaker = claim["speaker"].split(",")[0]
+    party, speaker = claim_party(claim), speaker_name(claim)
     quote = " ".join(claim["quote"].split())
     return {"layout": "claim", "quote": quote, "verdict": claim["verdict"],
             "badge": stamp_path(verdict_badge(claim["verdict"])),
             "code": claim["party"], "party": party, "colour": roster[claim["party"]]["colour"],
-            "logo": logo.name if logo.is_file() else None, "speaker": speaker,
+            "logo": claim_logo(claim), "speaker": speaker,
             "date_line": f"Tested against the forecast. Published {claim['published']}.",
             "figures": {},
             "alt": f"\u201c{quote}\u201d {speaker}, {party}. Verdict: {claim['verdict']}."}

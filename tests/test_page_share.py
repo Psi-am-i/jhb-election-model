@@ -8,13 +8,16 @@ test_og_pages' one build into a temporary directory.
 """
 from __future__ import annotations
 
+import json
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 from urllib.parse import urljoin
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT, run_module  # noqa: E402
+from _support import ROOT, run_module, skip  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 import build_site  # noqa: E402
@@ -80,10 +83,10 @@ def button_faults(out: Path, pages: set[str]) -> list[str]:
         if re.findall(r'<link rel="canonical" href="([^"]*)">', text) != [here] or meta(text, "og:url") != [here]:
             faults.append(f"{rel}: canonical or og:url is not {here}")
         og = meta(text, "og:image")
-        part = text[text.index("</h1>") + len("</h1>"):]
-        if not part.lstrip().startswith(f'<div class="pgshare" {build_site.SHARE_MARK}>'):
+        start = text.index(f'<div class="pgshare" {build_site.SHARE_MARK}>')
+        if text[text.index("</h1>") + len("</h1>"):start].strip():
             faults.append(f"{rel}: the share button is not by the page title")
-        box = part[:part.index("</div>\n", part.index("</dialog>")) + 6]
+        box = text[start:text.index("</script>\n</div>", start) + len("</script>\n</div>")]
         img = re.findall(r'<div class="preview"><img src="([^"]*)"', box)
         if len(og) != 1 or len(img) != 1 or urljoin(here, img[0]) != og[0]:
             faults.append(f"{rel}: the sheet shows {img}, the page's og:image is {og}")
@@ -125,7 +128,7 @@ def test_a_missing_or_miswired_button_is_caught():
     try:
         # a page with no button
         a = keep.index('<div class="pgshare"')
-        b = keep.index("</div>\n", keep.index("</dialog>", a)) + 6
+        b = keep.index("</script>\n</div>", a) + len("</script>\n</div>")
         victim.write_text(keep[:a] + keep[b:], encoding="utf-8")
         got = button_faults(out, pages)
         assert got == [f"{claim_page(claims()[0])}: carries 0 share buttons"], got
@@ -135,6 +138,28 @@ def test_a_missing_or_miswired_button_is_caught():
         assert any("the sheet shows ['../og.png']" in f for f in button_faults(out, pages))
         victim.write_text(keep, encoding="utf-8")
         assert button_faults(out, pages) == []
+        # a wrong canonical, a wrong og:url, a button away from the title, a
+        # wrong script: each caught, and quiet again once reverted
+        rel = claim_page(claims()[0])
+        here = page_url(rel)
+        box = keep[a:b]
+        cases = [
+            (keep.replace(f'<link rel="canonical" href="{here}">', f'<link rel="canonical" href="{SITE_URL}/">', 1),
+             f"{rel}: canonical or og:url is not {here}"),
+            (keep.replace(f'<meta property="og:url" content="{here}">', f'<meta property="og:url" content="{SITE_URL}/">', 1),
+             f"{rel}: canonical or og:url is not {here}"),
+            ((keep[:a] + keep[b:]).replace("</footer>", box + "</footer>", 1),
+             f"{rel}: the share button is not by the page title"),
+            (keep.replace(f'js/{build_site.PAGE_SHARE_JS}"', 'js/sheet.js"', 1),
+             f"{rel}: the sheet loads ['../js/sheet.js']"),
+        ]
+        for text, want in cases:
+            assert text != keep, want
+            victim.write_text(text, encoding="utf-8")
+            got = button_faults(out, pages)
+            assert got == [want], (want, got)
+            victim.write_text(keep, encoding="utf-8")
+            assert button_faults(out, pages) == [], want
         # a button on "Your forecast", which keeps its own sheets
         yf_page = out / yf.YF_PAGE
         yf_keep = yf_page.read_text(encoding="utf-8")
@@ -219,6 +244,115 @@ def test_a_claim_slug_must_be_words_and_unique():
         assert not (isinstance(bad, str) and build_site.CLAIM_SLUG.fullmatch(bad)), bad
     assert build_site.CLAIM_SLUG.fullmatch("da-outright-majority")
     assert len({c["slug"] for c in claims()}) == len(claims())
+
+
+
+# ---------------------------------------------------------------------------
+# the sheet in a browser: Share… only where the Web Share API is, and the
+# sheet inside a phone's width on a content-box page
+
+#: Playwright, as interactive/tools/yf_jump_check.mjs finds it.
+PLAYWRIGHT = os.environ.get("PLAYWRIGHT") or str(
+    Path.home() / ".npm/_npx/e41f203b7505f1fb/node_modules/playwright/index.mjs")
+
+_IN_PAGE = r"""
+import { readFileSync, existsSync, statSync } from "node:fs";
+import { join, extname } from "node:path";
+const { chromium } = await import(process.env.PLAYWRIGHT);
+const [root, path, share] = JSON.parse(process.argv[1]);
+const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript",
+  ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2" };
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 375, height: 812 } });
+// the site as the static-assets Worker serves it: clean addresses
+await ctx.route("http://site.test/**", route => {
+  let p = decodeURIComponent(new URL(route.request().url()).pathname), f = join(root, p);
+  if (p.endsWith("/")) f = join(f, "index.html");
+  else if (!extname(p) && existsSync(f + ".html")) f += ".html";
+  if (!existsSync(f) || statSync(f).isDirectory()) return route.fulfill({ status: 404, body: "" });
+  return route.fulfill({ status: 200, body: readFileSync(f), contentType: TYPES[extname(f)] || "application/octet-stream" });
+});
+await ctx.route(/^https?:\/\/(?!site\.test)/, route => route.abort());
+await ctx.addInitScript(share ? () => { Navigator.prototype.share = async () => {}; }
+                              : () => { delete Navigator.prototype.share; delete navigator.share; });
+const pg = await ctx.newPage();
+const errors = [];
+pg.on("pageerror", e => errors.push(e.message));
+await pg.goto("http://site.test" + path, { waitUntil: "load" });
+await pg.waitForFunction(() => document.querySelector("[data-pgshare] .shurl"));
+const seen = () => pg.evaluate(() => {
+  const b = document.querySelector("[data-pgshare] .shnative");
+  return { display: getComputedStyle(b).display, disabled: b.disabled };
+});
+const before = await seen();
+await pg.click("[data-pgshare] .pgshare-open");
+await pg.waitForFunction(() => document.querySelector("[data-pgshare] dialog").open);
+const after = await seen();
+const fit = await pg.evaluate(() => {
+  const d = document.querySelector("[data-pgshare] dialog"), r = d.getBoundingClientRect();
+  return { right: r.right, scroll: d.scrollWidth - d.clientWidth, sizing: getComputedStyle(d).boxSizing,
+           btn: document.querySelector("[data-pgshare] .shwa").getBoundingClientRect().height,
+           page: getComputedStyle(document.querySelector(".pgshare").parentElement).boxSizing };
+});
+await browser.close();
+process.stdout.write(JSON.stringify({ before, after, fit, errors }));
+"""
+
+
+def in_page(out: Path, path: str, share: bool) -> dict:
+    """The share button's Share… and the sheet's size at 375 wide on ``path``,
+    with or without the Web Share API."""
+    if not Path(PLAYWRIGHT).is_file():
+        skip(f"needs Playwright ({PLAYWRIGHT}; set PLAYWRIGHT)")
+    run = subprocess.run(["node", "--input-type=module", "-e", _IN_PAGE, json.dumps([str(out), path, share])],
+                         capture_output=True, text=True, cwd=ROOT, env={**os.environ, "PLAYWRIGHT": PLAYWRIGHT},
+                         timeout=180)
+    assert run.returncode == 0, run.stderr[-2000:]
+    return json.loads(run.stdout)
+
+
+def sheet_faults(got: dict, share: bool) -> list[str]:
+    """Share… displayed exactly when the Web Share API exists, before and
+    after the sheet opens; the sheet within the 375px screen with no sideways
+    scroll; its buttons sized by their border box; no script error."""
+    faults = []
+    for when in ("before", "after"):
+        shown = got[when]["display"] != "none"
+        if shown != share:
+            faults.append(f"{when} opening: Share\u2026 is {'shown' if shown else 'hidden'} "
+                          f"with the Web Share API {'present' if share else 'absent'}")
+    f = got["fit"]
+    if f["right"] > 375.5 or f["scroll"] > 0:
+        faults.append(f"the sheet overflows the screen: right edge {f['right']}, sideways scroll {f['scroll']}")
+    if f["btn"] > 50:
+        faults.append(f"a sheet button is {f['btn']}px tall")
+    faults += [f"script error: {e}" for e in got["errors"]]
+    return faults
+
+
+def test_share_shows_only_where_the_browser_can_share_and_the_sheet_fits_a_phone():
+    out = built()
+    # a claim page and an article: the forecast sheet's content-box pages
+    pages = [f"/{og_pages.CLAIM_DIR}/{claims()[0]['slug']}",
+             "/" + next(iter(build_site.article_meta())).removesuffix(".html")]
+    for path in pages:
+        absent, present = in_page(out, path, False), in_page(out, path, True)
+        assert absent["fit"]["page"] == "content-box", (path, absent["fit"])   # the case that matters
+        assert sheet_faults(absent, False) == [], (path, absent)
+        assert sheet_faults(present, True) == [], (path, present)
+    # it can see: the stylesheet without its [hidden] rule shows Share… where
+    # the browser cannot share, and the detector goes quiet once it is back
+    css = out / "css" / "site.css"
+    keep = css.read_text(encoding="utf-8")
+    rule = ".btn[hidden]{display:none;}"
+    assert keep.count(rule) == 1
+    try:
+        css.write_text(keep.replace(rule, ""), encoding="utf-8")
+        got = sheet_faults(in_page(out, pages[0], False), False)
+        assert any("Share\u2026 is shown with the Web Share API absent" in g for g in got), got
+    finally:
+        css.write_text(keep, encoding="utf-8")
+    assert sheet_faults(in_page(out, pages[0], False), False) == []
 
 
 if __name__ == "__main__":

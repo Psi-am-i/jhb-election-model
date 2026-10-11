@@ -10,6 +10,9 @@
 .pgshare .pgshare-open{min-height:38px;padding:8px 16px;}
 
 /* the dialog */
+/* sized by its border box whatever the page's own rule (the forecast
+   sheet's pages are content-box), so the phone's bottom sheet fits the screen */
+dialog.sharesheet,dialog.sharesheet *,dialog.sharesheet *::before,dialog.sharesheet *::after{box-sizing:border-box;}
 dialog.sharesheet{margin:auto;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2);padding:0;
   border-radius:6px;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);
   font-family:var(--sans);font-size:15px;line-height:1.6;}
