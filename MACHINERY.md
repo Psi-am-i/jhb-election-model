@@ -2398,10 +2398,10 @@ Tests: `tests/test_worker_routing.py` (routes, counting, fallback, seal),
 
 ## A share image for each page — `src/og_pages.py`, `src/og-pages.mjs` (2026-10-10)
 
-`/forecast`, `/claims`, each article and `/your-forecast/` carry an image of
-their own in `og:image`, `twitter:image` and `og:image:alt`
-(`og_pages.designed`); the home page, `/commentary` and the documents keep
-`og.png`. OG-IMPLEMENTATION-SPEC.md (audits/2026-10-09-site-batch/) is the
+`/forecast`, `/claims`, each article, each claim's own page
+(`/claims/<slug>`) and `/your-forecast/` carry an image of their own in
+`og:image`, `twitter:image` and `og:image:alt` (`og_pages.designed`); the home
+page, `/commentary` and the documents keep `og.png`. OG-IMPLEMENTATION-SPEC.md (audits/2026-10-09-site-batch/) is the
 design; this is what runs.
 
 * **Python resolves, node draws.** `og_pages` builds one card spec per page
@@ -2440,3 +2440,46 @@ Tests: `tests/test_og_pages.py` (spec §6: every page its image and every
 image a page, every figure a page's, names, badges both ways, tags, glyphs,
 the stamps' ids), `tests/test_stat_sources.py` (`history:`,
 `coalition_majority`).
+
+### Each claim's page, and the share button on every page (2026-10-11)
+
+SHARE-BRIEF.md (audits/2026-10-09-site-batch/).
+
+* **A claim's page** is cut from the claims page, not rendered a second time:
+  `build_site.claim_pages` takes the claims page's template, keeps one
+  `<article class="claim">` (render_sheet's card), puts the claim's `label`
+  as the title (in a dated span, the claim's `captured` date) under a kicker
+  that links back, and a link back to all claims under the card. Each card is
+  matched to its claims.toml entry by position and refused unless party,
+  verdict and quote agree (`claim_articles`). The address is the claim's
+  `slug` in claims.toml (`load_claims`: lowercase words and hyphens, no digit,
+  unique), written to `<out>/claims/<slug>.html`, which the static-assets
+  Worker serves at `/claims/<slug>` (`html_handling` is the default,
+  `auto-trailing-slash`), so no Worker route. The directory is rewritten whole
+  each build. The rendered page is re-pointed one level down
+  (`build_play.one_level_down`). The claims page links each card to its page
+  (`link_claims`). Its image is the `claim` layout: the quote, the verdict
+  badge, the party logo, the party and the speaker; no figure
+  (`og_pages.claim_spec`, image slug `claim-<slug>`).
+* **The share button** (`build_site.share_button`) is one component after
+  each page's one `</h1>`, on every page the build writes except
+  `/your-forecast/` (its own two sheets) and the portal. Its preview and
+  download are the page's own og:image, written in as a relative address so a
+  scratch build or a UAT version shows the image beside it; the link it sends
+  is the page's canonical address, which `src/js/page-share.js` reads from the
+  head. Every document page therefore has its own share card and canonical
+  address (DOCS' description, or the standfirst).
+* **One sheet.** `src/js/share-dialog.js` holds the sheet's controls (the
+  dialog, Copy link, WhatsApp, X, Share…, Download image, the status line);
+  `src/js/page-share.js` (site pages) and `interactive/js/share-sheet.js`
+  (Your forecast, which adds the name, the seal, the image picker and the
+  drawn card) both call it. Your forecast imports it as
+  `../../src/js/share-dialog.js`, rewritten to `../../js/share-dialog.js` when
+  served (`build_your_forecast.SHARE_DIALOG_LINE`). Its look is
+  `src/css/share-sheet.css` (every rule under the dialog's class `sharesheet`;
+  `sheet` is the forecast pages' column) and `.btn` in `components.css`.
+
+Tests: `tests/test_page_share.py` (the page set both ways, one button per
+page wired to its own image and address, a constructed missing, miswired or
+extra button caught, each claim's page, image and links, a mismatched card
+refused).

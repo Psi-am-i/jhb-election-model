@@ -106,6 +106,37 @@ function claims(spec) {
   return s + "</svg>";
 }
 
+// ---------- a claim's own page: the quote large, then the owner's verdict
+// badge, the party's logo, the party and who said it (SHARE-BRIEF item 1) ----------
+const CLAIM_QUOTE = { big: 60, least: 30, lines: 6, bottom: 356 };
+const CLAIM_ROW = { badge: 150, cy: 468, chip: 100, gap: 30, party: 34, partyY: 456, who: 24, whoY: 498 };
+function claim(spec) {
+  let s = frame(spec);
+  const words = "\u201c" + spec.quote + "\u201d";
+  let q = null;
+  for (let fs = CLAIM_QUOTE.big; fs >= CLAIM_QUOTE.least && !q; fs -= 2) {
+    const L = wrapText(words, HEAD_MAX, fs, "serifSemi");
+    const last = capBase(fs) + (L.length - 1) * fs * HEAD_LEADING;
+    if (L.length <= CLAIM_QUOTE.lines && last <= CLAIM_QUOTE.bottom)
+      q = L.map((l, k) => text(X, capBase(fs) + k * fs * HEAD_LEADING, l, fs, "serifSemi")).join("");
+  }
+  if (!q) throw new Error(`${spec.slug}: the quote does not fit ${CLAIM_QUOTE.lines} lines at ${CLAIM_QUOTE.least}px`);
+  s += q;
+  STAMPS[spec.badge] ??= stampOf(readFileSync(resolve(REPO, spec.badge), "utf8"));
+  const [, , vw, vh] = STAMPS[spec.badge].viewBox.split(/\s+/).map(Number);
+  const bw = CLAIM_ROW.badge * vw / vh;
+  s += stamp(spec.badge, "v", X + bw / 2, CLAIM_ROW.cy, CLAIM_ROW.badge);
+  const logo = logoOf(spec.logo);
+  if (logo) ASSETS.logos[spec.code] = logo;
+  const cx = X + bw + CLAIM_ROW.gap;
+  s += chip({ code: spec.code, colour: spec.colour, logo: !!logo }, cx, CLAIM_ROW.cy - CLAIM_ROW.chip / 2, CLAIM_ROW.chip, ASSETS);
+  const tx = cx + CLAIM_ROW.chip + CLAIM_ROW.gap, tw = R - tx;
+  const pn = fitText(spec.party, tw, CLAIM_ROW.party, "sansBold", 22), who = fitText(spec.speaker, tw, CLAIM_ROW.who, "sans", 16);
+  s += text(tx, CLAIM_ROW.partyY, pn.text, pn.fs, "sansBold");
+  s += text(tx, CLAIM_ROW.whoY, who.text, who.fs, "sans", { fill: C.ink2 });
+  return s + "</svg>";
+}
+
 // ---------- an article: the headline; the seat ranges where it has them ----------
 const ART_HEAD = { big: 88, least: 52, lines: 4 };
 const ART_HEAD_BESIDE = { big: 80, least: 48, lines: 3 };
@@ -246,7 +277,7 @@ function interactive(spec) {
   return s + "</svg>";
 }
 
-export const LAYOUTS = { claims, article, forecast, interactive };
+export const LAYOUTS = { claims, claim, article, forecast, interactive };
 
 // ---------- naming ----------
 const RESVG = JSON.parse(readFileSync(resolve(REPO, "worker-api/node_modules/@resvg/resvg-wasm/package.json"), "utf8")).version;

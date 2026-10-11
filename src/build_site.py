@@ -313,11 +313,16 @@ def inject_nav(html: str, active_href: str, og_meta: str | None = None) -> str:
     return html.replace(marker_close, FOOTER + "\n" + marker_close, 1)
 
 # source markdown -> (output, kicker, standfirst[, tech[, og description]])
+# Every page has its own share card and canonical address (its share button
+# sends that address): the og description, or the standfirst where none is
+# given.
 MODEL_DOCS = {
     "docs-public/corrections.md": (
         "corrections.html",
         "Corrections",
         "",
+        None,
+        "Errors on the site's published pages: what was wrong and what changed.",
     ),
     "docs-public/methodology.md": (
         "methodology.html",
@@ -334,6 +339,8 @@ MODEL_DOCS = {
         "The review",
         "",
         "model-review.html",
+        "How the first version of the model was reviewed against its own plan, "
+        "the errors that review found, and how each was fixed.",
     ),
     "docs-public/sources.md": (
         "sources.html",
@@ -682,6 +689,175 @@ def page_og(og: str, page_title: str, href: str, image: str | None = None,
     return out
 
 
+#: THE SHARE BUTTON BY EVERY PAGE'S TITLE (owner, 2026-10-11, SHARE-BRIEF
+#: item 2): one component, after the page's one ``</h1>``, opening the site's
+#: one share sheet (src/js/share-dialog.js, through js/page-share.js, styled
+#: by src/css/share-sheet.css). Its preview and download are the page's own
+#: share image, read from the page's own og:image; the link it sends is the
+#: page's canonical address, which js/page-share.js reads from the head.
+#: "Your forecast" keeps its own two sheets and gets none of these.
+SHARE_MARK = "data-pgshare"
+PAGE_SHARE_JS = "page-share.js"
+SHARE_ALT = "The image a link to this page shows when it is shared"
+
+
+def share_button(html: str, prefix: str = "") -> str:
+    """``html`` with the share button and its sheet after its one ``</h1>``.
+    ``prefix`` re-points the image and the script for a page below the root
+    (``"../"``). Refuses a page with no single ``</h1>``, with no single
+    og:image on this site, or that already has one."""
+    from html import escape
+    imgs = re.findall(r'<meta property="og:image" content="([^"]*)">', html)
+    if len(imgs) != 1 or not imgs[0].startswith(SITE_URL + "/"):
+        raise SystemExit(f"share_button: the page names og:image {imgs}, not one image on {SITE_URL}")
+    if html.count("</h1>") != 1:
+        raise SystemExit(f"share_button: the page has {html.count('</h1>')} </h1>, not one title to put it by")
+    if SHARE_MARK in html:
+        raise SystemExit("share_button: the page already has a share button")
+    src = escape(prefix + imgs[0][len(SITE_URL) + 1:])
+    part = f"""
+<div class="pgshare" {SHARE_MARK}>
+  <button class="btn model pgshare-open" type="button">Share</button>
+  <dialog class="sharesheet" aria-labelledby="pgshare-title">
+    <div class="dh"><h2 id="pgshare-title">Share this page</h2>
+      <button class="x" type="button" aria-label="Close">\u00d7</button></div>
+    <div class="db">
+      <div class="preview"><img src="{src}" alt="{SHARE_ALT}" loading="lazy"></div>
+      <div class="urlrow">
+        <input class="shurl" type="text" readonly value="" aria-label="Link to this page">
+        <button class="btn shcopy" type="button">Copy link</button>
+      </div>
+      <div class="shcta">
+        <button class="btn model shnative" type="button" hidden>Share\u2026</button>
+        <a class="btn shwa" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn shx" target="_blank" rel="noopener">X</a>
+        <button class="btn shdl" type="button">Download image</button>
+      </div>
+      <p class="toast" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+  <script type="module" src="{prefix}{site_assets.JS_DIR}/{PAGE_SHARE_JS}"></script>
+</div>"""
+    return html.replace("</h1>", "</h1>" + part, 1)
+
+
+# --------------------------------------------------------------------------
+# each claim's own page (owner, 2026-10-11, SHARE-BRIEF item 1)
+
+#: A claim's slug: lowercase words joined by hyphens, no digit (the address is
+#: in og:url, which the number scan reads).
+CLAIM_SLUG = re.compile(r"[a-z]+(?:-[a-z]+)*")
+_CLAIM_ARTICLE = re.compile(r'<article class="claim pc-([A-Z_]+)" data-party="\1">.*?</article>', re.S)
+
+
+def load_claims(city: str | None = None) -> list[dict]:
+    """content/<city>/claims.toml's claims, each with a valid, unique slug;
+    [] where the city has none."""
+    import tomllib
+    path = REPO_ROOT / "content" / (city or cityconfig.active().slug) / "claims.toml"
+    if not path.is_file():
+        return []
+    claims = tomllib.loads(path.read_text(encoding="utf-8")).get("claim", [])
+    slugs = [c.get("slug") for c in claims]
+    bad = [c.get("label", c.get("quote", "")[:40]) for c in claims
+           if not isinstance(c.get("slug"), str) or not CLAIM_SLUG.fullmatch(c["slug"])]
+    if bad:
+        raise SystemExit(f"claims.toml: no slug of lowercase words and hyphens on {bad}")
+    if len(set(slugs)) != len(slugs):
+        raise SystemExit(f"claims.toml: two claims share a slug ({slugs})")
+    return claims
+
+
+def claim_articles(html: str, claims: list[dict]) -> list[re.Match]:
+    """Each claim's card on the claims page (render_sheet writes one
+    ``<article class="claim">`` per claim, in claims.toml order), refusing
+    unless there is one per claim and each carries that claim's party, quote
+    and verdict."""
+    arts = list(_CLAIM_ARTICLE.finditer(html))
+    if len(arts) != len(claims):
+        raise SystemExit(f"the claims page has {len(arts)} claim cards, claims.toml {len(claims)}")
+    for m, c in zip(arts, claims):
+        verdict = re.findall(r'<span class="verdict v-[a-z]+">([^<]+)</span>', m.group(0))
+        quote = re.search(r'<blockquote class="claim-quote">(.*?)<span class="q-close">', m.group(0), re.S)
+        if (m.group(1) != c["party"] or verdict != [" ".join(c["verdict"].upper().split())]
+                or not quote or " ".join(quote.group(1).split()) != " ".join(c["quote"].split())):
+            raise SystemExit(f"claims page card {m.group(1)} does not match claims.toml's "
+                             f"{c['slug']!r} (party, verdict or quote): forecast-sheet.html "
+                             "needs render_sheet.py run again")
+    return arts
+
+
+#: What each claim on the claims page links to its own page with.
+CLAIM_LINK = "Link to this claim"
+
+
+def link_claims(html: str, claims: list[dict]) -> str:
+    """The claims page with each card carrying its slug as its id, and a link
+    to its own page after its date."""
+    import og_pages
+    out, last = [], 0
+    for m, c in zip(claim_articles(html, claims), claims):
+        card = m.group(0).replace('">', f'" id="{c["slug"]}">', 1)
+        card, n = re.subn(r'(<div class="pubdate">[^<]*)(</div>)',
+                          lambda d: f'{d.group(1)} \u00b7 <a class="claim-own" href="{og_pages.CLAIM_DIR}/{c["slug"]}">'
+                                    f'{CLAIM_LINK}</a>{d.group(2)}', card, count=1)
+        if n != 1:
+            raise SystemExit(f"claims page card {c['slug']!r} has no date line to put its link after")
+        out += [html[last:m.start()], card]
+        last = m.end()
+    return "".join(out) + html[last:]
+
+
+#: The kicker over a claim's own page, and the link back under it.
+CLAIM_KICKER = "The parties' claims, tested"
+CLAIM_BACK = "All the parties' claims"
+
+
+def claim_title(claim: dict) -> str:
+    """A claim page's <title>: who said it, their party, the verdict. Not its
+    label, which paraphrases the claim and so reads as one to the sourcing
+    audit wherever no dated passage can hold it (the page's title is plain
+    text); the label is the page's <h1>, dated by when the claim was made."""
+    from html import escape
+    return escape(f"{claim['speaker'].split(',')[0]} ({claim.get('party_name', claim['party'])}): "
+                  f"{claim['verdict'].upper()} \u00b7 {CLAIM_KICKER}", quote=False)
+
+
+def claim_pages(html: str, claims: list[dict]) -> list[tuple[str, dict, str]]:
+    """``(output, claim, html)`` for each claim's own page, made from the
+    claims page's template (``html``: cut, tokens unrendered): its masthead
+    replaced by the claim's (the kicker linking back, its label as the
+    title), its list by the claim's own card and a link back to all claims,
+    its head given the claim's title, share card and image placeholder, and
+    the site's nav and footer. Links are root-relative still: the caller
+    re-points the rendered page one level down."""
+    import og_pages
+    from html import escape
+    head = re.search(r'<header class="masthead" id="claims">.*?</header>', html, re.S)
+    lst = re.search(r'<section class="claimlist">.*?</section>', html, re.S)
+    if not head or not lst:
+        raise SystemExit("the claims page has no masthead or claim list to make claim pages from")
+    pages = []
+    for m, c in zip(claim_articles(html, claims), claims):
+        slug, label = c["slug"], escape(c["label"], quote=False)
+        page = (html[:head.start()]
+                + f'<header class="masthead">\n    <div class="kicker"><a href="claims">{CLAIM_KICKER}</a></div>\n'
+                  f'    <h1><span data-asof="{c["captured"]}">{label}</span></h1>\n  </header>'
+                + html[head.end():lst.start()]
+                + f'<section class="claimlist">\n    {m.group(0)}\n  </section>\n'
+                  f'  <p class="claim-back"><a href="claims">{CLAIM_BACK}</a></p>'
+                + html[lst.end():])
+        page = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{claim_title(c)}</title>",
+                      page, count=1, flags=re.S)
+        output = f"{og_pages.CLAIM_DIR}/{slug}.html"
+        og = page_og(" ".join(c["quote"].split()), c["label"], output.removesuffix(".html"),
+                     *og_pages.pending(SITE_URL, og_pages.claim_image_slug(slug)))
+        page = inject_nav(page, "claims", og)
+        page = page.replace('<body class="', f'<body class="{page_type("claims").strip()} ', 1)
+        pages.append((output, c, page))
+    return pages
+
+
 def share_images(held: list[tuple[str, str, str, str]], out: Path, published: list[dict],
                  registry: dict, ctx: dict, articles: dict[str, dict]) -> dict[str, tuple[str, str]]:
     """Draw the share image of every page in ``held`` (``(output, slug,
@@ -716,6 +892,9 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
             claims = tomllib.loads((REPO_ROOT / "content" / city.slug / "claims.toml")
                                    .read_text(encoding="utf-8"))["claim"]
             spec = og_pages.claims_spec(html, claims, headline=ARTEFACTS["claims.html"][2])
+        elif layout == "claim":
+            by_page = {f"{og_pages.CLAIM_DIR}/{c['slug']}.html": c for c in load_claims(city.slug)}
+            spec = og_pages.claim_spec(html, by_page[output])
         elif layout == "article":
             rows = og_pages.seat_rows(forecast_html) if forecast_html else []
             spec = og_pages.article_spec(articles[output], pool, rows=rows)
@@ -1210,11 +1389,15 @@ def main(argv: list[str] | None = None) -> int:
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
         tech = spec[3] if len(spec) > 3 else None
-        og = spec[4] if len(spec) > 4 else None
+        og = (spec[4] if len(spec) > 4 else None) or standfirst or None
+        if not og:
+            raise SystemExit(f"DOCS gives {source} neither a share-card description nor a "
+                             "standfirst: it would carry the home page's card and address")
         page = render_doc(Path(source), kicker, standfirst, output, tech, og)
         seen: list[dict] = []
         page, drift, unresolved = statlib.render(page, registry, ctx,
                                                  record=seen)
+        page = share_button(page)
         published += [{**r, "page": output} for r in seen]
         all_drift += drift
         unresolved_all += [f"{source}: {u}" for u in unresolved]
@@ -1251,10 +1434,15 @@ def main(argv: list[str] | None = None) -> int:
     # placeholder replaced, and only then is it audited, scanned and written.
     import og_pages
     held: list[tuple[str, str, str, str]] = []     # (output, slug, layout, html)
+    claims = load_claims()
+    claims_template = None
     for output, spec in ARTEFACTS.items():
         source, cut, _title, active, _og = spec
         href = active or ("./" if output == "index.html" else output.removesuffix(".html"))
         html = cut_spans(Path(source).read_text(encoding="utf-8"), cut)
+        if output == "claims.html":
+            claims_template = html
+            html = link_claims(html, claims)
         own = og_pages.designed(output, articles)
         title, og_meta = artefact_head(
             output, spec, html, articles,
@@ -1278,10 +1466,29 @@ def main(argv: list[str] | None = None) -> int:
             held.append((output, own[0], own[1], html))
             print(f"  nav+copy {source:<28s} -> site/{output} (after its share image)")
             continue
+        html = share_button(html)
         audits[output] = statlib.audit(html, page=output, **audit_cfg)
         scans[output] = statlib.scan_numbers(html, page=output, **scan_cfg)
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
+
+    # --- each claim's own page (/claims/<slug>), from the claims page ------
+    # The directory is written whole: a claim dropped from claims.toml takes
+    # its page with it.
+    if (args.out / og_pages.CLAIM_DIR).exists():
+        shutil.rmtree(args.out / og_pages.CLAIM_DIR)
+    if claims and claims_template is None:
+        raise SystemExit("claims.toml has claims and the build made no claims page to cut them from")
+    import build_play
+    for output, claim, html in (claim_pages(claims_template, claims) if claims else []):
+        seen = []
+        html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
+        html = build_play.one_level_down(html)
+        published += [{**r, "page": output} for r in seen]
+        all_drift += drift
+        unresolved_all += [f"content/{cityconfig.active().slug}/claims.toml {claim['slug']}: {u}" for u in unresolved]
+        held.append((output, og_pages.claim_image_slug(claim["slug"]), "claim", html))
+        print(f"  claim    {claim['slug']:<28s} -> site/{output} (after its share image)")
 
     # --- "your forecast" (/your-forecast/), Johannesburg's only ------------
     # Assembled by build_your_forecast from interactive/your-forecast.html,
@@ -1318,6 +1525,9 @@ def main(argv: list[str] | None = None) -> int:
         for output, slug, _layout, html in held_pages:
             filename, alt = images[slug]
             html = og_pages.fill(html, SITE_URL, slug, filename, alt)
+            if output != build_your_forecast.YF_PAGE:     # "Your forecast" keeps its own sheets
+                html = share_button(html, "../" * output.count("/"))
+            (args.out / output).parent.mkdir(parents=True, exist_ok=True)
             audits[output] = statlib.audit(html, page=output, **audit_cfg)
             scans[output] = statlib.scan_numbers(html, page=output, **scan_cfg)
             (args.out / output).write_text(html, encoding="utf-8")
@@ -1331,6 +1541,7 @@ def main(argv: list[str] | None = None) -> int:
     if lb_written:
         import build_play
         html = lb.assemble(shell, build_play.one_level_down)
+        html = share_button(html, "../")
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
         published += [{**r, "page": lb.LB_PAGE} for r in seen]

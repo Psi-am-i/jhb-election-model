@@ -10,9 +10,10 @@ share-card.js's primitives and rasterises it (``src/og-raster-node.mjs``); it
 holds layout constants only and types no figure.
 
 Which pages have an image (owner's defaults, 2026-10-10): ``/forecast``,
-``/claims``, each article, and ``/your-forecast/``. The home page,
-``/commentary`` and the documents keep the site's ``og.png``. No claim has an
-image of its own in this release.
+``/claims``, each article, and ``/your-forecast/``; and each claim's own page,
+``/claims/<slug>`` (owner, 2026-10-11, SHARE-BRIEF item 1: the quote large,
+the verdict badge, the party logo, the speaker). The home page,
+``/commentary`` and the documents keep the site's ``og.png``.
 
 The images are written to ``<out>/og-page/<slug>-<name>.png``, where ``<name>``
 is a hash of the SVG, the card faces and the rasteriser's version, written in
@@ -46,8 +47,8 @@ TOKENS_CSS = site_assets.CSS_SRC / "tokens.css"
 #: from tokens.css (its dark theme, the images' ground). The forecast's bar is
 #: the ink, as in the approved mock-up: the site's forecast kind (--accent)
 #: is the claims' colour too.
-KIND_TOKEN = {"claims": "--k-claim", "article": "--k-article", "forecast": "--ink",
-              "interactive": "--k-interactive"}
+KIND_TOKEN = {"claims": "--k-claim", "claim": "--k-claim", "article": "--k-article",
+              "forecast": "--ink", "interactive": "--k-interactive"}
 
 
 def kind_colour(layout: str) -> str:
@@ -133,7 +134,20 @@ def designed(output: str, articles: dict) -> tuple[str, str] | None:
         return output.removesuffix(".html"), "article"
     if output == yf.YF_PAGE:
         return yf.YF_DIR, "interactive"
+    if output.startswith(CLAIM_DIR + "/") and output.endswith(".html"):
+        return claim_image_slug(output.removeprefix(CLAIM_DIR + "/").removesuffix(".html")), "claim"
     return None
+
+
+#: Where each claim's own page is written: ``<out>/claims/<slug>.html``,
+#: served at ``/claims/<slug>`` (build_site.claim_pages).
+CLAIM_DIR = "claims"
+
+
+def claim_image_slug(slug: str) -> str:
+    """A claim page's image slug: ``claim-<slug>``, which no other page's
+    ``<slug>-<12 letters>`` can be read as (the claims page's is ``claims``)."""
+    return f"claim-{slug}"
 
 
 def pending(site: str, slug: str) -> tuple[str, str]:
@@ -372,6 +386,31 @@ def claims_spec(html: str, claims: list[dict], *, headline: str) -> dict:
     return {"layout": "claims", "headline": headline,
             "date_line": f"One claim per party, each tested against the forecast. Latest tested {latest}.",
             "items": items, "figures": {}, "alt": alt}
+
+
+def claim_spec(html: str, claim: dict) -> dict:
+    """A claim's own page: its quote, its verdict badge, its party's logo and
+    name, and who said it. The verdict is the one the page prints (checked
+    against it); the image draws no figure, so the page's tokens stay the
+    page's."""
+    import build_play
+    roster = build_play.roster()
+    printed = re.findall(r'<span class="verdict v-[a-z]+">([^<]+)</span>', html)
+    word = " ".join(claim["verdict"].upper().split())
+    if printed != [word]:
+        raise OgError(f"claims/{claim.get('slug')}: the page prints verdicts {printed}, "
+                      f"claims.toml has {word!r}")
+    logo = REPO_ROOT / "site" / "logos" / f"{claim.get('logo', claim['party'])}.png"
+    party = roster[claim["party"]]["name"]
+    speaker = claim["speaker"].split(",")[0]
+    quote = " ".join(claim["quote"].split())
+    return {"layout": "claim", "quote": quote, "verdict": claim["verdict"],
+            "badge": stamp_path(verdict_badge(claim["verdict"])),
+            "code": claim["party"], "party": party, "colour": roster[claim["party"]]["colour"],
+            "logo": logo.name if logo.is_file() else None, "speaker": speaker,
+            "date_line": f"Tested against the forecast. Published {claim['published']}.",
+            "figures": {},
+            "alt": f"\u201c{quote}\u201d {speaker}, {party}. Verdict: {claim['verdict']}."}
 
 
 def article_spec(art: dict, pool: dict, *, rows: list[dict]) -> dict:

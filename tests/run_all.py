@@ -199,7 +199,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # site build into a temporary directory, then constructed inputs;
            # and the history: and coalition_majority token sources, on
            # constructed inputs. Neither runs the model.
-           "test_og_pages", "test_stat_sources"]
+           "test_og_pages", "test_page_share", "test_stat_sources"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

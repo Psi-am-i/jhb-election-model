@@ -92,6 +92,7 @@ def expected_pages() -> dict[str, str | None]:
     import cityconfig
     arts = build_site.article_meta()
     pages = [spec[0] for spec in build_site.DOCS.values()] + list(build_site.ARTEFACTS) + [yf.YF_PAGE]
+    pages += [f"{og_pages.CLAIM_DIR}/{c['slug']}.html" for c in build_site.load_claims()]
     if lb.published(cityconfig.active().slug):
         pages.append(lb.LB_PAGE)
     return {p: (og_pages.designed(p, arts) or (None,))[0] for p in pages}
@@ -149,8 +150,8 @@ def test_every_designed_page_has_its_own_image_and_every_image_a_page():
     designed = [s for s in pages.values() if s]
     claims = tomllib.loads((ROOT / "content/joburg/claims.toml").read_text(encoding="utf-8"))["claim"]
     n = len(list((out / og_pages.OG_DIR).iterdir()))
-    assert len(designed) <= n <= len(designed) + len(claims), n   # two-sided
-    assert len(designed) >= 4                                     # forecast, claims, an article, yf
+    assert n == len(designed), n                                  # one image per designed page
+    assert len(designed) >= 4 + len(claims)                       # forecast, claims, an article, yf, each claim
     assert image_faults(out, pages) == []
     # it can see: a missing image and an unreferenced one are caught, and the
     # detector goes quiet again when both are put back
@@ -206,6 +207,8 @@ def _rebuild_specs(out: Path) -> list[dict]:
             s = og_pages.claims_spec(page, claims, headline=build_site.ARTEFACTS["claims.html"][2])
         elif layout == "article":
             s = og_pages.article_spec(arts[p], pool, rows=og_pages.seat_rows(fc))
+        elif layout == "claim":
+            s = og_pages.claim_spec(page, next(c for c in claims if p == f"{og_pages.CLAIM_DIR}/{c['slug']}.html"))
         else:
             s = og_pages.interactive_spec(yfd, pool, election=el, site=build_site.SITE_NAME)
         s["slug"] = slug
@@ -230,7 +233,7 @@ def expected_figures(spec: dict, forecast_html: str) -> set[str]:
                 | {"generated_date", "council_size"})
     if spec["layout"] == "interactive":
         return {"council_size"}
-    if spec["layout"] == "claims":
+    if spec["layout"] in ("claims", "claim"):
         return set()
     arts = __import__("build_site").article_meta()
     if arts[spec["page"]].get("og_visual") != "seat-ranges":

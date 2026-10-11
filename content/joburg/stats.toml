@@ -1537,14 +1537,15 @@ reviewed = "2026-10-03"
 page = "forecast.html"
 
 # The site's share-card title (build_site's page head): the election date, a
-# rule like the kicker's, in a link preview rather than the page body.
+# rule like the kicker's, in a link preview rather than the page body. Only the home
+# page carries it: every other page has a share card of its own (SHARE-BRIEF item 2).
 [[audit.fixed]]
 value = "4 November 2026"
 context = "Who governs Johannesburg after 4 November 2026?"
 kind = "rule"
 source = "Proclaimed by the Minister of Cooperative Governance and Traditional Affairs, announced 7 August 2026 (as the kicker's entry above)"
 reviewed = "2026-10-03"
-page = "index.html, methodology.html, review.html, sources.html, corrections.html"
+page = "index.html"
 
 [[audit.fixed]]
 value = "40%"
