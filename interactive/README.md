@@ -253,7 +253,6 @@ refusals, the card, CPython seats, Pyodide = CPython); `page.test.mjs`
 | `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; the address; `/api/me` mapping |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
 | `js/card.js` | the share image, SVG to PNG, 1200×630 and 1080×1920 |
-| `js/share.js` | the share sheet |
 | `js/auth-ui.js` | sign-in and the consent screen, rendered from `js/consent-terms.js` |
 | `js/consent-terms.js` | the consent wording, its keys and its version hash: one definition, imported by the page and `worker-api` |
 | `js/labels.js` | the default-label word list and generator: one definition, imported by the page stub and `worker-api` |
@@ -331,7 +330,12 @@ committed. S5 should commit its code and be the one source.
    were retired on 2026-10-08.
 6. **Saving with sign-in is not part of `/your-forecast/`.** The built page is
    anonymous; the old builder's sign-in and save path (`js/api.js`,
-   `js/auth-ui.js`, `js/share.js`, `js/card.js`) is no longer imported by it.
+   `js/auth-ui.js`, `js/card.js`) is no longer imported by it. Its share sheet
+   (`js/share.js`) was deleted on 2026-10-11: the site has one share sheet
+   (`src/share_sheet.py`, `src/js/share-dialog.js`), which a signed-in save
+   would use. `js/auth-ui.js` stays (its consent screen is tested against the
+   Worker's contract); its dialog has no styling of its own until sign-in
+   returns.
    What follows applies when a signed-in save is added back.
    **Production mode is wired, not exercised.** On a non-loopback host
    `js/api.js` talks to the Worker: sign-in goes to `/auth/<provider>/start`,

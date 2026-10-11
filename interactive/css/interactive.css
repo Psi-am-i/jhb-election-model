@@ -97,9 +97,7 @@ svg .lbl{font:600 11px var(--sans);letter-spacing:.06em;fill:var(--ink);
 
 .tools{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:1px solid var(--rule-soft);}
 .tools label{font-size:12.5px;color:var(--ink-3);display:inline-flex;gap:6px;align-items:center;}
-select,input[type="text"],input[type="email"],input[type="number"]{font:14px var(--sans);
-  color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;
-  padding:8px 10px;min-height:40px;}
+/* select and text fields: the site's (src/css/components.css) */
 select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline-offset:1px;}
 
 /* ---------- the steps panel ---------- */

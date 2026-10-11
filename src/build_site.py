@@ -691,8 +691,8 @@ def page_og(og: str, page_title: str, href: str, image: str | None = None,
 
 #: THE SHARE BUTTON BY EVERY PAGE'S TITLE (owner, 2026-10-11, SHARE-BRIEF
 #: item 2): one component, after the page's one ``</h1>``, opening the site's
-#: one share sheet (src/js/share-dialog.js, through js/page-share.js, styled
-#: by src/css/share-sheet.css). Its preview and download are the page's own
+#: one share sheet (markup: share_sheet.sheet; controls: src/js/share-dialog.js,
+#: through js/page-share.js; look: src/css/share-sheet.css). Its preview and download are the page's own
 #: share image, read from the page's own og:image; the link it sends is the
 #: page's canonical address, which js/page-share.js reads from the head.
 #: "Your forecast" keeps its own two sheets and gets none of these.
@@ -714,30 +714,16 @@ def share_button(html: str, prefix: str = "") -> str:
         raise SystemExit(f"share_button: the page has {html.count('</h1>')} </h1>, not one title to put it by")
     if SHARE_MARK in html:
         raise SystemExit("share_button: the page already has a share button")
-    src = escape(prefix + imgs[0][len(SITE_URL) + 1:])
-    part = f"""
-<div class="pgshare" {SHARE_MARK}>
-  <button class="btn model pgshare-open" type="button">Share</button>
-  <dialog class="sharesheet" aria-labelledby="pgshare-title">
-    <div class="dh"><h2 id="pgshare-title">Share this page</h2>
-      <button class="x" type="button" aria-label="Close">\u00d7</button></div>
-    <div class="db">
-      <div class="preview"><img src="{src}" alt="{SHARE_ALT}" loading="lazy"></div>
-      <div class="urlrow">
-        <input class="shurl" type="text" readonly value="" aria-label="Link to this page">
-        <button class="btn shcopy" type="button">Copy link</button>
-      </div>
-      <div class="shcta">
-        <button class="btn model shnative" type="button" hidden>Share\u2026</button>
-        <a class="btn shwa" target="_blank" rel="noopener">WhatsApp</a>
-        <a class="btn shx" target="_blank" rel="noopener">X</a>
-        <button class="btn shdl" type="button">Download image</button>
-      </div>
-      <p class="toast" role="status" aria-live="polite"></p>
-    </div>
-  </dialog>
-  <script type="module" src="{prefix}{site_assets.JS_DIR}/{PAGE_SHARE_JS}"></script>
-</div>"""
+    src = prefix + imgs[0][len(SITE_URL) + 1:]
+    import share_sheet
+    dialog = share_sheet.sheet(heading_id="pgshare-title", heading="Share this page",
+                               link_label="Link to this page", native="model",
+                               img_src=src, img_alt=SHARE_ALT, ready=True, indent="  ")
+    part = (f'\n<div class="pgshare" {SHARE_MARK}>\n'
+            '  <button class="btn model pgshare-open" type="button">Share</button>\n'
+            f'  {dialog}\n'
+            f'  <script type="module" src="{escape(prefix)}{site_assets.JS_DIR}/{PAGE_SHARE_JS}"></script>\n'
+            '</div>')
     return html.replace("</h1>", "</h1>" + part, 1)
 
 
@@ -2193,8 +2179,12 @@ def main(argv: list[str] | None = None) -> int:
         "Allow: /\n", encoding="utf-8")
     print("  wrote    _headers + robots.txt (utf-8; /dev and /drafts noindex)")
 
-    total = sum(f.stat().st_size for f in args.out.glob("*.html"))
-    print(f"site: {len(list(args.out.glob('*.html')))} pages, {total / 1024:.0f} KB total")
+    # every page this build wrote, at any depth (each claim's page, the
+    # interactive and the leaderboard included): the pages the number review
+    # scanned
+    pages = [args.out / p for p in sorted(scans) if (args.out / p).is_file()]
+    total = sum(f.stat().st_size for f in pages)
+    print(f"site: {len(pages)} pages, {total / 1024:.0f} KB total")
     return 0
 
 

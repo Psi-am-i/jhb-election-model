@@ -123,3 +123,10 @@ details.rollup + details.rollup{margin-top:30px;padding-top:26px;
 .btn.model{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);}
 .btn.small{font-size:13px;padding:7px 11px;min-height:36px;}
 .btn[disabled],a.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
+
+/* the site's form controls: the share sheet's link on every page, and every
+   field and select on "Your forecast" (a page that styles its own, like the
+   forecast's coalition filter, says so in its own rule) */
+select,input[type="text"],input[type="email"],input[type="number"]{font:14px var(--sans);
+  color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;
+  padding:8px 10px;min-height:40px;}

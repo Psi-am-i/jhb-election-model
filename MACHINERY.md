@@ -2458,7 +2458,8 @@ SHARE-BRIEF.md (audits/2026-10-09-site-batch/).
   `auto-trailing-slash`), so no Worker route. The directory is rewritten whole
   each build. The rendered page is re-pointed one level down
   (`build_play.one_level_down`). The claims page links each card to its page
-  (`link_claims`). Its image is the `claim` layout: the quote, the verdict
+  (`link_claims`), and so does the home page's list of claims
+  (`render_home._claims`). Its image is the `claim` layout: the quote, the verdict
   badge, the party logo, the party and the speaker; no figure
   (`og_pages.claim_spec`, image slug `claim-<slug>`).
 * **The share button** (`build_site.share_button`) is one component after
@@ -2469,7 +2470,10 @@ SHARE-BRIEF.md (audits/2026-10-09-site-batch/).
   is the page's canonical address, which `src/js/page-share.js` reads from the
   head. Every document page therefore has its own share card and canonical
   address (DOCS' description, or the standfirst).
-* **One sheet.** `src/js/share-dialog.js` holds the sheet's controls (the
+* **One sheet.** `src/share_sheet.py` writes every sheet's markup: the one
+  `share_button` adds and Your forecast's two, at its `<!-- __YFSHEET:play__ -->`
+  and `<!-- __YFSHEET:break__ -->` markers (`build_your_forecast.sheets`, which
+  adds the name, seal, entry note and image picker). `src/js/share-dialog.js` holds the sheet's controls (the
   dialog, Copy link, WhatsApp, X, Share…, Download image, the status line);
   `src/js/page-share.js` (site pages) and `interactive/js/share-sheet.js`
   (Your forecast, which adds the name, the seal, the image picker and the
@@ -2477,7 +2481,8 @@ SHARE-BRIEF.md (audits/2026-10-09-site-batch/).
   `../../src/js/share-dialog.js`, rewritten to `../../js/share-dialog.js` when
   served (`build_your_forecast.SHARE_DIALOG_LINE`). Its look is
   `src/css/share-sheet.css` (every rule under the dialog's class `sharesheet`;
-  `sheet` is the forecast pages' column) and `.btn` in `components.css`.
+  `sheet` is the forecast pages' column); `.btn` and the form controls
+  (select and text fields) are `components.css`'s.
 
 Tests: `tests/test_page_share.py` (the page set both ways, one button per
 page wired to its own image and address, a constructed missing, miswired or

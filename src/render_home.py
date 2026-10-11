@@ -463,6 +463,9 @@ def _articles(city_dir: Path, exclude: str | None = None) -> str:
 
 
 def _claims(city_dir: Path) -> str:
+    """The home page's list of claims, each linked to its own page
+    (``/claims/<slug>``, build_site.claim_pages; owner, 2026-10-11)."""
+    from og_pages import CLAIM_DIR
     path = city_dir / "claims.toml"
     if not path.exists():
         return '  <div class="feed"></div>'
@@ -488,7 +491,7 @@ def _claims(city_dir: Path) -> str:
             f'    <div class="item pc-{html.escape(party)}" data-asof="{when}">\n'
             f'      {ident}\n'
             f'      <div>\n'
-            f'        <div class="t"><a href="claims">'
+            f'        <div class="t"><a href="{CLAIM_DIR}/{html.escape(c["slug"])}">'
             f'{html.escape(c.get("label") or c.get("tests") or c.get("quote", "")[:90])}</a></div>\n'
             f'        <div class="meta"><span class="verdict {_sheet.verdict_class(verdict)}">'
             f'{html.escape(verdict)}</span>'

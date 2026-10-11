@@ -37,8 +37,8 @@ dialog.sharesheet .x:hover{color:var(--ink);}
   padding:8px;margin:0 0 12px;}
 .sharesheet .preview img{max-width:100%;max-height:44dvh;height:auto;display:block;}
 .sharesheet .urlrow{display:flex;gap:6px;margin:10px 0;}
-.sharesheet .urlrow input{flex:1;min-width:0;font:12.5px var(--mono);color:var(--ink);background:var(--paper);
-  border:1px solid var(--rule);border-radius:4px;padding:8px 10px;min-height:40px;}
+/* the field itself is the site's (components.css); here only its place and face */
+.sharesheet .urlrow input{flex:1;min-width:0;font-family:var(--mono);font-size:12.5px;}
 .sharesheet .shcta{display:flex;flex-direction:column;gap:8px;}
 @media (min-width:560px){.sharesheet .shcta{flex-direction:row;flex-wrap:wrap;}}
 .sharesheet a.btn,.sharesheet a.btn:hover{color:var(--ink);text-decoration:none;}
