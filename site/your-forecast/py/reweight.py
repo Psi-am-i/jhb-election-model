@@ -123,12 +123,15 @@ ANALYSIS_SHARE_BAND_POINTS = 2.0
 #: seat Worker's card answer read it from here).
 PUBLISHED_LAW = "deduct"
 
-#: The boldness badge on a reader's shared forecast (owner, 2026-10-03): the
-#: chance of the reader's council-level outcome (:func:`council_outcome`)
-#: names the call. ``(lowest chance, words)``, highest band first; a chance
-#: at a band's edge takes that band. JUDGEMENT CALLS, not measurements:
-#: JUDGEMENT-CALLS.md §N6. :func:`boldness` is the one reader of it.
-BOLDNESS = ((0.20, "Safe call"), (0.05, "Bold call"), (0.0, "Wild call"))
+#: The badge on a reader's shared forecast (owner, 2026-10-10): the chance of
+#: the forecast's boldest single call (:func:`boldest_call`) names it.
+#: ``(lowest chance, words)``, highest band first; a chance at a band's edge
+#: takes that band. The words are the owner's badges, drawn with these edges
+#: printed on them (``src/stamps/reader-*.svg``, the file named by the words).
+#: JUDGEMENT CALLS, not measurements: JUDGEMENT-CALLS.md §N10, which
+#: supersedes §N6. :func:`boldness` is the one reader of it.
+BOLDNESS = ((0.45, "Safe bet"), (0.30, "Steady as she goes"), (0.15, "Long shot"),
+            (0.05, "Wild call"), (0.0, "Hail Mary"))
 
 #: What a figure computed under a poll's weights is, in the page's words. The
 #: weights select the model's own draws that lie near the poll; they do not
@@ -923,10 +926,12 @@ def chance_text(p: float) -> str:
 
 
 def boldness(p: float) -> str:
-    """The badge for a chance of a reader's outcome: :data:`BOLDNESS`'s words
-    for the highest band whose lowest chance ``p`` reaches. ONE DEFINITION:
+    """The badge for the chance of a reader's boldest call
+    (:func:`boldest_call`): :data:`BOLDNESS`'s words for the highest band
+    whose lowest chance ``p`` reaches. ONE DEFINITION:
     ``interactive/pyboot/page.py``'s ``analyse`` and the seat Worker's card
-    answer (``worker-api/seats-py/src/entry.py``) both return it."""
+    answer (``worker-api/seats-py/src/entry.py``) both return it, through
+    :func:`outcome_chance`."""
     v = float(p)
     return next(words for low, words in BOLDNESS if v >= low)
 
@@ -1085,16 +1090,56 @@ def reader_outcome(seats: dict, majority: int, coalition=()) -> dict:
             "coalition": sorted(set(coalition or []))}
 
 
+def boldest_call(seats, columns, weights, mine: dict) -> dict:
+    """A reader's boldest single call against the model's middle forecast
+    (owner, 2026-10-10; JUDGEMENT-CALLS.md §N10).
+
+    For each party whose seats in the reader's forecast ``mine`` differ from
+    :func:`middle_seats`, the share of simulations at least that far out on
+    the reader's side: ``P(seats >= x)`` when the reader's ``x`` is above the
+    middle, ``P(seats <= x)`` when below. The boldest call is the smallest of
+    these; a tie goes to the party first in ``columns`` order. Returns
+    ``{"party", "seats", "middle", "p", "text"}``; a forecast equal to the
+    middle forecast has no call (``party`` and ``seats`` None) and ``p`` 1.0.
+
+    ``seats`` is ``(draws, len(columns))`` party columns
+    (:func:`party_columns`). A party with seats in ``mine`` and no column
+    holds no seats in any simulation, as in :func:`council_outcome`; a column
+    absent from ``mine`` is a reader's 0. Unit weights when ``weights`` is
+    None.
+    """
+    s = np.asarray(seats, dtype=float)
+    w = uniform(s.shape[0]) if weights is None else np.asarray(weights, dtype=float)
+    cols = list(columns)
+    middle = middle_seats(s, cols, w)
+    best = {"party": None, "seats": None, "middle": None, "p": 1.0}
+    for c in cols + sorted(set(mine) - set(cols)):
+        x = int(mine.get(c, 0))
+        m = middle.get(c, 0)
+        if x == m:
+            continue
+        v = s[:, cols.index(c)] if c in cols else np.zeros(s.shape[0])
+        p = weighted_probability(v >= x if x > m else v <= x, w)
+        if p < best["p"]:
+            best = {"party": c, "seats": x, "middle": m, "p": float(p)}
+    return {**best, "text": chance_text(best["p"])}
+
+
 def outcome_chance(seats, columns, thresholds, weights, mine: dict, majority: int,
                    coalition=()) -> dict:
     """The chance the model gives a reader's council-level outcome, with what
-    it was read as, its text (:func:`chance_text`) and its badge
-    (:func:`boldness`): ``{"largest", "majority_alone", "coalition", "p",
-    "text", "badge"}``. ``seats``/``columns`` are party columns
-    (:func:`party_columns`), ``thresholds`` each simulation's majority."""
+    it was read as and its text (:func:`chance_text`), and the badge
+    (:func:`boldness`) of the forecast's boldest call (:func:`boldest_call`,
+    returned as ``boldest``): ``{"largest", "majority_alone", "coalition",
+    "p", "text", "badge", "boldest"}``. The badge does not read ``p``
+    (JUDGEMENT-CALLS.md §N10, amending §N3). ``seats``/``columns`` are party
+    columns (:func:`party_columns`), ``thresholds`` each simulation's
+    majority."""
     out = reader_outcome(mine, majority, coalition)
     p = council_outcome(seats, columns, thresholds, weights, **out)
-    return {**out, "p": float(p), "text": chance_text(p), "badge": boldness(p)}
+    bold = boldest_call(seats, columns, weights, mine)
+    return {**out, "p": float(p), "text": chance_text(p), "badge": boldness(bold["p"]),
+            "boldest": bold}
 
 
 def middle_seats(seats, columns, weights) -> dict:

@@ -7,7 +7,7 @@ Every result in this section comes from the model run described at its end. The 
 
 Each forecast used what a forecaster had before polling day: the previous local election for its geography, the national election before it for each party's starting level, and the voters' roll. It also used the 2022 census, taken after the election; *What this does not prove* says why that cannot leak a result.
 
-It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.
+It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg.
 
 #### The three baselines
 

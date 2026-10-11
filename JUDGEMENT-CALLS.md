@@ -3355,6 +3355,12 @@ those functions on the published draws for a constructed forecast. A
 different band changes only which chance is printed; nothing in the model
 reads it.
 
+**Amended 2026-10-10 (§N10).** The badge on a reader's forecast no longer
+reads `council_outcome`: it is judged by the forecast's boldest single call
+(`reweight.boldest_call`). The "this outcome" chance line in "Analyse my
+forecast", on the share cards and in the arrival view still prints
+`council_outcome`'s figure, unchanged.
+
 ### §N4 · The competition rule: seats, then ward calls, then vote (list ballot); and the seat line — ⚖️ owner's order, the line derived (2026-10-03)
 
 **Where.** `src/score_forecasts.py` (`seat_error`, `wards_called`,
@@ -3464,7 +3470,7 @@ wide; its section 2 moves include a party's vote set to 0, a typed vote over
 100, and a party from "Other parties" given its first seats. Nothing in the
 model reads this value.
 
-### §N6 · The boldness badge: Safe call at 20% or more, Bold call from 5% to under 20%, Wild call under 5% — ⚖️ owner's bands (2026-10-03)
+### §N6 · The boldness badge: Safe call at 20% or more, Bold call from 5% to under 20%, Wild call under 5% — ⚪ superseded 2026-10-10 by §N10
 
 **Where.** `reweight.BOLDNESS`, read only by `reweight.boldness`, which
 `reweight.outcome_chance` calls for `interactive/pyboot/page.py`'s `analyse`
@@ -3579,6 +3585,59 @@ or sixty seconds only.
 the fourth seal refused, another address and a new period passed, and a
 preview refused before it is counted.
 
+### §N10 · The reader's badge: the boldest single call, in five bands (45, 30, 15, 5%) — ⚖️ owner's measure and bands (2026-10-10)
+
+**Where.** `reweight.boldest_call` and `reweight.BOLDNESS`, read only by
+`reweight.boldness`; both called by `reweight.outcome_chance` for
+`interactive/pyboot/page.py`'s `analyse` and the seat Worker's card answer
+(`worker-api/seats-py/src/entry.py`, `/v1/card`). The share cards, the link
+preview and the arrival view on /your-forecast/ draw the owner's badge for
+the words they are handed (`src/stamps/reader-<words>.svg`, served at
+`/stamps/`) and name the call; no JavaScript computes either.
+
+**Now.** For each party whose seats in the reader's forecast differ from the
+model's middle forecast (`reweight.middle_seats`, each party's median seats
+over the published draws), the share of simulations at least that far out on
+the reader's side: `P(seats ≥ x)` when the reader's `x` is above the middle,
+`P(seats ≤ x)` when below. The smallest of these is the boldest call; the
+badge comes from it and the card names the party and its seats ("Boldest
+call: the PA at 38 seats."). A tie goes to the party first in the draws'
+column order. A party with no column in the draws holds no seats in any
+simulation, as in §N3.
+
+| badge | chance of the boldest call |
+|---|---|
+| Safe bet | 45% or more |
+| Steady as she goes | 30% to under 45% |
+| Long shot | 15% to under 30% |
+| Wild call | 5% to under 15% |
+| Hail Mary | under 5% |
+
+A chance exactly at an edge takes the higher band. A forecast equal to the
+middle forecast has no call and is a Safe bet. The badge reads the exact
+chance, not a printed one; the card prints no chance for the call, so no
+printed figure can disagree with it.
+
+**Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`,
+which records the measurements behind it: what §N6's badge gave the common
+forecasts and the model's own middle forecast on the published draws, and
+the chances of eight constructed forecasts under this measure. The owner's
+words: "Our score is a little informational but mainly just fun. All
+forecasts get judged against the real result." The edges are the ones
+printed on his badges; nothing is fitted.
+
+**Known limit, accepted by the owner.** A forecast that moves every party a
+little takes its badge from some small party's tail (BADGE-DECISION.md
+measures how often). The share fixture's two readers both take theirs from a
+one-seat party.
+
+**How to check it.** `tests/test_reweight.py` holds the four edges, the
+measure on constructed draws, and the eight constructed forecasts of
+BADGE-DECISION.md's table re-measured on the published draws (it fails, and
+says to re-measure, when the published model is no longer 7ea27c28); and that
+every badge word has the owner's file and every file a word. Nothing in the
+model reads the badge.
+
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 
 ### §O1 · `MERGER_RETENTION` — 0.75, range [0.5, 0.9] — 🔴 declared, not measured
@@ -3647,8 +3706,8 @@ claim holds:
 |---|---|---|
 | under 1% | NEAR IMPOSSIBLE | false |
 | 1% to 15% | EXTREMELY UNLIKELY | unlikely |
-| 15% to 45% | UNLIKELY | unlikely |
-| 45% to 55% | A COIN FLIP | open |
+| 15% to 45% | QUITE UNLIKELY | unlikely |
+| 45% to 55% | COIN FLIP | open |
 | 55% to 75% | QUITE LIKELY | likely |
 | 75% to 90% | VERY LIKELY | likely |
 | over 90% | NEAR CERTAIN | true |
@@ -3656,8 +3715,15 @@ claim holds:
 FALSE (step false) and TRUE (step true) are for claims settled by fact or
 arithmetic, not chance, and carry no `chance` field.
 
+**Amended 2026-10-10.** The words are the owner's badges' words ("We
+standardised badges, so adjust pages to match the badge"): 15% to 45% is
+QUITE UNLIKELY (was UNLIKELY) and 45% to 55% COIN FLIP (was A COIN FLIP). The
+edges and colour steps are unchanged, and no claim carried either word.
+Each verdict's badge file is named by its words
+(`render_sheet.verdict_badge_file`).
+
 **The edge rule.** A chance exactly on an edge takes the band nearer a coin
-flip: 1% is EXTREMELY UNLIKELY, 15% UNLIKELY, 45% and 55% A COIN FLIP, 75%
+flip: 1% is EXTREMELY UNLIKELY, 15% QUITE UNLIKELY, 45% and 55% COIN FLIP, 75%
 QUITE LIKELY, 90% VERY LIKELY. This agrees with the owner's "under 1%" and
 "over 90%". The chance is judged as the page prints it
 (`reweight.chance_text`), so the verdict never disagrees with the figure beside
@@ -3667,8 +3733,9 @@ it.
 its figure: `chance = "<name>"`, or `chance = "1 - <name>"` when the claim
 holds where that figure's event does not. The build reads the value out of
 that figure's own token and refuses a verdict the scale does not give it. The
-words it replaced (OUT OF REACH, VERY UNLIKELY, MORE LIKELY THAN NOT, LIKELY)
-are off the table, so a stale label stops the build. A chance written as a
+words it replaced (OUT OF REACH, VERY UNLIKELY, MORE LIKELY THAN NOT, LIKELY,
+and on 2026-10-10 UNLIKELY and A COIN FLIP) are off the table, so a stale
+label stops the build. A chance written as a
 number instead of a name stops the build.
 
 FALSE and TRUE need a `settled` field saying what fact or arithmetic settles
@@ -3680,8 +3747,8 @@ page's claims list runs it on the form alone, since it computes no figure.
 **The sentence that follows the verdict.** A claim may write `[[holds]]` and
 name its subject in `holds_subject`; `render_sheet.HOLDS` gives the
 predicate (owner, 2026-10-07): NEAR CERTAIN "is almost certainly correct",
-VERY LIKELY "is very likely correct", QUITE LIKELY "is probably correct", A
-COIN FLIP "is as likely right as wrong", UNLIKELY "is probably wrong",
+VERY LIKELY "is very likely correct", QUITE LIKELY "is probably correct",
+COIN FLIP "is as likely right as wrong", QUITE UNLIKELY "is probably wrong",
 EXTREMELY UNLIKELY "is very likely wrong", NEAR IMPOSSIBLE "is almost
 certainly wrong", TRUE "is correct", FALSE "is wrong". So "Mashaba is very
 likely correct" cannot outlive its verdict.
@@ -4406,6 +4473,59 @@ settled; the owner can overrule.
 
 **How to check it.** The allowance test: a shape quantity with one event
 keeps `EDITOR_WIDEN_PP`, and a second event makes it their mean.
+
+## S. Added 2026-10-10 — the share images (OG-IMPLEMENTATION-SPEC.md, audits/2026-10-09-site-batch/)
+
+### §S1 · The forecast image's four coalitions — ⚖️ owner's choice (2026-10-10)
+
+**Where.** `og_pages.FORECAST_COALITIONS`, the one definition of each set's
+parties; its label and its figure (`coal.<key>.majority`, the share of
+simulations in which the set holds a majority) are both written from it.
+
+**Now.** Four sets, as the image labels them:
+
+| set | parties |
+|---|---|
+| ANC + DA | ANC; DA |
+| DA, ActionSA, PA + IFP, VF+, ACDP | DA, ASA, PA; IFP, VFPLUS, ACDP |
+| ANC, EFF, PA + Al Jama-ah | ANC, EFF, PA; ALJAMAAH |
+| ANC + EFF + MK Party | ANC; EFF; MK |
+
+A set /forecast's coalition table prints takes the page's figure; a set the
+table does not list is computed over every party's seats
+(`stats.coalition_majority`) and recorded in the publication ledger under
+/forecast as a generated token.
+
+**Why.** The owner's choice on the mock-up (`og-design/make_og.mjs`,
+6cc87fb): "looks good". These are the coalitions in the news, not a ranking:
+nothing in the model chose them, and the image shows nothing about sets left
+out. Whether /forecast's coalition table uses the same list is the owner's to
+confirm.
+
+**How to check it.** `tests/test_og_pages.py` holds the image's figure fields
+to this list and each figure to the string a page printed. Nothing in the
+model reads it.
+
+### §S2 · `SMALL_PARTY_SHARE` = 0.01 and `SMALL_PARTY_SURGE` = 0.05: the small-party note's test — ⚖️ the record's own thresholds (2026-10-10)
+
+**Where.** `stats.small_party_surge`, read by the token `small_party_surge`
+(source `published:small_party_surge`) and printed, with both thresholds as
+tokens, in the small-party note on /methodology ("What this does not cover").
+
+**Now.** The share of the published simulations in which at least one
+established party (one that stood at the preceding local election) whose mean
+list share over the simulations is under 1% takes more than 5% of the list
+vote.
+
+**Why these.** They are the thresholds of the record test the note sets the
+simulations against: MODEL-LOG §1.296 counted the cases of a party under 1%
+of the list vote at one local election in the eight metros, 2006 to 2021, and
+found none that reached 5% at the next. The same two lines on both sides
+compare like with like. They describe the model; nothing in it reads them.
+
+**How to check it.** `tests/test_stat_sources.py` holds the measure on
+constructed draws and the registered source to a direct computation on the
+published draws.
 
 ## Appendix — how this register has failed before
 

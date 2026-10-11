@@ -773,6 +773,10 @@ def test_every_tunable_constant_is_in_the_judgement_register():
         # 2026-10-02, "we should say who they are"). It picks which figures a
         # sentence prints and changes no draw, seat or probability.
         "EXCESSIVE_FLOOR",
+        # `og_pages.SEAT_RANGE_ROWS`: how many parties' seat ranges the article
+        # share image draws (2026-10-10 release). Presentation; changes no
+        # draw, seat or probability.
+        "SEAT_RANGE_ROWS",
         "MIN_HOME_SPLITS",                            # registered under its own name
         # `theta_residual.py` MEASURES the model; it is not part of it.
         # `SIM_DRAWS` and `NULL_REPS` bound how precisely a REFERENCE

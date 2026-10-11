@@ -59,17 +59,18 @@
 // sends arrives with `from=1` (src/share-edge.js's /s/ redirect): the
 // friend's forecast is shown read-only at the top of the page (js/arrival.js)
 // and section 2 stays locked until the reader picks a start: the friend's
-// forecast (their name is not carried over) or the published one. Either way
-// the friend's forecast is kept in the address (`vs`, `vn`) so the share sheet
-// can draw the return card, both forecasts side by side. Its seats come from
-// the same seat Worker, in a lane of their own, and its chance from the same
-// analysis.
+// forecast (their name is not carried over) or the published one. The
+// friend's forecast stays on the page only: neither the address nor the
+// reader's share link carries it, so no link draws the two forecasts side by
+// side (owner, 2026-10-10: that card is off the share choices). Its seats come
+// from the same seat Worker, in a lane of their own, and its chance from the
+// same analysis.
 
 import * as B from "./builder-state.js";
 import * as MS from "./make-state.js";
 import * as YU from "./yf-url.js";
 import { WardMap } from "./map.js";
-import { setShareable, onNameChange, onOpen, onFriendName } from "./make-share.js";
+import { setShareable, onNameChange, onOpen } from "./make-share.js";
 import { setHandoff } from "./play-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
 import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
@@ -201,7 +202,7 @@ let fromLink = false;      // opened from a link's forecast, not yet measured ag
 let parties = {};          // parties.json: name, colour, article, logo per party
 let arriving = false;      // a shared link's arrival view is up; section 2 is locked
 let pinned = false;        // the start is a friend's forecast: section 1 never replaces it unasked
-let friend = null;         // { name, f, state, coalition, answer, outcome, leftOff, seal }
+let friend = null;         // { name, f, state, coalition, answer, outcome, seal }
 let ownOutcome = null, outcomeTicket = 0;
 
 // `v` votes as a percent of `total`, for a reader to hear.
@@ -213,7 +214,7 @@ const pct = (v, total, dp = 1) => {
 // ---------- following section 1 ----------
 let section1 = null;       // { settings, touched }, the newest setting section 1 shows
 let handSeq = 0, waiting = null;
-onForecast(f => { section1 = f; if (started) follow(); });
+onForecast(f => { section1 = f; if (near) follow(); });
 
 // The prediction this section opens at from section 1's moved `settings`
 // (page.py handoff, rule A on the reader's weights), as builder-state.js
@@ -239,7 +240,7 @@ function followFailed(res) {
 
 async function follow() {
   const f = section1, ticket = ++handSeq;
-  // before start() has its data, there is nothing to follow with: start()
+  // before start() has its data, there is nothing to follow with: begin()
   // follows once it has
   if (!f || !ctx || !from || arriving) return;
   let next;
@@ -286,10 +287,10 @@ one.reseed.addEventListener("click", () => {
   commit(from);
 });
 
-// ---------- start when the reader comes near ----------
+// ---------- start: laid out at load, live when the reader comes near ----------
 // The section's data (forecast.json, parties.json), loaded once: by the
-// section when the reader comes near, or by section 1's share sheet, which
-// draws the start's council on the model's card (setHandoff, below).
+// section's start, or by section 1's share sheet, which draws the start's
+// council on the model's card (setHandoff, below).
 let dataP = null;
 function loadData() {
   dataP ??= Promise.all([fetch(new URL("../forecast.json", import.meta.url)), fetch(new URL("../parties.json", import.meta.url))])
@@ -301,11 +302,27 @@ function loadData() {
   dataP.catch(() => { dataP = null; });
   return dataP;
 }
-// The section started, once: every caller waits on the same start.
-let startP = null;
-function begin() {
+// Two steps. build(): the data and the controls, once, when the page loads,
+// so the section has its full height before the reader reaches it (owner,
+// 2026-10-10: the layout must not shift; filling it on arrival moved
+// everything under its map by the height of its vote list). begin(): when
+// the reader comes near, the seat Worker, which loads the seat law, and from
+// then on the section follows section 1's settings. Every caller waits on the
+// same build.
+let startP = null, near = false;
+function build() {
   startP ??= start().then(() => { if (!started) startP = null; });
   return startP;
+}
+function begin() {
+  near = true;
+  return build().then(() => {
+    if (!started || worker) return;
+    worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
+    worker.onmessage = onWorker;
+    worker.postMessage({ type: "init", schema });
+    if (section1) follow();        // section 1 may have spoken before the reader came near
+  });
 }
 async function start() {
   if (started) return;
@@ -341,27 +358,26 @@ async function start() {
   map.onClear = () => { one.hint.textContent = "Every ward needs a winner. Choose a party, then tap the ward to change it."; };
   buildVote();
   paintBrush();
+  paintPending();
   fromLink = !MS.sameState(state, pubStart, ctx);
   const linkF = new URLSearchParams(YU.partOf(location.search, YU.BREAK_KEYS)).get("f");
   if (YU.arrival().from && linkF && !opened.note) {
     // a shared link: the friend's forecast, read-only until a start is picked
     arriving = true;
     fromLink = false;
-    friend = { name: YU.currentName(), f: linkF, state, coalition: S.coalition.slice(), answer: null, outcome: null, leftOff: false,
+    friend = { name: YU.currentName(), f: linkF, state, coalition: S.coalition.slice(), answer: null, outcome: null,
                seal: { state: "checking", at: null } };
     one.status.textContent = "This is " + (friend.name || "a reader") + "'s forecast. Pick where to start, above, to make your own.";
     checkSeal();
   } else if (YU.friend()) {
-    // a return link carries the friend's forecast for the side-by-side card
+    // an address from before 2026-10-10 carries a friend's forecast: its
+    // parties keep their council rows; the address drops it
     const fr = YU.friend();
     const got = MS.parse("?" + new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fr.f }).toString(), ctx, D.context_ref, pubStart);
-    if (!got.note) friend = { name: fr.name, f: fr.f, state: got.state, coalition: got.coalition, answer: null, outcome: null, leftOff: !fr.name };
+    if (!got.note) friend = { name: fr.name, f: fr.f, state: got.state, coalition: got.coalition, answer: null, outcome: null };
+    YU.write("friend", "");
   }
   afterEdit();
-  if (section1) follow();          // section 1 may have spoken while the data loaded
-  worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
-  worker.onmessage = onWorker;
-  worker.postMessage({ type: "init", schema });
 }
 const wantsNow = /(^|[?&])f=/.test(location.search) || location.hash === "#break";
 
@@ -392,7 +408,7 @@ function paintArrival() {
   if (!arriving || !friend.answer) return;
   const spec = friendSpec();
   if (!friend.outcome) spec.outcome = null;
-  showArrival({ spec, geom, seal: friend.seal, now: Date.now(), logo: c => new URL("logos/" + c + ".png", pageRoot).href });
+  showArrival({ spec, geom, seal: friend.seal, now: Date.now(), party: partyOf, logo: c => new URL("logos/" + c + ".png", pageRoot).href });
 }
 // The chance and badge of a forecast's outcome (page.py analyse), for the
 // arrival view, the return card and the reader's own card.
@@ -404,14 +420,12 @@ async function friendOutcome() {
   if (!friend || !friend.answer || friend.outcome) return;
   try { friend.outcome = await outcomeOf(friend.state, friend.coalition, friend.answer); } catch (e) { return; }
   paintArrival();
-  if (result) share();
 }
 onChoose(kind => {
   arriving = false;
   hideArrival();
   YU.write("arrival", "");
   YU.write("name", "");                       // the friend's label is not carried over
-  YU.write("friend", YU.friendPart(friend.f, friend.name));
   snapshot();
   if (kind === "friend") {
     from = friend.state; adjusted = false; pinned = true;
@@ -428,12 +442,6 @@ onChoose(kind => {
   if (section1 && kind === "ours") follow();
   one.statusRegion.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 });
-onFriendName(off => {
-  if (!friend) return;
-  friend.leftOff = off;
-  YU.write("friend", YU.friendPart(friend.f, off ? "" : friend.name));
-  if (result) share();
-});
 // the share sheet opened: work out the reader's own outcome if not yet known
 onOpen(async () => {
   if (ownOutcome || !result) return;
@@ -444,6 +452,7 @@ onOpen(async () => {
   ownOutcome = o;
   share();
 });
+build();
 if (wantsNow) begin();
 else new IntersectionObserver((es, io) => {
   if (es.some(e => e.isIntersecting)) { io.disconnect(); begin(); }
@@ -849,20 +858,22 @@ function writeURL() {
 }
 
 // ---------- coalition ----------
+// One coalition chip: party `c`, its seats as `n` (words).
+function coalChip(c, n) {
+  const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)), disabled: locked },
+    sw(c), name(c) + " ", el("span", { className: "chipn" }, n));
+  b.addEventListener("click", () => {
+    if (locked || !result) return;
+    S.coalition = S.coalition.includes(c) ? S.coalition.filter(x => x !== c) : [...S.coalition, c];
+    writeURL();
+    paintCoalition();
+  });
+  return b;
+}
 function paintCoalition() {
   const seats = result.seats;
   const shown = alpha.filter(c => shownRows.includes(c) || S.coalition.includes(c));
-  one.coal.replaceChildren(...shown.map(c => {
-    const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)), disabled: locked },
-      sw(c), name(c) + " ", el("span", { className: "chipn" }, String(seats[c] || 0)));
-    b.addEventListener("click", () => {
-      if (locked) return;
-      S.coalition = S.coalition.includes(c) ? S.coalition.filter(x => x !== c) : [...S.coalition, c];
-      writeURL();
-      paintCoalition();
-    });
-    return b;
-  }));
+  one.coal.replaceChildren(...shown.map(c => coalChip(c, String(seats[c] || 0))));
   const cs = S.coalition.reduce((a, c) => a + (seats[c] || 0), 0);
   const { council_total: council, majority } = result;
   if (!S.coalition.length) one.coalstat.textContent = "No party chosen. A council of " + council + " needs " + majority + " votes to elect a mayor and pass a budget.";
@@ -895,25 +906,50 @@ function councilRows(seats) {
   return { list: [...known, ...fresh].sort((a, b) => (seats[b] || 0) - (seats[a] || 0) || name(a).localeCompare(name(b))), fresh };
 }
 let shownRows = [];        // councilRows' list for the result shown
-function paintCouncil() {
-  const { seats, ward, council_total: council, majority, excessive } = result;
-  const { list, fresh } = councilRows(seats);
-  shownRows = list;
-  const max = Math.max(1, ...list.map(c => seats[c]));
-  one.restate.textContent = "Each party's wards plus its list seats, of " + council + ".";
-  // The site's one seat table (js/seat-table.js). A single council has no
-  // range: the mark is the party's seats, and the range column is empty. The
-  // axis is the site's, widened in steps of its own tick spacing when a party
-  // the reader built holds more seats than it reaches.
+// The site's one seat table (js/seat-table.js) for the parties `list`. A
+// single council has no range: the mark is the party's seats, and the range
+// column is empty. The axis is the site's, widened in steps of its own tick
+// spacing when a party the reader built holds more seats than it reaches.
+// `seats` null draws the rows with no figures (paintPending); `ward` null
+// leaves out each row's wards-and-list title.
+function councilTable(list, seats, ward) {
+  const max = seats ? Math.max(1, ...list.map(c => seats[c] || 0)) : 0;
   const T = TABLE.ticks, tick = T[1] - T[0];
   const scale = max <= TABLE.scale ? TABLE.scale : Math.ceil(max / tick) * tick;
   const every = tick * Math.ceil(scale / tick / (T.length - 1));
   const ticks = scale === TABLE.scale ? T : Array.from({ length: Math.floor(scale / every) + 1 }, (_, i) => i * every);
-  const table = seatTable(document, list.map(c => ({
-    code: c, name: name(c), sub: null, seats: String(seats[c] || 0), lo: null, hi: null,
-    m: seats[c] || 0, p5: null, p95: null, ghost: null, arrow: null,
-    title: (ward[c] || 0) + " wards, " + ((seats[c] || 0) - (ward[c] || 0)) + " list",
+  return seatTable(document, list.map(c => ({
+    code: c, name: name(c), sub: null, seats: seats ? String(seats[c] || 0) : "", lo: null, hi: null,
+    m: seats ? seats[c] || 0 : null, p5: null, p95: null, ghost: null, arrow: null,
+    title: seats && ward ? (ward[c] || 0) + " wards, " + ((seats[c] || 0) - (ward[c] || 0)) + " list" : null,
   })), { scale, ticks, head: TABLE.head, label: "Your council" });
+}
+// Before the seat Worker's first answer: the council's rows and the
+// coalition's chips for every party seated at the start, so the section has
+// its height before its figures arrive (owner, 2026-10-10: the layout must
+// not shift; the council grew by its whole table, and the chips by theirs,
+// when the Worker answered). At the start itself the figures are the
+// start's own seats (forecast.json, seated by the law when the site was
+// built); a forecast from a link shows the rows without figures until its
+// own seats arrive.
+function paintPending() {
+  if (result) return;
+  const seats = D.start.seats;
+  const rows = Object.keys(seats).filter(c => seats[c] > 0)
+    .sort((a, b) => seats[b] - seats[a] || name(a).localeCompare(name(b)));
+  const shown = MS.sameState(state, pubStart, ctx) ? seats : null;
+  one.bars.setAttribute("data-extra", "0");
+  one.bars.replaceChildren(councilTable(rows, shown, null));
+  one.strip.replaceChildren(sv("svg", { class: "stripbar", width: "100%", height: 16 }));
+  one.coal.replaceChildren(...alpha.filter(c => rows.includes(c) || S.coalition.includes(c))
+    .map(c => coalChip(c, shown ? String(shown[c] || 0) : "")));
+}
+function paintCouncil() {
+  const { seats, ward, council_total: council, majority, excessive } = result;
+  const { list, fresh } = councilRows(seats);
+  shownRows = list;
+  one.restate.textContent = "Each party's wards plus its list seats, of " + council + ".";
+  const table = councilTable(list, seats, ward);
   for (const row of table.children) if (fresh.includes(row.getAttribute("data-code"))) row.setAttribute("data-new", "");
   one.bars.setAttribute("data-extra", String(fresh.length));
   one.bars.replaceChildren(table);
@@ -944,15 +980,13 @@ function share() {
   // the link always carries the forecast, the untouched start included, so
   // its preview and its seal have a forecast to show
   const f = MS.encode(state, S.coalition, ctx);
-  const link = new URL(YU.linkTo("break", "#break", { withFriend: !!friend }));
+  const link = new URL(YU.linkTo("break", "#break"));
   link.searchParams.set("v", MS.FORMAT); link.searchParams.set("c", D.context_ref); link.searchParams.set("f", f);
   const n = YU.currentName();
   setShareable({
     link: link.href, fields: { v: MS.FORMAT, c: D.context_ref, f, n }, name: n,
     answer: result, outcome: ownOutcome, vote: B.percentOf(state, ctx, "list"), calls: state.calls, coalition: S.coalition,
     party: partyOf, baseline: D.baseline, election: D.election, geom,
-    friend: friend ? { name: friend.name, answer: friend.answer, outcome: friend.outcome, vote: B.percentOf(friend.state, ctx, "list"),
-                       calls: friend.state.calls, leftOff: friend.leftOff } : null,
   });
 }
 onNameChange(n => { YU.write("name", n); if (result) share(); });

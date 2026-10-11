@@ -88,3 +88,48 @@ details.rollup>summary h2{margin:0;}
    looking for it, which is what a minor boundary is. */
 details.rollup + details.rollup{margin-top:30px;padding-top:26px;
   border-top:1px solid var(--rule-soft);}
+
+/* THE BUTTON (owner, 2026-10-10: "a big, obvious PREDICT THE ELECTION
+   YOURSELF button"; "large, prominent buttons"). A link or a <button> with
+   the class `cta`: large capitals on a solid ground in the reader's hue, the
+   colour of everything the reader makes. `cta-quiet` is the same button in
+   outline, in the model's accent, for a second way out beside a first. */
+.cta{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  box-sizing:border-box;min-height:56px;padding:14px 30px;border:2px solid var(--reader);
+  border-radius:6px;background:var(--reader);color:var(--paper);
+  font:750 clamp(16px,1.9vw,20px)/1.2 var(--sans);letter-spacing:.07em;text-transform:uppercase;
+  text-align:center;text-decoration:none;cursor:pointer;
+  box-shadow:0 2px 0 color-mix(in srgb,var(--reader) 55%,var(--paper));}
+.cta:hover,.cta:focus-visible{background:color-mix(in srgb,var(--reader) 82%,var(--ink));
+  border-color:color-mix(in srgb,var(--reader) 82%,var(--ink));color:var(--paper);text-decoration:none;}
+.cta-quiet{min-height:46px;padding:10px 22px;background:transparent;color:var(--accent);
+  border-color:var(--accent);box-shadow:none;font-size:14.5px;}
+.cta-quiet::after{content:"\2192";}
+/* hovered, it fills: the page's ground on the accent clears 4.5:1 in both
+   palettes, where the accent on --accent-soft did not in the light one */
+.cta-quiet:hover,.cta-quiet:focus-visible{background:var(--accent);border-color:var(--accent);color:var(--paper);}
+.cta-row{margin:22px 0 0;}
+@media (max-width:560px){.cta{display:flex;width:100%;padding:14px 18px;}}
+
+/* the site's ordinary button (the share sheet's, src/css/share-sheet.css, and
+   every control on "Your forecast"): outlined; `primary` filled in the
+   reader's colour, `model` outlined in the model's accent */
+.btn{box-sizing:border-box;font:600 14px/1 var(--sans);border-radius:4px;padding:11px 16px;cursor:pointer;
+  border:1px solid var(--rule);background:transparent;color:var(--ink);
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;min-height:44px;}
+.btn:hover{border-color:var(--reader);color:var(--ink);}
+.btn.primary{background:var(--reader);border-color:var(--reader);color:var(--paper);}
+.btn.primary:hover{filter:brightness(1.08);color:var(--paper);}
+.btn.model{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);}
+.btn.small{font-size:13px;padding:7px 11px;min-height:36px;}
+.btn[disabled],a.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
+/* `display` above would show a button the page hides (the share sheet's
+   Share…, where the browser has no Web Share) */
+.btn[hidden]{display:none;}
+
+/* the site's form controls: the share sheet's link on every page, and every
+   field and select on "Your forecast" (a page that styles its own, like the
+   forecast's coalition filter, says so in its own rule) */
+select,input[type="text"],input[type="email"],input[type="number"]{font:14px var(--sans);
+  color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;
+  padding:8px 10px;min-height:40px;}

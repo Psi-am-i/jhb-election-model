@@ -16,15 +16,21 @@
      the width of the page rather than sitting in a narrow column. */
   .hero .state{font-family:var(--serif);font-size:clamp(30px,4.2vw,52px);
     line-height:1.12;color:var(--ink);letter-spacing:-.01em;max-width:none;}
-  .hero .state em{font-style:normal;color:var(--accent);}
+  /* the emphasised opening, the coalition sentence of content/<city>/home.toml,
+     stands on its own line (owner, 2026-10-10), whichever phrase
+     render_home.phrases chose: the <em> round it is the hook */
+  .hero .state em{display:block;font-style:normal;color:var(--accent);}
   .hero p.sub{margin-top:16px;max-width:none;font-size:16.5px;
     line-height:1.55;color:var(--ink-2);}
   .hero .stamp{margin-top:16px;}
 
-  /* the map, deliberately the largest thing on the page */
-  .mapwrap svg{width:100%;height:auto;display:block;}
-  .maphead{display:flex;justify-content:space-between;align-items:baseline;
-    gap:16px;margin-bottom:10px;}
+  /* THE FORECAST, SIMPLIFIED (owner, 2026-10-10): the map at the left, the
+     party totals at the right, stacked on a narrow screen */
+  .hf-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px 34px;margin-top:12px;}
+  @media (min-width:900px){.hf-grid{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;}}
+  .homemap{margin:0;}
+  .homemap .mapcaption{margin-top:8px;font-size:12.5px;}
+  .hf-h{font-family:var(--serif);font-size:20px;line-height:1.25;font-weight:600;margin-bottom:10px;}
 
   .two{display:grid;grid-template-columns:1fr;gap:26px;}
   @media (min-width:900px){.two{grid-template-columns:1fr 1fr;gap:38px;}}
@@ -43,6 +49,8 @@
   .kind-claim{--k:var(--k-claim);}
   .kind-explain{--k:var(--k-explain);}
   .kind-interactive{--k:var(--k-interactive);}
+  /* the introduction under the headline (content/joburg/home.toml [intro]) */
+  .home-intro p{max-width:68ch;margin:10px 0 0;line-height:1.55;}
   .two > .kind{margin-top:0;align-self:stretch;}
   .two.kinds{margin-top:28px;}
   @media (max-width:560px){.kind{padding:14px 14px 16px;border-radius:4px;}}
@@ -75,8 +83,7 @@
   .comingsoon p{margin-top:10px;max-width:66ch;}
   .comingsoon ul{margin:12px 0 0 18px;font-size:14px;}
   .comingsoon li{margin:4px 0;}
-  .wrap{max-width:1040px;margin:0 auto;padding:28px 24px 80px;}
-  @media (max-width:560px){.wrap{padding:20px 14px 56px;}}
+  /* .wrap's width and padding: src/css/chrome.css, THE COLUMN */
 
   /* the parts of the page the template writes by hand */
   .comingsoon .stamp.more{margin-top:14px;}
@@ -86,3 +93,6 @@
   @media (min-width:900px){.feed.explain{grid-template-columns:1fr 1fr;}}
   .feed.explain .item{display:block;padding:0;border-bottom:none;}
   .seatnote{margin-top:12px;}
+  /* the claims in a row of their own: two to a row on a wide screen */
+  .kind-claim .feed{display:grid;grid-template-columns:minmax(0,1fr);gap:0 18px;}
+  @media (min-width:900px){.kind-claim .feed{grid-template-columns:repeat(2,minmax(0,1fr));}}

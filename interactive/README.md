@@ -60,7 +60,11 @@ says when). Screenshots at 375 px and 1440 px are in `screenshots/yf-*.png`
 itself with `YF_ROOT`, no port). Whether the page jumps when a lever moves:
 `PLAYWRIGHT=<playwright index.mjs> YF_ROOT=site node
 interactive/tools/yf_jump_check.mjs` (exit 1 on a jump or an overflowing
-reserved region; `YF_JUMP_DEBUG=1` names the blocks that changed height).
+reserved region; `YF_JUMP_DEBUG=1` names the blocks that changed height). Whether it shifts
+while it loads: `PLAYWRIGHT=… YF_ROOT=… node interactive/tools/yf_shift_check.mjs`
+(the browser's layout-shift entries at 375 and 1440 on the way to
+`#break`: exit 1 on a shift once section 2 is built; the shift while
+`forecast.json` is still on its way is printed, not gated).
 
 To rebuild the fixtures: `python3 interactive/tools/make_fixtures.py`.
 
@@ -75,7 +79,7 @@ the site root:
 | path | what |
 |---|---|
 | `your-forecast/index.html` | `your-forecast.html` with the site's head (`build_site.SITE_HEAD`: `css/site.css` and the site's scripts), nav and footer; section 1's build twins filled at its `__PLAY:<name>__` markers (`build_play.FILL`: the banner and seat rows from the forecast sheet's own seat tokens, the one-line result, the published ward map, turnout by group, where each party's votes come from, the notes' figures), all as `{{tokens}}`; section 2's seat-table attributes at its `__MAKE:<name>__` markers. First paint is ledgered tokens, no script |
-| `your-forecast/js/` | section 1: `model.js` (LIVE writer), `play-state.js`, `play-card.js` and `play-share.js` (writers), `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `pubtip.js`; section 2: `make.js` and `make-share.js` (writers), `make-state.js`, `builder-state.js`, `map.js`, `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js` and `http.js` (from `worker-api/src`, Worker only); both: `yf-url.js` (the one address), `share-sheet.js` (the one share sheet: a writer for both share regions that looks up nothing), `share-card.js` (every share image, a writer of no region) and `card-fonts.js`, `card-text.js` (the PNG step), `seat-table.js`, `tip.js` (where each tooltip goes) |
+| `your-forecast/js/` | section 1: `model.js` (LIVE writer), `play-state.js`, `play-card.js` and `play-share.js` (writers), `model-worker.js` (its one draws line rewritten to `../../draws/`), `reweight-engine.js`, `pubtip.js`; section 2: `make.js` and `make-share.js` (writers), `make-state.js`, `builder-state.js`, `map.js`, `make-worker.js`, `seat-engine.js` (its `seats.js` import rewritten to `./seats.js`), `seats.js` and `http.js` (from `worker-api/src`, Worker only); both: `yf-url.js` (the one address), `share-sheet.js` (the one share sheet: a writer for both share regions that looks up nothing; its controls are the site's `src/js/share-dialog.js`, served at `/js/` with the import line rewritten), `share-card.js` (every share image, a writer of no region) and `card-fonts.js`, `card-text.js` (the PNG step), `seat-table.js`, `tip.js` (where each tooltip goes) |
 | `your-forecast/css/` | `interactive.css`, `play.css` (section 1's rules, every class `pl-`), `your-forecast.css` (the layout and what both sections share, every class `yf-`) |
 | `your-forecast/pyboot/` | `page.py` (section 1's engine, and section 2's hand-off and analysis), `boot.py` (the seat code's) |
 | `your-forecast/py/` | the served Python, copied by `tools/sync_py.mjs` |
@@ -124,9 +128,12 @@ why.
 The reader's own prediction (entry version 2): every ward called, each party's
 ward vote set with its list vote following it (the gap adjustable), a
 coalition picked, the seats from the seat law
-under Pyodide (`reader_seats`, the Worker's own request and check). It loads
-its data and its seat Worker (a second Pyodide) when the reader comes near it,
-or at once for a link carrying a section 2 forecast or `#break`.
+under Pyodide (`reader_seats`, the Worker's own request and check). Its data
+and its controls are built when the page loads, so it has its full height
+before the reader reaches it (owner, 2026-10-10: the layout must not shift);
+its seat Worker (a second Pyodide) loads, and it starts following section 1,
+when the reader comes near it, or at once for a link carrying a section 2
+forecast or `#break`.
 
 **Where it starts.** Untouched, section 1 is the published forecast and
 section 2 opens at our prediction (`build_make.start_state`, written into
@@ -152,7 +159,8 @@ wards are every party seated in the reader's council or at its start, and
 the party chosen (`builder-state.chipParties`, one rule for every party);
 every other party is in the select beside them.
 
-**The calls to act** (owner, 2026-10-05) are full-width rows, each with one
+**The calls to act** (owner, 2026-10-10) are the site's one large button,
+`cta` (`src/css/components.css`, as the home page's), each followed by one
 line on what it gives: "Share this forecast" at the end of section 1
 (section 1's sheet) and at the foot of section 2, before the notes (section
 2's sheet: the map, the seats, our chance, a sealed link); "Analyse my
@@ -204,7 +212,12 @@ shares section 1's hand-off) has the reader's card: "[Name]'s Election
 Forecast" on a band in the largest party's colour, the council graphic, the
 table, the ward map, our chance for its outcome. **One share sheet**
 (`js/share-sheet.js`) serves both sections with the same controls; a reader's
-forecast is sealed and entered, the model's is not.
+forecast is sealed and entered, the model's is not. Its images are the link preview and
+the story card. The side-by-side card of two readers' forecasts is off the
+share choices (owner, 2026-10-10), and no link the page makes carries a
+friend's forecast (`vs`); `share-card.duelCardSVG` stays for the site's
+Worker (`src/share-edge.js`), which still draws it for a link from before
+then that carries one.
 
 Tests: `tests/test_your_forecast_page.py` (the gate, both directions, guards
 firing and going quiet, section 1's rows at uniform weights, the start's
@@ -240,7 +253,6 @@ refusals, the card, CPython seats, Pyodide = CPython); `page.test.mjs`
 | `tests/` | `node --test`: random builder edits against `validate.js` and the seat law; the address; `/api/me` mapping |
 | `js/map.js` | the ward map (geographic and equal-sized), painting, keyboard |
 | `js/card.js` | the share image, SVG to PNG, 1200×630 and 1080×1920 |
-| `js/share.js` | the share sheet |
 | `js/auth-ui.js` | sign-in and the consent screen, rendered from `js/consent-terms.js` |
 | `js/consent-terms.js` | the consent wording, its keys and its version hash: one definition, imported by the page and `worker-api` |
 | `js/labels.js` | the default-label word list and generator: one definition, imported by the page stub and `worker-api` |
@@ -318,7 +330,12 @@ committed. S5 should commit its code and be the one source.
    were retired on 2026-10-08.
 6. **Saving with sign-in is not part of `/your-forecast/`.** The built page is
    anonymous; the old builder's sign-in and save path (`js/api.js`,
-   `js/auth-ui.js`, `js/share.js`, `js/card.js`) is no longer imported by it.
+   `js/auth-ui.js`, `js/card.js`) is no longer imported by it. Its share sheet
+   (`js/share.js`) was deleted on 2026-10-11: the site has one share sheet
+   (`src/share_sheet.py`, `src/js/share-dialog.js`), which a signed-in save
+   would use. `js/auth-ui.js` stays (its consent screen is tested against the
+   Worker's contract); its dialog has no styling of its own until sign-in
+   returns.
    What follows applies when a signed-in save is added back.
    **Production mode is wired, not exercised.** On a non-loopback host
    `js/api.js` talks to the Worker: sign-in goes to `/auth/<provider>/start`,

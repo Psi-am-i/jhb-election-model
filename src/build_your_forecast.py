@@ -25,13 +25,16 @@ What the served page is made of
     (``__DEVONLY__`` spans), the site's head (``build_site.SITE_HEAD``), nav
     and footer put in one level down, section 1's published figures at its
     ``<!-- __PLAY:<name>__ -->`` markers (``build_play.FILL``) and section 2's
-    seat-table attributes at its ``<!-- __MAKE:<name>__ -->`` markers.
+    seat-table attributes and its ward map's viewBox at its
+    ``<!-- __MAKE:<name>__ -->`` markers.
 ``your-forecast/js/``, ``css/``, ``pyboot/``
     Byte copies of the page's modules (:data:`JS`), stylesheets and Python
     entries, except ONE declared line of each Worker's loader: where the draws
     are (``build_play.DRAWS_LINE``) and where the Worker's ``seats.js`` is
     (``build_make.SEATS_LINE``); and ``play-state.js``'s one import, the name
-    blocklist (:data:`BLOCKLIST_LINE`). The build refuses if any is not there
+    blocklist (:data:`BLOCKLIST_LINE`); and ``share-sheet.js``'s import of the
+    site's one share sheet, served at ``js/share-dialog.js``
+    (:data:`SHARE_DIALOG_LINE`). The build refuses if any is not there
     exactly once.
 ``your-forecast/py/``
     The served Python (``manifest.json``, the seat code, and the page code in
@@ -97,6 +100,38 @@ PYBOOT = ("page.py", "boot.py")
 #: The one line of play-state.js that differs between the repository and the
 #: site: the owner's name blocklist, copied beside it (build_make.WORKER_API_JS).
 BLOCKLIST_LINE = ('from "../../worker-api/src/blocklist.js";', 'from "./blocklist.js";')
+#: The one line of share-sheet.js that differs: the site's one share sheet
+#: (src/js/share-dialog.js), which site_assets serves at js/, two levels up
+#: from your-forecast/js/.
+SHARE_DIALOG_LINE = ('from "../../src/js/share-dialog.js";', 'from "../../js/share-dialog.js";')
+
+#: What "Your forecast" adds to the site's one share sheet (share_sheet.sheet),
+#: the same in both sections: the name above the link; the seal, the entry
+#: note and the image picker below it.
+SHEET_NAME = ('<label class="namefield">Your name on the image <span class="stubnote">(optional)</span>\n'
+              '      <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>\n'
+              '    <p class="stubnote shnamenote" role="status"></p>')
+SHEET_SEAL = ('<p class="stubnote shseal yf-slot" role="status"></p>\n'
+              '    <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking\n'
+              '      against the result, under the name above, and a new name or a changed forecast is another entry.\n'
+              '      The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>\n'
+              '    <label class="shimgpick">Image <select class="shimg">\n'
+              '      <option value="link">Link preview</option>\n'
+              '      <option value="story">Story, for a phone</option></select></label>')
+#: Each section's sheet, by its marker name: the id of its heading.
+SHEETS = {"play": "share-title", "break": "b-share-title"}
+
+
+def sheets() -> dict[str, str]:
+    """Each section's share sheet at its ``<!-- __YFSHEET:<name>__ -->``
+    marker: the site's one sheet (share_sheet.sheet) with this page's
+    additions."""
+    import share_sheet
+    return {f"<!-- __YFSHEET:{name}__ -->": share_sheet.sheet(
+                heading_id=hid, heading="Share this forecast", link_label="Link to this forecast",
+                above_link=SHEET_NAME, below_link=SHEET_SEAL)
+            for name, hid in SHEETS.items()}
+
 
 _DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
 
@@ -118,7 +153,7 @@ def assemble(*, site_head: str, nav: str, footer: str, processed: Path) -> str:
              "<!-- __YFNAV__ -->": build_play.one_level_down(nav),
              "<!-- __YFFOOT__ -->": build_play.one_level_down(footer),
              **{f"<!-- __PLAY:{k}__ -->": v for k, v in build_play.fills(Path(processed)).items()},
-             **build_make.seat_attrs()}
+             **build_make.seat_attrs(), **build_make.map_attrs(), **sheets()}
     for marker, value in fills.items():
         build_play.occurs_once(page, marker, SOURCE.name)
         page = page.replace(marker, value)
@@ -131,7 +166,7 @@ def assemble(*, site_head: str, nav: str, footer: str, processed: Path) -> str:
 def _rewrite(name: str, data: bytes) -> bytes:
     """The one declared line of a module that differs when served."""
     line = {"model-worker.js": build_play.DRAWS_LINE, "seat-engine.js": build_make.SEATS_LINE,
-            "play-state.js": BLOCKLIST_LINE}.get(name)
+            "play-state.js": BLOCKLIST_LINE, "share-sheet.js": SHARE_DIALOG_LINE}.get(name)
     if not line:
         return data
     text = data.decode("utf-8")

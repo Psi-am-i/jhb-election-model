@@ -103,6 +103,33 @@ test("writing one section's part keeps the other's and the name", () => {
   }
 });
 
+test("no link the page writes carries a friend's forecast (vs, vn), whatever the address holds", () => {
+  // owner, 2026-10-10: the side-by-side card is off the share choices, and
+  // the site's Worker draws it for any link that carries vs
+  const replaced = [];
+  globalThis.location = { pathname: "/your-forecast/", hash: "", href: "https://x.test/your-forecast/" };
+  globalThis.history = { replaceState: (_s, _t, u) => replaced.push(u) };
+  const carries = u => { const q = new URL(u, "https://x.test/").searchParams; return q.has("vs") || q.has("vn"); };
+  try {
+    // an address from before the card was withdrawn: a friend's forecast in it
+    YU.open("?t=5,0,0,0&mv=abc&v=1&c=" + REF + "&f=QUJD&n=Thandi&vs=QUJD&vn=Sipho");
+    assert.deepEqual(YU.friend(), { f: "QUJD", name: "Sipho" }, "the older address is read");
+    const links = [YU.linkTo("adjust", "#adjust"), YU.linkTo("break", "#break")];
+    assert.equal(links.length, 2);
+    for (const u of links) assert.equal(carries(u), false, u);
+    // what make.js does with it: drops it from the address
+    YU.write("friend", "");
+    assert.equal(carries(replaced.at(-1)), false, replaced.at(-1));
+    assert.equal(YU.friend(), null);
+    // it can see: an address with the part in it is caught by the same check
+    assert.equal(carries(YU.compose("", "?v=1&c=" + REF + "&f=QUJD", "", "?vs=QUJD&vn=Sipho")), true);
+  } finally {
+    YU.open("");
+    delete globalThis.location;
+    delete globalThis.history;
+  }
+});
+
 test("a recipient of a shared link never seals under the sharer's name, in either section", () => {
   const replaced = [];
   globalThis.location = { pathname: "/your-forecast/", hash: "", href: "https://x.test/your-forecast/" };
@@ -169,14 +196,13 @@ test("a name longer than the limit is refused whole, never cut", () => {
   assert.equal(YU.nameRefused("?n=%20%20"), false);
 });
 
-test("a name the blocklist refuses is no name on the page, the return link or the edge (one rule)", async () => {
+test("a name the blocklist refuses is no name on the page, an older address's friend or the edge (one rule)", async () => {
   const EDGE = await import("../../src/share-edge.js");
   for (const raw of ["IEC Official", "the model", "Ｏｆｆｉｃｉａｌ", "WhySoSerious"]) {
     assert.equal(PS.cardName(raw), "", raw);
     assert.equal(PS.nameBlocked(raw), true, raw);
     assert.equal(YU.nameOf("?n=" + encodeURIComponent(raw)), "", raw);
     assert.equal(EDGE.cardName(raw), "", raw);
-    assert.equal(YU.friendPart("AAAA", raw), "?vs=AAAA", raw);
     assert.equal(YU.compose("", "", raw), "", raw);
   }
   YU.open("?vs=AAAA&vn=" + encodeURIComponent("IEC Official"));

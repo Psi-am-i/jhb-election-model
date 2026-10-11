@@ -14,8 +14,9 @@
 // §2; its decisions DECISIONS.md.
 //
 // PURE: no DOM, no fetch, no figure of its own. The caller hands it the seats
-// the seat law gave the reader's picks, the chance and badge the published
-// forecast gives the reader's outcome (reweight.outcome_chance, in Python),
+// the seat law gave the reader's picks, the chance the published forecast
+// gives the reader's outcome and the badge of the forecast's boldest call
+// (reweight.outcome_chance, in Python), the owner's badge as a stamp,
 // the reader's vote shares, the previous election's figures (forecast.json
 // `baseline`), each party's name, article, colour and logo flag, and every
 // image as a data: URI. It names no party and holds no colour of one (DESIGN
@@ -61,7 +62,7 @@ export const STORY_MAP_MIN_SHARE = 0.55;
 // How near STORY_TEXT_BOTTOM a story card's lowest words must reach, in px:
 // the space between the blocks is spread evenly until the foot sits there.
 export const STORY_FILL_SLACK = 24;
-const C = { paper: "#141715", paper2: "#1c201d", rule: "#333833", ink: "#eceee9", ink2: "#b6bcb6", ink3: "#868d86", chip: "#ffffff" };
+export const C = { paper: "#141715", paper2: "#1c201d", rule: "#333833", ink: "#eceee9", ink2: "#b6bcb6", ink3: "#868d86", chip: "#ffffff" };
 const MONTHS = "January February March April May June July August September October November December".split(" ");
 const DAY_MS = 864e5;
 
@@ -88,6 +89,24 @@ export function chanceSentence(text) {
 // A ward on the reader's map: "We give your call in this ward an 18% chance."
 export function wardChanceSentence(text) {
   return "We give your call in this ward " + aChance(text) + ".";
+}
+
+// The forecast's boldest call (reweight.boldest_call, in Python), named as
+// the badge beside it judges it: "Boldest call: the PA at 38 seats." `lead`
+// replaces "Boldest call" (the arrival view names whose). A forecast at the
+// model's middle has no call. "" while the outcome is still being worked out.
+export function boldestLine(boldest, party, lead = "Boldest call") {
+  if (!boldest) return "";
+  if (!boldest.party) return "Every party at the model's middle forecast.";
+  const p = party(boldest.party);
+  return lead + ": " + (p.article || "") + p.name + " at " + boldest.seats + (boldest.seats === 1 ? " seat." : " seats.");
+}
+
+// The owner's badge for a badge's words (reweight.BOLDNESS): the file
+// src/stamps/reader-<words>.svg, which the build serves at /stamps/.
+export const STAMP_DIR = "stamps";
+export function badgeFile(words) {
+  return "reader-" + words.toLowerCase().replace(/ /g, "-") + ".svg";
 }
 
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -164,9 +183,10 @@ export function cutAt(list, seats, n) {
 // The forecast every card and the arrival view draw: { name, title, council,
 // majority, rows: [{ code, name, colour, logo, seats, ward, pr, vote,
 // seatsVs, voteVs }] in seat order, coalition (in seat order), coalitionSeats,
-// outcome, words, chance, badge, excess: [sentences], calls, made }.
+// outcome, words, chance, badge, boldest, boldestLine, excess: [sentences],
+// calls, made }.
 //   answer   the seat law's { seats, ward, pr, council_total, majority, excessive }
-//   outcome  { largest, majority_alone, coalition, text, badge } (Python)
+//   outcome  { largest, majority_alone, coalition, text, badge, boldest } (Python)
 //   vote     { code: percent of the list ballot } (the column a prediction is scored on)
 //   baseline forecast.json `baseline` ({ year, seats, wards, list_vote, ward_vote }), or null;
 //            "vs <year>" compares the list vote with list_vote, list with list
@@ -188,6 +208,7 @@ export function forecastSpec({ name, answer, outcome, vote, calls, party, baseli
     coalition, coalitionNames: coalition.map(c => party(c).name),
     coalitionSeats: coalition.reduce((a, c) => a + seats[c], 0),
     outcome, words: outcomeWords(outcome, party), chance: chanceSentence(outcome.text), badge: outcome.badge,
+    boldest: outcome.boldest || null, boldestLine: boldestLine(outcome.boldest, party),
     // the most seats: one party, or every party tied for them (the band splits)
     top: order.filter(c => seats[c] === seats[order[0]]),
     excess: Object.entries(excessive).filter(([, v]) => v > 0).map(([c, v]) =>
@@ -282,15 +303,15 @@ export function wrapText(s, maxW, fs, face = "sans") {
   return out;
 }
 
-const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+export const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const n1 = v => Number(v.toFixed(1));
-function text(x, y, s, fs, face = "sans", { fill = C.ink, anchor = "", opacity = null, clip = "" } = {}) {
+export function text(x, y, s, fs, face = "sans", { fill = C.ink, anchor = "", opacity = null, clip = "" } = {}) {
   const f = FACES[face];
   return `<text x="${n1(x)}" y="${n1(y)}" font-family="${f.family}" font-weight="${f.weight}" font-size="${n1(fs)}"` +
     `${anchor ? ` text-anchor="${anchor}"` : ""}${opacity == null ? "" : ` fill-opacity="${opacity}"`} fill="${fill}"` +
     `${clip ? ` clip-path="url(#${clip})"` : ""}>${esc(s)}</text>`;
 }
-const rect = (x, y, w, h, fill, extra = "") => `<rect x="${n1(x)}" y="${n1(y)}" width="${n1(w)}" height="${n1(h)}" fill="${fill}"${extra}/>`;
+export const rect = (x, y, w, h, fill, extra = "") => `<rect x="${n1(x)}" y="${n1(y)}" width="${n1(w)}" height="${n1(h)}" fill="${fill}"${extra}/>`;
 
 // ---------- pieces ----------
 
@@ -387,7 +408,7 @@ function nameCell(id, s, x, y, w, fs, face, fill) {
 
 // The site's logo (site/logo.svg, the tower J and lettering), `h` tall, in
 // `ink` (the card's ink, or the ink that reads on the band it sits on).
-function brand(assets, x, y, h, ink = C.ink) {
+export function brand(assets, x, y, h, ink = C.ink) {
   const b = assets.brand;
   if (!b) return "";
   const [, , vw, vh] = b.viewBox.split(/\s+/).map(Number);
@@ -400,9 +421,51 @@ export function brandWidth(assets, h) {
   return h * vw / vh;
 }
 
+// An owner's stamp (src/stamps/*.svg: the reader badges, the verdict badges,
+// the prediction seal), parsed as brandOf parses the logo: { viewBox, body }.
+// The files define their glyphs, masks, clips and filters by ids that repeat
+// from file to file (glyph-0-0, filter-remove-color, ...), so a body is never
+// placed as it is: stampSVG prefixes them.
+export const stampOf = svgText => brandOf(svgText);
+// `body` with every id it defines renamed `<prefix>-<id>`, and every
+// reference to one (href="#…", xlink:href="#…", url(#…)) renamed with it. A
+// reference to an id the body does not define is left alone.
+export function prefixIds(body, prefix) {
+  const ids = new Set([...body.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
+  return body.replace(/(\bid=")([^"]+)(")|(href=")#([^"]+)(")|url\(#([^)]+)\)/g, (m, a, id, z, h, ref, hz, u) => {
+    if (id !== undefined) return ids.has(id) ? a + prefix + "-" + id + z : m;
+    if (ref !== undefined) return ids.has(ref) ? h + "#" + prefix + "-" + ref + hz : m;
+    return ids.has(u) ? "url(#" + prefix + "-" + u + ")" : m;
+  });
+}
+// THE ONE WAY A STAMP GOES ON A CARD: `st` (stampOf) `h` tall at (x, y), its
+// ids prefixed by `prefix`, which must be unique in the card.
+//
+// Placed by its viewBox and CLIPPED TO IT, explicitly: a file drawing past its
+// viewBox (verdict-false.svg did, until its stray lettering was removed on
+// 2026-10-10) shows nothing outside it when drawn alone, because its own
+// viewport clips it. A group scaled and translated by the viewBox, under a
+// clip of exactly the viewBox, draws what the file draws alone and nothing
+// else, whatever a renderer does with a nested <svg>'s viewport
+// (tests/test_og_pages.py holds every stamp to that, pixel by pixel).
+export function stampSVG(st, prefix, x, y, h) {
+  const [vx, vy, vw, vh] = st.viewBox.split(/\s+/).map(Number);
+  const k = h / vh;
+  return `<g xmlns:xlink="http://www.w3.org/1999/xlink" transform="translate(${n1(x)} ${n1(y)}) scale(${k.toFixed(6)})">` +
+    `<clipPath id="${prefix}-viewbox"><rect x="0" y="0" width="${vw}" height="${vh}"/></clipPath>` +
+    `<g clip-path="url(#${prefix}-viewbox)"><g transform="translate(${-vx} ${-vy})">${prefixIds(st.body, prefix)}</g></g></g>`;
+}
+// The reader's badge `h` tall at (x, y): the owner's stamp for the words when
+// the card was handed it (assets.badges[words]), else the words in a pill.
+function readerBadge(words, assets, prefix, x, y, h) {
+  const st = (assets.badges || {})[words];
+  if (st) return stampSVG(st, prefix, x, y, h);
+  return badge(words, x, y + h / 2 + 6, 17).svg;
+}
+
 // A party's chip: its logo on white where it has one, else its colour,
 // outlined in `outline` when it sits on a band of that colour.
-function chip(r, x, y, s, assets, outline = null) {
+export function chip(r, x, y, s, assets, outline = null) {
   const src = r.logo && r.code ? (assets.logos || {})[r.code] : null;
   const rx = Math.max(2, s / 6.5);
   if (!src) return rect(x, y, s, s, r.colour, ` rx="${n1(rx)}"${outline ? ` stroke="${outline}" stroke-width="2"` : ""}`);
@@ -417,8 +480,8 @@ function chip(r, x, y, s, assets, outline = null) {
 // { svg, w, h } (h includes the bar); councilSize gives the same w and h
 // without drawing, for a layout that sizes its blocks first.
 const BAR_CLEAR = 6;
-function councilGeom(spec, { width, cell: want, gap, fs = 15, label = true }) {
-  const L = councilLayout(spec);
+function councilGeom(spec, { width, cell: want, gap, fs = 15, label = true, perCol = 10 }) {
+  const L = councilLayout(spec, perCol);
   const step = Math.min(want + gap, Math.floor((width + gap) / L.cols * 10) / 10);
   const barH = fs + 8;
   const top = label ? barH + BAR_CLEAR : 0;
@@ -590,6 +653,10 @@ export const LINK_PITCH = 30;
 // the council graphic and the table take the rest (owner, 2026-10-06: the
 // map on every card, and the table clear of the council graphic).
 const LINK_LEFT = 500, LINK_GUTTER = 32;
+// The reader's badge on the link preview, its height, over the map's corner.
+const LINK_STAMP = 150;
+// The link preview's council graphic: seats to a column.
+const LINK_COUNCIL_ROWS = 8;
 
 export function linkCardSVG(spec, assets = {}, party) {
   const [W, H] = SIZES.link;
@@ -603,46 +670,46 @@ export function linkCardSVG(spec, assets = {}, party) {
   const head = fitText(spec.title, Math.min(900, R - bw - 24 - X), 52, "serifSemi", 40);
   s += textPlate(top, X, LINK_HEAD_Y, textWidth(head.text, head.fs, "serifSemi"), head.fs) +
     text(X, LINK_HEAD_Y, head.text, head.fs, "serifSemi", { fill: top.ink });
-  // the left column, top down: whose council and when ...
+  // the left column (owner's notes, 2026-10-10), bottom up: where to make
+  // one, whose forecast, whose council and when, the boldest call the badge
+  // judges, the chance (never cut: on one line where it fits at 22 px or
+  // more, else wrapped); the map fills the height above them, and the
+  // owner's badge stands large over the map's top-left corner
   const made = madeText(spec);
   const lines = [spec.election.city + " council, " + dateText(spec.election.date) + ", " + spec.council + " seats.",
     made ? made + ", " + daysText(daysToVote(spec.made.at, spec.election)) + "." : ""].filter(Boolean);
-  let y = LINK_BAND + 30;
-  for (const l of lines) {
-    const f = fitText(l, LINK_LEFT, 18, "sans", 14);
-    s += text(X, y, f.text, f.fs, "sans", { fill: C.ink2 });
-    y += 23;
+  s += text(X, H - 18, "Make yours at ", 18, "sans", { fill: C.ink2 }) + text(X + textWidth("Make yours at ", 18), H - 18, SITE, 18, "monoSemi");
+  s += text(X, H - 40, "A reader's forecast, not the model's.", 15, "sans", { fill: C.ink3 });
+  let ly = H - 62;
+  for (const l of [...lines].reverse()) {
+    const f = fitText(l, LINK_LEFT, 16, "sans", 13);
+    s += text(X, ly, f.text, f.fs, "sans", { fill: C.ink2 });
+    ly -= 20;
   }
-  // ... and bottom up: whose forecast and where to make one, the chance and
-  // its badge, the outcome; the map takes the height between
-  s += text(X, H - 44, "A reader's forecast, not the model's.", 15, "sans", { fill: C.ink3 }) +
-    text(X, H - 18, "Make yours at ", 18, "sans", { fill: C.ink2 }) + text(X + textWidth("Make yours at ", 18), H - 18, SITE, 18, "monoSemi");
-  // the chance is never cut: with its badge on one line where both fit at
-  // 22 px or more, else on lines of its own and the badge under them
-  const bw2 = textWidth(spec.badge, 17, "sansSemi") + 17 * 1.4 + 14;
-  const one = fitText(spec.chance, LINK_LEFT - bw2, 28, "serifSemi", 22);
-  let cy = H - 76, upper;
+  const bold = fitText(spec.boldestLine, LINK_LEFT, 17, "sans", 14);
+  s += text(X, ly - 6, bold.text, bold.fs, "sans", { fill: C.ink2 });
+  const one = fitText(spec.chance, LINK_LEFT, 28, "serifSemi", 22);
+  let cy = ly - 36, upper;
   if (one.text === spec.chance) {
-    s += text(X, cy, one.text, one.fs, "serifSemi") + badge(spec.badge, X + textWidth(one.text, one.fs, "serifSemi") + 14, cy - 4, 17).svg;
-    upper = cy;
+    s += text(X, cy, one.text, one.fs, "serifSemi");
+    upper = cy - one.fs;
   } else {
-    s += badge(spec.badge, X, cy - 4, 17).svg;
-    const lines = wrapText(spec.chance, LINK_LEFT, 22, "serifSemi");
-    cy -= 34 + (lines.length - 1) * 26;
-    s += lines.map((l, k) => text(X, cy + k * 26, l, 22, "serifSemi")).join("");
-    upper = cy;
+    const wrapped = wrapText(spec.chance, LINK_LEFT, 22, "serifSemi");
+    cy -= (wrapped.length - 1) * 26;
+    s += wrapped.map((l, k) => text(X, cy + k * 26, l, 22, "serifSemi")).join("");
+    upper = cy - 22;
   }
-  const words = wrapText(spec.words, LINK_LEFT, 17);
-  const wy = upper - 40 - (words.length - 1) * 21;
-  s += words.map((l, k) => text(X, wy + k * 21, l, 17, "sans", { fill: C.ink2 })).join("");
+  const mt = LINK_BAND + 12, mb = upper - 14;
   if (assets.geom) {
-    const mt = y - 6, mb = wy - 17 - 14;
     const mw = Math.min(LINK_LEFT, (mb - mt) * assets.geom.W / assets.geom.H);
-    s += wardMap(mapOf(spec, assets.geom, party), X, mt, mw).svg;
+    s += wardMap(mapOf(spec, assets.geom, party), X + LINK_LEFT - mw, mt, mw).svg;
   }
+  s += readerBadge(spec.badge, assets, "lb", X - 8, mt - 4, LINK_STAMP);
   // the right column: the council, who governs, then the table, clear of it
   const rx = X + LINK_LEFT + LINK_GUTTER;
-  const g = council(spec, rx, LINK_BAND + 14, { width: R - rx, cell: 12, gap: 3, fs: 15 });
+  // the council graphic spans the column (owner's notes, 2026-10-10): eight
+  // seats to a column here, so it fills the width at about its old height
+  const g = council(spec, rx, LINK_BAND + 14, { width: R - rx, cell: 40, gap: 3, fs: 15, perCol: LINK_COUNCIL_ROWS });
   s += g.svg;
   const gy = LINK_BAND + 14 + g.h + 30;
   if (spec.coalition.length) {
@@ -670,6 +737,10 @@ const STORY_TYPE = { large: [27, 42, 22], middle: [24, 36, 20], small: [22, 32, 
 // above STORY_TEXT_BOTTOM is spread evenly over the gaps (owner, 2026-10-06:
 // "use the canvas").
 const STORY_GAP = 22;
+// The reader's badge on the story card, its height.
+const STORY_STAMP = 220;
+// Its top edge in the headline band, and its inset from the card's right.
+const STORY_STAMP_TOP = 22, STORY_STAMP_INSET = 18;
 // The least width the reader's map is tried at, and the step between tries.
 const STORY_MAP_LEAST = 300, STORY_MAP_STEP = 10;
 // A reader's story card's map, as a share of the card's width, is held to
@@ -684,20 +755,24 @@ export function storyCardSVG(spec, assets = {}, party) {
   const top = colourBand(spec, 0, 0, W, STORY_BAND);
   const bh = 130;
   s += top.svg + bandPlate(top, X, 44, brandWidth(assets, bh), bh) + brand(assets, X, 44, bh, top.ink);
-  const head = fitText(spec.title, R - X, 70, "serifSemi", 40);
+  // the headline stops short of the owner's badge, which stands large at the
+  // band's right (owner's notes, 2026-10-10)
+  const head = fitText(spec.title, W - STORY_STAMP - 2 * STORY_STAMP_INSET - X, 70, "serifSemi", 40);
   const made = madeText(spec);
   // the headline is the band's first words, so a reader of the text meets it first
   const headSVG = textPlate(top, X, STORY_HEAD_Y, textWidth(head.text, head.fs, "serifSemi"), head.fs) +
     text(X, STORY_HEAD_Y, head.text, head.fs, "serifSemi", { fill: top.ink });
   s += headSVG;
+  // the owner's badge in the band, at its right; the sealed date beside it,
+  // clear of the logo (no days to the vote: owner's notes, 2026-10-10)
+  s += readerBadge(spec.badge, assets, "sb", W - STORY_STAMP - STORY_STAMP_INSET, STORY_STAMP_TOP, STORY_STAMP);
   if (made) {
-    [made, cap(daysText(daysToVote(spec.made.at, spec.election), false))].forEach((l, k) => {
-      const w = textWidth(l, 28);
-      s += textPlate(top, R - w, 82 + k * 38, w, 28) + text(R, 82 + k * 38, l, 28, "sans", { fill: top.ink, anchor: "end" });
-    });
+    const right = W - STORY_STAMP - 2 * STORY_STAMP_INSET, room = right - (X + brandWidth(assets, bh) + 24);
+    const f = fitText(made, room, 28, "sans", 20);
+    const w = textWidth(f.text, f.fs);
+    s += textPlate(top, right - w, 82, w, f.fs) + text(right, 82, f.text, f.fs, "sans", { fill: top.ink, anchor: "end" });
   }
   s += text(X, 326, spec.election.city + " council, " + dateText(spec.election.date) + ". " + spec.council + " seats.", 30, "sans", { fill: C.ink2 });
-  s += text(X, 362, "A reader's forecast, not the model's.", 26, "sans", { fill: C.ink3 });
   // the blocks below, sized first: the council, its key, the table, the map
   // with the outcome beside it, and the foot
   const CO = { width: R - X, cell: 21, gap: 3, fs: 22 };
@@ -705,23 +780,22 @@ export function storyCardSVG(spec, assets = {}, party) {
   const TB = { x: X, right: R, cols: [STORY_COLUMNS.seatPct, STORY_COLUMNS.vote, STORY_COLUMNS.seats, R], n: ROWS.story,
     pitch: 48, chip: 40, rules: true, id: "sn", fs: { head: 22, name: 29, pct: 29, seats: 34, vs: 26 } };
   const tableH = tableHeight(spec, TB) + TB.fs.head;          // from the headers' top
-  const KEY_H = 26;
   // a seal shows when a forecast was made, not that it was its maker's only
   // one, so no card promises a ranking (review of the share build, 2026-10-03)
   const foot = wrapText("Bring this link back after the count to compare it with the result.", R - X, 27);
   const footH = 40 + foot.length * 38;                        // from the rule to the last baseline
-  const start = 388;
-  const gaps = 5;                                             // before the council, the key, the table, the row, the foot
-  const avail = STORY_TEXT_BOTTOM - start - cs.h - KEY_H - tableH - footH - gaps * STORY_GAP;
+  const start = 352;
+  const gaps = 4;                                             // before the council, the table, the row, the foot
+  const avail = STORY_TEXT_BOTTOM - start - cs.h - tableH - footH - gaps * STORY_GAP;
   // the map's row: the widest map whose row fits, the outcome column beside it
   const aspect = assets.geom ? assets.geom.H / assets.geom.W : 0;
   const column = ([fw, fc, fn], ow, y0, draw) => {
-    let out = "", oy = y0 + fw;
-    for (const l of wrapText(spec.words, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
-    oy += fc * 0.45;
+    let out = "", oy = y0 + fc * 0.85;
     for (const l of wrapText(spec.chance, ow, fc, "serifSemi")) { if (draw) out += text(draw.x, oy, l, fc, "serifSemi"); oy += fc * 1.15; }
-    if (draw) out += badge(spec.badge, draw.x, oy + 16, 26, 2).svg;
-    oy += 64;
+    // the boldest call the badge in the band judges
+    oy += fw * 0.3;
+    for (const l of wrapText(spec.boldestLine, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
+    oy += fn * 0.6;
     for (const l of wrapText(spec.excess.join(" "), ow, fn)) { if (draw) out += text(draw.x, oy, l, fn, "sans", { fill: C.ink3 }); oy += fn * 1.4; }
     return { out, h: oy - fn - y0 };
   };
@@ -742,15 +816,22 @@ export function storyCardSVG(spec, assets = {}, party) {
   const gap = STORY_GAP + Math.floor(Math.max(0, avail - pick.rowH) / gaps);
   let y = start + gap;
   s += council(spec, X, y, CO).svg;
-  y += cs.h + gap;
-  const ky = y + 18;
-  const key = (x, op) => rect(x, ky - 17, 20, 20, C.ink2, ` rx="3"${op == null ? "" : ` fill-opacity="${op}"`}`);
-  s += key(X) + text(X + 28, ky, "ward seats", 24, "sans", { fill: C.ink3 });
-  s += key(X + 172, PR_OPACITY) + text(X + 200, ky, "PR seats", 24, "sans", { fill: C.ink3 });
+  // beside the council graphic (owner's notes, 2026-10-10): whose forecast,
+  // the key, and who governs
+  const kx = X + cs.w + 36, kw = R - kx, KF = 24;
+  let ky = y + KF + 4;
+  for (const l of wrapText("A reader's forecast, not the model's.", kw, KF)) { s += text(kx, ky, l, KF, "sans", { fill: C.ink3 }); ky += KF * 1.35; }
+  ky += KF * 0.6;
+  const key = (yy, op) => rect(kx, yy - 17, 20, 20, C.ink2, ` rx="3"${op == null ? "" : ` fill-opacity="${op}"`}`);
+  s += key(ky) + text(kx + 28, ky, "ward seats", KF, "sans", { fill: C.ink3 });
+  ky += KF * 1.35;
+  s += key(ky, PR_OPACITY) + text(kx + 28, ky, "PR seats", KF, "sans", { fill: C.ink3 });
+  ky += KF * 1.95;
   if (spec.coalition.length) {
-    s += governing(spec, X + 330, ky, R - X - 330, 24, "Governing first: ", "", C.ink3);
+    const gov = "Governing first: " + listAnd(spec.coalitionNames) + ", " + spec.coalitionSeats + " seats";
+    for (const l of wrapText(gov, kw, KF)) { s += text(kx, ky, l, KF, "sans", { fill: C.ink3 }); ky += KF * 1.35; }
   }
-  y += KEY_H + gap;
+  y += cs.h + gap;
   const t = partyTable(spec, assets, { ...TB, y: y + TB.fs.head });
   s += t.svg;
   y = t.bottom + gap;
@@ -887,6 +968,10 @@ const DUEL_TITLE = { large: 48, middle: 44, small: 40, least: 36 };
 // second's.
 export const DUEL_BAND = 120;
 export const DUEL_HEAD_Y = 88;
+// Each forecast's bar width, its council's cell, and the two bars' baselines:
+// a bar, its council and the line naming its boldest call stack in each.
+const DUEL_BAR_W = 470, DUEL_CELL = 10;
+const DUEL_PAIR_Y = { first: 206, second: 392 };
 
 export function duelCardSVG(a, b, assets = {}, party) {
   const [W, H] = SIZES.duel;
@@ -917,17 +1002,22 @@ export function duelCardSVG(a, b, assets = {}, party) {
   }
   // each forecast's line on a bar in its own largest party's colour, over
   // its council
+  // each forecast's line on a bar in its own largest party's colour, with its
+  // badge's words, over its council, and under the council the boldest call
+  // the badge judges
   const pair = (F, y) => {
     const who = F.name + " ";
     const rest = "We give it " + aChance(F.outcome.text) + ". " + F.badge + ".";
-    const bar = colourBand(F, X, y - 22, 470, 30);
-    const tail = fitText(rest, 454 - textWidth(who, 20, "sansSemi"), 20, "sans", 15).text;
-    return bar.svg + textPlate(bar, X + 8, y, textWidth(who, 20, "sansSemi") + textWidth(tail, 20), 20) +
+    const bar = colourBand(F, X, y - 22, DUEL_BAR_W, 30);
+    const tail = fitText(rest, DUEL_BAR_W - 16 - textWidth(who, 20, "sansSemi"), 20, "sans", 15);
+    const g = council(F, X, y + 14, { width: 350, cell: DUEL_CELL, gap: 2, label: false });
+    const call = F.boldest ? fitText(boldestLine(F.boldest, party), DUEL_BAR_W, 16, "sans", 13) : null;
+    return bar.svg + textPlate(bar, X + 8, y, textWidth(who, 20, "sansSemi") + textWidth(tail.text, tail.fs), 20) +
       text(X + 8, y, who, 20, "sansSemi", { fill: bar.ink }) +
-      text(X + 8 + textWidth(who, 20, "sansSemi"), y, tail, 20, "sans", { fill: bar.ink }) +
-      council(F, X, y + 14, { width: 350, cell: 11, gap: 2, label: false }).svg;
+      text(X + 8 + textWidth(who, 20, "sansSemi"), y, tail.text, tail.fs, "sans", { fill: bar.ink }) +
+      g.svg + (call ? text(X, y + 14 + g.h + 18, call.text, call.fs, "sans", { fill: C.ink2 }) : "");
   };
-  s += pair(a, 216) + pair(b, 396);
+  s += pair(a, DUEL_PAIR_Y.first) + pair(b, DUEL_PAIR_Y.second);
   // the table: each party in either top seven, in the first forecast's seat order
   const seatsA = Object.fromEntries(a.rows.map(r => [r.code, r.seats]));
   const seatsB = Object.fromEntries(b.rows.map(r => [r.code, r.seats]));
@@ -963,13 +1053,13 @@ export function cardAlt(spec) {
   const rows = listedRows(spec, ROWS.link).map(r => r.name + " " + r.seats).join(", ");
   return [spec.title, spec.election.city + " council, " + spec.council + " seats", "Seats: " + rows,
     spec.coalition.length ? "Governing: " + listAnd(spec.coalitionNames) + ", " + spec.coalitionSeats + " seats" : "",
-    spec.words, spec.chance, spec.badge, "A reader's forecast, not the model's"]
+    spec.words, spec.chance, spec.badge, spec.boldestLine, "A reader's forecast, not the model's"]
     .filter(Boolean).map(s => s.replace(/\.$/, "")).join(". ") + ".";
 }
 export function duelAlt(a, b) {
   return [a.name + " and " + b.name + ": two forecasts of the " + a.election.city + " council",
-    a.name + ": " + a.words + " " + a.chance + " " + a.badge,
-    b.name + ": " + b.words + " " + b.chance + " " + b.badge]
+    a.name + ": " + a.words + " " + a.chance + " " + a.badge + ". " + a.boldestLine,
+    b.name + ": " + b.words + " " + b.chance + " " + b.badge + ". " + b.boldestLine]
     .map(s => s.replace(/\.$/, "")).join(". ") + ".";
 }
 

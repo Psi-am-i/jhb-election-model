@@ -94,6 +94,27 @@ def load_lede(city_dir: Path) -> dict:
     return items[0]
 
 
+def load_intro(city_dir: Path) -> dict:
+    """content/<city>/home.toml's ``[intro]``: the introduction's heading and
+    paragraphs (owner-approved, 2026-10-10)."""
+    path = city_dir / "home.toml"
+    intro = tomllib.loads(path.read_text(encoding="utf-8")).get("intro")
+    if (not isinstance(intro, dict) or not isinstance(intro.get("heading"), str)
+            or not intro.get("paragraphs")
+            or not all(isinstance(p, str) for p in intro["paragraphs"])):
+        raise SystemExit(f"{path} must hold one [intro] with `heading` and `paragraphs`.")
+    return intro
+
+
+def _intro(city_dir: Path) -> str:
+    """The introduction, as written in home.toml: its heading as the section's
+    eyebrow and each paragraph as one. Its words carry markup (links) and
+    registry tokens, which the build resolves; nothing here is filled in."""
+    intro = load_intro(city_dir)
+    paras = "\n".join(f"  <p>{' '.join(p.split())}</p>" for p in intro["paragraphs"])
+    return f'  <div class="eyebrow">{html.escape(intro["heading"])}</div>\n{paras}'
+
+
 def fill_lede(template: str, values: dict, where: str) -> str:
     """``template`` with each ``{{lede_…}}`` replaced by its value. Refuses a
     placeholder it has no value for, rather than printing the braces."""
@@ -353,6 +374,52 @@ def _seats(summary: dict, tok, processed: Path) -> str:
             + "\n" + note)
 
 
+#: Where the home page's map goes (home.html), filled at build time by
+#: :func:`home_map` (`build_site.fill_home_map`).
+HOME_MAP_MARKER = "<!-- __HOMEMAP__ -->"
+
+
+def home_map(sheet: str) -> str:
+    """The home page's map: the simplified version of the forecast page's
+    (owner, 2026-10-10: "a simplified version, not a copy"), cut from the
+    map ``render_map`` wrote into ``sheet`` (forecast-sheet.html) at build
+    time, so the two maps are always the same run. The map itself with its
+    ward tips and the key's party colours and its solid/stripes line; not the
+    heading, the explanation, the Normal/Equal Sized switch, the equal-ward
+    map or the key's long note, which /forecast carries. The caption is
+    /forecast's own, note removed, so its words about the council bar the
+    map still draws come from where /forecast's do. Refuses a sheet
+    whose map has lost a piece it cuts by.
+
+    The cut keeps ``render_map``'s own region markers round it: its figures
+    (the key's thresholds and ward counts) are the map generator's, and the
+    number scan lists them as such (``stats.GENERATED_MARKERS``), as it does
+    on /forecast. Only the built page carries them; home.html's source has
+    the build-time marker alone, so ``render_map`` never writes into it."""
+    import render_map
+    if sheet.count(render_map.MARK_START) != 1:
+        raise SystemExit("forecast-sheet.html has no single map region for the "
+                         "home page's map")
+    region = sheet[sheet.index(render_map.MARK_START):sheet.index(render_map.MARK_END)]
+
+    def cut(start: str, end: str) -> str:
+        if region.count(start) != 1 or end not in region[region.index(start):]:
+            raise SystemExit(f"the forecast map no longer has {start!r} ... {end!r}, "
+                             "which the home page's map is cut by")
+        i = region.index(start)
+        return region[i:region.index(end, i)]
+    box = cut('<div class="mapbox">', "\n      <figcaption")
+    caption = cut('<figcaption class="mapcaption">', "</figcaption>") + "</figcaption>"
+    import re as _re
+    caption, n = _re.subn(r'\s*<br><span class="mapkey-note">[^<]*</span>', "", caption)
+    if n != 1:
+        raise SystemExit(f"the forecast map's key has {n} long notes, not one, "
+                         "for the home page's map to leave out")
+    return (f'{render_map.MARK_START}\n    <figure class="homemap">\n      {box.strip()}\n'
+            f'      {caption.strip()}\n'
+            f'    </figure>\n    {render_map.MARK_END}')
+
+
 def load_articles(city_dir: Path) -> list[dict]:
     """The articles in content/<city>/articles.toml: the one reader of that
     file. The home page's and /commentary's lists, and each article page's
@@ -370,8 +437,11 @@ def load_articles(city_dir: Path) -> list[dict]:
     return items
 
 
-def _articles(city_dir: Path) -> str:
-    items = load_articles(city_dir)
+def _articles(city_dir: Path, exclude: str | None = None) -> str:
+    """The list of articles: the home page's, /commentary's and, without the
+    article itself (``exclude``, its href), the one under each article
+    (``build_site.more_commentary``). One definition for all three."""
+    items = [a for a in load_articles(city_dir) if a["href"] != exclude]
     out = []
     # The lead first, then the rest newest first.
     for a in sorted(items, key=lambda x: (bool(x.get("lead")), x["date"]),
@@ -393,6 +463,9 @@ def _articles(city_dir: Path) -> str:
 
 
 def _claims(city_dir: Path) -> str:
+    """The home page's list of claims, each linked to its own page
+    (``/claims/<slug>``, build_site.claim_pages; owner, 2026-10-11)."""
+    from og_pages import CLAIM_DIR
     path = city_dir / "claims.toml"
     if not path.exists():
         return '  <div class="feed"></div>'
@@ -418,7 +491,7 @@ def _claims(city_dir: Path) -> str:
             f'    <div class="item pc-{html.escape(party)}" data-asof="{when}">\n'
             f'      {ident}\n'
             f'      <div>\n'
-            f'        <div class="t"><a href="claims">'
+            f'        <div class="t"><a href="{CLAIM_DIR}/{html.escape(c["slug"])}">'
             f'{html.escape(c.get("label") or c.get("tests") or c.get("quote", "")[:90])}</a></div>\n'
             f'        <div class="meta"><span class="verdict {_sheet.verdict_class(verdict)}">'
             f'{html.escape(verdict)}</span>'
@@ -464,6 +537,7 @@ def main(argv: list[str] | None = None) -> int:
                         ROOT / "content" / city.slug))
     page = region(page, "HOMESEATS", _seats(summary, tok, city.processed))
     city_dir = ROOT / "content" / city.slug
+    page = region(page, "HOMEINTRO", _intro(city_dir))
     page = region(page, "HOMEARTICLES", _articles(city_dir))
     page = region(page, "HOMECLAIMS", _claims(city_dir))
     args.page.write_text(page, encoding="utf-8")

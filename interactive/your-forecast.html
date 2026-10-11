@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Your forecast</title>
+<title>Your Forecast</title>
 <!--
   "Your forecast". This file is the page's ONE source: build_site
   (src/build_your_forecast.py) builds /your-forecast/ from it, and it also
@@ -26,7 +26,11 @@
     <!- - __PLAY:<name>__ - ->              section 1's published figures, as
                                           ledgered tokens (build_play.FILL)
     <!- - __MAKE:<name>__ - ->              section 2's seat-table attributes
-                                          (build_make.seat_attrs)
+                                          and its ward map's viewBox
+                                          (build_make.seat_attrs, map_attrs)
+    <!- - __YFSHEET:<name>__ - ->           each section's share sheet, the
+                                          site's one (src/share_sheet.py,
+                                          build_your_forecast.sheets)
 
   Every section 1 results element exists twice (DESIGN §4): a build twin of
   tokens (class "pl-pub") and a LIVE region (data-live) that js/model.js
@@ -69,7 +73,7 @@
   <!-- the view a shared link opens (js/arrival.js; from=1 in the address) -->
   <section class="yf-arrival" data-live="arrival" aria-label="A forecast shared with you" hidden></section>
   <header class="lede pl-lede">
-    <h1>Your forecast</h1>
+    <h1>Your Forecast</h1>
     <p>Adjust the model, then break it. Untouched, the page shows the <a href="../forecast">published forecast</a>.</p>
   </header>
   <nav class="yf-jump" aria-label="Sections">
@@ -173,44 +177,15 @@
       </div>
     </div>
 
-    <!-- the call to share, a full-width row at the end of section 1: the
+    <!-- the call to share, a large button at the end of section 1: the
          one share sheet (js/share-sheet.js) with this section's content
          (js/play-share.js): the model's forecast untouched, the reader's own
          forecast, sealed, once a setting is moved -->
     <div class="pl-sharebox yf-sharebox yf-cta" data-live="share">
-      <button class="btn primary shareopen yf-ctabtn" type="button" disabled>Share this forecast
-        <small>The map, the council and the seats as an image, and a link. Move a setting and it is your own forecast, sealed.</small></button>
+      <button class="cta shareopen" type="button" disabled>Share this forecast</button>
+      <p class="yf-ctanote">The map, the council and the seats as an image, and a link. Move a setting and it is your own forecast, sealed.</p>
       <p class="pl-note pl-sharewhy yf-slot"></p>
-      <dialog class="sheet" aria-labelledby="share-title">
-        <div class="dh"><h2 id="share-title">Share this forecast</h2>
-          <button class="x" type="button" aria-label="Close">×</button></div>
-        <div class="db">
-          <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
-            <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
-          <p class="stubnote shnamenote" role="status"></p>
-          <div class="urlrow">
-            <label class="visually-hidden" for="shurl">Link to this forecast</label>
-            <input class="shurl" id="shurl" type="text" readonly value="">
-            <button class="btn shcopy" type="button">Copy link</button>
-          </div>
-          <p class="stubnote shseal yf-slot" role="status"></p>
-          <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
-            against the result, under the name above, and a new name or a changed forecast is another entry.
-            The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>
-          <label class="shimgpick">Image <select class="shimg">
-            <option value="link">Link preview</option>
-            <option value="story">Story, for a phone</option>
-            <option value="duel" class="shduel" hidden>Both forecasts, side by side</option></select></label>
-          <div class="preview"><img alt=""></div>
-          <div class="cta shcta">
-            <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
-            <a class="btn shwa" href="#" target="_blank" rel="noopener">WhatsApp</a>
-            <a class="btn shx" href="#" target="_blank" rel="noopener">X</a>
-            <button class="btn shdl" type="button" disabled>Download image</button>
-          </div>
-          <p class="toast" role="status" aria-live="polite"></p>
-        </div>
-      </dialog>
+      <!-- __YFSHEET:play__ -->
     </div>
   </section>
 
@@ -243,7 +218,7 @@
             </div>
           </div>
           <div class="mapscroll">
-            <svg class="wardmap" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
+            <svg class="wardmap" viewBox="<!-- __MAKE:mapviewbox__ -->" role="group" aria-label="Ward map of Johannesburg, north to the right. Arrow keys move between wards; Enter gives the ward to the chosen party."></svg>
           </div>
           <div class="listview" hidden></div>
           <p class="maphint painthint yf-slot">Choose a party, then tap or drag across wards to give them to it.</p>
@@ -310,10 +285,10 @@
 
         <div class="step yf-step yf-step4">
           <h3 class="stephead stepno">See how likely it is</h3>
-          <!-- a full-width row, bold, like the two calls to share -->
+          <!-- a large button, like the two calls to share -->
           <div data-live="b-actions" class="body yf-actions">
-            <button class="btn primary yf-analyse yf-ctabtn" type="button" disabled>Analyse my forecast
-              <small>Our chance for your outcome, your map ward by ward, and each party's seats and vote.</small></button>
+            <button class="cta yf-analyse" type="button" disabled>Analyse my forecast</button>
+            <p class="yf-ctanote">Our chance for your outcome, your map ward by ward, and each party's seats and vote.</p>
           </div>
         </div>
       </div>
@@ -363,45 +338,14 @@
       </div>
     </section>
 
-    <!-- the call to share the reader's forecast, a full-width row at the
+    <!-- the call to share the reader's forecast, a large button at the
          foot of section 2, the last before the notes: the one share sheet
          (js/share-sheet.js) with this section's content (js/make-share.js) -->
     <div class="yf-ctafoot">
       <div class="sharebox yf-cta" data-live="b-share">
-        <button class="btn primary shareopen yf-ctabtn" type="button" disabled>Share this forecast
-          <small>Your map, your seats, our chance for your outcome, and a sealed link.</small></button>
-        <dialog class="sheet" aria-labelledby="b-share-title">
-          <div class="dh"><h2 id="b-share-title">Share this forecast</h2>
-            <button class="x" type="button" aria-label="Close">×</button></div>
-          <div class="db">
-            <label class="namefield">Your name on the image <span class="stubnote">(optional)</span>
-              <input class="shname" type="text" autocomplete="off" spellcheck="false"></label>
-            <p class="stubnote shnamenote" role="status"></p>
-            <label class="shfriend" hidden><input class="shoff" type="checkbox"> Leave their name off the
-              side-by-side image and link</label>
-            <div class="urlrow">
-              <label class="visually-hidden" for="b-shurl">Link to this forecast</label>
-              <input class="shurl" id="b-shurl" type="text" readonly value="">
-              <button class="btn shcopy" type="button">Copy link</button>
-            </div>
-            <p class="stubnote shseal yf-slot" role="status"></p>
-            <p class="stubnote shentry">This sheet seals the link when it opens. Every sealed link is an entry in the ranking
-              against the result, under the name above, and a new name or a changed forecast is another entry.
-              The leaderboard shows names after the count. <a href="../privacy">How entries are kept</a></p>
-            <label class="shimgpick">Image <select class="shimg">
-              <option value="link">Link preview</option>
-              <option value="story">Story, for a phone</option>
-              <option value="duel" class="shduel" hidden>Both forecasts, side by side</option></select></label>
-            <div class="preview"><img alt=""></div>
-            <div class="cta shcta">
-              <button class="btn primary shnative" type="button" hidden disabled>Share…</button>
-              <a class="btn shwa" href="#" target="_blank" rel="noopener">WhatsApp</a>
-              <a class="btn shx" href="#" target="_blank" rel="noopener">X</a>
-              <button class="btn shdl" type="button" disabled>Download image</button>
-            </div>
-            <p class="toast" role="status" aria-live="polite"></p>
-          </div>
-        </dialog>
+        <button class="cta shareopen" type="button" disabled>Share this forecast</button>
+        <p class="yf-ctanote">Your map, your seats, our chance for your outcome, and a sealed link.</p>
+        <!-- __YFSHEET:break__ -->
       </div>
       <p class="stubnote yf-entries" data-live="entries" role="status" hidden></p>
     </div>

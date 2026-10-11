@@ -19,12 +19,12 @@ a:hover{color:var(--ink);}
 .visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;
   clip:rect(0 0 0 0);white-space:nowrap;}
 
-.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 72px;}
+.wrap{margin:0 auto;padding:22px 16px 72px;}
 @media (min-width:720px){.wrap{padding:28px 24px 80px;}}
 
-/* the site's nav bar and footer are site.css's (src/css/chrome.css); here,
-   only the reader's page lit in the reader's colour */
-.topnav a.active{color:var(--reader);}
+/* the site's nav bar and footer are site.css's (src/css/chrome.css), the
+   same on every page, the current page's link included (owner, 2026-10-10:
+   "the toolbar is identical on every page"): nothing here restyles them */
 
 /* ⚠ the prototype says what it is on every screen */
 .proto{font-family:var(--mono);font-size:11.5px;line-height:1.5;color:var(--ink-2);
@@ -40,16 +40,7 @@ a:hover{color:var(--ink);}
 h2{font-family:var(--serif);font-weight:600;font-size:22px;line-height:1.2;}
 h3{font-family:var(--serif);font-weight:600;font-size:17px;line-height:1.3;}
 
-/* ---------- buttons ---------- */
-.btn{font:600 14px/1 var(--sans);border-radius:4px;padding:11px 16px;cursor:pointer;
-  border:1px solid var(--rule);background:transparent;color:var(--ink);
-  display:inline-flex;align-items:center;gap:8px;text-decoration:none;min-height:44px;}
-.btn:hover{border-color:var(--reader);color:var(--ink);}
-.btn.primary{background:var(--reader);border-color:var(--reader);color:var(--paper);}
-.btn.primary:hover{filter:brightness(1.08);color:var(--paper);}
-.btn.model{border-color:color-mix(in srgb,var(--accent) 55%,transparent);color:var(--accent);}
-.btn.small{font-size:13px;padding:7px 11px;min-height:36px;}
-.btn[disabled],a.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
+/* ---------- buttons: the site's (src/css/components.css, `.btn`) ---------- */
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
 
 /* ---------- the builder layout ---------- */
@@ -106,9 +97,7 @@ svg .lbl{font:600 11px var(--sans);letter-spacing:.06em;fill:var(--ink);
 
 .tools{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:1px solid var(--rule-soft);}
 .tools label{font-size:12.5px;color:var(--ink-3);display:inline-flex;gap:6px;align-items:center;}
-select,input[type="text"],input[type="email"],input[type="number"]{font:14px var(--sans);
-  color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:4px;
-  padding:8px 10px;min-height:40px;}
+/* select and text fields: the site's (src/css/components.css) */
 select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline-offset:1px;}
 
 /* ---------- the steps panel ---------- */
@@ -180,10 +169,6 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 .stubnote{font-size:12px;color:var(--ink-3);margin-top:8px;}
 .stubnote b{color:var(--bad);}
 
-.cta{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
-@media (min-width:560px){.cta{flex-direction:row;flex-wrap:wrap;}}
-.cta.shcta{margin-top:0;}
-
 /* the phone tray: palette + tally stay in reach while the map scrolls */
 @media (max-width:979px){
   .tray{position:sticky;bottom:0;z-index:5;background:var(--paper-2);border-top:1px solid var(--rule);
@@ -227,35 +212,9 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
 .wlpick .sw{width:10px;height:10px;border-radius:2px;flex:none;}
 .wlpick select{flex:1;min-width:0;max-width:240px;min-height:30px;padding:2px 4px;font-size:13px;}
 
-/* ---------- dialogs ---------- */
-dialog{margin:auto;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2);padding:0;
-  border-radius:6px;width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);}
-dialog::backdrop{background:rgba(0,0,0,.55);}
-dialog .dh{display:flex;justify-content:space-between;align-items:center;gap:12px;
-  padding:14px 16px;border-bottom:1px solid var(--rule-soft);}
-dialog .dh h2{font-size:20px;}
-dialog .db{padding:16px;overflow:auto;}
-dialog .x{background:none;border:0;color:var(--ink-3);cursor:pointer;width:40px;height:40px;
-  font-size:22px;line-height:1;border-radius:4px;}
-dialog .x:hover{color:var(--ink);}
-@media (max-width:559px){
-  dialog.sheet{margin:auto 0 0;width:100vw;max-width:100vw;border-radius:12px 12px 0 0;
-    border-bottom:0;max-height:92dvh;}
-}
-@media (prefers-reduced-motion: no-preference){
-  dialog[open]{animation:rise .18s ease-out;}
-  @keyframes rise{from{transform:translateY(12px);opacity:0;}to{transform:none;opacity:1;}}
-}
+/* ---------- the share sheets: the site's one sheet (src/css/share-sheet.css) ---------- */
 
 .err{color:var(--bad);font-size:13px;}
-
-/* share */
-.preview{border:1px solid var(--rule-soft);background:var(--paper-2);display:flex;justify-content:center;
-  padding:8px;margin-bottom:12px;}
-.preview img{max-width:100%;max-height:44dvh;height:auto;display:block;}
-.urlrow{display:flex;gap:6px;margin:10px 0;}
-.urlrow input{flex:1;min-width:0;font-family:var(--mono);font-size:12.5px;}
-.toast{font-size:13px;color:var(--good);min-height:1.4em;}
 
 /* ---------- the shared page ---------- */
 .notours{background:var(--k-soft);border:1px solid color-mix(in srgb,var(--reader) 40%,transparent);

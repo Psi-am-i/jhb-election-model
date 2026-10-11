@@ -13,9 +13,8 @@
 // textContent and properties, never markup.
 //
 // The controls, in both sections: the name on the image, the link and Copy
-// link, the image (a select: the link preview, the story card, and the
-// side-by-side card where a friend's forecast is kept), the preview, and
-// Share…, WhatsApp, X and Download image.
+// link, the image (a select: the link preview and the story card), the
+// preview, and Share…, WhatsApp, X and Download image.
 //
 // THE SEAL. When a section hands it a forecast to seal (`fields`: v, c, f and
 // the name; section 2's forecast, or section 1's hand-off once a setting is
@@ -42,12 +41,15 @@
 //    sealed the state in the sheet, or refused, or cannot be reached, they
 //    are off, so no button sends the unsealed link while a seal is on its way
 //    (review of the share build, 2026-10-03).
-//  * Copy link is always there, with a select-and-copy fallback.
-//  * Native <dialog> + showModal(): the page behind is inert, Escape closes,
-//    and focus returns to the button that opened it.
+//  * The dialog, Copy link (with its select-and-copy fallback), WhatsApp, X,
+//    Share…, Download image and the line under them are the site's ONE share
+//    sheet (src/js/share-dialog.js), the same controls every site page's
+//    share button opens; this module adds what only "Your forecast" has: the
+//    name, the seal, the image picker and the drawn card.
 
+import { shareDialog } from "../../src/js/share-dialog.js";
 import { svgToPNG } from "./card-text.js";
-import { brandOf, localStamp, SIZES } from "./share-card.js";
+import { brandOf, stampOf, badgeFile, STAMP_DIR, localStamp, SIZES } from "./share-card.js";
 import { FACES } from "./card-fonts.js";
 import { cardName, nameBlocked, NAME_MAX } from "./play-state.js";
 
@@ -67,9 +69,11 @@ async function asset(path) {
 }
 // The site's IBM Plex faces as data: URIs (an SVG drawn as an image cannot
 // fetch web fonts, so the card carries the faces it is measured in), the
-// site's logo (site/logo.svg), and the logo of each party in `codes` that has
-// one (`party(code).logo`). Loaded once; logos added as parties appear.
-export function loadAssets(codes, party) {
+// site's logo (site/logo.svg), the logo of each party in `codes` that has
+// one (`party(code).logo`), and the owner's badge for each of `badges` (the
+// badge words, share-card.js badgeFile). Loaded once; logos and badges added
+// as they are asked for. A badge that cannot be fetched is drawn as its words.
+export function loadAssets(codes, party, badges = []) {
   assetsReady ??= (async () => {
     const faces = await Promise.all(Object.values(FACES).map(async f => {
       const file = { "400": "Regular", "600": "SemiBold", "700": "Bold" }[String(f.weight)];
@@ -81,11 +85,14 @@ export function loadAssets(codes, party) {
     }));
     let brand = null;
     try { brand = brandOf(await (await asset("logo.svg")).text()); } catch (e) { brand = null; }
-    return { fontCSS: faces.join(""), brand, logos: {} };
+    return { fontCSS: faces.join(""), brand, logos: {}, badges: {} };
   })();
   return assetsReady.then(async a => {
     await Promise.all(codes.filter(c => c && !(c in a.logos) && party(c).logo).map(async c => {
       try { a.logos[c] = await dataURL(await (await asset("logos/" + c + ".png")).blob()); } catch (e) { a.logos[c] = null; }
+    }));
+    await Promise.all(badges.filter(w => w && !(w in a.badges)).map(async w => {
+      try { a.badges[w] = stampOf(await (await asset(STAMP_DIR + "/" + badgeFile(w))).text()); } catch (e) { a.badges[w] = null; }
     }));
     return a;
   });
@@ -141,7 +148,7 @@ function requestSeal(fields) {
 }
 
 // E: the sheet's elements, from the section's own region: { open, dlg, close,
-//   name, namenote, url, copy, seal, entry, kind, duelOpt, img, wa, x,
+//   name, namenote, url, copy, seal, entry, kind, img, wa, x,
 //   native, dl, toast }.
 // H: what the section shares, as functions of what its page shows now:
 //   canOpen()          may the sheet open
@@ -165,13 +172,12 @@ function requestSeal(fields) {
 // setName(name), close() }.
 export function shareSheet(E, H) {
   E.name.maxLength = NAME_MAX;
-  let png = null, shown = null, opener = null, drawing = 0, sealing = 0;
+  let png = null, shown = null, drawing = 0, sealing = 0;
   // the key the link's buttons are on for: the state whose seal settled
   // (sealed, refused, or nothing to seal), or null while one is on its way
   let settled = null, imageSettled = false;
   let sealTimer = null, typingName = false;
 
-  const say = s => { E.toast.textContent = s; };
   const kind = () => E.kind.value || "link";
   // what the buttons send now: "none" (nothing to seal), "failed", the
   // state's key, or null while it is being worked out
@@ -194,19 +200,27 @@ export function shareSheet(E, H) {
     return new URL("s/?" + q.toString().replace(/%2C/g, ","), ROOT).href;
   }
 
-  // The link's box and the buttons that send it: on only when the state they
-  // would send is the one whose seal settled.
-  function buttons() {
-    const k = keyNow(), on = k !== null && settled === k;
-    E.url.value = on ? shareURL("copy") : "";
-    E.copy.disabled = !on;
-    for (const [a, href] of [[E.wa, () => "https://wa.me/?text=" + encodeURIComponent(shareURL("wa"))],
-                             [E.x, () => "https://x.com/intent/post?url=" + encodeURIComponent(shareURL("x"))]]) {
-      if (on) a.href = href(); else a.removeAttribute("href");
-      a.setAttribute("aria-disabled", String(!on));
-    }
-    E.native.disabled = !(on && imageSettled);
-  }
+  const fileName = () => H.fileBase() + "-" + kind() + ".png";
+
+  // The controls every share sheet has (src/js/share-dialog.js). The link's
+  // box and the buttons that send it are on only when the state they would
+  // send is the one whose seal settled; Share… also waits for the image.
+  const D = shareDialog(E, {
+    canOpen: () => H.canOpen(),
+    prepare: () => H.prepare?.(),
+    opened: () => fill(),
+    link: shareURL,
+    on: () => { const k = keyNow(); return k !== null && settled === k; },
+    nativeOn: () => imageSettled,
+    shareWords: () => H.shareWords(),
+    file: () => png ? new File([png], fileName(), { type: "image/png" }) : null,
+    download() {
+      if (!png) return null;
+      const href = URL.createObjectURL(png);
+      return { href, name: fileName(), done: () => URL.revokeObjectURL(href) };
+    },
+  });
+  const say = D.say, buttons = D.buttons;
 
   // Seal the state in the sheet, once typing has paused. EVERY call starts
   // a new ticket and takes the buttons off, so an answer for an earlier
@@ -293,25 +307,10 @@ export function shareSheet(E, H) {
 
   function fill() {
     E.namenote.textContent = nameNote(E.name.value, H.emptyName(), H.entered());
-    E.native.hidden = typeof navigator.share !== "function";
     seal();
     draw();
   }
 
-  const fileName = () => H.fileBase() + "-" + kind() + ".png";
-
-  E.open.addEventListener("click", async () => {
-    if (!H.canOpen()) return;
-    opener = E.open;
-    say("");
-    await H.prepare?.();
-    E.dlg.showModal();
-    fill();
-    E.copy.focus();
-  });
-  E.close.addEventListener("click", () => E.dlg.close());
-  E.dlg.addEventListener("click", e => { if (e.target === E.dlg) E.dlg.close(); });
-  E.dlg.addEventListener("close", () => opener?.focus?.());
   E.kind.addEventListener("change", () => { png = null; draw(); });
   // every keystroke reaches the page at once; the seal waits for the pause
   E.name.addEventListener("input", () => {
@@ -320,38 +319,10 @@ export function shareSheet(E, H) {
     H.onName(cardName(E.name.value));
   });
   E.name.addEventListener("change", sealNow);
-  E.copy.addEventListener("click", async () => {
-    let ok = false;
-    try { await navigator.clipboard.writeText(E.url.value); ok = true; }
-    catch (e) {
-      E.url.select();
-      try { ok = document.execCommand?.("copy") === true; } catch (e2) { ok = false; }
-    }
-    say(ok ? "Link copied." : "Copying did not work here. The link is selected: copy it from the box.");
-  });
-  E.native.addEventListener("click", () => {
-    const data = { ...H.shareWords(), url: shareURL("native") };
-    if (png) {
-      const f = new File([png], fileName(), { type: "image/png" });
-      if (navigator.canShare?.({ files: [f] })) data.files = [f];
-    }
-    navigator.share(data).then(() => say("Shared."))
-      .catch(err => { if (err.name !== "AbortError") say("Sharing did not work here. Copy the link instead."); });
-  });
-  E.dl.addEventListener("click", () => {
-    if (!png) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(png);
-    a.download = fileName();
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 10000);   // after the download has started
-    say("Image downloaded.");
-  });
-
   return {
     update() { png = null; if (E.dlg.open) fill(); },
-    isOpen: () => E.dlg.open,
+    isOpen: D.isOpen,
     setName(n) { if (document.activeElement !== E.name && cardName(E.name.value) !== cardName(n)) E.name.value = cardName(n); },
-    close() { if (E.dlg.open) E.dlg.close(); },
+    close: D.close,
   };
 }

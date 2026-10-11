@@ -12,17 +12,10 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-362 blocks from 11 files.
+391 blocks from 12 files.
 
 
 ## home.html
-
-<!-- block 876e9d18 -->
-*p*
-
-Made for the benefit of all the residents, businesses, professional and civic organisations and political parties that make our city so interesting.
-
-<!-- /block 876e9d18 -->
 
 <!-- block 642d5d12 -->
 *div*
@@ -52,47 +45,40 @@ Make your own forecast
 
 <!-- /block e8cb966d -->
 
-<!-- block 05d741e2 -->
+<!-- block dc263943 -->
 *h3*
 
-<a href="your-forecast/#break">Call the wards yourself</a>
+<a href="your-forecast/">Predict the election yourself</a>
 
-<!-- /block 05d741e2 -->
+<!-- /block dc263943 -->
 
-<!-- block a000d6a3 -->
+<!-- block f7639168 -->
 *p*
 
-Give each ward to a party, set each party's share of the vote, and pick who governs. The seats follow from the law that seats the council. The page starts from the model's most likely winner in each ward.
+Change our model's assumptions to ones you believe, or set the model aside and forecast the election yourself: give each ward to a party, set each party's share of the vote, and pick who governs. We tell you how likely we think your forecast is, and on election day you will see how close you came.
 
-<!-- /block a000d6a3 -->
+<!-- /block f7639168 -->
 
-<!-- block b6d36ed7 -->
+<!-- block 8c9503ce -->
 *li*
 
-The seats are worked out in your browser by the site's own seat code.
+Share your forecast anywhere you like.
 
-<!-- /block b6d36ed7 -->
+<!-- /block 8c9503ce -->
 
-<!-- block 8a33de24 -->
+<!-- block e70ed8ac -->
 *li*
 
-Your forecast is kept in the page's address, so a link carries it. Nothing is sent or stored.
+Sharing seals it: the forecast is signed with the time, so anyone can see it is real, and entered in a ranking against the result. There will be surprises for the forecasts that come closest.
 
-<!-- /block 8a33de24 -->
+<!-- /block e70ed8ac -->
 
-<!-- block e90f98df -->
+<!-- block 33f5bcb7 -->
 *li*
 
-Share it as a link or as an image with your name on it.
+We keep each sealed forecast and the name you put on it until after the results, and no IP address, cookie or account. <a href="privacy">Privacy</a> has the detail.
 
-<!-- /block e90f98df -->
-
-<!-- block bd22cb6b -->
-*p*
-
-To change what the model assumes instead, <a href="your-forecast/">adjust the model</a>.
-
-<!-- /block bd22cb6b -->
+<!-- /block 33f5bcb7 -->
 
 <!-- block b14ac78a -->
 *div*
@@ -129,20 +115,6 @@ The simulations are built from how every voting district in the city has voted b
 
 <!-- /block 3576e5ca -->
 
-<!-- block 264ba27c -->
-*div*
-
-<a href="nobody-will-win#the-november-surprise">Two ballots, one council</a>
-
-<!-- /block 264ba27c -->
-
-<!-- block 5b763cb8 -->
-*div*
-
-The ward and party ballots are added together to set each party's seats. One clause covers a party that wins more wards than its share of the vote entitles it to.
-
-<!-- /block 5b763cb8 -->
-
 <!-- block 13fa80aa -->
 *div*
 
@@ -156,6 +128,20 @@ The ward and party ballots are added together to set each party's seats. One cla
 Each source file is listed with its checksum and the workarounds it needed.
 
 <!-- /block 41a8b9a7 -->
+
+<!-- block 264ba27c -->
+*div*
+
+<a href="nobody-will-win#the-november-surprise">Two ballots, one council</a>
+
+<!-- /block 264ba27c -->
+
+<!-- block 5b763cb8 -->
+*div*
+
+The ward and party ballots are added together to set each party's seats. One clause covers a party that wins more wards than its share of the vote entitles it to.
+
+<!-- /block 5b763cb8 -->
 
 <!-- block a744e04e -->
 *div*
@@ -737,12 +723,12 @@ Each forecast used what a forecaster had before polling day: the previous local 
 
 <!-- /block 9efbd894 -->
 
-<!-- block 8c4792ac -->
+<!-- block 48f410b0 -->
 *md*
 
-It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg. Seven of the eight are cities the model was never designed against.
+It was done in **eight metros, not one**. A model tuned on a single city can look excellent there and have learned only that city. Each city is fitted only on its own wards, registration and history; nothing is carried across from Johannesburg.
 
-<!-- /block 8c4792ac -->
+<!-- /block 48f410b0 -->
 
 <!-- block 24f3f51f -->
 *md*
@@ -1233,113 +1219,145 @@ This page lists errors on published pages. Nothing is removed from it.
 
 <!-- /block 8838b445 -->
 
-<!-- block 315860b5 -->
+<!-- block 9ff1dad0 -->
 *md*
 
-## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-07">"Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in 57%"</span> — published 26 September 2026, corrected 7 October 2026
 
-<!-- /block 315860b5 -->
+<!-- /block 9ff1dad0 -->
 
-<!-- block cbb45a94 -->
+<!-- block b6ec0f40 -->
 *md*
 
-**What changed.** A party is counted only where it alone has the most seats,
-and ties have their own figure. The sentence reads "The ANC alone has the most
-seats in 47% of simulations and the DA alone in 45%. Two or more parties tie
-for the most seats in 1.4%." The tiles read "The DA alone has the most seats"
-and "The ANC alone has the most seats".</span>
+**What is right.** Counting every party's seats, it reaches a majority in 78% of simulations, against 87% for a council without the ANC, the EFF and MK. The red-lines card no longer says the two are level.</span>
 
-<!-- /block cbb45a94 -->
+<!-- /block b6ec0f40 -->
 
-<!-- block 50ba7fbe -->
+<!-- block e6cc3e33 -->
 *md*
 
-## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-07">"Without the ANC, the red line leaves a majority in 59% of simulations"</span> — published 6 October 2026, corrected 7 October 2026
 
-<!-- /block 50ba7fbe -->
+<!-- /block e6cc3e33 -->
 
-<!-- block 14d9f7a1 -->
+<!-- block 639539be -->
 *md*
 
-**What changed.** The heading now reads "Without the ANC, the red line leaves
-a majority in 59% of simulations." The coin-flip clause is gone, and the
-verdict is "MORE LIKELY THAN NOT".</span>
+**What is right.** Counting every party's seats, it exists in 87% of simulations: very likely.</span>
 
-<!-- /block 14d9f7a1 -->
+<!-- /block 639539be -->
 
-<!-- block 7b7fe434 -->
+<!-- block dd47466d -->
 *md*
 
-## "The 587,000 votes the ANC shed between 2016 and 2021" — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-07">"The DA can govern without the ANC, the EFF or MK"</span> — published 6 October 2026, corrected 7 October 2026
 
-<!-- /block 7b7fe434 -->
+<!-- /block dd47466d -->
 
-<!-- block a153cd01 -->
+<!-- block 54cbef38 -->
 *md*
 
-**What changed.** The summary now reads "the 587,000 votes the ANC bloc shed
-between the 2019 national election and the 2021 local election".</span>
+**What is right.** The claim is titled with what it tests: "A majority without the ANC, the EFF and MK". Her position is quoted in the card.</span>
 
-<!-- /block a153cd01 -->
+<!-- /block 54cbef38 -->
 
-<!-- block 19985c99 -->
+<!-- block bf582185 -->
 *md*
 
-## "Where on 31 August the DA led clearly" — published 26 September 2026, corrected 2 October 2026
+## <span data-asof="2026-10-02">"The ANC is largest in 47% of simulations and the DA in 47%"</span> — published 26 September 2026, corrected 6 October 2026
 
-<!-- /block 19985c99 -->
+<!-- /block bf582185 -->
 
-<!-- block 84a7539b -->
+<!-- block 0b021535 -->
 *md*
 
-**What changed.** The note now reads "where on 8 August the DA led
-clearly".</span>
+**What is right.** The ANC alone has the most seats in 47% of simulations and the DA alone in 45%. In 1.4%, two or more parties tie for the most seats.</span>
 
-<!-- /block 84a7539b -->
+<!-- /block 0b021535 -->
 
-<!-- block 782e5791 -->
+<!-- block af4465e2 -->
 *md*
 
-## "The most reliable majority in the city that does not involve the EFF or MK" — published 26 September 2026, corrected 2 October 2026
+## "Without the ANC, the red line holds about half the time" — published 26 September 2026, corrected 6 October 2026
 
-<!-- /block 782e5791 -->
+<!-- /block af4465e2 -->
 
-<!-- block 39459f0c -->
+<!-- block e09af113 -->
 *md*
 
-**What changed.** The sentence now says "the most reliable two-party majority
-in the city".</span>
+**What is right.** Without the ANC, the red line leaves a majority in 59% of simulations. The verdict is "MORE LIKELY THAN NOT".</span>
 
-<!-- /block 39459f0c -->
+<!-- /block e09af113 -->
 
-<!-- block 60b60e7a -->
+<!-- block 6c5d42ab -->
 *md*
 
-## "A government can be formed without the EFF or MK" — published 26 September 2026, corrected 2 October 2026
+## "The 587,000 votes the ANC shed between 2016 and 2021" — published 26 September 2026, corrected 6 October 2026
 
-<!-- /block 60b60e7a -->
+<!-- /block 6c5d42ab -->
 
-<!-- block a002c3f9 -->
+<!-- block 43081c6b -->
 *md*
 
-**What changed.** The title now reads "The DA can govern without the ANC, the
-EFF or MK", and the quote is dated 13 September.</span>
+**What is right.** The ANC bloc lost 587,000 votes between the 2019 national election and the 2021 local election, as the article says.</span>
 
-<!-- /block a002c3f9 -->
+<!-- /block 43081c6b -->
 
-<!-- block dad9f863 -->
+<!-- block c6f2515a -->
 *md*
 
-## "18 September 2026: Published" on three tested claims — published 26 September 2026, corrected 2 October 2026
+## "Where on 31 August the DA led clearly" — published 26 September 2026, corrected 6 October 2026
 
-<!-- /block dad9f863 -->
+<!-- /block c6f2515a -->
 
-<!-- block 3a9012e6 -->
+<!-- block 64eff42b -->
 *md*
 
-**What changed.** They are labelled "26 September 2026: Published".</span>
+**What is right.** It was published on 8 August.</span>
 
-<!-- /block 3a9012e6 -->
+<!-- /block 64eff42b -->
+
+<!-- block 632b5db3 -->
+*md*
+
+## "The most reliable majority in the city that does not involve the EFF or MK" — published 26 September 2026, corrected 6 October 2026
+
+<!-- /block 632b5db3 -->
+
+<!-- block 47a1bffa -->
+*md*
+
+**What is right.** The DA and the ANC are the most reliable two-party majority in the city.</span>
+
+<!-- /block 47a1bffa -->
+
+<!-- block f97ac7a5 -->
+*md*
+
+## "A government can be formed without the EFF or MK" — published 26 September 2026, corrected 6 October 2026
+
+<!-- /block f97ac7a5 -->
+
+<!-- block a9373dba -->
+*md*
+
+**What is right.** The claim is titled "The DA can govern without the ANC, the EFF or MK". The quote is dated 13 September, the date of the report it comes from.</span>
+
+<!-- /block a9373dba -->
+
+<!-- block e8eb4756 -->
+*md*
+
+## "18 September 2026: Published" on three tested claims — published 26 September 2026, corrected 6 October 2026
+
+<!-- /block e8eb4756 -->
+
+<!-- block 865cb689 -->
+*md*
+
+**What is right.** They were first published on 26 September.</span>
+
+<!-- /block 865cb689 -->
 
 <!-- block fa1a4412 -->
 *md*
@@ -1348,15 +1366,12 @@ EFF or MK", and the quote is dated 13 September.</span>
 
 <!-- /block fa1a4412 -->
 
-<!-- block 72b87d41 -->
+<!-- block 22803457 -->
 *md*
 
-**What changed.** On 27 September the paragraph read "this one WAS a leak, and
-is not one now", and said the record has been cut at the election being
-forecast since 14 August 2026. The page's scores came from a run made with that
-cut.</span>
+**What is right.** The model uses only what was known before each election it is tested on, and the about page's accuracy figures come from that version.</span>
 
-<!-- /block 72b87d41 -->
+<!-- /block 22803457 -->
 
 <!-- block 5c72f299 -->
 *md*
@@ -1377,25 +1392,23 @@ cut.</span>
 
 <!-- /block ccafafb7 -->
 
-<!-- block 9cf61ca0 -->
+<!-- block 9684da99 -->
 *md*
 
-Each figure carries an arrow comparing it with the model's current figure.
-Three arrows pointed up, but each of those figures had fallen from its 8 August
-value. A sentence beside them read "Still the ANC's usual condition, and a
-stronger one".
+Three of them carried arrows saying the figure had gone up since then; each
+had gone down. A sentence beside them read "Still the ANC's usual condition,
+and a stronger one".
 
-<!-- /block 9cf61ca0 -->
+<!-- /block 9684da99 -->
 
-<!-- block 78deb40b -->
+<!-- block 8b80db6e -->
 *md*
 
-**What changed.** The four figures are the ones published on 8 August, and the
-arrows compare against them. The sentence reads "Still the ANC's usual
-condition, and weaker than published". The piece and its sections are dated 8
-August.</span>
+**What is right.** The four figures are the ones published on 8 August, the
+arrows compare today's figures with them, and the sentence reads "Still the
+ANC's usual condition, and weaker than published".</span>
 
-<!-- /block 78deb40b -->
+<!-- /block 8b80db6e -->
 
 
 ## docs-public/methodology.md
@@ -1799,19 +1812,42 @@ August 2026 and has not been re-run on the current model.</span>
 
 <!-- /block 0c7026f0 -->
 
-<!-- block 1dc09985 -->
+<!-- block e4b095e0 -->
 *md*
 
-**The whole model beats simple baselines, in cities it was not built for.** It
-is run on the 2021 election in {{backtest_cities}} cities and wins in
-**{{backtest_wins}}** of them on the measure that scores a forecast's whole
-range (CRPS), with **{{backtest_crps_better}}** less error in total. Counted in
-seats put in the wrong column, it misses **{{backtest_seat_err_model}}** against
-the baselines' **{{backtest_seat_err_baseline}}**, a smaller margin because that
-measure looks only at the single most likely outcome. It calls the winner in
-**{{backtest_wards_called}} of {{backtest_wards}}** wards.
+**The whole model beats simple baselines.** It is run on the 2021 election in
+{{backtest_cities}} metros and wins in **{{backtest_wins}}** of them on the measure that
+scores a forecast's whole range (CRPS), with **{{backtest_crps_better}}** less error in
+total. Each metro against its best baseline by that measure, and the seats each
+gives to the wrong party (lower is better in every column):
 
-<!-- /block 1dc09985 -->
+<!-- /block e4b095e0 -->
+
+<!-- block 321dd668 -->
+*md*
+
+| metro | model's error (CRPS) | best baseline's error (CRPS) | best baseline | seats given to the wrong party: model | seats given to the wrong party: best baseline |
+|---|---|---|---|---|---|
+| Johannesburg | {{val_joburg_crps}} | {{val_joburg_best_crps}} | {{val_joburg_best}} | {{val_joburg_wrong}} | {{val_joburg_best_wrong}} |
+| Tshwane | {{val_tshwane_crps}} | {{val_tshwane_best_crps}} | {{val_tshwane_best}} | {{val_tshwane_wrong}} | {{val_tshwane_best_wrong}} |
+| Ekurhuleni | {{val_ekurhuleni_crps}} | {{val_ekurhuleni_best_crps}} | {{val_ekurhuleni_best}} | {{val_ekurhuleni_wrong}} | {{val_ekurhuleni_best_wrong}} |
+| eThekwini | {{val_ethekwini_crps}} | {{val_ethekwini_best_crps}} | {{val_ethekwini_best}} | {{val_ethekwini_wrong}} | {{val_ethekwini_best_wrong}} |
+| Cape Town | {{val_capetown_crps}} | {{val_capetown_best_crps}} | {{val_capetown_best}} | {{val_capetown_wrong}} | {{val_capetown_best_wrong}} |
+| Mangaung | {{val_mangaung_crps}} | {{val_mangaung_best_crps}} | {{val_mangaung_best}} | {{val_mangaung_wrong}} | {{val_mangaung_best_wrong}} |
+| Nelson Mandela Bay | {{val_nelsonmandelabay_crps}} | {{val_nelsonmandelabay_best_crps}} | {{val_nelsonmandelabay_best}} | {{val_nelsonmandelabay_wrong}} | {{val_nelsonmandelabay_best_wrong}} |
+| Buffalo City | {{val_buffalocity_crps}} | {{val_buffalocity_best_crps}} | {{val_buffalocity_best}} | {{val_buffalocity_wrong}} | {{val_buffalocity_best_wrong}} |
+| all {{backtest_cities}} | {{val_total_crps}} | {{val_total_best_crps}} | | {{backtest_seat_err_model}} | {{backtest_seat_err_baseline}} |
+
+<!-- /block 321dd668 -->
+
+<!-- block 9ea3cc5d -->
+*md*
+
+The seat columns judge only the single most likely outcome, so their margins
+are smaller. It calls the winner in **{{backtest_wards_called}} of {{backtest_wards}}**
+wards.
+
+<!-- /block 9ea3cc5d -->
 
 <!-- block 961baec6 -->
 *md*
@@ -1820,7 +1856,7 @@ measure looks only at the single most likely outcome. It calls the winner in
 
 <!-- /block 961baec6 -->
 
-<!-- block 06e84ac4 -->
+<!-- block 9d9fe940 -->
 *md*
 
 - **A party that does not exist yet is the hardest case.** Splits and entrants
@@ -1845,10 +1881,17 @@ measure looks only at the single most likely outcome. It calls the winner in
 - **No poll is used in the forecast.** Polls were an input until 12 September
   2026 and are not one now. Why they were taken out, what they were worth, and
   what is planned are under *Where polls fit*, below.
+- **Small parties' range is wider than the record.** In the simulations, a
+  party that is established but small sometimes reaches a share no such party
+  has reached in the record. In the eight metros' consecutive local elections
+  from 2006 to 2021, 337 times a party had under {{small_party_share}} of the list vote at
+  one election, and none reached {{small_party_surge_share}} at the next ([model log, §1.296](https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md)).
+  In this forecast, {{small_party_surge}} of the simulations give at least one such
+  party more than {{small_party_surge_share}}. A fix is in progress.
 - **Arithmetic is not politics.** The model says which governments are
   numerically possible, not which will form.
 
-<!-- /block 06e84ac4 -->
+<!-- /block 9d9fe940 -->
 
 <!-- block ff0d9166 -->
 *md*
@@ -2110,6 +2153,117 @@ which deletes it after three months.
 
 <!-- /block 7e7d747c -->
 
+<!-- block f8a7ba2d -->
+*md*
+
+## Shared forecasts
+
+<!-- /block f8a7ba2d -->
+
+<!-- block dda98ed4 -->
+*md*
+
+A forecast you make on [your forecast](your-forecast/) lives in its link. When
+you share it, three things happen on the site's server.
+
+<!-- /block dda98ed4 -->
+
+<!-- block 196dfc11 -->
+*md*
+
+- **The seal.** The page sends the forecast and its name to the server, which
+  signs them with the time, using a key only the server holds, and returns the
+  signature for the link to carry. Anyone opening the link can then see that
+  it was sealed and when. Each seal is also kept as an entry, below.
+- **The preview image.** A chat app shown the link fetches an image the server
+  draws from the link. The image is kept in Cloudflare's cache, which deletes
+  it on its own: an hour for an unsealed link, a year for a sealed one. Chat
+  apps and search engines that fetch it may keep their own copy, under their
+  own rules.
+- **The count.** Shared links go out as `/s/` addresses. Each forwards to the
+  forecast and writes one log line and one Analytics Engine data point naming
+  "share", the button used (WhatsApp, X, copy or the phone's share menu) and
+  the site's own address, as the short links above do.
+
+<!-- /block 196dfc11 -->
+
+<!-- block f35c09f2 -->
+*md*
+
+## Forecasts entered
+
+<!-- /block f35c09f2 -->
+
+<!-- block 775c5a07 -->
+*md*
+
+Every sealed forecast is entered in a ranking against the result. Opening the
+share sheet seals the forecast, and so enters it. Typing a
+name or changing the forecast with the sheet open seals again, and each seal
+is another entry. A person may enter several. The server stores, for each
+seal, in a database at Cloudflare:
+
+<!-- /block 775c5a07 -->
+
+<!-- block f43507e3 -->
+*md*
+
+- the forecast: every ward's winner, each party's vote on the ward ballot and
+  on the list ballot, and the governing parties;
+- the forecast as the link carries it, and the version of the page's figures
+  it was made against;
+- the name you typed on it, if any;
+- the time of the seal;
+- the seal's id, the part of the link's `s=` after the dot;
+- the model's version when it was sealed, and the version of the entry.
+
+<!-- /block f43507e3 -->
+
+<!-- block fcf4c22c -->
+*md*
+
+No IP address, browser details, cookie or account is stored with it. To limit
+how often one connection can seal, the server counts seals per connection for
+one minute under a scrambled form of its address, which is not stored. For an
+address of the newer kind, which holds many addresses for one connection,
+only its first half is used.
+
+<!-- /block fcf4c22c -->
+
+<!-- block 624bfd63 -->
+*md*
+
+**Why.** To rank every forecast sealed before polls open against the result.
+Until the results only the number of entries is shown. After the count the
+leaderboard lists entries by place, under the name typed on each, or
+"Anonymous" and the start of its seal id if none was typed. The name is then
+public on the leaderboard.
+
+<!-- /block 624bfd63 -->
+
+<!-- block b58b35ec -->
+*md*
+
+**How long.** The entries are deleted ninety days after the leaderboard is
+published, and within six months of polling day if no leaderboard is
+published. At that deletion the names come off the leaderboard: each entry
+then shows as "Anonymous" and the start of its seal id, and the leaderboard
+stays on the site that way. Cloudflare keeps a recovery copy of the
+database, from which deleted entries can be restored, for up to thirty days
+after they are deleted.
+
+<!-- /block b58b35ec -->
+
+<!-- block 99f083d8 -->
+*md*
+
+**Removing an entry.** Write to
+[psi@whysoserious.city](mailto:psi@whysoserious.city) with the link, or its
+seal id. The entry is deleted from the database and, once the leaderboard is
+published, from the leaderboard.
+
+<!-- /block 99f083d8 -->
+
 <!-- block 8b3b7923 -->
 *md*
 
@@ -2134,14 +2288,14 @@ service.
 
 <!-- /block b834cd98 -->
 
-<!-- block 4821f7b7 -->
+<!-- block f2068edd -->
 *md*
 
-- No accounts, sign-in or forms. If that changes, this page changes with it.
+- No accounts or sign-in. If that changes, this page changes with it.
 - No advertising trackers and no Google tags.
 - No personal data is sold, or shared with advertisers.
 
-<!-- /block 4821f7b7 -->
+<!-- /block f2068edd -->
 
 <!-- block 2a2f0449 -->
 *md*
@@ -2212,14 +2366,14 @@ Under POPIA you may:
 
 <!-- /block be0eca43 -->
 
-<!-- block 01af24ec -->
+<!-- block 303532c5 -->
 *md*
 
 Send a request to [psi@whysoserious.city](mailto:psi@whysoserious.city). The
-site stores nothing that names a visitor; the records described above are held
-by Cloudflare.
+only records the site keeps are those described above, held by Cloudflare for
+the site; an entry is found by its seal id.
 
-<!-- /block 01af24ec -->
+<!-- /block 303532c5 -->
 
 <!-- block 1b0b6d80 -->
 *md*
@@ -3088,38 +3242,143 @@ P(a majority exists without the ANC, the EFF and MK)
 
 <!-- /block 007ec97b -->
 
-<!-- block 16809194 -->
+<!-- block e3f52ba2 -->
 *claim[3].intro*
 
-A red line is a choice, not a claim about the world, so there is nothing here to call true or false. What can be tested is what it costs. Ruling out the EFF and MK leaves the DA two high-probability ways to a majority: everyone else in the council except the ANC, which clears {{majority}} in [[no_red_share]] of simulations, or a deal with the ANC itself, which clears it in [[grand_share]]. The narrower option — ActionSA and the PA alone — is the [[three_share]] case discussed just below.
+A red line is a choice, so there is nothing here to call true or false. What can be tested is what it costs. Without the ANC, the EFF and MK, the rest of the council still clears {{majority}} in [[no_red_share]] of simulations.
 
-<!-- /block 16809194 -->
+<!-- /block e3f52ba2 -->
 
-<!-- block ffacc740 -->
+<!-- block bb6fcf42 -->
 *claim[3].steps[0]*
 
-**Without the ANC, the red line leaves a majority in [[no_red_share]] of simulations.** A council built from every party except the ANC, the EFF and MK reaches {{majority}} in that share of the {{n_draws}} simulations. That is the whole of the rest of the council acting as one — the most generous possible reading of the DA's options.
+**There are three ways to a majority.** The whole rest of the council except the ANC, which clears {{majority}} in [[no_red_share]] of simulations; a deal with the ANC alone, [[grand_share]]; or the narrower option, ActionSA and the PA, [[three_share]].
 
-<!-- /block ffacc740 -->
+<!-- /block bb6fcf42 -->
 
-<!-- block 56e68d1e -->
+<!-- block a744f71c -->
 *claim[3].steps[1]*
 
-**The plausible version of that coalition is much weaker.** The DA with ActionSA and the Patriotic Alliance — the partners most often named — reaches {{majority}} in [[three_share]] of simulations. Two medians describe them and they answer different questions: across all [[n_draws]] simulations the three hold [[three_median]] seats, and in the [[three_share]] where they do reach a majority they hold [[three_median_when_wins]]. The who-can-govern table reports the second, because it is asking what governing looks like when it happens. Getting from the first to a majority means adding parties that will each hold a handful of seats, and keeping all of them.
+**The first assumes the whole rest of the council acting as one,** ActionSA, the PA and several small parties: the most generous and least stable option.
 
-<!-- /block 56e68d1e -->
+<!-- /block a744f71c -->
 
-<!-- block fb9db167 -->
+<!-- block db4ea0bb -->
 *claim[3].steps[2]*
 
-**The alternative the red line leaves is a deal with the ANC.** The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations. Neither party has said it wants that. It is, on this arithmetic, the most reliable two-party majority in the city.
+**The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations.** Neither party has said it wants it, but on this arithmetic it is the most reliable two-party majority in the city.
 
-<!-- /block fb9db167 -->
+<!-- /block db4ea0bb -->
 
-<!-- block a2c3ac8a -->
+<!-- block a23380e4 -->
 *claim[3].steps[3]*
 
-**The same test applied to the other side.** An ANC-led council excluding the DA, the EFF and MK reaches {{majority}} in [[anc_side_share]] of simulations — almost exactly the same odds as the DA's route. On coalition arithmetic alone, neither leader is better placed than the other.
+**The DA with ActionSA and the Patriotic Alliance reaches {{majority}} in [[three_share]] of simulations.** Across all simulations the three hold a median of [[three_median]] seats; where they reach a majority, a median of [[three_median_when_wins]].
 
-<!-- /block a2c3ac8a -->
+<!-- /block a23380e4 -->
+
+<!-- block ea0510de -->
+*claim[3].steps[4]*
+
+**The same test applied to the other side:** an ANC-led council excluding the DA, the EFF and MK reaches {{majority}} in [[anc_side_share]] of simulations.
+
+<!-- /block ea0510de -->
+
+<!-- block eadf869f -->
+*claim[4].quote*
+
+If she thinks she will win Joburg without the support of Soweto, she must be living in another world
+
+<!-- /block eadf869f -->
+
+<!-- block 5539ab9d -->
+*claim[4].speaker*
+
+Herman Mashaba, ActionSA leader and mayoral candidate, of Helen Zille (DA)
+
+<!-- /block 5539ab9d -->
+
+<!-- block f2f9cdb5 -->
+*claim[4].outlet*
+
+Inside Metros, 9 September 2026
+
+<!-- /block f2f9cdb5 -->
+
+<!-- block 75d1c97f -->
+*claim[4].tests*
+
+The chance the DA does not lead a majority with ActionSA and the PA, or with the ANC, when it wins no Soweto ward
+
+<!-- /block 75d1c97f -->
+
+<!-- block 6d4b26bd -->
+*claim[4].intro*
+
+No party is likely to win a majority on its own: {{p_alone}} chance. So winning Joburg means the DA leading a coalition of at least {{majority}} of {{council_size}} seats. Zille has ruled out the EFF and MK. That leaves three realistic partners: ActionSA with the PA, or the ANC. In 2021 the DA won no Soweto ward and governed only through a {{jhb_2021_coalition_parties}}-party coalition that fell within a year. So what about 2026?
+
+<!-- /block 6d4b26bd -->
+
+<!-- block 6bc947ba -->
+*claim[4].steps[0]*
+
+**Mathematically, the DA can lead a coalition in [[da_small_share]] of simulations.** Most of these depend on many parties staying together, any of which can walk out and bring the coalition down. We do not count them.
+
+<!-- /block 6bc947ba -->
+
+<!-- block 12d59409 -->
+*claim[4].steps[1]*
+
+**In [[soweto_none_share]] of simulations the DA wins none of the [[soweto_wards_n]] Soweto wards.** Without a Soweto ward it can still govern in [[realistic_given_none]] of simulations, with ActionSA and the PA or with the ANC: [[asa_pa_given_none]] and [[anc_given_none]] respectively (some simulations allow either).
+
+<!-- /block 12d59409 -->
+
+<!-- block 985e4373 -->
+*claim[4].steps[2]*
+
+**In the [[soweto_some_share]] of simulations where the DA does win a Soweto ward, its chance of governing jumps to [[realistic_given_some]].** These simulations show a strong DA across the whole city: the breakthrough the DA has never achieved, and needs to make inroads.
+
+<!-- /block 985e4373 -->
+
+<!-- block 043f54fa -->
+*claim[4].steps[3]*
+
+**All told, [[holds]]** The DA needs Sowetan support, or partners who have it.
+
+<!-- /block 043f54fa -->
+
+<!-- block 33869fbb -->
+*claim[4].steps[4]*
+
+**What this cannot see.** The model counts seats, not which parties are willing to work together.
+
+<!-- /block 33869fbb -->
+
+
+## content/joburg/home.toml
+
+<!-- block 44e649a4 -->
+*lede[0].head*
+
+<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}.
+{{lede_p_first}} chance it's {{lede_first}} and {{lede_p_second}} chance it's
+{{lede_second}}.
+
+<!-- /block 44e649a4 -->
+
+<!-- block 09e12dd4 -->
+*lede[0].sub*
+
+Chance of one party winning outright: {{lede_p_alone}}. Proportional
+representation is meant to give parties seats that match their support. Our
+system mixes directly elected ward councillors with party seats topped up
+according to each party's share of the vote, and it has a quirk. A ward you win
+cannot be taken away, so a party that wins many wards can end up with more
+council seats than its share of the vote should allow. That is surprisingly
+likely this year: there is a {{lede_p_overhang}} chance it happens to
+{{lede_overhang_party}}. When it does, {{lede_overhang_party}} typically holds
+about {{lede_overhang_seats}} of the seats on about {{lede_overhang_votes}} of
+the party-list vote.
+
+<!-- /block 09e12dd4 -->
 

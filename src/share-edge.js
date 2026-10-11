@@ -8,8 +8,8 @@
 //                            the channel, the button and the host are written.
 //   /your-forecast/?f=…      the page, its og: and twitter: tags rewritten to
 //                            name the forecast and point at its own image
-//   /og/1/link.png?<link>    that image, drawn here: share-card.js's card,
-//   /og/1/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
+//   /og/2/link.png?<link>    that image, drawn here: share-card.js's card,
+//   /og/2/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
 //                            the edge by the link and the published draws'
 //                            hash: a year when the link's seal checks, an
 //                            hour otherwise (imageCache). Any failure
@@ -67,7 +67,14 @@ export const UNSEALED_MAX_AGE_S = 3600;
 // The image's Cache-Control: a year for a sealed link's image, an hour for any other.
 export const imageCache = sealed => (sealed ? "public, max-age=31536000, immutable" : "public, max-age=" + UNSEALED_MAX_AGE_S);
 const PAGE = "/your-forecast/";
-const IMAGE = /^\/og\/1\/(link|story)\.png$/;
+// The card image's address carries CARD_VERSION, so a change to what the card
+// draws changes the address and the edge's cache key: a sealed card's image
+// is cached for a year as immutable. Version 2 (2026-10-10): the owner's
+// reader badges and the boldest call. An address of an earlier version
+// answers 301 to the same image at the current one.
+export const CARD_VERSION = 2;
+const IMAGE = /^\/og\/(\d+)\/(link|story)\.png$/;
+const imagePath = size => `/og/${CARD_VERSION}/${size}.png`;
 
 // ---------- the link ----------
 
@@ -145,7 +152,7 @@ export async function sharedPage(request, url, env) {
   const name = cardName(new URLSearchParams(url.search).get("n"));
   const vn = new URLSearchParams(url.search).has("vs") ? cardName(new URLSearchParams(url.search).get("vn")) : "";
   const title = vn ? (name || "A reader") + " and " + vn : SC.cardTitle(name);
-  const image = `${url.origin}/og/1/link.png?${q}`;
+  const image = `${url.origin}${imagePath("link")}?${q}`;
   let html = await res.text();
   const values = {
     "og:title": title,
@@ -186,7 +193,7 @@ async function cardAnswer(env, D, got) {
   const seats = checkSeatAnswer(ans, body, D.forecast.schema);   // arithmetic identities, or throws
   const o = ans.outcome;
   if (!o || typeof o.text !== "string" || typeof o.badge !== "string" || !Array.isArray(o.coalition) ||
-      ans.draws_sha256 !== D.forecast.draws_sha256) throw new Error("the card answer is incomplete");
+      !o.boldest || typeof o.boldest !== "object" || ans.draws_sha256 !== D.forecast.draws_sha256) throw new Error("the card answer is incomplete");
   return { ...seats, outcome: o };
 }
 
@@ -197,14 +204,20 @@ function dataURI(bytes, type) {
   return `data:${type};base64,${btoa(bin)}`;
 }
 
-async function cardAssets(env, url, D, codes) {
+async function cardAssets(env, url, D, codes, badges = []) {
   const logos = {};
   await Promise.all(codes.filter(c => D.parties[c]?.logo).map(async c => {
     const r = await env.ASSETS.fetch(new Request(new URL(`/logos/${c}.png`, url)));
     if (r.ok) logos[c] = dataURI(await r.arrayBuffer(), "image/png");
   }));
+  // the owner's badge for each badge's words (src/stamps/, served at /stamps/)
+  const stamps = {};
+  await Promise.all([...new Set(badges.filter(Boolean))].map(async w => {
+    const r = await env.ASSETS.fetch(new Request(new URL(`/${SC.STAMP_DIR}/${SC.badgeFile(w)}`, url)));
+    if (r.ok) stamps[w] = SC.stampOf(await r.text());
+  }));
   const b = await env.ASSETS.fetch(new Request(new URL("/logo.svg", url)));
-  return { logos, brand: b.ok ? SC.brandOf(await b.text()) : null,
+  return { logos, badges: stamps, brand: b.ok ? SC.brandOf(await b.text()) : null,
            geom: { W: D.forecast.geometry.W, H: D.forecast.geometry.H, wards: D.forecast.geometry.wards } };
 }
 
@@ -238,7 +251,7 @@ export async function cardFor(url, env, size) {
     const codes = [...new Set([...A.rows, ...Bspec.rows].map(r => r.code))];
     return { svg: SC.duelCardSVG(A, Bspec, await cardAssets(env, url, D, codes), party), sealed: !!made };
   }
-  const assets = await cardAssets(env, url, D, A.rows.map(r => r.code));
+  const assets = await cardAssets(env, url, D, A.rows.map(r => r.code), [A.badge]);
   return { svg: size === "story" ? SC.storyCardSVG(A, assets, party) : SC.linkCardSVG(A, assets, party), sealed: !!made };
 }
 
@@ -247,7 +260,7 @@ export async function cardImage(url, env, ctx, size) {
   try {
     const D = await pageData(env, url);
     const cache = globalThis.caches?.default;
-    key = new Request(`${url.origin}/og/1/${size}.png?${linkQuery(url.search)}&ds=${D.forecast.draws_sha256}`);
+    key = new Request(`${url.origin}${imagePath(size)}?${linkQuery(url.search)}&ds=${D.forecast.draws_sha256}`);
     const hit = cache ? await cache.match(key) : null;
     if (hit) return hit;
     const card = await cardFor(url, env, size);
@@ -434,7 +447,10 @@ export async function shareRoute(request, url, host, env, ctx, { preview = false
   if (path === COUNT_PATH) return entryCount(request, env, url, ctx);
   if (path === "/seal/1/check") return sealCheck(request, env, url);
   const img = IMAGE.exec(path);
-  if (img) return request.method === "GET" || request.method === "HEAD" ? cardImage(url, env, ctx, img[1]) : json({ error: "GET only" }, 405);
+  if (img && Number(img[1]) > 0 && Number(img[1]) < CARD_VERSION)
+    return new Response(null, { status: 301, headers: { Location: new URL(imagePath(img[2]) + url.search, url).toString() } });
+  if (img && Number(img[1]) === CARD_VERSION)
+    return request.method === "GET" || request.method === "HEAD" ? cardImage(url, env, ctx, img[2]) : json({ error: "GET only" }, 405);
   if ((path === PAGE || path === PAGE + "index.html") && new URLSearchParams(url.search).has("f")) return sharedPage(request, url, env);
   return null;
 }

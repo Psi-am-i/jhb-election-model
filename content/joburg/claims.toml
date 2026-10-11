@@ -8,8 +8,14 @@
 # the claim holds, `chance = "1 - <name>"` when the claim holds where that
 # figure's event does not. <name> is a [[name]] the build computes. The build
 # refuses a verdict the scale does not give that chance.
+#
+# `slug` is the claim's own address, /claims/<slug> (src/build_site.py
+# claim_pages): lowercase words joined by hyphens, no digits (the address is
+# in the page's og:url, which the number scan reads). It is a published
+# address: once live, never change it.
 
 [[claim]]
+slug = "da-outright-majority"
 party = "DA"
 party_name = "Democratic Alliance"
 chip = "#1B5EA8"
@@ -34,6 +40,7 @@ steps = [
 ]
 
 [[claim]]
+slug = "anc-absolute-authority"
 party = "ANC"
 party_name = "African National Congress"
 chip = "#007A4D"
@@ -57,6 +64,7 @@ steps = [
 ]
 
 [[claim]]
+slug = "mk-biggest-party"
 party = "MK"
 party_name = "uMkhonto weSizwe Party"
 chip = "#0B3D2E"
@@ -79,6 +87,7 @@ steps = [
 ]
 
 [[claim]]
+slug = "da-coalition-red-lines"
 party = "DA"
 party_name = "Democratic Alliance"
 chip = "#1B5EA8"
@@ -103,6 +112,7 @@ steps = [
 ]
 
 [[claim]]
+slug = "actionsa-soweto"
 party = "ASA"
 party_name = "ActionSA"
 chip = "#2FA79B"

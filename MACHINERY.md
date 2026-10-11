@@ -1503,6 +1503,9 @@ token resolves out of a FILE, and the file has a date:
 | `model:` | `forecast_summary.json` — the reference run, by definition current |
 | `derived:` | `seat_draws.csv`, written by the same run |
 | `regime:<rule>:` | `regime_<rule>_summary.json`, written by `overhang_regimes.py`, which is **opt-in** (`build_all.py --regimes`) and therefore lags |
+| `validation:` | `validation_<year>.json`, written by `build_validation.py`: its `headline` as written, or (`stats.validation_value`) `cities.<slug>.<model|best>.<field>`, one metro and its best baseline by CRPS, and `total.*`, the sums of those same per-metro figures, so a printed total is the sum of its printed rows. "Seats given to the wrong party" is `stats.wrong_party_seats`, half the summed absolute seat error, the one definition |
+| `published:small_party_surge` | the published draws (`site/draws/`): the share of simulations in which an established party under `stats.SMALL_PARTY_SHARE` mean list share exceeds `stats.SMALL_PARTY_SURGE` (the record's test, MODEL-LOG §1.296) |
+| `history:<city>:<year>:` | `history.json`, written by `compare_history.py`: the backtest of past elections, a different run from the forecast's. Not dated against the forecast run; `stats.history_key_fault` instead refuses a record whose manifest's artefact key for `pools_<year>.json` is not the current spec's, and its tooltip names the backtest run (`stats.history_provenance`) |
 
 So a `regime:` token republishes its file's number on every build while reading
 as the model speaking now, and the drift report says nothing — correctly, since
@@ -2498,16 +2501,21 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   forecast, sealed through the same `/seal/1` (`make.js` `setHandoff`: the
   hand-off seated in the seat Worker's `handoff` lane, its chance from
   `analyse`).
-  `forecastSpec` takes the seat law's answer, the chance and badge of the
-  reader's council-level outcome, the reader's vote, and forecast.json's
+  `forecastSpec` takes the seat law's answer, the chance of the reader's
+  council-level outcome and the badge of the forecast's boldest call, the
+  reader's vote, and forecast.json's
   `baseline` (the previous council election per roster party, from
   `build_make.baseline`); it adds no figure of its own. The council graphic's
   geometry (`councilLayout`, `stepPath`) is shared with the arrival view.
   Text is measured with the IBM Plex faces that draw it (`card-fonts.js`,
   generated from `src/card-fonts/` by `interactive/tools/card_fonts.mjs`).
 * **The chance and the badge** come only from Python:
-  `reweight.outcome_chance` (council_outcome, chance_text, and `boldness`,
-  JUDGEMENT-CALLS §N6). The page reaches it through `page.py`'s `analyse`;
+  `reweight.outcome_chance` (council_outcome and chance_text for the chance;
+  `boldest_call` and `boldness` for the badge and the call it names,
+  JUDGEMENT-CALLS §N10). The cards draw the owner's badge for the words
+  (`src/stamps/reader-*.svg`, served at `/stamps/`) through share-card.js
+  `stampSVG`, the one function that places a stamp, which prefixes the
+  stamp's internal ids per embed. The page reaches it through `page.py`'s `analyse`;
   the Worker through the seat Worker's `/v1/card`
   (`worker-api/seats-py/src/entry.py`), which seats the link's picks with
   `reader_seats` and reads the published draws from the site. A link's own
@@ -2515,7 +2523,7 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
 * **The edge** (`share-edge.js`, routed by `src/worker.js`): `/s/` counts a
   share arrival (channel `share`, the button) and redirects to the arrival
   view; `/your-forecast/?f=…` gets its og: tags pointed at
-  `/og/1/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
+  `/og/2/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
   rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
   the draws' hash (a year when the link's seal checks, an hour otherwise), and
   is `/og.png` on any failure.
@@ -2542,3 +2550,101 @@ Tests: `tests/test_worker_routing.py` (routes, counting, fallback, seal),
 `tests/test_share.py` (baseline, polls open), `tests/test_reweight.py`
 (badge edges), `tests/test_reader_seats.py` (`/v1/card`),
 `interactive/tests/share.test.mjs` (cards, fonts, the edge's card, seals).
+
+## A share image for each page — `src/og_pages.py`, `src/og-pages.mjs` (2026-10-10)
+
+`/forecast`, `/claims`, each article, each claim's own page
+(`/claims/<slug>`) and `/your-forecast/` carry an image of their own in
+`og:image`, `twitter:image` and `og:image:alt` (`og_pages.designed`); the home
+page, `/commentary` and the documents keep `og.png`. OG-IMPLEMENTATION-SPEC.md (audits/2026-10-09-site-batch/) is the
+design; this is what runs.
+
+* **Python resolves, node draws.** `og_pages` builds one card spec per page
+  from the build's own render: every figure is the `display` string a page
+  printed for its token (`stats.render`'s record), and every word is the
+  page's or a declared constant. `src/og-pages.mjs` draws each spec with
+  share-card.js's primitives, the owner's stamps (`src/stamps/`, placed only
+  by share-card.js `stampSVG`, which prefixes each stamp's internal ids per
+  embed) and the party logos, and rasterises it through
+  `src/og-raster-node.mjs`. It holds layout constants only; the page-kind
+  colours come from `tokens.css` (`og_pages.kind_colour`).
+* **The build order.** `build_site.main` renders each designed page with
+  placeholders in its head (`og_pages.pending`) and holds it. Once every page
+  is rendered, `build_site.share_images` builds the specs from the figures
+  the pages printed (`og_pages.figure_pool`; a figure printed two ways is
+  refused where an image draws it), draws them all in one node process into
+  `<out>/og-page/` (`og_pages.render_all`, which deletes every other file
+  there and refuses a directory), fills each held page (`og_pages.fill`),
+  and only then audits, scans and writes it. Every figure an image prints is
+  appended to the publication record under that page
+  (`og_pages.ledger_records`). A node failure stops the build; there is no
+  fallback image.
+* **Names.** `<slug>-<12 letters>.png`: sha256 of the SVG, the card faces and
+  resvg's version, written a-p, so the address changes with any figure, word,
+  layout, badge or face, and the number scan finds no digit in it.
+* **The forecast image's coalitions** are `og_pages.FORECAST_COALITIONS`
+  (JUDGEMENT-CALLS §S1): each set's figure is `coal.<key>.majority`, /forecast's
+  own token where its coalition table prints one, else computed over every
+  party's seats by `stats.coalition_majority`, which refuses a party the
+  run's seat file does not name.
+* **The forecast map** is the page's own map cut to its `<pattern>`s and
+  `<path>`s (`og_pages.map_paths`), and refused unless it holds one outline
+  per ward of the geometry.
+
+Tests: `tests/test_og_pages.py` (spec §6: every page its image and every
+image a page, every figure a page's, names, badges both ways, tags, glyphs,
+the stamps' ids), `tests/test_stat_sources.py` (`history:`,
+`coalition_majority`).
+
+### Each claim's page, and the share button on every page (2026-10-11)
+
+SHARE-BRIEF.md (audits/2026-10-09-site-batch/).
+
+* **A claim's page** is cut from the claims page, not rendered a second time:
+  `build_site.claim_pages` takes the claims page's template, keeps one
+  `<article class="claim">` (render_sheet's card), puts the claim's `label`
+  as the title (in a dated span, the claim's `captured` date) under a kicker
+  that links back, and a link back to all claims under the card. Each card is
+  matched to its claims.toml entry by position and refused unless party,
+  verdict and quote agree (`claim_articles`). The address is the claim's
+  `slug` in claims.toml (`load_claims`: lowercase words and hyphens, no digit,
+  unique), written to `<out>/claims/<slug>.html`, which the static-assets
+  Worker serves at `/claims/<slug>` (`html_handling` is the default,
+  `auto-trailing-slash`), so no Worker route. The directory is rewritten whole
+  each build. The rendered page is re-pointed one level down
+  (`build_play.one_level_down`). The claims page links each card to its page
+  (`link_claims`), and so does the home page's list of claims
+  (`render_home._claims`). Its image is the `claim` layout: the quote, the verdict
+  badge, the party logo, the party and the speaker; no figure
+  (`og_pages.claim_spec`, image slug `claim-<slug>`). A claim is read one way
+  everywhere: `og_pages.printed_verdicts`/`verdict_word`, `claim_logo`,
+  `speaker_name`, and `claim_party` (claims.toml's `party_name`, the name the
+  card prints, for the page's title, its image and the image's alt text).
+* **The share button** (`build_site.share_button`) is one component after
+  each page's one `</h1>`, on every page the build writes except
+  `/your-forecast/` (its own two sheets) and the portal. Its preview and
+  download are the page's own og:image, written in as a relative address so a
+  scratch build or a UAT version shows the image beside it; the link it sends
+  is the page's canonical address, which `src/js/page-share.js` reads from the
+  head. Every document page therefore has its own share card and canonical
+  address (DOCS' description, or the standfirst).
+* **One sheet.** `src/share_sheet.py` writes every sheet's markup: the one
+  `share_button` adds and Your forecast's two, at its `<!-- __YFSHEET:play__ -->`
+  and `<!-- __YFSHEET:break__ -->` markers (`build_your_forecast.sheets`, which
+  adds the name, seal, entry note and image picker). `src/js/share-dialog.js` holds the sheet's controls (the
+  dialog, Copy link, WhatsApp, X, Share…, Download image, the status line);
+  `src/js/page-share.js` (site pages) and `interactive/js/share-sheet.js`
+  (Your forecast, which adds the name, the seal, the image picker and the
+  drawn card) both call it. Your forecast imports it as
+  `../../src/js/share-dialog.js`, rewritten to `../../js/share-dialog.js` when
+  served (`build_your_forecast.SHARE_DIALOG_LINE`). Its look is
+  `src/css/share-sheet.css` (every rule under the dialog's class `sharesheet`;
+  `sheet` is the forecast pages' column); `.btn` and the form controls
+  (select and text fields) are `components.css`'s.
+
+Tests: `tests/test_page_share.py` (the page set both ways, one button per
+page wired to its own image and address, a constructed missing, miswired or
+extra button caught, a wrong canonical, og:url, placement or script caught,
+each claim's page, image and links, a mismatched card refused, and in a
+browser at 375 wide: Share… shown exactly where the Web Share API exists,
+the sheet inside the screen on a content-box page).

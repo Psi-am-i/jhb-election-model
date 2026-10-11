@@ -14,6 +14,11 @@ Two kinds of page:
 
 Plus a hand-authored index.html hub with the drill-down cards.
 
+Each page `og_pages.designed` names gets a share image of its own, drawn by
+node (src/og-pages.mjs) into site/og-page/. Prerequisite: `npm ci` in
+worker-api/ (resvg-wasm). Without it the build refuses; it never falls back
+to an old image or to og.png.
+
 Usage:
     python src/build_site.py          # -> ./site/
 Then deploy:
@@ -302,17 +307,22 @@ def inject_nav(html: str, active_href: str, og_meta: str | None = None) -> str:
     # Footer goes at the end of the content container so it aligns with it.
     # Marker only — an earlier fallback guessed at closing tags and prepended
     # the footer above the doctype on the sheet. Fail loudly instead.
-    marker_close = "</div><!-- /sheet -->"
+    marker_close = SHEET_END
     if marker_close not in html:
         raise SystemExit("artefact page lacks the </div><!-- /sheet --> container marker")
     return html.replace(marker_close, FOOTER + "\n" + marker_close, 1)
 
 # source markdown -> (output, kicker, standfirst[, tech[, og description]])
+# Every page has its own share card and canonical address (its share button
+# sends that address): the og description, or the standfirst where none is
+# given.
 MODEL_DOCS = {
     "docs-public/corrections.md": (
         "corrections.html",
         "Corrections",
         "",
+        None,
+        "Errors on the site's published pages: what was wrong and what changed.",
     ),
     "docs-public/methodology.md": (
         "methodology.html",
@@ -329,6 +339,8 @@ MODEL_DOCS = {
         "The review",
         "",
         "model-review.html",
+        "How the first version of the model was reviewed against its own plan, "
+        "the errors that review found, and how each was fixed.",
     ),
     "docs-public/sources.md": (
         "sources.html",
@@ -484,7 +496,8 @@ def plain_tokens(text: str, registry: dict, ctx: dict) -> str:
 
 
 def artefact_head(output: str, spec: tuple, html: str,
-                  articles: dict[str, dict], plain=None) -> tuple[str, str]:
+                  articles: dict[str, dict], plain=None,
+                  image: tuple[str, str] | None = None) -> tuple[str, str]:
     """An artefact page's <title> and share card (`og_meta`). The home page
     keeps the site-wide card at the site's root; every other page gets its own
     title, description, og:url and canonical, so a shared article shows its
@@ -492,7 +505,9 @@ def artefact_head(output: str, spec: tuple, html: str,
     article's come from articles.toml; an ARTEFACTS entry that also types
     them is refused (two definitions of one title). `plain` renders the
     tokens in an article's standfirst as bare figures (`plain_tokens`); a
-    standfirst with a token and no `plain` is refused."""
+    standfirst with a token and no `plain` is refused. `image` is the page's
+    (address, alt text) for its own share image (`og_pages`), or None to keep
+    the site's."""
     from html import escape
     _src, _cut, title, _active, og = spec
     art = articles.get(output)
@@ -520,7 +535,8 @@ def artefact_head(output: str, spec: tuple, html: str,
         raise SystemExit(f"ARTEFACTS gives {output} no share-card description: "
                          "it would carry the home page's card and canonical")
     from html import unescape
-    return title, page_og(og, unescape(title), output.removesuffix(".html"))
+    img, alt = image or (None, None)
+    return title, page_og(og, unescape(title), output.removesuffix(".html"), img, alt)
 
 #: A span of a template that reaches only the page(s) it names.
 _ONLY = re.compile(r"<!-- __ONLY:([a-z0-9,-]+)_(START|END)__ -->")
@@ -597,10 +613,55 @@ def fill_commentary(html: str, city: str | None = None) -> str:
                         render_home._articles(REPO_ROOT / "content" / city).strip(), 1)
 
 
-def page_og(og: str, page_title: str, href: str) -> str:
+def fill_home_map(html: str) -> str:
+    """The home page's map (`render_home.home_map`), cut at build time from
+    the map in forecast-sheet.html. A page without the marker is returned
+    unchanged; a page with two is refused."""
+    import render_home
+    n = html.count(render_home.HOME_MAP_MARKER)
+    if n == 0:
+        return html
+    if n > 1:
+        raise SystemExit(f"{n} {render_home.HOME_MAP_MARKER} markers on one page")
+    sheet = (REPO_ROOT / "forecast-sheet.html").read_text(encoding="utf-8")
+    return html.replace(render_home.HOME_MAP_MARKER, render_home.home_map(sheet), 1)
+
+
+#: The end of the forecast sheet's content container (`inject_nav` puts the
+#: footer before it).
+SHEET_END = "</div><!-- /sheet -->"
+
+
+def more_commentary(html: str, output: str, articles: dict[str, dict],
+                    city: str | None = None, city_dir: Path | None = None) -> str:
+    """An article page with the other articles listed under it (owner,
+    2026-10-10: a reader moves between items without going back to
+    /commentary). The list is /commentary's own (`render_home._articles`),
+    without the article itself, read from ``city_dir`` (default
+    ``content/<city>``). Any other page is returned unchanged."""
+    art = articles.get(output)
+    if art is None:
+        return html
+    if html.count(SHEET_END) != 1:
+        raise SystemExit(f"{output}: no single {SHEET_END} marker to put the "
+                         "other articles before")
+    import render_home
+    if city_dir is None:
+        city_dir = REPO_ROOT / "content" / (city or cityconfig.active().slug)
+    feed = render_home._articles(city_dir, exclude=art["href"]).strip()
+    section = ('<section class="more-commentary" aria-label="More commentary">\n'
+               '  <div class="kicker">More commentary</div>\n'
+               f'  {feed}\n</section>\n')
+    return html.replace(SHEET_END, section + SHEET_END, 1)
+
+
+def page_og(og: str, page_title: str, href: str, image: str | None = None,
+            alt: str | None = None) -> str:
     """OG_META with this page's own share-card description, title, og:url and
-    canonical. Only the policy pages pass one; every other page keeps the
-    site-wide card."""
+    canonical; and, given ``image`` and ``alt``, its own share image in
+    og:image and twitter:image and its alt text in og:image:alt (a page
+    designed in ``og_pages`` passes its placeholders, ``og_pages.pending``).
+    A page without one keeps the site's ``og.png``."""
     from html import escape
     url = f"{SITE_URL}/{href}"
     out = re.sub(r'(<meta property="og:description" content=")[^"]*(">)',
@@ -613,7 +674,231 @@ def page_og(og: str, page_title: str, href: str) -> str:
                       f'<link rel="canonical" href="{url}">', 1)
     if out.count(url) != 2 or escape(og) not in out:
         raise SystemExit(f"OG_META no longer has the fields page_og rewrites ({href})")
+    if (image is None) != (alt is None):
+        raise SystemExit(f"page_og({href}): an image needs its alt text, and alt text its image")
+    if image is not None:
+        n = 0
+        for key in ('property="og:image"', 'name="twitter:image"'):
+            out, k = re.subn(rf'(<meta {key} content=")[^"]*(">)',
+                             lambda m: m.group(1) + escape(image) + m.group(2), out, count=1)
+            n += k
+        out, k = re.subn(r'(<meta property="og:image:alt" content=")[^"]*(">)',
+                         lambda m: m.group(1) + escape(alt) + m.group(2), out, count=1)
+        if n != 2 or k != 1 or out.count(escape(image)) != 2 or escape(alt) not in out:
+            raise SystemExit(f"OG_META no longer has the image fields page_og rewrites ({href})")
     return out
+
+
+#: THE SHARE BUTTON BY EVERY PAGE'S TITLE (owner, 2026-10-11, SHARE-BRIEF
+#: item 2): one component, after the page's one ``</h1>``, opening the site's
+#: one share sheet (markup: share_sheet.sheet; controls: src/js/share-dialog.js,
+#: through js/page-share.js; look: src/css/share-sheet.css). Its preview and download are the page's own
+#: share image, read from the page's own og:image; the link it sends is the
+#: page's canonical address, which js/page-share.js reads from the head.
+#: "Your forecast" keeps its own two sheets and gets none of these.
+SHARE_MARK = "data-pgshare"
+PAGE_SHARE_JS = "page-share.js"
+SHARE_ALT = "The image a link to this page shows when it is shared"
+
+
+def share_button(html: str, prefix: str = "") -> str:
+    """``html`` with the share button and its sheet after its one ``</h1>``.
+    ``prefix`` re-points the image and the script for a page below the root
+    (``"../"``). Refuses a page with no single ``</h1>``, with no single
+    og:image on this site, or that already has one."""
+    from html import escape
+    imgs = re.findall(r'<meta property="og:image" content="([^"]*)">', html)
+    if len(imgs) != 1 or not imgs[0].startswith(SITE_URL + "/"):
+        raise SystemExit(f"share_button: the page names og:image {imgs}, not one image on {SITE_URL}")
+    if html.count("</h1>") != 1:
+        raise SystemExit(f"share_button: the page has {html.count('</h1>')} </h1>, not one title to put it by")
+    if SHARE_MARK in html:
+        raise SystemExit("share_button: the page already has a share button")
+    src = prefix + imgs[0][len(SITE_URL) + 1:]
+    import share_sheet
+    dialog = share_sheet.sheet(heading_id="pgshare-title", heading="Share this page",
+                               link_label="Link to this page", native="model",
+                               img_src=src, img_alt=SHARE_ALT, ready=True, indent="  ")
+    part = (f'\n<div class="pgshare" {SHARE_MARK}>\n'
+            '  <button class="btn model pgshare-open" type="button">Share</button>\n'
+            f'  {dialog}\n'
+            f'  <script type="module" src="{escape(prefix)}{site_assets.JS_DIR}/{PAGE_SHARE_JS}"></script>\n'
+            '</div>')
+    return html.replace("</h1>", "</h1>" + part, 1)
+
+
+# --------------------------------------------------------------------------
+# each claim's own page (owner, 2026-10-11, SHARE-BRIEF item 1)
+
+#: A claim's slug: lowercase words joined by hyphens, no digit (the address is
+#: in og:url, which the number scan reads).
+CLAIM_SLUG = re.compile(r"[a-z]+(?:-[a-z]+)*")
+_CLAIM_ARTICLE = re.compile(r'<article class="claim pc-([A-Z_]+)" data-party="\1">.*?</article>', re.S)
+
+
+def load_claims(city: str | None = None) -> list[dict]:
+    """content/<city>/claims.toml's claims, each with a valid, unique slug;
+    [] where the city has none."""
+    import tomllib
+    path = REPO_ROOT / "content" / (city or cityconfig.active().slug) / "claims.toml"
+    if not path.is_file():
+        return []
+    claims = tomllib.loads(path.read_text(encoding="utf-8")).get("claim", [])
+    slugs = [c.get("slug") for c in claims]
+    bad = [c.get("label", c.get("quote", "")[:40]) for c in claims
+           if not isinstance(c.get("slug"), str) or not CLAIM_SLUG.fullmatch(c["slug"])]
+    if bad:
+        raise SystemExit(f"claims.toml: no slug of lowercase words and hyphens on {bad}")
+    if len(set(slugs)) != len(slugs):
+        raise SystemExit(f"claims.toml: two claims share a slug ({slugs})")
+    unnamed = [c["slug"] for c in claims if not str(c.get("party_name", "")).strip()]
+    if unnamed:
+        raise SystemExit(f"claims.toml: no party_name on {unnamed} (its page, title and image name the party by it)")
+    return claims
+
+
+def claim_articles(html: str, claims: list[dict]) -> list[re.Match]:
+    """Each claim's card on the claims page (render_sheet writes one
+    ``<article class="claim">`` per claim, in claims.toml order), refusing
+    unless there is one per claim and each carries that claim's party, quote
+    and verdict."""
+    import og_pages
+    arts = list(_CLAIM_ARTICLE.finditer(html))
+    if len(arts) != len(claims):
+        raise SystemExit(f"the claims page has {len(arts)} claim cards, claims.toml {len(claims)}")
+    for m, c in zip(arts, claims):
+        verdict = og_pages.printed_verdicts(m.group(0))
+        quote = re.search(r'<blockquote class="claim-quote">(.*?)<span class="q-close">', m.group(0), re.S)
+        if (m.group(1) != c["party"] or verdict != [og_pages.verdict_word(c["verdict"])]
+                or not quote or " ".join(quote.group(1).split()) != " ".join(c["quote"].split())):
+            raise SystemExit(f"claims page card {m.group(1)} does not match claims.toml's "
+                             f"{c['slug']!r} (party, verdict or quote): forecast-sheet.html "
+                             "needs render_sheet.py run again")
+    return arts
+
+
+#: What each claim on the claims page links to its own page with.
+CLAIM_LINK = "Link to this claim"
+
+
+def link_claims(html: str, claims: list[dict]) -> str:
+    """The claims page with each card carrying its slug as its id, and a link
+    to its own page after its date."""
+    import og_pages
+    out, last = [], 0
+    for m, c in zip(claim_articles(html, claims), claims):
+        card = m.group(0).replace('">', f'" id="{c["slug"]}">', 1)
+        card, n = re.subn(r'(<div class="pubdate">[^<]*)(</div>)',
+                          lambda d: f'{d.group(1)} \u00b7 <a class="claim-own" href="{og_pages.CLAIM_DIR}/{c["slug"]}">'
+                                    f'{CLAIM_LINK}</a>{d.group(2)}', card, count=1)
+        if n != 1:
+            raise SystemExit(f"claims page card {c['slug']!r} has no date line to put its link after")
+        out += [html[last:m.start()], card]
+        last = m.end()
+    return "".join(out) + html[last:]
+
+
+#: The kicker over a claim's own page, and the link back under it.
+CLAIM_KICKER = "The parties' claims, tested"
+CLAIM_BACK = "All the parties' claims"
+
+
+def claim_title(claim: dict) -> str:
+    """A claim page's <title>: who said it, their party, the verdict. Not its
+    label, which paraphrases the claim and so reads as one to the sourcing
+    audit wherever no dated passage can hold it (the page's title is plain
+    text); the label is the page's <h1>, dated by when the claim was made."""
+    from html import escape
+    import og_pages
+    return escape(f"{og_pages.speaker_name(claim)} ({og_pages.claim_party(claim)}): "
+                  f"{og_pages.verdict_word(claim['verdict'])} \u00b7 {CLAIM_KICKER}", quote=False)
+
+
+def claim_pages(html: str, claims: list[dict]) -> list[tuple[str, dict, str]]:
+    """``(output, claim, html)`` for each claim's own page, made from the
+    claims page's template (``html``: cut, tokens unrendered): its masthead
+    replaced by the claim's (the kicker linking back, its label as the
+    title), its list by the claim's own card and a link back to all claims,
+    its head given the claim's title, share card and image placeholder, and
+    the site's nav and footer. Links are root-relative still: the caller
+    re-points the rendered page one level down."""
+    import og_pages
+    from html import escape
+    head = re.search(r'<header class="masthead" id="claims">.*?</header>', html, re.S)
+    lst = re.search(r'<section class="claimlist">.*?</section>', html, re.S)
+    if not head or not lst:
+        raise SystemExit("the claims page has no masthead or claim list to make claim pages from")
+    pages = []
+    for m, c in zip(claim_articles(html, claims), claims):
+        slug, label = c["slug"], escape(c["label"], quote=False)
+        page = (html[:head.start()]
+                + f'<header class="masthead">\n    <div class="kicker"><a href="claims">{CLAIM_KICKER}</a></div>\n'
+                  f'    <h1><span data-asof="{c["captured"]}">{label}</span></h1>\n  </header>'
+                + html[head.end():lst.start()]
+                + f'<section class="claimlist">\n    {m.group(0)}\n  </section>\n'
+                  f'  <p class="claim-back"><a href="claims">{CLAIM_BACK}</a></p>'
+                + html[lst.end():])
+        page = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{claim_title(c)}</title>",
+                      page, count=1, flags=re.S)
+        output = f"{og_pages.CLAIM_DIR}/{slug}.html"
+        og = page_og(" ".join(c["quote"].split()), c["label"], output.removesuffix(".html"),
+                     *og_pages.pending(SITE_URL, og_pages.claim_image_slug(slug)))
+        page = inject_nav(page, "claims", og)
+        page = page.replace('<body class="', f'<body class="{page_type("claims").strip()} ', 1)
+        pages.append((output, c, page))
+    return pages
+
+
+def share_images(held: list[tuple[str, str, str, str]], out: Path, published: list[dict],
+                 registry: dict, ctx: dict, articles: dict[str, dict]) -> dict[str, tuple[str, str]]:
+    """Draw the share image of every page in ``held`` (``(output, slug,
+    layout, rendered html)``) into ``<out>/og-page/``: ``{slug: (file name,
+    alt text)}``. Every figure is one a page printed (``published``), or a
+    forecast-card coalition no page prints, rendered as a generated token.
+    Every figure an image prints is appended to ``published`` under the page
+    that carries the image, so it is ledgered like the page's own. Refuses on
+    any failure (``og_pages``)."""
+    import build_make
+    import build_your_forecast as yf
+    import og_pages
+    import render_sheet  # noqa: F401  (VERDICT_BADGE, read by og_pages)
+    import tomllib
+    city = cityconfig.active()
+    election = build_make.election_of(city)
+    pool, records = og_pages.figure_pool(published, registry, ctx)
+    pages = {output: html for output, _s, _l, html in held}
+    forecast_html = pages.get("forecast.html")
+    yf_data = None
+    if (out / yf.YF_DIR / build_make.DATA).is_file():
+        yf_data = json.loads((out / yf.YF_DIR / build_make.DATA).read_text(encoding="utf-8"))
+    specs = []
+    for output, slug, layout, html in held:
+        if layout == "forecast":
+            if yf_data is None:
+                raise SystemExit("the forecast share image needs the ward count from "
+                                 f"{yf.YF_DIR}/{build_make.DATA}, which this build did not write")
+            spec = og_pages.forecast_spec(html, pool, election=election, headline=OG_TITLE,
+                                          wards=len(yf_data["geometry"]["wards"]))
+        elif layout == "claims":
+            claims = tomllib.loads((REPO_ROOT / "content" / city.slug / "claims.toml")
+                                   .read_text(encoding="utf-8"))["claim"]
+            spec = og_pages.claims_spec(html, claims, headline=ARTEFACTS["claims.html"][2])
+        elif layout == "claim":
+            by_page = {f"{og_pages.CLAIM_DIR}/{c['slug']}.html": c for c in load_claims(city.slug)}
+            spec = og_pages.claim_spec(html, by_page[output])
+        elif layout == "article":
+            rows = og_pages.seat_rows(forecast_html) if forecast_html else []
+            spec = og_pages.article_spec(articles[output], pool, rows=rows)
+        elif layout == "interactive":
+            spec = og_pages.interactive_spec(yf_data, pool, election=election, site=SITE_NAME)
+        else:
+            raise SystemExit(f"no share-image layout {layout!r} ({output})")
+        spec["slug"] = slug
+        spec["page"] = output
+        specs.append(og_pages.check(spec))
+    names = og_pages.render_all(specs, out / og_pages.OG_DIR)
+    published += og_pages.ledger_records(specs, records)
+    return {s["slug"]: (names[s["slug"]], s["alt"]) for s in specs}
 
 
 def page_type(href: str) -> str:
@@ -1119,11 +1404,15 @@ def main(argv: list[str] | None = None) -> int:
     for source, spec in DOCS.items():
         output, kicker, standfirst = spec[:3]
         tech = spec[3] if len(spec) > 3 else None
-        og = spec[4] if len(spec) > 4 else None
+        og = (spec[4] if len(spec) > 4 else None) or standfirst or None
+        if not og:
+            raise SystemExit(f"DOCS gives {source} neither a share-card description nor a "
+                             "standfirst: it would carry the home page's card and address")
         page = render_doc(Path(source), kicker, standfirst, output, tech, og)
         seen: list[dict] = []
         page, drift, unresolved = statlib.render(page, registry, ctx,
                                                  record=seen)
+        page = share_button(page)
         published += [{**r, "page": output} for r in seen]
         all_drift += drift
         unresolved_all += [f"{source}: {u}" for u in unresolved]
@@ -1154,16 +1443,31 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  rendered {source:<28s} -> site/{output}")
 
     articles = article_meta()
+    # A page with its own share image (og_pages.designed) is rendered here
+    # with a placeholder in its head and held in `held`; once every page is
+    # rendered its image is drawn from the figures the pages printed, the
+    # placeholder replaced, and only then is it audited, scanned and written.
+    import og_pages
+    held: list[tuple[str, str, str, str]] = []     # (output, slug, layout, html)
+    claims = load_claims()
+    claims_template = None
     for output, spec in ARTEFACTS.items():
         source, cut, _title, active, _og = spec
         href = active or ("./" if output == "index.html" else output.removesuffix(".html"))
         html = cut_spans(Path(source).read_text(encoding="utf-8"), cut)
+        if output == "claims.html":
+            claims_template = html
+            html = link_claims(html, claims)
+        own = og_pages.designed(output, articles)
         title, og_meta = artefact_head(
             output, spec, html, articles,
-            plain=lambda t: plain_tokens(t, registry, ctx))
+            plain=lambda t: plain_tokens(t, registry, ctx),
+            image=og_pages.pending(SITE_URL, own[0]) if own else None)
         html = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{title}</title>",
                       html, count=1, flags=re.S)
         html = fill_commentary(html)
+        html = fill_home_map(html)
+        html = more_commentary(html, output, articles)
         html = inject_nav(html, href, og_meta)
         if page_type(href):
             html = html.replace('<body class="', f'<body class="{page_type(href).strip()} ', 1)
@@ -1173,10 +1477,33 @@ def main(argv: list[str] | None = None) -> int:
         published += [{**r, "page": output} for r in seen]
         all_drift += drift
         unresolved_all += [f"{source}: {u}" for u in unresolved]
+        if own:
+            held.append((output, own[0], own[1], html))
+            print(f"  nav+copy {source:<28s} -> site/{output} (after its share image)")
+            continue
+        html = share_button(html)
         audits[output] = statlib.audit(html, page=output, **audit_cfg)
         scans[output] = statlib.scan_numbers(html, page=output, **scan_cfg)
         (args.out / output).write_text(html, encoding="utf-8")
         print(f"  nav+copy {source:<28s} -> site/{output}")
+
+    # --- each claim's own page (/claims/<slug>), from the claims page ------
+    # The directory is written whole: a claim dropped from claims.toml takes
+    # its page with it.
+    if (args.out / og_pages.CLAIM_DIR).exists():
+        shutil.rmtree(args.out / og_pages.CLAIM_DIR)
+    if claims and claims_template is None:
+        raise SystemExit("claims.toml has claims and the build made no claims page to cut them from")
+    import build_play
+    for output, claim, html in (claim_pages(claims_template, claims) if claims else []):
+        seen = []
+        html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
+        html = build_play.one_level_down(html)
+        published += [{**r, "page": output} for r in seen]
+        all_drift += drift
+        unresolved_all += [f"content/{cityconfig.active().slug}/claims.toml {claim['slug']}: {u}" for u in unresolved]
+        held.append((output, og_pages.claim_image_slug(claim["slug"]), "claim", html))
+        print(f"  claim    {claim['slug']:<28s} -> site/{output} (after its share image)")
 
     # --- "your forecast" (/your-forecast/), Johannesburg's only ------------
     # Assembled by build_your_forecast from interactive/your-forecast.html,
@@ -1189,18 +1516,37 @@ def main(argv: list[str] | None = None) -> int:
     if cityconfig.active().slug == "joburg":
         import build_your_forecast as yf
         written = yf.write_assets(args.out, args.processed)
-        html = yf.assemble(site_head=page_og(yf.OG_DESCRIPTION, yf.OG_TITLE, yf.YF_HREF) + SITE_HEAD,
+        yf_slug, yf_layout = og_pages.designed(yf.YF_PAGE, articles)
+        html = yf.assemble(site_head=page_og(yf.OG_DESCRIPTION, yf.OG_TITLE, yf.YF_HREF,
+                                             *og_pages.pending(SITE_URL, yf_slug)) + SITE_HEAD,
                            nav=nav_for(yf.YF_HREF), footer=FOOTER, processed=args.processed)
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
         published += [{**r, "page": yf.YF_PAGE} for r in seen]
         all_drift += drift
         unresolved_all += [f"interactive/your-forecast.html: {u}" for u in unresolved]
-        audits[yf.YF_PAGE] = statlib.audit(html, page=yf.YF_PAGE, **audit_cfg)
-        scans[yf.YF_PAGE] = statlib.scan_numbers(html, page=yf.YF_PAGE, **scan_cfg)
-        (args.out / yf.YF_PAGE).write_text(html, encoding="utf-8")
+        held.append((yf.YF_PAGE, yf_slug, yf_layout, html))
         print(f"  yf       interactive/your-forecast.html -> site/{yf.YF_PAGE} "
-              f"(+{len(written)} files under site/{yf.YF_DIR}/)")
+              f"(+{len(written)} files under site/{yf.YF_DIR}/; after its share image)")
+
+    # --- the share images (og_pages), then the pages that carry them -------
+    if unresolved_all:
+        # an unresolved figure cannot be drawn; the refusal below names it
+        held_pages = []
+    else:
+        held_pages = held
+    if held_pages:
+        images = share_images(held_pages, args.out, published, registry, ctx, articles)
+        for output, slug, _layout, html in held_pages:
+            filename, alt = images[slug]
+            html = og_pages.fill(html, SITE_URL, slug, filename, alt)
+            if output != build_your_forecast.YF_PAGE:     # "Your forecast" keeps its own sheets
+                html = share_button(html, "../" * output.count("/"))
+            (args.out / output).parent.mkdir(parents=True, exist_ok=True)
+            audits[output] = statlib.audit(html, page=output, **audit_cfg)
+            scans[output] = statlib.scan_numbers(html, page=output, **scan_cfg)
+            (args.out / output).write_text(html, encoding="utf-8")
+            print(f"  og       site/{og_pages.OG_DIR}/{filename} -> site/{output}")
     # --- the leaderboard (/leaderboard/): built only once published --------
     # src/build_leaderboard.py; hidden, and any earlier copy removed, while
     # content/<city>/leaderboard.toml says published = false. Its figures are
@@ -1210,6 +1556,7 @@ def main(argv: list[str] | None = None) -> int:
     if lb_written:
         import build_play
         html = lb.assemble(shell, build_play.one_level_down)
+        html = share_button(html, "../")
         seen = []
         html, drift, unresolved = statlib.render(html, registry, ctx, record=seen)
         published += [{**r, "page": lb.LB_PAGE} for r in seen]
@@ -1866,8 +2213,12 @@ def main(argv: list[str] | None = None) -> int:
         "Allow: /\n", encoding="utf-8")
     print("  wrote    _headers + robots.txt (utf-8; /dev and /drafts noindex)")
 
-    total = sum(f.stat().st_size for f in args.out.glob("*.html"))
-    print(f"site: {len(list(args.out.glob('*.html')))} pages, {total / 1024:.0f} KB total")
+    # every page this build wrote, at any depth (each claim's page, the
+    # interactive and the leaderboard included): the pages the number review
+    # scanned
+    pages = [args.out / p for p in sorted(scans) if (args.out / p).is_file()]
+    total = sum(f.stat().st_size for f in pages)
+    print(f"site: {len(pages)} pages, {total / 1024:.0f} KB total")
     return 0
 
 

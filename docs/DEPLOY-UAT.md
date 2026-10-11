@@ -271,6 +271,43 @@ site Worker receives a context with no `lot`; `reader_seats` refuses it
 **Rollback.** Roll back `joburg-seats` before the site Worker, for the same
 reason.
 
+## Releasing the reader badges (2026-10-10)
+
+The card answer changed shape: `reweight.outcome_chance` returns `boldest`
+(the call the badge judges) and the badge words are the owner's five
+(JUDGEMENT-CALLS §N10). The site Worker's card route requires `boldest`
+(`src/share-edge.js` `cardAnswer`) and draws the owner's badge from
+`/stamps/`. So the seat Worker goes first:
+
+1. **Deploy `joburg-seats`** with the new `reweight.py`, after
+   `node worker-api/tools/sync_seats_py.mjs` (and `--check`):
+
+   ```sh
+   cd worker-api/seats-py && uvx --from workers-py pywrangler deploy
+   ```
+
+   The old site Worker keeps working against it: it ignores `boldest` and
+   prints the new badge words in its pill.
+2. **Upload, check and promote the site Worker** (sections 0 to 4 above).
+   Check on the Version URL that a shared link's `/og/2/link.png` draws the
+   owner's badge and the boldest call, and that `/og/1/link.png?<the same
+   query>` answers 301 to it.
+
+**The other order fails visibly but safely:** a new site Worker against the
+old seat Worker gets an answer with no `boldest`, refuses it, and every link
+preview falls back to the generic image (`/og.png`) until step 1 is done.
+
+**Why the image address moved to `/og/2/`.** A sealed card's image is cached
+for a year as immutable (`imageCache`). The address carries
+`share-edge.js` `CARD_VERSION`, so the new card has new addresses and a new
+edge cache key; `/og/1/…` answers 301 to `/og/2/…`. A crawler that kept the
+old bytes under the old address keeps them until it re-fetches; nothing on
+our side can reach that cache.
+
+**Rollback.** Roll the site Worker back first, then `joburg-seats` if
+wanted: the old site Worker reads the new answer (above). Rolling back only
+`joburg-seats` puts link previews on the generic image.
+
 ## Entries at launch
 
 Every seal the live Worker makes is stored as an entry in the D1 database

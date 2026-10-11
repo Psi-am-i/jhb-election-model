@@ -253,7 +253,9 @@ test("the card modules name no party, hold no party's colour, and compute no bad
     }
   }
   assert.ok(looked.length > 20, "the scan looked at the roster");
-  for (const [f, text] of files) for (const w of ["Safe call", "Bold call", "Wild call"]) assert.ok(!text.includes(w), `${f} types ${w}`);
+  // the badge words (reweight.BOLDNESS) and the retired ones
+  for (const [f, text] of files) for (const w of ["Safe bet", "Steady as she goes", "Long shot", "Wild call", "Hail Mary", "Safe call", "Bold call"])
+    assert.ok(!text.includes(w), `${f} types ${w}`);
   // it can see: a module that typed a party's code is caught
   const code = Object.keys(FIXTURE.parties).find(c => c.length > 2);
   assert.ok(new RegExp(`["'\\b]${code}["'\\b]`).test(`x = "${code}";`));
@@ -328,10 +330,14 @@ function rightEdges(svg) {
 }
 
 // Each name's clip box, and the left edge of the first figure drawn after it
-// on its row: a name may not reach the figure beside it.
+// on its row: a name may not reach the figure beside it. A name's clip is one
+// a <text> uses; a stamp's clip (share-card.js stampSVG) is on a <g>, and is
+// not a name's.
 function nameClips(svg) {
   const out = [];
+  const onText = new Set([...svg.matchAll(/<text [^>]*clip-path="url\(#([\w-]+)\)"/g)].map(m => m[1]));
   for (const m of svg.matchAll(/<clipPath id="([\w-]+)"><rect x="([\d.]+)" y="[\d.]+" width="([\d.]+)"/g)) {
+    if (!onText.has(m[1])) continue;
     const after = svg.slice(m.index + m[0].length);
     const fig = /<text x="([\d.]+)" y="[\d.]+" font-family="[^"]+" font-weight="(\d+)" font-size="([\d.]+)" text-anchor="end"[^>]*>([^<]*)<\/text>/.exec(after);
     const face = { 400: "sans", 600: "sansSemi", 700: "sansBold" }[fig[2]];
@@ -452,6 +458,7 @@ function fakeEnv({ seats = true, key = KEY } = {}) {
     "/your-forecast/parties.json": JSON.stringify(FIXTURE.parties),
     "/logo.svg": readFileSync(resolve(repo, "site/logo.svg"), "utf8") };
   const logos = new Set(readdirSync(resolve(repo, "site/logos")));
+  const stamps = new Set(readdirSync(resolve(repo, "src/stamps")));
   const asked = [];
   return { asked, env: {
     ...(key ? { SEAL_KEY: key } : {}),
@@ -460,6 +467,9 @@ function fakeEnv({ seats = true, key = KEY } = {}) {
       if (files[p]) return new Response(files[p], { status: 200 });
       const m = /^\/logos\/(.+)$/.exec(p);
       if (m && logos.has(m[1])) return new Response(readFileSync(resolve(repo, "site/logos", m[1])), { status: 200 });
+      // the owner's badges, served at /stamps/ from src/stamps/ (site_assets)
+      const st = /^\/stamps\/(reader-[a-z-]+\.svg)$/.exec(p);
+      if (st && stamps.has(st[1])) return new Response(readFileSync(resolve(repo, "src/stamps", st[1]), "utf8"), { status: 200 });
       return new Response("missing", { status: 404 });
     } },
     ...(seats ? { SEATS: { async fetch(u, init) {
@@ -478,32 +488,35 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   const s = await makeSeal(KEY, fields, at);
   const q = new URLSearchParams({ ...fields, s }).toString();
   const { env, asked } = fakeEnv();
-  const card = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), env, "link");
+  const card = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q), env, "link");
   const svg = card.svg;
   assert.equal(card.sealed, true);
   assert.match(EDGE.imageCache(card.sealed), /immutable/);
   assert.ok(svg.includes("Thandi's Election Forecast"));
   assert.ok(svg.includes(SC.chanceSentence(FIXTURE.A.answer.outcome.text).replace(/'/g, "'")));
-  assert.ok(svg.includes(">" + FIXTURE.A.answer.outcome.badge + "<"));
+  // the owner's badge for the outcome's words, embedded with its ids prefixed, and the call it judges
+  const badge = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(FIXTURE.A.answer.outcome.badge)), "utf8"));
+  assert.ok(svg.includes(SC.prefixIds(badge.body, "lb")));
+  assert.ok(FIXTURE.A.answer.outcome.boldest.party && svg.includes(">Boldest call: "));
   assert.ok(svg.includes("Sealed " + SC.localStamp(at, D.election)));
   assert.equal(asked.length, 1);
   assert.deepEqual(asked[0].coalition, FIXTURE.A.coalition);
   assert.equal(asked[0].draws_sha256, D.draws_sha256);
   // relabelled: the seal no longer holds, and the card says nothing about when
   const q2 = new URLSearchParams({ ...fields, n: "Someone", s }).toString();
-  const card2 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q2), fakeEnv().env, "link");
+  const card2 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q2), fakeEnv().env, "link");
   const svg2 = card2.svg;
   assert.equal(card2.sealed, false);
   assert.equal(EDGE.imageCache(card2.sealed), "public, max-age=" + EDGE.UNSEALED_MAX_AGE_S);
   assert.ok(!svg2.includes("Sealed") && !svg2.includes("Made "));
   // no key: the same sealed link draws unsealed
-  assert.equal((await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), fakeEnv({ key: null }).env, "link")).sealed, false);
+  assert.equal((await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q), fakeEnv({ key: null }).env, "link")).sealed, false);
   // a return link draws both forecasts
   const q3 = new URLSearchParams({ ...fields, vs: fA, vn: "Kgomotso" }).toString();
-  const svg3 = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q3), fakeEnv().env, "link")).svg;
+  const svg3 = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q3), fakeEnv().env, "link")).svg;
   assert.ok(svg3.includes(">Thandi<") && svg3.includes(">Kgomotso<") && svg3.includes("Difference"));
   // no seat Worker: no card
-  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), fakeEnv({ seats: false }).env, "link"));
+  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q), fakeEnv({ seats: false }).env, "link"));
 });
 
 test("section 1's hand-off, a start with no coalition, is a forecast the edge and the seal read unchanged", async () => {
@@ -530,7 +543,7 @@ test("an answer that breaks the seat law's arithmetic draws no card", async () =
     return new Response(JSON.stringify({ ...a, seats: { ...a.seats, [k]: a.seats[k] + 5 }, code_ref: "ab".repeat(32), draws_sha256: D.draws_sha256 }), { status: 200 });
   } } };
   const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA }).toString();
-  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/1/link.png?" + q), bad, "link"));
+  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/2/link.png?" + q), bad, "link"));
 });
 
 // ---------- the seal ----------

@@ -501,7 +501,7 @@ def analyse(request_json: str) -> str:
       ``reweight.council_outcome``: the largest party alone (or a tie for
       the most seats), whether one party has a majority on its own, and the
       chosen coalition reaching a majority; with what it was read as and
-      its boldness badge (``reweight.outcome_chance``). The page's headline;
+      the badge of its boldest call (``reweight.outcome_chance``). The page's headline;
     * ``score``: the reader's forecast scored against EVERY published
       simulation as if it were the result, by the competition's own
       measures in its order (``score_forecasts.seat_error``,

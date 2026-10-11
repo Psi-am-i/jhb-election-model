@@ -49,7 +49,12 @@ Source grammar:
 * ``regime:<rule>:<dotted path>`` — into ``regime_<rule>_summary.json``,
   the counterfactual runs (``cap`` is the pure-proportional entitlement).
 * ``derived:<name>`` — a named computation over ``seat_draws.csv`` (see
-  ``DERIVED``).
+  ``_derived``).
+* ``history:<city>:<year>:<dotted path>`` — into the record of that city-year
+  in ``history.json`` (``compare_history``'s backtest of past elections):
+  ``history:joburg:2011:wards.called``. See :func:`history_value`.
+* ``published:small_party_surge`` — :func:`small_party_surge` over the
+  published draws (``site/draws/``, the files the site's pages read).
 * ``run:<description>`` / ``external:<description>`` — never auto-resolved;
   legal only for ``fixed`` entries (a scenario run, or a fact from outside
   the model such as an IEC record).
@@ -397,6 +402,10 @@ def _derived(name: str, ctx: dict):
     """Named computations over the draw-level outputs."""
     draws = ctx.get("draws") or []
     summary = ctx.get("summary") or {}
+    if name == "small_party_share":          # the record test's two thresholds
+        return SMALL_PARTY_SHARE             # (MODEL-LOG §1.296), printed from
+    if name == "small_party_surge_share":    # the constants the measure uses
+        return SMALL_PARTY_SURGE
     if name == "n_draws":
         return len(draws) or summary.get("scenario", {}).get("draws")
     if name == "council_size":
@@ -428,6 +437,37 @@ def _derived(name: str, ctx: dict):
     return None
 
 
+def coalition_majority(members: list[str], ctx: dict):
+    """The share of simulations in which ``members`` together reach that
+    simulation's threshold, over EVERY party's seats
+    (``scenarios.all_party_seats``, the one definition of the whole council:
+    ``seat_draws.csv`` keeps only the largest parties, so a coalition with a
+    small partner summed over its columns would drop that partner's seats).
+    The forecast share image's coalitions (``og_pages.coalition_figure``).
+    None without draws or a processed directory. Refuses an empty or repeated
+    member list, and a party the run's seat file does not name. That file
+    holds rows only for parties with seats, so a party that wins no seat in
+    any simulation is refused with a misspelt code: it cannot be told apart,
+    and a coalition naming it is worth a look either way."""
+    draws = ctx.get("draws") or []
+    processed = ctx.get("processed")
+    if not draws or processed is None:
+        return None
+    if not members or len(set(members)) != len(members) or not all(members):
+        raise SystemExit(f"coalition {'+'.join(members)!r}: name each party once")
+    cache = ctx.setdefault("_all_party_seats", {})
+    if "seats" not in cache:
+        import scenarios as _sc
+        cache["seats"], cache["thr"], _council = _sc.all_party_seats(processed, rows=draws)
+    seats, thr = cache["seats"], cache["thr"]
+    unknown = [m for m in members if m not in seats]
+    if unknown:
+        raise SystemExit(f"coalition {'+'.join(members)!r}: {unknown} not in the run's "
+                         "seat_detail_draws.csv")
+    total = sum(seats[m] for m in members)
+    return float((total >= thr).mean())
+
+
 def resolve(source: str, ctx: dict):
     """Live value for a source string, or None when not auto-resolvable."""
     if source.startswith("model:"):
@@ -436,11 +476,193 @@ def resolve(source: str, ctx: dict):
         _, rule, path = source.split(":", 2)
         return _dig((ctx.get("regimes") or {}).get(rule) or {}, path)
     if source.startswith("validation:"):
-        return _dig((ctx.get("validation") or {}).get("headline") or {},
-                    source[len("validation:"):])
+        return validation_value(source[len("validation:"):], ctx)
     if source.startswith("derived:"):
         return _derived(source[len("derived:"):], ctx)
+    if source.startswith("history:"):
+        return history_value(source, ctx)
+    if source == "published:small_party_surge":
+        return published_small_party_surge(ctx)
     return None                      # run: / external: — pinned only
+
+
+#: The record's own test of a small party's range (MODEL-LOG §1.296): a party
+#: under 1% of the list vote at one local election, and whether it reached 5%
+#: at the next. In the eight metros' consecutive local elections from 2006 to
+#: 2021 none did. :func:`small_party_surge` asks the same of the simulations.
+SMALL_PARTY_SHARE = 0.01
+SMALL_PARTY_SURGE = 0.05
+
+
+def small_party_surge(shares, columns, established) -> float:
+    """The share of draws in which at least one ESTABLISHED small party (in
+    ``established``: it stood at the preceding local election) whose mean list
+    share over the draws is under :data:`SMALL_PARTY_SHARE` takes more than
+    :data:`SMALL_PARTY_SURGE` of the list vote. ``shares`` is
+    ``reweight.list_shares``' ``(draws, len(columns))``. Refuses when no
+    column is an established small party: a share of nothing measured."""
+    import numpy as _np
+    s = _np.asarray(shares, dtype=float)
+    est = set(established)
+    small = [j for j, c in enumerate(columns) if c in est and s[:, j].mean() < SMALL_PARTY_SHARE]
+    if not small:
+        raise SystemExit("small_party_surge: no established party is under the small-party share")
+    return float((s[:, small] > SMALL_PARTY_SURGE).any(axis=1).mean())
+
+
+def published_small_party_surge(ctx: dict):
+    """:func:`small_party_surge` over the published draws' list vote
+    (``build_make``'s reader of ``site/draws/``), the established parties
+    being those with a list vote at the preceding local election
+    (``build_make.baseline``). Cached in ``ctx``; ``ctx["draws_dir"]`` points
+    a test at constructed draws, and ``ctx["established"]`` at its parties."""
+    if "_small_party_surge" not in ctx:
+        import build_make as _bm
+        import cityconfig as _cc
+        import reweight as _rw
+        manifest, arrays, _raw = _bm._draws(ctx.get("draws_dir"))
+        cols = _bm._columns(manifest, "list_vote")
+        est = ctx.get("established")
+        if est is None:
+            est = _bm.baseline(_cc.active(), cols)["list_vote"]
+        ctx["_small_party_surge"] = small_party_surge(_rw.list_shares(arrays["list_vote"]), cols, est)
+    return ctx["_small_party_surge"]
+
+
+def wrong_party_seats(summed_abs_error) -> int:
+    """Seats given to the wrong party: half the summed absolute seat error,
+    which counts every misplaced seat twice, once where it went and once where
+    it should have gone (owner, 2026-10-10: "if 43 seats are the wrong party
+    then the error is 43. Why double it."), in WHOLE seats (owner, 2026-10-10:
+    half seats are not shown). Where a forecast's middles do not sum to the
+    council the half ends in .5, and it is rounded up: a misplaced half seat
+    counts as a seat. THE ONE DEFINITION, and the rounding is applied per
+    metro, so a total (``validation:total.*``, a sum) equals the sum of the
+    metro figures printed beside it."""
+    import math
+    return int(math.floor(float(summed_abs_error) / 2 + 0.5))
+
+
+def validation_value(path: str, ctx: dict):
+    """A ``validation:`` source over ``validation_<year>.json``:
+
+    * ``<headline field>``: the artefact's ``headline`` block, as written;
+    * ``cities.<slug>.model.<field>`` / ``cities.<slug>.best.<field>``: that
+      city's model, or its best baseline by CRPS (the artefact's
+      ``_best_baseline_per_city``), field ``crps``, ``seat_mae``,
+      ``wrong_party_seats`` (:func:`wrong_party_seats`) or, for ``best``,
+      ``name`` (``build_validation.BASELINES``' words);
+    * ``total.model.<field>`` / ``total.best.<field>``: the sum over the
+      cities of the same field, so a total is the sum of the table's own
+      figures; ``total.wins`` (cities where the model's CRPS is below its best
+      baseline's) and ``total.crps_better`` (one minus the ratio of the CRPS
+      totals).
+
+    None where the artefact, the city or the field is absent."""
+    v = ctx.get("validation") or {}
+    head = v.get("headline") or {}
+    if not path.startswith(("cities.", "total.")):
+        return _dig(head, path)
+    cities = v.get("cities") or {}
+    best = head.get("_best_baseline_per_city") or {}
+
+    def one(slug, side, field):
+        c = cities.get(slug)
+        if c is None:
+            return None
+        if side == "model":
+            block = c.get("model") or {}
+        elif side == "best":
+            name = best.get(slug)
+            if name is None:
+                return None
+            if field == "name":
+                import build_validation as _bv
+                return _bv.BASELINES[name]
+            block = (c.get("baselines") or {}).get(name) or {}
+        else:
+            raise SystemExit(f"validation:{path}: the side is model or best, not {side!r}")
+        if field == "wrong_party_seats":
+            return None if block.get("seat_mae") is None else wrong_party_seats(block["seat_mae"])
+        return block.get(field)
+
+    parts = path.split(".")
+    if parts[0] == "cities":
+        if len(parts) != 4:
+            raise SystemExit(f"validation:{path}: write cities.<slug>.<model|best>.<field>")
+        return one(*parts[1:])
+    if path == "total.wins":
+        return sum(1 for slug in cities
+                   if one(slug, "model", "crps") is not None
+                   and one(slug, "model", "crps") < one(slug, "best", "crps"))
+    if path == "total.crps_better":
+        m, b = validation_value("total.model.crps", ctx), validation_value("total.best.crps", ctx)
+        return None if not b else 1 - m / b
+    if len(parts) != 3 or parts[2] == "name":
+        raise SystemExit(f"validation:{path}: write total.<model|best>.<field>, total.wins "
+                         "or total.crps_better")
+    vals = [one(slug, parts[1], parts[2]) for slug in cities]
+    if not vals or any(x is None for x in vals):
+        return None
+    return sum(vals)
+
+
+def history_value(source: str, ctx: dict):
+    """``history:<city>:<year>:<dotted path>``: the value at that path in the
+    one ``history.json`` record for that city slug and election year, or None
+    when the file, the record or the path is absent. Two records for one
+    city-year is refused: which one a page quoted would be an accident. So is
+    a record scored on specs other than the current ones
+    (:func:`history_key_fault`): history.json is a separate run, and nothing
+    else notices when it falls behind a re-emit."""
+    parts = source.split(":", 3)
+    if len(parts) != 4 or not all(parts[1:]):
+        raise SystemExit(f"{source!r}: a history source is history:<city>:<year>:<path>")
+    _, slug, year, path = parts
+    hist = ctx.get("history") or {}
+    rows = [r for r in hist.get("records", [])
+            if r.get("slug") == slug and str(r.get("year")) == year]
+    if len(rows) > 1:
+        raise SystemExit(f"history.json holds {len(rows)} records for {slug} {year}")
+    if not rows:
+        return None
+    fault = history_key_fault(hist, slug, year, ctx.get("spec_root"))
+    if fault:
+        raise SystemExit(f"{source}: {fault}. Re-run src/compare_history.py on the current "
+                         "specs before quoting it.")
+    return _dig(rows[0], path)
+
+
+def history_key_fault(hist: dict, slug: str, year: str, root: Path | None = None) -> str | None:
+    """Why history.json's record for ``slug`` ``year`` was not scored on the
+    current spec, or None: the artefact key its manifest records for
+    ``pools_<year>.json`` must equal the one the spec on disk declares
+    (``pools.artefact_key``). ``root`` is the repository (a test passes a
+    constructed one)."""
+    import cityconfig as _cc
+    root = Path(__file__).resolve().parents[1] if root is None else Path(root)
+    name = f"pools_{year}.json"
+    scored = ((hist.get("manifest") or {}).get("pool_artefact_keys") or {}).get(slug, {}).get(name)
+    if scored is None:
+        return f"history.json records no artefact key for {slug} {name}"
+    spec = root / _cc.load(slug).processed / name
+    if not spec.is_file():
+        return f"no current spec {spec.relative_to(root)} to compare history.json with"
+    current = json.loads(spec.read_text(encoding="utf-8")).get("artefact_key")
+    if current != scored:
+        return f"history.json scored {slug} {year} on a different spec than {spec.relative_to(root)}"
+    return None
+
+
+def history_provenance(ctx: dict) -> str:
+    """The reader's source line for a ``history:`` figure: the backtest run,
+    not the forecast's."""
+    m = (ctx.get("history") or {}).get("manifest") or {}
+    when = _fmt(m["generated"], "date_long") if m.get("generated") else "an undated run"
+    draws = f"{int(m['draws']):,} simulations of each election" if m.get("draws") else "simulations"
+    code = f", code version {str(m['git_commit'])[:7]}" if m.get("git_commit") else ""
+    return (f"Source: the model's test against past elections (src/compare_history.py), "
+            f"{draws}, run on {when}{code}.")
 
 
 def load_context(processed: Path) -> dict:
@@ -453,7 +675,7 @@ def load_context(processed: Path) -> dict:
     why that question was not being asked.
     """
     ctx: dict = {"summary": {}, "draws": [], "regimes": {},
-                 "files": {}, "reference": None}
+                 "files": {}, "reference": None, "processed": processed}
     summary = processed / REFERENCE_ARTEFACT
     if summary.exists():
         ctx["summary"] = json.loads(summary.read_text(encoding="utf-8"))
@@ -468,6 +690,13 @@ def load_context(processed: Path) -> dict:
     for path in sorted(processed.glob("validation_*.json")):
         ctx["validation"] = json.loads(path.read_text(encoding="utf-8"))
         ctx["files"]["validation"] = path
+    # The backtest of past elections, for `history:` tokens. Not entered in
+    # ctx["files"]: `freshness_problems` dates a file against the forecast
+    # run, and history.json is a different run (compare_history over the
+    # past elections), so "older than the forecast" says nothing about it.
+    hist = processed / "history.json"
+    if hist.exists():
+        ctx["history"] = json.loads(hist.read_text(encoding="utf-8"))
     for path in processed.glob("regime_*_summary.json"):
         rule = path.stem[len("regime_"):-len("_summary")]
         ctx["regimes"][rule] = json.loads(path.read_text(encoding="utf-8"))
@@ -704,6 +933,8 @@ def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
             tip += f" The current model gives {live_str}."
     elif mode == "generated":
         tip = f"Source: {src}, computed at build from the current model run."
+    elif entry.get("_provenance"):
+        tip = entry["_provenance"]
     else:
         tip = f"Source: {src}, live from the current model run."
     # the tip goes into an attribute: escape before anything else can break out
@@ -750,6 +981,8 @@ def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
         spec = entry.get("format")
         live = resolve(entry.get("source", ""), ctx)
         live_str = None if live is None else _fmt(live, spec)
+        if str(entry.get("source", "")).startswith("history:"):
+            entry = {**entry, "_provenance": history_provenance(ctx)}
 
         if entry.get("mode") == "fixed":
             if "value" not in entry:

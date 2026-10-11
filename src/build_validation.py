@@ -197,8 +197,7 @@ def markdown(target: str, results: dict) -> str:
     add("It was done in **eight metros, not one**. A model tuned on a single "
         "city can look excellent there and have learned only that city. Each "
         "city is fitted only on its own wards, registration and history; "
-        "nothing is carried across from Johannesburg. Seven of the eight are "
-        "cities the model was never designed against.")
+        "nothing is carried across from Johannesburg.")
     add("")
     add("#### The three baselines")
     add("")

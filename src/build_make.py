@@ -1309,6 +1309,19 @@ def forecast_data(draws: Path | None = None) -> dict:
 # the page
 
 
+def map_attrs() -> dict[str, str]:
+    """Section 2's ward map's ``viewBox``, set in the page by the build so the
+    map has its height before ``forecast.json`` arrives (owner, 2026-10-10:
+    the layout must not shift; the empty map grew by its whole height when
+    the data came). It is the string ``js/map.js`` sets from the same
+    geometry, "0 0 W ceil(H)", with W written as JavaScript writes a number;
+    ``tests/test_your_forecast_page.py`` holds the two to each other."""
+    import math
+    geom = geometry()
+    w = float(geom["W"])
+    return {"<!-- __MAKE:mapviewbox__ -->": f"0 0 {int(w) if w.is_integer() else w} {math.ceil(geom['H'])}"}
+
+
 def seat_attrs() -> dict[str, str]:
     """The reader's council table's axis, ticks and header words, set on its
     region for js/make.js (``seat_table.HEAD_COUNCIL``: a single council has

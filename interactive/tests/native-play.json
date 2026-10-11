@@ -22035,7 +22035,7 @@
   "w_bye-1": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306"
  },
  "numpy": "2.5.1",
- "page_ref": "3d8c3d07682160b7ee81f939ee197e28873fe2e5c3d2ffaa283d37ebaa1adf38",
+ "page_ref": "23cde400bb5c560cd0f89ec9b64a7a311e961d5b9d21f36933892d19b7a6bf95",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22098,7 +22098,14 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Wild call",
+     "badge": "Hail Mary",
+     "boldest": {
+      "middle": 27,
+      "p": 0.0,
+      "party": "ASA",
+      "seats": 0,
+      "text": "under 0.1%"
+     },
      "coalition": [
       "ANC",
       "DA"
@@ -23037,7 +23044,14 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Wild call",
+     "badge": "Hail Mary",
+     "boldest": {
+      "middle": 27,
+      "p": 0.0,
+      "party": "ASA",
+      "seats": 0,
+      "text": "under 0.1%"
+     },
      "coalition": [
       "ANC",
       "DA"
@@ -23976,7 +23990,14 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Wild call",
+     "badge": "Hail Mary",
+     "boldest": {
+      "middle": 27,
+      "p": 0.0,
+      "party": "ASA",
+      "seats": 0,
+      "text": "under 0.1%"
+     },
      "coalition": [
       "ANC",
       "DA"
@@ -24915,7 +24936,14 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Safe call",
+     "badge": "Hail Mary",
+     "boldest": {
+      "middle": 27,
+      "p": 0.0,
+      "party": "ASA",
+      "seats": 0,
+      "text": "under 0.1%"
+     },
      "coalition": [
       "ANC",
       "DA"

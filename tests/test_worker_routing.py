@@ -901,7 +901,7 @@ def test_a_shared_link_names_its_forecast_and_points_at_its_own_image():
              {"url": f"https://{JOBURG}/your-forecast/?t=1,0,0,0", "env": {}},
              {"url": f"https://{PREVIEW_HOSTS[1]}/your-forecast/?{S['link']}&n=whysoserious", "env": {}}]
     named, escaped, plain, blocked = run_worker(source(), cases, S["files"])
-    img = f"https://{JOBURG}/og/1/link.png?{S['link']}&amp;n=Thandi".replace("&amp;", "&")
+    img = f"https://{JOBURG}/og/2/link.png?{S['link']}&amp;n=Thandi".replace("&amp;", "&")
     assert f'<meta property="og:image" content="{img.replace("&", "&amp;")}">' in named["body"], named["body"][:3000]
     assert f'<meta name="twitter:image" content="{img.replace("&", "&amp;")}">' in named["body"]
     assert '<meta property="og:title" content="Thandi&#x27;s Election Forecast">' in named["body"] or \
@@ -916,19 +916,40 @@ def test_a_shared_link_names_its_forecast_and_points_at_its_own_image():
     assert not any(r["logs"] or r["points"] for r in (named, escaped, plain, blocked))
 
 
+def test_an_earlier_card_version_answers_301_to_the_current_one():
+    """share-edge.js CARD_VERSION: a sealed card's image is cached for a year
+    as immutable, so a change to the card changes its address. An address of
+    an earlier version answers 301 to the same image at the current version,
+    query kept, asking no seat Worker; one of a later version is not routed."""
+    S = _share_setup()
+    ver = int(re.search(r"export const CARD_VERSION = (\d+);", (ROOT / "src/share-edge.js").read_text()).group(1))
+    assert ver >= 2
+    q = f"{S['link']}&n=Thandi"
+    cases = [{"url": f"https://{JOBURG}/og/{v}/{size}.png?{q}", "env": {}}
+             for v in range(1, ver) for size in ("link", "story")]
+    cases.append({"url": f"https://{JOBURG}/og/{ver + 1}/link.png?{q}", "env": {}})
+    runs = run_worker(source(), cases, S["files"])
+    for r, c in zip(runs[:-1], cases[:-1]):
+        size = re.search(r"/(link|story)\.png", c["url"]).group(1)
+        want = f"https://{JOBURG}/og/{ver}/{size}.png?{q}"
+        assert r["status"] == 301 and dict(r["headers"]).get("location") == want, (c["url"], r["status"], r["headers"])
+        assert not r["seatCalls"] and not r["error"]
+    assert runs[-1]["status"] != 301 and not runs[-1]["seatCalls"]
+
+
 def test_the_image_asks_the_seat_worker_and_falls_back_to_the_generic_image():
     """No binding, a failing seat Worker, an incomplete answer and an
     unreadable link each answer 302 to /og.png, never an error. The seat
     Worker is asked for the link's picks, never seats from the link, with the
     published draws' hash."""
     S = _share_setup()
-    base = f"https://{JOBURG}/og/1/link.png?{S['link']}&n=Thandi&seats=999"
+    base = f"https://{JOBURG}/og/2/link.png?{S['link']}&n=Thandi&seats=999"
     ok = {"status": 200, "body": {"seats": {}, "outcome": {}}}
     cases = [{"url": base, "env": {}},
              {"url": base, "env": {}, "seats": {"status": 500, "body": {}}},
              {"url": base, "env": {}, "seats": ok},
-             {"url": f"https://{JOBURG}/og/1/link.png?v=1&c=x&f=AAAA", "env": {}, "seats": ok},
-             {"url": f"https://{PREVIEW_HOSTS[0]}/og/1/story.png?{S['link']}", "env": {}, "seats": ok}]
+             {"url": f"https://{JOBURG}/og/2/link.png?v=1&c=x&f=AAAA", "env": {}, "seats": ok},
+             {"url": f"https://{PREVIEW_HOSTS[0]}/og/2/story.png?{S['link']}", "env": {}, "seats": ok}]
     runs = run_worker(source(), cases, S["files"])
     for r in runs:
         h = dict(r["headers"])

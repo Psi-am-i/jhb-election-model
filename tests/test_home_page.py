@@ -161,7 +161,11 @@ def test_regenerating_clears_exactly_the_regions_render_home_owns():
 
     kept = {n for n in names if sentinel in _body(filled, n)}
     cleared = names - kept
-    map_regions = {_marker_name(RM.MARK_START), _marker_name(HC.MARK_START)}
+    # The map generators' regions, where the page carries them. Since
+    # 2026-10-10 it carries neither: its map is cut from /forecast's at build
+    # time (`render_home.home_map`, the HOMEMAP marker), so every region the
+    # page declares is render_home's own.
+    map_regions = {_marker_name(RM.MARK_START), _marker_name(HC.MARK_START)} & names
 
     assert kept == map_regions, (
         f"render_home left {sorted(kept)} untouched; the regions it does not "
@@ -458,6 +462,111 @@ def test_the_typed_figure_gate_reaches_the_home_page():
     reverted = broken.replace(fault, "")
     assert reverted == rendered, "the mutation did not revert byte-exact"
     assert statlib.audit(reverted, page="index.html", **audit_cfg)[0] == before
+
+
+def test_the_home_map_is_cut_from_the_forecast_map():
+    """The home page's map (`render_home.home_map`) is /forecast's map without
+    its switch, its equal-ward map or its long key, cut from the map region of
+    a CONSTRUCTED sheet; and a sheet that has lost a piece it cuts by is
+    refused, not cut wrongly."""
+    sheet = ("<p>before</p>\n" + RM.MARK_START + """
+  <details class="rollup"><summary>The map</summary>
+    <div class="maptoggle"><button data-show="geo">Normal Map</button></div>
+    <figure>
+      <div class="mapbox">
+      <svg id="wardmap" class="mapsvg"><path data-tip="Ward 1"></path></svg>
+      <div id="maptip" class="maptip" hidden></div>
+      </div>
+      <figcaption class="mapcaption">
+        <span><span class="mapkey-parties">ANC DA</span>
+    <span class="mapkey-item"><b>Solid colour</b></span>
+    <br><span class="mapkey-note">A stripe for every party</span></span>
+        <span>The bar shows the whole council, in one typical simulation.</span>
+      </figcaption>
+    </figure>
+  </details>
+  """ + RM.MARK_END + "\n<p>after</p>")
+    out = RH.home_map(sheet)
+    for kept in ('id="wardmap"', 'id="maptip"', "mapkey-parties", "Solid colour",
+                 "one typical simulation", "</figcaption>"):
+        assert kept in out, (kept, out)
+    for dropped in ("maptoggle", "Normal Map", "mapkey-note", "<details", "before", "after"):
+        assert dropped not in out, (dropped, out)
+    # inside the map generator's own markers, so the scan lists its figures
+    # as the generator's, exactly as on /forecast
+    assert out.startswith(RM.MARK_START) and out.endswith(RM.MARK_END), out
+    figured = out.replace("Solid colour", "Solid colour 9 of 10")
+    regions = {h["region"] for h in statlib.scan_numbers(figured)}
+    assert regions and all(r.startswith("generated:MAP") for r in regions), regions
+    # IT CAN SEE: the same cut without the markers is prose, and blocks
+    bare = figured.replace(RM.MARK_START, "").replace(RM.MARK_END, "")
+    bare_regions = {h["region"] for h in statlib.scan_numbers(bare)}
+    assert bare_regions and all(r.startswith("prose") for r in bare_regions), bare_regions
+    # IT CAN SEE: a sheet whose map lost its box is refused
+    try:
+        RH.home_map(sheet.replace('<div class="mapbox">', '<div class="box">'))
+    except SystemExit as exc:
+        assert "mapbox" in str(exc), exc
+    else:
+        raise AssertionError("a map without its box was cut anyway")
+    # the shipped page carries the marker once, and no map region of its own
+    page = PAGE.read_text(encoding="utf-8")
+    assert page.count(RH.HOME_MAP_MARKER) == 1, "home.html has no single map marker"
+    assert RM.MARK_START not in page and HC.MARK_START not in page
+
+
+def _listing_faults(out: str, own: str, others: list[str], sheet_end: str) -> list[str]:
+    """What is wrong with the list under the article ``own``: itself listed,
+    another missing, or a count that is not exactly the others'."""
+    listed = out[out.index("more-commentary"):out.index(sheet_end)]
+    faults = []
+    if f'href="{own}"' in listed:
+        faults.append(f"{own} lists itself")
+    faults += [f"{own} misses {h}" for h in others if f'href="{h}"' not in listed]
+    n = listed.count('<div class="item')
+    if n != len(others):
+        faults.append(f"{own} lists {n} items, not the {len(others)} others")
+    return faults
+
+
+def test_an_article_lists_the_others_but_not_itself():
+    """`build_site.more_commentary` lists every OTHER article under an
+    article, exactly once each and not itself, before the sheet's end marker,
+    and leaves any other page alone.
+
+    CONSTRUCTED: three articles in a scratch articles.toml and a toy page.
+    TWO-SIDED: the list holds exactly the others, no fewer and no more.
+    IT CAN SEE: the article's own entry put into its list is caught, and the
+    check goes quiet again when it is taken out."""
+    import build_site as BS
+    toml = "".join(
+        f'[[article]]\n{"lead = true" + chr(10) if k == 0 else ""}date = "2026-08-0{k + 1}"\n'
+        f'title = "Piece {k}"\nhref = "piece-{k}"\nstandfirst = "About piece {k}."\n\n'
+        for k in range(3))
+    page = "<div class=\"sheet\"><p>body</p>\n" + BS.SHEET_END
+    with tempfile.TemporaryDirectory() as tmp:
+        city_dir = Path(tmp)
+        (city_dir / "articles.toml").write_text(toml, encoding="utf-8")
+        articles = {f"{a['href']}.html": a for a in RH.load_articles(city_dir)}
+        assert len(articles) == 3, articles
+        outs = {}
+        for output, art in articles.items():
+            others = [a["href"] for o, a in articles.items() if o != output]
+            out = BS.more_commentary(page, output, articles, city_dir=city_dir)
+            assert _listing_faults(out, art["href"], others, BS.SHEET_END) == [], output
+            outs[output] = (out, art["href"], others)
+        assert BS.more_commentary(page, "forecast.html", articles, city_dir=city_dir) == page
+
+        # IT CAN SEE: a self-listing, then reverted
+        output, (out, own, others) = next(iter(outs.items()))
+        own_item = RH._articles(city_dir).split('<div class="item')
+        own_item = next('<div class="item' + p for p in own_item[1:] if f'href="{own}"' in p)
+        broken = out.replace(BS.SHEET_END, own_item + BS.SHEET_END, 1)
+        faults = _listing_faults(broken, own, others, BS.SHEET_END)
+        assert any("lists itself" in f for f in faults), faults
+        reverted = broken.replace(own_item, "", 1)
+        assert reverted == out
+        assert _listing_faults(reverted, own, others, BS.SHEET_END) == []
 
 
 if __name__ == "__main__":

@@ -38,6 +38,28 @@
 <header>
   <div class="kicker">Privacy</div>
   <h1>Privacy</h1>
+<div class="pgshare" data-pgshare>
+  <button class="btn model pgshare-open" type="button">Share</button>
+  <dialog class="sharesheet" aria-labelledby="pgshare-title">
+    <div class="dh"><h2 id="pgshare-title">Share this page</h2>
+      <button class="x" type="button" aria-label="Close">×</button></div>
+    <div class="db">
+      <div class="urlrow">
+        <input class="shurl" type="text" readonly value="" aria-label="Link to this page">
+        <button class="btn shcopy" type="button">Copy link</button>
+      </div>
+      <div class="preview"><img src="og.png" alt="The image a link to this page shows when it is shared" loading="lazy"></div>
+      <div class="shcta">
+        <button class="btn model shnative" type="button" hidden>Share…</button>
+        <a class="btn shwa" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn shx" target="_blank" rel="noopener">X</a>
+        <button class="btn shdl" type="button">Download image</button>
+      </div>
+      <p class="toast" role="status" aria-live="polite"></p>
+    </div>
+  </dialog>
+  <script type="module" src="js/page-share.js"></script>
+</div>
   <p class="standfirst">This page says what the site records about its readers, what it does not, and who processes it.</p>
 </header>
 <h2 id="who-is-responsible">Who is responsible</h2>

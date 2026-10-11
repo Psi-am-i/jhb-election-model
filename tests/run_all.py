@@ -198,7 +198,13 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # unopposed wards, scanned over every metro LGE file on disk.
            "test_unopposed",
            # Slice M2 (G8): the roster against the run's parties, both ways.
-           "test_roster_universe"]
+           "test_roster_universe",
+           # Added 2026-10-10 with the site release's share images
+           # (audits/2026-10-09-site-batch/OG-IMPLEMENTATION-SPEC.md §6): one
+           # site build into a temporary directory, then constructed inputs;
+           # and the history: and coalition_majority token sources, on
+           # constructed inputs. Neither runs the model.
+           "test_og_pages", "test_page_share", "test_stat_sources"]
 
 
 # MODULES THAT MAY NOT RUN CONCURRENTLY WITH ANYTHING ELSE.

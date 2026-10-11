@@ -48,11 +48,11 @@ VERDICT_STEPS = ("false", "unlikely", "open", "likely", "true")
 #:
 #:     under 1%  NEAR IMPOSSIBLE     55-75%    QUITE LIKELY
 #:     1-15%     EXTREMELY UNLIKELY  75-90%    VERY LIKELY
-#:     15-45%    UNLIKELY            over 90%  NEAR CERTAIN
-#:     45-55%    A COIN FLIP
+#:     15-45%    QUITE UNLIKELY      over 90%  NEAR CERTAIN
+#:     45-55%    COIN FLIP
 #:
 #: THE EDGE RULE: a chance exactly on an edge takes the band nearer a coin
-#: flip. So 1% is EXTREMELY UNLIKELY, 15% UNLIKELY, 45% and 55% A COIN FLIP,
+#: flip. So 1% is EXTREMELY UNLIKELY, 15% QUITE UNLIKELY, 45% and 55% COIN FLIP,
 #: 75% QUITE LIKELY and 90% VERY LIKELY, which is also what "under 1%" and
 #: "over 90%" say. The chance is judged AS THE PAGE PRINTS IT
 #: (`reweight.chance_text`), so a verdict never disagrees with the figure
@@ -62,8 +62,8 @@ VERDICT_STEPS = ("false", "unlikely", "open", "likely", "true")
 CHANCE_SCALE = (
     (0.01, "NEAR IMPOSSIBLE", "false"),
     (0.15, "EXTREMELY UNLIKELY", "unlikely"),
-    (0.45, "UNLIKELY", "unlikely"),
-    (0.55, "A COIN FLIP", "open"),
+    (0.45, "QUITE UNLIKELY", "unlikely"),
+    (0.55, "COIN FLIP", "open"),
     (0.75, "QUITE LIKELY", "likely"),
     (0.90, "VERY LIKELY", "likely"),
     (1.00, "NEAR CERTAIN", "true"),
@@ -74,6 +74,17 @@ SETTLED_VERDICTS = {"FALSE": "false", "TRUE": "true"}
 from stats import DECLARATION_MIN_CHARS as SETTLED_MIN_CHARS  # noqa: E402
 VERDICT_STEP = {**SETTLED_VERDICTS,
                 **{word: step for _edge, word, step in CHANCE_SCALE}}
+#: The owner's badge for each verdict (src/stamps/, drawn 2026-10-10), as the
+#: share images draw it (src/og_pages.py). The scale's words ARE the badges'
+#: words (owner, 2026-10-10: "We standardised badges, so adjust pages to match
+#: the badge"), so a verdict's file is named by its words: ``verdict-`` and the
+#: words in lower case, spaces as hyphens. tests/test_og_pages.py holds the
+#: files equal to VERDICT_STEP's words, both ways.
+def verdict_badge_file(word: str) -> str:
+    return "verdict-" + " ".join(word.split()).lower().replace(" ", "-") + ".svg"
+
+
+VERDICT_BADGE = {word: verdict_badge_file(word) for word in VERDICT_STEP}
 
 
 def _printed_chance(p: float) -> float:
@@ -191,8 +202,8 @@ HOLDS = {
     "NEAR CERTAIN": "is almost certainly correct",
     "VERY LIKELY": "is very likely correct",
     "QUITE LIKELY": "is probably correct",
-    "A COIN FLIP": "is as likely right as wrong",
-    "UNLIKELY": "is probably wrong",
+    "COIN FLIP": "is as likely right as wrong",
+    "QUITE UNLIKELY": "is probably wrong",
     "EXTREMELY UNLIKELY": "is very likely wrong",
     "NEAR IMPOSSIBLE": "is almost certainly wrong",
     "TRUE": "is correct",
