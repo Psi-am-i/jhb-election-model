@@ -34,7 +34,9 @@ What this module owns
 ``site/js/``
     The site's scripts, byte copies of ``src/js/*.js``: the theme (in <head>,
     before first paint), the provenance pop-over, the maps, the forecast
-    sheet's filter and the hash forwarder. Each is scanned by
+    sheet's filter, the hash forwarder, and the site's one share sheet
+    (``share-dialog.js``, with ``page-share.js``, the share button by every
+    page's title; "Your forecast" imports the same sheet). Each is scanned by
     ``stats.script_writes`` like any other script a page loads.
 
 All three directories are written whole by every build (:func:`write`), so nothing
@@ -112,7 +114,8 @@ CSS_FILES = ("tokens.css", "toggle.css",
              "page-doc.css", "page-sheet.css", "page-home.css", "page-portal.css",
              "page-art.css", "page-board.css",
              "page-claims.css", "page-commentary.css", "page-methodology.css",
-             "chrome.css", "stat.css", "maps.css", "seat-table.css", "components.css")
+             "chrome.css", "stat.css", "maps.css", "seat-table.css", "components.css",
+             "share-sheet.css")
 
 #: A page stylesheet's file name; group 1 is the page type, ``pg-<type>`` its
 #: body class. The one pattern for both ends: :func:`site_css` scopes by it and

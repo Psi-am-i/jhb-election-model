@@ -32,7 +32,9 @@ What the served page is made of
     entries, except ONE declared line of each Worker's loader: where the draws
     are (``build_play.DRAWS_LINE``) and where the Worker's ``seats.js`` is
     (``build_make.SEATS_LINE``); and ``play-state.js``'s one import, the name
-    blocklist (:data:`BLOCKLIST_LINE`). The build refuses if any is not there
+    blocklist (:data:`BLOCKLIST_LINE`); and ``share-sheet.js``'s import of the
+    site's one share sheet, served at ``js/share-dialog.js``
+    (:data:`SHARE_DIALOG_LINE`). The build refuses if any is not there
     exactly once.
 ``your-forecast/py/``
     The served Python (``manifest.json``, the seat code, and the page code in
@@ -98,6 +100,10 @@ PYBOOT = ("page.py", "boot.py")
 #: The one line of play-state.js that differs between the repository and the
 #: site: the owner's name blocklist, copied beside it (build_make.WORKER_API_JS).
 BLOCKLIST_LINE = ('from "../../worker-api/src/blocklist.js";', 'from "./blocklist.js";')
+#: The one line of share-sheet.js that differs: the site's one share sheet
+#: (src/js/share-dialog.js), which site_assets serves at js/, two levels up
+#: from your-forecast/js/.
+SHARE_DIALOG_LINE = ('from "../../src/js/share-dialog.js";', 'from "../../js/share-dialog.js";')
 
 _DEVONLY = re.compile(r"<!-- __DEVONLY_START__ -->.*?<!-- __DEVONLY_END__ -->\n?", re.S)
 
@@ -132,7 +138,7 @@ def assemble(*, site_head: str, nav: str, footer: str, processed: Path) -> str:
 def _rewrite(name: str, data: bytes) -> bytes:
     """The one declared line of a module that differs when served."""
     line = {"model-worker.js": build_play.DRAWS_LINE, "seat-engine.js": build_make.SEATS_LINE,
-            "play-state.js": BLOCKLIST_LINE}.get(name)
+            "play-state.js": BLOCKLIST_LINE, "share-sheet.js": SHARE_DIALOG_LINE}.get(name)
     if not line:
         return data
     text = data.decode("utf-8")
