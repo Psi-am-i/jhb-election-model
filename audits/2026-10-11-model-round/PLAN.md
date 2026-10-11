@@ -24,3 +24,13 @@ checkpoint on judgement calls · 4 pre-registration + ultra brief · 5 one write
 serial · 6 diff review, ultra review · 7 re-emit once, canonical paired runs ·
 8 two independent scorings, MODEL-LOG · 9 goldens, freeze, index, suite, draws
 export · 10 site UAT, promote, then redeploy joburg-seats.
+
+## Owner decisions at the step-3 checkpoint, 2026-10-11
+- The small-party line is a flat 1% of the list vote (owner: "a nice number"), in
+  place of the designed three seats' quotas. Judgement call, registered as such.
+  Membership otherwise as design v3 (stood at the previous election in this city;
+  both that result and the current centre below the line).
+- Parties above the line keep the within-pool split this round; their spikes are
+  next round's work.
+- The `compress_levels` small-party lift: designed and reviewed now; included in
+  this round only if it passes review before the canonical run.
