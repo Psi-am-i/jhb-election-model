@@ -56,6 +56,7 @@ Run:
 from __future__ import annotations
 
 import json
+import math
 import subprocess
 import sys
 import tempfile
@@ -1151,8 +1152,17 @@ def test_every_consumer_the_spec_names_calls_apply_mergers():
 _SPINE_PROBE = r"""
 import argparse, contextlib, io, json, sys, tempfile
 sys.path.insert(0, "src")
-import cityconfig, montecarlo as M, pools
+import cityconfig, levels, montecarlo as M, pools
 out = {}
+# The baseline the national call hands the spine, captured at the call: since
+# BRIEF item 11a the spine's level is not linear in it (the growth centre is
+# evaluated at the party's current size), so the baseline is read directly.
+_seen = {}
+_real_spine = levels.spine
+def _spy(target, baseline, prev_local, *a, **kw):
+    _seen["baseline"] = dict(baseline)
+    return _real_spine(target, baseline, prev_local, *a, **kw)
+levels.spine = _spy
 for label, mergers in (("declared", pools.MERGERS), ("none", ())):
     pools.MERGERS = mergers
     city = cityconfig.use("joburg"); target = cityconfig.use_target("2026")
@@ -1164,6 +1174,7 @@ for label, mergers in (("declared", pools.MERGERS), ("none", ())):
         lv = json.load(open(d + "/20_spine.json"))["level"]
         det = json.load(open(d + "/20_spine.json"))["detail"]
     out[label] = {"RISE": lv.get("RISE"), "ASA": lv.get("ASA"),
+                  "RISE_baseline": _seen["baseline"].get("RISE"),
                   "routes": {p: {"route": det[p]["route"], "w_local": det[p]["w_local"]}
                              for p in ("RISE", "ASA") if p in det},
                   "mergers": [[m["predecessor"], m["successor"]]
@@ -1200,18 +1211,36 @@ def test_the_run_model_mergers_reach_the_spine():
     # RISE reaches the spine by the national route only, ASA at its local level.
     assert dec["routes"]["RISE"]["w_local"] == 0.0, dec["routes"]
     assert dec["routes"]["ASA"]["w_local"] == 1.0, dec["routes"]
-    # RISE (national call): the SIZE, not only the direction. The spine carries
-    # the national share times one factor, so the level scales exactly by
-    # (B + r*P) / B, with B and P read from the 2024 result file.
+    # RISE (national call): the SIZE, not only the direction. What the call
+    # controls is the baseline share handed to the spine, which must scale
+    # exactly by (B + r*P) / B, with B and P read from the 2024 result file.
+    # (Until BRIEF item 11a this was asserted on the spine LEVEL, which then
+    # scaled by that factor alone. Under 11a the growth centre is evaluated at
+    # the party's current size, so the level scales by the baseline factor
+    # TIMES a size-centre change; asserting the old equality on the level
+    # tested the removed mechanism, not the merger call. The level is
+    # asserted below on what 11a says about it.)
     import levels
     base = levels._citywide(
         "data/raw/elections/" + cityconfig.CALENDAR["2024"].results.replace("{CODE}", "JHB"))
     pred = [pp for pp, s in dec["mergers"] if s == "RISE"][0]
     B, P, r = base["RISE"], base[pred], pools.MERGER_RETENTION
     want = (B + r * P) / B
-    assert abs(dec["RISE"] / none["RISE"] - want) < 1e-9, (
-        f"RISE's spine moved by {dec['RISE'] / none['RISE']:.10f}, expected "
-        f"{want:.10f}: the national-baseline call is not applying r x P")
+    got_base = dec["RISE_baseline"] / none["RISE_baseline"]
+    assert abs(got_base - want) < 1e-9, (
+        f"RISE's baseline moved by {got_base:.10f}, expected {want:.10f}: "
+        f"the national-baseline call is not applying r x P")
+    # Under 11a the level = baseline * exp(centre at the baseline size); the
+    # centre falls with size (levels.size_centre, gradient b in (-1, 0)), so
+    # the level rises by the baseline factor times factor**b: more than 1,
+    # less than the baseline factor. b is read off the two runs, not typed.
+    lvl = dec["RISE"] / none["RISE"]
+    b = math.log(lvl / got_base) / math.log(got_base)
+    assert -1.0 < b < 0.0, (
+        f"RISE's level moved by {lvl:.10f} for a baseline factor of "
+        f"{got_base:.10f}: the growth centre is not a falling function of the "
+        f"party's current size (implied gradient {b:.4f}), so item 11a is not "
+        f"evaluating it at the post-merger size")
     # ASA (local call): its level is its local level (w_local = 1 above), so it
     # can only move through the preceding-local transfer.
     assert dec["ASA"] > none["ASA"], (
