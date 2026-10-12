@@ -575,6 +575,12 @@ NOT_FITTED: dict[str, str] = {
                 "backtest cycles (2016 on 2011, 2021 on 2011-2016), so no width "
                 "reads its own target's result. The incumbent law is kept for "
                 "the round's arm I",
+    "centre_correction": "the small-party centre correction (prereg "
+                         "2026-10-12 §3.3, arm UC). Off by default; on, it "
+                         "multiplies centres below 20% by exp(m(s)), m the "
+                         "width record's location for the target, fitted on "
+                         "strictly EARLIER cycles only, so no correction reads "
+                         "its own target's result",
     "apply_judgements": "whether strength judgements apply (design v3 §11). A "
                         "switch; a backtest ignores every judgement whatever "
                         "its value, because a judgement cannot be blind after "

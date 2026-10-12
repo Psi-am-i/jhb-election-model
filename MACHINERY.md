@@ -1228,6 +1228,13 @@ one (`montecarlo.width_record_key`) or one built for other centres (the
 variant: `level_shrink` and its scale). Every value is in the record, not here;
 the judgement calls are JUDGEMENT-CALLS §A57.
 
+**The centre-correction switch** (`centre_correction`, off; prereg arm UC).
+On, every party whose `pool_spec` centre is below 20% has it multiplied by
+exp(m(s)), m the target's record location (fitted on earlier cycles only, s
+clamped at 0.016%), and the vector is renormalised before the calibration pass,
+so the run conserves the corrected centres. Widths are still read at the
+uncorrected centre. The factors are in `35_widths.centre_correction`.
+
 **Strength judgements** (JUDGEMENT-CALLS §SJ, design v3 §11). A party the
 record cannot size takes a judged centre (`support`, `overperform`) that
 replaces its centre before `pool_spec`, and a judged width `sigma_j` that

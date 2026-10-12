@@ -423,6 +423,15 @@ DEFAULTS: dict = {
     # `dirichlet_scale` and the level-shock width are read only by the
     # incumbent law. JUDGEMENT-CALLS §A57.
     "draw_law": "universal",
+    # THE SMALL-PARTY CENTRE CORRECTION (prereg/2026-10-12-universal-draw.md
+    # §3.3, arm UC; owner checkpoint 2026-10-12). Off by default. When on,
+    # under the universal law, every party whose `pool_spec` centre is below
+    # `WIDTH_BLOCK` has that centre multiplied by exp(m(s)), m the width
+    # record's location curve for this target (fitted on earlier cycles only;
+    # s clamped at `LOCATION_CLAMP`), and the vector is renormalised, before
+    # the calibration pass. Estimation: m is the centres' average size-related
+    # error against real results of earlier elections.
+    "centre_correction": False,
     # STRENGTH JUDGEMENTS ON OR OFF (design v3 §11). A forecast with
     # judgements in its `judgements/` file is also run with this off, paired,
     # and both are reported. A backtest ignores judgements either way.
@@ -3546,6 +3555,26 @@ def judgements_applied_sha(applied: list[dict]) -> str:
     return hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest()[:16]
 
 
+def centre_correction(record: dict) -> dict:
+    """The centre-correction arm's location for one target's record.
+
+    ``{"location": {c1, c2} or None, "why": ...}``. The location is the width
+    record's own m(s) for this target, fitted on EARLIER cycles only (prereg
+    §3.3: 2016 on 2011, 2021 on 2011-2016, 2026 on 2011-2021), one fit and one
+    fixed point with the width. The 2011 fallback has no location, so the
+    correction does not apply there and says so.
+    """
+    if record.get("kind") != "fit" or not record.get("location"):
+        return {"location": None,
+                "why": "the record for this target has no location curve "
+                       "(the 2011 fallback): no correction applied"}
+    return {"location": {"c1": float(record["location"]["c1"]),
+                         "c2": float(record["location"]["c2"])},
+            "why": "m(s) of this target's width record, fitted on earlier "
+                   "cycles; s clamped at LOCATION_CLAMP; parties below "
+                   "WIDTH_BLOCK; renormalised"}
+
+
 def mean_conservation(conserve_record, calib_ratio, names, centres) -> dict:
     """The mean-conservation falsifier of design v2 §1.2, on one run.
 
@@ -3998,6 +4027,24 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             [psc.get(p, 0.0) * (1.0 - ind_mass) for p in ipf_names]
             + [cen_all[p] / tot for p in ind_names]), 1e-12)
         u_c = u_c / u_c.sum()
+        # The record's frame: every width is evaluated at the uncorrected
+        # `pool_spec` centre, so the centre-correction arm differs from the
+        # universal draw in its centres alone (prereg §3.2, arm UC "draw law as
+        # U").
+        u_s = u_c.copy()
+        u_factor = np.ones(len(u_names))
+        correction = {"on": bool(scenario.get("centre_correction")),
+                      "location": None, "factor": {}}
+        if correction["on"]:
+            correction.update(centre_correction(rec))
+            if correction["location"] is not None:
+                u_factor = np.array(
+                    [math.exp(width_location(correction["location"], s_))
+                     if s_ < WIDTH_BLOCK else 1.0 for s_ in u_s])
+                u_c = u_c * u_factor
+                u_c = u_c / u_c.sum()
+                correction["factor"] = {p: float(u_factor[k])
+                                        for k, p in enumerate(u_names)}
         new_set = set(scenario.get("_new_parties") or ())
         hist = set(scenario.get("_theta_history") or ())
         judged = {e["party"]: e for e in (scenario.get("_strength_applied") or [])}
@@ -4092,12 +4139,13 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             [_turnouts(_cal, "calib.", dd)[1] for dd in range(N_CAL)],
             ipf, n_ind=len(ind_names))
         for k, p in enumerate(u_names):
-            w = party_width(rec, float(u_c[k]), p in new_set,
+            w = party_width(rec, float(u_s[k]), p in new_set,
                             history=p in hist,
                             sigma_j=(judged[p]["sigma_j"] if p in judged else None))
             own2 = (w["sigma"] ** 2 * (1.0 - w["rho"]) + w["delta"] ** 2
                     - float(v_comp[k]))
-            widths[p] = dict(w, centre=float(u_c[k]), new=p in new_set,
+            widths[p] = dict(w, centre=float(u_c[k]),
+                             centre_uncorrected=float(u_s[k]), new=p in new_set,
                              judged=p in judged, v_comp=float(v_comp[k]),
                              shared=math.sqrt(w["rho"]) * w["sigma"],
                              own=math.sqrt(max(own2, 0.0)),
@@ -4354,6 +4402,9 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
         streams.keys |= cal_keys
 
     draw_pools.law = law
+    draw_pools.centre_correction = (correction if law == "universal"
+                                    else {"on": False, "location": None,
+                                          "factor": {}})
     draw_pools.widths = widths
     draw_pools.u_names = u_names
     draw_pools.u_centres = u_c
@@ -6901,6 +6952,7 @@ def run_model(target, scenario: dict,
                     "fallback", "untestable") if k in _rec},
         "parties": _widths,
         "kappa_iterations": int(getattr(draw_target, "kappa_iters", 0)),
+        "centre_correction": getattr(draw_target, "centre_correction", None),
         "judgements_sha": _strength["judgements_sha"],
         "judgements_applied": _strength["applied"],
         "judgements_ignored": _strength["ignored"],

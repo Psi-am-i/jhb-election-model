@@ -323,6 +323,51 @@ def test_a_judged_party_takes_its_judged_width():
     assert d1.widths["C"]["delta"] == 0.25 and d1.widths["C"]["judged"]
 
 
+def test_the_centre_correction_is_the_records_location_below_the_block():
+    """Prereg §3.3 (arm UC): off, the draw is bit-identical to the universal
+    draw; on, every party with `pool_spec` centre below 20% has it multiplied
+    by exp(m(s)) (s clamped at 0.016%) and the vector is renormalised, before
+    the calibration pass, so the run conserves the corrected centres. Widths
+    stay at the uncorrected centres (the arm differs in its centres alone)."""
+    sc, c, i = base_spec(law="universal")
+    sc["centre_correction"] = False
+    _, off, d_off = run_arm(sc, c, i, lot="uc|1", draws=300)
+    sc0, _, _ = base_spec(law="universal")
+    _, u, _ = run_arm(sc0, c, i, lot="uc|1", draws=300)
+    assert np.array_equal(off, u), "the switch off moved a drawn number"
+    sc_on = copy.deepcopy(sc)
+    sc_on["centre_correction"] = True
+    _, on, d_on = run_arm(sc_on, c, i, lot="uc|1", draws=300)
+    loc = FIXTURE_RECORD["location"]
+    s0 = np.array(d_off.u_centres)
+    want = np.array([x * math.exp(M.width_location(loc, x)) if x < M.WIDTH_BLOCK
+                     else x for x in s0])
+    want = want / want.sum()
+    assert np.allclose(d_on.u_centres, want, rtol=1e-12)
+    big = [k for k, x in enumerate(s0) if x >= M.WIDTH_BLOCK]
+    assert big, "the fixture has no party in the block: nothing checks the line"
+    for k in big:
+        assert d_on.centre_correction["factor"][d_on.u_names[k]] == 1.0
+    for p in d_on.u_names:
+        assert d_on.widths[p]["sigma"] == d_off.widths[p]["sigma"], p
+    assert max(d_on.kappa_error.values()) < M.KAPPA_TOL
+    assert not np.array_equal(on, off)
+    # the 2011 fallback carries no location: the switch applies nothing there
+    fb = M.centre_correction({"kind": "fallback", "fallback": {}})
+    assert fb["location"] is None and "fallback" in fb["why"]
+
+
+def test_the_correction_is_fitted_on_earlier_cycles_only():
+    """Prereg §3.3: the location a target's correction uses is the width
+    record's own, and the record for each target reads strictly earlier
+    cycles."""
+    for target, cycles in W.FORWARD.items():
+        assert all(int(y) < int(target) for y in cycles), (target, cycles)
+    assert W.FORWARD["2016"] == ("2011",)
+    assert W.FORWARD["2021"] == ("2011", "2016")
+    assert W.FORWARD["2026"] == ("2011", "2016", "2021")
+
+
 # --------------------------------------------------------------------------
 # strength judgements: read at run time, ignored on a backtest, hashed
 # --------------------------------------------------------------------------

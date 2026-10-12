@@ -938,6 +938,8 @@ PERTURB: dict[str, object] = {
     # Strength judgements off: inert while no judgements file declares one
     # (EXPECTED_INERT, gate `no_strength_judgements`).
     "apply_judgements": False,
+    # The small-party centre correction (prereg arm UC), switched on.
+    "centre_correction": True,
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],
