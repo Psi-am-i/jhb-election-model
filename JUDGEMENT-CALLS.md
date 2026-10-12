@@ -3968,6 +3968,16 @@ in the published simulations, so "support" is read as ward wins.
 seats, including a DA no larger than its partner and the count of small
 parties needed. MODEL-LOG §1.286 to §1.288 record the figures.
 
+### §P4 · the plausibility instrument's constants — `TINY_LINE` 1% · `SIZE_CLASSES` · `OUTER_K` 1 IQR · `CORE_FEATURES` · `RATIO_LOG_FLOOR` 1e-4 · `MIN_JUDGING` 8 · `FAIL_P` 0.05 · `PIT90_MIN_FRACTION` 0.75 · `COLLAPSE_JUMP_MULT` 3 — ⚖️ typed (2026-10-12)
+
+**Where.** `src/plausibility.py` (design `audits/2026-10-11-model-round/step1/1h-plausibility-check-design.md` §5.1).
+
+**Now.** The tiny-party line for the tiny features (1%, the owner's); the five size classes at the previous election (under 1%, 1-3%, 3-10%, 10-30%, 30% and over); the outer envelope at the record's range ± 1 IQR; the joint count's eight core features (`vol`, `max_gain`, `max_loss`, `d_enp`, `top2`, `n_ge5`, `tiny_max`, `w_top`); the floor under a retained ratio's log; the fewest real transitions a target may be judged by (8); the failure rule of design §3.2: an event-test tail below 0.05, or fewer than three quarters of scored targets inside the central 90% of their draws (18 of 24), cycle-driven features (`enp`, `d_enp`, `top2`, `d_turnout`) reported and not failed; a party class fails when its collapse or jump rate exceeds three times the exchangeable 1/(n+1), or its threshold-event rate exceeds the record's rule-of-three bound.
+
+**Why.** None is forced by the record (design §5.1). They define a JUDGE, not the model: the instrument sets no parameter, and a parameter estimated from a feature removes that feature from the check (design §3.1).
+
+**How to check it.** `tests/test_plausibility.py` (the four-part rule on constructed records; the live population 8/16/24/32; the import closure).
+
 ## Q. Added 2026-10-08 — reducing the forecast to our prediction
 
 The forecast is the simulations; our prediction is one complete result reduced

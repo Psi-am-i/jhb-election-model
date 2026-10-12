@@ -923,6 +923,48 @@ def ward_structure(path: Path):
     return ward_of, registered
 
 
+def ward_winners(ward_votes: dict, ward_of: dict) -> dict[str, str]:
+    """Each ward's winner on the ward ballot: VD tallies summed by ward.
+
+    ONE DEFINITION, read by :func:`actual_result` (the ground truth) and by
+    ``plausibility.election_record`` (the record of real elections), so the
+    plausibility instrument's ward features and the backtest's score see the
+    same winners."""
+    per_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(
+        lambda: defaultdict(int))
+    for vd, counts in ward_votes.items():
+        w = ward_of.get(vd)
+        if not w:
+            continue
+        for party, n in counts.items():
+            per_ward[w][party] += n
+    return {w: max(counts, key=counts.get) for w, counts in per_ward.items()}
+
+
+def registered_roll(path: Path) -> tuple[int, int]:
+    """``(registered roll, valid list votes)`` from a result file's list ballot.
+
+    The roll is ``Registered_Population`` summed over distinct (VD, ward)
+    rows of the PR ballot, so a split voting district contributes each of its
+    parts once (CLAUDE.md §4b: a VD split across wards carries a row per
+    part); valid list votes are ``Total_Valid_Votes`` over the same rows.
+    Read by ``plausibility`` for the turnout feature."""
+    reg: dict = {}
+    valid: dict = {}
+    with cityconfig.resolve_path(path).open(encoding="utf-8",
+                                            errors="replace", newline="") as fh:
+        for row in csv.DictReader(fh):
+            if (row.get("BallotType") or "").upper() != "PR":
+                continue
+            k = (row.get("VD_Number"), row.get("Ward", ""))
+            try:
+                reg.setdefault(k, int(float(row["Registered_Population"] or 0)))
+                valid.setdefault(k, int(float(row["Total_Valid_Votes"] or 0)))
+            except (KeyError, ValueError):
+                continue
+    return sum(reg.values()), sum(valid.values())
+
+
 def _year_from(path: Path) -> int:
     """The election year in a result filename: ``lge2021_JHB_...`` -> 2021."""
     stem = Path(path).name
@@ -970,15 +1012,7 @@ def actual_result(path: Path, council: int, year: int | None = None,
     combined = eligible_parties(totals(ward_votes), totals(pr_votes),
                                 unopposed_pr)
 
-    per_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(
-        lambda: defaultdict(int))
-    for vd, counts in ward_votes.items():
-        w = ward_of.get(vd)
-        if not w:
-            continue
-        for party, n in counts.items():
-            per_ward[w][party] += n
-    winners = {w: max(counts, key=counts.get) for w, counts in per_ward.items()}
+    winners = ward_winners(ward_votes, ward_of)
 
     # C and D: seats that leave the entitlement pool with the councillor.
     year = year or _year_from(path)

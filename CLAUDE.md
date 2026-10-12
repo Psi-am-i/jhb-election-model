@@ -377,6 +377,11 @@ after the pool specs, once per centre variant the round's arms need
 
     .venv/bin/python src/width_record.py --emit # the universal draw's widths
 
+And one imported by `tests/test_plausibility.py`, which scores an arm's runs
+against the real record and writes under `data/processed/plausibility/`:
+
+    .venv/bin/python src/plausibility.py --runs DIR --label NAME
+
 ### Targeted modules per change; the SUITE once per commit
 
 * **iterating** — `-k` the modules your change reaches. `-x levers` is a large

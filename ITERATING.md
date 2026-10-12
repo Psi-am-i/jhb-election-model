@@ -720,6 +720,18 @@ in; and a change that is *materially* worse still does not ship, however
 elegant. The amendment widens what counts as better — it does not remove the
 requirement to measure.
 
+## Whole simulated elections are judged too (2026-10-12)
+
+`src/plausibility.py` judges each draw as a whole election against the real
+record of consecutive local elections before its target (design
+`audits/2026-10-11-model-round/step1/1h-plausibility-check-design.md`): how far
+the draws leave the record's envelope on each side, whether the real elections
+left it as often as the draws said, the randomised PIT, the joint count, and
+the party classes. **A plausibility failure is a judging criterion, and no
+parameter may be set from one**: every one of its quantities is a ratio against
+the model's own output, so fitting to it is tuning (CLAUDE.md §4). If a later
+round estimates a feature from the record, that feature leaves the check.
+
 ## What follows from that
 
 1. **Score against history and against baselines, not against ourselves.** The

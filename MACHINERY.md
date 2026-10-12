@@ -1815,6 +1815,23 @@ run — the machinery is built and proven against a throwaway ledger, and the re
 one is append-only, so the first row written to it is a decision, not a step. See
 MODEL-LOG §1.142 for the seam and how it was closed.
 
+## Judging whole simulated elections — `src/plausibility.py` (2026-10-12)
+
+Each draw is turned into twenty whole-election features (volatility, the new
+parties' share and the largest, the largest gain and loss, fragmentation and
+its change, the top one and two, parties clearing 1%, 5% and 10%, the
+small-party bucket, the tiny-party jump and mass, turnout's change, and three
+ward features), by ONE definition that a real election also passes through as a
+one-row call. A target is judged by the real transitions before it (strict:
+ending five years before; `strict06` and `loco` as sensitivities): envelope
+exceedance below and above against 1/(n+1), the Poisson-binomial event test
+across targets, the randomised PIT (ties split for count features), the joint
+count `J` over the core features, and the party classes (collapse, jump,
+threshold events). The record reads the 2000 files `levels.HELD_BACK` withholds
+from the model, and says so. The ward winners it reads are the backtest's own
+(`backtest.ward_winners`); the roll is `backtest.registered_roll`. Nothing that
+draws imports it. Constants: JUDGEMENT-CALLS §P4.
+
 ## Reading a run without re-running it
 
 `run_model(..., run_dir=...)` — or `--run-dir` on `montecarlo.py` and
