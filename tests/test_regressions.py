@@ -203,8 +203,13 @@ def test_a_splinter_fraction_never_exceeds_its_parent():
 
 def test_the_level_shock_has_unbounded_support():
     """A bounded draw gives probability zero to things that have happened."""
-    rng = np.random.default_rng(0)
-    draws = M.log_shock(rng, 0.3, size=20000)
+    # The keyed primitives (design 1c): z from `level.z`, the chi-square half
+    # from `level.chi` at shape df/2, df passed explicitly.
+    st = M.DrawStreams("regressions|shock|0", 20000)
+    z = np.array([st.normals("level.z", "X", d)[0] for d in range(20000)])
+    chi = np.array([st.log_gamma("level.chi", ("X",), [M.LEVEL_DF / 2], d)[0]
+                    for d in range(20000)])
+    draws = M.log_shock(0.3, z, chi, M.LEVEL_DF)
     assert draws.max() / draws.mean() > 3.0, (
         "the level shock has no tail: a party trebling should be unlikely, not "
         "impossible. Al Jama-ah won a 2016 seat with 0 of 500 draws non-zero.")

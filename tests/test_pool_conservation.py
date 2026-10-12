@@ -285,7 +285,7 @@ def test_capture_is_zero_outside_a_partys_pools():
         scen["entrant_prob"] = 0.0
         scen["_theta_sd"] = {p: 0.0 for p in parties}   # isolate the pool term
         draw = M.make_drawer(scen, base, centres, index,
-                             np.random.default_rng(seed))
+                             M.DrawStreams(f"conservation|test|{seed}", DRAWS))
         return np.array([draw() for _ in range(DRAWS)])
 
     def internal_shift(pl, A, B, pool):
@@ -511,7 +511,7 @@ def test_an_arrival_does_not_touch_pools_it_is_not_in():
     scen["_theta_sd"] = {p: 0.0 for p in centres}
     with contextlib.redirect_stdout(io.StringIO()):
         draw = M.make_drawer(scen, centres, centres, index,
-                             np.random.default_rng(7))
+                             M.DrawStreams("conservation|newcomer|7", 200))
         sample = np.array([draw() for _ in range(200)])
     share = float(sample[:, index["NEWCOMER"]].mean())
     even = 1.0 / len(centres)

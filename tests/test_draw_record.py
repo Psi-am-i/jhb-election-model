@@ -89,8 +89,8 @@ import montecarlo as mc
 calls = []
 if wrap:
     real = mc.correlated_triangular
-    def recording(rng, spec, z_common, rho):
-        value = real(rng, spec, z_common, rho)
+    def recording(z_own, spec, z_common, rho):
+        value = real(z_own, spec, z_common, rho)
         calls.append((tuple(float(x) for x in spec), float(value)))
         return value
     mc.correlated_triangular = recording
@@ -322,16 +322,16 @@ def test_a_tied_group_records_its_one_shared_shock():
     calls = []
     real = M.correlated_triangular
 
-    def recording(rng, spec, z_common, rho):
-        value = real(rng, spec, z_common, rho)
+    def recording(z_own, spec, z_common, rho):
+        value = real(z_own, spec, z_common, rho)
         calls.append((tuple(float(x) for x in spec), float(value)))
         return value
 
     M.correlated_triangular = recording
     try:
-        draw = M.make_drawer(scenario, base_city_d, centres, index,
-                             np.random.default_rng(SEED))
         draws = 50
+        draw = M.make_drawer(scenario, base_city_d, centres, index,
+                             M.DrawStreams(f"joburg|2026|{SEED}", draws))
         for _ in range(draws):
             draw()
     finally:

@@ -1863,6 +1863,53 @@ exactly for a two-cell, ≤0.0016 CRPS disagreement between an analysis harness 
 `montecarlo.fix_hash_seed()` itself**, or set `PYTHONHASHSEED` before the
 interpreter starts, before comparing anything it produces to a shipped number.
 
+## Keyed draw streams: two arms on one seed see the same luck (2026-10-12)
+
+**What.** A run has no shared random generator. `run_model` builds one
+`montecarlo.DrawStreams` from the run identity `seats.lot_identity(city,
+target, seed)`, and every random quantity reads its own stream, named by what it
+is (the *stage*) and by whom (the *name*), at the draw's index:
+
+| stage | name | per draw | what it drives |
+|---|---|---|---|
+| `turnout.common` | `""` | 1 normal | the citywide turnout factor of the copula |
+| `turnout.pool` | the pool's declared tie label, or its own name | 1 normal | that pool's (or tied group's) turnout through `correlated_triangular` |
+| `level.z`, `level.chi` | party | 1 normal; a gamma at shape df/2 | the Student-t level shock `log_shock(sd, z, log_chi, df)`, pooled and individual parties alike |
+| `split` | `pool|party` | a gamma at the member's Dirichlet shape | the within-pool split, `pool_split` |
+| `arrival.total`, `arrival.split` | `""`; party | 1 normal; a gamma | the arrival-group draw (off by default) |
+| `entrant.gate`, `entrant.share` | `ENTRANT` | 1 uniform; 1 normal, both every draw | the generic entrant slot |
+| `vd_turnout.blend`, `vd_turnout.noise` | `""` | 1 uniform; one normal per VD | the per-draw turnout pattern |
+| `ward_noise` | party | one normal per ward | the ward-tally noise, `ward_noise_multiplier` |
+
+A stream holds only parameter-free primitives (standard normals, uniforms on
+(0, 1]) in a fixed count per draw; every parameter enters afterwards through a
+deterministic transform. Gammas are Marsaglia-Tsang on shape + 1 with the boost
+at every shape (`log_gamma_slots`, `GAMMA_SLOTS` fixed trials, JUDGEMENT-CALLS
+§A56), computed in log space; an exhausted draw takes an exact fallback and is
+counted (`41_guards.gamma_fallbacks` out of `gamma_draws`). Every key read is
+recorded (`41_guards.stream_keys`).
+
+**What follows.** Adding or removing a party adds or removes its streams and
+moves no other stream's values; changing a centre, a width or a df moves only
+the transform over the same primitives; draw `d` is row `d` whatever the run's
+length, so a short run is the prefix of a long one. Pairing is bit-identity of
+the PRIMITIVES. Drawn shares of unchanged parties still move through the
+normalisations and the per-draw balance, so between arms they are correlated,
+not identical; a paired difference is quoted with its measured correlation
+(design 1c §2.6). A renamed party, a party moving between pools, a changed tie
+label, and a changed VD or ward set are unpaired by construction.
+
+**City and target are in the root key on purpose**, so one party's shocks are
+independent across the panel's city-years: pairing is wanted between arms at
+one city-year, never between city-years.
+
+**Checked by** `tests/test_draw_streams.py` (samplers exact against numpy at
+N = 200,000 with power rows; chunk and prefix identity at stream and run level;
+key stability across interpreters; pairing of a constructed two-pool spec under
+seven arms against `prereg/2026-10-12-universal-draw.md` §6.3's thresholds).
+Design: `audits/2026-10-11-model-round/step1/1c-paired-draws-design.md` and
+`step2/2-review-1c.md`.
+
 ## The ward cartogram — drawing seats instead of land
 
 `src/render_map.py` draws real ward boundaries. That map is honest about
@@ -2031,7 +2078,7 @@ carries them out as `ModelRun.pool_turnout_draws`, shape (draws, pools), with
 by these (`audits/2026-09-28-interactive-architecture/PLAN.md` §3).
 
 **It changes no draw.** The record reads values already drawn and makes no call
-on `rng`. `tests/test_draw_record.py` verifies this at Johannesburg 2026, seed
+on any stream. `tests/test_draw_record.py` verifies this at Johannesburg 2026, seed
 20261104, the shipped draw count, under `HASH_SEED`: every `*draws` field of
 `ModelRun` is identical to the code before the recording (commit `4711a15`,
 run from a `git archive` copy), both reproduce the published `seat_draws.csv`

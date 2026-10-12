@@ -65,6 +65,13 @@ share of the pool's vote exceeded its record plus the pool's margin in more
 than `fire_at` of draws. It reports and changes no number; `population ==
 scanned` is the proof it looked (`faults_in_group_share`).
 
+The keyed streams (2026-10-12, MACHINERY.md "Keyed draw streams"):
+`gamma_fallbacks`, the gammas whose every Marsaglia-Tsang slot rejected and
+took the exact fallback, read against the fourth denominator `gamma_draws`
+(every gamma the run drew, NOT draws); and `stream_keys`, a sorted list of
+distinct `[stage, name]` pairs, every stream the run read. A fallback value is
+exact in law and the one value not paired across arms.
+
 ### `42_pr_share_draws`, `43_ward_share_draws` — `(draws, parties)` float arrays
 
 Citywide share of one ballot per draw. Every row sums to 1 to floating point

@@ -573,8 +573,8 @@ def draw_matrix(draws: int = DRAWS, cache: bool = True):
     if cache and draws in _CACHE:
         return _CACHE[draws]
     scenario, base_city_d, centres, index = build_inputs()
-    rng = np.random.default_rng(SEED)
-    draw = mc.make_drawer(scenario, base_city_d, centres, index, rng)
+    streams = mc.DrawStreams(mc.lot_identity(CITY, "2026", SEED), draws)
+    draw = mc.make_drawer(scenario, base_city_d, centres, index, streams)
     matrix = np.array([draw() for _ in range(draws)])
     result = (matrix, index, scenario, base_city_d, centres)
     if cache:

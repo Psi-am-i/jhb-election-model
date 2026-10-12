@@ -114,6 +114,8 @@ GUARD_KEYS = frozenset({
     "solve_unreachable_parties",
     "solve_floor_injected_mean", "solve_floor_injected_worst",
     "solve_identity_hits",
+    # The keyed streams (design 1c; step2/2-review-1c finding 4).
+    "gamma_fallbacks", "gamma_draws", "stream_keys",
 })
 
 # Counters that are COUNTS OF DRAWS, and the denominator each is a fraction of.
@@ -134,7 +136,19 @@ GUARD_DENOMINATORS = {
 # `bounds_checked` left this tuple when it became per party: a city that
 # declares no §3.5 ranges checks nobody, and an empty dict there is a fact,
 # not an unread board. `draws` took its place as the run-level denominator.
-GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls")
+GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls",
+                          "gamma_draws")
+
+# SCALAR counters and the scalar denominator each is a count out of. Kept apart
+# from `GUARD_DENOMINATORS`, whose counters are per-party tables. A gamma
+# fallback is a count of GAMMAS, not of draws, so its denominator is the run's
+# gamma count (step2/2-review-1c finding 4): a rate quoted against `draws`
+# would be the wrong population.
+SCALAR_GUARD_DENOMINATORS = {"gamma_fallbacks": "gamma_draws"}
+
+# Not counters and not party names: the (stage, name) pairs the run's keyed
+# streams read, as a sorted list of distinct two-string lists.
+STREAM_KEY_LISTS = ("stream_keys",)
 
 # Not counters: lists of party codes the run records (item 8, 2026-10-09).
 # `level_sd_default_parties` was the second until 2026-10-09, deleted with the
@@ -608,6 +622,17 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     for key, value in sorted(guards.items()):
         if key in NAME_LIST_KEYS or key == "group_share_tripwire":
             continue          # the tripwire is `faults_in_group_share`'s
+        if key in STREAM_KEY_LISTS:
+            ok = (isinstance(value, list)
+                  and all(isinstance(x, list) and len(x) == 2
+                          and all(isinstance(y, str) for y in x)
+                          for x in value)
+                  and value == sorted(value)
+                  and len({tuple(x) for x in value}) == len(value))
+            if not ok:
+                out.append(f"41_guards.{key} is not a sorted list of distinct "
+                           f"[stage, name] pairs")
+            continue
         if isinstance(value, dict):
             for party, n in value.items():
                 if not isinstance(n, (int, float)) or isinstance(n, bool):
@@ -646,6 +671,8 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
 
     _le("ipf_failures", "ipf_balances",
         "a balance cannot fail more often than it was attempted")
+    for _c, _d in SCALAR_GUARD_DENOMINATORS.items():
+        _le(_c, _d, "a gamma cannot fall back more often than gammas were drawn")
     _le("solve_nonconvergent", "solve_calls",
         "a solve cannot fail to converge more often than it ran")
     _le("solve_nonconvergent_reachable", "solve_nonconvergent",
@@ -1020,6 +1047,10 @@ def healthy_guards():
         "solve_floor_injected_mean": 1.4e-5,
         "solve_floor_injected_worst": 2.7e-5,
         "solve_identity_hits": 0,
+        "gamma_fallbacks": 1,
+        "gamma_draws": 40 * DRAWS,
+        "stream_keys": [["level.chi", "AAA"], ["level.z", "AAA"],
+                        ["turnout.common", ""]],
     }
 
 
@@ -1355,6 +1386,27 @@ def test_draws_ties_the_board_to_the_draws_and_bounds_checked_is_per_party():
     few = dict(healthy_guards(), bounds_checked={"AAA": 1})
     faults = faults_in_guards(few, draws=DRAWS)
     assert any("above its own denominator" in f for f in faults), faults
+
+
+def test_the_stream_board_is_checked_and_can_fire():
+    """The keyed streams' guards (design 1c): `stream_keys` must be a sorted
+    list of distinct [stage, name] pairs and `gamma_fallbacks` cannot exceed
+    `gamma_draws`, which must be non-zero. A healthy board is quiet; each
+    corruption fires; reverted, quiet again.
+    """
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    good = healthy_guards()["stream_keys"]
+    for bad in (list(reversed(good)), good + [good[0]], [["level.z"]],
+                [["level.z", 3]], "level.z"):
+        faults = faults_in_guards(dict(healthy_guards(), stream_keys=bad),
+                                  draws=DRAWS)
+        assert any("41_guards.stream_keys" in f for f in faults), bad
+    over = dict(healthy_guards(), gamma_fallbacks=10 ** 9)
+    assert any("gamma_fallbacks" in f for f in faults_in_guards(over, draws=DRAWS))
+    zero = dict(healthy_guards(), gamma_draws=0, gamma_fallbacks=0)
+    assert any("gamma_draws is zero" in f
+               for f in faults_in_guards(zero, draws=DRAWS))
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
 
 
 def test_the_two_name_lists_are_sorted_party_codes():

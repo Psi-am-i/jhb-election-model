@@ -65,6 +65,24 @@ class TieWithoutLot(ValueError):
     """An exact tie straddles the last seat and the call passed no lot key."""
 
 
+def stable_entropy(text: str) -> int:
+    """A stable 64-bit integer from a string: blake2b-64 of its UTF-8, big-endian.
+
+    THE ONE DEFINITION of the project's string-to-entropy key. Two users: the
+    PIT column key (``score._column_entropy`` delegates here, and its pinned
+    value ``16408193524922255279`` for ``"ANC"`` is this function's) and the
+    keyed draw streams (``montecarlo.DrawStreams``), whose every stream is
+    seeded from the run identity, the stage and the entity through it.
+
+    ⛔ **NOT** ``hash()``: Python salts string hashing per process, and
+    ``montecarlo.fix_hash_seed`` runs only under ``__main__``, so an importing
+    caller would get a different key per process (MODEL-LOG §1.145). Standard
+    library only, because this module ships to Pyodide and the seat Worker.
+    """
+    return int.from_bytes(
+        hashlib.blake2b(text.encode("utf-8"), digest_size=8).digest(), "big")
+
+
 def lot_identity(city: str, target: str, seed) -> str:
     """The run's identity for the lot: ``f"{city}|{target}|{seed}"``.
 
