@@ -702,7 +702,7 @@ def test_the_record_refuses_missing_stale_and_wrong_variant():
             if path.exists():
                 path.unlink()
             if case != "missing":
-                key = M.width_record_key()
+                key = M.width_record_key(processed=root)
                 if case == "stale":
                     key = dict(key, record_sha="0" * 16)
                 variant = M.width_record_variant(
@@ -719,6 +719,59 @@ def test_the_record_refuses_missing_stale_and_wrong_variant():
             except SystemExit:
                 continue
             raise AssertionError(f"read_width_record accepted a {case} record")
+
+
+def test_a_re_emit_with_no_code_change_marks_the_width_record_stale():
+    """Step-6 item 7. The key covers the specs the record reads (by content,
+    their `artefact_key` included), the live judgements of those city-years
+    and the group-share record's key. Constructed under a scratch processed
+    root: a record written under the live key is read; a changed spec key, a
+    changed group-share key, and a spec that disappears each make
+    `read_width_record` refuse; each reverted, it reads again. Population:
+    the specs keyed are every (city, cycle) `width_record` fits on, both
+    ways."""
+    specs = W.record_specs()
+    want = {(c, y) for c in W.record_cities()
+            for y in {y for ys in W.FORWARD.values() for y in ys}}
+    assert {(c, y) for c, y, _r in specs} == want and specs
+    sc = copy.deepcopy(M.DEFAULTS)
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        spec = root / specs[0][2]
+        spec.parent.mkdir(parents=True, exist_ok=True)
+        gs = root / "group_share_record.json"
+
+        def put(spec_key="a", gs_key="g"):
+            spec.write_text(json.dumps({"artefact_key": {"pools_sha": spec_key},
+                                        "pools": {}}))
+            gs.write_text(json.dumps({"artefact_key": {"record_sha": gs_key}}))
+
+        def reads() -> bool:
+            try:
+                M.read_width_record("2026", sc, processed=root)
+            except SystemExit as exc:
+                assert "STALE" in str(exc), exc
+                return False
+            return True
+
+        put()
+        (root / M.WIDTH_RECORD).write_text(json.dumps({
+            "artefact_key": M.width_record_key(processed=root),
+            "variants": {M.width_record_variant(sc): {
+                "targets": {"2026": FIXTURE_RECORD}}}}))
+        assert reads()
+        put(spec_key="b")
+        assert not reads(), "a changed spec key was accepted"
+        put()
+        assert reads()
+        put(gs_key="h")
+        assert not reads(), "a changed group-share key was accepted"
+        put()
+        assert reads()
+        spec.unlink()
+        assert not reads(), "a vanished spec was accepted"
+        put()
+        assert reads()
 
 
 if __name__ == "__main__":

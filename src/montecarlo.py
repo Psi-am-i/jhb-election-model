@@ -3435,22 +3435,57 @@ def width_record_variant(scenario: dict) -> str:
                       sort_keys=True)
 
 
-def width_record_key() -> dict:
+def width_record_key(processed: Path | None = None) -> dict:
     """The live key a width record must carry: the code that computed the
-    centres, the residuals and the fit (design v1 §2.7). ONE DEFINITION, used
-    by the writer, by ``read_width_record`` and by ``declares.py``.
+    centres, the residuals and the fit, and the INPUTS it read (design v1
+    §2.7; step-6 review, item 7). ONE DEFINITION, used by the writer, by
+    ``read_width_record`` and by ``declares.py``.
 
     ``montecarlo`` computes the centres and draws the fixed point; ``levels``
     the levels; ``width_record`` the fit; ``pools`` the specs (with their
     dependency hash). A change to any of them changes what the record measured.
+
+    THE CODE IS NOT ALL OF IT. A re-emit with no code change (new raw files,
+    an edited judgements file, a census change behind ``deps_sha``) gives the
+    specs other centres while every code hash stays put, and the record would
+    pass for current. So the key also covers, under ``processed`` (the
+    ``data/processed`` root; default the repository's):
+
+    * ``specs_sha``: every spec the record reads (``width_record.record_specs``),
+      by content, its ``artefact_key`` included; an absent spec is a value;
+    * ``judgements_sha``: the live ``pools._judgements_sha`` of each of those
+      city-years, the judgement inputs that feed the specs, so an edit after
+      the emit marks the record stale as well as the spec;
+    * ``group_share_sha``: the group-share record's ``artefact_key``, or
+      ``"<absent>"``.
     """
     import pools as _pl
+    import width_record as _wr
     src = Path(__file__).resolve().parent
+    root = Path(processed) if processed is not None else src.parent / "data" / "processed"
+    specs, judged = [], []
+    for slug, year, rel in _wr.record_specs():
+        path = root / rel
+        specs.append(f"{rel}:" + (hashlib.sha256(path.read_bytes()).hexdigest()
+                                  if path.exists() else "<absent>"))
+        city = cityconfig.load(slug)
+        judged.append(f"{slug}|{year}:"
+                      + _pl._judgements_sha(city, cityconfig.Target(city=city,
+                                                                    year=year)))
+    gs_path = root / _pl.GROUP_SHARE_RECORD
+    gs_key = (json.loads(gs_path.read_text(encoding="utf-8")).get("artefact_key")
+              if gs_path.exists() else "<absent>")
+
+    def _h(x) -> str:
+        return hashlib.sha256(json.dumps(x, sort_keys=True).encode()).hexdigest()[:16]
     return {"record_sha": _pl._code_sha(src / "width_record.py"),
             "montecarlo_sha": _pl._code_sha(src / "montecarlo.py"),
             "levels_sha": _pl._code_sha(src / "levels.py"),
             "pools_sha": _pl._code_sha(src / "pools.py"),
-            "deps_sha": _pl._deps_sha()}
+            "deps_sha": _pl._deps_sha(),
+            "specs_sha": _h(specs),
+            "judgements_sha": _h(judged),
+            "group_share_sha": _h(gs_key)}
 
 
 def read_width_record(year: str, scenario: dict,
@@ -3470,13 +3505,14 @@ def read_width_record(year: str, scenario: dict,
             f"'universal') takes every party's width from it. Run "
             f"`.venv/bin/python src/width_record.py --emit` in a re-emit window.")
     blob = json.loads(path.read_text(encoding="utf-8"))
-    live = width_record_key()
+    live = width_record_key(processed)
     key = blob.get("artefact_key") or {}
     stale = sorted(k for k, v in live.items() if key.get(k) != v)
     if stale:
         raise SystemExit(
-            f"{path} is STALE: its key differs from the live code in {stale}. "
-            f"It measured centres this code no longer computes. Rebuild with "
+            f"{path} is STALE: its key differs from the live code and inputs "
+            f"in {stale}. It measured centres this tree no longer computes. "
+            f"Rebuild with "
             f"`src/width_record.py --emit` in a re-emit window.")
     variant = width_record_variant(scenario)
     rec = ((blob.get("variants") or {}).get(variant) or {}).get("targets", {}).get(str(year))

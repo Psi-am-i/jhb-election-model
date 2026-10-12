@@ -1250,7 +1250,10 @@ the centre-correction arm. ρ(s) is the shared share of variance by size group
 (one-way city-year decomposition). A location fixed point subtracts the draw's
 own model-internal location and re-fits. 2011 has no earlier cycle and takes a
 labelled, untestable fallback. `make_drawer` refuses a missing record, a stale
-one (`montecarlo.width_record_key`) or one built for other centres (the
+one (`montecarlo.width_record_key`: the code, and the inputs it read — every
+spec of `width_record.record_specs` by content, the live judgements of those
+city-years, the group-share record's key — so a re-emit with no code change
+marks it stale) or one built for other centres (the
 variant: `level_shrink` and its scale). Every value is in the record, not here;
 the judgement calls are JUDGEMENT-CALLS §A57.
 

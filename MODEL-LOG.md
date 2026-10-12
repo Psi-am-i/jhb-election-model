@@ -29384,3 +29384,19 @@ against `27194df`, from dropping the renormalisation). Test: with and without
 an outside party, every pooled party's width is read at its
 `pool_spec_centres` value and its conserved share is that times
 (1 − mass). Mutation: the old frame (`u_s = u_c`) red; reverted, green.
+
+### The width record's key covers its inputs (item 7)
+
+`montecarlo.width_record_key` hashed code only, so a re-emit that changed the
+specs' centres with no code change (raw files, a judgements edit, a census
+change) left the record reading as current. The key now also carries
+`specs_sha` (every spec `width_record.record_specs` names: each metro of
+`compare_history.CITIES` at each cycle a target is fitted on, by file
+content, the spec's `artefact_key` included, an absent spec as a value),
+`judgements_sha` (the live `pools._judgements_sha` of those city-years) and
+`group_share_sha` (the group-share record's `artefact_key`). It is computed
+under the processed root the reader is given. Test under a scratch root: a
+record under the live key reads; a changed spec key, a changed group-share
+key and a vanished spec each refuse; each reverted, it reads. Mutations: the
+spec hash or the group-share hash replaced by a constant, red; reverted,
+green. A `--out DIR` record is keyed on the repository's specs, which it read.

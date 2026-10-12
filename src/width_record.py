@@ -90,6 +90,27 @@ DIAGNOSTIC_BANDS = ((0.01, 0.05, "1-5%"), (0.003, 0.01, "0.3-1%"),
 DIAGNOSTIC_MIN_EFF = 8
 
 
+def record_cities() -> list[str]:
+    """The metros the record is fitted on: ``compare_history.CITIES``."""
+    import compare_history as CH
+    return list(CH.CITIES)
+
+
+def record_specs() -> list[tuple[str, str, str]]:
+    """``(city, year, path under data/processed)`` of every pool spec the
+    record reads: each city at each cycle some target's record is fitted on.
+    ``montecarlo.width_record_key`` hashes these, so a re-emit that changes
+    one marks the record stale with no code change (step-6 review, item 7)."""
+    years = sorted({y for ys in FORWARD.values() for y in ys}, key=int)
+    out = []
+    for slug in record_cities():
+        city = cityconfig.load(slug)
+        rel = Path(city.processed).relative_to("data/processed")
+        for y in years:
+            out.append((slug, y, str(rel / f"pools_{y}.json")))
+    return out
+
+
 # --------------------------------------------------------------------------
 # the residual rows
 # --------------------------------------------------------------------------
@@ -418,8 +439,7 @@ def build(sets: list[str], cities: list[str] | None = None,
           targets=("2011", "2016", "2021", "2026"),
           fixed_point: bool = True) -> dict:
     """The record for every target, in the variant ``sets`` names."""
-    import compare_history as CH
-    cities = list(cities or CH.CITIES)
+    cities = list(cities or record_cities())
     need = sorted({y for t in targets if t in FORWARD for y in FORWARD[t]})
     inputs = {}
     cases = []
@@ -451,7 +471,9 @@ def build(sets: list[str], cities: list[str] | None = None,
 
 def write(record: dict, path: Path) -> None:
     """Merge one variant into the file at ``path`` under the live key; a file
-    under another key is replaced, never merged into."""
+    under another key is replaced, never merged into. The key's inputs are
+    the specs the build READ, which are always the repository's
+    ``data/processed`` (``run_model``'s default), whatever ``path`` is."""
     key = M.width_record_key()
     blob = {}
     if path.exists():
