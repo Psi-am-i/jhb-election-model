@@ -3435,8 +3435,7 @@ simulation, as in §N3.
 
 A chance exactly at an edge takes the higher band. A forecast with no call
 (equal to the published prediction, or differing only where the one-seat rule
-skips) is a Safe bet. The badge reads the exact chance, not the printed one
-(see the known limit below).
+skips) is a Safe bet. The badge reads the printed chance (see below).
 
 **Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`,
 which records the measurements behind it: what §N6's badge gave the common
@@ -3492,12 +3491,15 @@ none of which moves a forecast figure.
    its `analyse` request; the seat Worker reads it from the site's
    `forecast.json`, which must name the draws' hash.
 
-**Known limit (new, for the owner).** The card now prints the chance the
-badge bands, rounded as every chance is printed (`chance_text`), while the
-badge reads the exact figure. A chance of 14.6% prints as "15%" beside
-"Wild call", whose band is under 15%; the same at 4.96% ("5.0%") and 44.8%
-("45%"). Banding the printed figure instead would remove the disagreement and
-move the edge by up to half a printed unit; not done without the owner's say.
+**Badge and printed chance agree (owner, 2026-10-12).** The badge bands the
+chance as the card prints it (`reweight.printed_chance`, rounded by
+`chance_text`'s own format strings), not the exact figure, so the two cannot
+disagree: a chance of 14.6% prints "15%" and is a Long shot. The edge rule is
+unchanged (a printed figure at an edge takes the higher band). The effect is
+that each edge moves by up to half a printed unit (0.5 point from 9.5% up,
+0.05 point below). `tests/test_reweight.py`
+`test_the_badge_bands_the_printed_chance_at_each_edge` holds each of the four
+edges.
 
 **Re-measured table.** BADGE-DECISION.md's eight constructed forecasts, from
 the published prediction instead of the medians, are in

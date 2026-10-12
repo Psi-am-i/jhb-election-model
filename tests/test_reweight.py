@@ -1310,18 +1310,36 @@ def test_boldness_bands_at_their_edges():
     turns this red."""
     assert R.boldness(1.0) == "Safe bet"
     assert R.boldness(0.45) == "Safe bet"
-    assert R.boldness(0.4499) == "Steady as she goes"
+    assert R.boldness(0.4449) == "Steady as she goes"
     assert R.boldness(0.30) == "Steady as she goes"
-    assert R.boldness(0.2999) == "Long shot"
+    assert R.boldness(0.2949) == "Long shot"
     assert R.boldness(0.15) == "Long shot"
-    assert R.boldness(0.1499) == "Wild call"
+    assert R.boldness(0.1449) == "Wild call"
     assert R.boldness(0.05) == "Wild call"
-    assert R.boldness(0.0499) == "Hail Mary"
+    assert R.boldness(0.0494) == "Hail Mary"
     assert R.boldness(0.0) == "Hail Mary"
     # the table is read highest band first and ends at zero
     lows = [low for low, _ in R.BOLDNESS]
     assert lows == sorted(lows, reverse=True) and lows[-1] == 0.0
     assert lows == [0.45, 0.30, 0.15, 0.05, 0.0]
+
+
+def test_the_badge_bands_the_printed_chance_at_each_edge():
+    """The badge reads the figure the card prints (chance_text), so a chance
+    just under an edge that prints as the edge takes the higher band, and a
+    chance that prints under it does not. Each of the four edges, one value
+    that rounds up onto it and one that prints below it."""
+    cases = [(0.4496, "45%", "Safe bet"), (0.4494, "45%", "Safe bet"), (0.4449, "44%", "Steady as she goes"),
+             (0.2996, "30%", "Steady as she goes"), (0.2949, "29%", "Long shot"),
+             (0.1496, "15%", "Long shot"), (0.1449, "14%", "Wild call"),
+             (0.04996, "5.0%", "Wild call"), (0.0494, "4.9%", "Hail Mary")]
+    for p, text, badge in cases:
+        assert R.chance_text(p) == text, (p, R.chance_text(p))
+        assert R.boldness(p) == badge, (p, text, R.boldness(p))
+        # the printed figure is in the band the badge names
+        low = next(lo for lo, w in R.BOLDNESS if w == badge)
+        assert R.printed_chance(p) >= low - 1e-12
+    assert R.printed_chance(0.9995) == 1.0 and R.printed_chance(0.0) == 0.0
 
 
 def test_every_badge_word_has_the_owners_file_and_every_file_a_word():

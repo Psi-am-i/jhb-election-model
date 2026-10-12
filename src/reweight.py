@@ -932,14 +932,29 @@ def chance_text(p: float) -> str:
     return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
 
 
+def printed_chance(p: float) -> float:
+    """The share :func:`chance_text` prints for ``p``, as a fraction: "14.6%"
+    prints "15%" and is 0.15; "over 99%" is 1.0 and "under 0.1%" is 0.0. The
+    rounding is chance_text's own (its format strings), so the two cannot
+    differ."""
+    v = float(p)
+    if v > 0.99:
+        return 1.0
+    if v < 0.0005:
+        return 0.0
+    return float(f"{v * 100:.0f}" if v >= 0.095 else f"{v * 100:.1f}") / 100
+
+
 def boldness(p: float) -> str:
     """The badge for the chance of a reader's boldest call
     (:func:`boldest_call`): :data:`BOLDNESS`'s words for the highest band
-    whose lowest chance ``p`` reaches. ONE DEFINITION:
+    whose lowest chance the PRINTED chance (:func:`printed_chance`) reaches,
+    so the badge and the figure beside it on the card never disagree
+    (owner, 2026-10-12). ONE DEFINITION:
     ``interactive/pyboot/page.py``'s ``analyse`` and the seat Worker's card
     answer (``worker-api/seats-py/src/entry.py``) both return it, through
     :func:`outcome_chance`."""
-    v = float(p)
+    v = printed_chance(p)
     return next(words for low, words in BOLDNESS if v >= low)
 
 
