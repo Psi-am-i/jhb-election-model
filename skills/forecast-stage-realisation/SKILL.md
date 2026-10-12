@@ -21,6 +21,20 @@ constructed corrupted one, and a real 40-draw trace generated in the test.
 
 ## 1. The field inventory, with units
 
+### `35_widths` — the draw's widths (since 2026-10-12)
+
+Written by `run_model` from `make_drawer`. `draw_law` (`"universal"` or
+`"incumbent"`); `record`, the width record's entry for the target (`kind`
+`"fit"` or the 2011 `"fallback"`, with the curve, δ, location and ρ);
+`parties`, per drawn party under the universal law: `centre` (its `pool_spec`
+centre, the conserved mean), `sigma`, `delta`, `rho`, `total` (√(σ² + δ²)),
+`shared` (√ρ·σ, the loading on the run's one shared normal), `own`, `v_comp`
+(turnout composition's log variance, subtracted), `floored` (the excess when
+composition exceeded the own budget), `kappa`, `new`, `judged`. Invariant:
+`own² + v_comp − floored = σ²(1 − ρ) + δ²` per party, and `faults_in_widths`
+checks it. `judgements_applied`, `judgements_ignored` (each with its reason)
+and `judgements_sha`. Empty `parties` under the incumbent law.
+
 ### `40_draws` — the summary. Six dicts, all keyed by party.
 
 | field | units | sums to |
@@ -64,6 +78,12 @@ scanned, draws, fire_at, key_current}`: each `party|pool` pair whose drawn
 share of the pool's vote exceeded its record plus the pool's margin in more
 than `fire_at` of draws. It reports and changes no number; `population ==
 scanned` is the proof it looked (`faults_in_group_share`).
+
+The universal draw (2026-10-12; MACHINERY.md "The universal draw"):
+`kappa_error` (per party, the calibration pass's relative error), `mean_error`
+(the run's own conservation falsifier: `z`, `se`, `threshold`, `parties` and
+`fired`, which must agree), `width` (per party, total latent log sd) and
+`width_floored`. All four are empty under the incumbent law.
 
 The keyed streams (2026-10-12, MACHINERY.md "Keyed draw streams"):
 `gamma_fallbacks`, the gammas whose every Marsaglia-Tsang slot rejected and

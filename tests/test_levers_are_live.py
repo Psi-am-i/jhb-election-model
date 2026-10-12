@@ -347,7 +347,35 @@ _NO_METRO_POLL_NULL = Null(
              "the harness has never swept them at.",
     reason=_NO_METRO_POLL)
 
+_INCUMBENT_ONLY = (
+    "the within-pool Dirichlet is the INCUMBENT draw law's, and the shipped law "
+    "is the universal draw (design 1j v4-L1, owner 2026-10-12), whose split is "
+    "the post-IPF centre with no Dirichlet and no mean floor. These levers are "
+    "read only under `draw_law=\"incumbent\"`, kept selectable for the "
+    "pre-registration's arm I; the `CONDITIONAL` entries measure them there.")
+
 EXPECTED_INERT: dict[tuple[str, str], Null] = {
+    **{(lever, year): Null(
+        cause="UNDELIVERED",
+        where="`make_drawer`: the Dirichlet split runs only under "
+              "draw_law='incumbent'",
+        blocker="SWITCH", gate_check="incumbent_law_shipped_off",
+        evidence="DEFAULTS draw_law is 'universal'; checked with no model run",
+        reason=_INCUMBENT_ONLY)
+       for lever in ("dirichlet_floor", "dirichlet_scale")
+       for year in ("2021", "2026")},
+    **{("apply_judgements", year): Null(
+        cause="UNDELIVERED",
+        where="`montecarlo._apply_strength_judgements`: no strength entry "
+              "exists to apply (and a backtest ignores them by design)",
+        blocker="DATA", gate_check="no_strength_judgements",
+        evidence="no judgements file declares `support` or `overperform`; "
+                 "checked with no model run",
+        reason="strength judgements (design 1j v3 §11) are read at run time "
+               "and are number-neutral until the owner enters one. At 2021 "
+               "they would be ignored anyway: a backtest never applies a "
+               "judgement made after the election.")
+       for year in ("2021", "2026")},
     # The three generic-entrant levers, at the targets whose arrivals are
     # SEEDED BY NAME — which is not the same set as "whose ballot is known",
     # and the difference is the whole of the correction below.
@@ -904,6 +932,12 @@ PERTURB: dict[str, object] = {
     # The dominant width lever (§1.48), sweepable since §1.55. 2.0 halves the
     # within-pool spread and moves everything; 1.0 is the fitted identity.
     "dirichlet_scale": 2.0,
+    # THE DRAW LAW (design 1j v4-L1, 2026-10-12): perturbed to the incumbent
+    # law, which must move every party's draw.
+    "draw_law": "incumbent",
+    # Strength judgements off: inert while no judgements file declares one
+    # (EXPECTED_INERT, gate `no_strength_judgements`).
+    "apply_judgements": False,
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],
@@ -1342,7 +1376,35 @@ def _gate_arrivals_are_named(year: str) -> tuple[bool, str]:
         f"slot is the model's only arrival channel")
 
 
+def _gate_incumbent_law_shipped_off(year: str) -> tuple[bool, str]:
+    """The shipped draw law is "universal", so the incumbent law's own levers
+    (`dirichlet_floor`, `dirichlet_scale`: the within-pool Dirichlet) are read
+    by no run at any target. A claim about the configuration, true until the
+    default changes."""
+    shipped = M.DEFAULTS["draw_law"]
+    return shipped == "universal", (
+        f"DEFAULTS draw_law={shipped!r}"
+        + ("" if shipped == "universal" else " — THE GATE IS OPEN"))
+
+
+def _gate_no_strength_judgements(year: str) -> tuple[bool, str]:
+    """No `judgements/*.toml` file declares a strength (`support` or
+    `overperform`), so `apply_judgements` has nothing to switch (design v3
+    §11.2: number-neutral today). Read off the files; no model run."""
+    import tomllib
+    found = []
+    for f in sorted((ROOT / "judgements").glob("*.toml")):
+        table = (tomllib.loads(f.read_text()).get("party") or {})
+        found += [f"{f.name}:{p}" for p, body in table.items()
+                  if "support" in body or "overperform" in body]
+    return not found, (f"{len(list((ROOT / 'judgements').glob('*.toml')))} "
+                       f"judgements files; strength entries: {found or 'none'}"
+                       + (" — THE GATE IS OPEN" if found else ""))
+
+
 GATES = {
+    "incumbent_law_shipped_off": _gate_incumbent_law_shipped_off,
+    "no_strength_judgements": _gate_no_strength_judgements,
     "arrivals_are_named": _gate_arrivals_are_named,
     "bye_deltas_absent": _gate_bye_deltas_absent,
     "bye_class_weights_zero": _gate_bye_class_weights_zero,
@@ -1436,6 +1498,13 @@ class Conditional:
 
 
 CONDITIONAL: dict[str, Conditional] = {
+    **{f"{lever}@2026": Conditional(
+        key=lever, year="2026", value=PERTURB[lever],
+        opens="incumbent_law_shipped_off",
+        gate_scenario=(("draw_law", "incumbent"),),
+        why="the incumbent law's within-pool Dirichlet, measured where it runs "
+            "(arm I of prereg/2026-10-12-universal-draw.md)")
+       for lever in ("dirichlet_floor", "dirichlet_scale")},
     "bye_local_cap@2026": Conditional(
         key="bye_local_cap", year="2026", value=40.0,
         opens="local_bye_weights_shipped_off",

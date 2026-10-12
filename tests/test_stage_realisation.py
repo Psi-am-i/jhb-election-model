@@ -116,6 +116,8 @@ GUARD_KEYS = frozenset({
     "solve_identity_hits",
     # The keyed streams (design 1c; step2/2-review-1c finding 4).
     "gamma_fallbacks", "gamma_draws", "stream_keys",
+    # The universal draw (design 1j v4-L1); empty under the incumbent law.
+    "kappa_error", "mean_error", "width", "width_floored",
 })
 
 # Counters that are COUNTS OF DRAWS, and the denominator each is a fraction of.
@@ -622,6 +624,24 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     for key, value in sorted(guards.items()):
         if key in NAME_LIST_KEYS or key == "group_share_tripwire":
             continue          # the tripwire is `faults_in_group_share`'s
+        if key == "mean_error":
+            if value in ({}, None):
+                continue
+            ok = (isinstance(value, dict)
+                  and {"z", "se", "threshold", "parties", "fired"} <= set(value)
+                  and isinstance(value["z"], dict)
+                  and set(value["fired"]) <= set(value["z"])
+                  and all(abs(value["z"][p]) > value["threshold"]
+                          for p in value["fired"])
+                  and not [p for p, z in value["z"].items()
+                           if abs(z) > value["threshold"]
+                           and p not in value["fired"]]
+                  and value["parties"] == len(value["z"]))
+            if not ok:
+                out.append("41_guards.mean_error is not a falsifier record: "
+                           "z, se, threshold, parties and fired must agree "
+                           "(every party beyond the threshold fired, no other)")
+            continue
         if key in STREAM_KEY_LISTS:
             ok = (isinstance(value, list)
                   and all(isinstance(x, list) and len(x) == 2
@@ -1049,9 +1069,31 @@ def healthy_guards():
         "solve_identity_hits": 0,
         "gamma_fallbacks": 1,
         "gamma_draws": 40 * DRAWS,
+        "kappa_error": {"AAA": 0.0004, "DDD": 0.0009},
+        "mean_error": {"z": {"AAA": 0.4, "DDD": -1.1}, "se": {"AAA": 0.02,
+                       "DDD": 0.03}, "threshold": 3.0, "parties": 2,
+                       "fired": []},
+        "width": {"AAA": 0.07, "DDD": 0.82},
+        "width_floored": {"AAA": 0.0026},
         "stream_keys": [["level.chi", "AAA"], ["level.z", "AAA"],
                         ["turnout.common", ""]],
     }
+
+
+def healthy_widths():
+    """A universal-law width table: one party at its floor, one not."""
+    def row(sig, dl, rho, vc):
+        own2 = sig * sig * (1 - rho) + dl * dl - vc
+        return {"sigma": sig, "delta": dl, "rho": rho,
+                "total": math.sqrt(sig * sig + dl * dl),
+                "shared": math.sqrt(rho) * sig, "own": math.sqrt(max(own2, 0)),
+                "v_comp": vc, "floored": max(-own2, 0.0), "centre": 0.1,
+                "new": dl > 0, "judged": False, "kappa": -0.1}
+    return {"draw_law": "universal", "record": {"kind": "fit"},
+            "parties": {"AAA": row(0.05, 0.0, 0.0, 0.0055),
+                        "DDD": row(0.8, 0.87, 0.33, 0.001)},
+            "kappa_iterations": 3, "judgements_sha": "0" * 16,
+            "judgements_applied": [], "judgements_ignored": []}
 
 
 def healthy_delivery_log():
@@ -1081,7 +1123,8 @@ def healthy_votes(shares, total=100_000):
 def healthy_bundle() -> dict:
     """Every stage of the segment, constructed healthy, keyed by stage name."""
     pr, wd, seat_draws, summary = _payloads()
-    return {"40_draws": summary, "41_guards": healthy_guards(),
+    return {"35_widths": healthy_widths(),
+            "40_draws": summary, "41_guards": healthy_guards(),
             "42_pr_share_draws": pr, "43_ward_share_draws": wd,
             "42a_pr_vote_draws": healthy_votes(pr),
             "43a_ward_vote_draws": healthy_votes(wd),
@@ -1720,7 +1763,51 @@ def test_eligible_parties_hands_the_allocator_a_set_ordered_dict():
 # stage payloads, so the real-trace test and the constructed ones call them the
 # same way.
 
+def faults_in_widths(payload, *, universe=None) -> list[str]:
+    """Complaints about a ``35_widths`` payload (design 1j v4-L1).
+
+    Per drawn party: σ ≥ 0, δ ≥ 0, ρ in [0, 1], total = √(σ² + δ²), the shared
+    loading = √ρ·σ, and the own term's square plus the composition variance
+    equals σ²(1 − ρ) + δ² up to the recorded floor (the own variance can only
+    be FLOORED at zero, and the floor is what `width_floored` carries). A
+    width that is not the sum of its parts was not computed by the rule its
+    trace names. Under the incumbent law ``parties`` is empty.
+    """
+    out: list[str] = []
+    if not isinstance(payload, dict) or "parties" not in payload:
+        return ["35_widths carries no `parties` table"]
+    if payload.get("draw_law") not in ("universal", "incumbent"):
+        out.append(f"35_widths.draw_law is {payload.get('draw_law')!r}")
+    parties = payload["parties"]
+    if payload.get("draw_law") == "universal" and not parties:
+        out.append("35_widths: the universal law drew no party")
+    for p, w in sorted(parties.items()):
+        try:
+            sig, dl, rho = float(w["sigma"]), float(w["delta"]), float(w["rho"])
+            tot, sh, own = float(w["total"]), float(w["shared"]), float(w["own"])
+            vc, fl = float(w["v_comp"]), float(w["floored"])
+        except (KeyError, TypeError, ValueError):
+            out.append(f"35_widths.{p} lacks a component")
+            continue
+        if sig < 0 or dl < 0 or not 0.0 <= rho <= 1.0:
+            out.append(f"35_widths.{p}: σ {sig}, δ {dl}, ρ {rho} out of range")
+        if abs(tot - math.sqrt(sig * sig + dl * dl)) > 1e-9:
+            out.append(f"35_widths.{p}: total {tot} is not √(σ² + δ²)")
+        if abs(sh - math.sqrt(rho) * sig) > 1e-9:
+            out.append(f"35_widths.{p}: shared loading {sh} is not √ρ·σ")
+        budget = sig * sig * (1.0 - rho) + dl * dl
+        if abs(own * own + vc - fl - budget) > 1e-9:
+            out.append(f"35_widths.{p}: own² + composition − floor "
+                       f"{own * own + vc - fl:.6g} is not σ²(1 − ρ) + δ² "
+                       f"{budget:.6g}")
+    if universe is not None and set(parties) - set(universe):
+        out.append(f"35_widths names parties outside the universe: "
+                   f"{sorted(set(parties) - set(universe))[:6]}")
+    return out
+
+
 ALL_PREDICATES = {
+    "faults_in_widths": faults_in_widths,
     "faults_in_share_matrix": faults_in_share_matrix,
     "faults_in_vote_matrix": faults_in_vote_matrix,
     "faults_between_votes_and_shares": faults_between_votes_and_shares,
@@ -1764,6 +1851,8 @@ def run_predicates(bundle: dict, *, universe=None, council=COUNCIL,
         bundle["43_ward_share_draws"], bundle["44_seat_draws"]))
     add("faults_in_guards", faults_in_guards(
         bundle["41_guards"], draws=draws, universe=universe))
+    add("faults_in_widths", faults_in_widths(
+        bundle["35_widths"], universe=universe))
     add("faults_in_group_share", faults_in_group_share(
         bundle["41_guards"], draws=draws, universe=universe, covered=covered))
     add("faults_in_delivery_log", faults_in_delivery_log(bundle["45_delivered"]))
@@ -1827,6 +1916,8 @@ CORRUPTIONS = [
     ("faults_in_seat_draws", "a chamber larger than the statute", _chamber_too_big),
     ("faults_between_summary_and_detail", "the marginal median stored as the mean", _median_as_mean),
     ("faults_in_guards", "a declared guard counter missing", _guard_key_dropped),
+    ("faults_in_widths", "an own term that is not the rest of the budget",
+     lambda b: b["35_widths"]["parties"]["DDD"].update(own=2.0)),
     ("faults_in_group_share", "a tripwire that scanned nothing", _tripwire_blind),
     ("faults_in_delivery_log", "an empty delivery log", _delivery_empty),
 ]
@@ -1959,7 +2050,7 @@ def real_trace():
 def test_the_realisation_segment_emits_every_stage_it_claims_to():
     payloads, _ = real_trace()
     written = set(payloads["_index"]["written"])
-    segment = {"40_draws", "41_guards", "42_pr_share_draws",
+    segment = {"35_widths", "40_draws", "41_guards", "42_pr_share_draws",
                "43_ward_share_draws", "42a_pr_vote_draws",
                "43a_ward_vote_draws", "44_seat_draws", "45_delivered"}
     assert segment <= written, (

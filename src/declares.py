@@ -348,6 +348,22 @@ def _spec_rows(live_sha: str | None, processed: Path) -> list[Row]:
     return rows
 
 
+def judgements_lie(scenario: dict, target: dict | None) -> str | None:
+    """A sentence when a run's declared strength-judgement hash differs from
+    what the live judgements file gives (``montecarlo.live_judgements_sha``);
+    None when it agrees or the run declares none."""
+    declared = (scenario or {}).get("_judgements_applied_sha")
+    if not declared or not target:
+        return None
+    import montecarlo as _mc
+    live = _mc.live_judgements_sha(target["city"], target["year"], scenario)
+    if live != declared:
+        return (f"declares strength judgements {declared} but the live "
+                f"judgements file gives {live}: a judgement was edited after "
+                f"the run")
+    return None
+
+
 def _json_rows(live_keys: dict, processed: Path) -> list[Row]:
     """Run outputs and scoreboards, each checked against what it embeds."""
     out = []
@@ -462,6 +478,14 @@ def _json_rows(live_keys: dict, processed: Path) -> list[Row]:
                               else UNDECLARED)
         if lie:
             r.notes.append(lie)
+        # THE STRENGTH JUDGEMENTS ARE AN INPUT THE SPEC NO LONGER COVERS (design
+        # 1j v3 addendum §2): they are read at run time and excluded from the
+        # spec's hash, so the forecast declares the hash of the entries it
+        # applied and it is checked against the live file here.
+        jlie = judgements_lie(sc, d.get("_target"))
+        if jlie:
+            r.states["inputs"] = LYING
+            r.notes.append(jlie)
         out.append(r)
 
     # --- the other run-shaped artefacts the first scan did not see ----------
@@ -686,9 +710,12 @@ def _record_files() -> list[tuple[str, object, str]]:
     """
     import byelections as _by
     import pools as _pl
+    import montecarlo as _mc
     return [(_pl.GROUP_SHARE_RECORD, _group_share_key,
              "src/group_share_record.py --emit"),
-            (_by.BYE_VALUE, _bye_value_key, "src/bye_value.py --emit")]
+            (_by.BYE_VALUE, _bye_value_key, "src/bye_value.py --emit"),
+            (_mc.WIDTH_RECORD, _mc.width_record_key,
+             "src/width_record.py --emit")]
 
 
 def _record_rows(processed: Path) -> list[Row]:

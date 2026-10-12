@@ -569,6 +569,16 @@ NOT_FITTED: dict[str, str] = {
                           "§1.136), so the same selection-by-confirmation "
                           "question `dirichlet_scale` carries applies to the "
                           "SWITCH; the mechanism behind it reads no result",
+    "draw_law": "WHICH draw law runs (design 1j v4-L1). A switch over "
+                "mechanisms; its value is the universal draw, whose widths "
+                "`src/width_record.py` fits for each target on strictly EARLIER "
+                "backtest cycles (2016 on 2011, 2021 on 2011-2016), so no width "
+                "reads its own target's result. The incumbent law is kept for "
+                "the round's arm I",
+    "apply_judgements": "whether strength judgements apply (design v3 §11). A "
+                        "switch; a backtest ignores every judgement whatever "
+                        "its value, because a judgement cannot be blind after "
+                        "the election",
     # --- and the two DEFAULTS keys that are already in FITTED_ON ------------
     # `pools` and `entrant_geography` are not here; they are instrumented.
 }

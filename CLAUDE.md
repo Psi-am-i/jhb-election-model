@@ -371,6 +371,12 @@ pool specs (`--out DIR` to build it elsewhere):
 
     .venv/bin/python src/bye_value.py --emit    # item 19's by-election weights
 
+And one imported by `tests/test_universal_draw.py`, run in a re-emit window
+after the pool specs, once per centre variant the round's arms need
+(`--out DIR` to build it elsewhere):
+
+    .venv/bin/python src/width_record.py --emit # the universal draw's widths
+
 ### Targeted modules per change; the SUITE once per commit
 
 * **iterating** — `-k` the modules your change reaches. `-x levers` is a large

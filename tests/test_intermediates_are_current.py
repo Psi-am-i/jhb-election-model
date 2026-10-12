@@ -53,6 +53,7 @@ by nothing. There is no way for an unwritten file to score as current.
 from __future__ import annotations
 
 import atexit
+import json
 import shutil
 import subprocess
 import sys
@@ -149,6 +150,12 @@ NOT_REGENERATED_HERE: dict[str, str] = {
         "artefact_key (declares.py, `record` kind; montecarlo refuses a stale "
         "one), and is regenerated and compared byte for byte by "
         "test_the_bye_value_record_is_a_fresh_build below.",
+    "width_record.json":
+        "src/width_record.py --emit (design 1j v4-L1): the universal draw's "
+        "width record. Carries an artefact_key (declares.py, `record` kind; "
+        "montecarlo.read_width_record refuses a stale one). Not rebuilt here: "
+        "it runs the model's estimation at every backtest city-year and the "
+        "drawer at each for its fixed point.",
     "citywide_*.json":
         "src/citywide_table.py — the browser engine's stand-in for "
         "levels._citywide_and_roster, recorded from a model run. Regenerated "
@@ -575,6 +582,65 @@ def test_the_scratch_root_really_was_purged():
         "files that no generator in this sweep produces are present in the "
         "scratch root, so the purge did not happen and 'identical' is "
         "trivially true for them:\n  " + "\n  ".join(leaked))
+
+
+def test_every_forecast_declares_the_strength_judgements_it_applied_truly():
+    """Design 1j v3 addendum §2 / prereg J2, on the live tree: every run output
+    under data/processed that declares a strength-judgement hash declares the
+    one the live judgements file gives (`declares.judgements_lie`). The
+    population is stated, because before the round's re-emit no summary
+    carries the field."""
+    import declares
+    summaries = sorted(PROCESSED.rglob("*summary.json"))
+    declaring = []
+    for p in summaries:
+        d = json.loads(p.read_text())
+        sc = d.get("scenario") or {}
+        if sc.get("_judgements_applied_sha"):
+            declaring.append(p)
+            assert declares.judgements_lie(sc, d.get("_target")) is None, p
+    print(f"  {len(declaring)} of {len(summaries)} run summaries declare a "
+          f"strength-judgement hash")
+
+
+def test_a_judgement_edited_after_a_run_is_reported_and_goes_quiet_reverted():
+    """Prereg J2: a constructed forecast summary declares the hash of a
+    scratch judgements file; editing `sigma_j` there makes `declares` report
+    the artefact `~` (LYING), and reverting the edit makes it quiet again."""
+    import os
+    import declares
+    import montecarlo as M
+    entry = ('[party.NEWP]\nsupport = 0.02\nsigma_j = {s}\n'
+             'register = "§SJ1"\n')
+    cwd = os.getcwd()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "judgements").mkdir()
+        jfile = root / "judgements" / "joburg-2026.toml"
+        jfile.write_text(entry.format(s=0.3))
+        os.chdir(root)
+        try:
+            sc = dict(M.DEFAULTS)
+            sc["_judgements_applied_sha"] = M.live_judgements_sha(
+                "joburg", "2026", sc)
+            proc = root / "processed"
+            proc.mkdir()
+            (proc / "forecast_summary.json").write_text(json.dumps({
+                "scenario": sc, "_target": {"city": "joburg", "year": "2026"},
+                "_generated": "2026-10-12T00:00:00Z", "_draws": 10}))
+            def state():
+                rows = [r for r in declares._json_rows(set(), proc)
+                        if r.path.endswith("forecast_summary.json")]
+                assert len(rows) == 1, rows
+                return rows[0].states.get("inputs"), rows[0].notes
+            assert state()[0] != declares.LYING, state()
+            jfile.write_text(entry.format(s=0.5))
+            st, notes = state()
+            assert st == declares.LYING and any("edited" in n for n in notes)
+            jfile.write_text(entry.format(s=0.3))
+            assert state()[0] != declares.LYING
+        finally:
+            os.chdir(cwd)
 
 
 if __name__ == "__main__":

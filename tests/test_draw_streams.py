@@ -293,7 +293,11 @@ def _small_run(draws: int, chunk: int | None = None):
         scenario = M.load_scenario(argparse.Namespace(
             config=None, set=[], draws=draws, seed=20261104,
             city="buffalocity", target="2021"))
-        return M.run_model(target, scenario, verbose=False)
+        # The shipped law (universal) with a FIXTURE width record: the wiring
+        # is the subject here, not the record's values, and the record file
+        # exists only after a re-emit window.
+        return M.run_model(target, scenario, verbose=False,
+                           width_override=dict(FIXTURE_RECORD))
     finally:
         M.STREAM_CHUNK = saved
 
@@ -345,11 +349,20 @@ def test_a_real_runs_keys_are_recorded_and_distinct():
             for stage, name in keys for kind in ("z", "u")}
     assert len(ents) == 2 * len(keys), "two stream keys share an entropy"
     stages = {stage for stage, _ in keys}
-    for need in ("turnout.common", "turnout.pool", "level.z", "level.chi",
-                 "split", "vd_turnout.blend", "vd_turnout.noise", "ward_noise"):
+    for need in ("turnout.common", "turnout.pool", "level.z",
+                 "vd_turnout.blend", "vd_turnout.noise", "ward_noise"):
         assert need in stages, f"the run read no {need} stream"
-    assert run.guards["gamma_draws"] > 0
-    assert 0 <= run.guards["gamma_fallbacks"] <= run.guards["gamma_draws"]
+    # The universal law draws no gamma (no Dirichlet, a normal own term), so
+    # the count is zero; what it reads instead is the shared factor and the
+    # calibration pass's own streams.
+    assert run.guards["gamma_draws"] == 0 == run.guards["gamma_fallbacks"]
+    assert "level.shared" in stages and "calib.level.z" in stages
+    assert "split" not in stages and "level.chi" not in stages
+    # the universal draw's own board, on a real city-year (fixture widths)
+    g = run.guards
+    assert g["kappa_error"] and max(g["kappa_error"].values()) < M.KAPPA_TOL
+    assert set(g["width"]) == set(g["kappa_error"])
+    assert g["mean_error"]["parties"] == len(g["mean_error"]["z"]) > 0
 
 
 # --------------------------------------------------------------------------
@@ -408,13 +421,29 @@ POOL2 = ("D", "E", "F", "G")
 PARTIES = ("A", "B", "C", "D", "E", "F", "G")
 
 
-def base_spec(with_entrant: bool = False, tie: bool = False):
-    """Two pools, seven parties (D in both), measured-width shocks."""
+# A constructed width record for the universal law: the shape of design v4
+# §1.1's 2026 fit, typed here as a fixture (not a measurement of anything).
+FIXTURE_RECORD = {"kind": "fit",
+                  "curve": {"a": 0.03, "b": 0.816, "log_mid": math.log(0.0856),
+                            "k": 2.57},
+                  "delta": 0.873, "location": {"c1": 0.342, "c2": 0.075},
+                  "rho": {"lo": 0.33, "hi": 0.11}}
+
+
+def base_spec(with_entrant: bool = False, tie: bool = False,
+              law: str = "incumbent"):
+    """Two pools, seven parties (D in both), measured-width shocks.
+
+    ``law`` selects the draw law. The 1c pairing tests run on the incumbent
+    law (the streams are the subject); the same arms under the universal law
+    run with :data:`FIXTURE_RECORD`."""
     pools = {
-        "P1": {"members": {"A": 1.0, "B": 1.0, "C": 1.0, "D": 0.5},
+        "P1": {"members": {"A": 1.0, "B": 1.0, "C": 1.0, "D": 0.5,
+                           "E": 0.05, "F": 0.05, "G": 0.05},
                "registered": 600000.0, "turnout": [0.45, 0.55, 0.65],
                "alpha": 60.0},
-        "P2": {"members": {"D": 0.5, "E": 1.0, "F": 1.0, "G": 1.0},
+        "P2": {"members": {"A": 0.05, "B": 0.05, "C": 0.05, "D": 0.5,
+                           "E": 1.0, "F": 1.0, "G": 1.0},
                "registered": 400000.0, "turnout": [0.40, 0.50, 0.62],
                "alpha": 40.0},
     }
@@ -424,12 +453,20 @@ def base_spec(with_entrant: bool = False, tie: bool = False):
                        "alpha": 10.0}
         pools["P2"]["tie"] = "T"
         pools["P3"]["tie"] = "T"
-    centres = {"A": 0.30, "B": 0.12, "C": 0.05, "D": 0.08,
-               "E": 0.25, "F": 0.15, "G": 0.05}
+    # Centres consistent with the pools' capacities (P1 casts 62% of the
+    # votes at modal turnout, P2 38%; D is half in each), so the per-draw
+    # balance is feasible at the centre and the fixture tests the draw rather
+    # than the partial-balance fallback.
+    centres = {"A": 0.35, "B": 0.15, "C": 0.07, "D": 0.10,
+               "E": 0.18, "F": 0.09, "G": 0.06}
     sc = copy.deepcopy(M.DEFAULTS)
     sc["pools"] = pools
     sc["_theta_sd"] = {p: 0.3 for p in PARTIES + ("X",)}
     sc["entrant_prob"] = 0.25 if with_entrant else 0.0
+    sc["draw_law"] = law
+    sc["_width"] = dict(FIXTURE_RECORD)
+    sc["_new_parties"] = []
+    sc["_strength_applied"] = []
     index = {p: i for i, p in enumerate(PARTIES)}
     if with_entrant:
         index["ENTRANT"] = len(index)
@@ -455,10 +492,17 @@ def implied_keys(sc, index) -> set:
     keys |= {("turnout.pool", c.get("tie") or n) for n, c in spec_pools.items()}
     ipf = {p for c in spec_pools.values() for p in c["members"] if p in index}
     indiv = {p for p in index if p not in ipf and p != "ENTRANT"}
-    for p in ipf | indiv:
-        keys |= {("level.z", p), ("level.chi", p)}
-    keys |= {("split", f"{n}|{p}") for n, c in spec_pools.items()
-             for p, w in c["members"].items() if p in index and float(w) > 0}
+    if sc.get("draw_law", "universal") == "universal":
+        # One latent draw per party plus the shared factor; no gamma, no
+        # split; and the calibration pass's own streams (design v1 §1.6).
+        run = set(keys) | {("level.shared", "")}
+        run |= {("level.z", p) for p in ipf | indiv}
+        keys = run | {("calib." + st, nm) for st, nm in run}
+    else:
+        for p in ipf | indiv:
+            keys |= {("level.z", p), ("level.chi", p)}
+        keys |= {("split", f"{n}|{p}") for n, c in spec_pools.items()
+                 for p, w in c["members"].items() if p in index and float(w) > 0}
     if "ENTRANT" in index:
         keys |= {("entrant.gate", "ENTRANT"), ("entrant.share", "ENTRANT")}
     return keys
@@ -608,8 +652,8 @@ def test_a_dirichlet_shape_crossing_one_stays_paired():
     sc0 = copy.deepcopy(sc0)
     sc0["pools"]["P1"]["alpha"] = 20.0
     sc0["_theta_sd"] = {p: 0.0 for p in PARTIES}   # isolate the split
-    c0 = dict(c0, C=0.025)
-    c1 = dict(c0, C=0.0275)
+    c0 = dict(c0, C=0.030)
+    c1 = dict(c0, C=0.0315)
     sb, _, db = run_arm(sc0, c0, i0)
     sa, _, da = run_arm(sc0, c1, i0)
     # the member's shape is moved*alpha: read it off the drawer's own spec
@@ -636,6 +680,29 @@ def test_a_tie_keyed_by_its_label_survives_losing_a_member_pool():
     assert ("turnout.pool", "T") in sb.keys and ("turnout.pool", "T") in sa.keys
     assert np.array_equal(np.array(sb.rows[("z", "turnout.pool", "T")]),
                           np.array(sa.rows[("z", "turnout.pool", "T")]))
+
+
+def test_the_universal_law_pairs_the_same_arms():
+    """V3 arms (i) at 1% and (iii) under the universal law (design 1j v4-L1)
+    with the fixture record: the population is the one the spec implies (no
+    gamma, no split, the calibration streams), the primitives are
+    bit-identical, and the unchanged parties' drawn shares meet the
+    pre-registered thresholds (prereg §6.3, V3.4)."""
+    sc0, c0, i0 = base_spec(law="universal")
+    sb, ob, db = run_arm(sc0, c0, i0)
+    sc1, c1, _ = base_spec(law="universal")
+    sc1["pools"]["P1"]["members"]["X"] = 1.0
+    c1["X"] = 0.01
+    i1 = {p: k for k, p in enumerate(PARTIES + ("X",))}
+    sa, oa, da = run_arm(sc1, c1, i1)
+    _assert_population_and_primitives(sb, sa, sc0, i0, sc1, i1)
+    assert not any(st == "split" or st.endswith("level.chi") for st, _ in sb.keys)
+    cs = _corr_unchanged(ob, oa, i0, i1)
+    assert np.median(cs) >= 0.99 and cs.min() >= 0.95, cs
+    c2 = dict(c0, B=c0["B"] * 1.2)
+    sa2, oa2, _ = run_arm(sc0, c2, i0)
+    _assert_population_and_primitives(sb, sa2, sc0, i0, sc0, i0)
+    assert np.median(_corr_unchanged(ob, oa2, i0, i0, skip=("B",))) >= 0.99
 
 
 def test_make_drawer_refuses_a_shared_generator():

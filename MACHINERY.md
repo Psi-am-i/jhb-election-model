@@ -1174,7 +1174,68 @@ Every one of these is listed with its evidence, its status and how to check it
 in **`JUDGEMENT-CALLS.md`**, which is the register; this is the map. The
 backtest prints an in-sample banner naming the ones a run actually consumed.
 
-## Where the forecast's width comes from
+## The universal draw: one log-scale draw for every party (2026-10-12)
+
+**The shipped draw law** (`draw_law = "universal"`; design
+`audits/2026-10-11-model-round/step1/1j-universal-draw-design-v4.md` with its
+addendum, option L1; owner 2026-10-12). It replaces the incumbent law's two
+sources of a party's spread, a level shock at `level_shock_sd` and the
+within-pool Dirichlet split, with ONE draw per party. The incumbent law stays
+selectable (`draw_law = "incumbent"`) so the round's arm I exists; the section
+below this one describes it.
+
+**The draw** (`montecarlo.make_drawer`). Every drawn party gets a latent log
+level `x = √ρ(s)·σ(s)·z + ω·ε`, `z` the run's one shared normal (stream
+`level.shared`) and `ε` the party's own (`level.z`), with
+`ω² = σ(s)²(1 − ρ(s)) + δ²·new − v_comp` floored at zero. The shares are
+`c·exp(κ + x)` normalised, where `c` is the party's `pool_spec` centre
+(`montecarlo.pool_spec_centres`: the post-IPF proportions weighted by pool
+votes at modal turnout). The pooled block then goes through the capacity
+water-fill and the per-draw balance exactly as the incumbent's shocked centres
+did; each pool's split is the balanced proportion itself: no Dirichlet, no mean
+floor. `v_comp` is what pool turnout alone puts into a party's share through
+the group mix, measured on the run's own turnout draws and SUBTRACTED, because
+the record's residuals already contain differential turnout (the excess is
+`41_guards.width_floored`). κ is set by a CALIBRATION PASS before the run's
+draws: `N_CAL` draws through the same code on the `calib.*` streams, κ moved
+until every party's mean drawn share equals `c`; it records nothing and counts
+nothing (`41_guards.kappa_error`). The run's own mean is then tested against
+`c` per party (`41_guards.mean_error`, design v2 §1.2): it reports, it does not
+refuse.
+
+**The width** (`src/width_record.py`, `data/processed/width_record.json`).
+Per target, from strictly earlier backtest cycles, one smooth curve
+`σ(s) = a + (b − a)/(1 + exp(k(log s − log s_mid)))` over every party-election,
+one newness term δ for every party new to the city, and a location curve
+`m(s)` fitted jointly by weighted ML (one unit per party-cycle), on residuals
+measured about the `pool_spec` centres the model itself builds
+(`run_model(stop_after="drawer_inputs")`), relative to the large block. The
+location is the centres' size-related error: fitting it keeps it out of the
+width, and under option L1 it is NOT carried in the draw; it is recorded for
+the centre-correction arm. ρ(s) is the shared share of variance by size group
+(one-way city-year decomposition). A location fixed point subtracts the draw's
+own model-internal location and re-fits. 2011 has no earlier cycle and takes a
+labelled, untestable fallback. `make_drawer` refuses a missing record, a stale
+one (`montecarlo.width_record_key`) or one built for other centres (the
+variant: `level_shrink` and its scale). Every value is in the record, not here;
+the judgement calls are JUDGEMENT-CALLS §A57.
+
+**Strength judgements** (JUDGEMENT-CALLS §SJ, design v3 §11). A party the
+record cannot size takes a judged centre (`support`, `overperform`) that
+replaces its centre before `pool_spec`, and a judged width `sigma_j` that
+replaces its newness term, read at run time from `judgements/`. A backtest
+ignores them and records that it did (`35_widths.judgements_ignored`); a
+forecast declares the hash of the entries it applied
+(`scenario._judgements_applied_sha`), which `declares.py --verify` checks
+against the live file.
+
+**The trace.** `35_widths`: the law, the record used, and per party the centre,
+σ, δ, ρ, the shared and own sds, `v_comp`, the floored excess, κ, and whether
+it was new or judged; the judgements applied and ignored, and their hash.
+
+## Where the forecast's width comes from (the incumbent law)
+
+**Since 2026-10-12 this describes `draw_law = "incumbent"` only** (above).
 
 Measured by ablation, Johannesburg 2021, five seeds (`src/width_budget.py`).
 Share of drawn variance in each party's citywide PR share that disappears when

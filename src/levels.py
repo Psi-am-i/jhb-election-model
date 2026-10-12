@@ -935,7 +935,9 @@ def size_sd(size: float, sd_fit: dict) -> float:
     """The size group's width (the RANGE of BRIEF item 17), clamped to
     ``[SD_FLOOR, SD_CEILING]``. One definition: :func:`theta_prior` gives every
     party with a baseline this width, and ``montecarlo.level_shock_sd`` gives
-    it to a party with no record of its own, at its own size."""
+    it to a party with no record of its own, at its own size. Since 2026-10-12
+    that reaches the draw only under ``draw_law = "incumbent"``: the universal
+    draw's widths come from the width record (``src/width_record.py``)."""
     return float(np.clip(size_sd_raw(size, sd_fit), SD_FLOOR, SD_CEILING))
 
 
