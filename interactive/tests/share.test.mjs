@@ -525,6 +525,23 @@ function fakeEnv({ seats = true, key = KEY, answer = null } = {}) {
   } };
 }
 
+test("every badge word in reweight.BOLDNESS draws the owner's stamp on the edge's card, with a call and with none", async () => {
+  EDGE.forgetPageData();
+  const words = JSON.parse(execFileSync(PY, ["-c", "import sys, json; sys.path.insert(0, 'src'); import reweight; print(json.dumps([w for _, w in reweight.BOLDNESS]))"],
+    { cwd: repo, encoding: "utf8" }));
+  assert.equal(words.length, 5);
+  const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA, n: "Thandi" }).toString();
+  const none = { party: null, seats: null, prediction: null, p: 1, text: "over 99%" };
+  for (const word of words) {
+    for (const boldest of [FIXTURE.A.answer.outcome.boldest, none]) {
+      const answer = a => ({ ...a, outcome: { ...a.outcome, badge: word, boldest } });
+      const svg = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), fakeEnv({ answer }).env, "link")).svg;
+      const stamp = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(word)), "utf8"));
+      assert.ok(svg.includes(SC.prefixIds(stamp.body, "lb")), word + (boldest.party ? " with a call" : " with no call") + ": the stamp");
+    }
+  }
+});
+
 test("the edge draws a card only from an answer measured from the published prediction", async () => {
   EDGE.forgetPageData();
   const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA, n: "Thandi" }).toString();
