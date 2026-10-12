@@ -56,3 +56,8 @@ export · 10 site UAT, promote, then redeploy joburg-seats.
   width curve over all sizes fitted to every party-election, newness as one
   term in it, judged on whole-election measures; judgement entry an optional
   overlay only.
+- 2026-10-12, owner checkpoint: adopt design v4 with option L1 (step1/1j-universal-
+  draw-design-v4.md + v4-addendum), plus a paired arm that corrects small parties'
+  centres by the size bias the joint fit measures from earlier elections
+  (estimation, out of sample). Census: the identification hold (cap). Next: step 4
+  (pre-registration and the ultra-review brief, both before code), then step 5.
