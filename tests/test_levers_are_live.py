@@ -355,6 +355,19 @@ _INCUMBENT_ONLY = (
     "pre-registration's arm I; the `CONDITIONAL` entries measure them there.")
 
 EXPECTED_INERT: dict[tuple[str, str], Null] = {
+    **{("arrival_group_draw", year): Null(
+        cause="UNDELIVERED",
+        where="`make_drawer`: under draw_law='universal' the switch REFUSES "
+              "(SystemExit), since the arrival group's Dirichlet would widen "
+              "arrivals on top of the newness term δ; it runs only under "
+              "draw_law='incumbent'",
+        blocker="SWITCH", gate_check="incumbent_law_shipped_off",
+        evidence="DEFAULTS draw_law is 'universal'; the refusal is asserted by "
+                 "`_sweep_target` (REFUSED_UNDER_SHIPPED_LAW) with no model "
+                 "result read; measured open in CONDITIONAL",
+        reason="the arrival-group mechanism belongs to the incumbent law "
+               "(step-6 review item 5, 2026-10-12); " + _INCUMBENT_ONLY)
+       for year in ("2021", "2026")},
     **{(lever, year): Null(
         cause="UNDELIVERED",
         where="`make_drawer`: the Dirichlet split runs only under "
@@ -1190,6 +1203,16 @@ def _sweep_paired(year: str, base) -> list[str]:
     return dead
 
 
+# Levers whose perturbation the SHIPPED draw law refuses (step-6 review, item
+# 5). Each is excused in EXPECTED_INERT under the incumbent-law gate and
+# measured open in CONDITIONAL.
+REFUSED_UNDER_SHIPPED_LAW = {
+    "arrival_group_draw": "the arrival group's Dirichlet on top of the "
+                          "universal draw's newness term would widen arrivals "
+                          "twice (`make_drawer`)",
+}
+
+
 def _sweep_target(year: str) -> list[str]:
     base = _base(year)
     dead = _sweep_paired(year, base)
@@ -1198,7 +1221,23 @@ def _sweep_target(year: str) -> list[str]:
     # It then falls back to storing the raw STRING, and the model gets a
     # str where it expects a mapping — which is an AttributeError deep in
     # run_model rather than a clear failure here.
-    keys = [k for k, _v in sorted(PERTURB.items()) if k in M.DEFAULTS]
+    keys = [k for k, _v in sorted(PERTURB.items())
+            if k in M.DEFAULTS and k not in REFUSED_UNDER_SHIPPED_LAW]
+    # A key the shipped law REFUSES is not measured here: its perturbation
+    # must stop the run, and does or the refusal is gone. It is measured open
+    # under its own law by `CONDITIONAL`.
+    for key in sorted(REFUSED_UNDER_SHIPPED_LAW):
+        try:
+            _run(year, [f"{key}={json.dumps(PERTURB[key])}"])
+        except SystemExit as refusal:
+            # THE REFUSAL, not any SystemExit: a stale spec stops the run too,
+            # and would pass this check while the refusal was gone.
+            if f"{key} is on under draw_law" in str(refusal):
+                continue
+            raise
+        dead.append(f"{key} at {year}: the shipped draw law "
+                    f"{M.DEFAULTS['draw_law']!r} no longer refuses it — "
+                    f"{REFUSED_UNDER_SHIPPED_LAW[key]}")
     jobs = [(year, [f"{k}={json.dumps(PERTURB[k])}"], RESOLUTION.get((k, year)))
             for k in keys]
     results = _run_many(jobs)
@@ -1387,7 +1426,7 @@ def _gate_arrivals_are_named(year: str) -> tuple[bool, str]:
 def _gate_incumbent_law_shipped_off(year: str) -> tuple[bool, str]:
     """The shipped draw law is "universal", so the incumbent law's own levers
     (`dirichlet_floor`, `dirichlet_scale`: the within-pool Dirichlet) are read
-    by no run at any target. A claim about the configuration, true until the
+    by no run at any target, and `arrival_group_draw` is refused there. A claim about the configuration, true until the
     default changes."""
     shipped = M.DEFAULTS["draw_law"]
     return shipped == "universal", (
@@ -1513,6 +1552,13 @@ CONDITIONAL: dict[str, Conditional] = {
         why="the incumbent law's within-pool Dirichlet, measured where it runs "
             "(arm I of prereg/2026-10-12-universal-draw.md)")
        for lever in ("dirichlet_floor", "dirichlet_scale")
+       for year in ("2021", "2026")},
+    **{f"arrival_group_draw@{year}": Conditional(
+        key="arrival_group_draw", year=year, value=PERTURB["arrival_group_draw"],
+        opens="incumbent_law_shipped_off",
+        gate_scenario=(("draw_law", "incumbent"),),
+        why="the arrival-group draw, measured under the law it belongs to "
+            "(the universal law refuses it)")
        for year in ("2021", "2026")},
     "bye_local_cap@2026": Conditional(
         key="bye_local_cap", year="2026", value=40.0,

@@ -335,6 +335,31 @@ def test_a_converging_calibration_is_unchanged_by_the_cap():
     assert db.kappa_error == da.kappa_error
 
 
+def test_a_switch_of_one_law_refuses_under_the_other():
+    """Step-6 item 5: `centre_correction` under the incumbent law was ignored
+    in silence, and `arrival_group_draw` under the universal law drew the
+    arrival Dirichlet on top of δ. Each now stops the drawer with a sentence
+    naming the switch and the law; the same spec with the switch off, or
+    under its own law, draws."""
+    cases = [("incumbent", "centre_correction", True),
+             ("universal", "arrival_group_draw", True)]
+    for law, key, value in cases:
+        sc, c, i = base_spec(law=law)
+        sc[key] = value
+        try:
+            run_arm(sc, c, i, lot=f"refuse|{key}", draws=5)
+        except SystemExit as exc:
+            assert f"{key} is on under draw_law='{law}'" in str(exc), exc
+        else:
+            raise AssertionError(f"{key} under the {law} law was accepted")
+        sc[key] = False
+        _, out, _ = run_arm(sc, c, i, lot=f"refuse|{key}", draws=5)
+        assert out.shape == (5, len(PARTIES))
+    sc, c, i = base_spec(law="universal")
+    sc["centre_correction"] = True
+    run_arm(sc, c, i, lot="refuse|own-law", draws=5)
+
+
 def test_the_split_is_the_centre_and_alpha_is_never_read():
     """Under the universal law a pool's `alpha` reaches nothing: NaN it and
     every drawn number is unchanged (design v1 §6)."""

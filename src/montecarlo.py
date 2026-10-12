@@ -3833,6 +3833,25 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
     law = scenario.get("draw_law", DEFAULTS["draw_law"])
     if law not in DRAW_LAWS:
         raise SystemExit(f"draw_law {law!r} is not one of {DRAW_LAWS}")
+    # TWO SWITCHES THAT BELONG TO ONE LAW REFUSE UNDER THE OTHER (step-6
+    # review, item 5). Silently ignoring one is a run that claims a mechanism
+    # it did not apply; drawing both is a run whose width is counted twice.
+    if law == "incumbent" and scenario.get("centre_correction"):
+        raise SystemExit(
+            "centre_correction is on under draw_law='incumbent'. The "
+            "correction (prereg arm UC) moves the universal draw's `pool_spec` "
+            "centres by the width record's location; the incumbent law reads "
+            "neither, so the switch would be ignored and the run would be "
+            "labelled with a correction it never applied. Set draw_law="
+            "'universal' or centre_correction=false.")
+    if law == "universal" and scenario.get("arrival_group_draw"):
+        raise SystemExit(
+            "arrival_group_draw is on under draw_law='universal'. The arrival "
+            "group's lognormal total and Dirichlet split would be drawn on top "
+            "of the universal draw, whose newness term δ already carries an "
+            "arrival's width, so arrivals would be widened twice. The "
+            "mechanism belongs to the incumbent law: set draw_law='incumbent' "
+            "or arrival_group_draw=false.")
     note_value(scenario, "draw_law", law, where="montecarlo:make_drawer")
 
     individual = []

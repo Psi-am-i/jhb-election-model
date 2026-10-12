@@ -29347,3 +29347,20 @@ denominator, `kappa_converged` must be true and agree with `kappa_error`.
 non-convergence rule removed (the law test red); `gamma_draws` required
 non-zero under both laws, the rule this replaced (four tests red); reverted,
 green. The real-trace tests of that module stop on the stale specs, as before.
+
+### Two switches refuse under the law they do not belong to (item 5)
+
+`centre_correction = true` under `draw_law = "incumbent"` was ignored in
+silence, and `arrival_group_draw = true` under the universal law drew the
+arrival-group Dirichlet on top of the newness term δ. Both now stop
+`make_drawer` with a `SystemExit` naming the switch and the law. Test on the
+constructed spec: each refuses with that sentence, and draws with the switch
+off; the correction under its own law draws. Mutations: either refusal
+removed makes the test red; reverted, green. `tests/test_levers_are_live.py`:
+`arrival_group_draw` is excused at 2021 and 2026 under the
+`incumbent_law_shipped_off` gate, measured open with `draw_law = "incumbent"`
+(CONDITIONAL), and `_sweep_target` asserts that the shipped law refuses it
+(the refusal's own sentence, not any `SystemExit`, since a stale spec also
+stops a run). Those sweeps run the model and wait for the re-emit; the
+module's register tests pass. `faults_in_guards`' law-awareness is recorded
+under item 2.

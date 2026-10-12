@@ -1253,6 +1253,11 @@ exp(m(s)), m the target's record location (fitted on earlier cycles only, s
 clamped at 0.016%), and the vector is renormalised before the calibration pass,
 so the run conserves the corrected centres. Widths are still read at the
 uncorrected centre. The factors are in `35_widths.centre_correction`.
+Under `draw_law = "incumbent"` the switch REFUSES (`SystemExit`): that law
+reads no `pool_spec` centre and no width record, so the correction would be
+ignored. `arrival_group_draw` likewise refuses under the universal law: the
+group's Dirichlet would widen arrivals on top of the newness term δ; it runs
+only under the incumbent law.
 
 **Strength judgements** (JUDGEMENT-CALLS §SJ, design v3 §11). A party the
 record cannot size takes a judged centre (`support`, `overperform`) that
