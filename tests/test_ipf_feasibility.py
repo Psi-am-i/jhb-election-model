@@ -91,6 +91,12 @@ def build_inputs():
     cityconfig.use(CITY)
     M.apply_city(city)
     scenario = copy.deepcopy(M.DEFAULTS)
+    # THE INCUMBENT LAW (2026-10-12): the per-draw balance, its fallback
+    # counter and LEVEL_DF's reach are tested through the Student-t level
+    # shock, which only the incumbent law draws; `_balanced_props` is the one
+    # balance both laws call. The universal draw's run-level wiring is
+    # `test_draw_streams`.
+    scenario["draw_law"] = "incumbent"
 
     base_path = ELECTIONS / "npe2024_{CODE}_vd_party.csv"
     if not cityconfig.resolve_path(base_path).exists():
@@ -164,8 +170,8 @@ def draw_with_spy(draws: int = 200):
 
     M._balance = spy
     try:
-        rng = np.random.default_rng(SEED)
-        draw = M.make_drawer(scenario, base_city_d, centres, index, rng)
+        draw = M.make_drawer(scenario, base_city_d, centres, index,
+                             M.DrawStreams(f"ipf|2026|{SEED}", draws))
         for _ in range(draws):
             draw()
     finally:
@@ -248,8 +254,8 @@ def test_a_failed_balance_is_counted_and_reported_rather_than_passed():
 
     M._balance = always_raise
     try:
-        rng = np.random.default_rng(SEED)
-        draw = M.make_drawer(scenario, base_city_d, centres, index, rng)
+        draw = M.make_drawer(scenario, base_city_d, centres, index,
+                             M.DrawStreams(f"ipf|2026|{SEED}", 5))
         vectors = [draw() for _ in range(5)]
     finally:
         M._balance = real
@@ -282,8 +288,8 @@ def test_a_failed_balance_is_counted_and_reported_rather_than_passed():
         if partial is not None:
             M.partial_balance = partial
         try:
-            rng = np.random.default_rng(SEED)
-            return M.make_drawer(scenario, base_city_d, centres, index, rng)()
+            return M.make_drawer(scenario, base_city_d, centres, index,
+                                 M.DrawStreams(f"ipf|2026|{SEED}", 1))()
         finally:
             M._balance = real
             M.partial_balance = real_partial
@@ -362,24 +368,30 @@ def test_level_df_reaches_the_draw():
     """
     original = M.LEVEL_DF
     try:
+        # `log_shock` takes df as a REQUIRED argument (design 1c §2.4): the
+        # gamma's shape and the t's scale must use one value, so the drawer
+        # resolves LEVEL_DF once per draw and passes it to both. The unit
+        # half of this test is therefore that df reaches the transform; the
+        # §1.33 half (the constant read at call time) is the drawer half below.
         sd = np.full(6, 0.30)
-        M.LEVEL_DF = 2.5
-        heavy = M.log_shock(np.random.default_rng(11), sd)
-        M.LEVEL_DF = 1000.0
-        light = M.log_shock(np.random.default_rng(11), sd)
+        st = M.DrawStreams("leveldf|unit|11", 1)
+        names = tuple(f"p{i}" for i in range(6))
+        z = st.stacked_normals("level.z", names, 0)[:, 0]
+        heavy = M.log_shock(sd, z, st.log_gamma("level.chi.a", names,
+                                                np.full(6, 1.25), 0), 2.5)
+        light = M.log_shock(sd, z, st.log_gamma("level.chi.b", names,
+                                                np.full(6, 500.0), 0), 1000.0)
         assert not np.allclose(heavy, light), (
-            "log_shock returned the same draws at LEVEL_DF 2.5 and 1000, which "
-            "differ by two orders of magnitude in tail weight. The constant is "
-            "captured in the signature default and frozen at import: resolve it "
-            "inside the function body instead. Every sweep of it until then "
-            "measured 7.0.")
+            "log_shock returned the same draws at df 2.5 and 1000, which "
+            "differ by two orders of magnitude in tail weight: df does not "
+            "reach the transform.")
 
         scenario, base_city_d, centres, index = build_inputs()
 
         def draw_at(df: float) -> np.ndarray:
             M.LEVEL_DF = df
-            rng = np.random.default_rng(SEED)
-            drawer = M.make_drawer(scenario, base_city_d, centres, index, rng)
+            drawer = M.make_drawer(scenario, base_city_d, centres, index,
+                                   M.DrawStreams(f"ipf|2026|{SEED}", 60))
             return np.array([drawer() for _ in range(60)])
 
         assert not np.allclose(draw_at(2.5), draw_at(1000.0)), (

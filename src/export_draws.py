@@ -305,9 +305,25 @@ def _run_law(rule: str, city_slug: str, year: str, draws: int, seed: int,
         "centres": centres,
         "bye_weight": bye_weight,
         "poll_paths": scenario.get("poll_paths", M.DEFAULTS["poll_paths"]),
+        # The hash of the strength judgements the run applied (an underscore
+        # key, so `config` above drops it): the manifest declares it.
+        "judgements_applied_sha": scenario.get("_judgements_applied_sha"),
         "model_file": str(Path(M.__file__).resolve()),
         "model_modules": model_closure(src),
     }
+
+
+def judgements_declaration(runs: dict[str, dict]) -> str | None:
+    """The one strength-judgement hash every law's run applied, for the
+    manifest's ``artefact_key``. REFUSES laws that disagree: the cells are
+    one scenario's judgements under four seat laws, and two hashes would
+    mean two inputs. None when no run declared one; ``declares`` then fails
+    a forecast manifest (step-6 review, item 3)."""
+    shas = {law: run.get("judgements_applied_sha") for law, run in runs.items()}
+    if len(set(shas.values())) > 1:
+        raise SystemExit(f"the seat laws ran with different strength "
+                         f"judgements: {shas}. Nothing was written.")
+    return next(iter(shas.values()), None)
 
 
 def _uint(array: np.ndarray) -> np.dtype:
@@ -573,6 +589,7 @@ def export(city_slug: str, year: str, draws: int, seed: int, out: Path,
         "env": freeze.resolved_switches(),
         "inputs": keys_before,
         "config": {law: runs[law]["config"] for law in laws},
+        "judgements_applied_sha": judgements_declaration(runs),
         "overrides": list(overrides),
         "time": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }

@@ -16,19 +16,22 @@ the live target as well as a backtest.
 
 Sources reachable as scenario keys are switched off through the scenario. Three
 are not -- the per-party level shock, the pool turnout copula and the within-pool
-Dirichlet -- and are removed by monkeypatch inside this harness. IT PATCHES
-NOTHING PERMANENTLY: every patch is restored in a `finally`, and the model is
-unchanged by importing or running this.
+Dirichlet -- and are removed by monkeypatch inside this harness: `log_shock`,
+`correlated_triangular` and `pool_split`, the named patch points of the keyed
+draw (design 1c §2.5). IT PATCHES NOTHING PERMANENTLY: every patch is restored
+in a `finally`, and the model is unchanged by importing or running this.
 
     .venv/bin/python src/width_budget.py --city joburg --year 2021 --draws 300
 
-READ THE NOISE FLOOR IT PRINTS BEFORE READING ANYTHING ELSE. Switching a source
-off also changes how many random numbers the draw consumes, so every later draw
-shifts too, and a single-seed ablation mixes "this source contributed variance"
-with "the stream moved". The first run of this harness duly reported NEGATIVE
-contributions for ward noise -- removing a noise source appearing to make the
-forecast wider, which is impossible and was the giveaway. It now averages over
-five seeds and prints the full model's own seed-to-seed spread as the floor.
+READ THE NOISE FLOOR IT PRINTS BEFORE READING ANYTHING ELSE. Before the keyed
+streams (design 1c), switching a source off changed how many random numbers the
+draw consumed, so every later draw shifted too, and a single-seed ablation mixed
+"this source contributed variance" with "the stream moved" (the first run here
+reported NEGATIVE contributions for ward noise). Every source now reads its own
+keyed stream, so an ablation leaves the others' primitives bit-identical and
+the arms are paired. That is argued from the stream design, not re-measured
+here: the five-seed average and the printed floor are kept until a paired
+re-measurement shows the floor has fallen.
 """
 import argparse
 import json
@@ -47,29 +50,28 @@ DATA = REPO / "data/raw/elections"
 
 
 def run(city, year, draws, overrides, patches=(), seed=20261104):
-    import numpy.random as _npr
-    saved, saved_dir = {}, None
+    saved = {}
     for name, fn in patches:
-        if name == "__dirichlet__":
-            saved_dir = np.random.default_rng
-            np.random.default_rng = lambda *ar, **kw: _MeanDirichletRNG(
-                saved_dir(*ar, **kw))
-        else:
-            saved[name] = getattr(M, name)
-            setattr(M, name, fn)
+        saved[name] = getattr(M, name)
+        setattr(M, name, fn)
     try:
         c = cityconfig.use(city)
         t = cityconfig.use_target(year)
         M.apply_city(c)
+        # THE INCUMBENT LAW, explicitly (2026-10-12). Every arm below removes
+        # a source of the INCUMBENT draw (its level shock, its Dirichlet
+        # split); under the shipped universal law those sources do not exist
+        # and the arms would report zero contributions from mechanisms that
+        # never ran (ITERATING rule 6). The universal draw's own arms (shared
+        # factor off, own term off, calibration off; design 1j v1 §6) are not
+        # built here.
         sc = M.load_scenario(argparse.Namespace(
-            config=None, set=list(overrides), draws=draws, seed=seed,
-            city=city, target=year))
+            config=None, set=["draw_law=incumbent", *overrides], draws=draws,
+            seed=seed, city=city, target=year))
         return M.run_model(t, sc, DATA, verbose=False)
     finally:
         for name, fn in saved.items():
             setattr(M, name, fn)
-        if saved_dir is not None:
-            np.random.default_rng = saved_dir
 
 
 def spread(run_obj, parties):
@@ -91,43 +93,34 @@ def spread(run_obj, parties):
     return out
 
 
-def _no_pool_turnout(rng, spec, z_common, rho):
+def _no_pool_turnout(z_own, spec, z_common, rho):
     """The pool turnout draw, removed: every pool takes its band's MODE.
 
     `spec` is the triangular (low, mode, high) that `pools.turnout_band`
     measured, so returning the mode keeps the level and removes the spread.
+    Same signature as `montecarlo.correlated_triangular`.
     """
     return float(spec[1])
 
 
-class _MeanDirichletRNG:
-    """A Generator proxy whose `dirichlet` returns the mean instead of a draw.
+def _mean_split(log_g, alpha):
+    """The within-pool Dirichlet, removed: every draw takes its MEAN.
 
-    numpy's Generator is an immutable extension type, so the method cannot be
-    patched on the class. Wrapping the instance and delegating everything else
-    keeps every other random stream identical -- which matters here, because
-    the whole difficulty of this measurement is that changing one source
-    perturbs the others through the stream.
+    Patched over `montecarlo.pool_split`, whose second argument is the
+    concentration vector the drawer would have drawn from. The keyed gammas
+    are still read, so every other stream is untouched.
     """
-
-    def __init__(self, inner):
-        object.__setattr__(self, "_inner", inner)
-
-    def __getattr__(self, name):
-        return getattr(object.__getattribute__(self, "_inner"), name)
-
-    def dirichlet(self, alpha, size=None):
-        a = np.asarray(alpha, dtype=float)
-        total = a.sum()
-        mean = a / total if total > 0 else np.full(a.shape, 1.0 / max(a.size, 1))
-        return mean if size is None else np.tile(mean, (size, 1))
+    a = np.asarray(alpha, dtype=float)
+    total = a.sum()
+    return a / total if total > 0 else np.full(a.shape, 1.0 / max(a.size, 1))
 
 
-def _no_shock(rng, sd, size=None, df=None):
-    """The level shock, removed: every draw takes the centre exactly."""
-    n = 1 if size is None else size
-    arr = np.ones(np.shape(sd) if np.ndim(sd) else (n,), dtype=float)
-    return arr if np.ndim(sd) or size is not None else 1.0
+def _no_shock(sd, z, log_chi, df):
+    """The level shock, removed: every draw takes the centre exactly.
+
+    Same signature as `montecarlo.log_shock`; ones in the shape of `z`.
+    """
+    return np.ones(np.shape(z), dtype=float)
 
 
 def main():
@@ -144,18 +137,12 @@ def main():
                     help="parties to budget (default: the run's own universe)")
     a = ap.parse_args()
 
-    import numpy.random as _npr
-    _real_dirichlet = _npr.Generator.dirichlet
-
-    class _PatchDirichlet:
-        """A context-manager-shaped pair, so `run`'s setattr loop can take it."""
-
     arms = [
         ("full model", [], ()),
         ("theta level shock off", [], (("log_shock", _no_shock),)),
         ("pool turnout copula off", [],
          (("correlated_triangular", _no_pool_turnout),)),
-        ("within-pool Dirichlet off", [], (("__dirichlet__", None),)),
+        ("within-pool Dirichlet off", [], (("pool_split", _mean_split),)),
         ("ward noise off", ["ward_noise_sd=0"], ()),
         ("per-VD turnout noise off", ["turnout_noise_sd=0"], ()),
         ("turnout blend jitter off", ["turnout_blend_jitter=0"], ()),
@@ -164,7 +151,7 @@ def main():
          ["ward_noise_sd=0", "turnout_noise_sd=0", "turnout_blend_jitter=0",
           "entrant_prob=0"],
          (("correlated_triangular", _no_pool_turnout),
-          ("__dirichlet__", None))),
+          ("pool_split", _mean_split))),
     ]
 
     # SEVERAL SEEDS PER ARM, and the reason is a defect in the obvious method.

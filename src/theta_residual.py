@@ -546,6 +546,13 @@ def nll_gauss(resid: float, width: float) -> float:
 def nll_t(resid: float, width: float, df: float | None = None) -> float:
     """Negative log density under the predictive `montecarlo.log_shock` DRAWS.
 
+    ⚠️ **SINCE 2026-10-12 THIS SCORES THE θ LAYER'S OWN PREDICTIVE LAW, which
+    reaches the draw only under `draw_law = "incumbent"`.** The shipped
+    universal draw takes its widths from the width record
+    (`src/width_record.py`, design 1j v4-L1), not from `theta_prior`'s sd, so
+    "the predictive draws" below describes the incumbent law (design 1j v2 §4,
+    review finding 11).
+
     **This is the score, and the Gaussian was the wrong member of the family.**
     `log_shock` returns ``exp(sd·√((df−2)/df)·t_df)`` with ``df = LEVEL_DF = 7``,
     so on the log scale the model's shock is Student-t with SCALE
@@ -805,6 +812,9 @@ def pit_table(codes=levels.METRO_CODES, df=None) -> dict:
     ``u = F_t(z)``, ``z = residual / (w·√((ν−2)/ν))``, the same scale
     `montecarlo.log_shock` draws through. A calibrated forecast gives
     ``mean(u) = 0.5``, ``var(u) = 1/12 = 0.0833``, and coverage at nominal.
+
+    (Under the shipped universal draw the θ width no longer reaches the draw;
+    this scores the θ layer's own predictive law, as `nll_t` does.)
 
     ``kappa_star`` is the single multiplier on every committed width that
     minimises the held-out NLL — the width the layer SHOULD have carried,

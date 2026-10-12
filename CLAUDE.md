@@ -371,6 +371,24 @@ pool specs (`--out DIR` to build it elsewhere):
 
     .venv/bin/python src/bye_value.py --emit    # item 19's by-election weights
 
+And one imported by `tests/test_universal_draw.py`, run in a re-emit window
+after the pool specs, once per centre variant the round's arms need
+(`--out DIR` to build it elsewhere):
+
+    .venv/bin/python src/width_record.py --emit # the universal draw's widths
+
+And one imported by `tests/test_plausibility.py`, which scores an arm's runs
+against the real record and writes under `data/processed/plausibility/`:
+
+    .venv/bin/python src/plausibility.py --runs DIR --label NAME
+
+And one imported by `tests/test_arms.py`, which runs the round's
+pre-registered arms in process into a directory outside `data/` and compares
+them (`POOLS-REEMIT-QUEUE.md` says when):
+
+    .venv/bin/python src/arms.py run --arm U --out DIR
+    .venv/bin/python src/arms.py compare --out DIR --a I --b U
+
 ### Targeted modules per change; the SUITE once per commit
 
 * **iterating** — `-k` the modules your change reaches. `-x levers` is a large

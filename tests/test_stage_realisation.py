@@ -114,6 +114,14 @@ GUARD_KEYS = frozenset({
     "solve_unreachable_parties",
     "solve_floor_injected_mean", "solve_floor_injected_worst",
     "solve_identity_hits",
+    # The keyed streams (design 1c; step2/2-review-1c finding 4).
+    "gamma_fallbacks", "gamma_draws", "stream_keys",
+    # The universal draw (design 1j v4-L1); empty under the incumbent law.
+    "kappa_error", "mean_error", "width", "width_floored",
+    # The law the board was drawn under, and the calibration pass's
+    # iterations and convergence (step-6 item 2): which counters must be live
+    # depends on the law (`LAW_DENOMINATOR_KEYS`).
+    "draw_law", "kappa_iters", "kappa_converged",
 })
 
 # Counters that are COUNTS OF DRAWS, and the denominator each is a fraction of.
@@ -135,6 +143,29 @@ GUARD_DENOMINATORS = {
 # declares no §3.5 ranges checks nobody, and an empty dict there is a fact,
 # not an unread board. `draws` took its place as the run-level denominator.
 GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls")
+
+# THE DENOMINATORS THAT DEPEND ON THE DRAW LAW (step-6 item 5). The incumbent
+# law draws gammas (`level.chi`, the within-pool split), so a zero
+# `gamma_draws` there is a board that counted nothing. The universal law draws
+# NO gamma by design, so there a non-zero `gamma_draws` is an incumbent path
+# leaking into the universal draw, and its own denominator is the calibration
+# pass (`kappa_iters`, at least one iteration).
+LAW_DENOMINATOR_KEYS = {"incumbent": ("gamma_draws",),
+                        "universal": ("kappa_iters",)}
+DRAW_LAWS = tuple(LAW_DENOMINATOR_KEYS)
+# Non-numeric board fields, checked by their own rules below.
+NON_COUNTER_KEYS = ("draw_law", "kappa_converged")
+
+# SCALAR counters and the scalar denominator each is a count out of. Kept apart
+# from `GUARD_DENOMINATORS`, whose counters are per-party tables. A gamma
+# fallback is a count of GAMMAS, not of draws, so its denominator is the run's
+# gamma count (step2/2-review-1c finding 4): a rate quoted against `draws`
+# would be the wrong population.
+SCALAR_GUARD_DENOMINATORS = {"gamma_fallbacks": "gamma_draws"}
+
+# Not counters and not party names: the (stage, name) pairs the run's keyed
+# streams read, as a sorted list of distinct two-string lists.
+STREAM_KEY_LISTS = ("stream_keys",)
 
 # Not counters: lists of party codes the run records (item 8, 2026-10-09).
 # `level_sd_default_parties` was the second until 2026-10-09, deleted with the
@@ -555,6 +586,63 @@ def faults_between_summary_and_detail(payload, pr, wd, seat_draws,
     return out
 
 
+def _law_faults(guards) -> list[str]:
+    """The law-dependent half of the board (step-6 items 2 and 5).
+
+    ``draw_law`` names the law. Under the INCUMBENT law ``gamma_draws`` is the
+    denominator and must be non-zero, and the universal law's fields are
+    empty: no κ error, no width, no calibration iteration, ``kappa_converged``
+    None. Under the UNIVERSAL law no gamma is drawn (``gamma_draws`` and
+    ``gamma_fallbacks`` zero), the calibration pass ran (``kappa_iters`` at
+    least one) and CONVERGED (``kappa_converged`` True, and every recorded
+    ``kappa_error`` below ``montecarlo.KAPPA_TOL``, so the flag and the
+    errors agree). A non-converged run is a fault on the board itself, not
+    only a refusal in the arm runner.
+    """
+    out: list[str] = []
+    law = guards.get("draw_law")
+    if law not in DRAW_LAWS:
+        return [f"41_guards.draw_law is {law!r}, not one of {DRAW_LAWS}: "
+                f"which counters must be live cannot be decided"]
+    for key in LAW_DENOMINATOR_KEYS[law]:
+        if key in guards and not guards[key]:
+            out.append(
+                f"41_guards.{key} is zero under the {law} law, so every rate "
+                f"taken against it is 0/0 and the whole board is unreadable. "
+                f"This is not a clean run; it is a run that counted nothing")
+    conv = guards.get("kappa_converged")
+    if law == "incumbent":
+        for key in ("kappa_error", "width", "width_floored"):
+            if guards.get(key):
+                out.append(f"41_guards.{key} is non-empty under the incumbent "
+                           f"law, which has no universal draw")
+        if guards.get("kappa_iters") or conv is not None:
+            out.append(f"41_guards: a calibration pass is recorded under the "
+                       f"incumbent law (kappa_iters "
+                       f"{guards.get('kappa_iters')!r}, kappa_converged "
+                       f"{conv!r})")
+        return out
+    for key in ("gamma_draws", "gamma_fallbacks"):
+        if guards.get(key):
+            out.append(f"41_guards.{key}={guards[key]} under the universal "
+                       f"law, which draws no gamma: an incumbent path reached "
+                       f"the universal draw")
+    if not guards.get("kappa_error"):
+        out.append("41_guards.kappa_error is empty under the universal law: "
+                   "the calibration pass measured no party")
+    if conv is not True:
+        out.append(f"41_guards.kappa_converged is {conv!r}: the calibration "
+                   f"pass did not bring every mean within KAPPA_TOL of its "
+                   f"centre, so this run does not conserve its centres")
+    errs = [v for v in (guards.get("kappa_error") or {}).values()
+            if isinstance(v, (int, float))]
+    if conv is True and errs and max(errs) >= M.KAPPA_TOL:
+        out.append(f"41_guards.kappa_converged is True but the largest "
+                   f"kappa_error is {max(errs)}, not below KAPPA_TOL "
+                   f"{M.KAPPA_TOL}: the flag and the errors disagree")
+    return out
+
+
 def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     """Complaints about a ``41_guards`` payload: twenty counters and their bounds.
 
@@ -592,6 +680,7 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                 f"41_guards.{key} is zero, so every rate taken against it is "
                 f"0/0 and the whole board is unreadable. This is not a clean "
                 f"run; it is a run that counted nothing")
+    out += _law_faults(guards)
 
     # The two NAME LISTS (item 8, 2026-10-09): sorted lists of party codes;
     # `roster_unrepresented` may instead be "not_checked" (no roster).
@@ -608,6 +697,37 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     for key, value in sorted(guards.items()):
         if key in NAME_LIST_KEYS or key == "group_share_tripwire":
             continue          # the tripwire is `faults_in_group_share`'s
+        if key in NON_COUNTER_KEYS:
+            continue          # `_law_faults`'s
+        if key == "mean_error":
+            if value in ({}, None):
+                continue
+            ok = (isinstance(value, dict)
+                  and {"z", "se", "threshold", "parties", "fired"} <= set(value)
+                  and isinstance(value["z"], dict)
+                  and set(value["fired"]) <= set(value["z"])
+                  and all(abs(value["z"][p]) > value["threshold"]
+                          for p in value["fired"])
+                  and not [p for p, z in value["z"].items()
+                           if abs(z) > value["threshold"]
+                           and p not in value["fired"]]
+                  and value["parties"] == len(value["z"]))
+            if not ok:
+                out.append("41_guards.mean_error is not a falsifier record: "
+                           "z, se, threshold, parties and fired must agree "
+                           "(every party beyond the threshold fired, no other)")
+            continue
+        if key in STREAM_KEY_LISTS:
+            ok = (isinstance(value, list)
+                  and all(isinstance(x, list) and len(x) == 2
+                          and all(isinstance(y, str) for y in x)
+                          for x in value)
+                  and value == sorted(value)
+                  and len({tuple(x) for x in value}) == len(value))
+            if not ok:
+                out.append(f"41_guards.{key} is not a sorted list of distinct "
+                           f"[stage, name] pairs")
+            continue
         if isinstance(value, dict):
             for party, n in value.items():
                 if not isinstance(n, (int, float)) or isinstance(n, bool):
@@ -646,6 +766,8 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
 
     _le("ipf_failures", "ipf_balances",
         "a balance cannot fail more often than it was attempted")
+    for _c, _d in SCALAR_GUARD_DENOMINATORS.items():
+        _le(_c, _d, "a gamma cannot fall back more often than gammas were drawn")
     _le("solve_nonconvergent", "solve_calls",
         "a solve cannot fail to converge more often than it ran")
     _le("solve_nonconvergent_reachable", "solve_nonconvergent",
@@ -990,8 +1112,11 @@ def healthy_draws_summary(pr, wd, seat_draws, wins=None):
     }
 
 
-def healthy_guards():
-    return {
+def healthy_guards(law: str = "universal"):
+    """A clean board under ``law``. The shipped law (universal) by default,
+    consistent with :func:`healthy_widths`: no gamma, a converged calibration
+    pass, widths and κ errors for the drawn parties."""
+    board = {
         "bounds_checked": {"AAA": DRAWS},
         "bounds_violations": {"AAA": 2},
         "bounds_base": {"AAA": 0.20, "BBB": 0.001},
@@ -1020,7 +1145,45 @@ def healthy_guards():
         "solve_floor_injected_mean": 1.4e-5,
         "solve_floor_injected_worst": 2.7e-5,
         "solve_identity_hits": 0,
+        "gamma_fallbacks": 0,
+        "gamma_draws": 0,
+        "kappa_error": {"AAA": 0.0004, "DDD": 0.0009},
+        "mean_error": {"z": {"AAA": 0.4, "DDD": -1.1}, "se": {"AAA": 0.02,
+                       "DDD": 0.03}, "threshold": 3.0, "parties": 2,
+                       "fired": []},
+        "width": {"AAA": 0.07, "DDD": 0.82},
+        "width_floored": {"AAA": 0.0026},
+        "stream_keys": [["calib.level.z", "AAA"], ["level.shared", ""],
+                        ["level.z", "AAA"], ["turnout.common", ""]],
+        "draw_law": "universal",
+        "kappa_iters": 3,
+        "kappa_converged": True,
     }
+    if law == "incumbent":
+        board.update(gamma_fallbacks=1, gamma_draws=40 * DRAWS,
+                     kappa_error={}, mean_error={}, width={},
+                     width_floored={}, draw_law="incumbent", kappa_iters=0,
+                     kappa_converged=None,
+                     stream_keys=[["level.chi", "AAA"], ["level.z", "AAA"],
+                                  ["turnout.common", ""]])
+    return board
+
+
+def healthy_widths():
+    """A universal-law width table: one party at its floor, one not."""
+    def row(sig, dl, rho, vc):
+        own2 = sig * sig * (1 - rho) + dl * dl - vc
+        return {"sigma": sig, "delta": dl, "rho": rho,
+                "total": math.sqrt(sig * sig + dl * dl),
+                "shared": math.sqrt(rho) * sig, "own": math.sqrt(max(own2, 0)),
+                "v_comp": vc, "floored": max(-own2, 0.0), "centre": 0.1,
+                "new": dl > 0, "judged": False, "kappa": -0.1}
+    return {"draw_law": "universal", "record": {"kind": "fit"},
+            "parties": {"AAA": row(0.05, 0.0, 0.0, 0.0055),
+                        "DDD": row(0.8, 0.87, 0.33, 0.001)},
+            "kappa_iters": 3, "kappa_converged": True, "individual_mass": 0.0,
+            "judgements_sha": "0" * 16,
+            "judgements_applied": [], "judgements_ignored": []}
 
 
 def healthy_delivery_log():
@@ -1050,7 +1213,8 @@ def healthy_votes(shares, total=100_000):
 def healthy_bundle() -> dict:
     """Every stage of the segment, constructed healthy, keyed by stage name."""
     pr, wd, seat_draws, summary = _payloads()
-    return {"40_draws": summary, "41_guards": healthy_guards(),
+    return {"35_widths": healthy_widths(),
+            "40_draws": summary, "41_guards": healthy_guards(),
             "42_pr_share_draws": pr, "43_ward_share_draws": wd,
             "42a_pr_vote_draws": healthy_votes(pr),
             "43a_ward_vote_draws": healthy_votes(wd),
@@ -1311,6 +1475,12 @@ def test_a_zero_denominator_makes_the_whole_board_unreadable():
         guards = dict(healthy_guards(), **{key: 0})
         faults = faults_in_guards(guards)
         assert any("unreadable" in f for f in faults), (key, faults)
+    for law, keys in LAW_DENOMINATOR_KEYS.items():
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+        for key in keys:
+            guards = dict(healthy_guards(law), **{key: 0})
+            faults = faults_in_guards(guards)
+            assert any("unreadable" in f for f in faults), (law, key, faults)
 
 
 def test_a_counter_above_its_own_denominator_is_caught():
@@ -1355,6 +1525,58 @@ def test_draws_ties_the_board_to_the_draws_and_bounds_checked_is_per_party():
     few = dict(healthy_guards(), bounds_checked={"AAA": 1})
     faults = faults_in_guards(few, draws=DRAWS)
     assert any("above its own denominator" in f for f in faults), faults
+
+
+def test_the_stream_board_is_checked_and_can_fire():
+    """The keyed streams' guards (design 1c): `stream_keys` must be a sorted
+    list of distinct [stage, name] pairs and `gamma_fallbacks` cannot exceed
+    `gamma_draws`, which must be non-zero. A healthy board is quiet; each
+    corruption fires; reverted, quiet again.
+    """
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    good = healthy_guards()["stream_keys"]
+    for bad in (list(reversed(good)), good + [good[0]], [["level.z"]],
+                [["level.z", 3]], "level.z"):
+        faults = faults_in_guards(dict(healthy_guards(), stream_keys=bad),
+                                  draws=DRAWS)
+        assert any("41_guards.stream_keys" in f for f in faults), bad
+    for law in DRAW_LAWS:
+        over = dict(healthy_guards(law), gamma_fallbacks=10 ** 9)
+        assert any("gamma_fallbacks" in f
+                   for f in faults_in_guards(over, draws=DRAWS)), law
+    zero = dict(healthy_guards("incumbent"), gamma_draws=0, gamma_fallbacks=0)
+    assert any("gamma_draws is zero" in f
+               for f in faults_in_guards(zero, draws=DRAWS))
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    assert not faults_in_guards(healthy_guards("incumbent"), draws=DRAWS)
+
+
+def test_the_board_is_read_under_its_own_law():
+    """Step-6 items 2 and 5: what must be live depends on the law. Each
+    corruption fires under the law it violates and the clean board of that
+    law is quiet before and after; the universal law's zero `gamma_draws` is
+    NOT a fault (it draws no gamma by design), and the incumbent's is.
+    """
+    cases = [
+        ("universal", {"gamma_draws": 40 * DRAWS}, "an incumbent path"),
+        ("universal", {"kappa_converged": False}, "did not bring every mean"),
+        ("universal", {"kappa_converged": None}, "did not bring every mean"),
+        ("universal", {"kappa_iters": 0}, "unreadable"),
+        ("universal", {"kappa_error": {}}, "measured no party"),
+        ("universal", {"kappa_error": {"AAA": 1.0}}, "disagree"),
+        ("incumbent", {"gamma_draws": 0, "gamma_fallbacks": 0}, "unreadable"),
+        ("incumbent", {"kappa_error": {"AAA": 0.0}}, "no universal draw"),
+        ("incumbent", {"kappa_converged": True}, "calibration pass is recorded"),
+        ("universal", {"draw_law": "other"}, "cannot be decided"),
+    ]
+    for law, change, says in cases:
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+        faults = faults_in_guards(dict(healthy_guards(law), **change),
+                                  draws=DRAWS)
+        assert any(says in f for f in faults), (law, change, faults)
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+    assert not faults_in_guards(dict(healthy_guards("universal"),
+                                     gamma_draws=0), draws=DRAWS)
 
 
 def test_the_two_name_lists_are_sorted_party_codes():
@@ -1668,7 +1890,57 @@ def test_eligible_parties_hands_the_allocator_a_set_ordered_dict():
 # stage payloads, so the real-trace test and the constructed ones call them the
 # same way.
 
+def faults_in_widths(payload, *, universe=None) -> list[str]:
+    """Complaints about a ``35_widths`` payload (design 1j v4-L1).
+
+    Per drawn party: σ ≥ 0, δ ≥ 0, ρ in [0, 1], total = √(σ² + δ²), the shared
+    loading = √ρ·σ, and the own term's square plus the composition variance
+    equals σ²(1 − ρ) + δ² up to the recorded floor (the own variance can only
+    be FLOORED at zero, and the floor is what `width_floored` carries). A
+    width that is not the sum of its parts was not computed by the rule its
+    trace names. Under the incumbent law ``parties`` is empty.
+    """
+    out: list[str] = []
+    if not isinstance(payload, dict) or "parties" not in payload:
+        return ["35_widths carries no `parties` table"]
+    if payload.get("draw_law") not in ("universal", "incumbent"):
+        out.append(f"35_widths.draw_law is {payload.get('draw_law')!r}")
+    parties = payload["parties"]
+    if payload.get("draw_law") == "universal" and not parties:
+        out.append("35_widths: the universal law drew no party")
+    if payload.get("draw_law") == "universal" and (
+            payload.get("kappa_converged") is not True
+            or not payload.get("kappa_iters")):
+        out.append(f"35_widths: the calibration pass did not converge "
+                   f"(kappa_converged {payload.get('kappa_converged')!r} after "
+                   f"{payload.get('kappa_iters')!r} iterations)")
+    for p, w in sorted(parties.items()):
+        try:
+            sig, dl, rho = float(w["sigma"]), float(w["delta"]), float(w["rho"])
+            tot, sh, own = float(w["total"]), float(w["shared"]), float(w["own"])
+            vc, fl = float(w["v_comp"]), float(w["floored"])
+        except (KeyError, TypeError, ValueError):
+            out.append(f"35_widths.{p} lacks a component")
+            continue
+        if sig < 0 or dl < 0 or not 0.0 <= rho <= 1.0:
+            out.append(f"35_widths.{p}: σ {sig}, δ {dl}, ρ {rho} out of range")
+        if abs(tot - math.sqrt(sig * sig + dl * dl)) > 1e-9:
+            out.append(f"35_widths.{p}: total {tot} is not √(σ² + δ²)")
+        if abs(sh - math.sqrt(rho) * sig) > 1e-9:
+            out.append(f"35_widths.{p}: shared loading {sh} is not √ρ·σ")
+        budget = sig * sig * (1.0 - rho) + dl * dl
+        if abs(own * own + vc - fl - budget) > 1e-9:
+            out.append(f"35_widths.{p}: own² + composition − floor "
+                       f"{own * own + vc - fl:.6g} is not σ²(1 − ρ) + δ² "
+                       f"{budget:.6g}")
+    if universe is not None and set(parties) - set(universe):
+        out.append(f"35_widths names parties outside the universe: "
+                   f"{sorted(set(parties) - set(universe))[:6]}")
+    return out
+
+
 ALL_PREDICATES = {
+    "faults_in_widths": faults_in_widths,
     "faults_in_share_matrix": faults_in_share_matrix,
     "faults_in_vote_matrix": faults_in_vote_matrix,
     "faults_between_votes_and_shares": faults_between_votes_and_shares,
@@ -1712,6 +1984,8 @@ def run_predicates(bundle: dict, *, universe=None, council=COUNCIL,
         bundle["43_ward_share_draws"], bundle["44_seat_draws"]))
     add("faults_in_guards", faults_in_guards(
         bundle["41_guards"], draws=draws, universe=universe))
+    add("faults_in_widths", faults_in_widths(
+        bundle["35_widths"], universe=universe))
     add("faults_in_group_share", faults_in_group_share(
         bundle["41_guards"], draws=draws, universe=universe, covered=covered))
     add("faults_in_delivery_log", faults_in_delivery_log(bundle["45_delivered"]))
@@ -1775,6 +2049,10 @@ CORRUPTIONS = [
     ("faults_in_seat_draws", "a chamber larger than the statute", _chamber_too_big),
     ("faults_between_summary_and_detail", "the marginal median stored as the mean", _median_as_mean),
     ("faults_in_guards", "a declared guard counter missing", _guard_key_dropped),
+    ("faults_in_widths", "an own term that is not the rest of the budget",
+     lambda b: b["35_widths"]["parties"]["DDD"].update(own=2.0)),
+    ("faults_in_widths", "a calibration pass that did not converge",
+     lambda b: b["35_widths"].update(kappa_converged=False)),
     ("faults_in_group_share", "a tripwire that scanned nothing", _tripwire_blind),
     ("faults_in_delivery_log", "an empty delivery log", _delivery_empty),
 ]
@@ -1907,7 +2185,7 @@ def real_trace():
 def test_the_realisation_segment_emits_every_stage_it_claims_to():
     payloads, _ = real_trace()
     written = set(payloads["_index"]["written"])
-    segment = {"40_draws", "41_guards", "42_pr_share_draws",
+    segment = {"35_widths", "40_draws", "41_guards", "42_pr_share_draws",
                "43_ward_share_draws", "42a_pr_vote_draws",
                "43a_ward_vote_draws", "44_seat_draws", "45_delivered"}
     assert segment <= written, (

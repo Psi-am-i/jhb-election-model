@@ -29210,3 +29210,258 @@ randomness goes. The 5% line is withdrawn. Pooling the many parties under 1%
 into a class may follow, after the universal draw is measured. Design and
 blind review under `audits/2026-10-11-model-round/`; nothing changes in code
 before the owner's checkpoint.
+
+## 1.298 Model round step 5: the code for the paired streams, the universal draw, the centre-correction switch, the census hold and the plausibility instrument (2026-10-12)
+
+One writer, serial, before the step-6 review and the step-7 re-emit
+(`audits/2026-10-11-model-round/PLAN.md`; prereg
+`prereg/2026-10-12-universal-draw.md`). No model run as a script, no
+`compare_history`, no emit, nothing written under `data/`. Every number
+below is a unit-level or `pool_counts`-level measurement on constructed
+inputs or on the raw files, not a forecast.
+
+### What landed, by commit
+
+| part | commit | what |
+|---|---|---|
+| 1 | `2e4ea79` | keyed draw streams (design 1c with every fix of `2-review-1c`): `montecarlo.DrawStreams`, the slot gamma boosted at every shape with a counted exact fallback, tie streams keyed by the declared label, `make_drawer(..., streams)`, `seats.stable_entropy` as the one key |
+| 2a | `975f2ed` | the universal draw (design 1j v4, option L1): `src/width_record.py`, the latent draw, calibration pass, composition subtraction, mean-conservation falsifier, `35_widths`, `draw_law` (incumbent kept for arm I), strength judgements read at run time and their declared hash |
+| 2b | `c00e001` | `pools.py`: the strength keys out of the emit and the spec hash (POOLS-REEMIT-QUEUE 34). Every spec stale until the re-emit |
+| 3 | `8c868d5` | `centre_correction` (prereg §3.3, arm UC), off by default |
+| 4 | `c2edc60` | the census hold: `REGISTRATION_MAX` deleted, the registration solve unbounded, a pool reaching under 25% of every ward held at the city's rate (`pools.registration_split`; JUDGEMENT-CALLS §L15). Arm C0's tree is this commit's parent, `8c868d5` |
+| 5 | `a59b7b6` | `src/plausibility.py` (design 1h §5) |
+
+### Measured at unit level
+
+* Samplers (prereg §6.1): every KS comparison at N = 200,000 per side
+  passes at D ≤ 0.00616; the power rows reject (`tests/test_draw_streams.py`).
+* Pairing on a constructed spec (prereg §6.3, V3.4): the pre-registered
+  thresholds hold for arms (i) at 0.1%, 1%, 5%, (ii), (iii), and under the
+  universal law for (i) at 1% and (iii). A Dirichlet shape crossing 1
+  stays paired above 0.99.
+* Prereg M2: 0 false alarms of the falsifier in 20 clean runs of the
+  constructed spec, and a ×1.2 mean error detected in 10 of 10.
+* The universal draw on one real city-year (Buffalo City 2021, a fixture
+  width record): the calibration converges below `KAPPA_TOL` for every
+  party, a 20-draw run is the prefix of a 40-draw run, chunk sizes 1, 7 and
+  256 give byte-identical draw arrays.
+* The census hold, `pools.pool_counts` in process at every metro and fitting
+  year, old code against new: Johannesburg moves 0.00pp at 2006-2021 and
+  holds nothing; the held set is the Indian/Asian pool only (Cape Town and
+  Mangaung at every year, Ekurhuleni 2006 and 2011, Nelson Mandela Bay
+  2006-2016, Buffalo City at every year); Cape Town's Indian/Asian share of the
+  registered roll is 2.68-2.93% at the four fitting years (moves of 5.1-7.0pp);
+  Mangaung's 0.61-0.68%. These are fitting-year compositions; prereg §8
+  scores K1-K7 on the emitted trees.
+
+### Mutation checks (each red with the mutation, green reverted)
+
+Prereg §6.4's nine: `level` keyed by column position; city and target dropped
+from the root key; one key for every stage; the entrant share drawn only when
+the gate passes; `pool_split` replaced by a Dirichlet; `stable_entropy` via
+`hash()`; the stacked block from one generator keyed by the names tuple; the
+drawer ignoring the passed `d` (red through the prefix test once the
+calibration pass also calls the drawer); the boost applied only below shape 1.
+Census: `upper=2.0` restored on the registration solve; the identification
+hold removed. Plausibility: the Poisson-binomial with p and 1−p swapped; the
+strict reference admitting the target's own cycle; the PIT not randomised.
+
+### Where the code departs from the designs, and why
+
+| design point | what the code does | reason |
+|---|---|---|
+| v1/v2 §6: delete `dirichlet_scale`, `dirichlet_floor`, the Dirichlet | kept, read only under `draw_law = "incumbent"`; registered gated nulls in `test_levers_are_live` | prereg §3.2 requires the incumbent law selectable for arm I, and the prereg is later |
+| prereg §3.2 names a `level.arrival` stream for U | not read | design v4's draw has no arrival factor (`uni4/v4.py` sets it to 0); the V3.1 population test expects exactly what the drawer reads |
+| 1c V3 item 3: pool-2 split gammas bit-identical in arm (i) | asserted near-identical (correlation) | 1c §2.6 point 2: the per-draw balance sets every member's shape from all centres jointly; primitives are bit-identical |
+| v1 §2.7 / brief: `ENTRY_POINTS` entry for `width_record.py` | named in CLAUDE.md §5 outside the no-importer block | `tests/test_universal_draw.py` imports it, and `test_standalone_modules` refuses an exemption for an imported module |
+| v3 §11: the strength section is "§J" | §SJ | §J is the census reprojection section |
+| 1b v3 fallback for 2011 quoted as 0.27 / 0.48 | the RMS of `theta_residual.residuals()` at 2006 by θ history, which reads 0.235 / 0.464 on today's code | the design names the quantity, not the statistic; the record carries the value |
+| UC: widths | read at the uncorrected centre | prereg "draw law as U"; this writer's reading, declared in §A57 |
+| v1 §6: new `width_budget` arms for the universal draw | not built; `width_budget` pinned to the incumbent law | its arms remove incumbent sources only |
+
+## 1.299 Model round step 6: the fixes from the diff review of step 5 (2026-10-12)
+
+One writer, serial, after the step-6 diff review of §1.298's code and before
+the step-7 re-emit. No model run as a script, no `compare_history`, no emit,
+nothing written under `data/`. The specs are stale (§1.298, part 2b), so every
+measurement below is on constructed inputs, on `pools.pool_counts` in process,
+or on the raw result files. Each item is its own commit; this section grows
+with them.
+
+### K7's population covers every fitting year (item 4)
+
+`tests/test_pool_bounds.py::test_the_held_registration_set_is_the_unidentifiable_indian_asian_pools`
+scanned a typed list of fitting years that omitted the earliest, while its
+docstring claimed every fitting city-year. The population is now derived
+(`_k7_population`: the declared backtest targets' and each city's forecast
+target's `previous_lge`) and the test asserts the scanned pairs equal it and
+contain every backtest fitting year. Measured in process: 32 fitting
+city-years; the held set is the Indian/Asian pool only, including the 2006
+fits of Buffalo City, Cape Town, Ekurhuleni, Mangaung and Nelson Mandela Bay,
+and no Johannesburg cell. Mutation: the population with the earliest year
+dropped is red ("a backtest fitting year was not scanned"); reverted, green.
+
+### The two joint counts, named apart (item 1)
+
+`src/plausibility.py` counted `J` over one tuple of eight features, `w_top`
+among them, and over whichever were present. The pre-registration registers U1
+(§5.2), §5.1 row 1 and §5.6 row 4 on seven features without `w_top`; only U3
+uses eight. The scorer now emits `J7_no_w_top` (`J7_FEATURES`) and
+`J8_with_w_top` (`J8_FEATURES`, the seven plus `w_top`) per target and per
+panel; no key named `J` remains. A count with a feature not judged at a target
+is marked `complete: false` with the feature named, and the panel aggregates
+complete counts only and lists the targets it left out (a run without ward
+winners used to turn the eight-feature count into a seven-feature one
+unmarked). Tests on constructed rows: a draw outside on `vol` and `w_top` alone
+gives J = 1 on the seven and 2 on the eight, and the real election likewise;
+a panel without ward winners scores the seven at every target and the eight at
+none. Mutations: `w_top` put back into the seven-feature tuple (both new tests
+red); `complete` forced true (the incompleteness test red); reverted, green.
+JUDGEMENT-CALLS §P4 names the two tuples.
+
+### The calibration pass never applies an unmeasured κ (item 2)
+
+After `KAPPA_MAX_ITER` iterations without convergence, `make_drawer` applied
+one more κ update that it never measured, so `kappa_error` and `calib_ratio`
+described the previous κ while the run drew with the next. The loop now stops
+at the κ it has just measured on the last permitted iteration and records
+`kappa_converged` (and `kappa_iters`; `35_widths.kappa_iterations` is renamed
+`kappa_iters`) in `35_widths` and `41_guards`, beside the board's `draw_law`.
+A converging run never reaches the new branch. Measured on the constructed
+two-pool spec: the drawn arrays, `kappa_iters` and `kappa_error` of the fixed
+code at `7f05b04` equal those of `27194df`'s `montecarlo.py` bit for bit at
+four seeds (a one-off comparison loading the old module; item 6 below then
+moves the last floating bit); the permanent test is that
+raising `KAPPA_MAX_ITER` to 10^6 changes no drawn number of a converging run.
+Non-convergence constructed (`KAPPA_TOL` 0, three iterations): the flag is
+false, the iterations are the cap, and the recorded error equals the error
+re-measured at the drawer's κ to the bit. Mutation: the trailing update
+restored makes that test red; reverted, green.
+
+The guard predicate of `tests/test_stage_realisation.py` reads the board under
+its own law (`faults_in_guards`, `_law_faults`; this is also item 5's
+`faults_in_guards` fix). Under the incumbent law `gamma_draws` must be
+non-zero and the universal fields empty; under the universal law no gamma may
+be drawn (a gamma there is an incumbent path leaking in), `kappa_iters` is the
+denominator, `kappa_converged` must be true and agree with `kappa_error`.
+`faults_in_widths` refuses an unconverged `35_widths`. Mutations: the
+non-convergence rule removed (the law test red); `gamma_draws` required
+non-zero under both laws, the rule this replaced (four tests red); reverted,
+green. The real-trace tests of that module stop on the stale specs, as before.
+
+### Two switches refuse under the law they do not belong to (item 5)
+
+`centre_correction = true` under `draw_law = "incumbent"` was ignored in
+silence, and `arrival_group_draw = true` under the universal law drew the
+arrival-group Dirichlet on top of the newness term δ. Both now stop
+`make_drawer` with a `SystemExit` naming the switch and the law. Test on the
+constructed spec: each refuses with that sentence, and draws with the switch
+off; the correction under its own law draws. Mutations: either refusal
+removed makes the test red; reverted, green. `tests/test_levers_are_live.py`:
+`arrival_group_draw` is excused at 2021 and 2026 under the
+`incumbent_law_shipped_off` gate, measured open with `draw_law = "incumbent"`
+(CONDITIONAL), and `_sweep_target` asserts that the shipped law refuses it
+(the refusal's own sentence, not any `SystemExit`, since a stale spec also
+stops a run). Those sweeps run the model and wait for the re-emit; the
+module's register tests pass. `faults_in_guards`' law-awareness is recorded
+under item 2.
+
+### The width-evaluation frame (item 6)
+
+Read in the code: `width_record.case_for` fits every width at
+`s = montecarlo.pool_spec_centres(spec)[p]`, the pool-spec centre over the
+pooled parties (it sums to one over them; `residual_rows` uses it unscaled).
+That is a pool-spec centre, not a whole-city vote share. The drawer read
+widths at `u_c`: that centre times (1 − the mass of individual-path parties),
+renormalised. The two agree when no drawn party is outside a pool, which
+`emit_pools` arranges for every emitted spec, and differ by that factor
+otherwise, where the record has no row for the outside party at all. The
+drawer now reads each pooled party's width at the record's own number
+(`35_widths.parties.*.centre_uncorrected`) and records the mass
+(`35_widths.individual_mass`); an individual-path party is read at its
+whole-city share. On the constructed spec with no outside party the change is
+in the last floating bit only (σ and drawn shares move by at most 2.2e-16
+against `27194df`, from dropping the renormalisation). Test: with and without
+an outside party, every pooled party's width is read at its
+`pool_spec_centres` value and its conserved share is that times
+(1 − mass). Mutation: the old frame (`u_s = u_c`) red; reverted, green.
+
+### The width record's key covers its inputs (item 7)
+
+`montecarlo.width_record_key` hashed code only, so a re-emit that changed the
+specs' centres with no code change (raw files, a judgements edit, a census
+change) left the record reading as current. The key now also carries
+`specs_sha` (every spec `width_record.record_specs` names: each metro of
+`compare_history.CITIES` at each cycle a target is fitted on, by file
+content, the spec's `artefact_key` included, an absent spec as a value),
+`judgements_sha` (the live `pools._judgements_sha` of those city-years) and
+`group_share_sha` (the group-share record's `artefact_key`). It is computed
+under the processed root the reader is given. Test under a scratch root: a
+record under the live key reads; a changed spec key, a changed group-share
+key and a vanished spec each refuse; each reverted, it reads. Mutations: the
+spec hash or the group-share hash replaced by a constant, red; reverted,
+green. A `--out DIR` record is keyed on the repository's specs, which it read.
+
+### The judgement declaration is required on a forecast (item 3)
+
+Only `forecast_summary.json` declared `_judgements_applied_sha`;
+`export_draws` built its manifest's `config` from `DEFAULTS` keys and dropped
+the underscore key; and `declares.judgements_lie` returned None when nothing
+was declared, so `test_every_forecast_declares…` passed with zero summaries
+declaring. Now: the manifest's `artefact_key` carries
+`judgements_applied_sha` (`export_draws.judgements_declaration`, which refuses
+seat laws that ran with different hashes); `judgements_lie` fails a forecast
+that declares nothing and a summary with no `_target`, and allows an absent
+declaration on a backtest only (`montecarlo.target_is_held`, now the one
+definition `strength_judgements` also uses); `declares.manifest_judgements_lie`
+applies it to a manifest. Tests: on a constructed population (a declaring
+forecast and a silent backtest pass; a silent forecast and a target-less
+summary are caught; cleared, quiet; population = the files written), and on
+a constructed manifest key. Mutation: an absent declaration allowed on a
+forecast, both constructed tests red; reverted, green. The manifest field is
+asserted on a real export only by `test_export_draws`' slow test, which runs
+the model and waits for the re-emit.
+
+On the live tree every run summary under `data/processed` predates `_target`
+and the hash, so `test_every_forecast_declares_the_strength_judgements_it_applied_truly`
+is red, and `declares.py --verify` marks those summaries `~`, until the
+step-7 runs rewrite them.
+
+### The arm runner (item 8)
+
+Nothing in the tree ran the registered arms. `src/arms.py` does, with no
+change to `montecarlo.py`: per arm (I, U, UC, US, C0) and city-year, a fresh
+`load_scenario` with the arm's overrides, `run_model` in process with its
+`--run-dir` trace, and `arrays.npz` plus `meta.json` in `plausibility`'s format
+under an output root it refuses inside `data/`. It refuses a universal-law
+city-year whose width record is stale (`read_width_record`) or whose
+calibration did not converge (`41_guards.kappa_converged`), and C0 in a tree
+carrying the census hold (and the other arms in one without it). `compare`
+gives the prereg §4 cluster-bootstrap interval of the CRPS difference by size
+class (classes from arm I's `pool_spec` centres), the paired draw-index Monte
+Carlo error of the list-MAE and CRPS differences, and R2. Not run on real
+specs. `tests/test_arms.py` runs it on a constructed model: a fresh scenario
+per arm with its overrides (the fake refuses a scenario an earlier run wrote
+into), the files load through `plausibility.load_run_dir`, the refusals write
+`REFUSED.json` and no arrays, identical arms differ by exactly 0 with 0 Monte
+Carlo error and correlation 1, a shifted arm stays above R2's bar, an
+independent arm falls below it, and arms of different draw counts are not
+compared. Mutations: a scenario cached across arms (four tests red); the κ
+refusal removed (red); the second arm resampled with its own indices (the
+paired-statistics test red); each reverted, green. Constants: §A58. Named in
+CLAUDE.md §5 as imported by its test.
+
+### Suite follow-ups to items 3, 7 and 8
+
+The whole-suite run after item 10 had seven failing tests the step-5 run did
+not. Six came from four causes in these fixes: `ARMS` was not named in JUDGEMENT-CALLS (§A58 now
+names it); `MODEL-INDEX.md` needed regenerating; `test_provenance_gates`'s
+honest tree carried a summary with no `_target`, which item 3 now fails (the
+fixture now writes `_target` as `montecarlo.main` does, a backtest year); and
+`declares.py --verify` run from `src/` could not compute the width record's
+key, because `cityconfig.load` and the judgements path are relative to the
+working directory (the key now reads them from its own tree's root; three
+`test_provenance_gates` tests failed on these last two causes). The seventh is
+item 3's intended red on the live summaries. `target_is_held` stays
+in `montecarlo`: placed in `cityconfig` it moved `pools._deps_sha` (an emit
+dependency) and staled `bye_value.json`.

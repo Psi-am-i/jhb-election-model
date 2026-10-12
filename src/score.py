@@ -484,9 +484,13 @@ def _column_entropy(party: str) -> int:
     panel there are 151 distinct party names and **zero** collisions under
     either, so this is cheap insurance rather than a fix — but two parties
     sharing a uniform would be invisible and permanent.
+
+    ONE DEFINITION: the body is ``seats.stable_entropy``, which the keyed draw
+    streams (``montecarlo.DrawStreams``) also use, so the pin on this value
+    holds the hash for both.
     """
-    return int.from_bytes(
-        hashlib.blake2b(party.encode("utf-8"), digest_size=8).digest(), "big")
+    import seats as _seats
+    return _seats.stable_entropy(party)
 
 
 def column_rng(seed: int | None, party: str) -> np.random.Generator:

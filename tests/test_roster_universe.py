@@ -127,9 +127,17 @@ def test_the_seven_certified_parties_reach_the_2026_run():
     # drawn at its size group's width at that share, and the drawer's record
     # says so; the record names only parties the run draws. (The typed
     # fallback width it replaced was deleted 2026-10-09, M3 review row 7.)
-    at_size = run.guards["level_sd_at_size"]
-    assert set(run.scenario["_local_record_only"]) <= set(at_size), run.guards
-    assert set(at_size) <= set(run.universe)
+    # Under the universal draw law (2026-10-12) every drawn party's width
+    # comes from the width record and `level_sd_at_size` is empty; the seven
+    # must then be in the drawn width table (`41_guards.width`).
+    if run.scenario.get("draw_law", "universal") == "universal":
+        width = run.guards["width"]
+        assert set(run.scenario["_local_record_only"]) <= set(width), run.guards
+        assert set(width) <= set(run.universe)
+    else:
+        at_size = run.guards["level_sd_at_size"]
+        assert set(run.scenario["_local_record_only"]) <= set(at_size), run.guards
+        assert set(at_size) <= set(run.universe)
 
 
 class _Args:
