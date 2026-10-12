@@ -48,3 +48,11 @@ export · 10 site UAT, promote, then redeploy joburg-seats.
   cannot supply. Requirement for the design: one consistent way to enter such a
   judgement (centre and width) that applies to any party the same way, declared
   in JUDGEMENT-CALLS.md, not per-party special cases.
+- 2026-10-12, owner: (1) census — a group the wards cannot identify is capped:
+  the hold (reach < 25% of every ward → the city's registration rate), applied
+  to every group by one rule; Cape Town Indian/Asian goes to about 2.7% of the
+  roll. (2) Middle-width A/B and outlier removal withdrawn: "we were trying to
+  look at the whole vote not just certain segments". Design v4: one smooth
+  width curve over all sizes fitted to every party-election, newness as one
+  term in it, judged on whole-election measures; judgement entry an optional
+  overlay only.
