@@ -1,0 +1,31 @@
+/* The apex portal (src/build_portal.py), on top of page-doc.css: its <body>
+   carries both pg-doc and pg-portal. Each card's --city comes from the
+   generated colour block (src/site_assets.py, cities/*.toml [site] accent).
+   Its column is its own: the portal is the apex site's page and carries no
+   bar, so the frame in chrome.css does not reach it. */
+  .page{max-width:900px;margin:0 auto;padding:28px 24px 72px;}
+  .portal{display:flex;flex-direction:column;gap:26px;}
+  .pmast{display:flex;flex-direction:column;gap:10px;}
+  .pcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:14px;}
+  .pcard{display:flex;flex-direction:column;gap:7px;padding:20px 20px 18px;
+    border:1px solid var(--rule);border-top:3px solid var(--city);
+    background:var(--paper-2);text-decoration:none;color:var(--ink);
+    transition:border-color .15s,transform .15s;}
+  a.pcard:hover{border-color:var(--city);transform:translateY(-2px);}
+  .pcard-soon{opacity:.72;}
+  .pc-name{font-family:var(--serif);font-weight:600;font-size:20px;}
+  .pc-num{font-family:var(--mono);font-size:34px;font-weight:600;
+    letter-spacing:-.02em;line-height:1;color:var(--city);}
+  .pc-num span{font-size:15px;color:var(--ink-3);}
+  .pc-num.pc-soon{color:var(--ink-3);}
+  .pc-sub{font-size:12.5px;color:var(--ink-2);line-height:1.45;}
+  .pc-cta{font-family:var(--mono);font-size:11.5px;color:var(--city);
+    margin-top:4px;}
+  .pcard-soon .pc-cta{color:var(--ink-3);}
+  .pfoot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:70ch;}
+  /* the umbrella logo heads the apex page (src/brand/whysoserious.svg) */
+  .pm-logo{display:block;width:max-content;line-height:0;color:var(--ink);margin-bottom:14px;}
+  .pm-logo:hover{color:var(--accent);}
+  .pm-logo .wsc-logo{display:block;height:120px;width:calc(120px * 1984 / 1016);}
+  @media (max-width:560px){.pm-logo .wsc-logo{height:92px;width:calc(92px * 1984 / 1016);}}

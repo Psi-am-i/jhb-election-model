@@ -1,0 +1,155 @@
+PER CITY-YEAR (cells with model max share < 1e-12 and actual share > 0)
+city-year                draws    PR  PRvotes  Ward   Wvotes  why
+joburg 2011               2000   880     8904   254    16778  PR {'not in universe': 880} W {'not in universe': 254} unmatched=0 relabel=NFP
+joburg 2016               2000   251     5246   137    19285  PR {'not in universe': 251} W {'not in universe': 137} unmatched=0 relabel=None
+joburg 2021               2000    77      285    61    12229  PR {'not in universe': 77} W {'not in universe': 61} unmatched=0 relabel=None
+tshwane 2011              2000   541    43639   408    59613  PR {'not in universe': 436, 'ward not forecast': 105} W {'not in universe': 318, 'ward not forecast': 90} unmatched=12 relabel=None
+tshwane 2016              2000   251     1239   228     6301  PR {'not in universe': 251} W {'not in universe': 228} unmatched=0 relabel=None
+tshwane 2021              2000   249     2092   237    11231  PR {'not in universe': 249} W {'not in universe': 237} unmatched=0 relabel=None
+ekurhuleni 2011           2000   872    11249   491    17530  PR {'not in universe': 872} W {'not in universe': 491} unmatched=0 relabel=NFP
+ekurhuleni 2016           2000    88     1219   112     6742  PR {'not in universe': 88} W {'not in universe': 112} unmatched=0 relabel=None
+ekurhuleni 2021           2000    85     2406   124    13267  PR {'not in universe': 85} W {'not in universe': 124} unmatched=0 relabel=None
+ethekwini 2011            2000   683    11032   521    30861  PR {'not in universe': 683} W {'not in universe': 521} unmatched=0 relabel=NFP
+ethekwini 2016            2000    27    10002    59   103457  PR {'ward not forecast': 27} W {'not in universe': 42, 'ward not forecast': 17} unmatched=2 relabel=None
+ethekwini 2021            2000   493     6633   462    39540  PR {'not in universe': 493} W {'not in universe': 462} unmatched=0 relabel=None
+capetown 2011             2000  1040     8668   489    15844  PR {'not in universe': 1040} W {'not in universe': 489} unmatched=0 relabel=CAPE_MUSLIM_CONGRESS
+capetown 2016             2000   384     7166   412    14262  PR {'not in universe': 384} W {'not in universe': 412} unmatched=0 relabel=None
+capetown 2021             2000   566    19539   519    30184  PR {'not in universe': 566} W {'not in universe': 519} unmatched=0 relabel=None
+mangaung 2011             2000    91      574    51     1768  PR {'not in universe': 91} W {'not in universe': 51} unmatched=0 relabel=None
+mangaung 2016             2000   101     5284   110    17093  PR {'not in universe': 86, 'ward not forecast': 15} W {'not in universe': 101, 'ward not forecast': 9} unmatched=2 relabel=None
+mangaung 2021             2000   167     1244   110     2073  PR {'not in universe': 167} W {'not in universe': 110} unmatched=0 relabel=None
+nelsonmandelabay 2011     2000   201     1499   181     4592  PR {'not in universe': 201} W {'not in universe': 181} unmatched=0 relabel=None
+nelsonmandelabay 2016     2000    50      133    66     8395  PR {'not in universe': 50} W {'not in universe': 66} unmatched=0 relabel=None
+nelsonmandelabay 2021     2000   101     4058    89     6983  PR {'not in universe': 101} W {'not in universe': 89} unmatched=0 relabel=None
+buffalocity 2011          2000     0        0     8     5668  PR {} W {'not in universe': 8} unmatched=0 relabel=None
+buffalocity 2016          2000    46      446    32    12343  PR {'not in universe': 46} W {'not in universe': 32} unmatched=0 relabel=None
+buffalocity 2021          2000     0        0    14     8383  PR {} W {'not in universe': 14} unmatched=0 relabel=None
+
+TOTALS {('PR', 'not in universe'): 7097, ('votes', 'PR', 'not in universe'): 96531, ('Ward', 'not in universe'): 5059, ('votes', 'Ward', 'not in universe'): 408692, ('PR', 'ward not forecast'): 147, ('votes', 'PR', 'ward not forecast'): 56026, ('Ward', 'ward not forecast'): 116, ('votes', 'Ward', 'ward not forecast'): 55730}
+
+BY PARTY (party, why, named in spec)
+IND                                           not in universe  named=False PR    0/      0  W  468/ 302409  in 24: buffalocity 2011, buffalocity 2016, buffalocity 2021, capetown 2011, capetown 2016, capetown 2021, ekurhuleni 2011, ekurhuleni 2016, ekurhuleni 2021, ethekwini 2011, ethekwini 2016, ethekwini 2021, joburg 2011, joburg 2016, joburg 2021, mangaung 2011, mangaung 2016, mangaung 2021, nelsonmandelabay 2011, nelsonmandelabay 2016, nelsonmandelabay 2021, tshwane 2011, tshwane 2016, tshwane 2021
+ANC                                           ward not forecast named=True  PR    8/  38744  W    8/  38266  in 3: ethekwini 2016, mangaung 2016, tshwane 2011
+PA                                            not in universe  named=True  PR  169/  16575  W  138/  17691  in 2: capetown 2021, nelsonmandelabay 2021
+DA                                            ward not forecast named=True  PR    8/  12408  W    8/  12423  in 3: ethekwini 2016, mangaung 2016, tshwane 2011
+INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA      not in universe  named=True  PR  347/   6828  W  384/  14730  in 4: ekurhuleni 2011, ekurhuleni 2016, ekurhuleni 2021, tshwane 2011
+TRULY_ALLIANCE                                not in universe  named=True  PR  212/   7897  W  213/   9816  in 2: ethekwini 2011, ethekwini 2021
+CAPE_MUSLIM_CONGRESS                          not in universe  named=True  PR  190/   6741  W  210/   6312  in 2: capetown 2016, capetown 2021
+ALJAMAAH                                      not in universe  named=True  PR  220/   6870  W  115/   4821  in 2: joburg 2011, joburg 2016
+CHRISTIAN_DEMOCRATIC_PARTY                    not in universe  named=True  PR  644/   4230  W  640/   6036  in 7: ekurhuleni 2011, joburg 2011, nelsonmandelabay 2011, nelsonmandelabay 2016, tshwane 2011, tshwane 2016, tshwane 2021
+DISPLACEES_RATE_PAYERS_ASSOCIATION            not in universe  named=True  PR   93/   3222  W   83/   3759  in 1: ekurhuleni 2011
+OKM                                           not in universe  named=True  PR  174/   3752  W   15/   2460  in 2: joburg 2011, joburg 2016
+MINORITIES_OF_SOUTH_AFRICA                    not in universe  named=True  PR  101/   2226  W   36/   3084  in 1: ethekwini 2021
+BLACK_CONSCIOUSNESS_PARTY                     not in universe  named=True  PR  414/   2847  W   47/   2109  in 5: ekurhuleni 2011, ethekwini 2011, joburg 2011, mangaung 2011, tshwane 2011
+DEMOCRATIC_INDEPENDENT_PARTY                  not in universe  named=True  PR  105/   1653  W  113/   1910  in 1: capetown 2021
+CAPE_PARTY_KAAPSE_PARTY                       not in universe  named=True  PR  109/   1760  W  105/   1608  in 1: capetown 2016
+AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE not in universe  named=True  PR  205/   1603  W  208/   1719  in 2: ethekwini 2011, tshwane 2016
+AFRICA_MUSLIM_PARTY                           not in universe  named=True  PR   82/   1571  W   75/   1692  in 1: capetown 2016
+UNITED_ACTION_FRONT                           not in universe  named=True  PR   92/   1256  W  100/   1993  in 1: ethekwini 2011
+NATIONAL_PEOPLE_S_PARTY                       not in universe  named=True  PR  187/   1156  W  215/   2033  in 2: capetown 2011, capetown 2016
+SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION  not in universe  named=True  PR  200/   1430  W   67/   1664  in 3: capetown 2011, joburg 2011, nelsonmandelabay 2011
+COMMUNITY_COALITION                           not in universe  named=True  PR   60/   1271  W    9/   1715  in 1: capetown 2011
+NATIONAL_INDEPENDANT_CIVIC_ORGANISATION       not in universe  named=True  PR   72/   1048  W   30/   1844  in 1: capetown 2011
+INDEPENDENT_PEOPLE_S_PARTY                    not in universe  named=True  PR  109/   1906  W   86/    848  in 1: ethekwini 2021
+AZAPO                                         not in universe  named=True  PR  101/   1238  W   84/   1400  in 1: ethekwini 2011
+DEMOCRATS_FOR_CHANGE                          not in universe  named=True  PR  105/   1637  W    7/    942  in 1: capetown 2011
+EFF                                           ward not forecast named=True  PR    2/   1080  W    2/   1156  in 2: ethekwini 2016, mangaung 2016
+IFP                                           ward not forecast named=True  PR    7/   1031  W    7/   1090  in 2: ethekwini 2016, tshwane 2011
+NFP                                           not in universe  named=True  PR  173/   1230  W   19/    813  in 2: capetown 2011, tshwane 2011
+AFRICAN_MANDATE_CONGRESS                      not in universe  named=True  PR   98/   1244  W   92/    677  in 1: tshwane 2021
+VFPLUS                                        ward not forecast named=True  PR    8/    860  W    8/    967  in 3: ethekwini 2016, mangaung 2016, tshwane 2011
+THE_REAL_CONGRESS                             not in universe  named=True  PR   75/    983  W    5/    784  in 1: ekurhuleni 2011
+UNITED_RESIDENTS_FRONT                        not in universe  named=True  PR  194/    687  W  142/    978  in 5: ethekwini 2011, joburg 2011, mangaung 2011, mangaung 2016, mangaung 2021
+NATIONAL_ALLIANCE_FOR_DEMOCRACY               not in universe  named=True  PR   77/    629  W   48/   1008  in 1: capetown 2011
+SIMUNYE_IN_CHRIST_ORGANISATION                not in universe  named=True  PR   68/    650  W    5/    873  in 1: ekurhuleni 2011
+PEOPLE_S_CIVIC_ORGANISATION                   not in universe  named=True  PR   76/    670  W   90/    832  in 1: ekurhuleni 2011
+UNITED_CHRISTIAN_DEMOCRATIC_PARTY             not in universe  named=True  PR   47/    675  W   44/    658  in 1: mangaung 2021
+PAN_AFRICANIST_MOVEMENT                       not in universe  named=True  PR  190/    985  W   23/    305  in 3: buffalocity 2016, capetown 2011, ekurhuleni 2011
+FIRST_NATION_LIBERATION_ALLIANCE              not in universe  named=True  PR   58/    639  W    5/    620  in 1: ekurhuleni 2011
+THE_GREENS                                    not in universe  named=True  PR  102/    674  W   97/    531  in 1: capetown 2021
+CHRISTIAN_FRONT                               not in universe  named=True  PR  194/    608  W  106/    586  in 2: joburg 2011, tshwane 2011
+AFRICAN_COMMUNITY_MOVEMENT                    not in universe  named=True  PR   54/    497  W   54/    658  in 1: nelsonmandelabay 2011
+THE_SOCIALIST_PARTY_OF_AZANIA                 not in universe  named=True  PR  151/    654  W    5/    471  in 2: joburg 2011, joburg 2016
+UNITED_FRONT_OF_THE_EASTERN_CAPE              not in universe  named=True  PR   46/    585  W   19/    539  in 1: nelsonmandelabay 2021
+SIZWE_UMMAH_NATION                            not in universe  named=True  PR   70/    452  W   88/    607  in 1: capetown 2021
+SOCIALIST_GREEN_COALITION                     not in universe  named=True  PR  100/    492  W   98/    531  in 1: ethekwini 2011
+NATIONAL_REPUBLICAN_PARTY                     not in universe  named=True  PR   76/    379  W   82/    572  in 1: ekurhuleni 2011
+WESTERN_CAPE_COMMUNITY                        not in universe  named=True  PR   85/    574  W   13/    291  in 1: capetown 2011
+ALLIED_MOVEMENT_FOR_CHANGE                    not in universe  named=True  PR   77/    251  W   91/    510  in 1: ethekwini 2021
+COPE                                          ward not forecast named=True  PR    8/    424  W    6/    330  in 3: ethekwini 2016, mangaung 2016, tshwane 2011
+AIC                                           ward not forecast named=True  PR    2/    372  W    1/    320  in 2: ethekwini 2016, mangaung 2016
+ACADEMIC_CONGRESS_UNION                       not in universe  named=True  PR   97/    379  W   95/    289  in 1: ethekwini 2021
+BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA              not in universe  named=True  PR   77/    285  W   26/    325  in 1: joburg 2021
+UNIVERSAL_CIVICS_OF_SOUTH_AFRICA              not in universe  named=True  PR   55/    166  W   85/    423  in 1: capetown 2011
+SOLIDARITY_PARTY                              not in universe  named=True  PR   84/    400  W    4/    172  in 1: ethekwini 2011
+ACDP                                          ward not forecast named=True  PR    8/    262  W    8/    303  in 3: ethekwini 2016, mangaung 2016, tshwane 2011
+UNITED_INDEPENDENT_FRONT                      not in universe  named=True  PR   48/    233  W   50/    303  in 1: nelsonmandelabay 2011
+AFRICAN_BOND_OF_UNITY                         not in universe  named=True  PR   49/    275  W   29/    232  in 1: capetown 2011
+DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA            not in universe  named=True  PR   42/    219  W   42/    272  in 1: mangaung 2016
+BOTSHABELO_UNEMPLOYED_MOVEMENT                not in universe  named=True  PR   35/    244  W   12/    208  in 1: mangaung 2021
+UNITED_MAJORITY_FRONT                         not in universe  named=True  PR   50/    124  W   27/    301  in 1: capetown 2011
+FORUM_4_SERVICE_DELIVERY                      not in universe  named=True  PR   49/    234  W    8/    190  in 1: tshwane 2021
+APC                                           ward not forecast named=True  PR    8/    245  W    7/    154  in 3: ethekwini 2016, mangaung 2016, tshwane 2011
+ABOLITION_OF_INCOME_TAX_AND_USURY_PARTY       not in universe  named=True  PR   58/    165  W   76/    230  in 1: capetown 2011
+THEMBISA_CONCERNED_RESIDENTS_ASSOCIATION      not in universe  named=True  PR   70/    355  W    0/      0  in 1: ekurhuleni 2011
+AGENCY_FOR_NEW_AGENDA                         not in universe  named=True  PR   49/    241  W   12/    105  in 1: mangaung 2021
+PEOPLE_S_DEMOCRATIC_MOVEMENT                  not in universe  named=True  PR   84/    303  W    4/     20  in 1: capetown 2021
+PAC                                           ward not forecast named=True  PR    8/    129  W    6/    145  in 3: ethekwini 2016, mangaung 2016, tshwane 2011
+LIBERAL_DEMOCRATIC_PARTY                      not in universe  named=True  PR   93/    236  W    2/     31  in 1: joburg 2011
+SOCIAL_DEMOCRATIC_PARTY                       not in universe  named=True  PR   55/    167  W    5/     93  in 1: capetown 2011
+IND                                           ward not forecast named=False PR    0/      0  W    2/    174  in 2: mangaung 2016, tshwane 2011
+INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA not in universe  named=True  PR   56/    151  W    0/      0  in 1: capetown 2011
+MOVEMENT_DEMOCRATIC_PARTY                     not in universe  named=True  PR   44/     79  W    7/     25  in 1: tshwane 2016
+AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE ward not forecast named=True  PR    6/     46  W    6/     57  in 1: tshwane 2011
+AZAPO                                         ward not forecast named=True  PR    7/     46  W    7/     57  in 2: ethekwini 2016, tshwane 2011
+CHRISTIAN_DEMOCRATIC_PARTY                    ward not forecast named=True  PR    6/     33  W    6/     54  in 1: tshwane 2011
+TRULY_ALLIANCE                                ward not forecast named=True  PR    1/     41  W    1/     41  in 1: ethekwini 2016
+UNITED_CHRISTIAN_DEMOCRATIC_PARTY             ward not forecast named=True  PR    7/     10  W    5/     52  in 2: mangaung 2016, tshwane 2011
+UDM                                           ward not forecast named=True  PR    7/     31  W    2/     23  in 2: ethekwini 2016, tshwane 2011
+INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA      ward not forecast named=True  PR    7/     30  W    7/     20  in 2: ethekwini 2016, tshwane 2011
+AGENCY_FOR_NEW_AGENDA                         ward not forecast named=True  PR    1/     47  W    0/      0  in 1: mangaung 2016
+CHRISTIAN_FRONT                               ward not forecast named=True  PR    5/     17  W    6/     29  in 1: tshwane 2011
+UMHLABA_UHLAGENE_PEOPLES_UNITED_NATIONS       not in universe  named=True  PR    0/      0  W    1/     34  in 1: ekurhuleni 2011
+AFRICAN_MANTUNGWA_COMMUNITY                   ward not forecast named=True  PR    1/     25  W    1/      7  in 1: ethekwini 2016
+NFP                                           ward not forecast named=True  PR    6/     26  W    0/      0  in 1: tshwane 2011
+MOVEMENT_DEMOCRATIC_PARTY                     ward not forecast named=True  PR    6/     11  W    5/     11  in 1: tshwane 2011
+MINORITY_FRONT                                ward not forecast named=True  PR    1/      8  W    1/     14  in 1: ethekwini 2016
+UNITED_RESIDENTS_FRONT                        ward not forecast named=True  PR    2/     16  W    1/      6  in 2: ethekwini 2016, mangaung 2016
+DEMOCRATIC_LIBERAL_CONGRESS                   ward not forecast named=True  PR    1/      5  W    1/     15  in 1: ethekwini 2016
+AZANIAN_ALLIANCE_CONGRESS                     ward not forecast named=True  PR    1/     13  W    0/      0  in 1: mangaung 2016
+ACADEMIC_CONGRESS_UNION                       ward not forecast named=True  PR    1/      7  W    1/      5  in 1: ethekwini 2016
+UNITED_PEOPLES_PARTY                          ward not forecast named=True  PR    1/      5  W    1/      5  in 1: ethekwini 2016
+BLACK_CONSCIOUSNESS_PARTY                     ward not forecast named=True  PR    4/      8  W    0/      0  in 1: tshwane 2011
+INDEPENDENT_PEOPLE_S_PARTY                    ward not forecast named=True  PR    1/      8  W    0/      0  in 1: ethekwini 2016
+ALJAMAAH                                      ward not forecast named=True  PR    1/      3  W    1/      4  in 1: ethekwini 2016
+ALLIED_MOVEMENT_FOR_CHANGE                    ward not forecast named=True  PR    1/      7  W    0/      0  in 1: ethekwini 2016
+DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA            ward not forecast named=True  PR    1/      5  W    1/      2  in 1: mangaung 2016
+MINORITIES_OF_SOUTH_AFRICA                    ward not forecast named=True  PR    1/      6  W    0/      0  in 1: ethekwini 2016
+SOUTH_AFRICAN_POLITICAL_PARTY                 ward not forecast named=True  PR    1/      6  W    0/      0  in 1: ethekwini 2016
+PEOPLE_S_REVOLUTIONARY_MOVEMENT               ward not forecast named=True  PR    1/      4  W    0/      0  in 1: ethekwini 2016
+THE_PROMISE_OF_FREEDOM                        ward not forecast named=True  PR    1/      4  W    0/      0  in 1: ethekwini 2016
+BOTSHABELO_UNEMPLOYED_MOVEMENT                ward not forecast named=True  PR    1/      3  W    0/      0  in 1: mangaung 2016
+
+SMALLEST max-over-draws ward share of ANY universe party, per city-year/ballot
+  8.351e-04 ethekwini 2016 W UDM
+  1.179e-03 tshwane 2016 W UNITED_CHRISTIAN_DEMOCRATIC_PARTY
+  1.256e-03 capetown 2016 W IFP
+  3.177e-03 nelsonmandelabay 2016 PR COPE
+  3.728e-03 nelsonmandelabay 2016 W COPE
+  5.587e-03 buffalocity 2021 W COPE
+  7.070e-03 joburg 2016 W PAC
+  9.643e-03 capetown 2021 W PAC
+  1.087e-02 joburg 2021 W ALJAMAAH
+  1.112e-02 joburg 2021 PR PA
+  largest of these minima: 1.141e-01
+
+UNIVERSE PARTIES WITH A HARD POOL ZERO: 89 party-city-years
+  smallest min-over-wards max share (Ward, PR): 1.179e-03 1.112e-02
+   ('tshwane 2016', 'UNITED_CHRISTIAN_DEMOCRATIC_PARTY', 2, 4, 0.0011787083982703272, 0.033716916938202474)
+   ('capetown 2016', 'IFP', 2, 4, 0.0012563352653192908, 0.04024627743462646)
+   ('buffalocity 2021', 'COPE', 2, 4, 0.0055873724152584936, 0.05651175158992869)
+   ('joburg 2016', 'PAC', 1, 4, 0.0070704435249636065, 0.032254980440509305)
+   ('tshwane 2016', 'APC', 1, 4, 0.007823116240891353, 0.049032992403880885)
+   ('joburg 2016', 'APC', 1, 4, 0.009312037849188852, 0.051953877387420494)
+   ('capetown 2021', 'PAC', 2, 4, 0.009642992416768158, 0.037512589089422774)
+   ('joburg 2021', 'ALJAMAAH', 2, 4, 0.010873777231971556, 0.015270472776571424)

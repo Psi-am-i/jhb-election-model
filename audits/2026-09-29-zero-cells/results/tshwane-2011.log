@@ -1,0 +1,5 @@
+  ! pools_2011.json is STALE: src/pools.py changed since this spec was emitted (pools_sha 7264a92947ba4529 -> fac628d1b0218005); re-emit before believing any measurement taken against it
+  !! tshwane 2006: census reprojection mapped 72.6% of this city's people, below 80% — admitted because the measured demographic shift is 0.001, within the 0.050 ceiling
+  !! 6 ward(s) have no voting district in the 2009 baseline with registered voters and are EXCLUDED from the forecast: 79900100, 79900101, 79900102, 79900103, 79900104, 79900105. They win no ward seat in any draw and appear in no ward probability; 99 of 105 wards are forecast.
+WARNING *** file size (27821) not 512 + multiple of sector size (512)
+tshwane 2011 none: 27s, zero cells excl. control 949, control found 2

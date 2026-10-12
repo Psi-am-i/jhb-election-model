@@ -1,0 +1,72 @@
+# The written pieces, newest first — the home page's article list.
+#
+# ⛔ RE-DATED 2026-09-27, all five from 31 August to 8 August. They were
+# dated to a build that was never deployed. Checked rather than assumed:
+# the distinguishing text of each — "November surprise", "Laingsburg", the
+# German comparison, "587,000" and "Minority administrations" — is present
+# in archive/live-deployed-2026-08-08/index.html, the bytes readers had.
+#
+# ⛔ A PIECE IS FROZEN AND DATED. Once published, its words and its figures stay
+# as they were; when the model moves materially it gets an appended, dated
+# "Since then" note and the original is never rewritten (PUBLISHING-BACKLOG §8).
+# `date` is the day it was published and is what the page shows.
+#
+# `og_headline` (optional): the words the page's share image sets large, where
+# they differ from `title` (src/og_pages.py). `og_visual` (optional): the
+# image's visual, "seat-ranges" (the largest parties' seat ranges from the
+# forecast's tokens); without one the image is the headline alone.
+#
+# `lead = true` marks the piece the home page runs as its lead. EXACTLY ONE may
+# carry it. Retiring a stale lead is moving that one line — which is the whole
+# reason the home page exists: before it, the article WAS the front page and a
+# piece written on a date sat at the front door looking current forever.
+#
+# Figures in a standfirst are the published ones and are left as published.
+# The build wraps each entry in its own dated passage, so a figure in one is a
+# token pinned on or before the piece's `date` (`publication.misdated_figures`
+# refuses a live one) — never typed: "587,000" was typed here until 2026-10-03
+# and is now `{{bloc_leak_votes}}`.
+
+[[article]]
+lead = true
+date = "2026-08-08"
+title = "Nobody will win Johannesburg — and an obscure voting law will give the ANC more seats than expected"
+standfirst = """Johannesburg votes on two ballots at once, and they are added
+together. A party with tightly concentrated support can win more wards than its
+share entitles it to — and nobody unseats a ward winner. The shortfall is taken
+from every other party. The clause has fired exactly once before, in a Karoo
+town of seven seats."""
+href = "nobody-will-win"
+og_headline = "Nobody will win Johannesburg"
+og_visual = "seat-ranges"
+
+[[article]]
+date = "2026-08-08"
+title = "When the ANC falls, nobody catches the votes"
+standfirst = """The opposition captured essentially none of the {{bloc_leak_votes}} votes
+the ANC bloc shed between the 2019 national election and the 2021 local
+election. The city's collapse in ANC support did not
+become anybody else's gain — it became abstention."""
+href = "nobody-catches-the-votes"
+
+[[article]]
+date = "2026-08-08"
+title = "Minority administrations, and why nobody has to win"
+standfirst = """The mayor is elected by the councillors present and voting, so
+abstention installs governments. A council nobody controls is not a council
+nobody can run."""
+href = "minority-administrations"
+
+[[article]]
+date = "2026-08-08"
+title = "If the law were German instead"
+standfirst = """The same votes under our seat law and Germany's of 2000, 2015
+and 2023."""
+href = "if-the-law-were-german"
+
+[[article]]
+date = "2026-08-08"
+title = "Laingsburg, 2021"
+standfirst = """The only place the clause has fired — the whole mechanism in a
+council of seven."""
+href = "laingsburg-2021"

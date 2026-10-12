@@ -1,0 +1,38 @@
+{
+ "city": "tshwane",
+ "year": "2016",
+ "draws": 1000,
+ "council": 214,
+ "wards": 107,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "AFRICAN_MANDATE_CONGRESS": 1,
+   "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 1,
+   "AGANG": 1,
+   "ANC": 88,
+   "APC": 1,
+   "DA": 89,
+   "EFF": 22,
+   "FORUM_4_SERVICE_DELIVERY": 1,
+   "PAC": 1,
+   "UDM": 1,
+   "UNITED_FRONT_OF_CIVICS": 1,
+   "VFPLUS": 5
+  },
+  "seat_err": 18.0,
+  "wards_ok": 104,
+  "ward_vote_err_pp": 7.086542736805105,
+  "list_vote_err_pp": 7.39016335833121,
+  "top": "ANC",
+  "top_wards": 67,
+  "top_actual_wards": 68,
+  "excessive": {},
+  "council": 214,
+  "ward_wins": {
+   "DA": 40,
+   "ANC": 67
+  }
+ }
+}

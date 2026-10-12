@@ -1,0 +1,213 @@
+# Where an agent fleet pays, and where it does not — 2026-08-27
+
+**Written after two workflows that worked** (Phase A: 14 agents, 111 tests, ~35
+findings; triage: 7 agents, 44 findings verified by a second reader) **and one
+stretch of serial surgery that went badly** (four coupled invariants broken in a
+row inside `pools.py`). The difference between those two experiences is the
+whole content of this document.
+
+## ⭐ THE SPINE: a declaration is a claim, and a read log is the evidence
+
+**This reframes everything below and should be read first.**
+
+The owner, 2026-08-27, on why so many changes produce no visible effect:
+
+> *"In a connected system of adjustments, there should be knock on effects
+> through the system when you change assumptions. To have no change be the
+> normal result IS THE signal to look for."*
+
+and on what it connects to:
+
+> *"everything should declare what it inputs and what it outputs... this is one
+> of the mechanisms that uses that to keep everything trustworthy."*
+
+**He is right, and `ARCHITECTURE.md` already specified the other half without
+anyone connecting the two.** Its four lists are:
+
+| | | status |
+|---|---|---|
+| **A** | every transformation, lever, rule, constant, artefact, with its `reads`/`writes` | a **claim** |
+| **B** | believed live / gated / retired | a **claim** |
+| **C** | **verifiably** exercised | **evidence** |
+| **D** | used **and measured** | **evidence** |
+
+*"A and B are claims; C and D are evidence, and the tests assert the claims
+against the evidence."*
+
+**The null-results work IS the C and D layer.** A unit declaring `reads: ("x",)`
+is a claim that it reads `x`. A run that records *which values were actually
+consulted, and at what value* is the proof. Without C, a declaration is a comment
+that cannot be wrong; with it, `A ≠ C` is a hard failure — either the code stopped
+reading what it says it reads, or it never did.
+
+**And this is why the bus matters after all.** `bus.read(name)` with no
+`default=` makes the silent fallback unwritable — that closes cause **A**
+(undelivered) *structurally* rather than by detection. Phase B was deprioritised
+on the grounds that Phase A had already found the defects. That was wrong: Phase A
+found the ones that had *already bitten*. The bus plus the read log is what stops
+the next class arriving.
+
+### It must span EVERY class of variable, not one
+
+The existing liveness test covers `DEFAULTS` scenario keys **only**, which is
+exactly why 42 of 48 B2 constants slipped past it. The delivery proof must cover
+all of these, and the inventory of them is itself a task:
+
+| class | example | how it is currently missed |
+|---|---|---|
+| scenario keys (`DEFAULTS`) | `poll_credence` | covered today |
+| **module constants** | `montecarlo.LEVEL_DF`, `polling.SIGMA_COMMON` | not in `DEFAULTS`, never swept |
+| **precomputed artefacts** | `pools_*.json`, the 20 `turnout.csv` | reach the model without any key at all |
+| **function default arguments** | `level_floor=None` | CLASS 13; found four times |
+| **derived intermediates** | `scenario["_ward_pr_measured"]` | written, never read — nothing noticed |
+| **config / TOML** | `config/dimensions.toml`, city tomls | only the artefact hash sees them |
+| **inline literals** | the arrival comparator's `0.25` window | not promotable without an edit |
+
+**A read log keyed on `note_constant` calls covers only what somebody remembered
+to instrument, which is the same failure one level up.** The inventory must be
+*generated* from the source, the way `ARCHITECTURE.md` insists A and B are
+generated, not hand-listed.
+
+### The four causes of a null, restated as the acceptance rule
+
+`UNDELIVERED` / `ABSORBED:<stage>` / `CANCELLED:<parameter>` / `INERT`. **Only
+`INERT` is a result.** A flat sweep without a delivery proof is **VOID, not
+NULL** — see `NULL-RESULTS.md` for the full argument, the evidence that all four
+are live today, and the demonstration that geography reaches the seat score only
+through overhang triggers.
+
+---
+
+## The constraint that shapes everything: CPU, not agents
+
+This machine has **8 cores**, and one `compare_history` at 1500 draws saturates
+them — **169s parallel against 499s serial** (§1.46). Backtests therefore **do
+not run concurrently**. Measurement throughput is roughly **20 runs/hour** no
+matter how many agents exist.
+
+| kind of work | scales with agents? | limit |
+|---|---|---|
+| reading, reasoning, test-writing, verification, design | **yes** | agents |
+| anything requiring a backtest | **no** | one queue, ~20/hour |
+
+**So the shape is: use agents to BUILD a measurement queue, then drain it
+serially.** Preparing thirty pre-registered sweeps in parallel is cheap;
+running them is four hours of wall clock whatever you do.
+
+`pools.artefact_lock` (§1.102) now makes the failure mode loud rather than
+silent — a second writer, or a reader during a write, fails immediately naming
+the holder. That is what makes fleet work safe at all; before it, two racing
+jobs left eighteen specs carrying two different `pools_sha` values.
+
+---
+
+## Workstream 1 — B2, the nineteen never-swept constants ★ start here
+
+`PLAN-TO-LIVE.md` has said *"DO THIS FIRST in Track B"* since 23 August and it is
+untouched.
+
+**Cost:** 3–5 points each ≈ **60–95 backtests ≈ 4 hours of compute**. Feasible in
+a day of background running.
+
+**The agent half is the valuable half.** This repository requires
+**pre-registration** — stating what would count as success *before* measuring —
+and that discipline has already killed three ideas that looked good
+(`sd_for` refit §1.x, the Type A filter, recency §1.82). So:
+
+* **~10 agents**, one per constant or coupling cluster. Each produces: the values
+  to sweep and why, the mechanism the constant is supposed to act through, and a
+  **pass condition written against `ITERATING.md`'s four keys**.
+* **One serial runner** drains the queue under the artefact lock.
+* **A finding that a lever is INERT is a result**, not a failure — §1.84 found a
+  live lever half-connected, and §1.94 found the poll channel worth −6 rather
+  than +48. Several of the nineteen will be doing nothing.
+
+**Why first:** highest confidence, best understood, no surgery, and it runs in the
+background while other work proceeds.
+
+## Workstream 2 — the 34 neutral findings ★ parallel with 1, no CPU contention
+
+The triage (§1.98) classified 44 findings: 34 **neutral** — provably unable to
+move a number on the shipped configuration — with 22 coupling groups already
+identified.
+
+* **~12 agents**, one per coupling group, `isolation: "worktree"` so concurrent
+  edits to `montecarlo.py` and `levels.py` cannot collide, serial merge after.
+* Each lands with a **mutation-verified test**. That discipline caught 55 of 63
+  mutations in Phase A and is the reason those tests are worth having.
+* **No backtest needed by definition** — neutral means neutral. But the claim is
+  checked: anything that moves a number was mis-triaged and comes back.
+
+**The known coupling that decides order:** F1+F2+F7 — fixing the
+`spine_k or SPINE_K` idiom alone makes `k = 0` deliverable and `levels.spine`'s `k / (worth + k)`
+then evaluates `0.0/0.0` for ten parties at 2026. One repair, not two.
+
+## Workstream 3 — the bottom-up model ★ highest upside, least specified
+
+The owner's proposal: project ward/VD results forward **independently**, sum to a
+citywide total, and compare against the top-down model. Where they disagree is
+diagnostic, and the disagreement is measurable on every panel city-year.
+
+**The trap, which the design must clear:** a naive bottom-up — summing historical
+VD shares weighted by registration — reproduces last election's citywide result
+**by construction**, because `base_city` is defined as that sum. It would be
+comparing the model to its own input. The value appears only if each unit is
+projected forward by its *own* evidence.
+
+**Shape: a judge panel.** 4–5 agents produce independent designs, adversarial
+scoring against the trap above, synthesise the winner, then build serially. The
+design phase is where the value is; the code is straightforward once the design
+is right.
+
+## Workstream 4 — pool-vs-`dev`, using the right conditional
+
+Established §1.98/§1.102: the model fits `PartyFit.rates` — *"appeal rate within
+each pool"*, with Duncan-Davis bounds — then **stores the transpose** and never
+persists the rates. The one place pools allocate geography (`montecarlo.pool_spec`,
+seeded parties only) uses the transpose, over-weighting every pool by its own
+citywide size — a **13× relative discount** of the smallest pool against the
+largest.
+
+Test whether **corrected** pool allocation beats `dev` (fixed historical
+geography) for parties that have both. The full panel, parallel prep, serial
+measure. **Must use the rates, not the stored composition** — testing the
+transpose would measure the wrong thing and a negative result would mean nothing.
+
+---
+
+## Where a fleet does NOT pay, and I would argue against it
+
+**Phase C — extracting the ~14 inline stages.** Deep surgery on `montecarlo.py`.
+On 2026-08-27 four coupled invariants were broken in a row doing exactly this
+kind of work in `pools.py`, each fix exposing the next (§1.101). Agents would
+multiply that, not contain it. Serial, careful, or not at all.
+
+**Phase B — the bus.** Honest assessment: **Phase A already delivered most of
+what the architecture argument promised.** The defects are found and written
+down. The bus prevents *future* silent-neutral bugs — real, but insurance rather
+than prediction, with 69 days to polling.
+
+**Anything deciding what ships.** The owner's, and the four keys'.
+
+---
+
+## The calendar, which has not been mentioned in a while
+
+**20 days to nomination lists (16 September). 69 days to polling (4 November).**
+Both fixed by the IEC.
+
+A1 (freeze and hash) is **done**. **A2 and A4 are not**: nothing in `content/` or
+`site/` mentions poll credence, and `content/joburg/stats.toml` still carries
+sources reading `run:turnout_tilt_da=1` — **a lever deleted from `run_model`**.
+That is presentation work, which `CLAUDE.md` keeps out of the model backlog on
+purpose, but the dates are real and it is the first thing a hostile reader sees.
+
+## Recommended order
+
+1. **B2 pre-registration** (agents) → queue → drain in background
+2. **The 34 neutral fixes** (agents, worktrees) — runs alongside, no CPU contention
+3. **Bottom-up design panel** (agents) once 1 and 2 are moving
+4. **Pool-vs-`dev`** when the measurement queue has room
+
+Everything above assumes the artefact lock holds. If a run ever reports mixed
+`pools_sha`, stop and re-emit before believing any number.

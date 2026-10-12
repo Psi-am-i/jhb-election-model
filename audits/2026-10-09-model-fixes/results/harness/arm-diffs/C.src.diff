@@ -1,0 +1,372 @@
+diff --git a/src/backtest.py b/src/backtest.py
+index f475dd2..d06a23e 100644
+--- a/src/backtest.py
++++ b/src/backtest.py
+@@ -559,6 +559,10 @@ NOT_FITTED: dict[str, str] = {
+                    "levels unattainable and inflated the micro-party tail",
+     "dirichlet_floor": "the same clamp on deviation inputs, mirrored as a "
+                        "scenario key so the sweep that chose it is reproducible",
++    "level_sd_default": "the fallback level spread for a party with no measured "
++                        "sd(log theta). Since 2026-10-09 it binds for the "
++                        "roster parties whose only record is the previous LGE "
++                        "(JUDGEMENT-CALLS §A29); typed, not fitted",
+     # --- statute and switches ---------------------------------------------
+     "overhang_rule": "the excessive-seats provision. Municipal Structures Act "
+                      "Schedule 1 item 16 as amended by Act 3 of 2021 — the "
+diff --git a/src/levels.py b/src/levels.py
+index 15e5bad..1a167ad 100644
+--- a/src/levels.py
++++ b/src/levels.py
+@@ -917,28 +917,6 @@ def _reliability(share: float) -> float:
+     return float(share) / (float(share) + RELIABILITY_HALF)
+ 
+ 
+-def size_sd_raw(size: float, sd_fit: dict) -> float:
+-    """The size group's width in log θ at ``size``, before the clamp.
+-
+-    ``sd_fit`` is :func:`theta_prior`'s ``groups["sd_fit"]``: either the
+-    dispersion line ``{"route": "size_fit", "slope", "intercept"}``, evaluated
+-    as ``exp(½(intercept + slope·log size))`` with ``size`` floored at 1e-5, or
+-    ``{"route": "pooled", "pooled"}``, one width for every size.
+-    """
+-    if sd_fit.get("route") == "pooled":
+-        return float(sd_fit["pooled"])
+-    x = np.log(max(size, 1e-5))
+-    return float(np.exp(0.5 * (sd_fit["intercept"] + sd_fit["slope"] * x)))
+-
+-
+-def size_sd(size: float, sd_fit: dict) -> float:
+-    """The size group's width (the RANGE of BRIEF item 17), clamped to
+-    ``[SD_FLOOR, SD_CEILING]``. One definition: :func:`theta_prior` gives every
+-    party with a baseline this width, and ``montecarlo.level_shock_sd`` gives
+-    it to a party with no record of its own, at its own size."""
+-    return float(np.clip(size_sd_raw(size, sd_fit), SD_FLOOR, SD_CEILING))
+-
+-
+ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
+                 codes=METRO_CODES, h: float = float("inf"),
+                 ) -> tuple[dict[str, tuple], dict]:
+@@ -1017,9 +995,11 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
+     if len(xs) >= 6:
+         slope, intercept = np.polyfit(xs, np.log(np.maximum(ys, 1e-6)), 1)
+         sd_route = "size_fit"
+-        # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
+-        sd_fit = {"route": "size_fit", "slope": float(slope),
+-                  "intercept": float(intercept)}
++
++        def sd_raw(size: float) -> float:
++            x = np.log(max(size, 1e-5))
++            # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
++            return float(np.exp(0.5 * (intercept + slope * x)))
+     else:
+         # ddof=1 OVER ONE OBSERVATION IS `nan`, AND IT IS SILENT (§1.97 F21).
+         # `np.clip` propagates it, `sd_for` hands the same nan to every party,
+@@ -1049,24 +1029,20 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
+                 f"See MODEL-LOG §1.121.")
+         pooled = float(np.std(np.log(ratios_all), ddof=1))
+         sd_route = "pooled"
+-        # No correction here: `pooled` is sd(log ratios) computed directly,
+-        # not recovered from a fit to squared residuals, so it carries no
+-        # log-chi-square bias.
+-        #
+-        # SIZE DOES NOT ENTER, and that is this branch's absorption: every
+-        # party on the ballot is handed one width. `sd_route` reports which
+-        # branch ran, because a size sweep against a run in this branch is
+-        # a null with a known cause and not a finding.
+-        sd_fit = {"route": "pooled", "pooled": pooled}
+-
+-    # ONE DEFINITION OF THE SIZE-GROUP WIDTH (BRIEF item 17): the fit is a
+-    # value (`sd_fit`), and `size_sd_raw`/`size_sd` evaluate it. The drawer
+-    # calls the same function for a party with no record of its own.
+-    def sd_raw(size: float) -> float:
+-        return size_sd_raw(size, sd_fit)
++
++        def sd_raw(size: float) -> float:
++            # No correction here: `pooled` is sd(log ratios) computed directly,
++            # not recovered from a fit to squared residuals, so it carries no
++            # log-chi-square bias.
++            #
++            # SIZE DOES NOT ENTER, and that is this branch's absorption: every
++            # party on the ballot is handed one width. `sd_route` reports which
++            # branch ran, because a size sweep against a run in this branch is
++            # a null with a known cause and not a finding.
++            return pooled
+ 
+     def sd_for(size: float) -> float:
+-        return size_sd(size, sd_fit)
++        return float(np.clip(sd_raw(size), SD_FLOOR, SD_CEILING))
+ 
+     # PATH ONE — a party WITH history. Its own log-mean, shrunk toward the
+     # common centre by how much that history is worth rather than by how many
+@@ -1214,10 +1190,6 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
+         # instead of a triangular fitted to the same band's endpoints.
+         "sd": {party: float(sd_for(baseline.get(party, 0.0)))
+                for party in priors},
+-        # The width fit itself, as a value `size_sd` evaluates (BRIEF item
+-        # 17): `make_drawer` sizes a party with no record of its own with it,
+-        # at that party's own size, through the same function as `sd` above.
+-        "sd_fit": dict(sd_fit),
+         # WHAT THIS FUNCTION ABSORBED. See the block above the priors loop.
+         # `sd_clip.share` is the fraction of parties whose width is set by the
+         # clamp and not by the fit; `shrink.share` is the fraction of the
+@@ -1385,9 +1357,6 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
+       the level.
+     * ``size_fallback`` — parties shrunk at their observed size because
+       ``current`` gives them none (no window is applied to them);
+-    * ``at_size_centre`` — parties in ``current`` with no record at all,
+-      returned at the size centre for their current size (BRIEF item 17);
+-      only where the size fit exists;
+     * ``outside_window`` — parties whose every observation lay outside the
+       size window ``h`` (BRIEF item 16), so their ``mu`` is the size centre
+       at their current size and their ``worth`` is 0; ``window`` is ``h``.
+@@ -1396,7 +1365,7 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
+         report.update({"n": 0, "target": None, "offered": 0.0,
+                        "absorbed": 0.0, "share": 0.0, "empty": True,
+                        "size_fallback": 0, "outside_window": 0,
+-                       "at_size_centre": 0, "window": _json_h(h)})
++                       "window": _json_h(h)})
+     everything = [obs for obs in (o for v in record.values() for o in v)]
+     if not everything:
+         return {}, 0.0, {}
+@@ -1426,30 +1395,15 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
+         weight = worth[party] / (worth[party] + SHRINK)
+         offered += abs(own - target)
+         absorbed += (1 - weight) * abs(own - target)
+-    # NO RECORD OF ITS OWN: THE SIZE GROUP'S AVERAGE AT ITS CURRENT SIZE (BRIEF
+-    # item 17, the "11b" half of item 11). A party with a current size on this
+-    # route and no observations takes the size centre at that size, which is
+-    # what `theta_prior` already gave it; before this the spine handed it the
+-    # flat common mean (`mu_t.get(party, c_t)`), the one place the size signal
+-    # was still erased (MK at 2026). Only where the size fit exists: without
+-    # it the target IS the flat mean and the spine's fallback says so
+-    # (`centre_fallback`). No worth is entered: the party has no evidence.
+-    at_size_centre = 0
+-    if fit:
+-        for party, size in current.items():
+-            if party not in mus and size and size > 0.0:
+-                mus[party] = float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
+-                at_size_centre += 1
+     if report is not None:
+         report.update({
+-            "n": len(record),
++            "n": len(mus),
+             "target": "size_centre" if fit else "flat_common_centre",
+             "offered": float(offered), "absorbed": float(absorbed),
+             "share": float(absorbed / offered) if offered > 0 else 0.0,
+             "empty": False,
+             "size_fallback": size_fallback,
+             "outside_window": outside_window,
+-            "at_size_centre": at_size_centre,
+             "window": _json_h(h),
+         })
+     return mus, mu_all, worth
+@@ -1722,11 +1676,10 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
+     # `centre_fallback` counts the OTHER absorber in this function, the one
+     # §1.93 named: `mu_t.get(party, c_t)` hands a party with no retention
+     # record of its own the flat common centre — the size-blind number
+-    # `size_centre` exists to replace. MK at 2026 was the case. Since BRIEF
+-    # item 17 (2026-10-09) `_shrunk` returns a no-record party at the size
+-    # centre for its current size wherever the size fit exists, so this
+-    # fallback, and this count, now fire only where there is no size fit
+-    # (fewer than twenty observations in the record).
++    # `size_centre` exists to replace. MK at 2026 is the case. It is a
++    # fallback-to-neutral, indistinguishable in the output from a party whose
++    # measured retention happens to equal the group's, and it is counted here
++    # so that it stops being.
+     routes = {"blend": 0, "national_only": 0, "local_only": 0, "dropped": 0}
+     # NAMES, NOT JUST COUNTS (§1.97 F5, F6). A count says how much was lost; a
+     # reader chasing "why is this party at this number?" needs to know WHICH.
+diff --git a/src/montecarlo.py b/src/montecarlo.py
+index f5a52ba..57b358e 100644
+--- a/src/montecarlo.py
++++ b/src/montecarlo.py
+@@ -352,10 +352,9 @@ DEFAULTS: dict = {
+     # registered constant that cannot be swept is `LEVEL_DF` again.
+     #
+     # Declared at exactly the values they were already frozen at, so nothing
+-    # moved. The other, the fallback level-shock sd for a party with no size,
+-    # was DELETED 2026-10-09 (owner, M3 review row 7): after item 17 it bound
+-    # nowhere, and a party with no size and no θ fit now stops the run
+-    # (`level_shock_sd`, JUDGEMENT-CALLS §A29).
++    # moves. What changes is that they can now be swept, and that the guards can
++    # see them.
++    "level_sd_default": 0.45,
+     "turnout_correlation": 0.63,   # == TURNOUT_CORRELATION, asserted below
+ 
+     "entrant_prob": 0.25,
+@@ -2923,46 +2922,6 @@ def group_share_tripwire(splits: dict, members: dict, record: dict | None,
+             "key_current": bool(record.get("key_current"))}
+ 
+ 
+-def level_shock_sd(party: str, scenario: dict, base_city_d: dict,
+-                   ) -> tuple[float, str]:
+-    """A party's level-shock sd in log units, and which rule gave it.
+-
+-    ONE DEFINITION, read by ``make_drawer`` for every pooled and individual
+-    party and by the poll blend for the model's own sd. Three rules, in order:
+-
+-    * ``"measured"`` — ``theta_prior``'s width for the party
+-      (``scenario["_theta_sd"]``), the size line at its national share;
+-    * ``"size"`` — a party with no such width, or one whose only record is the
+-      previous LGE (item 8, whose ``theta_prior`` width is the line at the 1e-5
+-      size floor, a size it does not have, SPEC R3.7): the size group's width
+-      at its OWN size in the run's baseline, ``levels.size_sd`` on
+-      ``theta_prior``'s fit (BRIEF item 17, the RANGE of its size group).
+-
+-    **There is no third rule.** A party with no measured width, no size in
+-    the baseline (base ≤ 0) or no θ fit in the run STOPS THE RUN. The typed
+-    fallback that stood here (``level_sd_default``, 0.45) was deleted
+-    2026-10-09 (owner, M3 review row 7: "If the old constant has been replaced
+-    with new machinery it should be deleted"); an in-process scan at every
+-    emitted city-year found no drawn party reaching it (JUDGEMENT-CALLS §A29).
+-    Callers ask only for parties the run draws.
+-    """
+-    sd_measured = scenario.get("_theta_sd") or {}
+-    local_only = scenario.get("_local_record_only") or ()
+-    if party in sd_measured and party not in local_only:
+-        return float(sd_measured[party]), "measured"
+-    base = float(base_city_d.get(party, 0.0) or 0.0)
+-    fit = scenario.get("_theta_sd_fit")
+-    if base > 0.0 and fit:
+-        import levels as _levels_sd
+-        return _levels_sd.size_sd(base, fit), "size"
+-    raise SystemExit(
+-        f"{party}: no level-shock width. It has no measured width "
+-        f"(theta_prior), and {'no size in the baseline' if base <= 0.0 else 'the run has no theta fit'}, "
+-        f"so the size group's width cannot be read. There is no typed fallback "
+-        f"(level_sd_default was deleted 2026-10-09, JUDGEMENT-CALLS §A29): "
+-        f"give the party a baseline share or a measured width.")
+-
+-
+ def make_drawer(scenario, base_city_d, centres, index, rng):
+     """Return a function drawing one citywide PR target vector.
+ 
+@@ -3027,23 +2986,31 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
+     # rising to 0.72 at 0.1% — and the draw was ignoring it, taking its spread
+     # instead from the 10th and 90th percentiles of that same lognormal squeezed
+     # back into a bounded triangular. The measurement now reaches the draw
+-    # directly, and unbounded (see LEVEL_DF). The rule is `level_shock_sd`.
+-
+-    # A party with a size and no record of its own takes the size group's
+-    # width at that size (item 17), recorded in `41_guards.level_sd_at_size`.
+-    # A party with neither stops the run in `level_shock_sd` (§A29).
+-    at_size: dict[str, float] = {}
++    # directly, and unbounded (see LEVEL_DF).
++    sd_measured = (scenario.get("_theta_sd") or {})
++    sd_default = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
++
++    # WHO TOOK `level_sd_default` (JUDGEMENT-CALLS §A29). Recorded at the one
++    # place the fallback is applied, for `41_guards.level_sd_default_parties`.
++    # Since item 8 (2026-10-09) it binds for the roster parties whose only
++    # record is the previous LGE: `theta_prior` never saw them.
++    took_default: set[str] = set()
+     # An item-8 party (`levels.local_record_only`) is in `theta_prior`'s record
+     # with no national baseline, so where `theta_prior` emits an sd for it, it
+-    # is `sd_for(0.0)`: the size line at the 1e-5 size floor, a width at a size
+-    # the party does not have (SPEC R3.7). Item 17 gives it, and any other
+-    # party with no measured width, the size group's width at its own size.
+-    # The rule is `level_shock_sd`, one definition.
++    # is `sd_for(0.0)`: the size line evaluated at the 1e-5 size floor, a
++    # width at a size the party does not have. For some such parties that
++    # lands on `SD_CEILING` (joburg 2011's CHRISTIAN_DEMOCRATIC_PARTY, caught
++    # by `test_stage_estimation`'s width-ceiling tripwire). So every item-8
++    # party takes `level_sd_default`, as SPEC §1.7 step 6 intended, until item
++    # 17 sizes its width at its local share. (§1.7 step 6 assumed these
++    # parties were absent from `theta_prior`'s output; they are not. SPEC R3.7.)
++    local_only = set(scenario.get("_local_record_only") or ())
++
+     def sd_for_party(party: str) -> float:
+-        sd, how = level_shock_sd(party, scenario, base_city_d)
+-        if how == "size":
+-            at_size[party] = sd
+-        return sd
++        if party not in sd_measured or party in local_only:
++            took_default.add(party)
++            return float(sd_default)
++        return float(sd_measured[party])
+ 
+     individual = []
+     for party, i in index.items():
+@@ -3150,12 +3117,8 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
+     # size-line shock moved little (item 9 finding 4), so zero is kept as a
+     # registered judgement, JUDGEMENT-CALLS §A50.
+     seeded_set = {p for p, s in (scenario.get("pool_seeds") or {}).items() if s > 0}
+-    # Only members the run draws: the IPF's party list is the pool members in
+-    # `index` (`pool_spec`), and a member outside it has no baseline size, so
+-    # asking for its width would stop the run over a party it never draws.
+     pool_sd_shock = {p: (0.0 if p in seeded_set else sd_for_party(p))
+-                     for cfg in scenario["pools"].values() for p in cfg["members"]
+-                     if p in index}
++                     for cfg in scenario["pools"].values() for p in cfg["members"]}
+ 
+     rho_t = float(scenario.get("turnout_correlation", TURNOUT_CORRELATION))
+     # The ONLY job of this floor is to keep every Dirichlet concentration
+@@ -3418,7 +3381,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
+         return target
+ 
+     draw_pools.ipf_stats = ipf_stats
+-    draw_pools.level_sd_at_size = at_size
++    draw_pools.level_sd_default = took_default
+     draw_pools.turnout_record = turnout_record
+     draw_pools.split_record = split_record
+     draw_pools.split_members = {name: list(spec[5])
+@@ -4654,6 +4617,10 @@ def run_model(target, scenario: dict,
+         _h_theta, _win_theta = _levels.size_window(
+             target, _levels.theta_record, record=_levels.theta_record(target))
+         _h_rho, _win_rho = _levels.size_window(target, _levels.local_record)
++        # ARM C (step 9 prereg): item 16 off, no size filter on either route.
++        _h_theta = _h_rho = float("inf")
++        _win_theta = dict(_win_theta, h="inf", arm="C: forced inf")
++        _win_rho = dict(_win_rho, h="inf", arm="C: forced inf")
+         scenario["_size_window"] = {"theta": _win_theta, "rho": _win_rho}
+         note_value(scenario, "levels.size_window.theta", _win_theta["h"],
+                    where="montecarlo:run_model -> levels.size_window")
+@@ -4686,8 +4653,6 @@ def run_model(target, scenario: dict,
+             # The measured log-spread per party, carried to the draw. See
+             # make_drawer: this is the number the draw was not using.
+             scenario["_theta_sd"] = _groups.get("sd", {})
+-            # The width fit as a value, for `level_shock_sd` (item 17).
+-            scenario["_theta_sd_fit"] = _groups.get("sd_fit")
+             # `scenario["_theta_worth"]` was written here and READ BY NOTHING —
+             # one occurrence in the whole tree, this line (§1.97 F45). Deleted
+             # 2026-08-28. It is `__small__`'s twin (F20, deleted in §1.99): 52
+@@ -5599,6 +5564,8 @@ def run_model(target, scenario: dict,
+     # change that needs its own justification rather than a free rider on
+     # this one. Left as it was, and recorded so it is a decision.
+     if _agg:
++        _sd = scenario.get("_theta_sd") or {}
++        _default_sd = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
+         # σ_poll IS NO LONGER A CONSTANT. It is decomposed per poll per party —
+         # sampling from the achieved sample, a common term no number of houses
+         # removes, an idiosyncratic term that shrinks with houses, a declared
+@@ -5636,9 +5603,7 @@ def run_model(target, scenario: dict,
+             _mu = float(centres.get(_party, 0.0))
+             if _mu <= 0:
+                 continue
+-            # The model's own sd, by the drawer's rule (item 17: one
+-            # definition, `level_shock_sd`).
+-            _msd = level_shock_sd(_party, scenario, base_city_d)[0] * _mu
++            _msd = float(_sd.get(_party, _default_sd)) * _mu
+             # The aggregate's own error: sampling shrinks across waves, the
+             # house term shrinks across HOUSES and so does not shrink here.
+             _psd = _pg.aggregate_sd(
+@@ -5931,12 +5896,14 @@ def run_model(target, scenario: dict,
+         # became per party.
+         "draws": int(draws),
+         # Item 8: roster parties with no record, not drawn (a sorted list, or
+-        # "not_checked" when the target has no roster).
++        # "not_checked" when the target has no roster), and the parties whose
++        # level-shock sd is `level_sd_default` because no size record covers
++        # them (JUDGEMENT-CALLS §A29).
+         "roster_unrepresented": roster_unrepresented,
+-        # Item 17: parties drawn at the size group's width at their own size
+-        # (`levels.size_sd`), with that width. Only parties the run draws.
+-        "level_sd_at_size": {p: float(v) for p, v in sorted(
+-            draw_target.level_sd_at_size.items()) if p in index},
++        # Only parties the run draws: `sd_for_party` is also consulted for
++        # pool members outside the universe (M2 review S1).
++        "level_sd_default_parties": sorted(
++            p for p in draw_target.level_sd_default if p in index),
+         "excessive_draws": excessive_draws,
+         "overhang_count": dict(overhang_count),
+         # Item 12: pairs whose drawn share of a pool's vote exceeds their

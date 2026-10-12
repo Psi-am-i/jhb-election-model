@@ -1,0 +1,169 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "mangaung",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "732ef614fabd6ac7",
+    "schema": 1,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/mangaung-2011.toml",
+  "no_measured_vector": {
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BLACK_CONSCIOUSNESS_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "UNITED_RESIDENTS_FRONT": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.7781203989439118,
+    0.03484407614135615,
+    0.00778846431716965,
+    0.17924706059756224
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on mangaung 2006; size from the 2011 roll split by each ward's own composition; turnout from mangaung's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "DA",
+        "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+        "PAC"
+      ],
+      "members": {
+        "ACDP": 0.7250697617357189,
+        "ANC": 0.9866971384599604,
+        "APC": 0.8098967112173475,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.8098967112173475,
+        "COPE": 0.871776860752262,
+        "DA": 0.10675833152874041,
+        "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 1.0,
+        "PAC": 1.0,
+        "UNITED_RESIDENTS_FRONT": 0.8098967112173475,
+        "VFPLUS": 0.048070731694452244
+      },
+      "registered": 290021.5734037652,
+      "turnout": [
+        0.29999616649661076,
+        0.43853132253582305,
+        0.5873610277487524
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on mangaung 2006; size from the 2011 roll split by each ward's own composition; turnout from mangaung's local elections before 2011",
+      "identified": [
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.11913631141401806,
+        "ANC": 0.00953240543354589,
+        "APC": 0.0204159926532247,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.0204159926532247,
+        "COPE": 0.016606737126337118,
+        "DA": 0.049334429974014174,
+        "UNITED_RESIDENTS_FRONT": 0.0204159926532247,
+        "VFPLUS": 0.0747805929273004
+      },
+      "registered": 13912.08862625938,
+      "turnout": [
+        0.1649905500120017,
+        0.2647618970626875,
+        0.3962363087367754
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on mangaung 2006; size from the 2011 roll split by each ward's own composition; turnout from mangaung's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.1557939268502632,
+        "ANC": 0.0037704561064936452,
+        "APC": 0.16968729612942787,
+        "BLACK_CONSCIOUSNESS_PARTY": 0.16968729612942787,
+        "COPE": 0.11161640212140089,
+        "DA": 0.8439072384972454,
+        "UNITED_RESIDENTS_FRONT": 0.16968729612942787,
+        "VFPLUS": 0.8771486753782474
+      },
+      "registered": 65802.80480066875,
+      "turnout": [
+        0.3306441088680939,
+        0.47375366460319385,
+        0.6213093443049803
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.8023384403000773,
+      0.03359812548492391,
+      0.007601146664975472,
+      0.15646228755002337
+    ],
+    "2009": [
+      0.7852781651633708,
+      0.034497238470544006,
+      0.007737571808017025,
+      0.17248702455806825
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "target": "2011",
+  "turnout_limits": {
+    "city": {
+      "high": 0.4782645738171109,
+      "low": 0.3913073785776362,
+      "observed_high": 0.4347859761973735,
+      "observed_low": 0.4347859761973735,
+      "previous": 0.4347859761973735
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.4823844547894054,
+        "low": 0.39467819028224077,
+        "observed_high": 0.43853132253582305,
+        "observed_low": 0.43853132253582305,
+        "previous": 0.43853132253582305
+      },
+      {
+        "high": 0.29123808676895624,
+        "low": 0.23828570735641874,
+        "observed_high": 0.2647618970626875,
+        "observed_low": 0.2647618970626875,
+        "previous": 0.2647618970626875
+      },
+      {
+        "high": 0.0,
+        "low": 0.0,
+        "observed_high": 0.0,
+        "observed_low": 0.0,
+        "previous": 0.0
+      },
+      {
+        "high": 0.5211290310635133,
+        "low": 0.4263782981428745,
+        "observed_high": 0.47375366460319385,
+        "observed_low": 0.47375366460319385,
+        "previous": 0.47375366460319385
+      }
+    ]
+  }
+}

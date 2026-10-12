@@ -1,0 +1,208 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "mangaung",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "732ef614fabd6ac7",
+    "schema": 1,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/mangaung-2016.toml",
+  "no_measured_vector": {
+    "AGENCY_FOR_NEW_AGENDA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AIC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AZANIAN_ALLIANCE_CONGRESS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BOTSHABELO_UNEMPLOYED_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.7432903466751146,
+    0.05105994350189862,
+    0.009510806314999681,
+    0.19613890350798707
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 37.895821912308655,
+      "derived_from": "pool vectors fitted on mangaung 2011; size from the 2016 roll split by each ward's own composition; turnout from mangaung's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+        "PAC"
+      ],
+      "members": {
+        "ACDP": 0.6198945127354871,
+        "AGENCY_FOR_NEW_AGENDA": 0.7373917412973273,
+        "AIC": 0.7373917412973273,
+        "ANC": 0.9777670473129879,
+        "APC": 0.9880363267313408,
+        "AZANIAN_ALLIANCE_CONGRESS": 0.7373917412973273,
+        "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.7373917412973273,
+        "COPE": 0.9870859175588669,
+        "DA": 0.12662243361506287,
+        "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 1.0,
+        "EFF": 0.8215230984028086,
+        "PAC": 0.9932445911472669,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.7373917412973273,
+        "UNITED_RESIDENTS_FRONT": 1.0,
+        "VFPLUS": 0.0973537391910924
+      },
+      "registered": 317446.28890379285,
+      "turnout": [
+        0.25077471531350276,
+        0.5168236244562207,
+        0.7736653137752626
+      ]
+    },
+    "Coloured": {
+      "alpha": 28.73798311278546,
+      "derived_from": "pool vectors fitted on mangaung 2011; size from the 2016 roll split by each ward's own composition; turnout from mangaung's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "COPE",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.09978517665274222,
+        "AGENCY_FOR_NEW_AGENDA": 0.04739872680120024,
+        "AIC": 0.04739872680120024,
+        "ANC": 0.020690606992728323,
+        "APC": 0.011963673268659181,
+        "AZANIAN_ALLIANCE_CONGRESS": 0.04739872680120024,
+        "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.04739872680120024,
+        "COPE": 0.012914082441133214,
+        "DA": 0.11417557833480164,
+        "EFF": 0.03805088486823507,
+        "PAC": 0.0012114126277256083,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.04739872680120024,
+        "VFPLUS": 0.014734906691155923
+      },
+      "registered": 18611.88844787428,
+      "turnout": [
+        0.03238360546048823,
+        0.5635952511763824,
+        0.9803284814222075
+      ]
+    },
+    "White": {
+      "alpha": 54.547004383177836,
+      "derived_from": "pool vectors fitted on mangaung 2011; size from the 2016 roll split by each ward's own composition; turnout from mangaung's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.2803203106117707,
+        "AGENCY_FOR_NEW_AGENDA": 0.2152095319014725,
+        "AIC": 0.2152095319014725,
+        "ANC": 0.001542345694283745,
+        "AZANIAN_ALLIANCE_CONGRESS": 0.2152095319014725,
+        "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.2152095319014725,
+        "DA": 0.7592019880501354,
+        "EFF": 0.14042601672895644,
+        "PAC": 0.0055439962250073485,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.2152095319014725,
+        "VFPLUS": 0.8879113541177517
+      },
+      "registered": 77035.31968088841,
+      "turnout": [
+        0.3793953310375863,
+        0.6614335440189564,
+        0.8619395799986703
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.8023384403000773,
+      0.03359812548492391,
+      0.007601146664975472,
+      0.15646228755002337
+    ],
+    "2009": [
+      0.7852781651633708,
+      0.034497238470544006,
+      0.007737571808017025,
+      0.17248702455806825
+    ],
+    "2011": [
+      0.770454448287851,
+      0.04541171756434895,
+      0.007756453922945464,
+      0.1763773802248545
+    ],
+    "2014": [
+      0.7512678799830276,
+      0.049398801039588096,
+      0.00897632645968432,
+      0.19035699251770008
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "turnout_limits": {
+    "city": {
+      "high": 0.5957756943204789,
+      "low": 0.39045506741225106,
+      "observed_high": 0.5416142675640717,
+      "observed_low": 0.43383896379139003,
+      "previous": 0.5416142675640717
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.5685059869018427,
+        "low": 0.39467819028224077,
+        "observed_high": 0.5168236244562207,
+        "observed_low": 0.43853132253582305,
+        "previous": 0.5168236244562207
+      },
+      {
+        "high": 0.6199547762940207,
+        "low": 0.23828570735641874,
+        "observed_high": 0.5635952511763824,
+        "observed_low": 0.2647618970626875,
+        "previous": 0.5635952511763824
+      },
+      {
+        "high": 0.0,
+        "low": 0.0,
+        "observed_high": 0.0,
+        "observed_low": 0.0,
+        "previous": 0.0
+      },
+      {
+        "high": 0.727576898420852,
+        "low": 0.4263782981428745,
+        "observed_high": 0.6614335440189564,
+        "observed_low": 0.47375366460319385,
+        "previous": 0.6614335440189564
+      }
+    ]
+  }
+}

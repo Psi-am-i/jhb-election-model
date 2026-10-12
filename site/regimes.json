@@ -1,0 +1,455 @@
+{
+ "rules": {
+  "deduct": {
+   "label": "Our law \u2014 the surplus is deducted from everyone else",
+   "parties": {
+    "DA": {
+     "median": 66.0,
+     "p5": 45.0,
+     "p95": 90.0
+    },
+    "ANC": {
+     "median": 66.0,
+     "p5": 28.0,
+     "p95": 92.0
+    },
+    "ASA": {
+     "median": 27.0,
+     "p5": 11.0,
+     "p95": 52.0
+    },
+    "EFF": {
+     "median": 25.0,
+     "p5": 8.0,
+     "p95": 57.0
+    },
+    "MK": {
+     "median": 22.0,
+     "p5": 7.0,
+     "p95": 50.0
+    },
+    "PA": {
+     "median": 23.0,
+     "p5": 14.0,
+     "p95": 36.0
+    },
+    "RISE": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 15.0
+    },
+    "IFP": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 16.0
+    },
+    "SOUTH_AFRICAN_COMMUNIST_PARTY": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 14.0
+    },
+    "ALJAMAAH": {
+     "median": 2.0,
+     "p5": 1.0,
+     "p95": 6.0
+    },
+    "BOSA": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 10.0
+    },
+    "ALL_CITIZENS_PARTY": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 10.0
+    },
+    "VFPLUS": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 8.0
+    },
+    "ACDP": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "ATM": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 7.0
+    },
+    "AHC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "AIC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "PAC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "UNITED_AFRICANS_TRANSFORMATION": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 2.0
+    }
+   },
+   "p_excessive_any": 0.6982,
+   "threshold_median": 136,
+   "structural": {
+    "P(some majority without the ANC)": 0.9996,
+    "P(some majority without ANC, EFF and MK)": 0.8712,
+    "P(ANC+DA is winning)": 0.4272,
+    "P(some majority without the DA)": 0.9994,
+    "P(DA is the largest single party)": 0.4658,
+    "P(ANC is the largest single party)": 0.4682,
+    "field without ANC, EFF and MK: median seats": 154.0
+   }
+  },
+  "expand": {
+   "label": "Old Germany \u2014 the council grows to absorb the surplus",
+   "parties": {
+    "DA": {
+     "median": 68.0,
+     "p5": 46.0,
+     "p95": 92.0
+    },
+    "ANC": {
+     "median": 66.0,
+     "p5": 29.0,
+     "p95": 92.0
+    },
+    "ASA": {
+     "median": 27.0,
+     "p5": 11.0,
+     "p95": 54.0
+    },
+    "EFF": {
+     "median": 25.0,
+     "p5": 8.0,
+     "p95": 57.0
+    },
+    "MK": {
+     "median": 22.0,
+     "p5": 8.0,
+     "p95": 50.0
+    },
+    "PA": {
+     "median": 24.0,
+     "p5": 15.0,
+     "p95": 37.0
+    },
+    "RISE": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 15.0
+    },
+    "IFP": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 17.0
+    },
+    "SOUTH_AFRICAN_COMMUNIST_PARTY": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 14.0
+    },
+    "ALJAMAAH": {
+     "median": 3.0,
+     "p5": 1.0,
+     "p95": 6.0
+    },
+    "BOSA": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 11.0
+    },
+    "ALL_CITIZENS_PARTY": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 10.0
+    },
+    "VFPLUS": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 8.0
+    },
+    "ACDP": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "ATM": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 7.0
+    },
+    "AHC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 7.0
+    },
+    "AIC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "PAC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "UNITED_AFRICANS_TRANSFORMATION": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 3.0
+    }
+   },
+   "p_excessive_any": 0.6982,
+   "threshold_median": 138,
+   "structural": {
+    "P(some majority without the ANC)": 0.9996,
+    "P(some majority without ANC, EFF and MK)": 0.8766,
+    "P(ANC+DA is winning)": 0.409,
+    "P(some majority without the DA)": 0.9994,
+    "P(DA is the largest single party)": 0.5016,
+    "P(ANC is the largest single party)": 0.4346,
+    "field without ANC, EFF and MK: median seats": 158.0
+   }
+  },
+  "level": {
+   "label": "Modern Germany \u2014 every party is topped up to proportionality",
+   "parties": {
+    "DA": {
+     "median": 74.0,
+     "p5": 48.0,
+     "p95": 110.0
+    },
+    "ANC": {
+     "median": 66.0,
+     "p5": 31.0,
+     "p95": 92.0
+    },
+    "ASA": {
+     "median": 30.0,
+     "p5": 12.0,
+     "p95": 62.0
+    },
+    "EFF": {
+     "median": 28.0,
+     "p5": 8.0,
+     "p95": 58.0
+    },
+    "PA": {
+     "median": 26.0,
+     "p5": 16.0,
+     "p95": 42.0
+    },
+    "MK": {
+     "median": 25.0,
+     "p5": 8.0,
+     "p95": 50.0
+    },
+    "RISE": {
+     "median": 3.0,
+     "p5": 0.0,
+     "p95": 17.0
+    },
+    "IFP": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 19.0
+    },
+    "SOUTH_AFRICAN_COMMUNIST_PARTY": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 17.0
+    },
+    "ALJAMAAH": {
+     "median": 3.0,
+     "p5": 1.0,
+     "p95": 7.0
+    },
+    "BOSA": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 12.0
+    },
+    "ALL_CITIZENS_PARTY": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 11.0
+    },
+    "VFPLUS": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 9.0
+    },
+    "ACDP": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 7.0
+    },
+    "ATM": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 8.0
+    },
+    "AHC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 7.0
+    },
+    "AIC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 7.0
+    },
+    "PAC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "UNITED_AFRICANS_TRANSFORMATION": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 3.0
+    },
+    "UDM": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 2.0
+    }
+   },
+   "p_excessive_any": 0.6982,
+   "threshold_median": 144,
+   "structural": {
+    "P(some majority without the ANC)": 0.9996,
+    "P(some majority without ANC, EFF and MK)": 0.8856,
+    "P(ANC+DA is winning)": 0.3498,
+    "P(some majority without the DA)": 0.9994,
+    "P(DA is the largest single party)": 0.6008,
+    "P(ANC is the largest single party)": 0.3364,
+    "field without ANC, EFF and MK: median seats": 170.0
+   }
+  },
+  "cap": {
+   "label": "Germany 2023 \u2014 pure proportionality at a fixed council",
+   "parties": {
+    "DA": {
+     "median": 68.0,
+     "p5": 46.0,
+     "p95": 92.0
+    },
+    "ANC": {
+     "median": 58.0,
+     "p5": 29.0,
+     "p95": 92.0
+    },
+    "ASA": {
+     "median": 27.0,
+     "p5": 11.0,
+     "p95": 54.0
+    },
+    "EFF": {
+     "median": 25.0,
+     "p5": 8.0,
+     "p95": 56.0
+    },
+    "PA": {
+     "median": 24.0,
+     "p5": 15.0,
+     "p95": 37.0
+    },
+    "MK": {
+     "median": 22.0,
+     "p5": 8.0,
+     "p95": 49.0
+    },
+    "RISE": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 15.0
+    },
+    "IFP": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 17.0
+    },
+    "SOUTH_AFRICAN_COMMUNIST_PARTY": {
+     "median": 2.0,
+     "p5": 0.0,
+     "p95": 14.0
+    },
+    "ALJAMAAH": {
+     "median": 3.0,
+     "p5": 1.0,
+     "p95": 6.0
+    },
+    "BOSA": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 11.0
+    },
+    "ALL_CITIZENS_PARTY": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 10.0
+    },
+    "VFPLUS": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 8.0
+    },
+    "ACDP": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "ATM": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 7.0
+    },
+    "AHC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 7.0
+    },
+    "AIC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "PAC": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 6.0
+    },
+    "UNITED_AFRICANS_TRANSFORMATION": {
+     "median": 0.0,
+     "p5": 0.0,
+     "p95": 3.0
+    }
+   },
+   "p_excessive_any": 0.6982,
+   "threshold_median": 136,
+   "structural": {
+    "P(some majority without the ANC)": 0.9996,
+    "P(some majority without ANC, EFF and MK)": 0.8858,
+    "P(ANC+DA is winning)": 0.341,
+    "P(some majority without the DA)": 0.9994,
+    "P(DA is the largest single party)": 0.605,
+    "P(ANC is the largest single party)": 0.3322,
+    "field without ANC, EFF and MK: median seats": 158.0
+   }
+  }
+ },
+ "missing": [],
+ "note": "Reduced from the published run's own summaries; no regime was re-run to build this."
+}

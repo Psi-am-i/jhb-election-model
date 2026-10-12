@@ -1,0 +1,86 @@
+{
+ "city": "ekurhuleni",
+ "year": "2021",
+ "draws": 1000,
+ "council": 224,
+ "wards": 112,
+ "A": {
+  "seats": {
+   "THE_NATIONALS_OF_SOUTH_AFRICA": 1,
+   "ATM": 1,
+   "ANC": 96,
+   "IFP": 3,
+   "PAC": 1,
+   "ACDP": 2,
+   "VFPLUS": 7,
+   "AIC": 2,
+   "NFP": 1,
+   "DA": 67,
+   "EFF": 30,
+   "APC": 1,
+   "ASA": 9,
+   "PA": 1,
+   "BLACK_FIRST_LAND_FIRST": 1,
+   "UDM": 1
+  },
+  "seat_err": 30.0,
+  "wards_ok": 107,
+  "ward_vote_err_pp": 14.122018053172308,
+  "list_vote_err_pp": 15.088320540529843,
+  "top": "ANC",
+  "top_wards": 78,
+  "top_actual_wards": 78,
+  "excessive": {},
+  "council": 224,
+  "ward_wins": {
+   "DA": 34,
+   "ANC": 78
+  }
+ },
+ "B": {
+  "draw": 745,
+  "seats": {
+   "ACDP": 1,
+   "AFRICAN_FREEDOM_REVOLUTION": 1,
+   "AIC": 1,
+   "ANC": 100,
+   "ASA": 11,
+   "DA": 65,
+   "EFF": 39,
+   "IFP": 1,
+   "VFPLUS": 5
+  },
+  "seat_err": 46.0,
+  "wards_ok": 108,
+  "ward_vote_err_pp": 21.834730368183468,
+  "list_vote_err_pp": 23.641715415064095
+ },
+ "median_seat_err": 37.5,
+ "median_total": 208.5,
+ "coherent_seat_err": 30.0,
+ "actual": {
+  "seats": {
+   "COPE": 1,
+   "ATM": 1,
+   "ANC": 86,
+   "IFP": 3,
+   "PAC": 1,
+   "ACDP": 2,
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 1,
+   "VFPLUS": 8,
+   "AIC": 3,
+   "NFP": 1,
+   "DA": 65,
+   "EFF": 31,
+   "ASA": 15,
+   "PA": 4,
+   "INDEPENDENT_CITIZENS_MOVEMENT": 1,
+   "UDM": 1
+  },
+  "ward_wins": {
+   "DA": 32,
+   "ANC": 78,
+   "PA": 2
+  }
+ }
+}

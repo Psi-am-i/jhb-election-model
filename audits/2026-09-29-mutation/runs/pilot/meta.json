@@ -1,0 +1,94 @@
+{
+ "head": "69cc6cc8f6b480f57c4f75f66f853ac3264d80b1",
+ "modules": [
+  "src/citywide_table.py",
+  "src/seats.py"
+ ],
+ "tmp": "/private/var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/mutnight-pilot",
+ "city": "joburg",
+ "target": "2026",
+ "draws": 20,
+ "seed": 20261104,
+ "created": "2026-09-28 17:20:26",
+ "python": "3.13.4",
+ "hash_seed": "0",
+ "max_test_s": 120.0,
+ "inputs_at_prepare": {
+  "pools_2026.json": "dc7efb04938939477102551c1511c230241a9a30936e21c18edd51cfec89a2a4",
+  "citywide_2026.json": "54775b1d86e647f7fac8119b0288cdf28f683ce7b4a0c23ba944ba913e4a1c69",
+  "turnout.csv": "513060bed430cbb629a96db52b4eec05fa7ebb7329fa03ad6e5f7f6788932f66",
+  "fold1_parameters.csv": "cba3e7a976bd9a881cb125f8727f6be54a6848f14fbbb13793ec190a80a79e1b",
+  "fold1_parameters__turnout-ratio.csv": "a3c5d7c59a887e03be45c8eab0fa67d0995603a0522daf3dc2771ec2ca2204b2",
+  "fold2_parameters.csv": "c3d0ee80e780852ae53dbfcdb054c58fe5e6b6179a7d30c4faf3671d2f312450",
+  "fold3_parameters.csv": "feaa5eee610f5cf6b0557a934b8fa56d3e6cfdd6d33a7dff49073c2d9fd7b1f3",
+  "fold4_parameters.csv": "3462195b73e66a5b1c8f88638dce72ac04f2c71ad616901686ef30a68172dfc8",
+  "fold5_parameters.csv": "55a2d59214f7e72ff06eea879585e950570078eda784835c9b494bf7b0183868"
+ },
+ "baseline_model": {
+  "fields": [
+   "draws",
+   "excessive_draws",
+   "over_draws",
+   "pool_turnout_draws",
+   "pr_share_draws",
+   "seat_draws",
+   "ward_seat_draws",
+   "ward_share_draws",
+   "ward_winner_draws"
+  ],
+  "table_twice_differs": [],
+  "table_vs_parse_differs": [],
+  "table_run_s": 13.290270208002767,
+  "table_setup_s": 0.3147504169901367
+ },
+ "model_s": {
+  "table": 13.605020624992903,
+  "parse": null
+ },
+ "baseline_tests": {
+  "counts": {
+   "pass": 771,
+   "skip": 18,
+   "fail": 21
+  },
+  "wall_s": 1034.070880875006,
+  "module_s": 4963.289
+ },
+ "prepared": "2026-09-28 17:38:18",
+ "sampling": {
+  "src/citywide_table.py": {
+   "population": 107,
+   "chosen": 107,
+   "sampled": false,
+   "estimated_s_full": 794,
+   "seed": null
+  },
+  "src/seats.py": {
+   "population": 56,
+   "chosen": 56,
+   "sampled": false,
+   "estimated_s_full": 533,
+   "seed": null
+  }
+ },
+ "runs": [
+  {
+   "finished": "2026-09-28 17:47:51",
+   "mutants": 163,
+   "wall_s": 499,
+   "jobs": 7,
+   "inputs_unchanged": true,
+   "aborted": false,
+   "data_changed_since_prepare": []
+  },
+  {
+   "finished": "2026-09-28 18:08:34",
+   "mutants": 83,
+   "wall_s": 1190,
+   "jobs": 7,
+   "inputs_unchanged": true,
+   "aborted": false,
+   "data_changed_since_prepare": []
+  }
+ ]
+}

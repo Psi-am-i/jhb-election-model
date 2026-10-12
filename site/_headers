@@ -1,0 +1,46 @@
+/*
+  Content-Type: text/html; charset=utf-8
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: frame-ancestors 'self'
+  Strict-Transport-Security: max-age=31536000
+/*.bin
+  ! Content-Type
+  Content-Type: application/octet-stream
+/*.json
+  ! Content-Type
+  Content-Type: application/json; charset=utf-8
+/*.py
+  ! Content-Type
+  Content-Type: text/x-python; charset=utf-8
+/*.js
+  ! Content-Type
+  Content-Type: text/javascript; charset=utf-8
+/*.mjs
+  ! Content-Type
+  Content-Type: text/javascript; charset=utf-8
+/*.wasm
+  ! Content-Type
+  Content-Type: application/wasm
+/*.css
+  ! Content-Type
+  Content-Type: text/css; charset=utf-8
+/*.txt
+  ! Content-Type
+  Content-Type: text/plain; charset=utf-8
+/*.png
+  ! Content-Type
+  Content-Type: image/png
+/*.jpg
+  ! Content-Type
+  Content-Type: image/jpeg
+/*.svg
+  ! Content-Type
+  Content-Type: image/svg+xml
+/*.woff2
+  ! Content-Type
+  Content-Type: font/woff2
+/dev/*
+  X-Robots-Tag: noindex, nofollow
+/drafts/*
+  X-Robots-Tag: noindex, nofollow

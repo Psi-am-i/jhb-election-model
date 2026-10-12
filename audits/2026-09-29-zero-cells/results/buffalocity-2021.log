@@ -1,0 +1,4 @@
+  ! pools_2021.json is STALE: src/pools.py changed since this spec was emitted (pools_sha 7264a92947ba4529 -> fac628d1b0218005); re-emit before believing any measurement taken against it
+WARNING *** file size (24512) not 512 + multiple of sector size (512)
+  ! independent ward wins: counted 1 from merged IND rows, using the IEC's published C = 0. They cannot be told apart in the data; the counted figure is an upper bound (DATA-QUALITY.md item 12).
+buffalocity 2021 none: 24s, zero cells excl. control 14, control found 2

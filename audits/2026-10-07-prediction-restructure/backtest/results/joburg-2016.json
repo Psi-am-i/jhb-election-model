@@ -1,0 +1,78 @@
+{
+ "city": "joburg",
+ "year": "2016",
+ "draws": 1000,
+ "council": 270,
+ "wards": 135,
+ "A": {
+  "seats": {
+   "UDM": 1,
+   "PREM_PEOPLES_AGENDA": 1,
+   "UNITED_FRONT_OF_CIVICS": 1,
+   "IFP": 3,
+   "VFPLUS": 1,
+   "TRULY_ALLIANCE": 1,
+   "AZAPO": 1,
+   "APC": 1,
+   "EFF": 25,
+   "ACDP": 1,
+   "ANC": 120,
+   "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 1,
+   "PAC": 1,
+   "AGANG": 2,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 1,
+   "DA": 109
+  },
+  "seat_err": 30.0,
+  "wards_ok": 134,
+  "ward_vote_err_pp": 10.824510423506327,
+  "list_vote_err_pp": 9.104126130125499,
+  "top": "ANC",
+  "top_wards": 83,
+  "top_actual_wards": 84,
+  "excessive": {},
+  "council": 270,
+  "ward_wins": {
+   "ANC": 83,
+   "DA": 52
+  }
+ },
+ "B": {
+  "draw": 66,
+  "seats": {
+   "ACDP": 1,
+   "AGANG": 2,
+   "ANC": 127,
+   "DA": 111,
+   "EFF": 23,
+   "IFP": 5,
+   "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 1
+  },
+  "seat_err": 32.0,
+  "wards_ok": 132,
+  "ward_vote_err_pp": 13.420974571391348,
+  "list_vote_err_pp": 11.752395465795782
+ },
+ "median_seat_err": 21.0,
+ "median_total": 259.0,
+ "coherent_seat_err": 30.0,
+ "actual": {
+  "seats": {
+   "UDM": 1,
+   "PA": 1,
+   "IFP": 5,
+   "COPE": 1,
+   "ALJAMAAH": 1,
+   "VFPLUS": 1,
+   "AIC": 4,
+   "EFF": 30,
+   "ANC": 121,
+   "ACDP": 1,
+   "DA": 104
+  },
+  "ward_wins": {
+   "ANC": 84,
+   "DA": 51
+  }
+ }
+}

@@ -1,0 +1,57 @@
+/* The parties' claims (/claims): build_site.page_type gives its <body> the
+   class pg-claims, and src/site_assets.py scopes every rule here to it.
+
+   EACH CLAIM WEARS ITS PARTY'S COLOUR (owner, 2026-10-05: "use larger party
+   logos and use their colors for their article"). render_sheet gives every
+   <article class="claim"> its party's colour class (`pc-<code>`, which sets
+   --pc from render_sheet.CHIPS), and every rule below reads --pc and nothing
+   else: the ground, the rule at the left, the ring round the logo, the
+   quotation marks and the step numbers. The same rules for every party; a
+   party with no colour of its own takes --pc-other.
+
+   THE VERDICT IS THE EXCEPTION (owner, 2026-10-05): its badge takes the one
+   verdict scale, red false to grey open to green true, the same for every
+   party. render_sheet.verdict_class gives it `v-<step>`; the colour is the
+   --v-<step> token in tokens.css. */
+  .claimlist{display:flex;flex-direction:column;gap:30px;}
+  .claim{--c:var(--pc,var(--pc-other));display:flex;flex-direction:column;gap:14px;
+    padding:20px 24px 24px;border:1px solid color-mix(in srgb,var(--c) 30%,var(--rule-soft));
+    border-left:6px solid var(--c);border-radius:4px;
+    background:color-mix(in srgb,var(--c) 7%,var(--paper));}
+  /* THE BADGE STAYS TOP RIGHT, ON THE FIRST ROW, AT EVERY NAME LENGTH (owner,
+     2026-10-07). The row does not wrap; the name block takes the room left
+     and its speaker line wraps under the name, where a long speaker used to
+     push the badge onto a row of its own. Below 560px the row may wrap. */
+  .claim-top{display:flex;align-items:center;gap:18px;flex-wrap:nowrap;}
+  .plogo{width:96px;height:96px;border-radius:10px;object-fit:contain;
+    background:#fff;padding:5px;flex:none;box-shadow:0 0 0 3px var(--c);}
+  .claim-top .pchip{width:28px;height:28px;border-radius:6px;}
+  .claim-who{display:flex;flex-direction:column;gap:2px;line-height:1.35;margin-right:auto;
+    flex:1 1 0;min-width:0;}
+  .claim-who b{font-family:var(--serif);font-size:20px;font-weight:600;}
+  .claim-who span{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);}
+  .verdict{font-family:var(--sans);font-size:12px;font-weight:750;
+    letter-spacing:.12em;padding:5px 12px;border-radius:3px;color:var(--ink);
+    border:1px solid var(--v);background:color-mix(in srgb,var(--v) 28%,var(--paper));
+    flex:none;align-self:flex-start;white-space:nowrap;}
+
+  .claim-quote{margin:0;font-family:var(--serif);font-weight:600;
+    font-size:clamp(21px,3.2vw,27px);line-height:1.25;letter-spacing:-.01em;
+    text-wrap:pretty;position:relative;padding-left:30px;}
+  .claim-quote::before{content:"\201C";position:absolute;left:-2px;top:-6px;
+    font-size:56px;line-height:1;color:var(--c);}
+  .q-close{color:var(--c);margin-left:1px;}
+  .claim-intro{font-family:var(--serif);font-size:16px;color:var(--ink-2);}
+  .claimsteps{margin:0;padding-left:0;list-style:none;counter-reset:cs;
+    display:flex;flex-direction:column;gap:16px;}
+  .claimsteps li{counter-increment:cs;display:flex;gap:14px;font-size:14.5px;
+    line-height:1.55;}
+  .claimsteps li::before{content:counter(cs);flex:none;box-sizing:border-box;width:26px;height:26px;
+    border-radius:50%;border:2px solid var(--c);color:var(--ink);
+    font:700 12px/22px var(--mono);text-align:center;}
+  .stepbody{flex:1;}
+  @media (max-width:560px){
+    .claim{padding:16px 14px 18px;border-left-width:4px;}
+    .plogo{width:72px;height:72px;}
+    .claim-top{flex-wrap:wrap;}
+  }

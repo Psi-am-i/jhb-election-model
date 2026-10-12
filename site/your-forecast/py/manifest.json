@@ -1,0 +1,33 @@
+{
+ "_about": "Written by interactive/tools/sync_py.mjs. Do not edit.",
+ "files": [
+  "reader_seats.py",
+  "montecarlo.py",
+  "seats.py",
+  "cityconfig.py",
+  "coalitions.py",
+  "fold.py",
+  "parties.py",
+  "polling.py",
+  "prediction.py",
+  "reweight.py",
+  "code_ref.py",
+  "entry.py"
+ ],
+ "code_ref": "aab589918e253a5a0a73371bd841e183e91f046d3ef50016c1de554a9069196e",
+ "page": {
+  "dir": "page",
+  "files": [
+   "cityconfig.py",
+   "polling.py",
+   "prediction.py",
+   "render_map.py",
+   "reweight.py",
+   "parties.py",
+   "score_forecasts.py"
+  ],
+  "data": [],
+  "boot": "pyboot/page.py",
+  "code_ref": "23cde400bb5c560cd0f89ec9b64a7a311e961d5b9d21f36933892d19b7a6bf95"
+ }
+}

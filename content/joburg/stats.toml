@@ -1,0 +1,1606 @@
+# The Johannesburg stat registry — see src/stats.py for the contract.
+#
+#   mode = "free"   recomputed from the current model outputs every build
+#   mode = "fixed"  pinned to the run that produced it, because it sits
+#                   inside a dated argument; the build reports drift
+#
+# Every entry carries its source and the date it entered the prose.
+# `on_site` (fixed figures only): the publication from which the figure was
+# already on the site, typed, before it became a token. Its tooltip dates it
+# from there ("Unchanged since 8 August 2026", the article's date), not from
+# the edition that first ledgered it (owner's list, 2026-10-03, item 1).
+# An unresolved token fails the build. Drift only warns.
+#
+# ⚠️ ORPHANED, 2026-08-17 — TEN TOKENS BELOW CANNOT BE REPRODUCED.
+#
+#   claim_short_by · claim_da_median · claim_da_votes_surge · claim_poll_surged
+#   claim_half_surged · claim_da_share_surged · claim_anc_wards_surged
+#   claim_p_da_alone · claim_anc_collapse_seats · claim_anc_entitlement_surged
+#
+# All are `mode = "fixed"`, captured 2026-08-07, and every one names
+# `run:turnout_tilt_da=1` as its source. `run_model` has no such lever any
+# more. Because they are fixed, the build resolves them from the pinned value
+# and the drift report says nothing — a fixed token cannot drift, which is
+# exactly the failure mode CLAUDE.md warns about. They currently sit on the
+# live front page (the Zille 490k claim).
+#
+# They are not wrong; they are unauditable, which for this project is the same
+# thing. Before the next publish, EITHER express the same scenario in machinery
+# that exists — the turnout band per pool can carry "the DA's pools turn out at
+# the top of their range" — and re-derive them as `free`, OR retire the claim
+# section. Do not simply re-pin them to a new run: the argument they support was
+# built on a lever whose behaviour nothing now reproduces.
+
+# ---------------------------------------------------------------------------
+# free — what the model says now
+# ---------------------------------------------------------------------------
+
+# The share of simulations in which the party ALONE has the most seats. Ties
+# are `p_largest_tied`: until 2026-10-02 these read forecast_summary.json's
+# `structural.P(X is the largest single party)`, an argmax that credits every
+# tied simulation to the first party in the model's order (side finding S1).
+[p_da_largest]
+mode = "free"
+source = "derived:largest_outright.DA"
+format = "pct0"
+inserted = "2026-08-07"
+used_in = "standfirst; headline numbers"
+
+[p_anc_largest]
+mode = "free"
+source = "derived:largest_outright.ANC"
+format = "pct0"
+inserted = "2026-08-07"
+
+[p_largest_tied]
+mode = "free"
+source = "derived:largest_tied"
+format = "chance"
+inserted = "2026-10-02"
+used_in = "the forecast page's since-then box; /review"
+
+[p_anc_da]
+mode = "free"
+source = "model:structural.P(ANC+DA is winning)"
+format = "pct0"
+inserted = "2026-08-07"
+used_in = "the 'viability is not intent' note under the coalition table"
+# ⛔ THIS TOKEN EXISTED, RESOLVED, AND WAS USED BY NOTHING — while the quantity
+# it defines sat TYPED into the prose beside it, reading 87% against a model
+# that said 58%. A registered token no page uses is a guard that was never
+# armed. Tokenised 2026-08-30. MODEL-LOG §1.140.
+
+# The home page's introduction: wards whose winner the backtest called, of the
+# wards there were, at each of Johannesburg's past elections
+# (history.json, compare_history; owner-approved text, 2026-10-10).
+[hist_jhb_wards_called_2011]
+mode = "free"
+source = "history:joburg:2011:wards.called"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_2011]
+mode = "free"
+source = "history:joburg:2011:wards.n_wards"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_called_2016]
+mode = "free"
+source = "history:joburg:2016:wards.called"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_2016]
+mode = "free"
+source = "history:joburg:2016:wards.n_wards"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_called_2021]
+mode = "free"
+source = "history:joburg:2021:wards.called"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+[hist_jhb_wards_2021]
+mode = "free"
+source = "history:joburg:2021:wards.n_wards"
+format = "int"
+inserted = "2026-10-10"
+used_in = "the home page's introduction"
+
+# The small-party note on /methodology (owner, 2026-10-10): the record's test
+# (MODEL-LOG §1.296) and how often the published simulations fail it.
+[small_party_share]
+mode = "free"
+source = "derived:small_party_share"
+format = "pct0"
+inserted = "2026-10-10"
+used_in = "methodology — the small-party note: the record test's 'under' line"
+
+[small_party_surge_share]
+mode = "free"
+source = "derived:small_party_surge_share"
+format = "pct0"
+inserted = "2026-10-10"
+used_in = "methodology — the small-party note: the record test's 'reached' line"
+
+[small_party_surge]
+mode = "free"
+source = "published:small_party_surge"
+format = "chance"
+inserted = "2026-10-10"
+used_in = "methodology — the small-party note: published simulations in which an established party under the line exceeds the other"
+
+[p_excessive_anc]
+mode = "free"
+source = "model:p_excessive_by_party.ANC"
+format = "pct0"
+inserted = "2026-08-07"
+used_in = "the November surprise; headline numbers"
+
+[anc_ward_median]
+mode = "free"
+source = "model:parties.ANC.ward_wins_mean"
+format = "int"
+inserted = "2026-08-07"
+used_in = "the November surprise (×2), methodology"
+
+[anc_entitlement]
+mode = "free"
+# the pure-proportional counterfactual IS the entitlement: Germany-2023 rule
+source = "regime:cap:parties.ANC.median"
+format = "int"
+inserted = "2026-08-07"
+used_in = "the November surprise (×2), methodology"
+
+[da_median]
+mode = "free"
+source = "model:parties.DA.median"
+format = "int"
+inserted = "2026-08-07"
+
+[anc_median]
+mode = "free"
+source = "model:parties.ANC.median"
+format = "int"
+inserted = "2026-08-07"
+
+[asa_median]
+mode = "free"
+source = "model:parties.ASA.median"
+format = "int"
+inserted = "2026-08-07"
+
+[asa_p5]
+mode = "free"
+source = "model:parties.ASA.p5"
+format = "int"
+inserted = "2026-08-07"
+used_in = "why-built: ActionSA's own 10-50 range"
+
+[asa_p95]
+mode = "free"
+source = "model:parties.ASA.p95"
+format = "int"
+inserted = "2026-08-07"
+
+[generated_date]
+mode = "free"
+source = "model:_generated"
+format = "date_long"
+inserted = "2026-09-17"
+used_in = "footer colophon and dateline — the run the page's figures come from"
+
+[run_seed]
+mode = "free"
+source = "model:scenario.seed"
+format = "raw"
+inserted = "2026-09-17"
+used_in = "footer colophon"
+
+[n_draws]
+mode = "free"
+source = "derived:n_draws"
+format = "comma"
+inserted = "2026-08-07"
+used_in = "eyebrows, colophons, methodology — restated 5+ times"
+
+[council_size]
+mode = "free"
+source = "derived:council_size"
+format = "int"
+inserted = "2026-08-07"
+
+[majority]
+mode = "free"
+source = "derived:majority"
+format = "int"
+inserted = "2026-08-07"
+
+[p_alone]
+mode = "free"
+source = "derived:p_alone"
+format = "chance"   # was pct0, which printed "0%" for 3 of 5,000 (2026-09-17)
+inserted = "2026-08-07"
+
+# ---------------------------------------------------------------------------
+# fixed — pinned inside dated arguments; drift is reported, not applied
+# ---------------------------------------------------------------------------
+
+[headline_overhang_party]
+mode = "fixed"
+value = "the ANC"
+source = "model:p_excessive_by_party (largest)"
+captured = "2026-08-06"
+tolerance = "exact"
+used_in = "headline and standfirst — if another party started overhanging, both are wrong"
+
+unverifiable = "a party NAME selected from p_excessive_by_party; resolve() returns numbers only"
+[claim_short_by]
+mode = "fixed"
+value = 39
+source = "run:turnout_tilt_da=1 — 136 minus DA median"
+captured = "2026-08-07"
+run = "seed=20261104 draws=1500"
+tolerance = 3
+used_in = "claims/zille-490k — the headline verdict"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_da_median]
+mode = "fixed"
+value = 97
+source = "run:turnout_tilt_da=1 parties.DA.median"
+captured = "2026-08-07"
+run = "seed=20261104 draws=1500"
+tolerance = 3
+used_in = "claims/zille-490k step 3 — 'lands on 97 of the 136 needed'"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_da_votes_surge]
+mode = "fixed"
+value = 524000
+source = "run:turnout_tilt_da=1 — DA votes at the record-turnout anchor"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 15000
+used_in = "claims/zille-490k step 2"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_poll_base]
+mode = "fixed"
+value = 985000
+source = "derived: registered x blended turnout, default scenario"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 15000
+used_in = "claims/zille-490k step 1"
+
+unverifiable = "registered roll times blended turnout; the model emits no such token"
+[claim_poll_surged]
+mode = "fixed"
+value = 1290000
+source = "run:turnout_tilt_da=1 — total votes cast"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 30000
+used_in = "claims/zille-490k step 1"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_half_surged]
+mode = "fixed"
+value = 644000
+source = "run:turnout_tilt_da=1 — half the surged poll"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 15000
+used_in = "claims/zille-490k step 1"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_da_share_surged]
+mode = "fixed"
+value = 41
+source = "run:turnout_tilt_da=1 — DA share of the surged poll"
+captured = "2026-08-07"
+tolerance = 2
+used_in = "claims/zille-490k steps 2 and 3"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_anc_wards_surged]
+mode = "fixed"
+value = 62
+source = "run:turnout_tilt_da=1 parties.ANC.ward_wins_mean"
+captured = "2026-08-07"
+tolerance = 3
+used_in = "claims/zille-490k step 3 — the ward wall"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_p_da_alone]
+mode = "fixed"
+value = 3
+source = "run:turnout_tilt_da=1 — share of draws with DA >= 136, in 100"
+captured = "2026-08-07"
+tolerance = 2
+used_in = "claims/zille-490k step 3 — 'about 3 in 100'"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_anc_collapse_seats]
+mode = "fixed"
+value = 47
+source = "run:turnout_tilt_da=1 — ANC median in the draws where the DA reaches 136"
+captured = "2026-08-07"
+tolerance = 4
+used_in = "claims/zille-490k steelman — where the ward wall breaks"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_vote_share_needed]
+mode = "fixed"
+value = 57
+source = "allocator experiment: DA share needed for 136 with the ANC on 62 wards"
+captured = "2026-08-07"
+tolerance = 2
+used_in = "claims/zille-490k steelman — votes-majority is not seats-majority"
+
+unverifiable = "a one-off allocator experiment, not a quantity a run re-emits"
+[bloc_leak_votes]
+mode = "fixed"
+value = 587000
+source = "external:MODEL-LOG 1.18 — ANC-bloc vote loss 2019 NPE to 2021 LGE"
+captured = "2026-08-06"
+format = "comma"
+used_in = "the reservoir finding (forecast + interactive) — a measurement of the past, restated 3x"
+
+unverifiable = "a measured historical vote movement (MODEL-LOG 1.18), not a model output"
+[claim_zille_votes]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 490000
+source = "external:Helen Zille, Business Day, 1 March 2026: the claim's own figure, as quoted"
+captured = "2026-08-07"
+format = "comma"
+used_in = "claims/zille-490k, the claim's figure in the steps"
+
+unverifiable = "the figure a claim states, quoted from its source, not a model output"
+[rev0806_da_eff_mk_share]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 0.61
+source = "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: DA + EFF + MK at the majority line, the full coalition check"
+captured = "2026-08-06"
+format = "pct0"
+used_in = "review, as published"
+
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 6 August 2026; kept as the original of a written piece"
+[rev0806_overvote_records]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 87
+source = "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: district-year records with more votes than registered voters"
+captured = "2026-08-06"
+format = "int"
+used_in = "review, as published"
+
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 6 August 2026; kept as the original of a written piece"
+[rev0806_da_largest_fixed]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 0.63
+source = "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: the DA largest, after the fixes"
+captured = "2026-08-06"
+format = "pct0"
+used_in = "review, as published"
+
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 6 August 2026; kept as the original of a written piece"
+[rev0806_da_largest_first]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 0.86
+source = "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: the DA largest, in the first forecast"
+captured = "2026-08-06"
+format = "pct0"
+used_in = "review, as published"
+
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 6 August 2026; kept as the original of a written piece"
+[rev0806_da_minority_viable]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 0.61
+source = "external:the review as published on 6 August 2026 (docs-public/review.md); the run it describes is superseded: a DA-led minority government viable"
+captured = "2026-08-06"
+format = "pct0"
+used_in = "review, as published"
+
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 6 August 2026; kept as the original of a written piece"
+[hist_da_bloc_change_votes]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 52000
+source = "external:MODEL-LOG 1.18 — DA-bloc vote change, 2019 NPE to 2021 LGE (−51,587, rounded to the thousand as published on 8 August)"
+captured = "2026-08-06"
+format = "comma"
+used_in = "When the ANC falls, nobody catches the votes"
+
+unverifiable = "a measured historical vote movement (MODEL-LOG 1.18), not a model output"
+[hist_asa_pr_2021_rounded]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 0.18
+source = "external:IEC LGE 2021, City of Johannesburg: ActionSA 18.12% of the PR ballot (SOURCES.md, 'ASA citywide PR share'; MODEL-LOG 1.18), rounded"
+captured = "2026-08-06"
+format = "pct0"
+used_in = "When the ANC falls, nobody catches the votes"
+
+unverifiable = "a measured historical figure from an official result or the census, not a model output"
+[hist_laingsburg_da_share]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 0.2306
+source = "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021: the DA's share, 23.06% (MODEL-LOG 1.17)"
+captured = "2026-08-08"
+format = "pct0"
+used_in = "Laingsburg, 2021; methodology (the seat law)"
+
+unverifiable = "a measured historical figure from an official result or the census, not a model output"
+[hist_laingsburg_da_wards]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 3
+source = "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021 (MODEL-LOG 1.17): the DA's ward wins"
+captured = "2026-08-08"
+format = "int"
+used_in = "methodology (the seat law)"
+
+unverifiable = "a measured historical figure from an official result or the census, not a model output"
+[hist_laingsburg_wards]
+mode = "fixed"
+on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
+value = 4
+source = "external:IEC Seat Calculation Detail, Laingsburg WC051, LGE 2021 (MODEL-LOG 1.17): the municipality's wards"
+captured = "2026-08-08"
+format = "int"
+used_in = "methodology (the seat law)"
+
+unverifiable = "a measured historical figure from an official result or the census, not a model output"
+[hist_census_white_adults]
+mode = "fixed"
+value = 300000
+source = "external:Stats SA Census 2022 ward estimates, Johannesburg's white adults, against the IEC voters' roll (DATA-QUALITY.md item 11)"
+captured = "2026-09-17"
+format = "comma"
+used_in = "methodology (the roll and the census)"
+
+unverifiable = "a measured historical figure from an official result or the census, not a model output"
+[hist_roll_white_voters]
+mode = "fixed"
+value = 560000
+source = "external:IEC voters' roll against Stats SA Census 2022 ward estimates, Johannesburg's registered white voters (DATA-QUALITY.md item 11)"
+captured = "2026-09-17"
+format = "comma"
+used_in = "methodology (the roll and the census)"
+
+unverifiable = "a measured historical figure from an official result or the census, not a model output"
+[hist_asa_pr_2021]
+mode = "fixed"
+on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
+value = 0.1812
+source = "external:IEC LGE 2021, City of Johannesburg: ActionSA's PR-ballot share (SOURCES.md, 'ASA citywide PR share')"
+captured = "2026-10-03"
+format = "pct2"
+used_in = "methodology (new parties)"
+
+unverifiable = "a measured historical figure from an official result or the census, not a model output"
+[hist_asa_npe_2024]
+mode = "fixed"
+on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
+value = 0.0622
+source = "external:IEC NPE 2024, national ballot: ActionSA's share (MODEL-LOG, the local-premium entry quoting 18.12% against 6.22%)"
+captured = "2026-10-03"
+format = "pct2"
+used_in = "methodology (new parties)"
+
+unverifiable = "a measured historical figure from an official result or the census, not a model output"
+[poll_srf_q2_da]
+mode = "fixed"
+on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
+value = 0.42
+source = "external:SRF Q2-2026 City of Johannesburg poll, published 5 August 2026 (POLLING.md): the DA"
+captured = "2026-10-03"
+format = "pct0"
+used_in = "methodology (polls)"
+
+unverifiable = "a published poll's figure, not a model output"
+[poll_srf_q2_anc]
+mode = "fixed"
+on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
+value = 0.18
+source = "external:SRF Q2-2026 City of Johannesburg poll, published 5 August 2026 (POLLING.md): the ANC"
+captured = "2026-10-03"
+format = "pct0"
+used_in = "methodology (polls)"
+
+unverifiable = "a published poll's figure, not a model output"
+[poll_ipsos_w2_anc]
+mode = "fixed"
+on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
+value = 0.35
+source = "external:Ipsos Khayabus W2-2025, all-metro subsample, Q1 2026 (POLLING.md): the ANC"
+captured = "2026-10-03"
+format = "pct0"
+used_in = "methodology (polls)"
+
+unverifiable = "a published poll's figure, not a model output"
+[poll_ipsos_w2_da]
+mode = "fixed"
+on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
+value = 0.25
+source = "external:Ipsos Khayabus W2-2025, all-metro subsample, Q1 2026 (POLLING.md): the DA"
+captured = "2026-10-03"
+format = "pct0"
+used_in = "methodology (polls)"
+
+unverifiable = "a published poll's figure, not a model output"
+[blind_test_called]
+mode = "fixed"
+value = 129
+source = "external:fold-2 blind validation (MODEL-LOG 1.9)"
+captured = "2026-08-04"
+used_in = "why-believe (forecast + interactive), methodology — restated 3x"
+
+unverifiable = "a recorded result of the fold-2 blind validation, not a live quantity"
+[blind_test_of]
+mode = "fixed"
+value = 135
+source = "external:ward count at the 2021 delimitation"
+captured = "2026-08-04"
+
+unverifiable = "the ward count at the 2021 delimitation — an external boundary fact"
+[asa_2021_seats]
+mode = "fixed"
+value = 44
+source = "external:IEC 2021 CoJ result — ActionSA's first election"
+captured = "2026-08-04"
+used_in = "new-entrant blindness, restated 3x"
+
+unverifiable = "IEC 2021 CoJ result — an external electoral fact, not a model output"
+[byelection_count]
+mode = "fixed"
+value = 15
+source = "external:IEC by-election records, CoJ 2021-2026"
+captured = "2026-08-05"
+used_in = "colophons, sources, evidence weights — restated 3x"
+
+unverifiable = "IEC by-election records — an external count, not a model output"
+[turnout_seats_moved]
+mode = "fixed"
+value = 2
+source = "external:leverage.py — ten-point swing across thirty wards"
+captured = "2026-08-05"
+used_in = "turnout sections (forecast + interactive), why-believe — restated 2x"
+
+# --- added with the party-box rework of the claims section (2026-08-07) ---
+
+unverifiable = "an archived elasticity result; its script was retired to archive/retired-scripts"
+[claim_hi_turnout]
+mode = "fixed"
+value = 75
+source = "derived: registration-weighted highest turnout on record, all VDs"
+captured = "2026-08-07"
+tolerance = 2
+used_in = "claims/zille-490k step 2 — the turnout fantasy"
+
+unverifiable = "a registration-weighted record over all VDs; the model emits no such token"
+[claim_prop_seats]
+mode = "fixed"
+value = 110
+source = "arithmetic: 41% of a 270-seat council"
+captured = "2026-08-07"
+tolerance = 3
+used_in = "claims/zille-490k step 3 — what proportionality would give"
+
+unverifiable = "arithmetic on the council size, not a quantity the model emits"
+[claim_anc_entitlement_surged]
+mode = "fixed"
+value = 50
+source = "run:turnout_tilt_da=1 — ANC proportional entitlement in the surged poll"
+captured = "2026-08-07"
+tolerance = 3
+used_in = "claims/zille-490k step 3 — the wall versus the entitlement"
+
+unverifiable = "run:turnout_tilt_da=1, a lever run_model no longer has; not re-derivable by anything"
+historical = "published 7 August 2026 under turnout_tilt_da=1 and superseded when that lever was deleted; kept as history, and the prose must date it"
+[claim_poll_2021]
+mode = "fixed"
+value = 917000
+source = "external:IEC 2021 CoJ Seat Calculation Detail — A/2, ballots per paper"
+captured = "2026-08-07"
+format = "comma"
+used_in = "claims/zille-490k step 4 — the only denominator that makes 490k a majority"
+
+unverifiable = "IEC 2021 CoJ Seat Calculation Detail — an external electoral fact"
+[claim_490k_of_2021]
+mode = "fixed"
+value = 53
+source = "arithmetic: 490,000 as a share of the 2021 poll"
+captured = "2026-08-07"
+tolerance = 1
+used_in = "claims/zille-490k step 4"
+
+unverifiable = "arithmetic on two published figures, not a quantity the model emits"
+[claim_others_shed]
+mode = "fixed"
+value = 190000
+source = "arithmetic: votes every other party must lose to freeze the poll"
+captured = "2026-08-07"
+format = "comma"
+tolerance = 20000
+used_in = "claims/zille-490k step 4 — what the frozen-poll world requires"
+unverifiable = "arithmetic on two published figures, not a quantity the model emits"
+
+# The last DA-led council in Johannesburg (December 2021): a fact of record,
+# quoted in the Mashaba claim's intro (JUDGEMENT-CALLS.md §P3). Added
+# 2026-10-07.
+[jhb_2021_coalition_parties]
+mode = "fixed"
+value = 9
+source = "external:News24, 13 December 2021 (https://www.news24.com/southafrica/news/joburg-mayor-phalatse-appoints-multi-party-coalition-executive-20211213): the DA, ActionSA, IFP, FF Plus, PA, ACDP, Cope, UIM and ATM in Mpho Phalatse's coalition"
+captured = "2026-10-07"
+format = "int"
+used_in = "claims/mashaba-soweto intro"
+unverifiable = "a historical fact of record from the press, not a model output"
+
+# --- build-time audit -------------------------------------------------------
+# Every model figure and every model claim must either be a {{token}}, so its
+# provenance travels to the reader and drift is reported, or be registered here.
+#
+# `[[audit.fixed]]` clears a NUMBER: its value, the phrase it must sit inside,
+# its kind, its source, and the page(s) it is on. `[[audit.allow]]` excuses a
+# CLAIM IN WORDS ("nobody will win Johannesburg") and clears no number at all.
+#
+# ⛔ `page` IS REQUIRED AND IS ENFORCED (owner's sweep, 2026-10-03). It is the
+# output path(s) the entry clears, comma-separated, or "*" for every page (the
+# footer). `stats.load_audit_config` refuses an entry without one and
+# `stats.for_page` applies an entry only on the pages it lists. Until then the
+# field was ignored: the 8 August article moved to nobody-will-win.html and
+# entries naming index.html went on clearing it, and the allow phrase
+# "arriving from nowhere to take" cleared ActionSA's 18% with no source.
+#
+# Only three things belong here, and none of them can go stale:
+#   historical fact   what happened, from the IEC record
+#   the rules         how the electoral system works
+#   reviewed prose    a human decided it should stay static
+[audit]
+
+# A rule of the electoral system, in the 8 August article's lede.
+[[audit.allow]]
+phrase = "no majority needed"
+page = "nobody-will-win.html"
+why = "describes the ward rule: highest total wins"
+
+# Methodology, defining what a pool is NOT.
+[[audit.allow]]
+phrase = "will govern with whom"
+page = "methodology.html"
+why = "a disclaimer, not a forecast"
+
+# ADDED 2026-09-17. The headline. Its claim is that no party governs alone,
+# and the standfirst under it carries a share of simulations, dated and
+# tokenised. /corrections quotes the headline.
+[[audit.allow]]
+phrase = "nobody will win johannesburg"
+page = "nobody-will-win.html, corrections.html"
+why = "the 8 August headline; the standfirst under it carries the figure as a token"
+
+# Commentary, and a statement about the MECHANISM rather than a forecast: a
+# party can lead without nearing a majority. The seat table carries every
+# party's range as tokens.
+[[audit.allow]]
+phrase = "the da can finish first without ever nearing a majority"
+page = "nobody-catches-the-votes.html"
+why = "a statement about the mechanism; the ranges are tokens"
+
+# ---------------------------------------------------------------------------
+# The poll channel, switched off 2026-09-12 (MODEL-LOG §1.225)
+# ---------------------------------------------------------------------------
+# These four sit inside a DATED argument on the methodology page — "this is
+# what removing polls was worth, measured on the day it was done" — so they are
+# `fixed` by the same logic as every entry above: the claim is about a past
+# comparison and must not silently re-resolve to a later panel.
+#
+# ⚠️ THEY ARE A BACKTEST PANEL, NOT A FORECAST OUTPUT, so `free` is not
+# available to them: nothing in a site build runs `compare_history`. That makes
+# the pin honest rather than convenient, but it also means the usual drift
+# report cannot see them. The check that CAN is `src/declares.py --verify`
+# against the run below, and the row-by-row table in MODEL-LOG §1.225.
+
+[polls_off_seat_err_before]
+unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
+mode = "fixed"
+value = 725
+source = "compare_history:seat_abs_err_coherent, poll_paths=all"
+captured = "2026-09-12"
+run = "seed=20261104 draws=1000 rows=24 pools:843229db"
+tolerance = "exact"
+used_in = "methodology.md, 'what it was worth, measured' — the with-polls arm"
+
+[polls_off_seat_err_after]
+unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
+mode = "fixed"
+value = 723
+source = "compare_history:seat_abs_err_coherent, poll_paths=off"
+captured = "2026-09-12"
+run = "seed=20261104 draws=1000 rows=24 pools:843229db"
+tolerance = "exact"
+used_in = "methodology.md — the without-polls arm. The PAIR is the claim; quoting either alone says nothing"
+
+[polls_off_crps_before]
+unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
+mode = "fixed"
+value = 545.8
+source = "compare_history:crps, poll_paths=all"
+captured = "2026-09-12"
+run = "seed=20261104 draws=1000 rows=24 pools:843229db"
+tolerance = 0.05
+used_in = "methodology.md — distributional score, with polls"
+
+[polls_off_crps_after]
+unverifiable = "a compare_history BACKTEST PANEL, not a forecast output — no site build runs the panel, so nothing here re-derives it. Checked instead by MODEL-LOG §1.225 and the pre-registration, which carry the row-by-row table this single number summarises."
+mode = "fixed"
+value = 541.4
+source = "compare_history:crps, poll_paths=off"
+captured = "2026-09-12"
+run = "seed=20261104 draws=1000 rows=24 pools:843229db"
+tolerance = 0.05
+used_in = "methodology.md — distributional score, without polls"
+
+# ---------------------------------------------------------------------------
+# AS PUBLISHED ON 8 AUGUST 2026 — the frozen originals of written pieces.
+# Publication convention (PUBLISHING-BACKLOG §8, owner 2026-09-17): a written
+# piece keeps the figures it was published with, dated, and a "Since then" box
+# beside it carries today's.
+#
+# ⛔ CORRECTED 2026-09-27. These four were sourced to `a138788 site/changes.json`
+# and dated 31 August. That file is a BUILD, not a publication — every row in it
+# is `movement:"new"`, `previous:null` — and `a138788` was never deployed:
+# `archive/live-deployed-2026-08-08/MANIFEST.md` records that no commit in this
+# repository produces the bytes readers actually had, and `wrangler deployments
+# list` puts the last deploy before 26 September at 2026-08-08T17:29:45Z.
+#
+# The values below are now what READERS WERE SHOWN, read from
+# `publications/joburg/ledger.jsonl` at that timestamp. Three of the four had
+# been frozen BELOW today's figure and rendered a rising arrow, when against the
+# published page they had fallen — the ANC's ward wall 74 -> 61 and the clause
+# 96% -> 65%. The convention was agreed on 2026-09-17 assuming a138788 was live;
+# the discovery that it never was came on 2026-09-26 during the ledger backfill
+# and reached MANIFEST.md, the ledger and §12 — but not these four rows.
+#
+# ⛔ THE SOURCE OF A FROZEN FIGURE IS THE LEDGER, NEVER A BUILD ARTEFACT.
+# `site/changes.json` at any commit says what a build WOULD have changed. Only
+# `publications/joburg/ledger.jsonl` says what was published.
+# ⚠️ THE `pub0831_` NAMES ARE KEPT ALTHOUGH THE DATE IS 8 AUGUST. They are in
+# the publication ledger under these names, and a published token that leaves
+# the registry unretired refuses the build; renaming would mean retiring four
+# rows of an append-only record to fix a label no reader sees. Their dates
+# (`captured`, `historical`, the passages' `data-asof`) are 8 August.
+#
+# `pub0808_n_draws` was added 2026-10-03: the standfirst's draw count was the
+# live `{{n_draws}}` inside a passage dated to the article, so the passage
+# claimed today's count was the 8 August one (`publication.misdated_figures`).
+[pub0808_n_draws]
+mode = "fixed"
+tracks = "n_draws"   # the live figure this frozen one is shown against
+value = 5000
+format = "comma"
+source = "external:published forecast page, 8 August 2026 (archive/live-deployed-2026-08-08/index.html, typed in the standfirst; not a token on that page, so the ledger has no row for it)"
+captured = "2026-08-08"
+used_in = "standfirst, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 8 August 2026; kept as the original of a written piece"
+
+[pub0831_p_da_largest]
+mode = "fixed"
+tracks = "p_da_largest"   # the live figure this frozen one is shown against
+value = 0.62
+format = "pct0"
+source = "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)"
+captured = "2026-08-08"
+used_in = "standfirst, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
+
+[pub0831_anc_ward_median]
+mode = "fixed"
+tracks = "anc_ward_median"   # the live figure this frozen one is shown against
+value = 74
+format = "int"
+source = "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)"
+captured = "2026-08-08"
+used_in = "Wards, lists and Laingsburg articles, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
+
+[pub0831_anc_entitlement]
+mode = "fixed"
+tracks = "anc_entitlement"   # the live figure this frozen one is shown against
+value = 65
+format = "int"
+source = "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)"
+captured = "2026-08-08"
+used_in = "Wards, lists and Laingsburg articles, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
+
+[pub0831_p_excessive_anc]
+mode = "fixed"
+tracks = "p_excessive_anc"   # the live figure this frozen one is shown against
+value = 0.96
+format = "pct0"
+source = "external:published forecast page, 8 August 2026 (publications/joburg/ledger.jsonl, published_at 2026-08-08T17:29:45+00:00)"
+captured = "2026-08-08"
+used_in = "Wards, lists article, as published"
+unverifiable = "a figure as published on a dated page; the run that produced it is superseded"
+historical = "published 8 August 2026; kept as the original of a written piece, with a Since-then box"
+
+[backtest_target]
+mode = "fixed"
+value = 24
+format = "int"
+source = "external:the panel we aim to score — 8 metros x 3 elections (2011, 2016, 2021)"
+captured = "2026-09-17"
+used_in = "methodology — the backtest we aim for, not the panel on any given day"
+unverifiable = "a target, not a measurement: what the panel holds today is whatever compare_history reports"
+
+[n_vds]
+mode = "free"
+source = "model:n_vds"
+format = "comma"
+inserted = "2026-09-17"
+used_in = "methodology — the voting districts each run actually uses (was 'roughly 865'; the run reports 872)"
+# Registered 2026-09-17 after the owner's review of the blocking numbers.
+# Each is a fact the model does not produce: a rule, a record, a quote or a
+# stated convention. The context is the phrase it must appear inside.
+[[audit.fixed]]
+value = "4 November 2026"
+context = "City of Johannesburg · 4 November 2026"
+kind = "rule"
+source = "Proclaimed by the Minister of Cooperative Governance and Traditional Affairs, Velenkosini Hlabisa, announced 7 August 2026; the Electoral Commission welcomed the date and opened the 89-day timetable"
+reviewed = "2026-09-26"
+page = "index.html, forecast.html, nobody-will-win.html"
+
+[[audit.fixed]]
+value = "8"
+context = "The largest party is a near tie, where on 8 August the DA led clearly:"
+kind = "history"
+source = "the date of the published edition this piece is compared against (the 8 August deploy; /corrections, 27 September)"
+reviewed = "2026-10-02"
+page = "nobody-will-win.html"
+
+[[audit.fixed]]
+value = "1"
+context = "excessive seats\" clause (Schedule 1, item 16, completed by a 2021 ame"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "nobody-will-win.html"
+
+[[audit.fixed]]
+value = "16"
+context = "e seats\" clause (Schedule 1, item 16, completed by a 2021 amendment) s"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "nobody-will-win.html"
+
+[[audit.fixed]]
+value = "four"
+context = "the DA won three of Laingsburg's four wards on just"  # re-keyed 2026-10-03: the share is a token now
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg 2021"
+reviewed = "2026-09-17"
+page = "laingsburg-2021.html"
+
+[[audit.fixed]]
+value = "1"
+context = "a 2021 amendment completes schedule 1, and"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "forecast.html"
+
+[[audit.fixed]]
+value = "1"
+context = "uncil seats · majority · Schedule 1 item 16 applied Johannesburg · 20"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "forecast.html"
+
+[[audit.fixed]]
+value = "16"
+context = "eats · majority · Schedule 1 item 16 applied Johannesburg · 2026 Local"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "forecast.html"
+
+[[audit.fixed]]
+value = "3"
+context = "concentrated support wins 3 wards outright"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "convention"
+source = "a worked example of the excessive-seats clause"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "2"
+context = "both ballots entitles it to 2 seats. it keeps all"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "convention"
+source = "a worked example of the excessive-seats clause"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "3"
+context = "2 seats. it keeps all 3. the seat law"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "convention"
+source = "a worked example of the excessive-seats clause"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "1"
+context = "excessive seats” clause (Schedule 1, item 16, completed by a 2021 ame"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "16"
+context = "e seats” clause (Schedule 1, item 16, completed by a 2021 amendment) s"
+kind = "rule"
+source = "Municipal Structures Act 117 of 1998, Schedule 1 item 16, as completed by the 2021 amendment"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "2022"
+context = "taken per ward from the census 2022 ward statistical product"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "history"
+source = "Stats SA Census 2022 Ward Statistical Product"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "one"
+context = "e name, so where several stand in one ward they cannot be told apart, a"
+kind = "convention"
+source = "a statement of how independents are recorded, not a count"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "5 August 2026"
+context = "we put the question to it on 5 august 2026 and have no answer yet"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "history"
+source = "the date the question was put to the Electoral Commission"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "five"
+context = "the two routes are close to even, five parties to four. ActionSA is the"
+kind = "history"
+source = "MODEL-LOG — the two routes tested at 2021"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "12 September 2026"
+context = "Polls were an input until 12 September 2026 and are not one now"
+kind = "history"
+source = "MODEL-LOG 1.244 — the date polls left the forecast"
+reviewed = "2026-09-18"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "12 September 2026"
+context = "polls were an input to the forecast until 12 september 2026. since then"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "history"
+source = "MODEL-LOG 1.244 — the date polls left the forecast"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "six"
+context = "one of them by six seats against the change"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "history"
+source = "MODEL-LOG 1.244 — the poll-removal comparison"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "-2021"
+context = "pre-2021 polling missed actionsa in this city"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
+kind = "history"
+source = "POLLING.md — metro polling before 2021 missed ActionSA"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "two"
+context = "of the vote, a share entitling it to only two seats"  # re-keyed 2026-10-03: the share is a token now
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg 2021"
+reviewed = "2026-09-17"
+page = "laingsburg-2021.html"
+
+[[audit.fixed]]
+value = "three"
+context = "the DA kept all three wards"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg 2021"
+reviewed = "2026-09-17"
+page = "laingsburg-2021.html"
+
+[[audit.fixed]]
+value = "four"
+context = "for everyone else over the four seats that remained"
+kind = "history"
+source = "IEC Seat Calculation Detail, Laingsburg 2021"
+reviewed = "2026-09-17"
+page = "laingsburg-2021.html"
+
+[[audit.fixed]]
+value = "1"
+context = "Steps 1–3 describe the last election"
+kind = "convention"
+source = "a reference to this page's own numbered steps"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "3"
+context = "Steps 1–3 describe the last election"
+kind = "convention"
+source = "a reference to this page's own numbered steps"
+reviewed = "2026-09-17"
+page = "methodology.html"
+
+# The backtest scoreboard, resolved from data/processed/validation_<year>.json,
+# whose `headline` block build_validation writes from its own comparison. The
+# methodology quotes these rather than repeating the about page's numbers.
+[backtest_cities]
+mode = "free"
+source = "validation:cities"
+format = "int"
+inserted = "2026-09-18"
+used_in = "methodology — how many cities the backtest covers"
+
+[backtest_wins]
+mode = "free"
+source = "validation:total.wins"
+format = "int"
+inserted = "2026-09-18"
+used_in = "methodology — cities where the model beats the toughest baseline"
+
+[backtest_crps_better]
+mode = "free"
+source = "validation:total.crps_better"
+format = "pct0"
+inserted = "2026-09-18"
+used_in = "methodology — how much lower the model's distributional error is"
+
+# The backtest, metro by metro (owner, 2026-10-10): each metro's CRPS against
+# its best baseline's by CRPS, and the seats given to the wrong party
+# (stats.wrong_party_seats: half the summed absolute seat error), model and
+# that baseline. Totals are sums of these same figures (validation:total.*).
+[val_joburg_crps]
+mode = "free"
+source = "validation:cities.joburg.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_joburg_best_crps]
+mode = "free"
+source = "validation:cities.joburg.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_joburg_best]
+mode = "free"
+source = "validation:cities.joburg.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_joburg_wrong]
+mode = "free"
+source = "validation:cities.joburg.model.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_joburg_best_wrong]
+mode = "free"
+source = "validation:cities.joburg.best.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, joburg"
+
+[val_tshwane_crps]
+mode = "free"
+source = "validation:cities.tshwane.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_tshwane_best_crps]
+mode = "free"
+source = "validation:cities.tshwane.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_tshwane_best]
+mode = "free"
+source = "validation:cities.tshwane.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_tshwane_wrong]
+mode = "free"
+source = "validation:cities.tshwane.model.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_tshwane_best_wrong]
+mode = "free"
+source = "validation:cities.tshwane.best.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, tshwane"
+
+[val_ekurhuleni_crps]
+mode = "free"
+source = "validation:cities.ekurhuleni.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ekurhuleni_best_crps]
+mode = "free"
+source = "validation:cities.ekurhuleni.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ekurhuleni_best]
+mode = "free"
+source = "validation:cities.ekurhuleni.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ekurhuleni_wrong]
+mode = "free"
+source = "validation:cities.ekurhuleni.model.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ekurhuleni_best_wrong]
+mode = "free"
+source = "validation:cities.ekurhuleni.best.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ekurhuleni"
+
+[val_ethekwini_crps]
+mode = "free"
+source = "validation:cities.ethekwini.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_ethekwini_best_crps]
+mode = "free"
+source = "validation:cities.ethekwini.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_ethekwini_best]
+mode = "free"
+source = "validation:cities.ethekwini.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_ethekwini_wrong]
+mode = "free"
+source = "validation:cities.ethekwini.model.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_ethekwini_best_wrong]
+mode = "free"
+source = "validation:cities.ethekwini.best.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, ethekwini"
+
+[val_capetown_crps]
+mode = "free"
+source = "validation:cities.capetown.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_capetown_best_crps]
+mode = "free"
+source = "validation:cities.capetown.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_capetown_best]
+mode = "free"
+source = "validation:cities.capetown.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_capetown_wrong]
+mode = "free"
+source = "validation:cities.capetown.model.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_capetown_best_wrong]
+mode = "free"
+source = "validation:cities.capetown.best.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, capetown"
+
+[val_mangaung_crps]
+mode = "free"
+source = "validation:cities.mangaung.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_mangaung_best_crps]
+mode = "free"
+source = "validation:cities.mangaung.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_mangaung_best]
+mode = "free"
+source = "validation:cities.mangaung.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_mangaung_wrong]
+mode = "free"
+source = "validation:cities.mangaung.model.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_mangaung_best_wrong]
+mode = "free"
+source = "validation:cities.mangaung.best.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, mangaung"
+
+[val_nelsonmandelabay_crps]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_nelsonmandelabay_best_crps]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_nelsonmandelabay_best]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_nelsonmandelabay_wrong]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.model.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_nelsonmandelabay_best_wrong]
+mode = "free"
+source = "validation:cities.nelsonmandelabay.best.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, nelsonmandelabay"
+
+[val_buffalocity_crps]
+mode = "free"
+source = "validation:cities.buffalocity.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_buffalocity_best_crps]
+mode = "free"
+source = "validation:cities.buffalocity.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_buffalocity_best]
+mode = "free"
+source = "validation:cities.buffalocity.best.name"
+format = "raw"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_buffalocity_wrong]
+mode = "free"
+source = "validation:cities.buffalocity.model.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_buffalocity_best_wrong]
+mode = "free"
+source = "validation:cities.buffalocity.best.wrong_party_seats"
+format = "int"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, buffalocity"
+
+[val_total_crps]
+mode = "free"
+source = "validation:total.model.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, all metros"
+
+[val_total_best_crps]
+mode = "free"
+source = "validation:total.best.crps"
+format = "one_dp"
+inserted = "2026-10-10"
+used_in = "methodology — the per-metro backtest table, all metros"
+
+[backtest_seat_err_model]
+mode = "free"
+source = "validation:total.model.wrong_party_seats"
+format = "int"
+inserted = "2026-09-18"
+used_in = "methodology — seats given to the wrong party, model, all metros (half the summed absolute seat error since 2026-10-10; it printed the summed error before)"
+
+[backtest_seat_err_baseline]
+mode = "free"
+source = "validation:total.best.wrong_party_seats"
+format = "int"
+inserted = "2026-09-18"
+used_in = "methodology — seats given to the wrong party, best baseline per metro by CRPS, all metros (half the summed absolute seat error since 2026-10-10; it printed the summed error before)"
+
+[backtest_wards_called]
+mode = "free"
+source = "validation:wards_called"
+format = "comma"
+inserted = "2026-09-18"
+used_in = "methodology — ward winners called correctly"
+
+[backtest_wards]
+mode = "free"
+source = "validation:wards"
+format = "comma"
+inserted = "2026-09-18"
+used_in = "methodology — wards scored"
+
+[[audit.fixed]]
+value = "6 August 2026"
+context = "as it stood on 6 August 2026"
+kind = "history"
+source = "the date the first version of the model was reviewed (docs-public/review.md)"
+reviewed = "2026-09-18"
+page = "review.html"
+
+# The support page's amount bands: the site's funding policy, not a model
+# figure. Set by the owner; change them here and in docs-public/support.md.
+[[audit.fixed]]
+value = "10,000"
+context = "under R10,000, R10,000 to R50,000, or over R50,000"
+kind = "rule"
+source = "the site's funding policy (docs-public/support.md): sponsors are named with the amount band they gave"
+reviewed = "2026-10-01"
+page = "support.html"
+
+[[audit.fixed]]
+value = "50,000"
+context = "under R10,000, R10,000 to R50,000, or over R50,000"
+kind = "rule"
+source = "the site's funding policy (docs-public/support.md): sponsors are named with the amount band they gave"
+reviewed = "2026-10-01"
+page = "support.html"
+
+# The site-content licence's version, in the footer of every page. The name of
+# a licence, not a model figure; it changes only with LICENSE-CONTENT.
+[[audit.fixed]]
+value = "4.0"
+context = "BY 4.0"
+kind = "convention"
+source = "the licence the site's text, charts and figures are published under (LICENSE-CONTENT)"
+reviewed = "2026-10-01"
+page = "*"
+
+# The responsible party's street address on /privacy (POPIA requires it). An
+# address, not a model figure; it changes only if the owner moves.
+[[audit.fixed]]
+value = "91"
+context = "91 St Patrick Road"
+kind = "convention"
+source = "the owner's address as the POPIA responsible party (docs-public/privacy.md), given by the owner 2026-10-01"
+reviewed = "2026-10-01"
+page = "privacy.html"
+
+[[audit.fixed]]
+value = "2198"
+context = "Johannesburg 2198"
+kind = "convention"
+source = "the postal code of the owner's address as the POPIA responsible party (docs-public/privacy.md), given by the owner 2026-10-01"
+reviewed = "2026-10-01"
+page = "privacy.html"
+
+# /methodology, "The judgement calls": each figure is the value a register
+# entry states in its own heading, carried in that entry's Plain field and
+# copied to the page by src/judgement_sheet.py. `source` names the entry, and
+# tests/test_judgement_sheet.py fails if the value stops matching it, so a
+# changed call cannot leave this row clearing a stale sentence.
+[[audit.fixed]]
+value = "4"
+context = "Forum 4 Service Delivery"
+kind = "convention"
+source = "the registered name of the party that merged into ActionSA (SOURCES.md, Mergers)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+# ---------------------------------------------------------------------------
+# REGISTERED 2026-10-03 (owner's sweep). Each of these was cleared by an
+# `[audit].allow` phrase, which named neither the figure nor its source nor its
+# page: "Laingsburg", "arriving from nowhere to take", "it polled", "nationally
+# in 2024", "one house had", "another had the ANC on", "never means a vote
+# share" and "the middle 90%". An allow phrase now clears no number.
+# ---------------------------------------------------------------------------
+[[audit.fixed]]
+value = "90%"
+context = "where the middle 90% of the simulations landed"
+kind = "convention"
+source = "the seat range's definition: 5th to 95th percentile of the simulations (seat_table legend)"
+reviewed = "2026-10-03"
+page = "forecast.html"
+
+[[audit.fixed]]
+value = "90%"
+context = "is where the middle 90% of simulations landed"
+kind = "convention"
+source = "the seat range's definition: 5th to 95th percentile of the simulations (how to read this page)"
+reviewed = "2026-10-03"
+page = "forecast.html"
+
+# The glossary's own illustration of what a percentage on this page does NOT
+# mean: an example, not a figure.
+[[audit.fixed]]
+value = "89%"
+context = "\"89%\" never means a vote share"
+kind = "convention"
+source = "an illustrative percentage in 'How to read this page'"
+reviewed = "2026-10-03"
+page = "forecast.html"
+
+# The site's share-card title (build_site's page head): the election date, a
+# rule like the kicker's, in a link preview rather than the page body. Only the home
+# page carries it: every other page has a share card of its own (SHARE-BRIEF item 2).
+[[audit.fixed]]
+value = "4 November 2026"
+context = "Who governs Johannesburg after 4 November 2026?"
+kind = "rule"
+source = "Proclaimed by the Minister of Cooperative Governance and Traditional Affairs, announced 7 August 2026 (as the kicker's entry above)"
+reviewed = "2026-10-03"
+page = "index.html"
+
+[[audit.fixed]]
+value = "40%"
+context = "at a weight of 40%"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §A35 (the by-election blend weight, a judgement call)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "70%"
+context = "with 2021 counting for 70%"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §H2 (the turnout recency weight, a judgement call)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "75%"
+context = "it inherits 75% of the other"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §O1 (the merger retention, a judgement call)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "40%"
+context = "others more than 40%"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §A35 (the by-election blend weight, a judgement call; the per-party alternative of §A33 is compared with it)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "50%"
+context = "recommended 50%"
+kind = "judgement"
+source = "JUDGEMENT-CALLS.md §O1 (the blind review of 2026-09-29 recommended a retention of 0.5, the low end of the range in the entry's heading; recorded, not adopted)"
+reviewed = "2026-10-02"
+page = "methodology.html"
+
+# The small-party note on /methodology (2026-10-10): the record's count, and
+# the reference to where it was measured.
+[[audit.fixed]]
+value = "337"
+context = "337 times a party had under"
+kind = "history"
+source = "MODEL-LOG §1.296, 'The real record': levels._citywide for the eight metros, consecutive local elections 2006 to 2021, read 2026-10-10"
+reviewed = "2026-10-10"
+page = "methodology.html"
+
+[[audit.fixed]]
+value = "1.296"
+context = "model log, §1.296"
+kind = "convention"
+source = "a reference to MODEL-LOG.md's section number"
+reviewed = "2026-10-10"
+page = "methodology.html"

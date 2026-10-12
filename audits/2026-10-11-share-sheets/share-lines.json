@@ -1,0 +1,114 @@
+[
+ {
+  "slug": "article-nobody-will-win",
+  "line": "Chance any one party wins a majority of Johannesburg's council: {{p_alone}}. The ANC's middle is {{seats.ANC.median}} seats, the DA's {{seats.DA.median}}; a majority is {{majority}}.",
+  "review": "Chance any one party wins a majority of Johannesburg's council: {{p_alone}} [0.1%]. The ANC's middle is {{seats.ANC.median}} [66] seats, the DA's {{seats.DA.median}} [66]; a majority is {{majority}} [136].",
+  "resolved": "Chance any one party wins a majority of Johannesburg's council: 0.1%. The ANC's middle is 66 seats, the DA's 66; a majority is 136.",
+  "chars": 131,
+  "tokens": [
+   "p_alone",
+   "seats.ANC.median",
+   "seats.DA.median",
+   "majority"
+  ]
+ },
+ {
+  "slug": "article-nobody-catches-the-votes",
+  "line": "Between 2019 and 2021 the ANC bloc in Johannesburg shed {{bloc_leak_votes}} votes. The DA bloc lost {{hist_da_bloc_change_votes}} over the same period. The ANC's lost votes became abstention.",
+  "review": "Between 2019 and 2021 the ANC bloc in Johannesburg shed {{bloc_leak_votes}} [587,000] votes. The DA bloc lost {{hist_da_bloc_change_votes}} [52,000] over the same period. The ANC's lost votes became abstention.",
+  "resolved": "Between 2019 and 2021 the ANC bloc in Johannesburg shed 587,000 votes. The DA bloc lost 52,000 over the same period. The ANC's lost votes became abstention.",
+  "chars": 156,
+  "tokens": [
+   "bloc_leak_votes",
+   "hist_da_bloc_change_votes"
+  ]
+ },
+ {
+  "slug": "article-minority-administrations",
+  "line": "Abstention can elect a minority mayor. Opposed only by the DA, an ANC candidate wins: {{minority.ANC_minority_only_DA_opposes}} chance. Opposed only by the ANC, a DA candidate: {{minority.DA_minority_only_ANC_opposes_2021_pattern}}.",
+  "review": "Abstention can elect a minority mayor. Opposed only by the DA, an ANC candidate wins: {{minority.ANC_minority_only_DA_opposes}} [48%] chance. Opposed only by the ANC, a DA candidate: {{minority.DA_minority_only_ANC_opposes_2021_pattern}} [50%].",
+  "resolved": "Abstention can elect a minority mayor. Opposed only by the DA, an ANC candidate wins: 48% chance. Opposed only by the ANC, a DA candidate: 50%.",
+  "chars": 143,
+  "tokens": [
+   "minority.ANC_minority_only_DA_opposes",
+   "minority.DA_minority_only_ANC_opposes_2021_pattern"
+  ]
+ },
+ {
+  "slug": "article-if-the-law-were-german",
+  "tokens": [],
+  "line": "The same simulated votes under four seat laws. Ours keeps the council at {{regime.deduct.council}} seats; Germany's 2015 law grows it to {{regime.level.council}} so every party's seats match its vote.",
+  "review": "PROPOSED TOKENS, none exist: regime.deduct.council [270], regime.level.council [287] (read from the rendered table)",
+  "resolved": "The same simulated votes under four seat laws. Ours keeps the council at 270 seats; Germany's 2015 law grows it to 287 so every party's seats match its vote.",
+  "chars": 157
+ },
+ {
+  "slug": "article-laingsburg-2021",
+  "line": "Johannesburg's excessive-seats clause has fired once before, in Laingsburg in 2021. Chance it fires for the ANC in Johannesburg in November: {{p_excessive_anc}}.",
+  "review": "Johannesburg's excessive-seats clause has fired once before, in Laingsburg in 2021. Chance it fires for the ANC in Johannesburg in November: {{p_excessive_anc}} [62%].",
+  "resolved": "Johannesburg's excessive-seats clause has fired once before, in Laingsburg in 2021. Chance it fires for the ANC in Johannesburg in November: 62%.",
+  "chars": 145,
+  "tokens": [
+   "p_excessive_anc"
+  ]
+ },
+ {
+  "slug": "claims-page",
+  "line": "What the parties say about Johannesburg's council vote, each claim tested against the forecast and given a verdict.",
+  "review": "What the parties say about Johannesburg's council vote, each claim tested against the forecast and given a verdict.",
+  "resolved": "What the parties say about Johannesburg's council vote, each claim tested against the forecast and given a verdict.",
+  "chars": 115,
+  "tokens": []
+ },
+ {
+  "slug": "claim-da-turnout-majority",
+  "line": "Helen Zille: {{claim_zille_votes}} DA voters would win the DA a majority. If they all vote, the total rises and half of it is {{claim_half_surged}}. Verdict: FALSE.",
+  "review": "Helen Zille: {{claim_zille_votes}} [490,000] DA voters would win the DA a majority. If they all vote, the total rises and half of it is {{claim_half_surged}} [644,000]. Verdict: FALSE.",
+  "resolved": "Helen Zille: 490,000 DA voters would win the DA a majority. If they all vote, the total rises and half of it is 644,000. Verdict: FALSE.",
+  "chars": 136,
+  "tokens": [
+   "claim_zille_votes",
+   "claim_half_surged"
+  ]
+ },
+ {
+  "slug": "claim-anc-absolute-authority",
+  "line": "Dickson Masemola asks for the ANC to have absolute authority in Johannesburg. Chance it wins a council majority alone: {{claim.anc_alone.share}}. Verdict: NEAR IMPOSSIBLE.",
+  "review": "Dickson Masemola asks for the ANC to have absolute authority in Johannesburg. Chance it wins a council majority alone: {{claim.anc_alone.share}} [under 0.1%]. Verdict: NEAR IMPOSSIBLE.",
+  "resolved": "Dickson Masemola asks for the ANC to have absolute authority in Johannesburg. Chance it wins a council majority alone: under 0.1%. Verdict: NEAR IMPOSSIBLE.",
+  "chars": 156,
+  "tokens": [
+   "claim.anc_alone.share"
+  ]
+ },
+ {
+  "slug": "claim-mk-biggest-party",
+  "line": "Bongani Baloyi says MK will be the biggest party in Johannesburg. Chance MK wins the most seats: {{claim.mk_largest.share}}. Verdict: EXTREMELY UNLIKELY.",
+  "review": "Bongani Baloyi says MK will be the biggest party in Johannesburg. Chance MK wins the most seats: {{claim.mk_largest.share}} [1.4%]. Verdict: EXTREMELY UNLIKELY.",
+  "resolved": "Bongani Baloyi says MK will be the biggest party in Johannesburg. Chance MK wins the most seats: 1.4%. Verdict: EXTREMELY UNLIKELY.",
+  "chars": 131,
+  "tokens": [
+   "claim.mk_largest.share"
+  ]
+ },
+ {
+  "slug": "claim-da-coalition-red-lines",
+  "line": "Helen Zille rules out coalitions with the EFF and MK. Chance of a council majority without the ANC, the EFF and MK: {{claim.red_lines.no_red_share}}. Verdict: VERY LIKELY.",
+  "review": "Helen Zille rules out coalitions with the EFF and MK. Chance of a council majority without the ANC, the EFF and MK: {{claim.red_lines.no_red_share}} [87%]. Verdict: VERY LIKELY.",
+  "resolved": "Helen Zille rules out coalitions with the EFF and MK. Chance of a council majority without the ANC, the EFF and MK: 87%. Verdict: VERY LIKELY.",
+  "chars": 142,
+  "tokens": [
+   "claim.red_lines.no_red_share"
+  ]
+ },
+ {
+  "slug": "claim-asa-soweto",
+  "line": "Herman Mashaba: the DA cannot win Joburg without Soweto. If it wins no Soweto ward, chance the DA governs with ActionSA and the PA or the ANC: {{claim.soweto.realistic_given_none}}. Verdict: VERY LIKELY.",
+  "review": "Herman Mashaba: the DA cannot win Joburg without Soweto. If it wins no Soweto ward, chance the DA governs with ActionSA and the PA or the ANC: {{claim.soweto.realistic_given_none}} [23%]. Verdict: VERY LIKELY.",
+  "resolved": "Herman Mashaba: the DA cannot win Joburg without Soweto. If it wins no Soweto ward, chance the DA governs with ActionSA and the PA or the ANC: 23%. Verdict: VERY LIKELY.",
+  "chars": 169,
+  "tokens": [
+   "claim.soweto.realistic_given_none"
+  ]
+ }
+]

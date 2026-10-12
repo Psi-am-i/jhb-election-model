@@ -1,0 +1,28 @@
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".

@@ -1,0 +1,615 @@
+{
+  "arrival_group": {
+    "alpha": 10.87423244668734,
+    "derived_from": "13 metro-years before 2016; split by ward reach (corr +0.393 on log vote)",
+    "n_observations": 13,
+    "total_log_mean": -4.239066024984355,
+    "total_log_sd": 0.796079274728338,
+    "weights": {
+      "AFRICAN_POWER_MOVEMENT": 1.0,
+      "ALTERNATIVE_DEMOCRATS": 0.13333333333333333,
+      "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+      "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.36666666666666664,
+      "PA": 0.35,
+      "UBUNTU_PARTY": 1.0,
+      "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.7166666666666667
+    }
+  },
+  "artefact_key": {
+    "cities_sha": "68080ceed71cbe08",
+    "city": "nelsonmandelabay",
+    "config_sha": "25f89b38e7b7532f",
+    "deps_sha": "53cedeb94115dd98",
+    "gates_sha": "2ec84f1fcb67779f",
+    "judgements_sha": "3805779d8578848d",
+    "pools_sha": "13bf2cf762e45016",
+    "schema": 2,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [
+    [
+      0.0001110268461123144,
+      0.24324324324324326
+    ],
+    [
+      0.00011925248870770664,
+      0.25384615384615383
+    ],
+    [
+      0.00014863271334390475,
+      0.990990990990991
+    ],
+    [
+      0.0001495280911351331,
+      0.04504504504504504
+    ],
+    [
+      0.00021648913334629822,
+      0.015384615384615385
+    ],
+    [
+      0.0002372751146755106,
+      0.08108108108108109
+    ],
+    [
+      0.000246228892587794,
+      0.2702702702702703
+    ],
+    [
+      0.0002852886460622828,
+      0.023076923076923078
+    ],
+    [
+      0.0003372877091805844,
+      1.0
+    ],
+    [
+      0.000347475854232611,
+      0.04950495049504951
+    ],
+    [
+      0.0004107923362581748,
+      0.038834951456310676
+    ],
+    [
+      0.00041608032976785206,
+      1.0
+    ],
+    [
+      0.00048050125891329834,
+      0.2
+    ],
+    [
+      0.0004806326596867137,
+      0.8910891089108911
+    ],
+    [
+      0.000487100550029171,
+      0.25384615384615383
+    ],
+    [
+      0.00048796131697027167,
+      0.0761904761904762
+    ],
+    [
+      0.000505274573597555,
+      1.0
+    ],
+    [
+      0.0005139468521650683,
+      0.11711711711711711
+    ],
+    [
+      0.0005631926306826271,
+      0.4954954954954955
+    ],
+    [
+      0.0005999317508833858,
+      0.08461538461538462
+    ],
+    [
+      0.0006330320983984378,
+      1.0
+    ],
+    [
+      0.0006482535208493195,
+      0.22522522522522523
+    ],
+    [
+      0.0006891041440730882,
+      0.1553398058252427
+    ],
+    [
+      0.0007063416638841086,
+      0.9846153846153847
+    ],
+    [
+      0.000756594233587949,
+      0.04504504504504504
+    ],
+    [
+      0.000764700511322133,
+      1.0
+    ],
+    [
+      0.0008103542731921111,
+      0.04950495049504951
+    ],
+    [
+      0.00084966723480237,
+      1.0
+    ],
+    [
+      0.0009316881802775159,
+      0.9904761904761905
+    ],
+    [
+      0.0009383559252073024,
+      0.27927927927927926
+    ],
+    [
+      0.0009746048177725196,
+      1.0
+    ],
+    [
+      0.001112176365554744,
+      0.0891089108910891
+    ],
+    [
+      0.0011380251726512225,
+      0.08108108108108109
+    ],
+    [
+      0.0012466013310607905,
+      0.04950495049504951
+    ],
+    [
+      0.0012898879358506689,
+      0.9805825242718447
+    ],
+    [
+      0.001317100730896891,
+      0.6576576576576577
+    ],
+    [
+      0.0013547065981284814,
+      0.6036036036036037
+    ],
+    [
+      0.0013568386649499852,
+      0.9795918367346939
+    ],
+    [
+      0.0013646235753137673,
+      0.9833333333333333
+    ],
+    [
+      0.0014657334442407957,
+      0.06306306306306306
+    ],
+    [
+      0.0014855897791423195,
+      0.12244897959183673
+    ],
+    [
+      0.00163095855882571,
+      1.0
+    ],
+    [
+      0.002314858379599134,
+      0.2
+    ],
+    [
+      0.0024533351479656567,
+      0.990990990990991
+    ],
+    [
+      0.0027171220888632854,
+      0.13846153846153847
+    ],
+    [
+      0.003517043963944927,
+      0.918918918918919
+    ],
+    [
+      0.004077113937362384,
+      0.8155339805825242
+    ],
+    [
+      0.004324511330219685,
+      0.08333333333333333
+    ],
+    [
+      0.004610059467693643,
+      0.9238095238095239
+    ],
+    [
+      0.005271877327716847,
+      0.9923076923076923
+    ],
+    [
+      0.0054062911034367285,
+      0.990990990990991
+    ],
+    [
+      0.005511538080618005,
+      0.5918367346938775
+    ],
+    [
+      0.006816360279198117,
+      0.9207920792079208
+    ],
+    [
+      0.03583325491672156,
+      0.06
+    ]
+  ],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/nelsonmandelabay-2016.toml",
+  "no_measured_vector": {
+    "AFRICAN_POWER_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AIC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ALTERNATIVE_DEMOCRATS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BUILDING_A_COHESIVE_SOCIETY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UBUNTU_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.531210309695489,
+    0.21831930354928075,
+    0.02843977069088525,
+    0.222030616064345
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 57.626223463986165,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2011; size from the 2016 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2016",
+      "identified": [
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.15871982154005207,
+        "AFRICAN_POWER_MOVEMENT": 0.25,
+        "AIC": 0.5422865396079729,
+        "ALTERNATIVE_DEMOCRATS": 0.25000000000000006,
+        "ANC": 0.9081958869639788,
+        "APC": 0.4644693501401505,
+        "AZAPO": 0.39443895054632955,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.1981871581991938,
+        "COPE": 0.87881327769428,
+        "DA": 0.026487163023278748,
+        "EFF": 0.670354811182575,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.25,
+        "PA": 0.24999999999999997,
+        "PAC": 0.6315264706535368,
+        "UBUNTU_PARTY": 0.25,
+        "UDM": 0.47539111852773785,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.25,
+        "VFPLUS": 0.16264966510871992
+      },
+      "registered": 330134.9071633799,
+      "turnout": [
+        0.4847583994511401,
+        0.6168246875897208,
+        0.733640016370421
+      ]
+    },
+    "Coloured": {
+      "alpha": 29.159203142315008,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2011; size from the 2016 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "APC",
+        "CHRISTIAN_DEMOCRATIC_PARTY",
+        "COPE",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.4349012491274249,
+        "AFRICAN_POWER_MOVEMENT": 0.25,
+        "AIC": 0.21596525766170127,
+        "ALTERNATIVE_DEMOCRATS": 0.24999999999999994,
+        "ANC": 0.07205495018751001,
+        "APC": 0.19983068087311426,
+        "AZAPO": 0.051986142985848686,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.24999999999999994,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.6953942609640248,
+        "COPE": 0.07420720558385187,
+        "DA": 0.40609552379526204,
+        "EFF": 0.16559665004573432,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.25,
+        "PA": 0.25,
+        "PAC": 0.08168795531510939,
+        "UBUNTU_PARTY": 0.25,
+        "UDM": 0.2338712791137166,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.25,
+        "VFPLUS": 0.2524554816426052
+      },
+      "registered": 132674.5879892667,
+      "turnout": [
+        0.29989131725847534,
+        0.6420284674770961,
+        0.8824847929215215
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 27.15860983543984,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2011; size from the 2016 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2016",
+      "identified": [
+        "APC",
+        "AZAPO",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.009346823863282217,
+        "AFRICAN_POWER_MOVEMENT": 0.25,
+        "AIC": 0.027808191787497508,
+        "ALTERNATIVE_DEMOCRATS": 0.25,
+        "ANC": 0.0012707402210622434,
+        "APC": 0.036816478060540885,
+        "AZAPO": 0.06424993701933689,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.011671008962071357,
+        "COPE": 0.03922191569856153,
+        "DA": 0.06296398037043577,
+        "EFF": 0.018520083739245165,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.25,
+        "PA": 0.24999999999999997,
+        "PAC": 0.03145199812283017,
+        "UBUNTU_PARTY": 0.25,
+        "UDM": 0.03188542015930482,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.25,
+        "VFPLUS": 0.009578247735172865
+      },
+      "registered": 16088.113072847893,
+      "turnout": [
+        0.4433390631130673,
+        0.7226359264979328,
+        0.8949912782882067
+      ]
+    },
+    "White": {
+      "alpha": 44.33171558223348,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2011; size from the 2016 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "APC",
+        "AZAPO",
+        "PAC",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.39703210546924084,
+        "AFRICAN_POWER_MOVEMENT": 0.25,
+        "AIC": 0.21394001094282827,
+        "ALTERNATIVE_DEMOCRATS": 0.25,
+        "ANC": 0.018478422627448896,
+        "APC": 0.2988834909261944,
+        "AZAPO": 0.4893249694484849,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25000000000000006,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.09474757187471014,
+        "COPE": 0.007757601023306609,
+        "DA": 0.5044533328110236,
+        "EFF": 0.1455284550324455,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.25,
+        "PA": 0.25,
+        "PAC": 0.25533357590852357,
+        "UBUNTU_PARTY": 0.25,
+        "UDM": 0.2588521821992408,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.25,
+        "VFPLUS": 0.575316605513502
+      },
+      "registered": 130319.39177450546,
+      "turnout": [
+        0.5195002822408451,
+        0.6904399849586256,
+        0.8214662843768217
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster published; reach 2016 ward ballot",
+  "rates_on_a_bound": [
+    "Indian/Asian: adult_share fitted to 1.0000, which is ON A BOUND \u2014 the ward table cannot identify this pool at this level. The value is a clipped corner and not a measurement. Largest share this pool reaches in any ward: 20.8%."
+  ],
+  "reach_source": "2016 ward ballot",
+  "registration_series": {
+    "2006": [
+      0.6022535411392209,
+      0.18916216573159217,
+      0.029859027928702046,
+      0.17872526520048473
+    ],
+    "2009": [
+      0.5859758467579572,
+      0.1974276057824743,
+      0.02771672171654679,
+      0.1888798257430218
+    ],
+    "2011": [
+      0.5613657328324315,
+      0.21536338669492727,
+      0.02463577634676002,
+      0.19863510412588117
+    ],
+    "2014": [
+      0.5399255352195222,
+      0.2175788850943704,
+      0.027310214301089684,
+      0.21518536538501773
+    ]
+  },
+  "roster": [
+    "ACDP",
+    "AFRICAN_POWER_MOVEMENT",
+    "AIC",
+    "ALTERNATIVE_DEMOCRATS",
+    "ANC",
+    "APC",
+    "AZAPO",
+    "BUILDING_A_COHESIVE_SOCIETY",
+    "CHRISTIAN_DEMOCRATIC_PARTY",
+    "COPE",
+    "DA",
+    "EFF",
+    "IND",
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA",
+    "PA",
+    "PAC",
+    "UBUNTU_PARTY",
+    "UDM",
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE",
+    "VFPLUS"
+  ],
+  "roster_source": "published",
+  "seed_bands": {
+    "AFRICAN_POWER_MOVEMENT": [
+      0.32171437788179824,
+      1.0,
+      2.6669135309475567
+    ],
+    "ALTERNATIVE_DEMOCRATS": [
+      0.15445402203573222,
+      1.0,
+      1.7505080010360659
+    ],
+    "BUILDING_A_COHESIVE_SOCIETY": [
+      0.16591004335617487,
+      1.0,
+      1.7578402854796584
+    ],
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": [
+      0.3991585812679179,
+      1.0,
+      2.9334114959868347
+    ],
+    "PA": [
+      0.40117000386837914,
+      1.0,
+      3.074535122217179
+    ],
+    "UBUNTU_PARTY": [
+      0.32171437788179824,
+      1.0,
+      2.6669135309475567
+    ],
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": [
+      0.41964075975005727,
+      1.0,
+      2.0054654232814575
+    ]
+  },
+  "seed_notes": {
+    "AFRICAN_POWER_MOVEMENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 22 arrivals that contested about as much of a city (100% of wards): mean 0.20%, median 0.11%. Band 0.07%-0.54% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.01: 7 entrants summing to 1.38% against an arrival-total record of 1.40%",
+    "ALTERNATIVE_DEMOCRATS": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 28 arrivals that contested about as much of a city (13% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.38% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.01: 7 entrants summing to 1.38% against an arrival-total record of 1.40%",
+    "BUILDING_A_COHESIVE_SOCIETY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 29 arrivals that contested about as much of a city (25% of wards): mean 0.21%, median 0.06%. Band 0.03%-0.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.01: 7 entrants summing to 1.38% against an arrival-total record of 1.40%",
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 15 arrivals that contested about as much of a city (37% of wards): mean 0.12%, median 0.06%. Band 0.05%-0.36% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.01: 7 entrants summing to 1.38% against an arrival-total record of 1.40%",
+    "PA": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 14 arrivals that contested about as much of a city (35% of wards): mean 0.12%, median 0.06%. Band 0.05%-0.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.01: 7 entrants summing to 1.38% against an arrival-total record of 1.40%",
+    "UBUNTU_PARTY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 22 arrivals that contested about as much of a city (100% of wards): mean 0.20%, median 0.11%. Band 0.07%-0.54% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.01: 7 entrants summing to 1.38% against an arrival-total record of 1.40%",
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 9 arrivals that contested about as much of a city (72% of wards): mean 0.31%, median 0.35%. Band 0.13%-0.63% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x1.01: 7 entrants summing to 1.38% against an arrival-total record of 1.40%"
+  },
+  "seeded_arrival_mass": 0.01397665129995956,
+  "seeds": {
+    "AFRICAN_POWER_MOVEMENT": 0.002043864440666068,
+    "ALTERNATIVE_DEMOCRATS": 0.00216944106926532,
+    "BUILDING_A_COHESIVE_SOCIETY": 0.0021142374826344473,
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.0012235536563870797,
+    "PA": 0.0012132673382712334,
+    "UBUNTU_PARTY": 0.002043864440666068,
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0031684228720693444
+  },
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "transition_ledger": {
+    "arrival_group_record": {
+      "fallback": 9,
+      "metro": 8,
+      "offered": 24,
+      "unavailable": 7
+    },
+    "entrant_record": {
+      "fallback": 17,
+      "metro": 8,
+      "offered": 32,
+      "unavailable": 7
+    },
+    "home_splinter_record": {
+      "fallback": 4,
+      "metro": 0,
+      "offered": 4,
+      "unavailable": 0
+    },
+    "splinter_record": {
+      "fallback": 52,
+      "metro": 0,
+      "offered": 52,
+      "unavailable": 0
+    }
+  },
+  "turnout_limits": {
+    "city": {
+      "high": 0.7049405545850291,
+      "low": 0.48950127700963925,
+      "observed_high": 0.6408550496227537,
+      "observed_low": 0.543890307788488,
+      "previous": 0.6408550496227537
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.6785071563486929,
+        "low": 0.5496024837918639,
+        "observed_high": 0.6168246875897208,
+        "observed_low": 0.6106694264354043,
+        "previous": 0.6168246875897208
+      },
+      {
+        "high": 0.7062313142248058,
+        "low": 0.36604104283461536,
+        "observed_high": 0.6420284674770961,
+        "observed_low": 0.40671226981623926,
+        "previous": 0.6420284674770961
+      },
+      {
+        "high": 0.7948995191477262,
+        "low": 0.3990051568017606,
+        "observed_high": 0.7226359264979328,
+        "observed_low": 0.4433390631130673,
+        "previous": 0.7226359264979328
+      },
+      {
+        "high": 0.7594839834544882,
+        "low": 0.4741117115937791,
+        "observed_high": 0.6904399849586256,
+        "observed_low": 0.5267907906597545,
+        "previous": 0.6904399849586256
+      }
+    ]
+  },
+  "unclassified_with_national_record": {
+    "AIC": 0.005398
+  }
+}

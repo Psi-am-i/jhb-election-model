@@ -1,0 +1,3844 @@
+{
+ "city": "ekurhuleni",
+ "year": "2021",
+ "draws": 2000,
+ "seed": 20261104,
+ "control": "none",
+ "c4_party": null,
+ "plant_party": null,
+ "plant_wards": [
+  "79700001",
+  "79700002"
+ ],
+ "relabel_entrant": null,
+ "seconds": 59.5,
+ "spec": "data/processed/ekurhuleni/pools_2021.json",
+ "universe": [
+  "ABANTU_BATHO_CONGRESS",
+  "ABLE_LEADERSHIP",
+  "ACDP",
+  "AFRICAN_FREEDOM_REVOLUTION",
+  "AFRICAN_PEOPLE_S_MOVEMENT",
+  "AFRICAN_SECURITY_CONGRESS",
+  "AFRICA_RESTORATION_ALLIANCE",
+  "AIC",
+  "ALJAMAAH",
+  "ANC",
+  "APC",
+  "ARUSHA_ECONOMIC_COALITION",
+  "ASA",
+  "ATM",
+  "BLACK_FIRST_LAND_FIRST",
+  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+  "CHANGE",
+  "COPE",
+  "DA",
+  "DEMOCRATIC_UNION_PLUS",
+  "EFF",
+  "GOD_SAVE_AFRICA",
+  "IFP",
+  "INDEPENDENT_CITIZENS_MOVEMENT",
+  "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
+  "NATIONAL_PEOPLE_S_FRONT",
+  "NFP",
+  "PA",
+  "PAC",
+  "SPECTRUM_NATIONAL_PARTY",
+  "THE_NATIONALS_OF_SOUTH_AFRICA",
+  "THE_ORGANIC_HUMANITY_MOVEMENT",
+  "UDM",
+  "UIM",
+  "UNITED_CHRISTIAN_DEMOCRATIC_PARTY",
+  "VFPLUS"
+ ],
+ "n_wards_model": 112,
+ "n_wards_actual": {
+  "PR": 112,
+  "Ward": 112
+ },
+ "unmatched_actual_wards": {
+  "PR": [],
+  "Ward": []
+ },
+ "cells_scanned": {
+  "PR": 3485,
+  "Ward": 2420
+ },
+ "near_zero_counts": {
+  "PR": {
+   "1e-12": 86,
+   "1e-09": 86,
+   "1e-06": 86,
+   "0.0001": 86,
+   "0.001": 86
+  },
+  "Ward": {
+   "1e-12": 125,
+   "1e-09": 125,
+   "1e-06": 125,
+   "0.0001": 125,
+   "0.001": 125
+  }
+ },
+ "min_vd_share_W": {
+  "ABANTU_BATHO_CONGRESS": 5.889991619009126e-07,
+  "ABLE_LEADERSHIP": 5.889991619009126e-07,
+  "ACDP": 2.9244477705742286e-07,
+  "AFRICAN_FREEDOM_REVOLUTION": 6.060449454654881e-07,
+  "AFRICAN_PEOPLE_S_MOVEMENT": 5.889991619009126e-07,
+  "AFRICAN_SECURITY_CONGRESS": 5.814971796773362e-07,
+  "AFRICA_RESTORATION_ALLIANCE": 6.076564896588735e-07,
+  "AIC": 5.870090702956245e-07,
+  "ALJAMAAH": 5.889991619009126e-07,
+  "ANC": 0.0007243071994078461,
+  "APC": 6.060449454654881e-07,
+  "ARUSHA_ECONOMIC_COALITION": 6.055371232848736e-07,
+  "ASA": 4.532106718844707e-05,
+  "ATM": 4.337868840043823e-07,
+  "BLACK_FIRST_LAND_FIRST": 6.11992386245504e-07,
+  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 5.814971796773362e-07,
+  "CHANGE": 5.814971796773362e-07,
+  "COPE": 5.594225011574628e-07,
+  "DA": 0.00017749266902762184,
+  "DEMOCRATIC_UNION_PLUS": 5.889991619009126e-07,
+  "EFF": 0.00020912883900489339,
+  "GOD_SAVE_AFRICA": 5.814971796773362e-07,
+  "IFP": 1.3701512225635077e-07,
+  "INDEPENDENT_CITIZENS_MOVEMENT": 6.060449454654881e-07,
+  "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 6.055371232848736e-07,
+  "NATIONAL_PEOPLE_S_FRONT": 5.814971796773362e-07,
+  "NFP": 6.195618096920739e-07,
+  "PA": 7.614654612534568e-07,
+  "PAC": 5.29722066738092e-07,
+  "SPECTRUM_NATIONAL_PARTY": 5.814971796773362e-07,
+  "THE_NATIONALS_OF_SOUTH_AFRICA": 6.060449454654881e-07,
+  "THE_ORGANIC_HUMANITY_MOVEMENT": 5.889991619009126e-07,
+  "UDM": 5.889991619009126e-07,
+  "UIM": 5.814971796773362e-07,
+  "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 5.889991619009126e-07,
+  "VFPLUS": 5.1758655121732336e-05
+ },
+ "min_over_wards_of_max_share": {
+  "W": {
+   "ABANTU_BATHO_CONGRESS": 0.05578445298305277,
+   "ABLE_LEADERSHIP": 0.0678763727580269,
+   "ACDP": 0.07803301970652686,
+   "AFRICAN_FREEDOM_REVOLUTION": 0.052854781337814565,
+   "AFRICAN_PEOPLE_S_MOVEMENT": 0.05267525343428196,
+   "AFRICAN_SECURITY_CONGRESS": 0.09440057544170158,
+   "AFRICA_RESTORATION_ALLIANCE": 0.04654333746581718,
+   "AIC": 0.0933569000109083,
+   "ALJAMAAH": 0.012356330429504783,
+   "ANC": 0.21963538974788846,
+   "APC": 0.15144512087686787,
+   "ARUSHA_ECONOMIC_COALITION": 0.04266377803606452,
+   "ASA": 0.04664236742027372,
+   "ATM": 0.05103803487720434,
+   "BLACK_FIRST_LAND_FIRST": 0.13106447011754663,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.05232602136082115,
+   "CHANGE": 0.07368668646029154,
+   "COPE": 0.08670126116343739,
+   "DA": 0.2569887051589832,
+   "DEMOCRATIC_UNION_PLUS": 0.034257067536761235,
+   "EFF": 0.08461425647840984,
+   "GOD_SAVE_AFRICA": 0.03701724933085198,
+   "IFP": 0.054002433173468,
+   "INDEPENDENT_CITIZENS_MOVEMENT": 0.09444913748037048,
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.04465642388508824,
+   "NATIONAL_PEOPLE_S_FRONT": 0.04492064325485595,
+   "NFP": 0.06760570457464765,
+   "PA": 0.04994614794916475,
+   "PAC": 0.09519899045248251,
+   "SPECTRUM_NATIONAL_PARTY": 0.08069292634556496,
+   "THE_NATIONALS_OF_SOUTH_AFRICA": 0.07817453581939575,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.04901981073552983,
+   "UDM": 0.10013561714396566,
+   "UIM": 0.06236547017219905,
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.10425500924917078,
+   "VFPLUS": 0.018874281730611123
+  },
+  "PR": {
+   "ABANTU_BATHO_CONGRESS": 0.06086720977008713,
+   "ABLE_LEADERSHIP": 0.07410121800149314,
+   "ACDP": 0.07587758987417914,
+   "AFRICAN_FREEDOM_REVOLUTION": 0.07334321403116333,
+   "AFRICAN_PEOPLE_S_MOVEMENT": 0.06021825594048156,
+   "AFRICAN_SECURITY_CONGRESS": 0.11626479507344213,
+   "AFRICA_RESTORATION_ALLIANCE": 0.06051008332064061,
+   "AIC": 0.08761393503961268,
+   "ALJAMAAH": 0.050586936496506224,
+   "ANC": 0.19607777122977033,
+   "APC": 0.10775828435514781,
+   "ARUSHA_ECONOMIC_COALITION": 0.04933739888559778,
+   "ASA": 0.04960182967710577,
+   "ATM": 0.057845730113334035,
+   "BLACK_FIRST_LAND_FIRST": 0.16024405176575116,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.058005797829996084,
+   "CHANGE": 0.08119517514642816,
+   "COPE": 0.08588564071219959,
+   "DA": 0.24510320137228866,
+   "DEMOCRATIC_UNION_PLUS": 0.03725174874973787,
+   "EFF": 0.0692416654062158,
+   "GOD_SAVE_AFRICA": 0.041064118882661454,
+   "IFP": 0.06531834616525643,
+   "INDEPENDENT_CITIZENS_MOVEMENT": 0.1226346907666128,
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.05204237376462919,
+   "NATIONAL_PEOPLE_S_FRONT": 0.04833734013918875,
+   "NFP": 0.07025746053487776,
+   "PA": 0.029297366058260412,
+   "PAC": 0.09089334695984216,
+   "SPECTRUM_NATIONAL_PARTY": 0.09161125764012305,
+   "THE_NATIONALS_OF_SOUTH_AFRICA": 0.10340054959450835,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.07002408828576795,
+   "UDM": 0.07866012798419196,
+   "UIM": 0.07294705256905167,
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.14691322741754678,
+   "VFPLUS": 0.019629218851171356
+  }
+ },
+ "zero_cells": [
+  {
+   "ballot": "PR",
+   "ward": "79700001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 8514,
+   "share": 0.00011745360582569885,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700002",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4045,
+   "share": 0.00024721878862793575,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700003",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4587,
+   "share": 0.00021800741225201656,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700004",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5194,
+   "share": 0.00019252984212552945,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700005",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5310,
+   "share": 0.00018832391713747646,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700008",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5348,
+   "share": 0.00018698578908002991,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700009",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4237,
+   "share": 0.0007080481472740147,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700013",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5305,
+   "share": 0.00018850141376060322,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700014",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 4700,
+   "share": 0.000425531914893617,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700015",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 8067,
+   "share": 0.0006198090987975703,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700016",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 7368,
+   "share": 0.0002714440825190011,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700017",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 84,
+   "ward_total": 7172,
+   "share": 0.011712214166201896,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700018",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 19,
+   "ward_total": 8635,
+   "share": 0.0022003474232773594,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700019",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 7811,
+   "share": 0.0006401229035974907,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700020",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 6,
+   "ward_total": 8891,
+   "share": 0.0006748397255651782,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700021",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 3416,
+   "share": 0.0002927400468384075,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700022",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 143,
+   "ward_total": 7834,
+   "share": 0.018253765636967068,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700023",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 22,
+   "ward_total": 8709,
+   "share": 0.0025261224021127567,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700024",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 7,
+   "ward_total": 8175,
+   "share": 0.0008562691131498471,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700026",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4888,
+   "share": 0.00020458265139116204,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700027",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 9249,
+   "share": 0.00021623959346956428,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700028",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 6665,
+   "share": 0.0006001500375093774,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700029",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 11,
+   "ward_total": 4570,
+   "share": 0.0024070021881838076,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700031",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 71,
+   "ward_total": 6780,
+   "share": 0.01047197640117994,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700032",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 218,
+   "ward_total": 7613,
+   "share": 0.02863522921318797,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700033",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 182,
+   "ward_total": 6721,
+   "share": 0.027079303675048357,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700034",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 65,
+   "ward_total": 6239,
+   "share": 0.010418336271838436,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700036",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 6790,
+   "share": 0.0007363770250368188,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700037",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 227,
+   "ward_total": 8884,
+   "share": 0.02555155335434489,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700038",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 161,
+   "ward_total": 9762,
+   "share": 0.016492522024175373,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700039",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 7,
+   "ward_total": 8603,
+   "share": 0.0008136696501220504,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700040",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 75,
+   "ward_total": 4626,
+   "share": 0.01621271076523995,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700042",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 8,
+   "ward_total": 7267,
+   "share": 0.0011008669327095088,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700043",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 130,
+   "ward_total": 8924,
+   "share": 0.014567458538771852,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700045",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5555,
+   "share": 0.00036003600360036,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700046",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 4663,
+   "share": 0.0004289084280506112,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700047",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5567,
+   "share": 0.00017962996227770793,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700048",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4862,
+   "share": 0.00020567667626491157,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700049",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5924,
+   "share": 0.00016880486158001352,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700052",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 4168,
+   "share": 0.0004798464491362764,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700053",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 8170,
+   "share": 0.0002447980416156671,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700055",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5673,
+   "share": 0.00017627357659086903,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700056",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5478,
+   "share": 0.00018254837531945966,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700058",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4858,
+   "share": 0.0006175380815150268,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700059",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4405,
+   "share": 0.00022701475595913735,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700061",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 6736,
+   "share": 0.0001484560570071259,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700062",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5111,
+   "share": 0.00019565642731363725,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700063",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5523,
+   "share": 0.0003621220351258374,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700064",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5922,
+   "share": 0.00033772374197906115,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700065",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4652,
+   "share": 0.00021496130696474635,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700067",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 5177,
+   "share": 0.0007726482518833301,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700068",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5413,
+   "share": 0.0003694808793644929,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700069",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 4999,
+   "share": 0.00040008001600320064,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700070",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 6058,
+   "share": 0.0004952129415648729,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700071",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 13,
+   "ward_total": 6180,
+   "share": 0.002103559870550162,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700072",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 6,
+   "ward_total": 6383,
+   "share": 0.0009399968666771111,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700073",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 13,
+   "ward_total": 6710,
+   "share": 0.0019374068554396423,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700074",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5179,
+   "share": 0.00019308746862328635,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700076",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 8,
+   "ward_total": 8643,
+   "share": 0.0009256045354622237,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700077",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5417,
+   "share": 0.00036920804873546244,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700078",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 4536,
+   "share": 0.0004409171075837742,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700079",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 4870,
+   "share": 0.0008213552361396304,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700080",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4462,
+   "share": 0.00022411474675033618,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700081",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 5974,
+   "share": 0.0008369601606963508,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700082",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 7000,
+   "share": 0.00014285714285714287,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700083",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5762,
+   "share": 0.0003471017007983339,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700084",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4284,
+   "share": 0.0007002801120448179,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700085",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5277,
+   "share": 0.00018950161076369148,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700086",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5262,
+   "share": 0.0003800836183960471,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700087",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 3779,
+   "share": 0.0002646202699126753,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700088",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 120,
+   "ward_total": 7395,
+   "share": 0.016227180527383367,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700090",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4150,
+   "share": 0.00024096385542168674,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700091",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 7050,
+   "share": 0.00014184397163120567,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700092",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 16,
+   "ward_total": 8363,
+   "share": 0.001913189046992706,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700093",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 4134,
+   "share": 0.0004837929366231253,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700094",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 421,
+   "ward_total": 8316,
+   "share": 0.05062530062530062,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700096",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5947,
+   "share": 0.00016815200941651252,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700097",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 34,
+   "ward_total": 7948,
+   "share": 0.004277805737292401,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700098",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5422,
+   "share": 0.00018443378827001107,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700099",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 9,
+   "ward_total": 5612,
+   "share": 0.0016037063435495368,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700100",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 3259,
+   "share": 0.0003068425897514575,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700103",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 6404,
+   "share": 0.0001561524047470331,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700105",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 44,
+   "ward_total": 7174,
+   "share": 0.006133258990800111,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700106",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 173,
+   "ward_total": 9498,
+   "share": 0.018214360918088018,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700110",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5366,
+   "share": 0.0003727171077152441,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79700111",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 7,
+   "ward_total": 5230,
+   "share": 0.0013384321223709368,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700001",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 9119,
+   "share": 0.0001096611470555982,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 9119,
+   "share": 0.0001096611470555982,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700003",
+   "party": "IND",
+   "votes": 283,
+   "ward_total": 4802,
+   "share": 0.05893377759266972,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700003",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 4802,
+   "share": 0.00041649312786339027,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700004",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 7,
+   "ward_total": 5230,
+   "share": 0.0013384321223709368,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700005",
+   "party": "IND",
+   "votes": 115,
+   "ward_total": 5389,
+   "share": 0.021339766190387827,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700006",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4328,
+   "share": 0.0002310536044362292,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700008",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 6,
+   "ward_total": 5251,
+   "share": 0.0011426394972386211,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700009",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4226,
+   "share": 0.000709891150023663,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700010",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4264,
+   "share": 0.0007035647279549719,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700011",
+   "party": "IND",
+   "votes": 53,
+   "ward_total": 4692,
+   "share": 0.011295822676896846,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700014",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 10,
+   "ward_total": 4675,
+   "share": 0.0021390374331550803,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700015",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 7855,
+   "share": 0.00038192234245703374,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700016",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 7377,
+   "share": 0.0006777822963264199,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700017",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 176,
+   "ward_total": 7024,
+   "share": 0.025056947608200455,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700018",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 22,
+   "ward_total": 8508,
+   "share": 0.0025858015984955335,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700019",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 10,
+   "ward_total": 7909,
+   "share": 0.0012643823492224048,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700020",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 7,
+   "ward_total": 8951,
+   "share": 0.000782035526756787,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700021",
+   "party": "IND",
+   "votes": 8,
+   "ward_total": 3374,
+   "share": 0.0023710729104919974,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700022",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 374,
+   "ward_total": 7840,
+   "share": 0.047704081632653064,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700023",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 34,
+   "ward_total": 7853,
+   "share": 0.004329555583853305,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700024",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 15,
+   "ward_total": 8292,
+   "share": 0.001808972503617945,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700025",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 7995,
+   "share": 0.000375234521575985,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700026",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4818,
+   "share": 0.00020755500207555002,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700027",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 9166,
+   "share": 0.0004363953742090334,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700028",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 15,
+   "ward_total": 6854,
+   "share": 0.0021885030639042895,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700029",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 4626,
+   "share": 0.00043233895373973193,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700031",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 144,
+   "ward_total": 6711,
+   "share": 0.021457308895842648,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700032",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 462,
+   "ward_total": 7611,
+   "share": 0.0607016160819866,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700033",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 281,
+   "ward_total": 6646,
+   "share": 0.0422810713210954,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700034",
+   "party": "IND",
+   "votes": 748,
+   "ward_total": 6226,
+   "share": 0.12014134275618374,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700034",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 7,
+   "ward_total": 6226,
+   "share": 0.0011243173787343398,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700036",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 12,
+   "ward_total": 6767,
+   "share": 0.0017733116595241613,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700037",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 654,
+   "ward_total": 8959,
+   "share": 0.07299921866279718,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700038",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 472,
+   "ward_total": 9750,
+   "share": 0.04841025641025641,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700039",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 22,
+   "ward_total": 8647,
+   "share": 0.002544234994795883,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700040",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 104,
+   "ward_total": 4651,
+   "share": 0.022360782627391957,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700041",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 5372,
+   "share": 0.0007446016381236039,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700042",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 9,
+   "ward_total": 7091,
+   "share": 0.0012692144972500353,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700043",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 285,
+   "ward_total": 8927,
+   "share": 0.03192561890892797,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700044",
+   "party": "IND",
+   "votes": 26,
+   "ward_total": 5684,
+   "share": 0.004574243490499648,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700044",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 12,
+   "ward_total": 5684,
+   "share": 0.00211118930330753,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700045",
+   "party": "IND",
+   "votes": 108,
+   "ward_total": 5485,
+   "share": 0.019690063810391976,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700045",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 8,
+   "ward_total": 5485,
+   "share": 0.0014585232452142207,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700046",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 4686,
+   "share": 0.0008536064874093043,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700048",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4901,
+   "share": 0.000612119975515201,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700050",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5098,
+   "share": 0.00039231071008238524,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700051",
+   "party": "IND",
+   "votes": 1085,
+   "ward_total": 5087,
+   "share": 0.21328877530961274,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700051",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5087,
+   "share": 0.00019657951641438963,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700052",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4198,
+   "share": 0.00023820867079561695,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700053",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 8181,
+   "share": 0.0003667033370003667,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700054",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5403,
+   "share": 0.00037016472330186933,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700055",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 5653,
+   "share": 0.0005306916681408102,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700056",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5389,
+   "share": 0.00018556318426424197,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700057",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 6633,
+   "share": 0.00015076134479119553,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700058",
+   "party": "IND",
+   "votes": 43,
+   "ward_total": 4947,
+   "share": 0.008692136648473823,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700058",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 4947,
+   "share": 0.001010713563776026,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700059",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4387,
+   "share": 0.00022794620469569182,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700060",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 4345,
+   "share": 0.00023014959723820482,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700061",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 6658,
+   "share": 0.0006007810153199159,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700062",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 5209,
+   "share": 0.0007679017085813016,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700063",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 5593,
+   "share": 0.0005363847666726265,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700064",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5904,
+   "share": 0.00016937669376693767,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700065",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4652,
+   "share": 0.0006448839208942391,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700066",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 4504,
+   "share": 0.0008880994671403197,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700067",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 5080,
+   "share": 0.0005905511811023622,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700068",
+   "party": "IND",
+   "votes": 28,
+   "ward_total": 5390,
+   "share": 0.005194805194805195,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700068",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 19,
+   "ward_total": 5390,
+   "share": 0.0035250463821892395,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700069",
+   "party": "IND",
+   "votes": 258,
+   "ward_total": 5056,
+   "share": 0.05102848101265823,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700069",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 5056,
+   "share": 0.0005933544303797469,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700070",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 10,
+   "ward_total": 5777,
+   "share": 0.0017310022503029255,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700071",
+   "party": "IND",
+   "votes": 1304,
+   "ward_total": 6208,
+   "share": 0.21005154639175258,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700071",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 6208,
+   "share": 0.00032216494845360824,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700072",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 6278,
+   "share": 0.0004778591908251035,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700073",
+   "party": "IND",
+   "votes": 1185,
+   "ward_total": 6974,
+   "share": 0.16991683395468885,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700073",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 6,
+   "ward_total": 6974,
+   "share": 0.0008603383997705764,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700074",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5223,
+   "share": 0.0003829216925138809,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700075",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 7763,
+   "share": 0.0005152647172484864,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700076",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 97,
+   "ward_total": 8554,
+   "share": 0.011339724105681553,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700078",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4557,
+   "share": 0.0006583278472679394,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700079",
+   "party": "IND",
+   "votes": 124,
+   "ward_total": 4908,
+   "share": 0.02526487367563162,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700079",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 4908,
+   "share": 0.0008149959250203749,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700080",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4453,
+   "share": 0.0006737031214911295,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700081",
+   "party": "IND",
+   "votes": 348,
+   "ward_total": 5890,
+   "share": 0.05908319185059423,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700081",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 7,
+   "ward_total": 5890,
+   "share": 0.0011884550084889642,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700082",
+   "party": "IND",
+   "votes": 372,
+   "ward_total": 6870,
+   "share": 0.05414847161572053,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700082",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 6870,
+   "share": 0.000727802037845706,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700083",
+   "party": "IND",
+   "votes": 194,
+   "ward_total": 6097,
+   "share": 0.0318189273413154,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700083",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 6097,
+   "share": 0.0006560603575528948,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700084",
+   "party": "IND",
+   "votes": 194,
+   "ward_total": 4230,
+   "share": 0.0458628841607565,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700084",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 4230,
+   "share": 0.001182033096926714,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700085",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 5186,
+   "share": 0.0007713073659853452,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700086",
+   "party": "IND",
+   "votes": 100,
+   "ward_total": 4950,
+   "share": 0.020202020202020204,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700086",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 4950,
+   "share": 0.0008080808080808081,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700087",
+   "party": "IND",
+   "votes": 47,
+   "ward_total": 3780,
+   "share": 0.012433862433862434,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700087",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 3780,
+   "share": 0.0010582010582010583,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700088",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 545,
+   "ward_total": 7436,
+   "share": 0.07329209252286176,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700089",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5312,
+   "share": 0.00018825301204819278,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700090",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 4147,
+   "share": 0.0009645526886906198,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700091",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 7004,
+   "share": 0.00014277555682467162,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700092",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 33,
+   "ward_total": 8265,
+   "share": 0.003992740471869328,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700093",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 3993,
+   "share": 0.00025043826696719256,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700094",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 228,
+   "ward_total": 7567,
+   "share": 0.030130831240914497,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700095",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 5159,
+   "share": 0.0005815080441946114,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700096",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 5930,
+   "share": 0.0008431703204047217,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700097",
+   "party": "IND",
+   "votes": 92,
+   "ward_total": 7971,
+   "share": 0.011541839166980303,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700097",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 78,
+   "ward_total": 7971,
+   "share": 0.00978547233722243,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700098",
+   "party": "IND",
+   "votes": 311,
+   "ward_total": 5406,
+   "share": 0.05752867184609693,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700098",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 5406,
+   "share": 0.0003699593044765076,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700099",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 5699,
+   "share": 0.00017546938059308652,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700100",
+   "party": "IND",
+   "votes": 51,
+   "ward_total": 3267,
+   "share": 0.015610651974288337,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700100",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 3267,
+   "share": 0.0006121824303642485,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700102",
+   "party": "IND",
+   "votes": 59,
+   "ward_total": 4701,
+   "share": 0.012550521165709424,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700102",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 3,
+   "ward_total": 4701,
+   "share": 0.0006381620931716656,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700103",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 2,
+   "ward_total": 6591,
+   "share": 0.00030344409042633893,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700104",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 4,
+   "ward_total": 8176,
+   "share": 0.0004892367906066536,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700105",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 226,
+   "ward_total": 7157,
+   "share": 0.03157747659633925,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700106",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 661,
+   "ward_total": 9640,
+   "share": 0.06856846473029046,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700107",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 7,
+   "ward_total": 6557,
+   "share": 0.001067561384779625,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700108",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 6083,
+   "share": 0.0001643925694558606,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700109",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 1,
+   "ward_total": 6508,
+   "share": 0.00015365703749231714,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700110",
+   "party": "IND",
+   "votes": 557,
+   "ward_total": 5690,
+   "share": 0.09789103690685413,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700110",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 5,
+   "ward_total": 5690,
+   "share": 0.0008787346221441124,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700111",
+   "party": "IND",
+   "votes": 332,
+   "ward_total": 5218,
+   "share": 0.06362591031046377,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79700111",
+   "party": "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+   "votes": 9,
+   "ward_total": 5218,
+   "share": 0.0017247987734764277,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  }
+ ]
+}

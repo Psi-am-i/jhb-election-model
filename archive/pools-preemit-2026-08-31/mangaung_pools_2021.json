@@ -1,0 +1,631 @@
+{
+  "arrival_group": {
+    "alpha": 4.357017760030976,
+    "derived_from": "14 metro-years before 2021; split by ward reach (corr +0.393 on log vote)",
+    "n_observations": 14,
+    "total_log_median": -4.261897847061204,
+    "total_log_sd": 0.9275108567319761,
+    "weights": {
+      "AFRICA_S_NEW_DAWN": 0.5490196078431373,
+      "FORUM_4_SERVICE_DELIVERY": 0.3333333333333333,
+      "INTERNATIONAL_PARTY": 0.0392156862745098,
+      "MANGAUNG_COMMUNITY_FORUM": 0.0784313725490196,
+      "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.058823529411764705,
+      "THE_ORGANIC_HUMANITY_MOVEMENT": 1.0,
+      "UIM": 1.0
+    }
+  },
+  "artefact_key": {
+    "city": "mangaung",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "dbdf171344ffd5f0",
+    "schema": 1,
+    "target": "2021"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [
+    [
+      0.0001168250294844122,
+      0.0625
+    ],
+    [
+      0.0001258578045778785,
+      0.15555555555555556
+    ],
+    [
+      0.0001370911816698668,
+      0.08620689655172414
+    ],
+    [
+      0.0001378063303289429,
+      0.022222222222222223
+    ],
+    [
+      0.00015242884799394736,
+      0.5446428571428571
+    ],
+    [
+      0.0001553308347638374,
+      0.5851851851851851
+    ],
+    [
+      0.00018246956986136764,
+      0.05357142857142857
+    ],
+    [
+      0.00018550084663038845,
+      0.7850467289719626
+    ],
+    [
+      0.00018920186476075184,
+      0.12931034482758622
+    ],
+    [
+      0.00020027147911613521,
+      0.09821428571428571
+    ],
+    [
+      0.00020812290109750898,
+      0.028037383177570093
+    ],
+    [
+      0.00021139767240036493,
+      0.6696428571428571
+    ],
+    [
+      0.00022688189714954564,
+      0.15517241379310345
+    ],
+    [
+      0.00023810558488871505,
+      0.00909090909090909
+    ],
+    [
+      0.0002523068998052506,
+      1.0
+    ],
+    [
+      0.0002559024455372839,
+      0.16071428571428573
+    ],
+    [
+      0.0002781548321057433,
+      0.3392857142857143
+    ],
+    [
+      0.0002803800707625893,
+      0.05357142857142857
+    ],
+    [
+      0.00029172985289982104,
+      0.25
+    ],
+    [
+      0.0002939337334761846,
+      0.08888888888888889
+    ],
+    [
+      0.0002969529727889678,
+      0.07272727272727272
+    ],
+    [
+      0.0003026959856936318,
+      0.08888888888888889
+    ],
+    [
+      0.0003026959856936318,
+      0.14814814814814814
+    ],
+    [
+      0.00030962779479825307,
+      0.5909090909090909
+    ],
+    [
+      0.00033156055987004605,
+      0.08035714285714286
+    ],
+    [
+      0.0003382362758405839,
+      0.09821428571428571
+    ],
+    [
+      0.00034713731966697265,
+      0.05172413793103448
+    ],
+    [
+      0.00035435264501801827,
+      0.8620689655172413
+    ],
+    [
+      0.0003551543478348011,
+      0.14655172413793102
+    ],
+    [
+      0.00035595605065158394,
+      0.11206896551724138
+    ],
+    [
+      0.00037583215283490455,
+      1.0
+    ],
+    [
+      0.000376065333006965,
+      1.0
+    ],
+    [
+      0.0003928343802235949,
+      0.25862068965517243
+    ],
+    [
+      0.0003974462044340149,
+      1.0
+    ],
+    [
+      0.0004071969804081697,
+      0.7476635514018691
+    ],
+    [
+      0.00042249738444456026,
+      0.14655172413793102
+    ],
+    [
+      0.0004399973926080438,
+      1.0
+    ],
+    [
+      0.0004433922675555626,
+      0.1588785046728972
+    ],
+    [
+      0.000497855239627684,
+      0.05185185185185185
+    ],
+    [
+      0.0004986591520389306,
+      0.9913793103448276
+    ],
+    [
+      0.0005140301297314137,
+      0.125
+    ],
+    [
+      0.00054916642949625,
+      0.853448275862069
+    ],
+    [
+      0.0007785962091418059,
+      0.7090909090909091
+    ],
+    [
+      0.0007981615201711028,
+      1.0
+    ],
+    [
+      0.0008465981745226862,
+      0.10344827586206896
+    ],
+    [
+      0.0008794679900107829,
+      0.22413793103448276
+    ],
+    [
+      0.0008833912269410571,
+      0.028037383177570093
+    ],
+    [
+      0.0008890467405578373,
+      1.0
+    ],
+    [
+      0.000942463550833279,
+      0.5636363636363636
+    ],
+    [
+      0.000983439579930808,
+      0.5
+    ],
+    [
+      0.001208408509209919,
+      0.18
+    ],
+    [
+      0.0012273679396776255,
+      0.36666666666666664
+    ],
+    [
+      0.0012545630008811313,
+      0.1
+    ],
+    [
+      0.0013299509665457127,
+      1.0
+    ],
+    [
+      0.0013562059549935177,
+      0.8909090909090909
+    ],
+    [
+      0.0016068700279226595,
+      0.08
+    ],
+    [
+      0.001616232878634219,
+      0.5603448275862069
+    ],
+    [
+      0.0016504428944947816,
+      0.6
+    ],
+    [
+      0.0017110288875524242,
+      0.17037037037037037
+    ],
+    [
+      0.0017518414705690634,
+      0.37272727272727274
+    ],
+    [
+      0.00181340489175702,
+      1.0
+    ],
+    [
+      0.0024757614543390216,
+      0.13333333333333333
+    ],
+    [
+      0.002732329487430198,
+      0.24545454545454545
+    ],
+    [
+      0.0027804357017290103,
+      0.125
+    ],
+    [
+      0.002783512179870044,
+      1.0
+    ],
+    [
+      0.002844795032098351,
+      0.1
+    ],
+    [
+      0.0029172985289982103,
+      0.35
+    ],
+    [
+      0.0032049593453102225,
+      0.54
+    ],
+    [
+      0.004346558604755593,
+      1.0
+    ],
+    [
+      0.007628202301688787,
+      0.5948275862068966
+    ],
+    [
+      0.008010744068816708,
+      0.7166666666666667
+    ],
+    [
+      0.015094807668629454,
+      0.9272727272727272
+    ],
+    [
+      0.01574707338564176,
+      0.04
+    ],
+    [
+      0.016147641587536038,
+      0.26666666666666666
+    ],
+    [
+      0.016241232769230157,
+      0.7777777777777778
+    ],
+    [
+      0.016477892253944235,
+      0.8482142857142857
+    ],
+    [
+      0.02738639701254563,
+      0.26
+    ]
+  ],
+  "fitted_on": "2016",
+  "judgement_file": "judgements/mangaung-2021.toml",
+  "no_measured_vector": {
+    "AFRICA_S_NEW_DAWN": "entrant, even share of every pool",
+    "AFRIKAN_ALLIANCE_OF_SOCIAL_DEMOCRATS": "entrant, even share of every pool",
+    "ATM": "entrant, even share of every pool",
+    "FORUM_4_SERVICE_DELIVERY": "entrant, even share of every pool",
+    "INTERNATIONAL_PARTY": "entrant, even share of every pool",
+    "MANGAUNG_COMMUNITY_FORUM": "entrant, even share of every pool",
+    "NFP": "entrant, even share of every pool (parent 'IFP' not measured)",
+    "PA": "entrant, even share of every pool",
+    "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": "entrant, even share of every pool",
+    "THE_ORGANIC_HUMANITY_MOVEMENT": "entrant, even share of every pool",
+    "UIM": "entrant, even share of every pool"
+  },
+  "pool_shares_at_target": [
+    0.734429317619066,
+    0.04301091118988044,
+    0.05649220153335664,
+    0.16606756965769684
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 20.13484730819991,
+      "derived_from": "pool vectors fitted on mangaung 2016; size from the 2021 roll split by each ward's own composition; turnout from mangaung's local elections before 2021",
+      "identified": [
+        "AGENCY_FOR_NEW_AGENDA",
+        "AIC",
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "EFF",
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY"
+      ],
+      "members": {
+        "ACDP": 0.5101262120704523,
+        "AFRICA_S_NEW_DAWN": 0.25,
+        "AFRIKAN_ALLIANCE_OF_SOCIAL_DEMOCRATS": 0.25,
+        "AGENCY_FOR_NEW_AGENDA": 1.0,
+        "AIC": 0.9786337558954762,
+        "ANC": 0.9420723828692019,
+        "APC": 1.0,
+        "ATM": 0.25,
+        "BOTSHABELO_UNEMPLOYED_MOVEMENT": 1.0,
+        "COPE": 0.8925172116139907,
+        "DA": 0.1156163692087896,
+        "EFF": 0.9302511769415763,
+        "FORUM_4_SERVICE_DELIVERY": 0.25,
+        "INTERNATIONAL_PARTY": 0.25000000000000006,
+        "MANGAUNG_COMMUNITY_FORUM": 0.25000000000000006,
+        "NFP": 0.25,
+        "PA": 0.25,
+        "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.25000000000000006,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.25,
+        "UIM": 0.25,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.9795732119663957,
+        "UNITED_RESIDENTS_FRONT": 1.0,
+        "VFPLUS": 0.01995709070270045
+      },
+      "registered": 290319.867012595,
+      "turnout": [
+        0.5140720584674,
+        0.5481284994588679,
+        0.5817400806255558
+      ]
+    },
+    "Coloured": {
+      "alpha": 15.641600696628233,
+      "derived_from": "pool vectors fitted on mangaung 2016; size from the 2021 roll split by each ward's own composition; turnout from mangaung's local elections before 2021",
+      "identified": [
+        "ACDP"
+      ],
+      "members": {
+        "ACDP": 0.05927376310873216,
+        "AFRICA_S_NEW_DAWN": 0.25000000000000006,
+        "AFRIKAN_ALLIANCE_OF_SOCIAL_DEMOCRATS": 0.25,
+        "AIC": 0.021366244104523764,
+        "ANC": 0.028487604724423993,
+        "ATM": 0.25,
+        "COPE": 0.0006454472952330551,
+        "DA": 0.10756893780674202,
+        "EFF": 0.027369680845704736,
+        "FORUM_4_SERVICE_DELIVERY": 0.25,
+        "INTERNATIONAL_PARTY": 0.25000000000000006,
+        "MANGAUNG_COMMUNITY_FORUM": 0.25000000000000006,
+        "NFP": 0.25,
+        "PA": 0.25,
+        "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.25000000000000006,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.25,
+        "UIM": 0.25
+      },
+      "registered": 16829.161207557463,
+      "turnout": [
+        0.5550224752622442,
+        0.6405747359058972,
+        0.7180347698961727
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 13.248070676871567,
+      "derived_from": "pool vectors fitted on mangaung 2016; size from the 2021 roll split by each ward's own composition; turnout from mangaung's local elections before 2021",
+      "identified": [],
+      "members": {
+        "AFRICA_S_NEW_DAWN": 0.25,
+        "AFRIKAN_ALLIANCE_OF_SOCIAL_DEMOCRATS": 0.25,
+        "ANC": 0.020470228001211323,
+        "ATM": 0.25,
+        "COPE": 0.06780206244310438,
+        "DA": 0.013030264195730827,
+        "FORUM_4_SERVICE_DELIVERY": 0.25,
+        "INTERNATIONAL_PARTY": 0.25,
+        "MANGAUNG_COMMUNITY_FORUM": 0.25,
+        "NFP": 0.25,
+        "PA": 0.25,
+        "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.25,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.25,
+        "UIM": 0.25
+      },
+      "registered": 21065.193283200155,
+      "turnout": [
+        0.03192317216037202,
+        0.1649140194078995,
+        0.5418415206121945
+      ]
+    },
+    "White": {
+      "alpha": 60.77757756159843,
+      "derived_from": "pool vectors fitted on mangaung 2016; size from the 2021 roll split by each ward's own composition; turnout from mangaung's local elections before 2021",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "EFF",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.43060002482081555,
+        "AFRICA_S_NEW_DAWN": 0.25,
+        "AFRIKAN_ALLIANCE_OF_SOCIAL_DEMOCRATS": 0.25,
+        "ANC": 0.008969784405162735,
+        "ATM": 0.25,
+        "COPE": 0.03903527864767195,
+        "DA": 0.7637844287887376,
+        "EFF": 0.04237914221271887,
+        "FORUM_4_SERVICE_DELIVERY": 0.25,
+        "INTERNATIONAL_PARTY": 0.25,
+        "MANGAUNG_COMMUNITY_FORUM": 0.25,
+        "NFP": 0.25,
+        "PA": 0.25,
+        "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.25,
+        "THE_ORGANIC_HUMANITY_MOVEMENT": 0.24999999999999994,
+        "UIM": 0.24999999999999994,
+        "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.020426788033604357,
+        "VFPLUS": 0.9800429092972994
+      },
+      "registered": 74430.77849664747,
+      "turnout": [
+        0.6379774102525172,
+        0.7003458051254661,
+        0.7560776094195008
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2016; pools sized by 2016 roll carried to 2021 on the 2014-2016 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2011": [
+      0.7591054786373082,
+      0.04188827456787655,
+      0.0,
+      0.19900624679481524
+    ],
+    "2014": [
+      0.7529446621423457,
+      0.04011452057435846,
+      0.0,
+      0.20694081728329589
+    ],
+    "2016": [
+      0.7235879384922913,
+      0.040037403289381164,
+      0.05243511247704867,
+      0.183939545741279
+    ]
+  },
+  "seed_bands": {
+    "AFRICA_S_NEW_DAWN": [
+      0.11477189499975643,
+      1.0,
+      3.4498166812739144
+    ],
+    "FORUM_4_SERVICE_DELIVERY": [
+      0.13855970623379205,
+      1.0,
+      2.7310409926613253
+    ],
+    "INTERNATIONAL_PARTY": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "MANGAUNG_COMMUNITY_FORUM": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": [
+      0.12158951108549138,
+      1.0,
+      7.482065870717027
+    ],
+    "THE_ORGANIC_HUMANITY_MOVEMENT": [
+      0.11382199743612399,
+      1.0,
+      4.786750217765953
+    ],
+    "UIM": [
+      0.11382199743612399,
+      1.0,
+      4.786750217765953
+    ]
+  },
+  "seed_notes": {
+    "AFRICA_S_NEW_DAWN": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 19 arrivals that contested about as much of a city (55% of wards): mean 0.26%, median 0.10%, band 0.03%-0.88%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.91: 7 entrants summing to 1.78% against an arrival-total record of 1.62%",
+    "FORUM_4_SERVICE_DELIVERY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 37 arrivals that contested about as much of a city (33% of wards): mean 0.21%, median 0.05%, band 0.03%-0.58%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.91: 7 entrants summing to 1.78% against an arrival-total record of 1.62%",
+    "INTERNATIONAL_PARTY": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (4% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.91: 7 entrants summing to 1.78% against an arrival-total record of 1.62%",
+    "MANGAUNG_COMMUNITY_FORUM": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (8% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.91: 7 entrants summing to 1.78% against an arrival-total record of 1.62%",
+    "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 41 arrivals that contested about as much of a city (6% of wards): mean 0.21%, median 0.04%, band 0.03%-1.57%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.91: 7 entrants summing to 1.78% against an arrival-total record of 1.62%",
+    "THE_ORGANIC_HUMANITY_MOVEMENT": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 19 arrivals that contested about as much of a city (100% of wards): mean 0.34%, median 0.08%, band 0.04%-1.63%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.91: 7 entrants summing to 1.78% against an arrival-total record of 1.62%",
+    "UIM": "entrant from nothing: even share of every pool. Sized at the EXPECTED result for the 19 arrivals that contested about as much of a city (100% of wards): mean 0.34%, median 0.08%, band 0.04%-1.63%. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.91: 7 entrants summing to 1.78% against an arrival-total record of 1.62%"
+  },
+  "seeds": {
+    "AFRICA_S_NEW_DAWN": 0.002325071454536858,
+    "FORUM_4_SERVICE_DELIVERY": 0.0019261831698234484,
+    "INTERNATIONAL_PARTY": 0.0019110120734865885,
+    "MANGAUNG_COMMUNITY_FORUM": 0.0019110120734865885,
+    "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.0019110120734865885,
+    "THE_ORGANIC_HUMANITY_MOVEMENT": 0.0030852879595042572,
+    "UIM": 0.0030852879595042572
+  },
+  "splinter_home": {
+    "fractions": {
+      "GOOD": 0.0558,
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014",
+      "2019"
+    ]
+  },
+  "target": "2021",
+  "turnout_limits": {
+    "city": {
+      "high": 0.6160900384362203,
+      "low": 0.4861268398347753,
+      "observed_high": 0.5600818531238366,
+      "observed_low": 0.5401409331497503,
+      "previous": 0.5600818531238366
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.6029413494047547,
+        "low": 0.46266485262066004,
+        "observed_high": 0.5481284994588679,
+        "observed_low": 0.5140720584674,
+        "previous": 0.5481284994588679
+      },
+      {
+        "high": 0.704632209496487,
+        "low": 0.49952022773601984,
+        "observed_high": 0.6405747359058972,
+        "observed_low": 0.5550224752622442,
+        "previous": 0.6405747359058972
+      },
+      {
+        "high": 0.596025672673414,
+        "low": 0.14842261746710955,
+        "observed_high": 0.5418415206121945,
+        "observed_low": 0.1649140194078995,
+        "previous": 0.1649140194078995
+      },
+      {
+        "high": 0.7703803856380127,
+        "low": 0.5741796692272655,
+        "observed_high": 0.7003458051254661,
+        "observed_low": 0.6379774102525172,
+        "previous": 0.7003458051254661
+      }
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+ "city": "ethekwini",
+ "year": "2021",
+ "draws": 1000,
+ "council": 222,
+ "wards": 111,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "AFRICAN_MANTUNGWA_COMMUNITY": 1,
+   "AIC": 2,
+   "ALJAMAAH": 1,
+   "ANC": 102,
+   "APC": 1,
+   "ASA": 3,
+   "ATM": 1,
+   "BLACK_FIRST_LAND_FIRST": 1,
+   "DA": 64,
+   "DEMOCRATIC_LIBERAL_CONGRESS": 1,
+   "EFF": 24,
+   "GOOD": 1,
+   "IFP": 12,
+   "JUSTICE_AND_EMPLOYMENT_PARTY": 1,
+   "MINORITY_FRONT": 2,
+   "NFP": 1,
+   "PAC": 1,
+   "VFPLUS": 1
+  },
+  "seat_err": 34.0,
+  "wards_ok": 110,
+  "ward_vote_err_pp": 19.851424201213497,
+  "list_vote_err_pp": 15.37824952550978,
+  "top": "ANC",
+  "top_wards": 76,
+  "top_actual_wards": 75,
+  "excessive": {},
+  "council": 222,
+  "ward_wins": {
+   "ANC": 76,
+   "DA": 33,
+   "IFP": 2
+  }
+ }
+}

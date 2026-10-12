@@ -1,0 +1,334 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "capetown",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "dbdf171344ffd5f0",
+    "schema": 1,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/capetown-2016.toml",
+  "no_measured_vector": {
+    "AIC": "entrant, even share of every pool",
+    "AL_SHURA_PARTY": "entrant, even share of every pool",
+    "CHRISTIAN_DEMOCRATIC_PARTY": "entrant, even share of every pool",
+    "COLOURED_VOICE": "entrant, even share of every pool",
+    "DEMOCRATIC_INDEPENDENT_PARTY": "entrant, even share of every pool",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "INDEPENDENT_SPORT_PARTY": "entrant, even share of every pool",
+    "KHOISAN_KINGDOM_AND_ALL_PEOPLE": "entrant, even share of every pool",
+    "KHOISAN_REVOLUTION": "entrant, even share of every pool",
+    "LOCAL_PEOPLE_S_PARTY": "entrant, even share of every pool",
+    "NATIONALIST_COLOURED_PARTY_OF_SOUTH_AFRICA": "entrant, even share of every pool",
+    "PA": "entrant, even share of every pool",
+    "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": "entrant, even share of every pool",
+    "PEOPLE_S_DEMOCRATIC_MOVEMENT": "entrant, even share of every pool",
+    "SIZWE_UMMAH_NATION": "entrant, even share of every pool",
+    "SOUTH_AFRICAN_PEOPLE_FOR_EQUALITY": "entrant, even share of every pool",
+    "SOUTH_AFRICA_PEOPLE_S_PARTY": "entrant, even share of every pool",
+    "THE_GREENS": "entrant, even share of every pool",
+    "UBUNTU_PARTY": "entrant, even share of every pool"
+  },
+  "pool_shares_at_target": [
+    0.3270459522868578,
+    0.3664171945849409,
+    0.09875667628534221,
+    0.2077801768428592
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 78.59767413141175,
+      "derived_from": "pool vectors fitted on capetown 2011; size from the 2016 roll split by each ward's own composition; turnout from capetown's local elections before 2016",
+      "identified": [
+        "COPE",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.06695039655109405,
+        "AIC": 0.25,
+        "AL_SHURA_PARTY": 0.25,
+        "ANC": 0.8817672219403183,
+        "APC": 0.2624339922120399,
+        "CAPE_PARTY_KAAPSE_PARTY": 0.04923878491178025,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.25,
+        "COLOURED_VOICE": 0.25,
+        "COPE": 0.617293122631312,
+        "DA": 0.002871420393132612,
+        "DEMOCRATIC_INDEPENDENT_PARTY": 0.25,
+        "EFF": 0.5077680148149494,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.12843749982919953,
+        "INDEPENDENT_SPORT_PARTY": 0.25,
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.25,
+        "KHOISAN_REVOLUTION": 0.25,
+        "LOCAL_PEOPLE_S_PARTY": 0.25,
+        "NATIONALIST_COLOURED_PARTY_OF_SOUTH_AFRICA": 0.25,
+        "NATIONAL_PEOPLE_S_PARTY": 0.009078914908578182,
+        "PA": 0.25,
+        "PAC": 0.1813119747351567,
+        "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.25,
+        "PEOPLE_S_DEMOCRATIC_MOVEMENT": 0.25,
+        "SIZWE_UMMAH_NATION": 0.25,
+        "SOUTH_AFRICAN_PEOPLE_FOR_EQUALITY": 0.25,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.009410894880029594,
+        "SOUTH_AFRICA_PEOPLE_S_PARTY": 0.25,
+        "THE_GREENS": 0.25,
+        "UBUNTU_PARTY": 0.25,
+        "UDM": 0.6498034583494654,
+        "VFPLUS": 0.3381289937855577
+      },
+      "registered": 624058.6731004561,
+      "turnout": [
+        0.47796421543103934,
+        0.5965682273033157,
+        0.7048648574660863
+      ]
+    },
+    "Coloured": {
+      "alpha": 30.893848125241078,
+      "derived_from": "pool vectors fitted on capetown 2011; size from the 2016 roll split by each ward's own composition; turnout from capetown's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "AFRICA_MUSLIM_PARTY",
+        "ALJAMAAH",
+        "CAPE_MUSLIM_CONGRESS",
+        "COPE",
+        "NATIONAL_PARTY_SOUTH_AFRICA"
+      ],
+      "members": {
+        "ACDP": 0.6978363293898121,
+        "AFRICA_MUSLIM_PARTY": 0.6322887326918996,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.556335393065728,
+        "AL_SHURA_PARTY": 0.25,
+        "ANC": 0.0858772718276846,
+        "APC": 0.5279222324286684,
+        "CAPE_MUSLIM_CONGRESS": 0.8255478612446481,
+        "CAPE_PARTY_KAAPSE_PARTY": 0.6895721699886451,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.25,
+        "COLOURED_VOICE": 0.25,
+        "COPE": 0.2536497243765569,
+        "DA": 0.49312806257504693,
+        "DEMOCRATIC_INDEPENDENT_PARTY": 0.25,
+        "EFF": 0.264800998302207,
+        "IFP": 0.896619685723063,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.7334366543314365,
+        "INDEPENDENT_SPORT_PARTY": 0.25,
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.25,
+        "KHOISAN_REVOLUTION": 0.25,
+        "LOCAL_PEOPLE_S_PARTY": 0.25,
+        "NATIONALIST_COLOURED_PARTY_OF_SOUTH_AFRICA": 0.25,
+        "NATIONAL_PARTY_SOUTH_AFRICA": 0.9999999999999998,
+        "NATIONAL_PEOPLE_S_PARTY": 0.977748270180488,
+        "PA": 0.25,
+        "PAC": 0.260043331118194,
+        "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.25,
+        "PEOPLE_S_DEMOCRATIC_MOVEMENT": 0.25,
+        "SIZWE_UMMAH_NATION": 0.25,
+        "SOUTH_AFRICAN_PEOPLE_FOR_EQUALITY": 0.25,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.9804683240619612,
+        "SOUTH_AFRICA_PEOPLE_S_PARTY": 0.25,
+        "THE_GREENS": 0.25,
+        "UBUNTU_PARTY": 0.25,
+        "UDM": 0.08469719072986572,
+        "VFPLUS": 0.16774003829267947
+      },
+      "registered": 718645.0139478787,
+      "turnout": [
+        0.4081878587837657,
+        0.6123568316980071,
+        0.7834560771131889
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 31.61385323809591,
+      "derived_from": "pool vectors fitted on capetown 2011; size from the 2016 roll split by each ward's own composition; turnout from capetown's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "AFRICA_MUSLIM_PARTY",
+        "ALJAMAAH",
+        "CAPE_MUSLIM_CONGRESS",
+        "COPE",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.16609301959616157,
+        "AFRICA_MUSLIM_PARTY": 0.3677112673081005,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.44366460693427195,
+        "AL_SHURA_PARTY": 0.25,
+        "ANC": 0.019252811531180455,
+        "APC": 0.02212036931709456,
+        "CAPE_MUSLIM_CONGRESS": 0.17445213875535198,
+        "CAPE_PARTY_KAAPSE_PARTY": 0.22600524677296244,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.25,
+        "COLOURED_VOICE": 0.25,
+        "COPE": 0.052121179170259845,
+        "DA": 0.1545677747234158,
+        "DEMOCRATIC_INDEPENDENT_PARTY": 0.25,
+        "EFF": 0.07821025714248236,
+        "IFP": 0.10338031427693688,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.04635024455957434,
+        "INDEPENDENT_SPORT_PARTY": 0.25,
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.25,
+        "KHOISAN_REVOLUTION": 0.25,
+        "LOCAL_PEOPLE_S_PARTY": 0.25,
+        "NATIONALIST_COLOURED_PARTY_OF_SOUTH_AFRICA": 0.25,
+        "NATIONAL_PEOPLE_S_PARTY": 0.006685434855958592,
+        "PA": 0.25,
+        "PAC": 0.09439352088001722,
+        "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.25,
+        "PEOPLE_S_DEMOCRATIC_MOVEMENT": 0.25,
+        "SIZWE_UMMAH_NATION": 0.25,
+        "SOUTH_AFRICAN_PEOPLE_FOR_EQUALITY": 0.25,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.0033961832003417004,
+        "SOUTH_AFRICA_PEOPLE_S_PARTY": 0.25,
+        "THE_GREENS": 0.25,
+        "UBUNTU_PARTY": 0.25,
+        "UDM": 0.02350198501409731,
+        "VFPLUS": 0.3539680426225724
+      },
+      "registered": 195606.1738935668,
+      "turnout": [
+        0.5439799917853559,
+        0.6694234588138829,
+        0.7746543416007282
+      ]
+    },
+    "White": {
+      "alpha": 23.385806138963623,
+      "derived_from": "pool vectors fitted on capetown 2011; size from the 2016 roll split by each ward's own composition; turnout from capetown's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "COPE",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.0691202544629322,
+        "AIC": 0.25,
+        "AL_SHURA_PARTY": 0.25,
+        "ANC": 0.013102694700816611,
+        "APC": 0.18752340604219714,
+        "CAPE_PARTY_KAAPSE_PARTY": 0.035183798326612364,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.25,
+        "COLOURED_VOICE": 0.25,
+        "COPE": 0.07693597382187126,
+        "DA": 0.34943274230840465,
+        "DEMOCRATIC_INDEPENDENT_PARTY": 0.25,
+        "EFF": 0.14922072974036138,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.0917756012797897,
+        "INDEPENDENT_SPORT_PARTY": 0.25,
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.25,
+        "KHOISAN_REVOLUTION": 0.25,
+        "LOCAL_PEOPLE_S_PARTY": 0.25,
+        "NATIONALIST_COLOURED_PARTY_OF_SOUTH_AFRICA": 0.25,
+        "NATIONAL_PEOPLE_S_PARTY": 0.006487380054975049,
+        "PA": 0.25,
+        "PAC": 0.46425117326663207,
+        "PATRIOTIC_ASSOCIATION_OF_SOUTH_AFRICA": 0.25,
+        "PEOPLE_S_DEMOCRATIC_MOVEMENT": 0.25,
+        "SIZWE_UMMAH_NATION": 0.25,
+        "SOUTH_AFRICAN_PEOPLE_FOR_EQUALITY": 0.25,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.006724597857667551,
+        "SOUTH_AFRICA_PEOPLE_S_PARTY": 0.25,
+        "THE_GREENS": 0.25,
+        "UBUNTU_PARTY": 0.25,
+        "UDM": 0.24199736590657156,
+        "VFPLUS": 0.1401629252991904
+      },
+      "registered": 360231.139058098,
+      "turnout": [
+        0.6483719627630303,
+        0.7483659446606473,
+        0.8274899966122331
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.3392703546815936,
+      0.3836096196274317,
+      0.10816975204179788,
+      0.1689502736491768
+    ],
+    "2009": [
+      0.3461634799853759,
+      0.36754119454611645,
+      0.09934645521179411,
+      0.18694887025671364
+    ],
+    "2011": [
+      0.3279112744340599,
+      0.3770193902067665,
+      0.10488191918559886,
+      0.19018741617357476
+    ],
+    "2014": [
+      0.32736768527861465,
+      0.36949994699037014,
+      0.10049223840790164,
+      0.20264012932311362
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "turnout_limits": {
+    "city": {
+      "high": 0.7027384303047839,
+      "low": 0.44161835281876544,
+      "observed_high": 0.6388531184588944,
+      "observed_low": 0.49068705868751716,
+      "previous": 0.6388531184588944
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.6562250500336473,
+        "low": 0.43016779388793547,
+        "observed_high": 0.5965682273033157,
+        "observed_low": 0.4779642154310394,
+        "previous": 0.5965682273033157
+      },
+      {
+        "high": 0.6735925148678079,
+        "low": 0.36736907290538906,
+        "observed_high": 0.6123568316980071,
+        "observed_low": 0.4081878587837656,
+        "previous": 0.6123568316980071
+      },
+      {
+        "high": 0.7363658046952712,
+        "low": 0.48958199260682034,
+        "observed_high": 0.6694234588138829,
+        "observed_low": 0.5439799917853559,
+        "previous": 0.6694234588138829
+      },
+      {
+        "high": 0.8232025391267122,
+        "low": 0.5835347664867273,
+        "observed_high": 0.7483659446606473,
+        "observed_low": 0.6483719627630303,
+        "previous": 0.7483659446606473
+      }
+    ]
+  }
+}

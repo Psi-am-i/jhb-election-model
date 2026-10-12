@@ -1,0 +1,34 @@
+{
+ "city": "ekurhuleni",
+ "year": "2011",
+ "draws": 1000,
+ "council": 202,
+ "wards": 101,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 2,
+   "ANC": 119,
+   "COPE": 14,
+   "DA": 54,
+   "IFP": 4,
+   "PAC": 1,
+   "UDM": 1,
+   "VFPLUS": 4,
+   "NFP": 3
+  },
+  "seat_err": 36.0,
+  "wards_ok": 97,
+  "ward_vote_err_pp": 16.819687829510325,
+  "list_vote_err_pp": 18.578934340271903,
+  "top": "ANC",
+  "top_wards": 71,
+  "top_actual_wards": 71,
+  "excessive": {},
+  "council": 202,
+  "ward_wins": {
+   "ANC": 71,
+   "DA": 30
+  }
+ }
+}

@@ -1,0 +1,183 @@
+{
+ "absorption": {
+  "blend": {
+   "at_full_local": 0,
+   "at_full_national": 0,
+   "disagreement": 4.708179245359935,
+   "moved_from_local": 4.197047328129852,
+   "moved_from_national": 0.5111319172300837,
+   "n": 7,
+   "nonfinite": 0,
+   "share_local": 0.10856254415840708
+  },
+  "centre_fallback": {
+   "rho": 4,
+   "theta": 4
+  },
+  "dropped_parties": [],
+  "local_only_unused": [
+   "BLACK_CONSCIOUSNESS_PARTY",
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "UNITED_RESIDENTS_FRONT"
+  ],
+  "rho_shrink": {
+   "absorbed": 6.634073030120216,
+   "empty": false,
+   "n": 24,
+   "offered": 10.329268694485664,
+   "share": 0.6422597016632796,
+   "target": "size_centre"
+  },
+  "routes": {
+   "blend": 7,
+   "dropped": 0,
+   "local_only": 3,
+   "national_only": 6
+  },
+  "theta_shrink": {
+   "absorbed": 8.862607122314683,
+   "empty": false,
+   "n": 29,
+   "offered": 15.25490133603398,
+   "share": 0.5809678428650403,
+   "target": "size_centre"
+  }
+ },
+ "detail": {
+  "ACDP": {
+   "local": 0.0026634972303581617,
+   "national": 0.004195960753764145,
+   "route": "blend",
+   "w_local": 0.06429464117201829,
+   "worth": 14.553395769400616
+  },
+  "AGENCY_FOR_NEW_AGENDA": {
+   "local": 0.0,
+   "national": 0.003050604553822345,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "AIC": {
+   "local": 0.0,
+   "national": 0.005739157638233669,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.709346213740861
+  },
+  "ANC": {
+   "local": 0.6285202733841874,
+   "national": 0.5971432321739392,
+   "route": "blend",
+   "w_local": 0.055730485828710354,
+   "worth": 16.94350049403007
+  },
+  "APC": {
+   "local": 0.003032776949085938,
+   "national": 0.00460794704412403,
+   "route": "blend",
+   "w_local": 0.2819481151493631,
+   "worth": 2.5467518535112257
+  },
+  "AZANIAN_ALLIANCE_CONGRESS": {
+   "local": 0.0,
+   "national": 0.003050604553822345,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "BLACK_CONSCIOUSNESS_PARTY": {
+   "local": 0.0008174600940932448,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "BOTSHABELO_UNEMPLOYED_MOVEMENT": {
+   "local": 0.0,
+   "national": 0.003050604553822345,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "COPE": {
+   "local": 0.018150338955850345,
+   "national": 0.004252615697473267,
+   "route": "blend",
+   "w_local": 0.11403032264766805,
+   "worth": 7.769597215731901
+  },
+  "DA": {
+   "local": 0.3286281734598932,
+   "national": 0.2804169900105583,
+   "route": "blend",
+   "w_local": 0.056151186875475025,
+   "worth": 16.80906256207323
+  },
+  "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": {
+   "local": 0.0011080873854478022,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 1.0905221690953968
+  },
+  "EFF": {
+   "local": 0.0,
+   "national": 0.07450519714591146,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 0.0
+  },
+  "PAC": {
+   "local": 0.0010545785369300272,
+   "national": 0.002910252229248313,
+   "route": "blend",
+   "w_local": 0.08206222842884849,
+   "worth": 11.18587429498144
+  },
+  "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": {
+   "local": 0.0,
+   "national": 0.0017245573136271946,
+   "route": "national only (first local election)",
+   "w_local": 0.0,
+   "worth": 3.254634749513862
+  },
+  "UNITED_RESIDENTS_FRONT": {
+   "local": 0.0007466135526051636,
+   "national": 0.0,
+   "route": "local only (no national record)",
+   "w_local": 1.0,
+   "worth": 0.0
+  },
+  "VFPLUS": {
+   "local": 0.006148884589996988,
+   "national": 0.019600397581240277,
+   "route": "blend",
+   "w_local": 0.08922087050866642,
+   "worth": 10.208139915008624
+  }
+ },
+ "k": 1.0,
+ "level": {
+  "ACDP": 0.004075125561810768,
+  "AGENCY_FOR_NEW_AGENDA": 0.003050604553822345,
+  "AIC": 0.005739157638233669,
+  "ANC": 0.5988499309013163,
+  "APC": 0.004095310252933593,
+  "AZANIAN_ALLIANCE_CONGRESS": 0.003050604553822345,
+  "BLACK_CONSCIOUSNESS_PARTY": 0.0008174600940932448,
+  "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.003050604553822345,
+  "COPE": 0.005017891988386114,
+  "DA": 0.2829261999114906,
+  "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": 0.0011080873854478022,
+  "EFF": 0.07450519714591146,
+  "PAC": 0.002677647215815806,
+  "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.0017245573136271946,
+  "UNITED_RESIDENTS_FRONT": 0.0007466135526051636,
+  "VFPLUS": 0.01767441220681165
+ },
+ "n_rho": 83,
+ "n_theta": 175,
+ "rho_centre": 0.5502596380039662,
+ "theta_centre": 0.8675034016953235
+}

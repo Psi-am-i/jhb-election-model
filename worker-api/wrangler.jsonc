@@ -1,0 +1,119 @@
+// joburg-forecasts: accounts, storage and sharing for readers' forecasts.
+// A separate Worker (BACKEND.md §2). The static site's Worker forwards
+// /f/*, /api/* and /auth/* to it over a service binding; that change is NOT
+// made here (src/worker.js is out of scope for this directory).
+//
+// ⛔ NOTHING HERE IS PROVISIONED. The ids below are placeholders; no D1
+// database, R2 bucket, rate-limit namespace or secret exists. Secrets are
+// NAMES only (README.md "Secrets"), set with `wrangler secret put <NAME>`.
+// Do not put a secret value in this file, in .dev.vars, or in any file.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "joburg-forecasts",
+  "main": "src/index.js",
+  // The newest date the pinned workerd supports (wrangler 4.142).
+  "compatibility_date": "2026-08-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  // Invocation logs are OFF (R5 finding 10): each one records the request URL,
+  // and OAuth callbacks carry the authorisation code and state in the query
+  // string, which the provider decides, not us. Only the structured
+  // console.log / console.error lines this code writes reach Workers Logs, and
+  // none of them carries a URL, a token, an address or a forecast.
+  "observability": { "enabled": true, "head_sampling_rate": 1, "logs": { "invocation_logs": false } },
+
+  // Fonts for the server-rendered share card, bundled as ArrayBuffers.
+  "rules": [{ "type": "Data", "globs": ["**/*.ttf"], "fallthrough": false }],
+
+  "vars": {
+    "SITE_ORIGIN": "https://joburg.whysoserious.city",
+    // Owner, 2026-09-28: no new or edited forecasts from 07:00 SAST, 4 Nov 2026.
+    "LOCK_AT": "2026-11-04T07:00:00+02:00",
+    // Owner-set dates. EMPTY = not decided; the scheduled job refuses to act
+    // and logs why. ISO 8601 with an explicit offset.
+    "POST_ELECTION_MESSAGE_AT": "",
+    "DELETION_AT": "",
+    // The consent wording's version is NOT configured: it is the hash of the
+    // displayed text (interactive/js/consent-terms.js).
+    // The post-election message: accounts mailed per hourly run, and how many
+    // sends are in flight at once; accounts processed per deletion run.
+    "MESSAGE_BATCH_SIZE": "500",
+    "MAIL_CONCURRENCY": "10",
+    "DELETION_BATCH_SIZE": "200",
+    // Sender address on a verified Email Service domain. EMPTY = not set up;
+    // no mail is sent (src/mail.js). The `send_email` binding EMAIL is not
+    // declared either: the owner adds both with the sending domain.
+    "MAIL_FROM": "",
+    "MICROSOFT_TENANT": "common",
+    "MAX_FORECASTS_PER_USER": "20",
+    "SAVES_PER_USER_PER_DAY": "30",
+    "MAX_BODY_BYTES": "16384",
+    "SESSION_DAYS": "30",
+    "TURNSTILE_REQUIRED": "true",
+    "COOKIE_SECURE": "true"
+  },
+
+  // Where D1 and R2 hold the data (location hint or jurisdiction) is the
+  // owner's decision, with counsel (R5 finding 3). Deliberately unset here.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "joburg-forecasts",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "CARDS", "bucket_name": "forecast-cards" }],
+
+  // Rate Limiting binding windows are 10 s or 60 s only; the per-user daily
+  // cap is a D1 counter (save_quota).
+  "ratelimits": [
+    { "name": "RL_SAVE", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } },
+    { "name": "RL_AUTH", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
+  ],
+
+  // The seat law: a Python Worker running the project's own src/reader_seats.py
+  // (seats-py/). See README.md "Seats".
+  "services": [{ "binding": "SEATS", "service": "joburg-seats" }],
+
+  // Hourly: stamp locked_at after LOCK_AT; the post-election message and the
+  // deletion run, each once, when their owner-set date has passed.
+  "triggers": { "crons": ["17 * * * *"] },
+
+  "env": {
+    // `wrangler dev --env dev --port 8802`: plain-http cookie names, no Turnstile.
+    "dev": {
+      "vars": {
+        "SITE_ORIGIN": "http://localhost:8802",
+        "LOCK_AT": "2026-11-04T07:00:00+02:00",
+        "POST_ELECTION_MESSAGE_AT": "",
+        "DELETION_AT": "",
+        "MESSAGE_BATCH_SIZE": "500",
+        "MAIL_CONCURRENCY": "10",
+        "DELETION_BATCH_SIZE": "200",
+        "MAIL_FROM": "",
+        "MICROSOFT_TENANT": "common",
+        "MAX_FORECASTS_PER_USER": "20",
+        "SAVES_PER_USER_PER_DAY": "30",
+        "MAX_BODY_BYTES": "16384",
+        "SESSION_DAYS": "30",
+        "TURNSTILE_REQUIRED": "false",
+        "COOKIE_SECURE": "false"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "joburg-forecasts",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [{ "binding": "CARDS", "bucket_name": "forecast-cards" }],
+      "ratelimits": [
+        { "name": "RL_SAVE", "namespace_id": "1001", "simple": { "limit": 5, "period": 60 } },
+        { "name": "RL_AUTH", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
+      ],
+      "services": [{ "binding": "SEATS", "service": "joburg-seats" }]
+    }
+  }
+}

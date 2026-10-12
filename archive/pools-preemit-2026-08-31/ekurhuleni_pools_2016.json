@@ -1,0 +1,278 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "ekurhuleni",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "dbdf171344ffd5f0",
+    "schema": 1,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/ekurhuleni-2016.toml",
+  "no_measured_vector": {
+    "ACADEMIC_CONGRESS_UNION": "entrant, even share of every pool",
+    "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": "entrant, even share of every pool",
+    "AGANG": "entrant, even share of every pool",
+    "AIC": "entrant, even share of every pool",
+    "ALJAMAAH": "entrant, even share of every pool",
+    "AZAPO": "entrant, even share of every pool",
+    "BUILDING_A_COHESIVE_SOCIETY": "entrant, even share of every pool",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "EKURHULENI_COMMUNITY_MOVEMENT": "entrant, even share of every pool",
+    "INTERNATIONAL_REVELATION_CONGRESS": "entrant, even share of every pool",
+    "PA": "entrant, even share of every pool",
+    "PALMRIDGE_COMMUNITY_FORUM": "entrant, even share of every pool",
+    "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": "entrant, even share of every pool",
+    "UNITED_FRONT_OF_CIVICS": "entrant, even share of every pool",
+    "UNITED_RESIDENTS_FRONT": "entrant, even share of every pool"
+  },
+  "pool_shares_at_target": [
+    0.7333656406100433,
+    0.027063266841541072,
+    0.010443553113816454,
+    0.22912753943459918
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 67.89767523990858,
+      "derived_from": "pool vectors fitted on ekurhuleni 2011; size from the 2016 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "IFP",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.25,
+        "ACDP": 0.599212789508803,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.25,
+        "AGANG": 0.25,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.9897920611877559,
+        "APC": 0.9851907416382869,
+        "AZAPO": 0.25,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+        "COPE": 0.9005632754685071,
+        "DA": 0.09958161304364942,
+        "EFF": 0.8089336637924047,
+        "EKURHULENI_COMMUNITY_MOVEMENT": 0.25,
+        "IFP": 0.9999999999999998,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.044353140753705445,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.25,
+        "PA": 0.25,
+        "PAC": 0.9962352060132557,
+        "PALMRIDGE_COMMUNITY_FORUM": 0.25,
+        "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.25,
+        "UDM": 0.8457984322192401,
+        "UNITED_FRONT_OF_CIVICS": 0.25,
+        "UNITED_RESIDENTS_FRONT": 0.25,
+        "VFPLUS": 0.13259717867982448
+      },
+      "registered": 1060610.2135438086,
+      "turnout": [
+        0.4509086337543648,
+        0.5257272296507131,
+        0.5994082002310764
+      ]
+    },
+    "Coloured": {
+      "alpha": 21.03498208408872,
+      "derived_from": "pool vectors fitted on ekurhuleni 2011; size from the 2016 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.25,
+        "ACDP": 0.08347432323047158,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.25,
+        "AGANG": 0.25,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.0008233129162752669,
+        "APC": 0.0009872748621606714,
+        "AZAPO": 0.25,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+        "COPE": 0.06936891069279046,
+        "DA": 0.05566480261744297,
+        "EFF": 0.013643220858529622,
+        "EKURHULENI_COMMUNITY_MOVEMENT": 0.25,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.11542037374708268,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.25,
+        "PA": 0.25,
+        "PAC": 0.0037647939867443653,
+        "PALMRIDGE_COMMUNITY_FORUM": 0.25,
+        "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.25,
+        "UDM": 0.03900178115540776,
+        "UNITED_FRONT_OF_CIVICS": 0.25,
+        "UNITED_RESIDENTS_FRONT": 0.25,
+        "VFPLUS": 0.013454323043679557
+      },
+      "registered": 28718.99564865659,
+      "turnout": [
+        0.481209559470929,
+        0.5559652145715257,
+        0.6282701395602808
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 18.661156958728167,
+      "derived_from": "pool vectors fitted on ekurhuleni 2011; size from the 2016 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2016",
+      "identified": [
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.25,
+        "ACDP": 0.0970186691898506,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.25,
+        "AGANG": 0.25,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.0003057595184709924,
+        "APC": 0.00045033260419602205,
+        "AZAPO": 0.25,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+        "COPE": 0.000979636309716507,
+        "DA": 0.028302391355643254,
+        "EFF": 0.0064812763720851424,
+        "EKURHULENI_COMMUNITY_MOVEMENT": 0.25,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.052647504235090084,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.25,
+        "PA": 0.25,
+        "PALMRIDGE_COMMUNITY_FORUM": 0.25,
+        "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.25,
+        "UDM": 0.0037533122446211154,
+        "UNITED_FRONT_OF_CIVICS": 0.25,
+        "UNITED_RESIDENTS_FRONT": 0.25,
+        "VFPLUS": 0.10366669235074431
+      },
+      "registered": 20826.210219387092,
+      "turnout": [
+        0.3241012710540244,
+        0.3929360595643074,
+        0.46630434415115585
+      ]
+    },
+    "White": {
+      "alpha": 65.82868246996536,
+      "derived_from": "pool vectors fitted on ekurhuleni 2011; size from the 2016 roll split by each ward's own composition; turnout from ekurhuleni's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACADEMIC_CONGRESS_UNION": 0.25,
+        "ACDP": 0.22029421807087496,
+        "AFRICAN_PEOPLE_S_SOCIALIST_PARTY": 0.25,
+        "AGANG": 0.25,
+        "AIC": 0.25,
+        "ALJAMAAH": 0.25,
+        "ANC": 0.009078866377497987,
+        "APC": 0.013371650895356397,
+        "AZAPO": 0.25,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.25,
+        "COPE": 0.029088177528985733,
+        "DA": 0.8164511929832643,
+        "EFF": 0.17094183897698043,
+        "EKURHULENI_COMMUNITY_MOVEMENT": 0.25,
+        "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 0.7875789812641218,
+        "INTERNATIONAL_REVELATION_CONGRESS": 0.25,
+        "PA": 0.25,
+        "PALMRIDGE_COMMUNITY_FORUM": 0.25,
+        "PAN_AFRICAN_SOCIALIST_MOVEMENT_OF_AZANIA": 0.25,
+        "UDM": 0.11144647438073099,
+        "UNITED_FRONT_OF_CIVICS": 0.25,
+        "UNITED_RESIDENTS_FRONT": 0.25,
+        "VFPLUS": 0.7502818059257516
+      },
+      "registered": 319705.5805881476,
+      "turnout": [
+        0.5956882504805642,
+        0.665417510165908,
+        0.7286000169596226
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2011": [
+      0.7506847175631522,
+      0.020449859105812884,
+      0.013852234539190263,
+      0.21501318879184453
+    ],
+    "2014": [
+      0.7385843843264052,
+      0.024991651103473095,
+      0.011326104602081732,
+      0.22509785996804016
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "turnout_limits": {
+    "city": {
+      "high": 0.6111974810925723,
+      "low": 0.5000706663484682,
+      "observed_high": 0.5556340737205202,
+      "observed_low": 0.5556340737205202,
+      "previous": 0.5556340737205202
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.5782999526157844,
+        "low": 0.47315450668564174,
+        "observed_high": 0.5257272296507131,
+        "observed_low": 0.5257272296507131,
+        "previous": 0.5257272296507131
+      },
+      {
+        "high": 0.6115617360286784,
+        "low": 0.5003686931143732,
+        "observed_high": 0.5559652145715257,
+        "observed_low": 0.5559652145715257,
+        "previous": 0.5559652145715257
+      },
+      {
+        "high": 0.43222966552073816,
+        "low": 0.35364245360787666,
+        "observed_high": 0.3929360595643074,
+        "observed_low": 0.3929360595643074,
+        "previous": 0.3929360595643074
+      },
+      {
+        "high": 0.7319592611824989,
+        "low": 0.5988757591493172,
+        "observed_high": 0.665417510165908,
+        "observed_low": 0.665417510165908,
+        "previous": 0.665417510165908
+      }
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+  768 party weight vectors across 26 specs sum to 1
+  NEWCOMER in 'Black African' only: columns ['Black African'], drawn share 0.10267 vs 0.11111 even
+  242 of 3012 (party, pool) pairs hold no weight (0 of them seeded); GOOD stripped of 'Black African': shift 0.00333 vs noise 0.00379 there and 0.03917 in 'White'; restored, 0.03793
+  280 seeded parties across 17 of 26 specs, every one of them in a pool

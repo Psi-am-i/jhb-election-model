@@ -1,0 +1,971 @@
+# Publishing backlog — the presentation layer, deliberately not the model
+
+**This list is separate on purpose.** The other list is "get a working
+prediction model that is publishable". This one is everything that only matters
+*once* it is. Nothing here is allowed to compete for attention with the model,
+and nothing here is a reason to change a forecast.
+
+The project owner's standing position, 2026-08-18 and again 2026-08-20:
+
+> "I am not concerned with the live page or what lives on it. Nor am I
+> interested in the interactive... I am only interested in this model's ability
+> to predict."
+>
+> "we will rebuild interactive and live page when model is ready."
+
+So: **build these when the model is ready, not before.** Read
+`ITERATING.md` rule 5 — nothing is republished until the model that produced it
+has beaten the previous iteration on history.
+
+---
+
+## 1. The interactive is a frozen program, not a stale page
+
+`forecast-interactive.html` and `site/dev/interactive.html` are **tracked**,
+were built 7–8 August, and still carry a "PA's wider slate" slider driving
+`paUplift` — a constant the model deleted on 2026-08-18.
+
+`src/build_interactive.py` **refuses to rebuild them**, and says why:
+
+> the interactive page has not been ported to voter pools: its in-browser
+> drawer is the old two-bloc engine and there is nothing left to feed it. The
+> published page stays frozen in the meantime.
+
+**Since 2026-08-24 that refusal is survivable.** It was a MANDATORY step in
+`build_all.py`, ahead of `build_site` and `build_portal`, so the one-command
+build died before it reached either — and with them the stat-provenance audits
+that only `build_site.py` runs. The interactive steps are now behind
+`build_all.py --interactive`, off by default, non-fatal and last. MODEL-LOG
+§1.89.
+
+So a reader opening either file sees controls for constants that no longer
+exist, driving an engine that no longer exists. That is not a stale figure, it
+is a **stale program**, and it is the third instance of a pattern `CLAUDE.md`
+opens by warning about — after the `turnout_tilt_da` claims and `site/plan.html`
+being served for weeks after no build produced it.
+
+**Nothing in the model reads them.** They are inert as far as the forecast is
+concerned. They are only a trap for a human.
+
+When the model is ready, the options are:
+
+* **port** the in-browser drawer to voter pools — the only one that makes the
+  page true again, and the largest;
+* **delete** both files — they are outputs of an engine that no longer exists;
+* **banner** them as frozen, if they are wanted as a historical record.
+
+Until then they should not be read as current by anyone, including us.
+
+## 2. The 2026 forecast has moved and has not been republished
+
+Two changes this week moved the live numbers, both deliberately, neither
+published:
+
+* the **level shrink** (§1.44) — DA 0.328 → 0.310 on the PR ballot;
+* the **contestation correction** (§1.47) — PA ward share 8.07% → 2.67% and
+  mean seats 19.5 → 12.4, with every other party gaining slightly.
+
+Whatever is published next has to be produced by one settled run, with the
+stat tokens regenerated from it, per `CLAUDE.md`'s rule that a model figure is
+never typed into prose.
+
+## 3. Orphaned stat tokens
+
+`content/joburg/stats.toml` still carries claim tokens the build refuses to
+publish. Removing or re-deriving them is a **content** decision, not a code one,
+and it waits for the same settled run.
+
+---
+
+# The revamp: plan of attack
+
+Written 2026-08-20 at the owner's request — *"we will use our new model to
+update and revamp it completely… a revamped interactive with our new levers and
+exposing our judgement calls… and we need to allow users to try it."*
+
+**This is a plan, not a commitment to build now.** `ITERATING.md` rule 5 still
+holds: nothing is republished until the model that produced it has beaten the
+previous iteration on history. It had, when this was written (~~254 against 312
+a week ago, 8 of 9 against uniform swing~~) — so the gate is passable, but the
+model list should be closed first. ⚠️ **Those are NINE-city-year figures and are
+struck** (2026-09-13): the panel is twenty-four, the specs were re-emitted on
+2026-09-08, and the opponent to headline is now the roster-aware reference and
+not plain uniform swing (MODEL-LOG §1.229). **The gate is re-read from the run,
+never from this line.**
+
+## 1. What is actually broken, precisely
+
+`build_interactive.py` refuses to run, and its note names the exact reason:
+
+> That drawer is the two-bloc engine, which the model no longer has: it takes
+> two membership lists and two shift triangulars, and there is nothing left to
+> feed it. Porting it means handing the JS the emitted pool spec — N pools, each
+> with members {party: weight}, a ratio triangular and an alpha — and replacing
+> the two hard-coded dials with one per pool.
+
+That note is from before the level shrink, the contestation correction and the
+Dirichlet handle. **The port is bigger than it says**, because the level chain
+it must mirror has changed underneath it.
+
+## 2. The fidelity problem, which is the whole design constraint
+
+The page reimplements the forecast in JavaScript so a reader can move dials and
+watch seats respond. That means **two implementations of one model**, and the
+second one drifts. This repository has already published a page whose controls
+drove constants the model had deleted.
+
+So the revamp is only worth doing with a **fidelity gate**:
+
+* `export_interactive.py` emits the data pack **and** a reference run — a set of
+  scenarios with the Python model's answer for each;
+* the page recomputes those scenarios in the browser on load and **refuses to
+  render** if it disagrees beyond a stated tolerance;
+* the tolerance is published on the page, not hidden.
+
+`src/width_budget.py` and the `--run-dir` trace are the instruments that make
+this checkable: the trace gives the Python intermediates for any scenario, so a
+JS/Python disagreement can be localised to a stage instead of argued about.
+
+**If we will not build the gate, do not build the page.** An interactive that
+can silently disagree with the model is worse than no interactive.
+
+## 3. Which levers to expose — and which must NOT be
+
+Twenty-five keys are in `DEFAULTS`. Most should never reach a slider. The last
+week measured which is which, and that is the real inheritance from the model
+work.
+
+### Expose — these move the answer and a reader can reason about them
+
+| lever | default | what a reader is choosing |
+|---|---|---|
+| `level_shrink` | 0.35 | how hard the top of the ballot is pulled toward the middle. **The single biggest modelling choice in the forecast** (§1.44) |
+| `dirichlet_scale` | 1.0 | how much the within-pool split is allowed to vary — the dominant width lever (§1.48, §1.55) |
+| `entrant_prob`, `entrant_share` | 0.25, [1,4,12]% | whether a party arrives from nothing, and how big |
+| `spine_k` | 1.0 | how much a party's own local record outweighs the national spine |
+| `w_bye` | 0.4 | how much by-election evidence counts. **2026 only** — no past target has any |
+| `overhang_rule` | deduct | the statutory reading. `deduct` is the law; `expand` and `cap` are labelled counterfactuals |
+| `turnout_pattern_blend` | 0.5 | which turnout pattern the draw leans on |
+
+### Do NOT expose — with the reason, because each is a trap
+
+* **`turnout_noise_sd`, `turnout_blend_jitter`** — measured to change citywide
+  dispersion by nothing at all across a tenfold move (§1.48). They move ward
+  wins, so they are not dead, but a slider that visibly does nothing to the
+  headline teaches the reader the model is unresponsive.
+* **`ward_noise_sd`, `dirichlet_floor`, `level_floor`, `poll_k`,
+  `bye_local_cap`, `bye_tau_months`, `w_bye_local_*`, `entrant_geography`** —
+  guards, gated-off machinery, or numerical floors. `w_bye_local_*` are 0.0 by
+  design and untestable in any backtest.
+* **`poll_id`, `poll_weight`** — the legacy poll path. Live and conditional, and
+  exposing it invites a reader to import a poll the model was not validated with.
+* **`SD_FLOOR`** — a module constant, not a scenario key, and §1.50 shows it is
+  a conditional dispersion doing a subtle job. A slider would invite exactly the
+  misreading the register spent two sections correcting.
+
+**The principle**: a lever earns a slider if moving it is a *modelling opinion a
+reader can hold*. Guards, floors and instruments are not opinions.
+
+## 4. Exposing the judgement calls — the genuinely new thing
+
+`JUDGEMENT-CALLS.md` is already the register, with a status per row: 🔴 wants a
+second opinion · 🟡 defensible, bounded by evidence · 🟢 forced by arithmetic.
+**That structure is the feature.** Nobody else publishing a forecast shows this.
+
+Proposed: every exposed lever carries its register status inline, and clicking
+it opens the row — the value, where it lives in the code, what was measured, and
+what would change our mind. Generated from `JUDGEMENT-CALLS.md` at build time so
+it cannot go stale, and the build fails if a slider has no register row.
+
+The honest framing to put on the page: **these are the numbers the data did not
+force.** Some are measured and survived (`SHRINK = 2.0`, `entrant_prob`), some
+are typed and admitted (`w_bye`), and at least one is a known open question
+(the §3.5 θ sanity ranges the model violates and reports against itself).
+
+## 5. What the page must say about itself
+
+* the backtest, prominently: the coherent seat error against the baselines, how
+  many city-years that is, and how many of them share a cycle. ⛔ **The figures
+  are NOT typed here** (corrected 2026-09-13): this line used to read "254
+  coherent seat error against uniform swing's 376, and that this is nine
+  city-years with eight in a single cycle", which was a **nine**-city-year
+  reading, superseded at §1.70 (sixteen) and again on 2026-09-02
+  (twenty-four) — a publication instruction carrying a three-panels-old number
+  is how a stale figure reaches a reader. They go on the page as stat tokens
+  from the run, per `CLAUDE.md` §2. ⚠️ **And uniform swing is no longer the
+  right opponent to headline**: `benchmarks.uniform_swing_roster` gives the
+  reference the same nomination roster the model reads, so it is the honest
+  comparison at 2021 and the margin against it is much the smaller one
+  (MODEL-LOG §1.229). Two of its panel figures carried an arbitrary
+  tie-break band under the name rule; since 2026-10-09 the seeded lot
+  (`benchmarks.benchmark_lot`) decides the tie and the figure is re-measured
+  on the next panel run;
+* that ranks 4-12 are under-forecast and the model knows it — ⚠️ the "22.76pp"
+  that stood here is a nine-panel figure (§1.36) and is not the current reading;
+* that the tail is over-forecast as a *deliberate* trade (§1.54) — ⚠️ likewise
+  the "5.60pp": read the band table from the run, do not type it;
+* the ward-level approximation the page makes against the Python model, measured
+  and quoted, as `export_interactive.py`'s docstring already promises.
+
+## 5b. The publication gate — from the pollster review, 2026-08-20
+
+Six blocking items. These are not "would be nice": each is a sentence a hostile
+expert can write after the result if it is missing, and the first one is a
+sentence that ends a public forecast.
+
+1. **No zero-probability outcomes on the live ballot.** Six backtest columns
+   have the truth above every draw, two of them at 7 and 8 seats — Cape Town's
+   Cape Coloured Congress and Johannesburg's PA. Before publishing, produce the
+   list of every 2026 ballot party with `P(≥1 seat) < 0.02` and defend each by
+   name, or widen until it can be defended. *"The model said it was impossible
+   and it happened"* would have been writable twice about 2021. Gated on task
+   A2.
+2. **Calibration quoted on a population fixed before the forecast is made** —
+   done, `reference`, §1.56 — with `sd(z)` per band and an interval on it, and
+   the direction STATED rather than left to be discovered.
+3. **A pre-registered, timestamped, hash-identified forecast** published before
+   polling day and never edited after, with the scoring code frozen beside it.
+   `artefact_key` and the golden tests are the discipline; they need pointing at
+   the public artefact.
+4. **The Gauteng / non-Gauteng split disclosed** — done in `history.md`, task
+   A7 — and the headline written as *"8 of 9 city-years, 8 of which are one
+   election."*
+5. **Every claim regenerated from the current model.** Two changes this week
+   move the Johannesburg 2026 numbers materially (DA 0.328 → 0.310 from the
+   shrink; PA 19.5 → 12.4 seats from deleting `pa_contestation_uplift`).
+   Republishing is a decision to take BEFORE a journalist quotes the old number.
+6. **The poll section written honestly.** The 2026 register carries essentially
+   one independent house (SRF/Victory Research, two waves) with ~500-person
+   metro subsamples and an undisclosed likely-voter screen. A single house is a
+   level, not a house effect; a ~500 metro cut carries the parent design effect
+   on top of its own n. Say how much weight polls carry, on which parties
+   (arrivals only), and that the spread across houses is unestimable with what
+   exists.
+
+Strongly wanted, not blocking:
+
+* **Both remaining "argued, not tested" mechanisms labelled at the point of
+  quotation**, per `CLAUDE.md`. There are now four, not two: `w_bye`, the
+  first-local-election bias correction, the contestation correction (which is
+  the identity at 2026 — task A4), and the poll path (task A8).
+* **A stated failure mode, in the model's own voice.** *"The largest error in
+  the 2021 backtest was ActionSA: the model forecast a small fraction of the
+  18.12% it took. A party with no electoral record cannot be forecast from a
+  record it does not have. If a comparable party emerges in 2026, this forecast
+  will be wrong in the same way."* Already true, already measured, and it buys
+  more credibility than any item on the model list.
+  ⛔ **THE NUMBER WAS WRONG AND CAME OFF THE WRONG ROW** (corrected 2026-09-13).
+  This sentence read *"forecast at 6.3% against 18.1%"*. **6.3% is not the
+  model's forecast** — it is the Ipsos-poll conversion in `POLLING.md`, whose
+  table puts the model's own Johannesburg figure in the next column at 6.4%,
+  while `MACHINERY.md` §"new vs unknown parties" says 6.9% for the same
+  quantity. Three numbers, one claim, and the one chosen for publication was the
+  one belonging to a different forecaster. **Read it from the run and register
+  it as a stat token; do not type it into the sentence.** The realised 18.12% is
+  a published election result (`SOURCES.md`) and is the only figure here that
+  may be typed.
+* **Coalition and majority probabilities checked for calibration, not merely
+  produced.** A hung-council probability is the number that gets quoted, and it
+  is a threshold on a sum — it inherits every width fault amplified.
+
+**And what cannot be fixed with the data held, so must be said rather than
+interpolated:** with four cycles, eight metros and one arrival-heavy cycle the
+panel cannot identify (a) whether the level shrink is regularisation or a
+fragmentation trend, (b) house effects, or (c) the size of an unknown arrival.
+Those three are the model's real uncertainty and **none of them is in the
+intervals.**
+
+## 5c. Forecasting before the nomination lists are final
+
+The lists are the one input the live forecast does not have, and they land on
+**16 September 2026** — nominations closed 28 August, polling is 4 November. We
+are not waiting for them. Two stages, and the discipline is that stage 1 must be
+frozen before stage 2 exists, or the revision is indistinguishable from a fit.
+
+### Stage 1 — now, and it already runs
+
+The model does not need the lists to produce a forecast. Where they are absent it
+projects each party's slate forward from 2021 (`contestation_expand`, §1.60) and
+sizes any unknown newcomer through the generic `ENTRANT` slot. That is a
+forecast, not a placeholder.
+
+**Publish it, hash it, and never edit it.** Timestamped, `artefact_key` recorded,
+scoring code frozen beside it — publication gate item 3. A forecast issued before
+the lists is the only one that can later be shown to have been a forecast.
+
+### The list-dependence is measurable NOW, and should be published with it
+
+⛔ **STRUCK 2026-09-16 — THE TABLE BELOW AND THE "±3 SEATS" SENTENCE UNDER IT ARE
+A SUPERSEDED MEASUREMENT AND MUST NOT BE QUOTED OR PUBLISHED.** It was measured
+at §1.60 (2026-08-20), on the nine-city-year panel, at 1200 draws, with the poll
+channel ON and before the 2026-09-08 and 2026-09-14 re-emits. Every one of those
+premises has since moved. **The disclosed judgement call is the lever, not the
+seat figure** — `contestation_expand = 0.220`, `JUDGEMENT-CALLS.md` §A5, status
+🔴 — and a seat sensitivity is a MEASUREMENT, which belongs in `MODEL-LOG.md`
+under the run that produced it, never typed into a publishing instruction. If a
+list-dependence band is wanted for the page, re-measure it on the current tree
+and quote it as a stat token from that run. Kept, struck, as the record of what
+was believed on 2026-08-20.
+
+~~We can say in advance how much the lists can move the answer, because the
+channel they act through is a declared lever. Johannesburg 2026, 1200 draws,
+median seats across the defensible range of `contestation_expand` (§1.60: the
+record's pooled median is 0.220, the most recent cycle alone about 0.5):~~
+
+| | 0.0 *(slates unchanged)* | **0.220** *(shipped)* | 0.5 *(last cycle's rate)* |
+|---|---|---|---|
+| DA | 83 | 81.5 | 80 |
+| ANC | 62 | 61 | 60 |
+| **PA** | **17** | **19** | **22** |
+| ASA | 25 | 24 | 24 |
+
+~~So the honest statement to publish is: **the nomination lists are worth about
+±3 seats to the PA and about ∓2 to the DA, and essentially nothing to anyone
+else.**~~ ⛔ **STRUCK 2026-09-16 — see the banner above. Do not publish this
+sentence; re-measure or say nothing.** A reader who is told that in August cannot be surprised in September.
+
+### What actually changes on 16 September
+
+| channel | what the lists do | expected movement |
+|---|---|---|
+| contestation | real slates replace the projection; `contestation_expand` goes inert | the table above, resolved to one column |
+| arrival-group spec | `pools.arrival_group_spec` gains a roster and emits for 2026 | **none** — the mechanism is measured worse and stays off (§1.63) |
+| phantom entrant mass | we learn who is actually standing, so mass on parties that filed nothing can be withdrawn | unquantified; 11.6 seats across the nine backtest city-years |
+| a party we have never seen | a filed newcomer with no baseline | already covered by the generic slot, but by name rather than generically |
+
+### The rule for the revision
+
+Publish stage 2 as a **labelled revision beside stage 1, not over it**: both
+visible, both dated, with the difference attributed to the channel that caused
+it. If the revision is larger than the band published in August, say so and say
+why — that is a finding about the projection, and it is the only out-of-sample
+test `contestation_expand` will ever get (it is inert at every backtestable
+target, §1.60).
+
+## 6. Order of work
+
+1. **Close the model list.** The successor to §1.55 — a band-dependent
+   concentration — is the last thing that can move the score.
+2. **One settled run** at 1500 draws produces every published number, and the
+   stat tokens regenerate from it. No figure typed into prose.
+3. **Port `export_interactive.py`** to emit the pool spec plus the reference
+   scenarios.
+4. **Build the fidelity gate before the UI.** If the browser cannot reproduce
+   the Python answer, nothing else matters.
+5. **Then** the UI: sliders for the seven, register status inline, backtest and
+   known weaknesses on the face of it.
+6. Delete or banner the two frozen artefacts at that point, not before — they
+   are the fallback if the port stalls.
+
+---
+
+## 7. The map contradicts the forecast — an equal-area alternative (owner, 2026-08-23)
+
+**The owner's observation, and it is measurably right.** On the geographic ward
+map the DA looks dominant because the wards it wins are large and low-density,
+while ANC and MK wards are small and dense. Wards are *designed* to hold roughly
+equal population, so area carries no information at all — but it is what the eye
+reads.
+
+Measured on the committed `ward_winner_probs.csv` and `ward_paths.json`
+(135 wards):
+
+| party | wards won | % of seats | % of the map's ink | distortion |
+|---|---|---|---|---|
+| **ANC** | 66 | **48.9%** | **30.1%** | 0.62× |
+| **DA** | 51 | **37.8%** | **61.9%** | **1.64×** |
+| MK | 10 | 7.4% | 1.2% | **0.16×** |
+| PA | 6 | 4.4% | 5.2% | 1.17× |
+| EFF | 1 | 0.7% | 0.3% | 0.43× |
+| IFP | 1 | 0.7% | 1.3% | 1.78× |
+
+**Corrected 2026-08-24.** The first version of this table read 30.6 / 61.7 /
+1.4 / 4.7 and listed only four parties. Those are each ward's **bounding box**,
+reproduced to the decimal — and a bounding box is not what is drawn. The
+polygon figures are above; the DA is over-drawn slightly more than was stated,
+MK under-drawn slightly more, and the two wards this table used to omit are 1.5%
+of the ink. The conclusion is unchanged and the arithmetic was not. MODEL-LOG
+§1.90.
+
+The largest ward has **142×** the bounding-box area of the smallest. The median
+DA ward is **4.2×** the median ANC ward and **6.6×** the median MK ward.
+
+**So the map shows the DA occupying nearly two-thirds of the visual field while
+the forecast has it second on seats.** That is the picture contradicting the
+headline, on the same page.
+
+### Options, in order of how well they fit this specific problem
+
+1. **Hex tile cartogram — one equal hexagon per ward.** ★ **BUILT 2026-08-24 —
+   `src/hex_cartogram.py`, not yet wired into any page.** See MACHINERY.md and
+   MODEL-LOG §1.90. Measured on the emitted figure, every party's ink share now
+   equals its seat share to within 1e-9. It is a second map, not a replacement,
+   exactly as recommended below; the page needs a
+   `__HEXMAP_START__`/`__HEXMAP_END__` marker pair and a toggle, and neither
+   exists yet.
+   135 hexes, each ward snapped to the nearest free cell on a hex grid by
+   minimising total displacement from its real centroid. Honest by construction
+   here, because **one ward returns exactly one councillor** — equal area is not
+   a distortion of the truth, it *is* the truth about representation. Used by the
+   FT, BBC and Guardian for UK constituencies for the same reason.
+2. **Dorling cartogram** — equal circles (or circles sized by registered voters)
+   repelled apart. Keeps rough position, loses shape and adjacency. Easier than
+   hexes, uglier.
+3. **Contiguous (Gastner–Newman) cartogram** — warp the real boundaries until
+   area ∝ voters. Keeps recognisable geography; hardest to implement and can look
+   grotesque at 135 units.
+4. **Ward strip** — 135 equal tiles sorted by margin, not by geography. Abandons
+   place entirely but shows the competitive middle better than any map.
+
+### The recommendation, and the reason it is not simply "replace the map"
+
+**Show both, side by side or on a toggle, and print the distortion figure
+between them.** Geography answers *where*; the cartogram answers *how many*. A
+reader who only sees the cartogram loses the real fact that the DA's support is
+spatially concentrated in the north — which is true, and interesting, and not a
+distortion.
+
+And the 1.63× / 0.63× table above is **publishable content in its own right**: it
+is a genuinely interesting fact about Johannesburg that most maps of it hide.
+
+**Implementation note.** `src/render_map.py` already computes ward centroids and
+writes an inline SVG between `__MAP_START__`/`__MAP_END__`. A hex layout is an
+assignment problem over those centroids and needs no new data. This is
+presentation work and belongs in this file, not on the model list.
+
+**Still open on this item**, now that the cartogram itself exists:
+
+* the toggle, and the marker pair on whichever page carries it;
+* the distortion table as **stat tokens** in `content/joburg/stats.toml` — it is
+  publishable content in its own right and must not be typed into prose. There
+  is no emitter for it yet; `hex_cartogram.ink_table` returns the numbers.
+* **`render_map.py`'s party key omits MK**, which wins 10 wards in this
+  forecast. Its swatch list is `("ANC", "DA", "EFF", "ASA", "PA", "IFP",
+  "ALJAMAAH")`. The cartogram's includes MK. One line, for whoever next holds
+  that file — it was left alone because re-running `render_map.py` rewrites
+  `forecast-sheet.html`.
+
+## 8. The publication convention — agreed with the owner 2026-09-17, and to be DONE
+
+The owner, on agreeing: *"make a note and to do actions lest it's something we
+agree on enthusiastically and then do not do!"* This section is that note. It
+is presentation only and never a reason to change a forecast (`CLAUDE.md` §1).
+
+**The convention**, taken from forecasting and news practice (FiveThirtyEight,
+The Economist, Silver Bulletin, newsroom correction policy). No polling standard
+prescribes it; AAPOR's transparency code covers disclosure, not revision:
+
+1. **Live data** (tiles, tables, map) is always CURRENT and shows its HISTORY:
+   an arrow and a "was X on <date>" tooltip taken from the publication ledger.
+2. **Written pieces** (headlines, commentary, tested claims) are FROZEN as
+   published and dated. When their figures move materially they get an
+   appended, dated **"Since then (<date>):"** note with today's figures, and the
+   original is never rewritten.
+3. **An update is not a correction.** In an update the model or the world moved
+   and the piece was true on its date. In a correction the piece was wrong when
+   published. A correction carries a visible **"Correction:"** label and goes
+   on a public corrections list.
+
+**To do** (task list, 2026-09-17):
+- [ ] Arrows and "was X on <date>" tooltips on every live figure, from
+      `changes.json`/ledger. Blocked on moving script-written figures to
+      build-time token spans first, since the scripts currently bypass the ledger.
+- [ ] A reusable, token-driven "Since then" block. First use: the Zille claim,
+      keeping the 7 August prediction and adding today's answer.
+- [ ] A "Correction:" label and a public corrections list. First entries: the
+      live 31 August page's "just 7 list seats" (median total minus mean wards)
+      and "Smaller parties — 39 seats" (medians summed as if additive).
+- [ ] The headline archive and headline-change announcements use this same
+      record. Every send needs owner approval.
+- [ ] A build check: a frozen piece whose tokens moved materially must carry a
+      Since-then note, or `--publish` refuses.
+
+---
+
+## 9. The interactive, rebuilt on the real model — owner decisions, 2026-09-22
+
+**Engine (decided).** The page runs the Python model itself in the browser
+(Pyodide/WebAssembly). No JavaScript copy of the model, so no second definition
+to drift. Feasibility was measured on 2026-09-22: `run_model` runs unmodified
+and reproduces the project venv bit for bit on one seed once `openpyxl` is
+loaded (MODEL-LOG §1.250). The page's self-check is therefore EXACT equality on
+a fingerprint of the default run, not a tolerance. About 300 draws per change
+(owner: yes).
+
+**Every control maps to an input the Python model reads.** Where no input
+exists, the mechanism is added to the model with a JUDGEMENT-CALLS row and a
+2026 liveness test, never to the page.
+
+**The controls, in the reader's words (owner, 2026-09-22):**
+
+1. **Turnout by community, as the census groups people.** A control per
+   census population group: higher or lower than in past local elections,
+   bounded by the measured range. **Shown beside it: each party's estimated
+   support within each group**, so a reader can see why a turnout change moves
+   the parties it moves. **With a note on coarseness:** four census groups are
+   all the model has. It cannot tell Zulu from Xhosa turnout, or English from
+   Afrikaans, and the group-to-party figures are ecological estimates from ward
+   totals, not a survey of individuals.
+   *Model work:* a per-pool turnout shift applied before calibration (the
+   deleted party tilt's own note at `montecarlo.py` says this is where it
+   belongs). NEW.
+2. **"Do voters cross old lines?"** In place of per-party nudges. Voters move to
+   parties their community has not previously supported, so the pools become
+   more mixed. This is what the DA believes. The owner does not. Default = the
+   model (no extra mixing).
+   *Model work:* a mixing parameter that moves each pool's party composition
+   toward the city's by a fraction. NEW. The honest range and what the record
+   says about past mixing need measuring before the slider's ends are set.
+3. **Polls: add them, but their effect must stay within historical bounds.**
+   The reader can select several. Selected polls are averaged by quality:
+   sample size, city vs national scope, and past accuracy (owner's first
+   thoughts, not yet a specification). Default = polls off, which is the
+   published forecast.
+   *Model work:* per-poll selection (today there is only a global
+   `poll_paths` switch and a `poll_credence` that reaches the metro blend
+   only); a quality weighting; a hard bound from the historical record. NEW.
+   The existing machinery already admits only the two SRF Johannesburg waves.
+   The DA internal poll has no n and is declined by `poll_min_n`.
+4. **Seat law counterfactual: yes.** `overhang_rule` expand/cap, labelled "not
+   the law". Exists.
+5. **Existing levers, reworded:** big parties losing ground to small ones
+   (`level_shrink`), weight of recent by-elections (`w_bye`), how surprising
+   the election can be (`dirichlet_scale`), local record vs national mood
+   (`spine_k`, labelled small effect). Exist.
+
+**Left out, measured:** `turnout_pattern_blend` (≤0.14 seats), `bye_weight_mode`
+(noise), the entrant levers (inert since the certified roster),
+`contestation_expand` (to be made inert by the §1.251 fix).
+
+**Presentation rules, from the blind pollster review:**
+- Compare every what-if with a 300-draw baseline on the same seed, not with the
+  5,000-draw published run.
+- Show whole-seat ranges.
+- Treat majority probability as coarse at 300 draws.
+- The published forecast is the one to cite.
+
+**Order.** The mechanisms (1–3) are model changes and follow the post-review
+window. The page cannot be built on a forecast that is about to move.
+
+### 9a. Owner decisions, 2026-09-24 (evening), on the design round's four open questions
+
+Put to the owner after the 24 Sep design round and blind review
+(`audits/2026-09-24-interactive-round1/`). His answers, his words where quoted:
+
+1. **"Do voters cross old lines?" → a direct slider for the DA's share among
+   Black African voters** (the reviewer's option, not γ-only geography). Pool
+   mixing toward the city is level-neutral by algebra, so this is the form that
+   can move totals. The owner's frame for all levers: *"our forecast and then
+   some levers that are all within bounds of history"* — so its range comes from
+   the record, not from the DA's claim.
+2. **Turnout → one overall level plus a per-pool control.** *"As I understand,
+   some voter pools do turn out differently and I would expect it more this
+   year."* Level + differential, each bounded by the record. The shift enters
+   AFTER the IPF (the only placement that moves shares — round 1).
+3. **Polls → not decided; the owner asked what exists first.** Answered in
+   `audits/2026-09-24-interactive-round1/poll-research/REPORT.md`: a third
+   Johannesburg poll exists and is not in the register (Ipsos, June–July 2026);
+   Ipsos is the only house with a scored Johannesburg reading; SRF, the only
+   admitted house, has no scored local-election reading. The trust-ceiling
+   choice (E = 3.0pp vs ≥ 5pp) is still his, now with that in hand.
+4. **Ward calls → carried into votes, and the interactive becomes a prediction
+   game.** *"My intention is to have our forecast and then some levers that are
+   all within bounds of history. Then to let a user literally hand choose the
+   winner in each ward and the overall PR vote. That lets them create a map of
+   their own belief (evidence be damned) but it lets users share their
+   predictions and we can have a kind of competition as well as a social game.
+   Each prediction we can also rate according to our model — right down to the
+   chance of your hand written assertion happening is X (or whatever is true)
+   and after the election we can rate every prediction to the real result. This
+   makes the whole thing less dry and more participatory."*
+
+### 9b. Owner decision, 2026-09-26 — the wait is a feature, and the engine ships
+
+*"if its honest, we ship it — the time user waits can be dealt with using a nice
+timer that spits out trivia."*
+
+**Decided: the interactive runs the real model, and the wait is handled in the
+page rather than by cutting draws.** Measured before the decision (MODEL-LOG
+§1.260, `run_model` called directly, Johannesburg 2026, one seed, BLAS pinned to
+one thread because Pyodide is single-threaded): a fixed cost of 14.79 s and
+21.6 ms per draw, so 300 draws is 21.3 s native and about 16 s of drawing at the
+browser's measured 55 ms per draw once the fixed cost is paid at load.
+
+What follows for the page:
+
+* **The fixed cost is paid once, at load, not per lever change.** 14.79 s of the
+  21.3 s is setup. A design that re-enters the model from scratch on every change
+  pays it every time and turns a 16-second wait into 35 seconds.
+* **The progress display is content, not a spinner.** Trivia from the model's own
+  record — the Laingsburg clause, the 587,000 votes the ANC shed to abstention,
+  how often the excessive-seats clause fires. Every figure a token, per §2's
+  provenance rule, not typed into the page's script.
+* **The draw count stays at 300** (owner, 2026-09-22), so the honesty of the
+  engine is not traded for latency. The band shown with a 300-draw result is
+  wider than the published 5,000-draw one and the page says so.
+
+⚠️ **Still unmeasured: the browser half.** The 55 ms per draw is the 2026-09-22
+spike's figure and that spike's code was never committed. One Pyodide run of
+`run_model` at two draw counts on one seed, reporting the same fixed/per-draw
+split, closes it — and it is the measurement that decides whether the trivia
+timer runs for 16 seconds or for a minute.
+
+**What 4 needs that is not designed yet:**
+- **The rating.** The joint chance of 135 hand-picked ward winners is below one
+  in any number of simulations the page can run, so "the chance your forecast
+  happens" printed literally is always ~0 and says nothing. Readable
+  alternatives, to be designed and put to the owner: per-claim chances read
+  straight from the draws (*"our model gives the DA at least 80 seats a 12%
+  chance"* — wording illustrative, figure invented), and a plausibility rank — how the reader's forecast scores under
+  the model's per-ward and vote-share probabilities, against the model's own
+  simulations scored the same way. ARGUED, not built.
+- **Post-election scoring:** wards called right, seat error per party, PR-vote
+  error — computable from the link alone once the results are in.
+- **"Competition" vs §10's URL-only rule.** A leaderboard means storing readers'
+  forecasts, which §10 chose NOT to do (a stored forecast is a reader's
+  political statement held on our infrastructure). Self-scored links keep the
+  rule; a leaderboard breaks it. **Owner's decision.**
+
+---
+
+## 10. The home page, and the reader's own forecast — owner, 2026-09-23
+
+**Layout A ("Skyline"), with three changes**, chosen from three mockups:
+
+1. **The map is very large**, as in mockup C, not the half-width band A drew.
+2. **The sections at the bottom carry their own colour highlight**, so a reader
+   can see at a glance that they are different KINDS of content — the tested
+   claims are not the explainers, and neither is the article list.
+3. **A space is reserved for the interactive**, headed in the reader's words:
+   *"Tweak the levers and make your own forecast."*
+
+**Why a home page at all:** so a leading article can be retired. Today the
+article IS the front page, which means a piece written on a date sits at the
+front door looking current forever. On the new page the forecast is the subject
+and always current; articles are dated items below it, and retiring one is a
+content change rather than a redesign.
+
+### The reader's own forecast — the thing the interactive is FOR
+
+The owner's requirement, 2026-09-23, and it is larger than a slider panel:
+
+> *"I want users to be able to make their own forecast — even hand adjusting
+> the ward results ignoring our model — and being able to social share their
+> forecast (with a small callout of how far their forecast differs from ours),
+> then people can come to the site off their friends' forecast and make their
+> own."*
+
+Four things follow, and each is a design constraint on §9's engine:
+
+* **A reader may overrule the model, by hand, ward by ward.** That is not a
+  lever and it is not a model run: it is an override applied on top of one.
+  Seats still come from the statutory allocation (`seats.allocate`), so a
+  hand-built forecast is arithmetically real even when its ward calls are
+  invented. The page must not present it as anything but the reader's.
+* **A forecast must fit in a link.** 135 ward calls plus the exposed levers,
+  compact enough to carry in a URL — one byte per ward before compression — so
+  sharing needs no account, no database and no server state. A stored forecast
+  would mean holding readers' political statements on our infrastructure, and
+  a URL avoids that question entirely.
+* **The distance from OUR forecast is shown, small and factual.** Seats moved
+  per party, against the published run. It is the reason the feature is
+  honest: a reader's forecast is theirs, ours is ours, and the page says which
+  is which without arguing.
+* **A shared link opens in the reader's own hands.** Someone arriving from a
+  friend's forecast sees that forecast, labelled as that friend's, and can
+  change any of it — which is the loop the owner is describing.
+
+⚠️ **Open, and needs deciding before build:** what the social preview card
+shows. A card rendered from a reader's forecast is an image published from our
+domain carrying numbers we did not produce. Either it is clearly framed as a
+reader's forecast, or it is a generic card and the numbers live only on the
+page. This is a presentation decision with a reputational edge, so it is the
+owner's.
+
+**Order.** The home page can be built now: the reserved space is a section with
+a heading and a link, and it says the interactive is coming rather than
+pretending. The interactive itself follows §9's order — the three new model
+mechanisms first, because they are model changes, then the page.
+
+---
+
+## 11. The home page shipped into the build, and the forecast leads with itself — owner, 2026-09-24
+
+Built and in `site/`, **not deployed** (the live pages are still the 31 August
+build):
+
+* **`/` is the home page** (§10's layout A). It carries the site menu like
+  every other page, with no "home" item — the site name is the link home.
+* **`/forecast` leads with the forecast.** The 31 August article — headline,
+  standfirst, its dated "since then" note and the commentary it opens — is its
+  own page, `/nobody-will-win`, listed with the other articles. Both pages are
+  cut from ONE template (`forecast-sheet.html`, `__ARTICLE_ONLY__` /
+  `__FORECAST_ONLY__` spans, `build_site.cut_spans`), so the stylesheet, the
+  scripts and every generated region stay single. Old `/#section` links are
+  forwarded to wherever that section now lives.
+* **One theme for the whole site**: dark by default (including with no
+  script), a sun/moon toggle in the menu, the choice remembered per reader.
+  `src/css/tokens.css` (built into `site/css/site.css`) is the only palette;
+  the per-page copies are gone.
+  This is why pages used to flip — each followed a different rule.
+* **The map's Normal / Equal Sized switch works on every page with both
+  maps.** Its script is now emitted by `hex_cartogram.py` with the cartogram
+  it switches to; the home page had shipped with the buttons and neither the
+  second map nor the script. A page listed for the cartogram without its
+  markers now refuses the build.
+* The model page's backtest table says which election it scores (2021).
+
+**Still open on the site (owner's list, 2026-09-24).** ✅ **Two of these were
+already shipped when the list was written** — checked in the tree 2026-09-25,
+both in commit `ea3d34a` ("One definition of 'Others', seats as median and
+range"): the ~~seats table as clean *median* and *range* columns~~ (the home
+page's table header is `median` / `range`), and ~~ONE definition of "Others"
+for both pages~~ — `render_sheet:147` and `render_home:161` both call
+`scenarios.others_per_draw`, which is the council minus the named parties
+within each simulation. ✅ **AND THE TWO ROWS NOW PRINT THE SAME NUMBER** (owner, 2026-09-25: *"use
+the same number of others throughout"*). They had differed by construction —
+the sheet named ten parties and the home page seven, so each page's "everyone
+else" was everyone *that page* did not show. `scenarios.NAMED_PARTIES` is now
+the one set, both tables read it, and the home page takes the sheet's labels and
+chip colours with it, so a party added anywhere gains a row on both pages and
+leaves both "Others". Measured after the rebuild: median 23, range 8–48 on both.
+Two side effects worth knowing: the home page gained Rise Mzansi and Al Jama-ah
+rows, and its IFP chip was grey while the sheet's was red — one colour map now.
+⚠️ The two tables still LABEL the row differently, "Others" on the sheet and
+"Everyone else" on the home page. Same quantity, two words; say if that should
+be one. Still open: the home map buttons unstyled; bigger party logos in the
+claims; a `/judgement-calls` page generated from a corrected register (live
+calls with a plain intro, the full register collapsed); the forecast page's
+heading ("Who governs Johannesburg") is a placeholder.
+
+**Not current and must be before deploy:** the model page's scores are the
+11 August 400-draw 2021 run, not the 23 September canonical measurement.
+Regenerating needs a re-emit window (`build_validation.collect` emits).
+
+✅ **CHECKED IN THE TREE 2026-09-25, and it is still true** — this had been read
+as "stale backlog item" once already. `docs-public/about-the-model.md`'s footer
+says *"Generated 2026-08-11 by `src/build_validation.py` from a 400-draw run per
+city"*, and `data/processed/validation_2021.json` carries `draws: 400`,
+`generated: 2026-08-11`. **The site rebuilds do not touch it**: every other page
+is regenerated from current artefacts, but this page's figures come from that
+JSON, and only `build_validation` rewrites it — which runs the model across
+eight metros and emits. So the one page on the site whose numbers are six weeks
+old is the page that scores the model.
+
+✅ **FIXED 2026-09-25 — the provenance tooltip no longer dates a build as a
+publication.** Every never-published figure carried *"First published in this
+edition (<the day the build ran>)"*. It asserted a publication that had not
+happened, and because the stamp is UTC it changed mid-evening in South Africa,
+so five pages differed from a fresh build with no token moved and no visible
+text changed. Outside a `--publish` the tooltip now says *"Not published before;
+new in this edition"*, and a moved figure says *"; changed since"* rather than
+naming today. Verified: two consecutive builds are byte-identical and the served
+pages match a fresh build. (Owner, 2026-09-25: *"provenance cannot be today so
+that is clearly wrong"*.)
+
+⛔ **AND A DEPLOY BLOCKER NOBODY HAD RECORDED (found 2026-09-25 while writing
+the home-page tests): `build_site.py --publish` WILL REFUSE AS THE TREE
+STANDS.** Every number typed into prose that is neither a token nor a registered
+fixed fact is a `BLOCKS` row, and `build_site` raises rather than append to the
+ledger while any exists. The count and the rows are in
+`content/joburg/NUMBERS-REVIEW.md` — read its `blocking=` token and the `BLOCKS`
+rows under each page, never a figure copied here. Three causes, all from the
+24 September re-cut:
+
+* ✅ **FIXED 2026-09-25 — ten blocking rows became two**, and every one of the
+  eight was the same defect: a figure typed into prose beside the code that
+  computes it. Not one was cleared with a whitelist row, because a whitelist
+  leaves the sentence free to say one thing while the code says another.
+* ✅ **The typed `90%` in the seats note.** Both renderers
+  typed it, which contradicted `render_home`'s own docstring (*"nothing here
+  types a number into prose"*) and was a second copy of `seat_quantiles`'
+  percentiles sitting in prose on a published page. `scenarios.BAND` /
+  `BAND_SHARE` now hold the pair, `seat_quantiles` reads them, and both pages
+  render the figure as a token (`home.band`, `seats.band`) sourced to
+  `scenarios.BAND`. Not a whitelist row — a whitelist would have left the
+  sentence free to say 90 while the code said something else. Rebuilt: the
+  blocking count went from ten rows to eight.
+* **The election date's `[[audit.fixed]]` row has gone stale.**
+  `content/joburg/stats.toml` registers `4 November 2026` against the OLD
+  page's surrounding words, and a fixed fact is cleared only in its own context
+  (deliberately — otherwise registering a value excuses every occurrence of it).
+  The pages were re-cut, so the context no longer matches on either page.
+  ⚠️ **That register carries a `reviewed` date per row and is the owner's**:
+  re-context a row, do not add a new one, and re-date it.
+* ✅ **The typed `30` in the DA-majority "since then" box.**
+  `content/joburg/claims.toml` said *"take at least 30 of the ANC's usual
+  wards"* while `render_sheet` selected exactly those simulations with a literal
+  `>= 30`. Two copies of one threshold, a sentence and a filter, either of which
+  could be edited alone. It is `render_sheet.WALL_FLIPS` now, and the box renders
+  `[[wall_flips]]` as the token `claim.da_alone.wall_flips`.
+* ✅ **The five on `corrections.html` were not model figures at all.** They are
+  the page's record of what the PUBLISHED page showed on 2026-09-23 — 15 seats
+  and not 39, the tiles and the article agreeing at 62%. That is the dated-passage
+  case, so the paragraph is wrapped in `<span data-asof="2026-09-23">` and the
+  scan reads them as `dated` rather than `unreviewed`.
+  ⚠️ **They must never be made tokens.** A token recomputes, so the sentence
+  would then describe today's page instead of the one the correction is about —
+  which would make the corrections page wrong in the exact way it exists to fix.
+* ⛔ **What is left is TWO ROWS THAT ARE ONE ROW OF THE OWNER'S REGISTER**, the
+  election date, counted once on each page.
+
+**Measured, not read off the committed file** (2026-09-25): a full
+`build_site.py --out <scratch>` with `--allow-orphans --allow-stale-sources`,
+whose review file lands beside that output and leaves the tree untouched. Do
+that rather than grepping `content/joburg/NUMBERS-REVIEW.md`, which is only as
+current as the last build.
+
+**None of this is a model change and none of it moves a forecast number.** It
+is between the finished build and the deploy, which is exactly where it will be
+found at the worst moment if it is not cleared first.
+
+## 12. A change is measured against the number that was published (owner, 2026-09-26)
+
+Owner: *"change must always be against previously published number."*
+
+**Standing rule, not a one-off.** Every figure a reader sees is compared with
+what the site last showed them, and "new" is reserved for a figure that has
+never been published. It is not a licence to call a whole edition new because
+the ledger happens to be empty.
+
+**What was done for it.** The ledger was empty and the site was not, so the
+first `--publish` would have entered all 318 tokens as first-published. The four
+live pages are archived at `archive/live-deployed-2026-08-08/` with their sha256
+— **no commit in the repository produces those bytes**, so the archive is the
+only copy of what readers were shown — and
+`publication.backfill()` — run once, through
+`audits/2026-09-26-ledger-backfill/backfill_live.py`, rehearsed against a
+throwaway `--ledger-root` first — entered the 27 tokens they carried. Against
+that baseline the build reports **4 material moves**: `anc_entitlement` 65 -> 58,
+`anc_ward_median` 74 -> 61, `p_da_largest` 62% -> 47%, `p_excessive_anc`
+96% -> 65%. 23 tokens report nothing, and 291 are new figures on pages the live
+site does not have.
+
+⚠️ **Two different things in the build call themselves changed.** The ledger's
+movement classes are one. The `arrows:` line is the other, and it is unrelated:
+it marks a FROZEN registry entry whose `tracks` counterpart has since moved, in
+the page rather than in the ledger. Both happen to report 4 today. A rule about
+change has to say which one it governs; this one governs the ledger.
+
+⚠️ **`published_at` is the deployment, not the run.** `wrangler deployments
+list` puts the live build at 2026-08-08T17:29:45Z. Stamped with the time the
+backfill ran instead, the rebuilt pages told readers a figure that has stood
+since August was *"Unchanged since 26 September 2026"*. The pages' own
+`data-when` is a different quantity again — the model's input cut-off, per
+token, spread across 4-7 August — and it is what each row's `as_of` carries.
+
+⚠️ **No definition changed under the four moves.** Every one of the 27 live
+tokens' `source` strings equals today's registry source, so those are the model
+moving, not the quantity being redefined — which is what a `--change-class` on
+the publish batch has to state.
+
+⚠️ **The rule cannot reach `site/portal.html`.** The hub's headline is read from
+each city's `forecast_summary.json` and written as plain text, so it is neither a
+token nor a ledger row.
+
+## 13. A mutation night before any model goes live (owner, 2026-09-28)
+
+Owner: *"it's the kind of thing that is worth doing before publishing a new model
+to the live site for main model and interactive where we mutate every variable
+and path in the model. Even if it takes all night it's probably worth it for
+peace of mind! My biggest concern is something inactive or behaving badly and
+missing it completely."*
+
+**What it is.** Change the source one small edit at a time across every `src/`
+module on the forecast path and on the interactive's path: flip a comparison,
+change a constant, drop a statement, invert a branch. After each edit, run the
+suite subset that reaches the module and a fixed-seed `run_model`. Sort each
+mutant into one of three outcomes:
+
+* **killed** — a test failed;
+* **moved numbers, no test noticed** — behaviour nothing checks;
+* **changed nothing at all** — inactive code. **This is the owner's concern,
+  and every such mutant is listed by file and line.**
+
+**Why the existing nets do not cover it.** `test_levers_are_live` proves that
+*registered* levers fire. It cannot see an unregistered constant, a branch no
+path reaches, or a value computed and then never read. The "can it see" controls
+built into individual tests prove only that those tests can detect the
+violation they were written for. The hand mutations of MODEL-LOG §1.266 were
+one-offs.
+
+**Cost.** One fixed-seed run per mutant, the dominant cost. For a mutant outside
+the browser's reach, the native run with the citywide table installed is about
+3 s rather than 15 s (MODEL-LOG §1.265), which is admissible because the table
+reproduces every drawn array. Budget an overnight run on Atlas, with sampling
+where a module's mutant count exceeds the night.
+
+**Gate.** It runs before a model publish (`build_site.py --publish` with
+`--change-class mechanism`) and before the interactive first ships. The
+publish waits until every surviving mutant is read.
+
+**Done when** a committed harness under `audits/` produces a survivor report per
+run, and that report has been read before the next mechanism-class publish.
+**Not started.**
+
+## 14. Disclose that the model cannot seat an independent (owner, 2026-09-29)
+
+Owner's decision (DESIGN-decided §10): independents stay out of the freeze, and
+the forecast page says that the model cannot show an independent winning a ward.
+
+**Evidence.** `audits/2026-09-29-zero-cells/results/vote_fractions.txt`,
+column "IND share of ward ballot" (independents' votes over valid ward-ballot
+votes; no script in that directory writes the file, so its producer is not
+committed). Johannesburg 2021: 1.29%, lead-verified. The largest in the panel
+is eThekwini 2016: 8.33% in that column, and 9.23% in the table's
+"Ward (all)" zero-cell column, which includes independents.
+
+**The page wording is presentation** and ships with the next publish. It
+changes no forecast number (§1 of `CLAUDE.md`: this file is never a reason to
+change a forecast).
+
+**Done when** the published forecast page carries the disclosure. **Not started.**
+
+## 15. The mechanism census is the gate before a freeze; the full mutation night is a background audit (owner, 2026-09-29)
+
+**Why §13 changes.** A full line-by-line mutation run (5,499 mutants, about 24
+hours: `audits/2026-09-29-mutation/`) asks *would a test notice this line
+changing?*, which is a measure of the test suite. The owner's question is
+different: *is every part live, does it fire, and does it do what we claim?*
+That is answered per **claimed mechanism**, not per line.
+
+**The census.** The population is every traced stage (`QC.md` §3), every
+scenario lever in `montecarlo.DEFAULTS`, every row of the JUDGEMENT-CALLS
+register, and every mechanism MACHINERY.md describes. Each gets a written
+claim, *"X does Y, and acts at stage Z"*, recorded **before** anything runs,
+and three mutations:
+
+| mutation | proves | a finding when |
+|---|---|---|
+| **switch it off** (identity / no-op) | it is live | nothing changes: dead, overridden or absorbed |
+| **nudge it** (a stated small push with a pre-registered direction) | it does what we claim | wrong direction, implausible size, or the change first appears at a stage other than the claimed one |
+| **disable its guard** (where one exists) | the protection works | no test fails |
+
+**Localisation.** Each mutation is read through the `--run-dir` trace, and
+the **first stage that changes** must be the stage the claim names. Seats moving
+is not enough.
+
+**Coverage first, at no cost.** One fixed-seed run at 2026 and one at a
+backtest target, with coverage on. Every line neither executes is listed as
+cannot-be-firing before any mutation runs.
+
+**Output.** Three lists: **dead**, **wrong-way or wrong-stage**, and
+**unguarded**. Each is read before the freeze.
+
+**Cost** (estimate, not measured). Roughly 150–300 mechanisms × 3, about 600
+fixed-seed runs at 3–5 s with the citywide table: **under an hour**. It builds
+on `test_levers_are_live` (switch-off for registered levers) and
+`test_delivery_proof` (a value arrived), filling their gaps. What it cannot
+see is a mechanism nobody wrote down; that is the full night's job.
+
+**The interactive** gets the same three per lever: switch-off (the page
+equals the published forecast), nudge (e.g. Black African turnout up means DA
+down and ANC up), and refusal (too few effective draws).
+
+**Gate.** The census runs before the freeze publish (TODO §0 F10). The full
+line-by-line night runs afterwards in the background and is read, but does not
+gate.
+
+**Done when** a committed harness writes the claims file first, then the three
+lists, and the lists have been read before `build_site.py --publish`.
+**Not started.**

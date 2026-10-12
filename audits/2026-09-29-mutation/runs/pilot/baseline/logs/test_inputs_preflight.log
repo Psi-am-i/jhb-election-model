@@ -1,0 +1,58 @@
+inputs for a nosuchcity 2026 forecast
+
+  [MISSING] 2026 voting districts
+            have: —
+            from: MDB FeatureServer
+            do:   python src/fetch_boundaries.py --muni NOSUCHCITY
+  [MISSING] 2026 wards
+            have: —
+            from: MDB FeatureServer
+            do:   python src/fetch_boundaries.py --muni NOSUCHCITY
+  [MISSING] 2026 voters' roll (registration)
+            have: —
+            from: elections.org.za/pw/StatsData/Voter-Registration-Statistics
+            do:   province -> municipality in a BROWSER (the selector will not drive over plain HTTP), page the ward table, commit it as archive/iec-registration-<date>/nosuchcity_ward_registration_<date>.csv — that page keeps no archive
+  [MISSING] national baseline
+            have: 0 file(s) carrying registration
+            from: IEC downloadable party results, per VD
+            do:   python src/fetch_iec.py
+  [MISSING] local baseline
+            have: 0 file(s) carrying registration
+            from: IEC downloadable party results, per VD
+            do:   python src/fetch_iec.py
+  [MISSING] 2026 certified party roster
+            have: —
+            from: IEC certified candidate lists
+            do:   type the certified list into judgements/<city>-<target>.toml. ⛔ complete=true LICENSES DELETING every party it omits, so it needs the IEC's own list, not a newspaper's count of it
+
+6 required input(s) not in hand: 2026 voting districts, 2026 wards, 2026 voters' roll (registration), national baseline, local baseline, 2026 certified party roster
+A forecast run will NOT fail because of these. That is the point of this check: each of them has a silent fallback.
+inputs for a nosuchcity 2026 forecast
+
+  [MISSING] 2026 voting districts
+            have: —
+            from: MDB FeatureServer
+            do:   python src/fetch_boundaries.py --muni NOSUCHCITY
+  [MISSING] 2026 wards
+            have: —
+            from: MDB FeatureServer
+            do:   python src/fetch_boundaries.py --muni NOSUCHCITY
+  [MISSING] 2026 voters' roll (registration)
+            have: —
+            from: elections.org.za/pw/StatsData/Voter-Registration-Statistics
+            do:   province -> municipality in a BROWSER (the selector will not drive over plain HTTP), page the ward table, commit it as archive/iec-registration-<date>/nosuchcity_ward_registration_<date>.csv — that page keeps no archive
+  [MISSING] national baseline
+            have: 0 file(s) carrying registration
+            from: IEC downloadable party results, per VD
+            do:   python src/fetch_iec.py
+  [MISSING] local baseline
+            have: 0 file(s) carrying registration
+            from: IEC downloadable party results, per VD
+            do:   python src/fetch_iec.py
+  [MISSING] 2026 certified party roster
+            have: —
+            from: IEC certified candidate lists
+            do:   type the certified list into judgements/<city>-<target>.toml. ⛔ complete=true LICENSES DELETING every party it omits, so it needs the IEC's own list, not a newspaper's count of it
+
+6 required input(s) not in hand: 2026 voting districts, 2026 wards, 2026 voters' roll (registration), national baseline, local baseline, 2026 certified party roster
+A forecast run will NOT fail because of these. That is the point of this check: each of them has a silent fallback.

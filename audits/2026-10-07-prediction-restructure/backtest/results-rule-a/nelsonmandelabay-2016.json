@@ -1,0 +1,35 @@
+{
+ "city": "nelsonmandelabay",
+ "year": "2016",
+ "draws": 1000,
+ "council": 120,
+ "wards": 60,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 1,
+   "AIC": 2,
+   "ANC": 49,
+   "COPE": 1,
+   "DA": 58,
+   "EFF": 5,
+   "PAC": 1,
+   "UDM": 1,
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": 1,
+   "VFPLUS": 1
+  },
+  "seat_err": 8.0,
+  "wards_ok": 57,
+  "ward_vote_err_pp": 9.892021112014225,
+  "list_vote_err_pp": 5.981958295412928,
+  "top": "ANC",
+  "top_wards": 35,
+  "top_actual_wards": 36,
+  "excessive": {},
+  "council": 120,
+  "ward_wins": {
+   "DA": 25,
+   "ANC": 35
+  }
+ }
+}

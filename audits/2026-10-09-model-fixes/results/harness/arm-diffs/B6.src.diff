@@ -1,0 +1,236 @@
+diff --git a/src/levels.py b/src/levels.py
+index 9754ab3..05a1540 100644
+--- a/src/levels.py
++++ b/src/levels.py
+@@ -1563,7 +1563,15 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
+         # MODEL-LOG §1.251, prereg/2026-09-23-declared-ward-slates.md.
+         slates, _complete = declared_contestation(target, city)
+         return slates
+-    path = result_path(target, city)
++    wards, seen = _result_slates(result_path(target, city))
++    n = len(seen)
++    return {p: len(w) / n for p, w in wards.items()} if n else {}
++
++
++def _result_slates(path) -> tuple[dict[str, set], set]:
++    """``({party: wards it fields a ward candidate in}, every ward on the ward
++    ballot)`` from a result file. One reader for :func:`contestation` and
++    :func:`slate_coverage`."""
+     wards: dict[str, set] = defaultdict(set)
+     seen: set = set()
+     with open(path, encoding="utf-8", errors="replace") as fh:
+@@ -1575,5 +1583,65 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
+                 continue
+             seen.add(ward)
+             wards[P.canonical(row["sPartyName"])].add(ward)
+-    n = len(seen)
+-    return {p: len(w) / n for p, w in wards.items()} if n else {}
++    return dict(wards), seen
++
++
++def slate_coverage(target: cityconfig.Target, city: cityconfig.City,
++                   weights_lge: str | None) -> dict[str, float]:
++    """Each party's slate, weighted by where its own list vote lies.
++
++    BRIEF item 6 (owner: "vote weighted"), model correction batch 2026-10-09.
++    For every party :func:`contestation` returns at ``target``: the share of
++    the party's own PR votes at ``weights_lge`` that were cast in voting
++    districts lying in wards where it fields a ward candidate at ``target``.
++    ``montecarlo.run_model`` passes the forecast target's previous LGE for
++    both the target's slate and the previous one, so the change ``now / was``
++    compares two slates on one set of weights.
++
++    Each VD is placed in its ward at ``target`` by ``pools.vd_map`` (a split VD
++    goes to the part with the most registered voters); a VD with no ward there
++    is left out. Slates come from the target's result file where it exists,
++    else from ``[roster.wards]``; a party absent from the declared slates
++    fields none (0.0, as :func:`declared_contestation` gives it under a
++    complete roster). A party with no PR vote at ``weights_lge`` keeps
++    :func:`contestation`'s count fraction, as does every party when the
++    weights' file is missing. The prototype is
++    ``audits/2026-10-09-model-questions/data/scripts/votecov.py``.
++
++    :func:`contestation` itself is unchanged: it is the who-stands fact that
++    ``declared_contestation``'s completeness logic and ``compare_history``
++    read.
++    """
++    base = contestation(target, city)
++    if not base or not weights_lge:
++        return base
++    wpath = result_path(cityconfig.Target(city=city, year=weights_lge), city)
++    if not wpath or not wpath.exists():
++        return base
++    import pools as _pools          # lazy: `pools` imports this module
++
++    pr: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
++    with open(wpath, encoding="utf-8", errors="replace") as fh:
++        for row in csv.DictReader(fh):
++            if row.get("BallotType") != "PR":
++                continue
++            pr[P.canonical(row["sPartyName"])][row["VD_Number"]] += int(
++                float(row.get("Party_Votes") or 0))
++    if has_result_file(target, city):
++        slates, _seen = _result_slates(result_path(target, city))
++    else:
++        declared = (_pools.declared_roster(city, target) or {}).get("wards") or {}
++        slates = {p: {str(w).strip() for w in ws} for p, ws in declared.items()}
++    ward_of, _registered = _pools.vd_map(city, target.year)
++    out: dict[str, float] = {}
++    for party, frac in base.items():
++        pairs = [(ward_of[vd], v) for vd, v in (pr.get(party) or {}).items()
++                 if vd in ward_of]
++        total = sum(v for _w, v in pairs)
++        if total <= 0:
++            out[party] = frac
++            continue
++        stood = slates.get(party, set())
++        out[party] = sum(v for w, v in pairs if w in stood) / total
++    return out
++
+diff --git a/src/montecarlo.py b/src/montecarlo.py
+index a9720d7..0071fe8 100644
+--- a/src/montecarlo.py
++++ b/src/montecarlo.py
+@@ -3845,6 +3845,84 @@ def _projected_roster_declaration(target, roster: set[str],
+     return "\n".join(lines)
+ 
+ 
++def slate_change_ratio(ratio: float, now: float, was: float) -> float:
++    """A party's ward/PR ratio moved by the change in its slate (item 6).
++
++    ``ratio × now / was``, capped at :data:`WARD_PR_RATIO_MAX` and not floored:
++    every term is non-negative, so a party fielding no ward candidate now gets
++    0, never :data:`WARD_PR_RATIO_MIN` (SPEC O3). One definition, so the cap is
++    the registered constant rather than a second literal.
++    """
++    return float(min(ratio * (now / was), WARD_PR_RATIO_MAX))
++
++
++def roster_universe_check(roster, roster_state: str, universe,
++                          prev_local: dict[str, float],
++                          seeds: dict[str, float],
++                          baseline: dict[str, float], *,
++                          has_result: bool) -> dict:
++    """Check the target's roster against the run's parties, both ways (G8).
++
++    Model correction batch item 8 (2026-10-09). Every roster party (not an
++    independent) is in exactly one class:
++
++    * **with a record** -- a previous-LGE list vote, a national baseline or an
++      arrival seed. Absent from ``universe``: the run would forecast a ballot
++      without it, so this refuses (``missing_with_record``).
++    * **no record** -- none of the three. ``pools`` has no vector for it, so
++      it cannot be drawn; returned as ``unrepresented_no_record`` and recorded
++      in ``41_guards.roster_unrepresented``. At a target with no result file
++      (a live forecast) this refuses too, because the ballot the forecast is
++      read against would be missing a party. At a backtest it is recorded:
++      those are `pools`' unseeded arrivals, outside this batch (SPEC O5).
++
++    And the other direction: a ``universe`` party not on the roster, except
++    the generic ``ENTRANT`` slot, refuses when the roster is ``published`` or
++    ``projected`` (``extra``). Skipped, and recorded ``"not_checked"``, when
++    the roster state is ``not_yet_held``: there is no roster to check.
++
++    Returns ``{"missing_with_record", "extra", "unrepresented_no_record",
++    "population"}``, each a sorted list (or ``"not_checked"``) and
++    ``population`` the roster parties classified, which the three record
++    classes partition.
++    """
++    if roster_state == "not_yet_held":
++        return {"missing_with_record": "not_checked", "extra": "not_checked",
++                "unrepresented_no_record": "not_checked", "population": 0}
++    universe = set(universe)
++    population = sorted(p for p in roster or () if p not in (INDEPENDENT, "IND"))
++    with_record, no_record = [], []
++    for party in population:
++        if (prev_local.get(party, 0.0) > 0 or baseline.get(party, 0.0) > 0
++                or seeds.get(party, 0.0) > 0):
++            with_record.append(party)
++        else:
++            no_record.append(party)
++    missing = sorted(p for p in with_record if p not in universe)
++    extra = sorted(p for p in universe
++                   if p not in set(population) and p != "ENTRANT")
++    unrepresented = sorted(p for p in no_record if p not in universe)
++    if missing:
++        raise SystemExit(
++            f"roster parties with a record are missing from the run: {missing}. "
++            f"Each has a previous-LGE list vote, a national baseline or a seed, "
++            f"so the run can forecast it; leaving it out forecasts a ballot "
++            f"without it (BRIEF item 8, levels.local_record_only).")
++    if extra and roster_state in ("published", "projected"):
++        raise SystemExit(
++            f"the run forecasts parties that are not on the {roster_state} "
++            f"roster: {extra}. The off-ballot drop should have removed them.")
++    if unrepresented and not has_result:
++        raise SystemExit(
++            f"roster parties with no record are not in the run: {unrepresented}. "
++            f"At a live forecast every party on the ballot must be drawn; "
++            f"`pools` should have seeded these as arrivals. Re-emit the pool "
++            f"spec or declare them (SPEC O5).")
++    return {"missing_with_record": missing, "extra": extra,
++            "unrepresented_no_record": unrepresented,
++            "population": len(population)}
++
++
+ def run_model(target, scenario: dict,
+               data_dir: Path = Path("data/raw/elections"),
+               processed: Path | None = None,
+@@ -4235,12 +4313,15 @@ def run_model(target, scenario: dict,
+         # `_contestation` is who stands at the TARGET; `_contestation_prev` is
+         # who stood at the election the ward/PR ratio was measured from, which
+         # is `target.previous_lge` — the same one `ward_pr_ratios` reads.
+-        _contest = _levels.contestation(target, target.city)
++        # VOTE-WEIGHTED (item 6, owner: "vote weighted", 2026-10-09): each
++        # slate is the share of the party's own previous-LGE list vote lying
++        # in the wards it contests, then and now, on the same weights.
+         _prev_lge = target.previous_lge
++        _contest = _levels.slate_coverage(target, target.city, _prev_lge)
+         _contest_prev = {}
+         if _prev_lge:
+-            _contest_prev = _levels.contestation(
+-                cityconfig.use_target(_prev_lge), target.city)
++            _contest_prev = _levels.slate_coverage(
++                cityconfig.use_target(_prev_lge), target.city, _prev_lge)
+             cityconfig.use_target(target.year)   # restore the active target
+         # NO TARGET LISTS -> PROJECT THEM, and say so. `contestation` reads who
+         # stood from the target's own result file, which exists for every
+@@ -4307,7 +4388,7 @@ def run_model(target, scenario: dict,
+                     ", from published lists" if not _live else
+                     ", from the declared nomination lists")
+             note_constant(scenario, "contestation",
+-                          f"{target.year} against {_prev_lge}, "
++                          f"{target.year} against {_prev_lge}, vote-weighted, "
+                           f"{len(_contest)} parties" + _how)
+             if verbose:
+                 vals = sorted(_contest.values())
+@@ -4790,16 +4871,25 @@ def run_model(target, scenario: dict,
+     # level made ward MAE 10.79 against 8.90 with no adjustment at all.
+     #
+     # What the ratio does NOT know is how a party's slate has CHANGED since
+-    # then, so that is what is applied. It is 1.0 when the target's nomination
+-    # lists are not published — the live forecast's case — which is why 2026
+-    # correctly gets no adjustment rather than a constant for one party.
++    # then, so that is what is applied: `now / was`, where each is the share of
++    # the party's own previous-LGE list vote lying in the wards it contests
++    # (`levels.slate_coverage`, vote-weighted since 2026-10-09, item 6; it was
++    # the count of wards). Where the target's lists are not published the
++    # projected slate stands in for `now`.
++    #
++    # Clipped above at `WARD_PR_RATIO_MAX`, one definition with the measured
++    # ratios' clip. No lower clip: every term is non-negative, and
++    # `WARD_PR_RATIO_MIN` is a floor on the MEASURED ratio, a different
++    # quantity. Applying it here would give a party with no ward candidate
++    # (CHANGE at 2026, a list only) half its list share on the ward ballot
++    # (SPEC O3).
+     contest = scenario.get("_contestation") or {}
+     prev = scenario.get("_contestation_prev") or {}
+     if contest and prev:
+         for p, i in index.items():
+             now, was = contest.get(p), prev.get(p)
+             if now is not None and was:
+-                ratio[i] = float(np.clip(ratio[i] * (now / was), 0.0, 2.0))
++                ratio[i] = slate_change_ratio(ratio[i], now, was)
+ 
+     # --- by-election evidence (E4) -------------------------------------------
+     bye: dict[str, tuple[float, float]] = {}

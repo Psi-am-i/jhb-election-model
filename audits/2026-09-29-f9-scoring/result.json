@@ -1,0 +1,1039 @@
+{
+ "inputs": {
+  "noise_checks": [
+   {
+    "before_commit": true,
+    "clean": true,
+    "same_draws": true,
+    "same_env_switches": true,
+    "same_overrides_less_seed": true,
+    "different_seed": true,
+    "rows_bound_to_before_specs": true
+   },
+   {
+    "before_commit": true,
+    "clean": true,
+    "same_draws": true,
+    "same_env_switches": true,
+    "same_overrides_less_seed": true,
+    "different_seed": true,
+    "rows_bound_to_before_specs": true
+   },
+   {
+    "before_commit": true,
+    "clean": true,
+    "same_draws": true,
+    "same_env_switches": true,
+    "same_overrides_less_seed": true,
+    "different_seed": true,
+    "rows_bound_to_before_specs": true
+   },
+   {
+    "before_commit": true,
+    "clean": true,
+    "same_draws": true,
+    "same_env_switches": true,
+    "same_overrides_less_seed": true,
+    "different_seed": true,
+    "rows_bound_to_before_specs": true
+   },
+   {
+    "before_commit": true,
+    "clean": true,
+    "same_draws": true,
+    "same_env_switches": true,
+    "same_overrides_less_seed": true,
+    "different_seed": true,
+    "rows_bound_to_before_specs": true
+   }
+  ],
+  "noise_used": 5,
+  "checks": {
+   "same_seed": true,
+   "same_draws": true,
+   "same_seed_by_row": true,
+   "same_env_switches": true,
+   "same_overrides": true,
+   "same_filters": true,
+   "no_filter": true,
+   "same_excluded": true,
+   "before_commit": true,
+   "both_clean": true,
+   "population_is_prereg": true,
+   "rows_are_population": true,
+   "before_bound_to_specs": true,
+   "after_bound_to_specs": true
+  },
+  "git": {
+   "before": "69cc6cc8f6b480f57c4f75f66f853ac3264d80b1",
+   "after": "a2bc44c9d7d60c22d2c095e6fb460c019bea0a23"
+  },
+  "paired_valid": true
+ },
+ "predictions": {
+  "P1": {
+   "verdict": "PASSED",
+   "population": 24,
+   "violations_after": {},
+   "violations_before": 4,
+   "READING": "the prereg's two clauses (`test_pool_bounds._p1_violations`) on every emitted backtest spec FILE; the population must be the prereg's 24."
+  },
+  "P2": {
+   "verdict": "NOT TESTED",
+   "why": "C2 is F4, after the election. No repair was made.",
+   "context": {
+    "capetown 2011": {
+     "Black African": 0.33781185429238236,
+     "Coloured": 0.3821136235054886,
+     "Indian/Asian": 0.09999106195461076,
+     "White": 0.1800834602475183
+    },
+    "capetown 2016": {
+     "Black African": 0.32466602958717145,
+     "Coloured": 0.3789695020335826,
+     "Indian/Asian": 0.09357930051043778,
+     "White": 0.20278516786880818
+    },
+    "capetown 2021": {
+     "Black African": 0.3297518898769786,
+     "Coloured": 0.36477863273244066,
+     "Indian/Asian": 0.08280304987543874,
+     "White": 0.22266642751514193
+    },
+    "ethekwini 2011": {
+     "Black African": 0.6728171402298782,
+     "Coloured": 0.038170451447550074,
+     "Indian/Asian": 0.18962033735982037,
+     "White": 0.09939207096275138
+    },
+    "ethekwini 2016": {
+     "Black African": 0.6874359688034585,
+     "Coloured": 0.02860387607833051,
+     "Indian/Asian": 0.18304531844517474,
+     "White": 0.10091483667303631
+    },
+    "ethekwini 2021": {
+     "Black African": 0.6886718442711813,
+     "Coloured": 0.025560513551297775,
+     "Indian/Asian": 0.1843878327046973,
+     "White": 0.10137980947282355
+    }
+   }
+  },
+  "P3": {
+   "verdict": "NOT TESTED",
+   "why": "stated 'after C3'; C3 was not made.",
+   "context": {
+    "fatal_before": 3,
+    "fatal_after": 3,
+    "total_before": 14,
+    "total_after": 15
+   }
+  },
+  "P4": {
+   "verdict": "NOT TESTED",
+   "why": "stated 'after all four repairs'; one was made.",
+   "context": {
+    "cases_after": 15,
+    "DA_cases_after": 15,
+    "parties_after": [
+     "DA"
+    ],
+    "at_2021_after": []
+   }
+  },
+  "P5": {
+   "verdict": "PASSED (uninformative)",
+   "headline": {
+    "what": "\u0394 seat_abs_err_coherent per city-year",
+    "n": 24,
+    "total": 2.0,
+    "mean": 0.08333333333333333,
+    "lo": 0.0,
+    "hi": 0.25,
+    "clusters": 8,
+    "zero_mass": 0.3415,
+    "cities_moved": 1,
+    "p_resample_all_zero": 0.34360891580581665,
+    "bound_pinned_at_zero": true,
+    "informative": false,
+    "contains_zero": true
+   },
+   "headline_noise": {
+    "values": [
+     2,
+     0,
+     -4,
+     -2,
+     -6
+    ],
+    "max_abs": 6
+   },
+   "directional_arrival": {
+    "d_abs_arrival_group_seats_err_total": 0.49799999999999867,
+    "verdict": "FAILED",
+    "noise": {
+     "values": [
+      0.6159999999999994,
+      0.8469999999999991,
+      0.718999999999999,
+      0.8300000000000005,
+      0.22799999999999887
+     ],
+     "max_abs": 0.8469999999999991
+    }
+   },
+   "context_seeded_with_baseline_median": {
+    "d_total": 0.0,
+    "note": "seeded columns that HAVE a preceding-NPE share are not in the arrival group, so the directional verdict omits them; their MEDIAN |error| change is here (R2 fix check F3)."
+   },
+   "context_established_median": {
+    "what": "\u0394 \u03a3|actual\u2212median| over columns neither seeded nor arrived (MEDIAN statistic; context only)",
+    "n": 24,
+    "total": 0.0,
+    "mean": 0.0,
+    "lo": -0.125,
+    "hi": 0.125,
+    "clusters": 8,
+    "zero_mass": 0.2871,
+    "cities_moved": 2,
+    "p_resample_all_zero": 0.1001129150390625,
+    "bound_pinned_at_zero": false,
+    "informative": false,
+    "contains_zero": true
+   },
+   "READING": "'changes by less than its own paired bootstrap interval' = the 95% city-cluster interval of the mean paired change contains zero; when so few cities moved that more than 2.5% of resamples draw none of them, the interval cannot exclude zero and the result is recorded PASSED (uninformative). The established-columns clause cannot be scored on the coherent statistic (no per-party coherent seat is stored) and is context. The directional claim is scored on the arrival group's |seats_err| only; seeded columns with a national baseline are not in that group and are reported as context, not scored. `headline_noise` is a SUM over moved rows: compare it with `headline.total`, not the per-row mean."
+  },
+  "P6": {
+   "verdict": "PASSED",
+   "called_before": 2120,
+   "called_after": 2120,
+   "delta": 0,
+   "band_as_change": [
+    -10,
+    15
+   ],
+   "band_absolute": [
+    2110,
+    2135
+   ],
+   "absolute_in_band": true,
+   "loss_beyond_band": false,
+   "wards_matched_equal": true,
+   "capetown_abs_change": 0,
+   "capetown_uninformative": "Cape Town's rows carry no C1 change; the repair the clause was written for (C2) did not ship.",
+   "brier_mean_before": 0.05310876150270203,
+   "brier_mean_after": 0.053376670940077475,
+   "noise": {
+    "values": [
+     -1,
+     -1,
+     -1,
+     -1,
+     0
+    ],
+    "max_abs": 1
+   },
+   "READING": "the band read as a CHANGE from the before run (2,110-2,135 around the stated 2,120, so -10..+15), since the prereg fixed it around its baseline; the absolute band is printed. Falsified by a gain above +15 (the prereg's falsifier is one-sided) or by Cape Town moving more than one ward, counting each gain and loss. A loss below -10 is reported, not scored. VOID if any row's wards_matched differs."
+  },
+  "P7": {
+   "verdict": "NOT TESTED",
+   "why": "its premise ('C3 moves all 27 specs') did not happen, and its dose (`registered`) was defined for C3's channel. C1 reaches rows by `registered`, the turnout bands, and the run-time `pool_counts` recompute, which no spec field records (R2 F4). Locality is the placebo's job.",
+   "context": {
+    "buffalocity 2016": {
+     "class": "changed",
+     "dose": 0.029146194541131945,
+     "band_dose": 1.869630061013466,
+     "d_crps": -0.22549749749749814
+    },
+    "buffalocity 2021": {
+     "class": "changed",
+     "dose": 0.0,
+     "band_dose": 0.14183230255730767,
+     "d_crps": -0.05029829829829957
+    },
+    "capetown 2021": {
+     "class": "changed",
+     "dose": 0.0,
+     "band_dose": 0.002886135225211972,
+     "d_crps": 0.002712712712714449
+    },
+    "ekurhuleni 2021": {
+     "class": "changed",
+     "dose": 0.0,
+     "band_dose": 0.0028762266162751793,
+     "d_crps": -5.805805805536579e-05
+    },
+    "ethekwini 2021": {
+     "class": "changed",
+     "dose": 0.0,
+     "band_dose": 0.002914974115508784,
+     "d_crps": 0.003949949949948461
+    },
+    "mangaung 2011": {
+     "class": "changed",
+     "dose": 0.01332785726172773,
+     "band_dose": 1.33444519158605,
+     "d_crps": 0.3225865865865849
+    },
+    "mangaung 2016": {
+     "class": "changed",
+     "dose": 0.006521692750511669,
+     "band_dose": 1.6514430869556318,
+     "d_crps": -0.07669269269269297
+    },
+    "mangaung 2021": {
+     "class": "changed",
+     "dose": 0.015492167551811917,
+     "band_dose": 1.7450555980141815,
+     "d_crps": -0.22420620620620646
+    },
+    "nelsonmandelabay 2021": {
+     "class": "changed",
+     "dose": 0.0,
+     "band_dose": 0.002885259074467128,
+     "d_crps": 0.00018818818818999716
+    }
+   }
+  }
+ },
+ "window": {
+  "crps_by_cycle": {
+   "change": {
+    "2011": 0.3225865865865849,
+    "2016": -0.3021901901901911,
+    "2021": -0.2677117117117085
+   },
+   "moved_rows_per_cycle": {
+    "2011": 1,
+    "2016": 2,
+    "2021": 6
+   },
+   "noise": {
+    "2011": {
+     "values": [
+      0.40216016016015743,
+      0.8556456456456445,
+      0.7487587587587576,
+      1.4537677677677685,
+      0.9679039039039061
+     ],
+     "max_abs": 1.4537677677677685
+    },
+    "2016": {
+     "values": [
+      -0.3432032032032035,
+      -0.33297897897897943,
+      -0.5124804804804795,
+      -0.15302902902902904,
+      -0.22220020020020037
+     ],
+     "max_abs": 0.5124804804804795
+    },
+    "2021": {
+     "values": [
+      0.5687627627627689,
+      -0.658244244244238,
+      0.23577177177177777,
+      1.067187187187189,
+      -0.4211091091091008
+     ],
+     "max_abs": 1.067187187187189
+    }
+   },
+   "within_noise": {
+    "2011": true,
+    "2016": true,
+    "2021": true
+   },
+   "verdict": "FAILED",
+   "READING": "summed paired seat CRPS change per cycle (lower is better); fails on a net loss in any cycle. Scored as written; the seed spread is printed beside it and does not change the verdict."
+  },
+  "calibration": {
+   "population": "reference",
+   "coverage_before": {
+    "0.5": 0.791828793774319,
+    "0.8": 0.9027237354085603,
+    "0.9": 0.9357976653696498
+   },
+   "coverage_after": {
+    "0.5": 0.791828793774319,
+    "0.8": 0.9027237354085603,
+    "0.9": 0.9357976653696498
+   },
+   "pit_before": {
+    "mean": 0.5842077426398261,
+    "sd": 0.26769868246333955,
+    "by_band": {
+     "1-3": 0.5265424740930279,
+     "13+": 0.5431681333000273,
+     "4-12": 0.6650448035740674,
+     "off-ballot": 0.5290452390282312
+    }
+   },
+   "pit_after": {
+    "mean": 0.5838874205732878,
+    "sd": 0.2677208696066437,
+    "by_band": {
+     "1-3": 0.5261604682255343,
+     "13+": 0.5430728993927499,
+     "4-12": 0.6644217078335735,
+     "off-ballot": 0.5290452390282312
+    }
+   },
+   "moved_away": {
+    "0.5": false,
+    "0.8": false,
+    "0.9": false
+   },
+   "pit_mean_moved_away": false,
+   "coverage_noise": {
+    "0.5": {
+     "values": [
+      -0.005836575875486361,
+      -0.009727626459143934,
+      0.0,
+      0.0019455252918287869,
+      -0.0038910505836575737
+     ],
+     "max_abs": 0.009727626459143934
+    },
+    "0.8": {
+     "values": [
+      -0.005836575875486361,
+      0.0,
+      0.0019455252918287869,
+      0.009727626459143934,
+      0.011673151750972721
+     ],
+     "max_abs": 0.011673151750972721
+    },
+    "0.9": {
+     "values": [
+      0.0019455252918287869,
+      0.0,
+      0.0,
+      0.0,
+      0.0038910505836575737
+     ],
+     "max_abs": 0.0038910505836575737
+    }
+   },
+   "verdict": "PASSED",
+   "READING": "pooled coverage (\u03a3inside/\u03a3counted) at each level and pooled mean PIT, over the fixed `reference` columns; fails if any moves further from nominal by any amount. PIT sd and mean PIT per rank band are printed as the shape (R2 F7); the seed spread is printed and does not change the verdict."
+  },
+  "seats_without_votes": {
+   "d_seat_total": 2.0,
+   "d_pr_mae_total": 0.34720113710854017,
+   "d_ward_mae_total": 0.25698777809553364,
+   "verdict": "PASSED",
+   "READING": "fails when summed coherent seat error falls while neither summed PR nor summed ward MAE falls; both components printed."
+  },
+  "p1": "PASSED",
+  "no_dose_response": "NOT TESTED (P7)"
+ },
+ "spec_diff": {
+  "buffalocity 2011": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "buffalocity 2016": {
+   "p1_before": [
+    "declares 'Indian/Asian' in categories and omits it from pools",
+    "'Indian/Asian' holds 2.86% of the projected roll and is not in pools"
+   ],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": Infinity,
+   "fields_moved": [
+    "pools",
+    "rates_on_a_bound",
+    "seeded_arrival_mass",
+    "seeds",
+    "turnout_limits"
+   ],
+   "dose": 0.029146194541131945,
+   "band_dose": 1.869630061013466
+  },
+  "buffalocity 2021": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": 0.38347939469617476,
+   "fields_moved": [
+    "pools",
+    "turnout_limits"
+   ],
+   "dose": 0.0,
+   "band_dose": 0.14183230255730767
+  },
+  "capetown 2011": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "capetown 2016": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "capetown 2021": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": 0.001859101962789822,
+   "fields_moved": [
+    "pools"
+   ],
+   "dose": 0.0,
+   "band_dose": 0.002886135225211972
+  },
+  "ekurhuleni 2011": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "ekurhuleni 2016": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "ekurhuleni 2021": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": 0.001897689785701595,
+   "fields_moved": [
+    "pools"
+   ],
+   "dose": 0.0,
+   "band_dose": 0.0028762266162751793
+  },
+  "ethekwini 2011": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "ethekwini 2016": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "ethekwini 2021": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": 0.001596008562335327,
+   "fields_moved": [
+    "pools"
+   ],
+   "dose": 0.0,
+   "band_dose": 0.002914974115508784
+  },
+  "joburg 2011": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "joburg 2016": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "joburg 2021": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "joburg 2026": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": Infinity,
+   "fields_moved": [
+    "mergers",
+    "no_measured_vector",
+    "pools",
+    "unclassified_with_national_record"
+   ],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "mangaung 2011": {
+   "p1_before": [
+    "declares 'Indian/Asian' in categories and omits it from pools",
+    "'Indian/Asian' holds 0.43% of the projected roll and is not in pools"
+   ],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": Infinity,
+   "fields_moved": [
+    "pool_shares_at_target",
+    "pools",
+    "rates_on_a_bound",
+    "registration_series",
+    "turnout_limits"
+   ],
+   "dose": 0.01332785726172773,
+   "band_dose": 1.33444519158605
+  },
+  "mangaung 2016": {
+   "p1_before": [
+    "declares 'Indian/Asian' in categories and omits it from pools",
+    "'Indian/Asian' holds 2.46% of the projected roll and is not in pools"
+   ],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": Infinity,
+   "fields_moved": [
+    "pools",
+    "rates_on_a_bound",
+    "registration_series",
+    "seeded_arrival_mass",
+    "seeds",
+    "turnout_limits"
+   ],
+   "dose": 0.006521692750511669,
+   "band_dose": 1.6514430869556318
+  },
+  "mangaung 2021": {
+   "p1_before": [
+    "declares 'Indian/Asian' in categories and omits it from pools",
+    "'Indian/Asian' holds 1.31% of the projected roll and is not in pools"
+   ],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": Infinity,
+   "fields_moved": [
+    "pools",
+    "rates_on_a_bound",
+    "registration_series",
+    "seeded_arrival_mass",
+    "seeds",
+    "turnout_limits"
+   ],
+   "dose": 0.015492167551811917,
+   "band_dose": 1.7450555980141815
+  },
+  "nelsonmandelabay 2011": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "nelsonmandelabay 2016": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "nelsonmandelabay 2021": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": 0.0018629504804529295,
+   "fields_moved": [
+    "pools"
+   ],
+   "dose": 0.0,
+   "band_dose": 0.002885259074467128
+  },
+  "tshwane 2011": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "tshwane 2016": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "tshwane 2021": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "key_only",
+   "max_abs": 0.0,
+   "fields_moved": [],
+   "dose": 0.0,
+   "band_dose": 0.0
+  },
+  "tshwane 2026": {
+   "p1_before": [],
+   "p1_after": [],
+   "class": "changed",
+   "max_abs": 0.0003805342501314035,
+   "fields_moved": [
+    "pools"
+   ],
+   "dose": 0.0,
+   "band_dose": 0.0006590914780933987
+  }
+ },
+ "placebo": {
+  "rows": [
+   "buffalocity 2011",
+   "capetown 2011",
+   "capetown 2016",
+   "ekurhuleni 2011",
+   "ekurhuleni 2016",
+   "ethekwini 2011",
+   "ethekwini 2016",
+   "joburg 2011",
+   "joburg 2016",
+   "joburg 2021",
+   "nelsonmandelabay 2011",
+   "nelsonmandelabay 2016",
+   "tshwane 2011",
+   "tshwane 2016",
+   "tshwane 2021"
+  ],
+  "roundoff_rows": [],
+  "broken": {},
+  "holds": true
+ },
+ "moved_rows": [
+  "buffalocity 2016",
+  "buffalocity 2021",
+  "capetown 2021",
+  "ekurhuleni 2021",
+  "ethekwini 2021",
+  "mangaung 2011",
+  "mangaung 2016",
+  "mangaung 2021",
+  "nelsonmandelabay 2021"
+ ],
+ "scan": {
+  "before": [
+   {
+    "row": "buffalocity 2011",
+    "party": "DA",
+    "pool": "Coloured",
+    "kind": "straining",
+    "weight": 0.01444970520845373,
+    "ceiling": 0.009668629376330187,
+    "ratio": 1.494493650137021
+   },
+   {
+    "row": "buffalocity 2011",
+    "party": "DA",
+    "pool": "Indian/Asian",
+    "kind": "straining",
+    "weight": 0.023696292465048233,
+    "ceiling": 0.015855733119291386,
+    "ratio": 1.4944936501370207
+   },
+   {
+    "row": "buffalocity 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "fatal",
+    "weight": 0.6016930008816034,
+    "need": 24058.325973419433,
+    "pool_hi": 19191.736962066472,
+    "ratio": 1.2535773088685012
+   },
+   {
+    "row": "buffalocity 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.6466184474110916,
+    "ceiling": 0.6398475092785209,
+    "ratio": 1.0105821121976477
+   },
+   {
+    "row": "capetown 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "fatal",
+    "weight": 0.535786407784845,
+    "need": 279813.61382693384,
+    "pool_hi": 244562.77492407936,
+    "ratio": 1.1441382030188263
+   },
+   {
+    "row": "capetown 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.36909835002379787,
+    "ceiling": 0.35417843560314394,
+    "ratio": 1.0421254173627095
+   },
+   {
+    "row": "ekurhuleni 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.817011330650754,
+    "ceiling": 0.7505034675185321,
+    "ratio": 1.0886176626899857
+   },
+   {
+    "row": "ekurhuleni 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.7638588683668036,
+    "ceiling": 0.7140179155936972,
+    "ratio": 1.0698035044844278
+   },
+   {
+    "row": "ethekwini 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.5868275362764064,
+    "ceiling": 0.5229200539057941,
+    "ratio": 1.1222127204594174
+   },
+   {
+    "row": "ethekwini 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.4614694837178573,
+    "ceiling": 0.3959703406732422,
+    "ratio": 1.1654142654554662
+   },
+   {
+    "row": "mangaung 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.8543989325594392,
+    "ceiling": 0.7407116126629272,
+    "ratio": 1.1534839172937974
+   },
+   {
+    "row": "nelsonmandelabay 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "fatal",
+    "weight": 0.6236899859807216,
+    "need": 78511.44255009278,
+    "pool_hi": 73562.09892688296,
+    "ratio": 1.0672811637434274
+   },
+   {
+    "row": "nelsonmandelabay 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.5044533328110236,
+    "ceiling": 0.4938807938126516,
+    "ratio": 1.0214070665043569
+   },
+   {
+    "row": "tshwane 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.8656841610384848,
+    "ceiling": 0.860637514466312,
+    "ratio": 1.0058638468430026
+   }
+  ],
+  "after": [
+   {
+    "row": "buffalocity 2011",
+    "party": "DA",
+    "pool": "Coloured",
+    "kind": "straining",
+    "weight": 0.01444970520845373,
+    "ceiling": 0.009668629376330187,
+    "ratio": 1.494493650137021
+   },
+   {
+    "row": "buffalocity 2011",
+    "party": "DA",
+    "pool": "Indian/Asian",
+    "kind": "straining",
+    "weight": 0.023696292465048233,
+    "ceiling": 0.015855733119291386,
+    "ratio": 1.4944936501370207
+   },
+   {
+    "row": "buffalocity 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "fatal",
+    "weight": 0.6016930008816034,
+    "need": 24058.325973419433,
+    "pool_hi": 19191.736962066472,
+    "ratio": 1.2535773088685012
+   },
+   {
+    "row": "buffalocity 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.596704234054622,
+    "ceiling": 0.5734947279266631,
+    "ratio": 1.040470304255224
+   },
+   {
+    "row": "capetown 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "fatal",
+    "weight": 0.535786407784845,
+    "need": 279813.61382693384,
+    "pool_hi": 244562.77492407936,
+    "ratio": 1.1441382030188263
+   },
+   {
+    "row": "capetown 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.36909835002379787,
+    "ceiling": 0.35417843560314394,
+    "ratio": 1.0421254173627095
+   },
+   {
+    "row": "ekurhuleni 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.817011330650754,
+    "ceiling": 0.7505034675185321,
+    "ratio": 1.0886176626899857
+   },
+   {
+    "row": "ekurhuleni 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.7638588683668036,
+    "ceiling": 0.7140179155936972,
+    "ratio": 1.0698035044844278
+   },
+   {
+    "row": "ethekwini 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.5868275362764064,
+    "ceiling": 0.5229200539057941,
+    "ratio": 1.1222127204594174
+   },
+   {
+    "row": "ethekwini 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.4614694837178573,
+    "ceiling": 0.3959703406732422,
+    "ratio": 1.1654142654554662
+   },
+   {
+    "row": "mangaung 2011",
+    "party": "DA",
+    "pool": "Indian/Asian",
+    "kind": "straining",
+    "weight": 0.027812256898819894,
+    "ceiling": 0.024912559310329655,
+    "ratio": 1.1163950099373339
+   },
+   {
+    "row": "mangaung 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.8474402758297461,
+    "ceiling": 0.7324919195115224,
+    "ratio": 1.1569278148418067
+   },
+   {
+    "row": "nelsonmandelabay 2011",
+    "party": "DA",
+    "pool": "White",
+    "kind": "fatal",
+    "weight": 0.6236899859807216,
+    "need": 78511.44255009278,
+    "pool_hi": 73562.09892688296,
+    "ratio": 1.0672811637434274
+   },
+   {
+    "row": "nelsonmandelabay 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.5044533328110236,
+    "ceiling": 0.4938807938126516,
+    "ratio": 1.0214070665043569
+   },
+   {
+    "row": "tshwane 2016",
+    "party": "DA",
+    "pool": "White",
+    "kind": "straining",
+    "weight": 0.8656841610384848,
+    "ceiling": 0.860637514466312,
+    "ratio": 1.0058638468430026
+   }
+  ],
+  "LIMIT": "`_actual_shares` reads `votes`, the row's top-12 parties, so a case outside a city-year's top 12 is not seen (R2 F11)."
+ },
+ "mergers_prereg": {
+  "change_1_independents": "NOT TESTED: not in the freeze.",
+  "change_2_mergers": "scored in MODEL-LOG \u00a71.275 on run_model; no declared merger predates a held election, so no backtest row can test it.",
+  "change_3_roster": "no change; nothing to score."
+ }
+}

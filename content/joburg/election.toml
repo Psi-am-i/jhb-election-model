@@ -1,0 +1,15 @@
+# When polling day's voting stations open, in Johannesburg's own clock: read
+# by src/build_make.py (`election_of`) into your-forecast/forecast.json
+# `election.polls_open` and `election.zone`. The site's Worker refuses to seal
+# a reader's forecast from that instant (src/share-edge.js); the share cards
+# print times in that zone. Polling day itself is cities/joburg.toml's
+# `election_date`.
+#
+# Here, not in cities/joburg.toml: every pool spec hashes cities/*.toml
+# (pools._cities_sha), so a key there that no model code reads would still
+# mark every spec stale. Nothing in the model reads this file.
+#
+# Electoral Commission: voting stations open at 07:00 on polling day.
+polls_open = "07:00"
+utc_offset = "+02:00"
+time_zone = "SAST"

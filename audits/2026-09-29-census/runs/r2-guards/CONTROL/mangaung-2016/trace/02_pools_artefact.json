@@ -1,0 +1,16 @@
+{
+ "artefact_key": {
+  "cities_sha": "68080ceed71cbe08",
+  "city": "mangaung",
+  "config_sha": "25f89b38e7b7532f",
+  "deps_sha": "bed2e1a147c10f2d",
+  "gates_sha": "2ec84f1fcb67779f",
+  "judgements_sha": "d76ab60ca822d140",
+  "pools_sha": "34d5a0823c86bdec",
+  "schema": 2,
+  "target": "2016"
+ },
+ "fitted_on": "2011",
+ "path": "data/processed/mangaung/pools_2016.json",
+ "stale_reason": null
+}

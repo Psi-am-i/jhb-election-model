@@ -1,0 +1,217 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "nelsonmandelabay",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "86995c914b530216",
+    "schema": 1,
+    "target": "2011"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2006",
+  "judgement_file": "judgements/nelsonmandelabay-2011.toml",
+  "no_measured_vector": {
+    "AFRICAN_COMMUNITY_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "APC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "CHRISTIAN_DEMOCRATIC_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "COPE": "splinter of ANC, 35% its vector and 65% the city average",
+    "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.5795527901169786,
+    0.2000263506239293,
+    0.028572223633088416,
+    0.19184863562600354
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2006; size from the 2011 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2011",
+      "identified": [
+        "ANC",
+        "AZAPO",
+        "DA",
+        "PAC",
+        "UDM",
+        "UNITED_INDEPENDENT_FRONT"
+      ],
+      "members": {
+        "ACDP": 0.19161077701179838,
+        "AFRICAN_COMMUNITY_MOVEMENT": 0.6659743312551454,
+        "ANC": 0.9189470936320285,
+        "APC": 0.6659743312551454,
+        "AZAPO": 0.7548906752293504,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.6659743312551454,
+        "COPE": 0.7545147980870545,
+        "DA": 0.038326049207457094,
+        "PAC": 0.9044446593513389,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.6659743312551454,
+        "UDM": 0.8801925344909921,
+        "UNITED_INDEPENDENT_FRONT": 0.7859457957305976,
+        "VFPLUS": 0.141532782700607
+      },
+      "registered": 331361.37170121114,
+      "turnout": [
+        0.5374423878956796,
+        0.6106512295445649,
+        0.6791896925408374
+      ]
+    },
+    "Coloured": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2006; size from the 2011 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.2236864762475102,
+        "AFRICAN_COMMUNITY_MOVEMENT": 0.13886549504539475,
+        "ANC": 0.05887438369570771,
+        "APC": 0.13886549504539475,
+        "AZAPO": 0.04556766265332483,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.13886549504539475,
+        "COPE": 0.11086860607300428,
+        "DA": 0.29106198112632614,
+        "PAC": 0.016150490773456375,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.13886549504539475,
+        "UDM": 0.06202971293318855,
+        "UNITED_INDEPENDENT_FRONT": 0.04821056263217313,
+        "VFPLUS": 0.1378409110815909
+      },
+      "registered": 111742.78096708123,
+      "turnout": [
+        0.33660399360792265,
+        0.4064971832498329,
+        0.4803938180776926
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2006; size from the 2011 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2011",
+      "identified": [
+        "PAC",
+        "UNITED_INDEPENDENT_FRONT"
+      ],
+      "members": {
+        "ACDP": 0.29198229327043834,
+        "AFRICAN_COMMUNITY_MOVEMENT": 0.025357141082394723,
+        "ANC": 0.006007303116374883,
+        "APC": 0.025357141082394723,
+        "AZAPO": 0.00032158058829711943,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.025357141082394723,
+        "COPE": 0.01858469779428778,
+        "DA": 0.05695964774304312,
+        "PAC": 0.011260193592457278,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.025357141082394723,
+        "UDM": 0.0054068841526082245,
+        "UNITED_INDEPENDENT_FRONT": 0.023247856703861456,
+        "VFPLUS": 0.11910991303098971
+      },
+      "registered": 18763.043218001738,
+      "turnout": [
+        0.37201581861857036,
+        0.44433702743335507,
+        0.5190960569410407
+      ]
+    },
+    "White": {
+      "alpha": 12.0,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2006; size from the 2011 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2011",
+      "identified": [
+        "ACDP",
+        "AZAPO",
+        "UDM",
+        "UNITED_INDEPENDENT_FRONT",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.29272045347025305,
+        "AFRICAN_COMMUNITY_MOVEMENT": 0.16980303261706506,
+        "ANC": 0.016171219555889012,
+        "APC": 0.16980303261706506,
+        "AZAPO": 0.19922008152902762,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.16980303261706506,
+        "COPE": 0.11603189804565345,
+        "DA": 0.6136523219231735,
+        "PAC": 0.0681446562827474,
+        "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": 0.16980303261706506,
+        "UDM": 0.052370868423211175,
+        "UNITED_INDEPENDENT_FRONT": 0.14259578493336775,
+        "VFPLUS": 0.6015163931868124
+      },
+      "registered": 107602.80411370593,
+      "turnout": [
+        0.4522435610160116,
+        0.527071039873073,
+        0.6007018049371339
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2006; pools sized by 2009 roll carried to 2011 on the 2006-2009 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.602448940943278,
+      0.18844861658522086,
+      0.03146262487983936,
+      0.17763981759166167
+    ],
+    "2009": [
+      0.5861809490660673,
+      0.1967069781852608,
+      0.029378685402036135,
+      0.18773338734663572
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "target": "2011",
+  "turnout_limits": {
+    "city": {
+      "high": 0.6042510942072625,
+      "low": 0.4943872588968511,
+      "observed_high": 0.5493191765520568,
+      "observed_low": 0.5493191765520568,
+      "previous": 0.5493191765520568
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.6717163524990214,
+        "low": 0.5495861065901084,
+        "observed_high": 0.6106512295445649,
+        "observed_low": 0.6106512295445649,
+        "previous": 0.6106512295445649
+      },
+      {
+        "high": 0.44714690157481624,
+        "low": 0.36584746492484965,
+        "observed_high": 0.4064971832498329,
+        "observed_low": 0.4064971832498329,
+        "previous": 0.4064971832498329
+      },
+      {
+        "high": 0.4887707301766906,
+        "low": 0.39990332469001955,
+        "observed_high": 0.44433702743335507,
+        "observed_low": 0.44433702743335507,
+        "previous": 0.44433702743335507
+      },
+      {
+        "high": 0.5797781438603804,
+        "low": 0.47436393588576575,
+        "observed_high": 0.527071039873073,
+        "observed_low": 0.527071039873073,
+        "previous": 0.527071039873073
+      }
+    ]
+  }
+}

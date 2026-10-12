@@ -1,0 +1,52 @@
+# The home page's headline and the paragraph under it — the owner's words.
+#
+# Edit the words freely, here or in edit mode (src/edit_mode.py). Each
+# {{lede_…}} is filled in by `render_home.py` from the run and can be kept,
+# moved or deleted, never typed over: a figure comes from the run (CLAUDE.md
+# §2), and a phrase whose strength depends on a figure ("all but inevitable",
+# "too close to call", which party) is chosen by that figure. The list of
+# placeholders, what each says and where it comes from, is
+# `render_home.LEDE_PLACEHOLDERS`; a placeholder not in it stops the build.
+#
+# `head` is the headline (<em> marks the emphasised opening). `sub` is the
+# paragraph under it.
+
+[[lede]]
+head = """<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}.
+{{lede_p_first}} chance it's {{lede_first}} and {{lede_p_second}} chance it's
+{{lede_second}}."""
+sub = """Chance of one party winning outright: {{lede_p_alone}}. Proportional
+representation is meant to give parties seats that match their support. Our
+system mixes directly elected ward councillors with party seats topped up
+according to each party's share of the vote, and it has a quirk. A ward you win
+cannot be taken away, so a party that wins many wards can end up with more
+council seats than its share of the vote should allow. That is surprisingly
+likely this year: there is a {{lede_p_overhang}} chance it happens to
+{{lede_overhang_party}}. When it does, {{lede_overhang_party}} typically holds
+about {{lede_overhang_seats}} of the seats on about {{lede_overhang_votes}} of
+the party-list vote."""
+
+# The introduction under the headline (owner-approved 2026-10-10;
+# audits/2026-10-09-site-batch/RELEASE-BRIEF.md, addendum item 3): what the
+# site is and how the model works. `paragraphs` are written into the page by
+# `render_home._intro`, in order. A {{token}} here is a registry token
+# (content/joburg/stats.toml), resolved by the build like any on the page;
+# never type a figure. The ward counts are the backtest's (history.json).
+[intro]
+heading = "What this is"
+paragraphs = [
+"""An unaffiliated forecast of Johannesburg's council election, built from primary
+sources. It starts from each voting district's history: past results, turnout,
+census data and each party's trajectory. From there it builds the city up from
+its wards, rather than applying generalisations down.""",
+"""The model simulates the election thousands of times. Each run uses different
+values for turnout and for every party's support, but not just any values: each
+is drawn from how far turnout and parties have moved in past elections.""",
+"""Run on Johannesburg's last three elections, it called
+{{hist_jhb_wards_called_2011}} of {{hist_jhb_wards_2011}},
+{{hist_jhb_wards_called_2016}} of {{hist_jhb_wards_2016}} and
+{{hist_jhb_wards_called_2021}} of {{hist_jhb_wards_2021}} ward winners.""",
+"""It uses as few judgement calls as possible. Each one is listed, with its
+evidence, on the <a href="methodology#the-judgement-calls">judgement calls</a>
+page, and several can be changed on <a href="your-forecast/">your forecast</a>.""",
+]

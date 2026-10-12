@@ -1,0 +1,20 @@
+{
+ "name": "C8-off",
+ "tests": {
+  "failed": [
+   "test_every_consumer_the_spec_names_calls_apply_mergers",
+   "test_no_emitted_composition_weight_is_arithmetically_impossible"
+  ]
+ },
+ "compare": {
+  "c8": {
+   "predecessor": "SOCIALIST_REVOLUTIONARY_WORKERS_PARTY",
+   "base_K_differs_from_real": true,
+   "mutant_K_equals_real": true,
+   "real_rows_identical": true
+  }
+ },
+ "new_test_failures": [
+  "test_every_consumer_the_spec_names_calls_apply_mergers"
+ ]
+}

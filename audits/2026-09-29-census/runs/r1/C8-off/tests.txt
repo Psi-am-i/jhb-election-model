@@ -1,0 +1,547 @@
+running 4 modules across 7 processes, then 1 serially
+
+=== test_pool_conservation ======================================
+  768 party weight vectors across 26 specs sum to 1
+ok   test_a_pools_split_is_conserved
+ok   test_a_seeded_arrival_is_drawn_CONCENTRATED_not_evenly
+  NEWCOMER in 'Black African' only: columns ['Black African'], drawn share 0.10267 vs 0.11111 even
+ok   test_an_arrival_does_not_touch_pools_it_is_not_in
+  262 of 3072 (party, pool) pairs hold no weight (0 of them seeded); GOOD stripped of 'Black African': shift 0.00333 vs noise 0.00379 there and 0.03917 in 'White'; restored, 0.03793
+ok   test_capture_is_zero_outside_a_partys_pools
+  280 seeded parties across 17 of 26 specs, every one of them in a pool
+ok   test_every_seeded_party_belongs_to_a_pool
+
+5 passed, 0 failed, 0 skipped
+
+=== test_pool_bounds ============================================
+  ! White: registered is 154% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! White: registered is 185% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! White: registered is 187% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! White: registered is 101% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! Indian/Asian: registered is 213% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! Indian/Asian: registered is 222% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! White: registered is 154% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! Indian/Asian: registered is 115% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  6 fits pass through untouched (joburg 2011, joburg 2016, tshwane 2016, ekurhuleni 2016, capetown 2016, mangaung 2016); 4 are projected
+ok   test_a_legal_unbounded_answer_is_returned_untouched
+ok   test_a_refit_that_silences_a_second_pool_holds_it_too
+ok   test_a_silenced_pool_is_held_and_the_rest_refitted
+ok   test_a_zero_cell_can_still_be_reached
+ok   test_an_infeasible_system_is_refused_rather_than_approximated
+  26 emitted specs, P1 holds on every one
+ok   test_every_emitted_spec_declares_exactly_the_pools_it_emits
+FAIL test_no_emitted_composition_weight_is_arithmetically_impossible
+  10 city-years, every rate inside its bounds
+ok   test_no_fitted_rate_falls_outside_its_duncan_davis_interval
+  24 fitting years; held: registration at mangaung 2006 Indian/Asian; turnout at buffalocity 2011 Indian/Asian, mangaung 2006 Indian/Asian, mangaung 2011 Indian/Asian, mangaung 2016 Indian/Asian
+ok   test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing
+ok   test_the_p1_predicate_sees_each_violation_and_goes_quiet_when_reverted
+  PA at joburg 2021: Coloured 0.9942, elsewhere 0.0058
+ok   test_the_pa_is_no_longer_a_single_pool_party
+ok   test_the_registration_bound_is_per_level
+  ekurhuleni 2016: with lo=0, hi=1, 16 of 25 parties are still seeded and 5,794 votes (0.64% of the city) unplaced — no bound binds anywhere
+ok   test_the_seeding_is_not_triggered_by_the_bounds
+ok   test_the_three_known_things_hold_at_once
+
+FAIL test_no_emitted_composition_weight_is_arithmetically_impossible
+Traceback (most recent call last):
+  File "/private/var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/census-7r4vog_f/C8-off/root/tests/_support.py", line 210, in run_module
+    namespace[name]()
+    ~~~~~~~~~~~~~~~^^
+  File "/private/var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/census-7r4vog_f/C8-off/root/tests/test_pool_bounds.py", line 516, in test_no_emitted_composition_weight_is_arithmetically_impossible
+    assert not bad, (
+           ^^^^^^^
+AssertionError: these emitted pool weights describe an election that cannot happen — the party is SEEDED to draw more from the pool than the pool casts:
+  buffalocity 2011 DA in White: needs 24,058 votes from a pool that casts at most 19,192 even at the TOP of its turnout band — 4,867 more votes than that pool has voters (1.25x)
+  capetown 2011 DA in White: needs 279,814 votes from a pool that casts at most 244,563 even at the TOP of its turnout band — 35,251 more votes than that pool has voters (1.14x)
+  nelsonmandelabay 2011 DA in White: needs 78,511 votes from a pool that casts at most 73,562 even at the TOP of its turnout band — 4,949 more votes than that pool has voters (1.07x)
+
+  ⚠️ THIS IS NOT AN IMPOSSIBLE ELECTION, and this message said it was until 2026-09-02. `montecarlo.pool_spec` re-fits the composition by iterative proportional fitting on EVERY draw, imposing each pool's counted voters and the party's drawn citywide level as hard margins. Verified: Buffalo City 2011 DA/White is repaired 0.575 -> 0.374 before draw one. THE MODEL NEVER ALLOCATES A PARTY MORE VOTES THAN A POOL CASTS.
+
+  What this DOES report is a seed that IPF has to drag a long way, which moves the composition away from what was measured. Check that `PartyFit.composition` is handed VOTES CAST (registered x turnout), the same vector `pool_spec` builds, and not a registration or projected-share vector. Do NOT propose a fit-time capacity constraint on the strength of this message alone: one was built, measured and reverted (MODEL-LOG §1.41, coherent seat error 306 -> 486).
+
+
+13 passed, 1 failed, 0 skipped
+
+=== test_theta_prior ============================================
+ok   test_a_party_in_the_record_but_absent_from_the_baseline_is_priced_at_size_zero
+ok   test_a_party_missing_from_the_baseline_is_dropped_from_the_dispersion_fit
+ok   test_a_party_with_a_thinner_record_is_shrunk_further_toward_the_centre
+ok   test_a_party_with_no_history_does_not_receive_the_prior_of_one_with_history
+ok   test_a_party_with_no_record_of_its_own_sits_exactly_on_the_size_centre
+ok   test_a_record_of_one_observation_is_refused_rather_than_returning_nan
+ok   test_an_empty_record_returns_an_empty_prior_that_reads_as_success
+ok   test_every_band_is_ordered_and_symmetric_in_log_space_about_its_mode
+ok   test_every_observation_counts_toward_the_dispersion_fit_not_just_the_first
+ok   test_every_party_priced_has_a_positive_finite_width_inside_the_clip
+ok   test_group_membership_is_total_and_deterministic_over_the_baseline
+ok   test_shrinkage_is_keyed_on_what_the_record_is_worth_not_on_how_many_rows
+ok   test_the_groups_block_is_a_diagnostic_and_is_not_a_partition_of_parties
+ok   test_the_reported_spread_falls_as_the_party_gets_bigger
+ok   test_the_shrink_target_is_taken_at_the_size_the_record_was_measured_at
+ok   test_the_shrink_target_is_the_size_centre_and_not_the_flat_common_mean
+ok   test_the_width_is_the_dispersion_line_evaluated_and_not_a_typed_default
+ok   test_theta_and_the_spine_estimator_agree_party_for_party_on_the_same_record
+
+18 passed, 0 failed, 0 skipped
+
+=== test_roster_aware_baseline ==================================
+ok   test_a_merged_vector_is_the_mass_weighted_blend_and_a_zero_transfer_is_a_no_op
+ok   test_a_merger_moves_retention_times_the_predecessor_and_nothing_else
+ok   test_a_merger_never_creates_a_record_the_successor_lacks
+ok   test_a_newcomer_with_no_measured_reach_is_not_given_a_reach_of_one
+ok   test_a_party_left_off_the_roster_cannot_appear_in_the_forecast
+ok   test_a_roster_newcomer_reaches_the_council_with_its_declared_share
+FAIL test_every_consumer_the_spec_names_calls_apply_mergers
+WARNING *** file size (40896) not 512 + multiple of sector size (512)
+ok   test_the_action_sa_figures_quoted_in_the_docstring_are_the_measured_ones
+ok   test_the_arrival_budget_reads_no_election_at_or_after_its_target
+ok   test_the_declared_mergers_move_the_johannesburg_2026_baseline_by_r_times_p
+ok   test_the_erasure_comparison_catches_a_roster_rule_that_reads_votes
+ok   test_the_johannesburg_2026_mergers_have_distinct_successors
+ok   test_the_last_seat_is_an_exact_tie_and_the_name_rule_is_what_decides_it
+ok   test_the_merger_mechanism_names_no_party
+ok   test_the_new_reference_is_uniform_swing_plus_the_roster_and_nothing_else
+ok   test_the_reference_is_registered_under_the_contracted_name
+ok   test_the_reference_opens_nothing_dated_after_its_target
+ok   test_the_reference_returns_the_identical_council_in_every_fresh_process
+ok   test_the_roster_decides_which_partner_inherits
+ok   test_the_roster_split_finds_both_the_absent_and_the_arrived
+ok   test_the_roster_split_is_identical_with_every_vote_erased
+ok   test_the_tally_is_ordered_the_same_way_whatever_order_it_arrives_in
+ok   test_the_temporal_spy_catches_an_arrival_record_with_no_cutoff
+WARNING *** file size (40896) not 512 + multiple of sector size (512)
+ok   test_the_whole_arrival_budget_is_five_seats_against_forty_four
+ok   test_two_mergers_into_one_successor_give_the_mass_weighted_average
+
+FAIL test_every_consumer_the_spec_names_calls_apply_mergers
+Traceback (most recent call last):
+  File "/private/var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/census-7r4vog_f/C8-off/root/tests/_support.py", line 210, in run_module
+    namespace[name]()
+    ~~~~~~~~~~~~~~~^^
+  File "/private/var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/census-7r4vog_f/C8-off/root/tests/test_roster_aware_baseline.py", line 1088, in test_every_consumer_the_spec_names_calls_apply_mergers
+    assert got == set(pools.MERGER_CONSUMERS), (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: declared, not calling: ['theta_residual._residuals_cached']; calling, not declared: []
+
+
+24 passed, 1 failed, 0 skipped
+
+=== test_chain ==================================================
+ok   test_a_declared_pool_vector_is_not_a_declared_size
+  ! White: registered is 187% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  !! joburg 2000: census reprojection mapped 75.0% of this city's people, below 80% — admitted because the measured demographic shift is 0.004, within the 0.050 ceiling
+  ! registration_series(joburg): 3 election(s) left the record — census_join_unsafe 1999, 2004, 2019
+  !! joburg 2000: census reprojection mapped 75.0% of this city's people, below 80% — admitted because the measured demographic shift is 0.004, within the 0.050 ceiling
+  ! panel_turnout_spread(buffalocity): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(capetown): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(ekurhuleni): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(ethekwini): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(mangaung): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(nelsonmandelabay): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(tshwane): 1 election(s) left the record — held_back 2000
+  ! 1 declared parties have NO 2024 baseline and no fitted vector, so they are sized as ARRIVALS: NEWPARTY. Correct for a genuine entrant. For a party that already exists it means the name here does not match the one in the 2024 results and its real share is being thrown away — check it against parties.py.
+  ! the declared 2026 roster does NOT say `complete = true`, so it is UNIONED with the projected ballot: 4 declared, 1 of them new, 36 on the ballot in total, and NOTHING removed. Set `complete = true` once the list is known to be the whole ballot.
+  reach for 2026: 2021 ward ballot, carried forward unchanged
+ok   test_a_declared_roster_reaches_the_emitted_spec
+  ! 1 declared parties have NO 2024 baseline and no fitted vector, so they are sized as ARRIVALS: BRAND_NEW_PARTY. Correct for a genuine entrant. For a party that already exists it means the name here does not match the one in the 2024 results and its real share is being thrown away — check it against parties.py.
+  ! the declared 2026 roster does NOT say `complete = true`, so it is UNIONED with the projected ballot: 1 declared, 1 of them new, 2 on the ballot in total, and NOTHING removed. Set `complete = true` once the list is known to be the whole ballot.
+  ! the declared 2026 roster says it is COMPLETE, so 2 parties holding 35.57% of the 2021 vote are dropped from the pools (confirm_drop)
+  ! the declared 2026 roster says it is COMPLETE, so 0 parties holding 0.00% of the 2021 vote are dropped from the pools
+ok   test_a_declared_roster_refuses_what_it_cannot_read
+ok   test_a_declared_strength_is_read_and_does_not_narrow_its_own_band
+  pools: 4 measured from 2021 (nested pool counts from 2021; pools sized by 2024 roll carried to 2026 on the 2021-2024 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster declared; reach 2021 ward ballot, carried forward unchanged; 80 declared in judgements)
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+  merger: GOOD -> RISE, 0.169% of the 2024 baseline at retention 0.75
+  merger: FORUM_4_SERVICE_DELIVERY -> ASA, 0.014% of the 2024 baseline at retention 0.75
+  not on the 2026 ballot: dropped 15 parties holding 0.94% of the 2024 baseline (ACTION_ALLIANCE_DEVELOPMENT_PARTY, AFRICAN_INDEPENDENT_PEOPLE_S_ORGANISATION, AFRICAN_MOVEMENT_CONGRESS, AFRICAN_PEOPLE_FIRST, AFRICA_AFRICANS_RECLAIM, …)
+  levels: 410 transitions before 2026, common centre 0.93; sd(log θ) 0.15 at 40% of the vote rising to 0.45 at 0.1%
+  contestation: 82 parties, median 99% of wards — from the declared nomination lists
+  seed SOUTH_AFRICAN_COMMUNIST_PARTY +1.31%  pools and support DECLARED in judgements/: 1.31% of the city, split by the declared weights. Band 0.15-4.78x that centre — the declaration sets the level, the record sets the width.
+  seed AFRICAN_RENAISSANCE_UNITY +0.07%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 66 arrivals that contested about as much of a city (72% of wards): mean 0.30%, median 0.12%. Band 0.06%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed VUKA_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 125 arrivals that contested about as much of a city (95% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.36% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed INDEPENDENT_CITIZENS_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 126 arrivals that contested about as much of a city (92% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed MOVE_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed TRUTH_AND_SOLIDARITY_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_ECONOMIC_FREEDOM +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_UNEMPLOYED_CONGRESS +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  spine: 410 θ and 292 ρ observations before 2026; θ centre 0.93, ρ centre 0.74
+    MK           w_local 0.00 (θ worth 0.0)  national 11.31% / local 0.00% -> 11.31%
+    ASA          w_local 1.00 (θ worth 0.0)  national 5.77% / local 13.51% -> 13.51%
+    DA           w_local 0.03 (θ worth 32.7)  national 31.01% / local 26.78% -> 30.87%
+    PA           w_local 0.30 (θ worth 2.3)  national 5.80% / local 8.12% -> 6.43%
+    RISE         w_local 0.00 (θ worth 0.0)  national 1.60% / local 0.00% -> 1.60%
+    SOUTH_AFRICAN_COMMUNIST_PARTY w_local 0.00 (θ worth 0.0)  national 1.21% / local 0.00% -> 1.21%
+  polls declined (8):
+      da-internal-2026aug: commissioned by Democratic Alliance [commissioned]
+      ipsos-w2-2025-metros: scope 'metro-aggregate' names no city; only a national poll may omit one [no-city]
+      ipsos-2021-lge-national: declared for 2021, not 2026 [other-election]
+      actionsa-internal-2021: commissioned by ActionSA [commissioned]
+      ipsos-2016-lge-national: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-joburg: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-tshwane: a poll of tshwane, not joburg [other-city]
+      ipsos-2016-lge-nmb: a poll of nelsonmandelabay, not joburg [other-city]
+20 draws, seed 20261104, 872 VDs, 74 parties, 135 wards
+target 2026 (2026-11-04), council 270, base npe2024_JHB_vd_party.csv, γ fold 1, wards from vd_ward_2026.csv (1059 parts over 865 VDs, 181 split)
+w_bye 0.4, turnout blend 0.5 ± 0.25 (σ 0.08), entrant P 0.25
+
+by-election tilts (clamped to §3.5 ranges):
+  AIC        spine level 0.3% → 0.3% (by-elections imply -0.5%, ward delta -0.89%/ratio 0.729, 4 contests sd 0.9%, clamped to 0.2%, w_bye 0.4)
+  ALL_CITIZENS_PARTY seeded level 0.0% → 0.8% (by-elections imply 2.1%, ward delta +2.05% additive, 2 contests sd 0.8%, w_bye 0.4)
+  ANC        spine level 28.0% → 27.4% (by-elections imply 26.6%, ward delta -6.79%/ratio 1.023, 15 contests sd 10.5%, w_bye 0.4)
+  ASA        spine level 13.5% → 14.9% (by-elections imply 18.9%, ward delta +0.55%/ratio 0.772, 4 contests sd 5.6%, clamped to 16.9%, w_bye 0.4)
+  ATM        spine level 0.4% → 0.4% (by-elections imply 0.5%, ward delta +0.19%/ratio 1.232, 3 contests sd 1.1%, w_bye 0.4)
+  DA         spine level 30.9% → 32.3% (by-elections imply 34.3%, ward delta +9.34%/ratio 1.054, 11 contests sd 14.5%, w_bye 0.4)
+  EFF        spine level 12.2% → 11.6% (by-elections imply 10.7%, ward delta +0.69%/ratio 1.101, 11 contests sd 3.8%, w_bye 0.4)
+  IFP        spine level 1.3% → 1.5% (by-elections imply 2.5%, ward delta +0.10%/ratio 0.999, 3 contests sd 1.4%, clamped to 1.8%, w_bye 0.4)
+  MK         spine level 11.3% → 11.0% (by-elections imply 10.6%, ward delta +10.58% additive, 8 contests sd 9.1%, w_bye 0.4)
+  PA         spine level 6.4% → 7.2% (by-elections imply 22.2%, ward delta +18.92%/ratio 0.982, 4 contests sd 5.2%, clamped to 8.4%, w_bye 0.4)
+  TRUTH_AND_SOLIDARITY_MOVEMENT seeded level 0.1% → 0.1% (by-elections imply 0.1%, ward delta +0.11% additive, 2 contests sd 0.0%, w_bye 0.4)
+
+γ sources: ASA=2021→2024, MK=default 1.0, PA=fold1
+ward/PR ratios: MK 0.95, ASA 0.78, PA 2.00
+
+
+seat distribution (median [5th–95th percentile]):
+  DA            68  [ 53 –  91]   ward wins ≈  42.8
+  ANC           67  [ 38 –  82]   ward wins ≈  61.8
+  ASA           25  [ 14 –  50]   ward wins ≈   1.8
+  EFF           20  [  8 –  59]   ward wins ≈   8.4
+  PA            23  [ 18 –  34]   ward wins ≈  10.2
+  MK            24  [  7 –  38]   ward wins ≈   8.0
+  SOUTH_AFRICAN_COMMUNIST_PARTY     4  [  0 –  11]   ward wins ≈   0.4
+  RISE           3  [  1 –   8]   ward wins ≈   0.0
+  IFP            2  [  0 –   9]   ward wins ≈   1.1
+  BOSA           1  [  0 –   8]   ward wins ≈   0.0
+  ALJAMAAH       2  [  0 –   5]   ward wins ≈   0.6
+  VFPLUS         1  [  0 –   6]   ward wins ≈   0.0
+  ALL_CITIZENS_PARTY     1  [  0 –   7]   ward wins ≈   0.0
+  ATM            0  [  0 –   4]   ward wins ≈   0.1
+  CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS     0  [  0 –   6]   ward wins ≈   0.0
+  AIC            0  [  0 –   3]   ward wins ≈   0.0
+  ACDP           0  [  0 –   3]   ward wins ≈   0.0
+  ALLIED_INDEPENDENTS_UMBRELLA     0  [  0 –   5]   ward wins ≈   0.0
+  NATIONAL_DEMOCRATIC_CONVENTION     0  [  0 –   3]   ward wins ≈   0.0
+  NCC            0  [  0 –   1]   ward wins ≈   0.0
+  PAC            0  [  0 –   2]   ward wins ≈   0.0
+  UMPHAKATHI_WARONA     0  [  0 –   3]   ward wins ≈   0.0
+  AFRICAN_CONGRESS_FOR_TRANSFORMATION     0  [  0 –   1]   ward wins ≈   0.0
+  AHC            0  [  0 –   1]   ward wins ≈   0.0
+  MINORITY_FRONT     0  [  0 –   0]   ward wins ≈   0.0
+  SERVICE_DELIVERY_PARTY     0  [  0 –   1]   ward wins ≈   0.0
+
+council size: median 270, max 270   ·   majority threshold: median 136, max 136
+P(any party excessive): 70.0%   by party: ANC 65.0%, ALJAMAAH 5.0%, EFF 5.0%
+
+per-draw centre balance: 20 attempted, 0 fell back (0.0%)
+
+capacity cap: 0 target(s) could not be met from their own pools; 0.0000% of the citywide vote was redistributed   (the cap did not bind)
+
+implied θ outside §3.5 sanity ranges (share of draws):
+  ANC         55.0%
+  EFF         55.0%
+  ALJAMAAH    40.0%
+  PA          30.0%
+  MK          30.0%
+  DA          30.0%
+  ASA         10.0%
+
+coalition arithmetic — full enumeration over 12 parties (per-draw threshold, overhang-adjusted)
+
+  every pair and triple with P(majority) > 5%:
+  coalition                            P  median   5th–95th
+  DA + ANC + ASA                  90.0%     162  133–199 
+  DA + ANC + EFF                  85.0%     164  130–184 
+  DA + ANC + PA                   85.0%     164  121–183 
+  DA + ANC + MK                   85.0%     160  112–188 
+  DA + ANC + SOUTH_AFRICAN_COMMUNIST_PARTY  65.0%     140  104–162 
+  DA + ANC + IFP                  60.0%     142   98–168 
+  DA + ANC + RISE                 55.0%     141   99–168 
+  DA + ANC + BOSA                 55.0%     138   95–163 
+  DA + ANC + ALJAMAAH             55.0%     139   97–162 
+  DA + ANC + VFPLUS               55.0%     138  102–161 
+  DA + ANC                        50.0%     138   95–160 
+  DA + EFF + MK                   25.0%     116   95–153 
+  DA + ASA + EFF                  20.0%     125  100–145 
+  DA + ASA + PA                   20.0%     123  101–138 
+  ANC + EFF + MK                  20.0%     114   82–142 
+  DA + ASA + MK                   15.0%     122  102–141 
+  ANC + ASA + EFF                 15.0%     122   92–145 
+  ANC + ASA + PA                  15.0%     118   98–146 
+  ANC + ASA + MK                  15.0%     118   90–142 
+  DA + EFF + PA                   10.0%     122  100–152 
+  ANC + EFF + PA                  10.0%     120   96–142 
+  DA + PA + MK                     5.0%     117   97–133 
+  ANC + ASA + BOSA                 5.0%      98   70–125 
+  ANC + PA + MK                    5.0%     119   77–134 
+
+  most frequent minimal winning coalitions (every member necessary):
+  DA + ANC                                 MWC in  50.0% of draws
+  DA + ASA + PA + MK                       MWC in  50.0% of draws
+  DA + EFF + PA + MK                       MWC in  45.0% of draws
+  DA + ANC + ASA                           MWC in  40.0% of draws
+  DA + ASA + EFF + PA                      MWC in  40.0% of draws
+  ANC + EFF + PA + MK                      MWC in  40.0% of draws
+  DA + ANC + EFF                           MWC in  35.0% of draws
+  DA + ANC + PA                            MWC in  35.0% of draws
+  DA + ANC + MK                            MWC in  35.0% of draws
+  ANC + ASA + EFF + PA                     MWC in  30.0% of draws
+
+  power indices, median [5th–95th] (Banzhaf · Shapley–Shubik):
+  DA          25.8% [22.0%–33.1%]   ·    28.4% [23.1%–34.7%]
+  ANC         23.8% [14.5%–37.0%]   ·    25.5% [14.1%–37.5%]
+  ASA         10.5% [ 6.1%–24.4%]   ·     9.5% [ 5.5%–23.6%]
+  MK           8.8% [ 2.0%–18.6%]   ·     8.4% [ 2.1%–18.5%]
+  PA           8.8% [ 5.3%–13.3%]   ·     8.6% [ 4.9%–12.3%]
+  EFF          7.9% [ 3.7%–24.0%]   ·     7.4% [ 3.2%–24.2%]
+  SOUTH_AFRICAN_COMMUNIST_PARTY   1.2% [ 0.0%– 4.2%]   ·     1.1% [ 0.0%– 3.6%]
+  IFP          1.0% [ 0.0%– 4.0%]   ·     0.9% [ 0.0%– 3.4%]
+  RISE         1.0% [ 0.0%– 3.9%]   ·     0.8% [ 0.0%– 3.3%]
+  ALJAMAAH     0.9% [ 0.0%– 2.1%]   ·     0.8% [ 0.0%– 1.8%]
+  BOSA         0.3% [ 0.0%– 3.6%]   ·     0.4% [ 0.0%– 3.1%]
+  VFPLUS       0.3% [ 0.0%– 2.1%]   ·     0.3% [ 0.0%– 2.1%]
+
+  structural:
+  P(some majority without the ANC)              100.0%
+  P(some majority without ANC, EFF and MK)       80.0%
+  P(ANC+DA is winning)                           50.0%
+  P(some majority without the DA)               100.0%
+  P(DA is the largest single party)              55.0%
+  P(ANC is the largest single party)             35.0%
+  field without ANC, EFF and MK: median seats      156
+
+  minority administrations (candidate > active opposition, rest abstain):
+  DA minority, ANC+EFF+MK oppose                  5.0%
+  DA minority, only ANC opposes (2021 pattern)   60.0%
+  ANC minority, only DA opposes                  35.0%
+  ANC minority, DA+ASA oppose                    10.0%
+
+  --run-dir given: the trace is in /tmp/tmp1rbgjmck/trace and the published artefacts in data/processed were NOT rewritten.
+  (A diagnostic run does not publish. Re-run without --run-dir to regenerate them.)
+ok   test_a_diagnostic_run_does_not_overwrite_the_published_artefacts
+ok   test_a_forecast_that_is_right_is_not_scored_as_a_miss
+ok   test_a_party_table_entry_does_not_put_a_party_on_the_ballot
+  ! White: registered is 187% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  !! joburg 2000: census reprojection mapped 75.0% of this city's people, below 80% — admitted because the measured demographic shift is 0.004, within the 0.050 ceiling
+  ! registration_series(joburg): 3 election(s) left the record — census_join_unsafe 1999, 2004, 2019
+  !! joburg 2000: census reprojection mapped 75.0% of this city's people, below 80% — admitted because the measured demographic shift is 0.004, within the 0.050 ceiling
+  ! 46 declared parties have NO 2024 baseline and no fitted vector, so they are sized as ARRIVALS: ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT, AFRICAN_ECONOMIC_FREEDOM, AFRICAN_LABOUR_CONVENTION, AFRICAN_RENAISSANCE_UNITY, AFRICAN_ROYAL_RAINBOW_CONGRESS, AFRICAN_UNEMPLOYED_CONGRESS, AFRIKA_MAYIBUYE_MOVEMENT, AFRIKA_UNITE_CONGRESS, …. Correct for a genuine entrant. For a party that already exists it means the name here does not match the one in the 2024 results and its real share is being thrown away — check it against parties.py.
+  ! the declared 2026 roster says it is COMPLETE, so 27 parties holding 1.70% of the 2021 vote are dropped from the pools (confirm_drop)
+  dropped from the pools as not on the 2026 ballot (declared roster): 27 parties holding 0.06% of the 2024 national baseline and 1.704% of the 2021 local vote (ABAHLALY_BAAHI, ABANTU_BATHO_CONGRESS, ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA, AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA, AFRICAN_FREEDOM_REVOLUTION, AFRICAN_PEOPLE_S_MOVEMENT, …)
+  reach for 2026: 2021 ward ballot, carried forward unchanged; 80 declared in judgements
+ok   test_a_party_with_a_baseline_is_never_seeded
+ok   test_a_pool_is_never_built_from_another_citys_composition
+ok   test_a_pool_spec_from_different_code_is_reported_as_stale
+  ! 27 declared parties have NO 2024 baseline and no fitted vector, so they are sized as ARRIVALS: ABAHLALY_BAAHI, ABANTU_BATHO_CONGRESS, ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA, AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA, AFRICAN_COVENANT, AFRICAN_FREEDOM_REVOLUTION, AFRICAN_PEOPLE_S_MOVEMENT, AFRICAN_SECURITY_CONGRESS, …. Correct for a genuine entrant. For a party that already exists it means the name here does not match the one in the 2024 results and its real share is being thrown away — check it against parties.py.
+  ! the declared 2026 roster does NOT say `complete = true`, so it is UNIONED with the projected ballot: 57 declared, 35 of them new, 65 on the ballot in total, and NOTHING removed. Set `complete = true` once the list is known to be the whole ballot.
+  ! 27 declared parties have NO 2024 baseline and no fitted vector, so they are sized as ARRIVALS: ABAHLALY_BAAHI, ABANTU_BATHO_CONGRESS, ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA, AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA, AFRICAN_COVENANT, AFRICAN_FREEDOM_REVOLUTION, AFRICAN_PEOPLE_S_MOVEMENT, AFRICAN_SECURITY_CONGRESS, …. Correct for a genuine entrant. For a party that already exists it means the name here does not match the one in the 2024 results and its real share is being thrown away — check it against parties.py.
+  ! the declared 2026 roster says it is COMPLETE, so 0 parties holding 0.00% of the 2021 vote are dropped from the pools
+ok   test_a_realistic_nomination_list_is_accepted
+  ! 31 parties contested 2021 locally below 0.1% and polled nothing nationally, so they are NOT assumed onto the 2026 ballot (JUDGEMENT-CALLS §K2; costs 0.038pp of vote and zero seats on the record)
+  ! no roster for 2026: it has not been held and none is declared, so the ballot is PROJECTED. Parties in the 2024 baseline still get a pool vector, but NO GENUINE ENTRANT CAN BE FOUND — a party contesting 2026 with no 2024 vote is invisible to a projection, and ActionSA in 2021 was exactly that (18.12% of Johannesburg). To add one, name it under [roster] in /tmp/tmpdp7ap9f2/joburg-2026.toml and give it a strength and pools under [party.X] there — the roster table puts a party on the ballot, the party table says how strong it is and which pools it draws from.
+  ! 1 declared parties have NO 2024 baseline and no fitted vector, so they are sized as ARRIVALS: NEWPARTY. Correct for a genuine entrant. For a party that already exists it means the name here does not match the one in the 2024 results and its real share is being thrown away — check it against parties.py.
+  ! the declared 2026 roster does NOT say `complete = true`, so it is UNIONED with the projected ballot: 2 declared, 1 of them new, 4 on the ballot in total, and NOTHING removed. Set `complete = true` once the list is known to be the whole ballot.
+  ! 1 declared parties have NO 2024 baseline and no fitted vector, so they are sized as ARRIVALS: NEWPARTY. Correct for a genuine entrant. For a party that already exists it means the name here does not match the one in the 2024 results and its real share is being thrown away — check it against parties.py.
+  ! the declared 2026 roster says it is COMPLETE, so 2 parties holding 25.45% of the 2021 vote are dropped from the pools (confirm_drop)
+ok   test_a_roster_has_three_states_and_only_two_may_delete_a_party
+ok   test_a_splinter_is_never_sized_on_a_split_that_had_not_happened_yet
+ok   test_a_trace_records_the_level_chain_without_touching_it
+ok   test_a_vote_located_bloc_is_carved_out_of_its_parent_not_added_on_top
+ok   test_an_entrant_with_no_parent_is_spread_like_the_city_not_evenly
+ok   test_an_environment_gate_moves_the_artefact_key
+ok   test_an_impossible_nesting_is_reported_not_swallowed
+  ! 31 parties contested 2021 locally below 0.1% and polled nothing nationally, so they are NOT assumed onto the 2026 ballot (JUDGEMENT-CALLS §K2; costs 0.038pp of vote and zero seats on the record)
+  ! 1 parties held a 2024 national vote below 0.1% and no local record, so they are NOT assumed onto the 2026 ballot (JUDGEMENT-CALLS §K1; costs 0.10pp of vote on the record)
+  ! no roster for 2026: it has not been held and none is declared, so the ballot is PROJECTED. Parties in the 2024 baseline still get a pool vector, but NO GENUINE ENTRANT CAN BE FOUND — a party contesting 2026 with no 2024 vote is invisible to a projection, and ActionSA in 2021 was exactly that (18.12% of Johannesburg). To add one, name it under [roster] in /tmp/tmpj8gop9cg/joburg-2026.toml and give it a strength and pools under [party.X] there — the roster table puts a party on the ballot, the party table says how strong it is and which pools it draws from.
+  ! the declared 2026 roster does NOT say `complete = true`, so it is UNIONED with the projected ballot: 2 declared, 0 of them new, 5 on the ballot in total, and NOTHING removed. Set `complete = true` once the list is known to be the whole ballot.
+  ! the declared 2026 roster says it is COMPLETE, so 3 parties holding 35.57% of the 2021 vote are dropped from the pools (confirm_drop)
+ok   test_an_incomplete_declared_roster_unions_and_never_strips_a_vector
+ok   test_an_undeclared_split_is_flagged_in_the_spec_not_printed
+ok   test_an_unreadable_key_in_a_party_table_refuses_instead_of_being_ignored
+ok   test_applying_a_city_does_not_inherit_the_previous_city_s_judgements
+ok   test_arrival_rules_refuses_to_guess_a_city_mix
+  ! White: registered is 187% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+ok   test_balancing_hits_both_known_margins
+ok   test_calibration_is_not_measured_on_parties_that_won_nothing
+ok   test_contestation_counts_the_ballot_and_not_the_votes
+ok   test_counted_totals_are_never_overridden_by_the_census
+ok   test_each_census_dimension_is_reprojected_on_its_own_delimitation
+ok   test_emitting_for_an_unheld_target_does_not_silently_empty_the_spec
+ok   test_every_arrival_definition_is_named_where_it_is_computed
+ok   test_every_baseline_party_reaches_a_pool
+ok   test_every_constant_the_model_falls_back_to_says_when_it_was_fitted
+ok   test_every_emitted_pool_spec_carries_a_current_artefact_key
+ok   test_every_field_of_the_artefact_key_is_actually_checked
+ok   test_every_level_is_anchored_to_its_published_ward_total
+ok   test_passing_a_run_directory_changes_no_drawn_number
+ok   test_pool_ratios_are_measured_only_before_the_target
+ok   test_split_or_entrant_is_decided_in_exactly_one_place
+ok   test_the_arrival_definitions_are_not_interchangeable
+ok   test_the_arrival_record_figures_are_the_record
+  ! White: registered is 187% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! IFP-located: registered is 112% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+ok   test_the_bloc_identifies_the_party_that_located_it
+ok   test_the_bloc_is_located_only_by_elections_before_the_target
+ok   test_the_config_hash_covers_the_whole_config_directory
+ok   test_the_emit_dependency_set_matches_what_pools_actually_imports
+ok   test_the_entrant_relabel_sums_and_does_not_overwrite
+ok   test_the_fit_beats_the_only_answer_it_is_allowed_to_fall_back_to
+ok   test_the_fit_itself_allocates_exactly_one_vote_per_pool
+ok   test_the_fit_itself_never_returns_a_negative_rate
+ok   test_the_fit_refuses_rather_than_returning_an_unconverged_iterate
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+ok   test_the_forecast_runs_and_fills_the_council
+ok   test_the_in_sample_verdict_is_about_the_run_not_about_the_defaults
+ok   test_the_judgement_file_is_keyed_by_payload_and_not_by_prose
+ok   test_the_level_prior_reads_no_election_at_or_after_its_target
+ok   test_the_level_shrink_is_exactly_the_identity_when_it_is_off
+ok   test_the_level_shrink_takes_from_the_big_and_gives_to_the_small
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+ok   test_the_model_is_reproducible_from_its_seed
+ok   test_the_model_refuses_to_run_without_a_pool_spec
+ok   test_the_nested_levels_are_ordered_where_the_data_allows
+ok   test_the_pool_capture_cap_says_when_it_binds
+ok   test_the_pool_split_is_computed_per_ward_not_citywide
+  ! White: registered is 187% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  ! IFP-located: registered is 112% of the level above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. Registration and votes are administrative events — an in-person appearance with an ID book — and the denominator is a MODELLED small-area census estimate, so the term that fails here is the estimate. The published ward totals are untouched either way: this machinery SPLITS them and does not revise them, so what a ratio above 1 impeaches is the split, not the roll. Do NOT read this as a census UNDERCOUNT either: the published Census 2022 figures for the white and Indian groups are argued to be too HIGH, not too low (over-adjustment for a 62%/72% post-enumeration undercount, leaving them 14%/24% above projections), which makes this gap wider rather than narrower. See DATA-QUALITY.md item 11.
+  !! joburg 2000: census reprojection mapped 75.0% of this city's people, below 80% — admitted because the measured demographic shift is 0.004, within the 0.050 ceiling
+  ! registration_series(joburg): 3 election(s) left the record — census_join_unsafe 1999, 2004, 2019
+  !! joburg 2000: census reprojection mapped 75.0% of this city's people, below 80% — admitted because the measured demographic shift is 0.004, within the 0.050 ceiling
+  ! panel_turnout_spread(buffalocity): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(capetown): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(ekurhuleni): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(ethekwini): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(mangaung): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(nelsonmandelabay): 1 election(s) left the record — held_back 2000
+  ! panel_turnout_spread(tshwane): 1 election(s) left the record — held_back 2000
+  ! 46 declared parties have NO 2024 baseline and no fitted vector, so they are sized as ARRIVALS: ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT, AFRICAN_ECONOMIC_FREEDOM, AFRICAN_LABOUR_CONVENTION, AFRICAN_RENAISSANCE_UNITY, AFRICAN_ROYAL_RAINBOW_CONGRESS, AFRICAN_UNEMPLOYED_CONGRESS, AFRIKA_MAYIBUYE_MOVEMENT, AFRIKA_UNITE_CONGRESS, …. Correct for a genuine entrant. For a party that already exists it means the name here does not match the one in the 2024 results and its real share is being thrown away — check it against parties.py.
+  ! the declared 2026 roster says it is COMPLETE, so 27 parties holding 1.70% of the 2021 vote are dropped from the pools (confirm_drop)
+  dropped from the pools as not on the 2026 ballot (declared roster): 27 parties holding 0.06% of the 2024 national baseline and 1.704% of the 2021 local vote (ABAHLALY_BAAHI, ABANTU_BATHO_CONGRESS, ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA, AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA, AFRICAN_FREEDOM_REVOLUTION, AFRICAN_PEOPLE_S_MOVEMENT, …)
+  reach for 2026: 2021 ward ballot, carried forward unchanged; 80 declared in judgements
+ok   test_the_reader_simulation_spec_is_not_what_the_forecast_reads
+ok   test_the_trace_is_inert_without_a_run_directory
+ok   test_the_two_safety_booleans_refuse_a_quoted_value
+
+63 passed, 0 failed, 0 skipped
+
+=== timing ===================================================
+    431.9s  63.9%  test_chain
+    134.2s  19.9%  test_pool_bounds
+     80.2s  11.9%  test_roster_aware_baseline
+     15.9s   2.4%  test_theta_prior
+     13.7s   2.0%  test_pool_conservation
+    675.9s   100.0%  module time (5 modules)
+    566.2s          WALL CLOCK (1.19x from running in parallel)
+
+repository root: /private/var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/census-7r4vog_f/C8-off/root
+
+*** PARTIAL RUN: 5 of 63 modules. This is NOT a suite run and must not be reported as one. ***

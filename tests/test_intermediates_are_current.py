@@ -1,0 +1,582 @@
+"""Every processed intermediate is what today's generators produce.
+
+⛔ THIS IS THE GUARD THAT DID NOT EXIST ON 2026-09-10, WHEN 26 OF THE 104 CSVs
+UNDER ``data/processed`` TURNED OUT NOT TO MATCH THE CODE (MODEL-LOG §1.222).
+
+Seven cities' ``<city>/2021/turnout.csv`` predated the 2026-08-09 pre-2011
+archive ingest, so λ̂ had no 2011 anchor and ``turnout_2021_projected`` — the
+column ``montecarlo.py`` reads as ``ratio_pattern`` — was wrong on 207 to 709
+voting districts each, for a month. ``montecarlo.py:4142`` already said in a
+comment that this artefact "reaches the model WITH NO KEY AT ALL … a stale or
+rebuilt copy moves every draw in silence". **It was right, and being right in a
+comment caught nothing.**
+
+``pools_*.json`` cannot go stale unnoticed because it carries an
+``artefact_key``. Nothing else here does. For those, the only check available is
+to run the generator and compare, which is what this module does.
+
+⛔ **THE REGENERATION COVERS ``*.csv`` AND NOTHING ELSE. SAID HERE BECAUSE THE
+TITLE ABOVE DOES NOT SAY IT.** Every ``rglob`` in the regeneration and
+comparison path is ``"*.csv"``, so until 2026-09-14 the fourteen non-CSV
+families under ``data/processed`` were outside the population while the module
+was titled "every processed intermediate" and named exactly one exception.
+Several of them have a real generator and no ``artefact_key`` — ``ward_paths.json``
+(``render_map.py:313``, read back by ``hex_cartogram.py:621`` and the site
+build), ``ward_hex_layout.json``, ``interactive_data.json``,
+``forecast_summary.json``, ``validation_<year>.json``, ``width_budget.json``,
+``sweep.json``, ``regime_*_summary.json`` — which is §1.222's failure mode in a
+different extension.
+
+They are still not regenerated here (every one of them is written by a MODEL
+run, and reproducing them means 24 Monte Carlo runs), but they are now
+**declared** in :data:`NOT_REGENERATED_HERE` and asserted BOTH WAYS against the
+tree, so the gap is a stated one rather than an implied non-existence. A new
+non-CSV family appearing under ``data/processed`` turns this module red until
+somebody writes down what produces it.
+
+WHY IT REGENERATES INTO A PURGED SCRATCH ROOT, AND NOT IN PLACE
+---------------------------------------------------------------
+Two earlier attempts at this audit returned confident wrong answers, both from
+the population and not from the tree (CLAUDE.md §4 rule 0):
+
+* a reader trace that was too narrow reported "nothing reads it" for six
+  families that have real readers;
+* a comparison against a scratch tree in which **most files had never been
+  rewritten**, so ``IDENTICAL`` was trivially true for them. The mtime fence
+  meant to catch that was worthless, because ``cp -R`` restamps every file.
+
+So this test **deletes every CSV in the scratch copy first**. A file that exists
+afterwards was written by a generator in this run; one that does not was written
+by nothing. There is no way for an unwritten file to score as current.
+"""
+
+from __future__ import annotations
+
+import atexit
+import shutil
+import subprocess
+import sys
+import tempfile
+from fnmatch import fnmatch
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _support import (ROOT, declared_city_years, run_module,  # noqa: E402
+                      scanned, skip)
+
+PROCESSED = ROOT / "data" / "processed"
+PY = ROOT / ".venv" / "bin" / "python"
+
+CITIES = ("joburg", "buffalocity", "capetown", "ekurhuleni", "ethekwini",
+          "mangaung", "nelsonmandelabay", "tshwane")
+YEARS = ("2011", "2016", "2021", "2026")
+
+# ⛔ THE POPULATION THIS TEST DOES **NOT** COVER, STATED RATHER THAN IMPLIED.
+#
+# These are written by running the MODEL (or a retired script), not by an
+# ingest generator, so regenerating them would mean 24 Monte Carlo runs. They
+# are excluded by name and the exclusion is asserted BOTH WAYS below: a new
+# family that this module cannot reproduce must be added here deliberately, and
+# a name here that no longer exists on disk must be removed.
+NOT_GENERATED_HERE = (
+    "coalition_minority.csv", "coalition_mwc.csv",
+    "coalition_pairs_triples.csv", "coalition_power.csv",
+    "seat_draws.csv", "ward_winner_probs.csv",
+    # per-simulation detail beside seat_draws.csv, same run (2026-09-17)
+    "ward_draws.csv", "seat_detail_draws.csv",
+    "regime_cap_seat_draws.csv", "regime_expand_seat_draws.csv",
+    "regime_level_seat_draws.csv",
+    # Fold 5 has `lambda_pair: None`, so the default `--turnout level` is
+    # refused and every non-default option writes a VARIANT filename. No
+    # invocation available today reproduces this file under this name (§1.222).
+    # Read only by `fold.py --fit-from 5`, never by the forecast.
+    "fold5_parameters.csv",
+    # A deliberate experiment variant, reproducible with `--turnout ratio`.
+    "fold1_parameters__turnout-ratio.csv",
+)
+
+# ⛔ THE NON-CSV POPULATION, DECLARED RATHER THAN IMPLIED OUT OF EXISTENCE.
+#
+# Filename glob -> what writes it. Nothing here is regenerated by this module
+# (see the docstring), and the point of writing them down is that the
+# assertion runs BOTH WAYS: a file under `data/processed` matching no pattern
+# is a file whose provenance nobody has stated, and a pattern matching no file
+# is an exclusion nobody can see — the shape §1.222 found a deleted lever
+# sitting in for days.
+NOT_REGENERATED_HERE: dict[str, str] = {
+    "pools_*.json":
+        "src/pools.py --emit. THE ONE FAMILY THAT CANNOT GO STALE UNNOTICED: "
+        "it carries an `artefact_key`, which is why this module exists for "
+        "everything else. Batched re-emit procedure in POOLS-REEMIT-QUEUE.md.",
+    "forecast_summary.json":
+        "src/montecarlo.py main(). A model run, not an ingest generator.",
+    "validation_*.json":
+        "src/montecarlo.py, the held-out validation block of a model run.",
+    "width_budget.json":
+        "src/montecarlo.py, the band-width decomposition of a model run.",
+    "sweep.json":
+        "src/sweep.py — the obvious-fault sweep, run by hand before a commit "
+        "that moves numbers (CLAUDE.md 'Running things').",
+    "regime_*_summary.json":
+        "src/overhang_regimes.py. One model run per overhang rule.",
+    "interactive_data.json":
+        "src/build_site.py, from a completed model run; read by the site.",
+    "ward_paths.json":
+        "src/render_map.py:313. ⚠️ NO ARTEFACT KEY, and it is read back by "
+        "hex_cartogram.py:621 and by the site build — the same shape as the "
+        "turnout.csv defect in §1.222, in a different extension. It is not "
+        "regenerated here because render_map needs the shapefiles.",
+    "ward_hex_layout.json":
+        "src/hex_cartogram.py. ⚠️ NO ARTEFACT KEY; derived from ward_paths.json "
+        "and read by the site build.",
+    "history.json":
+        "src/compare_history.py — the panel. Carries its own `manifest` with "
+        "git_commit and git_dirty, which is how its provenance is checked "
+        "(tests/test_scored_universe.py) rather than by regeneration.",
+    "history.md":
+        "src/compare_history.py, the human-readable half of the same write.",
+    "forecast_frozen.json":
+        "src/freeze.py — the tripwire. Self-hashed and checked by "
+        "tests/test_freeze.py, which is a stronger guard than regeneration.",
+    "group_share_record.json":
+        "src/group_share_record.py --emit (BRIEF item 12): the group-share "
+        "tripwire's record and margins. Carries an artefact_key (declares.py, "
+        "`record` kind), and is regenerated and compared byte for byte by "
+        "test_the_group_share_record_is_a_fresh_build below.",
+    "bye_value.json":
+        "src/bye_value.py --emit (BRIEF item 19): the by-election value test, "
+        "whose class weights `montecarlo.blended_centres` applies. Carries an "
+        "artefact_key (declares.py, `record` kind; montecarlo refuses a stale "
+        "one), and is regenerated and compared byte for byte by "
+        "test_the_bye_value_record_is_a_fresh_build below.",
+    "citywide_*.json":
+        "src/citywide_table.py — the browser engine's stand-in for "
+        "levels._citywide_and_roster, recorded from a model run. Regenerated "
+        "and compared byte for byte by tests/test_citywide_table.py, and its "
+        "artefact_key names the code and every input's sha256 (declares.py, "
+        "`reduction` kind).",
+}
+
+# Runtime droppings, not artefacts. Declared for the same reason but exempt
+# from the ghost check below, because whether they exist depends on whether
+# something is running right now: `pools.artefact_lock` creates and removes
+# the lock, and `run_all.py` holds it for the duration of the suite.
+TRANSIENT: dict[str, str] = {
+    ".pools.lock": "pools.artefact_lock — present only while a writer holds it",
+    ".gitkeep": "keeps the gitignored directory in the tree",
+}
+
+# A two-sided bound on the population, as a fraction of a COMPUTED denominator
+# (CLAUDE.md §4 rule 1). A bare floor ratchets; when it trips the cheapest fix
+# is to lower it.
+MIN_COMPARED_FRACTION = 0.55
+MAX_COMPARED_FRACTION = 0.95
+
+
+def _scratch_root(tmp: Path) -> Path:
+    """A repository root whose `data/processed` holds no CSV at all."""
+    root = tmp / "root"
+    (root / "data").mkdir(parents=True)
+    shutil.copytree(PROCESSED, root / "data" / "processed")
+    for stale in (root / "data" / "processed").rglob("*.csv"):
+        stale.unlink()
+    (root / "data" / "raw").symlink_to(ROOT / "data" / "raw")
+    for name in ("src", "cities", "config", "content"):
+        if (ROOT / name).exists():
+            (root / name).symlink_to(ROOT / name)
+    return root
+
+
+def _regenerate(root: Path) -> list[str]:
+    """Run every ingest generator from empty. Returns the ones that failed."""
+    failed: list[str] = []
+
+    def run(*argv: str) -> None:
+        proc = subprocess.run([str(PY), *argv], cwd=root,
+                              capture_output=True, text=True)
+        if proc.returncode != 0:
+            failed.append(" ".join(argv) + f" -> {proc.stderr.strip()[-200:]}")
+
+    for city in CITIES:
+        run("src/build_concordance.py", "--city", city)
+    run("src/build_crosswalk.py")
+    run("src/byelections.py")
+    for city in CITIES:
+        for year in YEARS:
+            run("src/turnout.py", "--city", city, "--target", year)
+            run("src/gamma_recent.py", "--city", city, "--target", year)
+        for fold in ("1", "2", "3", "4"):
+            run("src/fold.py", "--fold", fold, "--city", city)
+    return failed
+
+
+def _compare(root: Path) -> tuple[list[str], list[str]]:
+    """(stale, uncovered) — differing files, and live files nothing produced."""
+    stale, uncovered = [], []
+    for live in sorted(PROCESSED.rglob("*.csv")):
+        rel = live.relative_to(PROCESSED)
+        made = root / "data" / "processed" / rel
+        if not made.exists():
+            uncovered.append(str(rel))
+        elif live.read_bytes() != made.read_bytes():
+            stale.append(str(rel))
+    return stale, uncovered
+
+
+_CACHE: dict[str, object] = {}
+
+
+def _sweep() -> dict:
+    """The sweep, run once and shared by every test below."""
+    if _CACHE:
+        return _CACHE  # type: ignore[return-value]
+    if not PY.exists():
+        skip(f"no interpreter at {PY}")
+    if not PROCESSED.exists():
+        skip("no data/processed; nothing to check")
+    tmp = Path(tempfile.mkdtemp(prefix="intermediates-"))
+    try:
+        root = _scratch_root(tmp)
+        failed = _regenerate(root)
+        stale, uncovered = _compare(root)
+        made = {p.name for p in (root / "data" / "processed").rglob("*.csv")}
+        _CACHE.update(root=str(root), failed=failed, stale=stale,
+                      uncovered=uncovered, made=made,
+                      total=len(list(PROCESSED.rglob("*.csv"))))
+        # Removed once, at interpreter exit, rather than by a fake `test_`
+        # function whose passing would mean nothing.
+        atexit.register(shutil.rmtree, tmp, True)
+    except Exception:
+        shutil.rmtree(tmp, ignore_errors=True)
+        raise
+    return _CACHE  # type: ignore[return-value]
+
+
+def test_it_looked_at_a_population_of_the_expected_size():
+    """RULE 1, ON THE CSV POPULATION — which is the only one regenerated here.
+
+    The non-CSV families are bounded in
+    `test_the_uncovered_set_is_exactly_the_declared_one_BOTH_WAYS` instead,
+    against a denominator computed from `cities/*.toml` rather than from the
+    artefacts under test.
+    """
+    s = _sweep()
+    total = s["total"]
+    assert total > 0, "no CSVs under data/processed at all -- nothing scanned"
+    compared = total - len(s["uncovered"])
+    lo, hi = int(total * MIN_COMPARED_FRACTION), int(total * MAX_COMPARED_FRACTION)
+    assert lo <= compared <= hi, (
+        f"this test compared {compared} of {total} processed CSVs, outside the "
+        f"expected {lo}-{hi}. Too few means the generators stopped producing "
+        f"things and the test has gone quietly blind; too many means a family "
+        f"listed in NOT_GENERATED_HERE is now reproducible and the list is "
+        f"stale. Either way the population changed and the change is the "
+        f"finding -- do not widen the bound to make this pass.")
+
+
+def test_every_generator_ran():
+    """A generator that CRASHED would otherwise leave its file 'uncovered'."""
+    s = _sweep()
+    # ⛔ THE `"fold 5" not in f` FILTER WAS DELETED ON 2026-09-14: IT EXEMPTED
+    # NOTHING IT CLAIMED TO AND COULD ONLY EXEMPT SOMETHING ELSE. `_regenerate`
+    # iterates folds 1-4, so no invocation string it builds can carry `--fold
+    # 5`; the only way the substring could appear is in the STDERR TAIL this
+    # function appends, so any generator whose error text happened to mention
+    # fold 5 was silently tolerated. `fold5_parameters.csv` is handled where it
+    # belongs, in NOT_GENERATED_HERE. Measured at the time of deletion: the
+    # sweep failed 0 generators, so nothing was being tolerated either way.
+    assert not s["failed"], (
+        "generators failed during the sweep, so their files were never "
+        "produced and would have been silently reported as uncovered rather "
+        "than stale:\n  " + "\n  ".join(s["failed"]))
+
+
+def test_the_uncovered_set_is_exactly_the_declared_one_BOTH_WAYS():
+    """RULE 0: assert the exclusion list against the tree, in both directions."""
+    s = _sweep()
+    unexpected = [u for u in s["uncovered"]
+                  if Path(u).name not in NOT_GENERATED_HERE]
+    assert not unexpected, (
+        "files under data/processed that NO generator reproduces and that "
+        "NOT_GENERATED_HERE does not declare. Each is a file whose provenance "
+        "is unknown -- establish it, then either add a generator or add it to "
+        "the list with the reason:\n  " + "\n  ".join(unexpected))
+
+    on_disk = {p.name for p in PROCESSED.rglob("*.csv")}
+    ghosts = [n for n in NOT_GENERATED_HERE if n not in on_disk]
+    assert not ghosts, (
+        "NOT_GENERATED_HERE names files that are no longer on disk. An "
+        "exclusion nobody can see is how a register drifts (§1.222 found a "
+        "deleted lever sitting in one for days): remove them.\n  "
+        + "\n  ".join(ghosts))
+
+    # ⛔ AND THE POPULATION THIS MODULE NEVER SCANNED. Every `rglob` above is
+    # `"*.csv"`, so until 2026-09-14 the claim in the module title was made of
+    # a population it had not looked at. The non-CSV families are still not
+    # regenerated; they are DECLARED, and the declaration is checked both ways.
+    others = sorted(q for q in PROCESSED.rglob("*") if q.is_file()
+                    and q.suffix != ".csv")
+    declared = {**NOT_REGENERATED_HERE, **TRANSIENT}
+    undeclared = sorted(str(q.relative_to(PROCESSED)) for q in others
+                        if not any(fnmatch(q.name, pat) for pat in declared))
+    assert not undeclared, (
+        "non-CSV files under data/processed that NOT_REGENERATED_HERE does "
+        "not declare. Each is an artefact this module does not regenerate and "
+        "nobody has written down what produces it — which is exactly how "
+        "`turnout.csv` was wrong on 207-709 voting districts for a month "
+        "(§1.222). Establish the generator, then add the pattern with the "
+        "reason:\n  " + "\n  ".join(undeclared))
+
+    unmatched = sorted(pat for pat in NOT_REGENERATED_HERE
+                       if not any(fnmatch(q.name, pat) for q in others))
+    assert not unmatched, (
+        "NOT_REGENERATED_HERE declares patterns that match nothing on disk. "
+        "Either the family was deleted and the entry must go, or the scan has "
+        "lost its population and every emptiness asserted above is vacuous — "
+        "this assertion is also what makes the non-CSV scan non-empty, so it "
+        "is the one that fires if `data/processed` is bare:\n  "
+        + "\n  ".join(unmatched))
+
+    # RULE 1 for the largest non-CSV family, against a denominator computed
+    # from the configs rather than from the artefacts under test.
+    specs = [q for q in others if fnmatch(q.name, "pools_*.json")]
+    scanned(specs, of=declared_city_years(), low=1.0, high=1.5,
+            what="emitted pool specs under data/processed",
+            denominator="backtest city-years declared by cities/*.toml "
+                        "[structure.by_year]")
+
+
+def test_no_processed_intermediate_is_stale():
+    """The claim itself: on-disk equals what today's code produces."""
+    s = _sweep()
+    assert not s["stale"], (
+        f"{len(s['stale'])} processed intermediate(s) differ from what today's "
+        f"generators produce. These reach the model with NO artefact key, so "
+        f"nothing else will notice. Regenerate them and MEASURE -- do not "
+        f"assume a stale intermediate is inert, and do not assume it is not "
+        f"(§1.222: 26 were stale, 7 of them in a column the model reads, and "
+        f"the measured effect on the 24-city-year seat table was exactly "
+        f"zero):\n  " + "\n  ".join(s["stale"]))
+
+
+def test_the_comparator_CAN_SEE_a_stale_file():
+    """RULE 2: a constructed violation, pushed through the same detector."""
+    s = _sweep()
+    root = Path(s["root"])
+    victim = None
+    for cand in sorted((root / "data" / "processed").rglob("*.csv")):
+        rel = cand.relative_to(root / "data" / "processed")
+        if (PROCESSED / rel).exists():
+            victim = cand
+            break
+    assert victim is not None, "no regenerated file to perturb -- see rule 1"
+
+    original = victim.read_bytes()
+    try:
+        victim.write_bytes(original + b"\n# a byte the generator did not write\n")
+        stale, _ = _compare(root)
+        rel = str(victim.relative_to(root / "data" / "processed"))
+        assert rel in stale, (
+            f"the comparator did not notice {rel} differing by an appended "
+            f"line. It is therefore not testing what its name claims.")
+    finally:
+        victim.write_bytes(original)
+
+    # And the other half of "it can see": with the perturbation reverted, the
+    # same detector must go quiet again. A comparator that always fires proves
+    # nothing either.
+    stale, _ = _compare(root)
+    assert str(victim.relative_to(root / "data" / "processed")) not in stale, (
+        "the comparator still reports the file as stale after the constructed "
+        "violation was reverted, so it is not reading the file it names.")
+
+
+def _build_group_share_record(out: Path, root: Path = ROOT) -> Path:
+    """Build the record from empty into ``out`` (never into data/processed),
+    running the builder in ``root``'s ``src/``."""
+    proc = subprocess.run([str(PY), "src/group_share_record.py", "--out",
+                           str(out)], cwd=root, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-400:]
+    return out / "group_share_record.json"
+
+
+def _record_staleness(live: Path, fresh: Path) -> str | None:
+    """The G15 detector: why ``live`` is not today's build ``fresh``, or None."""
+    if live.read_bytes() != fresh.read_bytes():
+        return ("group_share_record.json differs from a fresh build: re-emit "
+                "it in a window and measure, as for any precomputed artefact")
+    return None
+
+
+def _scratch_tree(edit=None, module: str = "group_share_record.py") -> Path:
+    """A tree whose ``src/`` is a COPY of this one's (``edit`` may rewrite
+    ``module``) and whose every other top-level entry is a link to this
+    one's, so it reads the same data and writes nothing here."""
+    tree = Path(tempfile.mkdtemp(prefix="record-tree-"))
+    for entry in ROOT.iterdir():
+        if entry.name in ("src", ".git"):
+            continue
+        (tree / entry.name).symlink_to(entry)
+    shutil.copytree(ROOT / "src", tree / "src",
+                    ignore=shutil.ignore_patterns("__pycache__"))
+    if edit is not None:
+        target = tree / "src" / module
+        before = target.read_text(encoding="utf-8")
+        after = edit(before)
+        assert after != before, "the constructed edit changed nothing"
+        target.write_text(after, encoding="utf-8")
+    return tree
+
+
+def test_the_group_share_record_is_a_fresh_build():
+    """G15 (BRIEF item 12): the record on disk is what today's code builds.
+
+    Rebuilt from an EMPTY directory, so nothing scores current by never being
+    rewritten, and compared byte for byte by `_record_staleness`, whose
+    ability to see a real stale record is the next test's.
+    Red until the re-emit window runs `--emit` (SPEC R3.6, slice M3).
+    """
+    live = PROCESSED / "group_share_record.json"
+    assert live.exists(), (
+        f"{live} is not on disk. It is emitted in the re-emit window "
+        f"(src/group_share_record.py --emit); until then the tripwire reports "
+        f"\"no record\".")
+    tmp = Path(tempfile.mkdtemp(prefix="group-share-"))
+    try:
+        assert not any(tmp.iterdir()), "the scratch directory is not empty"
+        made = _build_group_share_record(tmp)
+        problem = _record_staleness(live, made)
+        assert problem is None, problem
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_the_group_share_freshness_check_can_see_a_real_stale_record():
+    """G15's "can see", on a REAL stale record (M3 review row 6: until
+    2026-10-09 this step appended a byte to the rebuilt copy and compared it
+    with itself, which tests nothing).
+
+    A stale record is one built by other code. Constructed: the builder run
+    in a scratch tree whose ``group_share_record.py`` covers one city instead
+    of eight. `_record_staleness` must flag it against today's build, and go
+    quiet on a build from the same scratch tree with the edit reverted, which
+    also shows the tree's location is not what differs. Does not need the
+    record on disk. Cost: two full builds and one one-city build.
+    """
+    old = 'CITIES = ("joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",'
+    one_city = (lambda text: text.replace(
+        old, 'CITIES = ("joburg",)\n_WAS = ("joburg", "tshwane", "ekurhuleni", '
+             '"ethekwini", "capetown",', 1))
+    dirs = []
+    try:
+        fresh_dir = Path(tempfile.mkdtemp(prefix="group-share-"))
+        dirs.append(fresh_dir)
+        fresh = _build_group_share_record(fresh_dir)
+        for edit, stale in ((one_city, True), (None, False)):
+            tree = _scratch_tree(edit)
+            out = Path(tempfile.mkdtemp(prefix="group-share-"))
+            dirs += [tree, out]
+            built = _build_group_share_record(out, root=tree)
+            problem = _record_staleness(built, fresh)
+            if stale:
+                assert problem, "a record built by other code read as current"
+            else:
+                assert problem is None, ("a build of today's code from a "
+                                         "scratch tree reads as stale")
+    finally:
+        for d in dirs:
+            shutil.rmtree(d, ignore_errors=True)
+
+
+def _build_bye_value(out: Path, root: Path = ROOT) -> Path:
+    """Build the item-19 record from empty into ``out`` (never into
+    data/processed), running the builder in ``root``'s ``src/``."""
+    proc = subprocess.run([str(PY), "src/bye_value.py", "--out", str(out)],
+                          cwd=root, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-400:]
+    return out / "bye_value.json"
+
+
+def _bye_value_staleness(live: Path, fresh: Path) -> str | None:
+    """The detector: why ``live`` is not today's build ``fresh``, or None."""
+    if live.read_bytes() != fresh.read_bytes():
+        return ("bye_value.json differs from a fresh build: rebuild it in a "
+                "window (src/bye_value.py --emit) and measure")
+    return None
+
+
+def test_the_bye_value_record_is_a_fresh_build():
+    """BRIEF item 19: the by-election value record on disk is what today's
+    code builds, rebuilt from an EMPTY directory and compared byte for byte
+    by `_bye_value_staleness` (whose ability to see is the next test's).
+    Red until the re-emit window runs `--emit` (SPEC R3.6, slice M4).
+    """
+    live = PROCESSED / "bye_value.json"
+    assert live.exists(), (
+        f"{live} is not on disk. It is written in the re-emit window "
+        f"(src/bye_value.py --emit); until then every run that reads "
+        f"by-elections refuses.")
+    tmp = Path(tempfile.mkdtemp(prefix="bye-value-"))
+    try:
+        assert not any(tmp.iterdir()), "the scratch directory is not empty"
+        made = _build_bye_value(tmp)
+        problem = _bye_value_staleness(live, made)
+        assert problem is None, problem
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_the_bye_value_freshness_check_can_see_a_real_stale_record():
+    """The detector's "can see", on a REAL stale record: one built by other
+    code, a scratch tree whose ``bye_value.py`` draws 200 bootstrap resamples
+    instead of 2,000. Flagged against today's build; quiet on a build from
+    the same scratch tree with the edit reverted (so the tree's location is
+    not what differs). Does not need the record on disk.
+    """
+    old = "BYE_VALUE_RESAMPLES = 2000"
+    fewer = (lambda text: text.replace(old, "BYE_VALUE_RESAMPLES = 200", 1))
+    dirs = []
+    try:
+        fresh_dir = Path(tempfile.mkdtemp(prefix="bye-value-"))
+        dirs.append(fresh_dir)
+        fresh = _build_bye_value(fresh_dir)
+        for edit, stale in ((fewer, True), (None, False)):
+            tree = _scratch_tree(edit, module="bye_value.py")
+            out = Path(tempfile.mkdtemp(prefix="bye-value-"))
+            dirs += [tree, out]
+            built = _build_bye_value(out, root=tree)
+            problem = _bye_value_staleness(built, fresh)
+            if stale:
+                assert problem, "a record built by other code read as current"
+            else:
+                assert problem is None, ("a build of today's code from a "
+                                         "scratch tree reads as stale")
+    finally:
+        for d in dirs:
+            shutil.rmtree(d, ignore_errors=True)
+
+
+def test_the_scratch_root_really_was_purged():
+    """The instrument's own premise, asserted rather than trusted.
+
+    If the copy were not purged, every unwritten file would compare equal to
+    itself and the whole module would pass while checking nothing. That is not
+    hypothetical: it is exactly how the 2026-09-10 audit's second attempt got a
+    wrong answer, and an mtime fence does NOT catch it because `cp -R`
+    restamps.
+    """
+    s = _sweep()
+    root = Path(s["root"])
+    made = {p.name for p in (root / "data" / "processed").rglob("*.csv")}
+    # Every CSV now in the scratch root is one a generator wrote in this run,
+    # so no name excluded from the sweep may be present.
+    leaked = sorted(n for n in NOT_GENERATED_HERE if n in made)
+    assert not leaked, (
+        "files that no generator in this sweep produces are present in the "
+        "scratch root, so the purge did not happen and 'identical' is "
+        "trivially true for them:\n  " + "\n  ".join(leaked))
+
+
+if __name__ == "__main__":
+    # AT THE END — see test_register_matches_code. Append tests ABOVE this.
+    raise SystemExit(run_module(globals()))

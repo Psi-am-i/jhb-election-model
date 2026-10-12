@@ -1,0 +1,37 @@
+{
+ "year": "2011",
+ "draws": 1000,
+ "n_run_wards": 130,
+ "n_result_wards": 130,
+ "matched": 130,
+ "called_pre_relabel": 126,
+ "called_post_relabel": 126,
+ "entrant_actual": "NFP",
+ "modal_entrant_wards": [],
+ "top_party_vs_argmax_mismatch": [],
+ "solid": 108,
+ "sample_run_ward": "79800001",
+ "sample_result_ward": "79800001",
+ "modal_calls_wrong": [
+  [
+   "79800007",
+   "ANC",
+   "DA"
+  ],
+  [
+   "79800032",
+   "ANC",
+   "DA"
+  ],
+  [
+   "79800065",
+   "ANC",
+   "IFP"
+  ],
+  [
+   "79800096",
+   "ANC",
+   "DA"
+  ]
+ ]
+}

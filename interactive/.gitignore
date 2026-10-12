@@ -1,0 +1,3 @@
+# The seat code the builder serves: a byte copy of src/, written by
+# tools/sync_py.mjs (as worker-api/seats-py/src/ is). Never edit it here.
+py/

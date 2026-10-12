@@ -1,0 +1,155 @@
+# Tshwane — the pilot for the multi-city framework.
+#
+# STATUS: SKELETON. Structure is derived from Tshwane's own IEC files
+# (src/derive_city.py --code TSH --slug tshwane). The judgements below are
+# COPIED FROM JOHANNESBURG AS PLACEHOLDERS and are NOT yet defensible for
+# this city — see the TODO block. Nothing may be published from this config
+# until each one has been reviewed against Tshwane's own history.
+
+legacy_processed_root = false     # -> data/processed/tshwane/
+
+[identity]
+code = "TSH"
+slug = "tshwane"
+name = "Tshwane"
+formal_name = "City of Tshwane"
+province = "GP"
+province_name = "Gauteng"
+ward_prefix = "799"               # Joburg is 798
+subdomain = "tshwane.whysoserious.city"
+
+[structure]
+# Derived 2026-08-07 from lge2021_TSH_downloadable_party_results.csv.
+# Council = wards x2; confirm against the Seat Calculation Detail before use.
+# Confirmed against the IEC Seat Calculation Detail: quota 6,244, A 1,336,006,
+# 214 seats. The council was 210 in 2011 — council size is not constant even
+# within a city, which is why nothing here is typed from memory.
+council = 214
+wards = 107
+list_seats = 107
+vds = 778
+registered = 1526585
+election_date = "2026-11-04"
+# For the record, the trajectory derive_city printed:
+#   2011: 105 wards ·  616 VDs · 1,326,427 registered  (210-seat council)
+#   2016: 107 wards ·  732 VDs · 1,512,524 registered
+#   2021: 107 wards ·  778 VDs · 1,526,585 registered
+
+# Council sizes READ FROM the IEC's own Seat Calculation Detail
+# (data/raw/elections/_reports/lge<year>_TSH_seat_calculation_detail.xls, via
+# src/official_seats.py). Note 2016 was ALREADY 214, not 210 — the expansion
+# came with the 2016 delimitation (105 wards -> 107), not with 2021.
+# Wards and VDs counted from the cleaned VD result files.
+
+[structure.by_year.2011]
+council = 210
+wards = 105
+list_seats = 105
+vds = 616
+registered = 1326427
+
+[structure.by_year.2016]
+council = 214
+wards = 107
+list_seats = 107
+vds = 732
+registered = 1512524
+
+[structure.by_year.2021]
+council = 214
+wards = 107
+list_seats = 107
+vds = 778
+registered = 1526585
+
+[site]
+accent = "#6b4fa8"                # jacaranda purple — Pretoria in October
+accent_soft = "#e8e2f2"
+accent_dark = "#a98fd6"
+accent_soft_dark = "#2b2440"
+
+# ---------------------------------------------------------------------------
+# TODO before Tshwane can be published — the judgement review
+# ---------------------------------------------------------------------------
+# 2021 PR ballot, Tshwane's actual party universe:
+#   ANC 34.8% · DA 31.8% · EFF 10.4% · ActionSA 9.3% · VF+ 7.8%
+#   ACDP 0.9% · AIC 0.8% · Defenders of the People 0.5% · PA 0.5%
+#
+# Differences from Johannesburg that the judgements must reflect:
+#   1. VF+ is FIRST-CLASS here (7.8%, vs marginal in CoJ) — it needs its own
+#      dial, chip and theta range, not the shared minor-party treatment.
+#   2. The PA is marginal (0.5%) — the CoJ contestation-uplift judgement
+#      (built on its 52-of-135 ward slate there) does not transfer.
+#   3. Pool vectors are fitted per city (`python src/pools.py --city tshwane
+#      --target <year> --emit`), so VF+'s distinct 2021 constituency is
+#      measured here rather than inherited from CoJ: it fits at 85% White
+#      against Johannesburg's 79%.
+#   5. Local formations (Defenders of the People) may need carrying.
+#
+# Political context to fold into the site copy and the newsdesk terms:
+#   ActionSA's Nasiphi Moya governs in coalition with the ANC and EFF; that
+#   coalition is publicly strained ahead of November. The DA has positioned
+#   Cilliers Brink (the mayor it lost in 2024) to take it back. EFF's
+#   candidate is Omphile Maotwe.
+
+[map]
+# STARTING POINT — rotate_deg needs eyeballing once the first map renders.
+# Tshwane sprawls north-south (Hammanskraal to Centurion) and far east
+# (Bronkhorstspruit), so it may want little or no rotation, unlike Joburg's
+# diagonal. cos_lat is cos(25.75 deg), the metro's rough centre latitude.
+width = 840.0
+cos_lat = 0.901
+rotate_deg = 0
+
+labels = [
+  { name = "Pretoria CBD",  lon = 28.188, lat = -25.746 },
+  { name = "Centurion",     lon = 28.188, lat = -25.858 },
+  { name = "Soshanguve",    lon = 28.108, lat = -25.520 },
+  { name = "Mamelodi",      lon = 28.400, lat = -25.716 },
+  { name = "Atteridgeville",lon = 28.078, lat = -25.770 },
+  { name = "Hammanskraal",  lon = 28.283, lat = -25.400 },
+  { name = "Menlyn",        lon = 28.277, lat = -25.784 },
+  { name = "Akasia",        lon = 28.107, lat = -25.665 },
+  { name = "Cullinan",      lon = 28.523, lat = -25.673 },
+]
+
+[judgements]
+# ⛔ `[judgements.plan_bounds]` DELETED 2026-08-31. It carried six of
+# Johannesburg's seven theta ranges under its own comment, "PLACEHOLDER — CoJ
+# ranges. Re-derive from Tshwane's transitions." They never were.
+#
+# Deleted rather than re-derived, for three reasons:
+#   * `cityconfig`'s own docstring names this exact failure — "applied blind to
+#     another metro these do not crash; they produce plausible, wrong output."
+#     Tshwane HONESTLY UNCLAMPED beats Tshwane clamped with Johannesburg's
+#     numbers, because absence is a legitimate state and a wrong bound is not.
+#   * It is number-neutral on everything anyone has ever scored. The clamp lives
+#     inside the by-election tilt, gated on `byelection_party_deltas.csv`, which
+#     exists at exactly one path in the tree — Johannesburg 2026. It fires on
+#     ZERO of the sixteen panel city-years (MODEL-LOG §1.140 §4).
+#   * Tshwane cannot emit a 2026 spec at all until `POOLS-REEMIT-QUEUE` entry 2
+#     lands, so nothing could have read these before then either.
+#
+# If Tshwane bounds are wanted, derive them from Tshwane's own transitions and
+# say so here. Do not copy another metro's.
+
+[judgements.scalars]
+# `w_bye` left this table 2026-10-10: the by-election weight is derived per
+# size class (BRIEF item 19, JUDGEMENT-CALLS §A55); a typed 0.4 here would be
+# an override every run applied in silence.
+turnout_pattern_blend = 0.5
+turnout_blend_jitter = 0.25
+turnout_noise_sd = 0.08
+entrant_prob = 0.25
+entrant_share = [0.01, 0.04, 0.12]
+ward_noise_sd = 0.1
+level_floor = 1e-06
+overhang_rule = "deduct"
+draws = 5000
+seed = 20261104
+
+[newsdesk]
+parties = ["ActionSA/Moya", "DA/Brink", "ANC", "EFF/Maotwe", "MK", "VF+"]
+outlets = ["Pretoria News", "Rekord", "News24", "Daily Maverick", "EWN", "The Citizen", "IOL", "Mail & Guardian", "SABC"]
+pollsters = ["Social Research Foundation", "Victory Research", "Ipsos", "Brenthurst"]
+name_variants = ["City of Tshwane", "Tshwane", "Pretoria"]

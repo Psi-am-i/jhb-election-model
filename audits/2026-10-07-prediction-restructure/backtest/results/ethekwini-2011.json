@@ -1,0 +1,72 @@
+{
+ "city": "ethekwini",
+ "year": "2011",
+ "draws": 1000,
+ "council": 205,
+ "wards": 103,
+ "A": {
+  "seats": {
+   "MINORITY_FRONT": 13,
+   "ACDP": 3,
+   "APC": 1,
+   "NFP": 3,
+   "DA": 39,
+   "ANC": 123,
+   "IFP": 18,
+   "COPE": 5
+  },
+  "seat_err": 31.0,
+  "wards_ok": 97,
+  "ward_vote_err_pp": 20.019672061289356,
+  "list_vote_err_pp": 17.539653090238392,
+  "top": "ANC",
+  "top_wards": 80,
+  "top_actual_wards": 78,
+  "excessive": {},
+  "council": 205,
+  "ward_wins": {
+   "ANC": 80,
+   "DA": 17,
+   "IFP": 2,
+   "MINORITY_FRONT": 4
+  }
+ },
+ "B": {
+  "draw": 900,
+  "seats": {
+   "ACDP": 3,
+   "ANC": 128,
+   "COPE": 2,
+   "DA": 40,
+   "IFP": 17,
+   "MINORITY_FRONT": 15
+  },
+  "seat_err": 31.0,
+  "wards_ok": 99,
+  "ward_vote_err_pp": 22.779044792106934,
+  "list_vote_err_pp": 14.819364009008526
+ },
+ "median_seat_err": 28.0,
+ "median_total": 196.0,
+ "coherent_seat_err": 31.0,
+ "actual": {
+  "seats": {
+   "MINORITY_FRONT": 11,
+   "ACDP": 2,
+   "TRULY_ALLIANCE": 1,
+   "APC": 1,
+   "DA": 43,
+   "NFP": 10,
+   "ANC": 126,
+   "IFP": 9,
+   "COPE": 1
+  },
+  "ward_wins": {
+   "ANC": 78,
+   "DA": 17,
+   "IFP": 1,
+   "MINORITY_FRONT": 6,
+   "IND": 1
+  }
+ }
+}

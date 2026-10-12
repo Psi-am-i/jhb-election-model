@@ -1,0 +1,270 @@
+{
+  "arrival_group": null,
+  "artefact_key": {
+    "city": "nelsonmandelabay",
+    "config_sha": "050fa0e62ec22543",
+    "pools_sha": "732ef614fabd6ac7",
+    "schema": 1,
+    "target": "2016"
+  },
+  "categories": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+  ],
+  "entrant_record": [],
+  "fitted_on": "2011",
+  "judgement_file": "judgements/nelsonmandelabay-2016.toml",
+  "no_measured_vector": {
+    "AFRICAN_POWER_MOVEMENT": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "AIC": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "ALTERNATIVE_DEMOCRATS": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "BUILDING_A_COHESIVE_SOCIETY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "EFF": "splinter of ANC, 35% its vector and 65% the city average",
+    "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "PA": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UBUNTU_PARTY": "entrant, no measured vector \u2014 spread as the city's own pool composition",
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": "entrant, no measured vector \u2014 spread as the city's own pool composition"
+  },
+  "pool_shares_at_target": [
+    0.5309739041588883,
+    0.21942530885915834,
+    0.025745460044457835,
+    0.2238553269374956
+  ],
+  "pools": {
+    "Black African": {
+      "alpha": 57.59624537948385,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2011; size from the 2016 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2016",
+      "identified": [
+        "ANC",
+        "APC",
+        "COPE",
+        "DA",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.15871982154005207,
+        "AFRICAN_POWER_MOVEMENT": 0.5422865396079729,
+        "AIC": 0.5422865396079729,
+        "ALTERNATIVE_DEMOCRATS": 0.5422865396079729,
+        "ANC": 0.9081958869639788,
+        "APC": 0.4644693501401505,
+        "AZAPO": 0.39443895054632955,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.5422865396079729,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.1981871581991938,
+        "COPE": 0.87881327769428,
+        "DA": 0.026487163023278748,
+        "EFF": 0.670354811182575,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.5422865396079729,
+        "PA": 0.5422865396079729,
+        "PAC": 0.6315264706535368,
+        "UBUNTU_PARTY": 0.5422865396079729,
+        "UDM": 0.47539111852773785,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.5422865396079729,
+        "VFPLUS": 0.16264966510871992
+      },
+      "registered": 330134.9071633799,
+      "turnout": [
+        0.3349875457334616,
+        0.6168246875897208,
+        0.8372485609181924
+      ]
+    },
+    "Coloured": {
+      "alpha": 29.158124923026794,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2011; size from the 2016 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "APC",
+        "CHRISTIAN_DEMOCRATIC_PARTY",
+        "COPE",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.4349012491274249,
+        "AFRICAN_POWER_MOVEMENT": 0.21596525766170127,
+        "AIC": 0.21596525766170127,
+        "ALTERNATIVE_DEMOCRATS": 0.21596525766170127,
+        "ANC": 0.07205495018751001,
+        "APC": 0.19983068087311426,
+        "AZAPO": 0.051986142985848686,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.21596525766170127,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.6953942609640248,
+        "COPE": 0.07420720558385187,
+        "DA": 0.40609552379526204,
+        "EFF": 0.16559665004573432,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.21596525766170127,
+        "PA": 0.21596525766170127,
+        "PAC": 0.08168795531510939,
+        "UBUNTU_PARTY": 0.21596525766170127,
+        "UDM": 0.2338712791137166,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.21596525766170127,
+        "VFPLUS": 0.2524554816426052
+      },
+      "registered": 132674.5879892667,
+      "turnout": [
+        0.04441398129030073,
+        0.6420284674770961,
+        0.9857567825661346
+      ]
+    },
+    "Indian/Asian": {
+      "alpha": 27.06642557498831,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2011; size from the 2016 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2016",
+      "identified": [
+        "APC",
+        "AZAPO",
+        "PAC",
+        "UDM"
+      ],
+      "members": {
+        "ACDP": 0.009346823863282217,
+        "AFRICAN_POWER_MOVEMENT": 0.027808191787497508,
+        "AIC": 0.027808191787497508,
+        "ALTERNATIVE_DEMOCRATS": 0.027808191787497508,
+        "ANC": 0.0012707402210622434,
+        "APC": 0.036816478060540885,
+        "AZAPO": 0.06424993701933689,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.027808191787497508,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.011671008962071357,
+        "COPE": 0.03922191569856153,
+        "DA": 0.06296398037043577,
+        "EFF": 0.018520083739245165,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.027808191787497508,
+        "PA": 0.027808191787497508,
+        "PAC": 0.03145199812283017,
+        "UBUNTU_PARTY": 0.027808191787497508,
+        "UDM": 0.03188542015930482,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.027808191787497508,
+        "VFPLUS": 0.009578247735172865
+      },
+      "registered": 16088.113072847893,
+      "turnout": [
+        0.4433390631130673,
+        0.7226359264979328,
+        0.8949912782882067
+      ]
+    },
+    "White": {
+      "alpha": 44.32771459033367,
+      "derived_from": "pool vectors fitted on nelsonmandelabay 2011; size from the 2016 roll split by each ward's own composition; turnout from nelsonmandelabay's local elections before 2016",
+      "identified": [
+        "ACDP",
+        "APC",
+        "AZAPO",
+        "PAC",
+        "UDM",
+        "VFPLUS"
+      ],
+      "members": {
+        "ACDP": 0.39703210546924084,
+        "AFRICAN_POWER_MOVEMENT": 0.21394001094282827,
+        "AIC": 0.21394001094282827,
+        "ALTERNATIVE_DEMOCRATS": 0.21394001094282827,
+        "ANC": 0.018478422627448896,
+        "APC": 0.2988834909261944,
+        "AZAPO": 0.4893249694484849,
+        "BUILDING_A_COHESIVE_SOCIETY": 0.21394001094282827,
+        "CHRISTIAN_DEMOCRATIC_PARTY": 0.09474757187471014,
+        "COPE": 0.007757601023306609,
+        "DA": 0.5044533328110236,
+        "EFF": 0.1455284550324455,
+        "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": 0.21394001094282827,
+        "PA": 0.21394001094282827,
+        "PAC": 0.25533357590852357,
+        "UBUNTU_PARTY": 0.21394001094282827,
+        "UDM": 0.2588521821992408,
+        "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.21394001094282827,
+        "VFPLUS": 0.575316605513502
+      },
+      "registered": 130319.39177450546,
+      "turnout": [
+        0.4110497234261538,
+        0.6904399849586256,
+        0.8769632194323922
+      ]
+    }
+  },
+  "provenance": "nested pool counts from 2011; pools sized by 2014 roll carried to 2016 on the 2011-2014 RATE of change (log-space, invariant to a constant level bias), damped x0.6",
+  "registration_series": {
+    "2006": [
+      0.6022535411392209,
+      0.18916216573159217,
+      0.029859027928702046,
+      0.17872526520048473
+    ],
+    "2009": [
+      0.5859758467579572,
+      0.1974276057824743,
+      0.02771672171654679,
+      0.1888798257430218
+    ],
+    "2011": [
+      0.5613657328324315,
+      0.21536338669492727,
+      0.02463577634676002,
+      0.19863510412588117
+    ],
+    "2014": [
+      0.539752456618333,
+      0.21836506003208048,
+      0.02543598982729169,
+      0.21644649352229484
+    ]
+  },
+  "seed_bands": {},
+  "seed_notes": {},
+  "seeds": {},
+  "splinter_home": {
+    "fractions": {
+      "NFP": 0.3524
+    },
+    "measured_at": [
+      "2014"
+    ]
+  },
+  "target": "2016",
+  "turnout_limits": {
+    "city": {
+      "high": 0.7049405545850291,
+      "low": 0.48950127700963925,
+      "observed_high": 0.6408550496227537,
+      "observed_low": 0.543890307788488,
+      "previous": 0.6408550496227537
+    },
+    "margin": 0.1,
+    "pool": [
+      {
+        "high": 0.6785071563486929,
+        "low": 0.5496024837918639,
+        "observed_high": 0.6168246875897208,
+        "observed_low": 0.6106694264354043,
+        "previous": 0.6168246875897208
+      },
+      {
+        "high": 0.7062313142248058,
+        "low": 0.36604104283461536,
+        "observed_high": 0.6420284674770961,
+        "observed_low": 0.40671226981623926,
+        "previous": 0.6420284674770961
+      },
+      {
+        "high": 0.7948995191477262,
+        "low": 0.3990051568017606,
+        "observed_high": 0.7226359264979328,
+        "observed_low": 0.4433390631130673,
+        "previous": 0.7226359264979328
+      },
+      {
+        "high": 0.7594839834544882,
+        "low": 0.4741117115937791,
+        "observed_high": 0.6904399849586256,
+        "observed_low": 0.5267907906597545,
+        "previous": 0.6904399849586256
+      }
+    ]
+  }
+}

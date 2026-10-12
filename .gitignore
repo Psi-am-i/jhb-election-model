@@ -1,0 +1,89 @@
+.venv/
+# No data in git. Keep only the directory skeleton, so a fresh clone has
+# somewhere to put it -- git will not descend into an excluded directory, so the
+# directories must be re-included before their .gitkeep files can match.
+data/**
+!data/**/
+!**/.gitkeep
+
+# ...EXCEPT the scoreboard, which is a REFERENCE and not an output.
+#
+# Every calibration figure in this repository is quoted as "the committed
+# data/processed/history.json". It was never committed. It is overwritten by
+# every run, so nothing could diff it, no test could compare a document against
+# it, and three separate reviews rediscovered the same class of staleness --
+# ranks 4-12 written up as n=26 / PIT 0.750 / 46% four minutes after the file on
+# disk said n=28 / 0.757 / 43%. A reference artefact that cannot be diffed is
+# not a reference.
+#
+# history.json is the machine-readable one and is what
+# tests/test_calibration_report.py checks the documents against. history.md is
+# tracked with it because it is the human-readable rendering of the same run and
+# a diff of the two together shows what moved and what it means. Both are
+# written by src/compare_history.py with json.dumps(indent=2), so the diff is
+# line-oriented and readable.
+!data/processed/history.json
+!data/processed/history.md
+
+# ...AND the forecast freeze, for the same reason one level up.
+#
+# `src/freeze.py` writes a stage-1 forecast with a content hash so that a
+# restructure can be diffed against a FIXED reference instead of a moving one.
+# An untracked freeze is not a reference — it is a file on one machine that
+# nothing can compare against and no reviewer can see. It is written once and
+# re-written only deliberately, so it diffs cleanly.
+!data/processed/forecast_frozen.json
+__pycache__/
+*.pyc
+.DS_Store
+
+# agent worktrees and local claude state
+.claude/
+
+# Build caches, not source. `.wrangler/cache/wrangler-account.json` was TRACKED
+# in this public repository until 2026-08-23 — a Cloudflare account id and an
+# email-derived account name, in a cache directory. Not credentials, and not
+# something a public repo should carry either.
+.wrangler/
+.pytest_cache/
+
+# The pool-artefact lock (src/pools.py artefact_lock). Runtime coordination,
+# never content — see MODEL-LOG 1.102.
+data/processed/.pools.lock
+
+# The Stats SA inbox folder. `data/**` is already ignored above; this one is
+# untracked only because it sits at the repo ROOT rather than under `data/`,
+# and it was therefore making every freeze report a dirty tree —
+# `freeze._dirty_excluding` counts untracked paths, and the question it says it
+# answers is "was the CODE clean when this freeze was taken".
+#
+# Contents checked before ignoring rather than assumed: two `.inetloc` mail
+# shortcuts and `Languages by Municipalities Census 2022.xls`, which is
+# BYTE-IDENTICAL to the canonical copy at
+# `data/raw/covariates/Languages by Municipalities Census 2022.xls`
+# (sha256 61f5371e78e5…, same size and mtime). So nothing is being hidden that
+# is not already in its proper place. HANDOVER.md said this folder held "no
+# data"; it holds a duplicate of the file the ward-language rake depends on.
+new data from statsSA/
+*.swp
+
+# Site design assets (Pixelmator sources, full-size renders). Untracked and
+# deliberately so — they are tens of megabytes of binaries that belong with the
+# site, not with the model. Listed here because `git add -A` swept them into a
+# commit on 2026-09-13 and they had to be removed from it.
+whysoserious.city/
+
+# Copies of every gitignored file, so a script that overwrites one cannot
+# destroy it. See src/backup_ignored.py. Local protection, not a second copy
+# in the repository.
+backups/
+# marketing/ lives in the private atlas-jhb-model-newsdesk repo
+marketing/
+
+# The leaderboard of readers' entries (src/rank_entries.py, src/build_leaderboard.py).
+# It carries the names readers typed. Kept out of this public repository so that
+# an entry removed on request (`rank_entries.py --drop`) or the names removed at
+# the ninety-day deletion (`--anonymise`) are not kept in its history
+# (JUDGEMENT-CALLS.md §N8). deploy_check lets the built copy ship uncommitted.
+content/*/leaderboard.json
+site/leaderboard/leaderboard.json

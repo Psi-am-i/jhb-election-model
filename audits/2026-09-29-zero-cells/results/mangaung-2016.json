@@ -1,0 +1,3704 @@
+{
+ "city": "mangaung",
+ "year": "2016",
+ "draws": 2000,
+ "seed": 20261104,
+ "control": "none",
+ "c4_party": null,
+ "plant_party": null,
+ "plant_wards": [
+  "49400001",
+  "49400002"
+ ],
+ "relabel_entrant": null,
+ "seconds": 19.4,
+ "spec": "data/processed/mangaung/pools_2016.json",
+ "universe": [
+  "ACDP",
+  "AGENCY_FOR_NEW_AGENDA",
+  "AIC",
+  "ANC",
+  "APC",
+  "AZANIAN_ALLIANCE_CONGRESS",
+  "BOTSHABELO_UNEMPLOYED_MOVEMENT",
+  "COPE",
+  "DA",
+  "EFF",
+  "PAC",
+  "UNITED_CHRISTIAN_DEMOCRATIC_PARTY",
+  "VFPLUS"
+ ],
+ "n_wards_model": 49,
+ "n_wards_actual": {
+  "PR": 50,
+  "Ward": 50
+ },
+ "unmatched_actual_wards": {
+  "PR": [
+   "49400050"
+  ],
+  "Ward": [
+   "49400050"
+  ]
+ },
+ "cells_scanned": {
+  "PR": 698,
+  "Ward": 488
+ },
+ "near_zero_counts": {
+  "PR": {
+   "1e-12": 102,
+   "1e-09": 102,
+   "1e-06": 102,
+   "0.0001": 102,
+   "0.001": 102
+  },
+  "Ward": {
+   "1e-12": 111,
+   "1e-09": 111,
+   "1e-06": 111,
+   "0.0001": 111,
+   "0.001": 111
+  }
+ },
+ "min_vd_share_W": {
+  "ACDP": 6.328247293535699e-07,
+  "AGENCY_FOR_NEW_AGENDA": 3.869112587551457e-07,
+  "AIC": 4.692085851146397e-07,
+  "ANC": 0.0004616316017783839,
+  "APC": 7.570448847617738e-07,
+  "AZANIAN_ALLIANCE_CONGRESS": 4.397940840231877e-07,
+  "BOTSHABELO_UNEMPLOYED_MOVEMENT": 4.289898804889156e-07,
+  "COPE": 3.032144496768784e-08,
+  "DA": 0.0029745383807254708,
+  "EFF": 4.3484400960549253e-05,
+  "PAC": 6.702726314260323e-07,
+  "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 7.164995791103952e-07,
+  "VFPLUS": 6.920883688946508e-05
+ },
+ "min_over_wards_of_max_share": {
+  "W": {
+   "ACDP": 0.10078980153500684,
+   "AGENCY_FOR_NEW_AGENDA": 0.11135284271818756,
+   "AIC": 0.06443364531763816,
+   "ANC": 0.20141750326155428,
+   "APC": 0.08973516698765503,
+   "AZANIAN_ALLIANCE_CONGRESS": 0.05056004040883209,
+   "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.07443570633596681,
+   "COPE": 0.01676584035355369,
+   "DA": 0.31884899234913133,
+   "EFF": 0.05825527768593399,
+   "PAC": 0.05735530813857014,
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.06363053890892773,
+   "VFPLUS": 0.030626522418089733
+  },
+  "PR": {
+   "ACDP": 0.061536621913540604,
+   "AGENCY_FOR_NEW_AGENDA": 0.14814094595581706,
+   "AIC": 0.0826363046390125,
+   "ANC": 0.20393659421630006,
+   "APC": 0.10346402718749304,
+   "AZANIAN_ALLIANCE_CONGRESS": 0.05833906512322112,
+   "BOTSHABELO_UNEMPLOYED_MOVEMENT": 0.09306183147193468,
+   "COPE": 0.01682149914545061,
+   "DA": 0.3123599338838976,
+   "EFF": 0.05587863735304675,
+   "PAC": 0.07835446546353624,
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.07869033911421323,
+   "VFPLUS": 0.02861982683873052
+  }
+ },
+ "zero_cells": [
+  {
+   "ballot": "PR",
+   "ward": "49400001",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 4069,
+   "share": 0.0007372818874416319,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400001",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 4069,
+   "share": 0.0004915212582944212,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 4069,
+   "share": 0.0002457606291472106,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400002",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4778,
+   "share": 0.0002092925910422771,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400002",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 4778,
+   "share": 0.0008371703641691084,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400003",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 3967,
+   "share": 0.0007562389715149988,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400003",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 3967,
+   "share": 0.0005041593143433325,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400004",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 3756,
+   "share": 0.0013312034078807242,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400004",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 3756,
+   "share": 0.00026624068157614486,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400006",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 4464,
+   "share": 0.0008960573476702509,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400006",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 6,
+   "ward_total": 4464,
+   "share": 0.0013440860215053765,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400007",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 3542,
+   "share": 0.000282326369282891,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400007",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 3542,
+   "share": 0.000564652738565782,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400008",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4416,
+   "share": 0.00022644927536231884,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400008",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 3,
+   "ward_total": 4416,
+   "share": 0.0006793478260869565,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400009",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 4159,
+   "share": 0.00048088482808367395,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400010",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 6893,
+   "share": 0.0008704482808646452,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400010",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 5,
+   "ward_total": 6893,
+   "share": 0.0007253735673872045,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400011",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 4258,
+   "share": 0.00023485204321277596,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400012",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 4792,
+   "share": 0.0006260434056761269,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400012",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 3,
+   "ward_total": 4792,
+   "share": 0.0006260434056761269,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400013",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 4178,
+   "share": 0.0004786979415988511,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400014",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5339,
+   "share": 0.00018730099269526128,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400014",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 5339,
+   "share": 0.00018730099269526128,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400015",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 4261,
+   "share": 0.0011734334663224596,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400015",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 4261,
+   "share": 0.0004693733865289838,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400016",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4817,
+   "share": 0.00020759809009757111,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400016",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 4817,
+   "share": 0.00020759809009757111,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400017",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4383,
+   "share": 0.00022815423226100844,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400017",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 4383,
+   "share": 0.00022815423226100844,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400018",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5243,
+   "share": 0.00019073049780659929,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400018",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 5243,
+   "share": 0.00019073049780659929,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400019",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4257,
+   "share": 0.0004698144233027954,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400019",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 3,
+   "ward_total": 4257,
+   "share": 0.0007047216349541931,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400020",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6012,
+   "share": 0.00016633399866932801,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400020",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 6012,
+   "share": 0.00033266799733865603,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400021",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 5155,
+   "share": 0.00019398642095053346,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400021",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 5155,
+   "share": 0.00019398642095053346,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400022",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6662,
+   "share": 0.00015010507355148604,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400023",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4723,
+   "share": 0.0004234596654668643,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400024",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 6250,
+   "share": 0.00032,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400025",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 6799,
+   "share": 0.00029416090601559053,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400026",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 5835,
+   "share": 0.00017137960582690659,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400027",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 7,
+   "ward_total": 4579,
+   "share": 0.0015287180607119458,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400027",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 7,
+   "ward_total": 4579,
+   "share": 0.0015287180607119458,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400028",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 8,
+   "ward_total": 4460,
+   "share": 0.0017937219730941704,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400028",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 4460,
+   "share": 0.0008968609865470852,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400029",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 4831,
+   "share": 0.0010349824052991099,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400029",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 6,
+   "ward_total": 4831,
+   "share": 0.001241978886358932,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400030",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 4035,
+   "share": 0.0012391573729863693,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400030",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 30,
+   "ward_total": 4035,
+   "share": 0.007434944237918215,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400031",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 41,
+   "ward_total": 3795,
+   "share": 0.01080368906455863,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400031",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 17,
+   "ward_total": 3795,
+   "share": 0.0044795783926218705,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400032",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 11,
+   "ward_total": 3879,
+   "share": 0.0028357824181490074,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400032",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 3879,
+   "share": 0.0010311936065996391,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400033",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 19,
+   "ward_total": 3462,
+   "share": 0.005488157134604275,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400033",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 8,
+   "ward_total": 3462,
+   "share": 0.002310803004043905,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400034",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 8,
+   "ward_total": 3896,
+   "share": 0.002053388090349076,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400034",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 3896,
+   "share": 0.001026694045174538,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400035",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 7,
+   "ward_total": 4356,
+   "share": 0.0016069788797061523,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400035",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 15,
+   "ward_total": 4356,
+   "share": 0.003443526170798898,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400036",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4279,
+   "share": 0.00046739892498247256,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400037",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 8,
+   "ward_total": 4186,
+   "share": 0.0019111323459149545,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400037",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 11,
+   "ward_total": 4186,
+   "share": 0.0026278069756330625,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400038",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 15,
+   "ward_total": 4166,
+   "share": 0.003600576092174748,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400038",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 13,
+   "ward_total": 4166,
+   "share": 0.0031204992798847817,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400039",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 5168,
+   "share": 0.0011609907120743034,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400039",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 5168,
+   "share": 0.0007739938080495357,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400040",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 4297,
+   "share": 0.0011636025133814289,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400040",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 5,
+   "ward_total": 4297,
+   "share": 0.0011636025133814289,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400041",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 4496,
+   "share": 0.0006672597864768683,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400041",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 4496,
+   "share": 0.00022241992882562276,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400042",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 3500,
+   "share": 0.001142857142857143,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400042",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 3,
+   "ward_total": 3500,
+   "share": 0.0008571428571428571,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400043",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 3743,
+   "share": 0.0010686615014694097,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400043",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 5,
+   "ward_total": 3743,
+   "share": 0.0013358268768367619,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400044",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 6754,
+   "share": 0.0002961208172934557,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400045",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 4331,
+   "share": 0.0009235742322789194,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400045",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 4331,
+   "share": 0.00023089355806972986,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400046",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 5842,
+   "share": 0.0008558712769599452,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400046",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 3,
+   "ward_total": 5842,
+   "share": 0.0005135227661759672,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400047",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 6014,
+   "share": 0.0006651147322913202,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400047",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 6014,
+   "share": 0.00016627868307283005,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400048",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6652,
+   "share": 0.0001503307276007216,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400048",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 6652,
+   "share": 0.0003006614552014432,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400049",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 5345,
+   "share": 0.00037418147801683815,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400049",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 5,
+   "ward_total": 5345,
+   "share": 0.0009354536950420954,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "ACDP",
+   "votes": 17,
+   "ward_total": 4866,
+   "share": 0.0034936292642827787,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "AIC",
+   "votes": 180,
+   "ward_total": 4866,
+   "share": 0.036991368680641186,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "ANC",
+   "votes": 3726,
+   "ward_total": 4866,
+   "share": 0.7657213316892725,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "APC",
+   "votes": 21,
+   "ward_total": 4866,
+   "share": 0.004315659679408138,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "AGENCY_FOR_NEW_AGENDA",
+   "votes": 47,
+   "ward_total": 4866,
+   "share": 0.009658857377722976,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "AZANIAN_ALLIANCE_CONGRESS",
+   "votes": 13,
+   "ward_total": 4866,
+   "share": 0.0026715988491574187,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "BOTSHABELO_UNEMPLOYED_MOVEMENT",
+   "votes": 3,
+   "ward_total": 4866,
+   "share": 0.0006165228113440197,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "COPE",
+   "votes": 49,
+   "ward_total": 4866,
+   "share": 0.010069872585285656,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "DA",
+   "votes": 467,
+   "ward_total": 4866,
+   "share": 0.09597205096588574,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 4866,
+   "share": 0.0010275380189066995,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "EFF",
+   "votes": 298,
+   "ward_total": 4866,
+   "share": 0.061241265926839296,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "PAC",
+   "votes": 3,
+   "ward_total": 4866,
+   "share": 0.0006165228113440197,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "UNITED_CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 4866,
+   "share": 0.0004110152075626798,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 12,
+   "ward_total": 4866,
+   "share": 0.002466091245376079,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "PR",
+   "ward": "49400050",
+   "party": "VFPLUS",
+   "votes": 23,
+   "ward_total": 4866,
+   "share": 0.004726674886970818,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400001",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4046,
+   "share": 0.0004943153732081067,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 4046,
+   "share": 0.00024715768660405336,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400002",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 5,
+   "ward_total": 4790,
+   "share": 0.0010438413361169101,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400003",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 3970,
+   "share": 0.0007556675062972292,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400003",
+   "party": "IND",
+   "votes": 248,
+   "ward_total": 3970,
+   "share": 0.062468513853904284,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400003",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 3970,
+   "share": 0.00025188916876574307,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400004",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 3811,
+   "share": 0.0002623983206507478,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400004",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 5,
+   "ward_total": 3811,
+   "share": 0.0013119916032537393,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400005",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4436,
+   "share": 0.0002254283137962128,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400006",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 4553,
+   "share": 0.0010981770261366132,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400007",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 7,
+   "ward_total": 3568,
+   "share": 0.001961883408071749,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400007",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 3568,
+   "share": 0.0011210762331838565,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400008",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4509,
+   "share": 0.00022177866489243733,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400008",
+   "party": "IND",
+   "votes": 591,
+   "ward_total": 4509,
+   "share": 0.13107119095143047,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400008",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 6,
+   "ward_total": 4509,
+   "share": 0.0013306719893546241,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400009",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 4245,
+   "share": 0.0004711425206124853,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400010",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6962,
+   "share": 0.00014363688595231256,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400010",
+   "party": "IND",
+   "votes": 796,
+   "ward_total": 6962,
+   "share": 0.11433496121804079,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400010",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 12,
+   "ward_total": 6962,
+   "share": 0.0017236426314277506,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400011",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 4440,
+   "share": 0.0006756756756756757,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400011",
+   "party": "IND",
+   "votes": 127,
+   "ward_total": 4440,
+   "share": 0.028603603603603603,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400012",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 4858,
+   "share": 0.0012350761630300535,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400012",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 4858,
+   "share": 0.0004116920543433512,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400014",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5368,
+   "share": 0.0005588673621460507,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400014",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 5368,
+   "share": 0.00018628912071535022,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400015",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 4207,
+   "share": 0.0007130972189208462,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400016",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 4866,
+   "share": 0.0006165228113440197,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400017",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4447,
+   "share": 0.00044974139869574995,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400017",
+   "party": "IND",
+   "votes": 394,
+   "ward_total": 4447,
+   "share": 0.08859905554306274,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400017",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 4447,
+   "share": 0.00044974139869574995,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400018",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 5222,
+   "share": 0.00038299502106472615,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400018",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 5222,
+   "share": 0.0007659900421294523,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400019",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4453,
+   "share": 0.00044913541432741973,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400019",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 4453,
+   "share": 0.0008982708286548395,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400020",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 6072,
+   "share": 0.00016469038208168644,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400020",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 6072,
+   "share": 0.00016469038208168644,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400021",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5046,
+   "share": 0.0005945303210463733,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400021",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 5046,
+   "share": 0.0007927070947284979,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400022",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 60,
+   "ward_total": 6740,
+   "share": 0.008902077151335312,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400022",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 6740,
+   "share": 0.0001483679525222552,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400023",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4726,
+   "share": 0.00042319085907744394,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400025",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 6808,
+   "share": 0.00014688601645123384,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400027",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 4588,
+   "share": 0.0013077593722755014,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400027",
+   "party": "IND",
+   "votes": 284,
+   "ward_total": 4588,
+   "share": 0.06190061028770706,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400027",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 4588,
+   "share": 0.0008718395815170009,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400028",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 4472,
+   "share": 0.0013416815742397137,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400028",
+   "party": "IND",
+   "votes": 159,
+   "ward_total": 4472,
+   "share": 0.03555456171735241,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400028",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 9,
+   "ward_total": 4472,
+   "share": 0.002012522361359571,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400029",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 4842,
+   "share": 0.0010326311441553077,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400029",
+   "party": "IND",
+   "votes": 103,
+   "ward_total": 4842,
+   "share": 0.021272201569599337,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400029",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 5,
+   "ward_total": 4842,
+   "share": 0.0010326311441553077,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400030",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4142,
+   "share": 0.0004828585224529213,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400030",
+   "party": "IND",
+   "votes": 991,
+   "ward_total": 4142,
+   "share": 0.2392563978754225,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400030",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 24,
+   "ward_total": 4142,
+   "share": 0.005794302269435055,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400031",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 44,
+   "ward_total": 3806,
+   "share": 0.011560693641618497,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400031",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 20,
+   "ward_total": 3806,
+   "share": 0.005254860746190226,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400032",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 10,
+   "ward_total": 3886,
+   "share": 0.0025733401955738548,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400032",
+   "party": "IND",
+   "votes": 719,
+   "ward_total": 3886,
+   "share": 0.18502316006176017,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400032",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 10,
+   "ward_total": 3886,
+   "share": 0.0025733401955738548,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400033",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 17,
+   "ward_total": 3529,
+   "share": 0.004817228676678946,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400033",
+   "party": "IND",
+   "votes": 926,
+   "ward_total": 3529,
+   "share": 0.26239727968262966,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400033",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 7,
+   "ward_total": 3529,
+   "share": 0.0019835647492207425,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400034",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 8,
+   "ward_total": 4187,
+   "share": 0.0019106759016001911,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400034",
+   "party": "IND",
+   "votes": 1392,
+   "ward_total": 4187,
+   "share": 0.33245760687843323,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400034",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 6,
+   "ward_total": 4187,
+   "share": 0.0014330069262001434,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400035",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 9,
+   "ward_total": 4329,
+   "share": 0.002079002079002079,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400035",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 24,
+   "ward_total": 4329,
+   "share": 0.005544005544005544,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400036",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 1,
+   "ward_total": 4300,
+   "share": 0.00023255813953488373,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400036",
+   "party": "IND",
+   "votes": 364,
+   "ward_total": 4300,
+   "share": 0.08465116279069768,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400037",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4399,
+   "share": 0.0004546487838145033,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400037",
+   "party": "IND",
+   "votes": 936,
+   "ward_total": 4399,
+   "share": 0.21277563082518755,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400037",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 12,
+   "ward_total": 4399,
+   "share": 0.00272789270288702,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400038",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 11,
+   "ward_total": 4163,
+   "share": 0.002642325246216671,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400038",
+   "party": "IND",
+   "votes": 744,
+   "ward_total": 4163,
+   "share": 0.17871727119865483,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400038",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 7,
+   "ward_total": 4163,
+   "share": 0.0016814797021378813,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400039",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 4,
+   "ward_total": 5333,
+   "share": 0.0007500468779298706,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400039",
+   "party": "IND",
+   "votes": 946,
+   "ward_total": 5333,
+   "share": 0.1773860866304144,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400039",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 5333,
+   "share": 0.0003750234389649353,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400040",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 4391,
+   "share": 0.0013664313368253246,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400040",
+   "party": "IND",
+   "votes": 850,
+   "ward_total": 4391,
+   "share": 0.19357777271692098,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400040",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 3,
+   "ward_total": 4391,
+   "share": 0.0006832156684126623,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400041",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 4490,
+   "share": 0.0006681514476614699,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400041",
+   "party": "IND",
+   "votes": 411,
+   "ward_total": 4490,
+   "share": 0.09153674832962139,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400041",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 4490,
+   "share": 0.0008908685968819599,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400042",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 5,
+   "ward_total": 3520,
+   "share": 0.0014204545454545455,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400042",
+   "party": "IND",
+   "votes": 205,
+   "ward_total": 3520,
+   "share": 0.05823863636363636,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400042",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 3520,
+   "share": 0.0011363636363636363,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400043",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 3736,
+   "share": 0.0008029978586723769,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400043",
+   "party": "IND",
+   "votes": 74,
+   "ward_total": 3736,
+   "share": 0.01980728051391863,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400043",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 3736,
+   "share": 0.0010706638115631692,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400044",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 6719,
+   "share": 0.0002976633427593392,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400044",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 1,
+   "ward_total": 6719,
+   "share": 0.0001488316713796696,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400045",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4282,
+   "share": 0.00046707146193367583,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400046",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 3,
+   "ward_total": 5874,
+   "share": 0.0005107252298263534,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400046",
+   "party": "IND",
+   "votes": 108,
+   "ward_total": 5874,
+   "share": 0.018386108273748723,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400046",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 2,
+   "ward_total": 5874,
+   "share": 0.00034048348655090226,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400047",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 6068,
+   "share": 0.000988793671720501,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400047",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 4,
+   "ward_total": 6068,
+   "share": 0.0006591957811470006,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400048",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 3,
+   "ward_total": 6677,
+   "share": 0.00044930357945184964,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400049",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 6,
+   "ward_total": 5321,
+   "share": 0.0011276075925577898,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400049",
+   "party": "IND",
+   "votes": 373,
+   "ward_total": 5321,
+   "share": 0.07009960533734261,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400049",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 9,
+   "ward_total": 5321,
+   "share": 0.001691411388836685,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "ACDP",
+   "votes": 17,
+   "ward_total": 4861,
+   "share": 0.003497222793663855,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "ANC",
+   "votes": 3891,
+   "ward_total": 4861,
+   "share": 0.8004525817732977,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "COPE",
+   "votes": 59,
+   "ward_total": 4861,
+   "share": 0.012137420283892203,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "DA",
+   "votes": 456,
+   "ward_total": 4861,
+   "share": 0.09380785846533635,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA",
+   "votes": 2,
+   "ward_total": 4861,
+   "share": 0.0004114379757251594,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "EFF",
+   "votes": 296,
+   "ward_total": 4861,
+   "share": 0.0608928204073236,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "IND",
+   "votes": 106,
+   "ward_total": 4861,
+   "share": 0.02180621271343345,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "UNITED_RESIDENTS_FRONT",
+   "votes": 6,
+   "ward_total": 4861,
+   "share": 0.0012343139271754782,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "White"
+   ],
+   "n_pools": 3
+  },
+  {
+   "ballot": "Ward",
+   "ward": "49400050",
+   "party": "VFPLUS",
+   "votes": 28,
+   "ward_total": 4861,
+   "share": 0.005760131660152232,
+   "model_max": 0.0,
+   "why": "ward not forecast",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [],
+   "n_pools": 3
+  }
+ ]
+}

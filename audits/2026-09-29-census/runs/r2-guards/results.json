@@ -1,0 +1,397 @@
+{
+ "CONTROL": {
+  "name": "CONTROL",
+  "tests": {
+   "failed": [
+    "test_no_emitted_composition_weight_is_arithmetically_impossible"
+   ]
+  },
+  "compare": {
+   "mangaung-2016": {
+    "spec_fields_changed": [],
+    "trace": {
+     "first": null,
+     "changed": [],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   },
+   "joburg-2026": {
+    "spec_fields_changed": [],
+    "trace": {
+     "first": null,
+     "changed": [],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   }
+  },
+  "new_test_failures": []
+ },
+ "C3-guard": {
+  "name": "C3-guard",
+  "tests": {
+   "failed": [
+    "test_emit_refuses_a_spec_that_would_drop_a_declared_pool",
+    "test_no_emitted_composition_weight_is_arithmetically_impossible"
+   ]
+  },
+  "compare": {
+   "mangaung-2016": {
+    "spec_fields_changed": [],
+    "trace": {
+     "first": null,
+     "changed": [],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   }
+  },
+  "new_test_failures": [
+   "test_emit_refuses_a_spec_that_would_drop_a_declared_pool"
+  ]
+ },
+ "C9-off": {
+  "name": "C9-off",
+  "tests": {
+   "failed": [
+    "test_no_emitted_composition_weight_is_arithmetically_impossible",
+    "test_the_panel_spread_does_not_count_a_held_pool_as_a_movement"
+   ]
+  },
+  "compare": {
+   "mangaung-2016": {
+    "spec_fields_changed": [
+     "pools"
+    ],
+    "trace": {
+     "first": "40_draws",
+     "changed": [
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws"
+     ],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   },
+   "joburg-2026": {
+    "spec_fields_changed": [],
+    "trace": {
+     "first": null,
+     "changed": [],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   },
+   "spread": {
+    "2016": {
+     "changed_pools": [
+      "Indian/Asian"
+     ],
+     "n": [
+      34,
+      36
+     ]
+    },
+    "2026": {
+     "changed_pools": [
+      "Indian/Asian"
+     ],
+     "n": [
+      94,
+      100
+     ]
+    }
+   }
+  },
+  "new_test_failures": [
+   "test_the_panel_spread_does_not_count_a_held_pool_as_a_movement"
+  ]
+ },
+ "C5-off": {
+  "name": "C5-off",
+  "tests": {
+   "failed": [
+    "test_every_consumer_the_spec_names_calls_apply_mergers",
+    "test_no_emitted_composition_weight_is_arithmetically_impossible",
+    "test_the_run_model_mergers_reach_the_spine"
+   ]
+  },
+  "compare": {
+   "joburg-2026": {
+    "spec_fields_changed": [],
+    "trace": {
+     "first": "10_theta_prior",
+     "changed": [
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   }
+  },
+  "new_test_failures": [
+   "test_every_consumer_the_spec_names_calls_apply_mergers",
+   "test_the_run_model_mergers_reach_the_spine"
+  ]
+ },
+ "C6-off": {
+  "name": "C6-off",
+  "tests": {
+   "failed": [
+    "test_every_consumer_the_spec_names_calls_apply_mergers",
+    "test_no_emitted_composition_weight_is_arithmetically_impossible",
+    "test_the_run_model_mergers_reach_the_spine"
+   ]
+  },
+  "compare": {
+   "joburg-2026": {
+    "spec_fields_changed": [],
+    "trace": {
+     "first": "20_spine",
+     "changed": [
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws"
+     ],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   }
+  },
+  "new_test_failures": [
+   "test_every_consumer_the_spec_names_calls_apply_mergers",
+   "test_the_run_model_mergers_reach_the_spine"
+  ]
+ },
+ "C7-off": {
+  "name": "C7-off",
+  "tests": {
+   "failed": [
+    "test_every_consumer_the_spec_names_calls_apply_mergers",
+    "test_no_emitted_composition_weight_is_arithmetically_impossible",
+    "test_the_current_johannesburg_spec_was_emitted_with_the_vector_blend"
+   ]
+  },
+  "compare": {
+   "joburg-2026": {
+    "spec_fields_changed": [
+     "mergers",
+     "no_measured_vector",
+     "pools"
+    ],
+    "trace": {
+     "first": "40_draws",
+     "changed": [
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws"
+     ],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   }
+  },
+  "new_test_failures": [
+   "test_every_consumer_the_spec_names_calls_apply_mergers",
+   "test_the_current_johannesburg_spec_was_emitted_with_the_vector_blend"
+  ]
+ },
+ "C4-off": {
+  "name": "C4-off",
+  "tests": {
+   "failed": [
+    "test_no_emitted_composition_weight_is_arithmetically_impossible"
+   ]
+  },
+  "compare": {
+   "mangaung-2016": {
+    "spec_fields_changed": [],
+    "trace": {
+     "first": "40_draws",
+     "changed": [
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws"
+     ],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   }
+  },
+  "new_test_failures": []
+ },
+ "C4-nudge": {
+  "name": "C4-nudge",
+  "tests": {
+   "failed": [
+    "test_no_emitted_composition_weight_is_arithmetically_impossible"
+   ]
+  },
+  "compare": {
+   "mangaung-2016": {
+    "spec_fields_changed": [],
+    "trace": {
+     "first": "40_draws",
+     "changed": [
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws"
+     ],
+     "compared": [
+      "00_target",
+      "01_scenario_in",
+      "02_pools_artefact",
+      "03_roster",
+      "10_theta_prior",
+      "20_spine",
+      "30_centres",
+      "40_draws",
+      "41_guards",
+      "42_pr_share_draws",
+      "43_ward_share_draws",
+      "44_seat_draws",
+      "45_delivered"
+     ]
+    }
+   }
+  },
+  "new_test_failures": []
+ }
+}

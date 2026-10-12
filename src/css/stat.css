@@ -1,0 +1,49 @@
+/* Token figures and their provenance (stats.render wraps every figure in
+   <span class="mstat" data-prov="…">), on every page. `mstat` (model stat),
+   NOT `stat`: that class is the forecast sheet's headline tiles, whose
+   flex-column display turned every inline figure into its own block. */
+.mstat{display:inline;position:relative;border-bottom:1px dotted var(--ink-3);cursor:help;}
+.mstat[data-mode="fixed"]{border-bottom-style:dashed;}
+@media (min-width:760px){.tablewrap{overflow:visible;}}  /* phones keep sideways scroll */
+.mstat:hover::after,.mstat:focus::after,.mstat-move:hover::after{content:attr(data-prov);position:absolute;
+  left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
+  background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
+  padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
+/* Interactive tables: the figure is the point, and a provenance box on every
+   cell buried the row. Tracking is unchanged; only the hover box is off. */
+.notips .mstat{border-bottom:none;cursor:default;}
+.notips .mstat:hover::after,.notips .mstat:focus::after,.notips .mstat-move:hover::after{content:none;}
+/* js/stat-tip.js flips a pop-over that would leave the window */
+.mstat.tip-left:hover::after,.mstat.tip-left:focus::after{left:auto;right:0;}
+.mstat.tip-up:hover::after,.mstat.tip-up:focus::after{top:auto;bottom:1.5em;}
+
+/* ⛔ ONE ARROW STYLE. A figure's movement since the last published edition
+   (build_site marks it `arrow mstat-move up|down|changed|moved-since`) and a
+   reader's figure against the published forecast on the interactive pages
+   (`arrow reader`, interactive/js/seat-table.js) are drawn the same way: one
+   size, one weight, one baseline, one neutral ink. A move is not good or bad
+   news for a party (STYLE.md rule 7), so neither direction has a colour of its
+   own. What differs is who made the figure: the reader's arrows wear --reader,
+   the hue of everything the reader made. */
+.arrow{font:700 .72em var(--sans);letter-spacing:-.02em;margin-left:2px;vertical-align:.12em;
+  color:var(--ink-3);cursor:help;position:relative;white-space:nowrap;}
+.arrow.reader{color:var(--reader);cursor:default;}
+/* In a right-aligned figure column an arrow takes no width: it hangs in the
+   cell's right padding, so a figure with an arrow ends where one without
+   ends (owner's list, item 5). */
+td.num .arrow{display:inline-block;width:1.3em;margin-right:calc(-1.3em - 2px);text-align:left;}
+.arrow.moved-since{opacity:.75;}
+.arrowlegend{font-size:12.5px;color:var(--ink-3);margin:6px 0 0;}
+
+/* The publication convention's furniture, on EVERY page: a dated piece on
+   /review rendered as plain text while the forecast sheet had its own copy
+   (owner, 2026-09-18). */
+.pubdate{font:650 11.5px var(--sans,ui-sans-serif,system-ui);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--accent);margin:2px 0 10px;text-align:left;}
+/* NOT `.since` for the moved-since arrow: these boxes own that class (owner,
+   2026-09-18). */
+.since{margin:16px 0 4px;padding:12px 16px;border-left:4px solid var(--accent);
+  background:var(--accent-soft,rgba(168,98,31,.12));border-radius:0 6px 6px 0;font-size:14.5px;}
+.since .since-h{font:650 11px var(--sans,ui-sans-serif,system-ui);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+.since p{margin:0;}

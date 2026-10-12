@@ -1,0 +1,1143 @@
+  polls.json: no malformed records
+  pools: 4 measured from 2021 (nested pool counts from 2021; pools sized by 2024 roll carried to 2026 on the 2021-2024 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster declared; reach 2021 ward ballot, carried forward unchanged; 80 declared in judgements)
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+  merger: GOOD -> RISE, 0.169% of the 2024 baseline at retention 0.75
+  merger: FORUM_4_SERVICE_DELIVERY -> ASA, 0.014% of the 2024 baseline at retention 0.75
+  not on the 2026 ballot: dropped 15 parties holding 0.94% of the 2024 baseline (ACTION_ALLIANCE_DEVELOPMENT_PARTY, AFRICAN_INDEPENDENT_PEOPLE_S_ORGANISATION, AFRICAN_MOVEMENT_CONGRESS, AFRICAN_PEOPLE_FIRST, AFRICA_AFRICANS_RECLAIM, …)
+  levels: 410 transitions before 2026, common centre 0.93; sd(log θ) 0.15 at 40% of the vote rising to 0.45 at 0.1%
+  contestation: 82 parties, median 99% of wards — from the declared nomination lists
+  seed SOUTH_AFRICAN_COMMUNIST_PARTY +1.31%  pools and support DECLARED in judgements/: 1.31% of the city, split by the declared weights. Band 0.15-4.78x that centre — the declaration sets the level, the record sets the width.
+  seed AFRICAN_RENAISSANCE_UNITY +0.07%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 66 arrivals that contested about as much of a city (72% of wards): mean 0.30%, median 0.12%. Band 0.06%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed VUKA_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 125 arrivals that contested about as much of a city (95% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.36% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed INDEPENDENT_CITIZENS_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 126 arrivals that contested about as much of a city (92% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed MOVE_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed TRUTH_AND_SOLIDARITY_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_ECONOMIC_FREEDOM +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_UNEMPLOYED_CONGRESS +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  spine: 410 θ and 292 ρ observations before 2026; θ centre 0.93, ρ centre 0.74
+    MK           w_local 0.00 (θ worth 0.0)  national 11.31% / local 0.00% -> 11.31%
+    ASA          w_local 1.00 (θ worth 0.0)  national 5.77% / local 13.51% -> 13.51%
+    DA           w_local 0.03 (θ worth 32.7)  national 31.01% / local 26.78% -> 30.87%
+    PA           w_local 0.30 (θ worth 2.3)  national 5.80% / local 8.12% -> 6.43%
+    RISE         w_local 0.00 (θ worth 0.0)  national 1.60% / local 0.00% -> 1.60%
+    SOUTH_AFRICAN_COMMUNIST_PARTY w_local 0.00 (θ worth 0.0)  national 1.21% / local 0.00% -> 1.21%
+  polls declined (8):
+      da-internal-2026aug: commissioned by Democratic Alliance [commissioned]
+      ipsos-w2-2025-metros: scope 'metro-aggregate' names no city; only a national poll may omit one [no-city]
+      ipsos-2021-lge-national: declared for 2021, not 2026 [other-election]
+      actionsa-internal-2021: commissioned by ActionSA [commissioned]
+      ipsos-2016-lge-national: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-joburg: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-tshwane: a poll of tshwane, not joburg [other-city]
+      ipsos-2016-lge-nmb: a poll of nelsonmandelabay, not joburg [other-city]
+5,000 draws, seed 20261104, 872 VDs, 74 parties, 135 wards
+target 2026 (2026-11-04), council 270, base npe2024_JHB_vd_party.csv, γ fold 1, wards from vd_ward_2026.csv (1059 parts over 865 VDs, 181 split)
+w_bye 0.4, turnout blend 0.5 ± 0.25 (σ 0.08), entrant P 0.25
+
+by-election tilts (clamped to §3.5 ranges):
+  AIC        spine level 0.3% → 0.3% (by-elections imply -0.5%, ward delta -0.89%/ratio 0.729, 4 contests sd 0.9%, clamped to 0.2%, w_bye 0.4)
+  ALL_CITIZENS_PARTY seeded level 0.0% → 0.8% (by-elections imply 2.1%, ward delta +2.05% additive, 2 contests sd 0.8%, w_bye 0.4)
+  ANC        spine level 28.0% → 27.4% (by-elections imply 26.6%, ward delta -6.79%/ratio 1.023, 15 contests sd 10.5%, w_bye 0.4)
+  ASA        spine level 13.5% → 14.9% (by-elections imply 18.9%, ward delta +0.55%/ratio 0.772, 4 contests sd 5.6%, clamped to 16.9%, w_bye 0.4)
+  ATM        spine level 0.4% → 0.4% (by-elections imply 0.5%, ward delta +0.19%/ratio 1.232, 3 contests sd 1.1%, w_bye 0.4)
+  DA         spine level 30.9% → 32.3% (by-elections imply 34.3%, ward delta +9.34%/ratio 1.054, 11 contests sd 14.5%, w_bye 0.4)
+  EFF        spine level 12.2% → 11.6% (by-elections imply 10.7%, ward delta +0.69%/ratio 1.101, 11 contests sd 3.8%, w_bye 0.4)
+  IFP        spine level 1.3% → 1.5% (by-elections imply 2.5%, ward delta +0.10%/ratio 0.999, 3 contests sd 1.4%, clamped to 1.8%, w_bye 0.4)
+  MK         spine level 11.3% → 11.0% (by-elections imply 10.6%, ward delta +10.58% additive, 8 contests sd 9.1%, w_bye 0.4)
+  PA         spine level 6.4% → 7.2% (by-elections imply 22.2%, ward delta +18.92%/ratio 0.982, 4 contests sd 5.2%, clamped to 8.4%, w_bye 0.4)
+  TRUTH_AND_SOLIDARITY_MOVEMENT seeded level 0.1% → 0.1% (by-elections imply 0.1%, ward delta +0.11% additive, 2 contests sd 0.0%, w_bye 0.4)
+
+γ sources: ASA=2021→2024, MK=default 1.0, PA=fold1
+ward/PR ratios: MK 0.95, ASA 0.78, PA 2.00
+
+  1,000 draws
+  2,000 draws
+  3,000 draws
+  4,000 draws
+  5,000 draws
+
+seat distribution (median [5th–95th percentile]):
+  DA            66  [ 45 –  90]   ward wins ≈  41.9
+  ANC           66  [ 28 –  92]   ward wins ≈  59.8
+  ASA           27  [ 11 –  52]   ward wins ≈   1.8
+  EFF           25  [  8 –  57]   ward wins ≈   7.9
+  MK            22  [  7 –  50]   ward wins ≈  10.4
+  PA            23  [ 14 –  36]   ward wins ≈  10.5
+  RISE           2  [  0 –  15]   ward wins ≈   0.0
+  IFP            2  [  0 –  16]   ward wins ≈   1.7
+  SOUTH_AFRICAN_COMMUNIST_PARTY     1  [  0 –  14]   ward wins ≈   0.1
+  ALJAMAAH       2  [  1 –   6]   ward wins ≈   0.7
+  BOSA           1  [  0 –  10]   ward wins ≈   0.0
+  ALL_CITIZENS_PARTY     1  [  0 –  10]   ward wins ≈   0.0
+  VFPLUS         1  [  0 –   8]   ward wins ≈   0.0
+  ACDP           1  [  0 –   6]   ward wins ≈   0.0
+  ATM            0  [  0 –   7]   ward wins ≈   0.1
+  AHC            0  [  0 –   6]   ward wins ≈   0.0
+  AIC            0  [  0 –   6]   ward wins ≈   0.0
+  PAC            0  [  0 –   6]   ward wins ≈   0.0
+  UNITED_AFRICANS_TRANSFORMATION     0  [  0 –   2]   ward wins ≈   0.0
+
+council size: median 270, max 270   ·   majority threshold: median 136, max 136
+P(any party excessive): 69.8%   by party: ANC 62.3%, MK 3.8%, EFF 2.7%, IFP 1.3%, ALJAMAAH 1.3%, PA 0.6%, DA 0.1%, SOUTH_AFRICAN_COMMUNIST_PARTY 0.0%, AHC 0.0%, ASA 0.0%, AIC 0.0%
+
+per-draw centre balance: 5,000 attempted, 0 fell back (0.0%)
+
+capacity cap: 0 target(s) could not be met from their own pools; 0.0000% of the citywide vote was redistributed   (the cap did not bind)
+
+implied θ outside §3.5 sanity ranges (share of draws):
+  ANC         54.1%
+  EFF         48.8%
+  DA          48.8%
+  ALJAMAAH    36.2%
+  PA          35.8%
+  MK          30.1%
+  ASA         17.5%
+
+coalition arithmetic — full enumeration over 12 parties (per-draw threshold, overhang-adjusted)
+
+  every pair and triple with P(majority) > 5%:
+  coalition                            P  median   5th–95th
+  DA + ANC + EFF                  85.7%     159  121–188 
+  DA + ANC + ASA                  85.5%     160  121–192 
+  DA + ANC + MK                   82.6%     156  117–186 
+  DA + ANC + PA                   81.0%     155  117–187 
+  DA + ANC + IFP                  51.0%     136   96–168 
+  DA + ANC + RISE                 50.5%     136   96–168 
+  DA + ANC + SOUTH_AFRICAN_COMMUNIST_PARTY  49.1%     135   95–168 
+  DA + ANC + ALJAMAAH             47.7%     134   95–166 
+  DA + ANC + BOSA                 47.5%     134   95–166 
+  DA + ANC + ALL_CITIZENS_PARTY   46.8%     134   94–166 
+  DA + ANC                        42.7%     132   92–164 
+  DA + ASA + EFF                  23.7%     121   91–158 
+  ANC + ASA + EFF                 21.0%     121   85–150 
+  DA + EFF + MK                   20.9%     116   85–157 
+  DA + ASA + MK                   20.5%     117   88–156 
+  ANC + ASA + PA                  17.6%     118   79–149 
+  DA + EFF + PA                   17.0%     116   89–154 
+  DA + ASA + PA                   16.2%     117   93–149 
+  ANC + ASA + MK                  15.9%     118   81–147 
+  DA + MK + PA                    13.8%     113   86–149 
+  ANC + EFF + PA                  13.8%     117   79–146 
+  ANC + EFF + MK                  11.6%     116   83–143 
+  ANC + MK + PA                    9.6%     113   77–142 
+
+  most frequent minimal winning coalitions (every member necessary):
+  DA + ANC                                 MWC in  42.6% of draws
+  DA + ANC + ASA                           MWC in  41.4% of draws
+  DA + ANC + EFF                           MWC in  40.6% of draws
+  DA + ANC + MK                            MWC in  38.7% of draws
+  DA + ANC + PA                            MWC in  38.0% of draws
+  ANC + EFF + MK + PA                      MWC in  38.0% of draws
+  ANC + ASA + EFF + MK                     MWC in  37.3% of draws
+  ANC + ASA + EFF + PA                     MWC in  36.3% of draws
+  ANC + ASA + MK + PA                      MWC in  36.0% of draws
+  DA + ASA + EFF + PA                      MWC in  35.2% of draws
+
+  power indices, median [5th–95th] (Banzhaf · Shapley–Shubik):
+  ANC         25.7% [10.2%–43.4%]   ·    27.0% [ 9.9%–43.9%]
+  DA          25.5% [14.6%–41.3%]   ·    26.7% [15.5%–42.0%]
+  ASA         10.1% [ 3.8%–21.5%]   ·     9.8% [ 3.5%–21.7%]
+  EFF          9.4% [ 2.7%–22.8%]   ·     8.9% [ 2.5%–23.3%]
+  PA           8.7% [ 4.6%–14.5%]   ·     8.3% [ 4.3%–14.1%]
+  MK           8.2% [ 2.5%–20.1%]   ·     7.7% [ 2.3%–20.1%]
+  ALJAMAAH     0.9% [ 0.1%– 2.3%]   ·     0.8% [ 0.1%– 2.1%]
+  RISE         0.9% [ 0.0%– 5.5%]   ·     0.8% [ 0.0%– 5.2%]
+  IFP          0.7% [ 0.0%– 6.1%]   ·     0.6% [ 0.0%– 5.7%]
+  SOUTH_AFRICAN_COMMUNIST_PARTY   0.5% [ 0.0%– 5.3%]   ·     0.5% [ 0.0%– 4.9%]
+  BOSA         0.4% [ 0.0%– 3.9%]   ·     0.4% [ 0.0%– 3.6%]
+  ALL_CITIZENS_PARTY   0.3% [ 0.0%– 3.7%]   ·     0.3% [ 0.0%– 3.4%]
+
+  structural:
+  P(some majority without the ANC)              100.0%
+  P(some majority without ANC, EFF and MK)       87.1%
+  P(ANC+DA is winning)                           42.7%
+  P(some majority without the DA)                99.9%
+  P(DA is the largest single party)              46.6%
+  P(ANC is the largest single party)             46.8%
+  field without ANC, EFF and MK: median seats      154
+
+  minority administrations (candidate > active opposition, rest abstain):
+  DA minority, ANC+EFF+MK oppose                  4.0%
+  DA minority, only ANC opposes (2021 pattern)   50.4%
+  ANC minority, only DA opposes                  48.1%
+  ANC minority, DA+ASA oppose                    12.8%
+
+wrote data/processed/seat_draws.csv, data/processed/forecast_summary.json and coalition_*.csv
+snapshot: 148 published file(s) held in /var/folders/3l/5pyyvvg93tbcrf7j2shb_yrh0000gn/T/overhang_regimes_9nafkcio/published
+
+=== overhang_rule=expand ===
+  pools: 4 measured from 2021 (nested pool counts from 2021; pools sized by 2024 roll carried to 2026 on the 2021-2024 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster declared; reach 2021 ward ballot, carried forward unchanged; 80 declared in judgements)
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+  merger: GOOD -> RISE, 0.169% of the 2024 baseline at retention 0.75
+  merger: FORUM_4_SERVICE_DELIVERY -> ASA, 0.014% of the 2024 baseline at retention 0.75
+  not on the 2026 ballot: dropped 15 parties holding 0.94% of the 2024 baseline (ACTION_ALLIANCE_DEVELOPMENT_PARTY, AFRICAN_INDEPENDENT_PEOPLE_S_ORGANISATION, AFRICAN_MOVEMENT_CONGRESS, AFRICAN_PEOPLE_FIRST, AFRICA_AFRICANS_RECLAIM, …)
+  levels: 410 transitions before 2026, common centre 0.93; sd(log θ) 0.15 at 40% of the vote rising to 0.45 at 0.1%
+  contestation: 82 parties, median 99% of wards — from the declared nomination lists
+  seed SOUTH_AFRICAN_COMMUNIST_PARTY +1.31%  pools and support DECLARED in judgements/: 1.31% of the city, split by the declared weights. Band 0.15-4.78x that centre — the declaration sets the level, the record sets the width.
+  seed AFRICAN_RENAISSANCE_UNITY +0.07%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 66 arrivals that contested about as much of a city (72% of wards): mean 0.30%, median 0.12%. Band 0.06%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed VUKA_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 125 arrivals that contested about as much of a city (95% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.36% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed INDEPENDENT_CITIZENS_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 126 arrivals that contested about as much of a city (92% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed MOVE_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed TRUTH_AND_SOLIDARITY_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_ECONOMIC_FREEDOM +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_UNEMPLOYED_CONGRESS +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  spine: 410 θ and 292 ρ observations before 2026; θ centre 0.93, ρ centre 0.74
+    MK           w_local 0.00 (θ worth 0.0)  national 11.31% / local 0.00% -> 11.31%
+    ASA          w_local 1.00 (θ worth 0.0)  national 5.77% / local 13.51% -> 13.51%
+    DA           w_local 0.03 (θ worth 32.7)  national 31.01% / local 26.78% -> 30.87%
+    PA           w_local 0.30 (θ worth 2.3)  national 5.80% / local 8.12% -> 6.43%
+    RISE         w_local 0.00 (θ worth 0.0)  national 1.60% / local 0.00% -> 1.60%
+    SOUTH_AFRICAN_COMMUNIST_PARTY w_local 0.00 (θ worth 0.0)  national 1.21% / local 0.00% -> 1.21%
+  polls declined (8):
+      da-internal-2026aug: commissioned by Democratic Alliance [commissioned]
+      ipsos-w2-2025-metros: scope 'metro-aggregate' names no city; only a national poll may omit one [no-city]
+      ipsos-2021-lge-national: declared for 2021, not 2026 [other-election]
+      actionsa-internal-2021: commissioned by ActionSA [commissioned]
+      ipsos-2016-lge-national: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-joburg: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-tshwane: a poll of tshwane, not joburg [other-city]
+      ipsos-2016-lge-nmb: a poll of nelsonmandelabay, not joburg [other-city]
+5,000 draws, seed 20261104, 872 VDs, 74 parties, 135 wards
+target 2026 (2026-11-04), council 270, base npe2024_JHB_vd_party.csv, γ fold 1, wards from vd_ward_2026.csv (1059 parts over 865 VDs, 181 split)
+w_bye 0.4, turnout blend 0.5 ± 0.25 (σ 0.08), entrant P 0.25
+
+by-election tilts (clamped to §3.5 ranges):
+  AIC        spine level 0.3% → 0.3% (by-elections imply -0.5%, ward delta -0.89%/ratio 0.729, 4 contests sd 0.9%, clamped to 0.2%, w_bye 0.4)
+  ALL_CITIZENS_PARTY seeded level 0.0% → 0.8% (by-elections imply 2.1%, ward delta +2.05% additive, 2 contests sd 0.8%, w_bye 0.4)
+  ANC        spine level 28.0% → 27.4% (by-elections imply 26.6%, ward delta -6.79%/ratio 1.023, 15 contests sd 10.5%, w_bye 0.4)
+  ASA        spine level 13.5% → 14.9% (by-elections imply 18.9%, ward delta +0.55%/ratio 0.772, 4 contests sd 5.6%, clamped to 16.9%, w_bye 0.4)
+  ATM        spine level 0.4% → 0.4% (by-elections imply 0.5%, ward delta +0.19%/ratio 1.232, 3 contests sd 1.1%, w_bye 0.4)
+  DA         spine level 30.9% → 32.3% (by-elections imply 34.3%, ward delta +9.34%/ratio 1.054, 11 contests sd 14.5%, w_bye 0.4)
+  EFF        spine level 12.2% → 11.6% (by-elections imply 10.7%, ward delta +0.69%/ratio 1.101, 11 contests sd 3.8%, w_bye 0.4)
+  IFP        spine level 1.3% → 1.5% (by-elections imply 2.5%, ward delta +0.10%/ratio 0.999, 3 contests sd 1.4%, clamped to 1.8%, w_bye 0.4)
+  MK         spine level 11.3% → 11.0% (by-elections imply 10.6%, ward delta +10.58% additive, 8 contests sd 9.1%, w_bye 0.4)
+  PA         spine level 6.4% → 7.2% (by-elections imply 22.2%, ward delta +18.92%/ratio 0.982, 4 contests sd 5.2%, clamped to 8.4%, w_bye 0.4)
+  TRUTH_AND_SOLIDARITY_MOVEMENT seeded level 0.1% → 0.1% (by-elections imply 0.1%, ward delta +0.11% additive, 2 contests sd 0.0%, w_bye 0.4)
+
+γ sources: ASA=2021→2024, MK=default 1.0, PA=fold1
+ward/PR ratios: MK 0.95, ASA 0.78, PA 2.00
+
+  1,000 draws
+  2,000 draws
+  3,000 draws
+  4,000 draws
+  5,000 draws
+
+seat distribution (median [5th–95th percentile]):
+  DA            68  [ 46 –  92]   ward wins ≈  41.9
+  ANC           66  [ 29 –  92]   ward wins ≈  59.8
+  ASA           27  [ 11 –  54]   ward wins ≈   1.8
+  EFF           25  [  8 –  57]   ward wins ≈   7.9
+  MK            22  [  8 –  50]   ward wins ≈  10.4
+  PA            24  [ 15 –  37]   ward wins ≈  10.5
+  RISE           2  [  0 –  15]   ward wins ≈   0.0
+  IFP            2  [  0 –  17]   ward wins ≈   1.7
+  SOUTH_AFRICAN_COMMUNIST_PARTY     2  [  0 –  14]   ward wins ≈   0.1
+  ALJAMAAH       3  [  1 –   6]   ward wins ≈   0.7
+  BOSA           1  [  0 –  11]   ward wins ≈   0.0
+  ALL_CITIZENS_PARTY     1  [  0 –  10]   ward wins ≈   0.0
+  VFPLUS         1  [  0 –   8]   ward wins ≈   0.0
+  ACDP           1  [  0 –   6]   ward wins ≈   0.0
+  ATM            0  [  0 –   7]   ward wins ≈   0.1
+  AHC            0  [  0 –   7]   ward wins ≈   0.0
+  AIC            0  [  0 –   6]   ward wins ≈   0.0
+  PAC            0  [  0 –   6]   ward wins ≈   0.0
+  UNITED_AFRICANS_TRANSFORMATION     0  [  0 –   3]   ward wins ≈   0.0
+
+council size: median 274, max 298   ·   majority threshold: median 138, max 150
+P(any party excessive): 69.8%   by party: ANC 62.3%, MK 3.8%, EFF 2.7%, ALJAMAAH 1.0%, IFP 1.0%, PA 0.5%, DA 0.0%, SOUTH_AFRICAN_COMMUNIST_PARTY 0.0%, AHC 0.0%, ASA 0.0%, AIC 0.0%
+
+per-draw centre balance: 5,000 attempted, 0 fell back (0.0%)
+
+capacity cap: 0 target(s) could not be met from their own pools; 0.0000% of the citywide vote was redistributed   (the cap did not bind)
+
+implied θ outside §3.5 sanity ranges (share of draws):
+  ANC         54.1%
+  EFF         48.8%
+  DA          48.8%
+  ALJAMAAH    36.2%
+  PA          35.8%
+  MK          30.1%
+  ASA         17.5%
+
+coalition arithmetic — full enumeration over 12 parties (per-draw threshold, overhang-adjusted)
+
+  every pair and triple with P(majority) > 5%:
+  coalition                            P  median   5th–95th
+  DA + ANC + ASA                  85.4%     163  123–194 
+  DA + ANC + EFF                  85.2%     162  123–191 
+  DA + ANC + MK                   82.1%     159  118–187 
+  DA + ANC + PA                   80.8%     159  118–189 
+  DA + ANC + IFP                  49.4%     139   97–169 
+  DA + ANC + RISE                 48.9%     138   98–170 
+  DA + ANC + SOUTH_AFRICAN_COMMUNIST_PARTY  47.4%     137   97–170 
+  DA + ANC + ALJAMAAH             46.0%     136   97–168 
+  DA + ANC + BOSA                 45.8%     136   96–168 
+  DA + ANC + ALL_CITIZENS_PARTY   45.0%     136   96–167 
+  DA + ANC                        40.9%     134   94–165 
+  DA + ASA + EFF                  25.5%     125   93–161 
+  DA + ASA + MK                   21.5%     121   90–158 
+  DA + EFF + MK                   21.4%     120   87–158 
+  ANC + ASA + EFF                 20.1%     122   86–152 
+  DA + EFF + PA                   18.1%     119   91–155 
+  DA + ASA + PA                   17.9%     121   94–153 
+  ANC + ASA + PA                  16.7%     119   80–151 
+  ANC + ASA + MK                  15.5%     119   82–148 
+  DA + MK + PA                    14.2%     116   89–150 
+  ANC + EFF + PA                  13.1%     118   80–147 
+  ANC + EFF + MK                  11.2%     117   84–143 
+  ANC + MK + PA                    9.5%     115   78–142 
+
+  most frequent minimal winning coalitions (every member necessary):
+  DA + ANC + ASA                           MWC in  43.1% of draws
+  DA + ANC + EFF                           MWC in  42.0% of draws
+  DA + ANC                                 MWC in  40.8% of draws
+  DA + ANC + MK                            MWC in  40.0% of draws
+  DA + ANC + PA                            MWC in  39.6% of draws
+  ANC + EFF + MK + PA                      MWC in  36.7% of draws
+  ANC + ASA + EFF + MK                     MWC in  36.7% of draws
+  ANC + ASA + EFF + PA                     MWC in  36.4% of draws
+  ANC + ASA + MK + PA                      MWC in  35.1% of draws
+  DA + ASA + EFF + PA                      MWC in  35.1% of draws
+
+  power indices, median [5th–95th] (Banzhaf · Shapley–Shubik):
+  DA          26.0% [14.8%–42.2%]   ·    27.2% [15.7%–42.8%]
+  ANC         24.8% [10.2%–43.0%]   ·    26.1% [10.0%–43.5%]
+  ASA         10.2% [ 3.8%–21.8%]   ·     9.8% [ 3.5%–22.0%]
+  EFF          9.4% [ 2.7%–22.6%]   ·     9.0% [ 2.5%–23.2%]
+  PA           8.8% [ 4.6%–14.5%]   ·     8.3% [ 4.3%–14.2%]
+  MK           8.2% [ 2.5%–20.0%]   ·     7.8% [ 2.3%–20.0%]
+  ALJAMAAH     0.9% [ 0.1%– 2.3%]   ·     0.8% [ 0.1%– 2.1%]
+  RISE         0.9% [ 0.0%– 5.6%]   ·     0.8% [ 0.0%– 5.3%]
+  IFP          0.7% [ 0.0%– 6.2%]   ·     0.6% [ 0.0%– 5.8%]
+  SOUTH_AFRICAN_COMMUNIST_PARTY   0.5% [ 0.0%– 5.3%]   ·     0.5% [ 0.0%– 4.9%]
+  BOSA         0.4% [ 0.0%– 4.0%]   ·     0.4% [ 0.0%– 3.7%]
+  ALL_CITIZENS_PARTY   0.3% [ 0.0%– 3.8%]   ·     0.3% [ 0.0%– 3.4%]
+
+  structural:
+  P(some majority without the ANC)              100.0%
+  P(some majority without ANC, EFF and MK)       87.7%
+  P(ANC+DA is winning)                           40.9%
+  P(some majority without the DA)                99.9%
+  P(DA is the largest single party)              50.2%
+  P(ANC is the largest single party)             43.5%
+  field without ANC, EFF and MK: median seats      158
+
+  minority administrations (candidate > active opposition, rest abstain):
+  DA minority, ANC+EFF+MK oppose                  4.4%
+  DA minority, only ANC opposes (2021 pattern)   53.8%
+  ANC minority, only DA opposes                  44.8%
+  ANC minority, DA+ASA oppose                    11.4%
+
+wrote data/processed/seat_draws.csv, data/processed/forecast_summary.json and coalition_*.csv
+
+=== overhang_rule=level ===
+  pools: 4 measured from 2021 (nested pool counts from 2021; pools sized by 2024 roll carried to 2026 on the 2021-2024 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster declared; reach 2021 ward ballot, carried forward unchanged; 80 declared in judgements)
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+  merger: GOOD -> RISE, 0.169% of the 2024 baseline at retention 0.75
+  merger: FORUM_4_SERVICE_DELIVERY -> ASA, 0.014% of the 2024 baseline at retention 0.75
+  not on the 2026 ballot: dropped 15 parties holding 0.94% of the 2024 baseline (ACTION_ALLIANCE_DEVELOPMENT_PARTY, AFRICAN_INDEPENDENT_PEOPLE_S_ORGANISATION, AFRICAN_MOVEMENT_CONGRESS, AFRICAN_PEOPLE_FIRST, AFRICA_AFRICANS_RECLAIM, …)
+  levels: 410 transitions before 2026, common centre 0.93; sd(log θ) 0.15 at 40% of the vote rising to 0.45 at 0.1%
+  contestation: 82 parties, median 99% of wards — from the declared nomination lists
+  seed SOUTH_AFRICAN_COMMUNIST_PARTY +1.31%  pools and support DECLARED in judgements/: 1.31% of the city, split by the declared weights. Band 0.15-4.78x that centre — the declaration sets the level, the record sets the width.
+  seed AFRICAN_RENAISSANCE_UNITY +0.07%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 66 arrivals that contested about as much of a city (72% of wards): mean 0.30%, median 0.12%. Band 0.06%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed VUKA_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 125 arrivals that contested about as much of a city (95% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.36% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed INDEPENDENT_CITIZENS_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 126 arrivals that contested about as much of a city (92% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed MOVE_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed TRUTH_AND_SOLIDARITY_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_ECONOMIC_FREEDOM +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_UNEMPLOYED_CONGRESS +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  spine: 410 θ and 292 ρ observations before 2026; θ centre 0.93, ρ centre 0.74
+    MK           w_local 0.00 (θ worth 0.0)  national 11.31% / local 0.00% -> 11.31%
+    ASA          w_local 1.00 (θ worth 0.0)  national 5.77% / local 13.51% -> 13.51%
+    DA           w_local 0.03 (θ worth 32.7)  national 31.01% / local 26.78% -> 30.87%
+    PA           w_local 0.30 (θ worth 2.3)  national 5.80% / local 8.12% -> 6.43%
+    RISE         w_local 0.00 (θ worth 0.0)  national 1.60% / local 0.00% -> 1.60%
+    SOUTH_AFRICAN_COMMUNIST_PARTY w_local 0.00 (θ worth 0.0)  national 1.21% / local 0.00% -> 1.21%
+  polls declined (8):
+      da-internal-2026aug: commissioned by Democratic Alliance [commissioned]
+      ipsos-w2-2025-metros: scope 'metro-aggregate' names no city; only a national poll may omit one [no-city]
+      ipsos-2021-lge-national: declared for 2021, not 2026 [other-election]
+      actionsa-internal-2021: commissioned by ActionSA [commissioned]
+      ipsos-2016-lge-national: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-joburg: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-tshwane: a poll of tshwane, not joburg [other-city]
+      ipsos-2016-lge-nmb: a poll of nelsonmandelabay, not joburg [other-city]
+5,000 draws, seed 20261104, 872 VDs, 74 parties, 135 wards
+target 2026 (2026-11-04), council 270, base npe2024_JHB_vd_party.csv, γ fold 1, wards from vd_ward_2026.csv (1059 parts over 865 VDs, 181 split)
+w_bye 0.4, turnout blend 0.5 ± 0.25 (σ 0.08), entrant P 0.25
+
+by-election tilts (clamped to §3.5 ranges):
+  AIC        spine level 0.3% → 0.3% (by-elections imply -0.5%, ward delta -0.89%/ratio 0.729, 4 contests sd 0.9%, clamped to 0.2%, w_bye 0.4)
+  ALL_CITIZENS_PARTY seeded level 0.0% → 0.8% (by-elections imply 2.1%, ward delta +2.05% additive, 2 contests sd 0.8%, w_bye 0.4)
+  ANC        spine level 28.0% → 27.4% (by-elections imply 26.6%, ward delta -6.79%/ratio 1.023, 15 contests sd 10.5%, w_bye 0.4)
+  ASA        spine level 13.5% → 14.9% (by-elections imply 18.9%, ward delta +0.55%/ratio 0.772, 4 contests sd 5.6%, clamped to 16.9%, w_bye 0.4)
+  ATM        spine level 0.4% → 0.4% (by-elections imply 0.5%, ward delta +0.19%/ratio 1.232, 3 contests sd 1.1%, w_bye 0.4)
+  DA         spine level 30.9% → 32.3% (by-elections imply 34.3%, ward delta +9.34%/ratio 1.054, 11 contests sd 14.5%, w_bye 0.4)
+  EFF        spine level 12.2% → 11.6% (by-elections imply 10.7%, ward delta +0.69%/ratio 1.101, 11 contests sd 3.8%, w_bye 0.4)
+  IFP        spine level 1.3% → 1.5% (by-elections imply 2.5%, ward delta +0.10%/ratio 0.999, 3 contests sd 1.4%, clamped to 1.8%, w_bye 0.4)
+  MK         spine level 11.3% → 11.0% (by-elections imply 10.6%, ward delta +10.58% additive, 8 contests sd 9.1%, w_bye 0.4)
+  PA         spine level 6.4% → 7.2% (by-elections imply 22.2%, ward delta +18.92%/ratio 0.982, 4 contests sd 5.2%, clamped to 8.4%, w_bye 0.4)
+  TRUTH_AND_SOLIDARITY_MOVEMENT seeded level 0.1% → 0.1% (by-elections imply 0.1%, ward delta +0.11% additive, 2 contests sd 0.0%, w_bye 0.4)
+
+γ sources: ASA=2021→2024, MK=default 1.0, PA=fold1
+ward/PR ratios: MK 0.95, ASA 0.78, PA 2.00
+
+  1,000 draws
+  2,000 draws
+  3,000 draws
+  4,000 draws
+  5,000 draws
+
+seat distribution (median [5th–95th percentile]):
+  DA            74  [ 48 – 110]   ward wins ≈  41.9
+  ANC           66  [ 31 –  92]   ward wins ≈  59.8
+  ASA           30  [ 12 –  62]   ward wins ≈   1.8
+  EFF           28  [  8 –  58]   ward wins ≈   7.9
+  PA            26  [ 16 –  42]   ward wins ≈  10.5
+  MK            25  [  8 –  50]   ward wins ≈  10.4
+  RISE           3  [  0 –  17]   ward wins ≈   0.0
+  IFP            2  [  0 –  19]   ward wins ≈   1.7
+  SOUTH_AFRICAN_COMMUNIST_PARTY     2  [  0 –  17]   ward wins ≈   0.1
+  ALJAMAAH       3  [  1 –   7]   ward wins ≈   0.7
+  BOSA           1  [  0 –  12]   ward wins ≈   0.0
+  ALL_CITIZENS_PARTY     1  [  0 –  11]   ward wins ≈   0.0
+  VFPLUS         1  [  0 –   9]   ward wins ≈   0.0
+  ACDP           1  [  0 –   7]   ward wins ≈   0.0
+  ATM            0  [  0 –   8]   ward wins ≈   0.1
+  AHC            0  [  0 –   7]   ward wins ≈   0.0
+  AIC            0  [  0 –   7]   ward wins ≈   0.0
+  PAC            0  [  0 –   6]   ward wins ≈   0.0
+  UNITED_AFRICANS_TRANSFORMATION     0  [  0 –   3]   ward wins ≈   0.0
+  UDM            0  [  0 –   2]   ward wins ≈   0.0
+
+council size: median 287, max 453   ·   majority threshold: median 144, max 227
+P(any party excessive): 69.8%   by party: ANC 62.3%, MK 3.8%, EFF 2.7%, ALJAMAAH 1.0%, IFP 1.0%, PA 0.5%, DA 0.0%, SOUTH_AFRICAN_COMMUNIST_PARTY 0.0%, AHC 0.0%, ASA 0.0%, AIC 0.0%
+
+per-draw centre balance: 5,000 attempted, 0 fell back (0.0%)
+
+capacity cap: 0 target(s) could not be met from their own pools; 0.0000% of the citywide vote was redistributed   (the cap did not bind)
+
+implied θ outside §3.5 sanity ranges (share of draws):
+  ANC         54.1%
+  EFF         48.8%
+  DA          48.8%
+  ALJAMAAH    36.2%
+  PA          35.8%
+  MK          30.1%
+  ASA         17.5%
+
+coalition arithmetic — full enumeration over 12 parties (per-draw threshold, overhang-adjusted)
+
+  every pair and triple with P(majority) > 5%:
+  coalition                            P  median   5th–95th
+  DA + ANC + ASA                  83.8%     172  127–215 
+  DA + ANC + EFF                  82.4%     172  127–206 
+  DA + ANC + PA                   77.9%     169  123–204 
+  DA + ANC + MK                   77.5%     169  123–199 
+  DA + ANC + IFP                  42.9%     146  101–180 
+  DA + ANC + RISE                 42.9%     146  102–181 
+  DA + ANC + SOUTH_AFRICAN_COMMUNIST_PARTY  41.3%     145  101–181 
+  DA + ANC + BOSA                 40.0%     144   99–179 
+  DA + ANC + ALJAMAAH             39.9%     145  100–178 
+  DA + ANC + ALL_CITIZENS_PARTY   38.9%     144   99–178 
+  DA + ANC                        35.0%     142   97–174 
+  DA + ASA + EFF                  30.9%     137   95–186 
+  DA + ASA + MK                   25.3%     133   93–180 
+  DA + EFF + MK                   23.2%     132   92–174 
+  DA + ASA + PA                   22.7%     131   96–184 
+  DA + EFF + PA                   21.7%     132   94–176 
+  ANC + ASA + EFF                 16.8%     128   89–161 
+  DA + PA + MK                    16.1%     128   93–170 
+  ANC + ASA + PA                  14.4%     125   83–160 
+  ANC + ASA + MK                  13.7%     125   85–154 
+  ANC + EFF + PA                  12.1%     124   84–151 
+  ANC + EFF + MK                  10.3%     123   87–146 
+  ANC + PA + MK                    9.3%     121   80–143 
+
+  most frequent minimal winning coalitions (every member necessary):
+  DA + ANC + ASA                           MWC in  47.3% of draws
+  DA + ANC + EFF                           MWC in  45.5% of draws
+  DA + ANC + PA                            MWC in  42.7% of draws
+  DA + ANC + MK                            MWC in  41.6% of draws
+  ANC + ASA + EFF + PA                     MWC in  35.8% of draws
+  ANC + ASA + EFF + MK                     MWC in  35.2% of draws
+  DA + ANC                                 MWC in  34.9% of draws
+  DA + ASA + PA + MK                       MWC in  34.0% of draws
+  DA + ASA + EFF + PA                      MWC in  32.9% of draws
+  ANC + EFF + PA + MK                      MWC in  32.5% of draws
+
+  power indices, median [5th–95th] (Banzhaf · Shapley–Shubik):
+  DA          27.4% [15.1%–46.4%]   ·    28.6% [16.0%–46.0%]
+  ANC         22.1% [10.0%–42.5%]   ·    23.0% [ 9.9%–43.1%]
+  ASA         10.2% [ 3.8%–22.2%]   ·     9.9% [ 3.5%–22.4%]
+  EFF          9.5% [ 2.7%–22.2%]   ·     9.2% [ 2.5%–22.8%]
+  PA           8.9% [ 4.7%–14.7%]   ·     8.5% [ 4.3%–14.5%]
+  MK           8.4% [ 2.5%–19.6%]   ·     8.0% [ 2.3%–19.8%]
+  ALJAMAAH     0.9% [ 0.1%– 2.4%]   ·     0.8% [ 0.1%– 2.2%]
+  RISE         0.9% [ 0.0%– 5.7%]   ·     0.8% [ 0.0%– 5.4%]
+  IFP          0.7% [ 0.0%– 6.3%]   ·     0.6% [ 0.0%– 5.9%]
+  SOUTH_AFRICAN_COMMUNIST_PARTY   0.5% [ 0.0%– 5.4%]   ·     0.5% [ 0.0%– 5.0%]
+  BOSA         0.4% [ 0.0%– 4.0%]   ·     0.4% [ 0.0%– 3.7%]
+  ALL_CITIZENS_PARTY   0.3% [ 0.0%– 3.8%]   ·     0.3% [ 0.0%– 3.5%]
+
+  structural:
+  P(some majority without the ANC)              100.0%
+  P(some majority without ANC, EFF and MK)       88.6%
+  P(ANC+DA is winning)                           35.0%
+  P(some majority without the DA)                99.9%
+  P(DA is the largest single party)              60.1%
+  P(ANC is the largest single party)             33.6%
+  field without ANC, EFF and MK: median seats      170
+
+  minority administrations (candidate > active opposition, rest abstain):
+  DA minority, ANC+EFF+MK oppose                  6.5%
+  DA minority, only ANC opposes (2021 pattern)   63.7%
+  ANC minority, only DA opposes                  35.1%
+  ANC minority, DA+ASA oppose                    10.0%
+
+wrote data/processed/seat_draws.csv, data/processed/forecast_summary.json and coalition_*.csv
+
+=== overhang_rule=cap ===
+  pools: 4 measured from 2021 (nested pool counts from 2021; pools sized by 2024 roll carried to 2026 on the 2021-2024 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster declared; reach 2021 ward ballot, carried forward unchanged; 80 declared in judgements)
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+  merger: GOOD -> RISE, 0.169% of the 2024 baseline at retention 0.75
+  merger: FORUM_4_SERVICE_DELIVERY -> ASA, 0.014% of the 2024 baseline at retention 0.75
+  not on the 2026 ballot: dropped 15 parties holding 0.94% of the 2024 baseline (ACTION_ALLIANCE_DEVELOPMENT_PARTY, AFRICAN_INDEPENDENT_PEOPLE_S_ORGANISATION, AFRICAN_MOVEMENT_CONGRESS, AFRICAN_PEOPLE_FIRST, AFRICA_AFRICANS_RECLAIM, …)
+  levels: 410 transitions before 2026, common centre 0.93; sd(log θ) 0.15 at 40% of the vote rising to 0.45 at 0.1%
+  contestation: 82 parties, median 99% of wards — from the declared nomination lists
+  seed SOUTH_AFRICAN_COMMUNIST_PARTY +1.31%  pools and support DECLARED in judgements/: 1.31% of the city, split by the declared weights. Band 0.15-4.78x that centre — the declaration sets the level, the record sets the width.
+  seed AFRICAN_RENAISSANCE_UNITY +0.07%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 66 arrivals that contested about as much of a city (72% of wards): mean 0.30%, median 0.12%. Band 0.06%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed VUKA_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 125 arrivals that contested about as much of a city (95% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.36% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed INDEPENDENT_CITIZENS_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 126 arrivals that contested about as much of a city (92% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed MOVE_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed TRUTH_AND_SOLIDARITY_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_ECONOMIC_FREEDOM +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_UNEMPLOYED_CONGRESS +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  spine: 410 θ and 292 ρ observations before 2026; θ centre 0.93, ρ centre 0.74
+    MK           w_local 0.00 (θ worth 0.0)  national 11.31% / local 0.00% -> 11.31%
+    ASA          w_local 1.00 (θ worth 0.0)  national 5.77% / local 13.51% -> 13.51%
+    DA           w_local 0.03 (θ worth 32.7)  national 31.01% / local 26.78% -> 30.87%
+    PA           w_local 0.30 (θ worth 2.3)  national 5.80% / local 8.12% -> 6.43%
+    RISE         w_local 0.00 (θ worth 0.0)  national 1.60% / local 0.00% -> 1.60%
+    SOUTH_AFRICAN_COMMUNIST_PARTY w_local 0.00 (θ worth 0.0)  national 1.21% / local 0.00% -> 1.21%
+  polls declined (8):
+      da-internal-2026aug: commissioned by Democratic Alliance [commissioned]
+      ipsos-w2-2025-metros: scope 'metro-aggregate' names no city; only a national poll may omit one [no-city]
+      ipsos-2021-lge-national: declared for 2021, not 2026 [other-election]
+      actionsa-internal-2021: commissioned by ActionSA [commissioned]
+      ipsos-2016-lge-national: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-joburg: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-tshwane: a poll of tshwane, not joburg [other-city]
+      ipsos-2016-lge-nmb: a poll of nelsonmandelabay, not joburg [other-city]
+5,000 draws, seed 20261104, 872 VDs, 74 parties, 135 wards
+target 2026 (2026-11-04), council 270, base npe2024_JHB_vd_party.csv, γ fold 1, wards from vd_ward_2026.csv (1059 parts over 865 VDs, 181 split)
+w_bye 0.4, turnout blend 0.5 ± 0.25 (σ 0.08), entrant P 0.25
+
+by-election tilts (clamped to §3.5 ranges):
+  AIC        spine level 0.3% → 0.3% (by-elections imply -0.5%, ward delta -0.89%/ratio 0.729, 4 contests sd 0.9%, clamped to 0.2%, w_bye 0.4)
+  ALL_CITIZENS_PARTY seeded level 0.0% → 0.8% (by-elections imply 2.1%, ward delta +2.05% additive, 2 contests sd 0.8%, w_bye 0.4)
+  ANC        spine level 28.0% → 27.4% (by-elections imply 26.6%, ward delta -6.79%/ratio 1.023, 15 contests sd 10.5%, w_bye 0.4)
+  ASA        spine level 13.5% → 14.9% (by-elections imply 18.9%, ward delta +0.55%/ratio 0.772, 4 contests sd 5.6%, clamped to 16.9%, w_bye 0.4)
+  ATM        spine level 0.4% → 0.4% (by-elections imply 0.5%, ward delta +0.19%/ratio 1.232, 3 contests sd 1.1%, w_bye 0.4)
+  DA         spine level 30.9% → 32.3% (by-elections imply 34.3%, ward delta +9.34%/ratio 1.054, 11 contests sd 14.5%, w_bye 0.4)
+  EFF        spine level 12.2% → 11.6% (by-elections imply 10.7%, ward delta +0.69%/ratio 1.101, 11 contests sd 3.8%, w_bye 0.4)
+  IFP        spine level 1.3% → 1.5% (by-elections imply 2.5%, ward delta +0.10%/ratio 0.999, 3 contests sd 1.4%, clamped to 1.8%, w_bye 0.4)
+  MK         spine level 11.3% → 11.0% (by-elections imply 10.6%, ward delta +10.58% additive, 8 contests sd 9.1%, w_bye 0.4)
+  PA         spine level 6.4% → 7.2% (by-elections imply 22.2%, ward delta +18.92%/ratio 0.982, 4 contests sd 5.2%, clamped to 8.4%, w_bye 0.4)
+  TRUTH_AND_SOLIDARITY_MOVEMENT seeded level 0.1% → 0.1% (by-elections imply 0.1%, ward delta +0.11% additive, 2 contests sd 0.0%, w_bye 0.4)
+
+γ sources: ASA=2021→2024, MK=default 1.0, PA=fold1
+ward/PR ratios: MK 0.95, ASA 0.78, PA 2.00
+
+  1,000 draws
+  2,000 draws
+  3,000 draws
+  4,000 draws
+  5,000 draws
+
+seat distribution (median [5th–95th percentile]):
+  DA            68  [ 46 –  92]   ward wins ≈  41.9
+  ANC           58  [ 29 –  92]   ward wins ≈  59.8
+  ASA           27  [ 11 –  54]   ward wins ≈   1.8
+  EFF           25  [  8 –  56]   ward wins ≈   7.9
+  PA            24  [ 15 –  37]   ward wins ≈  10.5
+  MK            22  [  8 –  49]   ward wins ≈  10.4
+  RISE           2  [  0 –  15]   ward wins ≈   0.0
+  IFP            2  [  0 –  17]   ward wins ≈   1.7
+  SOUTH_AFRICAN_COMMUNIST_PARTY     2  [  0 –  14]   ward wins ≈   0.1
+  ALJAMAAH       3  [  1 –   6]   ward wins ≈   0.7
+  BOSA           1  [  0 –  11]   ward wins ≈   0.0
+  ALL_CITIZENS_PARTY     1  [  0 –  10]   ward wins ≈   0.0
+  VFPLUS         1  [  0 –   8]   ward wins ≈   0.0
+  ACDP           1  [  0 –   6]   ward wins ≈   0.0
+  ATM            0  [  0 –   7]   ward wins ≈   0.1
+  AHC            0  [  0 –   7]   ward wins ≈   0.0
+  AIC            0  [  0 –   6]   ward wins ≈   0.0
+  PAC            0  [  0 –   6]   ward wins ≈   0.0
+  UNITED_AFRICANS_TRANSFORMATION     0  [  0 –   3]   ward wins ≈   0.0
+
+council size: median 270, max 270   ·   majority threshold: median 136, max 136
+P(any party excessive): 69.8%   by party: ANC 62.3%, MK 3.8%, EFF 2.7%, ALJAMAAH 1.0%, IFP 1.0%, PA 0.5%, DA 0.0%, SOUTH_AFRICAN_COMMUNIST_PARTY 0.0%, AHC 0.0%, ASA 0.0%, AIC 0.0%
+
+per-draw centre balance: 5,000 attempted, 0 fell back (0.0%)
+
+capacity cap: 0 target(s) could not be met from their own pools; 0.0000% of the citywide vote was redistributed   (the cap did not bind)
+
+implied θ outside §3.5 sanity ranges (share of draws):
+  ANC         54.1%
+  EFF         48.8%
+  DA          48.8%
+  ALJAMAAH    36.2%
+  PA          35.8%
+  MK          30.1%
+  ASA         17.5%
+
+coalition arithmetic — full enumeration over 12 parties (per-draw threshold, overhang-adjusted)
+
+  every pair and triple with P(majority) > 5%:
+  coalition                            P  median   5th–95th
+  DA + ANC + ASA                  83.5%     156  122–190 
+  DA + ANC + EFF                  81.8%     155  120–188 
+  DA + ANC + PA                   77.4%     151  117–187 
+  DA + ANC + MK                   77.1%     152  116–186 
+  DA + ANC + IFP                  42.1%     131   96–167 
+  DA + ANC + RISE                 41.9%     131   96–167 
+  DA + ANC + SOUTH_AFRICAN_COMMUNIST_PARTY  40.3%     130   96–166 
+  DA + ANC + ALJAMAAH             39.3%     129   95–166 
+  DA + ANC + BOSA                 39.0%     129   95–165 
+  DA + ANC + ALL_CITIZENS_PARTY   38.1%     129   95–165 
+  DA + ANC                        34.1%     127   92–163 
+  DA + ASA + EFF                  30.7%     125   93–160 
+  DA + ASA + MK                   25.0%     121   90–157 
+  DA + EFF + MK                   23.0%     120   87–157 
+  DA + ASA + PA                   22.4%     121   94–153 
+  DA + EFF + PA                   21.5%     119   91–154 
+  ANC + ASA + EFF                 16.3%     116   82–148 
+  DA + PA + MK                    16.0%     116   89–149 
+  ANC + ASA + PA                  14.0%     112   79–148 
+  ANC + ASA + MK                  13.5%     113   78–146 
+  ANC + EFF + PA                  11.8%     111   77–145 
+  ANC + EFF + MK                  10.2%     112   77–143 
+  ANC + PA + MK                    9.3%     108   75–142 
+
+  most frequent minimal winning coalitions (every member necessary):
+  DA + ANC + ASA                           MWC in  47.9% of draws
+  DA + ANC + EFF                           MWC in  45.8% of draws
+  DA + ANC + PA                            MWC in  43.0% of draws
+  DA + ANC + MK                            MWC in  42.1% of draws
+  ANC + ASA + EFF + PA                     MWC in  35.7% of draws
+  ANC + ASA + EFF + MK                     MWC in  34.8% of draws
+  DA + ASA + PA + MK                       MWC in  34.0% of draws
+  DA + ANC                                 MWC in  34.0% of draws
+  DA + ASA + EFF + PA                      MWC in  33.0% of draws
+  DA + EFF + PA + MK                       MWC in  32.0% of draws
+
+  power indices, median [5th–95th] (Banzhaf · Shapley–Shubik):
+  DA          27.5% [15.1%–46.5%]   ·    28.7% [16.0%–46.1%]
+  ANC         22.0% [ 9.9%–42.5%]   ·    22.9% [ 9.9%–43.0%]
+  ASA         10.2% [ 3.8%–22.1%]   ·     9.9% [ 3.5%–22.5%]
+  EFF          9.6% [ 2.7%–22.2%]   ·     9.2% [ 2.4%–22.8%]
+  PA           8.9% [ 4.7%–14.7%]   ·     8.5% [ 4.3%–14.5%]
+  MK           8.4% [ 2.5%–19.6%]   ·     8.0% [ 2.3%–19.6%]
+  ALJAMAAH     0.9% [ 0.1%– 2.4%]   ·     0.8% [ 0.1%– 2.2%]
+  RISE         0.9% [ 0.0%– 5.7%]   ·     0.8% [ 0.0%– 5.3%]
+  IFP          0.7% [ 0.0%– 6.3%]   ·     0.6% [ 0.0%– 5.9%]
+  SOUTH_AFRICAN_COMMUNIST_PARTY   0.5% [ 0.0%– 5.4%]   ·     0.5% [ 0.0%– 5.1%]
+  BOSA         0.4% [ 0.0%– 4.0%]   ·     0.4% [ 0.0%– 3.7%]
+  ALL_CITIZENS_PARTY   0.3% [ 0.0%– 3.8%]   ·     0.3% [ 0.0%– 3.5%]
+
+  structural:
+  P(some majority without the ANC)              100.0%
+  P(some majority without ANC, EFF and MK)       88.6%
+  P(ANC+DA is winning)                           34.1%
+  P(some majority without the DA)                99.9%
+  P(DA is the largest single party)              60.5%
+  P(ANC is the largest single party)             33.2%
+  field without ANC, EFF and MK: median seats      158
+
+  minority administrations (candidate > active opposition, rest abstain):
+  DA minority, ANC+EFF+MK oppose                  6.6%
+  DA minority, only ANC opposes (2021 pattern)   63.9%
+  ANC minority, only DA opposes                  34.7%
+  ANC minority, DA+ASA oppose                     9.9%
+
+wrote data/processed/seat_draws.csv, data/processed/forecast_summary.json and coalition_*.csv
+
+=== re-running the reference (default rule) ===
+  pools: 4 measured from 2021 (nested pool counts from 2021; pools sized by 2024 roll carried to 2026 on the 2021-2024 RATE of change (log-space, invariant to a constant level bias), damped x0.6; roster declared; reach 2021 ward ballot, carried forward unchanged; 80 declared in judgements)
+  ! roster for 2026 is PROJECTED, not published — the off-ballot drop below is
+    running against an ASSUMPTION about who will contest, not against a result
+    file.
+      parties  82
+      file     data/processed/pools_2026.json  (field `roster`)
+      source   roster_source='declared'; reach='2021 ward ballot, carried
+               forward unchanged; 80 declared in judgements'
+      how      a nomination list typed by hand into
+               judgements/joburg-2026.toml under `[roster]`. If that table
+               says `complete = true` it REPLACES the projection and licenses
+               deleting the parties it omits; if it does not, it is UNIONED
+               with the projection (the preceding LGE result and national
+               baseline, less the JUDGEMENT-CALLS.md §K1/§K2 floors) and
+               removes nobody. Read the emit's own `[roster]` line to see
+               which happened.
+      ends     you have ALREADY declared a list, and this warning still fires,
+               because `published` means 2026's own RESULT file —
+               `roster_for_target` branches on
+               `cityconfig.CALENDAR['2026'].results`, which stays None until
+               the election has been held and ingested. So the state clears
+               AFTER polling day, never before it. What you can still do
+               before then: confirm the list is the WHOLE ballot and set
+               `complete = true` in judgements/joburg-2026.toml, which is what
+               licenses deleting the parties it omits, then re-emit.
+      scored   NOT SCORED. When the real ballot lands nothing compares it with
+               the roster above, so this projection is never marked right or
+               wrong and the next one is no better informed. See MACHINERY.md,
+               "Scoring the projected roster".
+  merger: GOOD -> RISE, 0.169% of the 2024 baseline at retention 0.75
+  merger: FORUM_4_SERVICE_DELIVERY -> ASA, 0.014% of the 2024 baseline at retention 0.75
+  not on the 2026 ballot: dropped 15 parties holding 0.94% of the 2024 baseline (ACTION_ALLIANCE_DEVELOPMENT_PARTY, AFRICAN_INDEPENDENT_PEOPLE_S_ORGANISATION, AFRICAN_MOVEMENT_CONGRESS, AFRICAN_PEOPLE_FIRST, AFRICA_AFRICANS_RECLAIM, …)
+  levels: 410 transitions before 2026, common centre 0.93; sd(log θ) 0.15 at 40% of the vote rising to 0.45 at 0.1%
+  contestation: 82 parties, median 99% of wards — from the declared nomination lists
+  seed SOUTH_AFRICAN_COMMUNIST_PARTY +1.31%  pools and support DECLARED in judgements/: 1.31% of the city, split by the declared weights. Band 0.15-4.78x that centre — the declaration sets the level, the record sets the width.
+  seed AFRICAN_RENAISSANCE_UNITY +0.07%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 66 arrivals that contested about as much of a city (72% of wards): mean 0.30%, median 0.12%. Band 0.06%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed VUKA_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 125 arrivals that contested about as much of a city (95% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.36% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed INDEPENDENT_CITIZENS_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 126 arrivals that contested about as much of a city (92% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.35% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed MOVE_SA      +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed TRUTH_AND_SOLIDARITY_MOVEMENT +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 123 arrivals that contested about as much of a city (97% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.37% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_ECONOMIC_FREEDOM +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  seed AFRICAN_UNEMPLOYED_CONGRESS +0.06%  entrant from nothing: spread as the city's own pool composition. Sized at the EXPECTED result for the 120 arrivals that contested about as much of a city (100% of wards): mean 0.29%, median 0.09%. Band 0.04%-1.39% on the record, carried across as a RELATIVE width. THE EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what support you expect. | group rescaled x0.22: 45 entrants summing to 9.93% against an arrival-total record of 2.19%
+  spine: 410 θ and 292 ρ observations before 2026; θ centre 0.93, ρ centre 0.74
+    MK           w_local 0.00 (θ worth 0.0)  national 11.31% / local 0.00% -> 11.31%
+    ASA          w_local 1.00 (θ worth 0.0)  national 5.77% / local 13.51% -> 13.51%
+    DA           w_local 0.03 (θ worth 32.7)  national 31.01% / local 26.78% -> 30.87%
+    PA           w_local 0.30 (θ worth 2.3)  national 5.80% / local 8.12% -> 6.43%
+    RISE         w_local 0.00 (θ worth 0.0)  national 1.60% / local 0.00% -> 1.60%
+    SOUTH_AFRICAN_COMMUNIST_PARTY w_local 0.00 (θ worth 0.0)  national 1.21% / local 0.00% -> 1.21%
+  polls declined (8):
+      da-internal-2026aug: commissioned by Democratic Alliance [commissioned]
+      ipsos-w2-2025-metros: scope 'metro-aggregate' names no city; only a national poll may omit one [no-city]
+      ipsos-2021-lge-national: declared for 2021, not 2026 [other-election]
+      actionsa-internal-2021: commissioned by ActionSA [commissioned]
+      ipsos-2016-lge-national: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-joburg: declared for 2016, not 2026 [other-election]
+      ipsos-2016-lge-tshwane: a poll of tshwane, not joburg [other-city]
+      ipsos-2016-lge-nmb: a poll of nelsonmandelabay, not joburg [other-city]
+5,000 draws, seed 20261104, 872 VDs, 74 parties, 135 wards
+target 2026 (2026-11-04), council 270, base npe2024_JHB_vd_party.csv, γ fold 1, wards from vd_ward_2026.csv (1059 parts over 865 VDs, 181 split)
+w_bye 0.4, turnout blend 0.5 ± 0.25 (σ 0.08), entrant P 0.25
+
+by-election tilts (clamped to §3.5 ranges):
+  AIC        spine level 0.3% → 0.3% (by-elections imply -0.5%, ward delta -0.89%/ratio 0.729, 4 contests sd 0.9%, clamped to 0.2%, w_bye 0.4)
+  ALL_CITIZENS_PARTY seeded level 0.0% → 0.8% (by-elections imply 2.1%, ward delta +2.05% additive, 2 contests sd 0.8%, w_bye 0.4)
+  ANC        spine level 28.0% → 27.4% (by-elections imply 26.6%, ward delta -6.79%/ratio 1.023, 15 contests sd 10.5%, w_bye 0.4)
+  ASA        spine level 13.5% → 14.9% (by-elections imply 18.9%, ward delta +0.55%/ratio 0.772, 4 contests sd 5.6%, clamped to 16.9%, w_bye 0.4)
+  ATM        spine level 0.4% → 0.4% (by-elections imply 0.5%, ward delta +0.19%/ratio 1.232, 3 contests sd 1.1%, w_bye 0.4)
+  DA         spine level 30.9% → 32.3% (by-elections imply 34.3%, ward delta +9.34%/ratio 1.054, 11 contests sd 14.5%, w_bye 0.4)
+  EFF        spine level 12.2% → 11.6% (by-elections imply 10.7%, ward delta +0.69%/ratio 1.101, 11 contests sd 3.8%, w_bye 0.4)
+  IFP        spine level 1.3% → 1.5% (by-elections imply 2.5%, ward delta +0.10%/ratio 0.999, 3 contests sd 1.4%, clamped to 1.8%, w_bye 0.4)
+  MK         spine level 11.3% → 11.0% (by-elections imply 10.6%, ward delta +10.58% additive, 8 contests sd 9.1%, w_bye 0.4)
+  PA         spine level 6.4% → 7.2% (by-elections imply 22.2%, ward delta +18.92%/ratio 0.982, 4 contests sd 5.2%, clamped to 8.4%, w_bye 0.4)
+  TRUTH_AND_SOLIDARITY_MOVEMENT seeded level 0.1% → 0.1% (by-elections imply 0.1%, ward delta +0.11% additive, 2 contests sd 0.0%, w_bye 0.4)
+
+γ sources: ASA=2021→2024, MK=default 1.0, PA=fold1
+ward/PR ratios: MK 0.95, ASA 0.78, PA 2.00
+
+  1,000 draws
+  2,000 draws
+  3,000 draws
+  4,000 draws
+  5,000 draws
+
+seat distribution (median [5th–95th percentile]):
+  DA            66  [ 45 –  90]   ward wins ≈  41.9
+  ANC           66  [ 28 –  92]   ward wins ≈  59.8
+  ASA           27  [ 11 –  52]   ward wins ≈   1.8
+  EFF           25  [  8 –  57]   ward wins ≈   7.9
+  MK            22  [  7 –  50]   ward wins ≈  10.4
+  PA            23  [ 14 –  36]   ward wins ≈  10.5
+  RISE           2  [  0 –  15]   ward wins ≈   0.0
+  IFP            2  [  0 –  16]   ward wins ≈   1.7
+  SOUTH_AFRICAN_COMMUNIST_PARTY     1  [  0 –  14]   ward wins ≈   0.1
+  ALJAMAAH       2  [  1 –   6]   ward wins ≈   0.7
+  BOSA           1  [  0 –  10]   ward wins ≈   0.0
+  ALL_CITIZENS_PARTY     1  [  0 –  10]   ward wins ≈   0.0
+  VFPLUS         1  [  0 –   8]   ward wins ≈   0.0
+  ACDP           1  [  0 –   6]   ward wins ≈   0.0
+  ATM            0  [  0 –   7]   ward wins ≈   0.1
+  AHC            0  [  0 –   6]   ward wins ≈   0.0
+  AIC            0  [  0 –   6]   ward wins ≈   0.0
+  PAC            0  [  0 –   6]   ward wins ≈   0.0
+  UNITED_AFRICANS_TRANSFORMATION     0  [  0 –   2]   ward wins ≈   0.0
+
+council size: median 270, max 270   ·   majority threshold: median 136, max 136
+P(any party excessive): 69.8%   by party: ANC 62.3%, MK 3.8%, EFF 2.7%, IFP 1.3%, ALJAMAAH 1.3%, PA 0.6%, DA 0.1%, SOUTH_AFRICAN_COMMUNIST_PARTY 0.0%, AHC 0.0%, ASA 0.0%, AIC 0.0%
+
+per-draw centre balance: 5,000 attempted, 0 fell back (0.0%)
+
+capacity cap: 0 target(s) could not be met from their own pools; 0.0000% of the citywide vote was redistributed   (the cap did not bind)
+
+implied θ outside §3.5 sanity ranges (share of draws):
+  ANC         54.1%
+  EFF         48.8%
+  DA          48.8%
+  ALJAMAAH    36.2%
+  PA          35.8%
+  MK          30.1%
+  ASA         17.5%
+
+coalition arithmetic — full enumeration over 12 parties (per-draw threshold, overhang-adjusted)
+
+  every pair and triple with P(majority) > 5%:
+  coalition                            P  median   5th–95th
+  DA + ANC + EFF                  85.7%     159  121–188 
+  DA + ANC + ASA                  85.5%     160  121–192 
+  DA + ANC + MK                   82.6%     156  117–186 
+  DA + ANC + PA                   81.0%     155  117–187 
+  DA + ANC + IFP                  51.0%     136   96–168 
+  DA + ANC + RISE                 50.5%     136   96–168 
+  DA + ANC + SOUTH_AFRICAN_COMMUNIST_PARTY  49.1%     135   95–168 
+  DA + ANC + ALJAMAAH             47.7%     134   95–166 
+  DA + ANC + BOSA                 47.5%     134   95–166 
+  DA + ANC + ALL_CITIZENS_PARTY   46.8%     134   94–166 
+  DA + ANC                        42.7%     132   92–164 
+  DA + ASA + EFF                  23.7%     121   91–158 
+  ANC + ASA + EFF                 21.0%     121   85–150 
+  DA + EFF + MK                   20.9%     116   85–157 
+  DA + ASA + MK                   20.5%     117   88–156 
+  ANC + ASA + PA                  17.6%     118   79–149 
+  DA + EFF + PA                   17.0%     116   89–154 
+  DA + ASA + PA                   16.2%     117   93–149 
+  ANC + ASA + MK                  15.9%     118   81–147 
+  DA + MK + PA                    13.8%     113   86–149 
+  ANC + EFF + PA                  13.8%     117   79–146 
+  ANC + EFF + MK                  11.6%     116   83–143 
+  ANC + MK + PA                    9.6%     113   77–142 
+
+  most frequent minimal winning coalitions (every member necessary):
+  DA + ANC                                 MWC in  42.6% of draws
+  DA + ANC + ASA                           MWC in  41.4% of draws
+  DA + ANC + EFF                           MWC in  40.6% of draws
+  DA + ANC + MK                            MWC in  38.7% of draws
+  DA + ANC + PA                            MWC in  38.0% of draws
+  ANC + EFF + MK + PA                      MWC in  38.0% of draws
+  ANC + ASA + EFF + MK                     MWC in  37.3% of draws
+  ANC + ASA + EFF + PA                     MWC in  36.3% of draws
+  ANC + ASA + MK + PA                      MWC in  36.0% of draws
+  DA + ASA + EFF + PA                      MWC in  35.2% of draws
+
+  power indices, median [5th–95th] (Banzhaf · Shapley–Shubik):
+  ANC         25.7% [10.2%–43.4%]   ·    27.0% [ 9.9%–43.9%]
+  DA          25.5% [14.6%–41.3%]   ·    26.7% [15.5%–42.0%]
+  ASA         10.1% [ 3.8%–21.5%]   ·     9.8% [ 3.5%–21.7%]
+  EFF          9.4% [ 2.7%–22.8%]   ·     8.9% [ 2.5%–23.3%]
+  PA           8.7% [ 4.6%–14.5%]   ·     8.3% [ 4.3%–14.1%]
+  MK           8.2% [ 2.5%–20.1%]   ·     7.7% [ 2.3%–20.1%]
+  ALJAMAAH     0.9% [ 0.1%– 2.3%]   ·     0.8% [ 0.1%– 2.1%]
+  RISE         0.9% [ 0.0%– 5.5%]   ·     0.8% [ 0.0%– 5.2%]
+  IFP          0.7% [ 0.0%– 6.1%]   ·     0.6% [ 0.0%– 5.7%]
+  SOUTH_AFRICAN_COMMUNIST_PARTY   0.5% [ 0.0%– 5.3%]   ·     0.5% [ 0.0%– 4.9%]
+  BOSA         0.4% [ 0.0%– 3.9%]   ·     0.4% [ 0.0%– 3.6%]
+  ALL_CITIZENS_PARTY   0.3% [ 0.0%– 3.7%]   ·     0.3% [ 0.0%– 3.4%]
+
+  structural:
+  P(some majority without the ANC)              100.0%
+  P(some majority without ANC, EFF and MK)       87.1%
+  P(ANC+DA is winning)                           42.7%
+  P(some majority without the DA)                99.9%
+  P(DA is the largest single party)              46.6%
+  P(ANC is the largest single party)             46.8%
+  field without ANC, EFF and MK: median seats      154
+
+  minority administrations (candidate > active opposition, rest abstain):
+  DA minority, ANC+EFF+MK oppose                  4.0%
+  DA minority, only ANC opposes (2021 pattern)   50.4%
+  ANC minority, only DA opposes                  48.1%
+  ANC minority, DA+ASA oppose                    12.8%
+
+wrote data/processed/seat_draws.csv, data/processed/forecast_summary.json and coalition_*.csv
+  published and re-dated 6 regime artefacts
+
+⚠️ the reference re-run did NOT reproduce the bytes that were on disk: 1 file(s) changed — forecast_summary.json.
+  This is not an error in this script. It means the published artefacts predate the current code (or the current hash seed). The tree now holds the reference this comparison table is actually against; if that was not intended, restore from git-tracked sources or re-publish deliberately.
+  map into forecast-sheet.html
+  map into home.html
+  map into drafts/forecast-draft.html
+called: {'solid': 50, 'contested': 85}  ·  840x596  ·  svg ~61 KB
+geographic choropleth — ink by real ward area
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     32.7       0.63x
+DA             44     32.6     52.9       1.62x
+PA             10      7.4     11.5       1.56x
+MK              9      6.7      2.2       0.33x
+EFF             2      1.5      0.6       0.42x
+
+hex cartogram — ink by hexagon
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     51.9       1.00x
+DA             44     32.6     32.6       1.00x
+PA             10      7.4      7.4       1.00x
+MK              9      6.7      6.7       1.00x
+EFF             2      1.5      1.5       1.00x
+
+assignment: optimal  ·  radius 24.60px  ·  displacement mean 36.2px, median 33.7px, max 92.6px
+  layout into data/processed/ward_hex_layout.json
+  preview into drafts/hex-cartogram.html
+  cartogram into forecast-sheet.html
+geographic choropleth — ink by real ward area
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     32.7       0.63x
+DA             44     32.6     52.9       1.62x
+PA             10      7.4     11.5       1.56x
+MK              9      6.7      2.2       0.33x
+EFF             2      1.5      0.6       0.42x
+
+hex cartogram — ink by hexagon
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     51.9       1.00x
+DA             44     32.6     32.6       1.00x
+PA             10      7.4      7.4       1.00x
+MK              9      6.7      6.7       1.00x
+EFF             2      1.5      1.5       1.00x
+
+assignment: optimal  ·  radius 24.60px  ·  displacement mean 36.2px, median 33.7px, max 92.6px
+  layout into data/processed/ward_hex_layout.json
+  preview into drafts/hex-cartogram.html
+  cartogram into home.html
+geographic choropleth — ink by real ward area
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     32.7       0.63x
+DA             44     32.6     52.9       1.62x
+PA             10      7.4     11.5       1.56x
+MK              9      6.7      2.2       0.33x
+EFF             2      1.5      0.6       0.42x
+
+hex cartogram — ink by hexagon
+party       wards   seat %    ink %  distortion
+ANC            70     51.9     51.9       1.00x
+DA             44     32.6     32.6       1.00x
+PA             10      7.4      7.4       1.00x
+MK              9      6.7      6.7       1.00x
+EFF             2      1.5      1.5       1.00x
+
+assignment: optimal  ·  radius 24.60px  ·  displacement mean 36.2px, median 33.7px, max 92.6px
+  layout into data/processed/ward_hex_layout.json
+  preview into drafts/hex-cartogram.html
+  cartogram into drafts/forecast-draft.html
+claims: 4 box(es) rendered from content/joburg/claims.toml
+regimes table: South African law: council 270, thr 136 · Germany 2000 law: council 274, thr 138 · Germany 2015 law: council 287, thr 144 · Germany 2023 law: council 270, thr 136
+rendered 8 regions into forecast-sheet.html: 24 coalitions, 10 party rows
+home: lede, 10 named parties + others, 5 articles -> home.html
+  rendered docs-public/corrections.md   -> site/corrections.html
+  rendered docs-public/methodology.md   -> site/methodology.html
+  rendered docs-public/about-the-model.md -> site/about.html
+  rendered docs-public/review.md        -> site/review.html
+  rendered docs-public/sources.md       -> site/sources.html
+  nav+copy home.html                    -> site/index.html
+  nav+copy forecast-sheet.html          -> site/forecast.html
+  nav+copy forecast-sheet.html          -> site/nobody-will-win.html
+
+SUPERSEDED FIGURES IN LIVE PRESENT TENSE — refusing to publish a retired number as though it were current:
+  ✗ claim.da_alone.wall_anc_high = 34
+      published in live present tense, but this figure was superseded on 2026-09-27T17:30:33Z. A superseded figure may appear only in a dated context — 'as of <date> the model said …'. Attribution records what it was; it does not make it current.
+  Wrap the sentence in <span data-asof="YYYY-MM-DD">…</span> so it reads as history, or cut the claim.
+
+PUBLISHED TOKENS THAT LEFT THE REGISTRY UNRETIRED — refusing to let a figure stop being current without saying so:
+  ✗ coal.ANC+ASA+PA+MK.cushion_when_wins = 15  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+ASA+PA+MK.majority = 64%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+ASA+PA+MK.seats_when_wins = 151  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+ASA+PA+MK.stability = 10%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+ASA+PA+MK.survive.ANC = 0.6%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+ASA+PA+MK.survive.ASA = 15%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+ASA+PA+MK.survive.MK = 30%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+ASA+PA+MK.survive.PA = 25%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+EFF+PA+MK.cushion_when_wins = 13  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+EFF+PA+MK.majority = 60%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+EFF+PA+MK.seats_when_wins = 149  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+EFF+PA+MK.stability = 9%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+EFF+PA+MK.survive.ANC = 0.7%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+EFF+PA+MK.survive.EFF = 17%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+EFF+PA+MK.survive.MK = 23%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+EFF+PA+MK.survive.PA = 19%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+PA+MK.cushion_when_wins = 6  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+PA+MK.majority = 10%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+PA+MK.seats_when_wins = 142  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+PA+MK.stability = 4%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+PA+MK.survive.ANC = under 0.1%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+PA+MK.survive.MK = 5.8%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ANC+PA+MK.survive.PA = 5.4%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ASA+EFF+PA+MK.cushion_when_wins = 8  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ASA+EFF+PA+MK.majority = 7.7%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ASA+EFF+PA+MK.seats_when_wins = 144  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ASA+EFF+PA+MK.stability = 6%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ASA+EFF+PA+MK.survive.ASA = 5.2%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ASA+EFF+PA+MK.survive.EFF = 5.2%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ASA+EFF+PA+MK.survive.MK = 9.0%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.ASA+EFF+PA+MK.survive.PA = 8.8%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+ASA+PA+MK.cushion_when_wins = 15  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+ASA+PA+MK.majority = 64%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+ASA+PA+MK.seats_when_wins = 151  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+ASA+PA+MK.stability = 10%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+ASA+PA+MK.survive.ASA = 22%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+ASA+PA+MK.survive.DA = 0.6%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+ASA+PA+MK.survive.MK = 26%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+ASA+PA+MK.survive.PA = 31%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+EFF+PA+MK.cushion_when_wins = 16  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+EFF+PA+MK.majority = 58%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+EFF+PA+MK.seats_when_wins = 152  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+EFF+PA+MK.stability = 11%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+EFF+PA+MK.survive.DA = 0.7%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+EFF+PA+MK.survive.EFF = 24%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+EFF+PA+MK.survive.MK = 28%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+EFF+PA+MK.survive.PA = 33%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+PA+MK.cushion_when_wins = 8  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+PA+MK.majority = 14%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+PA+MK.seats_when_wins = 144  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+PA+MK.stability = 6%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+PA+MK.survive.DA = under 0.1%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+PA+MK.survive.MK = 4.6%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ coal.DA+PA+MK.survive.PA = 12%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  ✗ home.p_da_largest = 47%  (last published 2026-09-27T18:44:27Z, run r-661b8783e7cb-219a4f26-dirty)
+  Each was published, is no longer in the stats registry, and carries no supersession stamp — so nothing can tell a reader when it stopped being true. Close each one out:
+    P.retire('joburg', '<token>', reason='<why>', change_class='mechanism', root=Path('/Users/simondavis/projects/atlas-jhb-election-model/publications'))
+building Johannesburg (JHB) — council 270, majority 136, 135 wards
+
+• poll register
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python -c import sys; sys.path.insert(0, 'src'); import polling; polling.validate_or_die(); print('  polls.json: no malformed records')
+
+• Monte Carlo
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/montecarlo.py --city joburg
+
+• overhang counterfactuals
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/overhang_regimes.py
+
+• ward map
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/render_map.py --city joburg
+
+• ward cartogram → forecast-sheet.html
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/hex_cartogram.py --into forecast-sheet.html
+
+• ward cartogram → home.html
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/hex_cartogram.py --into home.html
+
+• ward cartogram → drafts/forecast-draft.html
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/hex_cartogram.py --into drafts/forecast-draft.html
+
+• sheet figures, claims, regimes
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/render_sheet.py --city joburg
+
+• home page
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/render_home.py --city joburg
+
+• site
+  $ /Users/simondavis/projects/atlas-jhb-election-model/.venv/bin/python src/build_site.py
+
+site failed — stopping before the site is built from half-finished inputs.

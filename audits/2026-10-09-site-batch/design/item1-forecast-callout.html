@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item 1: forecast callout</title>
+<link rel="stylesheet" href="../../../site/css/site.css">
+<link rel="stylesheet" href="mock.css">
+</head>
+<body class="mock">
+<div class="wrap">
+  <h1 class="mk-title">Item 1: what you changed, what moved</h1>
+  <p class="mk-note">Mock-up. One box, drawn at the top and the bottom of the reader's forecast section on
+    <code>/forecast#adjust</code>. Dotted-underlined figures are placeholders (<span class="ph">N</span>, <span class="ph">w</span>,
+    <span class="ph">▲n</span>). Every line is a renderer <code>model.js</code> already has: <code>fitSettings</code>,
+    <code>renderBanner</code>, <code>renderResult</code>, <code>renderFlips</code>, <code>effective_draws</code>.</p>
+
+  <!-- ================= STATE 1: untouched ================= -->
+  <p class="mk-state">State 1 · <b>no changes</b> · quiet one-line box, top and bottom</p>
+  <div class="cb quiet" aria-label="Your changes">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your changes</span>
+      <p class="cb-quietline">This is our forecast. Move a setting below and this box lists what you changed and what moved.</p>
+    </div>
+  </div>
+  <div class="mk-skel"><div>levers: turnout, a poll, by-elections, seat law</div><div>map and seat table under the reader's settings</div></div>
+  <div class="cb quiet" aria-label="Your changes">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your changes</span>
+      <p class="cb-quietline">This is our forecast. Move a setting above and this box lists what you changed and what moved.</p>
+    </div>
+  </div>
+
+  <!-- ================= STATE 2: one change ================= -->
+  <p class="mk-state">State 2 · <b>one change</b></p>
+  <section class="cb" aria-label="Your changes">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your changes</span>
+      <button class="cb-back" type="button">Back to the forecast</button>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">1</span><h4>What you changed</h4></div>
+        <ul class="cb-list">
+          <li>Black African turnout <span class="ph">−N</span> points</li>
+        </ul>
+      </div>
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">2</span><h4>What moved</h4></div>
+        <p class="cb-sub">Middle seat counts</p>
+        <div class="cb-seats">
+          <span class="cb-chip"><span class="pchip pc-ANC"></span>ANC <b class="ph">N</b><span class="arrow reader">▼n</span></span>
+          <span class="cb-chip"><span class="pchip pc-DA"></span>DA <b class="ph">N</b><span class="arrow reader">▲n</span></span>
+          <span class="cb-chip maj">Majority <b class="ph">N</b></span>
+        </div>
+        <p class="cb-sub">Chances</p>
+        <p class="cb-line">Most seats: <span class="ph">N%</span><span class="arrow reader">▼n</span> chance it's the ANC,
+          <span class="ph">N%</span><span class="arrow reader">▲n</span> chance it's the DA.</p>
+        <p class="cb-sub">Wards</p>
+        <p class="cb-line"><span class="pl-kring" style="margin-left:0"></span><b><span class="ph">N</span> wards change their most likely winner.</b></p>
+        <dl class="cb-flip">
+          <dt><span class="pchip pc-MK"></span>MK Party <span class="cb-to">to</span> <span class="pchip pc-ANC"></span>ANC</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w</span></dd>
+        </dl>
+      </div>
+    </div>
+    <p class="cb-foot">At your settings the figures rest on the equivalent of <span class="ph">N</span> equally weighted simulations.</p>
+  </section>
+  <div class="mk-skel"><div>levers</div><div>map and seat table</div></div>
+  <p class="mk-note">The bottom box is the same component with the same content.</p>
+
+  <!-- ================= STATE 3: many changes ================= -->
+  <p class="mk-state">State 3 · <b>many changes</b> · top box clamped, bottom box opened with "+N more"</p>
+  <section class="cb" aria-label="Your changes">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your changes</span>
+      <button class="cb-back" type="button">Back to the forecast</button>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">1</span><h4>What you changed</h4></div>
+        <ul class="cb-list">
+          <li>Black African turnout <span class="ph">−N</span> points</li>
+          <li>Coloured turnout <span class="ph">+N</span> points</li>
+          <li>Indian/Asian turnout <span class="ph">+N</span> point</li>
+          <li>White turnout <span class="ph">+N</span> points</li>
+        </ul>
+        <button class="cb-more" type="button" aria-expanded="false">+<span class="ph">N</span> more</button>
+      </div>
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">2</span><h4>What moved</h4></div>
+        <p class="cb-sub">Middle seat counts</p>
+        <div class="cb-seats">
+          <span class="cb-chip"><span class="pchip pc-ASA"></span>ActionSA <b class="ph">N</b><span class="arrow reader">▲n</span></span>
+          <span class="cb-chip"><span class="pchip pc-ANC"></span>ANC <b class="ph">N</b><span class="arrow reader">▼n</span></span>
+          <span class="cb-chip"><span class="pchip pc-DA"></span>DA <b class="ph">N</b><span class="arrow reader">▲n</span></span>
+          <span class="cb-chip"><span class="pchip pc-EFF"></span>EFF <b class="ph">N</b><span class="arrow reader">▼n</span></span>
+          <span class="cb-chip"><span class="pchip pc-MK"></span>MK Party <b class="ph">N</b><span class="arrow reader">▼n</span></span>
+          <span class="cb-chip"><span class="pchip pc-PA"></span>PA <b class="ph">N</b><span class="arrow reader">▲n</span></span>
+          <span class="cb-chip maj">Majority <b class="ph">N</b></span>
+        </div>
+        <p class="cb-sub">Chances</p>
+        <p class="cb-line">Most seats: <span class="ph">N%</span><span class="arrow reader">▼n</span> chance it's the ANC,
+          <span class="ph">N%</span><span class="arrow reader">▲n</span> chance it's the DA. Two or more parties tie for the most seats:
+          <span class="ph">N%</span><span class="arrow reader">▲n</span> chance. One party wins a majority on its own: <span class="ph">N%</span> chance.</p>
+        <p class="cb-sub">Wards</p>
+        <p class="cb-line"><span class="pl-kring" style="margin-left:0"></span><b><span class="ph">N</span> wards change their most likely winner.</b></p>
+        <dl class="cb-flip">
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w, w, w, w, w</span></dd>
+          <dt><span class="pchip pc-EFF"></span>EFF <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: ward <span class="ph">w</span></dd>
+          <dt><span class="pchip pc-MK"></span>MK Party <span class="cb-to">to</span> <span class="pchip pc-ANC"></span>ANC</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w, w, w, w</span></dd>
+        </dl>
+        <button class="cb-more" type="button" aria-expanded="false">+<span class="ph">N</span> more</button>
+      </div>
+    </div>
+    <p class="cb-foot">At your settings the figures rest on the equivalent of <span class="ph">N</span> equally weighted simulations.</p>
+  </section>
+  <div class="mk-skel"><div>levers</div><div>map and seat table</div></div>
+  <section class="cb" aria-label="Your changes">
+    <div class="cb-head">
+      <span class="cb-dot"></span><span class="cb-title">Your changes</span>
+      <button class="cb-back" type="button">Back to the forecast</button>
+    </div>
+    <div class="cb-grid">
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">1</span><h4>What you changed</h4></div>
+        <ul class="cb-list">
+          <li>Black African turnout <span class="ph">−N</span> points</li>
+          <li>Coloured turnout <span class="ph">+N</span> points</li>
+          <li>Indian/Asian turnout <span class="ph">+N</span> point</li>
+          <li>White turnout <span class="ph">+N</span> points</li>
+          <li><span class="ph">poll name</span> poll, believed at <span class="ph">N</span> of <span class="ph">N</span></li>
+          <li>by-elections counted fully</li>
+          <li>seated under <span class="ph">law name</span></li>
+        </ul>
+        <button class="cb-more" type="button" aria-expanded="true">fewer</button>
+      </div>
+      <div class="cb-part">
+        <div class="cb-ph"><span class="cb-n">2</span><h4>What moved</h4></div>
+        <p class="cb-sub">Middle seat counts</p>
+        <div class="cb-seats">
+          <span class="cb-chip"><span class="pchip pc-ASA"></span>ActionSA <b class="ph">N</b><span class="arrow reader">▲n</span></span>
+          <span class="cb-chip"><span class="pchip pc-ANC"></span>ANC <b class="ph">N</b><span class="arrow reader">▼n</span></span>
+          <span class="cb-chip"><span class="pchip pc-DA"></span>DA <b class="ph">N</b><span class="arrow reader">▲n</span></span>
+          <span class="cb-chip"><span class="pchip pc-EFF"></span>EFF <b class="ph">N</b><span class="arrow reader">▼n</span></span>
+          <span class="cb-chip"><span class="pchip pc-MK"></span>MK Party <b class="ph">N</b><span class="arrow reader">▼n</span></span>
+          <span class="cb-chip"><span class="pchip pc-PA"></span>PA <b class="ph">N</b><span class="arrow reader">▲n</span></span>
+          <span class="cb-chip maj">Majority <b class="ph">N</b></span>
+        </div>
+        <p class="cb-sub">Chances</p>
+        <p class="cb-line">Most seats: <span class="ph">N%</span><span class="arrow reader">▼n</span> chance it's the ANC,
+          <span class="ph">N%</span><span class="arrow reader">▲n</span> chance it's the DA. Two or more parties tie for the most seats:
+          <span class="ph">N%</span><span class="arrow reader">▲n</span> chance. One party wins a majority on its own: <span class="ph">N%</span> chance.</p>
+        <p class="cb-sub">Wards</p>
+        <p class="cb-line"><span class="pl-kring" style="margin-left:0"></span><b><span class="ph">N</span> wards change their most likely winner.</b></p>
+        <dl class="cb-flip">
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w, w, w, w, w</span></dd>
+          <dt><span class="pchip pc-ANC"></span>ANC <span class="cb-to">to</span> <span class="pchip pc-PA"></span>PA</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w</span></dd>
+          <dt><span class="pchip pc-EFF"></span>EFF <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: ward <span class="ph">w</span></dd>
+          <dt><span class="pchip pc-MK"></span>MK Party <span class="cb-to">to</span> <span class="pchip pc-ANC"></span>ANC</dt>
+          <dd><span class="ph">N</span>: wards <span class="ph">w, w, w, w, w</span></dd>
+          <dt><span class="pchip pc-PA"></span>PA <span class="cb-to">to</span> <span class="pchip pc-DA"></span>DA</dt>
+          <dd><span class="ph">N</span>: ward <span class="ph">w</span></dd>
+        </dl>
+        <button class="cb-more" type="button" aria-expanded="true">fewer</button>
+      </div>
+    </div>
+    <p class="cb-foot">At your settings the figures rest on the equivalent of <span class="ph">N</span> equally weighted simulations.</p>
+  </section>
+</div>
+</body>
+</html>

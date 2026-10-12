@@ -1,0 +1,8652 @@
+{
+ "city": "tshwane",
+ "year": "2021",
+ "draws": 2000,
+ "seed": 20261104,
+ "control": "none",
+ "c4_party": null,
+ "plant_party": null,
+ "plant_wards": [
+  "79900001",
+  "79900002"
+ ],
+ "relabel_entrant": null,
+ "seconds": 81.6,
+ "spec": "data/processed/tshwane/pools_2021.json",
+ "universe": [
+  "ABANTU_BATHO_CONGRESS",
+  "ACDP",
+  "ACTIVE_MOVEMENT_FOR_CHANGE",
+  "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA",
+  "AFRICAN_COVENANT",
+  "AFRICA_RESTORATION_ALLIANCE",
+  "AGANG",
+  "AGENCY_FOR_NEW_AGENDA",
+  "AIC",
+  "ALJAMAAH",
+  "ANC",
+  "APC",
+  "ARUSHA_ECONOMIC_COALITION",
+  "ASA",
+  "ATM",
+  "AZAPO",
+  "BLACK_FIRST_LAND_FIRST",
+  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+  "CAPE_COLOURED_CONGRESS",
+  "CONCERN",
+  "COPE",
+  "DA",
+  "DEMOCRATIC_ARTISTS_PARTY",
+  "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY",
+  "DOP",
+  "ECONOMIC_EMANCIPATION_FORUM",
+  "EFF",
+  "FEDERAL_PARTY_SA",
+  "GOD_SAVE_AFRICA",
+  "GOOD",
+  "IFP",
+  "KHOISAN_KINGDOM_AND_ALL_PEOPLE",
+  "NFP",
+  "PA",
+  "PAC",
+  "PARTY_OF_ACTION",
+  "POELANO_REVELATION_PARTY",
+  "RCT",
+  "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION",
+  "SPECTRUM_NATIONAL_PARTY",
+  "THE_ORGANIC_HUMANITY_MOVEMENT",
+  "THE_PEOPLE_S_VOICE",
+  "UDM",
+  "UIM",
+  "UNITED_CHRISTIAN_DEMOCRATIC_PARTY",
+  "UNITED_CULTURAL_MOVEMENT",
+  "VFPLUS"
+ ],
+ "n_wards_model": 107,
+ "n_wards_actual": {
+  "PR": 107,
+  "Ward": 107
+ },
+ "unmatched_actual_wards": {
+  "PR": [],
+  "Ward": []
+ },
+ "cells_scanned": {
+  "PR": 3981,
+  "Ward": 2663
+ },
+ "near_zero_counts": {
+  "PR": {
+   "1e-12": 250,
+   "1e-09": 250,
+   "1e-06": 250,
+   "0.0001": 250,
+   "0.001": 250
+  },
+  "Ward": {
+   "1e-12": 238,
+   "1e-09": 238,
+   "1e-06": 238,
+   "0.0001": 238,
+   "0.001": 238
+  }
+ },
+ "min_vd_share_W": {
+  "ABANTU_BATHO_CONGRESS": 6.129278131047046e-07,
+  "ACDP": 3.546507749018445e-07,
+  "ACTIVE_MOVEMENT_FOR_CHANGE": 6.129278131047046e-07,
+  "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 6.05044899391055e-07,
+  "AFRICAN_COVENANT": 6.117608988686816e-07,
+  "AFRICA_RESTORATION_ALLIANCE": 6.124592778564324e-07,
+  "AGANG": 6.05044899391055e-07,
+  "AGENCY_FOR_NEW_AGENDA": 6.05044899391055e-07,
+  "AIC": 7.180160705482044e-07,
+  "ALJAMAAH": 6.05044899391055e-07,
+  "ANC": 0.0005237201033538487,
+  "APC": 6.117608988686816e-07,
+  "ARUSHA_ECONOMIC_COALITION": 6.48712697897192e-07,
+  "ASA": 0.0003925366931075752,
+  "ATM": 6.669382282990551e-07,
+  "AZAPO": 6.05044899391055e-07,
+  "BLACK_FIRST_LAND_FIRST": 6.124592778564324e-07,
+  "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 6.05044899391055e-07,
+  "CAPE_COLOURED_CONGRESS": 6.129278131047046e-07,
+  "CONCERN": 6.354073879191685e-07,
+  "COPE": 6.012202455350817e-07,
+  "DA": 0.0005323231879292631,
+  "DEMOCRATIC_ARTISTS_PARTY": 6.117608988686816e-07,
+  "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 6.117608988686816e-07,
+  "DOP": 6.05044899391055e-07,
+  "ECONOMIC_EMANCIPATION_FORUM": 6.124592778564324e-07,
+  "EFF": 0.00021201672178486344,
+  "FEDERAL_PARTY_SA": 6.05044899391055e-07,
+  "GOD_SAVE_AFRICA": 6.117608988686816e-07,
+  "GOOD": 6.05044899391055e-07,
+  "IFP": 6.117608988686816e-07,
+  "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 6.117608988686816e-07,
+  "NFP": 6.05044899391055e-07,
+  "PA": 6.05044899391055e-07,
+  "PAC": 6.117608988686816e-07,
+  "PARTY_OF_ACTION": 6.129278131047046e-07,
+  "POELANO_REVELATION_PARTY": 6.05044899391055e-07,
+  "RCT": 6.05044899391055e-07,
+  "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 6.05044899391055e-07,
+  "SPECTRUM_NATIONAL_PARTY": 6.129278131047046e-07,
+  "THE_ORGANIC_HUMANITY_MOVEMENT": 6.117608988686816e-07,
+  "THE_PEOPLE_S_VOICE": 6.05044899391055e-07,
+  "UDM": 6.263220112677876e-07,
+  "UIM": 6.05044899391055e-07,
+  "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 6.05044899391055e-07,
+  "UNITED_CULTURAL_MOVEMENT": 6.05044899391055e-07,
+  "VFPLUS": 7.952129518181234e-05
+ },
+ "min_over_wards_of_max_share": {
+  "W": {
+   "ABANTU_BATHO_CONGRESS": 0.031066185127975068,
+   "ACDP": 0.07123384268259975,
+   "ACTIVE_MOVEMENT_FOR_CHANGE": 0.041736356928009054,
+   "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.035347253730049585,
+   "AFRICAN_COVENANT": 0.06676378788518049,
+   "AFRICA_RESTORATION_ALLIANCE": 0.03834782388973559,
+   "AGANG": 0.025577078885713585,
+   "AGENCY_FOR_NEW_AGENDA": 0.05622844744916244,
+   "AIC": 0.05613429971403987,
+   "ALJAMAAH": 0.027590564837713317,
+   "ANC": 0.1861745354257693,
+   "APC": 0.06468747458507863,
+   "ARUSHA_ECONOMIC_COALITION": 0.06241600892655924,
+   "ASA": 0.0759650009094596,
+   "ATM": 0.07076272971586663,
+   "AZAPO": 0.0461759681203803,
+   "BLACK_FIRST_LAND_FIRST": 0.042904568746279806,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.07648675626599442,
+   "CAPE_COLOURED_CONGRESS": 0.052288139489438536,
+   "CONCERN": 0.03128170893369433,
+   "COPE": 0.11310046847023356,
+   "DA": 0.30874099549179207,
+   "DEMOCRATIC_ARTISTS_PARTY": 0.04778650838496829,
+   "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 0.06382455853774952,
+   "DOP": 0.04390144732036018,
+   "ECONOMIC_EMANCIPATION_FORUM": 0.041124087020035574,
+   "EFF": 0.10612230568058345,
+   "FEDERAL_PARTY_SA": 0.05655479462450489,
+   "GOD_SAVE_AFRICA": 0.034665414087827334,
+   "GOOD": 0.036249081520214416,
+   "IFP": 0.11709267398213594,
+   "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.04856130659239653,
+   "NFP": 0.013861787853465169,
+   "PA": 0.0754173170008179,
+   "PAC": 0.05567991454363916,
+   "PARTY_OF_ACTION": 0.047779277733673686,
+   "POELANO_REVELATION_PARTY": 0.04254490810238133,
+   "RCT": 0.04433456198191598,
+   "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.0537819887507632,
+   "SPECTRUM_NATIONAL_PARTY": 0.048954345112627196,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.030532630424092766,
+   "THE_PEOPLE_S_VOICE": 0.05200227032060299,
+   "UDM": 0.04140604524408695,
+   "UIM": 0.04081157793905597,
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.07424452616667798,
+   "UNITED_CULTURAL_MOVEMENT": 0.052610647647626296,
+   "VFPLUS": 0.012535633897963564
+  },
+  "PR": {
+   "ABANTU_BATHO_CONGRESS": 0.04398042098772562,
+   "ACDP": 0.0691375119161056,
+   "ACTIVE_MOVEMENT_FOR_CHANGE": 0.052193917239189744,
+   "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": 0.03988712700941407,
+   "AFRICAN_COVENANT": 0.08791057459888656,
+   "AFRICA_RESTORATION_ALLIANCE": 0.04980354615271863,
+   "AGANG": 0.03434475118093042,
+   "AGENCY_FOR_NEW_AGENDA": 0.07733163979919759,
+   "AIC": 0.06139586110612185,
+   "ALJAMAAH": 0.03334408799627056,
+   "ANC": 0.17974947367745564,
+   "APC": 0.08558919077583661,
+   "ARUSHA_ECONOMIC_COALITION": 0.08047743423311211,
+   "ASA": 0.085516059256906,
+   "ATM": 0.08467583872512538,
+   "AZAPO": 0.05102908495747544,
+   "BLACK_FIRST_LAND_FIRST": 0.05352896524862258,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.09870003853537254,
+   "CAPE_COLOURED_CONGRESS": 0.07078616521698758,
+   "CONCERN": 0.03644822940928699,
+   "COPE": 0.1006073399715421,
+   "DA": 0.31659586046756466,
+   "DEMOCRATIC_ARTISTS_PARTY": 0.0603896929890278,
+   "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": 0.07848645577827384,
+   "DOP": 0.0584472411165509,
+   "ECONOMIC_EMANCIPATION_FORUM": 0.05004878855664466,
+   "EFF": 0.10699312900800818,
+   "FEDERAL_PARTY_SA": 0.07513966284861526,
+   "GOD_SAVE_AFRICA": 0.041985682011689965,
+   "GOOD": 0.040652460367330646,
+   "IFP": 0.07713657373787146,
+   "KHOISAN_KINGDOM_AND_ALL_PEOPLE": 0.05883592043325002,
+   "NFP": 0.018167313713714214,
+   "PA": 0.048151574343607007,
+   "PAC": 0.062187341787704686,
+   "PARTY_OF_ACTION": 0.05920537496076748,
+   "POELANO_REVELATION_PARTY": 0.050820279151305825,
+   "RCT": 0.047668531667376335,
+   "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION": 0.06482131723846186,
+   "SPECTRUM_NATIONAL_PARTY": 0.060386575341056944,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.037793306571853875,
+   "THE_PEOPLE_S_VOICE": 0.0705955102970926,
+   "UDM": 0.06927409397348959,
+   "UIM": 0.051933905250857164,
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": 0.06298880957945326,
+   "UNITED_CULTURAL_MOVEMENT": 0.06322103541761014,
+   "VFPLUS": 0.013427371332333689
+  }
+ },
+ "zero_cells": [
+  {
+   "ballot": "PR",
+   "ward": "79900001",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 8049,
+   "share": 0.00012423903590508137,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900001",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 8049,
+   "share": 0.0007454342154304882,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 8049,
+   "share": 0.00012423903590508137,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900002",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 7993,
+   "share": 0.0006255473539346928,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900002",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 7993,
+   "share": 0.0010008757662955086,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900003",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 5090,
+   "share": 0.0007858546168958742,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900003",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5090,
+   "share": 0.0003929273084479371,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900003",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 5090,
+   "share": 0.0003929273084479371,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900004",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 7626,
+   "share": 0.0005245213742460005,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900004",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 7626,
+   "share": 0.0003933910306845004,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900005",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 9094,
+   "share": 0.00010996261271167803,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900005",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 9094,
+   "share": 0.0005498130635583901,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900005",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 9094,
+   "share": 0.00010996261271167803,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900006",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 5665,
+   "share": 0.000176522506619594,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900006",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5665,
+   "share": 0.000353045013239188,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900007",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 6939,
+   "share": 0.0007205649228995533,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900007",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 6939,
+   "share": 0.00043233895373973193,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900007",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 6939,
+   "share": 0.00014411298457991066,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900008",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 16,
+   "ward_total": 5009,
+   "share": 0.003194250349371132,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900008",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5009,
+   "share": 0.000798562587342783,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900009",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 15,
+   "ward_total": 4602,
+   "share": 0.003259452411994785,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900009",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4602,
+   "share": 0.000651890482398957,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900009",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 11,
+   "ward_total": 4602,
+   "share": 0.0023902651021295088,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900010",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 8,
+   "ward_total": 4215,
+   "share": 0.0018979833926453143,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900010",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 4215,
+   "share": 0.00023724792408066428,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900011",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4923,
+   "share": 0.0010156408693885843,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900011",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 4923,
+   "share": 0.0016250253910217347,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900011",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 4923,
+   "share": 0.0004062563477554337,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900012",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 18,
+   "ward_total": 4290,
+   "share": 0.004195804195804196,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900012",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 4290,
+   "share": 0.0002331002331002331,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900012",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 34,
+   "ward_total": 4290,
+   "share": 0.007925407925407926,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900013",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 12,
+   "ward_total": 5679,
+   "share": 0.0021130480718436345,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900013",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5679,
+   "share": 0.0007043493572812115,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900013",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 3,
+   "ward_total": 5679,
+   "share": 0.0005282620179609086,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900014",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 14,
+   "ward_total": 4896,
+   "share": 0.0028594771241830064,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900014",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 4896,
+   "share": 0.0008169934640522876,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900014",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 4896,
+   "share": 0.0004084967320261438,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900015",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 16,
+   "ward_total": 6070,
+   "share": 0.0026359143327841844,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900015",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 6070,
+   "share": 0.0006589785831960461,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900016",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 6224,
+   "share": 0.0008033419023136247,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900016",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 6224,
+   "share": 0.00032133676092544985,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900016",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 6224,
+   "share": 0.00016066838046272492,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900017",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 11,
+   "ward_total": 5483,
+   "share": 0.0020062009848623016,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900017",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5483,
+   "share": 0.0007295276308590188,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900017",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 3,
+   "ward_total": 5483,
+   "share": 0.0005471457231442641,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900018",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 14,
+   "ward_total": 6174,
+   "share": 0.0022675736961451248,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900018",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 6174,
+   "share": 0.0008098477486232588,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900019",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 36,
+   "ward_total": 5444,
+   "share": 0.006612784717119765,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900019",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5444,
+   "share": 0.0005510653930933138,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900019",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 5444,
+   "share": 0.0001836884643644379,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900020",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 5456,
+   "share": 0.0018328445747800588,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900020",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5456,
+   "share": 0.00036656891495601173,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900020",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 77,
+   "ward_total": 5456,
+   "share": 0.014112903225806451,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900021",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 5479,
+   "share": 0.0007300602299689724,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900021",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 5479,
+   "share": 0.0010950903449534588,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900021",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 3,
+   "ward_total": 5479,
+   "share": 0.0005475451724767294,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900022",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 539,
+   "ward_total": 5374,
+   "share": 0.10029772981019724,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900022",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5374,
+   "share": 0.000744324525493115,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900023",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 12,
+   "ward_total": 4945,
+   "share": 0.0024266936299292214,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900023",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 4945,
+   "share": 0.0004044489383215369,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900024",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 8,
+   "ward_total": 5292,
+   "share": 0.0015117157974300832,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900024",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5292,
+   "share": 0.0005668934240362812,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900024",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 8,
+   "ward_total": 5292,
+   "share": 0.0015117157974300832,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900025",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 11,
+   "ward_total": 4633,
+   "share": 0.0023742715303259228,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900025",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 4633,
+   "share": 0.0002158428663932657,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900026",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4787,
+   "share": 0.0010444955086693127,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900026",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4787,
+   "share": 0.0006266973052015876,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900027",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 25,
+   "ward_total": 4793,
+   "share": 0.005215939912372209,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900027",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 16,
+   "ward_total": 4793,
+   "share": 0.003338201543918214,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900027",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 7,
+   "ward_total": 4793,
+   "share": 0.0014604631754642186,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900028",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 4472,
+   "share": 0.0013416815742397137,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900028",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 4472,
+   "share": 0.00022361359570661896,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900029",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 5635,
+   "share": 0.0012422360248447205,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900029",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 5635,
+   "share": 0.0001774622892635315,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900030",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 6361,
+   "share": 0.0009432479169941833,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900030",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 6361,
+   "share": 0.0011004559031598806,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900030",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 6361,
+   "share": 0.00031441597233139445,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900031",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 5437,
+   "share": 0.001103549751701306,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900031",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 5437,
+   "share": 0.0001839249586168843,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900031",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 5437,
+   "share": 0.0003678499172337686,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900032",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 16,
+   "ward_total": 6105,
+   "share": 0.002620802620802621,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900032",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 6105,
+   "share": 0.000819000819000819,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900032",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 6105,
+   "share": 0.0003276003276003276,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900033",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 5708,
+   "share": 0.0001751927119831815,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900034",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 4849,
+   "share": 0.0014435966178593523,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900034",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 4849,
+   "share": 0.0012373685295937306,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900035",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 12,
+   "ward_total": 5054,
+   "share": 0.002374356944994064,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900035",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 19,
+   "ward_total": 5054,
+   "share": 0.0037593984962406013,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900036",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 5049,
+   "share": 0.0005941770647653001,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900036",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 5049,
+   "share": 0.0009902951079421667,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900037",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 12,
+   "ward_total": 5240,
+   "share": 0.0022900763358778627,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900037",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5240,
+   "share": 0.0003816793893129771,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900038",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 2923,
+   "share": 0.0017105713308244953,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900038",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 2923,
+   "share": 0.00034211426616489907,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900038",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 2923,
+   "share": 0.00034211426616489907,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900039",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 8,
+   "ward_total": 4604,
+   "share": 0.0017376194613379669,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900039",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4604,
+   "share": 0.0006516072980017377,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900040",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4594,
+   "share": 0.00108837614279495,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900040",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 4594,
+   "share": 0.00043535045711797995,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900040",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 4594,
+   "share": 0.00043535045711797995,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900041",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 8872,
+   "share": 0.0001127141568981064,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900041",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 8872,
+   "share": 0.0007889990982867448,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900042",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 8711,
+   "share": 0.00022959476523935255,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900042",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 8711,
+   "share": 0.0005739869130983814,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900043",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 6010,
+   "share": 0.0009983361064891847,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900043",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 6010,
+   "share": 0.001497504159733777,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900043",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 3,
+   "ward_total": 6010,
+   "share": 0.0004991680532445924,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900044",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 8576,
+   "share": 0.0001166044776119403,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900044",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 8576,
+   "share": 0.0004664179104477612,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900045",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 9202,
+   "share": 0.00021734405564007825,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900045",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 9202,
+   "share": 0.0009780482503803521,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900046",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 8922,
+   "share": 0.0008966599417171038,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900046",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 8922,
+   "share": 0.00022416498542927594,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900047",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 9453,
+   "share": 0.00031735956839098697,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900047",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 9453,
+   "share": 0.0007405056595789696,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900048",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 8886,
+   "share": 0.00022507314877335134,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900048",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 87,
+   "ward_total": 8886,
+   "share": 0.009790681971640782,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900049",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 12,
+   "ward_total": 5581,
+   "share": 0.002150152302454757,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900049",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 5581,
+   "share": 0.001612614226841068,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900050",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 9464,
+   "share": 0.0007396449704142012,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900051",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 4445,
+   "share": 0.0004499437570303712,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900051",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4445,
+   "share": 0.0006749156355455568,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900052",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 10416,
+   "share": 0.00019201228878648233,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900052",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 12,
+   "ward_total": 10416,
+   "share": 0.001152073732718894,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900053",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 6722,
+   "share": 0.001338887235941684,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900054",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 8999,
+   "share": 0.00011112345816201801,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900054",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 17,
+   "ward_total": 8999,
+   "share": 0.001889098788754306,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900055",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 8180,
+   "share": 0.0007334963325183374,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900055",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 8180,
+   "share": 0.0008557457212713936,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900055",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 8180,
+   "share": 0.00012224938875305622,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900056",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 4585,
+   "share": 0.0004362050163576881,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900056",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4585,
+   "share": 0.0006543075245365322,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900056",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 4585,
+   "share": 0.00021810250817884405,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900057",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 6613,
+   "share": 0.0004536518977771057,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900058",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 3456,
+   "share": 0.00028935185185185184,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900058",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 3456,
+   "share": 0.0008680555555555555,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900058",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 3456,
+   "share": 0.0005787037037037037,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900059",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 3714,
+   "share": 0.0010770059235325794,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900060",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 5590,
+   "share": 0.00017889087656529517,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900060",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5590,
+   "share": 0.00035778175313059033,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900061",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 8,
+   "ward_total": 7931,
+   "share": 0.0010087000378262514,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900061",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 7931,
+   "share": 0.0005043500189131257,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900062",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 14,
+   "ward_total": 5277,
+   "share": 0.0026530225506916807,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900062",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5277,
+   "share": 0.00037900322152738296,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900063",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 5144,
+   "share": 0.00038880248833592535,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900063",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5144,
+   "share": 0.0005832037325038881,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900064",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 7160,
+   "share": 0.00027932960893854746,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900064",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 12,
+   "ward_total": 7160,
+   "share": 0.0016759776536312849,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900065",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 9564,
+   "share": 0.00010455876202425763,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900065",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 14,
+   "ward_total": 9564,
+   "share": 0.0014638226683396068,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900066",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 9059,
+   "share": 0.00022077491996909152,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900066",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 11,
+   "ward_total": 9059,
+   "share": 0.0012142620598300034,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900066",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 9059,
+   "share": 0.00011038745998454576,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900067",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 4716,
+   "share": 0.0006361323155216285,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900068",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 5057,
+   "share": 0.0005932370970931383,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900068",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 5057,
+   "share": 0.00019774569903104609,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900069",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 10402,
+   "share": 0.0005768121515093252,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900070",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 9138,
+   "share": 0.00032829940906106366,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900070",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 9138,
+   "share": 0.0006565988181221273,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900071",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 9,
+   "ward_total": 4483,
+   "share": 0.002007584207004238,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900071",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 4483,
+   "share": 0.00022306491188935982,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900072",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 5096,
+   "share": 0.0019623233908948193,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900072",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5096,
+   "share": 0.0003924646781789639,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900072",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 5096,
+   "share": 0.00019623233908948196,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900073",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 29,
+   "ward_total": 6090,
+   "share": 0.004761904761904762,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900073",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 16,
+   "ward_total": 6090,
+   "share": 0.002627257799671593,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900073",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 8,
+   "ward_total": 6090,
+   "share": 0.0013136288998357964,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900074",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 13,
+   "ward_total": 4778,
+   "share": 0.0027208036835496023,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900074",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 4778,
+   "share": 0.0008371703641691084,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900074",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 6,
+   "ward_total": 4778,
+   "share": 0.0012557555462536626,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900075",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 5555,
+   "share": 0.00072007200720072,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900075",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5555,
+   "share": 0.00072007200720072,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900076",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 15,
+   "ward_total": 4788,
+   "share": 0.003132832080200501,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900076",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 4788,
+   "share": 0.0014619883040935672,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900076",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 4788,
+   "share": 0.0004177109440267335,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900077",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 8632,
+   "share": 0.0006950880444856349,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900077",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 8632,
+   "share": 0.00023169601482854495,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900078",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 7197,
+   "share": 0.00041684035014589413,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900078",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 7197,
+   "share": 0.00013894678338196472,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900079",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 9665,
+   "share": 0.00010346611484738747,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900079",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 11,
+   "ward_total": 9665,
+   "share": 0.0011381272633212622,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900079",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 9665,
+   "share": 0.00010346611484738747,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900080",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 3423,
+   "share": 0.0005842827928717499,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900080",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 3423,
+   "share": 0.0005842827928717499,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900081",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 2580,
+   "share": 0.0007751937984496124,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900081",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 2580,
+   "share": 0.0003875968992248062,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900081",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 2580,
+   "share": 0.0003875968992248062,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900082",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 7919,
+   "share": 0.00037883571157974494,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900082",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 7919,
+   "share": 0.0005051142821063266,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900082",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 7919,
+   "share": 0.00012627857052658164,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900083",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 12,
+   "ward_total": 8741,
+   "share": 0.001372840636082828,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900084",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 9690,
+   "share": 0.00010319917440660474,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900084",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 9690,
+   "share": 0.0006191950464396285,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900085",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 9414,
+   "share": 0.0007435734013171871,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900085",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 9414,
+   "share": 0.00010622477161674102,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900086",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 12,
+   "ward_total": 4550,
+   "share": 0.0026373626373626374,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900086",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 4550,
+   "share": 0.00021978021978021978,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900086",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 4550,
+   "share": 0.00021978021978021978,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900087",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 7151,
+   "share": 0.00013984058173682003,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900087",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 25,
+   "ward_total": 7151,
+   "share": 0.0034960145434205004,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900087",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 7151,
+   "share": 0.00027968116347364006,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900088",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 5521,
+   "share": 0.0009056330374932077,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900088",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5521,
+   "share": 0.0005433798224959246,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900088",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 10,
+   "ward_total": 5521,
+   "share": 0.0018112660749864155,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900089",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 5147,
+   "share": 0.0019428793471925393,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900089",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5147,
+   "share": 0.0003885758694385079,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900089",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 5147,
+   "share": 0.00019428793471925395,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900090",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 5767,
+   "share": 0.0010404022888850356,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900090",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 5767,
+   "share": 0.0008670019074041963,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900090",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 4,
+   "ward_total": 5767,
+   "share": 0.000693601525923357,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900091",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 9221,
+   "share": 0.00021689621516104545,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900091",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 9221,
+   "share": 0.0009760329682247045,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900092",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 3987,
+   "share": 0.00025081514923501377,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900092",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 3987,
+   "share": 0.0005016302984700275,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900093",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 18,
+   "ward_total": 5056,
+   "share": 0.003560126582278481,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900093",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5056,
+   "share": 0.0005933544303797469,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900093",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 5056,
+   "share": 0.00019778481012658228,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900094",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 5433,
+   "share": 0.0012884226026136573,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900094",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 5433,
+   "share": 0.0012884226026136573,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900094",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 5433,
+   "share": 0.00018406037180195104,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900095",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 17,
+   "ward_total": 5347,
+   "share": 0.0031793529081728072,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900095",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5347,
+   "share": 0.0007480830372171312,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900096",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 7673,
+   "share": 0.00013032712107389547,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900096",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 7673,
+   "share": 0.00013032712107389547,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900097",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 12,
+   "ward_total": 5020,
+   "share": 0.002390438247011952,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900097",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 5020,
+   "share": 0.00019920318725099602,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900098",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 7734,
+   "share": 0.0002585983966899405,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900098",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 7734,
+   "share": 0.0003878975950349108,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900098",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 7734,
+   "share": 0.00012929919834497026,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900099",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 5507,
+   "share": 0.0009079353550027238,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900099",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 5507,
+   "share": 0.0012711094970038134,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900099",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 5507,
+   "share": 0.00018158707100054475,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900100",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 6438,
+   "share": 0.0007766387076731904,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900100",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 6438,
+   "share": 0.0009319664492078285,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900101",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 11880,
+   "share": 8.417508417508418e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900101",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 11880,
+   "share": 0.00042087542087542086,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900101",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 11880,
+   "share": 8.417508417508418e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900102",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 6158,
+   "share": 0.000974342318934719,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900102",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 6158,
+   "share": 0.0004871711594673595,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900102",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 1,
+   "ward_total": 6158,
+   "share": 0.00016239038648911984,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900103",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 13,
+   "ward_total": 5357,
+   "share": 0.0024267313795034535,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900103",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5357,
+   "share": 0.0005600149337315662,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900104",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 12,
+   "ward_total": 5795,
+   "share": 0.0020707506471095774,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900105",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 14,
+   "ward_total": 6852,
+   "share": 0.0020431990659661413,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900105",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 6852,
+   "share": 0.0007297139521307647,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900106",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 4236,
+   "share": 0.0016525023607176581,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900106",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4236,
+   "share": 0.000708215297450425,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900106",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 11,
+   "ward_total": 4236,
+   "share": 0.0025967894239848914,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900107",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 9,
+   "ward_total": 5185,
+   "share": 0.0017357762777242044,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "PR",
+   "ward": "79900107",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5185,
+   "share": 0.0003857280617164899,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900001",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 8099,
+   "share": 0.00012347203358439315,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900001",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 8099,
+   "share": 0.0011112483022595382,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 8099,
+   "share": 0.00012347203358439315,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900002",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 7901,
+   "share": 0.0006328312871788382,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900002",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 7901,
+   "share": 0.0008859638020503734,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900003",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 5183,
+   "share": 0.00019293845263360988,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900003",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5183,
+   "share": 0.00038587690526721975,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900004",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 7446,
+   "share": 0.00026860059092130003,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900004",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 7446,
+   "share": 0.00040290088638195,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900004",
+   "party": "IND",
+   "votes": 27,
+   "ward_total": 7446,
+   "share": 0.0036261079774375505,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900005",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 9064,
+   "share": 0.000441306266548985,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900006",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 5691,
+   "share": 0.0007028641714988579,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900006",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5691,
+   "share": 0.0007028641714988579,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900007",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 6986,
+   "share": 0.0007157171485828801,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900007",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 6986,
+   "share": 0.001145147437732608,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900007",
+   "party": "IND",
+   "votes": 1265,
+   "ward_total": 6986,
+   "share": 0.18107643859146866,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900008",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 8,
+   "ward_total": 4997,
+   "share": 0.0016009605763458075,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900008",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 4997,
+   "share": 0.0008004802881729037,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900008",
+   "party": "IND",
+   "votes": 242,
+   "ward_total": 4997,
+   "share": 0.04842905743446067,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900009",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 14,
+   "ward_total": 4623,
+   "share": 0.0030283365779796667,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900009",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 4623,
+   "share": 0.00021630975556997622,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900009",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 16,
+   "ward_total": 4623,
+   "share": 0.0034609560891196195,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900010",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4178,
+   "share": 0.0011967448539971278,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900010",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 4178,
+   "share": 0.00023934897079942556,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900010",
+   "party": "IND",
+   "votes": 563,
+   "ward_total": 4178,
+   "share": 0.13475347056007658,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900011",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 38,
+   "ward_total": 5031,
+   "share": 0.007553170343868018,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900011",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 5031,
+   "share": 0.0017889087656529517,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900011",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 5031,
+   "share": 0.0003975352812562115,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900011",
+   "party": "IND",
+   "votes": 84,
+   "ward_total": 5031,
+   "share": 0.016696481812760882,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900012",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 4295,
+   "share": 0.001629802095459837,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900012",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 4295,
+   "share": 0.001629802095459837,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900012",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 38,
+   "ward_total": 4295,
+   "share": 0.008847497089639115,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900012",
+   "party": "IND",
+   "votes": 117,
+   "ward_total": 4295,
+   "share": 0.027240977881257275,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900013",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 14,
+   "ward_total": 5669,
+   "share": 0.0024695713529723057,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900013",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 5669,
+   "share": 0.0008819897689186806,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900013",
+   "party": "IND",
+   "votes": 200,
+   "ward_total": 5669,
+   "share": 0.03527959075674722,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900014",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4962,
+   "share": 0.001007658202337767,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900014",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 4962,
+   "share": 0.0008061265618702137,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900014",
+   "party": "IND",
+   "votes": 1415,
+   "ward_total": 4962,
+   "share": 0.2851672712615881,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900015",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 6100,
+   "share": 0.0006557377049180328,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900015",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 6100,
+   "share": 0.0004918032786885246,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900016",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 6202,
+   "share": 0.001128668171557562,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900016",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 6202,
+   "share": 0.0008061915511125443,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900016",
+   "party": "IND",
+   "votes": 86,
+   "ward_total": 6202,
+   "share": 0.013866494679135763,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900017",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 5534,
+   "share": 0.0005421033610408384,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900017",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5534,
+   "share": 0.0007228044813877846,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900017",
+   "party": "IND",
+   "votes": 787,
+   "ward_total": 5534,
+   "share": 0.14221178171304663,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900018",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 6254,
+   "share": 0.0007994883274704189,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900018",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 6254,
+   "share": 0.0003197953309881676,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900019",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 13,
+   "ward_total": 5353,
+   "share": 0.0024285447412665793,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900019",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 5353,
+   "share": 0.00018681113394358303,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900020",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 5376,
+   "share": 0.0005580357142857143,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900020",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5376,
+   "share": 0.000744047619047619,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900020",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 99,
+   "ward_total": 5376,
+   "share": 0.018415178571428572,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900020",
+   "party": "IND",
+   "votes": 161,
+   "ward_total": 5376,
+   "share": 0.029947916666666668,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900021",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 5333,
+   "share": 0.001125070316894806,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900021",
+   "party": "IND",
+   "votes": 591,
+   "ward_total": 5333,
+   "share": 0.11081942621413839,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900022",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 5260,
+   "share": 0.0007604562737642585,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900022",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 5260,
+   "share": 0.0009505703422053232,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900022",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 9,
+   "ward_total": 5260,
+   "share": 0.0017110266159695818,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900022",
+   "party": "IND",
+   "votes": 165,
+   "ward_total": 5260,
+   "share": 0.03136882129277566,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900023",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 4918,
+   "share": 0.00040666937779585197,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900023",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 4918,
+   "share": 0.00020333468889792598,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900024",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 11,
+   "ward_total": 5198,
+   "share": 0.002116198537899192,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900024",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 5198,
+   "share": 0.00019238168526356292,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900024",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 14,
+   "ward_total": 5198,
+   "share": 0.0026933435936898806,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900025",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 9,
+   "ward_total": 4563,
+   "share": 0.0019723865877712033,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900025",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 4563,
+   "share": 0.00043830813061582295,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900026",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 4760,
+   "share": 0.0008403361344537816,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900026",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 4760,
+   "share": 0.0012605042016806723,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900026",
+   "party": "IND",
+   "votes": 38,
+   "ward_total": 4760,
+   "share": 0.007983193277310924,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900027",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 8,
+   "ward_total": 4889,
+   "share": 0.0016363264471262017,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900027",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 4889,
+   "share": 0.0016363264471262017,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900027",
+   "party": "IND",
+   "votes": 49,
+   "ward_total": 4889,
+   "share": 0.010022499488647986,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900028",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4706,
+   "share": 0.0010624734381640458,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900028",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 4706,
+   "share": 0.0008499787505312367,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900028",
+   "party": "IND",
+   "votes": 24,
+   "ward_total": 4706,
+   "share": 0.005099872503187421,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900029",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 5545,
+   "share": 0.000721370604147881,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900029",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5545,
+   "share": 0.0005410279531109107,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900030",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 23,
+   "ward_total": 6367,
+   "share": 0.0036123763153761584,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900030",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 6367,
+   "share": 0.00031411967959792684,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900031",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 11,
+   "ward_total": 5343,
+   "share": 0.002058768482126146,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900031",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5343,
+   "share": 0.0007486430844095078,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900032",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 18,
+   "ward_total": 6151,
+   "share": 0.00292635343846529,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900032",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 11,
+   "ward_total": 6151,
+   "share": 0.001788327101284344,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900032",
+   "party": "IND",
+   "votes": 17,
+   "ward_total": 6151,
+   "share": 0.0027637782474394406,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900033",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 92,
+   "ward_total": 5734,
+   "share": 0.016044645971398673,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900033",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 26,
+   "ward_total": 5734,
+   "share": 0.004534356470177886,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900034",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4846,
+   "share": 0.0010317787866281469,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900034",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 4846,
+   "share": 0.0010317787866281469,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900035",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 5064,
+   "share": 0.001382306477093207,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900035",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5064,
+   "share": 0.00039494470774091627,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900035",
+   "party": "IND",
+   "votes": 4,
+   "ward_total": 5064,
+   "share": 0.0007898894154818325,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900036",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4997,
+   "share": 0.0006003602161296778,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900036",
+   "party": "IND",
+   "votes": 216,
+   "ward_total": 4997,
+   "share": 0.043225935561336803,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900037",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 5220,
+   "share": 0.0009578544061302681,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900037",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 5220,
+   "share": 0.0009578544061302681,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900038",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 2906,
+   "share": 0.0013764624913971094,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900038",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 2906,
+   "share": 0.0006882312456985547,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900039",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4584,
+   "share": 0.0010907504363001745,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900039",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 4584,
+   "share": 0.0004363001745200698,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900040",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 20,
+   "ward_total": 4608,
+   "share": 0.004340277777777778,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900040",
+   "party": "IND",
+   "votes": 406,
+   "ward_total": 4608,
+   "share": 0.0881076388888889,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900041",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 8886,
+   "share": 0.00033760972316002703,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900041",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 22,
+   "ward_total": 8886,
+   "share": 0.002475804636506865,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900042",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 8707,
+   "share": 0.00034455036177787984,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900042",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 8707,
+   "share": 0.000918800964741013,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900043",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 6302,
+   "share": 0.0015867978419549348,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900043",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 6302,
+   "share": 0.0012694382735639479,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900044",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 8934,
+   "share": 0.0007835236176404746,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900045",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 10,
+   "ward_total": 9191,
+   "share": 0.001088020890001088,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900046",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 11,
+   "ward_total": 8827,
+   "share": 0.0012461765039084626,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900047",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 9408,
+   "share": 0.00010629251700680272,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900047",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 9408,
+   "share": 0.000744047619047619,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900048",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 8883,
+   "share": 0.00022514916131937407,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900048",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 84,
+   "ward_total": 8883,
+   "share": 0.009456264775413711,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900049",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 9,
+   "ward_total": 5590,
+   "share": 0.0016100178890876566,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900049",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 5590,
+   "share": 0.0008944543828264759,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900049",
+   "party": "IND",
+   "votes": 479,
+   "ward_total": 5590,
+   "share": 0.08568872987477638,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900050",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 9328,
+   "share": 0.0002144082332761578,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900050",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 9328,
+   "share": 0.00032161234991423673,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900051",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 4465,
+   "share": 0.0006718924972004479,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900051",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 4465,
+   "share": 0.0004479283314669653,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900051",
+   "party": "IND",
+   "votes": 419,
+   "ward_total": 4465,
+   "share": 0.09384098544232923,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900052",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 9815,
+   "share": 0.0006113092205807438,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900052",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 12,
+   "ward_total": 9815,
+   "share": 0.0012226184411614875,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900053",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 6859,
+   "share": 0.000291587694999271,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900053",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 6859,
+   "share": 0.0013121446274967196,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900054",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 8925,
+   "share": 0.0003361344537815126,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900054",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 11,
+   "ward_total": 8925,
+   "share": 0.0012324929971988796,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900055",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 8169,
+   "share": 0.0003672420124862284,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900055",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 12,
+   "ward_total": 8169,
+   "share": 0.0014689680499449136,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900056",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 4556,
+   "share": 0.0006584723441615452,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900056",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4556,
+   "share": 0.0006584723441615452,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900057",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 41,
+   "ward_total": 6595,
+   "share": 0.0062168309325246396,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900058",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 3426,
+   "share": 0.0002918855808523059,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900058",
+   "party": "IND",
+   "votes": 199,
+   "ward_total": 3426,
+   "share": 0.05808523058960887,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900059",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 3696,
+   "share": 0.0010822510822510823,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900060",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 5610,
+   "share": 0.00035650623885918,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900060",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5610,
+   "share": 0.00035650623885918,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900061",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 7852,
+   "share": 0.0006367804381049414,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900061",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 7852,
+   "share": 0.00038206826286296485,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900061",
+   "party": "IND",
+   "votes": 404,
+   "ward_total": 7852,
+   "share": 0.051451859398879266,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900062",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 9,
+   "ward_total": 5252,
+   "share": 0.0017136329017517135,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900062",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 5252,
+   "share": 0.0017136329017517135,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900063",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5078,
+   "share": 0.0007877116975187081,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900063",
+   "party": "IND",
+   "votes": 54,
+   "ward_total": 5078,
+   "share": 0.01063410791650256,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900064",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 14,
+   "ward_total": 7199,
+   "share": 0.0019447145436866232,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900065",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 18,
+   "ward_total": 9389,
+   "share": 0.001917137075300884,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900066",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 8835,
+   "share": 0.00011318619128466328,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900066",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 13,
+   "ward_total": 8835,
+   "share": 0.0014714204867006225,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900067",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 4681,
+   "share": 0.0004272591326639607,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900067",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 4681,
+   "share": 0.0014954069643238624,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900068",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 5024,
+   "share": 0.0009952229299363057,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900068",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 5024,
+   "share": 0.0009952229299363057,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900069",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 10274,
+   "share": 9.733307377846993e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900069",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 10274,
+   "share": 0.0007786645902277594,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900070",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 9161,
+   "share": 0.00043663355528872393,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900070",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 9161,
+   "share": 0.0005457919441109049,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900071",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 4328,
+   "share": 0.0011552680221811461,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900072",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 5153,
+   "share": 0.0007762468464971861,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900072",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 5153,
+   "share": 0.00038812342324859306,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900073",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 19,
+   "ward_total": 6063,
+   "share": 0.0031337621639452415,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900073",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 6063,
+   "share": 0.0009896091044037606,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900073",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 10,
+   "ward_total": 6063,
+   "share": 0.0016493485073396008,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900073",
+   "party": "IND",
+   "votes": 574,
+   "ward_total": 6063,
+   "share": 0.09467260432129308,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900074",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 17,
+   "ward_total": 4950,
+   "share": 0.0034343434343434343,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900074",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 4950,
+   "share": 0.0012121212121212121,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900074",
+   "party": "IND",
+   "votes": 265,
+   "ward_total": 4950,
+   "share": 0.05353535353535353,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900075",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 11,
+   "ward_total": 5483,
+   "share": 0.0020062009848623016,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900075",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5483,
+   "share": 0.0005471457231442641,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900076",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 4817,
+   "share": 0.002075980900975711,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900076",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4817,
+   "share": 0.0006227942702927133,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900077",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 8662,
+   "share": 0.0004617871161394597,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900077",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 8662,
+   "share": 0.0003463403371045948,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900077",
+   "party": "IND",
+   "votes": 204,
+   "ward_total": 8662,
+   "share": 0.023551142923112445,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900078",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 7185,
+   "share": 0.0005567153792623522,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900079",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 9554,
+   "share": 0.00010466820180029308,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900079",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 8,
+   "ward_total": 9554,
+   "share": 0.0008373456144023446,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900080",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 3380,
+   "share": 0.001183431952662722,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900080",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 3380,
+   "share": 0.001183431952662722,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900081",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 2588,
+   "share": 0.0003863987635239567,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900081",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 2588,
+   "share": 0.00231839258114374,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900082",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 7950,
+   "share": 0.00025157232704402514,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900082",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 7950,
+   "share": 0.0005031446540880503,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900083",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 8920,
+   "share": 0.0002242152466367713,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900083",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 21,
+   "ward_total": 8920,
+   "share": 0.0023542600896860988,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900084",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 9818,
+   "share": 0.00020370747606437156,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900084",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 9818,
+   "share": 0.0006111224281931147,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900085",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 9418,
+   "share": 0.00021235931195582927,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900085",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 9418,
+   "share": 0.0005308982798895731,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900086",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 17,
+   "ward_total": 4451,
+   "share": 0.003819366434509099,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900086",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4451,
+   "share": 0.0006740058413839587,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900087",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 7553,
+   "share": 0.0011915795048325168,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900088",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 5540,
+   "share": 0.0005415162454873646,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900088",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 12,
+   "ward_total": 5540,
+   "share": 0.0021660649819494585,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900088",
+   "party": "FORUM_4_SERVICE_DELIVERY",
+   "votes": 2,
+   "ward_total": 5540,
+   "share": 0.00036101083032490973,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900089",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 4898,
+   "share": 0.0012249897917517355,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900089",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 4898,
+   "share": 0.0004083299305839118,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900090",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 5786,
+   "share": 0.0017283097131005876,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900090",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5786,
+   "share": 0.000691323885240235,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900091",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 9420,
+   "share": 0.00010615711252653928,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900091",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 9420,
+   "share": 0.0005307855626326964,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900092",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4072,
+   "share": 0.0007367387033398821,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900093",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 4960,
+   "share": 0.0020161290322580645,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900093",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 2,
+   "ward_total": 4960,
+   "share": 0.0004032258064516129,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900094",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 5447,
+   "share": 0.0018358729575913347,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900094",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 9,
+   "ward_total": 5447,
+   "share": 0.001652285661832201,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900095",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 8,
+   "ward_total": 5332,
+   "share": 0.0015003750937734434,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900095",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5332,
+   "share": 0.0007501875468867217,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900096",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 5,
+   "ward_total": 7449,
+   "share": 0.0006712310377231843,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900096",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 12,
+   "ward_total": 7449,
+   "share": 0.0016109544905356424,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900097",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 6,
+   "ward_total": 5282,
+   "share": 0.001135933358576297,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900098",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 3,
+   "ward_total": 7872,
+   "share": 0.00038109756097560977,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900098",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 19,
+   "ward_total": 7872,
+   "share": 0.002413617886178862,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900099",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 5454,
+   "share": 0.0007334066740007334,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900099",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 4,
+   "ward_total": 5454,
+   "share": 0.0007334066740007334,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900100",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 6432,
+   "share": 0.0006218905472636816,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900100",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 6,
+   "ward_total": 6432,
+   "share": 0.0009328358208955224,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900100",
+   "party": "IND",
+   "votes": 53,
+   "ward_total": 6432,
+   "share": 0.008240049751243782,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900101",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 1,
+   "ward_total": 11530,
+   "share": 8.673026886383348e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900101",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 11530,
+   "share": 8.673026886383348e-05,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900102",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 6590,
+   "share": 0.0010622154779969652,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900102",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 5,
+   "ward_total": 6590,
+   "share": 0.0007587253414264037,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900102",
+   "party": "IND",
+   "votes": 28,
+   "ward_total": 6590,
+   "share": 0.004248861911987861,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900103",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 2,
+   "ward_total": 5383,
+   "share": 0.000371540033438603,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900103",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 1,
+   "ward_total": 5383,
+   "share": 0.0001857700167193015,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900104",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 10,
+   "ward_total": 5886,
+   "share": 0.0016989466530750934,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900104",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 7,
+   "ward_total": 5886,
+   "share": 0.0011892626571525654,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900104",
+   "party": "IND",
+   "votes": 26,
+   "ward_total": 5886,
+   "share": 0.004417261297995243,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900105",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 15,
+   "ward_total": 6785,
+   "share": 0.002210759027266028,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900105",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 13,
+   "ward_total": 6785,
+   "share": 0.001915991156963891,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900106",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 4,
+   "ward_total": 4241,
+   "share": 0.0009431737797689225,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900106",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 4241,
+   "share": 0.0007073803348266918,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900106",
+   "party": "IND",
+   "votes": 390,
+   "ward_total": 4241,
+   "share": 0.09195944352746993,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900107",
+   "party": "AFRICAN_MANDATE_CONGRESS",
+   "votes": 7,
+   "ward_total": 5119,
+   "share": 0.0013674545809728462,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900107",
+   "party": "CHRISTIAN_DEMOCRATIC_PARTY",
+   "votes": 3,
+   "ward_total": 5119,
+   "share": 0.000586051963274077,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": true,
+   "zero_pools": [
+    "Indian/Asian"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "79900107",
+   "party": "IND",
+   "votes": 71,
+   "ward_total": 5119,
+   "share": 0.013869896464153155,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  }
+ ]
+}

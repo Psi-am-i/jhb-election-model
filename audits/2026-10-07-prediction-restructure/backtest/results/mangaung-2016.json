@@ -1,0 +1,65 @@
+{
+ "city": "mangaung",
+ "year": "2016",
+ "draws": 1000,
+ "council": 100,
+ "wards": 49,
+ "A": {
+  "seats": {
+   "BOTSHABELO_UNEMPLOYED_MOVEMENT": 1,
+   "COPE": 1,
+   "ACDP": 1,
+   "ANC": 57,
+   "APC": 1,
+   "EFF": 8,
+   "VFPLUS": 3,
+   "DA": 28
+  },
+  "seat_err": 10.0,
+  "wards_ok": 48,
+  "ward_vote_err_pp": 12.907830935114383,
+  "list_vote_err_pp": 8.395774111626032,
+  "top": "ANC",
+  "top_wards": 36,
+  "top_actual_wards": 38,
+  "excessive": {},
+  "council": 100,
+  "ward_wins": {
+   "ANC": 36,
+   "DA": 13
+  }
+ },
+ "B": {
+  "draw": 812,
+  "seats": {
+   "ACDP": 1,
+   "ANC": 59,
+   "COPE": 1,
+   "DA": 28,
+   "EFF": 8,
+   "VFPLUS": 3
+  },
+  "seat_err": 8.0,
+  "wards_ok": 48,
+  "ward_vote_err_pp": 14.372061039137662,
+  "list_vote_err_pp": 10.8583513179524
+ },
+ "median_seat_err": 8.0,
+ "median_total": 94.0,
+ "coherent_seat_err": 10.0,
+ "actual": {
+  "seats": {
+   "COPE": 1,
+   "ANC": 58,
+   "AIC": 2,
+   "EFF": 9,
+   "VFPLUS": 2,
+   "DA": 27,
+   "AGENCY_FOR_NEW_AGENDA": 1
+  },
+  "ward_wins": {
+   "ANC": 38,
+   "DA": 12
+  }
+ }
+}

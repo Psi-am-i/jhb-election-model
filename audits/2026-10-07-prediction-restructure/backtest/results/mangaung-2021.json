@@ -1,0 +1,70 @@
+{
+ "city": "mangaung",
+ "year": "2021",
+ "draws": 1000,
+ "council": 101,
+ "wards": 51,
+ "A": {
+  "seats": {
+   "PA": 2,
+   "VFPLUS": 4,
+   "AFRICA_S_NEW_DAWN": 1,
+   "ACDP": 1,
+   "EFF": 13,
+   "DA": 27,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 1,
+   "ANC": 49,
+   "ATM": 1,
+   "AIC": 2
+  },
+  "seat_err": 10.0,
+  "wards_ok": 50,
+  "ward_vote_err_pp": 8.58254658055376,
+  "list_vote_err_pp": 9.99951975259024,
+  "top": "ANC",
+  "top_wards": 39,
+  "top_actual_wards": 40,
+  "excessive": {},
+  "council": 101,
+  "ward_wins": {
+   "ANC": 39,
+   "DA": 12
+  }
+ },
+ "B": {
+  "draw": 786,
+  "seats": {
+   "AIC": 1,
+   "ANC": 53,
+   "DA": 28,
+   "EFF": 13,
+   "INTERNATIONAL_PARTY": 1,
+   "PA": 1,
+   "VFPLUS": 4
+  },
+  "seat_err": 12.0,
+  "wards_ok": 49,
+  "ward_vote_err_pp": 14.726272608097235,
+  "list_vote_err_pp": 12.512089758315046
+ },
+ "median_seat_err": 7.0,
+ "median_total": 94.0,
+ "coherent_seat_err": 8.0,
+ "actual": {
+  "seats": {
+   "PA": 2,
+   "VFPLUS": 5,
+   "AFRIKAN_ALLIANCE_OF_SOCIAL_DEMOCRATS": 2,
+   "ACDP": 1,
+   "EFF": 12,
+   "DA": 26,
+   "ANC": 51,
+   "ATM": 1,
+   "AIC": 1
+  },
+  "ward_wins": {
+   "ANC": 40,
+   "DA": 11
+  }
+ }
+}

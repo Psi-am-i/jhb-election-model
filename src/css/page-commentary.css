@@ -1,0 +1,17 @@
+/* /commentary and every article (build_site.page_type: the pages that light
+   "commentary" in the nav carry pg-commentary; src/site_assets.py scopes
+   every rule here to it). The articles' colour, --k-article, the one the home
+   page's Articles panel wears: a rule over the masthead, the kicker, and an
+   index of headlines rather than a list of links. */
+  .masthead{border-top:3px solid var(--k-article);padding-top:18px;}
+  .kicker{color:var(--k-article);}
+  .feed .item{border-bottom-color:var(--rule);}
+  .feed .when{color:var(--k-article);font-weight:600;}
+  .sheet .feed .t a{color:var(--ink);text-decoration:none;}
+  .sheet .feed .t a:hover{color:var(--k-article);text-decoration:underline;
+    text-decoration-thickness:1px;text-underline-offset:3px;}
+  /* the other articles, under each article (build_site.more_commentary) */
+  .more-commentary{margin-top:44px;border-top:3px solid var(--k-article);padding-top:16px;}
+  .more-commentary .feed{margin-top:8px;}
+  /* the lead keeps the list's own size here, under another article's headline */
+  .more-commentary .feed .lead-item .t{font-size:19px;}

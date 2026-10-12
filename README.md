@@ -1,0 +1,185 @@
+# Johannesburg 2026 — Local Government Election Model
+
+A voting-district-level model of the City of Johannesburg council election on
+**4 November 2026**: 5,000 simulations over 865 voting districts, both ballots,
+the statutory seat formula including overhang, and full enumeration of the
+coalition arithmetic the result permits.
+
+**It is scored against real elections.** The whole pipeline is run against the
+2011, 2016 *and* 2021 municipal elections in all eight South African metros —
+each fitted only on its own wards, its own roll and its own history — and
+compared with baselines that need no model at all. How many city-years that is,
+and how the model fares against uniform swing in each cycle, is **read from the
+run, not from a number typed here**: `compare_history`'s `rows=` token carries
+the population. Two cautions travel with anything it prints — eight metros
+inside one cycle share a national swing, so they are not eight independent
+facts; and the seat figures are scored after a relabel that assigns the model's
+generic newcomer column to the largest arrival with the outcome in hand
+(`ITERATING.md`, Key 1) — which, measured, reaches **four rows of the
+twenty-four, all 2011, and moves no seat**, so it is a caveat about the vote
+table rather than about the seat totals (MODEL-LOG §1.229).
+
+⚠️ **Plain uniform swing is not the hardest baseline available.** It is not
+given the nomination roster and the model is; `benchmarks.uniform_swing_roster`
+is the reference that is, and it is the honest opponent at 2021. Read the margin
+against **that**, from the run. The roster reference's exact ties are drawn by
+the seeded lot (`benchmarks.benchmark_lot`, since 2026-10-09; it was a name
+rule, `canonical_order`, with a band that had to be quoted beside it); the seat
+it decides at Johannesburg 2021 is described in `benchmarks.uniform_swing_roster`.
+
+Regenerate the full comparison with `.venv/bin/python src/compare_history.py`.
+The 2021 scoring page is `.venv/bin/python src/build_validation.py --target 2021`;
+note that `data/processed/validation_2021.json` is a **400-draw artefact last
+generated 2026-08-11** and predates several corrections, so regenerate it before
+citing it.
+
+**The forecast, an interactive version, and the full written record live at
+[joburg.whysoserious.city](https://joburg.whysoserious.city).** This repository
+is the technical layer underneath it: everything needed to reconstruct the
+model from public records.
+
+## The record
+
+| Document | What it is |
+|---|---|
+| [`MACHINERY.md`](MACHINERY.md) | How each stage actually works, and which numbers are measured, argued or declared |
+| [`ITERATING.md`](ITERATING.md) | The four-key bar a change must pass to ship, and why the rule is "more honest usually ships" |
+| [`QC.md`](QC.md) | How a change is made and shown to work: the loop, the gated stage observation the `--run-dir` trace supports, what an absence-shaped test must prove, and what every plan item must name |
+| [`JUDGEMENT-CALLS.md`](JUDGEMENT-CALLS.md) | Every constant the data did not force, with its status, its evidence and how to check it |
+| [`archive/superseded-docs/METHODOLOGY.md`](archive/superseded-docs/METHODOLOGY.md) | **SUPERSEDED** — the original review brief, archived 2026-08-23. `MACHINERY.md` replaces it |
+| [`MODEL-LOG.md`](MODEL-LOG.md) | The running engineering log: findings, obstacles, silent data traps, the assumption register, every decision with its rationale |
+| [`audits/ENGINE-SUMMARY-2026-09-05.md`](audits/ENGINE-SUMMARY-2026-09-05.md) | **Where the engine stands as a whole** — accuracy on the record, what is good, what needs work, and what to expect on 4 November. Start here for the state of the model rather than of the code |
+| [`audits/`](audits/) | Review briefs and their state documents. `ULTRA-REVIEW-1-pools-reemit.md` is frozen and must not be amended; `ULTRA-REVIEW-1-STATE.md` is the one that may change |
+| [`SOURCES.md`](SOURCES.md) | Acquisition recipes for every input: URLs, the non-obvious election IDs, access workarounds, checksum discipline |
+| [`DATA-QUALITY.md`](DATA-QUALITY.md) | Defects in the official published records, each with the file, the arithmetic and what it cost us — thousands separators that silently drop 68% of a city's vote, a comma inside a party's name, every independent published under one shared name |
+| [`archive/original-plan/joburg-prediction-model-plan-v2.md`](archive/original-plan/joburg-prediction-model-plan-v2.md) | The original build plan — kept as written, including the parts the build later proved wrong |
+| [`archive/superseded-pages/model-review.html`](archive/superseded-pages/model-review.html) | The implementation review that found six errors in the first build, and their same-day resolution |
+
+The documents are canonical here; the website renders reader editions of them.
+
+## Reproducing the model
+
+Raw data is not committed (see `SOURCES.md` for why and for every acquisition
+recipe); `data/archive_manifest.csv` carries the SHA-256 of every input so a
+rebuild can prove it is working from the same bytes.
+
+```bash
+python -m venv .venv && .venv/bin/pip install numpy pandas geopandas markdown
+
+# 1. acquire (see SOURCES.md — some downloads need a real browser session)
+python src/fetch_iec.py && python src/fetch_boundaries.py && python src/fetch_byelections.py
+python src/ingest_npe.py ... && python src/ingest_lge.py ...
+
+# 2. verify the seat allocator against three published councils — exact or exit 1
+python src/validate_seats.py --year 2021
+python src/validate_seats.py --year 2016
+python src/validate_seats.py --year 2011 --seats 260
+
+# 3. build the model layers
+python src/build_crosswalk.py && python src/build_geo.py && python src/build_concordance.py
+python src/turnout.py --target 2026 && python src/byelections.py && python src/gamma_recent.py
+python src/fold.py --fold 1 && python src/fold.py --fold 2 --fit-from 1 --transfer gamma
+
+# 4. measure the voter pools and emit the spec the simulation draws from
+python src/pools.py --city joburg --target 2026 --emit
+python src/pools.py --city joburg --target 2026 --emit --simulation   # reader edition
+
+# 5. the forecast and its outputs
+python src/montecarlo.py                 # 5,000 draws; scenario knobs via --config/--set
+python src/render_sheet.py               # regenerate the sheet's figures
+python src/build_site.py                 # the public site -> ./site; its one
+                                         #   stylesheet (src/css -> site/css/site.css)
+                                         #   and scripts (src/js) by src/site_assets.py;
+                                         #   no page may carry inline CSS or JS.
+                                         #   forecast-sheet.html is cut into /forecast,
+                                         #   /claims, /commentary and one page per
+                                         #   article (build_site.ARTEFACTS, cut_spans)
+python src/build_portal.py               # the multi-city portal
+
+# `leverage.py` used to be step 5 here. It was retired to
+# archive/retired-scripts/ — nothing imported it, nothing ran it, and this
+# line was the only thing still claiming it existed. That is why
+# tests/test_standalone_modules.py does not accept "named in a .md file" as
+# evidence that a module is alive.
+
+# or all of the above in one command
+python src/build_all.py --city joburg
+
+# The interactive page is NOT built. `build_interactive.py` refuses at
+# import: its in-browser drawer is the old two-bloc engine and has not
+# been ported to voter pools, so running it exits 1 by design. It is
+# behind `build_all.py --interactive`, where its refusal is survivable.
+```
+
+## Scoring it against a past election
+
+Every claim in the scoring section of the
+[methodology page](https://joburg.whysoserious.city/methodology#how-accurate-is-it)
+is regenerated by one command, which runs the model and the baselines across
+all eight metros and writes the section from the results
+(`docs-public/about-the-model.md`, which `build_site` splices into
+/methodology). Nothing in it is typed by hand. `--from-json` rewrites the
+section from the last run's artefact without running anything.
+
+```bash
+python src/build_validation.py --target 2021          # ~8 cities, several minutes
+
+# or one city at a time
+python src/backtest.py   --city capetown --target 2021    # the model, scored
+python src/benchmarks.py --city capetown --target 2021    # the three naive baselines
+```
+
+Any backtest prints an **in-sample banner above its numbers** naming every
+constant that has seen the election being predicted. A run that reads nothing
+implicated says so instead. That accounting is `backtest.FITTED_ON` and it is
+measured from the run rather than asserted — `montecarlo.note_constant`
+records what was actually consumed.
+
+A new city needs a config and its own ingested history; `cities/*.toml` carries
+the structure (council size read from the Commission's own Seat Calculation
+Detail, never wards x 2) and deliberately carries **no judgements**, because
+the levels are measured per city.
+
+Every scenario assumption is a key in `montecarlo.DEFAULTS`, overridable with
+`--config scenario.json` — the same schema the interactive page emits, so a
+slider position on the website reproduces exactly here.
+
+## Editing the site's words
+
+```bash
+.venv/bin/python src/edit_mode.py        # then open http://127.0.0.1:8801/
+```
+
+It serves the last build in `site/` on this machine only, with an **edit**
+button on every block of prose that has an editable source: the front pages
+(`home.html`, `forecast-sheet.html`), the reader editions (`docs-public/`), the
+tested claims and the article list (`content/joburg/*.toml`). Text written by a
+script on the way to the page has no button; its words are in that script.
+
+- **Figures are locked chips.** Keep one or delete it; Save refuses any change
+  inside one, including from the *Raw text* view.
+- **Review changes** shows the diff of every source file and runs the build's
+  number gate on each edit. A number the original did not have is listed with
+  three ways out: make it a token (a registry token showing that value),
+  register it (an `[[audit.fixed]]` entry in `content/joburg/stats.toml`, with
+  its source, written at Apply with the edit) or remove it. **Apply** waits
+  until each is dealt with.
+- **Apply** writes the source files. Then run the normal build
+  (`.venv/bin/python src/build_all.py --city joburg`) and reload.
+
+The overlay (`src/edit/`) is added to each page as it is served and never
+written to `site/`; `src/deploy_check.py` refuses a site that carries it. The
+same edits can be made offline through `src/site_text.py --export` and
+`--apply`, which apply the same rules.
+
+## Licence
+
+- **Code:** MIT, in [`LICENSE`](LICENSE).
+- **Site text, charts and published figures:** CC BY 4.0, in
+  [`LICENSE-CONTENT`](LICENSE-CONTENT). Reuse them with attribution and a link
+  back to [joburg.whysoserious.city](https://joburg.whysoserious.city).
+- **Election results and other third-party sources** stay under their owners'
+  terms (`SOURCES.md`). The raw IEC results are downloadable from
+  [results.elections.org.za](https://results.elections.org.za/).
+
+Model design: psi@whysoserious.city · part of picnic labs.

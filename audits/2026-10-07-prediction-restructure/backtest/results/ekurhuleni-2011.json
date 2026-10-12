@@ -1,0 +1,71 @@
+{
+ "city": "ekurhuleni",
+ "year": "2011",
+ "draws": 1000,
+ "council": 202,
+ "wards": 101,
+ "A": {
+  "seats": {
+   "DA": 54,
+   "IFP": 4,
+   "ANC": 119,
+   "ACDP": 2,
+   "COPE": 14,
+   "NFP": 3,
+   "PAC": 1,
+   "UDM": 1,
+   "VFPLUS": 4
+  },
+  "seat_err": 36.0,
+  "wards_ok": 97,
+  "ward_vote_err_pp": 16.819687829510325,
+  "list_vote_err_pp": 18.578934340271903,
+  "top": "ANC",
+  "top_wards": 71,
+  "top_actual_wards": 71,
+  "excessive": {},
+  "council": 202,
+  "ward_wins": {
+   "ANC": 71,
+   "DA": 30
+  }
+ },
+ "B": {
+  "draw": 242,
+  "seats": {
+   "ACDP": 1,
+   "ANC": 129,
+   "COPE": 14,
+   "DA": 54,
+   "IFP": 1,
+   "VFPLUS": 3
+  },
+  "seat_err": 36.0,
+  "wards_ok": 97,
+  "ward_vote_err_pp": 20.07503957226095,
+  "list_vote_err_pp": 17.39896720598968
+ },
+ "median_seat_err": 32.0,
+ "median_total": 188.0,
+ "coherent_seat_err": 36.0,
+ "actual": {
+  "seats": {
+   "DISPLACEES_RATE_PAYERS_ASSOCIATION": 1,
+   "ANC": 125,
+   "ACDP": 1,
+   "COPE": 2,
+   "NFP": 3,
+   "DA": 62,
+   "IFP": 2,
+   "APC": 1,
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": 1,
+   "PAC": 2,
+   "UDM": 1,
+   "VFPLUS": 1
+  },
+  "ward_wins": {
+   "ANC": 71,
+   "DA": 30
+  }
+ }
+}

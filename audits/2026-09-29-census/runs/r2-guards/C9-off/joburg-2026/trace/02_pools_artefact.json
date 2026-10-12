@@ -1,0 +1,16 @@
+{
+ "artefact_key": {
+  "cities_sha": "68080ceed71cbe08",
+  "city": "joburg",
+  "config_sha": "25f89b38e7b7532f",
+  "deps_sha": "bed2e1a147c10f2d",
+  "gates_sha": "2ec84f1fcb67779f",
+  "judgements_sha": "991de2168bbe9198",
+  "pools_sha": "e57e53251f1e2e65",
+  "schema": 2,
+  "target": "2026"
+ },
+ "fitted_on": "2021",
+ "path": "data/processed/pools_2026.json",
+ "stale_reason": null
+}

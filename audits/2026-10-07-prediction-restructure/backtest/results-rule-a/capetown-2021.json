@@ -1,0 +1,38 @@
+{
+ "city": "capetown",
+ "year": "2021",
+ "draws": 1000,
+ "council": 231,
+ "wards": 116,
+ "tied_wards": [],
+ "A": {
+  "seats": {
+   "ACDP": 6,
+   "AIC": 1,
+   "ALJAMAAH": 3,
+   "ANC": 53,
+   "APC": 1,
+   "ATM": 1,
+   "DA": 141,
+   "EFF": 12,
+   "GOOD": 7,
+   "NFP": 1,
+   "PAC": 1,
+   "UDM": 1,
+   "VFPLUS": 3
+  },
+  "seat_err": 42.0,
+  "wards_ok": 115,
+  "ward_vote_err_pp": 19.682174108764656,
+  "list_vote_err_pp": 16.75633218504356,
+  "top": "DA",
+  "top_wards": 82,
+  "top_actual_wards": 83,
+  "excessive": {},
+  "council": 231,
+  "ward_wins": {
+   "DA": 82,
+   "ANC": 34
+  }
+ }
+}

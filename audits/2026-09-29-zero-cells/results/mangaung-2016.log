@@ -1,0 +1,5 @@
+  ! pools_2016.json is STALE: src/pools.py changed since this spec was emitted (pools_sha 7264a92947ba4529 -> fac628d1b0218005); re-emit before believing any measurement taken against it
+  !! mangaung 2011: census reprojection mapped 77.0% of this city's people, below 80% — admitted because the measured demographic shift is 0.001, within the 0.050 ceiling
+  !! 1 ward(s) have no voting district in the 2014 baseline with registered voters and are EXCLUDED from the forecast: 49400050. They win no ward seat in any draw and appear in no ward probability; 49 of 50 wards are forecast.
+WARNING *** file size (24448) not 512 + multiple of sector size (512)
+mangaung 2016 none: 19s, zero cells excl. control 211, control found 2

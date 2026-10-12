@@ -1,0 +1,262 @@
+{
+ "joburg 2011": {
+  "previous_npe": "2009",
+  "universe_matches": true,
+  "classes": {
+   "ALJAMAAH": "no NPE baseline, not seeded",
+   "BLACK_CONSCIOUSNESS_PARTY": "no NPE baseline, not seeded",
+   "CHRISTIAN_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "CHRISTIAN_FRONT": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "LIBERAL_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "OKM": "no NPE baseline, not seeded",
+   "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": "no NPE baseline, not seeded",
+   "THE_SOCIALIST_PARTY_OF_AZANIA": "no NPE baseline, not seeded",
+   "UNITED_RESIDENTS_FRONT": "no NPE baseline, not seeded"
+  }
+ },
+ "joburg 2016": {
+  "previous_npe": "2014",
+  "universe_matches": true,
+  "classes": {
+   "ALJAMAAH": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "OKM": "no NPE baseline, not seeded",
+   "THE_SOCIALIST_PARTY_OF_AZANIA": "no NPE baseline, not seeded"
+  }
+ },
+ "joburg 2021": {
+  "previous_npe": "2019",
+  "universe_matches": true,
+  "classes": {
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": "no NPE baseline, not seeded",
+   "IND": "IND excluded"
+  }
+ },
+ "tshwane 2011": {
+  "previous_npe": "2009",
+  "universe_matches": true,
+  "classes": {
+   "BLACK_CONSCIOUSNESS_PARTY": "no NPE baseline, not seeded",
+   "CHRISTIAN_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "CHRISTIAN_FRONT": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": "no NPE baseline, not seeded",
+   "NFP": "no NPE baseline, not seeded"
+  }
+ },
+ "tshwane 2016": {
+  "previous_npe": "2014",
+  "universe_matches": true,
+  "classes": {
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": "no NPE baseline, not seeded",
+   "CHRISTIAN_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "MOVEMENT_DEMOCRATIC_PARTY": "no NPE baseline, not seeded"
+  }
+ },
+ "tshwane 2021": {
+  "previous_npe": "2019",
+  "universe_matches": true,
+  "classes": {
+   "AFRICAN_MANDATE_CONGRESS": "no NPE baseline, not seeded",
+   "CHRISTIAN_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "FORUM_4_SERVICE_DELIVERY": "no NPE baseline, not seeded",
+   "IND": "IND excluded"
+  }
+ },
+ "ekurhuleni 2011": {
+  "previous_npe": "2009",
+  "universe_matches": true,
+  "classes": {
+   "BLACK_CONSCIOUSNESS_PARTY": "no NPE baseline, not seeded",
+   "CHRISTIAN_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "DISPLACEES_RATE_PAYERS_ASSOCIATION": "no NPE baseline, not seeded",
+   "FIRST_NATION_LIBERATION_ALLIANCE": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": "no NPE baseline, not seeded",
+   "NATIONAL_REPUBLICAN_PARTY": "no NPE baseline, not seeded",
+   "PAN_AFRICANIST_MOVEMENT": "no NPE baseline, not seeded",
+   "PEOPLE_S_CIVIC_ORGANISATION": "no NPE baseline, not seeded",
+   "SIMUNYE_IN_CHRIST_ORGANISATION": "no NPE baseline, not seeded",
+   "THEMBISA_CONCERNED_RESIDENTS_ASSOCIATION": "no NPE baseline, not seeded",
+   "THE_REAL_CONGRESS": "no NPE baseline, not seeded",
+   "UMHLABA_UHLAGENE_PEOPLES_UNITED_NATIONS": "no NPE baseline, not seeded"
+  }
+ },
+ "ekurhuleni 2016": {
+  "previous_npe": "2014",
+  "universe_matches": true,
+  "classes": {
+   "IND": "IND excluded",
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": "no NPE baseline, not seeded"
+  }
+ },
+ "ekurhuleni 2021": {
+  "previous_npe": "2019",
+  "universe_matches": true,
+  "classes": {
+   "IND": "IND excluded",
+   "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA": "no NPE baseline, not seeded"
+  }
+ },
+ "ethekwini 2011": {
+  "previous_npe": "2009",
+  "universe_matches": true,
+  "classes": {
+   "AFRICAN_CHRISTIAN_ALLIANCE_AFRIKANER_CHRISTEN_ALLIANSIE": "no NPE baseline, not seeded",
+   "AZAPO": "no NPE baseline, not seeded",
+   "BLACK_CONSCIOUSNESS_PARTY": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "SOCIALIST_GREEN_COALITION": "no NPE baseline, not seeded",
+   "SOLIDARITY_PARTY": "no NPE baseline, not seeded",
+   "TRULY_ALLIANCE": "no NPE baseline, not seeded",
+   "UNITED_ACTION_FRONT": "no NPE baseline, not seeded",
+   "UNITED_RESIDENTS_FRONT": "no NPE baseline, not seeded"
+  }
+ },
+ "ethekwini 2016": {
+  "previous_npe": "2014",
+  "universe_matches": true,
+  "classes": {
+   "IND": "IND excluded"
+  }
+ },
+ "ethekwini 2021": {
+  "previous_npe": "2019",
+  "universe_matches": true,
+  "classes": {
+   "ACADEMIC_CONGRESS_UNION": "no NPE baseline, not seeded",
+   "ALLIED_MOVEMENT_FOR_CHANGE": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "INDEPENDENT_PEOPLE_S_PARTY": "no NPE baseline, not seeded",
+   "MINORITIES_OF_SOUTH_AFRICA": "no NPE baseline, not seeded",
+   "TRULY_ALLIANCE": "no NPE baseline, not seeded"
+  }
+ },
+ "capetown 2011": {
+  "previous_npe": "2009",
+  "universe_matches": true,
+  "classes": {
+   "ABOLITION_OF_INCOME_TAX_AND_USURY_PARTY": "no NPE baseline, not seeded",
+   "AFRICAN_BOND_OF_UNITY": "no NPE baseline, not seeded",
+   "COMMUNITY_COALITION": "no NPE baseline, not seeded",
+   "DEMOCRATS_FOR_CHANGE": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "INDEPENDENT_CIVIC_ORGANISATION_OF_SOUTH_AFRICA": "no NPE baseline, not seeded",
+   "NATIONAL_ALLIANCE_FOR_DEMOCRACY": "no NPE baseline, not seeded",
+   "NATIONAL_INDEPENDANT_CIVIC_ORGANISATION": "no NPE baseline, not seeded",
+   "NATIONAL_PEOPLE_S_PARTY": "no NPE baseline, not seeded",
+   "NFP": "no NPE baseline, not seeded",
+   "PAN_AFRICANIST_MOVEMENT": "no NPE baseline, not seeded",
+   "SOCIAL_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": "no NPE baseline, not seeded",
+   "UNITED_MAJORITY_FRONT": "no NPE baseline, not seeded",
+   "UNIVERSAL_CIVICS_OF_SOUTH_AFRICA": "no NPE baseline, not seeded",
+   "WESTERN_CAPE_COMMUNITY": "no NPE baseline, not seeded"
+  }
+ },
+ "capetown 2016": {
+  "previous_npe": "2014",
+  "universe_matches": true,
+  "classes": {
+   "AFRICA_MUSLIM_PARTY": "no NPE baseline, not seeded",
+   "CAPE_MUSLIM_CONGRESS": "no NPE baseline, not seeded",
+   "CAPE_PARTY_KAAPSE_PARTY": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "NATIONAL_PEOPLE_S_PARTY": "no NPE baseline, not seeded"
+  }
+ },
+ "capetown 2021": {
+  "previous_npe": "2019",
+  "universe_matches": true,
+  "classes": {
+   "CAPE_MUSLIM_CONGRESS": "no NPE baseline, not seeded",
+   "DEMOCRATIC_INDEPENDENT_PARTY": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "PA": "no NPE baseline, not seeded",
+   "PEOPLE_S_DEMOCRATIC_MOVEMENT": "no NPE baseline, not seeded",
+   "SIZWE_UMMAH_NATION": "no NPE baseline, not seeded",
+   "THE_GREENS": "no NPE baseline, not seeded"
+  }
+ },
+ "mangaung 2011": {
+  "previous_npe": "2009",
+  "universe_matches": true,
+  "classes": {
+   "BLACK_CONSCIOUSNESS_PARTY": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "UNITED_RESIDENTS_FRONT": "no NPE baseline, not seeded"
+  }
+ },
+ "mangaung 2016": {
+  "previous_npe": "2014",
+  "universe_matches": true,
+  "classes": {
+   "DIKWANKWETLA_PARTY_OF_SOUTH_AFRICA": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "UNITED_RESIDENTS_FRONT": "no NPE baseline, not seeded"
+  }
+ },
+ "mangaung 2021": {
+  "previous_npe": "2019",
+  "universe_matches": true,
+  "classes": {
+   "AGENCY_FOR_NEW_AGENDA": "no NPE baseline, not seeded",
+   "BOTSHABELO_UNEMPLOYED_MOVEMENT": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "UNITED_CHRISTIAN_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "UNITED_RESIDENTS_FRONT": "no NPE baseline, not seeded"
+  }
+ },
+ "nelsonmandelabay 2011": {
+  "previous_npe": "2009",
+  "universe_matches": true,
+  "classes": {
+   "AFRICAN_COMMUNITY_MOVEMENT": "no NPE baseline, not seeded",
+   "CHRISTIAN_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "IND": "IND excluded",
+   "SOUTH_AFRICAN_PROGRESSIVE_CIVIC_ORGANISATION": "no NPE baseline, not seeded",
+   "UNITED_INDEPENDENT_FRONT": "no NPE baseline, not seeded"
+  }
+ },
+ "nelsonmandelabay 2016": {
+  "previous_npe": "2014",
+  "universe_matches": true,
+  "classes": {
+   "CHRISTIAN_DEMOCRATIC_PARTY": "no NPE baseline, not seeded",
+   "IND": "IND excluded"
+  }
+ },
+ "nelsonmandelabay 2021": {
+  "previous_npe": "2019",
+  "universe_matches": true,
+  "classes": {
+   "IND": "IND excluded",
+   "PA": "no NPE baseline, not seeded",
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": "no NPE baseline, not seeded"
+  }
+ },
+ "buffalocity 2011": {
+  "previous_npe": "2009",
+  "universe_matches": true,
+  "classes": {
+   "IND": "IND excluded"
+  }
+ },
+ "buffalocity 2016": {
+  "previous_npe": "2014",
+  "universe_matches": true,
+  "classes": {
+   "IND": "IND excluded",
+   "PAN_AFRICANIST_MOVEMENT": "no NPE baseline, not seeded"
+  }
+ },
+ "buffalocity 2021": {
+  "previous_npe": "2019",
+  "universe_matches": true,
+  "classes": {
+   "IND": "IND excluded"
+  }
+ }
+}

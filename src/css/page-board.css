@@ -1,0 +1,12 @@
+/* /leaderboard/ (src/build_leaderboard.py, interactive/js/leaderboard.js):
+   the ranked entries and the box that finds a reader's own. Scoped to
+   .pg-board by site_assets.scope_css. */
+.lb-form{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:8px 0;}
+.lb-form label{display:flex;flex-direction:column;gap:4px;flex:1 1 260px;font-size:14px;color:var(--ink-2);}
+.lb-form input{font:inherit;padding:8px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);min-width:0;}
+.lb-found{min-height:1.5em;}
+.lb-table{width:100%;border-collapse:collapse;font-size:15px;}
+.lb-table th,.lb-table td{padding:6px 8px;border-bottom:1px solid var(--rule);text-align:left;}
+.lb-table .num{text-align:right;font-variant-numeric:tabular-nums;}
+.lb-table tr.lb-you{outline:2px solid var(--reader);outline-offset:-2px;font-weight:600;}
+.lb-wrap{overflow-x:auto;}

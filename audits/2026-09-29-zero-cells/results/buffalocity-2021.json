@@ -1,0 +1,469 @@
+{
+ "city": "buffalocity",
+ "year": "2021",
+ "draws": 2000,
+ "seed": 20261104,
+ "control": "none",
+ "c4_party": null,
+ "plant_party": null,
+ "plant_wards": [
+  "29200001",
+  "29200002"
+ ],
+ "relabel_entrant": null,
+ "seconds": 23.6,
+ "spec": "data/processed/buffalocity/pools_2021.json",
+ "universe": [
+  "ABANTU_BATHO_CONGRESS",
+  "ACDP",
+  "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS",
+  "AFRICA_RESTORATION_ALLIANCE",
+  "AIC",
+  "ALJAMAAH",
+  "ANC",
+  "APC",
+  "ARUSHA_ECONOMIC_COALITION",
+  "ATM",
+  "BATHO_PELE_MOVEMENT",
+  "CAPE_COLOURED_CONGRESS",
+  "CIVIC_INDEPENDENT",
+  "COPE",
+  "DA",
+  "EFF",
+  "GOD_SAVE_AFRICA",
+  "GOOD",
+  "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
+  "NFP",
+  "PA",
+  "PAC",
+  "PROGRESSIVE_COMMUNITY_MOVEMENT",
+  "THE_ORGANIC_HUMANITY_MOVEMENT",
+  "UDM",
+  "UIM",
+  "VFPLUS"
+ ],
+ "n_wards_model": 50,
+ "n_wards_actual": {
+  "PR": 50,
+  "Ward": 50
+ },
+ "unmatched_actual_wards": {
+  "PR": [],
+  "Ward": []
+ },
+ "cells_scanned": {
+  "PR": 1091,
+  "Ward": 758
+ },
+ "near_zero_counts": {
+  "PR": {
+   "1e-12": 1,
+   "1e-09": 1,
+   "1e-06": 1,
+   "0.0001": 1,
+   "0.001": 1
+  },
+  "Ward": {
+   "1e-12": 15,
+   "1e-09": 15,
+   "1e-06": 15,
+   "0.0001": 15,
+   "0.001": 15
+  }
+ },
+ "min_vd_share_W": {
+  "ABANTU_BATHO_CONGRESS": 6.411497168852574e-07,
+  "ACDP": 1.5256731783272277e-05,
+  "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 6.611675702660319e-07,
+  "AFRICA_RESTORATION_ALLIANCE": 5.937060201163721e-07,
+  "AIC": 3.858099239436863e-07,
+  "ALJAMAAH": 6.209070171895621e-07,
+  "ANC": 0.002295792520686865,
+  "APC": 6.632546807365352e-07,
+  "ARUSHA_ECONOMIC_COALITION": 6.433988043278938e-07,
+  "ATM": 2.1750356587356482e-07,
+  "BATHO_PELE_MOVEMENT": 6.199972226314207e-07,
+  "CAPE_COLOURED_CONGRESS": 5.937060201163721e-07,
+  "CIVIC_INDEPENDENT": 7.10827425995114e-07,
+  "COPE": 5.291238857273632e-07,
+  "DA": 0.00040870632651139783,
+  "EFF": 0.00017965336131610678,
+  "GOD_SAVE_AFRICA": 6.411497168852574e-07,
+  "GOOD": 7.269961959042801e-07,
+  "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 6.199972226314207e-07,
+  "NFP": 5.937060201163721e-07,
+  "PA": 6.433988043278938e-07,
+  "PAC": 2.1325677652203966e-07,
+  "PROGRESSIVE_COMMUNITY_MOVEMENT": 6.722810488223511e-07,
+  "THE_ORGANIC_HUMANITY_MOVEMENT": 6.52379173222334e-07,
+  "UDM": 4.849099772007554e-07,
+  "UIM": 7.17413188873905e-07,
+  "VFPLUS": 7.562142072664539e-07
+ },
+ "min_over_wards_of_max_share": {
+  "W": {
+   "ABANTU_BATHO_CONGRESS": 0.07651362590549843,
+   "ACDP": 0.12157748590558844,
+   "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 0.10485166617899014,
+   "AFRICA_RESTORATION_ALLIANCE": 0.14093619527121168,
+   "AIC": 0.027163473628309162,
+   "ALJAMAAH": 0.0631563010232038,
+   "ANC": 0.31865037847497507,
+   "APC": 0.10189016855599146,
+   "ARUSHA_ECONOMIC_COALITION": 0.07747743034255893,
+   "ATM": 0.05319928300147617,
+   "BATHO_PELE_MOVEMENT": 0.1219819499716975,
+   "CAPE_COLOURED_CONGRESS": 0.09017657129275512,
+   "CIVIC_INDEPENDENT": 0.07571308258049081,
+   "COPE": 0.0055873724152584936,
+   "DA": 0.3580135465890136,
+   "EFF": 0.14419582457825686,
+   "GOD_SAVE_AFRICA": 0.07371368222901166,
+   "GOOD": 0.07515414897149494,
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.08630391248915097,
+   "NFP": 0.04696999963701167,
+   "PA": 0.09992836475157282,
+   "PAC": 0.10028438262401672,
+   "PROGRESSIVE_COMMUNITY_MOVEMENT": 0.11250880852490731,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.06659233036466009,
+   "UDM": 0.18906466599889993,
+   "UIM": 0.06223239490913723,
+   "VFPLUS": 0.10007863718859737
+  },
+  "PR": {
+   "ABANTU_BATHO_CONGRESS": 0.09928849035171154,
+   "ACDP": 0.11660064700702233,
+   "AFRICAN_MULTICULTURAL_ECONOMIC_CONGRESS": 0.1311915745702033,
+   "AFRICA_RESTORATION_ALLIANCE": 0.17975441315587026,
+   "AIC": 0.13655651104439628,
+   "ALJAMAAH": 0.08320624106767648,
+   "ANC": 0.3345429763565497,
+   "APC": 0.13264620160470297,
+   "ARUSHA_ECONOMIC_COALITION": 0.11372803827401474,
+   "ATM": 0.05509739417178624,
+   "BATHO_PELE_MOVEMENT": 0.15576135057100468,
+   "CAPE_COLOURED_CONGRESS": 0.10598171641064122,
+   "CIVIC_INDEPENDENT": 0.09954915889622273,
+   "COPE": 0.05651175158992869,
+   "DA": 0.3618786760490683,
+   "EFF": 0.14404810772004978,
+   "GOD_SAVE_AFRICA": 0.09598350093398006,
+   "GOOD": 0.08411320032826078,
+   "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION": 0.1039992151505216,
+   "NFP": 0.05947340410191723,
+   "PA": 0.1175551040016361,
+   "PAC": 0.11875394309296601,
+   "PROGRESSIVE_COMMUNITY_MOVEMENT": 0.15094293260768288,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.08624562629549261,
+   "UDM": 0.08462354636478167,
+   "UIM": 0.08402429231496308,
+   "VFPLUS": 0.1210764695373492
+  }
+ },
+ "zero_cells": [
+  {
+   "ballot": "PR",
+   "ward": "29200001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 3821,
+   "share": 0.00026171159382360636,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200001",
+   "party": "ZC_CONTROL",
+   "votes": 1,
+   "ward_total": 3804,
+   "share": 0.0002628811777076761,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200003",
+   "party": "IND",
+   "votes": 4,
+   "ward_total": 3326,
+   "share": 0.0012026458208057728,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200005",
+   "party": "IND",
+   "votes": 669,
+   "ward_total": 3506,
+   "share": 0.19081574443810612,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200007",
+   "party": "IND",
+   "votes": 27,
+   "ward_total": 3446,
+   "share": 0.00783517121300058,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200010",
+   "party": "IND",
+   "votes": 476,
+   "ward_total": 3053,
+   "share": 0.15591221749099246,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200014",
+   "party": "IND",
+   "votes": 807,
+   "ward_total": 3129,
+   "share": 0.2579098753595398,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200020",
+   "party": "IND",
+   "votes": 959,
+   "ward_total": 3589,
+   "share": 0.2672053496795765,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200023",
+   "party": "IND",
+   "votes": 159,
+   "ward_total": 4002,
+   "share": 0.03973013493253373,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200025",
+   "party": "IND",
+   "votes": 737,
+   "ward_total": 3318,
+   "share": 0.22212176009644363,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200027",
+   "party": "IND",
+   "votes": 96,
+   "ward_total": 3864,
+   "share": 0.024844720496894408,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200034",
+   "party": "IND",
+   "votes": 206,
+   "ward_total": 3775,
+   "share": 0.05456953642384106,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200039",
+   "party": "IND",
+   "votes": 137,
+   "ward_total": 3628,
+   "share": 0.03776185226019846,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200040",
+   "party": "IND",
+   "votes": 1530,
+   "ward_total": 4300,
+   "share": 0.3558139534883721,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200041",
+   "party": "IND",
+   "votes": 677,
+   "ward_total": 2564,
+   "share": 0.2640405616224649,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  },
+  {
+   "ballot": "Ward",
+   "ward": "29200044",
+   "party": "IND",
+   "votes": 1899,
+   "ward_total": 4604,
+   "share": 0.4124674196350999,
+   "model_max": 0.0,
+   "why": "not in universe",
+   "pos_draws": 0,
+   "named_in_spec": false,
+   "zero_pools": [
+    "Black African",
+    "Coloured",
+    "Indian/Asian",
+    "White"
+   ],
+   "n_pools": 4
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+ "test_citywide_table::test_a_table_is_locked_to_its_own_target": true,
+ "test_levers_are_live::test_no_function_argument_is_accepted_and_never_used": true,
+ "test_citywide_table::test_a_missing_entry_stops_the_run_instead_of_falling_back": true,
+ "test_citywide_table::test_a_table_holding_the_target_election_is_refused": true,
+ "test_citywide_table::test_a_table_from_other_code_is_refused": true,
+ "test_stage_realisation::test_eligible_parties_hands_the_allocator_a_set_ordered_dict": true,
+ "test_seats::test_constructed_quota_is_struck_over_seats_less_C_and_D": true,
+ "test_roster_aware_baseline::test_a_party_left_off_the_roster_cannot_appear_in_the_forecast": true,
+ "test_overhang::test_the_constructed_entitlements_are_the_schedule_1_quota_arithmetic": true,
+ "test_overhang::test_cap_still_reports_the_item_16_trigger_it_declined_to_act_on": true,
+ "test_overhang::test_level_raises_instead_of_terminating_when_the_council_outgrows_the_votes": true,
+ "test_citywide_table::test_the_table_on_disk_is_a_fresh_build_byte_for_byte": true,
+ "test_citywide_table::test_the_table_reproduces_every_drawn_array_of_a_native_run": true
+}

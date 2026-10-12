@@ -1,0 +1,1182 @@
+// "Your forecast", section 2 ("Break the model"): the page. The reader calls
+// every ward, sets each party's vote on the ward ballot (the list vote
+// following it, its gap set on its own) and picks who governs: a prediction
+// (STYLE.md rule 11; BRIEF change 13), entry version make-state.js FORMAT; the seats come from the project's own seat code, run in the
+// browser (js/make-worker.js). "Analyse my forecast" asks section 1's engine
+// what the published forecast gives the reader's (page.py analyse).
+//
+// ⛔ A LIVE WRITER (stats.LIVE_WRITERS["your-forecast/js/make.js"]) for the
+// regions "b-status", "b-map", "b-vote", "b-govern", "b-council",
+// "b-actions", "b-analysis" and "b-wardtip". The build refuses the page
+// (stats.script_writes) unless this file keeps the writer contract:
+//   * it reaches the page ONLY through literal '[data-live="<name>"] …'
+//     selectors, each for a region listed for it, all taken once, below;
+//   * it writes with textContent, createElement and append; never markup;
+//   * it does not walk out of a region and writes nothing through an event's
+//     target.
+// Its imports: builder-state.js, make-state.js, yf-url.js, map.js, seat-table.js and tip.js are
+// scanned as NON-writers; make-share.js (region "b-share") and model.js
+// (section 1) are writers in their own right.
+//
+// DESIGN-decided §8: every control applies to every party identically. Parties
+// are listed alphabetically wherever a reader chooses; nothing is preselected.
+// The vote list is two alphabetical lists, the parties seated at the
+// published start and then the rest, collapsed: an order fixed by the page,
+// not a ranking. The builder holds only a valid prediction (the seat law's
+// refusals, js/builder-state.js), and its editor keeps each party inside the
+// bounds the past results allow (schema x-editor-bounds, JUDGEMENT-CALLS §R);
+// a state from a link or a hand-off may lie outside them, opens as it is, and
+// says so. Seats are recomputed after every edit by the seat code the server
+// would run.
+//
+// WHERE IT STARTS (owner, 2026-10-03: section 2 "continues the same
+// forecast"). Untouched, section 1 is the published forecast and section 2
+// opens at our prediction: decode(start.f) of your-forecast/forecast.json
+// (src/build_make.py), rule A on the published draws (src/prediction.py), and
+// the page refuses to start if that is not the prediction object it was built
+// from (guard G7). Once section 1 moves, its engine hands section 2 rule A on
+// the reader's weighted draws (page.py handoff), a prediction object opened by
+// builder-state.js stateFromPrediction, or a sentence saying why it could not
+// be (guard G8).
+//   * While the reader has not edited section 2, it follows section 1: each
+//     new setting there re-opens section 2 at its hand-off.
+//   * Once the reader has edited section 2, a new setting in section 1 does
+//     not overwrite the edits. The status line says section 1 has changed and
+//     offers to start again from it (undo restores the edits).
+// The reader's forecast lives only in the address (js/make-state.js, its part
+// written through js/yf-url.js beside section 1's).
+//
+// LAZY: section 2 loads its data, its map and its seat Worker (a second
+// Pyodide) only when the reader comes near it, or at once when the address
+// carries a section 2 forecast or the #break anchor.
+//
+// THE WALKTHROUGH (owner, 2026-10-03): four numbered steps, one highlighted at
+// a time (data-step="now"); "Next" marks a step done, highlights the next,
+// scrolls to it and puts the focus on its first control (owner, 2026-10-05).
+// Every step stays usable whichever is highlighted.
+//
+// A SHARED LINK (audits/2026-10-03-share-design §4). A link the share sheet
+// sends arrives with `from=1` (src/share-edge.js's /s/ redirect): the
+// friend's forecast is shown read-only at the top of the page (js/arrival.js)
+// and section 2 stays locked until the reader picks a start: the friend's
+// forecast (their name is not carried over) or the published one. The
+// friend's forecast stays on the page only: neither the address nor the
+// reader's share link carries it, so no link draws the two forecasts side by
+// side (owner, 2026-10-10: that card is off the share choices). Its seats come
+// from the same seat Worker, in a lane of their own, and its chance from the
+// same analysis.
+
+import * as B from "./builder-state.js";
+import * as MS from "./make-state.js";
+import * as YU from "./yf-url.js";
+import { WardMap } from "./map.js";
+import { setShareable, onNameChange, onOpen } from "./make-share.js";
+import { setHandoff } from "./play-share.js";
+import { showArrival, hideArrival, onChoose } from "./arrival.js";
+import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
+import { seatTable } from "./seat-table.js";
+import { placeTip } from "./tip.js";
+import { engineCall, onForecast } from "./model.js";
+
+const one = {
+  statusRegion: document.querySelector('[data-live="b-status"]'),
+  status: document.querySelector('[data-live="b-status"] .ess'),
+  linknote: document.querySelector('[data-live="b-status"] .linknote'),
+  follow: document.querySelector('[data-live="b-status"] .yf-follow'),
+  followText: document.querySelector('[data-live="b-status"] .yf-followtext'),
+  reseed: document.querySelector('[data-live="b-status"] .yf-reseed'),
+  mapRegion: document.querySelector('[data-live="b-map"]'),
+  svg: document.querySelector('[data-live="b-map"] svg'),
+  mapscroll: document.querySelector('[data-live="b-map"] .mapscroll'),
+  listview: document.querySelector('[data-live="b-map"] .listview'),
+  nchanged: document.querySelector('[data-live="b-map"] .nchanged'),
+  hint: document.querySelector('[data-live="b-map"] .painthint'),
+  brush: document.querySelector('[data-live="b-map"] .brushscroll'),
+  brushselect: document.querySelector('[data-live="b-map"] .brushselect'),
+  area: document.querySelector('[data-live="b-map"] .area'),
+  fillarea: document.querySelector('[data-live="b-map"] .fillarea'),
+  copymodel: document.querySelector('[data-live="b-map"] .copymodel'),
+  undo: document.querySelector('[data-live="b-map"] .undo'),
+  next1: document.querySelector('[data-live="b-map"] .yf-next'),
+  voteRegion: document.querySelector('[data-live="b-vote"]'),
+  prmodel: document.querySelector('[data-live="b-vote"] .prmodel'),
+  prfind: document.querySelector('[data-live="b-vote"] .prfind'),
+  floornote: document.querySelector('[data-live="b-vote"] .floornote'),
+  totals: document.querySelector('[data-live="b-vote"] .yf-totals'),
+  prlist: document.querySelector('[data-live="b-vote"] .prlist'),
+  next2: document.querySelector('[data-live="b-vote"] .yf-next'),
+  govRegion: document.querySelector('[data-live="b-govern"]'),
+  coal: document.querySelector('[data-live="b-govern"] .coal'),
+  coalstat: document.querySelector('[data-live="b-govern"] .coalstat'),
+  next3: document.querySelector('[data-live="b-govern"] .yf-next'),
+  councilRegion: document.querySelector('[data-live="b-council"]'),
+  restate: document.querySelector('[data-live="b-council"] .restate'),
+  bars: document.querySelector('[data-live="b-council"] .bars'),
+  strip: document.querySelector('[data-live="b-council"] .strip'),
+  capseats: document.querySelector('[data-live="b-council"] .capseats'),
+  capmaj: document.querySelector('[data-live="b-council"] .capmaj'),
+  excess: document.querySelector('[data-live="b-council"] .excess'),
+  announce: document.querySelector('[data-live="b-council"] .announce'),
+  actions: document.querySelector('[data-live="b-actions"]'),
+  analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
+  analysis: document.querySelector('[data-live="b-analysis"]'),
+  verdict: document.querySelector('[data-live="b-analysis"] .yf-verdict'),
+  sseats: document.querySelector('[data-live="b-analysis"] .yf-sseats'),
+  svote: document.querySelector('[data-live="b-analysis"] .yf-svote'),
+  outcome: document.querySelector('[data-live="b-analysis"] .yf-outcome'),
+  expected: document.querySelector('[data-live="b-analysis"] .yf-expected'),
+  amap: document.querySelector('[data-live="b-analysis"] .yf-amapsvg'),
+  atable: document.querySelector('[data-live="b-analysis"] .yf-atable'),
+  anote: document.querySelector('[data-live="b-analysis"] .yf-anote'),
+  wardtip: document.querySelector('[data-live="b-wardtip"]'),
+};
+const views = document.querySelectorAll('[data-live="b-map"] .views button');
+
+// A new element: properties, attributes (keys with a dash) and children.
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k.includes("-") || k === "role" || k === "scope") e.setAttribute(k, v === true ? "" : String(v));
+    else e[k] = v;
+  }
+  e.append(...kids.filter(k => k != null && k !== false));
+  return e;
+}
+// A party's colour swatch: its colour class (site.css, from render_sheet.CHIPS).
+const sw = code => el("span", { className: "sw pc-" + code, "aria-hidden": "true" });
+const SVG = "http://www.w3.org/2000/svg";
+function sv(tag, attrs = {}, ...kids) {
+  const e = document.createElementNS(SVG, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+  e.append(...kids);
+  return e;
+}
+
+// ---------- the walkthrough ----------
+const STEPS = [one.mapRegion, one.voteRegion, one.govRegion, one.actions];
+// Each step's first control: the first party's vote slider, the first
+// coalition chip, "Analyse my forecast". Read when "Next" is pressed, so the
+// rows built since are there.
+let firstVote = null;
+const FIRST = [() => null, () => firstVote, () => one.coal.firstElementChild, () => one.analyse];
+let step = 0;
+function paintSteps() {
+  STEPS.forEach((r, i) => r.setAttribute("data-step", i < step ? "done" : i === step ? "now" : "next"));
+}
+const motion = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+// "Next": this step done, the next highlighted, scrolled to and focused on
+// its first control (a locked or disabled control is scrolled to, not focused)
+function goToStep(k) {
+  step = Math.max(step, k);
+  paintSteps();
+  STEPS[k].scrollIntoView({ block: "start", behavior: motion() });
+  const f = FIRST[k]();
+  if (f && !f.disabled) f.focus({ preventScroll: true });
+}
+[one.next1, one.next2, one.next3].forEach((b, i) => b.addEventListener("click", () => goToStep(i + 1)));
+paintSteps();
+
+// ---------- locking: the controls answer once the seat law has loaded ----------
+const editables = [one.brushselect, one.area, one.fillarea, one.copymodel, one.prmodel, one.analyse];
+let engineReady = false;
+// Locked until the seat law has loaded, and while a shared link's arrival
+// view is up: no control edits the forecast then, by pointer or keyboard.
+let locked = true;
+function lock(on) {
+  locked = on;
+  for (const r of [one.mapRegion, one.voteRegion, one.govRegion]) r.classList.toggle("locked", on);
+  for (const e of editables) e.disabled = on;
+}
+lock(true);
+
+// ---------- state, set when the section starts ----------
+let D, schema, geom, ctx, byCode, name, alpha;
+let pubStart;              // our prediction: decode(start.f) of forecast.json
+let from;                  // the start section 2 is open at: pubStart or a hand-off
+let adjusted = false;      // is `from` section 1's hand-off?
+let state, S, history, map, worker;
+let result = null, seq = 0;
+let started = false;
+let fromLink = false;      // opened from a link's forecast, not yet measured against section 1
+let parties = {};          // parties.json: name, colour, article, logo per party
+let arriving = false;      // a shared link's arrival view is up; section 2 is locked
+let pinned = false;        // the start is a friend's forecast: section 1 never replaces it unasked
+let friend = null;         // { name, f, state, coalition, answer, outcome, seal }
+let ownOutcome = null, outcomeTicket = 0;
+
+// `v` votes as a percent of `total`, for a reader to hear.
+const pct = (v, total, dp = 1) => {
+  const p = v / total * 100;
+  return p > 0 && p < 0.05 ? "under 0.1" : p.toFixed(dp);
+};
+
+// ---------- following section 1 ----------
+let section1 = null;       // { settings, touched }, the newest setting section 1 shows
+let handSeq = 0, waiting = null;
+onForecast(f => { section1 = f; if (near) follow(); });
+
+// The prediction this section opens at from section 1's moved `settings`
+// (page.py handoff, rule A on the reader's weights), as builder-state.js
+// handoffResult decides it: { ok: true, state } or { ok: false, text, detail }.
+// ONE definition: what follow() opens at and what section 1's sheet seals
+// (setHandoff, below) are the same prediction by construction. A prediction
+// missing a ballot, a party or a ward is a failure: nothing is filled in.
+async function handoffState(settings) {
+  let h;
+  try { h = await engineCall("handoff", { settings }); } catch (e) { h = { threw: e }; }
+  return B.handoffResult(h, ctx);
+}
+
+// Section 2 could not open at section 1's settings: say so in a plain
+// sentence, keep the developer's detail for the console, and stay where it is.
+function followFailed(res) {
+  one.followText.textContent = "Your changes to the model could not be opened here: " + res.text + ".";
+  console.warn("hand-off refused:", res.detail);
+  waiting = null;
+  one.reseed.hidden = true;
+  one.follow.hidden = false;
+}
+
+async function follow() {
+  const f = section1, ticket = ++handSeq;
+  // before start() has its data, there is nothing to follow with: begin()
+  // follows once it has
+  if (!f || !ctx || !from || arriving) return;
+  let next;
+  if (!f.touched) next = { state: pubStart, adjusted: false };
+  else {
+    const res = await handoffState(f.settings);
+    if (ticket !== handSeq) return;              // a newer setting is on its way: silent
+    if (!res.ok) { followFailed(res); return; }
+    next = { state: res.state, adjusted: true };
+  }
+  one.reseed.hidden = false;
+  if (fromLink) {
+    // a prediction opened from a link is the reader's: its start becomes
+    // section 1's hand-off without a note, and nothing is overwritten
+    fromLink = false;
+    ({ state: from, adjusted } = next);
+    afterEdit();
+    return;
+  }
+  if (MS.sameState(next.state, from, ctx)) { waiting = null; one.follow.hidden = true; return; }
+  if (MS.sameState(state, from, ctx) && !pinned) {
+    // unedited: section 2 follows section 1
+    ({ state: from, adjusted } = next);
+    waiting = null;
+    one.follow.hidden = true;
+    state = from;
+    boundsNote(state);
+    afterEdit();
+  } else {
+    waiting = next;
+    one.followText.textContent = next.adjusted
+      ? "Your changes to the model have moved since this section opened from them."
+      : "Your changes to the model are undone since this section opened from them.";
+    one.follow.hidden = false;
+  }
+}
+one.reseed.addEventListener("click", () => {
+  if (!waiting) return;
+  snapshot();
+  ({ state: from, adjusted } = waiting);
+  waiting = null;
+  one.follow.hidden = true;
+  pinned = false;
+  commit(from);
+});
+
+// ---------- start: laid out at load, live when the reader comes near ----------
+// The section's data (forecast.json, parties.json), loaded once: by the
+// section's start, or by section 1's share sheet, which draws the start's
+// council on the model's card (setHandoff, below).
+let dataP = null;
+function loadData() {
+  dataP ??= Promise.all([fetch(new URL("../forecast.json", import.meta.url)), fetch(new URL("../parties.json", import.meta.url))])
+    .then(async ([r, p]) => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      if (!p.ok) throw new Error("HTTP " + p.status);
+      return { forecast: await r.json(), parties: await p.json() };
+    });
+  dataP.catch(() => { dataP = null; });
+  return dataP;
+}
+// Two steps. build(): the data and the controls, once, when the page loads,
+// so the section has its full height before the reader reaches it (owner,
+// 2026-10-10: the layout must not shift; filling it on arrival moved
+// everything under its map by the height of its vote list). begin(): when
+// the reader comes near, the seat Worker, which loads the seat law, and from
+// then on the section follows section 1's settings. Every caller waits on the
+// same build.
+let startP = null, near = false;
+function build() {
+  startP ??= start().then(() => { if (!started) startP = null; });
+  return startP;
+}
+function begin() {
+  near = true;
+  return build().then(() => {
+    if (!started || worker) return;
+    worker = new Worker(new URL("./make-worker.js", import.meta.url), { type: "module" });
+    worker.onmessage = onWorker;
+    worker.postMessage({ type: "init", schema });
+    if (section1) follow();        // section 1 may have spoken before the reader came near
+  });
+}
+async function start() {
+  if (started) return;
+  started = true;
+  one.status.textContent = "Loading the start and the seat law.";
+  try {
+    ({ forecast: D, parties } = await loadData());
+  } catch (e) {
+    one.status.textContent = "The start could not be loaded (" + (e.message || e) + "). Reload to try again.";
+    started = false;
+    return;
+  }
+  schema = D.schema; geom = D.geometry;
+  ctx = B.contextOf(schema);
+  byCode = Object.fromEntries(schema["x-parties"].map(p => [p.code, p]));
+  name = c => byCode[c].name;
+  alpha = ctx.codes.slice().sort((a, b) => name(a).localeCompare(name(b)));
+  // our prediction is decode(start.f), and it must be the prediction object
+  // the build wrote beside it (guard G7, page side)
+  pubStart = MS.decode(D.start.f, ctx).state;
+  if (!MS.sameState(pubStart, B.stateFromPrediction(ctx, D.start), ctx))
+    throw new Error("start.f is not our prediction: forecast.json is inconsistent");
+  if (geom.wards.map(w => String(w.id)).join() !== ctx.wards.join()) throw new Error("the geometry and the schema disagree about the wards");
+  from = pubStart;
+  const opened = MS.parse(YU.partOf(location.search, YU.BREAK_KEYS), ctx, D.context_ref, pubStart,
+                          "Break the model opens at its start instead.");
+  state = opened.state;
+  S = { coalition: opened.coalition.slice(), brush: null };
+  if (opened.note) { one.linknote.textContent = opened.note; one.linknote.hidden = false; }
+  else if (!MS.sameState(state, pubStart, ctx)) boundsNote(state);
+  history = new B.History();
+  map = new WardMap(one.svg, geom, { byCode, onPaint: paintWard, onFocusWard: focusTip });
+  map.onClear = () => { one.hint.textContent = "Every ward needs a winner. Choose a party, then tap the ward to change it."; };
+  buildVote();
+  paintBrush();
+  paintPending();
+  fromLink = !MS.sameState(state, pubStart, ctx);
+  const linkF = new URLSearchParams(YU.partOf(location.search, YU.BREAK_KEYS)).get("f");
+  if (YU.arrival().from && linkF && !opened.note) {
+    // a shared link: the friend's forecast, read-only until a start is picked
+    arriving = true;
+    fromLink = false;
+    friend = { name: YU.currentName(), f: linkF, state, coalition: S.coalition.slice(), answer: null, outcome: null,
+               seal: { state: "checking", at: null } };
+    one.status.textContent = "This is " + (friend.name || "a reader") + "'s forecast. Pick where to start, above, to make your own.";
+    checkSeal();
+  } else if (YU.friend()) {
+    // an address from before 2026-10-10 carries a friend's forecast: its
+    // parties keep their council rows; the address drops it
+    const fr = YU.friend();
+    const got = MS.parse("?" + new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fr.f }).toString(), ctx, D.context_ref, pubStart);
+    if (!got.note) friend = { name: fr.name, f: fr.f, state: got.state, coalition: got.coalition, answer: null, outcome: null };
+    YU.write("friend", "");
+  }
+  afterEdit();
+}
+const wantsNow = /(^|[?&])f=/.test(location.search) || location.hash === "#break";
+
+// ---------- a shared link ----------
+const pageRoot = new URL("../../", import.meta.url);
+async function checkSeal() {
+  const s = YU.arrival().s;
+  if (!s) { friend.seal = { state: "not", at: null }; paintArrival(); return; }
+  // the fields as the link carries them: the server checks the signature on these
+  const link = new URLSearchParams(YU.partOf(location.search, YU.BREAK_KEYS));
+  const fields = { v: link.get("v") || "", c: link.get("c") || "", f: friend.f, n: friend.name, s };
+  try {
+    const r = await fetch(new URL("seal/1/check", pageRoot), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(fields) });
+    const b = await r.json();
+    friend.seal = r.ok && b.sealed ? { state: "sealed", at: Date.parse(b.at) } : r.ok ? { state: "not", at: null } : { state: "unknown", at: null };
+  } catch (e) {
+    friend.seal = { state: "unknown", at: null };
+  }
+  paintArrival();
+}
+const partyOf = c => parties[c] || { name: byCode[c] ? byCode[c].name : c, colour: "#8b918b", article: "", logo: false };
+function friendSpec() {
+  return forecastSpec({ name: friend.name, answer: friend.answer, outcome: friend.outcome || { coalition: friend.coalition, text: "", badge: "" },
+    vote: B.percentOf(friend.state, ctx, "list"), calls: friend.state.calls, party: partyOf, baseline: D.baseline, election: D.election,
+    made: friend.seal && friend.seal.state === "sealed" ? { at: friend.seal.at, sealed: true } : null });
+}
+function paintArrival() {
+  if (!arriving || !friend.answer) return;
+  const spec = friendSpec();
+  if (!friend.outcome) spec.outcome = null;
+  showArrival({ spec, geom, seal: friend.seal, now: Date.now(), party: partyOf, logo: c => new URL("logos/" + c + ".png", pageRoot).href });
+}
+// The chance and badge of a forecast's outcome (page.py analyse), for the
+// arrival view, the return card and the reader's own card.
+function outcomeOf(st, coalition, answer) {
+  return engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, st.calls[i]])),
+    share: B.percentOf(st, ctx, "list"), seats: answer.seats, majority: answer.majority, coalition, keep: [] }).then(a => a.outcome);
+}
+async function friendOutcome() {
+  if (!friend || !friend.answer || friend.outcome) return;
+  try { friend.outcome = await outcomeOf(friend.state, friend.coalition, friend.answer); } catch (e) { return; }
+  paintArrival();
+}
+onChoose(kind => {
+  arriving = false;
+  hideArrival();
+  YU.write("arrival", "");
+  YU.write("name", "");                       // the friend's label is not carried over
+  snapshot();
+  if (kind === "friend") {
+    from = friend.state; adjusted = false; pinned = true;
+    state = friend.state;
+    boundsNote(state);
+  } else {
+    from = pubStart; adjusted = false; pinned = false;
+    state = pubStart; S.coalition = [];
+  }
+  one.status.textContent = "";
+  if (engineReady) lock(false);
+  afterEdit();
+  if (result) paintCoalition();
+  if (section1 && kind === "ours") follow();
+  one.statusRegion.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+});
+// the share sheet opened: work out the reader's own outcome if not yet known
+onOpen(async () => {
+  if (ownOutcome || !result) return;
+  const ticket = ++outcomeTicket, st = state, co = S.coalition.slice(), ans = result;
+  let o;
+  try { o = await outcomeOf(st, co, ans); } catch (e) { return; }
+  if (ticket !== outcomeTicket) return;
+  ownOutcome = o;
+  share();
+});
+build();
+if (wantsNow) begin();
+else new IntersectionObserver((es, io) => {
+  if (es.some(e => e.isIntersecting)) { io.disconnect(); begin(); }
+}, { rootMargin: "600px 0px" }).observe(one.statusRegion);
+
+// ---------- section 1's moved settings, shared as a reader's forecast ----------
+// Owner, 2026-10-06: a reader who moves section 1's settings shares a
+// forecast of their own, sealed and entered like this section's. It is the
+// forecast this section opens at from those settings (follow(), above: the
+// hand-off), seated by the seat Worker in a lane of its own and its chance
+// worked out as the reader's own is (outcomeOf), whatever the reader has
+// done in this section since. Section 1's share sheet (play-share.js) asks
+// for it; the section starts if it has not.
+let handoffSeq = 0, handoffWaiting = null;   // { seq, ok } for the newest seat request in the "handoff" lane
+let seatEngineOk;
+const seatEngine = new Promise(ok => { seatEngineOk = ok; });
+function handoffSeats(st) {
+  if (handoffWaiting) handoffWaiting.ok(null);         // the lane answers only its newest request
+  return new Promise(ok => {
+    handoffWaiting = { seq: ++handoffSeq, ok };
+    worker.postMessage({ type: "seats", seq: handoffSeq, lane: "handoff", forecast: B.entryBody(st, ctx) });
+  });
+}
+setHandoff({
+  async forecast(settings) {
+    await begin();
+    if (!ctx || !(await seatEngine)) throw new Error("the seat law did not load");
+    const h = await handoffState(settings);
+    if (!h.ok) throw new Error(h.text);
+    const st = h.state;
+    const answer = await handoffSeats(st);
+    if (!answer) throw new Error("a newer setting replaced this one");
+    const outcome = await outcomeOf(st, [], answer);
+    return { fields: { v: MS.FORMAT, c: D.context_ref, f: MS.encode(st, [], ctx) }, answer, outcome,
+             vote: B.percentOf(st, ctx, "list"), calls: st.calls, party: partyOf, baseline: D.baseline, election: D.election, geom };
+  },
+});
+
+// ---------- map ----------
+function snapshot() { history.push(state); one.undo.disabled = false; }
+let strokeOpen = false;
+function paintWard(i) {
+  if (!engineReady || locked) return;
+  if (!S.brush) { one.hint.textContent = "Choose a party first, then tap the ward."; return; }
+  if (state.calls[i] === S.brush) return;
+  if (!strokeOpen) { snapshot(); strokeOpen = true; }
+  let r;
+  try { r = B.assignWards(state, ctx, [i], S.brush); }
+  catch (e) {
+    console.error("ward not painted:", e);
+    one.hint.textContent = "That ward could not be given to " + name(S.brush) + ": the votes would not fit the map. Try another ward or party.";
+    return;
+  }
+  commit(r.state, mapNote(r));
+}
+window.addEventListener("pointerup", () => { strokeOpen = false; });
+one.svg.addEventListener("keyup", () => { strokeOpen = false; });
+
+// What a change of calls did to the ward votes (builder-state.js
+// clampToBounds): the parties it moved into their new limits, the parties
+// whose wards and citywide limit do not meet (the map wins), the painted
+// wards no past result fits (only the general ward rule applies there), and
+// citywide limits loosened so the ward vote can add up (SPEC-B2 §4,
+// SPEC-B2r2 §5).
+const FALLBACK_NAMED = 5;  // presentation: how many wards the note names before "and N more"
+function mapNote(r) {
+  const out = [];
+  const moved = r.moved || [];
+  if (moved.length) out.push(moved.map(name).join(", ") + (moved.length === 1 ? "'s ward vote was" : "'s ward votes were") +
+    " moved to fit the wards on your map: a party's ward vote follows the wards it wins.");
+  for (const { code, side } of r.conflict || [])
+    out.push(name(code) + "'s wards on your map " + (side === "floor" ? "need more" : "leave it less") +
+      " of the ward vote than past elections give it. Its range follows the map.");
+  const fb = r.fallback || [];
+  if (fb.length) {
+    const named = fb.slice(0, FALLBACK_NAMED).map(f => "ward " + f.ward + " (" + name(f.code) + ")").join(", ");
+    const more = fb.length > FALLBACK_NAMED ? " and " + (fb.length - FALLBACK_NAMED) + " more" : "";
+    out.push("No past result has these winners winning there: " + named + more + "." +
+      " There, the winner needs only the lowest winning share on record, and every other party can hold up to the highest runner-up share on record.");
+  }
+  if (r.eased) out.push("On this map the parties' citywide limits do not all fit in one ward ballot, so they were loosened evenly until they do.");
+  return out.join(" ");
+}
+// A prediction from a link, a hand-off or a friend that lies outside the
+// editor's range opens as it is, and the note names who. Each value outside
+// is clamped when it is next edited (builder-state.js): a ward vote at the
+// next change of any vote or ward, a list vote when that party's list vote is
+// next set. The note goes once the state is inside (afterEdit).
+let boundsShown = false;
+function boundsNote(st) {
+  const out = B.outOfBounds(st, ctx);
+  if (!out.length) return;
+  const who = [...new Set(out.map(o => o.code))].map(name);
+  one.linknote.textContent = who.join(", ") + (who.length === 1 ? " is" : " are") +
+    " outside the range this page lets you set for the wards on the map. The prediction opens as it is. A ward vote outside" +
+    " its range moves inside at your next change of any vote or ward; a list vote, when you next set that party's list vote.";
+  one.linknote.hidden = false;
+  boundsShown = true;
+}
+function clearBoundsNote() {
+  if (!boundsShown || B.outOfBounds(state, ctx).length) return;
+  one.linknote.textContent = "";
+  one.linknote.hidden = true;
+  boundsShown = false;
+}
+function setCallsFrom(calls) {
+  if (locked) return;
+  snapshot();
+  const r = B.setCalls(state, ctx, calls);
+  commit(r.state, mapNote(r));
+}
+
+// The brush: a chip for each of the parties with the most seats in the
+// reader's council, or at its start before the seat law has answered
+// (builder-state.js chipParties, one seat-based rule for every party; owner,
+// 2026-10-05), one click to paint with it, and every other party in the
+// "More parties" select beside them, which paints the same way.
+let pulldown = "";         // the select's parties, as last drawn
+one.brushselect.addEventListener("change", () => chooseBrush(one.brushselect.value || null));
+function chooseBrush(c) {
+  // a chip pressed from the keyboard keeps the focus: paintBrush keeps the
+  // chips it already has; a chip that goes takes the focus to the select
+  const wasOn = document.activeElement && one.brush.contains(document.activeElement);
+  S.brush = c;
+  paintBrush();
+  if (wasOn && !one.brush.contains(document.activeElement)) one.brushselect.focus();
+  one.hint.textContent = c ? "Giving wards to " + name(c) + ". Tap or drag across wards." : "Choose a party, then tap or drag across wards to give them to it.";
+}
+function paintBrush() {
+  // Each chip already drawn is kept (a keyboard user's focus stays on it);
+  // only a party new to the rule gets a new one.
+  const have = new Map([...one.brush.children].map(b => [b.value, b]));
+  const chipped = B.chipParties(alpha, result ? result.seats : D.start.seats);
+  const chips = chipped.map(c => {
+    let b = have.get(c);
+    if (!b) {
+      b = el("button", { type: "button", className: "chip", value: c, title: name(c) }, sw(c), el("span", { className: "chipt" }, name(c)));
+      b.addEventListener("click", () => chooseBrush(S.brush === c ? null : c));
+    }
+    b.setAttribute("aria-pressed", String(c === S.brush));
+    b.disabled = !engineReady || locked;
+    return b;
+  });
+  for (const b of have.values()) if (!chips.includes(b)) b.remove();
+  chips.forEach((b, k) => { if (one.brush.children[k] !== b) one.brush.insertBefore(b, one.brush.children[k] || null); });
+  // the select: every party without a chip, redrawn only when that list changes
+  const rest = alpha.filter(c => !chipped.includes(c));
+  if (rest.join() !== pulldown) {
+    pulldown = rest.join();
+    one.brushselect.replaceChildren(el("option", { value: "" }, "Choose…"), ...rest.map(c => el("option", { value: c }, name(c))));
+  }
+  one.brushselect.value = S.brush && rest.includes(S.brush) ? S.brush : "";
+}
+
+for (const b of views) b.addEventListener("click", () => {
+  if (!started) return;
+  const v = b.dataset.view;
+  for (const x of views) x.setAttribute("aria-pressed", String(x === b));
+  one.mapscroll.hidden = v === "list";
+  one.listview.hidden = v !== "list";
+  if (v === "list") buildList(); else map.setMode(v);
+});
+
+// The list view: one aligned table per area (ward | the party it is called
+// for | the chance we give that call, once analysed), filtered by area and by
+// party instead of one long scroll. The areas are the area picker's options
+// (one definition, in the page).
+const AREAS = () => [...one.area.options].map(o => [o.value, o.textContent]);
+const LIST = { area: null, party: "" };
+function buildList() {
+  if (LIST.area === null) LIST.area = AREAS()[0][0];
+  const held = alpha.filter(c => state.calls.includes(c));
+  if (LIST.party && !held.includes(LIST.party)) LIST.party = "";
+  const areaPick = el("select", { className: "wlf-area", disabled: !engineReady || locked },
+    el("option", { value: "" }, "Every area"), ...AREAS().map(([v, t]) => el("option", { value: v }, t)));
+  areaPick.value = LIST.area;
+  areaPick.addEventListener("change", () => { LIST.area = areaPick.value; buildList(); });
+  const partyPick = el("select", { className: "wlf-party", disabled: !engineReady || locked },
+    el("option", { value: "" }, "Every party"), ...held.map(c => el("option", { value: c }, name(c))));
+  partyPick.value = LIST.party;
+  partyPick.addEventListener("change", () => { LIST.party = partyPick.value; buildList(); });
+  const bar = el("div", { className: "wlfilter" }, el("label", {}, "Area ", areaPick), el("label", {}, "Called for ", partyPick));
+  const opts = () => alpha.map(c => el("option", { value: c }, name(c)));
+  const tables = AREAS().filter(([v]) => !LIST.area || v === LIST.area).map(([sec, title]) => {
+    const rows = [];
+    geom.wards.forEach((w, i) => {
+      if (w.sector !== sec || (LIST.party && state.calls[i] !== LIST.party)) return;
+      const s = el("select", { id: "wl" + i, disabled: !engineReady || locked, "aria-label": "Ward " + w.id + ", called for" }, ...opts());
+      s.value = state.calls[i];
+      s.addEventListener("change", () => {
+        snapshot();
+        const r = B.assignWards(state, ctx, [i], s.value);
+        commit(r.state, mapNote(r));
+      });
+      const got = analysed ? analysed.wards[ctx.wards[i]] : null;
+      rows.push(el("tr", {}, el("th", { scope: "row" }, "Ward " + w.id),
+        el("td", {}, el("span", { className: "wlpick" }, sw(state.calls[i]), s)),
+        el("td", { className: "wln", title: got ? wardChanceSentence(got.text) : "" }, got ? got.text : "–")));
+    });
+    if (!rows.length) return [];
+    // an area's wards in two halves, side by side where the list is wide
+    // (css/interactive.css .wardlist); stacked, the second reads on from the
+    // first, its caption and header hidden
+    const cut = Math.ceil(rows.length / 2);
+    const halves = rows.length > 1 ? [rows.slice(0, cut), rows.slice(cut)] : [rows];
+    return halves.map((part, k) => el("table", { className: k ? "wltable wlcont" : "wltable" },
+      el("caption", {}, title),
+      el("colgroup", {}, el("col", { className: "wlc-ward" }), el("col", { className: "wlc-party" }), el("col", { className: "wlc-chance" })),
+      el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Ward"), el("th", { scope: "col" }, "Called for"),
+        el("th", { scope: "col", className: "wln" }, analysed ? "Our chance" : "Our chance, once analysed"))),
+      el("tbody", {}, ...part)));
+  }).flat();
+  one.listview.replaceChildren(bar, el("div", { className: "wardlist" },
+    tables.length ? el("div", { className: "wlgrid" }, ...tables)
+      : el("p", { className: "stubnote" }, "No ward in this area is called for that party.")));
+}
+
+one.fillarea.addEventListener("click", () => {
+  if (locked) return;
+  if (!S.brush) { one.hint.textContent = "Choose a party first, then fill the area."; return; }
+  const sec = one.area.value;
+  setCallsFrom(state.calls.map((c, i) => geom.wards[i].sector === sec ? S.brush : c));
+});
+one.copymodel.addEventListener("click", () => setCallsFrom(from.calls));
+one.undo.addEventListener("click", () => {
+  if (locked) return;
+  const prev = history.pop(); if (!prev) return;
+  commit(prev);
+});
+
+// ---------- the vote: a table with the seat table's columns ----------
+// Party | slider | percent, one identical row per party, on the WARD ballot;
+// each row's list vote follows its ward vote, and a collapsed "Adjust list
+// vote" under it sets the list vote as points from the ward vote (STYLE.md
+// rule 11: every vote figure names its ballot). A party with no PR list has
+// no list control. The parties that hold a seat in the published start come
+// first, most seats first as the seat table orders them; every other party,
+// alphabetical, in a collapsed "Other parties". The order is the published
+// start's, fixed for the page, so a row never moves under the reader's
+// finger; finding a party opens the second list. The percent boxes are text
+// with a decimal keypad: no spinner. The slider's ends follow the party's
+// limits for the wards on the map (builder-state.js wardLimits: what its
+// wards allow, inside its citywide limit), so the reader sees the range move
+// as they paint.
+const rows = {};
+// The percent each row's box last showed (paintShares). Enter edits a box and
+// then the browser fires "change" with the value the edit painted back; that
+// second call is no edit, and answering it would clear the note the first
+// one wrote (check step of slice B2a, 2026-10-09).
+const shown = {};
+let rest;
+function buildVote() {
+  const start = D.start.seats;
+  const seatedAtStart = alpha.filter(c => (start[c] || 0) > 0)
+    .sort((a, b) => start[b] - start[a] || name(a).localeCompare(name(b)));
+  const restList = el("div", { className: "prrest" });
+  rest = el("details", { className: "rollup prmore" }, el("summary", {}, el("span", { className: "eyebrow" }, "Other parties")), restList);
+  const head = el("div", { className: "prrow prhead", "aria-hidden": "true" },
+    el("span", {}, "Party"), el("span", {}, "Ward vote"), el("span", { className: "prpct" }, "Ward vote %"));
+  one.prlist.append(head);
+  for (const c of [...seatedAtStart, ...alpha.filter(x => !seatedAtStart.includes(x))]) {
+    const num = el("input", { type: "text", id: "pr-n-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
+                              disabled: true, className: "prnum" });
+    const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", ward vote, percent" });
+    const fl = el("span", { className: "fl" });
+    let gap = null, gapText = null;
+    const parts = [el("label", { htmlFor: "pr-n-" + c, className: "prname" }, sw(c), name(c)), rng, num, fl];
+    if (ctx.noList.has(c)) {
+      parts.push(el("p", { className: "prgap prgap-none" }, "Ward ballot only: no list."));
+    } else {
+      gap = el("input", { type: "text", id: "pr-g-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
+                          disabled: true, className: "prnum prgapnum" });
+      gapText = el("span", { className: "prgaptext" });
+      parts.push(el("details", { className: "prgap" }, el("summary", {}, "Adjust list vote"),
+        el("label", { htmlFor: "pr-g-" + c }, "List vote: points from ward vote "), gap, gapText));
+      gap.addEventListener("change", () => editGap(c, gap.value));
+      gap.addEventListener("keydown", e => { if (e.key === "Enter") editGap(c, gap.value); });
+      editables.push(gap);
+    }
+    const row = el("div", { className: "prrow" }, ...parts);
+    num.addEventListener("change", () => { if (num.value !== shown[c]) editShare(c, num.value, true, null); });
+    num.addEventListener("keydown", e => { if (e.key === "Enter") editShare(c, num.value, true, null); });
+    rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
+    rng.addEventListener("change", () => editShare(c, rng.value, true, null));
+    rows[c] = { row, num, rng, fl, gap, gapText, seated: seatedAtStart.includes(c) };
+    if (!firstVote) firstVote = rng;
+    editables.push(num, rng);
+    (rows[c].seated ? one.prlist : restList).append(row);
+  }
+  one.prlist.append(rest);
+  if (engineReady) lock(false);
+}
+one.prfind.addEventListener("input", () => {
+  if (!started) return;
+  const q = one.prfind.value.trim().toLowerCase();
+  for (const c of alpha) rows[c].row.hidden = !!q && !name(c).toLowerCase().includes(q);
+  if (q && alpha.some(c => !rows[c].seated && !rows[c].row.hidden)) rest.open = true;
+});
+
+const signed1 = x => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(1);
+function paintShares(except = null) {
+  const Tw = B.totalOf(state, "ward"), Tl = B.totalOf(state, "list");
+  const { floor, ceil, bind } = B.wardLimits(state.calls, ctx, Tw);
+  const what = side => (side === "box" ? "its wards allow." : "past results allow.");
+  for (const c of alpha) {
+    const v = state.ward[c], r = rows[c], p = v / Tw * 100;
+    if (r.num !== except) r.num.value = shown[c] = p.toFixed(1);
+    if (r.rng !== except) r.rng.value = p.toFixed(1);
+    r.rng.setAttribute("min", (floor[c] / Tw * 100).toFixed(1));
+    r.rng.setAttribute("max", (ceil[c] / Tw * 100).toFixed(1));
+    r.rng.setAttribute("aria-valuetext", pct(v, Tw) + " percent of the ward vote");
+    r.fl.textContent = floor[c] && v <= floor[c] ? "At the least " + what(bind[c].floor)
+      : v >= ceil[c] ? "At the most " + what(bind[c].ceil) : "";
+    if (r.gap) {
+      const g = B.gapOf(state, ctx, c);
+      if (document.activeElement !== r.gap) r.gap.value = signed1(g);
+      r.gapText.textContent = " List vote " + pct(state.list[c], Tl) + "%.";
+    }
+  }
+  one.totals.textContent = "Ward ballot: " + Tw.toLocaleString("en-ZA") + " votes. List ballot: " + Tl.toLocaleString("en-ZA") + " votes.";
+}
+let openEdit = null;
+function editShare(c, raw, final, active) {
+  if (!engineReady || locked) return;
+  const want = parseFloat(raw);
+  if (!Number.isFinite(want)) { if (final) paintShares(); return; }
+  if (openEdit !== c) { snapshot(); openEdit = c; }
+  if (final) openEdit = null;
+  const r = B.setWardPercent(state, ctx, c, want);
+  const at = pct(r.state.ward[c], B.totalOf(r.state, "ward"));
+  const lower = r.clamped === "floor";
+  // why the citywide limit stops it, by the history the limit comes from
+  const history = {
+    local: "no party in past local elections moved that far from its previous result.",
+    national: "no party new to local elections moved that far from its last national result.",
+    newcomer: "this party has no previous local result, and no party new to a city has taken more in past local elections.",
+  };
+  let note = "";
+  if (r.by === "others") {
+    note = name(c) + "'s ward vote cannot go " + (lower ? "lower" : "higher") +
+      ": the other parties are at the limits of their own ward votes.";
+  } else if (r.by === "city") {
+    note = name(c) + "'s ward vote cannot go " + (lower ? "below " : "above ") + at + "%: " +
+      history[ctx.bounds.city.kind[c]];
+  } else if (lower) {
+    note = name(c) + "'s ward vote cannot go below " + at +
+      "% with the wards it wins on your map and their past results. Give its wards to other parties to take it lower.";
+  } else if (r.clamped === "ceiling") {
+    note = name(c) + "'s ward vote cannot go above " + at + "% with the wards on your map: it cannot pass the winner" +
+      " in a ward it does not win, nor go past what each ward's past results allow. Give it more wards to take it higher.";
+  }
+  state = r.state;
+  one.floornote.textContent = note;
+  afterEdit(final ? null : active);
+}
+function editGap(c, raw) {
+  if (!engineReady || locked) return;
+  const want = parseFloat(String(raw).replace("−", "-"));
+  if (!Number.isFinite(want)) { paintShares(); return; }
+  snapshot();
+  const r = B.setListGap(state, ctx, c, want);
+  const note = r.clamped === "gap_min" || r.clamped === "gap_max"
+    ? name(c) + "'s list vote is as far from its ward vote as this page allows, past the widest gap in past results."
+    : r.clamped === "others" ? name(c) + "'s list vote moved as far as it can without taking another party's list vote out of range." : "";
+  commit(r.state, note);
+}
+one.prmodel.addEventListener("click", () => {
+  if (locked) return;
+  snapshot();
+  const r = B.setCalls({ calls: state.calls, ward: { ...from.ward }, list: { ...from.list } }, ctx, state.calls);
+  commit(r.state, mapNote(r));
+});
+
+// ---------- recompute ----------
+function commit(next, note = "") {
+  state = next;
+  one.floornote.textContent = note;
+  afterEdit();
+}
+
+function afterEdit(active = null) {
+  const bad = B.invariantErrors(state, ctx);
+  if (bad.length) throw new Error("the builder reached an invalid state: " + bad.join("; "));
+  clearBoundsNote();
+  map.setCalls(state.calls);
+  if (!one.listview.hidden) buildList();
+  paintShares(active);
+  paintBrush();
+  one.undo.disabled = !engineReady || locked || !history.size;
+  const changed = state.calls.filter((c, i) => c !== from.calls[i]).length;
+  const whose = adjusted ? "your adjusted forecast's" : "the model's";
+  one.nchanged.textContent = changed ? changed + (changed === 1 ? " changed from " + whose + " call" : " changed from " + whose + " calls")
+    : "as " + whose.replace(/'s$/, "") + " calls them";
+  writeURL();
+  if (engineReady) worker.postMessage({ type: "seats", seq: ++seq, forecast: B.entryBody(state, ctx) });
+}
+
+function writeURL() {
+  YU.write("break", MS.serialize({ state, coalition: S.coalition }, ctx, D.context_ref, from));
+  ownOutcome = null;
+  outcomeTicket++;
+  if (result) share();
+}
+
+// ---------- coalition ----------
+// One coalition chip: party `c`, its seats as `n` (words).
+function coalChip(c, n) {
+  const b = el("button", { type: "button", className: "chip", "aria-pressed": String(S.coalition.includes(c)), disabled: locked },
+    sw(c), name(c) + " ", el("span", { className: "chipn" }, n));
+  b.addEventListener("click", () => {
+    if (locked || !result) return;
+    S.coalition = S.coalition.includes(c) ? S.coalition.filter(x => x !== c) : [...S.coalition, c];
+    writeURL();
+    paintCoalition();
+  });
+  return b;
+}
+function paintCoalition() {
+  const seats = result.seats;
+  const shown = alpha.filter(c => shownRows.includes(c) || S.coalition.includes(c));
+  one.coal.replaceChildren(...shown.map(c => coalChip(c, String(seats[c] || 0))));
+  const cs = S.coalition.reduce((a, c) => a + (seats[c] || 0), 0);
+  const { council_total: council, majority } = result;
+  if (!S.coalition.length) one.coalstat.textContent = "No party chosen. A council of " + council + " needs " + majority + " votes to elect a mayor and pass a budget.";
+  else if (cs >= majority) one.coalstat.replaceChildren(cs + " of " + council + " seats. ", el("span", { className: "ok" }, "Enough to govern."));
+  else one.coalstat.replaceChildren(cs + " of " + council + " seats. ", el("span", { className: "no" }, (majority - cs) + " short of the " + majority + " needed."));
+}
+
+// ---------- the council ----------
+// The seat table's axis, ticks and header words, set by the build on the
+// "b-council" region from src/seat_table.py (the one definition).
+const TABLE = {
+  scale: Number(one.councilRegion.dataset.scale),
+  ticks: String(one.councilRegion.dataset.ticks || "").split(" ").filter(Boolean).map(Number),
+  head: String(one.councilRegion.dataset.head || "").split("|"),
+};
+// The council's rows and the coalition's chips list every party seated at the
+// start section 2 is open at, every party seated in a friend's forecast, and
+// every party seated now; a party at the start that the reader takes to zero
+// keeps its row, at 0, so no edit removes a row above the vote list (review
+// of the share build, 2026-10-03: the page jumped when a party dropped to 0).
+// A party seated now and in neither is NEW: the table keeps room for
+// --yf-spare-rows of those (css/your-forecast.css, JUDGEMENT-CALLS §N5), each
+// a row of fixed height, and marks how many it shows (data-extra).
+let startRows = null;      // the parties seated at the start, set while the forecast is its start
+function councilRows(seats) {
+  if (!startRows || MS.sameState(state, from, ctx)) startRows = Object.keys(seats).filter(c => seats[c] > 0);
+  const known = new Set(startRows);
+  if (friend && friend.answer) for (const [c, v] of Object.entries(friend.answer.seats)) if (v > 0) known.add(c);
+  const fresh = Object.keys(seats).filter(c => seats[c] > 0 && !known.has(c));
+  return { list: [...known, ...fresh].sort((a, b) => (seats[b] || 0) - (seats[a] || 0) || name(a).localeCompare(name(b))), fresh };
+}
+let shownRows = [];        // councilRows' list for the result shown
+// The site's one seat table (js/seat-table.js) for the parties `list`. A
+// single council has no range: the mark is the party's seats, and the range
+// column is empty. The axis is the site's, widened in steps of its own tick
+// spacing when a party the reader built holds more seats than it reaches.
+// `seats` null draws the rows with no figures (paintPending); `ward` null
+// leaves out each row's wards-and-list title.
+function councilTable(list, seats, ward) {
+  const max = seats ? Math.max(1, ...list.map(c => seats[c] || 0)) : 0;
+  const T = TABLE.ticks, tick = T[1] - T[0];
+  const scale = max <= TABLE.scale ? TABLE.scale : Math.ceil(max / tick) * tick;
+  const every = tick * Math.ceil(scale / tick / (T.length - 1));
+  const ticks = scale === TABLE.scale ? T : Array.from({ length: Math.floor(scale / every) + 1 }, (_, i) => i * every);
+  return seatTable(document, list.map(c => ({
+    code: c, name: name(c), sub: null, seats: seats ? String(seats[c] || 0) : "", lo: null, hi: null,
+    m: seats ? seats[c] || 0 : null, p5: null, p95: null, ghost: null, arrow: null,
+    title: seats && ward ? (ward[c] || 0) + " wards, " + ((seats[c] || 0) - (ward[c] || 0)) + " list" : null,
+  })), { scale, ticks, head: TABLE.head, label: "Your council" });
+}
+// Before the seat Worker's first answer: the council's rows and the
+// coalition's chips for every party seated at the start, so the section has
+// its height before its figures arrive (owner, 2026-10-10: the layout must
+// not shift; the council grew by its whole table, and the chips by theirs,
+// when the Worker answered). At the start itself the figures are the
+// start's own seats (forecast.json, seated by the law when the site was
+// built); a forecast from a link shows the rows without figures until its
+// own seats arrive.
+function paintPending() {
+  if (result) return;
+  const seats = D.start.seats;
+  const rows = Object.keys(seats).filter(c => seats[c] > 0)
+    .sort((a, b) => seats[b] - seats[a] || name(a).localeCompare(name(b)));
+  const shown = MS.sameState(state, pubStart, ctx) ? seats : null;
+  one.bars.setAttribute("data-extra", "0");
+  one.bars.replaceChildren(councilTable(rows, shown, null));
+  one.strip.replaceChildren(sv("svg", { class: "stripbar", width: "100%", height: 16 }));
+  one.coal.replaceChildren(...alpha.filter(c => rows.includes(c) || S.coalition.includes(c))
+    .map(c => coalChip(c, shown ? String(shown[c] || 0) : "")));
+}
+function paintCouncil() {
+  const { seats, ward, council_total: council, majority, excessive } = result;
+  const { list, fresh } = councilRows(seats);
+  shownRows = list;
+  one.restate.textContent = "Each party's wards plus its list seats, of " + council + ".";
+  const table = councilTable(list, seats, ward);
+  for (const row of table.children) if (fresh.includes(row.getAttribute("data-code"))) row.setAttribute("data-new", "");
+  one.bars.setAttribute("data-extra", String(fresh.length));
+  one.bars.replaceChildren(table);
+  // the whole council in one bar, the majority line across it
+  let at = 0;
+  const segs = list.filter(c => seats[c] > 0).map(c => {
+    const r = sv("rect", { class: "pc-" + c, x: (at / council * 100).toFixed(2) + "%", y: 0,
+      width: (seats[c] / council * 100).toFixed(2) + "%", height: 16 });
+    at += seats[c];
+    return r;
+  });
+  const mx = ((majority - 0.5) / council * 100).toFixed(2) + "%";
+  one.strip.replaceChildren(sv("svg", { class: "stripbar", width: "100%", height: 16 }, ...segs,
+    sv("line", { class: "maj", x1: mx, x2: mx, y1: -4, y2: 20 })));
+  one.capseats.textContent = council + " seats";
+  one.capmaj.textContent = majority + " to govern";
+  const over = Object.keys(excessive || {});
+  one.excess.textContent = over.length
+    ? over.map(name).join(", ") + (over.length === 1 ? " wins" : " win") + " at least as many wards as " + (over.length === 1 ? "its" : "their") +
+      " share of the vote earns, so " + (over.length === 1 ? "it keeps its wards" : "they keep their wards") + " and the list seats go to the others."
+    : "";
+  const top = list.slice(0, 5).map(c => name(c) + " " + (seats[c] || 0)).join(", ");
+  if (one.announce.textContent !== top) one.announce.textContent = top;
+}
+
+function share() {
+  if (arriving) return;
+  // the link always carries the forecast, the untouched start included, so
+  // its preview and its seal have a forecast to show
+  const f = MS.encode(state, S.coalition, ctx);
+  const link = new URL(YU.linkTo("break", "#break"));
+  link.searchParams.set("v", MS.FORMAT); link.searchParams.set("c", D.context_ref); link.searchParams.set("f", f);
+  const n = YU.currentName();
+  setShareable({
+    link: link.href, fields: { v: MS.FORMAT, c: D.context_ref, f, n }, name: n,
+    answer: result, outcome: ownOutcome, vote: B.percentOf(state, ctx, "list"), calls: state.calls, coalition: S.coalition,
+    party: partyOf, baseline: D.baseline, election: D.election, geom,
+  });
+}
+onNameChange(n => { YU.write("name", n); if (result) share(); });
+
+// ---------- "Analyse my forecast" ----------
+// The reader's prediction, as page.py's analyse reads it: every ward's call,
+// each party's percent of the list ballot (the ballot key 3 scores), the
+// seats the law gives them. The answer is the published
+// forecast's chances (page.py says how); shown in "b-analysis", and each
+// ward's chance on hover over the map. Once shown, it follows every edit.
+let analysed = null, analyseTimer = null, analyseTicket = 0;
+one.analyse.addEventListener("click", () => {
+  step = Math.max(step, 3);
+  paintSteps();
+  analyse(true);
+});
+async function analyse(scroll) {
+  if (!result) return;
+  const ticket = ++analyseTicket;
+  // the first analysis opens the region with a line saying it is working;
+  // a re-analysis after an edit keeps the figures in place until the new
+  // ones arrive, so nothing on the page changes height while it works
+  if (one.analysis.hidden) one.anote.textContent = "Working it out…";
+  one.analysis.hidden = false;
+  let a;
+  try {
+    a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
+                                      share: B.percentOf(state, ctx, "list"), seats: result.seats,
+                                      majority: result.majority, coalition: S.coalition,
+                                      keep: analysed ? Object.keys(analysed.seats) : [] });
+  } catch (e) {
+    if (ticket === analyseTicket) one.anote.textContent = "The analysis could not run: " + (e.message || e) + ".";
+    return;
+  }
+  if (ticket !== analyseTicket) return;
+  analysed = a;
+  ownOutcome = a.outcome;
+  paintAnalysis(a);
+  share();                 // the share sheet's image waits for this outcome
+  if (!one.listview.hidden) buildList();
+  if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+// "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
+// the whole forecast, a ward, a party's seats and its vote alike:
+// share-card.js's aChance and chanceSentence, one definition.
+//
+// The analysis (owner, 2026-10-05), three parts:
+//   * the headline: what "this outcome" is, the reader's council-level
+//     outcome in the cards' words (share-card.js outcomeWords: the largest
+//     party, a majority alone or not, the chosen coalition), its chance, and
+//     the page's line that it is the citywide result only;
+//   * ward wins, "Your map": the reader's own map, each ward in the colour of
+//     the party called, as strong as our chance for that call, with the
+//     number of calls we expect to come true beside it, and each ward's
+//     chance on hover or tap;
+//   * citywide vote and seats: each party's seats and vote, each beside its
+//     chance, then the totals, scored as the competition scores (page.py
+//     analyse; JUDGEMENT-CALLS §N4).
+// The long explanation is the page's note on the outcome; nothing here
+// repeats it.
+let amap = null;
+function paintAnalysis(a) {
+  const sc = a.score;
+  one.outcome.textContent = "This outcome: " + outcomeWords(a.outcome, partyOf);
+  one.verdict.textContent = chanceSentence(a.outcome.text);
+  // ward wins: the reader's map, shaded by our chance for each call
+  // each ward's title names our chance for the call there (a screen reader
+  // reads it; a pointer shows it); a ward's strength has a floor, so a call
+  // we give little chance stays visible against an empty ward
+  if (!amap) amap = new WardMap(one.amap, geom, { byCode, readonly: true, labelFor: wardWords });
+  amap.setCalls(state.calls);
+  amap.setShade(ctx.wards.map(w => (a.wards[w] ? SHADE_FLOOR + (1 - SHADE_FLOOR) * a.wards[w].p : null)));
+  one.expected.textContent = "We expect " + Math.round(sc.wards_called) + " of your " + a.wards_count + " ward calls to come true.";
+  // citywide: each party's seats and vote beside its chance
+  const sb = a.seat_band, pb = a.share_band;
+  const head = el("tr", { className: "yf-wide" }, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
+    el("th", { scope: "col", className: "num" }, "The odds we give this*"),
+    el("th", { scope: "col", className: "num" }, "Your list vote"),
+    el("th", { scope: "col", className: "num" }, "The odds we give this†"));
+  const seats = result.seats, share = B.percentOf(state, ctx, "list");
+  const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
+  // two layouts of the same cells (css/your-forecast.css): one row per party,
+  // or on a phone a party's seats and then its vote, each in its own row
+  const yourVote = c => (share[c] ?? 0).toFixed(1) + "%", voteChance = c => (a.share[c] ? a.share[c].text : "");
+  const voteTitle = c => (a.share[c] ? chanceSentence(a.share[c].text) : "");
+  const body = codes.flatMap(c => [
+    el("tr", { className: "yf-wide" },
+      el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0)),
+      el("td", { className: "num", title: chanceSentence(a.seats[c].text) }, a.seats[c].text),
+      el("td", { className: "num" }, yourVote(c)),
+      el("td", { className: "num", title: voteTitle(c) }, voteChance(c))),
+    el("tr", { className: "yf-narrow" },
+      el("td", {}, sw(c), name(c)), el("td", { className: "num" }, String(seats[c] || 0) + " seats"),
+      el("td", { className: "num", title: chanceSentence(a.seats[c].text) }, a.seats[c].text)),
+    el("tr", { className: "yf-narrow" },
+      el("td", {}), el("td", { className: "num" }, yourVote(c) + " list vote"),
+      el("td", { className: "num", title: voteTitle(c) }, voteChance(c))),
+  ]);
+  const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
+    el("th", { scope: "col", className: "num" }, "Yours"),
+    el("th", { scope: "col", className: "num" }, "The odds we give this*†"));
+  // the caveat the two odds columns carry, once, under the table
+  const caveat = el("p", { className: "yf-alegend" }, "* Within " + sb + " seats of yours. † Within " + pb + " points of yours, on the list ballot.");
+  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)), caveat);
+  // the totals, every party added up
+  one.sseats.replaceChildren(el("b", {}, "All seats: "), "we expect your seat counts to be off by " + Math.round(sc.seat_error) +
+    " in total across the parties, and give " + aChance(sc.seat_error_within.text) + " that they are off by " + sc.within + " or fewer.");
+  one.svote.replaceChildren(el("b", {}, "All votes: "), "we expect your vote shares to be off by " + sc.list_vote_error.toFixed(1) +
+    " points in total, on the list ballot.");
+  one.anote.textContent = "";
+}
+// each ward's chance, over the map, once analysed: on hover, and on focus (the
+// arrow keys, or a tap, which focuses the ward; with no party chosen a tap
+// paints nothing)
+// A ward's call and our chance for it, or null before the analysis or with
+// no call there.
+function wardChance(i) {
+  const w = i == null ? null : ctx.wards[+i], got = analysed && w != null ? analysed.wards[w] : null;
+  return got ? "Ward " + w + ", " + name(state.calls[+i]) + ". " + wardChanceSentence(got.text) : null;
+}
+// The analysis map's ward titles: the chance, or the ward and "not called".
+const wardWords = i => wardChance(i) || "Ward " + ctx.wards[i] + ": not called";
+// The weakest a called ward is drawn on the analysis map (fill-opacity).
+const SHADE_FLOOR = 0.15;
+function tipFor(i, x, y) {
+  const words = wardChance(i);
+  if (!words) { one.wardtip.hidden = true; return; }
+  one.wardtip.textContent = words;
+  one.wardtip.hidden = false;
+  placeTip(one.wardtip, x, y);
+}
+function focusTip(i) {
+  // after the focus has scrolled the ward into view
+  requestAnimationFrame(() => {
+    const r = map.els[i].getBoundingClientRect();
+    tipFor(i, r.left + r.width / 2, r.top + r.height / 2);
+  });
+}
+one.svg.addEventListener("mousemove", e => tipFor(e.target.getAttribute && e.target.getAttribute("data-i"), e.clientX, e.clientY));
+one.svg.addEventListener("mouseleave", () => { one.wardtip.hidden = true; });
+one.svg.addEventListener("focusout", () => { one.wardtip.hidden = true; });
+// the same on the analysis's own map: a pointer reads each ward's title (the
+// chance), and a tap (a click on a touch screen) shows it as the tip
+const wardAt = e => (e.target.getAttribute ? e.target.getAttribute("data-i") : null);
+one.amap.addEventListener("click", e => tipFor(wardAt(e), e.clientX, e.clientY));
+one.amap.addEventListener("mouseleave", () => { one.wardtip.hidden = true; });
+
+// ---------- the seat Worker ----------
+function onWorker(e) {
+  const m = e.data;
+  if (m.type === "stage") {
+    if (m.label !== "Ready") one.status.textContent = m.label + "…";
+  } else if (m.type === "failed") {
+    one.status.textContent = m.missing ? m.message : "The seat law could not load (" + m.message + "). Reload to try again.";
+    one.status.classList.add("low");
+    seatEngineOk(false);
+  } else if (m.type === "ready") {
+    engineReady = true;
+    seatEngineOk(true);
+    window.__seatEngineTimes = m.times;
+    console.info("seat engine loaded", m.times);
+    if (!arriving) { one.status.textContent = ""; lock(false); }
+    paintBrush();
+    afterEdit();
+    one.undo.disabled = !history.size;
+    if (friend && !arriving && !friend.answer)
+      worker.postMessage({ type: "seats", seq: 0, lane: "friend", forecast: B.entryBody(friend.state, ctx, { coalition: friend.coalition }) });
+  } else if (m.type === "result" && m.lane === "handoff") {
+    if (!handoffWaiting || m.seq !== handoffWaiting.seq) return;
+    const w = handoffWaiting;
+    handoffWaiting = null;
+    w.ok(m.ok ? m.answer : null);
+  } else if (m.type === "result" && m.lane === "friend") {
+    if (!friend || !m.ok) return;
+    friend.answer = m.answer;
+    if (result) { paintCouncil(); paintCoalition(); }   // the friend's parties get their rows now, not at the next edit
+    friendOutcome();
+  } else if (m.type === "result") {
+    if (m.seq !== seq) return;
+    if (!m.ok) {
+      one.status.textContent = "The seat law refused this forecast (" + m.errors.join("; ") + "). The page should not be able to build it; please report it.";
+      one.status.classList.add("low");
+      return;
+    }
+    result = m.answer;
+    paintCouncil();
+    paintCoalition();
+    paintBrush();             // the chips follow the council's seats
+    if (arriving && !friend.answer) { friend.answer = m.answer; friendOutcome(); paintArrival(); }
+    share();
+    if (analysed) { clearTimeout(analyseTimer); analyseTimer = setTimeout(() => analyse(false), 400); }
+  }
+}

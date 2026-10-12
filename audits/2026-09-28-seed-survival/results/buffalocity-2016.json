@@ -1,0 +1,684 @@
+{
+ "city": "buffalocity",
+ "year": "2016",
+ "draws": 2000,
+ "spec": "data/processed/buffalocity/pools_2016.json",
+ "seeds_in_spec": [
+  "PEOPLES_ALLIANCE",
+  "UNITED_FRONT_OF_THE_EASTERN_CAPE"
+ ],
+ "variants": {
+  "base": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 15.6
+  },
+  "seed2": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 15.9,
+   "vs_base": {
+    "seats_moved": 0.363,
+    "d_mean_seats": {
+     "ACDP": 0.0295,
+     "AIC": -0.117,
+     "ANC": 0.177,
+     "COPE": -0.0005,
+     "DA": -0.1645,
+     "EFF": 0.046,
+     "PAC": 0.0625,
+     "PEOPLES_ALLIANCE": 0.031,
+     "UDM": 0.0095,
+     "UNITED_CONGRESS": 0.0075,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.081
+    },
+    "se_paired": {
+     "ACDP": 0.043055101275841126,
+     "AIC": 0.12311268767650826,
+     "ANC": 0.26858407287495856,
+     "COPE": 0.037369079451459924,
+     "DA": 0.20758194769175797,
+     "EFF": 0.12225757832432663,
+     "PAC": 0.07039015742368436,
+     "PEOPLES_ALLIANCE": 0.05030690700536282,
+     "UDM": 0.05966560874937687,
+     "UNITED_CONGRESS": 0.022460501153269665,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0503238089066342
+    },
+    "max_z": 1.6095760984682093,
+    "max_abs_d": 0.177,
+    "same_draw_frac": 0.0,
+    "ward_calls_moved": 0.153,
+    "d_pr_pp": {
+     "ACDP": 0.030646842664233946,
+     "AIC": -0.08438091435038553,
+     "ANC": 0.15528477848663877,
+     "COPE": 0.00198164593826071,
+     "DA": -0.20050505654696169,
+     "EFF": 0.05650638561582615,
+     "PAC": 0.06719073481958159,
+     "PEOPLES_ALLIANCE": 0.020916132910937548,
+     "UDM": 0.0327417804219051,
+     "UNITED_CONGRESS": 0.009150108102520203,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.08953243806255749
+    },
+    "max_abs_d_pr_pp": 0.20050505654696169,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.08803,
+     "AIC": 0.0,
+     "ANC": 0.00524,
+     "COPE": 0.03225,
+     "DA": 0.09219,
+     "EFF": 0.03403,
+     "PAC": 0.0,
+     "PEOPLES_ALLIANCE": 0.04794,
+     "UDM": 0.01996,
+     "UNITED_CONGRESS": 0.04794,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.04794
+    }
+   }
+  },
+  "placebo": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 15.6,
+   "vs_base": {
+    "seats_moved": 0.0,
+    "d_mean_seats": {
+     "ACDP": 0.0,
+     "AIC": 0.0,
+     "ANC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "EFF": 0.0,
+     "PAC": 0.0,
+     "PEOPLES_ALLIANCE": 0.0,
+     "UDM": 0.0,
+     "UNITED_CONGRESS": 0.0,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0
+    },
+    "se_paired": {
+     "ACDP": 0.0,
+     "AIC": 0.0,
+     "ANC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "EFF": 0.0,
+     "PAC": 0.0,
+     "PEOPLES_ALLIANCE": 0.0,
+     "UDM": 0.0,
+     "UNITED_CONGRESS": 0.0,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0
+    },
+    "max_z": 0.0,
+    "max_abs_d": 0.0,
+    "same_draw_frac": 1.0,
+    "ward_calls_moved": 0.041,
+    "d_pr_pp": {
+     "ACDP": -8.765867569570594e-09,
+     "AIC": -7.481170002105215e-10,
+     "ANC": 1.3937755001025566e-06,
+     "COPE": -1.1565156126832039e-07,
+     "DA": -7.637872579159543e-07,
+     "EFF": 4.214837643713503e-08,
+     "PAC": -3.5514897733537674e-08,
+     "PEOPLES_ALLIANCE": 2.237877719400396e-08,
+     "UDM": 9.940265472534115e-09,
+     "UNITED_CONGRESS": -6.774168917177406e-07,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 1.3364167393142123e-07
+    },
+    "max_abs_d_pr_pp": 1.3937755001025566e-06,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0,
+     "AIC": 0.0,
+     "ANC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "EFF": 0.0,
+     "PAC": 0.0,
+     "PEOPLES_ALLIANCE": 0.0,
+     "UDM": 0.0,
+     "UNITED_CONGRESS": 0.0,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0
+    }
+   }
+  },
+  "c4_eps": {
+   "info": {
+    "zero_cells": 7,
+    "cells": 36,
+    "seed_tv_mean": 6.01322278248549e-11
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 13.7,
+   "vs_base": {
+    "seats_moved": 0.043,
+    "d_mean_seats": {
+     "ACDP": 0.0015,
+     "AIC": -0.0115,
+     "ANC": -0.022,
+     "COPE": 0.001,
+     "DA": 0.0075,
+     "EFF": 0.005,
+     "PAC": 0.007,
+     "PEOPLES_ALLIANCE": 0.0155,
+     "UDM": -0.0095,
+     "UNITED_CONGRESS": 0.0035,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.002
+    },
+    "se_paired": {
+     "ACDP": 0.005591467361402267,
+     "AIC": 0.005630250870292657,
+     "ANC": 0.01388720372190193,
+     "COPE": 0.003937925040781427,
+     "DA": 0.016609027813284296,
+     "EFF": 0.010887918689386567,
+     "PAC": 0.005195093309773042,
+     "PEOPLES_ALLIANCE": 0.007493861086048266,
+     "UDM": 0.00690859894404682,
+     "UNITED_CONGRESS": 0.002783477837964085,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.007350170916805481
+    },
+    "max_z": 2.0683596642666893,
+    "max_abs_d": 0.022,
+    "same_draw_frac": 0.3325,
+    "ward_calls_moved": 0.0235,
+    "d_pr_pp": {
+     "ACDP": -0.00017811383600348335,
+     "AIC": 0.001847192565122515,
+     "ANC": -0.01676105101542672,
+     "COPE": 0.0015077379346546862,
+     "DA": 0.005231377174528423,
+     "EFF": 0.004597022523755639,
+     "PAC": 0.0017348281076241601,
+     "PEOPLES_ALLIANCE": -0.00201866623816198,
+     "UDM": -0.0004211452272010094,
+     "UNITED_CONGRESS": 0.0006682807402676985,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0037925372708398973
+    },
+    "max_abs_d_pr_pp": 0.01676105101542672,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0,
+     "AIC": 0.0,
+     "ANC": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "EFF": 0.0,
+     "PAC": 0.0,
+     "PEOPLES_ALLIANCE": 0.0,
+     "UDM": 0.0,
+     "UNITED_CONGRESS": 0.0,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.0,
+    "AIC": 0.0,
+    "ANC": 0.0,
+    "COPE": 0.0,
+    "DA": 0.0,
+    "EFF": 0.0,
+    "PAC": 0.0,
+    "PEOPLES_ALLIANCE": 0.0,
+    "UDM": 0.0,
+    "UNITED_CONGRESS": 0.0,
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0
+   }
+  },
+  "c4_mild": {
+   "info": {
+    "zero_cells": 7,
+    "cells": 36,
+    "seed_tv_mean": 0.0029794850244288726
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 12.1,
+   "vs_base": {
+    "seats_moved": 0.0525,
+    "d_mean_seats": {
+     "ACDP": 0.004,
+     "AIC": -0.027,
+     "ANC": -0.011,
+     "COPE": -0.0015,
+     "DA": 0.0255,
+     "EFF": 0.0025,
+     "PAC": 0.004,
+     "PEOPLES_ALLIANCE": 0.0155,
+     "UDM": -0.009,
+     "UNITED_CONGRESS": 0.001,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.004
+    },
+    "se_paired": {
+     "ACDP": 0.0057016010143698705,
+     "AIC": 0.010825622247636588,
+     "ANC": 0.01663062803668121,
+     "COPE": 0.00396947772089583,
+     "DA": 0.016765005448965767,
+     "EFF": 0.01167540288453714,
+     "PAC": 0.0057016010143698705,
+     "PEOPLES_ALLIANCE": 0.008103252825450814,
+     "UDM": 0.006963026775112635,
+     "UNITED_CONGRESS": 0.0026463184805972186,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.007451158291161179
+    },
+    "max_z": 2.4940829619188443,
+    "max_abs_d": 0.027,
+    "same_draw_frac": 0.323,
+    "ward_calls_moved": 0.028,
+    "d_pr_pp": {
+     "ACDP": 0.00020673915947605357,
+     "AIC": -0.009075150955423444,
+     "ANC": -0.005880978549090654,
+     "COPE": -0.0006961328765086522,
+     "DA": 0.01429938149885059,
+     "EFF": 0.004365720849149023,
+     "PAC": -0.0024737869449086383,
+     "PEOPLES_ALLIANCE": -0.002979959934971585,
+     "UDM": 0.0006592003014329231,
+     "UNITED_CONGRESS": 0.0014814454134003665,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 9.352203859410578e-05
+    },
+    "max_abs_d_pr_pp": 0.01429938149885059,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.00076,
+     "AIC": 0.00586,
+     "ANC": 6e-05,
+     "COPE": 0.00466,
+     "DA": 0.00068,
+     "EFF": 0.00034,
+     "PAC": 0.00586,
+     "PEOPLES_ALLIANCE": 0.00046,
+     "UDM": 0.00022,
+     "UNITED_CONGRESS": 0.00046,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.00046
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.0,
+    "AIC": 0.00944,
+    "ANC": 0.0,
+    "COPE": 0.00745,
+    "DA": 0.0,
+    "EFF": 0.0,
+    "PAC": 0.00944,
+    "PEOPLES_ALLIANCE": 0.0,
+    "UDM": 0.0,
+    "UNITED_CONGRESS": 0.0,
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0
+   }
+  },
+  "c4_strong": {
+   "info": {
+    "zero_cells": 7,
+    "cells": 36,
+    "seed_tv_mean": 0.08019213748428226
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 12.0,
+   "vs_base": {
+    "seats_moved": 0.41,
+    "d_mean_seats": {
+     "ACDP": -0.0025,
+     "AIC": -0.051,
+     "ANC": -0.262,
+     "COPE": -0.0265,
+     "DA": 0.357,
+     "EFF": -0.013,
+     "PAC": -0.0305,
+     "PEOPLES_ALLIANCE": -0.004,
+     "UDM": 0.053,
+     "UNITED_CONGRESS": -0.009,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.0115
+    },
+    "se_paired": {
+     "ACDP": 0.010285901753732812,
+     "AIC": 0.03518975219193316,
+     "ANC": 0.07080384588633691,
+     "COPE": 0.013228241311077298,
+     "DA": 0.05747544878995555,
+     "EFF": 0.02761877800427138,
+     "PAC": 0.020700220398881773,
+     "PEOPLES_ALLIANCE": 0.01751129129051683,
+     "UDM": 0.02536566988282198,
+     "UNITED_CONGRESS": 0.00603968036152864,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.01593143999738238
+    },
+    "max_z": 6.211347758321281,
+    "max_abs_d": 0.357,
+    "same_draw_frac": 0.06,
+    "ward_calls_moved": 0.341,
+    "d_pr_pp": {
+     "ACDP": -0.011113870894505749,
+     "AIC": -0.04414525532223545,
+     "ANC": -0.2766912433944451,
+     "COPE": -0.014237180234124538,
+     "DA": 0.33616964248169107,
+     "EFF": -0.019491658146760567,
+     "PAC": -0.009980693245083739,
+     "PEOPLES_ALLIANCE": -0.015726415201638123,
+     "UDM": 0.06558297069290941,
+     "UNITED_CONGRESS": -0.0006280858810234334,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.009738210854783392
+    },
+    "max_abs_d_pr_pp": 0.33616964248169107,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.04441,
+     "AIC": 0.08342,
+     "ANC": 0.08023,
+     "COPE": 0.07167,
+     "DA": 0.23166,
+     "EFF": 0.06165,
+     "PAC": 0.08342,
+     "PEOPLES_ALLIANCE": 0.05313,
+     "UDM": 0.07077,
+     "UNITED_CONGRESS": 0.05313,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.05313
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.09462,
+    "AIC": 0.09526,
+    "ANC": 0.08646,
+    "COPE": 0.07503,
+    "DA": 0.30653,
+    "EFF": 0.03419,
+    "PAC": 0.09526,
+    "PEOPLES_ALLIANCE": 0.00631,
+    "UDM": 0.06077,
+    "UNITED_CONGRESS": 0.00631,
+    "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.00631
+   }
+  },
+  "c3_target": {
+   "info": {
+    "split_before": {
+     "Black African": 0.8425,
+     "Coloured": 0.0384,
+     "White": 0.119
+    },
+    "split_after": {
+     "Black African": 0.8328,
+     "Coloured": 0.0413,
+     "White": 0.1258
+    },
+    "dose_L1_of_roll": 0.019431964054804907
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 13.6,
+   "vs_base": {
+    "seats_moved": 0.061,
+    "d_mean_seats": {
+     "ACDP": 0.0105,
+     "AIC": -0.016,
+     "ANC": -0.022,
+     "COPE": 0.003,
+     "DA": 0.0065,
+     "EFF": -0.005,
+     "PAC": 0.0175,
+     "PEOPLES_ALLIANCE": -0.005,
+     "UDM": 0.0235,
+     "UNITED_CONGRESS": -0.0015,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.0115
+    },
+    "se_paired": {
+     "ACDP": 0.008615798918005095,
+     "AIC": 0.016431889833544735,
+     "ANC": 0.02520070510459746,
+     "COPE": 0.004950530666195136,
+     "DA": 0.02209010777318018,
+     "EFF": 0.016617026291770455,
+     "PAC": 0.015172738084818282,
+     "PEOPLES_ALLIANCE": 0.009593410069332968,
+     "UDM": 0.010978804218631257,
+     "UNITED_CONGRESS": 0.006578032399975509,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.007823968445815753
+    },
+    "max_z": 2.1404881198373147,
+    "max_abs_d": 0.0235,
+    "same_draw_frac": 0.5525,
+    "ward_calls_moved": 0.0625,
+    "d_pr_pp": {
+     "ACDP": 0.000786639690838942,
+     "AIC": -0.009396386372052493,
+     "ANC": -0.023595208997962733,
+     "COPE": 0.0023677798041701606,
+     "DA": 0.00010536797784617829,
+     "EFF": -0.008870198194608422,
+     "PAC": 0.018585030886902273,
+     "PEOPLES_ALLIANCE": -0.012650592006906627,
+     "UDM": 0.033750264261088445,
+     "UNITED_CONGRESS": 0.0019352766047263804,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.003017973654042273
+    },
+    "max_abs_d_pr_pp": 0.033750264261088445,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.03266,
+     "AIC": 0.0,
+     "ANC": 0.00204,
+     "COPE": 0.01351,
+     "DA": 0.03233,
+     "EFF": 0.01314,
+     "PAC": 0.0,
+     "PEOPLES_ALLIANCE": 0.01837,
+     "UDM": 0.00783,
+     "UNITED_CONGRESS": 0.01837,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.01837
+    }
+   }
+  },
+  "c3_proj": {
+   "info": {
+    "split_before": {
+     "Black African": 0.8425,
+     "Coloured": 0.0384,
+     "White": 0.119
+    },
+    "split_after": {
+     "Black African": 0.8245,
+     "Coloured": 0.0441,
+     "White": 0.1314
+    },
+    "dose_L1_of_roll": 0.036060693356254836
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 11.3,
+   "vs_base": {
+    "seats_moved": 0.083,
+    "d_mean_seats": {
+     "ACDP": 0.002,
+     "AIC": -0.024,
+     "ANC": -0.035,
+     "COPE": 0.0,
+     "DA": 0.019,
+     "EFF": 0.027,
+     "PAC": 0.0285,
+     "PEOPLES_ALLIANCE": -0.008,
+     "UDM": 0.0065,
+     "UNITED_CONGRESS": -0.0005,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.0155
+    },
+    "se_paired": {
+     "ACDP": 0.009436234485250473,
+     "AIC": 0.023194417226894224,
+     "ANC": 0.03970737762581356,
+     "COPE": 0.006597102460962708,
+     "DA": 0.03560833437186257,
+     "EFF": 0.02135095856667466,
+     "PAC": 0.01718986971475948,
+     "PEOPLES_ALLIANCE": 0.011204051293290803,
+     "UDM": 0.014468363479360249,
+     "UNITED_CONGRESS": 0.006424212812098271,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.00936342415230283
+    },
+    "max_z": 1.6579532290189187,
+    "max_abs_d": 0.035,
+    "same_draw_frac": 0.335,
+    "ward_calls_moved": 0.119,
+    "d_pr_pp": {
+     "ACDP": -0.003455390197164637,
+     "AIC": -0.01962822768196687,
+     "ANC": -0.04747871912939678,
+     "COPE": 0.007203411768490802,
+     "DA": -0.012234017107751943,
+     "EFF": 0.02211970213145254,
+     "PAC": 0.02928301258701193,
+     "PEOPLES_ALLIANCE": -0.01495307127540154,
+     "UDM": 0.03983700975629832,
+     "UNITED_CONGRESS": 0.002520696800197237,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": -0.003214407651768605
+    },
+    "max_abs_d_pr_pp": 0.04747871912939678,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0621,
+     "AIC": 0.0,
+     "ANC": 0.00408,
+     "COPE": 0.0272,
+     "DA": 0.05819,
+     "EFF": 0.02585,
+     "PAC": 0.0,
+     "PEOPLES_ALLIANCE": 0.03588,
+     "UDM": 0.01556,
+     "UNITED_CONGRESS": 0.03588,
+     "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.03588
+    }
+   }
+  }
+ },
+ "structure": {
+  "ipf_parties": [
+   "ACDP",
+   "AIC",
+   "ANC",
+   "COPE",
+   "DA",
+   "EFF",
+   "PAC",
+   "PEOPLES_ALLIANCE",
+   "UDM",
+   "UNITED_CONGRESS",
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE"
+  ],
+  "pools": [
+   "Black African",
+   "Coloured",
+   "White"
+  ],
+  "logratio_additive_max_resid": 1.3322676295501878e-15,
+  "zero_pattern_identical_R0": true,
+  "zero_pattern_identical_draws": true,
+  "zero_cells": 5,
+  "cells": 33,
+  "single_pool_parties": [
+   "AIC",
+   "PAC"
+  ],
+  "seed_vs_post_ipf_tv": {
+   "ACDP": 0.116,
+   "AIC": 0.0,
+   "ANC": 0.0066,
+   "COPE": 0.0357,
+   "DA": 0.1126,
+   "EFF": 0.0438,
+   "PAC": 0.0,
+   "PEOPLES_ALLIANCE": 0.0622,
+   "UDM": 0.025,
+   "UNITED_CONGRESS": 0.0622,
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0622
+  },
+  "seed_vs_R0_tv": {
+   "ACDP": 0.133,
+   "AIC": 0.0,
+   "ANC": 0.0081,
+   "COPE": 0.0438,
+   "DA": 0.1168,
+   "EFF": 0.0525,
+   "PAC": 0.0,
+   "PEOPLES_ALLIANCE": 0.0739,
+   "UDM": 0.0304,
+   "UNITED_CONGRESS": 0.0739,
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.0739
+  },
+  "pool_vote_share": {
+   "Black African": 0.8095,
+   "Coloured": 0.0405,
+   "White": 0.1501
+  },
+  "mean_seats": {
+   "ACDP": 0.624,
+   "AIC": 3.243,
+   "ANC": 59.691,
+   "COPE": 0.442,
+   "DA": 25.704,
+   "EFF": 5.266,
+   "PAC": 1.42,
+   "PEOPLES_ALLIANCE": 0.861,
+   "UDM": 1.702,
+   "UNITED_CONGRESS": 0.16,
+   "UNITED_FRONT_OF_THE_EASTERN_CAPE": 0.886
+  }
+ }
+}

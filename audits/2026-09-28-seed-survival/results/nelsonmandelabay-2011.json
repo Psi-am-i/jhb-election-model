@@ -1,0 +1,636 @@
+{
+ "city": "nelsonmandelabay",
+ "year": "2011",
+ "draws": 2000,
+ "spec": "data/processed/nelsonmandelabay/pools_2011.json",
+ "seeds_in_spec": [],
+ "variants": {
+  "base": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.1
+  },
+  "seed2": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.0,
+   "vs_base": {
+    "seats_moved": 0.9450000000000001,
+    "d_mean_seats": {
+     "ACDP": 0.112,
+     "ANC": 0.64,
+     "APC": -0.0195,
+     "AZAPO": 0.0705,
+     "COPE": -0.8305,
+     "DA": -0.095,
+     "ENTRANT": 0.003,
+     "PAC": 0.0165,
+     "UDM": 0.0965,
+     "VFPLUS": 0.0065
+    },
+    "se_paired": {
+     "ACDP": 0.06084882323960606,
+     "ANC": 0.3739794517285109,
+     "APC": 0.029554976286772006,
+     "AZAPO": 0.05675275599172545,
+     "COPE": 0.3057051073851084,
+     "DA": 0.23729547418995484,
+     "ENTRANT": 0.09853603490646223,
+     "PAC": 0.10747971817933816,
+     "UDM": 0.08707401918717604,
+     "VFPLUS": 0.06285462773029173
+    },
+    "max_z": 2.716670346478011,
+    "max_abs_d": 0.8305,
+    "same_draw_frac": 0.0,
+    "ward_calls_moved": 0.538,
+    "d_pr_pp": {
+     "ACDP": 0.07920709978011191,
+     "ANC": 0.5635223833297053,
+     "APC": -0.01671641862822702,
+     "AZAPO": 0.06257833574763287,
+     "COPE": -0.6887239408327307,
+     "DA": -0.10398610018782008,
+     "PAC": 0.011674045684052154,
+     "UDM": 0.06606129708441398,
+     "VFPLUS": 0.02362502130845336,
+     "ENTRANT": 0.0027582767144068705
+    },
+    "max_abs_d_pr_pp": 0.6887239408327307,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.1227,
+     "ANC": 0.02032,
+     "APC": 0.0768,
+     "AZAPO": 0.05747,
+     "COPE": 0.05764,
+     "DA": 0.05272,
+     "PAC": 0.02286,
+     "UDM": 0.02964,
+     "VFPLUS": 0.11388
+    }
+   }
+  },
+  "placebo": {
+   "info": {},
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.4,
+   "vs_base": {
+    "seats_moved": 0.0,
+    "d_mean_seats": {
+     "ACDP": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "AZAPO": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "ENTRANT": 0.0,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 0.0
+    },
+    "se_paired": {
+     "ACDP": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "AZAPO": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "ENTRANT": 0.0,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 0.0
+    },
+    "max_z": 0.0,
+    "max_abs_d": 0.0,
+    "same_draw_frac": 1.0,
+    "ward_calls_moved": 0.0,
+    "d_pr_pp": {
+     "ACDP": 1.1821103555283076e-12,
+     "ANC": 2.8176184996286933e-11,
+     "APC": -2.6404035551308966e-16,
+     "AZAPO": 2.009873998434864e-14,
+     "COPE": 3.678412088814475e-12,
+     "DA": -3.417497396185354e-11,
+     "PAC": 1.9263386575615984e-13,
+     "UDM": 1.449404032348782e-14,
+     "VFPLUS": -1.1853108680372003e-14,
+     "ENTRANT": 9.228703758637956e-13
+    },
+    "max_abs_d_pr_pp": 3.417497396185354e-11,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "AZAPO": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 0.0
+    }
+   }
+  },
+  "c4_eps": {
+   "info": {
+    "zero_cells": 1,
+    "cells": 52,
+    "seed_tv_mean": 1.9416503864992736e-12
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.5,
+   "vs_base": {
+    "seats_moved": 0.019,
+    "d_mean_seats": {
+     "ACDP": 0.0045,
+     "ANC": -0.003,
+     "APC": 0.0015,
+     "AZAPO": 0.001,
+     "COPE": 0.0095,
+     "DA": -0.0025,
+     "ENTRANT": 0.0,
+     "PAC": -0.0035,
+     "UDM": 0.0025,
+     "VFPLUS": -0.01
+    },
+    "se_paired": {
+     "ACDP": 0.007054414035105208,
+     "ANC": 0.012065168218556716,
+     "APC": 0.0018029143768146794,
+     "AZAPO": 0.00367508545840274,
+     "COPE": 0.012135835952134839,
+     "DA": 0.020626672169848467,
+     "ENTRANT": 0.0029162050898493114,
+     "PAC": 0.0038407356880307006,
+     "UDM": 0.0038411264137051034,
+     "VFPLUS": 0.007998874358026743
+    },
+    "max_z": 1.2501759063092621,
+    "max_abs_d": 0.01,
+    "same_draw_frac": 0.5605,
+    "ward_calls_moved": 0.0515,
+    "d_pr_pp": {
+     "ACDP": -0.000846700092095168,
+     "ANC": -0.00458458442982951,
+     "APC": -1.3902484642988366e-05,
+     "AZAPO": 0.0001443458110837609,
+     "COPE": 0.008322412068676907,
+     "DA": -0.0036287393207533962,
+     "PAC": -0.0010563501681581243,
+     "UDM": 0.0014307376688440635,
+     "VFPLUS": 0.0005083520458505483,
+     "ENTRANT": -0.0002755710989758814
+    },
+    "max_abs_d_pr_pp": 0.008322412068676907,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.0,
+     "ANC": 0.0,
+     "APC": 0.0,
+     "AZAPO": 0.0,
+     "COPE": 0.0,
+     "DA": 0.0,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 0.0
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.0,
+    "ANC": 0.0,
+    "APC": 0.0,
+    "AZAPO": 0.0,
+    "COPE": 0.0,
+    "DA": 0.0,
+    "PAC": 0.0,
+    "UDM": 0.0,
+    "VFPLUS": 0.0
+   }
+  },
+  "c4_mild": {
+   "info": {
+    "zero_cells": 1,
+    "cells": 52,
+    "seed_tv_mean": 9.695963047596373e-05
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 17.2,
+   "vs_base": {
+    "seats_moved": 0.024,
+    "d_mean_seats": {
+     "ACDP": 0.0035,
+     "ANC": 0.0035,
+     "APC": 0.001,
+     "AZAPO": 0.0005,
+     "COPE": 0.012,
+     "DA": -0.01,
+     "ENTRANT": 0.0,
+     "PAC": -0.0035,
+     "UDM": 0.0035,
+     "VFPLUS": -0.0105
+    },
+    "se_paired": {
+     "ACDP": 0.007090064139678314,
+     "ANC": 0.011971446561146367,
+     "APC": 0.001732339603036923,
+     "AZAPO": 0.003775844740154297,
+     "COPE": 0.012349261197580324,
+     "DA": 0.020728358169816732,
+     "ENTRANT": 0.0029162050898493114,
+     "PAC": 0.0038407356880307006,
+     "UDM": 0.0038407356880307006,
+     "VFPLUS": 0.008045324022021093
+    },
+    "max_z": 1.305105918824418,
+    "max_abs_d": 0.012,
+    "same_draw_frac": 0.5565,
+    "ward_calls_moved": 0.051,
+    "d_pr_pp": {
+     "ACDP": -0.000784440686449132,
+     "ANC": 0.00014497338522696107,
+     "APC": -1.62888698843077e-05,
+     "AZAPO": -3.605934597471124e-05,
+     "COPE": 0.010671377440666591,
+     "DA": -0.010566764549201869,
+     "PAC": -0.0009077175205905216,
+     "UDM": 0.0014527547450386223,
+     "VFPLUS": 0.0006603067696460338,
+     "ENTRANT": -0.0006181413684773971
+    },
+    "max_abs_d_pr_pp": 0.010671377440666591,
+    "post_ipf_comp_tv": {
+     "ACDP": 4e-05,
+     "ANC": 0.0,
+     "APC": 1e-05,
+     "AZAPO": 0.00073,
+     "COPE": 1e-05,
+     "DA": 1e-05,
+     "PAC": 0.0,
+     "UDM": 0.0,
+     "VFPLUS": 2e-05
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.0,
+    "ANC": 0.0,
+    "APC": 0.0,
+    "AZAPO": 0.00126,
+    "COPE": 0.0,
+    "DA": 0.0,
+    "PAC": 0.0,
+    "UDM": 0.0,
+    "VFPLUS": 0.0
+   }
+  },
+  "c4_strong": {
+   "info": {
+    "zero_cells": 1,
+    "cells": 52,
+    "seed_tv_mean": 0.11074976250588255
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 13.8,
+   "vs_base": {
+    "seats_moved": 0.2835,
+    "d_mean_seats": {
+     "ACDP": -0.0135,
+     "ANC": 0.1635,
+     "APC": 0.0105,
+     "AZAPO": 0.012,
+     "COPE": 0.069,
+     "DA": -0.2035,
+     "ENTRANT": 0.003,
+     "PAC": 0.0255,
+     "UDM": -0.009,
+     "VFPLUS": -0.0575
+    },
+    "se_paired": {
+     "ACDP": 0.02569024852808391,
+     "ANC": 0.16714769831357465,
+     "APC": 0.013277161462762064,
+     "AZAPO": 0.021322648232896212,
+     "COPE": 0.10445369685843435,
+     "DA": 0.20786690020082452,
+     "ENTRANT": 0.00393741687224161,
+     "PAC": 0.04223525521873516,
+     "UDM": 0.04165125344400488,
+     "VFPLUS": 0.03564733147264406
+    },
+    "max_z": 1.6130239662995753,
+    "max_abs_d": 0.2035,
+    "same_draw_frac": 0.001,
+    "ward_calls_moved": 1.917,
+    "d_pr_pp": {
+     "ACDP": -0.020883212276619566,
+     "ANC": 0.12526602990722166,
+     "APC": 0.005866552820901454,
+     "AZAPO": 0.018350065476699106,
+     "COPE": 0.06593738490903552,
+     "DA": -0.17589364198304372,
+     "PAC": 0.016026264055018058,
+     "UDM": 0.0008720723636738675,
+     "VFPLUS": -0.03604921998649083,
+     "ENTRANT": 0.0005077047136052397
+    },
+    "max_abs_d_pr_pp": 0.17589364198304372,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.14568,
+     "ANC": 0.15046,
+     "APC": 0.13118,
+     "AZAPO": 0.15014,
+     "COPE": 0.14141,
+     "DA": 0.28395,
+     "PAC": 0.15483,
+     "UDM": 0.15055,
+     "VFPLUS": 0.14348
+    }
+   },
+   "seed_tv": {
+    "ACDP": 0.27423,
+    "ANC": 0.13608,
+    "APC": 0.00958,
+    "AZAPO": 0.06228,
+    "COPE": 0.05385,
+    "DA": 0.30482,
+    "PAC": 0.12697,
+    "UDM": 0.1149,
+    "VFPLUS": 0.26207
+   }
+  },
+  "c3_target": {
+   "info": {
+    "split_before": {
+     "Black African": 0.5817,
+     "Coloured": 0.197,
+     "Indian/Asian": 0.0313,
+     "White": 0.1901
+    },
+    "split_after": {
+     "Black African": 0.5614,
+     "Coloured": 0.2154,
+     "Indian/Asian": 0.0246,
+     "White": 0.1986
+    },
+    "dose_L1_of_roll": 0.05387344248880748
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 17.8,
+   "vs_base": {
+    "seats_moved": 0.113,
+    "d_mean_seats": {
+     "ACDP": 0.023,
+     "ANC": -0.038,
+     "APC": -0.0055,
+     "AZAPO": 0.0025,
+     "COPE": -0.0525,
+     "DA": 0.083,
+     "ENTRANT": 0.0015,
+     "PAC": -0.008,
+     "UDM": -0.009,
+     "VFPLUS": 0.003
+    },
+    "se_paired": {
+     "ACDP": 0.015535642184636093,
+     "ANC": 0.05576139046269529,
+     "APC": 0.0044435062027285204,
+     "AZAPO": 0.007367089792177302,
+     "COPE": 0.04451249887703609,
+     "DA": 0.06722585185461609,
+     "ENTRANT": 0.0037757122508873414,
+     "PAC": 0.02192506223884184,
+     "UDM": 0.0234996939939418,
+     "VFPLUS": 0.01975324265273043
+    },
+    "max_z": 1.4804666409442508,
+    "max_abs_d": 0.083,
+    "same_draw_frac": 0.1395,
+    "ward_calls_moved": 0.1675,
+    "d_pr_pp": {
+     "ACDP": 0.0003523139061240718,
+     "ANC": -0.014485755441195607,
+     "APC": -0.005776836853928125,
+     "AZAPO": 0.0005263954554988036,
+     "COPE": -0.02792680731542697,
+     "DA": 0.04127820316872439,
+     "PAC": -0.0030520432731912816,
+     "UDM": -0.004317370696995364,
+     "VFPLUS": 0.013147109257931026,
+     "ENTRANT": 0.00025479179245872693
+    },
+    "max_abs_d_pr_pp": 0.04127820316872439,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.06234,
+     "ANC": 0.01165,
+     "APC": 0.03995,
+     "AZAPO": 0.03,
+     "COPE": 0.03047,
+     "DA": 0.03434,
+     "PAC": 0.01086,
+     "UDM": 0.01651,
+     "VFPLUS": 0.06429
+    }
+   }
+  },
+  "c3_proj": {
+   "info": {
+    "split_before": {
+     "Black African": 0.5817,
+     "Coloured": 0.197,
+     "Indian/Asian": 0.0313,
+     "White": 0.1901
+    },
+    "split_after": {
+     "Black African": 0.5793,
+     "Coloured": 0.2007,
+     "Indian/Asian": 0.0269,
+     "White": 0.193
+    },
+    "dose_L1_of_roll": 0.013410634321534044
+   },
+   "guards": {
+    "ipf_balances": 2000,
+    "ipf_failures": 0,
+    "cap_moved": 0.0,
+    "cap_undershoots": 0,
+    "ipf_clipped": {},
+    "ipf_worst": {},
+    "stale": null
+   },
+   "seconds": 16.1,
+   "vs_base": {
+    "seats_moved": 0.03,
+    "d_mean_seats": {
+     "ACDP": 0.0035,
+     "ANC": -0.0085,
+     "APC": 0.0015,
+     "AZAPO": 0.0035,
+     "COPE": 0.0125,
+     "DA": 0.0055,
+     "ENTRANT": 0.002,
+     "PAC": -0.0155,
+     "UDM": 0.0015,
+     "VFPLUS": -0.006
+    },
+    "se_paired": {
+     "ACDP": 0.010163440498245694,
+     "ANC": 0.028497718065969492,
+     "APC": 0.0015,
+     "AZAPO": 0.003278604829010719,
+     "COPE": 0.017111933968493188,
+     "DA": 0.03329097504594534,
+     "ENTRANT": 0.002549755012802731,
+     "PAC": 0.014739012661882194,
+     "UDM": 0.0075350689201769015,
+     "VFPLUS": 0.007314967831589459
+    },
+    "max_z": 1.0675272509301112,
+    "max_abs_d": 0.0155,
+    "same_draw_frac": 0.6995,
+    "ward_calls_moved": 0.0585,
+    "d_pr_pp": {
+     "ACDP": -0.004387177498955956,
+     "ANC": 0.00025195581575801484,
+     "APC": -0.0002928230031979263,
+     "AZAPO": 0.003876960691834369,
+     "COPE": 0.014959699231720797,
+     "DA": -0.007346160252949232,
+     "PAC": -0.00640893480584811,
+     "UDM": 0.0021641196238333556,
+     "VFPLUS": -0.0036865235822205974,
+     "ENTRANT": 0.0008688837800259255
+    },
+    "max_abs_d_pr_pp": 0.014959699231720797,
+    "post_ipf_comp_tv": {
+     "ACDP": 0.02902,
+     "ANC": 0.00167,
+     "APC": 0.00629,
+     "AZAPO": 0.00455,
+     "COPE": 0.00466,
+     "DA": 0.01133,
+     "PAC": 0.00164,
+     "UDM": 0.00242,
+     "VFPLUS": 0.01792
+    }
+   }
+  }
+ },
+ "structure": {
+  "ipf_parties": [
+   "ACDP",
+   "ANC",
+   "APC",
+   "AZAPO",
+   "COPE",
+   "DA",
+   "PAC",
+   "UDM",
+   "VFPLUS"
+  ],
+  "pools": [
+   "Black African",
+   "Coloured",
+   "Indian/Asian",
+   "White"
+  ],
+  "logratio_additive_max_resid": 1.3322676295501878e-15,
+  "zero_pattern_identical_R0": true,
+  "zero_pattern_identical_draws": true,
+  "zero_cells": 1,
+  "cells": 36,
+  "single_pool_parties": [],
+  "seed_vs_post_ipf_tv": {
+   "ACDP": 0.1745,
+   "ANC": 0.0394,
+   "APC": 0.1566,
+   "AZAPO": 0.1373,
+   "COPE": 0.12,
+   "DA": 0.1236,
+   "PAC": 0.0564,
+   "UDM": 0.0635,
+   "VFPLUS": 0.1777
+  },
+  "seed_vs_R0_tv": {
+   "ACDP": 0.1719,
+   "ANC": 0.043,
+   "APC": 0.1675,
+   "AZAPO": 0.1476,
+   "COPE": 0.1292,
+   "DA": 0.1239,
+   "PAC": 0.061,
+   "UDM": 0.0689,
+   "VFPLUS": 0.1761
+  },
+  "pool_vote_share": {
+   "Black African": 0.6466,
+   "Coloured": 0.1458,
+   "Indian/Asian": 0.0252,
+   "White": 0.1823
+  },
+  "mean_seats": {
+   "ACDP": 0.929,
+   "ANC": 53.28,
+   "APC": 0.152,
+   "AZAPO": 0.602,
+   "COPE": 20.454,
+   "DA": 39.738,
+   "ENTRANT": 1.586,
+   "PAC": 1.23,
+   "UDM": 1.02,
+   "VFPLUS": 1.008
+  }
+ }
+}

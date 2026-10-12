@@ -1,0 +1,116 @@
+# Johannesburg — the reference city.
+#
+# GENERATED from the live constants when the config spine was introduced
+# (2026-08-07), so the forecast could not move during the refactor. Edit
+# freely from here on; this is now the source of truth.
+
+legacy_processed_root = true  # CoJ keeps data/processed/ (not /joburg/)
+
+[identity]
+code = "JHB"
+slug = "joburg"
+name = "Johannesburg"
+formal_name = "City of Johannesburg"
+province = "GP"              # IEC path segment (traps: WP for WC, KN for KZN)
+province_name = "Gauteng"
+ward_prefix = "798"          # picks CoJ out of national by-election files
+subdomain = "joburg.whysoserious.city"
+
+[structure]
+# Derived from the IEC files by derive_city.py — never typed by hand.
+# These describe the TARGET election (2026); earlier ones are in by_year
+# below, because council size is not constant within a city.
+council = 270
+wards = 135
+list_seats = 135
+vds = 865
+registered = 2348781
+election_date = "2026-11-04"
+
+# Council sizes READ FROM the IEC's own Seat Calculation Detail
+# (data/raw/elections/_reports/lge<year>_JHB_seat_calculation_detail.xls, via
+# src/official_seats.py — "Total Seats Available", which the party rows sum to
+# in all three years). Wards and VDs counted from the cleaned VD result files.
+# There is no by_year entry for 2000 or 2006: the IEC published no seat
+# calculation for them, so their council size is not on disk and structure_for()
+# will refuse the target rather than inherit 2026's 270.
+
+[structure.by_year.2011]
+council = 260
+wards = 130
+list_seats = 130
+vds = 797
+
+[structure.by_year.2016]
+council = 270
+wards = 135
+list_seats = 135
+vds = 842
+
+[structure.by_year.2021]
+council = 270
+wards = 135
+list_seats = 135
+vds = 867
+
+[site]
+accent = "#a8621f"           # Joburg sunset amber
+accent_soft = "#f0e2d5"
+accent_dark = "#d9954f"
+accent_soft_dark = "#3a2a1a"
+
+[map]
+# Chrome for render_map.py. rotate_deg is aesthetic (Johannesburg lies
+# diagonally, so 40 degrees clockwise puts Soweto bottom-left and north to
+# the upper right); cos_lat is the lon->km correction at this latitude.
+width = 840.0
+cos_lat = 0.898
+rotate_deg = 40
+
+labels = [
+  { name = "Midrand",     lon = 28.128, lat = -25.995 },
+  { name = "Diepsloot",   lon = 28.012, lat = -25.937 },
+  { name = "Sandton",     lon = 28.057, lat = -26.107 },
+  { name = "Randburg",    lon = 27.950, lat = -26.094 },
+  { name = "Alexandra",   lon = 28.100, lat = -26.103 },
+  { name = "Roodepoort",  lon = 27.865, lat = -26.160 },
+  { name = "CBD",         lon = 28.043, lat = -26.204 },
+  { name = "Soweto",      lon = 27.870, lat = -26.260 },
+  { name = "Lenasia",     lon = 27.830, lat = -26.328 },
+  { name = "Orange Farm", lon = 27.860, lat = -26.478 },
+]
+
+[judgements]
+# The per-city calls. Applied blind to another metro these do not crash —
+# they produce plausible, wrong output. Each carries its evidence.
+
+[judgements.plan_bounds]
+# Plan §3.5 sanity ranges on raw national-to-local retention ratios.
+ANC = [0.65, 0.9]
+DA = [1.05, 1.6]
+EFF = [0.55, 1.1]
+ASA = [0.9, 3.0]
+MK = [0.3, 1.0]
+PA = [1.0, 2.2]
+ALJAMAAH = [0.8, 3.0]
+
+[judgements.scalars]
+# `w_bye` left this table 2026-10-10: the by-election weight is derived per
+# size class (BRIEF item 19, JUDGEMENT-CALLS §A55); a typed 0.4 here would be
+# an override every run applied in silence.
+turnout_pattern_blend = 0.5
+turnout_blend_jitter = 0.25
+turnout_noise_sd = 0.08
+entrant_prob = 0.25
+entrant_share = [0.01, 0.04, 0.12]
+ward_noise_sd = 0.1
+level_floor = 1e-06
+overhang_rule = "deduct"
+draws = 5000
+seed = 20261104
+
+[newsdesk]
+parties = ["DA/Zille", "ANC/Mbalula", "ANC/Lesufi", "ActionSA/Mashaba", "EFF/Malema", "MK", "PA"]
+outlets = ["News24", "Daily Maverick", "EWN", "TimesLIVE", "Mail & Guardian", "IOL", "The Citizen", "SABC", "eNCA", "702", "GroundUp", "The Common Sense"]
+pollsters = ["Social Research Foundation", "Victory Research", "Ipsos", "Brenthurst"]
+name_variants = ["City of Johannesburg", "Joburg", "Jo'burg", "CoJ"]

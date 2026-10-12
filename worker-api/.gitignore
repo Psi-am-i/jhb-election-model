@@ -1,0 +1,18 @@
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+# Everything in seats-py/src is COPIED from ../src by tools/sync_seats_py.mjs
+# (the list is its FILES, plus code_ref.py), except entry.py, which is written
+# here. The copy is checked (`--check`, run by `npm test`), never edited, and
+# never committed: ignoring the directory rather than naming files means a
+# module added to FILES is ignored without anyone remembering to list it.
+# test/node/build.test.js asserts both directions with `git check-ignore`.
+seats-py/src/*
+!seats-py/src/entry.py
+# pywrangler's vendored packages and environment (rebuilt by
+# `uvx --from workers-py pywrangler deploy` from pyproject.toml + pylock.toml)
+seats-py/python_modules/
+seats-py/.venv-workers/

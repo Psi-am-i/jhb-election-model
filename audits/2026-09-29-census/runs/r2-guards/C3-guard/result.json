@@ -1,0 +1,36 @@
+{
+ "name": "C3-guard",
+ "tests": {
+  "failed": [
+   "test_emit_refuses_a_spec_that_would_drop_a_declared_pool",
+   "test_no_emitted_composition_weight_is_arithmetically_impossible"
+  ]
+ },
+ "compare": {
+  "mangaung-2016": {
+   "spec_fields_changed": [],
+   "trace": {
+    "first": null,
+    "changed": [],
+    "compared": [
+     "00_target",
+     "01_scenario_in",
+     "02_pools_artefact",
+     "03_roster",
+     "10_theta_prior",
+     "20_spine",
+     "30_centres",
+     "40_draws",
+     "41_guards",
+     "42_pr_share_draws",
+     "43_ward_share_draws",
+     "44_seat_draws",
+     "45_delivered"
+    ]
+   }
+  }
+ },
+ "new_test_failures": [
+  "test_emit_refuses_a_spec_that_would_drop_a_declared_pool"
+ ]
+}
