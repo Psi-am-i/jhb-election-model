@@ -39,3 +39,7 @@ export · 10 site UAT, promote, then redeploy joburg-seats.
   review before more fixes: if the draw is wrong across the spectrum, a fix at one
   end is a bandage. Turnout's two unconnected calculations: measured in this
   round's plausibility check, fixed next round.
+- 2026-10-12, after the literature review (step1/1i): owner approved one
+  log-scale draw for every party in place of the 5% line (MODEL-LOG §1.297).
+  Pooling sub-1% parties into a class may follow once the universal draw is
+  measured. Paired draws and the census registration change proceed unchanged.

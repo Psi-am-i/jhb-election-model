@@ -29122,3 +29122,91 @@ the batch. Outstanding before the batch can ship:
 - the whole suite, once;
 - the draws re-export;
 - `test_pool_bounds` (failing before the batch).
+
+## 1.297 The within-group split carries a known limitation of the Dirichlet; the design moves to one log-scale draw for every party (2026-10-12)
+
+### What the model does
+
+Each voter group's vote is divided among parties by a Dirichlet draw
+(`montecarlo.py`, the within-pool split; concentration from
+`pools.dirichlet_alpha`, judgement call §F31). A Dirichlet has one
+concentration for the whole group, so a party's variance is fixed by its mean:
+μ(1−μ)/(φ+1). A party with a small share in a group gets a per-group
+concentration below 1, which draws a spike at zero plus rare large values.
+Summed over groups, small parties collapse in most draws and explode in a few.
+
+### How it was found
+
+Measured in this round, before the literature was read (all in
+`audits/2026-10-11-model-round/step1/`):
+
+- `1a-seat-error-and-tails.md`: where the seat error comes from, and the
+  extreme draws for small parties;
+- `1b-small-party-design-v3.md`: the spread of small parties' drawn shares
+  against their record, measured on the log scale; the draws are several
+  times wider than any real cycle-to-cycle movement;
+- `1f-randomness-consistency-audit.md`: below roughly 5%, a party's width is
+  set by its groups' concentration, not by anything about the party; small
+  parties share no common swing;
+- `1h-plausibility-check-design.md`: about half of the draws fall outside the
+  record on two or more whole-election measures.
+
+### That this is a known problem
+
+The literature review (`step1/1i-literature-review.md`, full source table
+there) found the limitation documented for decades:
+
+- Aitchison's critique of the Dirichlet (independence of ratios; one parameter
+  sets the whole covariance), relayed in Katz, J. N. & King, G. (1999), *A
+  Statistical Model for Multiparty Electoral Data*, APSR 93:15-32,
+  https://gking.harvard.edu/files/multiparty.pdf. Katz and King reject the
+  Dirichlet for electoral data and use a log-ratio Student-t with its own
+  variance per party.
+- Selb, P. & Chen, S. (2023), *Bias and Variance in Multiparty Election
+  Polls*, POQ 87:1025-1037,
+  https://kops.uni-konstanz.de/bitstreams/d23681c6-43c3-49cb-bc00-c4c4845d42a5/download.
+  They name the Dirichlet-multinomial's lack of per-party variances as the
+  reason they did not use it.
+- Elfadaly, F. G. & Garthwaite, P. H. (2013), TEST 22:628-646: the Dirichlet
+  is not flexible enough to carry separate beliefs per component.
+- Gelman, A., Hullman, J., Wlezien, C. & Morris, G. E. (2020), *Information,
+  incentives, and goals in election forecasts*, JDM 15:863-880: independent
+  long-tailed noise per unit and too little shared movement produce
+  implausible individual outcomes.
+- Forecasts that use a Dirichlet use it where it fits, for poll sampling or
+  one fundamentals stage: Stoetzer et al. (2019), Political Analysis
+  27:255-262; Hanretty, C. (2021), *Forecasting multiparty by-elections using
+  Dirichlet regression*, IJF,
+  https://chrishanretty.co.uk/pubs/10.1016_j.ijforecast.2021.03.007/fulltext.pdf;
+  Bauer et al. (2018), KOALA. Hanretty's comparison favours the Dirichlet for
+  his data and is the contrary evidence (`1i` §4.5).
+
+Unresolved: the review says the Zweitstimme forecast uses a log-ratio random
+walk for its poll stage. Selb and Chen (2023) describe it as Dirichlet-based.
+Both can be true of different stages. Not checked against the Zweitstimme
+code.
+
+### How the model walked into it
+
+The Dirichlet was adopted as the way to split a group's vote, and its
+concentration was then fitted (§F31). The fit set the one free number the
+family allows; nothing checked whether the family could represent parties of
+different sizes. The record comparison that would have shown it, drawn
+spread against real movement by party size, was not part of the backtest,
+which scores coverage of results and seat error, not whether each draw is a
+possible election. The first design this round (`1b`, v1 to v3) treated the
+symptom at the small end with a line at 1%, then 5%. The owner asked whether
+fixing one end of the range was treating a problem that runs across all of
+it; the literature says it does.
+
+### Decision (owner, 2026-10-12)
+
+Replace the within-group split as the source of each party's randomness with
+one log-scale draw for every party: spreads from the record by size and
+history, a shared swing across parties, a separate wider treatment for new
+parties, and the citywide spread re-fitted from the record in the same
+change. Each group's split of its vote stays as the centre; only its
+randomness goes. The 5% line is withdrawn. Pooling the many parties under 1%
+into a class may follow, after the universal draw is measured. Design and
+blind review under `audits/2026-10-11-model-round/`; nothing changes in code
+before the owner's checkpoint.
