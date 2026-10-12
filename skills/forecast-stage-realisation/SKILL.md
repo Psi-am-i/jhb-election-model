@@ -1,6 +1,6 @@
 ---
 name: forecast-stage-realisation
-description: Observe the REALISATION segment of the Johannesburg forecast pipeline — stages 40_draws, 41_guards, 42_pr_share_draws, 43_ward_share_draws, 42a_pr_vote_draws, 43a_ward_vote_draws, 44_seat_draws, 45_delivered. Use when reading or writing anything between the drawn vote shares and the allocated council: the per-draw share arrays, the per-draw whole votes the seat law read, the ~20 guard counters, Schedule 1 seat allocation, overhang, the chamber fill, or the delivery proof. Carries the field inventory with units, the invariants and why each holds, the traps, and what could not be checked.
+description: Observe the REALISATION segment of the Johannesburg forecast pipeline — stages 35_widths, 40_draws, 41_guards, 42_pr_share_draws, 43_ward_share_draws, 42a_pr_vote_draws, 43a_ward_vote_draws, 44_seat_draws, 45_delivered. Use when reading or writing anything between the drawn vote shares and the allocated council: the per-draw share arrays, the per-draw whole votes the seat law read, the ~20 guard counters, Schedule 1 seat allocation, overhang, the chamber fill, or the delivery proof. Carries the field inventory with units, the invariants and why each holds, the traps, and what could not be checked.
 ---
 
 # The realisation segment: draws → shares → seats

@@ -19,7 +19,7 @@ Thirteen stages, of which **three are this segment**:
 
     00_target · 01_scenario_in · 02_pools_artefact · 03_roster
     10_theta_prior · 20_spine · 30_centres          <-- here
-    40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws
+    35_widths · 40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws
     44_seat_draws · 45_delivered
 
 They are a chain of three estimates, each consuming the last, and they are where

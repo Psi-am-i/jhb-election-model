@@ -216,7 +216,7 @@ def transitions(rec: dict) -> dict:
 
 
 def reference(trans: dict, target_year: int, mode: str = "strict",
-              minimum: int = MIN_JUDGING) -> list[dict]:
+              minimum: int | None = None) -> list[dict]:
     """The real transitions a target at ``target_year`` may be judged by.
 
     ``strict``: ending at or before target − 5; ``strict06``: the same without
@@ -225,6 +225,7 @@ def reference(trans: dict, target_year: int, mode: str = "strict",
     envelope is not a judgement."""
     if mode not in MODES:
         raise ValueError(f"mode {mode!r} is not one of {MODES}")
+    minimum = MIN_JUDGING if minimum is None else int(minimum)
     out = []
     for (c, y0, y1), f in sorted(trans.items()):
         y1i = int(y1)
@@ -240,7 +241,7 @@ def reference(trans: dict, target_year: int, mode: str = "strict",
     return out
 
 
-def envelope(values, k: float = OUTER_K) -> tuple[float, float, float, int]:
+def envelope(values) -> tuple[float, float, float, int]:
     """``(min, max, IQR, n)`` of the record's values for one feature."""
     v = np.asarray(values, dtype=float)
     q1, q3 = np.percentile(v, [25, 75])
@@ -570,7 +571,7 @@ def main(argv: list[str] | None = None) -> int:
                                        a.mode)
     res["generated"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     a.out.mkdir(parents=True, exist_ok=True)
-    out = a.out / f"{a.label}.json"
+    out = a.out / f"plausibility_{a.label}.json"
     out.write_text(json.dumps(res, indent=1, sort_keys=True, default=str))
     print(f"wrote {out}")
     return 0

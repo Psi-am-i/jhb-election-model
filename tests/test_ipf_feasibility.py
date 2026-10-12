@@ -91,6 +91,12 @@ def build_inputs():
     cityconfig.use(CITY)
     M.apply_city(city)
     scenario = copy.deepcopy(M.DEFAULTS)
+    # THE INCUMBENT LAW (2026-10-12): the per-draw balance, its fallback
+    # counter and LEVEL_DF's reach are tested through the Student-t level
+    # shock, which only the incumbent law draws; `_balanced_props` is the one
+    # balance both laws call. The universal draw's run-level wiring is
+    # `test_draw_streams`.
+    scenario["draw_law"] = "incumbent"
 
     base_path = ELECTIONS / "npe2024_{CODE}_vd_party.csv"
     if not cityconfig.resolve_path(base_path).exists():

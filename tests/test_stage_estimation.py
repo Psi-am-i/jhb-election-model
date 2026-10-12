@@ -1173,6 +1173,14 @@ def cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling(payloads) -> list
     """
     theta, _spine, centres = payloads[:3]
     guards = payloads[3] if len(payloads) > 3 else {}
+    # UNDER THE UNIVERSAL DRAW LAW (2026-10-12) THE θ WIDTH IS NOT A DRAW
+    # WIDTH. Every drawn party's width comes from the width record
+    # (`41_guards.width`, `35_widths`), so `SD_CEILING` binds on nothing the
+    # draw reads and this tripwire is retired for that law (design 1j v2 §6;
+    # MODEL-LOG §1.298). It still guards the incumbent law, whose board has
+    # no `width` table.
+    if (guards or {}).get("width"):
+        return []
     ceiling, sd = theta.get("sd_ceiling"), theta.get("sd") or {}
     if not _finite(ceiling):
         return []
@@ -2195,6 +2203,9 @@ def test_the_width_ceiling_tripwire_exempts_only_what_the_drawer_records():
     assert not fn((*payloads, below)), "a party drawn below the ceiling flagged"
     at_cap = {"level_sd_at_size": {party: payloads[0]["sd_ceiling"]}}
     assert fn((*payloads, at_cap)), "a party DRAWN at the ceiling was missed"
+    # Under the universal law the θ width does not reach the draw: quiet.
+    universal = {"level_sd_at_size": {}, "width": {party: 0.8}}
+    assert not fn((*payloads, universal)), "the retired tripwire fired under U"
 
 
 if __name__ == "__main__":

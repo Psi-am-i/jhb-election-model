@@ -294,11 +294,12 @@ def band_diagnostics(rows: list[dict], delta: dict | None = None) -> list:
 # --------------------------------------------------------------------------
 
 def location_shift(inputs_by_cy: dict, record: dict,
-                   draws: int = FIXED_POINT_DRAWS) -> dict:
+                   draws: int | None = None) -> dict:
     """``Δ`` per (city, year, party): the universal draw's own mean of
     ``log(s_i/c_i) − log(S_B/C_B)`` at each earlier city-year under the trial
     ``record``, plus ``σ_total²/2`` (so 0 when the draw's location is the
     estimator's assumed −σ²/2). Model-internal: it reads no outcome."""
+    draws = FIXED_POINT_DRAWS if draws is None else int(draws)
     out = {}
     for (city, year), inp in inputs_by_cy.items():
         sc = dict(inp.scenario)
@@ -327,11 +328,12 @@ def location_shift(inputs_by_cy: dict, record: dict,
 
 
 def fit_target(rows: list[dict], inputs_by_cy: dict | None,
-               iters: int = FIXED_POINT_ITERS) -> dict:
+               iters: int | None = None) -> dict:
     """The record of one target: the joint fit, iterated with the location
     fixed point at most ``iters`` times (stop below ``FIXED_POINT_TOL``), then
     the shared shares and the band diagnostics. ``inputs_by_cy`` None skips
     the fixed point (unit tests on constructed rows)."""
+    iters = FIXED_POINT_ITERS if iters is None else int(iters)
     fit = fit_joint(rows)
     fit["rho"] = shared_shares(rows, fit)
     delta: dict = {}

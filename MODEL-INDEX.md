@@ -278,6 +278,7 @@ The intermediates register names the script that writes each artefact. `agrees` 
 | `history.json` | `compare_history` | `compare_history`, `declares`, `freeze`, `score`, `stats` | yes |
 | `history.md` | `compare_history` | `compare_history` | yes |
 | `interactive_data.json` | `build_site` | `build_interactive`, `declares`, `export_interactive` | NO |
+| `plausibility_*.json` | `plausibility` | `plausibility` | yes |
 | `pools_*.json` | `pools` | `archive`, `arrivals`, `build_play`, `cityconfig`, `compare_history`, `declares`, `export_interactive`, `fold`, `freeze`, `group_share_record`, `montecarlo`, `pools`, `stats`, `sweep` | yes |
 | `regime_*_summary.json` | `overhang_regimes` | `archive`, `build_interactive`, `build_portal`, `build_site`, `coalitions`, `declares`, `freeze`, `levels`, `montecarlo`, `overhang_regimes`, `publication`, `render_home`, `render_sheet`, `scenarios`, `stats` | yes |
 | `sweep.json` | `sweep` | `declares`, `sweep` | yes |
@@ -300,8 +301,8 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `bye_weight_mode` | `'fixed'` | `NOT_FITTED` | `2021`, `2026` | -- | yes | `backtest`, `montecarlo` |
 | `centre_correction` | `False` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `contestation_expand` | `0.22` | `FITTED_ON_UNINSTRUMENTED` | `2021`, `2026` | -- | yes | `backtest`, `montecarlo` |
-| `dirichlet_floor` | `0.0001` | `NOT_FITTED` | `2021`, `2026` | `2026` | yes | `backtest`, `montecarlo` |
-| `dirichlet_scale` | `1.0` | `FITTED_ON_UNINSTRUMENTED` | `2021`, `2026` | `2026` | yes | `backtest`, `montecarlo` |
+| `dirichlet_floor` | `0.0001` | `NOT_FITTED` | `2021`, `2026` | `2021`, `2026` | yes | `backtest`, `montecarlo` |
+| `dirichlet_scale` | `1.0` | `FITTED_ON_UNINSTRUMENTED` | `2021`, `2026` | `2021`, `2026` | yes | `backtest`, `montecarlo` |
 | `draw_law` | `'universal'` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo`, `width_record` |
 | `draws` | `5000` | `NOT_FITTED` | -- | -- | NO | `arrivals`, `backtest`, `benchmarks`, `build_make`, `build_play`, `build_site`, `build_validation`, `bye_value`, `citywide_table`, `coalitions`, `compare_history`, `declares`, `diagnose`, `export_draws`, `freeze`, `montecarlo`, `og_pages`, `plausibility`, `publication`, `render_home`, `reweight`, `score`, `stats`, `sweep`, `theta_residual`, `width_budget`, `width_record` |
 | `entrant_geography` | `dict[0]` | `FITTED_ON` | `2021`, `2026` | -- | NO | `backtest`, `montecarlo` |
@@ -1149,7 +1150,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `montecarlo.width_record_path` | model+measurement | -- | `width_record` |
 | `montecarlo.width_record_variant` | model+measurement | The variant of the record a scenario needs: the levers that move the | `tests/test_universal_draw`, `width_record` |
 | `montecarlo.width_record_key` | model+measurement | The live key a width record must carry: the code that computed the | `declares`, `tests/test_universal_draw`, `width_record` |
-| `montecarlo.read_width_record` | model+measurement | The width record for target ``year`` in the variant ``scenario`` needs. | `tests/test_universal_draw` |
+| `montecarlo.read_width_record` | model+measurement | The width record for target ``year`` in the variant ``scenario`` needs. | `tests/test_drawer`, `tests/test_universal_draw` |
 | `montecarlo.strength_judgements` | model+measurement | The target's strength judgements: ``(applied, ignored)``. | `tests/test_universal_draw` |
 | `montecarlo.judgements_applied_sha` | model+measurement | The hash a run declares over the strength entries it APPLIED. | `tests/test_universal_draw` |
 | `montecarlo.centre_correction` | model+measurement | The centre-correction arm's location for one target's record. | `backtest`, `tests/test_levers_are_live`, `tests/test_universal_draw` |

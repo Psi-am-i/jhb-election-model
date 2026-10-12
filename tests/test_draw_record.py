@@ -309,7 +309,7 @@ def test_every_recorded_turnout_lies_inside_its_pools_band():
 
 def test_a_tied_group_records_its_one_shared_shock():
     from test_drawer import build_inputs
-    scenario, base_city_d, centres, index = build_inputs()
+    scenario, base_city_d, centres, index = build_inputs(law="incumbent")
     names = list(scenario["pools"])
     tied = names[-2:]
     for nm in tied:

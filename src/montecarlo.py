@@ -3616,7 +3616,7 @@ def poll_model_sd(party: str, scenario: dict, base_city_d: dict,
     under the incumbent law ``level_shock_sd``. ``width_rec`` is a callable
     returning the target's record, so it is read only when a poll needs it.
     """
-    if (scenario.get("draw_law") or "universal") == "incumbent":
+    if (scenario.get("draw_law", DEFAULTS["draw_law"])) == "incumbent":
         return level_shock_sd(party, scenario, base_city_d)[0]
     tot = sum(max(float(v), 0.0) for k, v in centres.items() if k != "ENTRANT")
     share = max(float(centres.get(party, 0.0)), 0.0) / (tot or 1.0)
@@ -3648,7 +3648,7 @@ def _apply_strength_judgements(target, scenario: dict, centres: dict,
     reason = None
     if law != "universal":
         reason = "incumbent draw law: it carries no judged width"
-    elif not scenario.get("apply_judgements", True):
+    elif not scenario.get("apply_judgements", DEFAULTS["apply_judgements"]):
         reason = "apply_judgements is off (the paired run without judgements)"
     if reason and applied:
         ignored = ignored + [dict(e, reason=reason) for e in applied]
@@ -3720,8 +3720,9 @@ def live_judgements_sha(city_slug: str, year: str, scenario: dict) -> str:
     city = type("C", (), {"slug": str(city_slug)})()
     target = type("T", (), {"city": city, "year": str(year)})()
     applied, _ = strength_judgements(city, target)
-    if ((scenario.get("draw_law") or "universal") != "universal"
-            or not scenario.get("apply_judgements", True)):
+    if ((scenario.get("draw_law", DEFAULTS["draw_law"])) != "universal"
+            or not scenario.get("apply_judgements",
+                                DEFAULTS["apply_judgements"])):
         applied = []
     return judgements_applied_sha(applied)
 
@@ -3829,7 +3830,7 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             at_size[party] = sd
         return sd
 
-    law = scenario.get("draw_law") or "universal"
+    law = scenario.get("draw_law", DEFAULTS["draw_law"])
     if law not in DRAW_LAWS:
         raise SystemExit(f"draw_law {law!r} is not one of {DRAW_LAWS}")
     note_value(scenario, "draw_law", law, where="montecarlo:make_drawer")
@@ -5289,7 +5290,7 @@ def run_model(target, scenario: dict,
               run_dir: Path | str | None = None,
               trace_detail: bool = False,
               width_override: dict | None = None,
-              stop_after: str | None = None) -> ModelRun:
+              stop_after: str | None = None) -> "ModelRun | DrawerInputs":
     """Run the forecast for one target election.
 
     ``stop_after="drawer_inputs"`` returns, instead of a ``ModelRun``, the
@@ -6735,7 +6736,7 @@ def run_model(target, scenario: dict,
         raise ValueError(f"stop_after={stop_after!r}: the only seam is "
                          f"'drawer_inputs'")
 
-    _law = scenario.get("draw_law") or "universal"
+    _law = scenario.get("draw_law", DEFAULTS["draw_law"])
     _strength = _apply_strength_judgements(target, scenario, centres, _law)
     if _law == "universal":
         scenario["_width"] = _width_rec()

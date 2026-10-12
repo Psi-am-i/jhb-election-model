@@ -281,6 +281,10 @@ def test_capture_is_zero_outside_a_partys_pools():
 
     def draw_means(pl, centres, seed):
         scen = dict(M.DEFAULTS)
+        # The within-pool DIRICHLET is the subject here (its means), which
+        # only the incumbent draw law has; the universal draw's conservation
+        # is `test_universal_draw::test_the_calibration_conserves_every_centre`.
+        scen["draw_law"] = "incumbent"
         scen["pools"] = pl
         scen["entrant_prob"] = 0.0
         scen["_theta_sd"] = {p: 0.0 for p in parties}   # isolate the pool term
@@ -506,6 +510,7 @@ def test_an_arrival_does_not_touch_pools_it_is_not_in():
     #     is true of a party that takes nothing from anywhere. End to end
     #     through `make_drawer`, on the same constructed spec.
     scen = dict(M.DEFAULTS)
+    scen["draw_law"] = "incumbent"     # the spec's columns, not a width record
     scen["pools"] = _pl
     scen["entrant_prob"] = 0.0
     scen["_theta_sd"] = {p: 0.0 for p in centres}

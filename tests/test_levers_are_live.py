@@ -806,14 +806,20 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "BLEND_W is 1.0, so it is currently `uniform-swing` exactly — kept "
         "runnable so the measurement that put it there stays repeatable, and "
         "deliberately NOT printed as a fourth baseline column. MODEL-LOG §1.57.",
-    "width_budget.py:_no_pool_turnout(rng)":
+    "width_budget.py:_no_pool_turnout(z_own)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
     "width_budget.py:_no_pool_turnout(z_common)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
     "width_budget.py:_no_pool_turnout(rho)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
-    "width_budget.py:_no_shock(rng)":
-        "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
+    "width_budget.py:_no_shock(sd)":
+        "the same, for the theta level shock, which returns ones in the shape of `z`. Since the keyed streams (design 1c) the primitives are read by the drawer before this transform, so skipping it moves no other stream.",
+    "width_budget.py:_no_shock(log_chi)":
+        "the same, for the theta level shock, which returns ones in the shape of `z`. Since the keyed streams (design 1c) the primitives are read by the drawer before this transform, so skipping it moves no other stream.",
+    "width_budget.py:_mean_split(log_g)":
+        "the Dirichlet ablation stub patched over `montecarlo.pool_split`: it returns the Dirichlet's MEAN from the concentration vector, so the drawn gammas it is handed are ignored by design. Same signature as what it replaces.",
+    "montecarlo.py:pool_split(alpha)":
+        "the NAMED PATCH POINT of design 1c §2.5: `alpha` is the concentration the drawer drew the gammas at, unread by the split itself (normalising independent gammas IS the Dirichlet) and read by `width_budget._mean_split`, which replaces this function by the Dirichlet's mean.",
     "width_budget.py:_no_shock(df)":
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
     "levels.py:sd_raw(size)":
@@ -1500,13 +1506,14 @@ class Conditional:
 
 
 CONDITIONAL: dict[str, Conditional] = {
-    **{f"{lever}@2026": Conditional(
-        key=lever, year="2026", value=PERTURB[lever],
+    **{f"{lever}@{year}": Conditional(
+        key=lever, year=year, value=PERTURB[lever],
         opens="incumbent_law_shipped_off",
         gate_scenario=(("draw_law", "incumbent"),),
         why="the incumbent law's within-pool Dirichlet, measured where it runs "
             "(arm I of prereg/2026-10-12-universal-draw.md)")
-       for lever in ("dirichlet_floor", "dirichlet_scale")},
+       for lever in ("dirichlet_floor", "dirichlet_scale")
+       for year in ("2021", "2026")},
     "bye_local_cap@2026": Conditional(
         key="bye_local_cap", year="2026", value=40.0,
         opens="local_bye_weights_shipped_off",

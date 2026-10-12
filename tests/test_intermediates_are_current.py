@@ -150,6 +150,11 @@ NOT_REGENERATED_HERE: dict[str, str] = {
         "artefact_key (declares.py, `record` kind; montecarlo refuses a stale "
         "one), and is regenerated and compared byte for byte by "
         "test_the_bye_value_record_is_a_fresh_build below.",
+    "plausibility_*.json":
+        "src/plausibility.py --runs DIR --label NAME (design 1h §5): a verdict "
+        "on an arm's runs against the real record, written under "
+        "plausibility/. Carries an artefact_key naming its code, the arrays "
+        "it scored and the record's files. A judge's output; nothing reads it.",
     "width_record.json":
         "src/width_record.py --emit (design 1j v4-L1): the universal draw's "
         "width record. Carries an artefact_key (declares.py, `record` kind; "
