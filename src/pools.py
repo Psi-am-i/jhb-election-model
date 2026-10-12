@@ -894,35 +894,26 @@ def _at_bound(rate: np.ndarray, upper: float = 1.0) -> np.ndarray:
     return (rate <= _RATE_BOUND_EPS) | (rate >= upper - _RATE_BOUND_EPS)
 
 
-# ⚖️ The most a REGISTRATION rate may reach before it is treated as a runaway.
-# NOT an estimate — a guard. JUDGEMENT-CALLS §L9,
-# prereg/2026-09-05-registration-rate-bound.md.
+# ⚖️ A POOL THE WARD TABLE CANNOT IDENTIFY: one reaching under this share of
+# EVERY ward's people. Its registration rate is not fitted; it is HELD at the
+# city's own rate (`_uninformed_rate`), the composition rule applied pool by
+# pool. Owner's decision 2026-10-12 (`audits/2026-10-11-model-round/PLAN.md`;
+# design `step1/1g-census-composition-design.md` §c, the reach test,
+# "P_hold"). JUDGEMENT-CALLS §L15.
 #
-# Registered voters are COUNTED; census voting-age population is MODELLED, so
-# their ratio is not a rate bounded by 1. The model computes it separately as
-# `census_correction` — 1.206 Indian/Asian and 1.480 White at Johannesburg 2021
-# — and the old single bound of 1.0 clipped that very quantity.
+# IT REPLACES `REGISTRATION_MAX` (2.0, deleted 2026-10-12, JUDGEMENT-CALLS §L9
+# superseded). That bound was the one place a group's census LEVEL reached the
+# registered split: with no bound, a group-uniform census error is absorbed by
+# its fitted rate and moves the split by at most 0.10pp (1g §0, measured), and
+# with it, Johannesburg 2021 White x0.5 moved White registered 25.2% -> 19.7%.
+# So registration is fitted with NO upper bound, and the one job the bound did
+# that still needs doing -- stopping a runaway rate on a pool the ward table
+# cannot see (Mangaung Indian/Asian ran to 4.34 unbounded) -- is this hold.
 #
-# ⛔ THE VALUE 2.0 IS UNDEFENDED. The table that used to justify it here was
-# measured with the bound lifted on ALL THREE levels, which inflates
-# `adult_share` and deflates this rate. Re-derived on the shipped instrument:
-#
-#     Johannesburg White        1.27 / 1.38 / 1.71 / 1.74
-#     Cape Town Indian/Asian    1.90 / 2.13 / 2.26 / 1.93   <- TWO above 2.0
-#     Mangaung Indian/Asian        —  /    — / 4.34 / 3.27
-#
-# So this binds on FOUR cells in TWO cities, not on Mangaung alone — and the
-# retracted comment cited Cape Town as proof it binds on nothing. See
-# JUDGEMENT-CALLS §L9, which carries the correction and the deferral.
-#
-# ⚠️ Do NOT cite DATA-QUALITY item 11 for this. Item 11 says the census
-# over-statement "does not explain this gap; it WIDENS it" — an over-stated
-# denominator makes the ratio smaller. The support for rates above 1 is item 13
-# and the `registration_series` docstring.
-#
-# The per-level split ships because bounding a quantity the model separately
-# computes as 1.48 is wrong on its face. The VALUE is deferred, not defended.
-REGISTRATION_MAX = 2.0
+# The threshold is the one the `_at_bound` message already used. It has a
+# cliff (1g §c, run6); a continuous partial pooling (queue entry 31, D2) would
+# not. That is entry 31's business.
+IDENTIFICATION_REACH = 0.25
 
 
 def _nest(parent: np.ndarray, observed: np.ndarray,
@@ -1041,8 +1032,34 @@ class HoldCascadeRefused(ValueError):
     """Holding silenced pools silenced every other populated pool in turn."""
 
 
+def registration_split(people: np.ndarray, voting_age: np.ndarray,
+                       reg_obs: np.ndarray):
+    """The registration level of ``pool_counts``: ONE DEFINITION, so a test
+    exercises the solve the emit runs.
+
+    Fitted with NO upper bound; a group reaching under
+    ``IDENTIFICATION_REACH`` of every ward's people (``people`` rows are
+    wards) is held at the city's own rate before the fit (design 1g §c; the
+    owner's reach test, JUDGEMENT-CALLS §L15). Returns ``(registered, rate,
+    silenced, identified_hold, reach)``: ``silenced`` the pools the free fit
+    walked to the 0.0 corner and §L14 held; ``identified_hold`` ``{pool:
+    adults}`` held by the identification test; ``reach`` each pool's largest
+    ward share of people.
+    """
+    reach = (people / np.maximum(people.sum(axis=1, keepdims=True), 1e-9)
+             ).max(axis=0)
+    id_rate = _uninformed_rate(voting_age, reg_obs)
+    id_hold = {int(g): id_rate for g in range(voting_age.shape[1])
+               if reach[g] < IDENTIFICATION_REACH and voting_age[:, g].sum() > 0}
+    registered, rate, silenced = _nest_holding_silent(
+        voting_age, reg_obs, upper=np.inf, hold=id_hold)
+    identified = {g: float(voting_age[:, g].sum()) for g in id_hold}
+    return registered, rate, silenced, identified, reach
+
+
 def _nest_holding_silent(parent: np.ndarray, observed: np.ndarray,
-                         upper: float = 1.0
+                         upper: float = 1.0,
+                         hold: dict[int, float] | None = None
                          ) -> tuple[np.ndarray, np.ndarray, dict[int, float]]:
     """:func:`_nest`, with any pool silenced at the 0.0 corner held and re-fitted.
 
@@ -1055,8 +1072,13 @@ def _nest_holding_silent(parent: np.ndarray, observed: np.ndarray,
     reported rates and the ward-scaled counts describe one fit. JUDGEMENT-CALLS
     §L14.
     """
-    child, rate = _nest(parent, observed, upper=upper)
-    silenced = _silent_pools(parent, rate)
+    # ``hold`` pins pools BEFORE the fit (the registration level's
+    # identification hold, `IDENTIFICATION_REACH`). They are not reported as
+    # silenced; the caller reports them under their own reason.
+    pre = dict(hold or {})
+    child, rate = _nest(parent, observed, upper=upper, hold=pre or None)
+    silenced = {g: v for g, v in _silent_pools(parent, rate).items()
+                if g not in pre}
     if silenced:
         fallback = _uninformed_rate(parent, observed)
         # ⛔ THE RE-FIT CAN SILENCE A SECOND POOL (blind review 2026-09-29).
@@ -1071,13 +1093,13 @@ def _nest_holding_silent(parent: np.ndarray, observed: np.ndarray,
                      if parent[:, g].sum() > 0}
         while True:
             child, rate = _nest(parent, observed, upper=upper,
-                                hold={g: fallback for g in silenced})
+                                hold={**pre, **{g: fallback for g in silenced}})
             cascade = {g: v for g, v in _silent_pools(parent, rate).items()
-                       if g not in silenced}
+                       if g not in silenced and g not in pre}
             if not cascade:
                 break
             silenced.update(cascade)
-            if populated <= set(silenced):
+            if populated <= set(silenced) | set(pre):
                 raise HoldCascadeRefused(
                     f"holding the silenced pools at the city's rate "
                     f"({fallback:.4f}) silenced every other populated pool "
@@ -1498,20 +1520,22 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
         voting_age = people.copy()
         rates["adult_share"] = np.ones(people.shape[1])
 
-    # ⛔ REGISTRATION IS THE ONE LEVEL THAT MAY EXCEED 1, AND IT WAS CLIPPED.
-    # Bounding all three at 1.0 clamped a quantity `census_correction` two
-    # blocks down independently computes as 1.206 and 1.480 for this very city,
-    # and pushed the surplus into the other pools: Johannesburg's White share of
-    # the registered roll read 20.0% against 25.2% unclipped. See
-    # REGISTRATION_MAX. `adult_share` and `turnout` genuinely cannot exceed 1
-    # and keep the tight bound.
-    registered, rates["registration"], held["registration"] = \
-        _nest_holding_silent(voting_age,
-                             np.array([reg_by_ward[w] for w in wards]),
-                             upper=REGISTRATION_MAX)
+    # ⛔ REGISTRATION IS THE ONE LEVEL THAT MAY EXCEED 1, AND IT HAS NO UPPER
+    # BOUND (2026-10-12, design 1g). Registered voters are counted and census
+    # adults are modelled, so their ratio is not a proportion; and a group's
+    # census LEVEL cancels out of the split exactly when nothing binds (1g §0).
+    # A pool the ward table cannot identify -- under `IDENTIFICATION_REACH` of
+    # every ward's people -- is HELD at the city's own rate instead of fitted.
+    # `adult_share` and `turnout` genuinely cannot exceed 1 and keep the bound.
+    reg_obs = np.array([reg_by_ward[w] for w in wards])
+    (registered, rates["registration"], held["registration"],
+     identified_hold, reach) = registration_split(people, voting_age, reg_obs)
     voted, rates["turnout"], held["turnout"] = _nest_holding_silent(
         registered, np.array([votes_by_ward.get(w, 0.0) for w in wards]))
     imputed = {level: sorted(idx) for level, idx in held.items() if idx}
+    if identified_hold:
+        imputed["registration"] = sorted(set(imputed.get("registration", []))
+                                         | set(identified_hold))
 
     # How wrong the census would have to be for this to hold. Registration is
     # counted; ward population is a modelled small-area estimate, and for the
@@ -1540,8 +1564,19 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
                 f"{rates[level][g]:.4f} and the other pools re-fitted around "
                 f"it: a declared fallback, not a measurement (JUDGEMENT-CALLS "
                 f"§L14).")
+    # THE IDENTIFICATION HOLD, reported pool by pool (design 1g §c).
+    for g, size in sorted(identified_hold.items()):
+        unidentified.append(
+            f"{categories[g]}: registration HELD at the city's own rate "
+            f"{rates['registration'][g]:.4f} because the ward table cannot "
+            f"identify it: it reaches {float(reach[g]):.1%} of the people of "
+            f"its largest ward, under IDENTIFICATION_REACH = "
+            f"{IDENTIFICATION_REACH:.0%}. A pool of {size:,.0f} adults whose "
+            f"split carries the census level by design (JUDGEMENT-CALLS "
+            f"§L15); the other pools are fitted around it.")
     # ⚠️ EACH LEVEL IS TESTED AGAINST ITS OWN BOUND. `registration` is bounded
-    # at REGISTRATION_MAX, not 1.0, so testing it against 1.0 reported every
+    # with no upper bound (it was REGISTRATION_MAX until 2026-10-12), not 1.0,
+    # so testing it against 1.0 reported every
     # legitimately-above-one rate as a clipped corner — Johannesburg White at
     # 1.739 is an estimate, not a bound. Caught immediately after loosening the
     # bound without moving the detector with it.
@@ -1549,7 +1584,7 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
         rate = rates.get(name)
         if rate is None:
             continue
-        level_upper = REGISTRATION_MAX if name == "registration" else 1.0
+        level_upper = np.inf if name == "registration" else 1.0
         for g, flag in enumerate(_at_bound(rate, upper=level_upper)):
             if flag:
                 reach = float((people[:, g]
@@ -1562,7 +1597,7 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
                 # fix, and the message sent the reader to the ward table
                 # instead of the census denominator. Found by review 2026-09-05.
                 why = ("the ward table cannot identify this pool at this level"
-                       if reach < 0.25 else
+                       if reach < IDENTIFICATION_REACH else
                        "this pool IS identifiable (it reaches "
                        f"{reach:.1%} of a ward), so the bound is binding "
                        "because the true value lies beyond it — look at the "

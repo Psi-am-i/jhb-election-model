@@ -44,7 +44,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT, skip, run_module  # noqa: E402
+from _support import ROOT, run_module, scanned, skip  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -563,11 +563,12 @@ def test_the_registration_bound_is_per_level():
                 f"registered; only `registration` may pass 1.")
             assert np.all(r >= -1e-9), f"{slug} {year}: {level} went negative"
 
-        # (2) REGISTRATION IS BOUNDED BY THE GUARD, NOT BY 1.
+        # (2) REGISTRATION HAS NO UPPER BOUND (2026-10-12, design 1g):
+        #     `REGISTRATION_MAX` is deleted; what it guarded is the
+        #     identification hold, tested below on a constructed table.
         reg = rates["registration"]
-        assert np.all(reg <= pools.REGISTRATION_MAX + 1e-9), (
-            f"{slug} {year}: registration reached {float(np.max(reg)):.4f}, "
-            f"above REGISTRATION_MAX")
+        assert np.all(np.isfinite(reg)) and np.all(reg >= -1e-9), (
+            f"{slug} {year}: registration {reg}")
         if np.any(reg > 1.0 + 1e-6):
             seen_above_one = True
 
@@ -586,6 +587,116 @@ def test_the_registration_bound_is_per_level():
         "Mangaung 2016 reports no rate on a bound. Its Indian/Asian pool has "
         "3,531 registered voters and a fitted turnout of exactly 0.0000; if "
         "nothing is reported, the detector has stopped seeing it.")
+    # ... and since 2026-10-12 its Indian/Asian registration is HELD, by name,
+    # at the city's rate (the identification hold; design 1g §c, §f K6).
+    g = list(man.categories).index("Indian/Asian")
+    assert g in man.imputed.get("registration", []), man.imputed
+    assert any(m.startswith("Indian/Asian: registration HELD")
+               for m in man.unidentified), man.unidentified
+
+
+def _registration_table(rates=(0.5, 0.9, 1.8), seed=4):
+    """A constructed ward table: three groups with identifying variation (each
+    reaches far over a quarter of some ward), adults per ward, and the roll
+    each ward registers at the stated per-group rates."""
+    import numpy as np
+    g = np.random.default_rng(seed)
+    comp = g.dirichlet([0.6, 0.6, 0.6], size=60)
+    adults = g.uniform(5000, 20000, 60)
+    voting_age = comp * adults[:, None]
+    reg = voting_age @ np.array(rates)
+    return voting_age, reg
+
+
+def test_an_identified_pools_split_does_not_carry_its_census_level():
+    """Design 1g §0 / prereg K1 on a constructed table: with no upper bound, a
+    group's census scaled ×0.5 or ×1.5 in every ward moves the registered
+    split by under 1e-3, because its fitted rate absorbs the level. Under the
+    deleted 2.0 bound the same scaling moves it (the detector can see: a group
+    registering at 1.8 needs 3.6 at half its census)."""
+    import numpy as np
+    va, reg = _registration_table()
+
+    def split(v):
+        # THE EMIT'S OWN SOLVE (`pools.registration_split`), people = adults
+        # here: restoring `upper=2.0` inside it turns this red (mutation).
+        child, _r, _s, held, _reach = pools.registration_split(v, v, reg)
+        assert not held, "a constructed pool with identifying variation was held"
+        tot = child.sum(axis=0)
+        return tot / tot.sum()
+
+    base = split(va)
+    for k in range(3):
+        for f in (0.5, 1.5):
+            v2 = va.copy()
+            v2[:, k] *= f
+            assert np.abs(split(v2) - base).max() < 1e-3, (k, f)
+
+    # It can see: the same scaling under the deleted 2.0 bound moves the
+    # split, because a group registering at 1.8 needs 3.6 at half its census.
+    def bounded(v):
+        child, _r, _h = pools._nest_holding_silent(v, reg, upper=2.0)
+        tot = child.sum(axis=0)
+        return tot / tot.sum()
+    v2 = va.copy()
+    v2[:, 2] *= 0.5
+    assert np.abs(bounded(v2) - bounded(va)).max() > 0.01, (
+        "the bounded solve did not move either: the construction cannot see "
+        "the level channel the bound opened")
+
+
+def test_the_identification_hold_holds_an_unidentifiable_pool_and_no_other():
+    """Design 1g §c (the reach test, owner 2026-10-12): `pool_counts` holds a
+    group reaching under `IDENTIFICATION_REACH` of every ward at the city's
+    own registration rate. Constructed through the same helper the solve
+    uses: a fourth group at 2-4% of every ward is held when the reach rule
+    selects it and fitted when it is given a ward over the line. The live
+    held set is the next test."""
+    import numpy as np
+    va, reg = _registration_table()
+    g = np.random.default_rng(9)
+    small = g.uniform(0.02, 0.04, va.shape[0])
+    v4 = np.column_stack([va * (1 - small[:, None]), va.sum(1) * small])
+    reg4 = v4 @ np.array([0.5, 0.9, 1.8, 3.0])
+    share = v4 / v4.sum(1, keepdims=True)
+    reach = share.max(axis=0)
+    assert reach[3] < pools.IDENTIFICATION_REACH <= reach[:3].min()
+    rate = pools._uninformed_rate(v4, reg4)
+    child, r, silenced, held, reach2 = pools.registration_split(v4, v4, reg4)
+    assert set(held) == {3}, held
+    assert abs(r[3] - rate) < 1e-12 and 3 not in silenced
+    assert np.allclose(reach2, reach)
+    # given identifying variation in one ward, the same pool is fitted
+    v4b = v4.copy()
+    v4b[0, 3] = v4b[0].sum()
+    reg4b = v4b @ np.array([0.5, 0.9, 1.8, 3.0])
+    _c, rb, _s, heldb, _r = pools.registration_split(v4b, v4b, reg4b)
+    assert not heldb, heldb
+    assert abs(rb[3] - rate) > 1e-3, "the freed pool was not fitted"
+
+
+def test_the_held_registration_set_is_the_unidentifiable_indian_asian_pools():
+    """Prereg K7 on the live fits: the registration hold falls on Indian/Asian
+    pools only and on no Johannesburg cell. Population stated and bounded:
+    every declared fitting city-year is scanned."""
+    held, scanned_cells = [], 0
+    for slug in ("joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",
+                 "mangaung", "nelsonmandelabay", "buffalocity"):
+        for year in ("2011", "2016", "2021"):
+            pc = pools.pool_counts(cityconfig.load(slug), year,
+                                   pools.load_config())
+            scanned_cells += len(pc.categories)
+            for gi in pc.imputed.get("registration", []):
+                if any(m.startswith(f"{pc.categories[gi]}: registration HELD")
+                       for m in pc.unidentified):
+                    held.append((slug, year, pc.categories[gi]))
+    print(f"  held registration cells: {held}")
+    assert held, "the identification hold fired nowhere: it looked at nothing"
+    assert all(cat == "Indian/Asian" for _s, _y, cat in held), held
+    assert not [h for h in held if h[0] == "joburg"], held
+    scanned(held, of=scanned_cells, low=0.01, high=0.25,
+            what="registration cells held by the identification test",
+            denominator="(city, fitting year, pool) cells scanned")
 
 
 # --------------------------------------------------------------------------
@@ -870,8 +981,9 @@ def test_a_refit_that_silences_a_second_pool_holds_it_too():
 # removing either mechanism below turned no test red.
 # --------------------------------------------------------------------------
 
-def _free_nest(parent, observed, upper=1.0):
-    """`_nest_holding_silent` with the hold removed: the free fit, nothing held."""
+def _free_nest(parent, observed, upper=1.0, hold=None):
+    """`_nest_holding_silent` with every hold removed (the silenced-pool hold
+    and, since 2026-10-12, the identification hold): the free fit."""
     child, rate = pools._nest(parent, observed, upper=upper)
     return child, rate, {}
 

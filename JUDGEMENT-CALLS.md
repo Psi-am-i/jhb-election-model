@@ -2719,7 +2719,9 @@ flag fourteen more, all under 0.11%, none of them plausible splits. Above ~2% it
 would miss both of the ones that matter. Chosen to make the list short enough to
 read on the day. Undefended beyond that.
 
-### §L9 · `REGISTRATION_MAX` — 2.0 — ⚖️ a runaway guard, not an estimate
+### §L9 · `REGISTRATION_MAX` — 2.0 — ⚫ deleted 2026-10-12, SUPERSEDED by §L15
+
+**Deleted 2026-10-12** (model round step 5; design `audits/2026-10-11-model-round/step1/1g-census-composition-design.md`). Registration is now fitted with no upper bound; a pool the ward table cannot identify is held at the city's rate (§L15). The bound was the one place a group's census LEVEL reached the registered split (1g §0). The text below describes it as it stood.
 
 **What.** `_nest` fits three levels with one solver. `adult_share` and `turnout`
 are bounded at **1.0**, which they cannot exceed. **`registration` is bounded at
@@ -2899,6 +2901,8 @@ record puts around the declared level. **Record.** 2026-09-16, owner's decision.
 
 ### §L14 · A pool silenced at the 0.0 corner is held at the city's own rate — 🔴 a declared fallback, not an estimate
 
+**Extended 2026-10-12 (§L15):** at the registration level a pool is also held at the city's own rate BEFORE the fit when the ward table cannot identify it (under `IDENTIFICATION_REACH` of every ward). Same fallback value, same `imputed` record, its own message in `unidentified`.
+
 **Where.** `pools._nest_holding_silent`, with `pools._silent_pools` and
 `pools._uninformed_rate`, called from `pool_counts` at each of its three nested
 solves. Added 2026-09-28 for prereg C1 / queue entry 30, MODEL-LOG §1.269.
@@ -2976,6 +2980,18 @@ repair.
 `test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing` (every fitting
 year a declared target uses). Each held cell stays listed in the spec's
 `rates_on_a_bound` with the corner it came from and the value it was held at.
+
+### §L15 · `IDENTIFICATION_REACH` — 0.25 — ⚖️ the owner's identification test for a registration rate
+
+**Where.** `pools.pool_counts` (the registration solve), `pools._nest_holding_silent` (`hold`), `pools.IDENTIFICATION_REACH`.
+
+**Now.** Registration is fitted with no upper bound. A population group whose largest share of any ward's people is under 25% is not fitted: its registration rate is HELD at the city's own rate (`_uninformed_rate`, the §L14 value), the other pools are fitted around it, and it is recorded in `imputed["registration"]` and in `unidentified` with the reach that selected it.
+
+**Why.** Owner, 2026-10-12: a group the wards cannot identify is capped at the city's registration rate, by one rule for every group (PLAN.md; design 1g §c, "P_hold"). With no bound a group-uniform census error is absorbed by the group's fitted rate (1g §0: ≤ 0.10pp at Johannesburg 2021, 0.06pp at Cape Town 2016, measured); where the ward table says nothing the census level is the only information there is, and holding the city's rate is the composition rule applied pool by pool.
+
+**Not settled by the record.** 1g §c sets the reach test against a coefficient-of-variation test (CV > 1); they disagree on Cape Town's Indian/Asian pool, and neither wins on 1g's ward-fit diagnostic. The owner chose the reach test. Both have a cliff (1g run6); a continuous partial pooling is queue entry 31's.
+
+**How to check it.** `tests/test_pool_bounds.py::test_an_identified_pools_split_does_not_carry_its_census_level` (prereg K1 on a constructed table; the bounded solve moves, the unbounded does not), `::test_the_identification_hold_holds_an_unidentifiable_pool_and_no_other`, `::test_the_held_registration_set_is_the_unidentifiable_indian_asian_pools` (K7, the live held set), `::test_the_registration_bound_is_per_level` (Mangaung Indian/Asian held by name). Prereg 2026-10-12 §8 K1-K7 score it on the re-emitted trees.
 
 ### §L11 · The CONTENDER rule — ⛔ SUPERSEDED 2026-09-07, ITS HEADLINE COMPARISON IS ACROSS TWO MODULES
 

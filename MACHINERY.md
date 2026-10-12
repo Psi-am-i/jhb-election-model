@@ -659,6 +659,21 @@ Which years are lost today is a property of the inputs, not of this mechanism �
 `tests/test_census_refusal_is_not_swallowed.py` asserts the served and lost sets
 PARTITION the on-disk population with no residue.
 
+### Registration has no upper bound; a pool the ward table cannot identify is held (2026-10-12)
+
+`pools.pool_counts` fits the registration level with NO upper bound
+(`REGISTRATION_MAX`, 2.0, is deleted): a group's census level then cancels out of
+the registered split, because its fitted rate absorbs it (design
+`audits/2026-10-11-model-round/step1/1g-census-composition-design.md` §0). A
+group whose largest share of any ward's people is under
+`pools.IDENTIFICATION_REACH` (25%) is not fitted: its rate is HELD at the
+city's own rate before the fit (`_nest_holding_silent(hold=...)`) and the other
+pools are fitted around it, recorded in `imputed["registration"]` and with its
+own message in `unidentified` (JUDGEMENT-CALLS §L15). Ward totals are still
+forced to the roll and the votes; only the split moves. `run_model` recomputes
+the pool geography at every run (`_pools.pool_counts`), so this reaches a run
+only through a re-emit window: the specs are stale until then.
+
 ### A pool silenced at the 0.0 corner is kept at the city's own rate
 
 `pool_counts` splits each ward's people, adults, registered voters and votes

@@ -241,6 +241,8 @@ registration and vote totals, so the counted quantity is exact and only the
 model"*; and the 2026-08-26 repair that lifted the census to fix the ratio was
 reverted after measuring worse.
 
+✅ **Closed 2026-10-12** (design `audits/2026-10-11-model-round/step1/1g-census-composition-design.md`; JUDGEMENT-CALLS §L15): `REGISTRATION_MAX` is deleted, registration is fitted with no upper bound so a group's census level cancels out of the split, and a pool the ward table cannot identify (reach under 25% of every ward) is held at the city's own rate. Lands with the next re-emit. The paragraph below describes the bound as it stood.
+
 ⚠️ **Where it does not, and this is the open item**: `REGISTRATION_MAX = 2.0` is
 a census-derived ceiling on a counted quantity, and it **binds on four cells in
 two cities** — Cape Town Indian/Asian 2011 and 2016, Mangaung Indian/Asian 2016
