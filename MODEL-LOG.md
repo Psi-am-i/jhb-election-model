@@ -29278,3 +29278,25 @@ strict reference admitting the target's own cycle; the PIT not randomised.
 | 1b v3 fallback for 2011 quoted as 0.27 / 0.48 | the RMS of `theta_residual.residuals()` at 2006 by θ history, which reads 0.235 / 0.464 on today's code | the design names the quantity, not the statistic; the record carries the value |
 | UC: widths | read at the uncorrected centre | prereg "draw law as U"; this writer's reading, declared in §A57 |
 | v1 §6: new `width_budget` arms for the universal draw | not built; `width_budget` pinned to the incumbent law | its arms remove incumbent sources only |
+
+## 1.299 Model round step 6: the fixes from the diff review of step 5 (2026-10-12)
+
+One writer, serial, after the step-6 diff review of §1.298's code and before
+the step-7 re-emit. No model run as a script, no `compare_history`, no emit,
+nothing written under `data/`. The specs are stale (§1.298, part 2b), so every
+measurement below is on constructed inputs, on `pools.pool_counts` in process,
+or on the raw result files. Each item is its own commit; this section grows
+with them.
+
+### K7's population covers every fitting year (item 4)
+
+`tests/test_pool_bounds.py::test_the_held_registration_set_is_the_unidentifiable_indian_asian_pools`
+scanned a typed list of fitting years that omitted the earliest, while its
+docstring claimed every fitting city-year. The population is now derived
+(`_k7_population`: the declared backtest targets' and each city's forecast
+target's `previous_lge`) and the test asserts the scanned pairs equal it and
+contain every backtest fitting year. Measured in process: 32 fitting
+city-years; the held set is the Indian/Asian pool only, including the 2006
+fits of Buffalo City, Cape Town, Ekurhuleni, Mangaung and Nelson Mandela Bay,
+and no Johannesburg cell. Mutation: the population with the earliest year
+dropped is red ("a backtest fitting year was not scanned"); reverted, green.

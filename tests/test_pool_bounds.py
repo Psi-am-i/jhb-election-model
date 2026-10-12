@@ -38,6 +38,8 @@ tolerance the unbounded balance is held to.
 
 from __future__ import annotations
 
+import contextlib
+import io
 import sys
 from pathlib import Path
 
@@ -675,22 +677,54 @@ def test_the_identification_hold_holds_an_unidentifiable_pool_and_no_other():
     assert abs(rb[3] - rate) > 1e-3, "the freed pool was not fitted"
 
 
+def _k7_population() -> list[tuple[str, str]]:
+    """Every (city, fitting year) an emit fits on: the declared backtest
+    targets' fitting years (:func:`_fitting_years`) and each city's forecast
+    target's (``City.default_target``), each through ``Target.previous_lge``,
+    the rule ``emit_pools`` uses. DERIVED, never typed: the typed list this
+    replaced scanned three fitting years and claimed every one, while holds
+    exist at the fourth (2026-10-12 step-6 review)."""
+    from _support import declared_city_years
+
+    out = set(_fitting_years())
+    for slug in sorted({s for s, _y in declared_city_years()}):
+        city = cityconfig.load(slug)
+        target = cityconfig.Target(city=city, year=city.default_target)
+        if target.previous_lge:
+            out.add((slug, str(target.previous_lge)))
+    return sorted(out)
+
+
 def test_the_held_registration_set_is_the_unidentifiable_indian_asian_pools():
     """Prereg K7 on the live fits: the registration hold falls on Indian/Asian
-    pools only and on no Johannesburg cell. Population stated and bounded:
-    every declared fitting city-year is scanned."""
-    held, scanned_cells = [], 0
-    for slug in ("joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",
-                 "mangaung", "nelsonmandelabay", "buffalocity"):
-        for year in ("2011", "2016", "2021"):
+    pools only and on no Johannesburg cell.
+
+    POPULATION, both directions: the (city, fitting year) pairs scanned equal
+    :func:`_k7_population` exactly (every fitting year of every declared
+    target and forecast, the earliest included), and the held cells are a
+    bounded fraction of the cells scanned."""
+    population = _k7_population()
+    assert population, "no fitting city-year derived: the scan has no population"
+    held, scanned_cells, scanned_pairs = [], 0, []
+    for slug, year in population:
+        with contextlib.redirect_stdout(io.StringIO()):
             pc = pools.pool_counts(cityconfig.load(slug), year,
                                    pools.load_config())
-            scanned_cells += len(pc.categories)
-            for gi in pc.imputed.get("registration", []):
-                if any(m.startswith(f"{pc.categories[gi]}: registration HELD")
-                       for m in pc.unidentified):
-                    held.append((slug, year, pc.categories[gi]))
-    print(f"  held registration cells: {held}")
+        scanned_pairs.append((slug, year))
+        scanned_cells += len(pc.categories)
+        for gi in pc.imputed.get("registration", []):
+            if any(m.startswith(f"{pc.categories[gi]}: registration HELD")
+                   for m in pc.unidentified):
+                held.append((slug, year, pc.categories[gi]))
+    assert set(scanned_pairs) == set(population), (
+        f"scanned {sorted(set(scanned_pairs) ^ set(population))} differently "
+        f"from the stated population")
+    assert set(_fitting_years()) <= set(scanned_pairs), (
+        "a backtest fitting year was not scanned")
+    assert min(y for _s, y in scanned_pairs) == min(
+        y for _s, y in _fitting_years()), "the earliest fitting year was skipped"
+    print(f"  {len(scanned_pairs)} fitting city-years; held registration "
+          f"cells: {held}")
     assert held, "the identification hold fired nowhere: it looked at nothing"
     assert all(cat == "Indian/Asian" for _s, _y, cat in held), held
     assert not [h for h in held if h[0] == "joburg"], held
