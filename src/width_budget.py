@@ -58,9 +58,16 @@ def run(city, year, draws, overrides, patches=(), seed=20261104):
         c = cityconfig.use(city)
         t = cityconfig.use_target(year)
         M.apply_city(c)
+        # THE INCUMBENT LAW, explicitly (2026-10-12). Every arm below removes
+        # a source of the INCUMBENT draw (its level shock, its Dirichlet
+        # split); under the shipped universal law those sources do not exist
+        # and the arms would report zero contributions from mechanisms that
+        # never ran (ITERATING rule 6). The universal draw's own arms (shared
+        # factor off, own term off, calibration off; design 1j v1 §6) are not
+        # built here.
         sc = M.load_scenario(argparse.Namespace(
-            config=None, set=list(overrides), draws=draws, seed=seed,
-            city=city, target=year))
+            config=None, set=["draw_law=incumbent", *overrides], draws=draws,
+            seed=seed, city=city, target=year))
         return M.run_model(t, sc, DATA, verbose=False)
     finally:
         for name, fn in saved.items():

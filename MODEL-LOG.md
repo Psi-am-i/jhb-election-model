@@ -29210,3 +29210,71 @@ randomness goes. The 5% line is withdrawn. Pooling the many parties under 1%
 into a class may follow, after the universal draw is measured. Design and
 blind review under `audits/2026-10-11-model-round/`; nothing changes in code
 before the owner's checkpoint.
+
+## 1.298 Model round step 5: the code for the paired streams, the universal draw, the centre-correction switch, the census hold and the plausibility instrument (2026-10-12)
+
+One writer, serial, before the step-6 review and the step-7 re-emit
+(`audits/2026-10-11-model-round/PLAN.md`; prereg
+`prereg/2026-10-12-universal-draw.md`). No model run as a script, no
+`compare_history`, no emit, nothing written under `data/`. Every number
+below is a unit-level or `pool_counts`-level measurement on constructed
+inputs or on the raw files, not a forecast.
+
+### What landed, by commit
+
+| part | commit | what |
+|---|---|---|
+| 1 | `2e4ea79` | keyed draw streams (design 1c with every fix of `2-review-1c`): `montecarlo.DrawStreams`, the slot gamma boosted at every shape with a counted exact fallback, tie streams keyed by the declared label, `make_drawer(..., streams)`, `seats.stable_entropy` as the one key |
+| 2a | `975f2ed` | the universal draw (design 1j v4, option L1): `src/width_record.py`, the latent draw, calibration pass, composition subtraction, mean-conservation falsifier, `35_widths`, `draw_law` (incumbent kept for arm I), strength judgements read at run time and their declared hash |
+| 2b | `c00e001` | `pools.py`: the strength keys out of the emit and the spec hash (POOLS-REEMIT-QUEUE 34). Every spec stale until the re-emit |
+| 3 | `8c868d5` | `centre_correction` (prereg §3.3, arm UC), off by default |
+| 4 | `c2edc60` | the census hold: `REGISTRATION_MAX` deleted, the registration solve unbounded, a pool reaching under 25% of every ward held at the city's rate (`pools.registration_split`; JUDGEMENT-CALLS §L15). Arm C0's tree is this commit's parent, `8c868d5` |
+| 5 | `a59b7b6` | `src/plausibility.py` (design 1h §5) |
+
+### Measured at unit level
+
+* Samplers (prereg §6.1): every KS comparison at N = 200,000 per side
+  passes at D ≤ 0.00616; the power rows reject (`tests/test_draw_streams.py`).
+* Pairing on a constructed spec (prereg §6.3, V3.4): the pre-registered
+  thresholds hold for arms (i) at 0.1%, 1%, 5%, (ii), (iii), and under the
+  universal law for (i) at 1% and (iii). A Dirichlet shape crossing 1
+  stays paired above 0.99.
+* Prereg M2: 0 false alarms of the falsifier in 20 clean runs of the
+  constructed spec, and a ×1.2 mean error detected in 10 of 10.
+* The universal draw on one real city-year (Buffalo City 2021, a fixture
+  width record): the calibration converges below `KAPPA_TOL` for every
+  party, a 20-draw run is the prefix of a 40-draw run, chunk sizes 1, 7 and
+  256 give byte-identical draw arrays.
+* The census hold, `pools.pool_counts` in process at every metro and fitting
+  year, old code against new: Johannesburg moves 0.00pp at 2006-2021 and
+  holds nothing; the held set is the Indian/Asian pool only (Cape Town and
+  Mangaung at every year, Ekurhuleni 2006 and 2011, Nelson Mandela Bay
+  2006-2016, Buffalo City at every year); Cape Town's Indian/Asian share of the
+  registered roll is 2.68-2.93% at the four fitting years (moves of 5.1-7.0pp);
+  Mangaung's 0.61-0.68%. These are fitting-year compositions; prereg §8
+  scores K1-K7 on the emitted trees.
+
+### Mutation checks (each red with the mutation, green reverted)
+
+Prereg §6.4's nine: `level` keyed by column position; city and target dropped
+from the root key; one key for every stage; the entrant share drawn only when
+the gate passes; `pool_split` replaced by a Dirichlet; `stable_entropy` via
+`hash()`; the stacked block from one generator keyed by the names tuple; the
+drawer ignoring the passed `d` (red through the prefix test once the
+calibration pass also calls the drawer); the boost applied only below shape 1.
+Census: `upper=2.0` restored on the registration solve; the identification
+hold removed. Plausibility: the Poisson-binomial with p and 1−p swapped; the
+strict reference admitting the target's own cycle; the PIT not randomised.
+
+### Where the code departs from the designs, and why
+
+| design point | what the code does | reason |
+|---|---|---|
+| v1/v2 §6: delete `dirichlet_scale`, `dirichlet_floor`, the Dirichlet | kept, read only under `draw_law = "incumbent"`; registered gated nulls in `test_levers_are_live` | prereg §3.2 requires the incumbent law selectable for arm I, and the prereg is later |
+| prereg §3.2 names a `level.arrival` stream for U | not read | design v4's draw has no arrival factor (`uni4/v4.py` sets it to 0); the V3.1 population test expects exactly what the drawer reads |
+| 1c V3 item 3: pool-2 split gammas bit-identical in arm (i) | asserted near-identical (correlation) | 1c §2.6 point 2: the per-draw balance sets every member's shape from all centres jointly; primitives are bit-identical |
+| v1 §2.7 / brief: `ENTRY_POINTS` entry for `width_record.py` | named in CLAUDE.md §5 outside the no-importer block | `tests/test_universal_draw.py` imports it, and `test_standalone_modules` refuses an exemption for an imported module |
+| v3 §11: the strength section is "§J" | §SJ | §J is the census reprojection section |
+| 1b v3 fallback for 2011 quoted as 0.27 / 0.48 | the RMS of `theta_residual.residuals()` at 2006 by θ history, which reads 0.235 / 0.464 on today's code | the design names the quantity, not the statistic; the record carries the value |
+| UC: widths | read at the uncorrected centre | prereg "draw law as U"; this writer's reading, declared in §A57 |
+| v1 §6: new `width_budget` arms for the universal draw | not built; `width_budget` pinned to the incumbent law | its arms remove incumbent sources only |
