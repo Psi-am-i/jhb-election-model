@@ -118,6 +118,10 @@ GUARD_KEYS = frozenset({
     "gamma_fallbacks", "gamma_draws", "stream_keys",
     # The universal draw (design 1j v4-L1); empty under the incumbent law.
     "kappa_error", "mean_error", "width", "width_floored",
+    # The law the board was drawn under, and the calibration pass's
+    # iterations and convergence (step-6 item 2): which counters must be live
+    # depends on the law (`LAW_DENOMINATOR_KEYS`).
+    "draw_law", "kappa_iters", "kappa_converged",
 })
 
 # Counters that are COUNTS OF DRAWS, and the denominator each is a fraction of.
@@ -138,8 +142,19 @@ GUARD_DENOMINATORS = {
 # `bounds_checked` left this tuple when it became per party: a city that
 # declares no §3.5 ranges checks nobody, and an empty dict there is a fact,
 # not an unread board. `draws` took its place as the run-level denominator.
-GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls",
-                          "gamma_draws")
+GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls")
+
+# THE DENOMINATORS THAT DEPEND ON THE DRAW LAW (step-6 item 5). The incumbent
+# law draws gammas (`level.chi`, the within-pool split), so a zero
+# `gamma_draws` there is a board that counted nothing. The universal law draws
+# NO gamma by design, so there a non-zero `gamma_draws` is an incumbent path
+# leaking into the universal draw, and its own denominator is the calibration
+# pass (`kappa_iters`, at least one iteration).
+LAW_DENOMINATOR_KEYS = {"incumbent": ("gamma_draws",),
+                        "universal": ("kappa_iters",)}
+DRAW_LAWS = tuple(LAW_DENOMINATOR_KEYS)
+# Non-numeric board fields, checked by their own rules below.
+NON_COUNTER_KEYS = ("draw_law", "kappa_converged")
 
 # SCALAR counters and the scalar denominator each is a count out of. Kept apart
 # from `GUARD_DENOMINATORS`, whose counters are per-party tables. A gamma
@@ -571,6 +586,63 @@ def faults_between_summary_and_detail(payload, pr, wd, seat_draws,
     return out
 
 
+def _law_faults(guards) -> list[str]:
+    """The law-dependent half of the board (step-6 items 2 and 5).
+
+    ``draw_law`` names the law. Under the INCUMBENT law ``gamma_draws`` is the
+    denominator and must be non-zero, and the universal law's fields are
+    empty: no κ error, no width, no calibration iteration, ``kappa_converged``
+    None. Under the UNIVERSAL law no gamma is drawn (``gamma_draws`` and
+    ``gamma_fallbacks`` zero), the calibration pass ran (``kappa_iters`` at
+    least one) and CONVERGED (``kappa_converged`` True, and every recorded
+    ``kappa_error`` below ``montecarlo.KAPPA_TOL``, so the flag and the
+    errors agree). A non-converged run is a fault on the board itself, not
+    only a refusal in the arm runner.
+    """
+    out: list[str] = []
+    law = guards.get("draw_law")
+    if law not in DRAW_LAWS:
+        return [f"41_guards.draw_law is {law!r}, not one of {DRAW_LAWS}: "
+                f"which counters must be live cannot be decided"]
+    for key in LAW_DENOMINATOR_KEYS[law]:
+        if key in guards and not guards[key]:
+            out.append(
+                f"41_guards.{key} is zero under the {law} law, so every rate "
+                f"taken against it is 0/0 and the whole board is unreadable. "
+                f"This is not a clean run; it is a run that counted nothing")
+    conv = guards.get("kappa_converged")
+    if law == "incumbent":
+        for key in ("kappa_error", "width", "width_floored"):
+            if guards.get(key):
+                out.append(f"41_guards.{key} is non-empty under the incumbent "
+                           f"law, which has no universal draw")
+        if guards.get("kappa_iters") or conv is not None:
+            out.append(f"41_guards: a calibration pass is recorded under the "
+                       f"incumbent law (kappa_iters "
+                       f"{guards.get('kappa_iters')!r}, kappa_converged "
+                       f"{conv!r})")
+        return out
+    for key in ("gamma_draws", "gamma_fallbacks"):
+        if guards.get(key):
+            out.append(f"41_guards.{key}={guards[key]} under the universal "
+                       f"law, which draws no gamma: an incumbent path reached "
+                       f"the universal draw")
+    if not guards.get("kappa_error"):
+        out.append("41_guards.kappa_error is empty under the universal law: "
+                   "the calibration pass measured no party")
+    if conv is not True:
+        out.append(f"41_guards.kappa_converged is {conv!r}: the calibration "
+                   f"pass did not bring every mean within KAPPA_TOL of its "
+                   f"centre, so this run does not conserve its centres")
+    errs = [v for v in (guards.get("kappa_error") or {}).values()
+            if isinstance(v, (int, float))]
+    if conv is True and errs and max(errs) >= M.KAPPA_TOL:
+        out.append(f"41_guards.kappa_converged is True but the largest "
+                   f"kappa_error is {max(errs)}, not below KAPPA_TOL "
+                   f"{M.KAPPA_TOL}: the flag and the errors disagree")
+    return out
+
+
 def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     """Complaints about a ``41_guards`` payload: twenty counters and their bounds.
 
@@ -608,6 +680,7 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                 f"41_guards.{key} is zero, so every rate taken against it is "
                 f"0/0 and the whole board is unreadable. This is not a clean "
                 f"run; it is a run that counted nothing")
+    out += _law_faults(guards)
 
     # The two NAME LISTS (item 8, 2026-10-09): sorted lists of party codes;
     # `roster_unrepresented` may instead be "not_checked" (no roster).
@@ -624,6 +697,8 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     for key, value in sorted(guards.items()):
         if key in NAME_LIST_KEYS or key == "group_share_tripwire":
             continue          # the tripwire is `faults_in_group_share`'s
+        if key in NON_COUNTER_KEYS:
+            continue          # `_law_faults`'s
         if key == "mean_error":
             if value in ({}, None):
                 continue
@@ -1037,8 +1112,11 @@ def healthy_draws_summary(pr, wd, seat_draws, wins=None):
     }
 
 
-def healthy_guards():
-    return {
+def healthy_guards(law: str = "universal"):
+    """A clean board under ``law``. The shipped law (universal) by default,
+    consistent with :func:`healthy_widths`: no gamma, a converged calibration
+    pass, widths and κ errors for the drawn parties."""
+    board = {
         "bounds_checked": {"AAA": DRAWS},
         "bounds_violations": {"AAA": 2},
         "bounds_base": {"AAA": 0.20, "BBB": 0.001},
@@ -1067,17 +1145,28 @@ def healthy_guards():
         "solve_floor_injected_mean": 1.4e-5,
         "solve_floor_injected_worst": 2.7e-5,
         "solve_identity_hits": 0,
-        "gamma_fallbacks": 1,
-        "gamma_draws": 40 * DRAWS,
+        "gamma_fallbacks": 0,
+        "gamma_draws": 0,
         "kappa_error": {"AAA": 0.0004, "DDD": 0.0009},
         "mean_error": {"z": {"AAA": 0.4, "DDD": -1.1}, "se": {"AAA": 0.02,
                        "DDD": 0.03}, "threshold": 3.0, "parties": 2,
                        "fired": []},
         "width": {"AAA": 0.07, "DDD": 0.82},
         "width_floored": {"AAA": 0.0026},
-        "stream_keys": [["level.chi", "AAA"], ["level.z", "AAA"],
-                        ["turnout.common", ""]],
+        "stream_keys": [["calib.level.z", "AAA"], ["level.shared", ""],
+                        ["level.z", "AAA"], ["turnout.common", ""]],
+        "draw_law": "universal",
+        "kappa_iters": 3,
+        "kappa_converged": True,
     }
+    if law == "incumbent":
+        board.update(gamma_fallbacks=1, gamma_draws=40 * DRAWS,
+                     kappa_error={}, mean_error={}, width={},
+                     width_floored={}, draw_law="incumbent", kappa_iters=0,
+                     kappa_converged=None,
+                     stream_keys=[["level.chi", "AAA"], ["level.z", "AAA"],
+                                  ["turnout.common", ""]])
+    return board
 
 
 def healthy_widths():
@@ -1092,7 +1181,8 @@ def healthy_widths():
     return {"draw_law": "universal", "record": {"kind": "fit"},
             "parties": {"AAA": row(0.05, 0.0, 0.0, 0.0055),
                         "DDD": row(0.8, 0.87, 0.33, 0.001)},
-            "kappa_iterations": 3, "judgements_sha": "0" * 16,
+            "kappa_iters": 3, "kappa_converged": True,
+            "judgements_sha": "0" * 16,
             "judgements_applied": [], "judgements_ignored": []}
 
 
@@ -1385,6 +1475,12 @@ def test_a_zero_denominator_makes_the_whole_board_unreadable():
         guards = dict(healthy_guards(), **{key: 0})
         faults = faults_in_guards(guards)
         assert any("unreadable" in f for f in faults), (key, faults)
+    for law, keys in LAW_DENOMINATOR_KEYS.items():
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+        for key in keys:
+            guards = dict(healthy_guards(law), **{key: 0})
+            faults = faults_in_guards(guards)
+            assert any("unreadable" in f for f in faults), (law, key, faults)
 
 
 def test_a_counter_above_its_own_denominator_is_caught():
@@ -1444,12 +1540,43 @@ def test_the_stream_board_is_checked_and_can_fire():
         faults = faults_in_guards(dict(healthy_guards(), stream_keys=bad),
                                   draws=DRAWS)
         assert any("41_guards.stream_keys" in f for f in faults), bad
-    over = dict(healthy_guards(), gamma_fallbacks=10 ** 9)
-    assert any("gamma_fallbacks" in f for f in faults_in_guards(over, draws=DRAWS))
-    zero = dict(healthy_guards(), gamma_draws=0, gamma_fallbacks=0)
+    for law in DRAW_LAWS:
+        over = dict(healthy_guards(law), gamma_fallbacks=10 ** 9)
+        assert any("gamma_fallbacks" in f
+                   for f in faults_in_guards(over, draws=DRAWS)), law
+    zero = dict(healthy_guards("incumbent"), gamma_draws=0, gamma_fallbacks=0)
     assert any("gamma_draws is zero" in f
                for f in faults_in_guards(zero, draws=DRAWS))
     assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    assert not faults_in_guards(healthy_guards("incumbent"), draws=DRAWS)
+
+
+def test_the_board_is_read_under_its_own_law():
+    """Step-6 items 2 and 5: what must be live depends on the law. Each
+    corruption fires under the law it violates and the clean board of that
+    law is quiet before and after; the universal law's zero `gamma_draws` is
+    NOT a fault (it draws no gamma by design), and the incumbent's is.
+    """
+    cases = [
+        ("universal", {"gamma_draws": 40 * DRAWS}, "an incumbent path"),
+        ("universal", {"kappa_converged": False}, "did not bring every mean"),
+        ("universal", {"kappa_converged": None}, "did not bring every mean"),
+        ("universal", {"kappa_iters": 0}, "unreadable"),
+        ("universal", {"kappa_error": {}}, "measured no party"),
+        ("universal", {"kappa_error": {"AAA": 1.0}}, "disagree"),
+        ("incumbent", {"gamma_draws": 0, "gamma_fallbacks": 0}, "unreadable"),
+        ("incumbent", {"kappa_error": {"AAA": 0.0}}, "no universal draw"),
+        ("incumbent", {"kappa_converged": True}, "calibration pass is recorded"),
+        ("universal", {"draw_law": "other"}, "cannot be decided"),
+    ]
+    for law, change, says in cases:
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+        faults = faults_in_guards(dict(healthy_guards(law), **change),
+                                  draws=DRAWS)
+        assert any(says in f for f in faults), (law, change, faults)
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+    assert not faults_in_guards(dict(healthy_guards("universal"),
+                                     gamma_draws=0), draws=DRAWS)
 
 
 def test_the_two_name_lists_are_sorted_party_codes():
@@ -1781,6 +1908,12 @@ def faults_in_widths(payload, *, universe=None) -> list[str]:
     parties = payload["parties"]
     if payload.get("draw_law") == "universal" and not parties:
         out.append("35_widths: the universal law drew no party")
+    if payload.get("draw_law") == "universal" and (
+            payload.get("kappa_converged") is not True
+            or not payload.get("kappa_iters")):
+        out.append(f"35_widths: the calibration pass did not converge "
+                   f"(kappa_converged {payload.get('kappa_converged')!r} after "
+                   f"{payload.get('kappa_iters')!r} iterations)")
     for p, w in sorted(parties.items()):
         try:
             sig, dl, rho = float(w["sigma"]), float(w["delta"]), float(w["rho"])
@@ -1918,6 +2051,8 @@ CORRUPTIONS = [
     ("faults_in_guards", "a declared guard counter missing", _guard_key_dropped),
     ("faults_in_widths", "an own term that is not the rest of the budget",
      lambda b: b["35_widths"]["parties"]["DDD"].update(own=2.0)),
+    ("faults_in_widths", "a calibration pass that did not converge",
+     lambda b: b["35_widths"].update(kappa_converged=False)),
     ("faults_in_group_share", "a tripwire that scanned nothing", _tripwire_blind),
     ("faults_in_delivery_log", "an empty delivery log", _delivery_empty),
 ]

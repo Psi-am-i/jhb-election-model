@@ -29318,3 +29318,32 @@ a panel without ward winners scores the seven at every target and the eight at
 none. Mutations: `w_top` put back into the seven-feature tuple (both new tests
 red); `complete` forced true (the incompleteness test red); reverted, green.
 JUDGEMENT-CALLS §P4 names the two tuples.
+
+### The calibration pass never applies an unmeasured κ (item 2)
+
+After `KAPPA_MAX_ITER` iterations without convergence, `make_drawer` applied
+one more κ update that it never measured, so `kappa_error` and `calib_ratio`
+described the previous κ while the run drew with the next. The loop now stops
+at the κ it has just measured on the last permitted iteration and records
+`kappa_converged` (and `kappa_iters`; `35_widths.kappa_iterations` is renamed
+`kappa_iters`) in `35_widths` and `41_guards`, beside the board's `draw_law`.
+A converging run never reaches the new branch. Measured on the constructed
+two-pool spec: the drawn arrays, `kappa_iters` and `kappa_error` of the fixed
+code equal those of `27194df`'s `montecarlo.py` bit for bit at four seeds (a
+one-off comparison loading the old module); the permanent test is that
+raising `KAPPA_MAX_ITER` to 10^6 changes no drawn number of a converging run.
+Non-convergence constructed (`KAPPA_TOL` 0, three iterations): the flag is
+false, the iterations are the cap, and the recorded error equals the error
+re-measured at the drawer's κ to the bit. Mutation: the trailing update
+restored makes that test red; reverted, green.
+
+The guard predicate of `tests/test_stage_realisation.py` reads the board under
+its own law (`faults_in_guards`, `_law_faults`; this is also item 5's
+`faults_in_guards` fix). Under the incumbent law `gamma_draws` must be
+non-zero and the universal fields empty; under the universal law no gamma may
+be drawn (a gamma there is an incumbent path leaking in), `kappa_iters` is the
+denominator, `kappa_converged` must be true and agree with `kappa_error`.
+`faults_in_widths` refuses an unconverged `35_widths`. Mutations: the
+non-convergence rule removed (the law test red); `gamma_draws` required
+non-zero under both laws, the rule this replaced (four tests red); reverted,
+green. The real-trace tests of that module stop on the stale specs, as before.

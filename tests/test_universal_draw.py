@@ -263,6 +263,78 @@ def test_the_calibration_conserves_every_centre_and_records_nothing():
     assert not any(stage == "split" for stage, _ in st.keys)
 
 
+class _Patched:
+    """Set module constants of `montecarlo` for a block, restoring them."""
+
+    def __init__(self, **values):
+        self.values = values
+        self.saved = {}
+
+    def __enter__(self):
+        for k, v in self.values.items():
+            self.saved[k] = getattr(M, k)
+            setattr(M, k, v)
+        return self
+
+    def __exit__(self, *exc):
+        for k, v in self.saved.items():
+            setattr(M, k, v)
+        return False
+
+
+def _remeasured_error(drawer) -> dict:
+    """The calibration pass's relative error, measured again on fresh
+    calibration streams at the κ the drawer holds now: the κ it draws with.
+    Leaves the capacity counters as found."""
+    und, mov = M.capped_targets.undershoots, M.capped_targets.moved
+    try:
+        cal = M.DrawStreams(drawer.streams.run_lot, M.N_CAL)
+        vals = np.array([drawer(dd, calib=True, strm=cal)
+                         for dd in range(M.N_CAL)])
+    finally:
+        M.capped_targets.undershoots, M.capped_targets.moved = und, mov
+    rel = np.abs(vals.mean(axis=0) / np.asarray(drawer.u_centres) - 1.0)
+    return {p: float(rel[k]) for k, p in enumerate(drawer.u_names)}
+
+
+def test_the_recorded_calibration_error_is_the_error_of_the_kappa_drawn_with():
+    """Step-6 item 2. Converging: `kappa_converged` is True, fewer than
+    `KAPPA_MAX_ITER` iterations ran, and the recorded `kappa_error` equals,
+    to the bit, the error re-measured at the κ the drawer holds. NOT
+    converging (constructed: `KAPPA_TOL` 0, which no mean can meet, and three
+    iterations): `kappa_converged` is False, `kappa_iters` is the cap, and the
+    recorded error is still the re-measured one, i.e. the run did not apply
+    an update after its last measurement."""
+    with _Patched(N_CAL=600):
+        _, _, ok = _universal_run(7, draws=20)
+        assert ok.kappa_converged is True
+        assert 1 <= ok.kappa_iters < M.KAPPA_MAX_ITER
+        assert max(ok.kappa_error.values()) < M.KAPPA_TOL
+        assert _remeasured_error(ok) == ok.kappa_error
+        with _Patched(KAPPA_TOL=0.0, KAPPA_MAX_ITER=3):
+            _, _, bad = _universal_run(7, draws=20)
+        assert bad.kappa_converged is False
+        assert bad.kappa_iters == 3
+        assert _remeasured_error(bad) == bad.kappa_error, (
+            "the recorded calibration error does not describe the κ the run "
+            "draws with: an update was applied after the last measurement")
+        assert {p: w["kappa"] for p, w in bad.widths.items()} != \
+            {p: w["kappa"] for p, w in ok.widths.items()}
+
+
+def test_a_converging_calibration_is_unchanged_by_the_cap():
+    """Step-6 item 2, bit-identity: on a converging run the cap is never
+    reached, so raising `KAPPA_MAX_ITER` far above the iterations used changes
+    no κ and no drawn number."""
+    _, a, da = _universal_run(8, draws=200)
+    assert da.kappa_converged and da.kappa_iters < M.KAPPA_MAX_ITER
+    with _Patched(KAPPA_MAX_ITER=10 ** 6):
+        _, b, db = _universal_run(8, draws=200)
+    assert np.array_equal(a, b)
+    assert db.kappa_iters == da.kappa_iters
+    assert db.kappa_error == da.kappa_error
+
+
 def test_the_split_is_the_centre_and_alpha_is_never_read():
     """Under the universal law a pool's `alpha` reaches nothing: NaN it and
     every drawn number is unchanged (design v1 §6)."""

@@ -1221,8 +1221,12 @@ the group mix, measured on the run's own turnout draws and SUBTRACTED, because
 the record's residuals already contain differential turnout (the excess is
 `41_guards.width_floored`). κ is set by a CALIBRATION PASS before the run's
 draws: `N_CAL` draws through the same code on the `calib.*` streams, κ moved
-until every party's mean drawn share equals `c`; it records nothing and counts
-nothing (`41_guards.kappa_error`). The run's own mean is then tested against
+until every party's mean drawn share equals `c` within `KAPPA_TOL`, at most
+`KAPPA_MAX_ITER` times; it records nothing and counts nothing. An update is
+applied only when another measurement follows it, so `41_guards.kappa_error`
+is always the error of the κ the run draws with. `kappa_iters` and
+`kappa_converged` are in `35_widths` and `41_guards`; an unconverged run is a
+fault on the guard board and `src/arms.py` refuses it. The run's own mean is then tested against
 `c` per party (`41_guards.mean_error`, design v2 §1.2): it reports, it does not
 refuse.
 

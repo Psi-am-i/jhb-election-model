@@ -4008,6 +4008,9 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
     calib_ratio = None
     kappa_error: dict = {}
     kappa_iters = 0
+    # None under the incumbent law (no calibration pass); True or False under
+    # the universal law once the pass has run.
+    kappa_converged = None
     if law == "universal":
         rec = scenario.get("_width")
         if not rec:
@@ -4383,6 +4386,15 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
         # no record. Deterministic for a run identity, so a 1,000- and a
         # 5,000-draw run share κ. The streams are re-read from draw 0 on every
         # iteration through a fresh `DrawStreams` with the same keys.
+        #
+        # NEVER AN UNMEASURED κ (step-6 review, item 2). The update is applied
+        # only when another measurement of it follows: on the last permitted
+        # iteration the loop stops at the κ it has just measured, so
+        # `kappa_error` and `calib_ratio` always describe the κ the run draws
+        # with. A run that ends there unconverged says so in
+        # `kappa_converged` (35_widths and 41_guards), and the arm runner
+        # refuses it. A converging run never reaches that branch, so its κ is
+        # what it was before the branch existed.
         _und, _mov = capped_targets.undershoots, capped_targets.moved
         cal_keys: set = set()
         for kappa_iters in range(1, KAPPA_MAX_ITER + 1):
@@ -4393,6 +4405,9 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             mean = vals.mean(axis=0)
             rel = np.abs(mean / u_c - 1.0)
             if float(rel.max()) < KAPPA_TOL:
+                kappa_converged = True
+                break
+            if kappa_iters == KAPPA_MAX_ITER:
                 break
             u_kappa = u_kappa + np.log(u_c / np.maximum(mean, 1e-300))
         capped_targets.undershoots, capped_targets.moved = _und, _mov
@@ -4413,6 +4428,9 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
     draw_pools.calib_ratio = calib_ratio
     draw_pools.kappa_error = kappa_error
     draw_pools.kappa_iters = kappa_iters
+    draw_pools.kappa_converged = (bool(kappa_converged)
+                                  if law == "universal" and len(u_names)
+                                  else None)
     draw_pools.ipf_stats = ipf_stats
     draw_pools.level_sd_at_size = at_size
     draw_pools.turnout_record = turnout_record
@@ -6952,7 +6970,11 @@ def run_model(target, scenario: dict,
                    ("target", "kind", "curve", "delta", "location", "rho",
                     "fallback", "untestable") if k in _rec},
         "parties": _widths,
-        "kappa_iterations": int(getattr(draw_target, "kappa_iters", 0)),
+        # The calibration pass: iterations run, and whether the last κ met
+        # `KAPPA_TOL` (None under the incumbent law, which has no pass). The
+        # recorded `kappa_error` always describes the κ drawn with.
+        "kappa_iters": int(getattr(draw_target, "kappa_iters", 0)),
+        "kappa_converged": getattr(draw_target, "kappa_converged", None),
         "centre_correction": getattr(draw_target, "centre_correction", None),
         "judgements_sha": _strength["judgements_sha"],
         "judgements_applied": _strength["applied"],
@@ -7068,6 +7090,14 @@ def run_model(target, scenario: dict,
         # latent log sd √(σ² + δ²). `width_floored`: the variance by which
         # turnout composition exceeded a party's own-term budget.
         "kappa_error": dict(getattr(draw_target, "kappa_error", {}) or {}),
+        # The law this board was drawn under, so a reader knows which
+        # counters must be live: `gamma_draws` under the incumbent law, the
+        # calibration pass (`kappa_iters` ≥ 1, `kappa_converged` true) under
+        # the universal law. `kappa_converged` false is a run whose centres
+        # are not conserved within `KAPPA_TOL`; the arm runner refuses it.
+        "draw_law": getattr(draw_target, "law", _law),
+        "kappa_iters": int(getattr(draw_target, "kappa_iters", 0)),
+        "kappa_converged": getattr(draw_target, "kappa_converged", None),
         "mean_error": _mean_error,
         "width": {p: float(w["total"]) for p, w in _widths.items()},
         "width_floored": {p: float(w["floored"]) for p, w in _widths.items()
