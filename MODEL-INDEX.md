@@ -726,7 +726,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `reweight.ANALYSIS_SHARE_BAND_POINTS` | float 2.0 | NO | NO | yes | -- |
 | `reweight.PUBLISHED_LAW` | str 'deduct' | NO | NO | NO | -- |
 | `reweight.BOLDNESS` | tuple[5] | NO | NO | NO | -- |
-| `reweight.SKIPPED_CALL_SEATS` | int 1 | NO | NO | yes | -- |
+| `reweight.MIN_CALL_SEATS` | int 10 | NO | NO | yes | -- |
 | `reweight.POLL_LABEL` | str | NO | NO | NO | -- |
 | `reweight.FORMAT` | str 'draws-columnar-v1' | NO | NO | NO | `export_draws` |
 | `reweight.DUAL_ROUNDING` | 64 * float(np.finfo(float).eps) | NO | NO | NO | -- |

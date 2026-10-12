@@ -22035,7 +22035,7 @@
   "w_bye-1": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306"
  },
  "numpy": "2.5.1",
- "page_ref": "aed2fdb56e02555120375003edee93f703d3e56c4ec6acdef323355c2b2390cb",
+ "page_ref": "822ead9e0c1ab3dcb502f7c9419e44ff46efb3fc2b80698ca959775a03eecc20",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22100,6 +22100,7 @@
     "outcome": {
      "badge": "Safe bet",
      "boldest": {
+      "min_seats": 10,
       "p": 1.0,
       "party": null,
       "prediction": null,
@@ -22752,9 +22753,10 @@
     "outcome": {
      "badge": "Hail Mary",
      "boldest": {
+      "min_seats": 10,
       "p": 0.0458,
       "party": "DA",
-      "prediction": 49,
+      "prediction": 56,
       "seats": 44,
       "text": "4.6%"
      },
@@ -23698,6 +23700,7 @@
     "outcome": {
      "badge": "Safe bet",
      "boldest": {
+      "min_seats": 10,
       "p": 1.0,
       "party": null,
       "prediction": null,
@@ -24350,9 +24353,10 @@
     "outcome": {
      "badge": "Hail Mary",
      "boldest": {
+      "min_seats": 10,
       "p": 0.0254,
       "party": "DA",
-      "prediction": 46,
+      "prediction": 53,
       "seats": 41,
       "text": "2.5%"
      },
@@ -25296,6 +25300,7 @@
     "outcome": {
      "badge": "Safe bet",
      "boldest": {
+      "min_seats": 10,
       "p": 1.0,
       "party": null,
       "prediction": null,
@@ -25948,9 +25953,10 @@
     "outcome": {
      "badge": "Hail Mary",
      "boldest": {
+      "min_seats": 10,
       "p": 0.0254,
       "party": "DA",
-      "prediction": 46,
+      "prediction": 53,
       "seats": 41,
       "text": "2.5%"
      },
@@ -26894,6 +26900,7 @@
     "outcome": {
      "badge": "Safe bet",
      "boldest": {
+      "min_seats": 10,
       "p": 1.0,
       "party": null,
       "prediction": null,
@@ -27546,9 +27553,10 @@
     "outcome": {
      "badge": "Wild call",
      "boldest": {
+      "min_seats": 10,
       "p": 0.0616,
       "party": "DA",
-      "prediction": 51,
+      "prediction": 58,
       "seats": 46,
       "text": "6.2%"
      },

@@ -133,12 +133,12 @@ PUBLISHED_LAW = "deduct"
 BOLDNESS = ((0.45, "Safe bet"), (0.30, "Steady as she goes"), (0.15, "Long shot"),
             (0.05, "Wild call"), (0.0, "Hail Mary"))
 
-#: The most seats a party can hold, in a reader's forecast AND in the published
-#: prediction, and still be skipped when :func:`boldest_call` chooses the
-#: forecast's boldest call (owner, 2026-10-12): a one-seat party's tail is
-#: wide and says nothing about the forecast. One rule for every party.
-#: JUDGEMENT CALL, JUDGEMENT-CALLS.md §N10 (amended 2026-10-12).
-SKIPPED_CALL_SEATS = 1
+#: The fewest seats a reader's forecast must differ from the published
+#: prediction by, for a party's call to count when :func:`boldest_call` chooses
+#: the forecast's boldest call (owner, 2026-10-12: "ignore anything under a 10
+#: seat move"). One rule for every party. JUDGEMENT CALL, JUDGEMENT-CALLS.md
+#: §N10 (amended 2026-10-12).
+MIN_CALL_SEATS = 10
 
 #: What a figure computed under a poll's weights is, in the page's words. The
 #: weights select the model's own draws that lie near the poll; they do not
@@ -1124,14 +1124,15 @@ def boldest_call(seats, columns, weights, mine: dict, prediction: dict) -> dict:
     from it holds none.
 
     For each party whose seats in the reader's forecast ``mine`` differ from
-    ``prediction``, the share of simulations at least that far out on the
-    reader's side: ``P(seats >= x)`` when the reader's ``x`` is above the
-    prediction, ``P(seats <= x)`` when below. A party holding at most
-    :data:`SKIPPED_CALL_SEATS` seats in both is skipped. The boldest call is
-    the smallest of the rest; a tie goes to the party first in ``columns``
-    order. Returns ``{"party", "seats", "prediction", "p", "text"}``; a
-    forecast with no call (equal to the prediction, or differing only in
-    skipped parties) has ``party`` and ``seats`` None and ``p`` 1.0.
+    ``prediction`` by :data:`MIN_CALL_SEATS` or more, the share of simulations
+    at least that far out on the reader's side: ``P(seats >= x)`` when the
+    reader's ``x`` is above the prediction, ``P(seats <= x)`` when below. A
+    party that differs by fewer is not a call. The boldest call is the
+    smallest of these; a tie goes to the party first in ``columns`` order.
+    Returns ``{"party", "seats", "prediction", "min_seats", "p", "text"}``
+    (``min_seats`` is :data:`MIN_CALL_SEATS`, for the card's no-call line); a
+    forecast with no call (no party moved by that many seats) has ``party``,
+    ``seats`` and ``prediction`` None and ``p`` 1.0.
 
     ``seats`` is ``(draws, len(columns))`` party columns
     (:func:`party_columns`). A party with seats in ``mine`` and no column
@@ -1142,16 +1143,16 @@ def boldest_call(seats, columns, weights, mine: dict, prediction: dict) -> dict:
     s = np.asarray(seats, dtype=float)
     w = uniform(s.shape[0]) if weights is None else np.asarray(weights, dtype=float)
     cols = list(columns)
-    best = {"party": None, "seats": None, "prediction": None, "p": 1.0}
+    best = {"party": None, "seats": None, "prediction": None, "min_seats": MIN_CALL_SEATS, "p": 1.0}
     for c in cols + sorted((set(mine) | set(prediction)) - set(cols)):
         x = int(mine.get(c, 0))
         m = int(prediction.get(c, 0))
-        if x == m or (x <= SKIPPED_CALL_SEATS and m <= SKIPPED_CALL_SEATS):
+        if abs(x - m) < MIN_CALL_SEATS:
             continue
         v = s[:, cols.index(c)] if c in cols else np.zeros(s.shape[0])
         p = weighted_probability(v >= x if x > m else v <= x, w)
         if p < best["p"]:
-            best = {"party": c, "seats": x, "prediction": m, "p": float(p)}
+            best = {"party": c, "seats": x, "prediction": m, "min_seats": MIN_CALL_SEATS, "p": float(p)}
     return {**best, "text": chance_text(best["p"])}
 
 

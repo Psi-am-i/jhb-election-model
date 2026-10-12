@@ -29148,3 +29148,10 @@ over the draws.
   Wild call. The calls that set them are mostly parties the prediction holds at
   0 to 3 seats, called at 2 to 16, which the one-seat rule does not reach. This
   is BADGE-DECISION's accepted known limit re-measured under the new reference.
+
+Addendum, same day (owner: ignore anything under a 10 seat move). With
+`MIN_CALL_SEATS` = 10 in place of the one-seat rule, the eight constructed
+forecasts above give: ANC +3 DA −3 and PA +8 DA −8, no call (Safe bet); the
+other six as listed. The two readers of `interactive/tests/share-fixture.json`,
+through the real path: the first has no call (no party 10 seats from the
+prediction), the second a call (MK 13 against 23, 21%).

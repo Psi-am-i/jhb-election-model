@@ -1507,8 +1507,8 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     # (JUDGEMENT-CALLS §N10: no fallback to the medians)
     assert a["outcome"]["boldest"]["party"] is None            # the reader's seats ARE the prediction
     moved = dict(seats)
-    moved[top2[0]] += 6
-    moved[top2[1]] -= 6
+    moved[top2[0]] += 12
+    moved[top2[1]] -= 12
     m = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": moved,
                                              "prediction": seats, "coalition": top2})))["outcome"]
     party_seats, party_cols = R.party_columns(arr["seats/deduct"], sc)

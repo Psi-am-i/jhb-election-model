@@ -1368,92 +1368,94 @@ def test_boldest_call_by_hand():
     """boldest_call on constructed draws, measured from the PUBLISHED
     PREDICTION's seats (not from each column's median); a party above the
     prediction is scored P(seats >= x), below P(seats <= x); the smallest
-    names the badge; a forecast equal to the prediction has no call."""
-    # A's seats 10..19 (median 14.5 -> 15 rounded half up), B's 30 throughout
-    seats = np.array([[10 + i, 30] for i in range(10)], dtype=float)
-    assert R.middle_seats(seats, ["A", "B"], R.uniform(10)) == {"A": 15, "B": 30}
-    pred = {"A": 15, "B": 30}
-    # A at 18: P(A >= 18) = 2/10; B at the prediction is no call
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 18, "B": 30}, pred)
-    assert got == {"party": "A", "seats": 18, "prediction": 15, "p": 0.2, "text": R.chance_text(0.2)}
-    # A at 11: P(A <= 11) = 2/10; B at 29: P(B <= 29) = 0, the bolder
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 11, "B": 29}, pred)
-    assert got["party"] == "B" and got["seats"] == 29 and got["p"] == 0.0
-    # a party with no column holds no seats in any simulation (two seats: one
-    # is skipped, test_a_one_seat_call_is_skipped_...)
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 15, "B": 30, "C": 2}, pred)
+    names the badge; a forecast equal to the prediction has no call. Every
+    move here is MIN_CALL_SEATS or more (the rule has its own test)."""
+    # A's seats 0, 10, ..., 90 (median 45), B's 30 throughout
+    seats = np.array([[10 * i, 30] for i in range(10)], dtype=float)
+    assert R.middle_seats(seats, ["A", "B"], R.uniform(10)) == {"A": 45, "B": 30}
+    pred = {"A": 45, "B": 30}
+    # A at 65: P(A >= 65) = 3/10 (70, 80, 90); B at the prediction is no call
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 65, "B": 30}, pred)
+    assert got == {"party": "A", "seats": 65, "prediction": 45, "min_seats": R.MIN_CALL_SEATS,
+                   "p": 0.3, "text": R.chance_text(0.3)}
+    # A at 25: P(A <= 25) = 3/10 (0, 10, 20); B at 10: P(B <= 10) = 0, the bolder
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 25, "B": 10}, pred)
+    assert got["party"] == "B" and got["seats"] == 10 and got["p"] == 0.0
+    # a party with no column holds no seats in any simulation
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 45, "B": 30, "C": 10}, pred)
     assert got["party"] == "C" and got["p"] == 0.0
     # the prediction itself: no call, a Safe bet
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 15, "B": 30}, pred)
-    assert got["party"] is None and got["seats"] is None and got["p"] == 1.0
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 45, "B": 30}, pred)
+    assert got["party"] is None and got["seats"] is None and got["prediction"] is None
+    assert got["p"] == 1.0 and got["min_seats"] == R.MIN_CALL_SEATS
     assert R.boldness(got["p"]) == "Safe bet"
-    # a column missing from the reader's forecast is a reader's 0
+    # a column missing from the reader's forecast is a reader's 0: P(A <= 0) = 1/10
     got = R.boldest_call(seats, ["A", "B"], None, {"B": 30}, pred)
-    assert got["party"] == "A" and got["seats"] == 0 and got["p"] == 0.0
+    assert got["party"] == "A" and got["seats"] == 0 and got["p"] == 0.1
 
 
 def test_the_call_is_measured_from_the_prediction_not_the_median():
     """item 3 (owner, 2026-10-12): the same reader forecast has a different
     call against a prediction that is not the columns' medians. A's median is
-    15; against a prediction of 12, A at 15 is 3 seats above it, P(A >= 15) =
+    45; against a prediction of 55, A at 45 is 10 seats below it, P(A <= 45) =
     5/10, a call; against the median it is no call."""
-    seats = np.array([[10 + i, 30] for i in range(10)], dtype=float)
-    mine = {"A": 15, "B": 30}
-    assert R.boldest_call(seats, ["A", "B"], None, mine, {"A": 15, "B": 30})["party"] is None
-    got = R.boldest_call(seats, ["A", "B"], None, mine, {"A": 12, "B": 30})
-    assert (got["party"], got["seats"], got["prediction"], got["p"]) == ("A", 15, 12, 0.5)
+    seats = np.array([[10 * i, 30] for i in range(10)], dtype=float)
+    mine = {"A": 45, "B": 30}
+    assert R.boldest_call(seats, ["A", "B"], None, mine, {"A": 45, "B": 30})["party"] is None
+    got = R.boldest_call(seats, ["A", "B"], None, mine, {"A": 55, "B": 30})
+    assert (got["party"], got["seats"], got["prediction"], got["p"]) == ("A", 45, 55, 0.5)
     # a party the prediction does not hold is at 0
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 15, "B": 30, "C": 5}, {"A": 15, "B": 30})
-    assert (got["party"], got["seats"], got["prediction"]) == ("C", 5, 0)
+    got = R.boldest_call(seats, ["A", "B"], None, {"A": 45, "B": 30, "C": 15}, {"A": 45, "B": 30})
+    assert (got["party"], got["seats"], got["prediction"]) == ("C", 15, 0)
 
 
-def test_a_one_seat_call_is_skipped_and_a_two_seat_call_is_not():
-    """item 2 (owner, 2026-10-12; JUDGEMENT-CALLS §N10, amended): a party
-    holding R.SKIPPED_CALL_SEATS (1) or fewer in the reader's forecast AND in
-    the published prediction does not set the badge. One rule for every
-    party; the skip needs BOTH sides, so 1 against 5 is a call. T's seats:
-    zero in eight simulations, two in two of them."""
-    assert R.SKIPPED_CALL_SEATS == 1
-    seats = np.array([[20, 0]] * 8 + [[20, 2]] * 2, dtype=float)
+def test_a_move_under_ten_seats_is_no_call_and_ten_is():
+    """item 2 (owner, 2026-10-12: "ignore anything under a 10 seat move";
+    JUDGEMENT-CALLS §N10, amended): a party counts only if the reader's seats
+    differ from the published prediction's by R.MIN_CALL_SEATS (10) or more.
+    One rule for every party, up and down, whatever either figure is. T's
+    seats: 0 in eight simulations, 15 in two."""
+    assert R.MIN_CALL_SEATS == 10
+    seats = np.array([[20, 0]] * 8 + [[20, 15]] * 2, dtype=float)
     cols = ["A", "T"]
 
     def call(mine_t, pred_t):
         return R.boldest_call(seats, cols, None, {"A": 20, "T": mine_t}, {"A": 20, "T": pred_t})
 
-    # one seat against zero or one: skipped, so no call at all
-    for mine_t, pred_t in [(1, 0), (0, 1), (1, 1), (0, 0)]:
-        assert call(mine_t, pred_t)["party"] is None, (mine_t, pred_t)
-    assert R.boldness(call(1, 0)["p"]) == "Safe bet"
-    # two seats against zero: a call, P(T >= 2) = 2/10; against the prediction at 1 too
-    got = call(2, 0)
-    assert (got["party"], got["seats"], got["prediction"], got["p"]) == ("T", 2, 0, 0.2)
-    assert call(2, 1)["party"] == "T" and call(0, 2)["party"] == "T"
-    # one side only: the reader at 1, the prediction at 5 (and the reverse) is a call
-    got = call(1, 5)
-    assert (got["party"], got["p"]) == ("T", 0.8)       # P(T <= 1) = 8/10
-    assert call(5, 1)["party"] == "T" and call(5, 1)["p"] == 0.0
-    # a skipped party does not hide a bolder call elsewhere, and does not set the badge
-    seats3 = np.array([[10 + i, 0] for i in range(10)], dtype=float)
-    got = R.boldest_call(seats3, cols, None, {"A": 19, "T": 1}, {"A": 15, "T": 0})
-    assert (got["party"], got["seats"]) == ("A", 19)
-    # a party with no column is skipped at one seat and a call at two
-    assert R.boldest_call(seats, cols, None, {"A": 20, "T": 0, "Z": 1}, {"A": 20, "T": 0})["party"] is None
-    assert R.boldest_call(seats, cols, None, {"A": 20, "T": 0, "Z": 2}, {"A": 20, "T": 0})["party"] == "Z"
+    # nine seats, up or down, from a small or a large prediction: no call, Safe bet
+    for mine_t, pred_t in [(9, 0), (0, 9), (1, 10), (29, 20), (11, 20), (1, 0), (0, 1), (5, 5)]:
+        got = call(mine_t, pred_t)
+        assert got["party"] is None, (mine_t, pred_t)
+    assert R.boldness(call(9, 0)["p"]) == "Safe bet"
+    # ten seats: a call. Up: P(T >= 10) = 2/10. Down from 20: P(T <= 10) = 8/10.
+    got = call(10, 0)
+    assert (got["party"], got["seats"], got["prediction"], got["p"]) == ("T", 10, 0, 0.2)
+    got = call(10, 20)
+    assert (got["party"], got["p"]) == ("T", 0.8)
+    assert call(30, 20)["party"] == "T" and call(0, 10)["party"] == "T"
+    # a nine-seat move does not hide a ten-seat one elsewhere
+    seats3 = np.array([[10 * i, 0] for i in range(10)], dtype=float)
+    got = R.boldest_call(seats3, cols, None, {"A": 65, "T": 9}, {"A": 45, "T": 0})
+    assert (got["party"], got["seats"]) == ("A", 65)
+    # a party with no column: nine is no call, ten is
+    assert R.boldest_call(seats, cols, None, {"A": 20, "T": 0, "Z": 9}, {"A": 20, "T": 0})["party"] is None
+    assert R.boldest_call(seats, cols, None, {"A": 20, "T": 0, "Z": 10}, {"A": 20, "T": 0})["party"] == "Z"
 
 
 #: BADGE-DECISION.md's table (audits/2026-10-09-site-batch/) was measured from
 #: ``middle_seats``. Re-measured 2026-10-12 from the published prediction
-#: (``forecast.json`` ``start.seats``), on the published draws of model
-#: 7ea27c28: each forecast is the prediction with the named moves (("=", n):
-#: set to n seats), and its boldest call and chance (to 0.1 point). Recorded
-#: with the old figures in BADGE-DECISION.md's 2026-10-12 note.
+#: (``forecast.json`` ``start.seats``), with the 10-seat rule, on the published
+#: draws of model 7ea27c28: each forecast is the prediction with the named
+#: moves (("=", n): set to n seats), and its boldest call and chance (to 0.1
+#: point); a forecast whose every move is under 10 seats has no call (party
+#: None). Recorded with the old figures in BADGE-DECISION.md's 2026-10-12 note.
 BADGE_TABLE_MODEL = "7ea27c28"
 BADGE_TABLE = [
-    ({"ANC": +3, "DA": -3}, "ANC", 73, 0.362),
+    ({"ANC": +3, "DA": -3}, None, None, 1.0),
     ({"ANC": +10, "DA": -10}, "ANC", 80, 0.210),
     ({"EFF": +10, "ANC": -10}, "EFF", 36, 0.249),
     ({"DA": +15, "ANC": -15}, "DA", 80, 0.157),
-    ({"PA": +8, "DA": -8}, "PA", 32, 0.105),
+    ({"PA": +8, "DA": -8}, None, None, 1.0),
     ({"PA": +15, "DA": -15}, "PA", 39, 0.036),
     ({"ANC": +25, "DA": -25}, "DA", 40, 0.022),
     ({"DA": ("=", 106)}, "DA", 106, 0.009),

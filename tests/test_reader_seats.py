@@ -624,7 +624,7 @@ def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_dr
     draws = {"sha256": "ab" * 32, "columns": ["A", "B", "C"],
              "seats": np.array([[5, 3, 2], [3, 5, 2], [6, 2, 2], [4, 4, 2]], dtype=float),
              "thresholds": np.array([6, 6, 6, 6], dtype=float),
-             "prediction": {"A": 5, "B": 4, "C": 2}}   # the published prediction's seats
+             "prediction": {"A": 5, "B": 13, "C": 2}}   # the published prediction's seats
     draws["prediction_sha256"] = entry.prediction_sha256(draws["prediction"])
     ps = draws["prediction_sha256"]
     status, got = entry.card({"seats": body, "coalition": ["A", "C"], "draws_sha256": "ab" * 32,
@@ -635,9 +635,10 @@ def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_dr
     # alone on top; in draw 2 A has 6 alone, so only draw 0 counts
     assert got["outcome"]["p"] == 0.25
     # the badge is the boldest call's (JUDGEMENT-CALLS §N10), measured from
-    # the published prediction (A 5, B 4, C 2); B at 3 is below it,
+    # the published prediction (A 5, B 13, C 2); B at 3 is 10 below it,
     # P(B <= 3) = 2/4
-    assert got["outcome"]["boldest"] == {"party": "B", "seats": 3, "prediction": 4, "p": 0.5,
+    assert got["outcome"]["boldest"] == {"party": "B", "seats": 3, "prediction": 13,
+                                         "min_seats": reweight.MIN_CALL_SEATS, "p": 0.5,
                                          "text": reweight.chance_text(0.5)}
     assert got["outcome"]["badge"] == reweight.boldness(0.5)
     assert got["outcome"] == reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"],
@@ -646,7 +647,7 @@ def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_dr
     assert got["draws_sha256"] == "ab" * 32 and got["prediction_sha256"] == ps
     # the prediction's hash is one code=seats line per party in code order
     import hashlib
-    assert ps == hashlib.sha256(b"A=5\nB=4\nC=2\n").hexdigest()
+    assert ps == hashlib.sha256(b"A=5\nB=13\nC=2\n").hexdigest()
     # a caller holding another prediction is refused (409), as one holding other draws is
     assert entry.card({"seats": body, "coalition": [], "draws_sha256": "ab" * 32, "prediction_sha256": "00" * 32}, draws)[0] == 409
     # a body without the hash is a bad body: an earlier site Worker's request

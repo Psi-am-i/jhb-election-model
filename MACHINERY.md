@@ -2361,8 +2361,8 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   names and that call's chance, JUDGEMENT-CALLS §N10). The call is measured
   from the published prediction (`forecast.json` `start.seats`), which the
   page sends with `analyse` and the seat Worker reads from the site's
-  `forecast.json` (`entry.load_prediction`); a party at one seat or fewer in
-  both forecasts is skipped (`SKIPPED_CALL_SEATS`). The cards draw the owner's badge for the words
+  `forecast.json` (`entry.load_prediction`); a party counts only if it differs
+  from the prediction by `MIN_CALL_SEATS` (10) seats or more. The cards draw the owner's badge for the words
   (`src/stamps/reader-*.svg`, served at `/stamps/`) through share-card.js
   `stampSVG`, the one function that places a stamp, which prefixes the
   stamp's internal ids per embed. The page reaches it through `page.py`'s `analyse`;

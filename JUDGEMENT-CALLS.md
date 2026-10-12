@@ -135,6 +135,7 @@ promotion note in §F.
 | `MAX_SIGMA`, `MIN_SIGMA`, `NEW_PARTY_SIGMA` | 2.0, 0.15, 1.0 | — | Spread bounds for the `prior-lge-noise` BASELINE, not for the model. | 🟡 | §F28 |
 | `METRO_CODES` widened 2 → 8 | — | `levels.py` | Eight metros. More evidence and no leakage, but it moves θ itself, so it is confounded with the spine in any before/after delta. | 🟡 | §B6 |
 | `min_clusters` | 8 | `score.chi2_clustered` | Typed. The floor below which the clustered uniformity test prints `not established` instead of a χ². Moves no forecast; decides whether a calibration verdict is a number or a refusal. Under a known null δ̄ is unbiased at every k from 3 to 24 and its noise is SMOOTH in k, so there is no cliff at 8 — any floor is a line on a continuum. | 🔴 | §D22 |
+| `MIN_CALL_SEATS` | 10 | `reweight.py`, `boldest_call` | Owner, 2026-10-12: "ignore anything under a 10 seat move". A party's call counts only if the reader's seats differ from the published prediction's by this many seats or more, up or down. One rule for every party; replaced a one-seat rule. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
 | `MIN_EFFECTIVE_DRAWS` | 200 | `reweight.py`, `require_effective` | Typed, from PLAN.md build step S4. The fewest effective draws a re-weighted figure on the interactive may rest on; below it the control greys out. Moves no forecast: it decides whether the page shows a number or a refusal. | 🟡 | §N1 |
 | `MAX_FIGURE_SE_SEATS` | 2.5 | `reweight.py`, `figure` / `within_precision` | Owner, 2026-09-30. The largest Monte Carlo standard error, in seats, a figure on the interactive may carry; above it the figure is withheld and the control that caused it stops. Moves no forecast. With it, the poll dial's width `poll_sd / trust`. | ⚖️ | §N2 |
 | `MIN_HOME_SPLITS` and the binary home/away | 2 | `pools.py` | Unchanged: a measured gradient (0.611 / 0.315 / 0.289 / 0.103) modelled as two buckets. | 🔴 | §A44 |
@@ -176,7 +177,6 @@ promotion note in §F.
 | `SIGMA_IDIO` | 1.5pp | The house-specific part | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 1.5pp, declared and sourced; the ONLY term `h_eff` may divide. | 🔴 declared, sourced | §H18 |
 | `SIGMA_VOLATILITY` | 0.8pp | A South Africa adjustment: +0.1pp per 1pp of avera… | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 0.8pp, declared and sourced — a South Africa adjustment for average party swing. | 🔴 declared, sourced | §H20 |
 | `SIMULATION_BLOC` | container | `pools.py` | The reader-simulation bloc definition that `within_rate` sits in. | 🔴 | §H12 |
-| `SKIPPED_CALL_SEATS` | 1 | `reweight.py`, `boldest_call` | Typed 2026-10-12 (owner's brief): a party with this many seats or fewer in a reader's forecast AND in the published prediction does not set the badge. One rule for every party. Not measured; argued, not tested. Moves no forecast. | 🟡 | §N10 |
 | `SOLVE_TOL` | 1e-9 | `pools.py` | Operational, and listed EXEMPT in the guard — named here so the exemption is visible in the register and not only in the test. | 🟢 | §F11 |
 | `SPINE_K` | 1.0 | — | See §B. | 🔴 | §F14 + §B1 |
 | `spine_k = 0` on a party with no θ evidence | `w_local = 0.0` | — | A CHOSEN limit (`w = 0`, pure national spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for. | 🟡 | §F22 |
@@ -3406,7 +3406,7 @@ preview refused before it is counted.
 ### §N10 · The reader's badge: the boldest single call, in five bands (45, 30, 15, 5%) — ⚖️ owner's measure and bands (2026-10-10)
 
 **Where.** `reweight.boldest_call`, `reweight.BOLDNESS` and
-`reweight.SKIPPED_CALL_SEATS`, read only by
+`reweight.MIN_CALL_SEATS`, read only by
 `reweight.boldness`; both called by `reweight.outcome_chance` for
 `interactive/pyboot/page.py`'s `analyse` and the seat Worker's card answer
 (`worker-api/seats-py/src/entry.py`, `/v1/card`). The share cards, the link
@@ -3416,7 +3416,7 @@ the words they are handed (`src/stamps/reader-<words>.svg`, served at
 
 **Now.** For each party whose seats in the reader's forecast differ from the
 published prediction's (amended 2026-10-12 below: it was each party's median
-seats, `reweight.middle_seats`) and are not skipped by the one-seat rule, the
+seats, `reweight.middle_seats`) by `MIN_CALL_SEATS` or more, the
 share of simulations at least that far out on the reader's side: `P(seats ≥
 x)` when the reader's `x` is above the prediction, `P(seats ≤ x)` when below.
 The smallest of these is the boldest call; the badge comes from it and the
@@ -3434,8 +3434,7 @@ simulation, as in §N3.
 | Hail Mary | under 5% |
 
 A chance exactly at an edge takes the higher band. A forecast with no call
-(equal to the published prediction, or differing only where the one-seat rule
-skips) is a Safe bet. The badge reads the printed chance (see below).
+(no party differs from the published prediction by `MIN_CALL_SEATS` or more) is a Safe bet. The badge reads the printed chance (see below).
 
 **Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`,
 which records the measurements behind it: what §N6's badge gave the common
@@ -3447,8 +3446,8 @@ printed on his badges; nothing is fitted.
 
 **Known limit, accepted by the owner.** A forecast that moves every party a
 little takes its badge from some small party's tail (BADGE-DECISION.md
-measures how often). The share fixture's two readers both take theirs from a
-one-seat party.
+measures how often; with the ten-seat rule of 2026-10-12 a party must
+also have moved by `MIN_CALL_SEATS`).
 
 **How to check it.** `tests/test_reweight.py` holds the four edges, the
 measure on constructed draws, and the eight constructed forecasts of
@@ -3466,18 +3465,20 @@ none of which moves a forecast figure.
    badge bands: "Your boldest call: the PA at 38 seats. We give that a 4%
    chance." (the arrival view names whose call). The council outcome's chance
    (§N3) is no longer printed there; "Analyse my forecast" keeps it, labelled
-   as the council outcome's. A forecast with no call says "No call goes
-   beyond our prediction." and has no chance line; its badge is Safe bet. The
+   as the council outcome's. A forecast with no call says "No party is 10 or
+   more seats from our prediction." (the number is `MIN_CALL_SEATS`, carried
+   in the answer's `boldest.min_seats`) and has no chance line; its badge is
+   Safe bet. The
    card's address version is 3 (share-edge.js), so no cached image of the old
    wording is served.
-2. *A one-seat call does not set the badge.* A party holding
-   `SKIPPED_CALL_SEATS` = 1 seat or fewer in the reader's forecast AND in the
-   published prediction is skipped when the boldest call is chosen. One rule
-   for every party; no party is named in code. It needs both sides: a reader
-   at 1 against a prediction of 5 (or the reverse) is a call. The value is
-   not measured: a party at one seat has a tail the draws resolve poorly and
-   no one reads as a call about the forecast; 2 would also skip two-seat
-   parties, 0 only the unseated. Argued, not tested.
+2. *A move under ten seats is not a call* (owner, 2026-10-12: "ignore
+   anything under a 10 seat move. The card should not ever be talking about
+   some minor result contained in a forecast that moves a couple seats"; this
+   replaced an earlier one-seat rule). A party counts only if the reader's
+   seats differ from the published prediction's by `MIN_CALL_SEATS` = 10 or
+   more, up or down, whatever either figure is. One rule for every party; no
+   party is named in code. The value is the owner's, not measured; 9 and 10
+   are tested on both sides.
 3. *Measured from the published prediction.* The seats a call is measured
    from are the published prediction's (`forecast.json` `start.seats`, built
    by `build_make.start_state`: rule A, `prediction.py`, through the seat

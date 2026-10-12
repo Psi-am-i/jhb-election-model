@@ -79,3 +79,9 @@ replaces its figures, which `tests/test_reweight.py` `BADGE_TABLE` now holds):
 | PA +15, DA −15 | PA 39 | 3.6% |
 | ANC +25, DA −25 | DA 40 | 2.2% |
 | DA 106 | DA 106 | 0.9% |
+
+Amended 2026-10-12 (owner: ignore anything under a 10 seat move): a party
+counts only if the reader's seats differ from the prediction's by
+`reweight.MIN_CALL_SEATS` (10) or more. Of the eight forecasts above, "ANC +3,
+DA −3" and "PA +8, DA −8" move no party by 10, so they have no call and are a
+Safe bet; the other six are unchanged (`tests/test_reweight.py` `BADGE_TABLE`).

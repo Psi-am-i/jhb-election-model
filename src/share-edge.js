@@ -210,7 +210,7 @@ async function cardAnswer(env, D, got) {
   // measured from the published prediction, not from an earlier Worker's medians
   // (`prediction` is null on a no-call answer, so `in` is the test): a refused
   // answer is the generic image, never cached
-  if (!("prediction" in o.boldest) || ans.prediction_sha256 !== psha) throw new Error("the card answer was not measured from the published prediction");
+  if (!("prediction" in o.boldest) || !("min_seats" in o.boldest) || ans.prediction_sha256 !== psha) throw new Error("the card answer was not measured from the published prediction");
   return { ...seats, outcome: o };
 }
 

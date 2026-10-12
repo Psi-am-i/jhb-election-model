@@ -7,8 +7,13 @@ upload` stores a new version without sending it any live traffic and prints a
 version, so what goes live is the build that was checked. There is no separate
 staging Worker and no second config file.
 
-Every command runs from the repository root. The agent does not run wrangler; the
-owner does.
+Every command runs from the repository root. The agent may run steps 0 to 2
+(build, `versions upload`, the Version URL checks) and deploy a UAT version of
+a Worker so it can be tested (owner, 2026-10-12). Promotion to live is the
+owner's alone: `wrangler versions deploy <id>@100%` for `joburg-whysoserious`
+(step 3), and any deploy of `joburg-seats` that live traffic reaches (a live
+`joburg-seats` is bound by the live site Worker; see "Releasing the card's one
+chance"). The agent never runs those.
 
 ## How each host behaves
 
@@ -167,7 +172,7 @@ Version URL host; the count excludes them by host.
 
 If anything is wrong, stop. Nothing is live; fix, commit, go back to step 1.
 
-### 3. Promote the checked version
+### 3. Promote the checked version (owner only)
 
 ```sh
 env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy <version-id>@100% --message "UAT passed"

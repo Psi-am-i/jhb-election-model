@@ -100,7 +100,7 @@ def run_section2(ns) -> list[dict]:
                                                  "coalition": two})))
         # a prediction that differs from the reader's seats, so the boldest
         # call is a real one (the first call's reader IS the prediction)
-        pred = {**seats, two[0]: seats[two[0]] - 5, two[1]: seats[two[1]] + 5}
+        pred = {**seats, two[0]: seats[two[0]] - 12, two[1]: seats[two[1]] + 12}
         a2 = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
                                                   "seats": seats, "prediction": pred,
                                                   "coalition": two})))

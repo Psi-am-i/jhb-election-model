@@ -159,6 +159,25 @@ test("the outcome reads exactly as the chance is defined, and a tie splits the b
   assert.ok(!rowBands(one).includes(SC.OTHERS_COLOUR), "Others is never coloured");
 });
 
+// The fixture's first forecast has no call (no party is MIN_CALL_SEATS from the
+// prediction) and its second has one, from the real path. Tests of a card WITH a
+// call give the first forecast the second's call and badge, as the seat Worker
+// would answer a forecast with that call.
+const CALL = { boldest: FIXTURE.B.answer.outcome.boldest, badge: FIXTURE.B.answer.outcome.badge };
+const withCall = a => ({ ...a, outcome: { ...a.outcome, ...CALL } });
+const MIN = FIXTURE.A.answer.outcome.boldest.min_seats;
+const NONE = { party: null, seats: null, prediction: null, min_seats: MIN, p: 1, text: "over 99%" };
+const Acall = SC.forecastSpec({ name: "Thandi", answer: withCall(FIXTURE.A.answer), outcome: withCall(FIXTURE.A.answer).outcome, vote: FIXTURE.A.vote,
+  calls: FIXTURE.A.calls, party, baseline: FIXTURE.baseline, election: FIXTURE.election, made: null });
+
+test("a forecast with no call has none and is a Safe bet; the real path's no-call answer and call answer", () => {
+  assert.equal(FIXTURE.A.answer.outcome.boldest.party, null);
+  assert.equal(FIXTURE.A.answer.outcome.badge, "Safe bet");
+  assert.ok(FIXTURE.B.answer.outcome.boldest.party, "the fixture's second forecast has a call");
+  assert.equal(A.chance, "");
+  assert.equal(A.boldestLine, "No party is " + MIN + " or more seats from our prediction.");
+});
+
 test("a card prints one chance, the boldest call's own, on all four cards; the council outcome's is not printed", () => {
   // wording (owner's brief 2026-10-12): "Your boldest call: ... We give that a 12% chance."
   assert.equal(SC.callChanceSentence("12%"), "We give that a 12% chance.");
@@ -171,24 +190,24 @@ test("a card prints one chance, the boldest call's own, on all four cards; the c
   assert.equal(SC.boldestLine(call("TASM", 2, "9%"), named), "Your boldest call: TASM at 2 seats.");
   assert.equal(SC.boldestLine(call("PA", 38, "4%"), named, "Thandi's boldest call"), "Thandi's boldest call: the Patriotic Alliance at 38 seats.");
   // a forecast with no call: a line saying so, no chance, nothing about the middle forecast
-  const none = { party: null, seats: null, prediction: null, p: 1, text: "over 99%" };
-  assert.equal(SC.boldestLine(none, named), "No call goes beyond our prediction.");
+  const none = NONE;
+  assert.equal(SC.boldestLine(none, named), "No party is " + MIN + " or more seats from our prediction.");
   assert.equal(SC.boldestChance(none), "");
   assert.equal(SC.boldestChance(call("PA", 38, "4%")), "We give that a 4% chance.");
   assert.equal(SC.boldestChance(null), "");
   // the spec carries the boldest call's chance, never the council outcome's
-  const o = FIXTURE.A.answer.outcome;
-  assert.equal(A.chance, SC.callChanceSentence(o.boldest.text));
+  const o = withCall(FIXTURE.A.answer).outcome;
+  assert.equal(Acall.chance, SC.callChanceSentence(o.boldest.text));
   assert.notEqual(o.boldest.text, o.text, "the fixture's two chances differ, so a card printing the wrong one shows");
-  assert.equal(A.boldestLine, SC.boldestLine(o.boldest, party));
+  assert.equal(Acall.boldestLine, SC.boldestLine(o.boldest, party));
   const quiet = { ...FIXTURE.A.answer.outcome, boldest: none };
   const specNone = SC.forecastSpec({ name: "X", answer: FIXTURE.A.answer, outcome: quiet, vote: FIXTURE.A.vote, calls: FIXTURE.A.calls,
     party, baseline: FIXTURE.baseline, election: FIXTURE.election, made: null });
   assert.equal(specNone.chance, "");
   assert.equal(specNone.badge, quiet.badge);
   // each card prints that chance and the call, and "this outcome" nowhere
-  const story = SC.storyCardSVG(A, ASSETS, party);
-  for (const [svg, F] of [[SC.linkCardSVG(A, ASSETS, party), A], [story, A], [SC.duelCardSVG(A, Bspec, ASSETS, party), A]]) {
+  const story = SC.storyCardSVG(Acall, ASSETS, party);
+  for (const [svg, F] of [[SC.linkCardSVG(Acall, ASSETS, party), Acall], [story, Acall], [SC.duelCardSVG(Acall, Bspec, ASSETS, party), Acall]]) {
     // the story card wraps both lines in its column, so it is read by words
     assert.ok(svg.includes("Your boldest") && svg.includes(F.chance.split(" ").slice(0, 5).join(" ")), "the call and its chance");
     if (svg !== story) assert.ok(svg.includes(F.boldestLine) && svg.includes(F.chance), "whole on the link and two-forecast cards");
@@ -196,10 +215,10 @@ test("a card prints one chance, the boldest call's own, on all four cards; the c
   }
   const story2 = SC.storyCardSVG(specNone, ASSETS, party);   // wraps in its column
   for (const svg of [SC.linkCardSVG(specNone, ASSETS, party), story2]) {
-    assert.ok(svg.includes(svg === story2 ? "No call goes" : "No call goes beyond our prediction."));
+    assert.ok(svg.includes("No party is"));   // the long line wraps in a column
     assert.ok(!svg.includes("We give"), "a forecast with no call prints no chance");
   }
-  assert.ok(SC.cardAlt(A).includes(A.boldestLine.replace(/\.$/, "")) && SC.cardAlt(A).includes(A.chance.replace(/\.$/, "")));
+  assert.ok(SC.cardAlt(Acall).includes(Acall.boldestLine.replace(/\.$/, "")) && SC.cardAlt(Acall).includes(Acall.chance.replace(/\.$/, "")));
 });
 
 test("the two-forecast card's band follows each forecast's largest party, half each", () => {
@@ -531,9 +550,9 @@ test("every badge word in reweight.BOLDNESS draws the owner's stamp on the edge'
     { cwd: repo, encoding: "utf8" }));
   assert.equal(words.length, 5);
   const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA, n: "Thandi" }).toString();
-  const none = { party: null, seats: null, prediction: null, p: 1, text: "over 99%" };
+  const none = NONE;
   for (const word of words) {
-    for (const boldest of [FIXTURE.A.answer.outcome.boldest, none]) {
+    for (const boldest of [CALL.boldest, none]) {
       const answer = a => ({ ...a, outcome: { ...a.outcome, badge: word, boldest } });
       const svg = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), fakeEnv({ answer }).env, "link")).svg;
       const stamp = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(word)), "utf8"));
@@ -548,16 +567,21 @@ test("the edge draws a card only from an answer measured from the published pred
   const draw = answer => EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), fakeEnv({ answer }).env, "link");
   // the hash is the same bytes in Python (the fixture's answer, from entry.py) and here
   assert.equal(FIXTURE.A.answer.prediction_sha256, await EDGE.predictionSha(D.start.seats));
-  assert.ok((await draw(a => a)).svg.includes("Your boldest call"));
+  assert.ok((await draw(withCall)).svg.includes("Your boldest call"));
   // an earlier seat Worker's answer: the call measured from the medians ("middle"), no prediction
-  const old = a => { const { prediction, ...rest } = a.outcome.boldest; return { ...a, outcome: { ...a.outcome, boldest: { ...rest, middle: 66 } } }; };
+  const old = a => { const { prediction, min_seats, ...rest } = withCall(a).outcome.boldest; return { ...a, outcome: { ...a.outcome, boldest: { ...rest, middle: 66 } } }; };
+  // the same, with the new fields present but for `prediction`
+  const noPred = a => { const { prediction, ...rest } = withCall(a).outcome.boldest; return { ...a, outcome: { ...a.outcome, boldest: rest } }; };
+  await assert.rejects(draw(noPred), /not measured from the published prediction/);
+  const noMin = a => { const { min_seats, ...rest } = withCall(a).outcome.boldest; return { ...a, outcome: { ...a.outcome, boldest: rest } }; };
+  await assert.rejects(draw(noMin), /not measured from the published prediction/);
   await assert.rejects(draw(old), /not measured from the published prediction/);
   // an answer built from another prediction
   await assert.rejects(draw(a => ({ ...a, prediction_sha256: "00".repeat(32) })), /not measured from the published prediction/);
   await assert.rejects(draw(a => { const { prediction_sha256, ...rest } = a; return rest; }), /not measured from the published prediction/);
   // a forecast with no call has prediction null, and is drawn
-  const none = a => ({ ...a, outcome: { ...a.outcome, boldest: { party: null, seats: null, prediction: null, p: 1, text: "over 99%" } } });
-  assert.ok((await draw(none)).svg.includes("No call goes beyond our prediction."));
+  const none = a => ({ ...a, outcome: { ...a.outcome, boldest: NONE } });
+  assert.ok((await draw(none)).svg.includes("No party is"));
 });
 
 test("the edge draws the link's own forecast from the seat Worker's answer, sealed or not", async () => {
@@ -566,19 +590,19 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   const at = Date.parse("2026-10-03T10:05:00Z");
   const s = await makeSeal(KEY, fields, at);
   const q = new URLSearchParams({ ...fields, s }).toString();
-  const { env, asked } = fakeEnv();
+  const { env, asked } = fakeEnv({ answer: withCall });
   const card = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), env, "link");
   const svg = card.svg;
   assert.equal(card.sealed, true);
   assert.match(EDGE.imageCache(card.sealed), /immutable/);
   assert.ok(svg.includes("Thandi's Election Forecast"));
   // the card's one chance is the boldest call's, not the council outcome's
-  assert.ok(svg.includes(SC.callChanceSentence(FIXTURE.A.answer.outcome.boldest.text)));
+  assert.ok(svg.includes(SC.callChanceSentence(CALL.boldest.text)));
   assert.ok(!svg.includes("this outcome"));
   // the owner's badge for the outcome's words, embedded with its ids prefixed, and the call it judges
-  const badge = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(FIXTURE.A.answer.outcome.badge)), "utf8"));
+  const badge = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(CALL.badge)), "utf8"));
   assert.ok(svg.includes(SC.prefixIds(badge.body, "lb")));
-  assert.ok(FIXTURE.A.answer.outcome.boldest.party && svg.includes(">Your boldest call: "));
+  assert.ok(CALL.boldest.party && svg.includes(">Your boldest call: "));
   assert.ok(svg.includes("Sealed " + SC.localStamp(at, D.election)));
   assert.equal(asked.length, 1);
   assert.deepEqual(asked[0].coalition, FIXTURE.A.coalition);
