@@ -5,9 +5,12 @@
 diff.** It was written at `3f2f1bb`, before any of this code, and has not been
 changed since.
 
-**Scope.** Base branch `ur4-base` is `8ee8269`, the last commit before the
-code. The diff is the model round's steps 5 and 6: everything from `2e4ea79`
-to the head of `remediation`.
+**Scope.** The review runs on branch `ur4-review`, whose tree is identical to
+`remediation`. Its base, `ur4-base`, is `8ee8269` (the last commit before the
+code) plus the two generated registers, `MODEL-INDEX.md` and
+`JUDGEMENT-SHEET.md`, at their final state. Those two are left out of the
+diff to keep it under the review's size limit; read them in the tree if
+needed. The diff is the model round's steps 5 and 6.
 
 Step 6 came after the brief was written. It fixed what an internal diff review
 found, as listed in MODEL-LOG §1.299. Treat those changes as part of the code
