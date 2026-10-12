@@ -2178,13 +2178,17 @@ def test_the_pool_capture_cap_says_when_it_binds():
         f"Re-check the arithmetic: this is the case the warning exists for.")
 
     # the note must SAY so — the whole defect was a silent clip under a
-    # message reading DECLARED.
+    # message reading DECLARED. Since 2026-10-12 the emit reads no `support`
+    # (POOLS-REEMIT-QUEUE 34), so the size is the record's; the pool the
+    # weights name is made small enough that even that size does not fit.
     kw = _arrival_kw()
-    kw["pool_size"] = pool
+    tiny = pool.copy()
+    tiny[2] = 20_000.0
+    kw["pool_size"] = tiny
     kw["rates"] = np.zeros((4, 2))
     kw["categories"] = ["A", "B", "C", "D"]
     _, notes = pools.arrival_rules(
-        {"NEWPARTY"}, {"NEWPARTY": {"weights": [0, 0, 1, 0], "support": 0.06}}, **kw)
+        {"NEWPARTY"}, {"NEWPARTY": {"weights": [0, 0, 1, 0]}}, **kw)
     assert "DID NOT FIT" in notes["NEWPARTY"], notes["NEWPARTY"]
 
 

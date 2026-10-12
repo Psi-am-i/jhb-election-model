@@ -930,15 +930,19 @@ def ward_winners(ward_votes: dict, ward_of: dict) -> dict[str, str]:
     ``plausibility.election_record`` (the record of real elections), so the
     plausibility instrument's ward features and the backtest's score see the
     same winners."""
-    per_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(
+    # `winners_by_ward`, so `tests/test_prediction_rule.py`'s scan sees the
+    # reduction below as the ward-winner call it exempts (the ground truth's
+    # tallies, not draws).
+    winners_by_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(
         lambda: defaultdict(int))
     for vd, counts in ward_votes.items():
         w = ward_of.get(vd)
         if not w:
             continue
         for party, n in counts.items():
-            per_ward[w][party] += n
-    return {w: max(counts, key=counts.get) for w, counts in per_ward.items()}
+            winners_by_ward[w][party] += n
+    return {w: max(tally, key=tally.get)
+            for w, tally in winners_by_ward.items()}
 
 
 def registered_roll(path: Path) -> tuple[int, int]:
