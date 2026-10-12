@@ -48,7 +48,8 @@ from _support import ROOT, run_module  # noqa: E402
 # A fixture is not coverage. `tests/test_drawer.py:410` had already recorded the
 # consequence: the goldens "did not move when §1.49 changed `theta_prior`: they
 # were not reaching it."
-MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
+MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "test_universal_draw",
+           "test_plausibility", "test_arms", "test_temporal",
            "test_chain",
            "test_delivery_proof",
            "test_standalone_modules",

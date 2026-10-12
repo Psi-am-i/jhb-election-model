@@ -348,6 +348,51 @@ def _spec_rows(live_sha: str | None, processed: Path) -> list[Row]:
     return rows
 
 
+def judgements_lie(scenario: dict, target: dict | None) -> str | None:
+    """A sentence when a run's strength-judgement declaration is wrong or
+    missing where it is required; None when it holds.
+
+    * declared: it must equal what the live judgements file gives
+      (``montecarlo.live_judgements_sha``), on any target;
+    * not declared, on a FORECAST (``montecarlo.target_is_held`` false): a
+      failure. A forecast is the one artefact a judgement can reach, so an
+      absent declaration is an unchecked input, not a pass (step-6 review,
+      item 3). On a backtest the judgements are ignored by design and an
+      absent declaration is allowed;
+    * no target at all: a failure, since whether the artefact is a forecast
+      cannot be told, and a check that cannot tell passes nothing.
+    """
+    import montecarlo as _mc
+    declared = (scenario or {}).get("_judgements_applied_sha")
+    if not target or not target.get("city") or not target.get("year"):
+        return ("declares no target (`_target` city and year), so whether it "
+                "is a forecast that must declare its strength-judgement hash "
+                "cannot be told")
+    if not declared:
+        if _mc.target_is_held(target["year"]):
+            return None
+        return (f"a forecast of {target['city']} {target['year']} that declares "
+                f"no strength-judgement hash (`_judgements_applied_sha`): the "
+                f"judgements it ran with are unchecked")
+    live = _mc.live_judgements_sha(target["city"], target["year"], scenario)
+    if live != declared:
+        return (f"declares strength judgements {declared} but the live "
+                f"judgements file gives {live}: a judgement was edited after "
+                f"the run")
+    return None
+
+
+def manifest_judgements_lie(key: dict) -> str | None:
+    """:func:`judgements_lie` on an ``export_draws`` manifest's
+    ``artefact_key``: its ``city``, ``target``, ``judgements_applied_sha``
+    and the deduct law's ``config`` (every law runs one scenario's
+    judgements; ``export_draws`` refuses laws that disagree)."""
+    config = dict(((key or {}).get("config") or {}).get("deduct") or {})
+    config["_judgements_applied_sha"] = (key or {}).get("judgements_applied_sha")
+    target = {"city": (key or {}).get("city"), "year": (key or {}).get("target")}
+    return judgements_lie(config, target)
+
+
 def _json_rows(live_keys: dict, processed: Path) -> list[Row]:
     """Run outputs and scoreboards, each checked against what it embeds."""
     out = []
@@ -462,6 +507,14 @@ def _json_rows(live_keys: dict, processed: Path) -> list[Row]:
                               else UNDECLARED)
         if lie:
             r.notes.append(lie)
+        # THE STRENGTH JUDGEMENTS ARE AN INPUT THE SPEC NO LONGER COVERS (design
+        # 1j v3 addendum §2): they are read at run time and excluded from the
+        # spec's hash, so the forecast declares the hash of the entries it
+        # applied and it is checked against the live file here.
+        jlie = judgements_lie(sc, d.get("_target"))
+        if jlie:
+            r.states["inputs"] = LYING
+            r.notes.append(jlie)
         out.append(r)
 
     # --- the other run-shaped artefacts the first scan did not see ----------
@@ -686,9 +739,12 @@ def _record_files() -> list[tuple[str, object, str]]:
     """
     import byelections as _by
     import pools as _pl
+    import montecarlo as _mc
     return [(_pl.GROUP_SHARE_RECORD, _group_share_key,
              "src/group_share_record.py --emit"),
-            (_by.BYE_VALUE, _bye_value_key, "src/bye_value.py --emit")]
+            (_by.BYE_VALUE, _bye_value_key, "src/bye_value.py --emit"),
+            (_mc.WIDTH_RECORD, _mc.width_record_key,
+             "src/width_record.py --emit")]
 
 
 def _record_rows(processed: Path) -> list[Row]:

@@ -11,7 +11,7 @@ description: Become a narrow expert on the INPUTS segment of this forecasting mo
 ```
 00_target · 01_scenario_in · 02_pools_artefact · 03_roster     ← THIS SKILL
 10_theta_prior · 20_spine · 30_centres
-40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws · 44_seat_draws · 45_delivered
+35_widths · 40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws · 44_seat_draws · 45_delivered
 ```
 
 Generate one:

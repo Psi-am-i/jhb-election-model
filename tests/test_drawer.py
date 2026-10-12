@@ -488,12 +488,21 @@ WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT
 # fixture: rebuild exactly the inputs montecarlo.main hands to make_drawer
 # --------------------------------------------------------------------------
 
-def build_inputs():
-    """Return (scenario, base_city_d, centres, index) as ``main`` assembles them."""
+def build_inputs(law: str = "universal"):
+    """Return (scenario, base_city_d, centres, index) as ``main`` assembles them.
+
+    ``law`` is the draw law. The default is the shipped one, whose widths come
+    from the width record (read here as `run_model` reads it, so these goldens
+    need the record a re-emit window writes); a caller testing the incumbent
+    law's mechanics passes "incumbent"."""
     city = cityconfig.load(CITY)
     cityconfig.use(CITY)
     mc.apply_city(city)
     scenario = copy.deepcopy(mc.DEFAULTS)
+    scenario["draw_law"] = law
+    if law == "universal":
+        scenario["_width"] = mc.read_width_record("2026", scenario)
+        scenario["_strength_applied"] = []
 
     base_path = ELECTIONS / "npe2024_{CODE}_vd_party.csv"
     if not cityconfig.resolve_path(base_path).exists():
@@ -557,6 +566,10 @@ def build_inputs():
     centres, _ = mc.blended_centres(scenario, base_city_d, share_2021, bye)
     if "ENTRANT" in index:
         centres["ENTRANT"] = 0.0
+    # New to the city, as `run_model` defines it (no result at the previous
+    # local election here): the universal draw's newness term reads it.
+    scenario["_new_parties"] = sorted(
+        p for p in index if p != "ENTRANT" and share_2021.get(p, 0.0) <= 0.0)
     return scenario, base_city_d, centres, index
 
 
@@ -573,8 +586,8 @@ def draw_matrix(draws: int = DRAWS, cache: bool = True):
     if cache and draws in _CACHE:
         return _CACHE[draws]
     scenario, base_city_d, centres, index = build_inputs()
-    rng = np.random.default_rng(SEED)
-    draw = mc.make_drawer(scenario, base_city_d, centres, index, rng)
+    streams = mc.DrawStreams(mc.lot_identity(CITY, "2026", SEED), draws)
+    draw = mc.make_drawer(scenario, base_city_d, centres, index, streams)
     matrix = np.array([draw() for _ in range(draws)])
     result = (matrix, index, scenario, base_city_d, centres)
     if cache:

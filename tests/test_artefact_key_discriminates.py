@@ -284,12 +284,15 @@ def _case_judgements_sha():
     """A hand edit to the judgement file — the input a human is likeliest to
     change, and the one that was in no hash at all."""
     tmp = Path(tempfile.mkdtemp()) / f"{CITY}-{TARGET}.toml"
-    tmp.write_text('[party.NEWCO]\nsupport = 0.10\n')
+    # `weights`, not `support`: since 2026-10-12 the strength keys are read
+    # at run time and are deliberately OUT of this hash (design 1j v3 §11.2);
+    # `tests/test_universal_draw.py` asserts that half.
+    tmp.write_text('[party.NEWCO]\nweights = [1, 0, 0, 0]\n')
     real = pools.lineage_path
     pools.lineage_path = lambda city, target: tmp
     try:
         before = _key()
-        tmp.write_text('[party.NEWCO]\nsupport = 0.20\n')
+        tmp.write_text('[party.NEWCO]\nweights = [0, 1, 0, 0]\n')
         after = _key()
     finally:
         pools.lineage_path = real

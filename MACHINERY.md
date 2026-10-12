@@ -659,6 +659,21 @@ Which years are lost today is a property of the inputs, not of this mechanism �
 `tests/test_census_refusal_is_not_swallowed.py` asserts the served and lost sets
 PARTITION the on-disk population with no residue.
 
+### Registration has no upper bound; a pool the ward table cannot identify is held (2026-10-12)
+
+`pools.pool_counts` fits the registration level with NO upper bound
+(`REGISTRATION_MAX`, 2.0, is deleted): a group's census level then cancels out of
+the registered split, because its fitted rate absorbs it (design
+`audits/2026-10-11-model-round/step1/1g-census-composition-design.md` §0). A
+group whose largest share of any ward's people is under
+`pools.IDENTIFICATION_REACH` (25%) is not fitted: its rate is HELD at the
+city's own rate before the fit (`_nest_holding_silent(hold=...)`) and the other
+pools are fitted around it, recorded in `imputed["registration"]` and with its
+own message in `unidentified` (JUDGEMENT-CALLS §L15). Ward totals are still
+forced to the roll and the votes; only the split moves. `run_model` recomputes
+the pool geography at every run (`_pools.pool_counts`), so this reaches a run
+only through a re-emit window: the specs are stale until then.
+
 ### A pool silenced at the 0.0 corner is kept at the city's own rate
 
 `pool_counts` splits each ward's people, adults, registered voters and votes
@@ -1056,6 +1071,14 @@ still-deliberate choice, not the same disagreement.
 
 ### How a declared party is SIZED — `[party.X]`
 
+**Since 2026-10-12 `support` and `overperform` are read at RUN time, not here**
+(design 1j v3 §11.2; POOLS-REEMIT-QUEUE entry 34): `arrival_rules` sizes a
+party carrying them exactly like one that does not, from the record, and the
+party stays in the group budget. The judged centre and its width (`sigma_j`)
+reach the forecast through `montecarlo.strength_judgements`, on a forecast
+only; see "The universal draw". The text below describes the emit-time path
+before that change.
+
 | key | read by | what it does |
 |---|---|---|
 | `parent` | `classify_arrival` | names a parent, making it a SPLIT rather than an entrant |
@@ -1174,7 +1197,97 @@ Every one of these is listed with its evidence, its status and how to check it
 in **`JUDGEMENT-CALLS.md`**, which is the register; this is the map. The
 backtest prints an in-sample banner naming the ones a run actually consumed.
 
-## Where the forecast's width comes from
+## The universal draw: one log-scale draw for every party (2026-10-12)
+
+**The shipped draw law** (`draw_law = "universal"`; design
+`audits/2026-10-11-model-round/step1/1j-universal-draw-design-v4.md` with its
+addendum, option L1; owner 2026-10-12). It replaces the incumbent law's two
+sources of a party's spread, a level shock at `level_shock_sd` and the
+within-pool Dirichlet split, with ONE draw per party. The incumbent law stays
+selectable (`draw_law = "incumbent"`) so the round's arm I exists; the section
+below this one describes it.
+
+**The draw** (`montecarlo.make_drawer`). Every drawn party gets a latent log
+level `x = √ρ(s)·σ(s)·z + ω·ε`, `z` the run's one shared normal (stream
+`level.shared`) and `ε` the party's own (`level.z`), with
+`ω² = σ(s)²(1 − ρ(s)) + δ²·new − v_comp` floored at zero. The shares are
+`c·exp(κ + x)` normalised, where `c` is the party's `pool_spec` centre
+(`montecarlo.pool_spec_centres`: the post-IPF proportions weighted by pool
+votes at modal turnout). **The width is read where the record measured it.**
+`width_record` fits σ(s), ρ(s) and m(s) at `s = pool_spec_centres(spec)[p]`,
+the pool-spec centre over the pooled parties (summing to one over them), not
+at a whole-city vote share. The drawer reads each pooled party's width at that
+same number. The conserved share `c` is it times (1 − the individual-path
+parties' mass); that mass is 0 on every emitted spec, so the two coincide
+there, and it is recorded as `35_widths.individual_mass`. An individual-path
+party has no record row and is read at its share of the whole city. The pooled block then goes through the capacity
+water-fill and the per-draw balance exactly as the incumbent's shocked centres
+did; each pool's split is the balanced proportion itself: no Dirichlet, no mean
+floor. `v_comp` is what pool turnout alone puts into a party's share through
+the group mix, measured on the run's own turnout draws and SUBTRACTED, because
+the record's residuals already contain differential turnout (the excess is
+`41_guards.width_floored`). κ is set by a CALIBRATION PASS before the run's
+draws: `N_CAL` draws through the same code on the `calib.*` streams, κ moved
+until every party's mean drawn share equals `c` within `KAPPA_TOL`, at most
+`KAPPA_MAX_ITER` times; it records nothing and counts nothing. An update is
+applied only when another measurement follows it, so `41_guards.kappa_error`
+is always the error of the κ the run draws with. `kappa_iters` and
+`kappa_converged` are in `35_widths` and `41_guards`; an unconverged run is a
+fault on the guard board and `src/arms.py` refuses it. The run's own mean is then tested against
+`c` per party (`41_guards.mean_error`, design v2 §1.2): it reports, it does not
+refuse.
+
+**The width** (`src/width_record.py`, `data/processed/width_record.json`).
+Per target, from strictly earlier backtest cycles, one smooth curve
+`σ(s) = a + (b − a)/(1 + exp(k(log s − log s_mid)))` over every party-election,
+one newness term δ for every party new to the city, and a location curve
+`m(s)` fitted jointly by weighted ML (one unit per party-cycle), on residuals
+measured about the `pool_spec` centres the model itself builds
+(`run_model(stop_after="drawer_inputs")`), relative to the large block. The
+location is the centres' size-related error: fitting it keeps it out of the
+width, and under option L1 it is NOT carried in the draw; it is recorded for
+the centre-correction arm. ρ(s) is the shared share of variance by size group
+(one-way city-year decomposition). A location fixed point subtracts the draw's
+own model-internal location and re-fits. 2011 has no earlier cycle and takes a
+labelled, untestable fallback. `make_drawer` refuses a missing record, a stale
+one (`montecarlo.width_record_key`: the code, and the inputs it read — every
+spec of `width_record.record_specs` by content, the live judgements of those
+city-years, the group-share record's key — so a re-emit with no code change
+marks it stale) or one built for other centres (the
+variant: `level_shrink` and its scale). Every value is in the record, not here;
+the judgement calls are JUDGEMENT-CALLS §A57.
+
+**The centre-correction switch** (`centre_correction`, off; prereg arm UC).
+On, every party whose `pool_spec` centre is below 20% has it multiplied by
+exp(m(s)), m the target's record location (fitted on earlier cycles only, s
+clamped at 0.016%), and the vector is renormalised before the calibration pass,
+so the run conserves the corrected centres. Widths are still read at the
+uncorrected centre. The factors are in `35_widths.centre_correction`.
+Under `draw_law = "incumbent"` the switch REFUSES (`SystemExit`): that law
+reads no `pool_spec` centre and no width record, so the correction would be
+ignored. `arrival_group_draw` likewise refuses under the universal law: the
+group's Dirichlet would widen arrivals on top of the newness term δ; it runs
+only under the incumbent law.
+
+**Strength judgements** (JUDGEMENT-CALLS §SJ, design v3 §11). A party the
+record cannot size takes a judged centre (`support`, `overperform`) that
+replaces its centre before `pool_spec`, and a judged width `sigma_j` that
+replaces its newness term, read at run time from `judgements/`. A backtest
+ignores them and records that it did (`35_widths.judgements_ignored`); a
+forecast declares the hash of the entries it applied
+(`scenario._judgements_applied_sha` in the run summary;
+`artefact_key.judgements_applied_sha` in an `export_draws` manifest), which
+`declares.py --verify` checks against the live file. On a forecast
+(`montecarlo.target_is_held` false) an absent declaration fails, and so does a
+summary naming no `_target`; a backtest may declare nothing.
+
+**The trace.** `35_widths`: the law, the record used, and per party the centre,
+σ, δ, ρ, the shared and own sds, `v_comp`, the floored excess, κ, and whether
+it was new or judged; the judgements applied and ignored, and their hash.
+
+## Where the forecast's width comes from (the incumbent law)
+
+**Since 2026-10-12 this describes `draw_law = "incumbent"` only** (above).
 
 Measured by ablation, Johannesburg 2021, five seeds (`src/width_budget.py`).
 Share of drawn variance in each party's citywide PR share that disappears when
@@ -1724,6 +1837,43 @@ run — the machinery is built and proven against a throwaway ledger, and the re
 one is append-only, so the first row written to it is a decision, not a step. See
 MODEL-LOG §1.142 for the seam and how it was closed.
 
+## Judging whole simulated elections — `src/plausibility.py` (2026-10-12)
+
+Each draw is turned into twenty whole-election features (volatility, the new
+parties' share and the largest, the largest gain and loss, fragmentation and
+its change, the top one and two, parties clearing 1%, 5% and 10%, the
+small-party bucket, the tiny-party jump and mass, turnout's change, and three
+ward features), by ONE definition that a real election also passes through as a
+one-row call. A target is judged by the real transitions before it (strict:
+ending five years before; `strict06` and `loco` as sensitivities): envelope
+exceedance below and above against 1/(n+1), the Poisson-binomial event test
+across targets, the randomised PIT (ties split for count features), two joint
+counts (`J7_no_w_top` over the seven whole-vote features, which the
+pre-registration's U1 and U2 read; `J8_with_w_top` adding the ward feature
+`w_top`, its U3), each marked incomplete and left out of the panel at a target
+where one of its features was not judged, and the party classes (collapse, jump,
+threshold events). The record reads the 2000 files `levels.HELD_BACK` withholds
+from the model, and says so. The ward winners it reads are the backtest's own
+(`backtest.ward_winners`); the roll is `backtest.registered_roll`. Nothing that
+draws imports it. Constants: JUDGEMENT-CALLS §P4.
+
+## Running the round's arms — `src/arms.py` (2026-10-12)
+
+The pre-registered arms of `prereg/2026-10-12-universal-draw.md` (I, U, UC,
+US, C0) are scenario overrides of one tree (C0 is the same code run in the
+worktree with the census commit reverted; the runner refuses C0 in a tree
+that carries the hold, and the others in one that does not). Each city-year
+of each arm loads a fresh scenario, calls `run_model` in process with its
+trace, and writes `arrays.npz` and `meta.json` in the format
+`plausibility.load_run_dir` reads, under a directory outside `data/`. A
+universal-law city-year whose width record is stale or whose calibration pass
+did not converge is refused (`REFUSED.json`, no arrays). `compare` reports, for
+B − A: the 90% cluster bootstrap over city-years of the per party-city-year
+CRPS difference by size class (`cluster_interval`), the Monte Carlo error of
+the list-MAE and CRPS differences from one draw-index resample applied to both
+arms (`mc_error`), and R2's median per-draw correlation with whether the pool
+sets agree (`r2`). Constants: JUDGEMENT-CALLS §A58.
+
 ## Reading a run without re-running it
 
 `run_model(..., run_dir=...)` — or `--run-dir` on `montecarlo.py` and
@@ -1862,6 +2012,53 @@ exactly for a two-cell, ≤0.0016 CRPS disagreement between an analysis harness 
 `compare_history` (MODEL-LOG §1.145). **An analysis script must call
 `montecarlo.fix_hash_seed()` itself**, or set `PYTHONHASHSEED` before the
 interpreter starts, before comparing anything it produces to a shipped number.
+
+## Keyed draw streams: two arms on one seed see the same luck (2026-10-12)
+
+**What.** A run has no shared random generator. `run_model` builds one
+`montecarlo.DrawStreams` from the run identity `seats.lot_identity(city,
+target, seed)`, and every random quantity reads its own stream, named by what it
+is (the *stage*) and by whom (the *name*), at the draw's index:
+
+| stage | name | per draw | what it drives |
+|---|---|---|---|
+| `turnout.common` | `""` | 1 normal | the citywide turnout factor of the copula |
+| `turnout.pool` | the pool's declared tie label, or its own name | 1 normal | that pool's (or tied group's) turnout through `correlated_triangular` |
+| `level.z`, `level.chi` | party | 1 normal; a gamma at shape df/2 | the Student-t level shock `log_shock(sd, z, log_chi, df)`, pooled and individual parties alike |
+| `split` | `pool|party` | a gamma at the member's Dirichlet shape | the within-pool split, `pool_split` |
+| `arrival.total`, `arrival.split` | `""`; party | 1 normal; a gamma | the arrival-group draw (off by default) |
+| `entrant.gate`, `entrant.share` | `ENTRANT` | 1 uniform; 1 normal, both every draw | the generic entrant slot |
+| `vd_turnout.blend`, `vd_turnout.noise` | `""` | 1 uniform; one normal per VD | the per-draw turnout pattern |
+| `ward_noise` | party | one normal per ward | the ward-tally noise, `ward_noise_multiplier` |
+
+A stream holds only parameter-free primitives (standard normals, uniforms on
+(0, 1]) in a fixed count per draw; every parameter enters afterwards through a
+deterministic transform. Gammas are Marsaglia-Tsang on shape + 1 with the boost
+at every shape (`log_gamma_slots`, `GAMMA_SLOTS` fixed trials, JUDGEMENT-CALLS
+§A56), computed in log space; an exhausted draw takes an exact fallback and is
+counted (`41_guards.gamma_fallbacks` out of `gamma_draws`). Every key read is
+recorded (`41_guards.stream_keys`).
+
+**What follows.** Adding or removing a party adds or removes its streams and
+moves no other stream's values; changing a centre, a width or a df moves only
+the transform over the same primitives; draw `d` is row `d` whatever the run's
+length, so a short run is the prefix of a long one. Pairing is bit-identity of
+the PRIMITIVES. Drawn shares of unchanged parties still move through the
+normalisations and the per-draw balance, so between arms they are correlated,
+not identical; a paired difference is quoted with its measured correlation
+(design 1c §2.6). A renamed party, a party moving between pools, a changed tie
+label, and a changed VD or ward set are unpaired by construction.
+
+**City and target are in the root key on purpose**, so one party's shocks are
+independent across the panel's city-years: pairing is wanted between arms at
+one city-year, never between city-years.
+
+**Checked by** `tests/test_draw_streams.py` (samplers exact against numpy at
+N = 200,000 with power rows; chunk and prefix identity at stream and run level;
+key stability across interpreters; pairing of a constructed two-pool spec under
+seven arms against `prereg/2026-10-12-universal-draw.md` §6.3's thresholds).
+Design: `audits/2026-10-11-model-round/step1/1c-paired-draws-design.md` and
+`step2/2-review-1c.md`.
 
 ## The ward cartogram — drawing seats instead of land
 
@@ -2031,7 +2228,7 @@ carries them out as `ModelRun.pool_turnout_draws`, shape (draws, pools), with
 by these (`audits/2026-09-28-interactive-architecture/PLAN.md` §3).
 
 **It changes no draw.** The record reads values already drawn and makes no call
-on `rng`. `tests/test_draw_record.py` verifies this at Johannesburg 2026, seed
+on any stream. `tests/test_draw_record.py` verifies this at Johannesburg 2026, seed
 20261104, the shipped draw count, under `HASH_SEED`: every `*draws` field of
 `ModelRun` is identical to the code before the recording (commit `4711a15`,
 run from a `git archive` copy), both reproduce the published `seat_draws.csv`

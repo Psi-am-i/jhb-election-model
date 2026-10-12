@@ -347,7 +347,48 @@ _NO_METRO_POLL_NULL = Null(
              "the harness has never swept them at.",
     reason=_NO_METRO_POLL)
 
+_INCUMBENT_ONLY = (
+    "the within-pool Dirichlet is the INCUMBENT draw law's, and the shipped law "
+    "is the universal draw (design 1j v4-L1, owner 2026-10-12), whose split is "
+    "the post-IPF centre with no Dirichlet and no mean floor. These levers are "
+    "read only under `draw_law=\"incumbent\"`, kept selectable for the "
+    "pre-registration's arm I; the `CONDITIONAL` entries measure them there.")
+
 EXPECTED_INERT: dict[tuple[str, str], Null] = {
+    **{("arrival_group_draw", year): Null(
+        cause="UNDELIVERED",
+        where="`make_drawer`: under draw_law='universal' the switch REFUSES "
+              "(SystemExit), since the arrival group's Dirichlet would widen "
+              "arrivals on top of the newness term δ; it runs only under "
+              "draw_law='incumbent'",
+        blocker="SWITCH", gate_check="incumbent_law_shipped_off",
+        evidence="DEFAULTS draw_law is 'universal'; the refusal is asserted by "
+                 "`_sweep_target` (REFUSED_UNDER_SHIPPED_LAW) with no model "
+                 "result read; measured open in CONDITIONAL",
+        reason="the arrival-group mechanism belongs to the incumbent law "
+               "(step-6 review item 5, 2026-10-12); " + _INCUMBENT_ONLY)
+       for year in ("2021", "2026")},
+    **{(lever, year): Null(
+        cause="UNDELIVERED",
+        where="`make_drawer`: the Dirichlet split runs only under "
+              "draw_law='incumbent'",
+        blocker="SWITCH", gate_check="incumbent_law_shipped_off",
+        evidence="DEFAULTS draw_law is 'universal'; checked with no model run",
+        reason=_INCUMBENT_ONLY)
+       for lever in ("dirichlet_floor", "dirichlet_scale")
+       for year in ("2021", "2026")},
+    **{("apply_judgements", year): Null(
+        cause="UNDELIVERED",
+        where="`montecarlo._apply_strength_judgements`: no strength entry "
+              "exists to apply (and a backtest ignores them by design)",
+        blocker="DATA", gate_check="no_strength_judgements",
+        evidence="no judgements file declares `support` or `overperform`; "
+                 "checked with no model run",
+        reason="strength judgements (design 1j v3 §11) are read at run time "
+               "and are number-neutral until the owner enters one. At 2021 "
+               "they would be ignored anyway: a backtest never applies a "
+               "judgement made after the election.")
+       for year in ("2021", "2026")},
     # The three generic-entrant levers, at the targets whose arrivals are
     # SEEDED BY NAME — which is not the same set as "whose ballot is known",
     # and the difference is the whole of the correction below.
@@ -778,14 +819,20 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "BLEND_W is 1.0, so it is currently `uniform-swing` exactly — kept "
         "runnable so the measurement that put it there stays repeatable, and "
         "deliberately NOT printed as a fourth baseline column. MODEL-LOG §1.57.",
-    "width_budget.py:_no_pool_turnout(rng)":
+    "width_budget.py:_no_pool_turnout(z_own)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
     "width_budget.py:_no_pool_turnout(z_common)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
     "width_budget.py:_no_pool_turnout(rho)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
-    "width_budget.py:_no_shock(rng)":
-        "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
+    "width_budget.py:_no_shock(sd)":
+        "the same, for the theta level shock, which returns ones in the shape of `z`. Since the keyed streams (design 1c) the primitives are read by the drawer before this transform, so skipping it moves no other stream.",
+    "width_budget.py:_no_shock(log_chi)":
+        "the same, for the theta level shock, which returns ones in the shape of `z`. Since the keyed streams (design 1c) the primitives are read by the drawer before this transform, so skipping it moves no other stream.",
+    "width_budget.py:_mean_split(log_g)":
+        "the Dirichlet ablation stub patched over `montecarlo.pool_split`: it returns the Dirichlet's MEAN from the concentration vector, so the drawn gammas it is handed are ignored by design. Same signature as what it replaces.",
+    "montecarlo.py:pool_split(alpha)":
+        "the NAMED PATCH POINT of design 1c §2.5: `alpha` is the concentration the drawer drew the gammas at, unread by the split itself (normalising independent gammas IS the Dirichlet) and read by `width_budget._mean_split`, which replaces this function by the Dirichlet's mean.",
     "width_budget.py:_no_shock(df)":
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
     "levels.py:sd_raw(size)":
@@ -904,6 +951,14 @@ PERTURB: dict[str, object] = {
     # The dominant width lever (§1.48), sweepable since §1.55. 2.0 halves the
     # within-pool spread and moves everything; 1.0 is the fitted identity.
     "dirichlet_scale": 2.0,
+    # THE DRAW LAW (design 1j v4-L1, 2026-10-12): perturbed to the incumbent
+    # law, which must move every party's draw.
+    "draw_law": "incumbent",
+    # Strength judgements off: inert while no judgements file declares one
+    # (EXPECTED_INERT, gate `no_strength_judgements`).
+    "apply_judgements": False,
+    # The small-party centre correction (prereg arm UC), switched on.
+    "centre_correction": True,
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],
@@ -1148,6 +1203,16 @@ def _sweep_paired(year: str, base) -> list[str]:
     return dead
 
 
+# Levers whose perturbation the SHIPPED draw law refuses (step-6 review, item
+# 5). Each is excused in EXPECTED_INERT under the incumbent-law gate and
+# measured open in CONDITIONAL.
+REFUSED_UNDER_SHIPPED_LAW = {
+    "arrival_group_draw": "the arrival group's Dirichlet on top of the "
+                          "universal draw's newness term would widen arrivals "
+                          "twice (`make_drawer`)",
+}
+
+
 def _sweep_target(year: str) -> list[str]:
     base = _base(year)
     dead = _sweep_paired(year, base)
@@ -1156,7 +1221,23 @@ def _sweep_target(year: str) -> list[str]:
     # It then falls back to storing the raw STRING, and the model gets a
     # str where it expects a mapping — which is an AttributeError deep in
     # run_model rather than a clear failure here.
-    keys = [k for k, _v in sorted(PERTURB.items()) if k in M.DEFAULTS]
+    keys = [k for k, _v in sorted(PERTURB.items())
+            if k in M.DEFAULTS and k not in REFUSED_UNDER_SHIPPED_LAW]
+    # A key the shipped law REFUSES is not measured here: its perturbation
+    # must stop the run, and does or the refusal is gone. It is measured open
+    # under its own law by `CONDITIONAL`.
+    for key in sorted(REFUSED_UNDER_SHIPPED_LAW):
+        try:
+            _run(year, [f"{key}={json.dumps(PERTURB[key])}"])
+        except SystemExit as refusal:
+            # THE REFUSAL, not any SystemExit: a stale spec stops the run too,
+            # and would pass this check while the refusal was gone.
+            if f"{key} is on under draw_law" in str(refusal):
+                continue
+            raise
+        dead.append(f"{key} at {year}: the shipped draw law "
+                    f"{M.DEFAULTS['draw_law']!r} no longer refuses it — "
+                    f"{REFUSED_UNDER_SHIPPED_LAW[key]}")
     jobs = [(year, [f"{k}={json.dumps(PERTURB[k])}"], RESOLUTION.get((k, year)))
             for k in keys]
     results = _run_many(jobs)
@@ -1342,7 +1423,35 @@ def _gate_arrivals_are_named(year: str) -> tuple[bool, str]:
         f"slot is the model's only arrival channel")
 
 
+def _gate_incumbent_law_shipped_off(year: str) -> tuple[bool, str]:
+    """The shipped draw law is "universal", so the incumbent law's own levers
+    (`dirichlet_floor`, `dirichlet_scale`: the within-pool Dirichlet) are read
+    by no run at any target, and `arrival_group_draw` is refused there. A claim about the configuration, true until the
+    default changes."""
+    shipped = M.DEFAULTS["draw_law"]
+    return shipped == "universal", (
+        f"DEFAULTS draw_law={shipped!r}"
+        + ("" if shipped == "universal" else " — THE GATE IS OPEN"))
+
+
+def _gate_no_strength_judgements(year: str) -> tuple[bool, str]:
+    """No `judgements/*.toml` file declares a strength (`support` or
+    `overperform`), so `apply_judgements` has nothing to switch (design v3
+    §11.2: number-neutral today). Read off the files; no model run."""
+    import tomllib
+    found = []
+    for f in sorted((ROOT / "judgements").glob("*.toml")):
+        table = (tomllib.loads(f.read_text()).get("party") or {})
+        found += [f"{f.name}:{p}" for p, body in table.items()
+                  if "support" in body or "overperform" in body]
+    return not found, (f"{len(list((ROOT / 'judgements').glob('*.toml')))} "
+                       f"judgements files; strength entries: {found or 'none'}"
+                       + (" — THE GATE IS OPEN" if found else ""))
+
+
 GATES = {
+    "incumbent_law_shipped_off": _gate_incumbent_law_shipped_off,
+    "no_strength_judgements": _gate_no_strength_judgements,
     "arrivals_are_named": _gate_arrivals_are_named,
     "bye_deltas_absent": _gate_bye_deltas_absent,
     "bye_class_weights_zero": _gate_bye_class_weights_zero,
@@ -1436,6 +1545,21 @@ class Conditional:
 
 
 CONDITIONAL: dict[str, Conditional] = {
+    **{f"{lever}@{year}": Conditional(
+        key=lever, year=year, value=PERTURB[lever],
+        opens="incumbent_law_shipped_off",
+        gate_scenario=(("draw_law", "incumbent"),),
+        why="the incumbent law's within-pool Dirichlet, measured where it runs "
+            "(arm I of prereg/2026-10-12-universal-draw.md)")
+       for lever in ("dirichlet_floor", "dirichlet_scale")
+       for year in ("2021", "2026")},
+    **{f"arrival_group_draw@{year}": Conditional(
+        key="arrival_group_draw", year=year, value=PERTURB["arrival_group_draw"],
+        opens="incumbent_law_shipped_off",
+        gate_scenario=(("draw_law", "incumbent"),),
+        why="the arrival-group draw, measured under the law it belongs to "
+            "(the universal law refuses it)")
+       for year in ("2021", "2026")},
     "bye_local_cap@2026": Conditional(
         key="bye_local_cap", year="2026", value=40.0,
         opens="local_bye_weights_shipped_off",

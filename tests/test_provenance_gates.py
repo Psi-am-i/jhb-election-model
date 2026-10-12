@@ -79,8 +79,12 @@ def _honest_tree(root: Path) -> dict:
         "env_switches": {"A": "1"}, "generated": "2026-01-01T00:00:00Z",
         "population": {"scored": ["joburg:2021"]},
         "pool_artefact_keys": {"joburg": {"2021": key}}}, "records": []}))
+    # `_target` as `montecarlo.main` writes it since 2026-10-12: a summary
+    # naming no target fails the strength-judgement check (step-6 item 3),
+    # and a backtest target may declare no judgement hash.
     (root / "forecast_summary.json").write_text(json.dumps({
         "_generated": "2026-01-01T00:00:00Z", "_draws": 10,
+        "_target": {"city": "joburg", "year": "2021"},
         "scenario": {"_pools_artefact_key": key}}))
     (root / "forecast_frozen.json").write_text(json.dumps({
         "content": {"draws": 10, "seed": 1, "env_switches": {"A": "1"},

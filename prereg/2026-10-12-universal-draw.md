@@ -550,3 +550,37 @@ Appended before any step-5 code exists and before any arm runs.
    the miss is attributed to the streams.
 3. **The width fit is the full record** (§3). The fit without COPE and
    ActionSA as an arm would be a further amendment before any run.
+
+---
+
+## Amendment 2, before any run (2026-10-12, step 6)
+
+Appended after the step-6 diff review of the step-5 code and before any arm
+runs. Nothing above is edited.
+
+1. **C0's tree (§3 table, §3.1).** C0 is the FINAL tree with commit `c2edc60`
+   (the census hold) reverted, not "the commit before the census commit". It
+   is built in its own git worktree with `data/raw` copied in, and has its own
+   re-emit, its own `group_share_record --emit` and its own
+   `width_record --emit`, into that worktree's `data/processed`. Every later
+   fix (streams, v4-L1, the correction switch, plausibility and the step-6
+   fixes) is therefore in both C0 and U, so U − C0 is the census change alone.
+   `src/arms.py` refuses C0 in a tree carrying the hold, and the other arms in
+   a tree without it.
+2. **US's width record (§3 table, §5.5).** US uses its own re-fitted
+   width-record variant, built with `width_record.py --emit --set
+   level_shrink=0`. Its comparison with U therefore measures the centre change
+   and the re-fitted record together, not the centre change alone.
+3. **§3.2's `level.arrival` stream** is not part of arm U: design v4 has no
+   arrival factor, and the drawer reads no such stream. The U/I row of §3.2's
+   table is read without it.
+4. **The U1 feature set (§5.1 row 1, §5.2 U1 and U2, §5.6 row 4)** is the seven
+   whole-vote features without `w_top`: `vol`, `max_gain`, `max_loss`,
+   `d_enp`, `top2`, `n_ge5`, `tiny_max`, reported by `src/plausibility.py` as
+   `J7_no_w_top`. U3 is the same seven plus `w_top`, reported as
+   `J8_with_w_top`.
+5. **The step-7 order** is the one in `POOLS-REEMIT-QUEUE.md`, "The model
+   round's step 7" (backup; R1 on the pre-re-emit specs; re-emit; the two
+   record emits; the C0 worktree; the post-emit checks; the arms through
+   `src/arms.py`), with no edit to `montecarlo.py`, `levels.py`, `pools.py` or
+   `width_record.py` between the record emits and the arms.

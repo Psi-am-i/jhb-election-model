@@ -53,6 +53,7 @@ by nothing. There is no way for an unwritten file to score as current.
 from __future__ import annotations
 
 import atexit
+import json
 import shutil
 import subprocess
 import sys
@@ -149,6 +150,17 @@ NOT_REGENERATED_HERE: dict[str, str] = {
         "artefact_key (declares.py, `record` kind; montecarlo refuses a stale "
         "one), and is regenerated and compared byte for byte by "
         "test_the_bye_value_record_is_a_fresh_build below.",
+    "plausibility_*.json":
+        "src/plausibility.py --runs DIR --label NAME (design 1h §5): a verdict "
+        "on an arm's runs against the real record, written under "
+        "plausibility/. Carries an artefact_key naming its code, the arrays "
+        "it scored and the record's files. A judge's output; nothing reads it.",
+    "width_record.json":
+        "src/width_record.py --emit (design 1j v4-L1): the universal draw's "
+        "width record. Carries an artefact_key (declares.py, `record` kind; "
+        "montecarlo.read_width_record refuses a stale one). Not rebuilt here: "
+        "it runs the model's estimation at every backtest city-year and the "
+        "drawer at each for its fixed point.",
     "citywide_*.json":
         "src/citywide_table.py — the browser engine's stand-in for "
         "levels._citywide_and_roster, recorded from a model run. Regenerated "
@@ -575,6 +587,112 @@ def test_the_scratch_root_really_was_purged():
         "files that no generator in this sweep produces are present in the "
         "scratch root, so the purge did not happen and 'identical' is "
         "trivially true for them:\n  " + "\n  ".join(leaked))
+
+
+def _summary_judgement_faults(processed: Path) -> tuple[list, list[str]]:
+    """Every ``*summary.json`` under ``processed`` (the population, returned)
+    and the sentence `declares.judgements_lie` gives for each that fails."""
+    import declares
+    summaries = sorted(processed.rglob("*summary.json"))
+    faults = []
+    for p in summaries:
+        d = json.loads(p.read_text())
+        lie = declares.judgements_lie(d.get("scenario") or {}, d.get("_target"))
+        if lie:
+            faults.append(f"{p.name}: {lie}")
+    return summaries, faults
+
+
+def test_the_judgement_declaration_check_looks_and_can_see():
+    """Step-6 item 3, on a CONSTRUCTED population: a forecast summary that
+    declares the live hash passes; one that declares nothing is caught; a
+    backtest summary that declares nothing passes (judgements are ignored on
+    a backtest); a summary with no target is caught. Each fault cleared, the
+    check is quiet. The population scanned is exactly the files written."""
+    import montecarlo as M
+    sc = dict(M.DEFAULTS)
+    good_sha = M.live_judgements_sha("joburg", "2026", sc)
+    assert not M.target_is_held("2026") and M.target_is_held("2021")
+    with tempfile.TemporaryDirectory() as tmp:
+        proc = Path(tmp)
+
+        def write(name, scenario, target):
+            (proc / name).write_text(json.dumps({
+                "scenario": scenario, "_target": target,
+                "_generated": "2026-10-12T00:00:00Z", "_draws": 10}))
+        fc = {"city": "joburg", "year": "2026"}
+        write("forecast_summary.json",
+              dict(sc, _judgements_applied_sha=good_sha), fc)
+        write("backtest_summary.json", dict(sc),
+              {"city": "joburg", "year": "2021"})
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 2 and not faults, faults
+        write("regime_cap_summary.json", dict(sc), fc)
+        write("old_summary.json", dict(sc), None)
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 4
+        assert sorted(f.split(":")[0] for f in faults) == [
+            "old_summary.json", "regime_cap_summary.json"], faults
+        write("regime_cap_summary.json",
+              dict(sc, _judgements_applied_sha=good_sha), fc)
+        (proc / "old_summary.json").unlink()
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 3 and not faults, faults
+
+
+def test_every_forecast_declares_the_strength_judgements_it_applied_truly():
+    """Design 1j v3 addendum §2 / prereg J2, on the live tree: every run
+    summary under data/processed passes `declares.judgements_lie` — a
+    forecast declares the hash the live judgements file gives, a backtest
+    may declare nothing, and a summary that names no target fails. Summaries
+    written before 2026-10-12 declare neither a hash nor a target, so this is
+    red until the step-7 runs rewrite them; the check that it looks is the
+    constructed test above."""
+    summaries, faults = _summary_judgement_faults(PROCESSED)
+    assert summaries, "no run summary under data/processed: nothing was checked"
+    assert not faults, (f"{len(faults)} of {len(summaries)} run summaries "
+                        f"fail the judgement declaration:\n  "
+                        + "\n  ".join(faults))
+
+
+def test_a_judgement_edited_after_a_run_is_reported_and_goes_quiet_reverted():
+    """Prereg J2: a constructed forecast summary declares the hash of a
+    scratch judgements file; editing `sigma_j` there makes `declares` report
+    the artefact `~` (LYING), and reverting the edit makes it quiet again."""
+    import os
+    import declares
+    import montecarlo as M
+    entry = ('[party.NEWP]\nsupport = 0.02\nsigma_j = {s}\n'
+             'register = "§SJ1"\n')
+    cwd = os.getcwd()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "judgements").mkdir()
+        jfile = root / "judgements" / "joburg-2026.toml"
+        jfile.write_text(entry.format(s=0.3))
+        os.chdir(root)
+        try:
+            sc = dict(M.DEFAULTS)
+            sc["_judgements_applied_sha"] = M.live_judgements_sha(
+                "joburg", "2026", sc)
+            proc = root / "processed"
+            proc.mkdir()
+            (proc / "forecast_summary.json").write_text(json.dumps({
+                "scenario": sc, "_target": {"city": "joburg", "year": "2026"},
+                "_generated": "2026-10-12T00:00:00Z", "_draws": 10}))
+            def state():
+                rows = [r for r in declares._json_rows(set(), proc)
+                        if r.path.endswith("forecast_summary.json")]
+                assert len(rows) == 1, rows
+                return rows[0].states.get("inputs"), rows[0].notes
+            assert state()[0] != declares.LYING, state()
+            jfile.write_text(entry.format(s=0.5))
+            st, notes = state()
+            assert st == declares.LYING and any("edited" in n for n in notes)
+            jfile.write_text(entry.format(s=0.3))
+            assert state()[0] != declares.LYING
+        finally:
+            os.chdir(cwd)
 
 
 if __name__ == "__main__":

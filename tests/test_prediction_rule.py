@@ -144,9 +144,10 @@ EXEMPT = {
     ("scenarios.py", "main"): (
         "`moved.most_common(6)`: which ward flips are most frequent, a report "
         "of counts, not a call. Its ward calls are modal_winners, routed."),
-    ("backtest.py", "actual_result"): (
+    ("backtest.py", "ward_winners"): (
         "the winner of each ward in the REAL result (the ground truth's vote "
-        "tallies), not a reduction over simulations."),
+        "tallies), not a reduction over simulations. Factored out of "
+        "`actual_result` 2026-10-12 so `plausibility` reads the same winners."),
     ("page.py", "_ward_calls"): (
         "`hit` and the stable argsort: which parties win the ward in any "
         "weighted draw and their order in the map's tooltip distribution. The "
