@@ -524,3 +524,29 @@ the measurement, as CLAUDE.md §4.4 requires.
 | Use the list-only seat proxy for wrong-party seats | It is not the statistic `compare_history` scores (1a Method); a quantity redefined under a prediction voids it (QC §2) |
 | Predict UC improves the small parties | The forward `m` is negative at 0.3-12% while the realised cycle means in 2016 and 2021 are positive (v4 §1.1, v2 §8.3) |
 | Count 2011 in any rule | No earlier width record exists; its width is a fallback (v3 addendum row 21) |
+
+---
+
+## Amendment before any run (2026-10-12)
+
+Appended before any step-5 code exists and before any arm runs.
+
+1. **R1's recipe (gate 1, §5.1 last row and §9 rule 1).** The final tree's
+   incumbent carries the census hold as well as the streams, and 1c R1's
+   city-years include Ekurhuleni 2011 and Mangaung 2021, whose fits hold an
+   Indian/Asian pool (1g §c). A KS failure there could not be attributed. R1
+   is therefore two comparisons:
+   * **streams alone:** the commit before the streams change against the
+     first commit at which it lands, both on the incumbent law and the same
+     specs on disk, at 1c R1's four city-years (Ekurhuleni 2011, Mangaung
+     2021, Johannesburg 2021, Johannesburg 2026), with 1c R1's thresholds and
+     its old-against-old reference run first;
+   * **later commits left the old law alone:** the final tree's incumbent
+     switch against that streams commit, at Johannesburg 2021 and 2026 only,
+     which the census hold does not touch (1g §f; K2).
+2. **§5.1's windows assume** the census hold moves arm I's pooled whole-vote
+   rows by less than the window width. Only K3 checks the census effect on the
+   panel; if a §5.1 row misses, K3's touched/untouched split is read before
+   the miss is attributed to the streams.
+3. **The width fit is the full record** (§3). The fit without COPE and
+   ActionSA as an arm would be a further amendment before any run.
