@@ -112,6 +112,72 @@ def test_one_definition_for_draws_and_record():
         assert abs(float(f[k][0]) - real[k]) < 1e-9, k
 
 
+def _joint_rows(n=10):
+    """Constructed rows for the eight joint features: record range [0, 1]
+    for each, every draw at 0.5 (inside), the real election inside."""
+    rows = {ft: {"record": [0.0, 1.0], "real_out": False}
+            for ft in P.J8_FEATURES}
+    feats = {ft: np.full(n, 0.5) for ft in P.J8_FEATURES}
+    return rows, feats
+
+
+def test_the_seven_and_eight_feature_counts_differ_by_w_top_alone():
+    """Step-6 item 1: U1 is registered on the seven whole-vote features
+    (prereg §5.1 row 1, §5.2 U1, §5.6 row 4), U3 on those plus `w_top`. A
+    draw outside the record on `vol` and `w_top` alone has J = 1 on the seven
+    and J = 2 on the eight; so has the real election. Population: each count
+    names exactly the features of its set."""
+    assert P.J7_FEATURES == tuple(f for f in P.J8_FEATURES if f != "w_top")
+    assert "w_top" not in P.J7_FEATURES and len(P.J8_FEATURES) == 8
+    assert P.JOINT_SETS == {"J7_no_w_top": P.J7_FEATURES,
+                            "J8_with_w_top": P.J8_FEATURES}
+    n = 10
+    rows, feats = _joint_rows(n)
+    feats["vol"][0] = 2.0
+    feats["w_top"][0] = 2.0
+    rows["vol"]["real_out"] = rows["w_top"]["real_out"] = True
+    j7 = P.joint_count(P.J7_FEATURES, rows, feats, n, True)
+    j8 = P.joint_count(P.J8_FEATURES, rows, feats, n, True)
+    assert j7["features"] == list(P.J7_FEATURES) and j7["complete"]
+    assert j8["features"] == list(P.J8_FEATURES) and j8["complete"]
+    assert j7["p_ge2"] == 0.0 and j8["p_ge2"] == 1 / n, (j7, j8)
+    assert (j7["real"], j8["real"]) == (1, 2)
+    # it goes quiet: the w_top excursion removed, the two agree
+    feats["w_top"][0] = 0.5
+    rows["w_top"]["real_out"] = False
+    j8 = P.joint_count(P.J8_FEATURES, rows, feats, n, True)
+    assert j8["p_ge2"] == 0.0 and j8["real"] == 1
+
+
+def test_a_joint_count_missing_a_feature_is_marked_and_left_out_of_the_panel():
+    """A run with no ward winners has no `w_top`: the eight-feature count is
+    marked incomplete, names what it lacks, and the panel leaves it out and
+    lists the targets; the seven-feature count is complete at every scored
+    target. With ward winners, both are complete everywhere."""
+    rows, feats = _joint_rows()
+    del rows["w_top"], feats["w_top"]
+    j8 = P.joint_count(P.J8_FEATURES, rows, feats, 10, False)
+    assert not j8["complete"] and j8["missing"] == ["w_top"]
+    assert P.joint_count(P.J7_FEATURES, rows, feats, 10, False)["complete"]
+
+    rec, names, g = synthetic_record()
+    runs = synthetic_runs(rec, names, g, draws=200)
+
+    def no_wards(r):
+        r = dict(r)
+        r.pop("ward_winner_draws")
+        return r
+    blind = _panel(rec, runs, mutate=no_wards)["panel"]
+    assert blind["J8_with_w_top"]["scored"] == 0
+    assert len(blind["J8_with_w_top"]["incomplete"]) == len(runs)
+    assert blind["J7_no_w_top"]["scored"] == len(runs)
+    assert blind["J7_no_w_top"]["incomplete"] == []
+    seen = _panel(rec, runs)["panel"]
+    assert seen["J8_with_w_top"]["scored"] == seen["J7_no_w_top"]["scored"] \
+        == len(runs)
+    assert "J" not in seen, "an unnamed joint count is back in the output"
+
+
 def test_draw_population_equals_array_rows():
     """(0, 1) Every feature has one value per draw row; a column count that
     disagrees with the named columns raises."""

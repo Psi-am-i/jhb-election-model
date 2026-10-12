@@ -29300,3 +29300,21 @@ city-years; the held set is the Indian/Asian pool only, including the 2006
 fits of Buffalo City, Cape Town, Ekurhuleni, Mangaung and Nelson Mandela Bay,
 and no Johannesburg cell. Mutation: the population with the earliest year
 dropped is red ("a backtest fitting year was not scanned"); reverted, green.
+
+### The two joint counts, named apart (item 1)
+
+`src/plausibility.py` counted `J` over one tuple of eight features, `w_top`
+among them, and over whichever were present. The pre-registration registers U1
+(§5.2), §5.1 row 1 and §5.6 row 4 on seven features without `w_top`; only U3
+uses eight. The scorer now emits `J7_no_w_top` (`J7_FEATURES`) and
+`J8_with_w_top` (`J8_FEATURES`, the seven plus `w_top`) per target and per
+panel; no key named `J` remains. A count with a feature not judged at a target
+is marked `complete: false` with the feature named, and the panel aggregates
+complete counts only and lists the targets it left out (a run without ward
+winners used to turn the eight-feature count into a seven-feature one
+unmarked). Tests on constructed rows: a draw outside on `vol` and `w_top` alone
+gives J = 1 on the seven and 2 on the eight, and the real election likewise;
+a panel without ward winners scores the seven at every target and the eight at
+none. Mutations: `w_top` put back into the seven-feature tuple (both new tests
+red); `complete` forced true (the incompleteness test red); reverted, green.
+JUDGEMENT-CALLS §P4 names the two tuples.

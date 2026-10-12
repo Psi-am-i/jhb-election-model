@@ -1825,8 +1825,11 @@ ward features), by ONE definition that a real election also passes through as a
 one-row call. A target is judged by the real transitions before it (strict:
 ending five years before; `strict06` and `loco` as sensitivities): envelope
 exceedance below and above against 1/(n+1), the Poisson-binomial event test
-across targets, the randomised PIT (ties split for count features), the joint
-count `J` over the core features, and the party classes (collapse, jump,
+across targets, the randomised PIT (ties split for count features), two joint
+counts (`J7_no_w_top` over the seven whole-vote features, which the
+pre-registration's U1 and U2 read; `J8_with_w_top` adding the ward feature
+`w_top`, its U3), each marked incomplete and left out of the panel at a target
+where one of its features was not judged, and the party classes (collapse, jump,
 threshold events). The record reads the 2000 files `levels.HELD_BACK` withholds
 from the model, and says so. The ward winners it reads are the backtest's own
 (`backtest.ward_winners`); the roll is `backtest.registered_roll`. Nothing that

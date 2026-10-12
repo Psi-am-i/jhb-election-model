@@ -23,8 +23,12 @@ of consecutive local elections that came before its target:
   outside the record against the Poisson-binomial of the model's own
   probabilities of being outside, both tails;
 * the randomised PIT of the realised value among the target's draws;
-* the joint count ``J``: features out of the core set on which a draw (or a
-  real election) leaves the record;
+* the joint counts: features out of a set on which a draw (or a real
+  election) leaves the record, on the seven whole-vote features
+  (``J7_no_w_top``, the pre-registration's U1 and U2) and on those plus
+  ``w_top`` (``J8_with_w_top``, its U3). A count is ``complete`` only when
+  every feature of its set was judged; the panel aggregates complete ones
+  only and says how many it left out;
 * party level, by size class at the previous election: retained ratios,
   collapse and jump against the record's extremes, threshold events, class mass.
 
@@ -69,8 +73,16 @@ TINY_LINE = 0.01            # the tiny-party line for features 14-16
 SIZE_CLASSES = ((0.0, 0.01), (0.01, 0.03), (0.03, 0.10), (0.10, 0.30),
                 (0.30, 1.01))
 OUTER_K = 1.0               # the outer envelope, in record IQRs
-CORE_FEATURES = ("vol", "max_gain", "max_loss", "d_enp", "top2", "n_ge5",
-                 "tiny_max", "w_top")
+# THE TWO JOINT COUNTS, named apart (step-6 review, item 1). The
+# pre-registration scores U1 (§5.2), §5.1 row 1 and §5.6 row 4 on the SEVEN
+# whole-vote features, and only U3 adds the ward feature `w_top`. One tuple of
+# eight, counted over whichever were present, reported U1 on the wrong set.
+J7_FEATURES = ("vol", "max_gain", "max_loss", "d_enp", "top2", "n_ge5",
+               "tiny_max")
+J8_FEATURES = J7_FEATURES + ("w_top",)
+# The joint statistics, by output key: U1/U2 read "J7_no_w_top", U3 reads
+# "J8_with_w_top".
+JOINT_SETS = {"J7_no_w_top": J7_FEATURES, "J8_with_w_top": J8_FEATURES}
 RATIO_LOG_FLOOR = 1e-4      # the floor under a retained ratio's log
 MIN_JUDGING = 8             # the fewest transitions a target may be judged by
 FAIL_P = 0.05               # a tail of the event test below this fails
@@ -409,11 +421,41 @@ def run_features(run: dict, prev: dict, registered: float | None) -> dict:
                                None if W is None else np.asarray(W, dtype=int))
 
 
+def joint_count(features, rows: dict, feats: dict, n_rows: int,
+                has_real: bool) -> dict:
+    """One joint count over ``features``: per draw, how many of them leave
+    the record's range, and the same for the real election.
+
+    ``complete`` is False when a feature of the set was not judged at this
+    target (absent from the run, or too few record values), and ``missing``
+    names it: the count is then over fewer features than its name says and
+    the panel does not aggregate it. Counting whatever was present made an
+    eight-feature count silently a seven-feature one on a run with no ward
+    winners."""
+    present = [ft for ft in features if ft in rows]
+    J = np.zeros(n_rows)
+    real_J = 0 if has_real else None
+    for ft in present:
+        lo, hi = rows[ft]["record"]
+        x = np.asarray(feats[ft], dtype=float)
+        J += (x < lo) | (x > hi)
+        if has_real:
+            real_J += int(rows[ft].get("real_out", False))
+    real_missing = ([ft for ft in present if "real_out" not in rows[ft]]
+                    if has_real else [])
+    return {"features": present,
+            "missing": [ft for ft in features if ft not in rows],
+            "real_missing": real_missing,
+            "complete": len(present) == len(features) and not real_missing,
+            "p_ge2": float((J >= 2).mean()), "p_ge3": float((J >= 3).mean()),
+            "real": real_J}
+
+
 def score_target(feats: dict, ref: list[dict], real: dict | None,
                  rng) -> dict:
     """One target's rows: per feature the envelope rates, the probability of
     being outside, whether the real value was, and its randomised PIT; and the
-    joint J for the draws and the real election."""
+    joint counts (``JOINT_SETS``) for the draws and the real election."""
     rows = {}
     for ft, x in feats.items():
         vals = [r[ft] for r in ref if ft in r]
@@ -437,17 +479,9 @@ def score_target(feats: dict, ref: list[dict], real: dict | None,
                                      or v > hi + OUTER_K * iqr),
                        pit=randomised_pit(x, v, rng))
         rows[ft] = row
-    core = [ft for ft in CORE_FEATURES if ft in rows]
-    J = np.zeros(len(next(iter(feats.values()))))
-    real_J = 0 if real is not None else None
-    for ft in core:
-        lo, hi = rows[ft]["record"]
-        x = np.asarray(feats[ft], dtype=float)
-        J += (x < lo) | (x > hi)
-        if real is not None:
-            real_J += int(rows[ft]["real_out"])
-    rows["J"] = {"core": core, "p_ge2": float((J >= 2).mean()),
-                 "p_ge3": float((J >= 3).mean()), "real": real_J}
+    n_rows = len(next(iter(feats.values())))
+    for name, features in JOINT_SETS.items():
+        rows[name] = joint_count(features, rows, feats, n_rows, real is not None)
     return rows
 
 
@@ -460,7 +494,9 @@ def score_panel(targets: dict, trans: dict, mode: str = "strict",
     is reported. Returns per feature the mean exceedance rates, the event
     test's expected and realised counts and both tails, the PIT counts, the
     fail flag of the §3.2 rule (cycle-driven features reported, not failed),
-    and the joint J's event test."""
+    and each joint count's event test over the targets where it is complete
+    (``J7_no_w_top`` is what the pre-registration's U1 and U2 read;
+    ``J8_with_w_top`` its U3)."""
     rng = np.random.default_rng(seed)
     per = {}
     for (city, year), feats in sorted(targets.items()):
@@ -470,7 +506,7 @@ def score_panel(targets: dict, trans: dict, mode: str = "strict",
         per[(city, year)] = score_target(feats, ref, real, rng)
     out = {}
     scored = [k for k in per if any("real" in r for f, r in per[k].items()
-                                    if f != "J")]
+                                    if f not in JOINT_SETS)]
     for ft in CITY_FEATURES:
         rows = [per[k][ft] for k in per if ft in per[k]]
         srows = [per[k][ft] for k in scored if ft in per[k] and "real" in per[k][ft]]
@@ -496,13 +532,20 @@ def score_panel(targets: dict, trans: dict, mode: str = "strict",
                 le < FAIL_P or ge < FAIL_P
                 or in90 < PIT90_MIN_FRACTION * len(srows))
         out[ft] = ent
-    jr = [per[k]["J"] for k in scored]
-    if jr:
+    for name in JOINT_SETS:
+        jr = [per[k][name] for k in scored if per[k][name]["complete"]]
+        left_out = sorted(f"{c}-{y}" for (c, y) in scored
+                          if not per[(c, y)][name]["complete"])
+        if not jr:
+            out[name] = {"scored": 0, "incomplete": left_out}
+            continue
         p2 = [r["p_ge2"] for r in jr]
         obs2 = sum(1 for r in jr if r["real"] >= 2)
-        out["J"] = {"p_ge2_mean": float(np.mean(p2)), "expected_ge2": float(sum(p2)),
-                    "realised_ge2": obs2,
-                    "tails_ge2": event_tails(p2, obs2), "scored": len(jr)}
+        out[name] = {"p_ge2_mean": float(np.mean(p2)),
+                     "expected_ge2": float(sum(p2)), "realised_ge2": obs2,
+                     "tails_ge2": event_tails(p2, obs2), "scored": len(jr),
+                     "incomplete": left_out,
+                     "features": list(JOINT_SETS[name])}
     return {"mode": mode, "per_target": {f"{c}-{y}": v for (c, y), v in per.items()},
             "panel": out, "record_ignores_held_back": True}
 
