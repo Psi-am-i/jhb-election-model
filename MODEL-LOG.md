@@ -29449,3 +29449,17 @@ compared. Mutations: a scenario cached across arms (four tests red); the κ
 refusal removed (red); the second arm resampled with its own indices (the
 paired-statistics test red); each reverted, green. Constants: §A58. Named in
 CLAUDE.md §5 as imported by its test.
+
+### Suite follow-ups to items 3, 7 and 8
+
+The whole-suite run after item 10 had seven failures the step-5 run did not.
+Four were these fixes' own: `ARMS` was not named in JUDGEMENT-CALLS (§A58 now
+names it); `MODEL-INDEX.md` needed regenerating; `test_provenance_gates`'s
+honest tree carried a summary with no `_target`, which item 3 now fails (the
+fixture now writes `_target` as `montecarlo.main` does, a backtest year); and
+`declares.py --verify` run from `src/` could not compute the width record's
+key, because `cityconfig.load` and the judgements path are relative to the
+working directory (the key now reads them from its own tree's root). The
+fifth is item 3's intended red on the live summaries. `target_is_held` stays
+in `montecarlo`: placed in `cityconfig` it moved `pools._deps_sha` (an emit
+dependency) and staled `bye_value.json`.

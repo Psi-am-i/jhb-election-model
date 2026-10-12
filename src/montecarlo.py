@@ -3462,16 +3462,22 @@ def width_record_key(processed: Path | None = None) -> dict:
     import pools as _pl
     import width_record as _wr
     src = Path(__file__).resolve().parent
-    root = Path(processed) if processed is not None else src.parent / "data" / "processed"
+    root = (Path(processed).resolve() if processed is not None
+            else src.parent / "data" / "processed")
     specs, judged = [], []
-    for slug, year, rel in _wr.record_specs():
-        path = root / rel
-        specs.append(f"{rel}:" + (hashlib.sha256(path.read_bytes()).hexdigest()
-                                  if path.exists() else "<absent>"))
-        city = cityconfig.load(slug)
-        judged.append(f"{slug}|{year}:"
-                      + _pl._judgements_sha(city, cityconfig.Target(city=city,
-                                                                    year=year)))
+    # `cities/` and `judgements/` are read relative to the working directory
+    # throughout the model; the key describes THIS tree, so it reads them from
+    # this tree's root whatever the caller's directory (`declares.py` is run
+    # from `src/` too).
+    import contextlib as _cl
+    with _cl.chdir(src.parent):
+        for slug, year, rel in _wr.record_specs():
+            path = root / rel
+            specs.append(f"{rel}:" + (hashlib.sha256(path.read_bytes()).hexdigest()
+                                      if path.exists() else "<absent>"))
+            city = cityconfig.load(slug)
+            judged.append(f"{slug}|{year}:" + _pl._judgements_sha(
+                city, cityconfig.Target(city=city, year=year)))
     gs_path = root / _pl.GROUP_SHARE_RECORD
     gs_key = (json.loads(gs_path.read_text(encoding="utf-8")).get("artefact_key")
               if gs_path.exists() else "<absent>")
@@ -3532,7 +3538,9 @@ def target_is_held(year) -> bool:
     """True when the election at ``year`` has a result file in the calendar:
     a BACKTEST target. False for a forecast. ONE DEFINITION: the strength
     judgements are ignored on a held target, and a forecast artefact must
-    declare the hash of the judgements it applied (``declares.py``)."""
+    declare the hash of the judgements it applied (``declares.py``). Here and
+    not in ``cityconfig`` because ``cityconfig`` is an emit dependency
+    (``pools._EMIT_DEPENDENCIES``): an edit there moves every spec's key."""
     e = cityconfig.CALENDAR.get(str(year))
     return bool(e and e.results)
 

@@ -1100,7 +1100,7 @@ picked it, did not.
 
 ### §A58 · the arm runner's constants — `BACKTEST_DRAWS` 1,000 · `FORECAST_DRAWS` 5,000 · `LARGE_MIN` 15% · `MIDDLE_MIN` 5% · `CLUSTER_LEVEL` 0.90 · `R2_MIN_MEDIAN` 0.98 · `MC_RESAMPLES` 200 · `MC_SEED` — ⚖️ typed (2026-10-12)
 
-**Where.** `src/arms.py` (the runner and comparison of the 2026-10-11 round's pre-registered arms).
+**Where.** `src/arms.py` (the runner and comparison of the 2026-10-11 round's pre-registered arms). `ARMS` is the arms' scenario overrides, the prereg §3 table as code (I: `draw_law` incumbent; U and C0: none; UC: `centre_correction` on; US: `level_shrink` 0).
 
 **Now.** The draw counts, the size classes (by the classifying arm's `pool_spec` centre), the 90% cluster-bootstrap level and R2's bar on the median per-draw correlation are the pre-registration's (`prereg/2026-10-12-universal-draw.md` §3, §4, §6.3), copied as code so the runner applies them; the prereg is where they were set. `MC_RESAMPLES` (draw-index resamples behind each paired Monte Carlo error) and `MC_SEED` are numerical: they set the precision of an error estimate, not the error.
 
