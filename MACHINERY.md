@@ -2346,8 +2346,9 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   forecast, sealed through the same `/seal/1` (`make.js` `setHandoff`: the
   hand-off seated in the seat Worker's `handoff` lane, its chance from
   `analyse`).
-  `forecastSpec` takes the seat law's answer, the chance of the reader's
-  council-level outcome and the badge of the forecast's boldest call, the
+  `forecastSpec` takes the seat law's answer, the badge and the boldest call
+  (with its own chance, the only chance a card prints; the council-level
+  outcome's chance is printed in "Analyse my forecast" only), the
   reader's vote, and forecast.json's
   `baseline` (the previous council election per roster party, from
   `build_make.baseline`); it adds no figure of its own. The council graphic's
@@ -2355,9 +2356,13 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   Text is measured with the IBM Plex faces that draw it (`card-fonts.js`,
   generated from `src/card-fonts/` by `interactive/tools/card_fonts.mjs`).
 * **The chance and the badge** come only from Python:
-  `reweight.outcome_chance` (council_outcome and chance_text for the chance;
-  `boldest_call` and `boldness` for the badge and the call it names,
-  JUDGEMENT-CALLS §N10). The cards draw the owner's badge for the words
+  `reweight.outcome_chance` (council_outcome and chance_text for the council
+  outcome's chance; `boldest_call` and `boldness` for the badge, the call it
+  names and that call's chance, JUDGEMENT-CALLS §N10). The call is measured
+  from the published prediction (`forecast.json` `start.seats`), which the
+  page sends with `analyse` and the seat Worker reads from the site's
+  `forecast.json` (`entry.load_prediction`); a party at one seat or fewer in
+  both forecasts is skipped (`SKIPPED_CALL_SEATS`). The cards draw the owner's badge for the words
   (`src/stamps/reader-*.svg`, served at `/stamps/`) through share-card.js
   `stampSVG`, the one function that places a stamp, which prefixes the
   stamp's internal ids per embed. The page reaches it through `page.py`'s `analyse`;
@@ -2368,7 +2373,7 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
 * **The edge** (`share-edge.js`, routed by `src/worker.js`): `/s/` counts a
   share arrival (channel `share`, the button) and redirects to the arrival
   view; `/your-forecast/?f=…` gets its og: tags pointed at
-  `/og/2/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
+  `/og/3/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
   rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
   the draws' hash (a year when the link's seal checks, an hour otherwise), and
   is `/og.png` on any failure.

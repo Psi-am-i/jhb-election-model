@@ -623,26 +623,47 @@ def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_dr
             "context": _toy_context()}
     draws = {"sha256": "ab" * 32, "columns": ["A", "B", "C"],
              "seats": np.array([[5, 3, 2], [3, 5, 2], [6, 2, 2], [4, 4, 2]], dtype=float),
-             "thresholds": np.array([6, 6, 6, 6], dtype=float)}
+             "thresholds": np.array([6, 6, 6, 6], dtype=float),
+             "prediction": {"A": 5, "B": 4, "C": 2}}   # the published prediction's seats
     status, got = entry.card({"seats": body, "coalition": ["A", "C"], "draws_sha256": "ab" * 32}, draws)
     assert status == 200, got
     assert got["seats"] == {"A": 5, "B": 3, "C": 2} and got["majority"] == 6
     # A largest, no majority alone, A + C reach 6: draws 0 and 2 have A
     # alone on top; in draw 2 A has 6 alone, so only draw 0 counts
     assert got["outcome"]["p"] == 0.25
-    # the badge is the boldest call's (JUDGEMENT-CALLS §N10): middles A 5, B 4,
-    # C 2; B at 3 is below its middle, P(B <= 3) = 2/4
-    assert got["outcome"]["boldest"] == {"party": "B", "seats": 3, "middle": 4, "p": 0.5,
+    # the badge is the boldest call's (JUDGEMENT-CALLS §N10), measured from
+    # the published prediction (A 5, B 4, C 2); B at 3 is below it,
+    # P(B <= 3) = 2/4
+    assert got["outcome"]["boldest"] == {"party": "B", "seats": 3, "prediction": 4, "p": 0.5,
                                          "text": reweight.chance_text(0.5)}
     assert got["outcome"]["badge"] == reweight.boldness(0.5)
     assert got["outcome"] == reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"],
-                                                     None, got["seats"], 6, ["A", "C"])
+                                                     None, got["seats"], 6, ["A", "C"],
+                                                     prediction=draws["prediction"])
     assert got["draws_sha256"] == "ab" * 32
     assert entry.card({"seats": body, "coalition": [], "draws_sha256": "cd" * 32}, draws)[0] == 409
     assert entry.card({"seats": body, "coalition": "A", "draws_sha256": "ab" * 32}, draws)[0] == 400
     assert entry.card({"seats": body}, draws)[0] == 400
     refused = {**body, "list_votes": {**lst, "A": 0}}
     assert entry.card({"seats": refused, "coalition": [], "draws_sha256": "ab" * 32}, draws)[0] == 422
+
+
+def test_the_card_reads_the_published_prediction_the_draws_were_built_into():
+    """load_prediction: the seats of forecast.json's start, only when that file
+    names the draws' hash; another build's file is refused. The served pair
+    (site/draws, site/your-forecast/forecast.json) agree."""
+    entry = _load_entry()
+    site = ROOT / "site"
+    forecast = (site / "your-forecast" / "forecast.json")
+    data = json.loads(forecast.read_text(encoding="utf-8"))
+    got = entry.load_prediction(forecast.read_bytes(), data["draws_sha256"])
+    assert got == {p: int(v) for p, v in data["start"]["seats"].items()} and len(got) > 0
+    try:
+        entry.load_prediction(forecast.read_bytes(), "00" * 32)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("a forecast.json built from other draws was accepted")
 
 
 def test_the_card_reads_the_draws_the_page_was_built_from():

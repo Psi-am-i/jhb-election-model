@@ -480,9 +480,11 @@ def analyse(request_json: str) -> str:
 
     Request: ``{"ward_calls": {ward: party}, "share": {party: percent of the
     list ballot}, "seats": {party: seats}, "majority": seats needed,
-    "coalition": [party], "keep": [party]}``, section 2's forecast (``keep``:
-    parties whose row the page already shows, so a row never goes while the
-    reader edits). Every chance is the PUBLISHED forecast's: the published
+    "coalition": [party], "keep": [party], "prediction": {party: seats}}``,
+    section 2's forecast (``keep``: parties whose row the page already shows,
+    so a row never goes while the reader edits; ``prediction``: the seats of
+    the published prediction, the ``start.seats`` of forecast.json, which the
+    boldest call is measured from). Every chance is the PUBLISHED forecast's: the published
     cell, each draw counted once, statutory seats. Returns
 
     * ``outcome``: the chance of the reader's council-level outcome,
@@ -490,6 +492,8 @@ def analyse(request_json: str) -> str:
       the most seats), whether one party has a majority on its own, and the
       chosen coalition reaching a majority; with what it was read as and
       the badge of its boldest call (``reweight.outcome_chance``). The page's headline;
+      the chance is that of the overall result only, not of the boldest call
+      (``outcome["boldest"]``, which the cards print);
     * ``score``: the reader's forecast scored against EVERY published
       simulation as if it were the result, by the competition's own
       measures in its order (``score_forecasts.seat_error``,
@@ -558,7 +562,10 @@ def analyse(request_json: str) -> str:
     held = {c: v for c, v in mine.items() if v > 0}
     need = int(req.get("majority") or sum(held.values()) // 2 + 1)
     council = cell["arrays"][f"council/{PUBLISHED_LAW}"]
-    outcome = R.outcome_chance(seats, cols, council[:, 0], w, mine, need, req.get("coalition") or [])
+    if not isinstance(req.get("prediction"), dict):
+        raise ValueError("no published prediction: the boldest call is measured from it")
+    outcome = R.outcome_chance(seats, cols, council[:, 0], w, mine, need, req.get("coalition") or [],
+                               prediction={c: int(v) for c, v in req["prediction"].items()})
     seat_out, share_out = {}, {}
     for c in shown:
         seat_out[c] = chance(R.within_band(seats[:, cols.index(c)], w, mine.get(c, 0), R.ANALYSIS_SEAT_BAND))

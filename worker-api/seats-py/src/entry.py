@@ -84,7 +84,8 @@ def answer(body):
 def load_draws(manifest_bytes, blob):
     """The published draws as the card reads them: the party seat columns and
     each simulation's majority under ``reweight.PUBLISHED_LAW``, and the
-    sha256 of manifest + blob (``src/build_make.py``'s ``draws_sha256``)."""
+    sha256 of manifest + blob (``src/build_make.py``'s ``draws_sha256``).
+    ``_draws`` adds ``prediction`` (:func:`load_prediction`) to this."""
     manifest = json.loads(manifest_bytes)
     arrays = reweight.unpack(blob, manifest)
     law = reweight.PUBLISHED_LAW
@@ -93,6 +94,16 @@ def load_draws(manifest_bytes, blob):
     return {"sha256": hashlib.sha256(bytes(manifest_bytes) + bytes(blob)).hexdigest(),
             "seats": seats, "columns": parties,
             "thresholds": arrays[f"council/{law}"][:, 0]}
+
+
+def load_prediction(forecast_bytes, draws_sha256):
+    """The published prediction's seats, ``{party: seats}``: the ``start.seats``
+    of the site's ``forecast.json`` (``build_make.start_state``), which must
+    have been built from the draws hashed ``draws_sha256``."""
+    data = json.loads(forecast_bytes)
+    if data.get("draws_sha256") != draws_sha256:
+        raise ValueError("forecast.json was built from other draws than the Worker holds")
+    return {str(p): int(v) for p, v in data["start"]["seats"].items()}
 
 
 def card(body, draws):
@@ -109,7 +120,8 @@ def card(body, draws):
     if status != 200:
         return status, seats
     outcome = reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"], None,
-                                      seats["seats"], seats["majority"], body["coalition"])
+                                      seats["seats"], seats["majority"], body["coalition"],
+                                      prediction=draws["prediction"])
     return 200, {**seats, "outcome": outcome, "draws_sha256": draws["sha256"]}
 
 
@@ -127,10 +139,13 @@ async def _draws(origin):
         from js import fetch  # the Workers runtime's fetch, under Pyodide
         man = await fetch(origin + "/draws/manifest.json")
         blob = await fetch(origin + "/draws/base.bin")
-        if not (man.ok and blob.ok):
+        fc = await fetch(origin + "/your-forecast/forecast.json")
+        if not (man.ok and blob.ok and fc.ok):
             raise RuntimeError("the published draws could not be fetched")
-        _DRAWS = load_draws((await man.arrayBuffer()).to_bytes(),
-                            (await blob.arrayBuffer()).to_bytes())
+        drawn = load_draws((await man.arrayBuffer()).to_bytes(),
+                           (await blob.arrayBuffer()).to_bytes())
+        drawn["prediction"] = load_prediction((await fc.arrayBuffer()).to_bytes(), drawn["sha256"])
+        _DRAWS = drawn
     return _DRAWS
 
 

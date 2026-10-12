@@ -8,8 +8,8 @@
 //                            the channel, the button and the host are written.
 //   /your-forecast/?f=…      the page, its og: and twitter: tags rewritten to
 //                            name the forecast and point at its own image
-//   /og/2/link.png?<link>    that image, drawn here: share-card.js's card,
-//   /og/2/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
+//   /og/3/link.png?<link>    that image, drawn here: share-card.js's card,
+//   /og/3/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
 //                            the edge by the link and the published draws'
 //                            hash: a year when the link's seal checks, an
 //                            hour otherwise (imageCache). Any failure
@@ -70,9 +70,11 @@ const PAGE = "/your-forecast/";
 // The card image's address carries CARD_VERSION, so a change to what the card
 // draws changes the address and the edge's cache key: a sealed card's image
 // is cached for a year as immutable. Version 2 (2026-10-10): the owner's
-// reader badges and the boldest call. An address of an earlier version
-// answers 301 to the same image at the current one.
-export const CARD_VERSION = 2;
+// reader badges and the boldest call. Version 3 (2026-10-12): the card prints
+// the boldest call's own chance, measured from the published prediction, in
+// place of the council outcome's. An address of an earlier version answers
+// 301 to the same image at the current one.
+export const CARD_VERSION = 3;
 const IMAGE = /^\/og\/(\d+)\/(link|story)\.png$/;
 const imagePath = size => `/og/${CARD_VERSION}/${size}.png`;
 
@@ -159,7 +161,7 @@ export async function sharedPage(request, url, env) {
     "og:description": "A reader's forecast of the Johannesburg council, not the model's. Make yours.",
     "og:url": `${url.origin}${PAGE}?${q}`,
     "og:image": image,
-    "og:image:alt": title + ": seats, who governs, and the chance we give the outcome.",
+    "og:image:alt": title + ": seats, who governs, and the chance we give the boldest call.",
     "twitter:image": image,
   };
   for (const k of TAGS) {

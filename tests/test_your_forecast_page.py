@@ -1426,7 +1426,7 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     seats = dict(d["start"]["seats"])
     top2 = sorted(seats, key=lambda c: -seats[c])[:2]
     a = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                             "coalition": top2})))
+                                             "prediction": seats, "coalition": top2})))
     man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
     arr = R.unpack((ROOT / "site/draws/base.bin").read_bytes(), man)
     cols = lambda n: next(b for b in man["blocks"] if b["name"] == n)["columns"]
@@ -1495,21 +1495,34 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     # the coalition part bites on the real draws: without it the chance is
     # at least as high, and a coalition of the two smallest shown parties
     # (never a majority) scores zero
-    bare = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats})))
+    bare = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
+                                               "prediction": seats})))
     assert bare["outcome"]["p"] >= o["p"] and bare["outcome"]["coalition"] == []
     small = sorted(a["seats"], key=lambda c: seats.get(c, 0))[:2]
     tiny = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                                "coalition": small})))
+                                                "prediction": seats, "coalition": small})))
     assert tiny["outcome"]["p"] == 0.0, small
+    # the boldest call is measured from the published prediction the page
+    # sends (forecast.json start.seats), and the analysis refuses without it
+    # (JUDGEMENT-CALLS §N10: no fallback to the medians)
+    bold = a["outcome"]["boldest"]
+    assert bold["party"] is None or bold["prediction"] == seats.get(bold["party"], 0)
+    try:
+        ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats}))
+    except ValueError as exc:
+        assert "prediction" in str(exc)
+    else:
+        raise AssertionError("analyse ran without the published prediction")
     # it moves with the forecast: the start's own calls score higher
     b = json.loads(ns["analyse"](json.dumps({"ward_calls": dict(zip(wards, d["start"]["ward_calls"])),
-                                             "share": share, "seats": seats})))
+                                             "share": share, "seats": seats,
+                                             "prediction": seats})))
     assert b["score"]["wards_called"] > a["score"]["wards_called"]
     assert np.isfinite(a["score"]["list_vote_error"])
     # a row the page shows stays while the reader edits: "keep" holds it
     gone = sorted(set(sc) - {"OTHER"} - set(a["seats"]))[0]
     kept = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                                "keep": [gone]})))
+                                                "prediction": seats, "keep": [gone]})))
     assert gone in kept["seats"] and set(a["seats"]) < set(kept["seats"])
 
 
@@ -1959,7 +1972,7 @@ def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
                      ">Ward wins<", ">Your map<", 'class="yf-amapsvg"', 'class="yf-alegend"',
                      'class="yf-expected yf-slot"', ">Citywide vote and seats<", 'class="yf-atable"',
                      'class="yf-sseats yf-slot"', 'class="yf-svote yf-slot"')
-        need_js = ('"This outcome: " + outcomeWords(', "chanceSentence(a.outcome.text)",
+        need_js = ('"Council outcome: " + outcomeWords(', "councilChanceSentence(a.outcome.text)",
                    "new WardMap(one.amap, geom, { byCode, readonly: true, labelFor: wardWords })",
                    "SHADE_FLOOR + (1 - SHADE_FLOOR) * a.wards[w].p", "amap.setShade(",
                    "ward calls to come true", 'one.amap.addEventListener("click"', 'one.anote.textContent = "";')

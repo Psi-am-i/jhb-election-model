@@ -239,7 +239,7 @@ test("the page's engine under Pyodide gives the native answer (F19)", { skip: !p
     const lt = Object.values(h.list_votes).reduce((x, y) => x + y, 0);
     const share = Object.fromEntries(Object.entries(h.list_votes).map(([c, v]) => [c, 100 * v / lt]));
     assert.deepEqual(Object.keys(h).sort(), ["list_votes", "ward_calls", "ward_votes"], "the hand-off is the prediction object, nothing more");
-    const a = await engine.analyse({ ward_calls: h.ward_calls, share, seats, coalition: two });
+    const a = await engine.analyse({ ward_calls: h.ward_calls, share, seats, prediction: seats, coalition: two });
     for (const [got, exp, what] of [[h, want.handoff, "handoff"], [a, want.analyse, "analyse"]]) {
       const d = compareLeaves(got, exp);
       assert.ok(d.maxRel <= 1e-9, `${want.name} ${what}: ${d.maxRel} at ${d.where}`);

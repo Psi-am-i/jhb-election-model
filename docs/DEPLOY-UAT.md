@@ -280,6 +280,28 @@ our side can reach that cache.
 wanted: the old site Worker reads the new answer (above). Rolling back only
 `joburg-seats` puts link previews on the generic image.
 
+## Releasing the card's one chance (2026-10-12)
+
+The card prints the boldest call's own chance (JUDGEMENT-CALLS §N10, amended
+2026-10-12); `reweight.py` changed (`boldest_call` takes the published
+prediction, `outcome_chance` requires it). No request body changed: the seat
+Worker reads the prediction from the site's `/your-forecast/forecast.json`,
+which must name the same draws as `/draws/`. Either order of deployment works
+for link previews except one window: a `joburg-seats` deployed before the
+site's `forecast.json` is the new one still reads the old file's
+`start.seats`, which is the same prediction while the draws are unchanged.
+
+1. `node worker-api/tools/sync_seats_py.mjs` (and `--check`), then deploy
+   `joburg-seats` as above.
+2. Upload, check and promote the site Worker. On the Version URL, a shared
+   link's `/og/3/link.png` draws "Your boldest call: ..." with "We give that
+   ... chance.", and `/og/2/…` and `/og/1/…` answer 301 to it. The page's
+   analysis (Analyse my forecast) still shows the council outcome's chance,
+   labelled "Council outcome".
+
+**Why the image address moved to `/og/3/`.** The card's wording changed and
+a sealed card's image is cached for a year as immutable (see above).
+
 ## Entries at launch
 
 Every seal the live Worker makes is stored as an entry in the D1 database

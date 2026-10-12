@@ -22035,7 +22035,7 @@
   "w_bye-1": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306"
  },
  "numpy": "2.5.1",
- "page_ref": "23cde400bb5c560cd0f89ec9b64a7a311e961d5b9d21f36933892d19b7a6bf95",
+ "page_ref": "fe84237c1e494293d22753ab081d76b477d1c6ad5c897754b27f9de01db033e1",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22098,13 +22098,13 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Hail Mary",
+     "badge": "Safe bet",
      "boldest": {
-      "middle": 27,
-      "p": 0.0,
-      "party": "ASA",
-      "seats": 0,
-      "text": "under 0.1%"
+      "p": 1.0,
+      "party": null,
+      "prediction": null,
+      "seats": null,
+      "text": "over 99%"
      },
      "coalition": [
       "ANC",
@@ -23044,13 +23044,13 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Hail Mary",
+     "badge": "Safe bet",
      "boldest": {
-      "middle": 27,
-      "p": 0.0,
-      "party": "ASA",
-      "seats": 0,
-      "text": "under 0.1%"
+      "p": 1.0,
+      "party": null,
+      "prediction": null,
+      "seats": null,
+      "text": "over 99%"
      },
      "coalition": [
       "ANC",
@@ -23990,13 +23990,13 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Hail Mary",
+     "badge": "Safe bet",
      "boldest": {
-      "middle": 27,
-      "p": 0.0,
-      "party": "ASA",
-      "seats": 0,
-      "text": "under 0.1%"
+      "p": 1.0,
+      "party": null,
+      "prediction": null,
+      "seats": null,
+      "text": "over 99%"
      },
      "coalition": [
       "ANC",
@@ -24936,13 +24936,13 @@
    "analyse": {
     "draws": 5000,
     "outcome": {
-     "badge": "Hail Mary",
+     "badge": "Safe bet",
      "boldest": {
-      "middle": 27,
-      "p": 0.0,
-      "party": "ASA",
-      "seats": 0,
-      "text": "under 0.1%"
+      "p": 1.0,
+      "party": null,
+      "prediction": null,
+      "seats": null,
+      "text": "over 99%"
      },
      "coalition": [
       "ANC",

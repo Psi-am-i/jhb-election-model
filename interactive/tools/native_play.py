@@ -96,7 +96,8 @@ def run_section2(ns) -> list[dict]:
         lt = sum(h["list_votes"].values())
         share = {c: 100.0 * v / lt for c, v in h["list_votes"].items()}
         a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
-                                                 "seats": seats, "coalition": two})))
+                                                 "seats": seats, "prediction": seats,
+                                                 "coalition": two})))
         out.append({"name": name, "handoff": h, "analyse": a})
     return out
 

@@ -58,3 +58,24 @@ rule.
   "this outcome" chance line in "Analyse my forecast" is unchanged unless the
   owner says otherwise).
 - `tests/test_reweight.py` holds the four edges.
+
+## Note, 2026-10-12: the reference is the published prediction
+The card brief (`CARD-COHERENCE-BRIEF.md`, JUDGEMENT-CALLS §N10 amended)
+measures a call from the published prediction (`forecast.json` `start.seats`),
+not from `reweight.middle_seats`; the two are different sets of seats (ANC 66
+against 70, DA 66 against 65). A party at one seat or fewer in both the
+reader's forecast and the prediction is skipped. The eight constructed
+forecasts above, re-measured on the same published draws (model `7ea27c28`)
+from the prediction (the owner's decision above is unchanged; this table
+replaces its figures, which `tests/test_reweight.py` `BADGE_TABLE` now holds):
+
+| forecast, moved from the published prediction | boldest call | chance |
+|---|---|---|
+| ANC +3, DA −3 | ANC 73 (prediction 70) | 36.2% |
+| ANC +10, DA −10 | ANC 80 | 21.0% |
+| EFF +10, ANC −10 | EFF 36 (prediction 26) | 24.9% |
+| DA +15, ANC −15 | DA 80 (prediction 65) | 15.7% |
+| PA +8, DA −8 | PA 32 (prediction 24) | 10.5% |
+| PA +15, DA −15 | PA 39 | 3.6% |
+| ANC +25, DA −25 | DA 40 | 2.2% |
+| DA 106 | DA 106 | 0.9% |

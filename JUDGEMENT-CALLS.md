@@ -176,6 +176,7 @@ promotion note in §F.
 | `SIGMA_IDIO` | 1.5pp | The house-specific part | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 1.5pp, declared and sourced; the ONLY term `h_eff` may divide. | 🔴 declared, sourced | §H18 |
 | `SIGMA_VOLATILITY` | 0.8pp | A South Africa adjustment: +0.1pp per 1pp of avera… | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 0.8pp, declared and sourced — a South Africa adjustment for average party swing. | 🔴 declared, sourced | §H20 |
 | `SIMULATION_BLOC` | container | `pools.py` | The reader-simulation bloc definition that `within_rate` sits in. | 🔴 | §H12 |
+| `SKIPPED_CALL_SEATS` | 1 | `reweight.py`, `boldest_call` | Typed 2026-10-12 (owner's brief): a party with this many seats or fewer in a reader's forecast AND in the published prediction does not set the badge. One rule for every party. Not measured; argued, not tested. Moves no forecast. | 🟡 | §N10 |
 | `SOLVE_TOL` | 1e-9 | `pools.py` | Operational, and listed EXEMPT in the guard — named here so the exemption is visible in the register and not only in the test. | 🟢 | §F11 |
 | `SPINE_K` | 1.0 | — | See §B. | 🔴 | §F14 + §B1 |
 | `spine_k = 0` on a party with no θ evidence | `w_local = 0.0` | — | A CHOSEN limit (`w = 0`, pure national spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for. | 🟡 | §F22 |
@@ -3172,6 +3173,12 @@ reads `council_outcome`: it is judged by the forecast's boldest single call
 forecast", on the share cards and in the arrival view still prints
 `council_outcome`'s figure, unchanged.
 
+**Amended 2026-10-12 (§N10).** The share cards and the arrival view no longer
+print `council_outcome`'s figure: they print the boldest call's own chance.
+"Analyse my forecast" keeps `council_outcome`'s figure, labelled as the
+chance of the council outcome ("Council outcome: ...", "We give that
+council outcome a 45% chance."), not "this outcome".
+
 ### §N4 · The competition rule: seats, then ward calls, then vote (list ballot); and the seat line — ⚖️ owner's order, the line derived (2026-10-03)
 
 **Where.** `src/score_forecasts.py` (`seat_error`, `wards_called`,
@@ -3398,7 +3405,8 @@ preview refused before it is counted.
 
 ### §N10 · The reader's badge: the boldest single call, in five bands (45, 30, 15, 5%) — ⚖️ owner's measure and bands (2026-10-10)
 
-**Where.** `reweight.boldest_call` and `reweight.BOLDNESS`, read only by
+**Where.** `reweight.boldest_call`, `reweight.BOLDNESS` and
+`reweight.SKIPPED_CALL_SEATS`, read only by
 `reweight.boldness`; both called by `reweight.outcome_chance` for
 `interactive/pyboot/page.py`'s `analyse` and the seat Worker's card answer
 (`worker-api/seats-py/src/entry.py`, `/v1/card`). The share cards, the link
@@ -3407,13 +3415,14 @@ the words they are handed (`src/stamps/reader-<words>.svg`, served at
 `/stamps/`) and name the call; no JavaScript computes either.
 
 **Now.** For each party whose seats in the reader's forecast differ from the
-model's middle forecast (`reweight.middle_seats`, each party's median seats
-over the published draws), the share of simulations at least that far out on
-the reader's side: `P(seats ≥ x)` when the reader's `x` is above the middle,
-`P(seats ≤ x)` when below. The smallest of these is the boldest call; the
-badge comes from it and the card names the party and its seats ("Boldest
-call: the PA at 38 seats."). A tie goes to the party first in the draws'
-column order. A party with no column in the draws holds no seats in any
+published prediction's (amended 2026-10-12 below: it was each party's median
+seats, `reweight.middle_seats`) and are not skipped by the one-seat rule, the
+share of simulations at least that far out on the reader's side: `P(seats ≥
+x)` when the reader's `x` is above the prediction, `P(seats ≤ x)` when below.
+The smallest of these is the boldest call; the badge comes from it and the
+card names the party and its seats and the call's chance ("Your boldest call:
+the PA at 38 seats. We give that a 4% chance."). A tie goes to the party first
+in the draws' column order. A party with no column in the draws holds no seats in any
 simulation, as in §N3.
 
 | badge | chance of the boldest call |
@@ -3424,10 +3433,10 @@ simulation, as in §N3.
 | Wild call | 5% to under 15% |
 | Hail Mary | under 5% |
 
-A chance exactly at an edge takes the higher band. A forecast equal to the
-middle forecast has no call and is a Safe bet. The badge reads the exact
-chance, not a printed one; the card prints no chance for the call, so no
-printed figure can disagree with it.
+A chance exactly at an edge takes the higher band. A forecast with no call
+(equal to the published prediction, or differing only where the one-seat rule
+skips) is a Safe bet. The badge reads the exact chance, not the printed one
+(see the known limit below).
 
 **Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`,
 which records the measurements behind it: what §N6's badge gave the common
@@ -3448,6 +3457,52 @@ BADGE-DECISION.md's table re-measured on the published draws (it fails, and
 says to re-measure, when the published model is no longer 7ea27c28); and that
 every badge word has the owner's file and every file a word. Nothing in the
 model reads the badge.
+
+**Amended 2026-10-12 (owner: "go ahead with card change"; brief
+`audits/2026-10-09-site-batch/CARD-COHERENCE-BRIEF.md`).** Three changes,
+none of which moves a forecast figure.
+
+1. *One chance on the card.* The share cards (link, story, return) and the
+   arrival view print the boldest call and its own chance, the figure the
+   badge bands: "Your boldest call: the PA at 38 seats. We give that a 4%
+   chance." (the arrival view names whose call). The council outcome's chance
+   (§N3) is no longer printed there; "Analyse my forecast" keeps it, labelled
+   as the council outcome's. A forecast with no call says "No call goes
+   beyond our prediction." and has no chance line; its badge is Safe bet. The
+   card's address version is 3 (share-edge.js), so no cached image of the old
+   wording is served.
+2. *A one-seat call does not set the badge.* A party holding
+   `SKIPPED_CALL_SEATS` = 1 seat or fewer in the reader's forecast AND in the
+   published prediction is skipped when the boldest call is chosen. One rule
+   for every party; no party is named in code. It needs both sides: a reader
+   at 1 against a prediction of 5 (or the reverse) is a call. The value is
+   not measured: a party at one seat has a tail the draws resolve poorly and
+   no one reads as a call about the forecast; 2 would also skip two-seat
+   parties, 0 only the unseated. Argued, not tested.
+3. *Measured from the published prediction.* The seats a call is measured
+   from are the published prediction's (`forecast.json` `start.seats`, built
+   by `build_make.start_state`: rule A, `prediction.py`, through the seat
+   law), not `reweight.middle_seats`, each party's own median, which is a
+   different set of seats (in the published forecast the two differ for
+   twenty-three parties, among them ANC 66 against 70 and a one-seat
+   prediction against a median of zero for the small ones; check by comparing
+   `start.seats` with `middle_seats` on the published draws, as
+   `test_the_owners_table_on_the_published_draws` does). `middle_seats` stays
+   in use for the seat line of §N4 only. The page sends the prediction with
+   its `analyse` request; the seat Worker reads it from the site's
+   `forecast.json`, which must name the draws' hash.
+
+**Known limit (new, for the owner).** The card now prints the chance the
+badge bands, rounded as every chance is printed (`chance_text`), while the
+badge reads the exact figure. A chance of 14.6% prints as "15%" beside
+"Wild call", whose band is under 15%; the same at 4.96% ("5.0%") and 44.8%
+("45%"). Banding the printed figure instead would remove the disagreement and
+move the edge by up to half a printed unit; not done without the owner's say.
+
+**Re-measured table.** BADGE-DECISION.md's eight constructed forecasts, from
+the published prediction instead of the medians, are in
+`tests/test_reweight.py` `BADGE_TABLE` and BADGE-DECISION.md's 2026-10-12
+note.
 
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 

@@ -132,6 +132,7 @@ It also reads 6 key(s) off its `theta_mode` block; those are party codes, not le
 | `SIGMA_IDIO` | 1.5pp | module constant | module constant | no | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 1.5pp, declared and sourced; the ONLY term `h_eff` may divide. | 🔴 declared, sourced | §H18 |
 | `SIGMA_VOLATILITY` | 0.8pp | module constant | module constant | no | LIVE since 2026-08-24 in the poll path, which is OFF at 2026 (§A8), so the published forecast does not reach it (AMENDED 2026-09-24 (register audit)). 0.8pp, declared and sourced — a South Africa adjustment for average party swing. | 🔴 declared, sourced | §H20 |
 | `SIMULATION_BLOC` | container | module constant | module constant | no | The reader-simulation bloc definition that `within_rate` sits in. | 🔴 | §H12 |
+| `SKIPPED_CALL_SEATS` | 1 | module constant | module constant | no | Typed 2026-10-12 (owner's brief): a party with this many seats or fewer in a reader's forecast AND in the published prediction does not set the badge. One rule for every party. Not measured; argued, not tested. Moves no forecast. | 🟡 | §N10 |
 | `SOLVE_TOL` | 1e-9 | module constant | module constant | no | Operational, and listed EXEMPT in the guard — named here so the exemption is visible in the register and not only in the test. | 🟢 | §F11 |
 | `SPINE_K` | 1.0 | module constant | module constant | no | See §B. | 🔴 | §F14 + §B1 |
 | `spine_k = 0` on a party with no θ evidence | `w_local = 0.0` | unlinked | not linked to a scenario key or module constant | no | A CHOSEN limit (`w = 0`, pure national spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for. | 🟡 | §F22 |
@@ -276,5 +277,5 @@ Scenario keys with **no register row under their own name**. Each is still a jud
 * `seed` — ⛔ not in the register at all
 * `turnout_correlation` — its row is filed under the shadow constant `montecarlo.TURNOUT_CORRELATION`, tied to it by an assert, so the row does describe it
 
-Register rows parsed: 112 with a symbol, 36 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser's own view and a drop shows up as a missing row here rather than as a mangled one.
+Register rows parsed: 113 with a symbol, 36 structural. A row whose cell count does not match its header is dropped rather than guessed at, so these counts are the parser's own view and a drop shows up as a missing row here rather than as a mangled one.
 
