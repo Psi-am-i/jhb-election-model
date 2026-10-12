@@ -1098,6 +1098,16 @@ Each row: `§SJ<n>` · party · target · `support` / `overperform` / `sigma_j` 
 The number came from data. The *shape* it was fitted in, or the criterion that
 picked it, did not.
 
+### §A58 · the arm runner's constants — `BACKTEST_DRAWS` 1,000 · `FORECAST_DRAWS` 5,000 · `LARGE_MIN` 15% · `MIDDLE_MIN` 5% · `CLUSTER_LEVEL` 0.90 · `R2_MIN_MEDIAN` 0.98 · `MC_RESAMPLES` 200 · `MC_SEED` — ⚖️ typed (2026-10-12)
+
+**Where.** `src/arms.py` (the runner and comparison of the 2026-10-11 round's pre-registered arms).
+
+**Now.** The draw counts, the size classes (by the classifying arm's `pool_spec` centre), the 90% cluster-bootstrap level and R2's bar on the median per-draw correlation are the pre-registration's (`prereg/2026-10-12-universal-draw.md` §3, §4, §6.3), copied as code so the runner applies them; the prereg is where they were set. `MC_RESAMPLES` (draw-index resamples behind each paired Monte Carlo error) and `MC_SEED` are numerical: they set the precision of an error estimate, not the error.
+
+**Why.** Typed. The prereg fixes the first six; the resample count is this writer's, sized so the error of a standard deviation from 200 resamples is about 5% of it.
+
+**How to check it.** `tests/test_arms.py` (identical arms give zero difference and zero Monte Carlo error; a shifted arm stays paired above `R2_MIN_MEDIAN`; an independent one does not).
+
 ### §B1 · `SPINE_K = 1.0`, reciprocal form — 🔴
 
 **Where.** `levels.py`

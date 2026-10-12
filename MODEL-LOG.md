@@ -29425,3 +29425,27 @@ On the live tree every run summary under `data/processed` predates `_target`
 and the hash, so `test_every_forecast_declares_the_strength_judgements_it_applied_truly`
 is red, and `declares.py --verify` marks those summaries `~`, until the
 step-7 runs rewrite them.
+
+### The arm runner (item 8)
+
+Nothing in the tree ran the registered arms. `src/arms.py` does, with no
+change to `montecarlo.py`: per arm (I, U, UC, US, C0) and city-year, a fresh
+`load_scenario` with the arm's overrides, `run_model` in process with its
+`--run-dir` trace, and `arrays.npz` plus `meta.json` in `plausibility`'s format
+under an output root it refuses inside `data/`. It refuses a universal-law
+city-year whose width record is stale (`read_width_record`) or whose
+calibration did not converge (`41_guards.kappa_converged`), and C0 in a tree
+carrying the census hold (and the other arms in one without it). `compare`
+gives the prereg §4 cluster-bootstrap interval of the CRPS difference by size
+class (classes from arm I's `pool_spec` centres), the paired draw-index Monte
+Carlo error of the list-MAE and CRPS differences, and R2. Not run on real
+specs. `tests/test_arms.py` runs it on a constructed model: a fresh scenario
+per arm with its overrides (the fake refuses a scenario an earlier run wrote
+into), the files load through `plausibility.load_run_dir`, the refusals write
+`REFUSED.json` and no arrays, identical arms differ by exactly 0 with 0 Monte
+Carlo error and correlation 1, a shifted arm stays above R2's bar, an
+independent arm falls below it, and arms of different draw counts are not
+compared. Mutations: a scenario cached across arms (four tests red); the κ
+refusal removed (red); the second arm resampled with its own indices (the
+paired-statistics test red); each reverted, green. Constants: §A58. Named in
+CLAUDE.md §5 as imported by its test.

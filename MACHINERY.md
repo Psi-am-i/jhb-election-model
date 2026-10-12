@@ -1857,6 +1857,23 @@ from the model, and says so. The ward winners it reads are the backtest's own
 (`backtest.ward_winners`); the roll is `backtest.registered_roll`. Nothing that
 draws imports it. Constants: JUDGEMENT-CALLS §P4.
 
+## Running the round's arms — `src/arms.py` (2026-10-12)
+
+The pre-registered arms of `prereg/2026-10-12-universal-draw.md` (I, U, UC,
+US, C0) are scenario overrides of one tree (C0 is the same code run in the
+worktree with the census commit reverted; the runner refuses C0 in a tree
+that carries the hold, and the others in one that does not). Each city-year
+of each arm loads a fresh scenario, calls `run_model` in process with its
+trace, and writes `arrays.npz` and `meta.json` in the format
+`plausibility.load_run_dir` reads, under a directory outside `data/`. A
+universal-law city-year whose width record is stale or whose calibration pass
+did not converge is refused (`REFUSED.json`, no arrays). `compare` reports, for
+B − A: the 90% cluster bootstrap over city-years of the per party-city-year
+CRPS difference by size class (`cluster_interval`), the Monte Carlo error of
+the list-MAE and CRPS differences from one draw-index resample applied to both
+arms (`mc_error`), and R2's median per-draw correlation with whether the pool
+sets agree (`r2`). Constants: JUDGEMENT-CALLS §A58.
+
 ## Reading a run without re-running it
 
 `run_model(..., run_dir=...)` — or `--run-dir` on `montecarlo.py` and
