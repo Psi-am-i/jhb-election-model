@@ -29329,8 +29329,9 @@ at the κ it has just measured on the last permitted iteration and records
 `kappa_iters`) in `35_widths` and `41_guards`, beside the board's `draw_law`.
 A converging run never reaches the new branch. Measured on the constructed
 two-pool spec: the drawn arrays, `kappa_iters` and `kappa_error` of the fixed
-code equal those of `27194df`'s `montecarlo.py` bit for bit at four seeds (a
-one-off comparison loading the old module); the permanent test is that
+code at `7f05b04` equal those of `27194df`'s `montecarlo.py` bit for bit at
+four seeds (a one-off comparison loading the old module; item 6 below then
+moves the last floating bit); the permanent test is that
 raising `KAPPA_MAX_ITER` to 10^6 changes no drawn number of a converging run.
 Non-convergence constructed (`KAPPA_TOL` 0, three iterations): the flag is
 false, the iterations are the cap, and the recorded error equals the error
@@ -29452,14 +29453,15 @@ CLAUDE.md §5 as imported by its test.
 
 ### Suite follow-ups to items 3, 7 and 8
 
-The whole-suite run after item 10 had seven failures the step-5 run did not.
-Four were these fixes' own: `ARMS` was not named in JUDGEMENT-CALLS (§A58 now
+The whole-suite run after item 10 had seven failing tests the step-5 run did
+not. Six came from four causes in these fixes: `ARMS` was not named in JUDGEMENT-CALLS (§A58 now
 names it); `MODEL-INDEX.md` needed regenerating; `test_provenance_gates`'s
 honest tree carried a summary with no `_target`, which item 3 now fails (the
 fixture now writes `_target` as `montecarlo.main` does, a backtest year); and
 `declares.py --verify` run from `src/` could not compute the width record's
 key, because `cityconfig.load` and the judgements path are relative to the
-working directory (the key now reads them from its own tree's root). The
-fifth is item 3's intended red on the live summaries. `target_is_held` stays
+working directory (the key now reads them from its own tree's root; three
+`test_provenance_gates` tests failed on these last two causes). The seventh is
+item 3's intended red on the live summaries. `target_is_held` stays
 in `montecarlo`: placed in `cityconfig` it moved `pools._deps_sha` (an emit
 dependency) and staled `bye_value.json`.

@@ -1181,7 +1181,7 @@ def healthy_widths():
     return {"draw_law": "universal", "record": {"kind": "fit"},
             "parties": {"AAA": row(0.05, 0.0, 0.0, 0.0055),
                         "DDD": row(0.8, 0.87, 0.33, 0.001)},
-            "kappa_iters": 3, "kappa_converged": True,
+            "kappa_iters": 3, "kappa_converged": True, "individual_mass": 0.0,
             "judgements_sha": "0" * 16,
             "judgements_applied": [], "judgements_ignored": []}
 
