@@ -84,6 +84,36 @@ after declaring `_LOG_FLOOR`). Only changes to what the code *computes* qualify.
 4. Re-take the baseline (`compare_history`) and the freeze, in that order, on a
    settled tree. **Every number quoted afterwards comes from that run.**
 
+### The model round's step 7 (2026-10-11 round), in this order
+
+The order of `prereg/2026-10-12-universal-draw.md` amendment 2. It replaces
+steps 2-4 above for this window.
+
+1. `.venv/bin/python src/backup_ignored.py`, before anything writes into
+   `data/**`.
+2. R1 part 1 and part 2 (the prereg's amendment 1) on the CURRENT,
+   pre-re-emit specs: worktrees at `8ee8269` and `2e4ea79`, both sharing the
+   current `data/processed` and `data/raw`. They read the specs; nothing is
+   emitted from them.
+3. Re-emit every spec (step 2's loop).
+4. `.venv/bin/python src/group_share_record.py --emit`.
+5. `.venv/bin/python src/width_record.py --emit`, and again with
+   `--set level_shrink=0` (arm US's variant).
+6. Build the C0 worktree: the final tree with `c2edc60` reverted, `data/raw`
+   copied in, its own re-emit, `group_share_record --emit` and both
+   `width_record --emit` variants, into its own `data/processed`, never
+   copied into the main tree.
+7. The post-emit checks: the prereg §6.2 real-run tests, the Buffalo City
+   record-seam test (`tests/test_universal_draw.py::test_the_record_reads_the_models_own_centres_at_a_real_city_year`),
+   `src/declares.py --verify`, and `tests/test_intermediates_are_current.py`.
+8. The arms, through `src/arms.py run` (I, U, UC, US in the main tree; C0 in
+   its worktree) into a directory outside `data/`, then `src/arms.py compare`
+   and `src/plausibility.py` on them.
+
+⛔ **No edit to `montecarlo.py`, `levels.py`, `pools.py` or `width_record.py`
+between step 5 and step 8.** Any such edit stales the width record's key and
+moves what the arms measure; if one is needed, go back to step 3.
+
 ---
 
 ## Queued — read the table for what is outstanding, never a count from this line
