@@ -16,15 +16,16 @@ name, a reader's prediction (entry version 2):
     422             {"errors": [str]}   reader_seats refused the input
 
     POST /v1/card   {"seats": <the /v1/seats body>, "coalition": [code],
-                     "draws_sha256": hex}
+                     "draws_sha256": hex, "prediction_sha256": hex}
     200             the /v1/seats answer, plus
                     {"outcome": reweight.outcome_chance's answer, with
                                 "p", "text", "badge" and "boldest" (the
                                 call the badge judges),
-                     "draws_sha256": hex}
-    409             {"error": ...}      the published draws this Worker holds
-                                        are not the ones the caller's page was
-                                        built from (a re-publish in between)
+                     "draws_sha256": hex, "prediction_sha256": hex}
+    409             {"error": ...}      the published draws or prediction this
+                                        Worker holds are not the ones the
+                                        caller's page was built from (a
+                                        re-publish in between)
     422, 400, 501   as /v1/seats
 
 ``/v1/card`` is the link preview's answer (src/worker.js, audits/
@@ -57,7 +58,7 @@ except ImportError:  # not copied yet: the stub answer
     CODE_REF = None
 
 ARGUMENTS = ("ward_votes", "list_votes", "ward_winners", "context")
-CARD_ARGUMENTS = ("seats", "coalition", "draws_sha256")
+CARD_ARGUMENTS = ("seats", "coalition", "draws_sha256", "prediction_sha256")
 
 
 def answer(body):
@@ -84,7 +85,8 @@ def answer(body):
 def load_draws(manifest_bytes, blob):
     """The published draws as the card reads them: the party seat columns and
     each simulation's majority under ``reweight.PUBLISHED_LAW``, and the
-    sha256 of manifest + blob (``src/build_make.py``'s ``draws_sha256``)."""
+    sha256 of manifest + blob (``src/build_make.py``'s ``draws_sha256``).
+    ``_draws`` adds ``prediction`` (:func:`load_prediction`) to this."""
     manifest = json.loads(manifest_bytes)
     arrays = reweight.unpack(blob, manifest)
     law = reweight.PUBLISHED_LAW
@@ -93,6 +95,28 @@ def load_draws(manifest_bytes, blob):
     return {"sha256": hashlib.sha256(bytes(manifest_bytes) + bytes(blob)).hexdigest(),
             "seats": seats, "columns": parties,
             "thresholds": arrays[f"council/{law}"][:, 0]}
+
+
+def prediction_sha256(seats):
+    """sha256 of a prediction's seats, one ``code=seats`` line per party in
+    code order: the edge computes the same from forecast.json's
+    ``start.seats`` (src/share-edge.js ``predictionSha``), so a card is drawn
+    only from the prediction the page and the edge hold, and its image is
+    cached under it."""
+    h = hashlib.sha256()
+    for c in sorted(seats):
+        h.update(f"{c}={int(seats[c])}\n".encode())
+    return h.hexdigest()
+
+
+def load_prediction(forecast_bytes, draws_sha256):
+    """The published prediction's seats, ``{party: seats}``: the ``start.seats``
+    of the site's ``forecast.json`` (``build_make.start_state``), which must
+    have been built from the draws hashed ``draws_sha256``."""
+    data = json.loads(forecast_bytes)
+    if data.get("draws_sha256") != draws_sha256:
+        raise ValueError("forecast.json was built from other draws than the Worker holds")
+    return {str(p): int(v) for p, v in data["start"]["seats"].items()}
 
 
 def card(body, draws):
@@ -105,12 +129,16 @@ def card(body, draws):
         return 400, {"error": f"the body must carry exactly {list(CARD_ARGUMENTS)}"}
     if body["draws_sha256"] != draws["sha256"]:
         return 409, {"error": "the published draws differ from the caller's"}
+    if body["prediction_sha256"] != draws["prediction_sha256"]:
+        return 409, {"error": "the published prediction differs from the caller's"}
     status, seats = answer(body["seats"])
     if status != 200:
         return status, seats
     outcome = reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"], None,
-                                      seats["seats"], seats["majority"], body["coalition"])
-    return 200, {**seats, "outcome": outcome, "draws_sha256": draws["sha256"]}
+                                      seats["seats"], seats["majority"], body["coalition"],
+                                      prediction=draws["prediction"])
+    return 200, {**seats, "outcome": outcome, "draws_sha256": draws["sha256"],
+                 "prediction_sha256": draws["prediction_sha256"]}
 
 
 def _json(data, status=200):
@@ -127,10 +155,14 @@ async def _draws(origin):
         from js import fetch  # the Workers runtime's fetch, under Pyodide
         man = await fetch(origin + "/draws/manifest.json")
         blob = await fetch(origin + "/draws/base.bin")
-        if not (man.ok and blob.ok):
+        fc = await fetch(origin + "/your-forecast/forecast.json")
+        if not (man.ok and blob.ok and fc.ok):
             raise RuntimeError("the published draws could not be fetched")
-        _DRAWS = load_draws((await man.arrayBuffer()).to_bytes(),
-                            (await blob.arrayBuffer()).to_bytes())
+        drawn = load_draws((await man.arrayBuffer()).to_bytes(),
+                           (await blob.arrayBuffer()).to_bytes())
+        drawn["prediction"] = load_prediction((await fc.arrayBuffer()).to_bytes(), drawn["sha256"])
+        drawn["prediction_sha256"] = prediction_sha256(drawn["prediction"])
+        _DRAWS = drawn
     return _DRAWS
 
 

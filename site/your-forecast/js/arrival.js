@@ -109,11 +109,11 @@ export function showArrival(v) {
     el("p", { className: "yf-arr-sub" }, spec.election.city + " council, " + dateText(spec.election.date) + ". " +
       spec.council + " seats, " + spec.majority + " for a majority."),
     el("div", { className: "yf-arr-verdict", "aria-live": "polite" },
-      el("p", { className: "yf-arr-what" }, o ? spec.words : "Working out the chance we give this outcome."),
+      el("p", { className: "yf-arr-what" }, o ? spec.words : "Working out the chance we give this call."),
       o ? el("div", { className: "yf-arr-badge" },
         el("img", { src: "../" + STAMP_DIR + "/" + badgeFile(spec.badge), alt: spec.badge, className: "yf-stamp" }),
-        el("div", {}, el("p", { className: "yf-arr-chance" }, spec.chance),
-          el("p", { className: "yf-arr-bold" }, boldestLine(spec.boldest, v.party, poss(name) + " boldest call")))) : null,
+        el("div", {}, el("p", { className: "yf-arr-call" }, boldestLine(spec.boldest, v.party, poss(name) + " boldest call")),
+          spec.chance ? el("p", { className: "yf-arr-chance" }, spec.chance) : null)) : null,
       el("p", { className: "yf-arr-how" }, "The chance is ours, from the forecast as published today. The seats are " + poss(name) +
         ": every ward called, the vote set, and the law seating the result.")),
     el("p", { className: "yf-arr-quick" }, chooseButton("friend", "Make your own, starting from " + poss(name), null, "btn primary")),

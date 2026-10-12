@@ -382,11 +382,11 @@
 .yf-arr-sub{color:var(--ink-2);font-size:clamp(16px,1.6vw,18px);margin:0;}
 .yf-arr-verdict{border:1px solid var(--rule);background:var(--paper-2);border-radius:8px;padding:16px;margin-top:20px;}
 .yf-arr-what{color:var(--ink-2);font-size:15px;line-height:1.45;margin:0;}
-.yf-arr-chance{font:600 clamp(24px,2.6vw,30px)/1.2 var(--serif);color:var(--ink);margin:6px 0 0;}
+.yf-arr-call{font:600 clamp(24px,2.6vw,30px)/1.2 var(--serif);color:var(--ink);margin:6px 0 0;}
 /* the owner's badge (src/stamps/reader-*.svg) beside the chance and the boldest call */
 .yf-arr-badge{display:flex;align-items:center;gap:16px;margin:8px 0 0;}
 .yf-stamp{width:112px;height:auto;flex:none;}
-.yf-arr-bold{font-size:15px;color:var(--ink-2);margin:6px 0 0;line-height:1.4;}
+.yf-arr-chance{font-size:15px;color:var(--ink-2);margin:6px 0 0;line-height:1.4;}
 .yf-arr-how{font-size:13px;color:var(--ink-3);margin:8px 0 0;line-height:1.45;}
 .yf-arr-quick{margin:16px 0 0;}
 .yf-arr-quick .btn{width:100%;}

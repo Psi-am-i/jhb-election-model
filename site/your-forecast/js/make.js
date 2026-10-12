@@ -73,7 +73,7 @@ import { WardMap } from "./map.js";
 import { setShareable, onNameChange, onOpen } from "./make-share.js";
 import { setHandoff } from "./play-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
-import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
+import { forecastSpec, aChance, chanceSentence, councilChanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
 import { seatTable } from "./seat-table.js";
 import { placeTip } from "./tip.js";
 import { engineCall, onForecast } from "./model.js";
@@ -414,7 +414,7 @@ function paintArrival() {
 // arrival view, the return card and the reader's own card.
 function outcomeOf(st, coalition, answer) {
   return engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, st.calls[i]])),
-    share: B.percentOf(st, ctx, "list"), seats: answer.seats, majority: answer.majority, coalition, keep: [] }).then(a => a.outcome);
+    share: B.percentOf(st, ctx, "list"), seats: answer.seats, prediction: D.start.seats, majority: answer.majority, coalition, keep: [] }).then(a => a.outcome);
 }
 async function friendOutcome() {
   if (!friend || !friend.answer || friend.outcome) return;
@@ -1015,7 +1015,7 @@ async function analyse(scroll) {
   try {
     a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
                                       share: B.percentOf(state, ctx, "list"), seats: result.seats,
-                                      majority: result.majority, coalition: S.coalition,
+                                      prediction: D.start.seats, majority: result.majority, coalition: S.coalition,
                                       keep: analysed ? Object.keys(analysed.seats) : [] });
   } catch (e) {
     if (ticket === analyseTicket) one.anote.textContent = "The analysis could not run: " + (e.message || e) + ".";
@@ -1030,11 +1030,13 @@ async function analyse(scroll) {
   if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 // "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
-// the whole forecast, a ward, a party's seats and its vote alike:
-// share-card.js's aChance and chanceSentence, one definition.
+// a ward, a party's seats and its vote alike, and "We give that council
+// outcome a 3% chance." for the whole forecast (2026-10-12; the cards print
+// the boldest call's chance instead): share-card.js's aChance,
+// chanceSentence and councilChanceSentence, one definition.
 //
 // The analysis (owner, 2026-10-05), three parts:
-//   * the headline: what "this outcome" is, the reader's council-level
+//   * the headline: what the "council outcome" is, the reader's council-level
 //     outcome in the cards' words (share-card.js outcomeWords: the largest
 //     party, a majority alone or not, the chosen coalition), its chance, and
 //     the page's line that it is the citywide result only;
@@ -1050,8 +1052,8 @@ async function analyse(scroll) {
 let amap = null;
 function paintAnalysis(a) {
   const sc = a.score;
-  one.outcome.textContent = "This outcome: " + outcomeWords(a.outcome, partyOf);
-  one.verdict.textContent = chanceSentence(a.outcome.text);
+  one.outcome.textContent = "Council outcome: " + outcomeWords(a.outcome, partyOf);
+  one.verdict.textContent = councilChanceSentence(a.outcome.text);
   // ward wins: the reader's map, shaded by our chance for each call
   // each ward's title names our chance for the call there (a screen reader
   // reads it; a pointer shows it); a ward's strength has a floor, so a call

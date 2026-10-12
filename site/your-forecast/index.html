@@ -303,8 +303,9 @@
     <section class="yf-analysis" aria-labelledby="h-analysis">
       <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
       <div data-live="b-analysis" hidden>
-        <!-- the headline: what "this outcome" is (share-card.js outcomeWords,
-             as on the cards), then the chance we give it (chanceSentence) -->
+        <!-- the headline: what the council outcome is (share-card.js outcomeWords),
+             then the chance we give it (councilChanceSentence). The cards print the
+             chance of the forecast's boldest call instead (boldestChance) -->
         <p class="yf-outcome yf-slot"></p>
         <p class="yf-verdict yf-slot"></p>
         <p class="yf-cityonly">This is the citywide result only. Your ward calls and seat counts can be off while it
@@ -417,7 +418,7 @@
         votes on each ballot across them. The list puts first the parties that hold a seat at the start, most seats
         first, and the rest under "Other parties". The order stays fixed while you edit, so a party can sit in the
         first list with no votes.</li>
-      <li id="note-outcome">"This outcome" is your council's: the party with the most seats on its own, or a tie for
+      <li id="note-outcome">The "council outcome" is your council's: the party with the most seats on its own, or a tie for
         the most; whether any one party has a majority on its own; and, if you picked who governs, that coalition
         holding a majority. Its chance is the share of the published forecast's <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-current="5,000" data-prov="5,000. Unchanged since 26 September 2026. Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> simulations, each counted
         once, in which all of these happen together. A ward's chance is the share in which your party wins it; your
