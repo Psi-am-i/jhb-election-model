@@ -43,3 +43,8 @@ export · 10 site UAT, promote, then redeploy joburg-seats.
   log-scale draw for every party in place of the 5% line (MODEL-LOG §1.297).
   Pooling sub-1% parties into a class may follow once the universal draw is
   measured. Paired draws and the census registration change proceed unchanged.
+- 2026-10-12, owner on new parties and collapses: parties with no record, and
+  collapses like COPE's, rest on judgement calls about strength that the record
+  cannot supply. Requirement for the design: one consistent way to enter such a
+  judgement (centre and width) that applies to any party the same way, declared
+  in JUDGEMENT-CALLS.md, not per-party special cases.
