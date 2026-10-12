@@ -589,23 +589,70 @@ def test_the_scratch_root_really_was_purged():
         "trivially true for them:\n  " + "\n  ".join(leaked))
 
 
-def test_every_forecast_declares_the_strength_judgements_it_applied_truly():
-    """Design 1j v3 addendum §2 / prereg J2, on the live tree: every run output
-    under data/processed that declares a strength-judgement hash declares the
-    one the live judgements file gives (`declares.judgements_lie`). The
-    population is stated, because before the round's re-emit no summary
-    carries the field."""
+def _summary_judgement_faults(processed: Path) -> tuple[list, list[str]]:
+    """Every ``*summary.json`` under ``processed`` (the population, returned)
+    and the sentence `declares.judgements_lie` gives for each that fails."""
     import declares
-    summaries = sorted(PROCESSED.rglob("*summary.json"))
-    declaring = []
+    summaries = sorted(processed.rglob("*summary.json"))
+    faults = []
     for p in summaries:
         d = json.loads(p.read_text())
-        sc = d.get("scenario") or {}
-        if sc.get("_judgements_applied_sha"):
-            declaring.append(p)
-            assert declares.judgements_lie(sc, d.get("_target")) is None, p
-    print(f"  {len(declaring)} of {len(summaries)} run summaries declare a "
-          f"strength-judgement hash")
+        lie = declares.judgements_lie(d.get("scenario") or {}, d.get("_target"))
+        if lie:
+            faults.append(f"{p.name}: {lie}")
+    return summaries, faults
+
+
+def test_the_judgement_declaration_check_looks_and_can_see():
+    """Step-6 item 3, on a CONSTRUCTED population: a forecast summary that
+    declares the live hash passes; one that declares nothing is caught; a
+    backtest summary that declares nothing passes (judgements are ignored on
+    a backtest); a summary with no target is caught. Each fault cleared, the
+    check is quiet. The population scanned is exactly the files written."""
+    import montecarlo as M
+    sc = dict(M.DEFAULTS)
+    good_sha = M.live_judgements_sha("joburg", "2026", sc)
+    assert not M.target_is_held("2026") and M.target_is_held("2021")
+    with tempfile.TemporaryDirectory() as tmp:
+        proc = Path(tmp)
+
+        def write(name, scenario, target):
+            (proc / name).write_text(json.dumps({
+                "scenario": scenario, "_target": target,
+                "_generated": "2026-10-12T00:00:00Z", "_draws": 10}))
+        fc = {"city": "joburg", "year": "2026"}
+        write("forecast_summary.json",
+              dict(sc, _judgements_applied_sha=good_sha), fc)
+        write("backtest_summary.json", dict(sc),
+              {"city": "joburg", "year": "2021"})
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 2 and not faults, faults
+        write("regime_cap_summary.json", dict(sc), fc)
+        write("old_summary.json", dict(sc), None)
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 4
+        assert sorted(f.split(":")[0] for f in faults) == [
+            "old_summary.json", "regime_cap_summary.json"], faults
+        write("regime_cap_summary.json",
+              dict(sc, _judgements_applied_sha=good_sha), fc)
+        (proc / "old_summary.json").unlink()
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 3 and not faults, faults
+
+
+def test_every_forecast_declares_the_strength_judgements_it_applied_truly():
+    """Design 1j v3 addendum §2 / prereg J2, on the live tree: every run
+    summary under data/processed passes `declares.judgements_lie` — a
+    forecast declares the hash the live judgements file gives, a backtest
+    may declare nothing, and a summary that names no target fails. Summaries
+    written before 2026-10-12 declare neither a hash nor a target, so this is
+    red until the step-7 runs rewrite them; the check that it looks is the
+    constructed test above."""
+    summaries, faults = _summary_judgement_faults(PROCESSED)
+    assert summaries, "no run summary under data/processed: nothing was checked"
+    assert not faults, (f"{len(faults)} of {len(summaries)} run summaries "
+                        f"fail the judgement declaration:\n  "
+                        + "\n  ".join(faults))
 
 
 def test_a_judgement_edited_after_a_run_is_reported_and_goes_quiet_reverted():

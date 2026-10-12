@@ -1275,8 +1275,11 @@ replaces its centre before `pool_spec`, and a judged width `sigma_j` that
 replaces its newness term, read at run time from `judgements/`. A backtest
 ignores them and records that it did (`35_widths.judgements_ignored`); a
 forecast declares the hash of the entries it applied
-(`scenario._judgements_applied_sha`), which `declares.py --verify` checks
-against the live file.
+(`scenario._judgements_applied_sha` in the run summary;
+`artefact_key.judgements_applied_sha` in an `export_draws` manifest), which
+`declares.py --verify` checks against the live file. On a forecast
+(`montecarlo.target_is_held` false) an absent declaration fails, and so does a
+summary naming no `_target`; a backtest may declare nothing.
 
 **The trace.** `35_widths`: the law, the record used, and per party the centre,
 σ, δ, ρ, the shared and own sds, `v_comp`, the floored excess, κ, and whether

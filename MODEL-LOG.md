@@ -29400,3 +29400,28 @@ record under the live key reads; a changed spec key, a changed group-share
 key and a vanished spec each refuse; each reverted, it reads. Mutations: the
 spec hash or the group-share hash replaced by a constant, red; reverted,
 green. A `--out DIR` record is keyed on the repository's specs, which it read.
+
+### The judgement declaration is required on a forecast (item 3)
+
+Only `forecast_summary.json` declared `_judgements_applied_sha`;
+`export_draws` built its manifest's `config` from `DEFAULTS` keys and dropped
+the underscore key; and `declares.judgements_lie` returned None when nothing
+was declared, so `test_every_forecast_declares…` passed with zero summaries
+declaring. Now: the manifest's `artefact_key` carries
+`judgements_applied_sha` (`export_draws.judgements_declaration`, which refuses
+seat laws that ran with different hashes); `judgements_lie` fails a forecast
+that declares nothing and a summary with no `_target`, and allows an absent
+declaration on a backtest only (`montecarlo.target_is_held`, now the one
+definition `strength_judgements` also uses); `declares.manifest_judgements_lie`
+applies it to a manifest. Tests: on a constructed population (a declaring
+forecast and a silent backtest pass; a silent forecast and a target-less
+summary are caught; cleared, quiet; population = the files written), and on
+a constructed manifest key. Mutation: an absent declaration allowed on a
+forecast, both constructed tests red; reverted, green. The manifest field is
+asserted on a real export only by `test_export_draws`' slow test, which runs
+the model and waits for the re-emit.
+
+On the live tree every run summary under `data/processed` predates `_target`
+and the hash, so `test_every_forecast_declares_the_strength_judgements_it_applied_truly`
+is red, and `declares.py --verify` marks those summaries `~`, until the
+step-7 runs rewrite them.

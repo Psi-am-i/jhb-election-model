@@ -349,19 +349,48 @@ def _spec_rows(live_sha: str | None, processed: Path) -> list[Row]:
 
 
 def judgements_lie(scenario: dict, target: dict | None) -> str | None:
-    """A sentence when a run's declared strength-judgement hash differs from
-    what the live judgements file gives (``montecarlo.live_judgements_sha``);
-    None when it agrees or the run declares none."""
-    declared = (scenario or {}).get("_judgements_applied_sha")
-    if not declared or not target:
-        return None
+    """A sentence when a run's strength-judgement declaration is wrong or
+    missing where it is required; None when it holds.
+
+    * declared: it must equal what the live judgements file gives
+      (``montecarlo.live_judgements_sha``), on any target;
+    * not declared, on a FORECAST (``montecarlo.target_is_held`` false): a
+      failure. A forecast is the one artefact a judgement can reach, so an
+      absent declaration is an unchecked input, not a pass (step-6 review,
+      item 3). On a backtest the judgements are ignored by design and an
+      absent declaration is allowed;
+    * no target at all: a failure, since whether the artefact is a forecast
+      cannot be told, and a check that cannot tell passes nothing.
+    """
     import montecarlo as _mc
+    declared = (scenario or {}).get("_judgements_applied_sha")
+    if not target or not target.get("city") or not target.get("year"):
+        return ("declares no target (`_target` city and year), so whether it "
+                "is a forecast that must declare its strength-judgement hash "
+                "cannot be told")
+    if not declared:
+        if _mc.target_is_held(target["year"]):
+            return None
+        return (f"a forecast of {target['city']} {target['year']} that declares "
+                f"no strength-judgement hash (`_judgements_applied_sha`): the "
+                f"judgements it ran with are unchecked")
     live = _mc.live_judgements_sha(target["city"], target["year"], scenario)
     if live != declared:
         return (f"declares strength judgements {declared} but the live "
                 f"judgements file gives {live}: a judgement was edited after "
                 f"the run")
     return None
+
+
+def manifest_judgements_lie(key: dict) -> str | None:
+    """:func:`judgements_lie` on an ``export_draws`` manifest's
+    ``artefact_key``: its ``city``, ``target``, ``judgements_applied_sha``
+    and the deduct law's ``config`` (every law runs one scenario's
+    judgements; ``export_draws`` refuses laws that disagree)."""
+    config = dict(((key or {}).get("config") or {}).get("deduct") or {})
+    config["_judgements_applied_sha"] = (key or {}).get("judgements_applied_sha")
+    target = {"city": (key or {}).get("city"), "year": (key or {}).get("target")}
+    return judgements_lie(config, target)
 
 
 def _json_rows(live_keys: dict, processed: Path) -> list[Row]:

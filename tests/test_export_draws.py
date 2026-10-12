@@ -490,6 +490,37 @@ def test_the_manifest_carries_every_field_declares_requires_of_a_run():
     import cityconfig
     import freeze
     assert key["inputs"] == freeze.pool_artefact_keys(cityconfig.use("joburg"))
+    # and the strength judgements it ran with (step-6 item 3)
+    assert declares.manifest_judgements_lie(key) is None, \
+        declares.manifest_judgements_lie(key)
+
+
+def test_the_manifest_declares_the_judgements_and_a_forecast_must():
+    """Step-6 item 3, constructed (no export run): the manifest carries the
+    one strength-judgement hash the laws applied, laws that disagree are
+    refused, and `declares.manifest_judgements_lie` fails a forecast manifest
+    that declares none, passes it with the live hash, and passes a backtest
+    manifest with none."""
+    import montecarlo as M
+    sc = {k: M.DEFAULTS[k] for k in ("draw_law", "apply_judgements")}
+    live = M.live_judgements_sha("joburg", "2026", dict(M.DEFAULTS))
+    runs = {law: {"judgements_applied_sha": live} for law in E.LAWS}
+    assert E.judgements_declaration(runs) == live
+    try:
+        E.judgements_declaration(dict(runs, cap={"judgements_applied_sha": "0"}))
+    except SystemExit as exc:
+        assert "different strength judgements" in str(exc)
+    else:
+        raise AssertionError("laws with different judgements were accepted")
+    key = {"city": "joburg", "target": "2026", "config": {"deduct": sc},
+           "judgements_applied_sha": live}
+    assert declares.manifest_judgements_lie(key) is None
+    assert "declares no strength-judgement hash" in (
+        declares.manifest_judgements_lie(dict(key, judgements_applied_sha=None))
+        or "")
+    assert declares.manifest_judgements_lie(key) is None
+    assert declares.manifest_judgements_lie(
+        dict(key, target="2021", judgements_applied_sha=None)) is None
 
 
 def test_the_model_hash_is_the_model_s_import_closure_and_recomputes():

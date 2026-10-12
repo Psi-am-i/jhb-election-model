@@ -3528,6 +3528,15 @@ def read_width_record(year: str, scenario: dict,
 # strength judgements, read at run time (design v3 §11, v3 addendum §2)
 # --------------------------------------------------------------------------
 
+def target_is_held(year) -> bool:
+    """True when the election at ``year`` has a result file in the calendar:
+    a BACKTEST target. False for a forecast. ONE DEFINITION: the strength
+    judgements are ignored on a held target, and a forecast artefact must
+    declare the hash of the judgements it applied (``declares.py``)."""
+    e = cityconfig.CALENDAR.get(str(year))
+    return bool(e and e.results)
+
+
 def strength_judgements(city, target) -> tuple[list[dict], list[dict]]:
     """The target's strength judgements: ``(applied, ignored)``.
 
@@ -3568,9 +3577,7 @@ def strength_judgements(city, target) -> tuple[list[dict], list[dict]]:
                         "overperform": float(body.get("overperform", 1.0)),
                         "sigma_j": float(body["sigma_j"]),
                         "register": str(body["register"])})
-    held = bool(cityconfig.CALENDAR.get(str(target.year))
-                and cityconfig.CALENDAR[str(target.year)].results)
-    if held:
+    if target_is_held(target.year):
         reason = "backtest: a judgement cannot be blind after the election"
         return [], [dict(e, reason=reason) for e in entries]
     return entries, []
