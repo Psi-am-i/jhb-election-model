@@ -1505,8 +1505,19 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     # the boldest call is measured from the published prediction the page
     # sends (forecast.json start.seats), and the analysis refuses without it
     # (JUDGEMENT-CALLS §N10: no fallback to the medians)
-    bold = a["outcome"]["boldest"]
-    assert bold["party"] is None or bold["prediction"] == seats.get(bold["party"], 0)
+    assert a["outcome"]["boldest"]["party"] is None            # the reader's seats ARE the prediction
+    moved = dict(seats)
+    moved[top2[0]] += 6
+    moved[top2[1]] -= 6
+    m = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": moved,
+                                             "prediction": seats, "coalition": top2})))["outcome"]
+    party_seats, party_cols = R.party_columns(arr["seats/deduct"], sc)
+    want = R.boldest_call(party_seats.astype(float), party_cols, None, moved, seats)
+    got = m["boldest"]
+    # a real call, measured from the prediction the page sent (not from the medians)
+    assert got["party"] is not None and got["prediction"] == seats[got["party"]] != got["seats"], got
+    assert (got["party"], got["seats"], got["prediction"]) == (want["party"], want["seats"], want["prediction"])
+    assert math.isclose(got["p"], want["p"], rel_tol=1e-12) and m["badge"] == R.boldness(want["p"])
     try:
         ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats}))
     except ValueError as exc:
@@ -1525,6 +1536,19 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
                                                 "prediction": seats, "keep": [gone]})))
     assert gone in kept["seats"] and set(a["seats"]) < set(kept["seats"])
 
+
+
+def test_the_page_sends_the_published_prediction_with_every_analyse_request():
+    """make.js asks page.py's analyse in two places (the analysis, and the
+    chance and badge of the arrival view and the cards); each sends
+    ``prediction: D.start.seats`` (JUDGEMENT-CALLS §N10: the call is measured
+    from it, and analyse refuses without it). A call site without it, built
+    here by removing one, is caught."""
+    js = (_built() / BREAK).read_text(encoding="utf-8")
+    calls = js.count('engineCall("analyse"')
+    assert calls == 2, calls
+    assert js.count("prediction: D.start.seats") == calls
+    assert js.replace("prediction: D.start.seats", "", 1).count("prediction: D.start.seats") != calls
 
 
 # -- Lane B (owner, 2026-10-05): stops said, every option applies or says why --

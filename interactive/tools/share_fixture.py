@@ -70,6 +70,7 @@ def build() -> dict:
     draws = entry.load_draws((REPO / "site/draws/manifest.json").read_bytes(), (REPO / "site/draws/base.bin").read_bytes())
     # the published prediction the boldest call is measured from, as the Worker loads it
     draws["prediction"] = entry.load_prediction((REPO / "site/your-forecast/forecast.json").read_bytes(), draws["sha256"])
+    draws["prediction_sha256"] = entry.prediction_sha256(draws["prediction"])
 
     def calls_with(cut):
         return [probs[w][1][0] if probs[w][0][1] < cut and len(probs[w]) > 1 else c
@@ -94,7 +95,8 @@ def build() -> dict:
             coalition.append(c)
             if sum(seats[x] for x in coalition) >= ans["majority"]:
                 break
-        status, card = entry.card({"seats": body, "coalition": coalition, "draws_sha256": draws["sha256"]}, draws)
+        status, card = entry.card({"seats": body, "coalition": coalition, "draws_sha256": draws["sha256"],
+                                  "prediction_sha256": draws["prediction_sha256"]}, draws)
         assert status == 200, card
         ans = {k: v for k, v in card.items() if k not in ("code_ref", "draws_sha256")}
         return {"name": name, "calls": calls, "vote": {c: v for c, v in pct.items() if v > 0},

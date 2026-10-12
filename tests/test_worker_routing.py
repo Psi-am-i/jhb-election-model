@@ -958,8 +958,15 @@ def test_the_image_asks_the_seat_worker_and_falls_back_to_the_generic_image():
     assert runs[0]["seatCalls"] == [] and runs[3]["seatCalls"] == []
     call = runs[2]["seatCalls"][0]
     assert call["url"] == "https://seats/v1/card"
-    assert set(call["body"]) == {"seats", "coalition", "draws_sha256"}
+    assert set(call["body"]) == {"seats", "coalition", "draws_sha256", "prediction_sha256"}
     assert call["body"]["draws_sha256"] == S["data"]["draws_sha256"]
+    # the published prediction's hash, one code=seats line per party in code
+    # order (the seat Worker's entry.prediction_sha256, computed here from
+    # forecast.json's start.seats independently of both)
+    import hashlib
+    seats = S["data"]["start"]["seats"]
+    assert call["body"]["prediction_sha256"] == hashlib.sha256(
+        "".join(f"{c}={seats[c]}\n" for c in sorted(seats)).encode()).hexdigest()
     assert call["body"]["coalition"] == S["top"]
     wards = S["data"]["schema"]["x-seat-context"]["wards"]
     assert call["body"]["seats"]["ward_winners"] == dict(zip(wards, S["calls"]))

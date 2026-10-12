@@ -284,12 +284,29 @@ wanted: the old site Worker reads the new answer (above). Rolling back only
 
 The card prints the boldest call's own chance (JUDGEMENT-CALLS §N10, amended
 2026-10-12); `reweight.py` changed (`boldest_call` takes the published
-prediction, `outcome_chance` requires it). No request body changed: the seat
-Worker reads the prediction from the site's `/your-forecast/forecast.json`,
-which must name the same draws as `/draws/`. Either order of deployment works
-for link previews except one window: a `joburg-seats` deployed before the
-site's `forecast.json` is the new one still reads the old file's
-`start.seats`, which is the same prediction while the draws are unchanged.
+prediction, `outcome_chance` requires it). The seat Worker reads the
+prediction from the site's `/your-forecast/forecast.json`, which must name
+the same draws as `/draws/`. `/v1/card` now takes a `prediction_sha256` (a
+hash of that prediction's seats) and answers it back, and the site Worker
+refuses an answer that lacks it or whose call was not measured from the
+prediction (`share-edge.js` `cardAnswer`).
+
+**Either order is safe; neither draws a wrong card.** Deploy `joburg-seats`
+first (steps below). A mismatched pair of Workers answers with a refusal,
+never a card:
+- *old site Worker, new seat Worker:* the new seat Worker refuses the old
+  request (no `prediction_sha256`, 400); previews fall back to the generic
+  image (`/og.png`, `no-store`) until the site Worker is promoted.
+- *new site Worker, old seat Worker:* the old seat Worker refuses the new
+  request body (400), or, if it answered, the answer has no `prediction` in
+  its call; the edge refuses it. Previews fall back to `/og.png`, not cached.
+- a `joburg-seats` isolate that holds an earlier `forecast.json` answers 409
+  to a site Worker whose `forecast.json` carries another prediction; the
+  isolate reloads on its next cold start.
+
+A card's cached image is keyed by the draws' hash and by the prediction's
+(`ps=`), so a new prediction on the same draws draws new images. Bump
+`CARD_VERSION` whenever the card's wording or layout changes.
 
 1. `node worker-api/tools/sync_seats_py.mjs` (and `--check`), then deploy
    `joburg-seats` as above.
@@ -301,6 +318,12 @@ site's `forecast.json` is the new one still reads the old file's
 
 **Why the image address moved to `/og/3/`.** The card's wording changed and
 a sealed card's image is cached for a year as immutable (see above).
+
+**Rollback.** Roll the site Worker back first, then `joburg-seats`. Rolling
+back only `joburg-seats` leaves the new site Worker asking with a body the old
+seat Worker refuses (400): previews fall back to `/og.png` until both match.
+Rolling back only the site Worker leaves the new seat Worker refusing its
+older request the same way.
 
 ## Entries at launch
 

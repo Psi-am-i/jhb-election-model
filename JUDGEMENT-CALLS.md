@@ -3482,14 +3482,17 @@ none of which moves a forecast figure.
    from are the published prediction's (`forecast.json` `start.seats`, built
    by `build_make.start_state`: rule A, `prediction.py`, through the seat
    law), not `reweight.middle_seats`, each party's own median, which is a
-   different set of seats (in the published forecast the two differ for
-   twenty-three parties, among them ANC 66 against 70 and a one-seat
-   prediction against a median of zero for the small ones; check by comparing
-   `start.seats` with `middle_seats` on the published draws, as
-   `test_the_owners_table_on_the_published_draws` does). `middle_seats` stays
+   different set of seats (how far they differ on the published draws is
+   measured in MODEL-LOG "Card coherence: the published prediction against
+   the medians", and re-checked by
+   `test_the_owners_table_on_the_published_draws`). `middle_seats` stays
    in use for the seat line of §N4 only. The page sends the prediction with
    its `analyse` request; the seat Worker reads it from the site's
-   `forecast.json`, which must name the draws' hash.
+   `forecast.json`, which must name the draws' hash. The edge sends a hash of
+   the prediction (`share-edge.js` `predictionSha`, `entry.py`
+   `prediction_sha256`) with `/v1/card`; the Worker answers 409 on a
+   different one, the edge refuses an answer not measured from it, and the
+   card's cached image is keyed by it.
 
 **Badge and printed chance agree (owner, 2026-10-12).** The badge bands the
 chance as the card prints it (`reweight.printed_chance`, rounded by
@@ -3503,8 +3506,9 @@ edges.
 
 **Re-measured table.** BADGE-DECISION.md's eight constructed forecasts, from
 the published prediction instead of the medians, are in
-`tests/test_reweight.py` `BADGE_TABLE` and BADGE-DECISION.md's 2026-10-12
-note.
+`tests/test_reweight.py` `BADGE_TABLE`, BADGE-DECISION.md's 2026-10-12 note
+and MODEL-LOG "Card coherence: the published prediction against the
+medians".
 
 ## O. Added 2026-09-29 — mergers (F5, audits/2026-09-29-mergers/SPEC.md)
 

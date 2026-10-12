@@ -625,7 +625,10 @@ def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_dr
              "seats": np.array([[5, 3, 2], [3, 5, 2], [6, 2, 2], [4, 4, 2]], dtype=float),
              "thresholds": np.array([6, 6, 6, 6], dtype=float),
              "prediction": {"A": 5, "B": 4, "C": 2}}   # the published prediction's seats
-    status, got = entry.card({"seats": body, "coalition": ["A", "C"], "draws_sha256": "ab" * 32}, draws)
+    draws["prediction_sha256"] = entry.prediction_sha256(draws["prediction"])
+    ps = draws["prediction_sha256"]
+    status, got = entry.card({"seats": body, "coalition": ["A", "C"], "draws_sha256": "ab" * 32,
+                                "prediction_sha256": ps}, draws)
     assert status == 200, got
     assert got["seats"] == {"A": 5, "B": 3, "C": 2} and got["majority"] == 6
     # A largest, no majority alone, A + C reach 6: draws 0 and 2 have A
@@ -640,12 +643,19 @@ def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_dr
     assert got["outcome"] == reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"],
                                                      None, got["seats"], 6, ["A", "C"],
                                                      prediction=draws["prediction"])
-    assert got["draws_sha256"] == "ab" * 32
-    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "cd" * 32}, draws)[0] == 409
-    assert entry.card({"seats": body, "coalition": "A", "draws_sha256": "ab" * 32}, draws)[0] == 400
+    assert got["draws_sha256"] == "ab" * 32 and got["prediction_sha256"] == ps
+    # the prediction's hash is one code=seats line per party in code order
+    import hashlib
+    assert ps == hashlib.sha256(b"A=5\nB=4\nC=2\n").hexdigest()
+    # a caller holding another prediction is refused (409), as one holding other draws is
+    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "ab" * 32, "prediction_sha256": "00" * 32}, draws)[0] == 409
+    # a body without the hash is a bad body: an earlier site Worker's request
+    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "ab" * 32}, draws)[0] == 400
+    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "cd" * 32, "prediction_sha256": ps}, draws)[0] == 409
+    assert entry.card({"seats": body, "coalition": "A", "draws_sha256": "ab" * 32, "prediction_sha256": ps}, draws)[0] == 400
     assert entry.card({"seats": body}, draws)[0] == 400
     refused = {**body, "list_votes": {**lst, "A": 0}}
-    assert entry.card({"seats": refused, "coalition": [], "draws_sha256": "ab" * 32}, draws)[0] == 422
+    assert entry.card({"seats": refused, "coalition": [], "draws_sha256": "ab" * 32, "prediction_sha256": ps}, draws)[0] == 422
 
 
 def test_the_card_reads_the_published_prediction_the_draws_were_built_into():

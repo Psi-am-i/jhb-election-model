@@ -496,7 +496,7 @@ const stateA = B.stateFromPrediction(ctx, { ward_calls: FIXTURE.A.calls, ward_vo
 const fA = MS.encode(stateA, FIXTURE.A.coalition, ctx);
 const KEY = "test-only-seal-key";
 
-function fakeEnv({ seats = true, key = KEY } = {}) {
+function fakeEnv({ seats = true, key = KEY, answer = null } = {}) {
   const files = { "/your-forecast/forecast.json": JSON.stringify(D),
     "/your-forecast/parties.json": JSON.stringify(FIXTURE.parties),
     "/logo.svg": readFileSync(resolve(repo, "site/logo.svg"), "utf8") };
@@ -519,10 +519,29 @@ function fakeEnv({ seats = true, key = KEY } = {}) {
       const body = JSON.parse(init.body);
       asked.push(body);
       // the fixture's answer for its own picks, as the seat Worker would give it
-      return new Response(JSON.stringify({ ...FIXTURE.A.answer, code_ref: "ab".repeat(32), draws_sha256: body.draws_sha256 }), { status: 200 });
+      const ans = { ...FIXTURE.A.answer, code_ref: "ab".repeat(32), draws_sha256: body.draws_sha256 };
+      return new Response(JSON.stringify(answer ? answer(ans, body) : ans), { status: 200 });
     } } } : {}),
   } };
 }
+
+test("the edge draws a card only from an answer measured from the published prediction", async () => {
+  EDGE.forgetPageData();
+  const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA, n: "Thandi" }).toString();
+  const draw = answer => EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), fakeEnv({ answer }).env, "link");
+  // the hash is the same bytes in Python (the fixture's answer, from entry.py) and here
+  assert.equal(FIXTURE.A.answer.prediction_sha256, await EDGE.predictionSha(D.start.seats));
+  assert.ok((await draw(a => a)).svg.includes("Your boldest call"));
+  // an earlier seat Worker's answer: the call measured from the medians ("middle"), no prediction
+  const old = a => { const { prediction, ...rest } = a.outcome.boldest; return { ...a, outcome: { ...a.outcome, boldest: { ...rest, middle: 66 } } }; };
+  await assert.rejects(draw(old), /not measured from the published prediction/);
+  // an answer built from another prediction
+  await assert.rejects(draw(a => ({ ...a, prediction_sha256: "00".repeat(32) })), /not measured from the published prediction/);
+  await assert.rejects(draw(a => { const { prediction_sha256, ...rest } = a; return rest; }), /not measured from the published prediction/);
+  // a forecast with no call has prediction null, and is drawn
+  const none = a => ({ ...a, outcome: { ...a.outcome, boldest: { party: null, seats: null, prediction: null, p: 1, text: "over 99%" } } });
+  assert.ok((await draw(none)).svg.includes("No call goes beyond our prediction."));
+});
 
 test("the edge draws the link's own forecast from the seat Worker's answer, sealed or not", async () => {
   EDGE.forgetPageData();

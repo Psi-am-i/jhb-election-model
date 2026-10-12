@@ -915,6 +915,18 @@ def weighted_probability(event, weights) -> float:
     return float(w[e].sum() / w.sum())
 
 
+def _printed(p: float) -> tuple[float, str]:
+    """The one rounding of a chance: ``(the printed share as a fraction, its
+    text)``. :func:`chance_text` and :func:`printed_chance` both read it."""
+    v = float(p)
+    if v > 0.99:
+        return 1.0, "over 99%"
+    if v < 0.0005:
+        return 0.0, "under 0.1%"
+    shown = f"{v * 100:.0f}" if v >= 0.095 else f"{v * 100:.1f}"
+    return float(shown) / 100, shown + "%"
+
+
 def chance_text(p: float) -> str:
     """A share of simulations as every page prints it: never "100%" or "0%".
 
@@ -924,25 +936,14 @@ def chance_text(p: float) -> str:
     same way (``model.js`` had its own rounding and printed 9.1% where the
     build printed 9.0%).
     """
-    v = float(p)
-    if v > 0.99:
-        return "over 99%"
-    if v < 0.0005:
-        return "under 0.1%"
-    return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
+    return _printed(p)[1]
 
 
 def printed_chance(p: float) -> float:
     """The share :func:`chance_text` prints for ``p``, as a fraction: "14.6%"
-    prints "15%" and is 0.15; "over 99%" is 1.0 and "under 0.1%" is 0.0. The
-    rounding is chance_text's own (its format strings), so the two cannot
-    differ."""
-    v = float(p)
-    if v > 0.99:
-        return 1.0
-    if v < 0.0005:
-        return 0.0
-    return float(f"{v * 100:.0f}" if v >= 0.095 else f"{v * 100:.1f}") / 100
+    prints "15%" and is 0.15; "over 99%" is 1.0 and "under 0.1%" is 0.0. Read
+    from the same helper as :func:`chance_text`, so the two cannot differ."""
+    return _printed(p)[0]
 
 
 def boldness(p: float) -> str:

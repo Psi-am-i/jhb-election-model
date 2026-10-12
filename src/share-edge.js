@@ -182,13 +182,24 @@ function withTimeout(p, ms) {
     .finally(() => clearTimeout(t));
 }
 
+// sha256 (hex) of the published prediction's seats, one "code=seats" line per
+// party in code order: the seat Worker's entry.py prediction_sha256, the same
+// bytes. A card is drawn only from an answer measured from this prediction,
+// and its cached image is keyed by it.
+export async function predictionSha(seats) {
+  const text = Object.keys(seats).sort().map(c => c + "=" + seats[c] + "\n").join("");
+  const d = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 // The seat law's answer and the outcome's chance for one prediction, checked.
 async function cardAnswer(env, D, got) {
+  const psha = await predictionSha(D.forecast.start.seats);
   const body = B.entryBody(got.state, D.ctx, { coalition: got.coalition });
   const r = await withTimeout(env.SEATS.fetch("https://seats/v1/card", {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ seats: seatRequest(body, D.forecast.schema), coalition: got.coalition,
-                           draws_sha256: D.forecast.draws_sha256 }),
+                           draws_sha256: D.forecast.draws_sha256, prediction_sha256: psha }),
   }), SEATS_TIMEOUT_MS);
   if (r.status !== 200) throw new Error("SEATS answered " + r.status);
   const ans = await r.json();
@@ -196,6 +207,10 @@ async function cardAnswer(env, D, got) {
   const o = ans.outcome;
   if (!o || typeof o.text !== "string" || typeof o.badge !== "string" || !Array.isArray(o.coalition) ||
       !o.boldest || typeof o.boldest !== "object" || ans.draws_sha256 !== D.forecast.draws_sha256) throw new Error("the card answer is incomplete");
+  // measured from the published prediction, not from an earlier Worker's medians
+  // (`prediction` is null on a no-call answer, so `in` is the test): a refused
+  // answer is the generic image, never cached
+  if (!("prediction" in o.boldest) || ans.prediction_sha256 !== psha) throw new Error("the card answer was not measured from the published prediction");
   return { ...seats, outcome: o };
 }
 
@@ -262,7 +277,8 @@ export async function cardImage(url, env, ctx, size) {
   try {
     const D = await pageData(env, url);
     const cache = globalThis.caches?.default;
-    key = new Request(`${url.origin}${imagePath(size)}?${linkQuery(url.search)}&ds=${D.forecast.draws_sha256}`);
+    const ps = (await predictionSha(D.forecast.start.seats)).slice(0, 16);
+    key = new Request(`${url.origin}${imagePath(size)}?${linkQuery(url.search)}&ds=${D.forecast.draws_sha256}&ps=${ps}`);
     const hit = cache ? await cache.match(key) : null;
     if (hit) return hit;
     const card = await cardFor(url, env, size);

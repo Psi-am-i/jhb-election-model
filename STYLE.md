@@ -62,9 +62,13 @@ images, marketing copy. Owner, 2026-10-01.
     - **Readers'** entries are predictions. A reader who moves the model's
       levers is changing a forecast; the entry they share and are scored on is
       a prediction.
-    - A chance printed beside a prediction is the forecast's chance of that
-      prediction's outcome ("We give this outcome an N% chance"), not a property
-      of the prediction.
+    - A chance printed beside a prediction is the forecast's chance of
+      something in that prediction, not a property of the prediction. On a share
+      card it is the chance of the prediction's boldest call ("Your boldest
+      call: the PA at 38 seats. We give that an N% chance."); in "Analyse my
+      forecast", the chance of the council outcome ("We give that council
+      outcome an N% chance") and of each party's seats and vote ("We give this
+      outcome an N% chance").
     - ✗ "Your forecast: the ANC on N seats." ✓ "Your prediction: the ANC on N seats."
     - ✗ "Our prediction gives the ANC between A and B seats." ✓ "Our forecast
       gives the ANC between A and B seats."

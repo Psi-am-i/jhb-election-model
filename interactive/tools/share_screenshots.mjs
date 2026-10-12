@@ -73,7 +73,7 @@ async function open(w, h, url) {
 
 for (const [w, h] of [[375, 812], [1440, 1000]]) {
   const pg = await open(w, h, LINK);
-  await pg.waitForFunction(() => document.querySelector('[data-live="arrival"] .yf-arr-chance') &&
+  await pg.waitForFunction(() => document.querySelector('[data-live="arrival"] .yf-arr-call') &&
     document.querySelector('[data-live="arrival"] .yf-arr-seal')?.dataset.seal === "sealed", null, { timeout: 300000 });
   await pg.waitForTimeout(400);
   // the page from its top to the end of the arrival view

@@ -29122,3 +29122,29 @@ the batch. Outstanding before the batch can ship:
 - the whole suite, once;
 - the draws re-export;
 - `test_pool_bounds` (failing before the batch).
+
+## Card coherence: the published prediction against the medians (2026-10-12)
+
+Measured on the served pair `site/draws/` and `site/your-forecast/forecast.json`
+(model `7ea27c28`, `draws_sha256` equal across them); recorded for
+JUDGEMENT-CALLS §N10 (amended 2026-10-12), which holds the rule and points
+here. `start.seats` is rule A through the seat law
+(`build_make.start_state`); `reweight.middle_seats` is each party's median
+over the draws.
+
+- The two differ for 23 parties. ANC: prediction 70, median 66. DA: prediction
+  65, median 66. For most small parties the prediction holds 1 seat and the
+  median 0. Eight parties hold exactly 1 seat in the prediction.
+- The prediction against itself is no call, a Safe bet.
+- BADGE-DECISION's eight constructed forecasts, moved from the prediction
+  instead of from the medians (chance to 0.1 point; the table is held in
+  `tests/test_reweight.py` `BADGE_TABLE`): ANC +3 DA −3: ANC 73, 36.2%.
+  ANC +10 DA −10: ANC 80, 21.0%. EFF +10 ANC −10: EFF 36, 24.9%. DA +15
+  ANC −15: DA 80, 15.7%. PA +8 DA −8: PA 32, 10.5%. PA +15 DA −15: PA 39,
+  3.6%. ANC +25 DA −25: DA 40, 2.2%. DA 106: DA 106, 0.9%.
+- Review of 6ae7e90 and 63138a8 (`audits/2026-10-09-site-batch/CARD-COHERENCE-REVIEW.md`),
+  every 50th published simulation (100) taken as a reader's forecast against
+  the prediction: median boldest-call chance 1.13%; badges 90 Hail Mary and 10
+  Wild call. The calls that set them are mostly parties the prediction holds at
+  0 to 3 seats, called at 2 to 16, which the one-seat rule does not reach. This
+  is BADGE-DECISION's accepted known limit re-measured under the new reference.
