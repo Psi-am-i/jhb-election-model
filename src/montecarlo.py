@@ -4050,11 +4050,20 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             [psc.get(p, 0.0) * (1.0 - ind_mass) for p in ipf_names]
             + [cen_all[p] / tot for p in ind_names]), 1e-12)
         u_c = u_c / u_c.sum()
-        # The record's frame: every width is evaluated at the uncorrected
-        # `pool_spec` centre, so the centre-correction arm differs from the
-        # universal draw in its centres alone (prereg §3.2, arm UC "draw law as
-        # U").
-        u_s = u_c.copy()
+        # THE RECORD'S FRAME (step-6 review, item 6). `width_record` fits σ(s),
+        # ρ(s) and m(s) at s = `pool_spec_centres(spec)[p]`: the pool-spec
+        # centre over the POOLED parties, summing to one over them
+        # (`width_record.case_for`). A pooled party's width is read at that
+        # same quantity, not at the conserved share `u_c`, which is scaled by
+        # (1 − the individual-path parties' mass). On every emitted spec no
+        # party is outside a pool, the mass is 0 and the two coincide; where
+        # one is, the record has no row for it, and it is read at its share
+        # of the whole city. Uncorrected, so the centre-correction arm differs
+        # from the universal draw in its centres alone (prereg §3.2, arm UC
+        # "draw law as U").
+        u_s = np.maximum(np.array(
+            [psc.get(p, 0.0) for p in ipf_names]
+            + [cen_all[p] / tot for p in ind_names]), 1e-12)
         u_factor = np.ones(len(u_names))
         correction = {"on": bool(scenario.get("centre_correction")),
                       "location": None, "factor": {}}
@@ -4443,6 +4452,10 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
     draw_pools.widths = widths
     draw_pools.u_names = u_names
     draw_pools.u_centres = u_c
+    # The mass of the individual-path parties: the factor between the
+    # record's frame (where widths are read) and the conserved shares. Zero
+    # on every emitted spec.
+    draw_pools.individual_mass = float(ind_mass) if law == "universal" else None
     draw_pools.conserve_record = conserve_record
     draw_pools.calib_ratio = calib_ratio
     draw_pools.kappa_error = kappa_error
@@ -6994,6 +7007,10 @@ def run_model(target, scenario: dict,
         # recorded `kappa_error` always describes the κ drawn with.
         "kappa_iters": int(getattr(draw_target, "kappa_iters", 0)),
         "kappa_converged": getattr(draw_target, "kappa_converged", None),
+        # The individual-path parties' share of the centres: widths are read
+        # in the record's frame (pooled parties at their pool-spec centre),
+        # which equals the conserved shares when this is 0.
+        "individual_mass": getattr(draw_target, "individual_mass", None),
         "centre_correction": getattr(draw_target, "centre_correction", None),
         "judgements_sha": _strength["judgements_sha"],
         "judgements_applied": _strength["applied"],

@@ -360,6 +360,41 @@ def test_a_switch_of_one_law_refuses_under_the_other():
     run_arm(sc, c, i, lot="refuse|own-law", draws=5)
 
 
+def test_widths_are_read_in_the_records_frame():
+    """Step-6 item 6. `width_record` fits each width at s = the pooled
+    party's `pool_spec_centres` value (pooled parties only, summing to one
+    over them). The drawer reads every pooled party's width at that same
+    number, with or without an individual-path party; the conserved share
+    differs from it by (1 − the individual mass), which the run records.
+    Population: every drawn party is checked, both directions."""
+    import contextlib
+    import io
+    for with_x in (False, True):
+        sc, c, i = base_spec(law="universal")
+        if with_x:
+            i = dict(i, X=len(i))
+            c = dict(c, X=0.05)
+        with contextlib.redirect_stdout(io.StringIO()):
+            psc = M.pool_spec_centres(M.pool_spec(copy.deepcopy(sc), dict(c), i))
+        _, _, d = run_arm(sc, c, i, lot=f"frame|{with_x}", draws=5)
+        assert set(d.widths) == set(i), (sorted(d.widths), sorted(i))
+        for p in PARTIES:
+            w = d.widths[p]
+            assert w["centre_uncorrected"] == max(psc[p], 1e-12), (p, w)
+            assert w["sigma"] == M.width_sigma(FIXTURE_RECORD["curve"],
+                                               w["centre_uncorrected"])
+        mass = d.individual_mass
+        if not with_x:
+            assert mass == 0.0
+            continue
+        assert 0 < mass < 1 and abs(d.widths["X"]["centre_uncorrected"]
+                                    - mass) < 1e-12
+        c_of = dict(zip(d.u_names, d.u_centres))
+        for p in PARTIES:
+            assert abs(c_of[p] - psc[p] * (1 - mass)) < 1e-12, p
+            assert abs(d.widths[p]["centre_uncorrected"] - c_of[p]) > 1e-6, p
+
+
 def test_the_split_is_the_centre_and_alpha_is_never_read():
     """Under the universal law a pool's `alpha` reaches nothing: NaN it and
     every drawn number is unchanged (design v1 §6)."""

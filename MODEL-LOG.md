@@ -29364,3 +29364,23 @@ removed makes the test red; reverted, green. `tests/test_levers_are_live.py`:
 stops a run). Those sweeps run the model and wait for the re-emit; the
 module's register tests pass. `faults_in_guards`' law-awareness is recorded
 under item 2.
+
+### The width-evaluation frame (item 6)
+
+Read in the code: `width_record.case_for` fits every width at
+`s = montecarlo.pool_spec_centres(spec)[p]`, the pool-spec centre over the
+pooled parties (it sums to one over them; `residual_rows` uses it unscaled).
+That is a pool-spec centre, not a whole-city vote share. The drawer read
+widths at `u_c`: that centre times (1 − the mass of individual-path parties),
+renormalised. The two agree when no drawn party is outside a pool, which
+`emit_pools` arranges for every emitted spec, and differ by that factor
+otherwise, where the record has no row for the outside party at all. The
+drawer now reads each pooled party's width at the record's own number
+(`35_widths.parties.*.centre_uncorrected`) and records the mass
+(`35_widths.individual_mass`); an individual-path party is read at its
+whole-city share. On the constructed spec with no outside party the change is
+in the last floating bit only (σ and drawn shares move by at most 2.2e-16
+against `27194df`, from dropping the renormalisation). Test: with and without
+an outside party, every pooled party's width is read at its
+`pool_spec_centres` value and its conserved share is that times
+(1 − mass). Mutation: the old frame (`u_s = u_c`) red; reverted, green.

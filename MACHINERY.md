@@ -1213,7 +1213,14 @@ level `x = √ρ(s)·σ(s)·z + ω·ε`, `z` the run's one shared normal (stream
 `ω² = σ(s)²(1 − ρ(s)) + δ²·new − v_comp` floored at zero. The shares are
 `c·exp(κ + x)` normalised, where `c` is the party's `pool_spec` centre
 (`montecarlo.pool_spec_centres`: the post-IPF proportions weighted by pool
-votes at modal turnout). The pooled block then goes through the capacity
+votes at modal turnout). **The width is read where the record measured it.**
+`width_record` fits σ(s), ρ(s) and m(s) at `s = pool_spec_centres(spec)[p]`,
+the pool-spec centre over the pooled parties (summing to one over them), not
+at a whole-city vote share. The drawer reads each pooled party's width at that
+same number. The conserved share `c` is it times (1 − the individual-path
+parties' mass); that mass is 0 on every emitted spec, so the two coincide
+there, and it is recorded as `35_widths.individual_mass`. An individual-path
+party has no record row and is read at its share of the whole city. The pooled block then goes through the capacity
 water-fill and the per-draw balance exactly as the incumbent's shocked centres
 did; each pool's split is the balanced proportion itself: no Dirichlet, no mean
 floor. `v_comp` is what pool turnout alone puts into a party's share through
