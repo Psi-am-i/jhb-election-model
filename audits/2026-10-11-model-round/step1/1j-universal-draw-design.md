@@ -116,6 +116,10 @@ Per draw *d* and party *i* with conserved centre `c_i` (the unshocked
   others' residual relative to the block puts the record in the frame the draw
   produces.
 
+**The ward link is unchanged.** `ward_target = pr_target * ratio`
+(`montecarlo.py:5770`) stays as it is. The drawn citywide vector is the only
+input the ward path takes from this change.
+
 **Path after the draw (unchanged code, argued).** `capped_targets` water-fills
 the shocked shares under each party's pool capacity; `_balance` (IPF) turns
 them into per-pool proportions; each pool's vote is its registration times its
@@ -152,6 +156,15 @@ The run records the calibration's final error per party
 (`41_guards.mean_error`). The falsifier is a mean drawn share more than 5%
 relative from its `pool_spec` centre for any party with centre ≥ 0.1%: 1b's
 falsifier 2, about three Monte Carlo standard errors.
+
+**The calibration pass records nothing.** `draw_pools` appends to
+`turnout_record` and `split_record` and increments `ipf_stats` on every call.
+The calibration draws run with recording off, and every counter is reset
+before draw 0. Otherwise `pool_turnout_draws` gains `N_CAL` rows, which breaks
+`test_draw_record` check 2 and the interactive's reweighting, and
+`ipf_clipped` and `balances` are inflated. A test asserts
+`len(turnout_record) == draws` and that the counters equal a run without the
+pass.
 
 ### 1.3 Renormalisation and capacity
 
@@ -243,6 +256,12 @@ in earlier backtest cycles, all sizes (large-block members enter with their
 within-block residual):
 
     r_i ~ Normal( o(σ(s_i)),  σ(s_i)² ),   weight w_i = 1 / (metros the party stood in, that cycle)
+
+The normal is a working likelihood for the second moment. The mean is the
+drawn family's own offset `o(σ)` (t7 own term, normal shared factor, §1.4), so
+the estimator and the draw agree on the location. The figures below used
+`−σ²/2`; the writer uses `o(σ)` by quadrature, a difference of about 0.08 in
+the offset at σ = 1 (argued).
 
 - **Mean offset `o(σ)`, not zero.** A mean-preserving draw implies a mean log
   residual of `o(σ)` (`−σ²/2` for a normal), not 0 (1b addendum 2, adopted).
@@ -629,6 +648,7 @@ Directions to pre-register:
 | below-0.1% band mean residual +0.75 | no root in the band estimator | tiny centres far below results; level |
 | seed centres high | mean residual −1.07 (2016), −0.24 (2021) | seed sizing; next round |
 | 2011 coverage | about 0.30 | the fallback width (§2.6) |
+| 2011 under the plausibility check | the eight 2011 city-years move from failing the "too wide" tail to failing the "too narrow" tail (`P(X ≥ obs)`) on most features | the fallback width. The pre-registration scores plausibility on the 16 testable city-years and reports 2011 separately, labelled untestable |
 | largest new party above the record | 372 of 5,000 JHB 2026 draws | MK's debutant width on five precedents (§5) |
 
 ---
@@ -670,6 +690,9 @@ One writer; nobody runs the model, `compare_history` or a sweep while it lands
    - `test_group_share_tripwire` (values);
    - `test_register_matches_code` (new constants, deleted ones);
    - `test_standalone_modules` (new entry);
+   - 1c's V3.1 population test: the spec-implied key set drops every
+     `pool|member` `split` key and gains `level.shared`, `level.arrival` and
+     the `calib.*` keys;
    - new: a run-level test that `alpha` is unread (NaN patch, identical
      output).
 5. **`src/width_budget.py`**: new arms (§6), global wrapper deleted.
