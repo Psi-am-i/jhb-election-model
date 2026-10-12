@@ -105,12 +105,12 @@ export function wardChanceSentence(text) {
 // The forecast's boldest call (reweight.boldest_call, in Python), named as
 // the badge beside it judges it: "Your boldest call: the PA at 38 seats."
 // `lead` replaces "Your boldest call" (the arrival view names whose). A
-// forecast with no call beyond the published prediction (equal to it, or
-// differing only where the one-seat rule skips) says so. "" while the
+// forecast with no call (no party moved from the published prediction by
+// `min_seats`, reweight.MIN_CALL_SEATS, or more) says so. "" while the
 // outcome is still being worked out.
 export function boldestLine(boldest, party, lead = "Your boldest call") {
   if (!boldest) return "";
-  if (!boldest.party) return "No call goes beyond our prediction.";
+  if (!boldest.party) return "No party is " + boldest.min_seats + " or more seats from our prediction.";
   const p = party(boldest.party);
   return lead + ": " + (p.article || "") + p.name + " at " + boldest.seats + (boldest.seats === 1 ? " seat." : " seats.");
 }
