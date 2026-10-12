@@ -517,6 +517,17 @@ def _judgements_sha(city, target) -> str:
         payload = tomllib.loads(path.read_text())
     except Exception:
         return "unparsable"
+    # THE STRENGTH KEYS ARE NOT IN THE SPEC'S HASH (design 1j v3 §11.2, v3
+    # addendum §2). `support`, `overperform`, `sigma_j` and `register` are read
+    # at RUN time by `montecarlo.strength_judgements`, so editing one changes
+    # no spec and must force no re-emit. They are not unkeyed: the forecast
+    # declares the hash of the entries it applied
+    # (`montecarlo.judgements_applied_sha`), and `declares.py --verify` checks
+    # it against the live file.
+    for body in (payload.get("party") or {}).values():
+        if isinstance(body, dict):
+            for k in STRENGTH_KEYS:
+                body.pop(k, None)
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode()).hexdigest()[:16]
 
@@ -4924,10 +4935,14 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # it, and either one makes the party `judged` and therefore held
             # out of the group budget. Number-neutral on the tree as it stands
             # — no judgement file declares any of the three keys.
-            stated = declared.get("support")
-            mult = float(declared.get("overperform", 1.0))
-            judged = stated is not None or mult != 1.0
-            size = (float(stated) if stated is not None else base) * mult
+            # ⛔ THE STRENGTH KEYS ARE NO LONGER READ AT EMIT (design 1j v3
+            # §11.2, 2026-10-12). A judged size reaches the forecast at RUN
+            # time (`montecarlo.strength_judgements`), so a declared-weights
+            # arrival is sized here like any other, from the record base. Its
+            # judged centre then replaces this one before `pool_spec`.
+            stated, mult = None, 1.0
+            judged = False
+            size = base
             capture = _capture_from_share(vec, size, pool_size)
             short = capture_shortfall(vec, size, pool_size)
             why = ((f"pools and support DECLARED in judgements/: "
@@ -5091,12 +5106,10 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # owner who knew the size but not the pools — the ordinary case
             # for a party announced without a ward list — had their number
             # silently discarded and got the comparator mean instead.
-            stated = declared.get("support")
-            if stated is not None:
-                size = float(stated)
-            mult = float(declared.get("overperform", 1.0))
-            size *= mult
-            judged = stated is not None or mult != 1.0
+            # Not read at emit (design 1j v3 §11.2): a judged size acts at run
+            # time, through `montecarlo.strength_judgements`.
+            stated, mult = None, 1.0
+            judged = False
             capture = _capture_from_share(vec, size, pool_size)
             why = (f"entrant from nothing: spread as the city's own pool "
                       f"composition. "
@@ -5451,12 +5464,23 @@ def declared_roster(city: cityconfig.City, target: cityconfig.Target) -> dict:
 # of the 408 party tables in the tree carries `baseline_share` and nothing
 # else, so the documented way to size a declared party was a key with no
 # reader. That is the trap this set closes.
+# The strength keys: read at run time by `montecarlo.strength_judgements` and
+# excluded from `_judgements_sha` (design 1j v3 §11.2).
+STRENGTH_KEYS = ("support", "overperform", "sigma_j", "register")
+
 PARTY_KEYS = {
     "parent":         "which sizing machinery: a named parent makes it a SPLIT",
     "weights":        "its pool vector, in `categories` order, normalised",
-    "support":        "its expected share OF THE CITY — the strength knob",
-    "overperform":    "a multiplier on the default strength, when you prefer "
-                      "to scale the record rather than replace it",
+    "support":        "its expected share OF THE CITY — the strength knob. "
+                      "Read at RUN time (montecarlo.strength_judgements, "
+                      "design 1j v3 §11); needs sigma_j and register",
+    "overperform":    "a multiplier on `support`, or on the model's centre "
+                      "when no `support` is given. Read at run time",
+    "sigma_j":        "the strength judgement's log sd beyond the model's own "
+                      "centre error at the judged size (0 = as good as the "
+                      "model's). Required with `support` or `overperform`",
+    "register":       "the JUDGEMENT-CALLS §SJ row declaring the strength "
+                      "judgement. Required with `support` or `overperform`",
     "baseline_share": "INFORMATIONAL: what it polled at the preceding national "
                       "election. Nothing reads this.",
 }

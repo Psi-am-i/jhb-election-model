@@ -1798,156 +1798,56 @@ def _arrival_kw():
         city_mix=np.array([0.2, 0.8]))
 
 
-def test_a_declared_strength_is_read_and_does_not_narrow_its_own_band():
-    """The 16-September path: an owner states how big a new party will be.
+def test_a_strength_judgement_does_not_reach_the_emit():
+    """`support` and `overperform` are read at RUN time, never at emit.
 
-    Three defects, all measured 2026-09-03 and all on this one path:
+    Design 1j v3 §11.2 (2026-10-12; POOLS-REEMIT-QUEUE entry 34): a strength
+    judgement acts in `montecarlo.strength_judgements`, on a forecast only,
+    and the spec's hash no longer covers it. So `arrival_rules` sizes a party
+    carrying either key exactly as it sizes one carrying neither, and the
+    party stays inside the entrant group's budget.
 
-    1. `support` was read ONLY inside `if weights:`. A party announced without
-       a ward list — the ordinary case — had its declared size discarded and
-       was seeded at the comparator mean instead.
-    2. `lo_e`/`hi_e` were bound only in the entrant branch and read by every
-       non-split branch. Declaring `weights` raised `UnboundLocalError` when
-       the party was the sole newcomer, and inherited the PREVIOUS party's
-       quantiles when it was not — so the band depended on alphabetical order.
-    3. The band divided the record's quantiles by the ADJUSTED centre, so
-       stating a level narrowed the band in proportion to it. ActionSA's x36
-       would have produced a 95th percentile at 7.7% of its own mean: the act
-       of admitting a guess made the forecast 36x sharper.
-
-    The rule was: **the declaration sets the level, the record sets the
-    width.** The width half is gone: the emitted band was never drawn from and
-    was deleted 2026-10-09 with `ARRIVAL_BAND_LO/HI` (item9/FINDINGS.md Q5),
-    so its assertions here were deleted with it. The level assertions stand.
+    This replaces the 2026-09-03 test of the emit-time reading (the three
+    defects it recorded were defects of a path that no longer exists). The
+    run-time half is `tests/test_universal_draw.py`.
     """
     kw = _arrival_kw()
+    pool = kw["pool_size"]
 
     def rules_for(lineage, others=()):
         r, notes = pools.arrival_rules({"NEWPARTY", *others}, lineage, **kw)
         return r["NEWPARTY"], notes["NEWPARTY"]
 
     def implied_share(rule):
-        """The citywide share a capture vector actually buys.
+        return sum(r * pool[g] for g, r in rule["capture"].items()) / pool.sum()
 
-        ⛔ ASSERT THE NUMBER, NOT THE NOTE. The first version of this test
-        checked that the note said "DECLARED 12.00%", and a mutation that
-        deleted the line honouring `support` left the note untouched and the
-        test green: the prose claimed a declaration the arithmetic ignored.
-        `_capture_from_share` puts `share * w_g * electorate / pool_size[g]`
-        in each pool, so weighting back by pool size recovers the share.
-        """
-        size = kw["pool_size"]
-        return sum(r * size[g] for g, r in rule["capture"].items()) / size.sum()
-
-    # (1) weights + support, sole newcomer. This raised UnboundLocalError.
-    got, why = rules_for({"NEWPARTY": {"weights": [1.0, 0.0], "support": 0.12}})
-    assert "DECLARED" in why, why
-    assert _close([implied_share(got)], [0.12], rel=1e-6), (
-        f"declared 12% with weights, bought {implied_share(got):.4%}")
-
-    # (2) ORDER INDEPENDENCE. `AAAOTHER` sorts first and takes the entrant
-    #     branch, which is what used to leave lo_e/hi_e lying around.
-    other, _ = rules_for({"NEWPARTY": {"weights": [1.0, 0.0], "support": 0.12}},
-                         others=("AAAOTHER",))
-    assert _close([implied_share(other)], [implied_share(got)], rel=1e-9), (
-        f"a party's size changed because another party was emitted first: "
-        f"{implied_share(other):.4%} vs {implied_share(got):.4%}.")
-
-    # (3) `support` WITHOUT weights — the case that was silently discarded.
-    got3, why3 = rules_for({"NEWPARTY": {"support": 0.12}})
-    assert "DECLARED 12.00%" in why3, why3
-    assert _close([implied_share(got3)], [0.12], rel=1e-6), (
-        f"a `support` declared WITHOUT `weights` bought "
-        f"{implied_share(got3):.4%} of the city, not the 12% stated. It was "
-        f"read only inside `if weights:`, so an owner who knew the size but "
-        f"not the ward list had their number silently discarded — and the "
-        f"note still said DECLARED, which is why this asserts the arithmetic.")
-    default_share = implied_share(rules_for({})[0])
-    assert abs(implied_share(got3) - default_share) > 0.05, (
-        f"the declared share {implied_share(got3):.4%} is indistinguishable "
-        f"from the undeclared default {default_share:.4%}, so this test would "
-        f"pass whether or not the declaration was honoured")
-
-    # (4) A LEVEL DOES NOT BUY SHARPNESS. x36 is the ActionSA judgement.
     plain, _ = rules_for({})
-    loud, _ = rules_for({"NEWPARTY": {"overperform": 36.0}})
-    assert _close([sum(loud["capture"].values())],
-                  [36.0 * sum(plain["capture"].values())]), (
-        "the multiplier must still move the LEVEL — this test must not pass "
-        "by making `overperform` inert.")
+    for lineage in ({"NEWPARTY": {"support": 0.12}},
+                    {"NEWPARTY": {"overperform": 36.0}},
+                    {"NEWPARTY": {"support": 0.12, "overperform": 2.0}}):
+        got, why = rules_for(lineage)
+        assert _close([implied_share(got)], [implied_share(plain)], rel=1e-9), (
+            f"{lineage} bought {implied_share(got):.4%} at emit against an "
+            f"undeclared party's {implied_share(plain):.4%}: the emit read a "
+            f"strength key, which acts at run time only")
+        assert "DECLARED" not in why, why
+    vec, _ = rules_for({"NEWPARTY": {"weights": [1.0, 0.0]}})
+    vec_s, _ = rules_for({"NEWPARTY": {"weights": [1.0, 0.0], "support": 0.12,
+                                       "overperform": 3.0}})
+    assert _close([implied_share(vec_s)], [implied_share(vec)], rel=1e-9)
 
-    # (5) ⛔ THE GROUP BUDGET MUST NOT RENORMALISE A DECLARATION AWAY.
-    #     `arrival_rules` holds the entrant GROUP to the arrival-total record.
-    #     That record is a prior over arrivals nobody has sized; a declared
-    #     party is not one. Leaving it in the budget put a declared 12.00% out
-    #     at 0.3687% -- a factor of 33 -- while the note said "group rescaled
-    #     x0.03". `support` was readable by then and still did nothing.
+    # inside the group budget: a declared strength no longer exempts a party
     crowd = tuple(f"P{i:02d}" for i in range(29))
-    pool = kw["pool_size"]
 
-    def with_budget(lineage):
+    def total(lineage):
         r, _ = pools.arrival_rules({"NEWPARTY", *crowd}, lineage,
                                    group_total=0.0175, **kw)
-        return r
-
-    r5 = with_budget({"NEWPARTY": {"support": 0.12}})
-    got5 = sum(v * pool[g] for g, v in r5["NEWPARTY"]["capture"].items()) / pool.sum()
-    assert _close([got5], [0.12], rel=1e-6), (
-        f"a declared 12% emerged from the group rescale at {got5:.4%}. The "
-        f"arrival-total record is a prior over arrivals we know nothing "
-        f"about, and a party somebody has named and sized is not one of them.")
-
-    rest = sum(sum(v * pool[g] for g, v in r5[q]["capture"].items()) / pool.sum()
-               for q in crowd)
-    assert _close([rest], [0.0175], rel=1e-6), (
-        f"the 29 UNDECLARED entrants total {rest:.4%} against a record of "
-        f"1.75%. Holding a declared party out of the budget must not release "
-        f"the rest of the group from it — that would trade one bug for the "
-        f"over-allocation the rescale was built to fix (ranks 13+ went "
-        f"-4.6pp to +19.4pp when it was absent).")
-
-    # IT LOOKED: without the exemption the budget really does bite here.
-    unfixed = with_budget({})
-    solo = sum(v * pool[g] for g, v in unfixed["NEWPARTY"]["capture"].items()) / pool.sum()
-    assert solo < 0.01, (
-        f"an UNDECLARED entrant in this 30-party crowd comes out at {solo:.4%}, "
-        f"so the group rescale is barely binding and the assertions above "
-        f"would pass whether or not the exemption existed")
-
-    # (6) ⛔ `overperform` MUST DO THE SAME THING IN THE `weights` BRANCH.
-    #     `PARTY_KEYS` documents it as "a multiplier on the default strength"
-    #     with no branch named, and the closed-key refusal ACCEPTS it beside
-    #     `weights` — so the one declaration form the code's own note tells a
-    #     reader to use ("declare which pools it pulls from and what support
-    #     you expect") was the one form that dropped the multiplier. It read
-    #     `support` and nothing else, seeded at the comparator mean, and said
-    #     nothing. Case (4) above proves the multiplier only in the branch that
-    #     already honoured it; without this the register can promise a key the
-    #     arithmetic ignores and the suite stays green.
-    vec_only, _ = rules_for({"NEWPARTY": {"weights": [1.0, 0.0]}})
-    vec_loud, vec_why = rules_for({"NEWPARTY": {"weights": [1.0, 0.0],
-                                                "overperform": 3.0}})
-    assert "DID NOT FIT" not in vec_why, (
-        f"the per-pool cap binds on this vector, so the 3x below is measuring "
-        f"the clip and not the multiplier: {vec_why}")
-    assert _close([implied_share(vec_loud)],
-                  [3.0 * implied_share(vec_only)], rel=1e-9), (
-        f"a party declared with `weights` and `overperform = 3.0` bought "
-        f"{implied_share(vec_loud):.4%} against the undeclared "
-        f"{implied_share(vec_only):.4%}. The multiplier was read only in the "
-        f"entrant branch, so declaring the pools discarded it silently.")
-
-    #     and a multiplier is a SIZING, so it leaves the group budget too.
-    r6 = with_budget({"NEWPARTY": {"weights": [1.0, 0.0], "overperform": 3.0}})
-    got6 = sum(v * pool[g] for g, v in r6["NEWPARTY"]["capture"].items()) / pool.sum()
-    assert _close([got6], [3.0 * implied_share(vec_only)], rel=1e-9), (
-        f"the multiplied party came out of the group rescale at {got6:.4%}, "
-        f"so the declaration was renormalised away — the failure `judged` "
-        f"exists to prevent, arriving through the other branch.")
-    rest6 = sum(sum(v * pool[g] for g, v in r6[q]["capture"].items()) / pool.sum()
-                for q in crowd)
-    assert _close([rest6], [0.0175], rel=1e-6), (
-        f"the 29 undeclared entrants total {rest6:.4%} against a 1.75% record")
+        return sum(sum(v * pool[g] for g, v in r[q]["capture"].items())
+                   / pool.sum() for q in ("NEWPARTY", *crowd))
+    assert _close([total({"NEWPARTY": {"support": 0.12}})], [0.0175],
+                  rel=1e-6), "a party carrying `support` left the group budget"
+    # it can see: the budget binds (an unconstrained crowd would differ)
+    assert _close([total({})], [0.0175], rel=1e-6)
 
 
 def test_an_unreadable_key_in_a_party_table_refuses_instead_of_being_ignored():
@@ -2112,9 +2012,10 @@ def test_a_declared_pool_vector_is_not_a_declared_size():
         f"budget. The exemption is for a party somebody has named AND SIZED.")
     assert "size NOT declared" in why, (
         f"the note claims a size was declared when none was: {why[:120]!r}")
-    assert _close([sized], [0.12], rel=1e-6), (
-        "adding `support` must still declare the level — this test must not "
-        "pass by making the weights branch inert.")
+    # `support` is read at RUN time since 2026-10-12 (design 1j v3 §11.2,
+    # POOLS-REEMIT-QUEUE entry 34), so at emit it declares nothing either.
+    assert _close([sized], [wonly], rel=1e-6), (
+        "`support` reached the emit, which reads no strength key")
 
 
 def test_a_declared_roster_refuses_what_it_cannot_read():

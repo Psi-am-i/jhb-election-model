@@ -2467,6 +2467,8 @@ set and the counts disagree, the deletion fired on a partial paste.
 
 ### §L2 · The declaration sets the LEVEL; the record sets the WIDTH — ⚪
 
+**Since 2026-10-12 the emit reads no strength key** (POOLS-REEMIT-QUEUE entry 34): a judged size and its width are applied at run time under §SJ, on a forecast only, and a party carrying `support` is sized at emit like any arrival and stays in the group budget.
+
 ⚪ **RETIRED 2026-10-09 (model correction batch, item 9).** The width half was
 false: the arrival band this entry describes was never drawn from, so the pool
 Dirichlet set the width whatever the band said. The SACP, declared at a level,

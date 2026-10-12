@@ -1056,6 +1056,14 @@ still-deliberate choice, not the same disagreement.
 
 ### How a declared party is SIZED — `[party.X]`
 
+**Since 2026-10-12 `support` and `overperform` are read at RUN time, not here**
+(design 1j v3 §11.2; POOLS-REEMIT-QUEUE entry 34): `arrival_rules` sizes a
+party carrying them exactly like one that does not, from the record, and the
+party stays in the group budget. The judged centre and its width (`sigma_j`)
+reach the forecast through `montecarlo.strength_judgements`, on a forecast
+only; see "The universal draw". The text below describes the emit-time path
+before that change.
+
 | key | read by | what it does |
 |---|---|---|
 | `parent` | `classify_arrival` | names a parent, making it a SPLIT rather than an entrant |
