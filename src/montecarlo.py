@@ -3457,14 +3457,25 @@ def width_record_key(processed: Path | None = None) -> dict:
       city-years, the judgement inputs that feed the specs, so an edit after
       the emit marks the record stale as well as the spec;
     * ``group_share_sha``: the group-share record's ``artefact_key``, or
-      ``"<absent>"``.
+      ``"<absent>"``;
+    * ``results_sha``: the realised result file behind each residual row
+      (``width_record.record_result_files``: e.g. the 2021 file behind target
+      2026's rows), by content, under ``width_record.DATA``;
+    * ``fallback_files_sha``: the raw files the 2011 fallback can read
+      (``width_record.fallback_files``), by content;
+    * ``compare_history_sha`` and ``theta_residual_sha``: the code of
+      ``compare_history.actual_shares`` (the residuals' outcome) and of
+      ``theta_residual`` (the 2011 fallback);
+    * ``bye_value_sha``: ``bye_value.json``'s ``artefact_key``, or
+      ``"<absent>"`` (the by-election weights ``blended_centres`` reads move
+      the centres the residuals are measured about).
     """
     import pools as _pl
     import width_record as _wr
     src = Path(__file__).resolve().parent
     root = (Path(processed).resolve() if processed is not None
             else src.parent / "data" / "processed")
-    specs, judged = [], []
+    specs, judged, results = [], [], []
     # `cities/` and `judgements/` are read relative to the working directory
     # throughout the model; the key describes THIS tree, so it reads them from
     # this tree's root whatever the caller's directory (`declares.py` is run
@@ -3478,9 +3489,15 @@ def width_record_key(processed: Path | None = None) -> dict:
             city = cityconfig.load(slug)
             judged.append(f"{slug}|{year}:" + _pl._judgements_sha(
                 city, cityconfig.Target(city=city, year=year)))
-    gs_path = root / _pl.GROUP_SHARE_RECORD
-    gs_key = (json.loads(gs_path.read_text(encoding="utf-8")).get("artefact_key")
-              if gs_path.exists() else "<absent>")
+        for slug, year, path in _wr.record_result_files():
+            results.append(f"{slug}|{year}:" + _pl._sha(path))
+        fallback = [f"{f.name}:{_pl._sha(f)}" for f in _wr.fallback_files()]
+
+    def _stored_key(path):
+        return (json.loads(path.read_text(encoding="utf-8")).get("artefact_key")
+                if path.exists() else "<absent>")
+    gs_key = _stored_key(root / _pl.GROUP_SHARE_RECORD)
+    by_key = _stored_key(root / _byelections.BYE_VALUE)
 
     def _h(x) -> str:
         return hashlib.sha256(json.dumps(x, sort_keys=True).encode()).hexdigest()[:16]
@@ -3491,7 +3508,12 @@ def width_record_key(processed: Path | None = None) -> dict:
             "deps_sha": _pl._deps_sha(),
             "specs_sha": _h(specs),
             "judgements_sha": _h(judged),
-            "group_share_sha": _h(gs_key)}
+            "group_share_sha": _h(gs_key),
+            "results_sha": _h(results),
+            "fallback_files_sha": _h(fallback),
+            "compare_history_sha": _pl._code_sha(src / "compare_history.py"),
+            "theta_residual_sha": _pl._code_sha(src / "theta_residual.py"),
+            "bye_value_sha": _h(by_key)}
 
 
 def read_width_record(year: str, scenario: dict,

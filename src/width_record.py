@@ -111,6 +111,33 @@ def record_specs() -> list[tuple[str, str, str]]:
     return out
 
 
+def record_result_files() -> list[tuple[str, str, Path]]:
+    """``(city, year, path)`` of the realised result file behind each
+    city-year of :func:`record_specs`: the file ``case_for`` reads the actual
+    list shares from (``compare_history.actual_shares`` under ``DATA``).
+    ``montecarlo.width_record_key`` hashes them, so a corrected result file
+    marks the record stale (step-7 review, item 3)."""
+    out = []
+    for slug, year, _rel in record_specs():
+        city = cityconfig.load(slug)
+        name = cityconfig.Target(city=city, year=year).results(year)
+        out.append((slug, year, DATA / name.replace("{CODE}", city.code)))
+    return out
+
+
+def fallback_files() -> list[Path]:
+    """The raw files the 2011 fallback can read: every calendar election with
+    a result file up to ``FALLBACK_RESIDUAL_YEAR``, in every metro of
+    ``levels.METRO_CODES`` (``theta_residual.residuals`` at target 2006 reads
+    ``levels.theta_record`` over them). Derived from the calendar, so it is a
+    superset of what the θ record's filters keep, which errs toward refusing."""
+    import levels
+    years = [y for y, e in cityconfig.CALENDAR.items()
+             if e.results and int(y) <= int(FALLBACK_RESIDUAL_YEAR)]
+    return sorted({DATA / cityconfig.CALENDAR[y].results.replace("{CODE}", c)
+                   for y in years for c in levels.METRO_CODES})
+
+
 # --------------------------------------------------------------------------
 # the residual rows
 # --------------------------------------------------------------------------

@@ -774,5 +774,86 @@ def test_a_re_emit_with_no_code_change_marks_the_width_record_stale():
         assert reads()
 
 
+def test_the_width_key_covers_the_results_the_fallback_and_the_centres_inputs():
+    """Step-7 review item 3. Beyond the specs, the key covers every other
+    input the record reads: the realised result file of each residual
+    city-year (`record_result_files`: the 2021 files behind target 2026's
+    rows), the raw files the 2011 fallback can read (`fallback_files`), the
+    code of `compare_history` (`actual_shares`) and `theta_residual`, and
+    `bye_value.json`'s key (`blended_centres`). Constructed: the raw root is
+    a scratch tree of symlinks to the real files (nothing under `data/` is
+    written), a record under the live key reads, and changing each input
+    alone makes `read_width_record` refuse; reverted, it reads. Population:
+    the result files are one per (city, cycle) of `record_specs`, both ways,
+    and the fallback files are the calendar's elections up to 2006 in every
+    metro."""
+    import pools
+    import levels
+    import cityconfig
+    res = W.record_result_files()
+    assert {(c, y) for c, y, _p in res} == {(c, y) for c, y, _r in W.record_specs()}
+    assert len(res) == len(W.record_specs()) and res
+    fb = W.fallback_files()
+    years = [y for y, e in cityconfig.CALENDAR.items()
+             if e.results and int(y) <= 2006]
+    assert len(fb) == len(years) * len(levels.METRO_CODES) and fb
+    assert all(int(f.name[3:7]) <= 2006 for f in fb)
+    sc = copy.deepcopy(M.DEFAULTS)
+    real_data, real_code_sha = W.DATA, pools._code_sha
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp) / "processed"
+        raw = Path(tmp) / "raw"
+        root.mkdir()
+        raw.mkdir()
+        for f in {p for _c, _y, p in res} | set(fb):
+            if f.exists():
+                (raw / f.name).symlink_to(f)
+        by = root / "bye_value.json"
+        moved = {"name": None}
+
+        def code_sha(path):
+            if Path(path).name == moved["name"]:
+                return "moved"
+            return real_code_sha(path)
+
+        def reads() -> bool:
+            try:
+                M.read_width_record("2026", sc, processed=root)
+            except SystemExit as exc:
+                assert "STALE" in str(exc), exc
+                return False
+            return True
+
+        W.DATA = raw
+        pools._code_sha = code_sha
+        try:
+            by.write_text(json.dumps({"artefact_key": {"bye": "a"}}))
+            (root / M.WIDTH_RECORD).write_text(json.dumps({
+                "artefact_key": M.width_record_key(processed=root),
+                "variants": {M.width_record_variant(sc): {
+                    "targets": {"2026": FIXTURE_RECORD}}}}))
+            assert reads()
+            for target in (res[-1][2], fb[0]):
+                link = raw / target.name
+                link.unlink()
+                link.write_bytes(target.read_bytes() + b"\n")
+                assert not reads(), f"a changed {target.name} was accepted"
+                link.unlink()
+                link.symlink_to(target)
+                assert reads()
+            for name in ("compare_history.py", "theta_residual.py"):
+                moved["name"] = name
+                assert not reads(), f"a changed {name} was accepted"
+                moved["name"] = None
+                assert reads()
+            by.write_text(json.dumps({"artefact_key": {"bye": "b"}}))
+            assert not reads(), "a changed bye_value key was accepted"
+            by.write_text(json.dumps({"artefact_key": {"bye": "a"}}))
+            assert reads()
+        finally:
+            W.DATA = real_data
+            pools._code_sha = real_code_sha
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

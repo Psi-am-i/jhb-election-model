@@ -29524,3 +29524,24 @@ cluster interval. Mutations, each red and green on revert: the seats' half
 dropped; the band's ends excluded; a floor in place of the exclusion; new
 parties (previous 0) admitted to row 1; the per-cycle filter removed; M5's
 subtraction removed.
+
+### The width key covers the record's remaining inputs (item 3)
+
+`montecarlo.width_record_key` still omitted four inputs the record reads: the
+realised result files of the residual city-years (`case_for` reads the actual
+shares, e.g. the 2021 files behind target 2026's rows), the code of
+`compare_history` (`actual_shares`) and of `theta_residual` (the 2011
+fallback), and `bye_value.json` (`blended_centres` reads its weights, which
+move the centres). It now carries `results_sha` (`width_record.record_result_files`,
+one file per city-year of `record_specs`), `fallback_files_sha`
+(`width_record.fallback_files`: the calendar's elections up to 2006 in every
+metro, a superset of what the θ record keeps), `compare_history_sha`,
+`theta_residual_sha` and `bye_value_sha`. Test on a scratch raw root of
+symlinks to the real files (nothing under `data/` written): a record under the
+live key reads, and a changed result file, a changed fallback file, a changed
+`compare_history` or `theta_residual` code hash and a changed `bye_value` key
+each make `read_width_record` refuse, each reverted reads. Mutations: each of
+the five fields removed from the key turns the test red at its own input;
+reverted, green. The live `width_record.json` is stale under the new key, as
+every spec already is; step 7 rebuilds both. POOLS-REEMIT-QUEUE's step-7
+no-edit list now names every file the key covers.

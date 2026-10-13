@@ -110,9 +110,18 @@ steps 2-4 above for this window.
    its worktree) into a directory outside `data/`, then `src/arms.py compare`
    and `src/plausibility.py` on them.
 
-⛔ **No edit to `montecarlo.py`, `levels.py`, `pools.py` or `width_record.py`
-between step 5 and step 8.** Any such edit stales the width record's key and
-moves what the arms measure; if one is needed, go back to step 3.
+⛔ **No edit, between step 5 and step 8, to anything the width record's key
+covers** (`montecarlo.width_record_key`, which is the authority if this list
+and it disagree): the code of `width_record.py`, `montecarlo.py`, `levels.py`,
+`pools.py`, `pools`' emit dependencies (`pools._EMIT_DEPENDENCIES`:
+`parties.py`, `cityconfig.py`, `ingest_lge.py`, `levels.py`),
+`compare_history.py` and `theta_residual.py`; the specs `width_record.record_specs`
+names, the judgements files of those city-years, `group_share_record.json` and
+`bye_value.json`; the realised result files of the record's cycles
+(`width_record.record_result_files`) and the raw files up to 2006 the 2011
+fallback can read (`width_record.fallback_files`). Any such edit stales the
+width record and moves what the arms measure; if one is needed, go back to
+step 3.
 
 ---
 

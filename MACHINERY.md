@@ -1252,8 +1252,11 @@ own model-internal location and re-fits. 2011 has no earlier cycle and takes a
 labelled, untestable fallback. `make_drawer` refuses a missing record, a stale
 one (`montecarlo.width_record_key`: the code, and the inputs it read — every
 spec of `width_record.record_specs` by content, the live judgements of those
-city-years, the group-share record's key — so a re-emit with no code change
-marks it stale) or one built for other centres (the
+city-years, the group-share record's key, the realised result file behind
+each residual city-year, the raw files up to 2006 the 2011 fallback can read,
+the code of `compare_history` and `theta_residual`, and `bye_value.json`'s key —
+so a re-emit or a corrected input with no code change marks it stale) or one
+built for other centres (the
 variant: `level_shrink` and its scale). Every value is in the record, not here;
 the judgement calls are JUDGEMENT-CALLS §A57.
 
