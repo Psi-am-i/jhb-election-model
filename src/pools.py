@@ -5280,8 +5280,16 @@ def capture_shortfall(weights: "np.ndarray", share: float,
 
 
 
+# Where the judgements files live: the repository's own `judgements/`,
+# whatever the working directory (step-7 review, item 5). A run started from
+# `src/` (as `declares.py` is) used to find no file, read `{}`, and declare the
+# hash of the empty set. A test rebinds this to a scratch directory.
+JUDGEMENTS_DIR = Path(__file__).resolve().parents[1] / "judgements"
+
+
 def lineage_path(city: cityconfig.City, target: cityconfig.Target) -> Path:
-    return Path("judgements") / f"{city.slug}-{target.year}.toml"
+    """``judgements/<slug>-<year>.toml`` under :data:`JUDGEMENTS_DIR`."""
+    return JUDGEMENTS_DIR / f"{city.slug}-{target.year}.toml"
 
 
 # Every key the `[roster]` table may carry. Closed for the same reason

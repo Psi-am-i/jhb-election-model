@@ -29545,3 +29545,19 @@ the five fields removed from the key turns the test red at its own input;
 reverted, green. The live `width_record.json` is stale under the new key, as
 every spec already is; step 7 rebuilds both. POOLS-REEMIT-QUEUE's step-7
 no-edit list now names every file the key covers.
+
+### The judgements file is anchored, and a forecast needs it (item 5)
+
+`pools.lineage_path` returned `judgements/<slug>-<year>.toml` relative to the
+working directory, and `load_lineage` returns `{}` for a missing file. A
+process started outside the root (`declares.py` from `src/`, through
+`live_judgements_sha`) therefore read no judgement and declared the empty set's
+hash. The path now resolves under `pools.JUDGEMENTS_DIR`, the repository's
+`judgements/`, and `montecarlo.strength_judgements` refuses a FORECAST whose
+file is missing (a backtest ignores judgements, so its missing file stays the
+empty set). Tests: the path and the declared hash are identical from the root,
+from `src/` and from the temporary directory; a forecast with no file refuses
+and a backtest returns nothing. The tests that redirected the file by changing
+directory now rebind `pools.JUDGEMENTS_DIR`. Mutations: the relative path
+restored (red); the refusal removed (red); reverted, green. A `pools.py` code
+change: batched into the step-7 re-emit (POOLS-REEMIT-QUEUE entry 36).

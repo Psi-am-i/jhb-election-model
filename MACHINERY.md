@@ -1282,7 +1282,10 @@ forecast declares the hash of the entries it applied
 `artefact_key.judgements_applied_sha` in an `export_draws` manifest), which
 `declares.py --verify` checks against the live file. On a forecast
 (`montecarlo.target_is_held` false) an absent declaration fails, and so does a
-summary naming no `_target`; a backtest may declare nothing.
+summary naming no `_target`; a backtest may declare nothing. The file is
+`pools.lineage_path`, under the repository's `judgements/`
+(`pools.JUDGEMENTS_DIR`) whatever the working directory, and on a forecast a
+missing file refuses rather than reading as the empty set.
 
 **The trace.** `35_widths`: the law, the record used, and per party the centre,
 σ, δ, ρ, the shared and own sds, `v_comp`, the floored excess, κ, and whether

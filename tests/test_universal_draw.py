@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import math
 import sys
 import tempfile
@@ -514,20 +515,33 @@ class _Target:
         self.city, self.year = _City(slug), year
 
 
+class _Rebound:
+    """Undoes `_with_judgements`: `pools.JUDGEMENTS_DIR` back to the tree's."""
+
+    def __init__(self, real):
+        self.real = real
+
+    def restore(self):
+        import pools
+        pools.JUDGEMENTS_DIR = self.real
+
+
 def _with_judgements(text: str, slug: str, year: str):
-    import os
+    """A scratch judgements directory, bound as `pools.JUDGEMENTS_DIR` (the
+    path is anchored to the repository, not the working directory)."""
+    import pools
     tmp = tempfile.TemporaryDirectory()
     d = Path(tmp.name) / "judgements"
     d.mkdir()
     (d / f"{slug}-{year}.toml").write_text(text)
-    cwd = os.getcwd()
-    os.chdir(tmp.name)
-    return tmp, cwd
+    real = pools.JUDGEMENTS_DIR
+    pools.JUDGEMENTS_DIR = d
+    return tmp, _Rebound(real)
 
 
 def test_a_strength_entry_needs_its_width_and_its_register_row():
     import os
-    tmp, cwd = _with_judgements('[party.NEWP]\nsupport = 0.02\n', "joburg", "2026")
+    tmp, bound = _with_judgements('[party.NEWP]\nsupport = 0.02\n', "joburg", "2026")
     try:
         try:
             M.strength_judgements(_Target("joburg", "2026").city,
@@ -537,7 +551,7 @@ def test_a_strength_entry_needs_its_width_and_its_register_row():
         else:
             raise AssertionError("a strength without sigma_j was accepted")
     finally:
-        os.chdir(cwd)
+        bound.restore()
         tmp.cleanup()
 
 
@@ -546,12 +560,12 @@ def test_a_backtest_ignores_judgements_and_a_forecast_applies_them():
     body = ('[party.NEWP]\nsupport = 0.02\nsigma_j = 0.4\n'
             'register = "§SJ1"\n')
     for year, held in (("2021", True), ("2026", False)):
-        tmp, cwd = _with_judgements(body, "joburg", year)
+        tmp, bound = _with_judgements(body, "joburg", year)
         try:
             t = _Target("joburg", year)
             applied, ignored = M.strength_judgements(t.city, t)
         finally:
-            os.chdir(cwd)
+            bound.restore()
             tmp.cleanup()
         if held:
             assert applied == [] and ignored[0]["party"] == "NEWP"
@@ -576,20 +590,20 @@ def test_a_strength_edit_moves_no_spec_key_and_a_weights_edit_does():
                       ("overperform", dict(base, ov=1.5)),
                       ("sigma_j", dict(base, sj=0.9)),
                       ("register", dict(base, rg="§SJ9"))):
-        tmp, cwd = _with_judgements(body.format(**kw), "joburg", "2026")
+        tmp, bound = _with_judgements(body.format(**kw), "joburg", "2026")
         try:
             shas[label] = pools._judgements_sha(t.city, t)
         finally:
-            os.chdir(cwd)
+            bound.restore()
             tmp.cleanup()
     assert len(set(shas.values())) == 1, shas
-    tmp, cwd = _with_judgements(body.format(**base).replace("[1, 0, 0, 0]",
+    tmp, bound = _with_judgements(body.format(**base).replace("[1, 0, 0, 0]",
                                                            "[0, 1, 0, 0]"),
                                 "joburg", "2026")
     try:
         assert pools._judgements_sha(t.city, t) != shas["base"]
     finally:
-        os.chdir(cwd)
+        bound.restore()
         tmp.cleanup()
 
 
@@ -609,12 +623,12 @@ def test_the_judged_centre_is_exact_after_normalisation():
     sc = {"draw_law": "universal", "apply_judgements": True}
     import os
     body = '[party.C]\noverperform = 0.5\nsigma_j = 0.3\nregister = "§SJ1"\n'
-    tmp, cwd = _with_judgements(body, "joburg", "2026")
+    tmp, bound = _with_judgements(body, "joburg", "2026")
     try:
         rec = M._apply_strength_judgements(_Target("joburg", "2026"), sc,
                                            centres, "universal")
     finally:
-        os.chdir(cwd)
+        bound.restore()
         tmp.cleanup()
     tot = sum(centres.values())
     assert abs(centres["C"] / tot - 0.1) < 1e-12
@@ -622,13 +636,13 @@ def test_the_judged_centre_is_exact_after_normalisation():
     assert sc["_judgements_applied_sha"] == rec["judgements_sha"]
     # the switch off: nothing applied, recorded as ignored with the reason
     sc_off = {"draw_law": "universal", "apply_judgements": False}
-    tmp, cwd = _with_judgements(body, "joburg", "2026")
+    tmp, bound = _with_judgements(body, "joburg", "2026")
     try:
         c2 = {"A": 0.5, "B": 0.3, "C": 0.2}
         rec2 = M._apply_strength_judgements(_Target("joburg", "2026"), sc_off,
                                             c2, "universal")
     finally:
-        os.chdir(cwd)
+        bound.restore()
         tmp.cleanup()
     assert c2 == {"A": 0.5, "B": 0.3, "C": 0.2} and not rec2["applied"]
     assert rec2["ignored"] and "off" in rec2["ignored"][0]["reason"]
@@ -853,6 +867,42 @@ def test_the_width_key_covers_the_results_the_fallback_and_the_centres_inputs():
         finally:
             W.DATA = real_data
             pools._code_sha = real_code_sha
+
+
+def test_the_judgements_file_is_found_from_any_directory_and_a_forecast_needs_it():
+    """Step-7 review item 5. `pools.lineage_path` resolves under the
+    repository's `judgements/`, so the hash a forecast declares is the same
+    whether the process runs from the root, from `src/` or from elsewhere
+    (it used to read `{}` away from the root and declare the empty set). A
+    FORECAST whose file is missing refuses; a backtest's missing file is the
+    empty set, as the judgements are ignored there."""
+    import pools
+    t = _Target("joburg", "2026")
+    cwd = os.getcwd()
+    want = (ROOT / "judgements" / "joburg-2026.toml").resolve()
+    shas = set()
+    try:
+        for where in (ROOT, ROOT / "src", Path(tempfile.gettempdir())):
+            os.chdir(where)
+            assert pools.lineage_path(t.city, t).resolve() == want
+            shas.add(M.live_judgements_sha("joburg", "2026", dict(M.DEFAULTS)))
+    finally:
+        os.chdir(cwd)
+    assert want.exists() and len(shas) == 1, shas
+    with tempfile.TemporaryDirectory() as tmp:
+        real = pools.JUDGEMENTS_DIR
+        pools.JUDGEMENTS_DIR = Path(tmp)
+        try:
+            try:
+                M.strength_judgements(t.city, t)
+            except SystemExit as exc:
+                assert "does not exist" in str(exc), exc
+            else:
+                raise AssertionError("a forecast ran without its judgements file")
+            held = _Target("joburg", "2021")
+            assert M.strength_judgements(held.city, held) == ([], [])
+        finally:
+            pools.JUDGEMENTS_DIR = real
 
 
 if __name__ == "__main__":

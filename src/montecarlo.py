@@ -3476,10 +3476,10 @@ def width_record_key(processed: Path | None = None) -> dict:
     root = (Path(processed).resolve() if processed is not None
             else src.parent / "data" / "processed")
     specs, judged, results = [], [], []
-    # `cities/` and `judgements/` are read relative to the working directory
-    # throughout the model; the key describes THIS tree, so it reads them from
-    # this tree's root whatever the caller's directory (`declares.py` is run
-    # from `src/` too).
+    # `cities/` is read relative to the working directory throughout the
+    # model (`judgements/` is anchored, `pools.JUDGEMENTS_DIR`); the key
+    # describes THIS tree, so it reads them from this tree's root whatever the
+    # caller's directory (`declares.py` is run from `src/` too).
     import contextlib as _cl
     with _cl.chdir(src.parent):
         for slug, year, rel in _wr.record_specs():
@@ -3577,6 +3577,9 @@ def strength_judgements(city, target) -> tuple[list[dict], list[dict]]:
     carrying ``support`` or ``overperform`` without ``sigma_j`` and
     ``register`` REFUSES (design v3 §11.2).
 
+    The file is ``pools.lineage_path`` (the repository's ``judgements/``,
+    whatever the working directory). On a FORECAST a missing file REFUSES.
+
     A BACKTEST IGNORES THEM (a target with a result file): a judgement made
     after the election cannot be blind. They are returned as ``ignored``, each
     with its register row and the reason, so the run can record them, and the
@@ -3584,10 +3587,20 @@ def strength_judgements(city, target) -> tuple[list[dict], list[dict]]:
     been held. On a forecast they are ``applied``.
     """
     import pools as _pl
-    try:
-        table = _pl.load_lineage(city, target)
-    except SystemExit:
-        raise
+    # A FORECAST WITHOUT ITS JUDGEMENTS FILE IS AN ERROR (step-7 review, item
+    # 5). `load_lineage` returns `{}` for a missing file, which on a forecast
+    # reads as "no judgement applied" and declares the empty set's hash: a
+    # judgement that exists elsewhere, or a path resolved from the wrong
+    # directory, would vanish with nothing saying so. On a backtest the file
+    # is ignored by design and its absence changes nothing.
+    if not target_is_held(target.year) and \
+            not _pl.lineage_path(city, target).exists():
+        raise SystemExit(
+            f"{_pl.lineage_path(city, target)} does not exist: a forecast of "
+            f"{city.slug} {target.year} reads its strength judgements from it, "
+            f"and a missing file is not the empty set. Create it (the emit "
+            f"writes a template) before running the forecast.")
+    table = _pl.load_lineage(city, target)
     entries = []
     for party, body in sorted(table.items()):
         if "support" not in body and "overperform" not in body:

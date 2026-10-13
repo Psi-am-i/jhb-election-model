@@ -670,6 +670,9 @@ def test_a_judgement_edited_after_a_run_is_reported_and_goes_quiet_reverted():
         (root / "judgements").mkdir()
         jfile = root / "judgements" / "joburg-2026.toml"
         jfile.write_text(entry.format(s=0.3))
+        import pools
+        real_dir = pools.JUDGEMENTS_DIR
+        pools.JUDGEMENTS_DIR = root / "judgements"
         os.chdir(root)
         try:
             sc = dict(M.DEFAULTS)
@@ -692,6 +695,7 @@ def test_a_judgement_edited_after_a_run_is_reported_and_goes_quiet_reverted():
             jfile.write_text(entry.format(s=0.3))
             assert state()[0] != declares.LYING
         finally:
+            pools.JUDGEMENTS_DIR = real_dir
             os.chdir(cwd)
 
 
