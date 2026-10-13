@@ -405,7 +405,7 @@ def test_the_leaderboard_is_hidden_until_the_flag_is_set():
     # published: after "your forecast"
     items = B.nav_items(True)
     i = [h for h, _l in items].index(LB.LB_HREF)
-    assert items[i - 1][1] == "your forecast" and items[i][1] == "leaderboard"
+    assert items[i - 1][1] == "your prediction" and items[i][1] == "leaderboard"
     assert B.nav_items(False) == list(B.NAV_ITEMS)
     out = Path(tempfile.mkdtemp(prefix="lbout-"))
     try:

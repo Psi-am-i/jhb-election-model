@@ -31,7 +31,7 @@ ARTICLES = ROOT / "content" / "joburg" / "articles.toml"
 BEFORE_SPLIT = "a912197"
 
 #: The owner's nav, in order (sweep of 2026-10-03, item 9).
-NAV = ["our forecast", "your forecast", "commentary", "party claims",
+NAV = ["our forecast", "your prediction", "commentary", "party claims",
        "methodology", "review", "corrections", "sources", "source code"]
 
 #: The owner's footer, his words, with his two typos corrected
@@ -96,7 +96,7 @@ def nav_problems(items) -> list[str]:
 def test_the_nav_is_the_owners_and_every_item_is_a_built_page():
     assert nav_problems(B.NAV_ITEMS) == []
     # "your forecast" is the interactive page's own address, not a literal
-    assert dict((lab, h) for h, lab in B.NAV_ITEMS)["your forecast"] == build_your_forecast.YF_HREF
+    assert dict((lab, h) for h, lab in B.NAV_ITEMS)["your prediction"] == build_your_forecast.YF_HREF
     assert dict((lab, h) for h, lab in B.NAV_ITEMS)["source code"] == B.REPO_URL
     # the other direction: every reader-facing page of the model is in the nav
     in_nav = {h for h, _l in B.NAV_ITEMS}

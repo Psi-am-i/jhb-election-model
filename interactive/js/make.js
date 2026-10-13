@@ -349,7 +349,7 @@ async function start() {
   if (geom.wards.map(w => String(w.id)).join() !== ctx.wards.join()) throw new Error("the geometry and the schema disagree about the wards");
   from = pubStart;
   const opened = MS.parse(YU.partOf(location.search, YU.BREAK_KEYS), ctx, D.context_ref, pubStart,
-                          "Break the model opens at its start instead.");
+                          "Make your own prediction opens at its start instead.");
   state = opened.state;
   S = { coalition: opened.coalition.slice(), brush: null };
   if (opened.note) { one.linknote.textContent = opened.note; one.linknote.hidden = false; }

@@ -185,3 +185,8 @@ model's.") is replaced by this line, set very small and out of the way
 
 "Make yours at joburg.whysoserious.city" stays. The og:description changes
 the same way only if it reads naturally.
+
+### Third amendment (owner, 2026-10-13, before going live)
+"Your Forecast -> Your Prediction on page. 1. Adjust our forecast 2. Make
+Your Own Prediction. 3. Note end of page need review (and remove /n between
+note 1&2)".

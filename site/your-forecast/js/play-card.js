@@ -219,7 +219,7 @@ export function playCardAlt({ r, party, made, name, when }) {
 
 // Why a moved setting's forecast cannot be sealed when "Break the model"
 // never loaded, so nothing can work the forecast out.
-export const NO_HANDOFF = "this page could not load Break the model, which works your forecast out";
+export const NO_HANDOFF = "this page could not load Make your own prediction, which works your prediction out";
 
 // Section 1's content for the one share sheet (share-sheet.js), apart from
 // the page. `get`: { now() (what the page shows: { st, ctx, touched }),

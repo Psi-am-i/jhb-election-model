@@ -376,11 +376,11 @@ def test_every_page_links_it_and_it_has_its_own_card():
     assert len(pages) >= 5, pages
     for page in pages:
         text = page.read_text(encoding="utf-8")
-        assert f'href="{YF.YF_HREF}">your forecast</a>' in text, page.name
+        assert f'href="{YF.YF_HREF}">your prediction</a>' in text, page.name
         for d in YF.RETIRED:
             assert f'href="{d}/"' not in text, (page.name, d)
     html = _html(site)
-    assert f'class="active" href="../{YF.YF_HREF}">your forecast</a>' in html
+    assert f'class="active" href="../{YF.YF_HREF}">your prediction</a>' in html
     og = dict(re.findall(r'<meta property="og:(title|description|url)" content="([^"]*)"', html))
     assert og["title"] == YF.OG_TITLE and og["url"].endswith(f"/{YF.YF_HREF}"), og
     from html import unescape

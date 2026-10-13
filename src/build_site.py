@@ -71,7 +71,7 @@ import build_your_forecast  # noqa: E402  (the interactive page's address, below
 #: /make/ (owner, 2026-10-03).
 NAV_ITEMS = [
     ("forecast", "our forecast"),
-    (build_your_forecast.YF_HREF, "your forecast"),
+    (build_your_forecast.YF_HREF, "your prediction"),
     ("commentary", "commentary"),
     ("claims", "party claims"),
     # /about merged into /methodology (owner's sweep, 2026-10-03); the Worker
