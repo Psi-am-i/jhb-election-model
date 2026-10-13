@@ -3690,6 +3690,26 @@ def mean_conservation(conserve_record, calib_ratio, names, centres) -> dict:
             "fired": sorted(p for p, v in zs.items() if abs(v) > thr)}
 
 
+def theta_history(scenario: dict, record: dict) -> set:
+    """The parties with a θ history (``scenario["_theta_history"]``), which
+    the 2011 fallback width is split by (``party_width``).
+
+    REFUSES (SystemExit) when the record is the FALLBACK and the history was
+    never set (step-7 review, item 7): ``run_model`` sets it only when
+    ``levels.theta_prior`` returns a prior, and an unset history used to give
+    every party the ``without`` width in silence. Set but empty is a value
+    (no party has a history); unset is not. A fitted record reads no history.
+    """
+    h = scenario.get("_theta_history")
+    if h is None and (record or {}).get("kind") == "fallback":
+        raise SystemExit(
+            "the width record is the 2011 fallback, which splits parties by θ "
+            "history, and `_theta_history` was never set: levels.theta_prior "
+            "returned no prior for this target (an empty θ record), so the "
+            "split cannot be read. Nothing defaults it to `without`.")
+    return set(h or ())
+
+
 def poll_model_sd(party: str, scenario: dict, base_city_d: dict,
                   centres: dict, width_rec, new: bool) -> float:
     """The model's own log sd for a party, as the metro-poll blend weighs it.
@@ -3704,8 +3724,9 @@ def poll_model_sd(party: str, scenario: dict, base_city_d: dict,
         return level_shock_sd(party, scenario, base_city_d)[0]
     tot = sum(max(float(v), 0.0) for k, v in centres.items() if k != "ENTRANT")
     share = max(float(centres.get(party, 0.0)), 0.0) / (tot or 1.0)
-    hist = party in set(scenario.get("_theta_history") or ())
-    return party_width(width_rec(), share, new, history=hist)["total"]
+    rec = width_rec()
+    hist = party in theta_history(scenario, rec)
+    return party_width(rec, share, new, history=hist)["total"]
 
 
 def _apply_strength_judgements(target, scenario: dict, centres: dict,
@@ -4162,7 +4183,7 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
                 correction["factor"] = {p: float(u_factor[k])
                                         for k, p in enumerate(u_names)}
         new_set = set(scenario.get("_new_parties") or ())
-        hist = set(scenario.get("_theta_history") or ())
+        hist = theta_history(scenario, rec)
         judged = {e["party"]: e for e in (scenario.get("_strength_applied") or [])}
 
     def _turnouts(strm, pre: str, d: int):

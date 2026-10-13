@@ -937,5 +937,56 @@ def test_the_emit_reads_which_parties_are_judged_and_never_how_strong():
     assert shas["none"] != shas["low"], "adding `support` left the spec key"
 
 
+def test_the_2011_fallback_refuses_an_unset_theta_history():
+    """Step-7 review item 7. The fallback width is split by θ history, which
+    `run_model` sets only when `levels.theta_prior` returns a prior. With the
+    history unset, `make_drawer` under the fallback record refuses instead
+    of giving every party the `without` width; set but empty it draws (no
+    party has a history, a value); a fitted record needs none. Constructed
+    empty prior: `theta_prior` over no metro codes returns ({}, {}), the
+    case that leaves the history unset (on the real record every metro's
+    2011 θ record is non-empty, MODEL-LOG §1.300). Mutation probe: the
+    refusal removed lets the first draw run (red)."""
+    import contextlib
+    import io
+    import cityconfig
+    import levels
+    from test_draw_streams import base_spec
+    t = cityconfig.Target(city=cityconfig.load("joburg"), year="2011")
+    assert levels.theta_prior(t, {"ANC": 0.5}, codes=()) == ({}, {})
+    fb = {"kind": "fallback", "fallback": {"with_history": 0.27,
+                                           "without": 0.48}}
+
+    def draw(history, record):
+        sc, c, i = base_spec(law="universal")
+        sc["_width"] = dict(record)
+        sc.pop("_theta_history", None)
+        if history is not None:
+            sc["_theta_history"] = history
+        with contextlib.redirect_stdout(io.StringIO()):
+            drawer = M.make_drawer(sc, dict(c), c, i,
+                                   M.DrawStreams("fb|constructed|1", 4))
+            drawer(0)
+        return drawer
+    try:
+        draw(None, fb)
+    except SystemExit as exc:
+        assert "_theta_history" in str(exc), exc
+    else:
+        raise AssertionError("the fallback drew with no θ history set")
+    d = draw([], fb)
+    assert all(abs(w["sigma"] - 0.48) < 1e-12 for w in d.widths.values())
+    d = draw(["A"], fb)
+    assert abs(d.widths["A"]["sigma"] - 0.27) < 1e-12
+    draw(None, FIXTURE_RECORD)
+    try:
+        M.poll_model_sd("A", {"draw_law": "universal"}, {}, {"A": 0.3},
+                        lambda: fb, False)
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("the poll width read the fallback with no history")
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

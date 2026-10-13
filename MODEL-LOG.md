@@ -29612,3 +29612,21 @@ edited hashes are `~`; the true ones carry no judgement note; a width record
 keyed under the scratch root reads `✓`. Mutations, each red and green on
 revert: the absence marked `~`; the manifest scan skipped; the key computed
 without the root; the manifest's judgement check dropped.
+
+### The 2011 fallback refuses an unset θ history (item 7)
+
+`run_model` sets `scenario["_theta_history"]` only inside `if _prior:`, and
+`make_drawer` and `poll_model_sd` read it as `set(... or ())`, so with no prior
+every party silently took the fallback's `without` width. Both now read it
+through `montecarlo.theta_history`, which refuses when the record is the
+fallback and the history was never set (set but empty is a value; a fitted
+record reads none). Can `_prior` be empty at 2011? Measured in process on the
+raw files: `levels.theta_record` at target 2011 holds 19 parties and 90
+observations in every one of the eight metros, so on the real record it is
+not. Constructed: `theta_prior` over no metro codes returns `({}, {})`, the case
+that leaves the history unset; a change to `THETA_WINDOW` or the held-back set
+that empties the pre-2011 record would reach it. Test on the constructed
+two-pool spec: unset refuses (drawer and poll width), empty draws every party
+at `without`, a listed party draws at `with_history`, a fitted record needs no
+history. Mutations: the refusal removed (red); the poll width's old read
+restored (red); reverted, green.

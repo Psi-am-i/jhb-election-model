@@ -1252,7 +1252,9 @@ width, and under option L1 it is NOT carried in the draw; it is recorded for
 the centre-correction arm. ρ(s) is the shared share of variance by size group
 (one-way city-year decomposition). A location fixed point subtracts the draw's
 own model-internal location and re-fits. 2011 has no earlier cycle and takes a
-labelled, untestable fallback. `make_drawer` refuses a missing record, a stale
+labelled, untestable fallback, split by θ history (`montecarlo.theta_history`),
+which refuses when the history was never set rather than giving every party
+the `without` width. `make_drawer` refuses a missing record, a stale
 one (`montecarlo.width_record_key`: the code, and the inputs it read — every
 spec of `width_record.record_specs` by content, the live judgements of those
 city-years, the group-share record's key, the realised result file behind
