@@ -111,6 +111,11 @@ promotion note in §F.
 | `independent_wards` (C) in the forecast | 0, structurally | `montecarlo.run_model` | The forecast universe drops INDEPENDENT/IND, so no draw can seat an independent and C is always 0. The IEC records C=1 at eThekwini 2011 and C=4 at 2016, both SCORED — the model allocates those seats to parties and is charged for it. An ASSUMPTION, not a measurement; registered 2026-09-02 after being silent. | 🔴 | §1.166 |
 | `CENSUS_COVERAGE_FLOOR` | 0.80 | `pools.py` | A WARNING in `pool_counts` and a REFUSAL in `registered_at_target`, on different denominators. Measured 2026-09-02: 0.9609-0.9979 at the refusal, so it binds nowhere and has never been exercised. The §J2 argument applies to it and has not been applied. | 🔴 | §J1 |
 | `CENSUS_DRIFT_CEILING` | 0.05 | `pools.pool_counts` | The reprojection refusal: how far the CITYWIDE composition moves because of unmappable wards. Bounded by ablation (worst random loss 0.028, segregated loss ~0.28) on one city only. | 🟡 | §J2 |
+| `CLOSENESS_BANDS` | quantile levels 0.75, 0.50, 0.25, 0.05 | `reweight.py`, `closeness_badge` / `closeness_cuts` | Owner, 2026-10-13. The reader badge's bands: Safe bet when a forecast is closer to our prediction than 75% of the published simulations scored the same way, Steady as she goes from 50%, Long shot from 25%, Wild call from 5%, Hail Mary below. The levels are the owner's; the cut-offs are computed from the draws at build time (forecast.json `closeness_cuts`), never typed. A forecast at a cut-off takes the closer band. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
+| `CLOSENESS_LARGE_PARTIES` | 6 | `reweight.py`, `large_parties` | Owner, 2026-10-13. How many parties, those with the most seats in our published prediction (a tie by code), make the large-party mean L of the badge's closeness. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
+| `CLOSENESS_LARGE_WEIGHT` | 2 | `reweight.py`, `closeness` | Owner, 2026-10-13: "large parties and predictions are way more important". The large parties' mean counts twice the small parties': overall closeness = (2L + S) / 3. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
+| `CLOSENESS_TINY_POINTS` | 0.5 | `reweight.py`, `closeness` | Owner, 2026-10-13. A party with no seats and under 0.5 points of the list ballot in both our prediction and the reader's forecast is left out of the small-party mean S, so parties nobody moved do not dilute it. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
+| `CLOSENESS_TOLERANCE` | 1e-9 | `reweight.py`, `party_closeness` | A numerical tolerance, not a modelling choice: a simulation exactly as far from our figure as the reader's counts despite float rounding of list percents. Moves no forecast. | 🟢 | §N10 |
 | `contestation_expand` | 0.220 | `montecarlo.py`, applied in `levels.projected_cont… | **AMENDED 2026-09-24 (register audit).** Ships 0.220 and is INERT at 2026 since the declared ward slates reached the correction (MODEL-LOG §1.252; `EXPECTED_INERT[("contestation_expand", "2026")]`), for as long as the roster is `complete = true`. It acts at no backtest target either (§1.60). | 🔴 | §A5 |
 | `DIRICHLET_FLOOR` | 1e-4 | — | 1e-4 and inert as committed — but it has a SECOND consumer that floors a CONCENTRATION rather than a mean, and `PERTURB` sweeps it to 0.05 where that would bind. | 🟢 | §F1 |
 | `dirichlet_floor`, `spine_k` (scenario keys) | — | — | Scenario keys mirroring the module constants so a sweep is reproducible. ⚠ This row also lists `poll_k`, which was DELETED on 2026-08-22 (§1.68) and is in no `DEFAULTS` — see the restructure note beneath. | 🟢 | §F21 |
@@ -135,7 +140,6 @@ promotion note in §F.
 | `MAX_SIGMA`, `MIN_SIGMA`, `NEW_PARTY_SIGMA` | 2.0, 0.15, 1.0 | — | Spread bounds for the `prior-lge-noise` BASELINE, not for the model. | 🟡 | §F28 |
 | `METRO_CODES` widened 2 → 8 | — | `levels.py` | Eight metros. More evidence and no leakage, but it moves θ itself, so it is confounded with the spine in any before/after delta. | 🟡 | §B6 |
 | `min_clusters` | 8 | `score.chi2_clustered` | Typed. The floor below which the clustered uniformity test prints `not established` instead of a χ². Moves no forecast; decides whether a calibration verdict is a number or a refusal. Under a known null δ̄ is unbiased at every k from 3 to 24 and its noise is SMOOTH in k, so there is no cliff at 8 — any floor is a line on a continuum. | 🔴 | §D22 |
-| `MIN_CALL_SEATS` | 10 | `reweight.py`, `boldest_call` | Owner, 2026-10-12: "ignore anything under a 10 seat move". A party's call counts only if the reader's seats differ from the published prediction's by this many seats or more, up or down. One rule for every party; replaced a one-seat rule. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
 | `MIN_EFFECTIVE_DRAWS` | 200 | `reweight.py`, `require_effective` | Typed, from PLAN.md build step S4. The fewest effective draws a re-weighted figure on the interactive may rest on; below it the control greys out. Moves no forecast: it decides whether the page shows a number or a refusal. | 🟡 | §N1 |
 | `MAX_FIGURE_SE_SEATS` | 2.5 | `reweight.py`, `figure` / `within_precision` | Owner, 2026-09-30. The largest Monte Carlo standard error, in seats, a figure on the interactive may carry; above it the figure is withheld and the control that caused it stops. Moves no forecast. With it, the poll dial's width `poll_sd / trust`. | ⚖️ | §N2 |
 | `MIN_HOME_SPLITS` and the binary home/away | 2 | `pools.py` | Unchanged: a measured gradient (0.611 / 0.315 / 0.289 / 0.103) modelled as two buckets. | 🔴 | §A44 |
@@ -3179,6 +3183,16 @@ print `council_outcome`'s figure: they print the boldest call's own chance.
 chance of the council outcome ("Council outcome: ...", "We give that
 council outcome a 45% chance."), not "this outcome".
 
+**Amended 2026-10-13 (§N10).** "Analyse my forecast" no longer prints
+`council_outcome`'s figure either: it names the council outcome in words and
+shows the badge (closeness to our prediction, §N10). No page or card prints
+the chance of the council outcome, and no page or Worker calls
+`council_outcome`; it stays in `reweight.py`, held by its hand enumeration in
+`tests/test_reweight.py`. The per-party chances within `ANALYSIS_SEAT_BAND`
+seats and `ANALYSIS_SHARE_BAND_POINTS` points are unchanged; their columns
+are headed "Chance it lands within 2 seats" and "Chance it lands within 2
+points" (the figures from the engine's answer), replacing the footnote marks.
+
 ### §N4 · The competition rule: seats, then ward calls, then vote (list ballot); and the seat line — ⚖️ owner's order, the line derived (2026-10-03)
 
 **Where.** `src/score_forecasts.py` (`seat_error`, `wards_called`,
@@ -3403,40 +3417,94 @@ or sixty seconds only.
 the fourth seal refused, another address and a new period passed, and a
 preview refused before it is counted.
 
-### §N10 · The reader's badge: the boldest single call, in five bands (45, 30, 15, 5%) — ⚖️ owner's measure and bands (2026-10-10)
+### §N10 · The reader's badge: how close a forecast is to our prediction, banded by the simulations' own closeness (75, 50, 25, 5%) — ⚖️ owner's measure and bands (2026-10-10, measure replaced 2026-10-13)
 
-**Where.** `reweight.boldest_call`, `reweight.BOLDNESS` and
-`reweight.MIN_CALL_SEATS`, read only by
-`reweight.boldness`; both called by `reweight.outcome_chance` for
-`interactive/pyboot/page.py`'s `analyse` and the seat Worker's card answer
-(`worker-api/seats-py/src/entry.py`, `/v1/card`). The share cards, the link
-preview and the arrival view on /your-forecast/ draw the owner's badge for
-the words they are handed (`src/stamps/reader-<words>.svg`, served at
-`/stamps/`) and name the call; no JavaScript computes either.
+**Where.** `reweight.closeness` (with `party_closeness`, `large_parties`,
+`CLOSENESS_LARGE_PARTIES`, `CLOSENESS_LARGE_WEIGHT`, `CLOSENESS_TINY_POINTS`),
+`reweight.closeness_cuts` and `reweight.closeness_badge` (`CLOSENESS_BANDS`),
+called through `reweight.outcome_badge` by `interactive/pyboot/page.py`'s
+`analyse` and the seat Worker's card answer
+(`worker-api/seats-py/src/entry.py`, `/v1/card`). The cut-offs are computed by
+`build_make.closeness_cuts` when forecast.json is built and stored there as
+`closeness_cuts`; the page sends them with its `analyse` request and the seat
+Worker reads them from the site's forecast.json. The share cards, the link
+preview, the arrival view and the analysis draw the owner's badge for the
+words they are handed (`src/stamps/reader-<words>.svg`, served at
+`/stamps/`); no JavaScript computes it. No page or card prints the closeness
+as a number: `outcome_badge` returns the words only.
 
-**Now.** For each party whose seats in the reader's forecast differ from the
-published prediction's (amended 2026-10-12 below: it was each party's median
-seats, `reweight.middle_seats`) by `MIN_CALL_SEATS` or more, the
-share of simulations at least that far out on the reader's side: `P(seats ≥
-x)` when the reader's `x` is above the prediction, `P(seats ≤ x)` when below.
-The smallest of these is the boldest call; the badge comes from it and the
-card names the party and its seats and the call's chance ("Your boldest call:
-the PA at 38 seats. We give that a 4% chance."). A tie goes to the party first
-in the draws' column order. A party with no column in the draws holds no seats in any
-simulation, as in §N3.
+**Now (owner, 2026-10-13; brief
+`audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md`).**
 
-| badge | chance of the boldest call |
+* A party's closeness on one measure is the share of the published
+  simulations at least as far from OUR published prediction (forecast.json
+  `start`, the prediction section 2 opens on) as the reader's figure is:
+  `P(|X − ours| ≥ |reader − ours|)`. Seats tie at whole distances (counted as
+  at least as far), so our own figure scores exactly 1. It is computed for
+  seats and for the list vote (percent of the list ballot), and the party's
+  closeness is the mean of the two.
+* L is the mean over the `CLOSENESS_LARGE_PARTIES` = 6 parties with the most
+  seats in our prediction (a tie by party code). S is the mean over every other
+  party, leaving out any party with 0 seats and under `CLOSENESS_TINY_POINTS`
+  = 0.5 points of the list vote in both our prediction and the reader's
+  forecast.
+* Overall closeness = (2L + S) / 3 (`CLOSENESS_LARGE_WEIGHT` = 2). With no
+  small party left it is L.
+
+| badge | overall closeness |
 |---|---|
-| Safe bet | 45% or more |
-| Steady as she goes | 30% to under 45% |
-| Long shot | 15% to under 30% |
-| Wild call | 5% to under 15% |
-| Hail Mary | under 5% |
+| Safe bet | at or above the 75th percentile of the simulations' own scores |
+| Steady as she goes | from the 50th percentile |
+| Long shot | from the 25th percentile |
+| Wild call | from the 5th percentile |
+| Hail Mary | below the 5th percentile |
 
-A chance exactly at an edge takes the higher band. A forecast with no call
-(no party differs from the published prediction by `MIN_CALL_SEATS` or more) is a Safe bet. The badge reads the printed chance (see below).
+The simulations' own scores: every published draw scored through
+`reweight.closeness` as if it were a reader's forecast (its seats and list
+percents), against the same draws and our prediction (`closeness_cuts`,
+`draw_closeness`); the cut-offs are their weighted quantiles
+(`weighted_quantile`, each draw counted once). A draw stays in the population
+it is scored against. A closeness at a cut-off takes the closer band. Our
+prediction scores 1 and is always a Safe bet.
 
-**Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`,
+**Why.** The owner, 2026-10-13, after the variants measured in
+`score/v4.py` (scratch): the per-party within-two-seats chance printed by the
+analysis gave a small party about 90% for almost any guess and a large party
+about 11% even at our own number; the council-outcome chance gave our own
+prediction 47%; and the boldest-call badge judged a whole forecast by one
+party. Owner: "47% for everything looks broken. must feel right."; "I would
+not give them a score. A score gives the impression of chance and a wild call
+does not have a 78% chance."; "large parties and predictions are way more
+important" (the 6 large parties and the 2:1 weight). The 0.5-point floor keeps
+parties no one moved from diluting S. The band levels are his; the cut-offs
+are not typed but computed from the published draws, so they follow the model.
+
+**Known limits.** Per party the measure is monotone: moving one party further
+from ours never raises its closeness (tested). The overall is not monotone in
+one case: a tiny party moved across 0.5 points enters S, and S's mean can
+then rise or fall. The badge reads the published draws only (uniform
+weights); a reader's section-1 settings do not move it.
+
+**How to check it.** `tests/test_reweight.py`: `party_closeness` by hand
+(two-sided, ties counting), the aggregation and the tiny-party exclusion both
+ways on constructed draws, the large parties' tie rule, the badge at each
+cut-off, the cut-offs equal to `np.percentile` of the draws' own scores
+re-made draw by draw, our prediction scoring 1 on every party and a Safe bet
+on the published draws with forecast.json's cut-offs regenerated, and
+monotonicity on the published draws; and that every badge word has the
+owner's file and every file a word. `tests/test_reader_seats.py` holds the
+seat Worker's card answer to `outcome_badge` by hand;
+`tests/test_your_forecast_page.py` holds the page's `analyse` to it on the
+published draws. Nothing in the model reads the badge.
+
+**The measure before 2026-10-13: the boldest single call (superseded).**
+From 2026-10-10 to 2026-10-13 the badge was the chance of the forecast's
+boldest single call, banded at 45, 30, 15 and 5%, the edges printed on the
+owner's badges (`reweight.boldest_call`, `reweight.BOLDNESS`,
+`reweight.boldness`; deleted 2026-10-13, MODEL-LOG "Closeness badge"). The
+record of that measure and its two amendments follows, as written then.
+
+*(Superseded.)* **Why.** The owner's decision, `audits/2026-10-09-site-batch/BADGE-DECISION.md`,
 which records the measurements behind it: what §N6's badge gave the common
 forecasts and the model's own middle forecast on the published draws, and
 the chances of eight constructed forecasts under this measure. The owner's

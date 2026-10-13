@@ -29155,3 +29155,32 @@ forecasts above give: ANC +3 DA −3 and PA +8 DA −8, no call (Safe bet); the
 other six as listed. The two readers of `interactive/tests/share-fixture.json`,
 through the real path: the first has no call (no party 10 seats from the
 prediction), the second a call (MK 13 against 23, 21%).
+
+## Closeness badge: the cut-offs against the brief's test forecasts (2026-10-13)
+
+Measured on the served pair `site/draws/` and `site/your-forecast/forecast.json`
+(model `7ea27c28`, `draws_sha256` equal across them), with `reweight.closeness`
+and `reweight.closeness_cuts` as committed for JUDGEMENT-CALLS §N10 (amended
+2026-10-13; brief `audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md`).
+Overall closeness to four places; it is never printed on the site.
+
+- Cut-offs (the 75th, 50th, 25th and 5th percentiles of the 5,000 draws' own
+  overall closeness): Safe bet 0.5863, Steady as she goes 0.5265, Long shot
+  0.4673, Wild call 0.3861.
+- Our prediction: 1.0000, Safe bet. Fixture A (share-fixture.json): 0.9910,
+  Safe bet. Fixture B: 0.6854, Safe bet. The owner's screenshot forecast (14
+  parties set, the rest at our prediction): 0.8202, Safe bet. score/v4.py's
+  mild (ANC −8, DA +8): 0.9178, Safe bet; moderate (ANC −15, DA, ASA, EFF +5
+  each, IFP +2): 0.8456, Safe bet; wild (ANC −25, EFF +25, Al Jama-ah, IFP,
+  Rise +3 each): 0.7797, Safe bet.
+- The draws' own scores, every 10th draw (500), p5/25/50/75/95: overall
+  0.386/0.456/0.518/0.581/0.671; L 0.310/0.412/0.496/0.592/0.728; S
+  0.436/0.504/0.548/0.598/0.677; parties in S 17/18/19/21/22.
+- Scored against its own population, a draw's per-party closeness
+  `P(|X − ours| ≥ |draw − ours|)` is a probability integral transform, close to
+  uniform on (0, 1) with mean about 0.5, whatever the model's spread; so the
+  cut-offs sit near 0.4 to 0.6 for any draw set. A draw moves every party; the
+  test forecasts hold most parties at our prediction (closeness 1 there) and
+  move a few. All seven test forecasts band Safe bet. Reported to the owner
+  before the whole suite and the UAT deploy; the cut-off rule is his to
+  decide.

@@ -203,7 +203,6 @@
 /* the reader is scrolled to the region; the heading above it stays in view */
 .yf-analysis [data-live="b-analysis"]{scroll-margin-top:110px;}
 .yf-analysis h3{font:600 20px var(--serif);margin:0 0 8px;}
-.yf-verdict{font:19px/1.4 var(--serif);color:var(--ink);margin:0 0 6px;max-width:62ch;}
 /* the reader's forecast scored as the competition scores it: seats, ward
    calls, vote (JUDGEMENT-CALLS §N4), one line each */
 .yf-score{list-style:none;margin:0 0 6px;padding:0;font-size:15.5px;line-height:1.45;color:var(--ink);max-width:72ch;}
@@ -213,8 +212,10 @@
 .yf-outcome{font-size:14px;color:var(--ink-2);margin:0 0 4px;}
 .yf-outcome:empty{display:none;}
 .yf-expected{font-size:14px;margin:0 0 10px;}
-/* the headline names the outcome, then says it is the citywide result only */
-.yf-cityonly{font-size:14px;color:var(--ink-2);margin:0 0 6px;max-width:62ch;}
+/* the badge beside what it is and how entries are ranked (the arrival view's
+   .yf-arr-badge, the same layout) */
+.yf-abadge-what{font:17px/1.4 var(--serif);color:var(--ink);margin:0;max-width:62ch;}
+.yf-abadge-rank{font-size:14px;color:var(--ink-2);margin:6px 0 0;line-height:1.4;max-width:62ch;}
 /* the two parts: ward wins ("Your map") and citywide vote and seats */
 .yf-apart{margin:18px 0 0;padding-top:12px;border-top:1px solid var(--rule-soft);}
 .yf-apart .eyebrow{margin:0 0 2px;}
@@ -305,7 +306,7 @@
 .yf .floornote.yf-slot{line-height:1.4;height:calc(3lh + 12px);}
 .yf .floornote.yf-slot:empty{background:none;border-left-color:transparent;}
 .yf .coalstat.yf-slot{line-height:1.4;height:2lh;}
-.yf .yf-verdict.yf-slot{height:2lh;}
+.yf .yf-abadge.yf-slot{min-height:112px;}
 .yf .yf-score .yf-slot{height:2lh;}
 .yf .yf-score .yf-sseats.yf-slot{height:4lh;}
 .yf .yf-outcome.yf-slot{line-height:1.4;height:4lh;}
@@ -325,7 +326,6 @@
   .yf .stubnote.yf-slot{height:2lh;}
   .yf .painthint.yf-slot{height:calc(2lh + 16px);}
   .yf [data-live="ess"].yf-slot{height:2lh;}
-  .yf .yf-verdict.yf-slot{height:1lh;}
   .yf .yf-score .yf-slot{height:1lh;}
   .yf .yf-score .yf-sseats.yf-slot{height:2lh;}
   .yf .yf-outcome.yf-slot{height:2lh;}
@@ -382,9 +382,10 @@
 .yf-arr-sub{color:var(--ink-2);font-size:clamp(16px,1.6vw,18px);margin:0;}
 .yf-arr-verdict{border:1px solid var(--rule);background:var(--paper-2);border-radius:8px;padding:16px;margin-top:20px;}
 .yf-arr-what{color:var(--ink-2);font-size:15px;line-height:1.45;margin:0;}
-.yf-arr-call{font:600 clamp(24px,2.6vw,30px)/1.2 var(--serif);color:var(--ink);margin:6px 0 0;}
-/* the owner's badge (src/stamps/reader-*.svg) beside the chance and the boldest call */
-.yf-arr-badge{display:flex;align-items:center;gap:16px;margin:8px 0 0;}
+.yf-arr-call{font:17px/1.4 var(--serif);color:var(--ink);margin:6px 0 0;}
+/* the owner's badge (src/stamps/reader-*.svg) beside what it is and how
+   entries are ranked, in the arrival view and the analysis */
+.yf-arr-badge,.yf-abadge{display:flex;align-items:center;gap:16px;margin:8px 0 0;}
 .yf-stamp{width:112px;height:auto;flex:none;}
 .yf-arr-chance{font-size:15px;color:var(--ink-2);margin:6px 0 0;line-height:1.4;}
 .yf-arr-how{font-size:13px;color:var(--ink-3);margin:8px 0 0;line-height:1.45;}

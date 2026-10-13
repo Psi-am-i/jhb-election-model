@@ -2344,25 +2344,26 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   Worker draws the link card as the forecast's preview image. A reader who
   moves section 1's settings shares section 1's hand-off as a reader's
   forecast, sealed through the same `/seal/1` (`make.js` `setHandoff`: the
-  hand-off seated in the seat Worker's `handoff` lane, its chance from
+  hand-off seated in the seat Worker's `handoff` lane, its badge from
   `analyse`).
-  `forecastSpec` takes the seat law's answer, the badge and the boldest call
-  (with its own chance, the only chance a card prints; the council-level
-  outcome's chance is printed in "Analyse my forecast" only), the
-  reader's vote, and forecast.json's
+  `forecastSpec` takes the seat law's answer, the badge (words only: no card
+  prints a chance or the closeness figure; each card prints `BADGE_LINE`,
+  what the badge is), the reader's vote, and forecast.json's
   `baseline` (the previous council election per roster party, from
   `build_make.baseline`); it adds no figure of its own. The council graphic's
   geometry (`councilLayout`, `stepPath`) is shared with the arrival view.
   Text is measured with the IBM Plex faces that draw it (`card-fonts.js`,
   generated from `src/card-fonts/` by `interactive/tools/card_fonts.mjs`).
-* **The chance and the badge** come only from Python:
-  `reweight.outcome_chance` (council_outcome and chance_text for the council
-  outcome's chance; `boldest_call` and `boldness` for the badge, the call it
-  names and that call's chance, JUDGEMENT-CALLS §N10). The call is measured
-  from the published prediction (`forecast.json` `start.seats`), which the
-  page sends with `analyse` and the seat Worker reads from the site's
-  `forecast.json` (`entry.load_prediction`); a party counts only if it differs
-  from the prediction by `MIN_CALL_SEATS` (10) seats or more. The cards draw the owner's badge for the words
+* **The badge** comes only from Python: `reweight.outcome_badge` (the
+  council in words, `reader_outcome`; and the badge, `closeness_badge` of
+  `closeness`, JUDGEMENT-CALLS §N10). The closeness is measured from the
+  published prediction (`forecast.json` `start`: seats and list votes) and
+  banded by the cut-offs `build_make.closeness_cuts` computes from the
+  published draws (`forecast.json` `closeness_cuts`): the page sends both
+  with `analyse` (`make.js` `ours`) and the seat Worker reads both from the
+  site's `forecast.json` (`entry.load_prediction`). The closeness itself is
+  never returned. The analysis and the arrival view print `BADGE_LINE` and
+  `RANKING_LINE` (share-card.js, one definition each) beside the badge. The cards draw the owner's badge for the words
   (`src/stamps/reader-*.svg`, served at `/stamps/`) through share-card.js
   `stampSVG`, the one function that places a stamp, which prefixes the
   stamp's internal ids per embed. The page reaches it through `page.py`'s `analyse`;
@@ -2373,7 +2374,7 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
 * **The edge** (`share-edge.js`, routed by `src/worker.js`): `/s/` counts a
   share arrival (channel `share`, the button) and redirects to the arrival
   view; `/your-forecast/?f=…` gets its og: tags pointed at
-  `/og/3/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
+  `/og/4/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
   rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
   the draws' hash (a year when the link's seal checks, an hour otherwise), and
   is `/og.png` on any failure.

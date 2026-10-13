@@ -12,8 +12,8 @@ Every command runs from the repository root. The agent may run steps 0 to 2
 a Worker so it can be tested (owner, 2026-10-12). Promotion to live is the
 owner's alone: `wrangler versions deploy <id>@100%` for `joburg-whysoserious`
 (step 3), and any deploy of `joburg-seats` that live traffic reaches (a live
-`joburg-seats` is bound by the live site Worker; see "Releasing the card's one
-chance"). The agent never runs those.
+`joburg-seats` is bound by the live site Worker; see "Releasing the closeness
+badge"). The agent never runs those.
 
 ## How each host behaves
 
@@ -329,6 +329,43 @@ back only `joburg-seats` leaves the new site Worker asking with a body the old
 seat Worker refuses (400): previews fall back to `/og.png` until both match.
 Rolling back only the site Worker leaves the new seat Worker refusing its
 older request the same way.
+
+## Releasing the closeness badge (2026-10-13)
+
+The badge measures how close a forecast is to the published prediction,
+banded by cut-offs computed from the published draws (JUDGEMENT-CALLS §N10,
+amended 2026-10-13). `reweight.py` changed (`outcome_badge` replaces
+`outcome_chance`), and `forecast.json` carries `closeness_cuts`, which the
+seat Worker reads from the site at `/your-forecast/forecast.json`. The
+`/v1/card` request body is unchanged; its answer's `outcome` carries the
+badge and `measure`, and no chance. The site Worker refuses an answer whose
+`measure` is not `share-edge.js` `CLOSENESS_MEASURE` (`cardAnswer`).
+
+**Either order is safe; neither draws a wrong card.**
+- *old site Worker, new seat Worker:* the old edge requires `boldest` in the
+  answer, finds none, and refuses it: previews fall back to `/og.png`
+  (`no-store`) until the site Worker is promoted.
+- *new site Worker, old seat Worker:* the old seat Worker answers a boldest
+  call with no `measure`; the edge refuses it. Previews fall back to
+  `/og.png`.
+- *new seat Worker, a site whose forecast.json has no `closeness_cuts`:*
+  `load_prediction` refuses it and `/v1/card` answers 503; previews fall
+  back to `/og.png`. So `SITE_ORIGIN` must serve a build of this change.
+
+1. `node worker-api/tools/sync_seats_py.mjs` (and `--check`), then deploy
+   `joburg-seats` as above.
+2. Upload, check and promote the site Worker. On the Version URL, a shared
+   link's `/og/4/link.png` draws the owner's badge and the line "How close
+   this is to our prediction, with the largest parties counting double.",
+   no call and no chance; `/og/3/…`, `/og/2/…` and `/og/1/…` answer 301 to
+   it. "Analyse my forecast" shows the badge, that line and the ranking line,
+   and no council-outcome chance.
+
+**Why the image address moved to `/og/4/`.** The card's wording changed and
+a sealed card's image is cached for a year as immutable (see above).
+
+**Rollback.** Roll the site Worker back first, then `joburg-seats`. Either
+alone leaves a mismatched pair, which falls back to `/og.png` as above.
 
 ## Entries at launch
 

@@ -480,20 +480,19 @@ def analyse(request_json: str) -> str:
 
     Request: ``{"ward_calls": {ward: party}, "share": {party: percent of the
     list ballot}, "seats": {party: seats}, "majority": seats needed,
-    "coalition": [party], "keep": [party], "prediction": {party: seats}}``,
+    "coalition": [party], "keep": [party], "prediction": {"seats": {party:
+    seats}, "list_votes": {party: votes}}, "cuts": {badge: closeness}}``,
     section 2's forecast (``keep``: parties whose row the page already shows,
-    so a row never goes while the reader edits; ``prediction``: the seats of
-    the published prediction, the ``start.seats`` of forecast.json, which the
-    boldest call is measured from). Every chance is the PUBLISHED forecast's: the published
+    so a row never goes while the reader edits; ``prediction``: the published
+    prediction, the ``start`` of forecast.json; ``cuts``: forecast.json's
+    ``closeness_cuts``). Every chance is the PUBLISHED forecast's: the published
     cell, each draw counted once, statutory seats. Returns
 
-    * ``outcome``: the chance of the reader's council-level outcome,
-      ``reweight.council_outcome``: the largest party alone (or a tie for
-      the most seats), whether one party has a majority on its own, and the
-      chosen coalition reaching a majority; with what it was read as and
-      the badge of its boldest call (``reweight.outcome_chance``). The page's headline;
-      the chance is that of the overall result only, not of the boldest call
-      (``outcome["boldest"]``, which the cards print);
+    * ``outcome``: the reader's council in words (the largest party alone or
+      a tie for the most seats, whether one party has a majority on its own,
+      the chosen coalition) and the badge, how close the forecast is to the
+      published prediction (``reweight.outcome_badge``; JUDGEMENT-CALLS
+      §N10). No chance of the council outcome, and no closeness figure;
     * ``score``: the reader's forecast scored against EVERY published
       simulation as if it were the result, by the competition's own
       measures in its order (``score_forecasts.seat_error``,
@@ -538,7 +537,7 @@ def analyse(request_json: str) -> str:
     k = np.array([index.get(calls[x], len(codes)) for x in wards])
     lik = R.ward_calls_likelihood(winners, w, len(codes) + 1, k)
     seats, cols = _party_columns(cell, PUBLISHED_LAW)
-    pr = R.list_shares(cell["arrays"]["list_vote"])
+    pr = R.draw_percents(cell["arrays"]["list_vote"])   # points of the list ballot
     prcols = list(_block(cell, "list_vote")[1])
     pub = _published()["median"]
     mine = {c: int(v) for c, v in (req.get("seats") or {}).items()}
@@ -554,23 +553,27 @@ def analyse(request_json: str) -> str:
     within = R.seat_error_line(SF.seat_error(R.middle_seats(seats, cols, w), cols, seats), w)
     score = R.scored_as_results(SF.seat_error(mine, cols, seats),
                                 SF.wards_called(k, winners),
-                                SF.list_vote_error(points, prcols, pr * 100.0), w, within=within)
+                                SF.list_vote_error(points, prcols, pr), w, within=within)
 
     def chance(p):
         return {"p": float(p), "text": R.chance_text(p)}
-    # the reader's council-level outcome (reweight.outcome_chance), with its badge
+    # the reader's council in words, and its badge (reweight.outcome_badge)
     held = {c: v for c, v in mine.items() if v > 0}
     need = int(req.get("majority") or sum(held.values()) // 2 + 1)
-    council = cell["arrays"][f"council/{PUBLISHED_LAW}"]
-    if not isinstance(req.get("prediction"), dict):
-        raise ValueError("no published prediction: the boldest call is measured from it")
-    outcome = R.outcome_chance(seats, cols, council[:, 0], w, mine, need, req.get("coalition") or [],
-                               prediction={c: int(v) for c, v in req["prediction"].items()})
+    ours = req.get("prediction")
+    if not isinstance(ours, dict) or not isinstance(ours.get("seats"), dict) \
+            or not isinstance(ours.get("list_votes"), dict) or not isinstance(req.get("cuts"), dict):
+        raise ValueError("no published prediction or cut-offs: the badge is measured from them")
+    outcome = R.outcome_badge(seats, cols, pr, prcols, w,
+                              {"seats": mine, "share": share}, need, req.get("coalition") or [],
+                              ours={"seats": {c: int(v) for c, v in ours["seats"].items()},
+                                    "share": R.list_percent(ours["list_votes"])},
+                              cuts=req["cuts"])
     seat_out, share_out = {}, {}
     for c in shown:
         seat_out[c] = chance(R.within_band(seats[:, cols.index(c)], w, mine.get(c, 0), R.ANALYSIS_SEAT_BAND))
         if c in prcols:
-            share_out[c] = chance(R.within_band(pr[:, prcols.index(c)] * 100.0, w,
+            share_out[c] = chance(R.within_band(pr[:, prcols.index(c)], w,
                                                float((req.get("share") or {}).get(c, 0.0)),
                                                R.ANALYSIS_SHARE_BAND_POINTS))
     return json.dumps(_plain({

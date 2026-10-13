@@ -8,8 +8,8 @@
 //                            the channel, the button and the host are written.
 //   /your-forecast/?f=…      the page, its og: and twitter: tags rewritten to
 //                            name the forecast and point at its own image
-//   /og/3/link.png?<link>    that image, drawn here: share-card.js's card,
-//   /og/3/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
+//   /og/4/link.png?<link>    that image, drawn here: share-card.js's card,
+//   /og/4/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
 //                            the edge by the link and the published draws'
 //                            hash: a year when the link's seal checks, an
 //                            hour otherwise (imageCache). Any failure
@@ -21,9 +21,10 @@
 //   GET /entries/1/count     how many forecasts have been sealed: one D1 count,
 //                            kept at the edge COUNT_MAX_AGE_S seconds
 //
-// SEATS AND THE CHANCE COME ONLY FROM PYTHON (DESIGN §3): the image's seats
-// are the seat law's for the link's picks and its chance the published
-// forecast's for that outcome, both from the seat Worker's /v1/card
+// SEATS AND THE BADGE COME ONLY FROM PYTHON (DESIGN §3): the image's seats
+// are the seat law's for the link's picks and its badge how close they are
+// to the published prediction (reweight.outcome_badge), both from the seat
+// Worker's /v1/card
 // (worker-api/seats-py, reached through the service binding env.SEATS). The
 // link's own figures are never read for the image, so a forged link cannot
 // put on an image from this domain a seat count the law would not give. With
@@ -72,9 +73,14 @@ const PAGE = "/your-forecast/";
 // is cached for a year as immutable. Version 2 (2026-10-10): the owner's
 // reader badges and the boldest call. Version 3 (2026-10-12): the card prints
 // the boldest call's own chance, measured from the published prediction, in
-// place of the council outcome's. An address of an earlier version answers
-// 301 to the same image at the current one.
-export const CARD_VERSION = 3;
+// place of the council outcome's. Version 4 (2026-10-13): the badge measures
+// closeness to the published prediction and the card prints what it is, with
+// no call and no chance (JUDGEMENT-CALLS §N10). An address of an earlier
+// version answers 301 to the same image at the current one.
+export const CARD_VERSION = 4;
+// reweight.CLOSENESS_MEASURE: the card answer's `measure`, the same text
+// (tests/test_worker_routing.py holds the two equal).
+export const CLOSENESS_MEASURE = "closeness to the published prediction";
 const IMAGE = /^\/og\/(\d+)\/(link|story)\.png$/;
 const imagePath = size => `/og/${CARD_VERSION}/${size}.png`;
 
@@ -161,7 +167,7 @@ export async function sharedPage(request, url, env) {
     "og:description": "A reader's forecast of the Johannesburg council, not the model's. Make yours.",
     "og:url": `${url.origin}${PAGE}?${q}`,
     "og:image": image,
-    "og:image:alt": title + ": seats, who governs, and the chance we give the boldest call.",
+    "og:image:alt": title + ": seats, who governs, and how close it is to our prediction.",
     "twitter:image": image,
   };
   for (const k of TAGS) {
@@ -192,7 +198,7 @@ export async function predictionSha(seats) {
   return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-// The seat law's answer and the outcome's chance for one prediction, checked.
+// The seat law's answer and the forecast's badge, checked.
 async function cardAnswer(env, D, got) {
   const psha = await predictionSha(D.forecast.start.seats);
   const body = B.entryBody(got.state, D.ctx, { coalition: got.coalition });
@@ -205,12 +211,12 @@ async function cardAnswer(env, D, got) {
   const ans = await r.json();
   const seats = checkSeatAnswer(ans, body, D.forecast.schema);   // arithmetic identities, or throws
   const o = ans.outcome;
-  if (!o || typeof o.text !== "string" || typeof o.badge !== "string" || !Array.isArray(o.coalition) ||
-      !o.boldest || typeof o.boldest !== "object" || ans.draws_sha256 !== D.forecast.draws_sha256) throw new Error("the card answer is incomplete");
-  // measured from the published prediction, not from an earlier Worker's medians
-  // (`prediction` is null on a no-call answer, so `in` is the test): a refused
-  // answer is the generic image, never cached
-  if (!("prediction" in o.boldest) || !("min_seats" in o.boldest) || ans.prediction_sha256 !== psha) throw new Error("the card answer was not measured from the published prediction");
+  if (!o || typeof o.badge !== "string" || !Array.isArray(o.coalition) ||
+      ans.draws_sha256 !== D.forecast.draws_sha256) throw new Error("the card answer is incomplete");
+  // the badge measured as closeness to this page's published prediction, not
+  // an earlier Worker's boldest call: a refused answer is the generic image,
+  // never cached
+  if (o.measure !== CLOSENESS_MEASURE || ans.prediction_sha256 !== psha) throw new Error("the card answer was not measured from the published prediction");
   return { ...seats, outcome: o };
 }
 

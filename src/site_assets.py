@@ -98,7 +98,8 @@ BRAND_FILES = ("logo.svg", "whysoserious.svg", "favicon.svg", "favicon-32.png", 
 #: the prediction seal, as he drew them.
 STAMP_SRC = REPO_ROOT / "src" / "stamps"
 #: Where the served ones go, and which they are: the reader badges, named by
-#: their words (``reweight.BOLDNESS``; share-card.js ``badgeFile``).
+#: their words (``reweight.CLOSENESS_BANDS``; share-card.js ``badgeFile``),
+#: one file per word, so a new badge replaces its file under the same name.
 STAMP_DIR = "stamps"
 STAMPS_SERVED = "reader-*.svg"
 

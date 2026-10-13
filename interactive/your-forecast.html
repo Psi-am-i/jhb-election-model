@@ -301,12 +301,10 @@
       <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
       <div data-live="b-analysis" hidden>
         <!-- the headline: what the council outcome is (share-card.js outcomeWords),
-             then the chance we give it (councilChanceSentence). The cards print the
-             chance of the forecast's boldest call instead (boldestChance) -->
+             then the badge, what it is (BADGE_LINE) and how entries are ranked
+             (RANKING_LINE), as the cards and the arrival view show them -->
         <p class="yf-outcome yf-slot"></p>
-        <p class="yf-verdict yf-slot"></p>
-        <p class="yf-cityonly">This is the citywide result only. Your ward calls and seat counts can be off while it
-          comes true, so its chance can be high even when they are off.</p>
+        <div class="yf-abadge yf-slot"></div>
         <!-- ward wins: the reader's own map, each ward shaded by the chance we
              give their call there; the expected number of calls right beside it -->
         <section class="yf-apart yf-awards" aria-labelledby="h-amap">
@@ -390,8 +388,11 @@
         first list with no votes.</li>
       <li id="note-outcome">The "council outcome" is your council's: the party with the most seats on its own, or a tie for
         the most; whether any one party has a majority on its own; and, if you picked who governs, that coalition
-        holding a majority. Its chance is the share of the published forecast's {{n_draws}} simulations, each counted
-        once, in which all of these happen together. A ward's chance is the share in which your party wins it; your
+        holding a majority. The badge says how close your forecast is to our prediction. For each party, it takes the
+        share of the published forecast's {{n_draws}} simulations, each counted once, that land at least as far from
+        our seats as yours, and the same for the list vote; the largest parties in our prediction count double. Each
+        simulation is scored the same way, and the badges are bands of those scores. A ward's chance is the share of
+        the simulations in which your party wins it; your
         map draws it as the strength of each ward's colour, and the number of your ward calls we expect to come true
         is their average count over the simulations. The citywide figures score your forecast against each simulation
         as if it were the result, by the competition's rules in its order. Seats: the gap between your seats and the

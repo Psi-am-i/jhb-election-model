@@ -34,6 +34,7 @@ REPO = Path(__file__).resolve().parents[2]
 SERVED = REPO / "interactive" / "py" / "page"
 DRAWS = REPO / "site" / "draws"
 SETTINGS = REPO / "interactive" / "tests" / "play-settings.json"
+FORECAST = REPO / "site" / "your-forecast" / "forecast.json"
 FIXTURE = REPO / "interactive" / "tests" / "native-play.json"
 BOOT = REPO / "interactive" / "pyboot" / "page.py"
 
@@ -95,17 +96,22 @@ def run_section2(ns) -> list[dict]:
         # the reader's list-ballot percent, as make.js sends it (B.percentOf "list")
         lt = sum(h["list_votes"].values())
         share = {c: 100.0 * v / lt for c, v in h["list_votes"].items()}
+        # the badge's cut-offs as the page reads them, from the served forecast.json
+        cuts = json.loads(FORECAST.read_text())["closeness_cuts"]
+        ours = {"seats": seats, "list_votes": h["list_votes"]}
         a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
-                                                 "seats": seats, "prediction": seats,
+                                                 "seats": seats, "prediction": ours, "cuts": cuts,
                                                  "coalition": two})))
-        # a prediction that differs from the reader's seats, so the boldest
-        # call is a real one (the first call's reader IS the prediction)
-        pred = {**seats, two[0]: seats[two[0]] - 12, two[1]: seats[two[1]] + 12}
+        # the first reader IS the prediction (a Safe bet); a prediction twelve
+        # seats away on the two largest parties scores lower
+        assert a["outcome"]["badge"] == "Safe bet", name
+        pred = {"seats": {**seats, two[0]: seats[two[0]] - 12, two[1]: seats[two[1]] + 12},
+                "list_votes": h["list_votes"]}
         a2 = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
-                                                  "seats": seats, "prediction": pred,
+                                                  "seats": seats, "prediction": pred, "cuts": cuts,
                                                   "coalition": two})))
-        assert a2["outcome"]["boldest"]["party"] is not None, name
-        out.append({"name": name, "handoff": h, "analyse": a, "analyse_moved": a2})
+        assert a2["outcome"]["badge"] != "Safe bet", name
+        out.append({"name": name, "cuts": cuts, "handoff": h, "analyse": a, "analyse_moved": a2})
     return out
 
 

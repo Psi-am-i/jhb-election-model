@@ -159,66 +159,45 @@ test("the outcome reads exactly as the chance is defined, and a tie splits the b
   assert.ok(!rowBands(one).includes(SC.OTHERS_COLOUR), "Others is never coloured");
 });
 
-// The fixture's first forecast has no call (no party is MIN_CALL_SEATS from the
-// prediction) and its second has one, from the real path. Tests of a card WITH a
-// call give the first forecast the second's call and badge, as the seat Worker
-// would answer a forecast with that call.
-const CALL = { boldest: FIXTURE.B.answer.outcome.boldest, badge: FIXTURE.B.answer.outcome.badge };
-const withCall = a => ({ ...a, outcome: { ...a.outcome, ...CALL } });
-const MIN = FIXTURE.A.answer.outcome.boldest.min_seats;
-const NONE = { party: null, seats: null, prediction: null, min_seats: MIN, p: 1, text: "over 99%" };
-const Acall = SC.forecastSpec({ name: "Thandi", answer: withCall(FIXTURE.A.answer), outcome: withCall(FIXTURE.A.answer).outcome, vote: FIXTURE.A.vote,
-  calls: FIXTURE.A.calls, party, baseline: FIXTURE.baseline, election: FIXTURE.election, made: null });
+// The fixture's two answers carry the badge each forecast earns, from the real
+// path (reweight.outcome_badge through the seat Worker's entry.card): words, no
+// chance and no closeness figure (JUDGEMENT-CALLS §N10, 2026-10-13).
+const words = s => s.replace(/\.$/, "").split(" ");
+// every word of a sentence, in order, in an SVG that may wrap it over lines
+const drawsSentence = (svg, sentence) => {
+  const texts = [...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].map(m => m[1]).join(" ");
+  return texts.replace(/\s+/g, " ").includes(sentence.replace(/&/g, "&amp;").replace(/'/g, "&#39;")) ||
+    words(sentence).every(w => texts.includes(w));
+};
 
-test("a forecast with no call has none and is a Safe bet; the real path's no-call answer and call answer", () => {
-  assert.equal(FIXTURE.A.answer.outcome.boldest.party, null);
-  assert.equal(FIXTURE.A.answer.outcome.badge, "Safe bet");
-  assert.ok(FIXTURE.B.answer.outcome.boldest.party, "the fixture's second forecast has a call");
-  assert.equal(A.chance, "");
-  assert.equal(A.boldestLine, "No party is " + MIN + " or more seats from our prediction.");
+test("a card's outcome is words: the council and the badge, with no chance and no closeness figure", () => {
+  for (const k of ["A", "B"]) {
+    const o = FIXTURE[k].answer.outcome;
+    assert.deepEqual(Object.keys(o).sort(), ["badge", "coalition", "largest", "majority_alone", "measure"], k);
+    assert.equal(o.measure, EDGE.CLOSENESS_MEASURE);
+    assert.ok(!Object.values(o).some(v => typeof v === "number"), k + ": a number in the answer");
+  }
+  for (const F of [A, Bspec]) {
+    assert.equal(F.badge, F.outcome.badge);
+    for (const gone of ["chance", "boldest", "boldestLine"]) assert.ok(!(gone in F), gone);
+  }
+  for (const gone of ["boldestLine", "boldestChance", "callChanceSentence", "councilChanceSentence"]) assert.equal(SC[gone], undefined, gone);
+  // the ranking line is the one ranking sentence, with the badge's part in it
+  assert.ok(SC.RANKING_LINE.includes(SC.RANK_ORDER) && SC.RANKING_LINE.endsWith("The badge plays no part in the ranking."));
 });
 
-test("a card prints one chance, the boldest call's own, on all four cards; the council outcome's is not printed", () => {
-  // wording (owner's brief 2026-10-12): "Your boldest call: ... We give that a 12% chance."
-  assert.equal(SC.callChanceSentence("12%"), "We give that a 12% chance.");
-  assert.equal(SC.callChanceSentence("8.5%"), "We give that an 8.5% chance.");
-  assert.equal(SC.callChanceSentence("under 0.1%"), "We give that a chance of under 0.1%.");
-  assert.equal(SC.councilChanceSentence("45%"), "We give that council outcome a 45% chance.");
-  const named = c => ({ name: c === "PA" ? "Patriotic Alliance" : c, article: c === "PA" ? "the " : "" });
-  const call = (party, seats, text) => ({ party, seats, prediction: 0, p: 0.1, text });
-  assert.equal(SC.boldestLine(call("PA", 38, "4.1%"), named), "Your boldest call: the Patriotic Alliance at 38 seats.");
-  assert.equal(SC.boldestLine(call("TASM", 2, "9%"), named), "Your boldest call: TASM at 2 seats.");
-  assert.equal(SC.boldestLine(call("PA", 38, "4%"), named, "Thandi's boldest call"), "Thandi's boldest call: the Patriotic Alliance at 38 seats.");
-  // a forecast with no call: a line saying so, no chance, nothing about the middle forecast
-  const none = NONE;
-  assert.equal(SC.boldestLine(none, named), "No party is " + MIN + " or more seats from our prediction.");
-  assert.equal(SC.boldestChance(none), "");
-  assert.equal(SC.boldestChance(call("PA", 38, "4%")), "We give that a 4% chance.");
-  assert.equal(SC.boldestChance(null), "");
-  // the spec carries the boldest call's chance, never the council outcome's
-  const o = withCall(FIXTURE.A.answer).outcome;
-  assert.equal(Acall.chance, SC.callChanceSentence(o.boldest.text));
-  assert.notEqual(o.boldest.text, o.text, "the fixture's two chances differ, so a card printing the wrong one shows");
-  assert.equal(Acall.boldestLine, SC.boldestLine(o.boldest, party));
-  const quiet = { ...FIXTURE.A.answer.outcome, boldest: none };
-  const specNone = SC.forecastSpec({ name: "X", answer: FIXTURE.A.answer, outcome: quiet, vote: FIXTURE.A.vote, calls: FIXTURE.A.calls,
-    party, baseline: FIXTURE.baseline, election: FIXTURE.election, made: null });
-  assert.equal(specNone.chance, "");
-  assert.equal(specNone.badge, quiet.badge);
-  // each card prints that chance and the call, and "this outcome" nowhere
-  const story = SC.storyCardSVG(Acall, ASSETS, party);
-  for (const [svg, F] of [[SC.linkCardSVG(Acall, ASSETS, party), Acall], [story, Acall], [SC.duelCardSVG(Acall, Bspec, ASSETS, party), Acall]]) {
-    // the story card wraps both lines in its column, so it is read by words
-    assert.ok(svg.includes("Your boldest") && svg.includes(F.chance.split(" ").slice(0, 5).join(" ")), "the call and its chance");
-    if (svg !== story) assert.ok(svg.includes(F.boldestLine) && svg.includes(F.chance), "whole on the link and two-forecast cards");
-    assert.ok(!/this outcome/i.test(svg) && !svg.includes(SC.councilChanceSentence(o.text)), "no council-outcome chance");
+test("every card prints what the badge is, and no chance, no call and no council-outcome chance", () => {
+  const story = SC.storyCardSVG(A, ASSETS, party);
+  const cards = [["link", SC.linkCardSVG(A, ASSETS, party)], ["story", story], ["duel", SC.duelCardSVG(A, Bspec, ASSETS, party)]];
+  for (const [what, svg] of cards) {
+    assert.ok(drawsSentence(svg, SC.BADGE_LINE), what + ": the badge's line");
+    for (const gone of ["We give", "chance", "boldest", "this outcome"]) assert.ok(!svg.includes(gone), what + ": " + gone);
   }
-  const story2 = SC.storyCardSVG(specNone, ASSETS, party);   // wraps in its column
-  for (const svg of [SC.linkCardSVG(specNone, ASSETS, party), story2]) {
-    assert.ok(svg.includes("No party is"));   // the long line wraps in a column
-    assert.ok(!svg.includes("We give"), "a forecast with no call prints no chance");
+  // it can see: a card without the line is caught
+  assert.ok(!drawsSentence(cards[0][1].replace(/How close/g, ""), SC.BADGE_LINE));
+  for (const alt of [SC.cardAlt(A), SC.duelAlt(A, Bspec)]) {
+    assert.ok(alt.includes(SC.BADGE_LINE.replace(/\.$/, "")) && alt.includes(A.badge) && !alt.includes("chance"), alt);
   }
-  assert.ok(SC.cardAlt(Acall).includes(Acall.boldestLine.replace(/\.$/, "")) && SC.cardAlt(Acall).includes(Acall.chance.replace(/\.$/, "")));
 });
 
 test("the two-forecast card's band follows each forecast's largest party, half each", () => {
@@ -315,7 +294,7 @@ test("the card modules name no party, hold no party's colour, and compute no bad
     }
   }
   assert.ok(looked.length > 20, "the scan looked at the roster");
-  // the badge words (reweight.BOLDNESS) and the retired ones
+  // the badge words (reweight.CLOSENESS_BANDS) and the retired ones
   for (const [f, text] of files) for (const w of ["Safe bet", "Steady as she goes", "Long shot", "Wild call", "Hail Mary", "Safe call", "Bold call"])
     assert.ok(!text.includes(w), `${f} types ${w}`);
   // it can see: a module that typed a party's code is caught
@@ -544,44 +523,37 @@ function fakeEnv({ seats = true, key = KEY, answer = null } = {}) {
   } };
 }
 
-test("every badge word in reweight.BOLDNESS draws the owner's stamp on the edge's card, with a call and with none", async () => {
+test("every badge word in reweight.CLOSENESS_BANDS draws the owner's stamp on the edge's card", async () => {
   EDGE.forgetPageData();
-  const words = JSON.parse(execFileSync(PY, ["-c", "import sys, json; sys.path.insert(0, 'src'); import reweight; print(json.dumps([w for _, w in reweight.BOLDNESS]))"],
+  const words = JSON.parse(execFileSync(PY, ["-c", "import sys, json; sys.path.insert(0, 'src'); import reweight; print(json.dumps([w for _, w in reweight.CLOSENESS_BANDS]))"],
     { cwd: repo, encoding: "utf8" }));
   assert.equal(words.length, 5);
   const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA, n: "Thandi" }).toString();
-  const none = NONE;
   for (const word of words) {
-    for (const boldest of [CALL.boldest, none]) {
-      const answer = a => ({ ...a, outcome: { ...a.outcome, badge: word, boldest } });
-      const svg = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), fakeEnv({ answer }).env, "link")).svg;
-      const stamp = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(word)), "utf8"));
-      assert.ok(svg.includes(SC.prefixIds(stamp.body, "lb")), word + (boldest.party ? " with a call" : " with no call") + ": the stamp");
-    }
+    const answer = a => ({ ...a, outcome: { ...a.outcome, badge: word } });
+    const svg = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/4/link.png?" + q), fakeEnv({ answer }).env, "link")).svg;
+    const stamp = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(word)), "utf8"));
+    assert.ok(svg.includes(SC.prefixIds(stamp.body, "lb")), word + ": the stamp");
   }
 });
 
 test("the edge draws a card only from an answer measured from the published prediction", async () => {
   EDGE.forgetPageData();
   const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA, n: "Thandi" }).toString();
-  const draw = answer => EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), fakeEnv({ answer }).env, "link");
+  const draw = answer => EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/4/link.png?" + q), fakeEnv({ answer }).env, "link");
   // the hash is the same bytes in Python (the fixture's answer, from entry.py) and here
   assert.equal(FIXTURE.A.answer.prediction_sha256, await EDGE.predictionSha(D.start.seats));
-  assert.ok((await draw(withCall)).svg.includes("Your boldest call"));
-  // an earlier seat Worker's answer: the call measured from the medians ("middle"), no prediction
-  const old = a => { const { prediction, min_seats, ...rest } = withCall(a).outcome.boldest; return { ...a, outcome: { ...a.outcome, boldest: { ...rest, middle: 66 } } }; };
-  // the same, with the new fields present but for `prediction`
-  const noPred = a => { const { prediction, ...rest } = withCall(a).outcome.boldest; return { ...a, outcome: { ...a.outcome, boldest: rest } }; };
-  await assert.rejects(draw(noPred), /not measured from the published prediction/);
-  const noMin = a => { const { min_seats, ...rest } = withCall(a).outcome.boldest; return { ...a, outcome: { ...a.outcome, boldest: rest } }; };
-  await assert.rejects(draw(noMin), /not measured from the published prediction/);
+  assert.ok(drawsSentence((await draw(null)).svg, SC.BADGE_LINE));
+  // an earlier seat Worker's answer: a boldest call and its chance, no measure
+  const old = a => { const { measure, ...rest } = a.outcome;
+    return { ...a, outcome: { ...rest, p: 0.2, text: "20%", boldest: { party: "X", seats: 9, prediction: 1, min_seats: 10, p: 0.1, text: "10%" } } }; };
   await assert.rejects(draw(old), /not measured from the published prediction/);
+  await assert.rejects(draw(a => ({ ...a, outcome: { ...a.outcome, measure: "the boldest call" } })), /not measured from the published prediction/);
   // an answer built from another prediction
   await assert.rejects(draw(a => ({ ...a, prediction_sha256: "00".repeat(32) })), /not measured from the published prediction/);
   await assert.rejects(draw(a => { const { prediction_sha256, ...rest } = a; return rest; }), /not measured from the published prediction/);
-  // a forecast with no call has prediction null, and is drawn
-  const none = a => ({ ...a, outcome: { ...a.outcome, boldest: NONE } });
-  assert.ok((await draw(none)).svg.includes("No party is"));
+  // no badge: incomplete
+  await assert.rejects(draw(a => { const { badge, ...rest } = a.outcome; return { ...a, outcome: rest }; }), /incomplete/);
 });
 
 test("the edge draws the link's own forecast from the seat Worker's answer, sealed or not", async () => {
@@ -590,38 +562,37 @@ test("the edge draws the link's own forecast from the seat Worker's answer, seal
   const at = Date.parse("2026-10-03T10:05:00Z");
   const s = await makeSeal(KEY, fields, at);
   const q = new URLSearchParams({ ...fields, s }).toString();
-  const { env, asked } = fakeEnv({ answer: withCall });
-  const card = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), env, "link");
+  const { env, asked } = fakeEnv();
+  const card = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/4/link.png?" + q), env, "link");
   const svg = card.svg;
   assert.equal(card.sealed, true);
   assert.match(EDGE.imageCache(card.sealed), /immutable/);
   assert.ok(svg.includes("Thandi's Election Forecast"));
-  // the card's one chance is the boldest call's, not the council outcome's
-  assert.ok(svg.includes(SC.callChanceSentence(CALL.boldest.text)));
-  assert.ok(!svg.includes("this outcome"));
-  // the owner's badge for the outcome's words, embedded with its ids prefixed, and the call it judges
-  const badge = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(CALL.badge)), "utf8"));
+  // no chance on the card; the owner's badge for the answer's words, embedded
+  // with its ids prefixed, and what it is
+  assert.ok(!svg.includes("chance") && !svg.includes("this outcome"));
+  const badge = SC.stampOf(readFileSync(resolve(repo, "src/stamps", SC.badgeFile(FIXTURE.A.answer.outcome.badge)), "utf8"));
   assert.ok(svg.includes(SC.prefixIds(badge.body, "lb")));
-  assert.ok(CALL.boldest.party && svg.includes(">Your boldest call: "));
+  assert.ok(drawsSentence(svg, SC.BADGE_LINE));
   assert.ok(svg.includes("Sealed " + SC.localStamp(at, D.election)));
   assert.equal(asked.length, 1);
   assert.deepEqual(asked[0].coalition, FIXTURE.A.coalition);
   assert.equal(asked[0].draws_sha256, D.draws_sha256);
   // relabelled: the seal no longer holds, and the card says nothing about when
   const q2 = new URLSearchParams({ ...fields, n: "Someone", s }).toString();
-  const card2 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q2), fakeEnv().env, "link");
+  const card2 = await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/4/link.png?" + q2), fakeEnv().env, "link");
   const svg2 = card2.svg;
   assert.equal(card2.sealed, false);
   assert.equal(EDGE.imageCache(card2.sealed), "public, max-age=" + EDGE.UNSEALED_MAX_AGE_S);
   assert.ok(!svg2.includes("Sealed") && !svg2.includes("Made "));
   // no key: the same sealed link draws unsealed
-  assert.equal((await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), fakeEnv({ key: null }).env, "link")).sealed, false);
+  assert.equal((await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/4/link.png?" + q), fakeEnv({ key: null }).env, "link")).sealed, false);
   // a return link draws both forecasts
   const q3 = new URLSearchParams({ ...fields, vs: fA, vn: "Kgomotso" }).toString();
-  const svg3 = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q3), fakeEnv().env, "link")).svg;
+  const svg3 = (await EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/4/link.png?" + q3), fakeEnv().env, "link")).svg;
   assert.ok(svg3.includes(">Thandi<") && svg3.includes(">Kgomotso<") && svg3.includes("Difference"));
   // no seat Worker: no card
-  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), fakeEnv({ seats: false }).env, "link"));
+  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/4/link.png?" + q), fakeEnv({ seats: false }).env, "link"));
 });
 
 test("section 1's hand-off, a start with no coalition, is a forecast the edge and the seal read unchanged", async () => {
@@ -648,7 +619,7 @@ test("an answer that breaks the seat law's arithmetic draws no card", async () =
     return new Response(JSON.stringify({ ...a, seats: { ...a.seats, [k]: a.seats[k] + 5 }, code_ref: "ab".repeat(32), draws_sha256: D.draws_sha256 }), { status: 200 });
   } } };
   const q = new URLSearchParams({ v: MS.FORMAT, c: D.context_ref, f: fA }).toString();
-  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/3/link.png?" + q), bad, "link"));
+  await assert.rejects(EDGE.cardFor(new URL("https://joburg.whysoserious.city/og/4/link.png?" + q), bad, "link"));
 });
 
 // ---------- the seal ----------

@@ -195,6 +195,19 @@ DELETED = {
         "measured the retired PR-share input against the draws; its premise "
         "(a share standing for both ballots) ended with the two-ballot entry; "
         "§1.292"),
+    # Deleted 2026-10-13 with the boldest-call badge, replaced by closeness to
+    # the published prediction (MODEL-LOG "Closeness badge", brief
+    # audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md). JUDGEMENT-CALLS
+    # §N10 keeps the superseded measure's record, which names these.
+    "MIN_CALL_SEATS": "the ten-seat rule of the boldest call; deleted with it "
+                      "2026-10-13, MODEL-LOG \"Closeness badge\"",
+    "BADGE_TABLE": "the boldest call's measured table in test_reweight; "
+                   "deleted with the measure 2026-10-13",
+    "test_the_badge_bands_the_printed_chance_at_each_edge": (
+        "the boldest-call badge's printed-chance edges; deleted with the "
+        "measure 2026-10-13"),
+    "test_the_owners_table_on_the_published_draws": (
+        "re-measured BADGE_TABLE; deleted with the measure 2026-10-13"),
 }
 
 

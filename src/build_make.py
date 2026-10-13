@@ -11,7 +11,8 @@ reader's forecast lives in the page's address (``js/make-state.js``, through
     The one data file section 2 reads (:func:`forecast_data`): the generated
     entry schema (``worker-api/tools/make_schema.mjs``'s own ``build``, run on
     the artefact :func:`model_artefact` writes from the published draws), the
-    ward geometry, and the start state. It is the ONE entry schema: the site
+    ward geometry, the start state, and the reader badge's cut-offs
+    (:func:`closeness_cuts`). It is the ONE entry schema: the site
     Worker validates a sealed entry against it, the scorer reads it, and the
     placeholder ``worker-api/generated/forecast.schema.json`` is retired
     (2026-10-08, guard G13).
@@ -1175,6 +1176,22 @@ def our_prediction(draws: Path | None = None, *, inputs: dict | None = None) -> 
 # the previous council election, for "vs 2021" on the share cards
 
 
+def closeness_cuts(manifest: dict, arrays: dict, start: dict) -> dict:
+    """The reader badge's cut-offs, ``{badge: overall closeness}``
+    (``reweight.closeness_cuts``; JUDGEMENT-CALLS §N10): every published draw
+    scored as a reader's forecast against our prediction ``start``, under the
+    published seat law, each draw counted once. forecast.json carries these
+    and no other closeness figure; the page and the seat Worker band with
+    them."""
+    import reweight
+    law = reweight.PUBLISHED_LAW
+    seats, cols = reweight.party_columns(arrays[f"seats/{law}"], _columns(manifest, f"seats/{law}"))
+    ours = {"seats": {c: int(v) for c, v in start["seats"].items()},
+            "share": reweight.list_percent(start["list_votes"])}
+    return reweight.closeness_cuts(seats, cols, reweight.draw_percents(arrays["list_vote"]),
+                                   _columns(manifest, "list_vote"), None, ours)
+
+
 def baseline(city, roster: list[str]) -> dict:
     """The council election before the target, per roster party: what the
     share cards and the arrival view print "vs <year>" against.
@@ -1272,6 +1289,7 @@ def forecast_data(draws: Path | None = None) -> dict:
         "schema": schema,
         "geometry": {k: geom[k] for k in ("W", "H", "hex_radius", "labels", "wards")},
         "start": start,
+        "closeness_cuts": closeness_cuts(inputs["manifest"], inputs["arrays"], start),
         "baseline": baseline(city, ctx["parties"]),
     }
 

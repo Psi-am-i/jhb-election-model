@@ -6,10 +6,10 @@ Writes ``interactive/tests/share-fixture.json``. Every figure in it comes from
 the project's own code: the forecasts are made by the share design's stated
 rules (audits/2026-10-03-share-design/DESIGN.md §1) from the published start
 (``build_make.forecast_data``); their seats from the seat law
-(``reader_seats``, through the seat Worker's own ``entry.answer``); the chance
-of each outcome and its badge from the published draws
-(``reweight.outcome_chance``, through the seat Worker's own ``entry.card``,
-with the published prediction from the served ``forecast.json``);
+(``reader_seats``, through the seat Worker's own ``entry.answer``); each
+forecast's badge from the published draws (``reweight.outcome_badge``,
+through the seat Worker's own ``entry.card``, with the published prediction
+and the cut-offs from the served ``forecast.json``);
 the previous election and polling day from ``build_make``; names, colours and
 logo flags from ``build_play.roster``. The names are invented labels.
 
@@ -68,8 +68,8 @@ def build() -> dict:
         for r in csv.DictReader(fh):
             probs[str(r["ward"])] = [(p.split(":")[0], float(p.split(":")[1])) for p in r["dist"].split("|")]
     draws = entry.load_draws((REPO / "site/draws/manifest.json").read_bytes(), (REPO / "site/draws/base.bin").read_bytes())
-    # the published prediction the boldest call is measured from, as the Worker loads it
-    draws["prediction"] = entry.load_prediction((REPO / "site/your-forecast/forecast.json").read_bytes(), draws["sha256"])
+    # the published prediction and cut-offs the badge is measured from, as the Worker loads them
+    draws.update(entry.load_prediction((REPO / "site/your-forecast/forecast.json").read_bytes(), draws["sha256"]))
     draws["prediction_sha256"] = entry.prediction_sha256(draws["prediction"])
 
     def calls_with(cut):

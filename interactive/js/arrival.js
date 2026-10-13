@@ -1,7 +1,7 @@
 // "Your forecast": the view a shared link opens (audits/2026-10-03-share-design
 // DESIGN.md §4). A link the share sheet sends goes out as /s/?…, which the
 // server answers with this page and `from=1`: the friend's forecast,
-// read-only, at the top; the outcome and the chance we give it; three ways on;
+// read-only, at the top; the outcome, its badge and how entries are ranked; three ways on;
 // the days to the vote and what happens after the count.
 //
 // ⛔ A LIVE WRITER (stats.LIVE_WRITERS["your-forecast/js/arrival.js"]) for the
@@ -9,7 +9,7 @@
 // with createElement, textContent and attributes, never markup.
 //
 // It computes nothing of the model's: make.js hands it the friend's seats
-// (the seat law, in the page's seat Worker), the chance and badge
+// (the seat law, in the page's seat Worker), the badge
 // (page.py analyse, the published forecast), the seal check (the server), and
 // the card module's spec (share-card.js forecastSpec), from which the council
 // graphic's geometry (councilLayout) is drawn as on the cards, and the number
@@ -17,7 +17,7 @@
 
 import { entryCount, countLine } from "./entries.js";
 import { councilLayout, stepPath, listedRows, cardTitle, chanceSentence, dateText, daysToVote, localStamp, ROWS, PR_OPACITY,
-  boldestLine, badgeFile, STAMP_DIR } from "./share-card.js";
+  badgeFile, STAMP_DIR, BADGE_LINE, RANKING_LINE } from "./share-card.js";
 
 const R = document.querySelector('[data-live="arrival"]');
 const SVG = "http://www.w3.org/2000/svg";
@@ -95,7 +95,7 @@ function sealLine(seal, election) {
 
 // The view. `v`: { spec, geom, party(code) -> { name, article }, logo(code) -> src, seal: { state: "checking" |
 // "sealed" | "not" | "unknown", at }, now (ms) }. spec.outcome is null while
-// the chance is being worked out.
+// the badge is being worked out.
 export function showArrival(v) {
   const { spec, geom, logo, seal, now } = v;
   const name = spec.name || "A reader";
@@ -109,12 +109,12 @@ export function showArrival(v) {
     el("p", { className: "yf-arr-sub" }, spec.election.city + " council, " + dateText(spec.election.date) + ". " +
       spec.council + " seats, " + spec.majority + " for a majority."),
     el("div", { className: "yf-arr-verdict", "aria-live": "polite" },
-      el("p", { className: "yf-arr-what" }, o ? spec.words : "Working out the chance we give this call."),
+      el("p", { className: "yf-arr-what" }, o ? spec.words : "Working out the badge."),
       o ? el("div", { className: "yf-arr-badge" },
         el("img", { src: "../" + STAMP_DIR + "/" + badgeFile(spec.badge), alt: spec.badge, className: "yf-stamp" }),
-        el("div", {}, el("p", { className: "yf-arr-call" }, boldestLine(spec.boldest, v.party, poss(name) + " boldest call")),
-          spec.chance ? el("p", { className: "yf-arr-chance" }, spec.chance) : null)) : null,
-      el("p", { className: "yf-arr-how" }, "The chance is ours, from the forecast as published today. The seats are " + poss(name) +
+        el("div", {}, el("p", { className: "yf-arr-call" }, BADGE_LINE),
+          el("p", { className: "yf-arr-chance" }, RANKING_LINE))) : null,
+      el("p", { className: "yf-arr-how" }, "The badge is ours, measured against the forecast as published today. The seats are " + poss(name) +
         ": every ward called, the vote set, and the law seating the result.")),
     el("p", { className: "yf-arr-quick" }, chooseButton("friend", "Make your own, starting from " + poss(name), null, "btn primary")),
     el("div", { className: "yf-arr-grid" },
@@ -138,7 +138,7 @@ export function showArrival(v) {
     el("div", { className: "yf-arr-later" },
       el("div", {}, el("h3", {}, "The vote"), countdown(spec.election, now)),
       el("div", {}, el("h3", {}, "After the count"),
-        el("p", {}, "Every sealed forecast is ranked against the result: seats per party first, then wards called right, then vote per party. The leaderboard lists names after the count."),
+        el("p", {}, "The leaderboard lists names after the count."),
         count)));
   R.hidden = false;
   entryCount().then(n => { count.textContent = countLine(n); count.hidden = !count.textContent; });
