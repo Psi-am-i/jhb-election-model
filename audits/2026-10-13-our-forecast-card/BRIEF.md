@@ -42,3 +42,22 @@ page. footer one column with our logo on top of support our work on right."
    in one column on the left; on the right, the whysoserious.city logo with
    "Support Our Work" directly beneath it. Stacks to one column at phone width.
    Check light and dark themes.
+
+## Second amendment (owner, 2026-10-13, screenshot `claim-card-owner.png`, an X preview of the ANC claim card)
+"share sheet for party claims - much larger stamp (again unreadable) put the
+stamp next to the statement that is impossible: The ANC can govern alone
+again. avoid overlap on bottom. So make quote smaller to accommodate. See all
+other party claims share sheets."
+
+7. **Every party-claim card** (all claims, every variant):
+   - The verdict stamp is much larger, so that its wording is readable in an X
+     preview at the size in the screenshot.
+   - The stamp sits beside the tested statement (e.g. "The ANC can govern
+     Johannesburg alone again"), which is printed on the card itself, taken
+     from the claim's data and never retyped.
+   - X overlays the link title over the bottom-left of the image (see
+     screenshot). Keep the bottom band clear of essential content: nothing
+     important in roughly the lowest 15% of the card, left side.
+   - The quote is set smaller to make room. Party logo, name and speaker stay.
+   - Render every claim card at 1200 wide, and one simulated with the X
+     bottom-left title overlay, to the FOR-SIMON-cards folder.
