@@ -29597,9 +29597,12 @@ production caller, so the strength-judgement hash an `export_draws` manifest
 declares was never checked; the audit now scans `manifest.json` files of the
 `draws-columnar` format under `site/draws/` (under the root itself when
 `--processed` overrides it) as run rows (git, draws, seed, env, time, inputs
-with the judgement check). The live published manifest predates the hash and
-is a Johannesburg 2026 forecast, so it now reads `✗` on `inputs`: an honest
-red, not tuned away. (b) A summary declaring no judgement hash on a forecast,
+with the judgement check). Measured with `declares.py` on the live tree: the
+three published manifests under `site/draws/` read `~` on `git` (written from
+a dirty tree at `b5230d8`) and `~` on `inputs` (they embed `pools_sha
+c70b8fc5bcd79279` against specs carrying `20b33383bf922573`), and each also
+carries the note that it is a Johannesburg 2026 forecast declaring no
+strength-judgement hash (`✗`, merged under the `~`). (b) A summary declaring no judgement hash on a forecast,
 or naming no `_target`, was marked `~` (declared and wrong); it declares
 nothing, so it is now `✗`, which `--verify` still counts (exit 1).
 `judgements_check` returns the state with the sentence; `judgements_lie` keeps
