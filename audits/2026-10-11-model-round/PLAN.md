@@ -61,3 +61,54 @@ export · 10 site UAT, promote, then redeploy joburg-seats.
   centres by the size bias the joint fit measures from earlier elections
   (estimation, out of sample). Census: the identification hold (cap). Next: step 4
   (pre-registration and the ultra-review brief, both before code), then step 5.
+
+## Open notes: check before the canonical run (2026-10-13)
+
+The owner asked that every open note be kept here so nothing is tested without
+it. Work through this list before step 7's canonical runs and record each
+outcome. Close an item by stating what was done; never by deleting it.
+
+Before the re-emit:
+1. Fixes from the local two-reviewer review of the frozen brief. The ultra
+   review on PR #18 failed with no findings. The fix writer is applying them;
+   its MODEL-LOG § lists them. They cover the scored population (2011 and 2026
+   out), arm pairing, the width-record key, the judgement file location,
+   declares, the instruments for every registered quantity, and the C0 recipe.
+2. JUDGEMENT-CALLS §L2 against line ~2481. A party carrying a run-time strength
+   judgement currently stays inside the arrival budget at emit. The reviewers
+   say §L2 puts it outside. Owner decision if the writer stops on it.
+3. Owner's party sheet. The owner marks the parties he disagrees with; his
+   calls go in as `support`/`overperform`/`sigma_j` in
+   judgements/joburg-2026.toml, each with a §SJ row (reason, date, check).
+   This must land before the canonical forecast run. The forecast is run and
+   reported both with and without them.
+4. Step-7 order: POOLS-REEMIT-QUEUE, "model round's step 7". backup_ignored and
+   R1 on the current specs come first.
+
+Measure in the canonical runs (pointers, no new definitions):
+5. Ward-call calibration. The page says the model expects 108 of its own 135
+   ward calls to come true. Compare its expected hits with realised hits in the
+   2016 and 2021 backtests. If realised is clearly higher, ward chances are too
+   cautious: a model finding, not a page fix.
+6. 2011 fallback width: computed 0.235/0.464 against the design's 0.27/0.48.
+   The statistic is unnamed in design 1b v3. 2011 is unscored, but say which
+   statistic is right.
+
+Known, deliberately not fixed this round:
+7. `poll_model_sd` reads the universal width at the whole-city share. Inert
+   while polls are off; revisit before polls return.
+8. VD-turnout noise adds list-share spread that is not in the subtracted
+   composition variance (reviewer B, design question).
+9. Backtests ignore strength judgements by design: a judgement written today
+   would carry hindsight into a past election. The past judgement files hold
+   only blank lineage entries (default treatment). So no judgement call is
+   tested against results until 2026 is held, and the forecast states the
+   difference its calls make.
+10. Next round: sub-1% class; small-party centre correction (m(s)) if UC does
+    not ship; turnout unification; census 2011 date filter; test_pool_bounds
+    (2011 DA/White); new-party centre sizing.
+
+Site (separate repo, separate release):
+11. Closeness badge (CLOSENESS-BADGE-BRIEF.md) in build; the owner is drawing
+    new number-free badges. The live card server and live site promotion are
+    the owner's, after he sees the test site.
