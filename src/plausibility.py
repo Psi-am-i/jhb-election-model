@@ -1,7 +1,8 @@
 """Are the simulated elections ones the world could produce? Whole-election plausibility.
 
-    .venv/bin/python src/plausibility.py --runs DIR --label NAME [--mode strict]
-    .venv/bin/python src/plausibility.py --runs DIR --label NAME --out DIR
+    .venv/bin/python src/plausibility.py --runs DIR --label NAME --out DIR [--mode strict]
+
+``--out`` is required and refused under ``data/``.
 
 Design: ``audits/2026-10-11-model-round/step1/1h-plausibility-check-design.md``
 §5; the instrument ``prereg/2026-10-12-universal-draw.md`` §4 scores the round
@@ -31,6 +32,12 @@ of consecutive local elections that came before its target:
   only and says how many it left out;
 * party level, by size class at the previous election: retained ratios,
   collapse and jump against the record's extremes, threshold events, class mass.
+
+THE PANEL IS PREREG §2's SCORED POPULATION (``scored_population``): the 16
+city-years of 2016 and 2021. Every run read gets its per-target rows; 2011
+(untestable) and the 2026 forecast are labelled ``scored: false`` with the
+reason and enter no panel number. A missing member of the population refuses
+unless ``--allow-incomplete``, which the output records.
 
 IT JUDGES AND SETS NOTHING (design §3.1). Every quantity here that compares the
 model with the record is a ratio against model output, so using it to SET a
@@ -98,6 +105,53 @@ COUNT_FEATURES = ("n_ge1", "n_ge5", "n_ge10", "tiny_n_ge1", "w_n")
 # anti-conservative (design §2.3); reported, not failed.
 CYCLE_DRIVEN = ("enp", "d_enp", "top2", "d_turnout")
 MODES = ("strict", "strict06", "loco")
+
+# THE SCORED POPULATION (prereg `2026-10-12-universal-draw.md` §2): every
+# metro of `compare_history.CITIES` at the 2016 and 2021 backtests, judged by
+# real results. 2011 is run and reported, labelled untestable, and enters no
+# rule (§2, §10 last row); Johannesburg 2026 is a forecast with no result,
+# reported under §5.6. ONE DEFINITION: `arms.compare` scores this population
+# too, and both assert its size, `SCORED_COUNT`, the prereg's "16 city-years".
+SCORED_YEARS = ("2016", "2021")
+SCORED_COUNT = 16
+UNSCORED_WHY = {"2011": "untestable: no earlier width record (prereg §2)",
+                "2026": "a forecast with no result (prereg §2, §5.6)"}
+
+
+def scored_population() -> list[tuple[str, str]]:
+    """The prereg's scored city-years, ``(city, year)``, in a fixed order.
+    REFUSES (SystemExit) when the enumeration is not ``SCORED_COUNT`` long: a
+    metro added to or dropped from ``compare_history.CITIES`` changes the
+    registered population, which is an amendment, not a default."""
+    import compare_history as CH
+    out = [(c, y) for y in SCORED_YEARS for c in CH.CITIES]
+    if len(out) != SCORED_COUNT:
+        raise SystemExit(f"the scored population is {len(out)} city-years; "
+                         f"prereg §2 registers {SCORED_COUNT}")
+    return out
+
+
+def unscored_reason(year: str) -> str:
+    """Why a city-year outside the scored population is reported only."""
+    return UNSCORED_WHY.get(str(year), "outside prereg §2's scored population")
+
+
+def check_population(have, population, allow_incomplete: bool = False
+                     ) -> dict:
+    """``{"expected", "missing", "complete", "allow_incomplete"}`` for the
+    city-years ``have`` against ``population``. REFUSES (SystemExit) a
+    population with a member missing unless ``allow_incomplete``, and the
+    output says the flag was passed: a panel scored over fewer city-years
+    than registered is a different statistic under the same name."""
+    have = set(have)
+    missing = sorted(f"{c}-{y}" for c, y in population if (c, y) not in have)
+    if missing and not allow_incomplete:
+        raise SystemExit(f"the scored population is incomplete: {len(missing)} "
+                         f"of {len(population)} city-years missing "
+                         f"({', '.join(missing)}); pass allow_incomplete to "
+                         f"score the rest, and the output says so")
+    return {"expected": len(population), "missing": missing,
+            "complete": not missing, "allow_incomplete": bool(allow_incomplete)}
 
 
 # --------------------------------------------------------------------------
@@ -340,18 +394,25 @@ def record_party_ratios(rec: dict, keys) -> dict:
     return out
 
 
-def score_parties(runs: dict, rec: dict, trans: dict, mode: str = "strict") -> dict:
+def score_parties(runs: dict, rec: dict, trans: dict, mode: str = "strict",
+                  population=None) -> dict:
     """Design §3(d): per size class, the share of party-draws whose retained
     ratio falls below the record's lowest (collapse) or above its highest
     (jump), each against 1/(n+1), and the class fails when either exceeds
     ``COLLAPSE_JUMP_MULT`` times it; and the threshold events (≥ 2, 5, 10%)
     of previously tiny parties per party-draw, beside the record's rate and
     its rule-of-three / one-sided upper bound. ``runs`` maps ``(city,
-    year)`` to ``(prev_shares, cols, S)``. Targets weighted equally."""
+    year)`` to ``(prev_shares, cols, S)``. Targets weighted equally, over
+    the targets of ``population`` only (default :func:`scored_population`);
+    a run outside it is not aggregated."""
+    population = set(scored_population() if population is None
+                     else population)
     acc = defaultdict(lambda: {"collapse": [], "jump": [], "exch": [],
                                "events": {2: [], 5: [], 10: []}})
     rec_rates = {}
     for (city, year), (s_prev, cols, S) in sorted(runs.items()):
+        if (city, year) not in population:
+            continue
         keys = [k for k in trans
                 if (mode == "strict" and int(k[2]) <= int(year) - 5)
                 or (mode == "strict06" and int(k[2]) <= int(year) - 5
@@ -486,17 +547,29 @@ def score_target(feats: dict, ref: list[dict], real: dict | None,
 
 
 def score_panel(targets: dict, trans: dict, mode: str = "strict",
-                seed: int = 20261012) -> dict:
+                seed: int = 20261012, population=None,
+                allow_incomplete: bool = False) -> dict:
     """Aggregate per-target rows into the panel verdicts of design §3.
 
-    ``targets`` maps ``(city, year)`` to the target's features. A target with
-    a real result is scored (event tests, PIT counts); one without (a forecast)
-    is reported. Returns per feature the mean exceedance rates, the event
-    test's expected and realised counts and both tails, the PIT counts, the
-    fail flag of the §3.2 rule (cycle-driven features reported, not failed),
-    and each joint count's event test over the targets where it is complete
+    ``targets`` maps ``(city, year)`` to the target's features. Every target
+    gets its per-target rows; THE PANEL AGGREGATES THE TARGETS OF
+    ``population`` ONLY (default :func:`scored_population`, prereg §2's 16
+    city-years), and each of them must have a real result. A target outside
+    it (2011, a forecast) is reported in ``per_target`` with ``scored``
+    false and the reason, and enters no panel number, the mean exceedance
+    rates included. REFUSES a population member with no target unless
+    ``allow_incomplete`` (:func:`check_population`); the output carries the
+    population block either way.
+
+    Returns per feature the mean exceedance rates, the event test's expected
+    and realised counts and both tails, the PIT counts, the fail flag of the
+    §3.2 rule (cycle-driven features reported, not failed), and each joint
+    count's event test over the targets where it is complete
     (``J7_no_w_top`` is what the pre-registration's U1 and U2 read;
     ``J8_with_w_top`` its U3)."""
+    population = list(scored_population() if population is None
+                      else population)
+    pop_block = check_population(targets, population, allow_incomplete)
     rng = np.random.default_rng(seed)
     per = {}
     for (city, year), feats in sorted(targets.items()):
@@ -505,10 +578,14 @@ def score_panel(targets: dict, trans: dict, mode: str = "strict",
         real = trans.get((city, y0, year))
         per[(city, year)] = score_target(feats, ref, real, rng)
     out = {}
-    scored = [k for k in per if any("real" in r for f, r in per[k].items()
-                                    if f not in JOINT_SETS)]
+    scored = [k for k in per if k in set(population)]
+    for k in scored:
+        if not any("real" in r for f, r in per[k].items()
+                   if f not in JOINT_SETS):
+            raise SystemExit(f"{k[0]}-{k[1]} is in the scored population and "
+                             f"has no real transition to be judged against")
     for ft in CITY_FEATURES:
-        rows = [per[k][ft] for k in per if ft in per[k]]
+        rows = [per[k][ft] for k in scored if ft in per[k]]
         srows = [per[k][ft] for k in scored if ft in per[k] and "real" in per[k][ft]]
         if not rows:
             continue
@@ -546,8 +623,17 @@ def score_panel(targets: dict, trans: dict, mode: str = "strict",
                      "tails_ge2": event_tails(p2, obs2), "scored": len(jr),
                      "incomplete": left_out,
                      "features": list(JOINT_SETS[name])}
-    return {"mode": mode, "per_target": {f"{c}-{y}": v for (c, y), v in per.items()},
-            "panel": out, "record_ignores_held_back": True}
+    per_target = {}
+    for (c, y), v in per.items():
+        v = dict(v)
+        v["scored"] = (c, y) in set(population)
+        if not v["scored"]:
+            v["not_scored_because"] = unscored_reason(y)
+        per_target[f"{c}-{y}"] = v
+    return {"mode": mode, "per_target": per_target, "panel": out,
+            "population": dict(pop_block, scored=sorted(f"{c}-{y}"
+                                                        for c, y in scored)),
+            "record_ignores_held_back": True}
 
 
 # --------------------------------------------------------------------------
@@ -589,8 +675,18 @@ def main(argv: list[str] | None = None) -> int:
                     help="an arm root holding <city>-<year>/arrays.npz")
     ap.add_argument("--mode", default="strict", choices=MODES)
     ap.add_argument("--label", required=True)
-    ap.add_argument("--out", type=Path, default=REPO / "data/processed/plausibility")
+    # REQUIRED, and refused under `data/`: the verdict is not a model artefact
+    # and the processed tree has one writer (CLAUDE.md §3; step-7 review 8).
+    ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--allow-incomplete", action="store_true",
+                    help="score a panel missing some of prereg §2's city-years "
+                         "(the output says so)")
     a = ap.parse_args(argv)
+    out_root = a.out.resolve()
+    data = (REPO / "data").resolve()
+    if out_root == data or data in out_root.parents:
+        raise SystemExit(f"--out {out_root} is inside {data}: the verdict is "
+                         f"written outside data/")
     rec = record()
     trans = transitions(rec)
     targets, run_paths, party_runs = {}, [], {}
@@ -607,14 +703,15 @@ def main(argv: list[str] | None = None) -> int:
         party_runs[(city, year)] = (prev["pr"], run["cols"],
                                     S / S.sum(axis=1, keepdims=True))
         run_paths.append(d / "arrays.npz")
-    res = score_panel(targets, trans, a.mode)
+    res = score_panel(targets, trans, a.mode,
+                      allow_incomplete=a.allow_incomplete)
     res["parties"] = score_parties(party_runs, rec, trans, a.mode)
     res["artefact_key"] = artefact_key(run_paths,
                                        [Path(e["path"]) for e in rec.values()],
                                        a.mode)
     res["generated"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    a.out.mkdir(parents=True, exist_ok=True)
-    out = a.out / f"plausibility_{a.label}.json"
+    out_root.mkdir(parents=True, exist_ok=True)
+    out = out_root / f"plausibility_{a.label}.json"
     out.write_text(json.dumps(res, indent=1, sort_keys=True, default=str))
     print(f"wrote {out}")
     return 0

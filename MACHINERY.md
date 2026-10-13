@@ -1857,6 +1857,15 @@ from the model, and says so. The ward winners it reads are the backtest's own
 (`backtest.ward_winners`); the roll is `backtest.registered_roll`. Nothing that
 draws imports it. Constants: JUDGEMENT-CALLS §P4.
 
+The panel is the pre-registration's scored population and nothing else
+(`scored_population`: every metro of `compare_history.CITIES` at 2016 and 2021,
+its size asserted against prereg §2). Every run read gets per-target rows; a
+target outside the population (2011, untestable; a forecast) is labelled
+`scored: false` with its reason and enters no panel number, the mean exceedance
+rates and the party classes included. A missing member refuses unless
+`--allow-incomplete`, which the output's `population` block records. `--out` is
+required and refused under `data/`.
+
 ## Running the round's arms — `src/arms.py` (2026-10-12)
 
 The pre-registered arms of `prereg/2026-10-12-universal-draw.md` (I, U, UC,
@@ -1873,6 +1882,20 @@ CRPS difference by size class (`cluster_interval`), the Monte Carlo error of
 the list-MAE and CRPS differences from one draw-index resample applied to both
 arms (`mc_error`), and R2's median per-draw correlation with whether the pool
 sets agree (`r2`). Constants: JUDGEMENT-CALLS §A58.
+
+The intervals run over `plausibility.scored_population` only (one definition
+for both scorers); 2011 is scored and reported, labelled `scored: false`, and
+enters no interval. `compare` refuses: a pair that is not the registered one
+(`check_pairing`: draws and seed; one clean commit, one set of pool specs and
+one width-record key, except that C0's meta must name the other arm's commit as
+its `final_commit` and run without the hold; US on the `level_shrink = 0`
+width-record variant and every other universal arm on a variant with the shrink
+on); a scored city-year missing from either arm unless `--allow-incomplete`
+(recorded, with every city-year present in one arm only); and a classifying
+arm (arm I) that has not run. A party only in the actuals, drawn by neither
+arm, is excluded from every size class and from `all` and listed with its
+share; a drawn party with no `pool_spec` centre in the classifying arm enters
+`all` and no class, and is listed.
 
 ## Reading a run without re-running it
 

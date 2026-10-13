@@ -25,8 +25,9 @@ WHAT A RUN WRITES, under ``DIR/<arm>/<city>-<year>/``, the format
 ``pr_vote_draws``, ``ward_winner_draws`` as column indices, ``seat_draws``)
 and ``meta.json`` (``seat_cols`` naming the columns, the arm, seed, draws,
 overrides, the commit, the spec and width-record keys, the calibration
-pass's convergence, the guard board's universal-draw fields, the pool set and
-each party's ``pool_spec`` centre), plus ``trace/`` (``run_model``'s
+pass's convergence, the width-record variant, C0's ``final_commit``, the guard
+board's universal-draw fields, the pool set and each party's ``pool_spec``
+centre), plus ``trace/`` (``run_model``'s
 ``--run-dir`` stages). ``DIR`` must be outside ``data/``: nothing here writes
 a forecast artefact, and ``run_model`` is called in process, never
 ``montecarlo.py`` as a script (CLAUDE.md §3).
@@ -35,8 +36,16 @@ WHAT IT REFUSES, per city-year, writing ``REFUSED.json`` with the reason and
 no arrays: a universal arm whose width record is stale or missing
 (``montecarlo.read_width_record``), and a universal arm whose calibration
 pass did not converge (``41_guards.kappa_converged``). ``compare`` refuses to
-read either, and refuses two arms whose seed or draw count differ at a
-city-year.
+read either, refuses a pair that is not the registered one
+(``check_pairing``: seed, draws, tree, specs, width-record key and variant,
+with C0's tree recognised explicitly), refuses an incomplete scored
+population unless ``--allow-incomplete`` (recorded in the output), and
+refuses when the classifying arm has not run.
+
+THE SCORED POPULATION is ``plausibility.scored_population``: prereg §2's 16
+city-years of 2016 and 2021, defined once for this module and the
+plausibility scorer. 2011 and Johannesburg 2026 are run and reported,
+labelled ``scored: false`` with the reason, and enter no interval.
 
 EVERY ARM GETS A FRESH SCENARIO. ``run_model`` writes into the scenario it is
 given (``_judgements_applied_sha``, ``_width``, the stage inputs), so a
@@ -50,7 +59,8 @@ THE COMPARISONS (``compare``), two statistics named apart (prereg §3.2):
   difference B − A (``score.crps_by_party``, points of list share), for
   large (centre ≥ 15%), middle (5-15%), small (< 5%) and all parties, the
   class taken from the ``classify_by`` arm's ``pool_spec`` centre (prereg §4:
-  arm I's);
+  arm I's), over the scored population only; a party in the actuals that
+  neither arm drew is excluded from every class and listed;
 * ``mc_error``: per city-year, the Monte Carlo error of the list-MAE
   difference (``compare_history.vote_mae``) and of the mean CRPS difference,
   by ONE draw-index resample applied to both arms (``MC_RESAMPLES`` of them);
@@ -278,6 +288,10 @@ def run_city_year(arm: str, city: str, year: str, out: Path, *,
         "spec_keys": freeze.pool_artefact_keys(target.city),
         "width_record_key": width_key,
         "width_record_current": (True if arm in UNIVERSAL_ARMS else None),
+        "width_record_variant": (M.width_record_variant(scenario)
+                                 if arm in UNIVERSAL_ARMS else None),
+        "final_commit": (_git("rev-parse", "HEAD^") if arm in CENSUS_OFF_ARMS
+                         else None),
         "draw_law": guards.get("draw_law"),
         "kappa_converged": guards.get("kappa_converged"),
         "kappa_iters": guards.get("kappa_iters"),
@@ -365,31 +379,135 @@ def _mae(S: np.ndarray, parties: list, actual: dict) -> float:
     return CH.vote_mae(run, actual)
 
 
+def _variant_level_shrink(meta: dict) -> float | None:
+    v = meta.get("width_record_variant")
+    return None if v is None else float(json.loads(v)["level_shrink"])
+
+
+def check_pairing(a: str, ma: dict, b: str, mb: dict) -> None:
+    """REFUSES (SystemExit) two city-year metas that are not the pair the
+    prereg registers (§3, §3.2; amendment 2).
+
+    * the same draws and seed (§3);
+    * the same tree: one commit, neither dirty in ``src``, the same pool
+      specs (``spec_keys``) and the same width-record key, EXCEPT when
+      exactly one arm is C0, whose tree is the final tree with the census
+      hold reverted (amendment 2): its meta's ``final_commit`` must be the
+      other arm's commit, its ``census_hold`` false and the other's true; its
+      specs and record are its own and are not compared;
+    * the width-record variant each arm registers: US the ``level_shrink =
+      0`` variant (amendment 2 item 2), every other universal arm a variant
+      with the shrink on; two arms neither of which is US read one variant.
+      Arm I reads no record and records none.
+    """
+    where = f"{ma.get('city')}-{ma.get('year')}"
+    if ma["draws"] != mb["draws"] or ma["seed"] != mb["seed"]:
+        raise SystemExit(f"{where}: arms {a} and {b} ran different draws or "
+                         f"seeds ({ma['draws']}/{ma['seed']} against "
+                         f"{mb['draws']}/{mb['seed']}): not paired")
+    for arm, m in ((a, ma), (b, mb)):
+        if (m.get("git") or {}).get("dirty") is not False:
+            raise SystemExit(f"{where}: arm {arm} ran on a tree dirty in src/ "
+                             f"(or recorded none): its commit does not "
+                             f"identify the code")
+        if arm in UNIVERSAL_ARMS:
+            ls = _variant_level_shrink(m)
+            if ls is None:
+                raise SystemExit(f"{where}: arm {arm} recorded no width-record "
+                                 f"variant")
+            if (arm == "US") != (ls == 0.0):
+                raise SystemExit(f"{where}: arm {arm} read the width-record "
+                                 f"variant {m['width_record_variant']}; the "
+                                 f"prereg registers level_shrink = 0 for US "
+                                 f"only (amendment 2 item 2)")
+    if "US" not in (a, b) and a in UNIVERSAL_ARMS and b in UNIVERSAL_ARMS \
+            and ma["width_record_variant"] != mb["width_record_variant"]:
+        raise SystemExit(f"{where}: arms {a} and {b} read different "
+                         f"width-record variants")
+    if (a in CENSUS_OFF_ARMS) != (b in CENSUS_OFF_ARMS):
+        c0, other = ((a, ma), (b, mb)) if a in CENSUS_OFF_ARMS else ((b, mb),
+                                                                    (a, ma))
+        if c0[1].get("final_commit") != other[1]["git"]["commit"]:
+            raise SystemExit(
+                f"{where}: arm {c0[0]} names the final tree "
+                f"{c0[1].get('final_commit')!r}, but arm {other[0]} ran at "
+                f"{other[1]['git']['commit']!r}: C0 is the final tree with "
+                f"c2edc60's pools.py hunks reverted (amendment 2, 3)")
+        if c0[1].get("census_hold") is not False or \
+                other[1].get("census_hold") is not True:
+            raise SystemExit(f"{where}: C0 must run without the census hold "
+                             f"and {other[0]} with it")
+        return
+    if ma["git"]["commit"] != mb["git"]["commit"]:
+        raise SystemExit(f"{where}: arms {a} and {b} ran at different commits "
+                         f"({ma['git']['commit']} against "
+                         f"{mb['git']['commit']}): the prereg pairs them on "
+                         f"one tree")
+    if ma.get("census_hold") != mb.get("census_hold"):
+        raise SystemExit(f"{where}: arms {a} and {b} differ in the census hold")
+    if ma.get("spec_keys") != mb.get("spec_keys"):
+        raise SystemExit(f"{where}: arms {a} and {b} read different pool specs "
+                         f"(spec_keys differ): not one emit")
+    if a in UNIVERSAL_ARMS and b in UNIVERSAL_ARMS and \
+            ma.get("width_record_key") != mb.get("width_record_key"):
+        raise SystemExit(f"{where}: arms {a} and {b} read width records under "
+                         f"different keys")
+
+
 def compare(out: Path, a: str, b: str, actuals: dict,
-            classify_by: str = "I", resamples: int | None = None) -> dict:
+            classify_by: str = "I", resamples: int | None = None,
+            population=None, allow_incomplete: bool = False) -> dict:
     """Arm ``b`` against arm ``a`` (differences are b − a), paired.
 
+    THE SCORED POPULATION is ``plausibility.scored_population`` (prereg §2:
+    the 16 city-years of 2016 and 2021), unless ``population`` is given (a
+    constructed test). Every city-year both arms ran gets its R2 row; a
+    city-year outside the population that has a result (2011) also gets its
+    scores, labelled ``scored: false`` with the reason, and enters no
+    interval. REFUSES:
+
+    * a pair that is not the registered one (:func:`check_pairing`);
+    * a population member missing from either arm, unless
+      ``allow_incomplete`` (the output's ``population`` block records it,
+      and lists every city-year present in one arm and not the other);
+    * a scored city-year with no actual result;
+    * a classifying arm (prereg §4: arm I) that has not run, or lacks a
+      scored city-year. There is no fallback to another arm's centres.
+
     ``actuals`` maps ``(city, year)`` to the realised citywide list shares
-    (``compare_history.actual_shares``); a city-year without one (a
-    forecast) gets R2 and no score. ``classify_by`` names the arm whose
-    ``pool_spec`` centres set the size classes; when it has not run, ``a``'s
-    are used and the output says so."""
+    (``compare_history.actual_shares``). A party in the actuals that NEITHER
+    arm drew enters no size class and not ``all``: both arms put no mass on
+    it, so its difference is identically zero and would dilute every mean.
+    It is listed per city-year (``undrawn_actual``) with its share. A drawn
+    party with no ``pool_spec`` centre in the classifying arm enters ``all``
+    and no size class, and is listed (``unclassed``). List MAE is
+    ``compare_history.vote_mae``'s definition (every actual party, an
+    undrawn one at 0)."""
+    import plausibility as P
     import score
     resamples = int(resamples or MC_RESAMPLES)
+    population = list(P.scored_population() if population is None
+                      else population)
+    pop_set = set(population)
     A, B = load_arm(out, a), load_arm(out, b)
-    try:
+    if classify_by == a:
+        C = A
+    elif classify_by == b:
+        C = B
+    else:
+        if not (Path(out) / classify_by).is_dir():
+            raise SystemExit(f"the size classes are arm {classify_by}'s "
+                             f"pool_spec centres (prereg §4), and arm "
+                             f"{classify_by} has not run under {out}")
         C = load_arm(out, classify_by)
-        classify_used = classify_by
-    except (FileNotFoundError, SystemExit):
-        C, classify_used = A, a
+    pop_a = P.check_population(A, population, allow_incomplete)
+    pop_b = P.check_population(B, population, allow_incomplete)
     rng = np.random.default_rng(MC_SEED)
     per, groups = {}, {k: [] for k in ("large", "middle", "small", "all")}
+    scored_keys = []
     for key in sorted(set(A) & set(B)):
         (ma, xa), (mb, xb) = A[key], B[key]
-        if ma["draws"] != mb["draws"] or ma["seed"] != mb["seed"]:
-            raise SystemExit(f"{key}: arms {a} and {b} ran different draws or "
-                             f"seeds ({ma['draws']}/{ma['seed']} against "
-                             f"{mb['draws']}/{mb['seed']}): not paired")
+        check_pairing(a, ma, b, mb)
         parties = sorted(set(ma["seat_cols"]) | set(mb["seat_cols"]))
         Sa = _shares(xa, ma["seat_cols"], parties)
         Sb = _shares(xb, mb["seat_cols"], parties)
@@ -401,21 +519,34 @@ def compare(out: Path, a: str, b: str, actuals: dict,
                       "parties": len(cors),
                       "passes": bool(cors) and float(np.median(cors))
                       >= R2_MIN_MEDIAN,
-                      "pools_equal": ma.get("pools") == mb.get("pools")}}
+                      "pools_equal": ma.get("pools") == mb.get("pools")},
+               "scored": key in pop_set}
+        if key not in pop_set:
+            row["not_scored_because"] = P.unscored_reason(key[1])
         actual = actuals.get(key)
+        if actual is None and key in pop_set:
+            raise SystemExit(f"{key[0]}-{key[1]} is in the scored population "
+                             f"and has no actual result")
         if actual is not None:
-            parties = sorted(set(parties) | set(actual))
-            Sa = _shares(xa, ma["seat_cols"], parties)
-            Sb = _shares(xb, mb["seat_cols"], parties)
+            if key in pop_set and key not in C:
+                raise SystemExit(f"arm {classify_by} has no run at "
+                                 f"{key[0]}-{key[1]}: its size classes "
+                                 f"cannot be read (prereg §4)")
+            undrawn = {p: float(v) for p, v in actual.items()
+                       if p not in parties}
             act = np.array([actual.get(p, 0.0) for p in parties])
             d = _crps(Sb, act, parties) - _crps(Sa, act, parties)
-            cen = (C.get(key, (ma, None))[0].get("pool_spec_centres") or {})
-            cls = [size_class(cen.get(p, 0.0)) for p in parties]
-            for name in ("large", "middle", "small"):
-                sel = np.array([c == name for c in cls])
-                if sel.any():
-                    groups[name].append(d[sel])
-            groups["all"].append(d)
+            cen = ((C.get(key) or ({}, None))[0].get("pool_spec_centres")
+                   or {})
+            unclassed = [p for p in parties if p not in cen]
+            cls = [size_class(cen[p]) if p in cen else None for p in parties]
+            if key in pop_set:
+                scored_keys.append(key)
+                for name in ("large", "middle", "small"):
+                    sel = np.array([c == name for c in cls])
+                    if sel.any():
+                        groups[name].append(d[sel])
+                groups["all"].append(d)
             D = Sa.shape[0]
             mae_d, crps_d = [], []
             for _ in range(resamples):
@@ -424,13 +555,15 @@ def compare(out: Path, a: str, b: str, actuals: dict,
                              - _mae(Sa[idx], parties, actual))
                 crps_d.append(float((_crps(Sb[idx], act, parties)
                                      - _crps(Sa[idx], act, parties)).mean()))
-            row["scored"] = {
+            row["score"] = {
                 "list_mae_difference": _mae(Sb, parties, actual)
                 - _mae(Sa, parties, actual),
                 "crps_mean_difference": float(d.mean()),
                 "mc_error": {"list_mae": float(np.std(mae_d, ddof=1)),
                              "crps_mean": float(np.std(crps_d, ddof=1)),
-                             "resamples": resamples}}
+                             "resamples": resamples},
+                "undrawn_actual": undrawn,
+                "unclassed": unclassed}
         per[f"{key[0]}-{key[1]}"] = row
     intervals = {}
     for name, g in groups.items():
@@ -439,8 +572,22 @@ def compare(out: Path, a: str, b: str, actuals: dict,
             continue
         ci = score.cluster_bootstrap(g, level=CLUSTER_LEVEL)
         intervals[name] = {k: v for k, v in ci.items() if k != "replicates"}
+    population_block = {
+        "registered": "prereg §2: the 16 city-years of 2016 and 2021",
+        "expected": len(population),
+        "scored": sorted(f"{c}-{y}" for c, y in scored_keys),
+        "missing_in_" + a: pop_a["missing"],
+        "missing_in_" + b: pop_b["missing"],
+        "only_in_" + a: sorted(f"{c}-{y}" for c, y in set(A) - set(B)),
+        "only_in_" + b: sorted(f"{c}-{y}" for c, y in set(B) - set(A)),
+        "complete": pop_a["complete"] and pop_b["complete"],
+        "allow_incomplete": bool(allow_incomplete)}
+    if len(scored_keys) != len(population) and not allow_incomplete:
+        raise SystemExit(f"scored {len(scored_keys)} city-years against the "
+                         f"{len(population)} registered")
     return {"a": a, "b": b, "difference": f"{b} - {a}",
-            "classified_by": classify_used, "per_city_year": per,
+            "classified_by": classify_by, "per_city_year": per,
+            "population": population_block,
             "cluster_interval": intervals,
             "units": "CRPS and list MAE in points of list share"}
 
@@ -473,6 +620,9 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--a", required=True, choices=sorted(ARMS))
     c.add_argument("--b", required=True, choices=sorted(ARMS))
     c.add_argument("--classify-by", default="I", choices=sorted(ARMS))
+    c.add_argument("--allow-incomplete", action="store_true",
+                   help="compare with some of prereg §2's city-years missing "
+                        "(the output records the flag)")
     args = ap.parse_args(argv)
     M.fix_hash_seed()
     if args.cmd == "run":
@@ -484,7 +634,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1 if res["refused"] else 0
     keys = {k for arm in (args.a, args.b) for k in load_arm(args.out, arm)}
     res = compare(args.out, args.a, args.b, actual_shares(keys),
-                  args.classify_by)
+                  args.classify_by, allow_incomplete=args.allow_incomplete)
     path = check_out(args.out) / f"compare_{args.a}_{args.b}.json"
     path.write_text(json.dumps(res, indent=1, sort_keys=True, default=str))
     print(f"wrote {path}")

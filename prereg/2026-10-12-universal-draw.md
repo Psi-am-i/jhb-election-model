@@ -584,3 +584,44 @@ runs. Nothing above is edited.
    record emits; the C0 worktree; the post-emit checks; the arms through
    `src/arms.py`), with no edit to `montecarlo.py`, `levels.py`, `pools.py` or
    `width_record.py` between the record emits and the arms.
+
+---
+
+## Amendment 3, before any run (2026-10-13, step-7 review fixes)
+
+Appended after two independent reviews of the frozen ultra-review brief and
+before any arm runs. No prediction, threshold or rule above changes; this
+fixes the populations and instruments the rows are read through. Nothing
+above is edited.
+
+1. **The scored population (§2) is one definition,**
+   `src/plausibility.py::scored_population`: every metro of
+   `compare_history.CITIES` at 2016 and 2021, asserted to be 16 city-years.
+   `src/arms.py::compare` and `src/plausibility.py::score_panel` and
+   `score_parties` aggregate over it alone. 2011 and Johannesburg 2026 are run
+   and reported, labelled `scored: false` with the reason, and enter no
+   interval, panel mean or event test. §5.5 S6 reads 2011's list-MAE change
+   from those labelled rows; §5.6 reads Johannesburg 2026's per-target rows.
+2. **A scored population with a member missing** from either arm (or from the
+   plausibility panel) refuses. `--allow-incomplete` scores the rest and the
+   output records the flag and the missing city-years; a row scored that way
+   is not the registered statistic.
+3. **Pairing (§3, §3.2).** Two arms are compared only when they ran the same
+   draws and seed, at one clean commit, on one set of pool specs and one
+   width-record key; the US arm on the `level_shrink = 0` variant and every
+   other universal arm on a variant with the shrink on (amendment 2 item 2).
+   C0 is the exception, recognised by name: it runs at its own commit whose
+   parent is the final tree (amendment 2 item 1), on its own specs and record, and
+   its run records that parent as `final_commit`, which must equal the other
+   arm's commit.
+4. **Parties in the actuals that neither arm drew** (§4's CRPS rows) have
+   identical zero mass in both arms, so their difference is zero by
+   construction. They enter no size class and not `all`, and each comparison
+   lists them with their realised share. List MAE (S3) keeps
+   `compare_history.vote_mae`'s definition, which counts them at 0 in both
+   arms.
+5. **The size classes (§4) are arm I's `pool_spec` centres**, with no
+   fallback: a comparison refuses when arm I has not run at a scored
+   city-year. A party drawn by an arm but absent from arm I's centres enters
+   `all` and no size class, and is listed.
+

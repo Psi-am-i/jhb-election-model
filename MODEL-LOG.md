@@ -29465,3 +29465,40 @@ working directory (the key now reads them from its own tree's root; three
 item 3's intended red on the live summaries. `target_is_held` stays
 in `montecarlo`: placed in `cityconfig` it moved `pools._deps_sha` (an emit
 dependency) and staled `bye_value.json`.
+
+## 1.300 Model round step 7 review fixes: scored populations, pairing, instruments, the width key, judged arrivals (2026-10-13)
+
+One writer, serial, after two independent reviews of the frozen ultra-review
+brief (`audits/2026-10-11-model-round/ULTRA-REVIEW-BRIEF.md`) and before the
+step-7 re-emit. No model run as a script, no `compare_history`, no emit,
+nothing written under `data/`; the specs are stale (§1.298, part 2b). Every
+test below is on constructed inputs. The pre-registration gains amendment 3
+(readings only; no prediction, threshold or rule changes). Each item is its own
+commit; this section grows with them.
+
+### The scored population and the pairing (items 1, 2 and 8)
+
+`arms.compare` admitted every city-year with actuals, so 2011 (held, but
+untestable: prereg §2) entered every interval; `plausibility.score_panel`
+averaged its panel means over every target, Johannesburg 2026 included, and
+`score_parties` likewise. Both now aggregate over one definition,
+`plausibility.scored_population` (every metro at 2016 and 2021, asserted to be
+16), and label every other run `scored: false` with the reason. A missing
+member refuses unless `--allow-incomplete`, which the output records.
+`compare` refuses a pair that is not the registered one (`check_pairing`:
+draws, seed, one clean commit, one set of specs and one width-record key; the
+US variant and C0's tree recognised by name, C0 through a recorded
+`final_commit`), lists city-years present in one arm only, drops parties drawn
+by neither arm from the size classes (identical zero mass in both arms: a
+zero-difference row diluting every mean), and refuses when the classifying arm
+(arm I) has not run instead of relabelling arm a's centres as arm I's.
+`plausibility.py --out` is required and refused under `data/`. Tests on the
+constructed arms and panel: a 2011 run (and a 2026 forecast in the
+plausibility panel) changes no interval or panel number and is labelled; an
+incomplete population refuses and the flag is recorded; each pairing field
+edited alone refuses and its revert is accepted; an actuals-only party leaves
+every interval unchanged. Mutations, each red and green on revert: the
+population gate removed in `compare` and in `score_panel`'s aggregation; the
+incomplete refusal removed (both modules); the actuals-only exclusion removed;
+the classifier fallback restored; the `spec_keys`, C0 `final_commit` and US
+variant checks removed.

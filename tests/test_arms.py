@@ -87,6 +87,25 @@ def _ok_width(year, scenario):
     return {"constructed": True}
 
 
+# The runner records the live commit and whether src/ is dirty; a test must
+# not depend on the working tree it happens to run in, so the git reads are
+# constructed: one clean commit, its parent as C0's final tree.
+_REAL_GIT = A._git
+
+
+def _fake_git(*args):
+    if args[:1] == ("status",):
+        return ""
+    if args == ("rev-parse", "HEAD"):
+        return "c" * 40
+    if args == ("rev-parse", "HEAD^"):
+        return "f" * 40
+    return _REAL_GIT(*args)
+
+
+A._git = _fake_git
+
+
 def _run(out, arm, model, width_check=_ok_width, cys=CITY_YEARS):
     for city, year in cys:
         A.run_city_year(arm, city, year, out, draws=DRAWS, seed=11,
@@ -205,33 +224,200 @@ def test_the_paired_statistics_see_zero_a_shift_and_independence():
         model = FakeModel()
         for arm in ("I", "U", "UC", "US"):
             _run(out, arm, model)
-        same = A.compare(out, "U", "US", _actuals(), resamples=50)
+        same = A.compare(out, "U", "US", _actuals(), resamples=50,
+                         population=CITY_YEARS)
         assert set(same["per_city_year"]) == {f"{c}-{y}" for c, y in CITY_YEARS}
         for row in same["per_city_year"].values():
-            assert row["scored"]["list_mae_difference"] == 0.0
-            assert row["scored"]["crps_mean_difference"] == 0.0
-            assert row["scored"]["mc_error"]["list_mae"] == 0.0
-            assert row["scored"]["mc_error"]["crps_mean"] == 0.0
+            assert row["score"]["list_mae_difference"] == 0.0
+            assert row["score"]["crps_mean_difference"] == 0.0
+            assert row["score"]["mc_error"]["list_mae"] == 0.0
+            assert row["score"]["mc_error"]["crps_mean"] == 0.0
             assert row["r2"]["median"] > 1 - 1e-12 and row["r2"]["passes"]
         assert same["cluster_interval"]["all"]["clusters"] == len(CITY_YEARS)
         assert same["classified_by"] == "I"
-        shift = A.compare(out, "U", "UC", _actuals(), resamples=50)
+        shift = A.compare(out, "U", "UC", _actuals(), resamples=50,
+                          population=CITY_YEARS)
         for row in shift["per_city_year"].values():
-            assert row["scored"]["crps_mean_difference"] != 0.0
-            assert row["scored"]["mc_error"]["crps_mean"] > 0
+            assert row["score"]["crps_mean_difference"] != 0.0
+            assert row["score"]["mc_error"]["crps_mean"] > 0
             assert row["r2"]["median"] >= A.R2_MIN_MEDIAN, row
-        indep = A.compare(out, "I", "U", _actuals(), resamples=50)
+        indep = A.compare(out, "I", "U", _actuals(), resamples=50,
+                          population=CITY_YEARS)
         for row in indep["per_city_year"].values():
             assert abs(row["r2"]["median"]) < 0.5 and not row["r2"]["passes"]
         # arms of different draw counts are not paired
         A.run_city_year("UC", "joburg", "2021", out, draws=DRAWS + 1, seed=11,
                         run_model=model, width_check=_ok_width)
         try:
-            A.compare(out, "U", "UC", _actuals(), resamples=5)
+            A.compare(out, "U", "UC", _actuals(), resamples=5,
+                      population=CITY_YEARS)
         except SystemExit as exc:
             assert "not paired" in str(exc)
         else:
             raise AssertionError("arms of different draws were compared")
+
+
+def _meta_path(out, arm, cy):
+    return Path(out) / arm / f"{cy[0]}-{cy[1]}" / "meta.json"
+
+
+def _edit_meta(out, arm, cy, **kw):
+    p = _meta_path(out, arm, cy)
+    m = json.loads(p.read_text())
+    m.update(kw)
+    p.write_text(json.dumps(m))
+    return m
+
+
+def test_the_scored_population_is_the_prereg_s_and_2011_enters_no_interval():
+    """Prereg §2: the scored population is the 16 city-years of 2016 and
+    2021, one definition (`plausibility.scored_population`) for both
+    scorers, its size asserted. A 2011 city-year run beside a constructed
+    population is reported with `scored` false and its reason, carries its
+    scores (S6 reads them), and changes no interval: the intervals with and
+    without it are identical and count the population's clusters. Mutation
+    probe: dropping the `key in pop_set` gate puts 2011 into the intervals
+    and this test goes red."""
+    pop = P
+    full = pop.scored_population()
+    assert len(full) == pop.SCORED_COUNT == 16
+    assert {y for _c, y in full} == {"2016", "2021"}
+    import compare_history as CH
+    assert set(full) == {(c, y) for c in CH.CITIES for y in ("2016", "2021")}
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        model = FakeModel()
+        for arm in ("I", "U", "UC"):
+            _run(out, arm, model)
+        act = _actuals()
+        base = A.compare(out, "U", "UC", act, resamples=5,
+                         population=CITY_YEARS)
+        for arm in ("I", "U", "UC"):
+            _run(out, arm, model, cys=[("joburg", "2011")])
+        act[("joburg", "2011")] = act[CITY_YEARS[0]]
+        res = A.compare(out, "U", "UC", act, resamples=5,
+                        population=CITY_YEARS)
+        row = res["per_city_year"]["joburg-2011"]
+        assert row["scored"] is False and "untestable" in row["not_scored_because"]
+        assert "list_mae_difference" in row["score"]
+        assert res["cluster_interval"] == base["cluster_interval"]
+        assert res["cluster_interval"]["all"]["clusters"] == len(CITY_YEARS)
+        assert res["population"]["scored"] == sorted(
+            f"{c}-{y}" for c, y in CITY_YEARS)
+
+
+def test_an_incomplete_population_refuses_unless_the_flag_is_passed():
+    """A population member missing from one arm refuses, naming it; with
+    `allow_incomplete` the comparison runs and its output records the flag,
+    the missing city-year and the city-year present in one arm only.
+    Mutation probe: the refusal removed, the first assertion goes red."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        model = FakeModel()
+        for arm in ("I", "U"):
+            _run(out, arm, model)
+        _run(out, "UC", model, cys=CITY_YEARS[:2])
+        try:
+            A.compare(out, "U", "UC", _actuals(), resamples=5,
+                      population=CITY_YEARS)
+        except SystemExit as exc:
+            assert "ekurhuleni-2016" in str(exc), exc
+        else:
+            raise AssertionError("an incomplete population was scored")
+        res = A.compare(out, "U", "UC", _actuals(), resamples=5,
+                        population=CITY_YEARS, allow_incomplete=True)
+        pb = res["population"]
+        assert pb["allow_incomplete"] is True and pb["complete"] is False
+        assert pb["missing_in_UC"] == ["ekurhuleni-2016"]
+        assert pb["only_in_U"] == ["ekurhuleni-2016"]
+        assert res["cluster_interval"]["all"]["clusters"] == 2
+
+
+def test_the_pair_must_be_the_registered_one():
+    """`check_pairing`: different pool specs, a different commit, a dirty
+    tree, the shrink-off variant on an arm other than US (or the shipped
+    variant on US) each refuse; C0 is accepted only when its
+    `final_commit` is the other arm's commit and it ran without the hold.
+    Each refusal is constructed by editing one field of a meta written by
+    the runner and reverted before the next."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        model = FakeModel()
+        cy = CITY_YEARS[:1]
+        for arm in ("I", "U", "UC", "US", "C0"):
+            _run(out, arm, model, cys=cy)
+        # C0 ran in its own worktree: its own commit, whose parent is the
+        # final tree the other arms ran at (amendment 3)
+        _edit_meta(out, "C0", cy[0], census_hold=False, final_commit="c" * 40,
+                   git={"commit": "0" * 40, "dirty": False})
+        kw = dict(resamples=3, population=cy)
+        A.compare(out, "U", "UC", _actuals(), **kw)
+        A.compare(out, "U", "US", _actuals(), **kw)
+        A.compare(out, "I", "U", _actuals(), **kw)
+        mu = json.loads(_meta_path(out, "UC", cy[0]).read_text())
+        mus = json.loads(_meta_path(out, "US", cy[0]).read_text())
+        assert json.loads(mus["width_record_variant"])["level_shrink"] == 0.0
+        cases = [
+            ("UC", dict(spec_keys={"x": "moved"}), "pool specs", "U"),
+            ("UC", dict(git={"commit": "d" * 40, "dirty": False}),
+             "different commits", "U"),
+            ("UC", dict(git={"commit": "c" * 40, "dirty": True}), "dirty",
+             "U"),
+            ("UC", dict(width_record_variant=mus["width_record_variant"]),
+             "level_shrink = 0 for US", "U"),
+            ("US", dict(width_record_variant=mu["width_record_variant"]),
+             "level_shrink = 0 for US", "U"),
+            ("UC", dict(width_record_key={"record_sha": "other"}),
+             "different keys", "U"),
+            ("C0", dict(final_commit="e" * 40), "final tree", "U"),
+            ("C0", dict(census_hold=True), "census hold", "U"),
+        ]
+        for arm, edit, says, other in cases:
+            keep = json.loads(_meta_path(out, arm, cy[0]).read_text())
+            _edit_meta(out, arm, cy[0], **edit)
+            try:
+                A.compare(out, other, arm, _actuals(), **kw)
+            except SystemExit as exc:
+                assert says in str(exc), (arm, edit, exc)
+            else:
+                raise AssertionError(f"{arm} {edit} was compared")
+            _meta_path(out, arm, cy[0]).write_text(json.dumps(keep))
+            A.compare(out, other, arm, _actuals(), **kw)
+        # C0's specs and record are its own: they are not compared
+        _edit_meta(out, "C0", cy[0], spec_keys={"c0": "own emit"},
+                   width_record_key={"record_sha": "c0"})
+        A.compare(out, "U", "C0", _actuals(), **kw)
+
+
+def test_parties_drawn_by_neither_arm_enter_no_class_and_the_classifier_must_exist():
+    """A party only in the actuals has identical zero mass in both arms; it
+    is listed with its share and leaves every interval unchanged. Without
+    the exclusion it would add zero-difference rows to `small` and `all`
+    (mutation probe: the `undrawn` exclusion removed changes the `all`
+    interval and this test goes red). A classifying arm that has not run
+    refuses: there is no fallback to another arm's centres."""
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        model = FakeModel()
+        for arm in ("I", "U", "UC"):
+            _run(out, arm, model)
+        kw = dict(resamples=3, population=CITY_YEARS)
+        base = A.compare(out, "U", "UC", _actuals(), **kw)
+        act = {k: dict(v, ZZ=0.004) for k, v in _actuals().items()}
+        res = A.compare(out, "U", "UC", act, **kw)
+        for row in res["per_city_year"].values():
+            assert row["score"]["undrawn_actual"] == {"ZZ": 0.004}
+        assert res["cluster_interval"]["all"]["n"] == \
+            base["cluster_interval"]["all"]["n"]
+        assert res["cluster_interval"] == base["cluster_interval"]
+        import shutil
+        shutil.rmtree(out / "I")
+        try:
+            A.compare(out, "U", "UC", _actuals(), **kw)
+        except SystemExit as exc:
+            assert "has not run" in str(exc), exc
+        else:
+            raise AssertionError("compared with no classifying arm")
 
 
 if __name__ == "__main__":

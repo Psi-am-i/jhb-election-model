@@ -89,7 +89,7 @@ def _panel(rec, runs, mutate=None):
             r = mutate(r)
         targets[(c, y)] = P.run_features(r, rec[(c, str(int(y) - 5))],
                                          rec[(c, y)]["registered"])
-    return P.score_panel(targets, trans, "strict")
+    return P.score_panel(targets, trans, "strict", population=list(runs))
 
 
 # --------------------------------------------------------------------------
@@ -274,16 +274,16 @@ def test_collapse_is_seen_and_unseen():
                 S = mutate(S)
             out[(c, y)] = (rec[(c, str(int(y) - 5))]["pr"], names, S)
         return out
-    clean = P.score_parties(party_runs(), rec, trans)["0"]
+    clean = P.score_parties(party_runs(), rec, trans, population=list(runs))["0"]
     assert not clean["fails"], clean
 
     def collapse(S):
         small = [j for j, n in enumerate(names) if j >= 8]
         S[:, small] *= 0.01
         return S / S.sum(axis=1, keepdims=True)
-    bad = P.score_parties(party_runs(collapse), rec, trans)["0"]
+    bad = P.score_parties(party_runs(collapse), rec, trans, population=list(runs))["0"]
     assert bad["fails"] and bad["collapse"] > 0.5, bad
-    assert not P.score_parties(party_runs(), rec, trans)["0"]["fails"]
+    assert not P.score_parties(party_runs(), rec, trans, population=list(runs))["0"]["fails"]
 
 
 def test_two_sided():
@@ -368,6 +368,63 @@ def test_nothing_that_draws_imports_the_judge():
         (t / "b.py").write_text("def f():\n    return 1\n")
         assert "plausibility" not in import_closure("a", t)
         shutil.rmtree(t, ignore_errors=True)
+
+
+def test_the_panel_scores_the_registered_population_only():
+    """Prereg §2: the panel aggregates the scored population only. A target
+    outside it (here a constructed 2026 forecast, judged by the record
+    before it) gets its per-target rows labelled `scored: false` with the reason
+    and moves no panel number, the mean exceedance rates included; a
+    population member with no target refuses unless `allow_incomplete`,
+    which the output records. Mutation probes: aggregating every target
+    (the pre-2026-10-13 `rows` over `per`) turns the first equality red;
+    the refusal removed turns the second red."""
+    rec, names, g = synthetic_record(21)
+    runs = synthetic_runs(rec, names, g, draws=300)
+    extra = synthetic_runs(rec, names, g, draws=300, years=("2026",))
+    trans = P.transitions(rec)
+
+    def feats(rs):
+        return {(c, y): P.run_features(r, rec[(c, str(int(y) - 5))],
+                                       (rec.get((c, y)) or {}).get("registered"))
+                for (c, y), r in rs.items()}
+    pop = list(runs)
+    base = P.score_panel(feats(runs), trans, "strict", population=pop)
+    both = P.score_panel(feats({**runs, **extra}), trans, "strict",
+                         population=pop)
+    assert both["panel"] == base["panel"]
+    row = both["per_target"]["c1-2026"]
+    assert row["scored"] is False and "forecast" in row["not_scored_because"]
+    assert both["per_target"]["c1-2016"]["scored"] is True
+    assert both["population"]["scored"] == sorted(f"{c}-{y}" for c, y in pop)
+    short = feats(runs)
+    short.pop(pop[0])
+    try:
+        P.score_panel(short, trans, "strict", population=pop)
+    except SystemExit as exc:
+        assert f"{pop[0][0]}-{pop[0][1]}" in str(exc)
+    else:
+        raise AssertionError("an incomplete population was scored")
+    res = P.score_panel(short, trans, "strict", population=pop,
+                        allow_incomplete=True)
+    assert res["population"]["allow_incomplete"] is True
+    assert res["population"]["missing"] == [f"{pop[0][0]}-{pop[0][1]}"]
+    full = P.scored_population()
+    assert len(full) == P.SCORED_COUNT == 16
+
+
+def test_the_verdict_is_never_written_under_data():
+    """`--out` is required, and an output under `data/` refuses before
+    anything is read."""
+    for argv in (["--runs", "x", "--label", "y"],
+                 ["--runs", "x", "--label", "y", "--out",
+                  str(ROOT / "data" / "processed" / "plausibility")]):
+        try:
+            P.main(argv)
+        except SystemExit as exc:
+            assert exc.code != 0
+        else:
+            raise AssertionError(f"{argv} ran")
 
 
 if __name__ == "__main__":
