@@ -600,19 +600,36 @@ function middleTable(rows, assets, g) {
 // the party called for it.
 function wardMap(map, x, y, w, { prefix = "wm", north = false } = {}) {
   const s = w / map.W, h = map.H * s;
-  const defs = [], fills = [], hatches = [];
+  const defs = [], wards = [];
+  const th = map.rotate * Math.PI / 180, cs = Math.cos(th), sn = Math.sin(th);
   map.wards.forEach((wd, i) => {
     if (!wd.path) return;
-    fills.push(`<path d="${wd.path}" fill="${wd.fill}" stroke="${C.paper}" stroke-width="${n1(0.8 / s)}" stroke-linejoin="round"/>`);
-    if (wd.bands) {
-      const id = prefix + i;
-      defs.push(`<pattern id="${id}" width="${map.step}" height="${map.step}" patternTransform="rotate(${map.rotate})" patternUnits="userSpaceOnUse">` +
-        wd.bands.map(b => `<line x1="${b.x.toFixed(2)}" y1="0" x2="${b.x.toFixed(2)}" y2="${map.step}" stroke="${b.colour}" stroke-width="${b.w.toFixed(2)}"/>`).join("") + "</pattern>");
-      hatches.push(`<path d="${wd.path}" fill="url(#${id})"/>`);
+    const edge = `<path d="${wd.path}" fill="none" stroke="${C.paper}" stroke-width="${n1(0.8 / s)}" stroke-linejoin="round"/>`;
+    if (!wd.bands) {
+      wards.push(`<path d="${wd.path}" fill="${wd.fill}" stroke="${C.paper}" stroke-width="${n1(0.8 / s)}" stroke-linejoin="round"/>`);
+      return;
     }
+    // A contested ward: the page's stripe tile, drawn as long parallel bands
+    // clipped to the ward, over a base in the widest band's colour. A pattern
+    // tile rotated off the axes leaves hairline seams in some rasterisers
+    // (resvg, at card scale), through which the base shows.
+    const nums = wd.path.match(/-?[\d.]+/g).map(Number);
+    const xs = nums.filter((_, k) => k % 2 === 0), ys = nums.filter((_, k) => k % 2 === 1);
+    const us = xs.map((px, k) => px * cs + ys[k] * sn), vs = xs.map((px, k) => ys[k] * cs - px * sn);
+    const u0 = Math.floor(Math.min(...us) / map.step) - 1, u1 = Math.ceil(Math.max(...us) / map.step) + 1;
+    const v0 = Math.min(...vs) - 10, v1 = Math.max(...vs) + 10;
+    const widest = wd.bands.reduce((a, b) => (b.w > a.w ? b : a));
+    const id = prefix + i;
+    defs.push(`<clipPath id="${id}"><path d="${wd.path}"/></clipPath>`);
+    let g = rect(Math.min(...xs) - 2, Math.min(...ys) - 2, Math.max(...xs) - Math.min(...xs) + 4, Math.max(...ys) - Math.min(...ys) + 4, widest.colour);
+    g += `<g transform="rotate(${map.rotate})">`;
+    for (let k = u0; k <= u1; k++) for (const b of wd.bands) if (b !== widest)
+      g += `<rect x="${n1(k * map.step + b.x - b.w / 2)}" y="${n1(v0)}" width="${b.w.toFixed(2)}" height="${n1(v1 - v0)}" fill="${b.colour}"/>`;
+    g += "</g>";
+    wards.push(`<g clip-path="url(#${id})">${g}</g>` + edge);
   });
   const g = `<g transform="translate(${n1(x)} ${n1(y)}) scale(${s.toFixed(4)})">` +
-    (defs.length ? `<defs>${defs.join("")}</defs>` : "") + fills.join("") + hatches.join("") + "</g>";
+    (defs.length ? `<defs>${defs.join("")}</defs>` : "") + wards.join("") + "</g>";
   return { svg: g + (north ? northMark(x + w, y, Math.max(14, Math.round(w / 34))) : ""), h };
 }
 export function mapOf(spec, geom, party) {

@@ -124,6 +124,22 @@ function moved(url, to) {
   });
 }
 
+// The forecast page's share image is named by its content (src/og_pages.py),
+// so an address a chat app kept from an earlier build no longer names a file.
+// It moves like the pages above: to the image /forecast names now (its
+// og:image), query kept. A name the assets serve, or a page that names none,
+// is left to the asset layer. Johannesburg hosts only. Returns [path, ""] like
+// a MOVED row, or undefined.
+const FORECAST_IMAGE = /^\/og-page\/forecast-[a-p]{12}\.png$/;
+async function staleForecastImage(url, env) {
+  if (!FORECAST_IMAGE.test(url.pathname)) return undefined;
+  if ((await env.ASSETS.fetch(new Request(url, { method: "HEAD" }))).status !== 404) return undefined;
+  const page = await env.ASSETS.fetch(new Request(new URL("/forecast", url)));
+  const m = page.ok ? /<meta property="og:image" content="([^"]+)"/.exec(await page.text()) : null;
+  const now = m ? new URL(m[1]).pathname : "";
+  return FORECAST_IMAGE.test(now) ? [now, ""] : undefined;
+}
+
 // Short path (lowercase, no slashes) -> channel name in the arrival log.
 const CHANNELS = new Map([
   ["go", "billboard"],
@@ -174,7 +190,7 @@ export default {
 
     if (isPreview(host)) {
       const channel = channelOf(path);
-      const to = movedTo(path);
+      const to = movedTo(path) ?? await staleForecastImage(url, env);
       const res = channel ? arrival(url, host, channel, env)
         : to ? moved(url, to)
           : (await shareRoute(request, url, host, env, ctx, { preview: true })) ?? await env.ASSETS.fetch(request);
@@ -205,6 +221,8 @@ export default {
       if (channel) return arrival(url, host, channel, env);
       const to = movedTo(path);
       if (to) return moved(url, to);
+      const stale = await staleForecastImage(url, env);
+      if (stale) return moved(url, stale);
       const shared = await shareRoute(request, url, host, env, ctx);
       if (shared) return shared;
     }

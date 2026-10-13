@@ -2121,23 +2121,6 @@
       "value": 0.050086
     },
     {
-      "display": "17%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "none",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": "17%",
-      "previous_published_at": "2026-10-11T13:01:25Z",
-      "previous_since": "2026-10-10T20:02:20Z",
-      "previous_value": 0.1748,
-      "since": "2026-10-10T20:02:20Z",
-      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
-      "token": "coal.ANC+EFF+PA+ALJAMAAH.majority",
-      "value": 0.1748
-    },
-    {
       "display": "13",
       "fmt": "int",
       "mode": "generated",
@@ -3258,23 +3241,6 @@
       "source": "seat_draws.csv, 5,000 simulations, among those where this combination wins",
       "token": "coal.DA+ASA+MK.survive.MK",
       "value": 0.088954
-    },
-    {
-      "display": "28%",
-      "fmt": "chance",
-      "mode": "generated",
-      "movement": "none",
-      "pages": [
-        "forecast.html"
-      ],
-      "previous": "28%",
-      "previous_published_at": "2026-10-11T13:01:25Z",
-      "previous_since": "2026-10-10T20:02:20Z",
-      "previous_value": 0.285,
-      "since": "2026-10-10T20:02:20Z",
-      "source": "seat_detail_draws.csv, 5,000 simulations, every party's seats",
-      "token": "coal.DA+ASA+PA+ACDP+IFP+VFPLUS.majority",
-      "value": 0.285
     },
     {
       "display": "16",
@@ -5206,8 +5172,7 @@
       "pages": [
         "claims.html",
         "nobody-will-win.html",
-        "claims/actionsa-soweto.html",
-        "forecast.html"
+        "claims/actionsa-soweto.html"
       ],
       "previous": "0.1%",
       "previous_published_at": "2026-10-11T13:01:25Z",
@@ -7835,9 +7800,9 @@
     "draws": 5000,
     "forecast_content_sha256": "c68c627d287e5e103ac0effbf1aaab9dbcffdb4d2945720ec43d771a9945efad",
     "forecast_summary_sha256": "97efecf5c70e0020412d801b20bce579c1f7e31e8f5bb8c3e0a8423106bc84bd",
-    "git_commit": "14fcae58d68e889b6fe92a651776a3ba91d8be6b",
+    "git_commit": "44a48c734605560c57066d67ce9018eb257c109a",
     "git_dirty": true,
-    "model_run_id": "r-c68c627d287e-14fcae58-dirty",
+    "model_run_id": "r-c68c627d287e-44a48c73-dirty",
     "pool_artefact_keys": {
       "pools_2011.json": {
         "cities_sha": "68080ceed71cbe08",
@@ -8022,7 +7987,6 @@
         "coal.ANC+EFF+MK.survive.ANC",
         "coal.ANC+EFF+MK.survive.EFF",
         "coal.ANC+EFF+MK.survive.MK",
-        "coal.ANC+EFF+PA+ALJAMAAH.majority",
         "coal.ANC+EFF+PA+MK.cushion_when_wins",
         "coal.ANC+EFF+PA+MK.majority",
         "coal.ANC+EFF+PA+MK.seats_when_wins",
@@ -8089,7 +8053,6 @@
         "coal.DA+ASA+MK.survive.ASA",
         "coal.DA+ASA+MK.survive.DA",
         "coal.DA+ASA+MK.survive.MK",
-        "coal.DA+ASA+PA+ACDP+IFP+VFPLUS.majority",
         "coal.DA+ASA+PA+MK.cushion_when_wins",
         "coal.DA+ASA+PA+MK.majority",
         "coal.DA+ASA+PA+MK.seats_when_wins",
@@ -8354,7 +8317,7 @@
         "val_tshwane_wrong"
       ]
     },
-    "n": 451,
+    "n": 449,
     "n_rounding": 0,
     "n_visible": 0,
     "nominal": []

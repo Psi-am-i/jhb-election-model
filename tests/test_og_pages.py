@@ -173,22 +173,18 @@ def test_every_designed_page_has_its_own_image_and_every_image_a_page():
 
 def _rebuild_specs(out: Path) -> list[dict]:
     """The specs, rebuilt from the BUILT pages: the pool is every token span the
-    pages carry (the string each printed), plus the forecast card's coalition
-    tokens no page prints, computed as og_pages.figure_pool computes them."""
+    pages carry (the string each printed), as og_pages.figure_pool takes them."""
     import build_make
     import build_site
     import build_your_forecast as yf
     import cityconfig
-    import stats
     cityconfig.use(None)
     pages = expected_pages()
     records = []
     for p in pages:
         for tok, disp in re.findall(r'data-token="([^"]+)"[^>]*>([^<]*)<', (out / p).read_text(encoding="utf-8")):
             records.append({"token": tok, "display": htmllib.unescape(disp)})
-    reg = stats.load_registry(ROOT / "content/joburg/stats.toml")
-    ctx = stats.load_context(ROOT / "data/processed")
-    pool, _records = og_pages.figure_pool(records, reg, ctx)
+    pool, _records = og_pages.figure_pool(records)
     el = build_make.election_of(cityconfig.active())
     yfd = json.loads((out / yf.YF_DIR / build_make.DATA).read_text(encoding="utf-8"))
     arts = build_site.article_meta()
@@ -201,8 +197,7 @@ def _rebuild_specs(out: Path) -> list[dict]:
         page = (out / p).read_text(encoding="utf-8")
         layout = og_pages.designed(p, arts)[1]
         if layout == "forecast":
-            s = og_pages.forecast_spec(page, pool, election=el, headline=build_site.OG_TITLE,
-                                       wards=len(yfd["geometry"]["wards"]))
+            s = og_pages.forecast_spec(pool, yfd=yfd, out=out, election=el, headline=build_site.OG_TITLE)
         elif layout == "claims":
             s = og_pages.claims_spec(page, claims, headline=build_site.ARTEFACTS["claims.html"][2])
         elif layout == "article":
@@ -228,9 +223,7 @@ def expected_figures(spec: dict, forecast_html: str) -> set[str]:
     declarations, not from the spec: the population the comparison covers."""
     import seat_table  # noqa: F401
     if spec["layout"] == "forecast":
-        return ({t for _c, t in og_pages.FORECAST_LARGEST} | {og_pages.FORECAST_ALONE}
-                | {og_pages.coalition_token(g) for g in og_pages.FORECAST_COALITIONS}
-                | {"generated_date", "council_size"})
+        return {t for _c, t in og_pages.FORECAST_LARGEST} | {"generated_date", "council_size"}
     if spec["layout"] == "interactive":
         return {"council_size"}
     if spec["layout"] in ("claims", "claim"):
@@ -284,11 +277,12 @@ def test_every_figure_in_an_image_is_a_figure_a_page_printed():
     assert compared == denominator and n_fc <= denominator <= n_fc + 22 * (len(specs) - 1), (compared, denominator)
     # it can see: the forecast image drawing a different figure from the one
     # the page printed is caught, and the detector is quiet when it is reverted
-    keep = fc["rows"][0]["value"]
-    fc["rows"][0]["value"] = "99.9%"
+    # (the card draws the compute result's text, so the carried figure and the drawn one are compared)
+    keep = fc["result"]["largest"]["ANC"]["text"]
+    fc["result"]["largest"]["ANC"]["text"] = "99.9%"
     got, _c, _d = figure_faults(specs, pool, out)
-    assert any("these figures draw" in f for f in got), got
-    fc["rows"][0]["value"] = keep
+    assert any("these figures draw" in f or "is not drawn" in f for f in got), got
+    fc["result"]["largest"]["ANC"]["text"] = keep
     # a carried figure that is not the page's and is not drawn
     tok = next(iter(fc["figures"]))
     keep = fc["figures"][tok]["display"]
@@ -358,26 +352,38 @@ def test_the_renderer_types_no_figure_list():
     assert block.search(src + "\nconst SEATS = [66, 66, 27];\n")
 
 
-def test_the_forecast_map_must_be_cut_out_whole():
-    """forecast_spec refuses a map with a ward outline fewer than the geometry's."""
-    page = ('<svg viewBox="0 0 10 10"><defs><pattern id="p"><line x1="1" stroke="#000000" stroke-width="1"/>'
-            '</pattern></defs><path d="M0 0L1 1Z" fill="#111111"/><path d="M2 2L3 3Z" fill="url(#p)"/></svg>')
-    assert og_pages.ward_shapes(og_pages.map_paths(page)) == 2
-    pool = {og_pages.coalition_token(g): "1%" for g in og_pages.FORECAST_COALITIONS}
-    pool.update({t: "1%" for _c, t in og_pages.FORECAST_LARGEST})
-    pool.update({og_pages.FORECAST_ALONE: "1%", "generated_date": "1 October 2026", "council_size": "270"})
+def test_the_forecast_image_is_the_one_card_with_the_forecasts_own_figures_and_date():
+    """/forecast's share image is the card the share sheet draws (play-card.js):
+    the whysoserious.city logo, "forecast, <date>", no "Shared by" and no "Made"
+    line, "Make your own prediction at ..." in the foot; its chances are the
+    page's and its date is forecast.json's. forecast_spec refuses a page that
+    prints another chance or date."""
+    import build_make
+    out = built()
+    specs, pool = _rebuild_specs(out)
+    spec = next(s for s in specs if s["layout"] == "forecast")
+    d = json.loads(_node(_DRAWN, [spec]))[0]["svg"]
+    yfd = json.loads((out / "your-forecast" / build_make.DATA).read_text(encoding="utf-8"))
+    flat = " ".join(htmllib.unescape(t) for t in re.findall(r"<text\b[^>]*>([^<]*)</text>", d))
+    date = og_pages._long(yfd["forecast_date"])
+    assert f"forecast, {date}" in flat and date == pool["generated_date"]
+    assert 'viewBox="0 0 1969 1002"' in d, "the whysoserious.city logo is not on the card"
+    assert "Make your own prediction at joburg.whysoserious.city/your-forecast." in flat
+    assert not re.search(r"shared by|try your own|made \d", flat, re.I), flat
+    # the chances printed are the page's tokens, and the council the page's size
+    for code, tok in og_pages.FORECAST_LARGEST:
+        assert f"{pool[tok]} chance it's the" in flat, (code, pool[tok])
+    assert f"{pool['council_size']} seats" in flat
+    # it can see: a page printing another chance, or another date, is refused
     el = {"city": "Johannesburg", "date": "2026-11-04"}
-    og_pages.forecast_spec(page, pool, election=el, wards=2, headline="H")
-    try:
-        og_pages.forecast_spec(page, pool, election=el, wards=3, headline="H")
-    except SystemExit as e:
-        assert "ward outlines" in str(e)
-    else:
-        raise AssertionError("a map short of a ward was accepted")
-
-
-# ---------------------------------------------------------------------------
-# 3. the name moves with the content
+    kw = dict(yfd=yfd, out=out, election=el, headline="H")
+    og_pages.forecast_spec(pool, **kw)
+    for bad in ({**pool, "p_anc_largest": "1%"}, {**pool, "generated_date": "1 January 2026"}, {**pool, "council_size": "1"}):
+        try:
+            og_pages.forecast_spec(bad, **kw)
+        except og_pages.OgError:
+            continue
+        raise AssertionError("forecast_spec took a figure the card does not draw")
 
 
 def _toy() -> dict:

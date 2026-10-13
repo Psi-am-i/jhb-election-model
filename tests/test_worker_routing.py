@@ -949,6 +949,39 @@ def test_an_earlier_card_version_answers_301_to_the_current_one():
     assert runs[-1]["status"] != 301 and not runs[-1]["seatCalls"]
 
 
+def test_an_old_forecast_image_address_answers_301_to_the_one_the_page_names():
+    """The forecast page's share image is named by its content, so an address
+    a chat app kept from an earlier build names no file. It answers 301 to the
+    image /forecast names now (its og:image), query kept; the current name is
+    served; another image's missing name is left to the asset layer; a page
+    that names no image leaves the 404 alone."""
+    with tempfile.TemporaryDirectory() as t:
+        page, png, bare = Path(t, "forecast"), Path(t, "now.png"), Path(t, "bare")
+        page.write_text('<head><meta property="og:image" content="https://joburg.whysoserious.city/'
+                        'og-page/forecast-bbbbbbbbbbbb.png"></head>', encoding="utf-8")
+        png.write_bytes(b"png")
+        bare.write_text("<head></head>", encoding="utf-8")
+        files = {"/forecast": page, "/og-page/forecast-bbbbbbbbbbbb.png": png}
+        old, cur = "/og-page/forecast-aaaaaaaaaaaa.png", "/og-page/forecast-bbbbbbbbbbbb.png"
+        cases = [{"url": f"https://{JOBURG}{old}?x=1", "env": {}},
+                 {"url": f"https://{JOBURG}{cur}", "env": {}},
+                 {"url": f"https://{JOBURG}/og-page/claim-aaaaaaaaaaaa.png", "env": {}},
+                 {"url": f"https://{PREVIEW_HOSTS[0]}{old}", "env": {}}]
+        runs = run_worker(source(), cases, files)
+        h = [dict(r["headers"]) for r in runs]
+        assert runs[0]["status"] == 301 and h[0]["location"] == f"https://{JOBURG}{cur}?x=1", (runs[0]["status"], h[0])
+        assert runs[1]["status"] == 200 and not h[1].get("location")
+        assert runs[2]["status"] == 404
+        assert runs[3]["status"] == 301 and h[3]["location"] == f"https://{PREVIEW_HOSTS[0]}{cur}"
+        assert h[3].get("x-robots-tag") == NOINDEX and not runs[0]["error"]
+        # it can see: a page that names no image leaves the missing address a 404
+        runs = run_worker(source(), cases[:1], {"/forecast": bare})
+        assert runs[0]["status"] == 404, runs[0]["status"]
+        # and the redirect is the Worker's, not the asset layer's
+        base = run_worker(baseline_source(), cases[:1], files)
+        assert base[0]["status"] == 404
+
+
 def test_the_image_asks_the_seat_worker_and_falls_back_to_the_generic_image():
     """No binding, a failing seat Worker, an incomplete answer and an
     unreadable link each answer 302 to /og.png, never an error. The seat

@@ -13,8 +13,7 @@
 //    2026-10-06) is drawn from the compute result the page shows: each
 //    party's row carries that party's middle seat count and no range (review
 //    2026-10-02), every other digit comes from the result's totals, its
-//    largest-party shares, its ward count, the election day, the date the
-//    card was made or the reader's name (drawn as text, never markup), every
+//    largest-party shares, its ward count, the election day, the forecast's date or the reader's name (drawn as text, never markup), every
 //    ward is drawn in the result's colour, the parties are in the page's
 //    order, and a figure typed into the card, or a result the card ignored,
 //    is caught (and the check goes quiet again).
@@ -38,7 +37,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as PS from "../js/play-state.js";
 import * as SC from "../js/share-card.js";
-import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, madeLine, forecastTitle, forecastWords, FORECAST_NAME, dayText, largestLine,
+import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, INVITE, forecastTitle, forecastWords, FORECAST_NAME, dayText, largestLine,
          rangeText, councilLine, chamberOf, UNCALLED_COLOUR, section1Share, NO_HANDOFF, PUBLISHED_STAMP, CHAMBER_NOTE, STORY_TEXT_BOTTOM, SIZES, SITE } from "../js/play-card.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -113,7 +112,6 @@ const WSC = SC.brandOf(readFileSync(resolve(here, "../../src/brand/whysoseriousc
 const ASSETS = { logos: {}, brand: BRAND, wsc: WSC };
 const FDATE = "2026-09-29";
 
-const MADE = "2026-10-01";
 const WHEN = "4 November 2026";
 // Constructed boundaries, one square per ward the result carries: the card's
 // map is checked against the result, not against a file on this machine.
@@ -121,7 +119,7 @@ const geometryFor = r => ({ W: 100, H: 50, step: 7, rotate: 45, places: [],
   paths: Object.fromEntries(r.wards.map((w, i) => [w.ward, `M${i} 0L${i + 1} 0L${i + 1} 1Z`])) });
 const card = (c, extra = {}) => {
   const r = extra.r ?? c.result;
-  return { r, party, made: MADE, forecastDate: FDATE, when: WHEN, geometry: geometryFor(r), assets: ASSETS, ...extra };
+  return { r, party, forecastDate: FDATE, when: WHEN, geometry: geometryFor(r), assets: ASSETS, ...extra };
 };
 
 // The digit runs the card may print outside the seat rows: the result's
@@ -132,7 +130,7 @@ function allowed(info) {
   const out = new Set();
   const add = x => runs(String(x)).forEach(d => out.add(d));
   add(councilLine(info)); add(largestLine(info.r, party)); add(info.r.wards.length);
-  add(madeLine(MADE)); add(WHEN); add(dayText(FDATE));
+  add(WHEN); add(dayText(FDATE));
   return out;
 }
 // What the card prints that it should not: a row whose figure is not that
@@ -160,7 +158,7 @@ function typed(svg, info) {
 function mapOf(svg, geometry) {
   const m = /<g transform="translate\(([\d.]+) ([\d.]+)\) scale\(([\d.]+)\)">([\s\S]*?)<\/g>/.exec(svg);
   if (!m) return null;
-  return { x: +m[1], y: +m[2], w: geometry.W * m[3], h: geometry.H * m[3], paths: (m[4].match(/<path d="M/g) || []).length };
+  return { x: +m[1], y: +m[2], w: geometry.W * m[3], h: geometry.H * m[3], paths: (svg.match(/<path d="M\d+ 0L/g) || []).length };   // the constructed ward squares: a contested ward is drawn twice (its clip and its edge)
 }
 const baselines = svg => [...svg.matchAll(/<text x="[\d.-]+" y="([\d.-]+)"/g)].map(m => +m[1]);
 
@@ -187,6 +185,11 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       assert.ok(svg.includes(`viewBox="${WSC.viewBox}"`), `${c.name} ${size}: the whysoserious.city logo`);
       assert.ok(!svg.includes(`viewBox="${BRAND.viewBox}"`), `${c.name} ${size}: the Johannesburg lockup`);
       assert.ok(all.includes(PUBLISHED_STAMP), `${c.name} ${size}: stamp`);
+      // the foot invites a prediction, and the forecast's date is the card's one date
+      assert.equal(INVITE, "Make your own prediction at joburg.whysoserious.city/your-forecast");
+      assert.ok(all.includes(INVITE + "."), `${c.name} ${size}: the invitation`);
+      assert.ok(!/try your own|made \d/i.test(all), `${c.name} ${size}: a stale foot`);
+      assert.equal(all.match(/\b\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b/g).filter(d => d !== WHEN).join("|"), dayText(FDATE), `${c.name} ${size}: one date besides polling day`);
       assert.ok(!/election forecast/i.test(all), `${c.name} ${size}`);
       // the largest-party line, ties apart, in the result's own text
       assert.ok(all.includes(largestLine(info.r, party)), `${c.name} ${size}: largest`);
@@ -195,7 +198,7 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       // its stripes where contested
       const map = mapOf(svg, info.geometry);
       for (const w of info.r.wards.slice(0, 20)) assert.ok(svg.includes(`fill="${w.fill}"`), w.ward);
-      assert.equal(map.paths, info.r.wards.length + info.r.wards.filter(w => w.bands).length, `${c.name} ${size}: one fill and one stripe layer per ward`);
+      assert.equal(map.paths, info.r.wards.length + info.r.wards.filter(w => w.bands).length, `${c.name} ${size}: a contested ward is clipped and edged, the others filled`);
       // the council graphic is on every card
       assert.ok(all.includes(info.r.majority + " for a majority"), `${c.name} ${size}: the council graphic's majority`);
       // nothing runs off the card, and the story stays clear of the apps' lower chrome
@@ -268,8 +271,7 @@ test("a withheld figure is printed as withheld; a refusal, no date or no map dra
   info.r.seats[top].median = { ...info.r.seats[top].median, withheld: true };
   assert.ok(textOf(buildPlayCardSVG(info)).includes("withheld"));
   assert.throws(() => buildPlayCardSVG({ ...info, r: { refused: "too few" } }));
-  assert.throws(() => buildPlayCardSVG({ ...info, made: undefined }));
-  assert.throws(() => buildPlayCardSVG({ ...info, geometry: null }));
+    assert.throws(() => buildPlayCardSVG({ ...info, geometry: null }));
 });
 
 test("the council graphic is the table's middles, the rest grey; middles past the council are refused", () => {

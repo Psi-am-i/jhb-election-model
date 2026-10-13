@@ -852,11 +852,10 @@ def claim_pages(html: str, claims: list[dict]) -> list[tuple[str, dict, str]]:
 
 
 def share_images(held: list[tuple[str, str, str, str]], out: Path, published: list[dict],
-                 registry: dict, ctx: dict, articles: dict[str, dict]) -> dict[str, tuple[str, str]]:
+                 articles: dict[str, dict]) -> dict[str, tuple[str, str]]:
     """Draw the share image of every page in ``held`` (``(output, slug,
     layout, rendered html)``) into ``<out>/og-page/``: ``{slug: (file name,
-    alt text)}``. Every figure is one a page printed (``published``), or a
-    forecast-card coalition no page prints, rendered as a generated token.
+    alt text)}``. Every figure is one a page printed (``published``).
     Every figure an image prints is appended to ``published`` under the page
     that carries the image, so it is ledgered like the page's own. Refuses on
     any failure (``og_pages``)."""
@@ -867,7 +866,7 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
     import tomllib
     city = cityconfig.active()
     election = build_make.election_of(city)
-    pool, records = og_pages.figure_pool(published, registry, ctx)
+    pool, records = og_pages.figure_pool(published)
     pages = {output: html for output, _s, _l, html in held}
     forecast_html = pages.get("forecast.html")
     yf_data = None
@@ -879,8 +878,7 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
             if yf_data is None:
                 raise SystemExit("the forecast share image needs the ward count from "
                                  f"{yf.YF_DIR}/{build_make.DATA}, which this build did not write")
-            spec = og_pages.forecast_spec(html, pool, election=election, headline=OG_TITLE,
-                                          wards=len(yf_data["geometry"]["wards"]))
+            spec = og_pages.forecast_spec(pool, yfd=yf_data, out=out, election=election, headline=OG_TITLE)
         elif layout == "claims":
             claims = tomllib.loads((REPO_ROOT / "content" / city.slug / "claims.toml")
                                    .read_text(encoding="utf-8"))["claim"]
@@ -1514,7 +1512,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         held_pages = held
     if held_pages:
-        images = share_images(held_pages, args.out, published, registry, ctx, articles)
+        images = share_images(held_pages, args.out, published, articles)
         for output, slug, _layout, html in held_pages:
             filename, alt = images[slug]
             html = og_pages.fill(html, SITE_URL, slug, filename, alt)

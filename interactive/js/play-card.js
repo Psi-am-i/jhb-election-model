@@ -46,7 +46,7 @@ import { compose } from "./yf-url.js";
 // The two sizes section 1 shares (share-card.js's third is the return card).
 export const SIZES = { link: CARD_SIZES.link, story: CARD_SIZES.story };
 export { SITE, STORY_TEXT_BOTTOM };
-export const INVITE = "Try your own at " + SITE + "/your-forecast";
+export const INVITE = "Make your own prediction at " + SITE + "/your-forecast";
 export const PUBLISHED_STAMP = "The model's published forecast.";
 export const HOW = "Wards in the colour of their most likely winner, striped where contested.";
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
@@ -102,11 +102,10 @@ export function settingsWords(st, ctx) {
   return out;
 }
 
-// When the card was made: a card outlives the forecast it was drawn from
-// (critic S1). `made` is the date the page passes in, ISO 8601, printed as
-// the pages print dates ("2 October 2026"). The model version stays in the
-// link (`mv`), not on the image: it is an internal identifier (review
-// 2026-10-02).
+// The one date on the model's card is the forecast's own (owner, 2026-10-13:
+// no "Made <today>"), printed as the pages print dates ("2 October 2026"). The
+// model version stays in the link (`mv`), not on the image: it is an internal
+// identifier (review 2026-10-02).
 const MONTHS = "January February March April May June July August September October November December".split(" ");
 // A date as the pages print it, from YYYY-MM-DD: "2 October 2026".
 export function dayText(iso, what = "the date") {
@@ -114,7 +113,6 @@ export function dayText(iso, what = "the date") {
   const [y, m, d] = iso.split("-").map(Number);
   return d + " " + MONTHS[m - 1] + " " + y;
 }
-export const madeLine = made => "Made " + dayText(made, "the date it was made");
 
 // The model's card headline, after the logo: "forecast, 29 September 2026"
 // (`date` is forecast.json's forecast_date), and its words without the logo,
@@ -149,10 +147,11 @@ export function councilLine({ r, when }) {
     " seats, " + seatText({ value: r.majority }) + " for a majority";
 }
 
-// The foot under the card: whose figures these are, how the map reads, where
-// to try one's own, and when the card was made.
-export function footText({ made }) {
-  return PUBLISHED_STAMP + " " + HOW + " " + INVITE + ". " + madeLine(made) + ".";
+// The foot under the card: whose figures these are, how the map reads, and
+// where to make one's own prediction. No date: the headline carries the
+// forecast's.
+export function footText() {
+  return PUBLISHED_STAMP + " " + HOW + " " + INVITE + ".";
 }
 
 // The council graphic of the model's card, as share-card.js's council
@@ -178,12 +177,12 @@ export function chamberOf(r, party, { council, majority }) {
 }
 
 // The model's card for one result: the untouched page's. `r` is the compute
-// result the page shows; `party(code)` -> {name, colour, logo}; `made` the
-// date it was made; `forecastDate` the forecast's own date (forecast.json); `geometry` the ward
+// result the page shows; `party(code)` -> {name, colour, logo};
+// `forecastDate` the forecast's own date (forecast.json); `geometry` the ward
 // boundaries with the stripe tile (`step`, `rotate`); `when` the election day
 // in words. Every card carries the council graphic (owner, 2026-10-06),
 // drawn from the result's own middles (chamberOf).
-export function playCardSpec({ r, party, made, forecastDate, geometry, when, touched = false }) {
+export function playCardSpec({ r, party, forecastDate, geometry, when, touched = false }) {
   if (touched) throw new Error("a moved setting is shared as the reader's forecast, not on the model's card");
   if (!r || r.refused) throw new Error("the card needs a computed result, not a refusal");
   if (!geometry) throw new Error("the card needs the ward boundaries");
@@ -203,7 +202,7 @@ export function playCardSpec({ r, party, made, forecastDate, geometry, when, tou
     mapNote: r.wards.length + " " + MAP_NOTE,
     chamber: chamberOf(r, party, r), chamberNote: CHAMBER_NOTE,
     rows, rowsNote: BARS_NOTE,
-    foot: [footText({ made })],
+    foot: [footText()],
   };
 }
 // The card at `size` ("link" or "story"); `assets` as share-card.js takes
@@ -211,11 +210,11 @@ export function playCardSpec({ r, party, made, forecastDate, geometry, when, tou
 export const buildPlayCardSVG = info => modelCardSVG(playCardSpec(info), info.assets || {}, info.size || "link");
 
 // The image's text alternative: the same figures, in the same order.
-export function playCardAlt({ r, party, made, forecastDate, when }) {
+export function playCardAlt({ r, party, forecastDate, when }) {
   const codes = [...order(r, c => party(c).name), "OTHERS"];
   const seats = codes.map(c => (c === "OTHERS" ? "Others" : party(c).name) + " " + seatText(r.seats[c].median));
   return forecastWords(forecastDate) + ". " + councilLine({ r, when }) + ". " +
-    largestLine(r, party) + " Middle seats: " + seats.join(", ") + ". " + CHAMBER_NOTE + " " + footText({ made });
+    largestLine(r, party) + " Middle seats: " + seats.join(", ") + ". " + CHAMBER_NOTE + " " + footText();
 }
 
 // ---------- what section 1's share sheet seals and links ----------

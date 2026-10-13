@@ -443,7 +443,7 @@ def coalition_majority(members: list[str], ctx: dict):
     (``scenarios.all_party_seats``, the one definition of the whole council:
     ``seat_draws.csv`` keeps only the largest parties, so a coalition with a
     small partner summed over its columns would drop that partner's seats).
-    The forecast share image's coalitions (``og_pages.coalition_figure``).
+    Its caller, until 2026-10-13, was the forecast share image's coalitions.
     None without draws or a processed directory. Refuses an empty or repeated
     member list, and a party the run's seat file does not name. That file
     holds rows only for parties with seats, so a party that wins no seat in

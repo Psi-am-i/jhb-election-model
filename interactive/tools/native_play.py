@@ -3,6 +3,8 @@
     .venv/bin/python interactive/tools/native_play.py            print the cases
     .venv/bin/python interactive/tools/native_play.py --write     store them in
                                                                   tests/native-play.json
+    .venv/bin/python interactive/tools/native_play.py --result NAME  one case's compute
+                                                                  result, as JSON
     .venv/bin/python interactive/tools/native_play.py --measure   the src/ modules
                                                                   page.py imports and
                                                                   the files it opens
@@ -152,7 +154,21 @@ def measure() -> dict:
     return {"modules": mods, "opened": sorted(opened - own)}
 
 
+def result(name: str = "untouched") -> dict:
+    """``compute`` for the settings of the case ``name``, as the page's Python
+    gives it. The share image of /forecast is drawn from the "untouched" case:
+    the published forecast (src/og_pages.py forecast_spec)."""
+    ns = _page(SERVED, SERVED)
+    for c in run(ns):
+        if c["name"] == name:
+            return c["result"]
+    raise SystemExit(f"native_play: no case {name!r} in {SETTINGS.relative_to(REPO)}")
+
+
 def main(argv: list[str]) -> int:
+    if "--result" in argv:
+        sys.stdout.write(json.dumps(result(argv[argv.index("--result") + 1])))
+        return 0
     if "--measure" in argv:
         print(json.dumps(measure()))
         return 0

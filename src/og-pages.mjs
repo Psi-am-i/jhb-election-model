@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import { toPNG } from "./og-raster-node.mjs";
 import { FACES } from "../interactive/tools/card_fonts.mjs";
 import * as SC from "../interactive/js/share-card.js";
+import { buildPlayCardSVG } from "../interactive/js/play-card.js";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { C, text, rect, brand, chip, brandWidth, stampOf, stampSVG, textWidth, fitText, wrapText } = SC;
@@ -192,82 +193,20 @@ function article(spec) {
   return s + "</svg>";
 }
 
-// ---------- /forecast: the headline and the figures left, the striped map right ----------
-// The page's map, its contested wards' stripes drawn as geometry. The page
-// fills each contested ward twice: a solid grey base, then a pattern of
-// parallel stripes (one direction, rotate(45), 7-unit tile). resvg renders a
-// rotated pattern tile by tile, and at card scale the tile edges leave
-// hairline seams through which the base shows. Here each contested ward is
-// clipped to itself and filled with long parallel bands in the pattern's
-// colours and widths, over a base in its widest band's colour.
-const STRIPE_STEP = 7;
-function stripedMap(svgText) {
-  const pats = {};
-  for (const [, id, body] of svgText.matchAll(/<pattern id="([^"]+)"[^>]*>([\s\S]*?)<\/pattern>/g))
-    pats[id] = [...body.matchAll(/x1="([\d.]+)"[^>]*stroke="(#[0-9A-Fa-f]{6})" stroke-width="([\d.]+)"/g)].map(([, x, c, w]) => ({ x: +x, c, w: +w }));
-  const k45 = Math.SQRT1_2;
-  let out = "", defs = "", n = 0;
-  const overlaid = new Set([...svgText.matchAll(/<path d="([^"]+)" fill="url\(/g)].map(m => m[1]));
-  for (const p of svgText.match(/<path [^>]*>/g)) {
-    const d = /d="([^"]+)"/.exec(p)[1];
-    const fill = /fill="([^"]+)"/.exec(p)[1];
-    const pm = /url\(#([^)]+)\)/.exec(fill);
-    if (!pm) {
-      if (overlaid.has(d)) continue;                 // the base under a stripe overlay
-      out += `<path d="${d}" fill="${fill}" stroke="${C.paper}" stroke-width="0.8" stroke-linejoin="round"/>`;
-      continue;
-    }
-    const bands = pats[pm[1]];
-    if (!bands || !bands.length) throw new Error("a striped ward's pattern " + pm[1] + " has no stripes");
-    const nums = d.match(/-?[\d.]+/g).map(Number);
-    const xs = nums.filter((_, i) => i % 2 === 0), ys = nums.filter((_, i) => i % 2 === 1);
-    const us = xs.map((x, i) => (x + ys[i]) * k45), vs = xs.map((x, i) => (ys[i] - x) * k45);
-    const u0 = Math.floor(Math.min(...us) / STRIPE_STEP) - 1, u1 = Math.ceil(Math.max(...us) / STRIPE_STEP) + 1;
-    const v0 = Math.min(...vs) - 10, v1 = Math.max(...vs) + 10;
-    const widest = bands.reduce((a, b) => (b.w > a.w ? b : a));
-    const id = "cw" + n++;
-    defs += `<clipPath id="${id}"><path d="${d}"/></clipPath>`;
-    let g = rect(Math.min(...xs) - 2, Math.min(...ys) - 2, Math.max(...xs) - Math.min(...xs) + 4, Math.max(...ys) - Math.min(...ys) + 4, widest.c);
-    g += `<g transform="rotate(45)">`;
-    for (let k = u0; k <= u1; k++) for (const b of bands) if (b !== widest)
-      g += `<rect x="${n1(k * STRIPE_STEP + b.x - b.w / 2)}" y="${n1(v0)}" width="${b.w.toFixed(2)}" height="${n1(v1 - v0)}" fill="${b.c}"/>`;
-    g += "</g>";
-    out += `<g clip-path="url(#${id})">${g}</g><path d="${d}" fill="none" stroke="${C.paper}" stroke-width="0.8" stroke-linejoin="round"/>`;
-  }
-  return `<defs>${defs}</defs>` + out;
-}
-const FC_HEAD = { big: 64, least: 44, lines: 2 };
-const FC = { left: 600, gapHead: 58, head: 24, row: 30, alone: 26, coal: 26, pitch: 36, coalPitch: 35, mapH: 330 };
-const KEY = { w: 34, h: 22, bands: 5 };
+// ---------- /forecast: our forecast's one card ----------
+// The card the share sheet of /your-forecast/ draws in the browser (owner,
+// 2026-10-13: one card for our forecast, one code path): play-card.js's
+// buildPlayCardSVG, over the compute result for the published settings, which
+// og_pages.forecast_spec takes from page.py run natively. Nothing is drawn
+// here: the logo, the title "forecast, <date>", the figures and the foot are
+// play-card.js's and share-card.js's.
+const WORDMARK = SC.brandOf(readFileSync(resolve(REPO, "src/brand/whysoseriouscity.svg"), "utf8"));
 function forecast(spec) {
-  let s = frame(spec);
-  const h = headline(spec.headline, HEAD_MAX, FC_HEAD.big, FC_HEAD.least, FC_HEAD.lines);
-  s += h.svg;
-  const LW = FC.left - X;
-  const row = (y, label, value, fs) => text(X, y, fitText(label, LW - textWidth(value, fs, "sansSemi") - 16, fs, "sans", fs * 0.75).text, fs, "sans", { fill: C.ink2 }) +
-    text(X + LW, y, value, fs, "sansSemi", { anchor: "end" });
-  let y = h.last + FC.gapHead;
-  s += text(X, y, spec.most_seats, FC.head, "sans", { fill: C.ink3 });
-  for (const r of spec.rows) { y += FC.pitch; s += row(y, r.label, r.value, FC.row); }
-  y += FC.pitch + 6;
-  s += row(y, spec.alone.label, spec.alone.value, FC.alone);
-  y += FC.pitch + 8;
-  s += text(X, y, spec.coalitions_head, FC.head, "sans", { fill: C.ink3 });
-  for (const c of spec.coalitions) { y += FC.coalPitch; s += row(y, c.label, c.value, FC.coal); }
-  if (y > FOOT - 8) throw new Error("the forecast card's figures run into its foot");
-  // the map under the logo, its key under it: stripes in the card's inks
-  const vb = /viewBox="([^"]+)"/.exec(spec.map_svg)[1];
-  const [, , vw, vh] = vb.split(/\s+/).map(Number);
-  const inner = stripedMap(spec.map_svg);
-  const mh = FC.mapH, mw = mh * vw / vh, mx = R + 10 - mw;
-  s += `<svg x="${n1(mx)}" y="${TOP + LOGO_H + 6}" width="${n1(mw)}" height="${n1(mh)}" viewBox="${vb}">${inner}</svg>`;
-  const ky = FOOT - 34, kx = FC.left + 100;
-  let key = "";
-  for (let k = 0; k < KEY.bands; k++) key += rect(kx + KEY.w / 2 + (k - (KEY.bands - 1) / 2) * 2 * 3.5 - 1.6, ky - 30, 3.2, 82, C.ink3);
-  s += `<defs><clipPath id="key"><rect x="${kx}" y="${ky}" width="${KEY.w}" height="${KEY.h}" rx="3"/></clipPath></defs><g clip-path="url(#key)">` +
-    rect(kx, ky, KEY.w, KEY.h, C.ink2) + `<g transform="rotate(45 ${kx + KEY.w / 2} ${ky + KEY.h / 2})">` + key + "</g></g>";
-  s += text(kx + KEY.w + 12, ky + 18, spec.key_label, 20, "sans", { fill: C.ink2 });
-  return s + "</svg>";
+  const logos = {};
+  for (const [code, file] of Object.entries(spec.logos)) logos[code] = logoOf(file);
+  const party = c => spec.roster[c];
+  return buildPlayCardSVG({ r: spec.result, party, forecastDate: spec.forecast_date, geometry: spec.geometry, when: spec.when,
+    size: "link", assets: { logos, wsc: WORDMARK } });
 }
 
 // ---------- /your-forecast/: our prediction's map, its seal large over the

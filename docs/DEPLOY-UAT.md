@@ -371,6 +371,27 @@ a sealed card's image is cached for a year as immutable (see above).
 **Rollback.** Roll the site Worker back first, then `joburg-seats`. Either
 alone leaves a mismatched pair, which falls back to `/og.png` as above.
 
+## Releasing our forecast's one card (2026-10-13)
+
+`/forecast`'s share image is now the card the share sheet of `/your-forecast/`
+draws (`play-card.js`, through `src/og-pages.mjs`): the whysoserious.city
+logo, "forecast, <date>", no name. No seat Worker change, so no ordering
+against `joburg-seats`.
+
+- **Old image addresses.** The image's name is a hash of its content, so the
+  address a chat app kept names no file after the deploy. `src/worker.js`
+  answers `/og-page/forecast-<12 letters>.png` that the assets do not hold with
+  301 to the image `/forecast` names in its `og:image`
+  (`staleForecastImage`; `tests/test_worker_routing.py`).
+- **Two ledger tokens retire.** The old card printed four coalitions; two of
+  them (`coal.ANC+EFF+PA+ALJAMAAH.majority`,
+  `coal.DA+ASA+PA+ACDP+IFP+VFPLUS.majority`) appeared on no page, only on the
+  image, and are in the real ledger. `build_site.py` refuses until each is
+  retired, which is the owner's step before `--publish`:
+  `publication.retire('joburg', '<token>', reason=..., change_class='mechanism')`.
+  A UAT build is made against a scratch copy of `publications/`
+  (`--ledger-root`) with the two retired there; the real ledger is untouched.
+
 ## Entries at launch
 
 Every seal the live Worker makes is stored as an entry in the D1 database
