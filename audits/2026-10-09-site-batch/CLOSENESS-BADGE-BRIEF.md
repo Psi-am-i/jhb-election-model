@@ -130,3 +130,44 @@ overall closeness as a number.
   and wild.
 
 Promotion to live is the owner's alone, as is any live `joburg-seats` deploy.
+
+## Amendment (owner, 2026-10-13, after seeing UAT)
+"on the main site page, make badge much bigger. Twice the size. Leave 'how
+likely is your prediction' and council outcome. Remove the how close this is
+to our prediction (which means nothing to a reader)." Then: "otherwise I say
+leave it for now. It seems ok. go live." And: "we made a distinction between
+the forecast which has bands of probability and a prediction which does not.
+You are mixing them together."
+
+1. **Your-forecast analysis:**
+   - The badge is drawn at twice its current size. The "how likely is your
+     prediction" heading and the council-outcome description stay.
+   - The explanation line ("How close this is to our prediction...") goes.
+     In its place are two short paragraphs:
+     - "We think your prediction is <phrase>, but time will tell."
+     - "Your prediction is sealed and will be ranked against the result on
+       election day. All predictions are judged by seats per party first,
+       then wards called right, then vote per party."
+   - The second paragraph replaces the earlier ranking line; keep one
+     definition of the ranking sentence.
+   - The phrase per band, one definition beside the bands:
+     - Safe bet → "likely";
+     - Steady as she goes → "plausible";
+     - Long shot → "unlikely";
+     - Wild call → "very unlikely";
+     - Hail Mary → "extremely unlikely".
+2. **The card:** the same line replaces "How close this is to our
+   prediction...", in the third person: "We think this prediction is
+   <phrase>, but time will tell."
+3. **Words (STYLE.md rule 11):** a forecast has probability bands; a
+   prediction is one possible result.
+   - Everything a reader makes is a prediction.
+   - Our single published result is our prediction; the model's bands are
+     the forecast.
+   - Fix every reader-facing string in this flow that calls the reader's
+     entry a forecast: the card title "My Election Forecast" → "My Election
+     Prediction", "A reader's forecast, not the model's" → "A reader's
+     prediction, not the model's", and the analysis, share sheet and arrival
+     view.
+   - URLs and code identifiers stay.
+   - List every string changed in the report.
