@@ -1008,3 +1008,8 @@ What it needs:
   result) or a forecast (shaded by chance).
 - **Where it lives:** probably the forecast page's history, or the backtest
   write-up.
+- **Owner, same day:** "they could be forecast maps or 'results maps'". Results
+  maps (who actually won each ward, 2011 → 2016 → 2021) need no model run and
+  can be built now from the archived results. Forecast maps wait for the
+  canonical run. One animation can carry both, as a toggle between "what we
+  would have called" and "what happened".
