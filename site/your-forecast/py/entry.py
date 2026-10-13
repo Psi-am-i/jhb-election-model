@@ -18,9 +18,8 @@ name, a reader's prediction (entry version 2):
     POST /v1/card   {"seats": <the /v1/seats body>, "coalition": [code],
                      "draws_sha256": hex, "prediction_sha256": hex}
     200             the /v1/seats answer, plus
-                    {"outcome": reweight.outcome_chance's answer, with
-                                "p", "text", "badge" and "boldest" (the
-                                call the badge judges),
+                    {"outcome": reweight.outcome_badge's answer: the
+                                council in words, "badge" and "measure",
                      "draws_sha256": hex, "prediction_sha256": hex}
     409             {"error": ...}      the published draws or prediction this
                                         Worker holds are not the ones the
@@ -30,16 +29,18 @@ name, a reader's prediction (entry version 2):
 
 ``/v1/card`` is the link preview's answer (src/worker.js, audits/
 2026-10-03-share-design/DESIGN.md §3): the seats the law gives the reader's
-forecast, the chance the PUBLISHED forecast gives its council-level
-outcome, and the badge of its boldest call (``reweight.outcome_chance``, the one definition the
-page's analysis also calls). The draws are the site's own
-``/draws/manifest.json`` and ``/draws/base.bin``, fetched from SITE_ORIGIN
-once per isolate.
+forecast, its council in words, and its badge: how close it is to the
+published prediction, banded by the cut-offs the site's ``forecast.json``
+carries (``reweight.outcome_badge``, the one definition the page's analysis
+also calls; JUDGEMENT-CALLS §N10). The draws are the site's own
+``/draws/manifest.json`` and ``/draws/base.bin``, and the prediction and
+cut-offs its ``/your-forecast/forecast.json``, fetched from SITE_ORIGIN once
+per isolate.
 
 reader_seats.py and every project module it imports, and reweight.py, are
 copied here from the repository's src/ by worker-api/tools/sync_seats_py.mjs,
 byte for byte; code_ref.py is written by the same script. Nothing about the
-seat law or the chance is written in this file: it passes the body through and
+seat law or the badge is written in this file: it passes the body through and
 reshapes the answer.
 """
 
@@ -83,18 +84,20 @@ def answer(body):
 
 
 def load_draws(manifest_bytes, blob):
-    """The published draws as the card reads them: the party seat columns and
-    each simulation's majority under ``reweight.PUBLISHED_LAW``, and the
-    sha256 of manifest + blob (``src/build_make.py``'s ``draws_sha256``).
-    ``_draws`` adds ``prediction`` (:func:`load_prediction`) to this."""
+    """The published draws as the card reads them: the party seat columns
+    under ``reweight.PUBLISHED_LAW``, each simulation's list-ballot percents
+    (``reweight.draw_percents``), and the sha256 of manifest + blob
+    (``src/build_make.py``'s ``draws_sha256``). ``_draws`` adds the
+    prediction and cut-offs (:func:`load_prediction`) to this."""
     manifest = json.loads(manifest_bytes)
     arrays = reweight.unpack(blob, manifest)
     law = reweight.PUBLISHED_LAW
     cols = next(b for b in manifest["blocks"] if b["name"] == f"seats/{law}")["columns"]
     seats, parties = reweight.party_columns(arrays[f"seats/{law}"], cols)
+    share_cols = next(b for b in manifest["blocks"] if b["name"] == "list_vote")["columns"]
     return {"sha256": hashlib.sha256(bytes(manifest_bytes) + bytes(blob)).hexdigest(),
             "seats": seats, "columns": parties,
-            "thresholds": arrays[f"council/{law}"][:, 0]}
+            "shares": reweight.draw_percents(arrays["list_vote"]), "share_columns": list(share_cols)}
 
 
 def prediction_sha256(seats):
@@ -110,18 +113,26 @@ def prediction_sha256(seats):
 
 
 def load_prediction(forecast_bytes, draws_sha256):
-    """The published prediction's seats, ``{party: seats}``: the ``start.seats``
-    of the site's ``forecast.json`` (``build_make.start_state``), which must
-    have been built from the draws hashed ``draws_sha256``."""
+    """The published prediction and the badge's cut-offs, from the site's
+    ``forecast.json``, which must have been built from the draws hashed
+    ``draws_sha256``: ``{"prediction": {party: seats}, "ours": {"seats",
+    "share"} (reweight.closeness's form, list percents by
+    reweight.list_percent), "cuts": closeness_cuts}``. A forecast.json
+    without cut-offs is refused (the Worker then answers 503)."""
     data = json.loads(forecast_bytes)
     if data.get("draws_sha256") != draws_sha256:
         raise ValueError("forecast.json was built from other draws than the Worker holds")
-    return {str(p): int(v) for p, v in data["start"]["seats"].items()}
+    if not isinstance(data.get("closeness_cuts"), dict):
+        raise ValueError("forecast.json carries no closeness_cuts")
+    seats = {str(p): int(v) for p, v in data["start"]["seats"].items()}
+    return {"prediction": seats,
+            "ours": {"seats": seats, "share": reweight.list_percent(data["start"]["list_votes"])},
+            "cuts": {str(k): float(v) for k, v in data["closeness_cuts"].items()}}
 
 
 def card(body, draws):
     """``(status, payload)`` for one parsed /v1/card body against ``draws``
-    (:func:`load_draws`). No I/O."""
+    (:func:`load_draws` with :func:`load_prediction`'s keys). No I/O."""
     if reweight is None:
         return 501, {"error": "reweight.py is not installed in this Worker"}
     if not isinstance(body, dict) or set(body) != set(CARD_ARGUMENTS) \
@@ -134,9 +145,10 @@ def card(body, draws):
     status, seats = answer(body["seats"])
     if status != 200:
         return status, seats
-    outcome = reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"], None,
-                                      seats["seats"], seats["majority"], body["coalition"],
-                                      prediction=draws["prediction"])
+    mine = {"seats": seats["seats"], "share": reweight.list_percent(body["seats"]["list_votes"])}
+    outcome = reweight.outcome_badge(draws["seats"], draws["columns"], draws["shares"], draws["share_columns"],
+                                     None, mine, seats["majority"], body["coalition"],
+                                     ours=draws["ours"], cuts=draws["cuts"])
     return 200, {**seats, "outcome": outcome, "draws_sha256": draws["sha256"],
                  "prediction_sha256": draws["prediction_sha256"]}
 
@@ -160,7 +172,7 @@ async def _draws(origin):
             raise RuntimeError("the published draws could not be fetched")
         drawn = load_draws((await man.arrayBuffer()).to_bytes(),
                            (await blob.arrayBuffer()).to_bytes())
-        drawn["prediction"] = load_prediction((await fc.arrayBuffer()).to_bytes(), drawn["sha256"])
+        drawn.update(load_prediction((await fc.arrayBuffer()).to_bytes(), drawn["sha256"]))
         drawn["prediction_sha256"] = prediction_sha256(drawn["prediction"])
         _DRAWS = drawn
     return _DRAWS

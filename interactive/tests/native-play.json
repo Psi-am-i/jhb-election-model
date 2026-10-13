@@ -22035,7 +22035,7 @@
   "w_bye-1": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306"
  },
  "numpy": "2.5.1",
- "page_ref": "822ead9e0c1ab3dcb502f7c9419e44ff46efb3fc2b80698ca959775a03eecc20",
+ "page_ref": "335aa006e25f64fd8c87a14615b63dd0c234a758220d0b427f1deeb4c215dd41",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22099,22 +22099,13 @@
     "draws": 5000,
     "outcome": {
      "badge": "Safe bet",
-     "boldest": {
-      "min_seats": 10,
-      "p": 1.0,
-      "party": null,
-      "prediction": null,
-      "seats": null,
-      "text": "over 99%"
-     },
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "p": 0.0002,
-     "text": "under 0.1%"
+     "measure": "closeness to the published prediction"
     },
     "score": {
      "list_vote_error": 40.71001612343535,
@@ -22751,23 +22742,14 @@
    "analyse_moved": {
     "draws": 5000,
     "outcome": {
-     "badge": "Hail Mary",
-     "boldest": {
-      "min_seats": 10,
-      "p": 0.0458,
-      "party": "DA",
-      "prediction": 56,
-      "seats": 44,
-      "text": "4.6%"
-     },
+     "badge": "Safe bet",
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "p": 0.0002,
-     "text": "under 0.1%"
+     "measure": "closeness to the published prediction"
     },
     "score": {
      "list_vote_error": 40.71001612343535,
@@ -23400,6 +23382,12 @@
      }
     },
     "wards_count": 135
+   },
+   "cuts": {
+    "Long shot": 0.4672917129629629,
+    "Safe bet": 0.586346052631579,
+    "Steady as she goes": 0.526509649122807,
+    "Wild call": 0.38614833333333326
    },
    "handoff": {
     "list_votes": {
@@ -23699,22 +23687,13 @@
     "draws": 5000,
     "outcome": {
      "badge": "Safe bet",
-     "boldest": {
-      "min_seats": 10,
-      "p": 1.0,
-      "party": null,
-      "prediction": null,
-      "seats": null,
-      "text": "over 99%"
-     },
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "p": 0.0002,
-     "text": "under 0.1%"
+     "measure": "closeness to the published prediction"
     },
     "score": {
      "list_vote_error": 41.28301493721356,
@@ -24351,23 +24330,14 @@
    "analyse_moved": {
     "draws": 5000,
     "outcome": {
-     "badge": "Hail Mary",
-     "boldest": {
-      "min_seats": 10,
-      "p": 0.0254,
-      "party": "DA",
-      "prediction": 53,
-      "seats": 41,
-      "text": "2.5%"
-     },
+     "badge": "Safe bet",
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "p": 0.0002,
-     "text": "under 0.1%"
+     "measure": "closeness to the published prediction"
     },
     "score": {
      "list_vote_error": 41.28301493721356,
@@ -25000,6 +24970,12 @@
      }
     },
     "wards_count": 135
+   },
+   "cuts": {
+    "Long shot": 0.4672917129629629,
+    "Safe bet": 0.586346052631579,
+    "Steady as she goes": 0.526509649122807,
+    "Wild call": 0.38614833333333326
    },
    "handoff": {
     "list_votes": {
@@ -25299,22 +25275,13 @@
     "draws": 5000,
     "outcome": {
      "badge": "Safe bet",
-     "boldest": {
-      "min_seats": 10,
-      "p": 1.0,
-      "party": null,
-      "prediction": null,
-      "seats": null,
-      "text": "over 99%"
-     },
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "p": 0.0002,
-     "text": "under 0.1%"
+     "measure": "closeness to the published prediction"
     },
     "score": {
      "list_vote_error": 41.11863405850518,
@@ -25951,23 +25918,14 @@
    "analyse_moved": {
     "draws": 5000,
     "outcome": {
-     "badge": "Hail Mary",
-     "boldest": {
-      "min_seats": 10,
-      "p": 0.0254,
-      "party": "DA",
-      "prediction": 53,
-      "seats": 41,
-      "text": "2.5%"
-     },
+     "badge": "Safe bet",
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "p": 0.0002,
-     "text": "under 0.1%"
+     "measure": "closeness to the published prediction"
     },
     "score": {
      "list_vote_error": 41.11863405850518,
@@ -26600,6 +26558,12 @@
      }
     },
     "wards_count": 135
+   },
+   "cuts": {
+    "Long shot": 0.4672917129629629,
+    "Safe bet": 0.586346052631579,
+    "Steady as she goes": 0.526509649122807,
+    "Wild call": 0.38614833333333326
    },
    "handoff": {
     "list_votes": {
@@ -26899,22 +26863,13 @@
     "draws": 5000,
     "outcome": {
      "badge": "Safe bet",
-     "boldest": {
-      "min_seats": 10,
-      "p": 1.0,
-      "party": null,
-      "prediction": null,
-      "seats": null,
-      "text": "over 99%"
-     },
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
      "majority_alone": false,
-     "p": 0.2554,
-     "text": "26%"
+     "measure": "closeness to the published prediction"
     },
     "score": {
      "list_vote_error": 41.40142473969547,
@@ -27551,23 +27506,14 @@
    "analyse_moved": {
     "draws": 5000,
     "outcome": {
-     "badge": "Wild call",
-     "boldest": {
-      "min_seats": 10,
-      "p": 0.0616,
-      "party": "DA",
-      "prediction": 58,
-      "seats": 46,
-      "text": "6.2%"
-     },
+     "badge": "Safe bet",
      "coalition": [
       "ANC",
       "DA"
      ],
      "largest": "ANC",
      "majority_alone": false,
-     "p": 0.2554,
-     "text": "26%"
+     "measure": "closeness to the published prediction"
     },
     "score": {
      "list_vote_error": 41.40142473969547,
@@ -28200,6 +28146,12 @@
      }
     },
     "wards_count": 135
+   },
+   "cuts": {
+    "Long shot": 0.4672917129629629,
+    "Safe bet": 0.586346052631579,
+    "Steady as she goes": 0.526509649122807,
+    "Wild call": 0.38614833333333326
    },
    "handoff": {
     "list_votes": {

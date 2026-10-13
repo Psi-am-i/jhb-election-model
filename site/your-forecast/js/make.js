@@ -63,7 +63,7 @@
 // friend's forecast stays on the page only: neither the address nor the
 // reader's share link carries it, so no link draws the two forecasts side by
 // side (owner, 2026-10-10: that card is off the share choices). Its seats come
-// from the same seat Worker, in a lane of their own, and its chance from the
+// from the same seat Worker, in a lane of their own, and its badge from the
 // same analysis.
 
 import * as B from "./builder-state.js";
@@ -73,7 +73,8 @@ import { WardMap } from "./map.js";
 import { setShareable, onNameChange, onOpen } from "./make-share.js";
 import { setHandoff } from "./play-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
-import { forecastSpec, aChance, chanceSentence, councilChanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
+import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords, badgeFile, STAMP_DIR, BADGE_LINE,
+  RANKING_LINE } from "./share-card.js";
 import { seatTable } from "./seat-table.js";
 import { placeTip } from "./tip.js";
 import { engineCall, onForecast } from "./model.js";
@@ -120,7 +121,7 @@ const one = {
   actions: document.querySelector('[data-live="b-actions"]'),
   analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
   analysis: document.querySelector('[data-live="b-analysis"]'),
-  verdict: document.querySelector('[data-live="b-analysis"] .yf-verdict'),
+  badge: document.querySelector('[data-live="b-analysis"] .yf-abadge'),
   sseats: document.querySelector('[data-live="b-analysis"] .yf-sseats'),
   svote: document.querySelector('[data-live="b-analysis"] .yf-svote'),
   outcome: document.querySelector('[data-live="b-analysis"] .yf-outcome'),
@@ -400,7 +401,7 @@ async function checkSeal() {
 }
 const partyOf = c => parties[c] || { name: byCode[c] ? byCode[c].name : c, colour: "#8b918b", article: "", logo: false };
 function friendSpec() {
-  return forecastSpec({ name: friend.name, answer: friend.answer, outcome: friend.outcome || { coalition: friend.coalition, text: "", badge: "" },
+  return forecastSpec({ name: friend.name, answer: friend.answer, outcome: friend.outcome || { coalition: friend.coalition, badge: "" },
     vote: B.percentOf(friend.state, ctx, "list"), calls: friend.state.calls, party: partyOf, baseline: D.baseline, election: D.election,
     made: friend.seal && friend.seal.state === "sealed" ? { at: friend.seal.at, sealed: true } : null });
 }
@@ -410,11 +411,14 @@ function paintArrival() {
   if (!friend.outcome) spec.outcome = null;
   showArrival({ spec, geom, seal: friend.seal, now: Date.now(), party: partyOf, logo: c => new URL("logos/" + c + ".png", pageRoot).href });
 }
-// The chance and badge of a forecast's outcome (page.py analyse), for the
+// The published prediction and the badge's cut-offs, as page.py analyse
+// takes them (forecast.json `start` and `closeness_cuts`).
+const ours = () => ({ prediction: { seats: D.start.seats, list_votes: D.start.list_votes }, cuts: D.closeness_cuts });
+// A forecast's council in words and its badge (page.py analyse), for the
 // arrival view, the return card and the reader's own card.
 function outcomeOf(st, coalition, answer) {
   return engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, st.calls[i]])),
-    share: B.percentOf(st, ctx, "list"), seats: answer.seats, prediction: D.start.seats, majority: answer.majority, coalition, keep: [] }).then(a => a.outcome);
+    share: B.percentOf(st, ctx, "list"), seats: answer.seats, majority: answer.majority, coalition, keep: [], ...ours() }).then(a => a.outcome);
 }
 async function friendOutcome() {
   if (!friend || !friend.answer || friend.outcome) return;
@@ -1015,8 +1019,8 @@ async function analyse(scroll) {
   try {
     a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
                                       share: B.percentOf(state, ctx, "list"), seats: result.seats,
-                                      prediction: D.start.seats, majority: result.majority, coalition: S.coalition,
-                                      keep: analysed ? Object.keys(analysed.seats) : [] });
+                                      majority: result.majority, coalition: S.coalition,
+                                      keep: analysed ? Object.keys(analysed.seats) : [], ...ours() });
   } catch (e) {
     if (ticket === analyseTicket) one.anote.textContent = "The analysis could not run: " + (e.message || e) + ".";
     return;
@@ -1030,16 +1034,15 @@ async function analyse(scroll) {
   if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 // "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
-// a ward, a party's seats and its vote alike, and "We give that council
-// outcome a 3% chance." for the whole forecast (2026-10-12; the cards print
-// the boldest call's chance instead): share-card.js's aChance,
-// chanceSentence and councilChanceSentence, one definition.
+// a ward, a party's seats and its vote alike: share-card.js's aChance and
+// chanceSentence, one definition. The council outcome has no chance printed
+// (owner, 2026-10-13).
 //
-// The analysis (owner, 2026-10-05), three parts:
+// The analysis (owner, 2026-10-05 and 2026-10-13), three parts:
 //   * the headline: what the "council outcome" is, the reader's council-level
 //     outcome in the cards' words (share-card.js outcomeWords: the largest
-//     party, a majority alone or not, the chosen coalition), its chance, and
-//     the page's line that it is the citywide result only;
+//     party, a majority alone or not, the chosen coalition); the badge with
+//     what it is (BADGE_LINE) and how entries are ranked (RANKING_LINE);
 //   * ward wins, "Your map": the reader's own map, each ward in the colour of
 //     the party called, as strong as our chance for that call, with the
 //     number of calls we expect to come true beside it, and each ward's
@@ -1053,7 +1056,8 @@ let amap = null;
 function paintAnalysis(a) {
   const sc = a.score;
   one.outcome.textContent = "Council outcome: " + outcomeWords(a.outcome, partyOf);
-  one.verdict.textContent = councilChanceSentence(a.outcome.text);
+  one.badge.replaceChildren(el("img", { src: "../" + STAMP_DIR + "/" + badgeFile(a.outcome.badge), alt: a.outcome.badge, className: "yf-stamp" }),
+    el("div", {}, el("p", { className: "yf-abadge-what" }, BADGE_LINE), el("p", { className: "yf-abadge-rank" }, RANKING_LINE)));
   // ward wins: the reader's map, shaded by our chance for each call
   // each ward's title names our chance for the call there (a screen reader
   // reads it; a pointer shows it); a ward's strength has a floor, so a call
@@ -1064,10 +1068,11 @@ function paintAnalysis(a) {
   one.expected.textContent = "We expect " + Math.round(sc.wards_called) + " of your " + a.wards_count + " ward calls to come true.";
   // citywide: each party's seats and vote beside its chance
   const sb = a.seat_band, pb = a.share_band;
+  const seatHead = "Chance it lands within " + sb + " seats", voteHead = "Chance it lands within " + pb + " points";
   const head = el("tr", { className: "yf-wide" }, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
-    el("th", { scope: "col", className: "num" }, "The odds we give this*"),
+    el("th", { scope: "col", className: "num" }, seatHead),
     el("th", { scope: "col", className: "num" }, "Your list vote"),
-    el("th", { scope: "col", className: "num" }, "The odds we give this†"));
+    el("th", { scope: "col", className: "num" }, voteHead));
   const seats = result.seats, share = B.percentOf(state, ctx, "list");
   const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
   // two layouts of the same cells (css/your-forecast.css): one row per party,
@@ -1089,10 +1094,8 @@ function paintAnalysis(a) {
   ]);
   const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
     el("th", { scope: "col", className: "num" }, "Yours"),
-    el("th", { scope: "col", className: "num" }, "The odds we give this*†"));
-  // the caveat the two odds columns carry, once, under the table
-  const caveat = el("p", { className: "yf-alegend" }, "* Within " + sb + " seats of yours. † Within " + pb + " points of yours, on the list ballot.");
-  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)), caveat);
+    el("th", { scope: "col", className: "num" }, "Chance it lands within " + sb + " seats or " + pb + " points"));
+  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)));
   // the totals, every party added up
   one.sseats.replaceChildren(el("b", {}, "All seats: "), "we expect your seat counts to be off by " + Math.round(sc.seat_error) +
     " in total across the parties, and give " + aChance(sc.seat_error_within.text) + " that they are off by " + sc.within + " or fewer.");

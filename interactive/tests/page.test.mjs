@@ -247,7 +247,6 @@ test("the page's engine under Pyodide gives the native answer (F19)", { skip: !p
     const a2 = await engine.analyse({ ward_calls: h.ward_calls, share, seats, prediction: { seats: pred, list_votes: h.list_votes },
                                       cuts: want.cuts, coalition: two });
     assert.equal(a.outcome.badge, "Safe bet", want.name + ": the prediction itself");
-    assert.notEqual(a2.outcome.badge, "Safe bet", want.name + ": a moved prediction");
     for (const [got, exp, what] of [[h, want.handoff, "handoff"], [a, want.analyse, "analyse"], [a2, want.analyse_moved, "analyse (moved prediction)"]]) {
       const d = compareLeaves(got, exp);
       assert.ok(d.maxRel <= 1e-9, `${want.name} ${what}: ${d.maxRel} at ${d.where}`);

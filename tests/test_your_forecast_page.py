@@ -1503,7 +1503,8 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
                                                "prediction": pred, "cuts": cuts})))
     assert bare["outcome"]["coalition"] == [] and bare["outcome"]["badge"] == o["badge"]
     # a forecast twelve seats off on the two largest parties: the page's badge
-    # is the one outcome_badge gives on the published draws, and it is lower
+    # is the one outcome_badge gives on the published draws, and its
+    # closeness is below ours
     moved = dict(seats)
     moved[top2[0]] += 12
     moved[top2[1]] -= 12
@@ -1512,7 +1513,7 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     want = R.outcome_badge(party_seats, party_cols, pct, pc, None, {"seats": moved, "share": share},
                            need, top2, ours=ours, cuts=cuts)
     assert m == want, (m, want)
-    assert m["badge"] != "Safe bet", m
+    assert R.closeness(party_seats, party_cols, pct, pc, None, {"seats": moved, "share": share}, ours)["overall"] < 1.0
     for missing in ({"ward_calls": calls, "share": share, "seats": seats},
                     {"ward_calls": calls, "share": share, "seats": seats, "prediction": pred},
                     {"ward_calls": calls, "share": share, "seats": seats, "prediction": seats, "cuts": cuts}):
@@ -1999,7 +2000,8 @@ def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
                      ">Ward wins<", ">Your map<", 'class="yf-amapsvg"', 'class="yf-alegend"',
                      'class="yf-expected yf-slot"', ">Citywide vote and seats<", 'class="yf-atable"',
                      'class="yf-sseats yf-slot"', 'class="yf-svote yf-slot"')
-        need_js = ('"Council outcome: " + outcomeWords(', "badgeFile(a.outcome.badge)", "BADGE_LINE", "RANKING_LINE",
+        need_js = ('"Council outcome: " + outcomeWords(', "badgeFile(a.outcome.badge)",
+                   'el("p", { className: "yf-abadge-what" }, BADGE_LINE)', 'el("p", { className: "yf-abadge-rank" }, RANKING_LINE)',
                    '"Chance it lands within " + sb + " seats"', '"Chance it lands within " + pb + " points"',
                    "new WardMap(one.amap, geom, { byCode, readonly: true, labelFor: wardWords })",
                    "SHADE_FLOOR + (1 - SHADE_FLOOR) * a.wards[w].p", "amap.setShade(",
@@ -2018,7 +2020,7 @@ def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
     assert missing(region.replace(">Your map<", ">Wards<"), js, note)
     assert missing(region, js.replace("amap.setShade(", "amap.setCalls("), note)
     assert missing(region + "<p>Of the simulations</p>", js, note)
-    assert missing(region, js.replace("RANKING_LINE)", "\"\")"), note)
+    assert missing(region, js.replace('className: "yf-abadge-rank" }, RANKING_LINE)', 'className: "yf-abadge-rank" }, "")'), note)
     assert missing(region, js + "\n// one.verdict.textContent = councilChanceSentence(a.outcome.text);", note)
 
 

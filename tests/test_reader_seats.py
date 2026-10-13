@@ -698,7 +698,7 @@ def test_the_card_reads_the_draws_the_page_was_built_from():
                          (site / "draws" / "base.bin").read_bytes())
     assert d["sha256"] == data["draws_sha256"]
     assert "OTHER" not in d["columns"] and len(d["columns"]) == d["seats"].shape[1]
-    assert d["thresholds"].shape[0] == d["seats"].shape[0] > 0
+    assert d["shares"].shape == (d["seats"].shape[0], len(d["share_columns"])) and d["seats"].shape[0] > 0
 
 _CLOSURE_PROBE = r'''
 import json, os, sys
