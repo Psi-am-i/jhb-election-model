@@ -95,11 +95,11 @@ every entry for at most seven days.</p>
 nothing about the visitor) is also kept in Cloudflare&rsquo;s
 <a href="https://developers.cloudflare.com/analytics/analytics-engine/">Workers Analytics Engine</a>,
 which deletes it after three months.</p>
-<h2 id="shared-forecasts">Shared forecasts</h2>
-<p>A forecast you make on <a href="your-forecast/">your forecast</a> lives in its link. When
+<h2 id="shared-predictions">Shared predictions</h2>
+<p>A prediction you make on <a href="your-forecast/">your prediction</a> lives in its link. When
 you share it, three things happen on the site&rsquo;s server.</p>
 <ul>
-<li><strong>The seal.</strong> The page sends the forecast and its name to the server, which
+<li><strong>The seal.</strong> The page sends the prediction and its name to the server, which
   signs them with the time, using a key only the server holds, and returns the
   signature for the link to carry. Anyone opening the link can then see that
   it was sealed and when. Each seal is also kept as an entry, below.</li>
@@ -109,20 +109,20 @@ you share it, three things happen on the site&rsquo;s server.</p>
   apps and search engines that fetch it may keep their own copy, under their
   own rules.</li>
 <li><strong>The count.</strong> Shared links go out as <code>/s/</code> addresses. Each forwards to the
-  forecast and writes one log line and one Analytics Engine data point naming
+  prediction and writes one log line and one Analytics Engine data point naming
   &ldquo;share&rdquo;, the button used (WhatsApp, X, copy or the phone&rsquo;s share menu) and
   the site&rsquo;s own address, as the short links above do.</li>
 </ul>
-<h2 id="forecasts-entered">Forecasts entered</h2>
-<p>Every sealed forecast is entered in a ranking against the result. Opening the
-share sheet seals the forecast, and so enters it. Typing a
-name or changing the forecast with the sheet open seals again, and each seal
+<h2 id="predictions-entered">Predictions entered</h2>
+<p>Every sealed prediction is entered in a ranking against the result. Opening the
+share sheet seals the prediction, and so enters it. Typing a
+name or changing the prediction with the sheet open seals again, and each seal
 is another entry. A person may enter several. The server stores, for each
 seal, in a database at Cloudflare:</p>
 <ul>
-<li>the forecast: every ward&rsquo;s winner, each party&rsquo;s vote on the ward ballot and
+<li>the prediction: every ward&rsquo;s winner, each party&rsquo;s vote on the ward ballot and
   on the list ballot, and the governing parties;</li>
-<li>the forecast as the link carries it, and the version of the page&rsquo;s figures
+<li>the prediction as the link carries it, and the version of the page&rsquo;s figures
   it was made against;</li>
 <li>the name you typed on it, if any;</li>
 <li>the time of the seal;</li>
@@ -134,7 +134,7 @@ how often one connection can seal, the server counts seals per connection for
 one minute under a scrambled form of its address, which is not stored. For an
 address of the newer kind, which holds many addresses for one connection,
 only its first half is used.</p>
-<p><strong>Why.</strong> To rank every forecast sealed before polls open against the result.
+<p><strong>Why.</strong> To rank every prediction sealed before polls open against the result.
 Until the results only the number of entries is shown. After the count the
 leaderboard lists entries by place, under the name typed on each, or
 &ldquo;Anonymous&rdquo; and the start of its seal id if none was typed. The name is then
@@ -194,12 +194,14 @@ regulator for POPIA.</p>
   This page describes how the site is run. It is not part of the model or its record.
 </div>
 <footer class="sitefooter">
-  <div class="foot-top"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="440 272 1984 1016" aria-hidden="true" focusable="false"><use href="whysoserious.svg#wsc"></use></svg></a>
+  <div class="foot-text">
   <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="https://www.statssa.gov.za/">Stats SA</a>. Ward and voting-district boundaries from the <a href="https://spatialhub-mdb-sa.opendata.arcgis.com/">Municipal Demarcation Board</a>. Raw election results from the <a href="https://results.elections.org.za/">IEC</a>. <a href="https://github.com/Psi-am-i/jhb-election-model">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
-  </div>
   <hr class="foot-rule">
   <div class="foot-independence">
     <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
+  </div>
+  </div>
+  <div class="foot-side"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="440 272 1984 1016" aria-hidden="true" focusable="false"><use href="whysoserious.svg#wsc"></use></svg></a>
     <a class="foot-support" href="support">Support Our Work</a>
   </div>
 </footer>

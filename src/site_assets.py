@@ -81,6 +81,10 @@ LOGO = "logo.svg"
 LOGO_VIEWBOX = "19 87 2826 1296"
 UMBRELLA = "whysoserious.svg"
 UMBRELLA_VIEWBOX = "440 272 1984 1016"
+#: ``whysoseriouscity.svg`` (2026-10-13): the umbrella logo without its
+#: tagline, the owner's file, drawn in the header of the card that shares our
+#: forecast (share-card.js; fetched by share-sheet.js loadAssets).
+WORDMARK = "whysoseriouscity.svg"
 #: The umbrella site's address, which its logo links to.
 APEX_URL = "https://whysoserious.city/"
 
@@ -92,7 +96,7 @@ def umbrella_svg(cls: str) -> str:
             f'<use href="{UMBRELLA}#wsc"></use></svg>')
 
 
-BRAND_FILES = ("logo.svg", "whysoserious.svg", "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png")
+BRAND_FILES = ("logo.svg", "whysoserious.svg", WORDMARK, "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png")
 
 #: The owner's stamps (2026-10-10): the reader badges, the verdict badges and
 #: the prediction seal, as he drew them.

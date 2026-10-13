@@ -31,12 +31,13 @@
 // chip, its wards and its seats (owner, 2026-10-06).
 //
 // What the card says (DESIGN §2, "Share card", amended after the critic's
-// G1-G3, 2026-10-02, and by the owner, 2026-10-06): "Our Johannesburg
-// Forecast", never a reader's name over the model's own forecast (critic G1:
-// a name is anyone's text); the name on a "Shared by" line; the council; the
-// largest-party line, ties apart; the ward map, which holds the ward seats
-// only; the council graphic; and each party's middle seat count, as a bar
-// (no range: review 2026-10-02).
+// G1-G3, 2026-10-02, and by the owner, 2026-10-06 and 2026-10-13): the
+// whysoserious.city logo, "forecast" and the forecast's date (forecast.json
+// `forecast_date`, never typed), and no reader's name anywhere on it (critic
+// G1: a name is anyone's text; owner, 2026-10-13: sharing our forecast has no
+// name field); the council; the largest-party line, ties apart; the ward
+// map, which holds the ward seats only; the council graphic; and each
+// party's middle seat count, as a bar (no range: review 2026-10-02).
 
 import { modelCardSVG, seatOrder, SIZES as CARD_SIZES, SITE, STORY_TEXT_BOTTOM, OTHERS_COLOUR } from "./share-card.js";
 import { TRUST, PUBLISHED_CELL, PUBLISHED_LAW, engineSettings, serialize } from "./play-state.js";
@@ -51,7 +52,7 @@ export const HOW = "Wards in the colour of their most likely winner, striped whe
 export const MAP_NOTE = "ward seats; the council's other seats are filled from party lists.";
 export const BARS_NOTE = "Each party's middle seat count across the simulations. The middles need not add up to the council's size.";
 export const CHAMBER_NOTE = "Each party at its middle seat count; grey seats are too close to call.";
-export const MODEL_TITLE = "Our Johannesburg Forecast";
+export const FORECAST_NAME = "whysoserious.city forecast";
 
 // A by-election cell's name: the published weight, none, or full.
 export function cellName(c) {
@@ -107,16 +108,19 @@ export function settingsWords(st, ctx) {
 // link (`mv`), not on the image: it is an internal identifier (review
 // 2026-10-02).
 const MONTHS = "January February March April May June July August September October November December".split(" ");
-export function madeLine(made) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(made))) throw new Error("the card needs the date it was made, YYYY-MM-DD");
-  const [y, m, d] = made.split("-").map(Number);
-  return "Made " + d + " " + MONTHS[m - 1] + " " + y;
+// A date as the pages print it, from YYYY-MM-DD: "2 October 2026".
+export function dayText(iso, what = "the date") {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(iso))) throw new Error("the card needs " + what + ", YYYY-MM-DD");
+  const [y, m, d] = iso.split("-").map(Number);
+  return d + " " + MONTHS[m - 1] + " " + y;
 }
+export const madeLine = made => "Made " + dayText(made, "the date it was made");
 
-// The headline of the model's own card (owner, 2026-10-06). A reader's name
-// goes on a "Shared by" line under it, never into it (critic G1).
-export const headline = () => MODEL_TITLE;
-export const sharedBy = name => "Shared by " + name;
+// The model's card headline, after the logo: "forecast, 29 September 2026"
+// (`date` is forecast.json's forecast_date), and its words without the logo,
+// for the text alternative and the native share.
+export const forecastTitle = date => "forecast, " + dayText(date, "the forecast's date");
+export const forecastWords = date => FORECAST_NAME + ", " + dayText(date, "the forecast's date");
 
 // The two parties most often alone with the most seats, in alphabetical
 // order, as the page's one-line result names them.
@@ -175,11 +179,11 @@ export function chamberOf(r, party, { council, majority }) {
 
 // The model's card for one result: the untouched page's. `r` is the compute
 // result the page shows; `party(code)` -> {name, colour, logo}; `made` the
-// date it was made; `name` the reader's name or label; `geometry` the ward
+// date it was made; `forecastDate` the forecast's own date (forecast.json); `geometry` the ward
 // boundaries with the stripe tile (`step`, `rotate`); `when` the election day
 // in words. Every card carries the council graphic (owner, 2026-10-06),
 // drawn from the result's own middles (chamberOf).
-export function playCardSpec({ r, party, made, name, geometry, when, touched = false }) {
+export function playCardSpec({ r, party, made, forecastDate, geometry, when, touched = false }) {
   if (touched) throw new Error("a moved setting is shared as the reader's forecast, not on the model's card");
   if (!r || r.refused) throw new Error("the card needs a computed result, not a refusal");
   if (!geometry) throw new Error("the card needs the ward boundaries");
@@ -193,9 +197,8 @@ export function playCardSpec({ r, party, made, name, geometry, when, touched = f
   const wards = r.wards.filter(w => geometry.paths[w.ward])
     .map(w => ({ path: geometry.paths[w.ward], fill: w.fill, bands: w.bands }));
   return {
-    title: MODEL_TITLE,
-    lines: [{ text: sharedBy(name), tone: "muted" }, { text: councilLine({ r, when }), tone: "muted" },
-            { text: largestLine(r, party), tone: "plain" }],
+    title: forecastTitle(forecastDate),
+    lines: [{ text: councilLine({ r, when }), tone: "muted" }, { text: largestLine(r, party), tone: "plain" }],
     map: { W: geometry.W, H: geometry.H, step: geometry.step, rotate: geometry.rotate, wards },
     mapNote: r.wards.length + " " + MAP_NOTE,
     chamber: chamberOf(r, party, r), chamberNote: CHAMBER_NOTE,
@@ -208,10 +211,10 @@ export function playCardSpec({ r, party, made, name, geometry, when, touched = f
 export const buildPlayCardSVG = info => modelCardSVG(playCardSpec(info), info.assets || {}, info.size || "link");
 
 // The image's text alternative: the same figures, in the same order.
-export function playCardAlt({ r, party, made, name, when }) {
+export function playCardAlt({ r, party, made, forecastDate, when }) {
   const codes = [...order(r, c => party(c).name), "OTHERS"];
   const seats = codes.map(c => (c === "OTHERS" ? "Others" : party(c).name) + " " + seatText(r.seats[c].median));
-  return MODEL_TITLE + ". " + sharedBy(name) + ". " + councilLine({ r, when }) + ". " +
+  return forecastWords(forecastDate) + ". " + councilLine({ r, when }) + ". " +
     largestLine(r, party) + " Middle seats: " + seats.join(", ") + ". " + CHAMBER_NOTE + " " + footText({ made });
 }
 

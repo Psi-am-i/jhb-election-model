@@ -1019,6 +1019,7 @@ def model_artefact(manifest: dict, roster: dict, bounds: dict) -> dict:
     parties = list(manifest["parties"])
     return {
         "model_ref": run,
+        "run_at": manifest["published_run"]["run_at"],
         "city": city.slug,
         "target": target,
         "council_seats": council,
@@ -1266,6 +1267,9 @@ def forecast_data(draws: Path | None = None) -> dict:
         "_about": ("Written by src/build_make.py from the published draws (site/draws/). "
                    "Do not edit."),
         "model_ref": artefact["model_ref"],
+        # the day the published run was made (draws manifest published_run.run_at),
+        # the date the card that shares our forecast prints (play-share.js)
+        "forecast_date": artefact["run_at"][:10],
         "election": election,
         "context_ref": context_ref,
         "draws_sha256": _sha(raw),

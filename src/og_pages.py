@@ -440,6 +440,9 @@ def claim_spec(html: str, claim: dict) -> dict:
             "badge": stamp_path(verdict_badge(claim["verdict"])),
             "code": claim["party"], "party": party, "colour": roster[claim["party"]]["colour"],
             "logo": claim_logo(claim), "speaker": speaker,
+            # the tested statement, printed beside the stamp: claims.toml's label,
+            # the claim's own title (owner, 2026-10-13)
+            "statement": " ".join(claim["label"].split()),
             "date_line": f"Tested against the forecast. Published {claim['published']}.",
             "figures": {},
             "alt": f"\u201c{quote}\u201d {speaker}, {party}. Verdict: {claim['verdict']}."}

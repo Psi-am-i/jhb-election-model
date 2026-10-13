@@ -12,7 +12,7 @@ trace, and `--apply` refuses the block rather than let that through.
 Blocks inside the page's generated regions are not here at all: the
 build rewrites them, so an edit would vanish at the next run.
 
-391 blocks from 12 files.
+393 blocks from 12 files.
 
 
 ## home.html
@@ -24,33 +24,47 @@ City of Johannesburg · 4 November 2026
 
 <!-- /block 642d5d12 -->
 
-<!-- block b97c3f0f -->
+<!-- block a97c7ac3 -->
+*p*
+
+<a class="cta" href="your-forecast/">Predict the election yourself</a>
+
+<!-- /block a97c7ac3 -->
+
+<!-- block eeb8ea03 -->
 *div*
 
-<a href="forecast">the full forecast →</a>
+The forecast · who wins where
 
-<!-- /block b97c3f0f -->
+<!-- /block eeb8ea03 -->
 
 <!-- block 046a598c -->
-*div*
+*h2*
 
 Seats, if the election were held now
 
 <!-- /block 046a598c -->
 
-<!-- block e8cb966d -->
+<!-- block 5fe9b42e -->
+*p*
+
+<a class="cta cta-quiet" href="forecast">See the detailed forecast</a>
+
+<!-- /block 5fe9b42e -->
+
+<!-- block b14ac78a -->
 *div*
 
-Make your own forecast
+Articles
 
-<!-- /block e8cb966d -->
+<!-- /block b14ac78a -->
 
-<!-- block dc263943 -->
+<!-- block ce0aa888 -->
 *h3*
 
-<a href="your-forecast/">Predict the election yourself</a>
+Your Forecast
 
-<!-- /block dc263943 -->
+<!-- /block ce0aa888 -->
 
 <!-- block f7639168 -->
 *p*
@@ -80,12 +94,12 @@ We keep each sealed forecast and the name you put on it until after the results,
 
 <!-- /block 33f5bcb7 -->
 
-<!-- block b14ac78a -->
-*div*
+<!-- block a97c7ac3-2 -->
+*p*
 
-Articles
+<a class="cta" href="your-forecast/">Predict the election yourself</a>
 
-<!-- /block b14ac78a -->
+<!-- /block a97c7ac3-2 -->
 
 <!-- block 97522cee -->
 *div*
@@ -2153,25 +2167,25 @@ which deletes it after three months.
 
 <!-- /block 7e7d747c -->
 
-<!-- block f8a7ba2d -->
+<!-- block bf2571bf -->
 *md*
 
-## Shared forecasts
+## Shared predictions
 
-<!-- /block f8a7ba2d -->
+<!-- /block bf2571bf -->
 
-<!-- block dda98ed4 -->
+<!-- block bc564925 -->
 *md*
 
-A forecast you make on [your forecast](your-forecast/) lives in its link. When
+A prediction you make on [your prediction](your-forecast/) lives in its link. When
 you share it, three things happen on the site's server.
 
-<!-- /block dda98ed4 -->
+<!-- /block bc564925 -->
 
-<!-- block 196dfc11 -->
+<!-- block 96940a70 -->
 *md*
 
-- **The seal.** The page sends the forecast and its name to the server, which
+- **The seal.** The page sends the prediction and its name to the server, which
   signs them with the time, using a key only the server holds, and returns the
   signature for the link to carry. Anyone opening the link can then see that
   it was sealed and when. Each seal is also kept as an entry, below.
@@ -2181,43 +2195,43 @@ you share it, three things happen on the site's server.
   apps and search engines that fetch it may keep their own copy, under their
   own rules.
 - **The count.** Shared links go out as `/s/` addresses. Each forwards to the
-  forecast and writes one log line and one Analytics Engine data point naming
+  prediction and writes one log line and one Analytics Engine data point naming
   "share", the button used (WhatsApp, X, copy or the phone's share menu) and
   the site's own address, as the short links above do.
 
-<!-- /block 196dfc11 -->
+<!-- /block 96940a70 -->
 
-<!-- block f35c09f2 -->
+<!-- block e9255b0e -->
 *md*
 
-## Forecasts entered
+## Predictions entered
 
-<!-- /block f35c09f2 -->
+<!-- /block e9255b0e -->
 
-<!-- block 775c5a07 -->
+<!-- block 666a8027 -->
 *md*
 
-Every sealed forecast is entered in a ranking against the result. Opening the
-share sheet seals the forecast, and so enters it. Typing a
-name or changing the forecast with the sheet open seals again, and each seal
+Every sealed prediction is entered in a ranking against the result. Opening the
+share sheet seals the prediction, and so enters it. Typing a
+name or changing the prediction with the sheet open seals again, and each seal
 is another entry. A person may enter several. The server stores, for each
 seal, in a database at Cloudflare:
 
-<!-- /block 775c5a07 -->
+<!-- /block 666a8027 -->
 
-<!-- block f43507e3 -->
+<!-- block 9cdee555 -->
 *md*
 
-- the forecast: every ward's winner, each party's vote on the ward ballot and
+- the prediction: every ward's winner, each party's vote on the ward ballot and
   on the list ballot, and the governing parties;
-- the forecast as the link carries it, and the version of the page's figures
+- the prediction as the link carries it, and the version of the page's figures
   it was made against;
 - the name you typed on it, if any;
 - the time of the seal;
 - the seal's id, the part of the link's `s=` after the dot;
 - the model's version when it was sealed, and the version of the entry.
 
-<!-- /block f43507e3 -->
+<!-- /block 9cdee555 -->
 
 <!-- block fcf4c22c -->
 *md*
@@ -2230,16 +2244,16 @@ only its first half is used.
 
 <!-- /block fcf4c22c -->
 
-<!-- block 624bfd63 -->
+<!-- block 5929e10b -->
 *md*
 
-**Why.** To rank every forecast sealed before polls open against the result.
+**Why.** To rank every prediction sealed before polls open against the result.
 Until the results only the number of entries is shown. After the count the
 leaderboard lists entries by place, under the name typed on each, or
 "Anonymous" and the start of its seal id if none was typed. The name is then
 public on the leaderboard.
 
-<!-- /block 624bfd63 -->
+<!-- /block 5929e10b -->
 
 <!-- block b58b35ec -->
 *md*

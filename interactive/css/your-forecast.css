@@ -14,7 +14,11 @@
    chrome.css's (THE FRAME), the same on every page (owner, 2026-10-10,
    LAYOUT-BRIEF item 6). */
 .yf .yf-wrap{box-sizing:content-box;max-width:var(--wide-width);padding-left:var(--gutter);padding-right:var(--gutter);}
-.yf .lede,.yf-sdek,.yf .pl-notes,.yf .yf-ctanote{max-width:var(--text-width);}
+.yf .lede,.yf-sdek,.yf .yf-ctanote{max-width:var(--text-width);}
+/* The notes run the page's full width in two columns (owner, 2026-10-13), one
+   at phone width; the numbering is one list across both. */
+.yf .pl-notes ol{column-count:2;column-gap:48px;}
+@media (max-width:760px){.yf .pl-notes ol{column-count:1;}}
 
 /* ---------- the two sections ---------- */
 .yf-jump{display:flex;flex-wrap:wrap;gap:6px 18px;font:600 14px var(--sans);margin:0 0 8px;counter-reset:yfjump;}

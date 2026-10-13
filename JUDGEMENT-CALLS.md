@@ -3365,7 +3365,7 @@ placing apart from them when ranked unrounded.
 
 ### §N8 · Entries are deleted ninety days after the leaderboard is published — ⚖️ judgement (2026-10-03)
 
-**Where.** `docs-public/privacy.md`, "Forecasts entered"; the owner's delete
+**Where.** `docs-public/privacy.md`, "Predictions entered"; the owner's delete
 command is in `wrangler.toml`'s ENTRIES note.
 
 **Now.** The D1 table `entries` (`migrations/0001_entries.sql`) is emptied

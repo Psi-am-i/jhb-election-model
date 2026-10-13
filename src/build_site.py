@@ -265,12 +265,14 @@ def footer_for() -> str:
     umbrella = (f'<a class="foot-umbrella" href="{site_assets.APEX_URL}" aria-label="whysoserious.city">'
                 f'{site_assets.umbrella_svg("wsc-logo")}</a>')
     return f"""<footer class="sitefooter">
-  <div class="foot-top">{umbrella}
+  <div class="foot-text">
   <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="{STATSSA_URL}">Stats SA</a>. Ward and voting-district boundaries from the <a href="{MDB_URL}">Municipal Demarcation Board</a>. Raw election results from the <a href="{IEC_RESULTS_URL}">IEC</a>. <a href="{REPO_URL}">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
-  </div>
   <hr class="foot-rule">
   <div class="foot-independence">
     <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
+  </div>
+  </div>
+  <div class="foot-side">{umbrella}
     <a class="foot-support" href="support">Support Our Work</a>
   </div>
 </footer>"""

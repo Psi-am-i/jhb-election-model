@@ -115,7 +115,7 @@ export function verdictLine(phrase, whose = "this") {
 export const RANK_ORDER = "seats per party first, then wards called right, then vote per party";
 export const RANKING_SENTENCE = "All predictions are judged by " + RANK_ORDER + ".";
 // The analysis's paragraph under the verdict (owner, 2026-10-13).
-export const SEALED_LINE = "Your prediction is sealed and will be ranked against the result on election day. " + RANKING_SENTENCE;
+export const SEALED_LINE = "When you share it, your prediction is sealed and will be ranked against the result on election day. " + RANKING_SENTENCE;
 
 // The owner's badge for a badge's words (reweight.CLOSENESS_BANDS): the file
 // src/stamps/reader-<words>.svg, which the build serves at /stamps/. One file
@@ -869,6 +869,11 @@ export function storyCardSVG(spec, assets = {}, party) {
 const TONE = { strong: { face: "sansSemi", fill: C.ink }, plain: { face: "sans", fill: C.ink }, muted: { face: "sans", fill: C.ink2 } };
 const MONO_BAR = [C.rule];
 
+// The logo's height on each size, and the headline under it: without the
+// logo (assets.wsc, src/brand/whysoseriouscity.svg) the headline names the site.
+const MODEL_LOGO_H = { link: 88, story: 150 };
+const modelTitle = (title, assets) => (assets.wsc ? title : "whysoserious.city " + title);
+
 export function modelCardSVG(card, assets = {}, size = "link") {
   if (!card.map) throw new Error("the card needs the ward map");
   return size === "story" ? modelStory(card, assets) : modelLink(card, assets);
@@ -881,10 +886,13 @@ function modelLink(card, assets) {
   const [W, H] = SIZES.link;
   const X = 48, R = W - 48;
   let s = svgOpen(W, H, assets);
-  const head = fitText(card.title, Math.min(900, R - brandWidth(assets, 88) - 24 - X), 52, "serifSemi", 40);
-  s += text(X, LINK_HEAD_Y, head.text, head.fs, "serifSemi");
-  const bw = brandWidth(assets, 88);
-  s += brand(assets, R + 4 - bw, 12, 88) + rect(X, LINK_BAND - 1, R - X, 1, C.rule);
+  // our logo at the left, then "forecast, <date>" (whysoserious.city forecast,
+  // <date> where the logo could not be loaded); the Johannesburg lockup is not on this card
+  const wsc = { brand: assets.wsc || null }, lw = brandWidth(wsc, MODEL_LOGO_H.link);
+  const hx = lw ? X + lw + 24 : X;
+  const head = fitText(modelTitle(card.title, assets), R - hx, 52, "serifSemi", 40);
+  s += brand(wsc, X, 12, MODEL_LOGO_H.link) + text(hx, LINK_HEAD_Y, head.text, head.fs, "serifSemi");
+  s += rect(X, LINK_BAND - 1, R - X, 1, C.rule);
   let y = LINK_BAND + 30;
   for (const l of card.lines) {
     const t = TONE[l.tone || "muted"];
@@ -927,9 +935,9 @@ function modelStory(card, assets) {
   const [W, H] = SIZES.story;
   const X = 60, R = W - 60;
   let s = svgOpen(W, H, assets);
-  const head = fitText(card.title, R - X, 70, "serifSemi", 40);
+  const head = fitText(modelTitle(card.title, assets), R - X, 70, "serifSemi", 40);
   s += text(X, STORY_HEAD_Y, head.text, head.fs, "serifSemi");
-  s += brand(assets, X, 44, 130) + rect(X, STORY_BAND - 1, R - X, 1, C.rule);
+  s += brand({ brand: assets.wsc || null }, X, 44, MODEL_LOGO_H.story) + rect(X, STORY_BAND - 1, R - X, 1, C.rule);
   // the blocks, sized first
   const lines = card.lines.flatMap(l => wrapText(l.text, R - X, 26, TONE[l.tone || "muted"].face).map(w => ({ w, t: TONE[l.tone || "muted"] })));
   const linesH = 44 + (lines.length - 1) * 34;                 // from the band to the last baseline

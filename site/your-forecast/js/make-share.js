@@ -20,6 +20,7 @@ const E = {
   open: document.querySelector('[data-live="b-share"] .shareopen'),
   dlg: document.querySelector('[data-live="b-share"] dialog'),
   close: document.querySelector('[data-live="b-share"] .x'),
+  namefield: document.querySelector('[data-live="b-share"] .namefield'),
   name: document.querySelector('[data-live="b-share"] .shname'),
   namenote: document.querySelector('[data-live="b-share"] .shnamenote'),
   url: document.querySelector('[data-live="b-share"] .shurl'),

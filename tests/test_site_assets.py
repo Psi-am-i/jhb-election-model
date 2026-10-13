@@ -234,6 +234,7 @@ def test_the_logos_are_one_colour_vector_and_their_links_keep_the_names():
     default share image are linked and copied; the built pages carry them."""
     assert _vector_logo_problems(SA.LOGO, "logo", ("tower", "lettering"), muted=False) == []
     assert _vector_logo_problems(SA.UMBRELLA, "wsc", ("skyline", "wsc-name", "wsc-sub")) == []
+    assert _vector_logo_problems("whysoseriouscity.svg", "wsc", ("skyline", "wsc-name"), muted=False) == []
     import build_site as B
     assert B.LOGO_NAME == "Johannesburg election forecast \u2014 joburg.whysoserious.city"
     nav = B.nav_for("forecast")

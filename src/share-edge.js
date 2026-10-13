@@ -8,8 +8,8 @@
 //                            the channel, the button and the host are written.
 //   /your-forecast/?f=…      the page, its og: and twitter: tags rewritten to
 //                            name the forecast and point at its own image
-//   /og/5/link.png?<link>    that image, drawn here: share-card.js's card,
-//   /og/5/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
+//   /og/6/link.png?<link>    that image, drawn here: share-card.js's card,
+//   /og/6/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
 //                            the edge by the link and the published draws'
 //                            hash: a year when the link's seal checks, an
 //                            hour otherwise (imageCache). Any failure
@@ -77,9 +77,13 @@ const PAGE = "/your-forecast/";
 // closeness to the published prediction and the card prints what it is, with
 // no call and no chance (JUDGEMENT-CALLS §N10). Version 5 (2026-10-13): the
 // card says what the badge means ("We think this prediction is likely, but
-// time will tell.") and calls the reader's entry a prediction. An address of
-// an earlier version answers 301 to the same image at the current one.
-export const CARD_VERSION = 5;
+// time will tell.") and calls the reader's entry a prediction. Version 6
+// (2026-10-13): the card module's model card carries the whysoserious.city
+// logo, "forecast" and the forecast's date, and takes no name; the sealed
+// wording became "When you share it, your prediction is sealed ...". An
+// address of an earlier version answers 301 to the same image at the current
+// one.
+export const CARD_VERSION = 6;
 // reweight.CLOSENESS_MEASURE: the card answer's `measure`, the same text
 // (tests/test_worker_routing.py holds the two equal).
 export const CLOSENESS_MEASURE = "closeness to the published prediction";

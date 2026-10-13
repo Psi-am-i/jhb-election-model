@@ -2376,10 +2376,19 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   (`worker-api/seats-py/src/entry.py`), which seats the link's picks with
   `reader_seats` and reads the published draws from the site. A link's own
   figures are never read for an image.
+* **Our forecast's card and sheet** (owner, 2026-10-13; `play-card.js`,
+  `play-share.js`, `share-card.js` `modelCardSVG`): the card is drawn in the
+  browser, never by the edge. It carries `whysoseriouscity.svg` (the umbrella
+  logo without its tagline, traced from the owner's file), "forecast" and the
+  forecast's date, read from `forecast.json` `forecast_date` (`build_make.py`:
+  the published run's `run_at`, never typed); the same words head the alt text
+  and the native share (`forecastWords`). It carries no name, and the sheet
+  does not offer the name field for it (`nameShown`), so sharing it seals
+  nothing: `section1Share.fields()` is `null` until a setting is moved.
 * **The edge** (`share-edge.js`, routed by `src/worker.js`): `/s/` counts a
   share arrival (channel `share`, the button) and redirects to the arrival
   view; `/your-forecast/?f=…` gets its og: tags pointed at
-  `/og/5/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
+  `/og/6/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
   rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
   the draws' hash (a year when the link's seal checks, an hour otherwise), and
   is `/og.png` on any failure.

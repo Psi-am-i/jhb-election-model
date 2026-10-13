@@ -304,6 +304,49 @@ def test_every_figure_in_an_image_is_a_figure_a_page_printed():
     assert figure_faults(specs, pool, out)[0] == []
 
 
+def claim_card_faults(spec: dict, svg: str, W: int = 1200, H: int = 630) -> list[str]:
+    """What a claim card must be (owner, 2026-10-13): the verdict stamp large,
+    beside the tested statement, which the card prints from the claim's data;
+    and nothing at the left in the lowest 15% of the card, where X lays the
+    link's title over the image."""
+    out = []
+    texts = [(float(x), float(y), anchor, htmllib.unescape(t)) for x, y, anchor, t in
+             re.findall(r'<text x="([\d.]+)" y="([\d.]+)"[^>]*?(text-anchor="end")?[^>]*>([^<]*)</text>', svg)]
+    flat = " ".join(" ".join(t for _x, _y, _a, t in texts).split())
+    if not spec.get("statement") or spec["statement"] not in flat:
+        out.append(f"the tested statement {spec.get('statement')!r} is not printed on the card")
+    m = re.search(r'scale\(([\d.]+)\)"><clipPath id="v-viewbox"><rect x="0" y="0" width="[\d.]+" height="([\d.]+)"', svg)
+    stamp_h = float(m.group(1)) * float(m.group(2)) if m else 0
+    if stamp_h < 240:
+        out.append(f"the verdict stamp is {stamp_h:.0f}px tall; it must be at least 240 on a {H}px card")
+    for x, y, anchor, t in texts:
+        if y > H * 0.85 and not anchor and x < W / 2:
+            out.append(f"text {t!r} at the left, y={y}, in the band X covers")
+    return out
+
+
+def test_a_claim_card_prints_its_statement_beside_a_large_stamp_and_keeps_the_foot_clear():
+    out = built()
+    specs, _pool = _rebuild_specs(out)
+    claims = [s for s in specs if s["layout"] == "claim"]
+    toml = tomllib.loads((ROOT / "content/joburg/claims.toml").read_text(encoding="utf-8"))["claim"]
+    assert len(claims) == len(toml) >= 4
+    drawn = json.loads(_node(_DRAWN, claims))
+    for spec, d in zip(claims, drawn):
+        label = next(" ".join(c["label"].split()) for c in toml if spec["slug"] == og_pages.claim_image_slug(c["slug"]))
+        assert spec["statement"] == label, (spec["slug"], spec["statement"])
+        assert claim_card_faults(spec, d["svg"]) == [], (spec["slug"], claim_card_faults(spec, d["svg"]))
+    spec, svg = claims[0], drawn[0]["svg"]
+    # it can see: no statement, a small stamp, text in the covered band
+    assert claim_card_faults({**spec, "statement": "A statement the card never drew"}, svg)
+    assert claim_card_faults(spec, re.sub(r'scale\(([\d.]+)\)"><clipPath id="v-viewbox"',
+                                          lambda m: f'scale({float(m.group(1)) / 2:.6f})"><clipPath id="v-viewbox"', svg))
+    low = svg.replace("</svg>", '<text x="56" y="606" font-size="21">Tested against the forecast.</text></svg>')
+    assert any("band X covers" in f for f in claim_card_faults(spec, low))
+    # and quiet again when reverted
+    assert claim_card_faults(spec, svg) == []
+
+
 def test_the_renderer_types_no_figure_list():
     """A typed array of figures cannot enter src/og-pages.mjs: the site's
     live-writer scan's data-block pattern finds none, and finds one when it is

@@ -3,7 +3,7 @@
 -- src/rank_entries.py ranks every row on results night.
 --
 -- Exactly what is stored, and nothing else: no IP address, user agent, cookie
--- or account (docs-public/privacy.md, "Forecasts entered"). The columns are
+-- or account (docs-public/privacy.md, "Predictions entered"). The columns are
 -- share-edge.js ENTRY_COLUMNS; tests/test_entries.py holds the two together.
 --
 -- Applied by the owner (wrangler.toml, the ENTRIES note):

@@ -1822,6 +1822,19 @@ def test_both_share_sheets_are_one_sheet_with_one_set_of_controls():
     assert differ([(c, "Copy") if c == "btn shcopy" else (c, w) for c, w in one], two)
 
 
+def test_the_notes_run_full_width_in_two_columns_and_one_at_phone_width():
+    """Owner, 2026-10-13: the notes in two columns across the page's width,
+    one list numbered across both, a single column at phone width."""
+    css = re.sub(r"\s+", "", (ROOT / "interactive/css/your-forecast.css").read_text(encoding="utf-8"))
+    assert ".yf.pl-notesol{column-count:2;" in css
+    assert "@media(max-width:760px){.yf.pl-notesol{column-count:1;}}" in css
+    # the text-width cap is off the notes
+    assert ".yf.pl-notes," not in css and ",.yf.pl-notes," not in css
+    html = _html(_built())
+    assert html.count('class="pl-notes"') == 1 and len(re.findall(r'<section class="pl-notes".*?<ol>', html, re.S)) == 1
+    assert len(re.findall(r"<ol>", html[html.index('class="pl-notes"'):html.index("</section>", html.index('class="pl-notes"'))])) == 1
+
+
 def _cta_rules(css: str) -> list[str]:
     """The selectors in a stylesheet that style the class ``cta``, outside a
     ``:not(...)`` and other than its ``[disabled]`` state."""

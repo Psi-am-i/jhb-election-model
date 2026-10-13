@@ -61,3 +61,25 @@ other party claims share sheets."
    - The quote is set smaller to make room. Party logo, name and speaker stay.
    - Render every claim card at 1200 wide, and one simulated with the X
      bottom-left title overlay, to the FOR-SIMON-cards folder.
+
+## Third amendment (owner, 2026-10-13): one card for our forecast
+"we have two forecast share sheets [one] from prediction page and [one] on
+forecast page. The prediction page one is better I think."
+Screenshots: `our-forecast-card-prediction-page.png` (map, seat grid, party
+bars) and `our-forecast-card-forecast-page.png` ("Who governs Johannesburg
+after 4 November 2026?").
+
+8. **One our-forecast card.** Sharing our forecast from either page produces
+   the prediction-page design, through one code path (delete the other card's
+   code and its now-unused routes, with redirects so existing links resolve
+   to the kept card). Items 3 and 4 apply to it:
+   - title: logo + "forecast" + the forecast's date (replaces "Our
+     Johannesburg Forecast");
+   - no "Shared by <name>" line (it comes from the name field item 4 removes);
+   - one date only, the forecast's, from the forecast artefact. The
+     screenshot shows "Made 13 October 2026" at the bottom while the forecast
+     is of 29 September; the footer states the forecast's date or nothing;
+   - footer "Try your own at …" becomes "Make your own prediction at
+     joburg.whysoserious.city/your-forecast" (STYLE.md rule 11).
+   Report the figures on the card are the forecast artefact's (the card says
+   ANC 47% / DA 45% most seats; confirm against forecast.json, never retype).
