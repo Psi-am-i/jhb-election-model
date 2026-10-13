@@ -3,6 +3,7 @@
     .venv/bin/python src/arms.py run --arm U --out DIR            # every city-year
     .venv/bin/python src/arms.py run --arm I --out DIR --cities joburg --years 2021
     .venv/bin/python src/arms.py compare --out DIR --a I --b U    # after both ran
+    .venv/bin/python src/arms.py describe --out DIR --arm U       # M4, M5, §5.6
 
 The pre-registration is ``prereg/2026-10-12-universal-draw.md`` (§3 the arms,
 §3.2 the pairing, §4 the instruments, §6.3 R2) with its amendments. Step 7 of
@@ -66,7 +67,14 @@ THE COMPARISONS (``compare``), two statistics named apart (prereg §3.2):
   by ONE draw-index resample applied to both arms (``MC_RESAMPLES`` of them);
 * ``r2``: per city-year, the median over parties of the per-draw correlation
   of the two arms' list shares (prereg §6.3), and whether the pool sets
-  agree (U against C0 is read only where no pool is dropped).
+  agree (U against C0 is read only where no pool is dropped);
+* ``instruments``: the registered quantities that had no instrument (prereg
+  §10), each cited by row: the per-cycle split (C1, C5, S3, U16), band
+  coverage (U11, U14), the large parties' drawn log-sd (U12), coherent
+  wrong-party seats (U15, S4) and the §5.6 draw counts (and C8).
+
+``describe`` gives one arm's single-run instruments: drawn log-sd per party
+(M4), its excess over the run's own width (M5) and the §5.6 counts.
 
 It reports; the rules that score these numbers are the pre-registration's.
 """
@@ -454,9 +462,153 @@ def check_pairing(a: str, ma: dict, b: str, mb: dict) -> None:
                          f"different keys")
 
 
+# --------------------------------------------------------------------------
+# the registered instruments that had none (prereg §10: a quantity is defined
+# before its result is seen). Each cites its row; amendment 3 states the one
+# reading implemented where a row admits two.
+# --------------------------------------------------------------------------
+
+# §4 "inside the 90% band": the 5th-95th percentile of the drawn list share.
+BAND = (5.0, 95.0)
+# §5.6 and §5.1 row 3: "previous < 1%" and "above 5%", of list share.
+IMPLAUSIBLE_PREVIOUS_MAX = 0.01
+IMPLAUSIBLE_DRAWN_MIN = 0.05
+
+
+def _normalised(arrays: dict) -> np.ndarray:
+    S = np.asarray(arrays["pr_share_draws"], dtype=float)
+    return S / S.sum(axis=1, keepdims=True)
+
+
+def wrong_party_seats(seat_draws, cols: list, council: int,
+                      actual_seats: dict) -> float:
+    """Prereg §4 "seats given to the wrong party" (U15, S4): half the summed
+    absolute difference, over the union of parties, between
+    ``compare_history.coherent_seats`` (largest remainder on the mean seat
+    vector) of the saved seat draws and the actual council
+    (``compare_history._actual_seats``). REFUSES a run with an ``ENTRANT``
+    column: ``compare_history`` relabels that slot before scoring
+    (``backtest.relabel_run``), this instrument does not, and no scored
+    city-year is expected to carry one (amendment 3)."""
+    import compare_history as CH
+    if "ENTRANT" in cols:
+        raise SystemExit("a run with an ENTRANT column: its seats are "
+                         "relabelled before compare_history scores them, "
+                         "which this instrument does not do (amendment 3)")
+    draws = [{p: int(v) for p, v in zip(cols, row) if v}
+             for row in np.asarray(seat_draws)]
+    coh = CH.coherent_seats(draws, int(council))
+    union = set(coh) | set(actual_seats)
+    return 0.5 * float(sum(abs(coh.get(p, 0) - int(actual_seats.get(p, 0)))
+                           for p in union))
+
+
+def band_inside(S: np.ndarray, actual: np.ndarray) -> np.ndarray:
+    """Prereg §4 "inside the 90% band" (U11, U14), per column: the realised
+    share lies in [P5, P95] of the drawn list shares, both ends included
+    (``numpy.percentile``'s linear interpolation)."""
+    lo, hi = np.percentile(np.asarray(S, dtype=float), BAND, axis=0)
+    a = np.asarray(actual, dtype=float)
+    return (a >= lo) & (a <= hi)
+
+
+def drawn_log_sd(S: np.ndarray, cols: list) -> tuple[dict, list]:
+    """Drawn log-sd (U12, M4, M5): per party, the standard deviation over
+    draws (ddof 0) of the natural log of its drawn list share. Computed only
+    for a party positive in EVERY draw; the rest are returned by name, so no
+    floor constant enters (amendment 3)."""
+    S = np.asarray(S, dtype=float)
+    out, excluded = {}, []
+    for k, p in enumerate(cols):
+        col = S[:, k]
+        if (col > 0).all():
+            out[p] = float(np.log(col).std())
+        else:
+            excluded.append(p)
+    return out, excluded
+
+
+def implausible_draws(S: np.ndarray, cols: list, previous: dict,
+                      centres: dict | None) -> dict:
+    """Prereg §5.6 (and §5.1 row 3, C8), counts of draws of one run:
+
+    * ``established_under_1_above_5``: draws in which some party that stood
+      at the previous local election with a list share above 0 and under
+      ``IMPLAUSIBLE_PREVIOUS_MAX`` (1a Part B) is drawn above
+      ``IMPLAUSIBLE_DRAWN_MIN``;
+    * ``centre_under_1_above_5``: draws in which some party whose centre is
+      under 1% is drawn above 5%, the centre being arm I's ``pool_spec``
+      centre (``centres``; prereg §4: every arm on the same party sets).
+      None when no centres are given.
+
+    ``previous`` is the previous election's citywide list shares
+    (``compare_history.actual_shares`` at the target year minus five)."""
+    S = np.asarray(S, dtype=float)
+    est = [k for k, p in enumerate(cols)
+           if 0 < float(previous.get(p, 0.0)) < IMPLAUSIBLE_PREVIOUS_MAX]
+    out = {"draws": int(S.shape[0]), "established_parties": len(est),
+           "established_under_1_above_5": int(
+               (S[:, est] > IMPLAUSIBLE_DRAWN_MIN).any(axis=1).sum())
+           if est else 0}
+    if centres is None:
+        out["centre_under_1_above_5"] = None
+    else:
+        small = [k for k, p in enumerate(cols)
+                 if p in centres and centres[p] < IMPLAUSIBLE_PREVIOUS_MAX]
+        out["centre_parties"] = len(small)
+        out["centre_under_1_above_5"] = (int(
+            (S[:, small] > IMPLAUSIBLE_DRAWN_MIN).any(axis=1).sum())
+            if small else 0)
+    return out
+
+
+def width_excess(log_sd: dict, widths: dict) -> dict:
+    """M5: per party, its drawn log-sd minus the run's own total width
+    √(σ(s)² + δ²·new) (``35_widths.parties.<p>.total``), and the largest."""
+    ex = {p: v - float(widths[p]["total"]) for p, v in log_sd.items()
+          if p in widths and widths[p].get("total") is not None}
+    return {"excess": ex, "max": max(ex.values()) if ex else None,
+            "parties": len(ex)}
+
+
+def _read_widths(out: Path, arm: str, key) -> dict | None:
+    path = Path(out) / arm / f"{key[0]}-{key[1]}" / "trace" / "35_widths.json"
+    if not path.exists():
+        return None
+    return (json.loads(path.read_text()) or {}).get("parties") or None
+
+
+def describe(out: Path, arm: str, previous: dict | None = None,
+             centres_arm: str = "I") -> dict:
+    """One arm's single-run instruments per city-year: drawn log-sd (M4),
+    its excess over the run's own width (M5, from ``trace/35_widths``), and
+    on a forecast the §5.6 counts (``previous`` maps the city-year to the
+    previous election's shares; the centres are ``centres_arm``'s)."""
+    runs = load_arm(out, arm)
+    C = (runs if centres_arm == arm else
+         load_arm(out, centres_arm) if (Path(out) / centres_arm).is_dir()
+         else {})
+    res = {}
+    for key, (meta, arrays) in sorted(runs.items()):
+        S = _normalised(arrays)
+        sd, excl = drawn_log_sd(S, meta["seat_cols"])
+        row = {"drawn_log_sd": sd, "log_sd_excluded": excl}
+        widths = _read_widths(out, arm, key)
+        row["m5"] = width_excess(sd, widths) if widths else None
+        if previous and key in previous:
+            cen = (C.get(key) or ({}, None))[0].get("pool_spec_centres")
+            row["implausible"] = implausible_draws(S, meta["seat_cols"],
+                                                   previous[key], cen)
+        res[f"{key[0]}-{key[1]}"] = row
+    return {"arm": arm, "per_city_year": res,
+            "units": "log-sd in natural-log units of list share"}
+
+
 def compare(out: Path, a: str, b: str, actuals: dict,
             classify_by: str = "I", resamples: int | None = None,
-            population=None, allow_incomplete: bool = False) -> dict:
+            population=None, allow_incomplete: bool = False,
+            seats_actual: dict | None = None,
+            previous: dict | None = None) -> dict:
     """Arm ``b`` against arm ``a`` (differences are b − a), paired.
 
     THE SCORED POPULATION is ``plausibility.scored_population`` (prereg §2:
@@ -482,7 +634,25 @@ def compare(out: Path, a: str, b: str, actuals: dict,
     party with no ``pool_spec`` centre in the classifying arm enters ``all``
     and no size class, and is listed (``unclassed``). List MAE is
     ``compare_history.vote_mae``'s definition (every actual party, an
-    undrawn one at 0)."""
+    undrawn one at 0).
+
+    THE INSTRUMENTS (``instruments``), each over the scored population and
+    cited by its prereg row:
+
+    * ``per_cycle`` (C1, C5, S3, U16): per cycle, the mean CRPS difference
+      over the party-city-years of each size class and of all, and the mean
+      over the cycle's city-years of the list-MAE difference;
+    * ``band_coverage`` (U11, U14): per arm and size class, how many
+      party-city-years' realised share lies inside the drawn 5th-95th
+      percentile (:func:`band_inside`), of how many;
+    * ``large_log_sd_median`` (U12): per arm and cycle, the median over the
+      large party-city-years of the drawn log-sd (:func:`drawn_log_sd`);
+    * ``wrong_party_seats`` (U15, S4): per arm, per city-year, cycle and
+      summed, :func:`wrong_party_seats`, and the difference b − a. Needs
+      ``seats_actual`` (``(city, year)`` → ``(council, {party: seats})``);
+    * ``implausible_draws`` (§5.6 rows 1-2, C8): at a city-year in
+      ``previous`` (a forecast), each arm's :func:`implausible_draws` counts
+      and the difference."""
     import plausibility as P
     import score
     resamples = int(resamples or MC_RESAMPLES)
@@ -505,6 +675,7 @@ def compare(out: Path, a: str, b: str, actuals: dict,
     rng = np.random.default_rng(MC_SEED)
     per, groups = {}, {k: [] for k in ("large", "middle", "small", "all")}
     scored_keys = []
+    kept = {}   # scored key -> what the instruments read
     for key in sorted(set(A) & set(B)):
         (ma, xa), (mb, xb) = A[key], B[key]
         check_pairing(a, ma, b, mb)
@@ -542,6 +713,10 @@ def compare(out: Path, a: str, b: str, actuals: dict,
             cls = [size_class(cen[p]) if p in cen else None for p in parties]
             if key in pop_set:
                 scored_keys.append(key)
+                kept[key] = {"d": d, "cls": cls, "parties": parties,
+                             "act": act, "Sa": Sa, "Sb": Sb,
+                             "mae": _mae(Sb, parties, actual)
+                             - _mae(Sa, parties, actual)}
                 for name in ("large", "middle", "small"):
                     sel = np.array([c == name for c in cls])
                     if sel.any():
@@ -585,11 +760,103 @@ def compare(out: Path, a: str, b: str, actuals: dict,
     if len(scored_keys) != len(population) and not allow_incomplete:
         raise SystemExit(f"scored {len(scored_keys)} city-years against the "
                          f"{len(population)} registered")
+    inst = _instruments(a, b, A, B, C, kept, seats_actual, previous)
     return {"a": a, "b": b, "difference": f"{b} - {a}",
             "classified_by": classify_by, "per_city_year": per,
             "population": population_block,
             "cluster_interval": intervals,
-            "units": "CRPS and list MAE in points of list share"}
+            "instruments": inst,
+            "units": "CRPS and list MAE in points of list share; seats; "
+                     "log-sd in natural-log units"}
+
+
+def _instruments(a, b, A, B, C, kept, seats_actual, previous) -> dict:
+    """The ``instruments`` block of :func:`compare` (see its docstring)."""
+    classes = ("large", "middle", "small")
+    cycles = sorted({k[1] for k in kept}, key=int)
+    per_cycle = {}
+    for cy in cycles:
+        ks = [k for k in kept if k[1] == cy]
+        ent = {"city_years": len(ks),
+               "list_mae_difference_mean": float(np.mean(
+                   [kept[k]["mae"] for k in ks])),
+               "crps_mean_difference": {}}
+        for name in classes + ("all",):
+            vals = [kept[k]["d"][j] for k in ks
+                    for j, c in enumerate(kept[k]["cls"])
+                    if name == "all" or c == name]
+            ent["crps_mean_difference"][name] = (
+                {"mean": float(np.mean(vals)), "n": len(vals)} if vals
+                else None)
+        per_cycle[cy] = ent
+    band = {}
+    log_sd = {}
+    for arm, S_key in ((a, "Sa"), (b, "Sb")):
+        cov = {n: {"inside": 0, "of": 0} for n in classes}
+        med = {}
+        for k, v in kept.items():
+            inside = band_inside(v[S_key], v["act"])
+            for j, c in enumerate(v["cls"]):
+                if c in cov:
+                    cov[c]["of"] += 1
+                    cov[c]["inside"] += int(inside[j])
+        for cy in cycles:
+            vals, excl = [], []
+            for k in (k for k in kept if k[1] == cy):
+                v = kept[k]
+                large = [j for j, c in enumerate(v["cls"]) if c == "large"]
+                sd, ex = drawn_log_sd(v[S_key][:, large],
+                                      [v["parties"][j] for j in large])
+                vals += list(sd.values())
+                excl += [f"{k[0]}-{k[1]}:{p}" for p in ex]
+            med[cy] = {"median": float(np.median(vals)) if vals else None,
+                       "n": len(vals), "excluded": excl}
+        band[arm] = cov
+        log_sd[arm] = med
+    wps = None
+    if seats_actual is not None:
+        rows = {}
+        for k in sorted(kept):
+            if k not in seats_actual:
+                raise SystemExit(f"no actual seats for scored "
+                                 f"{k[0]}-{k[1]}")
+            council, seats = seats_actual[k]
+            va = wrong_party_seats(A[k][1]["seat_draws"], A[k][0]["seat_cols"],
+                                   council, seats)
+            vb = wrong_party_seats(B[k][1]["seat_draws"], B[k][0]["seat_cols"],
+                                   council, seats)
+            rows[f"{k[0]}-{k[1]}"] = {a: va, b: vb, "difference": vb - va}
+        by_cycle = {}
+        for cy in cycles:
+            sel = [r for name, r in rows.items() if name.endswith(f"-{cy}")]
+            by_cycle[cy] = {a: sum(r[a] for r in sel),
+                            b: sum(r[b] for r in sel),
+                            "difference": sum(r["difference"] for r in sel)}
+        wps = {"per_city_year": rows, "per_cycle": by_cycle,
+               "total": {a: sum(r[a] for r in rows.values()),
+                         b: sum(r[b] for r in rows.values()),
+                         "difference": sum(r["difference"]
+                                           for r in rows.values())}}
+    implaus = {}
+    for k in sorted((previous or {})):
+        if k not in A or k not in B:
+            continue
+        cen = (C.get(k) or ({}, None))[0].get("pool_spec_centres")
+        ca = implausible_draws(_normalised(A[k][1]), A[k][0]["seat_cols"],
+                               previous[k], cen)
+        cb = implausible_draws(_normalised(B[k][1]), B[k][0]["seat_cols"],
+                               previous[k], cen)
+        implaus[f"{k[0]}-{k[1]}"] = {
+            a: ca, b: cb,
+            "difference": {f: (None if ca[f] is None or cb[f] is None
+                               else cb[f] - ca[f])
+                           for f in ("established_under_1_above_5",
+                                     "centre_under_1_above_5")}}
+    return {"per_cycle": per_cycle, "band_coverage": band,
+            "large_log_sd_median": log_sd,
+            "wrong_party_seats": (wps if wps is not None else
+                                  {"not_computed": "no actual seats passed"}),
+            "implausible_draws": implaus}
 
 
 def actual_shares(keys) -> dict:
@@ -601,6 +868,37 @@ def actual_shares(keys) -> dict:
             continue
         cityconfig.use(city)
         target = cityconfig.use_target(year)
+        out[(city, year)] = CH.actual_shares(target, DATA)[0]
+    return out
+
+
+def actual_seat_maps(keys) -> dict:
+    """``(city, year)`` → ``(council, {party: seats})`` for every held
+    city-year in ``keys`` (``compare_history._actual_seats``)."""
+    import compare_history as CH
+    out = {}
+    for city, year in keys:
+        if not M.target_is_held(year):
+            continue
+        cityconfig.use(city)
+        target = cityconfig.use_target(year)
+        out[(city, year)] = (int(target.council),
+                             dict(CH._actual_seats(target, DATA)[0]))
+    return out
+
+
+def previous_shares(keys) -> dict:
+    """The previous local election's citywide list shares for every FORECAST
+    city-year in ``keys`` (§5.6: ``compare_history.actual_shares`` at the
+    target year minus five)."""
+    import compare_history as CH
+    out = {}
+    for city, year in keys:
+        if M.target_is_held(year):
+            continue
+        cityconfig.use(city)
+        prev = str(int(year) - 5)
+        target = cityconfig.use_target(prev)
         out[(city, year)] = CH.actual_shares(target, DATA)[0]
     return out
 
@@ -623,8 +921,19 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--allow-incomplete", action="store_true",
                    help="compare with some of prereg §2's city-years missing "
                         "(the output records the flag)")
+    d = sub.add_parser("describe")
+    d.add_argument("--out", type=Path, required=True)
+    d.add_argument("--arm", required=True, choices=sorted(ARMS))
     args = ap.parse_args(argv)
     M.fix_hash_seed()
+    if args.cmd == "describe":
+        keys = set(load_arm(args.out, args.arm))
+        res = describe(args.out, args.arm, previous_shares(keys))
+        path = check_out(args.out) / f"describe_{args.arm}.json"
+        path.write_text(json.dumps(res, indent=1, sort_keys=True,
+                                   default=str))
+        print(f"wrote {path}")
+        return 0
     if args.cmd == "run":
         res = run_arm(args.arm, args.out, args.cities, args.years,
                       args.draws, args.seed)
@@ -634,7 +943,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1 if res["refused"] else 0
     keys = {k for arm in (args.a, args.b) for k in load_arm(args.out, arm)}
     res = compare(args.out, args.a, args.b, actual_shares(keys),
-                  args.classify_by, allow_incomplete=args.allow_incomplete)
+                  args.classify_by, allow_incomplete=args.allow_incomplete,
+                  seats_actual=actual_seat_maps(keys),
+                  previous=previous_shares(keys))
     path = check_out(args.out) / f"compare_{args.a}_{args.b}.json"
     path.write_text(json.dumps(res, indent=1, sort_keys=True, default=str))
     print(f"wrote {path}")

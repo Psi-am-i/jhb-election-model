@@ -624,4 +624,37 @@ above is edited.
    fallback: a comparison refuses when arm I has not run at a scored
    city-year. A party drawn by an arm but absent from arm I's centres enters
    `all` and no size class, and is listed.
+6. **Instruments for rows that named none** (`src/arms.py`, `compare`'s
+   `instruments` block and `describe`), one reading each:
+   * **Per cycle (C1, C5, S3, U16).** C1's "mean difference" and U16's and
+     C5's large-party difference are the mean, over the cycle's
+     party-city-years in the size class (arm I's centres), of the per-party
+     CRPS difference. S3's "mean of 8 metros" is the unweighted mean over the
+     cycle's city-years of the `compare_history.vote_mae` difference (which
+     is share-weighted within a city-year).
+   * **Seats given to the wrong party (U15, S4).** Per city-year,
+     `compare_history.coherent_seats` of the run's saved seat draws against
+     `compare_history._actual_seats`, half the summed absolute error over the
+     union of parties; summed over a cycle for S4 and over both cycles for
+     U15, whose |U − I| is the difference of the two arms' sums. No
+     `ENTRANT` relabel is applied: a scored city-year carrying an `ENTRANT`
+     column refuses (`compare_history` relabels that slot, and the 2016 and
+     2021 runs are expected to carry none).
+   * **§5.6 rows 1 and 2 (and C8).** Counts of draws, of the run's draws, in
+     which at least one party is drawn strictly above 5% of the row-normalised
+     list share: row 1 among parties with a previous (2021) list share above 0
+     and under 1%; row 2 among parties whose centre is under 1%, the centre
+     being arm I's `pool_spec` centre for every arm, as §4 classes parties.
+   * **Inside the 90% band (U11, U14).** The realised share lies in the
+     closed interval [P5, P95] of the drawn list shares
+     (`numpy.percentile`, linear interpolation), counted per arm over the
+     party-city-years arm I classes large (U11) or middle (U14).
+   * **Drawn log-sd (U12, M4, M5).** The standard deviation over draws
+     (ddof 0) of the natural log of a party's drawn list share, for a party
+     positive in every draw; any other party is listed and excluded, with no
+     floor. U12 is the median over a cycle's large party-city-years. M4 reads
+     the per-party value at Johannesburg 2026. M5's bound is the run's own
+     `35_widths.parties.<p>.total`; the row's "composition and Monte Carlo
+     allowance" is not computed separately, and M5 is read as registered:
+     every party's excess over that total at most 0.05.
 

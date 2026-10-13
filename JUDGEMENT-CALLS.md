@@ -1108,6 +1108,8 @@ picked it, did not.
 
 **How to check it.** `tests/test_arms.py` (identical arms give zero difference and zero Monte Carlo error; a shifted arm stays paired above `R2_MIN_MEDIAN`; an independent one does not).
 
+**Since 2026-10-13 (step-7 review fixes).** Three more of the pre-registration's numbers are copied as code for the instruments it registered without one: `BAND` (5, 95), the drawn percentiles of "inside the 90% band" (§4); `IMPLAUSIBLE_PREVIOUS_MAX` 1% and `IMPLAUSIBLE_DRAWN_MIN` 5%, "previous < 1%" and "above 5%" of §5.6 and §5.1 row 3. `plausibility.SCORED_YEARS` (2016, 2021) and `SCORED_COUNT` (16) are §2's scored population. None is this writer's; amendment 3 states the readings.
+
 ### §B1 · `SPINE_K = 1.0`, reciprocal form — 🔴
 
 **Where.** `levels.py`

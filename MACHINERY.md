@@ -1897,6 +1897,18 @@ arm, is excluded from every size class and from `all` and listed with its
 share; a drawn party with no `pool_spec` centre in the classifying arm enters
 `all` and no class, and is listed.
 
+`compare`'s `instruments` block carries the registered quantities that had no
+instrument, each defined as prereg amendment 3 reads its row: per cycle, the
+mean CRPS difference by size class and the mean list-MAE difference over the
+cycle's city-years (C1, C5, S3, U16); per arm, band coverage by class (the
+realised share inside the drawn 5th-95th percentile, U11 and U14) and the
+median drawn log-sd of the large parties per cycle (U12); coherent wrong-party
+seats per city-year, cycle and in total (`compare_history.coherent_seats` of the
+saved seat draws against `_actual_seats`, half the summed absolute error; U15,
+S4); and at a forecast the §5.6 draw counts (C8). `describe` gives one arm's
+drawn log-sd per party (M4), its excess over the run's own `35_widths` total
+(M5) and the §5.6 counts.
+
 ## Reading a run without re-running it
 
 `run_model(..., run_dir=...)` — or `--run-dir` on `montecarlo.py` and

@@ -29502,3 +29502,25 @@ population gate removed in `compare` and in `score_panel`'s aggregation; the
 incomplete refusal removed (both modules); the actuals-only exclusion removed;
 the classifier fallback restored; the `spec_keys`, C0 `final_commit` and US
 variant checks removed.
+
+### Instruments for the registered rows that had none (item 9)
+
+Prereg §10 forbids defining a quantity after its result is seen, and five
+registered quantities had no instrument: the per-cycle split (C1, C5, S3,
+U16), coherent wrong-party seats (U15, S4), §5.6's draw counts (and C8), band
+coverage (U11, U14) and drawn log-sd (U12, M4, M5). `src/arms.py` now carries
+each (`compare`'s `instruments` block; `describe` for the single-arm M4, M5 and
+§5.6 rows), defined as amendment 3 point 6 reads the row; the readings that
+were ambiguous are written there (M5's allowance is not computed separately).
+Tests on constructed inputs: a three-draw, ten-seat council whose coherent
+vector is (5, 3, 2) gives 2 wrong-party seats against (3, 4, 2) plus an
+unseated party with 1; an `ENTRANT` column refuses; the band counts its ends
+and not a value below them; the drawn log-sd of a lognormal column equals its
+log sd and a column with a zero draw is listed, not floored; a constructed run
+gives row 1's count 7 (only the established sub-1% party) and row 2's 57; on
+the constructed arms, identical arms give zero in every instrument and the
+per-cycle class means recombine by their counts into the pooled mean of the
+cluster interval. Mutations, each red and green on revert: the seats' half
+dropped; the band's ends excluded; a floor in place of the exclusion; new
+parties (previous 0) admitted to row 1; the per-cycle filter removed; M5's
+subtraction removed.
