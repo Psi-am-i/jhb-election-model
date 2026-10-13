@@ -29670,3 +29670,82 @@ because item 6(c) gave `declares._group_share_key` and `_bye_value_key` a
 whether its key reads the audited root (only the width record's does), and
 only that key is passed it. Item 6's test and its mutation (the root not
 passed: red) were re-run.
+
+## 1.301 Model round step 8: the pre-registration scored by two independent scorers (2026-10-13)
+
+Brief: `audits/2026-10-11-model-round/STEP8-SCORING-BRIEF.md`, issued verbatim
+to two scorers working blind. Inputs: the step-7 runs (commit `7f0a921`, C0 at
+`dcff8fe`, seed 20261104; 1,000 draws per backtest, 5,000 for Johannesburg
+2026), kept under `.claude/step7-2026-10-13/` (gitignored). Score files:
+`.claude/step8-2026-10-13/scorer-{A,B}/SCORE.md`. Each scorer re-derived the
+decisive numbers from the arrays; where both computed a number, they agree.
+
+### Both scorers agree
+
+| row | registered | measured | verdict |
+|---|---|---|---|
+| §5.1 (arm I gate) | as written | J7 36.7%; sub-1% PIT 8; JHB 2026 count 420; R1 pass on both comparisons | inside |
+| U1 | U better than I by ≥ 4 points | −8.94 points, paired SE 0.42 | confirmed |
+| U2 | tail windows | P≤ 0.526, P≥ 0.721 | confirmed |
+| U10 | upper bound < +0.05 | +0.040 (step 7); +0.038 to +0.045 across scorers' bootstrap seeds | confirmed, margin 0.005-0.012 |
+| U11 | | 31 of 32 | confirmed |
+| U15 | | wrong-party seats change 0 | confirmed |
+| U7, U8, U13 | registered to fail | failed | as registered |
+| M1-M4 | | inside | confirmed |
+| M5 | drawn log-sd within 0.05 of the run's width total | JHB 2026 DA 0.162 against 0.072 (+0.090), ANC 0.162 against 0.082 (+0.079) | **falsified** |
+| C1-C8 (UC) | UC does not help | large-party CRPS UC − U +1.37; wrong-party seats +91 | confirmed |
+| S1-S5 (US) | | inside; S6 2011 list MAE −1.47 (reported) | confirmed |
+| §5.6 (JHB 2026 counts) | windows | inside for every arm | confirmed |
+| §6.3 R2 | correlations ≥ threshold; paired MC error of the U − US list-MAE difference < 0.05 | correlations ≥ 0.998; MC error ≥ 0.05 at 5 of 16 city-years (largest Ekurhuleni 2016, 0.140) | **MC clause falsified** |
+| J1-J4 | | pass | confirmed |
+| K2-K7 | | hold; K5 2021 (2.68%) and K6 2021 (0.52%) outside the predicted band, inside the falsifier window | confirmed |
+| M6/J5, §6.4 mutations | | not run in step 7 | not measured |
+
+JHB 2026 counts (I / U / UC / US): established party below 1% drawn above 5%
+420 / 14 / 3 / 5; any party centred below 1% drawn above 5% 832 / 52 / 39 / 22;
+largest new party above 18.12% 290 / 579 / 389 / 533; J7 ≥ 2 72.1% / 52.7% /
+39.8% / 39.7% of draws.
+
+### The scorers differ on K1
+
+Scorer A did not measure K1 (step 7 produced none). Scorer B measured it with
+1g §0's construction (one pool's census people and adults ×0.5 or ×1.5, the
+full `pool_counts` chain re-solved in process on the final tree): the
+registered split moves more than 0.10pp at 12 of 16 fits. **K1 falsified on
+scorer B's instrument.** Mechanism, checked in the code: a held pool takes
+`pools._uninformed_rate(A, b) = b.sum() / A.sum()`, a city rate summed over
+every pool, so scaling any identified pool moves the held pool's rate and the
+identified pools are refitted around it (0.46-1.13pp at the 9 fits holding a
+pool with the held set unchanged). Where the scaling flips the held set the
+move reaches 7.0pp (Cape Town 2011, Coloured ×0.5). 1g §c anticipated the flip
+and the held pool carrying its own census level, not every other pool's. The
+constructed-table test `test_an_identified_pools_split_does_not_carry_its_census_level`
+holds no pool and cannot see either.
+
+### §9 as both scorers read it
+
+1. Rule 1 (gates): not passed. K1 is a gate; on scorer B's measurement it
+   fails, and on the plain reading of "§6 green" the R2 MC clause fails too.
+   Nothing ships until resolved.
+2. U meets rule 2's four conditions (U10, U11, U1, U2). M5 and the R2 clause
+   are failures §5.2 did not predict; on the plain reading they send U to the
+   owner (rule 4).
+5. UC does not ship (upper bound against I +1.64).
+6. US goes to the owner split by cycle: 2016 list MAE +0.80, seats +10; 2021
+   +0.52, +23; 2011 −1.47. Default stays 0.35.
+7. The census hold does not ship while K1 fails.
+
+### Run defects found by the scorers
+
+- No whole-suite run on the re-emitted tree; step 7 ran three modules.
+- `test_no_emitted_composition_weight_is_arithmetically_impossible` was red on
+  the stale specs; the census hold adds a cell (Buffalo City 2011 DA, held
+  Indian/Asian pool, 1.05×).
+- U and C0 differ by about 1e-4 in list share at city-years the census change
+  should not touch (Johannesburg and Tshwane 2021); C0 reads its own width and
+  group-share records. K3 has little power: U and C0 centres agree to 1e-13
+  where the specs differ by 5pp.
+- UC's `meta.json` records the uncorrected centres (the corrected are in
+  `35_widths`).
+- Arms I and U are close to unpaired (per-draw correlation 0.02-0.18).
+- R1 part 2 ran with `allow_stale_pools=True` (§ step-7 report).
