@@ -1283,9 +1283,12 @@ ignores them and records that it did (`35_widths.judgements_ignored`); a
 forecast declares the hash of the entries it applied
 (`scenario._judgements_applied_sha` in the run summary;
 `artefact_key.judgements_applied_sha` in an `export_draws` manifest), which
-`declares.py --verify` checks against the live file. On a forecast
-(`montecarlo.target_is_held` false) an absent declaration fails, and so does a
-summary naming no `_target`; a backtest may declare nothing. The file is
+`declares.py --verify` checks against the live file: a declared hash the
+file contradicts is `~`. On a forecast (`montecarlo.target_is_held` false) an
+absent declaration is `✗` and fails, and so does a summary naming no `_target`;
+a backtest may declare nothing. The audit reads `export_draws` manifests under
+`site/draws/` (or under an overriding `--processed` root) as run rows, and
+computes each record's live key under the root it audits. The file is
 `pools.lineage_path`, under the repository's `judgements/`
 (`pools.JUDGEMENTS_DIR`) whatever the working directory, and on a forecast a
 missing file refuses rather than reading as the empty set.

@@ -29589,3 +29589,26 @@ dropped (red); the backtest rule dropped (red); reverted, green. The emit's
 wiring of `judged_parties` into `arrival_rules` is argued, not tested: no test
 runs `emit_pools`. Number-neutral today: no judgements file declares either
 key. A `pools.py` code change: batched (POOLS-REEMIT-QUEUE entry 37).
+
+### declares: absences are ✗, manifests are read, records keyed under the audited root (item 6)
+
+Three defects in `src/declares.py`. (a) `manifest_judgements_lie` had no
+production caller, so the strength-judgement hash an `export_draws` manifest
+declares was never checked; the audit now scans `manifest.json` files of the
+`draws-columnar` format under `site/draws/` (under the root itself when
+`--processed` overrides it) as run rows (git, draws, seed, env, time, inputs
+with the judgement check). The live published manifest predates the hash and
+is a Johannesburg 2026 forecast, so it now reads `✗` on `inputs`: an honest
+red, not tuned away. (b) A summary declaring no judgement hash on a forecast,
+or naming no `_target`, was marked `~` (declared and wrong); it declares
+nothing, so it is now `✗`, which `--verify` still counts (exit 1).
+`judgements_check` returns the state with the sentence; `judgements_lie` keeps
+the sentence for its callers. (c) `_record_rows` computed each record's live
+key without the audited root, so a scratch tree's width record was judged
+against the repository's specs; the key functions now take the root. Test on a
+scratch tree of four summaries and three manifests: exactly those are found;
+the absent and target-less cases are `✗` and not answerable as declared; the
+edited hashes are `~`; the true ones carry no judgement note; a width record
+keyed under the scratch root reads `✓`. Mutations, each red and green on
+revert: the absence marked `~`; the manifest scan skipped; the key computed
+without the root; the manifest's judgement check dropped.

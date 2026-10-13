@@ -699,6 +699,81 @@ def test_a_judgement_edited_after_a_run_is_reported_and_goes_quiet_reverted():
             os.chdir(cwd)
 
 
+def test_declares_marks_an_absent_judgement_declaration_undeclared_and_reads_manifests():
+    """Step-7 review item 6. (b) A summary naming no `_target`, or a
+    forecast summary declaring no strength-judgement hash, is `✗`
+    (undeclared), never `~`, and still fails `--verify` (its row is not
+    answerable as declared); a declared hash the live file contradicts is
+    `~`. (a) An `export_draws` manifest is scanned: a forecast manifest with
+    no hash is `✗`, one declaring the live hash passes the check, and an
+    edited hash is `~`. (c) The width record under the audited root is
+    judged against that root's key: a record keyed there reads `✓`.
+    Population: exactly the constructed artefacts are found, both ways."""
+    import declares
+    import montecarlo as M
+    sc = dict(M.DEFAULTS)
+    live = M.live_judgements_sha("joburg", "2026", sc)
+    with tempfile.TemporaryDirectory() as tmp:
+        proc = Path(tmp) / "processed"
+        proc.mkdir()
+
+        def summary(name, target, sha):
+            scn = dict(sc)
+            if sha is not None:
+                scn["_judgements_applied_sha"] = sha
+            body = {"scenario": scn, "_generated": "2026-10-13T00:00:00Z",
+                    "_draws": 10}
+            if target:
+                body["_target"] = target
+            (proc / name).write_text(json.dumps(body))
+
+        def manifest(name, sha):
+            d = proc / name
+            d.mkdir()
+            key = {"git": {"commit": "a" * 40, "dirty": False}, "draws": 10,
+                   "seed": 1, "env": {"raw": {}}, "time": "2026-10-13",
+                   "city": "joburg", "target": "2026",
+                   "config": {"deduct": dict(sc)}}
+            if sha is not None:
+                key["judgements_applied_sha"] = sha
+            (d / "manifest.json").write_text(json.dumps(
+                {"format": "draws-columnar-v1", "artefact_key": key}))
+
+        summary("a_forecast_summary.json", {"city": "joburg", "year": "2026"},
+                None)
+        summary("b_notarget_summary.json", None, None)
+        summary("c_edited_summary.json", {"city": "joburg", "year": "2026"},
+                "0" * 16)
+        summary("d_true_summary.json", {"city": "joburg", "year": "2026"},
+                live)
+        manifest("m_none", None)
+        manifest("m_true", live)
+        manifest("m_edited", "1" * 16)
+        rows = {Path(r.path).name if not r.path.endswith("manifest.json")
+                else Path(r.path).parent.name: r
+                for r in declares._json_rows(set(), proc, [proc])}
+        assert set(rows) == {"a_forecast_summary.json",
+                             "b_notarget_summary.json", "c_edited_summary.json",
+                             "d_true_summary.json", "m_none", "m_true",
+                             "m_edited"}, sorted(rows)
+        for name in ("a_forecast_summary.json", "b_notarget_summary.json",
+                     "m_none"):
+            r = rows[name]
+            assert r.states["inputs"] == declares.UNDECLARED, (name, r.states)
+            assert r.answerable != declares.DECLARED, name
+        for name in ("c_edited_summary.json", "m_edited"):
+            assert rows[name].states["inputs"] == declares.LYING, name
+        for name in ("d_true_summary.json", "m_true"):
+            assert not any("strength" in n for n in rows[name].notes), name
+        # (c) the record under the audited root's own key
+        (proc / M.WIDTH_RECORD).write_text(json.dumps(
+            {"artefact_key": M.width_record_key(processed=proc)}))
+        recs = [r for r in declares._record_rows(proc)
+                if r.path.endswith(M.WIDTH_RECORD)]
+        assert len(recs) == 1 and recs[0].states["code"] == declares.DECLARED, \
+            [(r.path, r.states, r.notes) for r in recs]
+
+
 if __name__ == "__main__":
     # AT THE END — see test_register_matches_code. Append tests ABOVE this.
     raise SystemExit(run_module(globals()))

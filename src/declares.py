@@ -348,38 +348,58 @@ def _spec_rows(live_sha: str | None, processed: Path) -> list[Row]:
     return rows
 
 
-def judgements_lie(scenario: dict, target: dict | None) -> str | None:
-    """A sentence when a run's strength-judgement declaration is wrong or
-    missing where it is required; None when it holds.
+def judgements_check(scenario: dict, target: dict | None
+                     ) -> tuple[str, str] | None:
+    """``(state, sentence)`` when a run's strength-judgement declaration is
+    missing where it is required or wrong; None when it holds.
 
-    * declared: it must equal what the live judgements file gives
-      (``montecarlo.live_judgements_sha``), on any target;
-    * not declared, on a FORECAST (``montecarlo.target_is_held`` false): a
-      failure. A forecast is the one artefact a judgement can reach, so an
-      absent declaration is an unchecked input, not a pass (step-6 review,
-      item 3). On a backtest the judgements are ignored by design and an
-      absent declaration is allowed;
-    * no target at all: a failure, since whether the artefact is a forecast
-      cannot be told, and a check that cannot tell passes nothing.
+    * declared, and not what the live judgements file gives
+      (``montecarlo.live_judgements_sha``), on any target: ``LYING`` (~);
+    * not declared, on a FORECAST (``montecarlo.target_is_held`` false):
+      ``UNDECLARED`` (✗). A forecast is the one artefact a judgement can
+      reach, so an absent declaration is an unchecked input, not a pass
+      (step-6 review, item 3). On a backtest the judgements are ignored by
+      design and an absent declaration is allowed;
+    * no target at all: ``UNDECLARED`` (✗), since whether the artefact is a
+      forecast cannot be told, and a check that cannot tell passes nothing.
+
+    An absence is never ``~``: ``~`` is a declaration that is false, and a
+    missing one declares nothing (step-7 review, item 6b). Both fail
+    ``--verify``.
     """
     import montecarlo as _mc
     declared = (scenario or {}).get("_judgements_applied_sha")
     if not target or not target.get("city") or not target.get("year"):
-        return ("declares no target (`_target` city and year), so whether it "
+        return (UNDECLARED,
+                "declares no target (`_target` city and year), so whether it "
                 "is a forecast that must declare its strength-judgement hash "
                 "cannot be told")
     if not declared:
         if _mc.target_is_held(target["year"]):
             return None
-        return (f"a forecast of {target['city']} {target['year']} that declares "
+        return (UNDECLARED,
+                f"a forecast of {target['city']} {target['year']} that declares "
                 f"no strength-judgement hash (`_judgements_applied_sha`): the "
                 f"judgements it ran with are unchecked")
     live = _mc.live_judgements_sha(target["city"], target["year"], scenario)
     if live != declared:
-        return (f"declares strength judgements {declared} but the live "
+        return (LYING,
+                f"declares strength judgements {declared} but the live "
                 f"judgements file gives {live}: a judgement was edited after "
                 f"the run")
     return None
+
+
+def judgements_lie(scenario: dict, target: dict | None) -> str | None:
+    """The sentence of :func:`judgements_check`, or None when it holds."""
+    got = judgements_check(scenario, target)
+    return None if got is None else got[1]
+
+
+def _merge(current: str | None, new: str) -> str:
+    """The worse of two states: ``~`` over ``✗`` over ``✓``."""
+    order = {DECLARED: 0, UNDECLARED: 1, LYING: 2}
+    return new if order[new] > order.get(current, 0) else current
 
 
 def manifest_judgements_lie(key: dict) -> str | None:
@@ -387,14 +407,28 @@ def manifest_judgements_lie(key: dict) -> str | None:
     ``artefact_key``: its ``city``, ``target``, ``judgements_applied_sha``
     and the deduct law's ``config`` (every law runs one scenario's
     judgements; ``export_draws`` refuses laws that disagree)."""
+    return judgements_lie(*_manifest_scenario(key))
+
+
+def _manifest_scenario(key: dict) -> tuple[dict, dict]:
+    """The scenario and target an export manifest's ``artefact_key`` gives
+    :func:`judgements_check`."""
     config = dict(((key or {}).get("config") or {}).get("deduct") or {})
     config["_judgements_applied_sha"] = (key or {}).get("judgements_applied_sha")
     target = {"city": (key or {}).get("city"), "year": (key or {}).get("target")}
-    return judgements_lie(config, target)
+    return config, target
 
 
-def _json_rows(live_keys: dict, processed: Path) -> list[Row]:
-    """Run outputs and scoreboards, each checked against what it embeds."""
+# The export manifests the audit scans: `export_draws`'s format, under the
+# published draw tree (and under an overriding `--processed` root instead).
+MANIFEST_FORMAT = "draws-columnar"
+SITE_DRAWS = REPO / "site" / "draws"
+
+
+def _json_rows(live_keys: dict, processed: Path,
+               manifest_roots=()) -> list[Row]:
+    """Run outputs, scoreboards and export manifests, each checked against
+    what it embeds."""
     out = []
 
     def spec_keys_current(embedded) -> str | None:
@@ -511,11 +545,45 @@ def _json_rows(live_keys: dict, processed: Path) -> list[Row]:
         # 1j v3 addendum §2): they are read at run time and excluded from the
         # spec's hash, so the forecast declares the hash of the entries it
         # applied and it is checked against the live file here.
-        jlie = judgements_lie(sc, d.get("_target"))
-        if jlie:
-            r.states["inputs"] = LYING
-            r.notes.append(jlie)
+        jcheck = judgements_check(sc, d.get("_target"))
+        if jcheck:
+            r.states["inputs"] = _merge(r.states["inputs"], jcheck[0])
+            r.notes.append(jcheck[1])
         out.append(r)
+
+    # --- export manifests (`export_draws`): a forecast's published draws ----
+    # Scanned since 2026-10-13 (step-7 review, item 6a): the manifest declares
+    # the strength-judgement hash its run applied, and nothing read it.
+    for root in manifest_roots:
+        for p in sorted(Path(root).rglob("manifest.json")):
+            try:
+                whole = json.loads(p.read_text())
+            except Exception:
+                continue
+            if not str((whole or {}).get("format", "")).startswith(
+                    MANIFEST_FORMAT):
+                continue
+            key = whole.get("artefact_key") or {}
+            r = Row(_display(p), "run")
+            git = key.get("git") or {}
+            r.states["git"] = (DECLARED if _declared(git.get("commit"))
+                               else UNDECLARED)
+            if git.get("dirty"):
+                r.states["git"] = LYING
+                r.notes.append(f"git dirty — names {str(git.get('commit'))[:8]} "
+                               f"but the tree had moved off it")
+            for f in ("draws", "seed", "env", "time"):
+                r.states[f] = DECLARED if _declared(key.get(f)) else UNDECLARED
+            lie = spec_keys_current(key.get("inputs"))
+            r.states["inputs"] = (LYING if lie else
+                                  DECLARED if key.get("inputs") else UNDECLARED)
+            if lie:
+                r.notes.append(lie)
+            jcheck = judgements_check(*_manifest_scenario(key))
+            if jcheck:
+                r.states["inputs"] = _merge(r.states["inputs"], jcheck[0])
+                r.notes.append(jcheck[1])
+            out.append(r)
 
     # --- the other run-shaped artefacts the first scan did not see ----------
     for name in ("validation_2021.json", "width_budget.json", "sweep.json",
@@ -714,8 +782,10 @@ def _reduction_rows(processed: Path) -> list[Row]:
     return rows
 
 
-def _group_share_key() -> dict:
-    """The group-share record's live key, from the files (BRIEF item 12)."""
+def _group_share_key(processed: Path | None = None) -> dict:
+    """The group-share record's live key, from the files (BRIEF item 12).
+    ``processed`` is accepted for the one calling convention of
+    ``_record_rows`` and not read: this key names code only."""
     import pools as _pl
     src = Path(_pl.__file__).resolve().parent
     return {"record_sha": _pl._code_sha(src / "group_share_record.py"),
@@ -723,9 +793,10 @@ def _group_share_key() -> dict:
             "deps_sha": _pl._deps_sha()}
 
 
-def _bye_value_key() -> dict:
+def _bye_value_key(processed: Path | None = None) -> dict:
     """The by-election value test's live key (BRIEF item 19), by the one
-    definition the writer and `montecarlo`'s reader also use."""
+    definition the writer and `montecarlo`'s reader also use. ``processed``
+    is not read (the key names code and raw files)."""
     import byelections as _by
     import montecarlo as _mc
     return _by.bye_value_key((_mc.WARD_PR_RATIO_MIN, _mc.WARD_PR_RATIO_MAX))
@@ -761,7 +832,11 @@ def _record_rows(processed: Path) -> list[Row]:
         raise CannotAudit(f"cannot list the record files: {exc}") from exc
     for name, key_fn, rebuild in files:
         try:
-            live = key_fn()
+            # Under the AUDITED root (step-7 review, item 6c): the width
+            # record's key hashes the specs and records beside it, so a key
+            # computed under the repository's tree judged a scratch tree's
+            # record against the wrong inputs.
+            live = key_fn(processed)
         except Exception as exc:  # the audit must say it could not look
             raise CannotAudit(f"cannot compute the key of {name}: "
                               f"{exc}") from exc
@@ -792,7 +867,8 @@ def audit(processed: Path | None = None) -> list[Row]:
     live_sha = _live_pools_sha()
     spec = _spec_rows(live_sha, root)
     live_keys = {live_sha} if live_sha else set()
-    return (spec + _json_rows(live_keys, root) + _reduction_rows(root)
+    manifests = [root] if processed is not None else [root, SITE_DRAWS]
+    return (spec + _json_rows(live_keys, root, manifests) + _reduction_rows(root)
             + _record_rows(root) + _intermediate_rows(root))
 
 
