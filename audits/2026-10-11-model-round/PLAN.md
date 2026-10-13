@@ -112,3 +112,4 @@ Site (separate repo, separate release):
 11. Closeness badge (CLOSENESS-BADGE-BRIEF.md) in build; the owner is drawing
     new number-free badges. The live card server and live site promotion are
     the owner's, after he sees the test site.
+12. Splinter voter mix (owner question, 2026-10-13). `SPLINTER_PARENT_WEIGHT` 0.35 (JUDGEMENT-CALLS §F6, 🔴) is the median of 22 past splinter cases, which range from EFF 0.89 through GOOD 0.28 to ActionSA about 0.02, so one median serves a very wide range. Proposed general rule, for every party and not MK alone: where a party stood in the preceding national election, fit its voter mix from that election's ward results in the city, and use the splinter weight only for parties with no such result. Owner decision; design and measure before adopting.
