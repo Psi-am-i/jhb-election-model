@@ -1365,8 +1365,7 @@ def test_closeness_aggregates_by_hand():
     mine = _moved(ours); del mine["seats"]["B"]
     assert R.closeness(s, sc, x, xc, None, mine, ours)["parties"]["B"] == 0.5
     # the answer carries the closeness but outcome_badge does not pass it on
-    cuts = {"Safe bet": 0.9, "Steady as she goes": 0.8, "Long shot": 0.7, "Wild call": 0.6}
-    o = R.outcome_badge(s, sc, x, xc, None, ours, 106, [], ours=ours, cuts=cuts)
+    o = R.outcome_badge(s, sc, x, xc, None, ours, 106, [], ours=ours)
     assert set(o) == {"largest", "majority_alone", "coalition", "badge", "measure"}
     assert o["badge"] == "Safe bet" and o["measure"] == R.CLOSENESS_MEASURE
     assert not any(isinstance(v, float) for v in o.values())
@@ -1405,56 +1404,18 @@ def test_the_large_parties_are_ours_with_ties_by_code():
     assert R.large_parties({"X": 3, "Y": 3}) == ["X", "Y"]
 
 
-def test_closeness_badge_at_its_cut_offs():
-    """A closeness at a cut-off takes the closer band; just under it the
-    next; under the last cut-off, Hail Mary. Cut-offs naming other bands are
-    refused."""
-    cuts = {"Safe bet": 0.6, "Steady as she goes": 0.5, "Long shot": 0.4, "Wild call": 0.3}
-    assert [w for _l, w in R.CLOSENESS_BANDS] == ["Safe bet", "Steady as she goes", "Long shot", "Wild call",
-                                                  "Hail Mary"]
-    assert [l for l, _w in R.CLOSENESS_BANDS] == [0.75, 0.50, 0.25, 0.05, 0.0]
-    for v, words in [(1.0, "Safe bet"), (0.6, "Safe bet"), (0.5999, "Steady as she goes"), (0.5, "Steady as she goes"),
-                     (0.4999, "Long shot"), (0.4, "Long shot"), (0.3999, "Wild call"), (0.3, "Wild call"),
-                     (0.2999, "Hail Mary"), (0.0, "Hail Mary")]:
-        assert R.closeness_badge(v, cuts) == words, (v, words)
-    for bad in ({**cuts, "Hail Mary": 0.1}, {k: v for k, v in cuts.items() if k != "Wild call"}):
-        try:
-            R.closeness_badge(0.5, bad)
-        except R.Refused:
-            pass
-        else:
-            raise AssertionError(f"cut-offs {sorted(bad)} were accepted")
-
-
-def test_the_cut_offs_are_the_stated_quantiles_of_the_draws_own_scores():
-    """closeness_cuts scores every draw as a reader's forecast and takes the
-    quantile at each band's level. The scores are re-made here draw by draw
-    from closeness itself and the quantiles taken with np.percentile, so a
-    level swapped, a band shifted or a draw dropped turns this red."""
-    rng = np.random.default_rng(13)
-    n, cols = 60, ["A", "B", "C", "D", "E", "F", "G", "H"]
-    seats = np.column_stack([rng.integers(lo, lo + 9, n) for lo in (55, 45, 35, 25, 15, 8, 0, 0)]).astype(float)
-    shares = np.column_stack([rng.normal(m, m / 10, n) for m in (30, 25, 18, 12, 8, 5, 1.5, 0.3)]).clip(0)
-    ours = {"seats": {c: int(np.median(seats[:, j])) for j, c in enumerate(cols)},
-            "share": {c: float(np.median(shares[:, j])) for j, c in enumerate(cols)}}
-    scores = []
-    for i in range(n):
-        mine = {"seats": {c: int(seats[i, j]) for j, c in enumerate(cols)},
-                "share": {c: float(shares[i, j]) for j, c in enumerate(cols)}}
-        scores.append(R.closeness(seats, cols, shares, cols, None, mine, ours)["overall"])
-    want = dict(zip(["Safe bet", "Steady as she goes", "Long shot", "Wild call"],
-                    np.percentile(scores, [75, 50, 25, 5])))
-    got = R.closeness_cuts(seats, cols, shares, cols, None, ours)
-    assert got.keys() == want.keys()
-    for k in want:
-        assert math.isclose(got[k], want[k], rel_tol=0, abs_tol=1e-12), (k, got[k], want[k])
-    assert got["Safe bet"] > got["Steady as she goes"] > got["Long shot"] > got["Wild call"]
-    # the bands then hold their stated shares of the draws (ties aside)
-    bands = [R.closeness_badge(v, got) for v in scores]
-    assert 0.2 <= bands.count("Safe bet") / n <= 0.3
-    assert bands.count("Hail Mary") / n <= 0.1
-    # ours scores 1 and is a Safe bet
-    assert R.closeness_badge(R.closeness(seats, cols, shares, cols, None, ours, ours)["overall"], got) == "Safe bet"
+def test_closeness_badge_at_its_edges():
+    """The owner's fixed ten-point bands (2026-10-13, JUDGEMENT-CALLS §N10):
+    Safe bet from 0.90, Steady as she goes from 0.80, Long shot from 0.70,
+    Wild call from 0.60, Hail Mary below. A closeness at an edge takes the
+    closer band; just under it, the next. Each edge on both sides, so a cut
+    moved, a band reordered or renamed turns this red."""
+    assert R.CLOSENESS_BANDS == ((0.90, "Safe bet"), (0.80, "Steady as she goes"), (0.70, "Long shot"),
+                                 (0.60, "Wild call"), (0.0, "Hail Mary"))
+    for v, words in [(1.0, "Safe bet"), (0.90, "Safe bet"), (0.8999, "Steady as she goes"),
+                     (0.80, "Steady as she goes"), (0.7999, "Long shot"), (0.70, "Long shot"),
+                     (0.6999, "Wild call"), (0.60, "Wild call"), (0.5999, "Hail Mary"), (0.0, "Hail Mary")]:
+        assert R.closeness_badge(v) == words, (v, words, R.closeness_badge(v))
 
 
 def _published():
@@ -1475,18 +1436,69 @@ def _published():
 
 def test_ours_is_one_on_every_party_and_a_safe_bet_on_the_published_draws():
     """On the published draws and the published prediction: every party
-    counted scores exactly 1, the overall is 1, and forecast.json's cut-offs
-    band it Safe bet. And forecast.json's cut-offs are what closeness_cuts
-    makes from the published draws now (regenerated, not read back)."""
-    seats, cols, x, xcols, ours, forecast = _published()
+    counted scores exactly 1, the overall is 1, and the badge is Safe bet."""
+    seats, cols, x, xcols, ours, _forecast = _published()
     got = R.closeness(seats, cols, x, xcols, None, ours, ours)
     assert len(got["large_parties"]) == R.CLOSENESS_LARGE_PARTIES
     assert got["parties"] and all(v == 1.0 for v in got["parties"].values()), got["parties"]
     assert got["overall"] == 1.0
-    assert R.closeness_badge(got["overall"], forecast["closeness_cuts"]) == "Safe bet"
-    fresh = R.closeness_cuts(seats, cols, x, xcols, None, ours)
-    assert fresh == forecast["closeness_cuts"], (fresh, forecast["closeness_cuts"])
-    assert fresh["Safe bet"] < 1.0
+    assert R.closeness_badge(got["overall"]) == "Safe bet"
+
+
+#: The brief's test forecasts (audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md),
+#: measured 2026-10-13 on the published draws of model 7ea27c28 (MODEL-LOG
+#: "Closeness badge: the quantile cut-offs rejected"): overall closeness to
+#: three places and the badge under the owner's ten-point bands. Mild, moderate
+#: and wild are score/v4.py's constructions: our prediction with the named
+#: seat moves, each moved party's list percent scaled by its seats.
+BRIEF_TABLE_MODEL = "7ea27c28"
+BRIEF_TABLE = {"ours": (1.000, "Safe bet"), "fixture A": (0.991, "Safe bet"), "fixture B": (0.685, "Wild call"),
+               "screenshot": (0.820, "Steady as she goes"), "mild": (0.918, "Safe bet"),
+               "moderate": (0.846, "Steady as she goes"), "wild": (0.780, "Long shot")}
+#: The owner's screenshot forecast: seats and list percent for 14 parties;
+#: every other party at our prediction.
+SCREENSHOT = {"ANC": (75, 23.3), "DA": (65, 25.8), "ASA": (33, 14.4), "MK": (26, 10.6), "EFF": (25, 9.5),
+              "PA": (14, 2.6), "IFP": (4, 1.5), "RISE": (4, 1.6), "ALJAMAAH": (3, 0.9), "ALL_CITIZENS_PARTY": (3, 0.9),
+              "BOSA": (3, 1.0), "SOUTH_AFRICAN_COMMUNIST_PARTY": (3, 1.3), "ACDP": (2, 0.7), "VFPLUS": (2, 0.9)}
+
+
+def test_the_briefs_test_forecasts_take_the_owners_bands():
+    """The seven forecasts the brief names, on the published draws: mild a
+    Safe bet, moderate and the screenshot Steady as she goes, wild a Long
+    shot, fixture B a Wild call. Measured on model 7ea27c28; on any other
+    published model this fails and says to re-measure."""
+    model = json.loads((ROOT / "site" / "draws" / "manifest.json").read_bytes())["artefact_key"]["model_sha256"]
+    assert model.startswith(BRIEF_TABLE_MODEL), (
+        f"the published draws are model {model[:8]}, not {BRIEF_TABLE_MODEL}: re-measure BRIEF_TABLE")
+    seats, cols, x, xcols, ours, _f = _published()
+    fx = json.loads((ROOT / "interactive" / "tests" / "share-fixture.json").read_text(encoding="utf-8"))
+
+    def moved(ch):
+        s, v = dict(ours["seats"]), dict(ours["share"])
+        for c, d in ch.items():
+            v[c] = v[c] * (s[c] + d) / s[c]
+            s[c] += d
+        return {"seats": s, "share": v}
+    o = R.large_parties(ours["seats"])
+    shot = {"seats": {**ours["seats"], **{c: a for c, (a, _b) in SCREENSHOT.items()}},
+            "share": {**ours["share"], **{c: b for c, (_a, b) in SCREENSHOT.items()}}}
+    forecasts = {
+        "ours": ours,
+        "fixture A": {"seats": fx["A"]["answer"]["seats"], "share": R.list_percent(fx["A"]["list_votes"])},
+        "fixture B": {"seats": fx["B"]["answer"]["seats"], "share": R.list_percent(fx["B"]["list_votes"])},
+        "screenshot": shot,
+        "mild": moved({o[0]: -8, o[1]: 8}),
+        "moderate": moved({o[0]: -15, o[1]: 5, o[2]: 5, o[3]: 5, "IFP": 2}),
+        "wild": moved({o[0]: -25, o[3]: 25, "ALJAMAAH": 3, "IFP": 3, "RISE": 3}),
+    }
+    assert forecasts.keys() == BRIEF_TABLE.keys()
+    for name, mine in forecasts.items():
+        overall = R.closeness(seats, cols, x, xcols, None, mine, ours)["overall"]
+        want, badge = BRIEF_TABLE[name]
+        assert abs(overall - want) <= 0.0005, (name, overall, want)
+        assert R.closeness_badge(overall) == badge, (name, overall, badge)
+    # the bands are all used but Hail Mary: the table can tell them apart
+    assert len({b for _v, b in BRIEF_TABLE.values()}) == 4
 
 
 def test_moving_a_party_further_from_ours_never_raises_its_closeness():

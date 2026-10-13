@@ -111,7 +111,7 @@ promotion note in §F.
 | `independent_wards` (C) in the forecast | 0, structurally | `montecarlo.run_model` | The forecast universe drops INDEPENDENT/IND, so no draw can seat an independent and C is always 0. The IEC records C=1 at eThekwini 2011 and C=4 at 2016, both SCORED — the model allocates those seats to parties and is charged for it. An ASSUMPTION, not a measurement; registered 2026-09-02 after being silent. | 🔴 | §1.166 |
 | `CENSUS_COVERAGE_FLOOR` | 0.80 | `pools.py` | A WARNING in `pool_counts` and a REFUSAL in `registered_at_target`, on different denominators. Measured 2026-09-02: 0.9609-0.9979 at the refusal, so it binds nowhere and has never been exercised. The §J2 argument applies to it and has not been applied. | 🔴 | §J1 |
 | `CENSUS_DRIFT_CEILING` | 0.05 | `pools.pool_counts` | The reprojection refusal: how far the CITYWIDE composition moves because of unmappable wards. Bounded by ablation (worst random loss 0.028, segregated loss ~0.28) on one city only. | 🟡 | §J2 |
-| `CLOSENESS_BANDS` | quantile levels 0.75, 0.50, 0.25, 0.05 | `reweight.py`, `closeness_badge` / `closeness_cuts` | Owner, 2026-10-13. The reader badge's bands: Safe bet when a forecast is closer to our prediction than 75% of the published simulations scored the same way, Steady as she goes from 50%, Long shot from 25%, Wild call from 5%, Hail Mary below. The levels are the owner's; the cut-offs are computed from the draws at build time (forecast.json `closeness_cuts`), never typed. A forecast at a cut-off takes the closer band. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
+| `CLOSENESS_BANDS` | 0.90, 0.80, 0.70, 0.60 | `reweight.py`, `closeness_badge` | Owner, 2026-10-13: "90-100 SAFE, 80-90 VERY LIKELY etc". The reader badge's fixed ten-point bands on the overall closeness: Safe bet from 0.90, Steady as she goes from 0.80, Long shot from 0.70, Wild call from 0.60, Hail Mary below; an edge takes the closer band. Replaced the same day a rule banding by quantiles of the draws' own closeness, rejected on measurement (§N10). Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
 | `CLOSENESS_LARGE_PARTIES` | 6 | `reweight.py`, `large_parties` | Owner, 2026-10-13. How many parties, those with the most seats in our published prediction (a tie by code), make the large-party mean L of the badge's closeness. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
 | `CLOSENESS_LARGE_WEIGHT` | 2 | `reweight.py`, `closeness` | Owner, 2026-10-13: "large parties and predictions are way more important". The large parties' mean counts twice the small parties': overall closeness = (2L + S) / 3. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
 | `CLOSENESS_TINY_POINTS` | 0.5 | `reweight.py`, `closeness` | Owner, 2026-10-13. A party with no seats and under 0.5 points of the list ballot in both our prediction and the reader's forecast is left out of the small-party mean S, so parties nobody moved do not dilute it. Argued, not tested. Moves no forecast. | ⚖️ | §N10 |
@@ -3417,17 +3417,16 @@ or sixty seconds only.
 the fourth seal refused, another address and a new period passed, and a
 preview refused before it is counted.
 
-### §N10 · The reader's badge: how close a forecast is to our prediction, banded by the simulations' own closeness (75, 50, 25, 5%) — ⚖️ owner's measure and bands (2026-10-10, measure replaced 2026-10-13)
+### §N10 · The reader's badge: how close a forecast is to our prediction, in fixed ten-point bands (0.90, 0.80, 0.70, 0.60) — ⚖️ owner's measure and bands (2026-10-10, measure replaced 2026-10-13)
 
 **Where.** `reweight.closeness` (with `party_closeness`, `large_parties`,
-`CLOSENESS_LARGE_PARTIES`, `CLOSENESS_LARGE_WEIGHT`, `CLOSENESS_TINY_POINTS`),
-`reweight.closeness_cuts` and `reweight.closeness_badge` (`CLOSENESS_BANDS`),
-called through `reweight.outcome_badge` by `interactive/pyboot/page.py`'s
-`analyse` and the seat Worker's card answer
-(`worker-api/seats-py/src/entry.py`, `/v1/card`). The cut-offs are computed by
-`build_make.closeness_cuts` when forecast.json is built and stored there as
-`closeness_cuts`; the page sends them with its `analyse` request and the seat
-Worker reads them from the site's forecast.json. The share cards, the link
+`CLOSENESS_LARGE_PARTIES`, `CLOSENESS_LARGE_WEIGHT`, `CLOSENESS_TINY_POINTS`)
+and `reweight.closeness_badge` (`CLOSENESS_BANDS`), called through
+`reweight.outcome_badge` by `interactive/pyboot/page.py`'s `analyse` and the
+seat Worker's card answer (`worker-api/seats-py/src/entry.py`, `/v1/card`).
+The page sends the published prediction (forecast.json `start`) with its
+`analyse` request; the seat Worker reads it from the site's forecast.json.
+The share cards, the link
 preview, the arrival view and the analysis draw the owner's badge for the
 words they are handed (`src/stamps/reader-<words>.svg`, served at
 `/stamps/`); no JavaScript computes it. No page or card prints the closeness
@@ -3451,21 +3450,27 @@ as a number: `outcome_badge` returns the words only.
 * Overall closeness = (2L + S) / 3 (`CLOSENESS_LARGE_WEIGHT` = 2). With no
   small party left it is L.
 
-| badge | overall closeness |
+| badge | overall closeness (owner, 2026-10-13: "90-100 SAFE, 80-90 VERY LIKELY etc") |
 |---|---|
-| Safe bet | at or above the 75th percentile of the simulations' own scores |
-| Steady as she goes | from the 50th percentile |
-| Long shot | from the 25th percentile |
-| Wild call | from the 5th percentile |
-| Hail Mary | below the 5th percentile |
+| Safe bet | 0.90 or more |
+| Steady as she goes | 0.80 to under 0.90 |
+| Long shot | 0.70 to under 0.80 |
+| Wild call | 0.60 to under 0.70 |
+| Hail Mary | under 0.60 |
 
-The simulations' own scores: every published draw scored through
-`reweight.closeness` as if it were a reader's forecast (its seats and list
-percents), against the same draws and our prediction (`closeness_cuts`,
-`draw_closeness`); the cut-offs are their weighted quantiles
-(`weighted_quantile`, each draw counted once). A draw stays in the population
-it is scored against. A closeness at a cut-off takes the closer band. Our
-prediction scores 1 and is always a Safe bet.
+A closeness at an edge takes the closer band. Our prediction scores 1 and is
+always a Safe bet.
+
+**Rejected: bands at quantiles of the simulations' own closeness.** The
+brief's first rule set the edges at the 75th, 50th, 25th and 5th percentiles
+of every published draw scored as a reader's forecast. Measured on the
+published draws (MODEL-LOG "Closeness badge: the cut-offs against the brief's
+test forecasts", and "the quantile cut-offs rejected"): a draw scored against
+its own population has a per-party closeness spread evenly between 0 and 1,
+so the draws score about 0.5 overall and the edges fell at 0.39 to 0.59,
+while a reader's forecast holds most parties at our prediction. Every one of
+the brief's seven test forecasts, the wild one included, was a Safe bet. The
+owner replaced the rule with the fixed bands above the same day.
 
 **Why.** The owner, 2026-10-13, after the variants measured in
 `score/v4.py` (scratch): the per-party within-two-seats chance printed by the
@@ -3476,8 +3481,8 @@ party. Owner: "47% for everything looks broken. must feel right."; "I would
 not give them a score. A score gives the impression of chance and a wild call
 does not have a 78% chance."; "large parties and predictions are way more
 important" (the 6 large parties and the 2:1 weight). The 0.5-point floor keeps
-parties no one moved from diluting S. The band levels are his; the cut-offs
-are not typed but computed from the published draws, so they follow the model.
+parties no one moved from diluting S. The bands are his, fixed on the
+closeness scale.
 
 **Known limits.** Per party the measure is monotone: moving one party further
 from ours never raises its closeness (tested). The overall is not monotone in
@@ -3487,10 +3492,10 @@ weights); a reader's section-1 settings do not move it.
 
 **How to check it.** `tests/test_reweight.py`: `party_closeness` by hand
 (two-sided, ties counting), the aggregation and the tiny-party exclusion both
-ways on constructed draws, the large parties' tie rule, the badge at each
-cut-off, the cut-offs equal to `np.percentile` of the draws' own scores
-re-made draw by draw, our prediction scoring 1 on every party and a Safe bet
-on the published draws with forecast.json's cut-offs regenerated, and
+ways on constructed draws, the large parties' tie rule, the badge on both
+sides of each edge, our prediction scoring 1 on every party and a Safe bet on
+the published draws, the brief's seven test forecasts in their measured bands
+(`BRIEF_TABLE`, re-measured when the published model changes), and
 monotonicity on the published draws; and that every badge word has the
 owner's file and every file a word. `tests/test_reader_seats.py` holds the
 seat Worker's card answer to `outcome_badge` by hand;

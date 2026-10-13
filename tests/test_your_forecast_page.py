@@ -1425,11 +1425,10 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     share = {c: v / list_total * 100 for c, v in d["start"]["list_votes"].items()}
     seats = dict(d["start"]["seats"])
     top2 = sorted(seats, key=lambda c: -seats[c])[:2]
-    # the published prediction and the badge's cut-offs, as make.js sends them
+    # the published prediction, as make.js sends it
     pred = {"seats": seats, "list_votes": d["start"]["list_votes"]}
-    cuts = d["closeness_cuts"]
     a = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                             "prediction": pred, "cuts": cuts, "coalition": top2})))
+                                             "prediction": pred, "coalition": top2})))
     man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
     arr = R.unpack((ROOT / "site/draws/base.bin").read_bytes(), man)
     cols = lambda n: next(b for b in man["blocks"] if b["name"] == n)["columns"]
@@ -1483,7 +1482,7 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     assert (a["seat_band"], a["share_band"]) == (R.ANALYSIS_SEAT_BAND, R.ANALYSIS_SHARE_BAND_POINTS)
     # the headline: the reader's council in words, read off the reader's
     # seats here, and its badge: how close it is to the published prediction
-    # the page sends, under forecast.json's cut-offs (reweight.outcome_badge,
+    # the page sends (reweight.outcome_badge,
     # JUDGEMENT-CALLS §N10). No chance of the council outcome is returned.
     held = {c: v for c, v in seats.items() if v > 0}
     most = max(held.values())
@@ -1500,7 +1499,7 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     assert R.closeness(party_seats, party_cols, pct, pc, None, {"seats": seats, "share": share}, ours)["overall"] == 1.0
     assert o["badge"] == "Safe bet"
     bare = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                               "prediction": pred, "cuts": cuts})))
+                                               "prediction": pred})))
     assert bare["outcome"]["coalition"] == [] and bare["outcome"]["badge"] == o["badge"]
     # a forecast twelve seats off on the two largest parties: the page's badge
     # is the one outcome_badge gives on the published draws, and its
@@ -1509,30 +1508,29 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     moved[top2[0]] += 12
     moved[top2[1]] -= 12
     m = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": moved,
-                                             "prediction": pred, "cuts": cuts, "coalition": top2})))["outcome"]
+                                             "prediction": pred, "coalition": top2})))["outcome"]
     want = R.outcome_badge(party_seats, party_cols, pct, pc, None, {"seats": moved, "share": share},
-                           need, top2, ours=ours, cuts=cuts)
+                           need, top2, ours=ours)
     assert m == want, (m, want)
     assert R.closeness(party_seats, party_cols, pct, pc, None, {"seats": moved, "share": share}, ours)["overall"] < 1.0
     for missing in ({"ward_calls": calls, "share": share, "seats": seats},
-                    {"ward_calls": calls, "share": share, "seats": seats, "prediction": pred},
-                    {"ward_calls": calls, "share": share, "seats": seats, "prediction": seats, "cuts": cuts}):
+                    {"ward_calls": calls, "share": share, "seats": seats, "prediction": seats}):
         try:
             ns["analyse"](json.dumps(missing))
         except ValueError as exc:
             assert "prediction" in str(exc)
         else:
-            raise AssertionError(f"analyse ran without the published prediction or cut-offs: {sorted(missing)}")
+            raise AssertionError(f"analyse ran without the published prediction: {sorted(missing)}")
     # it moves with the forecast: the start's own calls score higher
     b = json.loads(ns["analyse"](json.dumps({"ward_calls": dict(zip(wards, d["start"]["ward_calls"])),
                                              "share": share, "seats": seats,
-                                             "prediction": pred, "cuts": cuts})))
+                                             "prediction": pred})))
     assert b["score"]["wards_called"] > a["score"]["wards_called"]
     assert np.isfinite(a["score"]["list_vote_error"])
     # a row the page shows stays while the reader edits: "keep" holds it
     gone = sorted(set(sc) - {"OTHER"} - set(a["seats"]))[0]
     kept = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                                "prediction": pred, "cuts": cuts, "keep": [gone]})))
+                                                "prediction": pred, "keep": [gone]})))
     assert gone in kept["seats"] and set(a["seats"]) < set(kept["seats"])
 
 
@@ -1540,17 +1538,16 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
 def test_the_page_sends_the_published_prediction_with_every_analyse_request():
     """make.js asks page.py's analyse in two places (the analysis, and the
     badge of the arrival view and the cards); each sends the published
-    prediction and the badge's cut-offs through ``...ours()`` (JUDGEMENT-CALLS
-    §N10: the badge is measured from them, and analyse refuses without them),
-    and ``ours`` reads forecast.json's ``start`` and ``closeness_cuts``. A call
+    prediction through ``...ours()`` (JUDGEMENT-CALLS §N10: the badge is
+    measured from it, and analyse refuses without it), and ``ours`` reads
+    forecast.json's ``start``. A call
     site without it, built here by removing one, is caught."""
     js = (_built() / BREAK).read_text(encoding="utf-8")
     calls = js.count('engineCall("analyse"')
     assert calls == 2, calls
     assert js.count("...ours() }") == calls
     assert js.replace("...ours() }", "}", 1).count("...ours() }") != calls
-    assert ("const ours = () => ({ prediction: { seats: D.start.seats, list_votes: D.start.list_votes }, "
-            "cuts: D.closeness_cuts });") in js
+    assert "const ours = () => ({ prediction: { seats: D.start.seats, list_votes: D.start.list_votes } });" in js
 
 
 # -- Lane B (owner, 2026-10-05): stops said, every option applies or says why --

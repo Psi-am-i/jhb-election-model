@@ -84,7 +84,6 @@ arithmetic test can see.
 | `check` | `areas`, `deploy_check`, `og_pages` | `?` | yes |
 | `citywide` | `fold`, `turnout` | `?` | yes |
 | `classify` | `hex_cartogram`, `publication` | `?` | yes |
-| `closeness_cuts` | `build_make`, `reweight` | `?` | yes |
 | `cluster_bootstrap` | `score`, `theta_residual` | `?` | yes |
 | `expit` | `fold`, `montecarlo` | `?` | yes |
 | `export` | `export_draws`, `site_text` | `?` | yes |
@@ -731,7 +730,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `reweight.MAX_FIGURE_SE_SEATS` | float 2.5 | NO | NO | yes | `build_play` |
 | `reweight.ANALYSIS_SEAT_BAND` | int 2 | NO | NO | yes | -- |
 | `reweight.ANALYSIS_SHARE_BAND_POINTS` | float 2.0 | NO | NO | yes | -- |
-| `reweight.PUBLISHED_LAW` | str 'deduct' | NO | NO | NO | `build_make` |
+| `reweight.PUBLISHED_LAW` | str 'deduct' | NO | NO | NO | -- |
 | `reweight.CLOSENESS_BANDS` | tuple[5] | NO | NO | yes | -- |
 | `reweight.CLOSENESS_LARGE_PARTIES` | int 6 | NO | NO | yes | -- |
 | `reweight.CLOSENESS_LARGE_WEIGHT` | int 2 | NO | NO | yes | -- |
@@ -1046,7 +1045,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `polling.votes_by_metro` | model+measurement | Votes cast per metro on the PR ballot, from the published result files. | `contested_area`, `montecarlo` |
 | `polling.metro_estimate` | model+measurement | A national poll number converted to a share of each contested metro. | `montecarlo` |
 | `pools.artefact_lock` | model+measurement | Hold the pool-artefact lock. ``mode`` is "emit" (exclusive) or "read". | `compare_history`, `tests/run_all` |
-| `pools.artefact_key` | model+measurement | What an emitted spec was built FROM, so staleness can be detected. | `citywide_table`, `declares`, `export_draws`, `freeze`, `montecarlo`, `stats`, `tests/test_artefact_key_discriminates`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_provenance_gates`, `tests/test_served_draws`, `tests/test_stage_inputs`, `tests/test_stat_sources` |
+| `pools.artefact_key` | model+measurement | What an emitted spec was built FROM, so staleness can be detected. | `citywide_table`, `declares`, `export_draws`, `freeze`, `montecarlo`, `stats`, `tests/test_artefact_key_discriminates`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_export_draws`, `tests/test_prediction_rule`, `tests/test_provenance_gates`, `tests/test_reweight`, `tests/test_served_draws`, `tests/test_stage_inputs`, `tests/test_stat_sources` |
 | `pools.stale_reason` | model+measurement | Why this spec should not be trusted for this run, or None. | `citywide_table`, `montecarlo`, `tests/test_artefact_key_discriminates`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_stage_inputs` |
 | `pools.load_config` | model+measurement | -- | `montecarlo`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_pool_bounds` |
 | `pools.read_census` | model+measurement | One census: ward -> composition over this dimension, summing to 1. | `tests/test_census_refusal_is_not_swallowed` |

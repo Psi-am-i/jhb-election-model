@@ -29184,3 +29184,40 @@ Overall closeness to four places; it is never printed on the site.
   move a few. All seven test forecasts band Safe bet. Reported to the owner
   before the whole suite and the UAT deploy; the cut-off rule is his to
   decide.
+
+## Closeness badge: the quantile cut-offs rejected, the owner's ten-point bands adopted (2026-10-13)
+
+The entry above measured the brief's quantile rule; it is rejected on that
+measurement and replaced by the owner's fixed bands (2026-10-13: "90-100 SAFE,
+80-90 VERY LIKELY etc"; JUDGEMENT-CALLS §N10). Same served pair, model
+`7ea27c28`.
+
+The rejected cut-offs (percentiles of the 5,000 draws' own overall closeness):
+
+| band | lowest overall closeness |
+|---|---|
+| Safe bet | 0.5863 (75th percentile) |
+| Steady as she goes | 0.5265 (50th) |
+| Long shot | 0.4673 (25th) |
+| Wild call | 0.3861 (5th) |
+
+A draw scored against its own population has a per-party closeness spread
+evenly between 0 and 1, so the draws score about 0.5 overall (median 0.518)
+and every test forecast fell above the Safe bet edge.
+
+The brief's test forecasts, overall closeness and band under each rule:
+
+| forecast | overall | quantile rule | ten-point bands |
+|---|---|---|---|
+| our prediction | 1.0000 | Safe bet | Safe bet |
+| fixture A | 0.9910 | Safe bet | Safe bet |
+| mild | 0.9178 | Safe bet | Safe bet |
+| moderate | 0.8456 | Safe bet | Steady as she goes |
+| screenshot | 0.8202 | Safe bet | Steady as she goes |
+| wild | 0.7797 | Safe bet | Long shot |
+| fixture B | 0.6854 | Safe bet | Wild call |
+
+`build_make.closeness_cuts`, `reweight.closeness_cuts`,
+`reweight.draw_closeness` and forecast.json's `closeness_cuts` are deleted
+with the rule; `tests/test_reweight.py` `BRIEF_TABLE` holds the right-hand
+column.

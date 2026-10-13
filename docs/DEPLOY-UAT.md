@@ -332,11 +332,11 @@ older request the same way.
 
 ## Releasing the closeness badge (2026-10-13)
 
-The badge measures how close a forecast is to the published prediction,
-banded by cut-offs computed from the published draws (JUDGEMENT-CALLS §N10,
-amended 2026-10-13). `reweight.py` changed (`outcome_badge` replaces
-`outcome_chance`), and `forecast.json` carries `closeness_cuts`, which the
-seat Worker reads from the site at `/your-forecast/forecast.json`. The
+The badge measures how close a forecast is to the published prediction, in
+the owner's fixed ten-point bands (JUDGEMENT-CALLS §N10, amended
+2026-10-13). `reweight.py` changed (`outcome_badge` replaces
+`outcome_chance`); the seat Worker reads the prediction's seats and list
+votes from the site at `/your-forecast/forecast.json`. The
 `/v1/card` request body is unchanged; its answer's `outcome` carries the
 badge and `measure`, and no chance. The site Worker refuses an answer whose
 `measure` is not `share-edge.js` `CLOSENESS_MEASURE` (`cardAnswer`).
@@ -348,9 +348,6 @@ badge and `measure`, and no chance. The site Worker refuses an answer whose
 - *new site Worker, old seat Worker:* the old seat Worker answers a boldest
   call with no `measure`; the edge refuses it. Previews fall back to
   `/og.png`.
-- *new seat Worker, a site whose forecast.json has no `closeness_cuts`:*
-  `load_prediction` refuses it and `/v1/card` answers 503; previews fall
-  back to `/og.png`. So `SITE_ORIGIN` must serve a build of this change.
 
 1. `node worker-api/tools/sync_seats_py.mjs` (and `--check`), then deploy
    `joburg-seats` as above.

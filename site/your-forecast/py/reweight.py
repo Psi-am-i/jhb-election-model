@@ -70,9 +70,9 @@ for one party that does not exist for all.
   page reports, each reducing EXACTLY to the published figure's own formula
   when the weights are uniform, so the untouched page is the published forecast
   (``tests/test_reweight.py`` checks this bitwise against the published files).
-* :func:`closeness`, :func:`closeness_cuts` and :func:`closeness_badge` — the
-  reader's badge: how close a forecast is to the published prediction,
-  banded against the published draws' own closeness (JUDGEMENT-CALLS §N10).
+* :func:`closeness` and :func:`closeness_badge` — the reader's badge: how
+  close a forecast is to the published prediction, in fixed bands
+  (JUDGEMENT-CALLS §N10).
   :func:`outcome_badge` is what the page's analysis and the seat Worker's
   card answer return.
 
@@ -128,19 +128,16 @@ ANALYSIS_SHARE_BAND_POINTS = 2.0
 #: seat Worker's card answer read it from here).
 PUBLISHED_LAW = "deduct"
 
-#: The badge on a reader's forecast (owner, 2026-10-13; JUDGEMENT-CALLS.md
-#: §N10, amended 2026-10-13): how close the forecast is to the published
-#: prediction (:func:`closeness`), banded against the published draws' own
-#: closeness. ``(quantile level, words)``, closest band first: a forecast
-#: whose overall closeness reaches the draws' ``level`` quantile takes the
-#: words (Safe bet: closer than 75% of the simulations). The last band takes
-#: everything below the one before it; its level is never used. The cut-offs
-#: are computed from the draws at build time (:func:`closeness_cuts`), never
-#: typed. The words name the owner's badges, ``src/stamps/reader-<words>.svg``
-#: (one file per word, swapped file for file). JUDGEMENT CALLS, not
-#: measurements. :func:`closeness_badge` is the one reader of it.
-CLOSENESS_BANDS = ((0.75, "Safe bet"), (0.50, "Steady as she goes"), (0.25, "Long shot"),
-                   (0.05, "Wild call"), (0.0, "Hail Mary"))
+#: The badge on a reader's forecast (owner, 2026-10-13: "90-100 SAFE, 80-90
+#: VERY LIKELY etc"; JUDGEMENT-CALLS.md §N10): fixed bands of ten points on
+#: the overall :func:`closeness` scale. ``(lowest overall closeness, words)``,
+#: closest band first; a closeness at a band's edge takes that band, and the
+#: last band takes everything below the one before it. The words name the
+#: owner's badges, ``src/stamps/reader-<words>.svg`` (one file per word,
+#: swapped file for file). JUDGEMENT CALLS, not measurements.
+#: :func:`closeness_badge` is the one reader of it.
+CLOSENESS_BANDS = ((0.90, "Safe bet"), (0.80, "Steady as she goes"), (0.70, "Long shot"),
+                   (0.60, "Wild call"), (0.0, "Hail Mary"))
 
 #: How many parties count as large in :func:`closeness`: those with the most
 #: seats in the published prediction (ties by code). JUDGEMENT CALL, §N10.
@@ -1212,64 +1209,29 @@ def closeness(seats, seat_columns, shares, share_columns, weights, mine: dict, o
             "large_parties": large, "small_parties": small}
 
 
-def draw_closeness(seats, seat_columns, shares, share_columns, weights, ours: dict) -> np.ndarray:
-    """Every simulation scored as if it were a reader's forecast: each draw's
-    seats and list percents passed to :func:`closeness` as ``mine``, against
-    the same draws and ``ours``. One overall closeness per draw. A draw stays
-    in the population it is measured against, so none scores below one
-    simulation's weight on any party."""
-    s = np.asarray(seats, dtype=float)
-    x = np.asarray(shares, dtype=float)
-    scols, xcols = list(seat_columns), list(share_columns)
-    out = np.empty(s.shape[0])
-    for i in range(s.shape[0]):
-        mine = {"seats": {c: int(round(s[i, j])) for j, c in enumerate(scols)},
-                "share": {c: float(x[i, j]) for j, c in enumerate(xcols)}}
-        out[i] = closeness(s, scols, x, xcols, weights, mine, ours)["overall"]
-    return out
-
-
-def closeness_cuts(seats, seat_columns, shares, share_columns, weights, ours: dict) -> dict:
-    """The badge's cut-offs, ``{words: overall closeness}`` for every band of
-    :data:`CLOSENESS_BANDS` but the last: the weighted quantile
-    (:func:`weighted_quantile`) at the band's level of the draws' own scores
-    (:func:`draw_closeness`). Computed at build time from the published draws
-    and written into forecast.json (``build_make.forecast_data``), which the
-    page and the seat Worker read; never typed."""
-    w = uniform(np.asarray(seats).shape[0]) if weights is None else np.asarray(weights, dtype=float)
-    scores = draw_closeness(seats, seat_columns, shares, share_columns, w, ours)
-    return {words: weighted_quantile(scores, w, level) for level, words in CLOSENESS_BANDS[:-1]}
-
-
-def closeness_badge(overall: float, cuts: dict) -> str:
+def closeness_badge(overall: float) -> str:
     """The badge for an overall :func:`closeness`: the words of the first band
-    of :data:`CLOSENESS_BANDS` whose cut-off (``cuts``, from
-    :func:`closeness_cuts`) it reaches, else the last band's. A closeness at a
-    cut-off takes the closer band. ONE DEFINITION for the page's analysis and
-    the seat Worker's card answer, through :func:`outcome_badge`. Refuses cuts
-    that do not name exactly the bands that have one."""
-    banded = [words for _level, words in CLOSENESS_BANDS[:-1]]
-    if sorted(cuts) != sorted(banded):
-        raise Refused(f"the cut-offs name {sorted(cuts)}, not the bands {banded}")
-    return next((words for words in banded if float(overall) >= float(cuts[words])),
-                CLOSENESS_BANDS[-1][1])
+    of :data:`CLOSENESS_BANDS` whose lowest closeness it reaches, so a
+    closeness at an edge takes the closer band. ONE DEFINITION for the page's
+    analysis and the seat Worker's card answer, through :func:`outcome_badge`."""
+    v = float(overall)
+    return next(words for low, words in CLOSENESS_BANDS if v >= low)
 
 
 def outcome_badge(seats, seat_columns, shares, share_columns, weights, mine: dict, majority: int,
-                  coalition=(), *, ours: dict, cuts: dict) -> dict:
+                  coalition=(), *, ours: dict) -> dict:
     """A reader's council read in words, and its badge: ``{"largest",
     "majority_alone", "coalition", "badge", "measure"}``. The first three are
     :func:`reader_outcome` of ``mine["seats"]`` (the cards and the analysis
     describe the council with them; no chance of it is computed). ``badge`` is
     :func:`closeness_badge` of :func:`closeness` against ``ours`` (the
-    published prediction) under ``cuts`` (forecast.json, :func:`closeness_cuts`);
-    the closeness itself is not returned, so no page can print it.
-    ``measure`` is :data:`CLOSENESS_MEASURE`. ONE DEFINITION for
+    published prediction); the closeness itself is not returned, so no page
+    can print it. ``measure`` is :data:`CLOSENESS_MEASURE`. ONE DEFINITION for
     ``interactive/pyboot/page.py``'s ``analyse`` and the seat Worker's
     ``/v1/card`` (``worker-api/seats-py/src/entry.py``)."""
     out = reader_outcome(mine["seats"], majority, coalition)
     near = closeness(seats, seat_columns, shares, share_columns, weights, mine, ours)
-    return {**out, "badge": closeness_badge(near["overall"], cuts), "measure": CLOSENESS_MEASURE}
+    return {**out, "badge": closeness_badge(near["overall"]), "measure": CLOSENESS_MEASURE}
 
 
 def middle_seats(seats, columns, weights) -> dict:

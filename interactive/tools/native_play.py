@@ -34,7 +34,6 @@ REPO = Path(__file__).resolve().parents[2]
 SERVED = REPO / "interactive" / "py" / "page"
 DRAWS = REPO / "site" / "draws"
 SETTINGS = REPO / "interactive" / "tests" / "play-settings.json"
-FORECAST = REPO / "site" / "your-forecast" / "forecast.json"
 FIXTURE = REPO / "interactive" / "tests" / "native-play.json"
 BOOT = REPO / "interactive" / "pyboot" / "page.py"
 
@@ -96,11 +95,9 @@ def run_section2(ns) -> list[dict]:
         # the reader's list-ballot percent, as make.js sends it (B.percentOf "list")
         lt = sum(h["list_votes"].values())
         share = {c: 100.0 * v / lt for c, v in h["list_votes"].items()}
-        # the badge's cut-offs as the page reads them, from the served forecast.json
-        cuts = json.loads(FORECAST.read_text())["closeness_cuts"]
         ours = {"seats": seats, "list_votes": h["list_votes"]}
         a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
-                                                 "seats": seats, "prediction": ours, "cuts": cuts,
+                                                 "seats": seats, "prediction": ours,
                                                  "coalition": two})))
         # the first reader IS the prediction (a Safe bet); the second is
         # measured from a prediction twelve seats away on the two largest
@@ -109,9 +106,9 @@ def run_section2(ns) -> list[dict]:
         pred = {"seats": {**seats, two[0]: seats[two[0]] - 12, two[1]: seats[two[1]] + 12},
                 "list_votes": h["list_votes"]}
         a2 = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
-                                                  "seats": seats, "prediction": pred, "cuts": cuts,
+                                                  "seats": seats, "prediction": pred,
                                                   "coalition": two})))
-        out.append({"name": name, "cuts": cuts, "handoff": h, "analyse": a, "analyse_moved": a2})
+        out.append({"name": name, "handoff": h, "analyse": a, "analyse_moved": a2})
     return out
 
 

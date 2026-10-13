@@ -2358,10 +2358,10 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   council in words, `reader_outcome`; and the badge, `closeness_badge` of
   `closeness`, JUDGEMENT-CALLS §N10). The closeness is measured from the
   published prediction (`forecast.json` `start`: seats and list votes) and
-  banded by the cut-offs `build_make.closeness_cuts` computes from the
-  published draws (`forecast.json` `closeness_cuts`): the page sends both
-  with `analyse` (`make.js` `ours`) and the seat Worker reads both from the
-  site's `forecast.json` (`entry.load_prediction`). The closeness itself is
+  banded in the owner's fixed ten-point bands (`reweight.CLOSENESS_BANDS`):
+  the page sends the prediction with `analyse` (`make.js` `ours`) and the
+  seat Worker reads it from the site's `forecast.json`
+  (`entry.load_prediction`). The closeness itself is
   never returned. The analysis and the arrival view print `BADGE_LINE` and
   `RANKING_LINE` (share-card.js, one definition each) beside the badge. The cards draw the owner's badge for the words
   (`src/stamps/reader-*.svg`, served at `/stamps/`) through share-card.js

@@ -30,12 +30,10 @@ name, a reader's prediction (entry version 2):
 ``/v1/card`` is the link preview's answer (src/worker.js, audits/
 2026-10-03-share-design/DESIGN.md §3): the seats the law gives the reader's
 forecast, its council in words, and its badge: how close it is to the
-published prediction, banded by the cut-offs the site's ``forecast.json``
-carries (``reweight.outcome_badge``, the one definition the page's analysis
-also calls; JUDGEMENT-CALLS §N10). The draws are the site's own
-``/draws/manifest.json`` and ``/draws/base.bin``, and the prediction and
-cut-offs its ``/your-forecast/forecast.json``, fetched from SITE_ORIGIN once
-per isolate.
+published prediction (``reweight.outcome_badge``, the one definition the
+page's analysis also calls; JUDGEMENT-CALLS §N10). The draws are the site's
+own ``/draws/manifest.json`` and ``/draws/base.bin``, and the prediction its
+``/your-forecast/forecast.json``, fetched from SITE_ORIGIN once per isolate.
 
 reader_seats.py and every project module it imports, and reweight.py, are
 copied here from the repository's src/ by worker-api/tools/sync_seats_py.mjs,
@@ -88,7 +86,7 @@ def load_draws(manifest_bytes, blob):
     under ``reweight.PUBLISHED_LAW``, each simulation's list-ballot percents
     (``reweight.draw_percents``), and the sha256 of manifest + blob
     (``src/build_make.py``'s ``draws_sha256``). ``_draws`` adds the
-    prediction and cut-offs (:func:`load_prediction`) to this."""
+    prediction (:func:`load_prediction`) to this."""
     manifest = json.loads(manifest_bytes)
     arrays = reweight.unpack(blob, manifest)
     law = reweight.PUBLISHED_LAW
@@ -113,21 +111,16 @@ def prediction_sha256(seats):
 
 
 def load_prediction(forecast_bytes, draws_sha256):
-    """The published prediction and the badge's cut-offs, from the site's
-    ``forecast.json``, which must have been built from the draws hashed
-    ``draws_sha256``: ``{"prediction": {party: seats}, "ours": {"seats",
-    "share"} (reweight.closeness's form, list percents by
-    reweight.list_percent), "cuts": closeness_cuts}``. A forecast.json
-    without cut-offs is refused (the Worker then answers 503)."""
+    """The published prediction, from the site's ``forecast.json``, which must
+    have been built from the draws hashed ``draws_sha256``: ``{"prediction":
+    {party: seats}, "ours": {"seats", "share"}}`` (reweight.closeness's form,
+    list percents by reweight.list_percent)."""
     data = json.loads(forecast_bytes)
     if data.get("draws_sha256") != draws_sha256:
         raise ValueError("forecast.json was built from other draws than the Worker holds")
-    if not isinstance(data.get("closeness_cuts"), dict):
-        raise ValueError("forecast.json carries no closeness_cuts")
     seats = {str(p): int(v) for p, v in data["start"]["seats"].items()}
     return {"prediction": seats,
-            "ours": {"seats": seats, "share": reweight.list_percent(data["start"]["list_votes"])},
-            "cuts": {str(k): float(v) for k, v in data["closeness_cuts"].items()}}
+            "ours": {"seats": seats, "share": reweight.list_percent(data["start"]["list_votes"])}}
 
 
 def card(body, draws):
@@ -148,7 +141,7 @@ def card(body, draws):
     mine = {"seats": seats["seats"], "share": reweight.list_percent(body["seats"]["list_votes"])}
     outcome = reweight.outcome_badge(draws["seats"], draws["columns"], draws["shares"], draws["share_columns"],
                                      None, mine, seats["majority"], body["coalition"],
-                                     ours=draws["ours"], cuts=draws["cuts"])
+                                     ours=draws["ours"])
     return 200, {**seats, "outcome": outcome, "draws_sha256": draws["sha256"],
                  "prediction_sha256": draws["prediction_sha256"]}
 

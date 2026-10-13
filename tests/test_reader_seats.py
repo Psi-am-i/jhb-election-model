@@ -612,7 +612,7 @@ def test_the_card_answer_is_the_seats_and_the_badge_of_the_published_draws():
     """/v1/card (the link preview's answer): the /v1/seats answer for the
     body's seats part, and reweight.outcome_badge on the draws for that
     council: its words and its badge, how close it is to the published
-    prediction under the published cut-offs. Constructed draws, so the
+    prediction. Constructed draws, so the
     closeness is known by hand; a stale draw hash is a 409, a bad body a 400,
     and the seat law's refusal passes through as 422."""
     import numpy as np
@@ -624,27 +624,28 @@ def test_the_card_answer_is_the_seats_and_the_badge_of_the_published_draws():
             "context": _toy_context()}
     pct = reweight.list_percent(lst)
     cols = ["A", "B", "C"]
-    ours = {"seats": {"A": 5, "B": 13, "C": 2}, "share": dict(pct)}   # the published prediction
-    cuts = {"Safe bet": 0.95, "Steady as she goes": 0.9, "Long shot": 0.8, "Wild call": 0.7}
+    # the published prediction: B at 13 seats and 5 points more of the list vote
+    ours = {"seats": {"A": 5, "B": 13, "C": 2}, "share": {**pct, "B": pct["B"] + 5.0}}
     draws = {"sha256": "ab" * 32, "columns": cols,
              "seats": np.array([[5, 3, 2], [3, 5, 2], [6, 2, 2], [4, 4, 2]], dtype=float),
-             "shares": np.array([[pct[c] for c in cols]] * 4), "share_columns": cols,
-             "prediction": ours["seats"], "ours": ours, "cuts": cuts}
+             "shares": np.array([[ours["share"][c] for c in cols]] * 4), "share_columns": cols,
+             "prediction": ours["seats"], "ours": ours}
     draws["prediction_sha256"] = entry.prediction_sha256(draws["prediction"])
     ps = draws["prediction_sha256"]
     status, got = entry.card({"seats": body, "coalition": ["A", "C"], "draws_sha256": "ab" * 32,
                                 "prediction_sha256": ps}, draws)
     assert status == 200, got
     assert got["seats"] == {"A": 5, "B": 3, "C": 2} and got["majority"] == 6
-    # every vote matches ours (closeness 1); A's and C's seats match; B at 3 is
-    # 10 from 13, and draws 0 and 2 are at least 10 from it: 2/4. All three
-    # parties are large (fewer than six), so the overall is L = (1 + 0.75 + 1) / 3,
-    # under the Safe bet cut-off of 0.95 and over Steady as she goes's 0.9
+    # A and C match ours on both measures (closeness 1). B's seats: 3 is 10
+    # from 13, and draws 0 and 2 are at least 10 from it: 2/4. B's vote: 5
+    # points from ours, every draw at ours: 0. B = (0.5 + 0) / 2. All three
+    # parties are large (fewer than six), so the overall is L = (1 + 0.25 + 1) / 3
+    # = 0.75: a Long shot (0.70 to under 0.80)
     assert got["outcome"] == {"largest": "A", "majority_alone": False, "coalition": ["A", "C"],
-                              "badge": "Steady as she goes", "measure": reweight.CLOSENESS_MEASURE}
+                              "badge": "Long shot", "measure": reweight.CLOSENESS_MEASURE}
     assert got["outcome"] == reweight.outcome_badge(draws["seats"], cols, draws["shares"], cols, None,
                                                     {"seats": got["seats"], "share": pct}, 6, ["A", "C"],
-                                                    ours=ours, cuts=cuts)
+                                                    ours=ours)
     assert got["draws_sha256"] == "ab" * 32 and got["prediction_sha256"] == ps
     # the prediction's hash is one code=seats line per party in code order
     import hashlib
@@ -662,10 +663,9 @@ def test_the_card_answer_is_the_seats_and_the_badge_of_the_published_draws():
 
 def test_the_card_reads_the_published_prediction_the_draws_were_built_into():
     """load_prediction: forecast.json's start (its seats, and its list votes
-    as reweight.list_percent) and its closeness_cuts, only when that file
-    names the draws' hash; another build's file is refused, as is one with
-    no cut-offs. The served pair (site/draws, site/your-forecast/forecast.json)
-    agree."""
+    as reweight.list_percent), only when that file names the draws' hash;
+    another build's file is refused. The served pair (site/draws,
+    site/your-forecast/forecast.json) agree."""
     import reweight
     entry = _load_entry()
     site = ROOT / "site"
@@ -675,16 +675,12 @@ def test_the_card_reads_the_published_prediction_the_draws_were_built_into():
     seats = {p: int(v) for p, v in data["start"]["seats"].items()}
     assert got["prediction"] == seats and len(seats) > 0
     assert got["ours"] == {"seats": seats, "share": reweight.list_percent(data["start"]["list_votes"])}
-    assert got["cuts"] == data["closeness_cuts"]
-    assert sorted(got["cuts"]) == sorted(w for _l, w in reweight.CLOSENESS_BANDS[:-1])
-    for bad, why in [(forecast.read_bytes(), "00" * 32),
-                     (json.dumps({k: v for k, v in data.items() if k != "closeness_cuts"}).encode(), data["draws_sha256"])]:
-        try:
-            entry.load_prediction(bad, why)
-        except ValueError:
-            pass
-        else:
-            raise AssertionError("a forecast.json from other draws, or without cut-offs, was accepted")
+    try:
+        entry.load_prediction(forecast.read_bytes(), "00" * 32)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("a forecast.json built from other draws was accepted")
 
 
 def test_the_card_reads_the_draws_the_page_was_built_from():

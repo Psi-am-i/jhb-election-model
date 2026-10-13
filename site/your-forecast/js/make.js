@@ -411,9 +411,8 @@ function paintArrival() {
   if (!friend.outcome) spec.outcome = null;
   showArrival({ spec, geom, seal: friend.seal, now: Date.now(), party: partyOf, logo: c => new URL("logos/" + c + ".png", pageRoot).href });
 }
-// The published prediction and the badge's cut-offs, as page.py analyse
-// takes them (forecast.json `start` and `closeness_cuts`).
-const ours = () => ({ prediction: { seats: D.start.seats, list_votes: D.start.list_votes }, cuts: D.closeness_cuts });
+// The published prediction, as page.py analyse takes it (forecast.json `start`).
+const ours = () => ({ prediction: { seats: D.start.seats, list_votes: D.start.list_votes } });
 // A forecast's council in words and its badge (page.py analyse), for the
 // arrival view, the return card and the reader's own card.
 function outcomeOf(st, coalition, answer) {

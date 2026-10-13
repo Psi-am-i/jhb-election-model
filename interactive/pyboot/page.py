@@ -481,11 +481,10 @@ def analyse(request_json: str) -> str:
     Request: ``{"ward_calls": {ward: party}, "share": {party: percent of the
     list ballot}, "seats": {party: seats}, "majority": seats needed,
     "coalition": [party], "keep": [party], "prediction": {"seats": {party:
-    seats}, "list_votes": {party: votes}}, "cuts": {badge: closeness}}``,
+    seats}, "list_votes": {party: votes}}}``,
     section 2's forecast (``keep``: parties whose row the page already shows,
     so a row never goes while the reader edits; ``prediction``: the published
-    prediction, the ``start`` of forecast.json; ``cuts``: forecast.json's
-    ``closeness_cuts``). Every chance is the PUBLISHED forecast's: the published
+    prediction, the ``start`` of forecast.json). Every chance is the PUBLISHED forecast's: the published
     cell, each draw counted once, statutory seats. Returns
 
     * ``outcome``: the reader's council in words (the largest party alone or
@@ -562,13 +561,12 @@ def analyse(request_json: str) -> str:
     need = int(req.get("majority") or sum(held.values()) // 2 + 1)
     ours = req.get("prediction")
     if not isinstance(ours, dict) or not isinstance(ours.get("seats"), dict) \
-            or not isinstance(ours.get("list_votes"), dict) or not isinstance(req.get("cuts"), dict):
-        raise ValueError("no published prediction or cut-offs: the badge is measured from them")
+            or not isinstance(ours.get("list_votes"), dict):
+        raise ValueError("no published prediction: the badge is measured from it")
     outcome = R.outcome_badge(seats, cols, pr, prcols, w,
                               {"seats": mine, "share": share}, need, req.get("coalition") or [],
                               ours={"seats": {c: int(v) for c, v in ours["seats"].items()},
-                                    "share": R.list_percent(ours["list_votes"])},
-                              cuts=req["cuts"])
+                                    "share": R.list_percent(ours["list_votes"])})
     seat_out, share_out = {}, {}
     for c in shown:
         seat_out[c] = chance(R.within_band(seats[:, cols.index(c)], w, mine.get(c, 0), R.ANALYSIS_SEAT_BAND))

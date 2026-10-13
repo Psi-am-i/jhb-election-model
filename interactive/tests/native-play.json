@@ -22035,7 +22035,7 @@
   "w_bye-1": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306"
  },
  "numpy": "2.5.1",
- "page_ref": "335aa006e25f64fd8c87a14615b63dd0c234a758220d0b427f1deeb4c215dd41",
+ "page_ref": "57c764a560f83493090a68f3f9c536f8971cf1dc8cee7d9f986ce66963cedb44",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -23382,12 +23382,6 @@
      }
     },
     "wards_count": 135
-   },
-   "cuts": {
-    "Long shot": 0.4672917129629629,
-    "Safe bet": 0.586346052631579,
-    "Steady as she goes": 0.526509649122807,
-    "Wild call": 0.38614833333333326
    },
    "handoff": {
     "list_votes": {
@@ -24971,12 +24965,6 @@
     },
     "wards_count": 135
    },
-   "cuts": {
-    "Long shot": 0.4672917129629629,
-    "Safe bet": 0.586346052631579,
-    "Steady as she goes": 0.526509649122807,
-    "Wild call": 0.38614833333333326
-   },
    "handoff": {
     "list_votes": {
      "ACDP": 6625,
@@ -26559,12 +26547,6 @@
     },
     "wards_count": 135
    },
-   "cuts": {
-    "Long shot": 0.4672917129629629,
-    "Safe bet": 0.586346052631579,
-    "Steady as she goes": 0.526509649122807,
-    "Wild call": 0.38614833333333326
-   },
    "handoff": {
     "list_votes": {
      "ACDP": 7158,
@@ -28146,12 +28128,6 @@
      }
     },
     "wards_count": 135
-   },
-   "cuts": {
-    "Long shot": 0.4672917129629629,
-    "Safe bet": 0.586346052631579,
-    "Steady as she goes": 0.526509649122807,
-    "Wild call": 0.38614833333333326
    },
    "handoff": {
     "list_votes": {
