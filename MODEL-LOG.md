@@ -29647,3 +29647,13 @@ uncommitted changes under `src/` (`c0_tree_faults`, `c0_faults`). Test on this
 tree's committed `pools.py`: the reverted text is accepted; one extra line, a
 second changed path, or the unreverted file is refused. Mutations: the byte
 comparison removed (red); the path check removed (red); reverted, green.
+
+### Noted, not changed: the poll blend reads the width at another share (item 11)
+
+`montecarlo.poll_model_sd` reads the universal width at the party's share of
+the whole city's centres (`centres[p] / Σ centres`), while the drawer reads it
+at the party's `pool_spec` centre (`pool_spec_centres`, the record's frame;
+§1.299 item 6). The two differ where the pool-spec centre and the whole-city
+share differ. Inert today: `poll_paths = "off"` (§1.298), so no poll blend
+runs. Before polls return, the poll width must be read at the same quantity
+the drawer reads (one definition), and the change measured.
