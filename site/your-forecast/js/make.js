@@ -73,8 +73,8 @@ import { WardMap } from "./map.js";
 import { setShareable, onNameChange, onOpen } from "./make-share.js";
 import { setHandoff } from "./play-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
-import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords, badgeFile, STAMP_DIR, BADGE_LINE,
-  RANKING_LINE } from "./share-card.js";
+import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords, badgeFile, STAMP_DIR, verdictLine,
+  SEALED_LINE } from "./share-card.js";
 import { seatTable } from "./seat-table.js";
 import { placeTip } from "./tip.js";
 import { engineCall, onForecast } from "./model.js";
@@ -368,7 +368,7 @@ async function start() {
     fromLink = false;
     friend = { name: YU.currentName(), f: linkF, state, coalition: S.coalition.slice(), answer: null, outcome: null,
                seal: { state: "checking", at: null } };
-    one.status.textContent = "This is " + (friend.name || "a reader") + "'s forecast. Pick where to start, above, to make your own.";
+    one.status.textContent = "This is " + (friend.name || "a reader") + "'s prediction. Pick where to start, above, to make your own.";
     checkSeal();
   } else if (YU.friend()) {
     // an address from before 2026-10-10 carries a friend's forecast: its
@@ -1041,7 +1041,7 @@ async function analyse(scroll) {
 //   * the headline: what the "council outcome" is, the reader's council-level
 //     outcome in the cards' words (share-card.js outcomeWords: the largest
 //     party, a majority alone or not, the chosen coalition); the badge with
-//     what it is (BADGE_LINE) and how entries are ranked (RANKING_LINE);
+//     what it says (verdictLine, "your") and how predictions are ranked (SEALED_LINE);
 //   * ward wins, "Your map": the reader's own map, each ward in the colour of
 //     the party called, as strong as our chance for that call, with the
 //     number of calls we expect to come true beside it, and each ward's
@@ -1056,7 +1056,7 @@ function paintAnalysis(a) {
   const sc = a.score;
   one.outcome.textContent = "Council outcome: " + outcomeWords(a.outcome, partyOf);
   one.badge.replaceChildren(el("img", { src: "../" + STAMP_DIR + "/" + badgeFile(a.outcome.badge), alt: a.outcome.badge, className: "yf-stamp" }),
-    el("div", {}, el("p", { className: "yf-abadge-what" }, BADGE_LINE), el("p", { className: "yf-abadge-rank" }, RANKING_LINE)));
+    el("div", {}, el("p", { className: "yf-abadge-what" }, verdictLine(a.outcome.phrase, "your")), el("p", { className: "yf-abadge-rank" }, SEALED_LINE)));
   // ward wins: the reader's map, shaded by our chance for each call
   // each ward's title names our chance for the call there (a screen reader
   // reads it; a pointer shows it); a ward's strength has a floor, so a call
@@ -1171,7 +1171,7 @@ function onWorker(e) {
   } else if (m.type === "result") {
     if (m.seq !== seq) return;
     if (!m.ok) {
-      one.status.textContent = "The seat law refused this forecast (" + m.errors.join("; ") + "). The page should not be able to build it; please report it.";
+      one.status.textContent = "The seat law refused this prediction (" + m.errors.join("; ") + "). The page should not be able to build it; please report it.";
       one.status.classList.add("low");
       return;
     }

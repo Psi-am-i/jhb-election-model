@@ -1366,8 +1366,8 @@ def test_closeness_aggregates_by_hand():
     assert R.closeness(s, sc, x, xc, None, mine, ours)["parties"]["B"] == 0.5
     # the answer carries the closeness but outcome_badge does not pass it on
     o = R.outcome_badge(s, sc, x, xc, None, ours, 106, [], ours=ours)
-    assert set(o) == {"largest", "majority_alone", "coalition", "badge", "measure"}
-    assert o["badge"] == "Safe bet" and o["measure"] == R.CLOSENESS_MEASURE
+    assert set(o) == {"largest", "majority_alone", "coalition", "badge", "phrase", "measure"}
+    assert o["badge"] == "Safe bet" and o["phrase"] == "likely" and o["measure"] == R.CLOSENESS_MEASURE
     assert not any(isinstance(v, float) for v in o.values())
 
 
@@ -1432,6 +1432,14 @@ def _published():
     ours = {"seats": {c: int(v) for c, v in forecast["start"]["seats"].items()},
             "share": R.list_percent(forecast["start"]["list_votes"])}
     return seats, parties, R.draw_percents(arrays["list_vote"]), list(xcols), ours, forecast
+
+
+def test_every_band_has_the_owners_phrase_and_nothing_else_does():
+    """CLOSENESS_PHRASES (owner, 2026-10-13): one phrase per badge word, the
+    owner's words, both directions."""
+    assert [w for _l, w in R.CLOSENESS_BANDS] == list(R.CLOSENESS_PHRASES)
+    assert R.CLOSENESS_PHRASES == {"Safe bet": "likely", "Steady as she goes": "plausible", "Long shot": "unlikely",
+                                   "Wild call": "very unlikely", "Hail Mary": "extremely unlikely"}
 
 
 def test_ours_is_one_on_every_party_and_a_safe_bet_on_the_published_draws():

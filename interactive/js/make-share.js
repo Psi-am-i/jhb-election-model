@@ -53,7 +53,7 @@ const sheet = shareSheet(E, {
   emptyName: () => cardTitle(""),
   entered: () => true,
   onName: n => nameCb(n),                 // the page rewrites the address and calls setShareable
-  shareWords: () => ({ title: "My Johannesburg election forecast", text: "My forecast for the Johannesburg council." }),
+  shareWords: () => ({ title: "My Johannesburg election prediction", text: "My prediction for the Johannesburg council." }),
   fileBase: () => "joburg-forecast",
   async card(kind, made) {
     const info = now;

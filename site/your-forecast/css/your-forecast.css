@@ -306,7 +306,7 @@
 .yf .floornote.yf-slot{line-height:1.4;height:calc(3lh + 12px);}
 .yf .floornote.yf-slot:empty{background:none;border-left-color:transparent;}
 .yf .coalstat.yf-slot{line-height:1.4;height:2lh;}
-.yf .yf-abadge.yf-slot{min-height:112px;}
+.yf .yf-abadge.yf-slot{min-height:224px;}
 .yf .yf-score .yf-slot{height:2lh;}
 .yf .yf-score .yf-sseats.yf-slot{height:4lh;}
 .yf .yf-outcome.yf-slot{line-height:1.4;height:4lh;}
@@ -387,6 +387,9 @@
    entries are ranked, in the arrival view and the analysis */
 .yf-arr-badge,.yf-abadge{display:flex;align-items:center;gap:16px;margin:8px 0 0;}
 .yf-stamp{width:112px;height:auto;flex:none;}
+/* the analysis draws the badge at twice the arrival view's size (owner, 2026-10-13) */
+.yf-abadge .yf-stamp{width:224px;}
+.yf-abadge{flex-wrap:wrap;}
 .yf-arr-chance{font-size:15px;color:var(--ink-2);margin:6px 0 0;line-height:1.4;}
 .yf-arr-how{font-size:13px;color:var(--ink-3);margin:8px 0 0;line-height:1.45;}
 .yf-arr-quick{margin:16px 0 0;}

@@ -47,7 +47,7 @@
 
 <div class="wrap yf-wrap">
   <!-- the view a shared link opens (js/arrival.js; from=1 in the address) -->
-  <section class="yf-arrival" data-live="arrival" aria-label="A forecast shared with you" hidden></section>
+  <section class="yf-arrival" data-live="arrival" aria-label="A prediction shared with you" hidden></section>
   <header class="lede pl-lede">
     <h1>Your Forecast</h1>
     <p>Adjust the model, then break it. Untouched, the page shows the <a href="../forecast">published forecast</a>.</p>
@@ -159,7 +159,7 @@
          forecast, sealed, once a setting is moved -->
     <div class="pl-sharebox yf-sharebox yf-cta" data-live="share">
       <button class="cta shareopen" type="button" disabled>Share this forecast</button>
-      <p class="yf-ctanote">The map, the council and the seats as an image, and a link. Move a setting and it is your own forecast, sealed.</p>
+      <p class="yf-ctanote">The map, the council and the seats as an image, and a link. Move a setting and it is your own prediction, sealed.</p>
       <p class="pl-note pl-sharewhy yf-slot"></p>
       <dialog class="sharesheet" aria-labelledby="share-title">
   <div class="dh"><h2 id="share-title">Share this forecast</h2>
@@ -196,10 +196,10 @@
 
   <section id="break" class="yf-section" aria-labelledby="h-break">
     <h2 id="h-break" class="yf-shead">Break the model</h2>
-    <p class="yf-sdek yf-sub">Take the forecast above as your own. Call every ward, set each party's share of the vote, and pick
+    <p class="yf-sdek yf-sub">Turn the forecast above into your own prediction. Call every ward, set each party's share of the vote, and pick
       who governs. The seats follow from the law that seats the council. Each ward starts at its most likely winner
       under your changes.</p>
-    <p class="pos">Your forecast, and the name you type when you share it, are kept only in the page's address, so a
+    <p class="pos">Your prediction, and the name you type when you share it, are kept only in the page's address, so a
       link carries them. Nothing is sent or stored.</p>
 
     <noscript><p class="notours">This section needs JavaScript. The <a href="../forecast">model's forecast</a> works without it.</p></noscript>
@@ -290,8 +290,8 @@
           <h3 class="stephead stepno">See how likely it is</h3>
           <!-- a large button, like the two calls to share -->
           <div data-live="b-actions" class="body yf-actions">
-            <button class="cta yf-analyse" type="button" disabled>Analyse my forecast</button>
-            <p class="yf-ctanote">Our chance for your outcome, your map ward by ward, and each party's seats and vote.</p>
+            <button class="cta yf-analyse" type="button" disabled>Analyse my prediction</button>
+            <p class="yf-ctanote">Our badge for your prediction, your map ward by ward, and each party's seats and vote.</p>
           </div>
         </div>
       </div>
@@ -301,11 +301,11 @@
          which holds no build-time digit; css/your-forecast.css hides the
          section while the region is hidden -->
     <section class="yf-analysis" aria-labelledby="h-analysis">
-      <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
+      <h3 id="h-analysis">How likely is your prediction?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
       <div data-live="b-analysis" hidden>
         <!-- the headline: what the council outcome is (share-card.js outcomeWords),
-             then the badge, what it is (BADGE_LINE) and how entries are ranked
-             (RANKING_LINE), as the cards and the arrival view show them -->
+             then the badge, what it says (verdictLine) and how predictions are
+             ranked (SEALED_LINE) -->
         <p class="yf-outcome yf-slot"></p>
         <div class="yf-abadge yf-slot"></div>
         <!-- ward wins: the reader's own map, each ward shaded by the chance we
@@ -345,8 +345,8 @@
          (js/share-sheet.js) with this section's content (js/make-share.js) -->
     <div class="yf-ctafoot">
       <div class="sharebox yf-cta" data-live="b-share">
-        <button class="cta shareopen" type="button" disabled>Share this forecast</button>
-        <p class="yf-ctanote">Your map, your seats, our chance for your outcome, and a sealed link.</p>
+        <button class="cta shareopen" type="button" disabled>Share this prediction</button>
+        <p class="yf-ctanote">Your map, your seats, our badge for your prediction, and a sealed link.</p>
         <dialog class="sharesheet" aria-labelledby="b-share-title">
   <div class="dh"><h2 id="b-share-title">Share this forecast</h2>
     <button class="x" type="button" aria-label="Close">×</button></div>
@@ -418,13 +418,13 @@
         first list with no votes.</li>
       <li id="note-outcome">The "council outcome" is your council's: the party with the most seats on its own, or a tie for
         the most; whether any one party has a majority on its own; and, if you picked who governs, that coalition
-        holding a majority. The badge says how close your forecast is to our prediction. For each party, it takes the
+        holding a majority. The badge says how close your prediction is to ours. For each party, it takes the
         share of the published forecast's <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-current="5,000" data-prov="5,000. Unchanged since 26 September 2026. Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> simulations, each counted once, that land at least as far from
         our seats as yours, and the same for the list vote; the largest parties in our prediction count double. Each
         simulation is scored the same way, and the badges are bands of those scores. A ward's chance is the share of
         the simulations in which your party wins it; your
         map draws it as the strength of each ward's colour, and the number of your ward calls we expect to come true
-        is their average count over the simulations. The citywide figures score your forecast against each simulation
+        is their average count over the simulations. The citywide figures score your prediction against each simulation
         as if it were the result, by the competition's rules in its order. Seats: the gap between your seats and the
         simulation's, party by party, added up. The seat line under the table is the model's own spread: its middle
         forecast, each party at its middle seat count, is that close to half the simulations. Vote: the gap between

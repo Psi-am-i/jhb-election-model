@@ -1491,7 +1491,7 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     o = a["outcome"]
     assert (o["largest"], o["majority_alone"], o["coalition"]) == (
         tops[0] if len(tops) == 1 else None, most >= need, sorted(top2))
-    assert set(o) == {"largest", "majority_alone", "coalition", "badge", "measure"}, o
+    assert set(o) == {"largest", "majority_alone", "coalition", "badge", "phrase", "measure"}, o
     party_seats, party_cols = R.party_columns(arr["seats/deduct"], sc)
     pct = R.draw_percents(arr["list_vote"])
     ours = {"seats": seats, "share": R.list_percent(d["start"]["list_votes"])}
@@ -1770,7 +1770,7 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
             out.append("not one share row in each section")
         # each row, in its own section, with its one line
         rows = (("section 1", page.find(share, s1) if s1 > 0 else -1, ("map", "council", "seats", "sealed")),
-                ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "chance", "sealed link")),
+                ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "badge", "sealed link")),
                 ("step 4", at('class="cta yf-analyse"'), ()))
         for where, i, words in rows:
             end = page.find("</button>", i) if i >= 0 else -1
@@ -1998,13 +1998,14 @@ def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
                      'class="yf-expected yf-slot"', ">Citywide vote and seats<", 'class="yf-atable"',
                      'class="yf-sseats yf-slot"', 'class="yf-svote yf-slot"')
         need_js = ('"Council outcome: " + outcomeWords(', "badgeFile(a.outcome.badge)",
-                   'el("p", { className: "yf-abadge-what" }, BADGE_LINE)', 'el("p", { className: "yf-abadge-rank" }, RANKING_LINE)',
+                   'el("p", { className: "yf-abadge-what" }, verdictLine(a.outcome.phrase, "your"))',
+                   'el("p", { className: "yf-abadge-rank" }, SEALED_LINE)',
                    '"Chance it lands within " + sb + " seats"', '"Chance it lands within " + pb + " points"',
                    "new WardMap(one.amap, geom, { byCode, readonly: true, labelFor: wardWords })",
                    "SHADE_FLOOR + (1 - SHADE_FLOOR) * a.wards[w].p", "amap.setShade(",
                    "ward calls to come true", 'one.amap.addEventListener("click"', 'one.anote.textContent = "";')
         out = [n for n in need_html if n not in reg] + [n for n in need_js if n not in src]
-        if "score your forecast against each simulation" not in re.sub(r"\s+", " ", nt):
+        if "score your prediction against each simulation" not in re.sub(r"\s+", " ", nt):
             out.append("the explanation is not in the note")
         if "simulation" in re.sub(r"<[^>]+>", " ", reg):
             out.append("the region explains with simulations (STYLE rule 10)")
@@ -2014,10 +2015,13 @@ def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
         return out
 
     assert missing(region, js, note) == []
+    # the reader's entry is a prediction (owner, 2026-10-13; STYLE.md rule 11)
+    assert "How likely is your prediction?" in html and ">Analyse my prediction<" in html
+    assert "How likely is your forecast?" not in html and "Analyse my forecast" not in html
     assert missing(region.replace(">Your map<", ">Wards<"), js, note)
     assert missing(region, js.replace("amap.setShade(", "amap.setCalls("), note)
     assert missing(region + "<p>Of the simulations</p>", js, note)
-    assert missing(region, js.replace('className: "yf-abadge-rank" }, RANKING_LINE)', 'className: "yf-abadge-rank" }, "")'), note)
+    assert missing(region, js.replace('className: "yf-abadge-rank" }, SEALED_LINE)', 'className: "yf-abadge-rank" }, "")'), note)
     assert missing(region, js + "\n// one.verdict.textContent = councilChanceSentence(a.outcome.text);", note)
 
 

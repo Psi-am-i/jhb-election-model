@@ -139,6 +139,14 @@ PUBLISHED_LAW = "deduct"
 CLOSENESS_BANDS = ((0.90, "Safe bet"), (0.80, "Steady as she goes"), (0.70, "Long shot"),
                    (0.60, "Wild call"), (0.0, "Hail Mary"))
 
+#: What each badge says about a prediction, in words (owner, 2026-10-13, the
+#: brief's amendment): the page prints "We think your prediction is <phrase>,
+#: but time will tell." and a card "We think this prediction is <phrase>, but
+#: time will tell." (share-card.js ``verdictLine``). One phrase per word of
+#: :data:`CLOSENESS_BANDS`; :func:`outcome_badge` returns it beside the badge.
+CLOSENESS_PHRASES = {"Safe bet": "likely", "Steady as she goes": "plausible", "Long shot": "unlikely",
+                     "Wild call": "very unlikely", "Hail Mary": "extremely unlikely"}
+
 #: How many parties count as large in :func:`closeness`: those with the most
 #: seats in the published prediction (ties by code). JUDGEMENT CALL, §N10.
 CLOSENESS_LARGE_PARTIES = 6
@@ -1221,17 +1229,19 @@ def closeness_badge(overall: float) -> str:
 def outcome_badge(seats, seat_columns, shares, share_columns, weights, mine: dict, majority: int,
                   coalition=(), *, ours: dict) -> dict:
     """A reader's council read in words, and its badge: ``{"largest",
-    "majority_alone", "coalition", "badge", "measure"}``. The first three are
+    "majority_alone", "coalition", "badge", "phrase", "measure"}``. The first three are
     :func:`reader_outcome` of ``mine["seats"]`` (the cards and the analysis
     describe the council with them; no chance of it is computed). ``badge`` is
     :func:`closeness_badge` of :func:`closeness` against ``ours`` (the
-    published prediction); the closeness itself is not returned, so no page
-    can print it. ``measure`` is :data:`CLOSENESS_MEASURE`. ONE DEFINITION for
+    published prediction), and ``phrase`` its :data:`CLOSENESS_PHRASES` words;
+    the closeness itself is not returned, so no page can print it. ``measure``
+    is :data:`CLOSENESS_MEASURE`. ONE DEFINITION for
     ``interactive/pyboot/page.py``'s ``analyse`` and the seat Worker's
     ``/v1/card`` (``worker-api/seats-py/src/entry.py``)."""
     out = reader_outcome(mine["seats"], majority, coalition)
     near = closeness(seats, seat_columns, shares, share_columns, weights, mine, ours)
-    return {**out, "badge": closeness_badge(near["overall"]), "measure": CLOSENESS_MEASURE}
+    badge = closeness_badge(near["overall"])
+    return {**out, "badge": badge, "phrase": CLOSENESS_PHRASES[badge], "measure": CLOSENESS_MEASURE}
 
 
 def middle_seats(seats, columns, weights) -> dict:

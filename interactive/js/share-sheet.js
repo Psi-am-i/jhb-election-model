@@ -235,7 +235,7 @@ export function shareSheet(E, H) {
     E.seal.hidden = f === null;
     E.entry.hidden = f === null || !!(f && f.failed);
     if (f === null) { E.seal.textContent = ""; settled = k; typingName = false; buttons(); return; }
-    if (f === undefined) { E.seal.textContent = "Working out the forecast to seal."; buttons(); return; }
+    if (f === undefined) { E.seal.textContent = "Working out the prediction to seal."; buttons(); return; }
     if (f.failed) { E.seal.textContent = "Not sealed: " + f.failed + "."; settled = k; typingName = false; buttons(); return; }
     if (SEALS.has(k)) {
       E.seal.textContent = "Sealed " + localStamp(SEALS.get(k).at, H.election()) + ".";

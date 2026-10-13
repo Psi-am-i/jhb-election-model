@@ -68,13 +68,14 @@ const DAY_MS = 864e5;
 
 // ---------- words ----------
 
-// "Thandi's Election Forecast" (owner, 2026-10-03: Title Case). A name the
+// "Thandi's Election Prediction" (owner, 2026-10-03: Title Case; a prediction,
+// not a forecast, 2026-10-13). A name the
 // reader already typed as a possessive ("Simon's", "Simon’s", "the Joneses'")
-// takes no second one (owner, 2026-10-07: "Simon's' Election Forecast").
+// takes no second one (owner, 2026-10-07: "Simon's' Election Forecast" was the fault).
 export function cardTitle(name) {
-  if (!name) return "My Election Forecast";
-  if (/['’](s)?$/i.test(name)) return name + " Election Forecast";
-  return name + (/s$/i.test(name) ? "'" : "'s") + " Election Forecast";
+  if (!name) return "My Election Prediction";
+  if (/['’](s)?$/i.test(name)) return name + " Election Prediction";
+  return name + (/s$/i.test(name) ? "'" : "'s") + " Election Prediction";
 }
 
 // "We give this outcome a 26% chance." The owner's wording (2026-10-03); a
@@ -91,17 +92,22 @@ export function wardChanceSentence(text) {
   return "We give your call in this ward " + aChance(text) + ".";
 }
 
-// What the badge is, beside it wherever it is shown (owner, 2026-10-13;
-// JUDGEMENT-CALLS §N10): the cards, the analysis and the arrival view. The
-// badge is reweight.closeness banded (reweight.CLOSENESS_BANDS); its figure
-// is never printed.
-export const BADGE_LINE = "How close this is to our prediction, with the largest parties counting double.";
+// What the badge says, beside it wherever it is shown (owner, 2026-10-13,
+// the brief's amendment; JUDGEMENT-CALLS §N10): "We think your prediction is
+// likely, but time will tell." `phrase` is the answer's (reweight
+// CLOSENESS_PHRASES, one per badge); `whose` is "your" on the page, "this"
+// on a card and in the arrival view, a name's possessive on the two-
+// prediction card. No figure of the closeness is printed.
+export function verdictLine(phrase, whose = "this") {
+  return "We think " + whose + " prediction is " + phrase + ", but time will tell.";
+}
 
-// How sealed forecasts are ranked (src/rank_entries.py, score_forecasts'
+// How sealed predictions are ranked (src/rank_entries.py, score_forecasts'
 // order), in words: ONE DEFINITION for the arrival view and the analysis.
 export const RANK_ORDER = "seats per party first, then wards called right, then vote per party";
-export const RANKING_LINE = "Every sealed forecast is ranked against the result: " + RANK_ORDER +
-  ". The badge plays no part in the ranking.";
+export const RANKING_SENTENCE = "All predictions are judged by " + RANK_ORDER + ".";
+// The analysis's paragraph under the verdict (owner, 2026-10-13).
+export const SEALED_LINE = "Your prediction is sealed and will be ranked against the result on election day. " + RANKING_SENTENCE;
 
 // The owner's badge for a badge's words (reweight.CLOSENESS_BANDS): the file
 // src/stamps/reader-<words>.svg, which the build serves at /stamps/. One file
@@ -210,6 +216,7 @@ export function forecastSpec({ name, answer, outcome, vote, calls, party, baseli
     coalition, coalitionNames: coalition.map(c => party(c).name),
     coalitionSeats: coalition.reduce((a, c) => a + seats[c], 0),
     outcome, words: outcomeWords(outcome, party), badge: outcome.badge,
+    verdict: outcome.phrase ? verdictLine(outcome.phrase) : "",
     // the most seats: one party, or every party tied for them (the band splits)
     top: order.filter(c => seats[c] === seats[order[0]]),
     excess: Object.entries(excessive).filter(([, v]) => v > 0).map(([c, v]) =>
@@ -681,7 +688,7 @@ export function linkCardSVG(spec, assets = {}, party) {
   const lines = [spec.election.city + " council, " + dateText(spec.election.date) + ", " + spec.council + " seats.",
     made ? made + ", " + daysText(daysToVote(spec.made.at, spec.election)) + "." : ""].filter(Boolean);
   s += text(X, H - 18, "Make yours at ", 18, "sans", { fill: C.ink2 }) + text(X + textWidth("Make yours at ", 18), H - 18, SITE, 18, "monoSemi");
-  s += text(X, H - 40, "A reader's forecast, not the model's.", 15, "sans", { fill: C.ink3 });
+  s += text(X, H - 40, "A reader's prediction, not the model's.", 15, "sans", { fill: C.ink3 });
   let ly = H - 62;
   for (const l of [...lines].reverse()) {
     const f = fitText(l, LINK_LEFT, 16, "sans", 13);
@@ -689,7 +696,7 @@ export function linkCardSVG(spec, assets = {}, party) {
     ly -= 20;
   }
   // what the badge is, wrapped
-  const said = wrapText(BADGE_LINE, LINK_LEFT, LINK_BADGE_LINE);
+  const said = wrapText(spec.verdict, LINK_LEFT, LINK_BADGE_LINE);
   const cy = ly - 6 - (said.length - 1) * LINK_BADGE_LINE * 1.3;
   s += said.map((l, k) => text(X, cy + k * LINK_BADGE_LINE * 1.3, l, LINK_BADGE_LINE, "sans", { fill: C.ink2 })).join("");
   const upper = cy - LINK_BADGE_LINE;
@@ -786,7 +793,7 @@ export function storyCardSVG(spec, assets = {}, party) {
   const column = ([fw, fn], ow, y0, draw) => {
     let out = "", oy = y0 + fw * 0.85;
     // what the badge in the band is
-    for (const l of wrapText(BADGE_LINE, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
+    for (const l of wrapText(spec.verdict, ow, fw)) { if (draw) out += text(draw.x, oy, l, fw, "sans", { fill: C.ink2 }); oy += fw * 1.37; }
     oy += fn * 0.6;
     for (const l of wrapText(spec.excess.join(" "), ow, fn)) { if (draw) out += text(draw.x, oy, l, fn, "sans", { fill: C.ink3 }); oy += fn * 1.4; }
     return { out, h: oy - fn - y0 };
@@ -812,7 +819,7 @@ export function storyCardSVG(spec, assets = {}, party) {
   // the key, and who governs
   const kx = X + cs.w + 36, kw = R - kx, KF = 24;
   let ky = y + KF + 4;
-  for (const l of wrapText("A reader's forecast, not the model's.", kw, KF)) { s += text(kx, ky, l, KF, "sans", { fill: C.ink3 }); ky += KF * 1.35; }
+  for (const l of wrapText("A reader's prediction, not the model's.", kw, KF)) { s += text(kx, ky, l, KF, "sans", { fill: C.ink3 }); ky += KF * 1.35; }
   ky += KF * 0.6;
   const key = (yy, op) => rect(kx, yy - 17, 20, 20, C.ink2, ` rx="3"${op == null ? "" : ` fill-opacity="${op}"`}`);
   s += key(ky) + text(kx + 28, ky, "ward seats", KF, "sans", { fill: C.ink3 });
@@ -961,7 +968,7 @@ const DUEL_TITLE = { large: 48, middle: 44, small: 40, least: 36 };
 export const DUEL_BAND = 120;
 export const DUEL_HEAD_Y = 88;
 // Each forecast's bar width, its council's cell, and the two bars' baselines:
-// a bar (with its badge's words) and its council stack in each.
+// a bar (with its badge's words), its council and what the badge says stack in each.
 const DUEL_BAR_W = 470, DUEL_CELL = 10;
 const DUEL_PAIR_Y = { first: 206, second: 392 };
 
@@ -983,27 +990,29 @@ export function duelCardSVG(a, b, assets = {}, party) {
     text(X, DUEL_HEAD_Y, na, fs, "serifSemi", { fill: top.ink }) +
     text(X + textWidth(na + " ", fs, "serifSemi"), DUEL_HEAD_Y, and.trim(), fs, "serifSemi", { fill: top.ink }) +
     text(X + textWidth(na + and, fs, "serifSemi"), DUEL_HEAD_Y, nb, fs, "serifSemi", { fill: top.ink });
-  s += text(X, 150, "Two forecasts of the " + a.election.city + " council, " + a.council + " seats.", 21, "sans", { fill: C.ink2 });
+  s += text(X, 150, "Two predictions of the " + a.election.city + " council, " + a.council + " seats.", 21, "sans", { fill: C.ink2 });
   // the date is the first forecast's own: the second's link carries no seal
   const made = madeText(a);
   if (made) {
-    const line = a.name + (/s$/i.test(a.name) ? "'" : "'s") + " forecast " + made.charAt(0).toLowerCase() + made.slice(1) + ", " +
+    const line = a.name + (/s$/i.test(a.name) ? "'" : "'s") + " prediction " + made.charAt(0).toLowerCase() + made.slice(1) + ", " +
       daysText(daysToVote(a.made.at, a.election)) + ".";
     const fit = fitText(line, R - X, 21, "sans", 16);
     s += text(X, 176, fit.text, fit.fs, "sans", { fill: C.ink2 });
   }
   // each forecast's line on a bar in its own largest party's colour, with its
-  // badge's words, over its council
+  // badge's words, over its council and what the badge says
   const pair = (F, y) => {
     const who = F.name + " ";
     const rest = F.badge + ".";
     const bar = colourBand(F, X, y - 22, DUEL_BAR_W, 30);
     const tail = fitText(rest, DUEL_BAR_W - 16 - textWidth(who, 20, "sansSemi"), 20, "sans", 15);
     const g = council(F, X, y + 14, { width: 350, cell: DUEL_CELL, gap: 2, label: false });
+    // what its badge says, under its council, in the prediction's own name
+    const said = F.outcome.phrase ? fitText(verdictLine(F.outcome.phrase, F.name + (/s$/i.test(F.name) ? "'" : "'s")), DUEL_BAR_W, 16, "sans", 13) : null;
     return bar.svg + textPlate(bar, X + 8, y, textWidth(who, 20, "sansSemi") + textWidth(tail.text, tail.fs), 20) +
       text(X + 8, y, who, 20, "sansSemi", { fill: bar.ink }) +
       text(X + 8 + textWidth(who, 20, "sansSemi"), y, tail.text, tail.fs, "sans", { fill: bar.ink }) +
-      g.svg;
+      g.svg + (said ? text(X, y + 14 + g.h + 18, said.text, said.fs, "sans", { fill: C.ink2 }) : "");
   };
   s += pair(a, DUEL_PAIR_Y.first) + pair(b, DUEL_PAIR_Y.second);
   // the table: each party in either top seven, in the first forecast's seat order
@@ -1029,11 +1038,8 @@ export function duelCardSVG(a, b, assets = {}, party) {
       text(ca, y, String(va), 25, "sansBold", { fill: ink, anchor: "end" }) + text(cb, y, String(vb), 25, "sansBold", { fill: ink, anchor: "end" }) +
       text(R, y, signed(vb - va), 19, "sans", { fill: band.ink || C.ink3, anchor: "end" });
   });
-  // what the badges are, once, over the foot
-  const said = fitText(BADGE_LINE, DUEL_BAR_W, 15, "sans", 12);
-  s += text(X, 556, said.text, said.fs, "sans", { fill: C.ink3 });
   s += rect(X, 570, R - X, 1, C.rule);
-  s += text(X, 600, "Readers' forecasts, not the model's. Compare both with the result after the count.", 19, "sans", { fill: C.ink2 });
+  s += text(X, 600, "Readers' predictions, not the model's. Compare both with the result after the count.", 19, "sans", { fill: C.ink2 });
   s += text(R, 600, SITE, 19, "monoSemi", { anchor: "end" });
   return s + "</svg>";
 }
@@ -1044,13 +1050,13 @@ export function cardAlt(spec) {
   const rows = listedRows(spec, ROWS.link).map(r => r.name + " " + r.seats).join(", ");
   return [spec.title, spec.election.city + " council, " + spec.council + " seats", "Seats: " + rows,
     spec.coalition.length ? "Governing: " + listAnd(spec.coalitionNames) + ", " + spec.coalitionSeats + " seats" : "",
-    spec.words, spec.badge, BADGE_LINE, "A reader's forecast, not the model's"]
+    spec.words, spec.badge, spec.verdict, "A reader's prediction, not the model's"]
     .filter(Boolean).map(s => s.replace(/\.$/, "")).join(". ") + ".";
 }
 export function duelAlt(a, b) {
-  return [a.name + " and " + b.name + ": two forecasts of the " + a.election.city + " council",
-    a.name + ": " + a.words + " " + a.badge,
-    b.name + ": " + b.words + " " + b.badge, BADGE_LINE]
+  return [a.name + " and " + b.name + ": two predictions of the " + a.election.city + " council",
+    a.name + ": " + a.words + " " + a.badge + ". " + a.verdict,
+    b.name + ": " + b.words + " " + b.badge + ". " + b.verdict]
     .map(s => s.replace(/\.$/, "")).join(". ") + ".";
 }
 

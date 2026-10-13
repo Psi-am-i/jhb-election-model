@@ -2347,8 +2347,9 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   hand-off seated in the seat Worker's `handoff` lane, its badge from
   `analyse`).
   `forecastSpec` takes the seat law's answer, the badge (words only: no card
-  prints a chance or the closeness figure; each card prints `BADGE_LINE`,
-  what the badge is), the reader's vote, and forecast.json's
+  prints a chance or the closeness figure; each card prints `verdictLine`,
+  what the badge says: "We think this prediction is <phrase>, but time will
+  tell."), the reader's vote, and forecast.json's
   `baseline` (the previous council election per roster party, from
   `build_make.baseline`); it adds no figure of its own. The council graphic's
   geometry (`councilLayout`, `stepPath`) is shared with the arrival view.
@@ -2362,8 +2363,12 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   the page sends the prediction with `analyse` (`make.js` `ours`) and the
   seat Worker reads it from the site's `forecast.json`
   (`entry.load_prediction`). The closeness itself is
-  never returned. The analysis and the arrival view print `BADGE_LINE` and
-  `RANKING_LINE` (share-card.js, one definition each) beside the badge. The cards draw the owner's badge for the words
+  never returned; the answer carries the badge's `phrase`
+  (`reweight.CLOSENESS_PHRASES`). The analysis prints the badge at twice the
+  arrival view's size, with `verdictLine(phrase, "your")` and `SEALED_LINE`;
+  the arrival view prints `verdictLine(phrase)` and `RANKING_SENTENCE`
+  (share-card.js, one definition each; `SEALED_LINE` ends with
+  `RANKING_SENTENCE`). The cards draw the owner's badge for the words
   (`src/stamps/reader-*.svg`, served at `/stamps/`) through share-card.js
   `stampSVG`, the one function that places a stamp, which prefixes the
   stamp's internal ids per embed. The page reaches it through `page.py`'s `analyse`;
@@ -2374,7 +2379,7 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
 * **The edge** (`share-edge.js`, routed by `src/worker.js`): `/s/` counts a
   share arrival (channel `share`, the button) and redirects to the arrival
   view; `/your-forecast/?f=…` gets its og: tags pointed at
-  `/og/4/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
+  `/og/5/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
   rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
   the draws' hash (a year when the link's seal checks, an hour otherwise), and
   is `/og.png` on any failure.

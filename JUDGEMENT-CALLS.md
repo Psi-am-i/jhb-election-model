@@ -3430,7 +3430,12 @@ The share cards, the link
 preview, the arrival view and the analysis draw the owner's badge for the
 words they are handed (`src/stamps/reader-<words>.svg`, served at
 `/stamps/`); no JavaScript computes it. No page or card prints the closeness
-as a number: `outcome_badge` returns the words only.
+as a number: `outcome_badge` returns the words only, with the badge's
+phrase (`CLOSENESS_PHRASES`, owner, 2026-10-13: Safe bet "likely", Steady as
+she goes "plausible", Long shot "unlikely", Wild call "very unlikely", Hail
+Mary "extremely unlikely"), which the page prints as "We think your
+prediction is <phrase>, but time will tell." and a card as "We think this
+prediction is <phrase>, but time will tell."
 
 **Now (owner, 2026-10-13; brief
 `audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md`).**

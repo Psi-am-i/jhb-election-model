@@ -17,7 +17,7 @@
 
 import { entryCount, countLine } from "./entries.js";
 import { councilLayout, stepPath, listedRows, cardTitle, chanceSentence, dateText, daysToVote, localStamp, ROWS, PR_OPACITY,
-  badgeFile, STAMP_DIR, BADGE_LINE, RANKING_LINE } from "./share-card.js";
+  badgeFile, STAMP_DIR, verdictLine, RANKING_SENTENCE } from "./share-card.js";
 
 const R = document.querySelector('[data-live="arrival"]');
 const SVG = "http://www.w3.org/2000/svg";
@@ -103,7 +103,7 @@ export function showArrival(v) {
   const o = spec.outcome;
   const count = el("p", { className: "yf-arr-count", hidden: true });
   R.replaceChildren(
-    el("p", { className: "yf-arr-from" }, sw(lead && lead.code), "A forecast shared with you. ",
+    el("p", { className: "yf-arr-from" }, sw(lead && lead.code), "A prediction shared with you. ",
       el("span", { className: "yf-arr-seal", "data-seal": seal.state }, sealLine(seal, spec.election))),
     el("h2", { className: "yf-arr-title" }, cardTitle(spec.name || "A Reader")),
     el("p", { className: "yf-arr-sub" }, spec.election.city + " council, " + dateText(spec.election.date) + ". " +
@@ -112,9 +112,9 @@ export function showArrival(v) {
       el("p", { className: "yf-arr-what" }, o ? spec.words : "Working out the badge."),
       o ? el("div", { className: "yf-arr-badge" },
         el("img", { src: "../" + STAMP_DIR + "/" + badgeFile(spec.badge), alt: spec.badge, className: "yf-stamp" }),
-        el("div", {}, el("p", { className: "yf-arr-call" }, BADGE_LINE),
-          el("p", { className: "yf-arr-chance" }, RANKING_LINE))) : null,
-      el("p", { className: "yf-arr-how" }, "The badge is ours, measured against the forecast as published today. The seats are " + poss(name) +
+        el("div", {}, el("p", { className: "yf-arr-call" }, verdictLine(o.phrase)),
+          el("p", { className: "yf-arr-chance" }, RANKING_SENTENCE))) : null,
+      el("p", { className: "yf-arr-how" }, "The badge is ours, measured against our prediction as published today. The seats are " + poss(name) +
         ": every ward called, the vote set, and the law seating the result.")),
     el("p", { className: "yf-arr-quick" }, chooseButton("friend", "Make your own, starting from " + poss(name), null, "btn primary")),
     el("div", { className: "yf-arr-grid" },
@@ -130,10 +130,10 @@ export function showArrival(v) {
         spec.excess.length ? el("p", { className: "yf-arr-note" }, spec.excess.join(" ")) : null)),
     el("div", { className: "yf-arr-ctas" },
       el("h3", {}, "Make your own"),
-      el("p", {}, "Change any ward, the vote or who governs. The seats follow from the law. When you share yours, the link can show both forecasts side by side."),
+      el("p", {}, "Change any ward, the vote or who governs. The seats follow from the law. When you share yours, the link can show both predictions side by side."),
       el("div", { className: "yf-arr-btns" },
         chooseButton("friend", "Start from " + poss(name), "Every ward and vote as " + name + " set them", "btn primary"),
-        chooseButton("ours", "Start from our forecast", "The model's most likely winners", "btn"),
+        chooseButton("ours", "Start from our prediction", "The model's most likely winners", "btn"),
         el("a", { className: "btn", href: "../forecast" }, "See our forecast", el("small", {}, "Chances for every party and ward")))),
     el("div", { className: "yf-arr-later" },
       el("div", {}, el("h3", {}, "The vote"), countdown(spec.election, now)),

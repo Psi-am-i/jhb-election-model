@@ -107,7 +107,7 @@ const sheet = shareSheet(E, {
   // the page keeps the name in its address (model.js onName, yf-url.js); the
   // sheet redraws with it
   onName: n => { now.onName?.(n); sheet.update(); },
-  shareWords: () => (now.touched ? { title: "My Johannesburg election forecast", text: "My forecast for the Johannesburg council." }
+  shareWords: () => (now.touched ? { title: "My Johannesburg election prediction", text: "My prediction for the Johannesburg council." }
     : { title: "Our Johannesburg Forecast", text: "The Johannesburg election model's forecast." }),
   fileBase: () => "joburg-forecast-" + (nameNow() || label).replace(/[^A-Za-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase().slice(0, 40),
   async card(kind, made) {
@@ -119,8 +119,8 @@ const sheet = shareSheet(E, {
     }
     content.ask();
     const f = content.fields();
-    if (f === undefined) return { wait: "Working out your forecast from your settings, and the chance we give it." };
-    if (f.failed) return { wait: "No image: your forecast could not be worked out (" + f.failed + "). The link still works." };
+    if (f === undefined) return { wait: "Working out your prediction from your settings." };
+    if (f.failed) return { wait: "No image: your prediction could not be worked out (" + f.failed + "). The link still works." };
     const F = content.ready().forecast;
     const A = forecastSpec({ name: nameNow(), answer: F.answer, outcome: F.outcome, vote: F.vote, calls: F.calls, party: F.party,
       baseline: F.baseline, election: F.election, made });

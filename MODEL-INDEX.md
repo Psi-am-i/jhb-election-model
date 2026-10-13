@@ -732,6 +732,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `reweight.ANALYSIS_SHARE_BAND_POINTS` | float 2.0 | NO | NO | yes | -- |
 | `reweight.PUBLISHED_LAW` | str 'deduct' | NO | NO | NO | -- |
 | `reweight.CLOSENESS_BANDS` | tuple[5] | NO | NO | yes | -- |
+| `reweight.CLOSENESS_PHRASES` | dict[5] | NO | NO | yes | -- |
 | `reweight.CLOSENESS_LARGE_PARTIES` | int 6 | NO | NO | yes | -- |
 | `reweight.CLOSENESS_LARGE_WEIGHT` | int 2 | NO | NO | yes | -- |
 | `reweight.CLOSENESS_TINY_POINTS` | float 0.5 | NO | NO | yes | -- |

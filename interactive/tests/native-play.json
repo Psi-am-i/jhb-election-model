@@ -22035,7 +22035,7 @@
   "w_bye-1": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306"
  },
  "numpy": "2.5.1",
- "page_ref": "57c764a560f83493090a68f3f9c536f8971cf1dc8cee7d9f986ce66963cedb44",
+ "page_ref": "4d9817186a36d35f3ad144b39fd94c34851e7a491aeb89c3f1952d258a8df653",
  "polls": [
   {
    "caveat": "A Johannesburg subsample of a larger survey, from one polling house. It reports likely voters only: its screen leaves out people it judges unlikely to vote, so it describes a smaller electorate than the voters' roll.",
@@ -22105,7 +22105,8 @@
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "measure": "closeness to the published prediction"
+     "measure": "closeness to the published prediction",
+     "phrase": "likely"
     },
     "score": {
      "list_vote_error": 40.71001612343535,
@@ -22749,7 +22750,8 @@
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "measure": "closeness to the published prediction"
+     "measure": "closeness to the published prediction",
+     "phrase": "likely"
     },
     "score": {
      "list_vote_error": 40.71001612343535,
@@ -23687,7 +23689,8 @@
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "measure": "closeness to the published prediction"
+     "measure": "closeness to the published prediction",
+     "phrase": "likely"
     },
     "score": {
      "list_vote_error": 41.28301493721356,
@@ -24331,7 +24334,8 @@
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "measure": "closeness to the published prediction"
+     "measure": "closeness to the published prediction",
+     "phrase": "likely"
     },
     "score": {
      "list_vote_error": 41.28301493721356,
@@ -25269,7 +25273,8 @@
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "measure": "closeness to the published prediction"
+     "measure": "closeness to the published prediction",
+     "phrase": "likely"
     },
     "score": {
      "list_vote_error": 41.11863405850518,
@@ -25913,7 +25918,8 @@
      ],
      "largest": "ANC",
      "majority_alone": true,
-     "measure": "closeness to the published prediction"
+     "measure": "closeness to the published prediction",
+     "phrase": "likely"
     },
     "score": {
      "list_vote_error": 41.11863405850518,
@@ -26851,7 +26857,8 @@
      ],
      "largest": "ANC",
      "majority_alone": false,
-     "measure": "closeness to the published prediction"
+     "measure": "closeness to the published prediction",
+     "phrase": "likely"
     },
     "score": {
      "list_vote_error": 41.40142473969547,
@@ -27495,7 +27502,8 @@
      ],
      "largest": "ANC",
      "majority_alone": false,
-     "measure": "closeness to the published prediction"
+     "measure": "closeness to the published prediction",
+     "phrase": "likely"
     },
     "score": {
      "list_vote_error": 41.40142473969547,

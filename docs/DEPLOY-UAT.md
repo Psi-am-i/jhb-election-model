@@ -352,13 +352,19 @@ badge and `measure`, and no chance. The site Worker refuses an answer whose
 1. `node worker-api/tools/sync_seats_py.mjs` (and `--check`), then deploy
    `joburg-seats` as above.
 2. Upload, check and promote the site Worker. On the Version URL, a shared
-   link's `/og/4/link.png` draws the owner's badge and the line "How close
-   this is to our prediction, with the largest parties counting double.",
-   no call and no chance; `/og/3/…`, `/og/2/…` and `/og/1/…` answer 301 to
-   it. "Analyse my forecast" shows the badge, that line and the ranking line,
-   and no council-outcome chance.
+   link's `/og/5/link.png` draws the owner's badge and "We think this
+   prediction is <phrase>, but time will tell.", no call and no chance;
+   `/og/4/…` to `/og/1/…` answer 301 to it. "Analyse my prediction" shows
+   the badge at twice its arrival-view size, "We think your prediction is
+   <phrase>, but time will tell." and the sealed-and-ranked paragraph, and no
+   council-outcome chance.
 
-**Why the image address moved to `/og/4/`.** The card's wording changed and
+The card answer's `outcome` also carries `phrase` (amendment, 2026-10-13);
+the edge refuses an answer without it, so a seat Worker from before the
+amendment draws `/og.png` until `joburg-seats` is deployed.
+
+**Why the image address moved to `/og/5/`** (it was `/og/4/` before the
+amendment). The card's wording changed and
 a sealed card's image is cached for a year as immutable (see above).
 
 **Rollback.** Roll the site Worker back first, then `joburg-seats`. Either

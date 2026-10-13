@@ -901,17 +901,17 @@ def test_a_shared_link_names_its_forecast_and_points_at_its_own_image():
              {"url": f"https://{JOBURG}/your-forecast/?t=1,0,0,0", "env": {}},
              {"url": f"https://{PREVIEW_HOSTS[1]}/your-forecast/?{S['link']}&n=whysoserious", "env": {}}]
     named, escaped, plain, blocked = run_worker(source(), cases, S["files"])
-    img = f"https://{JOBURG}/og/4/link.png?{S['link']}&amp;n=Thandi".replace("&amp;", "&")
+    img = f"https://{JOBURG}/og/5/link.png?{S['link']}&amp;n=Thandi".replace("&amp;", "&")
     assert f'<meta property="og:image" content="{img.replace("&", "&amp;")}">' in named["body"], named["body"][:3000]
     assert f'<meta name="twitter:image" content="{img.replace("&", "&amp;")}">' in named["body"]
-    assert '<meta property="og:title" content="Thandi&#x27;s Election Forecast">' in named["body"] or \
-        '<meta property="og:title" content="Thandi\'s Election Forecast">' in named["body"]
+    assert '<meta property="og:title" content="Thandi&#x27;s Election Prediction">' in named["body"] or \
+        '<meta property="og:title" content="Thandi\'s Election Prediction">' in named["body"]
     assert "from=1" not in re.search(r'og:image" content="([^"]*)"', named["body"]).group(1)
     assert "t=1" not in re.search(r'og:url" content="([^"]*)"', named["body"]).group(1)
     assert "<b>" not in escaped["body"].split("</head>")[0] or "&lt;b&gt;" in escaped["body"]
     page = (ROOT / "site/your-forecast/index.html").read_text(encoding="utf-8")
     assert plain["body"] == "asset:/your-forecast/" or plain["body"] == page   # no forecast: untouched
-    assert "My Election Forecast" in blocked["body"] and "whysoserious&#x27;s" not in blocked["body"]
+    assert "My Election Prediction" in blocked["body"] and "whysoserious&#x27;s" not in blocked["body"]
     assert dict(blocked["headers"]).get("x-robots-tag") == NOINDEX
     assert not any(r["logs"] or r["points"] for r in (named, escaped, plain, blocked))
 
@@ -955,13 +955,13 @@ def test_the_image_asks_the_seat_worker_and_falls_back_to_the_generic_image():
     Worker is asked for the link's picks, never seats from the link, with the
     published draws' hash."""
     S = _share_setup()
-    base = f"https://{JOBURG}/og/4/link.png?{S['link']}&n=Thandi&seats=999"
+    base = f"https://{JOBURG}/og/5/link.png?{S['link']}&n=Thandi&seats=999"
     ok = {"status": 200, "body": {"seats": {}, "outcome": {}}}
     cases = [{"url": base, "env": {}},
              {"url": base, "env": {}, "seats": {"status": 500, "body": {}}},
              {"url": base, "env": {}, "seats": ok},
-             {"url": f"https://{JOBURG}/og/4/link.png?v=1&c=x&f=AAAA", "env": {}, "seats": ok},
-             {"url": f"https://{PREVIEW_HOSTS[0]}/og/4/story.png?{S['link']}", "env": {}, "seats": ok}]
+             {"url": f"https://{JOBURG}/og/5/link.png?v=1&c=x&f=AAAA", "env": {}, "seats": ok},
+             {"url": f"https://{PREVIEW_HOSTS[0]}/og/5/story.png?{S['link']}", "env": {}, "seats": ok}]
     runs = run_worker(source(), cases, S["files"])
     for r in runs:
         h = dict(r["headers"])

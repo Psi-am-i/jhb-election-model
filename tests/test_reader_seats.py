@@ -642,7 +642,7 @@ def test_the_card_answer_is_the_seats_and_the_badge_of_the_published_draws():
     # parties are large (fewer than six), so the overall is L = (1 + 0.25 + 1) / 3
     # = 0.75: a Long shot (0.70 to under 0.80)
     assert got["outcome"] == {"largest": "A", "majority_alone": False, "coalition": ["A", "C"],
-                              "badge": "Long shot", "measure": reweight.CLOSENESS_MEASURE}
+                              "badge": "Long shot", "phrase": "unlikely", "measure": reweight.CLOSENESS_MEASURE}
     assert got["outcome"] == reweight.outcome_badge(draws["seats"], cols, draws["shares"], cols, None,
                                                     {"seats": got["seats"], "share": pct}, 6, ["A", "C"],
                                                     ours=ours)

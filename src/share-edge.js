@@ -8,8 +8,8 @@
 //                            the channel, the button and the host are written.
 //   /your-forecast/?f=…      the page, its og: and twitter: tags rewritten to
 //                            name the forecast and point at its own image
-//   /og/4/link.png?<link>    that image, drawn here: share-card.js's card,
-//   /og/4/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
+//   /og/5/link.png?<link>    that image, drawn here: share-card.js's card,
+//   /og/5/story.png?<link>   rasterised by resvg (src/og-render.js), cached at
 //                            the edge by the link and the published draws'
 //                            hash: a year when the link's seal checks, an
 //                            hour otherwise (imageCache). Any failure
@@ -75,9 +75,11 @@ const PAGE = "/your-forecast/";
 // the boldest call's own chance, measured from the published prediction, in
 // place of the council outcome's. Version 4 (2026-10-13): the badge measures
 // closeness to the published prediction and the card prints what it is, with
-// no call and no chance (JUDGEMENT-CALLS §N10). An address of an earlier
-// version answers 301 to the same image at the current one.
-export const CARD_VERSION = 4;
+// no call and no chance (JUDGEMENT-CALLS §N10). Version 5 (2026-10-13): the
+// card says what the badge means ("We think this prediction is likely, but
+// time will tell.") and calls the reader's entry a prediction. An address of
+// an earlier version answers 301 to the same image at the current one.
+export const CARD_VERSION = 5;
 // reweight.CLOSENESS_MEASURE: the card answer's `measure`, the same text
 // (tests/test_worker_routing.py holds the two equal).
 export const CLOSENESS_MEASURE = "closeness to the published prediction";
@@ -164,7 +166,7 @@ export async function sharedPage(request, url, env) {
   let html = await res.text();
   const values = {
     "og:title": title,
-    "og:description": "A reader's forecast of the Johannesburg council, not the model's. Make yours.",
+    "og:description": "A reader's prediction of the Johannesburg council, not the model's. Make yours.",
     "og:url": `${url.origin}${PAGE}?${q}`,
     "og:image": image,
     "og:image:alt": title + ": seats, who governs, and how close it is to our prediction.",
@@ -211,7 +213,7 @@ async function cardAnswer(env, D, got) {
   const ans = await r.json();
   const seats = checkSeatAnswer(ans, body, D.forecast.schema);   // arithmetic identities, or throws
   const o = ans.outcome;
-  if (!o || typeof o.badge !== "string" || !Array.isArray(o.coalition) ||
+  if (!o || typeof o.badge !== "string" || typeof o.phrase !== "string" || !Array.isArray(o.coalition) ||
       ans.draws_sha256 !== D.forecast.draws_sha256) throw new Error("the card answer is incomplete");
   // the badge measured as closeness to this page's published prediction, not
   // an earlier Worker's boldest call: a refused answer is the generic image,
@@ -437,7 +439,7 @@ export async function seal(request, env, url, { preview = false, ctx = null } = 
   if (fields.n !== "" && cardName(fields.n) !== fields.n) return json({ error: "the name is not one a card can carry" }, 400);
   const now = Date.now();
   const opens = Date.parse(got.D.forecast.election.polls_open);
-  if (!(now < opens)) return json({ error: "Polls are open: a forecast can no longer be sealed." }, 403);
+  if (!(now < opens)) return json({ error: "Polls are open: a prediction can no longer be sealed." }, 403);
   const s = await makeSeal(env.SEAL_KEY, got.fields, now);
   const stored = storeEntry(env, () => entryRow(s, fields, read, got.D));
   if (ctx?.waitUntil) ctx.waitUntil(stored); else await stored;
