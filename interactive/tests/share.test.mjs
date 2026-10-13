@@ -198,14 +198,41 @@ test("every card prints what the badge says, and no chance, no call and no counc
   const cards = [["link", SC.linkCardSVG(A, ASSETS, party)], ["story", story], ["duel", SC.duelCardSVG(A, Bspec, ASSETS, party)]];
   for (const [what, svg] of cards) {
     assert.ok(drawsSentence(svg, what === "duel" ? SC.verdictLine(A.outcome.phrase, A.name + "'s") : A.verdict), what + ": the verdict");
-    for (const gone of ["forecast", "Forecast"]) assert.ok(!svg.includes(gone), what + ": " + gone);
+    // the reader's entry is a prediction; the one "forecasts" left is our own, in the foot line
+    const bare = svg.split(SC.byReaders(what === "duel")).join("").split("For our forecasts and predictions").join("");
+    for (const gone of ["forecast", "Forecast"]) assert.ok(!bare.includes(gone), what + ": " + gone);
     for (const gone of ["We give", "chance", "boldest", "this outcome"]) assert.ok(!svg.includes(gone), what + ": " + gone);
   }
   // it can see: a card without the line is caught
   assert.ok(!drawsSentence(cards[0][1].replace(/We think/g, ""), A.verdict));
   for (const alt of [SC.cardAlt(A), SC.duelAlt(A, Bspec)]) {
-    assert.ok(alt.includes(A.verdict.replace(/\.$/, "")) && alt.includes(A.badge) && !alt.includes("chance") && !alt.includes("forecast"), alt);
+    assert.ok(alt.includes(A.verdict.replace(/\.$/, "")) && alt.includes(A.badge) && !alt.includes("chance") &&
+      !alt.split("For our forecasts and predictions").join("").includes("forecast"), alt);
   }
+});
+
+test("every card's foot says whose prediction it is, in its smallest type, muted, lowest on the card (owner, 2026-10-13)", () => {
+  assert.equal(SC.byReaders(), "This prediction is by a reader, not whysoserious.city. For our forecasts and predictions go to joburg.whysoserious.city");
+  assert.equal(SC.byReaders(true), "These predictions are by readers, not whysoserious.city. For our forecasts and predictions go to joburg.whysoserious.city");
+  const texts = svg => [...svg.matchAll(/<text x="[\d.]+" y="([\d.]+)"[^>]*font-size="([\d.]+)" fill="([^"]+)"[^>]*>([^<]*)<\/text>/g)]
+    .map(m => ({ y: Number(m[1]), fs: Number(m[2]), fill: m[3], t: m[4] }));
+  const cards = [["link", SC.linkCardSVG(A, ASSETS, party), SC.byReaders()], ["story", SC.storyCardSVG(A, ASSETS, party), SC.byReaders()],
+    ["duel", SC.duelCardSVG(A, Bspec, ASSETS, party), SC.byReaders(true)]];
+  for (const [what, svg, line] of cards) {
+    assert.ok(drawsSentence(svg, line), what + ": the foot line");
+    assert.ok(!svg.includes("not the model"), what + ": the old label");
+    const all = texts(svg), mine = all.filter(x => x.t !== SC.SITE && line.includes(x.t.replace(/&#39;/g, "'")) && x.t.length > 10);
+    assert.ok(mine.length, what + ": found the line's text");
+    const smallest = Math.min(...all.map(x => x.fs));
+    for (const x of mine) {
+      assert.equal(x.fs, smallest, what + ": the line is the smallest type");
+      assert.equal(x.fill, SC.C.ink3, what + ": muted");
+    }
+    assert.ok(Math.max(...mine.map(x => x.y)) >= Math.max(...all.map(x => x.y)), what + ": at the bottom");
+    if (what !== "duel") assert.ok(svg.includes(">Make yours at <"), what + ": Make yours kept");
+  }
+  for (const alt of [SC.cardAlt(A)]) assert.ok(alt.includes(SC.byReaders()) && !alt.includes("not the model"));
+  assert.ok(SC.duelAlt(A, Bspec).includes(SC.byReaders(true)));
 });
 
 test("the two-forecast card's band follows each forecast's largest party, half each", () => {

@@ -45,6 +45,14 @@ import { FACES } from "./card-fonts.js";
 
 export const SIZES = { link: [1200, 630], story: [1080, 1920], duel: [1200, 630] };
 export const SITE = "joburg.whysoserious.city";
+// Whose prediction a card shows, at its foot, in the card's smallest type and
+// muted (owner, 2026-10-13): ONE DEFINITION for the cards and their alt text.
+export function byReaders(two = false) {
+  return (two ? "These predictions are by readers" : "This prediction is by a reader") +
+    ", not whysoserious.city. For our forecasts and predictions go to " + SITE;
+}
+// The foot line's type size on the 1200 x 630 cards and on the story card.
+export const FOOT_FS = { link: 12, story: 17 };
 // How many party rows each card lists before "Others".
 export const ROWS = { link: 6, story: 6, duel: 7, page: 9, phone: 7 };
 // The colour of the "Others" row: a neutral grey, no party's.
@@ -681,15 +689,17 @@ export function linkCardSVG(spec, assets = {}, party) {
   s += textPlate(top, X, LINK_HEAD_Y, textWidth(head.text, head.fs, "serifSemi"), head.fs) +
     text(X, LINK_HEAD_Y, head.text, head.fs, "serifSemi", { fill: top.ink });
   // the left column (owner's notes, 2026-10-10 and 2026-10-13), bottom up:
-  // where to make one, whose forecast, whose council and when, what the
-  // badge is (never cut: wrapped); the map fills the height above them, and
+  // whose prediction (byReaders, the smallest type), where to make one,
+  // whose council and when, what the badge says (never cut: wrapped); the map fills the height above them, and
   // the owner's badge stands large over the map's top-left corner
   const made = madeText(spec);
   const lines = [spec.election.city + " council, " + dateText(spec.election.date) + ", " + spec.council + " seats.",
     made ? made + ", " + daysText(daysToVote(spec.made.at, spec.election)) + "." : ""].filter(Boolean);
-  s += text(X, H - 18, "Make yours at ", 18, "sans", { fill: C.ink2 }) + text(X + textWidth("Make yours at ", 18), H - 18, SITE, 18, "monoSemi");
-  s += text(X, H - 40, "A reader's prediction, not the model's.", 15, "sans", { fill: C.ink3 });
-  let ly = H - 62;
+  // whose prediction this is, at the very foot, across the card
+  const by = fitText(byReaders(), R - X, FOOT_FS.link, "sans", FOOT_FS.link - 2);
+  s += text(X, H - 10, by.text, by.fs, "sans", { fill: C.ink3 });
+  s += text(X, H - 30, "Make yours at ", 18, "sans", { fill: C.ink2 }) + text(X + textWidth("Make yours at ", 18), H - 30, SITE, 18, "monoSemi");
+  let ly = H - 54;
   for (const l of [...lines].reverse()) {
     const f = fitText(l, LINK_LEFT, 16, "sans", 13);
     s += text(X, ly, f.text, f.fs, "sans", { fill: C.ink2 });
@@ -784,7 +794,8 @@ export function storyCardSVG(spec, assets = {}, party) {
   // a seal shows when a forecast was made, not that it was its maker's only
   // one, so no card promises a ranking (review of the share build, 2026-10-03)
   const foot = wrapText("Bring this link back after the count to compare it with the result.", R - X, 27);
-  const footH = 40 + foot.length * 38;                        // from the rule to the last baseline
+  const by = wrapText(byReaders(), R - X, FOOT_FS.story);      // whose prediction, the smallest type
+  const footH = 40 + foot.length * 38 + by.length * FOOT_FS.story * 1.4 + 8;   // from the rule to the last baseline
   const start = 352;
   const gaps = 4;                                             // before the council, the table, the row, the foot
   const avail = STORY_TEXT_BOTTOM - start - cs.h - tableH - footH - gaps * STORY_GAP;
@@ -815,12 +826,10 @@ export function storyCardSVG(spec, assets = {}, party) {
   const gap = STORY_GAP + Math.floor(Math.max(0, avail - pick.rowH) / gaps);
   let y = start + gap;
   s += council(spec, X, y, CO).svg;
-  // beside the council graphic (owner's notes, 2026-10-10): whose forecast,
-  // the key, and who governs
+  // beside the council graphic (owner's notes, 2026-10-10): the key, and
+  // who governs
   const kx = X + cs.w + 36, kw = R - kx, KF = 24;
   let ky = y + KF + 4;
-  for (const l of wrapText("A reader's prediction, not the model's.", kw, KF)) { s += text(kx, ky, l, KF, "sans", { fill: C.ink3 }); ky += KF * 1.35; }
-  ky += KF * 0.6;
   const key = (yy, op) => rect(kx, yy - 17, 20, 20, C.ink2, ` rx="3"${op == null ? "" : ` fill-opacity="${op}"`}`);
   s += key(ky) + text(kx + 28, ky, "ward seats", KF, "sans", { fill: C.ink3 });
   ky += KF * 1.35;
@@ -843,6 +852,7 @@ export function storyCardSVG(spec, assets = {}, party) {
   foot.forEach((l, k) => { s += text(X, rule + 40 + k * 38, l, 27, "sans", { fill: C.ink2 }); });
   const my = rule + 40 + foot.length * 38, lead = "Make yours at ";
   s += text(X, my, lead, 27, "sans", { fill: C.ink2 }) + text(X + textWidth(lead, 27), my, SITE, 27, "monoSemi");
+  by.forEach((l, k) => { s += text(X, my + 8 + (k + 1) * FOOT_FS.story * 1.4, l, FOOT_FS.story, "sans", { fill: C.ink3 }); });
   return s + "</svg>";
 }
 
@@ -1038,9 +1048,12 @@ export function duelCardSVG(a, b, assets = {}, party) {
       text(ca, y, String(va), 25, "sansBold", { fill: ink, anchor: "end" }) + text(cb, y, String(vb), 25, "sansBold", { fill: ink, anchor: "end" }) +
       text(R, y, signed(vb - va), 19, "sans", { fill: band.ink || C.ink3, anchor: "end" });
   });
-  s += rect(X, 570, R - X, 1, C.rule);
-  s += text(X, 600, "Readers' predictions, not the model's. Compare both with the result after the count.", 19, "sans", { fill: C.ink2 });
-  s += text(R, 600, SITE, 19, "monoSemi", { anchor: "end" });
+  s += rect(X, 566, R - X, 1, C.rule);
+  s += text(X, 594, "Compare both with the result after the count.", 19, "sans", { fill: C.ink2 });
+  s += text(R, 594, SITE, 19, "monoSemi", { anchor: "end" });
+  // whose predictions these are, at the very foot, in the card's smallest type
+  const by = fitText(byReaders(true), R - X, FOOT_FS.link, "sans", FOOT_FS.link - 2);
+  s += text(X, H - 10, by.text, by.fs, "sans", { fill: C.ink3 });
   return s + "</svg>";
 }
 
@@ -1050,13 +1063,13 @@ export function cardAlt(spec) {
   const rows = listedRows(spec, ROWS.link).map(r => r.name + " " + r.seats).join(", ");
   return [spec.title, spec.election.city + " council, " + spec.council + " seats", "Seats: " + rows,
     spec.coalition.length ? "Governing: " + listAnd(spec.coalitionNames) + ", " + spec.coalitionSeats + " seats" : "",
-    spec.words, spec.badge, spec.verdict, "A reader's prediction, not the model's"]
+    spec.words, spec.badge, spec.verdict, byReaders()]
     .filter(Boolean).map(s => s.replace(/\.$/, "")).join(". ") + ".";
 }
 export function duelAlt(a, b) {
   return [a.name + " and " + b.name + ": two predictions of the " + a.election.city + " council",
     a.name + ": " + a.words + " " + a.badge + ". " + a.verdict,
-    b.name + ": " + b.words + " " + b.badge + ". " + b.verdict]
+    b.name + ": " + b.words + " " + b.badge + ". " + b.verdict, byReaders(true)]
     .map(s => s.replace(/\.$/, "")).join(". ") + ".";
 }
 

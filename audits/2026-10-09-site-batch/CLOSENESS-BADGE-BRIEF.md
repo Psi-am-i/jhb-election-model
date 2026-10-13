@@ -171,3 +171,17 @@ You are mixing them together."
      view.
    - URLs and code identifiers stay.
    - List every string changed in the report.
+
+### Second amendment (owner, 2026-10-13, before going live)
+On every card (link, story, the two-prediction card) and in the alt text,
+"A reader's prediction, not the model's." (and "Readers' predictions, not the
+model's.") is replaced by this line, set very small and out of the way
+(smallest type on the card, muted colour, at the bottom):
+- one prediction: "This prediction is by a reader, not whysoserious.city. For
+  our forecasts and predictions go to joburg.whysoserious.city"
+- two-prediction card: "These predictions are by readers, not
+  whysoserious.city. For our forecasts and predictions go to
+  joburg.whysoserious.city"
+
+"Make yours at joburg.whysoserious.city" stays. The og:description changes
+the same way only if it reads naturally.
