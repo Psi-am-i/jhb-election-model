@@ -373,6 +373,8 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `arms.MC_RESAMPLES` | int 200 | NO | NO | yes | -- |
 | `arms.MC_SEED` | int 20261012 | NO | NO | yes | -- |
 | `arms.R2_MIN_MEDIAN` | float 0.98 | NO | NO | yes | -- |
+| `arms.CENSUS_COMMIT` | str | NO | NO | NO | -- |
+| `arms.CENSUS_PATH` | str 'src/pools.py' | NO | NO | NO | -- |
 | `arms.BAND` | tuple[2] | NO | NO | yes | `scenarios` |
 | `arms.IMPLAUSIBLE_PREVIOUS_MAX` | float 0.01 | NO | NO | yes | -- |
 | `arms.IMPLAUSIBLE_DRAWN_MIN` | float 0.05 | NO | NO | yes | -- |

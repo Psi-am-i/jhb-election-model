@@ -29630,3 +29630,20 @@ two-pool spec: unset refuses (drawer and poll width), empty draws every party
 at `without`, a listed party draws at `with_history`, a fitted record needs no
 history. Mutations: the refusal removed (red); the poll width's old read
 restored (red); reverted, green.
+
+### The C0 recipe, exact and checked (item 10)
+
+Amendment 2 defined C0 as the final tree with `c2edc60` reverted; a
+whole-commit revert conflicts in `tests/test_pool_bounds.py` and
+`MODEL-INDEX.md`. Measured on the tree at this commit: `c2edc60`'s
+`src/pools.py` diff reverts cleanly with `patch -R` on the final `pools.py`
+(no later commit touched those hunks), restoring `REGISTRATION_MAX` and
+dropping `IDENTIFICATION_REACH`. The recipe (amendment 3 point 7;
+POOLS-REEMIT-QUEUE step 7, item 6) reverts only those hunks and commits them in
+the worktree. `arms.check_tree("C0")` now refuses a worktree whose HEAD differs
+from its parent in any path but `src/pools.py`, whose `pools.py` is not the
+parent's with the census hunks reversed byte for byte, or which has
+uncommitted changes under `src/` (`c0_tree_faults`, `c0_faults`). Test on this
+tree's committed `pools.py`: the reverted text is accepted; one extra line, a
+second changed path, or the unreverted file is refused. Mutations: the byte
+comparison removed (red); the path check removed (red); reverted, green.

@@ -99,10 +99,15 @@ steps 2-4 above for this window.
 4. `.venv/bin/python src/group_share_record.py --emit`.
 5. `.venv/bin/python src/width_record.py --emit`, and again with
    `--set level_shrink=0` (arm US's variant).
-6. Build the C0 worktree: the final tree with `c2edc60` reverted, `data/raw`
-   copied in, its own re-emit, `group_share_record --emit` and both
+6. Build the C0 worktree (prereg amendment 3 point 7): `git worktree add`
+   at the final commit; in it, revert ONLY `src/pools.py`'s hunks of
+   `c2edc60` (`git diff c2edc60^ c2edc60 -- src/pools.py | patch -R
+   src/pools.py`; a whole-commit revert conflicts in
+   `tests/test_pool_bounds.py` and `MODEL-INDEX.md`) and commit that alone;
+   copy `data/raw` in; its own re-emit, `group_share_record --emit` and both
    `width_record --emit` variants, into its own `data/processed`, never
-   copied into the main tree.
+   copied into the main tree. `src/arms.py run --arm C0` refuses a worktree
+   whose HEAD differs from its parent in anything but those hunks.
 7. The post-emit checks: the prereg §6.2 real-run tests, the Buffalo City
    record-seam test (`tests/test_universal_draw.py::test_the_record_reads_the_models_own_centres_at_a_real_city_year`),
    `src/declares.py --verify`, and `tests/test_intermediates_are_current.py`.

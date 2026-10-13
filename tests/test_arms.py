@@ -577,5 +577,28 @@ def test_describe_reads_the_run_s_own_widths_and_the_forecast_counts():
         assert row["implausible"]["centre_under_1_above_5"] is not None
 
 
+def test_the_c0_tree_is_the_final_tree_with_only_the_census_pools_hunks_reverted():
+    """Amendment 3 point 7. The C0 recipe reverts the census commit's
+    `src/pools.py` hunks on the final tree, nothing else (a whole-commit
+    revert conflicts in `tests/test_pool_bounds.py` and `MODEL-INDEX.md`).
+    Constructed from this tree's committed `pools.py`: the reverted text
+    restores `REGISTRATION_MAX` and drops `IDENTIFICATION_REACH`, and
+    `c0_faults` accepts it; one extra edit to the reverted file, or a second
+    changed path, is refused; the unreverted file is refused. Mutation
+    probes: the byte comparison removed, or the path check removed, each
+    turn this red."""
+    final = _REAL_GIT("show", f"HEAD:{A.CENSUS_PATH}") + "\n"
+    patch = _REAL_GIT("diff", f"{A.CENSUS_COMMIT}^", A.CENSUS_COMMIT, "--",
+                      A.CENSUS_PATH) + "\n"
+    assert "IDENTIFICATION_REACH" in final and patch.startswith("diff --git")
+    c0 = A.reverse_census(final, patch)
+    assert "REGISTRATION_MAX =" in c0 and "IDENTIFICATION_REACH =" not in c0
+    assert A.c0_faults(final, c0, [A.CENSUS_PATH], patch) == []
+    assert A.c0_faults(final, c0 + "X = 1\n", [A.CENSUS_PATH], patch)
+    assert A.c0_faults(final, c0, [A.CENSUS_PATH,
+                                   "tests/test_pool_bounds.py"], patch)
+    assert A.c0_faults(final, final, [A.CENSUS_PATH], patch)
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

@@ -1883,9 +1883,11 @@ required and refused under `data/`.
 ## Running the round's arms — `src/arms.py` (2026-10-12)
 
 The pre-registered arms of `prereg/2026-10-12-universal-draw.md` (I, U, UC,
-US, C0) are scenario overrides of one tree (C0 is the same code run in the
-worktree with the census commit reverted; the runner refuses C0 in a tree
-that carries the hold, and the others in one that does not). Each city-year
+US, C0) are scenario overrides of one tree (C0 is the same code run in a
+worktree whose HEAD is one commit on the final tree reverting the census
+commit's `src/pools.py` hunks and nothing else; the runner refuses C0 in a
+tree that carries the hold or differs from its parent in anything else
+(`check_tree`, `c0_faults`), and the others in one without the hold). Each city-year
 of each arm loads a fresh scenario, calls `run_model` in process with its
 trace, and writes `arrays.npz` and `meta.json` in the format
 `plausibility.load_run_dir` reads, under a directory outside `data/`. A

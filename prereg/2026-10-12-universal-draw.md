@@ -611,7 +611,7 @@ above is edited.
    width-record key; the US arm on the `level_shrink = 0` variant and every
    other universal arm on a variant with the shrink on (amendment 2 item 2).
    C0 is the exception, recognised by name: it runs at its own commit whose
-   parent is the final tree (amendment 2 item 1), on its own specs and record, and
+   parent is the final tree (point 7 below), on its own specs and record, and
    its run records that parent as `final_commit`, which must equal the other
    arm's commit.
 4. **Parties in the actuals that neither arm drew** (§4's CRPS rows) have
@@ -657,4 +657,18 @@ above is edited.
      `35_widths.parties.<p>.total`; the row's "composition and Monte Carlo
      allowance" is not computed separately, and M5 is read as registered:
      every party's excess over that total at most 0.05.
+7. **The C0 recipe (amendment 2 item 1, made exact).** Reverting the whole
+   commit `c2edc60` on the final tree conflicts in `tests/test_pool_bounds.py`
+   and `MODEL-INDEX.md`. C0 is built as: a git worktree at the final commit
+   (the commit the other arms run at); in it, `src/pools.py`'s hunks of
+   `c2edc60` reverted (`git diff c2edc60^ c2edc60 -- src/pools.py`, applied
+   in reverse) and nothing else; that change committed in the worktree, so
+   its HEAD is one commit whose parent is the final commit; then `data/raw`
+   copied in and the worktree's own re-emit and record emits. `src/arms.py`
+   refuses C0 unless the worktree's HEAD differs from its parent in
+   `src/pools.py` alone, that file equals the parent's with the census hunks
+   reversed byte for byte, and nothing under `src/` is uncommitted
+   (`check_tree`, `c0_faults`); each C0 run records the parent as
+   `final_commit`. If the hunks stop applying cleanly to the final tree, the
+   recipe is the owner's to amend before any run.
 

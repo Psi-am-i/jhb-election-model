@@ -150,8 +150,79 @@ def census_hold_in_tree() -> bool:
         pools, "REGISTRATION_MAX")
 
 
+# The census commit whose src/pools.py hunks the C0 tree reverts (amendment 2
+# item 1; amendment 3 point 7).
+CENSUS_COMMIT = "c2edc603e22865bd229633b2193e08d860b6f3dc"
+CENSUS_PATH = "src/pools.py"
+
+
+def reverse_census(final_pools: str, patch: str) -> str:
+    """``final_pools`` with ``patch`` (the census commit's diff of
+    ``src/pools.py``) applied in reverse, by ``patch -R``. REFUSES
+    (SystemExit) a patch that does not apply cleanly: the recipe is then
+    the owner's call, not a conflict resolution made here."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / "pools.py"
+        src.write_text(final_pools)
+        dif = Path(tmp) / "census.patch"
+        dif.write_text(patch)
+        done = subprocess.run(["patch", "-R", "-s", "-f", "--no-backup-if-mismatch",
+                               str(src), str(dif)],
+                              capture_output=True, text=True)
+        if done.returncode != 0:
+            raise SystemExit(f"the census hunks do not revert cleanly on the "
+                             f"final tree's {CENSUS_PATH}: {done.stdout}"
+                             f"{done.stderr}")
+        return src.read_text()
+
+
+def c0_faults(final_pools: str, c0_pools: str, changed: list[str],
+              patch: str) -> list[str]:
+    """Why a C0 tree is not the final tree with the census commit's
+    ``src/pools.py`` hunks reverted, as sentences; empty when it is.
+
+    ``changed`` is every path that differs between the final tree and the C0
+    tree (committed and working-tree changes alike); it must be exactly
+    ``src/pools.py``. ``c0_pools`` must equal ``final_pools`` with ``patch``
+    reversed (:func:`reverse_census`), byte for byte."""
+    out = []
+    if sorted(set(changed)) != [CENSUS_PATH]:
+        out.append(f"the C0 tree differs from the final tree in "
+                   f"{sorted(set(changed))}; it may differ in {CENSUS_PATH} "
+                   f"only")
+    try:
+        want = reverse_census(final_pools, patch)
+    except SystemExit as exc:
+        return out + [str(exc)]
+    if c0_pools != want:
+        out.append(f"the C0 tree's {CENSUS_PATH} is not the final tree's with "
+                   f"the census hunks reverted, and nothing else")
+    return out
+
+
+def c0_tree_faults() -> list[str]:
+    """:func:`c0_faults` on THIS worktree: its HEAD must be one commit on the
+    final tree (``HEAD^``), with no uncommitted change under ``src/``."""
+    out = []
+    if _git("status", "--porcelain", "--", "src"):
+        out.append("the C0 worktree has uncommitted changes under src/: commit "
+                   "the revert on the final tree (amendment 3 point 7)")
+    changed = [p for p in _git("diff", "--name-only", "HEAD^", "HEAD").split()
+               if p]
+    return out + c0_faults(_git("show", f"HEAD^:{CENSUS_PATH}") + "\n",
+                           _git("show", f"HEAD:{CENSUS_PATH}") + "\n",
+                           changed,
+                           _git("diff", f"{CENSUS_COMMIT}^", CENSUS_COMMIT,
+                                "--", CENSUS_PATH) + "\n")
+
+
 def check_tree(arm: str) -> None:
-    """REFUSES an arm run in the wrong tree (amendment 2)."""
+    """REFUSES an arm run in the wrong tree (amendment 2; amendment 3 point
+    7): C0 where the census hold is present, or in a worktree that is not the
+    final tree plus one commit reverting the census commit's ``src/pools.py``
+    hunks and nothing else (:func:`c0_tree_faults`); any other arm where the
+    hold is absent."""
     if arm not in ARMS:
         raise SystemExit(f"unknown arm {arm!r}; the arms are {sorted(ARMS)}")
     held = census_hold_in_tree()
@@ -159,6 +230,10 @@ def check_tree(arm: str) -> None:
         raise SystemExit(
             f"arm {arm} runs in the C0 worktree (the final tree with c2edc60 "
             f"reverted); this tree carries the census hold")
+    if arm in CENSUS_OFF_ARMS:
+        faults = c0_tree_faults()
+        if faults:
+            raise SystemExit(f"arm {arm}: " + "; ".join(faults))
     if arm not in CENSUS_OFF_ARMS and not held:
         raise SystemExit(
             f"arm {arm} runs in the final tree; this one has no census hold "
