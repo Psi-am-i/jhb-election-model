@@ -1013,3 +1013,26 @@ What it needs:
   can be built now from the archived results. Forecast maps wait for the
   canonical run. One animation can carry both, as a toggle between "what we
   would have called" and "what happened".
+
+## 18. Competition entry: consent to publish, sign-in, one entry each (owner idea, 2026-10-13)
+
+Owner: "a light way of a user agreeing we can publish their prediction using
+whatever name they enter - but in the background we store it alongside a
+twitter/fb/google/apple authentication. then we can contact them. If we did
+that, their last prediction is their entry. one prediction per authorisation."
+
+The problem it solves: every seal is an entry today, so one person who
+re-seals five times has five entries in the ranking.
+
+The proposal (agent, for the owner to decide):
+- an optional "Enter the competition" step at sealing;
+- one consent checkbox;
+- Continue with Google, plus an email code as fallback;
+- Apple later if wanted (paid developer account); X and Facebook skipped (API
+  cost and app review);
+- store only the provider's account id and the email, with the entry;
+- the latest seal per sign-in is the entry;
+- sealing without signing in still works for sharing but is not ranked.
+
+Needs the privacy page rewritten first (POPIA: consent, purpose, retention),
+since today it promises nothing is stored about the reader.
