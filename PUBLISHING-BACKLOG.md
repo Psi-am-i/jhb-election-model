@@ -984,3 +984,27 @@ Open questions before any brief:
 - **Cost:** thumbnails per entry are card renders; cache them like /og/.
 - **Ranking:** the ranking against the result happens after the count; this
   page must not look like a leaderboard before then.
+
+**Owner, 2026-10-13: agreed.** Show predictions without names. A name appears
+only if a reader opts in at sealing, and only after a filter. Show totals per
+badge and examples per badge, plus the latest few. No ranking before the count.
+
+## 17. Backtest maps, animated across elections (owner idea, 2026-10-13)
+
+Owner: "making forecast maps for before each of the previous elections. then
+animate them so you see wards changing and colours shifting over time."
+
+What it needs:
+- **The model's own call for each past election**, made with only data from
+  before that election: the backtest runs for 2011, 2016 and 2021, plus 2026.
+  Build it only from the canonical run after the current model round; the
+  backtest numbers move in that round.
+- **Ward boundaries per year.** Johannesburg's wards were redrawn between
+  elections, so each year needs its own geometry. The animation must
+  cross-fade between maps rather than morph shapes that are not the same
+  ward.
+- **Our call beside what happened**, so it shows hits and misses honestly.
+  Per STYLE rule 11, each map is labelled a prediction (one most-likely
+  result) or a forecast (shaded by chance).
+- **Where it lives:** probably the forecast page's history, or the backtest
+  write-up.
