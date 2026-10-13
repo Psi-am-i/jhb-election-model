@@ -1040,3 +1040,5 @@ The proposal (agent, for the owner to decide):
 
 Needs the privacy page rewritten first (POPIA: consent, purpose, retention),
 since today it promises nothing is stored about the reader.
+
+**Owner, 2026-10-13: not for this election** ("a bridge too far given how soon the election is"). Entries stay as they are; how repeat seals count is decided before the count.
