@@ -2480,7 +2480,7 @@ set and the counts disagree, the deletion fired on a partial paste.
 
 ### §L2 · The declaration sets the LEVEL; the record sets the WIDTH — ⚪
 
-**Since 2026-10-12 the emit reads no strength key** (POOLS-REEMIT-QUEUE entry 34): a judged size and its width are applied at run time under §SJ, on a forecast only, and a party carrying `support` is sized at emit like any arrival and stays in the group budget.
+**Since 2026-10-12 the emit reads no strength VALUE** (POOLS-REEMIT-QUEUE entry 34): a judged size and its width are applied at run time under §SJ, on a forecast only, and a party carrying `support` is sized at emit from the record base like any arrival. **Since 2026-10-13 it reads which parties are judged** (`pools.judged_parties`: `support` or `overperform` present, on a forecast; POOLS-REEMIT-QUEUE entry 37), and such a party sits outside the group budget, as the level half below states; the 2026-10-12 sentence that kept it inside contradicted this entry and moved the other arrivals' captures. The membership is in the spec's hash, the values are not.
 
 ⚪ **RETIRED 2026-10-09 (model correction batch, item 9).** The width half was
 false: the arrival band this entry describes was never drawn from, so the pool

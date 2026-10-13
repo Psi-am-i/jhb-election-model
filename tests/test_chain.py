@@ -1803,9 +1803,11 @@ def test_a_strength_judgement_does_not_reach_the_emit():
 
     Design 1j v3 §11.2 (2026-10-12; POOLS-REEMIT-QUEUE entry 34): a strength
     judgement acts in `montecarlo.strength_judgements`, on a forecast only,
-    and the spec's hash no longer covers it. So `arrival_rules` sizes a party
-    carrying either key exactly as it sizes one carrying neither, and the
-    party stays inside the entrant group's budget.
+    and the spec's hash no longer covers its value. So `arrival_rules` sizes a
+    party carrying either key exactly as it sizes one carrying neither. Since
+    2026-10-13 (step-7 review item 4) a party the emit names as judged
+    (`pools.judged_parties`, membership only) sits outside the entrant
+    group's budget, as JUDGEMENT-CALLS §L2 states.
 
     This replaces the 2026-09-03 test of the emit-time reading (the three
     defects it recorded were defects of a path that no longer exists). The
@@ -1836,18 +1838,30 @@ def test_a_strength_judgement_does_not_reach_the_emit():
                                        "overperform": 3.0}})
     assert _close([implied_share(vec_s)], [implied_share(vec)], rel=1e-9)
 
-    # inside the group budget: a declared strength no longer exempts a party
+    # THE GROUP BUDGET (JUDGEMENT-CALLS §L2; step-7 review item 4): a party
+    # the caller names as judged (`pools.judged_parties`: membership only)
+    # sits OUTSIDE the budget at its record size, and the other arrivals keep
+    # the whole record total; a party not named stays inside, whatever its
+    # table carries (the emit decides membership, never from a value).
     crowd = tuple(f"P{i:02d}" for i in range(29))
 
-    def total(lineage):
+    def shares(lineage, judged=None):
         r, _ = pools.arrival_rules({"NEWPARTY", *crowd}, lineage,
-                                   group_total=0.0175, **kw)
-        return sum(sum(v * pool[g] for g, v in r[q]["capture"].items())
-                   / pool.sum() for q in ("NEWPARTY", *crowd))
-    assert _close([total({"NEWPARTY": {"support": 0.12}})], [0.0175],
-                  rel=1e-6), "a party carrying `support` left the group budget"
+                                   group_total=0.0175, judged=judged, **kw)
+        return {q: implied_share(r[q]) for q in ("NEWPARTY", *crowd)}
+    inside = shares({"NEWPARTY": {"support": 0.12}})
+    assert _close([sum(inside.values())], [0.0175], rel=1e-6), (
+        "a party not named as judged left the group budget")
+    out = shares({"NEWPARTY": {"support": 0.12}}, judged={"NEWPARTY"})
+    rest = sum(v for q, v in out.items() if q != "NEWPARTY")
+    assert _close([rest], [0.0175], rel=1e-6), (
+        f"the other arrivals shared {rest:.4%}, not the record's 1.75%: the "
+        f"judged party stayed inside the budget and shrank their captures")
+    assert _close([out["NEWPARTY"]], [implied_share(plain)], rel=1e-9), (
+        "a judged party outside the budget is sized from the record base")
     # it can see: the budget binds (an unconstrained crowd would differ)
-    assert _close([total({})], [0.0175], rel=1e-6)
+    assert _close([sum(shares({}).values())], [0.0175], rel=1e-6)
+    assert sum(shares({}).values()) < implied_share(plain) * 30
 
 
 def test_an_unreadable_key_in_a_party_table_refuses_instead_of_being_ignored():

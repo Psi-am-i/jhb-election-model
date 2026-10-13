@@ -1073,8 +1073,11 @@ still-deliberate choice, not the same disagreement.
 
 **Since 2026-10-12 `support` and `overperform` are read at RUN time, not here**
 (design 1j v3 §11.2; POOLS-REEMIT-QUEUE entry 34): `arrival_rules` sizes a
-party carrying them exactly like one that does not, from the record, and the
-party stays in the group budget. The judged centre and its width (`sigma_j`)
+party carrying them exactly like one that does not, from the record. Since
+2026-10-13 the emit reads WHICH parties carry them on a forecast
+(`pools.judged_parties`; entry 37), and those sit outside the group budget
+(JUDGEMENT-CALLS §L2), so the other arrivals keep the record's total; the
+membership is in the spec's hash and the values are not. The judged centre and its width (`sigma_j`)
 reach the forecast through `montecarlo.strength_judgements`, on a forecast
 only; see "The universal draw". The text below describes the emit-time path
 before that change.

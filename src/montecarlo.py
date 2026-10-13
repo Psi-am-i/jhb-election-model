@@ -3557,14 +3557,12 @@ def read_width_record(year: str, scenario: dict,
 # --------------------------------------------------------------------------
 
 def target_is_held(year) -> bool:
-    """True when the election at ``year`` has a result file in the calendar:
-    a BACKTEST target. False for a forecast. ONE DEFINITION: the strength
-    judgements are ignored on a held target, and a forecast artefact must
-    declare the hash of the judgements it applied (``declares.py``). Here and
-    not in ``cityconfig`` because ``cityconfig`` is an emit dependency
-    (``pools._EMIT_DEPENDENCIES``): an edit there moves every spec's key."""
-    e = cityconfig.CALENDAR.get(str(year))
-    return bool(e and e.results)
+    """True when the election at ``year`` has a result file: a BACKTEST
+    target. ``pools.target_is_held`` is the one definition (the emit needs it
+    to decide which arrivals a judgement holds out of the group budget, and
+    ``pools`` cannot import this module); this delegates."""
+    import pools as _pl
+    return _pl.target_is_held(year)
 
 
 def strength_judgements(city, target) -> tuple[list[dict], list[dict]]:

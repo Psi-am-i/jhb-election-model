@@ -117,6 +117,7 @@ arithmetic test can see.
 | `size_class` | `arms`, `byelections`, `plausibility` | `?` | yes |
 | `stale_reason` | `citywide_table`, `pools` | `?` | yes |
 | `summarise` | `iec_csv`, `publication` | `?` | yes |
+| `target_is_held` | `montecarlo`, `pools` | `?` | yes |
 | `ward_number` | `iec_csv`, `score_forecasts` | `?` | yes |
 | `ward_parts` | `build_concordance`, `montecarlo` | `?` | yes |
 | `ward_winners` | `backtest`, `validate_seats` | `?` | yes |
@@ -279,7 +280,7 @@ The intermediates register names the script that writes each artefact. `agrees` 
 
 | artefact | register claims | modules naming it | agrees |
 |---|---|---|---|
-| `bye_value.json` | `bye_value` | `bye_value`, `byelections`, `montecarlo` | yes |
+| `bye_value.json` | `bye_value` | `bye_value`, `byelections`, `montecarlo`, `pools` | yes |
 | `citywide_*.json` | `citywide_table` | `archive`, `citywide_table`, `declares`, `export_interactive`, `fold`, `levels`, `pools`, `theta_residual` | yes |
 | `forecast_frozen.json` | `freeze` | `compare_history`, `declares`, `freeze`, `montecarlo` | yes |
 | `forecast_summary.json` | `montecarlo` | `build_interactive`, `build_portal`, `build_site`, `coalitions`, `declares`, `freeze`, `levels`, `montecarlo`, `overhang_regimes`, `publication`, `render_home`, `render_sheet`, `scenarios`, `stats` | yes |
@@ -1186,7 +1187,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `montecarlo.width_record_variant` | model+measurement | The variant of the record a scenario needs: the levers that move the | `arms`, `tests/test_arms`, `tests/test_universal_draw`, `width_record` |
 | `montecarlo.width_record_key` | model+measurement | The live key a width record must carry: the code that computed the | `arms`, `declares`, `tests/test_universal_draw`, `width_record` |
 | `montecarlo.read_width_record` | model+measurement | The width record for target ``year`` in the variant ``scenario`` needs. | `arms`, `tests/test_drawer`, `tests/test_universal_draw` |
-| `montecarlo.target_is_held` | model+measurement | True when the election at ``year`` has a result file in the calendar: | `arms`, `declares`, `tests/test_intermediates_are_current` |
+| `montecarlo.target_is_held` | model+measurement | True when the election at ``year`` has a result file: a BACKTEST | `arms`, `declares`, `pools`, `tests/test_intermediates_are_current` |
 | `montecarlo.strength_judgements` | model+measurement | The target's strength judgements: ``(applied, ignored)``. | `tests/test_universal_draw` |
 | `montecarlo.judgements_applied_sha` | model+measurement | The hash a run declares over the strength entries it APPLIED. | `arms`, `declares`, `export_draws`, `tests/test_export_draws`, `tests/test_universal_draw` |
 | `montecarlo.centre_correction` | model+measurement | The centre-correction arm's location for one target's record. | `arms`, `backtest`, `tests/test_arms`, `tests/test_levers_are_live`, `tests/test_universal_draw` |
@@ -1280,6 +1281,8 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `pools.contesting_parties` | model+measurement | Who is on the ballot at the target. Names only, never votes. | `montecarlo`, `tests/test_chain`, `tests/test_covariate_fail_open`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_prior_local_fails_closed`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed` |
 | `pools.arrival_rules` | model+measurement | How a party that was not here last time takes its votes. | `tests/test_chain` |
 | `pools.capture_shortfall` | model+measurement | How much of ``share`` the ``MAX_POOL_CAPTURE`` clip silently removed. | `tests/test_chain` |
+| `pools.target_is_held` | model+measurement | True when the election at ``year`` has a result file in the calendar: | `arms`, `declares`, `montecarlo`, `tests/test_intermediates_are_current` |
+| `pools.judged_parties` | model+measurement | The parties a strength judgement will size at run time: those whose | `tests/test_universal_draw` |
 | `pools.lineage_path` | model+measurement | ``judgements/<slug>-<year>.toml`` under :data:`JUDGEMENTS_DIR`. | `montecarlo`, `tests/test_artefact_key_discriminates`, `tests/test_chain`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_pool_bounds`, `tests/test_prior_local_fails_closed`, `tests/test_universal_draw` |
 | `pools.declared_roster` | model+measurement | A nomination list declared by hand, from `[roster]` in the judgement file. | `levels`, `score_forecasts`, `tests/test_chain`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_roster_aware_baseline`, `tests/test_unopposed` |
 | `pools.load_lineage` | model+measurement | -- | `montecarlo`, `tests/test_chain` |

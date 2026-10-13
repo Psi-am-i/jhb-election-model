@@ -905,5 +905,37 @@ def test_the_judgements_file_is_found_from_any_directory_and_a_forecast_needs_it
             pools.JUDGEMENTS_DIR = real
 
 
+def test_the_emit_reads_which_parties_are_judged_and_never_how_strong():
+    """Step-7 review item 4 (JUDGEMENT-CALLS §L2). `pools.judged_parties`
+    names the parties carrying `support` or `overperform` on a FORECAST and
+    none on a backtest (which ignores judgements). `_judgements_sha` hashes
+    that membership: adding `support` to a party moves the spec key,
+    changing its value does not. Mutation probes: dropping the membership
+    marker leaves the key unmoved by an added `support` (red); dropping the
+    held-target rule names a party on a backtest (red)."""
+    import pools
+    lineage = {"A": {"support": 0.02, "sigma_j": 0.3, "register": "§SJ1"},
+               "B": {"overperform": 1.5, "sigma_j": 0.3, "register": "§SJ1"},
+               "C": {"weights": [1, 0]}, "D": {"baseline_share": 0.01}}
+    assert pools.judged_parties(lineage, _Target("joburg", "2026")) == {"A", "B"}
+    assert pools.judged_parties(lineage, _Target("joburg", "2021")) == frozenset()
+    t = _Target("joburg", "2026")
+    bodies = {"none": '[party.NEWP]\nweights = [1, 0, 0, 0]\n',
+              "low": ('[party.NEWP]\nweights = [1, 0, 0, 0]\nsupport = 0.02\n'
+                      'sigma_j = 0.3\nregister = "§SJ1"\n'),
+              "high": ('[party.NEWP]\nweights = [1, 0, 0, 0]\nsupport = 0.09\n'
+                       'sigma_j = 0.3\nregister = "§SJ1"\n')}
+    shas = {}
+    for label, body in bodies.items():
+        tmp, bound = _with_judgements(body, "joburg", "2026")
+        try:
+            shas[label] = pools._judgements_sha(t.city, t)
+        finally:
+            bound.restore()
+            tmp.cleanup()
+    assert shas["low"] == shas["high"], "a strength VALUE moved the spec key"
+    assert shas["none"] != shas["low"], "adding `support` left the spec key"
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

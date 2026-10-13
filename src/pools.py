@@ -524,8 +524,15 @@ def _judgements_sha(city, target) -> str:
     # declares the hash of the entries it applied
     # (`montecarlo.judgements_applied_sha`), and `declares.py --verify` checks
     # it against the live file.
+    # THE MEMBERSHIP IS IN THE HASH, THE VALUES ARE NOT (step-7 review, item
+    # 4). Whether a party carries `support` or `overperform` decides at emit
+    # whether it sits inside the entrant group's budget (`judged_parties`,
+    # §L2), so adding or removing one must move the key; its value acts at
+    # run time only, so changing it must not.
     for body in (payload.get("party") or {}).values():
         if isinstance(body, dict):
+            if "support" in body or "overperform" in body:
+                body["strength_declared"] = True
             for k in STRENGTH_KEYS:
                 body.pop(k, None)
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
@@ -4759,6 +4766,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   pooled_splits: list[float] | None = None,
                   group_total: float | None = None,
                   city_mix: np.ndarray | None = None,
+                  judged: frozenset | set | None = None,
                   ) -> tuple[dict[str, dict], dict[str, str]]:
     """How a party that was not here last time takes its votes.
 
@@ -4899,7 +4907,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         parent = parent or ""
         weights = declared.get("weights")
         reach = (contestation or {}).get(party)
-        judged = False   # set by the entrant branch; see the group rescale
+        # Held out of the group budget below when a strength judgement will
+        # size it at run time (`judged_parties`: membership only, §L2).
+        is_judged = party in (judged or ())
 
         # ONE decision about which machinery sizes this party, used by the
         # branch AND by the band below. They used to be decided separately —
@@ -4974,9 +4984,10 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # §11.2, 2026-10-12). A judged size reaches the forecast at RUN
             # time (`montecarlo.strength_judgements`), so a declared-weights
             # arrival is sized here like any other, from the record base. Its
-            # judged centre then replaces this one before `pool_spec`.
+            # judged centre then replaces this one before `pool_spec`. Only
+            # WHETHER it is judged is read here (`judged_parties`), for the
+            # group budget below.
             stated, mult = None, 1.0
-            judged = False
             size = base
             capture = _capture_from_share(vec, size, pool_size)
             short = capture_shortfall(vec, size, pool_size)
@@ -5144,7 +5155,6 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # Not read at emit (design 1j v3 §11.2): a judged size acts at run
             # time, through `montecarlo.strength_judgements`.
             stated, mult = None, 1.0
-            judged = False
             capture = _capture_from_share(vec, size, pool_size)
             why = (f"entrant from nothing: spread as the city's own pool "
                       f"composition. "
@@ -5178,12 +5188,17 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         # remainder. The declared party sits outside; the undeclared ones keep
         # the record. JUDGEMENT-CALLS §L2.
         #
+        # Since 2026-10-13 the emit reads only WHETHER a party is judged
+        # (`judged_parties`: `support` or `overperform` present, on a forecast),
+        # never the value, which acts at run time (step-7 review, item 4; the
+        # 2026-10-12 version kept every judged party inside the budget).
+        #
         # ⚠️ THE TEST IS `judged`, NOT `weights`. It was `not weights` for one
         # commit, which exempted a party whose POOLS were declared and whose
         # SIZE was not — so a `weights`-only party escaped the budget carrying
         # a number nobody had stated. The exemption is for a party somebody has
         # named AND SIZED; declaring a pool vector is neither.
-        if not as_split and not judged:
+        if not as_split and not is_judged:
             entrant_sizes[party] = size
         notes[party] = why
 
@@ -5278,6 +5293,37 @@ def capture_shortfall(weights: "np.ndarray", share: float,
     return max(0.0, 1.0 - got / share)
 
 
+
+
+def target_is_held(year) -> bool:
+    """True when the election at ``year`` has a result file in the calendar:
+    a BACKTEST target. False for a forecast. ONE DEFINITION
+    (``montecarlo.target_is_held`` delegates here): the strength judgements
+    are ignored on a held target, so the emit holds no judged arrival out of
+    the group budget there (:func:`judged_parties`), and a forecast artefact
+    must declare the hash of the judgements it applied (``declares.py``). Not
+    in ``cityconfig``, which is an emit dependency (``_EMIT_DEPENDENCIES``)
+    whose edit moves ``bye_value.json``'s key as well as every spec's
+    (MODEL-LOG §1.299)."""
+    e = cityconfig.CALENDAR.get(str(year))
+    return bool(e and e.results)
+
+
+def judged_parties(lineage: dict, target) -> frozenset:
+    """The parties a strength judgement will size at run time: those whose
+    ``[party.X]`` table carries ``support`` or ``overperform``, on a FORECAST
+    only (a backtest ignores judgements, ``montecarlo.strength_judgements``).
+
+    WHAT THE EMIT MAY READ (step-7 review, item 4): WHICH parties are judged,
+    never how strong. The membership decides whether an arrival sits inside
+    the entrant group's budget (JUDGEMENT-CALLS §L2); the values act at run
+    time and stay out of the spec's hash (:func:`_judgements_sha` hashes the
+    membership and drops the values)."""
+    if target_is_held(target.year):
+        return frozenset()
+    return frozenset(p for p, body in (lineage or {}).items()
+                     if isinstance(body, dict)
+                     and ("support" in body or "overperform" in body))
 
 
 # Where the judgements files live: the repository's own `judgements/`,
@@ -6376,7 +6422,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         # see `_arrival_total_prior`. Do not quote a figure here; it decayed
         # once already.
         group_total=_arrival_total_prior(target.year),
-        city_mix=city_mix_for(ctx, n))
+        city_mix=city_mix_for(ctx, n),
+        judged=judged_parties(lineage, target))
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():

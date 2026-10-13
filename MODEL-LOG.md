@@ -29561,3 +29561,31 @@ and a backtest returns nothing. The tests that redirected the file by changing
 directory now rebind `pools.JUDGEMENTS_DIR`. Mutations: the relative path
 restored (red); the refusal removed (red); reverted, green. A `pools.py` code
 change: batched into the step-7 re-emit (POOLS-REEMIT-QUEUE entry 36).
+
+### A judged arrival sits outside the group budget again (item 4)
+
+JUDGEMENT-CALLS §L2 says a judged size sits outside the entrant group's budget
+and is not netted off it (§1.178). Entry 34 (§1.298) took the strength keys out
+of the emit altogether, so `arrival_rules` set `judged = False` for every
+party and a party carrying run-time `support` stayed in the budget: the group
+rescale then shrank every other arrival's capture by its base share, before the
+run-time judgement replaced its centre. §L2's own header line, added with entry
+34, said the party "stays in the group budget", contradicting the body; that
+line is now corrected and the body is the rule. The emit reads membership only:
+`pools.judged_parties` names the parties carrying `support` or `overperform` on
+a forecast (none on a backtest, where `strength_judgements` ignores them), and
+`arrival_rules(judged=...)` holds them out of the budget at their record size.
+`_judgements_sha` adds a `strength_declared` marker per such party and still
+drops the four strength keys, so adding `support` moves the spec key and
+changing its value does not. `target_is_held` moved to `pools` (the emit needs
+it and cannot import `montecarlo`, which now delegates); `bye_value_key` hashes
+`pools._deps_sha`, not `pools.py`, so this does not repeat §1.299's
+`cityconfig` incident. Tests: on the constructed 30-arrival city the other
+arrivals share the record's 1.75% when the party is named judged, and all 30
+share it when it is not; membership on a forecast and none on a backtest; the
+key moves on an added `support` and not on a changed value. Mutations: the
+budget exemption ignored (red, the others shared 1.69%); the membership marker
+dropped (red); the backtest rule dropped (red); reverted, green. The emit's
+wiring of `judged_parties` into `arrival_rules` is argued, not tested: no test
+runs `emit_pools`. Number-neutral today: no judgements file declares either
+key. A `pools.py` code change: batched (POOLS-REEMIT-QUEUE entry 37).
