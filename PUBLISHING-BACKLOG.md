@@ -1027,9 +1027,13 @@ re-seals five times has five entries in the ranking.
 The proposal (agent, for the owner to decide):
 - an optional "Enter the competition" step at sealing;
 - one consent checkbox;
-- Continue with Google, plus an email code as fallback;
-- Apple later if wanted (paid developer account); X and Facebook skipped (API
-  cost and app review);
+- OAuth sign-in done in the site's Worker, as scarabtech does through
+  Cloudflare Access, but not through Access itself: Access is priced per
+  user and its free plan stops at 50, so it cannot carry a public
+  competition;
+- providers: Google and Apple first (Apple needs an Apple Developer Program
+  membership, free in effect if scarabtech already has one); X, Facebook
+  and GitHub are possible; an email code as the fallback;
 - store only the provider's account id and the email, with the entry;
 - the latest seal per sign-in is the entry;
 - sealing without signing in still works for sharing but is not ranked.
