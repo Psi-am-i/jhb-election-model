@@ -967,3 +967,20 @@ gate.
 **Done when** a committed harness writes the claims file first, then the three
 lists, and the lists have been read before `build_site.py --publish`.
 **Not started.**
+
+## 16. A page of readers' predictions (owner idea, 2026-10-13, still open)
+
+Owner: "We should have a page of all the different prediction maps with badges.
+or some sort of latest predictions or something... still thinking."
+
+Open questions before any brief:
+- **Names:** sealed entries in D1 carry the name each reader typed. Showing them
+  publicly needs the reader's agreement at sealing time, which existing
+  entries never gave. The alternative is showing predictions without names.
+- **Moderation:** typed names need a filter or a review step before they
+  appear.
+- **What is shown:** the latest N, a random sample, or one per badge. Totals
+  per badge ("412 Safe bets, 37 Hail Marys") need no names at all.
+- **Cost:** thumbnails per entry are card renders; cache them like /og/.
+- **Ranking:** the ranking against the result happens after the count; this
+  page must not look like a leaderboard before then.
