@@ -113,3 +113,17 @@ Site (separate repo, separate release):
     new number-free badges. The live card server and live site promotion are
     the owner's, after he sees the test site.
 12. Splinter voter mix (owner question, 2026-10-13). `SPLINTER_PARENT_WEIGHT` 0.35 (JUDGEMENT-CALLS §F6, 🔴) is the median of 22 past splinter cases, which range from EFF 0.89 through GOOD 0.28 to ActionSA about 0.02, so one median serves a very wide range. Proposed general rule, for every party and not MK alone: where a party stood in the preceding national election, fit its voter mix from that election's ward results in the city, and use the splinter weight only for parties with no such result. Owner decision; design and measure before adopting.
+
+Closed 2026-10-13:
+- Item 1: the review fixes landed (46606f8..8e33386, MODEL-LOG §1.300, prereg
+  amendment 3). Whole suite 1221 passed / 139 failed / 19 skipped; the failing
+  set matches the baseline by name (stale specs and no width record, cleared by
+  step 7).
+- Item 2: §L2 restored, not changed. A party with a run-time strength
+  judgement sits outside the arrival budget. The emit reads only which parties
+  are judged, never the values (bd22d47, queue 37). Number-neutral today.
+  Reported to the owner.
+- Item 3 (owner's party calls) does not block step 7. Backtests ignore
+  judgements, and no strength entry exists yet. When the owner's calls land,
+  the 2026 forecast is re-run with and without them; that run alone, not the
+  arms.
