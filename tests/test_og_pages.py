@@ -509,8 +509,10 @@ def test_two_badges_on_one_card_keep_their_own_glyphs_and_masks():
     placed by stampSVG, each keeps its own glyphs, masks, clips and filters.
     Constructed: the same two bodies placed WITHOUT the prefixing collide (the
     files share ids such as glyph-0-0), and the detector reports it."""
-    # two different badges that both carry glyphs (href="#…") and masks (url(#…))
-    files = [str(og_pages.STAMPS / "verdict-false.svg"), str(og_pages.STAMPS / "reader-safe-bet.svg")]
+    # two different badges that both carry glyphs (href="#…") and masks (url(#…)).
+    # The reader badges were redrawn with outlined text on 2026-10-13 and no
+    # longer carry glyph ids, so the pair is two verdict badges, which do.
+    files = [str(og_pages.STAMPS / "verdict-false.svg"), str(og_pages.STAMPS / "verdict-very-likely.svg")]
     got = json.loads(_node(_STAMPS, files))
     raw_faults = embed_faults(got["raw"])
     assert raw_faults, "the unprefixed bodies did not collide: the test cannot see"
@@ -519,6 +521,10 @@ def test_two_badges_on_one_card_keep_their_own_glyphs_and_masks():
     # the population: both embeds carry references, and every one was checked
     for e in got["placed"]:
         assert re.search(r'href="#', e) and re.search(r"url\(#", e)
+    # the five reader badges on one card: their placed ids never collide
+    readers = sorted(str(f) for f in og_pages.STAMPS.glob("reader-*.svg"))
+    assert len(readers) == 5
+    assert embed_faults(json.loads(_node(_STAMPS, readers))["placed"]) == []
 
 
 _EMBED = ("import * as SC from " + json.dumps((ROOT / "interactive" / "js" / "share-card.js").as_uri()) + ";\n"
