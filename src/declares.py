@@ -782,10 +782,8 @@ def _reduction_rows(processed: Path) -> list[Row]:
     return rows
 
 
-def _group_share_key(processed: Path | None = None) -> dict:
-    """The group-share record's live key, from the files (BRIEF item 12).
-    ``processed`` is accepted for the one calling convention of
-    ``_record_rows`` and not read: this key names code only."""
+def _group_share_key() -> dict:
+    """The group-share record's live key, from the files (BRIEF item 12)."""
     import pools as _pl
     src = Path(_pl.__file__).resolve().parent
     return {"record_sha": _pl._code_sha(src / "group_share_record.py"),
@@ -793,17 +791,17 @@ def _group_share_key(processed: Path | None = None) -> dict:
             "deps_sha": _pl._deps_sha()}
 
 
-def _bye_value_key(processed: Path | None = None) -> dict:
+def _bye_value_key() -> dict:
     """The by-election value test's live key (BRIEF item 19), by the one
-    definition the writer and `montecarlo`'s reader also use. ``processed``
-    is not read (the key names code and raw files)."""
+    definition the writer and `montecarlo`'s reader also use."""
     import byelections as _by
     import montecarlo as _mc
     return _by.bye_value_key((_mc.WARD_PR_RATIO_MIN, _mc.WARD_PR_RATIO_MAX))
 
 
 def _record_files() -> list[tuple[str, object, str]]:
-    """Every `record` artefact: (file name, live-key function, rebuild hint).
+    """Every `record` artefact: (file name, live-key function, rebuild hint,
+    whether the key reads the audited processed root).
 
     Both are read by a run as thresholds or weights and carry an
     `artefact_key` naming their code. Neither writer is imported here.
@@ -811,11 +809,14 @@ def _record_files() -> list[tuple[str, object, str]]:
     import byelections as _by
     import pools as _pl
     import montecarlo as _mc
+    # The fourth field: does the key read the processed tree it sits in? The
+    # width record's does (the specs and records beside it); the other two
+    # name code and raw files only.
     return [(_pl.GROUP_SHARE_RECORD, _group_share_key,
-             "src/group_share_record.py --emit"),
-            (_by.BYE_VALUE, _bye_value_key, "src/bye_value.py --emit"),
+             "src/group_share_record.py --emit", False),
+            (_by.BYE_VALUE, _bye_value_key, "src/bye_value.py --emit", False),
             (_mc.WIDTH_RECORD, _mc.width_record_key,
-             "src/width_record.py --emit")]
+             "src/width_record.py --emit", True)]
 
 
 def _record_rows(processed: Path) -> list[Row]:
@@ -830,13 +831,13 @@ def _record_rows(processed: Path) -> list[Row]:
         files = _record_files()
     except Exception as exc:  # the audit must say it could not look
         raise CannotAudit(f"cannot list the record files: {exc}") from exc
-    for name, key_fn, rebuild in files:
+    for name, key_fn, rebuild, reads_root in files:
         try:
             # Under the AUDITED root (step-7 review, item 6c): the width
             # record's key hashes the specs and records beside it, so a key
             # computed under the repository's tree judged a scratch tree's
             # record against the wrong inputs.
-            live = key_fn(processed)
+            live = key_fn(processed) if reads_root else key_fn()
         except Exception as exc:  # the audit must say it could not look
             raise CannotAudit(f"cannot compute the key of {name}: "
                               f"{exc}") from exc

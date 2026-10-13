@@ -29657,3 +29657,13 @@ at the party's `pool_spec` centre (`pool_spec_centres`, the record's frame;
 share differ. Inert today: `poll_paths = "off"` (§1.298), so no poll blend
 runs. Before polls return, the poll width must be read at the same quantity
 the drawer reads (one definition), and the change measured.
+
+### Suite follow-up to item 6
+
+The whole-suite run after item 11 had one failing test the baseline did not:
+`test_levers_are_live::test_no_function_argument_is_accepted_and_never_used`,
+because item 6(c) gave `declares._group_share_key` and `_bye_value_key` a
+`processed` parameter they never read. `_record_files` now says per record
+whether its key reads the audited root (only the width record's does), and
+only that key is passed it. Item 6's test and its mutation (the root not
+passed: red) were re-run.
