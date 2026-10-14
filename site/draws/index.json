@@ -1,26 +1,36 @@
 {
  "cells": [
   {
-   "path": ".",
-   "overrides": [],
-   "w_bye": 0.4,
-   "code_sha256": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306",
-   "model_sha256": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
-   "published_run": "r-c68c627d287e-5a52b360-dirty",
-   "draws": 5000,
-   "seed": 20261104
-  },
-  {
    "path": "w_bye-0",
    "overrides": [
     "w_bye=0"
    ],
    "w_bye": 0,
-   "code_sha256": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306",
-   "model_sha256": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
-   "published_run": "r-c68c627d287e-5a52b360-dirty",
+   "bye_weight_range": [
+    0.0,
+    0.0
+   ],
+   "code_sha256": "41683484fdff971a016e8f3eb1b48a40d07353e4a6b4b3fc3494304e620b7a8d",
+   "model_sha256": "100dd084684f23f8c10b602b3f9cb709b7fdff88ae3e862d2c20d9f95b1d4ddb",
+   "published_run": "r-c68c627d287e-e6f5c4f1-dirty",
    "draws": 5000,
-   "seed": 20261104
+   "seed": 20261104,
+   "bye_order": 0
+  },
+  {
+   "path": ".",
+   "overrides": [],
+   "w_bye": null,
+   "bye_weight_range": [
+    0.0,
+    0.0
+   ],
+   "code_sha256": "41683484fdff971a016e8f3eb1b48a40d07353e4a6b4b3fc3494304e620b7a8d",
+   "model_sha256": "100dd084684f23f8c10b602b3f9cb709b7fdff88ae3e862d2c20d9f95b1d4ddb",
+   "published_run": "r-c68c627d287e-e6f5c4f1-dirty",
+   "draws": 5000,
+   "seed": 20261104,
+   "bye_order": 1
   },
   {
    "path": "w_bye-1",
@@ -28,11 +38,16 @@
     "w_bye=1"
    ],
    "w_bye": 1,
-   "code_sha256": "736bdc7d3d06aedc5cadf383bc23913cea74003c9e3c54e68a216aa3cfacd306",
-   "model_sha256": "7ea27c289ca48e095824b6903741a07c2a6e1b650731ddffbccb6bda27cde020",
-   "published_run": "r-c68c627d287e-5a52b360-dirty",
+   "bye_weight_range": [
+    1.0,
+    1.0
+   ],
+   "code_sha256": "41683484fdff971a016e8f3eb1b48a40d07353e4a6b4b3fc3494304e620b7a8d",
+   "model_sha256": "100dd084684f23f8c10b602b3f9cb709b7fdff88ae3e862d2c20d9f95b1d4ddb",
+   "published_run": "r-c68c627d287e-e6f5c4f1-dirty",
    "draws": 5000,
-   "seed": 20261104
+   "seed": 20261104,
+   "bye_order": 2
   }
  ],
  "paired": false,
@@ -113,182 +128,234 @@
    "contests": 15,
    "weight_sum": 181.84,
    "weighted_delta": -0.0679,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   },
   {
    "party": "EFF",
    "contests": 11,
    "weight_sum": 127.88,
    "weighted_delta": 0.0069,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   },
   {
    "party": "DA",
    "contests": 11,
    "weight_sum": 125.09,
    "weighted_delta": 0.0934,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   },
   {
    "party": "MK",
    "contests": 8,
    "weight_sum": 122.17,
    "weighted_delta": 0.1058,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   },
   {
    "party": "AIC",
    "contests": 4,
    "weight_sum": 62.18,
    "weighted_delta": -0.0089,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "PA",
    "contests": 4,
    "weight_sum": 59.0,
    "weighted_delta": 0.1892,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   },
   {
    "party": "ASA",
    "contests": 4,
    "weight_sum": 57.25,
    "weighted_delta": 0.0055,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   },
   {
    "party": "ALL_CITIZENS_PARTY",
    "contests": 2,
    "weight_sum": 49.55,
    "weighted_delta": 0.0205,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "ATM",
    "contests": 3,
    "weight_sum": 39.54,
    "weighted_delta": 0.0019,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "IFP",
    "contests": 3,
    "weight_sum": 31.94,
    "weighted_delta": 0.001,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   },
   {
    "party": "TRUTH_AND_SOLIDARITY_MOVEMENT",
    "contests": 2,
    "weight_sum": 30.58,
    "weighted_delta": 0.0011,
-   "reaches_model": true
+   "reaches_model": true,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "AFRICAN_MOVEMENT_CONGRESS",
    "contests": 1,
    "weight_sum": 28.83,
    "weighted_delta": 0.0168,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": null,
+   "size_class": null
   },
   {
    "party": "COPE",
    "contests": 1,
    "weight_sum": 28.83,
    "weighted_delta": 0.0101,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "DUDULA",
    "contests": 1,
    "weight_sum": 28.83,
    "weighted_delta": 0.0307,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "ALJAMAAH",
    "contests": 3,
    "weight_sum": 28.57,
    "weighted_delta": 0.0586,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "AMALGAMATED_RAINBOW_MOVEMENT",
    "contests": 3,
    "weight_sum": 28.57,
    "weighted_delta": 0.0039,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "PAC",
    "contests": 1,
    "weight_sum": 20.03,
    "weighted_delta": 0.0289,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "VUKA_SA",
    "contests": 1,
    "weight_sum": 20.03,
    "weighted_delta": 0.0012,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "ARISE_AFRIKA_ARISE_INDEPENDENT_CONGRESS",
    "contests": 1,
    "weight_sum": 16.32,
    "weighted_delta": 0.0021,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": null,
+   "size_class": null
   },
   {
    "party": "ACDP",
    "contests": 1,
    "weight_sum": 13.85,
    "weighted_delta": 0.0358,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   },
   {
    "party": "INDIGENOUS_DEMOCRATIC_REVOLUTION",
    "contests": 1,
    "weight_sum": 13.85,
    "weighted_delta": 0.001,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": null,
+   "size_class": null
   },
   {
    "party": "NCC",
    "contests": 1,
    "weight_sum": 13.85,
    "weighted_delta": 0.02,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "THE_ORGANIC_HUMANITY_MOVEMENT",
    "contests": 2,
    "weight_sum": 10.44,
    "weighted_delta": 0.0047,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "ALLIED_MOVEMENT_FOR_CHANGE",
    "contests": 1,
    "weight_sum": 8.95,
    "weighted_delta": 0.0217,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": null,
+   "size_class": null
   },
   {
    "party": "IND",
    "contests": 2,
    "weight_sum": 8.39,
    "weighted_delta": 0.0647,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "under"
   },
   {
    "party": "RISE",
    "contests": 1,
    "weight_sum": 7.58,
    "weighted_delta": 0.1031,
-   "reaches_model": false
+   "reaches_model": false,
+   "class_weight": 0.0,
+   "size_class": "at_or_over"
   }
  ],
  "byelection_min_weight": 30.0,

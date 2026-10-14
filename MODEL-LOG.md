@@ -29878,3 +29878,20 @@ PAIRED list-error difference at up to 0.14pp at one city-year (Ekurhuleni
 the draw (universal law, JUDGEMENT-CALLS §A57) and the specs, and step 5
 (`12a0113`) deferred the re-record to this step. The previous values were F8's,
 under the incumbent law. No improvement is claimed from a golden.
+
+### Freeze and draws export (item 6, part 2)
+
+`src/freeze.py` on the clean tree at `346fb97` (its defaults: Johannesburg
+2026, 1,500 draws, seed 20261104, as the last freeze): `forecast_frozen.json`,
+`content_sha256 af9df636…`, `seat_draws_sha256 930e56cd…`. A record of this
+forecast and a tripwire, not a benchmark.
+
+Draws exported as DEPLOY-UAT.md names it: `src/export_draws.py --out
+site/draws`, the two by-election cells (`--set w_bye=0`, `--set w_bye=1`
+into `site/draws/w_bye-{0,1}`), then `--index site/draws`; 5,000 draws, four
+seat laws, each manifest at `346fb97`, not dirty. `published_run.
+inputs_match_ledger` is false: the ledger's latest run predates these specs,
+which the export records and does not enforce (`tests/test_served_draws.py`
+is the gate). The `w_bye-0` cell is byte-identical to the base cell: every
+derived by-election class weight is 0.0 at this target (`bye_weight` in the
+manifest), so the base cell and the zero cell are the same run.
