@@ -2731,9 +2731,9 @@ flag fourteen more, all under 0.11%, none of them plausible splits. Above ~2% it
 would miss both of the ones that matter. Chosen to make the list short enough to
 read on the day. Undefended beyond that.
 
-### §L9 · `REGISTRATION_MAX` — 2.0 — ⚫ deleted 2026-10-12, SUPERSEDED by §L15
+### §L9 · `REGISTRATION_MAX` — 2.0 — ⚖️ a runaway guard, not an estimate
 
-**Deleted 2026-10-12** (model round step 5; design `audits/2026-10-11-model-round/step1/1g-census-composition-design.md`). Registration is now fitted with no upper bound; a pool the ward table cannot identify is held at the city's rate (§L15). The bound was the one place a group's census LEVEL reached the registered split (1g §0). The text below describes it as it stood.
+**Reinstated 2026-10-14** (model round step 9; owner decision 1 after step 8, `audits/2026-10-11-model-round/PLAN.md`; MODEL-LOG §1.302). It was deleted on 2026-10-12 in favour of the identification hold (§L15), which is withdrawn this round: K1 was falsified on the live fits (MODEL-LOG §1.301): the held pool takes `pools._uninformed_rate`, `b.sum() / A.sum()` summed over every pool, so the held rate reads every pool's census level and the identified pools are refitted around it (0.46-1.13pp at the nine fits holding a pool, 7.0pp where the scaling flips the held set). The text below describes the bound as it ships.
 
 **What.** `_nest` fits three levels with one solver. `adult_share` and `turnout`
 are bounded at **1.0**, which they cannot exceed. **`registration` is bounded at
@@ -2913,7 +2913,7 @@ record puts around the declared level. **Record.** 2026-09-16, owner's decision.
 
 ### §L14 · A pool silenced at the 0.0 corner is held at the city's own rate — 🔴 a declared fallback, not an estimate
 
-**Extended 2026-10-12 (§L15):** at the registration level a pool is also held at the city's own rate BEFORE the fit when the ward table cannot identify it (under `IDENTIFICATION_REACH` of every ward). Same fallback value, same `imputed` record, its own message in `unidentified`.
+**Extension withdrawn 2026-10-14 with §L15** (MODEL-LOG §1.302). From 2026-10-12 to 2026-10-14 the tree also held, at the registration level, a pool the ward table cannot identify, before the fit. That hold is reverted; this entry covers the silenced-pool hold only.
 
 **Where.** `pools._nest_holding_silent`, with `pools._silent_pools` and
 `pools._uninformed_rate`, called from `pool_counts` at each of its three nested
@@ -2993,7 +2993,9 @@ repair.
 year a declared target uses). Each held cell stays listed in the spec's
 `rates_on_a_bound` with the corner it came from and the value it was held at.
 
-### §L15 · `IDENTIFICATION_REACH` — 0.25 — ⚖️ the owner's identification test for a registration rate
+### §L15 · `IDENTIFICATION_REACH` — 0.25 — ⚫ withdrawn 2026-10-14, not shipped
+
+**Withdrawn 2026-10-14** (model round step 9; owner decision 1 after step 8; MODEL-LOG §1.302). `IDENTIFICATION_REACH` and `pools.registration_split` are removed and `REGISTRATION_MAX` (§L9) is reinstated. Reason: K1 was falsified on the live fits (MODEL-LOG §1.301): the held pool takes `pools._uninformed_rate`, `b.sum() / A.sum()` summed over every pool, so the held rate reads every pool's census level and the identified pools are refitted around it (0.46-1.13pp at the nine fits holding a pool, 7.0pp where the scaling flips the held set). The design anticipated the held pool carrying its own census level, not every other pool's. Next round: a held rate that does not read the other pools' census levels, with a K1 test that holds a pool. The text below describes the hold as it stood in the tree from 2026-10-12 (c2edc60) to 2026-10-14; it never reached a published forecast.
 
 **Where.** `pools.pool_counts` (the registration solve), `pools._nest_holding_silent` (`hold`), `pools.IDENTIFICATION_REACH`.
 

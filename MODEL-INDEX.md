@@ -138,14 +138,14 @@ arithmetic test can see.
 | 0.02 | `build_make.COLLAPSE_FROM`, `montecarlo.TURNOUT_DRAW_FLOOR`, `polling.POLL_SCREEN_SD_UNDISCLOSED`, `scenarios.EXCESSIVE_FLOOR` |
 | 0.05 | `arms.IMPLAUSIBLE_DRAWN_MIN`, `arms.MIDDLE_MIN`, `build_make.SPLIT_MIN`, `levels.SIZE_WINDOW_ALPHA`, `montecarlo.GROUP_SHARE_TRIPWIRE_DRAWS`, `plausibility.FAIL_P`, `pools.CENSUS_DRIFT_CEILING`, `render_map.TIP_FLOOR`, `stats.SMALL_PARTY_SURGE` |
 | 0.15 | `arms.LARGE_MIN`, `benchmarks.MIN_SIGMA` |
-| 0.25 | `build_make.COLLAPSE_KEEP`, `compare_history.REFERENCE_SLATE`, `pools.IDENTIFICATION_REACH` |
+| 0.25 | `build_make.COLLAPSE_KEEP`, `compare_history.REFERENCE_SLATE` |
 | 0.5 | `areas.SOWETO_CUT`, `build_make.CORRELATION_MIN`, `build_make.RUNNER_UP_MAX`, `montecarlo.WARD_PR_RATIO_MIN`, `score.CLAIM_FRACTION` |
 | 0.75 | `plausibility.PIT90_MIN_FRACTION`, `pools.MERGER_RETENTION` |
 | 0.9 | `arms.CLUSTER_LEVEL`, `pools.MAX_POOL_CAPTURE`, `pools.SPLIT_SD_FLOOR`, `render_map.SAFE` |
 | 0.98 | `arms.R2_MIN_MEDIAN`, `montecarlo.POOL_CAPACITY_MARGIN` |
 | 1000 | `arms.BACKTEST_DRAWS`, `fetch_boundaries.PAGE_SIZE` |
 | 12 | `montecarlo.DELIVERY_MAX_VALUES`, `pools.ALPHA_FALLBACK`, `stats.DECLARATION_MIN_CHARS` |
-| 2.0 | `benchmarks.MAX_SIGMA`, `build_make.MIN_RECORD_EVENTS`, `hex_cartogram.GRID_MARGIN_CELLS`, `levels.SHRINK`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.WARD_PR_RATIO_MAX`, `pools.MIN_HOME_SPLITS`, `reweight.ANALYSIS_SEAT_BAND`, `reweight.ANALYSIS_SHARE_BAND_POINTS`, `width_record.FIXED_POINT_ITERS` |
+| 2.0 | `benchmarks.MAX_SIGMA`, `build_make.MIN_RECORD_EVENTS`, `hex_cartogram.GRID_MARGIN_CELLS`, `levels.SHRINK`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.WARD_PR_RATIO_MAX`, `pools.MIN_HOME_SPLITS`, `pools.REGISTRATION_MAX`, `reweight.ANALYSIS_SEAT_BAND`, `reweight.ANALYSIS_SHARE_BAND_POINTS`, `width_record.FIXED_POINT_ITERS` |
 | 20 | `levels.SIZE_WINDOW_MIN_SCORED`, `width_record.MIN_ESTABLISHED` |
 | 200 | `arms.MC_RESAMPLES`, `montecarlo.OVERHANG_LEVEL_MAX_ROUNDS`, `montecarlo.PARTIAL_BALANCE_PASSES`, `pools.ALPHA_CEILING`, `reweight.MIN_EFFECTIVE_DRAWS` |
 | 2000 | `bye_value.BYE_VALUE_RESAMPLES`, `montecarlo.DELIVERY_MAX_CHARS`, `width_record.FIXED_POINT_DRAWS` |
@@ -205,7 +205,6 @@ Matched on the SHAPE of largest-remainder apportionment (a whole part, an orderi
 | `F_OTHER` | yes | -- |
 | `POLL_K` | yes | -- |
 | `POLL_RMS_ERROR` | yes | -- |
-| `REGISTRATION_MAX` | yes | `arms` |
 | `SIZE_WINDOW_TIE` | NO | -- |
 | `THETA_CENTRAL` | yes | -- |
 | `canonical_order` | yes | -- |
@@ -757,7 +756,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `pools.SOLVE_TOL` | float 1e-09 | NO | NO | yes | -- |
 | `pools.GROUP_SHARE_RECORD` | str 'group_share_record.json' | NO | NO | NO | `declares`, `group_share_record`, `montecarlo` |
 | `pools.SIMULATION_BLOC` | dict[4] | NO | NO | yes | -- |
-| `pools.IDENTIFICATION_REACH` | float 0.25 | NO | NO | yes | `arms` |
+| `pools.REGISTRATION_MAX` | float 2.0 | NO | NO | yes | `arms` |
 | `pools.NATIONAL_ONLY_FLOOR` | float 0.001 | NO | NO | yes | -- |
 | `pools.PRIOR_LOCAL_FLOOR` | float 0.001 | NO | NO | yes | -- |
 | `pools.POOL_LOSS_CAUSES` | tuple[4] | NO | NO | NO | -- |
@@ -1242,7 +1241,6 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `pools.read_census` | model+measurement | One census: ward -> composition over this dimension, summing to 1. | `tests/test_census_refusal_is_not_swallowed` |
 | `pools.read_census_population` | model+measurement | Ward -> the population this dimension's categories are counted over. | `tests/test_census_refusal_is_not_swallowed` |
 | `pools.vote_located_bloc` | model+measurement | Locate a voter bloc the census cannot see, using a party that only it votes for. | `tests/test_chain` |
-| `pools.registration_split` | model+measurement | The registration level of ``pool_counts``: ONE DEFINITION, so a test | `tests/test_pool_bounds` |
 | `pools.ward_totals` | model+measurement | Ward -> registered voters, and ward -> votes cast. Both published. | `benchmarks`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain` |
 | `pools.pool_counts` | model+measurement | Build the four nested levels for one city and election. | `montecarlo`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_pool_bounds` |
 | `pools.pool_losses` | model+measurement | Every city-year a pool record dropped since this process started. | `tests/test_census_refusal_is_not_swallowed` |

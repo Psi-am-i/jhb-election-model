@@ -116,9 +116,6 @@ def _defined_names() -> set[str]:
 # decision someone made rather than a gap the guard shrugged at. Adding a name
 # here is itself a judgement, and each carries the entry that removed it.
 DELETED = {
-    "REGISTRATION_MAX": "the 2.0 upper bound on a registration rate, deleted "
-                        "2026-10-12 (design 1g; JUDGEMENT-CALLS §L9 "
-                        "superseded by §L15, the identification hold)",
     "polling_lean": "superseded by the poll paths; §1.68",
     "polling_span": "superseded by the poll paths; §1.68",
     "poll_id": "legacy poll path, bypassed every admission rule; §1.68",

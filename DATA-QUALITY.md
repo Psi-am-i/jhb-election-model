@@ -241,7 +241,7 @@ registration and vote totals, so the counted quantity is exact and only the
 model"*; and the 2026-08-26 repair that lifted the census to fix the ratio was
 reverted after measuring worse.
 
-✅ **Closed 2026-10-12** (design `audits/2026-10-11-model-round/step1/1g-census-composition-design.md`; JUDGEMENT-CALLS §L15): `REGISTRATION_MAX` is deleted, registration is fitted with no upper bound so a group's census level cancels out of the split, and a pool the ward table cannot identify (reach under 25% of every ward) is held at the city's own rate. Lands with the next re-emit. The paragraph below describes the bound as it stood.
+⚠️ **Reopened 2026-10-14** (MODEL-LOG §1.302; JUDGEMENT-CALLS §L9 reinstated, §L15 withdrawn). A fix was committed on 2026-10-12 (`c2edc60`: no upper bound, and a pool the ward table cannot identify held at the city's rate) and withdrawn before it shipped: prereg K1 was falsified because the held rate sums every pool, so it reads every pool's census level (§1.301). `REGISTRATION_MAX = 2.0` ships. The paragraph below is current.
 
 ⚠️ **Where it does not, and this is the open item**: `REGISTRATION_MAX = 2.0` is
 a census-derived ceiling on a counted quantity, and it **binds on four cells in

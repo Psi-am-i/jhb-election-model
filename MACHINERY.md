@@ -659,20 +659,9 @@ Which years are lost today is a property of the inputs, not of this mechanism �
 `tests/test_census_refusal_is_not_swallowed.py` asserts the served and lost sets
 PARTITION the on-disk population with no residue.
 
-### Registration has no upper bound; a pool the ward table cannot identify is held (2026-10-12)
+### Registration is bounded at `REGISTRATION_MAX`; the identification hold was withdrawn (2026-10-14)
 
-`pools.pool_counts` fits the registration level with NO upper bound
-(`REGISTRATION_MAX`, 2.0, is deleted): a group's census level then cancels out of
-the registered split, because its fitted rate absorbs it (design
-`audits/2026-10-11-model-round/step1/1g-census-composition-design.md` §0). A
-group whose largest share of any ward's people is under
-`pools.IDENTIFICATION_REACH` (25%) is not fitted: its rate is HELD at the
-city's own rate before the fit (`_nest_holding_silent(hold=...)`) and the other
-pools are fitted around it, recorded in `imputed["registration"]` and with its
-own message in `unidentified` (JUDGEMENT-CALLS §L15). Ward totals are still
-forced to the roll and the votes; only the split moves. `run_model` recomputes
-the pool geography at every run (`_pools.pool_counts`), so this reaches a run
-only through a re-emit window: the specs are stale until then.
+`pools.pool_counts` fits the registration level with `upper=pools.REGISTRATION_MAX` (2.0, JUDGEMENT-CALLS §L9); `adult_share` and `turnout` keep the bound of 1.0. The identification hold committed on 2026-10-12 (`c2edc60`: no upper bound, and a group under `IDENTIFICATION_REACH` of every ward held at the city's rate) was reverted before it shipped, because the held rate `_uninformed_rate` sums every pool and so carries every pool's census level into the split (JUDGEMENT-CALLS §L15, MODEL-LOG §1.301, §1.302).
 
 ### A pool silenced at the 0.0 corner is kept at the city's own rate
 
