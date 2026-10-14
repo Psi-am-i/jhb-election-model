@@ -29895,3 +29895,45 @@ which the export records and does not enforce (`tests/test_served_draws.py`
 is the gate). The `w_bye-0` cell is byte-identical to the base cell: every
 derived by-election class weight is 0.0 at this target (`bye_weight` in the
 manifest), so the base cell and the zero cell are the same run.
+
+### The whole suite (item 5)
+
+One run after the last edit, on `5ce3f3f`: `tests/run_all.py`, 87 modules,
+1293 passed, 65 failed, 18 skipped (summed from the per-module tallies; log
+`.claude/step9-2026-10-14/logs/s_suite.log`, gitignored). Against the last
+whole-suite run (§1.300, 13 October, stale specs: 139 failed), 48 of the 65
+fail by name there too; 17 are new.
+
+New, caused by item 1: `test_arms` ×3. `arms.check_tree`, `check_pairing`
+and the C0-recipe test require the census hold in this tree.
+
+New, caused by the new `history.json` (the panel under the universal draw):
+`test_calibration_report` ×3 (ITERATING rule 8's table and §A38's PA figures
+quote the old panel; ranks 4-12 sd(z) by cycle is 1.450 / 1.304 / 3.666 for
+2011 / 2016 / 2021, no longer monotone, which rule 8 and §1.132 rely on) and
+`test_scored_universe` ×5 (the clustering findings measured on the old panel:
+sd(z) by cycle 1.338 / 0.972 / 2.253; mean z on the claimed population −0.283
+against +0.118 fixed; `reference` rejects in 31 of 64 randomisations; the
+high-PIT cells no longer carry the clustering). These are findings and
+re-quotes for the next session, not goldens; nothing was edited to pass them.
+
+New, caused by the new draws and forecast with `site/` not rebuilt:
+`test_served_draws` ×2 (cells do not name the ledger's run; the page's
+`forecast.json` names the old draws), `test_reader_seats` ×1, `test_reweight`
+`test_the_owners_table_on_the_published_draws` (BADGE-DECISION.md's table was
+measured on model `7ea27c28`; the draws are now `100dd084`),
+`test_published_page` `…build_older_than_the_run…`, `test_site_structure`
+`…chance_scale_when_the_sheet_is_regenerated` (claims.toml verdicts disagree
+with the regenerated chances). The site rebuild is the next step's, in the
+site repository.
+
+Predating by name (48): `test_your_forecast_page` ×28, `test_published_page`
+×4, `test_draw_record` ×2 (the capture counts more turnout calls than draws:
+an IndexError at 5,000), `test_levers_are_live` ×2 (`montecarlo.LEVEL_DF`
+moves nothing at 2026: it is the incumbent law's), `test_reweight` ×2,
+`test_site_structure` ×2, and one each in `test_edit_mode`, `test_export_draws`
+(the file is 2,167,246 bytes gzipped, over its budget), `test_intermediates_are_current`
+(`plausibility_*.json` matches nothing), `test_pool_bounds` (the impossibility
+scan: Buffalo City 2011 DA in Indian/Asian and White, Cape Town 2011 DA in
+White), `test_provenance_dates`, `test_roster_fails_closed`,
+`test_site_assets`, `test_stage_realisation` (`KeyError: '35_widths'`).
