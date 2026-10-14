@@ -29937,3 +29937,90 @@ moves nothing at 2026: it is the incumbent law's), `test_reweight` ×2,
 scan: Buffalo City 2011 DA in Indian/Asian and White, Cape Town 2011 DA in
 White), `test_provenance_dates`, `test_roster_fails_closed`,
 `test_site_assets`, `test_stage_realisation` (`KeyError: '35_widths'`).
+
+## 1.303 The 2026 forecast's move from the published model, attributed change by change (2026-10-14)
+
+The published forecast (freeze `0e0abf3`, code `60fe57e`) and the forecast
+step 9 produced (freeze `5ce3f3f`, code `346fb97`) differ by two batches: the
+model correction batch of 10 October (§1.296), which the owner held back from
+publication that day, and this round (§1.297-§1.302). Both batches ran arms at
+Johannesburg 2026 with the arrays saved, so the move is read from those runs,
+not re-run.
+
+Sources. The batch's arms: `data/arms/step11/<arm>/joburg-2026/arrays.npz`
+(gitignored), 5,000 draws, seed 20261104. The round's arms:
+`.claude/step7-2026-10-13/arms/<arm>/joburg-2026/arrays.npz` (gitignored),
+5,000 draws, seed 20261104. Arm A's tree is `597ec38`, whose model code
+differs from the published `60fe57e` only by `ModelRun.pr_vote_draws` and
+`ward_vote_draws`, two recorded fields that move no draw (§1.291). Arm A
+gives ANC 63.74 and PA 24.02 mean seats; the published freeze (1,500 draws)
+gives 64.0 and 23.8. Arm U is the shipping configuration and equals C0 in
+every mean below to 0.1 seat; the step-9 freeze (1,500 draws) gives ANC 71.26
+and PA 15.54.
+
+### Mean seats at each step, Johannesburg 2026
+
+Mean seats over 5,000 draws; the change is against the row above. The Monte
+Carlo standard error of a mean (sd / √5,000) is 0.27-0.28 seats for the ANC
+in the incumbent-law arms and 0.14 in U, 0.07-0.13 for the PA, 0.12-0.23 for
+the EFF. The two arms in a row share seed and draw count but not their draws
+once a centre moves, so a change under about 0.6 seats for the ANC or EFF is
+not resolved here.
+
+| arm | what it adds | ANC | DA | EFF | ASA | PA | MK | IFP |
+|---|---|---|---|---|---|---|---|---|
+| A | the published model | 63.7 | 66.5 | 27.2 | 28.4 | 24.0 | 24.2 | 4.2 |
+| B | batch items 1, 2, 6, 8, 18 | +2.2 | +2.6 | +0.7 | +1.2 | −6.9 | +1.0 | +0.3 |
+| C | item 11a, growth centre at the party's current size | −0.3 | +0.5 | +1.0 | −0.3 | −0.8 | −0.1 | −0.1 |
+| C16 | item 16, own growth record from elections at a similar size | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| D | item 17, parties with no record take their size group's centre | +1.1 | 0.0 | −0.8 | −0.4 | 0.0 | −1.4 | +0.2 |
+| E | item 19, by-election weight derived (0 at this target; E equals D0, `w_bye` 0) | +2.6 | −0.3 | +2.6 | −1.4 | −1.1 | −0.2 | −0.6 |
+| I | this round's tree, incumbent draw law | −0.5 | 0.0 | +0.4 | +0.1 | 0.0 | +0.2 | 0.0 |
+| U | the universal draw law (ships) | +2.3 | +0.5 | −0.9 | −0.5 | +0.6 | −0.4 | +0.1 |
+| | **U against A** | **+7.5** | **+3.3** | **+3.0** | **−1.2** | **−8.2** | **−0.9** | **−0.1** |
+| | of which the 10 October batch (E against A) | +5.7 | +2.8 | +3.4 | −0.8 | −8.8 | −0.7 | −0.2 |
+| | of which this round (U against E) | +1.8 | +0.5 | −0.4 | −0.4 | +0.6 | −0.2 | −0.1 |
+
+Three changes are resolved and carry the move:
+
+- **The ward/list ratio scaled to the wards a party contests (batch item 6).**
+  B6 against A: PA −7.1, ANC +2.0, DA +2.0 seats; list shares unchanged (PA
+  6.33%, ANC 22.14% in both). The PA's mean ward share falls from 11.86% to
+  6.52%. This is §1.296's P6, pre-registered and held there ("PA ward/list
+  ratio 2.000 → 1.029"); this entry adds only its place in the chain.
+- **The by-election weight set by its measured value (batch item 19).** The
+  measured class weights are 0 at this target (§1.302, item 6), so the
+  by-election blend that the published model weighted at 0.40 is off. E
+  against D: ANC +2.6, EFF +2.6, ASA −1.4, PA −1.1 seats; ANC list share
+  22.57% → 23.84%.
+- **The universal draw law (this round).** U against I: ANC +2.3 seats.
+
+### How the universal draw adds ANC seats at an unchanged list share
+
+Measured (I against U, 5,000 draws each): ANC mean list share 23.67% in
+both; its sd across draws 7.43 → 3.64 points; mean ward wins 64.4 → 68.7;
+draws in which the ANC's seats equal its ward wins, so that its ward wins
+exceed its proportional entitlement, 59.0% → 80.5%. In U the ANC averages
+73.2 seats in those draws and 62.6 in the rest. On the current tree at 1,500
+draws, seed 20261104 (in process, nothing written), the ANC's combined
+ward-plus-list share moves 23.80% → 23.93% between the two laws, which is
+0.4 of a seat at 270, against a seat move of +2.5.
+
+So the seat gain comes through overhang, not through votes. That a narrower
+spread in the ANC's share makes it hold its marginal wards in more draws, and
+so puts it into overhang more often, is argued, not tested. Separating it
+needs the ward-level win probabilities under each law for the wards the ANC
+wins in U's overhang draws and not in I's.
+
+### The band moved more than the centre
+
+ANC p5-p95 of seats: A 28-92, E 33-101, I 33-99, U 51-83. The sd of the
+ANC's seats falls 19.6 → 9.8 between I and U; the EFF's 16.4 → 8.7. The PA's
+widens, 4.7 → 9.0 (p5-p95 9-22 → 5-33). All of the narrowing for the large
+parties is the universal draw; the batch widened the ANC's upper tail.
+
+### For the before/after shown to the owner
+
+Most of the forecast's move, and all of the PA's fall, is the 10 October
+batch, which was held back from the site on 10 October and goes out with
+this round. The before/after must show the two batches as separate rows.
