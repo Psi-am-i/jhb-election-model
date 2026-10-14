@@ -146,3 +146,5 @@ Closed 2026-10-13:
   the batch and this round as separate rows, and the band as well as the mean.
 - Open before the site rebuild: owner sees the before/after; then the rebuild
   (file list in §1.302).
+- Owner, 2026-10-14: the before/after (2026 move in §1.303, backtest in
+  §1.302) is accepted. Step 10 closed. Next: the site rebuild to UAT.
