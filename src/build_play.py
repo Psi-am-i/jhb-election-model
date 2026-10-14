@@ -359,10 +359,22 @@ def turnout() -> str:
 
 
 def _spec(processed: Path) -> tuple[dict, str]:
+    """The target's pool spec and its file name, or ``SystemExit`` when it is
+    stale, unverifiable or unreadable.
+
+    Through ``montecarlo.read_pool_spec``, the check ``run_model`` applies, and
+    with its refusal text (step 8 review row 4): the composition this page
+    prints must come from a spec the forecast would accept. Until 2026-10-10
+    this read the file with no check.
+    """
     import cityconfig
-    year = cityconfig.target().year
-    name = f"pools_{year}.json"
-    return json.loads((processed / name).read_text(encoding="utf-8")), name
+    import montecarlo
+    target = cityconfig.target()
+    name = f"pools_{target.year}.json"
+    spec, why_not = montecarlo.read_pool_spec(processed / name, target.city, target)
+    if why_not:
+        raise montecarlo.stale_pool_spec_refusal(processed / name, why_not)
+    return spec, name
 
 
 def _new_parties(spec: dict, codes) -> dict:
@@ -476,9 +488,26 @@ def refused_polls() -> str:
 
 
 def _bye_cells() -> tuple[dict, list[dict]]:
+    """The index and its cells in ``export_draws.order_bye_cells``' order (by
+    each cell's effective weight, not ``w_bye``, which the published cell
+    leaves ``None``)."""
+    import export_draws
     index = json.loads((DRAWS / "index.json").read_text(encoding="utf-8"))
-    cells = sorted(index["cells"], key=lambda c: c["w_bye"])
-    return index, cells
+    return index, export_draws.order_bye_cells(index["cells"])
+
+
+def bye_ends(cells: list[dict]) -> list[tuple[str, dict]]:
+    """The by-election control's two ends against the published cell, as
+    ``(label, cell)``, the most weight first: the override cells at either end
+    of ``cells`` (ordered by ``_bye_cells``), each labelled by which side of
+    the published cell it sits. With the published cell tied at an end, that
+    end is still the override cell, never the published one."""
+    pub = next(i for i, c in enumerate(cells) if c["path"] == ".")
+    others = [(i, c) for i, c in enumerate(cells) if c["path"] != "."]
+    if not others:
+        return []
+    ends = [others[-1]] if len(others) == 1 else [others[-1], others[0]]
+    return [("Fully" if i > pub else "Not at all", c) for i, c in ends]
 
 
 def _cell_medians(path: str) -> tuple[dict, dict]:
@@ -514,12 +543,10 @@ def bye_line(names: dict) -> str:
     sampling noise. No party's move is explained here: the page explains every
     move or none (critic, 2026-10-02), and note 5 says why the cells differ."""
     index, cells = _bye_cells()
-    pub_cell = next(c for c in cells if c["path"] == ".")
     pub, _ = _cell_medians(".")
     parts = []
-    for c in [c for c in (cells[-1], cells[0]) if c["path"] != "."]:
+    for label, c in bye_ends(cells):
         med, _ = _cell_medians(c["path"])
-        label = "Fully" if c["w_bye"] > pub_cell["w_bye"] else "Not at all"
         mv = sorted(_moves(med, pub), key=lambda x: names.get(x[0], {"name": x[0]})["name"].lower())
         src = f"site/draws/{c['path']} against site/draws/., middle seats beyond sampling noise"
         said = ", ".join(f"{_esc(names.get(p, {'name': p})['name'])} {'+' if d > 0 else '−'}"

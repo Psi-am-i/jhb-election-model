@@ -241,6 +241,8 @@ registration and vote totals, so the counted quantity is exact and only the
 model"*; and the 2026-08-26 repair that lifted the census to fix the ratio was
 reverted after measuring worse.
 
+⚠️ **Reopened 2026-10-14** (MODEL-LOG §1.302; JUDGEMENT-CALLS §L9 reinstated, §L15 withdrawn). A fix was committed on 2026-10-12 (`c2edc60`: no upper bound, and a pool the ward table cannot identify held at the city's rate) and withdrawn before it shipped: prereg K1 was falsified because the held rate sums every pool, so it reads every pool's census level (§1.301). `REGISTRATION_MAX = 2.0` ships. The paragraph below is current.
+
 ⚠️ **Where it does not, and this is the open item**: `REGISTRATION_MAX = 2.0` is
 a census-derived ceiling on a counted quantity, and it **binds on four cells in
 two cities** — Cape Town Indian/Asian 2011 and 2016, Mangaung Indian/Asian 2016
@@ -1205,3 +1207,20 @@ entry 22, which only makes the existing refusal audible. **The class is OPEN:**
 nothing has yet measured what the model's trends would do with those three cycles
 restored, and until something does, "the trend is measured over many cycles" is a
 claim about eight of them.
+
+## 19. 🟡 Roster parties with no record of any kind are not drawn at a backtest (named 2026-10-09)
+
+**The class.** A party on a backtest target's ballot with no previous-LGE list
+vote, no national baseline and no arrival seed has no pool vector, so the run
+cannot draw it. Since the model correction batch (item 8) the run names these
+parties per city-year in `41_guards.roster_unrepresented`
+(`montecarlo.roster_universe_check`) instead of omitting them in silence. At a
+live forecast the same class refuses the run.
+
+**Where it comes from.** These are `pools`' unseeded arrivals (the spec's
+`no_measured_vector`): `pools` seeds an arrival only where its comparator
+record allows. Repairing that is a pools question outside the batch (SPEC O5).
+
+**How to read the size of it.** Run any city-year with `--run-dir` and read
+`41_guards.roster_unrepresented`; the batch's MODEL-LOG entry tabulates it over
+the panel.

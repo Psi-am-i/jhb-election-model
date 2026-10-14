@@ -281,11 +281,15 @@ def test_capture_is_zero_outside_a_partys_pools():
 
     def draw_means(pl, centres, seed):
         scen = dict(M.DEFAULTS)
+        # The within-pool DIRICHLET is the subject here (its means), which
+        # only the incumbent draw law has; the universal draw's conservation
+        # is `test_universal_draw::test_the_calibration_conserves_every_centre`.
+        scen["draw_law"] = "incumbent"
         scen["pools"] = pl
         scen["entrant_prob"] = 0.0
         scen["_theta_sd"] = {p: 0.0 for p in parties}   # isolate the pool term
         draw = M.make_drawer(scen, base, centres, index,
-                             np.random.default_rng(seed))
+                             M.DrawStreams(f"conservation|test|{seed}", DRAWS))
         return np.array([draw() for _ in range(DRAWS)])
 
     def internal_shift(pl, A, B, pool):
@@ -506,12 +510,13 @@ def test_an_arrival_does_not_touch_pools_it_is_not_in():
     #     is true of a party that takes nothing from anywhere. End to end
     #     through `make_drawer`, on the same constructed spec.
     scen = dict(M.DEFAULTS)
+    scen["draw_law"] = "incumbent"     # the spec's columns, not a width record
     scen["pools"] = _pl
     scen["entrant_prob"] = 0.0
     scen["_theta_sd"] = {p: 0.0 for p in centres}
     with contextlib.redirect_stdout(io.StringIO()):
         draw = M.make_drawer(scen, centres, centres, index,
-                             np.random.default_rng(7))
+                             M.DrawStreams("conservation|newcomer|7", 200))
         sample = np.array([draw() for _ in range(200)])
     share = float(sample[:, index["NEWCOMER"]].mean())
     even = 1.0 / len(centres)
@@ -546,14 +551,14 @@ def _seeded_parties_outside_every_pool(spec) -> list[str]:
 def test_every_seeded_party_belongs_to_a_pool():
     """A seeded arrival is drawn from its POOLS, and it must have some.
 
-    ⛔ THIS IS THE INVARIANT A WHOLE REFUTATION RESTS ON, AND NOTHING TESTED IT.
-    `make_drawer` skips every pool member before it reads `pool_seed_bands`, so
-    the emitted band's `lo`/`hi` are consumed by nothing — measured 2026-09-06,
-    replacing every seeded band with [0.001, 1.0, 50.0] leaves `pr_share_draws`
-    and the seat totals byte-identical (§1.198). That conclusion is only sound
-    while EVERY seeded party is a pool member. The day one is not, that party
-    alone is drawn from a triangular whose width nothing has been maintaining,
-    and the model changes engine for it in silence.
+    A seeded arrival takes no level shock and has no band: its width is the
+    within-pool Dirichlet split (JUDGEMENT-CALLS §A50). The arrival band that
+    used to sit beside each seed was never drawn from (§1.198) and was deleted
+    2026-10-09 (item9/FINDINGS.md Q5), along with the triangular branch in
+    `make_drawer` that a non-pooled seed would have taken. So a seeded party
+    outside every pool would now fall to the ordinary (centre, sd) level path
+    with sd from the size record, and be drawn by a different engine from
+    every other arrival, in silence.
 
     The invariant is currently guaranteed by arithmetic — `emit_pools` writes a
     normalised vector over `n` pools, so its largest weight is at least `1/n`,
@@ -561,12 +566,6 @@ def test_every_seeded_party_belongs_to_a_pool():
     that could change: a roster drop, a capture that comes back empty, or a
     tighter filter each break it, and none of them looks like it is breaking
     anything.
-
-    ⚠️ **The liveness register cannot catch it either.** `pool_seed_bands` sits
-    in `RUNTIME_INJECTED` in `test_levers_are_live.py` — explicitly "not a
-    lever" — so the register never asks whether its `lo` and `hi` are read by
-    anything. That exemption is how a dead artefact survived two rounds of
-    repair to its contents.
     """
     specs = _population()
     with_seeds = [(path, spec) for path, spec in specs if (spec.get("seeds") or {})]
@@ -581,7 +580,8 @@ def test_every_seeded_party_belongs_to_a_pool():
         f"[10%, 90%] this is not the population the claim is about: at the low "
         f"end the scan is empty in all but name, and at the high end something "
         f"has started seeding the targets that should have none (2016 and 2011 "
-        f"carry no entrant record, and 2026 has no roster).")
+        f"carry no entrant record; 2026 carries seeds from its declared "
+        f"roster).")
     assert seeded_total >= 20, (
         f"only {seeded_total} seeded parties across every spec; the 2021 "
         f"targets alone carry dozens, so this is scanning a broken emission")
@@ -590,11 +590,10 @@ def test_every_seeded_party_belongs_to_a_pool():
         orphans = _seeded_parties_outside_every_pool(spec)
         assert not orphans, (
             f"{path.name}: {len(orphans)} seeded parties belong to no pool — "
-            f"{', '.join(orphans[:5])}. `make_drawer` skips pool members BEFORE "
-            f"it reads `pool_seed_bands`, so these parties alone are drawn from "
-            f"the seed-band triangular instead of from their pools. That band's "
-            f"width is maintained by nothing (§1.198) and the two engines do "
-            f"not agree.")
+            f"{', '.join(orphans[:5])}. A seeded party outside every pool is "
+            f"drawn on the ordinary level path instead of by the pool split "
+            f"that sets every other arrival's width (JUDGEMENT-CALLS §A50), "
+            f"so the two engines would disagree.")
 
     # IT CAN SEE: the same predicate, on a constructed violation.
     _path, real = next((p, s) for p, s in with_seeds)

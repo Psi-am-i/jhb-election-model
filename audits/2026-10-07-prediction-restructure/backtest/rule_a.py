@@ -40,10 +40,12 @@ run = M.run_model(target, scenario, data_dir, verbose=False)
 n = len(run.seat_draws)
 
 pred = prediction.rule_a(run.ward_winner_draws, run.universe, run.wards,
-                         run.ward_vote_draws, run.pr_vote_draws, run.universe)
+                         run.ward_vote_draws, run.pr_vote_draws, run.universe,
+                         lot=run.lot)
 
-# ties the rule broke by string order (JUDGEMENT-CALLS §Q2): one.py broke them
-# by universe index, so a tied ward is where the two can differ
+# ties the rule broke by the seeded lot under the run's identity (run.lot;
+# JUDGEMENT-CALLS §Q2; by string order before 2026-10-09): one.py broke them by
+# universe index, so a tied ward is where the two can differ
 counts = np.zeros((len(run.wards), len(run.universe)), dtype=np.int64)
 for j in range(len(run.wards)):
     counts[j] = np.bincount(run.ward_winner_draws[:, j].astype(np.int64),
@@ -68,7 +70,7 @@ def rn(d):
 
 pred = {"ward_calls": [ren(p) for p in pred["ward_calls"]],
         "ward_votes": rn(pred["ward_votes"]), "list_votes": rn(pred["list_votes"])}
-seated = prediction.seats_of(pred, M.COUNCIL)
+seated = prediction.seats_of(pred, M.COUNCIL, lot=run.lot)
 seatsA = {p: v["total"] for p, v in seated["seats"].items() if v["total"]}
 wards = [str(w) for w in run.wards]
 wins = dict(Counter(pred["ward_calls"]))

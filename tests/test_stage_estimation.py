@@ -353,6 +353,13 @@ THETA_PREDICATES = {fn.__name__: fn for fn in (
 #   absorption   routes census, the blend's disagreement accounting, the names of
 #                the parties dropped and of those whose level nothing can read,
 #                and each route's shrink account. Write-only in the model.
+#   size_window  {theta, rho}: each route's derived size window (BRIEF item 16,
+#                `levels.size_window`, JUDGEMENT-CALLS §A52): `h` (a grid
+#                value, "inf" for no filter), `status` ("derived" or
+#                "underdetermined"), `errors` per grid value, `scored`,
+#                `clusters`, `grid`, `min_scored`, `alpha`, `targets`; when
+#                derived also `best`, `t_crit` and `paired` (per grid value
+#                >= best: `mean`, `se`, `lower`, `worse`).
 
 def _spine_rows(stage: dict):
     return (stage.get("detail") or {}), (stage.get("level") or {})
@@ -674,7 +681,74 @@ def spine_the_levels_and_the_group_centres_are_positive(stage: dict) -> list[str
     return faults
 
 
+def spine_the_size_windows_follow_their_own_rule(stage: dict) -> list[str]:
+    """Each route's window is the one its own report chooses (item 16, §A52).
+
+    ``derived``: enough observations over at least two cycles; ``best`` has
+    the lowest error; every grid value from ``best`` up has a paired entry
+    whose ``lower`` is ``mean − t_crit·se`` and whose ``worse`` is
+    ``lower > 0``; and ``h`` is the widest of them not ``worse``.
+    ``underdetermined``: too few scored or fewer than two cycles, and ``h``
+    is ``"inf"``. A window the report does not choose is a window someone
+    typed.
+    """
+    faults = []
+    block = stage.get("size_window")
+    if not isinstance(block, dict):
+        return [f"size_window is {block!r}, not a per-route block"]
+    for route in ("theta", "rho"):
+        rep = block.get(route)
+        if not isinstance(rep, dict):
+            faults.append(f"size_window.{route} is {rep!r}")
+            continue
+        grid = [str(g) for g in rep.get("grid") or []]
+        h, status = str(rep.get("h")), rep.get("status")
+        errors = rep.get("errors") or {}
+        thin = (rep.get("scored", 0) < rep.get("min_scored", 0)
+                or rep.get("clusters", 0) < 2)
+        if h not in grid:
+            faults.append(f"size_window.{route}: h={h} is not on the grid {grid}")
+            continue
+        if status == "underdetermined":
+            if h != "inf" or not thin:
+                faults.append(f"size_window.{route}: underdetermined with h={h}, "
+                              f"{rep.get('scored')} scored over "
+                              f"{rep.get('clusters')} cycles")
+        elif status == "derived":
+            best = str(rep.get("best"))
+            if thin or best not in errors or h not in errors:
+                faults.append(f"size_window.{route}: derived on "
+                              f"{rep.get('scored')} scored over "
+                              f"{rep.get('clusters')} cycles, best={best}, h={h}")
+                continue
+            if errors[best] > min(errors.values()):
+                faults.append(f"size_window.{route}: best={best} does not have "
+                              f"the lowest error")
+            paired = rep.get("paired") or {}
+            t_crit = float(rep.get("t_crit", float("nan")))
+            wider = grid[grid.index(best):]
+            if sorted(paired, key=grid.index) != wider:
+                faults.append(f"size_window.{route}: paired covers "
+                              f"{sorted(paired)}, not {wider}")
+                continue
+            for g in wider:
+                e = paired[g]
+                lower = e["mean"] - t_crit * e["se"]
+                if not (abs(lower - e["lower"]) <= 1e-12 + 1e-9 * abs(lower)) \
+                        or bool(e["worse"]) != (e["lower"] > 0):
+                    faults.append(f"size_window.{route}: paired[{g}] is not "
+                                  f"mean - t*se, or worse is not lower > 0")
+            ok = [g for g in wider if not paired[g]["worse"]]
+            if not ok or ok[-1] != h:
+                faults.append(f"size_window.{route}: h={h} is not the widest "
+                              f"value not measurably worse than best ({ok})")
+        else:
+            faults.append(f"size_window.{route}: unknown status {status!r}")
+    return faults
+
+
 SPINE_PREDICATES = {fn.__name__: fn for fn in (
+    spine_the_size_windows_follow_their_own_rule,
     spine_every_level_has_a_detail_row,
     spine_the_level_is_the_geometric_blend_of_its_two_routes,
     spine_a_blended_level_is_bracketed_by_its_routes,
@@ -706,6 +780,11 @@ SPINE_PREDICATES = {fn.__name__: fn for fn in (
 #                  by-election tilt. Empty at every backtest target, so the trace
 #                  cannot say which route placed a party. See the module
 #                  docstring.
+#   bye_weight     {party: {"weight", "class"}} — the by-election weight
+#                  `blended_centres` gave each party with evidence (BRIEF item
+#                  19): its size class's measured weight ("under" /
+#                  "at_or_over") or a `w_bye` "override". Empty at every
+#                  backtest target (no by-election file).
 
 def centres_the_three_vectors_cover_the_same_parties(stage: dict) -> list[str]:
     """``before_shrink``, ``after_shrink`` and ``ratio`` are keyed alike; notes are inside.
@@ -921,7 +1000,33 @@ def centres_the_recorded_levers_reproduce_the_shrink(stage: dict) -> list[str]:
     return faults[:8]
 
 
+def centres_the_bye_weights_belong_to_centred_parties(stage: dict) -> list[str]:
+    """``bye_weight`` names only parties with a centre, each with a finite
+    non-negative weight and a class that is a size class or ``"override"``;
+    an override is one weight for every party (BRIEF item 19)."""
+    import byelections as _by
+    before = stage.get("before_shrink") or {}
+    given = stage.get("bye_weight") or {}
+    faults = []
+    stray = set(given) - set(before)
+    if stray:
+        faults.append(f"a by-election weight for a party with no centre: "
+                      f"{sorted(stray)[:6]}")
+    for party, v in sorted(given.items()):
+        w, cls = (v or {}).get("weight"), (v or {}).get("class")
+        if not _finite(w) or w < 0:
+            faults.append(f"{party}: by-election weight {w!r} is not a weight")
+        if cls not in (*_by.SIZE_CLASSES, "override"):
+            faults.append(f"{party}: by-election class {cls!r} is no class")
+    overrides = {v.get("weight") for v in given.values()
+                 if (v or {}).get("class") == "override"}
+    if len(overrides) > 1:
+        faults.append(f"an override gave different weights: {sorted(overrides)}")
+    return faults[:8]
+
+
 CENTRES_PREDICATES = {fn.__name__: fn for fn in (
+    centres_the_bye_weights_belong_to_centred_parties,
     centres_the_three_vectors_cover_the_same_parties,
     centres_the_shrink_conserves_the_total,
     centres_the_total_is_a_plausible_ballot,
@@ -952,7 +1057,7 @@ def cross_the_two_stages_read_one_theta_record(payloads) -> list[str]:
     ``THETA_WINDOW`` or an exclusion applied on one path and not the other — and
     every downstream comparison between them is meaningless.
     """
-    theta, spine, _ = payloads
+    theta, spine, _ = payloads[:3]
     faults = []
     geo = (theta.get("centre") or {}).get("weighted_geomean")
     centre = spine.get("theta_centre")
@@ -981,7 +1086,7 @@ def cross_the_blend_weight_and_the_shrink_use_one_worth(payloads) -> list[str]:
     party with no theta record at all means the two stages disagree about who has
     a record, not merely about how much it is worth.
     """
-    theta, spine, _ = payloads
+    theta, spine, _ = payloads[:3]
     worth, detail = theta.get("worth") or {}, spine.get("detail") or {}
     faults, shared = [], 0
     for party, row in detail.items():
@@ -1014,7 +1119,7 @@ def cross_every_centre_has_a_level_behind_it(payloads) -> list[str]:
     record behind it means a fifth route has appeared with nothing recorded about
     where its number came from.
     """
-    theta, spine, centres = payloads
+    theta, spine, centres = payloads[:3]
     before = centres.get("before_shrink") or {}
     known = set(spine.get("level") or {}) | set(theta.get("prior") or {})
     orphans = sorted(set(before) - known)
@@ -1037,7 +1142,7 @@ def cross_the_spine_still_reaches_the_centres(payloads) -> list[str]:
     floor is set well under the observed minimum; what it catches is the seam
     going to ZERO, which is the failure that reads as a working model.
     """
-    _, spine, centres = payloads
+    _, spine, centres = payloads[:3]
     level = spine.get("level") or {}
     before = centres.get("before_shrink") or {}
     shared = [p for p in before if p in level]
@@ -1066,12 +1171,30 @@ def cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling(payloads) -> list
     would be set by a clamp rather than by the fit, and the sd sweep would be
     measuring a constant for it. Go and look; do not relax this.
     """
-    theta, _, centres = payloads
+    theta, _spine, centres = payloads[:3]
+    guards = payloads[3] if len(payloads) > 3 else {}
+    # UNDER THE UNIVERSAL DRAW LAW (2026-10-12) THE θ WIDTH IS NOT A DRAW
+    # WIDTH. Every drawn party's width comes from the width record
+    # (`41_guards.width`, `35_widths`), so `SD_CEILING` binds on nothing the
+    # draw reads and this tripwire is retired for that law (design 1j v2 §6;
+    # MODEL-LOG §1.298). It still guards the incumbent law, whose board has
+    # no `width` table.
+    if (guards or {}).get("width"):
+        return []
     ceiling, sd = theta.get("sd_ceiling"), theta.get("sd") or {}
     if not _finite(ceiling):
         return []
     before = centres.get("before_shrink") or {}
-    pinned = sorted(p for p, v in sd.items()
+    # Since item 17 (2026-10-09) a party with no measured width, or one whose
+    # only record is the previous LGE, is drawn at the size group's width at
+    # its own size, recorded with that width in `41_guards.level_sd_at_size`.
+    # Its DRAWN width is the one checked, read from the drawer's own record
+    # (M2 review S3). There is no other exemption: the typed fallback width
+    # (`level_sd_default`) was deleted 2026-10-09, M3 review row 7.
+    at_size = dict((guards or {}).get("level_sd_at_size") or {})
+    drawn = {p: v for p, v in sd.items() if p not in at_size}
+    drawn.update(at_size)
+    pinned = sorted(p for p, v in drawn.items()
                     if _finite(v) and abs(v - ceiling) < 1e-12 and p in before)
     if pinned:
         return [f"a party with a forecast level is drawn at the width CEILING "
@@ -1091,8 +1214,12 @@ ALL_PREDICATES = {**THETA_PREDICATES, **SPINE_PREDICATES,
                   **CENTRES_PREDICATES, **CROSS_PREDICATES}
 
 
-def faults_in(theta: dict, spine: dict, centres: dict) -> list[tuple[str, str]]:
-    """Every predicate against one set of stage payloads. ``(predicate, fault)``."""
+def faults_in(theta: dict, spine: dict, centres: dict,
+              guards: dict | None = None) -> list[tuple[str, str]]:
+    """Every predicate against one set of stage payloads. ``(predicate, fault)``.
+
+    ``guards`` is the run's ``41_guards`` payload, read by the cross predicates
+    that need the drawer's own record (the width-ceiling tripwire)."""
     found: list[tuple[str, str]] = []
     for name, fn in THETA_PREDICATES.items():
         found += [(name, text) for text in fn(theta)]
@@ -1101,7 +1228,7 @@ def faults_in(theta: dict, spine: dict, centres: dict) -> list[tuple[str, str]]:
     for name, fn in CENTRES_PREDICATES.items():
         found += [(name, text) for text in fn(centres)]
     for name, fn in CROSS_PREDICATES.items():
-        found += [(name, text) for text in fn((theta, spine, centres))]
+        found += [(name, text) for text in fn((theta, spine, centres, guards or {}))]
     return found
 
 
@@ -1199,6 +1326,28 @@ def healthy_spine() -> dict:
             "rho_shrink": {"n": 2, "target": "size_centre", "offered": 2.0,
                            "absorbed": 1.4, "share": 0.7, "empty": False},
         },
+        "size_window": {
+            "theta": {"h": 2.0, "status": "derived", "scored": 40,
+                      "clusters": 3, "min_scored": 20, "alpha": 0.05,
+                      "grid": [0.5, 1.0, 2.0, "inf"],
+                      "errors": {"0.5": 0.40, "1.0": 0.39, "2.0": 0.392,
+                                 "inf": 0.41},
+                      "best": 1.0, "t_crit": 2.92,
+                      "paired": {
+                          "1.0": {"mean": 0.0, "se": 0.0, "lower": 0.0,
+                                  "worse": False},
+                          "2.0": {"mean": 0.002, "se": 0.001,
+                                  "lower": 0.002 - 2.92 * 0.001,
+                                  "worse": False},
+                          "inf": {"mean": 0.02, "se": 0.004,
+                                  "lower": 0.02 - 2.92 * 0.004,
+                                  "worse": True}},
+                      "targets": ["2011", "2016", "2021"]},
+            "rho": {"h": "inf", "status": "underdetermined", "scored": 3,
+                    "clusters": 1, "min_scored": 20, "alpha": 0.05,
+                    "grid": [0.5, 1.0, 2.0, "inf"], "errors": {},
+                    "targets": ["2016", "2021"]},
+        },
     }
 
 
@@ -1220,6 +1369,8 @@ def healthy_centres() -> dict:
         "level_shrink": scenario["level_shrink"],
         "level_shrink_scale": scenario["level_shrink_scale"],
         "route_notes": {"MID": "level from poll: 15.00%"},
+        "bye_weight": {"MID": {"weight": 0.0, "class": "at_or_over"},
+                       "NATONLY": {"weight": 0.0, "class": "under"}},
     }
 
 
@@ -1368,6 +1519,10 @@ def _corrupt_spine_shrink(s):
     block["absorbed"] = (block.get("offered") or 0.0) * 2 + 1.0   # ate more than offered
 
 
+def _corrupt_spine_window(s):
+    s["size_window"]["theta"]["h"] = 1.0        # best, where a wider one is not worse
+
+
 def _corrupt_spine_positive(s):
     s["level"][sorted(s["level"])[0]] = 0.0     # a party the blend lost, reading as a level
 
@@ -1416,6 +1571,10 @@ def _corrupt_centres_direction(s):
 
 def _corrupt_centres_off_switch(s):
     s["level_shrink"] = 0.0                     # off, and the vector moved anyway
+
+
+def _corrupt_centres_bye_weight(s):
+    s["bye_weight"]["GHOST"] = {"weight": 0.5, "class": "medium"}
 
 
 def _corrupt_centres_levers(s):
@@ -1484,6 +1643,10 @@ CORRUPTIONS = [
      "spine", _corrupt_spine_shrink),
     ("spine_the_levels_and_the_group_centres_are_positive", "a level at zero",
      "spine", _corrupt_spine_positive),
+    ("spine_the_size_windows_follow_their_own_rule", "a window the table did not choose",
+     "spine", _corrupt_spine_window),
+    ("centres_the_bye_weights_belong_to_centred_parties", "a weight for no party, of no class",
+     "centres", _corrupt_centres_bye_weight),
     ("centres_the_three_vectors_cover_the_same_parties", "an extra key in after_shrink",
      "centres", _corrupt_centres_keys),
     ("centres_the_shrink_conserves_the_total", "mass created by the shrink",
@@ -1556,6 +1719,7 @@ def _files_opened():
 
 
 _TRACES: dict[str, Path] = {}
+_REFUSED: dict[str, str] = {}
 _TRACE_ROOT: Path | None = None
 
 
@@ -1568,6 +1732,16 @@ def _trace_dir(year: str) -> Path:
     directory is given, and this calls ``run_model`` rather than ``main`` anyway.
     ``STAGE_TRACE_DIR`` in the environment points the integration tests at a
     trace that already exists instead, for a human chasing one by hand.
+
+    It SKIPS on one named condition only: the target's raw IEC results file
+    is not on this machine (``data/**`` is gitignored, so a clone without
+    Atlas's data has none, and there is nothing to run on). Every other way
+    the run can stop, a ``SystemExit`` refusal or a ``FileNotFoundError``
+    raised inside it included, FAILS with the run's own message: a model that
+    refuses must not leave these tests unexercised while the module reads
+    green (CLAUDE.md §4, "it looked"; step 8 fix row 3, 2026-10-10). Until
+    then both were turned into SKIP, so the step-8 stale-spec refusal read as
+    "no run is possible here".
     """
     global _TRACE_ROOT
     import os
@@ -1581,6 +1755,13 @@ def _trace_dir(year: str) -> Path:
         return path
     if year in _TRACES:
         return _TRACES[year]
+    if year in _REFUSED:
+        raise AssertionError(_REFUSED[year])
+    raw = _raw_results_file(year)
+    if not raw.exists():
+        skip(f"{raw} is not on this machine (data/** is gitignored), so no "
+             f"{CITY} {year} run is possible here and there is no trace to "
+             f"observe")
     if _TRACE_ROOT is None:
         _TRACE_ROOT = Path(tempfile.mkdtemp(prefix="stage-estimation-"))
         atexit.register(shutil.rmtree, _TRACE_ROOT, True)
@@ -1594,10 +1775,23 @@ def _trace_dir(year: str) -> Path:
         mc.run_model(target, scenario, ROOT / "data/raw/elections",
                      verbose=False, run_dir=run_dir)
     except (FileNotFoundError, SystemExit) as exc:
-        skip(f"no {CITY} {year} run is possible here, so no trace to observe: "
-             f"{type(exc).__name__}: {exc}")
+        # The raw file is present, so the run was possible and stopped: that
+        # is a failure of the run, not an absence of one. Remembered, so the
+        # other tests reading this year report the same message without
+        # re-running a model that refuses.
+        _REFUSED[year] = (f"the {CITY} {year} run stopped, so there is no "
+                          f"trace to observe: {type(exc).__name__}: {exc}")
+        raise AssertionError(_REFUSED[year]) from exc
     _TRACES[year] = run_dir
     return run_dir
+
+
+def _raw_results_file(year: str) -> Path:
+    """The target's own IEC results file (``CALENDAR[year].results`` with the
+    city's code), the marker for "this machine has the raw elections"."""
+    city = cityconfig.load(CITY)
+    return ROOT / "data/raw/elections" / cityconfig.CALENDAR[year].results.replace(
+        "{CODE}", city.code)
 
 
 def _stages(year: str) -> tuple[dict, dict, dict]:
@@ -1611,6 +1805,14 @@ def _stages(year: str) -> tuple[dict, dict, dict]:
                  f"rewritten against the new name rather than dropped")
         out.append(json.loads(path.read_text()))
     return tuple(out)                                        # type: ignore[return-value]
+
+
+def _guards(year: str) -> dict:
+    """The same run's ``41_guards`` payload."""
+    path = _trace_dir(year) / "41_guards.json"
+    if not path.exists():
+        skip(f"the {year} run wrote no 41_guards.json")
+    return json.loads(path.read_text())
 
 
 def _apply(corruption, payloads):
@@ -1631,6 +1833,84 @@ def _apply(corruption, payloads):
 # ==========================================================================
 # the tests
 # ==========================================================================
+
+def test_a_stopped_run_fails_and_only_a_missing_raw_file_skips():
+    """``_trace_dir``'s two outcomes, on constructed inputs (step 8 review row 3).
+
+    The five real-trace tests below are only as honest as ``_trace_dir``: until
+    2026-10-10 it turned a refusing run into SKIP, so a model that could not
+    run read as "no run possible here". Two cases, neither touching the model
+    or ``data/``:
+
+    * the raw results file is present (a path that exists stands in for it)
+      and ``run_model`` refuses: ``_trace_dir`` FAILS with the run's own
+      message, and a second call fails the same way without running again;
+    * the raw file is absent: it SKIPS, and ``run_model`` is never called.
+
+    Everything the helper keeps between calls (``_TRACES``, ``_REFUSED``,
+    ``_TRACE_ROOT``, ``STAGE_TRACE_DIR``, ``mc.run_model``,
+    ``_raw_results_file``) is restored afterwards, so the real-trace tests do
+    not inherit the probe's refusal.
+    """
+    import os
+    from _support import SKIP_EXCEPTIONS
+
+    global _TRACE_ROOT
+    year = "2021"
+    here = globals()
+    saved = (dict(_TRACES), dict(_REFUSED), _TRACE_ROOT,
+             os.environ.pop("STAGE_TRACE_DIR", None), mc.run_model,
+             here["_raw_results_file"])
+    calls = []
+
+    def refusing(*args, **kwargs):
+        calls.append(1)
+        raise SystemExit("probe: the run refused")
+
+    try:
+        mc.run_model = refusing
+        _TRACES.pop(year, None)
+        _REFUSED.pop(year, None)
+        here["_raw_results_file"] = lambda y: Path(__file__)
+        for attempt in (1, 2):
+            try:
+                _trace_dir(year)
+            except SKIP_EXCEPTIONS as exc:
+                raise AssertionError(
+                    f"a run that refused was SKIPPED (attempt {attempt}): {exc}")
+            except AssertionError as exc:
+                assert "probe: the run refused" in str(exc), exc
+            else:
+                raise AssertionError("a run that refused returned a trace")
+        assert len(calls) == 1, (
+            f"the refused run was re-run {len(calls)} times; the second call "
+            f"should report the remembered refusal")
+
+        _REFUSED.pop(year, None)
+        calls.clear()
+        with tempfile.TemporaryDirectory() as tmp:
+            here["_raw_results_file"] = lambda y: Path(tmp) / "absent.csv"
+            try:
+                _trace_dir(year)
+            except SKIP_EXCEPTIONS:
+                pass
+            except AssertionError as exc:
+                raise AssertionError(
+                    f"an absent raw file FAILED instead of skipping: {exc}")
+            else:
+                raise AssertionError("an absent raw file returned a trace")
+        assert not calls, "the model was run with no raw results file"
+    finally:
+        _TRACES.clear()
+        _TRACES.update(saved[0])
+        _REFUSED.clear()
+        _REFUSED.update(saved[1])
+        _TRACE_ROOT = saved[2]
+        if saved[3] is not None:
+            os.environ["STAGE_TRACE_DIR"] = saved[3]
+        mc.run_model = saved[4]
+        here["_raw_results_file"] = saved[5]
+
 
 def test_a_constructed_healthy_payload_passes_every_predicate():
     """The floor of the whole file: a clean trace must read as clean.
@@ -1733,7 +2013,8 @@ def test_the_predicates_hold_on_a_real_trace():
     """
     for year in TRACE_YEARS:
         theta, spine, centres = _stages(year)
-        found = faults_in(theta, spine, centres)
+        guards = _guards(year)
+        found = faults_in(theta, spine, centres, guards)
         assert not found, (
             f"the estimation segment of the {CITY} {year} run is not "
             f"self-consistent:\n  "
@@ -1900,6 +2181,31 @@ def test_the_spine_reads_no_election_at_or_after_its_target():
         assert not late, (
             f"the spine for target {year} read {late} — a retention ratio "
             f"measured across the election being forecast")
+
+
+def test_the_width_ceiling_tripwire_exempts_only_what_the_drawer_records():
+    """M2 review S3, item 17: the tripwire checks the width the drawer
+    records drawing (`41_guards.level_sd_at_size`) in place of the θ-prior
+    sd. Constructed: a forecast party at the ceiling is caught; with no
+    record, or another party recorded, caught again; recorded below the
+    ceiling it goes quiet; recorded AT the ceiling, caught.
+    """
+    payloads = [copy.deepcopy(x) for x in healthy_payloads()]
+    _corrupt_cross_ceiling(payloads)
+    fn = cross_no_party_with_a_centre_is_drawn_at_the_width_ceiling
+    party = sorted(set(payloads[0]["sd"]) & set(payloads[2]["before_shrink"]))[0]
+    assert fn(tuple(payloads)), "the constructed ceiling party was not caught"
+    assert fn((*payloads, {})), "an empty drawer record exempted the party"
+    other = {"level_sd_at_size": {"SOMEONE_ELSE": 0.1}}
+    assert fn((*payloads, other)), "another party's record exempted this one"
+    # Item 17: drawn at its size group's width, the drawn width is checked.
+    below = {"level_sd_at_size": {party: payloads[0]["sd_ceiling"] / 2}}
+    assert not fn((*payloads, below)), "a party drawn below the ceiling flagged"
+    at_cap = {"level_sd_at_size": {party: payloads[0]["sd_ceiling"]}}
+    assert fn((*payloads, at_cap)), "a party DRAWN at the ceiling was missed"
+    # Under the universal law the θ width does not reach the draw: quiet.
+    universal = {"level_sd_at_size": {}, "width": {party: 0.8}}
+    assert not fn((*payloads, universal)), "the retired tripwire fired under U"
 
 
 if __name__ == "__main__":

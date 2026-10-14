@@ -79,7 +79,8 @@ combined share and is retired, not read (BRIEF, no backward compatibility).
 **The model is scored by its PREDICTION** (STYLE.md rule 11: one complete
 result, not the forecast's ranges). :func:`model_forecast` is rule A, from
 ``src/prediction.py``, the one definition: each ward to the party that wins it
-in the most simulations (a tie to the code first in string order), and each
+in the most simulations (a tie drawn by the seeded lot under the schema's
+``x-seat-context["lot"]``), and each
 party's mean ward-ballot and mean list-ballot whole votes across the
 simulations; seats then follow by the seat law (``prediction.seats_of``).
 JUDGEMENT-CALLS §Q is the choice and MODEL-LOG §1.290 the backtest behind it.
@@ -367,8 +368,12 @@ def ingest_result(path, *, city: str, target: str, roster, aliases=None,
                 for c in dict.fromkeys(list(ward_total) + list(pr_total))}
     no_pr_list = sorted(c for c in combined if not pr_total.get(c, 0) > 0)
     ward_list = sorted(wards, key=int)
+    # The truth's own lot key: an exact seat tie in a real count is the IEC's
+    # to settle, and this reconstruction draws it under a key no forecast uses.
+    import seats
     context = R.context_for(city, str(target), roster_codes, ward_list,
-                            no_pr_list)
+                            no_pr_list,
+                            lot=seats.lot_identity(city, str(target), "actual"))
 
     # The two ballots as counted: nothing to round, so no round trip to check.
     seated = R.reader_seats(dict(ward_total), dict(pr_total), wards, context)
@@ -475,7 +480,8 @@ def model_forecast(ward_winners, ward_parties, wards, ward_votes, list_votes,
     ``ModelRun.ward_winner_draws`` with the universe). ``ward_votes`` and
     ``list_votes`` are ``(draws, len(columns))`` whole votes per ballot (the
     ``ward_vote`` and ``list_vote`` blocks). Calls :func:`prediction.rule_a`
-    with the schema's ``x-ward-ids`` order.
+    with the schema's ``x-ward-ids`` order and the schema's
+    ``x-seat-context["lot"]`` (a tied ward is drawn by that lot).
 
     Refuses (``ValueError``, naming them): a roster party missing from
     ``columns``; a column off the roster with a rule-A vote above zero on
@@ -487,6 +493,11 @@ def model_forecast(ward_winners, ward_parties, wards, ward_votes, list_votes,
     import prediction
 
     context, ward_ids = schema_context(schema)
+    if not isinstance(context.get("lot"), str) or not context.get("lot"):
+        raise ValueError(
+            "the schema's x-seat-context has no lot (the published run's "
+            "identity, build_make.run_lot): a tied ward cannot be called. A "
+            "forecast.json built before 2026-10-09 lacks it; rebuild the site")
     roster = list(context["parties"])
     columns = [str(c) for c in columns]
     lacking = sorted(set(roster) - set(columns))
@@ -495,7 +506,8 @@ def model_forecast(ward_winners, ward_parties, wards, ward_votes, list_votes,
     if sorted(map(str, wards)) != sorted(ward_ids):
         raise ValueError("the ward winners are not over the schema's wards")
     pred = prediction.rule_a(ward_winners, ward_parties, wards, ward_votes,
-                             list_votes, columns, ward_ids=ward_ids)
+                             list_votes, columns, ward_ids=ward_ids,
+                             lot=context["lot"])
     off = [c for c in columns if c not in set(roster)]
     outside = {"ward": sum(pred["ward_votes"][c] for c in off),
                "list": sum(pred["list_votes"][c] for c in off)}

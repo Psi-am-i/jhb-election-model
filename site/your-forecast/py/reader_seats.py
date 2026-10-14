@@ -53,8 +53,9 @@ which ballot a vote was cast on, so the list ballot a reader is scored on
     The city-year's facts, built at build time by :func:`context_for` (or
     :func:`context_from_run`) and shipped as a small JSON: ``city``,
     ``target``, ``council`` and ``wards`` from the city config, the roster
-    ``parties``, and ``no_pr_list`` — the roster parties with no PR list,
-    independents included. Nothing is read from disk at call time.
+    ``parties``, ``no_pr_list`` — the roster parties with no PR list,
+    independents included — and ``lot``, the seeded lot's key for an exact
+    seat tie (``seats.lot_identity``). Nothing is read from disk at call time.
 
 **What it refuses, rather than guessing:** a malformed context; vote maps that
 are not mappings of roster parties to whole votes; a ballot with no vote; a
@@ -77,11 +78,18 @@ and never validity here. A party with a ward vote and no list vote that wins
 no ward is not refused either: the statute leaves it out of the pool, which is
 what a party with no list on the ballot paper is.
 
-**Ties.** ``seats.allocate`` breaks an exact tie — equal remainder AND equal
-votes — by the order of its input, where Schedule 1 says "by lot". This module
-passes the pool in the context's roster order, so a given input always gives
-the same council. (A model draw's order comes from a set and so from
-``PYTHONHASHSEED``; see ``benchmarks.canonical_order``.)
+**Ties.** An exact tie at the last seat (equal surplus and equal votes; an
+equal surplus alone goes to the higher vote, Schedule 1 item 13(2)(b)) is drawn
+by the seeded lot under the context's ``lot`` (``seats.lot_identity`` of the
+published run: city, target, seed; no party name), so a given input gives the
+same council on the build, the page, the Worker and the scorer, and no roster
+order decides it. JUDGEMENT-CALLS §Q6.
+
+⛔ **Deploy order.** A context without ``lot`` is refused, so the site Worker
+serving a ``forecast.json`` whose ``x-seat-context`` carries ``lot`` must go
+live BEFORE the seat Worker is synced and redeployed with this module; the
+reverse refuses every entry with a 422. ``docs/DEPLOY-UAT.md``, "Releasing the
+seeded lot".
 
 **No party is special-cased** (DESIGN-decided §8). Which parties sit outside the
 pool is a property of the roster in the context and of the votes given, not of
@@ -121,13 +129,14 @@ ASSUMPTION = ("Each party's votes are given on the ward ballot and on the list "
 
 
 def context_for(city: str, target: str, parties, wards,
-                no_pr_list=()) -> dict:
+                no_pr_list=(), *, lot: str) -> dict:
     """Build the call-time context for one city-year. BUILD TIME ONLY.
 
     Council size and ward count come from ``cities/<city>.toml`` through
     :meth:`cityconfig.City.structure_for`, never from a typed number, and the
     ward list must have exactly the configured count — a list from another
-    delimitation is refused here rather than allocated.
+    delimitation is refused here rather than allocated. ``lot`` is the run's
+    identity for the seeded lot (``seats.lot_identity``), carried as given.
     """
     import cityconfig  # reads a TOML: never at call time in the browser
 
@@ -144,6 +153,7 @@ def context_for(city: str, target: str, parties, wards,
         "wards": wards,
         "parties": [str(p) for p in parties],
         "no_pr_list": [str(p) for p in no_pr_list],
+        "lot": lot,
     }
     problems = context_errors(context)
     if problems:
@@ -155,11 +165,12 @@ def context_from_run(run, no_pr_list=()) -> dict:
     """The context for the city-year a :class:`montecarlo.ModelRun` forecast.
 
     The roster is the run's universe and the wards are the run's wards, so a
-    reader edits exactly the parties and wards the model drew.
+    reader edits exactly the parties and wards the model drew; the lot is the
+    run's own (``ModelRun.lot``).
     """
     target = run.target
     return context_for(target.city.slug, str(target.year), run.universe,
-                       run.wards, no_pr_list)
+                       run.wards, no_pr_list, lot=run.lot)
 
 
 def context_errors(context) -> list[str]:
@@ -167,7 +178,8 @@ def context_errors(context) -> list[str]:
     if not isinstance(context, dict):
         return ["context is not a mapping"]
     errors = []
-    for key in ("city", "target", "council", "wards", "parties", "no_pr_list"):
+    for key in ("city", "target", "council", "wards", "parties", "no_pr_list",
+                "lot"):
         if key not in context:
             errors.append(f"context has no {key!r}")
     if errors:
@@ -176,6 +188,9 @@ def context_errors(context) -> list[str]:
                                context["parties"])
     if not isinstance(council, int) or isinstance(council, bool) or council <= 0:
         errors.append(f"council {council!r} is not a positive integer")
+    if not isinstance(context["lot"], str) or not context["lot"]:
+        errors.append(f"lot {context['lot']!r} is not a non-empty string: the "
+                      f"seeded lot needs the run's identity")
     if not wards:
         errors.append("the context lists no wards")
     if len(set(wards)) != len(wards):
@@ -310,7 +325,7 @@ def reader_seats(ward_votes: dict, list_votes: dict, ward_winners: dict,
         seated = prediction.seats_of(
             {"ward_calls": [ward_winners[w] for w in wards], "ward_votes": ward,
              "list_votes": lst},
-            context["council"], order=list(roster))
+            context["council"], order=list(roster), lot=context["lot"])
     except (ValueError, RuntimeError) as exc:
         result["errors"] = [f"the seat law could not complete this allocation: "
                             f"{exc}"]

@@ -53,6 +53,7 @@ by nothing. There is no way for an unwritten file to score as current.
 from __future__ import annotations
 
 import atexit
+import json
 import shutil
 import subprocess
 import sys
@@ -138,6 +139,28 @@ NOT_REGENERATED_HERE: dict[str, str] = {
     "forecast_frozen.json":
         "src/freeze.py — the tripwire. Self-hashed and checked by "
         "tests/test_freeze.py, which is a stronger guard than regeneration.",
+    "group_share_record.json":
+        "src/group_share_record.py --emit (BRIEF item 12): the group-share "
+        "tripwire's record and margins. Carries an artefact_key (declares.py, "
+        "`record` kind), and is regenerated and compared byte for byte by "
+        "test_the_group_share_record_is_a_fresh_build below.",
+    "bye_value.json":
+        "src/bye_value.py --emit (BRIEF item 19): the by-election value test, "
+        "whose class weights `montecarlo.blended_centres` applies. Carries an "
+        "artefact_key (declares.py, `record` kind; montecarlo refuses a stale "
+        "one), and is regenerated and compared byte for byte by "
+        "test_the_bye_value_record_is_a_fresh_build below.",
+    "plausibility_*.json":
+        "src/plausibility.py --runs DIR --label NAME (design 1h §5): a verdict "
+        "on an arm's runs against the real record, written under "
+        "plausibility/. Carries an artefact_key naming its code, the arrays "
+        "it scored and the record's files. A judge's output; nothing reads it.",
+    "width_record.json":
+        "src/width_record.py --emit (design 1j v4-L1): the universal draw's "
+        "width record. Carries an artefact_key (declares.py, `record` kind; "
+        "montecarlo.read_width_record refuses a stale one). Not rebuilt here: "
+        "it runs the model's estimation at every backtest city-year and the "
+        "drawer at each for its fixed point.",
     "citywide_*.json":
         "src/citywide_table.py — the browser engine's stand-in for "
         "levels._citywide_and_roster, recorded from a model run. Regenerated "
@@ -380,6 +403,171 @@ def test_the_comparator_CAN_SEE_a_stale_file():
         "violation was reverted, so it is not reading the file it names.")
 
 
+def _build_group_share_record(out: Path, root: Path = ROOT) -> Path:
+    """Build the record from empty into ``out`` (never into data/processed),
+    running the builder in ``root``'s ``src/``."""
+    proc = subprocess.run([str(PY), "src/group_share_record.py", "--out",
+                           str(out)], cwd=root, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-400:]
+    return out / "group_share_record.json"
+
+
+def _record_staleness(live: Path, fresh: Path) -> str | None:
+    """The G15 detector: why ``live`` is not today's build ``fresh``, or None."""
+    if live.read_bytes() != fresh.read_bytes():
+        return ("group_share_record.json differs from a fresh build: re-emit "
+                "it in a window and measure, as for any precomputed artefact")
+    return None
+
+
+def _scratch_tree(edit=None, module: str = "group_share_record.py") -> Path:
+    """A tree whose ``src/`` is a COPY of this one's (``edit`` may rewrite
+    ``module``) and whose every other top-level entry is a link to this
+    one's, so it reads the same data and writes nothing here."""
+    tree = Path(tempfile.mkdtemp(prefix="record-tree-"))
+    for entry in ROOT.iterdir():
+        if entry.name in ("src", ".git"):
+            continue
+        (tree / entry.name).symlink_to(entry)
+    shutil.copytree(ROOT / "src", tree / "src",
+                    ignore=shutil.ignore_patterns("__pycache__"))
+    if edit is not None:
+        target = tree / "src" / module
+        before = target.read_text(encoding="utf-8")
+        after = edit(before)
+        assert after != before, "the constructed edit changed nothing"
+        target.write_text(after, encoding="utf-8")
+    return tree
+
+
+def test_the_group_share_record_is_a_fresh_build():
+    """G15 (BRIEF item 12): the record on disk is what today's code builds.
+
+    Rebuilt from an EMPTY directory, so nothing scores current by never being
+    rewritten, and compared byte for byte by `_record_staleness`, whose
+    ability to see a real stale record is the next test's.
+    Red until the re-emit window runs `--emit` (SPEC R3.6, slice M3).
+    """
+    live = PROCESSED / "group_share_record.json"
+    assert live.exists(), (
+        f"{live} is not on disk. It is emitted in the re-emit window "
+        f"(src/group_share_record.py --emit); until then the tripwire reports "
+        f"\"no record\".")
+    tmp = Path(tempfile.mkdtemp(prefix="group-share-"))
+    try:
+        assert not any(tmp.iterdir()), "the scratch directory is not empty"
+        made = _build_group_share_record(tmp)
+        problem = _record_staleness(live, made)
+        assert problem is None, problem
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_the_group_share_freshness_check_can_see_a_real_stale_record():
+    """G15's "can see", on a REAL stale record (M3 review row 6: until
+    2026-10-09 this step appended a byte to the rebuilt copy and compared it
+    with itself, which tests nothing).
+
+    A stale record is one built by other code. Constructed: the builder run
+    in a scratch tree whose ``group_share_record.py`` covers one city instead
+    of eight. `_record_staleness` must flag it against today's build, and go
+    quiet on a build from the same scratch tree with the edit reverted, which
+    also shows the tree's location is not what differs. Does not need the
+    record on disk. Cost: two full builds and one one-city build.
+    """
+    old = 'CITIES = ("joburg", "tshwane", "ekurhuleni", "ethekwini", "capetown",'
+    one_city = (lambda text: text.replace(
+        old, 'CITIES = ("joburg",)\n_WAS = ("joburg", "tshwane", "ekurhuleni", '
+             '"ethekwini", "capetown",', 1))
+    dirs = []
+    try:
+        fresh_dir = Path(tempfile.mkdtemp(prefix="group-share-"))
+        dirs.append(fresh_dir)
+        fresh = _build_group_share_record(fresh_dir)
+        for edit, stale in ((one_city, True), (None, False)):
+            tree = _scratch_tree(edit)
+            out = Path(tempfile.mkdtemp(prefix="group-share-"))
+            dirs += [tree, out]
+            built = _build_group_share_record(out, root=tree)
+            problem = _record_staleness(built, fresh)
+            if stale:
+                assert problem, "a record built by other code read as current"
+            else:
+                assert problem is None, ("a build of today's code from a "
+                                         "scratch tree reads as stale")
+    finally:
+        for d in dirs:
+            shutil.rmtree(d, ignore_errors=True)
+
+
+def _build_bye_value(out: Path, root: Path = ROOT) -> Path:
+    """Build the item-19 record from empty into ``out`` (never into
+    data/processed), running the builder in ``root``'s ``src/``."""
+    proc = subprocess.run([str(PY), "src/bye_value.py", "--out", str(out)],
+                          cwd=root, capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-400:]
+    return out / "bye_value.json"
+
+
+def _bye_value_staleness(live: Path, fresh: Path) -> str | None:
+    """The detector: why ``live`` is not today's build ``fresh``, or None."""
+    if live.read_bytes() != fresh.read_bytes():
+        return ("bye_value.json differs from a fresh build: rebuild it in a "
+                "window (src/bye_value.py --emit) and measure")
+    return None
+
+
+def test_the_bye_value_record_is_a_fresh_build():
+    """BRIEF item 19: the by-election value record on disk is what today's
+    code builds, rebuilt from an EMPTY directory and compared byte for byte
+    by `_bye_value_staleness` (whose ability to see is the next test's).
+    Red until the re-emit window runs `--emit` (SPEC R3.6, slice M4).
+    """
+    live = PROCESSED / "bye_value.json"
+    assert live.exists(), (
+        f"{live} is not on disk. It is written in the re-emit window "
+        f"(src/bye_value.py --emit); until then every run that reads "
+        f"by-elections refuses.")
+    tmp = Path(tempfile.mkdtemp(prefix="bye-value-"))
+    try:
+        assert not any(tmp.iterdir()), "the scratch directory is not empty"
+        made = _build_bye_value(tmp)
+        problem = _bye_value_staleness(live, made)
+        assert problem is None, problem
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_the_bye_value_freshness_check_can_see_a_real_stale_record():
+    """The detector's "can see", on a REAL stale record: one built by other
+    code, a scratch tree whose ``bye_value.py`` draws 200 bootstrap resamples
+    instead of 2,000. Flagged against today's build; quiet on a build from
+    the same scratch tree with the edit reverted (so the tree's location is
+    not what differs). Does not need the record on disk.
+    """
+    old = "BYE_VALUE_RESAMPLES = 2000"
+    fewer = (lambda text: text.replace(old, "BYE_VALUE_RESAMPLES = 200", 1))
+    dirs = []
+    try:
+        fresh_dir = Path(tempfile.mkdtemp(prefix="bye-value-"))
+        dirs.append(fresh_dir)
+        fresh = _build_bye_value(fresh_dir)
+        for edit, stale in ((fewer, True), (None, False)):
+            tree = _scratch_tree(edit, module="bye_value.py")
+            out = Path(tempfile.mkdtemp(prefix="bye-value-"))
+            dirs += [tree, out]
+            built = _build_bye_value(out, root=tree)
+            problem = _bye_value_staleness(built, fresh)
+            if stale:
+                assert problem, "a record built by other code read as current"
+            else:
+                assert problem is None, ("a build of today's code from a "
+                                         "scratch tree reads as stale")
+    finally:
+        for d in dirs:
+            shutil.rmtree(d, ignore_errors=True)
+
+
 def test_the_scratch_root_really_was_purged():
     """The instrument's own premise, asserted rather than trusted.
 
@@ -399,6 +587,191 @@ def test_the_scratch_root_really_was_purged():
         "files that no generator in this sweep produces are present in the "
         "scratch root, so the purge did not happen and 'identical' is "
         "trivially true for them:\n  " + "\n  ".join(leaked))
+
+
+def _summary_judgement_faults(processed: Path) -> tuple[list, list[str]]:
+    """Every ``*summary.json`` under ``processed`` (the population, returned)
+    and the sentence `declares.judgements_lie` gives for each that fails."""
+    import declares
+    summaries = sorted(processed.rglob("*summary.json"))
+    faults = []
+    for p in summaries:
+        d = json.loads(p.read_text())
+        lie = declares.judgements_lie(d.get("scenario") or {}, d.get("_target"))
+        if lie:
+            faults.append(f"{p.name}: {lie}")
+    return summaries, faults
+
+
+def test_the_judgement_declaration_check_looks_and_can_see():
+    """Step-6 item 3, on a CONSTRUCTED population: a forecast summary that
+    declares the live hash passes; one that declares nothing is caught; a
+    backtest summary that declares nothing passes (judgements are ignored on
+    a backtest); a summary with no target is caught. Each fault cleared, the
+    check is quiet. The population scanned is exactly the files written."""
+    import montecarlo as M
+    sc = dict(M.DEFAULTS)
+    good_sha = M.live_judgements_sha("joburg", "2026", sc)
+    assert not M.target_is_held("2026") and M.target_is_held("2021")
+    with tempfile.TemporaryDirectory() as tmp:
+        proc = Path(tmp)
+
+        def write(name, scenario, target):
+            (proc / name).write_text(json.dumps({
+                "scenario": scenario, "_target": target,
+                "_generated": "2026-10-12T00:00:00Z", "_draws": 10}))
+        fc = {"city": "joburg", "year": "2026"}
+        write("forecast_summary.json",
+              dict(sc, _judgements_applied_sha=good_sha), fc)
+        write("backtest_summary.json", dict(sc),
+              {"city": "joburg", "year": "2021"})
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 2 and not faults, faults
+        write("regime_cap_summary.json", dict(sc), fc)
+        write("old_summary.json", dict(sc), None)
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 4
+        assert sorted(f.split(":")[0] for f in faults) == [
+            "old_summary.json", "regime_cap_summary.json"], faults
+        write("regime_cap_summary.json",
+              dict(sc, _judgements_applied_sha=good_sha), fc)
+        (proc / "old_summary.json").unlink()
+        summaries, faults = _summary_judgement_faults(proc)
+        assert len(summaries) == 3 and not faults, faults
+
+
+def test_every_forecast_declares_the_strength_judgements_it_applied_truly():
+    """Design 1j v3 addendum §2 / prereg J2, on the live tree: every run
+    summary under data/processed passes `declares.judgements_lie` — a
+    forecast declares the hash the live judgements file gives, a backtest
+    may declare nothing, and a summary that names no target fails. Summaries
+    written before 2026-10-12 declare neither a hash nor a target, so this is
+    red until the step-7 runs rewrite them; the check that it looks is the
+    constructed test above."""
+    summaries, faults = _summary_judgement_faults(PROCESSED)
+    assert summaries, "no run summary under data/processed: nothing was checked"
+    assert not faults, (f"{len(faults)} of {len(summaries)} run summaries "
+                        f"fail the judgement declaration:\n  "
+                        + "\n  ".join(faults))
+
+
+def test_a_judgement_edited_after_a_run_is_reported_and_goes_quiet_reverted():
+    """Prereg J2: a constructed forecast summary declares the hash of a
+    scratch judgements file; editing `sigma_j` there makes `declares` report
+    the artefact `~` (LYING), and reverting the edit makes it quiet again."""
+    import os
+    import declares
+    import montecarlo as M
+    entry = ('[party.NEWP]\nsupport = 0.02\nsigma_j = {s}\n'
+             'register = "§SJ1"\n')
+    cwd = os.getcwd()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / "judgements").mkdir()
+        jfile = root / "judgements" / "joburg-2026.toml"
+        jfile.write_text(entry.format(s=0.3))
+        import pools
+        real_dir = pools.JUDGEMENTS_DIR
+        pools.JUDGEMENTS_DIR = root / "judgements"
+        os.chdir(root)
+        try:
+            sc = dict(M.DEFAULTS)
+            sc["_judgements_applied_sha"] = M.live_judgements_sha(
+                "joburg", "2026", sc)
+            proc = root / "processed"
+            proc.mkdir()
+            (proc / "forecast_summary.json").write_text(json.dumps({
+                "scenario": sc, "_target": {"city": "joburg", "year": "2026"},
+                "_generated": "2026-10-12T00:00:00Z", "_draws": 10}))
+            def state():
+                rows = [r for r in declares._json_rows(set(), proc)
+                        if r.path.endswith("forecast_summary.json")]
+                assert len(rows) == 1, rows
+                return rows[0].states.get("inputs"), rows[0].notes
+            assert state()[0] != declares.LYING, state()
+            jfile.write_text(entry.format(s=0.5))
+            st, notes = state()
+            assert st == declares.LYING and any("edited" in n for n in notes)
+            jfile.write_text(entry.format(s=0.3))
+            assert state()[0] != declares.LYING
+        finally:
+            pools.JUDGEMENTS_DIR = real_dir
+            os.chdir(cwd)
+
+
+def test_declares_marks_an_absent_judgement_declaration_undeclared_and_reads_manifests():
+    """Step-7 review item 6. (b) A summary naming no `_target`, or a
+    forecast summary declaring no strength-judgement hash, is `✗`
+    (undeclared), never `~`, and still fails `--verify` (its row is not
+    answerable as declared); a declared hash the live file contradicts is
+    `~`. (a) An `export_draws` manifest is scanned: a forecast manifest with
+    no hash is `✗`, one declaring the live hash passes the check, and an
+    edited hash is `~`. (c) The width record under the audited root is
+    judged against that root's key: a record keyed there reads `✓`.
+    Population: exactly the constructed artefacts are found, both ways."""
+    import declares
+    import montecarlo as M
+    sc = dict(M.DEFAULTS)
+    live = M.live_judgements_sha("joburg", "2026", sc)
+    with tempfile.TemporaryDirectory() as tmp:
+        proc = Path(tmp) / "processed"
+        proc.mkdir()
+
+        def summary(name, target, sha):
+            scn = dict(sc)
+            if sha is not None:
+                scn["_judgements_applied_sha"] = sha
+            body = {"scenario": scn, "_generated": "2026-10-13T00:00:00Z",
+                    "_draws": 10}
+            if target:
+                body["_target"] = target
+            (proc / name).write_text(json.dumps(body))
+
+        def manifest(name, sha):
+            d = proc / name
+            d.mkdir()
+            key = {"git": {"commit": "a" * 40, "dirty": False}, "draws": 10,
+                   "seed": 1, "env": {"raw": {}}, "time": "2026-10-13",
+                   "city": "joburg", "target": "2026",
+                   "config": {"deduct": dict(sc)}}
+            if sha is not None:
+                key["judgements_applied_sha"] = sha
+            (d / "manifest.json").write_text(json.dumps(
+                {"format": "draws-columnar-v1", "artefact_key": key}))
+
+        summary("a_forecast_summary.json", {"city": "joburg", "year": "2026"},
+                None)
+        summary("b_notarget_summary.json", None, None)
+        summary("c_edited_summary.json", {"city": "joburg", "year": "2026"},
+                "0" * 16)
+        summary("d_true_summary.json", {"city": "joburg", "year": "2026"},
+                live)
+        manifest("m_none", None)
+        manifest("m_true", live)
+        manifest("m_edited", "1" * 16)
+        rows = {Path(r.path).name if not r.path.endswith("manifest.json")
+                else Path(r.path).parent.name: r
+                for r in declares._json_rows(set(), proc, [proc])}
+        assert set(rows) == {"a_forecast_summary.json",
+                             "b_notarget_summary.json", "c_edited_summary.json",
+                             "d_true_summary.json", "m_none", "m_true",
+                             "m_edited"}, sorted(rows)
+        for name in ("a_forecast_summary.json", "b_notarget_summary.json",
+                     "m_none"):
+            r = rows[name]
+            assert r.states["inputs"] == declares.UNDECLARED, (name, r.states)
+            assert r.answerable != declares.DECLARED, name
+        for name in ("c_edited_summary.json", "m_edited"):
+            assert rows[name].states["inputs"] == declares.LYING, name
+        for name in ("d_true_summary.json", "m_true"):
+            assert not any("strength" in n for n in rows[name].notes), name
+        # (c) the record under the audited root's own key
+        (proc / M.WIDTH_RECORD).write_text(json.dumps(
+            {"artefact_key": M.width_record_key(processed=proc)}))
+        recs = [r for r in declares._record_rows(proc)
+                if r.path.endswith(M.WIDTH_RECORD)]
+        assert len(recs) == 1 and recs[0].states["code"] == declares.DECLARED, \
+            [(r.path, r.states, r.notes) for r in recs]
 
 
 if __name__ == "__main__":

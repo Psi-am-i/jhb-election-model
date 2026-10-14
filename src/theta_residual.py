@@ -170,6 +170,19 @@ def residuals(codes=levels.METRO_CODES) -> list[tuple]:
     return list(_residuals_cached(tuple(codes), _levels_state()))
 
 
+def theta_window(target, codes=levels.METRO_CODES) -> float:
+    """The θ size window ``run_model`` derives for ``target`` (BRIEF item 16).
+
+    The same call ``run_model`` makes, ``levels.size_window`` on
+    ``levels.theta_record``, so each fold's ``theta_prior`` is the estimator
+    the model runs at that target. Until 2026-10-09 (M3 review row 1) the
+    harness called ``theta_prior`` with no window, so KEY 4 and the PIT
+    measured an estimator the model no longer ran wherever the window is
+    finite.
+    """
+    return levels.size_window(target, levels.theta_record, codes)[0]
+
+
 def _levels_state() -> tuple:
     """Everything in `levels` that can change what `residuals` returns.
 
@@ -179,6 +192,10 @@ def _levels_state() -> tuple:
     measured under the old value.
     """
     return (levels.SD_FLOOR, levels.SD_CEILING, levels.SHRINK,
+            # The size window's rule (BRIEF item 16, §A52): `theta_window`
+            # derives each fold's `h` from these, and `h` moves the centre.
+            tuple(levels.SIZE_WINDOW_GRID), levels.SIZE_WINDOW_MIN_SCORED,
+            levels.SIZE_WINDOW_ALPHA,
             # `_reliability` sets `mu_all`, the shrink weight, `obs_size` and
             # `worth`, so it moves the residual AND the width. 🟡 and never
             # swept, i.e. a live sweep candidate.
@@ -222,6 +239,8 @@ def _residuals_cached(codes: tuple, _state: tuple) -> tuple:
         target = cityconfig.use_target(year)
         if not levels.theta_record(target, codes=codes):
             continue                       # the first LGE has nothing before it
+        # The fold's θ size window, as `run_model` derives it (M3 review row 1).
+        h = theta_window(target, codes)
         npe = cityconfig.preceding(year, "NPE")
         npe_tpl = cityconfig.CALENDAR[npe].results if npe else None
         lge_tpl = cityconfig.CALENDAR[year].results
@@ -247,7 +266,8 @@ def _residuals_cached(codes: tuple, _state: tuple) -> tuple:
             before, _, _ = pools.apply_mergers(before, _roster, year)
             for _gone in levels.absent_from_ballot(before, _roster):
                 before.pop(_gone, None)
-            priors, groups = levels.theta_prior(target, before, codes=codes)
+            priors, groups = levels.theta_prior(target, before, codes=codes,
+                                                h=h)
             sds = groups.get("sd", {})
             history = groups.get("worth", {})
             for party in set(before) & set(after):
@@ -331,15 +351,18 @@ def form_a(record):
     return _fit_line(xs, ys)
 
 
-def form_b(record):
+def form_b(record, h: float = float("inf")):
     """The REFIT: the residual about the SHRUNK centre, leave-one-out.
 
     The quantity the layer actually faces is `log r − log(centre it was given)`,
-    and the centre is `_shrunk`'s: the party's own weighted log-mean pulled
-    toward `size_centre` by ``worth/(worth + SHRINK)``. Fitting the deviation
-    from the COMMON centre instead — what form A does — is fitting very nearly
-    the MARGINAL spread, which §1.50 established is the wrong quantity for this
-    layer and §1.59 measured as 1.7x to 3.5x adrift below 15% of the vote.
+    and the centre is the model's shrunk one: the party's own weighted log-mean
+    pulled toward the size centre by ``worth/(worth + SHRINK)``, computed by
+    ``levels._shrink_one``, the one per-party body `theta_prior` and `_shrunk`
+    use (M3 review row 4: this function re-implemented it until 2026-10-09).
+    Fitting the deviation from the COMMON centre instead — what form A does —
+    is fitting very nearly the MARGINAL spread, which §1.50 established is the
+    wrong quantity for this layer and §1.59 measured as 1.7x to 3.5x adrift
+    below 15% of the vote.
 
     **Leave-one-out, or it is not a residual.** An observation that helped set
     the centre it is measured against sits closer to it than a forecast ever
@@ -347,37 +370,33 @@ def form_b(record):
     earlier attempts ("with two or three observations a party's own mean sits
     almost on top of them"). Each observation is therefore scored against the
     centre built from the party's OTHER observations, with the shrinkage weight
-    recomputed on the reduced worth — so a party with one observation falls
-    entirely onto the size centre, which is exactly what the model does for a
-    party with no record.
+    on their worth — so a party with one observation falls entirely onto the
+    size centre, which is exactly what the model does for a party with no
+    record.
 
-    The covariate is the size the observation was MEASURED OFF, not the party's
-    size at the target. That is the second difference from form A and it is
-    deliberate: the dispersion of a historical ratio is a property of how big
-    the party was when the ratio happened.
+    **The size centre is evaluated at the size the held-out observation was
+    measured off**, which is the party's current size at the moment that ratio
+    is predicted, as the model does at a target (BRIEF item 11, §A51). Until
+    2026-10-09 it was evaluated at the reliability-weighted size of the
+    party's OTHER observations, the rule the model dropped in item 11a. ``h``
+    is the size window (BRIEF item 16), centred on that same size; the
+    default, ∞, filters nothing.
+
+    The covariate of the fitted line is also the size the observation was
+    MEASURED OFF, not the party's size at the target. That is the second
+    difference from form A and it is deliberate: the dispersion of a
+    historical ratio is a property of how big the party was when the ratio
+    happened.
     """
     fit = levels.size_centre(record)
     if not fit:
         return None
     xs, ys = [], []
     for _party, obs in record.items():
-        w = [levels._reliability(s) for _, s in obs]
-        total = sum(w)
         for j, (ratio, size) in enumerate(obs):
-            others = [(o, wt) for k, (o, wt) in enumerate(zip(obs, w)) if k != j]
-            reduced = total - w[j]
-            if others and reduced > 0:
-                ow = [wt for _o, wt in others]
-                own = float(np.average([math.log(o[0]) for o, _ in others],
-                                       weights=ow))
-                own_size = float(np.average([o[1] for o, _ in others],
-                                            weights=ow))
-                weight = reduced / (reduced + levels.SHRINK)
-            else:
-                own, own_size, weight = 0.0, size, 0.0
-            centre = (weight * own
-                      + (1 - weight) * (fit[0] + fit[1]
-                                        * math.log(max(own_size, 1e-6))))
+            others = [o for k, o in enumerate(obs) if k != j]
+            # `mu_all` is read only where there is no size fit, and there is.
+            centre = levels._shrink_one(others, size, fit, float("nan"), h)[0]
             xs.append(math.log(max(size, 1e-5)))
             ys.append((math.log(ratio) - centre) ** 2)
     return _fit_line(xs, ys)
@@ -415,7 +434,7 @@ def labelled_record(target, codes=levels.METRO_CODES) -> dict:
     return out
 
 
-def form_c(record, target):
+def form_c(record, target, h: float = float("inf")):
     """Form B's residual, but LEAVE ONE CYCLE OUT instead of one observation.
 
     **This is the second trial and it is counted as one** (MODEL-LOG §1.61
@@ -438,6 +457,12 @@ def form_c(record, target):
     from observations with year != Y. That is the same clustering ITERATING rule
     11 counts at the level above, applied here.
 
+    The centre is ``levels._shrink_one`` on the party's kept observations,
+    at the size the held-out observation was measured off, with window ``h``
+    (as :func:`form_b`; M3 review row 4, 2026-10-09: until then this function
+    re-implemented the shrink and evaluated the size centre at the kept
+    observations' own weighted size).
+
     ``target`` is unused in the arithmetic and is taken so the caller cannot
     hand this a record built for a different one.
     """
@@ -458,55 +483,39 @@ def form_c(record, target):
         if not fit:
             continue
         for party, ratio, size in by_year[held]:
-            own_obs = kept.get(party, [])
-            if own_obs:
-                w = [levels._reliability(s) for _, s in own_obs]
-                worth = sum(w)
-                weight = worth / (worth + levels.SHRINK)
-                own = float(np.average([math.log(r) for r, _ in own_obs],
-                                       weights=w))
-                own_size = float(np.average([s for _, s in own_obs], weights=w))
-            else:
-                weight, own, own_size = 0.0, 0.0, size
-            centre = (weight * own
-                      + (1 - weight) * (fit[0] + fit[1]
-                                        * math.log(max(own_size, 1e-6))))
+            # `mu_all` is read only where there is no size fit, and there is.
+            centre = levels._shrink_one(kept.get(party, []), size, fit,
+                                        float("nan"), h)[0]
             xs.append(math.log(max(size, 1e-5)))
             ys.append((math.log(ratio) - centre) ** 2)
     return _fit_line(xs, ys)
 
 
-# Two-sided 95% Student-t critical values, df 1..30. A STANDARD TABLE, not a
-# judgement: these are quantiles of a named distribution and `scipy` is not
-# installed. `_t_crit` is used for the cluster band in `key4_delta`, where the
+# Student-t critical values for the cluster bands in `key4_delta`, where the
 # number of clusters is eight and a normal quantile would be 17.1% too narrow
-# (1.960 against t(7) = 2.365).
-_T95 = (12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
-        2.201, 2.179, 2.160, 2.145, 2.131, 2.120, 2.110, 2.101, 2.093, 2.086,
-        2.080, 2.074, 2.069, 2.064, 2.060, 2.056, 2.052, 2.048, 2.045, 2.042)
-
+# (1.960 against t(7) = 2.365). ONE DEFINITION: `levels._t_upper`, which the
+# size window's rule also reads. Until 2026-10-09 this module carried its own
+# 3-decimal tables for df 1..30 (and a normal quantile above 30); they agreed
+# with `_t_upper` to the table's rounding.
 
 # Below this, a cluster mean is float noise rather than a direction. Set six
 # orders of magnitude above the 1.6e-14 dust a genuine no-op produced and six
 # below the smallest real effect on record (WINDOW=3 at 2021, 0.0062).
 _SIGN_EPS = 1e-9
 
-# One-sided 95% (= two-sided 90%) Student-t critical values, df 1..30.
-_T90 = (6.314, 2.920, 2.353, 2.132, 2.015, 1.943, 1.895, 1.860, 1.833, 1.812,
-        1.796, 1.782, 1.771, 1.761, 1.753, 1.746, 1.740, 1.734, 1.729, 1.725,
-        1.721, 1.717, 1.714, 1.711, 1.708, 1.706, 1.703, 1.701, 1.699, 1.697)
-
 
 def _t_crit(df: int) -> float:
+    """Two-sided 95%: the upper 2.5% quantile on ``df``."""
     if df < 1:
         return float("nan")
-    return _T95[df - 1] if df <= len(_T95) else 1.960
+    return levels._t_upper(0.025, df)
 
 
 def _t_crit_one_sided(df: int) -> float:
+    """One-sided 95%: the upper 5% quantile on ``df``."""
     if df < 1:
         return float("nan")
-    return _T90[df - 1] if df <= len(_T90) else 1.645
+    return levels._t_upper(0.05, df)
 
 
 def level_df() -> float:
@@ -536,6 +545,13 @@ def nll_gauss(resid: float, width: float) -> float:
 
 def nll_t(resid: float, width: float, df: float | None = None) -> float:
     """Negative log density under the predictive `montecarlo.log_shock` DRAWS.
+
+    ⚠️ **SINCE 2026-10-12 THIS SCORES THE θ LAYER'S OWN PREDICTIVE LAW, which
+    reaches the draw only under `draw_law = "incumbent"`.** The shipped
+    universal draw takes its widths from the width record
+    (`src/width_record.py`, design 1j v4-L1), not from `theta_prior`'s sd, so
+    "the predictive draws" below describes the incumbent law (design 1j v2 §4,
+    review finding 11).
 
     **This is the score, and the Gaussian was the wrong member of the family.**
     `log_shock` returns ``exp(sd·√((df−2)/df)·t_df)`` with ``df = LEVEL_DF = 7``,
@@ -796,6 +812,9 @@ def pit_table(codes=levels.METRO_CODES, df=None) -> dict:
     ``u = F_t(z)``, ``z = residual / (w·√((ν−2)/ν))``, the same scale
     `montecarlo.log_shock` draws through. A calibrated forecast gives
     ``mean(u) = 0.5``, ``var(u) = 1/12 = 0.0833``, and coverage at nominal.
+
+    (Under the shipped universal draw the θ width no longer reaches the draw;
+    this scores the θ layer's own predictive law, as `nll_t` does.)
 
     ``kappa_star`` is the single multiplier on every committed width that
     minimises the held-out NLL — the width the layer SHOULD have carried,

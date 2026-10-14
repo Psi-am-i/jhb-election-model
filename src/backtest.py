@@ -83,7 +83,7 @@ import official_seats
 import parties as P
 import score as S
 from fold import citywide, load
-from seats import INDEPENDENT, allocate, eligible_parties
+from seats import INDEPENDENT, allocate, eligible_parties, lot_identity
 
 def runnable_targets(city=None) -> tuple[str, ...]:
     """Past local elections this harness can actually run, for one city.
@@ -498,10 +498,13 @@ NOT_FITTED: dict[str, str] = {
     # LGE result, and its evidence window POST-DATES every past target, so the
     # whole block is unreachable in a backtest. If the channel ever does deliver
     # at a past target, the window makes that a LEAK and these entries move.
-    "w_bye": "the by-election blend weight. The evidence window is 2022-06 to "
-             "2026-02, so `bye` is empty at every past target and the weight "
-             "multiplies nothing — GATES['bye_deltas_absent']. Typed, 🔴 "
-             "argued-not-tested, and scoreable only by the 2026 result",
+    "w_bye": "the by-election weight override. `None` (the default) gives each "
+             "party its size class's weight, measured by bye_value.py against "
+             "the 2024 provincial ballot (JUDGEMENT-CALLS §A55); a number is a "
+             "sweep override. The evidence window is 2022-06 to 2026-02, so "
+             "`bye` is empty at every past target and the weight multiplies "
+             "nothing — GATES['bye_deltas_absent']. Scoreable against a local "
+             "result only by the 2026 one",
     "bye_weight_mode": "which weighting the by-election block uses, chosen "
                        "inside a block no past target enters — the same gate as "
                        "`w_bye`. A method choice, not an estimate",
@@ -556,10 +559,6 @@ NOT_FITTED: dict[str, str] = {
                    "levels unattainable and inflated the micro-party tail",
     "dirichlet_floor": "the same clamp on deviation inputs, mirrored as a "
                        "scenario key so the sweep that chose it is reproducible",
-    "level_sd_default": "the fallback level spread for a party with no measured "
-                        "sd(log theta). It binds on no party at either target "
-                        "(GATES['level_sd_fallback_never_binds']) and is a "
-                        "fallback, not a fit",
     # --- statute and switches ---------------------------------------------
     "overhang_rule": "the excessive-seats provision. Municipal Structures Act "
                      "Schedule 1 item 16 as amended by Act 3 of 2021 — the "
@@ -570,6 +569,22 @@ NOT_FITTED: dict[str, str] = {
                           "§1.136), so the same selection-by-confirmation "
                           "question `dirichlet_scale` carries applies to the "
                           "SWITCH; the mechanism behind it reads no result",
+    "draw_law": "WHICH draw law runs (design 1j v4-L1). A switch over "
+                "mechanisms; its value is the universal draw, whose widths "
+                "`src/width_record.py` fits for each target on strictly EARLIER "
+                "backtest cycles (2016 on 2011, 2021 on 2011-2016), so no width "
+                "reads its own target's result. The incumbent law is kept for "
+                "the round's arm I",
+    "centre_correction": "the small-party centre correction (prereg "
+                         "2026-10-12 §3.3, arm UC). Off by default; on, it "
+                         "multiplies centres below 20% by exp(m(s)), m the "
+                         "width record's location for the target, fitted on "
+                         "strictly EARLIER cycles only, so no correction reads "
+                         "its own target's result",
+    "apply_judgements": "whether strength judgements apply (design v3 §11). A "
+                        "switch; a backtest ignores every judgement whatever "
+                        "its value, because a judgement cannot be blind after "
+                        "the election",
     # --- and the two DEFAULTS keys that are already in FITTED_ON ------------
     # `pools` and `entrant_geography` are not here; they are instrumented.
 }
@@ -908,6 +923,52 @@ def ward_structure(path: Path):
     return ward_of, registered
 
 
+def ward_winners(ward_votes: dict, ward_of: dict) -> dict[str, str]:
+    """Each ward's winner on the ward ballot: VD tallies summed by ward.
+
+    ONE DEFINITION, read by :func:`actual_result` (the ground truth) and by
+    ``plausibility.election_record`` (the record of real elections), so the
+    plausibility instrument's ward features and the backtest's score see the
+    same winners."""
+    # `winners_by_ward`, so `tests/test_prediction_rule.py`'s scan sees the
+    # reduction below as the ward-winner call it exempts (the ground truth's
+    # tallies, not draws).
+    winners_by_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(
+        lambda: defaultdict(int))
+    for vd, counts in ward_votes.items():
+        w = ward_of.get(vd)
+        if not w:
+            continue
+        for party, n in counts.items():
+            winners_by_ward[w][party] += n
+    return {w: max(tally, key=tally.get)
+            for w, tally in winners_by_ward.items()}
+
+
+def registered_roll(path: Path) -> tuple[int, int]:
+    """``(registered roll, valid list votes)`` from a result file's list ballot.
+
+    The roll is ``Registered_Population`` summed over distinct (VD, ward)
+    rows of the PR ballot, so a split voting district contributes each of its
+    parts once (CLAUDE.md §4b: a VD split across wards carries a row per
+    part); valid list votes are ``Total_Valid_Votes`` over the same rows.
+    Read by ``plausibility`` for the turnout feature."""
+    reg: dict = {}
+    valid: dict = {}
+    with cityconfig.resolve_path(path).open(encoding="utf-8",
+                                            errors="replace", newline="") as fh:
+        for row in csv.DictReader(fh):
+            if (row.get("BallotType") or "").upper() != "PR":
+                continue
+            k = (row.get("VD_Number"), row.get("Ward", ""))
+            try:
+                reg.setdefault(k, int(float(row["Registered_Population"] or 0)))
+                valid.setdefault(k, int(float(row["Total_Valid_Votes"] or 0)))
+            except (KeyError, ValueError):
+                continue
+    return sum(reg.values()), sum(valid.values())
+
+
 def _year_from(path: Path) -> int:
     """The election year in a result filename: ``lge2021_JHB_...`` -> 2021."""
     stem = Path(path).name
@@ -946,17 +1007,16 @@ def actual_result(path: Path, council: int, year: int | None = None,
                 out[party] += n
         return dict(out)
 
-    combined = eligible_parties(totals(ward_votes), totals(pr_votes))
+    # Schedule 1 item 12(2): a party's PR votes in a ward it won unopposed
+    # count twice. Empty at every city-year on disk (JUDGEMENT-CALLS §Q7).
+    import levels as _levels
+    _wp, _all = _levels.ward_ballots(cityconfig.resolve_path(path))
+    unopposed_pr = _levels.unopposed_pr_votes(
+        cityconfig.resolve_path(path), _levels.unopposed_in(_wp, _all))
+    combined = eligible_parties(totals(ward_votes), totals(pr_votes),
+                                unopposed_pr)
 
-    per_ward: defaultdict[str, defaultdict[str, int]] = defaultdict(
-        lambda: defaultdict(int))
-    for vd, counts in ward_votes.items():
-        w = ward_of.get(vd)
-        if not w:
-            continue
-        for party, n in counts.items():
-            per_ward[w][party] += n
-    winners = {w: max(counts, key=counts.get) for w, counts in per_ward.items()}
+    winners = ward_winners(ward_votes, ward_of)
 
     # C and D: seats that leave the entitlement pool with the councillor.
     year = year or _year_from(path)
@@ -991,9 +1051,15 @@ def actual_result(path: Path, council: int, year: int | None = None,
               f"the counted figure is an upper bound (DATA-QUALITY.md item 12).")
         outside["IND"] = independent_wards
 
+    # An exact tie at the last seat in a real count is the IEC's to settle; the
+    # reconstruction draws it under the truth's own lot key (JUDGEMENT-CALLS
+    # §Q6), and the party-by-party check against the published table below
+    # catches a draw that disagrees with the Commission.
     seats = allocate(combined, total_seats=council,
                      independent_wards=independent_wards,
-                     no_pr_list_wards=no_pr_list_wards).seats
+                     no_pr_list_wards=no_pr_list_wards,
+                     lot=lot_identity(cityconfig.active().slug, str(year),
+                                      "actual")).seats
     seats = {p: s for p, s in seats.items() if s > 0}
     if official is None:
         print(f"  !! no Seat Calculation Detail for {code} {year}: the "
@@ -1426,7 +1492,8 @@ def main(argv: list[str] | None = None) -> int:
                                read, run.scenario))
         seats = S.score_seats(run.seat_draws, actual_seats, entrant, seed=args.seed)
         wards = S.score_wards(
-            relabel_entrant(run.ward_probabilities(), entrant), actual_winners)
+            relabel_entrant(run.ward_probabilities(), entrant), actual_winners,
+            lot=run.lot)
         print()
         print(S.format_report(seats, wards, label=label,
                               top=None if args.all_parties else 12))

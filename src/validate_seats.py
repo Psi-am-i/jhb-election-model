@@ -19,7 +19,7 @@ import csv
 from collections import Counter
 from pathlib import Path
 
-from seats import INDEPENDENT, allocate, eligible_parties
+from seats import INDEPENDENT, allocate, eligible_parties, lot_identity
 
 # The expected figures come from the IEC's own Seat Calculation Detail for
 # whichever city is being validated (official_seats.py). They used to be
@@ -88,6 +88,10 @@ def main(argv: list[str] | None = None) -> int:
         total_seats=seats_total,
         independent_wards=independent_wards,
         no_pr_list_wards=no_pr_list_wards,
+        # an exact tie at the last seat: the seeded lot under this tool's own
+        # key (JUDGEMENT-CALLS §Q6); the comparison below with the IEC's table
+        # reports a draw that disagrees with the Commission
+        lot=lot_identity(city.slug, str(args.year), "validate"),
     )
 
     print(f"{city.name} {args.year}  (source: {Path(official['path']).name})")

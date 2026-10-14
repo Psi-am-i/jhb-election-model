@@ -11,7 +11,7 @@ description: Become a narrow expert on the INPUTS segment of this forecasting mo
 ```
 00_target · 01_scenario_in · 02_pools_artefact · 03_roster     ← THIS SKILL
 10_theta_prior · 20_spine · 30_centres
-40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws · 44_seat_draws · 45_delivered
+35_widths · 40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws · 44_seat_draws · 45_delivered
 ```
 
 Generate one:
@@ -107,6 +107,7 @@ loads the spec itself.
 | `path` | str | the spec read, always `<city.processed>/pools_<target>.json`. Johannesburg keeps the legacy bare `data/processed/` root. |
 | `artefact_key` | dict | nine members; the delivery proof. See below. |
 | `stale_reason` | str \| None | `None` means the spec still matches live code and config. **A sentence, not a boolean** — the useful part is *which* thing moved. |
+| `stale_allowed` | bool | `true` only when `scenario["allow_stale_pools"] is True` let a stale or unverifiable spec through. A diagnostic run, never a measurement. |
 | `fitted_on` | str | the election year the pool **ratios** were fitted on. `emit_pools` resolves it as `from_year or target.previous_lge or target.year`. |
 
 `artefact_key` (`pools.artefact_key`, schema 2):
@@ -127,8 +128,11 @@ characters. `montecarlo` is **deliberately excluded** from `deps_sha`
 (`read_ward_crosswalk` is a genuine emit dependency, but the module changes most
 working days and hashing it would mark all 26 specs stale continuously).
 
-A spec whose key does not match live code is **STALE**: `run_model` prints a
-warning and **continues**. Nothing refuses. The trace is where that survives.
+A spec whose key does not match live code is **STALE**, and since 2026-10-10
+`run_model` **refuses** it (`SystemExit`), after writing this stage and before
+anything reads the spec; a `stale_reason` that raises refuses too. The one
+escape is `scenario["allow_stale_pools"] = True`, in-process; it is recorded as
+`stale_allowed: true`.
 
 ### `03_roster` — who is on the target's ballot
 
@@ -191,7 +195,8 @@ must be `"deduct"`. `seed` and `draws` must agree with `00_target` — they are
 read from one dict at one moment, so a disagreement means the trace directory
 holds files from two runs.
 
-**`02_pools_artefact`.** `stale_reason` must be `None`. `artefact_key` must be
+**`02_pools_artefact`.** `stale_reason` must be `None` and `stale_allowed`
+`false`. `artefact_key` must be
 present (a spec emitted before keys existed cannot be shown to match the running
 code) and its member set must be **exactly** the nine the code produces — a
 field in the stored key that the code no longer produces is the register→code

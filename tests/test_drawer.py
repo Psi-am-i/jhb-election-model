@@ -463,22 +463,33 @@ PROCESSED = ROOT / "data" / "processed"
 # NOT RE-RUN FOR THIS, AND NOT CLAIMED: the sixteen-city-year panel. This
 # records where the 2026 Johannesburg prior now is. No improvement is claimed
 # and none is measured here.
+# RE-RECORDED 2026-10-14, deliberately (model round step 9, MODEL-LOG §1.302).
+# The round changed the draw: the universal log-scale draw with widths from the
+# width record replaced the Student-t level shock and the within-pool Dirichlet
+# (`draw_law = "universal"`, JUDGEMENT-CALLS §A57), and the specs were
+# re-emitted without the census hold (`dcf2cd52e56b478c`). The previous values
+# were the incumbent law's (F8, e0c6126; step 5, 12a0113, deferred the re-record to
+# this step). The largest moves are the widths, as the law
+# change predicts: ANC p5-p95 11.2-35.9 -> 17.7-29.3, ASA 5.1-23.2 -> 7.4-17.2,
+# MK 2.9-18.7 -> 1.4-23.7 (a party new to the city carries the newness term).
+# This records where the 2026 Johannesburg prior now is; no improvement is
+# claimed from it. The before/after against real results is §1.302's table.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (22.6370, 11.2134, 35.9215),
-    "DA": (25.9153, 17.5052, 34.9631),
-    "EFF": (10.1629, 2.8692, 20.2316),
-    "ASA": (12.8341, 5.1188, 23.1866),
-    "MK": (9.5373, 2.9465, 18.6908),
-    "PA": (6.4727, 3.9309, 9.7485),
-    "VFPLUS": (0.8537, 0.0062, 3.1525),
-    "ALJAMAAH": (0.9354, 0.2395, 1.9662),
-    "ENTRANT": (1.3435, 0.0000, 7.4467),
+    "ANC": (23.7328, 17.6740, 29.2824),
+    "DA": (26.0434, 19.1739, 32.4321),
+    "EFF": (11.0608, 6.5294, 16.3409),
+    "ASA": (11.6813, 7.4105, 17.1541),
+    "MK": (8.7812, 1.4146, 23.6681),
+    "PA": (5.8754, 1.9452, 12.0660),
+    "VFPLUS": (0.9003, 0.1913, 2.2928),
+    "ALJAMAAH": (0.8469, 0.1920, 2.1375),
+    "ENTRANT": (1.3859, 0.0000, 7.7892),
 }
 GOLDEN_POOLS = {
-    "Black African": (50.0392, 41.8216, 57.8897),
-    "Coloured": (10.4949, 7.8926, 14.0890),
-    "Indian/Asian": (4.2785, 3.3657, 5.4453),
-    "White": (32.2843, 25.9593, 39.2394),
+    "Black African": (50.7987, 44.7160, 56.2735),
+    "Coloured": (9.9106, 6.0491, 15.7434),
+    "Indian/Asian": (4.1235, 3.3334, 5.4091),
+    "White": (32.1076, 27.5755, 36.5104),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -488,12 +499,21 @@ WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT
 # fixture: rebuild exactly the inputs montecarlo.main hands to make_drawer
 # --------------------------------------------------------------------------
 
-def build_inputs():
-    """Return (scenario, base_city_d, centres, index) as ``main`` assembles them."""
+def build_inputs(law: str = "universal"):
+    """Return (scenario, base_city_d, centres, index) as ``main`` assembles them.
+
+    ``law`` is the draw law. The default is the shipped one, whose widths come
+    from the width record (read here as `run_model` reads it, so these goldens
+    need the record a re-emit window writes); a caller testing the incumbent
+    law's mechanics passes "incumbent"."""
     city = cityconfig.load(CITY)
     cityconfig.use(CITY)
     mc.apply_city(city)
     scenario = copy.deepcopy(mc.DEFAULTS)
+    scenario["draw_law"] = law
+    if law == "universal":
+        scenario["_width"] = mc.read_width_record("2026", scenario)
+        scenario["_strength_applied"] = []
 
     base_path = ELECTIONS / "npe2024_{CODE}_vd_party.csv"
     if not cityconfig.resolve_path(base_path).exists():
@@ -557,6 +577,10 @@ def build_inputs():
     centres, _ = mc.blended_centres(scenario, base_city_d, share_2021, bye)
     if "ENTRANT" in index:
         centres["ENTRANT"] = 0.0
+    # New to the city, as `run_model` defines it (no result at the previous
+    # local election here): the universal draw's newness term reads it.
+    scenario["_new_parties"] = sorted(
+        p for p in index if p != "ENTRANT" and share_2021.get(p, 0.0) <= 0.0)
     return scenario, base_city_d, centres, index
 
 
@@ -573,8 +597,8 @@ def draw_matrix(draws: int = DRAWS, cache: bool = True):
     if cache and draws in _CACHE:
         return _CACHE[draws]
     scenario, base_city_d, centres, index = build_inputs()
-    rng = np.random.default_rng(SEED)
-    draw = mc.make_drawer(scenario, base_city_d, centres, index, rng)
+    streams = mc.DrawStreams(mc.lot_identity(CITY, "2026", SEED), draws)
+    draw = mc.make_drawer(scenario, base_city_d, centres, index, streams)
     matrix = np.array([draw() for _ in range(draws)])
     result = (matrix, index, scenario, base_city_d, centres)
     if cache:

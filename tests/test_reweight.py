@@ -91,8 +91,8 @@ band = tuple(float(x) for x in json.load(open("data/processed/pools_2026.json"))
              ["pools"][pool]["turnout"])
 real = mc.correlated_triangular
 hits = [0]
-def shifted(rng, spec, z_common, rho):
-    value = real(rng, spec, z_common, rho)
+def shifted(z_own, spec, z_common, rho):
+    value = real(z_own, spec, z_common, rho)
     if tuple(float(x) for x in spec) == band:
         hits[0] += 1
         return value + float(shift)

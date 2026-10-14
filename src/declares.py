@@ -200,6 +200,15 @@ KINDS: dict[str, Kind] = {
         "reduction", ("code", "scope", "inputs"),
         "§1.265 — a precomputed reduction is a second definition of its "
         "function unless it names the code and the input bytes it came from"),
+    # A record a run reads as a threshold or a weight: the group-share
+    # record (BRIEF item 12) and the by-election value test (item 19). Each
+    # names the code that built it; a record from other code is a tripwire
+    # or a weight set somewhere else.
+    "record": Kind(
+        "record", ("code",),
+        "BRIEF items 12 and 19 — the group-share tripwire's thresholds and "
+        "the by-election class weights come from precomputed records, which "
+        "must name the code they were built by"),
 }
 
 
@@ -259,7 +268,7 @@ class CannotAudit(SystemExit):
 #: The order `report` prints the kinds in. It must name every kind in `KINDS`:
 #: until 2026-09-28 it was a literal inside `report`, and a fifth kind added to
 #: `KINDS` was counted in the headline and never printed.
-REPORT_ORDER = ("scoreboard", "run", "spec", "reduction", "intermediate")
+REPORT_ORDER = ("scoreboard", "run", "spec", "reduction", "record", "intermediate")
 if set(REPORT_ORDER) != set(KINDS):
     raise CannotAudit(f"REPORT_ORDER {sorted(REPORT_ORDER)} does not name every "
                       f"kind in KINDS {sorted(KINDS)}")
@@ -339,8 +348,87 @@ def _spec_rows(live_sha: str | None, processed: Path) -> list[Row]:
     return rows
 
 
-def _json_rows(live_keys: dict, processed: Path) -> list[Row]:
-    """Run outputs and scoreboards, each checked against what it embeds."""
+def judgements_check(scenario: dict, target: dict | None
+                     ) -> tuple[str, str] | None:
+    """``(state, sentence)`` when a run's strength-judgement declaration is
+    missing where it is required or wrong; None when it holds.
+
+    * declared, and not what the live judgements file gives
+      (``montecarlo.live_judgements_sha``), on any target: ``LYING`` (~);
+    * not declared, on a FORECAST (``montecarlo.target_is_held`` false):
+      ``UNDECLARED`` (✗). A forecast is the one artefact a judgement can
+      reach, so an absent declaration is an unchecked input, not a pass
+      (step-6 review, item 3). On a backtest the judgements are ignored by
+      design and an absent declaration is allowed;
+    * no target at all: ``UNDECLARED`` (✗), since whether the artefact is a
+      forecast cannot be told, and a check that cannot tell passes nothing.
+
+    An absence is never ``~``: ``~`` is a declaration that is false, and a
+    missing one declares nothing (step-7 review, item 6b). Both fail
+    ``--verify``.
+    """
+    import montecarlo as _mc
+    declared = (scenario or {}).get("_judgements_applied_sha")
+    if not target or not target.get("city") or not target.get("year"):
+        return (UNDECLARED,
+                "declares no target (`_target` city and year), so whether it "
+                "is a forecast that must declare its strength-judgement hash "
+                "cannot be told")
+    if not declared:
+        if _mc.target_is_held(target["year"]):
+            return None
+        return (UNDECLARED,
+                f"a forecast of {target['city']} {target['year']} that declares "
+                f"no strength-judgement hash (`_judgements_applied_sha`): the "
+                f"judgements it ran with are unchecked")
+    live = _mc.live_judgements_sha(target["city"], target["year"], scenario)
+    if live != declared:
+        return (LYING,
+                f"declares strength judgements {declared} but the live "
+                f"judgements file gives {live}: a judgement was edited after "
+                f"the run")
+    return None
+
+
+def judgements_lie(scenario: dict, target: dict | None) -> str | None:
+    """The sentence of :func:`judgements_check`, or None when it holds."""
+    got = judgements_check(scenario, target)
+    return None if got is None else got[1]
+
+
+def _merge(current: str | None, new: str) -> str:
+    """The worse of two states: ``~`` over ``✗`` over ``✓``."""
+    order = {DECLARED: 0, UNDECLARED: 1, LYING: 2}
+    return new if order[new] > order.get(current, 0) else current
+
+
+def manifest_judgements_lie(key: dict) -> str | None:
+    """:func:`judgements_lie` on an ``export_draws`` manifest's
+    ``artefact_key``: its ``city``, ``target``, ``judgements_applied_sha``
+    and the deduct law's ``config`` (every law runs one scenario's
+    judgements; ``export_draws`` refuses laws that disagree)."""
+    return judgements_lie(*_manifest_scenario(key))
+
+
+def _manifest_scenario(key: dict) -> tuple[dict, dict]:
+    """The scenario and target an export manifest's ``artefact_key`` gives
+    :func:`judgements_check`."""
+    config = dict(((key or {}).get("config") or {}).get("deduct") or {})
+    config["_judgements_applied_sha"] = (key or {}).get("judgements_applied_sha")
+    target = {"city": (key or {}).get("city"), "year": (key or {}).get("target")}
+    return config, target
+
+
+# The export manifests the audit scans: `export_draws`'s format, under the
+# published draw tree (and under an overriding `--processed` root instead).
+MANIFEST_FORMAT = "draws-columnar"
+SITE_DRAWS = REPO / "site" / "draws"
+
+
+def _json_rows(live_keys: dict, processed: Path,
+               manifest_roots=()) -> list[Row]:
+    """Run outputs, scoreboards and export manifests, each checked against
+    what it embeds."""
     out = []
 
     def spec_keys_current(embedded) -> str | None:
@@ -453,7 +541,49 @@ def _json_rows(live_keys: dict, processed: Path) -> list[Row]:
                               else UNDECLARED)
         if lie:
             r.notes.append(lie)
+        # THE STRENGTH JUDGEMENTS ARE AN INPUT THE SPEC NO LONGER COVERS (design
+        # 1j v3 addendum §2): they are read at run time and excluded from the
+        # spec's hash, so the forecast declares the hash of the entries it
+        # applied and it is checked against the live file here.
+        jcheck = judgements_check(sc, d.get("_target"))
+        if jcheck:
+            r.states["inputs"] = _merge(r.states["inputs"], jcheck[0])
+            r.notes.append(jcheck[1])
         out.append(r)
+
+    # --- export manifests (`export_draws`): a forecast's published draws ----
+    # Scanned since 2026-10-13 (step-7 review, item 6a): the manifest declares
+    # the strength-judgement hash its run applied, and nothing read it.
+    for root in manifest_roots:
+        for p in sorted(Path(root).rglob("manifest.json")):
+            try:
+                whole = json.loads(p.read_text())
+            except Exception:
+                continue
+            if not str((whole or {}).get("format", "")).startswith(
+                    MANIFEST_FORMAT):
+                continue
+            key = whole.get("artefact_key") or {}
+            r = Row(_display(p), "run")
+            git = key.get("git") or {}
+            r.states["git"] = (DECLARED if _declared(git.get("commit"))
+                               else UNDECLARED)
+            if git.get("dirty"):
+                r.states["git"] = LYING
+                r.notes.append(f"git dirty — names {str(git.get('commit'))[:8]} "
+                               f"but the tree had moved off it")
+            for f in ("draws", "seed", "env", "time"):
+                r.states[f] = DECLARED if _declared(key.get(f)) else UNDECLARED
+            lie = spec_keys_current(key.get("inputs"))
+            r.states["inputs"] = (LYING if lie else
+                                  DECLARED if key.get("inputs") else UNDECLARED)
+            if lie:
+                r.notes.append(lie)
+            jcheck = judgements_check(*_manifest_scenario(key))
+            if jcheck:
+                r.states["inputs"] = _merge(r.states["inputs"], jcheck[0])
+                r.notes.append(jcheck[1])
+            out.append(r)
 
     # --- the other run-shaped artefacts the first scan did not see ----------
     for name in ("validation_2021.json", "width_budget.json", "sweep.json",
@@ -652,13 +782,95 @@ def _reduction_rows(processed: Path) -> list[Row]:
     return rows
 
 
+def _group_share_key() -> dict:
+    """The group-share record's live key, from the files (BRIEF item 12)."""
+    import pools as _pl
+    src = Path(_pl.__file__).resolve().parent
+    return {"record_sha": _pl._code_sha(src / "group_share_record.py"),
+            "pools_sha": _pl._code_sha(src / "pools.py"),
+            "deps_sha": _pl._deps_sha()}
+
+
+def _bye_value_key() -> dict:
+    """The by-election value test's live key (BRIEF item 19), by the one
+    definition the writer and `montecarlo`'s reader also use."""
+    import byelections as _by
+    import montecarlo as _mc
+    return _by.bye_value_key((_mc.WARD_PR_RATIO_MIN, _mc.WARD_PR_RATIO_MAX))
+
+
+def _record_files() -> list[tuple[str, object, str]]:
+    """Every `record` artefact: (file name, live-key function, rebuild hint,
+    whether the key reads the audited processed root).
+
+    Both are read by a run as thresholds or weights and carry an
+    `artefact_key` naming their code. Neither writer is imported here.
+    """
+    import byelections as _by
+    import pools as _pl
+    import montecarlo as _mc
+    # The fourth field: does the key read the processed tree it sits in? The
+    # width record's does (the specs and records beside it); the other two
+    # name code and raw files only.
+    return [(_pl.GROUP_SHARE_RECORD, _group_share_key,
+             "src/group_share_record.py --emit", False),
+            (_by.BYE_VALUE, _bye_value_key, "src/bye_value.py --emit", False),
+            (_mc.WIDTH_RECORD, _mc.width_record_key,
+             "src/width_record.py --emit", True)]
+
+
+def _record_rows(processed: Path) -> list[Row]:
+    """Each `record` artefact: the code its key names against the live code.
+
+    The live key is computed here from the files, not by importing the
+    writer (`group_share_record` is an entry point nothing imports,
+    CLAUDE.md §5; `bye_value` is read by `montecarlo` as JSON only).
+    """
+    rows = []
+    try:
+        files = _record_files()
+    except Exception as exc:  # the audit must say it could not look
+        raise CannotAudit(f"cannot list the record files: {exc}") from exc
+    for name, key_fn, rebuild, reads_root in files:
+        try:
+            # Under the AUDITED root (step-7 review, item 6c): the width
+            # record's key hashes the specs and records beside it, so a key
+            # computed under the repository's tree judged a scratch tree's
+            # record against the wrong inputs.
+            live = key_fn(processed) if reads_root else key_fn()
+        except Exception as exc:  # the audit must say it could not look
+            raise CannotAudit(f"cannot compute the key of {name}: "
+                              f"{exc}") from exc
+        for p in sorted(processed.rglob(name)):
+            r = Row(_display(p), "record")
+            try:
+                key = json.loads(p.read_text()).get("artefact_key") or {}
+            except Exception as exc:
+                r.states = {f: UNDECLARED for f in KINDS["record"].required}
+                r.notes.append(f"unreadable: {type(exc).__name__}")
+                rows.append(r)
+                continue
+            named = {f: key.get(f) for f in live}
+            if not all(_declared(v) for v in named.values()):
+                r.states["code"] = UNDECLARED
+            elif named != live:
+                r.states["code"] = LYING
+                r.notes.append(f"names code that is not the live code — "
+                               f"rebuild with {rebuild}")
+            else:
+                r.states["code"] = DECLARED
+            rows.append(r)
+    return rows
+
+
 def audit(processed: Path | None = None) -> list[Row]:
     root = _processed_root(processed)
     live_sha = _live_pools_sha()
     spec = _spec_rows(live_sha, root)
     live_keys = {live_sha} if live_sha else set()
-    return (spec + _json_rows(live_keys, root) + _reduction_rows(root)
-            + _intermediate_rows(root))
+    manifests = [root] if processed is not None else [root, SITE_DRAWS]
+    return (spec + _json_rows(live_keys, root, manifests) + _reduction_rows(root)
+            + _record_rows(root) + _intermediate_rows(root))
 
 
 def report(rows: list[Row]) -> str:

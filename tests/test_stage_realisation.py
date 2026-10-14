@@ -79,6 +79,7 @@ from _support import ROOT, run_module, scanned, skip  # noqa: E402
 import cityconfig  # noqa: E402
 import montecarlo as M  # noqa: E402
 from seats import allocate, eligible_parties  # noqa: E402
+import seats as seats_module  # noqa: E402
 
 
 # --------------------------------------------------------------------------
@@ -101,7 +102,9 @@ from seats import allocate, eligible_parties  # noqa: E402
 # carry the key, so the "whole board" the `ModelRun.guards` docstring promises
 # is one counter short of whole. See the SKILL.
 GUARD_KEYS = frozenset({
-    "bounds_checked", "bounds_violations",
+    "bounds_checked", "bounds_violations", "bounds_base", "draws",
+    "roster_unrepresented", "level_sd_at_size",
+    "group_share_tripwire",
     "cap_moved", "cap_undershoots",
     "excessive_draws", "overhang_count",
     "ipf_balances", "ipf_failures", "ipf_clipped", "ipf_headroom",
@@ -111,21 +114,63 @@ GUARD_KEYS = frozenset({
     "solve_unreachable_parties",
     "solve_floor_injected_mean", "solve_floor_injected_worst",
     "solve_identity_hits",
+    # The keyed streams (design 1c; step2/2-review-1c finding 4).
+    "gamma_fallbacks", "gamma_draws", "stream_keys",
+    # The universal draw (design 1j v4-L1); empty under the incumbent law.
+    "kappa_error", "mean_error", "width", "width_floored",
+    # The law the board was drawn under, and the calibration pass's
+    # iterations and convergence (step-6 item 2): which counters must be live
+    # depends on the law (`LAW_DENOMINATOR_KEYS`).
+    "draw_law", "kappa_iters", "kappa_converged",
 })
 
 # Counters that are COUNTS OF DRAWS, and the denominator each is a fraction of.
 # A rate quoted without its denominator is the defect this table exists against.
+# `bounds_checked` is per party (since 2026-10-09, BRIEF item 10): a party's
+# violations are a fraction of the draws in which IT was checked. A dict
+# denominator is read party by party.
 GUARD_DENOMINATORS = {
     "bounds_violations": "bounds_checked",
     "ipf_clipped": "ipf_balances",
-    "overhang_count": "bounds_checked",
+    "overhang_count": "draws",
 }
 
 # The three denominators. If any is zero the whole board is unreadable: every
 # rate computed from it is 0/0, and a payload of zeros is indistinguishable
 # from a run in which nothing was counted. THIS IS THE POSITIVE CONTROL ON THE
 # OBSERVER ITSELF.
-GUARD_DENOMINATOR_KEYS = ("bounds_checked", "ipf_balances", "solve_calls")
+# `bounds_checked` left this tuple when it became per party: a city that
+# declares no §3.5 ranges checks nobody, and an empty dict there is a fact,
+# not an unread board. `draws` took its place as the run-level denominator.
+GUARD_DENOMINATOR_KEYS = ("draws", "ipf_balances", "solve_calls")
+
+# THE DENOMINATORS THAT DEPEND ON THE DRAW LAW (step-6 item 5). The incumbent
+# law draws gammas (`level.chi`, the within-pool split), so a zero
+# `gamma_draws` there is a board that counted nothing. The universal law draws
+# NO gamma by design, so there a non-zero `gamma_draws` is an incumbent path
+# leaking into the universal draw, and its own denominator is the calibration
+# pass (`kappa_iters`, at least one iteration).
+LAW_DENOMINATOR_KEYS = {"incumbent": ("gamma_draws",),
+                        "universal": ("kappa_iters",)}
+DRAW_LAWS = tuple(LAW_DENOMINATOR_KEYS)
+# Non-numeric board fields, checked by their own rules below.
+NON_COUNTER_KEYS = ("draw_law", "kappa_converged")
+
+# SCALAR counters and the scalar denominator each is a count out of. Kept apart
+# from `GUARD_DENOMINATORS`, whose counters are per-party tables. A gamma
+# fallback is a count of GAMMAS, not of draws, so its denominator is the run's
+# gamma count (step2/2-review-1c finding 4): a rate quoted against `draws`
+# would be the wrong population.
+SCALAR_GUARD_DENOMINATORS = {"gamma_fallbacks": "gamma_draws"}
+
+# Not counters and not party names: the (stage, name) pairs the run's keyed
+# streams read, as a sorted list of distinct two-string lists.
+STREAM_KEY_LISTS = ("stream_keys",)
+
+# Not counters: lists of party codes the run records (item 8, 2026-10-09).
+# `level_sd_default_parties` was the second until 2026-10-09, deleted with the
+# typed fallback width it named (M3 review row 7, JUDGEMENT-CALLS §A29).
+NAME_LIST_KEYS = ("roster_unrepresented",)
 
 # `note_value`'s vocabulary. `consulted` is the only one that proves a value
 # reached a computation; `resolved` proves only that the process held it, and
@@ -541,6 +586,63 @@ def faults_between_summary_and_detail(payload, pr, wd, seat_draws,
     return out
 
 
+def _law_faults(guards) -> list[str]:
+    """The law-dependent half of the board (step-6 items 2 and 5).
+
+    ``draw_law`` names the law. Under the INCUMBENT law ``gamma_draws`` is the
+    denominator and must be non-zero, and the universal law's fields are
+    empty: no κ error, no width, no calibration iteration, ``kappa_converged``
+    None. Under the UNIVERSAL law no gamma is drawn (``gamma_draws`` and
+    ``gamma_fallbacks`` zero), the calibration pass ran (``kappa_iters`` at
+    least one) and CONVERGED (``kappa_converged`` True, and every recorded
+    ``kappa_error`` below ``montecarlo.KAPPA_TOL``, so the flag and the
+    errors agree). A non-converged run is a fault on the board itself, not
+    only a refusal in the arm runner.
+    """
+    out: list[str] = []
+    law = guards.get("draw_law")
+    if law not in DRAW_LAWS:
+        return [f"41_guards.draw_law is {law!r}, not one of {DRAW_LAWS}: "
+                f"which counters must be live cannot be decided"]
+    for key in LAW_DENOMINATOR_KEYS[law]:
+        if key in guards and not guards[key]:
+            out.append(
+                f"41_guards.{key} is zero under the {law} law, so every rate "
+                f"taken against it is 0/0 and the whole board is unreadable. "
+                f"This is not a clean run; it is a run that counted nothing")
+    conv = guards.get("kappa_converged")
+    if law == "incumbent":
+        for key in ("kappa_error", "width", "width_floored"):
+            if guards.get(key):
+                out.append(f"41_guards.{key} is non-empty under the incumbent "
+                           f"law, which has no universal draw")
+        if guards.get("kappa_iters") or conv is not None:
+            out.append(f"41_guards: a calibration pass is recorded under the "
+                       f"incumbent law (kappa_iters "
+                       f"{guards.get('kappa_iters')!r}, kappa_converged "
+                       f"{conv!r})")
+        return out
+    for key in ("gamma_draws", "gamma_fallbacks"):
+        if guards.get(key):
+            out.append(f"41_guards.{key}={guards[key]} under the universal "
+                       f"law, which draws no gamma: an incumbent path reached "
+                       f"the universal draw")
+    if not guards.get("kappa_error"):
+        out.append("41_guards.kappa_error is empty under the universal law: "
+                   "the calibration pass measured no party")
+    if conv is not True:
+        out.append(f"41_guards.kappa_converged is {conv!r}: the calibration "
+                   f"pass did not bring every mean within KAPPA_TOL of its "
+                   f"centre, so this run does not conserve its centres")
+    errs = [v for v in (guards.get("kappa_error") or {}).values()
+            if isinstance(v, (int, float))]
+    if conv is True and errs and max(errs) >= M.KAPPA_TOL:
+        out.append(f"41_guards.kappa_converged is True but the largest "
+                   f"kappa_error is {max(errs)}, not below KAPPA_TOL "
+                   f"{M.KAPPA_TOL}: the flag and the errors disagree")
+    return out
+
+
 def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     """Complaints about a ``41_guards`` payload: twenty counters and their bounds.
 
@@ -578,8 +680,54 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                 f"41_guards.{key} is zero, so every rate taken against it is "
                 f"0/0 and the whole board is unreadable. This is not a clean "
                 f"run; it is a run that counted nothing")
+    out += _law_faults(guards)
+
+    # The two NAME LISTS (item 8, 2026-10-09): sorted lists of party codes;
+    # `roster_unrepresented` may instead be "not_checked" (no roster).
+    for key in NAME_LIST_KEYS:
+        value = guards.get(key)
+        if key == "roster_unrepresented" and value == "not_checked":
+            continue
+        if (not isinstance(value, list)
+                or not all(isinstance(x, str) for x in value)
+                or value != sorted(set(value))):
+            out.append(f"41_guards.{key} is {value!r}, not a sorted list of "
+                       f"distinct party codes")
 
     for key, value in sorted(guards.items()):
+        if key in NAME_LIST_KEYS or key == "group_share_tripwire":
+            continue          # the tripwire is `faults_in_group_share`'s
+        if key in NON_COUNTER_KEYS:
+            continue          # `_law_faults`'s
+        if key == "mean_error":
+            if value in ({}, None):
+                continue
+            ok = (isinstance(value, dict)
+                  and {"z", "se", "threshold", "parties", "fired"} <= set(value)
+                  and isinstance(value["z"], dict)
+                  and set(value["fired"]) <= set(value["z"])
+                  and all(abs(value["z"][p]) > value["threshold"]
+                          for p in value["fired"])
+                  and not [p for p, z in value["z"].items()
+                           if abs(z) > value["threshold"]
+                           and p not in value["fired"]]
+                  and value["parties"] == len(value["z"]))
+            if not ok:
+                out.append("41_guards.mean_error is not a falsifier record: "
+                           "z, se, threshold, parties and fired must agree "
+                           "(every party beyond the threshold fired, no other)")
+            continue
+        if key in STREAM_KEY_LISTS:
+            ok = (isinstance(value, list)
+                  and all(isinstance(x, list) and len(x) == 2
+                          and all(isinstance(y, str) for y in x)
+                          for x in value)
+                  and value == sorted(value)
+                  and len({tuple(x) for x in value}) == len(value))
+            if not ok:
+                out.append(f"41_guards.{key} is not a sorted list of distinct "
+                           f"[stage, name] pairs")
+            continue
         if isinstance(value, dict):
             for party, n in value.items():
                 if not isinstance(n, (int, float)) or isinstance(n, bool):
@@ -596,11 +744,14 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                        f"non-negative, finite quantity")
 
     for counter, denom_key in GUARD_DENOMINATORS.items():
-        denom = guards.get(denom_key)
+        denom_all = guards.get(denom_key)
         table = guards.get(counter)
-        if not isinstance(table, dict) or not isinstance(denom, (int, float)):
+        if not isinstance(table, dict) or not isinstance(
+                denom_all, (int, float, dict)):
             continue
         for party, n in sorted(table.items()):
+            denom = (denom_all.get(party, 0) if isinstance(denom_all, dict)
+                     else denom_all)
             if n > denom:
                 out.append(
                     f"41_guards.{counter}[{party}] is {n}, above its own "
@@ -615,6 +766,8 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
 
     _le("ipf_failures", "ipf_balances",
         "a balance cannot fail more often than it was attempted")
+    for _c, _d in SCALAR_GUARD_DENOMINATORS.items():
+        _le(_c, _d, "a gamma cannot fall back more often than gammas were drawn")
     _le("solve_nonconvergent", "solve_calls",
         "a solve cannot fail to converge more often than it ran")
     _le("solve_nonconvergent_reachable", "solve_nonconvergent",
@@ -627,16 +780,40 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
         "a mean cannot exceed the worst case it is a mean of")
 
     if draws is not None:
-        for key in ("bounds_checked", "ipf_balances", "excessive_draws"):
+        for key in ("ipf_balances", "excessive_draws"):
             n = guards.get(key)
             if isinstance(n, (int, float)) and n > draws:
                 out.append(f"41_guards.{key}={n} exceeds the {draws} draws")
-        if guards.get("bounds_checked") not in (None, draws):
+        for party, n in sorted((guards.get("bounds_checked") or {}).items()):
+            if isinstance(n, (int, float)) and n > draws:
+                out.append(f"41_guards.bounds_checked[{party}]={n} exceeds "
+                           f"the {draws} draws: a party is checked at most "
+                           f"once per draw")
+        if guards.get("draws") not in (None, draws):
             out.append(
-                f"41_guards.bounds_checked={guards['bounds_checked']} is not "
-                f"the {draws} draws. It is incremented exactly once per draw, "
-                f"so it IS the draw count — and it is the only thing tying "
-                f"this payload to the draws it claims to describe")
+                f"41_guards.draws={guards['draws']} is not "
+                f"the {draws} draws. It is the run's draw count, and it is "
+                f"the only thing tying this payload to the draws it claims "
+                f"to describe")
+
+    # THE §3.5 CHECK'S POPULATION (M2 review S4). `bounds_base` is every
+    # declared-range party in the universe with its drawn base; the checked
+    # parties are those above the run's base cut. So the checked set is a
+    # subset of it, and every checked base is above every unchecked one: a
+    # board that checked a small party and skipped a larger one did not apply
+    # one cut. The cut itself is the run's, and is not restated here.
+    base = guards.get("bounds_base")
+    checked = guards.get("bounds_checked")
+    if isinstance(base, dict) and isinstance(checked, dict):
+        if set(checked) - set(base):
+            out.append(f"41_guards.bounds_checked names parties outside "
+                       f"bounds_base: {sorted(set(checked) - set(base))[:6]}")
+        inside = [b for p, b in base.items() if p in checked]
+        outside = [b for p, b in base.items() if p not in checked]
+        if inside and outside and min(inside) <= max(outside):
+            out.append(f"41_guards.bounds_checked skips a party with base "
+                       f"{max(outside)} while checking one at {min(inside)}: "
+                       f"the §3.5 population is not one cut on the base")
 
     excessive = guards.get("excessive_draws")
     over = guards.get("overhang_count")
@@ -683,6 +860,68 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
             f"capacity still cannot fill the city. It then returns a vector "
             f"with EVERY element above its cap — the opposite of the "
             f"function's name — and the caller's fallback is what reports it")
+    return out
+
+
+def faults_in_group_share(guards, *, draws=None, universe=None,
+                          covered=None) -> list[str]:
+    """`41_guards.group_share_tripwire` (BRIEF item 12) is "no record" or a
+    count that looked and is consistent with its own draws.
+
+    "no record" is a fault where ``covered`` is True: the record on disk holds
+    this city-year, so the run should have read it (M3 review row 5). The
+    caller works ``covered`` out from the file itself (`record_covers`), not
+    from the reader the run used, or a reader that looks in the wrong place
+    would agree with itself.
+
+    The scan must prove it looked (CLAUDE.md §4): `population` is the member
+    pairs of the run's pools and `scanned` the pairs counted, and they are
+    equal and positive. Each reported pair fired in more than `fire_at` of
+    the draws, its share is its count over the draws, its threshold is a
+    finite non-negative share, and its party is in the universe.
+    """
+    out: list[str] = []
+    value = (guards or {}).get("group_share_tripwire")
+    if value == "no record":
+        if covered:
+            out.append("41_guards.group_share_tripwire is \"no record\" at a "
+                       "city-year the record on disk covers: the run did not "
+                       "read it")
+        return out
+    if not isinstance(value, dict):
+        return [f"41_guards.group_share_tripwire is {value!r}, neither "
+                f"\"no record\" nor a count"]
+    population, scanned = value.get("population"), value.get("scanned")
+    if not isinstance(population, int) or population <= 0 \
+            or population != scanned:
+        out.append(f"41_guards.group_share_tripwire scanned {scanned!r} of a "
+                   f"population of {population!r} member pairs: it did not "
+                   f"look at the set it reports on")
+    n_draws = value.get("draws")
+    if draws is not None and n_draws != draws:
+        out.append(f"41_guards.group_share_tripwire counts over {n_draws!r} "
+                   f"draws, not the run's {draws}")
+    fire_at = value.get("fire_at")
+    for pair, row in sorted((value.get("pairs") or {}).items()):
+        party, _, pool = pair.partition("|")
+        if not pool or not isinstance(row, dict):
+            out.append(f"group_share_tripwire[{pair}] is malformed: {row!r}")
+            continue
+        n, share, thr = row.get("draws"), row.get("share"), row.get("threshold")
+        if not (isinstance(n, int) and isinstance(n_draws, int)
+                and 0 <= n <= n_draws and n_draws > 0
+                and abs(share - n / n_draws) < 1e-12):
+            out.append(f"group_share_tripwire[{pair}]: {n!r} of {n_draws!r} "
+                       f"draws is not share {share!r}")
+        elif isinstance(fire_at, (int, float)) and not share > fire_at:
+            out.append(f"group_share_tripwire[{pair}] is reported at share "
+                       f"{share}, not above its firing rule {fire_at}")
+        if not (isinstance(thr, (int, float)) and math.isfinite(thr)
+                and thr >= 0):
+            out.append(f"group_share_tripwire[{pair}] threshold {thr!r}")
+        if universe is not None and party not in universe:
+            out.append(f"group_share_tripwire names {party}, outside the "
+                       f"universe")
     return out
 
 
@@ -779,49 +1018,45 @@ def absent_constants(payload) -> list[str]:
 
 def tie_at_the_cut(combined, total_seats, independent_wards=0,
                    no_pr_list_wards=0):
-    """The pair straddling the largest-remainder cut when it is an EXACT tie.
+    """The pair straddling the last seat when it is an EXACT tie.
 
     Returns ``(inside, outside, votes, shortfall)`` or ``None``.
 
-    ``seats.allocate`` ranks remainders by ``(-remainder, -combined)``. For two
-    parties with the same combined vote total that key is IDENTICAL, Python's
-    sort is stable, and the seat therefore goes to whichever party came first
-    in the dict — which for a dict built by ``seats.eligible_parties`` is a
-    SET-OF-STRINGS iteration order, i.e. a function of how the party's NAME
-    hashes and of nothing electoral whatsoever.
+    ``seats.allocate`` ranks by ``(-surplus, -combined)``, the surplus being
+    the WHOLE votes left after the quotas (Schedule 1 item 13(2)(a)); an equal
+    surplus goes to the higher vote (13(2)(b)). Two parties equal on both reach
+    the seeded lot (``seats.lot_order``), which this detector does not run: it
+    names the pair, so a caller can count how often the lot decides a seat.
 
-    Schedule 1 breaks an exact tie by lot. `allocate`'s docstring says float
-    remainders make an exact tie unreachable; they do not, because equal
-    integer vote totals give bit-identical remainders. Measured at joburg 2021,
-    400 draws: three allocations hit this, and reversing the key order moved a
-    seat between ALJAMAAH and UIM in one of them.
+    Rewritten to integer surpluses on 2026-10-09 with the allocator. Measured at
+    joburg 2021, 400 draws, under the float key and set order: three
+    allocations hit an exact tie, and reversing the key order moved a seat
+    between ALJAMAAH and UIM in one of them.
     """
     available = total_seats - independent_wards - no_pr_list_wards
     if available <= 0 or not combined:
         return None
     total = sum(combined.values())
     quota = total // available + 1
-    round_one = {p: v // quota for p, v in combined.items()}
-    remainders = {p: v / quota - round_one[p] for p, v in combined.items()}
-    shortfall = available - sum(round_one.values())
-    if shortfall <= 0 or shortfall >= len(remainders):
+    surplus = {p: v - (v // quota) * quota for p, v in combined.items()}
+    shortfall = available - sum(v // quota for v in combined.values())
+    if shortfall <= 0 or shortfall >= len(surplus):
         return None
-    ranked = sorted(remainders, key=lambda p: (-remainders[p], -combined[p]))
+    ranked = sorted(surplus, key=lambda p: (-surplus[p], -combined[p]))
     inside, outside = ranked[shortfall - 1], ranked[shortfall]
-    if (remainders[inside], combined[inside]) \
-            == (remainders[outside], combined[outside]):
+    if (surplus[inside], combined[inside]) == (surplus[outside], combined[outside]):
         return (inside, outside, combined[inside], shortfall)
     return None
 
 
 def allocation_outcomes_over_orderings(combined, *, total_seats,
                                        independent_wards=0, no_pr_list_wards=0,
-                                       orderings=24):
+                                       orderings=24, lot="test|lot|seat|0"):
     """Distinct seat vectors ``seats.allocate`` gives over key permutations.
 
     More than one means the allocation is decided by dict order rather than by
-    votes. The permutations are the detector; the input is constructed, so this
-    does not expire when the tree changes.
+    votes and the lot. The permutations are the detector; the input is
+    constructed, so this does not expire when the tree changes.
     """
     parties = list(combined)
     seen = set()
@@ -831,7 +1066,7 @@ def allocation_outcomes_over_orderings(combined, *, total_seats,
         shuffled = {p: combined[p] for p in order}
         alloc = allocate(shuffled, total_seats=total_seats,
                          independent_wards=independent_wards,
-                         no_pr_list_wards=no_pr_list_wards)
+                         no_pr_list_wards=no_pr_list_wards, lot=lot)
         seen.add(tuple(sorted(alloc.seats.items())))
     return seen
 
@@ -877,10 +1112,21 @@ def healthy_draws_summary(pr, wd, seat_draws, wins=None):
     }
 
 
-def healthy_guards():
-    return {
-        "bounds_checked": DRAWS,
+def healthy_guards(law: str = "universal"):
+    """A clean board under ``law``. The shipped law (universal) by default,
+    consistent with :func:`healthy_widths`: no gamma, a converged calibration
+    pass, widths and κ errors for the drawn parties."""
+    board = {
+        "bounds_checked": {"AAA": DRAWS},
         "bounds_violations": {"AAA": 2},
+        "bounds_base": {"AAA": 0.20, "BBB": 0.001},
+        "draws": DRAWS,
+        "roster_unrepresented": ["ZZZ"],
+        "level_sd_at_size": {"DDD": 0.62},
+        "group_share_tripwire": {
+            "pairs": {"AAA|G1": {"draws": 3, "share": 0.5, "threshold": 0.4}},
+            "population": 5, "scanned": 5, "draws": DRAWS, "fire_at": 0.05,
+            "key_current": True},
         "cap_moved": 12.5,
         "cap_undershoots": 0,
         "excessive_draws": 1,
@@ -899,7 +1145,45 @@ def healthy_guards():
         "solve_floor_injected_mean": 1.4e-5,
         "solve_floor_injected_worst": 2.7e-5,
         "solve_identity_hits": 0,
+        "gamma_fallbacks": 0,
+        "gamma_draws": 0,
+        "kappa_error": {"AAA": 0.0004, "DDD": 0.0009},
+        "mean_error": {"z": {"AAA": 0.4, "DDD": -1.1}, "se": {"AAA": 0.02,
+                       "DDD": 0.03}, "threshold": 3.0, "parties": 2,
+                       "fired": []},
+        "width": {"AAA": 0.07, "DDD": 0.82},
+        "width_floored": {"AAA": 0.0026},
+        "stream_keys": [["calib.level.z", "AAA"], ["level.shared", ""],
+                        ["level.z", "AAA"], ["turnout.common", ""]],
+        "draw_law": "universal",
+        "kappa_iters": 3,
+        "kappa_converged": True,
     }
+    if law == "incumbent":
+        board.update(gamma_fallbacks=1, gamma_draws=40 * DRAWS,
+                     kappa_error={}, mean_error={}, width={},
+                     width_floored={}, draw_law="incumbent", kappa_iters=0,
+                     kappa_converged=None,
+                     stream_keys=[["level.chi", "AAA"], ["level.z", "AAA"],
+                                  ["turnout.common", ""]])
+    return board
+
+
+def healthy_widths():
+    """A universal-law width table: one party at its floor, one not."""
+    def row(sig, dl, rho, vc):
+        own2 = sig * sig * (1 - rho) + dl * dl - vc
+        return {"sigma": sig, "delta": dl, "rho": rho,
+                "total": math.sqrt(sig * sig + dl * dl),
+                "shared": math.sqrt(rho) * sig, "own": math.sqrt(max(own2, 0)),
+                "v_comp": vc, "floored": max(-own2, 0.0), "centre": 0.1,
+                "new": dl > 0, "judged": False, "kappa": -0.1}
+    return {"draw_law": "universal", "record": {"kind": "fit"},
+            "parties": {"AAA": row(0.05, 0.0, 0.0, 0.0055),
+                        "DDD": row(0.8, 0.87, 0.33, 0.001)},
+            "kappa_iters": 3, "kappa_converged": True, "individual_mass": 0.0,
+            "judgements_sha": "0" * 16,
+            "judgements_applied": [], "judgements_ignored": []}
 
 
 def healthy_delivery_log():
@@ -929,7 +1213,8 @@ def healthy_votes(shares, total=100_000):
 def healthy_bundle() -> dict:
     """Every stage of the segment, constructed healthy, keyed by stage name."""
     pr, wd, seat_draws, summary = _payloads()
-    return {"40_draws": summary, "41_guards": healthy_guards(),
+    return {"35_widths": healthy_widths(),
+            "40_draws": summary, "41_guards": healthy_guards(),
             "42_pr_share_draws": pr, "43_ward_share_draws": wd,
             "42a_pr_vote_draws": healthy_votes(pr),
             "43a_ward_vote_draws": healthy_votes(wd),
@@ -1190,11 +1475,17 @@ def test_a_zero_denominator_makes_the_whole_board_unreadable():
         guards = dict(healthy_guards(), **{key: 0})
         faults = faults_in_guards(guards)
         assert any("unreadable" in f for f in faults), (key, faults)
+    for law, keys in LAW_DENOMINATOR_KEYS.items():
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+        for key in keys:
+            guards = dict(healthy_guards(law), **{key: 0})
+            faults = faults_in_guards(guards)
+            assert any("unreadable" in f for f in faults), (law, key, faults)
 
 
 def test_a_counter_above_its_own_denominator_is_caught():
     guards = healthy_guards()
-    guards["bounds_violations"]["AAA"] = guards["bounds_checked"] + 1
+    guards["bounds_violations"]["AAA"] = guards["bounds_checked"]["AAA"] + 1
     faults = faults_in_guards(guards, draws=DRAWS)
     assert faults and "above its own denominator" in " ".join(faults), faults
 
@@ -1213,18 +1504,102 @@ def test_the_orderings_between_guard_counters_are_enforced():
             (small, big, faults)
 
 
-def test_bounds_checked_is_the_draw_count_and_ties_the_board_to_the_draws():
+def test_draws_ties_the_board_to_the_draws_and_bounds_checked_is_per_party():
     """The only field tying `41_guards` to the draws it claims to describe.
 
-    `bounds_checked` is incremented exactly once per draw, so it IS the draw
-    count. Nothing else in the payload is — every other counter is a count of
-    events that may or may not have happened — so a guards payload from one run
-    read beside another run's draws is invisible without it.
+    `draws` is the run's draw count; every other counter is a count of events
+    that may or may not have happened, so a guards payload from one run read
+    beside another run's draws is invisible without it. `bounds_checked` was
+    that field until 2026-10-09, when it became a per-party count of the draws
+    in which the party was checked (BRIEF item 10); a party's count can never
+    exceed the draws, and its violations can never exceed its count.
     """
     guards = healthy_guards()
     assert not faults_in_guards(guards, draws=DRAWS)
     faults = faults_in_guards(guards, draws=DRAWS + 1)
     assert faults and "is not the" in " ".join(faults), faults
+    over = dict(healthy_guards(), bounds_checked={"AAA": DRAWS + 1})
+    faults = faults_in_guards(over, draws=DRAWS)
+    assert any("bounds_checked[AAA]" in f for f in faults), faults
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)   # reverted
+    few = dict(healthy_guards(), bounds_checked={"AAA": 1})
+    faults = faults_in_guards(few, draws=DRAWS)
+    assert any("above its own denominator" in f for f in faults), faults
+
+
+def test_the_stream_board_is_checked_and_can_fire():
+    """The keyed streams' guards (design 1c): `stream_keys` must be a sorted
+    list of distinct [stage, name] pairs and `gamma_fallbacks` cannot exceed
+    `gamma_draws`, which must be non-zero. A healthy board is quiet; each
+    corruption fires; reverted, quiet again.
+    """
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    good = healthy_guards()["stream_keys"]
+    for bad in (list(reversed(good)), good + [good[0]], [["level.z"]],
+                [["level.z", 3]], "level.z"):
+        faults = faults_in_guards(dict(healthy_guards(), stream_keys=bad),
+                                  draws=DRAWS)
+        assert any("41_guards.stream_keys" in f for f in faults), bad
+    for law in DRAW_LAWS:
+        over = dict(healthy_guards(law), gamma_fallbacks=10 ** 9)
+        assert any("gamma_fallbacks" in f
+                   for f in faults_in_guards(over, draws=DRAWS)), law
+    zero = dict(healthy_guards("incumbent"), gamma_draws=0, gamma_fallbacks=0)
+    assert any("gamma_draws is zero" in f
+               for f in faults_in_guards(zero, draws=DRAWS))
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    assert not faults_in_guards(healthy_guards("incumbent"), draws=DRAWS)
+
+
+def test_the_board_is_read_under_its_own_law():
+    """Step-6 items 2 and 5: what must be live depends on the law. Each
+    corruption fires under the law it violates and the clean board of that
+    law is quiet before and after; the universal law's zero `gamma_draws` is
+    NOT a fault (it draws no gamma by design), and the incumbent's is.
+    """
+    cases = [
+        ("universal", {"gamma_draws": 40 * DRAWS}, "an incumbent path"),
+        ("universal", {"kappa_converged": False}, "did not bring every mean"),
+        ("universal", {"kappa_converged": None}, "did not bring every mean"),
+        ("universal", {"kappa_iters": 0}, "unreadable"),
+        ("universal", {"kappa_error": {}}, "measured no party"),
+        ("universal", {"kappa_error": {"AAA": 1.0}}, "disagree"),
+        ("incumbent", {"gamma_draws": 0, "gamma_fallbacks": 0}, "unreadable"),
+        ("incumbent", {"kappa_error": {"AAA": 0.0}}, "no universal draw"),
+        ("incumbent", {"kappa_converged": True}, "calibration pass is recorded"),
+        ("universal", {"draw_law": "other"}, "cannot be decided"),
+    ]
+    for law, change, says in cases:
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+        faults = faults_in_guards(dict(healthy_guards(law), **change),
+                                  draws=DRAWS)
+        assert any(says in f for f in faults), (law, change, faults)
+        assert not faults_in_guards(healthy_guards(law), draws=DRAWS), law
+    assert not faults_in_guards(dict(healthy_guards("universal"),
+                                     gamma_draws=0), draws=DRAWS)
+
+
+def test_the_two_name_lists_are_sorted_party_codes():
+    """Item 8's name list is a list, not a counter, and item 17's at-size
+    record names only parties the run draws. A healthy board passes; an
+    unsorted list, a non-string entry or a count in place of the list is
+    caught, and so is an at-size party outside the universe; each reverted,
+    quiet.
+    """
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    assert not faults_in_guards(
+        dict(healthy_guards(), roster_unrepresented="not_checked"), draws=DRAWS)
+    for key in NAME_LIST_KEYS:
+        for bad in (["ZZZ", "AAA"], [1], 3, "not_checked"):
+            if key == "roster_unrepresented" and bad == "not_checked":
+                continue
+            faults = faults_in_guards(dict(healthy_guards(), **{key: bad}),
+                                      draws=DRAWS)
+            assert any(f"41_guards.{key}" in f for f in faults), (key, bad)
+    outside = dict(healthy_guards(), level_sd_at_size={"QQQ": 0.5})
+    assert any("outside the universe" in f
+               for f in faults_in_guards(outside, universe=PARTIES))
+    assert not faults_in_guards(healthy_guards(), universe=PARTIES)
 
 
 def test_an_overhang_count_that_cannot_explain_its_own_draws_is_caught():
@@ -1322,7 +1697,7 @@ def test_an_absent_constant_is_named_rather_than_silent():
 
 
 # --------------------------------------------------------------------------
-# the tie — a CHARACTERISATION test, recording a live defect
+# the tie — decided by the seeded lot, whatever order the tally arrives in
 # --------------------------------------------------------------------------
 
 def test_the_tie_detector_can_see_a_tie_and_stays_quiet_without_one():
@@ -1335,47 +1710,60 @@ def test_the_tie_detector_can_see_a_tie_and_stays_quiet_without_one():
     assert tie_at_the_cut(untied, 3) is None, tie_at_the_cut(untied, 3)
 
 
-def test_largest_remainder_is_decided_by_dict_order_at_an_exact_tie():
-    """⛔ CHARACTERISATION, NOT AN INVARIANT: this records a DEFECT.
+def test_an_exact_tie_at_the_last_seat_is_decided_by_the_lot_not_dict_order():
+    """THE INVARIANT (G4), replacing the characterisation that recorded the
+    defect until 2026-10-09: one seat vector over every ordering of a tied
+    tally.
 
-    ``seats.allocate`` ranks remainders by ``(-remainder, -combined)``. Two
-    parties with equal combined votes produce a bit-identical key, Python's
-    sort is stable, and the last seat therefore goes to whoever came first in
-    the dict. ``seats.eligible_parties`` builds that dict by iterating
-    ``set(ward_votes) | set(pr_votes)``, so the order is a function of how the
-    party NAME hashes — nothing electoral. Schedule 1 breaks an exact tie BY
-    LOT; `allocate`'s own docstring asserts float remainders make an exact tie
-    unreachable, and equal integer vote totals reach it directly.
+    ``seats.eligible_parties`` still builds its dict by iterating
+    ``set(ward_votes) | set(pr_votes)``, so the order the allocator receives
+    is a function of how the party NAME hashes
+    (``test_eligible_parties_hands_the_allocator_a_set_ordered_dict`` below
+    characterises that and is unchanged). Two parties equal on surplus and
+    votes used to keep that order through a stable sort, so renaming a party
+    could move a seat. They now go in the order :func:`seats.lot_order` draws
+    for the call's key, which names no party.
 
-    ``montecarlo.fix_hash_seed`` pins ``PYTHONHASHSEED=0`` at seven entry
-    points, so the shipped runs are at least repeatable — but repeatable is not
-    the same as correct, and the residue is that RENAMING A PARTY can move a
-    seat while nothing else changes.
-
-    **WHEN THIS TEST FAILS, THE DEFECT HAS BEEN FIXED.** Delete it and assert
-    the invariant instead: one seat vector over every ordering.
-
-    ⛔ **THREE SIBLING CONTROLS MUST BE RE-POINTED IN THE SAME COMMIT**, and
-    they are listed here because they will each announce themselves separately
-    and look like three unrelated regressions:
-
-    * ``tests/test_roster_aware_baseline.py:117`` restores the defect with
-      ``BM.canonical_order = dict`` — once the order no longer comes from a set,
-      that monkeypatch stops restoring anything and the control is testing the
-      fixed path while claiming to test the broken one;
-    * ``test_eligible_parties_hands_the_allocator_a_set_ordered_dict`` below,
-      whose bound is written as the negation of each plausible repair
-      **precisely so that it fires here**;
-    * this test, the exact-tie mirror.
+    Constructed violation, and its revert: with ``seats.lot_order`` replaced by
+    the tie group's arrival order (the old behaviour exactly) the same 24
+    orderings give more than one council; with the real lot, one.
     """
     tied = {"BIG1": 101, "BIG2": 101, "AAA": 49, "BBB": 49}
     outcomes = allocation_outcomes_over_orderings(tied, total_seats=3)
-    assert len(outcomes) > 1, (
-        "seats.allocate is now order-invariant at an exact tie, which is what "
-        "this repository wants. Replace this characterisation test with the "
-        "invariant and note the change in MODEL-LOG.")
+    assert len(outcomes) == 1, (
+        f"an exact tie seated {len(outcomes)} ways over 24 orderings of one "
+        f"tally: {sorted(outcomes)}. Dict order is deciding a seat again.")
+
+    real = seats_module.lot_order
+    try:
+        seats_module.lot_order = lambda tied_, key: list(tied_)
+        broken = allocation_outcomes_over_orderings(tied, total_seats=3)
+    finally:
+        seats_module.lot_order = real
+    assert len(broken) > 1, (
+        "with the lot replaced by arrival order the 24 orderings still gave one "
+        "council, so the fixture does not exercise a tie and the invariant "
+        "above proves nothing. Fix the fixture.")
+    assert len(allocation_outcomes_over_orderings(tied, total_seats=3)) == 1, (
+        "the revert did not restore the lot")
+
     untied = dict(tied, BBB=48)
     assert len(allocation_outcomes_over_orderings(untied, total_seats=3)) == 1
+
+
+def test_swapping_two_codes_in_an_untied_council_swaps_the_answer():
+    """G4: no name order reaches a result where there is no tie. Constructed:
+    a council with distinct votes and surpluses everywhere, then the same
+    council with two codes exchanged; the seats exchange and nothing else
+    moves, and no lot key is needed for either."""
+    votes = {"ALPHA": 5210, "ZULU": 3120, "MIKE": 990, "BRAVO": 680}
+    swapped = {{"ALPHA": "ZULU", "ZULU": "ALPHA"}.get(p, p): v
+               for p, v in votes.items()}
+    a = allocate(votes, total_seats=7).seats
+    b = allocate(swapped, total_seats=7).seats
+    assert b == {{"ALPHA": "ZULU", "ZULU": "ALPHA"}.get(p, p): n
+                 for p, n in a.items()}, (a, b)
+    assert a["ALPHA"] != a["ZULU"], "the fixture must give the two codes different seats"
 
 
 def _output_orders(builder, names, votes):
@@ -1454,17 +1842,15 @@ def test_eligible_parties_hands_the_allocator_a_set_ordered_dict():
     assert len(distinct) < n, (
         f"eligible_parties produced a different output order for every one of "
         f"the {n} input permutations, so its output order now IS derived from "
-        f"its inputs. That is what this repository wants — the seat handed out "
-        f"at an exact tie would follow the caller's ordering rather than a "
-        f"string hash. Delete this characterisation and "
-        f"`test_largest_remainder_is_decided_by_dict_order_at_an_exact_tie` "
-        f"and assert the invariant: one seat vector over every ordering.")
+        f"its inputs. Since 2026-10-09 no seat depends on this order (the "
+        f"seeded lot decides an exact tie: "
+        f"`test_an_exact_tie_at_the_last_seat_is_decided_by_the_lot_not_dict_order`), "
+        f"so this characterisation can be deleted.")
     assert distinct != {in_sorted_order}, (
         f"eligible_parties now hands the allocator a SORTED dict "
-        f"({in_sorted_order}), so the tie-break is no longer decided by a "
-        f"string hash. The defect is fixed. Replace this and the tie-break "
-        f"test above with the invariant, and re-point the three sibling "
-        f"controls listed in this test's module docstring.")
+        f"({in_sorted_order}). Since 2026-10-09 no seat depends on this order "
+        f"(the seeded lot decides an exact tie), so this characterisation can "
+        f"be deleted.")
 
     # ⛔ CAN THE BOUND SEE A REPAIR? Both plausible fixes, through the SAME
     #    predicate. If either got past it, everything above is decoration.
@@ -1504,7 +1890,57 @@ def test_eligible_parties_hands_the_allocator_a_set_ordered_dict():
 # stage payloads, so the real-trace test and the constructed ones call them the
 # same way.
 
+def faults_in_widths(payload, *, universe=None) -> list[str]:
+    """Complaints about a ``35_widths`` payload (design 1j v4-L1).
+
+    Per drawn party: σ ≥ 0, δ ≥ 0, ρ in [0, 1], total = √(σ² + δ²), the shared
+    loading = √ρ·σ, and the own term's square plus the composition variance
+    equals σ²(1 − ρ) + δ² up to the recorded floor (the own variance can only
+    be FLOORED at zero, and the floor is what `width_floored` carries). A
+    width that is not the sum of its parts was not computed by the rule its
+    trace names. Under the incumbent law ``parties`` is empty.
+    """
+    out: list[str] = []
+    if not isinstance(payload, dict) or "parties" not in payload:
+        return ["35_widths carries no `parties` table"]
+    if payload.get("draw_law") not in ("universal", "incumbent"):
+        out.append(f"35_widths.draw_law is {payload.get('draw_law')!r}")
+    parties = payload["parties"]
+    if payload.get("draw_law") == "universal" and not parties:
+        out.append("35_widths: the universal law drew no party")
+    if payload.get("draw_law") == "universal" and (
+            payload.get("kappa_converged") is not True
+            or not payload.get("kappa_iters")):
+        out.append(f"35_widths: the calibration pass did not converge "
+                   f"(kappa_converged {payload.get('kappa_converged')!r} after "
+                   f"{payload.get('kappa_iters')!r} iterations)")
+    for p, w in sorted(parties.items()):
+        try:
+            sig, dl, rho = float(w["sigma"]), float(w["delta"]), float(w["rho"])
+            tot, sh, own = float(w["total"]), float(w["shared"]), float(w["own"])
+            vc, fl = float(w["v_comp"]), float(w["floored"])
+        except (KeyError, TypeError, ValueError):
+            out.append(f"35_widths.{p} lacks a component")
+            continue
+        if sig < 0 or dl < 0 or not 0.0 <= rho <= 1.0:
+            out.append(f"35_widths.{p}: σ {sig}, δ {dl}, ρ {rho} out of range")
+        if abs(tot - math.sqrt(sig * sig + dl * dl)) > 1e-9:
+            out.append(f"35_widths.{p}: total {tot} is not √(σ² + δ²)")
+        if abs(sh - math.sqrt(rho) * sig) > 1e-9:
+            out.append(f"35_widths.{p}: shared loading {sh} is not √ρ·σ")
+        budget = sig * sig * (1.0 - rho) + dl * dl
+        if abs(own * own + vc - fl - budget) > 1e-9:
+            out.append(f"35_widths.{p}: own² + composition − floor "
+                       f"{own * own + vc - fl:.6g} is not σ²(1 − ρ) + δ² "
+                       f"{budget:.6g}")
+    if universe is not None and set(parties) - set(universe):
+        out.append(f"35_widths names parties outside the universe: "
+                   f"{sorted(set(parties) - set(universe))[:6]}")
+    return out
+
+
 ALL_PREDICATES = {
+    "faults_in_widths": faults_in_widths,
     "faults_in_share_matrix": faults_in_share_matrix,
     "faults_in_vote_matrix": faults_in_vote_matrix,
     "faults_between_votes_and_shares": faults_between_votes_and_shares,
@@ -1512,12 +1948,13 @@ ALL_PREDICATES = {
     "faults_in_seat_draws": faults_in_seat_draws,
     "faults_between_summary_and_detail": faults_between_summary_and_detail,
     "faults_in_guards": faults_in_guards,
+    "faults_in_group_share": faults_in_group_share,
     "faults_in_delivery_log": faults_in_delivery_log,
 }
 
 
 def run_predicates(bundle: dict, *, universe=None, council=COUNCIL,
-                   rule="deduct") -> list[tuple[str, str]]:
+                   rule="deduct", covered=None) -> list[tuple[str, str]]:
     """Every registered predicate on one bundle of stage payloads: ``(name, fault)``."""
     universe = PARTIES if universe is None else universe
     draws = len(bundle["44_seat_draws"])
@@ -1547,6 +1984,10 @@ def run_predicates(bundle: dict, *, universe=None, council=COUNCIL,
         bundle["43_ward_share_draws"], bundle["44_seat_draws"]))
     add("faults_in_guards", faults_in_guards(
         bundle["41_guards"], draws=draws, universe=universe))
+    add("faults_in_widths", faults_in_widths(
+        bundle["35_widths"], universe=universe))
+    add("faults_in_group_share", faults_in_group_share(
+        bundle["41_guards"], draws=draws, universe=universe, covered=covered))
     add("faults_in_delivery_log", faults_in_delivery_log(bundle["45_delivered"]))
     return out
 
@@ -1589,6 +2030,10 @@ def _guard_key_dropped(b):
     b["41_guards"].pop(sorted(b["41_guards"])[0])
 
 
+def _tripwire_blind(b):
+    b["41_guards"]["group_share_tripwire"]["scanned"] = 0
+
+
 def _delivery_empty(b):
     b["45_delivered"] = {}
 
@@ -1604,6 +2049,11 @@ CORRUPTIONS = [
     ("faults_in_seat_draws", "a chamber larger than the statute", _chamber_too_big),
     ("faults_between_summary_and_detail", "the marginal median stored as the mean", _median_as_mean),
     ("faults_in_guards", "a declared guard counter missing", _guard_key_dropped),
+    ("faults_in_widths", "an own term that is not the rest of the budget",
+     lambda b: b["35_widths"]["parties"]["DDD"].update(own=2.0)),
+    ("faults_in_widths", "a calibration pass that did not converge",
+     lambda b: b["35_widths"].update(kappa_converged=False)),
+    ("faults_in_group_share", "a tripwire that scanned nothing", _tripwire_blind),
     ("faults_in_delivery_log", "an empty delivery log", _delivery_empty),
 ]
 
@@ -1700,7 +2150,7 @@ def real_trace():
     original = M.allocate
 
     def probe(combined, total_seats=270, independent_wards=0,
-              no_pr_list_wards=0):
+              no_pr_list_wards=0, *, lot=None):
         calls[0] += 1
         hit = tie_at_the_cut(combined, total_seats, independent_wards,
                              no_pr_list_wards)
@@ -1708,7 +2158,7 @@ def real_trace():
             ties.append(hit)
         return original(combined, total_seats=total_seats,
                         independent_wards=independent_wards,
-                        no_pr_list_wards=no_pr_list_wards)
+                        no_pr_list_wards=no_pr_list_wards, lot=lot)
 
     M.allocate = probe
     try:
@@ -1735,7 +2185,7 @@ def real_trace():
 def test_the_realisation_segment_emits_every_stage_it_claims_to():
     payloads, _ = real_trace()
     written = set(payloads["_index"]["written"])
-    segment = {"40_draws", "41_guards", "42_pr_share_draws",
+    segment = {"35_widths", "40_draws", "41_guards", "42_pr_share_draws",
                "43_ward_share_draws", "42a_pr_vote_draws",
                "43a_ward_vote_draws", "44_seat_draws", "45_delivered"}
     assert segment <= written, (
@@ -1773,15 +2223,52 @@ def test_a_real_trace_passes_every_predicate_in_this_file():
     payloads, run = real_trace()
     complaints = run_predicates(payloads, universe=run.universe,
                                 council=int(run.target.council),
-                                rule=run.scenario["overhang_rule"])
+                                rule=run.scenario["overhang_rule"],
+                                covered=record_covers(run.target.city.slug,
+                                                      run.target.year))
     assert not complaints, "\n".join(f"{n}: {t}" for n, t in complaints)
+
+
+def record_covers(slug: str, year: str) -> bool:
+    """Does `group_share_record.json` on disk hold this city-year? Read off
+    the file directly, not through `montecarlo.read_group_share_record`."""
+    path = ROOT / "data" / "processed" / "group_share_record.json"
+    if not path.exists():
+        return False
+    blob = json.loads(path.read_text(encoding="utf-8"))
+    return bool(((blob.get("cities") or {}).get(slug) or {}).get(str(year)))
+
+
+def test_no_record_at_a_covered_city_year_is_caught_and_a_slugless_target_refused():
+    """M3 review row 5. Constructed: "no record" passes where the record does
+    not cover the city-year and is a fault where it does; a count passes
+    either way. A target with no city slug stops the lookup instead of
+    reading the record under ``""``."""
+    blank = {"group_share_tripwire": "no record"}
+    assert not faults_in_group_share(blank, covered=False)
+    assert not faults_in_group_share(blank, covered=None)
+    assert faults_in_group_share(blank, covered=True)
+    count = {"group_share_tripwire": {"pairs": {}, "population": 2,
+                                      "scanned": 2, "draws": 4,
+                                      "fire_at": 0.05, "key_current": True}}
+    assert not faults_in_group_share(count, draws=4, covered=True)
+    for target in (Namespace(city=None, year="2026"),
+                   Namespace(city=Namespace(slug=""), year="2026")):
+        try:
+            M.record_city_slug(target)
+        except SystemExit as exc:
+            assert "no city slug" in str(exc)
+        else:
+            raise AssertionError(f"{target!r} was looked up")
+    assert M.record_city_slug(
+        cityconfig.Target(city=cityconfig.load("joburg"), year="2026")) == "joburg"
 
 
 def test_the_guard_board_on_a_real_run_can_prove_it_looked():
     """Not "no guard fired" — "the guards were in a position to fire".
 
-    Three counters are denominators rather than events: `bounds_checked` is
-    incremented once per draw, `ipf_balances` once per shocked draw and
+    Three counters are denominators rather than events: `draws` is the
+    run's draw count, `ipf_balances` once per shocked draw and
     `solve_calls` twice per draw. If any is zero, every rate on the board is
     0/0 and the silence of the event counters means nothing at all. This is the
     check `arrival_reconciliation` did not have.
@@ -1789,7 +2276,9 @@ def test_the_guard_board_on_a_real_run_can_prove_it_looked():
     payloads, _ = real_trace()
     guards = payloads["41_guards"]
     draws = len(payloads["44_seat_draws"])
-    assert guards["bounds_checked"] == draws, guards["bounds_checked"]
+    assert guards["draws"] == draws, guards["draws"]
+    assert all(n <= draws for n in guards["bounds_checked"].values()), \
+        guards["bounds_checked"]
     assert guards["ipf_balances"] > 0, (
         "no IPF balance was attempted, so the level shock never reached the "
         "pools in any draw and every ipf_* counter below is vacuous")
@@ -1809,8 +2298,153 @@ def test_the_real_boards_counters_are_bounded_by_the_real_draws():
     guards = payloads["41_guards"]
     for counter, denom in GUARD_DENOMINATORS.items():
         for party, n in sorted(guards[counter].items()):
-            assert n <= guards[denom], (counter, party, n, guards[denom])
+            d = guards[denom]
+            d = d.get(party, 0) if isinstance(d, dict) else d  # per party
+            assert n <= d, (counter, party, n, d)
+    assert all(n <= guards["draws"] for n in guards["bounds_checked"].values())
+
+
+def test_bounds_checked_covers_exactly_the_declared_ranges_in_the_run():
+    """M2 review S4. With `bounds_checked` per party and out of the denominator
+    keys, an empty board would pass. So its population is pinned: the run
+    records every declared §3.5 range (`cityconfig` `plan_bounds`) that is in
+    its universe, with the drawn base, as `41_guards.bounds_base`; the
+    checked parties are the ones above the run's base cut, each checked in
+    every draw. The ranges are read from the city's config and compared with
+    the ones the model holds, so a run where `apply_city` never ran is told
+    apart from a city that declares none.
+
+    The bases are the run's own record (one definition, M3): this test no
+    longer rebuilds "pre-seed baseline plus seed" outside the run, which could
+    not see an item-8 entrant's baseline at all.
+    """
+    payloads, run = real_trace()
+    guards = payloads["41_guards"]
+    declared = cityconfig.load("joburg").plan_bounds
+    assert dict(M.PLAN_BOUNDS) == dict(declared), (
+        "the model's §3.5 ranges are not the city's declared ones: apply_city "
+        "did not run, and bounds_checked would be empty for that reason")
+    base = guards["bounds_base"]
+    assert set(base) == set(declared) & set(run.universe), (
+        sorted(base), sorted(set(declared) & set(run.universe)))
+    assert set(guards["bounds_checked"]) <= set(base)
+    assert guards["bounds_checked"], (
+        "no declared range reaches this run: the check saw nothing")
+    unchecked = set(base) - set(guards["bounds_checked"])
+    assert all(base[p] > base[q] for p in guards["bounds_checked"]
+               for q in unchecked), (base, sorted(guards["bounds_checked"]))
+    assert all(n == guards["draws"] for n in guards["bounds_checked"].values())
     assert sum(guards["overhang_count"].values()) >= guards["excessive_draws"]
+
+
+def test_the_bounds_population_is_one_cut_on_the_recorded_base():
+    """The constructed side of S4: a board that checks a party outside
+    `bounds_base`, or skips a larger party while checking a smaller one, is
+    caught; the healthy board passes; each reverted, quiet."""
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)
+    stray = dict(healthy_guards(), bounds_checked={"AAA": DRAWS, "ZZZ": DRAWS})
+    assert any("outside bounds_base" in f
+               for f in faults_in_guards(stray, draws=DRAWS))
+    skipped = dict(healthy_guards(), bounds_base={"AAA": 0.20, "BBB": 0.30})
+    assert any("not one cut" in f
+               for f in faults_in_guards(skipped, draws=DRAWS))
+    assert not faults_in_guards(healthy_guards(), draws=DRAWS)   # reverted
+
+
+def test_the_group_share_tripwire_can_see_and_goes_quiet():
+    """G14, constructed (BRIEF item 12). A party at record + margin + 0.1 in
+    half the draws fires; the same party at its record is quiet; no record
+    is reported as "no record", never as a threshold of zero; and the run's
+    predicate passes both payloads it builds."""
+    draws = 40
+    record = {"record": {"G1": {"AAA": 0.20}}, "margin": {"G1": 0.10},
+              "key_current": True}
+    over = np.full((draws, 2), 0.0)
+    over[:, 0] = 0.20
+    over[: draws // 2, 0] = 0.20 + 0.10 + 0.10
+    over[:, 1] = 1.0 - over[:, 0]
+    out = M.group_share_tripwire({"G1": over}, {"G1": ["AAA", "BBB"]},
+                                 record, draws)
+    assert out["population"] == out["scanned"] == 2
+    assert out["pairs"]["AAA|G1"]["draws"] == draws // 2
+    assert abs(out["pairs"]["AAA|G1"]["threshold"] - 0.30) < 1e-12
+    assert not faults_in_group_share({"group_share_tripwire": out},
+                                     draws=draws)
+    at = np.array(over, copy=True)
+    at[:, 0] = 0.20
+    at[:, 1] = 0.80
+    quiet = M.group_share_tripwire({"G1": at}, {"G1": ["AAA", "BBB"]},
+                                   dict(record, record={"G1": {"AAA": 0.20,
+                                                               "BBB": 0.80}}),
+                                   draws)
+    assert quiet["pairs"] == {}, quiet
+    assert M.group_share_tripwire({"G1": over}, {"G1": ["AAA", "BBB"]},
+                                  None, draws) == "no record"
+
+
+def test_the_group_share_tripwire_scans_every_member_of_a_real_run():
+    """G14, in-process at Johannesburg 2026, 200 draws, with a constructed
+    record handed to the run (`read_group_share_record` patched; the real
+    artefact is the window's to emit). `population` equals the count of
+    positive member weights in the spec among the run's parties, and equals
+    `scanned`. With every record at 1.0 nothing fires; with every record and
+    margin at 0, the pairs that fire are pool members."""
+    spec_path = ROOT / "data" / "processed" / "pools_2026.json"
+    if not spec_path.exists():
+        skip(f"{spec_path} is not on disk")
+    spec = json.loads(spec_path.read_text())
+    real = M.read_group_share_record
+    runs = {}
+    try:
+        for label, value in (("high", 1.0), ("zero", 0.0)):
+            def fake(slug, year, _v=value):
+                return {"record": {g: {p: _v for p in cfg["members"]}
+                                   for g, cfg in spec["pools"].items()},
+                        "margin": {g: 0.0 for g in spec["pools"]},
+                        "key_current": True}
+            M.read_group_share_record = fake
+            city = cityconfig.use("joburg")
+            target = cityconfig.use_target("2026")
+            M.apply_city(city)
+            scenario = M.load_scenario(Namespace(
+                config=None, set=["draws=200", "seed=20260913"],
+                counterfactual=False, draws=200, seed=20260913))
+            runs[label] = M.run_model(target, scenario, verbose=False)
+    finally:
+        M.read_group_share_record = real
+        cityconfig.use("joburg")
+    universe = set(runs["high"].universe)
+    expected = sum(1 for cfg in spec["pools"].values()
+                   for p, w in cfg["members"].items()
+                   if p in universe and float(w) > 0)
+    high = runs["high"].guards["group_share_tripwire"]
+    zero = runs["zero"].guards["group_share_tripwire"]
+    assert high["population"] == high["scanned"] == expected, (high, expected)
+    assert high["pairs"] == {}, sorted(high["pairs"])[:5]
+    assert zero["pairs"], "a zero threshold fired on nobody: the count is blind"
+    members = {(p, g) for g, cfg in spec["pools"].items()
+               for p in cfg["members"]}
+    assert all(tuple(k.split("|")) in members for k in zero["pairs"])
+    assert not faults_in_group_share(runs["zero"].guards, draws=200,
+                                     universe=universe)
+
+
+def test_the_site_build_prints_one_line_per_firing_pair():
+    """Item 12's reporting half: `build_site.group_share_lines` prints a head
+    line and one line per reported pair, says "no record" and "stale" when
+    they hold, and says when a summary predates the tripwire."""
+    import build_site
+    blob = {"guards": {"group_share_tripwire": {
+        "pairs": {"PA|Coloured": {"draws": 30, "share": 0.6, "threshold": 0.8},
+                  "AAA|G1": {"draws": 10, "share": 0.2, "threshold": 0.1}},
+        "population": 9, "scanned": 9, "draws": 50, "fire_at": 0.05,
+        "key_current": False}}}
+    lines = build_site.group_share_lines(blob)
+    assert len(lines) == 3 and "2 of 9" in lines[0] and "STALE" in lines[0]
+    assert "PA|Coloured" in lines[1]
+    assert "no record" in build_site.group_share_lines(
+        {"guards": {"group_share_tripwire": "no record"}})[0]
+    assert "before" in build_site.group_share_lines({})[0]
 
 
 def test_the_real_seat_draws_fill_a_lawful_chamber():
@@ -1886,10 +2520,13 @@ def test_the_real_trace_names_a_tie_rate_rather_than_assuming_there_is_none():
     `deduct` round), and the population it scanned is asserted so the answer
     "no ties" cannot come from having looked at nothing.
 
-    MEASURED, joburg 2021, 400 draws, seed 12345: three allocations hit an
-    exact tie at the cut (ATM/UNITED_CULTURAL_MOVEMENT twice at 3,409 combined
-    votes, UIM/ALJAMAAH once at 4,371), and reversing the key order moved a
-    seat in one draw of the four hundred. It is rare here and it is not rare
+    MEASURED, joburg 2021, 400 draws, seed 12345, under the float key before
+    2026-10-09: three allocations hit an exact tie at the cut
+    (ATM/UNITED_CULTURAL_MOVEMENT twice at 3,409 combined votes, UIM/ALJAMAAH
+    once at 4,371), and reversing the key order moved a seat in one draw of
+    the four hundred. Each such tie is now drawn by the seeded lot under the
+    draw's key; the count under the integer surplus is TO-MEASURE (printed
+    below on each run). It is rare here and it is not rare
     everywhere: a sibling reference that gives identically-reached parties
     identical shares manufactures whole GROUPS of exact ties.
     """

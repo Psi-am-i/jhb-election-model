@@ -38,13 +38,15 @@ tolerance the unbounded balance is held to.
 
 from __future__ import annotations
 
+import contextlib
+import io
 import sys
 from pathlib import Path
 
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _support import ROOT, skip, run_module  # noqa: E402
+from _support import ROOT, run_module, scanned, skip  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -586,6 +588,31 @@ def test_the_registration_bound_is_per_level():
         "Mangaung 2016 reports no rate on a bound. Its Indian/Asian pool has "
         "3,531 registered voters and a fitted turnout of exactly 0.0000; if "
         "nothing is reported, the detector has stopped seeing it.")
+
+
+# --------------------------------------------------------------------------
+# RETIRED 2026-10-14 WITH THE CENSUS HOLD, FOR THE NEXT ROUND (model round
+# step 9; owner decision 1 after step 8, audits/2026-10-11-model-round/PLAN.md;
+# MODEL-LOG §1.301 and §1.302). Three tests asserted the identification hold
+# (`pools.IDENTIFICATION_REACH`, `pools.registration_split`), which is reverted
+# to the `REGISTRATION_MAX` bound (JUDGEMENT-CALLS §L9 reinstated, §L15
+# withdrawn):
+#
+#   test_an_identified_pools_split_does_not_carry_its_census_level   (K1)
+#   test_the_identification_hold_holds_an_unidentifiable_pool_and_no_other
+#   test_the_held_registration_set_is_the_unidentifiable_indian_asian_pools (K7)
+#
+# They tested a mechanism that no longer exists, so they are removed, not
+# weakened; their text is at c2edc60 and cc7500e. WHY THE HOLD WAS WITHDRAWN:
+# prereg K1 was falsified on the live fits (scorer B, §1.301). The held pool
+# takes `pools._uninformed_rate(A, b) = b.sum() / A.sum()`, a rate summed over
+# EVERY pool, so scaling any identified pool's census level moves the held
+# rate and the identified pools are refitted around it (0.46-1.13pp at the
+# nine fits holding a pool; 7.0pp where the scaling flips the held set). The
+# constructed K1 test above held no pool and could not see it. A next-round
+# hold needs a held rate that does not read the other pools' census levels,
+# and its K1 test must hold a pool.
+# --------------------------------------------------------------------------
 
 
 # --------------------------------------------------------------------------

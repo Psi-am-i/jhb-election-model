@@ -184,29 +184,14 @@ def test_no_emitted_turnout_band_is_one_sided():
     assert checked, "no emitted pool spec found"
 
 
-def test_no_arrival_band_has_zero_width():
-    """(min, median, max) of ONE observation is a band of zero width.
+def test_a_splinter_fraction_never_exceeds_its_parent():
+    """A splinter takes at most 1.0 of its parent's vote.
 
-    Seven of eight metros were in that state at target 2021, so the model was
-    asserting an arrival's size was known exactly. ActionSA then took 19 of
-    Tshwane's 214 seats against a band of 0.4%-0.4%.
+    This test also asserted that no emitted arrival band had zero width. That
+    half was deleted 2026-10-09 with the band itself, which nothing drew from
+    (model correction batch, item 9; item9/FINDINGS.md Q5). `_band_from`
+    survives because its middle sizes a split.
     """
-    checked = 0
-    for path, spec in _emitted_specs():
-        for party, band in (spec.get("seed_bands") or {}).items():
-            lo, mid, hi = band
-            assert hi > lo, (
-                f"{path.name}: {party}'s arrival band is [{lo}, {hi}] — zero "
-                f"width, so every other outcome has probability exactly zero")
-            checked += 1
-    if not checked:
-        skip("no seeded arrivals in any emitted spec")
-
-    # The 1.0 ceiling belongs to the SPLINTER FRACTION -- a share of the
-    # parent's vote -- and is asserted at that scale. The emitted `seed_bands`
-    # above are a different quantity: a multiplier on the party's seed, which
-    # can legitimately exceed 1 by a lot for a tiny seed. Conflating the two is
-    # how the first version of this test failed on a band of 44.3.
     lo, mid, hi, _ = PL._band_from([0.14, 0.16, 0.24, 0.61], "away",
                                    [0.005, 0.017, 0.14, 0.16, 0.24, 0.61])
     assert hi <= 1.0, (
@@ -218,8 +203,13 @@ def test_no_arrival_band_has_zero_width():
 
 def test_the_level_shock_has_unbounded_support():
     """A bounded draw gives probability zero to things that have happened."""
-    rng = np.random.default_rng(0)
-    draws = M.log_shock(rng, 0.3, size=20000)
+    # The keyed primitives (design 1c): z from `level.z`, the chi-square half
+    # from `level.chi` at shape df/2, df passed explicitly.
+    st = M.DrawStreams("regressions|shock|0", 20000)
+    z = np.array([st.normals("level.z", "X", d)[0] for d in range(20000)])
+    chi = np.array([st.log_gamma("level.chi", ("X",), [M.LEVEL_DF / 2], d)[0]
+                    for d in range(20000)])
+    draws = M.log_shock(0.3, z, chi, M.LEVEL_DF)
     assert draws.max() / draws.mean() > 3.0, (
         "the level shock has no tail: a party trebling should be unlikely, not "
         "impossible. Al Jama-ah won a 2016 seat with 0 of 500 draws non-zero.")

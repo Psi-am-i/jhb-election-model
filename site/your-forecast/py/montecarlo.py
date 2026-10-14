@@ -85,8 +85,8 @@ import numpy as np
 import cityconfig
 import coalitions
 from fold import FOLDS, citywide, load, load_parameters, shares
-from seats import (INDEPENDENT, allocate, eligible_parties,
-                   outside_pool_wards)
+from seats import (INDEPENDENT, TieWithoutLot, allocate, draw_key,
+                   eligible_parties, lot_identity, outside_pool_wards, seat_key)
 
 SHARE_FLOOR = 0.002
 COUNCIL = 270
@@ -3184,9 +3184,19 @@ OVERHANG_LEVEL_MAX_ROUNDS = 200
 
 def allocate_with_overhang(
     combined: dict[str, int], ward_wins: dict[str, int], rule: str = "deduct",
-    independent_wards: int = 0, no_pr_list_wards: int = 0
+    independent_wards: int = 0, no_pr_list_wards: int = 0, *,
+    lot: str | None = None,
 ) -> tuple[dict[str, int], int, int, dict[str, int]]:
     """Schedule 1 allocation with the excessive-seats treatment.
+
+    ``lot`` keys the seeded lot for an exact tie at the last seat
+    (``seats.allocate``): every ``allocate`` call here gets
+    ``seats.seat_key(lot, r)``, ``r`` counting the calls from 0. Round 0 is
+    the plain allocation, and the first ``deduct`` or ``level`` iteration
+    REUSES it rather than re-allocating the same council under round 1's key:
+    otherwise an exact tie could fall one way where the excess is measured and
+    the other way in the council returned (JUDGEMENT-CALLS §Q6). ``None``
+    passes ``None`` on, so a tie raises instead of falling to input order.
 
     ``rule`` must be one of :data:`OVERHANG_RULES` — ``deduct``, ``expand``,
     ``cap``, ``level`` — and anything else raises. It used to fall through to
@@ -3238,9 +3248,16 @@ def allocate_with_overhang(
             f"be counted excessive and then seated nowhere. `combined` is "
             f"`pr_votes + ward_votes`, so this means the two ballots disagree "
             f"about who stood. MODEL-LOG §1.97 F42.")
+    calls = [0]
+
+    def round_lot() -> str | None:
+        """The key for the next `allocate` call: round 0, 1, 2, ..."""
+        r, calls[0] = calls[0], calls[0] + 1
+        return None if lot is None else seat_key(lot, r)
+
     alloc = allocate(combined, total_seats=COUNCIL,
                      independent_wards=independent_wards,
-                     no_pr_list_wards=no_pr_list_wards)
+                     no_pr_list_wards=no_pr_list_wards, lot=round_lot())
     over = {p: ward_wins[p] - alloc.seats.get(p, 0)
             for p in ward_wins
             if ward_wins[p] > 0 and ward_wins[p] >= alloc.seats.get(p, 0)}
@@ -3254,9 +3271,13 @@ def allocate_with_overhang(
         total = COUNCIL
         for _round in range(OVERHANG_LEVEL_MAX_ROUNDS):
             try:
-                sub = allocate(combined, total_seats=total,
-                               independent_wards=independent_wards,
-                               no_pr_list_wards=no_pr_list_wards)
+                # the first iteration is round 0's council, already allocated
+                sub = alloc if total == COUNCIL else allocate(
+                    combined, total_seats=total,
+                    independent_wards=independent_wards,
+                    no_pr_list_wards=no_pr_list_wards, lot=round_lot())
+            except TieWithoutLot:
+                raise           # a missing key, not a council the votes cannot fill
             except ValueError as exc:
                 # THE RULE NAMES ITSELF. `allocate` fails when the council has
                 # grown large against the vote total, and its message names the
@@ -3300,10 +3321,12 @@ def allocate_with_overhang(
         # At least one party is fixed and removed per round, so the loop cannot
         # outlast the parties; the slack covers the final round that fixes none.
         for _round in range(len(combined) + OVERHANG_DEDUCT_MAX_ROUNDS_SLACK):
-            sub = allocate(votes,
-                           total_seats=COUNCIL - sum(fixed.values()),
-                           independent_wards=independent_wards,
-                           no_pr_list_wards=no_pr_list_wards)
+            # the first iteration is round 0's council (nothing fixed yet), so
+            # it is reused rather than re-drawn under another key
+            sub = alloc if not fixed else allocate(
+                votes, total_seats=COUNCIL - sum(fixed.values()),
+                independent_wards=independent_wards,
+                no_pr_list_wards=no_pr_list_wards, lot=round_lot())
             newly = {p: ward_wins[p] for p in list(votes)
                      if ward_wins.get(p, 0) > 0
                      and ward_wins.get(p, 0) >= sub.seats.get(p, 0)}
@@ -3546,6 +3569,15 @@ class ModelRun:
     # `cap_moved`, `bounds_violations` …) and those stay: they have consumers.
     # This is the whole board, including the ones that had no route out.
     guards: dict = field(default_factory=dict)
+    # The run's identity for the seeded lot (`seats.lot_identity`: city,
+    # target, seed; no party name). An exact tie at the last seat inside draw
+    # `d` is drawn under `seat_key(draw_key(lot, d), round)`, a tied ward call
+    # under `ward_key(lot, ward)`; every reduction of this run that calls a
+    # ward or seats a prediction keys its lot from here. JUDGEMENT-CALLS §Q2,
+    # §Q6. Defaulted only because the dataclass fields before it are;
+    # `run_model` always sets it, and the empty default builds no key: every
+    # key builder in `seats` refuses it.
+    lot: str = ""
 
     @property
     def draws(self) -> int:
@@ -4034,6 +4066,8 @@ def run_model(target, scenario: dict,
                 f"--target {target.year} --emit")
 
     rng = np.random.default_rng(scenario["seed"])
+    # The seeded lot's identity for this run (`ModelRun.lot`). No party enters it.
+    run_lot = lot_identity(target.city.slug, str(target.year), scenario["seed"])
 
     # --- baseline: the last national election before the target --------------
     base_votes, _ = load(data_dir / target.results(target.previous_npe), None)
@@ -5268,7 +5302,8 @@ def run_model(target, scenario: dict,
         c_wards, d_wards, pool_wins = outside_pool_wards(dict(wins), combined)
         seats, council, threshold, over = allocate_with_overhang(
             combined, pool_wins, scenario["overhang_rule"],
-            independent_wards=c_wards, no_pr_list_wards=d_wards)
+            independent_wards=c_wards, no_pr_list_wards=d_wards,
+            lot=draw_key(run_lot, d))
 
         seat_draws.append(seats)
         over_draws.append(frozenset(over))
@@ -5394,7 +5429,23 @@ def run_model(target, scenario: dict,
         pool_turnout_draws=pool_turnout_draws,
         pool_turnout_names=_turnout_pools,
         roster_state=_roster_state, roster_size=len(_roster),
-        roster_dropped=sorted(_roster_dropped), guards=dict(guards))
+        roster_dropped=sorted(_roster_dropped), guards=dict(guards),
+        lot=run_lot)
+
+
+def published_ward_winner(counts, universe, lot: str, ward) -> str:
+    """The winner column of ``ward_winner_probs.csv`` for one ward: rule A's
+    call on the ward's count of simulations (``prediction.top_party``), a tie
+    drawn by the seeded lot under ``seats.ward_key(lot, ward)``
+    (JUDGEMENT-CALLS §Q2). It was ``universe[argsort(-counts)[0]]``, an
+    unstable sort, until 2026-10-09; the file's ``dist`` keeps that order for
+    display only. ``prediction`` is imported here, not at module level, so the
+    seat Worker's measured import closure of this module does not move."""
+    import prediction
+    from seats import ward_key
+    return prediction.top_party(
+        {universe[i]: int(c) for i, c in enumerate(counts) if c > 0},
+        lot=ward_key(lot, ward))
 
 
 # --------------------------------------------------------------------------
@@ -5627,9 +5678,12 @@ def main(argv: list[str] | None = None) -> int:
             dist = "|".join(
                 f"{universe[i]}:{_p_win(ward_winner_counts[wi, i]):.4f}"
                 for i in order if ward_winner_counts[wi, i] > 0)
+            winner = published_ward_winner(ward_winner_counts[wi], universe,
+                                           run.lot, w)
             writer.writerow([
-                w, universe[order[0]],
-                f"{_p_win(ward_winner_counts[wi, order[0]]):.4f}", dist])
+                w, winner,
+                f"{_p_win(ward_winner_counts[wi, universe.index(winner)]):.4f}",
+                dist])
 
     # Per-draw detail, so a scenario on the page can be traced to the draws that
     # produced it: every ward's winner in every draw, and each party's ward and

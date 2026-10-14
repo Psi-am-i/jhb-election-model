@@ -48,7 +48,8 @@ from _support import ROOT, run_module  # noqa: E402
 # A fixture is not coverage. `tests/test_drawer.py:410` had already recorded the
 # consequence: the goldens "did not move when §1.49 changed `theta_prior`: they
 # were not reaching it."
-MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
+MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "test_universal_draw",
+           "test_plausibility", "test_arms", "test_temporal",
            "test_chain",
            "test_delivery_proof",
            "test_standalone_modules",
@@ -62,7 +63,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            "test_freeze",
            "test_spine", "test_theta_prior", "test_ward_pr_ratios",
            "test_ward_parts", "test_solve_and_predict",
-           "test_blended_centres",
+           "test_blended_centres", "test_bye_value",
            "test_levers_are_live", "test_build_all", "test_stat_freshness",
            "test_publication_ledger", "test_published_page",
            # Added 2026-09-25: `render_home` shipped on 24 Sep with no test of
@@ -194,6 +195,11 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_temporal",
            # prediction is rule A from one function, and its guards see.
            # Constructed inputs only; runs no model and reads no data.
            "test_prediction_rule",
+           # Added 2026-10-09 with the model correction batch, slice M2 (G7):
+           # unopposed wards, scanned over every metro LGE file on disk.
+           "test_unopposed",
+           # Slice M2 (G8): the roster against the run's parties, both ways.
+           "test_roster_universe",
            # Added 2026-10-10 with the site release's share images
            # (audits/2026-10-09-site-batch/OG-IMPLEMENTATION-SPEC.md §6): one
            # site build into a temporary directory, then constructed inputs;

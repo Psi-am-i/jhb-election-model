@@ -212,16 +212,46 @@ def matching(detail, conditions) -> list[int]:
                    for p, op, n in conditions)]
 
 
-def modal_winners(winners, wards) -> dict[str, str]:
+def summary_lot(processed: Path) -> str:
+    """The published run's identity for the seeded lot (``seats.lot_identity``):
+    the active city and target (``cityconfig.target()``, which the caller has
+    pointed at ``processed``) and the seed in ``processed/forecast_summary.json``.
+    The same identity ``montecarlo.main`` gave the run that wrote these files
+    (``ModelRun.lot``). Refuses a summary with no seed: a lot cannot be named
+    without one, and a tie must not fall to whatever order the file has.
+
+    The city and target come from the configuration, not the summary, because
+    the summary's ``scenario`` does not record them."""
+    import json
+    import cityconfig
+    import seats
+    path = processed / "forecast_summary.json"
+    try:
+        seed = json.loads(path.read_text())["scenario"]["seed"]
+    except (OSError, KeyError, ValueError) as exc:
+        raise SystemExit(f"{path}: no scenario seed to name the run's lot "
+                         f"({exc!r}). JUDGEMENT-CALLS §Q2") from None
+    if seed is None:
+        raise SystemExit(f"{path}: the scenario seed is null, so the run's lot "
+                         f"cannot be named. JUDGEMENT-CALLS §Q2")
+    target = cityconfig.target()
+    return seats.lot_identity(target.city.slug, str(target.year), seed)
+
+
+def modal_winners(winners, wards, *, lot: str | None = None) -> dict[str, str]:
     """Each ward's party winning it in the most simulations, by rule A's call
-    (``prediction.top_party``: a tie to the code first in string order, where
-    ``Counter.most_common`` gave it to the party first seen)."""
+    (``prediction.top_party``: a tie drawn by the seeded lot under
+    ``seats.ward_key(lot, ward)``, ``lot`` being the run's identity,
+    :func:`summary_lot`; ``Counter.most_common`` gave a tie to the party first
+    seen, and from 2026-10-08 to 2026-10-09 the code first in string order)."""
     import prediction
     counts = {w: Counter() for w in wards}
     for row in winners.values():
         for w, p in row.items():
             counts[w][p] += 1
-    return {w: prediction.top_party(c) for w, c in counts.items()}
+    from seats import ward_key
+    return {w: prediction.top_party(c, lot=None if lot is None else ward_key(lot, w))
+            for w, c in counts.items()}
 
 
 def flips(winners, modal, draw) -> list[tuple[str, str, str]]:
@@ -264,7 +294,7 @@ def main(argv=None) -> int:
     n = len(detail)
     print(f"{len(hits)} of {n:,} simulations match "
           f"{' and '.join(''.join(map(str, c)) for c in conditions)}")
-    modal = modal_winners(winners, wards)
+    modal = modal_winners(winners, wards, lot=summary_lot(args.processed))
     for d in hits[:args.limit]:
         parties = sorted(detail[d].items(), key=lambda kv: -kv[1]["seats"])
         print(f"\n— simulation {d}")

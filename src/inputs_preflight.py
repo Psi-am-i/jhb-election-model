@@ -115,6 +115,9 @@ def _rows(city: str, target: str) -> list[dict]:
             age = (_dt.date.today() - _dt.date.fromisoformat(m.group(1))).days
     out.append({
         "input": f"{target} voters' roll (registration)", "level": REQUIRED,
+        # The model does not read the roll yet (using it is its own brief), so
+        # a snapshot in hand is "present", never "used" (BRIEF item 10).
+        "used": False,
         "ok": newest is not None and (age is not None and age <= SNAPSHOT_STALE_DAYS),
         "have": (f"{newest.name}, {age} days old" if newest and age is not None
                  else (newest.name if newest else "—")),
@@ -183,8 +186,12 @@ def main(argv=None) -> int:
     print(f"inputs for a {args.city} {args.target} forecast\n")
     bad = []
     for r in rows:
-        mark = "ok  " if r["ok"] else ("MISSING" if r["level"] == REQUIRED else "note")
+        unused = r["ok"] and r.get("used", True) is False
+        mark = ("present" if unused else "ok  ") if r["ok"] else (
+            "MISSING" if r["level"] == REQUIRED else "note")
         print(f"  [{mark:>7s}] {r['input']}")
+        if unused:
+            print("            the model does not read this input")
         print(f"            have: {r['have']}")
         print(f"            from: {r['source']}")
         if not r["ok"] or r["level"] == ADVISORY:

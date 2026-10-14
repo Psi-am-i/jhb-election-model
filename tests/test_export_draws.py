@@ -430,7 +430,7 @@ def test_the_vote_blocks_are_run_model_s_integers_and_rule_a_agrees():
     fixed hash seed that run_all.py sets."""
     import montecarlo as M
     import prediction
-    from seats import eligible_parties
+    from seats import eligible_parties, lot_identity
     if os.environ.get("PYTHONHASHSEED") != str(M.HASH_SEED):
         from _support import skip
         skip(f"PYTHONHASHSEED is {os.environ.get('PYTHONHASHSEED')!r}, not "
@@ -447,18 +447,22 @@ def test_the_vote_blocks_are_run_model_s_integers_and_rule_a_agrees():
     scanned(arrays["list_vote"].shape[0], of=40, low=1.0, high=1.0,
             what="draws compared", denominator="draws run")
 
+    # the run's identity for the seeded lot (ModelRun.lot), as the build names it
+    lot = lot_identity("joburg", "2026", seed)
     run_pred = prediction.rule_a(r["ward_winners"], r["universe"], r["wards"],
-                                 r["ward_votes"], r["list_votes"], r["universe"])
+                                 r["ward_votes"], r["list_votes"], r["universe"],
+                                 lot=lot)
 
     def served(list_block):
         return prediction.rule_a(arrays["ward_winner"], manifest["ward_parties"],
                                  cols["ward_winner"], arrays["ward_vote"],
-                                 list_block, cols["list_vote"])
+                                 list_block, cols["list_vote"], lot=lot)
     file_pred = served(arrays["list_vote"])
     assert file_pred == run_pred
     assert set(eligible_parties(file_pred["ward_votes"], file_pred["list_votes"])) == \
         set(eligible_parties(run_pred["ward_votes"], run_pred["list_votes"]))
-    assert prediction.seats_of(file_pred, M.COUNCIL) == prediction.seats_of(run_pred, M.COUNCIL)
+    assert prediction.seats_of(file_pred, M.COUNCIL, lot=lot) == \
+        prediction.seats_of(run_pred, M.COUNCIL, lot=lot)
 
     # it can see: the two largest list columns swapped
     means = arrays["list_vote"].astype(np.int64).mean(axis=0)
@@ -486,6 +490,37 @@ def test_the_manifest_carries_every_field_declares_requires_of_a_run():
     import cityconfig
     import freeze
     assert key["inputs"] == freeze.pool_artefact_keys(cityconfig.use("joburg"))
+    # and the strength judgements it ran with (step-6 item 3)
+    assert declares.manifest_judgements_lie(key) is None, \
+        declares.manifest_judgements_lie(key)
+
+
+def test_the_manifest_declares_the_judgements_and_a_forecast_must():
+    """Step-6 item 3, constructed (no export run): the manifest carries the
+    one strength-judgement hash the laws applied, laws that disagree are
+    refused, and `declares.manifest_judgements_lie` fails a forecast manifest
+    that declares none, passes it with the live hash, and passes a backtest
+    manifest with none."""
+    import montecarlo as M
+    sc = {k: M.DEFAULTS[k] for k in ("draw_law", "apply_judgements")}
+    live = M.live_judgements_sha("joburg", "2026", dict(M.DEFAULTS))
+    runs = {law: {"judgements_applied_sha": live} for law in E.LAWS}
+    assert E.judgements_declaration(runs) == live
+    try:
+        E.judgements_declaration(dict(runs, cap={"judgements_applied_sha": "0"}))
+    except SystemExit as exc:
+        assert "different strength judgements" in str(exc)
+    else:
+        raise AssertionError("laws with different judgements were accepted")
+    key = {"city": "joburg", "target": "2026", "config": {"deduct": sc},
+           "judgements_applied_sha": live}
+    assert declares.manifest_judgements_lie(key) is None
+    assert "declares no strength-judgement hash" in (
+        declares.manifest_judgements_lie(dict(key, judgements_applied_sha=None))
+        or "")
+    assert declares.manifest_judgements_lie(key) is None
+    assert declares.manifest_judgements_lie(
+        dict(key, target="2021", judgements_applied_sha=None)) is None
 
 
 def test_the_model_hash_is_the_model_s_import_closure_and_recomputes():
@@ -597,6 +632,142 @@ def test_votes_and_turnouts_are_what_the_model_drew():
         assert np.all((t[:, j] > lo) & (t[:, j] < hi)), name
         assert np.std(t[:, j]) > 0, name
 
+
+def test_the_reported_bye_weight_is_the_one_blended_centres_applied():
+    """G26 (BRIEF item 19). For every row of the real
+    ``byelection_party_deltas.csv``, the weight the index reports equals the
+    one ``blended_centres`` gave that party, carried every step the export
+    carries it: ``30_centres``' ``bye_weight`` in a run directory, read by
+    ``_bye_weight_from_trace``, put in the manifest by ``build``, written as
+    the published cell's ``manifest.json``, read back by ``write_index`` and
+    reported in ``index.json``'s ``byelection`` rows. Constructed sizes put
+    parties in both classes and constructed class weights (0.2, 0.7) differ,
+    so a report that ignored the class, or used a typed weight, would
+    disagree; a step that dropped the weight reports ``None``. Both
+    directions: every row but ``UNKNOWN`` is reported, and every weighed party
+    is a row. The runs are constructed (``_constructed_runs``); no model run.
+    """
+    import montecarlo as M
+    bye_path = PROCESSED / "byelection_party_deltas.csv"
+    with open(bye_path, encoding="utf-8", newline="") as fh:
+        rows = [r for r in csv.DictReader(fh)]
+    parties = [r["party"] for r in rows if r["party"] != "UNKNOWN"]
+    scanned(parties, of=rows, low=0.5, high=1.0, what="by-election rows "
+            "weighed", denominator="rows of byelection_party_deltas.csv")
+    bye = {r["party"]: (float(r["weight_sum"]), float(r["weighted_delta"]))
+           for r in rows if r["party"] != "UNKNOWN"}
+    base = {p: 0.05 for p in parties}
+    prior = {p: (0.004 if i % 2 else 0.05) for i, p in enumerate(parties)}
+    scenario = {"w_bye": None, "level_shrink": 0.0,
+                "spine_level": {p: 0.05 for p in parties},
+                "_bye_value": {"weights": {"under": 0.2, "at_or_over": 0.7}}}
+
+    class _Trace:
+        def __init__(self, root):
+            self.root = root
+
+        def put(self, name, value=None, **_kw):
+            (self.root / f"{name}.json").write_text(json.dumps(value))
+            return value
+
+    saved = M.PLAN_BOUNDS
+    M.PLAN_BOUNDS = {}
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            M.blended_centres(scenario, base, prior, bye, trace=_Trace(Path(tmp)))
+            carried = E._bye_weight_from_trace(Path(tmp))
+    finally:
+        M.PLAN_BOUNDS = saved
+    applied = scenario["_bye_weight"]
+    assert {applied[p]["class"] for p in applied} == {"under", "at_or_over"}
+    # through the export: build's manifest, the published cell's manifest.json
+    # on disk, and write_index's read of it
+    runs = _constructed_runs()
+    for run in runs.values():
+        run["bye_weight"] = carried
+    _blob, data = E.build(runs)
+    import cityconfig
+    city, target = cityconfig.active().slug, cityconfig.target().year
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = dict(data, artefact_key={
+                "config": {"deduct": {"w_bye": None}}, "overrides": [],
+                "code_sha256": "c", "draws": 6, "seed": 1,
+                "city": "joburg", "target": "2026"})
+            (root / "manifest.json").write_text(json.dumps(manifest))
+            index = E.write_index(root)
+            assert json.loads((root / "index.json").read_text()) == index
+    finally:
+        cityconfig.use(city)
+        cityconfig.use_target(target)
+    report = index["byelection"]
+    assert [r["party"] for r in report] == parties
+    assert set(applied) == set(parties)
+    for r in report:
+        assert r["class_weight"] == applied[r["party"]]["weight"], r
+        assert r["size_class"] == applied[r["party"]]["class"], r
+    # it can see: a report built from a weight the model did not apply differs
+    wrong = {p: {"weight": 0.4, "class": "under"} for p in carried}
+    assert any(r["class_weight"] != applied[r["party"]]["weight"]
+               for r in E.byelection_index(bye_path, wrong))
+
+
+
+def _cell_manifest(w_bye, bye_weight=None) -> dict:
+    """A constructed cell manifest: only the fields ``index_cell`` reads."""
+    m = {"artefact_key": {"config": {"deduct": {"w_bye": w_bye}},
+                          "overrides": [] if w_bye is None else [f"w_bye={w_bye}"],
+                          "code_sha256": "c", "draws": 10, "seed": 1}}
+    if bye_weight is not None:
+        m["bye_weight"] = bye_weight
+    return m
+
+
+def test_the_cells_order_and_compare_by_effective_weight_not_w_bye():
+    """Fix row 2 of the M4 review (BRIEF item 19). The published cell's
+    ``w_bye`` is ``None``; its weight is the per-party class weights in its
+    manifest's ``bye_weight``. On constructed manifests: the index orders the
+    cells by that effective weight, the published cell in the middle, and
+    ``build_play.bye_ends`` labels the override cells at either end by their
+    side of it. Three cases: class weights strictly inside (0.2, 0.7); every
+    class weight 0, which ties the published cell with the "not at all" cell;
+    every class weight 1, the tie at the other end. A cell exported before
+    item 19 (no ``bye_weight``, numeric ``w_bye``) is ordered by its
+    ``w_bye``. No file and no model run."""
+    import build_play
+    over = lambda w: {"A": {"weight": w, "class": "override"},  # noqa: E731
+                      "B": {"weight": w, "class": "override"}}
+    for under, at_or_over in ((0.2, 0.7), (0.0, 0.0), (1.0, 1.0)):
+        published = _cell_manifest(None, {
+            "A": {"weight": under, "class": "under"},
+            "B": {"weight": at_or_over, "class": "at_or_over"}})
+        # deliberately listed out of order
+        cells = [E.index_cell(_cell_manifest(1, over(1.0)), "w_bye-1"),
+                 E.index_cell(published, "."),
+                 E.index_cell(_cell_manifest(0, over(0.0)), "w_bye-0")]
+        assert cells[1]["w_bye"] is None
+        assert cells[1]["bye_weight_range"] == [min(under, at_or_over),
+                                                max(under, at_or_over)]
+        ordered = [c["path"] for c in E.order_bye_cells(cells)]
+        assert ordered == ["w_bye-0", ".", "w_bye-1"], (under, ordered)
+        ends = [(label, c["path"]) for label, c in
+                build_play.bye_ends(E.order_bye_cells(cells))]
+        assert ends == [("Fully", "w_bye-1"), ("Not at all", "w_bye-0")], ends
+    # an index written before item 19: no range, ordered by w_bye
+    old = [{"path": p, "w_bye": w} for p, w in
+           (("w_bye-1", 1), (".", 0.4), ("w_bye-0", 0))]
+    assert [c["path"] for c in E.order_bye_cells(old)] == ["w_bye-0", ".", "w_bye-1"]
+    assert E.bye_weight_range(None, 0.4) == [0.4, 0.4]
+    assert E.bye_weight_range({}, None) == [0.0, 0.0]
+    # it can see: ordering by w_bye, as before the fix, cannot order the
+    # published cell at all
+    try:
+        sorted(cells, key=lambda c: c["w_bye"])
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("w_bye ordered a cell whose w_bye is None")
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

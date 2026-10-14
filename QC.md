@@ -63,7 +63,7 @@ The stages, grouped by the segment that owns them:
 
     00_target · 01_scenario_in · 02_pools_artefact · 03_roster     inputs
     10_theta_prior · 20_spine · 30_centres                         estimation
-    40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws
+    35_widths · 40_draws · 41_guards · 42_pr_share_draws · 43_ward_share_draws
     42a_pr_vote_draws · 43a_ward_vote_draws
     44_seat_draws · 45_delivered                                   realisation
 
@@ -202,6 +202,21 @@ build–review–fix loops.
    and interactive JS, cards, wording, the build's page assembly) promotes on
    its tier's checks from step 3: the page modules, the interactive node
    tests by file and `yf_jump_check`. Never once per round.
+
+## 4c. Every round that moves the forecast gets an old-against-new report (owner, 2026-10-14)
+
+Before the owner decides on a round that moves forecast numbers, he gets one
+page that sets the published model beside the new one in plain terms: seats
+and their ranges, wards won, ward favourites on two maps, and each model's
+backtest as wards called right and seats given to the wrong party, marked
+better or worse. Vote-share points alone do not answer his question. Owner:
+"keep them for posterity and make them on each round of forecast moving
+changes."
+
+Each report is kept in `reports/model-changes/<date>/`, built by
+`reports/model-changes/build_report.py` (its docstring has the command and
+inputs). The round's own explanation (`lede.html`, `why.html`) is written by
+hand, with no internal labels, and is frozen once shown.
 
 ## 5. Every plan item names its completion predicate
 

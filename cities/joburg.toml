@@ -95,7 +95,9 @@ PA = [1.0, 2.2]
 ALJAMAAH = [0.8, 3.0]
 
 [judgements.scalars]
-w_bye = 0.4
+# `w_bye` left this table 2026-10-10: the by-election weight is derived per
+# size class (BRIEF item 19, JUDGEMENT-CALLS §A55); a typed 0.4 here would be
+# an override every run applied in silence.
 turnout_pattern_blend = 0.5
 turnout_blend_jitter = 0.25
 turnout_noise_sd = 0.08

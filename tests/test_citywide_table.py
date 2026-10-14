@@ -248,5 +248,43 @@ def _assert_refused(table, target):
     raise AssertionError("install accepted a table it should have refused")
 
 
+def test_a_renamed_column_refuses_instead_of_reading_as_an_empty_election():
+    """G11 (BRIEF item 10): `levels._citywide_and_roster` on a file whose
+    `Party_Votes` column is renamed stops the run; the same file with the
+    column restored returns shares. Constructed CSVs, written to a temp dir.
+
+    Until 2026-10-09 a missing column returned `{}`, which every caller reads
+    as an election in which nobody voted.
+    """
+    import tempfile
+    import levels
+
+    head = "Ward,VD_Number,BallotType,sPartyName,{col}\n"
+    body = "1,10,PR,AAA,30\n1,10,PR,BBB,10\n"
+    with tempfile.TemporaryDirectory() as tmp:
+        good = Path(tmp) / "good.csv"
+        bad = Path(tmp) / "bad.csv"
+        good.write_text(head.format(col="Party_Votes") + body)
+        bad.write_text(head.format(col="Votes") + body)
+        shares, roster = levels._citywide_and_roster(good)
+        assert shares and abs(sum(shares.values()) - 1.0) < 1e-12, shares
+        assert len(roster) == 2, roster
+        try:
+            levels._citywide_and_roster(bad)
+        except SystemExit as exc:
+            assert "renamed column" in str(exc), exc
+        else:
+            raise AssertionError("a renamed column returned shares")
+        # the row loop reads `sPartyName` first: renaming it refuses too
+        bad.write_text(head.format(col="Party_Votes").replace(
+            "sPartyName", "PartyName") + body)
+        try:
+            levels._citywide_and_roster(bad)
+        except SystemExit as exc:
+            assert "sPartyName" in str(exc), exc
+        else:
+            raise AssertionError("a renamed party column returned shares")
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

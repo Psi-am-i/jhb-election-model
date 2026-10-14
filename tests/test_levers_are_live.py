@@ -347,7 +347,48 @@ _NO_METRO_POLL_NULL = Null(
              "the harness has never swept them at.",
     reason=_NO_METRO_POLL)
 
+_INCUMBENT_ONLY = (
+    "the within-pool Dirichlet is the INCUMBENT draw law's, and the shipped law "
+    "is the universal draw (design 1j v4-L1, owner 2026-10-12), whose split is "
+    "the post-IPF centre with no Dirichlet and no mean floor. These levers are "
+    "read only under `draw_law=\"incumbent\"`, kept selectable for the "
+    "pre-registration's arm I; the `CONDITIONAL` entries measure them there.")
+
 EXPECTED_INERT: dict[tuple[str, str], Null] = {
+    **{("arrival_group_draw", year): Null(
+        cause="UNDELIVERED",
+        where="`make_drawer`: under draw_law='universal' the switch REFUSES "
+              "(SystemExit), since the arrival group's Dirichlet would widen "
+              "arrivals on top of the newness term δ; it runs only under "
+              "draw_law='incumbent'",
+        blocker="SWITCH", gate_check="incumbent_law_shipped_off",
+        evidence="DEFAULTS draw_law is 'universal'; the refusal is asserted by "
+                 "`_sweep_target` (REFUSED_UNDER_SHIPPED_LAW) with no model "
+                 "result read; measured open in CONDITIONAL",
+        reason="the arrival-group mechanism belongs to the incumbent law "
+               "(step-6 review item 5, 2026-10-12); " + _INCUMBENT_ONLY)
+       for year in ("2021", "2026")},
+    **{(lever, year): Null(
+        cause="UNDELIVERED",
+        where="`make_drawer`: the Dirichlet split runs only under "
+              "draw_law='incumbent'",
+        blocker="SWITCH", gate_check="incumbent_law_shipped_off",
+        evidence="DEFAULTS draw_law is 'universal'; checked with no model run",
+        reason=_INCUMBENT_ONLY)
+       for lever in ("dirichlet_floor", "dirichlet_scale")
+       for year in ("2021", "2026")},
+    **{("apply_judgements", year): Null(
+        cause="UNDELIVERED",
+        where="`montecarlo._apply_strength_judgements`: no strength entry "
+              "exists to apply (and a backtest ignores them by design)",
+        blocker="DATA", gate_check="no_strength_judgements",
+        evidence="no judgements file declares `support` or `overperform`; "
+                 "checked with no model run",
+        reason="strength judgements (design 1j v3 §11) are read at run time "
+               "and are number-neutral until the owner enters one. At 2021 "
+               "they would be ignored anyway: a backtest never applies a "
+               "judgement made after the election.")
+       for year in ("2021", "2026")},
     # The three generic-entrant levers, at the targets whose arrivals are
     # SEEDED BY NAME — which is not the same set as "whose ballot is known",
     # and the difference is the whole of the correction below.
@@ -437,67 +478,71 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
                  "3 contests) to 0.722 (EFF, 11 contests) against a typed "
                  "0.40, moving 2.005pp of centre across all parties. NOTE what "
                  "this does NOT establish: nothing scores which weighting is "
-                 "BETTER, because no backtest reaches the by-election channel.",
+                 "BETTER, because no backtest reaches the by-election channel.\n"
+                 "  ⛔ CORRECTED 2026-10-10, NOT REWRITTEN: the 2026 sentence "
+                 "above described the typed-0.40 model. Since item 19 (M4) the "
+                 "weight is derived per size class from `bye_value.json`, both "
+                 "class weights are 0, and the lever is inert at 2026 too — "
+                 "see `(\"bye_weight_mode\", \"2026\")` below.",
         reason=
         "the minimum-variance weight derived from the two estimates' own "
         "precisions, instead of a typed 0.40. Adopted as a LEVER rather than a "
         "default on 2026-08-28: switching it moves the published 2026 forecast "
         "and nothing can score it, so it is the owner's decision. §1.122"),
-    ("level_sd_default", "2021"): Null(
+    # ⛔ BOTH 2026 ENTRIES BELOW ARE A FACT ABOUT `bye_value.json`, NOT ABOUT
+    # THE LEVERS. Added 2026-10-10 (model correction batch, step 10; M4-SUMMARY,
+    # prereg P19). The by-election block is entered only when a party's weight
+    # is positive, and since item 19 that weight is its size class's derived
+    # weight. Both derive to 0, so the block never runs and neither lever is
+    # consulted. The day either class weight is positive the gate opens,
+    # `test_the_gate_named_by_every_excuse_is_actually_shut` goes red, and both
+    # levers must be re-measured.
+    ("bye_weight_mode", "2026"): Null(
         cause="UNDELIVERED",
-        where="`sd_for_party` is never called. `handled` is every party holding "
-              "membership of any pool, `pools.emit_pools` gives every baseline "
-              "party a vector, so the `individual` list the fallback serves is "
-              "EMPTY — the fallback is not merely unused, its consumer does not "
-              "run",
+        where="`if party in bye and w > 0` in `blended_centres` — `w` is the "
+              "party's size-class weight from `bye_value.json`, both classes "
+              "derive to 0, so the block `bye_weight_mode` chooses a weight "
+              "INSIDE is never entered",
         blocker="DATA",
-        gate_check="level_sd_fallback_never_binds",
-        evidence="measured 2026-08-27 against the base run and the emitted "
-                 "spec: every party in the run's index is a pool member, at "
-                 "both targets (56 of 56 at 2021, 44 of 44 at 2026), so "
-                 "`individual` is empty at both.\n"
-                 "  **THE REASON BELOW IS WRONG AND IS KEPT AS WRITTEN.** It "
-                 "says `levels.theta_prior` returns an sd for EVERY party in "
-                 "the baseline. At 2021 it does not: 33 of the 56 parties in "
-                 "the index have no measured sd — ActionSA among them — so if "
-                 "the individual path ever ran, this fallback would bind for a "
-                 "third of the ballot at 1.60 instead of 0.45. The null is "
-                 "real; the stated cause of it is not, and the entry has been "
-                 "right by luck since 2026-08-20. Corrected here rather than "
-                 "silently rewritten, per `_LEGACY_POLL`. At 2026 the second "
-                 "consumer (`_sd.get(party, default)` in the poll blend) does "
-                 "run, and every party it reaches has a measured sd.",
+        gate_check="bye_class_weights_zero",
+        evidence="both class weights in `bye_value.json` are 0 (MODEL-LOG "
+                 "§1.295; JUDGEMENT-CALLS §A55); checked by "
+                 "`GATES['bye_class_weights_zero']`, no model run. A `w_bye` "
+                 "override bypasses the derived weight and would open the "
+                 "block; that is `w_bye`'s own sweep, not this lever's. NOTE "
+                 "what this does NOT establish: what `inverse_variance` would "
+                 "do at a positive weight, which nothing here measures.",
         reason=
-        "the fallback level spread for a party with no measured sd(log theta), "
-        "and `levels.theta_prior` returns an `sd` for EVERY party in the "
-        "baseline — so `sd_for_party` takes the measured branch every time and "
-        "the default never binds. JUDGEMENT-CALLS.md predicted exactly this "
-        "('binds only on parties outside it') before there was a test to show "
-        "it. **It was also not a DEFAULTS key at all until 2026-08-20**, so it "
-        "was frozen at 0.45 and unreachable; the register's own instruction was "
-        "'either measure it or promote it', and it is now promoted. Inert is "
-        "the honest reading and not a defect: a fallback that never fires is "
-        "what you want, and the value only matters if the baseline ever stops "
-        "covering the ballot. MODEL-LOG §1.63."),
-    ("level_sd_default", "2026"): Null(
+        "the by-election evidence earns no weight in either size class "
+        "(item 19's out-of-sample test), so there is no weight for this lever "
+        "to re-derive. Inert while both class weights are 0."),
+    ("BYE_MIN_WEIGHT", "2026"): Null(
         cause="UNDELIVERED",
-        where="both consumers are unreachable: `sd_for_party` sees only the "
-              "`individual` path, which is empty (every index party is a pool "
-              "member), and the poll blend's `_sd.get(party, default)` runs "
-              "only when `poll_paths == 'all'` — it has been 'off' since "
-              "2026-09-12",
+        where="`if party in bye and w > 0` in `blended_centres` — the "
+              "`weight_sum >= BYE_MIN_WEIGHT` test sits inside that block, "
+              "and both size-class weights in `bye_value.json` derive to 0, so "
+              "it is never evaluated",
         blocker="DATA",
-        gate_check="level_sd_fallback_never_binds",
-        evidence="2026-09-17 suite: perturbed to 1.60 at 2026 nothing moved, "
-                 "although 44 parties on the certified ballot have no measured "
-                 "sd. The gate reported them EXPOSED because it asked whether a "
-                 "metro poll exists rather than whether polls are on; fixed in "
-                 "`_gate_no_metro_poll` the same day. Removing this entry on the "
-                 "gate's word, before measuring, was a mistake — restored with "
-                 "the measured reason.",
-        reason="a fallback no consumer can reach; it binds again the day polls "
-               "are switched back on, for the 44 unmeasured 2026 parties. "
-               "JUDGEMENT-CALLS §A29."),
+        gate_check="bye_class_weights_zero",
+        evidence="both class weights in `bye_value.json` are 0 (MODEL-LOG "
+                 "§1.295; JUDGEMENT-CALLS §A55); checked by "
+                 "`GATES['bye_class_weights_zero']`, no model run. Swept "
+                 "through `MODULE_PERTURB` (it is a module constant, not a "
+                 "DEFAULTS key), which consults this entry by its bare name. "
+                 "NOTE what this does NOT establish: what the threshold is "
+                 "worth at a positive weight.",
+        reason=
+        "a minimum on a party's by-election evidence before it is used, inside "
+        "a block that runs only for a positive weight. Inert while both class "
+        "weights are 0."),
+    # `level_sd_default` (DELETED 2026-10-09 after item 17 made it bind
+    # nowhere, M3 review row 7) was excused here as inert at 2021 and 2026 until
+    # 2026-10-09. Item 8 of the model correction batch made it bind in the
+    # draws (the roster parties whose only record is the previous LGE take it,
+    # JUDGEMENT-CALLS §A29), and this harness then measured it live at both
+    # targets, so both entries and their gate (`level_sd_fallback_never_binds`)
+    # were deleted. The gate's premise was also wrong: `sd_for_party` serves
+    # every pool member's shock in `make_drawer`, not only the individual path.
     ("poll_house_k", "2021"): _NO_METRO_POLL_NULL,
     ("poll_house_k", "2026"): Null(
         cause="UNDELIVERED",
@@ -774,14 +819,20 @@ DELIBERATELY_UNUSED: dict[str, str] = {
         "BLEND_W is 1.0, so it is currently `uniform-swing` exactly — kept "
         "runnable so the measurement that put it there stays repeatable, and "
         "deliberately NOT printed as a fourth baseline column. MODEL-LOG §1.57.",
-    "width_budget.py:_no_pool_turnout(rng)":
+    "width_budget.py:_no_pool_turnout(z_own)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
     "width_budget.py:_no_pool_turnout(z_common)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
     "width_budget.py:_no_pool_turnout(rho)":
         "an ABLATION STUB. `src/width_budget.py` measures what each variance source contributes by replacing it with a version that has none, and a replacement must present the signature of the thing it replaces or `montecarlo` cannot call it. Ignoring this argument IS the measurement. MODEL-LOG §1.48.",
-    "width_budget.py:_no_shock(rng)":
-        "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
+    "width_budget.py:_no_shock(sd)":
+        "the same, for the theta level shock, which returns ones in the shape of `z`. Since the keyed streams (design 1c) the primitives are read by the drawer before this transform, so skipping it moves no other stream.",
+    "width_budget.py:_no_shock(log_chi)":
+        "the same, for the theta level shock, which returns ones in the shape of `z`. Since the keyed streams (design 1c) the primitives are read by the drawer before this transform, so skipping it moves no other stream.",
+    "width_budget.py:_mean_split(log_g)":
+        "the Dirichlet ablation stub patched over `montecarlo.pool_split`: it returns the Dirichlet's MEAN from the concentration vector, so the drawn gammas it is handed are ignored by design. Same signature as what it replaces.",
+    "montecarlo.py:pool_split(alpha)":
+        "the NAMED PATCH POINT of design 1c §2.5: `alpha` is the concentration the drawer drew the gammas at, unread by the split itself (normalising independent gammas IS the Dirichlet) and read by `width_budget._mean_split`, which replaces this function by the Dirichlet's mean.",
     "width_budget.py:_no_shock(df)":
         "the same, for the theta level shock, which returns 1.0. NOTE that it therefore consumes no randomness -- which is exactly why the harness averages five seeds: an ablation that skips a draw shifts every later draw, and the first run of it reported negative variance contributions because of that.",
     "levels.py:sd_raw(size)":
@@ -837,12 +888,19 @@ STATUTORY: dict[str, str] = {
 RUNTIME_INJECTED: dict[str, str] = {
     "theta_prior": "written by run_model from levels.theta_prior",
     "pool_seeds": "written by the seeding stage for the draw stage",
-    "pool_seed_bands": "the same, the bands beside the seeds",
     "pool_seed_notes": "the same, the reasons, for the verbose line and the trace",
     "spine_level": "written by run_model from levels.spine",
     "poll_levels": "written by the polling stage where a usable poll exists",
     "arrival_group": "read out of the emitted pool spec; None where the target "
                      "has no roster, which is every unheld election",
+    # Not written by a stage: set in-process by a diagnostic run, and kept out
+    # of `DEFAULTS` for the reason this table gives, more strongly -- it is
+    # not a number and moves no draw on a run that is allowed to happen, and
+    # being undeclared is what makes `--set`, a scenario file and a city file
+    # refuse it. `test_stage_inputs`' G10 tests prove those three refusals.
+    "allow_stale_pools": "the stale-pool-spec escape (item 10): a diagnostic "
+                         "run sets it to True in-process; run_model refuses a "
+                         "stale spec otherwise",
 }
 
 PERTURB: dict[str, object] = {
@@ -871,7 +929,6 @@ PERTURB: dict[str, object] = {
     "poll_drift_per_root_day": 0.02,   # opinion moving very fast
     "poll_min_n": 5000,           # admits nothing under 5,000 respondents
     "poll_half_life_days": 5.0,   # only the freshest wave counts
-    "level_sd_default": 1.60,     # was frozen at 0.45 and unreachable
     "contestation_expand": 1.0,   # every party in every ward
     "w_bye_local_ward": 0.90,
     "w_bye_local_pr": 0.90,
@@ -894,6 +951,14 @@ PERTURB: dict[str, object] = {
     # The dominant width lever (§1.48), sweepable since §1.55. 2.0 halves the
     # within-pool spread and moves everything; 1.0 is the fitted identity.
     "dirichlet_scale": 2.0,
+    # THE DRAW LAW (design 1j v4-L1, 2026-10-12): perturbed to the incumbent
+    # law, which must move every party's draw.
+    "draw_law": "incumbent",
+    # Strength judgements off: inert while no judgements file declares one
+    # (EXPECTED_INERT, gate `no_strength_judgements`).
+    "apply_judgements": False,
+    # The small-party centre correction (prereg arm UC), switched on.
+    "centre_correction": True,
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],
@@ -1138,6 +1203,16 @@ def _sweep_paired(year: str, base) -> list[str]:
     return dead
 
 
+# Levers whose perturbation the SHIPPED draw law refuses (step-6 review, item
+# 5). Each is excused in EXPECTED_INERT under the incumbent-law gate and
+# measured open in CONDITIONAL.
+REFUSED_UNDER_SHIPPED_LAW = {
+    "arrival_group_draw": "the arrival group's Dirichlet on top of the "
+                          "universal draw's newness term would widen arrivals "
+                          "twice (`make_drawer`)",
+}
+
+
 def _sweep_target(year: str) -> list[str]:
     base = _base(year)
     dead = _sweep_paired(year, base)
@@ -1146,7 +1221,23 @@ def _sweep_target(year: str) -> list[str]:
     # It then falls back to storing the raw STRING, and the model gets a
     # str where it expects a mapping — which is an AttributeError deep in
     # run_model rather than a clear failure here.
-    keys = [k for k, _v in sorted(PERTURB.items()) if k in M.DEFAULTS]
+    keys = [k for k, _v in sorted(PERTURB.items())
+            if k in M.DEFAULTS and k not in REFUSED_UNDER_SHIPPED_LAW]
+    # A key the shipped law REFUSES is not measured here: its perturbation
+    # must stop the run, and does or the refusal is gone. It is measured open
+    # under its own law by `CONDITIONAL`.
+    for key in sorted(REFUSED_UNDER_SHIPPED_LAW):
+        try:
+            _run(year, [f"{key}={json.dumps(PERTURB[key])}"])
+        except SystemExit as refusal:
+            # THE REFUSAL, not any SystemExit: a stale spec stops the run too,
+            # and would pass this check while the refusal was gone.
+            if f"{key} is on under draw_law" in str(refusal):
+                continue
+            raise
+        dead.append(f"{key} at {year}: the shipped draw law "
+                    f"{M.DEFAULTS['draw_law']!r} no longer refuses it — "
+                    f"{REFUSED_UNDER_SHIPPED_LAW[key]}")
     jobs = [(year, [f"{k}={json.dumps(PERTURB[k])}"], RESOLUTION.get((k, year)))
             for k in keys]
     results = _run_many(jobs)
@@ -1198,6 +1289,32 @@ def _gate_bye_deltas_absent(year: str) -> tuple[bool, str]:
     _, target = _joburg(year)
     path = target.processed / "byelection_party_deltas.csv"
     return not path.exists(), f"{path} {'exists' if path.exists() else 'absent'}"
+
+
+def _bye_class_weights_shut(path: Path) -> tuple[bool, str]:
+    """Shut iff `path` is a CURRENT `bye_value.json` whose class weights are all 0.
+
+    Read through `M.read_bye_value`, the reader `run_model` uses, so a file the
+    model would refuse (missing, stale key, malformed weights) is reported as
+    NOT shut: an absent or unreadable record is no evidence that the block is
+    skipped, and a gate that read it as shut would pass vacuously.
+    """
+    try:
+        weights = M.read_bye_value(path)["weights"]
+    except SystemExit as refusal:
+        return False, f"{path} is not a current record, so nothing is shown: {refusal}"
+    positive = {k: v for k, v in weights.items() if v > 0}
+    return not positive, (
+        f"{path.name} class weights {weights}"
+        + (f" — THE GATE IS OPEN: {positive} positive, so the by-election "
+           f"block runs" if positive else
+           ", so `if party in bye and w > 0` never fires"))
+
+
+def _gate_bye_class_weights_zero(year: str) -> tuple[bool, str]:
+    """Both derived by-election class weights are 0, so the by-election block
+    in `blended_centres` is never entered and nothing inside it is read."""
+    return _bye_class_weights_shut(M.bye_value_path())
 
 
 def _gate_bye_contest_detail_absent(year: str) -> tuple[bool, str]:
@@ -1275,41 +1392,6 @@ def _gate_polls_shipped_off(year: str) -> tuple[bool, str]:
         + ("" if shipped == "off" else " — THE GATE IS OPEN"))
 
 
-def _gate_level_sd_fallback_never_binds(year: str) -> tuple[bool, str]:
-    """No party can reach `sd_measured.get(party, sd_default)`'s second argument.
-
-    Two consumers, and the gate must be shut for both: `sd_for_party`, which
-    only sees parties on the `individual` path, and the poll blend's
-    `_sd.get(party, default)`, which only runs where a metro poll is admitted.
-
-    This is the one gate that needs the model. It reads the base run's index and
-    the base run's own trace — the measured sd(log θ) as the run actually had
-    it — rather than recomputing either, because a check that recomputes its
-    subject is checking its own arithmetic.
-    """
-    base = _base(year)
-    index = set(base[4])
-    _, target = _joburg(year)
-    spec = json.loads(_spec_path(target).read_text())
-    members = {p for cfg in spec["pools"].values() for p in cfg["members"]}
-    measured = set(_trace(year, "10_theta_prior").get("sd") or {})
-    # `handled` is exactly this, in make_drawer: a party in any pool.
-    individual = index - members - {"ENTRANT"}
-    exposed = individual - measured
-    detail = (f"{len(index)} parties in the index, {len(index & members)} of "
-              f"them pool members, so the individual path holds "
-              f"{len(individual)}")
-    if _gate_no_metro_poll(year)[0]:
-        detail += "; the poll blend does not run at this target"
-    else:
-        polled = index - {"ENTRANT"} - measured
-        exposed |= polled
-        detail += (f"; the poll blend runs and {len(polled)} of the index has "
-                   f"no measured sd")
-    return not exposed, detail + (f"; EXPOSED TO THE FALLBACK: {sorted(exposed)}"
-                                  if exposed else "")
-
-
 def _gate_arrivals_are_named(year: str) -> tuple[bool, str]:
     """The ballot is known and the arrivals are seeded BY NAME, so the generic
     slot is not in the universe and nothing that sizes it can move.
@@ -1341,24 +1423,52 @@ def _gate_arrivals_are_named(year: str) -> tuple[bool, str]:
         f"slot is the model's only arrival channel")
 
 
+def _gate_incumbent_law_shipped_off(year: str) -> tuple[bool, str]:
+    """The shipped draw law is "universal", so the incumbent law's own levers
+    (`dirichlet_floor`, `dirichlet_scale`: the within-pool Dirichlet) are read
+    by no run at any target, and `arrival_group_draw` is refused there. A claim about the configuration, true until the
+    default changes."""
+    shipped = M.DEFAULTS["draw_law"]
+    return shipped == "universal", (
+        f"DEFAULTS draw_law={shipped!r}"
+        + ("" if shipped == "universal" else " — THE GATE IS OPEN"))
+
+
+def _gate_no_strength_judgements(year: str) -> tuple[bool, str]:
+    """No `judgements/*.toml` file declares a strength (`support` or
+    `overperform`), so `apply_judgements` has nothing to switch (design v3
+    §11.2: number-neutral today). Read off the files; no model run."""
+    import tomllib
+    found = []
+    for f in sorted((ROOT / "judgements").glob("*.toml")):
+        table = (tomllib.loads(f.read_text()).get("party") or {})
+        found += [f"{f.name}:{p}" for p, body in table.items()
+                  if "support" in body or "overperform" in body]
+    return not found, (f"{len(list((ROOT / 'judgements').glob('*.toml')))} "
+                       f"judgements files; strength entries: {found or 'none'}"
+                       + (" — THE GATE IS OPEN" if found else ""))
+
+
 GATES = {
+    "incumbent_law_shipped_off": _gate_incumbent_law_shipped_off,
+    "no_strength_judgements": _gate_no_strength_judgements,
     "arrivals_are_named": _gate_arrivals_are_named,
     "bye_deltas_absent": _gate_bye_deltas_absent,
+    "bye_class_weights_zero": _gate_bye_class_weights_zero,
     "bye_contest_detail_absent": _gate_bye_contest_detail_absent,
     "no_metro_poll": _gate_no_metro_poll,
     "real_contestation_lists": _gate_real_contestation_lists,
     "sigma_two_term_shipped_on": _gate_sigma_two_term_shipped_on,
     "local_bye_weights_shipped_off": _gate_local_bye_weights_shipped_off,
     "polls_shipped_off": _gate_polls_shipped_off,
-    "level_sd_fallback_never_binds": _gate_level_sd_fallback_never_binds,
 }
 
-# Gates that need NO model run. Nine of the ten; only
-# `level_sd_fallback_never_binds` calls `_base`. An entry may only generalise
+# Gates that need NO model run: all of them since the one that called `_base`
+# was deleted (2026-10-09, see the level_sd_default note). An entry may only generalise
 # past its own target (`Null.claimed_targets`) if its gate is in here, because
 # the point of generalising cheaply is that the extra targets get CHECKED —
 # and a check that costs a run at every runnable target would not be made.
-MODEL_FREE_GATES = frozenset(GATES) - {"level_sd_fallback_never_binds"}
+MODEL_FREE_GATES = frozenset(GATES)
 
 # The gates whose evidence is the emitted pool spec. Both report a MISSING file
 # as a shut gate — correct for their own use (no spec, nothing to draw) and a
@@ -1435,6 +1545,21 @@ class Conditional:
 
 
 CONDITIONAL: dict[str, Conditional] = {
+    **{f"{lever}@{year}": Conditional(
+        key=lever, year=year, value=PERTURB[lever],
+        opens="incumbent_law_shipped_off",
+        gate_scenario=(("draw_law", "incumbent"),),
+        why="the incumbent law's within-pool Dirichlet, measured where it runs "
+            "(arm I of prereg/2026-10-12-universal-draw.md)")
+       for lever in ("dirichlet_floor", "dirichlet_scale")
+       for year in ("2021", "2026")},
+    **{f"arrival_group_draw@{year}": Conditional(
+        key="arrival_group_draw", year=year, value=PERTURB["arrival_group_draw"],
+        opens="incumbent_law_shipped_off",
+        gate_scenario=(("draw_law", "incumbent"),),
+        why="the arrival-group draw, measured under the law it belongs to "
+            "(the universal law refuses it)")
+       for year in ("2021", "2026")},
     "bye_local_cap@2026": Conditional(
         key="bye_local_cap", year="2026", value=40.0,
         opens="local_bye_weights_shipped_off",
@@ -1574,7 +1699,10 @@ def _sweep_conditional() -> list[str]:
 # 2026 alone, and the reason is not economy: at 2021 `BYE_MIN_WEIGHT` guards a
 # `bye` dict that is empty, so it would land straight back in EXPECTED_INERT as
 # another UNDELIVERED entry. Sweeping a constant where its evidence exists is
-# the whole lesson of this file.
+# the whole lesson of this file. Since 2026-10-10 it is inert at 2026 as well
+# (both derived by-election class weights are 0) and excused there by
+# `EXPECTED_INERT[("BYE_MIN_WEIGHT", "2026")]`; the sweep keeps it so that
+# the excuse is re-tested whenever the weights change.
 MODULE_PERTURB: tuple = (
     ("montecarlo", "LEVEL_DF", "2026", 2.5,
      "the t degrees of freedom on the level shock, and this project's founding "
@@ -1587,8 +1715,9 @@ MODULE_PERTURB: tuple = (
      "to theta entirely — so what it does at 25x is worth having measured."),
     ("montecarlo", "BYE_MIN_WEIGHT", "2026", 1.0,
      "how much by-election weight a party needs before its evidence is used at "
-     "all. It gates `w_bye`, which is 🔴 argued-not-tested, and nothing has "
-     "ever swept it."),
+     "all. It gates each party's by-election weight, which is its size "
+     "class's weight from bye_value.json (JUDGEMENT-CALLS §A55) unless "
+     "`w_bye` overrides it."),
     ("montecarlo", "TURNOUT_DRAW_CEILING", "2026", 0.50,
      "the ceiling on a drawn turnout. A guard that has gone blind reports "
      "exactly what a guard that never fires reports."),
@@ -1632,10 +1761,19 @@ def _sweep_module_constants() -> list[str]:
         base = _run(year, overrides) if gate else _base(year)
         with _patched(module, const, value):
             moved = _moves(base, _run(year, overrides))
-        if moved < 1e-9:
+        # The register is consulted both ways, as `_sweep_target` does, keyed
+        # by the constant's bare name: an excused null passes, and an excused
+        # constant that moves means the excuse has expired.
+        why = EXPECTED_INERT.get((const, year))
+        if moved < 1e-9 and why is None:
             where = f" with {overrides} held open" if gate else ""
             dead.append(f"{mod_name}.{const} at {year} (set to {value!r}{where}, "
                         f"nothing moved)")
+        elif moved >= 1e-9 and why is not None:
+            dead.append(f"{mod_name}.{const} IS live at {year} but "
+                        f"EXPECTED_INERT claims it is not: {why.code} — "
+                        f"{why.reason!r} — the register is now wrong, delete "
+                        f"the entry")
     return dead
 
 
@@ -2751,6 +2889,40 @@ def test_the_gate_named_by_every_excuse_is_actually_shut():
         f"delete it, or point an entry at it.")
 
 
+def test_the_bye_class_weight_gate_opens_on_a_positive_weight():
+    """`bye_class_weights_zero` can see: constructed records, no model run.
+
+    The gate excuses two levers at 2026. A gate that reported shut whatever
+    the record held would excuse them for ever, so it is shown three inputs:
+    every weight 0 (shut), one weight positive (open), and no file (not shut,
+    because an absent record shows nothing). The first two carry the live
+    artefact key, so they reach the weights rather than the stale-key refusal.
+    """
+    import byelections as _bye
+    key = _bye.bye_value_key((M.WARD_PR_RATIO_MIN, M.WARD_PR_RATIO_MAX))
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / _bye.BYE_VALUE
+
+        def write(weights):
+            path.write_text(json.dumps({"artefact_key": key, "weights": weights}),
+                            encoding="utf-8")
+
+        missing_shut, missing_detail = _bye_class_weights_shut(path)
+        write({cls: 0.0 for cls in _bye.SIZE_CLASSES})
+        zero_shut, zero_detail = _bye_class_weights_shut(path)
+        verdicts = {}
+        for cls in _bye.SIZE_CLASSES:
+            write({c: (0.3 if c == cls else 0.0) for c in _bye.SIZE_CLASSES})
+            verdicts[cls] = _bye_class_weights_shut(path)
+        write({cls: 0.0 for cls in _bye.SIZE_CLASSES})
+        reverted_shut, _ = _bye_class_weights_shut(path)
+    assert not missing_shut, f"a missing record reads as shut: {missing_detail}"
+    assert zero_shut, f"all-zero weights read as open: {zero_detail}"
+    for cls, (shut, detail) in verdicts.items():
+        assert not shut, f"a positive {cls!r} weight reads as shut: {detail}"
+    assert reverted_shut, "the gate did not go quiet when the weight reverted to 0"
+
+
 def test_no_undelivered_null_is_excused_without_opening_its_gate():
     """An UNDELIVERED entry is a DEFECT REPORT. Only INERT is an excuse.
 
@@ -3010,6 +3182,36 @@ def test_no_numeric_module_constant_is_reachable_only_as_a_default_argument():
           "and every null measured on it is UNDELIVERED. Resolve it at call "
           "time — `df = LEVEL_DF if df is None else float(df)` is the fix that "
           "was applied to the original.")
+
+
+# G17 (model correction batch 2026-10-09, item 9): the arrival band is deleted,
+# and nothing in `src/` may read it again. `pool_seed_bands` was exempt from
+# this module's register as RUNTIME_INJECTED, "not a lever", which is how a
+# dead artefact survived two rounds of repair (item9/FINDINGS.md Q5 row 14).
+DELETED_BAND_NAMES = ("pool_seed_bands", "seed_bands", "ARRIVAL_BAND_")
+
+
+def _band_readers(sources: dict[str, str]) -> dict[str, list[str]]:
+    """{file: [deleted band names it contains]} over the given sources."""
+    return {name: [n for n in DELETED_BAND_NAMES if n in text]
+            for name, text in sources.items()
+            if any(n in text for n in DELETED_BAND_NAMES)}
+
+
+def test_no_source_reads_the_deleted_arrival_band():
+    files = sorted((ROOT / "src").glob("*.py"))
+    sources = {f.name: f.read_text(encoding="utf-8") for f in files}
+    # It scanned the right thing, and all of it: every .py file in src/.
+    scanned(sources, of=files, low=1.0, high=1.0,
+            what="src/*.py files read", denominator="src/*.py files on disk")
+    assert not _band_readers(sources), _band_readers(sources)
+    # It can see: a constructed source naming each deleted name is caught...
+    for name in DELETED_BAND_NAMES:
+        planted = dict(sources, planted_py=f"x = scenario.get('{name}LO')\n")
+        hits = _band_readers(planted)
+        assert set(hits) == {"planted_py"} and name in hits["planted_py"], name
+    # ...and goes quiet when the plant is removed.
+    assert not _band_readers(sources)
 
 
 if __name__ == "__main__":

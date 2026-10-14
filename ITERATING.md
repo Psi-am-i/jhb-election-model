@@ -353,9 +353,10 @@ can size ActionSA**, so removing the information asymmetry does not rescue the
 comparison. What is left is not an information gap at all but the model's
 lineage layer, which is a claim about skill and about one hand-declared party
 in one city. MODEL-LOG §1.229; the measured figures, and the arbitrary
-tie-break band that two of them carry, live in
-`benchmarks.uniform_swing_roster` and `benchmarks.canonical_order` where they
-were taken. **The margin over the fair reference — not over plain uniform
+tie-break band that two of them carried under the name rule, live in
+`benchmarks.uniform_swing_roster` where they were taken (the name rule,
+`canonical_order`, was replaced by the seeded lot, `benchmarks.benchmark_lot`,
+on 2026-10-09). **The margin over the fair reference — not over plain uniform
 swing — is the number Key 1 should be read on from here.**
 
 ### Which scores may be compared across forecasters, and which may not
@@ -718,6 +719,18 @@ on the scoreboard; rule 11 still requires saying which validation loop a fit is
 in; and a change that is *materially* worse still does not ship, however
 elegant. The amendment widens what counts as better — it does not remove the
 requirement to measure.
+
+## Whole simulated elections are judged too (2026-10-12)
+
+`src/plausibility.py` judges each draw as a whole election against the real
+record of consecutive local elections before its target (design
+`audits/2026-10-11-model-round/step1/1h-plausibility-check-design.md`): how far
+the draws leave the record's envelope on each side, whether the real elections
+left it as often as the draws said, the randomised PIT, the joint count, and
+the party classes. **A plausibility failure is a judging criterion, and no
+parameter may be set from one**: every one of its quantities is a ratio against
+the model's own output, so fitting to it is tuning (CLAUDE.md §4). If a later
+round estimates a feature from the record, that feature leaves the check.
 
 ## What follows from that
 
@@ -1264,9 +1277,11 @@ NOW UNQUOTABLE.** Two separate faults, and they are worth separating:
   sections up was written about. It is a materially harder opponent than plain
   `uniform-swing`, so **the margin against the fair reference is much smaller
   than the margin against uniform swing** — read both from the run, and quote
-  the fair one. MODEL-LOG §1.229; the panel figures, the tie-break band on
-  them and the reason they must never be quoted without that band are in
-  `benchmarks.canonical_order`'s docstring, which is where they were measured.
+  the fair one. MODEL-LOG §1.229; the panel figures and the tie-break band
+  they carried under the name rule are in the history of
+  `benchmarks.canonical_order` (deleted 2026-10-09 for the seeded lot,
+  `benchmarks.benchmark_lot`); the seat the lot now decides is described in
+  `benchmarks.uniform_swing_roster`.
 
 The only question this file asks is whether the model predicts past elections
 better than the last version and better than the baselines. It does: **384

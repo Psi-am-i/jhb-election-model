@@ -23,6 +23,17 @@ Output: data/processed/interactive_data.json
 
 Usage:
     python src/export_interactive.py
+
+Who runs it: the `--interactive` step in `build_all.plan` ('interactive data
+pack'), as a subprocess. OPTIONAL and currently off by design: it feeds
+`build_interactive.py`, which refuses. ⚠️ ON NOTICE: the only thing that runs
+it is a flag nobody sets, so it is the closest thing here to `leverage.py`'s
+position. PUBLISHING-BACKLOG.md §308 carries the decision to port it; if that
+decision is reversed, this module is retired, not left here. (This paragraph
+was its `tests/test_standalone_modules.py` ENTRY_POINTS exemption until
+2026-10-10, when `tests/test_stage_inputs.py` began importing
+`read_pool_spec_or_refuse` and the exemption stopped exempting anything. A
+test importing it is not a caller running it.)
 """
 
 from __future__ import annotations
@@ -76,6 +87,32 @@ PAGE_PARTIES = [
     ("ALJAMAAH", "Al Jama-ah", "#2E8B72"),
     ("BOSA", "BOSA", "#3A7CA5"),
 ]
+
+
+def read_pool_spec_or_refuse(city, year: str = "2026") -> dict:
+    """The pool spec the interactive draws from, or ``SystemExit``.
+
+    The page must draw from the same numbers the forecast does, so it refuses
+    exactly what ``run_model`` refuses: a missing spec, and a stale,
+    unverifiable or unreadable one, through the same
+    ``montecarlo.read_pool_spec`` and the same refusal text (step 8 review
+    row 4). Until 2026-10-10 this read the file with no check, so a stale
+    spec reached the published interactive in silence. There is no escape
+    here: ``allow_stale_pools`` is for a diagnostic model run, and nothing
+    this module writes is diagnostic.
+    """
+    spec_path = city.processed / f"pools_{year}.json"
+    if not spec_path.exists():
+        raise SystemExit(
+            f"no pool spec at {spec_path}. The interactive must draw from the "
+            f"same spec as the forecast; build it with\n"
+            f"  python src/pools.py --city {city.slug} "
+            f"--target {year} --emit")
+    spec, why_not = _M.read_pool_spec(
+        spec_path, city, cityconfig.Target(city=city, year=str(year)))
+    if why_not:
+        raise _M.stale_pool_spec_refusal(spec_path, why_not)
+    return spec
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -226,14 +263,7 @@ def main(argv: list[str] | None = None) -> int:
     # carried a per-party "bloc" label and two hard-coded groups; a pool has
     # its own registered count, its own turnout band and its own
     # concentration, and there can be any number of them.
-    spec_path = cityconfig.active().processed / "pools_2026.json"
-    if not spec_path.exists():
-        raise SystemExit(
-            f"no pool spec at {spec_path}. The interactive must draw from the "
-            f"same spec as the forecast; build it with\n"
-            f"  python src/pools.py --city {cityconfig.active().slug} "
-            f"--target 2026 --emit")
-    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    spec = read_pool_spec_or_refuse(cityconfig.active())
     pools_out = []
     for pool_name, cfg in spec["pools"].items():
         pools_out.append({

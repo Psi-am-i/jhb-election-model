@@ -16,7 +16,7 @@ a party for which BOTH are available with DIFFERENT answers, and asserts which
 one wins. The declared order, top to bottom:
 
     1. ``poll_levels``      a poll of this city, for a party with no record
-    2. ``pool_seeds``       the arrival record's seed (with its band's mode)
+    2. ``pool_seeds``       the arrival record's seed (the seeded baseline)
     3. ``spine_level``      ``levels.spine`` — national and local, weighted
     4. ``theta_prior``      baseline × the θ mode
     5. ``AssertionError``   MODEL-LOG §1.52: no per-party fallback constant
@@ -48,9 +48,9 @@ The rest pins the arithmetic the routes feed into:
   inert only because ``w_bye_local_*`` ship at 0.0.
 
 * **absence is not the neutral value.** ARCHITECTURE.md's headline defect class.
-  Three reads here take a default that is indistinguishable from a real value:
-  ``prior_pr_share.get(party, 0.0)``, ``bands.get(party)`` → mode 1.0, and
-  ``scenario.get("spine_level") or {}``. Each is tested for what it ACTUALLY
+  Two reads here take a default that is indistinguishable from a real value:
+  ``prior_pr_share.get(party, 0.0)`` and ``scenario.get("spine_level") or {}``
+  (a third, the seed band's middle, went with the band on 2026-10-09). Each is tested for what it ACTUALLY
   does, with the docstring saying whether that is a contract or a latent
   defect. ``scenario["w_bye"]`` is the one read with no default, and the test
   that it raises is here to keep it that way.
@@ -88,7 +88,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _support import run_module  # noqa: E402
+from _support import ROOT, run_module, scanned  # noqa: E402
 
 import montecarlo as M  # noqa: E402
 
@@ -102,7 +102,9 @@ BASE = 0.10          # the party's national baseline share
 # Four routes, four deliberately distinct answers for the SAME party, so that
 # whichever branch fired is readable straight off the returned number.
 POLL_LEVEL = 0.37                       # route 1  -> 0.37
-SEED_BAND = (0.40, 2.50, 6.00)          # route 2  -> BASE * 2.50 = 0.25
+SEED_LEVEL = BASE                       # route 2  -> the seeded baseline, 0.10
+# (the seed route read a band's middle, 1.0 by construction, until the band was
+# deleted 2026-10-09; item9/FINDINGS.md Q5)
 SPINE_LEVEL = 0.31                      # route 3  -> 0.31
 THETA_PRIOR = (0.50, 1.70, 4.00)        # route 4  -> BASE * 1.70 = 0.17
 
@@ -171,11 +173,10 @@ def test_a_poll_of_this_city_outranks_the_arrival_seed_for_the_same_party():
     overruled by an actuarial prior fitted to OTHER parties' arrivals.
     """
     centre = _route_of(_scenario(poll_levels={"X": POLL_LEVEL},
-                                 pool_seeds={"X": 0.02},
-                                 pool_seed_bands={"X": SEED_BAND}))
+                                 pool_seeds={"X": 0.02}))
     assert math.isclose(centre, POLL_LEVEL, rel_tol=1e-12), (
         f"poll route lost to the seed: {centre} (poll says {POLL_LEVEL}, "
-        f"the seed band's mode says {BASE * SEED_BAND[1]})")
+        f"the seed route says {SEED_LEVEL})")
 
 
 def test_a_poll_of_this_city_outranks_the_spine():
@@ -210,20 +211,19 @@ def test_a_poll_of_this_city_outranks_the_theta_prior():
 
 
 def test_an_arrival_seed_outranks_the_spine():
-    """A seeded arrival takes its band's mode on the seeded baseline.
+    """A seeded arrival takes its seeded baseline.
 
     The spine weighs a party's national route against its own last local
     result. An arrival has neither record — that is what "arrival" means — so
     a spine level for it would be the common centre standing in for evidence
     that does not exist, while the seed IS the estimate the arrival record
-    produced. Expected value is hand arithmetic: BASE × the band's mode.
+    produced. Expected value: the seeded baseline, BASE.
     """
     centre = _route_of(_scenario(pool_seeds={"X": 0.02},
-                                 pool_seed_bands={"X": SEED_BAND},
                                  spine_level={"X": SPINE_LEVEL}))
-    assert math.isclose(centre, BASE * SEED_BAND[1], rel_tol=1e-12), (
+    assert math.isclose(centre, SEED_LEVEL, rel_tol=1e-12), (
         f"seed route lost to the spine: {centre} "
-        f"(seed band mode says {BASE * SEED_BAND[1]})")
+        f"(seed route says {SEED_LEVEL})")
 
 
 def test_an_arrival_seed_outranks_the_theta_prior():
@@ -236,9 +236,8 @@ def test_an_arrival_seed_outranks_the_theta_prior():
     what keeps it.
     """
     centre = _route_of(_scenario(pool_seeds={"X": 0.02},
-                                 pool_seed_bands={"X": SEED_BAND},
                                  theta_prior={"X": THETA_PRIOR}))
-    assert math.isclose(centre, BASE * SEED_BAND[1], rel_tol=1e-12), (
+    assert math.isclose(centre, SEED_LEVEL, rel_tol=1e-12), (
         f"seed route lost to the theta prior: {centre}")
 
 
@@ -268,10 +267,10 @@ def test_the_four_routes_fire_in_order_as_each_higher_one_is_withdrawn():
     party). This walks the ladder on a single party holding all four.
     """
     full = dict(poll_levels={"X": POLL_LEVEL},
-                pool_seeds={"X": 0.02}, pool_seed_bands={"X": SEED_BAND},
+                pool_seeds={"X": 0.02},
                 spine_level={"X": SPINE_LEVEL}, theta_prior={"X": THETA_PRIOR})
     ladder = [("poll_levels", POLL_LEVEL),
-              ("pool_seeds", BASE * SEED_BAND[1]),
+              ("pool_seeds", SEED_LEVEL),
               ("spine_level", SPINE_LEVEL),
               (None, BASE * THETA_PRIOR[1])]
     for withdraw, expected in ladder:
@@ -316,31 +315,25 @@ def test_a_seed_of_zero_is_not_a_route_and_falls_through_to_the_spine():
     itself, which is the neutral-value defect wearing a route's clothes.
     """
     centre = _route_of(_scenario(pool_seeds={"X": 0.0},
-                                 pool_seed_bands={"X": SEED_BAND},
                                  spine_level={"X": SPINE_LEVEL}))
     assert math.isclose(centre, SPINE_LEVEL, rel_tol=1e-12), (
         f"a zero seed took the seed route: {centre}")
 
 
-def test_a_seeded_party_with_no_band_is_placed_at_its_baseline_unannounced():
-    """DOCUMENTS A NEUTRAL-VALUE READ. ``bands.get(party)`` missing means 1.0.
+def test_a_seeded_party_is_placed_at_its_baseline_unannounced():
+    """DOCUMENTS A SILENT ROUTE. ``mode_level = base`` for a seeded party.
 
-    ``mode_level = base * (float(band[1]) if band else 1.0)``. A seeded party
-    whose band did not make it into the spec is placed at exactly its seeded
-    baseline and NOTHING is recorded: ``notes`` gets no entry on the seed
-    route at all, so the report cannot distinguish "the arrival record says
-    this party is worth its seed" from "the band is missing".
-
-    The value 1.0 is defensible on its own terms — ``montecarlo.py:1050-1053``
-    says the arrival rules hand back a band *"whose mode is 1.0 (the seed IS
-    the estimate)"* — so this is asserted as the current contract, not as a
-    bug. What is asserted alongside it is the silence, which is the part that
-    would let a spec regression through unseen.
+    The seed route reads the seeded baseline and nothing else: the arrival
+    band it once multiplied by (its middle, 1.0 by construction) was deleted
+    2026-10-09 with the band (item9/FINDINGS.md Q5), so this is now the only
+    form of the route. ``notes`` gets no entry on the seed route, so the
+    report cannot say where the level came from; what is asserted alongside
+    the value is that silence, which a later note would change.
     """
-    scenario = _scenario(pool_seeds={"X": 0.02})       # no pool_seed_bands
+    scenario = _scenario(pool_seeds={"X": 0.02})
     centres, notes = M.blended_centres(scenario, {"X": BASE}, {}, {})
     assert math.isclose(centres["X"], BASE, rel_tol=1e-12), (
-        f"a bandless seed no longer lands on the baseline: {centres['X']}")
+        f"a seed no longer lands on the baseline: {centres['X']}")
     assert "X" not in notes, (
         "the seed route now records a note — good; update this test, which "
         "exists to record that it did not")
@@ -981,12 +974,16 @@ def test_every_centre_is_finite_and_positive_on_a_mixed_scenario():
     renormalises.
     """
     base = {"P": 0.30, "Q": 0.10, "R": 0.06, "S": 0.02}
+    # `w_bye` ships as None (derived, BRIEF item 19): the class weights are
+    # constructed and positive so the by-election block is live.
+    assert M.DEFAULTS["w_bye"] is None
     scenario = _scenario(
         w_bye=M.DEFAULTS["w_bye"],
+        _bye_value={"weights": {"under": 0.4, "at_or_over": 0.4}},
         level_shrink=M.DEFAULTS["level_shrink"],
         level_shrink_scale=M.DEFAULTS["level_shrink_scale"],
         poll_levels={"P": 0.28},
-        pool_seeds={"Q": 0.03}, pool_seed_bands={"Q": SEED_BAND},
+        pool_seeds={"Q": 0.03},
         spine_level={"R": 0.07}, theta_prior={"S": THETA_PRIOR})
     with _plan_bounds({}):
         centres, _ = M.blended_centres(
@@ -1104,6 +1101,175 @@ def test_the_trace_records_the_shrink_and_changes_no_number():
                         traced["A"] / recorded["before_shrink"]["A"],
                         rel_tol=1e-12)
 
+
+# --------------------------------------------------------------------------
+# 5. the derived by-election weight (BRIEF item 19, G24)
+# --------------------------------------------------------------------------
+
+def _bye_file(directory: Path, weights: dict, key: dict | None = None) -> Path:
+    """A constructed ``bye_value.json`` carrying ``weights`` and the live key
+    (or ``key``)."""
+    import json
+    import byelections as BY
+    path = directory / BY.BYE_VALUE
+    live = BY.bye_value_key((M.WARD_PR_RATIO_MIN, M.WARD_PR_RATIO_MAX))
+    path.write_text(json.dumps({"artefact_key": live if key is None else key,
+                                "weights": weights}), encoding="utf-8")
+    return path
+
+
+@contextmanager
+def _bye_value_at(path: Path):
+    """Point ``montecarlo.bye_value_path`` at a constructed file."""
+    saved = M.bye_value_path
+    M.bye_value_path = lambda: path
+    try:
+        yield
+    finally:
+        M.bye_value_path = saved
+
+
+def test_each_class_takes_its_own_weight_from_the_file():
+    """G24. Two parties with by-election evidence, one under 1% of the
+    previous list and one over, read their class's weight from a constructed
+    ``bye_value.json`` (0.25 and 0.75). Hand arithmetic, additive
+    conversion, no clamp (no bound, no θ band):
+
+        S: prior 0.005 + δ 0.02 = 0.025;  centre = 0.75·0.10 + 0.25·0.025
+        L: prior 0.200 + δ 0.02 = 0.220;  centre = 0.25·0.10 + 0.75·0.220
+
+    A party with no previous list share is classed by its baseline share.
+    """
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp, _plan_bounds({}):
+        path = _bye_file(Path(tmp), {"under": 0.25, "at_or_over": 0.75})
+        with _bye_value_at(path):
+            scenario = _scenario(w_bye=None, spine_level={"S": 0.10, "L": 0.10})
+            centres, _ = M.blended_centres(
+                scenario, {"S": 0.10, "L": 0.10}, {"S": 0.005, "L": 0.20},
+                {"S": (100.0, 0.02), "L": (100.0, 0.02)})
+    assert math.isclose(centres["S"], 0.75 * 0.10 + 0.25 * 0.025, rel_tol=1e-12)
+    assert math.isclose(centres["L"], 0.25 * 0.10 + 0.75 * 0.220, rel_tol=1e-12)
+    assert scenario["_bye_weight"] == {
+        "S": {"weight": 0.25, "class": "under"},
+        "L": {"weight": 0.75, "class": "at_or_over"}}
+    assert M.bye_class_size("N", {}, {"N": 0.03}) == 0.03
+    assert M.bye_class_size("N", {"N": 0.004}, {"N": 0.03}) == 0.004
+
+
+def test_a_missing_or_stale_bye_value_file_refuses():
+    """G24. Deleting the file refuses; a key naming other code refuses; the
+    live key with the same weights is accepted (so the refusal is about the
+    key, not the reading)."""
+    import tempfile
+    args = ({"X": 0.10}, {"X": 0.20}, {"X": (100.0, 0.02)})
+    with tempfile.TemporaryDirectory() as tmp, _plan_bounds({}):
+        path = _bye_file(Path(tmp), {"under": 0.3, "at_or_over": 0.3})
+        with _bye_value_at(path):
+            M.blended_centres(_scenario(w_bye=None, spine_level={"X": 0.1}), *args)
+            path.unlink()
+            try:
+                M.blended_centres(_scenario(w_bye=None,
+                                            spine_level={"X": 0.1}), *args)
+            except SystemExit as exc:
+                assert "missing" in str(exc)
+            else:
+                raise AssertionError("a missing bye_value.json was not refused")
+            import byelections as BY
+            stale = dict(BY.bye_value_key((M.WARD_PR_RATIO_MIN,
+                                           M.WARD_PR_RATIO_MAX)),
+                         bye_value_sha="0000000000000000")
+            _bye_file(Path(tmp), {"under": 0.3, "at_or_over": 0.3}, key=stale)
+            try:
+                M.blended_centres(_scenario(w_bye=None,
+                                            spine_level={"X": 0.1}), *args)
+            except SystemExit as exc:
+                assert "stale" in str(exc) and "bye_value_sha" in str(exc)
+            else:
+                raise AssertionError("a stale bye_value.json was not refused")
+
+
+def test_an_override_needs_no_file_and_is_recorded():
+    """A number in ``w_bye`` is the same weight for every party, reads no
+    file (the path points nowhere) and is recorded as an override."""
+    with _bye_value_at(Path("/nonexistent/bye_value.json")), _plan_bounds({}):
+        scenario = _scenario(w_bye=0.5, spine_level={"S": 0.10, "L": 0.10})
+        M.blended_centres(scenario, {"S": 0.10, "L": 0.10},
+                          {"S": 0.005, "L": 0.20},
+                          {"S": (100.0, 0.02), "L": (100.0, 0.02)})
+    assert scenario["_bye_weight"] == {
+        "S": {"weight": 0.5, "class": "override"},
+        "L": {"weight": 0.5, "class": "override"}}
+    assert "w_bye.override" in str(scenario.get("_constants_read") or
+                                   scenario), "the override was not recorded"
+
+
+def test_the_class_edge_is_the_one_constant_both_sides_use():
+    """A party at exactly the edge is "at_or_over" in the model as in the
+    test, through ``byelections.size_class``; just below, "under"."""
+    import byelections as BY
+    with _plan_bounds({}):
+        for size, cls in ((BY.BYE_CLASS_EDGE, "at_or_over"),
+                          (BY.BYE_CLASS_EDGE * 0.999, "under")):
+            scenario = _scenario(
+                w_bye=None, spine_level={"X": 0.10},
+                _bye_value={"weights": {"under": 0.1, "at_or_over": 0.9}})
+            M.blended_centres(scenario, {"X": 0.10}, {"X": size},
+                              {"X": (100.0, 0.02)})
+            assert scenario["_bye_weight"]["X"]["class"] == cls, size
+
+
+
+def test_no_city_file_sets_a_derived_lever_and_apply_city_refuses_one():
+    """Fix row 6 of the M4 review. ``w_bye = 0.4`` sat in two city files
+    until 2026-10-10, and ``apply_city`` writes a city's scalars over
+    ``DEFAULTS``, so it overrode the derived weight on every run of those
+    cities. ``montecarlo.DERIVED_NOT_CITY`` names the levers a city file may
+    not set; ``apply_city`` refuses one, before it resets anything.
+
+    The scan: every ``cities/*.toml``, its population asserted equal to the
+    metros (``levels.METRO_CODES``, through each file's ``code``) both ways,
+    none setting a derived key. It can see: ``joburg.toml`` with ``w_bye``
+    written into its ``[judgements.scalars]``, in a temp directory, is named
+    by the scan and refused by ``apply_city``, leaving ``DEFAULTS`` as it
+    was; the unedited file is quiet and applies."""
+    import shutil
+    import tempfile
+    import cityconfig
+    import levels
+    assert M.DERIVED_NOT_CITY == ("w_bye",) and M.DEFAULTS["w_bye"] is None
+    cities_dir = ROOT / "cities"
+    files = sorted(cities_dir.glob("*.toml"))
+    loaded = [cityconfig.load(f.stem, cities_dir=cities_dir) for f in files]
+    codes = [c.code for c in loaded]
+    assert sorted(codes) == sorted(levels.METRO_CODES), codes
+    assert len(set(codes)) == len(codes)
+    scanned(files, of=levels.METRO_CODES, low=1.0, high=1.0,
+            what="city files scanned", denominator="levels.METRO_CODES")
+    assert [c.slug for c in loaded if M.city_derived_keys(c)] == []
+    with tempfile.TemporaryDirectory() as tmp:
+        shutil.copy(cities_dir / "joburg.toml", Path(tmp) / "joburg.toml")
+        path = Path(tmp) / "joburg.toml"
+        clean = path.read_text(encoding="utf-8")
+        assert clean.count("[judgements.scalars]\n") == 1
+        path.write_text(clean.replace("[judgements.scalars]\n",
+                                      "[judgements.scalars]\nw_bye = 0.4\n"),
+                        encoding="utf-8")
+        bad = cityconfig.load("joburg", cities_dir=Path(tmp))
+        assert M.city_derived_keys(bad) == ["w_bye"]
+        before = dict(M.DEFAULTS)
+        try:
+            M.apply_city(bad)
+        except SystemExit as exc:
+            assert "w_bye" in str(exc)
+        else:
+            raise AssertionError("apply_city accepted a city file setting w_bye")
+        assert dict(M.DEFAULTS) == before
+        path.write_text(clean, encoding="utf-8")
+        good = cityconfig.load("joburg", cities_dir=Path(tmp))
+        assert M.city_derived_keys(good) == []
+        M.apply_city(good)
+        assert M.DEFAULTS["w_bye"] is None
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

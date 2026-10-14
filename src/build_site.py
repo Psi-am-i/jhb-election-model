@@ -1289,6 +1289,30 @@ def headers_text() -> str:
     return "".join(rules)
 
 
+def group_share_lines(summary: dict) -> list[str]:
+    """One line per pair the group-share tripwire reports (BRIEF item 12).
+
+    Reads ``guards.group_share_tripwire`` from a ``forecast_summary.json``
+    blob. The tripwire reports and changes no number; this prints it so a
+    build cannot pass over it. A summary from before the tripwire says so.
+    """
+    value = ((summary or {}).get("guards") or {}).get("group_share_tripwire")
+    if value is None:
+        return ["  group-share tripwire: not in this summary (a run from "
+                "before BRIEF item 12)"]
+    if value == "no record":
+        return ["  group-share tripwire: no record for this city-year "
+                "(src/group_share_record.py --emit)"]
+    pairs = value.get("pairs") or {}
+    stale = "" if value.get("key_current") else " (record artefact is STALE)"
+    head = (f"  group-share tripwire: {len(pairs)} of {value.get('scanned')} "
+            f"party-pool pairs above record + largest real rise in more than "
+            f"{value.get('fire_at'):.0%} of draws{stale}")
+    return [head] + [
+        f"    {pair}: {row['share']:.1%} of draws above {row['threshold']:.1%}"
+        for pair, row in sorted(pairs.items(), key=lambda kv: -kv[1]["share"])]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("site"))
@@ -2107,6 +2131,11 @@ def main(argv: list[str] | None = None) -> int:
             "threshold_median": blob.get("threshold_median"),
             "structural": blob.get("structural") or {},
         }
+    _summary_path = args.processed / "forecast_summary.json"
+    if _summary_path.is_file():
+        for line in group_share_lines(
+                json.loads(_summary_path.read_text(encoding="utf-8"))):
+            print(line)
     missing = [r for r in ("deduct", "expand", "level", "cap") if r not in regimes]
     (args.out / "regimes.json").write_text(
         json.dumps({"rules": regimes, "missing": missing,

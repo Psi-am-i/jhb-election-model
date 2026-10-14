@@ -6,14 +6,16 @@ party's mean whole votes on each ballot, seats by the law. This module holds
 that to one definition and shows each guard can see:
 
 G1. ONE DEFINITION.
-    * the modules that import ``prediction`` are exactly the declared four,
+    * the modules that import ``prediction`` are exactly the declared set,
       scanned both ways over every ``src/*.py`` and the page's entry;
     * no other function reduces the draws' ward winners or votes to a call or
       a mean, except the exemptions listed with their reasons (each of which
       must still match a site);
-    * a tied ward resolves one way through the rule, the scorer, the build's
-      start, and the page's hand-off and map, whatever order the parties come
-      in;
+    * a tied ward resolves one way, by the seeded lot, through the rule, the
+      scorer, the build's start, the page's hand-off and map, the claims'
+      modal winners and the backtest's ward hit rate, whatever order the
+      parties come in; another lot can flip it, and the build's lot and the
+      page's agree (G2, G3 of the model correction batch, 2026-10-09);
     * the whole votes are the exact mean, rounded half to even.
 G3. A MISSING BALLOT IS REFUSED, NAMED: no list block, a list block that is a
     copy of the ward block, a page cell without a list block.
@@ -39,17 +41,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _support import ROOT, run_module, scanned  # noqa: E402
 
 import prediction as P  # noqa: E402
+import seats as seats_module  # noqa: E402
 
 SRC = ROOT / "src"
 PAGE = ROOT / "interactive" / "pyboot" / "page.py"
 
 #: The modules that may import ``prediction``: the scorer (our prediction as
 #: it is scored), the build (section 2's start), the seat path a reader's
-#: forecast takes (``prediction.seats_of``), the page's engine, and the three
+#: forecast takes (``prediction.seats_of``), the page's engine, and the five
 #: ward-call sites routed through ``prediction.top_party`` (the claims'
-#: modal winners, the diagnostic, the backtest's ward hit rate).
+#: modal winners, the diagnostic, the backtest's ward hit rate, and since
+#: 2026-10-09 the published winner column of ``montecarlo.main`` and the
+#: baselines' ward calls in ``benchmarks.council_from_shares``).
 DECLARED_IMPORTERS = {"score_forecasts", "build_make", "reader_seats", "page",
-                      "scenarios", "diagnose", "score"}
+                      "scenarios", "diagnose", "score", "montecarlo",
+                      "benchmarks"}
 
 
 def _population() -> list[Path]:
@@ -113,13 +119,12 @@ MEAN_CALLS = {"mean", "median"}
 #: diagnose.main's ward call, score.score_wards), so they are not here.
 EXEMPT = {
     ("montecarlo.py", "main"): (
-        "ward_winner_probs.csv's `winner` column is order[0] of an unstable "
-        "argsort of the ward-winner counts (SPEC-A M11); routing it changes "
-        "montecarlo.py beyond a recorded field, which brings the whole suite "
-        "forward (FLOW.md). Pending owner decision (s1/SYNTHESIS.md item 8); "
-        "covered meanwhile by test_served_draws check 2 (the winner agrees "
-        "wherever the top count is unique). The function's other flagged call, "
-        "`seat_matrix.argmax`, is over seats, not wards."),
+        "the argsort of the ward-winner counts orders ward_winner_probs.csv's "
+        "`dist` column for display only; its `winner` column is "
+        "prediction.top_party with the run's lot since 2026-10-09 (it was "
+        "order[0] of that unstable argsort, SPEC-A M11), checked against the "
+        "served draws by test_served_draws check 2. The function's other "
+        "flagged call, `seat_matrix.argmax`, is over seats, not wards."),
     ("montecarlo.py", "run_model"): (
         "the draw itself (`ward_tally.argmax`: one draw's ward winners) and the "
         "40_draws summary's mean shares and mean seats: forecast statistics "
@@ -139,9 +144,10 @@ EXEMPT = {
     ("scenarios.py", "main"): (
         "`moved.most_common(6)`: which ward flips are most frequent, a report "
         "of counts, not a call. Its ward calls are modal_winners, routed."),
-    ("backtest.py", "actual_result"): (
+    ("backtest.py", "ward_winners"): (
         "the winner of each ward in the REAL result (the ground truth's vote "
-        "tallies), not a reduction over simulations."),
+        "tallies), not a reduction over simulations. Factored out of "
+        "`actual_result` 2026-10-12 so `plausibility` reads the same winners."),
     ("page.py", "_ward_calls"): (
         "`hit` and the stable argsort: which parties win the ward in any "
         "weighted draw and their order in the map's tooltip distribution. The "
@@ -276,12 +282,22 @@ def test_no_modal_or_mean_reduction_over_draws_outside_prediction():
 
 #: The constructed tie: two wards, ward "1" won by ZED in half the draws and
 #: by ABC in the other half, ward "2" by ZED always. ZED is listed FIRST, so a
-#: rule that follows the order of the parties would call ward "1" for ZED.
+#: rule that follows the order of the parties would call ward "1" for ZED,
+#: and the alphabetical rule this replaced called it for ABC.
 TIE_PARTIES = ["ZED", "ABC"]
 TIE_WARDS = ["1", "2"]
 #: Draws: the four-draw pattern repeated, so the page's effective-draw floor
 #: (reweight.MIN_EFFECTIVE_DRAWS) is met by uniform weights.
 TIE_REPEAT = 100
+#: The constructed run's identity: city, target and seed, as a served
+#: manifest's ``artefact_key`` carries them. No party enters the lot.
+TIE_RUN = {"city": "test", "target": "2026", "seed": 7}
+
+
+def _tie_lot(seed=None) -> str:
+    import seats
+    run = dict(TIE_RUN, **({} if seed is None else {"seed": seed}))
+    return seats.lot_identity(run["city"], run["target"], run["seed"])
 
 
 def _tie_draws():
@@ -297,18 +313,19 @@ def _tie_draws():
     return winners, ward_votes, list_votes, cols
 
 
-def _tie_schema(cols) -> dict:
+def _tie_schema(cols, seed=None) -> dict:
     """The entry schema's shape over the tie's parties and wards. The entry
     version is make-state.js FORMAT, read; the editor's bounds are constructed
     (equal ward shares, bounds wide enough to bind nothing), because the build
-    encodes the start through the page's encoder, which reads them."""
+    encodes the start through the page's encoder, which reads them. The
+    seat context carries the run's lot, as ``build_make._inputs`` writes it."""
     import re
     fmt = re.search(r'export const FORMAT = "([^"]+)";',
                     (ROOT / "interactive/js/make-state.js").read_text()).group(1)
     return {"properties": {"v": {"const": fmt}, "model_ref": {"enum": ["test"]}},
             "x-seat-context": {"city": "test", "target": "2026", "council": 5,
                                "wards": list(TIE_WARDS), "parties": list(cols),
-                               "no_pr_list": []},
+                               "no_pr_list": [], "lot": _tie_lot(seed)},
             "x-editor-bounds": {"e": {w: 1 / len(TIE_WARDS) for w in TIE_WARDS},
                                 "q_win": 0.0, "q_run": 1.0, "gap_min": -100.0, "gap_max": 100.0,
                                 "ward_ranges": {},
@@ -319,7 +336,7 @@ def _tie_schema(cols) -> dict:
             "x-ward-ids": list(TIE_WARDS)}
 
 
-def _tie_cell():
+def _tie_cell(seed=None):
     """A served cell (manifest + base.bin) holding the tie, packed by reweight."""
     import reweight as R
     winners, wv, lv, cols = _tie_draws()
@@ -332,10 +349,11 @@ def _tie_cell():
                           ("ward_winner", winners, TIE_WARDS),
                           ("ward_vote", wv, cols), ("list_vote", lv, cols),
                           ("pool_turnout", turnout, ["a", "b", "c", "d"])])
+    run = dict(TIE_RUN, **({} if seed is None else {"seed": seed}))
     manifest = {"format": R.FORMAT, "draws": n, "laws": ["deduct"], "parties": cols,
                 "ward_parties": list(TIE_PARTIES), "blocks": table,
                 "centres": {"refused": True, "source": "test", "reason": "test"},
-                "artefact_key": {"model_sha256": "test"}}
+                "artefact_key": {"model_sha256": "test", **run}}
     return manifest, blob, R.unpack(blob, manifest)
 
 
@@ -351,45 +369,120 @@ def _page():
     return page
 
 
-def test_a_tied_ward_resolves_one_way_through_build_handoff_compute_and_scorer():
+def _tied_ward_calls(seed=None) -> dict[str, str]:
+    """Ward "1"'s call through every caller of the tie rule, under the run
+    ``TIE_RUN`` with ``seed`` (G2): ``{caller: party}``."""
     import build_make
+    import scenarios
+    import score
     import score_forecasts as SF
     winners, wv, lv, cols = _tie_draws()
-    # control: the two rules differ on this tie
-    counts = np.bincount(winners[:, 0].astype(np.int64), minlength=2)
-    assert counts[0] == counts[1]
-    assert TIE_PARTIES[int(np.argmax(counts))] == "ZED"
-    want = min(TIE_PARTIES)
-    assert want == "ABC"
-
-    pred = P.rule_a(winners, TIE_PARTIES, TIE_WARDS, wv, lv, cols)
-    assert pred["ward_calls"] == ["ABC", "ZED"]
+    lot = _tie_lot(seed)
+    out = {}
+    out["rule_a"] = P.rule_a(winners, TIE_PARTIES, TIE_WARDS, wv, lv, cols,
+                             lot=lot)["ward_calls"][0]
     # the order of the parties does not move the call
-    flipped = 1 - winners
-    again = P.rule_a(flipped, list(reversed(TIE_PARTIES)), TIE_WARDS, wv, lv, cols)
-    assert again["ward_calls"] == pred["ward_calls"]
-
-    schema = _tie_schema(cols)
-    scored = SF.model_forecast(winners, TIE_PARTIES, TIE_WARDS, wv, lv, cols, schema)
-    assert scored["ward_calls"][0] == want
-
-    manifest, blob, arrays = _tie_cell()
-    # the build's start, encoded and decoded by the page's own encoder
-    start = build_make.start_state(manifest, arrays, schema)
-    assert start["ward_calls"][0] == want
-
+    out["rule_a, parties reversed"] = P.rule_a(
+        1 - winners, list(reversed(TIE_PARTIES)), TIE_WARDS, wv, lv, cols,
+        lot=lot)["ward_calls"][0]
+    schema = _tie_schema(cols, seed)
+    out["score_forecasts.model_forecast"] = SF.model_forecast(
+        winners, TIE_PARTIES, TIE_WARDS, wv, lv, cols, schema)["ward_calls"][0]
+    manifest, blob, arrays = _tie_cell(seed)
+    out["build_make.start_state"] = build_make.start_state(
+        manifest, arrays, schema)["ward_calls"][0]
     page = _page()
     try:
         page.load_cell(".", json.dumps(manifest), blob)
         h = json.loads(page.handoff(json.dumps({"settings": {"cell": "."}})))
         assert not h.get("refused"), h
-        assert h["ward_calls"]["1"] == want
-        out = json.loads(page.compute(json.dumps({"cell": ".", "law": "deduct"})))
-        assert out["refused"] is None, out
-        assert {x["ward"]: x["winner"] for x in out["wards"]}["1"] == want
+        out["page.handoff"] = h["ward_calls"]["1"]
+        got = json.loads(page.compute(json.dumps({"cell": ".", "law": "deduct"})))
+        assert got["refused"] is None, got
+        out["page._ward_calls"] = {x["ward"]: x["winner"] for x in got["wards"]}["1"]
     finally:
         page._CELLS.clear()
         page._PUBLISHED = None
+    per_draw = {d: {w: TIE_PARTIES[int(winners[d, j])] for j, w in enumerate(TIE_WARDS)}
+                for d in range(winners.shape[0])}
+    out["scenarios.modal_winners"] = scenarios.modal_winners(
+        per_draw, TIE_WARDS, lot=lot)["1"]
+    probs = {"1": {"ZED": 0.5, "ABC": 0.5}, "2": {"ZED": 1.0}}
+    hits = {p: score.score_wards(probs, {"1": p, "2": "ZED"}, lot=lot)["modal_calls_correct"]
+            for p in TIE_PARTIES}
+    assert sorted(hits.values()) == [1, 2], hits
+    out["score.score_wards"] = max(hits, key=hits.get)
+    # montecarlo.main's winner column: the function main writes it with, on a
+    # (wards, parties) count matrix as ModelRun.ward_winner_counts holds it
+    import montecarlo as M
+    counts = np.stack([np.bincount(winners[:, j].astype(np.int64), minlength=2)
+                       for j in range(len(TIE_WARDS))])
+    out["montecarlo.published_ward_winner"] = M.published_ward_winner(
+        counts[0], TIE_PARTIES, lot, "1")
+    assert M.published_ward_winner(counts[1], TIE_PARTIES, lot, "2") == "ZED"
+    return out
+
+
+def test_a_tied_ward_resolves_one_way_through_every_caller_and_the_lot_decides():
+    """G2. One lot, one party, through every caller; another lot (a different
+    seed, searched among the first twenty) flips it; ``lot=None`` refuses."""
+    import seats
+    winners, wv, lv, cols = _tie_draws()
+    counts = np.bincount(winners[:, 0].astype(np.int64), minlength=2)
+    assert counts[0] == counts[1], "the fixture must tie ward 1"
+
+    calls = _tied_ward_calls()
+    want = seats.lot_order(TIE_PARTIES, seats_module.ward_key(_tie_lot(), "1"))[0]
+    assert set(calls.values()) == {want}, calls
+
+    other_seed = next((k for k in range(20) if seats.lot_order(
+        TIE_PARTIES, seats_module.ward_key(_tie_lot(k), "1"))[0] != want), None)
+    assert other_seed is not None, "twenty seeds drew the same party: the key does not reach the lot"
+    flipped = _tied_ward_calls(other_seed)
+    assert set(flipped.values()) == set(TIE_PARTIES) - {want}, flipped
+
+    try:
+        P.rule_a(winners, TIE_PARTIES, TIE_WARDS, wv, lv, cols)
+    except P.RuleAError as exc:
+        assert "tie" in str(exc), str(exc)
+    else:
+        raise AssertionError("a tied ward was called with no lot key")
+    # an untied ward never reads the lot
+    assert P.top_party({"ZED": 3, "ABC": 1}) == "ZED"
+    # the empty default of ModelRun.lot builds no key: main cannot publish a
+    # tie under it
+    import montecarlo as M
+    try:
+        M.published_ward_winner(np.array([5, 5]), TIE_PARTIES, "", "1")
+    except ValueError as exc:
+        assert "lot" in str(exc), str(exc)
+    else:
+        raise AssertionError("a tied ward was published under an empty lot")
+
+
+def test_the_build_and_the_page_name_one_lot_from_the_manifest():
+    """G3. The build writes ``x-seat-context["lot"]`` from the served
+    manifest's ``artefact_key`` (``build_make.run_lot``); the page computes
+    its own from the same manifest (``page._lot``). They agree; changing the
+    manifest's seed changes both, and they still agree; a manifest without a
+    seed is refused by the build."""
+    import build_make
+    import seats
+    page = _page()
+    manifest, _blob, _arrays = _tie_cell()
+    built = build_make.run_lot(manifest)
+    assert built == page._lot({"manifest": manifest}) == _tie_lot()
+    assert built == seats.lot_identity("test", "2026", 7)
+    moved, _b, _a = _tie_cell(seed=8)
+    assert build_make.run_lot(moved) == page._lot({"manifest": moved}) != built
+    bare = dict(manifest, artefact_key={"model_sha256": "test", "city": "test",
+                                        "target": "2026"})
+    try:
+        build_make.run_lot(bare)
+    except build_make.MakeBuildError as exc:
+        assert "seed" in str(exc)
+    else:
+        raise AssertionError("the build named a lot with no seed")
 
 
 def test_rule_a_whole_votes_are_the_exact_mean():
@@ -435,7 +528,7 @@ def test_a_missing_or_copied_ballot_is_refused_by_name():
         else:
             raise AssertionError(f"rule_a accepted {kwargs}")
     # quiet when both are there
-    P.rule_a(winners, TIE_PARTIES, TIE_WARDS, wv, lv, cols)
+    P.rule_a(winners, TIE_PARTIES, TIE_WARDS, wv, lv, cols, lot=_tie_lot())
 
 
 def test_the_page_and_the_build_refuse_a_cell_without_a_list_vote_block():

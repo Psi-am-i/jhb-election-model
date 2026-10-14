@@ -34,8 +34,10 @@ by-elections are candidate contests at 18–50% turnout; a party absent from a
 contest contributes no delta for it (absence is a nomination decision, not a
 collapse); a party with no votes at the previous LGE has its deltas measured
 against a zero base and they are therefore genuine new-party evidence, not
-swing. The consumer (montecarlo.py) blends these deltas in at weight ``w_bye``
-(default 0.4 per §3.5) — they move the centre of the prior, never replace it.
+swing. The consumer (montecarlo.py) blends these deltas in at each party's
+size-class weight, measured by ``bye_value.py`` against the 2024 result (BRIEF
+item 19; ``w_bye`` overrides it for sweeps) — they move the centre of the
+prior, never replace it.
 
 Outputs, under the target's processed directory:
     byelection_party_deltas.csv     weighted per-party share deltas
@@ -59,6 +61,118 @@ from datetime import date
 from pathlib import Path
 
 import parties as P
+
+#: The recency half-life, in months, of a by-election's weight (plan §3.5,
+#: range 6-36). One definition: ``main``'s ``--tau`` default and
+#: ``bye_value.py``'s test (BRIEF item 19) both read it.
+TAU_MONTHS = 18.0
+
+#: The size-class edge for the by-election weight (BRIEF item 19, SPEC R2.4):
+#: a party under 1% of the previous local list is in one class, at 1% or more
+#: in the other, and each class carries its own derived weight. One named
+#: constant used by ``bye_value.py`` (which measures each class's weight) and
+#: ``montecarlo.blended_centres`` (which applies it), through
+#: :func:`size_class`. JUDGEMENT-CALLS §A55.
+BYE_CLASS_EDGE = 0.01
+
+#: The class names, in the order the artefact and every report print them.
+SIZE_CLASSES = ("under", "at_or_over")
+
+#: The national by-election file the item-19 test reads (all eight metros).
+SA_FILE = Path("data/raw/byelections/byelections_SA_vd_party.csv")
+
+#: The item-19 artefact's name under ``data/processed``. Named here because
+#: three modules need it and ``montecarlo`` may not import ``bye_value``.
+BYE_VALUE = "bye_value.json"
+
+#: The item-19 test's outcome election: the only real result after the
+#: archive's by-elections (BRIEF item 19). Named here because
+#: :func:`bye_value_files` needs it and this module may not import
+#: ``bye_value``.
+BYE_VALUE_OUTCOME = "2024"
+
+
+def size_class(size: float) -> str:
+    """The by-election size class of a party at ``size`` (a share, 0-1).
+
+    ``"under"`` below :data:`BYE_CLASS_EDGE`, ``"at_or_over"`` at or above
+    it. No party is named: the class is a function of size alone.
+    """
+    return "under" if size < BYE_CLASS_EDGE else "at_or_over"
+
+
+def delta_pr(delta: float, ratio: float | None) -> float:
+    """A ward-ballot by-election delta on the list (PR) scale.
+
+    Divided by the party's trusted ward/PR ratio where it has one
+    (``levels.trusted_ward_pr``), additive otherwise. The conversion
+    ``montecarlo.blended_centres`` applies (§1.113, JUDGEMENT-CALLS §A36), as
+    one definition so the item-19 test measures the quantity the model uses.
+    """
+    return delta / ratio if ratio else delta
+
+
+def bye_value_files(root: Path | None = None) -> list[Path]:
+    """The raw election files ``bye_value.json`` can be built from.
+
+    Every calendar election with a result template, up to and including
+    :data:`BYE_VALUE_OUTCOME`, in every metro (``levels.METRO_CODES``): the
+    files ``levels.theta_record`` and ``levels.size_window`` read for ``B``'s
+    ``mu_θ`` (every LGE transition before 2024 that the calendar holds), each
+    metro's 2021 LGE (``s_2021`` and the ward bases the deltas are taken
+    against) and 2019 national file (the size ``mu_θ`` is taken at), and the
+    2024 provincial file (the outcome). Derived from the calendar, not from
+    ``theta_record``'s own filters (``THETA_WINDOW``, the demarcation and
+    held-back exclusions), so it is a superset: a file the test skips can
+    still mark the artefact stale, which errs toward refusing. A file not on
+    disk is hashed as ``pools._sha``'s ``"missing"``.
+    """
+    import levels
+    root = Path(__file__).resolve().parent.parent if root is None else root
+    years = [y for y, e in cityconfig.CALENDAR.items()
+             if e.results and int(y) <= int(BYE_VALUE_OUTCOME)]
+    return sorted({root / "data" / "raw" / "elections"
+                   / cityconfig.CALENDAR[y].results.replace("{CODE}", code)
+                   for y in years for code in levels.METRO_CODES})
+
+
+def bye_value_key(ward_pr_clip: tuple[float, float]) -> dict:
+    """What ``bye_value.json`` was built from, computed from the files.
+
+    The test's code (``bye_value.py``), the delta code (this module), the
+    emit's dependencies (``pools._deps_sha``: ``levels`` for ``_shrunk``,
+    ``theta_record``, ``size_window``, ``_citywide`` and
+    ``trusted_ward_pr``), the by-election file's bytes, the raw election
+    files ``B``, the outcome and the θ record are built from
+    (:func:`bye_value_files`, one hash over each file's name and bytes),
+    every ``cities/*.toml`` (as ``pools._cities_sha`` hashes them: the ward
+    prefixes and codes that select each metro's contests and files), and the
+    ward/PR clip
+    the conversion used (``montecarlo.WARD_PR_RATIO_MIN/MAX``, passed in by
+    the caller so this module need not import ``montecarlo``). The writer
+    stamps it; ``montecarlo`` and ``declares`` compare it with the live one.
+    Every path resolves from the repository this module sits in, never from
+    the working directory.
+    """
+    import hashlib
+    import pools
+    src = Path(__file__).resolve().parent
+    files = "|".join(f"{f.name}:{pools._sha(f)}"
+                     for f in bye_value_files(src.parent))
+    # pools._cities_sha's population and format, read from this repository's
+    # cities/ rather than the working directory's (declares --verify runs from
+    # any directory); pools.py is not edited because its code hash is in
+    # every pool spec's key.
+    cities = "|".join(f"{f.name}:{pools._sha(f)}" for f in pools._toml_population(
+        src.parent / "cities", "bye_value_key's cities_sha"))
+    return {"schema": 2,
+            "bye_value_sha": pools._code_sha(src / "bye_value.py"),
+            "byelections_sha": pools._code_sha(src / "byelections.py"),
+            "deps_sha": pools._deps_sha(),
+            "byelection_file_sha": pools._sha(src.parent / SA_FILE),
+            "election_files_sha": hashlib.sha256(files.encode()).hexdigest()[:16],
+            "cities_sha": hashlib.sha256(cities.encode()).hexdigest()[:16],
+            "ward_pr_clip": [float(ward_pr_clip[0]), float(ward_pr_clip[1])]}
 
 
 def load_byelections(path: Path, prefix: str,
@@ -130,9 +244,83 @@ def age_months(when: str, election_day: date) -> float:
     ) / 30.0
 
 
+def weighted_deltas(contests: dict[tuple[str, str], dict[str, int]],
+                    votes: dict[str, dict[str, int]],
+                    registered: dict[str, int], election_day: date,
+                    tau: float, base_lge: str) -> dict:
+    """Per-contest deltas and weights, and each party's weighted sums.
+
+    The arithmetic of the module docstring, lifted out of :func:`main` so the
+    item-19 test (``bye_value.py``) takes its deltas from the one definition
+    (SPEC R2.4: "byelections.py's weighted delta ... same τ, same similarity
+    weight"). ``contests`` is :func:`load_byelections`' output, ``votes`` and
+    ``registered`` :func:`ward_ballot`'s for the previous LGE ``base_lge``,
+    and ``election_day`` the date ages are taken to.
+
+    Returns ``delta_rows`` and ``turnout_rows`` (formatted as the CSVs carry
+    them), ``weighted`` and ``weight_sum`` per party (``Σ w·d`` and ``Σ w``;
+    the weighted delta is their quotient), and ``skipped``, the
+    ``(ward, date)`` of each contest with no ``base_lge`` ward base.
+    """
+    share_col, turnout_col = f"share_{base_lge}", f"turnout_{base_lge}"
+    votes21, registered21 = votes, registered
+    skipped: list[tuple[str, str]] = []
+    city_totals: defaultdict[str, int] = defaultdict(int)
+    for tally in votes21.values():
+        for party, count in tally.items():
+            city_totals[party] += count
+    city_cast = sum(city_totals.values())
+    city_share = {p: v / city_cast for p, v in city_totals.items()}
+
+    # --- per-contest deltas and weights -------------------------------------
+    delta_rows = []
+    turnout_rows = []
+    weighted: defaultdict[str, float] = defaultdict(float)
+    weight_sum: defaultdict[str, float] = defaultdict(float)
+
+    for (when, ward), tally in sorted(contests.items()):
+        base = votes21.get(ward)
+        if not base:
+            skipped.append((ward, when))
+            continue
+        base_cast = sum(base.values())
+        bye_cast = sum(tally.values())
+        base_share = {p: v / base_cast for p, v in base.items()}
+        rho = similarity(base_share, city_share)
+        w = math.exp(-age_months(when, election_day) / tau) * math.sqrt(bye_cast) * rho
+
+        reg = registered21.get(ward, 0)
+        t21 = base_cast / reg if reg else float("nan")
+        t_bye = bye_cast / reg if reg else float("nan")
+        turnout_rows.append(
+            {"ward": ward, "date": when, turnout_col: t21, "turnout_bye": t_bye,
+             "ratio": t_bye / t21 if t21 else float("nan"), "votes_cast": bye_cast}
+        )
+
+        # Only parties that contested (A4: absence ≠ collapse). Sorted because
+        # set iteration order varies with the interpreter's hash seed, which
+        # made byelection_contest_detail.csv differ on every run of identical
+        # code — noise that hid real diffs. The values were never affected.
+        for party in sorted(tally):
+            d = tally[party] / bye_cast - base_share.get(party, 0.0)
+            weighted[party] += w * d
+            weight_sum[party] += w
+            delta_rows.append(
+                {"ward": ward, "date": when, "party": party,
+                 share_col: f"{base_share.get(party, 0.0):.4f}",
+                 "share_bye": f"{tally[party] / bye_cast:.4f}",
+                 "delta": f"{d:+.4f}", "weight": f"{w:.2f}", "rho": f"{rho:.3f}"}
+            )
+
+
+    return {"delta_rows": delta_rows, "turnout_rows": turnout_rows,
+            "weighted": dict(weighted), "weight_sum": dict(weight_sum),
+            "skipped": skipped}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tau", type=float, default=18.0,
+    parser.add_argument("--tau", type=float, default=TAU_MONTHS,
                         help="recency half-life in months (plan §3.5, range 6-36)")
     parser.add_argument("--data-dir", type=Path, default=Path("data/raw"))
     # Defaults to the ACTIVE TARGET's processed directory, resolved after
@@ -161,52 +349,12 @@ def main(argv: list[str] | None = None) -> int:
         args.data_dir / "elections" / target.results(base_lge)
     )
 
-    city_totals: defaultdict[str, int] = defaultdict(int)
-    for tally in votes21.values():
-        for party, count in tally.items():
-            city_totals[party] += count
-    city_cast = sum(city_totals.values())
-    city_share = {p: v / city_cast for p, v in city_totals.items()}
-
-    # --- per-contest deltas and weights -------------------------------------
-    delta_rows = []
-    turnout_rows = []
-    weighted: defaultdict[str, float] = defaultdict(float)
-    weight_sum: defaultdict[str, float] = defaultdict(float)
-
-    for (when, ward), tally in sorted(contests.items()):
-        base = votes21.get(ward)
-        if not base:
-            print(f"  ! no {base_lge} ward-ballot base for {ward} ({when}); skipped")
-            continue
-        base_cast = sum(base.values())
-        bye_cast = sum(tally.values())
-        base_share = {p: v / base_cast for p, v in base.items()}
-        rho = similarity(base_share, city_share)
-        w = math.exp(-age_months(when, target.date) / args.tau) * math.sqrt(bye_cast) * rho
-
-        reg = registered21.get(ward, 0)
-        t21 = base_cast / reg if reg else float("nan")
-        t_bye = bye_cast / reg if reg else float("nan")
-        turnout_rows.append(
-            {"ward": ward, "date": when, turnout_col: t21, "turnout_bye": t_bye,
-             "ratio": t_bye / t21 if t21 else float("nan"), "votes_cast": bye_cast}
-        )
-
-        # Only parties that contested (A4: absence ≠ collapse). Sorted because
-        # set iteration order varies with the interpreter's hash seed, which
-        # made byelection_contest_detail.csv differ on every run of identical
-        # code — noise that hid real diffs. The values were never affected.
-        for party in sorted(tally):
-            d = tally[party] / bye_cast - base_share.get(party, 0.0)
-            weighted[party] += w * d
-            weight_sum[party] += w
-            delta_rows.append(
-                {"ward": ward, "date": when, "party": party,
-                 share_col: f"{base_share.get(party, 0.0):.4f}",
-                 "share_bye": f"{tally[party] / bye_cast:.4f}",
-                 "delta": f"{d:+.4f}", "weight": f"{w:.2f}", "rho": f"{rho:.3f}"}
-            )
+    found = weighted_deltas(contests, votes21, registered21, target.date,
+                            args.tau, base_lge)
+    for ward, when in found["skipped"]:
+        print(f"  ! no {base_lge} ward-ballot base for {ward} ({when}); skipped")
+    delta_rows, turnout_rows = found["delta_rows"], found["turnout_rows"]
+    weighted, weight_sum = found["weighted"], found["weight_sum"]
 
     ratios = [r["ratio"] for r in turnout_rows if r["ratio"] == r["ratio"]]
     # No contest in the window is the normal state for an early target, not a

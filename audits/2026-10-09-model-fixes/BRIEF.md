@@ -50,6 +50,12 @@ item is pinned to the statute text saved in
   constructed case gives the swapped answer.
 - Rule A's 2026 prediction and the published draws are unchanged where no tie
   exists. The re-run says how many ties there were.
+  - *Amended 2026-10-09 (M1 diff review):* "no tie" means no equal whole-vote
+    surplus at the cut. Item 2 alone moves a draw whose last seat sits between
+    two parties with an equal whole-vote surplus and unequal votes: the float
+    remainder put the smaller party first, the statute gives the seat to the
+    higher vote. Those draws may move; every other draw is identical. The
+    count of each is TO-MEASURE at the run (SPEC Revision 3, R3.1).
 - The backtest's Johannesburg 2016 row is recomputed and recorded in MODEL-LOG.
 
 
@@ -114,3 +120,66 @@ Sources: `audits/2026-10-09-model-questions/FINDINGS.md` and
 3. **Owner review.**
 4. **One writer.**
 5. **Pre-registered panel measurement, then the whole suite once.**
+
+## Owner's decisions, 2026-10-09 (later), added to the batch
+
+The owner, verbatim: "2. growth changes by size for sure and you seem to have
+modelled that. so yes, lets do that for everyone and see what happens. 3.
+tripwire just tells us but doesnt stop it? if so yes. 4. it's a strange case.
+it's usually in the alliance so strange it is running alone, but only in some
+wards I think. Narrow it and treat like everyone else until we have a mechanism
+to change that has some basis. 5. no. certainly not."
+
+11. **Growth measured at current size, for every party** (item 7, candidate b2).
+    `_shrunk` evaluates the size centre at the party's current base, not at the
+    mean base of its own historical observations. It applies to all parties and
+    singles none out. The effect on every party is pre-registered and measured
+    ("see what happens").
+12. **The group-share tripwire** (item 7, Q4). It counts and reports each
+    party's realised share of each pool's vote above its record plus the
+    largest real one-cycle rise. It changes no number. It is recorded in the
+    run's guards, and the build prints it.
+13. **The SACP treated like everyone else.** Its special owner-declared sizing
+    (JUDGEMENT-CALLS §L13) is retired. It is sized and varied by the same rules
+    as other parties of its kind, until a mechanism with a basis exists for
+    parties that usually stand in an alliance (the SACP stands alone in some
+    wards only; that is noted, not modelled).
+14. **By-election evidence needs a minimum before it moves a small party.** Two
+    contests and 198 votes lifting the All Citizens Party from 0.04% to 1.07%
+    is rejected. The minimum is derived from data: how well by-election swings
+    of a given size and count predicted the next real result. The rule applies
+    to every party.
+15. **Long editor notes are shortened** where they stay understandable;
+    otherwise the note area grows. This is cosmetic and lands with the next
+    editor change.
+
+## Owner's decisions on the specification (2026-10-09)
+
+The owner, verbatim: "PA fix agree - no growth record we should have size ranges
+and maintain averages for each. SACP normal. Is it treated as a split or new
+entrant? Part of me thinks it should be a split but it's really just an
+alliance partner. Really not sure. But leave it as a normal new party. 3. ok 4.
+agree. 5. by elections we need to use history as the judge of whether they
+predicted anything not already predicted by model... lets see. decisions 1.
+yes. 2. ok. 3. yes. 4. yes"
+
+16. **A party's own growth record counts only from elections where it stood at a
+    size similar to now** (new arm, all parties). The similarity window is
+    derived from data, not typed. Where a party's own similar-size record is
+    empty, the size-group centre applies (item 11). This addresses the PA's
+    emergence-era multipliers without singling it out.
+17. **Parties with no own record** (item 11b, its own arm) take the average and
+    the range of their size group, at their current size.
+18. **The SACP is a normal new party** (item 13 as specified). Its alliance
+    status is noted, not modelled.
+19. **Item 14 redefined: by-elections are judged by history.**
+    - By-election evidence gets weight only to the extent that, historically,
+      it predicted the next real result beyond what the model predicted
+      without it. That is incremental, out-of-sample value against the model's
+      own baseline.
+    - If it adds nothing measurable, its weight is zero.
+    - It applies to every party. Pre-registered; the thin data (from 2022, and
+      the 2024 national election as the only later result) is stated.
+- **O4** unopposed: OK.
+- **O6** the re-emit for this batch only: yes.
+- **Writing is approved.**

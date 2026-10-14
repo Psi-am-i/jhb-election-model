@@ -529,24 +529,18 @@ def test_the_spine_returns_nothing_when_neither_record_has_a_single_observation(
     assert level == {} and info == {}
 
 
-def test_a_first_local_election_party_gets_the_flat_group_centre_not_the_size_centre():
-    """WRONG, and already known (§1.93): two estimators for one quantity.
+def test_a_first_local_election_party_gets_the_size_centre_at_its_current_size():
+    """RE-RECORDED 2026-10-09 (BRIEF item 17, SPEC R2.2): the defect §1.93
+    named, and this test pinned as WRONG, is fixed.
 
-    ``_shrunk`` shrinks each party's OWN mean toward ``size_centre`` -- the
-    fitted ``log theta = a + b log(size)`` that §3.5 adopted because small
-    parties gain going into a local election and large ones lose -- but returns
-    the FLAT ``mu_all`` as the group centre, and ``spine`` hands that flat
-    number to every party with no record of its own. ``theta_prior``'s own
-    comment calls the flat centre the wrong one. §1.93: *"theta_prior falls back
-    to the size centre and _shrunk to the flat centre ... and the spine takes
-    _shrunk's. The named case is MK in 2026."*
-
-    The consequence is stated here as an equality that should NOT hold: a party
-    at 0.20% of the national vote and a party at 30% of it, both facing their
-    first local election, get the identical retention multiplier -- the one
-    thing ``size_centre`` was fitted to deny. The record below carries a real
-    size gradient (small parties above 1.0, large ones below) and enough
-    observations for ``size_centre`` to fit, and it changes nothing for either.
+    It was ``..._gets_the_flat_group_centre_not_the_size_centre`` and asserted
+    that a party at 0.20% of the national vote and one at 30%, both facing
+    their first local election, got the identical flat multiplier. The owner
+    decided that a party with no record of its own takes its size group's
+    average at its current size (BRIEF item 17), which is what ``theta_prior``
+    already gave it. The record carries a real size gradient and enough
+    observations for ``size_centre`` to fit; each party now gets the line at
+    its own size, and the flat-centre fallback is not counted for either.
     """
     graded = {}
     for i, size in enumerate([0.0005, 0.001, 0.002, 0.004, 0.01, 0.02,
@@ -561,16 +555,54 @@ def test_a_first_local_election_party_gets_the_flat_group_centre_not_the_size_ce
     baseline = {"TINY": 0.002, "HUGE": 0.30}
     level, info = _spine(theta=graded, rho=RHO, baseline=baseline,
                          prev_local={})
-    tiny = level["TINY"] / 0.002
-    huge = level["HUGE"] / 0.30
     assert info["detail"]["TINY"]["route"].startswith("national only")
-    assert _close(tiny, huge), (tiny, huge)
-    assert _close(tiny, info["theta_centre"]), (
-        "both take the flat group centre")
-    size_tiny = math.exp(fit[0] + fit[1] * math.log(0.002))
-    size_huge = math.exp(fit[0] + fit[1] * math.log(0.30))
-    assert not _close(size_tiny, size_huge, 1e-6), (
-        "the size centre distinguishes them; the spine does not")
+    for party, size in baseline.items():
+        expected = size * math.exp(fit[0] + fit[1] * math.log(size))
+        assert _close(level[party], expected), (party, level[party], expected)
+    assert not _close(level["TINY"] / 0.002, level["HUGE"] / 0.30, 1e-6)
+    assert info["absorption"]["centre_fallback"]["theta"] == 0
+    assert info["absorption"]["theta_shrink"]["at_size_centre"] == 2
+
+
+def test_a_no_record_party_takes_its_size_groups_average_and_range():
+    """G22 (SPEC R2.2). A no-record party at 0.1% and at 10% gets ``mu`` =
+    the size centre at its size and, in the drawer, sd = ``levels.size_sd``
+    at its size. ``montecarlo.level_shock_sd`` gives a party absent from the
+    measured widths ``size_sd`` at its base, an item-8 party ``size_sd`` at
+    its local share even where ``theta_prior`` emitted a width for it, and
+    stops the run where its base is 0 or the run has no θ fit (the typed
+    fallback was deleted 2026-10-09, JUDGEMENT-CALLS §A29)."""
+    import montecarlo as M
+    graded = {f"P{i}": [(1.4 * (sz / 0.0005) ** -0.06, sz)] * 2
+              for i, sz in enumerate([0.0005, 0.001, 0.002, 0.004, 0.01,
+                                      0.02, 0.05, 0.10, 0.20, 0.35])}
+    fit = levels.size_centre(graded)
+    for size in (0.001, 0.10):
+        mus, _m, worth = levels._shrunk(graded, current={"NEW": size})
+        assert abs(mus["NEW"] - (fit[0] + fit[1] * math.log(size))) < 1e-12
+        assert "NEW" not in worth
+
+    sd_fit = {"route": "size_fit", "slope": -0.35, "intercept": -3.1}
+    widths = {s: levels.size_sd(s, sd_fit) for s in (0.001, 0.10)}
+    assert widths[0.001] > widths[0.10], widths
+    scenario = {"_theta_sd": {"OLD": 0.33, "LOCAL": 1.2},
+                "_theta_sd_fit": sd_fit, "_local_record_only": ["LOCAL"]}
+    base = {"OLD": 0.2, "NEW_SMALL": 0.001, "NEW_BIG": 0.10, "LOCAL": 0.001,
+            "NOSIZE": 0.0}
+    assert M.level_shock_sd("OLD", scenario, base) == (0.33, "measured")
+    assert M.level_shock_sd("NEW_SMALL", scenario, base) == (widths[0.001], "size")
+    assert M.level_shock_sd("NEW_BIG", scenario, base) == (widths[0.10], "size")
+    assert M.level_shock_sd("LOCAL", scenario, base) == (widths[0.001], "size")
+    no_fit = dict(scenario, _theta_sd_fit=None)
+    for party, scen in (("NOSIZE", scenario), ("NEW_BIG", no_fit)):
+        try:
+            M.level_shock_sd(party, scen, base)
+        except SystemExit as exc:
+            assert party in str(exc) and "no level-shock width" in str(exc)
+        else:
+            raise AssertionError(f"{party} was given a width with no size or fit")
+    # A measured party needs neither, so the stop is not a blanket refusal.
+    assert M.level_shock_sd("OLD", no_fit, base) == (0.33, "measured")
 
 
 def test_k_equal_to_zero_puts_a_party_with_no_theta_record_on_its_national_route():
@@ -628,6 +660,101 @@ def test_the_diagnostic_counts_the_observations_the_blend_was_actually_built_fro
     _, fatter = _spine(theta=dict(THETA, BOTH=[(1.0, 0.30)] * 5))
     assert fatter["n_theta"] == 7, fatter["n_theta"]
 
+
+def _walk(by_year: dict[str, dict]):
+    """A ``record_fn`` for ``levels.size_window``: the record at each target
+    year, empty before the first one given."""
+    def record_fn(target, codes=levels.METRO_CODES):
+        held = [y for y in by_year if int(y) <= int(target.year)]
+        return by_year[max(held, key=int)] if held else {}
+    return record_fn
+
+
+def _history(n_parties: int, first_ratio: float, second_ratio: float,
+             jitter: float = 0.02):
+    """Two cycles. At 2011 each party has a near-size (5%) observation at
+    ratio 0.8 and a far-size (0.05%) one at ratio 5.0; at 2016 each gains one
+    new near-size observation near ``first_ratio`` and at 2021 one near
+    ``second_ratio``. ``jitter`` spreads the new ratios across parties so the
+    within-cycle variance is not zero."""
+    then = {f"P{i:02d}": [(0.8, 0.05), (5.0, 0.0005)] for i in range(n_parties)}
+    mid = {p: obs + [(first_ratio * (1 + jitter * (i % 5 - 2)), 0.05)]
+           for i, (p, obs) in enumerate(then.items())}
+    now = {p: obs + [(second_ratio * (1 + jitter * (i % 5 - 2)), 0.05)]
+           for i, (p, obs) in enumerate(mid.items())}
+    return {"2011": then, "2016": mid, "2021": now}
+
+
+def test_the_t_quantile_is_the_published_one():
+    """``levels._t_upper`` against Student's t table values (upper 5% and
+    2.5%), the arithmetic the window rule's critical value rests on."""
+    table = {(0.05, 1): 6.3138, (0.05, 2): 2.9200, (0.05, 3): 2.3534,
+             (0.05, 4): 2.1318, (0.05, 10): 1.8125, (0.025, 1): 12.7062,
+             (0.025, 4): 2.7764, (0.025, 30): 2.0423}
+    for (alpha, df), value in table.items():
+        assert abs(levels._t_upper(alpha, df) - value) < 5e-4, (alpha, df)
+
+
+def test_the_size_window_derivation_can_see():
+    """G20 (SPEC R2.1), on the paired rule (JUDGEMENT-CALLS §A52).
+
+    * New observations that repeat each party's near-size history in both
+      cycles: every finite window predicts them alike and ``inf`` (which
+      lets the far-size ratio in) is measurably worse, so ``h`` is finite.
+    * The same, with the second cycle contradicting the first: ``inf`` has
+      the higher pooled error but the two cycles disagree, so it is not
+      measurably worse and the rule takes it, wider than ``best``.
+    * Fewer than ``SIZE_WINDOW_MIN_SCORED`` scored observations, or one
+      cycle only: ``"underdetermined"`` and ``inf``.
+    Nothing at or after the target is asked for."""
+    target = _target("2021")
+    asked: list[str] = []
+
+    def spy(fn):
+        def wrapped(t, codes=levels.METRO_CODES):
+            asked.append(t.year)
+            return fn(t, codes)
+        return wrapped
+
+    n = levels.SIZE_WINDOW_MIN_SCORED // 2 + 3
+    h, rep = levels.size_window(target, spy(_walk(_history(n, 0.8, 0.8))))
+    assert rep["status"] == "derived" and rep["scored"] == 2 * n, rep
+    assert rep["clusters"] == 2, rep
+    assert math.isfinite(h), rep
+    assert rep["paired"]["inf"]["worse"] and rep["paired"]["inf"]["lower"] > 0
+    assert all(int(y) <= 2021 for y in asked) and "2021" in asked, asked
+
+    h, rep = levels.size_window(target, _walk(_history(n, 0.8, 3.0)))
+    assert rep["status"] == "derived" and h == float("inf"), rep
+    assert rep["best"] != "inf", rep
+    assert rep["errors"]["inf"] > rep["errors"][str(rep["best"])], rep
+    assert not rep["paired"]["inf"]["worse"], rep
+
+    few = levels.SIZE_WINDOW_MIN_SCORED // 2 - 1
+    h, rep = levels.size_window(target, _walk(_history(few, 0.8, 0.8)))
+    assert rep["status"] == "underdetermined" and h == float("inf"), rep
+
+    one_cycle = {y: r for y, r in _history(levels.SIZE_WINDOW_MIN_SCORED + 5,
+                                           0.8, 0.8).items() if y != "2011"}
+    h, rep = levels.size_window(target, _walk(one_cycle))
+    assert rep["scored"] >= levels.SIZE_WINDOW_MIN_SCORED, rep
+    assert rep["clusters"] == 1, rep
+    assert rep["status"] == "underdetermined" and h == float("inf"), rep
+
+
+def test_the_spine_filters_each_route_on_its_own_window():
+    """Item 16 through ``spine``: a party whose only θ observation lies
+    outside ``h_theta`` loses its θ worth, so it sits on the size centre and
+    its blend weight goes to full local; at ``h_theta = inf`` it keeps both."""
+    theta = {"BOTH": [(2.0, 0.0005)]}
+    _lvl, open_ = _spine(theta=theta)
+    with records(theta, RHO):
+        _lvl, shut = levels.spine(_target(), BASELINE, PREV_LOCAL, k=1.0,
+                                  h_theta=1.0)
+    assert open_["detail"]["BOTH"]["worth"] > 0
+    assert shut["detail"]["BOTH"]["worth"] == 0.0
+    assert shut["detail"]["BOTH"]["w_local"] == 1.0
+    assert shut["absorption"]["theta_shrink"]["outside_window"] == 1
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

@@ -471,6 +471,201 @@ def test_metro_roster_and_vote_presence_still_agree_where_the_poll_path_looks():
         assert roster, f"{party} has an empty {year} roster — the archive moved"
 
 
+def test_the_size_window_reads_no_election_at_or_after_its_target():
+    """G21 (BRIEF item 16). ``levels.size_window`` walks the calendar's
+    targets up to the one it is deriving for; every file it opens, for either
+    record, is dated strictly before that target.
+
+    The expected sets are built from the calendar and the disk, not from
+    anything ``size_window`` or the record functions return (M3 review row 6:
+    the population check compared the scanned list with itself).
+
+    * **Population:** the target years of the emitted pool specs on disk
+      (``data/processed/**/pools_<year>.json``), every city, asserted equal
+      both ways to a second source: ``compare_history.runnable``'s union over
+      the city configs, plus the live 2026 forecast. Each scanned.
+    * **It looked, and read the right files:** for θ, the set of elections
+      read is exactly every LGE with results before the target and the
+      national election preceding each (``cityconfig.preceding``); for ρ,
+      exactly every LGE with results before the target. Both directions, so
+      a skipped earlier election fails as well as a late one. (This assumes
+      no ``THETA_EXCLUDE_TARGETS`` or ``THETA_WINDOW`` trims the θ record; if
+      one is configured, the expected θ set must say so.)
+    * ``report["targets"]`` is the calendar's LGE years up to the target.
+    """
+    sys.path.insert(0, str(ROOT / "src"))
+    import cityconfig
+    import compare_history
+    import levels
+    from _support import election_files_read
+
+    on_disk = {p.stem.split("_", 1)[1]
+               for p in (ROOT / "data" / "processed").rglob("pools_*.json")}
+    population = sorted((y for y in on_disk if y.isdigit()), key=int)
+    assert population, "no emitted pool spec on disk: the scan saw nothing"
+    runnable = {"2026"}
+    for toml in sorted((ROOT / "cities").glob("*.toml")):
+        runnable |= set(compare_history.runnable(cityconfig.load(toml.stem))[0])
+    assert set(population) == runnable, (
+        f"spec years on disk {population} and the runnable years plus 2026 "
+        f"{sorted(runnable)} disagree: one of the two populations is wrong")
+    assert not levels.THETA_EXCLUDE_TARGETS and not levels.THETA_WINDOW, (
+        "a θ record trim is configured; the expected θ file set below "
+        "assumes none")
+    cal = cityconfig.CALENDAR
+    lge_results = sorted((y for y, e in cal.items()
+                          if e.kind == "LGE" and e.results), key=int)
+    city = cityconfig.load("joburg")
+    for year in population:
+        target = cityconfig.Target(city=city, year=year)
+        earlier = [y for y in lge_results if int(y) < int(year)]
+        npes = {cityconfig.preceding(y, "NPE") for y in earlier}
+        npes = {n for n in npes if n and cal[n].results}
+        want = {"theta_record": {(y, "LGE") for y in earlier
+                                 if cityconfig.preceding(y, "NPE") in npes}
+                | {(n, "NPE") for n in npes},
+                "local_record": ({(y, "LGE") for y in earlier}
+                                 if len(earlier) >= 2 else set())}
+        for record_fn in (levels.theta_record, levels.local_record):
+            with election_files_read() as reads:
+                _h, report = levels.size_window(target, record_fn)
+            got = {(y, k) for y, k, _ in reads}
+            late = sorted(g for g in got if int(g[0]) >= int(year))
+            assert not late, (f"size_window for {year} "
+                              f"({record_fn.__name__}) read {late}")
+            expected = want[record_fn.__name__]
+            assert got == expected, (
+                f"size_window for {year} ({record_fn.__name__}) read "
+                f"{sorted(got)}; the calendar says {sorted(expected)}")
+            assert report["targets"] == [y for y in sorted(
+                (y for y, e in cal.items() if e.kind == "LGE"), key=int)
+                if int(y) <= int(year)], report["targets"]
+
+
+def _late_reads(fn, year: int) -> tuple[list, object]:
+    """Run ``fn`` under the file-open spy; the election files it read dated
+    ``year`` or later, and its return value."""
+    from _support import election_files_read
+    with election_files_read() as reads:
+        result = fn()
+    return sorted({(y, k) for y, k, _ in reads if int(y) >= year}), result
+
+
+def test_the_byelection_value_test_reads_no_byelection_or_result_from_its_outcome_on():
+    """G25 (BRIEF item 19, SPEC R2.4). ``bye_value`` predicts the 2024
+    provincial ballot, so:
+
+    * **``B`` reads nothing dated 2024 or later.** ``bye_value.baselines``
+      runs under the file-open spy; the set of elections it reads is exactly
+      the θ record's at a 2024 target (every LGE with results before 2024 and
+      the national election preceding each, from the calendar) plus each
+      metro's 2021 LGE and 2019 national election. Both directions.
+    * **It can see.** The same spy over ``bye_value.outcomes`` (which reads
+      the 2024 result, as it must) reports it late; over ``baselines`` it is
+      quiet.
+    * **No by-election on or after 2024-05-29.** Every pair's contest dates
+      lie strictly between the 2021 LGE and the outcome; a constructed
+      by-election file with contests on 2024-05-28, on 2024-05-29 and after
+      it keeps only the first, and a cutoff moved a day later lets the
+      second through (the filter is what decides, not the file).
+    * **Population.** The pairs ``collect`` returns equal, both ways, a set
+      built here from the raw files with the csv module: (party, metro) from
+      the by-election rows in the window, in a ward with a 2021 ward-ballot
+      result, with positive list votes on the 2021 PR ballot or the 2024
+      ballot; and the count the artefact would report. Scanned against the
+      (party, metro) pairs in the window before the list-vote condition.
+    """
+    import csv
+    import datetime as dt
+    import tempfile
+    sys.path.insert(0, str(ROOT / "src"))
+    import bye_value as BV
+    import byelections as BY
+    import cityconfig
+    import levels
+    import parties as P
+    from _support import election_files_read, scanned
+
+    assert not levels.THETA_EXCLUDE_TARGETS and not levels.THETA_WINDOW, (
+        "a θ record trim is configured; the expected file set assumes none")
+    cal = cityconfig.CALENDAR
+    lge_results = sorted((y for y, e in cal.items()
+                          if e.kind == "LGE" and e.results), key=int)
+    earlier = [y for y in lge_results if int(y) < 2024]
+    npes = {cityconfig.preceding(y, "NPE") for y in earlier}
+    npes = {n for n in npes if n and cal[n].results}
+    want = ({(y, "LGE") for y in earlier
+             if cityconfig.preceding(y, "NPE") in npes}
+            | {(n, "NPE") for n in npes} | {("2021", "LGE"), ("2019", "NPE")})
+    with election_files_read() as reads:
+        _base, _window = BV.baselines()
+    got = {(y, k) for y, k, _ in reads}
+    late = sorted(g for g in got if int(g[0]) >= 2024)
+    assert not late, f"B read {late}"
+    assert got == want, f"B read {sorted(got)}; the calendar says {sorted(want)}"
+
+    late_outcome, _ = _late_reads(BV.outcomes, 2024)
+    assert late_outcome == [("2024", "NPE")], late_outcome
+    quiet, _ = _late_reads(BV.baselines, 2024)
+    assert quiet == []
+
+    lo, cut = cal["2021"].date, cal["2024"].date
+    with tempfile.TemporaryDirectory() as tmp:
+        f = Path(tmp) / "bye.csv"
+        f.write_text("WardID,ByElectionDate,PartyFullName,Party_Votes\n"
+                     "79800001,2024-05-28,PARTY A,10\n"
+                     "79800002,2024-05-29,PARTY A,10\n"
+                     "79800003,2024-06-01,PARTY A,10\n", encoding="utf-8")
+        kept = BY.load_byelections(f, "798", lo, cut)
+        assert sorted(w for _d, w in kept) == ["79800001"], kept
+        later = BY.load_byelections(f, "798", lo, cut + dt.timedelta(days=1))
+        assert sorted(w for _d, w in later) == ["79800001", "79800002"]
+
+    found = BV.collect()
+    pairs = found["pairs"]
+    for p in pairs:
+        for d in p["dates"]:
+            assert lo < dt.date.fromisoformat(d) < cut, (p["party"], d)
+
+    window_pairs: set[tuple[str, str]] = set()
+    expected: set[tuple[str, str]] = set()
+    for slug in BV.CITIES:
+        city = cityconfig.load(slug)
+        raw = ROOT / "data" / "raw" / "elections"
+        lge = raw / cal["2021"].results.replace("{CODE}", city.code)
+        out = raw / cal["2024"].results.replace("{CODE}", city.code)
+        wards, listed = set(), set()
+        with open(lge, encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if row["BallotType"].upper() == "WARD":
+                    wards.add(row["Ward"])
+                elif (row["BallotType"].upper() == "PR"
+                      and int(row["Party_Votes"]) > 0):
+                    listed.add(P.canonical(row["sPartyName"]))
+        with open(out, encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if float(row["Party_Votes"] or 0) > 0:
+                    listed.add(P.canonical(row["sPartyName"]))
+        with open(ROOT / BY.SA_FILE, encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                if not row["WardID"].startswith(city.ward_prefix):
+                    continue
+                if not lo < dt.date.fromisoformat(row["ByElectionDate"]) < cut:
+                    continue
+                key = (P.canonical(row["PartyFullName"]), slug)
+                window_pairs.add(key)
+                if row["WardID"] in wards and key[0] in listed:
+                    expected.add(key)
+    got_pairs = {(p["party"], p["metro"]) for p in pairs}
+    assert len(got_pairs) == len(pairs), "a pair appears twice"
+    assert got_pairs == expected, (
+        f"collect has {sorted(got_pairs - expected)} the raw files do not, "
+        f"and misses {sorted(expected - got_pairs)}")
+    scanned(got_pairs, of=window_pairs, low=0.5, high=1.0,
+            what="item-19 pairs", denominator="(party, metro) pairs with a "
+            "by-election in the window")
+
+
 # The two data-coverage tests that lived here from 2026-08-23 moved to
 # tests/test_data_coverage.py, which owns that subject in full. This file
 # is about TEMPORAL leakage. MODEL-LOG §1.78.

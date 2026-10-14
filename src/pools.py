@@ -356,6 +356,12 @@ def _gates_sha() -> str:
 # `read_ward_crosswalk` alone will NOT mark a spec stale.
 _EMIT_DEPENDENCIES = ("parties", "cityconfig", "ingest_lge", "levels")
 
+# The group-share record's file name under `data/processed` (BRIEF item 12).
+# Named once here because two modules need it and neither may import the
+# other: `group_share_record.py` writes it and `montecarlo` reads it, and
+# `group_share_record` is an entry point nothing imports (CLAUDE.md §5).
+GROUP_SHARE_RECORD = "group_share_record.json"
+
 
 def _deps_sha() -> str:
     """The code of the first-party modules the emit leans on, hashed together."""
@@ -511,6 +517,24 @@ def _judgements_sha(city, target) -> str:
         payload = tomllib.loads(path.read_text())
     except Exception:
         return "unparsable"
+    # THE STRENGTH KEYS ARE NOT IN THE SPEC'S HASH (design 1j v3 §11.2, v3
+    # addendum §2). `support`, `overperform`, `sigma_j` and `register` are read
+    # at RUN time by `montecarlo.strength_judgements`, so editing one changes
+    # no spec and must force no re-emit. They are not unkeyed: the forecast
+    # declares the hash of the entries it applied
+    # (`montecarlo.judgements_applied_sha`), and `declares.py --verify` checks
+    # it against the live file.
+    # THE MEMBERSHIP IS IN THE HASH, THE VALUES ARE NOT (step-7 review, item
+    # 4). Whether a party carries `support` or `overperform` decides at emit
+    # whether it sits inside the entrant group's budget (`judged_parties`,
+    # §L2), so adding or removing one must move the key; its value acts at
+    # run time only, so changing it must not.
+    for body in (payload.get("party") or {}).values():
+        if isinstance(body, dict):
+            if "support" in body or "overperform" in body:
+                body["strength_declared"] = True
+            for k in STRENGTH_KEYS:
+                body.pop(k, None)
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode()).hexdigest()[:16]
 
@@ -4183,14 +4207,9 @@ def splinter_record(city: cityconfig.City | None, before_year: str | None = None
 # cut "every pool pinned to the 200 ceiling", i.e. the simulation far more
 # confident than the evidence warrants. A constant that can saturate the
 # dominant width lever is not a tidying detail.
-# THE TRIANGULAR SUPPORT OF EVERY SEEDED ARRIVAL, consumed in `montecarlo`
-# as `low, _, high = seed_band`. The long comment beside the code narrates why
-# the CENTRE moved from median to mean and why a `clip(reach, 0.05, 0.95)` was
-# a disaster — and never mentions that the surviving percentile pair is itself
-# a choice. 25/95 rather than 10/90 or 5/95 sets how wide an ActionSA-class
-# arrival's band is. Promoted 2026-08-22, §1.69.
-ARRIVAL_BAND_LO = 0.25
-ARRIVAL_BAND_HI = 0.95
+# The two percentile constants of an arrival's emitted band (0.25 / 0.95)
+# were DELETED 2026-10-09 with the band itself: nothing drew from it
+# (MODEL-LOG §1.198; item9/FINDINGS.md Q5).
 
 ALPHA_MIN_SHARE = 0.01     # pool members below this are noise floor, not signal
 ALPHA_FLOOR = 1.0          # a Dirichlet concentration below 1 is a spike
@@ -4712,6 +4731,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                   pooled_splits: list[float] | None = None,
                   group_total: float | None = None,
                   city_mix: np.ndarray | None = None,
+                  judged: frozenset | set | None = None,
                   ) -> tuple[dict[str, dict], dict[str, str]]:
     """How a party that was not here last time takes its votes.
 
@@ -4749,8 +4769,11 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
     actually contests — a party fielding candidates in a third of the wards
     cannot win what one fielding everywhere can.
 
-    Returns, per party, a dict of ``pool -> capture rate`` plus the band on the
-    whole thing, and a note explaining where each number came from.
+    Returns, per party, a dict of ``pool -> capture rate`` and a note
+    explaining where each number came from. (It also returned a band on the
+    whole thing; that band was emitted and never drawn from, and was deleted
+    2026-10-09, item9/FINDINGS.md Q5. A seeded arrival's width is the
+    within-pool split.)
     """
     if not record:
         return {}, {}
@@ -4849,7 +4872,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         parent = parent or ""
         weights = declared.get("weights")
         reach = (contestation or {}).get(party)
-        judged = False   # set by the entrant branch; see the group rescale
+        # Held out of the group budget below when a strength judgement will
+        # size it at run time (`judged_parties`: membership only, §L2).
+        is_judged = party in (judged or ())
 
         # ONE decision about which machinery sizes this party, used by the
         # branch AND by the band below. They used to be decided separately —
@@ -4858,7 +4883,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         # splinter record of its own took the entrant branch and then divided
         # None by None building its band. Tshwane, Ekurhuleni and eThekwini
         # all hit it the moment ActionSA got a parent.
-        f_lo, f_mid, f_hi, f_kind = band_for(party)
+        # The band's ends are not used: the emitted band was deleted
+        # 2026-10-09 (item9/FINDINGS.md Q5). `f_mid` sizes the split.
+        _, f_mid, _, f_kind = band_for(party)
         as_split = bool(parent and parent in index and f_mid is not None)
 
         # ⛔ THE BAND IS A PROPERTY OF THE ARRIVAL RECORD, NOT OF OUR OWN CENTRE.
@@ -4893,8 +4920,6 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         # and every emitted band is unchanged. Verified against all 26 specs.
         peers = comparators(reach)
         base = max(float(np.mean(peers)), 1e-9)
-        lo_e = float(np.quantile(peers, ARRIVAL_BAND_LO))
-        hi_e = float(np.quantile(peers, ARRIVAL_BAND_HI))
 
         if weights:
             vec = np.array([float(w) for w in weights], dtype=float)
@@ -4920,10 +4945,15 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # it, and either one makes the party `judged` and therefore held
             # out of the group budget. Number-neutral on the tree as it stands
             # — no judgement file declares any of the three keys.
-            stated = declared.get("support")
-            mult = float(declared.get("overperform", 1.0))
-            judged = stated is not None or mult != 1.0
-            size = (float(stated) if stated is not None else base) * mult
+            # ⛔ THE STRENGTH KEYS ARE NO LONGER READ AT EMIT (design 1j v3
+            # §11.2, 2026-10-12). A judged size reaches the forecast at RUN
+            # time (`montecarlo.strength_judgements`), so a declared-weights
+            # arrival is sized here like any other, from the record base. Its
+            # judged centre then replaces this one before `pool_spec`. Only
+            # WHETHER it is judged is read here (`judged_parties`), for the
+            # group budget below.
+            stated, mult = None, 1.0
+            size = base
             capture = _capture_from_share(vec, size, pool_size)
             short = capture_shortfall(vec, size, pool_size)
             why = ((f"pools and support DECLARED in judgements/: "
@@ -4935,9 +4965,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                     f"record. Set `support` to state it")
                    + (f", after a x{mult:g} judgement — seeded at {size:.2%}"
                       if mult != 1.0 else "")
-                   + f". Band {lo_e / base:.2f}-{hi_e / base:.2f}x that centre "
-                   + "— the declaration sets the level, the record sets the "
-                     "width."
+                   + ". The draw's width comes from the pool split."
                    + (f" ⚠️ {short:.0%} of the declared share DID NOT FIT: the "
                       f"{MAX_POOL_CAPTURE:.0%} per-pool cap binds on this "
                       f"vector, so the party is seeded at "
@@ -4986,9 +5014,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             why = (f"SPLIT from {parent} ({lineage_why}): takes {f_mid:.1%} of a "
                    f"vector that is {alpha:.0%} {parent}'s pool rates and "
                    f"{1 - alpha:.0%} the city's own composition — measured, "
-                   f"median over 22 splinter-metro cases. Band {f_lo:.1%}-"
-                   f"{f_hi:.1%} from the {f_kind} splinter record. Every party "
-                   f"in those pools gives up the same proportion; none is named.")
+                   f"median over 22 splinter-metro cases, from the {f_kind} "
+                   f"splinter record; the draw's width comes from the pool "
+                   f"split. Every party in those pools gives up the same proportion; none is named.")
         else:
             # AN ENTRANT NOBODY HAS MEASURED DRAWS LIKE THE CITY, NOT LIKE A
             # UNIFORM DISTRIBUTION OVER CATEGORIES OF WILDLY DIFFERENT SIZE.
@@ -5055,7 +5083,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # the median is therefore seeding at a value four fifths of arrivals
             # exceed in expectation.
             #
-            # The band below already carried the skew — a triangular running to
+            # SUPERSEDED (2026-10-09): the band this paragraph describes was
+            # never read at all (§1.198) and is deleted. As written: the band
+            # carried the skew — a triangular running to
             # the 95th percentile, typically 17-24x the seed. It could not do
             # anything with it, because `pool_spec` balances both margins by IPF
             # (MODEL-LOG 'The centres now BIND') and IPF pins each party's MEAN
@@ -5087,12 +5117,9 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # owner who knew the size but not the pools — the ordinary case
             # for a party announced without a ward list — had their number
             # silently discarded and got the comparator mean instead.
-            stated = declared.get("support")
-            if stated is not None:
-                size = float(stated)
-            mult = float(declared.get("overperform", 1.0))
-            size *= mult
-            judged = stated is not None or mult != 1.0
+            # Not read at emit (design 1j v3 §11.2): a judged size acts at run
+            # time, through `montecarlo.strength_judgements`.
+            stated, mult = None, 1.0
             capture = _capture_from_share(vec, size, pool_size)
             why = (f"entrant from nothing: spread as the city's own pool "
                       f"composition. "
@@ -5103,13 +5130,10 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                       f"({reach_used:.0%} of wards): mean {base:.2%}, median "
                       f"{np.median(peers):.2%}")
                    + (f" after a x{mult:g} judgement" if mult != 1.0 else "")
-                   + f". Band {lo_e:.2%}-{hi_e:.2%} on the record, carried "
-                   + "across as a RELATIVE width. THE EVEN SPREAD IS A "
-                     "PLACEHOLDER: declare which pools it pulls from and what "
+                   + ". The draw's width comes from the pool split. THE "
+                     "EVEN SPREAD IS A PLACEHOLDER: declare which pools it pulls from and what "
                      "support you expect.")
-        rules[party] = {"capture": capture,
-                        "band": [f_lo / f_mid, 1.0, f_hi / f_mid] if as_split
-                                else [lo_e / base, 1.0, hi_e / base]}
+        rules[party] = {"capture": capture}
         # ⛔ A JUDGED SIZE IS OUTSIDE THE GROUP BUDGET, OR IT IS NOT A SIZE.
         #
         # The rescale below holds the entrant GROUP to the arrival-total record.
@@ -5129,12 +5153,17 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
         # remainder. The declared party sits outside; the undeclared ones keep
         # the record. JUDGEMENT-CALLS §L2.
         #
+        # Since 2026-10-13 the emit reads only WHETHER a party is judged
+        # (`judged_parties`: `support` or `overperform` present, on a forecast),
+        # never the value, which acts at run time (step-7 review, item 4; the
+        # 2026-10-12 version kept every judged party inside the budget).
+        #
         # ⚠️ THE TEST IS `judged`, NOT `weights`. It was `not weights` for one
         # commit, which exempted a party whose POOLS were declared and whose
         # SIZE was not — so a `weights`-only party escaped the budget carrying
         # a number nobody had stated. The exemption is for a party somebody has
         # named AND SIZED; declaring a pool vector is neither.
-        if not as_split and not judged:
+        if not as_split and not is_judged:
             entrant_sizes[party] = size
         notes[party] = why
 
@@ -5231,8 +5260,47 @@ def capture_shortfall(weights: "np.ndarray", share: float,
 
 
 
+def target_is_held(year) -> bool:
+    """True when the election at ``year`` has a result file in the calendar:
+    a BACKTEST target. False for a forecast. ONE DEFINITION
+    (``montecarlo.target_is_held`` delegates here): the strength judgements
+    are ignored on a held target, so the emit holds no judged arrival out of
+    the group budget there (:func:`judged_parties`), and a forecast artefact
+    must declare the hash of the judgements it applied (``declares.py``). Not
+    in ``cityconfig``, which is an emit dependency (``_EMIT_DEPENDENCIES``)
+    whose edit moves ``bye_value.json``'s key as well as every spec's
+    (MODEL-LOG §1.299)."""
+    e = cityconfig.CALENDAR.get(str(year))
+    return bool(e and e.results)
+
+
+def judged_parties(lineage: dict, target) -> frozenset:
+    """The parties a strength judgement will size at run time: those whose
+    ``[party.X]`` table carries ``support`` or ``overperform``, on a FORECAST
+    only (a backtest ignores judgements, ``montecarlo.strength_judgements``).
+
+    WHAT THE EMIT MAY READ (step-7 review, item 4): WHICH parties are judged,
+    never how strong. The membership decides whether an arrival sits inside
+    the entrant group's budget (JUDGEMENT-CALLS §L2); the values act at run
+    time and stay out of the spec's hash (:func:`_judgements_sha` hashes the
+    membership and drops the values)."""
+    if target_is_held(target.year):
+        return frozenset()
+    return frozenset(p for p, body in (lineage or {}).items()
+                     if isinstance(body, dict)
+                     and ("support" in body or "overperform" in body))
+
+
+# Where the judgements files live: the repository's own `judgements/`,
+# whatever the working directory (step-7 review, item 5). A run started from
+# `src/` (as `declares.py` is) used to find no file, read `{}`, and declare the
+# hash of the empty set. A test rebinds this to a scratch directory.
+JUDGEMENTS_DIR = Path(__file__).resolve().parents[1] / "judgements"
+
+
 def lineage_path(city: cityconfig.City, target: cityconfig.Target) -> Path:
-    return Path("judgements") / f"{city.slug}-{target.year}.toml"
+    """``judgements/<slug>-<year>.toml`` under :data:`JUDGEMENTS_DIR`."""
+    return JUDGEMENTS_DIR / f"{city.slug}-{target.year}.toml"
 
 
 # Every key the `[roster]` table may carry. Closed for the same reason
@@ -5450,12 +5518,23 @@ def declared_roster(city: cityconfig.City, target: cityconfig.Target) -> dict:
 # of the 408 party tables in the tree carries `baseline_share` and nothing
 # else, so the documented way to size a declared party was a key with no
 # reader. That is the trap this set closes.
+# The strength keys: read at run time by `montecarlo.strength_judgements` and
+# excluded from `_judgements_sha` (design 1j v3 §11.2).
+STRENGTH_KEYS = ("support", "overperform", "sigma_j", "register")
+
 PARTY_KEYS = {
     "parent":         "which sizing machinery: a named parent makes it a SPLIT",
     "weights":        "its pool vector, in `categories` order, normalised",
-    "support":        "its expected share OF THE CITY — the strength knob",
-    "overperform":    "a multiplier on the default strength, when you prefer "
-                      "to scale the record rather than replace it",
+    "support":        "its expected share OF THE CITY — the strength knob. "
+                      "Read at RUN time (montecarlo.strength_judgements, "
+                      "design 1j v3 §11); needs sigma_j and register",
+    "overperform":    "a multiplier on `support`, or on the model's centre "
+                      "when no `support` is given. Read at run time",
+    "sigma_j":        "the strength judgement's log sd beyond the model's own "
+                      "centre error at the judged size (0 = as good as the "
+                      "model's). Required with `support` or `overperform`",
+    "register":       "the JUDGEMENT-CALLS §SJ row declaring the strength "
+                      "judgement. Required with `support` or `overperform`",
     "baseline_share": "INFORMATIONAL: what it polled at the preceding national "
                       "election. Nothing reads this.",
 }
@@ -6308,7 +6387,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         # see `_arrival_total_prior`. Do not quote a figure here; it decayed
         # once already.
         group_total=_arrival_total_prior(target.year),
-        city_mix=city_mix_for(ctx, n))
+        city_mix=city_mix_for(ctx, n),
+        judged=judged_parties(lineage, target))
     # An arrival's composition follows from where it captures, so it does not
     # need a separate vector: the pools it takes from ARE its pool weights.
     for party, rule in arrivals.items():
@@ -6320,7 +6400,6 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
                       / max(registered.sum(), 1e-9))
              for p, rule in arrivals.items()}
 
-    seed_bands = {p: rule["band"] for p, rule in arrivals.items()}
     # no_vector, NOT newcomers: the file exists to ask a human which parent a
     # party with no measured vector belongs to, and MK is the case it was built
     # for. Passing the seed set generated an EMPTY template for 2026, so a
@@ -6457,7 +6536,6 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             **marker,
             "turnout_limits": limits,
             "seeds": {p: v for p, v in seeds.items() if abs(v) > 1e-9},
-            "seed_bands": {p: list(v) for p, v in seed_bands.items()},
             # ⛔ TRANSITIONS OFFERED vs USED, PER RECORD. Batch plan R4, risk
             # item 5: `HELD_BACK_OFF=1` is one env var from being load-bearing
             # on the arrival record, because `_npe_citywide_for` returns `{}`

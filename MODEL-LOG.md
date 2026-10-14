@@ -29221,3 +29221,905 @@ The brief's test forecasts, overall closeness and band under each rule:
 `reweight.draw_closeness` and forecast.json's `closeness_cuts` are deleted
 with the rule; `tests/test_reweight.py` `BRIEF_TABLE` holds the right-hand
 column.
+
+## 1.297 The within-group split carries a known limitation of the Dirichlet; the design moves to one log-scale draw for every party (2026-10-12)
+
+### What the model does
+
+Each voter group's vote is divided among parties by a Dirichlet draw
+(`montecarlo.py`, the within-pool split; concentration from
+`pools.dirichlet_alpha`, judgement call §F31). A Dirichlet has one
+concentration for the whole group, so a party's variance is fixed by its mean:
+μ(1−μ)/(φ+1). A party with a small share in a group gets a per-group
+concentration below 1, which draws a spike at zero plus rare large values.
+Summed over groups, small parties collapse in most draws and explode in a few.
+
+### How it was found
+
+Measured in this round, before the literature was read (all in
+`audits/2026-10-11-model-round/step1/`):
+
+- `1a-seat-error-and-tails.md`: where the seat error comes from, and the
+  extreme draws for small parties;
+- `1b-small-party-design-v3.md`: the spread of small parties' drawn shares
+  against their record, measured on the log scale; the draws are several
+  times wider than any real cycle-to-cycle movement;
+- `1f-randomness-consistency-audit.md`: below roughly 5%, a party's width is
+  set by its groups' concentration, not by anything about the party; small
+  parties share no common swing;
+- `1h-plausibility-check-design.md`: about half of the draws fall outside the
+  record on two or more whole-election measures.
+
+### That this is a known problem
+
+The literature review (`step1/1i-literature-review.md`, full source table
+there) found the limitation documented for decades:
+
+- Aitchison's critique of the Dirichlet (independence of ratios; one parameter
+  sets the whole covariance), relayed in Katz, J. N. & King, G. (1999), *A
+  Statistical Model for Multiparty Electoral Data*, APSR 93:15-32,
+  https://gking.harvard.edu/files/multiparty.pdf. Katz and King reject the
+  Dirichlet for electoral data and use a log-ratio Student-t with its own
+  variance per party.
+- Selb, P. & Chen, S. (2023), *Bias and Variance in Multiparty Election
+  Polls*, POQ 87:1025-1037,
+  https://kops.uni-konstanz.de/bitstreams/d23681c6-43c3-49cb-bc00-c4c4845d42a5/download.
+  They name the Dirichlet-multinomial's lack of per-party variances as the
+  reason they did not use it.
+- Elfadaly, F. G. & Garthwaite, P. H. (2013), TEST 22:628-646: the Dirichlet
+  is not flexible enough to carry separate beliefs per component.
+- Gelman, A., Hullman, J., Wlezien, C. & Morris, G. E. (2020), *Information,
+  incentives, and goals in election forecasts*, JDM 15:863-880: independent
+  long-tailed noise per unit and too little shared movement produce
+  implausible individual outcomes.
+- Forecasts that use a Dirichlet use it where it fits, for poll sampling or
+  one fundamentals stage: Stoetzer et al. (2019), Political Analysis
+  27:255-262; Hanretty, C. (2021), *Forecasting multiparty by-elections using
+  Dirichlet regression*, IJF,
+  https://chrishanretty.co.uk/pubs/10.1016_j.ijforecast.2021.03.007/fulltext.pdf;
+  Bauer et al. (2018), KOALA. Hanretty's comparison favours the Dirichlet for
+  his data and is the contrary evidence (`1i` §4.5).
+
+Unresolved: the review says the Zweitstimme forecast uses a log-ratio random
+walk for its poll stage. Selb and Chen (2023) describe it as Dirichlet-based.
+Both can be true of different stages. Not checked against the Zweitstimme
+code.
+
+### How the model walked into it
+
+The Dirichlet was adopted as the way to split a group's vote, and its
+concentration was then fitted (§F31). The fit set the one free number the
+family allows; nothing checked whether the family could represent parties of
+different sizes. The record comparison that would have shown it, drawn
+spread against real movement by party size, was not part of the backtest,
+which scores coverage of results and seat error, not whether each draw is a
+possible election. The first design this round (`1b`, v1 to v3) treated the
+symptom at the small end with a line at 1%, then 5%. The owner asked whether
+fixing one end of the range was treating a problem that runs across all of
+it; the literature says it does.
+
+### Decision (owner, 2026-10-12)
+
+Replace the within-group split as the source of each party's randomness with
+one log-scale draw for every party: spreads from the record by size and
+history, a shared swing across parties, a separate wider treatment for new
+parties, and the citywide spread re-fitted from the record in the same
+change. Each group's split of its vote stays as the centre; only its
+randomness goes. The 5% line is withdrawn. Pooling the many parties under 1%
+into a class may follow, after the universal draw is measured. Design and
+blind review under `audits/2026-10-11-model-round/`; nothing changes in code
+before the owner's checkpoint.
+
+## 1.298 Model round step 5: the code for the paired streams, the universal draw, the centre-correction switch, the census hold and the plausibility instrument (2026-10-12)
+
+One writer, serial, before the step-6 review and the step-7 re-emit
+(`audits/2026-10-11-model-round/PLAN.md`; prereg
+`prereg/2026-10-12-universal-draw.md`). No model run as a script, no
+`compare_history`, no emit, nothing written under `data/`. Every number
+below is a unit-level or `pool_counts`-level measurement on constructed
+inputs or on the raw files, not a forecast.
+
+### What landed, by commit
+
+| part | commit | what |
+|---|---|---|
+| 1 | `2e4ea79` | keyed draw streams (design 1c with every fix of `2-review-1c`): `montecarlo.DrawStreams`, the slot gamma boosted at every shape with a counted exact fallback, tie streams keyed by the declared label, `make_drawer(..., streams)`, `seats.stable_entropy` as the one key |
+| 2a | `975f2ed` | the universal draw (design 1j v4, option L1): `src/width_record.py`, the latent draw, calibration pass, composition subtraction, mean-conservation falsifier, `35_widths`, `draw_law` (incumbent kept for arm I), strength judgements read at run time and their declared hash |
+| 2b | `c00e001` | `pools.py`: the strength keys out of the emit and the spec hash (POOLS-REEMIT-QUEUE 34). Every spec stale until the re-emit |
+| 3 | `8c868d5` | `centre_correction` (prereg §3.3, arm UC), off by default |
+| 4 | `c2edc60` | the census hold: `REGISTRATION_MAX` deleted, the registration solve unbounded, a pool reaching under 25% of every ward held at the city's rate (`pools.registration_split`; JUDGEMENT-CALLS §L15). Arm C0's tree is this commit's parent, `8c868d5` |
+| 5 | `a59b7b6` | `src/plausibility.py` (design 1h §5) |
+
+### Measured at unit level
+
+* Samplers (prereg §6.1): every KS comparison at N = 200,000 per side
+  passes at D ≤ 0.00616; the power rows reject (`tests/test_draw_streams.py`).
+* Pairing on a constructed spec (prereg §6.3, V3.4): the pre-registered
+  thresholds hold for arms (i) at 0.1%, 1%, 5%, (ii), (iii), and under the
+  universal law for (i) at 1% and (iii). A Dirichlet shape crossing 1
+  stays paired above 0.99.
+* Prereg M2: 0 false alarms of the falsifier in 20 clean runs of the
+  constructed spec, and a ×1.2 mean error detected in 10 of 10.
+* The universal draw on one real city-year (Buffalo City 2021, a fixture
+  width record): the calibration converges below `KAPPA_TOL` for every
+  party, a 20-draw run is the prefix of a 40-draw run, chunk sizes 1, 7 and
+  256 give byte-identical draw arrays.
+* The census hold, `pools.pool_counts` in process at every metro and fitting
+  year, old code against new: Johannesburg moves 0.00pp at 2006-2021 and
+  holds nothing; the held set is the Indian/Asian pool only (Cape Town and
+  Mangaung at every year, Ekurhuleni 2006 and 2011, Nelson Mandela Bay
+  2006-2016, Buffalo City at every year); Cape Town's Indian/Asian share of the
+  registered roll is 2.68-2.93% at the four fitting years (moves of 5.1-7.0pp);
+  Mangaung's 0.61-0.68%. These are fitting-year compositions; prereg §8
+  scores K1-K7 on the emitted trees.
+
+### Mutation checks (each red with the mutation, green reverted)
+
+Prereg §6.4's nine: `level` keyed by column position; city and target dropped
+from the root key; one key for every stage; the entrant share drawn only when
+the gate passes; `pool_split` replaced by a Dirichlet; `stable_entropy` via
+`hash()`; the stacked block from one generator keyed by the names tuple; the
+drawer ignoring the passed `d` (red through the prefix test once the
+calibration pass also calls the drawer); the boost applied only below shape 1.
+Census: `upper=2.0` restored on the registration solve; the identification
+hold removed. Plausibility: the Poisson-binomial with p and 1−p swapped; the
+strict reference admitting the target's own cycle; the PIT not randomised.
+
+### Where the code departs from the designs, and why
+
+| design point | what the code does | reason |
+|---|---|---|
+| v1/v2 §6: delete `dirichlet_scale`, `dirichlet_floor`, the Dirichlet | kept, read only under `draw_law = "incumbent"`; registered gated nulls in `test_levers_are_live` | prereg §3.2 requires the incumbent law selectable for arm I, and the prereg is later |
+| prereg §3.2 names a `level.arrival` stream for U | not read | design v4's draw has no arrival factor (`uni4/v4.py` sets it to 0); the V3.1 population test expects exactly what the drawer reads |
+| 1c V3 item 3: pool-2 split gammas bit-identical in arm (i) | asserted near-identical (correlation) | 1c §2.6 point 2: the per-draw balance sets every member's shape from all centres jointly; primitives are bit-identical |
+| v1 §2.7 / brief: `ENTRY_POINTS` entry for `width_record.py` | named in CLAUDE.md §5 outside the no-importer block | `tests/test_universal_draw.py` imports it, and `test_standalone_modules` refuses an exemption for an imported module |
+| v3 §11: the strength section is "§J" | §SJ | §J is the census reprojection section |
+| 1b v3 fallback for 2011 quoted as 0.27 / 0.48 | the RMS of `theta_residual.residuals()` at 2006 by θ history, which reads 0.235 / 0.464 on today's code | the design names the quantity, not the statistic; the record carries the value |
+| UC: widths | read at the uncorrected centre | prereg "draw law as U"; this writer's reading, declared in §A57 |
+| v1 §6: new `width_budget` arms for the universal draw | not built; `width_budget` pinned to the incumbent law | its arms remove incumbent sources only |
+
+## 1.299 Model round step 6: the fixes from the diff review of step 5 (2026-10-12)
+
+One writer, serial, after the step-6 diff review of §1.298's code and before
+the step-7 re-emit. No model run as a script, no `compare_history`, no emit,
+nothing written under `data/`. The specs are stale (§1.298, part 2b), so every
+measurement below is on constructed inputs, on `pools.pool_counts` in process,
+or on the raw result files. Each item is its own commit; this section grows
+with them.
+
+### K7's population covers every fitting year (item 4)
+
+`tests/test_pool_bounds.py::test_the_held_registration_set_is_the_unidentifiable_indian_asian_pools`
+scanned a typed list of fitting years that omitted the earliest, while its
+docstring claimed every fitting city-year. The population is now derived
+(`_k7_population`: the declared backtest targets' and each city's forecast
+target's `previous_lge`) and the test asserts the scanned pairs equal it and
+contain every backtest fitting year. Measured in process: 32 fitting
+city-years; the held set is the Indian/Asian pool only, including the 2006
+fits of Buffalo City, Cape Town, Ekurhuleni, Mangaung and Nelson Mandela Bay,
+and no Johannesburg cell. Mutation: the population with the earliest year
+dropped is red ("a backtest fitting year was not scanned"); reverted, green.
+
+### The two joint counts, named apart (item 1)
+
+`src/plausibility.py` counted `J` over one tuple of eight features, `w_top`
+among them, and over whichever were present. The pre-registration registers U1
+(§5.2), §5.1 row 1 and §5.6 row 4 on seven features without `w_top`; only U3
+uses eight. The scorer now emits `J7_no_w_top` (`J7_FEATURES`) and
+`J8_with_w_top` (`J8_FEATURES`, the seven plus `w_top`) per target and per
+panel; no key named `J` remains. A count with a feature not judged at a target
+is marked `complete: false` with the feature named, and the panel aggregates
+complete counts only and lists the targets it left out (a run without ward
+winners used to turn the eight-feature count into a seven-feature one
+unmarked). Tests on constructed rows: a draw outside on `vol` and `w_top` alone
+gives J = 1 on the seven and 2 on the eight, and the real election likewise;
+a panel without ward winners scores the seven at every target and the eight at
+none. Mutations: `w_top` put back into the seven-feature tuple (both new tests
+red); `complete` forced true (the incompleteness test red); reverted, green.
+JUDGEMENT-CALLS §P4 names the two tuples.
+
+### The calibration pass never applies an unmeasured κ (item 2)
+
+After `KAPPA_MAX_ITER` iterations without convergence, `make_drawer` applied
+one more κ update that it never measured, so `kappa_error` and `calib_ratio`
+described the previous κ while the run drew with the next. The loop now stops
+at the κ it has just measured on the last permitted iteration and records
+`kappa_converged` (and `kappa_iters`; `35_widths.kappa_iterations` is renamed
+`kappa_iters`) in `35_widths` and `41_guards`, beside the board's `draw_law`.
+A converging run never reaches the new branch. Measured on the constructed
+two-pool spec: the drawn arrays, `kappa_iters` and `kappa_error` of the fixed
+code at `7f05b04` equal those of `27194df`'s `montecarlo.py` bit for bit at
+four seeds (a one-off comparison loading the old module; item 6 below then
+moves the last floating bit); the permanent test is that
+raising `KAPPA_MAX_ITER` to 10^6 changes no drawn number of a converging run.
+Non-convergence constructed (`KAPPA_TOL` 0, three iterations): the flag is
+false, the iterations are the cap, and the recorded error equals the error
+re-measured at the drawer's κ to the bit. Mutation: the trailing update
+restored makes that test red; reverted, green.
+
+The guard predicate of `tests/test_stage_realisation.py` reads the board under
+its own law (`faults_in_guards`, `_law_faults`; this is also item 5's
+`faults_in_guards` fix). Under the incumbent law `gamma_draws` must be
+non-zero and the universal fields empty; under the universal law no gamma may
+be drawn (a gamma there is an incumbent path leaking in), `kappa_iters` is the
+denominator, `kappa_converged` must be true and agree with `kappa_error`.
+`faults_in_widths` refuses an unconverged `35_widths`. Mutations: the
+non-convergence rule removed (the law test red); `gamma_draws` required
+non-zero under both laws, the rule this replaced (four tests red); reverted,
+green. The real-trace tests of that module stop on the stale specs, as before.
+
+### Two switches refuse under the law they do not belong to (item 5)
+
+`centre_correction = true` under `draw_law = "incumbent"` was ignored in
+silence, and `arrival_group_draw = true` under the universal law drew the
+arrival-group Dirichlet on top of the newness term δ. Both now stop
+`make_drawer` with a `SystemExit` naming the switch and the law. Test on the
+constructed spec: each refuses with that sentence, and draws with the switch
+off; the correction under its own law draws. Mutations: either refusal
+removed makes the test red; reverted, green. `tests/test_levers_are_live.py`:
+`arrival_group_draw` is excused at 2021 and 2026 under the
+`incumbent_law_shipped_off` gate, measured open with `draw_law = "incumbent"`
+(CONDITIONAL), and `_sweep_target` asserts that the shipped law refuses it
+(the refusal's own sentence, not any `SystemExit`, since a stale spec also
+stops a run). Those sweeps run the model and wait for the re-emit; the
+module's register tests pass. `faults_in_guards`' law-awareness is recorded
+under item 2.
+
+### The width-evaluation frame (item 6)
+
+Read in the code: `width_record.case_for` fits every width at
+`s = montecarlo.pool_spec_centres(spec)[p]`, the pool-spec centre over the
+pooled parties (it sums to one over them; `residual_rows` uses it unscaled).
+That is a pool-spec centre, not a whole-city vote share. The drawer read
+widths at `u_c`: that centre times (1 − the mass of individual-path parties),
+renormalised. The two agree when no drawn party is outside a pool, which
+`emit_pools` arranges for every emitted spec, and differ by that factor
+otherwise, where the record has no row for the outside party at all. The
+drawer now reads each pooled party's width at the record's own number
+(`35_widths.parties.*.centre_uncorrected`) and records the mass
+(`35_widths.individual_mass`); an individual-path party is read at its
+whole-city share. On the constructed spec with no outside party the change is
+in the last floating bit only (σ and drawn shares move by at most 2.2e-16
+against `27194df`, from dropping the renormalisation). Test: with and without
+an outside party, every pooled party's width is read at its
+`pool_spec_centres` value and its conserved share is that times
+(1 − mass). Mutation: the old frame (`u_s = u_c`) red; reverted, green.
+
+### The width record's key covers its inputs (item 7)
+
+`montecarlo.width_record_key` hashed code only, so a re-emit that changed the
+specs' centres with no code change (raw files, a judgements edit, a census
+change) left the record reading as current. The key now also carries
+`specs_sha` (every spec `width_record.record_specs` names: each metro of
+`compare_history.CITIES` at each cycle a target is fitted on, by file
+content, the spec's `artefact_key` included, an absent spec as a value),
+`judgements_sha` (the live `pools._judgements_sha` of those city-years) and
+`group_share_sha` (the group-share record's `artefact_key`). It is computed
+under the processed root the reader is given. Test under a scratch root: a
+record under the live key reads; a changed spec key, a changed group-share
+key and a vanished spec each refuse; each reverted, it reads. Mutations: the
+spec hash or the group-share hash replaced by a constant, red; reverted,
+green. A `--out DIR` record is keyed on the repository's specs, which it read.
+
+### The judgement declaration is required on a forecast (item 3)
+
+Only `forecast_summary.json` declared `_judgements_applied_sha`;
+`export_draws` built its manifest's `config` from `DEFAULTS` keys and dropped
+the underscore key; and `declares.judgements_lie` returned None when nothing
+was declared, so `test_every_forecast_declares…` passed with zero summaries
+declaring. Now: the manifest's `artefact_key` carries
+`judgements_applied_sha` (`export_draws.judgements_declaration`, which refuses
+seat laws that ran with different hashes); `judgements_lie` fails a forecast
+that declares nothing and a summary with no `_target`, and allows an absent
+declaration on a backtest only (`montecarlo.target_is_held`, now the one
+definition `strength_judgements` also uses); `declares.manifest_judgements_lie`
+applies it to a manifest. Tests: on a constructed population (a declaring
+forecast and a silent backtest pass; a silent forecast and a target-less
+summary are caught; cleared, quiet; population = the files written), and on
+a constructed manifest key. Mutation: an absent declaration allowed on a
+forecast, both constructed tests red; reverted, green. The manifest field is
+asserted on a real export only by `test_export_draws`' slow test, which runs
+the model and waits for the re-emit.
+
+On the live tree every run summary under `data/processed` predates `_target`
+and the hash, so `test_every_forecast_declares_the_strength_judgements_it_applied_truly`
+is red, and `declares.py --verify` marks those summaries `~`, until the
+step-7 runs rewrite them.
+
+### The arm runner (item 8)
+
+Nothing in the tree ran the registered arms. `src/arms.py` does, with no
+change to `montecarlo.py`: per arm (I, U, UC, US, C0) and city-year, a fresh
+`load_scenario` with the arm's overrides, `run_model` in process with its
+`--run-dir` trace, and `arrays.npz` plus `meta.json` in `plausibility`'s format
+under an output root it refuses inside `data/`. It refuses a universal-law
+city-year whose width record is stale (`read_width_record`) or whose
+calibration did not converge (`41_guards.kappa_converged`), and C0 in a tree
+carrying the census hold (and the other arms in one without it). `compare`
+gives the prereg §4 cluster-bootstrap interval of the CRPS difference by size
+class (classes from arm I's `pool_spec` centres), the paired draw-index Monte
+Carlo error of the list-MAE and CRPS differences, and R2. Not run on real
+specs. `tests/test_arms.py` runs it on a constructed model: a fresh scenario
+per arm with its overrides (the fake refuses a scenario an earlier run wrote
+into), the files load through `plausibility.load_run_dir`, the refusals write
+`REFUSED.json` and no arrays, identical arms differ by exactly 0 with 0 Monte
+Carlo error and correlation 1, a shifted arm stays above R2's bar, an
+independent arm falls below it, and arms of different draw counts are not
+compared. Mutations: a scenario cached across arms (four tests red); the κ
+refusal removed (red); the second arm resampled with its own indices (the
+paired-statistics test red); each reverted, green. Constants: §A58. Named in
+CLAUDE.md §5 as imported by its test.
+
+### Suite follow-ups to items 3, 7 and 8
+
+The whole-suite run after item 10 had seven failing tests the step-5 run did
+not. Six came from four causes in these fixes: `ARMS` was not named in JUDGEMENT-CALLS (§A58 now
+names it); `MODEL-INDEX.md` needed regenerating; `test_provenance_gates`'s
+honest tree carried a summary with no `_target`, which item 3 now fails (the
+fixture now writes `_target` as `montecarlo.main` does, a backtest year); and
+`declares.py --verify` run from `src/` could not compute the width record's
+key, because `cityconfig.load` and the judgements path are relative to the
+working directory (the key now reads them from its own tree's root; three
+`test_provenance_gates` tests failed on these last two causes). The seventh is
+item 3's intended red on the live summaries. `target_is_held` stays
+in `montecarlo`: placed in `cityconfig` it moved `pools._deps_sha` (an emit
+dependency) and staled `bye_value.json`.
+
+## 1.300 Model round step 7 review fixes: scored populations, pairing, instruments, the width key, judged arrivals (2026-10-13)
+
+One writer, serial, after two independent reviews of the frozen ultra-review
+brief (`audits/2026-10-11-model-round/ULTRA-REVIEW-BRIEF.md`) and before the
+step-7 re-emit. No model run as a script, no `compare_history`, no emit,
+nothing written under `data/`; the specs are stale (§1.298, part 2b). Every
+test below is on constructed inputs. The pre-registration gains amendment 3
+(readings only; no prediction, threshold or rule changes). Each item is its own
+commit; this section grows with them.
+
+### The scored population and the pairing (items 1, 2 and 8)
+
+`arms.compare` admitted every city-year with actuals, so 2011 (held, but
+untestable: prereg §2) entered every interval; `plausibility.score_panel`
+averaged its panel means over every target, Johannesburg 2026 included, and
+`score_parties` likewise. Both now aggregate over one definition,
+`plausibility.scored_population` (every metro at 2016 and 2021, asserted to be
+16), and label every other run `scored: false` with the reason. A missing
+member refuses unless `--allow-incomplete`, which the output records.
+`compare` refuses a pair that is not the registered one (`check_pairing`:
+draws, seed, one clean commit, one set of specs and one width-record key; the
+US variant and C0's tree recognised by name, C0 through a recorded
+`final_commit`), lists city-years present in one arm only, drops parties drawn
+by neither arm from the size classes (identical zero mass in both arms: a
+zero-difference row diluting every mean), and refuses when the classifying arm
+(arm I) has not run instead of relabelling arm a's centres as arm I's.
+`plausibility.py --out` is required and refused under `data/`. Tests on the
+constructed arms and panel: a 2011 run (and a 2026 forecast in the
+plausibility panel) changes no interval or panel number and is labelled; an
+incomplete population refuses and the flag is recorded; each pairing field
+edited alone refuses and its revert is accepted; an actuals-only party leaves
+every interval unchanged. Mutations, each red and green on revert: the
+population gate removed in `compare` and in `score_panel`'s aggregation; the
+incomplete refusal removed (both modules); the actuals-only exclusion removed;
+the classifier fallback restored; the `spec_keys`, C0 `final_commit` and US
+variant checks removed.
+
+### Instruments for the registered rows that had none (item 9)
+
+Prereg §10 forbids defining a quantity after its result is seen, and five
+registered quantities had no instrument: the per-cycle split (C1, C5, S3,
+U16), coherent wrong-party seats (U15, S4), §5.6's draw counts (and C8), band
+coverage (U11, U14) and drawn log-sd (U12, M4, M5). `src/arms.py` now carries
+each (`compare`'s `instruments` block; `describe` for the single-arm M4, M5 and
+§5.6 rows), defined as amendment 3 point 6 reads the row; the readings that
+were ambiguous are written there (M5's allowance is not computed separately).
+Tests on constructed inputs: a three-draw, ten-seat council whose coherent
+vector is (5, 3, 2) gives 2 wrong-party seats against (3, 4, 2) plus an
+unseated party with 1; an `ENTRANT` column refuses; the band counts its ends
+and not a value below them; the drawn log-sd of a lognormal column equals its
+log sd and a column with a zero draw is listed, not floored; a constructed run
+gives row 1's count 7 (only the established sub-1% party) and row 2's 57; on
+the constructed arms, identical arms give zero in every instrument and the
+per-cycle class means recombine by their counts into the pooled mean of the
+cluster interval. Mutations, each red and green on revert: the seats' half
+dropped; the band's ends excluded; a floor in place of the exclusion; new
+parties (previous 0) admitted to row 1; the per-cycle filter removed; M5's
+subtraction removed.
+
+### The width key covers the record's remaining inputs (item 3)
+
+`montecarlo.width_record_key` still omitted four inputs the record reads: the
+realised result files of the residual city-years (`case_for` reads the actual
+shares, e.g. the 2021 files behind target 2026's rows), the code of
+`compare_history` (`actual_shares`) and of `theta_residual` (the 2011
+fallback), and `bye_value.json` (`blended_centres` reads its weights, which
+move the centres). It now carries `results_sha` (`width_record.record_result_files`,
+one file per city-year of `record_specs`), `fallback_files_sha`
+(`width_record.fallback_files`: the calendar's elections up to 2006 in every
+metro, a superset of what the θ record keeps), `compare_history_sha`,
+`theta_residual_sha` and `bye_value_sha`. Test on a scratch raw root of
+symlinks to the real files (nothing under `data/` written): a record under the
+live key reads, and a changed result file, a changed fallback file, a changed
+`compare_history` or `theta_residual` code hash and a changed `bye_value` key
+each make `read_width_record` refuse, each reverted reads. Mutations: each of
+the five fields removed from the key turns the test red at its own input;
+reverted, green. The live `width_record.json` is stale under the new key, as
+every spec already is; step 7 rebuilds both. POOLS-REEMIT-QUEUE's step-7
+no-edit list now names every file the key covers.
+
+### The judgements file is anchored, and a forecast needs it (item 5)
+
+`pools.lineage_path` returned `judgements/<slug>-<year>.toml` relative to the
+working directory, and `load_lineage` returns `{}` for a missing file. A
+process started outside the root (`declares.py` from `src/`, through
+`live_judgements_sha`) therefore read no judgement and declared the empty set's
+hash. The path now resolves under `pools.JUDGEMENTS_DIR`, the repository's
+`judgements/`, and `montecarlo.strength_judgements` refuses a FORECAST whose
+file is missing (a backtest ignores judgements, so its missing file stays the
+empty set). Tests: the path and the declared hash are identical from the root,
+from `src/` and from the temporary directory; a forecast with no file refuses
+and a backtest returns nothing. The tests that redirected the file by changing
+directory now rebind `pools.JUDGEMENTS_DIR`. Mutations: the relative path
+restored (red); the refusal removed (red); reverted, green. A `pools.py` code
+change: batched into the step-7 re-emit (POOLS-REEMIT-QUEUE entry 36).
+
+### A judged arrival sits outside the group budget again (item 4)
+
+JUDGEMENT-CALLS §L2 says a judged size sits outside the entrant group's budget
+and is not netted off it (§1.178). Entry 34 (§1.298) took the strength keys out
+of the emit altogether, so `arrival_rules` set `judged = False` for every
+party and a party carrying run-time `support` stayed in the budget: the group
+rescale then shrank every other arrival's capture by its base share, before the
+run-time judgement replaced its centre. §L2's own header line, added with entry
+34, said the party "stays in the group budget", contradicting the body; that
+line is now corrected and the body is the rule. The emit reads membership only:
+`pools.judged_parties` names the parties carrying `support` or `overperform` on
+a forecast (none on a backtest, where `strength_judgements` ignores them), and
+`arrival_rules(judged=...)` holds them out of the budget at their record size.
+`_judgements_sha` adds a `strength_declared` marker per such party and still
+drops the four strength keys, so adding `support` moves the spec key and
+changing its value does not. `target_is_held` moved to `pools` (the emit needs
+it and cannot import `montecarlo`, which now delegates); `bye_value_key` hashes
+`pools._deps_sha`, not `pools.py`, so this does not repeat §1.299's
+`cityconfig` incident. Tests: on the constructed 30-arrival city the other
+arrivals share the record's 1.75% when the party is named judged, and all 30
+share it when it is not; membership on a forecast and none on a backtest; the
+key moves on an added `support` and not on a changed value. Mutations: the
+budget exemption ignored (red, the others shared 1.69%); the membership marker
+dropped (red); the backtest rule dropped (red); reverted, green. The emit's
+wiring of `judged_parties` into `arrival_rules` is argued, not tested: no test
+runs `emit_pools`. Number-neutral today: no judgements file declares either
+key. A `pools.py` code change: batched (POOLS-REEMIT-QUEUE entry 37).
+
+### declares: absences are ✗, manifests are read, records keyed under the audited root (item 6)
+
+Three defects in `src/declares.py`. (a) `manifest_judgements_lie` had no
+production caller, so the strength-judgement hash an `export_draws` manifest
+declares was never checked; the audit now scans `manifest.json` files of the
+`draws-columnar` format under `site/draws/` (under the root itself when
+`--processed` overrides it) as run rows (git, draws, seed, env, time, inputs
+with the judgement check). Measured with `declares.py` on the live tree: the
+three published manifests under `site/draws/` read `~` on `git` (written from
+a dirty tree at `b5230d8`) and `~` on `inputs` (they embed `pools_sha
+c70b8fc5bcd79279` against specs carrying `20b33383bf922573`), and each also
+carries the note that it is a Johannesburg 2026 forecast declaring no
+strength-judgement hash (`✗`, merged under the `~`). (b) A summary declaring no judgement hash on a forecast,
+or naming no `_target`, was marked `~` (declared and wrong); it declares
+nothing, so it is now `✗`, which `--verify` still counts (exit 1).
+`judgements_check` returns the state with the sentence; `judgements_lie` keeps
+the sentence for its callers. (c) `_record_rows` computed each record's live
+key without the audited root, so a scratch tree's width record was judged
+against the repository's specs; the key functions now take the root. Test on a
+scratch tree of four summaries and three manifests: exactly those are found;
+the absent and target-less cases are `✗` and not answerable as declared; the
+edited hashes are `~`; the true ones carry no judgement note; a width record
+keyed under the scratch root reads `✓`. Mutations, each red and green on
+revert: the absence marked `~`; the manifest scan skipped; the key computed
+without the root; the manifest's judgement check dropped.
+
+### The 2011 fallback refuses an unset θ history (item 7)
+
+`run_model` sets `scenario["_theta_history"]` only inside `if _prior:`, and
+`make_drawer` and `poll_model_sd` read it as `set(... or ())`, so with no prior
+every party silently took the fallback's `without` width. Both now read it
+through `montecarlo.theta_history`, which refuses when the record is the
+fallback and the history was never set (set but empty is a value; a fitted
+record reads none). Can `_prior` be empty at 2011? Measured in process on the
+raw files: `levels.theta_record` at target 2011 holds 19 parties and 90
+observations in every one of the eight metros, so on the real record it is
+not. Constructed: `theta_prior` over no metro codes returns `({}, {})`, the case
+that leaves the history unset; a change to `THETA_WINDOW` or the held-back set
+that empties the pre-2011 record would reach it. Test on the constructed
+two-pool spec: unset refuses (drawer and poll width), empty draws every party
+at `without`, a listed party draws at `with_history`, a fitted record needs no
+history. Mutations: the refusal removed (red); the poll width's old read
+restored (red); reverted, green.
+
+### The C0 recipe, exact and checked (item 10)
+
+Amendment 2 defined C0 as the final tree with `c2edc60` reverted; a
+whole-commit revert conflicts in `tests/test_pool_bounds.py` and
+`MODEL-INDEX.md`. Measured on the tree at this commit: `c2edc60`'s
+`src/pools.py` diff reverts cleanly with `patch -R` on the final `pools.py`
+(no later commit touched those hunks), restoring `REGISTRATION_MAX` and
+dropping `IDENTIFICATION_REACH`. The recipe (amendment 3 point 7;
+POOLS-REEMIT-QUEUE step 7, item 6) reverts only those hunks and commits them in
+the worktree. `arms.check_tree("C0")` now refuses a worktree whose HEAD differs
+from its parent in any path but `src/pools.py`, whose `pools.py` is not the
+parent's with the census hunks reversed byte for byte, or which has
+uncommitted changes under `src/` (`c0_tree_faults`, `c0_faults`). Test on this
+tree's committed `pools.py`: the reverted text is accepted; one extra line, a
+second changed path, or the unreverted file is refused. Mutations: the byte
+comparison removed (red); the path check removed (red); reverted, green.
+
+### Noted, not changed: the poll blend reads the width at another share (item 11)
+
+`montecarlo.poll_model_sd` reads the universal width at the party's share of
+the whole city's centres (`centres[p] / Σ centres`), while the drawer reads it
+at the party's `pool_spec` centre (`pool_spec_centres`, the record's frame;
+§1.299 item 6). The two differ where the pool-spec centre and the whole-city
+share differ. Inert today: `poll_paths = "off"` (§1.298), so no poll blend
+runs. Before polls return, the poll width must be read at the same quantity
+the drawer reads (one definition), and the change measured.
+
+### Suite follow-up to item 6
+
+The whole-suite run after item 11 had one failing test the baseline did not:
+`test_levers_are_live::test_no_function_argument_is_accepted_and_never_used`,
+because item 6(c) gave `declares._group_share_key` and `_bye_value_key` a
+`processed` parameter they never read. `_record_files` now says per record
+whether its key reads the audited root (only the width record's does), and
+only that key is passed it. Item 6's test and its mutation (the root not
+passed: red) were re-run.
+
+## 1.301 Model round step 8: the pre-registration scored by two independent scorers (2026-10-13)
+
+Brief: `audits/2026-10-11-model-round/STEP8-SCORING-BRIEF.md`, issued verbatim
+to two scorers working blind. Inputs: the step-7 runs (commit `7f0a921`, C0 at
+`dcff8fe`, seed 20261104; 1,000 draws per backtest, 5,000 for Johannesburg
+2026), kept under `.claude/step7-2026-10-13/` (gitignored). Score files:
+`.claude/step8-2026-10-13/scorer-{A,B}/SCORE.md`. Each scorer re-derived the
+decisive numbers from the arrays; where both computed a number, they agree.
+
+### Both scorers agree
+
+| row | registered | measured | verdict |
+|---|---|---|---|
+| §5.1 (arm I gate) | as written | J7 36.7%; sub-1% PIT 8; JHB 2026 count 420; R1 pass on both comparisons | inside |
+| U1 | U better than I by ≥ 4 points | −8.94 points, paired SE 0.42 | confirmed |
+| U2 | tail windows | P≤ 0.526, P≥ 0.721 | confirmed |
+| U10 | upper bound < +0.05 | +0.040 (step 7); +0.038 to +0.045 across scorers' bootstrap seeds | confirmed, margin 0.005-0.012 |
+| U11 | | 31 of 32 | confirmed |
+| U15 | | wrong-party seats change 0 | confirmed |
+| U7, U8, U13 | registered to fail | failed | as registered |
+| M1-M4 | | inside | confirmed |
+| M5 | drawn log-sd within 0.05 of the run's width total | JHB 2026 DA 0.162 against 0.072 (+0.090), ANC 0.162 against 0.082 (+0.079) | **falsified** |
+| C1-C8 (UC) | UC does not help | large-party CRPS UC − U +1.37; wrong-party seats +91 | confirmed |
+| S1-S5 (US) | | inside; S6 2011 list MAE −1.47 (reported) | confirmed |
+| §5.6 (JHB 2026 counts) | windows | inside for every arm | confirmed |
+| §6.3 R2 | correlations ≥ threshold; paired MC error of the U − US list-MAE difference < 0.05 | correlations ≥ 0.998; MC error ≥ 0.05 at 5 of 16 city-years (largest Ekurhuleni 2016, 0.140) | **MC clause falsified** |
+| J1-J4 | | pass | confirmed |
+| K2-K7 | | hold; K5 2021 (2.68%) and K6 2021 (0.52%) outside the predicted band, inside the falsifier window | confirmed |
+| M6/J5, §6.4 mutations | | not run in step 7 | not measured |
+
+JHB 2026 counts (I / U / UC / US): established party below 1% drawn above 5%
+420 / 14 / 3 / 5; any party centred below 1% drawn above 5% 832 / 52 / 39 / 22;
+largest new party above 18.12% 290 / 579 / 389 / 533; J7 ≥ 2 72.1% / 52.7% /
+39.8% / 39.7% of draws.
+
+### The scorers differ on K1
+
+Scorer A did not measure K1 (step 7 produced none). Scorer B measured it with
+1g §0's construction (one pool's census people and adults ×0.5 or ×1.5, the
+full `pool_counts` chain re-solved in process on the final tree): the
+registered split moves more than 0.10pp at 12 of 16 fits. **K1 falsified on
+scorer B's instrument.** Mechanism, checked in the code: a held pool takes
+`pools._uninformed_rate(A, b) = b.sum() / A.sum()`, a city rate summed over
+every pool, so scaling any identified pool moves the held pool's rate and the
+identified pools are refitted around it (0.46-1.13pp at the 9 fits holding a
+pool with the held set unchanged). Where the scaling flips the held set the
+move reaches 7.0pp (Cape Town 2011, Coloured ×0.5). 1g §c anticipated the flip
+and the held pool carrying its own census level, not every other pool's. The
+constructed-table test `test_an_identified_pools_split_does_not_carry_its_census_level`
+holds no pool and cannot see either.
+
+### §9 as both scorers read it
+
+1. Rule 1 (gates): not passed. K1 is a gate; on scorer B's measurement it
+   fails, and on the plain reading of "§6 green" the R2 MC clause fails too.
+   Nothing ships until resolved.
+2. U meets rule 2's four conditions (U10, U11, U1, U2). M5 and the R2 clause
+   are failures §5.2 did not predict; on the plain reading they send U to the
+   owner (rule 4).
+5. UC does not ship (upper bound against I +1.64).
+6. US goes to the owner split by cycle: 2016 list MAE +0.80, seats +10; 2021
+   +0.52, +23; 2011 −1.47. Default stays 0.35.
+7. The census hold does not ship while K1 fails.
+
+### Run defects found by the scorers
+
+- No whole-suite run on the re-emitted tree; step 7 ran three modules.
+- `test_no_emitted_composition_weight_is_arithmetically_impossible` was red on
+  the stale specs; the census hold adds a cell (Buffalo City 2011 DA, held
+  Indian/Asian pool, 1.05×).
+- U and C0 differ by about 1e-4 in list share at city-years the census change
+  should not touch (Johannesburg and Tshwane 2021); C0 reads its own width and
+  group-share records. K3 has little power: U and C0 centres agree to 1e-13
+  where the specs differ by 5pp.
+- UC's `meta.json` records the uncorrected centres (the corrected are in
+  `35_widths`).
+- Arms I and U are close to unpaired (per-draw correlation 0.02-0.18).
+- R1 part 2 ran with `allow_stale_pools=True` (§ step-7 report).
+
+## 1.302 Model round step 9: arm U ships without the census hold (2026-10-14)
+
+Brief: `audits/2026-10-11-model-round/STEP9-BRIEF.md`. Owner decisions after
+step 8: `audits/2026-10-11-model-round/PLAN.md` (f83ad5a).
+
+### The census hold is withdrawn (item 1)
+
+`src/pools.py` is the C0 tree's file: the reverse of `c2edc60`'s `src/pools.py`
+hunks, as committed in `dcff8fe` (branch `step7-c0`), byte-identical to that
+worktree's file. `REGISTRATION_MAX = 2.0` bounds the registration solve again;
+`IDENTIFICATION_REACH` and `registration_split` are gone. Reason: K1 was
+falsified on the live fits (§1.301); the held rate `_uninformed_rate` is
+`b.sum() / A.sum()` over every pool, so it reads every pool's census level.
+
+Records in the same commit: JUDGEMENT-CALLS §L9 reinstated, §L15 withdrawn,
+§L14's extension withdrawn; DATA-QUALITY item 11 reopened; MACHINERY's section
+replaced by the bounded solve and a withdrawal pointer; POOLS-REEMIT-QUEUE entry
+31 marked withdrawn and open; MODEL-INDEX regenerated by `src/model_index.py`.
+
+Tests: `test_pool_bounds` restores the `REGISTRATION_MAX` assertion and drops
+Mangaung's "registration HELD" lines; the three tests of the hold (K1 on a
+constructed table, the hold on a constructed table, K7 on the live fits) are
+retired with the reason in the file, their text at `c2edc60` and `cc7500e`.
+`test_register_matches_code`'s `DELETED` entry for `REGISTRATION_MAX` is
+removed, since the name is defined again.
+
+Not changed, and red because of this item: `src/arms.py` encodes the step-7
+trees (`check_tree` refuses arm U where `census_hold_in_tree()` is false;
+`check_pairing` requires U's meta to carry the hold), and three `test_arms`
+tests assert the hold is in this tree. The arms instrument is the step-7
+pre-registration's; whether it is retired or re-pointed is the owner's call.
+
+### The shipping configuration is arm U (item 2)
+
+`src/arms.py:107` `"U": {}`: arm U is the defaults. The defaults
+(`src/montecarlo.py`): `poll_paths` `"off"` (:253), `level_shrink` 0.35 (:410),
+`draw_law` `"universal"` (:425), `centre_correction` False (:434).
+`pools.SPLINTER_PARENT_WEIGHT = 0.35` (`src/pools.py:3651`). No city file
+overrides any of the five (`cities/*.toml` `[judgements.scalars]`). With the
+hold reverted, the shipping tree is the one the pre-registration called C0
+(arm U's scenario on the hold-free tree); §1.301 records U and C0 differing by
+about 1e-4 in list share at city-years the hold should not touch.
+
+### Regeneration (item 3)
+
+`src/backup_ignored.py` first (`backups/2026-10-14T004508Z`). Every spec
+re-emitted by the queue loop (2011, 2016, 2021 for the eight metros;
+Johannesburg 2026 and its simulation spec; Tshwane 2026): 27 on disk, one
+`pools_sha` (`dcf2cd52e56b478c`). Each equals the C0 worktree's spec
+(`dcff8fe`, step 7) in every field but `judgement_file`, an absolute path.
+`group_share_record --emit` and `width_record --emit` (the shipping variant,
+`level_shrink` 0.35); both equal C0's apart from the key's `specs_sha`. The
+`level_shrink = 0` variant was not built: only arm US reads it.
+
+Post-emit checks: `test_universal_draw` and `test_draw_streams` pass;
+`test_intermediates_are_current` fails three, two of them step 7's
+(the summaries' missing `_target` before the forecast re-run; the
+`plausibility_*.json` pattern that matches nothing in `data/processed`) and
+`test_the_bye_value_freshness_check_can_see_a_real_stale_record`, which
+failed under four concurrent jobs and passed alone on the same tree.
+
+`src/inputs_preflight.py --strict --city joburg --target 2026`: exit 0; the
+registration snapshot `iec-registration-2026-09-26` is present and not read
+by the model; every required input in hand.
+
+Canonical runs on `4a01b99`: `src/montecarlo.py --city joburg` (5,000 draws,
+seed 20261104, from `cities/joburg.toml`), `src/overhang_regimes.py` (it
+reported `forecast_summary.json` re-written by its reference re-run, seat
+draws unchanged), and `src/compare_history.py` (1,000 draws, seed 20261104,
+`git_dirty` false), which wrote `history.json`/`.md`.
+
+### Before and after, against real results (item 4)
+
+Before: the tracked `data/processed/history.json` at `7f0a921`
+(last written by `c9bae8e`; run at `a2bc44c`, 2026-09-29, 1,000 draws, seed
+20261104): the F9 model, which is the published freeze's code with the
+incumbent draw. After: `compare_history` on `4a01b99`, same draws and seed.
+Both from `compare_history`, so both relabel arrivals the same way.
+
+Columns. *List error*: `pr_mae`, the vote-weighted mean absolute error of the
+mean drawn list (PR) share against the real list share, over every party on
+the real list ballot, in percentage points. *Wrong-party seats*: half of
+`seat_abs_err_coherent`, the summed absolute difference between the coherent
+council (largest remainder on the mean seat vector) and the real council, over
+the union of parties. Cycle rows: the mean list error and the summed
+wrong-party seats over the eight metros. 2011 is reported, not scored (the
+prereg's scored population is 2016 and 2021). The two runs use different draw
+laws, so their draws are not paired. §1.301 measured the Monte Carlo error of a
+PAIRED list-error difference at up to 0.14pp at one city-year (Ekurhuleni
+2016); an unpaired difference carries more, and no error is computed here.
+
+| city-year | list error before (pp) | list error after (pp) | change | wrong-party seats before | after | change |
+|---|---|---|---|---|---|---|
+| Johannesburg 2016 | 0.89 | 0.92 | +0.03 | 15 | 14 | -1 |
+| Tshwane 2016 | 1.20 | 1.25 | +0.04 | 8 | 8 | +0 |
+| Ekurhuleni 2016 | 1.71 | 1.59 | -0.11 | 14 | 13 | -1 |
+| eThekwini 2016 | 1.59 | 1.42 | -0.17 | 17 | 11 | -6 |
+| Cape Town 2016 | 0.27 | 0.50 | +0.23 | 4 | 3 | -1 |
+| Mangaung 2016 | 0.72 | 1.05 | +0.34 | 5 | 4 | -1 |
+| Nelson Mandela Bay 2016 | 0.66 | 1.10 | +0.44 | 4 | 4 | +0 |
+| Buffalo City 2016 | 0.90 | 0.89 | -0.01 | 5 | 5 | +0 |
+| **2016, 8 cities** | mean 0.99 | mean 1.09 | +0.10 | total 72 | total 62 | -10 |
+| Johannesburg 2021 | 6.29 | 6.24 | -0.05 | 43 | 45 | +2 |
+| Tshwane 2021 | 2.04 | 2.04 | +0.00 | 17 | 17 | +0 |
+| Ekurhuleni 2021 | 2.55 | 2.55 | -0.00 | 15 | 15 | +0 |
+| eThekwini 2021 | 2.47 | 2.47 | -0.00 | 17 | 16 | -1 |
+| Cape Town 2021 | 2.32 | 2.37 | +0.05 | 21 | 19 | -2 |
+| Mangaung 2021 | 1.76 | 1.76 | -0.00 | 4 | 4 | +0 |
+| Nelson Mandela Bay 2021 | 2.81 | 3.28 | +0.46 | 10 | 11 | +1 |
+| Buffalo City 2021 | 3.08 | 2.96 | -0.13 | 4 | 4 | +0 |
+| **2021, 8 cities** | mean 2.92 | mean 2.96 | +0.04 | total 131 | total 131 | +0 |
+| Johannesburg 2011 | 5.06 | 5.13 | +0.07 | 30 | 30 | +0 |
+| Tshwane 2011 | 6.51 | 6.50 | -0.01 | 30 | 30 | +0 |
+| Ekurhuleni 2011 | 3.55 | 4.46 | +0.91 | 18 | 21 | +3 |
+| eThekwini 2011 | 2.68 | 2.91 | +0.23 | 15.5 | 16.5 | +1 |
+| Cape Town 2011 | 4.27 | 3.97 | -0.30 | 21 | 19 | -2 |
+| Mangaung 2011 | 8.14 | 7.82 | -0.32 | 17 | 15 | -2 |
+| Nelson Mandela Bay 2011 | 7.20 | 7.35 | +0.15 | 17 | 18 | +1 |
+| Buffalo City 2011 | 7.16 | 6.33 | -0.83 | 16 | 14 | -2 |
+| **2011, 8 cities** | mean 5.57 | mean 5.56 | -0.01 | total 164.5 | total 163.5 | -1 |
+
+### Goldens (item 6, part 1)
+
+`tests/test_drawer.py`'s `GOLDEN_PARTIES` and `GOLDEN_POOLS` re-recorded from
+`tests/test_drawer.py --record` (seed 20261104, 2,000 draws): the round changed
+the draw (universal law, JUDGEMENT-CALLS §A57) and the specs, and step 5
+(`12a0113`) deferred the re-record to this step. The previous values were F8's,
+under the incumbent law. No improvement is claimed from a golden.
+
+### Freeze and draws export (item 6, part 2)
+
+`src/freeze.py` on the clean tree at `346fb97` (its defaults: Johannesburg
+2026, 1,500 draws, seed 20261104, as the last freeze): `forecast_frozen.json`,
+`content_sha256 af9df636…`, `seat_draws_sha256 930e56cd…`. A record of this
+forecast and a tripwire, not a benchmark.
+
+Draws exported as DEPLOY-UAT.md names it: `src/export_draws.py --out
+site/draws`, the two by-election cells (`--set w_bye=0`, `--set w_bye=1`
+into `site/draws/w_bye-{0,1}`), then `--index site/draws`; 5,000 draws, four
+seat laws, each manifest at `346fb97`, not dirty. `published_run.
+inputs_match_ledger` is false: the ledger's latest run predates these specs,
+which the export records and does not enforce (`tests/test_served_draws.py`
+is the gate). The `w_bye-0` cell is byte-identical to the base cell: every
+derived by-election class weight is 0.0 at this target (`bye_weight` in the
+manifest), so the base cell and the zero cell are the same run.
+
+### The whole suite (item 5)
+
+One run after the last edit, on `5ce3f3f`: `tests/run_all.py`, 87 modules,
+1293 passed, 65 failed, 18 skipped (summed from the per-module tallies; log
+`.claude/step9-2026-10-14/logs/s_suite.log`, gitignored). Against the last
+whole-suite run (§1.300, 13 October, stale specs: 139 failed), 48 of the 65
+fail by name there too; 17 are new.
+
+New, caused by item 1: `test_arms` ×3. `arms.check_tree`, `check_pairing`
+and the C0-recipe test require the census hold in this tree.
+
+New, caused by the new `history.json` (the panel under the universal draw):
+`test_calibration_report` ×3 (ITERATING rule 8's table and §A38's PA figures
+quote the old panel; ranks 4-12 sd(z) by cycle is 1.450 / 1.304 / 3.666 for
+2011 / 2016 / 2021, no longer monotone, which rule 8 and §1.132 rely on) and
+`test_scored_universe` ×5 (the clustering findings measured on the old panel:
+sd(z) by cycle 1.338 / 0.972 / 2.253; mean z on the claimed population −0.283
+against +0.118 fixed; `reference` rejects in 31 of 64 randomisations; the
+high-PIT cells no longer carry the clustering). These are findings and
+re-quotes for the next session, not goldens; nothing was edited to pass them.
+
+New, caused by the new draws and forecast with `site/` not rebuilt:
+`test_served_draws` ×2 (cells do not name the ledger's run; the page's
+`forecast.json` names the old draws), `test_reader_seats` ×1, `test_reweight`
+`test_the_owners_table_on_the_published_draws` (BADGE-DECISION.md's table was
+measured on model `7ea27c28`; the draws are now `100dd084`),
+`test_published_page` `…build_older_than_the_run…`, `test_site_structure`
+`…chance_scale_when_the_sheet_is_regenerated` (claims.toml verdicts disagree
+with the regenerated chances). The site rebuild is the next step's, in the
+site repository.
+
+Predating by name (48): `test_your_forecast_page` ×28, `test_published_page`
+×4, `test_draw_record` ×2 (the capture counts more turnout calls than draws:
+an IndexError at 5,000), `test_levers_are_live` ×2 (`montecarlo.LEVEL_DF`
+moves nothing at 2026: it is the incumbent law's), `test_reweight` ×2,
+`test_site_structure` ×2, and one each in `test_edit_mode`, `test_export_draws`
+(the file is 2,167,246 bytes gzipped, over its budget), `test_intermediates_are_current`
+(`plausibility_*.json` matches nothing), `test_pool_bounds` (the impossibility
+scan: Buffalo City 2011 DA in Indian/Asian and White, Cape Town 2011 DA in
+White), `test_provenance_dates`, `test_roster_fails_closed`,
+`test_site_assets`, `test_stage_realisation` (`KeyError: '35_widths'`).
+
+## 1.303 The 2026 forecast's move from the published model, attributed change by change (2026-10-14)
+
+The published forecast (freeze `0e0abf3`, code `60fe57e`) and the forecast
+step 9 produced (freeze `5ce3f3f`, code `346fb97`) differ by two batches: the
+model correction batch of 10 October (§1.296), which the owner held back from
+publication that day, and this round (§1.297-§1.302). Both batches ran arms at
+Johannesburg 2026 with the arrays saved, so the move is read from those runs,
+not re-run.
+
+Sources. The batch's arms: `data/arms/step11/<arm>/joburg-2026/arrays.npz`
+(gitignored), 5,000 draws, seed 20261104. The round's arms:
+`.claude/step7-2026-10-13/arms/<arm>/joburg-2026/arrays.npz` (gitignored),
+5,000 draws, seed 20261104. Arm A's tree is `597ec38`, whose model code
+differs from the published `60fe57e` only by `ModelRun.pr_vote_draws` and
+`ward_vote_draws`, two recorded fields that move no draw (§1.291). Arm A
+gives ANC 63.74 and PA 24.02 mean seats; the published freeze (1,500 draws)
+gives 64.0 and 23.8. Arm U is the shipping configuration and equals C0 in
+every mean below to 0.1 seat; the step-9 freeze (1,500 draws) gives ANC 71.26
+and PA 15.54.
+
+### Mean seats at each step, Johannesburg 2026
+
+Mean seats over 5,000 draws; the change is against the row above. The Monte
+Carlo standard error of a mean (sd / √5,000) is 0.27-0.28 seats for the ANC
+in the incumbent-law arms and 0.14 in U, 0.07-0.13 for the PA, 0.12-0.23 for
+the EFF. The two arms in a row share seed and draw count but not their draws
+once a centre moves, so a change under about 0.6 seats for the ANC or EFF is
+not resolved here.
+
+| arm | what it adds | ANC | DA | EFF | ASA | PA | MK | IFP |
+|---|---|---|---|---|---|---|---|---|
+| A | the published model | 63.7 | 66.5 | 27.2 | 28.4 | 24.0 | 24.2 | 4.2 |
+| B | batch items 1, 2, 6, 8, 18 | +2.2 | +2.6 | +0.7 | +1.2 | −6.9 | +1.0 | +0.3 |
+| C | item 11a, growth centre at the party's current size | −0.3 | +0.5 | +1.0 | −0.3 | −0.8 | −0.1 | −0.1 |
+| C16 | item 16, own growth record from elections at a similar size | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| D | item 17, parties with no record take their size group's centre | +1.1 | 0.0 | −0.8 | −0.4 | 0.0 | −1.4 | +0.2 |
+| E | item 19, by-election weight derived (0 at this target; E equals D0, `w_bye` 0) | +2.6 | −0.3 | +2.6 | −1.4 | −1.1 | −0.2 | −0.6 |
+| I | this round's tree, incumbent draw law | −0.5 | 0.0 | +0.4 | +0.1 | 0.0 | +0.2 | 0.0 |
+| U | the universal draw law (ships) | +2.3 | +0.5 | −0.9 | −0.5 | +0.6 | −0.4 | +0.1 |
+| | **U against A** | **+7.5** | **+3.3** | **+3.0** | **−1.2** | **−8.2** | **−0.9** | **−0.1** |
+| | of which the 10 October batch (E against A) | +5.7 | +2.8 | +3.4 | −0.8 | −8.8 | −0.7 | −0.2 |
+| | of which this round (U against E) | +1.8 | +0.5 | −0.4 | −0.4 | +0.6 | −0.2 | −0.1 |
+
+Three changes are resolved and carry the move:
+
+- **The ward/list ratio scaled to the wards a party contests (batch item 6).**
+  B6 against A: PA −7.1, ANC +2.0, DA +2.0 seats; list shares unchanged (PA
+  6.33%, ANC 22.14% in both). The PA's mean ward share falls from 11.86% to
+  6.52%. This is §1.296's P6, pre-registered and held there ("PA ward/list
+  ratio 2.000 → 1.029"); this entry adds only its place in the chain.
+- **The by-election weight set by its measured value (batch item 19).** The
+  measured class weights are 0 at this target (§1.302, item 6), so the
+  by-election blend that the published model weighted at 0.40 is off. E
+  against D: ANC +2.6, EFF +2.6, ASA −1.4, PA −1.1 seats; ANC list share
+  22.57% → 23.84%.
+- **The universal draw law (this round).** U against I: ANC +2.3 seats.
+
+### How the universal draw adds ANC seats at an unchanged list share
+
+Measured (I against U, 5,000 draws each): ANC mean list share 23.67% in
+both; its sd across draws 7.43 → 3.64 points; mean ward wins 64.4 → 68.7;
+draws in which the ANC's seats equal its ward wins, so that its ward wins
+exceed its proportional entitlement, 59.0% → 80.5%. In U the ANC averages
+73.2 seats in those draws and 62.6 in the rest. On the current tree at 1,500
+draws, seed 20261104 (in process, nothing written), the ANC's combined
+ward-plus-list share moves 23.80% → 23.93% between the two laws, which is
+0.4 of a seat at 270, against a seat move of +2.5.
+
+So the seat gain comes through overhang, not through votes. That a narrower
+spread in the ANC's share makes it hold its marginal wards in more draws, and
+so puts it into overhang more often, is argued, not tested. Separating it
+needs the ward-level win probabilities under each law for the wards the ANC
+wins in U's overhang draws and not in I's.
+
+### The band moved more than the centre
+
+ANC p5-p95 of seats: A 28-92, E 33-101, I 33-99, U 51-83. The sd of the
+ANC's seats falls 19.6 → 9.8 between I and U; the EFF's 16.4 → 8.7. The PA's
+widens, 4.7 → 9.0 (p5-p95 9-22 → 5-33). All of the narrowing for the large
+parties is the universal draw; the batch widened the ANC's upper tail.
+
+### For the before/after shown to the owner
+
+Most of the forecast's move, and all of the PA's fall, is the 10 October
+batch, which was held back from the site on 10 October and goes out with
+this round. The before/after must show the two batches as separate rows.

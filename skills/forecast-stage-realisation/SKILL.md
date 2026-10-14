@@ -1,6 +1,6 @@
 ---
 name: forecast-stage-realisation
-description: Observe the REALISATION segment of the Johannesburg forecast pipeline — stages 40_draws, 41_guards, 42_pr_share_draws, 43_ward_share_draws, 42a_pr_vote_draws, 43a_ward_vote_draws, 44_seat_draws, 45_delivered. Use when reading or writing anything between the drawn vote shares and the allocated council: the per-draw share arrays, the per-draw whole votes the seat law read, the ~20 guard counters, Schedule 1 seat allocation, overhang, the chamber fill, or the delivery proof. Carries the field inventory with units, the invariants and why each holds, the traps, and what could not be checked.
+description: Observe the REALISATION segment of the Johannesburg forecast pipeline — stages 35_widths, 40_draws, 41_guards, 42_pr_share_draws, 43_ward_share_draws, 42a_pr_vote_draws, 43a_ward_vote_draws, 44_seat_draws, 45_delivered. Use when reading or writing anything between the drawn vote shares and the allocated council: the per-draw share arrays, the per-draw whole votes the seat law read, the ~20 guard counters, Schedule 1 seat allocation, overhang, the chamber fill, or the delivery proof. Carries the field inventory with units, the invariants and why each holds, the traps, and what could not be checked.
 ---
 
 # The realisation segment: draws → shares → seats
@@ -21,6 +21,20 @@ constructed corrupted one, and a real 40-draw trace generated in the test.
 
 ## 1. The field inventory, with units
 
+### `35_widths` — the draw's widths (since 2026-10-12)
+
+Written by `run_model` from `make_drawer`. `draw_law` (`"universal"` or
+`"incumbent"`); `record`, the width record's entry for the target (`kind`
+`"fit"` or the 2011 `"fallback"`, with the curve, δ, location and ρ);
+`parties`, per drawn party under the universal law: `centre` (its `pool_spec`
+centre, the conserved mean), `sigma`, `delta`, `rho`, `total` (√(σ² + δ²)),
+`shared` (√ρ·σ, the loading on the run's one shared normal), `own`, `v_comp`
+(turnout composition's log variance, subtracted), `floored` (the excess when
+composition exceeded the own budget), `kappa`, `new`, `judged`. Invariant:
+`own² + v_comp − floored = σ²(1 − ρ) + δ²` per party, and `faults_in_widths`
+checks it. `judgements_applied`, `judgements_ignored` (each with its reason)
+and `judgements_sha`. Empty `parties` under the incumbent law.
+
 ### `40_draws` — the summary. Six dicts, all keyed by party.
 
 | field | units | sums to |
@@ -35,25 +49,48 @@ constructed corrupted one, and a real 40-draw trace generated in the test.
 parties at joburg 2021). `ward_win_sum` (5 parties) and `seat_mean` are subsets
 — `seat_mean`'s keys are the union of what the seat draws contain.
 
-### `41_guards` — twenty counters. **Exactly twenty; the list is in the test.**
+### `41_guards` — the counters. **The list is in the test (`GUARD_KEYS`).**
 
 Three are **denominators**, not events, and everything else is read against
 them:
 
-* `bounds_checked` — incremented once per draw, so it **IS** the draw count.
-  Nothing else in the payload is, which makes it the only field tying the board
-  to the draws it describes.
+* `draws` — the run's draw count (added 2026-10-09). Nothing else in the
+  payload is, which makes it the only field tying the board to the draws it
+  describes. `bounds_checked` held this role until it became per party (below).
+  `overhang_count` and `excessive_draws` are read against it.
 * `ipf_balances` — one per draw in which the shock was non-degenerate.
 * `solve_calls` — two per draw (`solve_and_predict` runs twice).
 
 The events: `bounds_violations` (per party, §3.5 θ-bound breaches, denominator
-`bounds_checked`), `ipf_failures` (balances that fell back to `partial_balance`,
+`bounds_checked`, the per-party count of draws in which that party was checked,
+since 2026-10-09; a city that declares no §3.5 ranges checks nobody; its population is `bounds_base`, every declared-range party in the universe with its drawn base, checked or not, and the checked parties are one cut on that base, M2 review S4), `ipf_failures` (balances that fell back to `partial_balance`,
 discarding the level shock for **every** party in that draw),
 `ipf_clipped` (per party, draws held at pool capacity), `ipf_headroom`
 (per party, pre-draw ask ÷ capacity — the only sight of who is *about* to be
 clipped), `cap_moved` / `cap_undershoots` (`capped_targets`' redistribution),
 `excessive_draws` and `overhang_count` (item 16 triggers), and eight `solve_*`
-counters.
+counters. Two name records (item 8): `roster_unrepresented` and
+`level_sd_default_parties`; and one width record (item 17):
+`level_sd_at_size`, `{party: sd}` for every drawn party whose level-shock sd is
+the size-group width at its own size (`montecarlo.level_shock_sd`).
+`group_share_tripwire` (item 12) is `"no record"` or `{pairs, population,
+scanned, draws, fire_at, key_current}`: each `party|pool` pair whose drawn
+share of the pool's vote exceeded its record plus the pool's margin in more
+than `fire_at` of draws. It reports and changes no number; `population ==
+scanned` is the proof it looked (`faults_in_group_share`).
+
+The universal draw (2026-10-12; MACHINERY.md "The universal draw"):
+`kappa_error` (per party, the calibration pass's relative error), `mean_error`
+(the run's own conservation falsifier: `z`, `se`, `threshold`, `parties` and
+`fired`, which must agree), `width` (per party, total latent log sd) and
+`width_floored`. All four are empty under the incumbent law.
+
+The keyed streams (2026-10-12, MACHINERY.md "Keyed draw streams"):
+`gamma_fallbacks`, the gammas whose every Marsaglia-Tsang slot rejected and
+took the exact fallback, read against the fourth denominator `gamma_draws`
+(every gamma the run drew, NOT draws); and `stream_keys`, a sorted list of
+distinct `[stage, name]` pairs, every stream the run read. A fallback value is
+exact in law and the one value not paired across arms.
 
 ### `42_pr_share_draws`, `43_ward_share_draws` — `(draws, parties)` float arrays
 
@@ -120,7 +157,7 @@ about *magnitudes* is checkable here, and everything about *bookkeeping* is.
    returns something, so every draw seats every ward and the total is conserved
    by construction. A remainder means a ward was skipped or double-counted —
    the only way this number can move.
-4. **`bounds_checked == len(44_seat_draws)`.** The board and the draws came
+4. **`draws == len(44_seat_draws)`** (it was `bounds_checked` until 2026-10-09), and every `bounds_checked[p] <= draws`. The board and the draws came
    from one run, or they did not.
 5. **Every dict-valued counter is bounded by its own denominator**, and the
    orderings hold: `ipf_failures ≤ ipf_balances`, `solve_nonconvergent ≤
@@ -182,27 +219,27 @@ means to exactly **270**. Storing one under the other's name is a defect this
 project has had twice. `40_draws.seat_mean` is a mean; the test asserts it and
 names the median explicitly in the failure message when it is not.
 
-### 4. ⛔ Exact ties are manufactured, and the tie-break is a string hash
+### 4. ⛔ Exact ties are manufactured, and the seeded lot decides them
 
-`seats.allocate` ranks remainders by `(-remainder, -combined)`. Two parties
-with **equal integer combined votes** produce a bit-identical key; Python's sort
-is stable; so the seat goes to whoever came first in the dict. That dict comes
-from `seats.eligible_parties`, which iterates `set(ward_votes) | set(pr_votes)`
-— a set-of-strings order, i.e. a function of how the party NAME hashes and of
-nothing electoral. `allocate`'s own docstring says float remainders make an
-exact tie unreachable; equal integers reach it directly, and Schedule 1 breaks
-an exact tie **by lot**.
+`seats.allocate` ranks by the whole-vote surplus, then the votes (Schedule 1
+item 13(2)(a),(b)). Two parties with **equal integer combined votes** have equal
+surpluses and equal votes, and the statute says nothing more; since 2026-10-09
+such a pair straddling the last seat is ordered by `seats.lot_order` under the
+draw's key `seat_key(draw_key(ModelRun.lot, d), round)` (`seats`), which names no party. A
+call with such a tie and no key raises.
 
-**Measured, joburg 2021, 400 draws, seed 12345:** three allocations hit an
-exact tie straddling the cut (ATM / UNITED\_CULTURAL\_MOVEMENT twice at 3,409
-combined votes; UIM / ALJAMAAH once at 4,371), and reversing the key order of
-`combined` moved a seat in **1 of 400 draws**.
+Until 2026-10-09 the seat went to whoever came first in the dict, and that dict
+comes from `seats.eligible_parties`, which iterates `set(ward_votes) |
+set(pr_votes)`: a function of how the party NAME hashes. **Measured then,
+joburg 2021, 400 draws, seed 12345:** three allocations hit an exact tie
+straddling the cut (ATM / UNITED\_CULTURAL\_MOVEMENT twice at 3,409 combined
+votes; UIM / ALJAMAAH once at 4,371), and reversing the key order of
+`combined` moved a seat in **1 of 400 draws**. The rate under the integer
+surplus is printed by
+`test_the_real_trace_names_a_tie_rate_rather_than_assuming_there_is_none`.
 
-`montecarlo.fix_hash_seed` pins `PYTHONHASHSEED=0` at seven entry points, so
-shipped runs are repeatable — but repeatable is not correct, and the residue is
-that **renaming a party can move a seat**. The rate is small here and will not
-be small everywhere: a sibling reference that gives identically-reached parties
-identical shares manufactures whole groups of exact ties.
+A sibling reference that gives identically-reached parties identical shares
+manufactures whole groups of exact ties (`benchmarks.uniform_swing_roster`).
 
 ### 5. The pool-capacity cap is INERT on everything the backtest can see
 

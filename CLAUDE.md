@@ -333,6 +333,9 @@ let that test, not this file, be the authority on how many there are:
     .venv/bin/python src/arrivals.py                    # arrival machinery, scored alone
     .venv/bin/python src/contested_area.py              # poll path's contested-area conversion
     .venv/bin/python src/sweep.py                       # obvious-fault sweep
+    .venv/bin/python src/group_share_record.py --emit   # group-share tripwire
+                                                        #   record; re-emit
+                                                        #   window only
 
 **`src/diagnose.py` was in that list until 2026-09-12 and is not any more** —
 `tests/test_diagnose_baselines.py` imports it, so it satisfies the rule on its
@@ -362,6 +365,29 @@ gap; one declaring wrongly is a gap wearing a badge.
 And one imported by `test_levels_dispersion.py` rather than orphaned:
 
     .venv/bin/python src/theta_residual.py      # conditional sd(log theta), §1.59
+
+And one imported by `tests/test_bye_value.py`, run in a re-emit window after the
+pool specs (`--out DIR` to build it elsewhere):
+
+    .venv/bin/python src/bye_value.py --emit    # item 19's by-election weights
+
+And one imported by `tests/test_universal_draw.py`, run in a re-emit window
+after the pool specs, once per centre variant the round's arms need
+(`--out DIR` to build it elsewhere):
+
+    .venv/bin/python src/width_record.py --emit # the universal draw's widths
+
+And one imported by `tests/test_plausibility.py`, which scores an arm's runs
+against the real record and writes under `data/processed/plausibility/`:
+
+    .venv/bin/python src/plausibility.py --runs DIR --label NAME
+
+And one imported by `tests/test_arms.py`, which runs the round's
+pre-registered arms in process into a directory outside `data/` and compares
+them (`POOLS-REEMIT-QUEUE.md` says when):
+
+    .venv/bin/python src/arms.py run --arm U --out DIR
+    .venv/bin/python src/arms.py compare --out DIR --a I --b U
 
 ### Targeted modules per change; the SUITE once per commit
 

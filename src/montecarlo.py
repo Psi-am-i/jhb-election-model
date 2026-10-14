@@ -30,7 +30,8 @@ This is a rewrite of the first implementation, fixing the review findings:
   overhang expands the council and moves the majority threshold (plan §3.7
   step 5). Threshold is per-draw, not a constant 136.
 * **E4** — by-election evidence (`byelections.py`, plan §3.6) tilts each
-  party's central level at weight ``w_bye``, clamped to §3.5's ranges so a
+  party's central level at its size class's measured weight (``bye_value.py``,
+  BRIEF item 19; ``w_bye`` overrides it), clamped to §3.5's ranges so a
   concentrated party's stronghold deltas cannot claim an absurd citywide
   level (the A4 selection caveat, enforced numerically). A polling lever
   spans the SRF↔Ipsos disagreement (§8.3): ±1 moves the pool modes ±4 points,
@@ -82,11 +83,13 @@ from pathlib import Path
 
 import numpy as np
 
+import byelections as _byelections
 import cityconfig
 import coalitions
 from fold import FOLDS, citywide, load, load_parameters, shares
-from seats import (INDEPENDENT, allocate, eligible_parties,
-                   outside_pool_wards)
+from seats import (INDEPENDENT, TieWithoutLot, allocate, draw_key,
+                   eligible_parties, lot_identity, outside_pool_wards, seat_key,
+                   stable_entropy)
 
 SHARE_FLOOR = 0.002
 COUNCIL = 270
@@ -145,7 +148,15 @@ DEFAULTS: dict = {
     # 2026-08-17 once CLASS 12 showed it was computed, passed to `pool_spec`
     # as an argument that function never read, and printed. Three appearances,
     # no effect. See MODEL-LOG §1.35.
-    "w_bye": 0.40,
+    #
+    # ⛔ NONE MEANS DERIVED (BRIEF item 19, 2026-10-10). The weight each party's
+    # by-election evidence gets is its size class's weight from
+    # `data/processed/bye_value.json` (`src/bye_value.py`, JUDGEMENT-CALLS
+    # §A55): the measured out-of-sample increment over the model's own
+    # baseline, 0 where none is measurable. A NUMBER here is an override for
+    # sweeps and the reader page's cells, applied to every party and recorded
+    # (`w_bye.override`). It replaced the typed 0.40 (§A35, superseded).
+    "w_bye": None,
     # HOW the by-election reading is weighed against the spine. "fixed" is
     # w_bye above, typed and untested. "inverse_variance" DERIVES it from the
     # two estimates' own precisions — the minimum-variance combination, which
@@ -342,9 +353,10 @@ DEFAULTS: dict = {
     # registered constant that cannot be swept is `LEVEL_DF` again.
     #
     # Declared at exactly the values they were already frozen at, so nothing
-    # moves. What changes is that they can now be swept, and that the guards can
-    # see them.
-    "level_sd_default": 0.45,
+    # moved. The other, the fallback level-shock sd for a party with no size,
+    # was DELETED 2026-10-09 (owner, M3 review row 7): after item 17 it bound
+    # nowhere, and a party with no size and no θ fit now stops the run
+    # (`level_shock_sd`, JUDGEMENT-CALLS §A29).
     "turnout_correlation": 0.63,   # == TURNOUT_CORRELATION, asserted below
 
     "entrant_prob": 0.25,
@@ -398,8 +410,32 @@ DEFAULTS: dict = {
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
     # Multiplier on the fitted per-pool Dirichlet concentration; 1.0 is the
-    # fit itself. See `_dirichlet_scale` and MODEL-LOG §1.55.
+    # fit itself. See `_dirichlet_scale` and MODEL-LOG §1.55. READ ONLY UNDER
+    # `draw_law = "incumbent"`: the universal draw has no Dirichlet.
     "dirichlet_scale": 1.0,
+
+    # WHICH DRAW LAW (design 1j v4-L1, owner 2026-10-12). "universal": one
+    # log-scale draw for every party with its width from the width record
+    # (`src/width_record.py`), the within-pool split kept as the centre only.
+    # "incumbent": the Student-t level shock and the within-pool Dirichlet
+    # split, on the same keyed streams, kept so the pre-registration's arm I
+    # exists (prereg/2026-10-12-universal-draw.md §3.2). `dirichlet_floor`,
+    # `dirichlet_scale` and the level-shock width are read only by the
+    # incumbent law. JUDGEMENT-CALLS §A57.
+    "draw_law": "universal",
+    # THE SMALL-PARTY CENTRE CORRECTION (prereg/2026-10-12-universal-draw.md
+    # §3.3, arm UC; owner checkpoint 2026-10-12). Off by default. When on,
+    # under the universal law, every party whose `pool_spec` centre is below
+    # `WIDTH_BLOCK` has that centre multiplied by exp(m(s)), m the width
+    # record's location curve for this target (fitted on earlier cycles only;
+    # s clamped at `LOCATION_CLAMP`), and the vector is renormalised, before
+    # the calibration pass. Estimation: m is the centres' average size-related
+    # error against real results of earlier elections.
+    "centre_correction": False,
+    # STRENGTH JUDGEMENTS ON OR OFF (design v3 §11). A forecast with
+    # judgements in its `judgements/` file is also run with this off, paired,
+    # and both are reported. A backtest ignores judgements either way.
+    "apply_judgements": True,
 }
 
 # What DEFAULTS looked like before any city touched it. `apply_city` restores
@@ -440,11 +476,6 @@ def expit(x):
     return 1.0 / (1.0 + np.exp(-x))
 
 
-def triangular(rng, spec, size=None):
-    low, mode, high = spec
-    return rng.triangular(low, min(max(mode, low), high), high, size)
-
-
 # Degrees of freedom for the level shock.
 #
 # WAS 4.0, AND 4.0 IS INDEFENSIBLE. exp(c·t_v) has an INFINITE MEAN whenever
@@ -480,8 +511,9 @@ def triangular(rng, spec, size=None):
 # 0.02% — two orders of magnitude more room for the surprise this model has
 # repeatedly been surprised by.
 # THE ADMISSION GATE ON THE WHOLE BY-ELECTION CHANNEL, promoted from an
-# inline literal 2026-08-22 (MODEL-LOG §1.69). `w_bye` = 0.40 is registered at
-# 🔴 as "live in the 2026 forecast, untested by anything here" — and the
+# inline literal 2026-08-22 (MODEL-LOG §1.69). `w_bye` was then a typed 0.40,
+# 🔴 as "live in the 2026 forecast, untested by anything here" (since
+# 2026-10-10 it is derived per size class, §A55) — and the
 # threshold deciding whether it fires for a given party was a bare `30` in the
 # function body, in the same untestable branch and with the same reach into the
 # published forecast. Below this many weighted contests the by-election
@@ -506,37 +538,11 @@ WARD_PR_RATIO_MAX = 2.0
 
 LEVEL_DF = 7.0
 
-
-def log_shock(rng, sd, size=None, df: float | None = None):
-    """exp of a Student-t scaled to have log-sd exactly ``sd``. Median 1.
-
-    Standardised by sqrt((df-2)/df) so that ``sd`` is the realised log standard
-    deviation rather than the t's own, which would be 41% larger at df=4. The
-    measured sd(log θ) can then be handed straight in and mean what levels.py
-    measured it to mean.
-
-    ``df`` RESOLVES ``LEVEL_DF`` AT CALL TIME, and it must. It was written
-    ``df: float = LEVEL_DF``, which Python evaluates once at import: setting
-    ``montecarlo.LEVEL_DF`` afterwards changed nothing at all, and the constant
-    was swept at 2.5, 4, 7, 30, 200 and 1000 for byte-identical output every
-    time. That reads as "the tail does nothing" when the truth is "you did not
-    change the tail" — the exact trap ITERATING.md rule 6 exists for, and the
-    same class of defect as `entrant_prob` in MODEL-LOG §1.31. See §1.33.
-    """
-    df = LEVEL_DF if df is None else float(df)
-    scale = np.sqrt((df - 2.0) / df)
-    sd = np.asarray(sd)
-    # SIZE DEFAULTS TO THE SHAPE OF sd. Passing an array of per-party spreads
-    # with size=None gave every party the SAME t draw — one scalar broadcast
-    # across the vector — so the shocks were perfectly correlated. A common
-    # multiplicative shock cancels exactly under the normalisation that follows,
-    # which is why the ANC and DA realised sd(log) 0.08 against a measured 0.21
-    # while a small party, whose share barely moves the normaliser, realised its
-    # own. The level shock existed and did nothing for precisely the parties it
-    # was added for.
-    if size is None and sd.ndim > 0:
-        size = sd.shape
-    return np.exp(sd * scale * rng.standard_t(df, size=size))
+# THE GROUP-SHARE TRIPWIRE'S FIRING RULE (BRIEF item 12, JUDGEMENT-CALLS §A54).
+# A (party, pool) pair is reported when its share of the pool's vote exceeds
+# its record plus the pool's largest real one-cycle rise in more than this
+# fraction of draws. It reports and changes no number.
+GROUP_SHARE_TRIPWIRE_DRAWS = 0.05
 
 
 # How close to a party's own pool capacity the IPF is allowed to be asked to
@@ -758,7 +764,128 @@ def _tri_ppf(u, spec):
     return b - np.sqrt((1.0 - u) * (b - a) * (b - c))
 
 
-def correlated_triangular(rng, spec, z_common: float, rho: float):
+# --------------------------------------------------------------------------
+# keyed draw streams (design 1c with the fixes of step2/2-review-1c)
+# --------------------------------------------------------------------------
+
+# DRAWS PER REFILL OF A STREAM'S BUFFER. Distribution-neutral and number-
+# neutral: a stream's row `d` is the `d`-th row of one sequential fill, so a
+# chunk of 1, 7 or 256 returns the same bytes (tests/test_draw_streams.py, the
+# run-level chunk test). It trades memory for speed and nothing else.
+# JUDGEMENT-CALLS §A56.
+STREAM_CHUNK = 256
+
+# MARSAGLIA-TSANG TRIALS HELD PER GAMMA PER DRAW. Distribution-neutral: the
+# gamma is the first accepted trial, rejection sampling on iid trials is exact,
+# and a draw that rejects all of them takes an exact fallback (counted in
+# `41_guards.gamma_fallbacks`). It changes only how often the fallback runs, and
+# a fallback draw is the one draw that is not paired across arms. At 4 the
+# per-gamma exhaustion probability is under 6e-6 at shape 1 (design 1c §2.4,
+# review finding 9). JUDGEMENT-CALLS §A56.
+GAMMA_SLOTS = 4
+
+
+def _std_normal_cdf(z):
+    """Φ(z) without scipy: the normal CDF from the error function."""
+    return 0.5 * (1.0 + math.erf(float(z) / math.sqrt(2.0)))
+
+
+def log_gamma_slots(shape, z, u, u_boost):
+    """Log Gamma(shape) values from fixed primitives, one per member.
+
+    ``shape`` is ``(m,)``; ``z`` and ``u`` are ``(m, J)`` slot primitives
+    (standard normals and uniforms on (0, 1]); ``u_boost`` is ``(m,)``. Returns
+    ``(log value, accepted)``: ``accepted[i]`` is False when every slot
+    rejected, and the caller then takes the exact fallback.
+
+    THE BOOST IS APPLIED AT EVERY SHAPE (step2/2-review-1c finding 1).
+    Gamma(a) = Gamma(a + 1)·U^(1/a) is exact for every a > 0, and applying it
+    only below a = 1, as design 1c §2.4 first wrote, switches the primitives'
+    roles when a shape crosses 1: the drawn value then jumps between two arms
+    whose shapes differ by a hair (correlation 0.65 in the review's bench), in
+    exactly the centre-change case pairing exists for. Marsaglia-Tsang runs on
+    a + 1 ≥ 1, where its acceptance is above 0.95.
+
+    Computed in LOG SPACE, because at a shape near ``DIRICHLET_FLOOR × alpha``
+    the value underflows a double; ``pool_split`` normalises in log space.
+    Pure: no generator is read.
+    """
+    a = np.asarray(shape, dtype=float).reshape(-1)
+    z = np.asarray(z, dtype=float).reshape(a.size, -1)
+    u = np.asarray(u, dtype=float).reshape(a.size, -1)
+    ub = np.asarray(u_boost, dtype=float).reshape(-1)
+    if np.any(a <= 0) or not np.all(np.isfinite(a)):
+        raise ValueError(f"a gamma shape must be positive and finite; got "
+                         f"{a[(a <= 0) | ~np.isfinite(a)][:5]}")
+    ap = a + 1.0
+    dd = ap - 1.0 / 3.0
+    c = 1.0 / np.sqrt(9.0 * dd)
+    boost = np.log(ub) / a
+    if z.shape[1] == 0:
+        return np.full(a.size, -np.inf), np.zeros(a.size, dtype=bool)
+    v = (1.0 + c[:, None] * z) ** 3
+    pos = v > 0
+    lv = np.log(np.where(pos, v, 1.0))
+    acc = pos & (np.log(u) < 0.5 * z * z + dd[:, None]
+                 - dd[:, None] * v + dd[:, None] * lv)
+    first = np.argmax(acc, axis=1)
+    ok = acc[np.arange(a.size), first]
+    lg = np.log(dd) + lv[np.arange(a.size), first] + boost
+    return lg, ok
+
+
+def student_t(z, log_chi, df: float):
+    """Student t with ``df`` degrees of freedom as z / sqrt(2G/df).
+
+    ``G = exp(log_chi)`` is Gamma(df/2), so 2G is chi-square with df degrees of
+    freedom. The constant matters: z / sqrt(G/df) is a different law, and the
+    sampler test rejects it.
+    """
+    df = float(df)
+    return np.asarray(z, dtype=float) * np.exp(
+        -0.5 * (math.log(2.0) + np.asarray(log_chi, dtype=float) - math.log(df)))
+
+
+def log_shock(sd, z, log_chi, df: float):
+    """exp of a Student-t scaled to have log-sd exactly ``sd``. Median 1.
+
+    Standardised by sqrt((df-2)/df) so that ``sd`` is the realised log standard
+    deviation rather than the t's own, which would be 41% larger at df=4. The
+    measured sd(log θ) can then be handed straight in and mean what levels.py
+    measured it to mean.
+
+    ``df`` IS REQUIRED AND IS NEVER READ FROM ``LEVEL_DF`` HERE. The t is built
+    from two keyed primitives (``z`` from ``level.z`` and ``log_chi``, a
+    Gamma(df/2) from ``level.chi``), and the gamma's shape and this scale must
+    use ONE value of df, so the drawer resolves ``LEVEL_DF`` once per draw, at
+    call time (the §1.33 property: a constant bound at import was swept at six
+    values for byte-identical output), and passes it to both. A ``log_shock``
+    that read the module constant itself could scale a gamma drawn at one df by
+    another.
+
+    Each party has its OWN primitives (the ``level.*`` streams are keyed by
+    party), so the shocks are independent across parties: a common
+    multiplicative shock cancels exactly under the normalisation that follows,
+    which is why the ANC and DA once realised sd(log) 0.08 against a measured
+    0.21.
+    """
+    df = float(df)
+    scale = math.sqrt((df - 2.0) / df)
+    return np.exp(np.asarray(sd, dtype=float) * scale
+                  * student_t(z, log_chi, df))
+
+
+def tri_from_z(z, spec):
+    """A triangular draw from one standard normal: ``_tri_ppf(Φ(z))``.
+
+    The copula path's mapping, with the same 1e-9 clip, which removes at most
+    2e-9 of probability from each tail.
+    """
+    u = _std_normal_cdf(z)
+    return _tri_ppf(min(max(u, 1e-9), 1 - 1e-9), spec)
+
+
+def correlated_triangular(z_own, spec, z_common: float, rho: float):
     """A triangular draw pushed by a shared standard normal.
 
     A Gaussian copula: the pool's own normal is ``sqrt(rho)*z_common +
@@ -767,14 +894,206 @@ def correlated_triangular(rng, spec, z_common: float, rho: float):
     through the triangular's inverse CDF. The MARGINAL is therefore exactly the
     triangular ``pools.turnout_band`` measured — this changes how the pools move
     together and nothing about how far any one of them can move.
+
+    ``z_own`` is the pool's own keyed normal (stream ``turnout.pool``); at
+    ``rho <= 0`` it is used alone, so the uncorrelated path reads the same
+    primitive and stays paired with the correlated one.
     """
     if rho <= 0:
-        return triangular(rng, spec)
-    rho = min(rho, 1.0)
-    z = np.sqrt(rho) * z_common + np.sqrt(1.0 - rho) * rng.standard_normal()
-    # Φ(z) without scipy: the normal CDF from the error function.
-    u = 0.5 * (1.0 + math.erf(z / np.sqrt(2.0)))
-    return _tri_ppf(min(max(u, 1e-9), 1 - 1e-9), spec)
+        z = float(z_own)
+    else:
+        rho = min(rho, 1.0)
+        z = math.sqrt(rho) * float(z_common) + math.sqrt(1.0 - rho) * float(z_own)
+    return tri_from_z(z, spec)
+
+
+def pool_split(log_g, alpha):
+    """A Dirichlet(alpha) draw from independent log Gamma(alpha_i) values.
+
+    Independent gammas normalised are exactly Dirichlet. Normalised in log
+    space (``exp(log_g - max)``), so a component whose gamma underflows a
+    double comes out 0.0 rather than NaN.
+
+    ``alpha`` IS NOT READ HERE. It is the named patch point for the width-budget
+    ablation (``src/width_budget.py``), which replaces this function by one
+    returning ``alpha / alpha.sum()``, the Dirichlet's mean.
+    """
+    lg = np.asarray(log_g, dtype=float)
+    w = np.exp(lg - lg.max())
+    return w / w.sum()
+
+
+def ward_noise_multiplier(streams, universe, d: int, n_wards: int,
+                          sd: float) -> np.ndarray:
+    """The per-(ward, party) lognormal ward-tally noise of draw ``d``.
+
+    Shape ``(n_wards, len(universe))``: ``exp(sd · z)`` with ``z`` read from the
+    ``ward_noise`` stream of EACH PARTY, one column per party over the wards in
+    ``wards`` order. Keyed per party, so adding a party adds a column and leaves
+    every other party's column bit-identical; a changed ward set unpairs it
+    (design 1c §2.3). One definition, read by ``run_model``'s draw loop and the
+    pairing tests.
+    """
+    z = streams.stacked_normals("ward_noise", tuple(universe), d, k=n_wards)
+    return np.exp(float(sd) * z.T)
+
+
+class _Stream:
+    """One keyed generator and its buffer of rows."""
+
+    __slots__ = ("gen", "k", "kind", "start", "buf", "last")
+
+    def __init__(self, gen, k: int, kind: str):
+        self.gen, self.k, self.kind = gen, int(k), kind
+        self.start, self.buf, self.last = 0, None, -1
+
+
+class DrawStreams:
+    """Keyed, draw-indexed random primitives for one run (design 1c §2).
+
+    Every random quantity in a run reads its OWN stream, named by what it is
+    (``stage``) and by whom (``name``: a party, ``pool|party``, a pool's tie
+    label, or ``""``), and indexed by the draw. A stream holds only
+    parameter-free primitives, standard normals (kind ``"z"``) and uniforms on
+    (0, 1] (kind ``"u"``), in a fixed count per draw; every parameter enters
+    afterwards through a deterministic transform. So:
+
+    * adding or removing a party adds or removes its streams and changes no
+      other stream's values;
+    * changing a parameter changes only the transform over the same
+      primitives, so the drawn value moves smoothly with it;
+    * draw ``d`` reads row ``d`` of each stream whatever the run's length, so a
+      1,000-draw run is the prefix of a 5,000-draw run at the same seed.
+
+    The key is ``[stable_entropy(run_lot), stable_entropy(kind),
+    stable_entropy(stage), stable_entropy(name)]`` through numpy's
+    ``SeedSequence``. ``run_lot`` is ``seats.lot_identity(city, target,
+    seed)``: city and target are in it on purpose, so one party's shocks are
+    independent across the panel's city-years and paired only between arms at
+    one city-year. ``stable_entropy`` is blake2b, never ``hash()``, which is
+    salted per process.
+
+    Refuses (raises) a read of a draw at or beyond ``draws``, a read of an
+    EARLIER draw than the stream last served, and a second read of one stream
+    with a different ``k``: each is a wiring defect, not a resize.
+
+    ``keys`` is every ``(stage, name)`` read, the population the pairing tests
+    compare and ``41_guards.stream_keys`` records. ``gamma_fallbacks`` counts the
+    gammas whose every slot rejected, out of ``gamma_draws``.
+    """
+
+    def __init__(self, run_lot: str, draws: int, chunk: int | None = None):
+        if not isinstance(run_lot, str) or not run_lot:
+            raise ValueError(f"run_lot {run_lot!r} is not a run identity "
+                             f"(seats.lot_identity)")
+        self.run_lot = run_lot
+        self.draws = int(draws)
+        self.chunk = int(STREAM_CHUNK if chunk is None else chunk)
+        if self.chunk < 1:
+            raise ValueError(f"chunk {self.chunk} must be at least 1")
+        self._root = stable_entropy(run_lot)
+        self._streams: dict[tuple[str, str, str], _Stream] = {}
+        self.keys: set[tuple[str, str]] = set()
+        self.gamma_fallbacks = 0
+        self.gamma_draws = 0
+
+    def entropy(self, kind: str, stage: str, name: str) -> list[int]:
+        """The SeedSequence entropy of one stream: the key, as integers."""
+        return [self._root, stable_entropy(kind), stable_entropy(stage),
+                stable_entropy(name)]
+
+    def _stream(self, kind: str, stage: str, name: str, k: int) -> _Stream:
+        key = (kind, stage, name)
+        s = self._streams.get(key)
+        if s is None:
+            s = _Stream(np.random.default_rng(self.entropy(kind, stage, name)),
+                        k, kind)
+            self._streams[key] = s
+            self.keys.add((stage, name))
+        elif s.k != int(k):
+            raise ValueError(
+                f"stream {stage!r}/{name!r} ({kind}) was read with k={s.k} and "
+                f"now k={k}: a stream's shape is fixed for the run, and a "
+                f"change is a wiring defect, not a resize")
+        return s
+
+    def _row(self, kind: str, stage: str, name: str, d: int, k: int) -> np.ndarray:
+        d = int(d)
+        if d < 0 or d >= self.draws:
+            raise IndexError(f"draw {d} is outside this run's {self.draws} draws "
+                             f"(stream {stage!r}/{name!r})")
+        s = self._stream(kind, stage, name, k)
+        if d < s.last:
+            raise IndexError(
+                f"stream {stage!r}/{name!r} ({kind}) served draw {s.last} and is "
+                f"now asked for draw {d}: a stream is read forward, and an "
+                f"earlier draw means two callers disagree about which draw this is")
+        s.last = d
+        while s.buf is None or d >= s.start + self.chunk:
+            if s.buf is not None:
+                s.start += self.chunk
+            if s.kind == "z":
+                s.buf = s.gen.standard_normal((self.chunk, s.k))
+            else:
+                # (0, 1], so a log is always finite: numpy's `random` is [0, 1)
+                s.buf = 1.0 - s.gen.random((self.chunk, s.k))
+        return s.buf[d - s.start]
+
+    def normals(self, stage: str, name: str, d: int, k: int = 1) -> np.ndarray:
+        """Row ``d`` of the standard normals keyed (stage, name): shape (k,)."""
+        return self._row("z", stage, name, d, k)
+
+    def uniforms(self, stage: str, name: str, d: int, k: int = 1) -> np.ndarray:
+        """Row ``d`` of the uniforms on (0, 1] keyed (stage, name): shape (k,)."""
+        return self._row("u", stage, name, d, k)
+
+    def stacked_normals(self, stage: str, names, d: int, k: int = 1) -> np.ndarray:
+        """Row ``d`` of each name's own normal stream, stacked: shape (m, k).
+
+        One stream PER NAME, never one generator keyed by the tuple: the tuple
+        changes when a member is added, and every member's values would move.
+        """
+        return np.array([self._row("z", stage, nm, d, k) for nm in names]
+                        ).reshape(len(names), k)
+
+    def log_gamma(self, stage: str, names, shapes, d: int) -> np.ndarray:
+        """Log Gamma(shape_i) for each name at draw ``d``: shape (m,).
+
+        Each name reads ``GAMMA_SLOTS`` normals and ``GAMMA_SLOTS + 1``
+        uniforms from its own streams (the last uniform is the boost) and the
+        values go through ``log_gamma_slots``. A member whose every slot
+        rejected takes an exact fallback from a generator keyed by the stream
+        and the draw, boosted the same way, and is counted.
+        """
+        names = tuple(names)
+        shapes = np.asarray(shapes, dtype=float).reshape(-1)
+        J = int(GAMMA_SLOTS)
+        Z = np.array([self._row("z", stage, nm, d, J) for nm in names]
+                     ).reshape(len(names), J)
+        U = np.array([self._row("u", stage, nm, d, J + 1) for nm in names]
+                     ).reshape(len(names), J + 1)
+        lg, ok = log_gamma_slots(shapes, Z[:, :J], U[:, :J], U[:, J])
+        self.gamma_draws += len(names)
+        if not ok.all():
+            for i in np.flatnonzero(~ok):
+                lg[i] = self.fallback_log_gamma(stage, names[i], shapes[i], d)
+        return lg
+
+    def fallback_log_gamma(self, stage: str, name: str, shape: float,
+                           d: int) -> float:
+        """The exact fallback for one exhausted gamma, counted.
+
+        Conditional on every slot rejecting, the value must still be
+        Gamma(shape), and any independent exact sampler gives that. Keyed by
+        the stream and the draw, so it is reproducible; it is the one gamma in
+        a run that is not paired across arms.
+        """
+        self.gamma_fallbacks += 1
+        g = np.random.default_rng(self.entropy("fallback", stage, name)
+                                  + [int(d)])
+        a = float(shape)
+        lg = math.log(float(g.standard_gamma(a + 1.0)))
+        return lg + math.log(1.0 - float(g.random())) / a
 
 
 def months_before_election(stamp: str, election_day: date) -> float:
@@ -1168,6 +1487,22 @@ def _refuse_non_statutory(key: str, value) -> None:
             f"table. They must not reach a forecast. MODEL-LOG §1.165.")
 
 
+#: ``DEFAULTS`` keys a city file may not set: each is derived per run, and
+#: ``apply_city`` writes a city's ``[judgements.scalars]`` over ``DEFAULTS``,
+#: so a number there would override the derivation on every run of that city.
+#: ``w_bye`` (BRIEF item 19): ``None`` derives each party's class weight from
+#: ``bye_value.json``; ``w_bye = 0.4`` sat in two city files until 2026-10-10
+#: and would have done exactly that. A sweep or scenario file may still set
+#: it (an override, recorded); only a city file may not.
+DERIVED_NOT_CITY = ("w_bye",)
+
+
+def city_derived_keys(city) -> list[str]:
+    """The :data:`DERIVED_NOT_CITY` keys ``city``'s file sets, sorted."""
+    return sorted(k for k in city.judgements.get("scalars", {})
+                  if k in DERIVED_NOT_CITY)
+
+
 def apply_city(city) -> None:
     """Point the module's constants at this city, from a CLEAN baseline.
 
@@ -1194,6 +1529,15 @@ def apply_city(city) -> None:
     why this is fixed here rather than worked around in `compare_history`.
     """
     global COUNCIL, PLAN_BOUNDS
+    # Refused before anything is reset, so a refusal leaves the module as it was.
+    derived = city_derived_keys(city)
+    if derived:
+        raise SystemExit(
+            f"cities/{city.slug}.toml sets {', '.join(derived)} in "
+            f"[judgements.scalars], which the model derives "
+            f"(montecarlo.DERIVED_NOT_CITY). A city value would override the "
+            f"derivation on every run of this city; delete the line, or "
+            f"override it for a sweep with --set.")
     # Restore the module's own defaults before applying this city's, so a run
     # never inherits the previous city's judgements.
     DEFAULTS.clear()
@@ -1552,7 +1896,8 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
                    "WARD_PR_RATIO_MIN", "WARD_PR_RATIO_MAX", "COUNCIL",
                    "TURNOUT_CORRELATION", "PLAN_BOUNDS",
                    "POOL_CAPACITY_MARGIN", "GAMMA_FOLD",
-                   "PARTIAL_BALANCE_PASSES", "HASH_SEED", "FOLDS"),
+                   "PARTIAL_BALANCE_PASSES", "HASH_SEED", "FOLDS",
+                   "GROUP_SHARE_TRIPWIRE_DRAWS"),
     # FOLDS is declared HERE and not under `fold` on purpose: `montecarlo.py`
     # does `from fold import FOLDS`, and `fold_target_year` resolves the name
     # in THIS module's globals. A record keyed `fold.FOLDS` would report a
@@ -1564,7 +1909,8 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
     # removed. KNOWN_ABSENT's own docstring calls it "the largest absorber in
     # this module, and it is not counted".
     "levels": ("SD_FLOOR", "SD_CEILING", "SHRINK", "RELIABILITY_HALF",
-               "SPINE_K", "FILTER_TYPE_A", "EXCLUDE_DEMARCATION_CROSSING",
+               "SPINE_K", "SIZE_WINDOW_GRID", "SIZE_WINDOW_MIN_SCORED",
+               "SIZE_WINDOW_ALPHA", "FILTER_TYPE_A", "EXCLUDE_DEMARCATION_CROSSING",
                "THETA_WINDOW", "THETA_EXCLUDE_TARGETS", "METRO_CODES",
                "TYPE_A_EVENTS", "DEMARCATION_CROSSING", "KNOWN_ABSENT"),
     # POLL_DEFF_STANDALONE is the only one of the four `deff`/`screen`/`drift`
@@ -1602,7 +1948,7 @@ MODULE_CONSTANTS: dict[str, tuple[str, ...]] = {
 #
 # THE ARTEFACT-BORNE CLASS -- eleven of sixteen constants in `pools.py`, both
 # floors in `fold.py`, and everything in `turnout.py`. `pools.ALPHA_MIN_SHARE`,
-# `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK`, `ARRIVAL_BAND_LO/HI`,
+# `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK`,
 # `SPLINTER_PARENT_WEIGHT`, `SPLIT_SD_FLOOR`, `MIN_HOME_SPLITS`, `SPLITS`,
 # `SOLVE_TOL`; `fold.SHARE_FLOOR`, `fold.LEVEL_FLOOR`; `turnout.ELECTIONS`,
 # `turnout.LAMBDA_PAIRS`. Every one is read only while `pools --emit`, `fold`
@@ -1994,6 +2340,82 @@ def load_scenario(args) -> dict:
 # evidence blending (E2 + E4)
 # --------------------------------------------------------------------------
 
+def bye_value_path() -> Path:
+    """Where ``src/bye_value.py --emit`` writes the item-19 weights."""
+    return (Path(__file__).resolve().parents[1] / "data" / "processed"
+            / _byelections.BYE_VALUE)
+
+
+def read_bye_value(path: Path | None = None) -> dict:
+    """The by-election class weights (BRIEF item 19), or a refusal.
+
+    Refuses (``SystemExit``) a missing file and a file whose
+    ``artefact_key`` is not the live ``byelections.bye_value_key``: a weight
+    measured by other code, on another by-election file or under another
+    ward/PR clip is a weight set somewhere else (the same class as a stale
+    pool spec). Called by ``run_model`` only where the target reads
+    by-elections and ``w_bye`` is not overridden. Returns ``{"weights":
+    {class: w}, "artefact_key": ..., "path": ...}``.
+    """
+    path = bye_value_path() if path is None else Path(path)
+    if not path.exists():
+        raise SystemExit(
+            f"{path} is missing. This target reads by-elections and w_bye is "
+            f"derived (BRIEF item 19): build the weights with "
+            f"`src/bye_value.py --emit` in a re-emit window, or override "
+            f"w_bye for a sweep (--set w_bye=<number>).")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    live = _byelections.bye_value_key((WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX))
+    named = payload.get("artefact_key") or {}
+    if named != live:
+        moved = sorted(k for k in set(live) | set(named)
+                       if live.get(k) != named.get(k))
+        raise SystemExit(
+            f"{path} is stale: its artefact_key differs from the live one in "
+            f"{moved}. Rebuild it with `src/bye_value.py --emit` (BRIEF item "
+            f"19); a weight from other code or data is not this model's.")
+    weights = payload.get("weights") or {}
+    if set(weights) != set(_byelections.SIZE_CLASSES) or not all(
+            isinstance(v, (int, float)) and v >= 0 for v in weights.values()):
+        raise SystemExit(f"{path}: weights {weights!r} do not name one "
+                         f"non-negative weight per class "
+                         f"{_byelections.SIZE_CLASSES}")
+    return {"weights": {k: float(v) for k, v in weights.items()},
+            "artefact_key": named, "path": str(path)}
+
+
+def bye_class_size(party: str, prior_pr_share: dict[str, float],
+                   base_city: dict[str, float]) -> float:
+    """The size a party's by-election class is read at (SPEC R2.4): its
+    previous-LGE list share, or, with none, its share in the run's baseline
+    (the national election before the target; a seeded arrival's seed)."""
+    share = float(prior_pr_share.get(party, 0.0) or 0.0)
+    return share if share > 0 else float(base_city.get(party, 0.0) or 0.0)
+
+
+def bye_weight(scenario: dict, party: str, prior_pr_share: dict[str, float],
+               base_city: dict[str, float]) -> tuple[float, str]:
+    """The weight one party's by-election evidence gets, and where it came from.
+
+    ``scenario["w_bye"]`` is read with no default. A number is an override,
+    the same for every party (``"override"``). ``None`` is derived: the
+    party's class (``byelections.size_class`` at :func:`bye_class_size`)
+    weight from ``scenario["_bye_value"]``, which ``run_model`` fills from
+    :func:`read_bye_value`; absent, it is read here, so a direct call refuses
+    a missing or stale file exactly as a run does.
+    """
+    w = scenario["w_bye"]
+    if w is not None:
+        return float(w), "override"
+    value = scenario.get("_bye_value")
+    if value is None:
+        value = read_bye_value()
+        scenario["_bye_value"] = value
+    cls = _byelections.size_class(bye_class_size(party, prior_pr_share,
+                                                 base_city))
+    return float(value["weights"][cls]), cls
+
+
 def blended_centres(
     scenario: dict,
     base_city: dict[str, float],
@@ -2007,9 +2429,18 @@ def blended_centres(
     with meaningful by-election weight, the implied level (the previous LGE's PR
     share + weighted delta) is clamped to §3.5's range — a concentrated party's
     stronghold swing cannot claim an absurd citywide level — and blended in at
-    w_bye. Returns the centres and a note per adjusted party for the report.
+    the party's by-election weight (:func:`bye_weight`: its size class's
+    measured weight, or a ``w_bye`` override). Returns the centres and a note
+    per adjusted party for the report; the weight each party with evidence
+    was given is ``scenario["_bye_weight"]`` and the ``30_centres`` trace's
+    ``bye_weight``.
     """
-    w = scenario["w_bye"]
+    # Read with no default: a scenario without the key fails here, not as 0.
+    w_override = scenario["w_bye"]
+    if w_override is not None:
+        note_value(scenario, "w_bye.override", w_override,
+                   where="montecarlo:blended_centres", kind="consulted")
+    bye_weights: dict[str, dict] = {}
     notes: dict[str, str] = {}
     centres: dict[str, float] = {}
     prior = scenario.get("theta_prior") or {}
@@ -2034,7 +2465,6 @@ def blended_centres(
     # common centre, or the centre itself for a party holding a national vote
     # that has not yet faced a local election (MK in 2026).
     seeded = scenario.get("pool_seeds") or {}
-    bands = scenario.get("pool_seed_bands") or {}
     # THE SPINE (task #22). Where ``levels.spine`` has a level for a party, it
     # is the answer: it already weighed the party's national route against its
     # own last local result by how much θ evidence the party has, and returned
@@ -2066,8 +2496,10 @@ def blended_centres(
             route = "poll level"
             notes[party] = f"level from poll: {mode_level:.2%}"
         elif seeded.get(party, 0.0) > 0:
-            band = bands.get(party)
-            mode_level = base * (float(band[1]) if band else 1.0)
+            # The seed is the level. The emitted band's middle was 1.0 by
+            # construction and its ends were read by nothing; the band was
+            # deleted 2026-10-09 (item9/FINDINGS.md Q5).
+            mode_level = base
             route = "seeded level"
         elif party in spine_level:
             mode_level = spine_level[party]
@@ -2096,6 +2528,10 @@ def blended_centres(
                 f"See MODEL-LOG §1.52.")
 
         centre = mode_level
+        w = 0.0
+        if party in bye:
+            w, _cls = bye_weight(scenario, party, prior_pr_share, base_city)
+            bye_weights[party] = {"weight": w, "class": _cls}
         if party in bye and w > 0:
             weight_sum, delta = bye[party]
             # The SPREAD beside the mean: how many contests, and how far apart
@@ -2170,7 +2606,9 @@ def blended_centres(
                     centres[party] = centre
                     continue
                 _r = (scenario.get("_ward_pr_trusted") or {}).get(party)
-                delta_pr = (delta / _r) if _r else delta
+                # `byelections.delta_pr`, one definition with `bye_value.py`'s
+                # test (BRIEF item 19); lifted from here 2026-10-10.
+                delta_pr = _byelections.delta_pr(delta, _r)
                 implied = prior_pr_share.get(party, 0.0) + delta_pr
                 if party in prior:
                     low, high = prior[party][0], prior[party][2]
@@ -2321,9 +2759,9 @@ def blended_centres(
                     + (f", {_n_bye} contests sd {_sd_bye:.1%}" if _n_bye
                        else "")
                     + (f", clamped to {clamped:.1%}" if clamped != implied else "")
-                    + (f", w_bye {w})" if w_used == w
+                    + (f", w_bye {w} {_cls})" if w_used == w
                        else f", w_bye {w_used:.3f} derived from "
-                            f"sd_bye/sd_spine, typed {w})")
+                            f"sd_bye/sd_spine, class weight {w} {_cls})")
                 )
         centres[party] = centre
     # F35 — THE LOOP IS OVER `base_city`, SO A `poll_levels` ENTRY FOR A PARTY
@@ -2358,6 +2796,9 @@ def blended_centres(
             f"renormalises over this membership at level_shrink="
             f"{scenario.get('level_shrink')}, so this moved every party. See "
             f"the comment above — the repair spans three places or it is none.")
+    # THE WEIGHT EACH PARTY WITH BY-ELECTION EVIDENCE WAS GIVEN (BRIEF item 19),
+    # and its class or "override". Record only; `export_draws` reports it.
+    scenario["_bye_weight"] = bye_weights
     before = dict(centres)
     centres = compress_levels(centres, scenario)
     if trace:
@@ -2373,6 +2814,7 @@ def blended_centres(
             "level_shrink": scenario.get("level_shrink"),
             "level_shrink_scale": scenario.get("level_shrink_scale"),
             "route_notes": notes,
+            "bye_weight": bye_weights,
         })
     return centres, notes
 
@@ -2696,8 +3138,717 @@ def _balance(R, electorate, party_votes):
     return _pl.balance_margins(R, electorate, party_votes)
 
 
-def make_drawer(scenario, base_city_d, centres, index, rng):
+def record_city_slug(target) -> str:
+    """The city slug the group-share record is keyed on, for ``target``.
+
+    REFUSES a target with no city or no slug (M3 review row 5). Until
+    2026-10-09 the lookup fell back to ``""``, which no record holds, so the
+    run reported ``"no record"`` in silence: indistinguishable from a target
+    the record does not cover.
+    """
+    slug = getattr(getattr(target, "city", None), "slug", None)
+    if not isinstance(slug, str) or not slug:
+        raise SystemExit(
+            f"the target {target!r} carries no city slug, so the group-share "
+            f"record cannot be looked up. A run is for one city.")
+    return slug
+
+
+def read_group_share_record(city_slug: str, year: str) -> dict | None:
+    """The group-share record for one city at one target, or None.
+
+    Reads ``data/processed/group_share_record.json`` (written by
+    ``src/group_share_record.py --emit``, which this module does not import)
+    and returns ``{"record", "margin", "margin_cycles", "sources",
+    "key_current"}``. ``key_current`` says whether the file's ``artefact_key``
+    names the live ``group_share_record.py``, ``pools.py`` and emit
+    dependencies. None when the file, the city or the target is absent: the
+    run then reports ``"no record"``, never a threshold of zero. A module
+    function so a test can hand the run a constructed record.
+    """
+    import pools as _pl
+    src = Path(__file__).resolve().parent
+    path = src.parent / "data" / "processed" / _pl.GROUP_SHARE_RECORD
+    if not path.exists():
+        return None
+    blob = json.loads(path.read_text(encoding="utf-8"))
+    entry = ((blob.get("cities") or {}).get(city_slug) or {}).get(str(year))
+    if not entry:
+        return None
+    key = blob.get("artefact_key") or {}
+    live = {"record_sha": _pl._code_sha(src / "group_share_record.py"),
+            "pools_sha": _pl._code_sha(src / "pools.py"),
+            "deps_sha": _pl._deps_sha()}
+    return dict(entry, key_current=all(key.get(k) == v for k, v in live.items()))
+
+
+def group_share_tripwire(splits: dict, members: dict, record: dict | None,
+                         draws: int,
+                         fire_at: float | None = None) -> dict | str:
+    """Count, per (party, pool), the draws in which the party's share of the
+    pool's vote exceeds its record plus the pool's margin (BRIEF item 12).
+
+    ``splits`` is ``{pool: (draws, members) array}``, the within-pool
+    Dirichlet split of every draw in member order; ``members`` is ``{pool:
+    [party, ...]}`` in the same order (every member has weight > 0 in the
+    spec). ``record`` is :func:`read_group_share_record`'s, or None.
+
+    Returns ``"no record"`` when there is none. Otherwise ``{"pairs":
+    {"party|pool": {"draws", "share", "threshold"}}`` for every pair firing in
+    more than ``fire_at`` of the draws, ``"population"`` (the member pairs),
+    ``"scanned"`` (the pairs counted), ``"draws"``, ``"fire_at"`` and
+    ``"key_current"``}. A party with no record in a pool has record 0, so its
+    threshold is the margin. Reads values already drawn; draws nothing.
+    """
+    if record is None:
+        return "no record"
+    fire_at = GROUP_SHARE_TRIPWIRE_DRAWS if fire_at is None else float(fire_at)
+    rec, margin = record.get("record") or {}, record.get("margin") or {}
+    population = sum(len(m) for m in members.values())
+    scanned = 0
+    pairs = {}
+    for pool, names in members.items():
+        shares = np.asarray(splits.get(pool, np.zeros((0, len(names)))))
+        for k, party in enumerate(names):
+            if shares.shape[0] != draws:
+                continue
+            scanned += 1
+            threshold = float((rec.get(pool) or {}).get(party, 0.0)
+                              + margin.get(pool, 0.0))
+            n = int((shares[:, k] > threshold).sum())
+            if draws and n / draws > fire_at:
+                pairs[f"{party}|{pool}"] = {"draws": n, "share": n / draws,
+                                            "threshold": threshold}
+    return {"pairs": dict(sorted(pairs.items())), "population": population,
+            "scanned": scanned, "draws": int(draws), "fire_at": fire_at,
+            "key_current": bool(record.get("key_current"))}
+
+
+def level_shock_sd(party: str, scenario: dict, base_city_d: dict,
+                   ) -> tuple[float, str]:
+    """A party's level-shock sd in log units, and which rule gave it.
+
+    ⚠️ THE INCUMBENT DRAW LAW'S WIDTH ONLY (since 2026-10-12): read by
+    ``make_drawer`` and the poll blend under ``draw_law = "incumbent"``. The
+    shipped universal draw takes every party's width from the width record
+    (``party_width``; JUDGEMENT-CALLS §A57).
+
+    ONE DEFINITION, read by ``make_drawer`` for every pooled and individual
+    party and by the poll blend for the model's own sd. Three rules, in order:
+
+    * ``"measured"`` — ``theta_prior``'s width for the party
+      (``scenario["_theta_sd"]``), the size line at its national share;
+    * ``"size"`` — a party with no such width, or one whose only record is the
+      previous LGE (item 8, whose ``theta_prior`` width is the line at the 1e-5
+      size floor, a size it does not have, SPEC R3.7): the size group's width
+      at its OWN size in the run's baseline, ``levels.size_sd`` on
+      ``theta_prior``'s fit (BRIEF item 17, the RANGE of its size group).
+
+    **There is no third rule.** A party with no measured width, no size in
+    the baseline (base ≤ 0) or no θ fit in the run STOPS THE RUN. The typed
+    fallback that stood here (``level_sd_default``, 0.45) was deleted
+    2026-10-09 (owner, M3 review row 7: "If the old constant has been replaced
+    with new machinery it should be deleted"); an in-process scan at every
+    emitted city-year found no drawn party reaching it (JUDGEMENT-CALLS §A29).
+    Callers ask only for parties the run draws.
+    """
+    sd_measured = scenario.get("_theta_sd") or {}
+    local_only = scenario.get("_local_record_only") or ()
+    if party in sd_measured and party not in local_only:
+        return float(sd_measured[party]), "measured"
+    base = float(base_city_d.get(party, 0.0) or 0.0)
+    fit = scenario.get("_theta_sd_fit")
+    if base > 0.0 and fit:
+        import levels as _levels_sd
+        return _levels_sd.size_sd(base, fit), "size"
+    raise SystemExit(
+        f"{party}: no level-shock width. It has no measured width "
+        f"(theta_prior), and {'no size in the baseline' if base <= 0.0 else 'the run has no theta fit'}, "
+        f"so the size group's width cannot be read. There is no typed fallback "
+        f"(level_sd_default was deleted 2026-10-09, JUDGEMENT-CALLS §A29): "
+        f"give the party a baseline share or a measured width.")
+
+
+# --------------------------------------------------------------------------
+# the universal draw's width (design 1j v4, option L1)
+# --------------------------------------------------------------------------
+
+# WHICH DRAW LAW A RUN USES. "universal" is design 1j v4-L1 (owner, 2026-10-12):
+# one log-scale draw for every party, its width from one curve over size fitted
+# to every party-election in the record (`src/width_record.py`), the within-pool
+# split kept as the centre only. "incumbent" is the law before it, a Student-t
+# level shock at `level_shock_sd` and a within-pool Dirichlet split, on the same
+# keyed streams: kept selectable so the pre-registration's arm I exists
+# (prereg/2026-10-12-universal-draw.md §3.2). The scenario key is `draw_law`.
+DRAW_LAWS = ("universal", "incumbent")
+
+# The record the universal draw reads, written by `src/width_record.py --emit`.
+WIDTH_RECORD = "width_record.json"
+
+# THE LARGE BLOCK'S LINE: parties whose `pool_spec` centre is at least this
+# share are the reference block of the width record's residual frame, and the
+# location curve m(s) is zero from here up (design v1 §1.1, v4 §1). Judgement
+# call 9 of the v3 addendum; JUDGEMENT-CALLS §A57.
+WIDTH_BLOCK = 0.20
+
+# THE SHARED-LOADING ANCHORS: the shared share of variance measured for parties
+# under 1% applies at this size and below, the one for 1-20% at `RHO_ANCHOR_HI`,
+# linear in log size between, falling to 0 at `WIDTH_BLOCK` (design v2 §3.1).
+# The geometric centres of the two groups' rows in the 2026 record.
+# JUDGEMENT-CALLS §A57.
+RHO_ANCHOR_LO = 0.00548
+RHO_ANCHOR_HI = 0.0224
+RHO_GROUP_EDGE = 0.01
+
+# m(s) IS EVALUATED AT NO LESS THAN THIS SHARE: the record's 1st-percentile
+# centre. The quadratic reaches +1.0 at 0.03% and +1.78 at 0.01% without it
+# (step2/2-review-1j-v4 §1; v4 addendum call 36). L1 does not use m(s) in the
+# draw; the centre-correction arm does (prereg §3.3). JUDGEMENT-CALLS §A57.
+LOCATION_CLAMP = 0.00016
+
+# THE CALIBRATION PASS (design v1 §1.2). Before a run's draws, `make_drawer`
+# runs `N_CAL` draws through the same `draw_pools` code on the `calib.*`
+# streams and moves each party's κ until its mean drawn share equals its
+# `pool_spec` centre within `KAPPA_TOL` relative, at most `KAPPA_MAX_ITER`
+# times. Numerical constants: they change the precision of the mean, not the
+# law. JUDGEMENT-CALLS §A57.
+N_CAL = 4000
+KAPPA_TOL = 1e-3
+KAPPA_MAX_ITER = 30
+
+# THE MEAN-CONSERVATION FALSIFIER (design v2 §1.2): per party with centre at
+# least `FALSIFIER_MIN_CENTRE`, z = (mean drawn / centre − 1) / SE, against the
+# Bonferroni threshold for a family error of `FALSIFIER_FAMILY_ERROR` over those
+# parties. Recorded in `41_guards.mean_error`; it reports, it does not refuse.
+FALSIFIER_FAMILY_ERROR = 0.01
+FALSIFIER_MIN_CENTRE = 0.001
+
+
+def width_sigma(curve: dict, s: float) -> float:
+    """σ(s): the record's logistic width curve in log size (design v4 §1).
+
+    ``a + (b − a) / (1 + exp(k·(log s − log s_mid)))``. One definition, read by
+    the drawer and by ``width_record``'s estimator.
+    """
+    x = np.maximum(np.asarray(s, dtype=float), 1e-9)
+    a, b = float(curve["a"]), float(curve["b"])
+    z = np.clip(float(curve["k"]) * (np.log(x) - float(curve["log_mid"])),
+                -700.0, 700.0)
+    out = a + (b - a) / (1.0 + np.exp(z))
+    return float(out) if out.ndim == 0 else out
+
+
+def width_location(location: dict, s: float, clamp: bool = True) -> float:
+    """m(s) = c1·L + c2·L², L = min(log(s / WIDTH_BLOCK), 0) (design v4 §1).
+
+    The centres' average size-related error. Evaluated at no less than
+    ``LOCATION_CLAMP`` when ``clamp`` (the estimator fits it unclamped).
+    """
+    x = np.asarray(s, dtype=float)
+    if clamp:
+        x = np.maximum(x, LOCATION_CLAMP)
+    L = np.minimum(np.log(np.maximum(x, 1e-12) / WIDTH_BLOCK), 0.0)
+    out = float(location["c1"]) * L + float(location["c2"]) * L * L
+    return float(out) if out.ndim == 0 else out
+
+
+def width_rho(rho: dict, s: float) -> float:
+    """ρ(s): the shared share of a party's variance at size ``s``.
+
+    ``rho["lo"]`` at ``RHO_ANCHOR_LO`` and below, ``rho["hi"]`` at
+    ``RHO_ANCHOR_HI``, 0 at ``WIDTH_BLOCK`` and above, linear in log size
+    between (design v2 §3.1, values from the record).
+    """
+    x = math.log(max(float(s), 1e-9))
+    xs = [math.log(RHO_ANCHOR_LO), math.log(RHO_ANCHOR_HI), math.log(WIDTH_BLOCK)]
+    ys = [float(rho["lo"]), float(rho["hi"]), 0.0]
+    return float(np.interp(x, xs, ys))
+
+
+def party_width(record: dict, s: float, new: bool,
+                history: bool | None = None,
+                sigma_j: float | None = None) -> dict:
+    """One party's width components from a target's record: ONE DEFINITION.
+
+    Returns ``{"sigma", "delta", "rho", "total"}`` in log units. ``sigma`` is
+    σ(s), ``delta`` the newness term (``record["delta"]`` for a party new to the
+    city, else 0), ``rho`` the shared share ρ(s), ``total`` √(σ² + δ²).
+
+    A strength judgement (``sigma_j`` not None, design v3 §11.1) REPLACES the
+    newness term with σ_J: the class increment measures the error of the
+    model's own centre rule, and a judged centre's error is what the judgement
+    states. ``s`` is then the judged centre.
+
+    The 2011 record is a FALLBACK (design 1b v3; v3 addendum call 21): no
+    earlier cycle exists, so the width is the forward θ residual of target 2006
+    by population, ``with_history`` for a party with a θ history and
+    ``without`` otherwise, with no shared term and no newness term. It is
+    labelled untestable wherever it is used.
+    """
+    if record.get("kind") == "fallback":
+        fb = record["fallback"]
+        sig = float(fb["with_history"] if history else fb["without"])
+        delta = float(sigma_j) if sigma_j is not None else 0.0
+        return {"sigma": sig, "delta": delta, "rho": 0.0,
+                "total": math.sqrt(sig * sig + delta * delta)}
+    sig = width_sigma(record["curve"], s)
+    if sigma_j is not None:
+        delta = float(sigma_j)
+    else:
+        delta = float(record["delta"]) if new else 0.0
+    return {"sigma": sig, "delta": delta, "rho": width_rho(record["rho"], s),
+            "total": math.sqrt(sig * sig + delta * delta)}
+
+
+def pool_spec_centres(spec: dict) -> dict[str, float]:
+    """Each pooled party's ``pool_spec`` centre: the centre the draw conserves.
+
+    ``Σ_g props_gi · v_g / Σ_h v_h``, where ``spec`` is ``pool_spec``'s output
+    and ``v_g`` a pool's registration times its MODAL turnout. Sums to one over
+    the pooled parties. ONE DEFINITION: the universal draw's base vector and
+    conservation target, and the width record's residual frame.
+    """
+    pv = {n: float(v[1]) * float(v[2][1]) for n, v in spec.items()}
+    total = sum(pv.values())
+    out: dict[str, float] = {}
+    if total <= 0:
+        return out
+    for n, (_idx, _reg, _t, props, _alpha, members, *_rest) in spec.items():
+        for p, m in zip(members, props):
+            out[p] = out.get(p, 0.0) + float(m) * pv[n] / total
+    return out
+
+
+def width_record_path(processed: Path | None = None) -> Path:
+    src = Path(__file__).resolve().parent
+    root = processed if processed is not None else src.parent / "data" / "processed"
+    return Path(root) / WIDTH_RECORD
+
+
+def width_record_variant(scenario: dict) -> str:
+    """The variant of the record a scenario needs: the levers that move the
+    centres the record's residuals are measured about (design v1 §2.7).
+    ``level_shrink`` and its scale, as a canonical string."""
+    return json.dumps({"level_shrink": float(scenario.get("level_shrink") or 0.0),
+                       "level_shrink_scale": float(
+                           scenario.get("level_shrink_scale") or 0.04)},
+                      sort_keys=True)
+
+
+def width_record_key(processed: Path | None = None) -> dict:
+    """The live key a width record must carry: the code that computed the
+    centres, the residuals and the fit, and the INPUTS it read (design v1
+    §2.7; step-6 review, item 7). ONE DEFINITION, used by the writer, by
+    ``read_width_record`` and by ``declares.py``.
+
+    ``montecarlo`` computes the centres and draws the fixed point; ``levels``
+    the levels; ``width_record`` the fit; ``pools`` the specs (with their
+    dependency hash). A change to any of them changes what the record measured.
+
+    THE CODE IS NOT ALL OF IT. A re-emit with no code change (new raw files,
+    an edited judgements file, a census change behind ``deps_sha``) gives the
+    specs other centres while every code hash stays put, and the record would
+    pass for current. So the key also covers, under ``processed`` (the
+    ``data/processed`` root; default the repository's):
+
+    * ``specs_sha``: every spec the record reads (``width_record.record_specs``),
+      by content, its ``artefact_key`` included; an absent spec is a value;
+    * ``judgements_sha``: the live ``pools._judgements_sha`` of each of those
+      city-years, the judgement inputs that feed the specs, so an edit after
+      the emit marks the record stale as well as the spec;
+    * ``group_share_sha``: the group-share record's ``artefact_key``, or
+      ``"<absent>"``;
+    * ``results_sha``: the realised result file behind each residual row
+      (``width_record.record_result_files``: e.g. the 2021 file behind target
+      2026's rows), by content, under ``width_record.DATA``;
+    * ``fallback_files_sha``: the raw files the 2011 fallback can read
+      (``width_record.fallback_files``), by content;
+    * ``compare_history_sha`` and ``theta_residual_sha``: the code of
+      ``compare_history.actual_shares`` (the residuals' outcome) and of
+      ``theta_residual`` (the 2011 fallback);
+    * ``bye_value_sha``: ``bye_value.json``'s ``artefact_key``, or
+      ``"<absent>"`` (the by-election weights ``blended_centres`` reads move
+      the centres the residuals are measured about).
+    """
+    import pools as _pl
+    import width_record as _wr
+    src = Path(__file__).resolve().parent
+    root = (Path(processed).resolve() if processed is not None
+            else src.parent / "data" / "processed")
+    specs, judged, results = [], [], []
+    # `cities/` is read relative to the working directory throughout the
+    # model (`judgements/` is anchored, `pools.JUDGEMENTS_DIR`); the key
+    # describes THIS tree, so it reads them from this tree's root whatever the
+    # caller's directory (`declares.py` is run from `src/` too).
+    import contextlib as _cl
+    with _cl.chdir(src.parent):
+        for slug, year, rel in _wr.record_specs():
+            path = root / rel
+            specs.append(f"{rel}:" + (hashlib.sha256(path.read_bytes()).hexdigest()
+                                      if path.exists() else "<absent>"))
+            city = cityconfig.load(slug)
+            judged.append(f"{slug}|{year}:" + _pl._judgements_sha(
+                city, cityconfig.Target(city=city, year=year)))
+        for slug, year, path in _wr.record_result_files():
+            results.append(f"{slug}|{year}:" + _pl._sha(path))
+        fallback = [f"{f.name}:{_pl._sha(f)}" for f in _wr.fallback_files()]
+
+    def _stored_key(path):
+        return (json.loads(path.read_text(encoding="utf-8")).get("artefact_key")
+                if path.exists() else "<absent>")
+    gs_key = _stored_key(root / _pl.GROUP_SHARE_RECORD)
+    by_key = _stored_key(root / _byelections.BYE_VALUE)
+
+    def _h(x) -> str:
+        return hashlib.sha256(json.dumps(x, sort_keys=True).encode()).hexdigest()[:16]
+    return {"record_sha": _pl._code_sha(src / "width_record.py"),
+            "montecarlo_sha": _pl._code_sha(src / "montecarlo.py"),
+            "levels_sha": _pl._code_sha(src / "levels.py"),
+            "pools_sha": _pl._code_sha(src / "pools.py"),
+            "deps_sha": _pl._deps_sha(),
+            "specs_sha": _h(specs),
+            "judgements_sha": _h(judged),
+            "group_share_sha": _h(gs_key),
+            "results_sha": _h(results),
+            "fallback_files_sha": _h(fallback),
+            "compare_history_sha": _pl._code_sha(src / "compare_history.py"),
+            "theta_residual_sha": _pl._code_sha(src / "theta_residual.py"),
+            "bye_value_sha": _h(by_key)}
+
+
+def read_width_record(year: str, scenario: dict,
+                      processed: Path | None = None) -> dict:
+    """The width record for target ``year`` in the variant ``scenario`` needs.
+
+    REFUSES (SystemExit) a missing file, a key other than the live
+    ``width_record_key``, a missing variant, or a missing target year: the
+    universal draw has no other source of width, and a stale record measured
+    other centres (design v1 §2.7). Rebuild with ``src/width_record.py
+    --emit`` in a re-emit window.
+    """
+    path = width_record_path(processed)
+    if not path.exists():
+        raise SystemExit(
+            f"no width record at {path}. The universal draw (draw_law="
+            f"'universal') takes every party's width from it. Run "
+            f"`.venv/bin/python src/width_record.py --emit` in a re-emit window.")
+    blob = json.loads(path.read_text(encoding="utf-8"))
+    live = width_record_key(processed)
+    key = blob.get("artefact_key") or {}
+    stale = sorted(k for k, v in live.items() if key.get(k) != v)
+    if stale:
+        raise SystemExit(
+            f"{path} is STALE: its key differs from the live code and inputs "
+            f"in {stale}. It measured centres this tree no longer computes. "
+            f"Rebuild with "
+            f"`src/width_record.py --emit` in a re-emit window.")
+    variant = width_record_variant(scenario)
+    rec = ((blob.get("variants") or {}).get(variant) or {}).get("targets", {}).get(str(year))
+    if not rec:
+        raise SystemExit(
+            f"{path} holds no record for target {year} in the variant {variant}. "
+            f"Build it with `src/width_record.py --emit` and the matching "
+            f"`--set` (e.g. `--set level_shrink=0`).")
+    return dict(rec, target=str(year))
+
+
+# --------------------------------------------------------------------------
+# strength judgements, read at run time (design v3 §11, v3 addendum §2)
+# --------------------------------------------------------------------------
+
+def target_is_held(year) -> bool:
+    """True when the election at ``year`` has a result file: a BACKTEST
+    target. ``pools.target_is_held`` is the one definition (the emit needs it
+    to decide which arrivals a judgement holds out of the group budget, and
+    ``pools`` cannot import this module); this delegates."""
+    import pools as _pl
+    return _pl.target_is_held(year)
+
+
+def strength_judgements(city, target) -> tuple[list[dict], list[dict]]:
+    """The target's strength judgements: ``(applied, ignored)``.
+
+    Read at run time from ``judgements/<city>-<year>.toml``'s ``[party.X]``
+    tables, keys ``support`` (a list share), ``overperform`` (a multiplier),
+    ``sigma_j`` (a log sd, the judgement's uncertainty beyond the model's own
+    centre error) and ``register`` (its JUDGEMENT-CALLS §SJ row). An entry
+    carrying ``support`` or ``overperform`` without ``sigma_j`` and
+    ``register`` REFUSES (design v3 §11.2).
+
+    The file is ``pools.lineage_path`` (the repository's ``judgements/``,
+    whatever the working directory). On a FORECAST a missing file REFUSES.
+
+    A BACKTEST IGNORES THEM (a target with a result file): a judgement made
+    after the election cannot be blind. They are returned as ``ignored``, each
+    with its register row and the reason, so the run can record them, and the
+    run does not refuse, so the same file still runs when the election has
+    been held. On a forecast they are ``applied``.
+    """
+    import pools as _pl
+    # A FORECAST WITHOUT ITS JUDGEMENTS FILE IS AN ERROR (step-7 review, item
+    # 5). `load_lineage` returns `{}` for a missing file, which on a forecast
+    # reads as "no judgement applied" and declares the empty set's hash: a
+    # judgement that exists elsewhere, or a path resolved from the wrong
+    # directory, would vanish with nothing saying so. On a backtest the file
+    # is ignored by design and its absence changes nothing.
+    if not target_is_held(target.year) and \
+            not _pl.lineage_path(city, target).exists():
+        raise SystemExit(
+            f"{_pl.lineage_path(city, target)} does not exist: a forecast of "
+            f"{city.slug} {target.year} reads its strength judgements from it, "
+            f"and a missing file is not the empty set. Create it (the emit "
+            f"writes a template) before running the forecast.")
+    table = _pl.load_lineage(city, target)
+    entries = []
+    for party, body in sorted(table.items()):
+        if "support" not in body and "overperform" not in body:
+            continue
+        missing = [k for k in ("sigma_j", "register") if k not in body]
+        if missing:
+            raise SystemExit(
+                f"[party.{party}] in {_pl.lineage_path(city, target)} states a "
+                f"strength (`support` or `overperform`) without {missing}. A "
+                f"strength judgement carries its width (`sigma_j`, a log sd "
+                f"beyond the model's own centre error; 0 means as good as the "
+                f"model's) and its register row (`register`, a JUDGEMENT-CALLS "
+                f"§SJ row). Design 1j v3 §11.")
+        entries.append({"party": party,
+                        "support": (float(body["support"])
+                                    if body.get("support") is not None else None),
+                        "overperform": float(body.get("overperform", 1.0)),
+                        "sigma_j": float(body["sigma_j"]),
+                        "register": str(body["register"])})
+    if target_is_held(target.year):
+        reason = "backtest: a judgement cannot be blind after the election"
+        return [], [dict(e, reason=reason) for e in entries]
+    return entries, []
+
+
+def judgements_applied_sha(applied: list[dict]) -> str:
+    """The hash a run declares over the strength entries it APPLIED.
+
+    Sorted (party, support, overperform, sigma_j, register); the empty set on a
+    backtest. Forecast artefacts carry it, and ``declares.py --verify`` and
+    ``tests/test_intermediates_are_current.py`` recompute it from the live
+    file, so a hand edit to a judgement after a run marks the forecast stale
+    although the spec's ``artefact_key`` no longer covers these keys (v3
+    addendum §2).
+    """
+    rows = sorted([e["party"], e["support"], e["overperform"], e["sigma_j"],
+                   e["register"]] for e in applied)
+    return hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest()[:16]
+
+
+def centre_correction(record: dict) -> dict:
+    """The centre-correction arm's location for one target's record.
+
+    ``{"location": {c1, c2} or None, "why": ...}``. The location is the width
+    record's own m(s) for this target, fitted on EARLIER cycles only (prereg
+    §3.3: 2016 on 2011, 2021 on 2011-2016, 2026 on 2011-2021), one fit and one
+    fixed point with the width. The 2011 fallback has no location, so the
+    correction does not apply there and says so.
+    """
+    if record.get("kind") != "fit" or not record.get("location"):
+        return {"location": None,
+                "why": "the record for this target has no location curve "
+                       "(the 2011 fallback): no correction applied"}
+    return {"location": {"c1": float(record["location"]["c1"]),
+                         "c2": float(record["location"]["c2"])},
+            "why": "m(s) of this target's width record, fitted on earlier "
+                   "cycles; s clamped at LOCATION_CLAMP; parties below "
+                   "WIDTH_BLOCK; renormalised"}
+
+
+def mean_conservation(conserve_record, calib_ratio, names, centres) -> dict:
+    """The mean-conservation falsifier of design v2 §1.2, on one run.
+
+    For each drawn party with centre at least ``FALSIFIER_MIN_CENTRE``:
+    ``z = (mean_d target/c − 1) / SE``, ``SE² = var_d(target/c)/D +
+    var_cal(target/c)/N_CAL``, against the two-sided Bonferroni threshold for a
+    family error of ``FALSIFIER_FAMILY_ERROR`` over those parties. It REPORTS:
+    ``fired`` lists the parties beyond the threshold. Returns ``{}`` when there
+    is nothing to test (the incumbent law conserves no centre by design).
+    """
+    names = list(names)
+    if not names or len(conserve_record) == 0 or calib_ratio is None:
+        return {}
+    c = np.asarray(centres, dtype=float)
+    run = np.asarray(conserve_record, dtype=float) / c
+    cal = np.asarray(calib_ratio, dtype=float)
+    keep = [k for k in range(len(names)) if c[k] >= FALSIFIER_MIN_CENTRE]
+    if not keep:
+        return {}
+    D, N = run.shape[0], cal.shape[0]
+    se = np.sqrt(run[:, keep].var(axis=0, ddof=1) / max(D, 1)
+                 + cal[:, keep].var(axis=0, ddof=1) / max(N, 1)) if D > 1 else \
+        np.sqrt(cal[:, keep].var(axis=0, ddof=1) / max(N, 1))
+    z = (run[:, keep].mean(axis=0) - 1.0) / np.maximum(se, 1e-300)
+    thr = _normal_quantile(1.0 - FALSIFIER_FAMILY_ERROR / (2.0 * len(keep)))
+    zs = {names[k]: float(z[j]) for j, k in enumerate(keep)}
+    return {"z": zs, "se": {names[k]: float(se[j]) for j, k in enumerate(keep)},
+            "threshold": float(thr), "parties": len(keep),
+            "fired": sorted(p for p, v in zs.items() if abs(v) > thr)}
+
+
+def theta_history(scenario: dict, record: dict) -> set:
+    """The parties with a θ history (``scenario["_theta_history"]``), which
+    the 2011 fallback width is split by (``party_width``).
+
+    REFUSES (SystemExit) when the record is the FALLBACK and the history was
+    never set (step-7 review, item 7): ``run_model`` sets it only when
+    ``levels.theta_prior`` returns a prior, and an unset history used to give
+    every party the ``without`` width in silence. Set but empty is a value
+    (no party has a history); unset is not. A fitted record reads no history.
+    """
+    h = scenario.get("_theta_history")
+    if h is None and (record or {}).get("kind") == "fallback":
+        raise SystemExit(
+            "the width record is the 2011 fallback, which splits parties by θ "
+            "history, and `_theta_history` was never set: levels.theta_prior "
+            "returned no prior for this target (an empty θ record), so the "
+            "split cannot be read. Nothing defaults it to `without`.")
+    return set(h or ())
+
+
+def poll_model_sd(party: str, scenario: dict, base_city_d: dict,
+                  centres: dict, width_rec, new: bool) -> float:
+    """The model's own log sd for a party, as the metro-poll blend weighs it.
+
+    The draw's width, by the draw's law (one definition each): under the
+    universal law the record's total width √(σ² + δ²) at the party's centre
+    share (design v1 §4: the poll blend reads the same width as the draw);
+    under the incumbent law ``level_shock_sd``. ``width_rec`` is a callable
+    returning the target's record, so it is read only when a poll needs it.
+    """
+    if (scenario.get("draw_law", DEFAULTS["draw_law"])) == "incumbent":
+        return level_shock_sd(party, scenario, base_city_d)[0]
+    tot = sum(max(float(v), 0.0) for k, v in centres.items() if k != "ENTRANT")
+    share = max(float(centres.get(party, 0.0)), 0.0) / (tot or 1.0)
+    rec = width_rec()
+    hist = party in theta_history(scenario, rec)
+    return party_width(rec, share, new, history=hist)["total"]
+
+
+def _apply_strength_judgements(target, scenario: dict, centres: dict,
+                               law: str) -> dict:
+    """Apply the target's strength judgements to ``centres`` in place.
+
+    Design v3 §11: a judged centre ``c_J = (support, or the model's centre
+    share) × overperform`` REPLACES the party's centre before ``pool_spec``,
+    exactly, as a share of the drawn centres; every other party is rescaled by
+    the normalisation that follows (visible in ``35_widths``). The judged width
+    is applied by ``make_drawer`` through ``scenario["_strength_applied"]``.
+
+    Applied only under the universal law, on a forecast, with
+    ``apply_judgements`` on. Otherwise every entry is IGNORED and recorded with
+    the reason: a backtest (``strength_judgements``), the incumbent law (its
+    width has no judged term), or the switch off (the paired run without
+    judgements a forecast reports beside the one with them). Returns the
+    record for ``35_widths``: applied entries with their centre before and
+    after, ignored entries with their reasons, and the hash of the applied set
+    (``judgements_applied_sha``), which is also put on the scenario so the
+    forecast's artefacts declare it.
+    """
+    applied, ignored = strength_judgements(target.city, target)
+    reason = None
+    if law != "universal":
+        reason = "incumbent draw law: it carries no judged width"
+    elif not scenario.get("apply_judgements", DEFAULTS["apply_judgements"]):
+        reason = "apply_judgements is off (the paired run without judgements)"
+    if reason and applied:
+        ignored = ignored + [dict(e, reason=reason) for e in applied]
+        applied = []
+    done = []
+    for e in applied:
+        p = e["party"]
+        tot = sum(max(float(v), 0.0) for k, v in centres.items() if k != "ENTRANT")
+        before = max(float(centres.get(p, 0.0)), 0.0) / (tot or 1.0)
+        c_j = (e["support"] if e["support"] is not None else before) * e["overperform"]
+        c_j = min(max(c_j, 1e-9), 0.999)
+        rest = tot - max(float(centres.get(p, 0.0)), 0.0)
+        centres[p] = c_j * rest / (1.0 - c_j)
+        done.append(dict(e, centre_before=before, centre_judged=c_j))
+    scenario["_strength_applied"] = done
+    sha = judgements_applied_sha(done)
+    scenario["_judgements_applied_sha"] = sha
+    return {"applied": done, "ignored": ignored, "judgements_sha": sha}
+
+
+@dataclass
+class DrawerInputs:
+    """What ``make_drawer`` would receive: ``run_model(stop_after=
+    "drawer_inputs")``'s return, made before any draw."""
+    target: object
+    scenario: dict
+    base_city_d: dict
+    centres: dict
+    index: dict
+    universe: list
+    prior_pr_share: dict
+
+
+def composition_variance(pool_totals: list[dict], ipf: dict | None,
+                         n_ind: int) -> np.ndarray:
+    """Each pooled party's log-share variance from pool turnout ALONE.
+
+    ``pool_totals`` is one ``{pool: votes}`` per simulated draw (the run's own
+    turnout bands on the calibration streams); ``ipf`` is ``pool_spec``'s box,
+    whose ``R0`` holds the unshocked per-pool proportions and ``pool_votes``
+    each pool's votes at its modal turnout. A party's share in a draw is
+    ``Σ_g v_g(d)·R0[g, j] / Σ_g v_g(d)``; the variance of its log ratio to the
+    modal share is what turnout composition alone puts into it (design v1
+    §2.5). Returned in IPF party order, then ``n_ind`` zeros for the
+    individual-path parties, which no pool carries.
+    """
+    if not ipf or not ipf.get("parties"):
+        return np.zeros(n_ind)
+    names = list(ipf["names"])
+    R0 = np.asarray(ipf["R0"], dtype=float)
+    base_v = np.asarray(ipf["pool_votes"], dtype=float)
+    base = base_v @ R0 / max(base_v.sum(), 1e-12)
+    V = np.array([[float(t.get(nm, 0.0)) for nm in names] for t in pool_totals])
+    shares = V @ R0 / np.maximum(V.sum(axis=1, keepdims=True), 1e-12)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        lr = np.log(np.maximum(shares, 1e-300) / np.maximum(base, 1e-300))
+    var = np.where(base > 0, lr.var(axis=0), 0.0)
+    return np.concatenate([var, np.zeros(n_ind)])
+
+
+def live_judgements_sha(city_slug: str, year: str, scenario: dict) -> str:
+    """The hash the strength entries LIVE in the judgements file would give a
+    run made under ``scenario`` now: the set it would apply (none under the
+    incumbent law, with ``apply_judgements`` off, or on a backtest). What
+    ``declares.py --verify`` and ``tests/test_intermediates_are_current.py``
+    compare a forecast's declared ``_judgements_applied_sha`` with."""
+    # The judgements file is addressed by slug and year alone
+    # (`pools.lineage_path`), so no city config is loaded.
+    city = type("C", (), {"slug": str(city_slug)})()
+    target = type("T", (), {"city": city, "year": str(year)})()
+    applied, _ = strength_judgements(city, target)
+    if ((scenario.get("draw_law", DEFAULTS["draw_law"])) != "universal"
+            or not scenario.get("apply_judgements",
+                                DEFAULTS["apply_judgements"])):
+        applied = []
+    return judgements_applied_sha(applied)
+
+
+def _normal_quantile(p: float) -> float:
+    """Φ⁻¹(p) from the standard library."""
+    from statistics import NormalDist
+    return NormalDist().inv_cdf(p)
+
+
+def make_drawer(scenario, base_city_d, centres, index, streams):
     """Return a function drawing one citywide PR target vector.
+
+    ``streams`` is the run's :class:`DrawStreams`: every random number the
+    drawer uses is read from a keyed stream at the draw's index, so two arms
+    run on one seed see the same luck wherever their parties, pools and ties
+    agree (design 1c). Passing a ``np.random.Generator`` RAISES: a shared
+    stream would silently unpair every arm comparison. The closure is
+    ``draw_pools(d=None)``; ``d`` is the draw index, and ``None`` means the
+    next of an internal counter starting at 0, so calling it repeatedly in a
+    test still means draws 0, 1, 2, ….
 
     The returned closure carries an ``ipf_stats`` attribute — how many per-draw
     balances were attempted, how many fell back, and which parties were pinned
@@ -2709,6 +3860,12 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     pool received) and ``turnout_pools`` (the pool names, in column order).
     See ``draw_pools``.
     """
+    if not isinstance(streams, DrawStreams):
+        raise TypeError(
+            f"make_drawer takes a montecarlo.DrawStreams, not "
+            f"{type(streams).__name__}: one shared generator unpairs every arm "
+            f"comparison, because each draw's values would depend on everything "
+            f"drawn before them (design 1c, MODEL-LOG §1.296)")
     n = len(index)
     base_city = np.zeros(n)
     for party, i in index.items():
@@ -2760,38 +3917,65 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     # rising to 0.72 at 0.1% — and the draw was ignoring it, taking its spread
     # instead from the 10th and 90th percentiles of that same lognormal squeezed
     # back into a bounded triangular. The measurement now reaches the draw
-    # directly, and unbounded (see LEVEL_DF).
-    sd_measured = (scenario.get("_theta_sd") or {})
-    sd_default = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
+    # directly, and unbounded (see LEVEL_DF). The rule is `level_shock_sd`.
 
+    # A party with a size and no record of its own takes the size group's
+    # width at that size (item 17), recorded in `41_guards.level_sd_at_size`.
+    # A party with neither stops the run in `level_shock_sd` (§A29).
+    at_size: dict[str, float] = {}
+    # An item-8 party (`levels.local_record_only`) is in `theta_prior`'s record
+    # with no national baseline, so where `theta_prior` emits an sd for it, it
+    # is `sd_for(0.0)`: the size line at the 1e-5 size floor, a width at a size
+    # the party does not have (SPEC R3.7). Item 17 gives it, and any other
+    # party with no measured width, the size group's width at its own size.
+    # The rule is `level_shock_sd`, one definition.
     def sd_for_party(party: str) -> float:
-        return float(sd_measured.get(party, sd_default))
+        sd, how = level_shock_sd(party, scenario, base_city_d)
+        if how == "size":
+            at_size[party] = sd
+        return sd
+
+    law = scenario.get("draw_law", DEFAULTS["draw_law"])
+    if law not in DRAW_LAWS:
+        raise SystemExit(f"draw_law {law!r} is not one of {DRAW_LAWS}")
+    # TWO SWITCHES THAT BELONG TO ONE LAW REFUSE UNDER THE OTHER (step-6
+    # review, item 5). Silently ignoring one is a run that claims a mechanism
+    # it did not apply; drawing both is a run whose width is counted twice.
+    if law == "incumbent" and scenario.get("centre_correction"):
+        raise SystemExit(
+            "centre_correction is on under draw_law='incumbent'. The "
+            "correction (prereg arm UC) moves the universal draw's `pool_spec` "
+            "centres by the width record's location; the incumbent law reads "
+            "neither, so the switch would be ignored and the run would be "
+            "labelled with a correction it never applied. Set draw_law="
+            "'universal' or centre_correction=false.")
+    if law == "universal" and scenario.get("arrival_group_draw"):
+        raise SystemExit(
+            "arrival_group_draw is on under draw_law='universal'. The arrival "
+            "group's lognormal total and Dirichlet split would be drawn on top "
+            "of the universal draw, whose newness term δ already carries an "
+            "arrival's width, so arrivals would be widened twice. The "
+            "mechanism belongs to the incumbent law: set draw_law='incumbent' "
+            "or arrival_group_draw=false.")
+    note_value(scenario, "draw_law", law, where="montecarlo:make_drawer")
 
     individual = []
     for party, i in index.items():
         if party in handled or party == "ENTRANT":
             continue
-        # Same two paths as blended_centres, in the same order: a seeded
-        # arrival is drawn against the arrival record's band, never against a
-        # retention prior it has no history to have earned.
-        seed_band = (scenario.get("pool_seed_bands") or {}).get(party) \
-            if (scenario.get("pool_seeds") or {}).get(party, 0.0) > 0 else None
-        if seed_band is not None:
-            # An arrival's band IS the estimate, so it keeps its triangular:
-            # the arrival record is a set of observed entry sizes, not a
-            # dispersion around a centre, and widening it with a t-tail would
-            # be inventing evidence the record does not contain.
-            low, _, high = seed_band
-            mode = min(max(centres[party] / max(base_city[i], 1e-9), low), high)
-            individual.append((i, (low, mode, high), None))
-            continue
+        # A seeded arrival never reaches here: every seeded party is a pool
+        # member (`test_pool_conservation`), so `handled` skipped it above. The
+        # triangular branch on its band that stood here could not run and was
+        # deleted 2026-10-09 with the band (item9/FINDINGS.md Q5); a non-pooled
+        # seed would take the ordinary (centre, sd) path below.
         # The CENTRE is the spine's, and it is no longer clamped into the θ
         # band. That clamp existed when the centre and the band came from the
         # same θ; now they do not, and it was silently undoing task #22 — it
         # would have pulled ActionSA's 15.2% blended level back to about 11%
         # because the ratio it implies against a 6.2% national base sits above
         # the top of a band measured on parties that have a θ at all.
-        individual.append((i, None, (centres[party], sd_for_party(party))))
+        individual.append((party, i, centres[party],
+                           sd_for_party(party) if law == "incumbent" else None))
 
     entrant_index = index.get("ENTRANT")
 
@@ -2834,6 +4018,7 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     group_idx, group_w, group_alpha = None, None, None
     if group and group.get("weights"):
         members = [p for p in group["weights"] if p in index]
+        group_members = tuple(members)
         if members:
             group_idx = np.array([index[p] for p in members])
             w = np.array([float(group["weights"][p]) for p in members])
@@ -2875,13 +4060,20 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         ties[scenario["pools"][name].get("tie") or name].append(name)
 
     # Each pooled party's own level spread, looked up once rather than per draw.
-    # A seeded arrival is excluded (its band, not a dispersion, is the estimate)
-    # by giving it zero: its size comes from the arrival record and the pool
-    # split, and a t-shock on top would double-count the uncertainty the band
-    # already carries.
+    # A seeded arrival takes 0. Its width comes from the within-pool Dirichlet
+    # split (member concentration α = m·A_pool), not from a band: the arrival
+    # band was never read and is deleted (item9/FINDINGS.md Q5). Adding the
+    # size-line shock moved little (item 9 finding 4), so zero is kept as a
+    # registered judgement, JUDGEMENT-CALLS §A50.
     seeded_set = {p for p, s in (scenario.get("pool_seeds") or {}).items() if s > 0}
-    pool_sd_shock = {p: (0.0 if p in seeded_set else sd_for_party(p))
-                     for cfg in scenario["pools"].values() for p in cfg["members"]}
+    # Only members the run draws: the IPF's party list is the pool members in
+    # `index` (`pool_spec`), and a member outside it has no baseline size, so
+    # asking for its width would stop the run over a party it never draws.
+    # Incumbent law only: the universal draw takes its widths from the record.
+    pool_sd_shock = ({p: (0.0 if p in seeded_set else sd_for_party(p))
+                      for cfg in scenario["pools"].values()
+                      for p in cfg["members"] if p in index}
+                     if law == "incumbent" else {})
 
     rho_t = float(scenario.get("turnout_correlation", TURNOUT_CORRELATION))
     # The ONLY job of this floor is to keep every Dirichlet concentration
@@ -2913,16 +4105,197 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
     note_value(scenario, "dirichlet_floor", mean_floor,
                where="montecarlo:make_drawer")
     note_value(scenario, "montecarlo.LEVEL_DF", LEVEL_DF,
-               where="montecarlo:make_drawer -> log_shock(df=None)")
+               where="montecarlo:make_drawer -> draw_pools (df resolved once per draw)")
 
     # One row per draw: the turnout each pool received, in `turnout_pools`
     # order. `pools` is `pool_spec`'s dict, so a declared pool with no member
     # on the ballot is already absent here and gets no column.
     turnout_pools: list[str] = list(pools)
     turnout_record: list[tuple[float, ...]] = []
+    split_record: dict[str, list] = {name: [] for name in pools}
 
-    def draw_pools():
-        """One draw. Each pool's VOTES are its counted registration times a
+    # ------------------------------------------------------------------
+    # THE UNIVERSAL DRAW'S PER-RUN STATE (design 1j v4-L1). Every drawn party
+    # (the pooled parties in IPF order, then any individual-path party) gets
+    # one latent log level, x = √ρ·σ·z + ω·ε, with z the run's one shared
+    # normal (`level.shared`) and ε the party's own (`level.z`);
+    # ω² = σ²(1 − ρ) + δ²·new − v_comp, floored at 0 with the excess recorded.
+    # The shares are c·exp(κ + x), normalised; κ is set by the calibration pass
+    # below so each party's mean drawn share is its `pool_spec` centre c.
+    # ------------------------------------------------------------------
+    conserve_record: list = []
+    u_names: tuple = ()
+    u_idx = np.zeros(0, dtype=int)
+    n_ipf = 0
+    u_c = u_shared = u_own = u_kappa = np.zeros(0)
+    widths: dict = {}
+    calib_ratio = None
+    kappa_error: dict = {}
+    kappa_iters = 0
+    # None under the incumbent law (no calibration pass); True or False under
+    # the universal law once the pass has run.
+    kappa_converged = None
+    if law == "universal":
+        rec = scenario.get("_width")
+        if not rec:
+            raise SystemExit(
+                "the universal draw was given no width record: run_model reads "
+                "it with `read_width_record` and hands it over as "
+                "scenario['_width']. Build it with `src/width_record.py --emit`.")
+        ipf_names = tuple(ipf["parties"]) if ipf else ()
+        ind_names = tuple(p for p, _i, _c, _s in individual)
+        u_names = ipf_names + ind_names
+        n_ipf = len(ipf_names)
+        u_idx = np.array([index[p] for p in u_names], dtype=int)
+        psc = pool_spec_centres(pools)
+        cen_all = {p: max(float(centres.get(p, 0.0)), 0.0) for p in u_names}
+        tot = sum(cen_all.values()) or 1.0
+        ind_mass = sum(cen_all[p] for p in ind_names) / tot
+        u_c = np.maximum(np.array(
+            [psc.get(p, 0.0) * (1.0 - ind_mass) for p in ipf_names]
+            + [cen_all[p] / tot for p in ind_names]), 1e-12)
+        u_c = u_c / u_c.sum()
+        # THE RECORD'S FRAME (step-6 review, item 6). `width_record` fits σ(s),
+        # ρ(s) and m(s) at s = `pool_spec_centres(spec)[p]`: the pool-spec
+        # centre over the POOLED parties, summing to one over them
+        # (`width_record.case_for`). A pooled party's width is read at that
+        # same quantity, not at the conserved share `u_c`, which is scaled by
+        # (1 − the individual-path parties' mass). On every emitted spec no
+        # party is outside a pool, the mass is 0 and the two coincide; where
+        # one is, the record has no row for it, and it is read at its share
+        # of the whole city. Uncorrected, so the centre-correction arm differs
+        # from the universal draw in its centres alone (prereg §3.2, arm UC
+        # "draw law as U").
+        u_s = np.maximum(np.array(
+            [psc.get(p, 0.0) for p in ipf_names]
+            + [cen_all[p] / tot for p in ind_names]), 1e-12)
+        u_factor = np.ones(len(u_names))
+        correction = {"on": bool(scenario.get("centre_correction")),
+                      "location": None, "factor": {}}
+        if correction["on"]:
+            correction.update(centre_correction(rec))
+            if correction["location"] is not None:
+                u_factor = np.array(
+                    [math.exp(width_location(correction["location"], s_))
+                     if s_ < WIDTH_BLOCK else 1.0 for s_ in u_s])
+                u_c = u_c * u_factor
+                u_c = u_c / u_c.sum()
+                correction["factor"] = {p: float(u_factor[k])
+                                        for k, p in enumerate(u_names)}
+        new_set = set(scenario.get("_new_parties") or ())
+        hist = theta_history(scenario, rec)
+        judged = {e["party"]: e for e in (scenario.get("_strength_applied") or [])}
+
+    def _turnouts(strm, pre: str, d: int):
+        """Each pool's drawn turnout and votes for draw ``d`` (stage prefix
+        ``pre``: "" for the run, "calib." for the calibration pass)."""
+        drawn, totals = {}, {}
+        z_common = strm.normals(pre + "turnout.common", "", d)[0]
+        for group, names in ties.items():
+            # KEYED BY THE DECLARED LABEL (`tie`, or the pool's own name), in
+            # both branches (step2/2-review-1c finding 3): a tie that loses a
+            # member pool, or falls to one pool, keeps its key and so its
+            # primitives, rather than being re-keyed by whichever pools
+            # survived `pool_spec`.
+            z_own = strm.normals(pre + "turnout.pool", group, d)[0]
+            if len(names) == 1:
+                name = names[0]
+                # registration (counted) x turnout (drawn) = votes
+                turnout = correlated_triangular(
+                    z_own, pools[name][2], z_common, rho_t)
+                drawn[name] = turnout
+                totals[name] = pools[name][1] * turnout
+                continue
+            # one RATIO for the group: every tied pool moves by the same
+            # factor, so the group behaves exactly as a single pool of its
+            # combined size whatever the split between its members.
+            lo = sum(pools[nm][2][0] for nm in names) / len(names)
+            md = sum(pools[nm][2][1] for nm in names) / len(names)
+            hi = sum(pools[nm][2][2] for nm in names) / len(names)
+            shock = correlated_triangular(z_own, (lo, md, hi), z_common, rho_t)
+            for nm in names:
+                drawn[nm] = shock
+                totals[nm] = pools[nm][1] * shock
+        return drawn, totals
+
+    def _balanced_props(shocked, count: bool) -> dict:
+        """The per-pool proportions after the per-draw balance onto the
+        normalised shocked centres ``shocked`` (IPF party order). Water-filled
+        under each party's pool capacity first; a failed balance falls back to
+        the partial balance and is counted. ``count`` is False in the
+        calibration pass, which must leave every counter as it found it."""
+        props_out = {}
+        # THE SHOCK CAN ASK FOR MORE THAN THE POOLS HOLD, and until 2026-08-17
+        # that was the end of the mechanism for the whole draw (§1.33): the
+        # column targets are water-filled under each party's own pool capacity
+        # BEFORE the balance, which is feasible by construction. A plain clip
+        # would not survive: `balance_margins` rescales the column margin back
+        # up to the row total on entry. See `capped_targets`.
+        col_target = capped_targets(
+            shocked * ipf["pool_votes"].sum(), ipf["cap_votes"])
+        if count:
+            ipf_stats["balances"] += 1
+            for j, q in enumerate(ipf["parties"]):
+                capj = float(ipf["cap_votes"][j])
+                askj = float(shocked[j] * ipf["pool_votes"].sum())
+                if capj > 0 and askj > capj * (1.0 + 1e-9):
+                    ipf_stats["clipped"][q] = ipf_stats["clipped"].get(q, 0) + 1
+                    ipf_stats["worst"][q] = max(
+                        ipf_stats["worst"].get(q, 0.0), askj / capj)
+                elif capj <= 0 and askj > 0:
+                    ipf_stats["clipped"][q] = ipf_stats["clipped"].get(q, 0) + 1
+                    ipf_stats["worst"][q] = float("inf")
+        try:
+            Rd = _balance(ipf["R0"], ipf["pool_votes"], col_target)
+        except Exception as exc:            # noqa: BLE001 — counted
+            # NEVER SILENT, AND NEVER `pass` (§1.33): the partial balance keeps
+            # every pool exactly allocated, so the shock is degraded rather
+            # than deleted, and the failure is counted.
+            if count:
+                ipf_stats["failures"] += 1
+                ipf_stats.setdefault("first_error", str(exc))
+            Rd = partial_balance(ipf["R0"], ipf["pool_votes"], col_target)
+        for gi, nm in enumerate(ipf["names"]):
+            if nm not in pools:
+                continue
+            members = pools[nm][5]
+            v = np.array([Rd[gi, ipf["pidx"][q]] if q in ipf["pidx"]
+                          else 0.0 for q in members])
+            if v.sum() > 0:
+                props_out[nm] = v / v.sum()
+        return props_out
+
+    if law == "universal":
+        # TURNOUT COMPOSITION IS SUBTRACTED, NOT ADDED (design v1 §2.5): the
+        # record's residuals already contain real differential turnout, so
+        # each party's own variance gives up what the run's own pool-turnout
+        # draws put into its share through the group mix. Measured on the
+        # calibration streams, which read no outcome.
+        _cal = DrawStreams(streams.run_lot, N_CAL)
+        v_comp = composition_variance(
+            [_turnouts(_cal, "calib.", dd)[1] for dd in range(N_CAL)],
+            ipf, n_ind=len(ind_names))
+        for k, p in enumerate(u_names):
+            w = party_width(rec, float(u_s[k]), p in new_set,
+                            history=p in hist,
+                            sigma_j=(judged[p]["sigma_j"] if p in judged else None))
+            own2 = (w["sigma"] ** 2 * (1.0 - w["rho"]) + w["delta"] ** 2
+                    - float(v_comp[k]))
+            widths[p] = dict(w, centre=float(u_c[k]),
+                             centre_uncorrected=float(u_s[k]), new=p in new_set,
+                             judged=p in judged, v_comp=float(v_comp[k]),
+                             shared=math.sqrt(w["rho"]) * w["sigma"],
+                             own=math.sqrt(max(own2, 0.0)),
+                             floored=max(-own2, 0.0))
+        u_shared = np.array([widths[p]["shared"] for p in u_names])
+        u_own = np.array([widths[p]["own"] for p in u_names])
+        u_kappa = -0.5 * np.array([widths[p]["total"] ** 2 for p in u_names])
+
+    counter = [0]
+
+    def draw_pools(d: int | None = None, calib: bool = False, strm=None):
+        """One draw, at draw index ``d`` (the next of an internal counter when
+        ``None``). Every random number below is row ``d`` of a keyed stream. Each pool's VOTES are its counted registration times a
         drawn turnout; the pool's share of the city follows from the votes,
         and its members split it. Turnout is the only quantity here that is
         not counted, which is the whole point: it is the assumption, and it is
@@ -2943,44 +4316,31 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         order; every member of a tied group is recorded with the group's one
         shared shock. ``run_model`` carries it out as
         ``ModelRun.pool_turnout_draws``. The record reads values already drawn
-        and makes no call on ``rng``, so no drawn number changes —
+        and reads no stream, so no drawn number changes —
         ``tests/test_draw_record.py`` checks that against the pre-recording
         code, the published seats, and an independent wrapper around
         ``correlated_triangular``. It exists so the interactive can re-weight
         the published draws by pool turnout (MACHINERY.md, "Per-draw pool
         turnouts").
         """
+        # ``calib=True`` is the calibration pass (universal law): it reads the
+        # `calib.*` streams of ``strm``, records nothing, counts nothing, and
+        # returns the drawn parties' pre-entrant shares in `u_names` order.
+        if d is None:
+            d = counter[0]
+        d = int(d)
+        if not calib:
+            counter[0] = d + 1
+        strm = streams if strm is None else strm
+        pre = "calib." if calib else ""
         target = np.zeros(n)
-        totals = {}
         # The turnout each pool RECEIVED this draw, kept for `turnout_record`
         # below. A record only: it is filled from values already drawn and
-        # draws nothing itself.
-        drawn = {}
-        # One standard normal for the whole city, per draw. Every pool's
-        # turnout is pushed by it in proportion to sqrt(rho).
-        z_common = rng.standard_normal()
-        for group, names in ties.items():
-            if len(names) == 1:
-                name = names[0]
-                # registration (counted) x turnout (drawn) = votes
-                turnout = correlated_triangular(
-                    rng, pools[name][2], z_common, rho_t)
-                drawn[name] = turnout
-                totals[name] = pools[name][1] * turnout
-                continue
-            # one shock for the group, shared out in proportion to base, so the
-            # group's total moves exactly as a single pool of that size would
-            # one RATIO for the group: every tied pool moves by the same
-            # factor, so the group behaves exactly as a single pool of its
-            # combined size whatever the split between its members.
-            lo = sum(pools[nm][2][0] for nm in names) / len(names)
-            md = sum(pools[nm][2][1] for nm in names) / len(names)
-            hi = sum(pools[nm][2][2] for nm in names) / len(names)
-            shock = correlated_triangular(rng, (lo, md, hi), z_common, rho_t)
-            for nm in names:
-                drawn[nm] = shock
-                totals[nm] = pools[nm][1] * shock
-        turnout_record.append(tuple(drawn[nm] for nm in turnout_pools))
+        # draws nothing itself. One standard normal for the whole city, per
+        # draw, pushes every pool's turnout in proportion to sqrt(rho).
+        drawn, totals = _turnouts(strm, pre, d)
+        if not calib:
+            turnout_record.append(tuple(drawn[nm] for nm in turnout_pools))
         # Shares follow from votes, so the pool side sums to one by
         # construction rather than by a later division.
         cast = sum(totals.values())
@@ -2998,7 +4358,26 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
         # centre, so a draw in which the ANC is 8% lower is a draw in which the
         # ANC really is 8% lower. It costs 0.15 ms a draw.
         pool_props = {name: p[3] for name, p in pools.items()}
-        if ipf is not None and ipf["parties"]:
+        u_mass, u_ind = 1.0, None
+        if law == "universal":
+            # ONE LOG-SCALE DRAW FOR EVERY PARTY (design 1j v4-L1, v1 §1.1):
+            # a multinomial logit closed by one normalisation, so no reference
+            # party is needed and every share stays in (0, 1). The pooled
+            # parties' block goes through the capacity water-fill and the
+            # per-draw balance exactly as the incumbent's shocked centres do;
+            # an individual-path party takes its share directly.
+            z_sh = strm.normals(pre + "level.shared", "", d)[0]
+            eps = strm.stacked_normals(pre + "level.z", u_names, d)[:, 0]
+            wgt = u_c * np.exp(u_kappa + u_shared * z_sh + u_own * eps)
+            shocked_all = wgt / wgt.sum()
+            if n_ipf:
+                u_mass = float(shocked_all[:n_ipf].sum())
+                pool_props.update(_balanced_props(
+                    shocked_all[:n_ipf] / u_mass, count=not calib))
+            else:
+                u_mass = 0.0
+            u_ind = shocked_all[n_ipf:]
+        elif ipf is not None and ipf["parties"]:
             base_c = np.array([max(centres.get(q, 0.0), 1e-12)
                                for q in ipf["parties"]])
             share = base_c / base_c.sum()
@@ -3010,64 +4389,17 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             # normaliser is an average over many parties and barely moves — so
             # the correction became a 1.4x over-shoot. Measured both ways.
             sds = np.array([pool_sd_shock.get(q, 0.0) for q in ipf["parties"]])
-            shocked = base_c * log_shock(rng, sds)
+            # ONE df PER DRAW, resolved here at call time (§1.33) and passed to
+            # both the gamma's shape and the t's scale (design 1c §2.4).
+            df = float(LEVEL_DF)
+            ipf_parties = tuple(ipf["parties"])
+            z_lv = streams.stacked_normals("level.z", ipf_parties, d)[:, 0]
+            chi = streams.log_gamma("level.chi", ipf_parties,
+                                    np.full(len(ipf_parties), df / 2.0), d)
+            shocked = base_c * log_shock(sds, z_lv, chi, df)
             if shocked.sum() > 0:
                 shocked = shocked / shocked.sum()
-                # THE SHOCK CAN ASK FOR MORE THAN THE POOLS HOLD, and until
-                # 2026-08-17 that was the end of the mechanism for the whole
-                # draw. `balance_margins` raised, the bare `except: pass` below
-                # kept the UNSHOCKED props, and the level shock was discarded
-                # for EVERY party in that draw — not just the offender — in
-                # 42.7% of the live 2026 forecast's draws and 12.7% of Nelson
-                # Mandela Bay 2021's. It fired preferentially on the draws where
-                # the shock was largest, which is the worst possible selection.
-                # No backtest could see it: across the nine city-years the rate
-                # was 1.4%, and forcing it to zero left the output identical.
-                #
-                # The column targets are now water-filled under each party's own
-                # pool capacity BEFORE the balance, which is feasible by
-                # construction. Note that a plain clip would not survive:
-                # `balance_margins` rescales the column margin back up to the
-                # row total on entry. See `capped_targets`.
-                col_target = capped_targets(
-                    shocked * ipf["pool_votes"].sum(), ipf["cap_votes"])
-                if ipf_stats is not None:
-                    ipf_stats["balances"] += 1
-                    for j, q in enumerate(ipf["parties"]):
-                        capj = float(ipf["cap_votes"][j])
-                        askj = float(shocked[j] * ipf["pool_votes"].sum())
-                        if capj > 0 and askj > capj * (1.0 + 1e-9):
-                            ipf_stats["clipped"][q] = \
-                                ipf_stats["clipped"].get(q, 0) + 1
-                            ipf_stats["worst"][q] = max(
-                                ipf_stats["worst"].get(q, 0.0), askj / capj)
-                        elif capj <= 0 and askj > 0:
-                            ipf_stats["clipped"][q] = \
-                                ipf_stats["clipped"].get(q, 0) + 1
-                            ipf_stats["worst"][q] = float("inf")
-                try:
-                    Rd = _balance(ipf["R0"], ipf["pool_votes"], col_target)
-                except Exception as exc:            # noqa: BLE001 — counted
-                    # NEVER SILENT, AND NEVER `pass`. The old branch kept the
-                    # UNSHOCKED proportions, which threw the level shock away
-                    # for every party in the draw. It now falls back to the same
-                    # partial balance `pool_spec` uses one stage earlier — every
-                    # pool exactly allocated, the party levels as close as the
-                    # arithmetic permits — so the shock is degraded rather than
-                    # deleted. `run_model` carries the count onto `ModelRun` and
-                    # `main` prints it, the same way `bounds_violations` is.
-                    if ipf_stats is not None:
-                        ipf_stats["failures"] += 1
-                        ipf_stats.setdefault("first_error", str(exc))
-                    Rd = partial_balance(ipf["R0"], ipf["pool_votes"], col_target)
-                for gi, nm in enumerate(ipf["names"]):
-                    if nm not in pools:
-                        continue
-                    members = pools[nm][5]
-                    v = np.array([Rd[gi, ipf["pidx"][q]] if q in ipf["pidx"]
-                                  else 0.0 for q in members])
-                    if v.sum() > 0:
-                        pool_props[nm] = v / v.sum()
+                pool_props.update(_balanced_props(shocked, count=True))
         for name, (idx, reg, spec, props, alpha, names, levels, wts) in pools.items():
             props = pool_props.get(name, props)
             # A PARTY'S OWN LEVEL MOVES, not just its pool's total and its
@@ -3096,26 +4428,55 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             # enough that its concentration is still under one keeps its spike
             # at zero -- which is an honest statement that it may win nothing --
             # but it no longer gets mass it was never given.
-            moved = np.maximum(moved, mean_floor)
-            moved = moved / moved.sum()
-            split = rng.dirichlet(moved * alpha)
-            np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
-        for i, tri, level in individual:
-            if tri is not None:
-                target[i] = base_city[i] * triangular(rng, tri)
+            if law == "universal":
+                # THE SPLIT IS THE CENTRE ONLY (design v1 §1.1): the post-IPF
+                # proportions, no Dirichlet and no mean floor. The floor
+                # existed to keep a Dirichlet's concentrations positive, and
+                # flooring a deterministic split would add mass no centre
+                # asked for.
+                split = np.asarray(moved, dtype=float)
             else:
-                centre, sd = level
-                target[i] = centre * log_shock(rng, sd)
+                moved = np.maximum(moved, mean_floor)
+                moved = moved / moved.sum()
+                shape = moved * alpha
+                split = pool_split(
+                    streams.log_gamma("split", tuple(f"{name}|{q}" for q in names),
+                                      shape, d), shape)
+            # Kept for the group-share tripwire (item 12): the share of this
+            # pool's vote each member took this draw. A record of a value
+            # already drawn; it reads no stream.
+            if not calib:
+                split_record[name].append(split)
+            np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
+        if law == "universal":
+            target *= u_mass
+            for k, (_p, i, _c, _s) in enumerate(individual):
+                target[i] = float(u_ind[k])
+        elif individual:
+            df = float(LEVEL_DF)
+            ind_names = tuple(p for p, _i, _c, _s in individual)
+            z_ind = streams.stacked_normals("level.z", ind_names, d)[:, 0]
+            chi_ind = streams.log_gamma("level.chi", ind_names,
+                                        np.full(len(ind_names), df / 2.0), d)
+            shock_ind = log_shock(np.array([s_ for _p, _i, _c, s_ in individual]),
+                                  z_ind, chi_ind, df)
+            for k, (_p, i, centre, _s) in enumerate(individual):
+                target[i] = centre * shock_ind[k]
         total = target.sum()
         if total > 0:
             target = target / total
+        if calib:
+            return target[u_idx]
+        if law == "universal":
+            conserve_record.append(target[u_idx].copy())
         if group_idx is not None:
             # One lognormal draw for what all arrivals take between them, then a
             # reach-weighted Dirichlet for who takes it. The concentration is
             # measured (median 4.85 across sixteen metro-years) and is what lets
             # a single party take most of the group, as ActionSA took 91% of
             # Johannesburg's in 2021.
-            total = float(np.exp(rng.normal(group_ln[0], group_ln[1])))
+            total = float(np.exp(group_ln[0] + group_ln[1]
+                                 * streams.normals("arrival.total", "", d)[0]))
             total = min(total, 0.45)          # arithmetic guard, never binding
             # group_alpha is the TOTAL concentration, not per-component: the
             # method of moments in pools.arrival_group_record solves
@@ -3128,23 +4489,93 @@ def make_drawer(scenario, base_city_d, centres, index, rng):
             # raised `NameError` the first time anything reached it, which was
             # the first time anything COULD. See the `arrival_group_draw`
             # comment in DEFAULTS. MODEL-LOG §1.63.
-            split = rng.dirichlet(np.maximum(group_w * group_alpha,
-                                             mean_floor))
+            g_shape = np.maximum(group_w * group_alpha, mean_floor)
+            split = pool_split(
+                streams.log_gamma("arrival.split", group_members, g_shape, d),
+                g_shape)
             target[group_idx] = 0.0
             s_all = target.sum()
             if s_all > 0:
                 target *= (1.0 - total) / s_all
             target[group_idx] = total * split
         elif entrant_index is not None:
-            share = (triangular(rng, scenario["entrant_share"])
-                     if rng.random() < scenario["entrant_prob"] else 0.0)
+            # BOTH READ EVERY DRAW (design 1c §2.3): the gate's uniform and
+            # the share's normal. Drawing the share only when the gate passed
+            # made the count of numbers consumed depend on an earlier outcome.
+            gate = streams.uniforms("entrant.gate", "ENTRANT", d)[0]
+            z_share = streams.normals("entrant.share", "ENTRANT", d)[0]
+            share = (tri_from_z(z_share, scenario["entrant_share"])
+                     if gate < scenario["entrant_prob"] else 0.0)
             target *= (1.0 - share)
             target[entrant_index] = share
         return target
 
+    if law == "universal" and len(u_names):
+        # THE CALIBRATION PASS (design v1 §1.2). `N_CAL` draws through this
+        # same `draw_pools` on the `calib.*` streams, κ moved until every
+        # party's mean drawn share is its `pool_spec` centre within
+        # `KAPPA_TOL`. It records nothing and counts nothing: the capacity
+        # counters are restored after it, and `draw_pools(calib=True)` touches
+        # no record. Deterministic for a run identity, so a 1,000- and a
+        # 5,000-draw run share κ. The streams are re-read from draw 0 on every
+        # iteration through a fresh `DrawStreams` with the same keys.
+        #
+        # NEVER AN UNMEASURED κ (step-6 review, item 2). The update is applied
+        # only when another measurement of it follows: on the last permitted
+        # iteration the loop stops at the κ it has just measured, so
+        # `kappa_error` and `calib_ratio` always describe the κ the run draws
+        # with. A run that ends there unconverged says so in
+        # `kappa_converged` (35_widths and 41_guards), and the arm runner
+        # refuses it. A converging run never reaches that branch, so its κ is
+        # what it was before the branch existed.
+        _und, _mov = capped_targets.undershoots, capped_targets.moved
+        cal_keys: set = set()
+        for kappa_iters in range(1, KAPPA_MAX_ITER + 1):
+            cal = DrawStreams(streams.run_lot, N_CAL)
+            vals = np.array([draw_pools(dd, calib=True, strm=cal)
+                             for dd in range(N_CAL)])
+            cal_keys = cal.keys
+            mean = vals.mean(axis=0)
+            rel = np.abs(mean / u_c - 1.0)
+            if float(rel.max()) < KAPPA_TOL:
+                kappa_converged = True
+                break
+            if kappa_iters == KAPPA_MAX_ITER:
+                break
+            u_kappa = u_kappa + np.log(u_c / np.maximum(mean, 1e-300))
+        capped_targets.undershoots, capped_targets.moved = _und, _mov
+        calib_ratio = vals / u_c
+        kappa_error = {p: float(rel[k]) for k, p in enumerate(u_names)}
+        for k, p in enumerate(u_names):
+            widths[p]["kappa"] = float(u_kappa[k])
+        streams.keys |= cal_keys
+
+    draw_pools.law = law
+    draw_pools.centre_correction = (correction if law == "universal"
+                                    else {"on": False, "location": None,
+                                          "factor": {}})
+    draw_pools.widths = widths
+    draw_pools.u_names = u_names
+    draw_pools.u_centres = u_c
+    # The mass of the individual-path parties: the factor between the
+    # record's frame (where widths are read) and the conserved shares. Zero
+    # on every emitted spec.
+    draw_pools.individual_mass = float(ind_mass) if law == "universal" else None
+    draw_pools.conserve_record = conserve_record
+    draw_pools.calib_ratio = calib_ratio
+    draw_pools.kappa_error = kappa_error
+    draw_pools.kappa_iters = kappa_iters
+    draw_pools.kappa_converged = (bool(kappa_converged)
+                                  if law == "universal" and len(u_names)
+                                  else None)
     draw_pools.ipf_stats = ipf_stats
+    draw_pools.level_sd_at_size = at_size
     draw_pools.turnout_record = turnout_record
+    draw_pools.split_record = split_record
+    draw_pools.split_members = {name: list(spec[5])
+                                for name, spec in pools.items()}
     draw_pools.turnout_pools = turnout_pools
+    draw_pools.streams = streams
     return draw_pools
 
 
@@ -3184,9 +4615,19 @@ OVERHANG_LEVEL_MAX_ROUNDS = 200
 
 def allocate_with_overhang(
     combined: dict[str, int], ward_wins: dict[str, int], rule: str = "deduct",
-    independent_wards: int = 0, no_pr_list_wards: int = 0
+    independent_wards: int = 0, no_pr_list_wards: int = 0, *,
+    lot: str | None = None,
 ) -> tuple[dict[str, int], int, int, dict[str, int]]:
     """Schedule 1 allocation with the excessive-seats treatment.
+
+    ``lot`` keys the seeded lot for an exact tie at the last seat
+    (``seats.allocate``): every ``allocate`` call here gets
+    ``seats.seat_key(lot, r)``, ``r`` counting the calls from 0. Round 0 is
+    the plain allocation, and the first ``deduct`` or ``level`` iteration
+    REUSES it rather than re-allocating the same council under round 1's key:
+    otherwise an exact tie could fall one way where the excess is measured and
+    the other way in the council returned (JUDGEMENT-CALLS §Q6). ``None``
+    passes ``None`` on, so a tie raises instead of falling to input order.
 
     ``rule`` must be one of :data:`OVERHANG_RULES` — ``deduct``, ``expand``,
     ``cap``, ``level`` — and anything else raises. It used to fall through to
@@ -3238,9 +4679,16 @@ def allocate_with_overhang(
             f"be counted excessive and then seated nowhere. `combined` is "
             f"`pr_votes + ward_votes`, so this means the two ballots disagree "
             f"about who stood. MODEL-LOG §1.97 F42.")
+    calls = [0]
+
+    def round_lot() -> str | None:
+        """The key for the next `allocate` call: round 0, 1, 2, ..."""
+        r, calls[0] = calls[0], calls[0] + 1
+        return None if lot is None else seat_key(lot, r)
+
     alloc = allocate(combined, total_seats=COUNCIL,
                      independent_wards=independent_wards,
-                     no_pr_list_wards=no_pr_list_wards)
+                     no_pr_list_wards=no_pr_list_wards, lot=round_lot())
     over = {p: ward_wins[p] - alloc.seats.get(p, 0)
             for p in ward_wins
             if ward_wins[p] > 0 and ward_wins[p] >= alloc.seats.get(p, 0)}
@@ -3254,9 +4702,13 @@ def allocate_with_overhang(
         total = COUNCIL
         for _round in range(OVERHANG_LEVEL_MAX_ROUNDS):
             try:
-                sub = allocate(combined, total_seats=total,
-                               independent_wards=independent_wards,
-                               no_pr_list_wards=no_pr_list_wards)
+                # the first iteration is round 0's council, already allocated
+                sub = alloc if total == COUNCIL else allocate(
+                    combined, total_seats=total,
+                    independent_wards=independent_wards,
+                    no_pr_list_wards=no_pr_list_wards, lot=round_lot())
+            except TieWithoutLot:
+                raise           # a missing key, not a council the votes cannot fill
             except ValueError as exc:
                 # THE RULE NAMES ITSELF. `allocate` fails when the council has
                 # grown large against the vote total, and its message names the
@@ -3300,10 +4752,12 @@ def allocate_with_overhang(
         # At least one party is fixed and removed per round, so the loop cannot
         # outlast the parties; the slack covers the final round that fixes none.
         for _round in range(len(combined) + OVERHANG_DEDUCT_MAX_ROUNDS_SLACK):
-            sub = allocate(votes,
-                           total_seats=COUNCIL - sum(fixed.values()),
-                           independent_wards=independent_wards,
-                           no_pr_list_wards=no_pr_list_wards)
+            # the first iteration is round 0's council (nothing fixed yet), so
+            # it is reused rather than re-drawn under another key
+            sub = alloc if not fixed else allocate(
+                votes, total_seats=COUNCIL - sum(fixed.values()),
+                independent_wards=independent_wards,
+                no_pr_list_wards=no_pr_list_wards, lot=round_lot())
             newly = {p: ward_wins[p] for p in list(votes)
                      if ward_wins.get(p, 0) > 0
                      and ward_wins.get(p, 0) >= sub.seats.get(p, 0)}
@@ -3466,7 +4920,11 @@ class ModelRun:
     overhang_count: dict[str, int] = field(default_factory=dict)
     excessive_draws: int = 0
     bounds_violations: dict[str, int] = field(default_factory=dict)
-    bounds_checked: int = 0
+    # per party: the draws in which its implied θ was actually tested against
+    # its §3.5 range (it is in the universe and above 0.5% of the baseline).
+    # Was one count per draw, which divided a party's violations by draws in
+    # which it was never checked (BRIEF item 10).
+    bounds_checked: dict[str, int] = field(default_factory=dict)
     # The per-draw IPF that binds the SHOCKED centres, and what it cost.
     # ``ipf_balances`` counts the attempts, ``ipf_failures`` the draws that fell
     # back to the unshocked pool proportions — which discards the level shock
@@ -3546,6 +5004,22 @@ class ModelRun:
     # `cap_moved`, `bounds_violations` …) and those stay: they have consumers.
     # This is the whole board, including the ones that had no route out.
     guards: dict = field(default_factory=dict)
+    # The run's identity for the seeded lot (`seats.lot_identity`: city,
+    # target, seed; no party name). An exact tie at the last seat inside draw
+    # `d` is drawn under `seat_key(draw_key(lot, d), round)`, a tied ward call
+    # under `ward_key(lot, ward)`; every reduction of this run that calls a
+    # ward or seats a prediction keys its lot from here. JUDGEMENT-CALLS §Q2,
+    # §Q6. Defaulted only because the dataclass fields before it are;
+    # `run_model` always sets it, and the empty default builds no key: every
+    # key builder in `seats` refuses it.
+    lot: str = ""
+    # THE KEYED STREAMS' OWN BOARD (design 1c). `gamma_fallbacks` of
+    # `gamma_draws` gammas exhausted every slot and took the exact fallback;
+    # `stream_keys` is every (stage, name) the run read. All three are also in
+    # `guards` (`41_guards`).
+    gamma_fallbacks: int = 0
+    gamma_draws: int = 0
+    stream_keys: list = field(default_factory=list)
 
     @property
     def draws(self) -> int:
@@ -3845,13 +5319,142 @@ def _projected_roster_declaration(target, roster: set[str],
     return "\n".join(lines)
 
 
+def slate_change_ratio(ratio: float, now: float, was: float) -> float:
+    """A party's ward/PR ratio moved by the change in its slate (item 6).
+
+    ``ratio × now / was``, capped at :data:`WARD_PR_RATIO_MAX` and not floored:
+    every term is non-negative, so a party fielding no ward candidate now gets
+    0, never :data:`WARD_PR_RATIO_MIN` (SPEC O3). One definition, so the cap is
+    the registered constant rather than a second literal.
+    """
+    return float(min(ratio * (now / was), WARD_PR_RATIO_MAX))
+
+
+def roster_universe_check(roster, roster_state: str, universe,
+                          prev_local: dict[str, float],
+                          seeds: dict[str, float],
+                          baseline: dict[str, float], *,
+                          has_result: bool) -> dict:
+    """Check the target's roster against the run's parties, both ways (G8).
+
+    Model correction batch item 8 (2026-10-09). Every roster party (not an
+    independent) is in exactly one class:
+
+    * **with a record** -- a previous-LGE list vote, a national baseline or an
+      arrival seed. Absent from ``universe``: the run would forecast a ballot
+      without it, so this refuses (``missing_with_record``).
+    * **no record** -- none of the three. ``pools`` has no vector for it, so
+      it cannot be drawn; returned as ``unrepresented_no_record`` and recorded
+      in ``41_guards.roster_unrepresented``. At a target with no result file
+      (a live forecast) this refuses too, because the ballot the forecast is
+      read against would be missing a party. At a backtest it is recorded:
+      those are `pools`' unseeded arrivals, outside this batch (SPEC O5).
+
+    And the other direction: a ``universe`` party not on the roster, except
+    the generic ``ENTRANT`` slot, refuses when the roster is ``published`` or
+    ``projected`` (``extra``). Skipped, and recorded ``"not_checked"``, when
+    the roster state is ``not_yet_held``: there is no roster to check.
+
+    Returns ``{"missing_with_record", "extra", "unrepresented_no_record",
+    "population"}``, each a sorted list (or ``"not_checked"``) and
+    ``population`` the roster parties classified, which the three record
+    classes partition.
+    """
+    if roster_state == "not_yet_held":
+        return {"missing_with_record": "not_checked", "extra": "not_checked",
+                "unrepresented_no_record": "not_checked", "population": 0}
+    universe = set(universe)
+    population = sorted(p for p in roster or () if p not in (INDEPENDENT, "IND"))
+    with_record, no_record = [], []
+    for party in population:
+        if (prev_local.get(party, 0.0) > 0 or baseline.get(party, 0.0) > 0
+                or seeds.get(party, 0.0) > 0):
+            with_record.append(party)
+        else:
+            no_record.append(party)
+    missing = sorted(p for p in with_record if p not in universe)
+    extra = sorted(p for p in universe
+                   if p not in set(population) and p != "ENTRANT")
+    unrepresented = sorted(p for p in no_record if p not in universe)
+    if missing:
+        raise SystemExit(
+            f"roster parties with a record are missing from the run: {missing}. "
+            f"Each has a previous-LGE list vote, a national baseline or a seed, "
+            f"so the run can forecast it; leaving it out forecasts a ballot "
+            f"without it (BRIEF item 8, levels.local_record_only).")
+    if extra and roster_state in ("published", "projected"):
+        raise SystemExit(
+            f"the run forecasts parties that are not on the {roster_state} "
+            f"roster: {extra}. The off-ballot drop should have removed them.")
+    if unrepresented and not has_result:
+        raise SystemExit(
+            f"roster parties with no record are not in the run: {unrepresented}. "
+            f"At a live forecast every party on the ballot must be drawn; "
+            f"`pools` should have seeded these as arrivals. Re-emit the pool "
+            f"spec or declare them (SPEC O5).")
+    return {"missing_with_record": missing, "extra": extra,
+            "unrepresented_no_record": unrepresented,
+            "population": len(population)}
+
+
+def read_pool_spec(spec_path: Path, city, target) -> tuple[dict | None, str | None]:
+    """Read a pool spec and say why it must not be trusted, or None if current.
+
+    Returns ``(spec, why_not)``: ``why_not`` is ``None`` only when the spec at
+    ``spec_path`` is current for ``target``.
+
+    The ONE staleness check for every reader of an emitted ``pools_*.json``
+    (``run_model``, ``export_interactive.read_pool_spec_or_refuse``,
+    ``build_play._spec``). Three ways it is not current, each a sentence:
+
+    * the file is not readable JSON: ``spec`` is ``None`` and the reason says
+      so (it used to raise ``JSONDecodeError`` past the check; step 8 review
+      row 5);
+    * ``pools.stale_reason`` names a moved key;
+    * ``pools.stale_reason`` itself raises: UNVERIFIED, never current. This
+      once set "no reason", which is the value meaning "fresh", so any error
+      inside the check reported the spec as current.
+    """
+    try:
+        spec = json.loads(Path(spec_path).read_text(encoding="utf-8"))
+    except Exception as exc:
+        return None, (f"it could not be read as a spec ({exc!r}) — treat "
+                      f"this file as UNREADABLE, not as current")
+    try:
+        import pools as _pools_key
+        stale = _pools_key.stale_reason(spec, city, target)
+    except Exception as exc:
+        stale = (f"staleness could not be determined ({exc!r}) — "
+                 f"treat this spec as UNVERIFIED, not as current")
+    return spec, stale
+
+
+def stale_pool_spec_refusal(spec_path, why_not: str) -> SystemExit:
+    """The SystemExit every reader raises for a spec ``read_pool_spec`` rejects.
+
+    It names the file, the reason, and the remedy. One text, so a reader's
+    message cannot drift from ``run_model``'s."""
+    return SystemExit(f"{spec_path} is stale: {why_not}. "
+                      f"Re-emit (POOLS-REEMIT-QUEUE.md).")
+
+
 def run_model(target, scenario: dict,
               data_dir: Path = Path("data/raw/elections"),
               processed: Path | None = None,
               verbose: bool = True,
               run_dir: Path | str | None = None,
-              trace_detail: bool = False) -> ModelRun:
+              trace_detail: bool = False,
+              width_override: dict | None = None,
+              stop_after: str | None = None) -> "ModelRun | DrawerInputs":
     """Run the forecast for one target election.
+
+    ``stop_after="drawer_inputs"`` returns, instead of a ``ModelRun``, the
+    inputs ``make_drawer`` would receive (:class:`DrawerInputs`), with no draw
+    made. It is the seam ``src/width_record.py`` computes earlier targets'
+    ``pool_spec`` centres through, so the record's residuals are measured
+    about the centres this function builds and no second copy of the
+    estimation exists. ``width_override`` hands the universal draw a width
+    record in place of the file (the record's own location fixed point).
 
     **Writes nothing unless ``run_dir`` is given**, and then it writes only a
     trace: each stage's output as JSON, so an intermediate can be read instead
@@ -3879,6 +5482,18 @@ def run_model(target, scenario: dict,
       the local ward terms have nothing to act on. The code path is the same
       one; the evidence does not exist.
     * **Split voting districts.** See :func:`ward_parts`.
+
+    **A stale or unverifiable pool spec stops the run** (``SystemExit`` naming
+    the file, the reason, and "Re-emit (POOLS-REEMIT-QUEUE.md)"), whether
+    ``pools.stale_reason`` reports a moved key or itself raises, or the file is
+    not readable JSON (:func:`read_pool_spec`, the one check every spec reader
+    shares). The one escape is ``scenario["allow_stale_pools"] = True``, set
+    in-process by a diagnostic run; it is not in ``DEFAULTS``, so no command
+    line, scenario file or city file can set it, and it does not open an
+    unreadable spec. A run through it records
+    ``02_pools_artefact.stale_allowed`` and ``_pools_stale_allowed``. A caller
+    that supplies ``scenario["pools"]`` itself skips the spec, and the check,
+    entirely; ``02_pools_artefact`` is then absent from its trace.
 
     **Two recorded fields, ``pr_vote_draws`` and ``ward_vote_draws``**, hold each
     draw's whole votes per ballot exactly as the seat law read them
@@ -3922,27 +5537,58 @@ def run_model(target, scenario: dict,
     if not scenario.get("pools"):
         spec_path = target.city.processed / f"pools_{target.year}.json"
         if spec_path.exists():
-            spec = json.loads(spec_path.read_text())
             # IS THIS SPEC STILL THE ONE THIS CODE WOULD PRODUCE? The artefact
             # is precomputed, so `pools.py` can change without it changing, and
             # a measurement taken across that gap is not a measurement. This
             # has already cost twice; see `pools.artefact_key`.
-            try:
-                import pools as _pools_key
-                _stale = _pools_key.stale_reason(spec, target.city, target)
-            except Exception as exc:
-                # ⛔ DO NOT FAIL OPEN. This used to set `_stale = None`, which
-                # is the value meaning "this spec is current" — so any error
-                # inside `stale_reason`, including the `KeyError` its own
-                # docstring records, was REPORTED AS FRESH. A guard that
-                # answers "fine" when it could not run is worse than no guard,
-                # and it is this project's empty-record-vs-unreachable-record
-                # class exactly. The run still does not fail; it says so.
-                _stale = (f"staleness could not be determined ({exc!r}) — "
-                          f"treat this spec as UNVERIFIED, not as current")
+            #
+            # ⛔ DO NOT FAIL OPEN. `read_pool_spec` returns a reason, never
+            # None, when the file is not JSON or `stale_reason` itself raises
+            # (empty-record-vs-unreachable-record): a spec whose staleness
+            # cannot be determined is refused below exactly as a stale one
+            # is. The same function serves `export_interactive` and
+            # `build_play`, so the published interactive refuses what this
+            # refuses.
+            spec, _stale = read_pool_spec(spec_path, target.city, target)
+            # ⛔ A STALE OR UNVERIFIABLE SPEC STOPS THE RUN (item 10,
+            # 2026-10-10). Until then this printed a warning and carried on,
+            # so every number measured across a `pools.py` change and before
+            # its re-emit was a measurement of a model that did not exist,
+            # and only a trace reader could tell. The refusal comes before
+            # anything below reads the spec.
+            #
+            # The ONE escape is `scenario["allow_stale_pools"] is True`, set
+            # in-process by a diagnostic run. It is not in `DEFAULTS`, so
+            # `--set`, a scenario file and a city file all refuse it as an
+            # unknown key (`parse_set`, `read_scenario_file`, `apply_city`):
+            # no published or measured run can reach it. When it lets a stale
+            # spec through, the run prints the reason, `02_pools_artefact`
+            # records `stale_allowed: true`, and `_pools_stale_allowed`
+            # travels with the scenario into `forecast_summary.json`. A trace
+            # from such a run fails `pools.stale` and `pools.stale_allowed`
+            # in `tests/test_stage_inputs.py`, and `01_scenario_in` shows the
+            # extra key, by design: it is not a measurement. An UNREADABLE
+            # spec (`spec is None`) refuses even through the escape: there is
+            # nothing to run on.
+            _allowed = (bool(_stale) and spec is not None
+                        and scenario.get("allow_stale_pools") is True)
             if _stale:
-                print(f"  ! pools_{target.year}.json is STALE: {_stale}")
+                print(f"  ! {spec_path} is STALE: {_stale}")
             scenario["_pools_stale"] = _stale
+            scenario["_pools_stale_allowed"] = _allowed
+            trace.put("02_pools_artefact", {
+                "path": str(spec_path),
+                "artefact_key": (spec or {}).get("artefact_key"),
+                "stale_reason": _stale,
+                "stale_allowed": _allowed,
+                "fitted_on": (spec or {}).get("fitted_on"),
+            })
+            if _stale and not _allowed:
+                raise stale_pool_spec_refusal(spec_path, _stale)
+            if _allowed:
+                print(f"  ! allow_stale_pools: this diagnostic run reads "
+                      f"{spec_path} although it is stale. Nothing it "
+                      f"produces is a measurement of the current model.")
             scenario["_pools_artefact_key"] = spec.get("artefact_key")
             # What the SPEC's own roster resolution decided, so a not-yet-held
             # target's off-ballot drop (`roster_for_target`, below) can run
@@ -3954,7 +5600,8 @@ def run_model(target, scenario: dict,
             # ⚠️ NOT added to `02_pools_artefact`'s own payload:
             # `tests/test_stage_inputs.py::offences_pools_artefact` pins that
             # stage's field set to exactly {path, artefact_key, stale_reason,
-            # fitted_on}. The state this unlocks is visible at `03_roster`
+            # stale_allowed, fitted_on}. The state this unlocks is visible at
+            # `03_roster`
             # instead (`state` gains a `"projected"` value) and in the spec
             # itself, which `path` above already points at.
             scenario["_pools_roster"] = spec.get("roster")
@@ -3974,12 +5621,6 @@ def run_model(target, scenario: dict,
             # says so instead of guessing.
             scenario["_pools_spec_path"] = str(spec_path)
             scenario["_pools_reach_source"] = spec.get("reach_source")
-            trace.put("02_pools_artefact", {
-                "path": str(spec_path),
-                "artefact_key": spec.get("artefact_key"),
-                "stale_reason": _stale,
-                "fitted_on": spec.get("fitted_on"),
-            })
             # `artefact_key` is the DELIVERY PROOF for the precomputed-artefact
             # class: city, target, and five hashes — `pools.py`'s code, every
             # `config/*.toml`, every `cities/*.toml`, the first-party modules
@@ -3998,7 +5639,6 @@ def run_model(target, scenario: dict,
                               f"measured at {', '.join(home['measured_at'])}")
             scenario["pools"] = spec["pools"]
             scenario["pool_seeds"] = spec.get("seeds", {})
-            scenario["pool_seed_bands"] = spec.get("seed_bands", {})
             scenario["pool_seed_notes"] = spec.get("seed_notes", {})
             scenario["arrival_group"] = spec.get("arrival_group")
             # ⛔ NOTHING IS CAUGHT HERE (2026-09-22, MODEL-LOG §1.250). This was
@@ -4033,7 +5673,11 @@ def run_model(target, scenario: dict,
                 f"Run:\n  python src/pools.py --city {target.city.slug} "
                 f"--target {target.year} --emit")
 
-    rng = np.random.default_rng(scenario["seed"])
+    # The seeded lot's identity for this run (`ModelRun.lot`). No party enters it.
+    run_lot = lot_identity(target.city.slug, str(target.year), scenario["seed"])
+    # THE RUN'S RANDOMNESS: keyed, draw-indexed streams rooted in the same run
+    # identity the lot uses (design 1c). There is no shared generator.
+    streams = DrawStreams(run_lot, scenario["draws"])
 
     # --- baseline: the last national election before the target --------------
     base_votes, _ = load(data_dir / target.results(target.previous_npe), None)
@@ -4137,6 +5781,26 @@ def run_model(target, scenario: dict,
     trace.put("03_roster", {"state": _roster_state, "size": len(_roster),
                             "dropped": sorted(_roster_dropped)})
 
+    # AN UNOPPOSED WARD IS NOT MODELLED IN THE DRAWS, SO A TARGET WITH ONE
+    # REFUSES. Schedule 1 item 12(2) counts the PR votes cast in such a ward
+    # for the winner's party twice, and the ward holds no ward ballot; the draw
+    # loop simulates a ward ballot in every ward. No metro LGE on disk has an
+    # unopposed ward and none is declared for 2026, so a branch here would have
+    # no case to score. The seat law takes the doubled votes as an input
+    # (`seats.eligible_parties(..., unopposed_pr=)`); `backtest.actual_result`
+    # passes them. JUDGEMENT-CALLS §Q7.
+    import levels as _levels_unopposed
+    _unopposed = _levels_unopposed.unopposed_wards(target, target.city)
+    if _unopposed:
+        raise SystemExit(
+            f"{target.city.slug} {target.year}: ward(s) "
+            f"{sorted(_unopposed.items(), key=lambda kv: kv[0])} show one "
+            f"ward-ballot party, or (party None) no ward ballot at all: the "
+            f"evidence of an unopposed ward, which Schedule 1 item 12(2) "
+            f"treats differently. An uncontested ward is not modelled in the "
+            f"draws, which simulate a ward ballot in every ward. See "
+            f"JUDGEMENT-CALLS §Q7 before running this target.")
+
 
     # A party with no baseline cannot be grown into existence: theta multiplies,
     # and anything times zero is zero. ActionSA held 0.0000% of the 2019
@@ -4152,7 +5816,22 @@ def run_model(target, scenario: dict,
     # growing 30% into a local election; the record says they retain 0.79.
     try:
         import levels as _levels
-        _prior, _groups = _levels.theta_prior(target, base_city_d)
+        # THE SIZE WINDOWS (BRIEF item 16, JUDGEMENT-CALLS §A52), derived once
+        # per run from the real record before the target, one per route, and
+        # passed to BOTH estimators: `theta_prior` here and `spine` below must
+        # filter on the same θ window or they stop agreeing party for party
+        # (§A26). Each report is JSON-safe ("inf" for no filter) and goes into
+        # the `20_spine` trace.
+        _h_theta, _win_theta = _levels.size_window(
+            target, _levels.theta_record, record=_levels.theta_record(target))
+        _h_rho, _win_rho = _levels.size_window(target, _levels.local_record)
+        scenario["_size_window"] = {"theta": _win_theta, "rho": _win_rho}
+        note_value(scenario, "levels.size_window.theta", _win_theta["h"],
+                   where="montecarlo:run_model -> levels.size_window")
+        note_value(scenario, "levels.size_window.rho", _win_rho["h"],
+                   where="montecarlo:run_model -> levels.size_window")
+        _prior, _groups = _levels.theta_prior(target, base_city_d,
+                                              h=_h_theta)
         if _prior:
             # `__small__` WAS HERE, AND IT WAS A HAND-TYPED 0.8 (MODEL-LOG §1.98).
             #
@@ -4178,6 +5857,11 @@ def run_model(target, scenario: dict,
             # The measured log-spread per party, carried to the draw. See
             # make_drawer: this is the number the draw was not using.
             scenario["_theta_sd"] = _groups.get("sd", {})
+            # Who has a θ history: the 2011 width record's fallback is by
+            # this population (design 1b v3; `party_width`).
+            scenario["_theta_history"] = sorted(_groups.get("worth", {}))
+            # The width fit as a value, for `level_shock_sd` (item 17).
+            scenario["_theta_sd_fit"] = _groups.get("sd_fit")
             # `scenario["_theta_worth"]` was written here and READ BY NOTHING —
             # one occurrence in the whole tree, this line (§1.97 F45). Deleted
             # 2026-08-28. It is `__small__`'s twin (F20, deleted in §1.99): 52
@@ -4235,12 +5919,15 @@ def run_model(target, scenario: dict,
         # `_contestation` is who stands at the TARGET; `_contestation_prev` is
         # who stood at the election the ward/PR ratio was measured from, which
         # is `target.previous_lge` — the same one `ward_pr_ratios` reads.
-        _contest = _levels.contestation(target, target.city)
+        # VOTE-WEIGHTED (item 6, owner: "vote weighted", 2026-10-09): each
+        # slate is the share of the party's own previous-LGE list vote lying
+        # in the wards it contests, then and now, on the same weights.
         _prev_lge = target.previous_lge
+        _contest = _levels.slate_coverage(target, target.city, _prev_lge)
         _contest_prev = {}
         if _prev_lge:
-            _contest_prev = _levels.contestation(
-                cityconfig.use_target(_prev_lge), target.city)
+            _contest_prev = _levels.slate_coverage(
+                cityconfig.use_target(_prev_lge), target.city, _prev_lge)
             cityconfig.use_target(target.year)   # restore the active target
         # NO TARGET LISTS -> PROJECT THEM, and say so. `contestation` reads who
         # stood from the target's own result file, which exists for every
@@ -4307,7 +5994,7 @@ def run_model(target, scenario: dict,
                     ", from published lists" if not _live else
                     ", from the declared nomination lists")
             note_constant(scenario, "contestation",
-                          f"{target.year} against {_prev_lge}, "
+                          f"{target.year} against {_prev_lge}, vote-weighted, "
                           f"{len(_contest)} parties" + _how)
             if verbose:
                 vals = sorted(_contest.values())
@@ -4322,6 +6009,29 @@ def run_model(target, scenario: dict,
         print(f"  ! level priors unavailable ({_exc}); falling back to the "
               f"hand-typed constants, WHICH SAW THE TARGET")
 
+    # --- the previous local election's ballots ------------------------------
+    # HOISTED 2026-10-09 (item 8) from the ward/PR ratio block below, moved and
+    # not copied: nothing between the two sites rebinds these names. Item 8
+    # needs `prior_pr_share` before the seeds, to enter the roster parties
+    # whose only record is this election.
+    prior_lge_file = data_dir / target.results(target.previous_lge)
+    prior_ward, _ = load(prior_lge_file, "Ward")
+    prior_pr, _ = load(prior_lge_file, "PR")
+    wc, pc = citywide(prior_ward), citywide(prior_pr)
+    # F34 case (3): `blended_centres` cannot otherwise tell a party that DID
+    # NOT STAND from one that stood on the WARD ballot only. At joburg 2021 the
+    # second is real — IND at 1.290% of the ward ballot with no PR line, and
+    # SAKHISIZWE_CONVENTION and AFRICAN_COVENANT beside it. For such a party
+    # the PR base is UNKNOWN, not zero, and `0 + delta` is neither a level nor
+    # a swing. Recorded here rather than recomputed there: one definition.
+    scenario["_prior_ward_share"] = dict(wc)
+    # MERGERS on `prev_local`, the spine's local route and `blended_centres`'
+    # PR base. Same function and rule as the national baseline above: a
+    # successor with no local record (RISE at 2026) is given none. `pc` itself
+    # is left as read, because the ward/PR ratios below are per-party
+    # measurements of the 2021 ballots and a merger did not happen on them.
+    prior_pr_share, _, _ = _pools_merge.apply_mergers(pc, _roster, target.year)
+
     # The baseline AS THE ELECTION LEFT IT, before any seed is added. "Has a
     # record" has to mean the party took votes at the preceding national
     # election, not that this model handed it a starting share five lines ago —
@@ -4331,7 +6041,21 @@ def run_model(target, scenario: dict,
     scenario["_baseline_before_seeds"] = baseline_before_seeds
 
     seeds = scenario.get("pool_seeds") or {}
-    if seeds:
+    # ROSTER PARTIES WHOSE ONLY RECORD IS THE PREVIOUS LOCAL ELECTION (item 8,
+    # 2026-10-09). The run's party list is the national baseline plus the
+    # seeds, and `pools` seeds only parties with no record, so a party on the
+    # ballot with a previous-LGE list vote and no national vote was in neither
+    # and was not forecast at all: seven certified Johannesburg 2026 parties.
+    # Each enters at its previous-LGE list share, is placed by its fitted pool
+    # vector below, and is sized on the spine's local route. One classifier,
+    # `levels.local_record_only`; the guard after `universe` checks the result.
+    import levels as _levels_lro
+    local_record_only = _levels_lro.local_record_only(
+        _roster, base_city_d, prior_pr_share, seeds)
+    scenario["_local_record_only"] = local_record_only
+    for party in local_record_only:
+        base_city_d[party] = prior_pr_share[party]
+    if seeds or local_record_only:
         notes_by_party = scenario.get("pool_seed_notes") or {}
         for party, seed in seeds.items():
             base_city_d[party] = max(base_city_d.get(party, 0.0) + seed, 0.0)
@@ -4349,7 +6073,9 @@ def run_model(target, scenario: dict,
                 members_by_party[party][pool_name] = float(weight)
         vd_pool = scenario.get("_vd_pool_composition") or {}
         if vd_pool:
-            for party in seeds:
+            # Every party with no national geography: the seeded arrivals and
+            # the roster parties whose only record is local (item 8).
+            for party in [*seeds, *local_record_only]:
                 weights = members_by_party.get(party)
                 if not weights or base_city_d.get(party, 0.0) <= 0:
                     continue
@@ -4359,27 +6085,15 @@ def run_model(target, scenario: dict,
                     if place > 0:
                         base_share_d.setdefault(vd, {})[party] = max(
                             place * base_city_d[party], SHARE_FLOOR)
-        # The band is what the record says an arrival can be worth, and it is
-        # wide because arrivals genuinely are. Carrying it as this party's own
-        # theta range is what stops a seeded party being pinned to its seed.
-        # A DEAD STORE, REMOVED 2026-08-19. This wrote each seeded arrival's
-        # band into `individual_theta`, and nothing read it back. Confirmed
-        # three ways in §1.41 -- multiplying every written band by 100,
-        # setting the whole dict to [50,80,99], and deleting all 32 keys, all
-        # byte-identical. The key it wrote into no longer exists.
-        #
-        # ⛔ THE SENTENCE THAT USED TO SIT HERE WAS FALSE ABOUT `make_drawer`,
-        # AND IT IS THE SENTENCE A READER CONSULTS. It said "`blended_centres`
-        # and `make_drawer` both take `pool_seed_bands` directly and
-        # short-circuit before any membership test". True of the first, false
-        # of the second: `make_drawer` skips every party in `handled` -- i.e.
-        # every pool member -- BEFORE it looks a seed band up, and every seeded
-        # arrival is a pool member (32 of 32 in the emitted 2021 spec). So the
-        # triangular branch below is not taken for any arrival, the emitted
-        # band's `lo` and `hi` are read by NOTHING, and `blended_centres` uses
-        # only `band[1]`, which is 1.0 by construction. Measured 2026-09-06:
-        # replacing every seeded band with [0.001, 1.0, 50.0] leaves
-        # `pr_share_draws` and the seat totals byte-identical. §1.198.
+        # THE ARRIVAL BAND WAS NEVER READ, AND IS GONE. Each seeded arrival's
+        # band was once written into `individual_theta` (a dead store, removed
+        # 2026-08-19, §1.41), then carried into the scenario, of which
+        # `blended_centres` read only the middle (1.0 by construction) and
+        # `make_drawer` nothing, because every seeded arrival is a pool member
+        # and pool members are skipped before the lookup (§1.198, measured
+        # byte-identical draws with every band replaced). The band, its emission
+        # and its constants were deleted 2026-10-09 (item9/FINDINGS.md Q5); a
+        # seeded arrival's width is the within-pool split.
         if verbose:
             for party in sorted(seeds, key=lambda p: -abs(seeds[p]))[:8]:
                 why = notes_by_party.get(party, "parent debited")
@@ -4419,6 +6133,12 @@ def run_model(target, scenario: dict,
                       if v > 0}
     if scenario["entrant_prob"] > 0 and not named_arrivals:
         universe.append("ENTRANT")
+    # THE ROSTER AGAINST THE RUN'S PARTIES, BOTH WAYS (item 8, guard G8).
+    _roster_check = roster_universe_check(
+        _roster, _roster_state, universe, prior_pr_share,
+        scenario.get("pool_seeds") or {}, baseline_before_seeds,
+        has_result=_levels_lro.has_result_file(target, target.city))
+    roster_unrepresented = _roster_check["unrepresented_no_record"]
     index = {party: i for i, party in enumerate(universe)}
     vds = sorted(base_share_d)
     nvd, npar = len(vds), len(universe)
@@ -4579,6 +6299,13 @@ def run_model(target, scenario: dict,
             else:
                 gamma_source.setdefault(p, "default 1.0")
         gamma[ballot] = values
+    # A PARTY WITH NO FOLD γ AND NO RECENT γ GETS 1.0: its share deviates from
+    # the city mean exactly as the baseline's pattern does. A typed default,
+    # registered as JUDGEMENT-CALLS §A48; who took it is recorded per run.
+    note_value(scenario, "gamma.default_1.0",
+               sorted(p for p, src in gamma_source.items()
+                      if src == "default 1.0"),
+               where="montecarlo:run_model (γ: fold, then recent, then 1.0)")
 
     # --- ward parts and registration ----------------------------------------
     # F15: the crosswalk lives at CITY level — `build_concordance` is
@@ -4633,6 +6360,15 @@ def run_model(target, scenario: dict,
     reg = np.array([registered.get(v, 0) for v in vds], dtype=float)
     t_ratio = np.array([ratio_pattern.get(v, np.nan) for v in vds])
     t_level = np.array([level_pattern.get(v, np.nan) for v in vds])
+    # A VD WITH NO TURNOUT OF ITS OWN TAKES THE CITY'S ROLL-WEIGHTED MEAN, on
+    # either pattern. A typed fallback, registered as JUDGEMENT-CALLS §A49; how
+    # many VDs took it, and what share of the roll they hold, is recorded.
+    _fallback_vd = np.isnan(t_ratio) | np.isnan(t_level)
+    note_value(scenario, "turnout.mean_fallback_vds",
+               {"vds": int(_fallback_vd.sum()),
+                "roll_share": (float(reg[_fallback_vd].sum() / reg.sum())
+                               if reg.sum() else 0.0)},
+               where="montecarlo:run_model (turnout patterns, city-mean fill)")
     mean_ratio = np.nansum(t_ratio * reg) / np.nansum(np.where(np.isnan(t_ratio), 0, reg))
     t_ratio = np.where(np.isnan(t_ratio), mean_ratio, t_ratio)
     mean_level = np.nansum(t_level * reg) / np.nansum(np.where(np.isnan(t_level), 0, reg))
@@ -4687,23 +6423,8 @@ def run_model(target, scenario: dict,
     part_reg = np.array([r for _vd, _w, r in usable], dtype=float)
 
     # --- ward/PR split-ticket ratios (A1) ------------------------------------
-    prior_lge_file = data_dir / target.results(target.previous_lge)
-    prior_ward, _ = load(prior_lge_file, "Ward")
-    prior_pr, _ = load(prior_lge_file, "PR")
-    wc, pc = citywide(prior_ward), citywide(prior_pr)
-    # F34 case (3): `blended_centres` cannot otherwise tell a party that DID
-    # NOT STAND from one that stood on the WARD ballot only. At joburg 2021 the
-    # second is real — IND at 1.290% of the ward ballot with no PR line, and
-    # SAKHISIZWE_CONVENTION and AFRICAN_COVENANT beside it. For such a party
-    # the PR base is UNKNOWN, not zero, and `0 + delta` is neither a level nor
-    # a swing. Recorded here rather than recomputed there: one definition.
-    scenario["_prior_ward_share"] = dict(wc)
-    # MERGERS on `prev_local`, the spine's local route and `blended_centres`'
-    # PR base. Same function and rule as the national baseline above: a
-    # successor with no local record (RISE at 2026) is given none. `pc` itself
-    # is left as read, because the ward/PR ratios below are per-party
-    # measurements of the 2021 ballots and a merger did not happen on them.
-    prior_pr_share, _, _ = _pools_merge.apply_mergers(pc, _roster, target.year)
+    # (The previous LGE's ballots, `wc`/`pc` and `prior_pr_share`, are read
+    # above, before the seeds: item 8 enters roster parties from them.)
     ratio = np.ones(npar)
     # THE SAME RATIOS, KEYED BY PARTY, for the by-election conversion (F46,
     # §1.113). Recorded in this loop rather than recomputed, because two
@@ -4712,12 +6433,14 @@ def run_model(target, scenario: dict,
     # threshold has a ratio that is a quotient of two noisy numbers, and
     # dividing a delta by it amplifies noise faster than it removes bias —
     # measured, and it is why `blended_centres` falls back to additive there.
-    trusted_ward_pr: dict[str, float] = {}
+    # One definition with `bye_value.py`'s conversion: `levels.trusted_ward_pr`
+    # (lifted out of this loop 2026-10-10, BRIEF item 19; no behaviour change).
+    import levels as _levels_ratio
+    trusted_ward_pr = _levels_ratio.trusted_ward_pr(
+        wc, pc, WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX, parties=index)
     for p, i in index.items():
-        if pc.get(p, 0) > 0.001:
-            ratio[i] = np.clip(wc.get(p, 0.0) / pc[p],
-                               WARD_PR_RATIO_MIN, WARD_PR_RATIO_MAX)
-            trusted_ward_pr[p] = float(ratio[i])
+        if p in trusted_ward_pr:
+            ratio[i] = trusted_ward_pr[p]
     # A party with no ward history at the previous LGE gets the median of the
     # parties that have one — a rule that applies to whoever turns up next,
     # rather than the two hand-set numbers this replaces (MK 0.80 "bounded by
@@ -4790,16 +6513,25 @@ def run_model(target, scenario: dict,
     # level made ward MAE 10.79 against 8.90 with no adjustment at all.
     #
     # What the ratio does NOT know is how a party's slate has CHANGED since
-    # then, so that is what is applied. It is 1.0 when the target's nomination
-    # lists are not published — the live forecast's case — which is why 2026
-    # correctly gets no adjustment rather than a constant for one party.
+    # then, so that is what is applied: `now / was`, where each is the share of
+    # the party's own previous-LGE list vote lying in the wards it contests
+    # (`levels.slate_coverage`, vote-weighted since 2026-10-09, item 6; it was
+    # the count of wards). Where the target's lists are not published the
+    # projected slate stands in for `now`.
+    #
+    # Clipped above at `WARD_PR_RATIO_MAX`, one definition with the measured
+    # ratios' clip. No lower clip: every term is non-negative, and
+    # `WARD_PR_RATIO_MIN` is a floor on the MEASURED ratio, a different
+    # quantity. Applying it here would give a party with no ward candidate
+    # (CHANGE at 2026, a list only) half its list share on the ward ballot
+    # (SPEC O3).
     contest = scenario.get("_contestation") or {}
     prev = scenario.get("_contestation_prev") or {}
     if contest and prev:
         for p, i in index.items():
             now, was = contest.get(p), prev.get(p)
             if now is not None and was:
-                ratio[i] = float(np.clip(ratio[i] * (now / was), 0.0, 2.0))
+                ratio[i] = slate_change_ratio(ratio[i], now, was)
 
     # --- by-election evidence (E4) -------------------------------------------
     bye: dict[str, tuple[float, float]] = {}
@@ -4819,6 +6551,16 @@ def run_model(target, scenario: dict,
                 _spread[row["party"]] = (int(row.get("contests") or 0),
                                          float(row.get("delta_sd") or 0.0))
             scenario["_bye_spread"] = _spread
+    # THE WEIGHT IS DERIVED (BRIEF item 19). A target that reads by-elections
+    # with no `w_bye` override needs the measured class weights, and a missing
+    # or stale `bye_value.json` stops the run here rather than at the first
+    # party (same class as a stale pool spec). Read once; `blended_centres`
+    # takes them from the scenario.
+    if bye and scenario["w_bye"] is None:
+        scenario["_bye_value"] = read_bye_value()
+        note_value(scenario, "bye_value.weights",
+                   scenario["_bye_value"]["weights"],
+                   where="montecarlo:run_model -> read_bye_value")
     # --- polls, for the parties nothing else can see (task #23) ------------
     # ONLY arrivals. An established party has a record and the spine uses it;
     # a poll is a competing estimate of the same quantity there and blending
@@ -4896,9 +6638,22 @@ def run_model(target, scenario: dict,
         # idiom looked right; None is the only value it ever had to resolve.
         # Resolved on `is None` so zero is a value like any other.
         _spine_k = scenario.get("spine_k")
+        # Item 8's local-record-only parties are kept out of the national
+        # input and named, so the spine takes them on its local route and
+        # `blended_centres` reads that level (they are in `base_city_d`).
+        _lro = set(scenario.get("_local_record_only") or ())
         _spine, _spine_info = _levels.spine(
-            target, base_city_d, prior_pr_share,
-            k=float(_levels.SPINE_K if _spine_k is None else _spine_k))
+            target, {p: v for p, v in base_city_d.items() if p not in _lro},
+            prior_pr_share,
+            k=float(_levels.SPINE_K if _spine_k is None else _spine_k),
+            read_local_only=frozenset(_lro),
+            # The size windows derived above (item 16); "inf" reads as no
+            # filter. Absent only if the θ block above raised, and then the
+            # spine runs unfiltered, as before item 16.
+            h_theta=float((scenario.get("_size_window") or {})
+                          .get("theta", {}).get("h", "inf")),
+            h_rho=float((scenario.get("_size_window") or {})
+                        .get("rho", {}).get("h", "inf")))
         # F4: THE WHOLE BLOCK USED TO BE GATED ON `if _spine:`, so a spine that
         # reached NOBODY wrote no `spine_level`, no `20_spine` trace and no
         # `note_constant` — and a run where the spine placed no party was
@@ -4931,6 +6686,9 @@ def run_model(target, scenario: dict,
             # discarded all of it. "Written, never read" was true of the
             # producer and the reason was here.
             "absorption": _spine_info.get("absorption"),
+            # BRIEF item 16: each route's derived size window, with the score
+            # at every grid value, the count scored and the status.
+            "size_window": scenario.get("_size_window"),
         })
         # `spine_k` is the constant ARCHITECTURE.md records as UNSETTABLE
         # -- `scenario.get("spine_k") or SPINE_K`, and `0.0 or 1.0` is 1.0.
@@ -4962,6 +6720,19 @@ def run_model(target, scenario: dict,
 
     centres, notes = blended_centres(scenario, base_city_d, prior_pr_share, bye,
                                      trace=trace)
+
+    # THE WIDTH RECORD, read once and only when something needs it: the poll
+    # blend's model sd (when a metro poll is admitted) and the universal draw.
+    # `width_override` replaces the file (the record's own fixed point).
+    _width_cache: dict = {}
+
+    def _width_rec() -> dict:
+        if "rec" not in _width_cache:
+            _width_cache["rec"] = (
+                dict(width_override, target=str(target.year))
+                if width_override is not None
+                else read_width_record(str(target.year), scenario))
+        return _width_cache["rec"]
 
     # --- metro polls, blended by PRECISION not by party history --------------
     # A poll of THIS city is a direct reading of the quantity being forecast, so
@@ -5015,8 +6786,6 @@ def run_model(target, scenario: dict,
     # change that needs its own justification rather than a free rider on
     # this one. Left as it was, and recorded so it is a decision.
     if _agg:
-        _sd = scenario.get("_theta_sd") or {}
-        _default_sd = float(scenario.get("level_sd_default", DEFAULTS["level_sd_default"]))
         # σ_poll IS NO LONGER A CONSTANT. It is decomposed per poll per party —
         # sampling from the achieved sample, a common term no number of houses
         # removes, an idiosyncratic term that shrinks with houses, a declared
@@ -5054,7 +6823,11 @@ def run_model(target, scenario: dict,
             _mu = float(centres.get(_party, 0.0))
             if _mu <= 0:
                 continue
-            _msd = float(_sd.get(_party, _default_sd)) * _mu
+            # The model's own sd, by the drawer's rule (item 17: one
+            # definition, `level_shock_sd`).
+            _msd = poll_model_sd(
+                _party, scenario, base_city_d, centres, _width_rec,
+                new=float(prior_pr_share.get(_party, 0.0) or 0.0) <= 0.0) * _mu
             # The aggregate's own error: sampling shrinks across waves, the
             # house term shrinks across HOUSES and so does not shrink here.
             _psd = _pg.aggregate_sd(
@@ -5102,7 +6875,28 @@ def run_model(target, scenario: dict,
     if "ENTRANT" in index:
         centres["ENTRANT"] = 0.0
 
-    draw_target = make_drawer(scenario, base_city_d, centres, index, rng)
+    # Parties new to the city: no result at the previous local election here
+    # (design v4 §1, `new_i`). The universal draw's newness term reads it.
+    scenario["_new_parties"] = sorted(
+        p for p in index
+        if p != "ENTRANT" and float(prior_pr_share.get(p, 0.0) or 0.0) <= 0.0)
+
+    if stop_after == "drawer_inputs":
+        return DrawerInputs(target=target, scenario=scenario,
+                            base_city_d=dict(base_city_d),
+                            centres=dict(centres), index=dict(index),
+                            universe=list(universe),
+                            prior_pr_share=dict(prior_pr_share))
+    if stop_after is not None:
+        raise ValueError(f"stop_after={stop_after!r}: the only seam is "
+                         f"'drawer_inputs'")
+
+    _law = scenario.get("draw_law", DEFAULTS["draw_law"])
+    _strength = _apply_strength_judgements(target, scenario, centres, _law)
+    if _law == "universal":
+        scenario["_width"] = _width_rec()
+
+    draw_target = make_drawer(scenario, base_city_d, centres, index, streams)
     _ipf_stats = getattr(draw_target, "ipf_stats", {})
     # The IPF has had a failure counter since it was written; the θ solve that
     # runs twice per draw has never had one, and it has never converged
@@ -5126,7 +6920,7 @@ def run_model(target, scenario: dict,
         print(f"target {target.year} ({target.date}), council {target.council}, "
               f"base {cityconfig.resolve_path(target.results(target.previous_npe)).name}, "
               f"γ fold {fold}, wards from {parts_source}")
-        print(f"w_bye {scenario['w_bye']}, "
+        print(f"w_bye {scenario['w_bye'] if scenario['w_bye'] is not None else 'derived (bye_value.json)'}, "
               f"turnout blend {scenario['turnout_pattern_blend']} "
               f"± {scenario['turnout_blend_jitter']} (σ {scenario['turnout_noise_sd']}), "
               f"entrant P {scenario['entrant_prob']}")
@@ -5156,30 +6950,44 @@ def run_model(target, scenario: dict,
     over_draws: list[frozenset] = []
     ward_seat_draws: list[dict[str, int]] = []
     bounds_violations: defaultdict[str, int] = defaultdict(int)
-    bounds_checked = 0
+    bounds_checked: defaultdict[str, int] = defaultdict(int)
+    # THE POPULATION OF THE §3.5 CHECK, recorded where it is decided (M2 review
+    # S4). Every declared-range party in the universe, with the drawn base its
+    # implied θ is measured against, whether or not it is checked: a party
+    # below the base cut is not checked, and a reader of `bounds_checked` alone
+    # cannot tell that from a check that never ran. `41_guards.bounds_base`
+    # carries this, so the population test reads the run's own record instead
+    # of recomputing the baseline outside it.
+    bounds_base = {p: float(base_city[index[p]]) for p in PLAN_BOUNDS
+                   if p in index}
+    bounds_population = [p for p, b in bounds_base.items() if b > 0.005]
     pr_share_draws = np.zeros((draws, npar))
     ward_share_draws = np.zeros((draws, npar))
     pr_vote_draws = np.zeros((draws, npar), dtype=np.int64)
     ward_vote_draws = np.zeros((draws, npar), dtype=np.int64)
 
     for d in range(draws):
-        pr_target = draw_target()
+        pr_target = draw_target(d)
 
         # §3.5 sanity bounds on the implied raw θ (E2). ENTRANT exempt.
-        bounds_checked += 1
-        for p, (low, high) in PLAN_BOUNDS.items():
-            if p in index and base_city[index[p]] > 0.005:
-                implied = pr_target[index[p]] / base_city[index[p]]
-                if not (low * 0.95 <= implied <= high * 1.05):
-                    bounds_violations[p] += 1
+        for p in bounds_population:
+            low, high = PLAN_BOUNDS[p]
+            bounds_checked[p] += 1
+            implied = pr_target[index[p]] / base_city[index[p]]
+            if not (low * 0.95 <= implied <= high * 1.05):
+                bounds_violations[p] += 1
 
         ward_target = pr_target * ratio
         ward_target /= ward_target.sum()
 
         # A2: turnout pattern for this draw.
         blend = np.clip(scenario["turnout_pattern_blend"]
-                        + rng.uniform(-1, 1) * scenario["turnout_blend_jitter"], 0, 1)
-        noise = rng.normal(0.0, scenario["turnout_noise_sd"], nvd)
+                        + (2.0 * streams.uniforms("vd_turnout.blend", "", d)[0] - 1.0)
+                        * scenario["turnout_blend_jitter"], 0, 1)
+        # One stream over the VD vector in `vds` order: a changed VD set (a
+        # delimitation) unpairs it, which is stated in design 1c §2.3.
+        noise = scenario["turnout_noise_sd"] * streams.normals(
+            "vd_turnout.noise", "", d, k=nvd)
         t_draw = np.clip(((1 - blend) * t_ratio + blend * t_level)
                          * np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2),
                          TURNOUT_DRAW_FLOOR, TURNOUT_DRAW_CEILING)
@@ -5226,8 +7034,8 @@ def run_model(target, scenario: dict,
         ward_tally = np.zeros((len(wards), npar))
         np.add.at(ward_tally, part_ward, part_cast[:, None] * wd_eff[part_vd])
         if scenario["ward_noise_sd"] > 0:
-            ward_tally = ward_tally * np.exp(
-                rng.normal(0.0, scenario["ward_noise_sd"], ward_tally.shape))
+            ward_tally = ward_tally * ward_noise_multiplier(
+                streams, universe, d, len(wards), scenario["ward_noise_sd"])
         winners = ward_tally.argmax(axis=1)
         ward_winner_counts[np.arange(len(wards)), winners] += 1
         ward_winner_draws[d] = winners
@@ -5268,7 +7076,8 @@ def run_model(target, scenario: dict,
         c_wards, d_wards, pool_wins = outside_pool_wards(dict(wins), combined)
         seats, council, threshold, over = allocate_with_overhang(
             combined, pool_wins, scenario["overhang_rule"],
-            independent_wards=c_wards, no_pr_list_wards=d_wards)
+            independent_wards=c_wards, no_pr_list_wards=d_wards,
+            lot=draw_key(run_lot, d))
 
         seat_draws.append(seats)
         over_draws.append(frozenset(over))
@@ -5283,6 +7092,35 @@ def run_model(target, scenario: dict,
             ward_win_sum[p] += w
         if verbose and (d + 1) % 1000 == 0:
             print(f"  {d + 1:,} draws")
+
+    # THE WIDTHS AND THE MEAN-CONSERVATION FALSIFIER (design 1j v4-L1; v2 §1.2).
+    _mean_error = mean_conservation(
+        getattr(draw_target, "conserve_record", []),
+        getattr(draw_target, "calib_ratio", None),
+        getattr(draw_target, "u_names", ()),
+        getattr(draw_target, "u_centres", np.zeros(0)))
+    _widths = getattr(draw_target, "widths", {}) or {}
+    _rec = scenario.get("_width") or {}
+    trace.put("35_widths", {
+        "draw_law": getattr(draw_target, "law", _law),
+        "record": {k: _rec.get(k) for k in
+                   ("target", "kind", "curve", "delta", "location", "rho",
+                    "fallback", "untestable") if k in _rec},
+        "parties": _widths,
+        # The calibration pass: iterations run, and whether the last κ met
+        # `KAPPA_TOL` (None under the incumbent law, which has no pass). The
+        # recorded `kappa_error` always describes the κ drawn with.
+        "kappa_iters": int(getattr(draw_target, "kappa_iters", 0)),
+        "kappa_converged": getattr(draw_target, "kappa_converged", None),
+        # The individual-path parties' share of the centres: widths are read
+        # in the record's frame (pooled parties at their pool-spec centre),
+        # which equals the conserved shares when this is 0.
+        "individual_mass": getattr(draw_target, "individual_mass", None),
+        "centre_correction": getattr(draw_target, "centre_correction", None),
+        "judgements_sha": _strength["judgements_sha"],
+        "judgements_applied": _strength["applied"],
+        "judgements_ignored": _strength["ignored"],
+    })
 
     # Each draw's pool turnouts, as `draw_pools` recorded them. One row per call
     # of `draw_target`, and it is called exactly once per draw above.
@@ -5313,6 +7151,12 @@ def run_model(target, scenario: dict,
     # binds it in one expression, with no second copy to drift. `guards` goes on
     # to `ModelRun` below, which is the only route these counters have to a
     # consumer that did not ask for a `--run-dir`.
+    # THE GROUP-SHARE TRIPWIRE (BRIEF item 12). Reports, changes no number.
+    _gs_record = read_group_share_record(record_city_slug(target), target.year)
+    _tripwire = group_share_tripwire(
+        {nm: np.asarray(v) for nm, v in
+         getattr(draw_target, "split_record", {}).items()},
+        getattr(draw_target, "split_members", {}), _gs_record, int(draws))
     guards = trace.put("41_guards", {
         "ipf_balances": int(_ipf_stats.get("balances", 0)),
         "ipf_failures": int(_ipf_stats.get("failures", 0)),
@@ -5321,9 +7165,26 @@ def run_model(target, scenario: dict,
         "ipf_clipped": dict(_ipf_stats.get("clipped") or {}),
         "ipf_headroom": dict(_ipf_stats.get("headroom") or {}),
         "bounds_violations": dict(bounds_violations),
-        "bounds_checked": bounds_checked,
+        "bounds_checked": dict(bounds_checked),
+        # The check's population with its bases (S4): every declared-range
+        # party in the universe, checked or not. See `bounds_population`.
+        "bounds_base": dict(bounds_base),
+        # the run's draws: the denominator of `overhang_count` and
+        # `excessive_draws`, which `bounds_checked` stood in for until it
+        # became per party.
+        "draws": int(draws),
+        # Item 8: roster parties with no record, not drawn (a sorted list, or
+        # "not_checked" when the target has no roster).
+        "roster_unrepresented": roster_unrepresented,
+        # Item 17: parties drawn at the size group's width at their own size
+        # (`levels.size_sd`), with that width. Only parties the run draws.
+        "level_sd_at_size": {p: float(v) for p, v in sorted(
+            draw_target.level_sd_at_size.items()) if p in index},
         "excessive_draws": excessive_draws,
         "overhang_count": dict(overhang_count),
+        # Item 12: pairs whose drawn share of a pool's vote exceeds their
+        # record plus the pool's largest real rise, or "no record".
+        "group_share_tripwire": _tripwire,
         # `solve_nonconvergent` is expected to equal `solve_calls` on the shipped
         # configuration and that is NOT reassuring — see MODEL-LOG §1.98. Read
         # `solve_nonconvergent_reachable` instead: it excludes parties whose
@@ -5354,6 +7215,34 @@ def run_model(target, scenario: dict,
         # that a cure for F12 can activate it, so it is watched rather than
         # assumed.
         "solve_identity_hits": int(_solve_stats.get("identity_hits", 0)),
+        # KEYED STREAMS (design 1c). Gammas whose every Marsaglia-Tsang slot
+        # rejected and took the exact fallback, out of every gamma drawn: a
+        # fallback is exact in law and the one value not paired across arms.
+        "gamma_fallbacks": int(streams.gamma_fallbacks),
+        "gamma_draws": int(streams.gamma_draws),
+        # Every (stage, name) the run read: the population the pairing tests
+        # compare, and what makes a key that drifted visible.
+        "stream_keys": sorted([list(k) for k in streams.keys]),
+        # THE UNIVERSAL DRAW (design 1j v4-L1). Empty under the incumbent law.
+        # `kappa_error`: each party's relative error of the calibration pass's
+        # mean against its `pool_spec` centre. `mean_error`: the run's own
+        # conservation falsifier, per party z against the Bonferroni threshold
+        # (it reports; it does not refuse). `width`: each drawn party's total
+        # latent log sd √(σ² + δ²). `width_floored`: the variance by which
+        # turnout composition exceeded a party's own-term budget.
+        "kappa_error": dict(getattr(draw_target, "kappa_error", {}) or {}),
+        # The law this board was drawn under, so a reader knows which
+        # counters must be live: `gamma_draws` under the incumbent law, the
+        # calibration pass (`kappa_iters` ≥ 1, `kappa_converged` true) under
+        # the universal law. `kappa_converged` false is a run whose centres
+        # are not conserved within `KAPPA_TOL`; the arm runner refuses it.
+        "draw_law": getattr(draw_target, "law", _law),
+        "kappa_iters": int(getattr(draw_target, "kappa_iters", 0)),
+        "kappa_converged": getattr(draw_target, "kappa_converged", None),
+        "mean_error": _mean_error,
+        "width": {p: float(w["total"]) for p, w in _widths.items()},
+        "width_floored": {p: float(w["floored"]) for p, w in _widths.items()
+                          if w["floored"] > 0},
     })
     trace.put("42_pr_share_draws", pr_share_draws, detail=True)
     trace.put("43_ward_share_draws", ward_share_draws, detail=True)
@@ -5380,7 +7269,7 @@ def run_model(target, scenario: dict,
         ward_winner_draws=ward_winner_draws, over_draws=over_draws,
         ward_seat_draws=ward_seat_draws,
         overhang_count=dict(overhang_count), excessive_draws=excessive_draws,
-        bounds_violations=dict(bounds_violations), bounds_checked=bounds_checked,
+        bounds_violations=dict(bounds_violations), bounds_checked=dict(bounds_checked),
         ipf_balances=int(_ipf_stats.get("balances", 0)),
         ipf_failures=int(_ipf_stats.get("failures", 0)),
         cap_undershoots=int(capped_targets.undershoots),
@@ -5394,7 +7283,26 @@ def run_model(target, scenario: dict,
         pool_turnout_draws=pool_turnout_draws,
         pool_turnout_names=_turnout_pools,
         roster_state=_roster_state, roster_size=len(_roster),
-        roster_dropped=sorted(_roster_dropped), guards=dict(guards))
+        roster_dropped=sorted(_roster_dropped), guards=dict(guards),
+        lot=run_lot,
+        gamma_fallbacks=int(streams.gamma_fallbacks),
+        gamma_draws=int(streams.gamma_draws),
+        stream_keys=sorted(streams.keys))
+
+
+def published_ward_winner(counts, universe, lot: str, ward) -> str:
+    """The winner column of ``ward_winner_probs.csv`` for one ward: rule A's
+    call on the ward's count of simulations (``prediction.top_party``), a tie
+    drawn by the seeded lot under ``seats.ward_key(lot, ward)``
+    (JUDGEMENT-CALLS §Q2). It was ``universe[argsort(-counts)[0]]``, an
+    unstable sort, until 2026-10-09; the file's ``dist`` keeps that order for
+    display only. ``prediction`` is imported here, not at module level, so the
+    seat Worker's measured import closure of this module does not move."""
+    import prediction
+    from seats import ward_key
+    return prediction.top_party(
+        {universe[i]: int(c) for i, c in enumerate(counts) if c > 0},
+        lot=ward_key(lot, ward))
 
 
 # --------------------------------------------------------------------------
@@ -5487,6 +7395,13 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"    {p:<10s} {run.ipf_clipped[p] / run.ipf_balances:>6.1%}"
                       f"   worst {run.ipf_worst.get(p, 0.0):.0%} of capacity")
 
+    # THE GAMMA FALLBACK, reported whether it fired or not, the way the balance
+    # is: a fallback draw is exact in law and is the one value not paired
+    # across arms (design 1c §2.4).
+    print(f"\nkeyed streams: {len(run.stream_keys):,} read; "
+          f"{run.gamma_fallbacks:,} of {run.gamma_draws:,} gammas took the "
+          f"exact fallback")
+
     # THE CAPACITY CAP, reported whether it fired or not. `cap_undershoots` and
     # `cap_moved` are named in the comment above the trace as "the counters
     # whose SILENCE was read as success for two days (MODEL-LOG §1.41)" — and
@@ -5502,7 +7417,7 @@ def main(argv: list[str] | None = None) -> int:
     if run.bounds_violations:
         print("\nimplied θ outside §3.5 sanity ranges (share of draws):")
         for p in sorted(run.bounds_violations, key=lambda q: -run.bounds_violations[q]):
-            print(f"  {p:<10s} {run.bounds_violations[p] / run.bounds_checked:>6.1%}")
+            print(f"  {p:<10s} {run.bounds_violations[p] / run.bounds_checked[p]:>6.1%}")
 
     # E1: the full coalition arithmetic, per-draw thresholds.
     seats_by_party = {p: series(p) for p in ranked if series(p).mean() >= 0.4}
@@ -5627,9 +7542,12 @@ def main(argv: list[str] | None = None) -> int:
             dist = "|".join(
                 f"{universe[i]}:{_p_win(ward_winner_counts[wi, i]):.4f}"
                 for i in order if ward_winner_counts[wi, i] > 0)
+            winner = published_ward_winner(ward_winner_counts[wi], universe,
+                                           run.lot, w)
             writer.writerow([
-                w, universe[order[0]],
-                f"{_p_win(ward_winner_counts[wi, order[0]]):.4f}", dist])
+                w, winner,
+                f"{_p_win(ward_winner_counts[wi, universe.index(winner)]):.4f}",
+                dist])
 
     # Per-draw detail, so a scenario on the page can be traced to the draws that
     # produced it: every ward's winner in every draw, and each party's ward and
@@ -5688,6 +7606,10 @@ def main(argv: list[str] | None = None) -> int:
         "mwc": results["mwc"][:15],
         "power": results["power"],
         "minority": results["minority"],
+        # Item 12: the tripwire travels with the run, and the site build
+        # prints one line per firing pair. Nothing reads it back into a draw.
+        "guards": {"group_share_tripwire":
+                   run.guards.get("group_share_tripwire")},
     }
     # ⛔ THE RUN MUST SAY WHEN IT RAN, AND THIS ARTEFACT CARRIED NO TIMESTAMP
     # OF ANY KIND UNTIL 2026-08-30. Consequence: a published figure could not
@@ -5702,6 +7624,9 @@ def main(argv: list[str] | None = None) -> int:
     summary["_generated"] = _dt.datetime.now(_dt.timezone.utc).strftime(
         "%Y-%m-%dT%H:%M:%SZ")
     summary["_draws"] = int(draws)
+    # Which city-year this is, so a reader can recompute what the run declares
+    # (the strength-judgement hash, `live_judgements_sha`).
+    summary["_target"] = {"city": target.city.slug, "year": str(target.year)}
     summary_out = processed / "forecast_summary.json"
     with summary_out.open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=1)

@@ -97,7 +97,7 @@ promotion note in §F.
 | `alpha` per pool (and `dirichlet_scale`) | — | `pools.dirichlet_alpha` | The model's DOMINANT width lever, sweepable since §1.63 via `dirichlet_scale` and NOT retuned — the method-of-moments fit names 1.0. The ranks 4-12 half of the old 'a scalar cannot serve both bands' finding is WITHDRAWN. | 🟡 | §B7 |
 | `ANALYSIS_SEAT_BAND`, `ANALYSIS_SHARE_BAND_POINTS` | 2, 2.0 | `reweight.py`, `within_band`, read by `pyboot/page.py` `analyse` | Typed 2026-10-03 for "Analyse my forecast" on /your-forecast/: how near a reader's seats (seats) and vote (list-ballot points) a simulation must land to count. With them, the definition of "this outcome" (`council_outcome`: the largest party, a majority alone, the chosen coalition). Moves no forecast; decides which chance the analysis prints. | 🟡 | §N3 |
 | `apply_city` never resets `DEFAULTS` | — | `montecarlo.py` | **AMENDED 2026-09-24 (register audit).** FIXED: `apply_city` clears `DEFAULTS` and restores a pristine copy before applying a city (since 2026-08-18), guarded by `test_apply_city_does_not_leak_one_citys_scalars_into_the_next`. Johannesburg declares 11 scalars, not sixteen. Status marker left for the owner. | 🔴 | §A43 |
-| `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` | 0.25, 0.95 | — | 0.25 / 0.95, the triangular support of every seeded arrival. 25/95 rather than 10/90 or 5/95 is undefended and never swept. | 🔴 | §F32 |
+| `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` | ~~0.25, 0.95~~ | — | DELETED 2026-10-09 with the arrival band, which nothing drew from (item9/FINDINGS.md Q5). | ⚫ deleted | §F32 |
 | `arrival_group_draw` | False | `montecarlo.py`, read in `make_drawer` | Ships False. The rejection was re-run on the label-free referee 2026-08-29 and refuted again; the 254 → 348 figure is superseded and must not be quoted. | 🟢 | §A6 |
 | `balance_margins` `iters` / `tol` | 2000 / 1e-12 | `pools.py` | 2000 / 1e-12. Nominally operational; registered because the cap is what turns an infeasible problem into an exception. 20,000 iterations move the failure rate 40.9% → 38.9%. | 🟡 | §F10 |
 | `beta` | 1.0 | `score.energy_score` | 1.0. It is part of what "better" means, so `ITERATING.md` is arguably its proper home. | 🔴 | §H14 |
@@ -131,7 +131,7 @@ promotion note in §F.
 | `LEVEL_DF` | 7.0 | — | BOUNDED 2026-08-29 to ν ∈ [5, 15] on four constraints, with the committed 7.0 in the middle. The honest label is no longer 'unmeasured' but 'not resolvable further on this panel'; a joint (κ, ν) fit was designed and NOT built. | 🟡 | §F8 + §A18 |
 | `level_floor` | 1e-6 | — | 1e-6; separates the level floor from the deviation floor. | 🟢 | §F19 |
 | `LEVEL_FLOOR` vs `SHARE_FLOOR` | — | `fold.py` | Two separate floors, deliberately. On its own it fixed nothing — the 42 phantom seats were the scale drift above it. | 🟢 | §C4 |
-| `level_sd_default` | 0.45 | `montecarlo.py` | MEASURED inert at 2021 and 2026. Would bind for 44 unmeasured 2026 parties if polls were switched back on (`poll_paths` "off" since 2026-09-12). | 🟡 | §A29 |
+| `level_sd_default` | ~~0.45~~ | — | DELETED 2026-10-09 (owner, M3 review row 7). After item 17 it bound for no drawn party at any emitted city-year; a drawn party with no measured width, no size and no θ fit now stops the run (`montecarlo.level_shock_sd`). | ⚫ deleted | §A29 |
 | `level_shrink` (and `level_shrink_scale`) | 0.35 | `montecarlo.compress_levels`, run on the finished… | Adopted 2026-08-17 and unchanged; the largest single improvement this model has had. Two things keep it off green: an L1 form-selection leak, and a tail the uniform renormalisation over-feeds. | 🟡 | §A23 + §F20 |
 | `level_shrink`, `level_shrink_scale` | 0.35, 0.04 | — | See §A. The scale is a SCALE, not a tuned constant — swept twentyfold with no cliff. | 🟡 | §F20 + §A23 |
 | `LOG_CHI2_BIAS` | — | `levels.py`, documented and deliberately unused | Correct, derived, and DELIBERATELY NOT APPLIED: applying it makes the model worse on every metric, because the record it reproduces is marginal and this layer is conditional. | 🟢 | §C5 |
@@ -200,7 +200,7 @@ promotion note in §F.
 | `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` | 0.02, 0.95 | — | 0.02 / 0.95, applied per draw. They contradict §C's claim that the turnout band 'removes caps rather than adding one'; whether the ceiling ever binds is unmeasured. | 🔴 | §F34 |
 | `turnout_noise_sd`, `turnout_blend_jitter` | 0.08, 0.25 | — | Typed; ~0.003 citywide, i.e. nothing. | 🟡 | §F23 + §A41 |
 | `turnout_pattern_blend` / `turnout_blend_jitter` / `turnout_noise_sd` | 0.5 / 0.25 / 0.08 | `montecarlo.py` | Typed. The citywide effect of the 0.08 is ~0.003, i.e. nothing — but see §G-R5: the turnout knobs move 46 ward wins, so the citywide null is not the whole story. | 🟡 | §A41 + §F23 |
-| `w_bye` | 0.40 | `montecarlo.py` | Typed at 0.40, live in the 2026 forecast and inert in every backtest. Only the 2026 result can bound it. | 🔴 | §A35 |
+| `w_bye` | None (derived) | `montecarlo.py` | **SUPERSEDED 2026-10-10 by §A55.** Each party's by-election weight is its size class's weight from `bye_value.json`; a number in `w_bye` is a sweep override for every party, recorded. Was: typed at 0.40. | — | §A35 |
 | `w_bye_local_ward` / `w_bye_local_pr` | 0.0 / 0.0 | `montecarlo.py` | Built and disabled at 0.0 / 0.0. Untestable for the same reason as `w_bye`. | 🟡 | §A37 + §F25 |
 | `w_bye_local_ward`, `w_bye_local_pr` | 0.0, 0.0 | — | Built, disabled, untestable. | 🟡 | §F25 + §A37 |
 | `w_recency` | 0.70 | `turnout.py --w-recency` | 0.70, verbatim from the original plan. It reaches the model through 20 committed `turnout.csv` files that carry no artefact key, so changing it does nothing until someone re-runs the script. | 🔴 | §H2 |
@@ -251,7 +251,18 @@ easiest kind to lose, because nothing can grep for them.
 | PIT seed derived per city-year | `compare_history._pit_seed` | Derived from the city-year name by CRC32; reproducible, and it cannot change a conclusion. | — | §D12 |
 | seat error summed over all parties | `compare_history.py` | Unchanged; parties that won nothing contribute 0, so the wider denominator does not inflate it. | — | §D14 |
 | modal ward winner as "the model's call" | `diagnose.py` | A defensible reading of a probabilistic forecast, and it is a reading. | — | §D15 |
-| a reader edits the combined vote | `reader_seats.reader_seats` | Owner's decision (DESIGN-decided §10, replacing §9's "PR shares stand for both ballots"). The reader's slider is each party's share of all votes on both ballots together (`combined_shares`), what Schedule 1 counts, with no conversion. What remains a choice: `total_votes` is the start state's combined total (the start is our prediction since 2026-10-08, see §Q), and an exact tie falls by roster order where Schedule 1 says "by lot". The retired assumption's cost: `tests/test_reader_seats.py` prints it. | ⚖️ argued | §M1 |
+| a reader edits the combined vote | `reader_seats.reader_seats` | **AMENDED 2026-10-09.** An equal surplus goes to the higher vote (Schedule 1 items 13(2)(b), 16(4)(c)); only an equal surplus AND an equal vote reach a tie, and that is drawn by the seeded lot under the context's `lot` (§Q6), where the statute is silent. Roster order decides nothing. The text below said such a tie falls by roster order "where Schedule 1 says by lot"; Schedule 1 gives an equal surplus to the higher vote and has no lot for seats. Was: Owner's decision (DESIGN-decided §10, replacing §9's "PR shares stand for both ballots"). The reader's slider is each party's share of all votes on both ballots together (`combined_shares`), what Schedule 1 counts, with no conversion. What remains a choice: `total_votes` is the start state's combined total (the start is our prediction since 2026-10-08, see §Q), and an exact tie falls by roster order where Schedule 1 says "by lot". The retired assumption's cost: `tests/test_reader_seats.py` prints it. | ⚖️ argued | §M1 |
+| γ for a party with no fitted γ | `montecarlo.run_model`, the γ block | 1.0, typed; who takes it is recorded per run (`gamma.default_1.0`). Registered 2026-10-09. | 🔴 | §A48 |
+| a VD with no turnout of its own | `montecarlo.run_model`, turnout patterns | The city's roll-weighted mean, typed; the VDs and their roll share are recorded per run (`turnout.mean_fallback_vds`). Registered 2026-10-09. | 🔴 | §A49 |
+| an unopposed ward | `seats.eligible_parties`, `levels.unopposed_wards`, `montecarlo.run_model` | Statute in the seat law (PR votes counted twice); the draws refuse a target with one. None on disk or declared. | ⚖️ | §Q7 |
+| zero level shock for a seeded arrival | `montecarlo.make_drawer`, `pool_sd_shock` | 0; the width is the within-pool split. Registered 2026-10-09 with item 9's measurement. | 🟡 | §A50 |
+| the size the shrink target is evaluated at | `levels._shrink_one` (via `_shrunk`, `theta_prior`) | The party's current size on the route (national share for θ, previous local share for ρ), for every party. Owner's decision 2026-10-09 (BRIEF item 11); was the size its own ratios were measured off. | ⚖️ | §A51 |
+| `SIZE_WINDOW_GRID`, `SIZE_WINDOW_MIN_SCORED`, `SIZE_WINDOW_ALPHA` | 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, ∞ · 20 · 0.05 one-sided | `levels.size_window` | The grid the size window `h` is chosen from, the scored-observation minimum below which no window is chosen (∞), and the one-sided level at which a wider window is measurably worse than the best in a cycle-clustered paired comparison; `h` is the widest grid value not measurably worse. Typed; the window itself is measured per target and route. BRIEF item 16, 2026-10-09; the tie tolerance it replaced (0.005) was deleted 2026-10-09 (owner, M3 review). | 🟡 | §A52 |
+| a party with no record of its own | `levels._shrunk` (average), `levels.size_sd` via `montecarlo.level_shock_sd` (range) | Its size group's average (the size centre) and range (the size-group width) at its current size, for every party. Owner's decision 2026-10-09 (BRIEF item 17). | ⚖️ | §A53 |
+| `GROUP_SHARE_TRIPWIRE_DRAWS`, the tripwire threshold | 0.05 · record + largest one-cycle rise | `montecarlo.group_share_tripwire`, `group_share_record.py` | The group-share tripwire reports a (party, pool) pair whose drawn share of the pool exceeds its record plus the pool's largest real rise in more than 5% of draws. Reports only; changes no number. Item 7's specification, BRIEF item 12. | 🟡 | §A54 |
+| `BYE_CLASS_EDGE`, `BYE_VALUE_MIN_PAIRS`, `BYE_VALUE_PERCENTILE`, `BYE_VALUE_RESAMPLES`, `BYE_VALUE_SEED`, `TAU_MONTHS` | 1% · 10 · 5th · 2,000 · 20261010 · 18 months | `byelections.size_class`, `bye_value.evaluate` | The by-election value test (BRIEF item 19): two size classes split at 1% of the previous local list, each weighted by its leave-one-metro-out gain in predicting the 2024 provincial ballot beyond the model's baseline; a class is admitted only if the 5th percentile of 2,000 metro-cluster bootstrap gains is above 0, and takes 0 under 10 pairs. Typed; the weights are measured. A cross-ballot test on the whole record. | 🟡 | §A55 |
+| `GAMMA_SLOTS`, `STREAM_CHUNK` | 4 · 256 | `montecarlo.DrawStreams`, `montecarlo.log_gamma_slots` | Numerical constants of the keyed draw streams (design 1c). Distribution-neutral: a gamma is the first accepted of `GAMMA_SLOTS` Marsaglia-Tsang trials, an exhausted draw takes an exact counted fallback (`41_guards.gamma_fallbacks`), and `STREAM_CHUNK` is a buffer length that changes no row. | 🟢 | §A56 |
+| `draw_law`, `centre_correction`, `WIDTH_BLOCK`, `RHO_ANCHOR_LO`, `RHO_ANCHOR_HI`, `RHO_GROUP_EDGE`, `LOCATION_CLAMP`, `N_CAL`, `KAPPA_TOL`, `KAPPA_MAX_ITER`, `FALSIFIER_FAMILY_ERROR`, `FALSIFIER_MIN_CENTRE`, `MIN_ESTABLISHED`, `FIXED_POINT_ITERS`, `FIXED_POINT_TOL`, `FIXED_POINT_DRAWS`, `FIXED_POINT_SIZES`, `DIAGNOSTIC_MIN_EFF` | "universal" · 20% · 0.548%, 2.24%, 1% · 0.016% · 4,000, 1e-3, 30 · 0.01, 0.1% · 20 · 2, 0.01, 2,000 | `montecarlo.make_drawer`, `montecarlo.party_width`, `width_record.py` | The universal draw (design 1j v4, option L1, owner 2026-10-12): one log-scale draw for every party, its width one logistic curve in size with one newness term, fitted jointly with a location curve by weighted ML on every earlier party-election; the location is not carried in the draw. The typed values are listed with their evidence in §A57. | 🟡 | §A57 |
 | `CHANCE_SCALE` | 1, 15, 45, 55, 75, 90% | `render_sheet.scale_verdict` | Owner's verdict scale for claims rated by chance, 2026-10-07. An edge takes the band nearer a coin flip; judged on the printed chance. The build refuses a verdict that disagrees. Presentation: it moves no draw, seat or probability. | ⚖️ | §P1 |
 | `SOWETO_GAZETTEER`, `SOWETO_EXCLUDE`, `SOWETO_CUT` | the place list, two exclusions, 0.5 | `areas.derive` | Owner-accepted 2026-10-07. Which 2026 wards are Soweto's, from voting-station addresses; generated into `cities/joburg.toml` and regenerated by `tests/test_areas.py`. Reaches no draw: only the Mashaba claim reads it. | ⚖️ | §P2 |
 | `REALISTIC_PARTNERS`, `ZILLE_RED_LINES` | ActionSA with the PA, or the ANC; the EFF and MK ruled out | `render_sheet.da_coalitions` | Owner's definition of a DA win for the Mashaba claim, 2026-10-07: a realistic coalition the DA leads. The every-party coalition is printed as context, not rated. Reaches no draw. | ⚖️ | §P3 |
@@ -609,11 +620,11 @@ too high. It cannot be changed on [your forecast](your-forecast/).
 1. How close to a party's own pool capacity the IPF may be asked to go before the excess is water-filled onto the parties that can hold it.
 2. **The judgement here is not really the 0.98 — it is what to do when the level layer and the pool layer disagree, and until 2026-08-17 the answer was `except Exception: pass` and it fired in 41.8% of the live 2026 forecast's draws** (§1.33). The disagreement is real and is NOT fixed by this: the PA belongs to exactly one pool (Coloured, weight 1.0, `identified=False` at 2026), that pool casts ~66,700 votes, and the spine + by-election blend ask for ~68,000 (a third contributor, `pa_contestation_uplift`, was deleted 2026-08-18) — 102% of every Coloured vote in the city. The cause is upstream in the ecological fit (a corner solution 10.5pp above the PA's own Duncan-Davis ceiling, never projected back); this row is the guard, not the cure. 0.98 is a round number one full step clear of a cliff: measured on the 2026 forecast at 600 draws, the failure rate is 41.5% at margin 1.0000, 41.5% at 0.9999, 39.8% at 0.995, 37.0% at 0.991 and **0.0% at 0.990 and at 0.980**. The cliff means the last percent is a convergence-rate problem against `balance_margins`' 2000-iteration cap, not a feasibility one — so the safe margin is a function of that cap and 0.98 keeps a step in hand. Its cost is that a party pinned at capacity is forecast ~2% under the level the centres asked for.
 
-### §A29 · `level_sd_default` — 0.45 — 🟡
+### §A29 · `level_sd_default` — ~~0.45~~ — ⚫ deleted
 
 **Where.** `montecarlo.py`
 
-**Now.** MEASURED INERT at 2021 and 2026 (perturbed to 1.60, nothing moves). At 2026 44 parties on the certified ballot have no measured `sd(log θ)`, so it would bind for them through the poll blend — which does not run while `poll_paths` is "off" (since 2026-09-12). It becomes live the day polls are switched back on. Declared in `DEFAULTS` since §1.63.
+**Now.** DELETED 2026-10-09 (record 6). `montecarlo.level_shock_sd` has two rules, the measured width and the size group's width at the party's size; a drawn party with neither stops the run.
 
 **Record**, oldest first:
 
@@ -621,6 +632,12 @@ too high. It cannot be changed on [your forecast](your-forecast/).
 2. **PROMOTED 2026-08-20 (§1.63), which was this row's own instruction.** It was read as `scenario.get("level_sd_default", 0.45)` and was in no `DEFAULTS`, so it was frozen at 0.45 and could not be moved by `--set` or a config file — the same defect as `arrival_group_draw` and `turnout_correlation`, all three found at once by the new `test_no_scenario_key_is_read_without_being_declared`. Declared at 0.45, so nothing moved. And the prediction in this row is now **confirmed by measurement**: perturbed to 1.60 it is byte-identical at 2021 and 2026, because the measured branch is taken for every party. It is in `EXPECTED_INERT` with that reason. A fallback that never fires is what you want; it matters only if the baseline ever stops covering the ballot.
 
 3. **THE BASELINE STOPPED COVERING THE BALLOT, 2026-09-16 — the case item 2 said it "matters only if".** The declared certified roster names 82 parties; the lever harness's fallback gate reports 74 parties in the 2026 index, all pool members, and 44 with no measured sd — EXPOSED TO THE FALLBACK. The `EXPECTED_INERT` excuse at 2026 was removed in the same commit. **⛔ CORRECTED THE SAME NIGHT, BY MEASUREMENT.** The line above was written from the gate's report, and the suite then perturbed the lever: nothing moved. The gate was wrong — it asked whether a metro poll exists, not whether polls are on — and is fixed. So 0.45 does NOT shape tonight's forecast; it would shape 44 small parties' level spread if `poll_paths` returns to "all". How to check it then: the arrival record's own dispersion for comparable parties. 🟡.
+
+4. **AMENDED 2026-10-09 (model correction batch, item 8): it now binds in the draws, outside the poll blend.** The roster parties whose only record is the previous LGE (`levels.local_record_only`) enter the run after `levels.theta_prior` has run, and `make_drawer` gives them `level_sd_default`. Where `theta_prior` does emit an sd for one (a party in the θ record with no national baseline), it is the size line evaluated at the 1e-5 size floor, a width at a size the party does not have, and for some of them it is `SD_CEILING` (the estimation width-ceiling tripwire caught one at joburg 2011). `make_drawer` does not use it for these parties. This departs from SPEC §1.7 step 6, which assumed they were absent from `theta_prior`'s output (SPEC R3.7). Which parties took it is named per run in `41_guards.level_sd_default_parties`. Item 17 (a later step of the same batch) replaces it for them with the size-group width; after that it binds only where no size exists.
+
+5. **AMENDED 2026-10-09 (item 17, SPEC R2.2).** A party with no measured width (absent from `theta_prior`'s `sd`, or an item-8 party) now takes the size group's width at its own size in the run's baseline, `levels.size_sd` on `theta_prior`'s fit, through `montecarlo.level_shock_sd` (one rule for the drawer and the poll blend). `level_sd_default` binds only where the party has no size (base ≤ 0) or the run has no θ fit. The item-8 parties are recorded with their drawn width in `41_guards.level_sd_at_size`. Whether the lever is now inert again at 2021 and 2026 is `test_levers_are_live`'s to say (run after this batch's last commit). §A53.
+
+6. **DELETED 2026-10-09 (owner, M3 review row 7): "If the old constant has been replaced with new machinery it should be deleted."** Evidence it bound nowhere: an in-process scan (`run_model`, 20 draws, the M3 review's window rule in place) at every emitted city-year, the eight metros at 2011, 2016 and 2021 and Johannesburg and Tshwane at 2026, wrapped `level_shock_sd` and recorded every call: no party the run draws reached the fallback. Pool members outside the run's universe did reach it at 2011 (they have no baseline size); their widths were computed and never used, since the IPF draws only members in the run's index. `make_drawer` now asks only for those members, and `level_shock_sd` raises `SystemExit` where a drawn party has no measured width, no size and no θ fit. The `41_guards.level_sd_default_parties` field and its checks went with it. The name is in `tests/test_register_matches_code.py`'s `DELETED`.
 
 ### §A30 · Dirichlet floor — `1e-4` — 🟢
 
@@ -662,21 +679,11 @@ too high. It cannot be changed on [your forecast](your-forecast/).
 
 **Record.** **CONSIDERED AND REFUSED 2026-08-28, with the measurement.** Leave-one-contest-out on the by-election data — the only out-of-sample test this channel will ever have before an election — gives RMSE **36.46pp against uniform's 24.66pp**. The aggregate hides the reason: it *helps* ANC, EFF, MK and AIC and is catastrophic for the **DA (47.30 → 78.98pp)**, because turnout sensitivity is **party-specific and signed** — DA **−0.925**, EFF **+0.842**, ANC **+0.720**. A uniform ratio applies one sign to every party. A PER-PARTY sensitivity is worth pre-registering; the uniform form is not. §1.122
 
-### §A35 · `w_bye` — 0.40 — 🔴
+### §A35 · `w_bye` — 0.40 — SUPERSEDED 2026-10-10 by §A55
 
-**Plain — How much recent by-elections count.** A party's swing in the
-by-elections held since the last local election is applied to its last local
-result. The result is held within a set range where the party has one, and
-blended into its expected share at a weight of 40%; the rest comes from its
-national and local record. The same weight applies to every party. The
-alternative, built and not used, gives each party its own weight from how many
-by-elections it fought, how much they varied and how uncertain its record is;
-some parties would get almost no by-election weight and others more than 40%.
-The by-election data starts in 2022, so no past election can test the weight or
-the choice between the two rules, and only the November result will. We kept the
-simpler rule. A higher weight moves parties toward their by-election swings. On
-[your forecast](your-forecast/) by-elections can count not at all, partly as the
-forecast does, or fully. The rule stays the same.
+**SUPERSEDED 2026-10-10 (BRIEF item 19).** `DEFAULTS["w_bye"]` is `None`: each party's by-election evidence is weighted by its size class's weight, measured by `src/bye_value.py` and read from `data/processed/bye_value.json` (§A55). A number in `w_bye` remains as an override for sweeps and for the reader page's cells; it applies to every party and is recorded as `w_bye.override`. A missing or stale `bye_value.json` at a target that reads by-elections stops the run. The text below describes the typed 0.40 it replaced; the reader-facing paragraph is the site's and changes with the next publication.
+
+*(Its reader-facing Plain field moved to §A55 on 2026-10-10: a retired call is not shown to a reader as a live choice.)*
 
 **Where.** `montecarlo.py`
 
@@ -815,6 +822,8 @@ correctly — not a ward that was lost because the level was wrong.
 
 **Record.** Which parties reach `pools.arrival_rules` rather than θ × baseline. A party with a *trace* in the preceding national election — 0.05–0.17% in that metro — is treated as a retention case, and θ near 0.9 pins it there. **16 of the 79 parties in ranks 4-12 are in this position and are under-forecast by more than 5×, carrying +16.4pp of the −37.4pp band deficit** (§1.31). The code already knows those records are worthless: `RELIABILITY_HALF = 0.002` gives a 0.07% baseline a reliability of 0.26. The arrival record for the same city-years says a typical arrival takes 1.64% (IQR 1.43–2.29%), which is close to what they got. **A boundary nobody chose is still a judgement call.**
 
+**Note, 2026-10-09 (model correction batch, item 8).** A roster party with a previous-LGE list vote and no national baseline is no longer outside the run: `levels.local_record_only` enters it at its previous-LGE list share, sized on the spine's local route. The residual, roster parties with no record at all, is named per run in `41_guards.roster_unrepresented` (`montecarlo.roster_universe_check`) and refuses a live forecast.
+
 ### §A43 · `apply_city` never resets `DEFAULTS` — 🔴
 
 **Where.** `montecarlo.py`
@@ -878,10 +887,233 @@ correctly — not a ward that was lost because the level was wrong.
 7. **Declared 2026-09-13**, on the round that corrected `backtest.FITTED_ON["splinter_home"]` (MODEL-LOG §1.232). Until then `splinter_home` appeared nowhere in this register at all: the mechanism was in §A44 and the per-party assignment it applies to was in neither.
 
 
+### §A48 · γ for a party with no fitted γ — 1.0 — 🔴
+
+**Where.** `montecarlo.run_model`, the γ block: a party's γ comes from the fold's parameters, else from `gamma_recent.csv`, else 1.0.
+
+**Now.** A party with neither fitted γ takes 1.0, meaning its share deviates from the city mean across VDs exactly as the baseline's pattern does. Typed, never swept. Which parties took it is recorded per run as the delivery note `gamma.default_1.0` (the list of parties), so the count is read from a run, not from here.
+
+**Record.**
+
+1. Registered 2026-10-09 (BRIEF item 10, integrity review): the default was in the code and in `MACHINERY.md` §4 as JUDGED, and in no register entry.
+
+**How to check it.** The `gamma.default_1.0` note in a run's delivery log; a sweep of the default over the parties that take it, scored on the panel.
+
+### §A49 · a VD with no turnout of its own takes the city's roll-weighted mean — 🔴
+
+**Where.** `montecarlo.run_model`, the turnout patterns: a VD missing from `turnout.csv`'s projected ratio or previous-LGE level takes the city's mean of that pattern, weighted by registered voters.
+
+**Now.** A typed fallback: a VD with no history is treated as an average VD. How many VDs took it, and their share of the roll, is recorded per run as the delivery note `turnout.mean_fallback_vds`.
+
+**Record.**
+
+1. Registered 2026-10-09 (BRIEF item 10, integrity review): unregistered until then.
+
+**How to check it.** The `turnout.mean_fallback_vds` note in a run's delivery log. A material roll share there is the case to measure against an alternative fill (the ward's mean, or the VD's neighbours).
+
+
+### §A50 · zero level shock for a seeded arrival — 0 — 🟡
+
+**Since 2026-10-12 read only under `draw_law = "incumbent"`** (§A57); the shipped universal draw does not read it.
+
+**Where.** `montecarlo.make_drawer`, `pool_sd_shock`: every pooled party takes its own level-shock sd except a seeded arrival, which takes 0.
+
+**Now.** Value 0. A seeded arrival's draw-to-draw width comes from the within-pool Dirichlet split (member concentration α = m·A_pool), not from a level shock and not from a band. Called "the owner's decision" in MODEL-LOG §1.198 and registered nowhere until 2026-10-09.
+
+**Why.** Adding the shock changes almost nothing measurable. Item 9's shock variant gave the seeded parties a level-shock sd from the size line fitted to the non-seeded pooled parties: median generic P(≥1 seat) 0.059 → 0.064, median generic q95 0.234% → 0.296%, and the six largest parties' seat means moved by at most 0.46 (item9/FINDINGS.md finding 4, Johannesburg 2026, 5,000 draws). Where the existing width misfits the record it is too wide, not too narrow (findings 1, 2, 5), so Occam, as the owner framed it, keeps zero and adds no source.
+
+**Limits.** The within-pool split's shape is the open question: a spike near zero for small members (finding 1) and a too-wide SACP (finding 5). That is the scheduled within-pool split reformulation, not this entry.
+
+**How to check it.** Re-run item 9's `shock` variant (`audits/2026-10-09-model-fixes/item9/scripts/`) on the current tree and compare P(≥1 seat) and q95 for the seeded parties.
+
+
+### §A51 · the size the shrink target is evaluated at — the party's current size — ⚖️
+
+**Where.** `levels._shrink_one`, the per-party body of `_shrunk` (the spine's θ and ρ routes) and of `theta_prior`.
+
+**Now.** The size centre (`size_centre`, fitted on the sizes the ratios were measured off) is evaluated at the party's size at the target: its share of the national baseline for θ, its previous local share for ρ. Every party. A party in a record with no current size on that route keeps the reliability-weighted size of its own observations and is counted (`size_fallback` in the shrink report); no level reads such a party.
+
+**Why.** The owner, 2026-10-09: "growth changes by size for sure and you seem to have modelled that. so yes, lets do that for everyone and see what happens" (BRIEF item 11). The size centre says how parties of a given size retain their vote, and the size that governs the forecast is the one the party has now. The previous rule took it at the size the party's own ratios were measured off, which gives a party that has grown the multiplier of the party it used to be (item7/FINDINGS.md: the PA's θ observations at 0.014%–0.29% against a current 2.9%).
+
+**Limits.** This is the evaluation point only. The party's own record keeps its weight `worth/(worth+SHRINK)`, so a party whose own ratios come from another size still carries them (BRIEF item 16 is the separate change that limits them). The spec's spine-level computation for Johannesburg 2026 moved the PA from 6.43% to 6.05% (SPEC §0 O1, `item11_spine.py`); the effect on the draws is pre-registered (SPEC §6 P11, arm C) and not yet measured.
+
+**How to check it.** Arm C against arm B in the batch's measurement (SPEC R2.5). Unit level: `tests/test_theta_prior.py::test_two_parties_with_one_record_and_different_current_sizes_differ` and `::test_the_shrink_target_is_taken_at_the_partys_current_size`.
+
+
+### §A52 · the size window on a party's own record — `SIZE_WINDOW_GRID` 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, ∞ · `SIZE_WINDOW_MIN_SCORED` 20 · `SIZE_WINDOW_ALPHA` 0.05 one-sided — 🟡
+
+**Where.** `levels.size_window` derives `h`; `levels._in_window` and `_shrink_one` apply it, in `_shrunk` (both spine routes) and `theta_prior`; `montecarlo.run_model` derives one window per route per run and passes the θ window to both estimators.
+
+**Now.** A party's own θ (ρ) observations count only where measured off a national (previous local) share within `h` natural-log units of its current one. Where none survive, its own record is empty on that route: worth 0, centre = the size centre at its current size. `h` is measured, per target and per route, by this rule (written down 2026-10-09, before it was run on the archive):
+
+1. **The walk.** For each LGE target up to the target, the new observations there (its record minus the previous LGE target's) are predicted from each party's record at the previous LGE target by `_shrink_one` at the observation's size, for every grid value of `h`. The new observations of one step are one **cycle**, the cluster.
+2. **The score.** At each `h`, the reliability-weighted mean absolute error in `ln r`. `best` is the grid value with the lowest score.
+3. **The paired difference.** For each grid value `h ≥ best`, per observation `d_i = |e_i(h)| − |e_i(best)|`; `D` is its reliability-weighted mean and `se` its cluster-robust (CR1) standard error over the `G` cycles, `se² = G/(G−1) · Σ_g (Σ_{i∈g} w_i (d_i − D))² / (Σ w_i)²`.
+4. **Measurably worse** means the one-sided lower bound `D − t·se` is above 0, where `t` is the upper 5% quantile of Student's t on `G − 1` degrees of freedom.
+5. **The window** is the widest grid value `≥ best` that is not measurably worse.
+6. **Underdetermined.** Under 20 scored observations, or fewer than 2 cycles, gives ∞.
+
+What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7), the 20, and the level 0.05 with its one-sidedness (a wider window is set aside only for being worse, never for being better). Forced by arithmetic, not judgement: the 2-cycle minimum (a cluster-robust error on one cluster has no degrees of freedom), the CR1 factor and the t quantile (`levels._t_upper`, checked against the published table by `tests/test_spine.py::test_the_t_quantile_is_the_published_one`).
+
+**Why.** The owner, 2026-10-09: "PA fix agree - no growth record we should have size ranges and maintain averages for each" (BRIEF item 16). The PA's θ multipliers were measured during its emergence, off 0.014%–0.29% of the vote, and applied to its 2.9% (item7/FINDINGS.md). The rule applies to every party; the window is derived so it is not a number chosen to remove one party's record. The paired rule replaced a typed tie tolerance (0.005) on the owner's decision of 2026-10-09 (`audits/2026-10-09-model-fixes/reviews/M3-SUMMARY.md`, row 2): the M3 review found the PA's outcome turned on that number, so the tie is settled by measuring the uncertainty of the difference instead.
+
+**Values.** Each run records its windows, the error table, `best`, the paired block and the cycle count in the `20_spine` trace (`size_window`) and its delivery log (`levels.size_window.theta`, `.rho`). The values on the archive at the batch's re-run are in that batch's MODEL-LOG entry. They are not copied here.
+
+**Limits.** Stated before the rule was run.
+- **Few cycles make every difference unmeasurable.** At `G = 2` the critical value is t on 1 degree of freedom (about 6.3), so almost no wider window can be measurably worse and the rule returns ∞ or near it wherever only two cycles exist. Cycles grow by one per election, so the window can tighten as the archive lengthens. This is the rule working: with two cycles the archive cannot tell the windows apart.
+- **Not monotone.** A wider value that is not measurably worse wins even where a value between it and `best` is measurably worse; the rule as decided is "the widest not measurably worse", and it is applied literally.
+- **The cluster is the cycle only.** Observations of one party across metros within a cycle are correlated and sit in the same cluster; a party's observations in different cycles are treated as independent. A party-and-cycle two-way clustering is not done.
+- The grid is coarse at the top (3.0 to ∞). The error is in `ln r` of the next observed ratio, which is what the shrunk mean predicts; it is not a score of the forecast.
+
+**How to check it.** Arm C16 against arm C (SPEC R2.5, P16). Unit level: `tests/test_theta_prior.py::test_only_observations_from_a_similar_size_enter_a_partys_own_mean` (G19), `tests/test_spine.py::test_the_size_window_derivation_can_see` (G20), `tests/test_temporal.py::test_the_size_window_reads_no_election_at_or_after_its_target` (G21); `tests/test_stage_estimation.py::spine_the_size_windows_follow_their_own_rule` re-derives each run's choice from its report.
+
+
+### §A53 · a party with no record of its own takes its size group's average and range — ⚖️
+
+**Where.** Average: `levels._shrunk` returns a party in `current` with no observations on that route at the size centre for its current size (where the size fit exists), so `spine` no longer hands it the flat common mean. Range: `montecarlo.level_shock_sd` gives a party with no measured width, or an item-8 party, `levels.size_sd(base, sd_fit)`: the size-group width at its own baseline share, from the same fit `theta_prior` uses for every party with a baseline.
+
+**Now.** Every party, no exception. Seeded arrivals keep a zero level shock (§A50); item 17 does not reach them. A drawn party with no size and no θ fit stops the run; the typed fallback was deleted (§A29).
+
+**Why.** The owner, 2026-10-09: "no growth record we should have size ranges and maintain averages for each" (BRIEF item 17). The average was already `theta_prior`'s rule for such a party; the spine disagreed (SPEC §0 O2). The range replaces a typed 0.45 with the measured width at the party's size.
+
+**Limits.** The size-group width is the size line of the θ record, fitted against the common centre; for a party far below the record's sizes it is an extrapolation, clamped at `SD_CEILING`. The SPEC's spine-level computation (`item11_spine.py`, Johannesburg 2026) moved MK from 11.31% to 9.93% and small national-only parties up by +0.24 to +0.30 in log (SPEC §0 O2); the draws are the measurement's (arm D, P17).
+
+**How to check it.** Arm D against arm C16 (SPEC R2.5, P17). Unit level: `tests/test_spine.py::test_a_no_record_party_takes_its_size_groups_average_and_range` (G22) and `::test_a_first_local_election_party_gets_the_size_centre_at_its_current_size`.
+
+
+### §A54 · the group-share tripwire's threshold — record + the largest real one-cycle rise, in more than `GROUP_SHARE_TRIPWIRE_DRAWS` = 0.05 of draws — 🟡
+
+**Where.** `montecarlo.group_share_tripwire` (the count and the 0.05), `src/group_share_record.py` (the record and the margin), `41_guards.group_share_tripwire`.
+
+**Now.** A pair is reported when the party's drawn share of the pool's vote exceeds `record + margin` in more than 5% of draws. `record`: the party's largest Duncan-Davis upper bound in that pool in this city's real results before the target (local elections, and national ones on the preceding local election's wards and composition). `margin`: the largest one-cycle rise of a fitted pool rate by any party in any metro before the target. Typed: the 5%, the choice of the upper bound for the record, and the choice of the fitted-rate rise for the margin. A party with no record in a pool has record 0.
+
+**Why.** The owner, 2026-10-09: "tripwire just tells us but doesnt stop it? if so yes" (BRIEF item 12). The capacity cap cannot see a party taking more of a group than history allows (integrity review F2). Item 7 specified this threshold and measured it: against Johannesburg's real 2021 results it flags 12 of 1,252 outcomes, and on the published 2026 forecast PA/Coloured fires in 69% of draws (item7/FINDINGS.md; those figures are from item 7's probe, not from this code).
+
+**Limits.** It reports and changes nothing; a firing pair is a question for a person. The margin is taken from fitted rates, which are noisy in small pools (the Indian/Asian margin is large), so the tripwire is least sensitive there. At a target with one fitted local election before it there is no cycle and the margin is 0. National-election composition is carried forward from the preceding local election (argued).
+
+**How to check it.** `tests/test_stage_realisation.py::test_the_group_share_tripwire_can_see_and_goes_quiet` and `::test_the_group_share_tripwire_scans_every_member_of_a_real_run` (G14); `tests/test_intermediates_are_current.py::test_the_group_share_record_is_a_fresh_build` and `::test_the_group_share_freshness_check_can_see_a_real_stale_record` (G15). The firing rate per arm is the batch's measurement (SPEC §6 item 12, P16).
+
+
+### §A55 · the by-election value test — `BYE_CLASS_EDGE` 1% · leave one metro out · 5th percentile of `BYE_VALUE_RESAMPLES` 2,000 · `BYE_VALUE_MIN_PAIRS` 10 — 🟡
+
+**Plain — How much recent by-elections count.** A party's swing in the
+by-elections held since the last local election can move its expected share.
+How far is measured, not chosen. We checked whether by-election swings before
+the 2024 national election predicted that election's result better than the
+model did without them, separately for small parties and larger ones. A group of parties gets weight only if
+the improvement held when each metro was left out in turn and across resampled
+sets of metros; otherwise its by-elections count for nothing. By-elections are
+ward contests and the 2024 result was a national and provincial list vote, so
+this is the only test the record allows, and a weak one. On
+[your forecast](your-forecast/) you can make by-elections count not at all or
+fully.
+
+**Where.** `src/bye_value.py` measures; `byelections.size_class` and `byelections.BYE_CLASS_EDGE` define the classes for the test and for the model; `byelections.weighted_deltas`, `byelections.delta_pr` and `levels.trusted_ward_pr` are the deltas and their list-scale conversion, one definition each with the model's.
+
+**Now.** For every (party, metro) pair with a by-election in the metro between the 2021 LGE and 2024-05-29 and a list vote at the 2021 LGE or on the 2024 provincial ballot: the residual `e = actual_2024 − B`, where `B = s_2021 / exp(mu_θ)` is the model's own baseline (its 2021 list share through `levels._shrunk` on the θ record before 2024, at its 2019 national share, with `size_window`'s window), and `δ_pr` is the party's weighted by-election delta in the metro on the list scale. Typed, all fixed in `prereg/2026-10-10-byelection-value-test.md` before the first run:
+
+1. **Two classes**, by the 2021 list share in that metro: under 1% (including none), and 1% or more (`BYE_CLASS_EDGE` = 0.01). Each class has its own weight.
+2. **Leave one metro out.** A class's weight for metro `m` is the least-squares slope of `e` on `δ_pr` through the origin over the other seven metros, floored at 0. The gain `G = mean|e| − mean|e − w_(−m)·δ_pr|`, pooled over the class's pairs, in points of share.
+3. **The 5th-percentile rule.** 2,000 bootstrap resamples of the metros (the cluster), hold-out by metro identity, seed 20261010; a class is admitted only if the 5th percentile of its `G` is above 0, and then takes the slope fitted on all its pairs. Otherwise its weight is 0.
+4. **The 10-pair floor.** A class with fewer than 10 pairs takes 0, "not measurable".
+5. **`TAU_MONTHS`** = 18, the recency half-life `byelections.py` has always used (plan §3.5), now one named constant for the delta file and the test.
+
+**Why.** The owner, 2026-10-09: "by elections we need to use history as the judge of whether they predicted anything not already predicted by model... lets see" (BRIEF decision 19). This replaces item 14's minimum (SPEC R2.4). The weight is the measured increment out of sample, against the model's own baseline; if none is measurable it is zero. Every party, the same rule.
+
+**Values.** The test's output, both classes' slopes, gains, intervals, pair counts and verdicts, and every pair, is `data/processed/bye_value.json` (`artefact_key`: `byelections.bye_value_key`). The values at the batch's run are in that batch's MODEL-LOG entry. They are not copied here.
+
+**Limits.** Stated where the test's result is quoted.
+- **Cross-ballot, on the whole record.** By-elections are local ward contests from 2022-02; the only real result after them is the 2024 provincial ballot, a national-provincial list ballot. A weight measured against that ballot is applied to a local list ballot.
+- **At most eight clusters.** The bootstrap resamples the metros that hold a pair, so the interval is coarse.
+- **The test and the model weigh δ differently.** The test's augmented prediction is `B + w·δ_pr`. The model's centre is `(1 − w)·level + w·clamp(prior_pr + δ_pr)`, so `w` also pulls the centre toward the previous list share and the clamp bounds it. The test measures the delta's increment, not the whole blend. Argued, not tested.
+- **No admission gate in the test.** `BYE_MIN_WEIGHT` gates the model's use of a party's evidence; the test scores every pair (each pair's weight sum is in the artefact).
+- **A label that is not a party.** Independent candidates canonicalise to one label; where the 2024 provincial ballot carried independents, that label has a list vote and enters the population. The pre-registration said it would fall out; it did not, and the population stays as registered. Its effect with the label removed is MODEL-LOG §1.295 (the verdict does not move).
+- **`B` is a stand-in for the 2026 spine.** It is the 2021 list share through the θ record at the 2019 national share. Its residuals carry a party-signed bias (one party's `e` positive in every metro where it is in the population, another's negative in every one, MODEL-LOG §1.295), which the slope reads as by-election signal or noise alike.
+- **One pair dominates the 1%-or-more class**: eThekwini's largest party at the 2021 LGE, whose 2024 loss to a new party is far larger than any other residual and opposite in sign to its by-election delta. MODEL-LOG §1.295 gives the class without it; the verdict does not move.
+- **The recorded weight is the class weight, not always the weight used.** `scenario["_bye_weight"]` (and the trace's `bye_weight`) records the class weight for a party that `BYE_MIN_WEIGHT` then gates out, and the class weight `w` rather than the derived `w_used` under `bye_weight_mode = "inverse_variance"`. Invisible while both class weights are 0.
+
+**In the model (2026-10-10).** `montecarlo.blended_centres` gives each party with by-election evidence the weight of its class (`montecarlo.bye_weight`), read at `montecarlo.bye_class_size`: its previous-LGE list share, or with none its share in the run's baseline (the national election before the target; a seeded arrival's seed). `run_model` reads the file once through `montecarlo.read_bye_value` wherever the target reads by-elections and `w_bye` is `None`, and refuses a missing file or an `artefact_key` other than the live `byelections.bye_value_key`. A city file may not set `w_bye`: it is in `montecarlo.DERIVED_NOT_CITY`, and `apply_city` refuses a city whose `[judgements.scalars]` sets it. `BYE_MIN_WEIGHT` still gates admission (§F33). A class weight of 0 switches the party's by-election term off, `bye_weight_mode` included. The weight each party was given is in the `30_centres` trace (`bye_weight`) and `export_draws` reports it beside `reaches_model`. Supersedes §A35.
+
+**How to check it.** `tests/test_blended_centres.py::test_each_class_takes_its_own_weight_from_the_file`, `::test_no_city_file_sets_a_derived_lever_and_apply_city_refuses_one`, `::test_a_missing_or_stale_bye_value_file_refuses`, `::test_an_override_needs_no_file_and_is_recorded`, `::test_the_class_edge_is_the_one_constant_both_sides_use` (G24); `tests/test_export_draws.py::test_the_reported_bye_weight_is_the_one_blended_centres_applied` (G26); `tests/test_bye_value.py` (G23: an exact half increment is admitted at 0.5; an independent residual earns 0; nine pairs are not measurable; the hold-out by identity; the bootstrap resamples metros, not pairs; the slope; the edge); `tests/test_temporal.py::test_the_byelection_value_test_reads_no_byelection_or_result_from_its_outcome_on` (G25); `tests/test_intermediates_are_current.py::test_the_bye_value_record_is_a_fresh_build` and `::test_the_bye_value_freshness_check_can_see_a_real_stale_record`; `tests/test_bye_value.py::test_the_key_covers_the_raw_election_files_and_the_city_files` (one byte in a raw election file or a city file makes `read_bye_value` refuse).
+
+
+### §A56 · the keyed draw streams' numerical constants — `GAMMA_SLOTS` = 4 · `STREAM_CHUNK` = 256 — 🟢
+
+**Where.** `montecarlo.DrawStreams` (both), `montecarlo.log_gamma_slots` (the slots).
+
+**Now.** Every random quantity in a run reads its own stream, keyed by the run identity (`seats.lot_identity`), the stage and the entity, through `seats.stable_entropy`. A gamma (the Student-t's chi-square half under `level.chi`, a Dirichlet component under `split`) is Marsaglia-Tsang on shape + 1 with the boost U^(1/shape) at every shape, from `GAMMA_SLOTS` fixed (normal, uniform) trials per draw; the first accepted trial is the value. A draw whose every trial rejects takes an exact fallback from a generator keyed by the stream and the draw, and is counted in `41_guards.gamma_fallbacks` out of `gamma_draws`. `STREAM_CHUNK` is how many draws of a stream are generated at once.
+
+**Why.** Owner decision 1 of 2026-10-11 (paired draws across arms; `audits/2026-10-11-model-round/PLAN.md`), design `step1/1c-paired-draws-design.md` as fixed by `step2/2-review-1c.md`.
+
+**Neither moves a distribution.** Rejection sampling on iid trials is exact and the fallback is any independent exact sampler, so `GAMMA_SLOTS` changes only how often the fallback runs; a fallback value is the one value in a run that is not paired across arms. `STREAM_CHUNK` changes no drawn value: a stream's row `d` is row `d` of one sequential fill.
+
+**How to check it.** `tests/test_draw_streams.py`: the slot gamma at four slots and at one against numpy, the fallback alone, the power rows (V1); `::test_the_chunk_size_changes_no_drawn_number_in_a_real_run` and `::test_chunk_size_changes_no_row_and_reads_are_forward_only` (V2).
+
+
+### §A57 · the universal draw (design 1j v4-L1) — 🟡
+
+**Where.** `montecarlo.make_drawer` (the draw, the calibration pass, the composition subtraction), `montecarlo.party_width`, `width_sigma`, `width_location`, `width_rho`, `pool_spec_centres`, `mean_conservation`; `src/width_record.py` (the record); scenario key `draw_law`.
+
+**Now.** Each drawn party gets one latent log level `x = √ρ(s)·σ(s)·z + ω·ε`, `ω² = σ(s)²(1 − ρ(s)) + δ²·new − v_comp`, floored at 0 with the excess in `41_guards.width_floored`; shares are `c·exp(κ + x)` normalised, with `c` the party's `pool_spec` centre and κ set by a calibration pass so the mean drawn share is `c`. The within-pool split is the post-IPF centre (no Dirichlet, no mean floor). `σ(s) = a + (b − a)/(1 + exp(k(log s − log s_mid)))` and the newness δ are fitted jointly with a location `m(s) = c1·L + c2·L²`, `L = min(log(s/20%), 0)`, by weighted ML, one unit per party-cycle, on the backtests before the target. The location is NOT in the draw (option L1). The judgement calls, each the design's:
+
+| # (v4 and v3 addenda) | call | value | evidence | how checked |
+|---|---|---|---|---|
+| 32 | one width curve over all sizes | logistic in log size, joint ML, offset-aware | owner direction 2026-10-12; v4 §1 | band roots printed as diagnostics (`DIAGNOSTIC_BANDS`, `DIAGNOSTIC_MIN_EFF` = 8) |
+| 33 | level error | L1: fitted and not in the draw; `m(s)` recorded for the centre-correction arm | v4 addendum §1, §3: L2 and L2′ fail the large-party rule | prereg arm UC |
+| 34, 37 | newness | one δ for every party new to the city (no result at the previous local election here) | v4 §1.4; addendum §2: no size-dependent term is supported or rejected | MK's width is disclosed; the §SJ overlay is reported with and without |
+| 36 | `LOCATION_CLAMP` | `m(s)` at no less than 0.016%, the record's 1st-percentile centre | review 2-review-1j-v4 §1 | — |
+| 9 | `WIDTH_BLOCK` | the residual reference block: centre ≥ 20%; `m(s)` is 0 from here up | v1 §1.1 | — |
+| 11 | shared loading | ρ measured for established parties under 1% (`RHO_GROUP_EDGE`) and 1-20% by one-way city-year decomposition about zero; applied at `RHO_ANCHOR_LO` = 0.548% and `RHO_ANCHOR_HI` = 2.24%, linear in log size between, 0 at 20% | v2 §3.1 | the 1-20% shared share is a pre-registered measured quantity |
+| 15 | location fixed point | `FIXED_POINT_ITERS` = 2, stop when no width at `FIXED_POINT_SIZES` moves by `FIXED_POINT_TOL` = 0.01; `FIXED_POINT_DRAWS` = 2,000 per earlier city-year | v2 §2.3 | `width_record.json` carries the iterations |
+| 16 | turnout composition | subtracted from each party's own variance, measured on the run's own turnout draws (the calibration streams), floored, excess recorded | v1 §2.5, v2 N1 | `41_guards.width_floored`; `test_universal_draw` |
+| 17 | mean-conservation falsifier | per party with centre ≥ `FALSIFIER_MIN_CENTRE` (0.1%), z on the run's own and the calibration's standard errors, Bonferroni at `FALSIFIER_FAMILY_ERROR` = 0.01; it reports | v2 §1.2 | `test_universal_draw::test_the_falsifier_is_quiet_on_clean_runs_and_sees_a_twenty_percent_error` (prereg M2) |
+| 18 | `N_CAL`, `KAPPA_TOL`, `KAPPA_MAX_ITER` | 4,000 · 1e-3 relative · 30 | numerical: they change the precision of the mean, not the law | `41_guards.kappa_error` |
+| 20 | `MIN_ESTABLISHED` | a target's record needs 20 established party-elections, or the writer refuses | v1 §2.6 | `test_universal_draw::test_the_fit_refuses_a_record_too_thin_to_fit` |
+| 21 | 2011 width | the 1b v3 fallback: RMS of the forward θ residual at target 2006 (`theta_residual.residuals`), with and without θ history; no shared or newness term; UNTESTABLE | no earlier backtest | the record labels it `untestable`; 2011 enters no rule (prereg §2) |
+| 22 | no pool-concentration covariate | — | real (1f §2.3); deferred; it would narrow the PA | — |
+| 23 | no extra width for a second local election | — | v1 §7 | — |
+| — | the incumbent law kept selectable | `draw_law` = "incumbent": the Student-t level shock and the Dirichlet split on the keyed streams | prereg §3.2 (arm I) | `test_levers_are_live` CONDITIONAL entries |
+| — | the small-party centre correction (arm UC) | `centre_correction`, off by default: every party with `pool_spec` centre below `WIDTH_BLOCK` multiplied by exp(m(s)), m this target's record location (earlier cycles only), s clamped at `LOCATION_CLAMP`, renormalised before the calibration pass; widths stay at the uncorrected centre | prereg §3.3; owner checkpoint 2026-10-12. The width-at-uncorrected-centre choice is this writer's reading of "draw law as U" | `test_universal_draw::test_the_centre_correction_is_the_records_location_below_the_block` |
+
+**Values.** The fitted curve, δ, location, ρ, the fixed point and the band diagnostics per target are in `data/processed/width_record.json` (`artefact_key`: `montecarlo.width_record_key`). The values at the round's re-emit are in that round's MODEL-LOG entry. They are not copied here.
+
+**Limits.** The 2011 width is untestable and too narrow by construction (v1 §2.6). The record's centres are today's code's, whose `level_shrink` was chosen on Johannesburg 2016 and the 2021 panel (v1 §2.2, 2-recheck-1b-v2 N6). Composition is subtracted per party, which keeps marginal widths and not the covariance between members of one pool (v2 §2.5, argued). The individual path joins the same latent vector and is reached by no party today.
+
+**How to check it.** `tests/test_universal_draw.py` (curves, one party's width, the fit recovering simulated parameters, the shared share found where it was put, the block frame, calibration conservation and its records, alpha unread, the own-term budget, the falsifier, judgements, the record's refusals); `tests/test_stage_realisation.py::faults_in_widths`; `tests/test_draw_streams.py::test_the_universal_law_pairs_the_same_arms`.
+
+## SJ. Strength judgements (design 1j v3 §11)
+
+A strength judgement states one party's centre and how uncertain the judgement is, for a party the record cannot size (no record, or a collapse). It is entered in the target's `judgements/<city>-<year>.toml` under `[party.<CODE>]`:
+
+* `support` (a list share; it replaces the model's centre) and/or `overperform` (a multiplier on `support`, or on the model's centre); the judged centre is `c_J = (support or the model's centre share) × overperform`;
+* `sigma_j` (required with either): a log sd, the judgement's uncertainty BEYOND the model's own centre error for an established party of the judged size. `sigma_j = 0` states a judgement as reliable as the model's own centre. It REPLACES the newness term, never adds to it;
+* `register`: the row of this section that declares it.
+
+Read at run time (`montecarlo.strength_judgements`) and excluded from the pool spec's hash; the forecast declares the hash of the entries it applied (`judgements_applied_sha`). A backtest ignores every entry and records it in `35_widths.judgements_ignored`. A forecast with judgements is also run with `apply_judgements` off, and both are reported.
+
+Each row: `§SJ<n>` · party · target · `support` / `overperform` / `sigma_j` · the reason · the evidence the record cannot supply · the date the judgement was made · how to check it after the election.
+
+| row | party | target | entry | reason | evidence | date | check |
+|---|---|---|---|---|---|---|---|
+
+*(No strength judgement is entered. `tests/test_universal_draw.py::test_every_strength_entry_has_a_register_row_and_every_row_an_entry` checks both directions.)*
+
 ## B. Measured, but the form or the selection was chosen
 
 The number came from data. The *shape* it was fitted in, or the criterion that
 picked it, did not.
+
+### §A58 · the arm runner's constants — `BACKTEST_DRAWS` 1,000 · `FORECAST_DRAWS` 5,000 · `LARGE_MIN` 15% · `MIDDLE_MIN` 5% · `CLUSTER_LEVEL` 0.90 · `R2_MIN_MEDIAN` 0.98 · `MC_RESAMPLES` 200 · `MC_SEED` — ⚖️ typed (2026-10-12)
+
+**Where.** `src/arms.py` (the runner and comparison of the 2026-10-11 round's pre-registered arms). `ARMS` is the arms' scenario overrides, the prereg §3 table as code (I: `draw_law` incumbent; U and C0: none; UC: `centre_correction` on; US: `level_shrink` 0).
+
+**Now.** The draw counts, the size classes (by the classifying arm's `pool_spec` centre), the 90% cluster-bootstrap level and R2's bar on the median per-draw correlation are the pre-registration's (`prereg/2026-10-12-universal-draw.md` §3, §4, §6.3), copied as code so the runner applies them; the prereg is where they were set. `MC_RESAMPLES` (draw-index resamples behind each paired Monte Carlo error) and `MC_SEED` are numerical: they set the precision of an error estimate, not the error.
+
+**Why.** Typed. The prereg fixes the first six; the resample count is this writer's, sized so the error of a standard deviation from 200 resamples is about 5% of it.
+
+**How to check it.** `tests/test_arms.py` (identical arms give zero difference and zero Monte Carlo error; a shifted arm stays paired above `R2_MIN_MEDIAN`; an independent one does not).
+
+**Since 2026-10-13 (step-7 review fixes).** Three more of the pre-registration's numbers are copied as code for the instruments it registered without one: `BAND` (5, 95), the drawn percentiles of "inside the 90% band" (§4); `IMPLAUSIBLE_PREVIOUS_MAX` 1% and `IMPLAUSIBLE_DRAWN_MIN` 5%, "previous < 1%" and "above 5%" of §5.6 and §5.1 row 3. `plausibility.SCORED_YEARS` (2016, 2021) and `SCORED_COUNT` (16) are §2's scored population. None is this writer's; amendment 3 states the readings.
 
 ### §B1 · `SPINE_K = 1.0`, reciprocal form — 🔴
 
@@ -941,6 +1173,8 @@ yet explained. It cannot be changed on [your forecast](your-forecast/).
 **Record.** θ and ρ are now read off eight metros rather than Johannesburg and Tshwane. More evidence, no leakage — but it changes θ itself, so it is **confounded with the spine** in any before/after backtest delta.
 
 ### §B7 · `alpha` per pool — 🟡
+
+**Since 2026-10-12 read only under `draw_law = "incumbent"`** (§A57): the shipped universal draw has no within-pool Dirichlet, and `alpha` and `dirichlet_scale` reach no run of it. The spec field is still emitted; deleting `pools.dirichlet_alpha` is a `pools.py` code change and is queued (POOLS-REEMIT-QUEUE.md).
 
 **Where.** `pools.dirichlet_alpha`
 
@@ -1254,6 +1488,8 @@ that survives contact with a long session.
 
 ### §F1 · `DIRICHLET_FLOOR` — 1e-4 — 🟢
 
+**Since 2026-10-12 read only under `draw_law = "incumbent"`** (§A57); the shipped universal draw does not read it.
+
 **Now.** 1e-4 and inert as committed — but it has a SECOND consumer that floors a CONCENTRATION rather than a mean, and `PERTURB` sweeps it to 0.05 where that would bind.
 
 **Record.** floor on the Dirichlet MEAN vector, so `E[X]` is exactly the vector asked for — **and it has a SECOND consumer that floors a CONCENTRATION, not a mean** (`make_drawer`'s arrival-group split). Inert at the committed 1e-4; `PERTURB` sweeps `dirichlet_floor` to 0.05, where it would bind on any group member sitting on the 0.02 reach floor and silently multiply its concentration. The *name* was corrected there and the *unit* was not. §1.136. Was 0.05, which manufactured ~5pp of citywide vote
@@ -1297,6 +1533,8 @@ that survives contact with a long session.
 **Record.** `theta_residual.py`, in `key4_delta`. **Below this a metro-year cluster mean is float noise rather than a direction**, and the sign count — one of KEY 4's two failure triggers — ignores it. Set six orders of magnitude above the 1.6e-14 dust a genuine no-op arm produced (`THETA_WINDOW=3` at 2016, which reported "2 of 8 metro-years worse" off `polyfit` summation order, §1.126) and six below the smallest real effect on record (`WINDOW=3` at 2021, 0.0062). Registered because it decides an UNTRADEABLE floor and would otherwise be the next unregistered number
 
 ### §F8 · `LEVEL_DF` — 7.0 — 🟡
+
+**Since 2026-10-12 read only under `draw_law = "incumbent"`** (§A57); the shipped universal draw does not read it.
 
 **Now.** BOUNDED 2026-08-29 to ν ∈ [5, 15] on four constraints, with the committed 7.0 in the middle. The honest label is no longer 'unmeasured' but 'not resolvable further on this panel'; a joint (κ, ν) fit was designed and NOT built.
 
@@ -1474,9 +1712,9 @@ that survives contact with a long session.
 
 **Record.** `pools.dirichlet_alpha`. **The selection rule feeding what §B calls "the model's DOMINANT WIDTH LEVER"** (83–98% of drawn variance for every party except ANC and DA). `dirichlet_scale`, a multiplier on this function's OUTPUT, has been registered and swept for weeks; the four numbers deciding its INPUT were inline literals in the function body, where `test_every_tunable_constant_is_in_the_judgement_register` cannot see them — it reads module-level assignments and `DEFAULTS` only. The share cut is not a tidying detail and the function's own docstring says why: without it "every pool pinned to the 200 ceiling", i.e. the simulation far more confident than the evidence warrants. Promoted to module constants and resolved in the body 2026-08-22 (§1.69); **the promotion is number-neutral, verified at Johannesburg 2016 to every seat and CRPS figure.** Never swept
 
-### §F32 · `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` — 0.25, 0.95 — 🔴
+### §F32 · ~~`ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI`~~ — ~~0.25, 0.95~~ — ⚫ deleted
 
-**Now.** 0.25 / 0.95, the triangular support of every seeded arrival. 25/95 rather than 10/90 or 5/95 is undefended and never swept.
+**Now.** DELETED 2026-10-09 (model correction batch, item 9). The band these percentiles set was emitted into every spec as `seed_bands` and never drawn from: `make_drawer` skips every pool member before the lookup and every seeded arrival is a pool member, and `blended_centres` read only the band's middle, 1.0 by construction (MODEL-LOG §1.198; item9/FINDINGS.md finding 5 and Q5). The band, its emission, its notes and these two constants are gone; a seeded arrival's width is the within-pool split (§A50). The record below is kept as written.
 
 **Record.** `pools`, consumed in `montecarlo` as `low, _, high = seed_band`. The triangular support of **every seeded arrival** — how wide an ActionSA-class party's band is. The long comment beside the code explains at length why the CENTRE moved from median to mean and why a `clip(reach, 0.05, 0.95)` was a disaster, and never mentions that the surviving percentile pair is itself a choice. 25/95 rather than 10/90 or 5/95 is undefended. Promoted §1.69
 
@@ -1497,6 +1735,8 @@ that survives contact with a long session.
 **Now.** 0.5 / 2.0 — the clip that overrides the record §E says the ward/PR ratio comes from. How often it binds is unmeasured.
 
 **Record.** `montecarlo`. Clip on the **ward/PR split-ticket ratio**, which multiplies the PR target to make the ward target and so drives ward wins and overhang. §E lists "ward/PR split ratios" as coming FROM THE RECORD — this is the clip that overrides the record where it disagrees, and it was undeclared. Promoted §1.69
+
+**Note, 2026-10-09 (model correction batch, item 6).** The slate-change multiplier on the ratio (`montecarlo.slate_change_ratio`, `ratio × now / was`, now vote-weighted) is capped at `WARD_PR_RATIO_MAX`; it carried a second literal `[0, 2.0]` clip until then. It is not floored at `WARD_PR_RATIO_MIN`, which is a floor on the measured ratio: a party fielding no ward candidate keeps 0 (SPEC O3). `levels.projected_contestation` now projects vote-weighted slates (a partial declaration, or no target lists), and its `contestation_expand` was fitted on count fractions; the projection has not been re-fitted on vote-weighted values. Inert at Johannesburg 2026, whose declaration is complete (M2 review N2).
 
 ### §F36 · `PROJECTED_METRO_SHARE` — eight per-metro shares of the national vote, 2021 values — 🔴
 
@@ -1592,7 +1832,7 @@ the honest range is "unknown". The last column is what would produce one.
 | `bye_local_cap`, `bye_tau_months` | 1.5, 18 | Same again — inert in every backtest by construction |
 | `BYE_MIN_WEIGHT` | 30.0 | The admission gate on the **whole** by-election channel, promoted from an inline literal §1.69. Never swept. A sweep at 2026 would at least show what it gates |
 | `ALPHA_MIN_SHARE`, `ALPHA_FLOOR`, `ALPHA_CEILING`, `ALPHA_FALLBACK` | 0.01, 1.0, 200.0, 12.0 | The selection rule feeding the model's **dominant width lever** (83–98% of drawn variance). Its own docstring says that without the share cut "every pool pinned to the 200 ceiling", which bounds it below but not above. **Never swept** |
-| `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` | 0.25, 0.95 | The triangular support of every seeded arrival. 25/95 rather than 10/90 or 5/95 is undefended. **Never swept** |
+| `ARRIVAL_BAND_LO`, `ARRIVAL_BAND_HI` | ~~0.25, 0.95~~ | Deleted 2026-10-09 (§F32): the band they set was never drawn from |
 | `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` | 0.02, 0.95 | Per-VD turnout caps in every draw. Whether the ceiling **ever binds** is not measured — that measurement is the first step |
 | `WARD_PR_RATIO_MIN`, `WARD_PR_RATIO_MAX` | 0.5, 2.0 | The clip on the ward/PR split ratio, which §E lists as coming *from the record*. How often it binds is unmeasured |
 | ~~`poll_house_k`~~ | 1.0 | **INERT since 2026-08-24 (§1.91): the cap it drove is deleted under `SIGMA_TWO_TERM`, which is now the default.** It is read only on the retired `SIGMA_TWO_TERM=0` path. Formerly: sets the cap `H/(H+k)`, so at one house the cap is exactly 0.50 — and the DA **sits on it** in the 2026 forecast, which means the cap and not the σ arithmetic decides the largest poll effect. Live at 2026, inert in every backtest |
@@ -2243,7 +2483,18 @@ a half-pasted list must fail safe, and the safe direction is *add*.
 `pools_2026.json`'s composition against the IEC list. If `complete = true` was
 set and the counts disagree, the deletion fired on a partial paste.
 
-### §L2 · The declaration sets the LEVEL; the record sets the WIDTH — ⚖️ argued
+### §L2 · The declaration sets the LEVEL; the record sets the WIDTH — ⚪
+
+**Since 2026-10-12 the emit reads no strength VALUE** (POOLS-REEMIT-QUEUE entry 34): a judged size and its width are applied at run time under §SJ, on a forecast only, and a party carrying `support` is sized at emit from the record base like any arrival. **Since 2026-10-13 it reads which parties are judged** (`pools.judged_parties`: `support` or `overperform` present, on a forecast; POOLS-REEMIT-QUEUE entry 37), and such a party sits outside the group budget, as the level half below states; the 2026-10-12 sentence that kept it inside contradicted this entry and moved the other arrivals' captures. The membership is in the spec's hash, the values are not.
+
+⚪ **RETIRED 2026-10-09 (model correction batch, item 9).** The width half was
+false: the arrival band this entry describes was never drawn from, so the pool
+Dirichlet set the width whatever the band said. The SACP, declared at a level,
+drew a 90% log width of 7.15 against its band's 3.46 (item9/FINDINGS.md finding
+5). The band is deleted (§F32). The level half stands in the code: a declared
+`support` or `overperform` sets the seed, and a judged size sits outside the
+group budget (§1.178). A seeded arrival's width is the within-pool split
+(§A50). The entry below is kept as written.
 
 **What.** For a party sized by declaration — `support`, or `overperform`, with
 or without `weights` — the band is `[lo_e / base, 1.0, hi_e / base]` where
@@ -2487,6 +2738,8 @@ read on the day. Undefended beyond that.
 
 ### §L9 · `REGISTRATION_MAX` — 2.0 — ⚖️ a runaway guard, not an estimate
 
+**Reinstated 2026-10-14** (model round step 9; owner decision 1 after step 8, `audits/2026-10-11-model-round/PLAN.md`; MODEL-LOG §1.302). It was deleted on 2026-10-12 in favour of the identification hold (§L15), which is withdrawn this round: K1 was falsified on the live fits (MODEL-LOG §1.301): the held pool takes `pools._uninformed_rate`, `b.sum() / A.sum()` summed over every pool, so the held rate reads every pool's census level and the identified pools are refitted around it (0.46-1.13pp at the nine fits holding a pool, 7.0pp where the scaling flips the held set). The text below describes the bound as it ships.
+
 **What.** `_nest` fits three levels with one solver. `adult_share` and `turnout`
 are bounded at **1.0**, which they cannot exceed. **`registration` is bounded at
 2.0**, because it can.
@@ -2602,18 +2855,27 @@ failure with the sign reversed.
 instruction was that uncertain names be registered as judgement calls unless they
 can be certified automatically, and nothing available certifies these. §1.242.
 
-### §L13 · The SACP's first general ballot is sized by hand from its by-elections — 🔴 typed, and it is the largest single newcomer
+### §L13 · The SACP's first general ballot is sized by hand from its by-elections — ⚪ RETIRED 2026-10-09
 
-**Plain — The SACP's first ballot under its own name.** The South African
-Communist Party has stood on ANC lists until now, so it has no Johannesburg
-record of its own. We sized it by hand from the ward by-elections it has fought
-elsewhere since July 2025, all in wards it chose to contest. The size is the
-average of two readings: its typical share of the vote in those wards, and its
-typical share of the combined SACP and ANC vote there, applied to the ANC's
-expected Johannesburg share. Sized as a breakaway from the ANC it came out
-several times larger, and sized as a brand-new party it came out below every
-by-election result it has had; its own record rejects both. It cannot be changed
-on [your forecast](your-forecast/).
+⚪ **RETIRED 2026-10-09 (model correction batch, BRIEF items 13 and 18).** The
+owner: "it's a strange case. it's usually in the alliance so strange it is
+running alone, but only in some wards I think. Narrow it and treat like
+everyone else until we have a mechanism to change that has some basis", and on
+the specification, "SACP normal. Is it treated as a split or new entrant? ...
+But leave it as a normal new party". The
+`weights` and `support` lines are deleted from
+`[party.SOUTH_AFRICAN_COMMUNIST_PARTY]`, so `arrival_rules` sizes it as a
+generic entrant (reach-matched comparators, the even pool spread, zero level
+shock, the pool split), the route this entry measured at about 0.06% (item (b)
+below). Its alliance status is a comment in the judgement file, not a
+mechanism; the owner's note that it stands "only in some wards" disagrees with
+the declared slate, which lists it in every ward (SPEC §0 O8), and is noted,
+not changed. The effect on the forecast is pre-registered (SPEC §6 P13) and
+measured in the batch's window; the MODEL-LOG entry is the batch's (step 13).
+The entry below is kept as written.
+
+(Its reader-facing Plain field was removed on retirement: a retired call is not
+shown to a reader as a live choice, `judgement_sheet.plain_calls`.)
 
 **Where.** `judgements/joburg-2026.toml`, `[party.SOUTH_AFRICAN_COMMUNIST_PARTY]`:
 `weights` and `support`. No symbol in `src/`.
@@ -2655,6 +2917,8 @@ not fixed tonight (it invalidates every spec).
 record puts around the declared level. **Record.** 2026-09-16, owner's decision.
 
 ### §L14 · A pool silenced at the 0.0 corner is held at the city's own rate — 🔴 a declared fallback, not an estimate
+
+**Extension withdrawn 2026-10-14 with §L15** (MODEL-LOG §1.302). From 2026-10-12 to 2026-10-14 the tree also held, at the registration level, a pool the ward table cannot identify, before the fit. That hold is reverted; this entry covers the silenced-pool hold only.
 
 **Where.** `pools._nest_holding_silent`, with `pools._silent_pools` and
 `pools._uninformed_rate`, called from `pool_counts` at each of its three nested
@@ -2733,6 +2997,20 @@ repair.
 `test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing` (every fitting
 year a declared target uses). Each held cell stays listed in the spec's
 `rates_on_a_bound` with the corner it came from and the value it was held at.
+
+### §L15 · `IDENTIFICATION_REACH` — 0.25 — ⚫ withdrawn 2026-10-14, not shipped
+
+**Withdrawn 2026-10-14** (model round step 9; owner decision 1 after step 8; MODEL-LOG §1.302). `IDENTIFICATION_REACH` and `pools.registration_split` are removed and `REGISTRATION_MAX` (§L9) is reinstated. Reason: K1 was falsified on the live fits (MODEL-LOG §1.301): the held pool takes `pools._uninformed_rate`, `b.sum() / A.sum()` summed over every pool, so the held rate reads every pool's census level and the identified pools are refitted around it (0.46-1.13pp at the nine fits holding a pool, 7.0pp where the scaling flips the held set). The design anticipated the held pool carrying its own census level, not every other pool's. Next round: a held rate that does not read the other pools' census levels, with a K1 test that holds a pool. The text below describes the hold as it stood in the tree from 2026-10-12 (c2edc60) to 2026-10-14; it never reached a published forecast.
+
+**Where.** `pools.pool_counts` (the registration solve), `pools._nest_holding_silent` (`hold`), `pools.IDENTIFICATION_REACH`.
+
+**Now.** Registration is fitted with no upper bound. A population group whose largest share of any ward's people is under 25% is not fitted: its registration rate is HELD at the city's own rate (`_uninformed_rate`, the §L14 value), the other pools are fitted around it, and it is recorded in `imputed["registration"]` and in `unidentified` with the reach that selected it.
+
+**Why.** Owner, 2026-10-12: a group the wards cannot identify is capped at the city's registration rate, by one rule for every group (PLAN.md; design 1g §c, "P_hold"). With no bound a group-uniform census error is absorbed by the group's fitted rate (1g §0: ≤ 0.10pp at Johannesburg 2021, 0.06pp at Cape Town 2016, measured); where the ward table says nothing the census level is the only information there is, and holding the city's rate is the composition rule applied pool by pool.
+
+**Not settled by the record.** 1g §c sets the reach test against a coefficient-of-variation test (CV > 1); they disagree on Cape Town's Indian/Asian pool, and neither wins on 1g's ward-fit diagnostic. The owner chose the reach test. Both have a cliff (1g run6); a continuous partial pooling is queue entry 31's.
+
+**How to check it.** `tests/test_pool_bounds.py::test_an_identified_pools_split_does_not_carry_its_census_level` (prereg K1 on a constructed table; the bounded solve moves, the unbounded does not), `::test_the_identification_hold_holds_an_unidentifiable_pool_and_no_other`, `::test_the_held_registration_set_is_the_unidentifiable_indian_asian_pools` (K7, the live held set), `::test_the_registration_bound_is_per_level` (Mangaung Indian/Asian held by name). Prereg 2026-10-12 §8 K1-K7 score it on the re-emitted trees.
 
 ### §L11 · The CONTENDER rule — ⛔ SUPERSEDED 2026-09-07, ITS HEADLINE COMPARISON IS ACROSS TWO MODULES
 
@@ -2962,6 +3240,20 @@ converted, no total is fixed, and the statute's pool is formed from the two
 ballots as given. The combined input, its `total_votes` and its rounding are
 retired (MODEL-LOG §1.292); the editor's bounds that now shape what a reader
 can set are §R.
+
+**Amended 2026-10-09 — the tie, against the statute.** The entry says, in its
+first form and in the 2026-09-28 amendment, that an exact tie falls by input
+order (the reader's shares, then the roster) "where Schedule 1 says by lot".
+Schedule 1 has no lot for seats: item 13(2)(b) (16(4)(c) in the excessive-seats
+re-allocation) gives an equal surplus to the party with more valid votes, and it
+says nothing about parties equal on both (law summary D9,
+`audits/2026-10-09-site-batch/law/SUMMARY.md`). Since 2026-10-09
+`seats.allocate` ranks the whole-vote surplus and then the votes, so an equal
+surplus goes to the higher vote as the statute says, and only parties equal on
+both reach a tie, which the statute does not address. That tie is drawn by the
+seeded lot under the context's `lot` (the published run's identity; §Q6), so
+neither roster order nor input order decides it. The original text is kept
+above as the record of what was claimed.
 
 ## N. Added 2026-09-28 — re-weighting the published draws (PLAN.md S4)
 
@@ -3830,6 +4122,16 @@ in the published simulations, so "support" is read as ward wins.
 seats, including a DA no larger than its partner and the count of small
 parties needed. MODEL-LOG §1.286 to §1.288 record the figures.
 
+### §P4 · the plausibility instrument's constants — `TINY_LINE` 1% · `SIZE_CLASSES` · `OUTER_K` 1 IQR · `J7_FEATURES` · `J8_FEATURES` · `RATIO_LOG_FLOOR` 1e-4 · `MIN_JUDGING` 8 · `FAIL_P` 0.05 · `PIT90_MIN_FRACTION` 0.75 · `COLLAPSE_JUMP_MULT` 3 — ⚖️ typed (2026-10-12)
+
+**Where.** `src/plausibility.py` (design `audits/2026-10-11-model-round/step1/1h-plausibility-check-design.md` §5.1).
+
+**Now.** The tiny-party line for the tiny features (1%, the owner's); the five size classes at the previous election (under 1%, 1-3%, 3-10%, 10-30%, 30% and over); the outer envelope at the record's range ± 1 IQR; the two joint counts: seven whole-vote features (`J7_FEATURES`: `vol`, `max_gain`, `max_loss`, `d_enp`, `top2`, `n_ge5`, `tiny_max`), which the pre-registration's U1 and U2 read, and those plus the ward feature `w_top` (`J8_FEATURES`), which its U3 reads (amended 2026-10-12, step 6: one eight-feature tuple reported U1 on the wrong set; the prereg's own amendment 2 states the seven); the floor under a retained ratio's log; the fewest real transitions a target may be judged by (8); the failure rule of design §3.2: an event-test tail below 0.05, or fewer than three quarters of scored targets inside the central 90% of their draws (18 of 24), cycle-driven features (`enp`, `d_enp`, `top2`, `d_turnout`) reported and not failed; a party class fails when its collapse or jump rate exceeds three times the exchangeable 1/(n+1), or its threshold-event rate exceeds the record's rule-of-three bound.
+
+**Why.** None is forced by the record (design §5.1). They define a JUDGE, not the model: the instrument sets no parameter, and a parameter estimated from a feature removes that feature from the check (design §3.1).
+
+**How to check it.** `tests/test_plausibility.py` (the four-part rule on constructed records; the live population 8/16/24/32; the import closure).
+
 ## Q. Added 2026-10-08 — reducing the forecast to our prediction
 
 The forecast is the simulations; our prediction is one complete result reduced
@@ -3880,37 +4182,65 @@ the rounding, the missing ballot, nothing summed);
 `tests/test_your_forecast_page.py` recomputes the published start from the
 served draws.
 
-### §Q2 · the tie rule: the party code first in string order — 🔴 typed
+### §Q2 · the ward tie rule: a seeded lot — ⚖️ statute-shaped (owner, 2026-10-09)
 
-**Now.** A ward whose top count is shared by two or more parties is called for
-the one whose code sorts first (`min` over the tied codes), whatever order the
-arrays or the party list are in. Schedule 1 has no rule for this: a ward tie
-in a prediction is a modelling event, not an election one. The rule is chosen
-for being independent of array order, so the build, the page, the scorer and
-the map cannot disagree. It favours codes early in the alphabet, which is why
-it is 🔴.
+**Now.** A ward whose top count of simulations is shared by two or more parties
+is called for the party the seeded lot draws: `seats.lot_order(tied, key)`, with
+`key = seats.ward_key(lot, ward)` and `lot` the run's identity,
+`seats.lot_identity(city, target, seed)`. No party name enters the key. The
+codes are numbered in string order only to enumerate them; which number draws
+first is the key's (a SHA-256 ticket per number). So a repeat of the run gives
+the same call, a different seed can give a different one, and over many keys
+each tied party is called equally often whatever its code. Schedule 1 item 8(2)
+settles a real ward tie by lot; this applies the same rule to a tie in the
+count of simulations. A tie with no key raises (`prediction.RuleAError`).
 
-**Where it was different.** Before 2026-10-08 each site that called a ward from
-the simulations broke a tie its own way. The sites are what the widened scan in
-`tests/test_prediction_rule.py` finds:
+Owner, 2026-10-09: "item 8 is a coin flip, so flip a coin. alphabetically
+favours one name above others if it happens twice."
 
-| site | tie went to | now |
-|---|---|---|
-| `score_forecasts.model_forecast` (the scorer; the build's start called it) | the earlier party in the schema roster | rule A |
-| `page._ward_calls` (the page's map and hand-off) | the first party in a stable sort over the draws' ward-party order | rule A |
-| `scenarios.modal_winners` (the published claims' boxes) | the party first seen, by `Counter.most_common` | `prediction.top_party` |
-| the ward call in `diagnose.main` | the first in dict order, by `max` | `prediction.top_party` |
-| `score.score_wards` (the backtest's ward hit rate) | the first in dict order, by `max` | `prediction.top_party` |
-| the published winner column written by `montecarlo.main` | an unstable sort (SPEC-A M11) | exempt, pending owner decision (s1/SYNTHESIS.md item 8) |
+**What it replaced.** From 2026-10-08 to 2026-10-09 a tie went to the code
+first in string order (`min` over the tied codes). It was independent of array
+order, so the build, the page, the scorer and the map agreed, and it favoured
+codes early in the alphabet at every tie. This entry then said Schedule 1 has
+no rule for a ward tie; item 8(2) is that rule (law summary D9,
+`audits/2026-10-09-site-batch/law/SUMMARY.md`).
 
-Routing the last changes `montecarlo.py` beyond a recorded field, which brings
-the whole suite forward (FLOW.md).
+**One lot everywhere.** The run's identity reaches each caller one way:
+`ModelRun.lot` inside a run; `x-seat-context["lot"]` in the schema, written
+only by `worker-api/tools/make_schema.mjs` from the model artefact, which
+`build_make.run_lot` fills from the served draws' `artefact_key`; the same manifest on
+the page (`page._lot`); and the published seed in `forecast_summary.json` with
+the configured city and target for `scenarios.summary_lot`. A baseline's lot is
+`benchmarks.benchmark_lot`, the truth's carries `"actual"` in place of a seed.
 
-**How to check it.** Count tied wards at each published run: at Johannesburg
-2026's published seed and draws, none (MODEL-LOG §1.291; SPEC-A M3 is the
-designer's probe); the backtest
-reproduction records the tied wards of every city-year (its tied_wards
-field): none in any city-year (MODEL-LOG §1.291). A non-zero count means the rule decided a call.
+| site | tie went to, before 2026-10-08 | 2026-10-08 to 2026-10-09 | now |
+|---|---|---|---|
+| `score_forecasts.model_forecast` (the scorer; the build's start calls it) | the earlier party in the schema roster | rule A, string order | the lot, schema's `lot` |
+| `page._ward_calls` (the page's map and hand-off) | the first party in a stable sort over the draws' ward-party order | rule A, string order | the lot, manifest's identity |
+| `scenarios.modal_winners` (the published claims' boxes) | the party first seen, by `Counter.most_common` | `prediction.top_party`, string order | the lot, `scenarios.summary_lot` |
+| the ward call in `diagnose.main` | the first in dict order, by `max` | `prediction.top_party`, string order | the lot, `ModelRun.lot` |
+| `score.score_wards` (the backtest's ward hit rate) | the first in dict order, by `max` | `prediction.top_party`, string order | the lot, the forecaster's identity |
+| the published winner column written by `montecarlo.main` | an unstable sort (SPEC-A M11) | unchanged, exempt | the lot, `ModelRun.lot` (`montecarlo.published_ward_winner`) |
+| the baselines' ward calls, `benchmarks.council_from_shares` | the first column of an argmax, so universe order | unchanged | the lot, `benchmarks.benchmark_lot` |
+
+**Outside the population, stated.** Two ward calls do not go through the lot.
+Inside one draw, `run_model` takes each ward's winner as the argmax of that
+draw's tally, which breaks an exact float tie by universe order; the tally
+carries multiplicative ward noise, so an exact tie needs two equal floats
+(argued, not measured). `fold.py`'s per-ward diagnostic calls (`max` with a
+key) are a printed fold diagnostic, not a forecast. Neither is changed. The JS
+`allocate` in `src/interactive_template.html` is not a second seat law: its
+build raises at import (`build_interactive.py`, "not ported").
+
+**How to check it.** `tests/test_prediction_rule.py`: one constructed tied ward
+through every caller above gives one party for one lot, the other party for a
+different seed, and refuses with no lot; the build's lot and the page's agree
+and move together with the seed. `tests/test_seats.py`: over 1,000 keys each
+of two tied codes wins between 45% and 55% of the time, renamed or not. Count
+the tied wards at each published run: before this change none at Johannesburg
+2026's published seed and draws, and none at any panel city-year (MODEL-LOG
+§1.291); the count under the lot is TO-MEASURE on the batch's re-run. A non-zero
+count means the lot decided a call.
 
 ### §Q3 · whole votes by round-half-to-even of the mean — 🔴 typed
 
@@ -3940,6 +4270,119 @@ SYNTHESIS, correcting S0 finding 3).
 a constructed council of ten, six minor parties each under a quota win nothing
 under their own codes, and summed into one column they hold a quota and win a
 seat (`tests/test_prediction_rule.py::test_no_party_is_summed_and_summing_would_seat_differently`).
+
+### §Q5 · a party with ward candidates and no list: the counting authority's formula, not the statute's text — ⚖️ judgement (2026-10-09)
+
+**Now.** Two terms in the seat law follow the IEC's published formula where
+Schedule 1's text has no such term (law summary D1, D2,
+`audits/2026-10-09-site-batch/law/SUMMARY.md`):
+
+* **D1, the quota.** A party that contested wards and registered no list is
+  left out of the pool: its votes leave A (`seats.eligible_parties`), and the
+  wards it wins leave the seats the quota is struck over, as the D term beside
+  independents' C (`seats.outside_pool_wards`). The IEC's Seat Calculation
+  Detail prints Q = A / (B − C − D) + 1 with D "ward councillor seats from
+  parties with no PR list" (quoted in `seats.py`'s module docstring). Item
+  12(1) reads Q = A / (B − C) + 1, with A the valid votes for all parties and C
+  the independent ward councillors, and names no D.
+* **D2, the excessive-seats re-quota.** `montecarlo.allocate_with_overhang`
+  re-strikes the quota over the council less the excessive party's seats, less
+  C and less D, which is the IEC's Q = (A − B) / (C − (D + E + F)) + 1 as
+  printed in the Laingsburg 2021 report (F, its no-list ward seats). Item 16 as
+  amended reads (A − B) / (C − (D + E)) + 1 and names no F.
+
+**Why the formula and not the text.** The counting authority applies it and
+publishes it, and the published councils are what the backtest scores against.
+The statute's text gives a party with no list nowhere to go: its ward seats are
+seats on the council, and its votes count toward A on the text, while it can
+earn no list seat.
+
+**Evidence.** For D1's A: the IEC's published A at Johannesburg 2021 is the
+combined valid votes less the independents and the two no-list parties' votes;
+the arithmetic is in `seats.py`'s module docstring, where it was checked. For
+D1's seat term and for D2, none: C is not zero everywhere (eThekwini 2011 and
+2016 record independents; `seats.outside_pool_wards`' docstring cites the
+IEC's figures), but D, a no-list party winning a ward, is zero in every
+published council on disk, and F = 0 at Laingsburg. So the text and the
+formula give the same council at every case on record. Argued, not tested.
+
+**How to check it.** A Seat Calculation Detail with D > 0 (a no-list party
+winning a ward) checks D1's seat term against `validate_seats.py`; one with
+F > 0 in the excessive-seats block checks D2.
+
+### §Q6 · an exact tie at the last seat: a seeded lot — ⚖️ judgement where the statute is silent (owner, 2026-10-09)
+
+**Now.** `seats.allocate` fills the undistributed seats by the whole-vote
+surplus, `votes − floor(votes / quota) × quota` (Schedule 1 item 13(2)(a)),
+and an equal surplus goes to the higher vote (13(2)(b); 16(4)(c) in the
+excessive-seats re-allocation). Parties equal on both that straddle the last
+seat are put in the order `seats.lot_order` draws for the call's key; the seats
+falling to the group go to the first of them. The statute says nothing beyond
+the higher vote. The key names the run and the allocation round, never a party.
+Keys are built only by `seats.seat_key`, `seats.draw_key` and `seats.ward_key`
+from `seats.lot_identity`, which refuses a missing city, target or seed:
+
+| event | key |
+|---|---|
+| a seat inside draw `d` of a run | `seat_key(draw_key(lot, d), round)` |
+| a seat of our prediction, a reader's entry, the scorer's truth | `seat_key(lot, round)`, `lot` from the schema's `x-seat-context` (the truth: `lot_identity(city, target, "actual")`) |
+| a baseline | `benchmarks.benchmark_lot` (`"benchmark:<name>"` in place of the seed), made per draw by `draw_key` for `prior-lge-noise` |
+| `backtest.actual_result`, `fold.py`, `validate_seats.py` | `"actual"` in place of the seed; the fold's label with `actual` or `predicted`; `"validate"` |
+
+`round` is 0 for the first allocation in `montecarlo.allocate_with_overhang`
+and counts each real re-allocation after it. The first `deduct` or `level`
+iteration allocates the same council as round 0, so it reuses round 0's
+allocation rather than re-drawing it under round 1's key; otherwise an exact
+tie could fall one way where the excess is measured and the other way in the
+council returned (M1 diff review, S5). A call that meets such a tie with no key
+raises `seats.TieWithoutLot`, a `ValueError` naming the codes.
+
+**Two populations, two changes.** Item 2 (the whole-vote surplus) moves a
+council by itself where two parties at the cut have an equal whole-vote surplus
+and unequal votes: the float remainder could put the smaller party first, and
+the statute gives the seat to the higher vote. The M1 diff review found
+published councils in that class. Item 1 (the lot) moves only a council whose
+cut falls inside a group equal on surplus AND votes. Every other council is
+identical. Both counts are TO-MEASURE at the batch's run (SPEC Revision 3,
+R3.1).
+
+**What it replaced.** The ranking key was the float remainder, then the votes;
+two parties equal on both kept the order they arrived in, and the model's
+arrival order is a set's, so `PYTHONHASHSEED`'s. The baselines fixed it from
+2026-09-13 by a name rule (`canonical_order`: most votes, then the code), which
+gave every such tie to the earlier code; a reader's entry fixed it by roster
+order. Owner, 2026-10-09: "alphabetically favours one name above others if it
+happens twice."
+
+**What it decides.** Johannesburg 2016's rule-A row, where two parties hold
+identical rule-A votes and straddle the last seat (MODEL-LOG §1.291 has the
+parties, the votes and both seat errors). Which one the lot gives, the number
+of draws at Johannesburg 2026 in which an allocation meets
+such a tie, and the baselines' re-measured panel totals are TO-MEASURE on this
+batch's re-run (pre-registration P1, P2, P2b).
+
+**How to check it.** `tests/test_seats.py`: the lot's answer is fixed for a key
+and moves with it, over 1,000 keys each of two tied codes wins 45% to 55% of
+the time whatever their names, a tie with no key refuses, an untied council
+never reads the key, and an equal surplus goes to the higher vote where a float
+remainder misorders it. `tests/test_stage_realisation.py`: one council over 24
+orderings of a tied tally, more than one with the lot replaced by arrival order.
+`tests/test_overhang.py`: Laingsburg 2021's published round-two ranking.
+
+### §Q7 · an unopposed ward: statute in the seat law, a refusal in the draws — ⚖️ statute-shaped, with a judgement on scope (2026-10-09)
+
+**Now.** Schedule 1 item 12(2) counts each PR vote cast in an unopposed ward for the winner's party twice for factor A, item 13(1)(b) twice for that party's entitlement, and item 16(5) (as substituted by Act 3 of 2021) twice in the excessive-seats re-quota. `seats.eligible_parties` takes those votes as `unopposed_pr` and adds them once more to the party's combined votes; the re-quota reads the same tally. `backtest.actual_result` computes them from the result file (`levels.unopposed_wards`' rule through `levels.unopposed_pr_votes`).
+
+The draws do not model an unopposed ward: they simulate a ward ballot in every ward. `montecarlo.run_model` refuses a target with one, naming the wards. Where the population is read: from the target's result file where it exists, else from the declared slates under `[roster.wards]` in the judgement file. At Johannesburg 2026 it is the declared slates, which are the press-typed list (§L12 and the `[roster]` provenance note), not an IEC-certified one.
+
+**The judgement.** Not modelling it in the draws. No ward in any metro LGE result file 2000-2021 has fewer than two ward-ballot parties, and no declared 2026 slate has a ward with one party (`tests/test_unopposed.py` scans both), so a draw-loop branch would have no case to score (SPEC O4, owner: "OK").
+
+**Deviation from the specification (SPEC §1.3).** The specification counted a ward as unopposed when its result file shows exactly one ward-ballot party. An unopposed ward holds no ward ballot, so a result file would show it with PR rows and no ward rows. `levels.unopposed_in` therefore also reports such a ward, as `{ward: None}` (the file does not name the candidate); `run_model` refuses it like any other, and `unopposed_pr_votes` refuses to reconstruct a council around it until the party is named. A ward the declared slates do not mention is not reported, because a partial paste cannot say nobody stood there. The `None` case is reported on the evidence of no ward ballot, which is what an unopposed ward would leave in the file; the file itself does not say the ward was unopposed.
+
+**Limit: independents.** `IND` counts as one party. Result files merge every independent in a voting district into one `IND` row (DATA-QUALITY item 12), and a declared slate lists them under one key, so a ward contested only by two or more independents would read as unopposed and refuse falsely. Argued, not observed: no such ward is on disk or declared.
+
+**How to check it.** `tests/test_unopposed.py`: the scan over every metro LGE file and every declared 2026 slate (population asserted against each city's ward count), a constructed unopposed ward caught and the detector quiet on revert, the refusal, and a hand-computed council where the doubled votes move a seat.
+
 
 ## R. Added 2026-10-08 — a reader's prediction on both ballots, and the editor's bounds
 

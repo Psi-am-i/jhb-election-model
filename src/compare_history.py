@@ -1480,7 +1480,7 @@ def chamber_fill(draws, council: int) -> dict:
             "fills_council": abs(total - council) <= 0.5}
 
 
-def ward_winner_accuracy(ward_probs, actual_winners) -> dict:
+def ward_winner_accuracy(ward_probs, actual_winners, *, lot: str | None = None) -> dict:
     """How many ward contests were called right. **THE GEOGRAPHY-SENSITIVE KEY.**
 
     **WHAT IT IS FOR, and it is not a nicer-looking seat score.** Every other
@@ -1525,7 +1525,7 @@ def ward_winner_accuracy(ward_probs, actual_winners) -> dict:
         return {"n_wards": 0, "wards_matched": 0, "called": 0,
                 "hit_rate": float("nan"), "brier_multicategory": float("nan")}
     ward_probs = ward_probs or {}
-    scored = S.score_wards(ward_probs, actual_winners)
+    scored = S.score_wards(ward_probs, actual_winners, lot=lot)
     return {
         "n_wards": scored["n_wards"],
         "wards_matched": sum(1 for w in actual_winners if ward_probs.get(w)),
@@ -1935,7 +1935,7 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
         # the party that actually arrived, or it is debited twice.
         "wards": ward_winner_accuracy(run.ward_probabilities()
                                       if run.ward_winner_counts is not None
-                                      else {}, actual_winners),
+                                      else {}, actual_winners, lot=run.lot),
         "calibration": calibration_columns(
             run.seat_draws, actual_seats, entrant_actual,
             _pit_seed(city_slug, year), actual_pr=actual_pr,
@@ -2143,7 +2143,8 @@ def run_city_year(city_slug: str, year: str, draws: int, data_dir: Path,
             # forecast.
             "dropped_claims": len(bench_scored.get("dropped_claims") or []),
             "wards": ward_winner_accuracy(BM.ward_probabilities(ward_draws),
-                                          actual_winners)}
+                                          actual_winners,
+                                          lot=BM.benchmark_lot(name, ctx))}
 
     # ⛔ THE #13 PREDICATE, RUN ON THE ROW THAT WAS JUST BUILT. `score.comparable`
     # asks the only question that licenses a difference between two of the sums
@@ -3033,7 +3034,8 @@ def _guard_cell(board: dict, keys: tuple, kind: str) -> str:
                 + (f" ({top / bottom:.1%})" if bottom else ""))
     if kind == "sumrate":                      # a dict of per-party counts
         top = float(sum((board[keys[0]] or {}).values()))
-        bottom = float(board[keys[1]] or 0)
+        _den = board[keys[1]] or 0           # per party since 2026-10-09
+        bottom = float(sum(_den.values()) if isinstance(_den, dict) else _den)
         return (f"{int(top):,}/{int(bottom):,}"
                 + (f" ({top / bottom:.1%})" if bottom else ""))
     return "—"                                 # pragma: no cover

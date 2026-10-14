@@ -54,6 +54,7 @@ import prediction as P
 import render_map as RM
 import reweight as R
 import score_forecasts as SF
+import seats
 
 #: The cell the published forecast was drawn in (``site/draws/index.json``'s
 #: entry with no overrides). Its pool-turnout means are the published means.
@@ -188,12 +189,22 @@ def _weights(cell: dict, settings: dict) -> tuple[np.ndarray, dict]:
     return w, info
 
 
+def _lot(cell: dict) -> str:
+    """The run's identity for the seeded lot, from the cell's manifest
+    (``seats.lot_identity`` of its ``artefact_key``'s city, target and seed):
+    the value ``build_make.run_lot`` writes into the schema, so the page, the
+    build and the scorer draw a tie one way. JUDGEMENT-CALLS §Q2."""
+    key = cell["manifest"]["artefact_key"]
+    return seats.lot_identity(key["city"], str(key["target"]), key["seed"])
+
+
 def _ward_calls(cell: dict, w: np.ndarray) -> list[dict]:
     """Every ward under ``w``, drawn by ``render_map.ward_call`` (the forecast map's rule).
 
     ``winner`` is rule A's call under ``w`` (``prediction.ward_calls``: the
-    party that wins the ward in the most weighted simulations, a tie to the
-    code first in string order), the same call :func:`handoff` hands section 2.
+    party that wins the ward in the most weighted simulations, a tie drawn by
+    the seeded lot under :func:`_lot`), the same call :func:`handoff` hands
+    section 2.
 
     ``dist`` is built as ``ward_winner_probs.csv`` carries it: each party that
     wins the ward in any draw with weight, strongest first, at its
@@ -203,7 +214,7 @@ def _ward_calls(cell: dict, w: np.ndarray) -> list[dict]:
     winners, wards = _block(cell, "ward_winner")
     codes = cell["manifest"]["ward_parties"]
     probs = R.ward_win_probability(winners, w, len(codes))
-    called = P.ward_calls(winners, codes, wards, w)
+    called = P.ward_calls(winners, codes, wards, w, lot=_lot(cell))
     out = []
     for j, ward in enumerate(wards):
         hit = np.bincount(winners[:, j], weights=w, minlength=len(codes)) > 0
@@ -461,7 +472,8 @@ def handoff(request_json: str) -> str:
     if list(cols) != list(lcols):
         return json.dumps({"refused": "the ward_vote and list_vote blocks have different columns"})
     try:
-        pred = P.rule_a(winners, cell["manifest"]["ward_parties"], wards, wv, lv, cols, weights=w)
+        pred = P.rule_a(winners, cell["manifest"]["ward_parties"], wards, wv, lv, cols, weights=w,
+                        lot=_lot(cell))
     except P.RuleAError as exc:
         return json.dumps({"refused": str(exc)})
     empty = [b for b in ("ward_votes", "list_votes") if not sum(pred[b].values()) > 0]

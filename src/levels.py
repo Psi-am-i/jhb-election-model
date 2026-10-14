@@ -191,6 +191,21 @@ RELIABILITY_HALF = 0.002
 # than a point estimate. See the module docstring.
 SPINE_K = 1.0
 
+# THE SIZE WINDOW'S RULE (BRIEF item 16, JUDGEMENT-CALLS §A52). A party's own
+# ratios count toward its shrunk mean only where they were measured off a size
+# within `h` (natural-log units) of its size now. `h` is DERIVED per target and
+# per record by `size_window`, by scoring every candidate on how well each
+# party's record predicted its next real ratio, and taking the WIDEST candidate
+# whose cycle-clustered paired error difference from the best is not
+# measurably worse (owner, 2026-10-09: "the window tie is settled by measuring
+# the uncertainty"). What is typed is the grid it chooses from, the minimum
+# number of scored observations below which it does not choose (and leaves the
+# filter off), and the one-sided level at which a wider window counts as
+# measurably worse. The t quantile is arithmetic (`_t_upper`), not a choice.
+SIZE_WINDOW_GRID = (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, float("inf"))
+SIZE_WINDOW_MIN_SCORED = 20
+SIZE_WINDOW_ALPHA = 0.05
+
 
 # Every metro with a VD-level archive. The retention record is a national fact
 # about how parties behave between election types, not a Johannesburg one, and
@@ -336,7 +351,13 @@ def _citywide_and_roster(path) -> tuple[dict[str, float], set[str]]:
     raw: set[str] = set()
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
-            for row in csv.DictReader(fh):
+            reader = csv.DictReader(fh)
+            # Both columns are read with `.get` or by key below; a renamed
+            # `Party_Votes` would otherwise read as zero votes everywhere.
+            for col in ("sPartyName", "Party_Votes"):
+                if col not in (reader.fieldnames or ()):
+                    raise KeyError(col)
+            for row in reader:
                 name = row["sPartyName"]
                 raw.add(name)
                 if row.get("BallotType") in (None, "", "PR"):
@@ -344,8 +365,11 @@ def _citywide_and_roster(path) -> tuple[dict[str, float], set[str]]:
                         float(row.get("Party_Votes") or 0))
     except FileNotFoundError:
         return _absent(path), set()
-    except KeyError:
-        return {}, set()
+    except KeyError as exc:
+        # A RENAMED COLUMN IS NOT AN EMPTY ELECTION. This returned `{}` until
+        # 2026-10-09, which every caller reads as "nobody voted" (BRIEF item 10).
+        raise SystemExit(f"{path}: column {exc} missing — a renamed column, "
+                         f"not an empty election") from None
     total = sum(counts.values())
     return ({k: v / total for k, v in counts.items()} if total else {},
             {P.canonical(n) for n in raw})
@@ -893,12 +917,44 @@ def _reliability(share: float) -> float:
     return float(share) / (float(share) + RELIABILITY_HALF)
 
 
+def size_sd_raw(size: float, sd_fit: dict) -> float:
+    """The size group's width in log θ at ``size``, before the clamp.
+
+    ``sd_fit`` is :func:`theta_prior`'s ``groups["sd_fit"]``: either the
+    dispersion line ``{"route": "size_fit", "slope", "intercept"}``, evaluated
+    as ``exp(½(intercept + slope·log size))`` with ``size`` floored at 1e-5, or
+    ``{"route": "pooled", "pooled"}``, one width for every size.
+    """
+    if sd_fit.get("route") == "pooled":
+        return float(sd_fit["pooled"])
+    x = np.log(max(size, 1e-5))
+    return float(np.exp(0.5 * (sd_fit["intercept"] + sd_fit["slope"] * x)))
+
+
+def size_sd(size: float, sd_fit: dict) -> float:
+    """The size group's width (the RANGE of BRIEF item 17), clamped to
+    ``[SD_FLOOR, SD_CEILING]``. One definition: :func:`theta_prior` gives every
+    party with a baseline this width, and ``montecarlo.level_shock_sd`` gives
+    it to a party with no record of its own, at its own size. Since 2026-10-12
+    that reaches the draw only under ``draw_law = "incumbent"``: the universal
+    draw's widths come from the width record (``src/width_record.py``)."""
+    return float(np.clip(size_sd_raw(size, sd_fit), SD_FLOOR, SD_CEILING))
+
+
 def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
-                codes=METRO_CODES) -> tuple[dict[str, tuple], dict]:
+                codes=METRO_CODES, h: float = float("inf"),
+                ) -> tuple[dict[str, tuple], dict]:
     """Per-party (low, mode, high) on θ, and the groups they were drawn from.
 
-    A party's own log-mean is shrunk toward its group's by ``n / (n + SHRINK)``,
-    and the width comes from the group's log-spread. The band is the 10th to
+    A party's own log-mean is shrunk toward the size centre by
+    ``worth / (worth + SHRINK)``, and the width comes from the group's
+    log-spread. The size centre is evaluated at the party's CURRENT size, its
+    share of ``baseline`` (BRIEF item 11, 2026-10-09), through
+    :func:`_shrink_one`, the helper :func:`_shrunk` also calls; a party in the
+    record with no baseline keeps its observed size and is counted in the
+    ``shrink`` block's ``size_fallback``. ``h`` is the θ size window (BRIEF
+    item 16, :func:`size_window`), the same value ``run_model`` passes to
+    :func:`spine`; the default, ``inf``, filters nothing. The band is the 10th to
     90th percentile of that lognormal, so it is wide where the record is wide
     and nothing sits at probability zero.
 
@@ -963,11 +1019,9 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
     if len(xs) >= 6:
         slope, intercept = np.polyfit(xs, np.log(np.maximum(ys, 1e-6)), 1)
         sd_route = "size_fit"
-
-        def sd_raw(size: float) -> float:
-            x = np.log(max(size, 1e-5))
-            # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
-            return float(np.exp(0.5 * (intercept + slope * x)))
+        # NOT corrected by LOG_CHI2_BIAS, deliberately — see the constant.
+        sd_fit = {"route": "size_fit", "slope": float(slope),
+                  "intercept": float(intercept)}
     else:
         # ddof=1 OVER ONE OBSERVATION IS `nan`, AND IT IS SILENT (§1.97 F21).
         # `np.clip` propagates it, `sd_for` hands the same nan to every party,
@@ -997,20 +1051,24 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
                 f"See MODEL-LOG §1.121.")
         pooled = float(np.std(np.log(ratios_all), ddof=1))
         sd_route = "pooled"
+        # No correction here: `pooled` is sd(log ratios) computed directly,
+        # not recovered from a fit to squared residuals, so it carries no
+        # log-chi-square bias.
+        #
+        # SIZE DOES NOT ENTER, and that is this branch's absorption: every
+        # party on the ballot is handed one width. `sd_route` reports which
+        # branch ran, because a size sweep against a run in this branch is
+        # a null with a known cause and not a finding.
+        sd_fit = {"route": "pooled", "pooled": pooled}
 
-        def sd_raw(size: float) -> float:
-            # No correction here: `pooled` is sd(log ratios) computed directly,
-            # not recovered from a fit to squared residuals, so it carries no
-            # log-chi-square bias.
-            #
-            # SIZE DOES NOT ENTER, and that is this branch's absorption: every
-            # party on the ballot is handed one width. `sd_route` reports which
-            # branch ran, because a size sweep against a run in this branch is
-            # a null with a known cause and not a finding.
-            return pooled
+    # ONE DEFINITION OF THE SIZE-GROUP WIDTH (BRIEF item 17): the fit is a
+    # value (`sd_fit`), and `size_sd_raw`/`size_sd` evaluate it. The drawer
+    # calls the same function for a party with no record of its own.
+    def sd_raw(size: float) -> float:
+        return size_sd_raw(size, sd_fit)
 
     def sd_for(size: float) -> float:
-        return float(np.clip(sd_raw(size), SD_FLOOR, SD_CEILING))
+        return size_sd(size, sd_fit)
 
     # PATH ONE — a party WITH history. Its own log-mean, shrunk toward the
     # common centre by how much that history is worth rather than by how many
@@ -1069,10 +1127,12 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
                "nonfinite": 0, "mass": 0.0}
     shrink = {"target": "size_centre" if fit else "flat_common_centre",
               "n_shrunk": 0, "n_all_centre": 0, "offered": 0.0,
-              "absorbed": 0.0}
+              "absorbed": 0.0, "size_fallback": 0, "outside_window": 0,
+              "window": _json_h(h)}
     no_baseline = 0
 
     priors: dict[str, tuple] = {}
+    worth_of: dict[str, float] = {}
     for party in set(record) | set(baseline):
         size = baseline.get(party, 0.0)
         sd = sd_for(size)
@@ -1094,17 +1154,26 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
             sd_clip["mass"] += raw - SD_CEILING
         own = record.get(party, [])
         if own:
-            worth = sum(_reliability(s) for _, s in own)
+            # GROWTH AT CURRENT SIZE (BRIEF item 11, 2026-10-09). The shrink
+            # target is the size centre at the party's size NOW, its share of
+            # the baseline, for every party. Until this batch it was taken at
+            # the size the party's own ratios were measured off, which hands a
+            # party that grew the multiplier of the party it used to be (the
+            # PA's θ, measured off 0.014%-0.29% against a current 2.9%: item 7).
+            # A party in the record with no baseline has no current size, keeps
+            # the observed one, and is counted in `size_fallback`. The body is
+            # `_shrink_one`, which `_shrunk` also calls: one estimator (§A26).
+            if size > 0.0:
+                at, window = size, h
+            else:
+                at, window = _observed_size(own), float("inf")
+                shrink["size_fallback"] += 1
+            mu, worth, own_mu, centre = _shrink_one(own, at, fit, mu_all,
+                                                    window)
+            worth_of[party] = worth
+            if worth == 0.0:
+                shrink["outside_window"] += 1
             weight = worth / (worth + SHRINK)
-            own_mu = float(np.average([np.log(r) for r, _ in own],
-                                      weights=[_reliability(s) for _, s in own]))
-            # The size the shrink target is taken at is the party's own
-            # observed size, weighted the same way `_shrunk` weights it, so the
-            # two estimators agree party-for-party rather than merely in form.
-            w = [_reliability(s) for _, s in own]
-            obs_size = float(np.average([sz for _, sz in own], weights=w))
-            centre = _centre_for(obs_size)
-            mu = weight * own_mu + (1 - weight) * centre
             shrink["n_shrunk"] += 1
             shrink["offered"] += abs(own_mu - centre)
             shrink["absorbed"] += (1 - weight) * abs(own_mu - centre)
@@ -1140,12 +1209,17 @@ def theta_prior(target: cityconfig.Target, baseline: dict[str, float],
         # observation scale the shrinkage uses. This is the quantity the spine
         # blend is keyed on, and it is reported rather than recomputed so the
         # weight and the shrinkage can never be keyed on different numbers.
-        "worth": {party: float(sum(_reliability(s) for _, s in obs))
-                  for party, obs in record.items()},
+        # Over the observations inside the size window only (BRIEF item 16),
+        # which is what `_shrunk` reports, since both come from `_shrink_one`.
+        "worth": dict(worth_of),
         # Per-party log-spread, so the draw can use the width that was measured
         # instead of a triangular fitted to the same band's endpoints.
         "sd": {party: float(sd_for(baseline.get(party, 0.0)))
                for party in priors},
+        # The width fit itself, as a value `size_sd` evaluates (BRIEF item
+        # 17): `make_drawer` sizes a party with no record of its own with it,
+        # at that party's own size, through the same function as `sd` above.
+        "sd_fit": dict(sd_fit),
         # WHAT THIS FUNCTION ABSORBED. See the block above the priors loop.
         # `sd_clip.share` is the fraction of parties whose width is set by the
         # clamp and not by the fit; `shrink.share` is the fraction of the
@@ -1189,6 +1263,12 @@ def size_centre(record: dict[str, list[tuple[float, float]]]):
     second is why the dispersion stays where it is.
 
     Returns ``(a, b)``; ``centre(size) = exp(a + b·log(size))``.
+
+    **Fitted on one size, evaluated at another.** Each observation enters the
+    fit at the size its ratio was measured off, because that is the size at
+    which it happened. The consumers (:func:`_shrink_one`, so both
+    :func:`_shrunk` and :func:`theta_prior`) evaluate the line at the party's
+    CURRENT size, since BRIEF item 11 (2026-10-09).
     """
     obs = [(np.log(max(sz, 1e-6)), np.log(r))
            for v in record.values() for r, sz in v if r > 0 and sz > 0]
@@ -1211,15 +1291,84 @@ def size_centre(record: dict[str, list[tuple[float, float]]]):
     return float(a), float(b)
 
 
+def _observed_size(obs: list[tuple[float, float]]) -> float:
+    """The reliability-weighted size a party's ratios were measured off."""
+    w = [_reliability(s) for _, s in obs]
+    return float(np.average([sz for _, sz in obs], weights=w))
+
+
+def _in_window(obs: list[tuple[float, float]], size: float,
+               h: float) -> list[tuple[float, float]]:
+    """The observations measured off a size within ``h`` (log units) of ``size``.
+
+    No filter where ``h`` is infinite or ``size`` is not positive (BRIEF item
+    16: the window is centred on the party's current size, and a party with
+    no current size on the route is read by no level).
+    """
+    if not np.isfinite(h) or size <= 0.0:
+        return list(obs)
+    centre = np.log(size)
+    return [(r, sz) for r, sz in obs
+            if sz > 0.0 and abs(np.log(sz) - centre) <= h]
+
+
+def _shrink_one(obs: list[tuple[float, float]], size: float, fit,
+                mu_all: float, h: float = float("inf"),
+                ) -> tuple[float, float, float, float]:
+    """One party's shrunk log-mean: ``(mu, worth, own, target)``.
+
+    ``own`` is the reliability-weighted mean of ``log r`` over ``obs``;
+    ``worth`` is the sum of the reliabilities; ``target`` is the size centre
+    evaluated at ``size`` (the flat ``mu_all`` where ``fit`` is None); and
+    ``mu = w·own + (1 − w)·target`` with ``w = worth / (worth + SHRINK)``.
+
+    **``size`` is the party's CURRENT size** on the route the record belongs
+    to (its national share for θ, its previous local share for ρ), since
+    BRIEF item 11 (2026-10-09). The size centre says how parties of a given
+    size retain their vote; the size that matters is the one the party has
+    at the target, not the one its historical ratios were measured off.
+
+    **Only observations from a similar size count** (BRIEF item 16): those
+    measured off a size within ``h`` of ``size`` (:func:`_in_window`). If none
+    survive, the party has no own record on this route: ``worth`` is 0 and
+    ``mu`` is the target, the size centre at its current size. ``worth`` is
+    over the surviving observations only, so the spine's blend weight loses
+    the filtered record's pull as well. ``h`` is :func:`size_window`'s; at
+    ``h = inf`` nothing is filtered (item 11a alone).
+
+    The per-party body of both :func:`_shrunk` and :func:`theta_prior`, so
+    the spine's estimator and the θ prior's cannot drift apart (§A26).
+    """
+    target = (float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
+              if fit else mu_all)
+    obs = _in_window(obs, size, h)
+    if not obs:
+        return target, 0.0, target, target
+    w = [_reliability(s) for _, s in obs]
+    worth = float(sum(w))
+    weight = worth / (worth + SHRINK)
+    own = float(np.average([np.log(r) for r, _ in obs], weights=w))
+    return weight * own + (1 - weight) * target, worth, own, target
+
+
 def _shrunk(record: dict[str, list[tuple[float, float]]],
-            report: dict | None = None,
+            report: dict | None = None, *,
+            current: dict[str, float], h: float = float("inf"),
             ) -> tuple[dict[str, float], float, dict[str, float]]:
-    """Per-party log-mean shrunk to the weighted common centre, and the worth.
+    """Per-party log-mean shrunk to the size centre at its current size, and the worth.
 
     The estimator :func:`theta_prior` uses on θ, extracted so ρ gets exactly the
     same treatment. If the two routes were shrunk differently, the comparison
     between them in :func:`spine` would be measuring the estimators rather than
-    the evidence.
+    the evidence. The per-party body is :func:`_shrink_one`.
+
+    ``current`` is each party's size now on this record's route: the national
+    baseline for θ, the previous local result for ρ (BRIEF item 11). The size
+    centre is evaluated there. A party in ``record`` with no positive
+    ``current`` size keeps the reliability-weighted size of its own
+    observations and is counted in ``report["size_fallback"]``; no level reads
+    such a party, because the spine consults ``mu_t`` only where the national
+    share is positive and ``mu_r`` only where the local share is.
 
     **``report`` is an absorption account, written and never read.** The return
     is a three-tuple that two test files pin exactly (``({}, 0.0, {})`` on an
@@ -1236,10 +1385,20 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
       shrink took back, and ``share`` = absorbed / offered. At share ≈ 1 this
       is an attractor and a change to a party's own observations cannot reach
       the level.
+    * ``size_fallback`` — parties shrunk at their observed size because
+      ``current`` gives them none (no window is applied to them);
+    * ``at_size_centre`` — parties in ``current`` with no record at all,
+      returned at the size centre for their current size (BRIEF item 17);
+      only where the size fit exists;
+    * ``outside_window`` — parties whose every observation lay outside the
+      size window ``h`` (BRIEF item 16), so their ``mu`` is the size centre
+      at their current size and their ``worth`` is 0; ``window`` is ``h``.
     """
     if report is not None:
         report.update({"n": 0, "target": None, "offered": 0.0,
-                       "absorbed": 0.0, "share": 0.0, "empty": True})
+                       "absorbed": 0.0, "share": 0.0, "empty": True,
+                       "size_fallback": 0, "outside_window": 0,
+                       "at_size_centre": 0, "window": _json_h(h)})
     everything = [obs for obs in (o for v in record.values() for o in v)]
     if not everything:
         return {}, 0.0, {}
@@ -1250,36 +1409,244 @@ def _shrunk(record: dict[str, list[tuple[float, float]]],
     mu_all = float(np.average(np.log(ratios), weights=weights))
     fit = size_centre(record)
     offered = absorbed = 0.0
+    size_fallback = outside_window = 0
     mus: dict[str, float] = {}
     worth: dict[str, float] = {}
     for party, obs in record.items():
-        w = [_reliability(s) for _, s in obs]
-        worth[party] = float(sum(w))
+        # Shrink toward the centre for a party THIS SIZE NOW, not toward one
+        # number for the whole ballot and not toward the size it used to be.
+        size = float(current.get(party, 0.0) or 0.0)
+        window = h
+        if size <= 0.0:
+            size = _observed_size(obs)
+            size_fallback += 1
+            window = float("inf")
+        mus[party], worth[party], own, target = _shrink_one(
+            obs, size, fit, mu_all, window)
+        if worth[party] == 0.0:
+            outside_window += 1
         weight = worth[party] / (worth[party] + SHRINK)
-        own = float(np.average([np.log(r) for r, _ in obs], weights=w))
-        # Shrink toward the centre for a party THIS SIZE, not toward one number
-        # for the whole ballot. See size_centre: the size of the party is the
-        # single thing that moves the centre, and a party with little history of
-        # its own is almost entirely this term.
-        size = float(np.average([sz for _, sz in obs], weights=w))
-        target = (fit[0] + fit[1] * np.log(max(size, 1e-6))) if fit else mu_all
-        mus[party] = weight * own + (1 - weight) * target
         offered += abs(own - target)
         absorbed += (1 - weight) * abs(own - target)
+    # NO RECORD OF ITS OWN: THE SIZE GROUP'S AVERAGE AT ITS CURRENT SIZE (BRIEF
+    # item 17, the "11b" half of item 11). A party with a current size on this
+    # route and no observations takes the size centre at that size, which is
+    # what `theta_prior` already gave it; before this the spine handed it the
+    # flat common mean (`mu_t.get(party, c_t)`), the one place the size signal
+    # was still erased (MK at 2026). Only where the size fit exists: without
+    # it the target IS the flat mean and the spine's fallback says so
+    # (`centre_fallback`). No worth is entered: the party has no evidence.
+    at_size_centre = 0
+    if fit:
+        for party, size in current.items():
+            if party not in mus and size and size > 0.0:
+                mus[party] = float(fit[0] + fit[1] * np.log(max(size, 1e-6)))
+                at_size_centre += 1
     if report is not None:
         report.update({
-            "n": len(mus),
+            "n": len(record),
             "target": "size_centre" if fit else "flat_common_centre",
             "offered": float(offered), "absorbed": float(absorbed),
             "share": float(absorbed / offered) if offered > 0 else 0.0,
             "empty": False,
+            "size_fallback": size_fallback,
+            "outside_window": outside_window,
+            "at_size_centre": at_size_centre,
+            "window": _json_h(h),
         })
     return mus, mu_all, worth
 
 
+def _json_h(h: float):
+    """A window as JSON can carry it: ``"inf"`` for no filter."""
+    return float(h) if np.isfinite(h) else "inf"
+
+
+def _t_upper(alpha: float, df: int) -> float:
+    """Student's t upper quantile: ``t`` with ``P(T > t) = alpha`` on ``df``.
+
+    Arithmetic, not judgement (scipy is not a dependency here). For integer
+    ``df`` the two-sided probability ``A(t) = P(|T| < t)`` has a closed form in
+    ``θ = atan(t / √df)`` (Abramowitz and Stegun 26.7.3, 26.7.4); it rises
+    monotonically in ``θ`` on ``(0, π/2)``, so ``A = 1 − 2·alpha`` is solved by
+    bisection on ``θ``. ``tests/test_spine.py`` checks it against the
+    published table values.
+    """
+    df = int(df)
+    if df < 1 or not 0.0 < alpha < 0.5:
+        raise ValueError(f"t quantile needs df >= 1 and 0 < alpha < 0.5, "
+                         f"got df={df}, alpha={alpha}")
+    goal = 1.0 - 2.0 * alpha
+
+    def two_sided(theta: float) -> float:
+        s, c = np.sin(theta), np.cos(theta)
+        if df % 2 == 1:
+            if df == 1:
+                return 2.0 * theta / np.pi
+            term = total = 1.0
+            for k in range(1, (df - 3) // 2 + 1):
+                term *= (2.0 * k) / (2.0 * k + 1.0) * c * c
+                total += term
+            return 2.0 / np.pi * (theta + s * c * total)
+        term = total = 1.0
+        for k in range(1, (df - 2) // 2 + 1):
+            term *= (2.0 * k - 1.0) / (2.0 * k) * c * c
+            total += term
+        return s * total
+
+    lo, hi = 0.0, np.pi / 2
+    for _ in range(200):
+        mid = 0.5 * (lo + hi)
+        if two_sided(mid) < goal:
+            lo = mid
+        else:
+            hi = mid
+    return float(np.sqrt(df) * np.tan(0.5 * (lo + hi)))
+
+
+def size_window(target: cityconfig.Target, record_fn, codes=METRO_CODES,
+                record: dict | None = None) -> tuple[float, dict]:
+    """The size window ``h`` for one record at ``target``, derived from data.
+
+    BRIEF item 16 (owner, 2026-10-09): a party's own growth record counts only
+    from elections where it stood at a size similar to now, and the
+    similarity window is derived, not typed. Called once per record (``θ``
+    through :func:`theta_record`, ``ρ`` through :func:`local_record`), so each
+    route gets its own window. The rule is JUDGEMENT-CALLS §A52, written down
+    (2026-10-09) before it was run on the archive.
+
+    The derivation, a walk forward through the calendar:
+
+    1. The LGE targets ``T_1 < … < T_k ≤ target``. ``record_fn(T_j)`` holds
+       only transitions strictly before ``T_j``, so nothing at or after
+       ``target`` is read (``test_temporal`` watches the file opens).
+    2. The NEW observations at ``T_j`` are ``record_fn(T_j)`` minus
+       ``record_fn(T_{j−1})``, as multisets per party. The new observations
+       of one step are one CYCLE: the cluster.
+    3. Each new observation ``(r, sz)`` of party ``p`` is predicted from
+       ``p``'s record at ``T_{j−1}`` by :func:`_shrink_one` with current size
+       ``sz`` and window ``h``, the size-centre fit and the common mean also
+       taken from the record at ``T_{j−1}``. A party with no earlier record
+       is predicted at the size centre (the same for every ``h``).
+    4. The score at ``h`` is the reliability-weighted mean of
+       ``|ln r − predicted|`` over every new observation of every party
+       (``errors``). ``best`` is the grid value with the lowest score.
+    5. For each grid value ``h ≥ best``, the paired difference per
+       observation is ``d_i = |e_i(h)| − |e_i(best)|``; ``mean`` is its
+       reliability-weighted mean ``D``, and ``se`` its cluster-robust (CR1)
+       standard error over the ``G`` cycles:
+       ``se² = G/(G−1) · Σ_g (Σ_{i∈g} w_i (d_i − D))² / (Σ_i w_i)²``.
+       ``h`` is MEASURABLY WORSE than ``best`` when the one-sided lower bound
+       ``D − t·se`` is above 0, with ``t`` the upper ``SIZE_WINDOW_ALPHA``
+       quantile of Student's t on ``G − 1`` degrees of freedom
+       (:func:`_t_upper`).
+    6. The window is the WIDEST grid value ``≥ best`` that is not measurably
+       worse (``status = "derived"``). It need not be adjacent to ``best``:
+       a wider value that is not measurably worse wins even where a value
+       between them is.
+    7. Fewer than ``SIZE_WINDOW_MIN_SCORED`` scored observations, or fewer
+       than two cycles (a cluster-robust error has no degrees of freedom on
+       one): ``h = inf`` and ``status = "underdetermined"``.
+
+    ``record`` may carry ``record_fn(target, codes)`` already computed, to
+    avoid reading the target's record twice. ``record_fn`` is looked up by
+    the caller (a module global swapped by a test is honoured).
+
+    Returns ``(h, report)``; ``report`` carries the score at every grid value,
+    ``best``, the per-value ``paired`` block (``mean``, ``se``, ``lower``,
+    ``worse``), ``clusters``, ``alpha``, ``t_crit``, the count scored, the
+    targets walked, the choice and the status, all JSON-safe (``"inf"`` for an
+    infinite window), so the choice can be re-derived from the report alone.
+    """
+    year = int(target.year)
+    years = sorted(int(y) for y, e in cityconfig.CALENDAR.items()
+                   if e.kind == "LGE" and int(y) <= year)
+    records = []
+    for y in years:
+        if y == year:
+            rec = record if record is not None else record_fn(target, codes)
+        else:
+            rec = record_fn(cityconfig.Target(city=target.city, year=str(y)),
+                            codes)
+        records.append(rec or {})
+
+    from collections import Counter
+    # (cycle, log r, size, reliability, the party's earlier obs, fit, mu_all)
+    scored: list[tuple[int, float, float, float, list, object, float]] = []
+    nonpositive = 0
+    for cycle, (prev, cur) in enumerate(zip(records, records[1:])):
+        everything = [o for v in prev.values() for o in v]
+        weights = [_reliability(sz) for _, sz in everything]
+        if not everything or sum(weights) <= 0:
+            continue
+        mu_all = float(np.average([np.log(r) for r, _ in everything],
+                                  weights=weights))
+        fit = size_centre(prev)
+        for party, obs in cur.items():
+            new = Counter(obs) - Counter(prev.get(party, []))
+            for (r, sz), n in sorted(new.items()):
+                if r <= 0 or sz <= 0:
+                    nonpositive += n
+                    continue
+                for _ in range(n):
+                    scored.append((cycle, float(np.log(r)), float(sz),
+                                   _reliability(sz), prev.get(party, []),
+                                   fit, mu_all))
+    cycles = np.array([c for c, *_ in scored], dtype=int)
+    w = np.array([rel for _c, _l, _s, rel, *_ in scored], dtype=float)
+    abs_err: dict[float, np.ndarray] = {}
+    errors: dict[str, float] = {}
+    for h in SIZE_WINDOW_GRID:
+        e = np.array([abs(log_r - _shrink_one(earlier, sz, fit, mu_all, h)[0])
+                      for _c, log_r, sz, _rel, earlier, fit, mu_all in scored],
+                     dtype=float)
+        abs_err[h] = e
+        if w.sum() > 0:
+            errors[str(_json_h(h))] = float((w * e).sum() / w.sum())
+    n_clusters = len(set(cycles.tolist()))
+    report = {"targets": [str(y) for y in years], "scored": len(scored),
+              "nonpositive_skipped": nonpositive, "errors": errors,
+              "grid": [_json_h(h) for h in SIZE_WINDOW_GRID],
+              "min_scored": SIZE_WINDOW_MIN_SCORED,
+              "alpha": SIZE_WINDOW_ALPHA, "clusters": n_clusters}
+    if len(scored) < SIZE_WINDOW_MIN_SCORED or not errors or n_clusters < 2:
+        report.update(h="inf", status="underdetermined")
+        return float("inf"), report
+    best_score = min(errors.values())
+    best = min(h for h in SIZE_WINDOW_GRID
+               if errors[str(_json_h(h))] == best_score)
+    t_crit = _t_upper(SIZE_WINDOW_ALPHA, n_clusters - 1)
+    W = float(w.sum())
+    paired: dict[str, dict] = {}
+    chosen = best
+    for h in SIZE_WINDOW_GRID:
+        if h < best:
+            continue
+        d = abs_err[h] - abs_err[best]
+        mean = float((w * d).sum() / W)
+        sums = np.zeros(n_clusters)
+        index = {c: i for i, c in enumerate(sorted(set(cycles.tolist())))}
+        for c, wi, di in zip(cycles, w, d):
+            sums[index[int(c)]] += wi * (di - mean)
+        se = float(np.sqrt(n_clusters / (n_clusters - 1)
+                           * float((sums ** 2).sum())) / W)
+        lower = mean - t_crit * se
+        worse = bool(lower > 0.0)
+        paired[str(_json_h(h))] = {"mean": mean, "se": se, "lower": lower,
+                                   "worse": worse}
+        if not worse:
+            chosen = h
+    report.update(best=_json_h(best), t_crit=t_crit, paired=paired,
+                  h=_json_h(chosen), status="derived")
+    return float(chosen), report
+
+
 def spine(target: cityconfig.Target, baseline: dict[str, float],
           prev_local: dict[str, float], codes=METRO_CODES,
-          k: float | None = None) -> tuple[dict[str, float], dict]:
+          k: float | None = None,
+          read_local_only: frozenset = frozenset(),
+          h_theta: float = float("inf"), h_rho: float = float("inf"),
+          ) -> tuple[dict[str, float], dict]:
     """Each party's central level at the target, from BOTH of its records.
 
     ``baseline`` is the preceding national election's citywide shares;
@@ -1302,6 +1669,17 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
 
     A party with neither is an arrival and is not here at all;
     ``pools.arrival_rules`` sizes it from the arrival record.
+
+    ``read_local_only`` names parties the caller will read on the local route
+    although they are absent from ``baseline``: the roster parties whose only
+    record is the previous LGE (:func:`local_record_only`, BRIEF item 8). They
+    are not reported in ``local_only_unused``.
+
+    ``h_theta`` and ``h_rho`` are the size windows (BRIEF item 16): a party's
+    own θ (ρ) observations count only where measured off a national (local)
+    share within that log distance of its current one. ``run_model`` derives
+    them with :func:`size_window` and passes the θ window to
+    :func:`theta_prior` as well; the default, ``inf``, filters nothing.
 
     **The diagnostic block carries an ``absorption`` account** (NULL-RESULTS.md
     4.3): the route census, how much of the two routes' disagreement the blend
@@ -1326,8 +1704,13 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     # test_theta_prior — so it fills a dict handed in. See its docstring.
     theta_shrink: dict = {}
     rho_shrink: dict = {}
-    mu_t, c_t, worth_t = _shrunk(theta_obs, theta_shrink)
-    mu_r, c_r, _worth_r = _shrunk(rho_obs, rho_shrink)
+    # Each route's size centre is evaluated at the party's current size on
+    # that route (BRIEF item 11): its national share for θ, its previous
+    # local share for ρ.
+    mu_t, c_t, worth_t = _shrunk(theta_obs, theta_shrink, current=baseline,
+                                 h=h_theta)
+    mu_r, c_r, _worth_r = _shrunk(rho_obs, rho_shrink, current=prev_local,
+                                  h=h_rho)
     if not mu_t and not mu_r:
         return {}, {}
 
@@ -1341,10 +1724,11 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
     # `centre_fallback` counts the OTHER absorber in this function, the one
     # §1.93 named: `mu_t.get(party, c_t)` hands a party with no retention
     # record of its own the flat common centre — the size-blind number
-    # `size_centre` exists to replace. MK at 2026 is the case. It is a
-    # fallback-to-neutral, indistinguishable in the output from a party whose
-    # measured retention happens to equal the group's, and it is counted here
-    # so that it stops being.
+    # `size_centre` exists to replace. MK at 2026 was the case. Since BRIEF
+    # item 17 (2026-10-09) `_shrunk` returns a no-record party at the size
+    # centre for its current size wherever the size fit exists, so this
+    # fallback, and this count, now fire only where there is no size fit
+    # (fewer than twenty observations in the record).
     routes = {"blend": 0, "national_only": 0, "local_only": 0, "dropped": 0}
     # NAMES, NOT JUST COUNTS (§1.97 F5, F6). A count says how much was lost; a
     # reader chasing "why is this party at this number?" needs to know WHICH.
@@ -1424,16 +1808,16 @@ def spine(target: cityconfig.Target, baseline: dict[str, float],
         elif local > 0:
             w, level, route = 1.0, loc_level, "local only (no national record)"
             routes["local_only"] += 1
-            # F6: THIS LEVEL MAY HAVE NO READER. `spine` walks
-            # `set(baseline) | set(prev_local)`, but its only consumer —
-            # `montecarlo.blended_centres` — iterates `base_city`, which IS
-            # `baseline`. So a party with a local record and no entry in the
-            # baseline at all gets a level computed here that nothing can ever
-            # look up. Named rather than repaired: widening the consumer's loop
-            # is a MODEL change (it would add parties to `centres`, and
-            # `compress_levels` renormalises over that membership), so this
-            # records the fact and leaves the decision.
-            if party not in baseline:
+            # F6: WHO READS THIS LEVEL. `spine` walks
+            # `set(baseline) | set(prev_local)`, and its only consumer,
+            # `montecarlo.blended_centres`, iterates `base_city`. A party on
+            # the target's roster whose only record is the previous LGE is
+            # entered into `base_city` by `run_model` and named here in
+            # `read_local_only` (item 8, 2026-10-09), so its level is read.
+            # Any other party with a local record and no baseline entry, which
+            # means one not on the target's roster, gets a level nothing looks
+            # up, and is named in `local_only_unused`.
+            if party not in baseline and party not in read_local_only:
                 local_only_unused.append(party)
         else:
             # Present in one of the two inputs at exactly zero, and dropped
@@ -1515,6 +1899,31 @@ def ward_pr_ratios(target: cityconfig.Target, city: cityconfig.City,
     return ratios, fallback
 
 
+def trusted_ward_pr(wc: dict[str, float], pc: dict[str, float],
+                    lo: float, hi: float, parties=None) -> dict[str, float]:
+    """Each party's ward/PR split-ticket ratio, where it is trustworthy.
+
+    ``wc`` and ``pc`` are the previous LGE's citywide ward-ballot and PR
+    shares. A party whose PR share exceeds 0.001 gets ``wc/pc`` clipped to
+    ``[lo, hi]`` (``montecarlo.WARD_PR_RATIO_MIN/MAX``); below that the ratio
+    is a quotient of two noisy numbers and the party is left out (F46,
+    §1.113). Over ``parties`` where given (the run's index), else over
+    ``pc``.
+
+    One definition for two consumers: ``montecarlo.run_model``'s ratio array
+    (the draws' ward/PR split, and ``_ward_pr_trusted`` for the by-election
+    conversion in ``blended_centres``), and ``bye_value.py``'s conversion of
+    each metro's by-election delta (BRIEF item 19). Lifted out of
+    ``run_model``'s loop 2026-10-10, no behaviour change. Not
+    :func:`ward_pr_ratios`, which applies neither the threshold nor the clip.
+    """
+    out: dict[str, float] = {}
+    for p in (pc if parties is None else parties):
+        if pc.get(p, 0) > 0.001:
+            out[p] = float(np.clip(wc.get(p, 0.0) / pc[p], lo, hi))
+    return out
+
+
 def contestation(target: cityconfig.Target, city: cityconfig.City,
                  ) -> dict[str, float]:
     """The fraction of wards each party fields a ward candidate in.
@@ -1563,7 +1972,15 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
         # MODEL-LOG §1.251, prereg/2026-09-23-declared-ward-slates.md.
         slates, _complete = declared_contestation(target, city)
         return slates
-    path = result_path(target, city)
+    wards, seen = _result_slates(result_path(target, city))
+    n = len(seen)
+    return {p: len(w) / n for p, w in wards.items()} if n else {}
+
+
+def _result_slates(path) -> tuple[dict[str, set], set]:
+    """``({party: wards it fields a ward candidate in}, every ward on the ward
+    ballot)`` from a result file. One reader for :func:`contestation` and
+    :func:`slate_coverage`."""
     wards: dict[str, set] = defaultdict(set)
     seen: set = set()
     with open(path, encoding="utf-8", errors="replace") as fh:
@@ -1575,5 +1992,205 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
                 continue
             seen.add(ward)
             wards[P.canonical(row["sPartyName"])].add(ward)
-    n = len(seen)
-    return {p: len(w) / n for p, w in wards.items()} if n else {}
+    return dict(wards), seen
+
+
+def slate_coverage(target: cityconfig.Target, city: cityconfig.City,
+                   weights_lge: str | None) -> dict[str, float]:
+    """Each party's slate, weighted by where its own list vote lies.
+
+    BRIEF item 6 (owner: "vote weighted"), model correction batch 2026-10-09.
+    For every party :func:`contestation` returns at ``target``: the share of
+    the party's own PR votes at ``weights_lge`` that were cast in voting
+    districts lying in wards where it fields a ward candidate at ``target``.
+    ``montecarlo.run_model`` passes the forecast target's previous LGE for
+    both the target's slate and the previous one, so the change ``now / was``
+    compares two slates on one set of weights.
+
+    Each VD is placed in its ward at ``target`` by ``pools.vd_map`` (a split VD
+    goes to the part with the most registered voters); a VD with no ward there
+    is left out. Slates come from the target's result file where it exists,
+    else from ``[roster.wards]``; a party absent from the declared slates
+    fields none (0.0, as :func:`declared_contestation` gives it under a
+    complete roster). A party with no PR vote at ``weights_lge`` keeps
+    :func:`contestation`'s count fraction, as does every party when the
+    weights' file is missing. The prototype is
+    ``audits/2026-10-09-model-questions/data/scripts/votecov.py``.
+
+    :func:`contestation` itself is unchanged: it is the who-stands fact that
+    ``declared_contestation``'s completeness logic and ``compare_history``
+    read.
+    """
+    base = contestation(target, city)
+    if not base or not weights_lge:
+        return base
+    wpath = result_path(cityconfig.Target(city=city, year=weights_lge), city)
+    if not wpath or not wpath.exists():
+        return base
+    import pools as _pools          # lazy: `pools` imports this module
+
+    pr: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    with open(wpath, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("BallotType") != "PR":
+                continue
+            pr[P.canonical(row["sPartyName"])][row["VD_Number"]] += int(
+                float(row.get("Party_Votes") or 0))
+    if has_result_file(target, city):
+        slates, _seen = _result_slates(result_path(target, city))
+    else:
+        declared = (_pools.declared_roster(city, target) or {}).get("wards") or {}
+        slates = {p: {str(w).strip() for w in ws} for p, ws in declared.items()}
+    ward_of, _registered = _pools.vd_map(city, target.year)
+    out: dict[str, float] = {}
+    for party, frac in base.items():
+        pairs = [(ward_of[vd], v) for vd, v in (pr.get(party) or {}).items()
+                 if vd in ward_of]
+        total = sum(v for _w, v in pairs)
+        if total <= 0:
+            out[party] = frac
+            continue
+        stood = slates.get(party, set())
+        out[party] = sum(v for w, v in pairs if w in stood) / total
+    return out
+
+
+# ---------------------------------------------------------------------------
+# UNOPPOSED WARDS (Schedule 1 item 12(2), 13(1)(b), 16(5))
+# ---------------------------------------------------------------------------
+# A ward whose only candidate is elected unopposed (item 8A) holds no ward
+# ballot, and the statute counts every PR vote cast for that candidate's party
+# by the ward's voters twice. The seat law takes those votes as an input
+# (`seats.eligible_parties(..., unopposed_pr=)`). The draw loop does not model
+# such a ward: no ward in any metro LGE file 2000-2021 has one, and every 2026
+# Johannesburg ward lists many parties, so a draw-loop branch would have no
+# case to score. `montecarlo.run_model` refuses a target that has one instead.
+# JUDGEMENT-CALLS §Q7.
+
+
+def unopposed_in(ward_parties: dict[str, set[str]],
+                 all_wards) -> dict[str, str | None]:
+    """The unopposed wards in one election, from who stood in each ward.
+
+    ``ward_parties`` maps a ward to the parties on its ward ballot;
+    ``all_wards`` is every ward the election covers. Returns ``{ward: party}``
+    for a ward with exactly one ward-ballot party, ``IND`` counting as a party,
+    and ``{ward: None}`` for a ward with no ward-ballot party at all: a result
+    file shows an unopposed ward that way, with PR rows and no ward rows, and
+    does not say who the candidate was. A pure function so the result-file and
+    the declared-slate readers share one rule.
+    """
+    out: dict[str, str | None] = {}
+    for ward in all_wards:
+        stood = ward_parties.get(ward) or set()
+        if len(stood) == 1:
+            out[ward] = next(iter(stood))
+        elif not stood:
+            out[ward] = None
+    return out
+
+
+def ward_ballots(path) -> tuple[dict[str, set[str]], set[str]]:
+    """Every ward a result file covers, and the parties on each ward ballot.
+
+    Returns ``(ward_parties, all_wards)``: ``all_wards`` is every ward named on
+    a row of either ballot, so a ward with PR rows only is in it and absent
+    from ``ward_parties``. A row is a nomination fact whatever its vote count
+    (see :func:`contestation`). Party names are canonical.
+    """
+    ward_parties: dict[str, set[str]] = defaultdict(set)
+    all_wards: set[str] = set()
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            ward = (row.get("Ward") or "").strip()
+            if not ward:
+                continue
+            all_wards.add(ward)
+            if row.get("BallotType") == "Ward":
+                ward_parties[ward].add(P.canonical(row["sPartyName"]))
+    return dict(ward_parties), all_wards
+
+
+def unopposed_wards(target: cityconfig.Target,
+                    city: cityconfig.City) -> dict[str, str | None]:
+    """``{ward: party}`` for each unopposed ward at ``target``.
+
+    From the target's result file where it exists (:func:`ward_ballots`, every
+    ward on either ballot). Otherwise from the declared slates,
+    ``[roster.wards]`` in the judgement file (``pools.declared_roster``): a
+    ward listed for exactly one party. A ward the declaration does not mention
+    is not reported, because a partial paste cannot say nobody stood there.
+    ``{}`` when neither source exists. ``None`` as a value means the result
+    file shows the ward with no ward ballot and does not name the candidate.
+    """
+    if has_result_file(target, city):
+        ward_parties, all_wards = ward_ballots(result_path(target, city))
+        return unopposed_in(ward_parties, all_wards)
+    import pools as _pools          # lazy: `pools` imports this module
+
+    declared = (_pools.declared_roster(city, target) or {}).get("wards") or {}
+    ward_parties: dict[str, set[str]] = defaultdict(set)
+    for party, wards in declared.items():
+        for ward in wards:
+            ward_parties[str(ward).strip()].add(party)
+    return unopposed_in(ward_parties, set(ward_parties))
+
+
+def unopposed_pr_votes(path, unopposed: dict[str, str | None],
+                       ) -> dict[str, int]:
+    """``{party: its PR votes in the wards it won unopposed}``, from a result file.
+
+    The input :func:`seats.eligible_parties` counts a second time (Schedule 1
+    item 12(2)). Refuses a ward whose candidate the file does not name, since
+    the votes to double cannot then be chosen.
+    """
+    if not unopposed:
+        return {}
+    unnamed = sorted(w for w, p in unopposed.items() if p is None)
+    if unnamed:
+        raise SystemExit(
+            f"{path}: ward(s) {unnamed} have PR rows and no ward-ballot rows. "
+            f"That is how an unopposed ward would appear, but the file does "
+            f"not say so or name a candidate. If it was unopposed, Schedule 1 "
+            f"item 12(2) doubles its winner's PR votes in the ward; establish "
+            f"what happened there and name the party before the council can "
+            f"be reconstructed (JUDGEMENT-CALLS §Q7).")
+    out: dict[str, int] = defaultdict(int)
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        for row in csv.DictReader(fh):
+            if row.get("BallotType") != "PR":
+                continue
+            ward = (row.get("Ward") or "").strip()
+            party = P.canonical(row["sPartyName"])
+            if unopposed.get(ward) == party:
+                out[party] += int(float(row.get("Party_Votes") or 0))
+    return dict(out)
+
+
+def local_record_only(roster, baseline: dict[str, float],
+                      prev_local: dict[str, float],
+                      seeds: dict[str, float]) -> list[str]:
+    """Roster parties whose only record is the previous local election.
+
+    **The one classifier** for BRIEF item 8 (model correction batch,
+    2026-10-09). A party on the target's roster, not an independent, with no
+    national baseline, no arrival seed, and a positive list vote at the
+    previous LGE. Before this, such a party was in no input the run read: the
+    national baseline did not carry it, `pools` did not seed it (it has a
+    record), and the run's party list is built from the baseline plus the
+    seeds. Seven certified Johannesburg 2026 parties fell through that gap.
+    `montecarlo.run_model` enters each at its previous-LGE list share, places
+    it by its fitted pool vector, and sizes it on the spine's local route
+    (``spine(..., read_local_only=...)``).
+
+    Returns the parties sorted.
+    """
+    out = []
+    for party in roster or ():
+        if party in (_INDEPENDENT, "IND"):
+            continue
+        if baseline.get(party, 0.0) > 0 or (seeds or {}).get(party, 0.0) > 0:
+            continue
+        if prev_local.get(party, 0.0) > 0:
+            out.append(party)
+    return sorted(out)

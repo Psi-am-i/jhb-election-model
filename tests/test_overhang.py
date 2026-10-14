@@ -166,26 +166,30 @@ CASCADE_COUNCIL = 15
 CASCADE_ENTITLEMENT = {"A": 0, "B": 4, "C": 5, "D": 6}
 
 # LAINGSBURG — the only real excessive-seat case on the IEC's record, WC051 in
-# 2021. The published Excessive Seat Calculation block gives A = 6,453 total
-# valid votes, B = 1,530 for the DA, C = 7 seats, D = 3 ward seats, new quota
-# (6453 − 1530) / (7 − 3) + 1 = 1,231, council stays 7 (MODEL-LOG §1.17).
+# 2021, on the IEC's published votes. Every figure is read from the Seat
+# Calculation Detail (audits/2026-10-09-site-batch/law/sources/
+# iec-lge2021-seat-calculation-detail-wc051-laingsburg.pdf, read 2026-10-09):
+# per-party valid votes, A = 6,453, B = 1,530 for the DA, C = 7, D = 3, quota
+# 1,231, the round-two ranking and the council. Until 2026-10-09 this block
+# CONSTRUCTED the split of the other 4,923 votes, because the per-party totals
+# were not in the repository (law summary D10).
 #
-# The DA's 1,530 and the 6,453 total are the published figures. The split of
-# the remaining 4,923 votes among the other parties is CONSTRUCTED, because the
-# per-party totals are not recorded in this repository — and it is constructed
-# to be diagnostic of the quota rather than agnostic to it: Q holds exactly one
-# published quota (1,231) and R one vote less (1,230), so Q takes a seat in the
-# first round and R only on remainder. Any denominator other than 7 − 3 = 4, or
-# any numerator that still counted the DA's votes, moves a seat here.
-#
-#   at 7 seats: quota 6453//7+1 = 922; floors DA 1, P 2, Q 1, R 1 = 5, two by
-#   remainder (P .6702, DA .6594) -> DA 2, P 3, Q 1, R 1. The DA's entitlement
-#   is 2 against 3 wards won, exactly as published.
-#   after exclusion: quota 1231; P 2, Q 1, R 0 = 3, one by remainder (R .9992)
-#   -> P 2, Q 1, R 1. **P drops from 3 to 2** — this is the seat the Karoo
-#   Democratic Force lost, and the reason "expand" is the wrong reading.
-LAINGSBURG_VOTES = {"DA": 1530, "P": 2462, "Q": 1231, "R": 1230}
-LAINGSBURG_WINS = {"DA": 3}
+#   at 7 seats: quota 6453 // 7 + 1 = 922
+#     floors ANC 1 (1694, surplus 772)  DA 1 (608)  KDF 1 (654)  PA 0 (895)
+#            KOP 0 (395)  VFPLUS 0 (248)  EFF 0 (74)  KGP 0 (41)      = 3
+#     four seats by surplus: PA 895, ANC 772, KDF 654, DA 608
+#     -> ANC 2, DA 2, KDF 2, PA 1. The DA is entitled to 2 and won 3 wards.
+#   item 16: DA keeps its 3 wards; new quota (6453 - 1530) // (7 - 3) + 1 = 1,231
+#     floors ANC 1 (surplus 463)  KDF 1 (345)  PA 0 (895)  KOP 0 (395) ... = 2
+#     two seats by surplus: PA 895, ANC 463
+#     -> ANC 2, DA 3, KDF 1, PA 1: the published council. The ANC's one ward
+#     is inside its entitlement of 2. **KDF drops from 2 to 1** — the seat the
+#     clause cost it, and the reason "expand" is the wrong reading.
+#   published round-two ranking: PA, ANC, KOP, KDF, VFPLUS, EFF, KGP (the DA,
+#   excluded, is listed eighth).
+LAINGSBURG_VOTES = {"ANC": 1694, "DA": 1530, "EFF": 74, "KDF": 1576,
+                    "KGP": 41, "KOP": 395, "PA": 895, "VFPLUS": 248}   # A = 6,453
+LAINGSBURG_WINS = {"DA": 3, "ANC": 1}
 LAINGSBURG_COUNCIL = 7
 
 
@@ -216,10 +220,13 @@ def test_the_constructed_entitlements_are_the_schedule_1_quota_arithmetic():
 
     laingsburg = allocate(dict(LAINGSBURG_VOTES), total_seats=LAINGSBURG_COUNCIL)
     assert sum(LAINGSBURG_VOTES.values()) == 6453, "published total valid votes"
+    assert laingsburg.quota == 922, laingsburg.quota
     assert laingsburg.seats["DA"] == 2, (
-        "the IEC's published record has the DA entitled to 2 seats on these "
-        "votes and winning 3 wards; if the entitlement is not 2 the "
-        "reconstruction no longer reproduces the case")
+        "the IEC's published votes give the DA an entitlement of 2 against 3 "
+        "wards won; if the entitlement is not 2 the allocator has moved")
+    assert laingsburg.seats["KDF"] == 2, (
+        "the KDF is entitled to 2 at the original quota, the seat item 16 "
+        "then costs it")
 
 
 # --------------------------------------------------------------------------
@@ -248,11 +255,20 @@ def test_the_laingsburg_2021_requota_reproduces_the_published_quota():
     """Pinned to a real election, not to this model. The precedent for `deduct`.
 
     Laingsburg WC051, LGE 2021, the only excessive-seat case found in ~65 IEC
-    Seat Calculation Detail reports (MODEL-LOG §1.17). The published block
-    strikes (6,453 − 1,530) / (7 − 3) + 1 = 1,231 and leaves the council at 7,
-    with the DA on 3 ward seats and no list seat. This reconstruction puts one
-    party on exactly 1,231 votes and another on 1,230 so that the outcome is
-    sensitive to that quota: at any other denominator the last seat moves.
+    Seat Calculation Detail reports (MODEL-LOG §1.17), on the IEC's own
+    per-party votes. The published block strikes (6,453 − 1,530) / (7 − 3) + 1
+    = 1,231, leaves the council at 7 with the DA on 3 ward seats and no list
+    seat, and ranks the round-two surpluses PA, ANC, KOP, KDF, VFPLUS, EFF,
+    KGP.
+
+    What it pins: the published council, the re-quota denominator and the
+    published round-two ranking. Mutation it catches: a re-quota denominator
+    of ``C − D + 1`` (4 + 1 = 5 seats over 4,923 votes, quota 985) seats the
+    KDF twice. What it cannot see: a reversion to ranking the float remainder.
+    Laingsburg's surpluses are all distinct, so the float and the integer
+    order agree here; ``tests/test_seats.py``'s
+    ``test_an_equal_surplus_goes_to_the_higher_vote_not_to_a_float_remainder``
+    (G5) is the detector for that.
 
     If this fails the model is no longer applying the rule the Commission
     applied, and the published "council stays at 270, threshold 136" claim
@@ -264,10 +280,24 @@ def test_the_laingsburg_2021_requota_reproduces_the_published_quota():
     assert threshold == 4, "a bare majority of seven"
     assert seats["DA"] == 3, "3 ward seats, no list seat"
     assert over == {"DA": 1}, "3 wards against an entitlement of 2"
-    assert seats == {"DA": 3, "P": 2, "Q": 1, "R": 1}, (
-        f"{seats} — P must fall from 3 to 2, which is the seat an 'expand' "
-        f"reading would have preserved")
+    published = {"ANC": 2, "DA": 3, "KDF": 1, "PA": 1}
+    assert {p: n for p, n in seats.items() if n} == published, (
+        f"{seats} — the IEC published ANC 2, DA 3, KDF 1, PA 1; the KDF must "
+        f"fall from 2 to 1, which is the seat an 'expand' reading preserves")
     assert sum(seats.values()) == 7
+
+    round_two = allocate({k: v for k, v in LAINGSBURG_VOTES.items() if k != "DA"},
+                         total_seats=4)
+    assert round_two.quota == 1231, round_two.quota
+    assert round_two.ranking == ["PA", "ANC", "KOP", "KDF", "VFPLUS", "EFF", "KGP"], (
+        round_two.ranking)
+
+    # THE MUTATION: the denominator C − D + 1 instead of C − D moves a seat.
+    wrong = allocate({k: v for k, v in LAINGSBURG_VOTES.items() if k != "DA"},
+                     total_seats=5)
+    assert wrong.seats["KDF"] == 2 and wrong.quota != 1231, (
+        "the wrong denominator gives the same council, so this fixture cannot "
+        "see it")
 
 
 def test_a_party_at_exactly_its_entitlement_is_excluded_from_the_requota():

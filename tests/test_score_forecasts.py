@@ -60,6 +60,9 @@ import official_seats  # noqa: E402
 import score_forecasts as S  # noqa: E402
 
 CITY, AS_IF = "joburg", "2026"
+#: a constructed run identity for the seeded lot (seats.lot_identity's form);
+#: the schema carries it as the build writes the published run's
+_LOT = f"{CITY}|{AS_IF}|test"
 RESULT = ROOT / "data/raw/elections/lge2021_JHB_vd_party_clean.csv"
 FORECAST = Path(os.environ.get("YF_FORECAST_JSON", ROOT / "site/your-forecast/forecast.json"))
 
@@ -100,7 +103,8 @@ def _schema(result: dict) -> dict:
         "x-seat-context": {"city": CITY, "target": AS_IF,
                            "council": result["council"], "wards": wards,
                            "parties": list(result["roster_codes"]),
-                           "no_pr_list": list(result["no_pr_list"])},
+                           "no_pr_list": list(result["no_pr_list"]),
+                           "lot": _LOT},
         "x-ward-ids": wards,
     }
 
@@ -530,9 +534,11 @@ def test_the_model_forecast_is_rule_a():
     winners, wv, lv, pair, ward_v, list_v = _rule_a_inputs(result, schema, roster)
     got = S.model_forecast(winners, roster, wards, wv, lv, roster, schema)
 
-    # the tie goes to the code first in string order, and the rest are the
-    # actual winners
-    assert got["ward_calls"][0] == min(pair)
+    # the tie goes to the party the seeded lot draws under the schema's lot
+    # and the ward's key, and the rest are the actual winners
+    import seats
+    assert got["ward_calls"][0] == seats.lot_order(
+        list(pair), seats.ward_key(schema["x-seat-context"]["lot"], wards[0]))[0]
     assert got["ward_calls"][1:] == truth["ward_calls"][1:]
     # the votes are the exact means, every roster party kept, zero included
     assert got["ward_votes"] == {p: ward_v.get(p, 0) for p in roster}
@@ -542,7 +548,8 @@ def test_the_model_forecast_is_rule_a():
     # with the tied ward given to its actual winner, the prediction's council
     # is the result's own, by the one seat law
     untouched = dict(got, ward_calls=[result["wards"][wards[0]]] + got["ward_calls"][1:])
-    seated = prediction.seats_of(untouched, schema["x-seat-context"]["council"], order=roster)
+    seated = prediction.seats_of(untouched, schema["x-seat-context"]["council"], order=roster,
+                                 lot=schema["x-seat-context"]["lot"])
     assert {p: v["total"] for p, v in seated["seats"].items()} == \
         {p: v["total"] for p, v in result["computed_seats"].items() if v["total"] > 0}
     # it is an entry of the version the scorer reads, so score() reads it as

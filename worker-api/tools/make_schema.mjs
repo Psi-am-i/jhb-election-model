@@ -13,9 +13,12 @@
 // prototype's fixtures, is retired (2026-10-08, guard G13).
 //
 // Nothing about the council is typed here: the ward list, the roster, the
-// council size, the majority and the editor's bounds are read from the
-// artefact, and the schema records the sha256 of every source it was built
-// from.
+// council size, the majority, the editor's bounds and the seeded lot's run
+// identity (`lot`) are read from the artefact, and the schema records the
+// sha256 of every source it was built from. This is the ONE writer of
+// x-seat-context, `lot` included (build_make.model_artefact puts the lot in the
+// artefact, from the served draws' artefact_key). An artefact with no lot
+// gives a context with no lot, which src/reader_seats.py refuses by name.
 //
 // The CLI writes only the ward geometry the dormant account store draws:
 //   node tools/make_schema.mjs            write generated/geometry.json
@@ -137,10 +140,13 @@ export function build(modelBuf, geomBuf, srcNames) {
     "x-ward-ids": wardIds,
     "x-council": { council_seats: model.council_seats, ward_seats: model.ward_seats, majority: model.majority },
     // The `context` argument of src/reader_seats.py's reader_seats(), exactly
-    // as it takes it; worker-api/src/seats.js sends it with the entry.
+    // as it takes it; worker-api/src/seats.js sends it with the entry. `lot`
+    // (the published run's identity for the seeded lot, JUDGEMENT-CALLS §Q6)
+    // is written only when the artefact carries one.
     "x-seat-context": {
       city: String(model.city), target: String(model.target), council: model.council_seats,
       wards: wardIds, parties: codes, no_pr_list: model.no_pr_list.map(String),
+      ...(model.lot ? { lot: String(model.lot) } : {}),
     },
     // What the page's editor lets a reader set (src/build_make.py
     // editor_bounds). The editor only: never what an entry may be.

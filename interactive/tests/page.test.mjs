@@ -107,8 +107,18 @@ test("both served sets are hashed into the manifest, and one byte moves the righ
     assert.notEqual(pageRef(srcCopy, repoCopy), pageRef());
     undo();
     assert.equal(pageRef(srcCopy, repoCopy), pageRef());
+    // seat code that is not page code moves only the seat hash. seats.py was
+    // this control until 2026-10-09, when page.py began importing it for the
+    // seeded lot (JUDGEMENT-CALLS §Q2) and it joined PAGE_FILES; montecarlo.py
+    // is in FILES and not in PAGE_FILES.
+    assert.ok(FILES.includes("montecarlo.py") && !PAGE_FILES.includes("montecarlo.py"));
+    undo = flip(resolve(srcCopy, "montecarlo.py"));
+    assert.equal(pageRef(srcCopy, repoCopy), pageRef(), "montecarlo.py is not page code");
+    assert.notEqual(codeRef(ALL.map(f => readFileSync(resolve(srcCopy, f)))), man.code_ref);
+    undo();
+    // seats.py is both now: it moves both hashes
     undo = flip(resolve(srcCopy, "seats.py"));
-    assert.equal(pageRef(srcCopy, repoCopy), pageRef(), "seats.py is not page code");
+    assert.notEqual(pageRef(srcCopy, repoCopy), pageRef(), "seats.py is page code");
     assert.notEqual(codeRef(ALL.map(f => readFileSync(resolve(srcCopy, f)))), man.code_ref);
     undo();
   } finally { rmSync(tmp, { recursive: true, force: true }); }

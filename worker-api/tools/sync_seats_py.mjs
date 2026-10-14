@@ -20,8 +20,13 @@ const DST = resolve(here, "../seats-py/src");
 // which reader_seats delegates to). tests/test_reader_seats.py holds this list
 // equal to the import closure measured in a fresh interpreter, both ways, so a
 // module added to or dropped from that chain turns the suite red.
+// byelections.py: montecarlo imports it at module level (item 19, M4). Its
+// import defines constants only and reads no file (its SA_FILE and BYE_VALUE
+// are names, opened only by functions the seat path never calls), and its own
+// imports are cityconfig and parties, already here.
 export const FILES = ["reader_seats.py", "montecarlo.py", "seats.py", "cityconfig.py",
-  "coalitions.py", "fold.py", "parties.py", "polling.py", "prediction.py"];
+  "coalitions.py", "fold.py", "parties.py", "polling.py", "prediction.py",
+  "byelections.py"];
 // The card answer's code (/v1/card in seats-py/src/entry.py): the chance of a
 // reader's council-level outcome and its badge. reweight.py has no top-level
 // import from src/ (its docstring), so it is one file. Kept apart from FILES,

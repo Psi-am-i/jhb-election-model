@@ -1,0 +1,13 @@
+  <h2>Why the forecast moved</h2>
+  <div class="why">
+    <div><h3>1. The PA's ward vote is no longer inflated</h3>
+      <p>The old model worked out each party's ward vote from the wards it contested last time and then applied that across the whole city. The PA contests few wards and does well in them, so its city-wide ward vote came out at 11.9% against a party-list vote of 6.3%. The new model scales it to the wards the party actually contests: 6.5% against 6.3%.</p>
+      <p><b>Effect:</b> PA about 7 seats down; ANC and DA about 2 seats up each. The PA loses favourite status in 6 wards (29, 68, 69, 121, 124, 125). This correction was predicted in writing before it was run, and the run confirmed it on 10 October.</p></div>
+    <div><h3>2. By-elections no longer count</h3>
+      <p>The old model gave by-elections since 2021 a fixed 40% weight, a number someone chose. The new model weighs them by how well by-elections have predicted the next general election in the past. For this election that comes out at zero, so they no longer move the forecast.</p>
+      <p><b>Effect:</b> ANC and EFF about 2.6 seats up each; ActionSA about 1.4 down; PA about 1 down.</p></div>
+    <div><h3>3. A new way of varying the vote in each simulation</h3>
+      <p>Each simulation varies every party's vote around its expected level. The new method varies all parties the same way, scaled to their size, and sets the amount of variation from how far past results actually strayed. For the big parties the ranges come out about half as wide: the ANC's 90% range goes from 28–92 seats to 51–83. The PA's range gets wider.</p>
+      <p><b>Effect:</b> the ANC's average vote doesn't change, but it wins about 4 more wards on average. In 4 of 5 simulations it wins more wards than its vote share alone would entitle it to, and it keeps those extra seats. That adds about 2 seats on average. That the steadier vote is what causes this is our reading, not yet tested.</p></div>
+  </div>
+  <p class="note" style="margin-top:16px">The "old model" here is the published code re-run at 5,000 simulations. Its averages match the published forecast to within half a seat.</p>
