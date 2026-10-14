@@ -29792,3 +29792,89 @@ overrides any of the five (`cities/*.toml` `[judgements.scalars]`). With the
 hold reverted, the shipping tree is the one the pre-registration called C0
 (arm U's scenario on the hold-free tree); §1.301 records U and C0 differing by
 about 1e-4 in list share at city-years the hold should not touch.
+
+### Regeneration (item 3)
+
+`src/backup_ignored.py` first (`backups/2026-10-14T004508Z`). Every spec
+re-emitted by the queue loop (2011, 2016, 2021 for the eight metros;
+Johannesburg 2026 and its simulation spec; Tshwane 2026): 27 on disk, one
+`pools_sha` (`dcf2cd52e56b478c`). Each equals the C0 worktree's spec
+(`dcff8fe`, step 7) in every field but `judgement_file`, an absolute path.
+`group_share_record --emit` and `width_record --emit` (the shipping variant,
+`level_shrink` 0.35); both equal C0's apart from the key's `specs_sha`. The
+`level_shrink = 0` variant was not built: only arm US reads it.
+
+Post-emit checks: `test_universal_draw` and `test_draw_streams` pass;
+`test_intermediates_are_current` fails three, two of them step 7's
+(the summaries' missing `_target` before the forecast re-run; the
+`plausibility_*.json` pattern that matches nothing in `data/processed`) and
+`test_the_bye_value_freshness_check_can_see_a_real_stale_record`, which
+failed under four concurrent jobs and passed alone on the same tree.
+
+`src/inputs_preflight.py --strict --city joburg --target 2026`: exit 0; the
+registration snapshot `iec-registration-2026-09-26` is present and not read
+by the model; every required input in hand.
+
+Canonical runs on `4a01b99`: `src/montecarlo.py --city joburg` (5,000 draws,
+seed 20261104, from `cities/joburg.toml`), `src/overhang_regimes.py` (it
+reported `forecast_summary.json` re-written by its reference re-run, seat
+draws unchanged), and `src/compare_history.py` (1,000 draws, seed 20261104,
+`git_dirty` false), which wrote `history.json`/`.md`.
+
+### Before and after, against real results (item 4)
+
+Before: the tracked `data/processed/history.json` at `7f0a921`
+(last written by `c9bae8e`; run at `a2bc44c`, 2026-09-29, 1,000 draws, seed
+20261104): the F9 model, which is the published freeze's code with the
+incumbent draw. After: `compare_history` on `4a01b99`, same draws and seed.
+Both from `compare_history`, so both relabel arrivals the same way.
+
+Columns. *List error*: `pr_mae`, the vote-weighted mean absolute error of the
+mean drawn list (PR) share against the real list share, over every party on
+the real list ballot, in percentage points. *Wrong-party seats*: half of
+`seat_abs_err_coherent`, the summed absolute difference between the coherent
+council (largest remainder on the mean seat vector) and the real council, over
+the union of parties. Cycle rows: the mean list error and the summed
+wrong-party seats over the eight metros. 2011 is reported, not scored (the
+prereg's scored population is 2016 and 2021). The two runs use different draw
+laws, so their draws are not paired. §1.301 measured the Monte Carlo error of a
+PAIRED list-error difference at up to 0.14pp at one city-year (Ekurhuleni
+2016); an unpaired difference carries more, and no error is computed here.
+
+| city-year | list error before (pp) | list error after (pp) | change | wrong-party seats before | after | change |
+|---|---|---|---|---|---|---|
+| Johannesburg 2016 | 0.89 | 0.92 | +0.03 | 15 | 14 | -1 |
+| Tshwane 2016 | 1.20 | 1.25 | +0.04 | 8 | 8 | +0 |
+| Ekurhuleni 2016 | 1.71 | 1.59 | -0.11 | 14 | 13 | -1 |
+| eThekwini 2016 | 1.59 | 1.42 | -0.17 | 17 | 11 | -6 |
+| Cape Town 2016 | 0.27 | 0.50 | +0.23 | 4 | 3 | -1 |
+| Mangaung 2016 | 0.72 | 1.05 | +0.34 | 5 | 4 | -1 |
+| Nelson Mandela Bay 2016 | 0.66 | 1.10 | +0.44 | 4 | 4 | +0 |
+| Buffalo City 2016 | 0.90 | 0.89 | -0.01 | 5 | 5 | +0 |
+| **2016, 8 cities** | mean 0.99 | mean 1.09 | +0.10 | total 72 | total 62 | -10 |
+| Johannesburg 2021 | 6.29 | 6.24 | -0.05 | 43 | 45 | +2 |
+| Tshwane 2021 | 2.04 | 2.04 | +0.00 | 17 | 17 | +0 |
+| Ekurhuleni 2021 | 2.55 | 2.55 | -0.00 | 15 | 15 | +0 |
+| eThekwini 2021 | 2.47 | 2.47 | -0.00 | 17 | 16 | -1 |
+| Cape Town 2021 | 2.32 | 2.37 | +0.05 | 21 | 19 | -2 |
+| Mangaung 2021 | 1.76 | 1.76 | -0.00 | 4 | 4 | +0 |
+| Nelson Mandela Bay 2021 | 2.81 | 3.28 | +0.46 | 10 | 11 | +1 |
+| Buffalo City 2021 | 3.08 | 2.96 | -0.13 | 4 | 4 | +0 |
+| **2021, 8 cities** | mean 2.92 | mean 2.96 | +0.04 | total 131 | total 131 | +0 |
+| Johannesburg 2011 | 5.06 | 5.13 | +0.07 | 30 | 30 | +0 |
+| Tshwane 2011 | 6.51 | 6.50 | -0.01 | 30 | 30 | +0 |
+| Ekurhuleni 2011 | 3.55 | 4.46 | +0.91 | 18 | 21 | +3 |
+| eThekwini 2011 | 2.68 | 2.91 | +0.23 | 15.5 | 16.5 | +1 |
+| Cape Town 2011 | 4.27 | 3.97 | -0.30 | 21 | 19 | -2 |
+| Mangaung 2011 | 8.14 | 7.82 | -0.32 | 17 | 15 | -2 |
+| Nelson Mandela Bay 2011 | 7.20 | 7.35 | +0.15 | 17 | 18 | +1 |
+| Buffalo City 2011 | 7.16 | 6.33 | -0.83 | 16 | 14 | -2 |
+| **2011, 8 cities** | mean 5.57 | mean 5.56 | -0.01 | total 164.5 | total 163.5 | -1 |
+
+### Goldens (item 6, part 1)
+
+`tests/test_drawer.py`'s `GOLDEN_PARTIES` and `GOLDEN_POOLS` re-recorded from
+`tests/test_drawer.py --record` (seed 20261104, 2,000 draws): the round changed
+the draw (universal law, JUDGEMENT-CALLS §A57) and the specs, and step 5
+(`12a0113`) deferred the re-record to this step. The previous values were F8's,
+under the incumbent law. No improvement is claimed from a golden.
