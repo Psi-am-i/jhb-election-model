@@ -67,7 +67,7 @@
 .sitefooter a.foot-umbrella{flex:none;display:block;line-height:0;color:var(--ink-2);
   text-decoration:none;}
 .sitefooter a.foot-umbrella:hover{color:var(--accent);}
-.sitefooter .wsc-logo{display:block;height:88px;width:calc(88px * 1984 / 1016);}
+.sitefooter .wsc-logo{display:block;height:88px;width:calc(88px * 1969 / 1002);}
 @media (max-width:760px){.sitefooter .foot-side{align-items:flex-start;}}
 /* Underlined, so a link reads as one inside the sentence-form credits on
    every page, the home page's no-underline links included. */

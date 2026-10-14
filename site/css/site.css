@@ -375,8 +375,8 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 :where(.pg-portal) .pfoot{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:70ch;}
 :where(.pg-portal) .pm-logo{display:block;width:max-content;line-height:0;color:var(--ink);margin-bottom:14px;}
 :where(.pg-portal) .pm-logo:hover{color:var(--accent);}
-:where(.pg-portal) .pm-logo .wsc-logo{display:block;height:120px;width:calc(120px * 1984 / 1016);}
-@media (max-width:560px){:where(.pg-portal) .pm-logo .wsc-logo{height:92px;width:calc(92px * 1984 / 1016);}}
+:where(.pg-portal) .pm-logo .wsc-logo{display:block;height:120px;width:calc(120px * 1969 / 1002);}
+@media (max-width:560px){:where(.pg-portal) .pm-logo .wsc-logo{height:92px;width:calc(92px * 1969 / 1002);}}
 
 /* ---- src/css/page-art.css ---- */
 :where(.pg-art) a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px;}
@@ -520,7 +520,7 @@ body:where(.pg-home){background:var(--paper);color:var(--ink-2);font-family:var(
 .sitefooter a.foot-umbrella{flex:none;display:block;line-height:0;color:var(--ink-2);
   text-decoration:none;}
 .sitefooter a.foot-umbrella:hover{color:var(--accent);}
-.sitefooter .wsc-logo{display:block;height:88px;width:calc(88px * 1984 / 1016);}
+.sitefooter .wsc-logo{display:block;height:88px;width:calc(88px * 1969 / 1002);}
 @media (max-width:760px){.sitefooter .foot-side{align-items:flex-start;}}
 /* Underlined, so a link reads as one inside the sentence-form credits on
    every page, the home page's no-underline links included. */

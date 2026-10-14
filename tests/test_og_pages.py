@@ -299,20 +299,33 @@ def test_every_figure_in_an_image_is_a_figure_a_page_printed():
 
 
 def claim_card_faults(spec: dict, svg: str, W: int = 1200, H: int = 630) -> list[str]:
-    """What a claim card must be (owner, 2026-10-13): the verdict stamp large,
-    beside the tested statement, which the card prints from the claim's data;
-    and nothing at the left in the lowest 15% of the card, where X lays the
-    link's title over the image."""
+    """What a claim card must be (owner, 2026-10-13): the top bar in the party's
+    colour; the quote, then directly under it the party's name and speaker, then
+    lower the verdict stamp, large, beside the tested statement printed from the
+    claim's data; the foot line naming the forecast's date; and nothing at the
+    left in the lowest 15% of the card, where X lays the link's title."""
     out = []
     texts = [(float(x), float(y), anchor, htmllib.unescape(t)) for x, y, anchor, t in
              re.findall(r'<text x="([\d.]+)" y="([\d.]+)"[^>]*?(text-anchor="end")?[^>]*>([^<]*)</text>', svg)]
     flat = " ".join(" ".join(t for _x, _y, _a, t in texts).split())
-    if not spec.get("statement") or spec["statement"] not in flat:
+    if not spec.get("statement") or spec["statement"] + "." not in flat:
         out.append(f"the tested statement {spec.get('statement')!r} is not printed on the card")
+    bar = re.search(r'<rect x="0" y="0" width="1200" height="8" fill="([^"]+)"', svg)
+    if not bar or bar.group(1).lower() != spec["colour"].lower():
+        out.append(f"the top bar is {bar.group(1) if bar else None}, the party's colour is {spec['colour']}")
     m = re.search(r'scale\(([\d.]+)\)"><clipPath id="v-viewbox"><rect x="0" y="0" width="[\d.]+" height="([\d.]+)"', svg)
     stamp_h = float(m.group(1)) * float(m.group(2)) if m else 0
-    if stamp_h < 240:
-        out.append(f"the verdict stamp is {stamp_h:.0f}px tall; it must be at least 240 on a {H}px card")
+    if stamp_h < 200:
+        out.append(f"the verdict stamp is {stamp_h:.0f}px tall; it must be at least 200 on a {H}px card")
+    y_of = lambda s_: next((y for x, y, a, t in texts if t == s_ and not a), None)
+    party, tag = y_of(spec["party"]), y_of("Tested statement")
+    quote_last = max((y for x, y, a, t in texts if x == 56 and t.endswith("\u201d")), default=None)
+    if party is None or tag is None or quote_last is None or not (quote_last < party < tag):
+        out.append(f"the order is not quote ({quote_last}), party ({party}), tested statement ({tag})")
+    elif party - quote_last > 80:
+        out.append(f"the party is {party - quote_last:.0f}px under the quote's last line, not directly under it")
+    if spec["date_line"] not in flat or "whysoserious.city forecast published" not in flat:
+        out.append("the foot line does not name the forecast's date")
     for x, y, anchor, t in texts:
         if y > H * 0.85 and not anchor and x < W / 2:
             out.append(f"text {t!r} at the left, y={y}, in the band X covers")
@@ -327,17 +340,21 @@ def test_a_claim_card_prints_its_statement_beside_a_large_stamp_and_keeps_the_fo
     assert len(claims) == len(toml) >= 4
     drawn = json.loads(_node(_DRAWN, claims))
     for spec, d in zip(claims, drawn):
-        label = next(" ".join(c["label"].split()) for c in toml if spec["slug"] == og_pages.claim_image_slug(c["slug"]))
-        assert spec["statement"] == label, (spec["slug"], spec["statement"])
+        c = next(c for c in toml if spec["slug"] == og_pages.claim_image_slug(c["slug"]))
+        assert spec["statement"] == " ".join(c["label"].split()), (spec["slug"], spec["statement"])
+        assert spec["date_line"] == f"Tested against the whysoserious.city forecast published {c['published']}."
         assert claim_card_faults(spec, d["svg"]) == [], (spec["slug"], claim_card_faults(spec, d["svg"]))
+        # the page's og:title is not the statement the card prints
+        page = (out / og_pages.CLAIM_DIR / f"{c['slug']}.html").read_text(encoding="utf-8")
+        assert meta(page, "og:title") == [f"Party claims tested: {spec['party']}"], meta(page, "og:title")
     spec, svg = claims[0], drawn[0]["svg"]
-    # it can see: no statement, a small stamp, text in the covered band
+    # it can see: no statement, a small stamp, text in the covered band, the wrong bar
     assert claim_card_faults({**spec, "statement": "A statement the card never drew"}, svg)
     assert claim_card_faults(spec, re.sub(r'scale\(([\d.]+)\)"><clipPath id="v-viewbox"',
                                           lambda m: f'scale({float(m.group(1)) / 2:.6f})"><clipPath id="v-viewbox"', svg))
     low = svg.replace("</svg>", '<text x="56" y="606" font-size="21">Tested against the forecast.</text></svg>')
     assert any("band X covers" in f for f in claim_card_faults(spec, low))
-    # and quiet again when reverted
+    assert claim_card_faults({**spec, "colour": "#123456"}, svg)
     assert claim_card_faults(spec, svg) == []
 
 
@@ -354,7 +371,7 @@ def test_the_renderer_types_no_figure_list():
 
 def test_the_forecast_image_is_the_one_card_with_the_forecasts_own_figures_and_date():
     """/forecast's share image is the card the share sheet draws (play-card.js):
-    the whysoserious.city logo, "forecast, <date>", no "Shared by" and no "Made"
+    the whysoserious.city logo, "Forecast, <date>", no "Shared by" and no "Made"
     line, "Make your own prediction at ..." in the foot; its chances are the
     page's and its date is forecast.json's. forecast_spec refuses a page that
     prints another chance or date."""
@@ -366,7 +383,7 @@ def test_the_forecast_image_is_the_one_card_with_the_forecasts_own_figures_and_d
     yfd = json.loads((out / "your-forecast" / build_make.DATA).read_text(encoding="utf-8"))
     flat = " ".join(htmllib.unescape(t) for t in re.findall(r"<text\b[^>]*>([^<]*)</text>", d))
     date = og_pages._long(yfd["forecast_date"])
-    assert f"forecast, {date}" in flat and date == pool["generated_date"]
+    assert f"Forecast, {date}" in flat and date == pool["generated_date"]
     assert 'viewBox="0 0 1969 1002"' in d, "the whysoserious.city logo is not on the card"
     assert "Make your own prediction at joburg.whysoserious.city/your-forecast." in flat
     assert not re.search(r"shared by|try your own|made \d", flat, re.I), flat

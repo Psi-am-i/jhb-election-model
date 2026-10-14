@@ -180,7 +180,7 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       const lines = textOf(svg).map(unesc);
       const all = lines.join(" ");
       assert.equal(lines[0], forecastTitle(FDATE), `${c.name} ${size}: headline`);
-      assert.equal(forecastTitle(FDATE), "forecast, 29 September 2026");
+      assert.equal(forecastTitle(FDATE), "Forecast, 29 September 2026");
       assert.ok(!/shared by/i.test(all), `${c.name} ${size}: a "Shared by" line`);
       assert.ok(svg.includes(`viewBox="${WSC.viewBox}"`), `${c.name} ${size}: the whysoserious.city logo`);
       assert.ok(!svg.includes(`viewBox="${BRAND.viewBox}"`), `${c.name} ${size}: the Johannesburg lockup`);
@@ -226,7 +226,7 @@ test("no name is on the model's forecast, and a moved setting draws no model's c
   assert.throws(() => buildPlayCardSVG(card(untouched, { forecastDate: "29 Sept" })), /forecast's date/);
   // without the logo the headline names the site
   const bare = textOf(buildPlayCardSVG(card(untouched, { assets: { logos: {}, brand: BRAND } }))).map(unesc);
-  assert.equal(bare[0], FORECAST_NAME + ", 29 September 2026");
+  assert.equal(bare[0], "whysoserious.city Forecast, 29 September 2026");
   // a moved setting is the reader's forecast, sealed (share-card.js): never this card
   assert.throws(() => buildPlayCardSVG(card(moved[0], { touched: true })), /reader's forecast/);
 });

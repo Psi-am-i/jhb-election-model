@@ -114,10 +114,10 @@ export function dayText(iso, what = "the date") {
   return d + " " + MONTHS[m - 1] + " " + y;
 }
 
-// The model's card headline, after the logo: "forecast, 29 September 2026"
+// The model's card headline, after the logo: "Forecast, 29 September 2026"
 // (`date` is forecast.json's forecast_date), and its words without the logo,
 // for the text alternative and the native share.
-export const forecastTitle = date => "forecast, " + dayText(date, "the forecast's date");
+export const forecastTitle = date => "Forecast, " + dayText(date, "the forecast's date");
 export const forecastWords = date => FORECAST_NAME + ", " + dayText(date, "the forecast's date");
 
 // The two parties most often alone with the most seats, in alphabetical

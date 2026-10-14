@@ -22,7 +22,7 @@ What this module owns
     The site's typefaces, IBM Plex Sans, Serif and Mono, byte copies of
     ``src/fonts/`` with their licence; :func:`font_css` declares them at the
     head of ``site.css``.
-``site/logo.svg``, ``whysoserious.svg``, ``favicon.svg``, ``favicon-32.png``, ``apple-touch-icon.png``, ``og.png``
+``site/logo.svg``, ``whysoseriouscity.svg``, ``favicon.svg``, ``favicon-32.png``, ``apple-touch-icon.png``, ``og.png``
     The owner's logo and what is made from it (:data:`BRAND_FILES`), byte
     copies of ``src/brand/``.
 ``site/stamps/``
@@ -74,17 +74,17 @@ BRAND_SRC = REPO_ROOT / "src" / "brand"
 #: FORECAST" above the rest of the word, the nav's home link (``#logo``).
 #: The tower-J alone is the favicon (SVG, and PNG at 32 and 180 px);
 #: ``og.png`` is the default
-#: share image. ``whysoserious.svg`` is the umbrella site's logo (``#wsc``):
-#: the apex portal's masthead and the footer's "part of" line. A viewBox is
-#: the logo's box in its file's coordinates, for a page's <svg><use>.
+#: share image.
 LOGO = "logo.svg"
 LOGO_VIEWBOX = "19 87 2826 1296"
-UMBRELLA = "whysoserious.svg"
-UMBRELLA_VIEWBOX = "440 272 1984 1016"
-#: ``whysoseriouscity.svg`` (2026-10-13): the umbrella logo without its
-#: tagline, the owner's file, drawn in the header of the card that shares our
-#: forecast (share-card.js; fetched by share-sheet.js loadAssets).
+#: ``whysoseriouscity.svg`` (owner's file, 2026-10-13): the whysoserious.city
+#: logo, the one on every page (the footer's "part of" line, the apex portal's
+#: masthead, the card that shares our forecast). It replaced ``whysoserious.svg``
+#: (the same skyline with a grey tagline). A viewBox is the logo's box in its
+#: file's coordinates, for a page's <svg><use>.
 WORDMARK = "whysoseriouscity.svg"
+UMBRELLA = WORDMARK
+UMBRELLA_VIEWBOX = "0 0 1969 1002"
 #: The umbrella site's address, which its logo links to.
 APEX_URL = "https://whysoserious.city/"
 
@@ -96,7 +96,7 @@ def umbrella_svg(cls: str) -> str:
             f'<use href="{UMBRELLA}#wsc"></use></svg>')
 
 
-BRAND_FILES = ("logo.svg", "whysoserious.svg", WORDMARK, "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png")
+BRAND_FILES = ("logo.svg", WORDMARK, "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "og.png")
 
 #: The owner's stamps (2026-10-10): the reader badges, the verdict badges and
 #: the prediction seal, as he drew them.

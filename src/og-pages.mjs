@@ -108,55 +108,71 @@ function claims(spec) {
   return s + "</svg>";
 }
 
-// ---------- a claim's own page: the quote, then the owner's verdict stamp, large,
-// beside the tested statement, then the party's logo, the party and who said it
-// (SHARE-BRIEF item 1; owner, 2026-10-13: the stamp much larger, the statement
-// printed beside it, the quote smaller). X lays the link's title over the
-// image's bottom left, so nothing is drawn in the lowest CLAIM_CLEAR of the
-// card at the left: the rule and the date line end it, and the date line is set
-// at the right. ----------
-const CLAIM_QUOTE = { big: 40, least: 24, lines: 6, bottom: 262 };
-const CLAIM_STAMP = { h: 250, cy: 398, gap: 40 };
-const CLAIM_STATEMENT = { tag: 21, tagY: 322, big: 48, least: 28, lines: 3, top: 340, bottom: 420 };
-const CLAIM_ROW = { chip: 72, cy: 480, gap: 22, party: 30, who: 21 };
-const CLAIM_CLEAR = 0.15;                 // of the card's height, from the bottom
+// ---------- a claim's own page ----------
+// Top to bottom (owner, 2026-10-13): the quote; directly under it the party's
+// logo, name and speaker; then, lower, the verdict stamp, large, beside the
+// tested statement (claims.toml's label, with a full stop). The top bar is the
+// party's colour. X lays the link's title over the image's bottom left, so
+// nothing is drawn in the lowest 15% of the card at the left: the rule
+// and the foot line end it, and the foot line is set at the right.
+const CLAIM_QUOTE = { big: 40, least: 24, lines: 6 };
+const CLAIM_ROW = { chip: 56, gapTop: 18, gap: 18, party: 28, who: 20 };
+const CLAIM_STAMP = { max: 250, min: 200, preferred: 230, bottom: 526, gapTop: 14, gap: 40 };
+const CLAIM_STATEMENT = { tag: 21, big: 46, least: 28, lines: 3 };
+// A party's logo in the one container every claim card uses: a rounded white
+// square, the logo inset by equal padding, centred and whole (a logo that is
+// itself a full-bleed square gets the same margin as one with a transparent
+// ground). A party with no logo gets its colour in the same square.
+function claimChip(spec, x, y, s) {
+  const src = logoOf(spec.logo), rx = s / 6, pad = s * 0.1;
+  if (!src) return rect(x, y, s, s, spec.colour, ` rx="${n1(rx)}"`);
+  const id = "cc";
+  return `<clipPath id="${id}"><rect x="${n1(x + pad)}" y="${n1(y + pad)}" width="${n1(s - 2 * pad)}" height="${n1(s - 2 * pad)}" rx="${n1(rx / 2)}"/></clipPath>` +
+    rect(x, y, s, s, C.chip, ` rx="${n1(rx)}"`) +
+    `<image x="${n1(x + pad)}" y="${n1(y + pad)}" width="${n1(s - 2 * pad)}" height="${n1(s - 2 * pad)}" href="${src}" preserveAspectRatio="xMidYMid meet" clip-path="url(#${id})"/>`;
+}
 function claim(spec) {
   let s = frame(spec, { footRight: true });
-  const words = "\u201c" + spec.quote + "\u201d";
-  let q = null;
-  for (let fs = CLAIM_QUOTE.big; fs >= CLAIM_QUOTE.least && !q; fs -= 2) {
-    const L = wrapText(words, HEAD_MAX, fs, "serifSemi");
-    const last = capBase(fs) + (L.length - 1) * fs * HEAD_LEADING;
-    if (L.length <= CLAIM_QUOTE.lines && last <= CLAIM_QUOTE.bottom)
-      q = L.map((l, k) => text(X, capBase(fs) + k * fs * HEAD_LEADING, l, fs, "serifSemi")).join("");
-  }
-  if (!q) throw new Error(`${spec.slug}: the quote does not fit ${CLAIM_QUOTE.lines} lines at ${CLAIM_QUOTE.least}px`);
-  s += q;
+  if (!spec.statement) throw new Error(`${spec.slug}: no tested statement`);
   STAMPS[spec.badge] ??= stampOf(readFileSync(resolve(REPO, spec.badge), "utf8"));
   const [, , vw, vh] = STAMPS[spec.badge].viewBox.split(/\s+/).map(Number);
-  const bw = CLAIM_STAMP.h * vw / vh;
-  s += stamp(spec.badge, "v", X + bw / 2, CLAIM_STAMP.cy, CLAIM_STAMP.h);
-  // the tested statement, beside the stamp, as the claim's data has it
+  const words = "\u201c" + spec.quote + "\u201d";
+  // the quote at the largest size that leaves the stamp its preferred height
+  // (or, at the smallest size, the room there is, never under CLAIM_STAMP.min)
+  let pick = null;
+  for (let fs = CLAIM_QUOTE.big; fs >= CLAIM_QUOTE.least && !pick; fs -= 2) {
+    const L = wrapText(words, HEAD_MAX, fs, "serifSemi");
+    if (L.length > CLAIM_QUOTE.lines) continue;
+    const last = capBase(fs) + (L.length - 1) * fs * HEAD_LEADING;
+    const rowTop = last + CLAIM_ROW.gapTop, rowBottom = rowTop + CLAIM_ROW.chip;
+    const stampH = Math.min(CLAIM_STAMP.max, CLAIM_STAMP.bottom - (rowBottom + CLAIM_STAMP.gapTop));
+    if (stampH >= CLAIM_STAMP.preferred || fs === CLAIM_QUOTE.least) pick = { fs, L, rowTop, rowBottom, stampH };
+  }
+  if (!pick || pick.stampH < CLAIM_STAMP.min) throw new Error(`${spec.slug}: the quote leaves the stamp under ${CLAIM_STAMP.min}px`);
+  const { fs, L, rowTop, rowBottom, stampH } = pick;
+  s += L.map((l, k) => text(X, capBase(fs) + k * fs * HEAD_LEADING, l, fs, "serifSemi")).join("");
+  // the party, directly under the quote
+  if (spec.logo) ASSETS.logos[spec.code] = logoOf(spec.logo);
+  s += claimChip(spec, X, rowTop, CLAIM_ROW.chip);
+  const px = X + CLAIM_ROW.chip + CLAIM_ROW.gap, pw = R - px;
+  const pn = fitText(spec.party, pw, CLAIM_ROW.party, "sansBold", 22), who = fitText(spec.speaker, pw, CLAIM_ROW.who, "sans", 16);
+  s += text(px, rowTop + 25, pn.text, pn.fs, "sansBold");
+  s += text(px, rowTop + 48, who.text, who.fs, "sans", { fill: C.ink2 });
+  // the stamp, and the tested statement beside it
+  const sTop = rowBottom + CLAIM_STAMP.gapTop, cy = sTop + stampH / 2, bw = stampH * vw / vh;
+  s += stamp(spec.badge, "v", X + bw / 2, cy, stampH);
   const tx = X + bw + CLAIM_STAMP.gap, tw = R - tx;
-  if (!spec.statement) throw new Error(`${spec.slug}: no tested statement`);
-  s += text(tx, CLAIM_STATEMENT.tagY, "Tested statement", CLAIM_STATEMENT.tag, "sansSemi", { fill: C.ink2 });
+  const statement = spec.statement + ".";
   let st = null;
-  for (let fs = CLAIM_STATEMENT.big; fs >= CLAIM_STATEMENT.least && !st; fs -= 2) {
-    const L = wrapText(spec.statement, tw, fs, "serifSemi");
-    const last = CLAIM_STATEMENT.top + fs * 0.9 + (L.length - 1) * fs * HEAD_LEADING;
-    if (L.length <= CLAIM_STATEMENT.lines && last <= CLAIM_STATEMENT.bottom)
-      st = L.map((l, k) => text(tx, CLAIM_STATEMENT.top + fs * 0.9 + k * fs * HEAD_LEADING, l, fs, "serifSemi")).join("");
+  for (let sf = CLAIM_STATEMENT.big; sf >= CLAIM_STATEMENT.least && !st; sf -= 2) {
+    const SL = wrapText(statement, tw, sf, "serifSemi");
+    if (SL.length <= CLAIM_STATEMENT.lines) st = { sf, SL };
   }
   if (!st) throw new Error(`${spec.slug}: the statement does not fit ${CLAIM_STATEMENT.lines} lines at ${CLAIM_STATEMENT.least}px`);
-  s += st;
-  // the party: its logo, its name and who said it, under the statement
-  const logo = logoOf(spec.logo);
-  if (logo) ASSETS.logos[spec.code] = logo;
-  s += chip({ code: spec.code, colour: spec.colour, logo: !!logo }, tx, CLAIM_ROW.cy - CLAIM_ROW.chip / 2, CLAIM_ROW.chip, ASSETS);
-  const px = tx + CLAIM_ROW.chip + CLAIM_ROW.gap, pw = R - px;
-  const pn = fitText(spec.party, pw, CLAIM_ROW.party, "sansBold", 22), who = fitText(spec.speaker, pw, CLAIM_ROW.who, "sans", 16);
-  s += text(px, CLAIM_ROW.cy - 4, pn.text, pn.fs, "sansBold");
-  s += text(px, CLAIM_ROW.cy + 24, who.text, who.fs, "sans", { fill: C.ink2 });
+  const pitch = st.sf * HEAD_LEADING, block = CLAIM_STATEMENT.tag + 14 + st.sf * 0.9 + (st.SL.length - 1) * pitch;
+  const top = cy - block / 2;
+  s += text(tx, top + CLAIM_STATEMENT.tag, "Tested statement", CLAIM_STATEMENT.tag, "sansSemi", { fill: C.ink2 });
+  s += st.SL.map((l, k) => text(tx, top + CLAIM_STATEMENT.tag + 14 + st.sf * 0.9 + k * pitch, l, st.sf, "serifSemi")).join("");
   return s + "</svg>";
 }
 

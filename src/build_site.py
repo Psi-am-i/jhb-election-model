@@ -802,6 +802,8 @@ def link_claims(html: str, claims: list[dict]) -> str:
 
 #: The kicker over a claim's own page, and the link back under it.
 CLAIM_KICKER = "The parties' claims, tested"
+#: A claim page's og:title is this and the party's name (owner, 2026-10-13).
+CLAIM_OG_TITLE = "Party claims tested"
 CLAIM_BACK = "All the parties' claims"
 
 
@@ -843,7 +845,9 @@ def claim_pages(html: str, claims: list[dict]) -> list[tuple[str, dict, str]]:
         page = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{claim_title(c)}</title>",
                       page, count=1, flags=re.S)
         output = f"{og_pages.CLAIM_DIR}/{slug}.html"
-        og = page_og(" ".join(c["quote"].split()), c["label"], output.removesuffix(".html"),
+        # X shows the og:title over the image's foot, so it must not repeat the
+        # statement the card prints (owner, 2026-10-13)
+        og = page_og(" ".join(c["quote"].split()), f"{CLAIM_OG_TITLE}: {og_pages.claim_party(c)}", output.removesuffix(".html"),
                      *og_pages.pending(SITE_URL, og_pages.claim_image_slug(slug)))
         page = inject_nav(page, "claims", og)
         page = page.replace('<body class="', f'<body class="{page_type("claims").strip()} ', 1)

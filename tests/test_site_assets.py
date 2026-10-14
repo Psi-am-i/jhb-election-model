@@ -228,13 +228,13 @@ def _vector_logo_problems(name: str, group: str, parts: tuple[str, ...], muted: 
 def test_the_logos_are_one_colour_vector_and_their_links_keep_the_names():
     """The owner's logos (2026-10-05). logo.svg, the Hillbrow Tower as the J
     of "Johannesburg" under "ELECTION FORECAST", is every city page's home
-    link, named with the city and the site's address; whysoserious.svg, the
+    link, named with the city and the site's address; whysoseriouscity.svg, the
     umbrella site's, heads the portal and sits in the footer, linking to the
     apex. The favicons and the
     default share image are linked and copied; the built pages carry them."""
     assert _vector_logo_problems(SA.LOGO, "logo", ("tower", "lettering"), muted=False) == []
-    assert _vector_logo_problems(SA.UMBRELLA, "wsc", ("skyline", "wsc-name", "wsc-sub")) == []
-    assert _vector_logo_problems("whysoseriouscity.svg", "wsc", ("skyline", "wsc-name"), muted=False) == []
+    assert _vector_logo_problems(SA.UMBRELLA, "wsc", ("skyline", "wsc-name"), muted=False) == []
+    assert SA.UMBRELLA == SA.WORDMARK == "whysoseriouscity.svg" and not (SA.BRAND_SRC / "whysoserious.svg").exists()
     import build_site as B
     assert B.LOGO_NAME == "Johannesburg election forecast \u2014 joburg.whysoserious.city"
     nav = B.nav_for("forecast")
@@ -253,7 +253,7 @@ def test_the_logos_are_one_colour_vector_and_their_links_keep_the_names():
     for page in ("index.html", "forecast.html", "your-forecast/index.html"):
         html = (site / page).read_text(encoding="utf-8")
         assert f'aria-label="{B.LOGO_NAME}"' in html and "logo.svg#logo" in html, page
-        assert "whysoserious.svg#wsc" in html, page
+        assert "whysoseriouscity.svg#wsc" in html, page
     portal = (site / "portal.html").read_text(encoding="utf-8")
     assert re.search(r'<header class="pmast">\s*<a class="pm-logo" href="./" aria-label="[^"]+">'
                      r'<svg class="wsc-logo"', portal)

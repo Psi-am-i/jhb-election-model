@@ -381,7 +381,11 @@ def claim_spec(html: str, claim: dict) -> dict:
             # the tested statement, printed beside the stamp: claims.toml's label,
             # the claim's own title (owner, 2026-10-13)
             "statement": " ".join(claim["label"].split()),
-            "date_line": f"Tested against the forecast. Published {claim['published']}.",
+            # the date of the forecast the claim was tested against: claims.toml's
+            # `published`, the day the test was published
+            "date_line": f"Tested against the whysoserious.city forecast published {claim['published']}.",
+            # the top bar takes the party's colour from the roster, like its chip
+            "kind_colour": roster[claim["party"]]["colour"],
             "figures": {},
             "alt": f"\u201c{quote}\u201d {speaker}, {party}. Verdict: {claim['verdict']}."}
 
