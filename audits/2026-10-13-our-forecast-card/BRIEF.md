@@ -83,3 +83,38 @@ after 4 November 2026?").
      joburg.whysoserious.city/your-forecast" (STYLE.md rule 11).
    Report the figures on the card are the forecast artefact's (the card says
    ANC 47% / DA 45% most seats; confirm against forecast.json, never retype).
+
+## Fourth amendment (owner, 2026-10-14, after seeing the cards)
+"all party claims are much better. all need same things: 1. the color accent at
+top should match the party. 2. move party logo and name who said the quote
+under their quote and move the claim tested down. 3. Fix the box around party
+logo. 4. Remove the repeated claim at very bottom and revise the 'tested
+against' line. The DA card needs some text added to make clear. ... capitalise
+the F in Forecast. Also in story card... please use latest whysoserious.city
+logo everywhere (it removes the unreadable grey tag line). otherwise happy to
+go go go"
+
+9. **Every claim card:**
+   a. The top accent bar takes the party's colour from the same party-colour
+      source the rest of the site uses (every party, none singled out).
+   b. Order: quote; directly under it the party logo, party name and speaker;
+      then lower down "Tested statement" with the statement beside the stamp.
+   c. The party logo sits in a consistent container (equal padding, rounded,
+      logo centred and not cropped) the same for every party; no mismatched
+      white box.
+   d. The repeated statement at the very bottom is X's preview title, i.e. the
+      page's og:title / twitter:title. Change those so they do not repeat the
+      card's statement: "Party claims tested: <party name>". The card's own
+      foot line becomes "Tested against the whysoserious.city forecast
+      published <date>", where <date> is the date of the forecast the claim
+      was tested against, from the claim data, never typed. Keep it out of
+      the bottom-left overlay zone.
+   e. Each tested statement reads as a complete claim on its own. The DA's
+      becomes "A majority without the ANC, the EFF and MK is possible for the
+      DA." Check the other four the same way and report any you change, from
+      `content/joburg/claims.toml`'s label (one definition).
+10. **Our-forecast card (link and story):** "Forecast, 29 September 2026",
+    capital F.
+11. **Logo everywhere:** the new whysoserious.city wordmark (no grey tag line)
+    replaces every older whysoserious.city logo on the site, footer included.
+    Report each file replaced.
