@@ -148,3 +148,19 @@ Closed 2026-10-13:
   (file list in §1.302).
 - Owner, 2026-10-14: the before/after (2026 move in §1.303, backtest in
   §1.302) is accepted. Step 10 closed. Next: the site rebuild to UAT.
+
+## Owner directions for the next model round, 2026-10-14
+1. Polling. The record cannot predict anomalous parties (ActionSA 2021, the PA's
+   rise); polls are the only source, so the model has to rely on them. Formulate
+   how polling data is treated, from published best practice and forecasters'
+   rules of thumb (house effects, single-house weighting, likely-voter screens,
+   new-party polling error), before any code.
+2. Judgement calls are unavoidable; each is run and scored with and without
+   (item 9 above).
+3. Splinter voter mix. Owner: the 0.35 parent share probably over-reads
+   ActionSA, a DA splinter that took votes from every party. Test whether
+   splinters drawing broadly is the common case, against the 22 past cases,
+   alongside item 12.
+4. The voters' roll. The IEC snapshot `archive/iec-registration-2026-09-26`
+   is in hand and the model does not read it (`inputs_preflight`: "used:
+   False"; reading it is its own brief). The owner understood it as done.
