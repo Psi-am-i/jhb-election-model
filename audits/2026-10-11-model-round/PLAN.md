@@ -138,3 +138,11 @@ Closed 2026-10-13:
    sheet, entered the same way for any party (one mechanism, §SJ row each).
 4. First such call: MK, owner's note "it is more like 90% ANC resemblance".
 5. Step 9 proceeds; the owner sees before/after against real results.
+
+## Step 10 input, 2026-10-14
+- The 2026 move from the published model is attributed in MODEL-LOG §1.303
+  (b5dc5c1). Most of it, and all of the PA's fall, is the 10 October batch
+  (§1.296), held back from the site that day. The owner's before/after shows
+  the batch and this round as separate rows, and the band as well as the mean.
+- Open before the site rebuild: owner sees the before/after; then the rebuild
+  (file list in §1.302).
