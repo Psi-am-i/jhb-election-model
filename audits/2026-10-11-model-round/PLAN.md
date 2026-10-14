@@ -127,3 +127,14 @@ Closed 2026-10-13:
   judgements, and no strength entry exists yet. When the owner's calls land,
   the 2026 forecast is re-run with and without them; that run alone, not the
   arms.
+
+## Owner decisions after step 8, 2026-10-14
+1. The census hold is left out of this round (K1 falsified, MODEL-LOG §1.301).
+   Its held pool's rate is read from every pool's census level; fix next round.
+2. The universal draw (arm U) ships, M5 and the R2 Monte Carlo clause recorded
+   as falsified, not blocking.
+3. `SPLINTER_PARENT_WEIGHT` stays 0.35 as the default; whether it is adjusted
+   for a party is a judgement call made case by case on the owner's party
+   sheet, entered the same way for any party (one mechanism, §SJ row each).
+4. First such call: MK, owner's note "it is more like 90% ANC resemblance".
+5. Step 9 proceeds; the owner sees before/after against real results.
