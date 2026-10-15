@@ -6904,7 +6904,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             # definition ABOVE the floor, and `newcomers` filters on
             # `baseline <= 0`, so the flagged set and the seeded set are
             # DISJOINT BY CONSTRUCTION. A flagged party keeps its baseline
-            # LEVEL and is given the city's own pool composition as its vector.
+            # LEVEL; its vector is its own national fit where that identifies a
+            # pool (`fitted_from_national`), else the city's own composition.
             # The defect this points at is therefore the VECTOR, not the size —
             # smaller than the first write-up claimed, and `support` cannot
             # reach these parties at all.
