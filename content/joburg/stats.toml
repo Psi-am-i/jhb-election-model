@@ -193,10 +193,10 @@ inserted = "2026-08-07"
 
 [generated_date]
 mode = "free"
-source = "model:_generated"
+source = "published:run_date"
 format = "date_long"
 inserted = "2026-09-17"
-used_in = "footer colophon and dateline — the run the page's figures come from"
+used_in = "footer colophon and dateline — the run the page's figures come from; since 2026-10-15 read from the published draws, the same run as the forecast's card"
 
 [run_seed]
 mode = "free"

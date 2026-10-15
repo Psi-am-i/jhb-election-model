@@ -1621,6 +1621,7 @@ token resolves out of a FILE, and the file has a date:
 | `regime:<rule>:` | `regime_<rule>_summary.json`, written by `overhang_regimes.py`, which is **opt-in** (`build_all.py --regimes`) and therefore lags |
 | `validation:` | `validation_<year>.json`, written by `build_validation.py`: its `headline` as written, or (`stats.validation_value`) `cities.<slug>.<model|best>.<field>`, one metro and its best baseline by CRPS, and `total.*`, the sums of those same per-metro figures, so a printed total is the sum of its printed rows. "Seats given to the wrong party" is `stats.wrong_party_seats`, half the summed absolute seat error, the one definition |
 | `published:small_party_surge` | the published draws (`site/draws/`): the share of simulations in which an established party under `stats.SMALL_PARTY_SHARE` mean list share exceeds `stats.SMALL_PARTY_SURGE` (the record's test, MODEL-LOG §1.296) |
+| `published:run_date` | the published draws' manifest: `export_draws.run_time`, when the run that exported them was made. `generated_date` reads it, so the pages' date and our forecast's card (`forecast.json` `forecast_date`) come from one instant (owner, 2026-10-15) |
 | `history:<city>:<year>:` | `history.json`, written by `compare_history.py`: the backtest of past elections, a different run from the forecast's. Not dated against the forecast run; `stats.history_key_fault` instead refuses a record whose manifest's artefact key for `pools_<year>.json` is not the current spec's, and its tooltip names the backtest run (`stats.history_provenance`) |
 
 So a `regime:` token republishes its file's number on every build while reading
@@ -2773,7 +2774,13 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   browser, never by the edge. It carries `whysoseriouscity.svg` (the umbrella
   logo without its tagline, traced from the owner's file), "forecast" and the
   forecast's date, read from `forecast.json` `forecast_date` (`build_make.py`:
-  the published run's `run_at`, never typed); the same words head the alt text
+  the day of `export_draws.run_time`, the draws manifest's own
+  `artefact_key.time`, never typed and never the ledger's newest row, which a
+  new forecast enters only after the build that prints its date; the pages'
+  `generated_date` reads the same instant through `published:run_date`, and
+  `og_pages.forecast_spec` refuses a build where the two differ). A reader's
+  card prints the reader's own date (`madeText`: "Sealed" or "Made", from the
+  seal or the day the reader made it), never the forecast's; the same words head the alt text
   and the native share (`forecastWords`). It carries no name, and the sheet
   does not offer the name field for it (`nameShown`), so sharing it seals
   nothing: `section1Share.fields()` is `null` until a setting is moved.

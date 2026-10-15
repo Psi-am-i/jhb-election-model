@@ -73,6 +73,7 @@ import sys
 from pathlib import Path
 
 import build_play
+from export_draws import run_time
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INTERACTIVE = REPO_ROOT / "interactive"
@@ -1021,7 +1022,9 @@ def model_artefact(manifest: dict, roster: dict, bounds: dict) -> dict:
     parties = list(manifest["parties"])
     return {
         "model_ref": run,
-        "run_at": manifest["published_run"]["run_at"],
+        # when the run that exported the draws was made, from the draws
+        # themselves (export_draws.run_time), not the ledger's newest row
+        "run_at": run_time(manifest),
         "city": city.slug,
         "target": target,
         "council_seats": council,
@@ -1296,7 +1299,8 @@ def forecast_data(draws: Path | None = None) -> dict:
         "_about": ("Written by src/build_make.py from the published draws (site/draws/). "
                    "Do not edit."),
         "model_ref": artefact["model_ref"],
-        # the day the published run was made (draws manifest published_run.run_at),
+        # the day the run that exported the published draws was made
+        # (export_draws.run_time: the draws manifest's own artefact_key.time),
         # the date the card that shares our forecast prints (play-share.js)
         "forecast_date": artefact["run_at"][:10],
         "election": election,

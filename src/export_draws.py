@@ -512,6 +512,22 @@ def reader_polls(polls: list[dict], city_slug: str,
              "caveat": table[p["id"]]} for p in polls]
 
 
+def run_time(manifest: dict) -> str:
+    """The instant the run that exported ``manifest``'s draws was made
+    (``artefact_key.time``, UTC ISO), taken from the draws themselves. THE ONE
+    DEFINITION of the forecast's date: the day of this instant is what the
+    pages print (``stats`` source ``published:run_date``) and what the
+    forecast's own card prints (``forecast.json`` ``forecast_date``). It is
+    not the ledger's newest row (``published_run``), which a new forecast can
+    enter only after the build that prints its date. Refuses a manifest with
+    no time."""
+    t = (manifest.get("artefact_key") or {}).get("time")
+    if not isinstance(t, str) or len(t) < 10:
+        raise SystemExit("the draws manifest records no run time (artefact_key.time); "
+                         "re-export the draws")
+    return t
+
+
 def published_run(city_slug: str, inputs: dict, root: Path | None = None) -> dict:
     """The ledger's latest run, and whether ``inputs`` are the specs it recorded.
 

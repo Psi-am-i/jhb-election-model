@@ -55,6 +55,9 @@ Source grammar:
   ``history:joburg:2011:wards.called``. See :func:`history_value`.
 * ``published:small_party_surge`` — :func:`small_party_surge` over the
   published draws (``site/draws/``, the files the site's pages read).
+* ``published:run_date`` — when the run that exported the published draws was
+  made (``export_draws.run_time``); the date the pages and our forecast's card
+  both print.
 * ``run:<description>`` / ``external:<description>`` — never auto-resolved;
   legal only for ``fixed`` entries (a scenario run, or a fact from outside
   the model such as an IEC record).
@@ -481,6 +484,10 @@ def resolve(source: str, ctx: dict):
         return _derived(source[len("derived:"):], ctx)
     if source.startswith("history:"):
         return history_value(source, ctx)
+    if source == "published:run_date":
+        import build_make as _bm
+        from export_draws import run_time
+        return run_time(_bm._draws(ctx.get("draws_dir"))[0])
     if source == "published:small_party_surge":
         return published_small_party_surge(ctx)
     return None                      # run: / external: — pinned only
