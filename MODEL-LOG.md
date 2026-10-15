@@ -30077,3 +30077,12 @@ the roll is applied (above). Not checked before writing them.
 `declares.py --verify`: 7 of 150 fail, 4 declaring wrongly (`forecast_frozen.json`
 and three `site/draws*/manifest.json`, on the code cell), all predating this
 code and regenerated at the site step; 3 undeclared as before.
+
+
+## 1.305 Pool-placed parties had no geography (2026-10-15)
+
+**Defect.** Seeded arrivals and `local_record_only` parties were placed by `max(place * base_city, SHARE_FLOOR)` and their deviation was `logit(local) - logit(base_city)` clipped at `SHARE_FLOOR` (0.002). Every such party at Johannesburg 2026 has a base under 0.002 (largest UIM 0.00126), so every voting district held the floor, `dev` was 0, and the fitted pool vector was computed and erased. All 53 pool-placed parties at joburg 2026 were flat.
+**Found** by a read-only diagnosis on the owner's question whether small parties can win a ward.
+**Fix.** `montecarlo.place_by_pool` floors at `level_floor`; `placement_deviation` clips those columns at `level_floor`; other columns are byte-identical (`tests/test_pool_placement.py`). Owner direction, same day: the ward ballot of a party the slates name is zero outside its wards (`solve_and_predict(mask=)`).
+**Measured** in process, 300 draws, joburg 2026: 53 of 53 have non-flat `dev` (largest range 6.57 logit); 51 of 53 have a ward ballot masked to their slate (CHANGE and PRO SOUTH AFRICA are not named in the slates and are unmasked). Largest list-ballot VD-share range among them 0.045.
+**Backtests.** Seeded arrivals exist in backtest city-years (ActionSA 2021), so those read this path and will move. Not re-measured here; the next canonical `compare_history` run records the change. Pool specs are not affected (no `levels.py` change).

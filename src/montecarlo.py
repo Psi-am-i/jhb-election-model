@@ -472,6 +472,50 @@ def logit(p, floor=None):
     return np.log(p / (1 - p))
 
 
+def place_by_pool(base_share_d, parties, members_by_party, base_city_d,
+                  vd_pool, floor):
+    """Put each party with no national geography where its pools live.
+
+    ``base_share_d[vd][party] = max(place * base_city_d[party], floor)`` with
+    ``place`` the pool-weighted composition of the district. Returns the set of
+    parties placed.
+
+    THE FLOOR IS ``level_floor``, NOT ``SHARE_FLOOR`` (2026-10-15). These
+    parties' citywide bases sit below ``SHARE_FLOOR`` (0.002) -- the largest at
+    Johannesburg 2026 is 0.00126 -- so ``max(.., SHARE_FLOOR)`` set EVERY
+    district to the floor, and `placement_deviation` then read a flat column:
+    the fitted pool vector was computed and erased. The floor must sit below
+    the placed values' scale, which is what ``level_floor`` is for.
+    """
+    placed = set()
+    for party in parties:
+        weights = members_by_party.get(party)
+        if not weights or base_city_d.get(party, 0.0) <= 0:
+            continue
+        for vd, comp in vd_pool.items():
+            place = sum(weights.get(name, 0.0) * comp.get(name, 0.0)
+                        for name in comp)
+            if place > 0:
+                base_share_d.setdefault(vd, {})[party] = max(
+                    place * base_city_d[party], floor)
+                placed.add(party)
+    return placed
+
+
+def placement_deviation(local, base_city, pool_placed_cols, level_floor):
+    """``logit(local) - logit(base_city)`` per party, i.e. each party's geography.
+
+    Columns in ``pool_placed_cols`` are clipped at ``level_floor``; every other
+    column at ``SHARE_FLOOR`` exactly as before, so a party with a national
+    record is unchanged. The same floor is used on both terms, or a constant
+    is subtracted from one side only.
+    """
+    floors = np.full(local.shape[1], SHARE_FLOOR)
+    floors[list(pool_placed_cols)] = level_floor
+    return (logit(local, floors[None, :])
+            - logit(base_city[None, :], floors[None, :]))
+
+
 def expit(x):
     return 1.0 / (1.0 + np.exp(-x))
 
@@ -1297,8 +1341,14 @@ def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str,
 
 
 def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,
-                      level_floor=None, stats=None):
+                      level_floor=None, stats=None, mask=None):
     """Solve for θ reaching `target` citywide through the model; return VD shares.
+
+    ``mask`` (voting districts x parties, 1 or 0, default None) removes a
+    party from the districts where it is not on the ballot: its share there is
+    exactly zero and the row is renormalised over the parties that are. The
+    solve then reaches the party's citywide target on the districts it can win
+    votes in, so the target is not diluted over districts it cannot stand in.
 
     ``level_floor`` resolves ``DEFAULTS["level_floor"]`` at call time; see
     `log_shock` and MODEL-LOG §1.33 for why no module constant may be a default
@@ -1371,6 +1421,8 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
     for _i in range(rounds):
         level = logit(base_city * theta, floor=level_floor)
         pred = expit(level[None, :] + gamma[None, :] * dev)
+        if mask is not None:
+            pred = pred * mask
         pred /= pred.sum(axis=1, keepdims=True)
         got = weights @ pred
         err = np.abs(got - target)
@@ -1428,6 +1480,8 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
             float(stats.get("floor_injected_worst", 0.0)), injected)
     level = logit(base_city * theta, floor=level_floor)
     pred = expit(level[None, :] + gamma[None, :] * dev)
+    if mask is not None:
+        pred = pred * mask
     return pred / pred.sum(axis=1, keepdims=True)
 
 
@@ -6090,16 +6144,10 @@ def run_model(target, scenario: dict,
         if vd_pool:
             # Every party with no national geography: the seeded arrivals and
             # the roster parties whose only record is local (item 8).
-            for party in [*seeds, *local_record_only]:
-                weights = members_by_party.get(party)
-                if not weights or base_city_d.get(party, 0.0) <= 0:
-                    continue
-                for vd, comp in vd_pool.items():
-                    place = sum(weights.get(name, 0.0) * comp.get(name, 0.0)
-                                for name in comp)
-                    if place > 0:
-                        base_share_d.setdefault(vd, {})[party] = max(
-                            place * base_city_d[party], SHARE_FLOOR)
+            pool_placed = place_by_pool(
+                base_share_d, [*seeds, *local_record_only], members_by_party,
+                base_city_d, vd_pool, scenario["level_floor"])
+            scenario["_pool_placed"] = sorted(pool_placed)
         # THE ARRIVAL BAND WAS NEVER READ, AND IS GONE. Each seeded arrival's
         # band was once written into `individual_theta` (a dead store, removed
         # 2026-08-19, §1.41), then carried into the scenario, of which
@@ -6162,7 +6210,9 @@ def run_model(target, scenario: dict,
     local = np.array([[base_share_d[v].get(p, 0.0) for p in universe] for v in vds])
     if "ENTRANT" in index:
         local[:, index["ENTRANT"]] = SHARE_FLOOR  # flat unless given a map below
-    dev = logit(local) - logit(base_city)[None, :]
+    dev = placement_deviation(
+        local, base_city, [index[p] for p in scenario.get("_pool_placed", ())
+                           if p in index], scenario["level_floor"])
     # DELIVERY PROOF for two classes at once. `SHARE_FLOOR` is a module
     # constant (not in DEFAULTS, never swept for liveness, does not cross a
     # process boundary), and `logit(p, floor=None)` resolves that SAME constant
@@ -6436,6 +6486,48 @@ def run_model(target, scenario: dict,
     part_vd = np.array([vd_index[vd] for vd, _w, _r in usable])
     part_ward = np.array([ward_index[w] for _vd, w, _r in usable])
     part_reg = np.array([r for _vd, _w, r in usable], dtype=float)
+
+    # --- the ward ballot exists only in the wards a party contests ----------
+    # Owner, 2026-10-15: for a party with no national geography "the only
+    # question is what ward ... then who lives there". Such a party (a seeded
+    # arrival or a `local_record_only` roster party) has ward-ballot votes
+    # only in wards whose nomination list carries it: the target's result
+    # file where it exists, else `[roster.wards]` (`levels.party_slates`). A
+    # party the slates do not name is UNKNOWN, not absent, and keeps its
+    # unmasked ward ballot -- a half-typed roster must not delete a party.
+    # Wards decide first; the pool vector places the party among them (the
+    # `dev` column). The list (PR) ballot is not masked: a list is city-wide.
+    ward_mask_vd = None
+    ward_mask_part = None
+    _placed_cols = [index[p] for p in scenario.get("_pool_placed", ())
+                    if p in index]
+    if _placed_cols:
+        # The same two sources as `levels.slate_coverage`'s slates. Not shared
+        # as one function: any change to levels.py invalidates every emitted
+        # pool spec (deps_sha), so unifying them is a BATCHED re-emit item
+        # (POOLS-REEMIT-QUEUE.md). Until then there are two copies of five lines.
+        import levels as _levels
+        import pools as _pools_slates
+        if _levels.has_result_file(target, target.city):
+            _slates, _seen = _levels._result_slates(
+                _levels.result_path(target, target.city))
+        else:
+            _decl = (_pools_slates.declared_roster(target.city, target)
+                     or {}).get("wards") or {}
+            _slates = {p: {str(w).strip() for w in ws}
+                       for p, ws in _decl.items()}
+        _cols = [c for c in _placed_cols if universe[c] in _slates]
+        if _cols:
+            ward_mask_part = np.ones((len(usable), npar))
+            for c in _cols:
+                _stood = _slates[universe[c]]
+                ward_mask_part[:, c] = [1.0 if wards[wi] in _stood else 0.0
+                                        for wi in part_ward]
+            ward_mask_vd = np.zeros((nvd, npar))
+            np.maximum.at(ward_mask_vd, part_vd, ward_mask_part)
+            # a district in no usable part has no ward ballot to mask
+            ward_mask_vd[~np.isin(np.arange(nvd), part_vd)] = 1.0
+        scenario["_ward_masked"] = sorted(universe[c] for c in _cols)
 
     # --- ward/PR split-ticket ratios (A1) ------------------------------------
     # (The previous LGE's ballots, `wc`/`pc` and `prior_pr_share`, are read
@@ -7035,7 +7127,8 @@ def run_model(target, scenario: dict,
         pr = solve_and_predict(dev_pr, base_city, pr_target, gamma["PR"], weight_cal,
                                level_floor=floor, stats=_solve_stats)
         wd = solve_and_predict(dev_ward, base_city, ward_target, gamma["Ward"], weight_cal,
-                               level_floor=floor, stats=_solve_stats)
+                               level_floor=floor, stats=_solve_stats,
+                               mask=ward_mask_vd)
 
         pr_eff = pr if tilt_scale is None else pr * tilt_scale
         wd_eff = wd if tilt_scale is None else wd * tilt_scale
@@ -7047,7 +7140,10 @@ def run_model(target, scenario: dict,
         # E3: ward winners from the ward ballot, on the target's own wards.
         part_cast = part_reg * t_draw[part_vd]
         ward_tally = np.zeros((len(wards), npar))
-        np.add.at(ward_tally, part_ward, part_cast[:, None] * wd_eff[part_vd])
+        part_ballot = wd_eff[part_vd]
+        if ward_mask_part is not None:
+            part_ballot = part_ballot * ward_mask_part
+        np.add.at(ward_tally, part_ward, part_cast[:, None] * part_ballot)
         if scenario["ward_noise_sd"] > 0:
             ward_tally = ward_tally * ward_noise_multiplier(
                 streams, universe, d, len(wards), scenario["ward_noise_sd"])
