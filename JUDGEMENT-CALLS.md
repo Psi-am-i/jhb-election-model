@@ -180,7 +180,7 @@ promotion note in §F.
 | `SPINE_K` | 1.0 | — | See §B. | 🔴 | §F14 + §B1 |
 | `spine_k = 0` on a party with no θ evidence | `w_local = 0.0` | — | A CHOSEN limit (`w = 0`, pure national spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for. | 🟡 | §F22 |
 | `SPINE_K`, reciprocal form | — | `levels.py` | 1.0, fitted leave-one-metro-out on a curve that is flat 0.5–1.5. A step function scored better out of sample and was rejected on structural grounds — which is why this is 🔴 despite being fitted. | 🔴 | §B1 + §F14 |
-| `SPLINTER_PARENT_WEIGHT` | 0.35 | — | 0.35, measured over 22 splinter-metro cases, no bootstrap, and stale since the archive grew (§A). | 🔴 | §F6 |
+| `SPLINTER_PARENT_WEIGHT` | 0.35 | — | The DEFAULT 0.35, measured over 22 splinter-metro cases (EFF 0.89, GOOD 0.28, ActionSA about 0.02), no bootstrap, and stale since the archive grew (§A). A party's own `parent_weight` on the judgements sheet replaces it for that party alone; the first is MK at 0.9 (§SJ1). | 🔴 | §F6 + §SJ1 |
 | `SPLIT_SD_FLOOR` | — | `pools.py` | 0.90, and it overrides its own measurement at target 2016 while binding at neither 2021 nor 2026 — real work in the one fold where it is least justified. | 🔴 | §B3 |
 | the `home` city and `measured_from` pair of each entry in `SPLITS` | ASA→JHB · GOOD→CPT · MK→ETH · NFP→ETH · COPE and EFF→**None** | `pools.SPLITS`, read by `home_splinter_record` | Six typed biographical claims that select WHICH record sizes a splinter. ActionSA's is the single assignment behind the panel's largest error, and the two unset ones announce nothing at all. Declared 2026-09-13, never swept. | 🔴 | §A47 |
 | the size-dependence of `sd_for` below 15% | a straight line in log(size) | `levels.py`, inside `theta_prior` | The model is UNCHANGED and the fault is the FORM, not the residual. ⛔ No further functional form may be tried against these two folds, and this row's numbers are Form A's and must not be quoted. | 🔴 | §F18 |
@@ -1090,8 +1090,9 @@ Each row: `§SJ<n>` · party · target · `support` / `overperform` / `sigma_j` 
 
 | row | party | target | entry | reason | evidence | date | check |
 |---|---|---|---|---|---|---|---|
+| §SJ1 | MK | joburg 2026 | `parent_weight = 0.9` (a pool-vector judgement, not a strength: no `support`, `overperform` or `sigma_j`) | Owner, 2026-10-15: "it is more like 90% ANC resemblance". MK's starting pool vector is 90% the ANC's and 10% the city's own composition, against the default of 35% (§F6). | None the record supplies: MK has no result at a local election in Johannesburg. The default's range over past splinters runs from ActionSA about 0.02 through GOOD 0.28 to EFF 0.89, so 0.9 sits at the top of it; the nearest past case, EFF from the ANC, measured 0.89. Argued, not tested. | 2026-10-15 | The 2026 forecast is reported with and without it (`pools.py --emit --without-judgements --out DIR`, POOLS-REEMIT-QUEUE) and scored against the 2026 result, MK's pool shares against its measured vector. |
 
-*(No strength judgement is entered. `tests/test_universal_draw.py::test_every_strength_entry_has_a_register_row_and_every_row_an_entry` checks both directions.)*
+*(`parent_weight` entries are rows of this register as well as strength entries. `tests/test_universal_draw.py::test_every_strength_entry_has_a_register_row_and_every_row_an_entry` checks both directions.)*
 
 ## B. Measured, but the form or the selection was chosen
 
@@ -1513,11 +1514,15 @@ that survives contact with a long session.
 
 **Record.** **DELETED 2026-08-22 (§1.68)** with the legacy poll path it served. It keyed a poll's weight on how much θ HISTORY a party had, `m/(worth+m)`; §1.67 replaced that with how PRECISE the two estimates are. The shape survives in `poll_house_k`, keyed on how many independent HOUSES stand behind a poll rather than on the party.
 
-### §F6 · `SPLINTER_PARENT_WEIGHT` — 0.35 — 🔴
+### §F6 · `SPLINTER_PARENT_WEIGHT` — the DEFAULT, 0.35 — 🔴
 
-**Now.** 0.35, measured over 22 splinter-metro cases, no bootstrap, and stale since the archive grew (§A).
+**Where.** `pools.SPLINTER_PARENT_WEIGHT`, read through `pools.splinter_parent_weight(rule, party)` at both places a splinter's vector is blended (`arrival_rules` and the `no_vector` loop of `emit_pools`).
 
-**Record.** share of a splinter's starting vector taken from its parent; measured over 22 splinter-metro cases
+**Now.** The default is 0.35: a splinter's starting pool vector is 35% its parent's and 65% the city's own composition. Any party's weight may be set case by case with `parent_weight` under its `[party.X]` entry on the judgements sheet, one mechanism for every party, a number in [0, 1] (anything else refuses); the party falls back to the default when the key is absent. The first such entry is MK at 0.9 (§SJ1). The key is read at emit, so it is in the spec's hash (`judgements_sha`) and editing it marks the 2026 spec stale.
+
+**Record.** The default is the median over 22 splinter-metro cases of the weight on the parent from regressing each splinter's own first-election vector on (parent, city average); no bootstrap, and stale since the archive grew (§A1). Range across the cases: EFF 0.89 (0.75 to 1.08), GOOD 0.28 (-0.02 to 0.58), ActionSA about 0.02 (-1.07 to 0.56). The spread is the reason the weight is a per-party call and not a constant; the covariate that predicts it in the comparative record is the defecting-legislator share, which the model does not hold (§1.73). A party with no entry is sized at the default.
+
+**How to check it.** `tests/test_splinter_parent_weight.py`: the key moves a constructed splinter's vector by the blend's arithmetic, removing it returns the default, an out-of-range value refuses, and the key is in `judgements_sha`.
 
 ### §F7 · `_SIGN_EPS` — 1e-9 — 🟡
 
@@ -4662,7 +4667,22 @@ snapshot that the crosswalk lacks each refuse the build.
 **Why.** The snapshot gives a figure per ward and none per voting district; the
 split voting districts of the new delimitation need a within-ward share, and the
 2024 parts are the only per-part record. Holding each part's share of its ward
-at the 2024 value assumes registration grew uniformly inside a ward since 2024.
+at the 2024 value is the only apportionment the repository's data supports.
+It is not a claim that registration grew uniformly inside a ward: the
+per-ward change between the 2024 crosswalk total and the snapshot is mostly
+a difference in which voting districts belong to the ward.
+
+**Measured (2026-10-15, committed crosswalk against
+`joburg_ward_registration_2026-09-26.csv`; the count of crosswalk voting
+districts per ward assigns each VD to the ward holding its largest 2024 part).**
+The per-ward ratio of the snapshot's total to the crosswalk's 2024 total
+correlates 0.725 with the difference between the snapshot's voting-district
+count for the ward (sums to 862) and the crosswalk's count (sums to 865); each
+extra IEC voting district goes with a ratio about 0.11 higher (regression slope
+0.108; 0.12 when split VDs are counted by their weight). In the 58 wards where
+the two counts agree, the ratio has sd 0.073. The ratio therefore mostly records
+voting-district-to-ward assignment, not growth. Wards 60 (ratio about 1.70) and
+62 (about 0.70) are instances.
 
 **Alternatives.** The 2024 registration unscaled (what the forecast read before):
 the ward totals then differ from the snapshot's (DATA-QUALITY item 20 gives
@@ -4671,9 +4691,17 @@ voting district: the snapshot lists voting districts per ward (a count) and no
 per-VD registration, so there is nothing to read.
 
 **Limit.** Argued, not tested: no election held under this delimitation yet
-scores it, so the backtest cannot arbitrate. The uniform-growth assumption is
-unverified inside a ward; a ward in which one part grew and another shrank is
-apportioned wrongly between them, and the ward total is still right.
+scores it, so the backtest cannot arbitrate. Because most per-ward change is
+VD-to-ward assignment, scaling every part of a ward by one factor spreads a
+membership difference over unsplit voting districts whose 2024 counts were real
+(a ward gaining a VD it did not have in 2024 has its other VDs inflated, a ward
+losing one has them deflated). **Ward-level outputs carry this limit until the
+IEC's voting-district membership per ward is known**; the city total and each
+ward total are the IEC's count, and the distribution between a ward's VDs is
+not measured. A ward in which one part grew and another shrank is also
+apportioned wrongly between them. What would separate the readings: the IEC's
+list of voting districts per ward (a membership file), which would let each
+VD's 2024 registration be summed under the IEC's own assignment.
 
 **How to check it.** `tests/test_roll_2026.py`: every ward's parts sum to the
 snapshot's figure (the ward sets equal in both directions), a hand-worked split

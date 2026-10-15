@@ -664,7 +664,7 @@ def strength_entries(root: Path) -> dict[str, str]:
     out = {}
     for f in sorted(root.glob("*.toml")):
         for party, body in (tomllib.loads(f.read_text()).get("party") or {}).items():
-            if "support" in body or "overperform" in body:
+            if "support" in body or "overperform" in body or "parent_weight" in body:
                 out[f"{f.name}:{party}"] = str(body.get("register", ""))
     return out
 

@@ -559,7 +559,7 @@ the published result (`SOURCES.md`) and is the half of the pair that may stand.
 | `entrant_prob` = 0.25 | DEFAULTS | **JUDGED** | a party arrived and won seats in **3 of 3** Johannesburg elections; this is the most quotable undefended constant in the model |
 | `entrant_share` = [0.01, 0.04, 0.12] | DEFAULTS | **JUDGED** | expected mass 1.42% of the ballot |
 | Slots | **one** generic ENTRANT | — | reality delivers 11 to 32 arrivals per metro |
-| `SPLINTER_PARENT_WEIGHT` = 0.35 | `pools.py` | MEASURED, 22 splinter-metro cases | a splinter's vector is 35% its parent's and 65% the city average |
+| `SPLINTER_PARENT_WEIGHT` = 0.35 (the DEFAULT) | `pools.py`, read through `splinter_parent_weight(rule, party)` | MEASURED, 22 splinter-metro cases | a splinter's vector is 35% its parent's and 65% the city average, unless the party's `[party.X]` entry on the judgements sheet carries `parent_weight` in [0, 1] (one mechanism for every party; the first is MK at 0.9, JUDGEMENT-CALLS §SJ1) |
 | `MIN_HOME_SPLITS` = 2 | `pools.py` | **JUDGED** | binary home/away where ActionSA shows a gradient (0.611/0.315/0.289/0.103) |
 | `SPLIT_SD_FLOOR` = 0.90 | `pools.py` | **JUDGED floor** on a measured spread | binds at target 2016 where the pooled record's log-sd is 0.286 |
 | Ward reach | `levels.contestation` | MEASURED, nomination lists | corr(reach, log vote) = **+0.393** for arrivals; seat-winners have median reach 99% against 33% |
@@ -626,7 +626,44 @@ backtest reads its own result file's registration and never opens the crosswalk.
 `pools.artefact_key` carries `roll_sha` (the crosswalk's hash), and
 `inputs_preflight` reports the roll `used` only when the crosswalk declares the
 newest snapshot. Judgement: JUDGEMENT-CALLS §T1 and §T2; the input's limits:
-DATA-QUALITY item 20.
+DATA-QUALITY item 20. The per-ward change from the 2024 crosswalk to the
+snapshot is mostly voting-district-to-ward assignment, not growth, so
+ward-level outputs carry that limit until the IEC's voting-district membership
+is known (§T1, Limit).
+
+**One roll in a spec.** `pools.emit_pools` sizes the pools from
+`registered_at_target` and derives `pool_shares_at_target` and the provenance
+phrase from that same vector (`pools.pool_shares_of_roll`); `registration_series`
+is recorded history and sizes nothing. `tests/test_pool_shares_one_roll.py`.
+
+**Preflight guard A.** Every REQUIRED row of `inputs_preflight` carries a
+`used` bool computed from the artefact the model reads (`_require_used` refuses
+a row without one), and `--strict` exits 1 for a required input that is present
+and not used, as it does for one missing or stale. `tests/test_inputs_preflight.py`.
+
+**Splinter weight and the emit without owner calls.** `parent_weight` under
+`[party.X]` replaces the default weight for that party at both places a
+splinter's vector is blended; it is read at emit, so it is in `judgements_sha`.
+`pools.py --emit --without-judgements --out DIR` drops the owner's per-party
+calls (`pools.OWNER_JUDGEMENT_KEYS`) and keeps `parent`, `[roster]` and every
+default; it requires `--out`, so it cannot overwrite the forecast's spec, and
+the spec records `without_judgements`.
+
+### The claims register (2026-10-15)
+
+`content/joburg/model-claims.toml` lists each public claim that the model uses
+something: page, short text, the code symbol that implements it on the 2026
+forecast path, `state` (`live`, `off` or `absent`) and, for every non-live claim,
+a `probe` (a function in `tests/test_model_claims.py` returning True when the
+declared state holds). The test imports every symbol, runs every probe (no model
+run), and asserts the pages the register lists and the pages its claims cite are
+the same set. Known non-live entries: by-election weights are 0.0 at 2026
+(`data/processed/bye_value.json`); the heavier-tails text describes the retired
+Student-t draw (shipped `draw_law = "universal"`); the IFP pool exists only in
+`pools_2026_simulation.json`; ActionSA is sized by the local/national blend
+(`levels.SPINE_K`); the roll is IEC ward totals apportioned to voting districts.
+To add a claim, add a `[[claim]]` and, if it is not live, its probe. The register
+records the pages; correcting a page is a separate edit.
 
 ---
 

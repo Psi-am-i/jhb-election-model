@@ -101,6 +101,10 @@
 [party.MK]
 baseline_share = 0.1222
 parent = "ANC"   # splinter: inherits the ANC's pool vector until measured
+# OWNER'S CALL, 2026-10-15: 90% of MK's pool vector is the ANC's (the default for
+# every splinter is `pools.SPLINTER_PARENT_WEIGHT`). JUDGEMENT-CALLS.md §SJ1.
+parent_weight = 0.9
+register = "§SJ1"
 # weights = [0.0, 0.0, 0.0, 0.0, 0.0]
 
 [party.RISE]

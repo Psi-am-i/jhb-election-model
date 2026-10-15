@@ -1,0 +1,305 @@
+# The claims register: each public claim that the model USES something, the code
+# symbol that implements it on the 2026 forecast path, and whether the claim is
+# true of that path today. `tests/test_model_claims.py` imports every symbol,
+# runs every declared probe (cheaply, no model run) and asserts that the pages
+# listed here and the pages the claims cite are the same set. MACHINERY.md,
+# "The claims register", says how to add one.
+#
+# state:
+#   live    the code does what the page says on the 2026 forecast path
+#   off     the mechanism exists in the code and the 2026 forecast path does not
+#           run it (or runs it at weight zero)
+#   absent  the page describes something the 2026 forecast path does not have,
+#           or has in another form (the note says which)
+# probe: the name of a function in the test file that returns True when the
+#   claim's declared state holds. Required for `off` and `absent` (a non-live
+#   claim with no probe would be an unverified assertion); optional for `live`.
+# This file records what the pages claim. It does not edit them.
+
+[register]
+pages = [
+  "docs-public/methodology.md",
+  "docs-public/sources.md",
+  "forecast-sheet.html",
+  "interactive/your-forecast.html",
+]
+
+# ---- docs-public/methodology.md -------------------------------------------
+
+[[claim]]
+id = "roll-per-vd-unadjusted"
+page = "docs-public/methodology.md"
+text = "The Electoral Commission publishes registration per voting district; the count is not estimated, projected or adjusted."
+symbol = "montecarlo.read_ward_crosswalk"
+state = "absent"
+probe = "roll_is_ward_totals_apportioned"
+note = "The 2026 roll is the IEC's per-WARD totals (26 September 2026 snapshot) apportioned to voting-district parts in proportion to their 2024 registration (JUDGEMENT-CALLS T1). The IEC publishes no per-VD figure for 2026."
+
+[[claim]]
+id = "pools-from-census-groups"
+page = "docs-public/methodology.md"
+text = "Voters are sorted into pools by Census 2022 population group, per ward."
+symbol = "pools.pool_counts"
+state = "live"
+
+[[claim]]
+id = "pool-size-is-roll-times-composition"
+page = "docs-public/methodology.md"
+text = "A pool's size is each ward's registered voters split by that ward's composition, summed over wards."
+symbol = "pools.registered_at_target"
+state = "live"
+
+[[claim]]
+id = "ifp-extra-pool"
+page = "docs-public/methodology.md"
+text = "The model carries one extra pool the census cannot see, identified from a party's own geography (the IFP's)."
+symbol = "pools.SIMULATION_BLOC"
+state = "absent"
+probe = "ifp_pool_only_in_simulation_spec"
+note = "The IFP-located pool is emitted only into pools_2026_simulation.json, which the published forecast never reads; pools_2026.json has the four census pools."
+
+[[claim]]
+id = "joint-nonnegative-fit"
+page = "docs-public/methodology.md"
+text = "Every party's rate in every pool is fitted at once, with no negative shares and pools summing to their voters."
+symbol = "pools.fit_city"
+state = "live"
+
+[[claim]]
+id = "national-to-local-gap"
+page = "docs-public/methodology.md"
+text = "Each party's support moves by its own national-to-local gap, measured from its transitions on record."
+symbol = "levels.theta_prior"
+state = "live"
+
+[[claim]]
+id = "turnout-drawn-per-pool"
+page = "docs-public/methodology.md"
+text = "Turnout is drawn per pool from what turnout has done in that city before."
+symbol = "pools.turnout_band"
+state = "live"
+
+[[claim]]
+id = "byelections-tilt-expected-share"
+page = "docs-public/methodology.md"
+text = "Before the draws, recent by-elections tilt each party's expected share."
+symbol = "montecarlo.read_bye_value"
+state = "off"
+probe = "bye_weights_are_zero"
+note = "By-election results are read, and the measured class weights in data/processed/bye_value.json are 0.0 at 2026 (no measurable gain), so they move no centre."
+
+[[claim]]
+id = "splits-sized-from-parent"
+page = "docs-public/methodology.md"
+text = "A split is sized as a fraction of its parent, from what previous splits took."
+symbol = "pools.arrival_rules"
+state = "live"
+
+[[claim]]
+id = "splinter-parent-weight-default-and-per-party"
+page = "docs-public/methodology.md"
+text = "A split's pool vector blends its parent's with the city's; the parent's share is a default that a judgements-sheet entry replaces per party."
+symbol = "pools.splinter_parent_weight"
+state = "live"
+probe = "splinter_weight_falls_back_to_default"
+
+[[claim]]
+id = "home-following-sizes-a-split"
+page = "docs-public/methodology.md"
+text = "How much a split takes depends on whether the leader's own following is in this city."
+symbol = "pools.home_splinter_record"
+state = "live"
+
+[[claim]]
+id = "geography-paint-back"
+page = "docs-public/methodology.md"
+text = "Each drawn outcome is spread back across the voting districts using each party's own geography."
+symbol = "montecarlo.make_drawer"
+state = "live"
+
+[[claim]]
+id = "excessive-seats-clause"
+page = "docs-public/methodology.md"
+text = "The statutory formula allocates every seat, excessive seats included, as amended in 2021."
+symbol = "montecarlo.allocate_with_overhang"
+state = "live"
+probe = "overhang_default_is_a_known_rule"
+
+[[claim]]
+id = "no-poll-is-used"
+page = "docs-public/methodology.md"
+text = "No poll is used in the published forecast."
+symbol = "montecarlo.DEFAULTS"
+state = "off"
+probe = "poll_channel_is_off"
+note = "The poll channel exists in the code and is switched off by DEFAULTS['poll_paths'] = 'off'."
+
+[[claim]]
+id = "heavier-tails"
+page = "docs-public/methodology.md"
+text = "Each party's simulated support is drawn with heavier tails than a bell curve."
+symbol = "montecarlo.DRAW_LAWS"
+state = "absent"
+probe = "draw_law_is_universal"
+note = "The heavy-tailed Student-t level draw (LEVEL_DF) belongs to draw_law = 'incumbent', which is retired from the shipped forecast; the shipped draw_law is 'universal', which has no Student-t term."
+
+[[claim]]
+id = "largest-parties-pulled-down"
+page = "docs-public/methodology.md"
+text = "Each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion."
+symbol = "montecarlo.DEFAULTS"
+state = "live"
+probe = "level_shrink_is_positive"
+
+[[claim]]
+id = "byelection-weight-measured"
+page = "docs-public/methodology.md"
+text = "How much recent by-elections count is measured, by group of parties, leaving each metro out in turn."
+symbol = "bye_value.BYE_VALUE_MIN_PAIRS"
+state = "off"
+probe = "bye_weights_are_zero"
+note = "The measurement is run and its result is a weight of 0.0 for both classes at 2026; the page's phrase 'otherwise its by-elections count for nothing' is what the record says."
+
+[[claim]]
+id = "turnout-moves-together"
+page = "docs-public/methodology.md"
+text = "Turnout in the four population groups rises and falls together, to one degree for every pair."
+symbol = "montecarlo.TURNOUT_CORRELATION"
+state = "live"
+probe = "turnout_correlation_is_a_correlation"
+
+[[claim]]
+id = "turnout-leans-on-2021"
+page = "docs-public/methodology.md"
+text = "Each voting district's turnout is projected from the fall between the national and the following local election in 2016 and 2021, weighted towards 2021."
+symbol = "turnout.turnout_series"
+state = "live"
+
+[[claim]]
+id = "merger-keeps-share"
+page = "docs-public/methodology.md"
+text = "When parties merge and only one is on the ballot it inherits a share of the other's previous vote."
+symbol = "pools.apply_mergers"
+state = "live"
+
+[[claim]]
+id = "actionsa-built-on-the-smaller-number"
+page = "docs-public/methodology.md"
+text = "Every party's starting level comes from the last national election, converted down to local (ActionSA is built on its 2024 national number)."
+symbol = "levels.SPINE_K"
+state = "absent"
+probe = "starting_level_is_local_national_blend"
+note = "A party's level is the local/national blend with weight on the local route k / (worth + k) (levels.SPINE_K), so ActionSA is not sized by its 2024 national share alone."
+
+# ---- docs-public/sources.md -----------------------------------------------
+
+[[claim]]
+id = "six-elections-at-vd-level"
+page = "docs-public/sources.md"
+text = "The model rests on six elections at voting-district level (2011, 2016, 2021 municipal; 2014, 2019, 2024 national/provincial)."
+symbol = "cityconfig.CALENDAR"
+state = "live"
+
+[[claim]]
+id = "byelections-an-input"
+page = "docs-public/sources.md"
+text = "By-elections are an input to this forecast."
+symbol = "byelections.load_byelections"
+state = "off"
+probe = "bye_weights_are_zero"
+note = "They are read; their weights are 0.0 at 2026."
+
+[[claim]]
+id = "census-ward-product"
+page = "docs-public/sources.md"
+text = "Census 2022 ward-level population estimates are used in the turnout modelling."
+symbol = "pools.pool_counts"
+state = "live"
+
+# ---- forecast-sheet.html --------------------------------------------------
+
+[[claim]]
+id = "sheet-simulations-of-a-vd-model"
+page = "forecast-sheet.html"
+text = "Simulations using a voting-district model of the city."
+symbol = "montecarlo.run_model"
+state = "live"
+
+[[claim]]
+id = "sheet-excessive-seats"
+page = "forecast-sheet.html"
+text = "The ANC keeps its ward seats and gets no list seats when they exceed its proportional share; the shortfall is taken from every other party."
+symbol = "montecarlo.allocate_with_overhang"
+state = "live"
+
+[[claim]]
+id = "sheet-arithmetic-on-results-registration-byelections"
+page = "forecast-sheet.html"
+text = "It is arithmetic on results, registration and by-elections; polls are not an input."
+symbol = "montecarlo.read_bye_value"
+state = "off"
+probe = "bye_weights_are_zero"
+note = "Registration and results are used; by-elections are read at weight 0.0 at 2026. The poll half is true (poll_channel_is_off)."
+
+[[claim]]
+id = "sheet-byelection-deltas-central-scenario"
+page = "forecast-sheet.html"
+text = "All CoJ by-elections 2021-2026 (weighted within-ward deltas, an input to the central scenario)."
+symbol = "byelections.load_byelections"
+state = "off"
+probe = "bye_weights_are_zero"
+note = "Weighted at 0.0 in the 2026 central scenario."
+
+[[claim]]
+id = "sheet-parties-claims-tested"
+page = "forecast-sheet.html"
+text = "Each party claim is tested against the same simulations as the forecast."
+symbol = "render_sheet.claims_faults"
+state = "live"
+
+# ---- interactive/your-forecast.html ---------------------------------------
+
+[[claim]]
+id = "your-turnout-reweights-simulations"
+page = "interactive/your-forecast.html"
+text = "The page re-weights the published simulations towards the turnout you set; it does not re-run the model."
+symbol = "reweight.turnout_tilt"
+state = "live"
+
+[[claim]]
+id = "your-poll-accuracy-from-sample-house-time"
+page = "interactive/your-forecast.html"
+text = "A poll's accuracy, as the model rates it, comes from its sample size, the house's typical miss and the time since fieldwork."
+symbol = "reweight.poll_trust_sd"
+state = "live"
+
+[[claim]]
+id = "your-byelections-count-partly"
+page = "interactive/your-forecast.html"
+text = "The forecast counts by-elections partly."
+symbol = "montecarlo.bye_weight"
+state = "off"
+probe = "bye_weights_are_zero"
+note = "At 2026 the forecast's by-election weights are 0.0, so it counts them not at all."
+
+[[claim]]
+id = "your-party-vote-split-by-group"
+page = "interactive/your-forecast.html"
+text = "Each party's vote is split by population group as the model fits it to the ward results of 2021."
+symbol = "pools.fit_city"
+state = "live"
+
+[[claim]]
+id = "your-registered-split-of-the-roll"
+page = "interactive/your-forecast.html"
+text = "\"Registered\" is the split of the voters' roll."
+symbol = "pools.registered_at_target"
+state = "live"
+
+[[claim]]
+id = "your-germany-seat-laws"
+page = "interactive/your-forecast.html"
+text = "Three versions of Germany's seat law are applied for comparison; two enlarge the council."
+symbol = "montecarlo.OVERHANG_RULES"
+state = "live"
+probe = "overhang_rules_include_the_comparison_laws"

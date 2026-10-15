@@ -1249,6 +1249,17 @@ it. Summed by ward, `part_registered_2026` against `part_registered` differs by
 between minus 30% and plus 70% (measured on the committed crosswalk,
 2026-10-15; the city total moves from the 2024 figure to the snapshot's).
 
+**What the ward change measures (2026-10-15, committed crosswalk; method in
+JUDGEMENT-CALLS §T1).** The per-ward ratio of the snapshot total to the
+crosswalk's 2024 total tracks the difference between the snapshot's
+voting-district count for the ward and the crosswalk's count (correlation
+0.725; sd 0.073 in the 58 wards where the counts agree; about 0.11 of ratio per
+extra IEC voting district). Most per-ward change is therefore which voting
+districts the IEC assigns to the ward, not registration growth. Proportional
+scaling spreads that difference over unsplit voting districts whose 2024 counts
+were real (ward 60 about x1.70, ward 62 about x0.70). **Ward-level outputs
+carry this limit until the IEC's voting-district membership per ward is known.**
+
 **What would separate the readings.** A per-voting-district registration file
 for 2026 (the IEC publishes none that the repository holds): it would give the
 true part sizes and make the apportionment unnecessary.

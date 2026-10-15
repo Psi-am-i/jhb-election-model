@@ -1808,6 +1808,20 @@ def projected_pool_shares(series: dict[str, np.ndarray], target: str,
         f"(log-space, invariant to a constant level bias), damped x{damping:g}")
 
 
+def pool_shares_of_roll(registered: np.ndarray, target: str) -> tuple[np.ndarray, str]:
+    """Each pool's share of the roll the spec sizes the pools from, and the
+    provenance phrase naming it. The one place ``pool_shares_at_target`` is
+    derived: from ``registered`` (``registered_at_target``), so the shares and
+    ``pools[g].registered`` describe one roll."""
+    registered = np.asarray(registered, dtype=float)
+    total = float(registered.sum())
+    if not total > 0:
+        raise SystemExit(f"{target}: the pools hold no registered voters")
+    return registered / total, (
+        f"the {target} roll counted per ward and split by each ward's own "
+        f"composition")
+
+
 def vd_map(city: cityconfig.City, year: str) -> tuple[dict[str, str], dict[str, float]]:
     """VD -> ward, and VD -> registered voters, as at one election.
 
@@ -3670,7 +3684,27 @@ MIN_HOME_SPLITS = 2
 # first election and regressing on (parent, city average) over 22 metro-cases
 # gives a median of 0.35 — EFF 0.89, GOOD 0.28, ActionSA about 0.02. Pure
 # inheritance was the assumption and it is wrong for two of the three.
+# THE DEFAULT: a party's judgements-sheet entry `parent_weight` replaces it for
+# that party alone (:func:`splinter_parent_weight`), one mechanism for every
+# party. JUDGEMENT-CALLS §F6 (the default) and §SJ1 (the first such call, MK).
 SPLINTER_PARENT_WEIGHT = 0.35
+
+
+def splinter_parent_weight(rule: dict | None, party: str = "") -> float:
+    """The weight on the parent's vector for one splinter: the party's own
+    ``parent_weight`` from its ``[party.X]`` judgements entry, else
+    :data:`SPLINTER_PARENT_WEIGHT`. The only reader of either; a value outside
+    [0, 1] or not a number refuses (a weight is a share of one vector)."""
+    raw = (rule or {}).get("parent_weight")
+    if raw is None:
+        return float(SPLINTER_PARENT_WEIGHT)
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)) \
+            or not 0.0 <= float(raw) <= 1.0:
+        raise SystemExit(
+            f"[party.{party}] parent_weight = {raw!r}: it is the share of the "
+            f"splinter's pool vector taken from its parent and must be a "
+            f"number in [0, 1].")
+    return float(raw)
 
 SPLITS: dict[str, Split] = {
     "COPE": Split("ANC", ("2004", "2009"),
@@ -5022,7 +5056,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # The remainder goes to the city average, not to a named opponent:
             # the record says a splinter reaches beyond its parent, and does not
             # say whose voters it reaches instead.
-            alpha = float(SPLINTER_PARENT_WEIGHT)
+            alpha = splinter_parent_weight(declared, party)
             size = np.asarray(pool_size, dtype=float)
             mix = size / size.sum() if size.sum() > 0 else np.full(n_pools, 1.0 / n_pools)
             parent_rate = np.array([rates[g, index[parent]] for g in range(n_pools)])
@@ -5035,8 +5069,11 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                        for g in range(n_pools) if blended[g] > 0}
             why = (f"SPLIT from {parent} ({lineage_why}): takes {f_mid:.1%} of a "
                    f"vector that is {alpha:.0%} {parent}'s pool rates and "
-                   f"{1 - alpha:.0%} the city's own composition — measured, "
-                   f"median over 22 splinter-metro cases, from the {f_kind} "
+                   f"{1 - alpha:.0%} the city's own composition — "
+                   + ("DECLARED in judgements/ (`parent_weight`)"
+                      if declared.get("parent_weight") is not None else
+                      "measured, median over 22 splinter-metro cases")
+                   + f", from the {f_kind} "
                    f"splinter record; the draw's width comes from the pool "
                    f"split. Every party in those pools gives up the same proportion; none is named.")
         else:
@@ -5557,9 +5594,24 @@ PARTY_KEYS = {
                       "model's). Required with `support` or `overperform`",
     "register":       "the JUDGEMENT-CALLS §SJ row declaring the strength "
                       "judgement. Required with `support` or `overperform`",
+    "parent_weight":  "a SPLIT's share of the parent's pool vector (the rest is "
+                      "the city's composition), in [0, 1]; replaces the default "
+                      "`SPLINTER_PARENT_WEIGHT` for this party only. Read at "
+                      "EMIT, so it is in the spec's hash. Applies to a party sized as "
+                      "a split; `register` names its JUDGEMENT-CALLS §SJ row",
     "baseline_share": "INFORMATIONAL: what it polled at the preceding national "
                       "election. Nothing reads this.",
 }
+
+
+#: The `[party.X]` keys that are the owner's per-party judgement calls (a pool
+#: vector, a size, a strength, a parent weight). `parent` (the lineage fact) and
+#: `baseline_share` are not. `--without-judgements` drops exactly these.
+OWNER_JUDGEMENT_KEYS = ("parent_weight", "weights", "support", "overperform",
+                        "sigma_j", "register")
+
+#: Set only by `main` for `--without-judgements`; read only by `load_lineage`.
+_WITHOUT_JUDGEMENTS = False
 
 
 def load_lineage(city: cityconfig.City, target: cityconfig.Target) -> dict[str, dict]:
@@ -5568,6 +5620,11 @@ def load_lineage(city: cityconfig.City, target: cityconfig.Target) -> dict[str, 
         return {}
     raw = _lineage_raw(path)
     table = dict((raw.get("party") or {}).items())
+    for party, body in table.items():
+        splinter_parent_weight(body, party)     # range-check at load
+    if _WITHOUT_JUDGEMENTS:
+        table = {p: {k: v for k, v in body.items() if k not in OWNER_JUDGEMENT_KEYS}
+                 for p, body in table.items()}
     for party, body in table.items():
         unknown = sorted(set(body) - set(PARTY_KEYS))
         if unknown:
@@ -6054,13 +6111,15 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     cats = list(ctx["categories"])
     n = len(cats)
 
-    # Size the pools as they will be at the TARGET, not as they were at the
-    # election the rates were fitted on. The roll is counted every cycle and
-    # the census is not, so the trend comes from the roll; `before` keeps a
-    # backtest from seeing its own target's registration.
+    # The registration history, recorded in the spec (`registration_series`)
+    # and not used to size anything: `before` keeps a backtest from seeing its
+    # own target's registration. ONE ROLL: the pools are sized from
+    # `registered_at_target` below, and `pool_shares_at_target` and the
+    # provenance text are derived from that same vector. They used to come from
+    # `projected_pool_shares`, a 2024 roll carried forward, so a 2026 spec held
+    # two rolls that disagreed.
     series = registration_series(city, cfg, before=target.year,
                                  split_bloc=split_bloc)
-    target_shares, roll_note = projected_pool_shares(series, target.year)
 
     # THE COMPOSITION IS NORMALISED ON VOTES CAST, NOT ON A PROJECTED ROLL.
     #
@@ -6094,6 +6153,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # WAS THIS ONE. See MODEL-LOG §1.42.
     registered = registered_at_target(city, target, cfg, year,
                                       split_bloc=split_bloc)
+    target_shares, roll_note = pool_shares_of_roll(registered, target.year)
     record = turnout_record(city, cfg, before=target.year,
                             split_bloc=split_bloc)
     panel_spread, spread_n = panel_turnout_spread(
@@ -6295,7 +6355,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             # opponent. That is the weaker and more honest claim: the record says
             # a splinter reaches beyond its parent, and does not say whose voters
             # it reaches instead.
-            alpha = float(SPLINTER_PARENT_WEIGHT)
+            alpha = splinter_parent_weight(rule, party)
             # The city's own pool composition AT THE FITTING YEAR, which is the
             # basis the vectors themselves are fitted on, so the two halves of
             # the blend are on the same footing.
@@ -6303,7 +6363,9 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             vec = alpha * composition[parent] + (1.0 - alpha) * city_mix
             vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
             inherited[party] = (f"splinter of {parent}, {alpha:.0%} its vector "
-                                f"and {1 - alpha:.0%} the city average")
+                                f"and {1 - alpha:.0%} the city average"
+                                + (" (parent_weight declared in judgements/)"
+                                   if rule.get("parent_weight") is not None else ""))
         else:
             # An entrant with no measured vector and no declared parent draws in
             # proportion to WHERE THE VOTES ARE — the city's own pool
@@ -6784,7 +6846,22 @@ def main() -> None:
                     help="emit the reader-simulation spec, which carries the "
                          "vote-located bloc, to pools_{target}_simulation.json. "
                          "NEVER read by the published forecast.")
+    ap.add_argument("--out", default=None, metavar="DIR",
+                    help="with --emit: write the spec into DIR instead of the "
+                         "city's processed directory (DIR is created). Use it "
+                         "for any emit that is not the forecast.")
+    ap.add_argument("--without-judgements", action="store_true",
+                    help="with --emit: drop the owner's per-party judgement "
+                         "calls (" + ", ".join(OWNER_JUDGEMENT_KEYS) + ") and "
+                         "keep `parent`, `[roster]` and every default. REQUIRES "
+                         "--out, so it can never overwrite the forecast's spec; "
+                         "the spec records `without_judgements`. For the "
+                         "forecast reported with and without the calls.")
     args = ap.parse_args()
+    if args.without_judgements and not (args.emit and args.out):
+        ap.error("--without-judgements needs --emit and --out DIR")
+    global _WITHOUT_JUDGEMENTS
+    _WITHOUT_JUDGEMENTS = bool(args.without_judgements)
 
     cfg = load_config()
 
@@ -6809,7 +6886,10 @@ def main() -> None:
                               retrospective_home=args.retrospective_home,
                               split_bloc=bloc)
             suffix = "_simulation" if args.simulation else ""
-            out = city.processed / f"pools_{target.year}{suffix}.json"
+            if args.without_judgements:
+                spec["without_judgements"] = list(OWNER_JUDGEMENT_KEYS)
+            out = (Path(args.out) if args.out else city.processed) \
+                / f"pools_{target.year}{suffix}.json"
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(json.dumps(spec, indent=2, sort_keys=True))
         print(f"{city.name} {target.year}: {len(spec['pools'])} pools -> {out}")
