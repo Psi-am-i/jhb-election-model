@@ -30024,3 +30024,56 @@ parties is the universal draw; the batch widened the ANC's upper tail.
 Most of the forecast's move, and all of the PA's fall, is the 10 October
 batch, which was held back from the site on 10 October and goes out with
 this round. The before/after must show the two batches as separate rows.
+
+## 1.304 The 2026 forecast reads the IEC's 26 September roll (2026-10-15)
+
+Change: `95b4405` (JUDGEMENT-CALLS §T1, §T2; DATA-QUALITY item 20; POOLS-REEMIT-QUEUE
+entry 38). Pre-registration: `prereg/2026-10-15-roll-2026.md` (`911506d`, before
+the re-emit). Owner-approved shortened process: one diff review, three gates.
+Runs: `.claude/roll-2026-10-15/` (gitignored), on `911506d`: every spec re-emitted
+(27, one `pools_sha` `bfa422e473f63611`), `group_share_record`, `bye_value` and
+`width_record` re-emitted (the last two were stale on `cities_sha` and then
+`bye_value_sha`; POOLS-REEMIT-QUEUE's step-9 list lacked `bye_value`),
+`montecarlo.py --city joburg`, `overhang_regimes.py`, `compare_history.py`.
+Report: `reports/model-changes/2026-10-15-roll/`.
+
+### Gates
+
+G1 held: 24 of 24 backtest city-years identical in `pr_mae`, `ward_mae`,
+`seat_abs_err`, `seat_abs_err_coherent`, `seats` and `wards` against the tracked
+`history.json` at `911506d`. G2 held: `montecarlo.ward_parts` for 2026 sums to
+2,417,915, each ward to its snapshot row (`tests/test_roll_2026.py`). G3 held:
+with the reader made to ignore the 2026 column, 5 of 15 `test_roll_2026` tests
+fail; restored, 15 pass.
+
+### Result (5,000 draws, seed 20261104; old = arm U, `.claude/step7-2026-10-13/arms/U`)
+
+Mean list share, every party, identical to 0.001 points (ANC 23.672, DA 25.976,
+EFF 10.974, ActionSA 11.648 → 11.649, MK 8.993, PA 5.930). Mean seats: ANC
+71.2 → 71.7, DA 69.8 → 69.6, all others within 0.1. Mean ward wins: ANC 68.7 →
+69.4, DA 45.7 → 45.3. Seat p5-p95 unchanged for every party. Two ward favourites
+change, DA → ANC: ward 120 (roll −3%; DA 49% / ANC 40% → ANC 46% / DA 43%) and
+ward 124 (roll +16%; 30% / 29% → 33% / 26%).
+
+Mechanism: `solve_and_predict` solves θ so the citywide share reaches the
+target; `weight_cal = reg × t_draw` only distributes it over VDs. The roll moves
+ward composition, not citywide share, so it reaches seats through ward wins
+(overhang) only.
+
+### The pre-registration scored
+
+| prediction | verdict | deciding number |
+|---|---|---|
+| P1 list share DA up, ANC down, 0.2-1.5 points | falsified | both unchanged to 0.001 |
+| P2 DA +1 to +5 seats, ANC −1 to −5 | falsified | DA −0.2, ANC +0.5 |
+| P3 under 10 favourites change | held | 2 |
+| P3 they are among wards with roll change over 15% | falsified for one of two | ward 120, −3% |
+| P4 every party's p5-p95 width within 3 seats | held | no range moved |
+
+P1 and P2 were derived from the roll change summed by favourite, which assumed
+the roll raises a party's citywide share; the model fixes citywide share before
+the roll is applied (above). Not checked before writing them.
+
+`declares.py --verify`: 7 of 150 fail, 4 declaring wrongly (`forecast_frozen.json`
+and three `site/draws*/manifest.json`, on the code cell), all predating this
+code and regenerated at the site step; 3 undeclared as before.
