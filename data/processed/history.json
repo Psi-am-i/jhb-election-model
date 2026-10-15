@@ -1,7 +1,7 @@
 {
   "manifest": {
     "schema": 3,
-    "generated": "2026-10-15T05:01:49Z",
+    "generated": "2026-10-15T15:56:57Z",
     "draws": 1000,
     "seed": 20261104,
     "seed_by_row": {
@@ -31,7 +31,7 @@
       "buffalocity:2021": 20261104
     },
     "overrides": [],
-    "git_commit": "911506d436bd8cc4ddb220da6ce186e72585a687",
+    "git_commit": "40d932aaaffd2d67aa6ae8b86a22f690d3bfb436",
     "git_dirty": false,
     "env_switches": {
       "raw": {
@@ -64,7 +64,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "00f270b6371ba32b",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2011"
@@ -76,7 +76,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "d49599aebcc006a5",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2016"
@@ -88,7 +88,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "e49a27590f35a842",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2021"
@@ -102,7 +102,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "d09f8d1fecc6b7f8",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2011"
@@ -114,7 +114,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "3380b6ced54b15b7",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2016"
@@ -126,7 +126,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "8fe2c0a77329010e",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2021"
@@ -140,7 +140,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "d5f51ddb40d9070c",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2011"
@@ -152,7 +152,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "8f408f836ab4d1fb",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2016"
@@ -164,7 +164,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "964fbaa6cd07e05f",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2021"
@@ -178,7 +178,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "7dc89b789556051f",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2011"
@@ -190,7 +190,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "411208551d6a7591",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2016"
@@ -202,7 +202,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "ea6154d251ec0cab",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2021"
@@ -216,7 +216,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "fab627a741c0c7c8",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2011"
@@ -228,7 +228,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "7ea7faaaafd6e3c5",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2016"
@@ -240,7 +240,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "54e74cd0d54d1a2b",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2021"
@@ -251,9 +251,9 @@
           "config_sha": "25f89b38e7b7532f",
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
-          "judgements_sha": "68b05a064ce1c6b4",
-          "pools_sha": "bfa422e473f63611",
-          "roll_sha": "7116d0bec45da00a",
+          "judgements_sha": "b261ca89560fbae4",
+          "pools_sha": "0d4e4b8ce3eadd02",
+          "roll_sha": "db831def8e100fbd",
           "schema": 2,
           "target": "2026"
         },
@@ -263,9 +263,9 @@
           "config_sha": "25f89b38e7b7532f",
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
-          "judgements_sha": "68b05a064ce1c6b4",
-          "pools_sha": "bfa422e473f63611",
-          "roll_sha": "7116d0bec45da00a",
+          "judgements_sha": "b261ca89560fbae4",
+          "pools_sha": "0d4e4b8ce3eadd02",
+          "roll_sha": "db831def8e100fbd",
           "schema": 2,
           "target": "2026"
         }
@@ -278,7 +278,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "9f4268ff8f90c79e",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2011"
@@ -290,7 +290,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "d76ab60ca822d140",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2016"
@@ -302,7 +302,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "6022835843c4f3a8",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2021"
@@ -316,7 +316,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "ff87c0f3e0d557da",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2011"
@@ -328,7 +328,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "3805779d8578848d",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2016"
@@ -340,7 +340,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "e16f81969d7f636c",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2021"
@@ -354,7 +354,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "7e332f2873cd5f71",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2011"
@@ -366,7 +366,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "eaab9b926088bfae",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2016"
@@ -378,7 +378,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "be5ad21374a8b8d8",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "absent",
           "schema": 2,
           "target": "2021"
@@ -390,7 +390,7 @@
           "deps_sha": "8685a4b2a2a7b1b7",
           "gates_sha": "2ec84f1fcb67779f",
           "judgements_sha": "cfef4b8ae82e6254",
-          "pools_sha": "bfa422e473f63611",
+          "pools_sha": "0d4e4b8ce3eadd02",
           "roll_sha": "e6ef4574722ad8f5",
           "schema": 2,
           "target": "2026"
