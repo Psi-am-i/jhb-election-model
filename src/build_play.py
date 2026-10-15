@@ -446,11 +446,20 @@ def new_parties_note(processed: Path, rows: list[dict], names: dict) -> str:
     spec, fname = _spec(processed)
     codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
     new = _new_parties(spec, codes)
-    if not new:
+    # Absent in 2021 but fitted on their own national result (`pools.
+    # place_vectorless`): a measured split, so not "assumed" and not hatched,
+    # but still a party that did not stand in 2021.
+    fitted = {c: f for c, f in (spec.get("fitted_from_national") or {}).items()
+              if c in codes and c not in new}
+    if not new and not fitted:
         return "Every party shown stood in 2021."
-    who = [names[c]["name"] for c in new]
+    who = [names[c]["name"] for c in codes if c in new or c in fitted]
     lst = who[0] if len(who) == 1 else ", ".join(who[:-1]) + " and " + who[-1]
     out = [f"{_esc(lst)} did not stand in 2021."]
+    for c in codes:
+        if c in fitted:
+            out.append(f"{_esc(names[c]['name'])}'s split is estimated from its "
+                       f"{_esc(str(fitted[c]['election']))} national result by ward.")
     for c, (kind, parent, share) in new.items():
         src = f"{fname} no_measured_vector[{c}]"
         if kind == "splinter":

@@ -559,7 +559,7 @@ the published result (`SOURCES.md`) and is the half of the pair that may stand.
 | `entrant_prob` = 0.25 | DEFAULTS | **JUDGED** | a party arrived and won seats in **3 of 3** Johannesburg elections; this is the most quotable undefended constant in the model |
 | `entrant_share` = [0.01, 0.04, 0.12] | DEFAULTS | **JUDGED** | expected mass 1.42% of the ballot |
 | Slots | **one** generic ENTRANT | — | reality delivers 11 to 32 arrivals per metro |
-| `SPLINTER_PARENT_WEIGHT` = 0.35 (the DEFAULT) | `pools.py`, read through `splinter_parent_weight(rule, party)` | MEASURED, 22 splinter-metro cases | a splinter's vector is 35% its parent's and 65% the city average, unless the party's `[party.X]` entry on the judgements sheet carries `parent_weight` in [0, 1] (one mechanism for every party; the first is MK at 0.9, JUDGEMENT-CALLS §SJ1) |
+| `SPLINTER_PARENT_WEIGHT` = 0.35 (the DEFAULT) | `pools.py`, read through `splinter_parent_weight(rule, party)` | MEASURED, 22 splinter-metro cases | a splinter with no record of its own: its vector is 35% its parent's and 65% the city average, unless the party's `[party.X]` entry on the judgements sheet carries `parent_weight` in [0, 1] (one mechanism for every party; the first is MK at 0.9, JUDGEMENT-CALLS §SJ1). A party whose baseline national fit identifies a pool takes that vector instead (`pools.place_vectorless`) |
 | `MIN_HOME_SPLITS` = 2 | `pools.py` | **JUDGED** | binary home/away where ActionSA shows a gradient (0.611/0.315/0.289/0.103) |
 | `SPLIT_SD_FLOOR` = 0.90 | `pools.py` | **JUDGED floor** on a measured spread | binds at target 2016 where the pooled record's log-sd is 0.286 |
 | Ward reach | `levels.contestation` | MEASURED, nomination lists | corr(reach, log vote) = **+0.393** for arrivals; seat-winners have median reach 99% against 33% |
@@ -641,9 +641,31 @@ is recorded history and sizes nothing. `tests/test_pool_shares_one_roll.py`.
 a row without one), and `--strict` exits 1 for a required input that is present
 and not used, as it does for one missing or stale. `tests/test_inputs_preflight.py`.
 
+**A party with its own national record is fitted on it (owner, 2026-10-15).**
+A party in the target's roster with no vector from the fitting (local)
+election is placed by `pools.place_vectorless`, one rule for every such party:
+its own fit on the baseline national election (`target.previous_npe`) when
+that fit identifies at least one pool, else judged `weights`, else the
+splinter blend, else the city mix. `pools.national_fits` is `fit_city` on the
+national result file: every party jointly, the national election's own
+registration-nested composition (`pool_counts`), the method-of-bounds box and
+`PartyFit.identified`. Its voting districts are placed in wards by the
+preceding LGE's map through `_ward_resolver`, the one resolver `ward_totals`
+and `ward_party_shares` share (the 2019/2024 files carry no Ward column and no
+BallotType, and the party table dropped every such row before). The vector is
+`PartyFit.composition` on the target's pool votes, as for a local fit. No year
+gate: the national election precedes the target, so a backtest reads its own
+(the EFF at 2016 from 2014, COPE at 2011 from 2009). The spec records
+`fitted_from_national` (election, rates, bounds, pools identified, any
+`weights` or `parent_weight` the fit superseded) and `national_fit_refused`
+(a party with a national record placed by the lineage rule, with why); the
+per-pool `identified` list counts a national fit where it identifies.
+`tests/test_national_record_fit.py`; JUDGEMENT-CALLS §F6, §SJ1; MODEL-LOG §1.307.
+
 **Splinter weight and the emit without owner calls.** `parent_weight` under
 `[party.X]` replaces the default weight for that party at both places a
-splinter's vector is blended; it is read at emit, so it is in `judgements_sha`.
+splinter's vector is blended (a party with no record of its own; see above);
+it is read at emit, so it is in `judgements_sha`.
 `pools.py --emit --without-judgements --out DIR` drops the owner's per-party
 calls (`pools.OWNER_JUDGEMENT_KEYS`) and keeps `parent`, `[roster]` and every
 default; it requires `--out`, so it cannot overwrite the forecast's spec, and
@@ -1236,8 +1258,9 @@ one.
 The hand-drawn party grouping is gone entirely. Parties are described by pool
 vectors measured from ward demographics and bounded by what the arithmetic can
 prove; lineage for a party with no measured vector is declared in
-`judgements/{city}-{target}.toml`, and a splinter's vector is now 35% its
-parent's and 65% the city average rather than pure inheritance.
+`judgements/{city}-{target}.toml`, and a splinter with no record of its own
+takes 35% its parent's vector and 65% the city average rather than pure
+inheritance; one with a national record is fitted on it.
 
 Every one of these is listed with its evidence, its status and how to check it
 in **`JUDGEMENT-CALLS.md`**, which is the register; this is the map. The

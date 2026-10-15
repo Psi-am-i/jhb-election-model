@@ -30107,3 +30107,33 @@ code and regenerated at the site step; 3 undeclared as before.
 **Limit.** The ward-only parties' ward level is the drawn level times the measured ward/PR ratio. At Johannesburg 2021 their summed ward target averages 0.00070 of the ward ballot, against 0.000027 in the result file: their size, not where they stand, is what this does not fix.
 
 **Backtests will move.** Every held city-year now masks every party's ward ballot to its result-file slate (§1.305 masked pool-placed parties only), and parties with ward rows and no PR rows lose their list vote. Not re-measured here; the re-emit (`POOLS-REEMIT-QUEUE.md` entry 40, then `group_share_record`, `bye_value`, `width_record`) and the next canonical `compare_history` run record it. Independents remain outside every run's universe (C structurally 0, JUDGEMENT-CALLS's `independent_wards` (C) row); their declared slates are reported, not modelled.
+
+## 1.307 A party with its own national record is fitted on it, not inherited (2026-10-16)
+
+**Rule (owner, 2026-10-15, "option A", `audits/2026-10-11-model-round/PLAN.md`).** Fit MK's pool vector from its own 2024 national results by voting district, as identified parties are fitted; the splinter default applies only to splinters with no record of their own.
+
+**What changed.**
+- `pools.place_vectorless` chooses the vector for every party in the roster with no vector from the fitting (local) election, one rule for all: its own fit on `target.previous_npe` when that fit identifies at least one pool (`pools.vector_from_own_record`, `PartyFit.identified`), else judged `weights`, else the splinter blend (`parent_weight`, else `SPLINTER_PARENT_WEIGHT`), else the city mix.
+- `pools.national_fits` is `fit_city` on the national result file: every party jointly, that election's registration-nested composition (`pool_counts`), the method-of-bounds box, the same identification test. The vector is `PartyFit.composition` on the target's pool votes, as for a local fit. No year gate.
+- `pools._ward_resolver`: the one VD-to-ward resolver for `ward_totals` and `ward_party_shares`. `ward_party_shares` dropped every row of a file with no `BallotType` column, and every row with a blank `Ward` (the 2019/2024 layout), so no national election could be fitted. No LGE file has a blank `Ward` row (checked over every `lge*_clean.csv`), so no local fit moves.
+- The spec gains `fitted_from_national` (election, rates, bounds, pools identified, the `weights` or `parent_weight` superseded) and `national_fit_refused` (party, why); the per-pool `identified` list counts a national fit; `derived_from` names the national election. `build_play`'s new-parties note names a national-fitted party as absent in 2021 with its split estimated (not "assumed", not hatched).
+- §SJ1 (MK `parent_weight = 0.9`) stays on the judgements sheet and is not read while MK's 2024 fit is identified; §F6 is scoped to splinters with no record.
+
+**Measured** in process, `emit_pools` with the national path on against the same tree with `national_fits` returning nothing (no spec written; `/private/tmp/mkfit/probe2_*.json`). Vectors in pool order Black African, Coloured, Indian/Asian, White, as emitted member weights.
+
+Johannesburg 2026, MK: fitted (2024, identified in Black African and White; rates 0.1947, 0.0000, 0.0027, 0.0193) **0.943, 0.000, 0.001, 0.056**; the 0.9 blend (§SJ1) 0.872, 0.032, 0.021, 0.075; the 0.35 default 0.686, 0.056, 0.035, 0.224 (computed from the 0.9 blend's and the city mix's four-decimal values).
+
+Parties whose vector changes (largest member-weight change in brackets):
+
+| target | parties |
+|---|---|
+| 2011 (from 2009) | COPE at all eight metros (eThekwini 0.526, Johannesburg 0.185, Cape Town 0.133, Ekurhuleni 0.102, Tshwane 0.090, Mangaung 0.079, Nelson Mandela Bay 0.040, Buffalo City 0.008); Cape Town NATIONAL_PARTY_SOUTH_AFRICA 0.523, ALJAMAAH 0.467; eThekwini APC 0.390; Buffalo City AIC 0.074 |
+| 2016 (from 2014) | EFF at all eight (Cape Town 0.362, Nelson Mandela Bay 0.274, Tshwane 0.187, Ekurhuleni 0.143, Mangaung 0.137, Johannesburg 0.134, eThekwini 0.128, Buffalo City 0.074); PA at Johannesburg 0.663, Cape Town 0.618, Tshwane 0.261; AGANG at Ekurhuleni 0.112, Johannesburg 0.113, Tshwane 0.057; AIC at Cape Town 0.244, Nelson Mandela Bay 0.183 |
+| 2021 (from 2019) | none: `pool_counts` refuses 2019 in every city (`census_drift_unmeasurable`), so every 2021 party with a 2019 record (GOOD, ATM, NFP and others) keeps the lineage rule and the spec lists it in `national_fit_refused` |
+| 2026 (from 2024) | Johannesburg MK 0.071, RISE 0.333, BOSA 0.281; Tshwane MK 0.127, HOPE4SA 0.375, UNITED_AFRICANS_TRANSFORMATION 0.423, RISE 0.099, BOSA 0.055 |
+
+Largest moves, old (lineage rule) to new (fit): Johannesburg 2016 PA 0.627, 0.062, 0.036, 0.275 to 0.259, 0.725, 0.016, 0.000; Cape Town 2016 EFF 0.510, 0.268, 0.070, 0.152 to 0.872, 0.063, 0.050, 0.014; eThekwini 2011 COPE 0.778, 0.017, 0.130, 0.076 to 0.252, 0.113, 0.437, 0.198; Johannesburg 2026 RISE 0.520, 0.133, 0.040, 0.308 to 0.187, 0.068, 0.140, 0.606. No party with a local fit moves (difference 0 at every city-year). Refused for an unidentified fit, e.g. Johannesburg 2026 DUDULA, AZANIA_PEACEFUL_REVOLUTION, and APC at six 2011 metros.
+
+**Limits.** The identification test is per pool and the rule takes at least one identified pool; for a small party every interval is narrow, so the test mostly checks that its rate clears the floor (BOSA at Johannesburg 2026 is identified in all four pools). The census White pool is inflated against the roll (DATA-QUALITY item 11), and the national fit inherits that composition as every local fit does. A national vector describes a national election; whether it transfers to a local one is what the backtest measures. The 2019 refusal means the 2021 targets test nothing of this rule.
+
+**Backtest pending.** Every spec is stale (`pools.py` code). The re-emit (`POOLS-REEMIT-QUEUE.md` entry 41) and the next canonical `compare_history` record what the 2011 and 2016 changes do to the score.
