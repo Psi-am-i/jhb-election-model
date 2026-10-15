@@ -702,12 +702,12 @@ def test_the_two_functions_called_ward_parts_are_a_producer_and_a_consumer():
 # The sites in `src/` that name a crosswalk row's `part_registered`, and why
 # each is allowed: `montecarlo.read_ward_crosswalk` is the single crosswalk
 # reader (§1.97 F18; `pools._target_roll` delegates to it since the 2026 roll
-# became the IEC snapshot), `build_concordance.apportion_roll` the one producer
-# of the column the reader prefers. Asserted as an EQUALITY below rather than
+# became the IEC snapshot). `build_concordance.apportion_roll`, the producer of
+# the column the reader prefers, reads the whole VD's `vd_registered` since the
+# whole-VD assignment (JUDGEMENT-CALLS T1) and so is no longer a site. Asserted as an EQUALITY below rather than
 # as an exemption, so a reader that vanishes is as much a finding as one that
 # appears.
-KNOWN_CROSSWALK_READERS = {("montecarlo.py", "read_ward_crosswalk"),
-                           ("build_concordance.py", "apportion_roll")}
+KNOWN_CROSSWALK_READERS = {("montecarlo.py", "read_ward_crosswalk")}
 
 
 def _crosswalk_readers(paths):

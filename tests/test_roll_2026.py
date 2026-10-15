@@ -1,9 +1,10 @@
 """THE 2026 ROLL IS THE IEC SNAPSHOT, ONE DEFINITION, AND NO BACKTEST SEES IT.
 
-``build_concordance.apportion_roll`` scales every part of 2026 ward w by
-``Registered_snapshot[w] / sum(part_registered of w)`` and writes the result as
-``part_registered_2026`` (rule and city-total choice: JUDGEMENT-CALLS, "the 2026
-roll"). ``montecarlo.read_ward_crosswalk`` prefers that column when the file has
+``build_concordance.apportion_roll`` places each VD wholly in one ward (the
+committed assignment, ``archive/vd-ward-assignment-2026/``), scales the VDs of
+ward w by ``Registered_snapshot[w] / sum(vd_registered of w's VDs)`` and writes
+the result as ``part_registered_2026`` on the VD's assigned row, 0 on its other
+parts (rule and city-total choice: JUDGEMENT-CALLS section T1). ``montecarlo.read_ward_crosswalk`` prefers that column when the file has
 it; ``ward_parts``, ``pools._target_roll``, ``pools.vd_map`` and
 ``build_make.expected_ward_shares`` all reach it through that one reader.
 
@@ -163,73 +164,148 @@ def test_a_crosswalk_without_the_column_falls_back_to_the_mdb_registration():
 # the rule, on constructed input
 # --------------------------------------------------------------------------
 
-def _part(vd, ward_id, reg):
-    return {"VD_Number": vd, "WardID_2026": ward_id, "part_registered": str(reg)}
+def _part(vd, ward_id, reg, whole=None):
+    return {"VD_Number": vd, "WardID_2026": ward_id, "part_registered": str(reg),
+            "vd_registered": str(reg if whole is None else whole)}
 
 
-def test_a_split_vd_has_each_part_scaled_by_its_own_wards_ratio():
-    """VD A straddles wards 1 and 2. Ward 1 holds A(600)+C(400)=1000 and the
-    snapshot says 1200 (ratio 1.2): A 720, C 480. Ward 2 holds A(400)+B(600)=1000
-    and the snapshot says 900 (ratio 0.9): A 360, B 540. Hand arithmetic."""
-    rows = [_part("A", "1", 600), _part("C", "1", 400),
-            _part("A", "2", 400), _part("B", "2", 600)]
-    build_concordance.apportion_roll(rows, {"1": 1200, "2": 900})
-    got = {(r["VD_Number"], r["WardID_2026"]): int(r["part_registered_2026"]) for r in rows}
-    assert got == {("A", "1"): 720, ("C", "1"): 480, ("A", "2"): 360, ("B", "2"): 540}
-    # the two parts of the split VD took DIFFERENT ratios
-    assert got[("A", "1")] / 600 != got[("A", "2")] / 400
+def _fixture():
+    """VD A (1000) straddles wards 1 and 2 and is assigned to 1; C (500) is
+    whole in 1; B (600) is whole in 2."""
+    rows = [_part("A", "1", 600, 1000), _part("C", "1", 500),
+            _part("A", "2", 400, 1000), _part("B", "2", 600)]
+    return rows, {"A": "1", "B": "2", "C": "1"}
+
+
+def _figures(rows):
+    return {(r["VD_Number"], r["WardID_2026"]): int(r["part_registered_2026"]) for r in rows}
+
+
+def test_a_split_vd_sits_wholly_on_its_assigned_ward_scaled_by_that_wards_ratio():
+    """Ward 1 holds A(1000)+C(500)=1500 and the snapshot says 1800 (x1.2): A 1200,
+    C 600. Ward 2 holds only B(600), snapshot 540: B 540. A's part in ward 2 is 0.
+    Hand arithmetic."""
+    rows, asg = _fixture()
+    build_concordance.apportion_roll(rows, {"1": 1800, "2": 540}, asg)
+    assert _figures(rows) == {("A", "1"): 1200, ("C", "1"): 600,
+                              ("A", "2"): 0, ("B", "2"): 540}
 
 
 def test_whole_numbers_by_largest_remainder_sum_exactly():
     rows = [_part("A", "1", 1), _part("B", "1", 1), _part("C", "1", 1)]
-    build_concordance.apportion_roll(rows, {"1": 5})
+    build_concordance.apportion_roll(rows, {"1": 5}, {"A": "1", "B": "1", "C": "1"})
     got = [int(r["part_registered_2026"]) for r in rows]
     assert sum(got) == 5 and sorted(got) == [1, 2, 2]
     assert got == [2, 2, 1], "ties go to the earlier VD number"
 
 
-def test_a_zero_voter_sliver_stays_zero():
-    rows = [_part("A", "1", 100), _part("S", "1", 0)]
-    build_concordance.apportion_roll(rows, {"1": 150})
-    assert [int(r["part_registered_2026"]) for r in rows] == [150, 0]
-
-
-def _raises(rows, roll):
+def _raises(rows, roll, asg):
     try:
-        build_concordance.apportion_roll(rows, roll)
+        build_concordance.apportion_roll(rows, roll, asg)
     except SystemExit as exc:
         return str(exc)
     return None
 
 
-def test_a_ward_that_cannot_be_apportioned_or_matched_refuses():
-    assert "sum to 0" in (_raises([_part("A", "1", 0)], {"1": 10}) or "")
-    only_snap = _raises([_part("A", "1", 5)], {"1": 10, "2": 3})
-    assert only_snap and "only in the snapshot" in only_snap and "2" in only_snap
-    only_xw = _raises([_part("A", "1", 5), _part("B", "2", 5)], {"1": 10})
+def test_inputs_that_cannot_be_apportioned_refuse():
+    rows, asg = _fixture()
+    roll = {"1": 1800, "2": 540}
+    assert "sum to 0" in (_raises([_part("A", "1", 0)], {"1": 10}, {"A": "1"}) or "")
+    only_snap = _raises([_part("A", "1", 5)], {"1": 10, "2": 3}, {"A": "1"})
+    assert only_snap and "only in the snapshot" in only_snap
+    only_xw = _raises([_part("A", "1", 5), _part("B", "2", 5)], {"1": 10}, {"A": "1", "B": "2"})
     assert only_xw and "only in the crosswalk" in only_xw
+    gone = _raises(rows, roll, {"A": "1", "B": "2"})
+    assert gone and "missing from the assignment" in gone and "C" in gone
+    extra = _raises(rows, roll, {**asg, "Z": "1"})
+    assert extra and "not in the crosswalk" in extra
+    not_part = _raises(rows, roll, {**asg, "B": "1"})
+    assert not_part and "not one of its parts" in not_part
+    # ward 2 left with no VD
+    rows2 = [_part("A", "1", 600, 1000), _part("A", "2", 400, 1000), _part("C", "1", 5)]
+    nobody = _raises(rows2, {"1": 10, "2": 3}, {"A": "1", "C": "1"})
+    assert nobody and "no VD is assigned" in nobody
 
 
-def test_one_wards_snapshot_figure_moves_that_ward_and_no_other():
-    """(2) on the real parts: the snapshot with one ward changed."""
+# --------------------------------------------------------------------------
+# the committed assignment, on the real files
+# --------------------------------------------------------------------------
+
+def _assignment() -> dict[str, str]:
+    return build_concordance.read_assignment()
+
+
+def test_every_vd_figure_sits_on_exactly_one_of_its_parts_its_assigned_ward():
+    rows = _crosswalk_rows()
+    asg = _assignment()
+    by_vd: dict[str, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_vd[r["VD_Number"]].append(r)
+    assert set(by_vd) == set(asg), "population, both directions"
+    assert 0 < len(by_vd)
+    for vd, parts in by_vd.items():
+        on = [p for p in parts if int(p["part_registered_2026"]) > 0]
+        assert len(on) <= 1, vd
+        assert all(p["WardID_2026"] == asg[vd] for p in on), vd
+        assert asg[vd] in {p["WardID_2026"] for p in parts}, vd
+        assert all(int(p["part_registered_2026"]) == 0
+                   for p in parts if p["WardID_2026"] != asg[vd]), vd
+
+
+def test_the_per_ward_ratio_of_snapshot_to_assigned_2024_registration_is_tight():
+    """A property of the committed INPUT (the assignment), not a tuning target:
+    sd of IEC_w / sum of vd_registered of w's VDs, over the snapshot's own
+    wards. Proportional scaling gave a far larger spread."""
     snap = _snapshot()
     rows = _crosswalk_rows()
+    asg = _assignment()
+    base: dict[str, int] = defaultdict(int)
+    seen = set()
+    for r in rows:
+        if r["VD_Number"] not in seen:
+            seen.add(r["VD_Number"])
+            base[asg[r["VD_Number"]]] += int(r["vd_registered"])
+    assert set(base) == set(snap)
+    ratios = [snap[w] / base[w] for w in snap]
+    mean = sum(ratios) / len(ratios)
+    sd = (sum((x - mean) ** 2 for x in ratios) / (len(ratios) - 1)) ** 0.5
+    assert sd <= 0.07, sd
 
-    def run(roll):
-        copy = [{"VD_Number": r["VD_Number"], "WardID_2026": r["WardID_2026"],
-                 "part_registered": r["part_registered"]} for r in rows]
-        build_concordance.apportion_roll(copy, roll)
+
+def test_the_committed_crosswalk_is_what_the_rule_makes_of_the_snapshot_and_assignment():
+    snap, asg, rows = _snapshot(), _assignment(), _crosswalk_rows()
+    copy = [{k: r[k] for k in ("VD_Number", "WardID_2026", "part_registered", "vd_registered")}
+            for r in rows]
+    build_concordance.apportion_roll(copy, snap, asg)
+    assert [r["part_registered_2026"] for r in copy] == [r["part_registered_2026"] for r in rows]
+
+
+def test_one_vds_assigned_ward_moves_those_two_wards_and_nothing_else():
+    """(2) IT CAN SEE, on the real parts: one split VD moved to its other ward."""
+    snap, asg, rows = _snapshot(), _assignment(), _crosswalk_rows()
+    parts_of: dict[str, set[str]] = defaultdict(set)
+    for r in rows:
+        parts_of[r["VD_Number"]].add(r["WardID_2026"])
+    vd = sorted(v for v, w in parts_of.items() if len(w) > 1
+                and any(int(r["vd_registered"]) > 0 for r in rows if r["VD_Number"] == v))[0]
+    other = sorted(parts_of[vd] - {asg[vd]})[0]
+
+    def run(assignment):
+        copy = [{k: r[k] for k in ("VD_Number", "WardID_2026", "part_registered", "vd_registered")}
+                for r in rows]
+        build_concordance.apportion_roll(copy, snap, assignment)
         return [r["part_registered_2026"] for r in copy]
 
-    base = run(snap)
-    assert base == [r["part_registered_2026"] for r in rows], (
-        "the committed crosswalk is not what the rule makes of the snapshot")
-    ward = sorted(snap)[0]
-    moved = run({**snap, ward: snap[ward] + 1000})
+    base = run(asg)
+    moved = run({**asg, vd: other})
     changed = {rows[i]["WardID_2026"] for i in range(len(rows)) if moved[i] != base[i]}
-    assert changed == {ward}
-    # and it goes quiet again
-    assert run(snap) == base
+    assert {asg[vd], other} <= changed
+    # nothing else: every changed row belongs to a VD of one of the two wards
+    touched = {asg[vd], other}
+    for i in range(len(rows)):
+        if moved[i] != base[i]:
+            assert rows[i]["WardID_2026"] in touched
+    assert run(asg) == base, "and it goes quiet again"
 
 
 # --------------------------------------------------------------------------

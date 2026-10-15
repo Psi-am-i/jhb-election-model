@@ -1253,12 +1253,18 @@ between minus 30% and plus 70% (measured on the committed crosswalk,
 JUDGEMENT-CALLS §T1).** The per-ward ratio of the snapshot total to the
 crosswalk's 2024 total tracks the difference between the snapshot's
 voting-district count for the ward and the crosswalk's count (correlation
-0.725; sd 0.073 in the 58 wards where the counts agree; about 0.11 of ratio per
-extra IEC voting district). Most per-ward change is therefore which voting
-districts the IEC assigns to the ward, not registration growth. Proportional
-scaling spreads that difference over unsplit voting districts whose 2024 counts
-were real (ward 60 about x1.70, ward 62 about x0.70). **Ward-level outputs
-carry this limit until the IEC's voting-district membership per ward is known.**
+0.725; about 0.11 of ratio per extra IEC voting district). Most per-ward change
+is which voting districts the IEC assigns to the ward, not registration growth
+(ward 60 about x1.70, ward 62 about x0.70 under proportional scaling).
+
+**What was done about it (2026-10-15).** Each voting district is now placed
+wholly in one ward by a solved assignment
+(`archive/vd-ward-assignment-2026/`; §T1). The per-ward ratio of snapshot total
+to assigned 2024 total has sd 0.060 (min 0.823, max 1.267), against sd 0.168
+(0.704 to 1.704) under proportional scaling. **Remaining limit:** about 17 VDs
+are counted by the IEC in wards neither geo file offers; 40 placements are
+near-ties; recovery on constructed truth was 90 to 97% of split VDs. Ward totals
+are the IEC's; which VDs sit in a ward is the solver's, not the IEC's list.
 
 **What would separate the readings.** A per-voting-district registration file
 for 2026 (the IEC publishes none that the repository holds): it would give the

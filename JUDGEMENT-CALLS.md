@@ -4647,67 +4647,69 @@ published draws.
 
 ## T. Added 2026-10-15 — the 2026 roll
 
-### §T1 · the 2026 roll is the IEC snapshot, apportioned over each ward's parts in proportion to their 2024 registration — ⚖️ owner-approved (2026-10-15)
+### §T1 · the 2026 roll is the IEC snapshot, each voting district placed wholly in one ward and scaled to that ward's figure — ⚖️ owner-approved (2026-10-15); assignment rule revised 2026-10-15
 
 **Where.** `build_concordance.apportion_roll` writes the crosswalk column
-`part_registered_2026` and the column `roll_snapshot` (the snapshot's path);
+`part_registered_2026` and the column `roll_snapshot` (the snapshot's path), from
+`archive/vd-ward-assignment-2026/assignment.csv` (`build_concordance.ASSIGNMENT_2026`);
 `montecarlo.read_ward_crosswalk` returns that column as a part's registration
 when the file has it; `inputs_preflight.roll_snapshot` is the one definition of
 which snapshot.
 
-**Now.** For each 2026 ward w and each voting-district part p in w:
-`part_registered_2026[p] = part_registered[p] x Registered_snapshot[w] / sum over q in w of part_registered[q]`,
-where `part_registered` is the Municipal Demarcation Board layer's 2024
-registration for that part. Each ward's parts therefore sum to the snapshot's
-figure for that ward. Parts are whole numbers by largest remainder, ties to
-the earlier VD number, so the sum is exact. A ward whose 2024 parts sum to
-zero, a ward in the crosswalk that the snapshot lacks and a ward in the
-snapshot that the crosswalk lacks each refuse the build.
+**Now.** The IEC counts each of its voting districts wholly in one ward. Each 2026
+VD is assigned to one of the wards it has a part in (the assignment file). For
+ward w, every VD v assigned to w has
+`2026 registration[v] = vd_registered[v] x Registered_snapshot[w] / sum over u assigned to w of vd_registered[u]`,
+where `vd_registered` is the Municipal Demarcation Board layer's 2024
+registration of the whole VD. That figure sits on v's row in ward w and 0 on v's
+other parts. Whole numbers by largest remainder within the ward, ties to the
+earlier VD number, so each ward's rows sum to the snapshot's figure exactly. The
+build refuses a VD missing from the assignment, an assigned ward that is not one
+of the VD's parts, a ward with no VDs or whose VDs sum to zero, and a ward set
+that differs between the snapshot and the crosswalk.
 
-**Why.** The snapshot gives a figure per ward and none per voting district; the
-split voting districts of the new delimitation need a within-ward share, and the
-2024 parts are the only per-part record. Holding each part's share of its ward
-at the 2024 value is the only apportionment the repository's data supports.
-It is not a claim that registration grew uniformly inside a ward: the
-per-ward change between the 2024 crosswalk total and the snapshot is mostly
-a difference in which voting districts belong to the ward.
+**Why.** Most per-ward change between the 2024 crosswalk and the snapshot is
+which VDs belong to the ward (measured 2026-10-15: the ratio correlates 0.725
+with the difference in VD counts; each extra IEC VD goes with about 0.11 of
+ratio). Scaling the parts of a ward by one factor spread that membership
+difference over VDs whose 2024 counts were real. Placing each VD where the IEC
+counts it removes most of it: the per-ward ratio of snapshot total to assigned
+2024 total has sd 0.060 (min 0.823, max 1.267), against 0.168 (0.704 to 1.704)
+under the proportional rule.
 
-**Measured (2026-10-15, committed crosswalk against
-`joburg_ward_registration_2026-09-26.csv`; the count of crosswalk voting
-districts per ward assigns each VD to the ward holding its largest 2024 part).**
-The per-ward ratio of the snapshot's total to the crosswalk's 2024 total
-correlates 0.725 with the difference between the snapshot's voting-district
-count for the ward (sums to 862) and the crosswalk's count (sums to 865); each
-extra IEC voting district goes with a ratio about 0.11 higher (regression slope
-0.108; 0.12 when split VDs are counted by their weight). In the 58 wards where
-the two counts agree, the ratio has sd 0.073. The ratio therefore mostly records
-voting-district-to-ward assignment, not growth. Wards 60 (ratio about 1.70) and
-62 (about 0.70) are instances.
+**The judgement calls inside it** (all in `archive/vd-ward-assignment-2026/README.md`):
 
-**Alternatives.** The 2024 registration unscaled (what the forecast read before):
-the ward totals then differ from the snapshot's (DATA-QUALITY item 20 gives
-the range), and the city total is the 2024 one. A snapshot-only roll by
-voting district: the snapshot lists voting districts per ward (a count) and no
-per-VD registration, so there is nothing to read.
+* the solver's objective is the sum over wards of the absolute gap, in voters,
+  between the IEC figure divided by the citywide growth (2,417,915 / 2,348,781)
+  and the assigned VDs' 2024 registration, with count deviations penalised;
+* a placement is `forced` when the alternative ward costs more than 1,000 voters
+  of objective, a threshold of this file's choosing;
+* at most 3 VDs may be dropped by the solver (it dropped 3);
+* the 40 `free` VDs are near-ties placed by the solver's pick;
+* the 3 dropped VDs go to the ward holding their largest `part_registered`.
 
-**Limit.** Argued, not tested: no election held under this delimitation yet
-scores it, so the backtest cannot arbitrate. Because most per-ward change is
-VD-to-ward assignment, scaling every part of a ward by one factor spreads a
-membership difference over unsplit voting districts whose 2024 counts were real
-(a ward gaining a VD it did not have in 2024 has its other VDs inflated, a ward
-losing one has them deflated). **Ward-level outputs carry this limit until the
-IEC's voting-district membership per ward is known**; the city total and each
-ward total are the IEC's count, and the distribution between a ward's VDs is
-not measured. A ward in which one part grew and another shrank is also
-apportioned wrongly between them. What would separate the readings: the IEC's
-list of voting districts per ward (a membership file), which would let each
-VD's 2024 registration be summed under the IEC's own assignment.
+**Alternatives.** Proportional scaling of every part of a ward (the rule until
+this revision; measured above). The 2024 registration unscaled: the ward totals
+then differ from the snapshot's (DATA-QUALITY item 20) and the city total is the
+2024 one. A snapshot-only roll by voting district: the snapshot lists a count of
+VDs per ward and no per-VD registration.
 
-**How to check it.** `tests/test_roll_2026.py`: every ward's parts sum to the
-snapshot's figure (the ward sets equal in both directions), a hand-worked split
-voting district, the refusals, and one ward's figure moving only that ward. A
-new snapshot or a changed crosswalk changes `pools.artefact_key`'s `roll_sha`
-and marks every 2026 spec stale.
+**Limit.** Argued, not tested: no election held under this delimitation scores it.
+The solved assignment is the IEC's assignment only as far as the solver recovered
+it: on constructed truth with noisy growth it recovered 90 to 97% of split VDs;
+about 17 VDs are counted by the IEC in wards neither geo file offers, so no
+assignment matches the IEC's VD counts; the station file agrees with 17 of the
+40 `free` placements. Ward totals are the IEC's count. Within a ward a wrongly
+placed VD moves its whole figure to a neighbouring ward. What would separate the
+readings: the IEC's list of VDs per ward.
+
+**How to check it.** `tests/test_roll_2026.py`: every ward's rows sum to the
+snapshot's figure (ward sets equal in both directions), each VD's figure sits on
+exactly one of its parts (its assigned ward), one VD's assigned ward changed in a
+constructed copy moves those two wards' rows and nothing else, the refusals,
+and the per-ward ratio sd of the committed file at most 0.07 (a property of the
+input, not a target). A new snapshot, assignment or crosswalk changes
+`pools.artefact_key`'s `roll_sha` and marks every 2026 spec stale.
 
 ### §T2 · the city total is the sum of the 135 ward rows, not the page's demographics block — ⚖️ owner-approved (2026-10-15)
 

@@ -613,11 +613,13 @@ PA and PAC — a degenerate solution reported as converged.
 
 ### The 2026 roll: the IEC snapshot, apportioned over the crosswalk's parts (2026-10-15)
 
-`build_concordance.apportion_roll` scales every voting-district part of a 2026
-ward by that ward's snapshot figure over the sum of the parts' 2024 registration
+`build_concordance.apportion_roll` places each voting district wholly in one 2026
+ward (the solved assignment, `archive/vd-ward-assignment-2026/assignment.csv`),
+scales the VDs of ward w by w's snapshot figure over their summed `vd_registered`
 (`inputs_preflight.roll_snapshot` names the snapshot; whole numbers by largest
-remainder, so the ward's parts sum to the snapshot exactly) and writes
-`part_registered_2026` and `roll_snapshot` beside `part_registered`.
+remainder, so the ward's rows sum to the snapshot exactly) and writes
+`part_registered_2026` (the whole VD's figure on its assigned ward's row, 0 on
+its other parts) and `roll_snapshot` beside `part_registered`.
 `montecarlo.read_ward_crosswalk` is the one reader and returns the 2026 column
 when the file has it; `ward_parts`, `pools._target_roll`, `pools.vd_map`,
 `areas`, `export_interactive` and `build_make.expected_ward_shares` reach it
@@ -626,10 +628,8 @@ backtest reads its own result file's registration and never opens the crosswalk.
 `pools.artefact_key` carries `roll_sha` (the crosswalk's hash), and
 `inputs_preflight` reports the roll `used` only when the crosswalk declares the
 newest snapshot. Judgement: JUDGEMENT-CALLS §T1 and §T2; the input's limits:
-DATA-QUALITY item 20. The per-ward change from the 2024 crosswalk to the
-snapshot is mostly voting-district-to-ward assignment, not growth, so
-ward-level outputs carry that limit until the IEC's voting-district membership
-is known (§T1, Limit).
+DATA-QUALITY item 20. The assignment is a solver's recovery of the IEC's placement, not the IEC's
+list, so ward-level outputs carry that limit (§T1, Limit).
 
 **One roll in a spec.** `pools.emit_pools` sizes the pools from
 `registered_at_target` and derives `pool_shares_at_target` and the provenance
