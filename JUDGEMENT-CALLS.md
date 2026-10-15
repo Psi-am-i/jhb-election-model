@@ -4736,6 +4736,72 @@ adds a second adjustment with no source.
 and compares it with `cities/joburg.toml`; `python src/derive_city.py --code JHB
 --slug joburg` prints the value the toml carries.
 
+## U. Added 2026-10-15 — the ward-contest rule
+
+Owner, 2026-10-15: "for people running only for a ward seat - a. they should be
+omitted from any citywide machinery and vote calculation b. their chances of a
+win should be within the specific ward they are contesting and no other." Who
+stands where is `levels.ballots` (result file, else `[roster]`); the
+arithmetic is `montecarlo.ballot_masks` and `montecarlo.ballot_targets`.
+MODEL-LOG §1.306.
+
+### §U1 · a ward-only party's list vote goes to the parties with lists, pro rata to the draw's own PR shares — ⚖️ judgement (2026-10-15), argued, not tested
+
+**Where.** `montecarlo.ballot_targets`, called once per draw in `run_model`.
+
+**Now.** Each draw's PR target comes from the drawer over every party,
+ward-only parties included. The ward target is computed from that full vector
+first (`pr_target × ratio`, renormalised), so a ward-only party keeps the
+ward-ballot level its record implies. Then each ward-only party's PR target is
+set to zero and the remaining parties' PR targets are divided by their sum:
+the list vote is shared out in proportion to each list party's drawn share in
+that draw. The PR solve also masks the ward-only columns to zero
+(`solve_and_predict(mask=)`), because a zero target alone leaves about
+`level_floor` of every row in the column (§1.108's absorption) and
+`seats.eligible_parties` would then keep the party in the pool.
+
+**Why this one.** It is the only rule that names no party and needs no input
+the model does not have (`no-party-singled-out`). The alternatives are a
+transfer weighted by the ward-only party's pool vector (its supporters' list
+vote goes to the parties nearest it in the pools) and a transfer to abstention
+(the list ballot is left blank). Neither has evidence behind it: no result
+file records how a ward-only party's voters mark the list ballot, because the
+IEC publishes ballots, not voters.
+
+**Size, measured 2026-10-15** (in process, 100 draws, scratch bypass of the
+stale pool spec, width record and by-election weights): the PR mass removed
+is a mean of 0.40% of the list vote at Johannesburg 2026 (largest draw 1.52%;
+six ward-only parties, UDM the one with a national record) and 0.08% at
+Johannesburg 2021 (largest draw 1.26%; two parties). Across the 24 held
+metro-years, ward-only parties other than independents took at most 0.29% of a
+ward ballot (eThekwini 2021, Cape Coloured Congress) and every other case
+under 0.03%.
+
+**How to check it.** Not separable in the record: the three rules move the
+list shares of the other parties by at most the mass above, and the scored
+quantities cannot resolve that. A by-election or a split-ticket study with
+individual ballots would.
+
+### §U2 · a party the slate source does not name keeps an unmasked ward ballot — ⚖️ judgement (2026-10-15)
+
+**Where.** `levels.Ballots.slate`, read by `montecarlo.ballot_masks`.
+
+**Now.** A party with a slate is masked to its wards. A party the source names
+with no slate, or any party under a complete source (a result file, or
+`[roster] complete = true`), stands in no ward: all-zero ward column, ward
+target zero (CHANGE and PRO SOUTH AFRICA at Johannesburg 2026, AGANG and
+Agency for New Agenda at 2021). A party a partial declaration omits, or one no
+source can name (`ENTRANT`), is unknown and keeps its ward ballot everywhere.
+With no `pr` key in the roster, nobody is ward-only.
+
+**Why.** The same fail-safe as `declared_contestation`: absence from a
+half-typed list is not evidence that a party is not standing (§1.175).
+Independents are not in any run's universe (the `independent_wards` (C) row
+above), so the rule says nothing about them; their slates are listed as
+`independents` in the run's `_ballot_report`.
+
+**How to check it.** `tests/test_ward_contest_rule.py`.
+
 ## Appendix — how this register has failed before
 
 Kept because it is the argument for every guard above, and because a register

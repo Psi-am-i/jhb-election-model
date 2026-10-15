@@ -1340,6 +1340,144 @@ def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str,
     return parts, f"{path.name} (boundaries and roll only; {detail})"
 
 
+def ward_ids(target, wards, processed: Path) -> dict[str, str]:
+    """``{ward key the run uses: WardID}`` for each of ``wards``.
+
+    The run keys wards as :func:`ward_parts` returns them, and that is two
+    spaces: a held target's result file carries the WardID (``79800094``), the
+    crosswalk of an unheld one the ward NUMBER (``94``). Slates
+    (``levels.ballots``) are WardIDs in both cases. Comparing the two directly
+    matched no ward at 2026 and zeroed the ward ballot of every party it was
+    meant to mask (MODEL-LOG §1.306). Same gate as :func:`ward_parts`, so the
+    key space is decided in one place; the crosswalk is read through
+    :func:`read_ward_crosswalk` once per column and the rows zipped (it
+    returns one tuple per file row, in file order). Refuses a number that maps
+    to two ids.
+    """
+    if cityconfig.CALENDAR[target.year].results is not None:
+        return {w: w for w in wards}
+    crosswalk = processed / target.crosswalk.name
+    by_number, _n, _s = read_ward_crosswalk(crosswalk, target.year)
+    by_id, _n, _s = read_ward_crosswalk(crosswalk, target.year,
+                                        ward_column=f"WardID_{target.year}")
+    out: dict[str, str] = {}
+    for (_vd, number, _r), (_vd2, wid, _r2) in zip(by_number, by_id):
+        number, wid = str(number).strip(), str(wid).strip()
+        if out.setdefault(number, wid) != wid:
+            raise SystemExit(
+                f"{crosswalk.name}: ward {number} carries two WardIDs "
+                f"({out[number]}, {wid}). Slates are keyed by WardID, so the "
+                f"ward ballot cannot be masked until the crosswalk is rebuilt.")
+    missing = [w for w in wards if w not in out]
+    if missing:
+        raise SystemExit(f"{crosswalk.name}: no WardID for ward(s) {missing[:6]}")
+    return {w: out[w] for w in wards}
+
+
+def ballot_masks(universe, wards, ward_id, part_vd, part_ward, nvd, ballots):
+    """Which ballot each party is on, as masks for :func:`solve_and_predict`.
+
+    ``ballots`` is a ``levels.Ballots``; ``wards`` the run's ward keys and
+    ``ward_id`` their WardIDs (:func:`ward_ids`); ``part_vd``/``part_ward``
+    index each usable ward part. Returns a dict:
+
+    * ``ward_mask_part`` (parts x parties) -- 1 where the party stands in the
+      part's ward. A party's column follows ``ballots.slate(party)``: its
+      wards; none (all zero) when the source is complete and gives it no
+      slate; all ones when its slate is unknown (a partial declaration, or a
+      party the source does not name, such as ENTRANT).
+    * ``ward_mask_vd`` (VDs x parties) -- 1 where the party stands in any part
+      of the district. A district in no usable part is 1 for every party with
+      a non-empty or unknown slate.
+    * ``pr_mask_vd`` and ``pr_absent`` -- the ward-only parties
+      (``ballots.ward_only()``): no PR list, so zero list share everywhere.
+    * ``ward_absent`` -- parties whose ward column is all zero.
+    * ``masked``, ``ward_only`` -- the party names, for the scenario record.
+    * ``report`` -- slates naming a party outside ``universe`` and PR lists for
+      a party outside it (no PR baseline), never silently ignored. An
+      independent is listed under ``independents``: the universe never carries
+      one (JUDGEMENT-CALLS.md, the `independent_wards` (C) row).
+
+    Refuses when NO slated party's wards match the run's: that is the
+    key-space mismatch of MODEL-LOG §1.306, which zeroed 51 parties' ward
+    ballots at Johannesburg 2026 with nothing reporting it. A few unmatched
+    parties (every ward they contest is one the run drops) are reported as
+    ``slate_outside_run``.
+    """
+    npar, nparts = len(universe), len(part_vd)
+    wid = [ward_id[w] for w in wards]
+    run_ids = set(wid)
+    ward_mask_part = np.ones((nparts, npar))
+    masked, ward_absent = [], np.zeros(npar, dtype=bool)
+    unmatched, slated = [], 0
+    for c, party in enumerate(universe):
+        stood = ballots.slate(party)
+        if stood is None:
+            continue
+        masked.append(party)
+        slated += bool(stood)
+        if stood and not (stood & run_ids):
+            unmatched.append(party)
+        ward_mask_part[:, c] = [1.0 if wid[wi] in stood else 0.0
+                                for wi in part_ward]
+        ward_absent[c] = not (stood & run_ids)
+    if unmatched and len(unmatched) == slated:
+        raise SystemExit(
+            f"ballot_masks: {len(unmatched)} slated part(ies) contest none of "
+            f"the run's {len(run_ids)} wards ({', '.join(unmatched[:6])}). The "
+            f"slates and the run's wards are in different key spaces; masking "
+            f"would zero these parties' ward ballots (MODEL-LOG §1.306).")
+    ward_mask_vd = np.zeros((nvd, npar))
+    np.maximum.at(ward_mask_vd, part_vd, ward_mask_part)
+    outside = ~np.isin(np.arange(nvd), part_vd)
+    ward_mask_vd[outside] = (~ward_absent).astype(float)[None, :]
+    ward_only = sorted(p for p in ballots.ward_only() if p in universe)
+    pr_absent = np.array([p in ward_only for p in universe], dtype=bool)
+    pr_mask_vd = None
+    if pr_absent.any():
+        pr_mask_vd = np.ones((nvd, npar))
+        pr_mask_vd[:, pr_absent] = 0.0
+    indep = ("IND", "INDEPENDENT")
+    report = {
+        "source": ballots.source,
+        "slate_not_in_universe": sorted(p for p in ballots.wards
+                                        if p not in universe and p not in indep),
+        "pr_list_not_in_universe": sorted(p for p in (ballots.pr or ())
+                                          if p not in universe),
+        "independents": sorted(p for p in ballots.wards if p in indep),
+        "pr_declared": ballots.pr is not None,
+        # slated, but every ward it contests is outside the run (a ward the
+        # run drops for want of a baseline district): no ward votes at all
+        "slate_outside_run": sorted(unmatched),
+    }
+    return {"ward_mask_part": ward_mask_part if masked else None,
+            "ward_mask_vd": ward_mask_vd if masked else None,
+            "pr_mask_vd": pr_mask_vd, "pr_absent": pr_absent,
+            "ward_absent": ward_absent, "masked": sorted(masked),
+            "ward_only": ward_only, "report": report}
+
+
+def ballot_targets(pr_target, ratio, pr_absent, ward_absent):
+    """One draw's citywide (PR target, ward target) under the ballots.
+
+    The ward target is ``pr_target * ratio`` taken from the FULL drawn vector,
+    so a ward-only party keeps the ward-ballot level its record implies; a
+    party on no ward ballot (``ward_absent``) is set to zero; the rest are
+    renormalised. Then each ward-only party's PR target (``pr_absent``) is set
+    to zero and the others are renormalised in proportion to their drawn
+    shares: the list vote such a party's supporters cast goes to the parties
+    with lists pro rata (JUDGEMENT-CALLS §U1). Returns new arrays.
+    """
+    ward_target = pr_target * ratio
+    if ward_absent is not None and ward_absent.any():
+        ward_target = np.where(ward_absent, 0.0, ward_target)
+    ward_target = ward_target / ward_target.sum()
+    if pr_absent is not None and pr_absent.any():
+        pr_target = np.where(pr_absent, 0.0, pr_target)
+        pr_target = pr_target / pr_target.sum()
+    return pr_target, ward_target
+
+
 def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,
                       level_floor=None, stats=None, mask=None):
     """Solve for θ reaching `target` citywide through the model; return VD shares.
@@ -6487,47 +6625,38 @@ def run_model(target, scenario: dict,
     part_ward = np.array([ward_index[w] for _vd, w, _r in usable])
     part_reg = np.array([r for _vd, _w, r in usable], dtype=float)
 
-    # --- the ward ballot exists only in the wards a party contests ----------
-    # Owner, 2026-10-15: for a party with no national geography "the only
-    # question is what ward ... then who lives there". Such a party (a seeded
-    # arrival or a `local_record_only` roster party) has ward-ballot votes
-    # only in wards whose nomination list carries it: the target's result
-    # file where it exists, else `[roster.wards]` (`levels.party_slates`). A
-    # party the slates do not name is UNKNOWN, not absent, and keeps its
-    # unmasked ward ballot -- a half-typed roster must not delete a party.
-    # Wards decide first; the pool vector places the party among them (the
-    # `dev` column). The list (PR) ballot is not masked: a list is city-wide.
-    ward_mask_vd = None
-    ward_mask_part = None
-    _placed_cols = [index[p] for p in scenario.get("_pool_placed", ())
-                    if p in index]
-    if _placed_cols:
-        # The same two sources as `levels.slate_coverage`'s slates. Not shared
-        # as one function: any change to levels.py invalidates every emitted
-        # pool spec (deps_sha), so unifying them is a BATCHED re-emit item
-        # (POOLS-REEMIT-QUEUE.md). Until then there are two copies of five lines.
-        import levels as _levels
-        import pools as _pools_slates
-        if _levels.has_result_file(target, target.city):
-            _slates, _seen = _levels._result_slates(
-                _levels.result_path(target, target.city))
-        else:
-            _decl = (_pools_slates.declared_roster(target.city, target)
-                     or {}).get("wards") or {}
-            _slates = {p: {str(w).strip() for w in ws}
-                       for p, ws in _decl.items()}
-        _cols = [c for c in _placed_cols if universe[c] in _slates]
-        if _cols:
-            ward_mask_part = np.ones((len(usable), npar))
-            for c in _cols:
-                _stood = _slates[universe[c]]
-                ward_mask_part[:, c] = [1.0 if wards[wi] in _stood else 0.0
-                                        for wi in part_ward]
-            ward_mask_vd = np.zeros((nvd, npar))
-            np.maximum.at(ward_mask_vd, part_vd, ward_mask_part)
-            # a district in no usable part has no ward ballot to mask
-            ward_mask_vd[~np.isin(np.arange(nvd), part_vd)] = 1.0
-        scenario["_ward_masked"] = sorted(universe[c] for c in _cols)
+    # --- who stands where: the ward ballot and the list ballot -------------
+    # Owner rule, 2026-10-15: "for people running only for a ward seat -
+    # a. they should be omitted from any citywide machinery and vote
+    # calculation b. their chances of a win should be within the specific ward
+    # they are contesting and no other." Every party with a slate has ward
+    # votes only in the wards it contests, and a party with no PR list has no
+    # list vote. One source, `levels.ballots` (result file, else `[roster]`);
+    # the arithmetic is `ballot_masks` and `ballot_targets`. MODEL-LOG §1.306.
+    import levels as _levels
+    _ballots = _levels.ballots(target, target.city)
+    _bm = ballot_masks(universe, wards,
+                       ward_ids(target, wards, target.crosswalk.parent),
+                       part_vd, part_ward, nvd, _ballots)
+    ward_mask_vd, ward_mask_part = _bm["ward_mask_vd"], _bm["ward_mask_part"]
+    pr_mask_vd = _bm["pr_mask_vd"]
+    pr_absent, ward_absent = _bm["pr_absent"], _bm["ward_absent"]
+    scenario["_ward_masked"] = _bm["masked"]
+    scenario["_ward_only"] = _bm["ward_only"]
+    scenario["_ballot_report"] = _bm["report"]
+    # REPORTED, every run: a slate or a PR list naming a party the run does
+    # not carry is a roster/universe disagreement, never dropped in silence.
+    # The record is `scenario["_ballot_report"]` (on `ModelRun.scenario`).
+    if (_bm["report"]["slate_not_in_universe"]
+            or _bm["report"]["pr_list_not_in_universe"]
+            or _bm["report"]["slate_outside_run"]):
+        print(f"  ! {target.year} ballots ({_ballots.source}): ward slates for "
+              f"parties outside the run: "
+              f"{_bm['report']['slate_not_in_universe'] or 'none'}; PR lists "
+              f"for parties with no PR baseline in the run: "
+              f"{_bm['report']['pr_list_not_in_universe'] or 'none'}; "
+              f"slated only in wards the run drops: "
+              f"{_bm['report']['slate_outside_run'] or 'none'}")
 
     # --- ward/PR split-ticket ratios (A1) ------------------------------------
     # (The previous LGE's ballots, `wc`/`pc` and `prior_pr_share`, are read
@@ -7084,8 +7213,10 @@ def run_model(target, scenario: dict,
             if not (low * 0.95 <= implied <= high * 1.05):
                 bounds_violations[p] += 1
 
-        ward_target = pr_target * ratio
-        ward_target /= ward_target.sum()
+        # Ward-only parties leave the list ballot; parties on no ward ballot
+        # leave the ward one (owner rule 2026-10-15, `ballot_targets`).
+        pr_target, ward_target = ballot_targets(pr_target, ratio, pr_absent,
+                                                ward_absent)
 
         # A2: turnout pattern for this draw.
         blend = np.clip(scenario["turnout_pattern_blend"]
@@ -7125,7 +7256,8 @@ def run_model(target, scenario: dict,
 
         floor = scenario["level_floor"]
         pr = solve_and_predict(dev_pr, base_city, pr_target, gamma["PR"], weight_cal,
-                               level_floor=floor, stats=_solve_stats)
+                               level_floor=floor, stats=_solve_stats,
+                               mask=pr_mask_vd)
         wd = solve_and_predict(dev_ward, base_city, ward_target, gamma["Ward"], weight_cal,
                                level_floor=floor, stats=_solve_stats,
                                mask=ward_mask_vd)
@@ -7142,7 +7274,11 @@ def run_model(target, scenario: dict,
         ward_tally = np.zeros((len(wards), npar))
         part_ballot = wd_eff[part_vd]
         if ward_mask_part is not None:
+            # A split district's parts can lie in wards with different
+            # ballots: each part's row is renormalised over who stands there.
             part_ballot = part_ballot * ward_mask_part
+            part_ballot = part_ballot / np.maximum(
+                part_ballot.sum(axis=1, keepdims=True), 1e-300)
         np.add.at(ward_tally, part_ward, part_cast[:, None] * part_ballot)
         if scenario["ward_noise_sd"] > 0:
             ward_tally = ward_tally * ward_noise_multiplier(

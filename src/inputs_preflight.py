@@ -170,6 +170,18 @@ def roster_used(city: str, target: str, roster_n: int | None) -> bool:
     return pools.lineage_path(c, cityconfig.Target(city=c, year=str(target))).exists()
 
 
+def pr_used(city: str, target: str) -> bool:
+    """The model's reader (`levels.ballots`) returns a PR list for the target,
+    from the declaration rather than a result file."""
+    import cityconfig
+    import levels
+    if not (ROOT / "cities" / f"{city}.toml").exists():
+        return False
+    c = cityconfig.load(city)
+    b = levels.ballots(cityconfig.Target(city=c, year=str(target)), c)
+    return b.source == "declared" and bool(b.pr)
+
+
 def _require_used(rows: list[dict]) -> None:
     """Guard A: a REQUIRED row without a computed ``used`` bool is a defect in
     the check, not in the inputs."""
@@ -298,6 +310,28 @@ def _rows(city: str, target: str) -> list[dict]:
         "fix": "type the certified list into judgements/<city>-<target>.toml. "
                "⛔ complete=true LICENSES DELETING every party it omits, so it "
                "needs the IEC's own list, not a newspaper's count of it",
+    })
+
+    # --- 6. who filed a PR list --------------------------------------------
+    # Owner rule 2026-10-15: a party with a ward slate and no PR list is
+    # ward-only, out of every citywide vote (`levels.ballots`). Without
+    # `[roster] pr` nobody is ward-only and each such party takes a list share
+    # it cannot receive. The count comes from the parsed file; `used` from the
+    # reader the model calls.
+    pr_n = None
+    if judgement.exists():
+        pr = (doc.get("roster") or {}).get("pr")
+        pr_n = None if pr is None else len(pr)
+    out.append({
+        "input": f"{target} certified PR lists", "level": REQUIRED,
+        "ok": pr_n is not None and pr_n > 0,
+        "used": pr_used(city, target),
+        "have": f"{pr_n} parties with a PR list" if pr_n is not None else "—",
+        "source": "IEC certified candidate lists (PR rows: `Ward \\ List "
+                  "Order` a small integer; SOURCES.md)",
+        "fix": "add `pr = [...]` under [roster] in judgements/<city>-<target>.toml, "
+               "the parties with PR-list rows in the certified candidate PDF, "
+               "spelt as in `parties`",
     })
     return out
 

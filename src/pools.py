@@ -5381,6 +5381,8 @@ ROSTER_KEYS = {
     "complete":     "true only when this is the WHOLE ballot; licenses deletion",
     "reach":        "per-party fraction of wards contested, overriding the carry-forward",
     "wards":        "per-party ward lists, for full fidelity once lists land",
+    "pr":           "the parties that filed a PR list; a ward slate without one "
+                    "is ward-only (levels.ballots)",
     "confirm_drop": "acknowledges a `complete` deletion above ROSTER_DROP_CEILING",
 }
 
@@ -5426,8 +5428,9 @@ def declared_roster(city: cityconfig.City, target: cityconfig.Target) -> dict:
     reader existed.
 
     Returns ``{"parties": [...], "complete": bool, "reach": {party: fraction},
-    "wards": {party: [ward, ...]}}`` — empty dict when no `[roster]` is
-    declared.
+    "wards": {party: [ward, ...]}, "pr": [party, ...] | None}`` — empty dict
+    when no `[roster]` is declared. ``pr`` is None when the table has no
+    ``pr`` key: who filed a list is then unknown, and nobody is ward-only.
 
     ⛔ ``complete`` DEFAULTS TO FALSE, AND THAT IS THE WHOLE SAFETY PROPERTY.
     A declared roster is used to ADD parties always, and is allowed to REMOVE
@@ -5558,8 +5561,30 @@ def declared_roster(city: cityconfig.City, target: cityconfig.Target) -> dict:
                 f"pools.")
         flags[key] = raw_flag
 
+    # ⛔ THE PR LIST DECIDES WHO IS IN THE CITYWIDE VOTE (owner rule,
+    # 2026-10-15; `levels.ballots`). A slated party missing from `pr` is
+    # ward-only and its list vote is set to zero, so a misspelling there would
+    # delete a party's PR vote in silence. Every `pr` name must therefore be a
+    # declared party, and every declared party must stand on one ballot or the
+    # other. Both directions refuse.
+    pr = block.get("pr")
+    if pr is not None:
+        pr = sorted({P.canonical(x) for x in pr})
+        if parties:
+            stray = sorted(set(pr) - set(parties))
+            neither = sorted(set(parties) - set(pr) - set(wards))
+            if stray or neither:
+                raise SystemExit(
+                    f"[roster] pr in {path} does not match `parties`:\n"
+                    f"  in pr, not in parties: {stray or 'none'}\n"
+                    f"  in parties, on neither ballot: {neither or 'none'}\n\n"
+                    f"A party with a ward slate and no PR list is ward-only "
+                    f"and gets no list vote (levels.ballots), so a spelling "
+                    f"that differs between the two lists removes a party's PR "
+                    f"vote. Write the same spelling in both.")
+
     return {"parties": parties, "complete": flags["complete"],
-            "reach": reach, "wards": wards,
+            "reach": reach, "wards": wards, "pr": pr,
             "confirm_drop": flags["confirm_drop"]}
 
 
