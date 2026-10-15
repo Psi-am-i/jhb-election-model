@@ -611,6 +611,23 @@ dilution, monotone in party size (COPE 0.17 PR / 0.074 Ward against ANC 1.03).
 γ carries no uncertainty into the draws. `calibrate_theta` returns 0.0000 for
 PA and PAC — a degenerate solution reported as converged.
 
+### The 2026 roll: the IEC snapshot, apportioned over the crosswalk's parts (2026-10-15)
+
+`build_concordance.apportion_roll` scales every voting-district part of a 2026
+ward by that ward's snapshot figure over the sum of the parts' 2024 registration
+(`inputs_preflight.roll_snapshot` names the snapshot; whole numbers by largest
+remainder, so the ward's parts sum to the snapshot exactly) and writes
+`part_registered_2026` and `roll_snapshot` beside `part_registered`.
+`montecarlo.read_ward_crosswalk` is the one reader and returns the 2026 column
+when the file has it; `ward_parts`, `pools._target_roll`, `pools.vd_map`,
+`areas`, `export_interactive` and `build_make.expected_ward_shares` reach it
+through that reader. It is reached only for a target with no result file, so a
+backtest reads its own result file's registration and never opens the crosswalk.
+`pools.artefact_key` carries `roll_sha` (the crosswalk's hash), and
+`inputs_preflight` reports the roll `used` only when the crosswalk declares the
+newest snapshot. Judgement: JUDGEMENT-CALLS §T1 and §T2; the input's limits:
+DATA-QUALITY item 20.
+
 ---
 
 ## 5. Turnout — who votes

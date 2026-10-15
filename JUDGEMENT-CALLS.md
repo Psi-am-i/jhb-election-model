@@ -4319,9 +4319,9 @@ widened by `EDITOR_WIDEN_PP`, `q_run` capped at `RUNNER_UP_MAX`.
 
 ### §R3 · a ward's expected ward vote: the 2026 roll times the preceding local election's turnout in its voting districts — 🟡 argued
 
-**Now.** `build_make.expected_ward_shares`: each ward's roll on the newest
-registration snapshot (`inputs_preflight.roll_snapshot`, the file
-`--strict` checks) times its expected turnout, the registration-weighted mean,
+**Now.** `build_make.expected_ward_shares`: each ward's roll (the sum of its
+parts' registration as `montecarlo.ward_parts` returns them: the newest
+registration snapshot, apportioned into the crosswalk, §T1) times its expected turnout, the registration-weighted mean,
 over the ward's voting-district parts (`montecarlo.ward_parts`, split VDs
 apportioned), of each part's VD's ward-ballot turnout at the preceding local
 election (valid ward votes over registered). A part whose VD has no record
@@ -4639,6 +4639,72 @@ compare like with like. They describe the model; nothing in it reads them.
 **How to check it.** `tests/test_stat_sources.py` holds the measure on
 constructed draws and the registered source to a direct computation on the
 published draws.
+
+## T. Added 2026-10-15 — the 2026 roll
+
+### §T1 · the 2026 roll is the IEC snapshot, apportioned over each ward's parts in proportion to their 2024 registration — ⚖️ owner-approved (2026-10-15)
+
+**Where.** `build_concordance.apportion_roll` writes the crosswalk column
+`part_registered_2026` and the column `roll_snapshot` (the snapshot's path);
+`montecarlo.read_ward_crosswalk` returns that column as a part's registration
+when the file has it; `inputs_preflight.roll_snapshot` is the one definition of
+which snapshot.
+
+**Now.** For each 2026 ward w and each voting-district part p in w:
+`part_registered_2026[p] = part_registered[p] x Registered_snapshot[w] / sum over q in w of part_registered[q]`,
+where `part_registered` is the Municipal Demarcation Board layer's 2024
+registration for that part. Each ward's parts therefore sum to the snapshot's
+figure for that ward. Parts are whole numbers by largest remainder, ties to
+the earlier VD number, so the sum is exact. A ward whose 2024 parts sum to
+zero, a ward in the crosswalk that the snapshot lacks and a ward in the
+snapshot that the crosswalk lacks each refuse the build.
+
+**Why.** The snapshot gives a figure per ward and none per voting district; the
+split voting districts of the new delimitation need a within-ward share, and the
+2024 parts are the only per-part record. Holding each part's share of its ward
+at the 2024 value assumes registration grew uniformly inside a ward since 2024.
+
+**Alternatives.** The 2024 registration unscaled (what the forecast read before):
+the ward totals then differ from the snapshot's (DATA-QUALITY item 20 gives
+the range), and the city total is the 2024 one. A snapshot-only roll by
+voting district: the snapshot lists voting districts per ward (a count) and no
+per-VD registration, so there is nothing to read.
+
+**Limit.** Argued, not tested: no election held under this delimitation yet
+scores it, so the backtest cannot arbitrate. The uniform-growth assumption is
+unverified inside a ward; a ward in which one part grew and another shrank is
+apportioned wrongly between them, and the ward total is still right.
+
+**How to check it.** `tests/test_roll_2026.py`: every ward's parts sum to the
+snapshot's figure (the ward sets equal in both directions), a hand-worked split
+voting district, the refusals, and one ward's figure moving only that ward. A
+new snapshot or a changed crosswalk changes `pools.artefact_key`'s `roll_sha`
+and marks every 2026 spec stale.
+
+### §T2 · the city total is the sum of the 135 ward rows, not the page's demographics block — ⚖️ owner-approved (2026-10-15)
+
+**Where.** `derive_city.target_registered`, which sets `registered` in
+`cities/joburg.toml`; the apportionment of §T1 takes its ward figures from the
+same rows.
+
+**Now.** The snapshot's own page gives two city totals that differ
+(`archive/iec-registration-2026-09-26/README.md`): the demographics block and
+the sum of the ward rows. The model uses the ward rows' sum, because the
+apportionment needs a ward-level figure and the ward rows are the only source of
+one; a demographics-block total would not equal the sum of the wards it is
+divided among.
+
+**Why.** Which of the IEC's two figures is authoritative is unknown (the README
+records it unreconciled). The ward rows are the choice the model needs to be
+self-consistent, not a finding that they are right.
+
+**Alternatives.** The demographics-block total, with ward rows scaled down by
+the ratio of the two: it changes each ward by the same small proportion and
+adds a second adjustment with no source.
+
+**How to check it.** `tests/test_roll_2026.py` computes the total from the file
+and compares it with `cities/joburg.toml`; `python src/derive_city.py --code JHB
+--slug joburg` prints the value the toml carries.
 
 ## Appendix — how this register has failed before
 

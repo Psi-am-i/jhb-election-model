@@ -61,6 +61,40 @@ def roll_snapshot(city: str) -> Path | None:
     return files[0]
 
 
+def read_roll_snapshot(path: Path) -> dict[str, int]:
+    """``{ward id: registered}`` from a snapshot's ward file (columns ``Ward``,
+    ``Registered``). The one reader of that layout; a repeated ward or a
+    non-integer count refuses rather than being resolved by order."""
+    out: dict[str, int] = {}
+    with Path(path).open(encoding="utf-8", newline="") as fh:
+        for row in csv.DictReader(fh):
+            ward = row["Ward"].strip()
+            if ward in out:
+                raise ValueError(f"{Path(path).name}: ward {ward} appears twice")
+            out[ward] = int(row["Registered"])
+    return out
+
+
+def snapshot_label(snap: Path) -> str:
+    """A snapshot's path as the crosswalk declares it: relative to the repo."""
+    snap = Path(snap).resolve()
+    return str(snap.relative_to(ROOT)) if snap.is_relative_to(ROOT) else snap.name
+
+
+def declared_roll_snapshot(city: str, target: str, crosswalk: Path | None = None) -> str | None:
+    """The snapshot the city's crosswalk says it was built from (its
+    ``roll_snapshot`` column), or None when the crosswalk is absent or
+    declares none. ``crosswalk`` names another copy (the tests')."""
+    import cityconfig
+    path = Path(crosswalk) if crosswalk is not None else \
+        ROOT / cityconfig.Target(city=cityconfig.load(city), year=str(target)).crosswalk
+    if not path.exists():
+        return None
+    with path.open(encoding="utf-8", newline="") as fh:
+        first = next(csv.DictReader(fh), None)
+    return (first or {}).get("roll_snapshot") or None
+
+
 def _rows(city: str, target: str) -> list[dict]:
     """One row per input. `ok` False means the `fix` line has to be done."""
     out: list[dict] = []
@@ -115,9 +149,10 @@ def _rows(city: str, target: str) -> list[dict]:
             age = (_dt.date.today() - _dt.date.fromisoformat(m.group(1))).days
     out.append({
         "input": f"{target} voters' roll (registration)", "level": REQUIRED,
-        # The model does not read the roll yet (using it is its own brief), so
-        # a snapshot in hand is "present", never "used" (BRIEF item 10).
-        "used": False,
+        # "used" is a measurement: the crosswalk the model reads declares the
+        # newest snapshot as the one it was built from. A snapshot in hand
+        # that the crosswalk does not name is present, not used.
+        "used": bool(snap) and declared_roll_snapshot(city, target) == snapshot_label(snap),
         "ok": newest is not None and (age is not None and age <= SNAPSHOT_STALE_DAYS),
         "have": (f"{newest.name}, {age} days old" if newest and age is not None
                  else (newest.name if newest else "—")),

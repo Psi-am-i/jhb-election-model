@@ -104,8 +104,20 @@ def test_a_stale_roll_snapshot_is_not_counted_as_having_it():
         f"snapshot is {age} days old and the row says ok={row['ok']}"
 
 
+def test_the_roll_row_s_used_flag_is_computed_from_the_crosswalk():
+    """`used` was the typed False of "the model does not read the roll yet". It
+    is now the claim that the crosswalk declares the newest snapshot, so it must
+    be a bool that moves with the crosswalk (the moving half is built in
+    tests/test_roll_2026.py on a constructed copy)."""
+    row = _rows()["2026 voters' roll (registration)"]
+    assert isinstance(row["used"], bool)
+    snap = P.roll_snapshot("joburg")
+    assert row["used"] == (P.declared_roll_snapshot("joburg", "2026")
+                           == P.snapshot_label(snap))
+
+
 def test_the_roll_is_reported_present_not_used():
-    """G18 (BRIEF item 10): the model does not read the 2026 roll, so a
+    """G18 (BRIEF item 10): a roll the crosswalk has not declared is unused, so a
     snapshot in hand prints `present` and says so, never `ok`.
 
     Constructed rows, not the archive: one roll row in hand and unused, one
@@ -138,5 +150,6 @@ def test_the_roll_is_reported_present_not_used():
     reverted = printed([dict(roll, used=True), other])
     assert "[present]" not in reverted and "does not read" not in reverted, \
         reverted
-    # and the live row carries the flag
-    assert _rows()["2026 voters' roll (registration)"]["used"] is False
+    # and the live row carries the flag: True now that the crosswalk declares
+    # the snapshot (computed, see the test above), still a bool either way
+    assert isinstance(_rows()["2026 voters' roll (registration)"]["used"], bool)

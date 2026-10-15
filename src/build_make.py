@@ -259,47 +259,47 @@ def _turnout_parts(parts, vd_roll) -> tuple[collections.Counter, collections.Cou
     return reg, cast, left_out
 
 
-def expected_ward_shares(city, target: str, wards: list[str], *, roll: Path | None = None,
+def expected_ward_shares(city, target: str, wards: list[str], *,
                          previous: Path | None = None,
                          processed: Path | None = None) -> tuple[dict, dict]:
     """``({ward: share of the expected ward vote}, provenance)``, summing to one.
 
-    A ward's expected ward vote is its roll on the newest registration snapshot
-    (``inputs_preflight.roll_snapshot``, the one ``--strict`` checks) times its
-    expected turnout: the registration-weighted mean, over its voting-district
-    parts (``montecarlo.ward_parts``, the split VDs apportioned), of each
+    A ward's expected ward vote is its roll (the sum of its parts'
+    registration as ``montecarlo.ward_parts`` returns them, which for 2026 is
+    the newest registration snapshot apportioned into the crosswalk by
+    ``build_concordance``; one reader, one roll) times its expected turnout: the
+    registration-weighted mean, over its voting-district parts (the same
+    ``montecarlo.ward_parts``, the split VDs apportioned), of each
     part's VD's ward-ballot turnout at the preceding local election (valid ward
     votes over registered; :func:`_turnout_parts`). A part whose VD has no
     record there, or a record with no one registered, is left out of its ward's
     mean and counted; a ward left with no part refuses the build
-    (JUDGEMENT-CALLS §R3). ``roll`` and ``previous`` name other files in the
-    same layouts, and ``processed`` another directory holding the crosswalk
-    (the tests' constructed copies); by default they are the snapshot, the
+    (JUDGEMENT-CALLS §R3). ``previous`` names another file in the
+    preceding election's layout, and ``processed`` another directory holding
+    the crosswalk (the tests' constructed copies); by default they are the
     preceding election's file and the city's processed directory."""
     import cityconfig
     import inputs_preflight
     import montecarlo
     import score_forecasts
-    try:
-        snap = inputs_preflight.roll_snapshot(city.slug) if roll is None else Path(roll)
-    except ValueError as exc:
-        raise MakeBuildError(f"build_make: {exc}") from None
-    if snap is None:
-        raise MakeBuildError(f"build_make: no registration snapshot for {city.slug} "
-                             f"(archive/iec-registration-<date>/); run inputs_preflight.py --strict")
-    roll: dict[str, int] = {}
-    with open(snap, newline="", encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            roll[score_forecasts.ward_number(row["Ward"], city.ward_prefix)] = int(row["Registered"])
-    if sorted(roll, key=int) != sorted(wards, key=int):
-        raise MakeBuildError(f"build_make: the roll's wards ({len(roll)}) are not the schema's "
-                             f"({len(wards)}): {snap.name}")
     tgt = cityconfig.Target(city=city, year=str(target))
     prev = tgt.previous_lge
     elections = REPO_ROOT / city.path("raw", "elections")
     path = cityconfig.resolve_path(elections / tgt.results(prev)) if previous is None else Path(previous)
     _w, _p, _n, vd_roll, _vd = score_forecasts._read_rows(path, roll=True)
     parts, label = montecarlo.ward_parts(tgt, elections, _processed(tgt, processed))
+    crosswalk = _processed(tgt, processed) / tgt.crosswalk.name
+    declared = inputs_preflight.declared_roll_snapshot(city.slug, str(target), crosswalk)
+    if declared is None:
+        raise MakeBuildError(f"build_make: {crosswalk.name} declares no registration snapshot "
+                             f"(no roll_snapshot column), so its rolls are not the target's; "
+                             f"run build_concordance.py --city {city.slug}")
+    roll: dict[str, int] = collections.Counter()
+    for _vd_number, ward, registered in parts:
+        roll[str(ward)] += registered
+    if sorted(roll, key=int) != sorted(wards, key=int):
+        raise MakeBuildError(f"build_make: the roll's wards ({len(roll)}) are not the schema's "
+                             f"({len(wards)}): {label}")
     reg, cast, left_out = _turnout_parts(parts, vd_roll)
     bare = sorted((w for w in wards if not reg[w] > 0), key=int)
     if bare:
@@ -307,8 +307,7 @@ def expected_ward_shares(city, target: str, wards: list[str], *, roll: Path | No
     expected = {w: roll[w] * cast[w] / reg[w] for w in wards}
     whole = sum(expected.values())
     return ({w: expected[w] / whole for w in wards},
-            {"roll": str(snap.relative_to(REPO_ROOT)) if snap.is_relative_to(REPO_ROOT) else snap.name,
-             "roll_sha256": _sha(snap.read_bytes()),
+            {"roll": declared, "roll_sha256": _sha(crosswalk.read_bytes()),
              "turnout_from": path.name, "turnout_sha256": _sha(path.read_bytes()),
              "parts": label, "parts_left_out": left_out})
 

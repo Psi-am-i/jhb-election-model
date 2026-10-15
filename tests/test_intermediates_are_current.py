@@ -193,6 +193,9 @@ def _scratch_root(tmp: Path) -> Path:
     for stale in (root / "data" / "processed").rglob("*.csv"):
         stale.unlink()
     (root / "data" / "raw").symlink_to(ROOT / "data" / "raw")
+    # `build_concordance` reads the registration snapshot for the 2026 roll
+    # (`inputs_preflight.roll_snapshot` globs `archive/` under ITS root).
+    (root / "archive").symlink_to(ROOT / "archive")
     for name in ("src", "cities", "config", "content"):
         if (ROOT / name).exists():
             (root / name).symlink_to(ROOT / name)

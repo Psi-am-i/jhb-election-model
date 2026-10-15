@@ -56,6 +56,20 @@ def structure_from(rows: list[dict]) -> dict:
     return {"wards": len(wards), "vds": len(vds), "registered": sum(reg.values())}
 
 
+def target_registered(slug: str, fallback: int) -> tuple[int, str]:
+    """``(registered, where from)`` for the TARGET election: the sum of the
+    newest registration snapshot's ward rows when the city has one
+    (``inputs_preflight.roll_snapshot``), else ``fallback`` (the latest past
+    election's roll). The snapshot's own demographics-block total is not read;
+    JUDGEMENT-CALLS records the choice of the ward rows."""
+    import inputs_preflight
+    snap = inputs_preflight.roll_snapshot(slug)
+    if snap is None:
+        return fallback, "the latest past election's roll (no registration snapshot)"
+    return (sum(inputs_preflight.read_roll_snapshot(snap).values()),
+            inputs_preflight.snapshot_label(snap))
+
+
 def shares_from(rows: list[dict], ballot: str = "PR") -> dict[str, float]:
     tot: defaultdict[str, int] = defaultdict(int)
     for r in rows:
@@ -94,6 +108,9 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(f"no LGE files for {args.code} — run fetch_iec.py first")
 
     year, st, rows = latest
+    st = dict(st)
+    st["registered"], reg_from = target_registered(args.slug, st["registered"])
+    print(f"\n  registered for the target election: {st['registered']:,}  (from {reg_from})")
     council = st["wards"] * 2
     print(f"\n  → council = {council} (wards x2; CONFIRM against that city's "
           f"Seat Calculation Detail PDF — this is the one number worth\n"

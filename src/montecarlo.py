@@ -1151,6 +1151,10 @@ def read_ward_crosswalk(path: Path, year: str, ward_column: str | None = None
                         ) -> tuple[list[tuple[str, str, int]], int, int]:
     """The VD→ward crosswalk: ``([(vd, ward, part_registered), ...], vds, split)``.
 
+    ``part_registered`` is the ``part_registered_<year>`` column (the IEC
+    snapshot, apportioned) when the file has it, else the MDB layer's
+    ``part_registered``.
+
     ONE READER (§1.97 F18). There were three: this one, `leverage.load_ward_
     parts` and an inline comprehension in `export_interactive`, the latter two
     both hardcoding ``Ward_2026`` where this takes the year. Three copies of a
@@ -1175,7 +1179,18 @@ def read_ward_crosswalk(path: Path, year: str, ward_column: str | None = None
             f"{path.name} has no `{column}` column; it carries "
             f"{', '.join(k for k in rows[0] if k.startswith('Ward'))or 'no Ward column'}. "
             f"A crosswalk built for one year cannot be read for another.")
-    parts = [(r["VD_Number"], r[column], int(r["part_registered"])) for r in rows]
+    # THE 2026 ROLL IS THE IEC SNAPSHOT, WHEN THE CROSSWALK CARRIES IT.
+    # `build_concordance` adds `part_registered_<year>` (each ward's parts
+    # scaled to that ward's figure on the newest registration snapshot) next to
+    # the MDB layer's `part_registered`. This is the one place that chooses
+    # between them, so `ward_parts`, `pools._target_roll`, `areas`,
+    # `export_interactive` and `build_make.expected_ward_shares` cannot read
+    # different rolls. Reached only for a target with no result file
+    # (`ward_parts`' gate), so a backtest never sees the column.
+    value_column = (f"part_registered_{year}"
+                    if rows and f"part_registered_{year}" in rows[0]
+                    else "part_registered")
+    parts = [(r["VD_Number"], r[column], int(r[value_column])) for r in rows]
     vds = len({r["VD_Number"] for r in rows})
     split = len({r["VD_Number"] for r in rows if r.get("is_split") == "Y"})
     return parts, vds, split

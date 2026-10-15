@@ -64,6 +64,7 @@ import argparse
 
 import cityconfig
 import csv
+import inputs_preflight
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -184,6 +185,41 @@ def ward_parts(vds: gpd.GeoDataFrame) -> list[dict[str, str]]:
     return rows
 
 
+def apportion_roll(rows: list[dict[str, str]], roll: dict[str, int]) -> None:
+    """Add ``part_registered_2026`` to ``ward_parts`` rows, in place.
+
+    The rule (JUDGEMENT-CALLS, "the 2026 roll is the IEC snapshot"): every part
+    of ward w is scaled by ``roll[w] / sum(part_registered of w)``, so a ward's
+    parts sum to the snapshot's figure exactly. Whole numbers by largest
+    remainder (ties to the earlier VD number), because a voter is not
+    divisible and the sum must be exact. ``roll`` is ``{WardID: registered}``.
+
+    Refuses, rather than passes, a ward whose 2024 parts sum to zero, a ward
+    in the crosswalk that the snapshot lacks, and a ward in the snapshot that
+    the crosswalk lacks."""
+    by_ward: defaultdict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        by_ward[row["WardID_2026"]].append(row)
+    if set(by_ward) != set(roll):
+        raise SystemExit(
+            f"the snapshot and the crosswalk name different wards: "
+            f"{sorted(set(roll) - set(by_ward))[:5]} only in the snapshot, "
+            f"{sorted(set(by_ward) - set(roll))[:5]} only in the crosswalk")
+    for ward, parts in by_ward.items():
+        base = [int(p["part_registered"]) for p in parts]
+        if sum(base) <= 0:
+            raise SystemExit(f"ward {ward}: its 2024 parts sum to {sum(base)}, so "
+                             f"the snapshot's {roll[ward]} cannot be apportioned")
+        quota = [b * roll[ward] / sum(base) for b in base]
+        given = [int(q) for q in quota]
+        order = sorted(range(len(parts)),
+                       key=lambda i: (-(quota[i] - given[i]), parts[i]["VD_Number"]))
+        for i in order[:roll[ward] - sum(given)]:
+            given[i] += 1
+        for part, g in zip(parts, given):
+            part["part_registered_2026"] = str(g)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--geo-dir", type=Path, default=Path("data/raw/geo"))
@@ -220,6 +256,14 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- Step 5: VD -> 2026 ward, registration weighted -----------------------
     parts = ward_parts(vds)
+    # The 2026 roll: the IEC snapshot, apportioned over the parts. Absent for a
+    # city with no snapshot, in which case the crosswalk carries the MDB layer's
+    # registration only and says so by lacking the column.
+    snap = inputs_preflight.roll_snapshot(city.slug)
+    if snap is not None:
+        apportion_roll(parts, inputs_preflight.read_roll_snapshot(snap))
+        for part in parts:
+            part["roll_snapshot"] = inputs_preflight.snapshot_label(snap)
     destination = out_dir / "vd_ward_2026.csv"
     with destination.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(parts[0]))

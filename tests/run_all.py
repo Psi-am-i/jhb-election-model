@@ -62,7 +62,7 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            "test_inputs_preflight",
            "test_freeze",
            "test_spine", "test_theta_prior", "test_ward_pr_ratios",
-           "test_ward_parts", "test_solve_and_predict",
+           "test_ward_parts", "test_roll_2026", "test_solve_and_predict",
            "test_blended_centres", "test_bye_value",
            "test_levers_are_live", "test_build_all", "test_stat_freshness",
            "test_publication_ledger", "test_published_page",

@@ -282,7 +282,26 @@ def artefact_key(city, target, config_path: Path | None = None) -> dict:
         "deps_sha": _deps_sha(),
         "judgements_sha": _judgements_sha(city, target),
         "gates_sha": _gates_sha(),
+        "roll_sha": _roll_sha(target),
     }
+
+
+def _roll_sha(target) -> str:
+    """The target's VD→ward crosswalk, hashed as bytes: ``"absent"`` for a
+    target that has none (every held election), else its sha256.
+
+    The 2026 roll is the IEC snapshot apportioned into that file
+    (``build_concordance.apportion_roll``), and ``_target_roll`` / the pool
+    composition read it at emit. A new snapshot or a changed concordance moves
+    the file and so marks every 2026 spec stale. Bytes rather than parsed
+    payload: the file is a machine-written table with no prose to churn."""
+    try:
+        path = Path(target.crosswalk)
+    except AttributeError:
+        return "unkeyed"
+    if not path.exists():
+        return "absent"
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
 
 
 def _gates_sha() -> str:
@@ -591,7 +610,8 @@ def stale_reason(spec: dict, city, target,
                   "config_sha": f"{config_path} and {Path(config_path).parent}/*.toml",
                   "cities_sha": f"{cityconfig.CITIES_DIR}/*.toml",
                   "deps_sha": "src/{" + ",".join(_EMIT_DEPENDENCIES) + "}.py",
-                  "judgements_sha": str(lineage_path(city, target))}
+                  "judgements_sha": str(lineage_path(city, target)),
+                  "roll_sha": str(getattr(target, "crosswalk", "the VD-ward crosswalk"))}
         which = " and ".join(labels.get(m, m) for m in moved)
         return (f"{which} changed since this spec was emitted "
                 f"({', '.join(f'{m} {key.get(m)} -> {now[m]}' for m in moved)}); "
@@ -3433,15 +3453,17 @@ def _target_roll(city: cityconfig.City, target: cityconfig.Target,
     # ranging 5,902 to 36,649 (CV 30.0%) against 14,791 to 20,007 (CV 11.9%)
     # under this one. A 6.2x spread is not something a delimitation produces.
     # MODEL-LOG §1.99; guarded by tests/test_ward_parts.py.
+    # ONE READER, ONE ROLL. This used to parse the file itself (the third copy
+    # of a read, F14), and would then have had to choose between the MDB layer's
+    # registration and the IEC snapshot's a second time. `ward_column` names the
+    # MDB identifier this module keys on; the reader picks the column.
+    import montecarlo as _mc
+    parts, _vds, _split = _mc.read_ward_crosswalk(
+        path, target.year, ward_column="WardID_" + target.year)
     roll: dict[str, float] = defaultdict(float)
-    with open(path, encoding="utf-8", errors="replace") as fh:
-        for row in csv.DictReader(fh):
-            vd = (row.get("VD_Number") or "").strip()
-            ward = (row.get("WardID_" + target.year) or row.get("Ward") or "").strip()
-            if not vd or not ward:
-                continue
-            roll[ward] += float(row.get("part_registered")
-                                or row.get("vd_registered") or 0)
+    for vd, ward, registered in parts:
+        if str(vd).strip() and str(ward).strip():
+            roll[str(ward).strip()] += float(registered)
     return dict(roll)
 
 

@@ -822,18 +822,26 @@ def test_the_editor_bounds_are_regenerated_from_the_panel():
         assert build_make.panel_extremes(files) == ext
         e0, _ = build_make.expected_ward_shares(city, target, wards)
         assert e0 == b["e"]
-        snap = inputs_preflight.roll_snapshot(city.slug)
-        with snap.open(encoding="utf-8", newline="") as fh:
-            roll = list(csv.DictReader(fh))
-        roll[0]["Registered"] = str(2 * int(roll[0]["Registered"]))
-        doubled = Path(t) / snap.name
-        _write_panel(doubled, roll)
-        e1, _ = build_make.expected_ward_shares(city, target, wards, roll=doubled)
-        w0 = str(int(roll[0]["Ward"][len(city.ward_prefix):]))
+        # the roll is the crosswalk's `part_registered_2026` (the snapshot,
+        # apportioned): one ward's parts doubled in a copy raises that ward's
+        # expected share, and putting them back restores it
+        tgt0 = cityconfig.Target(city=city, year=target)
+        with tgt0.crosswalk.open(encoding="utf-8", newline="") as fh:
+            xw = list(csv.DictReader(fh))
+        proc = Path(t) / "processed"
+        proc.mkdir()
+        w0 = wards[0]
+        was = {id(r): r["part_registered_2026"] for r in xw}
+        for r in xw:
+            if r[f"Ward_{target}"] == w0:
+                r["part_registered_2026"] = str(2 * int(r["part_registered_2026"]))
+        _write_panel(proc / tgt0.crosswalk.name, xw)
+        e1, _ = build_make.expected_ward_shares(city, target, wards, processed=proc)
         assert e1[w0] > e0[w0]
-        roll[0]["Registered"] = str(int(roll[0]["Registered"]) // 2)
-        _write_panel(doubled, roll)
-        assert build_make.expected_ward_shares(city, target, wards, roll=doubled)[0] == e0
+        for r in xw:
+            r["part_registered_2026"] = was[id(r)]
+        _write_panel(proc / tgt0.crosswalk.name, xw)
+        assert build_make.expected_ward_shares(city, target, wards, processed=proc)[0] == e0
         # the previous election's turnout: one VD's valid ward votes doubled
         tgt = cityconfig.Target(city=city, year=target)
         prev = cityconfig.resolve_path(ROOT / city.path("raw", "elections") / tgt.results(tgt.previous_lge))
@@ -996,13 +1004,13 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     with tempfile.TemporaryDirectory() as t:
         cells, _party = _ranges_from(b, wards, roster, elections=_mirror(t, {prev: rows}))
     assert _changed(cells, b["ward_ranges"]) == vd_wards[vd]
-    # (2) a split VD's part_registered changed in a copied crosswalk
+    # (2) a split VD's part_registered_2026 changed in a copied crosswalk
     with tgt.crosswalk.open(encoding="utf-8", newline="") as fh:
         xw = list(csv.DictReader(fh))
     split = next(r["VD_Number"] for r in xw if r.get("is_split") == "Y" and r["VD_Number"] in local_by_vd)
     both = {r[f"Ward_{target}"] for r in xw if r["VD_Number"] == split}
     first = next(r for r in xw if r["VD_Number"] == split)
-    first["part_registered"] = str(int(first["part_registered"]) * 2 + 1)
+    first["part_registered_2026"] = str(int(first["part_registered_2026"]) * 2 + 1)
     e0 = b["e"]
     with tempfile.TemporaryDirectory() as t:
         proc = Path(t) / "processed"
