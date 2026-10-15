@@ -216,8 +216,9 @@ def test_the_declared_2026_lists_cover_the_roster_both_ways():
 
 def _slate_reads(tree: ast.AST) -> list[str]:
     """Functions that read slates other than through `levels.ballots`: a call
-    to the result-file reader, or `declared_roster(...)` followed by
-    `.get("wards")` / `["wards"]`."""
+    to the result-file reader, or `.get("wards")` / `["wards"]` applied
+    directly to an expression containing `declared_roster(...)`. A roster
+    bound to a name first and indexed later is NOT caught."""
     hits = []
     for fn in ast.walk(tree):
         if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -232,6 +233,11 @@ def _slate_reads(tree: ast.AST) -> list[str]:
                     and node.args and isinstance(node.args[0], ast.Constant)
                     and node.args[0].value == "wards"
                     and "declared_roster" in ast.unparse(node.func.value)):
+                hits.append(fn.name)
+            if (isinstance(node, ast.Subscript)
+                    and isinstance(node.slice, ast.Constant)
+                    and node.slice.value == "wards"
+                    and "declared_roster" in ast.unparse(node.value)):
                 hits.append(fn.name)
     return hits
 
@@ -262,8 +268,9 @@ def test_the_slate_scan_sees_a_second_copy():
     scan goes quiet on the same function without it."""
     copy = ('def run_model(target):\n'
             '    s = (pools.declared_roster(c, t) or {}).get("wards") or {}\n'
-            '    w, seen = levels._result_slates(p)\n')
-    assert _slate_reads(ast.parse(copy)) == ["run_model", "run_model"]
+            '    w, seen = levels._result_slates(p)\n'
+            '    x = pools.declared_roster(c, t)["wards"]\n')
+    assert _slate_reads(ast.parse(copy)) == ["run_model"] * 3
     clean = 'def run_model(target):\n    b = levels.ballots(target, c)\n'
     assert _slate_reads(ast.parse(clean)) == []
 
