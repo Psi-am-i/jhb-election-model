@@ -109,3 +109,18 @@ render):
   181 voting districts between wards by the Demarcation Board's part figures.
 - /methodology step 2, live: "the model carries one extra pool … the IFP".
   Whether the live run's `pools_2026.json` carried it is not checked here.
+
+## Owner decisions applied (2026-10-16) and the UAT version
+
+Soweto verdict QUITE LIKELY with its since box; the 490,000 box is the
+owner's text; two corrections on /corrections; the other since drafts are on
+UAT for review. UAT version `d22294e0-28de-4580-99d6-b0aad362076b`,
+https://d22294e0-joburg-whysoserious.psi-02e.workers.dev, commit `d482584`.
+`step11_retire.py` retires 35 tokens (the regenerated sheet dropped 24 more:
+two claim boxes' figures, two coalitions below the table's 5% cut, two
+excessive-seat tile names).
+
+Still open before live: the real-ledger retirements; a draws re-export after
+the live `--publish` (`test_served_draws`: the cells name the old run);
+`test_reweight`'s paired re-run (the shifted run moves no seat, so the
+re-weighting cannot be checked against it on this model).
