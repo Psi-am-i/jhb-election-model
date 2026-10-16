@@ -100,9 +100,14 @@
 
 [party.MK]
 baseline_share = 0.1222
-parent = "ANC"   # splinter: inherits the ANC's pool vector until measured
-# OWNER'S CALL, 2026-10-15: 90% of MK's pool vector is the ANC's (the default for
-# every splinter is `pools.SPLINTER_PARENT_WEIGHT`). JUDGEMENT-CALLS.md §SJ1.
+parent = "ANC"   # lineage label; NOT how MK's pool vector is made (below)
+# NOT READ (2026-10-16). MK's pool vector is fitted from its own 2024 national
+# result in this city (`pools.place_vectorless` rule 1; `pools_2026.json`
+# `fitted_from_national.MK`, which records this declaration as `superseded`).
+# Under that rule a declared `weights` or `parent_weight` stays on the sheet and
+# is not read. The owner's call of 2026-10-15 (90% of MK's pool vector is the
+# ANC's, JUDGEMENT-CALLS.md §SJ1) is kept here as his record, not deleted; it
+# takes effect only if the national fit refuses for MK.
 parent_weight = 0.9
 register = "§SJ1"
 # weights = [0.0, 0.0, 0.0, 0.0, 0.0]

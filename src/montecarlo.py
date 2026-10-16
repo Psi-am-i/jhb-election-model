@@ -1632,6 +1632,211 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
 
 
 # --------------------------------------------------------------------------
+# turnout by pool, per district: the vote is the sum of the districts' votes
+# --------------------------------------------------------------------------
+#
+# OWNER DECISION, 2026-10-16: turnout changes the vote the way it does in
+# reality. The draw makes the PRELIMINARY vote (each party's citywide share at
+# the reference turnout, `draw_pools`); `solve_and_predict` places it on the
+# districts at REFERENCE weights, which decides who wins where; each district's
+# party mix is then split across its voter pools (`district_split`) and its
+# vote is its registration times each pool's composition, turnout and split
+# (`district_votes`). The citywide vote, the wards and the seats are sums of
+# those district votes, and nothing re-solves them to the preliminary vote.
+# At the reference turnout the preliminary vote comes back exactly.
+#
+# The per-district IPF's stopping rule. It ends on the party pass, so a
+# district reproduces the map's shares exactly at the reference turnout; the
+# pool rows sum to one within the tolerance. Numerical, not judgements:
+# neither moves a number by more than the tolerance (JUDGEMENT-CALLS §C,
+# "district pool split").
+DISTRICT_IPF_ROUNDS = 60
+DISTRICT_IPF_TOL = 1e-6
+DISTRICT_SEED_FLOOR = 1e-6
+
+
+def district_pool_turnout(level, comp, pool_turnout, k=None):
+    """Each district's turnout by pool, ``T_vg``: districts × pools.
+
+    ``level`` (districts) is the district's turnout of all its registered
+    voters, ``comp`` (districts × pools) its registered composition (rows sum
+    to one), ``pool_turnout`` (pools) the pools' relative turnout. The
+    district's total is split across its pools in proportion to the pools'
+    turnout, ``T_vg = level_v · t_g / Σ_h c_vh t_h``, so ``Σ_g c_vg T_vg`` is
+    ``level_v`` exactly; ``k`` (pools), when given, multiplies each pool's
+    column (a draw's pool turnout over the band mode), and then the district
+    total moves with it. ONE DEFINITION for the reference and every draw.
+    """
+    t = np.asarray(pool_turnout, dtype=float)
+    rel = t[None, :] / np.maximum(np.asarray(comp) @ t, 1e-12)[:, None]
+    out = np.asarray(level, dtype=float)[:, None] * rel
+    if k is not None:
+        out = out * np.asarray(k, dtype=float)[None, :]
+    return out
+
+
+def reference_district_turnout(centre, own, comp, pool_reference, reg):
+    """``(T_ref, scale)``: the reference turnout by pool in every district
+    (districts × pools), clipped to the draw's turnout bounds, and the one
+    factor that puts a district without a projection of its own on the city's
+    projected level.
+
+    The reference is the owner's (2026-10-16): the turnout the model already
+    uses as its centre. ``centre`` (districts) is the district projection's
+    blend centre, ``own`` (districts, bool) whether the district has a
+    projection of its own, ``pool_reference`` (pools) each pool's band mode,
+    its turnout at the fitting election. A district without a projection
+    takes the pools' reference applied equally, times ``scale``."""
+    centre = np.asarray(centre, dtype=float)
+    own = np.asarray(own, dtype=bool)
+    reg = np.asarray(reg, dtype=float)
+    pooled = np.asarray(comp) @ np.asarray(pool_reference, dtype=float)
+    scale = (float((reg * centre)[own].sum() / max((reg * pooled)[own].sum(), 1e-300))
+             if own.any() else 1.0)
+    level = np.where(own, centre, scale * pooled)
+    return (np.clip(district_pool_turnout(level, comp, pool_reference),
+                    TURNOUT_DRAW_FLOOR, TURNOUT_DRAW_CEILING), scale)
+
+
+def drawn_district_turnout(level, comp, pool_reference, pool_drawn):
+    """One draw's turnout by pool in every district (districts × pools): the
+    district's drawn level split across its pools as at the reference, then
+    each pool's column times its drawn turnout over its reference turnout
+    (the pool's shock), clipped to the draw's turnout bounds. A band moved by
+    a scenario moves the drawn turnout and so the shock; the reference does
+    not move with it, so the change reaches the vote."""
+    ref = np.asarray(pool_reference, dtype=float)
+    k = np.asarray(pool_drawn, dtype=float) / np.maximum(ref, 1e-12)
+    return np.clip(district_pool_turnout(level, comp, ref, k),
+                   TURNOUT_DRAW_FLOOR, TURNOUT_DRAW_CEILING)
+
+
+def district_split(share, seed, q, stats=None):
+    """Each district's party mix split across its pools: pools × districts ×
+    parties, ``π_gvp``.
+
+    ``share`` (districts × parties) is the map at reference weights, ``seed``
+    (pools × parties) the draw's per-pool split ``R(d)``, ``q`` (districts ×
+    pools) each district's voters by pool at the reference turnout (rows sum
+    to one). A two-margin IPF per district, all districts at once, seeded
+    with ``R(d)``: ``Σ_p π_gvp = 1`` (each pool's voters vote for someone)
+    and ``Σ_g q_vg π_gvp = share_vp`` (the district's mix is the map's at the
+    reference). A zero seed cell is set to ``DISTRICT_SEED_FLOOR``: a pool that
+    holds no measured weight for a party still carries the map's votes for it
+    where the map puts them, otherwise the two margins conflict in a district
+    whose pools all lack the party. Non-zero cells are untouched, so a split
+    that already meets both margins comes back exactly. A party in no pool (a zero seed
+    column: ENTRANT, an individual-path party) is seeded evenly across pools:
+    it has no pool differential. Ends on the party pass, so the second margin
+    is exact. ``stats`` records calls, rounds and the worst pool-row error."""
+    share = np.asarray(share, dtype=float)
+    q = np.asarray(q, dtype=float)
+    base = np.array(seed, dtype=float)
+    base[:, base.sum(axis=0) <= 0] = 1.0
+    base = base / np.maximum(base.sum(axis=1, keepdims=True), 1e-300)
+    base = np.where(base > 0, base, DISTRICT_SEED_FLOOR)
+    G = base.shape[0]
+    pi = np.repeat(base[:, None, :], share.shape[0], axis=1)
+    qt = [q[:, g][:, None] for g in range(G)]
+    live = (q > 0).T
+    worst, used = 0.0, DISTRICT_IPF_ROUNDS
+    for r in range(DISTRICT_IPF_ROUNDS):
+        col = qt[0] * pi[0]
+        for g in range(1, G):
+            col = col + qt[g] * pi[g]
+        pi *= np.divide(share, col, out=np.zeros_like(share), where=col > 0)[None]
+        rows = pi.sum(axis=2)
+        worst = float(np.abs(rows - 1.0)[live].max()) if live.any() else 0.0
+        if worst < DISTRICT_IPF_TOL:
+            used = r + 1
+            break
+        pi /= np.where(rows > 0, rows, 1.0)[:, :, None]
+    if stats is not None:
+        stats["calls"] = stats.get("calls", 0) + 1
+        stats["rounds"] = stats.get("rounds", 0) + used
+        stats["worst_row_error"] = max(float(stats.get("worst_row_error", 0.0)), worst)
+    return pi
+
+
+def district_votes(share, seed, q, comp, turnout, stats=None):
+    """``(n, mix)``: each district's votes cast per registered voter
+    (``Σ_g c_vg T_vg``) and its party mix (rows sum to one), from the map at
+    reference weights ``share``, the draw's pool split ``seed``, the reference
+    voter composition ``q``, the registered composition ``comp`` and the
+    draw's district pool turnout ``turnout`` (districts × pools). A district's
+    votes are ``registration × n × mix``. At the reference turnout ``mix`` is
+    ``share`` exactly."""
+    pi = district_split(share, seed, q, stats)
+    w = np.asarray(comp) * np.asarray(turnout)
+    n = w.sum(axis=1)
+    mix = w[:, 0][:, None] * pi[0]
+    for g in range(1, w.shape[1]):
+        mix = mix + w[:, g][:, None] * pi[g]
+    mix = mix / np.maximum(mix.sum(axis=1, keepdims=True), 1e-300)
+    return n, mix
+
+
+@dataclass
+class DistrictFrame:
+    """What every draw's district votes read and the draw does not change:
+    registration, registered composition by pool, the reference turnout by
+    pool per district and its voter composition ``q``, the map's reference
+    weights, and the map's inputs. Built once by ``run_model``."""
+    reg: np.ndarray
+    comp: np.ndarray
+    turnout_ref: np.ndarray
+    q: np.ndarray
+    w_ref: np.ndarray
+    base_city: np.ndarray
+    dev_pr: np.ndarray
+    dev_ward: np.ndarray
+    gamma_pr: np.ndarray
+    gamma_ward: np.ndarray
+    mask_pr: np.ndarray | None
+    mask_ward: np.ndarray | None
+    level_floor: float
+
+
+def district_frame(reg, comp, turnout_ref, base_city, dev_pr, dev_ward, gamma_pr,
+                   gamma_ward, mask_pr, mask_ward, level_floor) -> DistrictFrame:
+    """The frame, from the reference district pool turnout ``turnout_ref``
+    (districts × pools): ``q`` is each district's reference voters by pool and
+    ``w_ref`` its registration times its reference turnout."""
+    w = np.asarray(comp) * np.asarray(turnout_ref)
+    tot = w.sum(axis=1, keepdims=True)
+    q = w / np.maximum(tot, 1e-300)
+    return DistrictFrame(reg=np.asarray(reg, dtype=float), comp=np.asarray(comp),
+                         turnout_ref=np.asarray(turnout_ref), q=q,
+                         w_ref=np.asarray(reg, dtype=float) * tot[:, 0],
+                         base_city=base_city, dev_pr=dev_pr, dev_ward=dev_ward,
+                         gamma_pr=gamma_pr, gamma_ward=gamma_ward,
+                         mask_pr=mask_pr, mask_ward=mask_ward,
+                         level_floor=float(level_floor))
+
+
+def realise_draw(pr_target, ward_target, seed, turnout, frame: DistrictFrame,
+                 solve_stats=None, ipf_stats=None):
+    """One draw's districts: ``(n, pr_mix, ward_mix)``.
+
+    Both ballots' preliminary votes are placed on the districts by
+    ``solve_and_predict`` at the REFERENCE weights ``frame.w_ref`` (the map:
+    who wins where), then turned into votes at the draw's turnout by
+    ``district_votes``. The same voters cast both ballots, so one ``n``. The
+    citywide vote is ``Σ_v reg_v n_v mix_vp``; nothing solves it back to
+    ``pr_target`` (MODEL-LOG §1.315, the solve lock)."""
+    pr = solve_and_predict(frame.dev_pr, frame.base_city, pr_target, frame.gamma_pr,
+                           frame.w_ref, level_floor=frame.level_floor,
+                           stats=solve_stats, mask=frame.mask_pr)
+    wd = solve_and_predict(frame.dev_ward, frame.base_city, ward_target,
+                           frame.gamma_ward, frame.w_ref,
+                           level_floor=frame.level_floor, stats=solve_stats,
+                           mask=frame.mask_ward)
+    n, pr_mix = district_votes(pr, seed, frame.q, frame.comp, turnout, ipf_stats)
+    _n, wd_mix = district_votes(wd, seed, frame.q, frame.comp, turnout, ipf_stats)
+    return n, pr_mix, wd_mix
+
+
+# --------------------------------------------------------------------------
 # scenario configuration
 # --------------------------------------------------------------------------
 
@@ -3170,9 +3375,24 @@ def pool_spec(scenario, centres, index, ipf_out=None):
     pidx = {p: j for j, p in enumerate(parties)}
     R = np.zeros((len(names), len(parties)))
     pool_votes = np.zeros(len(names))
+    # THE PRELIMINARY VOTE IS AT THE REFERENCE TURNOUT (owner, 2026-10-16;
+    # JUDGEMENT-CALLS §C turnout reference). The pools' votes here, the
+    # matrix fitted to them and every centre built from it describe the vote
+    # at `turnout_reference`: each pool's turnout at the fitting (previous
+    # local) election, which `run_model` reads from `pools.pool_counts` and
+    # which is the quantity the band's mode was emitted from. Only a drawn,
+    # scenario or realised turnout's difference from it moves votes, and that
+    # happens downstream, per district (`district_votes`). Reading the band
+    # here instead would re-fit the matrix to whatever turnout is asked for,
+    # so a turnout change would move no mean share (MODEL-LOG §1.315, the
+    # pool re-fit lock). A constructed scenario with no reference uses the
+    # band's mode, and says so in `ipf_out["reference_source"]`.
+    reference = scenario.get("_turnout_reference") or {}
+    t_ref = {}
     for g, name in enumerate(names):
         cfg = scenario["pools"][name]
-        pool_votes[g] = float(cfg["registered"]) * float(cfg["turnout"][1])
+        t_ref[name] = float(reference.get(name, cfg["turnout"][1]))
+        pool_votes[g] = float(cfg["registered"]) * t_ref[name]
         for p, w in cfg["members"].items():
             if p in pidx and float(w) > 0:
                 R[g, pidx[p]] = float(w) * max(centres.get(p, 0.0), 1e-9)
@@ -3326,7 +3546,11 @@ def pool_spec(scenario, centres, index, ipf_out=None):
     # something downstream rather than by reading.
     if ipf_out is not None:
         ipf_out.update({"R0": R.copy(), "pool_votes": pool_votes,
-                        "parties": parties, "pidx": pidx, "names": names})
+                        "parties": parties, "pidx": pidx, "names": names,
+                        "turnout_reference": dict(t_ref),
+                        "reference_source": ("fitting election (pools.pool_counts)"
+                                             if reference else
+                                             "band mode (no reference supplied)")})
 
     spec = {}
     for g, name in enumerate(names):
@@ -3344,7 +3568,7 @@ def pool_spec(scenario, centres, index, ipf_out=None):
         spec[name] = (idx, float(cfg["registered"]),
                       tuple(cfg["turnout"]), props,
                       float(cfg["alpha"]) * _dirichlet_scale(scenario),
-                      list(members), levels, dict(members))
+                      list(members), levels, dict(members), t_ref[name])
     return spec
 
 
@@ -3693,15 +3917,22 @@ def party_width(record: dict, s: float, new: bool,
             "total": math.sqrt(sig * sig + delta * delta)}
 
 
-def pool_spec_centres(spec: dict) -> dict[str, float]:
+def pool_spec_centres(spec: dict, turnout: dict | None = None) -> dict[str, float]:
     """Each pooled party's ``pool_spec`` centre: the centre the draw conserves.
 
     ``Σ_g props_gi · v_g / Σ_h v_h``, where ``spec`` is ``pool_spec``'s output
-    and ``v_g`` a pool's registration times its MODAL turnout. Sums to one over
-    the pooled parties. ONE DEFINITION: the universal draw's base vector and
-    conservation target, and the width record's residual frame.
+    and ``v_g`` a pool's registration times its REFERENCE turnout (the spec
+    tuple's last element, ``pool_spec``'s ``turnout_reference``). Sums to one
+    over the pooled parties. ONE DEFINITION: the universal draw's base vector
+    and conservation target, and the width record's residual frame.
+
+    ``turnout`` (pool -> turnout), when given, replaces the reference: the
+    same centres carried to another turnout through the same per-pool split.
+    The width record measures its residuals about the centres carried to each
+    earlier target's realised pool turnout (``width_record.case_for``).
     """
-    pv = {n: float(v[1]) * float(v[2][1]) for n, v in spec.items()}
+    turnout = turnout or {}
+    pv = {n: float(v[1]) * float(turnout.get(n, v[8])) for n, v in spec.items()}
     total = sum(pv.values())
     out: dict[str, float] = {}
     if total <= 0:
@@ -4082,33 +4313,6 @@ class DrawerInputs:
     prior_pr_share: dict
 
 
-def composition_variance(pool_totals: list[dict], ipf: dict | None,
-                         n_ind: int) -> np.ndarray:
-    """Each pooled party's log-share variance from pool turnout ALONE.
-
-    ``pool_totals`` is one ``{pool: votes}`` per simulated draw (the run's own
-    turnout bands on the calibration streams); ``ipf`` is ``pool_spec``'s box,
-    whose ``R0`` holds the unshocked per-pool proportions and ``pool_votes``
-    each pool's votes at its modal turnout. A party's share in a draw is
-    ``Σ_g v_g(d)·R0[g, j] / Σ_g v_g(d)``; the variance of its log ratio to the
-    modal share is what turnout composition alone puts into it (design v1
-    §2.5). Returned in IPF party order, then ``n_ind`` zeros for the
-    individual-path parties, which no pool carries.
-    """
-    if not ipf or not ipf.get("parties"):
-        return np.zeros(n_ind)
-    names = list(ipf["names"])
-    R0 = np.asarray(ipf["R0"], dtype=float)
-    base_v = np.asarray(ipf["pool_votes"], dtype=float)
-    base = base_v @ R0 / max(base_v.sum(), 1e-12)
-    V = np.array([[float(t.get(nm, 0.0)) for nm in names] for t in pool_totals])
-    shares = V @ R0 / np.maximum(V.sum(axis=1, keepdims=True), 1e-12)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        lr = np.log(np.maximum(shares, 1e-300) / np.maximum(base, 1e-300))
-    var = np.where(base > 0, lr.var(axis=0), 0.0)
-    return np.concatenate([var, np.zeros(n_ind)])
-
-
 def live_judgements_sha(city_slug: str, year: str, scenario: dict) -> str:
     """The hash the strength entries LIVE in the judgements file would give a
     run made under ``scenario`` now: the set it would apply (none under the
@@ -4414,7 +4618,12 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
     # (the pooled parties in IPF order, then any individual-path party) gets
     # one latent log level, x = √ρ·σ·z + ω·ε, with z the run's one shared
     # normal (`level.shared`) and ε the party's own (`level.z`);
-    # ω² = σ²(1 − ρ) + δ²·new − v_comp, floored at 0 with the excess recorded.
+    # ω² = σ²(1 − ρ) + δ²·new. Turnout is not in this budget: the draw is the
+    # voters' preference at the reference turnout, and turnout's own width
+    # reaches the vote downstream, through the drawn pool and district
+    # turnout (`district_votes`). The record it is read from measures
+    # preference error alone (residuals about centres carried to each earlier
+    # target's realised turnout, `width_record.case_for`).
     # δ is the newcomer's class δ under newness_width="by_anchor"
     # (`drawn_newness`), the single δ under "single".
     # The shares are c·exp(κ + x), normalised; κ is set by the calibration pass
@@ -4483,25 +4692,25 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
         hist = theta_history(scenario, rec)
         judged = {e["party"]: e for e in (scenario.get("_strength_applied") or [])}
 
-    def _turnouts(strm, pre: str, d: int):
-        """Each pool's drawn turnout and votes for draw ``d`` (stage prefix
-        ``pre``: "" for the run, "calib." for the calibration pass)."""
-        drawn, totals = {}, {}
-        z_common = strm.normals(pre + "turnout.common", "", d)[0]
+    def pool_turnouts(d: int) -> dict:
+        """Each pool's drawn turnout for draw ``d``, recorded in
+        ``turnout_record``. Called by ``run_model`` once per draw, never by
+        the draw of preferences below or by its calibration pass: turnout
+        does not enter the preliminary vote, so κ never sees it (MODEL-LOG
+        §1.315, the κ lock). The streams are the run's ``turnout.common`` and
+        ``turnout.pool`` at index ``d``, the same keys as before the change."""
+        drawn = {}
+        z_common = streams.normals("turnout.common", "", d)[0]
         for group, names in ties.items():
             # KEYED BY THE DECLARED LABEL (`tie`, or the pool's own name), in
             # both branches (step2/2-review-1c finding 3): a tie that loses a
             # member pool, or falls to one pool, keeps its key and so its
             # primitives, rather than being re-keyed by whichever pools
             # survived `pool_spec`.
-            z_own = strm.normals(pre + "turnout.pool", group, d)[0]
+            z_own = streams.normals("turnout.pool", group, d)[0]
             if len(names) == 1:
-                name = names[0]
-                # registration (counted) x turnout (drawn) = votes
-                turnout = correlated_triangular(
-                    z_own, pools[name][2], z_common, rho_t)
-                drawn[name] = turnout
-                totals[name] = pools[name][1] * turnout
+                drawn[names[0]] = correlated_triangular(
+                    z_own, pools[names[0]][2], z_common, rho_t)
                 continue
             # one RATIO for the group: every tied pool moves by the same
             # factor, so the group behaves exactly as a single pool of its
@@ -4512,8 +4721,8 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             shock = correlated_triangular(z_own, (lo, md, hi), z_common, rho_t)
             for nm in names:
                 drawn[nm] = shock
-                totals[nm] = pools[nm][1] * shock
-        return drawn, totals
+        turnout_record.append(tuple(drawn[nm] for nm in turnout_pools))
+        return drawn
 
     def _balanced_props(shocked, count: bool) -> dict:
         """The per-pool proportions after the per-draw balance onto the
@@ -4563,15 +4772,6 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
         return props_out
 
     if law == "universal":
-        # TURNOUT COMPOSITION IS SUBTRACTED, NOT ADDED (design v1 §2.5): the
-        # record's residuals already contain real differential turnout, so
-        # each party's own variance gives up what the run's own pool-turnout
-        # draws put into its share through the group mix. Measured on the
-        # calibration streams, which read no outcome.
-        _cal = DrawStreams(streams.run_lot, N_CAL)
-        v_comp = composition_variance(
-            [_turnouts(_cal, "calib.", dd)[1] for dd in range(N_CAL)],
-            ipf, n_ind=len(ind_names))
         for k, p in enumerate(u_names):
             # The newcomer's class, read only for a new party (an established
             # party's width never reads it); None under newness_width="single".
@@ -4580,50 +4780,46 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
                             history=p in hist,
                             sigma_j=(judged[p]["sigma_j"] if p in judged else None),
                             newness=cls)
-            own2 = (w["sigma"] ** 2 * (1.0 - w["rho"]) + w["delta"] ** 2
-                    - float(v_comp[k]))
+            own2 = w["sigma"] ** 2 * (1.0 - w["rho"]) + w["delta"] ** 2
             widths[p] = dict(w, centre=float(u_c[k]),
                              centre_uncorrected=float(u_s[k]), new=p in new_set,
                              newness_class=cls,
-                             judged=p in judged, v_comp=float(v_comp[k]),
+                             judged=p in judged,
                              shared=math.sqrt(w["rho"]) * w["sigma"],
-                             own=math.sqrt(max(own2, 0.0)),
-                             floored=max(-own2, 0.0))
+                             own=math.sqrt(own2))
         u_shared = np.array([widths[p]["shared"] for p in u_names])
         u_own = np.array([widths[p]["own"] for p in u_names])
         u_kappa = -0.5 * np.array([widths[p]["total"] ** 2 for p in u_names])
+
+    # Each pool's weight in the preliminary vote: registration times the
+    # REFERENCE turnout (the spec tuple's last element), as a share of the
+    # city's reference votes. Fixed for the run.
+    _ref_votes = {nm: float(v[1]) * float(v[8]) for nm, v in pools.items()}
+    _ref_cast = sum(_ref_votes.values())
+    ref_weight = {nm: (v / _ref_cast if _ref_cast > 0 else 0.0)
+                  for nm, v in _ref_votes.items()}
 
     counter = [0]
 
     def draw_pools(d: int | None = None, calib: bool = False, strm=None):
         """One draw, at draw index ``d`` (the next of an internal counter when
-        ``None``). Every random number below is row ``d`` of a keyed stream. Each pool's VOTES are its counted registration times a
-        drawn turnout; the pool's share of the city follows from the votes,
-        and its members split it. Turnout is the only quantity here that is
-        not counted, which is the whole point: it is the assumption, and it is
-        the correlated shock 2021 delivered when every pool fell at once.
+        ``None``). Every random number below is row ``d`` of a keyed stream.
 
-        That last sentence was aspirational until now. Every pool drew its own
-        independent turnout, so the citywide total came out half as variable as
-        a single pool when the record says 0.82 as variable (see
-        TURNOUT_CORRELATION). The pools are now tied together by a common
-        factor, which is the review's "single correlated citywide turnout
-        shock" — implemented as a copula so that each pool keeps EXACTLY the
-        marginal turnout band ``pools.turnout_band`` measured for it, and only
-        the dependence between them changes.
+        Returns the PRELIMINARY VOTE: each party's citywide share of the vote
+        at the REFERENCE turnout (``pool_spec``'s ``turnout_reference``), the
+        pools weighted by their registration times that turnout and split by
+        the draw's per-pool proportions. No drawn turnout enters it (owner,
+        2026-10-16): the draw of turnout is ``draw_pools.pool_turnouts(d)``,
+        which ``run_model`` calls, and turnout reaches the vote through
+        ``district_votes``, where each district's vote is its registration
+        times each pool's turnout times that pool's split. The per-pool split
+        of this draw is left in ``draw_pools.pool_split`` (pools × parties, in
+        ``turnout_pools`` order and ``index`` columns) for that step.
 
-        EACH DRAW'S POOL TURNOUTS ARE RECORDED (F1, 2026-09-28). The value each
-        pool received from ``correlated_triangular`` is appended, one tuple per
-        call, to ``draw_pools.turnout_record`` in ``draw_pools.turnout_pools``
-        order; every member of a tied group is recorded with the group's one
-        shared shock. ``run_model`` carries it out as
-        ``ModelRun.pool_turnout_draws``. The record reads values already drawn
-        and reads no stream, so no drawn number changes —
-        ``tests/test_draw_record.py`` checks that against the pre-recording
-        code, the published seats, and an independent wrapper around
-        ``correlated_triangular``. It exists so the interactive can re-weight
-        the published draws by pool turnout (MACHINERY.md, "Per-draw pool
-        turnouts").
+        EACH DRAW'S POOL TURNOUTS ARE RECORDED (F1, 2026-09-28) by
+        ``pool_turnouts``: one tuple per call in ``draw_pools.turnout_pools``
+        order, every member of a tied group with the group's one shock.
+        ``run_model`` carries it out as ``ModelRun.pool_turnout_draws``.
         """
         # ``calib=True`` is the calibration pass (universal law): it reads the
         # `calib.*` streams of ``strm``, records nothing, counts nothing, and
@@ -4636,16 +4832,7 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
         strm = streams if strm is None else strm
         pre = "calib." if calib else ""
         target = np.zeros(n)
-        # The turnout each pool RECEIVED this draw, kept for `turnout_record`
-        # below. A record only: it is filled from values already drawn and
-        # draws nothing itself. One standard normal for the whole city, per
-        # draw, pushes every pool's turnout in proportion to sqrt(rho).
-        drawn, totals = _turnouts(strm, pre, d)
-        if not calib:
-            turnout_record.append(tuple(drawn[nm] for nm in turnout_pools))
-        # Shares follow from votes, so the pool side sums to one by
-        # construction rather than by a later division.
-        cast = sum(totals.values())
+        split_out = np.zeros((len(turnout_pools), n))
         # THE LEVEL SHOCK MOVES TO THE CENTRES, BEFORE THE BALANCE.
         #
         # Applying it inside the pool and renormalising there cancels it for a
@@ -4702,7 +4889,7 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             if shocked.sum() > 0:
                 shocked = shocked / shocked.sum()
                 pool_props.update(_balanced_props(shocked, count=True))
-        for name, (idx, reg, spec, props, alpha, names, levels, wts) in pools.items():
+        for name, (idx, reg, spec, props, alpha, names, levels, wts, _tr) in pools.items():
             props = pool_props.get(name, props)
             # A PARTY'S OWN LEVEL MOVES, not just its pool's total and its
             # share of the split. Before this, a pooled party had no level
@@ -4749,7 +4936,8 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             # already drawn; it reads no stream.
             if not calib:
                 split_record[name].append(split)
-            np.add.at(target, idx, (totals[name] / cast if cast > 0 else 0.0) * split)
+                split_out[turnout_pools.index(name), idx] = split
+            np.add.at(target, idx, ref_weight[name] * split)
         if law == "universal":
             target *= u_mass
             for k, (_p, i, _c, _s) in enumerate(individual):
@@ -4769,6 +4957,7 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             target = target / total
         if calib:
             return target[u_idx]
+        draw_pools.pool_split = split_out
         if law == "universal":
             conserve_record.append(target[u_idx].copy())
         if group_idx is not None:
@@ -4873,6 +5062,11 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
     draw_pools.ipf_stats = ipf_stats
     draw_pools.level_sd_at_size = at_size
     draw_pools.turnout_record = turnout_record
+    draw_pools.pool_turnouts = pool_turnouts
+    draw_pools.pool_reference = {nm: float(v[8]) for nm, v in pools.items()}
+    draw_pools.reference_source = ipf_box.get("reference_source")
+    draw_pools.pool_mode = {nm: float(v[2][1]) for nm, v in pools.items()}
+    draw_pools.pool_split = np.zeros((len(turnout_pools), n))
     draw_pools.split_record = split_record
     draw_pools.split_members = {name: list(spec[5])
                                 for name, spec in pools.items()}
@@ -5657,9 +5851,17 @@ def _projected_roster_declaration(target, roster: set[str],
     # WRAPPED, because a warning nobody can read at 22:00 is a warning nobody
     # acts on. The label column is fixed so the five facts line up and the eye
     # can find `file` without reading the prose.
-    head = (f"  ! roster for {target.year} is PROJECTED, not published — the "
-            f"off-ballot drop below is running against an ASSUMPTION about "
-            f"who will contest, not against a result file.")
+    # THE HEAD LINE NAMES THE SOURCE. It said PROJECTED for every source,
+    # including a roster declared by hand in the judgements file (the
+    # Johannesburg 2026 spec's `roster_source` is "declared").
+    if source == "declared":
+        head = (f"  ! roster for {target.year} is DECLARED in {judgements}, "
+                f"not read from a result file — the off-ballot drop below "
+                f"runs against that typed list.")
+    else:
+        head = (f"  ! roster for {target.year} is PROJECTED, not published — "
+                f"the off-ballot drop below is running against an ASSUMPTION "
+                f"about who will contest, not against a result file.")
     lines = _textwrap.wrap(head, width=78, subsequent_indent="    ")
     for label, body in (("parties", str(len(roster))),
                         ("file", where),
@@ -6012,6 +6214,25 @@ def run_model(target, scenario: dict,
             _ward_of, _ = _pools.vd_map(target.city, spec["fitted_on"])
             scenario["_vd_pool_composition"] = {
                 vd: _by_ward[w] for vd, w in _ward_of.items() if w in _by_ward}
+            # THE SAME COUNTS, TWO MORE QUANTITIES (owner, 2026-10-16;
+            # JUDGEMENT-CALLS §C "turnout reference" and "district pool
+            # composition"). Each district's REGISTERED composition by pool
+            # (the voted one above places arrivals; turnout acts on the
+            # registered), and each pool's turnout at the fitting election,
+            # which is the reference the preliminary vote is at: the quantity
+            # the band's mode was emitted from, read here independently of the
+            # band so that a band changed by a scenario moves the vote instead
+            # of moving the reference with it.
+            _reg_comp = _counts.composition("registered")
+            _reg_by_ward = {w: dict(zip(_counts.categories, _reg_comp[i]))
+                            for i, w in enumerate(_counts.wards)}
+            scenario["_vd_pool_registered"] = {
+                vd: _reg_by_ward[w] for vd, w in _ward_of.items()
+                if w in _reg_by_ward}
+            scenario["_turnout_reference"] = {
+                g: float(t) for g, t in zip(_counts.categories,
+                                            _counts.rates["turnout"])
+                if g in spec["pools"]}
             if verbose:
                 print(f"  pools: {len(spec['pools'])} measured from "
                       f"{spec['fitted_on']} ({spec['provenance']})")
@@ -6557,9 +6778,10 @@ def run_model(target, scenario: dict,
     #     contest. Its evidence about list voting in the same ward is real but
     #     weaker, and it says nothing about list voting anywhere else.
     # Note the containment limit: shares are renormalised within each VD, and
-    # the citywide total is pinned by calibration, so lifting a party here
-    # shaves a vanishing amount off it elsewhere. That is a property of a model
-    # that fixes citywide totals, not a leak in this term.
+    # the map is solved to the preliminary citywide vote at reference weights,
+    # so lifting a party here shaves a vanishing amount off it elsewhere at the
+    # reference turnout; away from it the citywide vote is the sum of the
+    # districts' turnout-adjusted votes (`realise_draw`).
     dev_pr, dev_ward = dev, dev
     w_ward = scenario.get("w_bye_local_ward", DEFAULTS["w_bye_local_ward"])
     w_pr = scenario.get("w_bye_local_pr", DEFAULTS["w_bye_local_pr"])
@@ -6669,22 +6891,15 @@ def run_model(target, scenario: dict,
         registered[vd] += part_registered
 
     # --- turnout patterns (A2) ----------------------------------------------
-    # The "on record" anchors for the turnout tilts read the elections from
-    # 2011 on, which is what the published 2026 forecast does. That floor is
-    # kept rather than widened to the whole archive: it is where the current
-    # registration record and VD footprint settle down. A target early enough
-    # to have nothing at or after 2011 uses everything it does have, because
-    # an empty anchor is a division by zero, not a conservative choice.
-    prior_years = [y for y in target.before if y >= "2011"] or list(target.before)
-    hi_years = prior_years
-    lge_years = [y for y in prior_years if cityconfig.CALENDAR[y].kind == "LGE"]
+    # Two district patterns: the λ̂ projection and the previous local
+    # election's level, blended per draw. Their blend at
+    # `turnout_pattern_blend`, with no jitter and no noise, is the district
+    # half of the reference turnout (owner, 2026-10-16).
     projected_col = f"turnout_{target.year}_projected"
     level_col = f"turnout_{target.previous_lge}"
 
     ratio_pattern: dict[str, float] = {}
     level_pattern: dict[str, float] = {}
-    thi_pattern: dict[str, float] = {}
-    tlo_pattern: dict[str, float] = {}
     turnout_path = processed / "turnout.csv"
     if not turnout_path.exists():
         raise SystemExit(
@@ -6698,14 +6913,6 @@ def run_model(target, scenario: dict,
                 ratio_pattern[vd] = float(row[projected_col])
             if row.get(level_col) and row[level_col] != "nan":
                 level_pattern[vd] = min(float(row[level_col]), 1.0)
-            hi = [row.get(f"turnout_{y}") for y in hi_years]
-            hi_vals = [float(x) for x in hi if x and x != "nan"]
-            if hi_vals:
-                thi_pattern[vd] = min(max(hi_vals), 1.0)
-            lge = [row.get(f"turnout_{y}") for y in lge_years]
-            vals = [float(x) for x in lge if x and x != "nan"]
-            if vals:
-                tlo_pattern[vd] = min(min(vals), 1.0)
 
     reg = np.array([registered.get(v, 0) for v in vds], dtype=float)
     t_ratio = np.array([ratio_pattern.get(v, np.nan) for v in vds])
@@ -6714,6 +6921,9 @@ def run_model(target, scenario: dict,
     # either pattern. A typed fallback, registered as JUDGEMENT-CALLS §A49; how
     # many VDs took it, and what share of the roll they hold, is recorded.
     _fallback_vd = np.isnan(t_ratio) | np.isnan(t_level)
+    # A district with a projection of its own; the rest take the pools'
+    # turnout applied equally (`district_pool_turnout`, below the loop's head).
+    own_projection = ~np.isnan(t_ratio)
     note_value(scenario, "turnout.mean_fallback_vds",
                {"vds": int(_fallback_vd.sum()),
                 "roll_share": (float(reg[_fallback_vd].sum() / reg.sum())
@@ -6735,15 +6945,6 @@ def run_model(target, scenario: dict,
                 "mean_ratio": float(mean_ratio), "mean_level": float(mean_level),
                 "projected_col": projected_col, "level_col": level_col},
                where="montecarlo:run_model")
-
-    # who-turns-out anchors per VD (highest turnout on record; worst LGE
-    # turnout on record), for the turnout_tilt_* dials
-    t_hi = np.array([thi_pattern.get(v, np.nan) for v in vds])
-    mhi = np.nansum(t_hi * reg) / np.nansum(np.where(np.isnan(t_hi), 0, reg))
-    t_hi = np.where(np.isnan(t_hi), mhi, t_hi)
-    t_lo = np.array([tlo_pattern.get(v, np.nan) for v in vds])
-    mlo = np.nansum(t_lo * reg) / np.nansum(np.where(np.isnan(t_lo), 0, reg))
-    t_lo = np.where(np.isnan(t_lo), mlo, t_lo)
 
     # --- ward structure (E3) -------------------------------------------------
     # A ward is only forecastable if at least one of its VD parts is in the
@@ -7322,6 +7523,51 @@ def run_model(target, scenario: dict,
                 f"{p} {ratio[index[p]]:.2f}" for p in shown))
         print()
 
+    # --- turnout by pool, per district (owner, 2026-10-16) -------------------
+    # The frame every draw's district votes read (`district_frame`). Pool
+    # order is `draw_pools.turnout_pools`, the pools `pool_spec` kept.
+    # A district's registered composition comes from its ward at the fitting
+    # election (`_vd_pool_registered`); a district with no mapped ward takes
+    # the city's roll-weighted composition, and how many did is recorded.
+    _tpools = list(draw_target.turnout_pools)
+    _comp_by_vd = scenario.get("_vd_pool_registered") or {}
+    comp = np.array([[float(_comp_by_vd[v].get(g, 0.0)) if v in _comp_by_vd
+                      else np.nan for g in _tpools] for v in vds]).reshape(nvd, len(_tpools))
+    _mapped = ~np.isnan(comp).any(axis=1) & (np.nan_to_num(comp).sum(axis=1) > 0)
+    if _mapped.any():
+        _city_comp = (reg[_mapped, None] * comp[_mapped]).sum(axis=0)
+    else:
+        _city_comp = np.array([float(scenario["pools"][g]["registered"])
+                               for g in _tpools])
+    comp[~_mapped] = _city_comp / max(float(_city_comp.sum()), 1e-300)
+    comp = comp / np.maximum(comp.sum(axis=1, keepdims=True), 1e-300)
+    t_ref_pool = np.array([draw_target.pool_reference[g] for g in _tpools])
+    t_mode_pool = np.array([draw_target.pool_mode[g] for g in _tpools])
+    # THE REFERENCE, per district (`reference_district_turnout`).
+    _blend0 = float(scenario["turnout_pattern_blend"])
+    turnout_ref_vd, _turnout_scale = reference_district_turnout(
+        (1 - _blend0) * t_ratio + _blend0 * t_level, own_projection, comp,
+        t_ref_pool, reg)
+    frame = district_frame(reg, comp, turnout_ref_vd, base_city, dev_pr, dev_ward,
+                           gamma["PR"], gamma["Ward"], pr_mask_vd, ward_mask_vd,
+                           scenario["level_floor"])
+    _district_ipf: dict = {}
+    _pref_sum = np.zeros(npar)
+    # CONSISTENCY CHECK, recorded (not a guard): each pool's reference turnout
+    # against the roll-weighted turnout its share of the districts carries.
+    _carried = ((reg[:, None] * comp * turnout_ref_vd).sum(axis=0)
+                / np.maximum((reg[:, None] * comp).sum(axis=0), 1e-300))
+    _turnout_reference_record = {
+        "source": draw_target.reference_source,
+        "pool": {g: float(t_ref_pool[i]) for i, g in enumerate(_tpools)},
+        "band_mode": {g: float(t_mode_pool[i]) for i, g in enumerate(_tpools)},
+        "districts_carry": {g: float(_carried[i]) for i, g in enumerate(_tpools)},
+        "districts_unmapped": int((~_mapped).sum()),
+        "unmapped_roll_share": float(reg[~_mapped].sum() / max(reg.sum(), 1e-300)),
+        "districts_without_projection": int((~own_projection).sum()),
+        "turnout_scale": _turnout_scale,
+    }
+
     # --- the loop -------------------------------------------------------------
     draws = scenario["draws"]
     seat_draws: list[dict[str, int]] = []
@@ -7375,9 +7621,14 @@ def run_model(target, scenario: dict,
         # delimitation) unpairs it, which is stated in design 1c §2.3.
         noise = scenario["turnout_noise_sd"] * streams.normals(
             "vd_turnout.noise", "", d, k=nvd)
-        t_draw = np.clip(((1 - blend) * t_ratio + blend * t_level)
-                         * np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2),
-                         TURNOUT_DRAW_FLOOR, TURNOUT_DRAW_CEILING)
+        noise_factor = np.exp(noise - scenario["turnout_noise_sd"] ** 2 / 2)
+        # The district's turnout of all its registered voters this draw: its
+        # own projection blended and noised as before, or the pools'
+        # reference turnout applied equally where it has none.
+        t_draw = np.clip(np.where(own_projection,
+                                  ((1 - blend) * t_ratio + blend * t_level),
+                                  _turnout_scale * (comp @ t_ref_pool))
+                         * noise_factor, TURNOUT_DRAW_FLOOR, TURNOUT_DRAW_CEILING)
         if d == 0:
             # DELIVERY PROOF, recorded at the read site and once rather than
             # 5,000 times. These two are caps applied per draw that
@@ -7390,38 +7641,29 @@ def run_model(target, scenario: dict,
             note_value(scenario, "montecarlo.TURNOUT_DRAW_CEILING",
                        TURNOUT_DRAW_CEILING,
                        where="montecarlo:run_model per-draw turnout clip")
-        # The who-turns-out tilt used to sit here. It selected supporters by
-        # a hand-drawn party grouping, and it was applied AFTER
-        # solve_and_predict had already calibrated shares to the drawn target,
-        # so rows stopped summing to one and the realised citywide share was no
-        # longer the one drawn. It was off by default and never measured.
-        # Differential turnout by pool is real and belongs in the model, but it
-        # has to enter the weights the calibration sees, not be multiplied on
-        # afterwards — and it should key on voter pools, which is where the
-        # turnout data can actually be attached.
-        weight_cal = reg * t_draw
-        weight = weight_cal
-        tilt_scale = None
-
-        floor = scenario["level_floor"]
-        pr = solve_and_predict(dev_pr, base_city, pr_target, gamma["PR"], weight_cal,
-                               level_floor=floor, stats=_solve_stats,
-                               mask=pr_mask_vd)
-        wd = solve_and_predict(dev_ward, base_city, ward_target, gamma["Ward"], weight_cal,
-                               level_floor=floor, stats=_solve_stats,
-                               mask=ward_mask_vd)
-
-        pr_eff = pr if tilt_scale is None else pr * tilt_scale
-        wd_eff = wd if tilt_scale is None else wd * tilt_scale
-        pr_votes = weight @ pr_eff
-        ward_votes = weight @ wd_eff
+        # Each pool's drawn turnout over its reference is the pool's shock,
+        # applied to its column in every district (`drawn_district_turnout`).
+        _drawn = draw_target.pool_turnouts(d)
+        turnout_vd = drawn_district_turnout(t_draw, comp, t_ref_pool,
+                                            [_drawn[g] for g in _tpools])
+        # THE VOTE IS THE SUM OF THE DISTRICTS' VOTES (owner, 2026-10-16).
+        # The map is solved at the reference weights; each district's vote is
+        # its registration × Σ_g composition × turnout × the pool's split.
+        # Nothing re-solves the citywide total to `pr_target`.
+        n_cast, pr_mix, wd_mix = realise_draw(
+            pr_target, ward_target, draw_target.pool_split, turnout_vd, frame,
+            solve_stats=_solve_stats, ipf_stats=_district_ipf)
+        _pref_sum += pr_target
+        weight = reg * n_cast
+        pr_votes = weight @ pr_mix
+        ward_votes = weight @ wd_mix
         pr_share_draws[d] = pr_votes / max(pr_votes.sum(), 1e-12)
         ward_share_draws[d] = ward_votes / max(ward_votes.sum(), 1e-12)
 
         # E3: ward winners from the ward ballot, on the target's own wards.
-        part_cast = part_reg * t_draw[part_vd]
+        part_cast = part_reg * n_cast[part_vd]
         ward_tally = np.zeros((len(wards), npar))
-        part_ballot = wd_eff[part_vd]
+        part_ballot = wd_mix[part_vd]
         if ward_mask_part is not None:
             # A split district's parts can lie in wards with different
             # ballots: each part's row is renormalised over who stands there.
@@ -7632,8 +7874,12 @@ def run_model(target, scenario: dict,
         # mean against its `pool_spec` centre. `mean_error`: the run's own
         # conservation falsifier, per party z against the Bonferroni threshold
         # (it reports; it does not refuse). `width`: each drawn party's total
-        # latent log sd √(σ² + δ²). `width_floored`: the variance by which
-        # turnout composition exceeded a party's own-term budget.
+        # latent log sd √(σ² + δ²). `turnout_moved`: each party's mean list
+        # share minus its mean preliminary share (the draw's citywide target),
+        # what turnout did to it, reported and never refused on.
+        # `turnout_reference`: the reference turnout, its source and the
+        # districts' consistency with it. `district_ipf`: the per-district
+        # pool split's calls, mean rounds and worst pool-row error.
         "kappa_error": dict(getattr(draw_target, "kappa_error", {}) or {}),
         # The law this board was drawn under, so a reader knows which
         # counters must be live: `gamma_draws` under the incumbent law, the
@@ -7645,8 +7891,15 @@ def run_model(target, scenario: dict,
         "kappa_converged": getattr(draw_target, "kappa_converged", None),
         "mean_error": _mean_error,
         "width": {p: float(w["total"]) for p, w in _widths.items()},
-        "width_floored": {p: float(w["floored"]) for p, w in _widths.items()
-                          if w["floored"] > 0},
+        "turnout_moved": {universe[i]: float(pr_share_draws[:, i].mean()
+                                             - _pref_sum[i] / max(draws, 1))
+                          for i in range(npar)},
+        "turnout_reference": _turnout_reference_record,
+        "district_ipf": {
+            "calls": int(_district_ipf.get("calls", 0)),
+            "rounds_mean": (float(_district_ipf.get("rounds", 0))
+                            / max(int(_district_ipf.get("calls", 0)), 1)),
+            "worst_row_error": float(_district_ipf.get("worst_row_error", 0.0))},
     })
     trace.put("42_pr_share_draws", pr_share_draws, detail=True)
     trace.put("43_ward_share_draws", ward_share_draws, detail=True)

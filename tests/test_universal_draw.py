@@ -442,7 +442,8 @@ def _universal_run(seed: int, draws: int = 2000, centres=None, sc=None):
 def test_the_calibration_conserves_every_centre_and_records_nothing():
     """Design v1 §1.2: each party's mean drawn share is its `pool_spec`
     centre; the calibration pass appends nothing to the turnout or split
-    records, counts no balance, and leaves the capacity counters as found."""
+    records, counts no balance, reads no turnout stream, and leaves the
+    capacity counters as found."""
     M._reset_cap_counters()
     st, out, drawer = _universal_run(1)
     assert len(drawer.turnout_record) == out.shape[0]
@@ -455,6 +456,7 @@ def test_the_calibration_conserves_every_centre_and_records_nothing():
         assert abs(mean / c[p] - 1) < 0.05, (p, mean, c[p])
     assert any(stage.startswith("calib.") for stage, _ in st.keys)
     assert not any(stage == "split" for stage, _ in st.keys)
+    assert not any(stage.startswith("calib.turnout") for stage, _ in st.keys)
 
 
 class _Patched:
@@ -601,16 +603,16 @@ def test_the_split_is_the_centre_and_alpha_is_never_read():
 
 
 def test_the_own_term_is_the_rest_of_the_budget():
-    """Composition is subtracted, not added; a floored party carries the
-    excess (design v1 §2.5, v2 N1)."""
+    """The own term is the whole of σ²(1 − ρ) + δ²: turnout is not in the
+    preference draw's budget (owner, 2026-10-16; the composition subtraction
+    of design v1 §2.5 is deleted), so nothing is subtracted and nothing is
+    floored."""
     _, _, drawer = _universal_run(3, draws=50)
+    assert drawer.widths, "no party was drawn: the check looked at nothing"
     for p, w in drawer.widths.items():
         budget = w["sigma"] ** 2 * (1 - w["rho"]) + w["delta"] ** 2
-        assert abs(w["own"] ** 2 + w["v_comp"] - w["floored"] - budget) < 1e-12
-        assert w["v_comp"] >= 0 and w["own"] >= 0
-    assert any(w["v_comp"] > 0 for w in drawer.widths.values()), (
-        "no party carries any turnout composition: the measurement looked at "
-        "nothing")
+        assert abs(w["own"] ** 2 - budget) < 1e-12, p
+        assert "v_comp" not in w and "floored" not in w, p
 
 
 def test_the_falsifier_is_quiet_on_clean_runs_and_sees_a_twenty_percent_error():

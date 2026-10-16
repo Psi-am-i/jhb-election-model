@@ -96,10 +96,10 @@ if wrap:
     real = mc.correlated_triangular
     def recording(z_own, spec, z_common, rho):
         value = real(z_own, spec, z_common, rho)
-        # The caller is `draw_pools`' `_turnouts`, whose stage prefix `pre`
-        # says which pass this is: "calib." for the universal law's
-        # calibration pass, which draws on its own streams and records
-        # nothing, "" for the run's draws.
+        # The caller is the drawer's `pool_turnouts`, which has no stage
+        # prefix: since 2026-10-16 the calibration pass draws no turnout. A
+        # caller carrying `pre == "calib."` would be a calibration pass that
+        # sees turnout again (the κ lock, MODEL-LOG §1.315), counted below.
         calib = sys._getframe(1).f_locals.get("pre") == "calib."
         calls.append((tuple(float(x) for x in spec), float(value), calib))
         return value
@@ -272,19 +272,15 @@ def test_the_record_equals_an_independent_capture_of_every_pool_turnout():
     scanned(len(run_calls), of=draws * len(names), low=1.0, high=1.0,
             what="wrapper calls in the run's draws",
             denominator="draws x pools (no ties here)")
-    # The universal law reads the `calib.*` streams through the same
-    # `correlated_triangular` (MODEL-LOG §1.298) in two places in
-    # `make_drawer`: one N_CAL-draw turnout pass for `composition_variance`,
-    # then N_CAL draws per κ iteration. Those calls are excluded from the
-    # capture above and counted here, so the exclusion cannot swallow run
-    # calls: exactly N_CAL x (kappa_iters + 1) x pools, the iterations read
-    # from the run's own trace.
+    # The calibration pass reads NO turnout (owner, 2026-10-16: turnout
+    # enters the vote downstream of the preference draw, so κ never sees it).
+    # Under the previous law it made N_CAL x (kappa_iters + 1) x pools calls
+    # here; any call now is the κ lock put back.
     assert wrapped["kappa_iters"] and wrapped["kappa_iters"] >= 1, (
         "the run made no calibration pass; the universal law is not in force")
-    scanned(len(calib_calls),
-            of=wrapped["n_cal"] * (wrapped["kappa_iters"] + 1) * len(names),
-            low=1.0, high=1.0, what="wrapper calls on the calibration streams",
-            denominator="N_CAL x (kappa_iters + 1) x pools")
+    assert not calib_calls, (
+        f"{len(calib_calls)} pool-turnout draws on the calibration streams: "
+        f"the calibration pass sees turnout")
 
 
 # -- 3: each check can see ----------------------------------------------------

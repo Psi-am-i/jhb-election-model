@@ -117,7 +117,12 @@ GUARD_KEYS = frozenset({
     # The keyed streams (design 1c; step2/2-review-1c finding 4).
     "gamma_fallbacks", "gamma_draws", "stream_keys",
     # The universal draw (design 1j v4-L1); empty under the incumbent law.
-    "kappa_error", "mean_error", "width", "width_floored",
+    "kappa_error", "mean_error", "width",
+    # Turnout enters the vote (owner, 2026-10-16): what turnout did to each
+    # party's mean share, the reference turnout and its consistency, and the
+    # per-district pool split's convergence. `width_floored` is deleted with
+    # the composition subtraction that could floor a party's own term.
+    "turnout_moved", "turnout_reference", "district_ipf",
     # The law the board was drawn under, and the calibration pass's
     # iterations and convergence (step-6 item 2): which counters must be live
     # depends on the law (`LAW_DENOMINATOR_KEYS`).
@@ -612,7 +617,7 @@ def _law_faults(guards) -> list[str]:
                 f"This is not a clean run; it is a run that counted nothing")
     conv = guards.get("kappa_converged")
     if law == "incumbent":
-        for key in ("kappa_error", "width", "width_floored"):
+        for key in ("kappa_error", "width"):
             if guards.get(key):
                 out.append(f"41_guards.{key} is non-empty under the incumbent "
                            f"law, which has no universal draw")
@@ -1152,7 +1157,16 @@ def healthy_guards(law: str = "universal"):
                        "DDD": 0.03}, "threshold": 3.0, "parties": 2,
                        "fired": []},
         "width": {"AAA": 0.07, "DDD": 0.82},
-        "width_floored": {"AAA": 0.0026},
+        "turnout_moved": {"AAA": -0.0012, "DDD": 0.0012},
+        "turnout_reference": {"source": "fitting election (pools.pool_counts)",
+                              "pool": {"P1": 0.5}, "band_mode": {"P1": 0.5},
+                              "districts_carry": {"P1": 0.5},
+                              "districts_unmapped": 0,
+                              "unmapped_roll_share": 0.0,
+                              "districts_without_projection": 0,
+                              "turnout_scale": 1.0},
+        "district_ipf": {"calls": 2 * DRAWS, "rounds_mean": 12.0,
+                         "worst_row_error": 1e-7},
         "stream_keys": [["calib.level.z", "AAA"], ["level.shared", ""],
                         ["level.z", "AAA"], ["turnout.common", ""]],
         "draw_law": "universal",
@@ -1162,7 +1176,7 @@ def healthy_guards(law: str = "universal"):
     if law == "incumbent":
         board.update(gamma_fallbacks=1, gamma_draws=40 * DRAWS,
                      kappa_error={}, mean_error={}, width={},
-                     width_floored={}, draw_law="incumbent", kappa_iters=0,
+                     draw_law="incumbent", kappa_iters=0,
                      kappa_converged=None,
                      stream_keys=[["level.chi", "AAA"], ["level.z", "AAA"],
                                   ["turnout.common", ""]])
@@ -1170,17 +1184,17 @@ def healthy_guards(law: str = "universal"):
 
 
 def healthy_widths():
-    """A universal-law width table: one party at its floor, one not."""
-    def row(sig, dl, rho, vc):
-        own2 = sig * sig * (1 - rho) + dl * dl - vc
+    """A universal-law width table: one established party, one new."""
+    def row(sig, dl, rho):
+        own2 = sig * sig * (1 - rho) + dl * dl
         return {"sigma": sig, "delta": dl, "rho": rho,
                 "total": math.sqrt(sig * sig + dl * dl),
-                "shared": math.sqrt(rho) * sig, "own": math.sqrt(max(own2, 0)),
-                "v_comp": vc, "floored": max(-own2, 0.0), "centre": 0.1,
+                "shared": math.sqrt(rho) * sig, "own": math.sqrt(own2),
+                "centre": 0.1,
                 "new": dl > 0, "judged": False, "kappa": -0.1}
     return {"draw_law": "universal", "record": {"kind": "fit"},
-            "parties": {"AAA": row(0.05, 0.0, 0.0, 0.0055),
-                        "DDD": row(0.8, 0.87, 0.33, 0.001)},
+            "parties": {"AAA": row(0.05, 0.0, 0.0),
+                        "DDD": row(0.8, 0.87, 0.33)},
             "kappa_iters": 3, "kappa_converged": True, "individual_mass": 0.0,
             "judgements_sha": "0" * 16,
             "judgements_applied": [], "judgements_ignored": []}
@@ -1894,9 +1908,9 @@ def faults_in_widths(payload, *, universe=None) -> list[str]:
     """Complaints about a ``35_widths`` payload (design 1j v4-L1).
 
     Per drawn party: σ ≥ 0, δ ≥ 0, ρ in [0, 1], total = √(σ² + δ²), the shared
-    loading = √ρ·σ, and the own term's square plus the composition variance
-    equals σ²(1 − ρ) + δ² up to the recorded floor (the own variance can only
-    be FLOORED at zero, and the floor is what `width_floored` carries). A
+    loading = √ρ·σ, and the own term's square equals σ²(1 − ρ) + δ² (turnout
+    is not in the preference draw's budget since 2026-10-16, so nothing is
+    subtracted and nothing floored). A
     width that is not the sum of its parts was not computed by the rule its
     trace names. Under the incumbent law ``parties`` is empty.
     """
@@ -1918,7 +1932,6 @@ def faults_in_widths(payload, *, universe=None) -> list[str]:
         try:
             sig, dl, rho = float(w["sigma"]), float(w["delta"]), float(w["rho"])
             tot, sh, own = float(w["total"]), float(w["shared"]), float(w["own"])
-            vc, fl = float(w["v_comp"]), float(w["floored"])
         except (KeyError, TypeError, ValueError):
             out.append(f"35_widths.{p} lacks a component")
             continue
@@ -1929,10 +1942,9 @@ def faults_in_widths(payload, *, universe=None) -> list[str]:
         if abs(sh - math.sqrt(rho) * sig) > 1e-9:
             out.append(f"35_widths.{p}: shared loading {sh} is not √ρ·σ")
         budget = sig * sig * (1.0 - rho) + dl * dl
-        if abs(own * own + vc - fl - budget) > 1e-9:
-            out.append(f"35_widths.{p}: own² + composition − floor "
-                       f"{own * own + vc - fl:.6g} is not σ²(1 − ρ) + δ² "
-                       f"{budget:.6g}")
+        if abs(own * own - budget) > 1e-9:
+            out.append(f"35_widths.{p}: own² {own * own:.6g} is not "
+                       f"σ²(1 − ρ) + δ² {budget:.6g}")
     if universe is not None and set(parties) - set(universe):
         out.append(f"35_widths names parties outside the universe: "
                    f"{sorted(set(parties) - set(universe))[:6]}")

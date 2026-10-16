@@ -28,11 +28,10 @@ Written by `run_model` from `make_drawer`. `draw_law` (`"universal"` or
 `"fit"` or the 2011 `"fallback"`, with the curve, δ, location and ρ);
 `parties`, per drawn party under the universal law: `centre` (its `pool_spec`
 centre, the conserved mean), `sigma`, `delta`, `rho`, `total` (√(σ² + δ²)),
-`shared` (√ρ·σ, the loading on the run's one shared normal), `own`, `v_comp`
-(turnout composition's log variance, subtracted), `floored` (the excess when
-composition exceeded the own budget), `kappa`, `new`, `judged`. Invariant:
-`own² + v_comp − floored = σ²(1 − ρ) + δ²` per party, and `faults_in_widths`
-checks it. `judgements_applied`, `judgements_ignored` (each with its reason)
+`shared` (√ρ·σ, the loading on the run's one shared normal), `own`, `kappa`,
+`new`, `judged`. Invariant: `own² = σ²(1 − ρ) + δ²` per party (turnout is not in
+the preference draw's budget since 2026-10-16; it reaches the vote through the
+drawn district turnout), and `faults_in_widths` checks it. `judgements_applied`, `judgements_ignored` (each with its reason)
 and `judgements_sha`. Empty `parties` under the incumbent law.
 
 ### `40_draws` — the summary. Six dicts, all keyed by party.
@@ -82,8 +81,16 @@ scanned` is the proof it looked (`faults_in_group_share`).
 The universal draw (2026-10-12; MACHINERY.md "The universal draw"):
 `kappa_error` (per party, the calibration pass's relative error), `mean_error`
 (the run's own conservation falsifier: `z`, `se`, `threshold`, `parties` and
-`fired`, which must agree), `width` (per party, total latent log sd) and
-`width_floored`. All four are empty under the incumbent law.
+`fired`, which must agree) and `width` (per party, total latent log sd), all
+three empty under the incumbent law.
+
+Turnout enters the vote (2026-10-16, MACHINERY.md "Turnout enters the vote"):
+`turnout_moved` (per party, the mean list share minus the mean preliminary share
+the draw made: what turnout did, reported and never refused on),
+`turnout_reference` (the reference turnout per pool, its source, the band mode
+beside it, the turnout the districts carry per pool, and the districts with no
+mapped composition or no projection of their own) and `district_ipf` (the
+per-district pool split's calls, mean rounds and worst pool-row error).
 
 The keyed streams (2026-10-12, MACHINERY.md "Keyed draw streams"):
 `gamma_fallbacks`, the gammas whose every Marsaglia-Tsang slot rejected and

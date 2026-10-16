@@ -112,6 +112,7 @@ promotion note in §F.
 | `CENSUS_COVERAGE_FLOOR` | 0.80 | `pools.py` | A WARNING in `pool_counts` and a REFUSAL in `registered_at_target`, on different denominators. Measured 2026-09-02: 0.9609-0.9979 at the refusal, so it binds nowhere and has never been exercised. The §J2 argument applies to it and has not been applied. | 🔴 | §J1 |
 | `CENSUS_DRIFT_CEILING` | 0.05 | `pools.pool_counts` | The reprojection refusal: how far the CITYWIDE composition moves because of unmappable wards. Bounded by ablation (worst random loss 0.028, segregated loss ~0.28) on one city only. | 🟡 | §J2 |
 | `contestation_expand` | 0.220 | `montecarlo.py`, applied in `levels.projected_cont… | **AMENDED 2026-09-24 (register audit).** Ships 0.220 and is INERT at 2026 since the declared ward slates reached the correction (MODEL-LOG §1.252; `EXPECTED_INERT[("contestation_expand", "2026")]`), for as long as the roster is `complete = true`. It acts at no backtest target either (§1.60). | 🔴 | §A5 |
+| `DISTRICT_IPF_ROUNDS`, `DISTRICT_IPF_TOL`, `DISTRICT_SEED_FLOOR` | 60 · 1e-6 · 1e-6 | `montecarlo.district_split` | Numerical constants of the per-district pool split (turnout enters the vote, owner 2026-10-16): the IPF's round cap and pool-row tolerance (it ends on the party margin, so a district's mix is exact at the reference turnout), and the value a zero seed cell takes so a district whose pools carry no weight for a party the map gives votes to can still be split. The worst pool-row error of each run is `41_guards.district_ipf.worst_row_error`. Not swept. | 🟡 | §V4 |
 | `DIRICHLET_FLOOR` | 1e-4 | — | 1e-4 and inert as committed — but it has a SECOND consumer that floors a CONCENTRATION rather than a mean, and `PERTURB` sweeps it to 0.05 where that would bind. | 🟢 | §F1 |
 | `dirichlet_floor`, `spine_k` (scenario keys) | — | — | Scenario keys mirroring the module constants so a sweep is reproducible. ⚠ This row also lists `poll_k`, which was DELETED on 2026-08-22 (§1.68) and is in no `DEFAULTS` — see the restructure note beneath. | 🟢 | §F21 |
 | `entrant_prob` | 0.25 | `montecarlo.py` | Ships 0.25. Typed, but measurable since 2026-08-17 and the typed value survives the measurement; §G-R2 puts the defensible range at [0.25, 0.29]. | 🟡 | §A3 |
@@ -189,7 +190,7 @@ promotion note in §F.
 | `TIP_FLOOR` / `OTHER_FLOOR` | — | `render_map.py` | **AMENDED 2026-09-24 (register audit).** One definition in `render_map.py`, imported by `hex_cartogram.py`; 0.05 and 0.005, unchanged. | 🟢 | §D20 |
 | `top = 12` parties per table | — | `compare_history.py` | Cosmetic here — but it is what makes `validation_2021.json` not comparable. | — | §D13 |
 | `total_seats` | 270 | `seats.allocate` | **AMENDED 2026-09-24 (register audit).** Johannesburg's 270 as a DEFAULT ARGUMENT in the shared allocator. This row said every remaining call passes it explicitly; it was wrong. Both `allocate` calls in `fold.py` omit it, so `fold.py`'s printed seat diagnostic allocates 270 seats whatever the city. They feed that printout only, not the γ parameters the forecast reads, so no forecast number is affected. | 🔴 | §H10 |
-| `TURNOUT_CORRELATION` | — | `montecarlo.py` | 0.63 applied as ONE constant to every city and pool pair. It supplies 4–12% of drawn variance in the shape a pool-turnout mechanism should have; why it matters so little is still not explained. | 🟡 | §B4 + §F13 |
+| `TURNOUT_CORRELATION` | — | `montecarlo.py` | 0.63 applied as ONE constant to every city and pool pair. 4–12% of drawn variance under the incumbent law; DA sd +18.5% when 0 under the universal law (MODEL-LOG §1.315 T3); reaches the vote directly since 2026-10-16, unmeasured there. | 🟡 | §B4 + §F13 |
 | `TURNOUT_CORRELATION` | 0.63 | — | 0.63, declared in `DEFAULTS` since §1.63 and asserted equal to the module constant at import. It MOVES the forecast, so it is a live lever. | 🟡 | §F13 + §B4 |
 | TURNOUT_CORRELATION / SPLINTER_PARENT_WEIGHT / SPLIT_SD_FLOOR — the stale-`n` trio | `TURNOUT_CORRELATION` 0.63 · `SPLINTER_PARENT_WEIGHT` 0.35 · `SPLIT_SD_FLOOR` 0.90 | `montecarlo`, `pools` | Still NOT re-measured against the enlarged θ record, and deliberately so; quote none of their `n` values until the record question below is settled. | 🔴 | §A1 |
 | `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` | 0.02, 0.95 | — | 0.02 / 0.95, applied per draw. They contradict §C's claim that the turnout band 'removes caps rather than adding one'; whether the ceiling ever binds is unmeasured. | 🔴 | §F34 |
@@ -231,6 +232,11 @@ easiest kind to lose, because nothing can grep for them.
 | the peer window that sizes every seeded arrival | `pools.arrival_rules.comparators` | Declared 2026-08-29. Live in every backtest and in the 2026 forecast, not gated by `arrival_group_draw`, and the frequency of its whole-record fallback is unmeasured. | 🔴 | §A46 |
 | vote-weighted RMSE as the criterion | the #22 fit | Unchanged: the weighting chose the winner, and must be stated whenever the spine's 14% gain is quoted. | 🔴 | §B2 |
 | Gaussian copula for pool turnout | `montecarlo.py:_tri_ppf` | Conventional and unchanged. It has no tail dependence, which is a substantive assumption nothing has tested. | 🟡 | §B5 |
+| the reference turnout the preliminary vote is at | `montecarlo.run_model` (`_turnout_reference`), `montecarlo.pool_spec`, `montecarlo.reference_district_turnout` | OWNER'S CALL 2026-10-16: the turnout the model already uses as its centre, each pool's band mode (its turnout at the fitting local election, read from `pools.pool_counts`) and, per district, the projection's blend centre. Only a drawn, scenario or realised turnout's difference from it moves votes. | ⚖️ owner | §V1 |
+| a district's registered composition by pool | `montecarlo.run_model` (`_vd_pool_registered`) | Its ward's at the fitting election; a district with no mapped ward takes the city's roll-weighted composition, counted per run. | 🟡 | §V2 |
+| how a district's turnout is split across its pools | `montecarlo.district_pool_turnout`, `drawn_district_turnout` | In proportion to the pools' reference turnout, each pool's column then times its drawn turnout over its reference; a district with no projection takes the pools' reference applied equally, scaled once to the city's projected level. | 🟡 argued | §V3 |
+| the band's skew moves the mean vote | `montecarlo.drawn_district_turnout` | A pool band whose mean differs from its mode now moves each party's mean share by the composition of that difference (κ hid it until 2026-10-16). | 🟡 | §V6 |
+| the width record's residuals at realised pool turnout | `width_record.case_for` | Each earlier target's centre carried to its own realised pool turnout (`pools.pool_counts`, an ecological estimate) before the residual is taken. | 🟡 argued | §V5 |
 | `Σ base·θ = 1` in the IPF | `fold.calibrate_theta` | Forced: predicted citywide shares are shares. | 🟢 | §C1 |
 | splinter fraction capped at 1.0 of parent | `pools._band_from` | Forced: a party cannot take 117% of the vote its parent had. | 🟢 | §C2 |
 | turnout band in logit space | `pools.turnout_band` | A scale choice, and the standard one. Note it REMOVES caps rather than adding them — which §F's `TURNOUT_DRAW_FLOOR`/`TURNOUT_DRAW_CEILING` row contradicts, and says so. | 🟢 | §C3 |
@@ -1056,7 +1062,7 @@ fully.
 
 **Where.** `montecarlo.make_drawer` (the draw, the calibration pass, the composition subtraction), `montecarlo.party_width`, `width_sigma`, `width_location`, `width_rho`, `pool_spec_centres`, `mean_conservation`; `src/width_record.py` (the record); scenario key `draw_law`.
 
-**Now.** Each drawn party gets one latent log level `x = √ρ(s)·σ(s)·z + ω·ε`, `ω² = σ(s)²(1 − ρ(s)) + δ²·new − v_comp`, floored at 0 with the excess in `41_guards.width_floored`; shares are `c·exp(κ + x)` normalised, with `c` the party's `pool_spec` centre and κ set by a calibration pass so the mean drawn share is `c`. The within-pool split is the post-IPF centre (no Dirichlet, no mean floor). `σ(s) = a + (b − a)/(1 + exp(k(log s − log s_mid)))` and the newness δ are fitted jointly with a location `m(s) = c1·L + c2·L²`, `L = min(log(s/20%), 0)`, by weighted ML, one unit per party-cycle, on the backtests before the target. The location is NOT in the draw (option L1). The judgement calls, each the design's:
+**Now.** Each drawn party gets one latent log level `x = √ρ(s)·σ(s)·z + ω·ε`, `ω² = σ(s)²(1 − ρ(s)) + δ²·new` (until 2026-10-16 `− v_comp`, floored at 0; deleted, §V5); shares are `c·exp(κ + x)` normalised, with `c` the party's `pool_spec` centre and κ set by a calibration pass so the mean drawn share is `c`. The within-pool split is the post-IPF centre (no Dirichlet, no mean floor). `σ(s) = a + (b − a)/(1 + exp(k(log s − log s_mid)))` and the newness δ are fitted jointly with a location `m(s) = c1·L + c2·L²`, `L = min(log(s/20%), 0)`, by weighted ML, one unit per party-cycle, on the backtests before the target. The location is NOT in the draw (option L1). The judgement calls, each the design's:
 
 | # (v4 and v3 addenda) | call | value | evidence | how checked |
 |---|---|---|---|---|
@@ -1068,7 +1074,7 @@ fully.
 | 9 | `WIDTH_BLOCK` | the residual reference block: centre ≥ 20%; `m(s)` is 0 from here up | v1 §1.1 | — |
 | 11 | shared loading | ρ measured for established parties under 1% (`RHO_GROUP_EDGE`) and 1-20% by one-way city-year decomposition about zero; applied at `RHO_ANCHOR_LO` = 0.548% and `RHO_ANCHOR_HI` = 2.24%, linear in log size between, 0 at 20% | v2 §3.1 | the 1-20% shared share is a pre-registered measured quantity |
 | 15 | location fixed point | `FIXED_POINT_ITERS` = 2, stop when no width at `FIXED_POINT_SIZES` moves by `FIXED_POINT_TOL` = 0.01; `FIXED_POINT_DRAWS` = 2,000 per earlier city-year | v2 §2.3 | `width_record.json` carries the iterations |
-| 16 | turnout composition | subtracted from each party's own variance, measured on the run's own turnout draws (the calibration streams), floored, excess recorded | v1 §2.5, v2 N1 | `41_guards.width_floored`; `test_universal_draw` |
+| 16 | turnout composition | ⚫ DELETED 2026-10-16 (owner decision, turnout enters the vote): was subtracted from each party's own variance and floored, which left the DA's own term at zero at Johannesburg 2026 (MODEL-LOG §1.315 P5). The draw no longer reads turnout and the record is turnout-corrected (§V5) | v1 §2.5, v2 N1 | `test_universal_draw::test_the_own_term_is_the_rest_of_the_budget` |
 | 17 | mean-conservation falsifier | per party with centre ≥ `FALSIFIER_MIN_CENTRE` (0.1%), z on the run's own and the calibration's standard errors, Bonferroni at `FALSIFIER_FAMILY_ERROR` = 0.01; it reports | v2 §1.2 | `test_universal_draw::test_the_falsifier_is_quiet_on_clean_runs_and_sees_a_twenty_percent_error` (prereg M2) |
 | 18 | `N_CAL`, `KAPPA_TOL`, `KAPPA_MAX_ITER` | 4,000 · 1e-3 relative · 30 | numerical: they change the precision of the mean, not the law | `41_guards.kappa_error` |
 | 20 | `MIN_ESTABLISHED` | a target's record needs 20 established party-elections, or the writer refuses | v1 §2.6 | `test_universal_draw::test_the_fit_refuses_a_record_too_thin_to_fit` |
@@ -1150,15 +1156,16 @@ turnout in the four population groups rises and falls together, to one degree
 for every pair: the average of how closely each pair's turnout moved between
 past local elections in the metros. Black African, Coloured and White turnout
 have moved closely together, and Indian/Asian turnout much less. Separate
-figures for each pair have not been tried. Removing the link was tested and
-changed the forecast's spread very little, and why it matters so little is not
-yet explained. It cannot be changed on [your forecast](your-forecast/).
+figures for each pair have not been tried. Removing the link widened the DA's
+spread noticeably in the model of October 2026; since then turnout reaches the
+vote directly, and its effect there has not been measured. It cannot be changed
+on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.py`
 
-**Now.** 0.63 applied as ONE constant to every city and pool pair. It supplies 4–12% of drawn variance in the shape a pool-turnout mechanism should have; why it matters so little is still not explained.
+**Now.** 0.63 applied as ONE constant to every city and pool pair. Under the incumbent law it supplied 4–12% of drawn variance (§1.48, below). Under the universal law of 2026-10-12 it was measured at Johannesburg 2026: 0 widened the DA's list-share sd by 18.5% and its seat p5-p95 by 4, through the composition subtraction that floored the DA's own term (MODEL-LOG §1.315 T3). Since 2026-10-16 (§V) drawn pool turnout reaches the vote directly; the constant's effect under that law is not measured.
 
-**Record.** Measured over 14 metro-transitions — but applied as **one constant to every city and every pool pair**, when the measurement itself shows +0.86…+0.91 among three pools and +0.21…+0.47 for the fourth. **The width budget (§1.48) finds the pool turnout copula supplies 4–12% of drawn variance**, most for the party most concentrated in one pool (PA ~94% Coloured, +0.124) and least for broad ones (ANC +0.050, DA +0.044) — the shape a pool-turnout mechanism should have, and evidence it works rather than merely runs. An earlier draft said "essentially nothing", which over-stated the precision and was wrong. **Why it matters so little is NOT explained.** The obvious hypothesis — that a common turnout factor divides out of a share — was tested and refuted: setting the correlation to 0.0 leaves the contribution unchanged (+0.055 against +0.050). Before this constant is argued over again, establish what it is supposed to move, and note that the ward layer is where the turnout knobs actually act.
+**Record.** *(2026-10-16: the record below is the incumbent law's.)* Measured over 14 metro-transitions — but applied as **one constant to every city and every pool pair**, when the measurement itself shows +0.86…+0.91 among three pools and +0.21…+0.47 for the fourth. **The width budget (§1.48) finds the pool turnout copula supplies 4–12% of drawn variance**, most for the party most concentrated in one pool (PA ~94% Coloured, +0.124) and least for broad ones (ANC +0.050, DA +0.044) — the shape a pool-turnout mechanism should have, and evidence it works rather than merely runs. An earlier draft said "essentially nothing", which over-stated the precision and was wrong. **Why it matters so little is NOT explained.** The obvious hypothesis — that a common turnout factor divides out of a share — was tested and refuted: setting the correlation to 0.0 leaves the contribution unchanged (+0.055 against +0.050). Before this constant is argued over again, establish what it is supposed to move, and note that the ward layer is where the turnout knobs actually act.
 
 ### §B5 · Gaussian copula for pool turnout — 🟡
 
@@ -1476,7 +1483,9 @@ it for as long as it sat in prose.
 For contrast, and because the list above is not the whole model: θ and ρ and
 their shrinkage; the spine's blend weight; pool composition (Census 2022); pool
 size (the published roll); the turnout **centre** (the city's last local
-election); the turnout **correlation** (14 metro-transitions); the splinter
+election; since 2026-10-16 also the reference turnout the preliminary vote is
+at, §V1, so it sets where a turnout difference is measured from); the turnout
+**correlation** (14 metro-transitions); the splinter
 fractions; the arrival record; contestation (nomination lists); γ (the folds);
 ward/PR split ratios; and the seat allocator, which is statute.
 
@@ -4821,6 +4830,118 @@ above), so the rule says nothing about them; their slates are listed as
 `independents` in the run's `_ballot_report`.
 
 **How to check it.** `tests/test_ward_contest_rule.py`.
+
+## V. Added 2026-10-16 — turnout enters the vote
+
+Owner decision, 2026-10-16: turnout changes the vote the way it does in
+reality. The preliminary citywide vote, then turnout by population group in
+every district, then the citywide vote as the sum of the districts' votes, used
+for shares, wards and seats; nothing re-pins it to the preliminary vote.
+MACHINERY.md "Turnout enters the vote"; pre-registration
+`prereg/2026-10-16-turnout-enters-the-vote.md`; MODEL-LOG §1.317.
+
+### §V1 · the reference turnout is the model's turnout centre — ⚖️ owner's call (2026-10-16)
+
+**Where.** `montecarlo.run_model` sets `scenario["_turnout_reference"]` from
+`pools.pool_counts` at the fitting election; `montecarlo.pool_spec` reads it
+(the pool votes the matrix and the centres are fitted at);
+`montecarlo.reference_district_turnout` per district.
+
+**Now.** Owner, 2026-10-16: the reference is "the SAME turnout the model already
+uses as its 2026 turnout centre, the pool band mode (each pool's turnout at the
+city's last local election) and the matching district turnout projection from
+turnout.csv." Each pool's reference is read from `pools.pool_counts` at the
+fitting election, the quantity the band's mode is emitted from (equal to the
+band mode to four decimals at all 25 city-years, checked 2026-10-16), so that a
+band changed by a scenario moves the vote rather than the reference. Per
+district, the projection's blend centre (`turnout_pattern_blend`, no jitter, no
+noise). The design's alternative, a θ-implied reference (the previous national
+election's pool turnout times the record's local/national ratio), was not
+built at the owner's direction; it computes at the 2016 targets only.
+
+**Record.** `41_guards.turnout_reference` records the reference, its source,
+the band mode beside it and the turnout the districts carry per pool.
+
+### §V2 · a district's registered composition by pool — 🟡
+
+**Where.** `montecarlo.run_model` (`scenario["_vd_pool_registered"]`), from the
+same `pools.pool_counts` object as the voted composition used to place arrivals.
+
+**Now.** The district's ward's registered composition at the fitting election,
+through `pools.vd_map`. A district with no mapped ward takes the city's
+roll-weighted composition. Pools `pool_spec` drops (no member on the ballot)
+are dropped and the row renormalised. Computed at run time rather than
+written into the spec, so no `pools.py` change and no spec re-emit; the roll-
+weighted sum matches each spec's pool shares of the roll within 0.006 at 23
+of 24 backtest city-years and 0.0101 at Mangaung 2016, where 17.5% of the roll
+is unmapped (checked 2026-10-16, before any run).
+
+### §V3 · how a district's turnout is split across its pools — 🟡 argued, not tested
+
+**Where.** `montecarlo.district_pool_turnout`, `reference_district_turnout`,
+`drawn_district_turnout`.
+
+**Now.** A district's turnout of all its registered voters (its projection,
+blended, jittered and noised per draw as before) is split across its pools in
+proportion to the pools' reference turnout, so the district total is its
+projection exactly; each pool's column is then multiplied by that pool's drawn
+turnout over its reference (the copula draw on the band), so a pool shock
+moves the district total. A district with no projection of its own takes the
+pools' reference applied equally (the owner's "a citywide figure applied
+equally to every ward"), times one factor that puts those districts on the
+city's projected level (`turnout_scale`, recorded). Every value clipped to
+`TURNOUT_DRAW_FLOOR`/`CEILING`. The pool ratio is the same in every district;
+nothing measures within-district pool turnout differences.
+
+### §V4 · the per-district pool split — 🟡
+
+**Where.** `montecarlo.district_split`.
+
+**Now.** A two-margin IPF per district: each pool's row sums to one, and the
+pools' reference-weighted sum is the map's share. Seeded with the draw's
+per-pool split; a party in no pool (ENTRANT at the 2011 targets) is seeded
+evenly across pools (no pool differential); a zero seed cell takes
+`DISTRICT_SEED_FLOOR`. At most `DISTRICT_IPF_ROUNDS`, stopping when the worst
+pool-row error is under `DISTRICT_IPF_TOL`; it ends on the party margin, so the
+mix is exact at the reference turnout and a pool's votes are off by at most the
+recorded worst row error elsewhere (`41_guards.district_ipf`). Numerical
+constants, measured only for convergence (one Johannesburg 2026 draw: worst
+row error 6e-4 at 60 rounds, 9e-8 at 145).
+
+### §V5 · the width record's residuals are taken at each earlier target's realised pool turnout — 🟡 argued
+
+**Where.** `width_record.case_for`, `width_record.realised_pool_turnout`,
+`montecarlo.pool_spec_centres(spec, turnout=)`.
+
+**Now.** The draw is the preference at the reference turnout and turnout's
+width comes from the drawn turnout, so σ(s) must be preference error alone:
+each earlier target's centre is carried to that target's own realised pool
+turnout before the residual is taken, and the composition subtraction
+(`v_comp`, §A57 row 16) is deleted. The realised pool turnout is
+`pools.pool_counts`' ecological split of counted district turnout across pools,
+not a count; the design's own arithmetic found that applying it through a fixed
+pool matrix made the centre's list error worse on the record (MODEL-LOG §1.317).
+Those cycles are strictly earlier than any target using them, so this is record,
+not oracle.
+
+### §V6 · the band's skew moves the mean vote — 🟡
+
+**Where.** `montecarlo.drawn_district_turnout` (the shock is drawn turnout over
+the reference, and the reference is the band mode).
+
+**Now.** A pool's drawn turnout has the band's mean, not its mode, so where a
+band is skewed the mean vote moves by the composition of mean − mode. Until
+2026-10-16 κ re-pinned it. Pool arithmetic before any run: DA −0.2 to −0.7
+points and ANC +0.2 to +0.5 at 19 of 24 backtest city-years, Johannesburg 2026
+DA −0.31, ANC +0.21 (prereg). Kept rather than normalised away: the band is
+the model's forecast of turnout, and the vote follows the turnout drawn.
+
+### §V7 · both ballots are cast at one turnout — 🟢
+
+**Where.** `montecarlo.realise_draw`.
+
+**Now.** The list and ward ballots are cast by the same voters, so one district
+turnout serves both; each ballot has its own map and its own split.
 
 ## Appendix — how this register has failed before
 
