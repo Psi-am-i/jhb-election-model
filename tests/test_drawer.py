@@ -474,22 +474,40 @@ PROCESSED = ROOT / "data" / "processed"
 # MK 2.9-18.7 -> 1.4-23.7 (a party new to the city carries the newness term).
 # This records where the 2026 Johannesburg prior now is; no improvement is
 # claimed from it. The before/after against real results is §1.302's table.
+# RE-RECORDED 2026-10-16, deliberately: THE RE-EMITS OF 2026-10-15/16 MOVED
+# THE INPUT, NOT THE DRAWER (POOLS-REEMIT-QUEUE entries 38-41; MODEL-LOG
+# §1.311). Attributed, not assumed: this fixture under today's code, pointed at
+# the spec and width record the previous goldens were recorded on
+# (`backups/2026-10-15T031914Z`, pools_sha dcf2cd52e56b478c), reproduces every
+# previous golden to four decimals. With the old width record and today's spec
+# the drift is as today's (width record under 0.001pp); with the old spec and
+# today's width record the goldens hold. So the 2026 spec is the whole of the
+# movement. Black African pool mean by spec (today's width record), pools_sha
+# being `pools._code_sha` of `src/pools.py` at the commit named: dcf2cd52 (recorded
+# on) 50.80; bfa422e4 (95b4405, entry 38, the roll) 50.56; 0d4e4b8c (982cc97,
+# entry 39: MK's 0.9 splinter weight, one roll per spec, VD placement) 52.27;
+# 76bfd9d6 (a3f039d, entries 40 and 41 together: the ward-contest rule and the
+# national-record fits, today's) 51.96. No mechanism is asserted per step;
+# each interval holds the queue entries named and nothing was isolated within
+# one. Largest party move: MK p95 23.67 -> 24.11. No improvement is claimed
+# and none is measured
+# here.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.7328, 17.6740, 29.2824),
-    "DA": (26.0434, 19.1739, 32.4321),
-    "EFF": (11.0608, 6.5294, 16.3409),
-    "ASA": (11.6813, 7.4105, 17.1541),
-    "MK": (8.7812, 1.4146, 23.6681),
-    "PA": (5.8754, 1.9452, 12.0660),
-    "VFPLUS": (0.9003, 0.1913, 2.2928),
-    "ALJAMAAH": (0.8469, 0.1920, 2.1375),
+    "ANC": (23.7340, 17.7082, 29.2960),
+    "DA": (26.0435, 19.1859, 32.4262),
+    "EFF": (11.0604, 6.5658, 16.3375),
+    "ASA": (11.6825, 7.3925, 17.1309),
+    "MK": (8.7784, 1.4263, 24.1122),
+    "PA": (5.8750, 1.9452, 12.0393),
+    "VFPLUS": (0.9003, 0.1912, 2.2925),
+    "ALJAMAAH": (0.8468, 0.1923, 2.1369),
     "ENTRANT": (1.3859, 0.0000, 7.7892),
 }
 GOLDEN_POOLS = {
-    "Black African": (50.7987, 44.7160, 56.2735),
-    "Coloured": (9.9106, 6.0491, 15.7434),
-    "Indian/Asian": (4.1235, 3.3334, 5.4091),
-    "White": (32.1076, 27.5755, 36.5104),
+    "Black African": (51.9628, 44.4045, 60.6804),
+    "Coloured": (9.1842, 5.1897, 15.1520),
+    "Indian/Asian": (4.1040, 3.0251, 5.5705),
+    "White": (31.6894, 25.6592, 37.0962),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

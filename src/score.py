@@ -892,6 +892,15 @@ def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
     each cell that a per-replicate ``cv²`` counts as spread — so the correction
     is conservative in the direction that matters.
 
+    ⛔ **THE TABLES IN THIS DOCSTRING ARE THE INCUMBENT-LAW PANEL'S** (artefact
+    `c9bae8e`, 2026-09-29). On the panel committed since the universal draw
+    (2026-10-14, MODEL-LOG §1.302) ``reference`` no longer rejects (35 of 64
+    randomisations first order, 28 of 64 second order), ``claimed`` still does
+    (64 of 64 both), the pooled cycle split is not monotone, and the largest
+    cell design effect is the bottom decile in every population. The current
+    figures are MODEL-LOG §1.311 and ``tests/test_scored_universe.py``, which
+    holds them to the artefact; the mechanism described here is unchanged.
+
     ⚠️ **THE CLUSTER LEVEL MAY BE THE WRONG ONE, AND THIS PANEL CANNOT TEST THE
     RIGHT ONE.** The clusters are whatever the caller grouped by, and
     ``compare_history`` groups by city-year — the level this panel can estimate,
@@ -994,12 +1003,11 @@ def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
            # than living only in a docstring nobody opens at quoting time.
            "level_caveat":
                "the clusters are whatever the caller grouped by. On this panel "
-               "city-year clustering (k=24) gives delta-bar 1.07 and buys "
-               "almost nothing; the CYCLE level, where the dependence actually "
-               "is (sd(z) across 2011/2016/2021 is 0.601/0.889/1.265 pooled "
-               "and 0.452/1.155/1.960 on ranks 4-12), has k=3 and cannot be "
-               "estimated. Quote the city-year result WITH that limitation — "
-               "see score.chi2_clustered.__doc__.",
+               "city-year clustering (k=24) moves the design effect little; "
+               "the CYCLE level, where sd(z) differs most (see the per-cycle "
+               "split this report prints for each band), has k=3 and cannot "
+               "be estimated. Quote the city-year result WITH that limitation "
+               "— see score.chi2_clustered.__doc__.",
            "verdict": f"not established: fewer than {int(min_clusters)} "
                       f"clusters, so the design effect cannot be estimated"}
     if k < min_clusters or crit is None or not out["n"]:

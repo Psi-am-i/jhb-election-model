@@ -16,7 +16,7 @@ The rule, for Soweto (owner-accepted, 2026-10-07): a 2026 ward is a Soweto ward
 if at least ``SOWETO_CUT`` of its registered voters are in voting districts
 whose IEC voting-station address names Soweto or a Soweto township
 (``SOWETO_GAZETTEER``), and the address names none of ``SOWETO_EXCLUDE``.
-Registration is ``part_registered`` from the VD -> 2026 ward crosswalk, read by
+Registration is ``part_registered_2026`` from the VD -> 2026 ward crosswalk, read by
 ``montecarlo.read_ward_crosswalk`` (the one reader), so a voting district split
 between wards counts in each ward for its own part.
 """
@@ -214,7 +214,8 @@ def section_text(city: str, area: str, wards: list[int]) -> str:
         f"cut = {spec['cut']}\n"
         f'derivation = "A {spec["year"]} ward is in {spec["label"]} if at least the '
         f"cut share of its registered voters (vd_ward_{spec['year']}.csv "
-        f"part_registered, split voting districts counted by part) are in voting "
+        f"part_registered_{spec['year']}, as montecarlo.read_ward_crosswalk "
+        f"reads it) are in voting "
         f"districts whose IEC voting-station address names a place in "
         f"src/areas.py's gazetteer, matched at the start of a word, and none of "
         f'its exclusions. JUDGEMENT-CALLS.md section P2."\n')

@@ -735,6 +735,12 @@ sequence has to be:
       # test_no_emitted_composition_weight_is_arithmetically_impossible
       # joburg 2016 DA in White: weight 0.6617 against a maximum of 0.6406
 
+  On the specs emitted 2026-10-16 (`pools_sha` 76bfd9d6, census hold withdrawn
+  §1.302) the same test names three 2011 rows instead, all the DA in White:
+  Buffalo City (1.25x the pool's top-of-band vote), Cape Town (1.14x) and
+  Nelson Mandela Bay (1.07x). The test is red on them; it is not changed,
+  because the fault is this item's and a re-emit cannot clear it.
+
 **Open in the model.** MODEL-LOG §1.100 ships the registration-ceiling repair
 with a measured cost and records it as a debt. This item is the reason the debt
 exists and the thing that has to be fixed before it can be discharged.

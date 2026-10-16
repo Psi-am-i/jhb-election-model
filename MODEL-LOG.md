@@ -30186,3 +30186,55 @@ Largest moves, old (lineage rule) to new (fit): Johannesburg 2016 PA 0.627, 0.06
 **The forecast** (`site/draws/base.bin`, deduct law, 5,000 draws; every draw sums to 270). Mean seats: ANC 71.71, DA 69.84, EFF 30.26, ActionSA 27.23, MK 23.39, PA 15.80, RISE 4.88, IFP 4.07, BOSA 3.08, Al Jama-ah 2.76, VF Plus 2.56, ACDP 1.97, ATM 1.43, AIC 1.34, AHC 1.31, PAC 1.00, UAT 0.60; every other party 6.74 together. 5th to 95th percentile: ANC 51-83, DA 52-88, EFF 18-46, ActionSA 17-40, MK 4-64, PA 5-33. Largest party (`forecast_summary.json` `structural`): ANC 0.5766, DA 0.361; alone, without a tie, from the draws: ANC 0.5414, DA 0.3592. Ward favourites (`ward_winner_probs.csv`, 135 wards): ANC 78, DA 45, PA 5, MK 3, EFF 3, IFP 1.
 
 **Seen, not changed.** `data/processed/seat_draws.csv` carries 13 party columns; its rows sum to the council in 8 of 5,000 draws (0.16%). The export carries every seat-winning party and sums at all 5,000.
+
+## 1.311 The model-side suite failures at `aa95c51`: instruments repaired, one golden re-recorded, and the calibration findings the panel under the universal draw no longer supports (2026-10-16)
+
+Source: the whole-suite run at `aa95c51` (`.claude/truth-fix-2026-10-16/suite.log`, gitignored). No model code changed, no spec was emitted, no artefact under `data/**` was written. Every figure below was computed in process from the committed `data/processed/history.json` (`08136c5`) through `compare_history.load_history`, `pooled_calibration`, `pooled_by_band` and `score.chi2_clustered` (R = 64, `redraw_pits`), or from the files named.
+
+### Instruments that were wrong, and what each now checks
+
+- **`test_draw_record`** (IndexError at 5,000). Not 2bcf98c: the step-9 suite (§1.302) already failed the same way. The universal law reads the `calib.*` streams through `correlated_triangular` in `make_drawer`, once for `composition_variance` (N_CAL draws) and then N_CAL draws per κ iteration, so the wrapper saw more calls than draws × pools. The wrapper now tags each call by its caller's stage prefix (`pre == "calib."`); run calls are captured as before (exactly draws × pools), calibration calls are counted against N_CAL × (`kappa_iters` + 1) × pools, `kappa_iters` read from the wrapped run's own `35_widths` trace. Measured: 64,000 calibration calls = 4,000 × 4 × 4 pools.
+- **`test_stage_inputs`.** `roll_sha` (§1.304) added to the checked key set. It is the one member allowed a word: `"absent"` (a target with no crosswalk, every held election); `"unkeyed"` and blanks are refused, with a constructed test. Known gap: the predicate does not know whether its target is held, so it accepts `"absent"` at an unheld target, where it would mean the crosswalk file is missing (§4b).
+- **`test_stage_realisation`.** `real_trace` never loaded `35_widths`, which `run_predicates` reads. Loaded.
+- **`test_levers_are_live`, `LEVEL_DF`.** Read only in the incumbent law's two branches of `make_drawer`; the shipped universal law has no df. The incumbent law is still a `DRAW_LAWS` member, the arm runner runs it and `test_draw_streams` perturbs `LEVEL_DF` under it, so the constant is not dead. The sweep entry now holds `draw_law = "incumbent"` open in both runs (the `SIGMA_TWO_TERM` instrument); it moves there. JUDGEMENT-CALLS §A18 and both register rows now say where it is read.
+- **`test_roster_fails_closed`.** The band was 1..3 × the ten "orphan" counters; the board holds 35, because it gained the keyed streams' and the universal draw's counters. The orphans are a subset of the board, not its size. The board is now held equal to `test_stage_realisation.GUARD_KEYS`, both directions, band 1.0..1.0.
+- **`test_intermediates_are_current`.** `plausibility_*.json` was declared and matched nothing: `plausibility.py` requires `--out` and refuses any path inside `data/`. Entry removed. CLAUDE.md §5 still says it "writes under `data/processed/plausibility/`" and omits `--out`; not edited here.
+- **`backtest.arrival_group_score`** uses `seats.is_independent`. No PR row in any of 40 `lge*_clean.csv` files names `IND` or `INDEPENDENT`, so no arrival score moves.
+
+### `test_drawer`'s goldens re-recorded: the 2026 spec moved them
+
+With today's code, the fixture pointed at the spec and width record the 2026-10-14 goldens were recorded on (`backups/2026-10-15T031914Z`, `pools_sha` dcf2cd52) reproduces every golden to four decimals. Old width record with today's spec: today's drift (the width record contributes under 0.001pp). Old spec with today's width record: the goldens hold. Black African pool mean by spec, with today's width record: dcf2cd52 50.80; bfa422e4 (`95b4405`, queue entry 38) 50.56; 0d4e4b8c (`982cc97`, entry 39) 52.27; 76bfd9d6 (`a3f039d`, entries 40 and 41, today's) 51.96. Each `pools_sha` is `pools._code_sha` of `src/pools.py` at the commit named; nothing was isolated within an interval. Largest party move MK p95 23.67 → 24.11. No improvement claimed.
+
+### Documents re-quoted
+
+ITERATING rule 8's two marked tables and JUDGEMENT-CALLS §A38's PA figures (median 0.0592%, mean 0.0786%, actual 2.9604%; 37.7× on the mean, 50.0× on the median) are pasted from the artefact. Reading `history.json` at `c9bae8e`, `346fb97`, `bb280c8`, `420e179` and `08136c5`: every rule-8 cell moved at `346fb97` (step 9, the universal draw), which §1.302 recorded as "re-quotes for the next session", and moved again by at most 0.004 in mean PIT through the 2026-10-15/16 rebuilds. Claimed ranks 4-12 n went 74 → 124 at `346fb97`. Rule 8 now carries a dated banner and a marked per-cycle table that `test_calibration_report` holds to the artefact in both directions.
+
+### Readings this artefact no longer supports
+
+| claim | where it was made | on `08136c5` | verdict |
+|---|---|---|---|
+| ranks 4-12 sd(z) on `reference` rises monotonically with the cycle (0.452 / 1.155 / 1.960, 2026-09-12) | rule 8, §1.132, `test_calibration_report` | 1.542 / 1.304 / 3.705 for 2011 / 2016 / 2021 | does not hold: 2011 above 2016 |
+| the widest cycle is over 3× the narrowest | same test | 2.84× | does not hold |
+| claimed ranks 1-3 and 4-12 both read above 0.50 (under-forecast); only 4-12's interval excludes 0.50 | rule 8 | mean PIT 0.477 [0.436, 0.515] and 0.458 [0.374, 0.542] | inverted; neither excludes 0.50 |
+| both bands too wide by the same factor | rule 8 | probit-SD dropping saturated PITs 1.053 and 1.082; both bands carry saturated PITs, so the 1e-6-clip figure is ⛔UNQUOTABLE | does not hold |
+| `reference` rejects uniformity once clustered by city-year | `test_scored_universe`, `score.chi2_clustered` | χ²_RS 18.92 against 16.92, rejecting in 35 of 64 randomisations, bootstrap [10.22, 65.04]; second order 14.64 against 14.08, 28 of 64 | not established |
+| `claimed` rejects | same | χ²_RS 30.45, 64 of 64, [20.46, 97.59]; second order 18.33 against 11.73, 64 of 64 | holds |
+| the clustering sits in the high PIT cells | same | the bottom cell is the largest in every population: `reference` 2.6, `claimed` 4.1, `seat_holders` 2.5, `all` 2.5; `reference` corr(bin, deff) −0.28; `reference` mass 13.2% bottom decile, 11.0% top | does not hold |
+| `claimed` survives the move to cycle-level clustering | same | 0 of 64 (δ̄ 5.06) | does not hold |
+| the `claimed` selection flatters the level bias | same | mean z −0.303 on claimed against +0.122 fixed; it keeps 0 of the 10 worst columns, sd(z) 0.991 against 1.846 | reversed: it reports a larger bias of the opposite sign; the width half holds |
+| pooled `reference` sd(z) rises with the cycle | same | 1.388 / 0.972 / 2.273 | not ordered; widest over narrowest 2.34× |
+
+The tests in `test_scored_universe` now assert the measured state (with the incumbent-law values kept in their docstrings), each two-sided where a verdict could move either way; three are renamed for what they now assert. `score.chi2_clustered`'s `level_caveat`, which `compare_history` prints into `history.md`, carried the 2026-09-12 cycle figures as typed digits; it now points at the report's per-cycle split. Its docstring tables are marked as the incumbent-law panel's. Which mechanism produced the bottom-cell clustering is not measured here; the ranks 13+ signed vote error (+16.31pp over the 24 city-years) is one candidate, and a per-band cell decomposition would separate it from the others.
+
+### Soweto: the roll moved ward 29 across the cut
+
+`content/joburg/areas.toml` was regenerated by `src/areas.py --write`: 41 wards, ward 29 added. Ward 29's share of registration at Soweto stations is 37.9% on the crosswalk before `982cc97` and 61.1% after (entry 39 (d): each VD placed wholly on its solved ward); the rule (§P2) is unchanged. `render_sheet` on a scratch sheet: the Mashaba claim's chance is 0.7134 on 41 wards against 0.7133 on 40.
+
+### Not fixed, and why
+
+- `test_arms` ×3: `arms.py` encodes the step-7 trees; retiring or re-pointing it is the owner's call (§1.302).
+- `test_pool_bounds`: Buffalo City, Cape Town and Nelson Mandela Bay 2011, DA in White, 1.07× to 1.25× the pool's top-of-band vote. DATA-QUALITY item 13's census fault; a re-emit cannot clear it. Recorded there.
+- `test_regressions`: `pools.projected_pool_shares` has no caller since entry 39. Deleting it moves `pools_sha`; queued as POOLS-REEMIT-QUEUE entry 42.
+- `test_levers_are_live::test_every_tunable_lever_actually_moves_the_forecast` (also red at `aa95c51`): `width_record.json` holds no 2021 record for the `level_shrink = 0` variant. It needs `width_record.py --emit --set level_shrink=0` in a re-emit window.
+- The chance-scale verdict on "The DA cannot win Joburg without Soweto" (VERY LIKELY; chance 0.7133 on 40 wards, 0.7134 on 41; the scale calls it QUITE LIKELY) is the owner's. The two claim-colour tests in `test_site_structure` fail on markup: each claim's `<article>` now carries an `id` attribute after `data-party`, which their patterns do not admit. No verdict is involved.
+- JUDGEMENT-CALLS §A18's reader-facing Plain line says each party's support is drawn with heavier tails than a bell curve; under the shipped universal law it is a normal on the log scale. Reader text, left for the owner.

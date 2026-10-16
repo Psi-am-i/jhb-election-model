@@ -83,7 +83,7 @@ import official_seats
 import parties as P
 import score as S
 from fold import citywide, load
-from seats import (INDEPENDENT, allocate, council_seats, eligible_parties,
+from seats import (allocate, council_seats, eligible_parties,
                    is_independent, lot_identity, outside_pool_seats)
 
 def runnable_targets(city=None) -> tuple[str, ...]:
@@ -1305,8 +1305,13 @@ def arrival_group_score(pr_share_draws, seat_draws, index,
     # mass of 0.31–1.75pp. `actual_shares` is `citywide(pr)` over every party
     # on the PR ballot, so selecting from it makes both sides input-selected.
     # MODEL-LOG §1.136.
-    arrived = [p for p in actual_shares if p not in base_city and p != INDEPENDENT]
-    names = [p for p in index if p not in base_city and p != INDEPENDENT]
+    # An independent is never an arrival: `seats.is_independent`, the one test
+    # (it also catches the result files' merged `IND`, which `!= INDEPENDENT`
+    # did not). No PR ballot row in any result file names either, so no score
+    # moved when this replaced the inline comparison (2026-10-16).
+    arrived = [p for p in actual_shares
+               if p not in base_city and not is_independent(p)]
+    names = [p for p in index if p not in base_city and not is_independent(p)]
     cols = [index[p] for p in names]
     out = {"n_arrived": len(arrived), "n_columns": len(cols),
            "actual_mass": float(sum(actual_shares.get(p, 0.0) for p in arrived)),

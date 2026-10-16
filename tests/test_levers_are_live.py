@@ -1708,7 +1708,20 @@ MODULE_PERTURB: tuple = (
      "the t degrees of freedom on the level shock, and this project's founding "
      "CLASS 12 defect: swept 2.5 -> 1000 for BYTE-IDENTICAL output while bound "
      "as `def log_shock(..., df=LEVEL_DF)`, evaluated once at import. It now "
-     "resolves at call time, and this is the test that says so."),
+     "resolves at call time, and this is the test that says so.",
+     # ⛔ MEASURED UNDER THE INCUMBENT LAW, since 2026-10-14 (MODEL-LOG
+     # §1.302: arm U, the universal draw, ships). `make_drawer` reads
+     # `LEVEL_DF` only in the incumbent law's two branches (the IPF block's
+     # Student-t level shock and the individual-path parties'); the universal
+     # law draws one log-scale normal per party and has no df. Under the
+     # shipped law it therefore moves nothing, which is a true report about
+     # the law and not about the constant: the incumbent law is still a
+     # selectable `DRAW_LAWS` member, the arm runner runs it, and
+     # `test_draw_streams` perturbs this constant under it. Held in BOTH runs,
+     # as for `dirichlet_floor`'s `Conditional` entries, so what is measured is
+     # the constant and not the switch. If the incumbent law is deleted, this
+     # entry and the constant go with it.
+     (("draw_law", "incumbent"),)),
     ("montecarlo", "SHARE_FLOOR", "2026", 0.05,
      "the floor a share is clipped to before the logit. NULL-RESULTS.md §1 B "
      "names this clip as an ABSORBER — a party under the floor stops responding "

@@ -105,7 +105,7 @@ loads the spec itself.
 | field | type | meaning |
 |---|---|---|
 | `path` | str | the spec read, always `<city.processed>/pools_<target>.json`. Johannesburg keeps the legacy bare `data/processed/` root. |
-| `artefact_key` | dict | nine members; the delivery proof. See below. |
+| `artefact_key` | dict | the delivery proof; its members are below. |
 | `stale_reason` | str \| None | `None` means the spec still matches live code and config. **A sentence, not a boolean** — the useful part is *which* thing moved. |
 | `stale_allowed` | bool | `true` only when `scenario["allow_stale_pools"] is True` let a stale or unverifiable spec through. A diagnostic run, never a measurement. |
 | `fitted_on` | str | the election year the pool **ratios** were fitted on. `emit_pools` resolves it as `from_year or target.previous_lge or target.year`. |
@@ -122,6 +122,7 @@ loads the spec itself.
 | `deps_sha` | `src/{parties,cityconfig,ingest_lge,levels}.py` |
 | `judgements_sha` | `judgements/<slug>-<year>.toml`, hashed as parsed payload |
 | `gates_sha` | the resolved state of `HELD_BACK_OFF` and `THETA_WINDOW` — env vars that change what is read and that an AST hash cannot see |
+| `roll_sha` | the target's VD→ward crosswalk file (`pools._roll_sha`), bytes; the word `"absent"` for a target with no crosswalk (every held election). The one member allowed a word instead of a hash; `"unkeyed"` is refused |
 
 Every `*_sha` is `sha256(...).hexdigest()[:16]` — sixteen lowercase hex
 characters. `montecarlo` is **deliberately excluded** from `deps_sha`
@@ -198,7 +199,7 @@ holds files from two runs.
 **`02_pools_artefact`.** `stale_reason` must be `None` and `stale_allowed`
 `false`. `artefact_key` must be
 present (a spec emitted before keys existed cannot be shown to match the running
-code) and its member set must be **exactly** the nine the code produces — a
+code) and its member set must be **exactly** the set the code produces — a
 field in the stored key that the code no longer produces is the register→code
 blindness this project calls its worst class, and `pools.stale_reason` was bitten
 by exactly that. Schema must be the expected int. Every non-identity member must

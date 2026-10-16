@@ -622,9 +622,21 @@ def test_the_run_records_which_roster_state_it_was_in():
         f"counters `compare_history` cannot otherwise see — `_solve_stats` is a "
         f"local of `run_model` — and they are the reason the board is carried "
         f"at all.")
-    scanned(run.guards, of=orphans, low=1.0, high=3.0,
+    # THE BOARD IS THE DECLARED ONE, BOTH WAYS. The band was 1..3 of the ten
+    # orphans until 2026-10-16, when the board had grown to 35 counters
+    # (keyed streams, the universal draw, the calibration pass) and the scan
+    # tripped its own ceiling: the orphans are a subset of the board, not its
+    # size, so a ratio to them measured nothing about whether the scan saw its
+    # population. The population is now held to the observer's declaration of
+    # the board, `test_stage_realisation.GUARD_KEYS` (one definition), exactly.
+    from test_stage_realisation import GUARD_KEYS
+    assert set(run.guards) == set(GUARD_KEYS), (
+        f"the board on the run has {sorted(set(run.guards) - GUARD_KEYS)} "
+        f"undeclared and lacks {sorted(GUARD_KEYS - set(run.guards))}")
+    scanned(run.guards, of=GUARD_KEYS, low=1.0, high=1.0,
             what="guard counters carried on the run",
-            denominator="the counters that had no route out before F7")
+            denominator="the counters test_stage_realisation.GUARD_KEYS "
+                        "declares for 41_guards")
 
 
 # --------------------------------------------------------------------------
