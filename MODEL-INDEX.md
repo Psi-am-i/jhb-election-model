@@ -289,7 +289,6 @@ The intermediates register names the script that writes each artefact. `agrees` 
 | `history.json` | `compare_history` | `compare_history`, `declares`, `freeze`, `score`, `stats` | yes |
 | `history.md` | `compare_history` | `compare_history` | yes |
 | `interactive_data.json` | `build_site` | `build_interactive`, `declares`, `export_interactive` | NO |
-| `plausibility_*.json` | `plausibility` | `plausibility` | yes |
 | `pools_*.json` | `pools` | `archive`, `arms`, `arrivals`, `build_play`, `cityconfig`, `compare_history`, `declares`, `export_interactive`, `fold`, `freeze`, `group_share_record`, `montecarlo`, `pools`, `stats`, `sweep`, `width_record` | yes |
 | `regime_*_summary.json` | `overhang_regimes` | `archive`, `build_interactive`, `build_portal`, `build_site`, `coalitions`, `declares`, `freeze`, `levels`, `montecarlo`, `overhang_regimes`, `publication`, `render_home`, `render_sheet`, `scenarios`, `stats` | yes |
 | `sweep.json` | `sweep` | `declares`, `sweep` | yes |
@@ -322,6 +321,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `level_floor` | `1e-06` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo` |
 | `level_shrink` | `0.35` | `FITTED_ON_UNINSTRUMENTED` | -- | -- | yes | `arms`, `backtest`, `montecarlo` |
 | `level_shrink_scale` | `0.04` | `FITTED_ON_UNINSTRUMENTED` | -- | -- | yes | `backtest`, `montecarlo` |
+| `newness_width` | `'by_anchor'` | `NOT_FITTED` | -- | -- | yes | `backtest`, `montecarlo`, `width_record` |
 | `overhang_rule` | `'deduct'` | `NOT_FITTED` | -- | -- | yes | `backtest`, `benchmarks`, `montecarlo`, `prediction` |
 | `poll_credence` | `1.0` | `NOT_FITTED` | `2021`, `2026` | `2026` | yes | `backtest`, `montecarlo` |
 | `poll_deff_subsample` | `1.6` | `NOT_FITTED` | `2021`, `2026` | `2026` | yes | `backtest`, `montecarlo` |
@@ -384,7 +384,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `backtest.FITTED_ON` | dict[9] | NO | NO | NO | `model_index` |
 | `backtest.FITTED_ON_UNINSTRUMENTED` | dict[7] | NO | NO | NO | `model_index` |
 | `backtest.PROVENANCE_UNSETTLED` | dict[1] | NO | NO | NO | `model_index` |
-| `backtest.NOT_FITTED` | dict[27] | NO | NO | NO | `model_index` |
+| `backtest.NOT_FITTED` | dict[28] | NO | NO | NO | `model_index` |
 | `backup_ignored.ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `areas`, `bye_value`, `deploy_check`, `edit_mode`, `export_draws`, `group_share_record`, `inputs_preflight`, `judgement_sheet`, `model_index`, `render_home`, `render_sheet`, `site_text` |
 | `backup_ignored.BACKUPS` | ROOT / 'backups' | NO | NO | NO | -- |
 | `backup_ignored.SKIP_PREFIXES` | tuple[5] | NO | NO | NO | -- |
@@ -685,6 +685,8 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `montecarlo.KAPPA_MAX_ITER` | int 30 | NO | NO | yes | -- |
 | `montecarlo.FALSIFIER_FAMILY_ERROR` | float 0.01 | NO | NO | yes | -- |
 | `montecarlo.FALSIFIER_MIN_CENTRE` | float 0.001 | NO | NO | yes | -- |
+| `montecarlo.NEWNESS_WIDTHS` | tuple[2] | NO | NO | NO | -- |
+| `montecarlo.NEWNESS_CLASSES` | tuple[2] | NO | NO | NO | `width_record` |
 | `montecarlo.OVERHANG_RULES` | tuple[4] | NO | NO | NO | -- |
 | `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK` | int 2 | NO | NO | yes | -- |
 | `official_seats.REPORTS` | Path('data/raw/elections/_reports') | NO | NO | NO | `build_make`, `derive_city` |
@@ -873,7 +875,7 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `seat_table.SEAT_TICKS` | tuple[6] | NO | NO | NO | `build_make`, `build_play` |
 | `seat_table.HEAD` | tuple[4] | NO | NO | NO | `arms`, `build_play`, `build_validation`, `compare_history`, `declares`, `export_draws`, `freeze`, `publication` |
 | `seat_table.HEAD_COUNCIL` | tuple[4] | NO | NO | NO | `build_make` |
-| `seats.INDEPENDENT` | str 'INDEPENDENT' | NO | NO | yes | `backtest`, `benchmarks`, `build_make`, `montecarlo`, `parties`, `validate_seats` |
+| `seats.INDEPENDENT` | str 'INDEPENDENT' | NO | NO | yes | `benchmarks`, `build_make`, `montecarlo`, `parties`, `validate_seats` |
 | `share_sheet.DIALOG_CLASS` | str 'sharesheet' | NO | NO | NO | -- |
 | `site_assets.REPO_ROOT` | Path(__file__).resolve().parents[1] | NO | NO | NO | `build_leaderboard`, `build_make`, `build_play`, `build_site`, `build_your_forecast`, `og_pages`, `rank_entries` |
 | `site_assets.CSS_SRC` | REPO_ROOT / 'src' / 'css' | NO | NO | NO | `build_site`, `og_pages` |
@@ -1137,7 +1139,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `levels.ward_pr_ratios` | model+measurement | Each party's ward-ballot share over its PR share, from the last LGE. | `montecarlo`, `tests/test_ward_pr_ratios` |
 | `levels.trusted_ward_pr` | model+measurement | Each party's ward/PR split-ticket ratio, where it is trustworthy. | `bye_value`, `montecarlo`, `tests/test_bye_value` |
 | `levels.contestation` | model+measurement | The fraction of wards each party fields a ward candidate in. | `backtest`, `compare_history`, `montecarlo`, `pools`, `tests/test_chain`, `tests/test_declared_ward_slates`, `tests/test_levers_are_live`, `tests/test_ward_contest_rule` |
-| `levels.ballots` | model+measurement | **The one definition of who stands where** at ``target``. | `inputs_preflight`, `montecarlo`, `tests/test_ward_contest_rule` |
+| `levels.ballots` | model+measurement | **The one definition of who stands where** at ``target``. | `build_make`, `inputs_preflight`, `montecarlo`, `tests/test_ward_contest_rule`, `tests/test_your_forecast_page` |
 | `levels.slate_coverage` | model+measurement | Each party's slate, weighted by where its own list vote lies. | `montecarlo`, `tests/test_declared_ward_slates`, `tests/test_ward_contest_rule` |
 | `levels.unopposed_in` | model+measurement | The unopposed wards in one election, from who stood in each ward. | `backtest`, `tests/test_unopposed` |
 | `levels.ward_ballots` | model+measurement | Every ward a result file covers, and the parties on each ward ballot. | `backtest`, `tests/test_unopposed` |
@@ -1193,6 +1195,9 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `montecarlo.width_sigma` | model+measurement | σ(s): the record's logistic width curve in log size (design v4 §1). | `tests/test_universal_draw`, `width_record` |
 | `montecarlo.width_location` | model+measurement | m(s) = c1·L + c2·L², L = min(log(s / WIDTH_BLOCK), 0) (design v4 §1). | `tests/test_universal_draw`, `width_record` |
 | `montecarlo.width_rho` | model+measurement | ρ(s): the shared share of a party's variance at size ``s``. | `tests/test_universal_draw` |
+| `montecarlo.newness_class` | model+measurement | Where a NEW party's centre comes from: ONE DEFINITION, read by the width | `tests/test_universal_draw`, `width_record` |
+| `montecarlo.drawn_newness` | model+measurement | The class whose δ a NEW party is drawn with under the scenario's | `tests/test_universal_draw` |
+| `montecarlo.newness_delta` | model+measurement | The newness δ a new party takes from a fitted record. | -- |
 | `montecarlo.party_width` | model+measurement | One party's width components from a target's record: ONE DEFINITION. | `tests/test_universal_draw` |
 | `montecarlo.pool_spec_centres` | model+measurement | Each pooled party's ``pool_spec`` centre: the centre the draw conserves. | `arms`, `tests/test_arms`, `tests/test_universal_draw`, `width_record` |
 | `montecarlo.width_record_path` | model+measurement | -- | `width_record` |
@@ -1220,7 +1225,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `official_seats.read` | model+measurement | Official figures for one municipality-year, or None if not on disk. | `archive`, `backtest`, `build_crosswalk`, `build_make`, `compare_history`, `edit_mode`, `fetch_boundaries`, `fetch_byelections`, `fetch_iec`, `pools`, `rank_entries`, `tests/run_all`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_data_coverage`, `tests/test_entries`, `tests/test_freeze`, `tests/test_prior_local_fails_closed`, `tests/test_score_forecasts`, `tests/test_scoreboard_disclosure`, `tests/test_seats`, `tests/test_stage_inputs`, `tests/test_your_forecast_page`, `validate_seats` |
 | `parties.normalise` | model+measurement | Fold a raw party string: upper case, collapsed whitespace, tidy dashes. | `prep_logos`, `score_forecasts` |
 | `parties.canonical` | model+measurement | Return the canonical code for a raw party string. | `backtest`, `build_crosswalk`, `build_make`, `byelections`, `contested_area`, `fold`, `freeze`, `group_share_record`, `levels`, `pools`, `score_forecasts`, `tests/test_chain`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_freeze`, `tests/test_national_record_fit`, `tests/test_score_forecasts`, `tests/test_seats`, `tests/test_temporal`, `tests/test_your_forecast_page` |
-| `parties.display_name` | model+measurement | -- | `build_crosswalk`, `score_forecasts`, `tests/test_score_forecasts` |
+| `parties.display_name` | model+measurement | -- | `build_crosswalk`, `score_forecasts`, `tests/test_score_forecasts`, `tests/test_your_forecast_page` |
 | `parties.is_modelled` | model+measurement | True if the party carries its own theta parameter in plan §3.5. | `build_crosswalk` |
 | `polling.design_effect` | model+measurement | How much of the recorded ``n`` is real information. | `tests/test_polling_sd` |
 | `polling.effective_n` | model+measurement | ``n / deff`` — the sample size that is actually doing work. | `levels`, `tests/test_polling_sd`, `tests/test_stage_estimation`, `tests/test_theta_prior` |
@@ -1378,9 +1383,10 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `width_record.record_result_files` | model+measurement | ``(city, year, path)`` of the realised result file behind each | `montecarlo`, `tests/test_universal_draw` |
 | `width_record.fallback_files` | model+measurement | The raw files the 2011 fallback can read: every calendar election with | `montecarlo`, `tests/test_universal_draw` |
 | `width_record.residual_rows` | model+measurement | Every party-election's residual in the record's frame (design v1 §1.1). | `tests/test_universal_draw` |
-| `width_record.fit_records` | model+measurement | The rows the joint fit uses: every row with a residual, except an | -- |
-| `width_record.joint_nll` | model+measurement | The weighted negative log likelihood of design v4 §1 at parameters | -- |
+| `width_record.fit_records` | model+measurement | The rows the joint fit uses: every row with a residual, except an | `tests/test_universal_draw` |
+| `width_record.joint_nll` | model+measurement | The weighted negative log likelihood of design v4 §1 at parameters | `tests/test_universal_draw` |
 | `width_record.fit_joint` | model+measurement | The weighted ML fit of width curve, newness δ and location m(s). | `pools`, `tests/test_chain`, `tests/test_universal_draw` |
+| `width_record.fit_class_deltas` | model+measurement | The newcomer δ of each ``montecarlo.NEWNESS_CLASSES`` class (prereg | `tests/test_universal_draw` |
 | `width_record.shared_shares` | model+measurement | ρ by size group (design v2 §3.1): the one-way city-year share of the | `tests/test_universal_draw` |
 | `width_record.band_diagnostics` | model+measurement | The offset-aware band roots of design v2 §2.1, PRINTED beside the curve | -- |
 | `width_record.location_shift` | model+measurement | ``Δ`` per (city, year, party): the universal draw's own mean of | `tests/test_universal_draw` |
@@ -1442,7 +1448,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `ingest_npe` | neither | yes | -- | Ingest IEC national/provincial election bulk result files to a JHB VD-level subset. |
 | `inputs_preflight` | neither | NO | `src/build_concordance`, `src/build_make`, `src/derive_city`, `tests/test_inputs_preflight`, `tests/test_roll_2026`, `tests/test_your_forecast_page` | Are the inputs for a forecast of THIS election actually in hand, and current? |
 | `judgement_sheet` | neither | NO | `src/build_site`, `tests/test_judgement_sheet` | The judgement calls, laid out for a person rather than for a grep. |
-| `levels` | model+measurement | NO | `src/backtest`, `src/bye_value`, `src/byelections`, `src/citywide_table`, `src/compare_history`, `src/contested_area`, `src/freeze`, `src/inputs_preflight`, `src/montecarlo`, `src/pools`, `src/theta_residual`, `src/width_record`, `tests/test_blended_centres`, `tests/test_bye_value`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_data_coverage`, `tests/test_declared_ward_slates`, `tests/test_delivery_proof`, `tests/test_drawer`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_model_claims`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_roster_universe`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_temporal`, `tests/test_theta_prior`, `tests/test_universal_draw`, `tests/test_unopposed`, `tests/test_ward_contest_rule`, `tests/test_ward_pr_ratios` | How big each party will be, measured instead of typed. |
+| `levels` | model+measurement | NO | `src/backtest`, `src/build_make`, `src/bye_value`, `src/byelections`, `src/citywide_table`, `src/compare_history`, `src/contested_area`, `src/freeze`, `src/inputs_preflight`, `src/montecarlo`, `src/pools`, `src/theta_residual`, `src/width_record`, `tests/test_blended_centres`, `tests/test_bye_value`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_data_coverage`, `tests/test_declared_ward_slates`, `tests/test_delivery_proof`, `tests/test_drawer`, `tests/test_ipf_feasibility`, `tests/test_levels_dispersion`, `tests/test_levers_are_live`, `tests/test_model_claims`, `tests/test_prior_local_fails_closed`, `tests/test_projected_roster_declaration`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_roster_universe`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_temporal`, `tests/test_theta_prior`, `tests/test_universal_draw`, `tests/test_unopposed`, `tests/test_ward_contest_rule`, `tests/test_ward_pr_ratios`, `tests/test_your_forecast_page` | How big each party will be, measured instead of typed. |
 | `model_index` | neither | NO | `src/judgement_sheet`, `tests/test_judgement_sheet`, `tests/test_model_index` | One index of every lever, constant, fold, window and method, JOINED. |
 | `montecarlo` | model+measurement | NO | `src/areas`, `src/arms`, `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/build_make`, `src/build_play`, `src/build_validation`, `src/bye_value`, `src/citywide_table`, `src/compare_history`, `src/declares`, `src/diagnose`, `src/export_draws`, `src/export_interactive`, `src/freeze`, `src/overhang_regimes`, `src/pools`, `src/prediction`, `src/reader_seats`, `src/reweight`, `src/stats`, `src/sweep`, `src/theta_residual`, `src/width_budget`, `src/width_record`, `tests/run_all`, `tests/test_blended_centres`, `tests/test_calibration_report`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_declared_ward_slates`, `tests/test_delivery_proof`, `tests/test_draw_record`, `tests/test_draw_streams`, `tests/test_drawer`, `tests/test_export_draws`, `tests/test_freeze`, `tests/test_intermediates_are_current`, `tests/test_ipf_feasibility`, `tests/test_levers_are_live`, `tests/test_model_claims`, `tests/test_overhang`, `tests/test_pool_conservation`, `tests/test_pool_placement`, `tests/test_prediction_rule`, `tests/test_projected_roster_declaration`, `tests/test_reader_seats`, `tests/test_regressions`, `tests/test_reweight`, `tests/test_roll_2026`, `tests/test_roster_aware_baseline`, `tests/test_roster_fails_closed`, `tests/test_roster_universe`, `tests/test_scoreboard_disclosure`, `tests/test_seats`, `tests/test_solve_and_predict`, `tests/test_spine`, `tests/test_stage_estimation`, `tests/test_stage_inputs`, `tests/test_stage_realisation`, `tests/test_stat_freshness`, `tests/test_universal_draw`, `tests/test_unopposed`, `tests/test_ward_contest_rule`, `tests/test_ward_parts`, `tests/test_ward_pr_ratios`, `tests/test_your_forecast_page` | Monte Carlo forecast of a metro council (plan §3.4–§3.8, review fixes). |
 | `official_seats` | model+measurement | NO | `src/backtest`, `src/build_crosswalk`, `src/build_make`, `src/rank_entries`, `src/validate_seats`, `tests/test_score_forecasts`, `tests/test_seats` | Read the IEC's own Seat Calculation Detail as the validation ground truth. |

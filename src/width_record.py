@@ -32,6 +32,17 @@ decomposition of standardised residuals about zero, established parties, under
 1% and 1-20%), and the location fixed point of design v2 §2.3, which subtracts
 the draw's own model-internal location from the residuals and re-fits.
 
+Last, THE NEWCOMER δ BY ANCHOR CLASS (prereg/2026-10-16-newness-width-by-
+anchor.md, arm S; :func:`fit_class_deltas`): for each class of
+``montecarlo.newness_class`` ("anchored": centre from the party's own national
+result in the city; "unanchored": none), the same likelihood
+(:func:`joint_nll`) profiled over δ alone on that class's new rows, at the
+converged curve, location and fixed-point shifts. Everything above is fitted
+and iterated exactly as with one δ (the fixed point draws the single δ), so
+``curve``, ``delta``, ``location``, ``rho`` and ``delta_shift`` are unchanged by
+the split and an established party's width is the same under either
+``newness_width``. A class with no rows takes the single δ, labelled so.
+
 ESTIMATION, NOT TUNING (CLAUDE.md §4). The target is the realised dispersion of
 the vote about a centre that does not depend on any width. No coverage, PIT,
 seat width or realised-over-predicted ratio enters. The fixed point reads no
@@ -147,8 +158,10 @@ def residual_rows(cases: list[dict]) -> list[dict]:
 
     ``cases`` holds one dict per city-year: ``city``, ``year``, ``centres``
     (each pooled party's ``pool_spec`` centre, ``montecarlo.pool_spec_centres``),
-    ``actual`` (realised list shares) and ``new`` (parties with no result at
-    the previous local election there).
+    ``actual`` (realised list shares), ``new`` (parties with no result at
+    the previous local election there) and ``anchored`` (the new parties
+    ``montecarlo.newness_class`` calls anchored). Each row carries
+    ``newness_class``: its class when new, None when established.
 
     A party below ``WIDTH_BLOCK`` gets ``r = log(act/s) − log(A/P)``, where A
     and P are the realised and centre shares of the block (parties at or above
@@ -160,6 +173,10 @@ def residual_rows(cases: list[dict]) -> list[dict]:
     rows = []
     for case in cases:
         s_all, act, new = case["centres"], case["actual"], set(case["new"])
+        anchored = set(case.get("anchored") or ())
+        if not anchored <= new:
+            raise SystemExit(f"{case['city']} {case['year']}: anchored parties "
+                             f"that are not new: {sorted(anchored - new)}")
         block = [p for p, s in s_all.items() if s >= M.WIDTH_BLOCK]
         A = sum(act.get(p, 0.0) for p in block)
         P = sum(s_all[p] for p in block)
@@ -172,6 +189,8 @@ def residual_rows(cases: list[dict]) -> list[dict]:
             a = float(act.get(p, 0.0))
             row = {"city": case["city"], "year": case["year"], "party": p,
                    "s": float(s), "act": a, "new": p in new,
+                   "newness_class": (("anchored" if p in anchored
+                                      else "unanchored") if p in new else None),
                    "block": s >= M.WIDTH_BLOCK, "r": None}
             if a > 0:
                 if s < M.WIDTH_BLOCK or p in new:
@@ -272,6 +291,74 @@ def fit_joint(rows: list[dict], delta: dict | None = None) -> dict:
             "established_party_elections": len(est)}
 
 
+def fit_class_deltas(rows: list[dict], fit: dict,
+                     delta: dict | None = None) -> dict:
+    """The newcomer δ of each ``montecarlo.NEWNESS_CLASSES`` class (prereg
+    2026-10-16, arm S): ONE ESTIMATOR, EACH CLASS ON ITS OWN ROWS.
+
+    :func:`joint_nll` at ``fit``'s curve and location, minimised over δ alone
+    on the new rows whose ``newness_class`` is the class, with the weights of
+    the whole record (:func:`_weights` over every fitted row, so each row
+    weighs what it weighs in the single-δ fit; a party-cycle split across
+    classes by city keeps its unit). ``delta`` is the fixed point's shift, as
+    in :func:`fit_joint`. An established row adds a constant in δ and is left
+    out. A class with no rows has nothing to fit and takes ``fit["delta"]``,
+    with ``source`` saying so.
+
+    Deterministic: the single δ and a grid on [0, 3] at 0.05 as starts, then
+    step halving to 1e-5 with :func:`fit_joint`'s improvement threshold. Each
+    entry carries ``delta``, ``n`` (rows), ``party_elections``, ``source``
+    ("fit" or "single: no rows") and ``nll`` at its δ and ``nll_single`` at
+    the single δ, both over the class's rows (so their difference is the
+    in-sample gain of the split for that class).
+    """
+    delta = delta or {}
+    recs = fit_records(rows)
+    w_all = _weights(recs)
+    base = [fit["curve"]["a"], fit["curve"]["b"], fit["curve"]["log_mid"],
+            fit["curve"]["k"], float(fit["delta"]),
+            fit["location"]["c1"], fit["location"]["c2"]]
+    out = {}
+    for cls in M.NEWNESS_CLASSES:
+        idx = [i for i, r in enumerate(recs)
+               if r["new"] and r.get("newness_class") == cls]
+        pe = len({f"{recs[i]['party']}|{recs[i]['year']}" for i in idx})
+        if not idx:
+            out[cls] = {"delta": float(fit["delta"]), "n": 0,
+                        "party_elections": 0, "source": "single: no rows",
+                        "nll": None, "nll_single": None}
+            continue
+        sel = [recs[i] for i in idx]
+        s = np.array([r["s"] for r in sel])
+        r_ = np.array([r["r"] - delta.get((r["city"], r["year"], r["party"]),
+                                          0.0) for r in sel])
+        one = np.ones(len(sel))
+        w = w_all[idx]
+
+        def nll(d: float) -> float:
+            return joint_nll(base[:4] + [d] + base[5:], s, r_, one, w)
+        # The single δ is a start as well as the grid: where it is already
+        # this class's optimum to the search tolerance, it is returned
+        # unchanged rather than re-found a step away.
+        grid = [float(fit["delta"])] + [round(0.05 * j, 10) for j in range(61)]
+        d = min(grid, key=nll)
+        best = nll(d)
+        step = 0.025
+        while step >= 1e-5:
+            moved = False
+            for q in (d + step, d - step):
+                if q >= 0:
+                    v = nll(q)
+                    if v < best - 1e-10:
+                        d, best, moved = q, v, True
+            if not moved:
+                step /= 2
+        out[cls] = {"delta": float(d), "n": len(sel), "party_elections": pe,
+                    "source": "fit", "nll": float(best),
+                    "nll_single": float(nll(float(fit["delta"])))}
+    return out
+
+
 def shared_shares(rows: list[dict], fit: dict, delta: dict | None = None
                   ) -> dict:
     """ρ by size group (design v2 §3.1): the one-way city-year share of the
@@ -352,6 +439,11 @@ def location_shift(inputs_by_cy: dict, record: dict,
     for (city, year), inp in inputs_by_cy.items():
         sc = dict(inp.scenario)
         sc["_width"] = dict(record, kind="fit")
+        # The fixed point is the SINGLE-δ law's own location, whatever the
+        # shipped `newness_width`: the trial record carries no class δ yet,
+        # and the curve, location and ρ it converges to are the ones both
+        # arms share (prereg G1). `fit_class_deltas` runs after it.
+        sc["newness_width"] = "single"
         sc["_strength_applied"] = []
         sc["draw_law"] = "universal"
         lot = M.lot_identity(city, year, f"width-record-{sc.get('seed')}")
@@ -398,6 +490,7 @@ def fit_target(rows: list[dict], inputs_by_cy: dict | None,
         if change < FIXED_POINT_TOL:
             break
     fit.update(kind="fit", fixed_point=history,
+               delta_by_class=fit_class_deltas(rows, fit, delta),
                bands=band_diagnostics(rows, delta),
                delta_shift={f"{c}|{y}|{p}": v for (c, y, p), v in delta.items()},
                zero_results=sum(1 for r in rows if r["act"] <= 0))
@@ -452,14 +545,19 @@ def drawer_inputs(city: str, year: str, sets: list[str]):
 
 def case_for(inp, city: str, year: str) -> dict:
     """One city-year's rows input: ``pool_spec`` centres, realised list
-    shares (``compare_history.actual_shares``), and the new parties."""
+    shares (``compare_history.actual_shares``), the new parties, and which
+    of them are anchored (``montecarlo.newness_class``, the draw's own
+    definition)."""
     import compare_history as CH
     with contextlib.redirect_stdout(io.StringIO()):
         spec = M.pool_spec(inp.scenario, inp.centres, inp.index)
     centres = M.pool_spec_centres(spec)
     actual, _ = CH.actual_shares(inp.target, DATA)
     return {"city": city, "year": year, "centres": centres, "actual": actual,
-            "new": list(inp.scenario.get("_new_parties") or [])}
+            "new": list(inp.scenario.get("_new_parties") or []),
+            "anchored": sorted(
+                p for p in (inp.scenario.get("_new_parties") or [])
+                if M.newness_class(inp.scenario, p) == "anchored")}
 
 
 def build(sets: list[str], cities: list[str] | None = None,
@@ -492,6 +590,10 @@ def build(sets: list[str], cities: list[str] | None = None,
               f"{math.exp(f['curve']['log_mid']):.2%} δ {f['delta']:.3f} "
               f"c1 {f['location']['c1']:+.3f} c2 {f['location']['c2']:+.3f} "
               f"ρ {f['rho']['lo']:.2f}/{f['rho']['hi']:.2f}", flush=True)
+        for cls, e in f["delta_by_class"].items():
+            print(f"    δ {cls}: {e['delta']:.3f} ({e['source']}; "
+                  f"{e['n']} rows, {e['party_elections']} party-elections)",
+                  flush=True)
     variant_sc = _scenario(cities[0], "2021", sets)[1]
     return {"variant": M.width_record_variant(variant_sc), "targets": out}
 

@@ -582,6 +582,11 @@ NOT_FITTED: dict[str, str] = {
                          "width record's location for the target, fitted on "
                          "strictly EARLIER cycles only, so no correction reads "
                          "its own target's result",
+    "newness_width": "WHICH newcomer δ the universal draw reads (prereg "
+                     "2026-10-16, arm S): one per anchor class or the single "
+                     "δ. A switch over mechanisms; both are fitted by "
+                     "`src/width_record.py` on strictly EARLIER backtest "
+                     "cycles, so no δ reads its own target's result",
     "apply_judgements": "whether strength judgements apply (design v3 §11). A "
                         "switch; a backtest ignores every judgement whatever "
                         "its value, because a judgement cannot be blind after "

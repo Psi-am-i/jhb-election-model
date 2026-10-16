@@ -492,22 +492,32 @@ PROCESSED = ROOT / "data" / "processed"
 # one. Largest party move: MK p95 23.67 -> 24.11. No improvement is claimed
 # and none is measured
 # here.
+# RE-RECORDED 2026-10-16 (second time), deliberately: THE NEWCOMER δ BY ANCHOR
+# CLASS (prereg/2026-10-16-newness-width-by-anchor.md, arm S; MODEL-LOG §1.314)
+# MOVED THE DRAWER, NOT THE INPUT. Attributed, not assumed: this fixture with
+# `newness_width = "single"` on the re-emitted width record reproduces every
+# previous golden to 5e-5pp (under TOL); with the shipped "by_anchor" the
+# whole movement appears. MK is anchored (a 2024 national vote here) and its δ
+# fell from the single δ to the anchored class's, so its band narrowed (p5
+# 1.43 -> 2.13, p95 24.11 -> 21.16) and, through the normalisation, ANC's and
+# DA's narrowed with it; the other newcomers' widths moved by class. No
+# improvement is claimed here; the backtest is §1.314's.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.7340, 17.7082, 29.2960),
-    "DA": (26.0435, 19.1859, 32.4262),
-    "EFF": (11.0604, 6.5658, 16.3375),
-    "ASA": (11.6825, 7.3925, 17.1309),
-    "MK": (8.7784, 1.4263, 24.1122),
-    "PA": (5.8750, 1.9452, 12.0393),
-    "VFPLUS": (0.9003, 0.1912, 2.2925),
-    "ALJAMAAH": (0.8468, 0.1923, 2.1369),
+    "ANC": (23.7270, 18.1645, 29.0708),
+    "DA": (26.0343, 19.8626, 32.1278),
+    "EFF": (11.0573, 6.6836, 16.2435),
+    "ASA": (11.6814, 7.4834, 17.0733),
+    "MK": (8.8363, 2.1336, 21.1630),
+    "PA": (5.8731, 1.9359, 12.0395),
+    "VFPLUS": (0.8996, 0.1927, 2.2956),
+    "ALJAMAAH": (0.8470, 0.1922, 2.1412),
     "ENTRANT": (1.3859, 0.0000, 7.7892),
 }
 GOLDEN_POOLS = {
-    "Black African": (51.9628, 44.4045, 60.6804),
-    "Coloured": (9.1842, 5.1897, 15.1520),
-    "Indian/Asian": (4.1040, 3.0251, 5.5705),
-    "White": (31.6894, 25.6592, 37.0962),
+    "Black African": (51.9978, 44.8811, 59.5305),
+    "Coloured": (9.1797, 5.2336, 15.1181),
+    "Indian/Asian": (4.1006, 3.1000, 5.5219),
+    "White": (31.6675, 26.1366, 36.7858),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -599,6 +609,9 @@ def build_inputs(law: str = "universal"):
     # local election here): the universal draw's newness term reads it.
     scenario["_new_parties"] = sorted(
         p for p in index if p != "ENTRANT" and share_2021.get(p, 0.0) <= 0.0)
+    # The baseline before any seed (`montecarlo.newness_class` reads it): this
+    # fixture adds no seed, so it is the national baseline itself.
+    scenario["_baseline_before_seeds"] = dict(base_city_d)
     return scenario, base_city_d, centres, index
 
 

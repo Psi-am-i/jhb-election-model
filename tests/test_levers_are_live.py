@@ -959,6 +959,11 @@ PERTURB: dict[str, object] = {
     "apply_judgements": False,
     # The small-party centre correction (prereg arm UC), switched on.
     "centre_correction": True,
+    # The newcomer δ by anchor class (prereg 2026-10-16, arm S), perturbed to
+    # the single δ: every new party's width moves wherever the two classes'
+    # δ differ from the single one (targets 2021 and 2026; at 2016 every
+    # earlier newcomer was anchored, so the split is the single δ there).
+    "newness_width": "single",
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],

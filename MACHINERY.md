@@ -1311,7 +1311,8 @@ refuse.
 **The width** (`src/width_record.py`, `data/processed/width_record.json`).
 Per target, from strictly earlier backtest cycles, one smooth curve
 `σ(s) = a + (b − a)/(1 + exp(k(log s − log s_mid)))` over every party-election,
-one newness term δ for every party new to the city, and a location curve
+one newness term δ for every party new to the city (split by anchor class
+below), and a location curve
 `m(s)` fitted jointly by weighted ML (one unit per party-cycle), on residuals
 measured about the `pool_spec` centres the model itself builds
 (`run_model(stop_after="drawer_inputs")`), relative to the large block. The
@@ -1332,6 +1333,36 @@ so a re-emit or a corrected input with no code change marks it stale) or one
 built for other centres (the
 variant: `level_shrink` and its scale). Every value is in the record, not here;
 the judgement calls are JUDGEMENT-CALLS §A57.
+
+**The newcomer δ by anchor class** (`newness_width`, default `"by_anchor"`;
+`prereg/2026-10-16-newness-width-by-anchor.md`, arm S). A party new to the
+city is in one of two classes, by where its centre comes from
+(`montecarlo.newness_class`, one definition for the fit and the draw):
+**anchored** when it took votes at the preceding national election in the city
+(`_baseline_before_seeds`), so its centre is the spine's "national only (first
+local election)" level, its own national result through θ (COPE 2011, EFF
+2016, MK 2026); **unanchored** when it has no national result and its centre
+is an arrival seed (ActionSA 2021). The spine reads the baseline after the
+seeds and labels a seeded arrival "national only" as well, which is why the
+class reads the pre-seed baseline and not the route label. Each class has its
+own δ (`width_record.fit_class_deltas`): the same likelihood as the joint
+fit, profiled over δ alone on that class's new rows, at the converged curve,
+location and fixed-point shifts of the single-δ fit, which is fitted and
+iterated exactly as before (the fixed point draws `newness_width = "single"`).
+So σ(s), ρ(s), m(s) and the single δ are unchanged by the split, and an
+established party's width is identical under either setting. A class with no
+rows in a target's record takes the single δ (`source: "single: no rows"`):
+target 2016's record (2011's newcomers) holds no unanchored row, and every
+2011 newcomer is anchored, so at 2016 both classes' δ equal the single δ and
+the two settings draw identically; 2011 is the fallback and has no δ at all.
+`"single"` runs the one δ for every newcomer (the comparison arm). The record
+carries both (`delta`, `delta_by_class` with each class's rows,
+party-elections and in-sample likelihood at its own and at the single δ); the
+drawer writes each party's class to `35_widths.parties[p].newness_class`, the
+record's split to `35_widths.record.delta_by_class` and the setting to
+`35_widths.newness_width`. A record with no `delta_by_class` REFUSES under
+`"by_anchor"` for a run with a newcomer (`montecarlo.newness_delta`). Read
+only under the universal law. JUDGEMENT-CALLS §A57.
 
 **The centre-correction switch** (`centre_correction`, off; prereg arm UC).
 On, every party whose `pool_spec` centre is below 20% has it multiplied by
