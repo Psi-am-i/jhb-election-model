@@ -120,6 +120,7 @@ from __future__ import annotations
 
 import csv
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -803,10 +804,12 @@ def declared_contestation(target: cityconfig.Target, city: cityconfig.City,
     """
     import pools as _pools          # lazy: `pools` imports this module
 
-    roster = _pools.declared_roster(city, target) or {}
-    wards = roster.get("wards") or {}
+    b = ballots(target, city)
+    if b.source != "declared":
+        return {}, False
+    wards = b.wards
     if not wards:
-        return {}, bool(roster.get("complete"))
+        return {}, b.complete
     ward_of, _registered = _pools.vd_map(city, target.year)
     city_wards = set(ward_of.values())
     # `vd_map` refuses rather than returning nothing, so this cannot be empty —
@@ -815,13 +818,12 @@ def declared_contestation(target: cityconfig.Target, city: cityconfig.City,
     assert city_wards, (
         f"vd_map({city.slug}, {target.year}) returned no wards; a declared "
         f"slate cannot be a fraction of nothing.")
-    slates = {party: len(set(ws)) / len(city_wards)
+    slates = {party: len(ws) / len(city_wards)
               for party, ws in wards.items()}
-    complete = bool(roster.get("complete"))
-    if complete:
-        for party in roster.get("parties") or []:
+    if b.complete:
+        for party in b.parties:
             slates.setdefault(party, 0.0)
-    return slates, complete
+    return slates, b.complete
 
 
 def projected_contestation(previous: dict[str, float],
@@ -1972,27 +1974,115 @@ def contestation(target: cityconfig.Target, city: cityconfig.City,
         # MODEL-LOG §1.251, prereg/2026-09-23-declared-ward-slates.md.
         slates, _complete = declared_contestation(target, city)
         return slates
-    wards, seen = _result_slates(result_path(target, city))
-    n = len(seen)
-    return {p: len(w) / n for p, w in wards.items()} if n else {}
+    b = ballots(target, city)
+    n = len(b.ward_ballot)
+    return {p: len(w) / n for p, w in b.wards.items()} if n else {}
 
 
-def _result_slates(path) -> tuple[dict[str, set], set]:
+def _result_ballots(path) -> tuple[dict[str, set], set, set]:
     """``({party: wards it fields a ward candidate in}, every ward on the ward
-    ballot)`` from a result file. One reader for :func:`contestation` and
-    :func:`slate_coverage`."""
+    ballot, {parties on the PR ballot})`` from a result file. A row is the
+    nomination fact whatever its vote count. The file reader behind
+    :func:`ballots`; nothing else reads slates out of a result file."""
     wards: dict[str, set] = defaultdict(set)
     seen: set = set()
+    pr: set = set()
     with open(path, encoding="utf-8", errors="replace") as fh:
         for row in csv.DictReader(fh):
-            if row.get("BallotType") != "Ward":
+            kind = row.get("BallotType")
+            if kind == "PR":
+                pr.add(P.canonical(row["sPartyName"]))
+                continue
+            if kind != "Ward":
                 continue
             ward = (row.get("Ward") or "").strip()
             if not ward:
                 continue
             seen.add(ward)
             wards[P.canonical(row["sPartyName"])].add(ward)
-    return dict(wards), seen
+    return dict(wards), seen, pr
+
+
+@dataclass(frozen=True)
+class Ballots:
+    """Who is on each ballot at one city-year. Built only by :func:`ballots`.
+
+    ``wards`` maps a party to the WardIDs (``79800001`` form, the result
+    files' and ``pools.vd_map``'s key space) where it fields a ward
+    candidate. ``pr`` is the set of parties with a PR list, or None when the
+    source does not say (a declared roster with no ``pr`` key). ``parties`` is
+    every party the source names on either ballot. ``complete`` says absence is
+    a fact: True for a result file, ``[roster] complete`` for a declaration.
+    ``ward_ballot`` is the set of wards the ward slates cover. ``source`` is
+    ``"result"``, ``"declared"`` or ``"none"``.
+    """
+    wards: dict
+    pr: frozenset | None
+    parties: frozenset
+    complete: bool
+    ward_ballot: frozenset
+    source: str
+
+    def slate(self, party: str) -> frozenset | None:
+        """The wards ``party`` contests, or None when that is UNKNOWN.
+
+        A party the slates name: its wards. A party the source names but gives
+        no ward slate, or any party under a complete source: no wards (an empty
+        set, a fact). Otherwise None: a partial declaration says nothing about
+        a party it omits (§1.175), so the party keeps an unmasked ward ballot.
+        """
+        if party in self.wards:
+            return self.wards[party]
+        if self.complete:
+            return frozenset()
+        return None
+
+    def ward_only(self) -> frozenset:
+        """Parties with a ward slate and no PR list. Empty when ``pr`` is
+        unknown. Independents are excluded: they are not in any run's
+        universe and leave the pool through the C term."""
+        if self.pr is None:
+            return frozenset()
+        return frozenset(p for p in self.wards
+                         if p not in self.pr and p not in (_INDEPENDENT, "IND"))
+
+
+def ballots(target: cityconfig.Target, city: cityconfig.City) -> Ballots:
+    """**The one definition of who stands where** at ``target``.
+
+    From the target's result file where it exists (:func:`has_result_file`):
+    a ward slate is the wards with a ward-ballot row for the party, a PR list
+    is any PR-ballot row. Otherwise from ``[roster]`` in the judgement file
+    (``pools.declared_roster``): ``[roster.wards]`` and ``[roster] pr``.
+    Owner rule, 2026-10-15: a party running for ward seats only is omitted
+    from every citywide calculation and wins only in the wards it contests;
+    ``montecarlo.run_model`` reads that from here, as do :func:`contestation`,
+    :func:`declared_contestation`, :func:`slate_coverage` and
+    :func:`unopposed_wards`. Before this, three copies of the two-source branch
+    existed and the montecarlo copy compared WardIDs with ward NUMBERS, so at
+    2026 no ward matched (MODEL-LOG §1.306).
+    """
+    if has_result_file(target, city):
+        wards, seen, pr = _result_ballots(result_path(target, city))
+        return Ballots(wards={p: frozenset(w) for p, w in wards.items()},
+                       pr=frozenset(pr), parties=frozenset(set(wards) | pr),
+                       complete=True, ward_ballot=frozenset(seen),
+                       source="result")
+    import pools as _pools          # lazy: `pools` imports this module
+
+    roster = _pools.declared_roster(city, target) or {}
+    if not roster:
+        return Ballots(wards={}, pr=None, parties=frozenset(), complete=False,
+                       ward_ballot=frozenset(), source="none")
+    wards = {p: frozenset(str(w).strip() for w in ws)
+             for p, ws in (roster.get("wards") or {}).items()}
+    pr = roster.get("pr")
+    pr = None if pr is None else frozenset(pr)
+    named = set(roster.get("parties") or ()) | set(wards) | set(pr or ())
+    return Ballots(wards=wards, pr=pr, parties=frozenset(named),
+                   complete=bool(roster.get("complete")),
+                   ward_ballot=frozenset(w for ws in wards.values() for w in ws),
+                   source="declared")
 
 
 def slate_coverage(target: cityconfig.Target, city: cityconfig.City,
@@ -2036,11 +2126,7 @@ def slate_coverage(target: cityconfig.Target, city: cityconfig.City,
                 continue
             pr[P.canonical(row["sPartyName"])][row["VD_Number"]] += int(
                 float(row.get("Party_Votes") or 0))
-    if has_result_file(target, city):
-        slates, _seen = _result_slates(result_path(target, city))
-    else:
-        declared = (_pools.declared_roster(city, target) or {}).get("wards") or {}
-        slates = {p: {str(w).strip() for w in ws} for p, ws in declared.items()}
+    slates = ballots(target, city).wards
     ward_of, _registered = _pools.vd_map(city, target.year)
     out: dict[str, float] = {}
     for party, frac in base.items():
@@ -2126,13 +2212,10 @@ def unopposed_wards(target: cityconfig.Target,
     if has_result_file(target, city):
         ward_parties, all_wards = ward_ballots(result_path(target, city))
         return unopposed_in(ward_parties, all_wards)
-    import pools as _pools          # lazy: `pools` imports this module
-
-    declared = (_pools.declared_roster(city, target) or {}).get("wards") or {}
     ward_parties: dict[str, set[str]] = defaultdict(set)
-    for party, wards in declared.items():
+    for party, wards in ballots(target, city).wards.items():
         for ward in wards:
-            ward_parties[str(ward).strip()].add(party)
+            ward_parties[ward].add(party)
     return unopposed_in(ward_parties, set(ward_parties))
 
 

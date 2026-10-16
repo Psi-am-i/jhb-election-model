@@ -282,7 +282,26 @@ def artefact_key(city, target, config_path: Path | None = None) -> dict:
         "deps_sha": _deps_sha(),
         "judgements_sha": _judgements_sha(city, target),
         "gates_sha": _gates_sha(),
+        "roll_sha": _roll_sha(target),
     }
+
+
+def _roll_sha(target) -> str:
+    """The target's VD→ward crosswalk, hashed as bytes: ``"absent"`` for a
+    target that has none (every held election), else its sha256.
+
+    The 2026 roll is the IEC snapshot apportioned into that file
+    (``build_concordance.apportion_roll``), and ``_target_roll`` / the pool
+    composition read it at emit. A new snapshot or a changed concordance moves
+    the file and so marks every 2026 spec stale. Bytes rather than parsed
+    payload: the file is a machine-written table with no prose to churn."""
+    try:
+        path = Path(target.crosswalk)
+    except AttributeError:
+        return "unkeyed"
+    if not path.exists():
+        return "absent"
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
 
 
 def _gates_sha() -> str:
@@ -591,7 +610,8 @@ def stale_reason(spec: dict, city, target,
                   "config_sha": f"{config_path} and {Path(config_path).parent}/*.toml",
                   "cities_sha": f"{cityconfig.CITIES_DIR}/*.toml",
                   "deps_sha": "src/{" + ",".join(_EMIT_DEPENDENCIES) + "}.py",
-                  "judgements_sha": str(lineage_path(city, target))}
+                  "judgements_sha": str(lineage_path(city, target)),
+                  "roll_sha": str(getattr(target, "crosswalk", "the VD-ward crosswalk"))}
         which = " and ".join(labels.get(m, m) for m in moved)
         return (f"{which} changed since this spec was emitted "
                 f"({', '.join(f'{m} {key.get(m)} -> {now[m]}' for m in moved)}); "
@@ -1200,6 +1220,46 @@ class PoolCountsUnsafe(Exception):
         super().__init__(message)
 
 
+def _ward_resolver(city: cityconfig.City, year: str):
+    """``(vd, ward_field) -> ward`` for one election's result file.
+
+    The results-portal NPE layout (2019, 2024) carries no Ward column at all,
+    so those files land with it blank. A national election has no ward
+    contest, but its voting districts still sit inside wards, and the LGE
+    under the same delimitation says which. Without this the registration
+    series loses two of its five cycles, and a national election cannot be
+    fitted at all (:func:`national_fits`).
+
+    ONE resolver for both readers of a result file, :func:`ward_totals` (the
+    roll and the votes cast) and :func:`ward_party_shares` (the party table),
+    so the composition and the shares a fit joins are keyed on the same wards.
+    The fallback map is read on the first blank ward only.
+    """
+    fallback: dict[str, str] = {}
+    loaded = False
+
+    def resolve(vd: str, ward_field: str | None) -> str:
+        nonlocal fallback, loaded
+        ward = (ward_field or "").strip()
+        if ward:
+            return ward
+        if not loaded:
+            loaded = True
+            lge = max((y for y in cityconfig.CALENDAR
+                       if int(y) <= int(year)
+                       and cityconfig.CALENDAR[y].kind == "LGE"
+                       and cityconfig.CALENDAR[y].results),
+                      key=int, default=None)
+            if lge:
+                try:
+                    fallback = vd_map(city, lge)[0]
+                except SystemExit:
+                    fallback = {}
+        return fallback.get(str(vd).strip(), "")
+
+    return resolve
+
+
 def ward_totals(city: cityconfig.City, year: str,
                 ballot: str = "PR") -> tuple[dict[str, float], dict[str, float]]:
     """Ward -> registered voters, and ward -> votes cast. Both published."""
@@ -1232,12 +1292,7 @@ def ward_totals(city: cityconfig.City, year: str,
             "held_back",
             f"{city.slug} {year}: this election is in `levels.HELD_BACK` and "
             f"may not be read. See that dict for the diagnosis it waits on.")
-    # The results-portal NPE layout (2019, 2024) carries no Ward column at all,
-    # so those files land with it blank. A national election has no ward
-    # contest, but its voting districts still sit inside wards, and the LGE
-    # under the same delimitation says which. Without this the registration
-    # series loses two of its five cycles.
-    fallback: dict[str, str] = {}
+    ward_of = _ward_resolver(city, year)
 
     reg: dict[str, float] = defaultdict(float)
     votes: dict[str, float] = defaultdict(float)
@@ -1252,20 +1307,7 @@ def ward_totals(city: cityconfig.City, year: str,
             if has_ballot and row.get("BallotType") != ballot:
                 continue
             vd = row["VD_Number"].strip()
-            ward = (row.get("Ward") or "").strip()
-            if not ward:
-                if not fallback:
-                    lge = max((y for y in cityconfig.CALENDAR
-                               if int(y) <= int(year)
-                               and cityconfig.CALENDAR[y].kind == "LGE"
-                               and cityconfig.CALENDAR[y].results),
-                              key=int, default=None)
-                    if lge:
-                        try:
-                            fallback = vd_map(city, lge)[0]
-                        except SystemExit:
-                            fallback = {}
-                ward = fallback.get(vd, "")
+            ward = ward_of(vd, row.get("Ward"))
             if vd not in seen:            # registration is per VD, not per row
                 seen.add(vd)
                 reg[ward] += float(row.get("Registered_Population") or 0)
@@ -1788,6 +1830,20 @@ def projected_pool_shares(series: dict[str, np.ndarray], target: str,
         f"(log-space, invariant to a constant level bias), damped x{damping:g}")
 
 
+def pool_shares_of_roll(registered: np.ndarray, target: str) -> tuple[np.ndarray, str]:
+    """Each pool's share of the roll the spec sizes the pools from, and the
+    provenance phrase naming it. The one place ``pool_shares_at_target`` is
+    derived: from ``registered`` (``registered_at_target``), so the shares and
+    ``pools[g].registered`` describe one roll."""
+    registered = np.asarray(registered, dtype=float)
+    total = float(registered.sum())
+    if not total > 0:
+        raise SystemExit(f"{target}: the pools hold no registered voters")
+    return registered / total, (
+        f"the {target} roll counted per ward and split by each ward's own "
+        f"composition")
+
+
 def vd_map(city: cityconfig.City, year: str) -> tuple[dict[str, str], dict[str, float]]:
     """VD -> ward, and VD -> registered voters, as at one election.
 
@@ -2223,12 +2279,19 @@ def ward_party_shares(city: cityconfig.City, year: str,
     if not path.exists():
         raise SystemExit(f"no result file for {city.slug} {year}: {path}")
 
+    # A national election has one ballot and no BallotType column, and the
+    # 2019/2024 layout leaves Ward blank: both handled as `ward_totals` handles
+    # them, through the one `_ward_resolver`. Filtering on the absent column
+    # dropped every NPE row, so a national election could not be fitted.
+    ward_of = _ward_resolver(city, year)
     tally: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     with open(path, encoding="utf-8", errors="replace") as fh:
-        for row in csv.DictReader(fh):
-            if row.get("BallotType") != ballot:
+        reader = csv.DictReader(fh)
+        has_ballot = "BallotType" in (reader.fieldnames or [])
+        for row in reader:
+            if has_ballot and row.get("BallotType") != ballot:
                 continue
-            ward = (row.get("Ward") or "").strip()
+            ward = ward_of(row.get("VD_Number") or "", row.get("Ward"))
             if not ward:
                 continue
             tally[ward][P.canonical(row["sPartyName"])] += int(float(row["Party_Votes"] or 0))
@@ -3433,15 +3496,17 @@ def _target_roll(city: cityconfig.City, target: cityconfig.Target,
     # ranging 5,902 to 36,649 (CV 30.0%) against 14,791 to 20,007 (CV 11.9%)
     # under this one. A 6.2x spread is not something a delimitation produces.
     # MODEL-LOG §1.99; guarded by tests/test_ward_parts.py.
+    # ONE READER, ONE ROLL. This used to parse the file itself (the third copy
+    # of a read, F14), and would then have had to choose between the MDB layer's
+    # registration and the IEC snapshot's a second time. `ward_column` names the
+    # MDB identifier this module keys on; the reader picks the column.
+    import montecarlo as _mc
+    parts, _vds, _split = _mc.read_ward_crosswalk(
+        path, target.year, ward_column="WardID_" + target.year)
     roll: dict[str, float] = defaultdict(float)
-    with open(path, encoding="utf-8", errors="replace") as fh:
-        for row in csv.DictReader(fh):
-            vd = (row.get("VD_Number") or "").strip()
-            ward = (row.get("WardID_" + target.year) or row.get("Ward") or "").strip()
-            if not vd or not ward:
-                continue
-            roll[ward] += float(row.get("part_registered")
-                                or row.get("vd_registered") or 0)
+    for vd, ward, registered in parts:
+        if str(vd).strip() and str(ward).strip():
+            roll[str(ward).strip()] += float(registered)
     return dict(roll)
 
 
@@ -3648,7 +3713,27 @@ MIN_HOME_SPLITS = 2
 # first election and regressing on (parent, city average) over 22 metro-cases
 # gives a median of 0.35 — EFF 0.89, GOOD 0.28, ActionSA about 0.02. Pure
 # inheritance was the assumption and it is wrong for two of the three.
+# THE DEFAULT: a party's judgements-sheet entry `parent_weight` replaces it for
+# that party alone (:func:`splinter_parent_weight`), one mechanism for every
+# party. JUDGEMENT-CALLS §F6 (the default) and §SJ1 (the first such call, MK).
 SPLINTER_PARENT_WEIGHT = 0.35
+
+
+def splinter_parent_weight(rule: dict | None, party: str = "") -> float:
+    """The weight on the parent's vector for one splinter: the party's own
+    ``parent_weight`` from its ``[party.X]`` judgements entry, else
+    :data:`SPLINTER_PARENT_WEIGHT`. The only reader of either; a value outside
+    [0, 1] or not a number refuses (a weight is a share of one vector)."""
+    raw = (rule or {}).get("parent_weight")
+    if raw is None:
+        return float(SPLINTER_PARENT_WEIGHT)
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)) \
+            or not 0.0 <= float(raw) <= 1.0:
+        raise SystemExit(
+            f"[party.{party}] parent_weight = {raw!r}: it is the share of the "
+            f"splinter's pool vector taken from its parent and must be a "
+            f"number in [0, 1].")
+    return float(raw)
 
 SPLITS: dict[str, Split] = {
     "COPE": Split("ANC", ("2004", "2009"),
@@ -5000,7 +5085,7 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
             # The remainder goes to the city average, not to a named opponent:
             # the record says a splinter reaches beyond its parent, and does not
             # say whose voters it reaches instead.
-            alpha = float(SPLINTER_PARENT_WEIGHT)
+            alpha = splinter_parent_weight(declared, party)
             size = np.asarray(pool_size, dtype=float)
             mix = size / size.sum() if size.sum() > 0 else np.full(n_pools, 1.0 / n_pools)
             parent_rate = np.array([rates[g, index[parent]] for g in range(n_pools)])
@@ -5013,8 +5098,11 @@ def arrival_rules(newcomers: set[str], lineage: dict[str, dict],
                        for g in range(n_pools) if blended[g] > 0}
             why = (f"SPLIT from {parent} ({lineage_why}): takes {f_mid:.1%} of a "
                    f"vector that is {alpha:.0%} {parent}'s pool rates and "
-                   f"{1 - alpha:.0%} the city's own composition — measured, "
-                   f"median over 22 splinter-metro cases, from the {f_kind} "
+                   f"{1 - alpha:.0%} the city's own composition — "
+                   + ("DECLARED in judgements/ (`parent_weight`)"
+                      if declared.get("parent_weight") is not None else
+                      "measured, median over 22 splinter-metro cases")
+                   + f", from the {f_kind} "
                    f"splinter record; the draw's width comes from the pool "
                    f"split. Every party in those pools gives up the same proportion; none is named.")
         else:
@@ -5322,6 +5410,8 @@ ROSTER_KEYS = {
     "complete":     "true only when this is the WHOLE ballot; licenses deletion",
     "reach":        "per-party fraction of wards contested, overriding the carry-forward",
     "wards":        "per-party ward lists, for full fidelity once lists land",
+    "pr":           "the parties that filed a PR list; a ward slate without one "
+                    "is ward-only (levels.ballots)",
     "confirm_drop": "acknowledges a `complete` deletion above ROSTER_DROP_CEILING",
 }
 
@@ -5367,8 +5457,9 @@ def declared_roster(city: cityconfig.City, target: cityconfig.Target) -> dict:
     reader existed.
 
     Returns ``{"parties": [...], "complete": bool, "reach": {party: fraction},
-    "wards": {party: [ward, ...]}}`` — empty dict when no `[roster]` is
-    declared.
+    "wards": {party: [ward, ...]}, "pr": [party, ...] | None}`` — empty dict
+    when no `[roster]` is declared. ``pr`` is None when the table has no
+    ``pr`` key: who filed a list is then unknown, and nobody is ward-only.
 
     ⛔ ``complete`` DEFAULTS TO FALSE, AND THAT IS THE WHOLE SAFETY PROPERTY.
     A declared roster is used to ADD parties always, and is allowed to REMOVE
@@ -5499,8 +5590,30 @@ def declared_roster(city: cityconfig.City, target: cityconfig.Target) -> dict:
                 f"pools.")
         flags[key] = raw_flag
 
+    # ⛔ THE PR LIST DECIDES WHO IS IN THE CITYWIDE VOTE (owner rule,
+    # 2026-10-15; `levels.ballots`). A slated party missing from `pr` is
+    # ward-only and its list vote is set to zero, so a misspelling there would
+    # delete a party's PR vote in silence. Every `pr` name must therefore be a
+    # declared party, and every declared party must stand on one ballot or the
+    # other. Both directions refuse.
+    pr = block.get("pr")
+    if pr is not None:
+        pr = sorted({P.canonical(x) for x in pr})
+        if parties:
+            stray = sorted(set(pr) - set(parties))
+            neither = sorted(set(parties) - set(pr) - set(wards))
+            if stray or neither:
+                raise SystemExit(
+                    f"[roster] pr in {path} does not match `parties`:\n"
+                    f"  in pr, not in parties: {stray or 'none'}\n"
+                    f"  in parties, on neither ballot: {neither or 'none'}\n\n"
+                    f"A party with a ward slate and no PR list is ward-only "
+                    f"and gets no list vote (levels.ballots), so a spelling "
+                    f"that differs between the two lists removes a party's PR "
+                    f"vote. Write the same spelling in both.")
+
     return {"parties": parties, "complete": flags["complete"],
-            "reach": reach, "wards": wards,
+            "reach": reach, "wards": wards, "pr": pr,
             "confirm_drop": flags["confirm_drop"]}
 
 
@@ -5535,9 +5648,24 @@ PARTY_KEYS = {
                       "model's). Required with `support` or `overperform`",
     "register":       "the JUDGEMENT-CALLS §SJ row declaring the strength "
                       "judgement. Required with `support` or `overperform`",
+    "parent_weight":  "a SPLIT's share of the parent's pool vector (the rest is "
+                      "the city's composition), in [0, 1]; replaces the default "
+                      "`SPLINTER_PARENT_WEIGHT` for this party only. Read at "
+                      "EMIT, so it is in the spec's hash. Applies to a party sized as "
+                      "a split; `register` names its JUDGEMENT-CALLS §SJ row",
     "baseline_share": "INFORMATIONAL: what it polled at the preceding national "
                       "election. Nothing reads this.",
 }
+
+
+#: The `[party.X]` keys that are the owner's per-party judgement calls (a pool
+#: vector, a size, a strength, a parent weight). `parent` (the lineage fact) and
+#: `baseline_share` are not. `--without-judgements` drops exactly these.
+OWNER_JUDGEMENT_KEYS = ("parent_weight", "weights", "support", "overperform",
+                        "sigma_j", "register")
+
+#: Set only by `main` for `--without-judgements`; read only by `load_lineage`.
+_WITHOUT_JUDGEMENTS = False
 
 
 def load_lineage(city: cityconfig.City, target: cityconfig.Target) -> dict[str, dict]:
@@ -5546,6 +5674,11 @@ def load_lineage(city: cityconfig.City, target: cityconfig.Target) -> dict[str, 
         return {}
     raw = _lineage_raw(path)
     table = dict((raw.get("party") or {}).items())
+    for party, body in table.items():
+        splinter_parent_weight(body, party)     # range-check at load
+    if _WITHOUT_JUDGEMENTS:
+        table = {p: {k: v for k, v in body.items() if k not in OWNER_JUDGEMENT_KEYS}
+                 for p, body in table.items()}
     for party, body in table.items():
         unknown = sorted(set(body) - set(PARTY_KEYS))
         if unknown:
@@ -5651,6 +5784,207 @@ def city_mix_for(ctx: dict, n: int) -> "np.ndarray":
         return np.full(n, 1.0 / n)
     arr = np.asarray(pv, dtype=float)
     return (arr / arr.sum()) if arr.sum() > 0 else np.full(n, 1.0 / n)
+
+
+def national_fits(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
+                  categories: list[str], *, split_bloc: dict | None = None
+                  ) -> tuple[dict[str, "PartyFit"], str]:
+    """Every party fitted on the target's baseline NATIONAL election, by ward.
+
+    The pool vectors come from the preceding LOCAL election (``fitted_on``), so
+    a party founded since then — MK for a 2026 target, the EFF for 2016 — has
+    no vector of its own there however large its national record. This fits
+    that record the way the local one is fitted: :func:`fit_city` on the
+    national result file, every party jointly, the same registration-nested
+    composition (:func:`pool_counts`, the roll of that election), the same
+    method-of-bounds box and the same :meth:`PartyFit.identified` test. Only
+    the election differs. The national file's voting districts are placed in
+    wards by the preceding LGE's map (:func:`_ward_resolver`).
+
+    The election is ``target.previous_npe`` — the baseline the forecast's
+    levels start from, which precedes the target by construction — so a
+    backtest reads its own preceding national election exactly as the live
+    forecast reads 2024. No year gate: none is needed for the fit to be
+    out of sample.
+
+    Returns ``({}, reason)`` when there is nothing to fit — no national
+    election before the target, its file absent or held back, or a pool set
+    that differs from the local fit's — so the caller falls back to the
+    lineage rules and the spec says why.
+    """
+    npe = target.previous_npe
+    if not npe:
+        return {}, f"no national election precedes {target.year}"
+    if not cityconfig.CALENDAR[npe].results:
+        return {}, f"the {npe} national election has no result file"
+    try:
+        fits, ctx = fit_city(city, npe, cfg, split_bloc=split_bloc)
+    except ElectionUnavailable as exc:
+        return {}, f"the {npe} national result is unavailable ({exc.cause})"
+    except PoolCountsUnsafe as exc:
+        return {}, f"the {npe} composition is unsafe to fit ({exc.reason})"
+    except SystemExit as exc:
+        return {}, f"the {npe} national fit could not be built: {exc}"
+    if list(ctx["categories"]) != list(categories):
+        return {}, (f"the {npe} national fit has pools {list(ctx['categories'])}, "
+                    f"not the local fit's {list(categories)}")
+    return fits, f"{city.slug} {npe} national results by ward"
+
+
+def vector_from_own_record(fit: "PartyFit | None", pool_votes: np.ndarray
+                           ) -> tuple["np.ndarray | None", list[int]]:
+    """A party's pool vector from its own fitted record, or ``None``.
+
+    The vector is ``fit.composition(pool_votes)`` — rates carried, renormalised
+    on the target's pool votes, exactly as a locally fitted party's is. It is
+    USED when the fit identifies at least one pool (:meth:`PartyFit.identified`,
+    the test the spec's per-pool ``identified`` list already applies to every
+    fitted party). A fit that identifies no pool — every rate on the floor, or
+    every interval wide — is not a measurement of anything, and the caller
+    falls back to the lineage rule.
+
+    ⚠️ AT LEAST ONE POOL, NOT EVERY POOL. Wide intervals in the small pools are
+    the norm for every party: the DA's 2021 Johannesburg fit is identified in
+    the Black African pool only. A stricter test would refuse fits the local
+    path uses unconditionally, and would need a threshold nothing measures.
+    """
+    if fit is None or not fit.citywide > 0:
+        return None, []
+    ident = [int(g) for g in np.flatnonzero(fit.identified())]
+    if not ident:
+        return None, []
+    vec = fit.composition(np.asarray(pool_votes, dtype=float))
+    if not vec.sum() > 0:
+        return None, []
+    return vec, ident
+
+
+def place_vectorless(party: str, rule: dict, parent: str, *,
+                     composition: dict, city_mix: np.ndarray,
+                     categories: list[str], own_fit: "PartyFit | None",
+                     pool_votes: np.ndarray, npe: str | None, nat_source: str,
+                     nat_available: bool, national: float
+                     ) -> tuple[np.ndarray, str, dict | None, str | None]:
+    """The pool vector for a party absent from the fitting election.
+
+    Returns ``(vector, note, fitted, refused)``: ``note`` is the spec's
+    ``no_measured_vector`` entry; ``fitted`` the ``fitted_from_national``
+    record when the party's own national fit was used; ``refused`` why a party
+    holding a national record was NOT fitted, else ``None``.
+
+    PRECEDENCE, one rule for every party (owner, 2026-10-15, "option A"):
+
+      1. its own NATIONAL fit (:func:`national_fits`), when it identifies a
+         pool (:func:`vector_from_own_record`). A party with a record of its own
+         is fitted, as every party with a local record already is. Any declared
+         ``weights`` or ``parent_weight`` stays on the sheet and is not read;
+         ``fitted["superseded"]`` names it;
+      2. judged ``weights``;
+      3. the splinter blend: ``parent_weight`` (the party's own call, e.g.
+         §SJ1) or :data:`SPLINTER_PARENT_WEIGHT` (§F6) times the parent's
+         vector, the rest the city mix;
+      4. the city mix.
+    """
+    n = len(categories)
+    own_vec, own_ident = vector_from_own_record(own_fit, pool_votes)
+    refused = None
+    if own_fit is not None and own_vec is None:
+        refused = f"its {npe} national fit identifies no pool"
+    elif own_fit is None and national > 0:
+        refused = (nat_source if not nat_available
+                   else f"not in the {npe} national fit")
+    if own_vec is not None:
+        superseded = [k for k in ("weights", "parent_weight")
+                      if rule.get(k) is not None]
+        fitted = {
+            "election": npe,
+            "source": nat_source,
+            "rates": [round(float(r), 6) for r in own_fit.rates],
+            "bounds": [[round(float(a), 6), round(float(b), 6)]
+                       for a, b in own_fit.bounds],
+            "identified": [categories[g] for g in own_ident],
+            "superseded": superseded,
+        }
+        note = (f"fitted on the {npe} national election's ward results "
+                f"({nat_source}), identified in "
+                f"{', '.join(categories[g] for g in own_ident)}"
+                + (f"; supersedes the declared {' and '.join(superseded)}"
+                   if superseded else ""))
+        return own_vec, note, fitted, None
+    weights = rule.get("weights")
+    if weights:
+        vec = np.array([float(w) for w in weights], dtype=float)
+        vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
+        note = "judged weights"
+    elif parent and parent in composition:
+        # A SPLINTER IS NOT ITS PARENT. Leaving a party to start one means
+        # competing for people the parent never had, and the record says so
+        # loudly. Fitting each splinter's own vector at its first election
+        # and regressing it on (parent, city average) gives the weight the
+        # parent actually deserves:
+        #
+        #   EFF from the ANC    alpha 0.75-1.08, median 0.89   cos to parent 0.998-1.000
+        #   GOOD from the DA    alpha -0.02-0.58, median 0.28
+        #   ActionSA from DA    alpha -1.07-0.56, median ~0.02  cos to CITY 0.69-0.999
+        #
+        # 22 cases across eight metros; median alpha 0.35. So the EFF stayed
+        # inside the ANC's constituency and pure inheritance was right for
+        # it, while ActionSA's vector was very nearly the CITY'S OWN
+        # composition — a broad-appeal municipal party, not a faction. Pure
+        # inheritance (alpha 1.0) was wrong for two of the three, and wrong
+        # in the direction that cost the 2021 forecast most: it put ActionSA
+        # at 67.2% White when it measured 55.6% Black African, so the debit
+        # for its 18% fell on the DA when it should have fallen on the ANC.
+        #
+        # The remainder goes to the CITY AVERAGE rather than to any named
+        # opponent. That is the weaker and more honest claim: the record says
+        # a splinter reaches beyond its parent, and does not say whose voters
+        # it reaches instead.
+        alpha = splinter_parent_weight(rule, party)
+        # The city's own pool composition AT THE FITTING YEAR, which is the
+        # basis the vectors themselves are fitted on, so the two halves of
+        # the blend are on the same footing (`city_mix_for`, the caller's).
+        vec = alpha * composition[parent] + (1.0 - alpha) * city_mix
+        vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
+        note = (f"splinter of {parent}, {alpha:.0%} its vector "
+                f"and {1 - alpha:.0%} the city average"
+                + (" (parent_weight declared in judgements/)"
+                   if rule.get("parent_weight") is not None else ""))
+    else:
+        # An entrant with no measured vector and no declared parent draws in
+        # proportion to WHERE THE VOTES ARE — the city's own pool
+        # composition, the same `city_mix` the splinter blend leans on.
+        #
+        # ⛔ THIS WAS AN EVEN SHARE OF EVERY POOL, `np.full(n, 1/n)`, AND
+        # THAT IS NOT A NEUTRAL ASSUMPTION — IT IS AN IMPOSSIBLE ONE.
+        # The intent was honest ("make the absence of a judgement visible
+        # rather than convenient"), but an even share assigns a party 25% of
+        # its vote from a pool that may cast almost nothing. Measured at
+        # Buffalo City 2016, where the Indian/Asian pool has 8,107
+        # registered voters casting ~1 vote: three parties were each given
+        # 0.25 of it, which is 228.93x more than the pool can cast. At
+        # Mangaung 2016 the same pool casts EXACTLY ZERO and still carried
+        # weight, which made the guard raise ZeroDivisionError rather than
+        # report a finding.
+        #
+        # The city mix keeps the intent — it is still not a fitted vector,
+        # and `inherited` still says so — while being arithmetically
+        # possible by construction. A party nobody has measured is best
+        # assumed to draw like the city, not like a uniform distribution
+        # over categories of wildly different size.
+        #
+        # Found 2026-08-31 by widening `test_pool_bounds`, whose target list
+        # was typed when nine specs existed and never grew to sixteen: all
+        # nine violations sat in the seven city-years it had stopped
+        # scanning.
+        vec = np.asarray(city_mix, dtype=float)
+        note = ("entrant, no measured vector — spread as the "
+                "city's own pool composition"
+                + (f" (parent {parent!r} not measured)"
+                   if parent else ""))
+    if refused is not None:
+        note += f" (not fitted: {refused})"
+    return vec, note, None, refused
 
 
 def resolve_roster(city: cityconfig.City, target: cityconfig.Target,
@@ -6032,13 +6366,15 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     cats = list(ctx["categories"])
     n = len(cats)
 
-    # Size the pools as they will be at the TARGET, not as they were at the
-    # election the rates were fitted on. The roll is counted every cycle and
-    # the census is not, so the trend comes from the roll; `before` keeps a
-    # backtest from seeing its own target's registration.
+    # The registration history, recorded in the spec (`registration_series`)
+    # and not used to size anything: `before` keeps a backtest from seeing its
+    # own target's registration. ONE ROLL: the pools are sized from
+    # `registered_at_target` below, and `pool_shares_at_target` and the
+    # provenance text are derived from that same vector. They used to come from
+    # `projected_pool_shares`, a 2024 roll carried forward, so a 2026 spec held
+    # two rolls that disagreed.
     series = registration_series(city, cfg, before=target.year,
                                  split_bloc=split_bloc)
-    target_shares, roll_note = projected_pool_shares(series, target.year)
 
     # THE COMPOSITION IS NORMALISED ON VOTES CAST, NOT ON A PROJECTED ROLL.
     #
@@ -6072,6 +6408,7 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # WAS THIS ONE. See MODEL-LOG §1.42.
     registered = registered_at_target(city, target, cfg, year,
                                       split_bloc=split_bloc)
+    target_shares, roll_note = pool_shares_of_roll(registered, target.year)
     record = turnout_record(city, cfg, before=target.year,
                             split_bloc=split_bloc)
     panel_spread, spread_n = panel_turnout_spread(
@@ -6092,8 +6429,10 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # The baseline is the election the forecast starts from; the pool vectors
     # come from the preceding LGE. Anything in the first and not the second —
     # MK is 12.2% of the 2024 baseline and did not exist in 2021 — has no
-    # measured vector. Left alone it is in no pool at all, falls through to the
-    # residual bucket, and gets drawn against a range meant for minor parties.
+    # vector from the fitting election. Left alone it is in no pool at all,
+    # falls through to the residual bucket, and gets drawn against a range
+    # meant for minor parties. It is fitted on the baseline national election
+    # instead where that fit identifies a pool (`place_vectorless`).
     baseline = {}
     if target.previous_npe:
         path = city.path("raw", "elections",
@@ -6226,9 +6565,23 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
     # operation nobody re-runs. In the file it is diffable, it survives into
     # `compare_history`, and a test can assert on it.
     unclassified: dict[str, float] = {}
+    # ⛔ A PARTY WITH ITS OWN NATIONAL RECORD IS FITTED, NOT INHERITED (owner,
+    # 2026-10-15, "option A"). A party absent from the fitting election but
+    # standing in the baseline national one is fitted on THAT election's ward
+    # results, the way every locally fitted party is (`national_fits`), and the
+    # vector is used whenever the fit identifies a pool
+    # (`vector_from_own_record`). The lineage rules below — judged `weights`,
+    # the splinter blend at `parent_weight` (§SJ1) or the default (§F6), the
+    # city mix — apply only to a party with no record, or whose record
+    # identifies nothing. PRECEDENCE: local fit > national fit > `weights` >
+    # splinter rule > city mix. A judgement on the sheet stays on record and is
+    # simply not read while the fit is identified; the spec says which won.
+    national_fitted: dict[str, dict] = {}
+    national_refused: dict[str, str] = {}
+    nat_fits, nat_source = ({}, "") if not no_vector else national_fits(
+        city, target, cfg, cats, split_bloc=split_bloc)
     for party in sorted(no_vector):
         rule = lineage.get(party, {})
-        weights = rule.get("weights")
         # THROUGH classify_arrival, not off the raw field. Every `parent` in
         # every judgements/*.toml is "" -- the file exists to be filled in and
         # nobody has -- so reading it directly meant this loop called ActionSA
@@ -6245,75 +6598,17 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
         # ARRIVAL DEFINITION: UNCLASSIFIED_WITH_NATIONAL_RECORD
         if not parent and national >= UNCLASSIFIED_FLOOR:
             unclassified[party] = national
-        if weights:
-            vec = np.array([float(w) for w in weights], dtype=float)
-            vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
-            inherited[party] = "judged weights"
-        elif parent and parent in composition:
-            # A SPLINTER IS NOT ITS PARENT. Leaving a party to start one means
-            # competing for people the parent never had, and the record says so
-            # loudly. Fitting each splinter's own vector at its first election
-            # and regressing it on (parent, city average) gives the weight the
-            # parent actually deserves:
-            #
-            #   EFF from the ANC    alpha 0.75-1.08, median 0.89   cos to parent 0.998-1.000
-            #   GOOD from the DA    alpha -0.02-0.58, median 0.28
-            #   ActionSA from DA    alpha -1.07-0.56, median ~0.02  cos to CITY 0.69-0.999
-            #
-            # 22 cases across eight metros; median alpha 0.35. So the EFF stayed
-            # inside the ANC's constituency and pure inheritance was right for
-            # it, while ActionSA's vector was very nearly the CITY'S OWN
-            # composition — a broad-appeal municipal party, not a faction. Pure
-            # inheritance (alpha 1.0) was wrong for two of the three, and wrong
-            # in the direction that cost the 2021 forecast most: it put ActionSA
-            # at 67.2% White when it measured 55.6% Black African, so the debit
-            # for its 18% fell on the DA when it should have fallen on the ANC.
-            #
-            # The remainder goes to the CITY AVERAGE rather than to any named
-            # opponent. That is the weaker and more honest claim: the record says
-            # a splinter reaches beyond its parent, and does not say whose voters
-            # it reaches instead.
-            alpha = float(SPLINTER_PARENT_WEIGHT)
-            # The city's own pool composition AT THE FITTING YEAR, which is the
-            # basis the vectors themselves are fitted on, so the two halves of
-            # the blend are on the same footing.
-            city_mix = city_mix_for(ctx, n)
-            vec = alpha * composition[parent] + (1.0 - alpha) * city_mix
-            vec = vec / vec.sum() if vec.sum() > 0 else np.full(n, 1.0 / n)
-            inherited[party] = (f"splinter of {parent}, {alpha:.0%} its vector "
-                                f"and {1 - alpha:.0%} the city average")
-        else:
-            # An entrant with no measured vector and no declared parent draws in
-            # proportion to WHERE THE VOTES ARE — the city's own pool
-            # composition, the same `city_mix` the splinter blend leans on.
-            #
-            # ⛔ THIS WAS AN EVEN SHARE OF EVERY POOL, `np.full(n, 1/n)`, AND
-            # THAT IS NOT A NEUTRAL ASSUMPTION — IT IS AN IMPOSSIBLE ONE.
-            # The intent was honest ("make the absence of a judgement visible
-            # rather than convenient"), but an even share assigns a party 25% of
-            # its vote from a pool that may cast almost nothing. Measured at
-            # Buffalo City 2016, where the Indian/Asian pool has 8,107
-            # registered voters casting ~1 vote: three parties were each given
-            # 0.25 of it, which is 228.93x more than the pool can cast. At
-            # Mangaung 2016 the same pool casts EXACTLY ZERO and still carried
-            # weight, which made the guard raise ZeroDivisionError rather than
-            # report a finding.
-            #
-            # The city mix keeps the intent — it is still not a fitted vector,
-            # and `inherited` still says so — while being arithmetically
-            # possible by construction. A party nobody has measured is best
-            # assumed to draw like the city, not like a uniform distribution
-            # over categories of wildly different size.
-            #
-            # Found 2026-08-31 by widening `test_pool_bounds`, whose target list
-            # was typed when nine specs existed and never grew to sixteen: all
-            # nine violations sat in the seven city-years it had stopped
-            # scanning.
-            vec = city_mix_for(ctx, n)
-            inherited[party] = ("entrant, no measured vector — spread as the "
-                                "city's own pool composition"
-                                + (f" (parent {parent!r} not measured)"
-                                   if parent else ""))
+        vec, note, fitted, refused = place_vectorless(
+            party, rule, parent, composition=composition,
+            city_mix=city_mix_for(ctx, n), categories=cats,
+            own_fit=nat_fits.get(party), pool_votes=pool_votes_at_target,
+            npe=target.previous_npe, nat_source=nat_source,
+            nat_available=bool(nat_fits), national=national)
+        inherited[party] = note
+        if fitted is not None:
+            national_fitted[party] = fitted
+        if refused is not None:
+            national_refused[party] = refused
         composition[party] = vec
 
     # MERGERS: the successor's vector becomes the mass-weighted blend of its
@@ -6478,17 +6773,25 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "registered": float(registered[g]),
             "turnout": [lo, mid, hi],
             "alpha": dirichlet_alpha(splits[g]),
-            "derived_from": f"pool vectors fitted on {city.slug} {year}; size "
+            "derived_from": f"pool vectors fitted on {city.slug} {year}"
+                            + (f", and on the {target.previous_npe} national "
+                               f"election for {len(national_fitted)} "
+                               f"part{'y' if len(national_fitted) == 1 else 'ies'} "
+                               f"absent from it"
+                               if national_fitted else "")
+                            + f"; size "
                             f"from the {target.year} roll split by each ward's "
                             f"own composition; turnout from {city.slug}'s local "
                             f"elections before {target.year}",
             # Which members' weights the ward data actually pins down. The rest
             # are the model's guesses and are where a judgement belongs. A
-            # party with no measured vector at all (it did not contest the
-            # fitting election) is never identified — its weights came from a
-            # lineage rule, not from a ward.
+            # party absent from the fitting election is identified only where
+            # its NATIONAL fit is (`national_fitted`); one placed by a lineage
+            # rule never is — its weights came from a rule, not from a ward.
             "identified": sorted(p for p in members
-                                 if p in fits and fits[p].identified()[g]),
+                                 if (p in fits and fits[p].identified()[g])
+                                 or name in national_fitted.get(
+                                     p, {}).get("identified", ())),
         }
     # A spec carrying a vote-located bloc says so IN THE SPEC, not only in the
     # filename it happened to be written to. Anything downstream that loads a
@@ -6574,6 +6877,14 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             "registration_series": {y: v.tolist() for y, v in series.items()},
             "categories": cats,
             "no_measured_vector": inherited,
+            # Parties absent from the fitting election whose vector was fitted
+            # on the baseline NATIONAL election (`national_fits`): which
+            # election, the fitted rates and intervals, the pools identified,
+            # and any declared judgement the fit superseded. And those with a
+            # national record whose fit was not used, with why — they took the
+            # lineage rule `no_measured_vector` names.
+            "fitted_from_national": national_fitted,
+            "national_fit_refused": national_refused,
             # F5: every merger transfer this spec made, with the retention it
             # ran at and whether a vector was blended. JUDGEMENT-CALLS §O1.
             "mergers": mergers_applied,
@@ -6593,7 +6904,8 @@ def emit_pools(city: cityconfig.City, target: cityconfig.Target, cfg: Config,
             # definition ABOVE the floor, and `newcomers` filters on
             # `baseline <= 0`, so the flagged set and the seeded set are
             # DISJOINT BY CONSTRUCTION. A flagged party keeps its baseline
-            # LEVEL and is given the city's own pool composition as its vector.
+            # LEVEL; its vector is its own national fit where that identifies a
+            # pool (`fitted_from_national`), else the city's own composition.
             # The defect this points at is therefore the VECTOR, not the size —
             # smaller than the first write-up claimed, and `support` cannot
             # reach these parties at all.
@@ -6762,7 +7074,22 @@ def main() -> None:
                     help="emit the reader-simulation spec, which carries the "
                          "vote-located bloc, to pools_{target}_simulation.json. "
                          "NEVER read by the published forecast.")
+    ap.add_argument("--out", default=None, metavar="DIR",
+                    help="with --emit: write the spec into DIR instead of the "
+                         "city's processed directory (DIR is created). Use it "
+                         "for any emit that is not the forecast.")
+    ap.add_argument("--without-judgements", action="store_true",
+                    help="with --emit: drop the owner's per-party judgement "
+                         "calls (" + ", ".join(OWNER_JUDGEMENT_KEYS) + ") and "
+                         "keep `parent`, `[roster]` and every default. REQUIRES "
+                         "--out, so it can never overwrite the forecast's spec; "
+                         "the spec records `without_judgements`. For the "
+                         "forecast reported with and without the calls.")
     args = ap.parse_args()
+    if args.without_judgements and not (args.emit and args.out):
+        ap.error("--without-judgements needs --emit and --out DIR")
+    global _WITHOUT_JUDGEMENTS
+    _WITHOUT_JUDGEMENTS = bool(args.without_judgements)
 
     cfg = load_config()
 
@@ -6787,7 +7114,10 @@ def main() -> None:
                               retrospective_home=args.retrospective_home,
                               split_bloc=bloc)
             suffix = "_simulation" if args.simulation else ""
-            out = city.processed / f"pools_{target.year}{suffix}.json"
+            if args.without_judgements:
+                spec["without_judgements"] = list(OWNER_JUDGEMENT_KEYS)
+            out = (Path(args.out) if args.out else city.processed) \
+                / f"pools_{target.year}{suffix}.json"
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(json.dumps(spec, indent=2, sort_keys=True))
         print(f"{city.name} {target.year}: {len(spec['pools'])} pools -> {out}")

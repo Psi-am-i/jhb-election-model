@@ -58,3 +58,16 @@ both the VD-to-ward parts and each VD's 2024 registration.
 
 That is a change to a model input and needs a pre-registration before it is
 built, not a quiet edit.
+
+## Re-read on 2026-10-15
+
+The IEC page, re-read on 2026-10-15, shows "Registered voters as at 29 September
+2026". All 135 ward rows are identical to this 26 September file, so the roll
+appears closed. The page offers no voting-district-level view.
+
+## How the ward totals reach the voting districts
+
+Each VD is placed wholly in one ward by `../vd-ward-assignment-2026/`
+(JUDGEMENT-CALLS section T1), and its 2024 registration is scaled to that
+ward's row here. The voting-district counts in this file are the solver's
+constraint; its README gives the method and limits.

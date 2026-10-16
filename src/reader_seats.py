@@ -161,13 +161,18 @@ def context_for(city: str, target: str, parties, wards,
     return context
 
 
-def context_from_run(run, no_pr_list=()) -> dict:
+def context_from_run(run, no_pr_list=None) -> dict:
     """The context for the city-year a :class:`montecarlo.ModelRun` forecast.
 
     The roster is the run's universe and the wards are the run's wards, so a
     reader edits exactly the parties and wards the model drew; the lot is the
-    run's own (``ModelRun.lot``).
+    run's own (``ModelRun.lot``). ``no_pr_list`` defaults to the run's own
+    ward-only parties (``run.scenario["_ward_only"]``, from
+    ``montecarlo.ballot_masks``), so a ward the model let such a party win is
+    seated through D here as it was in the draw (MODEL-LOG §1.308).
     """
+    if no_pr_list is None:
+        no_pr_list = (getattr(run, "scenario", None) or {}).get("_ward_only", ())
     target = run.target
     return context_for(target.city.slug, str(target.year), run.universe,
                        run.wards, no_pr_list, lot=run.lot)

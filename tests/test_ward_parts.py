@@ -78,6 +78,9 @@ ELECTIONS = ROOT / "data" / "raw" / "elections"
 
 CROSSWALK_COLUMNS = ["VD_Number", "Ward_{year}", "WardID_{year}",
                      "vd_registered", "part_registered", "weight", "is_split"]
+# Added by build_concordance when the city has a registration snapshot: each
+# ward's parts scaled to that ward's figure on it, and the snapshot's path.
+CROSSWALK_ROLL_COLUMNS = ["part_registered_{year}", "roll_snapshot"]
 
 
 # --------------------------------------------------------------------------
@@ -110,6 +113,8 @@ def crosswalk(year: str, rows: list[dict]):
         directory = Path(tmp)
         path = directory / f"vd_ward_{year}.csv"
         fields = [c.format(year=year) for c in CROSSWALK_COLUMNS]
+        fields += [c.format(year=year) for c in CROSSWALK_ROLL_COLUMNS
+                   if any(c in row for row in rows)]
         with path.open("w", encoding="utf-8", newline="") as fh:
             writer = csv.DictWriter(fh, fieldnames=fields)
             writer.writeheader()
@@ -596,10 +601,12 @@ def test_the_apportioned_parts_of_a_vd_sum_to_that_vds_whole_roll():
     """If this failed, the apportionment would create or destroy voters.
 
     Splitting a VD between wards moves voters; it must not change how many
-    there are. The check is against the crosswalk's own ``vd_registered``
-    column — the whole VD's roll as published — read here independently of
-    ``ward_parts``. Citywide the parts must also sum to the registered total
-    recorded in ``cities/joburg.toml`` (2,348,781, derived from the IEC roll).
+    there are. The check is on the MDB layer's ``part_registered`` column
+    against the crosswalk's own ``vd_registered`` (the whole VD's roll as
+    published), both read here independently of ``ward_parts``. ``ward_parts``
+    returns the 2026 column when the crosswalk has it, and THAT column does not
+    conserve a VD (it conserves each ward against the IEC snapshot, which
+    assigns each VD to one ward): ``tests/test_roll_2026.py`` holds it.
 
     A conservation failure would show up nowhere else: ``run_model`` sums the
     parts and never sees the whole-VD figure, so the loss would be invisible.
@@ -607,17 +614,12 @@ def test_the_apportioned_parts_of_a_vd_sum_to_that_vds_whole_roll():
     rows = real_crosswalk_rows()
     whole = {r["VD_Number"]: int(r["vd_registered"]) for r in rows}
 
-    with city_target("joburg", "2026") as target:
-        parts, _ = M.ward_parts(target, ELECTIONS, target.processed)
-        expected_total = int(target.structure["registered"])
-
     by_vd: dict[str, int] = {}
-    for vd, _w, r in parts:
-        by_vd[vd] = by_vd.get(vd, 0) + r
+    for r in rows:
+        by_vd[r["VD_Number"]] = by_vd.get(r["VD_Number"], 0) + int(r["part_registered"])
     bad = {vd: (got, whole[vd]) for vd, got in by_vd.items() if got != whole[vd]}
     assert not bad, f"apportionment does not conserve the roll: {list(bad)[:5]}"
-    assert sum(by_vd.values()) == expected_total, (
-        sum(by_vd.values()), expected_total)
+    assert sum(by_vd.values()) == sum(whole.values())
 
 
 def test_no_joburg_result_file_puts_one_vd_in_two_wards():
@@ -697,13 +699,15 @@ def test_the_two_functions_called_ward_parts_are_a_producer_and_a_consumer():
     assert getattr(build_concordance, "montecarlo", None) is None
 
 
-# The two readers of `part_registered` in `src/`, and why each is allowed:
-# `montecarlo.read_ward_crosswalk` is the single crosswalk reader (§1.97 F18),
-# `pools._target_roll` the separate, deliberate roll sum (F14, §1.99). Asserted
-# as an EQUALITY below rather than as an exemption, so a reader that vanishes
-# is as much a finding as one that appears.
-KNOWN_CROSSWALK_READERS = {("montecarlo.py", "read_ward_crosswalk"),
-                           ("pools.py", "_target_roll")}
+# The sites in `src/` that name a crosswalk row's `part_registered`, and why
+# each is allowed: `montecarlo.read_ward_crosswalk` is the single crosswalk
+# reader (§1.97 F18; `pools._target_roll` delegates to it since the 2026 roll
+# became the IEC snapshot). `build_concordance.apportion_roll`, the producer of
+# the column the reader prefers, reads the whole VD's `vd_registered` since the
+# whole-VD assignment (JUDGEMENT-CALLS T1) and so is no longer a site. Asserted as an EQUALITY below rather than
+# as an exemption, so a reader that vanishes is as much a finding as one that
+# appears.
+KNOWN_CROSSWALK_READERS = {("montecarlo.py", "read_ward_crosswalk")}
 
 
 def _crosswalk_readers(paths):
@@ -716,9 +720,17 @@ def _crosswalk_readers(paths):
     found = []
     for path in sorted(paths):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        dict_keys = {id(k) for n in ast.walk(tree) if isinstance(n, ast.Dict)
+                     for k in n.keys if k is not None}
         for node in ast.walk(tree):
             key = None
-            if isinstance(node, ast.Subscript):
+            if isinstance(node, ast.Constant) and id(node) not in dict_keys:
+                # The reader now chooses its column by NAME
+                # (`value_column = "part_registered"`), a form neither access
+                # shape below sees. A bare string constant is the widest net;
+                # dict keys (a writer's row literal) are not reads.
+                key = node.value
+            elif isinstance(node, ast.Subscript):
                 key = getattr(node.slice, "value", None)
             elif (isinstance(node, ast.Call)
                   and isinstance(node.func, ast.Attribute)
@@ -886,14 +898,25 @@ def test_pools_and_montecarlo_now_read_one_crosswalk_by_one_rule():
     # The delimitation argument, held as a property rather than a story: a ward
     # roll that strays this far from the city mean means the apportionment has
     # been lost again, whatever the two readers agree on between themselves.
+    # Held on the MDB layer's own column, read from the file: the 2026 column
+    # is the IEC snapshot's ward figures, whose spread is a fact about the
+    # re-delimited wards (DATA-QUALITY) and not a property of the join.
+    mdb: dict[str, float] = {}
+    for r in rows:
+        mdb[r["WardID_2026"]] = mdb.get(r["WardID_2026"], 0.0) + int(r["part_registered"])
+    mdb_vals = sorted(mdb.values())
+    mean = sum(mdb_vals) / len(mdb_vals)
+    assert max(mdb_vals) / min(mdb_vals) < 2.0, (
+        f"ward rolls range {min(mdb_vals):,.0f} to {max(mdb_vals):,.0f} — a "
+        f"spread no delimitation produces; the whole-VD assignment is probably "
+        f"back")
     vals = sorted(apportioned.values())
-    mean = sum(vals) / len(vals)
-    assert max(vals) / min(vals) < 2.0, (
-        f"ward rolls range {min(vals):,.0f} to {max(vals):,.0f} — a spread no "
-        f"delimitation produces; the whole-VD assignment is probably back")
-    assert abs(sum(vals) - 2_348_781) < 1.0, (
-        f"citywide roll moved to {sum(vals):,.0f}; this fix is a redistribution "
-        f"between wards and must never change the total (mean {mean:,.0f})")
+    with city_target("joburg", "2026") as target:
+        recorded = int(target.structure["registered"])
+    assert abs(sum(vals) - recorded) < 1.0, (
+        f"citywide roll is {sum(vals):,.0f} and cities/joburg.toml records "
+        f"{recorded:,}; the apportionment is a redistribution between wards "
+        f"and must never change the total (mean {mean:,.0f})")
 
 def test_every_city_reads_the_crosswalk_build_concordance_wrote():
     """RE-RECORDED 2026-08-28. The producer and consumer are reconciled (F15).

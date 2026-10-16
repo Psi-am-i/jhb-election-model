@@ -229,6 +229,11 @@ DELETED = {
         "measure 2026-10-13"),
     "test_the_owners_table_on_the_published_draws": (
         "re-measured BADGE_TABLE; deleted with the measure 2026-10-13"),
+    # Deleted 2026-10-16 (§1.308): `level` scans between bounds computed from
+    # the votes and needs no round cap. JUDGEMENT-CALLS §A40 keeps the record.
+    "OVERHANG_LEVEL_MAX_ROUNDS": "the level rule's 200-round cap, which a JHB "
+                                 "2026 draw exceeded; replaced by a bounded "
+                                 "scan; §1.308",
 }
 
 

@@ -449,6 +449,96 @@ def test_outside_pool_wards_splits_C_D_and_the_pool_on_a_constructed_council():
         f"or D")
 
 
+# A constructed result file for the ground truth (`backtest.actual_result`).
+# Five wards, council 10. NOLIST stands in wards and has no PR rows; it wins
+# ward 1 (D = 1). IND wins ward 2 (C = 1). ALPHA and BETA, the only list
+# parties, share the 8 pool seats. The year has no Seat Calculation Detail on
+# disk, so the truth takes the `official is None` path; the IEC-override path
+# (counted IND above the published C) is exercised by the real eThekwini 2016
+# file, not here.
+TRUTH_WARDS = {
+    "1": {"NOLIST": 500, "ALPHA": 100, "BETA": 90, "IND": 50},
+    "2": {"IND": 600, "ALPHA": 100, "BETA": 90, "NOLIST": 10},
+    "3": {"ALPHA": 600, "BETA": 300, "IND": 10, "NOLIST": 10},
+    "4": {"BETA": 600, "ALPHA": 310, "IND": 10, "NOLIST": 10},
+    "5": {"ALPHA": 620, "BETA": 300, "IND": 10, "NOLIST": 10},
+}
+TRUTH_LIST = {"ALPHA": 1300, "BETA": 1000}   # per ward, same in every ward
+TRUTH_COUNCIL = 10
+TRUTH_YEAR = 1901                            # no IEC report exists for it
+
+
+def _truth_file(directory: Path) -> Path:
+    path = directory / f"lge{TRUTH_YEAR}_JHB_vd_party_clean.csv"
+    cols = ["Province", "Municipality", "Ward", "VD_Number", "VS_Name",
+            "BallotType", "Registered_Population", "Spoilt_Votes",
+            "Total_Valid_Votes", "sPartyName", "Party_Votes"]
+    with path.open("w", encoding="utf-8", newline="") as fh:
+        out = csv.writer(fh)
+        out.writerow(cols)
+        for ward, votes in TRUTH_WARDS.items():
+            vd = f"9{ward}000000"
+            for ballot, row in (("Ward", votes), ("PR", TRUTH_LIST)):
+                for party, n in row.items():
+                    out.writerow(["Gauteng", "JHB - Johannesburg", ward, vd,
+                                  "SCHOOL", ballot, 5000, 0,
+                                  sum(row.values()), party, n])
+    return path
+
+
+def test_the_ground_truth_council_holds_C_and_D_ward_seats():
+    """`backtest.actual_result` returns the whole chamber: the pool plus the
+    independent's and the no-list party's ward seats, summing to the council.
+    Until 2026-10-16 it returned the pool only (8 of 10), so a model that
+    forecast NOLIST's ward seat was charged for it. MODEL-LOG §1.309."""
+    import contextlib
+    import io
+
+    import backtest
+    import cityconfig
+    import parties as P
+
+    cityconfig.use("joburg")
+    alpha, beta, nolist = (P.canonical(n) for n in ("ALPHA", "BETA", "NOLIST"))
+    with tempfile.TemporaryDirectory() as tmp:
+        path = _truth_file(Path(tmp))
+        with contextlib.redirect_stdout(io.StringIO()):
+            got, winners = backtest.actual_result(path, TRUTH_COUNCIL,
+                                                  year=TRUTH_YEAR, code="JHB")
+    assert Counter(winners.values()) == Counter(
+        {alpha: 2, beta: 1, nolist: 1, "IND": 1}), winners
+    assert sum(got.values()) == TRUTH_COUNCIL, (
+        f"the truth holds {sum(got.values())} seats against a council of "
+        f"{TRUTH_COUNCIL}: {got}. C and D ward seats are not in it")
+    assert got.get(nolist) == 1, (
+        f"NOLIST won ward 1 and has no PR list: the truth gives it "
+        f"{got.get(nolist, 0)} seats, should be its 1 ward seat ({got})")
+    assert got.get("IND") == 1, (
+        f"IND won ward 2: the truth gives it {got.get('IND', 0)} seats, "
+        f"should be 1 ({got})")
+    # The pool, derived here from the statute rather than read back: list
+    # parties' combined votes, quota over council - C - D.
+    combined = {alpha: sum(v[alpha] for v in TRUTH_WARDS.values())
+                + len(TRUTH_WARDS) * TRUTH_LIST["ALPHA"],
+                beta: sum(v[beta] for v in TRUTH_WARDS.values())
+                + len(TRUTH_WARDS) * TRUTH_LIST["BETA"]}
+    pool = allocate(combined, total_seats=TRUTH_COUNCIL, independent_wards=1,
+                    no_pr_list_wards=1, lot="unused").seats
+    assert sum(pool.values()) == TRUTH_COUNCIL - 2, pool
+    assert {p: got[p] for p in (alpha, beta)} == pool, (got, pool)
+
+
+def test_an_independent_in_the_truth_is_never_the_arrival():
+    """eThekwini 2016's shape: the truth now carries C = 4 under IND beside a
+    3-seat arrival, and `ARRIVED_VS_NATIONAL` says `party != IND`."""
+    import backtest
+    base = {"ANC": 0.5, "DA": 0.3}
+    assert backtest.entrant_actual_for(
+        {"ANC": 100, "DA": 60, "IND": 4, "AIC": 3}, base) == "AIC"
+    assert backtest.entrant_actual_for(
+        {"ANC": 100, "DA": 60, INDEPENDENT: 4}, base) is None
+
+
 def test_the_constructed_council_splits_ward_and_list_seats_as_schedule_1_requires():
     """Entitlement, then the ward/list split, over `outside_pool_wards`' pool."""
     c, d, pool = outside_pool_wards(dict(POOL_WARD_WINS), dict(POOL_COMBINED))

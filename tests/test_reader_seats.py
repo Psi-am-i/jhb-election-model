@@ -91,6 +91,7 @@ payload = {
     "council_sizes": run.council_sizes,
     "ward_vote_draws": run.ward_vote_draws, "pr_vote_draws": run.pr_vote_draws,
     "council": t.council, "wards_configured": t.wards, "lot": run.lot,
+    "ward_only": list(run.scenario.get("_ward_only", [])),
 }
 with open(out, "wb") as handle:
     pickle.dump(payload, handle)
@@ -135,7 +136,7 @@ def _winners(run: dict, d: int) -> dict[str, str]:
 
 def _context(run: dict) -> dict:
     return R.context_for(CITY, run["target"], run["universe"], run["wards"],
-                         lot=run["lot"])
+                         run["ward_only"], lot=run["lot"])
 
 
 def _draw_context(run: dict, d: int) -> dict:
@@ -152,10 +153,10 @@ def _draw_disagreements(run: dict, d: int, result: dict) -> list[str]:
     if not result["ok"]:
         return [f"refused: {result['errors']}"]
     call = run["calls"][d]
-    # Pool parties only: the model's `seat_draws` omit C and D ward seats, and
-    # the captured C and D are asserted zero by the caller.
-    pool = {p for p, _ in call["combined"]}
-    got = {p: v["total"] for p, v in result["seats"].items() if p in pool}
+    # The whole chamber on both sides: `seat_draws` carries a ward-only
+    # party's D ward seat as its own column (`seats.council_seats`, §1.308),
+    # and `prediction.seats_of` returns it the same way.
+    got = {p: v["total"] for p, v in result["seats"].items() if v["total"]}
     want = {p: n for p, n in run["seat_draws"][d].items() if n}
     if got != want:
         diff = sorted(p for p in set(got) | set(want) if got.get(p) != want.get(p))
@@ -200,10 +201,14 @@ def test_the_capture_is_one_call_per_draw_on_the_configured_council():
         for call in run["calls"]:
             assert call["council"] == run["council"]
             assert call["rule"] == M.STATUTORY_VALUES["overhang_rule"]
-            # The model seats no independent and no list-less party (its
-            # universe has neither); if that changes, the comparison below must
-            # add C and D back rather than silently agree on the wrong set.
-            assert call["c"] == 0 and call["d"] == 0, (target, call["c"], call["d"])
+            # The model seats no independent (its universe has none), so C is
+            # 0. D is the wards its ward-only parties won (§1.306), counted
+            # here from the captured pool rather than assumed zero (§1.308).
+            assert call["c"] == 0, (target, call["c"])
+        for d, call in enumerate(run["calls"]):
+            outside = sum(n for p, n in run["ward_seat_draws"][d].items()
+                          if p in run["ward_only"])
+            assert call["d"] == outside, (target, d, call["d"], outside)
 
 
 def test_every_draw_is_reproduced_from_its_two_ballots_and_ward_winners():
@@ -518,6 +523,7 @@ class _RunStub:
         self.target = cityconfig.Target(cityconfig.load(CITY), run["target"])
         self.universe, self.wards = run["universe"], run["wards"]
         self.lot = run["lot"]
+        self.scenario = {"_ward_only": run["ward_only"]}
 
 
 _PYODIDE_PROBE = r'''

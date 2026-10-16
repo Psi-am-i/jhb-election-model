@@ -17,7 +17,12 @@ shipped draw count, each run in its own interpreter under `HASH_SEED`:
 2. INDEPENDENT CAPTURE. A wrapper around `montecarlo.correlated_triangular`
    (the architecture report's fallback, which needs no edit to the model)
    sees exactly the values recorded, pool by pool and draw by draw. Pools are
-   identified by the band the wrapper was handed, not by position.
+   identified by the band the wrapper was handed, not by position. Under the
+   universal law the calibration streams also reach the function (one
+   N_CAL-draw pass for the composition variance, then N_CAL draws per κ
+   iteration, recording nothing); the wrapper tags those calls by the
+   caller's stage prefix, and they are counted against
+   N_CAL x (iterations + 1) x pools rather than silently dropped.
 3. THE CHECKS CAN SEE. A one-ulp change to one cell, two swapped columns, one
    changed drawn share and one value pushed onto a band edge are each caught,
    and each check goes quiet again when the change is reverted.
@@ -91,12 +96,24 @@ if wrap:
     real = mc.correlated_triangular
     def recording(z_own, spec, z_common, rho):
         value = real(z_own, spec, z_common, rho)
-        calls.append((tuple(float(x) for x in spec), float(value)))
+        # The caller is `draw_pools`' `_turnouts`, whose stage prefix `pre`
+        # says which pass this is: "calib." for the universal law's
+        # calibration pass, which draws on its own streams and records
+        # nothing, "" for the run's draws.
+        calib = sys._getframe(1).f_locals.get("pre") == "calib."
+        calls.append((tuple(float(x) for x in spec), float(value), calib))
         return value
     mc.correlated_triangular = recording
 class Args:
     config = None; set = None; draws = None; seed = %(seed)d
-run = mc.run_model(target, mc.load_scenario(Args()), verbose=False)
+run_dir = (sys.argv[4] if len(sys.argv) > 4 else None)
+run = mc.run_model(target, mc.load_scenario(Args()), verbose=False,
+                   run_dir=run_dir)
+kappa_iters = None
+if run_dir:
+    import json, pathlib
+    widths = json.loads((pathlib.Path(run_dir) / "35_widths.json").read_text())
+    kappa_iters = widths["kappa_iters"]
 fields = {n: getattr(run, n) for n in dir(run)
           if n.endswith("draws") and not n.startswith("_")}
 payload = {
@@ -104,7 +121,7 @@ payload = {
     "thresholds": run.thresholds, "council_sizes": run.council_sizes,
     "names": list(getattr(run, "pool_turnout_names", []) or []),
     "has_record": hasattr(run, "pool_turnout_draws"),
-    "calls": calls,
+    "calls": calls, "kappa_iters": kappa_iters, "n_cal": mc.N_CAL,
 }
 with open(out, "wb") as handle:
     pickle.dump(payload, handle)
@@ -115,8 +132,15 @@ _STATE: dict = {}
 
 def _launch(src: Path, out: Path, wrap: bool, worker: Path) -> Path:
     env = dict(os.environ, PYTHONHASHSEED=M.HASH_SEED)
+    # The wrapped run also writes a trace, for the calibration pass's
+    # iteration count (`35_widths.kappa_iters`). A trace changes no drawn
+    # number (test_chain), and the wrapped run is compared field by field
+    # with the unwrapped, untraced one below.
+    argv = [sys.executable, str(worker), str(src), str(out), "1" if wrap else "0"]
+    if wrap:
+        argv.append(str(out.with_suffix(".trace")))
     done = subprocess.run(
-        [sys.executable, str(worker), str(src), str(out), "1" if wrap else "0"],
+        argv,
         cwd=ROOT, env=env, capture_output=True, text=True, timeout=3600)
     if done.returncode != 0:
         raise AssertionError(f"run from {src} failed:\n{done.stderr[-3000:]}")
@@ -171,7 +195,9 @@ def _capture_matrix(calls, names, draws) -> np.ndarray:
     column = {n: j for j, n in enumerate(names)}
     seen = {n: 0 for n in names}
     out = np.full((draws, len(names)), np.nan)
-    for spec, value in calls:
+    for spec, value, calib in calls:
+        if calib:
+            continue
         assert spec in by_band, f"a call with band {spec} matches no pool"
         name = by_band[spec]
         out[seen[name], column[name]] = value
@@ -241,8 +267,24 @@ def test_the_record_equals_an_independent_capture_of_every_pool_turnout():
     # The wrapper is a pass-through: the wrapped run is the live run.
     assert names == on["names"]
     assert not _differing_fields(on["fields"], wrapped["fields"])
-    scanned(len(wrapped["calls"]), of=draws * len(names), low=1.0, high=1.0,
-            what="wrapper calls", denominator="draws x pools (no ties here)")
+    run_calls = [c for c in wrapped["calls"] if not c[2]]
+    calib_calls = [c for c in wrapped["calls"] if c[2]]
+    scanned(len(run_calls), of=draws * len(names), low=1.0, high=1.0,
+            what="wrapper calls in the run's draws",
+            denominator="draws x pools (no ties here)")
+    # The universal law reads the `calib.*` streams through the same
+    # `correlated_triangular` (MODEL-LOG §1.298) in two places in
+    # `make_drawer`: one N_CAL-draw turnout pass for `composition_variance`,
+    # then N_CAL draws per κ iteration. Those calls are excluded from the
+    # capture above and counted here, so the exclusion cannot swallow run
+    # calls: exactly N_CAL x (kappa_iters + 1) x pools, the iterations read
+    # from the run's own trace.
+    assert wrapped["kappa_iters"] and wrapped["kappa_iters"] >= 1, (
+        "the run made no calibration pass; the universal law is not in force")
+    scanned(len(calib_calls),
+            of=wrapped["n_cal"] * (wrapped["kappa_iters"] + 1) * len(names),
+            low=1.0, high=1.0, what="wrapper calls on the calibration streams",
+            denominator="N_CAL x (kappa_iters + 1) x pools")
 
 
 # -- 3: each check can see ----------------------------------------------------

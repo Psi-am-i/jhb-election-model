@@ -260,7 +260,7 @@ def seats_of(prediction: dict, council: int, *, order=None,
     law's ``ValueError`` and ``RuntimeError`` propagate unchanged.
     """
     import montecarlo as M
-    from seats import eligible_parties, outside_pool_wards
+    from seats import council_seats, eligible_parties, outside_pool_wards
 
     ward_votes = dict(prediction.get("ward_votes") or {})
     list_votes = dict(prediction["list_votes"])
@@ -286,10 +286,13 @@ def seats_of(prediction: dict, council: int, *, order=None,
     finally:
         M.COUNCIL = previous
 
+    # The whole chamber: the pool plus every ward seat that left it (C, D),
+    # one definition with the simulation's draws (`seats.council_seats`).
+    chamber = council_seats(seats, wins, combined, size)
     out: dict[str, dict[str, int]] = {}
-    for party in list(seats) + [p for p in wins if p not in seats]:
+    for party in list(seats) + [p for p in chamber if p not in seats]:
         ward = wins.get(party, 0)
-        total = seats.get(party, 0) if party in combined else ward
+        total = chamber.get(party, 0)
         if total:
             out[party] = {"ward": ward, "pr": total - ward, "total": total}
     return {"seats": out, "council": size, "majority": majority,

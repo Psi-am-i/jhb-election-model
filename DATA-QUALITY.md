@@ -735,6 +735,12 @@ sequence has to be:
       # test_no_emitted_composition_weight_is_arithmetically_impossible
       # joburg 2016 DA in White: weight 0.6617 against a maximum of 0.6406
 
+  On the specs emitted 2026-10-16 (`pools_sha` 76bfd9d6, census hold withdrawn
+  §1.302) the same test names three 2011 rows instead, all the DA in White:
+  Buffalo City (1.25x the pool's top-of-band vote), Cape Town (1.14x) and
+  Nelson Mandela Bay (1.07x). The test is red on them; it is not changed,
+  because the fault is this item's and a re-emit cannot clear it.
+
 **Open in the model.** MODEL-LOG §1.100 ships the registration-ceiling repair
 with a measured cost and records it as a debt. This item is the reason the debt
 exists and the thing that has to be fixed before it can be discharged.
@@ -1224,3 +1230,48 @@ record allows. Repairing that is a pools question outside the batch (SPEC O5).
 **How to read the size of it.** Run any city-year with `--run-dir` and read
 `41_guards.roster_unrepresented`; the batch's MODEL-LOG entry tabulates it over
 the panel.
+
+## 20. 🟡 The 2026 crosswalk's split-VD parts are the delimitation planner's estimates, and the IEC snapshot assigns each VD to one ward (named 2026-10-15)
+
+**What the file is.** `data/processed/vd_ward_2026.csv` takes `part_registered`
+from the Municipal Demarcation Board layer (`WardPop`, the registration of the
+part of a voting district inside a ward). For a voting district split across
+wards that figure is not a count of registered voters in each part: it is the
+planner's apportionment.
+
+**Measured (2026-10-15, on the committed crosswalk).** Of the 316 split-VD parts
+with a non-zero figure (375 split parts, 59 of them zero-voter slivers), 118 are
+multiples of 50, against 17 of 684 whole-VD parts. Ward totals bunch at the
+edges of the plus or minus 15% delimitation band (reported by the brief for this
+change; not re-measured here). The IEC registration
+snapshot (`archive/iec-registration-2026-09-26/`) assigns each of its 862
+voting districts to exactly one ward and carries no part figure.
+
+**What this does to the model.** The 2026 roll is the snapshot's ward figure
+(JUDGEMENT-CALLS §T1), apportioned over the parts in proportion to those
+estimates. A ward total is the IEC's count; the split of a split VD between its
+wards is the planner's estimate scaled, and nothing in the repository measures
+it. Summed by ward, `part_registered_2026` against `part_registered` differs by
+between minus 30% and plus 70% (measured on the committed crosswalk,
+2026-10-15; the city total moves from the 2024 figure to the snapshot's).
+
+**What the ward change measures (2026-10-15, committed crosswalk; method in
+JUDGEMENT-CALLS §T1).** The per-ward ratio of the snapshot total to the
+crosswalk's 2024 total tracks the difference between the snapshot's
+voting-district count for the ward and the crosswalk's count (correlation
+0.725; about 0.11 of ratio per extra IEC voting district). Most per-ward change
+is which voting districts the IEC assigns to the ward, not registration growth
+(ward 60 about x1.70, ward 62 about x0.70 under proportional scaling).
+
+**What was done about it (2026-10-15).** Each voting district is now placed
+wholly in one ward by a solved assignment
+(`archive/vd-ward-assignment-2026/`; §T1). The per-ward ratio of snapshot total
+to assigned 2024 total has sd 0.060 (min 0.823, max 1.267), against sd 0.168
+(0.704 to 1.704) under proportional scaling. **Remaining limit:** about 17 VDs
+are counted by the IEC in wards neither geo file offers; 40 placements are
+near-ties; recovery on constructed truth was 90 to 97% of split VDs. Ward totals
+are the IEC's; which VDs sit in a ward is the solver's, not the IEC's list.
+
+**What would separate the readings.** A per-voting-district registration file
+for 2026 (the IEC publishes none that the repository holds): it would give the
+true part sizes and make the apportionment unnecessary.

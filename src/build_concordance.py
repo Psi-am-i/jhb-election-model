@@ -64,6 +64,7 @@ import argparse
 
 import cityconfig
 import csv
+import inputs_preflight
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -184,6 +185,76 @@ def ward_parts(vds: gpd.GeoDataFrame) -> list[dict[str, str]]:
     return rows
 
 
+ASSIGNMENT_2026 = Path("archive/vd-ward-assignment-2026/assignment.csv")
+
+
+def read_assignment(path: Path | None = None) -> dict[str, str]:
+    """``{VD_Number: WardID_2026}`` from the committed assignment file
+    (archive/vd-ward-assignment-2026/README.md)."""
+    path = cityconfig.resolve_path(path or ASSIGNMENT_2026)
+    with path.open(encoding="utf-8", newline="") as fh:
+        return {r["VD_Number"].strip(): r["WardID_2026"].strip()
+                for r in csv.DictReader(fh)}
+
+
+def apportion_roll(rows: list[dict[str, str]], roll: dict[str, int],
+                   assignment: dict[str, str]) -> None:
+    """Add ``part_registered_2026`` to ``ward_parts`` rows, in place.
+
+    The rule (JUDGEMENT-CALLS section T1): the IEC counts each of its voting
+    districts wholly in one ward, so each VD is assigned to ONE ward
+    (``assignment``, ``{VD_Number: WardID}``) and its whole 2026 figure sits on
+    that ward's row, 0 on its other parts. A ward's VDs are scaled by
+    ``roll[w] / sum(vd_registered of the VDs assigned to w)`` and made whole
+    numbers by largest remainder (ties to the earlier VD number), so the ward's
+    rows sum to ``roll[w]`` exactly. ``roll`` is ``{WardID: registered}``.
+
+    Refuses, rather than passes: a VD missing from the assignment, an
+    assignment naming a VD the crosswalk lacks, an assigned ward that is not one
+    of the VD's parts, a ward left with no VDs or with no registration, and a
+    ward set that differs between the snapshot and the crosswalk."""
+    wards = {row["WardID_2026"] for row in rows}
+    if wards != set(roll):
+        raise SystemExit(
+            f"the snapshot and the crosswalk name different wards: "
+            f"{sorted(set(roll) - wards)[:5]} only in the snapshot, "
+            f"{sorted(wards - set(roll))[:5]} only in the crosswalk")
+    vd_parts: defaultdict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        vd_parts[row["VD_Number"]].append(row)
+    missing = sorted(set(vd_parts) - set(assignment))
+    if missing:
+        raise SystemExit(f"{len(missing)} VD(s) missing from the assignment: {missing[:5]}")
+    extra = sorted(set(assignment) - set(vd_parts))
+    if extra:
+        raise SystemExit(f"{len(extra)} assigned VD(s) not in the crosswalk: {extra[:5]}")
+    by_ward: defaultdict[str, list[str]] = defaultdict(list)
+    for vd, parts in vd_parts.items():
+        if assignment[vd] not in {p["WardID_2026"] for p in parts}:
+            raise SystemExit(f"VD {vd} is assigned to ward {assignment[vd]}, "
+                             f"which is not one of its parts")
+        by_ward[assignment[vd]].append(vd)
+    registered = {vd: int(parts[0]["vd_registered"]) for vd, parts in vd_parts.items()}
+    figure: dict[str, int] = {}
+    for ward in sorted(roll):
+        vds = sorted(by_ward.get(ward, []))
+        if not vds:
+            raise SystemExit(f"ward {ward}: no VD is assigned to it")
+        base = sum(registered[v] for v in vds)
+        if base <= 0:
+            raise SystemExit(f"ward {ward}: its assigned VDs sum to {base}, so "
+                             f"the snapshot's {roll[ward]} cannot be apportioned")
+        quota = {v: registered[v] * roll[ward] / base for v in vds}
+        given = {v: int(q) for v, q in quota.items()}
+        order = sorted(vds, key=lambda v: (-(quota[v] - given[v]), v))
+        for v in order[:roll[ward] - sum(given.values())]:
+            given[v] += 1
+        figure.update(given)
+    for row in rows:
+        row["part_registered_2026"] = str(
+            figure[row["VD_Number"]] if assignment[row["VD_Number"]] == row["WardID_2026"] else 0)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--geo-dir", type=Path, default=Path("data/raw/geo"))
@@ -220,6 +291,15 @@ def main(argv: list[str] | None = None) -> int:
 
     # --- Step 5: VD -> 2026 ward, registration weighted -----------------------
     parts = ward_parts(vds)
+    # The 2026 roll: the IEC snapshot, apportioned over the parts. Absent for a
+    # city with no snapshot, in which case the crosswalk carries the MDB layer's
+    # registration only and says so by lacking the column.
+    snap = inputs_preflight.roll_snapshot(city.slug)
+    if snap is not None:
+        apportion_roll(parts, inputs_preflight.read_roll_snapshot(snap),
+                       read_assignment())
+        for part in parts:
+            part["roll_snapshot"] = inputs_preflight.snapshot_label(snap)
     destination = out_dir / "vd_ward_2026.csv"
     with destination.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(parts[0]))

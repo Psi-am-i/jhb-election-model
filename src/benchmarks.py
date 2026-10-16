@@ -85,7 +85,7 @@ import montecarlo as M
 import pools as _pools
 import score as S
 from fold import citywide, load, shares
-from seats import (draw_key, eligible_parties, lot_identity,
+from seats import (council_seats, draw_key, eligible_parties, lot_identity,
                    outside_pool_wards, ward_key)  # allocate itself is reached via montecarlo
 
 def sources_for(target: int) -> dict[str, str | None]:
@@ -394,6 +394,9 @@ def council_from_shares(ctx: Context, ward_share: np.ndarray,
         seats, _council, _thr, _over = M.allocate_with_overhang(
             combined, pool_wins, rule=ctx.overhang_rule,
             independent_wards=c_wards, no_pr_list_wards=d_wards, lot=lot)
+        # The whole chamber, as the model's draws carry it (MODEL-LOG §1.308):
+        # a baseline that seats a no-list ward winner holds that seat too.
+        seats = council_seats(seats, dict(wins), combined, _council)
     finally:
         M.COUNCIL = previous
     return {p: s for p, s in seats.items() if s > 0}, winners

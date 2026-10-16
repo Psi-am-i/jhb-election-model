@@ -30123,3 +30123,225 @@ parties is the universal draw; the batch widened the ANC's upper tail.
 Most of the forecast's move, and all of the PA's fall, is the 10 October
 batch, which was held back from the site on 10 October and goes out with
 this round. The before/after must show the two batches as separate rows.
+
+## 1.304 The 2026 forecast reads the IEC's 26 September roll (2026-10-15)
+
+Change: `95b4405` (JUDGEMENT-CALLS §T1, §T2; DATA-QUALITY item 20; POOLS-REEMIT-QUEUE
+entry 38). Pre-registration: `prereg/2026-10-15-roll-2026.md` (`911506d`, before
+the re-emit). Owner-approved shortened process: one diff review, three gates.
+Runs: `.claude/roll-2026-10-15/` (gitignored), on `911506d`: every spec re-emitted
+(27, one `pools_sha` `bfa422e473f63611`), `group_share_record`, `bye_value` and
+`width_record` re-emitted (the last two were stale on `cities_sha` and then
+`bye_value_sha`; POOLS-REEMIT-QUEUE's step-9 list lacked `bye_value`),
+`montecarlo.py --city joburg`, `overhang_regimes.py`, `compare_history.py`.
+Report: `reports/model-changes/2026-10-15-roll/`.
+
+### Gates
+
+G1 held: 24 of 24 backtest city-years identical in `pr_mae`, `ward_mae`,
+`seat_abs_err`, `seat_abs_err_coherent`, `seats` and `wards` against the tracked
+`history.json` at `911506d`. G2 held: `montecarlo.ward_parts` for 2026 sums to
+2,417,915, each ward to its snapshot row (`tests/test_roll_2026.py`). G3 held:
+with the reader made to ignore the 2026 column, 5 of 15 `test_roll_2026` tests
+fail; restored, 15 pass.
+
+### Result (5,000 draws, seed 20261104; old = arm U, `.claude/step7-2026-10-13/arms/U`)
+
+Mean list share, every party, identical to 0.001 points (ANC 23.672, DA 25.976,
+EFF 10.974, ActionSA 11.648 → 11.649, MK 8.993, PA 5.930). Mean seats: ANC
+71.2 → 71.7, DA 69.8 → 69.6, all others within 0.1. Mean ward wins: ANC 68.7 →
+69.4, DA 45.7 → 45.3. Seat p5-p95 unchanged for every party. Two ward favourites
+change, DA → ANC: ward 120 (roll −3%; DA 49% / ANC 40% → ANC 46% / DA 43%) and
+ward 124 (roll +16%; 30% / 29% → 33% / 26%).
+
+Mechanism: `solve_and_predict` solves θ so the citywide share reaches the
+target; `weight_cal = reg × t_draw` only distributes it over VDs. The roll moves
+ward composition, not citywide share, so it reaches seats through ward wins
+(overhang) only.
+
+### The pre-registration scored
+
+| prediction | verdict | deciding number |
+|---|---|---|
+| P1 list share DA up, ANC down, 0.2-1.5 points | falsified | both unchanged to 0.001 |
+| P2 DA +1 to +5 seats, ANC −1 to −5 | falsified | DA −0.2, ANC +0.5 |
+| P3 under 10 favourites change | held | 2 |
+| P3 they are among wards with roll change over 15% | falsified for one of two | ward 120, −3% |
+| P4 every party's p5-p95 width within 3 seats | held | no range moved |
+
+P1 and P2 were derived from the roll change summed by favourite, which assumed
+the roll raises a party's citywide share; the model fixes citywide share before
+the roll is applied (above). Not checked before writing them.
+
+`declares.py --verify`: 7 of 150 fail, 4 declaring wrongly (`forecast_frozen.json`
+and three `site/draws*/manifest.json`, on the code cell), all predating this
+code and regenerated at the site step; 3 undeclared as before.
+
+
+## 1.305 Pool-placed parties had no geography (2026-10-15)
+
+**Defect.** Seeded arrivals and `local_record_only` parties were placed by `max(place * base_city, SHARE_FLOOR)` and their deviation was `logit(local) - logit(base_city)` clipped at `SHARE_FLOOR` (0.002). Every such party at Johannesburg 2026 has a base under 0.002 (largest UIM 0.00126), so every voting district held the floor, `dev` was 0, and the fitted pool vector was computed and erased. All 53 pool-placed parties at joburg 2026 were flat.
+**Found** by a read-only diagnosis on the owner's question whether small parties can win a ward.
+**Fix.** `montecarlo.place_by_pool` floors at `level_floor`; `placement_deviation` clips those columns at `level_floor`; other columns are byte-identical (`tests/test_pool_placement.py`). Owner direction, same day: the ward ballot of a party the slates name is zero outside its wards (`solve_and_predict(mask=)`).
+**Measured** in process, 300 draws, joburg 2026: 53 of 53 have non-flat `dev` (largest range 6.57 logit); 51 of 53 have a ward ballot masked to their slate (CHANGE and PRO SOUTH AFRICA are not named in the slates and are unmasked). Largest list-ballot VD-share range among them 0.045.
+**Backtests.** Seeded arrivals exist in backtest city-years (ActionSA 2021), so those read this path and will move. Not re-measured here; the next canonical `compare_history` run records the change. Pool specs are not affected (no `levels.py` change).
+
+## 1.306 The ward-contest rule: slates mask every party's ward ballot, ward-only parties leave the list ballot (2026-10-15)
+
+**Rule (owner, 2026-10-15).** "for people running only for a ward seat - a. they should be omitted from any citywide machinery and vote calculation b. their chances of a win should be within the specific ward they are contesting and no other." And: "if an independent is running a ward only campaign, the only question is what ward. They get zero votes across the city. It's what ward THEN who lives there."
+
+**Defect found in §1.305's mask.** At an unheld target `ward_parts` keys wards by NUMBER (the crosswalk's `Ward_2026`, `1`..`135`) and the declared slates by WardID (`79800001`..). The mask compared the two, matched nothing, and zeroed the ward ballot of all 51 masked pool-placed parties at Johannesburg 2026 (in process, 10 draws at commit 17a59c1: ward share 0 for all 51, against a list share summing to 0.0335). §1.305's "51 of 53 masked to their slate" counted columns, not matches. Held targets were unaffected (the result file's `Ward` is the WardID on both sides).
+
+**What changed.**
+- `levels.ballots` is the one source of who stands where (result file, else `[roster]`): ward slates as WardIDs, the set of parties with a PR list, completeness, source. `contestation`, `declared_contestation`, `slate_coverage`, `unopposed_wards` and `montecarlo.run_model` read it; `_result_slates` is gone (`_result_ballots` is its file reader).
+- `[roster] pr` in `judgements/joburg-2026.toml`: the parties with PR-list rows in the certified candidate PDF (`pdftotext -layout`, Johannesburg rows, small-integer `Ward \ List Order`). Measured: 75 PR lists, 80 ward slates, union 82, equal to `[roster] parties`; the declared ward slates equal the PDF's party by party. Ward-only: AFRIKA UNITE CONGRESS, CIVIC MOVEMENT FOR PROGRESSIVE CITIZENS, INDEPENDENT, MAWUSA MOVEMENT PARTY, RESIDENT DEVELOPMENT, TAU DIA RORA CULTURAL AND TRADITIONAL LEKGOTLA, UNITED DEMOCRATIC MOVEMENT. List-only: CHANGE, PRO SOUTH AFRICA. Tshwane 2026's judgement file has no `[roster]`, so none was added; the same PDF gives Tshwane 70 PR lists, 77 ward slates, union 79. `pools.declared_roster` refuses a `pr` name outside `parties` and a party on neither ballot.
+- `montecarlo.ballot_masks`: every slated party, national record or not, is masked to its wards (`montecarlo.ward_ids` maps the run's keys to WardIDs; a run whose slated parties match none of its wards refuses). A list-only party, or any party a complete source gives no slate, stands in no ward. Unknown slates stay unmasked (JUDGEMENT-CALLS §U2).
+- Ward-only parties: PR target zero and the rest renormalised pro rata per draw, PR column masked to zero (`montecarlo.ballot_targets`, JUDGEMENT-CALLS §U1). With no list vote they are outside `seats.eligible_parties`; a ward they win is a D-term seat (`seats.outside_pool_wards`). The ward tally renormalises each part's row over who stands in its ward.
+- `inputs_preflight`: a REQUIRED row for the certified PR lists, `used` computed from `levels.ballots`. Slates or PR lists naming a party outside the run are printed and recorded in `scenario["_ballot_report"]`.
+
+**Measured** in process, scratch bypass of the stale pool specs, width record and by-election weights (the measurements describe this code on the pre-change specs, not a canonical run):
+- Johannesburg 2026, 300 draws: ward wins by a party outside its slate 0 (at 17a59c1, mapped through the crosswalk: MK in 15 draws, RISE in 1). Ward-only parties' list share 0 in every draw and no list seat; their ward-ballot share means 0.0003-0.0016 each; RESIDENT DEVELOPMENT won a ward in 7 draw-wards, TAU DIA RORA in 4, AFRIKA UNITE CONGRESS in 1. No slated party has zero ward share. List mass returned to list parties: mean 0.0040 of the list vote, largest draw 0.0152 (100 draws).
+- Johannesburg 2021, 100 draws: wins outside slate 0; ward-only AFRICAN COVENANT and SAKHISIZWE CONVENTION list share 0; list mass returned mean 0.0008.
+
+**Limit.** The ward-only parties' ward level is the drawn level times the measured ward/PR ratio. At Johannesburg 2021 their summed ward target averages 0.00070 of the ward ballot, against 0.000027 in the result file: their size, not where they stand, is what this does not fix.
+
+**Backtests will move.** Every held city-year now masks every party's ward ballot to its result-file slate (§1.305 masked pool-placed parties only), and parties with ward rows and no PR rows lose their list vote. Not re-measured here; the re-emit (`POOLS-REEMIT-QUEUE.md` entry 40, then `group_share_record`, `bye_value`, `width_record`) and the next canonical `compare_history` run record it. Independents remain outside every run's universe (C structurally 0, JUDGEMENT-CALLS's `independent_wards` (C) row); their declared slates are reported, not modelled.
+
+## 1.307 A party with its own national record is fitted on it, not inherited (2026-10-16)
+
+**Rule (owner, 2026-10-15, "option A", `audits/2026-10-11-model-round/PLAN.md`).** Fit MK's pool vector from its own 2024 national results by voting district, as identified parties are fitted; the splinter default applies only to splinters with no record of their own.
+
+**What changed.**
+- `pools.place_vectorless` chooses the vector for every party in the roster with no vector from the fitting (local) election, one rule for all: its own fit on `target.previous_npe` when that fit identifies at least one pool (`pools.vector_from_own_record`, `PartyFit.identified`), else judged `weights`, else the splinter blend (`parent_weight`, else `SPLINTER_PARENT_WEIGHT`), else the city mix.
+- `pools.national_fits` is `fit_city` on the national result file: every party jointly, that election's registration-nested composition (`pool_counts`), the method-of-bounds box, the same identification test. The vector is `PartyFit.composition` on the target's pool votes, as for a local fit. No year gate.
+- `pools._ward_resolver`: the one VD-to-ward resolver for `ward_totals` and `ward_party_shares`. `ward_party_shares` dropped every row of a file with no `BallotType` column, and every row with a blank `Ward` (the 2019/2024 layout), so no national election could be fitted. No LGE file has a blank `Ward` row (checked over every `lge*_clean.csv`), so no local fit moves.
+- The spec gains `fitted_from_national` (election, rates, bounds, pools identified, the `weights` or `parent_weight` superseded) and `national_fit_refused` (party, why); the per-pool `identified` list counts a national fit; `derived_from` names the national election. `build_play`'s new-parties note names a national-fitted party as absent in 2021 with its split estimated (not "assumed", not hatched).
+- §SJ1 (MK `parent_weight = 0.9`) stays on the judgements sheet and is not read while MK's 2024 fit is identified; §F6 is scoped to splinters with no record.
+
+**Measured** in process, `emit_pools` with the national path on against the same tree with `national_fits` returning nothing (no spec written; `/private/tmp/mkfit/probe2_*.json`). Vectors in pool order Black African, Coloured, Indian/Asian, White, as emitted member weights.
+
+Johannesburg 2026, MK: fitted (2024, identified in Black African and White; rates 0.1947, 0.0000, 0.0027, 0.0193) **0.943, 0.000, 0.001, 0.056**; the 0.9 blend (§SJ1) 0.872, 0.032, 0.021, 0.075; the 0.35 default 0.686, 0.056, 0.035, 0.224 (computed from the 0.9 blend's and the city mix's four-decimal values).
+
+Parties whose vector changes (largest member-weight change in brackets):
+
+| target | parties |
+|---|---|
+| 2011 (from 2009) | COPE at all eight metros (eThekwini 0.526, Johannesburg 0.185, Cape Town 0.133, Ekurhuleni 0.102, Tshwane 0.090, Mangaung 0.079, Nelson Mandela Bay 0.040, Buffalo City 0.008); Cape Town NATIONAL_PARTY_SOUTH_AFRICA 0.523, ALJAMAAH 0.467; eThekwini APC 0.390; Buffalo City AIC 0.074 |
+| 2016 (from 2014) | EFF at all eight (Cape Town 0.362, Nelson Mandela Bay 0.274, Tshwane 0.187, Ekurhuleni 0.143, Mangaung 0.137, Johannesburg 0.134, eThekwini 0.128, Buffalo City 0.074); PA at Johannesburg 0.663, Cape Town 0.618, Tshwane 0.261; AGANG at Ekurhuleni 0.112, Johannesburg 0.113, Tshwane 0.057; AIC at Cape Town 0.244, Nelson Mandela Bay 0.183 |
+| 2021 (from 2019) | none: `pool_counts` refuses 2019 in every city (`census_drift_unmeasurable`), so every 2021 party with a 2019 record (GOOD, ATM, NFP and others) keeps the lineage rule and the spec lists it in `national_fit_refused` |
+| 2026 (from 2024) | Johannesburg MK 0.071, RISE 0.333, BOSA 0.281; Tshwane MK 0.127, HOPE4SA 0.375, UNITED_AFRICANS_TRANSFORMATION 0.423, RISE 0.099, BOSA 0.055 |
+
+Largest moves, old (lineage rule) to new (fit): Johannesburg 2016 PA 0.627, 0.062, 0.036, 0.275 to 0.259, 0.725, 0.016, 0.000; Cape Town 2016 EFF 0.510, 0.268, 0.070, 0.152 to 0.872, 0.063, 0.050, 0.014; eThekwini 2011 COPE 0.778, 0.017, 0.130, 0.076 to 0.252, 0.113, 0.437, 0.198; Johannesburg 2026 RISE 0.520, 0.133, 0.040, 0.308 to 0.187, 0.068, 0.140, 0.606. No party with a local fit moves (difference 0 at every city-year). Refused for an unidentified fit, e.g. Johannesburg 2026 DUDULA, AZANIA_PEACEFUL_REVOLUTION, and APC at six 2011 metros.
+
+**Limits.** The identification test is per pool and the rule takes at least one identified pool; for a small party every interval is narrow, so the test mostly checks that its rate clears the floor (BOSA at Johannesburg 2026 is identified in all four pools). The census White pool is inflated against the roll (DATA-QUALITY item 11), and the national fit inherits that composition as every local fit does. A national vector describes a national election; whether it transfers to a local one is what the backtest measures. The 2019 refusal means the 2021 targets test nothing of this rule.
+
+**Backtest pending.** Every spec is stale (`pools.py` code). The re-emit (`POOLS-REEMIT-QUEUE.md` entry 41) and the next canonical `compare_history` record what the 2011 and 2016 changes do to the score.
+
+## 1.308 Ward seats won by parties with no PR list are in the council; `level` finds its council by a bounded scan (2026-10-16)
+
+**Defect.** Since the ward-contest rule (§1.306) a ward-only party (a slate, no PR list) can win a ward. Schedule 1 deducts that seat before the quota (`B - C - D`, `seats.allocate`) and the councillor keeps it. `montecarlo.run_model` appended the pool only to `seat_draws`, so a draw with D wards summed to `council - D`: `tests/test_chain.py::test_the_forecast_runs_and_fills_the_council` failed in the 2026-10-16 rebuild (`.claude/rebuild-2026-10-16/logs/tests_chain_alone.log`).
+
+**What changed.**
+- `seats.outside_pool_seats`: the one membership test for C and D (an independent, or a ward winner absent from `combined`); `outside_pool_wards` counts from it.
+- `seats.council_seats(pool, ward_wins, combined, council)`: the pool plus each outside-pool ward seat as its winner's own entry; refuses unless the total equals the council the rule returned, and refuses a party in both halves. Called by `run_model` (every `seat_draws` row), `prediction.seats_of` (replacing its inline add-back) and `benchmarks.council_from_shares` (the baselines carried the pool only as well). Representation chosen: party columns rather than a separate array, because the ward-only parties are already in the run's universe (so `export_draws`, `arms` and every `universe`-indexed consumer get the column with no change), `prediction.seats_of` already returned seats this way, and Σ seats = council then needs no consumer to add anything back.
+- `allocate_with_overhang`: C and D stay fixed seats under every rule (never in `ward_wins`). A pool ward winner with no combined votes is refused under every rule, beside the §1.97 F42 refusal of a winner absent from `combined`, whose message now says where a no-list ward seat goes.
+- `level` returns the smallest council at or above `COUNCIL` covering every pool ward winner, by a one-seat scan between a lower bound (`n > (w-1)·A/v`) and an upper bound (`n >= w·A/(v-w)`) on the seats the quota is struck over. `OVERHANG_LEVEL_MAX_ROUNDS` deleted (JUDGEMENT-CALLS §A40).
+- `reader_seats.context_from_run` defaults `no_pr_list` to the run's ward-only parties (`ModelRun.scenario["_ward_only"]`), so a reader context built from a run seats their wards through D instead of refusing them. `tests/test_reader_seats.py` asserted C = D = 0 on every captured call (false since §1.306: a JHB 2021 draw gives SAKHISIZWE_CONVENTION a ward) and compared pool parties only; it now counts D from the draw's ward-only wins and compares the whole chamber.
+- `tests/test_chain.py`: the fill test compares each draw with its own `council_sizes[d]`; the artefact-key test judges each spec against the real `cityconfig.Target`, whose `.crosswalk` the roll hash reads (`_Target` had none, so every spec read `roll_sha unkeyed` and stale).
+
+**The `level` crash had a different cause from the one first assumed.** Measured on 1,000 captured JHB 2026 draws (seed 20261104, in process): the three `level` failures are draws where DUDULA, a party WITH a list, holds 4 wards on 0.59% of the combined vote. The creep (`total += deficit`, 200 rounds) fell to one seat a round and stopped at 561; the same draw needs 573 (another failing draw needs 626). D was 0 at all three failing draws. No no-list party reached any regime's `ward_wins`: `outside_pool_wards` removed them before every call.
+
+| claim | evidence | verdict |
+|---|---|---|
+| `level` failed because a no-list ward winner can never be topped up | the failing draws' `ward_wins` hold only list parties; DUDULA (list) is the short party; a no-list winner would have hit the F42 refusal, not the round cap | rejected |
+
+**Measured** (in process, no artefact written):
+- Captured draws, all four rules: pool + C + D = council at every draw; under `level` the scan's council equals the creep's run without a round cap at all 1,000 draws (largest 626).
+- JHB 2026, 1,000 draws, `deduct`, after `width_record.py --emit`: seat totals 270 at every draw. Outside-list ward seats per draw: mean 0.034, max 2, at least one in 33 draws (TAU DIA RORA 15 draw-seats, RESIDENT DEVELOPMENT 14, AFRIKA UNITE CONGRESS 5).
+
+**Limits.** `backtest.actual_result` (the truth) still returns the pool only. D is zero at every city-year on record, so no scored row moves through D today; the IEC's C at eThekwini 2011 and 2016 is outside the truth's seat vector as before. When a held election has D > 0 (2026 once its result lands), the truth must carry those seats too or the model is charged for a correctly forecast ward seat. Backtest rows whose draws seat a no-list ward winner now carry that seat as error against a truth of zero, where before `coherent_seats` apportioned it to the list parties; not measured here (no `compare_history` run). `worker-api/seats-py/src/` and `site/` hold copies made before this change. `build_make.model_artefact` writes `"no_pr_list": []` into the editor's seat context, so the 2026 editor refuses a ward handed to a ward-only party; not changed here (a site change, `QC.md` §4b).
+
+## 1.309 The ground truth holds the whole council: C and D ward seats in `backtest.actual_result` (2026-10-16)
+
+**Defect.** §1.308 made every model draw hold the whole council; `backtest.actual_result`, the truth every backtest is scored against, still returned the entitlement pool. A forecast C or D ward seat was scored against a truth of zero, and at the two city-years with a published C > 0 the truth was short of the council: eThekwini 2011 (C = 1, 204 of 205) and 2016 (C = 4, 215 of 219).
+
+**What changed.**
+- `actual_result` returns `seats.council_seats(pool, outside, combined, council)`: the pool plus each C and D ward seat as its holder's own entry, through the definition the draws use. `outside` is `seats.outside_pool_seats` on the counted ward wins (its inline copy of the membership test is gone), with `IND` replaced by the IEC's published C where a Seat Calculation Detail exists, as the allocation already did. The IEC comparison is unchanged (pool against the IEC rows less the outside seats, plus a whole-chamber total).
+- `seats.is_independent`: the one test for an independent (`INDEPENDENT` or the result files' merged `IND`), read by `outside_pool_seats` and `backtest.entrant_actual_for`.
+- `entrant_actual_for` excludes independents, as `ARRIVED_VS_NATIONAL` states (`party != IND`). With C in the truth, eThekwini 2016's 4 IND seats outnumbered the AIC's 3 and the ENTRANT column was relabelled onto IND; measured over the 24 runnable city-years, that was the only row whose label changed, and with the exclusion every row's label equals the pool-only truth's.
+
+**Measured** (in process, `actual_result` over the 24 runnable city-years): the truth sums to the council at all 24. It moves at two: eThekwini 2011 gains IND 1 (205), eThekwini 2016 gains IND 4 (219; 5 wards counted from merged IND rows, the IEC's C = 4). Buffalo City 2021 counts one IND ward and the IEC's C is 0, so the truth adds nothing there (100). D is 0 at every city-year. Independents are outside every run's universe, so at the two eThekwini rows the scorer now carries an IND column the model forecasts at 0.
+
+**Tests.** `tests/test_seats.py::test_the_ground_truth_council_holds_C_and_D_ward_seats`: a constructed five-ward result file (council 10; a no-list party wins one ward, IND one) with no IEC report, so the `official is None` path; asserts both ward seats are in the truth, the total is 10, and the pool equals `allocate` over council - C - D derived in the test. With the `council_seats` line removed it fails (`the truth holds 8 seats against a council of 10: {'ALPHA': 5, 'BETA': 3}`); restored, it passes. `test_an_independent_in_the_truth_is_never_the_arrival` fails with the exclusion removed and passes restored. The IEC-override path (counted IND above the published C) is exercised by the eThekwini 2016 and Buffalo City 2021 files only, not by a constructed test.
+
+**Not changed.** `fold.py`'s seat printout allocates the real council over the default 270 with no C or D, and `validate_seats.py` counts C from `INDEPENDENT` only (not `IND`); neither feeds `compare_history` or any score.
+
+## 1.310 The panel and the Johannesburg 2026 artefacts on the whole-council truth (2026-10-16)
+
+**Backtest.** `src/compare_history.py` at `5dfdfa2` (1,000 draws, seed 20261104, clean tree), committed in `08136c5`, against the run at `74e7433` recorded in `420e179` (same draws and seed). The comparison spans §1.308's model change and §1.309's truth change. Seats given to the wrong party (half the summed absolute seat error) move at two city-years and nowhere else: eThekwini 2011 17.0 to 17.5, eThekwini 2016 11.0 to 13.0. Both moves are the truth's IND seats (1 and 4) against a model forecast of 0; no other party's seat entry changed at either row. Panel total, 24 city-years: 380.0 to 382.5. Wards whose favourite was not the winner, summed over the 24 city-years: 79 before and after, unchanged at every city-year. Coherent seat error at the two rows: 33 to 34 and 22 to 26. §1.308's no-list ward seats in the draws moved no scored row at this draw count.
+
+**Johannesburg 2026, regenerated in order on `08136c5`.** `src/montecarlo.py --city joburg` (5,000 draws, seed 20261104): `forecast_summary.json` byte-identical to the file it replaced apart from `_generated`. `src/overhang_regimes.py` (exit 0; the 2026-10-16 rebuild's `level` failure, §1.308, does not recur). `src/freeze.py` (defaults: 1,500 draws, seed 20261104, clean tree): `content_sha256 26016cdc…`, `seat_draws_sha256 e3b2a197…`. `src/export_draws.py --out site/draws`, `--set w_bye=0 --out site/draws/w_bye-0`, `--set w_bye=1 --out site/draws/w_bye-1`, `--index site/draws`: 5,000 draws, four seat laws, `artefact_key.git` `08136c5`, clean. `src/citywide_table.py --city joburg --target 2026`. `src/declares.py --verify` afterwards: 0 artefacts declaring wrongly; it fails on 3 that declare nothing (`width_budget.json`, `sweep.json`, `interactive_data.json`), whose writers put no key on them.
+
+**The forecast** (`site/draws/base.bin`, deduct law, 5,000 draws; every draw sums to 270). Mean seats: ANC 71.71, DA 69.84, EFF 30.26, ActionSA 27.23, MK 23.39, PA 15.80, RISE 4.88, IFP 4.07, BOSA 3.08, Al Jama-ah 2.76, VF Plus 2.56, ACDP 1.97, ATM 1.43, AIC 1.34, AHC 1.31, PAC 1.00, UAT 0.60; every other party 6.74 together. 5th to 95th percentile: ANC 51-83, DA 52-88, EFF 18-46, ActionSA 17-40, MK 4-64, PA 5-33. Largest party (`forecast_summary.json` `structural`): ANC 0.5766, DA 0.361; alone, without a tie, from the draws: ANC 0.5414, DA 0.3592. Ward favourites (`ward_winner_probs.csv`, 135 wards): ANC 78, DA 45, PA 5, MK 3, EFF 3, IFP 1.
+
+**Seen, not changed.** `data/processed/seat_draws.csv` carries 13 party columns; its rows sum to the council in 8 of 5,000 draws (0.16%). The export carries every seat-winning party and sums at all 5,000.
+
+## 1.311 The model-side suite failures at `aa95c51`: instruments repaired, one golden re-recorded, and the calibration findings the panel under the universal draw no longer supports (2026-10-16)
+
+Source: the whole-suite run at `aa95c51` (`.claude/truth-fix-2026-10-16/suite.log`, gitignored). No model code changed, no spec was emitted, no artefact under `data/**` was written. Every figure below was computed in process from the committed `data/processed/history.json` (`08136c5`) through `compare_history.load_history`, `pooled_calibration`, `pooled_by_band` and `score.chi2_clustered` (R = 64, `redraw_pits`), or from the files named.
+
+### Instruments that were wrong, and what each now checks
+
+- **`test_draw_record`** (IndexError at 5,000). Not 2bcf98c: the step-9 suite (§1.302) already failed the same way. The universal law reads the `calib.*` streams through `correlated_triangular` in `make_drawer`, once for `composition_variance` (N_CAL draws) and then N_CAL draws per κ iteration, so the wrapper saw more calls than draws × pools. The wrapper now tags each call by its caller's stage prefix (`pre == "calib."`); run calls are captured as before (exactly draws × pools), calibration calls are counted against N_CAL × (`kappa_iters` + 1) × pools, `kappa_iters` read from the wrapped run's own `35_widths` trace. Measured: 64,000 calibration calls = 4,000 × 4 × 4 pools.
+- **`test_stage_inputs`.** `roll_sha` (§1.304) added to the checked key set. It is the one member allowed a word: `"absent"` (a target with no crosswalk, every held election); `"unkeyed"` and blanks are refused, with a constructed test. Known gap: the predicate does not know whether its target is held, so it accepts `"absent"` at an unheld target, where it would mean the crosswalk file is missing (§4b).
+- **`test_stage_realisation`.** `real_trace` never loaded `35_widths`, which `run_predicates` reads. Loaded.
+- **`test_levers_are_live`, `LEVEL_DF`.** Read only in the incumbent law's two branches of `make_drawer`; the shipped universal law has no df. The incumbent law is still a `DRAW_LAWS` member, the arm runner runs it and `test_draw_streams` perturbs `LEVEL_DF` under it, so the constant is not dead. The sweep entry now holds `draw_law = "incumbent"` open in both runs (the `SIGMA_TWO_TERM` instrument); it moves there. JUDGEMENT-CALLS §A18 and both register rows now say where it is read.
+- **`test_roster_fails_closed`.** The band was 1..3 × the ten "orphan" counters; the board holds 35, because it gained the keyed streams' and the universal draw's counters. The orphans are a subset of the board, not its size. The board is now held equal to `test_stage_realisation.GUARD_KEYS`, both directions, band 1.0..1.0.
+- **`test_intermediates_are_current`.** `plausibility_*.json` was declared and matched nothing: `plausibility.py` requires `--out` and refuses any path inside `data/`. Entry removed. CLAUDE.md §5 still says it "writes under `data/processed/plausibility/`" and omits `--out`; not edited here.
+- **`backtest.arrival_group_score`** uses `seats.is_independent`. No PR row in any of 40 `lge*_clean.csv` files names `IND` or `INDEPENDENT`, so no arrival score moves.
+
+### `test_drawer`'s goldens re-recorded: the 2026 spec moved them
+
+With today's code, the fixture pointed at the spec and width record the 2026-10-14 goldens were recorded on (`backups/2026-10-15T031914Z`, `pools_sha` dcf2cd52) reproduces every golden to four decimals. Old width record with today's spec: today's drift (the width record contributes under 0.001pp). Old spec with today's width record: the goldens hold. Black African pool mean by spec, with today's width record: dcf2cd52 50.80; bfa422e4 (`95b4405`, queue entry 38) 50.56; 0d4e4b8c (`982cc97`, entry 39) 52.27; 76bfd9d6 (`a3f039d`, entries 40 and 41, today's) 51.96. Each `pools_sha` is `pools._code_sha` of `src/pools.py` at the commit named; nothing was isolated within an interval. Largest party move MK p95 23.67 → 24.11. No improvement claimed.
+
+### Documents re-quoted
+
+ITERATING rule 8's two marked tables and JUDGEMENT-CALLS §A38's PA figures (median 0.0592%, mean 0.0786%, actual 2.9604%; 37.7× on the mean, 50.0× on the median) are pasted from the artefact. Reading `history.json` at `c9bae8e`, `346fb97`, `bb280c8`, `420e179` and `08136c5`: every rule-8 cell moved at `346fb97` (step 9, the universal draw), which §1.302 recorded as "re-quotes for the next session", and moved again by at most 0.004 in mean PIT through the 2026-10-15/16 rebuilds. Claimed ranks 4-12 n went 74 → 124 at `346fb97`. Rule 8 now carries a dated banner and a marked per-cycle table that `test_calibration_report` holds to the artefact in both directions.
+
+### Readings this artefact no longer supports
+
+| claim | where it was made | on `08136c5` | verdict |
+|---|---|---|---|
+| ranks 4-12 sd(z) on `reference` rises monotonically with the cycle (0.452 / 1.155 / 1.960, 2026-09-12) | rule 8, §1.132, `test_calibration_report` | 1.542 / 1.304 / 3.705 for 2011 / 2016 / 2021 | does not hold: 2011 above 2016 |
+| the widest cycle is over 3× the narrowest | same test | 2.84× | does not hold |
+| claimed ranks 1-3 and 4-12 both read above 0.50 (under-forecast); only 4-12's interval excludes 0.50 | rule 8 | mean PIT 0.477 [0.436, 0.515] and 0.458 [0.374, 0.542] | inverted; neither excludes 0.50 |
+| both bands too wide by the same factor | rule 8 | probit-SD dropping saturated PITs 1.053 and 1.082; both bands carry saturated PITs, so the 1e-6-clip figure is ⛔UNQUOTABLE | does not hold |
+| `reference` rejects uniformity once clustered by city-year | `test_scored_universe`, `score.chi2_clustered` | χ²_RS 18.92 against 16.92, rejecting in 35 of 64 randomisations, bootstrap [10.22, 65.04]; second order 14.64 against 14.08, 28 of 64 | not established |
+| `claimed` rejects | same | χ²_RS 30.45, 64 of 64, [20.46, 97.59]; second order 18.33 against 11.73, 64 of 64 | holds |
+| the clustering sits in the high PIT cells | same | the bottom cell is the largest in every population: `reference` 2.6, `claimed` 4.1, `seat_holders` 2.5, `all` 2.5; `reference` corr(bin, deff) −0.28; `reference` mass 13.2% bottom decile, 11.0% top | does not hold |
+| `claimed` survives the move to cycle-level clustering | same | 0 of 64 (δ̄ 5.06) | does not hold |
+| the `claimed` selection flatters the level bias | same | mean z −0.303 on claimed against +0.122 fixed; it keeps 0 of the 10 worst columns, sd(z) 0.991 against 1.846 | reversed: it reports a larger bias of the opposite sign; the width half holds |
+| pooled `reference` sd(z) rises with the cycle | same | 1.388 / 0.972 / 2.273 | not ordered; widest over narrowest 2.34× |
+
+The tests in `test_scored_universe` now assert the measured state (with the incumbent-law values kept in their docstrings), each two-sided where a verdict could move either way; three are renamed for what they now assert. `score.chi2_clustered`'s `level_caveat`, which `compare_history` prints into `history.md`, carried the 2026-09-12 cycle figures as typed digits; it now points at the report's per-cycle split. Its docstring tables are marked as the incumbent-law panel's. Which mechanism produced the bottom-cell clustering is not measured here; the ranks 13+ signed vote error (+16.31pp over the 24 city-years) is one candidate, and a per-band cell decomposition would separate it from the others.
+
+### Soweto: the roll moved ward 29 across the cut
+
+`content/joburg/areas.toml` was regenerated by `src/areas.py --write`: 41 wards, ward 29 added. Ward 29's share of registration at Soweto stations is 37.9% on the crosswalk before `982cc97` and 61.1% after (entry 39 (d): each VD placed wholly on its solved ward); the rule (§P2) is unchanged. `render_sheet` on a scratch sheet: the Mashaba claim's chance is 0.7134 on 41 wards against 0.7133 on 40.
+
+### Not fixed, and why
+
+- `test_arms` ×3: `arms.py` encodes the step-7 trees; retiring or re-pointing it is the owner's call (§1.302).
+- `test_pool_bounds`: Buffalo City, Cape Town and Nelson Mandela Bay 2011, DA in White, 1.07× to 1.25× the pool's top-of-band vote. DATA-QUALITY item 13's census fault; a re-emit cannot clear it. Recorded there.
+- `test_regressions`: `pools.projected_pool_shares` has no caller since entry 39. Deleting it moves `pools_sha`; queued as POOLS-REEMIT-QUEUE entry 42.
+- `test_levers_are_live::test_every_tunable_lever_actually_moves_the_forecast` (also red at `aa95c51`): `width_record.json` holds no 2021 record for the `level_shrink = 0` variant. It needs `width_record.py --emit --set level_shrink=0` in a re-emit window.
+- The chance-scale verdict on "The DA cannot win Joburg without Soweto" (VERY LIKELY; chance 0.7133 on 40 wards, 0.7134 on 41; the scale calls it QUITE LIKELY) is the owner's. The two claim-colour tests in `test_site_structure` fail on markup: each claim's `<article>` now carries an `id` attribute after `data-party`, which their patterns do not admit. No verdict is involved.
+- JUDGEMENT-CALLS §A18's reader-facing Plain line says each party's support is drawn with heavier tails than a bell curve; under the shipped universal law it is a normal on the log scale. Reader text, left for the owner.
+
+## 1.312 Ward-only parties in the site's entry schema; the round's pre-registrations scored (2026-10-16)
+
+**Site schema (`369adb5`).** Since §1.306 the 2026 draws carry ward votes for parties with a ward slate and no PR list. `build_make` took the schema's roster from the seat blocks' columns and wrote `no_pr_list: []`, so the site build refused CIVIC_MOVEMENT_FOR_PROGRESSIVE_CITIZENS, MAWUSA_MOVEMENT_PARTY and UDM as off the roster. The roster is now every vote-block column (`build_play.roster_codes`), and `no_pr_list` is `levels.ballots`' ward-only set, the set `run_model` reads. At Johannesburg 2026 that is six parties: each has ward votes and no list vote, and a ward given to one is a D seat, with the council at 270. The off-roster refusal still fires on an invented party (constructed test).
+
+**Draw file size.** `site/draws/base.bin` is 2,109,184 bytes gzipped against the 1.5 MB budget of PLAN step S2, which states no rationale. The growth predates §1.308: each vote block roughly doubled compressed between `2bc6740` and `5ce3f3f`, because every small party now draws a real vote in every draw (§1.305) where it used to be mostly zero. The page reads those votes. Measured exact alternatives: dropping all-zero columns saves about 108 bytes; byte-shuffling reaches about 1.92 MB with a format change in every reader. Decision for the UAT build (orchestrator, owner may reverse before live): budget raised, not detail cut.
+
+**Pre-registrations scored.** `prereg/2026-10-15-roll-assignment-and-mk.md` and `prereg/2026-10-16-ward-contest-and-national-fit.md`, scored in `reports/model-changes/2026-10-16/prereg-scoring.md`. Every gate and prediction confirmed, with two exceptions. Falsified: the premise that the national-record fits move no voting district's expected vote (the 2011 ward vote error fell at all eight metros, by 0.35 to 0.64 points). Not testable: that 2021 moves only through the slate mask and small-party geography (no run holds one of the two fixed). Confirmed in sign only: the MK parent-weight call (MK wards 10.287 → 10.277; seat moves at most 0.01), so its stated mechanism is unsupported. Not predicted: 2011 wards called wrongly 26 → 30 (Buffalo City 0 → 3, eThekwini 12 → 13). Old-vs-new report: `reports/model-changes/2026-10-16/`, old = the roll round's arm.

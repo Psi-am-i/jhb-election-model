@@ -87,9 +87,9 @@ import byelections as _byelections
 import cityconfig
 import coalitions
 from fold import FOLDS, citywide, load, load_parameters, shares
-from seats import (INDEPENDENT, TieWithoutLot, allocate, draw_key,
-                   eligible_parties, lot_identity, outside_pool_wards, seat_key,
-                   stable_entropy)
+from seats import (INDEPENDENT, TieWithoutLot, allocate, council_seats,
+                   draw_key, eligible_parties, lot_identity, outside_pool_wards,
+                   seat_key, stable_entropy)
 
 SHARE_FLOOR = 0.002
 COUNCIL = 270
@@ -470,6 +470,50 @@ def logit(p, floor=None):
     floor = SHARE_FLOOR if floor is None else floor
     p = np.clip(p, floor, 1 - floor)
     return np.log(p / (1 - p))
+
+
+def place_by_pool(base_share_d, parties, members_by_party, base_city_d,
+                  vd_pool, floor):
+    """Put each party with no national geography where its pools live.
+
+    ``base_share_d[vd][party] = max(place * base_city_d[party], floor)`` with
+    ``place`` the pool-weighted composition of the district. Returns the set of
+    parties placed.
+
+    THE FLOOR IS ``level_floor``, NOT ``SHARE_FLOOR`` (2026-10-15). These
+    parties' citywide bases sit below ``SHARE_FLOOR`` (0.002) -- the largest at
+    Johannesburg 2026 is 0.00126 -- so ``max(.., SHARE_FLOOR)`` set EVERY
+    district to the floor, and `placement_deviation` then read a flat column:
+    the fitted pool vector was computed and erased. The floor must sit below
+    the placed values' scale, which is what ``level_floor`` is for.
+    """
+    placed = set()
+    for party in parties:
+        weights = members_by_party.get(party)
+        if not weights or base_city_d.get(party, 0.0) <= 0:
+            continue
+        for vd, comp in vd_pool.items():
+            place = sum(weights.get(name, 0.0) * comp.get(name, 0.0)
+                        for name in comp)
+            if place > 0:
+                base_share_d.setdefault(vd, {})[party] = max(
+                    place * base_city_d[party], floor)
+                placed.add(party)
+    return placed
+
+
+def placement_deviation(local, base_city, pool_placed_cols, level_floor):
+    """``logit(local) - logit(base_city)`` per party, i.e. each party's geography.
+
+    Columns in ``pool_placed_cols`` are clipped at ``level_floor``; every other
+    column at ``SHARE_FLOOR`` exactly as before, so a party with a national
+    record is unchanged. The same floor is used on both terms, or a constant
+    is subtracted from one side only.
+    """
+    floors = np.full(local.shape[1], SHARE_FLOOR)
+    floors[list(pool_placed_cols)] = level_floor
+    return (logit(local, floors[None, :])
+            - logit(base_city[None, :], floors[None, :]))
 
 
 def expit(x):
@@ -1151,6 +1195,10 @@ def read_ward_crosswalk(path: Path, year: str, ward_column: str | None = None
                         ) -> tuple[list[tuple[str, str, int]], int, int]:
     """The VD→ward crosswalk: ``([(vd, ward, part_registered), ...], vds, split)``.
 
+    ``part_registered`` is the ``part_registered_<year>`` column (the IEC
+    snapshot, apportioned) when the file has it, else the MDB layer's
+    ``part_registered``.
+
     ONE READER (§1.97 F18). There were three: this one, `leverage.load_ward_
     parts` and an inline comprehension in `export_interactive`, the latter two
     both hardcoding ``Ward_2026`` where this takes the year. Three copies of a
@@ -1175,7 +1223,18 @@ def read_ward_crosswalk(path: Path, year: str, ward_column: str | None = None
             f"{path.name} has no `{column}` column; it carries "
             f"{', '.join(k for k in rows[0] if k.startswith('Ward'))or 'no Ward column'}. "
             f"A crosswalk built for one year cannot be read for another.")
-    parts = [(r["VD_Number"], r[column], int(r["part_registered"])) for r in rows]
+    # THE 2026 ROLL IS THE IEC SNAPSHOT, WHEN THE CROSSWALK CARRIES IT.
+    # `build_concordance` adds `part_registered_<year>` (each ward's parts
+    # scaled to that ward's figure on the newest registration snapshot) next to
+    # the MDB layer's `part_registered`. This is the one place that chooses
+    # between them, so `ward_parts`, `pools._target_roll`, `areas`,
+    # `export_interactive` and `build_make.expected_ward_shares` cannot read
+    # different rolls. Reached only for a target with no result file
+    # (`ward_parts`' gate), so a backtest never sees the column.
+    value_column = (f"part_registered_{year}"
+                    if rows and f"part_registered_{year}" in rows[0]
+                    else "part_registered")
+    parts = [(r["VD_Number"], r[column], int(r[value_column])) for r in rows]
     vds = len({r["VD_Number"] for r in rows})
     split = len({r["VD_Number"] for r in rows if r.get("is_split") == "Y"})
     return parts, vds, split
@@ -1281,9 +1340,153 @@ def ward_parts(target, data_dir: Path, processed: Path) -> tuple[list[tuple[str,
     return parts, f"{path.name} (boundaries and roll only; {detail})"
 
 
+def ward_ids(target, wards, processed: Path) -> dict[str, str]:
+    """``{ward key the run uses: WardID}`` for each of ``wards``.
+
+    The run keys wards as :func:`ward_parts` returns them, and that is two
+    spaces: a held target's result file carries the WardID (``79800094``), the
+    crosswalk of an unheld one the ward NUMBER (``94``). Slates
+    (``levels.ballots``) are WardIDs in both cases. Comparing the two directly
+    matched no ward at 2026 and zeroed the ward ballot of every party it was
+    meant to mask (MODEL-LOG §1.306). Same gate as :func:`ward_parts`, so the
+    key space is decided in one place; the crosswalk is read through
+    :func:`read_ward_crosswalk` once per column and the rows zipped (it
+    returns one tuple per file row, in file order). Refuses a number that maps
+    to two ids.
+    """
+    if cityconfig.CALENDAR[target.year].results is not None:
+        return {w: w for w in wards}
+    crosswalk = processed / target.crosswalk.name
+    by_number, _n, _s = read_ward_crosswalk(crosswalk, target.year)
+    by_id, _n, _s = read_ward_crosswalk(crosswalk, target.year,
+                                        ward_column=f"WardID_{target.year}")
+    out: dict[str, str] = {}
+    for (_vd, number, _r), (_vd2, wid, _r2) in zip(by_number, by_id):
+        number, wid = str(number).strip(), str(wid).strip()
+        if out.setdefault(number, wid) != wid:
+            raise SystemExit(
+                f"{crosswalk.name}: ward {number} carries two WardIDs "
+                f"({out[number]}, {wid}). Slates are keyed by WardID, so the "
+                f"ward ballot cannot be masked until the crosswalk is rebuilt.")
+    missing = [w for w in wards if w not in out]
+    if missing:
+        raise SystemExit(f"{crosswalk.name}: no WardID for ward(s) {missing[:6]}")
+    return {w: out[w] for w in wards}
+
+
+def ballot_masks(universe, wards, ward_id, part_vd, part_ward, nvd, ballots):
+    """Which ballot each party is on, as masks for :func:`solve_and_predict`.
+
+    ``ballots`` is a ``levels.Ballots``; ``wards`` the run's ward keys and
+    ``ward_id`` their WardIDs (:func:`ward_ids`); ``part_vd``/``part_ward``
+    index each usable ward part. Returns a dict:
+
+    * ``ward_mask_part`` (parts x parties) -- 1 where the party stands in the
+      part's ward. A party's column follows ``ballots.slate(party)``: its
+      wards; none (all zero) when the source is complete and gives it no
+      slate; all ones when its slate is unknown (a partial declaration, or a
+      party the source does not name, such as ENTRANT).
+    * ``ward_mask_vd`` (VDs x parties) -- 1 where the party stands in any part
+      of the district. A district in no usable part is 1 for every party with
+      a non-empty or unknown slate.
+    * ``pr_mask_vd`` and ``pr_absent`` -- the ward-only parties
+      (``ballots.ward_only()``): no PR list, so zero list share everywhere.
+    * ``ward_absent`` -- parties whose ward column is all zero.
+    * ``masked``, ``ward_only`` -- the party names, for the scenario record.
+    * ``report`` -- slates naming a party outside ``universe`` and PR lists for
+      a party outside it (no PR baseline), never silently ignored. An
+      independent is listed under ``independents``: the universe never carries
+      one (JUDGEMENT-CALLS.md, the `independent_wards` (C) row).
+
+    Refuses when NO slated party's wards match the run's: that is the
+    key-space mismatch of MODEL-LOG §1.306, which zeroed 51 parties' ward
+    ballots at Johannesburg 2026 with nothing reporting it. A few unmatched
+    parties (every ward they contest is one the run drops) are reported as
+    ``slate_outside_run``.
+    """
+    npar, nparts = len(universe), len(part_vd)
+    wid = [ward_id[w] for w in wards]
+    run_ids = set(wid)
+    ward_mask_part = np.ones((nparts, npar))
+    masked, ward_absent = [], np.zeros(npar, dtype=bool)
+    unmatched, slated = [], 0
+    for c, party in enumerate(universe):
+        stood = ballots.slate(party)
+        if stood is None:
+            continue
+        masked.append(party)
+        slated += bool(stood)
+        if stood and not (stood & run_ids):
+            unmatched.append(party)
+        ward_mask_part[:, c] = [1.0 if wid[wi] in stood else 0.0
+                                for wi in part_ward]
+        ward_absent[c] = not (stood & run_ids)
+    if unmatched and len(unmatched) == slated:
+        raise SystemExit(
+            f"ballot_masks: {len(unmatched)} slated part(ies) contest none of "
+            f"the run's {len(run_ids)} wards ({', '.join(unmatched[:6])}). The "
+            f"slates and the run's wards are in different key spaces; masking "
+            f"would zero these parties' ward ballots (MODEL-LOG §1.306).")
+    ward_mask_vd = np.zeros((nvd, npar))
+    np.maximum.at(ward_mask_vd, part_vd, ward_mask_part)
+    outside = ~np.isin(np.arange(nvd), part_vd)
+    ward_mask_vd[outside] = (~ward_absent).astype(float)[None, :]
+    ward_only = sorted(p for p in ballots.ward_only() if p in universe)
+    pr_absent = np.array([p in ward_only for p in universe], dtype=bool)
+    pr_mask_vd = None
+    if pr_absent.any():
+        pr_mask_vd = np.ones((nvd, npar))
+        pr_mask_vd[:, pr_absent] = 0.0
+    indep = ("IND", "INDEPENDENT")
+    report = {
+        "source": ballots.source,
+        "slate_not_in_universe": sorted(p for p in ballots.wards
+                                        if p not in universe and p not in indep),
+        "pr_list_not_in_universe": sorted(p for p in (ballots.pr or ())
+                                          if p not in universe),
+        "independents": sorted(p for p in ballots.wards if p in indep),
+        "pr_declared": ballots.pr is not None,
+        # slated, but every ward it contests is outside the run (a ward the
+        # run drops for want of a baseline district): no ward votes at all
+        "slate_outside_run": sorted(unmatched),
+    }
+    return {"ward_mask_part": ward_mask_part if masked else None,
+            "ward_mask_vd": ward_mask_vd if masked else None,
+            "pr_mask_vd": pr_mask_vd, "pr_absent": pr_absent,
+            "ward_absent": ward_absent, "masked": sorted(masked),
+            "ward_only": ward_only, "report": report}
+
+
+def ballot_targets(pr_target, ratio, pr_absent, ward_absent):
+    """One draw's citywide (PR target, ward target) under the ballots.
+
+    The ward target is ``pr_target * ratio`` taken from the FULL drawn vector,
+    so a ward-only party keeps the ward-ballot level its record implies; a
+    party on no ward ballot (``ward_absent``) is set to zero; the rest are
+    renormalised. Then each ward-only party's PR target (``pr_absent``) is set
+    to zero and the others are renormalised in proportion to their drawn
+    shares: the list vote such a party's supporters cast goes to the parties
+    with lists pro rata (JUDGEMENT-CALLS §U1). Returns new arrays.
+    """
+    ward_target = pr_target * ratio
+    if ward_absent is not None and ward_absent.any():
+        ward_target = np.where(ward_absent, 0.0, ward_target)
+    ward_target = ward_target / ward_target.sum()
+    if pr_absent is not None and pr_absent.any():
+        pr_target = np.where(pr_absent, 0.0, pr_target)
+        pr_target = pr_target / pr_target.sum()
+    return pr_target, ward_target
+
+
 def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6,
-                      level_floor=None, stats=None):
+                      level_floor=None, stats=None, mask=None):
     """Solve for θ reaching `target` citywide through the model; return VD shares.
+
+    ``mask`` (voting districts x parties, 1 or 0, default None) removes a
+    party from the districts where it is not on the ballot: its share there is
+    exactly zero and the row is renormalised over the parties that are. The
+    solve then reaches the party's citywide target on the districts it can win
+    votes in, so the target is not diluted over districts it cannot stand in.
 
     ``level_floor`` resolves ``DEFAULTS["level_floor"]`` at call time; see
     `log_shock` and MODEL-LOG §1.33 for why no module constant may be a default
@@ -1356,6 +1559,8 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
     for _i in range(rounds):
         level = logit(base_city * theta, floor=level_floor)
         pred = expit(level[None, :] + gamma[None, :] * dev)
+        if mask is not None:
+            pred = pred * mask
         pred /= pred.sum(axis=1, keepdims=True)
         got = weights @ pred
         err = np.abs(got - target)
@@ -1413,6 +1618,8 @@ def solve_and_predict(dev, base_city, target, gamma, weight, rounds=40, tol=1e-6
             float(stats.get("floor_injected_worst", 0.0)), injected)
     level = logit(base_city * theta, floor=level_floor)
     pred = expit(level[None, :] + gamma[None, :] * dev)
+    if mask is not None:
+        pred = pred * mask
     return pred / pred.sum(axis=1, keepdims=True)
 
 
@@ -4601,16 +4808,12 @@ OVERHANG_RULES = ("deduct", "expand", "cap", "level")
 # `deduct` fixes at least one party per round and never un-fixes, so it cannot
 # run longer than there are parties; +2 is slack for the final no-op round.
 #
-# `level` is bounded on ROUNDS, not on council size, and the first attempt at
-# this got it wrong in a way worth recording: a bound of 4x COUNCIL was taken
-# from the largest council a real regime run has produced (396 against a 270
-# base) and it fired immediately on a 15-seat test fixture, where covering a
-# party holding 4 of 7 wards on 2.6% of the vote legitimately needs ~150 seats.
-# **A magnitude read off the real panel does not transfer to a toy** — the same
-# error as §1.105, in reverse. Rounds carry no such assumption: each round adds
-# at least one seat and a converging case takes a handful.
 OVERHANG_DEDUCT_MAX_ROUNDS_SLACK = 2
-OVERHANG_LEVEL_MAX_ROUNDS = 200
+#
+# `level` has no round bound any more: it scans between a lower and an upper
+# bound computed from the votes (see the rule's comment), so it ends by
+# construction. Its old bound, `OVERHANG_LEVEL_MAX_ROUNDS`, fired on a JHB 2026
+# draw whose levelled council lay beyond it (MODEL-LOG §1.308).
 
 
 def allocate_with_overhang(
@@ -4655,6 +4858,18 @@ def allocate_with_overhang(
     Returns (seats, council_size, threshold, excessive_by_party) — the dict
     maps each party that triggered item 16 (in any re-allocation round) to
     its excess at the round it was fixed (0 for an exactly-equal party).
+
+    **``seats`` is the pool: it sums to ``council_size - C - D``.** C and D
+    (``independent_wards``, ``no_pr_list_wards``) are fixed seats outside the
+    proportional calculation under every rule: subtracted before each quota,
+    never excessive, never topped up, and ``ward_wins`` must not hold them (the
+    guard below refuses a winner absent from ``combined``). A caller wanting
+    the chamber adds them back with ``seats.council_seats``, which checks the
+    total (MODEL-LOG §1.308).
+
+    ``level`` returns the smallest council at or above ``COUNCIL`` at which
+    every ward winner is covered, found by a scan between bounds computed from
+    the votes, so it ends by construction (the rule's comment has the bounds).
     """
     if rule not in OVERHANG_RULES:
         raise ValueError(
@@ -4678,7 +4893,25 @@ def allocate_with_overhang(
             f"  A party that wins a ward but has no combined-ballot votes would "
             f"be counted excessive and then seated nowhere. `combined` is "
             f"`pr_votes + ward_votes`, so this means the two ballots disagree "
-            f"about who stood. MODEL-LOG §1.97 F42.")
+            f"about who stood. MODEL-LOG §1.97 F42.\n"
+            f"\n"
+            f"  A ward won by a party with NO PR LIST, or by an independent, is "
+            f"not this function's to seat: Schedule 1 deducts it before the "
+            f"quota (pass it as `no_pr_list_wards` / `independent_wards`, from "
+            f"`seats.outside_pool_wards`) and `seats.council_seats` adds it back "
+            f"to the chamber. No overhang rule tops up a party with no list. "
+            f"MODEL-LOG §1.308.")
+    # A pool party with no votes cannot be covered by any council either:
+    # `level` would search for ever and `deduct` would fix it on nothing.
+    voteless = sorted(p for p, w in ward_wins.items()
+                      if w > 0 and combined.get(p, 0) <= 0)
+    if voteless:
+        raise ValueError(
+            f"ward winner(s) {voteless} sit in the pool with no combined "
+            f"votes. `seats.eligible_parties` admits only parties with list "
+            f"votes, so a pool built that way never holds one; a party with "
+            f"no list belongs outside the pool (`seats.outside_pool_wards`). "
+            f"MODEL-LOG §1.308.")
     calls = [0]
 
     def round_lot() -> str | None:
@@ -4696,11 +4929,44 @@ def allocate_with_overhang(
     if rule == "cap" or not over:
         return seats, COUNCIL, COUNCIL // 2 + 1, over
     if rule == "level":
-        # modern-Germany counterfactual (Ausgleichsmandate): grow the council
-        # until every ward winner's seats are covered by its proportional
-        # share — nobody is squeezed, the chamber pays instead
+        # modern-Germany counterfactual (Ausgleichsmandate): the SMALLEST
+        # council at or above COUNCIL at which every ward winner's entitlement
+        # covers its wards — nobody is squeezed, the chamber pays instead.
+        #
+        # ⛔ SEARCHED BETWEEN TWO BOUNDS, NOT CREPT (MODEL-LOG §1.308). This
+        # loop used to add the current deficit per round under a cap of 200
+        # rounds. A list party holding several wards on a small combined vote
+        # (DUDULA, a JHB 2026 draw) needs a council far above 270; once its
+        # deficit fell to 1 the creep added one seat a round and the cap fired.
+        # The creep's answer was also a property of its step, not of the rule.
+        # Now, with A = Σ combined, v and w a winner's votes and wards, and
+        # n = council - C - D the seats the quota is struck over:
+        #   * a party's seats are at most floor(v/Q) + 1 < v·n/A + 1 (Q > A/n),
+        #     so no council with n <= (w-1)·A/v covers it: LOWER BOUND;
+        #   * its seats are at least floor(v/Q) >= w once Q <= v/w, which
+        #     Q <= A/n + 1 guarantees for n >= A·w/(v-w): UPPER BOUND.
+        # Every council below the largest lower bound leaves someone short, and
+        # at the largest upper bound nobody is, so a one-seat scan between them
+        # finds the minimum and must end. Outside-pool ward seats (C, D) are
+        # fixed seats: they are subtracted before the quota at every size and
+        # never topped up, and `ward_wins` holds pool winners only.
+        fixed_out = independent_wards + no_pr_list_wards
+        total_votes = sum(combined.values())
+        winners = {p: w for p, w in ward_wins.items() if w > 0}
+        lower = COUNCIL
+        upper = COUNCIL
+        for p, w in winners.items():
+            v = combined[p]
+            if v <= w:
+                raise ValueError(
+                    f"`level` cannot cover {p}: {w} ward(s) won on {v} "
+                    f"combined vote(s). No council gives a party at least one "
+                    f"seat per vote it holds, so the search has no end; this "
+                    f"is a constructed input, not an election.")
+            lower = max(lower, (w - 1) * total_votes // v + 1 + fixed_out)
+            upper = max(upper, -(-w * total_votes // (v - w)) + fixed_out)
         total = COUNCIL
-        for _round in range(OVERHANG_LEVEL_MAX_ROUNDS):
+        while total <= upper:
             try:
                 # the first iteration is round 0's council, already allocated
                 sub = alloc if total == COUNCIL else allocate(
@@ -4722,30 +4988,23 @@ def allocate_with_overhang(
                     f"{total} seats covering ward winners, and the allocation "
                     f"then failed: {exc}\n"
                     f"\n"
-                    f"  `level` grows the chamber by the current deficit each "
-                    f"round (Ausgleichsmandate). A party holding many wards on "
+                    f"  `level` seeks the smallest council covering every ward "
+                    f"winner (Ausgleichsmandate). A party holding many wards on "
                     f"a small vote share demands a council far larger than the "
                     f"votes can fill, and largest-remainder gives out before it "
                     f"gets there. This is a property of the INPUT under this "
                     f"rule, not a defect in `allocate`. MODEL-LOG §1.97 F41."
                 ) from exc
-            deficit = sum(max(0, w - sub.seats.get(p, 0))
-                          for p, w in ward_wins.items())
-            if deficit == 0:
+            if all(sub.seats.get(p, 0) >= w for p, w in winners.items()):
                 return dict(sub.seats), total, total // 2 + 1, over
-            total += deficit
+            total = max(total + 1, lower)
         raise RuntimeError(
-            f"the `level` rule did not converge in "
-            f"{OVERHANG_LEVEL_MAX_ROUNDS} rounds; the council reached {total} "
-            f"from a base of {COUNCIL} and a ward winner is still short.\n"
+            f"the `level` rule found no council between {COUNCIL} and its "
+            f"upper bound {upper} covering every ward winner.\n"
             f"\n"
-            f"  Each round adds at least one seat and a converging case takes a "
-            f"handful, so this means the deficit is not closing — `allocate` is "
-            f"not monotone in `total_seats`, or a ward winner is absent from "
-            f"`combined`, which the guard at the top of this function refuses. "
-            f"Before this bound existed the loop simply never returned, and a "
-            f"hang in a forty-minute suite reads as slowness rather than as a "
-            f"failure. MODEL-LOG §1.97 F41, F44.")
+            f"  At the upper bound every winner's whole quotas alone reach its "
+            f"wards, so this is unreachable unless `allocate` or the bound "
+            f"arithmetic above has changed. MODEL-LOG §1.308.")
     if rule == "deduct":
         fixed: dict[str, int] = {}
         votes = dict(combined)
@@ -6075,16 +6334,10 @@ def run_model(target, scenario: dict,
         if vd_pool:
             # Every party with no national geography: the seeded arrivals and
             # the roster parties whose only record is local (item 8).
-            for party in [*seeds, *local_record_only]:
-                weights = members_by_party.get(party)
-                if not weights or base_city_d.get(party, 0.0) <= 0:
-                    continue
-                for vd, comp in vd_pool.items():
-                    place = sum(weights.get(name, 0.0) * comp.get(name, 0.0)
-                                for name in comp)
-                    if place > 0:
-                        base_share_d.setdefault(vd, {})[party] = max(
-                            place * base_city_d[party], SHARE_FLOOR)
+            pool_placed = place_by_pool(
+                base_share_d, [*seeds, *local_record_only], members_by_party,
+                base_city_d, vd_pool, scenario["level_floor"])
+            scenario["_pool_placed"] = sorted(pool_placed)
         # THE ARRIVAL BAND WAS NEVER READ, AND IS GONE. Each seeded arrival's
         # band was once written into `individual_theta` (a dead store, removed
         # 2026-08-19, §1.41), then carried into the scenario, of which
@@ -6147,7 +6400,9 @@ def run_model(target, scenario: dict,
     local = np.array([[base_share_d[v].get(p, 0.0) for p in universe] for v in vds])
     if "ENTRANT" in index:
         local[:, index["ENTRANT"]] = SHARE_FLOOR  # flat unless given a map below
-    dev = logit(local) - logit(base_city)[None, :]
+    dev = placement_deviation(
+        local, base_city, [index[p] for p in scenario.get("_pool_placed", ())
+                           if p in index], scenario["level_floor"])
     # DELIVERY PROOF for two classes at once. `SHARE_FLOOR` is a module
     # constant (not in DEFAULTS, never swept for liveness, does not cross a
     # process boundary), and `logit(p, floor=None)` resolves that SAME constant
@@ -6421,6 +6676,39 @@ def run_model(target, scenario: dict,
     part_vd = np.array([vd_index[vd] for vd, _w, _r in usable])
     part_ward = np.array([ward_index[w] for _vd, w, _r in usable])
     part_reg = np.array([r for _vd, _w, r in usable], dtype=float)
+
+    # --- who stands where: the ward ballot and the list ballot -------------
+    # Owner rule, 2026-10-15: "for people running only for a ward seat -
+    # a. they should be omitted from any citywide machinery and vote
+    # calculation b. their chances of a win should be within the specific ward
+    # they are contesting and no other." Every party with a slate has ward
+    # votes only in the wards it contests, and a party with no PR list has no
+    # list vote. One source, `levels.ballots` (result file, else `[roster]`);
+    # the arithmetic is `ballot_masks` and `ballot_targets`. MODEL-LOG §1.306.
+    import levels as _levels
+    _ballots = _levels.ballots(target, target.city)
+    _bm = ballot_masks(universe, wards,
+                       ward_ids(target, wards, target.crosswalk.parent),
+                       part_vd, part_ward, nvd, _ballots)
+    ward_mask_vd, ward_mask_part = _bm["ward_mask_vd"], _bm["ward_mask_part"]
+    pr_mask_vd = _bm["pr_mask_vd"]
+    pr_absent, ward_absent = _bm["pr_absent"], _bm["ward_absent"]
+    scenario["_ward_masked"] = _bm["masked"]
+    scenario["_ward_only"] = _bm["ward_only"]
+    scenario["_ballot_report"] = _bm["report"]
+    # REPORTED, every run: a slate or a PR list naming a party the run does
+    # not carry is a roster/universe disagreement, never dropped in silence.
+    # The record is `scenario["_ballot_report"]` (on `ModelRun.scenario`).
+    if (_bm["report"]["slate_not_in_universe"]
+            or _bm["report"]["pr_list_not_in_universe"]
+            or _bm["report"]["slate_outside_run"]):
+        print(f"  ! {target.year} ballots ({_ballots.source}): ward slates for "
+              f"parties outside the run: "
+              f"{_bm['report']['slate_not_in_universe'] or 'none'}; PR lists "
+              f"for parties with no PR baseline in the run: "
+              f"{_bm['report']['pr_list_not_in_universe'] or 'none'}; "
+              f"slated only in wards the run drops: "
+              f"{_bm['report']['slate_outside_run'] or 'none'}")
 
     # --- ward/PR split-ticket ratios (A1) ------------------------------------
     # (The previous LGE's ballots, `wc`/`pc` and `prior_pr_share`, are read
@@ -6977,8 +7265,10 @@ def run_model(target, scenario: dict,
             if not (low * 0.95 <= implied <= high * 1.05):
                 bounds_violations[p] += 1
 
-        ward_target = pr_target * ratio
-        ward_target /= ward_target.sum()
+        # Ward-only parties leave the list ballot; parties on no ward ballot
+        # leave the ward one (owner rule 2026-10-15, `ballot_targets`).
+        pr_target, ward_target = ballot_targets(pr_target, ratio, pr_absent,
+                                                ward_absent)
 
         # A2: turnout pattern for this draw.
         blend = np.clip(scenario["turnout_pattern_blend"]
@@ -7018,9 +7308,11 @@ def run_model(target, scenario: dict,
 
         floor = scenario["level_floor"]
         pr = solve_and_predict(dev_pr, base_city, pr_target, gamma["PR"], weight_cal,
-                               level_floor=floor, stats=_solve_stats)
+                               level_floor=floor, stats=_solve_stats,
+                               mask=pr_mask_vd)
         wd = solve_and_predict(dev_ward, base_city, ward_target, gamma["Ward"], weight_cal,
-                               level_floor=floor, stats=_solve_stats)
+                               level_floor=floor, stats=_solve_stats,
+                               mask=ward_mask_vd)
 
         pr_eff = pr if tilt_scale is None else pr * tilt_scale
         wd_eff = wd if tilt_scale is None else wd * tilt_scale
@@ -7032,7 +7324,14 @@ def run_model(target, scenario: dict,
         # E3: ward winners from the ward ballot, on the target's own wards.
         part_cast = part_reg * t_draw[part_vd]
         ward_tally = np.zeros((len(wards), npar))
-        np.add.at(ward_tally, part_ward, part_cast[:, None] * wd_eff[part_vd])
+        part_ballot = wd_eff[part_vd]
+        if ward_mask_part is not None:
+            # A split district's parts can lie in wards with different
+            # ballots: each part's row is renormalised over who stands there.
+            part_ballot = part_ballot * ward_mask_part
+            part_ballot = part_ballot / np.maximum(
+                part_ballot.sum(axis=1, keepdims=True), 1e-300)
+        np.add.at(ward_tally, part_ward, part_cast[:, None] * part_ballot)
         if scenario["ward_noise_sd"] > 0:
             ward_tally = ward_tally * ward_noise_multiplier(
                 streams, universe, d, len(wards), scenario["ward_noise_sd"])
@@ -7078,6 +7377,12 @@ def run_model(target, scenario: dict,
             combined, pool_wins, scenario["overhang_rule"],
             independent_wards=c_wards, no_pr_list_wards=d_wards,
             lot=draw_key(run_lot, d))
+        # THE WHOLE CHAMBER (MODEL-LOG §1.308). `allocate_with_overhang`
+        # returns the pool, `council - C - D` seats; a ward won by a party with
+        # no PR list (the ward-contest rule lets one win since §1.306) is that
+        # party's seat and goes into the draw as its own column, so every
+        # draw's seats sum to its council. `council_seats` refuses otherwise.
+        seats = council_seats(seats, dict(wins), combined, council)
 
         seat_draws.append(seats)
         over_draws.append(frozenset(over))

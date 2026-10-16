@@ -150,11 +150,9 @@ NOT_REGENERATED_HERE: dict[str, str] = {
         "artefact_key (declares.py, `record` kind; montecarlo refuses a stale "
         "one), and is regenerated and compared byte for byte by "
         "test_the_bye_value_record_is_a_fresh_build below.",
-    "plausibility_*.json":
-        "src/plausibility.py --runs DIR --label NAME (design 1h §5): a verdict "
-        "on an arm's runs against the real record, written under "
-        "plausibility/. Carries an artefact_key naming its code, the arrays "
-        "it scored and the record's files. A judge's output; nothing reads it.",
+    # `plausibility_*.json` was declared here until 2026-10-16 and matched
+    # nothing: `src/plausibility.py` requires `--out` and refuses any path
+    # inside data/ (its `main`), so the family is never under data/processed.
     "width_record.json":
         "src/width_record.py --emit (design 1j v4-L1): the universal draw's "
         "width record. Carries an artefact_key (declares.py, `record` kind; "
@@ -193,6 +191,9 @@ def _scratch_root(tmp: Path) -> Path:
     for stale in (root / "data" / "processed").rglob("*.csv"):
         stale.unlink()
     (root / "data" / "raw").symlink_to(ROOT / "data" / "raw")
+    # `build_concordance` reads the registration snapshot for the 2026 roll
+    # (`inputs_preflight.roll_snapshot` globs `archive/` under ITS root).
+    (root / "archive").symlink_to(ROOT / "archive")
     for name in ("src", "cities", "config", "content"):
         if (ROOT / name).exists():
             (root / name).symlink_to(ROOT / name)

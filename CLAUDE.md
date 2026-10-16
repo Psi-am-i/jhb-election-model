@@ -378,9 +378,9 @@ after the pool specs, once per centre variant the round's arms need
     .venv/bin/python src/width_record.py --emit # the universal draw's widths
 
 And one imported by `tests/test_plausibility.py`, which scores an arm's runs
-against the real record and writes under `data/processed/plausibility/`:
+against the real record and writes into `--out DIR`, which must lie outside `data/`:
 
-    .venv/bin/python src/plausibility.py --runs DIR --label NAME
+    .venv/bin/python src/plausibility.py --runs DIR --label NAME --out DIR
 
 And one imported by `tests/test_arms.py`, which runs the round's
 pre-registered arms in process into a directory outside `data/` and compares

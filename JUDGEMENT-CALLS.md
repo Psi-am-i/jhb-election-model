@@ -127,8 +127,8 @@ promotion note in §F.
 | `GAMMA_FOLD` | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | The live 2026 forecast uses fold 1, and the code's own comment concedes the constraint does not pick one. A contestable choice on the published forecast. | 🔴 | §H6 |
 | `GRID_MARGIN_CELLS` | — | `hex_cartogram.py` | Typed at 2 and purely operational: the Johannesburg optimum uses no cell in the outermost ring. | 🟢 | §D18 |
 | `kappa_bye` | 0.25 | `turnout.py --kappa-bye` | 0.25. Same provenance and the same artefact problem as `w_recency`. | 🔴 | §H3 |
-| `LEVEL_DF` | 7.0 | `montecarlo.py` | Ships 7.0, live since 2026-08-17 and swept. The sweep cannot distinguish 7 from 30; §F narrows it to ν ∈ [5, 15] on four constraints. | 🟡 | §A18 + §F8 |
-| `LEVEL_DF` | 7.0 | — | BOUNDED 2026-08-29 to ν ∈ [5, 15] on four constraints, with the committed 7.0 in the middle. The honest label is no longer 'unmeasured' but 'not resolvable further on this panel'; a joint (κ, ν) fit was designed and NOT built. | 🟡 | §F8 + §A18 |
+| `LEVEL_DF` | 7.0 | `montecarlo.py` | Ships 7.0. Read only under `draw_law = "incumbent"` since 2026-10-12 (§A57), where it is live and swept (`test_levers_are_live` holds that law open); the shipped universal draw does not read it. The sweep cannot distinguish 7 from 30; §F narrows it to ν ∈ [5, 15] on four constraints. | 🟡 | §A18 + §F8 |
+| `LEVEL_DF` | 7.0 | — | Read only under `draw_law = "incumbent"` since 2026-10-12 (§A57). BOUNDED 2026-08-29 to ν ∈ [5, 15] on four constraints, with the committed 7.0 in the middle. The honest label is no longer 'unmeasured' but 'not resolvable further on this panel'; a joint (κ, ν) fit was designed and NOT built. | 🟡 | §F8 + §A18 |
 | `level_floor` | 1e-6 | — | 1e-6; separates the level floor from the deviation floor. | 🟢 | §F19 |
 | `LEVEL_FLOOR` vs `SHARE_FLOOR` | — | `fold.py` | Two separate floors, deliberately. On its own it fixed nothing — the 42 phantom seats were the scale drift above it. | 🟢 | §C4 |
 | `level_sd_default` | ~~0.45~~ | — | DELETED 2026-10-09 (owner, M3 review row 7). After item 17 it bound for no drawn party at any emitted city-year; a drawn party with no measured width, no size and no θ fit now stops the run (`montecarlo.level_shock_sd`). | ⚫ deleted | §A29 |
@@ -146,7 +146,7 @@ promotion note in §F.
 | `min_oos_gain` | 0.01 | `config/dimensions.toml` | 0.01, and it is upstream of every pool in the model: age and sex are rejected by this number. | 🔴 | §H7 |
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | — | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
 | `OVERHANG_DEDUCT_MAX_ROUNDS_SLACK` | 2 | `montecarlo.py` | Derived, not chosen: any value ≥ 1 is equivalent. | 🟢 | §A39 |
-| `OVERHANG_LEVEL_MAX_ROUNDS` | 200 | `montecarlo.py` | 200 rounds. Bounded on ROUNDS deliberately rather than on council size, because a magnitude off the real panel does not transfer to a toy. | 🟡 | §A40 |
+| `OVERHANG_LEVEL_MAX_ROUNDS` | DELETED 2026-10-16 | — | DELETED 2026-10-16 (MODEL-LOG §1.308). `level` scans between a lower and an upper bound computed from the votes and ends by construction; the cap fired on a JHB 2026 draw. | ⚪ | §A40 |
 | `NATIONAL_ONLY_FLOOR` | 0.001 | `pools.py` | The national share below which a party with no local record is NOT assumed onto an unheld ballot. **[16-panel]** Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner's decision 2026-09-03; unreachable from any backtest. | 🟢 | §K1 |
 | `PRIOR_LOCAL_FLOOR` | 0.001 | `pools.py` | The prior-LOCAL share below which a party with no national vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ **AMENDED 2026-09-24 (register audit).** INERT at 2026 for a different reason: the floor filters only the projected roster, and a complete declared roster does not use it (argued from `pools.py`, not perturbed). | 🟢 | §K2 |
 | `overhang_rule` | `"deduct"` | `montecarlo.DEFAULTS` | ⚖️ **STATUTE, reclassified 2026-09-02** — Act 3 of 2021 Schedule 1 item 16. NOT a lever and never swept: refused at the `--set` boundary, out of `PERTURB`. Never bound in 24 metro-years; tightest margin 2 seats. | ⚖️ | §H1 |
@@ -185,7 +185,7 @@ promotion note in §F.
 | `SPINE_K` | 1.0 | — | See §B. | 🔴 | §F14 + §B1 |
 | `spine_k = 0` on a party with no θ evidence | `w_local = 0.0` | — | A CHOSEN limit (`w = 0`, pure national spine), inert at the shipped `spine_k = None` and reachable only by a sweep, which is what it exists for. | 🟡 | §F22 |
 | `SPINE_K`, reciprocal form | — | `levels.py` | 1.0, fitted leave-one-metro-out on a curve that is flat 0.5–1.5. A step function scored better out of sample and was rejected on structural grounds — which is why this is 🔴 despite being fitted. | 🔴 | §B1 + §F14 |
-| `SPLINTER_PARENT_WEIGHT` | 0.35 | — | 0.35, measured over 22 splinter-metro cases, no bootstrap, and stale since the archive grew (§A). | 🔴 | §F6 |
+| `SPLINTER_PARENT_WEIGHT` | 0.35 | — | The DEFAULT 0.35, measured over 22 splinter-metro cases (EFF 0.89, GOOD 0.28, ActionSA about 0.02), no bootstrap, and stale since the archive grew (§A). It applies only to a splinter with no record of its own: a party absent from the fitting election whose baseline national fit identifies a pool takes that fitted vector instead (`pools.place_vectorless`, owner 2026-10-15). A party's own `parent_weight` on the judgements sheet replaces the default for that party alone, under the same precedence; the first is MK at 0.9 (§SJ1), superseded while MK's 2024 fit is identified. | 🔴 | §F6 + §SJ1 |
 | `SPLIT_SD_FLOOR` | — | `pools.py` | 0.90, and it overrides its own measurement at target 2016 while binding at neither 2021 nor 2026 — real work in the one fold where it is least justified. | 🔴 | §B3 |
 | the `home` city and `measured_from` pair of each entry in `SPLITS` | ASA→JHB · GOOD→CPT · MK→ETH · NFP→ETH · COPE and EFF→**None** | `pools.SPLITS`, read by `home_splinter_record` | Six typed biographical claims that select WHICH record sizes a splinter. ActionSA's is the single assignment behind the panel's largest error, and the two unset ones announce nothing at all. Declared 2026-09-13, never swept. | 🔴 | §A47 |
 | the size-dependence of `sd_for` below 15% | a straight line in log(size) | `levels.py`, inside `theta_prior` | The model is UNCHANGED and the fault is the FORM, not the residual. ⛔ No further functional form may be tried against these two folds, and this row's numbers are Form A's and must not be quoted. | 🔴 | §F18 |
@@ -264,7 +264,7 @@ easiest kind to lose, because nothing can grep for them.
 | `GAMMA_SLOTS`, `STREAM_CHUNK` | 4 · 256 | `montecarlo.DrawStreams`, `montecarlo.log_gamma_slots` | Numerical constants of the keyed draw streams (design 1c). Distribution-neutral: a gamma is the first accepted of `GAMMA_SLOTS` Marsaglia-Tsang trials, an exhausted draw takes an exact counted fallback (`41_guards.gamma_fallbacks`), and `STREAM_CHUNK` is a buffer length that changes no row. | 🟢 | §A56 |
 | `draw_law`, `centre_correction`, `WIDTH_BLOCK`, `RHO_ANCHOR_LO`, `RHO_ANCHOR_HI`, `RHO_GROUP_EDGE`, `LOCATION_CLAMP`, `N_CAL`, `KAPPA_TOL`, `KAPPA_MAX_ITER`, `FALSIFIER_FAMILY_ERROR`, `FALSIFIER_MIN_CENTRE`, `MIN_ESTABLISHED`, `FIXED_POINT_ITERS`, `FIXED_POINT_TOL`, `FIXED_POINT_DRAWS`, `FIXED_POINT_SIZES`, `DIAGNOSTIC_MIN_EFF` | "universal" · 20% · 0.548%, 2.24%, 1% · 0.016% · 4,000, 1e-3, 30 · 0.01, 0.1% · 20 · 2, 0.01, 2,000 | `montecarlo.make_drawer`, `montecarlo.party_width`, `width_record.py` | The universal draw (design 1j v4, option L1, owner 2026-10-12): one log-scale draw for every party, its width one logistic curve in size with one newness term, fitted jointly with a location curve by weighted ML on every earlier party-election; the location is not carried in the draw. The typed values are listed with their evidence in §A57. | 🟡 | §A57 |
 | `CHANCE_SCALE` | 1, 15, 45, 55, 75, 90% | `render_sheet.scale_verdict` | Owner's verdict scale for claims rated by chance, 2026-10-07. An edge takes the band nearer a coin flip; judged on the printed chance. The build refuses a verdict that disagrees. Presentation: it moves no draw, seat or probability. | ⚖️ | §P1 |
-| `SOWETO_GAZETTEER`, `SOWETO_EXCLUDE`, `SOWETO_CUT` | the place list, two exclusions, 0.5 | `areas.derive` | Owner-accepted 2026-10-07. Which 2026 wards are Soweto's, from voting-station addresses; generated into `cities/joburg.toml` and regenerated by `tests/test_areas.py`. Reaches no draw: only the Mashaba claim reads it. | ⚖️ | §P2 |
+| `SOWETO_GAZETTEER`, `SOWETO_EXCLUDE`, `SOWETO_CUT` | the place list, two exclusions, 0.5 | `areas.derive` | Owner-accepted 2026-10-07. Which 2026 wards are Soweto's, from voting-station addresses; generated into `content/joburg/areas.toml` and regenerated by `tests/test_areas.py`. Reaches no draw: only the Mashaba claim reads it. | ⚖️ | §P2 |
 | `REALISTIC_PARTNERS`, `ZILLE_RED_LINES` | ActionSA with the PA, or the ANC; the EFF and MK ruled out | `render_sheet.da_coalitions` | Owner's definition of a DA win for the Mashaba claim, 2026-10-07: a realistic coalition the DA leads. The every-party coalition is printed as context, not rated. Reaches no draw. | ⚖️ | §P3 |
 | `MERGER_RETENTION` (range `MERGER_RETENTION_RANGE`) | 0.75, range [0.5, 0.9] | `pools.apply_mergers` | Owner's decision 2026-09-28. The share of an off-ballot merger partner's baseline moved to the partner on the ballot, only onto records the successor already holds. Not measured: no merger in the archive is identifiable. Swept at 0, 0.5, 0.75 and 1.0 on Johannesburg 2026 (MODEL-LOG §1.275). | 🔴 | §O1 |
 
@@ -506,6 +506,8 @@ machinery cannot rot while it is switched off.
 
 ### §A18 · `LEVEL_DF` — 7.0 — 🟡
 
+**Since 2026-10-12 read only under `draw_law = "incumbent"`** (§A57); the shipped universal draw does not read it.
+
 **Plain — Large surprises are allowed.** Each party's simulated support is drawn
 with heavier tails than a bell curve, so a large miss in either direction comes
 up more often than a bell curve gives. The record does not fix how heavy.
@@ -514,7 +516,7 @@ elections; much heavier tails scored worse. It cannot be changed on [your foreca
 
 **Where.** `montecarlo.py`
 
-**Now.** Ships 7.0, live since 2026-08-17 and swept. The sweep cannot distinguish 7 from 30; §F narrows it to ν ∈ [5, 15] on four constraints.
+**Now.** Ships 7.0. Under the incumbent law it is live and swept (`test_levers_are_live` measures it with `draw_law = "incumbent"` held open in both runs, since 2026-10-16); under the shipped universal law nothing reads it. The sweep cannot distinguish 7 from 30; §F narrows it to ν ∈ [5, 15] on four constraints.
 
 **Record**, oldest first:
 
@@ -726,10 +728,10 @@ on an outcome that did not happen is an infinite log score, so the instinct is t
 widen the ward noise until the model stops being certain.
 
 **Why that is the wrong repair, with the arithmetic.** The PA was forecast at a
-citywide PR **mean of 0.09% against 2.96% actual — a 32× level miss** (on the
-median, 0.03% against 2.96%, a 100× miss). The ward layer
+citywide PR **mean of 0.08% against 2.96% actual — a 38× level miss** (on the
+median, 0.06% against 2.96%, a 50× miss). The ward layer
 placed a correct citywide total; there was no citywide total to place. Widening
-`ward_noise_sd` far enough to make that 32× level error survivable would spend the
+`ward_noise_sd` far enough to make that 38× level error survivable would spend the
 **96.8% pooled ward hit rate** — the model's one result that beats every naive
 reference in all three cycles — to buy two wards. That is treating the symptom,
 and it would degrade the layer that is working to disguise a failure in the layer
@@ -747,8 +749,8 @@ PA's level is an arrival-channel defect and belongs to the arrival work.
 ⚠️ **The figures above are from `data/processed/history.json`, joburg 2021** —
 the PA's row in that record's `votes` table, which is a POSITIONAL list carrying
 no field names of its own:
-PR median `votes[1]` = 0.0297%,
-PR mean `votes[2]` = 0.0913%,
+PR median `votes[1]` = 0.0592%,
+PR mean `votes[2]` = 0.0786%,
 PR actual `votes[3]` = 2.9604%.
 They are not from a
 `diagnose` run — two runs at different draw counts give slightly different
@@ -769,7 +771,12 @@ stood on 13 September. **RE-QUOTED AGAIN 2026-09-23** from the window's
 artefact (`seat_abs_err_coherent=733/@2ac4c1eb/1000d/pools:7264a929/rows=24`),
 which re-emitted every spec: the mean moved 0.0937% → 0.0913% and both ratios
 were recomputed from it rather than carried across, 31.6× → 32.4× and
-99.6× → 99.8×. *Correcting
+99.6× → 99.8×. **RE-QUOTED 2026-10-16** from the artefact committed in `08136c5`
+(the panel under the universal draw, §1.302, and the 2026-10-15/16 rebuilds;
+MODEL-LOG §1.311): median 0.0297% → 0.0592%, mean 0.0913% → 0.0786%, actual
+unchanged, so `votes[3]/votes[2]` = 2.9604/0.0786 = **37.7×** and
+`votes[3]/votes[1]` = 2.9604/0.0592 = **50.0×**. The move came with the step-9
+artefact (`346fb97`: 0.0591% / 0.0786%) and the rebuilds left it there. *Correcting
 a figure means correcting every copy of it, and the copies are where the rule
 actually bites.*
 
@@ -798,11 +805,11 @@ correctly — not a ward that was lost because the level was wrong.
 
 **Record.** Slack on the `deduct` loop's round bound, which is `len(combined) + this`. The loop fixes at least one party per round and removes it from the pool, so it cannot outlast the parties; the slack covers the final round that fixes none. **DERIVED, not chosen** — the only free number is the slack, and any value ≥ 1 is equivalent.
 
-### §A40 · `OVERHANG_LEVEL_MAX_ROUNDS` — 200 — 🟡
+### §A40 · `OVERHANG_LEVEL_MAX_ROUNDS` — DELETED 2026-10-16 — ⚪
 
-**Where.** `montecarlo.py`
+**Where.** was `montecarlo.py`
 
-**Now.** 200 rounds. Bounded on ROUNDS deliberately rather than on council size, because a magnitude off the real panel does not transfer to a toy.
+**Now.** Deleted (MODEL-LOG §1.308). `allocate_with_overhang` under `level` returns the smallest council at or above `COUNCIL` covering every pool ward winner, scanning one seat at a time between a lower bound (a party's seats are below `v·n/A + 1`, so `n` must exceed `(w-1)·A/v`) and an upper bound (its whole quotas reach `w` once `n >= w·A/(v-w)`). Nothing is chosen: the bounds are arithmetic, so no number replaces the cap. On a JHB 2026 draw a list party holding several wards on a small share needed more rounds than the cap allowed, because the creep's deficit fell to one seat a round. MODEL-LOG §1.308 compares the scan with the uncapped creep. The record below is the cap's history.
 
 **Record.** Round bound on the `level` rule's council growth, which had none and could not terminate (§1.97 F41, F44). **Bounded on ROUNDS deliberately, not on council size, and the first attempt proved why**: a cap of 4× `COUNCIL` was taken from the largest council a real regime run has produced (396 against a 270 base) and fired immediately on a 15-seat fixture where growing to ~150 is legitimate. A magnitude off the real panel does not transfer to a toy. Each round adds ≥1 seat and a converging case takes a handful, so 200 is far above any real path and carries no assumption about council size.
 
@@ -1095,8 +1102,9 @@ Each row: `§SJ<n>` · party · target · `support` / `overperform` / `sigma_j` 
 
 | row | party | target | entry | reason | evidence | date | check |
 |---|---|---|---|---|---|---|---|
+| §SJ1 | MK | joburg 2026 | `parent_weight = 0.9` (a pool-vector judgement, not a strength: no `support`, `overperform` or `sigma_j`) | Owner, 2026-10-15: "it is more like 90% ANC resemblance". MK's starting pool vector is 90% the ANC's and 10% the city's own composition, against the default of 35% (§F6). | None the record supplies: MK has no result at a local election in Johannesburg. The default's range over past splinters runs from ActionSA about 0.02 through GOOD 0.28 to EFF 0.89, so 0.9 sits at the top of it; the nearest past case, EFF from the ANC, measured 0.89. Argued, not tested. | 2026-10-15 | **Superseded while MK's own fit is identified** (owner, 2026-10-15, "option A"): MK is fitted on its 2024 national ward results (`pools.place_vectorless`; the spec's `fitted_from_national[MK].superseded` names `parent_weight`), so this weight is not read. The entry stays on the sheet as the owner's call and is read again only if that fit stops identifying a pool. The 2026 forecast is reported with and without it (`pools.py --emit --without-judgements --out DIR`, POOLS-REEMIT-QUEUE) and scored against the 2026 result, MK's pool shares against its measured vector. |
 
-*(No strength judgement is entered. `tests/test_universal_draw.py::test_every_strength_entry_has_a_register_row_and_every_row_an_entry` checks both directions.)*
+*(`parent_weight` entries are rows of this register as well as strength entries. `tests/test_universal_draw.py::test_every_strength_entry_has_a_register_row_and_every_row_an_entry` checks both directions.)*
 
 ## B. Measured, but the form or the selection was chosen
 
@@ -1518,11 +1526,17 @@ that survives contact with a long session.
 
 **Record.** **DELETED 2026-08-22 (§1.68)** with the legacy poll path it served. It keyed a poll's weight on how much θ HISTORY a party had, `m/(worth+m)`; §1.67 replaced that with how PRECISE the two estimates are. The shape survives in `poll_house_k`, keyed on how many independent HOUSES stand behind a poll rather than on the party.
 
-### §F6 · `SPLINTER_PARENT_WEIGHT` — 0.35 — 🔴
+### §F6 · `SPLINTER_PARENT_WEIGHT` — the DEFAULT, 0.35 — 🔴
 
-**Now.** 0.35, measured over 22 splinter-metro cases, no bootstrap, and stale since the archive grew (§A).
+**Where.** `pools.SPLINTER_PARENT_WEIGHT`, read through `pools.splinter_parent_weight(rule, party)` at both places a splinter's vector is blended (`arrival_rules`, for an arrival with no baseline, and `pools.place_vectorless`, for a party in the baseline with no vector from the fitting election).
 
-**Record.** share of a splinter's starting vector taken from its parent; measured over 22 splinter-metro cases
+**Scope (owner, 2026-10-15, "option A").** The default applies only to a splinter with NO record of its own. A party absent from the fitting (local) election that stands in the target's baseline national election is fitted on that election's ward results by the same fitter, composition and identification test as every locally fitted party (`pools.national_fits`), and when the fit identifies at least one pool (`pools.vector_from_own_record`) that vector is used in place of the blend. Precedence, one rule for every party (`pools.place_vectorless`): local fit > national fit > judged `weights` > the splinter blend (`parent_weight`, else this default) > the city mix. A party whose national fit identifies no pool, or whose national election is unavailable, falls back to the blend and the spec says so (`national_fit_refused`). An arrival with no baseline (`arrival_rules`) has no record by construction and is unaffected. Which parties change at which city-years: MODEL-LOG §1.307.
+
+**Now.** The default is 0.35: a splinter's starting pool vector is 35% its parent's and 65% the city's own composition. Any party's weight may be set case by case with `parent_weight` under its `[party.X]` entry on the judgements sheet, one mechanism for every party, a number in [0, 1] (anything else refuses); the party falls back to the default when the key is absent. The first such entry is MK at 0.9 (§SJ1). The key is read at emit, so it is in the spec's hash (`judgements_sha`) and editing it marks the 2026 spec stale.
+
+**Record.** The default is the median over 22 splinter-metro cases of the weight on the parent from regressing each splinter's own first-election vector on (parent, city average); no bootstrap, and stale since the archive grew (§A1). Range across the cases: EFF 0.89 (0.75 to 1.08), GOOD 0.28 (-0.02 to 0.58), ActionSA about 0.02 (-1.07 to 0.56). The spread is the reason the weight is a per-party call and not a constant; the covariate that predicts it in the comparative record is the defecting-legislator share, which the model does not hold (§1.73). A party with no entry is sized at the default.
+
+**How to check it.** `tests/test_splinter_parent_weight.py`: the key moves a constructed splinter's vector by the blend's arithmetic, removing it returns the default, an out-of-range value refuses, and the key is in `judgements_sha`. `tests/test_national_record_fit.py`: a constructed party with an identified national fit takes the fitted vector over `parent_weight` and `weights`; one whose fit identifies no pool takes the blend; disabling the national path turns the first check red.
 
 ### §F7 · `_SIGN_EPS` — 1e-9 — 🟡
 
@@ -4021,10 +4035,11 @@ least half (`SOWETO_CUT` = 0.5, inclusive) of its registered voters are in
 voting districts whose IEC voting-station address names Soweto or a Soweto
 township, and names neither exclusion.
 
-* **Registration**: `part_registered` in `vd_ward_2026.csv`, read through
-  `montecarlo.read_ward_crosswalk`, so a split voting district counts in each
-  ward for its own part. That roll is the MDB layer's REGPOP, a 2024
-  snapshot (SOURCES.md, Boundaries).
+* **Registration**: `part_registered_2026` in `vd_ward_2026.csv`, read
+  through `montecarlo.read_ward_crosswalk` (the IEC's 26 September 2026 roll
+  apportioned over the crosswalk, §T1, §T2; since 2026-10-15 each VD is placed
+  wholly on its solved ward). Until 2026-10-15 it was `part_registered`, the
+  MDB layer's REGPOP, a 2024 snapshot, with split VDs counted by part.
 * **Addresses**: the `ADDRESS` field of `votingstations2026_JHB.geojson`,
   joined on `VOTINGDIST`, one station per voting district.
 * **Gazetteer**: SOWETO, CHIAWELO, TSHIAWELO, DHLAMINI, DLAMINI, DIEPKLOOF,
@@ -4050,6 +4065,15 @@ township, and names neither exclusion.
 
 **The result** is the list in `content/joburg/areas.toml` `[areas.soweto]`, which
 `tests/test_areas.py` regenerates from the raw files and compares.
+
+**The roll moved ward 29 across the cut (2026-10-16).** With the 2026 roll
+placing each VD wholly on its solved ward (POOLS-REEMIT-QUEUE entry 39 (d),
+`982cc97`), ward 29's share at Soweto stations went from 37.9% to 61.1%
+(`areas.area_wards` on the crosswalk before and after; the rule is
+unchanged). `src/areas.py --write` regenerated the table: 41 wards, ward 29
+added. The figures in the paragraph below were measured on the 40-ward list
+and the 2024 roll, and the Mashaba claim's chance has not been re-measured on
+the 41 (MODEL-LOG §1.311).
 
 **Sensitivity to the cut** (measured 2026-10-07 on the published 5,000
 simulations; MODEL-LOG §1.288). The wards nearest it are 29 (37.9% of its
@@ -4459,9 +4483,9 @@ widened by `EDITOR_WIDEN_PP`, `q_run` capped at `RUNNER_UP_MAX`.
 
 ### §R3 · a ward's expected ward vote: the 2026 roll times the preceding local election's turnout in its voting districts — 🟡 argued
 
-**Now.** `build_make.expected_ward_shares`: each ward's roll on the newest
-registration snapshot (`inputs_preflight.roll_snapshot`, the file
-`--strict` checks) times its expected turnout, the registration-weighted mean,
+**Now.** `build_make.expected_ward_shares`: each ward's roll (the sum of its
+parts' registration as `montecarlo.ward_parts` returns them: the newest
+registration snapshot, apportioned into the crosswalk, §T1) times its expected turnout, the registration-weighted mean,
 over the ward's voting-district parts (`montecarlo.ward_parts`, split VDs
 apportioned), of each part's VD's ward-ballot turnout at the preceding local
 election (valid ward votes over registered). A part whose VD has no record
@@ -4779,6 +4803,163 @@ compare like with like. They describe the model; nothing in it reads them.
 **How to check it.** `tests/test_stat_sources.py` holds the measure on
 constructed draws and the registered source to a direct computation on the
 published draws.
+
+## T. Added 2026-10-15 — the 2026 roll
+
+### §T1 · the 2026 roll is the IEC snapshot, each voting district placed wholly in one ward and scaled to that ward's figure — ⚖️ owner-approved (2026-10-15); assignment rule revised 2026-10-15
+
+**Where.** `build_concordance.apportion_roll` writes the crosswalk column
+`part_registered_2026` and the column `roll_snapshot` (the snapshot's path), from
+`archive/vd-ward-assignment-2026/assignment.csv` (`build_concordance.ASSIGNMENT_2026`);
+`montecarlo.read_ward_crosswalk` returns that column as a part's registration
+when the file has it; `inputs_preflight.roll_snapshot` is the one definition of
+which snapshot.
+
+**Now.** The IEC counts each of its voting districts wholly in one ward. Each 2026
+VD is assigned to one of the wards it has a part in (the assignment file). For
+ward w, every VD v assigned to w has
+`2026 registration[v] = vd_registered[v] x Registered_snapshot[w] / sum over u assigned to w of vd_registered[u]`,
+where `vd_registered` is the Municipal Demarcation Board layer's 2024
+registration of the whole VD. That figure sits on v's row in ward w and 0 on v's
+other parts. Whole numbers by largest remainder within the ward, ties to the
+earlier VD number, so each ward's rows sum to the snapshot's figure exactly. The
+build refuses a VD missing from the assignment, an assigned ward that is not one
+of the VD's parts, a ward with no VDs or whose VDs sum to zero, and a ward set
+that differs between the snapshot and the crosswalk.
+
+**Why.** Most per-ward change between the 2024 crosswalk and the snapshot is
+which VDs belong to the ward (measured 2026-10-15: the ratio correlates 0.725
+with the difference in VD counts; each extra IEC VD goes with about 0.11 of
+ratio). Scaling the parts of a ward by one factor spread that membership
+difference over VDs whose 2024 counts were real. Placing each VD where the IEC
+counts it removes most of it: the per-ward ratio of snapshot total to assigned
+2024 total has sd 0.060 (min 0.823, max 1.267), against 0.168 (0.704 to 1.704)
+under the proportional rule.
+
+**The judgement calls inside it** (all in `archive/vd-ward-assignment-2026/README.md`):
+
+* the solver's objective is the sum over wards of the absolute gap, in voters,
+  between the IEC figure divided by the citywide growth (2,417,915 / 2,348,781)
+  and the assigned VDs' 2024 registration, with count deviations penalised;
+* a placement is `forced` when the alternative ward costs more than 1,000 voters
+  of objective, a threshold of this file's choosing;
+* at most 3 VDs may be dropped by the solver (it dropped 3);
+* the 40 `free` VDs are near-ties placed by the solver's pick;
+* the 3 dropped VDs go to the ward holding their largest `part_registered`.
+
+**Alternatives.** Proportional scaling of every part of a ward (the rule until
+this revision; measured above). The 2024 registration unscaled: the ward totals
+then differ from the snapshot's (DATA-QUALITY item 20) and the city total is the
+2024 one. A snapshot-only roll by voting district: the snapshot lists a count of
+VDs per ward and no per-VD registration.
+
+**Limit.** Argued, not tested: no election held under this delimitation scores it.
+The solved assignment is the IEC's assignment only as far as the solver recovered
+it: on constructed truth with noisy growth it recovered 90 to 97% of split VDs;
+about 17 VDs are counted by the IEC in wards neither geo file offers, so no
+assignment matches the IEC's VD counts; the station file agrees with 17 of the
+40 `free` placements. Ward totals are the IEC's count. Within a ward a wrongly
+placed VD moves its whole figure to a neighbouring ward. What would separate the
+readings: the IEC's list of VDs per ward.
+
+**How to check it.** `tests/test_roll_2026.py`: every ward's rows sum to the
+snapshot's figure (ward sets equal in both directions), each VD's figure sits on
+exactly one of its parts (its assigned ward), one VD's assigned ward changed in a
+constructed copy moves those two wards' rows and nothing else, the refusals,
+and the per-ward ratio sd of the committed file at most 0.07 (a property of the
+input, not a target). A new snapshot, assignment or crosswalk changes
+`pools.artefact_key`'s `roll_sha` and marks every 2026 spec stale.
+
+### §T2 · the city total is the sum of the 135 ward rows, not the page's demographics block — ⚖️ owner-approved (2026-10-15)
+
+**Where.** `derive_city.target_registered`, which sets `registered` in
+`cities/joburg.toml`; the apportionment of §T1 takes its ward figures from the
+same rows.
+
+**Now.** The snapshot's own page gives two city totals that differ
+(`archive/iec-registration-2026-09-26/README.md`): the demographics block and
+the sum of the ward rows. The model uses the ward rows' sum, because the
+apportionment needs a ward-level figure and the ward rows are the only source of
+one; a demographics-block total would not equal the sum of the wards it is
+divided among.
+
+**Why.** Which of the IEC's two figures is authoritative is unknown (the README
+records it unreconciled). The ward rows are the choice the model needs to be
+self-consistent, not a finding that they are right.
+
+**Alternatives.** The demographics-block total, with ward rows scaled down by
+the ratio of the two: it changes each ward by the same small proportion and
+adds a second adjustment with no source.
+
+**How to check it.** `tests/test_roll_2026.py` computes the total from the file
+and compares it with `cities/joburg.toml`; `python src/derive_city.py --code JHB
+--slug joburg` prints the value the toml carries.
+
+## U. Added 2026-10-15 — the ward-contest rule
+
+Owner, 2026-10-15: "for people running only for a ward seat - a. they should be
+omitted from any citywide machinery and vote calculation b. their chances of a
+win should be within the specific ward they are contesting and no other." Who
+stands where is `levels.ballots` (result file, else `[roster]`); the
+arithmetic is `montecarlo.ballot_masks` and `montecarlo.ballot_targets`.
+MODEL-LOG §1.306.
+
+### §U1 · a ward-only party's list vote goes to the parties with lists, pro rata to the draw's own PR shares — ⚖️ judgement (2026-10-15), argued, not tested
+
+**Where.** `montecarlo.ballot_targets`, called once per draw in `run_model`.
+
+**Now.** Each draw's PR target comes from the drawer over every party,
+ward-only parties included. The ward target is computed from that full vector
+first (`pr_target × ratio`, renormalised), so a ward-only party keeps the
+ward-ballot level its record implies. Then each ward-only party's PR target is
+set to zero and the remaining parties' PR targets are divided by their sum:
+the list vote is shared out in proportion to each list party's drawn share in
+that draw. The PR solve also masks the ward-only columns to zero
+(`solve_and_predict(mask=)`), because a zero target alone leaves about
+`level_floor` of every row in the column (§1.108's absorption) and
+`seats.eligible_parties` would then keep the party in the pool.
+
+**Why this one.** It is the only rule that names no party and needs no input
+the model does not have (`no-party-singled-out`). The alternatives are a
+transfer weighted by the ward-only party's pool vector (its supporters' list
+vote goes to the parties nearest it in the pools) and a transfer to abstention
+(the list ballot is left blank). Neither has evidence behind it: no result
+file records how a ward-only party's voters mark the list ballot, because the
+IEC publishes ballots, not voters.
+
+**Size, measured 2026-10-15** (in process, 100 draws, scratch bypass of the
+stale pool spec, width record and by-election weights): the PR mass removed
+is a mean of 0.40% of the list vote at Johannesburg 2026 (largest draw 1.52%;
+six ward-only parties, UDM the one with a national record) and 0.08% at
+Johannesburg 2021 (largest draw 1.26%; two parties). Across the 24 held
+metro-years, ward-only parties other than independents took at most 0.29% of a
+ward ballot (eThekwini 2021, Cape Coloured Congress) and every other case
+under 0.03%.
+
+**How to check it.** Not separable in the record: the three rules move the
+list shares of the other parties by at most the mass above, and the scored
+quantities cannot resolve that. A by-election or a split-ticket study with
+individual ballots would.
+
+### §U2 · a party the slate source does not name keeps an unmasked ward ballot — ⚖️ judgement (2026-10-15)
+
+**Where.** `levels.Ballots.slate`, read by `montecarlo.ballot_masks`.
+
+**Now.** A party with a slate is masked to its wards. A party the source names
+with no slate, or any party under a complete source (a result file, or
+`[roster] complete = true`), stands in no ward: all-zero ward column, ward
+target zero (CHANGE and PRO SOUTH AFRICA at Johannesburg 2026, AGANG and
+Agency for New Agenda at 2021). A party a partial declaration omits, or one no
+source can name (`ENTRANT`), is unknown and keeps its ward ballot everywhere.
+With no `pr` key in the roster, nobody is ward-only.
+
+**Why.** The same fail-safe as `declared_contestation`: absence from a
+half-typed list is not evidence that a party is not standing (§1.175).
+Independents are not in any run's universe (the `independent_wards` (C) row
+above), so the rule says nothing about them; their slates are listed as
+`independents` in the run's `_ballot_report`.
+
+**How to check it.** `tests/test_ward_contest_rule.py`.
 
 ## Appendix — how this register has failed before
 

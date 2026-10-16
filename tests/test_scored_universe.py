@@ -847,24 +847,34 @@ def test_the_design_effect_localises_to_the_cells_the_dependence_is_in():
     assert hit["deff"] < 1.4 < cells[-1], (hit["deff"], cells[-1])
 
 
-def test_the_high_pit_cells_carry_the_clustering_on_the_committed_panel():
-    """⛔ DEFECT: THE OLD EXPLANATION OF δ̄ ≈ 1 PREDICTED THE WRONG SIGN.
+def test_the_bottom_cell_carries_the_clustering_on_the_committed_panel():
+    """Where the cell design effects concentrate, on the committed panel.
 
-    The record said council seats are zero-sum, so within-city-year errors are
-    negatively correlated, pushing the between-cluster variance DOWN. That
-    predicts δ̄ < 1 and every measured δ̄ is ≥ 1 (1.07, 1.01, 1.13, 1.06).
+    ⛔ **RE-RECORDED 2026-10-16: THE CLUSTERING MOVED FROM THE HIGH CELLS TO
+    THE BOTTOM ONE.** Until then this test was
+    ``test_the_high_pit_cells_carry_the_clustering_on_the_committed_panel`` and
+    asserted, on the incumbent-law panel (artefact `c9bae8e`), that the low and
+    middle cells ran below 1 and the high ones 1.2 to 2.8: a high PIT is the
+    truth above the forecast, an under-forecast, arriving a city-year at a
+    time. Measured then on ``reference``: bottom-five mean 0.76, top-five 1.37,
+    corr(bin, deff) +0.94, top decile 12.6% of the mass against 7.6% bottom.
 
-    What is true is the cell pattern: the low and middle cells do run below 1 —
-    the zero-sum intuition is right there — and the high ones run 1.2 to 2.8. A
-    high PIT is the truth landing above the forecast, i.e. a party the model
-    UNDER-forecast, which is this model's dominant failure, and it arrives a
-    whole city-year at a time. **The clustering is concentrated in the failure
-    mode**, which is why the mean is the wrong summary and why the Satterthwaite
-    form below has to be computed rather than assumed.
+    On the panel committed since the universal draw (`346fb97`, MODEL-LOG
+    §1.302; unchanged in kind through the 2026-10-15/16 rebuilds, §1.311) every
+    population's largest cell is the BOTTOM decile: ``reference`` 2.6,
+    ``claimed`` 4.1, ``seat_holders`` 2.5, ``all`` 2.5, against cells near 1
+    elsewhere. A PIT in the bottom decile is the truth at the low end of the
+    forecast, an over-forecast, and on ``reference`` the bottom decile now
+    holds more PIT mass than the top. The reading "high PIT = under-forecast =
+    this model's dominant failure" does not describe this panel; seat_holders,
+    which selects on winning a seat, is still top-heavy in mass.
 
-    ``claimed`` is asserted to be the EXCEPTION, not skipped: its selection rule
-    drops the under-forecast columns before they can cluster, so its top decile
-    is nearly empty and its top cell is the lowest of the ten.
+    The structural claims asserted: in every population the bottom cell is the
+    largest and is at least twice the median of the other nine (the factor is
+    the line between one cell carrying the dependence and a spread of cells;
+    measured 2.8x to 4.5x); ``reference`` is bottom-heavy; ``claimed``'s top
+    cell is still its lowest and its top decile is under 0.4 of
+    ``reference``'s, by the selection rule the CLAIM_FRACTION note prices.
     """
     path = ROOT / "data" / "processed" / "history.json"
     if not path.exists():
@@ -873,7 +883,7 @@ def test_the_high_pit_cells_carry_the_clustering_on_the_committed_panel():
 
     records = json.loads(path.read_text())["records"]
     groups, mass = {}, {}
-    for pop in ("reference", "seat_holders", "claimed"):
+    for pop in ("reference", "seat_holders", "claimed", "all"):
         blocks, hist = [], np.zeros(10)
         for r in records:
             block = (r.get("calibration") or {}).get(pop)
@@ -890,47 +900,39 @@ def test_the_high_pit_cells_carry_the_clustering_on_the_committed_panel():
         groups[pop] = S.chi2_clustered(blocks)
         mass[pop] = hist / hist.sum()
 
-    for pop, lo_max, hi_min in (("reference", 1.0, 1.2),
-                                ("seat_holders", 0.9, 1.4)):
-        cells = np.array(groups[pop]["deff_cells"])
-        bottom, top = cells[:5].mean(), cells[5:].mean()
-        assert bottom < lo_max < hi_min < top, (
+    for pop, result in groups.items():
+        cells = np.array(result["deff_cells"])
+        rest = float(np.median(cells[1:]))
+        assert cells[0] == cells.max() and cells[0] > 2.0 * rest, (
             f"`{pop}` cell design effects {[round(v, 2) for v in cells]}: the "
-            f"bottom five average {bottom:.2f} and the top five {top:.2f}. "
-            f"Measured 0.77/1.37 on `reference` and 0.42/1.85 on "
-            f"`seat_holders`. The finding is that the clustering sits in the "
-            f"HIGH cells; if the sides have swapped, the explanation in "
-            f"`chi2_clustered` has to be rewritten again rather than kept.")
-        assert top > 1.4 * bottom, (bottom, top)
-        # The trend itself, as a correlation rather than a two-group split.
-        trend = float(np.corrcoef(np.arange(10.0), cells)[0, 1])
-        assert trend > 0.5, (
-            f"`{pop}`: corr(bin index, cell deff) is {trend:+.3f} against a "
-            f"measured +0.71 on `reference` and +0.90 on `seat_holders`")
-        # ...and the population really is top-heavy, which is what makes a high
-        # cell there a statement about the model's failure mode.
-        assert mass[pop][-1] > mass[pop][0], (
-            f"`{pop}` holds {mass[pop][-1]:.1%} of its PIT mass in the top "
-            f"decile against {mass[pop][0]:.1%} in the bottom. The reading "
-            f"'high PIT = under-forecast = this model's dominant failure' "
-            f"needs the histogram to be top-heavy and it is not.")
+            f"bottom cell is {cells[0]:.2f} against a median of {rest:.2f} "
+            f"over the other nine. Measured 2026-10-16: the bottom cell is the "
+            f"largest in every population, 2.8x to 4.5x the rest. If the "
+            f"clustering has moved again, MODEL-LOG first, then this test.")
 
-    # ⛔ AND `claimed` IS THE EXCEPTION, BY THE SAME SELECTION RULE THE
-    # CLAIM_FRACTION note prices. Its top decile is nearly empty.
+    assert mass["reference"][0] > mass["reference"][-1], (
+        f"`reference` holds {mass['reference'][0]:.1%} of its PIT mass in the "
+        f"bottom decile and {mass['reference'][-1]:.1%} in the top (measured "
+        f"2026-10-16: 13.2% against 11.0%). It was top-heavy on the "
+        f"incumbent-law panel; if it is again, the reading in MODEL-LOG "
+        f"§1.311 has to be revisited.")
+    assert mass["seat_holders"][-1] > mass["seat_holders"][0], (
+        "`seat_holders` selects on winning a seat and must read top-heavy")
+
     claimed = np.array(groups["claimed"]["deff_cells"])
     assert claimed[-1] == claimed.min(), (
         f"`claimed` cells {[round(v, 2) for v in claimed]}: its top cell is no "
-        f"longer the lowest. The measured value is 0.35, and the reason is "
-        f"that the rule drops the under-forecast columns before they can "
-        f"cluster — if that has changed, so has the objection to leading with "
+        f"longer the lowest (measured 0.60 on 2026-10-16, 0.34 on `c9bae8e`). "
+        f"The rule drops the under-forecast columns before they can cluster; "
+        f"if that has changed, so has the objection to leading with "
         f"`claimed`.")
     assert mass["claimed"][-1] < 0.4 * mass["reference"][-1], (
         f"`claimed` carries {mass['claimed'][-1]:.1%} of its mass in the top "
         f"decile against `reference`'s {mass['reference'][-1]:.1%} (measured "
-        f"2.3% against 12.4%)")
+        f"3.8% against 11.0% on 2026-10-16)")
 
 
-def test_the_satterthwaite_correction_is_computed_and_the_rejection_survives():
+def test_the_satterthwaite_correction_is_computed_and_read_per_population():
     """⛔ FIRST-ORDER ASSUMES THE CELLS ARE HOMOGENEOUS AND THEY ARE NOT.
 
     Rao & Scott's first-order correction divides χ² by the MEAN cell design
@@ -944,6 +946,17 @@ def test_the_satterthwaite_correction_is_computed_and_the_rejection_survives():
     15.04 / 14.16 / 12.19 / 15.23, on ``reference`` / ``claimed`` /
     ``seat_holders`` / ``all``. **First order is adequate; the rejection stands
     on both quotable populations.**
+
+    ⛔ **RE-RECORDED 2026-10-16: THE REJECTION NO LONGER STANDS ON
+    ``reference``.** Those figures are the incumbent-law panel's. On the panel
+    committed since the universal draw (`346fb97`, MODEL-LOG §1.302, §1.311),
+    R=64: ``reference`` cv² 0.293, adjusted statistic 14.64 against an
+    adjusted critical 14.08, rejecting in 28 of 64 randomisations, so not
+    established by this function's own rule; ``claimed`` cv² 0.670, 18.33
+    against 11.73, rejecting in 64 of 64. First order agrees with second order
+    about both verdicts (35/64 and 64/64 first order), so first order is still
+    adequate; what changed is the verdict on ``reference``, and that is a
+    change to what this repository may claim about calibration.
     """
     # The mechanism first, constructed: heterogeneous cells must shrink both the
     # statistic and the dof, homogeneous ones must leave them alone.
@@ -968,9 +981,10 @@ def test_the_satterthwaite_correction_is_computed_and_the_rejection_survives():
     import compare_history as C
     records = json.loads(path.read_text())["records"]
 
-    expected = {"reference": (0.177, 27.46, 15.04),
-                "claimed": (0.279, 32.17, 14.16)}
-    for pop, (cv2, stat, crit) in expected.items():
+    # (cv², Satterthwaite χ², adjusted critical, established), 2026-10-16.
+    expected = {"reference": (0.293, 14.64, 14.08, False),
+                "claimed": (0.670, 18.33, 11.73, True)}
+    for pop, (cv2, stat, crit, established) in expected.items():
         blocks = []
         for r in records:
             block = (r.get("calibration") or {}).get(pop)
@@ -994,18 +1008,25 @@ def test_the_satterthwaite_correction_is_computed_and_the_rejection_survives():
         assert math.isclose(result["chi2_satt_crit_95"], crit, rel_tol=0.10), (
             f"`{pop}` adjusted critical {result['chi2_satt_crit_95']:.2f} "
             f"against a measured {crit}")
-        assert result["chi2_satt"] > result["chi2_satt_crit_95"], (
-            f"`{pop}`: the rejection does NOT survive the second-order "
-            f"correction — χ² {result['chi2_satt']:.2f} against "
-            f"{result['chi2_satt_crit_95']:.2f}. That is a change to what this "
-            f"repository may claim about calibration and belongs in MODEL-LOG "
-            f"before this assertion is touched.")
-        assert result["rejects_satt"] == result["replicates"], (
+        satt_all = result["rejects_satt"] == result["replicates"]
+        first_all = result["rejects_in"] == result["replicates"]
+        assert satt_all is established, (
             f"`{pop}`: {result['rejects_satt']}/{result['replicates']} "
-            f"randomisations reject after the second-order correction")
+            f"randomisations reject after the second-order correction; "
+            f"recorded 2026-10-16 as "
+            f"{'established' if established else 'NOT established'}. A change "
+            f"either way is a change to what this repository may claim about "
+            f"calibration and belongs in MODEL-LOG before this is touched.")
         # first order is ADEQUATE, which is the claim being recorded: the two
         # corrections agree about the verdict, they are not close in value
-        assert result["chi2_rs"] > result["chi2_crit_95"], "first order too"
+        assert first_all is satt_all, (
+            f"`{pop}`: first order rejects in {result['rejects_in']}/"
+            f"{result['replicates']} and second order in "
+            f"{result['rejects_satt']}/{result['replicates']}; the verdicts "
+            f"disagree, so first order is no longer adequate")
+        if established:
+            assert result["chi2_satt"] > result["chi2_satt_crit_95"]
+            assert result["chi2_rs"] > result["chi2_crit_95"], "first order too"
 
 
 def test_the_fractional_dof_critical_value_matches_an_exact_computation():
@@ -1055,6 +1076,20 @@ def test_the_fractional_dof_critical_value_matches_an_exact_computation():
             f"honest answer.")
 
 
+def _pit_blocks(records, pop: str) -> list:
+    """Each city-year's re-randomised PIT block for population ``pop``."""
+    import compare_history as C
+    out = []
+    for r in records:
+        block = (r.get("calibration") or {}).get(pop)
+        if not block or not block["pit"]:
+            continue
+        drawn, exact = C.redraw_pits(block, replicates=64)
+        assert exact, f"{pop}: the artefact predates the stored PIT jumps"
+        out.append(drawn)
+    return out
+
+
 def test_clustering_by_cycle_is_the_level_this_panel_cannot_test():
     """⛔ THE LIMITATION ON THE WHOLE RESULT, AS NUMBERS RATHER THAN A CAVEAT.
 
@@ -1075,6 +1110,18 @@ def test_clustering_by_cycle_is_the_level_this_panel_cannot_test():
     clusters give each cell two degrees of freedom and the cell estimates blow
     up. The year-level numbers are a warning about the panel, not a test of the
     model, and ``min_clusters`` has to be lowered deliberately to see them.
+
+    ⛔ **RE-RECORDED 2026-10-16 on the panel committed since the universal draw
+    (`346fb97`, MODEL-LOG §1.302, §1.311).** The figures above are the
+    incumbent-law panel's. Now: pooled ``reference`` sd(z) by cycle is 1.388 /
+    0.972 / 2.273, NOT monotone in the cycle (2011 above 2016), so the spread
+    is asserted as widest over narrowest cycle and not as 2021 over 2011. δ̄ is
+    1.10 by city-year and 3.05 by cycle on ``reference``, 1.07 and 2.87 on
+    ``all``. ``reference`` no longer rejects at the city-year level either (35
+    of 64 randomisations), so the precondition this test used to close on is
+    gone: the population asserted to reject at the city-year level is now
+    ``claimed`` (64 of 64), and it does NOT survive the move to the cycle level
+    (0 of 64), where it did on the incumbent-law panel.
     """
     path = ROOT / "data" / "processed" / "history.json"
     if not path.exists():
@@ -1113,13 +1160,14 @@ def test_clustering_by_cycle_is_the_level_this_panel_cannot_test():
     # The cycle effect that says the level is wrong.
     sds = {y: float(np.std(v, ddof=1)) for y, v in sd_by_cycle.items()}
     ordered = [sds[y] for y in sorted(sds)]
-    assert ordered[-1] > 1.8 * ordered[0], (
+    # Widest over narrowest, every cycle compared: the earlier `last > 1.8 x
+    # first` assumed the cycles were ordered, and on this panel they are not.
+    assert max(ordered) > 1.8 * min(ordered), (
         f"sd(z) by cycle is {[round(v, 3) for v in ordered]} across "
-        f"{sorted(sds)} (measured 0.601 / 0.889 / 1.265 POOLED; §1.228's "
-        f"0.452 / 1.155 / 1.960 is the ranks 4-12 band of the same "
-        f"population, a 4.3x spread against this 2.1x). The cycle effect is "
-        f"the whole reason city-year is suspected of being the wrong cluster "
-        f"level; if it has gone, so has this limitation.")
+        f"{sorted(sds)} (measured 2026-10-16: 1.388 / 0.972 / 2.273 POOLED, "
+        f"a 2.3x spread; 0.601 / 0.889 / 1.265 on the incumbent-law panel). "
+        f"The cycle effect is the whole reason city-year is suspected of being "
+        f"the wrong cluster level; if it has gone, so has this limitation.")
 
     for pop in ("reference", "all"):
         near, cycle = by_city_year[pop], by_cycle[pop]
@@ -1135,9 +1183,20 @@ def test_clustering_by_cycle_is_the_level_this_panel_cannot_test():
             f"it is NOT established there by this function's own rule. If it "
             f"now is, the limitation has weakened and the docstring should say "
             f"so rather than this assertion being deleted.")
-    # `claimed` is the population that does survive the move, and saying which
-    # ones do is the difference between a caveat and a finding.
-    assert by_city_year["reference"]["rejects_in"] == 64, "precondition"
+    # Which population rejects at the city-year level, and that it does not
+    # survive the move to the cycle level. Until 2026-10-16 this was
+    # `reference` rejecting 64/64 by city-year, with `claimed` the population
+    # that survived the move; on this panel `reference` rejects in 35/64 by
+    # city-year, and `claimed` rejects 64/64 there and 0/64 by cycle.
+    near_c = S.chi2_clustered(_pit_blocks(records, "claimed"))
+    assert near_c["rejects_in"] == near_c["replicates"], (
+        f"`claimed` rejects in {near_c['rejects_in']}/{near_c['replicates']} "
+        f"at the city-year level (measured 64/64)")
+    assert 0 < by_city_year["reference"]["rejects_in"] \
+        < by_city_year["reference"]["replicates"], (
+        f"`reference` rejects in {by_city_year['reference']['rejects_in']}/"
+        f"{by_city_year['reference']['replicates']} at the city-year level; "
+        f"recorded 2026-10-16 as not established (35/64). MODEL-LOG first.")
 
 
 def _resampler_definitions(directory) -> list[str]:
@@ -1350,8 +1409,20 @@ def test_the_clustered_test_refuses_to_estimate_a_design_effect_it_cannot():
     assert enough["clusters"] == 8 and not math.isnan(enough["deff"])
 
 
-def test_the_committed_panel_still_rejects_uniformity_once_clustered():
-    """The measured answer, pinned. **It rejects — the fear was not borne out.**
+def test_the_committed_panel_rejects_uniformity_once_clustered_on_claimed_only():
+    """The measured answer, pinned.
+
+    ⛔ **RE-RECORDED 2026-10-16: ``reference`` NO LONGER REJECTS.** Until then
+    this was ``test_the_committed_panel_still_rejects_uniformity_once_clustered``
+    and asserted the rejection on both quotable populations (incumbent-law
+    panel: χ²_RS 32.33 and 41.05, 64/64 each). On the panel committed since the
+    universal draw (`346fb97`, MODEL-LOG §1.302, §1.311): ``claimed`` χ²_RS
+    30.45 against 16.92, 64 of 64 randomisations, bootstrap interval
+    [20.46, 97.59]; ``reference`` 18.92, rejecting in 35 of 64, interval
+    [10.22, 65.04], so by this function's own rule its rejection is not
+    established. The text below is the original reading, for the record.
+
+    **It rejects — the fear was not borne out.**
 
     The nominal test was quoted as settled and was not: the columns cluster
     inside city-years and the nominal p is the independent one. Corrected, the
@@ -1362,9 +1433,9 @@ def test_the_committed_panel_still_rejects_uniformity_once_clustered():
     docstring used to explain it with a mechanism that predicts the wrong sign
     (zero-sum councils ⇒ negative within-cluster correlation ⇒ δ̄ < 1, against
     four measured values all ≥ 1). What the cells say, and why it matters, is
-    ``test_the_high_pit_cells_carry_the_clustering_on_the_committed_panel``;
+    ``test_the_bottom_cell_carries_the_clustering_on_the_committed_panel``;
     whether the first-order form is adequate given that spread is
-    ``test_the_satterthwaite_correction_is_computed_and_the_rejection_survives``;
+    ``test_the_satterthwaite_correction_is_computed_and_read_per_population``;
     and the limitation that this is the city-year level and not the cycle level
     is ``test_clustering_by_cycle_is_the_level_this_panel_cannot_test``. **This
     test is the city-year headline alone and must not be quoted without them.**
@@ -1390,17 +1461,31 @@ def test_the_committed_panel_still_rejects_uniformity_once_clustered():
                 denominator="rows in history.json")
         measured[pop] = S.chi2_clustered(groups)
 
+    # `reference` first: recorded as NOT established (2026-10-16). Its
+    # assertions are the two-sided state, so either a return to 64/64 or a
+    # fall to 0/64 turns this red and goes to MODEL-LOG.
+    ref = measured.pop("reference")
+    assert ref["estimable"] is True and 0.5 < ref["deff"] < 2.0, ref["deff"]
+    assert 0 < ref["rejects_in"] < ref["replicates"], (
+        f"`reference`: {ref['rejects_in']}/{ref['replicates']} randomisations "
+        f"reject; recorded 2026-10-16 as 35/64, not established. A change "
+        f"either way is a change to the calibration claim: MODEL-LOG first.")
+    assert ref["ci_lo"] < ref["chi2_crit_95"], (
+        f"`reference`: bootstrap interval [{ref['ci_lo']:.2f}, "
+        f"{ref['ci_hi']:.2f}] now clears the critical value (measured "
+        f"[10.22, 65.04] on 2026-10-16)")
+
     for pop, result in measured.items():
         crit = result["chi2_crit_95"]
         assert result["estimable"] is True
         assert 0.5 < result["deff"] < 2.0, (
-            f"`{pop}` design effect {result['deff']:.2f}. The measured figures "
-            f"are 1.07 on `reference` and 1.01 on `claimed`; a value outside "
+            f"`{pop}` design effect {result['deff']:.2f}. The measured figure "
+            f"is 1.24 on `claimed` (2026-10-16); a value outside "
             f"this band means the panel's dependence structure has changed and "
             f"the reported rejection has to be re-argued, not re-asserted.")
         assert result["chi2_rs"] > crit, (
             f"`{pop}`: χ²_RS {result['chi2_rs']:.2f} against {crit}. The "
-            f"measured figures are 32.33 and 41.05. If this has fallen below "
+            f"measured figure is 30.45 (2026-10-16). If this has fallen below "
             f"the critical value the calibration claim has CHANGED — the "
             f"honest status is then 'not established', and that belongs in "
             f"MODEL-LOG before this assertion is touched.")
@@ -1411,8 +1496,8 @@ def test_the_committed_panel_still_rejects_uniformity_once_clustered():
         assert result["ci_lo"] > crit, (
             f"`{pop}`: the cluster-bootstrap 95% interval on χ² is "
             f"[{result['ci_lo']:.2f}, {result['ci_hi']:.2f}] and its lower "
-            f"bound has fallen to the critical value. Measured: [18.20, 80.39] "
-            f"on `reference` and [25.49, 84.91] on `claimed`.")
+            f"bound has fallen to the critical value. Measured: [20.46, 97.59] "
+            f"on `claimed` (2026-10-16).")
 
 
 def test_the_claimed_population_drops_the_columns_the_model_got_most_wrong():
@@ -1427,6 +1512,15 @@ def test_the_claimed_population_drops_the_columns_the_model_got_most_wrong():
     Measured against the FIXED ``reference`` population on the committed panel:
     ``claimed`` keeps 2 of the 10 worst |z| columns, reads sd(z) 0.784 against
     1.062, and a mean z of +0.014 against +0.105.
+
+    ⛔ **RE-RECORDED 2026-10-16: THE LEVEL HALF OF THE FINDING REVERSED.** On
+    the panel committed since the universal draw (`346fb97`, MODEL-LOG §1.302,
+    §1.311): ``claimed`` keeps 0 of the 10 worst columns and reads sd(z) 0.991
+    against 1.846, so the width half holds and is stronger; but its mean z is
+    -0.303 against +0.122 on the fixed population. The selection no longer
+    flatters the level bias: it reports a larger one, of the opposite sign.
+    That is asserted now as the measured state (opposite signs, ``claimed``
+    the larger in magnitude), with the old reading kept above for the record.
     """
     path = ROOT / "data" / "processed" / "history.json"
     if not path.exists():
@@ -1452,7 +1546,7 @@ def test_the_claimed_population_drops_the_columns_the_model_got_most_wrong():
     kept_worst = sum(1 for _, _, inc in worst if inc)
     assert kept_worst <= 4, (
         f"`claimed` keeps {kept_worst} of the ten worst columns in the fixed "
-        f"population. The measured figure is 2/10, and the whole objection to "
+        f"population. The measured figure is 0/10 (2/10 before 2026-10-14), and the whole objection to "
         f"leading with `claimed` is that the rule drops them. If this has "
         f"risen the objection has weakened and the report should say so.")
 
@@ -1461,13 +1555,15 @@ def test_the_claimed_population_drops_the_columns_the_model_got_most_wrong():
     assert z_kept.size >= 50 and z_all.size > z_kept.size, (z_all.size, z_kept.size)
     assert z_kept.std(ddof=1) < 0.90 * z_all.std(ddof=1), (
         f"sd(z) reads {z_kept.std(ddof=1):.3f} on the claimed columns against "
-        f"{z_all.std(ddof=1):.3f} on the fixed population (measured: 0.784 "
-        f"against 1.062). `claimed` understating the width fault is the "
+        f"{z_all.std(ddof=1):.3f} on the fixed population (measured 2026-10-16: "
+        f"0.991 against 1.846; 0.784 against 1.062 before). `claimed` understating the width fault is the "
         f"finding; if it no longer does, this test is the place that says so.")
-    assert abs(z_kept.mean()) < abs(z_all.mean()), (
+    assert z_kept.mean() * z_all.mean() < 0 \
+        and abs(z_kept.mean()) > abs(z_all.mean()), (
         f"mean z {z_kept.mean():+.3f} on claimed against {z_all.mean():+.3f} "
-        f"on the fixed population (measured: +0.014 against +0.105). The "
-        f"selection flattering the level bias is the other half of the finding.")
+        f"on the fixed population (measured 2026-10-16: -0.303 against "
+        f"+0.122; +0.014 against +0.105 on the incumbent-law panel). The "
+        f"level reading under selection has moved again: MODEL-LOG first.")
 
 
 if __name__ == "__main__":

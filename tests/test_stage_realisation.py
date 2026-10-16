@@ -2168,7 +2168,10 @@ def real_trace():
                               run_dir=Path(tmp), trace_detail=True,
                               verbose=False)
             payloads = {}
-            for name in ("40_draws", "41_guards", "42_pr_share_draws",
+            # Every stage `run_predicates` reads, and the index. `35_widths`
+            # was checked by `faults_in_widths` and never loaded here.
+            for name in ("35_widths", "40_draws", "41_guards",
+                         "42_pr_share_draws",
                          "43_ward_share_draws", "42a_pr_vote_draws",
                          "43a_ward_vote_draws", "44_seat_draws",
                          "45_delivered", "_index"):

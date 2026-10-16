@@ -1595,6 +1595,63 @@ def _top2_null(n: int, reps: int = 20_000) -> dict:
     return {"mean": float(share.mean()), "p99": float(np.percentile(share, 99))}
 
 
+_CYCLE_MARKER = "CYCLE-SPLIT-CHECKED"
+_CYCLE_TOLERANCE = 0.012
+
+
+def _documented_cycle_rows(text: str) -> dict[str, float]:
+    """ITERATING.md's marked cycle table, as ``{cycle: sd(z)}``."""
+    assert _CYCLE_MARKER in text, (
+        f"{_CHECKED_TABLE} no longer carries the {_CYCLE_MARKER} marker, so "
+        f"the cycle split it quotes is unguarded.")
+    rows = {}
+    for line in text[text.index(_CYCLE_MARKER):].splitlines()[1:]:
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if line.strip().startswith("|") and len(cells) == 2 \
+                and re.fullmatch(r"\d{4}", cells[0]):
+            rows[cells[0]] = float(cells[1])
+        elif rows and not line.strip().startswith("|"):
+            break
+    return rows
+
+
+def _cycle_table_drift(documented: dict[str, float],
+                       actual: dict[str, float]) -> list[str]:
+    """Cycles quoted and absent, absent and quoted, or quoted wrongly."""
+    out = [f"{c}: in the artefact, not in the table" for c in
+           sorted(set(actual) - set(documented))]
+    out += [f"{c}: in the table, not in the artefact" for c in
+            sorted(set(documented) - set(actual))]
+    out += [f"{c}: table says {documented[c]:.3f}, artefact {actual[c]:.3f}"
+            for c in sorted(set(actual) & set(documented))
+            if abs(documented[c] - actual[c]) > _CYCLE_TOLERANCE]
+    return out
+
+
+def test_the_cycle_table_guard_can_see_each_kind_of_drift():
+    """(1) it looked, (2) it can see, on (3) a constructed input.
+
+    The real table must parse to a non-empty set, and a constructed document
+    is caught for a moved value, a missing cycle and an extra cycle, and goes
+    quiet when each is reverted.
+    """
+    real = _documented_cycle_rows((ROOT / _CHECKED_TABLE).read_text())
+    assert len(real) == 3, (
+        f"the cycle table parsed to {sorted(real)}; the panel has three "
+        f"cycles. A short parse makes the guard vacuous.")
+    doc = ("x\n<!-- CYCLE-SPLIT-CHECKED -->\n\n| cycle | sd |\n|---|---|\n"
+           "| 2011 | 1.500 |\n| 2016 | 1.300 |\n\nprose 2031 | 9 |\n")
+    rows = _documented_cycle_rows(doc)
+    assert rows == {"2011": 1.5, "2016": 1.3}, rows
+    truth = {"2011": 1.5, "2016": 1.3}
+    assert _cycle_table_drift(rows, truth) == []
+    assert len(_cycle_table_drift(rows, {**truth, "2016": 1.33})) == 1
+    assert _cycle_table_drift(rows, truth) == []
+    assert len(_cycle_table_drift(rows, {**truth, "2021": 3.7})) == 1
+    assert len(_cycle_table_drift(rows, {"2011": 1.5})) == 1
+    assert _cycle_table_drift(rows, truth) == []
+
+
 def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
     """Four fields that must accompany every band width. MODEL-LOG §1.134.
 
@@ -1614,66 +1671,31 @@ def test_a_width_never_travels_without_its_cycle_split_and_its_leverage():
 
     cyc = band["by_cycle"]
     assert set(cyc) >= {"2016", "2021"}, sorted(cyc)
-    # THE FINDING, as a structural assertion rather than a pinned number: the
-    # cycles do not agree, so the pooled figure describes none of them.
+    # THE CYCLE SPLIT, HELD TO THE DOCUMENT THAT QUOTES IT (2026-10-16).
     #
-    # ⛔ THIS COMPARED 2016 AGAINST 2021 AND NOTHING ELSE, on a panel that had
-    # only those two cycles. The artefact now carries 2011 as well, and 2011 is
-    # the EXTREME — so the hard-coded pair measured the narrowest gap available
-    # and reported the finding as gone (1.960 vs 1.155 is 1.70x) while the real
-    # spread had grown to 4.33x. A two-cycle test on a three-cycle panel is the
-    # scanned-the-wrong-set class (`CLAUDE.md` §4), and it failed in the
-    # direction that retires a live finding.
-    #
-    # Measured 2026-09-12 over all 24 city-years: sd(z) is 0.452 at 2011, 1.155
-    # at 2016 and 1.960 at 2021 — monotone, and the same shape `CLAUDE.md`
-    # records for `k*` ("a 4x spread that no single number resolves").
-    # BOTH CLAIMS, because they are different and the pair is the finding.
-    # The ordered one is the second-order-election story §1.132 is about (the
-    # later cycle is the turbulent one); the all-cycles one is the dispersion.
-    # Asserting only the widest pair would stay green on 2011 alone if 2016 and
-    # 2021 converged completely — which is the exact event rule 8 and the
-    # HANDOVER-ARCHIVE's item 1 depend on, and it would be reported only in a failure
-    # MESSAGE. This repository asserts the number, not the message.
-    # `bool(nan)` is True, so a `.get(...)` truth test RETAINS a nan cycle and
-    # DROPS one whose sd(z) is exactly 0.0 — which is the single case that
-    # would most strongly confirm the finding. `_stats` returns nan for any
-    # cycle with fewer than two scored columns.
-    spread = {c: v for c in cyc
+    # Until 2026-10-16 this asserted the finding itself: sd(z) monotone in the
+    # cycle (0.452 -> 1.155 -> 1.960 on 2026-09-12) and the widest cycle over
+    # 3x the narrowest. Both were true of the incumbent-law panel and both are
+    # false on the panel committed since the universal draw (`346fb97`,
+    # MODEL-LOG §1.302): 2011 now reads above 2016, and the widest ratio is
+    # under 3x. MODEL-LOG §1.311 records the falsification. Re-pinning either
+    # assertion to the new ordering would encode one panel's ordering as an
+    # invariant again, so the assertion is now the one that cannot be wrong
+    # about a fact: ITERATING.md rule 8 quotes the split per cycle in a marked
+    # table, and that table must equal the artefact, every cycle in both
+    # directions. Any move beyond the table's tolerance turns this red and
+    # sends the next reader to re-read rule 8, which is what the monotonicity
+    # assertion was for.
+    actual = {c: v for c in cyc
               if (v := cyc[c].get("sd_z")) is not None and v == v}
-    assert len(spread) >= 2, sorted(cyc)
-    lo_c, hi_c = min(spread, key=spread.get), max(spread, key=spread.get)
-    lo, hi = spread[lo_c], spread[hi_c]
-
-    # ⛔ THE ORDERED CLAIM IS ASSERTED AS MONOTONICITY, NOT AS `2021 > 3x2016`,
-    # AND THE DIFFERENCE IS A MEASURED CHANGE, NOT A CONVENIENCE. That pair was
-    # 3.5x on the nine-city-year panel and is **1.70x** on twenty-four (1.155
-    # at 2016, 1.960 at 2021) — so the specific 3x claim between those two
-    # cycles NO LONGER HOLDS and must not be re-asserted. What does hold, and
-    # is the stronger structural statement, is that sd(z) rises monotonically
-    # with the cycle: 0.452 -> 1.155 -> 1.960. That is directed, uses every
-    # cycle, carries no tuned threshold, and breaks if ANY adjacent pair
-    # converges or inverts — which is the event rule 8 and the HANDOVER-ARCHIVE's item
-    # 1 depend on. §1.132's own reading is preserved; the pair figure it was
-    # written against is not. MODEL-LOG entry filed 2026-09-12.
-    ordered = [cyc[c]["sd_z"] for c in sorted(spread)]
-    assert all(a < b for a, b in zip(ordered, ordered[1:])), (
-        "ranks 4-12 sd(z) by cycle is "
-        + ", ".join(f"{c} {spread[c]:.3f}" for c in sorted(spread))
-        + " — no longer monotone in the cycle. §1.132 reads the later cycles "
-          "as the turbulent ones; an inversion or a convergence between "
-          "adjacent cycles changes that, and rule 8 and the HANDOVER-ARCHIVE's item 1 "
-          "both need re-reading.")
-
-    assert hi > 3 * lo, (
-        "ranks 4-12 sd(z) by cycle is "
-        + ", ".join(f"{c} {spread[c]:.3f}" for c in sorted(spread))
-        + f" — widest ratio {hi / lo:.2f}x ({hi_c} over {lo_c}). If the cycles "
-        f"have converged, §1.132's central finding — that the pooled width "
-        f"describes NO cycle — has changed, and rule 8 and the HANDOVER-ARCHIVE's item "
-        f"1 both need re-reading. Compare every cycle present: this assertion "
-        f"named 2016 and 2021 until 2026-09-12 and missed that 2011 is the "
-        f"extreme.")
+    assert len(actual) >= 2, sorted(cyc)
+    drift = _cycle_table_drift(_documented_cycle_rows(
+        (ROOT / _CHECKED_TABLE).read_text()), actual)
+    assert not drift, (
+        "ITERATING.md rule 8's ranks 4-12 cycle table and the artefact "
+        "disagree:\n  " + "\n  ".join(drift) + "\nThe artefact reads "
+        + ", ".join(f"{c} {actual[c]:.3f}" for c in sorted(actual))
+        + ". Paste it in and re-read rule 8 and MODEL-LOG §1.132 against it.")
 
     # ⛔ TWO WRONG ENCODINGS OF THIS, AND THE SECOND WAS MINE.
     #

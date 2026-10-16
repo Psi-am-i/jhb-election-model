@@ -200,8 +200,26 @@ def _seat_draws(processed: Path):
     return parties, seats, thr
 
 
+def roster_codes(manifest: dict) -> list[str]:
+    """Every party the draws carry, in the draw file's column order: the
+    columns of its ``ward_vote`` block, which is the run's whole universe
+    (``export_draws``: no party summed or dropped), so a party on the ballot
+    that never wins a seat is on it too. A ward-only party (a ward slate and no
+    PR list, ``levels.Ballots.ward_only``, MODEL-LOG §1.306) is such a party:
+    it carries ward votes, so the entry schema must name it, and since
+    2026-10-16 the page's roster and the schema's ``parties`` are this list
+    (``build_make.model_artefact``). ``manifest["parties"]`` is the seat
+    blocks' columns, the seat-winning parties only; it is the answer for a
+    manifest written before the vote blocks existed."""
+    for block in manifest.get("blocks") or ():
+        if block.get("name") == "ward_vote":
+            return [str(c) for c in block["columns"]]
+    return [str(c) for c in manifest.get("parties") or ()]
+
+
 def roster() -> dict:
-    """``{code: {name, colour, article, logo}}`` for every party the draws carry.
+    """``{code: {name, colour, article, logo}}`` for every party the draws carry
+    (:func:`roster_codes`).
 
     ``article`` is "the " for a name written as an abbreviation ("the ANC"),
     else empty ("ActionSA", "MK Party"): one rule, so the page types no list.
@@ -210,7 +228,7 @@ def roster() -> dict:
     codes = list(render_sheet.NAMES)
     man = DRAWS / "manifest.json"
     if man.is_file():
-        codes = json.loads(man.read_text(encoding="utf-8")).get("parties") or codes
+        codes = roster_codes(json.loads(man.read_text(encoding="utf-8"))) or codes
     out = {}
     for c in codes:
         name = render_sheet.NAMES.get(c) or reader_name(c)
@@ -446,11 +464,20 @@ def new_parties_note(processed: Path, rows: list[dict], names: dict) -> str:
     spec, fname = _spec(processed)
     codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
     new = _new_parties(spec, codes)
-    if not new:
+    # Absent in 2021 but fitted on their own national result (`pools.
+    # place_vectorless`): a measured split, so not "assumed" and not hatched,
+    # but still a party that did not stand in 2021.
+    fitted = {c: f for c, f in (spec.get("fitted_from_national") or {}).items()
+              if c in codes and c not in new}
+    if not new and not fitted:
         return "Every party shown stood in 2021."
-    who = [names[c]["name"] for c in new]
+    who = [names[c]["name"] for c in codes if c in new or c in fitted]
     lst = who[0] if len(who) == 1 else ", ".join(who[:-1]) + " and " + who[-1]
     out = [f"{_esc(lst)} did not stand in 2021."]
+    for c in codes:
+        if c in fitted:
+            out.append(f"{_esc(names[c]['name'])}'s split is estimated from its "
+                       f"{_esc(str(fitted[c]['election']))} national result by ward.")
     for c, (kind, parent, share) in new.items():
         src = f"{fname} no_measured_vector[{c}]"
         if kind == "splinter":

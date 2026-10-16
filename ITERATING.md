@@ -821,6 +821,17 @@ round estimates a feature from the record, that feature leaves the check.
    taken from coverage at a single nominal level. Read the paragraph after the
    table before proposing anything.
 
+   > ⛔ **THE BAND-BY-BAND READINGS IN THIS RULE DESCRIBE THE INCUMBENT-LAW
+   > PANEL (artefact `c9bae8e`, 2026-09-29), NOT THE ONE NOW COMMITTED
+   > (2026-10-16).** Since the universal draw shipped (`346fb97`, MODEL-LOG
+   > §1.302) the claimed ranks 1-3 and 4-12 mean PITs are both below 0.50 and
+   > neither cluster-bootstrap interval excludes 0.50; the level-free width
+   > reads slightly above 1.0 in both bands once saturated PITs are dropped,
+   > not "too wide"; and the ranks 4-12 cycle split is no longer monotone. The marked
+   > tables below and the 2026-10-16 paragraph above them are current; the
+   > rest of this rule is the record of how it was read before. MODEL-LOG
+   > §1.311.
+
    The LEVEL genuinely differs by rank band, and that part has never been in
    doubt. The WIDTH does not: **both bands are too wide, by almost exactly the
    same factor.**
@@ -848,6 +859,29 @@ round estimates a feature from the record, that feature leaves the check.
    ranks 4-12 is still the one departed band and ranks 1-3 is still the
    narrower of the two.
 
+   **RE-QUOTED 2026-10-16 from the artefact committed in `08136c5`** (the
+   panel under the universal draw, then the 2026-10-15/16 rebuilds and the
+   whole-council truth; MODEL-LOG §1.311). Every cell moved at `346fb97`
+   (step 9) and moved again by at most 0.004 in mean PIT through the rebuilds.
+   What no longer holds, read off `data/processed/history.md`'s *"Split by
+   actual PR rank"* and *"Is it the right WIDTH?"* tables:
+
+   * **Level.** Both bands' mean PIT is below 0.50 (the "both above 0.50,
+     under-forecast" reading below has inverted), and neither band's cluster
+     bootstrap interval excludes 0.50, so ranks 4-12 is no longer "the one
+     departed band".
+   * **Population.** Claimed ranks 4-12 n rose 74 → 124 at `346fb97`: the
+     universal draw gives more columns a seat in half their draws. The two
+     PIT rows are not like-for-like with any earlier quote.
+   * **Width.** The probit-SD in the table is the 1e-6-clip figure the test
+     holds; both bands now carry saturated PITs, so `history.md` marks it
+     ⛔UNQUOTABLE. The drop-saturated column is the one to read, and it sits
+     slightly above 1.0 in both bands (slightly too narrow, not too wide):
+     "both bands are too wide by the same factor" does not describe this
+     artefact.
+   * **Cycle.** Ranks 4-12 `sd(z)` on `reference` is no longer monotone in the
+     cycle (table below the vote table); 2021 remains the widest.
+
    <!-- CHECKED-AGAINST-ARTEFACT: data/processed/history.json, claimed columns.
         tests/test_calibration_report.py::test_the_documented_figures_match_the_committed_artefact
         parses the two tables below and fails the build if they and the artefact
@@ -856,15 +890,27 @@ round estimates a feature from the record, that feature leaves the check.
 
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
-   | ranks 1-3 | 72 | 0.527 | 68% | 92% | 94% | 0.783 |
-   | ranks 4-12 | 74 | 0.580 | 64% | 91% | 93% | 0.847 |
+   | ranks 1-3 | 72 | 0.477 | 50% | 81% | 89% | 1.178 |
+   | ranks 4-12 | 124 | 0.458 | 44% | 77% | 83% | 1.450 |
 
    | twenty-four-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | -15.11pp | 238.21pp |
-   | ranks 4-12 | -3.87pp | 135.31pp |
-   | ranks 13+ | +11.71pp | 30.40pp |
-   | phantom (parties that did not stand) | +6.77pp | — |
+   | ranks 1-3 | -16.32pp | 242.16pp |
+   | ranks 4-12 | -5.42pp | 133.06pp |
+   | ranks 13+ | +16.31pp | 29.66pp |
+   | phantom (parties that did not stand) | +5.44pp | — |
+
+   <!-- CYCLE-SPLIT-CHECKED: data/processed/history.json, `reference` ranks 4-12
+        by cycle (`compare_history.pooled_by_band(...)["4-12"]["by_cycle"]`).
+        tests/test_calibration_report.py::test_a_width_never_travels_without_its_cycle_split_and_its_leverage
+        holds this table to the artefact, every cycle both ways. Re-paste from
+        the artefact; never hand-edit. -->
+
+   | cycle | ranks 4-12 sd(z), `reference` |
+   |---|---|
+   | 2011 | 1.542 |
+   | 2016 | 1.304 |
+   | 2021 | 3.705 |
 
    **BOTH TABLES ARE NOW MEASURED ON TWENTY-FOUR CITY-YEARS (re-quoted
    2026-09-29 from the committed `history.json`, the F9 after-run, MODEL-LOG §1.280).** They were nine until §1.70,

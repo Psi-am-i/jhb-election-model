@@ -308,6 +308,28 @@ def _case_gates_sha():
     return before, after
 
 
+def _case_roll_sha():
+    """The 2026 roll is the IEC snapshot apportioned into the target's
+    crosswalk, so a changed crosswalk (a new snapshot, a new concordance) must
+    move the key. Built on a copy of the real target whose `crosswalk` names a
+    constructed file, so nothing under data/ is touched."""
+    city, target = _city_and_target()
+    xw = Path(tempfile.mkdtemp()) / "vd_ward_2026.csv"
+
+    class _Moved:
+        year = target.year
+        crosswalk = xw
+
+        def __getattr__(self, name):
+            return getattr(target, name)
+
+    xw.write_text("VD_Number,part_registered_2026\n1,100\n")
+    before = pools.artefact_key(city, _Moved())
+    xw.write_text("VD_Number,part_registered_2026\n1,101\n")
+    after = pools.artefact_key(city, _Moved())
+    return before, after
+
+
 def _case_pools_sha():
     """Tied to `_code_sha`, whose non-constancy is proved on its own below.
 
@@ -325,6 +347,7 @@ CASES = {
     "deps_sha": _case_deps_sha,
     "judgements_sha": _case_judgements_sha,
     "gates_sha": _case_gates_sha,
+    "roll_sha": _case_roll_sha,
     "pools_sha": _case_pools_sha,
 }
 

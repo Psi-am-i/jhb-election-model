@@ -61,7 +61,7 @@ import montecarlo as mc                                   # noqa: E402
 
 STAGES = ("00_target", "01_scenario_in", "02_pools_artefact", "03_roster")
 
-# The nine members of `pools.artefact_key`. Typed here so a field added to the
+# The members of `pools.artefact_key`. Typed here so a field added to the
 # code and not to this module is a FAILURE rather than an unchecked field --
 # `test_the_artefact_key_field_set_matches_the_code` asserts the two agree, in
 # both directions. `pools.stale_reason` learned this lesson the expensive way:
@@ -70,7 +70,12 @@ STAGES = ("00_target", "01_scenario_in", "02_pools_artefact", "03_roster")
 ARTEFACT_KEY_FIELDS = frozenset({
     "schema", "city", "target",
     "pools_sha", "config_sha", "cities_sha", "deps_sha", "judgements_sha",
-    "gates_sha"})
+    "gates_sha", "roll_sha"})
+# `roll_sha` hashes the target's VD->ward crosswalk (`pools._roll_sha`, MODEL-LOG
+# §1.304). A held election has no crosswalk file and records the word
+# "absent", which is a statement about the target, not a blank hash.
+# "unkeyed" (a target object with no crosswalk attribute) is not accepted.
+KEY_WORDS = {"roll_sha": frozenset({"absent"})}
 ARTEFACT_KEY_IDENTITY = frozenset({"schema", "city", "target"})
 ARTEFACT_KEY_SCHEMA = 2
 
@@ -159,7 +164,7 @@ INVARIANTS: dict[str, str] = {
         "the code that is running, so no measurement taken against it means "
         "anything.",
     "pools.artefact_key_fields":
-        "the key's member set must be exactly the nine `pools.artefact_key` "
+        "the key's member set must be exactly the members `pools.artefact_key` "
         "produces. A field present in the stored key and no longer produced is "
         "the register->code blindness this project calls its worst class.",
     "pools.schema_unexpected":
@@ -428,6 +433,8 @@ def offences_pools_artefact(payload, *, target=None,
                  f"schema={key.get('schema')!r}, expected {schema}")
         for field in sorted(set(key) - set(ARTEFACT_KEY_IDENTITY)):
             value = key[field]
+            if value in KEY_WORDS.get(field, ()):
+                continue
             if not isinstance(value, str) or not _SHA16.match(value):
                 _off(out, "pools.sha_not_a_hash", f"{field}={value!r}")
 
@@ -676,7 +683,8 @@ def healthy() -> dict:
            "target": "2021",
            "pools_sha": "0123456789abcdef", "config_sha": "fedcba9876543210",
            "cities_sha": "00112233445566aa", "deps_sha": "aabbccddeeff0011",
-           "judgements_sha": "1234abcd5678ef90", "gates_sha": "abcdef0123456789"}
+           "judgements_sha": "1234abcd5678ef90", "gates_sha": "abcdef0123456789",
+           "roll_sha": "absent"}
     return {
         "00_target": {"city": "metropolis", "year": "2021", "council": 200,
                       "draws": 5000, "seed": 20261104},
@@ -705,7 +713,7 @@ def healthy_not_yet_held() -> dict:
     trace["02_pools_artefact"] = {
         "path": "data/processed/pools_2026.json",
         "artefact_key": {**trace["02_pools_artefact"]["artefact_key"],
-                         "target": "2026"},
+                         "target": "2026", "roll_sha": "9a8b7c6d5e4f3a2b"},
         "stale_reason": None, "stale_allowed": False, "fitted_on": "2021"}
     trace["45_delivered"]["pools"]["values"] = [
         trace["02_pools_artefact"]["artefact_key"]]
@@ -1032,6 +1040,8 @@ def test_the_artefact_key_field_set_matches_the_code():
         f"and the meanings recorded in skills/forecast-stage-inputs/SKILL.md "
         f"must be revisited before this constant is bumped.")
     for field in sorted(set(key) - ARTEFACT_KEY_IDENTITY):
+        if key[field] in KEY_WORDS.get(field, ()):
+            continue
         assert _SHA16.match(str(key[field])), (
             f"{field} is {key[field]!r}, which is not a 16-character hex "
             f"digest -- `pools.sha_not_a_hash` would fire on every real trace.")
@@ -1579,5 +1589,29 @@ def test_the_escape_cannot_be_set_from_outside_the_process():
         mc.apply_city(city)
 
 
+def test_roll_sha_accepts_absent_and_refuses_unkeyed():
+    """`roll_sha` is the one key member allowed a word, and only "absent".
+
+    A held election has no crosswalk and records "absent"; "unkeyed" is what
+    `pools._roll_sha` returns for a target object with no `crosswalk`, which
+    is the fixture fault `tests/test_chain.py` had until 2026-10-16 (MODEL-LOG
+    §1.308) and must stay visible. A real 2026 key carries a hash.
+    """
+    def codes(value):
+        trace = healthy()
+        trace["02_pools_artefact"]["artefact_key"]["roll_sha"] = value
+        return {c for c, _ in _check(trace)}
+    assert "pools.sha_not_a_hash" not in codes("absent")
+    assert "pools.sha_not_a_hash" in codes("unkeyed")
+    assert "pools.sha_not_a_hash" in codes("")
+    import pools
+    city = cityconfig.load("joburg")
+    assert _SHA16.match(pools.artefact_key(
+        city, cityconfig.Target(city, "2026"))["roll_sha"])
+    assert pools.artefact_key(
+        city, cityconfig.Target(city, "2021"))["roll_sha"] == "absent"
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))
+

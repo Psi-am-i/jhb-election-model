@@ -164,3 +164,17 @@ Closed 2026-10-13:
 4. The voters' roll. The IEC snapshot `archive/iec-registration-2026-09-26`
    is in hand and the model does not read it (`inputs_preflight`: "used:
    False"; reading it is its own brief). The owner understood it as done.
+
+## Owner decisions, 2026-10-15 (continued)
+- MK, option A: fit MK's pool vector from its own 2024 national VD results
+  (ecological fit, as identified parties are fitted); the splinter default
+  (`SPLINTER_PARENT_WEIGHT` 0.35) applies only to splinters with no record of
+  their own. Every splinter with a national record changes, so it is backtested.
+  §SJ1 (MK 0.9) is kept on record; the fitted vector supersedes it if adopted.
+  Queued after the ward-contest batch (same files).
+- Ward-contest rule (owner): a ward-only party gets no citywide/list votes and
+  wins only in wards it contests; every party's ward votes only where it stands.
+- Check requested: ward tables for NPE 2019 and LGE 2021 (votes by party,
+  estimated votes by party × population group, estimated registration by
+  group) and a top-down vs bottom-up comparison. In progress, read-only.
+- After the rebuild: small-party tests against real results in other metros.

@@ -104,8 +104,20 @@ def test_a_stale_roll_snapshot_is_not_counted_as_having_it():
         f"snapshot is {age} days old and the row says ok={row['ok']}"
 
 
+def test_the_roll_row_s_used_flag_is_computed_from_the_crosswalk():
+    """`used` was the typed False of "the model does not read the roll yet". It
+    is now the claim that the crosswalk declares the newest snapshot, so it must
+    be a bool that moves with the crosswalk (the moving half is built in
+    tests/test_roll_2026.py on a constructed copy)."""
+    row = _rows()["2026 voters' roll (registration)"]
+    assert isinstance(row["used"], bool)
+    snap = P.roll_snapshot("joburg")
+    assert row["used"] == (P.declared_roll_snapshot("joburg", "2026")
+                           == P.snapshot_label(snap))
+
+
 def test_the_roll_is_reported_present_not_used():
-    """G18 (BRIEF item 10): the model does not read the 2026 roll, so a
+    """G18 (BRIEF item 10): a roll the crosswalk has not declared is unused, so a
     snapshot in hand prints `present` and says so, never `ok`.
 
     Constructed rows, not the archive: one roll row in hand and unused, one
@@ -130,7 +142,7 @@ def test_the_roll_is_reported_present_not_used():
     roll = {"input": "2026 voters' roll (registration)", "level": P.REQUIRED,
             "ok": True, "used": False, "have": "x", "source": "s", "fix": "f"}
     other = {"input": "2026 split voting districts", "level": P.REQUIRED,
-             "ok": True, "have": "y", "source": "s", "fix": "f"}
+             "ok": True, "used": True, "have": "y", "source": "s", "fix": "f"}
     out = printed([roll, other])
     assert "[present] 2026 voters' roll" in out, out
     assert "the model does not read this input" in out, out
@@ -138,5 +150,81 @@ def test_the_roll_is_reported_present_not_used():
     reverted = printed([dict(roll, used=True), other])
     assert "[present]" not in reverted and "does not read" not in reverted, \
         reverted
-    # and the live row carries the flag
-    assert _rows()["2026 voters' roll (registration)"]["used"] is False
+    # and the live row carries the flag: True now that the crosswalk declares
+    # the snapshot (computed, see the test above), still a bool either way
+    assert isinstance(_rows()["2026 voters' roll (registration)"]["used"], bool)
+
+
+def _with_rows(rows, argv):
+    real = P._rows
+    P._rows = lambda city, target: rows
+    try:
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()):
+            return P.main(argv)
+    finally:
+        P._rows = real
+
+
+def _row(name, ok=True, used=True, level=None):
+    return {"input": name, "level": level or P.REQUIRED, "ok": ok, "used": used,
+            "have": "h", "source": "s", "fix": "f"}
+
+
+def test_strict_fails_on_a_required_input_present_but_unused_and_only_then():
+    """Items 3 and 4. Constructed rows, both directions: present and unused
+    exits 1 under --strict and 0 without it; the same row used exits 0; an
+    unused ADVISORY row never fails."""
+    argv = ["--city", "joburg", "--target", "2026"]
+    assert _with_rows([_row("roll", used=False)], argv + ["--strict"]) == 1
+    assert _with_rows([_row("roll", used=False)], argv) == 0
+    assert _with_rows([_row("roll", used=True)], argv + ["--strict"]) == 0
+    assert _with_rows([_row("note", used=False, level=P.ADVISORY)],
+                      argv + ["--strict"]) == 0
+
+
+def test_a_required_row_without_a_computed_used_bool_is_refused():
+    """Guard A: a typed or missing `used` is a defect in the check."""
+    def refused(rows):
+        try:
+            P._require_used(rows)
+        except ValueError as exc:
+            return "no computed `used`" in str(exc)
+        return False
+    row = _row("roll")
+    del row["used"]
+    assert refused([row])
+    assert refused([_row("roll", used="yes")])
+    assert not refused([_row("roll")])
+
+
+def test_every_live_required_row_carries_a_bool_used_for_every_declared_city():
+    """The population is every declared city, and the rows are the real ones:
+    each REQUIRED row has a bool `used`. A city with no data reads unused."""
+    slugs = sorted(p.stem for p in (ROOT / "cities").glob("*.toml"))
+    assert 2 <= len(slugs) <= 50
+    for slug in slugs + ["nosuchcity"]:
+        rows = P._rows(slug, "2026")
+        P._require_used(rows)
+        assert sum(r["level"] == P.REQUIRED for r in rows) >= 5
+    assert all(r["used"] is False for r in P._rows("nosuchcity", "2026")
+               if r["level"] == P.REQUIRED)
+
+
+def test_the_boundary_used_flag_moves_with_the_crosswalk():
+    """Computed, not typed: a geojson whose voting districts the crosswalk does
+    not hold is present and unused; the same crosswalk and a matching geojson
+    is used."""
+    import tempfile
+    tmp_path = Path(tempfile.mkdtemp())
+    xw = P._crosswalk_path("joburg", "2026")
+    assert xw is not None
+    ids = sorted(P._crosswalk_column("joburg", "2026", "VD_Number"))
+    def geo(vds):
+        p = tmp_path / f"g{len(vds)}.geojson"
+        p.write_text(json.dumps({"features": [{"properties": {"VDNumber": v}} for v in vds]}))
+        return p
+    assert P.vds_used("joburg", "2026", geo(ids)) is True
+    assert P.vds_used("joburg", "2026", geo(ids[:-1])) is False
+    assert P.vds_used("joburg", "2026", geo(ids + ["999"])) is False
