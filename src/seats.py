@@ -61,6 +61,16 @@ from dataclasses import dataclass, field
 INDEPENDENT = "INDEPENDENT"
 
 
+def is_independent(party: str) -> bool:
+    """An independent candidate: :data:`INDEPENDENT`, or ``IND``, the row the
+    published result files merge every independent in a voting district into
+    (``DATA-QUALITY.md`` item 12). The one test, read by
+    :func:`outside_pool_seats` (C) and ``backtest.entrant_actual_for`` (an
+    independent is never an arrival, ``ARRIVED_VS_NATIONAL``'s ``party != IND``).
+    """
+    return party in (INDEPENDENT, "IND")
+
+
 class TieWithoutLot(ValueError):
     """An exact tie straddles the last seat and the call passed no lot key."""
 
@@ -240,7 +250,7 @@ def outside_pool_seats(
     the seats themselves, so the two cannot disagree about who left.
     """
     return {p: n for p, n in ward_wins.items()
-            if p in (INDEPENDENT, "IND") or p not in combined}
+            if is_independent(p) or p not in combined}
 
 
 def council_seats(

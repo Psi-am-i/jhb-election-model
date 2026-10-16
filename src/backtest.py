@@ -83,7 +83,8 @@ import official_seats
 import parties as P
 import score as S
 from fold import citywide, load
-from seats import INDEPENDENT, allocate, eligible_parties, lot_identity
+from seats import (INDEPENDENT, allocate, council_seats, eligible_parties,
+                   is_independent, lot_identity, outside_pool_seats)
 
 def runnable_targets(city=None) -> tuple[str, ...]:
     """Past local elections this harness can actually run, for one city.
@@ -996,6 +997,15 @@ def actual_result(path: Path, council: int, year: int | None = None,
     The reconstruction is then checked party by party against the IEC's own
     Seat Calculation Detail and raises on any disagreement. A ground truth that
     is only *probably* right is not a ground truth.
+
+    **The seats returned are the whole chamber**, summing to ``council``: the
+    pool plus each ward seat that left it (C, independents, under ``IND``, at
+    the IEC's published C where a report exists; D, a ward winner with no PR
+    list, under its own name), added by ``seats.council_seats``, the one
+    definition every model draw goes through. Until 2026-10-16 this returned
+    the pool only, so a model that forecast a C or D ward seat was charged for
+    it, and eThekwini 2011 (C = 1) and 2016 (C = 4) were scored against a truth
+    one and four seats short of the council. MODEL-LOG §1.309.
     """
     ward_votes, ward_of = load(path, "Ward")
     pr_votes, _ = load(path, "PR")
@@ -1024,9 +1034,9 @@ def actual_result(path: Path, council: int, year: int | None = None,
     official = official_seats.read(code, int(year))
 
     wins = Counter(winners.values())
-    outside = {party: n for party, n in wins.items()
-               if party == "IND" or party not in combined}
-    no_pr_list_wards = sum(n for party, n in outside.items() if party != "IND")
+    outside = outside_pool_seats(dict(wins), combined)
+    no_pr_list_wards = sum(n for party, n in outside.items()
+                           if not is_independent(party))
 
     # C IS TAKEN FROM THE IEC WHEREVER THE REPORT EXISTS, because it cannot be
     # counted from the published votes. Every independent in a voting district
@@ -1093,6 +1103,13 @@ def actual_result(path: Path, council: int, year: int | None = None,
                 f"published seat calculation ({Path(official['path']).name}): "
                 f"{detail or 'totals differ'}. Everything scored against it "
                 f"would be scored against the wrong answer.")
+    # THE WHOLE CHAMBER, as every model draw carries it (MODEL-LOG §1.308,
+    # §1.309): the pool plus each C and D ward seat as its holder's own entry,
+    # through the one definition the draws use. `outside` already carries the
+    # IEC's C in place of the counted IND figure, so the add-back seats the
+    # independents the Commission seated and no others; `council_seats` drops a
+    # zero entry and refuses unless the total is `council`.
+    seats = council_seats(seats, outside, combined, council)
     return seats, winners
 
 
@@ -1206,7 +1223,13 @@ def entrant_actual_for(actual_seats: Mapping[str, int],
     refused one level up where the difference between "empty" and "unreadable"
     is knowable.
     """
-    newcomers = {p: s for p, s in actual_seats.items() if p not in base_city}
+    # An independent is never an arrival: the registered predicate
+    # (`pools.ARRIVAL_DEFINITIONS["ARRIVED_VS_NATIONAL"]`) says `party != IND`.
+    # Latent while the truth carried the pool only; since §1.309 it carries
+    # the IEC's C, and eThekwini 2016's four independent ward seats outnumber
+    # the AIC's three, so without this the ENTRANT column was labelled IND.
+    newcomers = {p: s for p, s in actual_seats.items()
+                 if p not in base_city and not is_independent(p)}
     # DETERMINISTIC TIE-BREAK. `max(newcomers, key=newcomers.get)` returns the
     # first maximum in ITERATION ORDER, which for a dict built from a file scan
     # depends on insertion order and, where keys collide, on PYTHONHASHSEED. Two
