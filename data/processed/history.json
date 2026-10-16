@@ -1,7 +1,7 @@
 {
   "manifest": {
     "schema": 3,
-    "generated": "2026-10-15T23:30:33Z",
+    "generated": "2026-10-16T01:37:12Z",
     "draws": 1000,
     "seed": 20261104,
     "seed_by_row": {
@@ -31,7 +31,7 @@
       "buffalocity:2021": 20261104
     },
     "overrides": [],
-    "git_commit": "74e7433829e65f96622aabc76214d5314c142907",
+    "git_commit": "5dfdfa2648de1194b3aebc3d0dc628682583660d",
     "git_dirty": false,
     "env_switches": {
       "raw": {
@@ -1761,8 +1761,8 @@
         "last-lge": {
           "crps": 52.0,
           "energy": 23.537204591879632,
-          "variogram": 0.8639190868321901,
-          "n_scored": 25,
+          "variogram": 0.8498435550689968,
+          "n_scored": 26,
           "seat_abs_err": 52,
           "seat_abs_err_coherent": 52,
           "median_sum": 260,
@@ -1781,8 +1781,8 @@
         "uniform-swing": {
           "crps": 60.0,
           "energy": 28.635642126552696,
-          "variogram": 1.310659856795502,
-          "n_scored": 25,
+          "variogram": 1.2729966218763615,
+          "n_scored": 26,
           "seat_abs_err": 60,
           "seat_abs_err_coherent": 60,
           "median_sum": 260,
@@ -1799,15 +1799,15 @@
           }
         },
         "prior-lge-noise": {
-          "crps": 40.40898498498499,
-          "energy": 18.095315070299062,
-          "variogram": 0.8433748731923699,
-          "n_scored": 25,
+          "crps": 40.40898698698699,
+          "energy": 18.095271425661075,
+          "variogram": 0.8313959009224534,
+          "n_scored": 26,
           "seat_abs_err": 50,
           "seat_abs_err_coherent": 56,
           "median_sum": 256,
           "coherent_sum": 260,
-          "draw_total": 259.998,
+          "draw_total": 260.0,
           "fills_council": true,
           "dropped_claims": 0,
           "wards": {
@@ -1821,8 +1821,8 @@
         "uniform-swing+roster": {
           "crps": 56.0,
           "energy": 28.42534080710379,
-          "variogram": 1.1812764757556424,
-          "n_scored": 25,
+          "variogram": 1.1412581163011069,
+          "n_scored": 26,
           "seat_abs_err": 56,
           "seat_abs_err_coherent": 56,
           "median_sum": 260,
@@ -1839,8 +1839,8 @@
           }
         }
       },
-      "universe_key": "d96e794570898a0f",
-      "universe_n": 25,
+      "universe_key": "4fe52b62e3eab4b6",
+      "universe_n": 26,
       "reference_n": 18,
       "constants_read": {
         "pools": [
@@ -2448,8 +2448,8 @@
       "crps": 41.54874274274274,
       "dropped_claims": 0,
       "energy": 21.601027918741458,
-      "variogram": 1.132254965742103,
-      "n_scored": 25,
+      "variogram": 1.091185850744149,
+      "n_scored": 26,
       "arrival_group": {
         "n_arrived": 10,
         "n_columns": 4,
@@ -2725,6 +2725,10 @@
           1,
           1
         ],
+        "UNITED_FRONT_OF_CIVICS": [
+          0,
+          0
+        ],
         "VFPLUS": [
           1,
           1
@@ -2734,7 +2738,7 @@
       "seat_abs_err_coherent": 28,
       "median_sum": 260,
       "coherent_sum": 270,
-      "draw_total": 269.957,
+      "draw_total": 270.0,
       "fills_council": true,
       "wards": {
         "n_wards": 135,
@@ -3333,7 +3337,7 @@
           ]
         },
         "all": {
-          "n": 25,
+          "n": 26,
           "parties": [
             "ACDP",
             "AFRICAN_PEOPLE_S_SOCIALIST_PARTY",
@@ -3359,6 +3363,7 @@
             "TRULY_ALLIANCE",
             "UBUNTU_PARTY",
             "UDM",
+            "UNITED_FRONT_OF_CIVICS",
             "VFPLUS"
           ],
           "pit": [
@@ -3386,6 +3391,7 @@
             0.5857275130655554,
             0.09799592524815787,
             0.48892534844714963,
+            0.4180160067690088,
             0.20710592605744813
           ],
           "pit_lo": [
@@ -3413,6 +3419,7 @@
             0.0,
             0.0,
             0.205,
+            0.0,
             0.148
           ],
           "pit_w": [
@@ -3440,6 +3447,7 @@
             0.727,
             0.709,
             0.617,
+            0.989,
             0.626
           ],
           "pit_seed": 20224330,
@@ -3468,6 +3476,7 @@
             -0.400291303573025,
             -0.3622657895546464,
             -0.04690489154805871,
+            -0.09139169792067854,
             -0.21556874444965451
           ],
           "p_any": [
@@ -3495,6 +3504,7 @@
             0.273,
             0.291,
             0.795,
+            0.011,
             0.852
           ],
           "band": [
@@ -3522,6 +3532,7 @@
             "13+",
             "13+",
             "4-12",
+            "off-ballot",
             "4-12"
           ],
           "hits": [
@@ -3649,26 +3660,31 @@
               1,
               1,
               1
+            ],
+            [
+              1,
+              1,
+              1
             ]
           ],
           "coverage": [
             {
               "level": 0.5,
-              "inside": 22,
-              "counted": 25,
-              "empirical": 0.88
+              "inside": 23,
+              "counted": 26,
+              "empirical": 0.8846153846153846
             },
             {
               "level": 0.8,
-              "inside": 24,
-              "counted": 25,
-              "empirical": 0.96
+              "inside": 25,
+              "counted": 26,
+              "empirical": 0.9615384615384616
             },
             {
               "level": 0.9,
-              "inside": 24,
-              "counted": 25,
-              "empirical": 0.96
+              "inside": 25,
+              "counted": 26,
+              "empirical": 0.9615384615384616
             }
           ]
         }
@@ -3677,8 +3693,8 @@
         "last-lge": {
           "crps": 92.0,
           "energy": 49.939963956735106,
-          "variogram": 2.1158319522348537,
-          "n_scored": 33,
+          "variogram": 2.0705758838330652,
+          "n_scored": 34,
           "seat_abs_err": 92,
           "seat_abs_err_coherent": 92,
           "median_sum": 270,
@@ -3697,8 +3713,8 @@
         "uniform-swing": {
           "crps": 26.0,
           "energy": 9.797958971132713,
-          "variogram": 0.5531123804515296,
-          "n_scored": 33,
+          "variogram": 0.5447580091293066,
+          "n_scored": 34,
           "seat_abs_err": 26,
           "seat_abs_err_coherent": 26,
           "median_sum": 270,
@@ -3717,8 +3733,8 @@
         "prior-lge-noise": {
           "crps": 81.59342342342343,
           "energy": 41.42336241312222,
-          "variogram": 2.1146255191850662,
-          "n_scored": 33,
+          "variogram": 2.0702658270135923,
+          "n_scored": 34,
           "seat_abs_err": 91,
           "seat_abs_err_coherent": 96,
           "median_sum": 265,
@@ -3737,8 +3753,8 @@
         "uniform-swing+roster": {
           "crps": 26.0,
           "energy": 9.273618495495699,
-          "variogram": 0.4721337271424488,
-          "n_scored": 33,
+          "variogram": 0.46319891064540714,
+          "n_scored": 34,
           "seat_abs_err": 26,
           "seat_abs_err_coherent": 26,
           "median_sum": 270,
@@ -3755,8 +3771,8 @@
           }
         }
       },
-      "universe_key": "f8d2b729c462e9c8",
-      "universe_n": 33,
+      "universe_key": "699932e1c826a8a5",
+      "universe_n": 34,
       "reference_n": 17,
       "constants_read": {
         "pools": [
@@ -4902,11 +4918,11 @@
           "WORKERS_AND_SOCIALIST_PARTY"
         ]
       },
-      "crps": 23.491173173173173,
+      "crps": 23.491451451451454,
       "dropped_claims": 0,
-      "energy": 10.010826383330674,
-      "variogram": 0.3774855846992324,
-      "n_scored": 33,
+      "energy": 10.012342630240392,
+      "variogram": 0.37110424178374746,
+      "n_scored": 34,
       "arrival_group": {
         "n_arrived": 13,
         "n_columns": 14,
@@ -4914,13 +4930,13 @@
         "actual_seats": 5,
         "mass_mean": 0.019980469094595242,
         "mass_median": 0.01760172673860745,
-        "seats_mean": 4.664,
+        "seats_mean": 4.707,
         "seats_median": 4.0,
         "mass_pit": 0.729,
-        "seats_pit": 0.642,
+        "seats_pit": 0.638,
         "seats_outside_support": false,
         "mass_err": 0.0028706881201237475,
-        "seats_err": 0.3360000000000003
+        "seats_err": 0.29300000000000015
       },
       "arrival_reconciliation": {
         "declared_seeded_mass": 0.01397665129995956,
@@ -5102,6 +5118,10 @@
           0,
           0
         ],
+        "AFRICAN_COVENANT": [
+          0,
+          0
+        ],
         "AFRICAN_FREEDOM_REVOLUTION": [
           0,
           0
@@ -5266,6 +5286,10 @@
           0,
           0
         ],
+        "SAKHISIZWE_CONVENTION": [
+          0,
+          0
+        ],
         "SHOSHOLOZA_PROGRESSIVE_PARTY": [
           0,
           0
@@ -5303,7 +5327,7 @@
       "seat_abs_err_coherent": 90,
       "median_sum": 257,
       "coherent_sum": 270,
-      "draw_total": 269.968,
+      "draw_total": 270.0,
       "fills_council": true,
       "wards": {
         "n_wards": 135,
@@ -6178,13 +6202,14 @@
           ]
         },
         "all": {
-          "n": 52,
+          "n": 54,
           "parties": [
             "ABAHLALY_BAAHI",
             "ABANTU_BATHO_CONGRESS",
             "ACDP",
             "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA",
             "AFRICAN_AMBASSADORS_OF_SOUTH_AFRICA",
+            "AFRICAN_COVENANT",
             "AFRICAN_FREEDOM_REVOLUTION",
             "AFRICAN_PEOPLE_S_MOVEMENT",
             "AFRICAN_SECURITY_CONGRESS",
@@ -6224,6 +6249,7 @@
             "PARTY_OF_ACTION",
             "PEOPLE_S_FREEDOM_PARTY",
             "ROYAL_LOYAL_PROGRESS",
+            "SAKHISIZWE_CONVENTION",
             "SHOSHOLOZA_PROGRESSIVE_PARTY",
             "SOUTH_AFRICAN_ROYAL_KINGDOMS_ORGANIZATION",
             "THE_ORGANIC_HUMANITY_MOVEMENT",
@@ -6239,6 +6265,7 @@
             0.8340711547024464,
             0.8819700967104003,
             0.41223288521660556,
+            0.8355417763973835,
             0.2312768016847623,
             0.4550113251749356,
             0.6463175785182267,
@@ -6278,6 +6305,7 @@
             0.7219158057307477,
             0.5836278458363444,
             0.7563942647027223,
+            0.2466986995035061,
             0.24682571519322205,
             0.4265352937153349,
             0.16998204195397765,
@@ -6291,6 +6319,7 @@
             0.0,
             0.0,
             0.827,
+            0.0,
             0.0,
             0.0,
             0.0,
@@ -6335,6 +6364,7 @@
             0.0,
             0.0,
             0.0,
+            0.0,
             0.432,
             0.867,
             0.0,
@@ -6347,6 +6377,7 @@
             0.09300000000000008,
             0.916,
             0.878,
+            0.994,
             0.903,
             0.888,
             0.918,
@@ -6386,6 +6417,7 @@
             0.82,
             0.905,
             0.859,
+            0.974,
             0.84,
             0.925,
             0.871,
@@ -6402,6 +6434,7 @@
             0.9872299338997811,
             -0.27187604025852113,
             -0.33727449163717593,
+            -0.07765424062161135,
             -0.21887680718251082,
             -0.3346573108346316,
             -0.2744817681188822,
@@ -6441,6 +6474,7 @@
             -0.41301316206351424,
             -0.30556528167251623,
             -0.33918850964054587,
+            -0.16330141190254127,
             -0.41056693660057725,
             -0.2575391905969135,
             -0.3374237525460875,
@@ -6456,6 +6490,7 @@
             0.95,
             0.084,
             0.122,
+            0.006,
             0.097,
             0.112,
             0.082,
@@ -6495,6 +6530,7 @@
             0.18,
             0.095,
             0.141,
+            0.026,
             0.16,
             0.075,
             0.129,
@@ -6510,6 +6546,7 @@
             "4-12",
             "13+",
             "13+",
+            "off-ballot",
             "13+",
             "13+",
             "13+",
@@ -6549,6 +6586,7 @@
             "13+",
             "13+",
             "13+",
+            "off-ballot",
             "13+",
             "13+",
             "13+",
@@ -6615,6 +6653,11 @@
               1
             ],
             [
+              1,
+              1,
+              1
+            ],
+            [
               0,
               1,
               1
@@ -6758,6 +6801,11 @@
               0,
               0,
               0
+            ],
+            [
+              1,
+              1,
+              1
             ],
             [
               1,
@@ -6823,21 +6871,21 @@
           "coverage": [
             {
               "level": 0.5,
-              "inside": 40,
-              "counted": 52,
-              "empirical": 0.7692307692307693
+              "inside": 42,
+              "counted": 54,
+              "empirical": 0.7777777777777778
             },
             {
               "level": 0.8,
-              "inside": 48,
-              "counted": 52,
-              "empirical": 0.9230769230769231
+              "inside": 50,
+              "counted": 54,
+              "empirical": 0.9259259259259259
             },
             {
               "level": 0.9,
-              "inside": 49,
-              "counted": 52,
-              "empirical": 0.9423076923076923
+              "inside": 51,
+              "counted": 54,
+              "empirical": 0.9444444444444444
             }
           ]
         }
@@ -6846,8 +6894,8 @@
         "last-lge": {
           "crps": 134.0,
           "energy": 63.937469452583144,
-          "variogram": 1.9421961345360261,
-          "n_scored": 61,
+          "variogram": 1.8875057994706386,
+          "n_scored": 63,
           "seat_abs_err": 134,
           "seat_abs_err_coherent": 134,
           "median_sum": 270,
@@ -6866,8 +6914,8 @@
         "uniform-swing": {
           "crps": 126.0,
           "energy": 56.97367813297649,
-          "variogram": 1.755932864236258,
-          "n_scored": 61,
+          "variogram": 1.7068561115128738,
+          "n_scored": 63,
           "seat_abs_err": 126,
           "seat_abs_err_coherent": 126,
           "median_sum": 270,
@@ -6886,8 +6934,8 @@
         "prior-lge-noise": {
           "crps": 113.31692092092092,
           "energy": 48.07769167399948,
-          "variogram": 1.7921229849691918,
-          "n_scored": 61,
+          "variogram": 1.7419297218270198,
+          "n_scored": 63,
           "seat_abs_err": 125,
           "seat_abs_err_coherent": 130,
           "median_sum": 263,
@@ -6906,8 +6954,8 @@
         "uniform-swing+roster": {
           "crps": 128.0,
           "energy": 54.82700064749122,
-          "variogram": 1.6898913255038759,
-          "n_scored": 61,
+          "variogram": 1.6421081606092565,
+          "n_scored": 63,
           "seat_abs_err": 128,
           "seat_abs_err_coherent": 128,
           "median_sum": 270,
@@ -6924,8 +6972,8 @@
           }
         }
       },
-      "universe_key": "47d16f986e18b6d1",
-      "universe_n": 61,
+      "universe_key": "cd6af84d37276935",
+      "universe_n": 63,
       "reference_n": 31,
       "constants_read": {
         "pools": [
@@ -8320,11 +8368,11 @@
           "ZENZELENI_PROGRESSIVE_MOVEMENT"
         ]
       },
-      "crps": 69.22326326326326,
+      "crps": 69.22394394394394,
       "dropped_claims": 0,
-      "energy": 28.97256726237871,
-      "variogram": 0.6871237387823035,
-      "n_scored": 61,
+      "energy": 28.972321879485783,
+      "variogram": 0.668115089648602,
+      "n_scored": 63,
       "arrival_group": {
         "n_arrived": 32,
         "n_columns": 33,
@@ -8332,13 +8380,13 @@
         "actual_seats": 46,
         "mass_mean": 0.08910245967326028,
         "mass_median": 0.06635241576374709,
-        "seats_mean": 20.751,
+        "seats_mean": 20.777,
         "seats_median": 15.0,
         "mass_pit": 0.915,
         "seats_pit": 0.9075,
         "seats_outside_support": false,
         "mass_err": 0.11077650850338125,
-        "seats_err": 25.249
+        "seats_err": 25.223
       },
       "arrival_reconciliation": {
         "declared_seeded_mass": 0.08483591839532216,
@@ -9357,8 +9405,8 @@
         "last-lge": {
           "crps": 40.0,
           "energy": 18.60107523773828,
-          "variogram": 0.6983721233895278,
-          "n_scored": 24,
+          "variogram": 0.6909376998750804,
+          "n_scored": 25,
           "seat_abs_err": 40,
           "seat_abs_err_coherent": 40,
           "median_sum": 210,
@@ -9377,8 +9425,8 @@
         "uniform-swing": {
           "crps": 56.0,
           "energy": 24.85960578931211,
-          "variogram": 1.0190095589197004,
-          "n_scored": 24,
+          "variogram": 0.9901452832722418,
+          "n_scored": 25,
           "seat_abs_err": 56,
           "seat_abs_err_coherent": 56,
           "median_sum": 210,
@@ -9395,15 +9443,15 @@
           }
         },
         "prior-lge-noise": {
-          "crps": 33.13032232232232,
-          "energy": 15.911008641371362,
-          "variogram": 0.7100977380319243,
-          "n_scored": 24,
+          "crps": 33.130378378378374,
+          "energy": 15.910835017467264,
+          "variogram": 0.7010967460574763,
+          "n_scored": 25,
           "seat_abs_err": 39,
           "seat_abs_err_coherent": 46,
           "median_sum": 205,
           "coherent_sum": 210,
-          "draw_total": 209.992,
+          "draw_total": 210.0,
           "fills_council": true,
           "dropped_claims": 0,
           "wards": {
@@ -9417,8 +9465,8 @@
         "uniform-swing+roster": {
           "crps": 56.0,
           "energy": 24.413111231467404,
-          "variogram": 1.0520608696179503,
-          "n_scored": 24,
+          "variogram": 1.0217500136109041,
+          "n_scored": 25,
           "seat_abs_err": 56,
           "seat_abs_err_coherent": 56,
           "median_sum": 210,
@@ -9435,8 +9483,8 @@
           }
         }
       },
-      "universe_key": "d5d1eb57efa04975",
-      "universe_n": 24,
+      "universe_key": "96a64dd93d3ed01e",
+      "universe_n": 25,
       "reference_n": 18,
       "constants_read": {
         "pools": [
@@ -10025,8 +10073,8 @@
       "crps": 38.630244244244246,
       "dropped_claims": 0,
       "energy": 18.823964908286477,
-      "variogram": 0.972377641649452,
-      "n_scored": 24,
+      "variogram": 0.9418898098532503,
+      "n_scored": 25,
       "arrival_group": {
         "n_arrived": 5,
         "n_columns": 2,
@@ -12205,6 +12253,10 @@
           2,
           1
         ],
+        "ACTIVE_MOVEMENT_FOR_CHANGE": [
+          0,
+          0
+        ],
         "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA": [
           0,
           0
@@ -12269,6 +12321,10 @@
           0,
           0
         ],
+        "CAPE_COLOURED_CONGRESS": [
+          0,
+          0
+        ],
         "CHRISTIAN_DEMOCRATIC_PARTY": [
           0,
           0
@@ -12286,6 +12342,10 @@
           73
         ],
         "DEMOCRATIC_ARTISTS_PARTY": [
+          0,
+          0
+        ],
+        "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY": [
           0,
           0
         ],
@@ -12319,6 +12379,10 @@
         ],
         "IFP": [
           1,
+          0
+        ],
+        "KHOISAN_KINGDOM_AND_ALL_PEOPLE": [
+          0,
           0
         ],
         "NFP": [
@@ -12386,7 +12450,7 @@
       "seat_abs_err_coherent": 34,
       "median_sum": 200,
       "coherent_sum": 214,
-      "draw_total": 213.919,
+      "draw_total": 214.0,
       "fills_council": true,
       "wards": {
         "n_wards": 107,
@@ -13165,10 +13229,11 @@
           ]
         },
         "all": {
-          "n": 45,
+          "n": 49,
           "parties": [
             "ABANTU_BATHO_CONGRESS",
             "ACDP",
+            "ACTIVE_MOVEMENT_FOR_CHANGE",
             "ACTIVISTS_MOVEMENT_OF_SOUTH_AFRICA",
             "AFRICAN_COVENANT",
             "AFRICAN_MANDATE_CONGRESS",
@@ -13184,11 +13249,13 @@
             "AZAPO",
             "BLACK_FIRST_LAND_FIRST",
             "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA",
+            "CAPE_COLOURED_CONGRESS",
             "CHRISTIAN_DEMOCRATIC_PARTY",
             "CONCERN",
             "COPE",
             "DA",
             "DEMOCRATIC_ARTISTS_PARTY",
+            "DISABILITY_AND_OLDER_PERSON_POLITICAL_PARTY",
             "DOP",
             "ECONOMIC_EMANCIPATION_FORUM",
             "EFF",
@@ -13197,6 +13264,7 @@
             "GOD_SAVE_AFRICA",
             "GOOD",
             "IFP",
+            "KHOISAN_KINGDOM_AND_ALL_PEOPLE",
             "NFP",
             "PA",
             "PAC",
@@ -13216,6 +13284,7 @@
           "pit": [
             0.3219333738018755,
             0.5885012800957975,
+            0.05827222374674472,
             0.8200652966918037,
             0.7044830682716718,
             0.8458324859436074,
@@ -13231,11 +13300,13 @@
             0.6936008984941964,
             0.0724139322070222,
             0.01917774645692838,
+            0.8219498735595118,
             0.8045065341651949,
             0.5126773194935165,
             0.9092738276941246,
             0.277481833067112,
             0.1885081593801019,
+            0.027726539447243598,
             0.9124533691785828,
             0.5089537752147393,
             0.12511075313765563,
@@ -13244,6 +13315,7 @@
             0.6264637752597441,
             0.9459854918981262,
             0.831864047229105,
+            0.8480556062922532,
             0.9131115646131222,
             0.9877487787954191,
             0.5154005181905132,
@@ -13268,6 +13340,7 @@
             0.0,
             0.0,
             0.0,
+            0.0,
             0.3,
             0.0,
             0.295,
@@ -13280,8 +13353,10 @@
             0.0,
             0.0,
             0.0,
+            0.0,
             0.805,
             0.242,
+            0.0,
             0.0,
             0.855,
             0.0,
@@ -13291,6 +13366,7 @@
             0.0,
             0.674,
             0.595,
+            0.0,
             0.0,
             0.976,
             0.385,
@@ -13310,6 +13386,7 @@
           "pit_w": [
             0.875,
             0.264,
+            0.993,
             0.884,
             0.719,
             0.965,
@@ -13325,11 +13402,13 @@
             0.942,
             0.816,
             0.892,
+            0.978,
             0.996,
             0.893,
             0.19099999999999995,
             0.05199999999999999,
             0.895,
+            0.996,
             0.132,
             0.892,
             0.035,
@@ -13338,6 +13417,7 @@
             0.883,
             0.2729999999999999,
             0.39,
+            0.971,
             0.982,
             0.02400000000000002,
             0.564,
@@ -13358,6 +13438,7 @@
           "z": [
             -0.3455180477459427,
             0.07319990710346856,
+            -0.08124281704878734,
             -0.35107797607056995,
             -0.5043794426372555,
             -0.1903501001359381,
@@ -13373,11 +13454,13 @@
             -0.24801119761036475,
             -0.4117776495093957,
             -0.3401804207394393,
+            -0.1499079472144049,
             -0.06334073091440517,
             -0.3175623835500728,
             1.9567657157922098,
             -0.4931635711027817,
             -0.3302986630559948,
+            -0.05886991608852586,
             1.9755365314534092,
             -0.31101019781487704,
             -1.17911401992119,
@@ -13386,6 +13469,7 @@
             -0.3355719433113717,
             0.8275397821358259,
             1.017731506260527,
+            -0.17273173213782306,
             -0.13532039373761615,
             6.3738528379622945,
             0.5031695905782755,
@@ -13405,6 +13489,7 @@
           "p_any": [
             0.125,
             0.962,
+            0.007,
             0.116,
             0.281,
             0.035,
@@ -13420,11 +13505,13 @@
             0.058,
             0.184,
             0.108,
+            0.022,
             0.004,
             0.107,
             0.195,
             1.0,
             0.105,
+            0.004,
             0.145,
             0.108,
             1.0,
@@ -13433,6 +13520,7 @@
             0.117,
             0.326,
             0.405,
+            0.029,
             0.018,
             0.024,
             0.615,
@@ -13452,6 +13540,7 @@
           "band": [
             "13+",
             "4-12",
+            "off-ballot",
             "13+",
             "13+",
             "13+",
@@ -13467,11 +13556,13 @@
             "13+",
             "13+",
             "13+",
+            "off-ballot",
             "13+",
             "13+",
             "4-12",
             "1-3",
             "13+",
+            "off-ballot",
             "4-12",
             "13+",
             "1-3",
@@ -13480,6 +13571,7 @@
             "13+",
             "13+",
             "4-12",
+            "off-ballot",
             "13+",
             "4-12",
             "4-12",
@@ -13558,36 +13650,6 @@
               1
             ],
             [
-              0,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
               1,
               1,
               1
@@ -13608,6 +13670,51 @@
               1
             ],
             [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
               0,
               1,
               1
@@ -13619,6 +13726,11 @@
             ],
             [
               0,
+              1,
+              1
+            ],
+            [
+              1,
               1,
               1
             ],
@@ -13726,21 +13838,21 @@
           "coverage": [
             {
               "level": 0.5,
-              "inside": 38,
-              "counted": 45,
-              "empirical": 0.8444444444444444
+              "inside": 42,
+              "counted": 49,
+              "empirical": 0.8571428571428571
             },
             {
               "level": 0.8,
-              "inside": 44,
-              "counted": 45,
-              "empirical": 0.9777777777777777
+              "inside": 48,
+              "counted": 49,
+              "empirical": 0.9795918367346939
             },
             {
               "level": 0.9,
-              "inside": 44,
-              "counted": 45,
-              "empirical": 0.9777777777777777
+              "inside": 48,
+              "counted": 49,
+              "empirical": 0.9795918367346939
             }
           ]
         }
@@ -13749,8 +13861,8 @@
         "last-lge": {
           "crps": 80.0,
           "energy": 36.24913792078372,
-          "variogram": 1.1930047272370978,
-          "n_scored": 49,
+          "variogram": 1.1142250202898605,
+          "n_scored": 53,
           "seat_abs_err": 80,
           "seat_abs_err_coherent": 80,
           "median_sum": 214,
@@ -13769,8 +13881,8 @@
         "uniform-swing": {
           "crps": 60.0,
           "energy": 26.90724809414741,
-          "variogram": 0.9472091729157013,
-          "n_scored": 49,
+          "variogram": 0.8846066302501463,
+          "n_scored": 53,
           "seat_abs_err": 60,
           "seat_abs_err_coherent": 60,
           "median_sum": 214,
@@ -13789,8 +13901,8 @@
         "prior-lge-noise": {
           "crps": 68.62068868868869,
           "energy": 26.81117021891492,
-          "variogram": 1.1429111319092389,
-          "n_scored": 49,
+          "variogram": 1.0692849976563439,
+          "n_scored": 53,
           "seat_abs_err": 77,
           "seat_abs_err_coherent": 80,
           "median_sum": 211,
@@ -13809,8 +13921,8 @@
         "uniform-swing+roster": {
           "crps": 60.0,
           "energy": 24.698178070456944,
-          "variogram": 0.8522202155920908,
-          "n_scored": 49,
+          "variogram": 0.7946113248541411,
+          "n_scored": 53,
           "seat_abs_err": 60,
           "seat_abs_err_coherent": 60,
           "median_sum": 214,
@@ -13827,8 +13939,8 @@
           }
         }
       },
-      "universe_key": "50313d22c734d471",
-      "universe_n": 49,
+      "universe_key": "266fcb531e9d0692",
+      "universe_n": 53,
       "reference_n": 31,
       "constants_read": {
         "pools": [
@@ -15102,11 +15214,11 @@
           "ZENZELENI_PROGRESSIVE_MOVEMENT"
         ]
       },
-      "crps": 26.470774774774775,
+      "crps": 26.472176176176177,
       "dropped_claims": 0,
-      "energy": 10.383676582635207,
-      "variogram": 0.27550002812163443,
-      "n_scored": 49,
+      "energy": 10.38416173992336,
+      "variogram": 0.25883221830652026,
+      "n_scored": 53,
       "arrival_group": {
         "n_arrived": 25,
         "n_columns": 29,
@@ -15114,13 +15226,13 @@
         "actual_seats": 21,
         "mass_mean": 0.0766432712176932,
         "mass_median": 0.05478065404402445,
-        "seats_mean": 15.002,
+        "seats_mean": 15.083,
         "seats_median": 11.0,
         "mass_pit": 0.819,
-        "seats_pit": 0.798,
+        "seats_pit": 0.795,
         "seats_outside_support": false,
         "mass_err": 0.037177263123812976,
-        "seats_err": 5.997999999999999
+        "seats_err": 5.917
       },
       "arrival_reconciliation": {
         "declared_seeded_mass": 0.07343548453488616,
@@ -19560,6 +19672,10 @@
           3,
           2
         ],
+        "ALJAMAAH": [
+          0,
+          0
+        ],
         "ANC": [
           86,
           96
@@ -19677,7 +19793,7 @@
       "seat_abs_err_coherent": 30,
       "median_sum": 212,
       "coherent_sum": 224,
-      "draw_total": 223.999,
+      "draw_total": 224.0,
       "fills_council": true,
       "wards": {
         "n_wards": 112,
@@ -20444,7 +20560,7 @@
           ]
         },
         "all": {
-          "n": 36,
+          "n": 37,
           "parties": [
             "ABANTU_BATHO_CONGRESS",
             "ABLE_LEADERSHIP",
@@ -20454,6 +20570,7 @@
             "AFRICAN_SECURITY_CONGRESS",
             "AFRICA_RESTORATION_ALLIANCE",
             "AIC",
+            "ALJAMAAH",
             "ANC",
             "APC",
             "ARUSHA_ECONOMIC_COALITION",
@@ -20492,6 +20609,7 @@
             0.5948469025385199,
             0.0066736709002613364,
             0.8436712789208478,
+            0.8172973776398827,
             0.11495343900552943,
             0.4300938744166332,
             0.3703791894372102,
@@ -20530,6 +20648,7 @@
             0.0,
             0.0,
             0.766,
+            0.0,
             0.106,
             0.0,
             0.0,
@@ -20568,6 +20687,7 @@
             0.836,
             0.782,
             0.125,
+            0.999,
             0.019000000000000003,
             0.476,
             0.834,
@@ -20607,6 +20727,7 @@
             -0.3773043037107721,
             -0.42229830586562656,
             0.7084593046503527,
+            -0.03162277660168379,
             -1.0872611511705765,
             -0.9336529297875046,
             -0.3993511633387801,
@@ -20645,6 +20766,7 @@
             0.164,
             0.218,
             0.96,
+            0.001,
             1.0,
             0.524,
             0.166,
@@ -20683,6 +20805,7 @@
             "13+",
             "13+",
             "4-12",
+            "off-ballot",
             "1-3",
             "13+",
             "13+",
@@ -20750,6 +20873,11 @@
             ],
             [
               0,
+              1,
+              1
+            ],
+            [
+              1,
               1,
               1
             ],
@@ -20897,21 +21025,21 @@
           "coverage": [
             {
               "level": 0.5,
-              "inside": 29,
-              "counted": 36,
-              "empirical": 0.8055555555555556
+              "inside": 30,
+              "counted": 37,
+              "empirical": 0.8108108108108109
             },
             {
               "level": 0.8,
-              "inside": 35,
-              "counted": 36,
-              "empirical": 0.9722222222222222
+              "inside": 36,
+              "counted": 37,
+              "empirical": 0.972972972972973
             },
             {
               "level": 0.9,
-              "inside": 35,
-              "counted": 36,
-              "empirical": 0.9722222222222222
+              "inside": 36,
+              "counted": 37,
+              "empirical": 0.972972972972973
             }
           ]
         }
@@ -22049,8 +22177,8 @@
       },
       "crps": 26.23565165165165,
       "dropped_claims": 0,
-      "energy": 9.454536396196708,
-      "variogram": 0.2778511523400286,
+      "energy": 9.454543588233404,
+      "variogram": 0.27785107707269063,
       "n_scored": 49,
       "arrival_group": {
         "n_arrived": 20,
@@ -22255,6 +22383,10 @@
           9,
           17
         ],
+        "IND": [
+          1,
+          0
+        ],
         "MINORITY_FRONT": [
           11,
           12
@@ -22276,8 +22408,8 @@
           0
         ]
       },
-      "seat_abs_err": 34,
-      "seat_abs_err_coherent": 33,
+      "seat_abs_err": 35,
+      "seat_abs_err_coherent": 34,
       "median_sum": 202,
       "coherent_sum": 205,
       "draw_total": 205.0,
@@ -22322,7 +22454,7 @@
             0.002107145995258917,
             0.5681724802356141,
             0.007772048461848671,
-            0.09271865404184654,
+            1.0,
             0.39983055456153727,
             0.3356241677580442,
             0.24335621683252617,
@@ -22343,7 +22475,7 @@
             0.0,
             0.564,
             0.006,
-            0.0,
+            1.0,
             0.0,
             0.304,
             0.0,
@@ -22364,7 +22496,7 @@
             0.006,
             0.038000000000000034,
             0.008,
-            1.0,
+            0.0,
             1.0,
             0.10899999999999999,
             1.0,
@@ -22482,9 +22614,9 @@
               0
             ],
             [
-              1,
-              1,
-              1
+              0,
+              0,
+              0
             ],
             [
               1,
@@ -22540,21 +22672,21 @@
           "coverage": [
             {
               "level": 0.5,
+              "inside": 14,
+              "counted": 19,
+              "empirical": 0.7368421052631579
+            },
+            {
+              "level": 0.8,
               "inside": 15,
               "counted": 19,
               "empirical": 0.7894736842105263
             },
             {
-              "level": 0.8,
-              "inside": 16,
-              "counted": 19,
-              "empirical": 0.8421052631578947
-            },
-            {
               "level": 0.9,
-              "inside": 16,
+              "inside": 15,
               "counted": 19,
-              "empirical": 0.8421052631578947
+              "empirical": 0.7894736842105263
             }
           ]
         },
@@ -22695,7 +22827,7 @@
           ]
         },
         "seat_holders": {
-          "n": 9,
+          "n": 10,
           "parties": [
             "ACDP",
             "ANC",
@@ -22703,6 +22835,7 @@
             "COPE",
             "DA",
             "IFP",
+            "IND",
             "MINORITY_FRONT",
             "NFP",
             "TRULY_ALLIANCE"
@@ -22714,6 +22847,7 @@
             0.002107145995258917,
             0.5681724802356141,
             0.007772048461848671,
+            1.0,
             0.3356241677580442,
             0.9839327240901886,
             0.04876569387087658
@@ -22725,6 +22859,7 @@
             0.0,
             0.564,
             0.006,
+            1.0,
             0.304,
             0.977,
             0.004
@@ -22736,6 +22871,7 @@
             0.006,
             0.038000000000000034,
             0.008,
+            0.0,
             0.10899999999999999,
             0.01100000000000001,
             0.359
@@ -22748,6 +22884,7 @@
             -1.6910014101637694,
             0.1243221915402401,
             -1.8944233662725103,
+            null,
             -0.47138615447462523,
             3.302355206391125,
             -0.9572577602145697
@@ -22759,6 +22896,7 @@
             1.0,
             1.0,
             1.0,
+            0.0,
             1.0,
             0.225,
             0.996
@@ -22770,6 +22908,7 @@
             "4-12",
             "1-3",
             "4-12",
+            "off-ballot",
             "1-3",
             "4-12",
             "4-12"
@@ -22806,6 +22945,11 @@
               0
             ],
             [
+              0,
+              0,
+              0
+            ],
+            [
               1,
               1,
               1
@@ -22825,25 +22969,25 @@
             {
               "level": 0.5,
               "inside": 6,
-              "counted": 9,
-              "empirical": 0.6666666666666666
+              "counted": 10,
+              "empirical": 0.6
             },
             {
               "level": 0.8,
               "inside": 6,
-              "counted": 9,
-              "empirical": 0.6666666666666666
+              "counted": 10,
+              "empirical": 0.6
             },
             {
               "level": 0.9,
               "inside": 6,
-              "counted": 9,
-              "empirical": 0.6666666666666666
+              "counted": 10,
+              "empirical": 0.6
             }
           ]
         },
         "all": {
-          "n": 12,
+          "n": 13,
           "parties": [
             "ACDP",
             "ANC",
@@ -22852,6 +22996,7 @@
             "COPE",
             "DA",
             "IFP",
+            "IND",
             "MINORITY_FRONT",
             "NFP",
             "TRULY_ALLIANCE",
@@ -22866,6 +23011,7 @@
             0.002107145995258917,
             0.5681724802356141,
             0.007772048461848671,
+            1.0,
             0.3356241677580442,
             0.9839327240901886,
             0.04876569387087658,
@@ -22880,6 +23026,7 @@
             0.0,
             0.564,
             0.006,
+            1.0,
             0.304,
             0.977,
             0.004,
@@ -22894,6 +23041,7 @@
             0.006,
             0.038000000000000034,
             0.008,
+            0.0,
             0.10899999999999999,
             0.01100000000000001,
             0.359,
@@ -22909,6 +23057,7 @@
             -1.6910014101637694,
             0.1243221915402401,
             -1.8944233662725103,
+            null,
             -0.47138615447462523,
             3.302355206391125,
             -0.9572577602145697,
@@ -22923,6 +23072,7 @@
             1.0,
             1.0,
             1.0,
+            0.0,
             1.0,
             0.225,
             0.996,
@@ -22937,6 +23087,7 @@
             "4-12",
             "1-3",
             "4-12",
+            "off-ballot",
             "1-3",
             "4-12",
             "4-12",
@@ -22980,6 +23131,11 @@
               0
             ],
             [
+              0,
+              0,
+              0
+            ],
+            [
               1,
               1,
               1
@@ -23009,32 +23165,32 @@
             {
               "level": 0.5,
               "inside": 8,
-              "counted": 12,
-              "empirical": 0.6666666666666666
+              "counted": 13,
+              "empirical": 0.6153846153846154
             },
             {
               "level": 0.8,
               "inside": 9,
-              "counted": 12,
-              "empirical": 0.75
+              "counted": 13,
+              "empirical": 0.6923076923076923
             },
             {
               "level": 0.9,
               "inside": 9,
-              "counted": 12,
-              "empirical": 0.75
+              "counted": 13,
+              "empirical": 0.6923076923076923
             }
           ]
         }
       },
       "opponents": {
         "last-lge": {
-          "crps": 49.0,
-          "energy": 19.874606914351787,
-          "variogram": 1.222607293740762,
+          "crps": 50.0,
+          "energy": 19.899748742132395,
+          "variogram": 1.2357106567694705,
           "n_scored": 26,
-          "seat_abs_err": 49,
-          "seat_abs_err_coherent": 49,
+          "seat_abs_err": 50,
+          "seat_abs_err_coherent": 50,
           "median_sum": 205,
           "coherent_sum": 205,
           "draw_total": 205.0,
@@ -23049,12 +23205,12 @@
           }
         },
         "uniform-swing": {
-          "crps": 35.0,
-          "energy": 13.747727084867519,
-          "variogram": 0.9176616284295974,
+          "crps": 36.0,
+          "energy": 13.784048752090229,
+          "variogram": 0.9433195866031113,
           "n_scored": 26,
-          "seat_abs_err": 35,
-          "seat_abs_err_coherent": 35,
+          "seat_abs_err": 36,
+          "seat_abs_err_coherent": 36,
           "median_sum": 205,
           "coherent_sum": 205,
           "draw_total": 205.0,
@@ -23069,12 +23225,12 @@
           }
         },
         "prior-lge-noise": {
-          "crps": 41.549065065065065,
-          "energy": 16.310303349294742,
-          "variogram": 1.2128298203166543,
+          "crps": 42.549065065065065,
+          "energy": 16.331172377658554,
+          "variogram": 1.2155942030590676,
           "n_scored": 26,
-          "seat_abs_err": 55,
-          "seat_abs_err_coherent": 61,
+          "seat_abs_err": 56,
+          "seat_abs_err_coherent": 62,
           "median_sum": 201,
           "coherent_sum": 205,
           "draw_total": 205.0,
@@ -23089,12 +23245,12 @@
           }
         },
         "uniform-swing+roster": {
-          "crps": 33.0,
-          "energy": 13.747727084867519,
-          "variogram": 0.665746478675099,
+          "crps": 34.0,
+          "energy": 13.784048752090229,
+          "variogram": 0.7072836737170921,
           "n_scored": 26,
-          "seat_abs_err": 33,
-          "seat_abs_err_coherent": 33,
+          "seat_abs_err": 34,
+          "seat_abs_err_coherent": 34,
           "median_sum": 205,
           "coherent_sum": 205,
           "draw_total": 205.0,
@@ -23659,10 +23815,10 @@
           "WOMEN_FORWARD"
         ]
       },
-      "crps": 25.94792192192192,
+      "crps": 26.94792192192192,
       "dropped_claims": 0,
-      "energy": 10.298008512476475,
-      "variogram": 0.7003520822871596,
+      "energy": 10.324194781479545,
+      "variogram": 0.7575184848407439,
       "n_scored": 26,
       "arrival_group": {
         "n_arrived": 8,
@@ -23895,6 +24051,10 @@
           10,
           7
         ],
+        "IND": [
+          4,
+          0
+        ],
         "INDEPENDENT_PEOPLE_S_PARTY": [
           0,
           0
@@ -23948,8 +24108,8 @@
           0
         ]
       },
-      "seat_abs_err": 22,
-      "seat_abs_err_coherent": 22,
+      "seat_abs_err": 26,
+      "seat_abs_err_coherent": 26,
       "median_sum": 211,
       "coherent_sum": 219,
       "draw_total": 219.0,
@@ -24006,7 +24166,7 @@
             0.9050665152066286,
             0.7559321624459208,
             0.7637710165911432,
-            0.0188189615535147,
+            1.0,
             0.15034113667145885,
             0.4316309472441509,
             0.0,
@@ -24033,7 +24193,7 @@
             0.775,
             0.723,
             0.727,
-            0.0,
+            1.0,
             0.0,
             0.0,
             0.0,
@@ -24060,7 +24220,7 @@
             0.19399999999999995,
             0.040000000000000036,
             0.06400000000000006,
-            1.0,
+            0.0,
             0.784,
             0.785,
             0.0,
@@ -24226,9 +24386,9 @@
               1
             ],
             [
-              1,
-              1,
-              1
+              0,
+              0,
+              0
             ],
             [
               1,
@@ -24284,21 +24444,21 @@
           "coverage": [
             {
               "level": 0.5,
-              "inside": 21,
+              "inside": 20,
               "counted": 25,
-              "empirical": 0.84
+              "empirical": 0.8
             },
             {
               "level": 0.8,
-              "inside": 23,
+              "inside": 22,
               "counted": 25,
-              "empirical": 0.92
+              "empirical": 0.88
             },
             {
               "level": 0.9,
-              "inside": 23,
+              "inside": 22,
               "counted": 25,
-              "empirical": 0.92
+              "empirical": 0.88
             }
           ]
         },
@@ -24451,7 +24611,7 @@
           ]
         },
         "seat_holders": {
-          "n": 12,
+          "n": 13,
           "parties": [
             "ACDP",
             "AIC",
@@ -24462,6 +24622,7 @@
             "DEMOCRATIC_LIBERAL_CONGRESS",
             "EFF",
             "IFP",
+            "IND",
             "MINORITIES_OF_SOUTH_AFRICA",
             "MINORITY_FRONT",
             "TRULY_ALLIANCE"
@@ -24476,6 +24637,7 @@
             0.9050665152066286,
             0.7559321624459208,
             0.7637710165911432,
+            1.0,
             0.9575852275826908,
             0.0,
             0.5139028691770668
@@ -24490,6 +24652,7 @@
             0.775,
             0.723,
             0.727,
+            1.0,
             0.794,
             0.0,
             0.127
@@ -24504,6 +24667,7 @@
             0.19399999999999995,
             0.040000000000000036,
             0.06400000000000006,
+            0.0,
             0.16399999999999992,
             0.0,
             0.608
@@ -24519,6 +24683,7 @@
             1.130958776444273,
             0.18972650019832268,
             0.49634328605179673,
+            null,
             1.1788255174649336,
             -1.6343685957252372,
             -0.29767300746562353
@@ -24533,6 +24698,7 @@
             0.225,
             0.982,
             1.0,
+            0.0,
             0.206,
             1.0,
             0.873
@@ -24547,6 +24713,7 @@
             "4-12",
             "4-12",
             "1-3",
+            "off-ballot",
             "4-12",
             "4-12",
             "4-12"
@@ -24599,6 +24766,11 @@
             ],
             [
               0,
+              0,
+              0
+            ],
+            [
+              0,
               1,
               1
             ],
@@ -24617,25 +24789,25 @@
             {
               "level": 0.5,
               "inside": 7,
-              "counted": 12,
-              "empirical": 0.5833333333333334
+              "counted": 13,
+              "empirical": 0.5384615384615384
             },
             {
               "level": 0.8,
               "inside": 10,
-              "counted": 12,
-              "empirical": 0.8333333333333334
+              "counted": 13,
+              "empirical": 0.7692307692307693
             },
             {
               "level": 0.9,
               "inside": 10,
-              "counted": 12,
-              "empirical": 0.8333333333333334
+              "counted": 13,
+              "empirical": 0.7692307692307693
             }
           ]
         },
         "all": {
-          "n": 27,
+          "n": 28,
           "parties": [
             "ACADEMIC_CONGRESS_UNION",
             "ACDP",
@@ -24651,6 +24823,7 @@
             "DEMOCRATIC_LIBERAL_CONGRESS",
             "EFF",
             "IFP",
+            "IND",
             "INDEPENDENT_PEOPLE_S_PARTY",
             "INDEPENDENT_RATEPAYERS_ASSOCIATION_OF_SA",
             "MINORITIES_OF_SOUTH_AFRICA",
@@ -24680,6 +24853,7 @@
             0.9050665152066286,
             0.7559321624459208,
             0.7637710165911432,
+            1.0,
             0.15034113667145885,
             0.4316309472441509,
             0.9575852275826908,
@@ -24709,6 +24883,7 @@
             0.775,
             0.723,
             0.727,
+            1.0,
             0.0,
             0.0,
             0.794,
@@ -24738,6 +24913,7 @@
             0.19399999999999995,
             0.040000000000000036,
             0.06400000000000006,
+            0.0,
             0.784,
             0.785,
             0.16399999999999992,
@@ -24768,6 +24944,7 @@
             1.130958776444273,
             0.18972650019832268,
             0.49634328605179673,
+            null,
             -0.4103982253088088,
             -0.42175404274074113,
             1.1788255174649336,
@@ -24797,6 +24974,7 @@
             0.225,
             0.982,
             1.0,
+            0.0,
             0.216,
             0.215,
             0.206,
@@ -24826,6 +25004,7 @@
             "4-12",
             "4-12",
             "1-3",
+            "off-ballot",
             "13+",
             "13+",
             "4-12",
@@ -24912,6 +25091,11 @@
               1
             ],
             [
+              0,
+              0,
+              0
+            ],
+            [
               1,
               1,
               1
@@ -24981,32 +25165,32 @@
             {
               "level": 0.5,
               "inside": 22,
-              "counted": 27,
-              "empirical": 0.8148148148148148
+              "counted": 28,
+              "empirical": 0.7857142857142857
             },
             {
               "level": 0.8,
               "inside": 25,
-              "counted": 27,
-              "empirical": 0.9259259259259259
+              "counted": 28,
+              "empirical": 0.8928571428571429
             },
             {
               "level": 0.9,
               "inside": 25,
-              "counted": 27,
-              "empirical": 0.9259259259259259
+              "counted": 28,
+              "empirical": 0.8928571428571429
             }
           ]
         }
       },
       "opponents": {
         "last-lge": {
-          "crps": 64.0,
-          "energy": 24.65765601187591,
-          "variogram": 1.5385144454406983,
+          "crps": 68.0,
+          "energy": 24.979991993593593,
+          "variogram": 1.6466371615606823,
           "n_scored": 34,
-          "seat_abs_err": 64,
-          "seat_abs_err_coherent": 64,
+          "seat_abs_err": 68,
+          "seat_abs_err_coherent": 68,
           "median_sum": 219,
           "coherent_sum": 219,
           "draw_total": 219.0,
@@ -25021,12 +25205,12 @@
           }
         },
         "uniform-swing": {
-          "crps": 50.0,
-          "energy": 20.736441353327727,
-          "variogram": 1.3776401311496416,
+          "crps": 54.0,
+          "energy": 21.118712081942874,
+          "variogram": 1.4931639195527642,
           "n_scored": 34,
-          "seat_abs_err": 50,
-          "seat_abs_err_coherent": 50,
+          "seat_abs_err": 54,
+          "seat_abs_err_coherent": 54,
           "median_sum": 219,
           "coherent_sum": 219,
           "draw_total": 219.0,
@@ -25041,12 +25225,12 @@
           }
         },
         "prior-lge-noise": {
-          "crps": 51.9461021021021,
-          "energy": 18.364126523247165,
-          "variogram": 1.510197538932241,
+          "crps": 55.9461021021021,
+          "energy": 18.649410757078186,
+          "variogram": 1.6174424160978287,
           "n_scored": 34,
-          "seat_abs_err": 59,
-          "seat_abs_err_coherent": 64,
+          "seat_abs_err": 63,
+          "seat_abs_err_coherent": 68,
           "median_sum": 212,
           "coherent_sum": 219,
           "draw_total": 219.0,
@@ -25061,12 +25245,12 @@
           }
         },
         "uniform-swing+roster": {
-          "crps": 36.0,
-          "energy": 13.490737563232043,
-          "variogram": 0.6799603041632397,
+          "crps": 40.0,
+          "energy": 14.071247279470292,
+          "variogram": 0.802992417543539,
           "n_scored": 34,
-          "seat_abs_err": 36,
-          "seat_abs_err_coherent": 36,
+          "seat_abs_err": 40,
+          "seat_abs_err_coherent": 40,
           "median_sum": 219,
           "coherent_sum": 219,
           "draw_total": 219.0,
@@ -26261,10 +26445,10 @@
           "UNITED_CHRISTIAN_DEMOCRATIC_PARTY"
         ]
       },
-      "crps": 17.415655655655655,
+      "crps": 21.415655655655655,
       "dropped_claims": 0,
-      "energy": 6.084816949790893,
-      "variogram": 0.41951217893182696,
+      "energy": 6.677877621527413,
+      "variogram": 0.5481038367435331,
       "n_scored": 34,
       "arrival_group": {
         "n_arrived": 14,
@@ -26533,6 +26717,10 @@
           0,
           0
         ],
+        "CAPE_COLOURED_CONGRESS": [
+          0,
+          0
+        ],
         "COPE": [
           0,
           0
@@ -26552,6 +26740,10 @@
         "EFF": [
           24,
           23
+        ],
+        "FEDERAL_PARTY_SA": [
+          0,
+          0
         ],
         "FORUM_4_SERVICE_DELIVERY": [
           0,
@@ -26583,6 +26775,10 @@
         ],
         "KZN_INDEPENDENCE": [
           1,
+          0
+        ],
+        "LAND_PARTY": [
+          0,
           0
         ],
         "MINORITIES_OF_SOUTH_AFRICA": [
@@ -26646,7 +26842,7 @@
       "seat_abs_err_coherent": 32,
       "median_sum": 211,
       "coherent_sum": 222,
-      "draw_total": 221.966,
+      "draw_total": 222.0,
       "fills_council": true,
       "wards": {
         "n_wards": 111,
@@ -27749,7 +27945,7 @@
           ]
         },
         "all": {
-          "n": 50,
+          "n": 53,
           "parties": [
             "ABANTU_BATHO_CONGRESS",
             "ACADEMIC_CONGRESS_UNION",
@@ -27774,11 +27970,13 @@
             "ATM",
             "AZAPO",
             "BLACK_FIRST_LAND_FIRST",
+            "CAPE_COLOURED_CONGRESS",
             "COPE",
             "DA",
             "DEMOCRATIC_LIBERAL_CONGRESS",
             "DEMOCRATIC_PEOPLE_S_CONGRESS",
             "EFF",
+            "FEDERAL_PARTY_SA",
             "FORUM_4_SERVICE_DELIVERY",
             "GOD_SAVE_AFRICA",
             "GOOD",
@@ -27787,6 +27985,7 @@
             "INTERNATIONAL_PARTY",
             "JUSTICE_AND_EMPLOYMENT_PARTY",
             "KZN_INDEPENDENCE",
+            "LAND_PARTY",
             "MINORITIES_OF_SOUTH_AFRICA",
             "MINORITY_FRONT",
             "NFP",
@@ -27826,11 +28025,13 @@
             0.5891221780199125,
             0.5808199499260341,
             0.48088969379882146,
+            0.5940080153888042,
             0.6483500363029854,
             0.1753481605671074,
             0.3081738122754715,
             0.6703683886385178,
             0.5477936484237753,
+            0.3666248538326322,
             0.6270852892079241,
             0.28269930029910645,
             0.21090134809663966,
@@ -27839,6 +28040,7 @@
             0.3925687248402282,
             0.540764386040866,
             0.9787107620843546,
+            0.7486485318047169,
             0.6759722178792539,
             0.3650442286975817,
             0.4102294360344915,
@@ -27879,10 +28081,12 @@
             0.0,
             0.0,
             0.0,
+            0.0,
             0.156,
             0.177,
             0.0,
             0.541,
+            0.0,
             0.0,
             0.0,
             0.0,
@@ -27891,6 +28095,7 @@
             0.0,
             0.525,
             0.855,
+            0.0,
             0.439,
             0.033,
             0.382,
@@ -27930,11 +28135,13 @@
             0.432,
             0.959,
             0.582,
+            0.996,
             0.99,
             0.037000000000000005,
             0.6399999999999999,
             0.864,
             0.06699999999999995,
+            0.984,
             0.898,
             0.88,
             0.711,
@@ -27943,6 +28150,7 @@
             0.91,
             0.363,
             0.131,
+            0.996,
             0.5189999999999999,
             0.42200000000000004,
             0.382,
@@ -27983,11 +28191,13 @@
             -0.1817431023555489,
             -0.20666425598737537,
             -0.5636764215688048,
+            -0.05482716529388043,
             -0.10045351706590015,
             -0.9224190837877149,
             -0.09815660808457623,
             -0.3533797757110393,
             0.07131574584912402,
+            -0.12745156899396878,
             -0.3319145851314096,
             -0.3050618587148934,
             -0.4281040376135357,
@@ -27996,6 +28206,7 @@
             -0.29943916845113466,
             0.24611500568851422,
             2.0581895517102478,
+            -0.06334073091440516,
             0.648298182983368,
             -0.6740488584687531,
             -0.08776328089960649,
@@ -28035,11 +28246,13 @@
             0.706,
             0.041,
             0.418,
+            0.004,
             0.01,
             1.0,
             0.823,
             0.136,
             1.0,
+            0.016,
             0.102,
             0.12,
             0.289,
@@ -28048,6 +28261,7 @@
             0.09,
             0.475,
             0.145,
+            0.004,
             0.561,
             0.967,
             0.618,
@@ -28087,11 +28301,13 @@
             "4-12",
             "13+",
             "13+",
+            "off-ballot",
             "13+",
             "1-3",
             "13+",
             "13+",
             "1-3",
+            "off-ballot",
             "13+",
             "13+",
             "13+",
@@ -28100,6 +28316,7 @@
             "13+",
             "4-12",
             "13+",
+            "off-ballot",
             "13+",
             "4-12",
             "13+",
@@ -28237,36 +28454,6 @@
               1
             ],
             [
-              0,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
-              1,
-              1,
-              1
-            ],
-            [
               1,
               1,
               1
@@ -28292,7 +28479,52 @@
               1
             ],
             [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
               0,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              0,
+              1,
+              1
+            ],
+            [
+              1,
               1,
               1
             ],
@@ -28370,21 +28602,21 @@
           "coverage": [
             {
               "level": 0.5,
-              "inside": 38,
-              "counted": 50,
-              "empirical": 0.76
+              "inside": 41,
+              "counted": 53,
+              "empirical": 0.7735849056603774
             },
             {
               "level": 0.8,
-              "inside": 48,
-              "counted": 50,
-              "empirical": 0.96
+              "inside": 51,
+              "counted": 53,
+              "empirical": 0.9622641509433962
             },
             {
               "level": 0.9,
-              "inside": 48,
-              "counted": 50,
-              "empirical": 0.96
+              "inside": 51,
+              "counted": 53,
+              "empirical": 0.9622641509433962
             }
           ]
         }
@@ -28393,8 +28625,8 @@
         "last-lge": {
           "crps": 82.0,
           "energy": 40.373258476372705,
-          "variogram": 0.7771507978694121,
-          "n_scored": 55,
+          "variogram": 0.7492339663980154,
+          "n_scored": 58,
           "seat_abs_err": 82,
           "seat_abs_err_coherent": 82,
           "median_sum": 222,
@@ -28413,8 +28645,8 @@
         "uniform-swing": {
           "crps": 36.0,
           "energy": 11.832159566199236,
-          "variogram": 0.45334880092721136,
-          "n_scored": 55,
+          "variogram": 0.43721954701837334,
+          "n_scored": 58,
           "seat_abs_err": 36,
           "seat_abs_err_coherent": 36,
           "median_sum": 222,
@@ -28433,8 +28665,8 @@
         "prior-lge-noise": {
           "crps": 65.02431031031031,
           "energy": 27.83436051343631,
-          "variogram": 0.6998919740082068,
-          "n_scored": 55,
+          "variogram": 0.6759505883412363,
+          "n_scored": 58,
           "seat_abs_err": 76,
           "seat_abs_err_coherent": 80,
           "median_sum": 214,
@@ -28453,8 +28685,8 @@
         "uniform-swing+roster": {
           "crps": 34.0,
           "energy": 10.392304845413264,
-          "variogram": 0.47081425297327784,
-          "n_scored": 55,
+          "variogram": 0.45607832049637426,
+          "n_scored": 58,
           "seat_abs_err": 34,
           "seat_abs_err_coherent": 34,
           "median_sum": 222,
@@ -28471,8 +28703,8 @@
           }
         }
       },
-      "universe_key": "211b3ff4ec90b637",
-      "universe_n": 55,
+      "universe_key": "8a174bf1e1a70d72",
+      "universe_n": 58,
       "reference_n": 42,
       "constants_read": {
         "pools": [
@@ -29802,11 +30034,11 @@
           "WOMEN_FORWARD"
         ]
       },
-      "crps": 25.498206206206206,
+      "crps": 25.498494494494494,
       "dropped_claims": 0,
-      "energy": 7.85405928292402,
-      "variogram": 0.26860296910757064,
-      "n_scored": 55,
+      "energy": 7.85441683114618,
+      "variogram": 0.2604247093233329,
+      "n_scored": 58,
       "arrival_group": {
         "n_arrived": 29,
         "n_columns": 32,
@@ -29814,13 +30046,13 @@
         "actual_seats": 15,
         "mass_mean": 0.03893770231104081,
         "mass_median": 0.0348435309309643,
-        "seats_mean": 7.453,
+        "seats_mean": 7.487,
         "seats_median": 7.0,
         "mass_pit": 0.941,
-        "seats_pit": 0.9420000000000001,
+        "seats_pit": 0.9405,
         "seats_outside_support": false,
         "mass_err": 0.033210745676402656,
-        "seats_err": 7.547
+        "seats_err": 7.513
       },
       "arrival_reconciliation": {
         "declared_seeded_mass": 0.025747516705819925,
@@ -31030,8 +31262,8 @@
         "last-lge": {
           "crps": 94.0,
           "energy": 49.61854492022111,
-          "variogram": 1.8209809149012761,
-          "n_scored": 36,
+          "variogram": 1.7807700205337262,
+          "n_scored": 37,
           "seat_abs_err": 94,
           "seat_abs_err_coherent": 94,
           "median_sum": 221,
@@ -31050,8 +31282,8 @@
         "uniform-swing": {
           "crps": 58.0,
           "energy": 27.856776554368246,
-          "variogram": 1.1653884346434646,
-          "n_scored": 36,
+          "variogram": 1.1395739849422546,
+          "n_scored": 37,
           "seat_abs_err": 58,
           "seat_abs_err_coherent": 58,
           "median_sum": 221,
@@ -31068,15 +31300,15 @@
           }
         },
         "prior-lge-noise": {
-          "crps": 77.74781181181181,
-          "energy": 42.56401962601127,
-          "variogram": 1.8001730889649858,
-          "n_scored": 36,
+          "crps": 77.74792792792793,
+          "energy": 42.56353968505072,
+          "variogram": 1.7601057380512155,
+          "n_scored": 37,
           "seat_abs_err": 93,
           "seat_abs_err_coherent": 100,
           "median_sum": 216,
           "coherent_sum": 221,
-          "draw_total": 220.985,
+          "draw_total": 221.0,
           "fills_council": true,
           "dropped_claims": 0,
           "wards": {
@@ -31090,8 +31322,8 @@
         "uniform-swing+roster": {
           "crps": 40.0,
           "energy": 22.27105745132008,
-          "variogram": 0.5617165498331315,
-          "n_scored": 36,
+          "variogram": 0.5479944384001066,
+          "n_scored": 37,
           "seat_abs_err": 40,
           "seat_abs_err_coherent": 40,
           "median_sum": 221,
@@ -31108,8 +31340,8 @@
           }
         }
       },
-      "universe_key": "dad65441ef3cd9d7",
-      "universe_n": 36,
+      "universe_key": "39281497542776c1",
+      "universe_n": 37,
       "reference_n": 25,
       "constants_read": {
         "pools": [
@@ -31830,8 +32062,8 @@
       "crps": 24.54033033033033,
       "dropped_claims": 0,
       "energy": 13.457874139504282,
-      "variogram": 0.3847798774819953,
-      "n_scored": 36,
+      "variogram": 0.3740849383112975,
+      "n_scored": 37,
       "arrival_group": {
         "n_arrived": 16,
         "n_columns": 2,
@@ -35041,6 +35273,10 @@
           135,
           143
         ],
+        "DEMOCRATIC_EQUALITY_EMPOWERMENT_PARTY": [
+          0,
+          0
+        ],
         "DEMOCRATIC_INDEPENDENT_PARTY": [
           1,
           0
@@ -35098,6 +35334,10 @@
           0
         ],
         "IQELA_LENTSANGO_DAGGA_PARTY": [
+          0,
+          0
+        ],
+        "KHOI_SAN_KINGDOM_OF_RSA": [
           0,
           0
         ],
@@ -35170,7 +35410,7 @@
       "seat_abs_err_coherent": 40,
       "median_sum": 219,
       "coherent_sum": 231,
-      "draw_total": 230.983,
+      "draw_total": 231.0,
       "fills_council": true,
       "wards": {
         "n_wards": 116,
@@ -36081,7 +36321,7 @@
           ]
         },
         "all": {
-          "n": 49,
+          "n": 51,
           "parties": [
             "ABANTU_BATHO_CONGRESS",
             "ACDP",
@@ -36102,6 +36342,7 @@
             "COPE",
             "CREDIBLE_ALTERNATIVE_1ST_MOVEMENT",
             "DA",
+            "DEMOCRATIC_EQUALITY_EMPOWERMENT_PARTY",
             "DEMOCRATIC_INDEPENDENT_PARTY",
             "DEMOCRATIC_LABOUR_PARTY",
             "DEMOCRATIC_PEOPLE_S_ALTERNATIVE",
@@ -36117,6 +36358,7 @@
             "INDEPENDENT_SOUTH_AFRICAN_NATIONAL_CIVIC_ORGANISATION",
             "INTERNATIONAL_PARTY",
             "IQELA_LENTSANGO_DAGGA_PARTY",
+            "KHOI_SAN_KINGDOM_OF_RSA",
             "LAND_PARTY",
             "NFP",
             "ONE_MOVEMENT_FOR_CAPE_TOWN",
@@ -36153,6 +36395,7 @@
             0.6051143512560128,
             0.3962907605723953,
             0.25115501156650405,
+            0.15823433207702728,
             0.5840513390086128,
             0.8462798627328356,
             0.5288236767996822,
@@ -36168,6 +36411,7 @@
             0.19415107181275934,
             0.32245696283841363,
             0.34693117077791674,
+            0.12651651764031274,
             0.2671996892720781,
             0.70788083614873,
             0.7378686522320016,
@@ -36204,6 +36448,7 @@
             0.0,
             0.0,
             0.246,
+            0.0,
             0.504,
             0.0,
             0.0,
@@ -36214,6 +36459,7 @@
             0.0,
             0.0,
             0.75,
+            0.0,
             0.0,
             0.0,
             0.0,
@@ -36255,6 +36501,7 @@
             0.877,
             0.834,
             0.02400000000000002,
+            0.995,
             0.471,
             0.896,
             0.889,
@@ -36270,6 +36517,7 @@
             0.914,
             0.906,
             0.899,
+            0.995,
             0.837,
             0.715,
             0.918,
@@ -36307,6 +36555,7 @@
             -0.3695662436321334,
             -0.3922526274189605,
             -0.5709137175692517,
+            -0.06773352257462618,
             0.7873285653956915,
             -0.3139866373530776,
             -0.3335219871285372,
@@ -36322,6 +36571,7 @@
             -0.2690322431560653,
             -0.30993175427453756,
             -0.20380467100653749,
+            -0.0691572807138723,
             -0.3758039991603659,
             -0.5384696621289242,
             -0.2709103346920361,
@@ -36358,6 +36608,7 @@
             0.123,
             0.166,
             1.0,
+            0.005,
             0.496,
             0.104,
             0.111,
@@ -36373,6 +36624,7 @@
             0.086,
             0.094,
             0.101,
+            0.005,
             0.163,
             0.285,
             0.082,
@@ -36409,6 +36661,7 @@
             "13+",
             "13+",
             "1-3",
+            "off-ballot",
             "13+",
             "13+",
             "13+",
@@ -36424,6 +36677,7 @@
             "13+",
             "13+",
             "13+",
+            "off-ballot",
             "13+",
             "13+",
             "13+",
@@ -36582,7 +36836,17 @@
               1
             ],
             [
+              1,
+              1,
+              1
+            ],
+            [
               0,
+              1,
+              1
+            ],
+            [
+              1,
               1,
               1
             ],
@@ -36690,21 +36954,21 @@
           "coverage": [
             {
               "level": 0.5,
-              "inside": 41,
-              "counted": 49,
-              "empirical": 0.8367346938775511
+              "inside": 43,
+              "counted": 51,
+              "empirical": 0.8431372549019608
             },
             {
               "level": 0.8,
-              "inside": 44,
-              "counted": 49,
-              "empirical": 0.8979591836734694
+              "inside": 46,
+              "counted": 51,
+              "empirical": 0.9019607843137255
             },
             {
               "level": 0.9,
-              "inside": 45,
-              "counted": 49,
-              "empirical": 0.9183673469387755
+              "inside": 47,
+              "counted": 51,
+              "empirical": 0.9215686274509803
             }
           ]
         }
@@ -36713,8 +36977,8 @@
         "last-lge": {
           "crps": 68.0,
           "energy": 27.09243436828814,
-          "variogram": 0.6854451874165224,
-          "n_scored": 65,
+          "variogram": 0.6687974916237489,
+          "n_scored": 67,
           "seat_abs_err": 68,
           "seat_abs_err_coherent": 68,
           "median_sum": 231,
@@ -36733,8 +36997,8 @@
         "uniform-swing": {
           "crps": 38.0,
           "energy": 12.328828005937956,
-          "variogram": 0.5161913945207383,
-          "n_scored": 65,
+          "variogram": 0.5052524776098033,
+          "n_scored": 67,
           "seat_abs_err": 38,
           "seat_abs_err_coherent": 38,
           "median_sum": 231,
@@ -36753,8 +37017,8 @@
         "prior-lge-noise": {
           "crps": 53.82890690690691,
           "energy": 18.287643722770206,
-          "variogram": 0.6768819066064342,
-          "n_scored": 65,
+          "variogram": 0.6614757345542329,
+          "n_scored": 67,
           "seat_abs_err": 63,
           "seat_abs_err_coherent": 62,
           "median_sum": 226,
@@ -36773,8 +37037,8 @@
         "uniform-swing+roster": {
           "crps": 34.0,
           "energy": 12.083045973594576,
-          "variogram": 0.39638344946612725,
-          "n_scored": 65,
+          "variogram": 0.38703577136890377,
+          "n_scored": 67,
           "seat_abs_err": 34,
           "seat_abs_err_coherent": 34,
           "median_sum": 231,
@@ -36791,8 +37055,8 @@
           }
         }
       },
-      "universe_key": "3589345535a1a571",
-      "universe_n": 65,
+      "universe_key": "c09066e84f35f097",
+      "universe_n": 67,
       "reference_n": 38,
       "constants_read": {
         "pools": [
@@ -38107,11 +38371,11 @@
           "THE_GREEN_PARTY_OF_SOUTH_AFRICA"
         ]
       },
-      "crps": 33.56282882882883,
+      "crps": 33.562886886886886,
       "dropped_claims": 0,
-      "energy": 10.696866417364804,
-      "variogram": 0.3996433394367331,
-      "n_scored": 65,
+      "energy": 10.696955709442097,
+      "variogram": 0.3905775975503644,
+      "n_scored": 67,
       "arrival_group": {
         "n_arrived": 31,
         "n_columns": 34,
@@ -38119,13 +38383,13 @@
         "actual_seats": 18,
         "mass_mean": 0.023803787641220545,
         "mass_median": 0.02165083445814485,
-        "seats_mean": 4.423,
+        "seats_mean": 4.44,
         "seats_median": 4.0,
         "mass_pit": 0.999,
         "seats_pit": 0.999,
         "seats_outside_support": false,
         "mass_err": 0.056146378980925976,
-        "seats_err": 13.577
+        "seats_err": 13.559999999999999
       },
       "arrival_reconciliation": {
         "declared_seeded_mass": 0.016432802803512524,
@@ -51958,6 +52222,10 @@
           0,
           0
         ],
+        "CAPE_COLOURED_CONGRESS": [
+          0,
+          0
+        ],
         "CIVIC_INDEPENDENT": [
           0,
           0
@@ -52023,7 +52291,7 @@
       "seat_abs_err_coherent": 8,
       "median_sum": 97,
       "coherent_sum": 100,
-      "draw_total": 99.96,
+      "draw_total": 100.0,
       "fills_council": true,
       "wards": {
         "n_wards": 50,
@@ -52610,7 +52878,7 @@
           ]
         },
         "all": {
-          "n": 26,
+          "n": 27,
           "parties": [
             "ABANTU_BATHO_CONGRESS",
             "ACDP",
@@ -52623,6 +52891,7 @@
             "ARUSHA_ECONOMIC_COALITION",
             "ATM",
             "BATHO_PELE_MOVEMENT",
+            "CAPE_COLOURED_CONGRESS",
             "CIVIC_INDEPENDENT",
             "COPE",
             "DA",
@@ -52651,6 +52920,7 @@
             0.7506673978398903,
             0.7216042514582062,
             0.784173419567533,
+            0.5970270181462158,
             0.8930257784993586,
             0.1723799825198085,
             0.10805190508863549,
@@ -52681,6 +52951,7 @@
             0.0,
             0.0,
             0.0,
+            0.0,
             0.055,
             0.568,
             0.0,
@@ -52707,6 +52978,7 @@
             0.925,
             0.39399999999999996,
             0.872,
+            0.96,
             0.919,
             0.998,
             0.057,
@@ -52736,6 +53008,7 @@
             -0.27334119444957894,
             0.012328166206896777,
             -0.3506440068106043,
+            -0.20402205763103162,
             -0.2826063678828499,
             -0.044743759430964584,
             -1.3519856617832084,
@@ -52764,6 +53037,7 @@
             0.075,
             0.57,
             0.128,
+            0.04,
             0.081,
             0.002,
             1.0,
@@ -52792,6 +53066,7 @@
             "13+",
             "4-12",
             "13+",
+            "off-ballot",
             "13+",
             "4-12",
             "1-3",
@@ -52841,6 +53116,11 @@
             ],
             [
               0,
+              1,
+              1
+            ],
+            [
+              1,
               1,
               1
             ],
@@ -52943,20 +53223,20 @@
           "coverage": [
             {
               "level": 0.5,
-              "inside": 24,
-              "counted": 26,
-              "empirical": 0.9230769230769231
+              "inside": 25,
+              "counted": 27,
+              "empirical": 0.9259259259259259
             },
             {
               "level": 0.8,
-              "inside": 26,
-              "counted": 26,
+              "inside": 27,
+              "counted": 27,
               "empirical": 1.0
             },
             {
               "level": 0.9,
-              "inside": 26,
-              "counted": 26,
+              "inside": 27,
+              "counted": 27,
               "empirical": 1.0
             }
           ]
@@ -52966,8 +53246,8 @@
         "last-lge": {
           "crps": 14.0,
           "energy": 6.9282032302755105,
-          "variogram": 0.26726240661763195,
-          "n_scored": 30,
+          "variogram": 0.2593143281908552,
+          "n_scored": 31,
           "seat_abs_err": 14,
           "seat_abs_err_coherent": 14,
           "median_sum": 100,
@@ -52986,8 +53266,8 @@
         "uniform-swing": {
           "crps": 12.0,
           "energy": 5.0990195135927845,
-          "variogram": 0.2614735082711819,
-          "n_scored": 30,
+          "variogram": 0.2545707793335038,
+          "n_scored": 31,
           "seat_abs_err": 12,
           "seat_abs_err_coherent": 12,
           "median_sum": 100,
@@ -53006,8 +53286,8 @@
         "prior-lge-noise": {
           "crps": 11.54590990990991,
           "energy": 5.028983800646522,
-          "variogram": 0.27270392682482664,
-          "n_scored": 30,
+          "variogram": 0.26500876248759614,
+          "n_scored": 31,
           "seat_abs_err": 15,
           "seat_abs_err_coherent": 16,
           "median_sum": 97,
@@ -53026,8 +53306,8 @@
         "uniform-swing+roster": {
           "crps": 12.0,
           "energy": 5.0990195135927845,
-          "variogram": 0.26147350827118193,
-          "n_scored": 30,
+          "variogram": 0.2545707793335038,
+          "n_scored": 31,
           "seat_abs_err": 12,
           "seat_abs_err_coherent": 12,
           "median_sum": 100,
@@ -53044,8 +53324,8 @@
           }
         }
       },
-      "universe_key": "74746b451a58e89a",
-      "universe_n": 30,
+      "universe_key": "1257f8fed3265f89",
+      "universe_n": 31,
       "reference_n": 21,
       "constants_read": {
         "pools": [
@@ -53880,11 +54160,11 @@
           "SOCIALIST_REVOLUTIONARY_WORKERS_PARTY"
         ]
       },
-      "crps": 6.498062062062062,
+      "crps": 6.499623623623624,
       "dropped_claims": 0,
-      "energy": 3.4912259722707693,
-      "variogram": 0.0728471870333638,
-      "n_scored": 30,
+      "energy": 3.4914518683584297,
+      "variogram": 0.07055415284709807,
+      "n_scored": 31,
       "arrival_group": {
         "n_arrived": 12,
         "n_columns": 13,
@@ -53892,13 +54172,13 @@
         "actual_seats": 0,
         "mass_mean": 0.02105536310663812,
         "mass_median": 0.01764097659491478,
-        "seats_mean": 1.235,
+        "seats_mean": 1.275,
         "seats_median": 1.0,
         "mass_pit": 0.493,
-        "seats_pit": 0.185,
+        "seats_pit": 0.181,
         "seats_outside_support": false,
         "mass_err": -0.003597731286817299,
-        "seats_err": -1.235
+        "seats_err": -1.275
       },
       "arrival_reconciliation": {
         "declared_seeded_mass": 0.01643280280351252,

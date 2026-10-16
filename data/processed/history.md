@@ -134,8 +134,8 @@ Covering **Johannesburg 2021, Tshwane 2021, Ekurhuleni 2021, eThekwini 2021, Cap
 | Ekurhuleni 2011 | 202 | 4.46pp | 2.90pp | 39 | 197 | 42 | 27.7 | 32 | 44 | 42 | 40 |
 | Ekurhuleni 2016 | 224 | 1.59pp | 1.94pp | 27 | 217 | 26 | 20.0 | 80 | 22 | 80 | 16 |
 | Ekurhuleni 2021 | 224 | 2.57pp | 2.16pp | 40 | 212 | 30 | 26.2 | 72 | 48 | 64 | 46 |
-| eThekwini 2011 | 205 | 2.90pp | 1.07pp | 34 | 202 | 33 | 25.9 | 49 | 35 | 61 | 33 |
-| eThekwini 2016 | 219 | 1.42pp | 3.30pp | 22 | 211 | 22 | 17.4 | 64 | 50 | 64 | 36 |
+| eThekwini 2011 | 205 | 2.90pp | 1.07pp | 35 | 202 | 34 | 26.9 | 50 | 36 | 62 | 34 |
+| eThekwini 2016 | 219 | 1.42pp | 3.30pp | 26 | 211 | 26 | 21.4 | 68 | 54 | 68 | 40 |
 | eThekwini 2021 | 222 | 2.52pp | 2.83pp | 37 | 211 | 32 | 25.5 | 82 | 36 | 80 | 34 |
 | Cape Town 2011 | 221 | 3.98pp | 2.66pp | 34 | 217 | 36 | 24.5 | 94 | 58 | 100 | 40 |
 | Cape Town 2016 | 231 | 0.50pp | 0.60pp | 13 | 224 | 8 | 10.5 | 46 | 30 | 58 | 34 |
@@ -149,25 +149,25 @@ Covering **Johannesburg 2021, Tshwane 2021, Ekurhuleni 2021, eThekwini 2021, Cap
 | Buffalo City 2011 | 100 | 6.33pp | 5.63pp | 26 | 98 | 28 | 18.8 | 28 | 30 | 28 | 30 |
 | Buffalo City 2016 | 100 | 0.89pp | 2.74pp | 12 | 98 | 10 | 7.3 | 28 | 14 | 26 | 14 |
 | Buffalo City 2021 | 100 | 2.91pp | 1.70pp | 9 | 97 | 8 | 6.5 | 14 | 12 | 16 | 12 |
-| **TOTAL** [rows=24] | 4375 | — | — | **760** | — | **707** | **537.9** | 1315 | 885 | 1361 | 837 |
+| **TOTAL** [rows=24] | 4375 | — | — | **765** | — | **712** | **542.9** | 1320 | 890 | 1366 | 842 |
 
 ### Citable totals
 
 **Quoting one number in a sentence? Paste this token, do not retype the figure:**
 
 ```
-seat_abs_err_coherent=707/@74e74338/1000d/pools:76bfd9d6/rows=24
+seat_abs_err_coherent=712/@5dfdfa26/1000d/pools:76bfd9d6/rows=24
 ```
 
 The full set, for anything more than one number:
 
 ```
-seat_abs_err_coherent = 707      [rows=24]
-seat_abs_err          = 760      [rows=24]   # MARGINAL, not comparable to the line above
-crps                  = 537.92   [rows=24]
-n_scored              = 790      [rows=24]   # summed scoring columns. NOT a denominator: `crps` is a sum, and this count differs between forecasters (§1.141)
-margin_vs_uniform_swing = 20.1%   [rows=24, coherent, vs a point forecast]
-margin_vs_prior_lge_noise = 48.1% [rows=24, coherent, vs a probabilistic forecast — the only reference here that expresses uncertainty]
+seat_abs_err_coherent = 712      [rows=24]
+seat_abs_err          = 765      [rows=24]   # MARGINAL, not comparable to the line above
+crps                  = 542.93   [rows=24]
+n_scored              = 806      [rows=24]   # summed scoring columns. NOT a denominator: `crps` is a sum, and this count differs between forecasters (§1.141)
+margin_vs_uniform_swing = 20.0%   [rows=24, coherent, vs a point forecast]
+margin_vs_prior_lge_noise = 47.9% [rows=24, coherent, vs a probabilistic forecast — the only reference here that expresses uncertainty]
 ```
 
 `seat_abs_err` and `seat_abs_err_coherent` are DIFFERENT STATISTICS. Quoting one against the other is §1.214.
@@ -183,7 +183,7 @@ The margin below is against **uniform swing** — **uniform swing is a POINT for
 | | city-years | seat err (coherent) | uniform-swing | margin | CRPS | uniform-swing CRPS (point) | margin |
 |---|---|---|---|---|---|---|---|
 | Gauteng (Ekurhuleni, Johannesburg, Tshwane) | 9 | 380 | 452 | 16% | 287.4 | 452.0 | 36% |
-| everywhere else (Buffalo City, Cape Town, Mangaung, Nelson Mandela Bay, eThekwini) | 15 | 327 | 433 | 24% | 250.5 | 433.0 | 42% |
+| everywhere else (Buffalo City, Cape Town, Mangaung, Nelson Mandela Bay, eThekwini) | 15 | 332 | 438 | 24% | 255.5 | 438.0 | 42% |
 
 **The headline margin is NOT concentrated in Gauteng on this panel**: 16% inside against 24% outside. Quote the split anyway — the point of the table is that the reader checks rather than assumes.  The model is beaten by uniform swing on seats at **4 of 24** city-years: Johannesburg 2016, Tshwane 2016, Ekurhuleni 2016, Cape Town 2021.
 
@@ -239,17 +239,17 @@ The headline CRPS above is scored after the model's generic `ENTRANT` column is 
 | city-year | arrived | actual mass | forecast mass | actual seats | forecast seats | mass PIT | seats PIT |
 |---|---|---|---|---|---|---|---|
 | Johannesburg 2011 | 10 | 1.64% | 2.38% | 4 | 3.8 | 0.709 | 0.741 |
-| Johannesburg 2016 | 13 | 2.29% | 2.00% | 5 | 4.7 | 0.729 | 0.642 |
+| Johannesburg 2016 | 13 | 2.29% | 2.00% | 5 | 4.7 | 0.729 | 0.638 |
 | Johannesburg 2021 | 32 | 19.99% | 8.91% | 46 | 20.8 | 0.915 | 0.907 |
 | Tshwane 2011 | 5 | 0.36% | 1.54% | 0 | 2.2 | 0.496 | 0.031 |
 | Tshwane 2016 | 7 | 0.31% | 1.88% | 0 | 3.9 | 0.003 | 0.015 |
-| Tshwane 2021 | 25 | 11.38% | 7.66% | 21 | 15.0 | 0.819 | 0.798 |
+| Tshwane 2021 | 25 | 11.38% | 7.66% | 21 | 15.1 | 0.819 | 0.795 |
 | Ekurhuleni 2011 | 12 | 2.56% | 4.36% | 5 | 7.8 | 0.255 | 0.208 |
 | Ekurhuleni 2016 | 12 | 2.06% | 2.18% | 5 | 4.9 | 0.539 | 0.585 |
 | Ekurhuleni 2021 | 20 | 9.14% | 6.26% | 17 | 13.1 | 0.825 | 0.783 |
 | eThekwini 2011 | 8 | 5.61% | 2.49% | 11 | 4.1 | 0.866 | 0.963 |
 | eThekwini 2016 | 14 | 3.25% | 1.97% | 6 | 4.1 | 0.914 | 0.829 |
-| eThekwini 2021 | 29 | 7.21% | 3.89% | 15 | 7.5 | 0.941 | 0.942 |
+| eThekwini 2021 | 29 | 7.21% | 3.89% | 15 | 7.5 | 0.941 | 0.941 |
 | Cape Town 2011 | 16 | 1.02% | 1.43% | 1 | 1.5 | 0.760 | 0.759 |
 | Cape Town 2016 | 20 | 1.43% | 1.96% | 2 | 3.9 | 0.226 | 0.162 |
 | Cape Town 2021 | 31 | 8.00% | 2.38% | 18 | 4.4 | 0.999 | 0.999 |
@@ -261,7 +261,7 @@ The headline CRPS above is scored after the model's generic `ENTRANT` column is 
 | Nelson Mandela Bay 2021 | 15 | 7.02% | 2.99% | 8 | 3.0 | 0.982 | 0.981 |
 | Buffalo City 2011 | 0 | 0.00% | 1.40% | 0 | 0.7 | 0.000 | 0.374 |
 | Buffalo City 2016 | 3 | 0.68% | 2.09% | 0 | 1.8 | 0.149 | 0.105 |
-| Buffalo City 2021 | 12 | 1.75% | 2.11% | 0 | 1.2 | 0.493 | 0.185 |
+| Buffalo City 2021 | 12 | 1.75% | 2.11% | 0 | 1.3 | 0.493 | 0.181 |
 | **panel mean** | | | | | | **0.589** | **0.541** |
 
 Mass PIT is above 0.5 at **14 of 24** city-years. A panel mean well above 0.5 on both columns is the model systematically under-forecasting how much of the ballot goes to parties arriving from nothing — read it next to the mid-ballot calibration below, which is the same leak seen through a different instrument.
@@ -380,33 +380,33 @@ A mean PIT above 0.50 means the truth keeps landing high in the forecast distrib
 
 | population | n | 50% | 80% | 90% | mean PIT | χ²_RS vs flat (5% crit) |
 |---|---|---|---|---|---|---|
-| reference (INPUT-selected — fixed; the only one to compare on) | 514 | 77% | 91% | 92% | 0.520 | 18.6 (16.92) |
+| reference (INPUT-selected — fixed; the only one to compare on) | 514 | 77% | 90% | 92% | 0.524 | 18.9 (16.92) |
 | claimed by the model (forecast-selected — neutral for ONE model) | 228 | 68% | 87% | 90% | 0.448 | 30.5 (16.92) |
-| won a seat (outcome-selected — INFLATED by construction) | 269 | 59% | 83% | 86% | 0.607 | 62.7 (16.92) |
-| every scored column (MIXED: outcome-selected + neutral, diluted) | 592 | 80% | 91% | 93% | 0.501 | 15.1 (16.92) |
+| won a seat (outcome-selected — INFLATED by construction) | 271 | 58% | 83% | 85% | 0.610 | 65.9 (16.92) |
+| every scored column (MIXED: outcome-selected + neutral, diluted) | 608 | 80% | 91% | 93% | 0.502 | 14.9 (16.92) |
 
-* **reference** (n=514) PIT histogram [59, 36, 42, 47, 49, 51, 53, 65, 63, 49] — approximately flat
+* **reference** (n=514) PIT histogram [57, 36, 42, 47, 49, 51, 53, 65, 63, 51] — approximately flat
 * **claimed** (n=228) PIT histogram [43, 19, 18, 20, 25, 20, 20, 23, 32, 8] — approximately flat
-* **seat_holders** (n=269) PIT histogram [26, 11, 15, 16, 24, 23, 21, 35, 49, 49] — U-shaped: the truth lands outside the distribution too often — under-dispersed, widen it
-* **all** (n=592) PIT histogram [72, 50, 52, 58, 59, 55, 56, 67, 69, 54] — approximately flat
+* **seat_holders** (n=271) PIT histogram [26, 11, 15, 16, 24, 23, 21, 35, 49, 51] — U-shaped: the truth lands outside the distribution too often — under-dispersed, widen it
+* **all** (n=608) PIT histogram [74, 52, 53, 59, 60, 57, 56, 68, 73, 56] — approximately flat
 
 
 The verdict at the end of each line is `score.pit_histogram`'s shape heuristic, which reads the end mass and the mean. **DO NOT ACT ON IT AS A WIDTH VERDICT — it is not reliable as one, and on this model it is demonstrably wrong.** The heuristic tests the mass in the two END bins against flat, so a histogram that is monotone increasing scores as U-shaped: a shifted forecast piles mass in the top bin and gets called under-dispersed. On the ranks 4-12 columns it reads the histogram `[1, 1, 1, 11, 14]` — 25 of 28 in the top two bins, monotone, nothing at the bottom — and prints *"U-shaped … under-dispersed, widen it"*, while calling the pooled population *"hump-shaped — over-dispersed, hedging"*. The two verdicts contradict each other and the band one contradicts the level-free width table below, which is the one that is right. `score.py` is not changed here — the heuristic is fine for its own purpose and what is wrong is quoting it about width. **The χ²_RS column is the test of uniformity — `score.chi2_clustered`, clustered by city-year and averaged over the PIT re-randomisations, set out below; the level-free dispersion table is the test of width.**
 
 ### The uniformity test — `score.chi2_clustered`
 
-* **reference** (24 city-years, R=64) — not established: χ²_RS averages 18.58 against 16.92 but only 32/64 randomisations reject — the answer depends on the PIT re-roll, not on the model [cells 0.72–2.61, cv² 0.29; Satterthwaite χ² 14.38 against 14.09 on 7.0 dof, 26/64]. The NOMINAL χ² it corrects averages 20.5 with sd 7.6 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [10.0, 64.9] from 20,000 replicates.
+* **reference** (24 city-years, R=64) — not established: χ²_RS averages 18.92 against 16.92 but only 35/64 randomisations reject — the answer depends on the PIT re-roll, not on the model [cells 0.72–2.60, cv² 0.29; Satterthwaite χ² 14.64 against 14.08 on 7.0 dof, 28/64]. The NOMINAL χ² it corrects averages 20.7 with sd 7.6 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [10.2, 65.0] from 20,000 replicates.
 * **claimed** (24 city-years, R=64) — uniformity REJECTED after the clustering correction: χ²_RS 30.45 against 16.92 on 9 dof, design effect 1.24, in 64/64 randomisations [cells 0.60–4.11, cv² 0.67; Satterthwaite χ² 18.33 against 11.73 on 5.4 dof, 64/64]. The NOMINAL χ² it corrects averages 37.5 with sd 6.8 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [20.5, 97.6] from 20,000 replicates.
-* **seat_holders** (24 city-years, R=64) — uniformity REJECTED after the clustering correction: χ²_RS 62.72 against 16.92 on 9 dof, design effect 1.10, in 64/64 randomisations [cells 0.31–2.55, cv² 0.43; Satterthwaite χ² 43.87 against 13.05 on 6.3 dof, 64/64]. The NOMINAL χ² it corrects averages 68.8 with sd 8.9 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [42.7, 127.5] from 20,000 replicates.
-* **all** (24 city-years, R=64) — uniformity NOT rejected once the columns are clustered: χ²_RS 15.12 against 16.92 on 9 dof, design effect 1.07 (nominal χ² 16.03) [cells 0.76–2.55, cv² 0.29; Satterthwaite χ² 11.77 against 14.08 on 7.0 dof, 17/64]. The NOMINAL χ² it corrects averages 16.0 with sd 6.3 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [7.4, 56.2] from 20,000 replicates.
+* **seat_holders** (24 city-years, R=64) — uniformity REJECTED after the clustering correction: χ²_RS 65.93 against 16.92 on 9 dof, design effect 1.10, in 64/64 randomisations [cells 0.31–2.52, cv² 0.43; Satterthwaite χ² 46.22 against 13.07 on 6.3 dof, 64/64]. The NOMINAL χ² it corrects averages 71.8 with sd 8.9 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [45.0, 130.7] from 20,000 replicates.
+* **all** (24 city-years, R=64) — uniformity NOT rejected once the columns are clustered: χ²_RS 14.86 against 16.92 on 9 dof, design effect 1.07 (nominal χ² 15.69) [cells 0.77–2.50, cv² 0.28; Satterthwaite χ² 11.64 against 14.15 on 7.1 dof, 14/64]. The NOMINAL χ² it corrects averages 15.7 with sd 6.5 across those 64 randomisations; the 95% cluster-bootstrap interval on it is [7.4, 56.0] from 20,000 replicates.
 
 ⚠️ **The cluster level is this file's choice, not the statistic's**, and `score.chi2_clustered` returns the limitation with the number so that it is quoted with it: *the clusters are whatever the caller grouped by. On this panel city-year clustering (k=24) gives delta-bar 1.07 and buys almost nothing; the CYCLE level, where the dependence actually is (sd(z) across 2011/2016/2021 is 0.601/0.889/1.265 pooled and 0.452/1.155/1.960 on ranks 4-12), has k=3 and cannot be estimated. Quote the city-year result WITH that limitation — see score.chi2_clustered.__doc__.*
 
 **Two corrections separate this column from the χ² a PIT histogram reports, and the second is the one that was missing.** The PIT of an integer seat count is randomised within its jump, so a χ² computed on one draw of that randomisation is a draw from a distribution and not a statistic — the `sd` printed above is its spread with the model standing still, and on this panel it is a large fraction of the statistic itself. And the columns inside a city-year share a turnout draw, a pool structure and a national swing, so the nominal test's critical value is not this design's. `score.chi2_clustered` averages over R re-randomisations and applies the Rao-Scott correction with the design effect ESTIMATED from the city-years; it needs at least 8 of them and says `not established` rather than printing a number when it has fewer. See its docstring for what the design effect turns out to be here, and why.
 
-The three populations differ by which columns they count, and the difference is itself the finding. `claimed` selects on the FORECAST, which leaves PIT uniform under calibration, so it is the honest test and the only one to quote. `seat_holders` selects on the OUTCOME: zero is the bottom of the support, so winning a seat selects over-performers and the population reads high even for a perfect forecaster — it is quoted because it is the population a reader assumes, not because it is neutral. `all` was documented as neutral and **is not**: `score.seat_matrix` admits a column when `truth[i] > 0 or samples[:, i].max() > 0`, and the first clause lets a party in because it WON, which is outcome selection. **12 of its 592 columns across 24 city-years carry PIT exactly 0 or 1** — parties the model gave zero seats in every draw, present only because they won a seat (Johannesburg 2011 ALJAMAAH, Johannesburg 2011 COPE, Johannesburg 2021 PA, Tshwane 2011 COPE, Tshwane 2011 UNITED_CHRISTIAN_DEMOCRATIC_PARTY, +7 more). It is a mixture of an outcome-selected set and a neutral one.
+The three populations differ by which columns they count, and the difference is itself the finding. `claimed` selects on the FORECAST, which leaves PIT uniform under calibration, so it is the honest test and the only one to quote. `seat_holders` selects on the OUTCOME: zero is the bottom of the support, so winning a seat selects over-performers and the population reads high even for a perfect forecaster — it is quoted because it is the population a reader assumes, not because it is neutral. `all` was documented as neutral and **is not**: `score.seat_matrix` admits a column when `truth[i] > 0 or samples[:, i].max() > 0`, and the first clause lets a party in because it WON, which is outcome selection. **14 of its 608 columns across 24 city-years carry PIT exactly 0 or 1** — parties the model gave zero seats in every draw, present only because they won a seat (Johannesburg 2011 ALJAMAAH, Johannesburg 2011 COPE, Johannesburg 2021 PA, Tshwane 2011 COPE, Tshwane 2011 UNITED_CHRISTIAN_DEMOCRATIC_PARTY, +9 more). It is a mixture of an outcome-selected set and a neutral one.
 
-**The dilution is in `reference`, not in `all`, and this report said otherwise for months.** A column correctly at zero on both sides is a free interval hit and a near-uniform PIT — but `seat_matrix`'s admission rule excludes it from `all` by construction, and the count there is **0 of 592**. Such columns are admitted to `reference`, which is built with `keep_all=True` over a fixed universe, and there the count is **62 of 514**. `all` is still not a test of anything — its outcome-selected part and its neutral part push opposite ways — but quote the dilution against the population that actually carries it.
+**The dilution is in `reference`, not in `all`, and this report said otherwise for months.** A column correctly at zero on both sides is a free interval hit and a near-uniform PIT — but `seat_matrix`'s admission rule excludes it from `all` by construction, and the count there is **0 of 608**. Such columns are admitted to `reference`, which is built with `keep_all=True` over a fixed universe, and there the count is **60 of 514**. `all` is still not a test of anything — its outcome-selected part and its neutral part push opposite ways — but quote the dilution against the population that actually carries it.
 
 ### Split by actual PR rank — `claimed` columns
 
@@ -693,7 +693,7 @@ Per city-year, for provenance only — **every n below is too small to read, and
 | APC | 0.27% | 0.34% | 0.26% | 0.21% | 0.15% | 1 | 1 |
 | ALJAMAAH | 0.07% | 0.13% | 0.18% | 0.14% | 0.20% | 0 | 1 |
 
-**Missed entirely:** AIC — won seats, median zero.
+**Missed entirely:** AIC, IND — won seats, median zero.
 
 ## eThekwini 2021
 
