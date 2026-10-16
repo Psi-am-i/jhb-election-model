@@ -957,6 +957,15 @@ def test_the_satterthwaite_correction_is_computed_and_read_per_population():
     about both verdicts (35/64 and 64/64 first order), so first order is still
     adequate; what changed is the verdict on ``reference``, and that is a
     change to what this repository may claim about calibration.
+
+    ⛔ **RE-RECORDED 2026-10-16 (second time): ON THE ARM-S PANEL THE
+    SECOND-ORDER REJECTION NO LONGER STANDS ON ``claimed`` EITHER** (the
+    newcomer δ by anchor class, `853c83f`, MODEL-LOG §1.314; only 2021 rows
+    moved). R=64: ``reference`` cv² 0.297, 13.87 against 14.05, rejecting in
+    23 of 64; ``claimed`` cv² 0.684, 16.95 against 11.68, rejecting in 62 of
+    64, so not established by this function's own rule (every randomisation).
+    First order still rejects on ``claimed`` in 64 of 64 (``reference`` 30),
+    so first and second order now disagree about ``claimed``.
     """
     # The mechanism first, constructed: heterogeneous cells must shrink both the
     # statistic and the dof, homogeneous ones must leave them alone.
@@ -981,10 +990,13 @@ def test_the_satterthwaite_correction_is_computed_and_read_per_population():
     import compare_history as C
     records = json.loads(path.read_text())["records"]
 
-    # (cv², Satterthwaite χ², adjusted critical, established), 2026-10-16.
-    expected = {"reference": (0.293, 14.64, 14.08, False),
-                "claimed": (0.670, 18.33, 11.73, True)}
-    for pop, (cv2, stat, crit, established) in expected.items():
+    # (cv², Satterthwaite χ², adjusted critical, established), 2026-10-16,
+    # the arm-S panel (MODEL-LOG §1.314).
+    # The fifth entry is the FIRST-order verdict (every randomisation rejects
+    # uncorrected), recorded separately since the two disagree on `claimed`.
+    expected = {"reference": (0.297, 13.87, 14.05, False, False),
+                "claimed": (0.684, 16.95, 11.68, False, True)}
+    for pop, (cv2, stat, crit, established, first_rejects) in expected.items():
         blocks = []
         for r in records:
             block = (r.get("calibration") or {}).get(pop)
@@ -1017,13 +1029,15 @@ def test_the_satterthwaite_correction_is_computed_and_read_per_population():
             f"{'established' if established else 'NOT established'}. A change "
             f"either way is a change to what this repository may claim about "
             f"calibration and belongs in MODEL-LOG before this is touched.")
-        # first order is ADEQUATE, which is the claim being recorded: the two
-        # corrections agree about the verdict, they are not close in value
-        assert first_all is satt_all, (
+        # Whether first order is ADEQUATE is recorded per population: it was
+        # (the two verdicts agreed) on both until the arm-S panel, where it is
+        # not on `claimed` (64/64 first order, 62/64 second). A change in
+        # either direction is a change to what may be claimed.
+        assert first_all is first_rejects, (
             f"`{pop}`: first order rejects in {result['rejects_in']}/"
             f"{result['replicates']} and second order in "
-            f"{result['rejects_satt']}/{result['replicates']}; the verdicts "
-            f"disagree, so first order is no longer adequate")
+            f"{result['rejects_satt']}/{result['replicates']}; recorded "
+            f"first-order verdict {'rejects' if first_rejects else 'does not'}")
         if established:
             assert result["chi2_satt"] > result["chi2_satt_crit_95"]
             assert result["chi2_rs"] > result["chi2_crit_95"], "first order too"

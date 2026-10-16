@@ -30246,3 +30246,120 @@ The tests in `test_scored_universe` now assert the measured state (with the incu
 **Draw file size.** `site/draws/base.bin` is 2,109,184 bytes gzipped against the 1.5 MB budget of PLAN step S2, which states no rationale. The growth predates §1.308: each vote block roughly doubled compressed between `2bc6740` and `5ce3f3f`, because every small party now draws a real vote in every draw (§1.305) where it used to be mostly zero. The page reads those votes. Measured exact alternatives: dropping all-zero columns saves about 108 bytes; byte-shuffling reaches about 1.92 MB with a format change in every reader. Decision for the UAT build (orchestrator, owner may reverse before live): budget raised, not detail cut.
 
 **Pre-registrations scored.** `prereg/2026-10-15-roll-assignment-and-mk.md` and `prereg/2026-10-16-ward-contest-and-national-fit.md`, scored in `reports/model-changes/2026-10-16/prereg-scoring.md`. Every gate and prediction confirmed, with two exceptions. Falsified: the premise that the national-record fits move no voting district's expected vote (the 2011 ward vote error fell at all eight metros, by 0.35 to 0.64 points). Not testable: that 2021 moves only through the slate mask and small-party geography (no run holds one of the two fixed). Confirmed in sign only: the MK parent-weight call (MK wards 10.287 → 10.277; seat moves at most 0.01), so its stated mechanism is unsupported. Not predicted: 2011 wards called wrongly 26 → 30 (Buffalo City 0 → 3, eThekwini 12 → 13). Old-vs-new report: `reports/model-changes/2026-10-16/`, old = the roll round's arm.
+
+## 1.314 The newcomer width by anchor class (arm S): the record's classes, both arms on the 24 city-years and Johannesburg 2026, the pre-registration scored (2026-10-16)
+
+Pre-registration: `prereg/2026-10-16-newness-width-by-anchor.md` (`cce7f16`) and its scoring addendum `prereg/2026-10-16-newness-logscore-definition.md` (`97e3e29`), both committed before the width record carrying the class δ's was emitted and before either arm ran. Code `853c83f`.
+
+**The change.** A party new to the city (no result at the previous local election there) is **anchored** when it took votes at the preceding national election in the city, so that its centre is the spine's "national only (first local election)" level, and **unanchored** otherwise (an arrival seed). `montecarlo.newness_class` reads `_baseline_before_seeds`, not the spine's route label: the spine reads the baseline after the seeds and labels every seeded arrival "national only" too (at Johannesburg 2026 all 54 new parties carry that label; 8 hold a 2024 national vote: MK, RISE, BOSA and five under 0.2% of it). At Johannesburg 2021 the class equals "spine national-only route and no arrival seed" for every new party, both directions (`test_the_class_follows_the_centres_route_at_a_real_city_year`). Each class's δ is `width_record.joint_nll` profiled over δ alone on that class's new rows, at the single-δ fit's converged curve, location and fixed-point shifts (`width_record.fit_class_deltas`). `newness_width = "single"` runs the one δ.
+
+**The record** (`data/processed/width_record.json`, re-emitted for the default variant, `level_shrink = 0` and `level_shrink_scale = 0.40`). Default variant, δ per target (rows / party-elections in the class):
+
+| target (cycles) | single δ | anchored δ | unanchored δ |
+|---|---|---|---|
+| 2016 (2011) | 0.965 | 0.965 (24 / 10) | 0.965, no rows: the single δ |
+| 2021 (2011-16) | 0.954 | 0.811 (45 / 18) | 0.999 (68 / 52) |
+| 2026 (2011-21) | 0.874 | 0.679 (87 / 35) | 0.916 (221 / 133) |
+
+At 2016 every 2011 newcomer is anchored, so the profiled anchored δ is the single δ to the search tolerance and both arms draw 2016 identically; 2011 is the fallback record and has no δ. Every other field of every target (curve, single δ, location, ρ, fixed point, `delta_shift`, bands) is byte-identical to the record emitted before the change (`.claude/newness-2026-10-16/width_record.before.json`). The `level_shrink = 0` variant gives 0.806 / 1.009 at 2021 and 0.675 / 0.925 at 2026; `level_shrink_scale = 0.40` gives 0.826 / 1.001 and 0.691 / 0.918.
+
+**The record's anchored cases**: every anchored newcomer row of the 2011-2021 record with a `pool_spec` centre of 0.5% or more; r is the residual in the record's frame (log realised over centre, relative to the large block).
+
+| city | year | party | centre % | realised list % | r |
+|---|---|---|---|---|---|
+| Buffalo City | 2011 | COPE | 17.09 | 3.70 | -1.63 |
+| Nelson Mandela Bay | 2011 | COPE | 16.64 | 4.88 | -1.38 |
+| Mangaung | 2011 | COPE | 14.00 | 3.30 | -1.56 |
+| Johannesburg | 2011 | COPE | 9.92 | 1.11 | -2.31 |
+| Tshwane | 2016 | EFF | 9.47 | 11.64 | +0.19 |
+| Ekurhuleni | 2016 | EFF | 9.04 | 11.10 | +0.22 |
+| Johannesburg | 2016 | EFF | 8.58 | 10.93 | +0.26 |
+| Tshwane | 2011 | COPE | 7.87 | 0.89 | -2.33 |
+| Mangaung | 2016 | EFF | 7.84 | 8.84 | +0.15 |
+| Cape Town | 2011 | COPE | 7.24 | 1.13 | -1.95 |
+| Ekurhuleni | 2011 | COPE | 6.58 | 1.09 | -1.89 |
+| Buffalo City | 2016 | EFF | 5.41 | 8.21 | +0.44 |
+| Nelson Mandela Bay | 2016 | EFF | 3.95 | 5.03 | +0.25 |
+| Cape Town | 2021 | GOOD | 3.19 | 3.68 | +0.22 |
+| eThekwini | 2016 | EFF | 2.74 | 3.63 | +0.28 |
+| eThekwini | 2011 | COPE | 2.64 | 0.40 | -1.94 |
+| Cape Town | 2016 | EFF | 2.42 | 3.12 | +0.26 |
+| Mangaung | 2021 | PA | 1.76 | 1.78 | -0.02 |
+| Nelson Mandela Bay | 2016 | AIC | 1.11 | 1.61 | +0.38 |
+| Buffalo City | 2021 | ATM | 1.00 | 0.89 | -0.13 |
+| Cape Town | 2011 | ALJAMAAH | 0.86 | 0.35 | -0.99 |
+| Nelson Mandela Bay | 2021 | GOOD | 0.83 | 0.49 | -0.48 |
+| Buffalo City | 2011 | AIC | 0.72 | 3.58 | +1.50 |
+| Johannesburg | 2016 | AGANG | 0.67 | 0.03 | -3.07 |
+| eThekwini | 2021 | ATM | 0.64 | 0.57 | -0.04 |
+| Tshwane | 2016 | AGANG | 0.63 | 0.04 | -2.67 |
+| Tshwane | 2021 | AIC | 0.62 | 0.81 | +0.31 |
+| Mangaung | 2021 | ATM | 0.61 | 0.61 | -0.03 |
+| eThekwini | 2021 | NFP | 0.51 | 0.36 | -0.27 |
+
+The unanchored rows at 0.5% or more are ActionSA 2021 in four metros (r +0.52 to +1.19; Johannesburg +1.19) and three 2016 Buffalo City and Tshwane arrivals (r -1.05 to -2.62). On the raw record back to 1999 (national share in the metro against the first local list share, first-national parties at 0.5% or more national share, 45 metro-cycles; scratch `ratios.py`, re-run here), the largest ratio of local list share to national share is 1.50 (EFF, Buffalo City 2014→2016); none exceeds 1.65. The upside of an anchored newcomer on this record is small and its downside large (COPE 2011, AGANG 2016); the symmetric δ prices both at one width.
+
+**Backtest.** `src/compare_history.py` at `853c83f`, clean tree, 1,000 draws, seed 20261104, both arms: `--set newness_width=single` into `.claude/newness-2026-10-16/old/` first, then the default (arm S) into `data/processed/history.json`, committed here. The single arm reproduces the previous committed `history.json` (`5dfdfa2`) in every row's seats, votes and wards. Under arm S the 2011 and 2016 rows are identical to the single arm's, as the record requires. The 2021 rows:
+
+| 2021 city | wrong-party seats, single | arm S | wards wrong, single | arm S | list-share error, single | arm S |
+|---|---|---|---|---|---|---|
+| Buffalo City | 4.5 | 4.5 | 2 | 2 | 2.908 | 2.911 |
+| Cape Town | 22.0 | 22.0 | 1 | 1 | 2.444 | 2.449 |
+| Ekurhuleni | 20.0 | 19.5 | 5 | 5 | 2.566 | 2.565 |
+| eThekwini | 18.5 | 18.0 | 2 | 2 | 2.518 | 2.524 |
+| Johannesburg | 49.5 | 50.0 | 8 | 8 | 6.254 | 6.250 |
+| Mangaung | 5.0 | 5.0 | 1 | 1 | 1.760 | 1.763 |
+| Nelson Mandela Bay | 11.5 | 11.5 | 3 | 3 | 3.278 | 3.278 |
+| Tshwane | 21.0 | 21.0 | 2 | 2 | 2.108 | 2.105 |
+
+Wrong-party seats are half the summed absolute seat error of the median forecast; wards wrong are wards whose favourite was not the winner; list-share error is `pr_mae`, the vote-weighted mean absolute error of the mean drawn list share, in points. Totals per cycle, single then arm S: wrong-party seats 153.5 / 153.5 (2011), 77.0 / 77.0 (2016), 152.0 / 151.5 (2021); wards wrong 30 / 30, 25 / 25, 24 / 24; list-share error summed over the eight cities 44.469 / 44.469, 8.784 / 8.784, 23.834 / 23.845. Panel: 382.5 to 382.0 wrong-party seats, 79 wrong wards in both. The seat entries that moved: Johannesburg ActionSA median 11 to 10 (realised 44); Ekurhuleni ATM 0 to 1 (realised 1); eThekwini JUSTICE_AND_EMPLOYMENT_PARTY 0 to 1 (realised 1); Cape Town EFF 9 to 10 and ATM 0 to 1 (realised 10 and 0).
+
+**Newcomers' held-out log score**, as the addendum defines it (normal on log drawn list share, 1,000 draws per city-year, nats; the draws are `compare_history`'s own: ActionSA's Johannesburg 2021 median list share is 4.246% single and 4.134% arm S in both). 2016 is identical in both arms (21 anchored, 68 unanchored scored). 2021:
+
+| class | scored (zero results not scored) | sum, single | sum, arm S | arm S − single | sampling error (8 city-years) |
+|---|---|---|---|---|---|
+| anchored | 42 (1) | -57.82 | -53.60 | +4.23 | 0.52 |
+| unanchored | 153 (12) | -232.92 | -235.50 | -2.58 | 0.70 |
+
+The kernel-density check gives +4.09 and -2.12. The anchored gain is spread over the 42 rows (about +0.12 nats each). The unanchored loss is spread over 149 parties under 0.5% (about -0.02 to -0.04 each): the 2021 record's unanchored δ (0.999, fitted on the 2016 arrivals) is wider than the single δ (0.954), and the 2021 arrivals landed nearer their centres than the 2016 ones.
+
+**ActionSA, Johannesburg 2021** (unanchored): predicted list share 5th to 95th percentile 0.75% to 21.63% single, 0.69% to 22.18% arm S. The realised list share is 18.12%; its combined ward and list share is 16.05%. Both are inside both bands; P(list share ≥ 18.12%) 0.079 single, 0.085 arm S.
+
+**Johannesburg 2026**, in process (`run_model`, nothing written under `data/`), 5,000 draws, seed 20261104, arrays in the session scratch `anchor/jhb/{single,S}/`. The single arm reproduces §1.310's mean seats and ward favourites exactly.
+
+| | single δ | arm S |
+|---|---|---|
+| P(MK largest party, ties included) | 5.84% | 3.76% |
+| P(MK largest alone) | 5.64% | 3.64% |
+| P(MK list share > ANC's) | 7.72% | 5.52% |
+| MK list share, percentiles 5 / 50 / 95 / 99 | 1.44 / 6.74 / 24.29 / 38.61 | 2.13 / 7.43 / 21.35 / 32.11 |
+| MK mean list share | 9.02 | 9.04 |
+| ANC list share, percentiles 5 / 50 / 95 / 99 | 17.53 / 23.89 / 29.58 / 31.92 | 18.01 / 23.83 / 29.32 / 31.59 |
+| MK seats, 5th to 95th percentile | 4 to 64 | 6 to 57 |
+| mean seats ANC / DA / EFF / ActionSA / MK / PA | 71.71 / 69.84 / 30.26 / 27.23 / 23.39 / 15.80 | 72.04 / 69.73 / 30.22 / 27.18 / 23.35 / 15.78 |
+| mean seats RISE / IFP / BOSA / Al Jama-ah / VF Plus / ACDP | 4.88 / 4.07 / 3.08 / 2.76 / 2.56 / 1.97 | 4.86 / 4.07 / 3.09 / 2.76 / 2.55 / 1.97 |
+| ward favourites | ANC 78, DA 45, PA 5, MK 3, EFF 3, IFP 1 | the same |
+
+Arm K (a two-sided width per class: anchored up 0, down 0.911; unanchored up 1.257, down 0.188) was run as a scratch comparison only (the `mk-tail/patched.py` patch on today's code, `newness_width = "single"` underneath, class from `newness_class`; 5,000 draws, seed 20261104): P(MK largest) 0.28%, MK list share 2.04 / 9.45 / 16.71 / 20.48, mean seats MK 23.30, ANC 72.06. Its four widths are the scratch `split_fit.py` values, fitted with a free mode that `joint_nll` does not have; it is not built and not backtested.
+
+**The pre-registration, scored.**
+
+| item | verdict | evidence |
+|---|---|---|
+| G1 established widths unchanged | CONFIRMED | every record field an established width reads is byte-identical; drawer test (`test_the_draw_takes_each_newcomers_class_delta_and_leaves_established_widths`) |
+| P1 δ(anchored) < δ(unanchored) | CONFIRMED where testable | 0.811 < 0.999 (2021), 0.679 < 0.916 (2026); 2016 has no unanchored row |
+| P1 no anchored ratio above 1.65 at ≥ 0.5% national share | CONFIRMED | largest 1.50 (EFF, Buffalo City 2016), 45 metro-cycles |
+| P2 P(MK largest) between 1.5% and 4.5% | CONFIRMED | 5.84% → 3.76% |
+| P2 MK mean list share moves under 1 point | CONFIRMED | 9.02 → 9.04 |
+| P3 wrong-party seats change by under 3 per year | CONFIRMED | 0, 0, -0.5 |
+| P3 the biggest movers are city-years with a sizeable anchored newcomer (COPE 2011, EFF 2016) | FALSIFIED | 2011 and 2016 cannot move (fallback record; no unanchored row at 2016, so both classes take the single δ); every move is at 2021, the largest Johannesburg's +0.5 through ActionSA (unanchored) |
+| P3 anchored newcomers' log score improves | CONFIRMED | +4.23 nats, sampling error 0.52 (2021); 2016 identical |
+| P3 unanchored newcomers' log score worsens by no more than its sampling error | FALSIFIED | -2.58 nats against a sampling error of 0.70 |
+| P4 ActionSA 2021 band covers the real result | CONFIRMED | 0.69% to 22.18% covers 18.12% (list) and 16.05% (combined) |
+| falsifier: anchored newcomers score worse under arm S | not triggered | +4.23 |
+
+`newness_width` ships as `"by_anchor"` in the code at `853c83f`; whether arm S is published is the owner's decision after the blind review. The site draws, the freeze and the canonical forecast artefacts were not regenerated.
+
+**What moved with the committed history.** Only 2021 rows changed. ITERATING rule 8's marked tables are re-pasted (claimed ranks 4-12 n 124 → 125, mean PIT 0.458, PIT coverage 46 / 77 / 83%, probit-SD 1.443; the 2021 cycle `sd(z)` 3.705 → 3.744; the vote-error totals by at most 0.02pp). `score.chi2_clustered` on `claimed`, R = 64: second order 16.95 against 11.68, rejecting in 62 of 64 randomisations (was 64 of 64), so not established by the function's own rule, while first order still rejects in 64 of 64; the two orders now disagree on `claimed`. `reference`: 13.87 against 14.05, 23 of 64 second order, 30 of 64 first. `test_scored_universe` records both verdicts per population.
+
+**`test_drawer` goldens re-recorded.** With `newness_width = "single"` the fixture reproduces the previous goldens to 5e-5pp; the movement is the split (MK p5 / p95 1.43 / 24.11 → 2.13 / 21.16; ANC 17.71 / 29.30 → 18.16 / 29.07).

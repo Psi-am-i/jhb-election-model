@@ -881,6 +881,10 @@ round estimates a feature from the record, that feature leaves the check.
      artefact.
    * **Cycle.** Ranks 4-12 `sd(z)` on `reference` is no longer monotone in the
      cycle (table below the vote table); 2021 remains the widest.
+   * **Re-pasted 2026-10-16 from the arm-S `history.json`** (`853c83f`, the
+     newcomer δ by anchor class, MODEL-LOG §1.314). Only 2021 rows moved:
+     claimed ranks 4-12 n 124 → 125, 2021's cycle `sd(z)` 3.705 → 3.744, and
+     the vote-error totals by at most 0.02pp.
 
    <!-- CHECKED-AGAINST-ARTEFACT: data/processed/history.json, claimed columns.
         tests/test_calibration_report.py::test_the_documented_figures_match_the_committed_artefact
@@ -891,13 +895,13 @@ round estimates a feature from the record, that feature leaves the check.
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
    | ranks 1-3 | 72 | 0.477 | 50% | 81% | 89% | 1.178 |
-   | ranks 4-12 | 124 | 0.458 | 44% | 77% | 83% | 1.450 |
+   | ranks 4-12 | 125 | 0.458 | 46% | 77% | 83% | 1.443 |
 
    | twenty-four-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | -16.32pp | 242.16pp |
-   | ranks 4-12 | -5.42pp | 133.06pp |
-   | ranks 13+ | +16.31pp | 29.66pp |
+   | ranks 1-3 | -16.33pp | 242.17pp |
+   | ranks 4-12 | -5.44pp | 133.04pp |
+   | ranks 13+ | +16.32pp | 29.66pp |
    | phantom (parties that did not stand) | +5.44pp | — |
 
    <!-- CYCLE-SPLIT-CHECKED: data/processed/history.json, `reference` ranks 4-12
@@ -910,7 +914,7 @@ round estimates a feature from the record, that feature leaves the check.
    |---|---|
    | 2011 | 1.542 |
    | 2016 | 1.304 |
-   | 2021 | 3.705 |
+   | 2021 | 3.744 |
 
    **BOTH TABLES ARE NOW MEASURED ON TWENTY-FOUR CITY-YEARS (re-quoted
    2026-09-29 from the committed `history.json`, the F9 after-run, MODEL-LOG §1.280).** They were nine until §1.70,
