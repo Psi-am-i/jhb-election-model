@@ -30363,3 +30363,62 @@ Arm K (a two-sided width per class: anchored up 0, down 0.911; unanchored up 1.2
 **What moved with the committed history.** Only 2021 rows changed. ITERATING rule 8's marked tables are re-pasted (claimed ranks 4-12 n 124 → 125, mean PIT 0.458, PIT coverage 46 / 77 / 83%, probit-SD 1.443; the 2021 cycle `sd(z)` 3.705 → 3.744; the vote-error totals by at most 0.02pp). `score.chi2_clustered` on `claimed`, R = 64: second order 16.95 against 11.68, rejecting in 62 of 64 randomisations (was 64 of 64), so not established by the function's own rule, while first order still rejects in 64 of 64; the two orders now disagree on `claimed`. `reference`: 13.87 against 14.05, 23 of 64 second order, 30 of 64 first. `test_scored_universe` records both verdicts per population.
 
 **`test_drawer` goldens re-recorded.** With `newness_width = "single"` the fixture reproduces the previous goldens to 5e-5pp; the movement is the split (MK p5 / p95 1.43 / 24.11 → 2.13 / 21.16; ANC 17.71 / 29.30 → 18.16 / 29.07).
+
+## 1.315 What reaches the simulated vote at Johannesburg 2026: pool turnout and pool size move no mean share; the page's turnout control is a conditional the model cannot produce by re-run (2026-10-16)
+
+Pre-registration: `prereg/2026-10-16-reaches-the-vote.md` (`6a19b84`, before any run).
+Runs: tree `6a19b84`, Johannesburg 2026, 2,000 draws per arm, seed 20261104 paired by
+draw index (sampling scale from seed 20261105), `PYTHONHASHSEED` 0, `run_model` in
+process with `run_dir` outside `data/`; nothing under `data/` written.
+
+**Measured (change against the paired baseline; SE is the paired SE).**
+
+| change | largest move in a mean list share (parties > 1%) | largest move in mean seats | ward favourites changed |
+|---|---|---|---|
+| Black African pool turnout band +5 points | DA +0.011 points (SE 0.006) | ANC −0.035 (SE 0.013) | 1 |
+| all four bands +5 points | ANC −0.005 points | ANC −0.05 | 0 |
+| Black African pool registered ×1.2 | ActionSA −0.002 points | ANC −0.02 | 0 |
+| turnout correlation 0.63 → 0 | DA +0.015 points | ANC +0.19 (SE 0.05); DA seat p5-p95 +4, DA share sd +18.5% | 0 |
+| VD turnout ×1.15 in the higher-turnout half of VDs | 0.0000 for every party | ANC +0.47 (SE 0.02), DA −0.20 | 1 (ward 120, DA → ANC) |
+| capacity margin 0.98 → 0.5 | MK +0.0008 points | 0.003 | 0 |
+| capacity margin → 0.2 (guard) | DA −6.22, ANC −3.65 points | DA −16.7 | 18 |
+| ward_noise_sd 0.10 → 0 | list shares identical | ANC +0.34 (SE 0.04) | 0 |
+| level_shrink 0.35 → 0 (positive control) | DA +1.79, ANC +1.51 points | DA +5.4, ANC +2.2 | 2 |
+
+Re-weighting the baseline draws to Black African turnout +5 points (`reweight.turnout_tilt`,
+Kish 516): DA −4.10 seats (SE 0.44), ANC +1.58. On the published 5,000 draws the same tilt
+gives DA −4.20 (Kish 1,294).
+
+**Mechanism.** Pool turnout and pool size enter only the IPF matrix, whose party margin
+is fixed to the centres (montecarlo.py:3298), and κ re-pins each party's mean drawn
+share to its centre (:4842); VD turnout and the roll enter only the weights
+`solve_and_predict` distributes a fixed citywide target over (:1573, :1583, :7402). In
+these runs the IPF re-fit at the shifted modal turnout did the compensating, and κ moved
+by at most 0.0007. The capacity cap binds only below a margin of about 0.27 (the DA asks
+0.265 of its capacity at the baseline).
+
+**The pre-registration scored.** P0, P2, P3, P4, P7, P8, P9, P10, P11 held. P1 held on the
+mean and was falsified on the mechanism (κ did not move in the compensating direction;
+the IPF compensated first). P5 falsified for the DA's width: with pool turnouts
+independent, the DA's composition variance exceeds its own budget, its own term floors
+at zero (`width_floored` 0.0094 against 0.0004) and its spread exceeds the record. P6 held
+on the mean; falsified on the favourites (1, not 2-20, and towards the ANC) and on the
+ANC's seat sign (+0.47, predicted ≤ 0). Mean ward wins: ANC 70.42 → 70.93, DA 44.68 → 44.01.
+
+**Consequences for reader text** (census in the session scratchpad, `census.md` §2d):
+the turnout note on /your-forecast/ ("checked against a full re-run … agreed") rests on
+§1.271, measured under the incumbent law, and is not true of the shipped law; the
+methodology's by-election weight (40%), heavy tails, SACP hand-sizing, the IFP fifth
+pool, "national results downward", and "removing the turnout link changed the spread
+very little" do not describe the shipped model; /your-forecast/'s MK "35% / 65%" is
+neither the judgements file's 0.9 nor what is read (MK's own national fit). The
+DA/ActionSA "mild offset" is not in the citywide draws: corr(DA, ActionSA list share)
++0.057 over the 2,000 baseline draws.
+
+**Not run.** A shift to the drawn pool turnout with the band's mode held (the §1.271
+wrapper on `correlated_triangular`), where κ rather than the IPF would carry the
+compensation. The per-draw overhang count in the VD-turnout arm (not saved).
+
+## 1.316 Owner decision: the newcomer width by anchor class stays the default (2026-10-16)
+
+The owner chose `newness_width = "by_anchor"` (§1.314) over the single δ and over a declared ceiling on a newcomer's local/national ratio. Accepted with the unanchored log-score clause of P3 falsified (§1.314). The blind review's recommendation (a declared limit, no fitted change) was put to the owner unsplit beside the backtest.
