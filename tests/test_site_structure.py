@@ -605,7 +605,9 @@ def claim_colour_problems(html: str, css: str, codes) -> list[str]:
     """Every claim wears its own party's colour class and nothing else picks
     a party: the claims stylesheet reads --pc and names no party."""
     out = []
-    arts = re.findall(r'<article class="claim([^"]*)" data-party="([^"]+)">', html)
+    # the claim's anchor (`id`) follows `data-party` since the claim cards
+    # (2026-10-13); it is optional so a claim without one is still read
+    arts = re.findall(r'<article class="claim([^"]*)" data-party="([^"]+)"(?: id="[^"]*")?>', html)
     if not arts:
         out.append("no claims")
     for classes, party in arts:
@@ -628,7 +630,7 @@ def test_every_claim_wears_its_own_partys_colour_and_none_is_singled_out():
     assert claim_colour_problems(html, css, codes) == []
     assert '<body class="pg-claims ' in html
     # it can see: a claim in another party's colour, one with none, a party named
-    one = re.search(r'<article class="claim pc-(\w+)" data-party="\1">', html)
+    one = re.search(r'<article class="claim pc-(\w+)" data-party="\1"(?: id="[^"]*")?>', html)
     assert one
     wrong = "OTHER" if one.group(1) != "OTHER" else "DA"
     assert claim_colour_problems(html.replace(one.group(0), one.group(0).replace(f"pc-{one.group(1)}", f"pc-{wrong}"), 1), css, codes)
@@ -640,7 +642,7 @@ def verdict_problems(html: str, step_of) -> list[str]:
     """Every claim's badge carries the class its verdict's step names, and
     nothing else picks its colour."""
     out = []
-    badges = re.findall(r'<article class="claim pc-(\w+)" data-party="\1">.*?'
+    badges = re.findall(r'<article class="claim pc-(\w+)" data-party="\1"(?: id="[^"]*")?>.*?'
                         r'<span class="verdict ([^"]*)">([^<]+)</span>', html, re.S)
     if not badges:
         out.append("no verdict badges")

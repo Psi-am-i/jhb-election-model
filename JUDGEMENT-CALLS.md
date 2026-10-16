@@ -508,11 +508,7 @@ machinery cannot rot while it is switched off.
 
 **Since 2026-10-12 read only under `draw_law = "incumbent"`** (§A57); the shipped universal draw does not read it.
 
-**Plain — Large surprises are allowed.** Each party's simulated support is drawn
-with heavier tails than a bell curve, so a large miss in either direction comes
-up more often than a bell curve gives. The record does not fix how heavy.
-Lighter tails make extreme results rarer and scored the same against past
-elections; much heavier tails scored worse. It cannot be changed on [your forecast](your-forecast/).
+*(Its reader-facing Plain field moved to §A57 on 2026-10-16: the shipped draw is the universal law, which does not read this constant.)*
 
 **Where.** `montecarlo.py`
 
@@ -1013,7 +1009,7 @@ sets of metros; otherwise its by-elections count for nothing. By-elections are
 ward contests and the 2024 result was a national and provincial list vote, so
 this is the only test the record allows, and a weak one. On
 [your forecast](your-forecast/) you can make by-elections count not at all or
-fully.
+fully. For this forecast neither group passed, so by-elections do not move it.
 
 **Where.** `src/bye_value.py` measures; `byelections.size_class` and `byelections.BYE_CLASS_EDGE` define the classes for the test and for the model; `byelections.weighted_deltas`, `byelections.delta_pr` and `levels.trusted_ward_pr` are the deltas and their list-scale conversion, one definition each with the model's.
 
@@ -1058,6 +1054,13 @@ fully.
 
 
 ### §A57 · the universal draw (design 1j v4-L1) — 🟡
+
+**Plain — How far each party's support can move.** Each party's simulated
+support is drawn from a bell curve on a log scale, so its share is multiplied
+up or down. The curve is wider for a smaller party and for a party new to the
+city. Its width is measured from how far the model's expected shares missed in
+the past elections before this one. Part of each simulation's move is shared
+by all parties. It cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.make_drawer` (the draw, the calibration pass, the composition subtraction), `montecarlo.party_width`, `width_sigma`, `width_location`, `width_rho`, `pool_spec_centres`, `mean_conservation`; `src/width_record.py` (the record); scenario key `draw_law`.
 

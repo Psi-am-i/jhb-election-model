@@ -73,8 +73,15 @@ import reweight as R  # noqa: E402
 
 PROCESSED = ROOT / "data" / "processed"
 SUMMARY = PROCESSED / "forecast_summary.json"
-#: PLAN.md build step S2's budget for the file, gzipped.
-BUDGET_GZIP_BYTES = 1_500_000
+#: The draw file's budget, gzipped. Raised from PLAN step S2's 1.5 MB, which
+#: stated no rationale (orchestrator decision 2026-10-16, MODEL-LOG §1.312;
+#: the owner may reverse it before live). The page reads every party's vote
+#: in every draw, and since §1.305 every small party draws a real vote, so
+#: the vote blocks no longer compress to mostly zeros. No exact encoding
+#: measured fits 1.5 MB (dropping all-zero columns saves about 108 bytes;
+#: byte-shuffling reaches about 1.92 MB and changes every reader). 2.5 MB is
+#: about 2 s at 10 Mbit/s.
+BUDGET_GZIP_BYTES = 2_500_000
 PUBLISHED = {"deduct": PROCESSED / "seat_draws.csv",
              **{r: PROCESSED / f"regime_{r}_seat_draws.csv"
                 for r in ("expand", "level", "cap")}}

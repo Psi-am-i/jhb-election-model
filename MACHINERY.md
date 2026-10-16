@@ -679,11 +679,11 @@ forecast path, `state` (`live`, `off` or `absent`) and, for every non-live claim
 a `probe` (a function in `tests/test_model_claims.py` returning True when the
 declared state holds). The test imports every symbol, runs every probe (no model
 run), and asserts the pages the register lists and the pages its claims cite are
-the same set. Known non-live entries: by-election weights are 0.0 at 2026
-(`data/processed/bye_value.json`); the heavier-tails text describes the retired
-Student-t draw (shipped `draw_law = "universal"`); the IFP pool exists only in
-`pools_2026_simulation.json`; ActionSA is sized by the local/national blend
-(`levels.SPINE_K`); the roll is IEC ward totals apportioned to voting districts.
+the same set. The non-live entries found when it was written (the by-election
+tilt and input, the heavier-tails draw, the IFP pool, ActionSA on the national
+number alone, the roll per voting district) were corrected on the pages on
+2026-10-16 and are now `live`, each keeping its probe; each entry's `note` says
+what the page said before.
 To add a claim, add a `[[claim]]` and, if it is not live, its probe. The register
 records the pages; correcting a page is a separate edit.
 

@@ -56,7 +56,7 @@ export const FORECAST_NAME = "whysoserious.city forecast";
 
 // A by-election cell's name: the published weight, none, or full.
 export function cellName(c) {
-  if (c.path === PUBLISHED_CELL) return "Partly, as the forecast does";
+  if (c.path === PUBLISHED_CELL) return "As the forecast does";
   return c.w_bye === 0 ? "Not at all" : c.w_bye === 1 ? "Fully" : "Weight " + c.w_bye;
 }
 

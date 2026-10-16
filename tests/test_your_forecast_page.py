@@ -1015,7 +1015,9 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     file rewritten (or one crosswalk), each seen and each quiet when reverted:
     (1) one VD's party votes in the preceding file raised: exactly the wards
     that VD's parts lie in change their ranges; (2) a split VD's
-    ``part_registered`` changed: both its wards' priors and ``e`` move; (3) a
+    ``part_registered`` changed: its one nonzero part scaled, no ward's prior
+    moves (the VD is wholly in that ward); its roll moved to its other ward,
+    both wards' priors and ``e`` move; (3) a
     stood-both swing pushed past its bin's greatest: that bin's extreme moves,
     no other; (4) a party's ward rows deleted in one ward's VDs: its range
     there becomes its citywide one; (5) a party deleted from the preceding
@@ -1099,24 +1101,47 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     with tempfile.TemporaryDirectory() as t:
         cells, _party = _ranges_from(b, wards, roster, elections=_mirror(t, {prev: rows}))
     assert _changed(cells, b["ward_ranges"]) == vd_wards[vd]
-    # (2) a split VD's part_registered_2026 changed in a copied crosswalk
+    # (2) a split VD's part_registered_2026 changed in a copied crosswalk.
+    # Since the whole-VD assignment (185fa78, archive/vd-ward-assignment-2026/)
+    # a split VD has a nonzero part in exactly one of its wards, and `_join`
+    # apportions its votes by part over the VD's total, so scaling the one
+    # nonzero part moves no ward: (2a). Moving the VD's registration from its
+    # ward to another of its wards moves both: (2b).
     with tgt.crosswalk.open(encoding="utf-8", newline="") as fh:
-        xw = list(csv.DictReader(fh))
-    split = next(r["VD_Number"] for r in xw if r.get("is_split") == "Y" and r["VD_Number"] in local_by_vd)
-    both = {r[f"Ward_{target}"] for r in xw if r["VD_Number"] == split}
-    first = next(r for r in xw if r["VD_Number"] == split)
-    first["part_registered_2026"] = str(int(first["part_registered_2026"]) * 2 + 1)
-    e0 = b["e"]
-    with tempfile.TemporaryDirectory() as t:
-        proc = Path(t) / "processed"
-        proc.mkdir()
-        _write_panel(proc / tgt.crosswalk.name, xw)
-        h0 = build_make.ward_priors(city, target, wards)["h"]
-        h1 = build_make.ward_priors(city, target, wards, processed=proc)["h"]
-        e1, _ = build_make.expected_ward_shares(city, target, wards, processed=proc)
+        xw0 = list(csv.DictReader(fh))
+    split = next(r["VD_Number"] for r in xw0 if r.get("is_split") == "Y" and r["VD_Number"] in local_by_vd
+                 and sum(1 for x in xw0 if x["VD_Number"] == r["VD_Number"]) == 2)
+    mine = [i for i, r in enumerate(xw0) if r["VD_Number"] == split]
+    both = {xw0[i][f"Ward_{target}"] for i in mine}
     assert len(both) == 2
-    assert {w for w in wards if h0.get(w) != h1.get(w)} == both
-    assert all(e1[w] != e0[w] for w in both)
+    held = [i for i in mine if int(xw0[i]["part_registered_2026"]) > 0]
+    assert len(held) == 1, "a split VD holds its whole roll in one ward"
+    e0 = b["e"]
+
+    def _priors(xw):
+        with tempfile.TemporaryDirectory() as t:
+            proc = Path(t) / "processed"
+            proc.mkdir()
+            _write_panel(proc / tgt.crosswalk.name, xw)
+            return (build_make.ward_priors(city, target, wards, processed=proc)["h"],
+                    build_make.expected_ward_shares(city, target, wards, processed=proc)[0])
+    h0 = build_make.ward_priors(city, target, wards)["h"]
+    # (2a) the held part doubled: the VD is still wholly in that ward
+    xw = [dict(r) for r in xw0]
+    xw[held[0]]["part_registered_2026"] = str(int(xw[held[0]]["part_registered_2026"]) * 2 + 1)
+    h1, _e1 = _priors(xw)
+    assert {w for w in wards if h0.get(w) != h1.get(w)} == set()
+    # (2b) the roll moved to the VD's other ward: both wards' priors and e move
+    xw = [dict(r) for r in xw0]
+    a, z = held[0], next(i for i in mine if i != held[0])
+    xw[a]["part_registered_2026"], xw[z]["part_registered_2026"] = \
+        xw[z]["part_registered_2026"], xw[a]["part_registered_2026"]
+    h2, e2 = _priors(xw)
+    assert {w for w in wards if h0.get(w) != h2.get(w)} == both
+    assert all(e2[w] != e0[w] for w in both)
+    # reverted: the unchanged crosswalk gives the served priors
+    h3, _e3 = _priors(xw0)
+    assert h3 == h0
     # (3) one stood-both swing pushed past its bin's greatest, by rewriting the
     # later file of a transition (one whose later election starts no pair, of
     # another metro), read by swing_panel from a mirror

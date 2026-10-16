@@ -206,13 +206,14 @@ def test_the_register_was_read_in_full():
             what="claims parsed", denominator="[[claim]] tables in the file text")
     assert 20 <= tables <= 200, tables
     assert {c["state"] for c in doc["claim"]} <= set(STATES)
-    # the register states non-live claims truthfully: each of the known ones is there
+    # the register states the known claims truthfully: the five pages found
+    # non-live were corrected on 2026-10-16, and each correction is there, live
     by_id = {c["id"]: c for c in doc["claim"]}
-    for cid, state in (("byelections-tilt-expected-share", "off"),
-                       ("heavier-tails", "absent"),
-                       ("ifp-extra-pool", "absent"),
-                       ("actionsa-built-on-the-smaller-number", "absent"),
-                       ("roll-per-vd-unadjusted", "absent")):
+    for cid, state in (("byelections-can-tilt-and-do-not", "live"),
+                       ("log-scale-bell-curve", "live"),
+                       ("four-census-pools", "live"),
+                       ("starting-level-blends-local-and-national", "live"),
+                       ("roll-ward-snapshot-whole-vds", "live")):
         assert by_id[cid]["state"] == state, (cid, by_id[cid]["state"])
 
 
@@ -252,8 +253,8 @@ def test_the_detector_sees_each_fault():
 
 def test_a_mutated_live_probe_turns_the_register_red():
     """Mutation of the thing a claim speaks of: point the probes at a scratch
-    tree whose by-election weights are non-zero and the five claims declaring
-    `off` on that evidence go red; pointed back, the register is clean."""
+    tree whose by-election weights are non-zero and every claim resting on
+    that evidence goes red; pointed back, the register is clean."""
     global ROOT
     real = ROOT / "data" / "processed" / "bye_value.json"
     if not real.exists():

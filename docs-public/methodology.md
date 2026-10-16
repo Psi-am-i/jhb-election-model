@@ -37,9 +37,14 @@ the majority at {{majority}}.
 
 ### 1. Count who can vote, and where
 
-Before polling day the Electoral Commission publishes how many people are
-registered in each of Johannesburg's {{n_vds}} voting districts. That count is
-the model's foundation. It is not estimated, projected or adjusted.
+The Electoral Commission publishes how many people are registered in each
+ward. The forecast uses its count of registered voters as at 26 September 2026.
+The Commission counts each voting district in a single ward and publishes no
+figure per voting district. So the model places each of Johannesburg's
+{{n_vds}} voting districts wholly in the ward that best reproduces the
+Commission's totals, and shares each ward's total among its voting districts in proportion
+to their registration when the wards were drawn. That roll is the model's
+foundation.
 
 ### 2. Sort those voters into pools
 
@@ -68,9 +73,7 @@ racial one. The better input is
 **home language by ward**, which Stats SA holds but does not publish in the
 ward product; we have requested it. Income, employment and dwelling type would
 also help, and are also request-only, since at ward level they can identify
-households. Until those arrive the model carries one extra pool that the census
-cannot see, identified from a party's own geography (the constituency the IFP
-stands on) and labelled for what was measured.
+households. Until those arrive the forecast uses the four census pools.
 
 **How big is each pool?** Each ward's registered voters, split by that ward's
 composition, summed across all 135 wards. The census gives the *proportions*
@@ -100,13 +103,18 @@ Two things are drawn:
 
 - **How each party's support moves.** Parties usually do worse locally than
   nationally. The model measures the gap for each party from its own
-  national-to-local transitions on record.
+  national-to-local transitions on record. A party's starting level blends its
+  national result, converted down to local, with its last local result: the
+  less record a party has of that gap, the more its local result counts.
+  ActionSA polled {{hist_asa_pr_2021}} in this city's 2021 local election and
+  {{hist_asa_npe_2024}} in the city in the 2024 national election, and its
+  starting level draws on both.
 - **Turnout, per pool.** It is the one unknown quantity, and it is drawn from
   what turnout has done in that city before. In 2021 every pool's turnout was
   the lowest on record, so the range allows falls as well as rises.
 
-Before the draws, recent by-elections tilt each party's expected share (see
-*The judgement calls*, below).
+Recent by-elections can tilt each party's expected share before the draws. In
+this forecast they do not (see *The judgement calls*, below).
 
 ### 5. Handle parties that were not there last time
 
@@ -117,7 +125,9 @@ new party, and they behave differently:
   vote: Zuma leaving the ANC for MK, Malema for the EFF, Mashaba leaving the DA
   for ActionSA. A split starts with a leader, a machine and a share of an
   existing vote. It is sized as a fraction of its parent, from what previous
-  splits took.
+  splits took. A split that has stood in a national election since, as MK did
+  in 2024, takes where its voters are from that result by ward, not from its
+  parent.
 - An **entrant** is a name on a ballot with none of that. Most new parties are
   entrants, and most get almost nothing.
 
@@ -142,8 +152,11 @@ between elections, even when *how much* it has swings widely.
 ### 7. Count both ballots and apply the law
 
 Voters split their tickets, so the ward ballot and the party ballot are counted
-separately, each party's split measured from its own past behaviour. Ward
-winners are called race by race. Then the statutory formula, the arithmetic the
+separately, each party's split measured from its own past behaviour. A party
+gets ward votes only in the wards where it has a candidate. A party with ward
+candidates and no party list is not on the party ballot; a ward it wins is its
+seat, and the list seats are shared among the other parties over the seats that
+remain. Ward winners are called race by race. Then the statutory formula, the arithmetic the
 Electoral Commission uses, allocates every seat, excessive seats included.
 
 ### 8. Do it {{n_draws}} times
@@ -221,11 +234,11 @@ These are choices about how the model works that the data did not make for us. E
 
 **No poll is used.** There is no designed rule yet for how several polls combine. With polls in, the forecast moves toward the polls the rules admit; what that was worth when measured is under *Where polls fit*, below. On [your forecast](your-forecast/) you can pick one poll at a time and choose how far to believe it.
 
-**Large surprises are allowed.** Each party's simulated support is drawn with heavier tails than a bell curve, so a large miss in either direction comes up more often than a bell curve gives. The record does not fix how heavy. Lighter tails make extreme results rarer and scored the same against past elections; much heavier tails scored worse. It cannot be changed on [your forecast](your-forecast/).
-
 **The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. Without the cut, forecasts of past elections gave the largest parties too much and the middle-sized parties too little; adding it was the largest single improvement the model has had. The smallest parties are now forecast slightly too high. It cannot be changed on [your forecast](your-forecast/).
 
-**How much recent by-elections count.** A party's swing in the by-elections held since the last local election can move its expected share. How far is measured, not chosen. We checked whether by-election swings before the 2024 national election predicted that election's result better than the model did without them, separately for small parties and larger ones. A group of parties gets weight only if the improvement held when each metro was left out in turn and across resampled sets of metros; otherwise its by-elections count for nothing. By-elections are ward contests and the 2024 result was a national and provincial list vote, so this is the only test the record allows, and a weak one. On [your forecast](your-forecast/) you can make by-elections count not at all or fully.
+**How much recent by-elections count.** A party's swing in the by-elections held since the last local election can move its expected share. How far is measured, not chosen. We checked whether by-election swings before the 2024 national election predicted that election's result better than the model did without them, separately for small parties and larger ones. A group of parties gets weight only if the improvement held when each metro was left out in turn and across resampled sets of metros; otherwise its by-elections count for nothing. By-elections are ward contests and the 2024 result was a national and provincial list vote, so this is the only test the record allows, and a weak one. On [your forecast](your-forecast/) you can make by-elections count not at all or fully. For this forecast neither group passed, so by-elections do not move it.
+
+**How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far the model's expected shares missed in the past elections before this one. Part of each simulation's move is shared by all parties. It cannot be changed on [your forecast](your-forecast/).
 
 **Turnout moves together across population groups.** In each simulation, turnout in the four population groups rises and falls together, to one degree for every pair: the average of how closely each pair's turnout moved between past local elections in the metros. Black African, Coloured and White turnout have moved closely together, and Indian/Asian turnout much less. Separate figures for each pair have not been tried. Removing the link was tested and changed the forecast's spread very little, and why it matters so little is not yet explained. It cannot be changed on [your forecast](your-forecast/).
 
@@ -247,17 +260,6 @@ These are choices about how the model works that the data did not make for us. E
   August 2026 and have no answer yet. A 2021 amendment and the Commission's own
   handling of Laingsburg 2021 settle the arithmetic, and the forecast applies
   it.
-- **The model runs from national results downward.** Every party's starting
-  level comes from the last *national* election, converted down to local. That
-  suits a nationally organised party and not one whose support is local; tested
-  on 2021, the two routes are close to even, five parties to four. ActionSA is
-  the sharpest case: it polled {{hist_asa_pr_2021}} in this city's 2021 local election and
-  {{hist_asa_npe_2024}} nationally in 2024, and the forecast is built on the smaller number.
-  Local formations, such as a ratepayers' association or a party that exists in
-  one metro, are carried poorly for the same reason. The fix is to draw a
-  party's level from its local and national records together, weighted by which
-  has been more informative for a party like it. It is the largest open item on
-  the model.
 - **No poll is used in the forecast.** Polls were an input until 12 September
   2026 and are not one now. Why they were taken out, what they were worth, and
   what is planned are under *Where polls fit*, below.

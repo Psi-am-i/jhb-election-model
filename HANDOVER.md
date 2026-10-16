@@ -5,7 +5,16 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
+> ## ⛔ STATE AT 2026-10-16 (branch `site-r11`): THE SITE REBUILD ON THE 16 OCTOBER FORECAST IS BLOCKED ON TWO CLAIMS (OWNER).
+>
+> `remediation` (3357a5e) is merged and `data/processed` copied from the main
+> tree. `render_sheet.py` refuses on the new run (MODEL-LOG §1.313): the Soweto
+> verdict, and the 490,000 claim's `since` box. `site/` is the 11 October
+> build; nothing was uploaded. What moved, the draft "Since then" notes and the
+> resume sequence: `audits/2026-10-11-model-round/STEP11-CHECKPOINT-2.md`. The
+> eleven ledger retirements a build needs: `step11_retire.py` beside it.
+>
+> ## STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
 >
 > **Sharing a reader's forecast (2026-10-03, branch `remediation`).** Built from
 > `audits/2026-10-03-share-design/` (DESIGN.md, DECISIONS.md): section 2's

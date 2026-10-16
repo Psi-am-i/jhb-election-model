@@ -1007,14 +1007,6 @@ reviewed = "2026-09-17"
 page = "methodology.html"
 
 [[audit.fixed]]
-value = "five"
-context = "the two routes are close to even, five parties to four. ActionSA is the"
-kind = "history"
-source = "MODEL-LOG — the two routes tested at 2021"
-reviewed = "2026-09-17"
-page = "methodology.html"
-
-[[audit.fixed]]
 value = "12 September 2026"
 context = "Polls were an input until 12 September 2026 and are not one now"
 kind = "history"
@@ -1547,12 +1539,14 @@ source = "Proclaimed by the Minister of Cooperative Governance and Traditional A
 reviewed = "2026-10-03"
 page = "index.html"
 
+# The roll's snapshot date on /methodology, step 1 (2026-10-16): the IEC's
+# per-ward registration page labels its one snapshot with this date.
 [[audit.fixed]]
-value = "40%"
-context = "at a weight of 40%"
-kind = "judgement"
-source = "JUDGEMENT-CALLS.md §A35 (the by-election blend weight, a judgement call)"
-reviewed = "2026-10-02"
+value = "26 September 2026"
+context = "registered voters as at 26 September 2026"
+kind = "history"
+source = "archive/iec-registration-2026-09-26/README.md (the IEC's 'Registered voters as at 26 September 2026'; inputs_preflight.roll_snapshot)"
+reviewed = "2026-10-16"
 page = "methodology.html"
 
 [[audit.fixed]]
@@ -1568,14 +1562,6 @@ value = "75%"
 context = "it inherits 75% of the other"
 kind = "judgement"
 source = "JUDGEMENT-CALLS.md §O1 (the merger retention, a judgement call)"
-reviewed = "2026-10-02"
-page = "methodology.html"
-
-[[audit.fixed]]
-value = "40%"
-context = "others more than 40%"
-kind = "judgement"
-source = "JUDGEMENT-CALLS.md §A35 (the by-election blend weight, a judgement call; the per-party alternative of §A33 is compared with it)"
 reviewed = "2026-10-02"
 page = "methodology.html"
 
