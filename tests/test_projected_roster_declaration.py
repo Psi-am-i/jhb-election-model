@@ -399,7 +399,10 @@ def test_run_model_prints_the_declaration_without_verbose():
     would satisfy the weaker check.
     """
     out = _run_capturing("projected", {"ANC", "DA", "MK", "EFF"})
-    assert "PROJECTED" in out and "4" in out, (
+    # The head line names the roster's SOURCE (2026-10-16): PROJECTED for a
+    # projection, DECLARED for a list typed into the judgements file. Which
+    # one this stub reaches is the spec's `roster_source`.
+    assert ("PROJECTED" in out or "is DECLARED in" in out) and "4" in out, (
         f"`run_model(verbose=False)` did not announce a projected roster. The "
         f"live forecast is not verbose, so a declaration gated on it is a "
         f"declaration nobody sees.\n\n{out}")

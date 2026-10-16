@@ -370,8 +370,11 @@ def test_a_tied_group_records_its_one_shared_shock():
         draws = 50
         draw = M.make_drawer(scenario, base_city_d, centres, index,
                              M.DrawStreams(f"joburg|2026|{SEED}", draws))
-        for _ in range(draws):
-            draw()
+        for d in range(draws):
+            draw(d)
+            # as run_model does: the draw's pool turnouts, which the
+            # preference draw no longer reads (2026-10-16)
+            draw.pool_turnouts(d)
     finally:
         M.correlated_triangular = real
 

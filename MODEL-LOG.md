@@ -30422,3 +30422,123 @@ compensation. The per-draw overhang count in the VD-turnout arm (not saved).
 ## 1.316 Owner decision: the newcomer width by anchor class stays the default (2026-10-16)
 
 The owner chose `newness_width = "by_anchor"` (§1.314) over the single δ and over a declared ceiling on a newcomer's local/national ratio. Accepted with the unanchored log-score clause of P3 falsified (§1.314). The blind review's recommendation (a declared limit, no fitted change) was put to the owner unsplit beside the backtest.
+
+## 1.317 Turnout enters the vote (owner decision): the citywide vote is the sum of the districts' turnout-adjusted votes; with counted turnout fed in, the list error rises (2026-10-16)
+
+Owner decision, 2026-10-16: turnout changes the vote the way it does in reality; the
+mechanism that redistributed a fixed citywide total over the districts is deleted. Owner's
+call on the reference: the preliminary vote is at the model's own turnout centre (each
+pool's band mode, and the district projection's blend centre). Pre-registration
+`prereg/2026-10-16-turnout-enters-the-vote.md` (`cfd70bf`, before any run or code change).
+Code `4fb8002`; mechanism MACHINERY.md "Turnout enters the vote"; the open choices
+JUDGEMENT-CALLS.md §V1-§V7. The three locks of §1.315 are gone: the pool matrix is fitted
+at the reference (read from `pools.pool_counts`, not from the band), the calibration pass
+reads no turnout, and `solve_and_predict` places each ballot at reference weights while the
+votes are the districts' sums at the drawn turnout. `composition_variance` and `v_comp` are
+deleted; the width record measures residuals about centres carried to each earlier
+target's realised pool turnout (`width_record.case_for`). No `pools.py` change and no spec
+re-emit (the district composition and the reference are computed at run time from the
+`pool_counts` object `run_model` already built); the width record was re-emitted in its
+three variants.
+
+Runs: 24 city-years, `compare_history.run_city_year` in process (the canonical scorer),
+1,000 draws, seed 20261104 per city-year in every arm, outputs in the session scratchpad
+(`turnout-build/out/`, runner `turnout-build/arm.py`). C-P and C-O on `cfd70bf`, N arms on
+`4fb8002`. C-P reproduces the history of `853c83f` at every city-year (same code path).
+Oracle arms (C-O, N-Opool, N-Ovd) read the target's own turnout and are diagnostics only.
+
+**Measured, pooled over the 24 city-years** (list MAE in points of list share, mean over
+city-years; wards called wrong and seats given to the wrong party summed):
+
+| arm | list MAE | better than its control at | wards wrong | wrong-party seats |
+|---|---|---|---|---|
+| C-P (current code, projected) | 3.212 | — | 79 | 356 |
+| C-O (current code, ORACLE counted district turnout, pool band at realised) | 3.221 | — | 71 | 357 |
+| N-P (new code, projected) | 3.152 | 15 of 24 (against C-P) | 78 | 357 |
+| N-Opool (new code, ORACLE realised pool turnout, ecological) | 3.824 | 8 of 24 (against N-P) | 89 | 382 |
+| N-Ovd (new code, ORACLE realised counted district turnout) | 3.631 | 6 of 24 (against N-P) | 73 | 374 |
+
+By cycle (list MAE, mean of 8): 2011 C-P 5.559, N-P 5.573, N-Opool 6.041, N-Ovd 5.883; 2016
+1.098, 0.994, 2.144, 1.776; 2021 2.981, 2.890, 3.287, 3.233. Per city-year rows: scratchpad
+`turnout-build/table.py` over `out/`.
+
+**The canonical backtest** (`compare_history`, 1,000 draws, `4fb8002`, written to
+`data/processed/history.*`; the previous one, `853c83f`, kept in
+`.claude/turnout-2026-10-16/old/`): identical to arm N-P at every city-year. List MAE 3.212
+→ 3.152, wards wrong 79 → 78, wrong-party seats 356 → 357, CRPS total 542.7 → 542.5. Largest
+list-MAE moves: Nelson Mandela Bay 2016 1.102 → 0.570, 2021 3.278 → 2.895, Cape Town 2016
+0.502 → 0.258; Tshwane 2016 1.247 → 1.423 the largest rise.
+
+**What moved the N-P means.** The drawn pool turnout has the band's mean, not its mode, and
+that skew now reaches the vote (JUDGEMENT-CALLS §V6). The DA's mean list share fell and the
+ANC's rose at 20 of 24 city-years, each within 0.25 points of the pre-registered pool
+arithmetic at 24 of 24.
+
+**With counted turnout fed in, the list error rises.** N-Ovd moves the DA up 1-3 points and
+the ANC down at the 2016 targets (Johannesburg 2016: DA 39.9 → 41.0 against an actual 38.5;
+Cape Town 2016: 66.8 → 68.7 against 66.8; Nelson Mandela Bay 2016: 47.5 → 50.0 against
+46.7); the realised turnout fell less where the DA is strong than the projection said, and
+the actual DA share did not follow. N-Opool does the same and more. Three mechanisms
+explain this and the arms do not separate them: (i) the ecological pool turnout is biased
+(ruled out as the whole explanation, since counted district turnout also worsens); (ii)
+within-pool preference covaries with turnout (the voters who stay home differ from those
+who vote); (iii) the centre already carries the cycle's local-election turnout behaviour
+through θ, so the deviation from the projection is counted twice. The measurement that
+would separate (ii) from (iii): the same N-Ovd arm on centres whose θ is estimated on
+turnout-standardised shares (θ that carries no turnout), which does not exist.
+
+**Johannesburg 2026** (5,000 draws, seed 20261104, `run_model` in process; arrays in the
+scratchpad `turnout-build/jhb/old` at `cfd70bf` and `jhb/new` at `4fb8002`; nothing under
+`data/` written; site draws, freeze and forecast artefacts not regenerated). Mean list
+share, old → new: DA 26.06 → 25.76, ANC 23.75 → 23.93, ActionSA 11.69 → 11.73, EFF 11.01 →
+11.06, MK 9.04 → 9.12, PA 5.95 → 5.85. Mean seats: ANC 72.04 → 72.50, DA 69.73 → 68.94,
+EFF 30.22 → 30.35, ActionSA 27.18 → 27.29, MK 23.35 → 23.57, PA 15.78 → 15.49. Seat
+p5-p95: ANC 53-83 both; DA 53-87 → 50-87; EFF 18-46 → 21-42; ActionSA 17-40 → 20-36; MK
+6-57 → 6-56; PA 5-33 → 5-34. P(largest alone): ANC 56.1% → 60.6%, DA 35.9% → 31.8%, MK
+3.6% → 3.7%; a tie for most seats 7.8% → 7.1%. List-share sd: DA 3.77 → 4.15, EFF 3.11 →
+2.33, ActionSA 3.04 → 2.19 points (the re-fitted width record's σ at a 10% centre fell 0.346
+→ 0.271 for target 2026). Ward favourites: one of 135 changed (ward 82, PA → DA, both near
+0.5). `turnout_moved`: DA −0.26, ANC +0.18, PA −0.12 points. `district_ipf` worst pool-row
+error 0.056 over 10,000 splits (60-round cap reached on most).
+
+**The fixture** (`tests/test_turnout_enters_the_vote.py`, constructed): baseline X 0.45 and
+A's turnout 0.5 → 0.3 gives X = 0.3625 within 1e-9. Each lock put back by hand turned the
+module red (2 of 4 failing) and reverting turned it green (4 of 4): the pool votes read
+from the band, X = 0.4500000000; the calibration pass and the preliminary vote weighted by
+drawn turnout, X = 0.3623554731; the citywide share solved back to the preliminary vote at
+drawn-turnout weights, X = 0.4500000000. The pre-registration predicted that each returns
+X to 0.45; the second does not (it applies turnout twice instead of cancelling it) and
+still turns the test red.
+
+**The pre-registration scored.** P1 held (largest C-O − C-P list-MAE move 0.093 at
+eThekwini 2011; wards called moved by at most 3). P2 held (signs at 20 of 24, every
+city-year within 0.25 of the arithmetic, pooled list MAE −0.060, wards wrong −1, wrong-party
+seats +1, DA sd at Johannesburg 2021 +1.8%). P3 FALSIFIED: N-Ovd's pooled list MAE is
+0.478 higher than N-P's, better at 6 of 24. P4 held (+0.672, better at 8). P5 falsified
+(N-Ovd against N-P: wards wrong 73 against 78, a pooled difference of 5, under the 10
+predicted; summed absolute difference 13). P6 held (every bound). P7 held on the values; its
+claim that each lock returns X to 0.45 held for two of three. The stop rule did not fire:
+N-P is not worse than C-P on list error and wrong-party seats together.
+
+**Debt, with a hypothesis (ITERATING.md).** The change makes turnout reach the vote, which
+was false before, at no cost to the canonical backtest. The oracle shows that the
+mechanism, given the true turnout, moves the vote the wrong way on this record. Hypothesis:
+(iii) above, the centre's θ already carries local-election turnout behaviour. Until the
+separating measurement exists, a turnout scenario on this model (a band moved, the page's
+turnout control) moves the vote by an amount the record says is too large in the DA's
+favour when turnout falls in Black African areas.
+
+**Tests changed with the mechanism.** `test_drawer`'s two goldens re-recorded deliberately
+(the drawer no longer weights pools by drawn turnout, and the width record moved; the
+reason is beside the goldens). `test_stage_realisation`: `width_floored` and the
+composition term leave the width invariant and the board; the three turnout records are
+checked by `_turnout_faults` with three constructed violations. `test_draw_streams`,
+`test_draw_record`, `test_universal_draw`: the calibration pass reads no turnout stream (a
+turnout call there is the κ lock put back); the run's turnout streams are read by
+`pool_turnouts`. `test_projected_roster_declaration`: the head line names its source.
+`test_register_matches_code`: `v_comp` recorded as deleted. Expected red until the
+published artefacts are regenerated (not done here; owner): every test comparing a re-run
+with `site/draws/`, `seat_draws.csv` or `forecast_summary.json` (`test_draw_record`'s
+published-seats check, `test_export_draws`' three reproduction checks, four
+`test_reweight` uniform-weight checks). The suite result is in the commit message of the
+commit carrying this entry.

@@ -160,6 +160,13 @@ LAW_DENOMINATOR_KEYS = {"incumbent": ("gamma_draws",),
 DRAW_LAWS = tuple(LAW_DENOMINATOR_KEYS)
 # Non-numeric board fields, checked by their own rules below.
 NON_COUNTER_KEYS = ("draw_law", "kappa_converged")
+# Turnout enters the vote (2026-10-16): three records that are not counters,
+# each checked by `_turnout_faults`. `turnout_moved` is signed (what turnout
+# did to each party's mean share); the other two are structured records.
+TURNOUT_RECORD_KEYS = ("turnout_moved", "turnout_reference", "district_ipf")
+TURNOUT_REFERENCE_FIELDS = frozenset({
+    "source", "pool", "band_mode", "districts_carry", "districts_unmapped",
+    "unmapped_roll_share", "districts_without_projection", "turnout_scale"})
 
 # SCALAR counters and the scalar denominator each is a count out of. Kept apart
 # from `GUARD_DENOMINATORS`, whose counters are per-party tables. A gamma
@@ -648,6 +655,51 @@ def _law_faults(guards) -> list[str]:
     return out
 
 
+def _turnout_faults(guards, universe=None) -> list[str]:
+    """The three turnout records (2026-10-16): `turnout_moved` a finite,
+    signed number per party inside the universe; `turnout_reference` every
+    declared field, each pool's reference and the turnout its districts carry
+    in (0, 1], the unmapped roll share in [0, 1]; `district_ipf` at least one
+    split, a mean of at least one round, a finite non-negative row error."""
+    out: list[str] = []
+    moved = guards.get("turnout_moved")
+    if not isinstance(moved, dict) or not moved:
+        out.append(f"41_guards.turnout_moved is {moved!r}, not a per-party record")
+    else:
+        bad = [p for p, v in moved.items()
+               if not isinstance(v, (int, float)) or isinstance(v, bool)
+               or not math.isfinite(v)]
+        if bad:
+            out.append(f"41_guards.turnout_moved is not finite for {bad[:6]}")
+        if universe is not None and set(moved) - set(universe):
+            out.append(f"41_guards.turnout_moved names parties outside the "
+                       f"universe: {sorted(set(moved) - set(universe))[:6]}")
+    ref = guards.get("turnout_reference")
+    if not isinstance(ref, dict) or set(ref) != TURNOUT_REFERENCE_FIELDS:
+        out.append(f"41_guards.turnout_reference does not carry exactly "
+                   f"{sorted(TURNOUT_REFERENCE_FIELDS)}")
+    else:
+        for field in ("pool", "districts_carry"):
+            vals = ref[field]
+            if (not isinstance(vals, dict) or not vals
+                    or not all(isinstance(v, (int, float)) and 0 < v <= 1
+                               for v in vals.values())):
+                out.append(f"41_guards.turnout_reference.{field} is {vals!r}, "
+                           f"not a turnout in (0, 1] per pool")
+        if not 0 <= float(ref["unmapped_roll_share"]) <= 1:
+            out.append(f"41_guards.turnout_reference.unmapped_roll_share is "
+                       f"{ref['unmapped_roll_share']}")
+    ipf = guards.get("district_ipf")
+    if (not isinstance(ipf, dict)
+            or set(ipf) != {"calls", "rounds_mean", "worst_row_error"}
+            or not ipf["calls"] or ipf["rounds_mean"] < 1
+            or not math.isfinite(ipf["worst_row_error"])
+            or ipf["worst_row_error"] < 0):
+        out.append(f"41_guards.district_ipf is {ipf!r}: the district split ran "
+                   f"no round or recorded an impossible error")
+    return out
+
+
 def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
     """Complaints about a ``41_guards`` payload: twenty counters and their bounds.
 
@@ -686,6 +738,7 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                 f"0/0 and the whole board is unreadable. This is not a clean "
                 f"run; it is a run that counted nothing")
     out += _law_faults(guards)
+    out += _turnout_faults(guards, universe)
 
     # The two NAME LISTS (item 8, 2026-10-09): sorted lists of party codes;
     # `roster_unrepresented` may instead be "not_checked" (no roster).
@@ -704,6 +757,8 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
             continue          # the tripwire is `faults_in_group_share`'s
         if key in NON_COUNTER_KEYS:
             continue          # `_law_faults`'s
+        if key in TURNOUT_RECORD_KEYS:
+            continue          # `_turnout_faults`'s
         if key == "mean_error":
             if value in ({}, None):
                 continue
@@ -2061,6 +2116,14 @@ CORRUPTIONS = [
     ("faults_in_seat_draws", "a chamber larger than the statute", _chamber_too_big),
     ("faults_between_summary_and_detail", "the marginal median stored as the mean", _median_as_mean),
     ("faults_in_guards", "a declared guard counter missing", _guard_key_dropped),
+    ("faults_in_guards", "a turnout move that is not a number",
+     lambda b: b["41_guards"]["turnout_moved"].update(
+         {next(iter(b["41_guards"]["turnout_moved"])): float("nan")})),
+    ("faults_in_guards", "a reference turnout above one",
+     lambda b: b["41_guards"]["turnout_reference"]["pool"].update(
+         {next(iter(b["41_guards"]["turnout_reference"]["pool"])): 1.5})),
+    ("faults_in_guards", "a district split that ran no round",
+     lambda b: b["41_guards"]["district_ipf"].update(calls=0)),
     ("faults_in_widths", "an own term that is not the rest of the budget",
      lambda b: b["35_widths"]["parties"]["DDD"].update(own=2.0)),
     ("faults_in_widths", "a calibration pass that did not converge",

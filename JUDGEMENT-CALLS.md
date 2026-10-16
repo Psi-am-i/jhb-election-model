@@ -1156,12 +1156,13 @@ turnout in the four population groups rises and falls together, to one degree
 for every pair: the average of how closely each pair's turnout moved between
 past local elections in the metros. Black African, Coloured and White turnout
 have moved closely together, and Indian/Asian turnout much less. Separate
-figures for each pair have not been tried. Removing the link widened the DA's
-spread noticeably in the model of October 2026; since then turnout reaches the
-vote directly, and its effect there has not been measured. It cannot be changed
-on [your forecast](your-forecast/).
+figures for each pair have not been tried. Removing the link was tested and
+changed the forecast's spread very little, and why it matters so little is not
+yet explained. It cannot be changed on [your forecast](your-forecast/).
 
 **Where.** `montecarlo.py`
+
+⚠️ **The Plain field above is out of date and is left for the owner (2026-10-16):** it feeds the public methodology page, which is out of this change's scope. Under the universal law the link's removal widened the DA's list share sd by 18.5% (MODEL-LOG §1.315 T3), and since 2026-10-16 turnout reaches the vote directly.
 
 **Now.** 0.63 applied as ONE constant to every city and pool pair. Under the incumbent law it supplied 4–12% of drawn variance (§1.48, below). Under the universal law of 2026-10-12 it was measured at Johannesburg 2026: 0 widened the DA's list-share sd by 18.5% and its seat p5-p95 by 4, through the composition subtraction that floored the DA's own term (MODEL-LOG §1.315 T3). Since 2026-10-16 (§V) drawn pool turnout reaches the vote directly; the constant's effect under that law is not measured.
 

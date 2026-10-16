@@ -502,22 +502,32 @@ PROCESSED = ROOT / "data" / "processed"
 # 1.43 -> 2.13, p95 24.11 -> 21.16) and, through the normalisation, ANC's and
 # DA's narrowed with it; the other newcomers' widths moved by class. No
 # improvement is claimed here; the backtest is §1.314's.
+# RE-RECORDED 2026-10-16 (third time), deliberately: TURNOUT ENTERS THE VOTE
+# (owner decision; MODEL-LOG §1.317) MOVED THE DRAWER AND ITS WIDTH RECORD.
+# The drawer now returns the preliminary vote at the reference turnout: no
+# drawn turnout weights the pools, so a pool's share of the drawn vector is
+# its reference share times its members' drawn split, and the band of each
+# pool total narrowed or moved with the splits alone; the width record was
+# re-fitted on turnout-corrected residuals (σ at a 10% centre 0.346 -> 0.271
+# for target 2026), which narrowed EFF's and ActionSA's bands. Turnout now
+# acts downstream of this drawer, in `run_model`'s district votes, which this
+# golden does not see. No improvement is claimed here; the backtest is §1.317's.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.7270, 18.1645, 29.0708),
-    "DA": (26.0343, 19.8626, 32.1278),
-    "EFF": (11.0573, 6.6836, 16.2435),
-    "ASA": (11.6814, 7.4834, 17.0733),
-    "MK": (8.8363, 2.1336, 21.1630),
-    "PA": (5.8731, 1.9359, 12.0395),
-    "VFPLUS": (0.8996, 0.1927, 2.2956),
-    "ALJAMAAH": (0.8470, 0.1922, 2.1412),
+    "ANC": (23.7181, 17.8910, 29.1758),
+    "DA": (26.0252, 19.5915, 31.8653),
+    "EFF": (11.0419, 7.6515, 14.7538),
+    "ASA": (11.6761, 8.5473, 15.4465),
+    "MK": (8.8548, 2.2104, 20.0999),
+    "PA": (5.8730, 1.7988, 12.5464),
+    "VFPLUS": (0.8994, 0.1969, 2.3404),
+    "ALJAMAAH": (0.8626, 0.1980, 2.1773),
     "ENTRANT": (1.3859, 0.0000, 7.7892),
 }
 GOLDEN_POOLS = {
-    "Black African": (51.9978, 44.8811, 59.5305),
-    "Coloured": (9.1797, 5.2336, 15.1181),
-    "Indian/Asian": (4.1006, 3.1000, 5.5219),
-    "White": (31.6675, 26.1366, 36.7858),
+    "Black African": (51.9954, 45.4873, 58.9690),
+    "Coloured": (9.1784, 5.1340, 15.6634),
+    "Indian/Asian": (4.1147, 3.1707, 5.5202),
+    "White": (31.6570, 26.5951, 36.2646),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -665,7 +675,7 @@ def configured_pool_band(name, scenario, base_city_d, centres, index):
     one-sided-range reflection it applies.
     """
     spec = _pools(scenario, base_city_d, centres, index)
-    _idx, registered, turnout, _props, _alpha, _names, _levels, _wts = spec[name]
+    _idx, registered, turnout, _props, _alpha, _names, _levels, _wts, _ref = spec[name]
     low, mode, high = turnout
 
     # A pool's SHARE, not its vote count. Registration is counted and turnout
