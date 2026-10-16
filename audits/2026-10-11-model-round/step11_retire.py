@@ -1,4 +1,4 @@
-"""Retire the eleven published tokens the 16 October build no longer writes.
+"""Retire the published tokens the 16 October build no longer writes (11 + 24).
 
 `build_site.py` refuses a build while a published token has left the registry
 unretired. The UAT build ran this against a scratch copy of the ledger. Live
@@ -33,6 +33,32 @@ GROUP = ("This population-group share of the party's vote is now below the "
          "chart's label threshold (build_play.SEGMENT_LABEL_MIN), so the figure "
          "is no longer printed. The bar segment is still drawn.")
 
+ANC_BOX = ("The ANC claim's 'what the model says now' box was rewritten for the "
+           "16 October forecast (owner, 2026-10-16): the ANC reaches a majority "
+           "alone in none of the simulations, said in words, so its share is not printed.")
+DA_BOX = ("The 490,000 claim's 'what the model says now' box was replaced by the "
+          "owner's text (2026-10-16): the DA wins a majority alone in none of the "
+          "simulations, so the count, the share and the ward-wall figures are not printed.")
+COAL = ("This coalition is no longer a smallest majority in at least 5% of "
+        "simulations (render_sheet MIN_SMALLEST), so the who-can-govern table "
+        "does not list it.")
+TILE = ("This party now triggers the excessive-seats clause in fewer simulations "
+        "than the tile names a party at (scenarios.EXCESSIVE_FLOOR), so the tile "
+        "does not name it.")
+
+#: Retired by the 16 October regenerated sheet (render_sheet on the new run).
+SHEET = {
+    "claim.anc_alone.share": ANC_BOX,
+    **{f"claim.da_alone.{k}": DA_BOX
+       for k in ("count", "share", "wall_anc_low", "wall_anc_top", "wall_count", "wall_flips")},
+    **{f"coal.{c}.{k}": COAL
+       for c, ms in (("ANC+PA+MK", ("ANC", "MK", "PA")), ("ASA+EFF+PA+MK", ("ASA", "EFF", "MK", "PA")))
+       for k in ("cushion_when_wins", "majority", "seats_when_wins", "stability",
+                 *(f"survive.{m}" for m in ms))},
+    "tile.p_excessive.eff": TILE,
+    "tile.p_excessive.mk": TILE,
+}
+
 RETIRE = {
     **{f"play.bye.w_bye_0.{p}": BYE
        for p in ("ALJAMAAH", "ALL_CITIZENS_PARTY", "ANC", "ASA", "MK", "PA", "RISE")},
@@ -40,6 +66,7 @@ RETIRE = {
     "play.splinter.MK.parent": SPLIT,
     "play.votes.MK.white": GROUP,
     "play.votes.RISE.coloured": GROUP,
+    **SHEET,
 }
 
 

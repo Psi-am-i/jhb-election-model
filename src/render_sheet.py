@@ -419,6 +419,10 @@ def _soweto(args, rows, seats, thr, winners, since_vals, tok, chance):
                                         c["partners.ASA+PA"][none].mean(), cond),
             "anc_given_none": chance("claim.soweto.anc_given_none",
                                      c["partners.ANC"][none].mean(), cond),
+            # the claim's own chance (`chance = "1 - realistic_given_none"`),
+            # printed in its since box (owner, 2026-10-16)
+            "holds_given_none": chance("claim.soweto.holds_given_none",
+                                       1.0 - c["realistic"][none].mean(), cond),
         })
     if (~none).any():
         since_vals["realistic_given_some"] = chance(

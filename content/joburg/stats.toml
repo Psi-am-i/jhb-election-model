@@ -888,7 +888,7 @@ page = "index.html, forecast.html, nobody-will-win.html"
 
 [[audit.fixed]]
 value = "8"
-context = "The largest party is a near tie, where on 8 August the DA led clearly:"
+context = "The ANC is now ahead for largest party, where on 8 August the DA led clearly:"  # re-keyed 2026-10-16: wording (owner-approved draft for UAT)
 kind = "history"
 source = "the date of the published edition this piece is compared against (the 8 August deploy; /corrections, 27 September)"
 reviewed = "2026-10-02"
@@ -1538,6 +1538,17 @@ kind = "rule"
 source = "Proclaimed by the Minister of Cooperative Governance and Traditional Affairs, announced 7 August 2026 (as the kicker's entry above)"
 reviewed = "2026-10-03"
 page = "index.html"
+
+# The corrections page (2026-10-16): the voting districts the live forecast
+# split between wards by the MDB layer's part figures (vd_ward_2026.csv,
+# is_split = Y; montecarlo.ward_parts' docstring).
+[[audit.fixed]]
+value = "181"
+context = "The forecast split 181 voting districts between wards"
+kind = "history"
+source = "data/processed/vd_ward_2026.csv: VD_Number with is_split = Y (montecarlo.ward_parts docstring, 181 of 865)"
+reviewed = "2026-10-16"
+page = "corrections.html"
 
 # The roll's snapshot date on /methodology, step 1 (2026-10-16): the IEC's
 # per-ward registration page labels its one snapshot with this date.
