@@ -1,0 +1,28 @@
+  <h2>What changed, and what it did</h2>
+  <div class="why">
+    <div><h3>Taken together, the forecast barely moves</h3>
+      <p>Johannesburg 2026, average seats: ANC 71.7 to 71.7, DA 69.6 to 69.8, EFF 30.1 to 30.3, ActionSA 27.1 to 27.2, MK 23.3 to 23.4, PA 15.7 to 15.8. No seat range moves by more than 1. Average wards: ANC 69.4 to 69.2, DA 45.3 to 44.4, MK 10.1 to 10.5, PA 4.4 to 4.7. Four wards change favourite: ward 34 ANC to MK, ward 68 DA to PA, ward 92 DA to ANC, ward 120 ANC to DA. All four changed with change 0 below. Changes 1 to 3 were run as one step, so their effects are not separated from each other.</p></div>
+    <div><h3>0. Each voting district counts in one ward</h3>
+      <p>The IEC counts each voting district wholly in one ward. The old model split some districts between wards using the planners' estimates. The new model assigns each district to one ward so that every ward's total matches the IEC's: the spread of ward totals around the IEC's figures falls by almost two thirds. About 17 districts cannot be placed with certainty from the published totals.</p>
+      <p><b>Effect:</b> the four ward favourite changes above. Seat averages move by under 0.3.</p></div>
+    <div><h3>1. A party with its own national record is placed from it</h3>
+      <p>The old model placed MK in the city by assuming a fixed share of its voters live where the ANC's voters do, a figure we chose (35%, later 90%; moving between the two changed MK by 0.01 seats). The new model places it from MK's own 2024 results, voting district by voting district. The same rule now applies to every party that has a national result of its own and no local one: RISE and BOSA in 2026, COPE in 2011, and the EFF, PA and Agang in 2016. For 2021 the 2019 national data cannot be used, so nothing changes there.</p></div>
+    <div><h3>2. Candidates standing only for a ward get no city-wide votes</h3>
+      <p>Seven slates on the certified list stand for ward seats only: six parties and the independents. The old model gave the six parties list votes they cannot receive, and let a party win a ward it was not standing in: MK did so in 4.5% of simulations (225 of 5,000). The new model gives ward-only parties no list votes, hands that share back to the other parties in proportion, and lets every party win only the wards it stands in.</p>
+      <p><b>Effect:</b> ward-only parties win a ward in 3.5% of simulations, 0.04 wards on average. The United Democratic Movement loses the 0.5 seats it averaged from the list.</p></div>
+    <div><h3>3. Small parties without a record keep their own geography</h3>
+      <p>A fault had set every small party's expected vote to the same minimum in every voting district, so where a party is stronger or weaker was lost. Fifty-three small parties in 2026 were affected, and ActionSA in 2021. They now keep their own pattern.</p>
+      <p><b>Effect:</b> average list-vote error in the 2021 elections rises from 2.96 to 2.98 points across the eight metros, most in Cape Town (0.08), Tshwane (0.07) and eThekwini (0.05). We have not separated this from change 2.</p></div>
+    <div><h3>4. The council always adds to 270</h3>
+      <p>Once a ward-only party can win a ward, that seat sits outside the party-list calculation. The first run of change 2 produced councils of 267 to 269 seats in 175 of 5,000 simulations. Ward seats won by parties with no list are now counted in the council, and the calculation that tops up a party's seats finds the council size directly.</p>
+      <p><b>Effect:</b> every one of the 5,000 simulations sums to 270. The averages do not move (largest change 0.01 seats).</p></div>
+    <div><h3>5. The real past councils include independents</h3>
+      <p>The councils the model is scored against left out ward seats won by independents. Only eThekwini has any: one in 2011 and four in 2016. The model never predicts independents, so those seats now count against it.</p>
+      <p><b>Effect:</b> seats to the wrong party in eThekwini rise by 0.5 in 2011 and 2 in 2016. The model did not change; the scoring did.</p></div>
+    <div><h3>What it did to the past elections</h3>
+      <p>Across the eight metros, in 2016 and 2021 (the two scored years), wards called right are unchanged. Seats to the wrong party rise by 3 in 2016 (2 of them from change 5) and by 1 in 2021. In 2011 the average ward vote error falls from 4.5 to 4.0 points and seats to the wrong party fall by 4.5, but 4 more wards are called wrongly: 3 in Buffalo City and 1 in eThekwini. We have not separated which change moved the 2011 results.</p></div>
+    <div><h3>What we predicted, and what it got wrong</h3>
+      <p>Written before the run: each party's average list share in Johannesburg moves under 0.5 points (largest: 0.16), no party's average seats move by 2 (largest: 0.5), fewer than 8 wards change favourite (1), MK wins no ward it is not standing in (none), and 2021 list-vote error changes by under 0.10 points in each metro (largest: 0.08). All held.</p>
+      <p>Wrong: we said the 2011 and 2016 national-record fits would not move any voting district's expected vote. In 2011 the average ward vote error fell at all eight metros, by 0.35 to 0.64 points. The list-vote error moved by under 0.06 points at every metro in 2011 and 2016, as predicted.</p></div>
+  </div>
+  <p class="note" style="margin-top:16px">"Yesterday's model" is the code at the last commit before these changes, re-run at 5,000 simulations. The site still shows the 29 September forecast.</p>
