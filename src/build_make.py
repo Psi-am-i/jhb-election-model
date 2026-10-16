@@ -1008,16 +1008,39 @@ def editor_bounds(city, target: str, wards: list[str], roster: list[str], *,
     }
 
 
+def no_pr_list(city, target: str, parties: list[str]) -> list[str]:
+    """The roster parties with no PR list at ``target``: the ward-only parties
+    of ``levels.ballots``, the one definition of who stands where (the result
+    file where it exists, else ``[roster.wards]`` and ``[roster] pr``), that
+    are on ``parties``. ``montecarlo.run_model`` reads the same set
+    (``ballot_masks``' ``ward_only``), so the schema's ``no_pr_list`` is the
+    run's: these parties carry ward votes and no list vote, and a ward one
+    wins is a D seat, deducted before the quota and kept
+    (``seats.council_seats``, MODEL-LOG §1.308)."""
+    import cityconfig
+    import levels
+    ballots = levels.ballots(cityconfig.Target(city=city, year=str(target)), city)
+    return sorted(set(ballots.ward_only()) & set(parties))
+
+
 def model_artefact(manifest: dict, roster: dict, bounds: dict) -> dict:
     """The model artefact ``make_schema.mjs`` reads, from the published draws
-    and the editor's bounds (:func:`editor_bounds`)."""
+    and the editor's bounds (:func:`editor_bounds`).
+
+    ``parties`` is every party the draws carry (``build_play.roster_codes``,
+    the vote blocks' columns), not only the seat winners: a ward-only party
+    carries ward votes, and :func:`start_state` refuses votes off the roster.
+    ``no_pr_list`` is :func:`no_pr_list` on that roster. Until 2026-10-16 it
+    was written ``[]`` and ``parties`` was the seat blocks' columns, so once a
+    ward-only party stood (MODEL-LOG §1.306) the build refused its ward votes
+    and the editor would have refused a ward given to it."""
     import cityconfig
     city = cityconfig.active()
     target = str(city.default_target)
     structure = city.structure_for(target)
     council = int(structure["council"])
     run = manifest["published_run"]["model_run_id"]
-    parties = list(manifest["parties"])
+    parties = build_play.roster_codes(manifest)
     return {
         "model_ref": run,
         "city": city.slug,
@@ -1025,7 +1048,7 @@ def model_artefact(manifest: dict, roster: dict, bounds: dict) -> dict:
         "council_seats": council,
         "ward_seats": int(structure["wards"]),
         "majority": council // 2 + 1,
-        "no_pr_list": [],
+        "no_pr_list": no_pr_list(city, target, parties),
         # the seeded lot's run identity; make_schema.mjs writes it into
         # x-seat-context, its one writer
         "lot": run_lot(manifest),
@@ -1164,7 +1187,7 @@ def _inputs(draws: Path | None = None) -> dict:
     manifest, arrays, raw = _draws(draws)
     geom = geometry()
     bounds = editor_bounds(city, str(city.default_target), [str(w["id"]) for w in geom["wards"]],
-                           list(manifest["parties"]))
+                           build_play.roster_codes(manifest))
     artefact = model_artefact(manifest, build_play.roster(), bounds)
     return {"manifest": manifest, "arrays": arrays, "raw": raw,
             "geometry": geom, "artefact": artefact, "schema": make_schema(artefact, geom)}

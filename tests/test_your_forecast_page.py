@@ -707,6 +707,101 @@ def test_the_start_is_decode_of_its_f():
     assert _start_mismatch(bad, got, roster) == []
 
 
+_INPUTS: dict = {}
+
+
+def _inputs() -> dict:
+    """``build_make._inputs()`` (the served draws, the artefact and the
+    generated schema; reads only), once per run."""
+    if "i" not in _INPUTS:
+        _INPUTS["i"] = build_make._inputs()
+    return _INPUTS["i"]
+
+
+def test_a_ward_only_party_is_on_the_roster_with_no_pr_list_and_keeps_its_ward():
+    """A ward-only party (a ward slate, no PR list; ``levels.Ballots.ward_only``,
+    MODEL-LOG §1.306) carries ward votes in the draws, so the schema's roster
+    is every vote-block column, both ways, and ``no_pr_list`` is the ballot's
+    ward-only set on it (non-empty at the served target). Our prediction gives
+    each of them ward votes and no list vote. A ward handed to one is seated
+    as a D seat: the councillor keeps it and the council still sums to its
+    size (``seats.council_seats``). With the party taken off ``no_pr_list``
+    the same entry is refused (R2: a ward winner with a PR list and no list
+    vote), and restored it is accepted again."""
+    import copy
+    import cityconfig
+    import levels
+    import score_forecasts as S
+    inp = _inputs()
+    schema = inp["schema"]
+    ctx = schema["x-seat-context"]
+    columns = build_make._columns(inp["manifest"], "ward_vote")
+    assert ctx["parties"] == columns, "the roster is not the vote blocks' columns"
+    city = cityconfig.active()
+    ballots = levels.ballots(cityconfig.Target(city=city, year=str(ctx["target"])), city)
+    want = sorted(set(ballots.ward_only()) & set(columns))
+    assert want, "no ward-only party at the served target: the test examines nothing"
+    assert ctx["no_pr_list"] == want
+    assert len(want) < len(columns) // 2, "most of the roster marked ward-only"
+    start = build_make.start_state(inp["manifest"], inp["arrays"], schema)
+    for p in want:
+        assert start["list_votes"][p] == 0, p
+    voted = [p for p in want if start["ward_votes"][p] > 0]
+    assert voted, "no ward-only party carries a ward vote in our prediction"
+    party = max(voted, key=lambda p: start["ward_votes"][p])
+    entry = {"v": schema["properties"]["v"]["const"], "model_ref": None,
+             "ward_calls": list(start["ward_calls"]), "ward_votes": dict(start["ward_votes"]),
+             "list_votes": dict(start["list_votes"]), "coalition": [], "mayor": None,
+             "display_name": None}
+    entry["ward_calls"][0] = party
+    seated = S.seat_forecast(entry, schema)
+    assert seated["ok"], seated.get("errors")
+    assert seated["seats"][party]["total"] == 1 and seated["seats"][party]["pr"] == 0
+    assert seated["no_pr_list_wards"] == 1
+    assert sum(v["total"] for v in seated["seats"].values()) == seated["council"] == ctx["council"]
+    # it can see: off no_pr_list, the same entry is refused; restored, accepted
+    bad = copy.deepcopy(schema)
+    bad["x-seat-context"]["no_pr_list"] = [p for p in want if p != party]
+    refused = S.seat_forecast(entry, bad)
+    assert not refused["ok"] and any(party in e for e in refused["errors"]), refused
+    assert S.seat_forecast(entry, schema)["ok"]
+
+
+def test_votes_for_an_invented_party_off_the_roster_stop_the_start():
+    """The roster guard (``score_forecasts.model_forecast``, through
+    ``build_make.start_state``) still fires for a party that is on no ballot:
+    an invented column with votes on the list ballot is refused by name; the
+    same column with no vote is accepted, and the start is unchanged."""
+    import numpy as np
+    inp = _inputs()
+    manifest, arrays, schema = inp["manifest"], inp["arrays"], inp["schema"]
+    real = build_make.start_state(manifest, arrays, schema)
+
+    def with_column(list_vote: int):
+        man = json.loads(json.dumps(manifest))
+        for b in man["blocks"]:
+            if b["name"] in ("ward_vote", "list_vote"):
+                b["columns"] = list(b["columns"]) + ["ZZ_INVENTED"]
+        arr = dict(arrays)
+        n = arrays["ward_vote"].shape[0]
+        arr["ward_vote"] = np.hstack([arrays["ward_vote"], np.zeros((n, 1), dtype=arrays["ward_vote"].dtype)])
+        arr["list_vote"] = np.hstack([arrays["list_vote"],
+                                      np.full((n, 1), list_vote, dtype=arrays["list_vote"].dtype)])
+        return man, arr
+
+    man, arr = with_column(0)
+    quiet = build_make.start_state(man, arr, schema)
+    assert {k: quiet[k] for k in ("ward_calls", "ward_votes", "list_votes", "seats")} == \
+        {k: real[k] for k in ("ward_calls", "ward_votes", "list_votes", "seats")}
+    man, arr = with_column(7)
+    try:
+        build_make.start_state(man, arr, schema)
+    except build_make.MakeBuildError as exc:
+        assert "parties off the roster carry votes ['ZZ_INVENTED']" in str(exc), exc
+    else:
+        raise AssertionError("votes for a party off the roster were accepted")
+
+
 def _panel_row(ward, ballot, party, votes, vd="1", registered=100, valid=100):
     return {"Province": "x", "Municipality": "x", "Ward": ward, "VD_Number": vd, "VS_Name": "x",
             "BallotType": ballot, "Registered_Population": str(registered), "Spoilt_Votes": "0",

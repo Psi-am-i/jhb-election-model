@@ -200,8 +200,26 @@ def _seat_draws(processed: Path):
     return parties, seats, thr
 
 
+def roster_codes(manifest: dict) -> list[str]:
+    """Every party the draws carry, in the draw file's column order: the
+    columns of its ``ward_vote`` block, which is the run's whole universe
+    (``export_draws``: no party summed or dropped), so a party on the ballot
+    that never wins a seat is on it too. A ward-only party (a ward slate and no
+    PR list, ``levels.Ballots.ward_only``, MODEL-LOG §1.306) is such a party:
+    it carries ward votes, so the entry schema must name it, and since
+    2026-10-16 the page's roster and the schema's ``parties`` are this list
+    (``build_make.model_artefact``). ``manifest["parties"]`` is the seat
+    blocks' columns, the seat-winning parties only; it is the answer for a
+    manifest written before the vote blocks existed."""
+    for block in manifest.get("blocks") or ():
+        if block.get("name") == "ward_vote":
+            return [str(c) for c in block["columns"]]
+    return [str(c) for c in manifest.get("parties") or ()]
+
+
 def roster() -> dict:
-    """``{code: {name, colour, article, logo}}`` for every party the draws carry.
+    """``{code: {name, colour, article, logo}}`` for every party the draws carry
+    (:func:`roster_codes`).
 
     ``article`` is "the " for a name written as an abbreviation ("the ANC"),
     else empty ("ActionSA", "MK Party"): one rule, so the page types no list.
@@ -210,7 +228,7 @@ def roster() -> dict:
     codes = list(render_sheet.NAMES)
     man = DRAWS / "manifest.json"
     if man.is_file():
-        codes = json.loads(man.read_text(encoding="utf-8")).get("parties") or codes
+        codes = roster_codes(json.loads(man.read_text(encoding="utf-8"))) or codes
     out = {}
     for c in codes:
         name = render_sheet.NAMES.get(c) or reader_name(c)
