@@ -141,7 +141,7 @@ promotion note in §F.
 | `min_oos_gain` | 0.01 | `config/dimensions.toml` | 0.01, and it is upstream of every pool in the model: age and sex are rejected by this number. | 🔴 | §H7 |
 | `MIN_SHARE`, `CLAIM_FRACTION`, `F_OTHER` | 0.005, 0.50, 1.30 | — | All three were filed under the wrong module once. `MIN_SHARE` is `gamma_recent.py`'s and is a CLAIM about the model, not reporting; `CLAIM_FRACTION` is `score.py`'s. ⚠ `F_OTHER` is no longer in `src/` at all — see the restructure note beneath. | 🟡 | §F29 |
 | `OVERHANG_DEDUCT_MAX_ROUNDS_SLACK` | 2 | `montecarlo.py` | Derived, not chosen: any value ≥ 1 is equivalent. | 🟢 | §A39 |
-| `OVERHANG_LEVEL_MAX_ROUNDS` | 200 | `montecarlo.py` | 200 rounds. Bounded on ROUNDS deliberately rather than on council size, because a magnitude off the real panel does not transfer to a toy. | 🟡 | §A40 |
+| `OVERHANG_LEVEL_MAX_ROUNDS` | DELETED 2026-10-16 | — | DELETED 2026-10-16 (MODEL-LOG §1.308). `level` scans between a lower and an upper bound computed from the votes and ends by construction; the cap fired on a JHB 2026 draw. | ⚪ | §A40 |
 | `NATIONAL_ONLY_FLOOR` | 0.001 | `pools.py` | The national share below which a party with no local record is NOT assumed onto an unheld ballot. **[16-panel]** Measured over 16 city-years: drops 158 of 226 such candidates for 0.10pp of vote. MK (12.2%) clears it. Owner's decision 2026-09-03; unreachable from any backtest. | 🟢 | §K1 |
 | `PRIOR_LOCAL_FLOOR` | 0.001 | `pools.py` | The prior-LOCAL share below which a party with no national vote is not assumed onto an unheld ballot. Drops 112 of 189 such candidates for 0.038pp and ZERO seats. ⚠️ **AMENDED 2026-09-24 (register audit).** INERT at 2026 for a different reason: the floor filters only the projected roster, and a complete declared roster does not use it (argued from `pools.py`, not perturbed). | 🟢 | §K2 |
 | `overhang_rule` | `"deduct"` | `montecarlo.DEFAULTS` | ⚖️ **STATUTE, reclassified 2026-09-02** — Act 3 of 2021 Schedule 1 item 16. NOT a lever and never swept: refused at the `--set` boundary, out of `PERTURB`. Never bound in 24 metro-years; tightest margin 2 seats. | ⚖️ | §H1 |
@@ -793,11 +793,11 @@ correctly — not a ward that was lost because the level was wrong.
 
 **Record.** Slack on the `deduct` loop's round bound, which is `len(combined) + this`. The loop fixes at least one party per round and removes it from the pool, so it cannot outlast the parties; the slack covers the final round that fixes none. **DERIVED, not chosen** — the only free number is the slack, and any value ≥ 1 is equivalent.
 
-### §A40 · `OVERHANG_LEVEL_MAX_ROUNDS` — 200 — 🟡
+### §A40 · `OVERHANG_LEVEL_MAX_ROUNDS` — DELETED 2026-10-16 — ⚪
 
-**Where.** `montecarlo.py`
+**Where.** was `montecarlo.py`
 
-**Now.** 200 rounds. Bounded on ROUNDS deliberately rather than on council size, because a magnitude off the real panel does not transfer to a toy.
+**Now.** Deleted (MODEL-LOG §1.308). `allocate_with_overhang` under `level` returns the smallest council at or above `COUNCIL` covering every pool ward winner, scanning one seat at a time between a lower bound (a party's seats are below `v·n/A + 1`, so `n` must exceed `(w-1)·A/v`) and an upper bound (its whole quotas reach `w` once `n >= w·A/(v-w)`). Nothing is chosen: the bounds are arithmetic, so no number replaces the cap. On a JHB 2026 draw a list party holding several wards on a small share needed more rounds than the cap allowed, because the creep's deficit fell to one seat a round. MODEL-LOG §1.308 compares the scan with the uncapped creep. The record below is the cap's history.
 
 **Record.** Round bound on the `level` rule's council growth, which had none and could not terminate (§1.97 F41, F44). **Bounded on ROUNDS deliberately, not on council size, and the first attempt proved why**: a cap of 4× `COUNCIL` was taken from the largest council a real regime run has produced (396 against a 270 base) and fired immediately on a 15-seat fixture where growing to ~150 is legitimate. A magnitude off the real panel does not transfer to a toy. Each round adds ≥1 seat and a converging case takes a handful, so 200 is far above any real path and carries no assumption about council size.
 

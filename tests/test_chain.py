@@ -878,10 +878,15 @@ def test_the_forecast_runs_and_fills_the_council():
     scenario = mc.load_scenario(_Args(draws=60))
     run = mc.run_model(target, scenario, verbose=False)
     assert run.seat_draws, "no draws"
-    sizes = {sum(d.values()) for d in run.seat_draws}
-    council = {int(c) for c in run.council_sizes}
-    assert sizes <= council | {target.council}, \
-        f"draws allocate {sorted(sizes)} seats; council is {target.council}"
+    # PER DRAW, against that draw's own council: a set inclusion let a draw
+    # one short pass whenever another draw happened to have that size.
+    # Seats a no-list party won in wards are in the draw (MODEL-LOG §1.308).
+    short = [(d, sum(s.values()), int(c)) for d, (s, c)
+             in enumerate(zip(run.seat_draws, run.council_sizes))
+             if sum(s.values()) != int(c)]
+    assert len(run.council_sizes) == len(run.seat_draws)
+    assert not short, (f"draws (index, seats, council) that do not fill their "
+                       f"council: {short[:5]}; council is {target.council}")
 
 
 def test_the_model_is_reproducible_from_its_seed():
@@ -1008,7 +1013,11 @@ def test_every_emitted_pool_spec_carries_a_current_artefact_key():
         slug = path.parent.name if path.parent.name != "processed" else "joburg"
         city = cityconfig.load(slug)
         year = spec.get("target")
-        why = pools.stale_reason(spec, city, _Target(year))
+        # THE REAL TARGET, not `_Target`: `artefact_key` reads `.crosswalk`
+        # (the roll hash, `pools._roll_sha`), and a stub without it keys every
+        # spec "unkeyed" against an emitted hash, so every spec read stale.
+        why = pools.stale_reason(spec, city,
+                                 cityconfig.Target(city=city, year=str(year)))
         if why:
             stale.append(f"{path.relative_to(ROOT)}: {why}")
     assert not stale, (
@@ -1425,7 +1434,9 @@ def test_a_pool_spec_from_different_code_is_reported_as_stale():
 
 
 class _Target:
-    """The two attributes `pools.artefact_key` reads off a target."""
+    """A target with only a year: for `artefact_key` round-trips that compare a
+    key with itself. Not for judging an emitted spec, which was keyed with the
+    real target's crosswalk (`test_every_emitted_pool_spec_carries_...`)."""
 
     def __init__(self, year):
         self.year = year

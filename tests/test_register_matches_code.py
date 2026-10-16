@@ -216,6 +216,11 @@ DELETED = {
         "measured the retired PR-share input against the draws; its premise "
         "(a share standing for both ballots) ended with the two-ballot entry; "
         "§1.292"),
+    # Deleted 2026-10-16 (§1.308): `level` scans between bounds computed from
+    # the votes and needs no round cap. JUDGEMENT-CALLS §A40 keeps the record.
+    "OVERHANG_LEVEL_MAX_ROUNDS": "the level rule's 200-round cap, which a JHB "
+                                 "2026 draw exceeded; replaced by a bounded "
+                                 "scan; §1.308",
 }
 
 

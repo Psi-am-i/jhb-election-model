@@ -218,14 +218,73 @@ def outside_pool_wards(
     that name; ``DATA-QUALITY.md`` item 12 has why that count is an upper bound
     and why the IEC's published C is preferred wherever a report exists.
     """
-    outside = {p: n for p, n in ward_wins.items()
-               if p in (INDEPENDENT, "IND") or p not in combined}
+    outside = outside_pool_seats(ward_wins, combined)
     independent_wards = sum(n for p, n in outside.items()
                             if p in (INDEPENDENT, "IND"))
     no_pr_list_wards = sum(n for p, n in outside.items()
                            if p not in (INDEPENDENT, "IND"))
     pool_wins = {p: n for p, n in ward_wins.items() if p not in outside}
     return independent_wards, no_pr_list_wards, pool_wins
+
+
+def outside_pool_seats(
+    ward_wins: dict[str, int], combined: dict[str, int]
+) -> dict[str, int]:
+    """The ward seats that leave the pool, keyed by who holds them.
+
+    THE ONE MEMBERSHIP TEST for C and D: an independent (``INDEPENDENT`` or the
+    result files' merged ``IND``) or a party absent from ``combined`` — which
+    :func:`eligible_parties` builds only from parties with list votes, so
+    "absent" means a party that contested wards with no PR list. Used by
+    :func:`outside_pool_wards` for the counts and by :func:`council_seats` for
+    the seats themselves, so the two cannot disagree about who left.
+    """
+    return {p: n for p, n in ward_wins.items()
+            if p in (INDEPENDENT, "IND") or p not in combined}
+
+
+def council_seats(
+    pool_seats: dict[str, int], ward_wins: dict[str, int],
+    combined: dict[str, int], council: int,
+) -> dict[str, int]:
+    """THE WHOLE CHAMBER: the pool's seats plus every seat that left the pool.
+
+    Schedule 1 deducts C and D from the council before the quota is struck
+    (:func:`allocate`), so an allocation returns ``council - C - D`` seats. The
+    councillors behind C and D still sit in the council: each ward won by an
+    independent or by a party with no PR list is that winner's seat, and only
+    a ward seat (it has no list to draw on). This returns ``pool_seats`` with
+    those seats added as their own entries, so a seat vector produced here
+    always holds the full council:
+
+        sum(pool seats) + sum(outside seats) == council
+
+    and raises ``ValueError`` if it does not, or if a party is in both halves
+    (it cannot be: the pool is ``combined`` and the outside set is everything
+    not in it). ``council`` is the size the overhang rule returned (270 under
+    ``deduct`` and ``cap``; grown under ``expand`` and ``level``).
+
+    One definition for every per-draw seat vector: ``montecarlo.run_model``'s
+    ``seat_draws``, ``prediction.seats_of`` (the reader's council) and
+    ``benchmarks.council_from_shares`` (the naive baselines). MODEL-LOG §1.308.
+    """
+    outside = {p: n for p, n in outside_pool_seats(ward_wins, combined).items()
+               if n > 0}
+    both = sorted(p for p in outside if pool_seats.get(p, 0))
+    if both:
+        raise ValueError(f"{both} hold pool seats AND ward seats outside the "
+                         f"pool; the pool is `combined` and the outside set is "
+                         f"everything not in it, so the inputs disagree")
+    seats = {**pool_seats, **outside}
+    total = sum(seats.values())
+    if total != council:
+        raise ValueError(
+            f"the chamber does not add up: {sum(pool_seats.values())} pool "
+            f"seats + {sum(outside.values())} ward seats outside the pool "
+            f"({outside}) = {total}, council {council}. The pool must have been "
+            f"allocated over council - C - D (seats.allocate), with C and D "
+            f"from seats.outside_pool_wards on these same ward wins.")
+    return seats
 
 
 def allocate(

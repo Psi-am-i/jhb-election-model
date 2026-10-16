@@ -87,9 +87,9 @@ import byelections as _byelections
 import cityconfig
 import coalitions
 from fold import FOLDS, citywide, load, load_parameters, shares
-from seats import (INDEPENDENT, TieWithoutLot, allocate, draw_key,
-                   eligible_parties, lot_identity, outside_pool_wards, seat_key,
-                   stable_entropy)
+from seats import (INDEPENDENT, TieWithoutLot, allocate, council_seats,
+                   draw_key, eligible_parties, lot_identity, outside_pool_wards,
+                   seat_key, stable_entropy)
 
 SHARE_FLOOR = 0.002
 COUNCIL = 270
@@ -4808,16 +4808,12 @@ OVERHANG_RULES = ("deduct", "expand", "cap", "level")
 # `deduct` fixes at least one party per round and never un-fixes, so it cannot
 # run longer than there are parties; +2 is slack for the final no-op round.
 #
-# `level` is bounded on ROUNDS, not on council size, and the first attempt at
-# this got it wrong in a way worth recording: a bound of 4x COUNCIL was taken
-# from the largest council a real regime run has produced (396 against a 270
-# base) and it fired immediately on a 15-seat test fixture, where covering a
-# party holding 4 of 7 wards on 2.6% of the vote legitimately needs ~150 seats.
-# **A magnitude read off the real panel does not transfer to a toy** — the same
-# error as §1.105, in reverse. Rounds carry no such assumption: each round adds
-# at least one seat and a converging case takes a handful.
 OVERHANG_DEDUCT_MAX_ROUNDS_SLACK = 2
-OVERHANG_LEVEL_MAX_ROUNDS = 200
+#
+# `level` has no round bound any more: it scans between a lower and an upper
+# bound computed from the votes (see the rule's comment), so it ends by
+# construction. Its old bound, `OVERHANG_LEVEL_MAX_ROUNDS`, fired on a JHB 2026
+# draw whose levelled council lay beyond it (MODEL-LOG §1.308).
 
 
 def allocate_with_overhang(
@@ -4862,6 +4858,18 @@ def allocate_with_overhang(
     Returns (seats, council_size, threshold, excessive_by_party) — the dict
     maps each party that triggered item 16 (in any re-allocation round) to
     its excess at the round it was fixed (0 for an exactly-equal party).
+
+    **``seats`` is the pool: it sums to ``council_size - C - D``.** C and D
+    (``independent_wards``, ``no_pr_list_wards``) are fixed seats outside the
+    proportional calculation under every rule: subtracted before each quota,
+    never excessive, never topped up, and ``ward_wins`` must not hold them (the
+    guard below refuses a winner absent from ``combined``). A caller wanting
+    the chamber adds them back with ``seats.council_seats``, which checks the
+    total (MODEL-LOG §1.308).
+
+    ``level`` returns the smallest council at or above ``COUNCIL`` at which
+    every ward winner is covered, found by a scan between bounds computed from
+    the votes, so it ends by construction (the rule's comment has the bounds).
     """
     if rule not in OVERHANG_RULES:
         raise ValueError(
@@ -4885,7 +4893,25 @@ def allocate_with_overhang(
             f"  A party that wins a ward but has no combined-ballot votes would "
             f"be counted excessive and then seated nowhere. `combined` is "
             f"`pr_votes + ward_votes`, so this means the two ballots disagree "
-            f"about who stood. MODEL-LOG §1.97 F42.")
+            f"about who stood. MODEL-LOG §1.97 F42.\n"
+            f"\n"
+            f"  A ward won by a party with NO PR LIST, or by an independent, is "
+            f"not this function's to seat: Schedule 1 deducts it before the "
+            f"quota (pass it as `no_pr_list_wards` / `independent_wards`, from "
+            f"`seats.outside_pool_wards`) and `seats.council_seats` adds it back "
+            f"to the chamber. No overhang rule tops up a party with no list. "
+            f"MODEL-LOG §1.308.")
+    # A pool party with no votes cannot be covered by any council either:
+    # `level` would search for ever and `deduct` would fix it on nothing.
+    voteless = sorted(p for p, w in ward_wins.items()
+                      if w > 0 and combined.get(p, 0) <= 0)
+    if voteless:
+        raise ValueError(
+            f"ward winner(s) {voteless} sit in the pool with no combined "
+            f"votes. `seats.eligible_parties` admits only parties with list "
+            f"votes, so a pool built that way never holds one; a party with "
+            f"no list belongs outside the pool (`seats.outside_pool_wards`). "
+            f"MODEL-LOG §1.308.")
     calls = [0]
 
     def round_lot() -> str | None:
@@ -4903,11 +4929,44 @@ def allocate_with_overhang(
     if rule == "cap" or not over:
         return seats, COUNCIL, COUNCIL // 2 + 1, over
     if rule == "level":
-        # modern-Germany counterfactual (Ausgleichsmandate): grow the council
-        # until every ward winner's seats are covered by its proportional
-        # share — nobody is squeezed, the chamber pays instead
+        # modern-Germany counterfactual (Ausgleichsmandate): the SMALLEST
+        # council at or above COUNCIL at which every ward winner's entitlement
+        # covers its wards — nobody is squeezed, the chamber pays instead.
+        #
+        # ⛔ SEARCHED BETWEEN TWO BOUNDS, NOT CREPT (MODEL-LOG §1.308). This
+        # loop used to add the current deficit per round under a cap of 200
+        # rounds. A list party holding several wards on a small combined vote
+        # (DUDULA, a JHB 2026 draw) needs a council far above 270; once its
+        # deficit fell to 1 the creep added one seat a round and the cap fired.
+        # The creep's answer was also a property of its step, not of the rule.
+        # Now, with A = Σ combined, v and w a winner's votes and wards, and
+        # n = council - C - D the seats the quota is struck over:
+        #   * a party's seats are at most floor(v/Q) + 1 < v·n/A + 1 (Q > A/n),
+        #     so no council with n <= (w-1)·A/v covers it: LOWER BOUND;
+        #   * its seats are at least floor(v/Q) >= w once Q <= v/w, which
+        #     Q <= A/n + 1 guarantees for n >= A·w/(v-w): UPPER BOUND.
+        # Every council below the largest lower bound leaves someone short, and
+        # at the largest upper bound nobody is, so a one-seat scan between them
+        # finds the minimum and must end. Outside-pool ward seats (C, D) are
+        # fixed seats: they are subtracted before the quota at every size and
+        # never topped up, and `ward_wins` holds pool winners only.
+        fixed_out = independent_wards + no_pr_list_wards
+        total_votes = sum(combined.values())
+        winners = {p: w for p, w in ward_wins.items() if w > 0}
+        lower = COUNCIL
+        upper = COUNCIL
+        for p, w in winners.items():
+            v = combined[p]
+            if v <= w:
+                raise ValueError(
+                    f"`level` cannot cover {p}: {w} ward(s) won on {v} "
+                    f"combined vote(s). No council gives a party at least one "
+                    f"seat per vote it holds, so the search has no end; this "
+                    f"is a constructed input, not an election.")
+            lower = max(lower, (w - 1) * total_votes // v + 1 + fixed_out)
+            upper = max(upper, -(-w * total_votes // (v - w)) + fixed_out)
         total = COUNCIL
-        for _round in range(OVERHANG_LEVEL_MAX_ROUNDS):
+        while total <= upper:
             try:
                 # the first iteration is round 0's council, already allocated
                 sub = alloc if total == COUNCIL else allocate(
@@ -4929,30 +4988,23 @@ def allocate_with_overhang(
                     f"{total} seats covering ward winners, and the allocation "
                     f"then failed: {exc}\n"
                     f"\n"
-                    f"  `level` grows the chamber by the current deficit each "
-                    f"round (Ausgleichsmandate). A party holding many wards on "
+                    f"  `level` seeks the smallest council covering every ward "
+                    f"winner (Ausgleichsmandate). A party holding many wards on "
                     f"a small vote share demands a council far larger than the "
                     f"votes can fill, and largest-remainder gives out before it "
                     f"gets there. This is a property of the INPUT under this "
                     f"rule, not a defect in `allocate`. MODEL-LOG §1.97 F41."
                 ) from exc
-            deficit = sum(max(0, w - sub.seats.get(p, 0))
-                          for p, w in ward_wins.items())
-            if deficit == 0:
+            if all(sub.seats.get(p, 0) >= w for p, w in winners.items()):
                 return dict(sub.seats), total, total // 2 + 1, over
-            total += deficit
+            total = max(total + 1, lower)
         raise RuntimeError(
-            f"the `level` rule did not converge in "
-            f"{OVERHANG_LEVEL_MAX_ROUNDS} rounds; the council reached {total} "
-            f"from a base of {COUNCIL} and a ward winner is still short.\n"
+            f"the `level` rule found no council between {COUNCIL} and its "
+            f"upper bound {upper} covering every ward winner.\n"
             f"\n"
-            f"  Each round adds at least one seat and a converging case takes a "
-            f"handful, so this means the deficit is not closing — `allocate` is "
-            f"not monotone in `total_seats`, or a ward winner is absent from "
-            f"`combined`, which the guard at the top of this function refuses. "
-            f"Before this bound existed the loop simply never returned, and a "
-            f"hang in a forty-minute suite reads as slowness rather than as a "
-            f"failure. MODEL-LOG §1.97 F41, F44.")
+            f"  At the upper bound every winner's whole quotas alone reach its "
+            f"wards, so this is unreachable unless `allocate` or the bound "
+            f"arithmetic above has changed. MODEL-LOG §1.308.")
     if rule == "deduct":
         fixed: dict[str, int] = {}
         votes = dict(combined)
@@ -7325,6 +7377,12 @@ def run_model(target, scenario: dict,
             combined, pool_wins, scenario["overhang_rule"],
             independent_wards=c_wards, no_pr_list_wards=d_wards,
             lot=draw_key(run_lot, d))
+        # THE WHOLE CHAMBER (MODEL-LOG §1.308). `allocate_with_overhang`
+        # returns the pool, `council - C - D` seats; a ward won by a party with
+        # no PR list (the ward-contest rule lets one win since §1.306) is that
+        # party's seat and goes into the draw as its own column, so every
+        # draw's seats sum to its council. `council_seats` refuses otherwise.
+        seats = council_seats(seats, dict(wins), combined, council)
 
         seat_draws.append(seats)
         over_draws.append(frozenset(over))

@@ -41,9 +41,13 @@ the reproduction is the record of what the defect was:
   said ``deduct``; it is now ``deduct``, which is number-neutral because both
   call sites pass the rule explicitly — asserted from the AST in
   (``test_no_call_site_relies_on_the_signature_default``);
-* ``level`` was unbounded and died inside ``seats.allocate``; it is now bounded
-  on ROUNDS and re-raises naming the rule that demanded the council
-  (``test_level_raises_instead_of_terminating_when_the_council_outgrows_the_votes``);
+* ``level`` was unbounded and died inside ``seats.allocate``; it re-raises
+  naming the rule that demanded the council
+  (``test_level_raises_instead_of_terminating_when_the_council_outgrows_the_votes``).
+  Its round bound (2026-08-28) fired on a real draw that needed more rounds,
+  so since 2026-10-16 it scans between bounds computed from the votes and
+  returns the smallest covering council (§1.308,
+  ``test_level_finds_the_smallest_covering_council_far_above_the_base``);
 * a ward winner absent from ``combined`` was reported excessive and seated
   nowhere under ``deduct``, seated twice under ``expand``, and could not
   terminate under ``level``; all three now refuse
@@ -922,6 +926,125 @@ def test_a_ward_winner_absent_from_the_combined_vote_is_refused():
     # guard has stopped the ordinary case as well.
     seats, council, _t, over = call(MILD_VOTES, {"C": 1}, MILD_COUNCIL, "deduct")
     assert sum(seats.values()) == council == MILD_COUNCIL, (seats, council)
+
+
+# --------------------------------------------------------------------------
+# A WARD WON BY A PARTY WITH NO PR LIST (MODEL-LOG §1.308)
+#
+# NOLIST — ten seats, eight wards. A and B have lists; N contested wards only.
+#
+#   combined (ward + list)  A 600   B 400   N not in the pool (no list votes)
+#   wins                    A 3     B 4     N 1      -> D = 1
+#   quota  1,000 // (10 - 0 - 1) + 1 = 112
+#   floors A 5 (600//112, surplus 40)   B 3 (surplus 64)   = 8, one by surplus
+#          -> B (64 > 40):  A 5, B 4.  Pool 9, plus N's ward seat = 10.
+#
+# B's 4 wards equal its entitlement, so item 16 fires on the equality limb with
+# excess 0 and every rule returns the same council of 10.
+#
+# NOLIST_OVER — the same votes, wins A 2, B 5, N 1: B one over.
+#   deduct  B fixed at 5; A re-struck over 10 - 5 - 1 = 4: quota 600//4+1 =
+#           151, A 3 (surplus 147) + 1 = 4.     A 4, B 5, N 1 = 10.
+#   expand  B 4 + 1.                            A 5, B 5, N 1 = 11.
+#   cap     wins ignored.                       A 5, B 4, N 1 = 10.
+#   level   11: n 10, Q 101, A 5 (95) B 3 (97) +2 -> A 6 B 4, short.
+#           12: n 11, Q 91,  A 6 (54) B 4 (36) +1 -> A 7 B 4, short.
+#           13: n 12, Q 84,  A 7 (12) B 4 (64) +1 -> A 7 B 5.  A 7, B 5, N 1 = 13.
+# --------------------------------------------------------------------------
+NOLIST_WARD = {"A": 300, "B": 200, "N": 50}
+NOLIST_LIST = {"A": 300, "B": 200}
+NOLIST_COUNCIL = 10
+
+
+def _chamber(ward_votes, list_votes, wins, size, rule):
+    """The production chain per draw: pool, C/D split, rule, chamber."""
+    from seats import council_seats, eligible_parties, outside_pool_wards
+    combined = eligible_parties(ward_votes, list_votes)
+    c, d, pool = outside_pool_wards(dict(wins), combined)
+    with council_of(size):
+        seats, council, _t, over = M.allocate_with_overhang(
+            dict(combined), pool, rule, independent_wards=c,
+            no_pr_list_wards=d)
+    return council_seats(seats, dict(wins), combined, council), council, d
+
+
+def test_a_no_list_ward_winner_keeps_its_seat_and_the_list_parties_share_the_rest():
+    """Council exact, N holds one (ward) seat, A and B share 9 by the quota."""
+    from seats import allocate as _allocate, eligible_parties
+    combined = eligible_parties(NOLIST_WARD, NOLIST_LIST)
+    assert combined == {"A": 600, "B": 400}, combined
+    pool = _allocate(combined, total_seats=NOLIST_COUNCIL, no_pr_list_wards=1)
+    assert pool.seats_available == 9 and pool.quota == 112, (
+        pool.seats_available, pool.quota)
+    for rule in M.OVERHANG_RULES:
+        seats, council, d = _chamber(NOLIST_WARD, NOLIST_LIST,
+                                     {"A": 3, "B": 4, "N": 1},
+                                     NOLIST_COUNCIL, rule)
+        assert d == 1, d
+        assert seats == {"A": 5, "B": 4, "N": 1}, (rule, seats)
+        assert council == NOLIST_COUNCIL == sum(seats.values()), (rule, council)
+
+
+def test_every_rule_leaves_a_no_list_ward_seat_fixed_and_converges():
+    """NOLIST_OVER: four rules, four hand-derived councils, N always 1."""
+    want = {"deduct": ({"A": 4, "B": 5, "N": 1}, 10),
+            "expand": ({"A": 5, "B": 5, "N": 1}, 11),
+            "cap": ({"A": 5, "B": 4, "N": 1}, 10),
+            "level": ({"A": 7, "B": 5, "N": 1}, 13)}
+    assert set(want) == set(M.OVERHANG_RULES), "a rule was added: derive it here"
+    for rule, (seats_want, council_want) in want.items():
+        seats, council, _d = _chamber(NOLIST_WARD, NOLIST_LIST,
+                                      {"A": 2, "B": 5, "N": 1},
+                                      NOLIST_COUNCIL, rule)
+        assert (seats, council) == (seats_want, council_want), (
+            rule, seats, council)
+        assert sum(seats.values()) == council
+
+
+def test_council_seats_refuses_a_chamber_that_does_not_add_up():
+    """The invariant is checked, not assumed: a pool struck over the whole
+    council (no D deduction) plus N's ward seat is one seat too many."""
+    from seats import allocate as _allocate, council_seats
+    combined = {"A": 600, "B": 400}
+    whole = _allocate(combined, total_seats=NOLIST_COUNCIL).seats
+    try:
+        council_seats(whole, {"A": 3, "B": 4, "N": 1}, combined, NOLIST_COUNCIL)
+    except ValueError as exc:
+        assert "does not add up" in str(exc), exc
+    else:
+        raise AssertionError("an 11-seat chamber was accepted as 10")
+
+
+def test_level_finds_the_smallest_covering_council_far_above_the_base():
+    """The shape that broke the round bound on a JHB 2026 draw: a list party
+    holding several wards on a small share. S holds 4 wards on 0.6% of the
+    vote at a 270-seat base, so it is covered only near 4 / 0.006 seats; the
+    old one-seat-a-round creep needed hundreds of rounds to get there.
+
+    Asserted: the returned council covers every winner, and the council one
+    smaller does not (minimality), both by `seats.allocate` directly."""
+    votes = {"A": 600_000, "B": 394_000, "S": 6_000}
+    wins = {"A": 100, "B": 40, "S": 4}
+    with council_of(270):
+        seats, council, _t, _o = M.allocate_with_overhang(votes, wins, "level")
+    assert council > 270 + 200, council
+    assert sum(seats.values()) == council
+    assert all(seats[p] >= w for p, w in wins.items()), seats
+    below = allocate(votes, total_seats=council - 1).seats
+    assert any(below[p] < w for p, w in wins.items()), (
+        f"council {council - 1} already covers every winner: {below}")
+
+
+def test_a_voteless_pool_winner_is_refused_under_every_rule():
+    """A ward winner in the pool with no votes cannot be covered by any
+    council; every rule refuses it rather than searching or seating nothing."""
+    for rule in M.OVERHANG_RULES:
+        try:
+            call({"A": 900, "Z": 0}, {"Z": 1}, 10, rule)
+        except ValueError as exc:
+            assert "no combined votes" in str(exc) and "Z" in str(exc), exc
+        else:
+            raise AssertionError(f"{rule} accepted a voteless ward winner")
 
 
 if __name__ == "__main__":
