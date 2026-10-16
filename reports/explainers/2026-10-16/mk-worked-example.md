@@ -1,3 +1,5 @@
+> SUPERSEDED 2026-10-16: describes the parent_weight 0.9 / 0.35 blend, retired when MK's vector was fitted from its own 2024 results. Current figures are in facts.md section C.
+
 # How the forecast places MK's vote in a voting district
 
 Code at HEAD (bb280c8). 0.9 = live spec; 0.35 = same spec without judgements (parent_weight is the only owner key set).
