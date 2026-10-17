@@ -1,0 +1,11 @@
+by-election weights in the centres: {'at_or_over': 0.0, 'under': 0.0}
+ANC       2024 31.96  drawn mean 23.75 ratio 0.743  centre 26.40 ratio 0.826
+DA        2024 24.98  drawn mean 26.06 ratio 1.043  centre 28.89 ratio 1.157
+EFF       2024 12.46  drawn mean 11.01 ratio 0.884  centre 12.18 ratio 0.977
+MK        2024 12.22  drawn mean  9.04 ratio 0.740  centre 10.10 ratio 0.827
+ASA       2024  6.22  drawn mean 11.69 ratio 1.881  centre 12.97 ratio 2.085
+PA        2024  2.91  drawn mean  5.95 ratio 2.047  centre  6.47 ratio 2.225
+VFPLUS    2024  0.81  drawn mean  0.91 ratio 1.132  centre  0.98 ratio 1.216
+ALJAMAAH  2024  0.83  drawn mean  0.87 ratio 1.045  centre  0.98 ratio 1.171
+IFP       2024  1.41  drawn mean  1.50 ratio 1.068  centre  1.67 ratio 1.186
+RISE      2024  1.56  drawn mean  1.87 ratio 1.202  centre  2.02 ratio 1.299

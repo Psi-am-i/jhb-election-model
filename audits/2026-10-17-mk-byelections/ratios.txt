@@ -1,0 +1,51 @@
+45 contests; 186 party-contest rows
+
+== JHB   party ver  n  notstood  median_ratio  voteweighted_ratio
+ANC        A  12   0   0.591   0.829
+ANC        B  12   0   0.591   0.829
+ASA        B  12  10   0.000   0.546
+DA         A   8   0   1.452   1.256
+DA         B  12   4   0.548   1.201
+EFF        A   8   0   1.245   1.013
+EFF        B  12   4   0.754   0.819
+MK         A   6   0   0.855   0.845
+MK         B   7   1   0.704   0.820
+RISE       B   5   4   0.000   0.377
+
+== 8 metros   party ver  n  notstood  median_ratio  voteweighted_ratio
+ALJAMAAH   A   3   0   1.734   1.700
+ALJAMAAH   B   3   0   1.734   1.700
+ANC        A  42   0   0.676   0.842
+ANC        B  42   0   0.676   0.842
+ASA        B  15  13   0.000   0.478
+DA         A  36   0   1.191   1.158
+DA         B  42   6   1.158   1.144
+EFF        A  22   0   0.916   0.988
+EFF        B  32  10   0.348   0.832
+IFP        B   4   4   0.000   0.000
+MK         A  14   0   0.836   0.859
+MK         B  17   3   0.704   0.817
+PA         A   6   0   2.427   1.942
+PA         B   7   1   2.002   1.876
+RISE       B   6   5   0.000   0.358
+VFPLUS     A   5   0   1.510   2.306
+VFPLUS     B  12   7   0.000   1.298
+
+MK contests:
+2024-08-28 ETH 59500034 npe 0.255 bye 0.191 stood True valid 4591
+2024-08-28 JHB 79800087 npe 0.032 bye 0.000 stood False valid 3530
+2024-09-11 ETH 59500033 npe 0.264 bye 0.145 stood True valid 3508
+2024-09-11 ETH 59500035 npe 0.062 bye 0.000 stood False valid 5940
+2024-09-11 ETH 59500036 npe 0.092 bye 0.062 stood True valid 5579
+2024-09-11 JHB 79800021 npe 0.122 bye 0.104 stood True valid 4032
+2024-10-09 BUF 29200012 npe 0.034 bye 0.050 stood True valid 3250
+2025-03-19 JHB 79800059 npe 0.292 bye 0.206 stood True valid 1857
+2025-04-16 ETH 59500110 npe 0.354 bye 0.389 stood True valid 6256
+2025-05-14 JHB 79800024 npe 0.182 bye 0.229 stood True valid 4803
+2025-07-09 TSH 79900098 npe 0.035 bye 0.000 stood False valid 2956
+2025-09-10 JHB 79800130 npe 0.253 bye 0.217 stood True valid 4180
+2025-09-17 ETH 59500064 npe 0.363 bye 0.225 stood True valid 5074
+2025-10-01 TSH 79900010 npe 0.043 bye 0.135 stood True valid 4295
+2025-10-15 JHB 79800029 npe 0.101 bye 0.045 stood True valid 5765
+2025-12-10 EKU 79700109 npe 0.175 bye 0.146 stood True valid 4260
+2026-02-25 JHB 79800102 npe 0.031 bye 0.007 stood True valid 3654

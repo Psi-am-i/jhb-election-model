@@ -30746,3 +30746,28 @@ summed from each record's `wards` block in `history.json`. §1.314 and §1.317 q
 same model state (cfd70bf, restored exactly) on their own count, "wards whose favourite was not
 the winner", computed outside `history.json`. The two counts are not reconciled here; compare
 §1.321's figures only with each other.
+
+## 1.322 The 2026 MK level against post-2024 metro by-elections: consistent; by-elections do not support MK at its 2024 share (2026-10-17)
+
+**Question.** §1.319's ward study found MK's 2026 level decides how many wards the ANC keeps. Is the model's MK level consistent with what MK did in local by-elections after the 2024 national election? Pre-registered in `prereg/2026-10-17-mk-level-from-byelections.md` (2980e23) before any share was computed. A measurement: nothing in the model changed.
+
+**Method.** Every ward by-election in the eight metros after 2024-05-29 in `byelections_SA_vd_party.csv`: 45 contests, all of whose voting districts appear in the 2024 provincial-ballot files. Each party's by-election share is set against its 2024 share in the same voting districts (joined on `VD_Number`, no crosswalk), for parties at or above 3% there in 2024. Version A: contests the party stood in. Version B: A plus contests where it did not stand (ratio 0). The model's ratio is Johannesburg 2026 over the party's 2024 Johannesburg share: drawn mean (5,000 draws, seed 20261104, in process, nothing written) and pre-draw centre. The by-election term in the centres is zero for every party (`bye_value.json` weights 0.0), so the by-elections did not build the model's level. Scripts and output: `audits/2026-10-17-mk-byelections/` (`ratios.py`, `model_ratio.py`, `rows.json`, `*.txt`).
+
+**Result.** Ratio = share in the by-election over share in the same districts in 2024.
+
+| party | by-elections, Johannesburg (B): contests, median, vote-weighted | by-elections, 8 metros (B): contests, median, vote-weighted | model, Johannesburg 2026: drawn mean, centre |
+|---|---|---|---|
+| MK | 7 (1 not stood), 0.704, 0.820 | 17 (3 not stood), 0.704, 0.817 | 0.740, 0.827 |
+| ANC | 12, 0.591, 0.829 | 42, 0.676, 0.842 | 0.743, 0.826 |
+| DA | 12 (4 not stood), 0.548, 1.201 | 42 (6), 1.158, 1.144 | 1.043, 1.157 |
+| EFF | 12 (4), 0.754, 0.819 | 32 (10), 0.348, 0.832 | 0.884, 0.977 |
+| ActionSA | 12 (10), 0.000, 0.546 | 15 (13), 0.000, 0.478 | 1.881, 2.085 |
+| PA | — (under 3 contests) | 7 (1), 2.002, 1.876 | 2.047, 2.225 |
+
+Version A for MK: Johannesburg 6 contests, median 0.855, vote-weighted 0.845; 8 metros 14, 0.836, 0.859.
+
+**Scored against the pre-registered rule.** MK's version-B ratio is within ±0.15 of the model's on both summaries, in Johannesburg and across the metros: **consistent**. Johannesburg has seven contests with MK at or above 3% in 2024, so it is read alone as well as pooled. The other large parties are not displaced in one direction: ANC and DA are within ±0.15 on the vote-weighted ratio, and EFF is 0.06–0.16 below the model. ActionSA cannot be read: it stood in 2 of the 12 Johannesburg contests where it held 3% in 2024 (ratios 2.9 and 1.4 there), so version B measures its absence.
+
+**What this changes.** The model holds MK at about three-quarters to four-fifths of its 2024 share, and so do the by-elections. §1.319's "MK's level is worth about 7 ANC wards" measured moving MK from the model's level to its 2024 share (12.2%); the by-elections give no support for that move. Nothing in the model is changed by this entry.
+
+**Limits.** By-elections are low-turnout contests with a ward candidate on the ballot; the ratio describes a by-election electorate, not the 2026 one, and both the ANC's and MK's ratios could fall or rise together on a general-election turnout. Seventeen MK contests, eleven of them outside Johannesburg, spread over 18 months; MK's support may have moved since. Contests were fought where vacancies arose, not chosen to represent the city.
