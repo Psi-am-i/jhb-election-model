@@ -30542,3 +30542,75 @@ with `site/draws/`, `seat_draws.csv` or `forecast_summary.json` (`test_draw_reco
 published-seats check, `test_export_draws`' three reproduction checks, four
 `test_reweight` uniform-weight checks). The suite result is in the commit message of the
 commit carrying this entry.
+
+## 1.318 Turnout review: the forecast's mean move from turnout is the band's shape; the citywide level has no skill and reaches no share; between-district composition is real and θ already carries it (2026-10-17)
+
+Owner, 2026-10-17: a review of how turnout is forecast and how it can be improved; he is
+not willing to publish the model of §1.317. Read-only throughout: no model code changed, no
+spec emitted, nothing under `data/` written. Evidence in `audits/2026-10-17-turnout-review/`:
+`map/map.md` (the chain with code citations and probe runs), `measure/report.md` and CSVs
+(turnout accuracy over the 24 city-years; real share changes decomposed), `pollster/report.md`
+(blind review, brief `POLLSTER-BRIEF.md` issued verbatim), `rederive/` (my own checks).
+Descriptive measurements, not pre-registered; any change that follows needs its own
+pre-registration.
+
+**Re-derived by me.** Johannesburg 2021 projected citywide turnout (roll-weighted over the
+95.2% of the roll with a projection of its own) 52.00% against a realised 42.66% (votes cast
+on the higher ballot over registered). DA between-district composition from turnout alone,
+NPE 2019 → LGE 2021, Johannesburg: +2.96 points (VDs joined by number, 99.5% of 2021 list
+votes; the measurement agent +3.04 on 97.97%). The JHB 2026 band mean over mode per pool from
+`pools_2026.json`: Black African 0.3720/0.3639, Coloured 0.5336/0.5432, Indian/Asian
+0.4434/0.4085, White 0.5237/0.5268. Each pool's reference equals its band mode and the
+districts carry it within 0.5 points (`41_guards.turnout_reference`, 20-draw trace).
+
+**1. The skew.** `turnout_band` is symmetric in logit and drawn as a triangular in turnout,
+so a pool's draws average above its mode below 50% turnout and below it above 50%. With the
+reference at the mode (§V1), that sets the sign of every pool's mean shock. Probe (map agent,
+`run_model` in process, 1,000 and 2,000 paired draws, seed 20261104; not re-run by me): with
+each pool's mean equal to its mode, JHB 2026 DA mean list share 26.03 → 26.31, ANC 24.06 →
+23.88, DA mean seats 69.68 → 70.29, P(ANC largest alone) 60.8% → 58.0%, and `turnout_moved`
+DA −0.247 → +0.038. The realised Black African − White pool-turnout differential (ecological,
+`pool_counts`) has the opposite sign to the skew's push at 18 of 24 city-years. The canonical
+improvement of §1.317 (list MAE 3.212 → 3.152, better at 15 of 24, sign test p ≈ 0.31)
+comes through this channel at city-years where the DA centre was already high.
+
+**2. The level.** Projected citywide turnout, realised − projected, mean of 8 metros: 2011
++13.1, 2016 +6.9, 2021 −8.4 points; mean absolute 9.45 against 9.46 for "same as the last
+LGE"; within-cycle residual 2.8 RMS. A common factor on every district's turnout changes no
+share, ward winner or seat (`district_votes`; the 0.95 clip aside), so the level reaches only
+a published turnout figure. The λ ratio pattern is the worst of three district patterns on
+pattern-only RMSE at 22 of 24 city-years. The projection under-predicts turnout where the DA
+is strong: DA-majority minus ANC-majority VD error +5.1 (2011), +4.2 (2016), +1.3 (2021),
+8-metro means.
+
+**3. Composition is real between districts.** Previous-election VD list shares held fixed,
+new-election turnout applied: DA +1.3 to +1.6 points per LGE cycle (8-metro means, positive
+at 7 of 8 in each cycle; pollster and measurement agent independently); NPE → following LGE
++1.8 (2009→11), +2.3 (2014→16), +2.7 (2019→21). Within districts the slope of share change on
+turnout change is at most 0.2 share points per turnout point, mixed in sign. θ is a ratio of
+realised local to national citywide shares, so it contains the NPE → LGE composition.
+
+**4. Why counted turnout fed in scores worse (§1.317).** The composition shift does not
+correlate with the model's list error (r −0.07 DA, +0.06 ANC, 24 city-years, `history.json`
+at `4fb8002`); adding it moves DA MAE 3.35 → 3.71. Supported: θ already carries the
+composition and the deviation from the projection re-applies it (iii); ecological pool
+turnout adds ≈0.19 of the 0.48 rise (i). Bounded small at district level, not ruled out:
+within-pool preference moving with turnout (ii). Separating measurement: θ on shares
+standardised to the projection method's turnout for each training election, then N-P and
+N-Ovd; (iii) predicts N-Ovd beats N-P pooled and at ≥14 of 24.
+
+**5. Width.** The band uses the record's 0.90 quantile of |Δlogit| as the triangular's
+support edge, so its own 90% interval is ≈0.68 of that. Realised citywide turnout falls in
+the drawn 90% interval at 13 of 24 city-years; the Black African − White differential at 15
+of 24 (map agent, copula on spec bands).
+
+**Also found (map agent, `map.md` D5-D14).** `district_split` stops at the 60-round cap with
+worst pool-row error 0.047 (§V4 states 6e-4); pool rates use PR valid votes and district
+levels votes cast; a tied pool group gets one absolute turnout rather than one ratio (no
+emitted spec has a tie); the level pattern is computed in `turnout.py` and again in
+`run_model`; §A41/§F23 noise claims were measured under the deleted mechanism (re-measured:
+noise and jitter at zero move mean shares ≤0.002 points); 2011-target Coloured band modes
+fitted on 2006 are implausible (Buffalo City 3.2%, Tshwane 15.4%).
+
+The pollster's ranked improvements and its recommendation are in `pollster/report.md`; the
+choice is the owner's.
