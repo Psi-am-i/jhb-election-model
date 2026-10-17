@@ -30622,3 +30622,35 @@ with the skew removed. The skew removal accounts for about 3 of the 4.5 points b
 re-fit in the same change (§V5: list-share sd DA 3.77 → 4.15, EFF 3.11 → 2.33, ActionSA
 3.04 → 2.19). That re-fit carries earlier targets' centres to realised turnout with a
 citywide fixed-split re-weighting, not the draw's district path (map agent D8).
+
+## 1.319 Why the ANC leads the 2026 seats with fewer votes, and what removing the turnout double count would do to the centre, approximately (2026-10-17)
+
+Owner, 2026-10-17: the ANC as favourite is wrong, and turnout must stop counting twice; asked
+whether the effect of removing the double count can be estimated without days of work.
+Descriptive, not pre-registered; scripts `audits/2026-10-17-turnout-review/rederive/`
+(`wardlist.py`, `ward2024.py`, `dc2026.py`).
+
+**Seats against votes** (`run_model` in process at `1598de6`, Johannesburg 2026, 300 draws,
+seed 20261104; nothing written). Mean list / ward share / seats / wards won: ANC 23.72 /
+24.11 / 72.6 / 70.8; DA 25.90 / 27.14 / 69.2 / 44.9; EFF 10.92 / 11.95 / 29.9 / 3.1; ActionSA
+11.81 / 9.16 / 27.4 / 0.0; MK 8.63 / 8.18 / 22.2 / 8.8. The DA leads both ballots; the ANC's
+combined vote is worth about 64.5 of 270 seats and it wins about 71 wards, which it keeps
+(overhang, `overhang_rule = deduct`).
+
+**The ward record it extrapolates from.** NPE 2024 results summed to 2026 wards through
+`vd_ward_2026.csv` (865 of 865 VDs matched): the ANC carried 82 of 135 wards (DA 45, MK 5,
+PA 2, EFF 1) on 31.96% of the city vote; in the wards it carried, its median share was 46.1%
+and its median lead over the second party 27.8 points. In the canonical backtest
+(`history.json` at `4fb8002`) the model under-forecast the ANC's Johannesburg seats in 2021
+(91 against 106) and over-forecast them in 2011 (153 against 147).
+
+**The double count, approximately.** θ's NPE → LGE composition for Johannesburg
+(`partB8`, between-VD turnout term): DA +2.83 (2014→16), +3.04 (2019→21); ANC −2.38, −2.38.
+The composition the 2026 turnout projection implies over the NPE 2024 VD shares (2026 roll,
+98% of it; 2024 national turnout pattern against the projection): DA +1.74, ANC −1.00, EFF
+−0.55, MK −0.56 at the centre blend (ratio pattern DA +1.91, level pattern +1.56). A θ
+standardised for turnout with the projection's composition applied explicitly would move
+the centre by the difference: about DA −1.2, ANC +1.4 points. Limits: ratio θ treated as
+additive; θ's cycle weights and pool structure ignored; the projection under-predicts
+turnout in DA areas (§1.318), so the explicit composition is likely too small, and a better
+projection would close part of that gap.
