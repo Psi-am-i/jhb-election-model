@@ -1577,9 +1577,9 @@ stands on) and labelled for what was measured.
 **How big is each pool?** Each ward's registered voters, split by that ward's
 composition, summed across all 135 wards. The roll gives the *number* of
 registered voters in each ward but does not record population group, so the
-split is estimated: the census gives each ward's people and adults by group,
-and one registration rate per group, fitted across the city, turns them into
-registered voters, scaled to the ward's roll.
+split is estimated: the census gives each ward's people by group and its
+adults in total; the model fits each group's share of adults and its
+registration rate across the city, then scales each ward to its roll.
 
 <!-- /block b0b6ad99 -->
 
