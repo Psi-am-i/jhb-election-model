@@ -30740,3 +30740,9 @@ cannot happen. Every new impossible-weight cell is a 2011 target: Census 2022 sh
 flat back to 2011, and Johannesburg's White census share fell from 12.3% (2011) to 7.0%
 (2022), so the 2011 White roll is probably understated; argued, not tested (a 2011 census
 ward table would settle it and is not held). Not examined: per-party pool vectors at 2026.
+
+*Addendum, same day, on "wards called wrong".* §1.321's 71 → 70 is `wards_matched − called`
+summed from each record's `wards` block in `history.json`. §1.314 and §1.317 quote 79 for the
+same model state (cfd70bf, restored exactly) on their own count, "wards whose favourite was not
+the winner", computed outside `history.json`. The two counts are not reconciled here; compare
+§1.321's figures only with each other.
