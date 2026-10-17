@@ -481,24 +481,6 @@ format = "int"
 used_in = "methodology (the seat law)"
 
 unverifiable = "a measured historical figure from an official result or the census, not a model output"
-[hist_census_white_adults]
-mode = "fixed"
-value = 300000
-source = "external:Stats SA Census 2022 ward estimates, Johannesburg's white adults, against the IEC voters' roll (DATA-QUALITY.md item 11)"
-captured = "2026-09-17"
-format = "comma"
-used_in = "methodology (the roll and the census)"
-
-unverifiable = "a measured historical figure from an official result or the census, not a model output"
-[hist_roll_white_voters]
-mode = "fixed"
-value = 560000
-source = "external:IEC voters' roll against Stats SA Census 2022 ward estimates, Johannesburg's registered white voters (DATA-QUALITY.md item 11)"
-captured = "2026-09-17"
-format = "comma"
-used_in = "methodology (the roll and the census)"
-
-unverifiable = "a measured historical figure from an official result or the census, not a model output"
 [hist_asa_pr_2021]
 mode = "fixed"
 on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication

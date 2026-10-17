@@ -73,11 +73,11 @@ cannot see, identified from a party's own geography (the constituency the IFP
 stands on) and labelled for what was measured.
 
 **How big is each pool?** Each ward's registered voters, split by that ward's
-composition, summed across all 135 wards. The census gives the *proportions*
-within a ward; the roll gives the *number*, and where they disagree the roll
-wins. They disagree a lot: the census implies about {{hist_census_white_adults}} white adults in
-Johannesburg, and the roll carries about {{hist_roll_white_voters}} registered white voters. We
-publish the gap rather than absorb it.
+composition, summed across all 135 wards. The roll gives the *number* of
+registered voters in each ward but does not record population group, so the
+split is estimated: the census gives each ward's people and adults by group,
+and one registration rate per group, fitted across the city, turns them into
+registered voters, scaled to the ward's roll.
 
 ### 3. Measure how each party does in each pool
 

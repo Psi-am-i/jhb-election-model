@@ -2,6 +2,12 @@
 
 This page lists errors on published pages. Nothing is removed from it.
 
+## <span data-asof="2026-10-17">"The roll carries about 560,000 registered white voters"</span> — published 26 September 2026, corrected 17 October 2026
+
+<span data-asof="2026-10-17">**What was wrong.** The methodology page said the voters' roll carries about 560,000 registered white voters in Johannesburg, against about 300,000 white adults in the census. The roll does not record population group. The 560,000 was the model's own estimate, made with a registration rate fitted across the city, and it gave more registered white voters than there are white adults.
+
+**What is right.** The page says the roll does not record population group and describes how the model estimates each group's registered voters. The comparison is removed.</span>
+
 ## <span data-asof="2026-10-07">"Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in 57%"</span> — published 26 September 2026, corrected 7 October 2026
 
 <span data-asof="2026-10-07">**What was wrong.** The card on the ANC's claim to govern alone said an ANC-led council with ActionSA, the PA and the smaller parties reaches a majority in 57% of simulations. The red-lines card gave the same 57% and concluded it was "almost exactly the same odds as the DA's route" and that "on coalition arithmetic alone, neither leader is better placed than the other". The count left out the seats of the smallest parties.
