@@ -885,6 +885,11 @@ round estimates a feature from the record, that feature leaves the check.
      newcomer δ by anchor class, MODEL-LOG §1.314). Only 2021 rows moved:
      claimed ranks 4-12 n 124 → 125, 2021's cycle `sd(z)` 3.705 → 3.744, and
      the vote-error totals by at most 0.02pp.
+   * **Re-pasted 2026-10-17** from the artefact at `f32523b` (each ward's roll
+     split by its census shares, MODEL-LOG §1.321): ranks 1-3 50% coverage
+     50% → 46% and probit-SD 1.178 → 1.188; ranks 4-12 n 125 → 126, probit-SD
+     1.443 → 1.435; cycle `sd(z)` 1.542/1.304/3.744 → 1.527/1.302/3.735; vote-error
+     totals by at most 0.30pp. No conclusion moves.
 
    <!-- CHECKED-AGAINST-ARTEFACT: data/processed/history.json, claimed columns.
         tests/test_calibration_report.py::test_the_documented_figures_match_the_committed_artefact
@@ -894,14 +899,14 @@ round estimates a feature from the record, that feature leaves the check.
 
    | claimed columns | n | mean PIT | 50% (PIT) | 80% (PIT) | 90% (PIT) | probit-SD |
    |---|---|---|---|---|---|---|
-   | ranks 1-3 | 72 | 0.477 | 50% | 81% | 89% | 1.178 |
-   | ranks 4-12 | 125 | 0.458 | 46% | 77% | 83% | 1.443 |
+   | ranks 1-3 | 72 | 0.478 | 46% | 81% | 89% | 1.188 |
+   | ranks 4-12 | 126 | 0.457 | 46% | 77% | 83% | 1.435 |
 
    | twenty-four-city-year vote error | signed | absolute |
    |---|---|---|
-   | ranks 1-3 | -16.33pp | 242.17pp |
-   | ranks 4-12 | -5.44pp | 133.04pp |
-   | ranks 13+ | +16.32pp | 29.66pp |
+   | ranks 1-3 | -16.36pp | 242.47pp |
+   | ranks 4-12 | -5.41pp | 133.13pp |
+   | ranks 13+ | +16.33pp | 29.67pp |
    | phantom (parties that did not stand) | +5.44pp | — |
 
    <!-- CYCLE-SPLIT-CHECKED: data/processed/history.json, `reference` ranks 4-12
@@ -912,9 +917,9 @@ round estimates a feature from the record, that feature leaves the check.
 
    | cycle | ranks 4-12 sd(z), `reference` |
    |---|---|
-   | 2011 | 1.542 |
-   | 2016 | 1.304 |
-   | 2021 | 3.744 |
+   | 2011 | 1.527 |
+   | 2016 | 1.302 |
+   | 2021 | 3.735 |
 
    **BOTH TABLES ARE NOW MEASURED ON TWENTY-FOUR CITY-YEARS (re-quoted
    2026-09-29 from the committed `history.json`, the F9 after-run, MODEL-LOG §1.280).** They were nine until §1.70,

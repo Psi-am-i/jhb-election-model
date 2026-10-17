@@ -30686,3 +30686,57 @@ over "same as last LGE" at the citywide level; the λ pattern worst at 22 of 24 
 θ carrying the NPE → LGE composition) apply to the restored model too, where the projection
 fixes the citywide total redistributed over districts. The ANC's lead in seats with fewer
 votes (§1.319) is unchanged by the revert.
+
+## 1.321 Registered voters only: each ward's roll is split by its census group shares; the forecast and the backtest barely move (2026-10-17)
+
+Owner, 2026-10-17: the model concerns itself with registered voters; census data predicts
+only each group's share of a ward's roll. Prereg `prereg/2026-10-17-roll-split-by-census-share.md`
+(`86fa193`); code `f32523b`.
+
+**What the code did.** `pools.pool_counts` built people → adults (20+) → registered → voted per
+ward and group, fitting one rate per group across the city at each level and scaling each ward
+to its published totals. The registration rate was bounded at 2.0 and reached it in two cities.
+Johannesburg 2021 (re-derived in process): White 25.2% of the roll, Black African 64.8%;
+registered over modelled adults, after the per-ward scaling, Black African 0.50, Coloured 0.83,
+Indian/Asian 0.84, White 1.87. 34 of 135 wards have more registered voters than census adults
+and 21 more than their whole census population. The documents said otherwise in nine places
+(the census adult count "not an input the model consumes"; three of four levels "observed";
+each ward's composition "from that ward's own data"; the public methodology page described the
+split adopted here).
+
+**What it does now.** `registered_wg = roll_w × census share_wg`; turnout by group the one
+fitted level. Deleted: the adult and registration levels, `census_correction`, the 2.0 bound,
+the census head-count and 20+ reads, the count reprojection, a function with no caller, the age
+and sex tilt dimensions (rejected by the gate, read anyway). The reprojection drift gate weights
+by the roll. The two fixed site figures built on the nest (560,000 registered White voters,
+300,000 White adults) and the methodology passage printing them are removed; the built site is
+not rebuilt. Assumptions declared in JUDGEMENT-CALLS §L9: equal registration across groups
+within a ward; census population includes children (Black African share of the roll probably
+overstated); "Other" dropped.
+
+**Scored.** P1 held: Johannesburg 2021 roll 75.6 / 5.5 / 5.0 / 13.9%, ward sums equal to the
+roll to 7e-12. P2 held: no registered-over-adults level exists; voted ≤ registered per pool.
+P3 held: ward turnout from each ward's group mix and one turnout per group (roll-weighted RMSE,
+2021) is lower at 6 of 8 metros (Johannesburg 5.46 → 5.22, Tshwane 5.32 → 5.11, eThekwini 5.88
+→ 5.86, Cape Town 4.31 → 4.11, Mangaung 4.74 → 4.34, Nelson Mandela Bay 4.21 → 4.05; worse at
+Ekurhuleni 4.17 → 4.27 and Buffalo City 5.04 → 5.20). P4 held: Johannesburg 2026, 5,000 draws,
+seed 20261104, mean list shares unchanged to two decimals (ANC 23.75, DA 26.06, EFF 11.01,
+ActionSA 11.69, MK 9.04), ANC seats 72.0 → 72.1, P(ANC largest alone) 56.1% → 57.0%, P(DA)
+35.9% → 35.4%. P5 held: 2026 White turnout band mode 0.527 → 0.602, Black African 0.364 → 0.370;
+2026 White share of the roll 26.2% → 14.4%. P6 held: the drawer's White pool total 31.67% →
+20.02% of the drawn vote, band 26.1–36.8 → 15.9–23.7; party band ends moved by at most 0.17
+points (`test_drawer` goldens re-recorded). P7 held: `compare_history`, 1,000 draws,
+`PYTHONHASHSEED=0`, 24 city-years: list MAE 3.212 → 3.217 (better at 4, worse at 9), ward MAE
+2.773 → 2.779, coherent seat error 712 → 710, CRPS 542.3 → 543.1, wards called wrong 71 → 70
+(`seat_abs_err_coherent=710/@f32523b1/1000d/pools:e532c300/rows=24`). P8 held on its stated
+direction: the three 2011 DA-in-White cells remain (Buffalo City 1.25× → 1.23×, Cape Town 1.14×
+→ 1.22×, Nelson Mandela Bay 1.07× → 1.17×) and four more 2011 cells appear (eThekwini 1.04×,
+Johannesburg 1.04×, Mangaung White 1.03×, Mangaung Indian/Asian 1.25×).
+
+**Reading.** The record cannot tell the two splits apart on the means: the party fit absorbs
+pool size, as §1.315 found for turnout and roll. The new split fits ward turnout slightly
+better at most metros with four fewer fitted numbers, and removes a registration rate that
+cannot happen. Every new impossible-weight cell is a 2011 target: Census 2022 shares are held
+flat back to 2011, and Johannesburg's White census share fell from 12.3% (2011) to 7.0%
+(2022), so the 2011 White roll is probably understated; argued, not tested (a 2011 census
+ward table would settle it and is not held). Not examined: per-party pool vectors at 2026.

@@ -145,7 +145,7 @@ arithmetic test can see.
 | 0.98 | `arms.R2_MIN_MEDIAN`, `montecarlo.POOL_CAPACITY_MARGIN` |
 | 1000 | `arms.BACKTEST_DRAWS`, `fetch_boundaries.PAGE_SIZE` |
 | 12 | `montecarlo.DELIVERY_MAX_VALUES`, `pools.ALPHA_FALLBACK`, `stats.DECLARATION_MIN_CHARS` |
-| 2.0 | `benchmarks.MAX_SIGMA`, `build_make.MIN_RECORD_EVENTS`, `hex_cartogram.GRID_MARGIN_CELLS`, `levels.SHRINK`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.WARD_PR_RATIO_MAX`, `pools.MIN_HOME_SPLITS`, `pools.REGISTRATION_MAX`, `reweight.ANALYSIS_SEAT_BAND`, `reweight.ANALYSIS_SHARE_BAND_POINTS`, `width_record.FIXED_POINT_ITERS` |
+| 2.0 | `benchmarks.MAX_SIGMA`, `build_make.MIN_RECORD_EVENTS`, `hex_cartogram.GRID_MARGIN_CELLS`, `levels.SHRINK`, `montecarlo.OVERHANG_DEDUCT_MAX_ROUNDS_SLACK`, `montecarlo.WARD_PR_RATIO_MAX`, `pools.MIN_HOME_SPLITS`, `reweight.ANALYSIS_SEAT_BAND`, `reweight.ANALYSIS_SHARE_BAND_POINTS`, `width_record.FIXED_POINT_ITERS` |
 | 20 | `levels.SIZE_WINDOW_MIN_SCORED`, `width_record.MIN_ESTABLISHED` |
 | 200 | `arms.MC_RESAMPLES`, `montecarlo.PARTIAL_BALANCE_PASSES`, `pools.ALPHA_CEILING`, `reweight.MIN_EFFECTIVE_DRAWS` |
 | 2000 | `bye_value.BYE_VALUE_RESAMPLES`, `montecarlo.DELIVERY_MAX_CHARS`, `width_record.FIXED_POINT_DRAWS` |
@@ -207,11 +207,14 @@ Matched on the SHAPE of largest-remainder apportionment (a whole part, an orderi
 | `OVERHANG_LEVEL_MAX_ROUNDS` | yes | -- |
 | `POLL_K` | yes | -- |
 | `POLL_RMS_ERROR` | yes | -- |
+| `REGISTRATION_MAX` | yes | `arms` |
 | `SIZE_WINDOW_TIE` | NO | -- |
 | `THETA_CENTRAL` | yes | -- |
+| `adult_share` | yes | -- |
 | `canonical_order` | yes | -- |
 | `census_blend` | yes | -- |
 | `census_blend_wanted` | yes | -- |
+| `census_correction` | yes | -- |
 | `combined_shares` | yes | -- |
 | `level_sd_default` | yes | -- |
 | `level_sd_default_parties` | NO | -- |
@@ -221,6 +224,9 @@ Matched on the SHAPE of largest-remainder apportionment (a whole part, an orderi
 | `poll_weight` | yes | -- |
 | `polling_lean` | yes | -- |
 | `polling_span` | NO | -- |
+| `projected_pool_shares` | NO | -- |
+| `read_census_population` | NO | -- |
+| `reproject_counts` | NO | -- |
 | `seed_bands` | yes | -- |
 | `test_the_pr_ballot_assumption_is_measured_not_asserted` | yes | -- |
 | `theta_mode` | yes | `build_interactive` |
@@ -760,7 +766,6 @@ Every key of `montecarlo.DEFAULTS`, against every register that classifies it. `
 | `pools.SOLVE_TOL` | float 1e-09 | NO | NO | yes | -- |
 | `pools.GROUP_SHARE_RECORD` | str 'group_share_record.json' | NO | NO | NO | `declares`, `group_share_record`, `montecarlo` |
 | `pools.SIMULATION_BLOC` | dict[4] | NO | NO | yes | -- |
-| `pools.REGISTRATION_MAX` | float 2.0 | NO | NO | yes | `arms` |
 | `pools.NATIONAL_ONLY_FLOOR` | float 0.001 | NO | NO | yes | -- |
 | `pools.PRIOR_LOCAL_FLOOR` | float 0.001 | NO | NO | yes | -- |
 | `pools.POOL_LOSS_CAUSES` | tuple[4] | NO | NO | NO | -- |
@@ -1253,20 +1258,17 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `pools.stale_reason` | model+measurement | Why this spec should not be trusted for this run, or None. | `citywide_table`, `montecarlo`, `tests/test_artefact_key_discriminates`, `tests/test_chain`, `tests/test_citywide_table`, `tests/test_stage_inputs` |
 | `pools.load_config` | model+measurement | -- | `group_share_record`, `montecarlo`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_national_record_fit`, `tests/test_pool_bounds` |
 | `pools.read_census` | model+measurement | One census: ward -> composition over this dimension, summing to 1. | `tests/test_census_refusal_is_not_swallowed` |
-| `pools.read_census_population` | model+measurement | Ward -> the population this dimension's categories are counted over. | `tests/test_census_refusal_is_not_swallowed` |
 | `pools.vote_located_bloc` | model+measurement | Locate a voter bloc the census cannot see, using a party that only it votes for. | `tests/test_chain` |
 | `pools.ward_totals` | model+measurement | Ward -> registered voters, and ward -> votes cast. Both published. | `benchmarks`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_national_record_fit` |
-| `pools.pool_counts` | model+measurement | Build the four nested levels for one city and election. | `montecarlo`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_national_record_fit`, `tests/test_pool_bounds` |
+| `pools.pool_counts` | model+measurement | Each ward's registered voters and votes cast, split across pools, for | `montecarlo`, `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain`, `tests/test_national_record_fit`, `tests/test_pool_bounds` |
 | `pools.pool_losses` | model+measurement | Every city-year a pool record dropped since this process started. | `tests/test_census_refusal_is_not_swallowed` |
 | `pools.registration_series` | model+measurement | Each pool's share of the registered roll, at every election on disk. | `tests/test_census_refusal_is_not_swallowed` |
-| `pools.projected_pool_shares` | model+measurement | Carry each pool's share of the roll forward to the target election. | -- |
 | `pools.pool_shares_of_roll` | model+measurement | Each pool's share of the roll the spec sizes the pools from, and the | `tests/test_pool_shares_one_roll` |
 | `pools.vd_map` | model+measurement | VD -> ward, and VD -> registered voters, as at one election. | `levels`, `montecarlo`, `tests/test_declared_reach_matches_ward_reach`, `tests/test_declared_ward_slates`, `tests/test_national_record_fit`, `tests/test_roll_2026` |
 | `pools.reproject` | model+measurement | Move a ward-level composition from one delimitation onto another. | -- |
-| `pools.delimitation_for` | model+measurement | Which delimitation an election was fought on. | `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain` |
-| `pools.reproject_counts` | model+measurement | Move a ward-level COUNT from one delimitation onto another. | `tests/test_chain` |
-| `pools.composition_at` | model+measurement | Ward composition interpolated to a decimal year. | `tests/test_census_refusal_is_not_swallowed` |
-| `pools.polling_decimal_year` | model+measurement | Polling day as a decimal year, without demanding council structure. | -- |
+| `pools.delimitation_for` | model+measurement | Which delimitation an election was fought on. | `tests/test_census_refusal_is_not_swallowed` |
+| `pools.composition_at` | model+measurement | Ward composition interpolated to a decimal year. | `tests/test_census_refusal_is_not_swallowed`, `tests/test_chain` |
+| `pools.polling_decimal_year` | model+measurement | Polling day as a decimal year, without demanding council structure. | `tests/test_chain` |
 | `pools.ward_party_shares` | model+measurement | Ward -> {party: share}, and ward -> votes cast. | `tests/test_national_record_fit` |
 | `pools.fit_joint` | model+measurement | Fit every party's pool rates at once, subject to what must be true. | `tests/test_chain`, `tests/test_universal_draw`, `width_record` |
 | `pools.balance_margins` | model+measurement | Force both margins of the party x pool vote matrix to their known totals. | `montecarlo`, `tests/test_pool_bounds` |

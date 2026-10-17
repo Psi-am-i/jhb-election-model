@@ -502,22 +502,30 @@ PROCESSED = ROOT / "data" / "processed"
 # 1.43 -> 2.13, p95 24.11 -> 21.16) and, through the normalisation, ANC's and
 # DA's narrowed with it; the other newcomers' widths moved by class. No
 # improvement is claimed here; the backtest is §1.314's.
+# RE-RECORDED 2026-10-17, deliberately: EACH WARD'S ROLL IS SPLIT BY ITS
+# CENSUS GROUP SHARES (owner, registered voters only; prereg
+# prereg/2026-10-17-roll-split-by-census-share.md, MODEL-LOG §1.321). The
+# pools' registered sizes changed (Johannesburg 2026 White share of the roll
+# 26.2% -> 14.4%) and so did their turnout bands (White mode 0.527 -> 0.602),
+# so the pool totals moved: White mean 31.67% -> 20.02% of the drawn vote,
+# band 26.1-36.8 -> 15.9-23.7 (prereg P6, held). Party bands moved by at most
+# 0.17pp at an end. No improvement is claimed here; the backtest is §1.321's.
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.7270, 18.1645, 29.0708),
-    "DA": (26.0343, 19.8626, 32.1278),
-    "EFF": (11.0573, 6.6836, 16.2435),
-    "ASA": (11.6814, 7.4834, 17.0733),
-    "MK": (8.8363, 2.1336, 21.1630),
-    "PA": (5.8731, 1.9359, 12.0395),
-    "VFPLUS": (0.8996, 0.1927, 2.2956),
-    "ALJAMAAH": (0.8470, 0.1922, 2.1412),
+    "ANC": (23.7227, 18.2841, 28.9968),
+    "DA": (26.0355, 19.7650, 31.9580),
+    "EFF": (11.0586, 6.6855, 16.1944),
+    "ASA": (11.6817, 7.5152, 17.0808),
+    "MK": (8.8361, 2.1146, 21.2606),
+    "PA": (5.8744, 1.9269, 11.9489),
+    "VFPLUS": (0.8994, 0.1951, 2.3512),
+    "ALJAMAAH": (0.8480, 0.1961, 2.1554),
     "ENTRANT": (1.3859, 0.0000, 7.7892),
 }
 GOLDEN_POOLS = {
-    "Black African": (51.9978, 44.8811, 59.5305),
-    "Coloured": (9.1797, 5.2336, 15.1181),
-    "Indian/Asian": (4.1006, 3.1000, 5.5219),
-    "White": (31.6675, 26.1366, 36.7858),
+    "Black African": (61.6071, 54.1401, 68.9055),
+    "Coloured": (9.5989, 5.6135, 15.6380),
+    "Indian/Asian": (5.7164, 4.2551, 7.7519),
+    "White": (20.0231, 15.8776, 23.6920),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

@@ -744,7 +744,7 @@ PA's level is an arrival-channel defect and belongs to the arrival work.
 ⚠️ **The figures above are from `data/processed/history.json`, joburg 2021** —
 the PA's row in that record's `votes` table, which is a POSITIONAL list carrying
 no field names of its own:
-PR median `votes[1]` = 0.0592%,
+PR median `votes[1]` = 0.0594%,
 PR mean `votes[2]` = 0.0786%,
 PR actual `votes[3]` = 2.9604%.
 They are not from a
@@ -771,7 +771,11 @@ were recomputed from it rather than carried across, 31.6× → 32.4× and
 MODEL-LOG §1.311): median 0.0297% → 0.0592%, mean 0.0913% → 0.0786%, actual
 unchanged, so `votes[3]/votes[2]` = 2.9604/0.0786 = **37.7×** and
 `votes[3]/votes[1]` = 2.9604/0.0592 = **50.0×**. The move came with the step-9
-artefact (`346fb97`: 0.0591% / 0.0786%) and the rebuilds left it there. *Correcting
+artefact (`346fb97`: 0.0591% / 0.0786%) and the rebuilds left it there.
+**RE-QUOTED 2026-10-17** from the artefact at `f32523b` (each ward's roll split
+by its census shares, MODEL-LOG §1.321): median 0.0592% → 0.0594%, mean and
+actual unchanged at four places, so `votes[3]/votes[1]` = 2.9604/0.0594 =
+**49.8×** and `votes[3]/votes[2]` stays **37.7×**. *Correcting
 a figure means correcting every copy of it, and the copies are where the rule
 actually bites.*
 
@@ -2844,10 +2848,12 @@ failure of the ecological fit where one pool dominates — at Buffalo City 2011 
 DA is fitted taking 100% of three pools at once and still cannot reach its actual
 20.26%. Separate work, §1.189.
 
-**How to check it.** `test_the_registration_bound_is_per_level` asserts
-`adult_share` and `turnout` stay within [0, 1] everywhere, that a rate above 1 is
-admitted for registration, and that the guard binds on Mangaung's Indian/Asian
-pool.
+**How to check it (until 2026-10-17).** The retired test of the per-level
+bound asserted the adult and turnout rates stayed within [0, 1], that a
+registration rate above 1 was admitted, and that the guard bound on Mangaung's
+Indian/Asian pool. Its successor,
+`tests/test_pool_bounds.py::test_turnout_is_the_only_fitted_rate_and_stays_inside_its_bounds`,
+asserts turnout is the only fitted level and stays inside [0, 1].
 
 ### §L12 · Two party names in the pasted roster are SUBSTITUTED on judgement, not on evidence — 🔴 typed, and it decides whether a party keeps its baseline
 

@@ -1561,11 +1561,10 @@ stands on) and labelled for what was measured.
 *md*
 
 **How big is each pool?** Each ward's registered voters, split by that ward's
-composition, summed across all 135 wards. The census gives the *proportions*
-within a ward; the roll gives the *number*, and where they disagree the roll
-wins. They disagree a lot: the census implies about {{hist_census_white_adults}} white adults in
-Johannesburg, and the roll carries about {{hist_roll_white_voters}} registered white voters. We
-publish the gap rather than absorb it.
+census population shares, summed across all 135 wards. The census gives the
+*proportions* within a ward; the roll gives the *number*. The voters' roll does
+not record population group, so the split assumes every group in a ward
+registers at the same rate.
 
 <!-- /block b0b6ad99 -->
 
