@@ -17,14 +17,11 @@ three can:
 
     ward winners  of the ~135 contests, how many the model called correctly
 
-**It is here because the seat keys were structurally blind to geography.**
-Until 2026-10-16 ``solve_and_predict`` pinned each party's realised citywide
-share to the share the draw drew, so ``dev``, ``gamma``, pool composition and
-the whole VD layer reached the seat error ONLY through an overhang trigger.
-Since then the citywide vote is the sum of the districts' turnout-adjusted
-votes (``montecarlo.realise_draw``): the map is still solved at reference
-weights, so ``dev`` and ``gamma`` still reach the citywide share only through
-how they interact with district turnout. Any change to those, judged by seats
+**It is here because the seat keys are structurally blind to geography.**
+``solve_and_predict`` pins each party's realised citywide share to the share the
+draw drew, and both ballots are ``weight @ pred`` against those pinned targets,
+so ``dev``, ``gamma``, pool composition and the whole VD layer reach the seat
+error ONLY through an overhang trigger. Any change to those, judged by seats
 alone, is judged by an instrument that cannot see it — and returns a flat,
 confident null that means nothing. See :func:`ward_winner_accuracy` and
 ``NULL-RESULTS.md``.
@@ -1496,13 +1493,9 @@ def ward_winner_accuracy(ward_probs, actual_winners, *, lot: str | None = None) 
       by less than 1e-6 (measured on a constructed city of 200 VDs and six
       parties, ``NULL-RESULTS.md`` §2; **not** measured at panel scale, which
       is one of the things this key exists to make measurable);
-    * ``pr_votes`` and ``ward_votes`` were both ``weight @ pred``, so both were
-      pinned to those drawn targets, and ``combined`` was a function of the
-      drawn targets **alone**. ⚠️ Since 2026-10-16 (turnout enters the vote,
-      ``montecarlo.realise_draw``) the solve places the draw at REFERENCE
-      weights and the votes are the districts' turnout-adjusted sums, so the
-      citywide totals move with district turnout; the first bullet describes
-      the solve's step, not the vote;
+    * ``pr_votes`` and ``ward_votes`` are both ``weight @ pred``, so both are
+      pinned to those drawn targets, and ``combined`` is therefore a function of
+      the drawn targets **alone**;
     * in ``allocate_with_overhang`` a party's ward wins change its seat count
       only when ``wins >= entitlement``.
 
@@ -3400,13 +3393,13 @@ def render_wards(results: list[dict]) -> str:
     # column by being dropped from the registry. See :func:`opponent_columns`.
     columns = opponent_columns(rows)
     lines = ["\n## Ward winners — the geography key\n",
-             "**`seat_abs_err_coherent` sees geography only weakly and this "
-             "sees it directly.** `solve_and_predict` places the draw's "
-             "preliminary vote on the districts at reference weights, so `dev` "
-             "and `gamma` reach the citywide share only through how they "
-             "interact with district turnout, and the seat score mostly through "
-             "an overhang trigger. A change to the VD layer is judged here. "
-             "Hit rate is the modal call; "
+             "**`seat_abs_err_coherent` cannot see geography and this can.** "
+             "`solve_and_predict` forces every party's citywide share onto the "
+             "share the draw drew, and both ballots are `weight @ pred` against "
+             "those same targets, so `dev`, `gamma`, pool composition and the "
+             "whole VD layer reach the seat score ONLY through an overhang "
+             "trigger. Any change to those is judged here, or it is judged by "
+             "an instrument that is blind to it. Hit rate is the modal call; "
              "Brier (multi-category, 0 to 2) is the proper score and is what a "
              "change in CONFIDENCE moves. **Read the model against the "
              "baselines in its own row** — safe wards are called correctly by "

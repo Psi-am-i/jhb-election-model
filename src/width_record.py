@@ -19,10 +19,8 @@ WHAT IT ESTIMATES, per target year, from strictly EARLIER backtest cycles only
     m(s) = c1·L + c2·L²,  L = min(log(s / 20%), 0)
 
 by weighted maximum likelihood, one unit of weight per party-cycle. ``r_i`` is
-the realised list share against the party's ``pool_spec`` centre carried to
-that cycle's realised pool turnout (``case_for``; the draw conserves the centre
-at the reference turnout, ``montecarlo.pool_spec_centres``, and turnout reaches
-the vote downstream, so the residual is preference error), RELATIVE TO THE LARGE BLOCK
+the realised list share against the party's ``pool_spec`` centre (the centre the
+draw conserves, ``montecarlo.pool_spec_centres``), RELATIVE TO THE LARGE BLOCK
 (parties with centre ≥ 20%) for a party below 20%, and within the block for a
 member of a block of two or more. ``new_i`` is 1 for a party with no result at
 the previous local election in the city. Under L1 the location ``m(s)`` is
@@ -545,34 +543,15 @@ def drawer_inputs(city: str, year: str, sets: list[str]):
                            stop_after="drawer_inputs")
 
 
-def realised_pool_turnout(city: str, year: str) -> dict:
-    """Each pool's turnout at the election ``year`` itself, as
-    ``pools.pool_counts`` measures it (the ecological split of each district's
-    counted votes cast across pools): pool -> turnout."""
-    import pools as _pl
-    with contextlib.redirect_stdout(io.StringIO()):
-        pc = _pl.pool_counts(cityconfig.load(city), year, _pl.load_config())
-    return {g: float(t) for g, t in zip(pc.categories, pc.rates["turnout"])}
-
-
 def case_for(inp, city: str, year: str) -> dict:
-    """One city-year's rows input: ``pool_spec`` centres CARRIED TO THE
-    YEAR'S REALISED POOL TURNOUT (``realised_pool_turnout``, through
-    ``montecarlo.pool_spec_centres``), realised list shares
-    (``compare_history.actual_shares``), the new parties, and which of them
-    are anchored (``montecarlo.newness_class``, the draw's own definition).
-
-    TURNOUT-CORRECTED (owner decision of 2026-10-16, turnout enters the vote):
-    the draw's preference is at the reference turnout and turnout reaches the
-    vote afterwards, drawn, so the record's residual must be preference error
-    alone. A residual about the reference centre would carry each cycle's
-    realised turnout deviation into σ(s), and the draw would then count it
-    twice. The cycles read here are strictly earlier than any target whose
-    record uses them, so their realised turnout is record, not oracle."""
+    """One city-year's rows input: ``pool_spec`` centres, realised list
+    shares (``compare_history.actual_shares``), the new parties, and which
+    of them are anchored (``montecarlo.newness_class``, the draw's own
+    definition)."""
     import compare_history as CH
     with contextlib.redirect_stdout(io.StringIO()):
         spec = M.pool_spec(inp.scenario, inp.centres, inp.index)
-    centres = M.pool_spec_centres(spec, turnout=realised_pool_turnout(city, year))
+    centres = M.pool_spec_centres(spec)
     actual, _ = CH.actual_shares(inp.target, DATA)
     return {"city": city, "year": year, "centres": centres, "actual": actual,
             "new": list(inp.scenario.get("_new_parties") or []),

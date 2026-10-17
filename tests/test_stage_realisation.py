@@ -117,12 +117,7 @@ GUARD_KEYS = frozenset({
     # The keyed streams (design 1c; step2/2-review-1c finding 4).
     "gamma_fallbacks", "gamma_draws", "stream_keys",
     # The universal draw (design 1j v4-L1); empty under the incumbent law.
-    "kappa_error", "mean_error", "width",
-    # Turnout enters the vote (owner, 2026-10-16): what turnout did to each
-    # party's mean share, the reference turnout and its consistency, and the
-    # per-district pool split's convergence. `width_floored` is deleted with
-    # the composition subtraction that could floor a party's own term.
-    "turnout_moved", "turnout_reference", "district_ipf",
+    "kappa_error", "mean_error", "width", "width_floored",
     # The law the board was drawn under, and the calibration pass's
     # iterations and convergence (step-6 item 2): which counters must be live
     # depends on the law (`LAW_DENOMINATOR_KEYS`).
@@ -160,13 +155,6 @@ LAW_DENOMINATOR_KEYS = {"incumbent": ("gamma_draws",),
 DRAW_LAWS = tuple(LAW_DENOMINATOR_KEYS)
 # Non-numeric board fields, checked by their own rules below.
 NON_COUNTER_KEYS = ("draw_law", "kappa_converged")
-# Turnout enters the vote (2026-10-16): three records that are not counters,
-# each checked by `_turnout_faults`. `turnout_moved` is signed (what turnout
-# did to each party's mean share); the other two are structured records.
-TURNOUT_RECORD_KEYS = ("turnout_moved", "turnout_reference", "district_ipf")
-TURNOUT_REFERENCE_FIELDS = frozenset({
-    "source", "pool", "band_mode", "districts_carry", "districts_unmapped",
-    "unmapped_roll_share", "districts_without_projection", "turnout_scale"})
 
 # SCALAR counters and the scalar denominator each is a count out of. Kept apart
 # from `GUARD_DENOMINATORS`, whose counters are per-party tables. A gamma
@@ -624,7 +612,7 @@ def _law_faults(guards) -> list[str]:
                 f"This is not a clean run; it is a run that counted nothing")
     conv = guards.get("kappa_converged")
     if law == "incumbent":
-        for key in ("kappa_error", "width"):
+        for key in ("kappa_error", "width", "width_floored"):
             if guards.get(key):
                 out.append(f"41_guards.{key} is non-empty under the incumbent "
                            f"law, which has no universal draw")
@@ -652,51 +640,6 @@ def _law_faults(guards) -> list[str]:
         out.append(f"41_guards.kappa_converged is True but the largest "
                    f"kappa_error is {max(errs)}, not below KAPPA_TOL "
                    f"{M.KAPPA_TOL}: the flag and the errors disagree")
-    return out
-
-
-def _turnout_faults(guards, universe=None) -> list[str]:
-    """The three turnout records (2026-10-16): `turnout_moved` a finite,
-    signed number per party inside the universe; `turnout_reference` every
-    declared field, each pool's reference and the turnout its districts carry
-    in (0, 1], the unmapped roll share in [0, 1]; `district_ipf` at least one
-    split, a mean of at least one round, a finite non-negative row error."""
-    out: list[str] = []
-    moved = guards.get("turnout_moved")
-    if not isinstance(moved, dict) or not moved:
-        out.append(f"41_guards.turnout_moved is {moved!r}, not a per-party record")
-    else:
-        bad = [p for p, v in moved.items()
-               if not isinstance(v, (int, float)) or isinstance(v, bool)
-               or not math.isfinite(v)]
-        if bad:
-            out.append(f"41_guards.turnout_moved is not finite for {bad[:6]}")
-        if universe is not None and set(moved) - set(universe):
-            out.append(f"41_guards.turnout_moved names parties outside the "
-                       f"universe: {sorted(set(moved) - set(universe))[:6]}")
-    ref = guards.get("turnout_reference")
-    if not isinstance(ref, dict) or set(ref) != TURNOUT_REFERENCE_FIELDS:
-        out.append(f"41_guards.turnout_reference does not carry exactly "
-                   f"{sorted(TURNOUT_REFERENCE_FIELDS)}")
-    else:
-        for field in ("pool", "districts_carry"):
-            vals = ref[field]
-            if (not isinstance(vals, dict) or not vals
-                    or not all(isinstance(v, (int, float)) and 0 < v <= 1
-                               for v in vals.values())):
-                out.append(f"41_guards.turnout_reference.{field} is {vals!r}, "
-                           f"not a turnout in (0, 1] per pool")
-        if not 0 <= float(ref["unmapped_roll_share"]) <= 1:
-            out.append(f"41_guards.turnout_reference.unmapped_roll_share is "
-                       f"{ref['unmapped_roll_share']}")
-    ipf = guards.get("district_ipf")
-    if (not isinstance(ipf, dict)
-            or set(ipf) != {"calls", "rounds_mean", "worst_row_error"}
-            or not ipf["calls"] or ipf["rounds_mean"] < 1
-            or not math.isfinite(ipf["worst_row_error"])
-            or ipf["worst_row_error"] < 0):
-        out.append(f"41_guards.district_ipf is {ipf!r}: the district split ran "
-                   f"no round or recorded an impossible error")
     return out
 
 
@@ -738,7 +681,6 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
                 f"0/0 and the whole board is unreadable. This is not a clean "
                 f"run; it is a run that counted nothing")
     out += _law_faults(guards)
-    out += _turnout_faults(guards, universe)
 
     # The two NAME LISTS (item 8, 2026-10-09): sorted lists of party codes;
     # `roster_unrepresented` may instead be "not_checked" (no roster).
@@ -757,8 +699,6 @@ def faults_in_guards(guards, *, draws=None, universe=None) -> list[str]:
             continue          # the tripwire is `faults_in_group_share`'s
         if key in NON_COUNTER_KEYS:
             continue          # `_law_faults`'s
-        if key in TURNOUT_RECORD_KEYS:
-            continue          # `_turnout_faults`'s
         if key == "mean_error":
             if value in ({}, None):
                 continue
@@ -1212,16 +1152,7 @@ def healthy_guards(law: str = "universal"):
                        "DDD": 0.03}, "threshold": 3.0, "parties": 2,
                        "fired": []},
         "width": {"AAA": 0.07, "DDD": 0.82},
-        "turnout_moved": {"AAA": -0.0012, "DDD": 0.0012},
-        "turnout_reference": {"source": "fitting election (pools.pool_counts)",
-                              "pool": {"P1": 0.5}, "band_mode": {"P1": 0.5},
-                              "districts_carry": {"P1": 0.5},
-                              "districts_unmapped": 0,
-                              "unmapped_roll_share": 0.0,
-                              "districts_without_projection": 0,
-                              "turnout_scale": 1.0},
-        "district_ipf": {"calls": 2 * DRAWS, "rounds_mean": 12.0,
-                         "worst_row_error": 1e-7},
+        "width_floored": {"AAA": 0.0026},
         "stream_keys": [["calib.level.z", "AAA"], ["level.shared", ""],
                         ["level.z", "AAA"], ["turnout.common", ""]],
         "draw_law": "universal",
@@ -1231,7 +1162,7 @@ def healthy_guards(law: str = "universal"):
     if law == "incumbent":
         board.update(gamma_fallbacks=1, gamma_draws=40 * DRAWS,
                      kappa_error={}, mean_error={}, width={},
-                     draw_law="incumbent", kappa_iters=0,
+                     width_floored={}, draw_law="incumbent", kappa_iters=0,
                      kappa_converged=None,
                      stream_keys=[["level.chi", "AAA"], ["level.z", "AAA"],
                                   ["turnout.common", ""]])
@@ -1239,17 +1170,17 @@ def healthy_guards(law: str = "universal"):
 
 
 def healthy_widths():
-    """A universal-law width table: one established party, one new."""
-    def row(sig, dl, rho):
-        own2 = sig * sig * (1 - rho) + dl * dl
+    """A universal-law width table: one party at its floor, one not."""
+    def row(sig, dl, rho, vc):
+        own2 = sig * sig * (1 - rho) + dl * dl - vc
         return {"sigma": sig, "delta": dl, "rho": rho,
                 "total": math.sqrt(sig * sig + dl * dl),
-                "shared": math.sqrt(rho) * sig, "own": math.sqrt(own2),
-                "centre": 0.1,
+                "shared": math.sqrt(rho) * sig, "own": math.sqrt(max(own2, 0)),
+                "v_comp": vc, "floored": max(-own2, 0.0), "centre": 0.1,
                 "new": dl > 0, "judged": False, "kappa": -0.1}
     return {"draw_law": "universal", "record": {"kind": "fit"},
-            "parties": {"AAA": row(0.05, 0.0, 0.0),
-                        "DDD": row(0.8, 0.87, 0.33)},
+            "parties": {"AAA": row(0.05, 0.0, 0.0, 0.0055),
+                        "DDD": row(0.8, 0.87, 0.33, 0.001)},
             "kappa_iters": 3, "kappa_converged": True, "individual_mass": 0.0,
             "judgements_sha": "0" * 16,
             "judgements_applied": [], "judgements_ignored": []}
@@ -1963,9 +1894,9 @@ def faults_in_widths(payload, *, universe=None) -> list[str]:
     """Complaints about a ``35_widths`` payload (design 1j v4-L1).
 
     Per drawn party: σ ≥ 0, δ ≥ 0, ρ in [0, 1], total = √(σ² + δ²), the shared
-    loading = √ρ·σ, and the own term's square equals σ²(1 − ρ) + δ² (turnout
-    is not in the preference draw's budget since 2026-10-16, so nothing is
-    subtracted and nothing floored). A
+    loading = √ρ·σ, and the own term's square plus the composition variance
+    equals σ²(1 − ρ) + δ² up to the recorded floor (the own variance can only
+    be FLOORED at zero, and the floor is what `width_floored` carries). A
     width that is not the sum of its parts was not computed by the rule its
     trace names. Under the incumbent law ``parties`` is empty.
     """
@@ -1987,6 +1918,7 @@ def faults_in_widths(payload, *, universe=None) -> list[str]:
         try:
             sig, dl, rho = float(w["sigma"]), float(w["delta"]), float(w["rho"])
             tot, sh, own = float(w["total"]), float(w["shared"]), float(w["own"])
+            vc, fl = float(w["v_comp"]), float(w["floored"])
         except (KeyError, TypeError, ValueError):
             out.append(f"35_widths.{p} lacks a component")
             continue
@@ -1997,9 +1929,10 @@ def faults_in_widths(payload, *, universe=None) -> list[str]:
         if abs(sh - math.sqrt(rho) * sig) > 1e-9:
             out.append(f"35_widths.{p}: shared loading {sh} is not √ρ·σ")
         budget = sig * sig * (1.0 - rho) + dl * dl
-        if abs(own * own - budget) > 1e-9:
-            out.append(f"35_widths.{p}: own² {own * own:.6g} is not "
-                       f"σ²(1 − ρ) + δ² {budget:.6g}")
+        if abs(own * own + vc - fl - budget) > 1e-9:
+            out.append(f"35_widths.{p}: own² + composition − floor "
+                       f"{own * own + vc - fl:.6g} is not σ²(1 − ρ) + δ² "
+                       f"{budget:.6g}")
     if universe is not None and set(parties) - set(universe):
         out.append(f"35_widths names parties outside the universe: "
                    f"{sorted(set(parties) - set(universe))[:6]}")
@@ -2116,14 +2049,6 @@ CORRUPTIONS = [
     ("faults_in_seat_draws", "a chamber larger than the statute", _chamber_too_big),
     ("faults_between_summary_and_detail", "the marginal median stored as the mean", _median_as_mean),
     ("faults_in_guards", "a declared guard counter missing", _guard_key_dropped),
-    ("faults_in_guards", "a turnout move that is not a number",
-     lambda b: b["41_guards"]["turnout_moved"].update(
-         {next(iter(b["41_guards"]["turnout_moved"])): float("nan")})),
-    ("faults_in_guards", "a reference turnout above one",
-     lambda b: b["41_guards"]["turnout_reference"]["pool"].update(
-         {next(iter(b["41_guards"]["turnout_reference"]["pool"])): 1.5})),
-    ("faults_in_guards", "a district split that ran no round",
-     lambda b: b["41_guards"]["district_ipf"].update(calls=0)),
     ("faults_in_widths", "an own term that is not the rest of the budget",
      lambda b: b["35_widths"]["parties"]["DDD"].update(own=2.0)),
     ("faults_in_widths", "a calibration pass that did not converge",

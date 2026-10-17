@@ -30654,3 +30654,35 @@ the centre by the difference: about DA −1.2, ANC +1.4 points. Limits: ratio θ
 additive; θ's cycle weights and pool structure ignored; the projection under-predicts
 turnout in DA areas (§1.318), so the explicit composition is likely too small, and a better
 projection would close part of that gap.
+
+## 1.320 Owner decision: the turnout change of 2026-10-16 is reverted; the model is back at the state it held before it, reproduced draw for draw (2026-10-17)
+
+Owner, 2026-10-17: revert the turnout change (§1.317), keep the newcomer-width change
+(§1.314, §1.316); no pre-registration, because the model held this exact state before and
+was measured there (§1.314, §1.317's "before" column).
+
+**What was restored.** Every file `4fb8002` changed, and the test and register files `0d01740`
+changed to follow it, returned to their content at `cfd70bf` (`git diff cfd70bf` over them is
+empty): `src/montecarlo.py`, `src/width_record.py`, `src/compare_history.py`,
+`judgements/joburg-2026.toml`, `skills/forecast-stage-realisation/SKILL.md`, MACHINERY.md,
+JUDGEMENT-CALLS.md (§V withdrawn with the mechanism it described), JUDGEMENT-SHEET.md,
+MODEL-INDEX.md, the eight test files, and `data/processed/history.json`/`.md`.
+`tests/test_turnout_enters_the_vote.py` deleted. MODEL-LOG §1.317–§1.319 stay: they describe
+the reverted mechanism and the review of it. `data/processed/width_record.json` restored from
+the copy taken before `4fb8002`'s re-emit (`.claude/turnout-2026-10-16/old/`), after
+`backup_ignored.py`; every field of its `artefact_key` equals `montecarlo.width_record_key()`
+on the restored code. No spec, `turnout.csv` or other intermediate was touched by `4fb8002`.
+
+**Reproduction.** `run_model` in process, Johannesburg 2026, 5,000 draws, seed 20261104,
+nothing written, against the run saved at `cfd70bf` (`.claude/turnout-2026-10-16/jhb-old-cfd70bf/`):
+list shares, ward shares, seats and ward winners identical in every draw. Mean list share /
+seats: ANC 23.75 / 72.0; DA 26.06 / 69.7; EFF 11.01 / 30.2; ActionSA 11.69 / 27.2; MK 9.04 /
+23.3. Largest party alone: ANC 56.1%, DA 35.9%. These are the numbers the model gave before
+the turnout change; they agree because the state is the same, and say nothing about whether
+either state is right.
+
+**What the revert leaves open.** §1.318's findings about the turnout projection (no skill
+over "same as last LGE" at the citywide level; the λ pattern worst at 22 of 24 city-years;
+θ carrying the NPE → LGE composition) apply to the restored model too, where the projection
+fixes the citywide total redistributed over districts. The ANC's lead in seats with fewer
+votes (§1.319) is unchanged by the revert.

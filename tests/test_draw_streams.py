@@ -488,14 +488,7 @@ def run_arm(sc, centres, index, lot="v3|constructed|1", draws=V3_DRAWS):
     st = RecordingStreams(lot, draws)
     with contextlib.redirect_stdout(io.StringIO()):
         drawer = M.make_drawer(sc, dict(centres), centres, index, st)
-        # As `run_model` does: one draw of preferences, then that draw's pool
-        # turnouts, which the preference draw no longer reads (turnout enters
-        # the vote downstream, owner 2026-10-16).
-        rows = []
-        for d in range(draws):
-            rows.append(drawer(d))
-            drawer.pool_turnouts(d)
-        out = np.array(rows)
+        out = np.array([drawer() for _ in range(draws)])
     return st, out, drawer
 
 
@@ -509,11 +502,10 @@ def implied_keys(sc, index) -> set:
     indiv = {p for p in index if p not in ipf and p != "ENTRANT"}
     if sc.get("draw_law", "universal") == "universal":
         # One latent draw per party plus the shared factor; no gamma, no
-        # split; and the calibration pass's own streams (design v1 §1.6),
-        # which since 2026-10-16 read no turnout: the calibration pass draws
-        # preferences only.
-        run = {("level.shared", "")} | {("level.z", p) for p in ipf | indiv}
-        keys = keys | run | {("calib." + st, nm) for st, nm in run}
+        # split; and the calibration pass's own streams (design v1 §1.6).
+        run = set(keys) | {("level.shared", "")}
+        run |= {("level.z", p) for p in ipf | indiv}
+        keys = run | {("calib." + st, nm) for st, nm in run}
     else:
         for p in ipf | indiv:
             keys |= {("level.z", p), ("level.chi", p)}
