@@ -95,7 +95,7 @@ a { color: var(--accent); }
     <tr><td>DA largest party on its own</td><td>31.5%</td><td>34.1%</td></tr>
     <tr><td>Net turnout effect on the DA's share</td><td>−0.25 points</td><td>+0.04 points</td></tr>
   </table></div>
-  <p>With the shape removed, turnout has almost no net effect on the average forecast. The push favours the ANC in every metro. In past results, Black African turnout fell relative to White turnout at 18 of the 24 past elections. These group turnouts are estimates from ward results, not counts.</p>
+  <p>The last report gave the ANC's chance of being the largest party as 56% before 16 October and 61% after. Removing the shape takes back about 3 of those 5 points. The rest comes from a separate part of the same change: the spreads were re-fitted, the DA's wider (list-share spread 3.8 to 4.2 points) and the EFF's and ActionSA's narrower (3.1 to 2.3, and 3.0 to 2.2). With the shape removed, turnout has almost no net effect on the average forecast. The push favours the ANC in every metro. In past results, Black African turnout fell relative to White turnout at 18 of the 24 past elections. These group turnouts are estimates from ward results, not counts.</p>
   <p class="note">The group figures were re-derived for this report. The run with the shape removed was done once by the audit and not repeated.</p>
 </div>
 
@@ -176,7 +176,8 @@ a { color: var(--accent); }
   <tr><td>4</td><td class="wrapcell"><b>District pattern: lean on the last local election.</b> Weight each district's 2021 pattern more than the national-to-local drop.</td><td class="wrapcell">District turnout error falls at held-out elections and the DA-area bias shrinks toward zero.</td><td>Low</td></tr>
   <tr><td>5</td><td class="wrapcell"><b>A city-wide turnout figure with an honest range,</b> or none. Base it on how local turnout has related to national turnout in past cycles.</td><td class="wrapcell">Real turnout inside the stated 90% range at about 21 of 24.</td><td>Low</td></tr>
   <tr><td>6</td><td class="wrapcell"><b>Group turnout estimates:</b> one definition, a stated uncertainty, and the unstable ones pulled toward the metro average.</td><td class="wrapcell">Predicts turnout in districts that are mostly one group, at held-out elections.</td><td>Medium</td></tr>
-  <tr><td>7</td><td class="wrapcell"><b>Fix the smaller defects</b> listed above.</td><td class="wrapcell">Each corrected figure re-measured and recorded.</td><td>Low</td></tr>
+  <tr><td>7</td><td class="wrapcell"><b>Re-fit the spreads with the forecast's own turnout step.</b> The spreads are fitted on past elections adjusted for turnout by a simpler city-wide calculation than the one the forecast uses, so turnout error may sit in both the spread and the turnout draws.</td><td class="wrapcell">List-share spread and 90% coverage over the 24 past elections, with and without the turnout adjustment.</td><td>Medium</td></tr>
+  <tr><td>8</td><td class="wrapcell"><b>Fix the smaller defects</b> listed above.</td><td class="wrapcell">Each corrected figure re-measured and recorded.</td><td>Low</td></tr>
 </table></div>
 <p class="note">A turnout effect that differs by party inside each group is held back unless item 2 fails. The record bounds it as small, and fitting it risks tuning the model to its own output.</p>
 

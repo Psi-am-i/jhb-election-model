@@ -30614,3 +30614,11 @@ fitted on 2006 are implausible (Buffalo City 3.2%, Tshwane 15.4%).
 
 The pollster's ranked improvements and its recommendation are in `pollster/report.md`; the
 choice is the owner's.
+
+**Addendum (same day).** Two attributions in this entry are the map agent's, not re-derived:
+that the canonical list-MAE improvement of §1.317 comes through the skew, and the probe run
+with the skew removed. The skew removal accounts for about 3 of the 4.5 points by which
+§1.317 moved P(ANC largest alone) (56.1 → 60.6); the rest comes with the width record's
+re-fit in the same change (§V5: list-share sd DA 3.77 → 4.15, EFF 3.11 → 2.33, ActionSA
+3.04 → 2.19). That re-fit carries earlier targets' centres to realised turnout with a
+citywide fixed-split re-weighting, not the draw's district path (map agent D8).
