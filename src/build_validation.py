@@ -315,7 +315,7 @@ def markdown(target: str, results: dict) -> str:
             "before the election; the run prints the full list above its "
             "results:")
         add("")
-        add("* **The census.** Ward-level population figures come from the 2022 "
+        add("* **The census.** Ward-level population-group shares come from the 2022 "
             "census, taken after the 2021 election; it is the only census we "
             "hold. A census records who lives in a ward, not how they voted, "
             "so it cannot leak a result. It is still information from after "

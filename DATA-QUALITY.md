@@ -216,6 +216,16 @@ group) is downloadable and is what this model uses instead.
 
 ## 11. More registered voters than adults, in one population group
 
+✅ **Resolved in the model 2026-10-17 by not making the comparison** (owner:
+registered voters are the only population; MODEL-LOG §1.321, JUDGEMENT-CALLS
+§L9). `pools.pool_counts` now splits each ward's roll by its census population
+shares and reads no census adult or head count, so no registration rate is
+fitted and none can exceed 100%. The census has one job: the within-ward group
+shares. The defect in the census itself is unchanged and is recorded below; the
+text below describes the nest that was removed, and its "where the model obeys
+this" paragraphs are history.
+
+
 ⛔ **THE ORDERING, STATED ONCE AND AT THE TOP** (owner, 2026-09-06; it was
 previously recorded only inside the struck-through repair below, which is the
 wrong place for a standing rule). **Registration and votes outrank the census,
@@ -228,9 +238,8 @@ revise the roll.
 
 **What the census is still needed for, and it is not nothing.** The roll and the
 results carry **no population group**, so the census is the only available
-apportionment key for the pool split, and it is the soft ceiling on the eligible
-pool — *room for growth*, which does not decide an election. Those are its two
-jobs. It is never a validator: a census-derived denominator that comes in under
+apportionment key for the pool split. That is its one job (since 2026-10-17;
+it was also used as a soft ceiling on the eligible pool). It is never a validator: a census-derived denominator that comes in under
 a hard count is evidence the estimate is stale, over-adjusted or wrongly
 allocated at ward level, not evidence the count is too high.
 
@@ -312,8 +321,10 @@ the violation, or call `pools.pool_counts(city, "2021", cfg)` and read
 > before/after table and the blend are no longer what the code does; the model
 > reports this violation and carries on, as it did before. **The reason is not
 > resignation.** Elections are decided by registered voters, the roll is a hard
-> count, and the census adult figure is not an input the model consumes — so a
-> rate above 100% is a fact about the census rather than a quantity to clamp.
+> count, so a rate above 100% is a fact about the census rather than a quantity
+> to clamp. (This said the census adult figure "is not an input the model
+> consumes". It was, as the parent level of the registration split, until
+> 2026-10-17.)
 > Correcting it in the pool sizes measured WORSE (+8 seats, +3.09 CRPS) because
 > pool size and fitted rate are jointly identified by the votes: their product
 > was already right. Kept below as the record of what was tried.

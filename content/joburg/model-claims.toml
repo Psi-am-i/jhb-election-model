@@ -212,7 +212,7 @@ note = "They are read; their weights are 0.0 at 2026."
 [[claim]]
 id = "census-ward-product"
 page = "docs-public/sources.md"
-text = "Census 2022 ward-level population estimates are used in the turnout modelling."
+text = "Census 2022 ward-level population-group shares split each ward's registered voters into groups."
 symbol = "pools.pool_counts"
 state = "live"
 

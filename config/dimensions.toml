@@ -6,14 +6,16 @@
 # could not be checked against anything.
 #
 # The design is n-dimensional on purpose. Race is the only dimension that has
-# so far earned a place; age and sex are carried here, fitted, and *rejected*
-# by the gate below rather than being quietly left out. Income, education and
-# home language slot in the same way the day the data exists.
+# earned a place. Age and sex were carried here as tilts and rejected by the
+# gate (no out-of-sample gain); they were removed on 2026-10-17 (owner: the model
+# reads registered voters, and from the census only each ward's group shares,
+# MODEL-LOG §1.321). Income, education and home language would slot in as
+# tilts the day the data exists.
 #
 # role
 #   base   the dimension whose categories are the pools themselves. Each pool
-#          is a set of people and three nested subsets of it — of voting age,
-#          registered, voted — and a party's rate is its share of the last.
+#          is a ward's registered voters split by its census shares, and the
+#          votes they cast; a party's rate is its share of the votes.
 #          Rates are at least zero because votes cannot be negative, and a
 #          pool's rates sum to one because every voter votes for someone.
 #   tilt   entered as a deviation from the city mean, so it cannot re-describe
@@ -26,10 +28,9 @@
 #   here shows in-sample gain, and two of them are noise.
 #
 # census / delimitation
-#   Censuses are a decade apart (SA: 1996, 2001, 2011, 2022) and elections fall
-#   between them, so a dimension carries *every* census we hold and composition
-#   is interpolated to polling day — the 2016 election sits 5 years past one
-#   census and 6 short of the next, and neither endpoint describes it.
+#   Censuses are a decade apart (SA: 1996, 2001, 2011, 2022). A dimension may
+#   carry several, and composition is then interpolated to polling day; one is
+#   held (2022), so its shares are held flat for every election.
 #
 #   Interpolation is ward-to-ward, which is only valid while the delimitation
 #   holds. `delimitation` records which one each census was published on. Ward
@@ -92,53 +93,13 @@ sorting we cannot yet see. Al Jama-ah and the VF+ do NOT transfer (see
 `level_transfers = false` below): direction carries between cities, magnitude
 does not."""
 
-[[dimension]]
-name = "age"
-role = "tilt"
-admitted = false
-categories = ["20-29", "30-44", "45-59", "60+"]
-
-  [[dimension.census]]
-  year = 2022
-  delimitation = 2021
-  source = "PP_Age Group_27-10-2025.xlsx"
-  sheet = "Age_group"
-  code_column = 0
-  total_column = -1                   # renormalise over the listed columns
-  columns = [[5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15, 16, 17, 18]]
-
-note = """Rejected by the gate. Gains +0.03 to +0.06 R2 in-sample and ~0.00 out
-of sample, because it is mostly re-describing the base dimension: ward %Black
-African correlates +0.75 with %aged 20-29 and -0.72 with %60+. Under-20 bands
-are dropped as below voting age; 15-19 straddles and is excluded rather than
-apportioned."""
-
-[[dimension]]
-name = "sex"
-role = "tilt"
-admitted = false
-categories = ["Male", "Female"]
-
-  [[dimension.census]]
-  year = 2022
-  delimitation = 2021
-  source = "PP_Sex_27-10-2025.xlsx"
-  sheet = "Wards_Sex"
-  code_column = 0
-  total_column = 3
-  columns = [1, 2]
-
-note = """Rejected by the gate. Sex composition barely varies between wards, so
-there is almost no cross-ward leverage to identify a coefficient from — a real
-political effect would still be invisible to an ecological fit. Absence of
-evidence here is not evidence of absence, and the note is the point."""
-
 # --- not yet held ----------------------------------------------------------
 # home_language  the dimension the model actually wants. Population group
 #                cannot separate the ANC from the IFP (both fit as ~100% Black
 #                African) which is precisely the distinction MK turns on.
 #                Requested from Stats SA; see drafts/statssa-request-language.md
-# income/class   expect the same collinearity problem age has. The gate decides.
+# income/class   expect the collinearity with population group that age had
+#                (ward %Black African +0.75 with %aged 20-29). The gate decides.
 # education      ditto.
 
 # The [fit] section is gone. It carried floor_rate, ridge_grid and ridge_folds

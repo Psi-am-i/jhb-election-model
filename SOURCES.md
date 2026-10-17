@@ -293,7 +293,9 @@ The Gauteng file is kept at `data/raw/nominations/` (gitignored with the rest of
 
 Stats SA's **Ward-level Small Area Population Estimates 2022** are directly
 downloadable and cover all 135 CoJ wards on the 2020 delimitation, with
-five-year age bands, sex and population group:
+five-year age bands, sex and population group. The model reads each ward's
+population-group shares only (since 2026-10-17; it read the 20+ count and the
+head count until then, MODEL-LOG §1.321):
 
 ```
 statssa.gov.za/wp-content/uploads/2025/11/Ward-Product_Locked-spreadsheets.zip

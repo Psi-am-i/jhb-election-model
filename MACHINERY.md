@@ -39,8 +39,8 @@ be.
 | Piece | Where | Source | Saw |
 |---|---|---|---|
 | Dimension registry (n-dimensional) | `config/dimensions.toml` | — | — |
-| Base dimension = population group | Census 2022 ward tables | MEASURED | census pre-dates the 2026 target ✅ |
-| Tilt dimensions (age, sex) | same | MEASURED and **REJECTED** by the gate | — |
+| Base dimension = population group | Census 2022 ward tables: each ward's group SHARES only, applied to its registered roll (`pools.pool_counts`) | MEASURED shares; the split of the roll is ASSUMED (equal registration across groups within a ward) | census pre-dates the 2026 target ✅; every backtest uses Census 2022, taken after its target ⚠️ |
+| Tilt dimensions | none configured: age and sex were rejected by the gate and removed 2026-10-17 (MODEL-LOG §1.321) | — | — |
 | Party pool vectors | `pools.fit_city`, balanced by **`balance_within_bounds`** | MEASURED, 742 wards / 8 metros | the fitting election only ✅ |
 | Lower/upper bounds per rate | `pools.bounds` (Duncan-Davis) | MEASURED, arithmetic only | ✅ |
 | ~~Pool ratio ranges~~ | ⛔ `pools.measure_pool_ratios` **HAS NO CALLER** — NOT part of the live construction | — | §1.210, 2026-09-08 |
@@ -170,9 +170,9 @@ only about 159 votes out of the pool. Reaching 6% would require a model, and the
 that does it fits the ward table 20× worse (MODEL-LOG §1.38). The PA at **Cape
 Town 2016 is still Coloured 1.0000**, and nothing in that ward table forbids it.
 
-**Time and geography.** Censuses are a decade apart, so composition is
-interpolated to polling day in log-share space and damped-extrapolated beyond
-the last one. Ward codes are contiguous and *reused* across delimitations, so
+**Time and geography.** One census is held (2022), so its composition is held
+flat for every election; `composition_at`'s interpolation and extrapolation
+branches run only when a second census is configured, and none is. Ward codes are contiguous and *reused* across delimitations, so
 Census 2022's 135 Johannesburg codes join the 2011 election's 130 wards at a
 perfect 130/130 — every one the wrong polygon. `pools.reproject` goes through
 voting districts, which every election file maps to its own wards, and reports
@@ -181,7 +181,9 @@ the fraction of the electorate it accounted for.
 **Still open.** Population group cannot separate the ANC from the IFP (both fit
 as almost entirely Black African) though their measured ground correlates −0.14
 — which is precisely the distinction MK turns on. Census 2011 ward tables are
-not held, so pools cannot be fitted for the 2011 or 2016 backtests.
+not held, so the 2011 and 2016 backtests are fitted on Census 2022 shares moved
+onto their wards (`pools.reproject`), which uses a census taken after the
+target.
 
 ---
 
@@ -735,17 +737,35 @@ Which years are lost today is a property of the inputs, not of this mechanism �
 `tests/test_census_refusal_is_not_swallowed.py` asserts the served and lost sets
 PARTITION the on-disk population with no residue.
 
-### Registration is bounded at `REGISTRATION_MAX`; the identification hold was withdrawn (2026-10-14)
+### Each ward's roll is split by its census group shares; registered voters are the only population (owner, 2026-10-17)
 
-`pools.pool_counts` fits the registration level with `upper=pools.REGISTRATION_MAX` (2.0, JUDGEMENT-CALLS §L9); `adult_share` and `turnout` keep the bound of 1.0. The identification hold committed on 2026-10-12 (`c2edc60`: no upper bound, and a group under `IDENTIFICATION_REACH` of every ward held at the city's rate) was reverted before it shipped, because the held rate `_uninformed_rate` sums every pool and so carries every pool's census level into the split (JUDGEMENT-CALLS §L15, MODEL-LOG §1.301, §1.302).
+`pools.pool_counts` builds two levels per ward and pool, both anchored to the
+IEC's ward totals:
+
+    registered_wg = roll_w × census share_wg
+    voted_wg      = registered_wg × turnout_g, each ward then scaled to its counted votes
+
+The census enters as each ward's group shares and nothing else: no census head
+count, adult (20+) count, age band or registration rate is read. The split
+assumes every group in a ward registers at the same rate. Turnout by group is
+the one fitted level, because votes by group are not published (`_nest`: one
+rate per pool across the city's wards, bounded to [0, 1], then each ward scaled
+to its counted votes). Two declared limits (JUDGEMENT-CALLS §L9): census
+population includes children and the Black African population is younger, so
+its share of the roll is probably overstated; and the census's "Other" (about
+0.5%) is dropped before the four shares are taken. The nest this replaced
+(people → adults → registered, with citywide fitted rates and a registration
+bound of 2.0) gave Johannesburg 2021 a White share of the roll of 25.2% and a
+White registration rate of 1.74 per adult; the split above gives 13.9%
+(MODEL-LOG §1.321). `_reprojection_drift`, the gate on a census moved onto
+another delimitation, weights each ward's mix by its registered voters.
 
 ### A pool silenced at the 0.0 corner is kept at the city's own rate
 
-`pool_counts` splits each ward's people, adults, registered voters and votes
-across pools with one rate per pool per level, each bounded below at 0.0. A
-small pool whose wards run below what the other pools explain is driven to the
-**0.0** corner: people who are not adults, adults who are not registered, or
-registered voters who cast nothing. Until 2026-09-28 that zero travelled all the
+`pool_counts` splits each ward's votes across pools with one turnout per pool,
+bounded below at 0.0 (until 2026-10-17 it also fitted adult and registration
+rates the same way). A small pool whose wards run below what the other pools
+explain is driven to the **0.0** corner: registered voters who cast nothing. Until 2026-09-28 that zero travelled all the
 way to the spec. The pool's column in `composition("voted")` was empty,
 `fit_city` left its party-rate row at zero, no party had weight in it, and
 `emit_pools` skipped it. Four specs declared four pools and emitted three
@@ -753,7 +773,7 @@ way to the spec. The pool's column in `composition("voted")` was empty,
 City's Indian/Asian pools, and at Mangaung 2006 the registration solve did.
 
 `_nest_holding_silent` runs each level's solve, finds any pool on the 0.0 bound
-that holds people at the level above (`_silent_pools`), holds it at the city's
+that holds registered voters (`_silent_pools`), holds it at the city's
 own rate for that level (`_uninformed_rate`), and re-fits the others around it
 (`_nest(..., hold=)`). The held pools are recorded in `PoolCounts.imputed` and
 in `unidentified`, which the spec emits as `rates_on_a_bound`.

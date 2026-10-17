@@ -62,8 +62,9 @@ model uses those.
 ## People
 
 Statistics South Africa publishes ward-level population estimates from Census
-2022 (age, sex and population group for all 135 wards), and the turnout
-modelling uses them. The more detailed small-area data (income, dwelling type,
+2022 (age, sex and population group for all 135 wards). The model uses one
+thing from them: each ward's population-group shares, which split that ward's
+registered voters into groups. The more detailed small-area data (income, dwelling type,
 employment) is not published, because at ward level it can identify households.
 Access under conditions exists, and we have not sought it.
 

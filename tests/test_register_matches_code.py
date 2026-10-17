@@ -116,6 +116,19 @@ def _defined_names() -> set[str]:
 # decision someone made rather than a gap the guard shrugged at. Adding a name
 # here is itself a judgement, and each carries the entry that removed it.
 DELETED = {
+    # Deleted 2026-10-17 with the census nest (owner: registered voters are
+    # the only population; each ward's roll is split by its census shares).
+    # §L9 keeps the bound's history; MODEL-LOG §1.321.
+    "REGISTRATION_MAX": "the registration bound of the people/adults/registered "
+                        "nest; no registration rate is fitted; §1.321",
+    "census_correction": "registered over modelled adults, a nest output; "
+                         "§1.321",
+    "adult_share": "the nest's adult level; no adult count is read; §1.321",
+    "projected_pool_shares": "no caller since the one-roll change; deleted "
+                             "with the nest; §1.321",
+    "reproject_counts": "moved census counts between delimitations; no count "
+                        "is read; §1.321",
+    "read_census_population": "census head counts; no count is read; §1.321",
     "polling_lean": "superseded by the poll paths; §1.68",
     "polling_span": "superseded by the poll paths; §1.68",
     "poll_id": "legacy poll path, bypassed every admission rule; §1.68",

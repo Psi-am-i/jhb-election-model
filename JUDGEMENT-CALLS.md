@@ -116,7 +116,7 @@ promotion note in §F.
 | `dirichlet_floor`, `spine_k` (scenario keys) | — | — | Scenario keys mirroring the module constants so a sweep is reproducible. ⚠ This row also lists `poll_k`, which was DELETED on 2026-08-22 (§1.68) and is in no `DEFAULTS` — see the restructure note beneath. | 🟢 | §F21 |
 | `entrant_prob` | 0.25 | `montecarlo.py` | Ships 0.25. Typed, but measurable since 2026-08-17 and the typed value survives the measurement; §G-R2 puts the defensible range at [0.25, 0.29]. | 🟡 | §A3 |
 | `entrant_share` | `[0.01, 0.04, 0.12]` | `montecarlo.py` | **AMENDED 2026-09-24 (register audit).** Unchanged at [0.01, 0.04, 0.12]. It acts only where no arrival is named — of the backtest targets, 2011 alone. At 2016, 2021 and 2026 the named seeds retire the generic slot (§A4), so the "1.42% of the vote in every run" this row used to state holds nowhere the forecast is published. | 🟡 | §A17 |
-| `extrapolation_damping` | 0.6 | `config/dimensions.toml` | **AMENDED 2026-09-24 (register audit).** 0.6. Two other copies in `pools.py`, neither a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key) and `projected_pool_shares`' default argument. | 🔴 | §H8 |
+| `extrapolation_damping` | 0.6 | `config/dimensions.toml` | **AMENDED 2026-09-24 (register audit).** 0.6. One other copy in `pools.py`, not a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key). The third, a default argument of a function deleted 2026-10-17 (§1.321), is gone. The value acts only when a second census is configured, and none is. | 🔴 | §H8 |
 | `extrapolation_max_years` / `max_extrapolation` | 8 / 8.0 | `dimensions.toml`, `pools.Config` | 8 / 8.0 — two copies of one number, one in TOML and one as a dataclass field. | 🔴 | §H9 |
 | `FRESHNESS_GRACE_S` | — | `stats.py`, `freshness_problems` | Typed at 300s. ARGUED, NOT TESTED — the harness cannot score a publishing guard; the strong half of the check catches the 16-day defect with no window at all. | 🟡 | §D16 |
 | `GAMMA_FOLD` | `{2026:1, 2021:1, 2016:3, 2011:4}` | `montecarlo.py` | The live 2026 forecast uses fold 1, and the code's own comment concedes the constraint does not pick one. A contestable choice on the published forecast. | 🔴 | §H6 |
@@ -1999,7 +1999,7 @@ asks for is still unrun; this gives the sign only.
 
 **Where.** `config/dimensions.toml`
 
-**Now.** **AMENDED 2026-09-24 (register audit).** 0.6. Two other copies in `pools.py`, neither a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key) and `projected_pool_shares`' default argument.
+**Now.** **AMENDED 2026-09-24 (register audit).** 0.6. One other copy in `pools.py`, not a live fallback: the `Config` dataclass default (marked unreachable — `load_config` refuses a TOML without the key). The third, a default argument of a function deleted 2026-10-17 (§1.321), is gone. The value acts only when a second census is configured, and none is.
 
 **Record.** Damping on ward composition extrapolated past Census 2022 — four years for the 2026 forecast. Typed three more times as a fallback in `pools.py`
 
@@ -2143,9 +2143,9 @@ everything.
 > declared-and-withdrawn set, because a register that silently loses rows is
 > worse than one that shows its history.
 >
-> What replaced them: nothing in the levels, and
-> `projected_pool_shares` now trends on a RATE OF CHANGE, which is invariant to
-> exactly the constant level bias these were trying to correct.
+> What replaced them: nothing in the levels until 2026-10-17, when the levels
+> themselves went (§L9): the roll is split by census shares and no census count
+> is read.
 
 **These four exist because an impossibility was being reported and left
 standing.** Splitting Johannesburg's 2021 roll across population groups gave
@@ -2746,7 +2746,36 @@ flag fourteen more, all under 0.11%, none of them plausible splits. Above ~2% it
 would miss both of the ones that matter. Chosen to make the list short enough to
 read on the day. Undefended beyond that.
 
-### §L9 · `REGISTRATION_MAX` — 2.0 — ⚖️ a runaway guard, not an estimate
+### §L9 · How each ward's roll is split into groups — ⚖️ owner, 2026-10-17
+
+**Now.** `pools.pool_counts` splits each ward's IEC roll by the ward's census
+population shares, `registered_wg = roll_w × census share_wg`, and reads no
+census count, adult count or age band (owner, 2026-10-17: *"the only population
+that counts are registered voters"*). Turnout by group stays fitted (one rate
+per group, each ward scaled to its counted votes), because votes by group are
+not published. Three things this assumes, declared rather than corrected:
+
+1. **Equal registration across groups within a ward.** Not measured: the roll
+   records no population group, so no data can test it directly.
+2. **Census population includes children.** The Black African population is
+   younger than the others, so its share of the population overstates its share
+   of the roll. Not corrected: the census holds no ward table of age by group.
+3. **"Other" is dropped** before the four shares are taken (`read_census`;
+   about 0.5% of Johannesburg's census population).
+
+How to check: Johannesburg 2021's split is Black African 75.6%, Coloured 5.5%,
+Indian/Asian 5.0%, White 13.9% of the roll
+(`tests/test_chain.py::test_each_wards_roll_is_split_by_its_census_shares_and_nothing_else`
+asserts each ward's registered composition equals its census share). Whether
+it describes the world better than the fitted nest is
+`prereg/2026-10-17-roll-split-by-census-share.md` P3, scored in MODEL-LOG §1.321.
+
+**Withdrawn 2026-10-17: the registration bound of 2.0 and the nest it bounded.**
+The text below is the record of that bound (REGISTRATION_MAX, deleted). Under
+the nest, people → adults → registered with one fitted rate per group across
+the city, the White registration rate was 1.74 per adult at Johannesburg 2021,
+which cannot happen, and the White share of the roll 25.2%.
+
 
 **Reinstated 2026-10-14** (model round step 9; owner decision 1 after step 8, `audits/2026-10-11-model-round/PLAN.md`; MODEL-LOG §1.302). It was deleted on 2026-10-12 in favour of the identification hold (§L15), which is withdrawn this round: K1 was falsified on the live fits (MODEL-LOG §1.301): the held pool takes `pools._uninformed_rate`, `b.sum() / A.sum()` summed over every pool, so the held rate reads every pool's census level and the identified pools are refitted around it (0.46-1.13pp at the nine fits holding a pool, 7.0pp where the scaling flips the held set). The text below describes the bound as it ships.
 

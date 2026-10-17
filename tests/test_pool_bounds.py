@@ -537,57 +537,31 @@ def test_no_emitted_composition_weight_is_arithmetically_impossible():
           "coherent seat error 306 -> 486).")
 
 
-def test_the_registration_bound_is_per_level():
-    """One solver, three levels, and only one of them may exceed 1.
-
-    Phase 1a bounded all three at 1.0 because "a value above 1.0 is not a rate
-    at all". True of `adult_share` (adults per person) and `turnout` (voters
-    per registered). FALSE of `registration`: registered voters are counted and
-    census voting-age population is modelled, and `pool_counts` computes their
-    ratio separately as `census_correction` — 1.480 for White at Johannesburg
-    2021 — while the solver clipped the same quantity to 1.0. JUDGEMENT-CALLS
-    §L9, MODEL-LOG §1.189.
-    """
+def test_turnout_is_the_only_fitted_rate_and_stays_inside_its_bounds():
+    """Registered voters are the roll split by census shares (owner,
+    2026-10-17), so no registration rate is fitted and none can exceed 1. The
+    one fitted level is turnout, voters per registered, inside [0, 1]. The
+    retired ``test_the_registration_bound_is_per_level`` guarded the per-level
+    bound of the nest that fitted a White registration rate of 1.74 per adult
+    at Johannesburg 2021 (MODEL-LOG §1.321)."""
     import numpy as np
 
-    seen_above_one = False
     for slug, year in FITS:
         counts = pools.pool_counts(cityconfig.load(slug), year,
                                    pools.load_config())
-        rates = counts.rates
+        assert set(counts.rates) == {"turnout"}, (
+            f"{slug} {year}: fitted levels {sorted(counts.rates)}")
+        r = counts.rates["turnout"]
+        assert np.all(r <= 1.0 + 1e-9) and np.all(r >= -1e-9), (
+            f"{slug} {year}: turnout outside [0, 1]: {r}")
 
-        # (1) THE TWO THAT CANNOT EXCEED 1 STILL CANNOT.
-        for level in ("adult_share", "turnout"):
-            r = rates[level]
-            assert np.all(r <= 1.0 + 1e-9), (
-                f"{slug} {year}: {level} reached {float(np.max(r)):.4f}. "
-                f"Adults cannot exceed people and voters cannot exceed "
-                f"registered; only `registration` may pass 1.")
-            assert np.all(r >= -1e-9), f"{slug} {year}: {level} went negative"
-
-        # (2) REGISTRATION IS BOUNDED BY THE GUARD, NOT BY 1.
-        reg = rates["registration"]
-        assert np.all(reg <= pools.REGISTRATION_MAX + 1e-9), (
-            f"{slug} {year}: registration reached {float(np.max(reg)):.4f}, "
-            f"above REGISTRATION_MAX")
-        if np.any(reg > 1.0 + 1e-6):
-            seen_above_one = True
-
-    # (3) IT LOOKED. If nothing anywhere exceeds 1, the whole change is inert
-    #     and this test is guarding a situation that does not arise.
-    assert seen_above_one, (
-        "no registration rate anywhere in the panel exceeds 1.0, so lifting "
-        "the bound changed nothing and §L9 is defending an empty case. "
-        "Johannesburg White measured 1.74 when this was written.")
-
-    # (4) AND THE GUARD BINDS WHERE THE MODEL IS KNOWN TO BE BROKEN — Mangaung's
-    #     Indian/Asian pool, which also carries a fitted turnout of exactly 0.
+    # AND THE DETECTOR STILL SEES the pool the ward table cannot identify —
+    # Mangaung's Indian/Asian pool, whose turnout lands on the 0.0 corner.
     man = pools.pool_counts(cityconfig.load("mangaung"), "2016",
                             pools.load_config())
     assert man.unidentified, (
-        "Mangaung 2016 reports no rate on a bound. Its Indian/Asian pool has "
-        "3,531 registered voters and a fitted turnout of exactly 0.0000; if "
-        "nothing is reported, the detector has stopped seeing it.")
+        "Mangaung 2016 reports no rate on a bound; if its Indian/Asian pool "
+        "is no longer held, the detector has stopped seeing it.")
 
 
 # --------------------------------------------------------------------------
@@ -758,9 +732,9 @@ def test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing():
     every pool — rows summing to 1, not the `[1, 1, 0, 1]` that shipped.
 
     It looked: the population is bounded against the declared targets, and the
-    hold must have fired at BOTH the turnout and the registration level
-    somewhere in it — if either stops firing, the population has lost the cases
-    or the repair has become inert, and this test is guarding nothing there.
+    hold must have fired at the turnout level somewhere in it — if it stops
+    firing, the population has lost the cases or the repair has become inert.
+    (The registration level is no longer fitted: owner, 2026-10-17.)
     """
     import contextlib
     import io
@@ -783,19 +757,19 @@ def test_no_fitting_year_leaves_a_pool_of_voters_casting_nothing():
         for level, idx in counts.imputed.items():
             held.setdefault(level, []).extend(
                 f"{slug} {year} {cats[g]}" for g in idx)
-        people = counts.people.sum(axis=0)
+        registered = counts.registered.sum(axis=0)
         voted = counts.voted.sum(axis=0)
         for g, name in enumerate(cats):
-            if people[g] > 0 and voted[g] <= 0:
-                bad.append(f"{slug} {year} {name}: {people[g]:,.0f} people, "
-                           f"no votes cast")
+            if registered[g] > 0 and voted[g] <= 0:
+                bad.append(f"{slug} {year} {name}: {registered[g]:,.0f} "
+                           f"registered, no votes cast")
         R = np.column_stack([fits[p].rates for p in ctx["parties"]])
         rows = R.sum(axis=1)
         for g in np.flatnonzero(~np.isclose(rows, 1.0, atol=1e-9)):
             bad.append(f"{slug} {year} {cats[g]}: party rates sum to "
                        f"{rows[g]:.6f}, not 1 — no party can be emitted in it")
     assert not bad, "\n  ".join(["pools left without votes:"] + bad)
-    for level in ("turnout", "registration"):
+    for level in ("turnout",):
         assert held.get(level), (
             f"the hold never fired at the {level} level across {len(fitting)} "
             f"fitting years. C1 had cases at both levels; either the "
@@ -977,10 +951,15 @@ def test_the_panel_spread_does_not_count_a_held_pool_as_a_movement():
     pools._PANEL_SPREAD_CACHE.clear()
     try:
         pools.pool_counts = recording
-        held_spread, held_n = pools.panel_turnout_spread(cfg, before="2016")
+        # The window ends before 2017, not 2016: since the registration level
+        # left `pool_counts` (owner, 2026-10-17) the only holds before 2016 are
+        # two turnout transitions, which do not move the Indian/Asian 0.90
+        # quantile (1.4523 either way); through 2016 the held transitions move
+        # it 1.3166 -> 1.1960.
+        held_spread, held_n = pools.panel_turnout_spread(cfg, before="2017")
         pools._PANEL_SPREAD_CACHE.clear()
         pools.pool_counts = unheld
-        free_spread, free_n = pools.panel_turnout_spread(cfg, before="2016")
+        free_spread, free_n = pools.panel_turnout_spread(cfg, before="2017")
     finally:
         pools.pool_counts = real
         pools._PANEL_SPREAD_CACHE.clear()

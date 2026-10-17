@@ -366,6 +366,7 @@ format = "comma"
 used_in = "the reservoir finding (forecast + interactive) — a measurement of the past, restated 3x"
 
 unverifiable = "a measured historical vote movement (MODEL-LOG 1.18), not a model output"
+
 [claim_zille_votes]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
@@ -376,6 +377,7 @@ format = "comma"
 used_in = "claims/zille-490k, the claim's figure in the steps"
 
 unverifiable = "the figure a claim states, quoted from its source, not a model output"
+
 [rev0806_da_eff_mk_share]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
@@ -441,6 +443,7 @@ format = "comma"
 used_in = "When the ANC falls, nobody catches the votes"
 
 unverifiable = "a measured historical vote movement (MODEL-LOG 1.18), not a model output"
+
 [hist_asa_pr_2021_rounded]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
@@ -451,6 +454,7 @@ format = "pct0"
 used_in = "When the ANC falls, nobody catches the votes"
 
 unverifiable = "a measured historical figure from an official result or the census, not a model output"
+
 [hist_laingsburg_da_share]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
@@ -461,6 +465,7 @@ format = "pct0"
 used_in = "Laingsburg, 2021; methodology (the seat law)"
 
 unverifiable = "a measured historical figure from an official result or the census, not a model output"
+
 [hist_laingsburg_da_wards]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
@@ -471,6 +476,7 @@ format = "int"
 used_in = "methodology (the seat law)"
 
 unverifiable = "a measured historical figure from an official result or the census, not a model output"
+
 [hist_laingsburg_wards]
 mode = "fixed"
 on_site = "2026-08-08"   # typed on the site, before it was a token, from this publication
@@ -481,24 +487,7 @@ format = "int"
 used_in = "methodology (the seat law)"
 
 unverifiable = "a measured historical figure from an official result or the census, not a model output"
-[hist_census_white_adults]
-mode = "fixed"
-value = 300000
-source = "external:Stats SA Census 2022 ward estimates, Johannesburg's white adults, against the IEC voters' roll (DATA-QUALITY.md item 11)"
-captured = "2026-09-17"
-format = "comma"
-used_in = "methodology (the roll and the census)"
 
-unverifiable = "a measured historical figure from an official result or the census, not a model output"
-[hist_roll_white_voters]
-mode = "fixed"
-value = 560000
-source = "external:IEC voters' roll against Stats SA Census 2022 ward estimates, Johannesburg's registered white voters (DATA-QUALITY.md item 11)"
-captured = "2026-09-17"
-format = "comma"
-used_in = "methodology (the roll and the census)"
-
-unverifiable = "a measured historical figure from an official result or the census, not a model output"
 [hist_asa_pr_2021]
 mode = "fixed"
 on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
@@ -509,6 +498,7 @@ format = "pct2"
 used_in = "methodology (new parties)"
 
 unverifiable = "a measured historical figure from an official result or the census, not a model output"
+
 [hist_asa_npe_2024]
 mode = "fixed"
 on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
@@ -519,6 +509,7 @@ format = "pct2"
 used_in = "methodology (new parties)"
 
 unverifiable = "a measured historical figure from an official result or the census, not a model output"
+
 [poll_srf_q2_da]
 mode = "fixed"
 on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
@@ -529,6 +520,7 @@ format = "pct0"
 used_in = "methodology (polls)"
 
 unverifiable = "a published poll's figure, not a model output"
+
 [poll_srf_q2_anc]
 mode = "fixed"
 on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
@@ -539,6 +531,7 @@ format = "pct0"
 used_in = "methodology (polls)"
 
 unverifiable = "a published poll's figure, not a model output"
+
 [poll_ipsos_w2_anc]
 mode = "fixed"
 on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
@@ -549,6 +542,7 @@ format = "pct0"
 used_in = "methodology (polls)"
 
 unverifiable = "a published poll's figure, not a model output"
+
 [poll_ipsos_w2_da]
 mode = "fixed"
 on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
@@ -559,6 +553,7 @@ format = "pct0"
 used_in = "methodology (polls)"
 
 unverifiable = "a published poll's figure, not a model output"
+
 [blind_test_called]
 mode = "fixed"
 value = 129
@@ -582,6 +577,7 @@ captured = "2026-08-04"
 used_in = "new-entrant blindness, restated 3x"
 
 unverifiable = "IEC 2021 CoJ result — an external electoral fact, not a model output"
+
 [byelection_count]
 mode = "fixed"
 value = 15
@@ -590,6 +586,7 @@ captured = "2026-08-05"
 used_in = "colophons, sources, evidence weights — restated 3x"
 
 unverifiable = "IEC by-election records — an external count, not a model output"
+
 [turnout_seats_moved]
 mode = "fixed"
 value = 2

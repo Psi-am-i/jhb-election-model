@@ -249,7 +249,7 @@ def footer_for() -> str:
 
     The sources sentence names what the model reads, per SOURCES.md: from
     Stats SA, the Census 2022 Ward-level Small Area Population Estimates
-    (population group, age and head counts by ward, `config/dimensions.toml`);
+    (each ward's population-group shares, `config/dimensions.toml`);
     from the Municipal Demarcation Board, the 2026 ward and voting-district
     boundaries; from the IEC, the raw results.
 
