@@ -698,9 +698,12 @@ def bye_weight_range(bye_weight: dict | None, w_bye) -> list[float]:
     (every party at the override). A manifest with no ``bye_weight`` was
     exported before item 19, when ``w_bye`` was the one weight for every party,
     and its range is that point. A derived cell whose run weighed no party
-    gave by-elections no weight: ``[0, 0]``.
+    gave by-elections no weight: ``[0, 0]``. A party of class ``"no record"``
+    is left out: its 0 is the rule for a party with no earlier vote
+    (JUDGEMENT-CALLS §A60), not the cell's weight.
     """
-    weights = [float(v["weight"]) for v in (bye_weight or {}).values()]
+    weights = [float(v["weight"]) for v in (bye_weight or {}).values()
+               if v.get("class") != "no record"]
     if weights:
         return [min(weights), max(weights)]
     if w_bye is not None:

@@ -760,6 +760,13 @@ def test_the_cells_order_and_compare_by_effective_weight_not_w_bye():
     assert [c["path"] for c in E.order_bye_cells(old)] == ["w_bye-0", ".", "w_bye-1"]
     assert E.bye_weight_range(None, 0.4) == [0.4, 0.4]
     assert E.bye_weight_range({}, None) == [0.0, 0.0]
+    # a "no record" party's 0 is its rule, not the cell's weight (§A60)
+    norec = {"A": {"weight": 1.0, "class": "override"},
+             "N": {"weight": 0.0, "class": "no record"}}
+    assert E.bye_weight_range(norec, 1.0) == [1.0, 1.0]
+    assert E.bye_weight_range({"N": norec["N"]}, 1.0) == [1.0, 1.0]
+    assert E.bye_weight_range({"N": dict(norec["N"], **{"class": "override"})},
+                              1.0) == [0.0, 0.0]
     # it can see: ordering by w_bye, as before the fix, cannot order the
     # published cell at all
     try:

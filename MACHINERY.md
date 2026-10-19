@@ -1223,7 +1223,7 @@ labelled as argued rather than tested wherever they are quoted: the by-election
 weights (the scrape covers 2022-06 to 2026-02, so no past target has any; since
 2026-10-17 every party's weight is 0.5, the owner's declared value (JUDGEMENT-CALLS
 §A59): each party with by-election evidence is centred halfway between the
-model's level and its by-election level, its by-election level first capped by θ's band where the party has a national share, before the shrink; only Johannesburg has a by-election input, MODEL-LOG §1.323) and the
+model's level and its by-election level, its by-election level first capped by θ's band where the party has a national share, before the shrink; a party with no earlier vote of any kind gets no weight, §A60; only Johannesburg has a by-election input, MODEL-LOG §1.323) and the
 15% under-bias correction on the first-local-election path (**42** of its 45 cases
 fall at 2021, so a backtest there has one prior case to fit on) — the latter
 identified but NOT applied.

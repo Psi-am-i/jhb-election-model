@@ -195,7 +195,7 @@ promotion note in §F.
 | `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` | 0.02, 0.95 | — | 0.02 / 0.95, applied per draw. They contradict §C's claim that the turnout band 'removes caps rather than adding one'; whether the ceiling ever binds is unmeasured. | 🔴 | §F34 |
 | `turnout_noise_sd`, `turnout_blend_jitter` | 0.08, 0.25 | — | Typed; ~0.003 citywide, i.e. nothing. | 🟡 | §F23 + §A41 |
 | `turnout_pattern_blend` / `turnout_blend_jitter` / `turnout_noise_sd` | 0.5 / 0.25 / 0.08 | `montecarlo.py` | Typed. The citywide effect of the 0.08 is ~0.003, i.e. nothing — but see §G-R5: the turnout knobs move 46 ward wins, so the citywide null is not the whole story. | 🟡 | §A41 + §F23 |
-| `w_bye` | 0.5 | `montecarlo.py` | **Owner's decision 2026-10-17 (§A59).** Every party with by-election evidence is centred halfway between the model's level and its by-election level (that level capped first), before the shrink and normalisation. Declared; no backtest can score it. Was: derived per size class (§A55), 0.0 for both classes; before that a typed 0.40 (§A35). | 🔴 | §A59 |
+| `w_bye` | 0.5 | `montecarlo.py` | **Owner's decision 2026-10-17 (§A59).** Every party with by-election evidence is centred halfway between the model's level and its by-election level (that level capped first), before the shrink and normalisation; a party with no earlier vote of any kind gets none (§A60). Declared; no backtest can score it. Was: derived per size class (§A55), 0.0 for both classes; before that a typed 0.40 (§A35). | 🔴 | §A59 |
 | `w_bye_local_ward` / `w_bye_local_pr` | 0.0 / 0.0 | `montecarlo.py` | Built and disabled at 0.0 / 0.0. Untestable for the same reason as `w_bye`. | 🟡 | §A37 + §F25 |
 | `w_bye_local_ward`, `w_bye_local_pr` | 0.0, 0.0 | — | Built, disabled, untestable. | 🟡 | §F25 + §A37 |
 | `w_recency` | 0.70 | `turnout.py --w-recency` | 0.70, verbatim from the original plan. It reaches the model through 20 committed `turnout.csv` files that carry no artefact key, so changing it does nothing until someone re-runs the script. | 🔴 | §H2 |
@@ -1123,8 +1123,10 @@ by-elections since 2021 imply for it. Nobody knows the right weight, so the two
 count equally. A party that had a vote in the 2024 national election cannot be
 moved by its by-elections further than the model's usual range for it allows,
 so a party whose by-elections imply a very large swing moves less than halfway.
-A party with no national vote has no such range and moves halfway. A party that
-stood only for ward seats in 2021, and not on the party list, is not moved. In
+A party whose only earlier vote is the 2021 local election has no such range
+and moves halfway. A party with no earlier vote at all is covered under new
+parties and by-elections. A party that stood only for ward seats in 2021, and
+not on the party list, is not moved. In
 Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your forecast](your-forecast/) you can make
 by-elections count not at all or fully.
 
@@ -1135,6 +1137,23 @@ by-elections count not at all or fully.
 **Evidence.** None possible on the panel: no backtested target has a by-election before its polling day (the file starts in 2022), so this is **argued, not tested**. MODEL-LOG §1.322 measured one party's by-election level against the model independently (MK, consistent within ±0.15 of its ratio). What it moves at Johannesburg and Tshwane 2026 is in MODEL-LOG §1.323.
 
 **How to check.** `.venv/bin/python src/montecarlo.py --city joburg --target 2026 --run-dir /tmp/t` and read `30_centres.json`: `bye_weight` shows 0.5 "override" for each party with evidence, and `route_notes` gives each party's level, by-election level and whether it was capped.
+
+### §A60 · no earlier record, no by-election weight — 🔴 declared (owner, 2026-10-19)
+
+**Plain — New parties and by-elections.** A party with no vote in the 2024
+national election and none in the 2021 local election, on the list or in a
+ward, is not moved by its by-elections, and the by-election setting on
+[your forecast](your-forecast/) does not move it either. A few ward contests
+are not enough to size a party nobody has measured before; such a party is
+sized the way earlier new parties did in their first election.
+
+**Where.** `montecarlo.blended_centres`: a party in the by-election input that is sized by the arrival record (a pool seed, which only a party with no national share gets), with no previous local PR share and no previous local ward share, gets weight 0 at every `w_bye`, recorded as class `"no record"` in `_bye_weight` and the `30_centres` trace. MK (2024 national share, never seeded) keeps its weight. Keyed on the seed rather than on θ's prior, so a prior that failed to load cannot reclassify MK. The seed itself is not proof: `pools.py` builds the national baseline only `if path.exists()`, so a spec emitted without the city's 2024 national file would seed MK and this rule would then zero its by-elections. An older vote (2016 local, 2019 national) is not read as a record. `export_draws.bye_weight_range` leaves these parties out of a cell's range.
+
+**Why.** Owner, 2026-10-19, after the All Citizens Party moved from 0.05% to 1.24% of the Johannesburg vote on two by-elections (159 and 39 votes, MODEL-LOG §1.323): "if they have no record I would ignore them entirely … no record means no record of any kind (MK keeps its seats)."
+
+**Evidence.** None possible on the panel (no backtested target has a by-election); argued, not tested. Pre-registered in `prereg/2026-10-19-byelections-need-a-record.md`; what it moves is MODEL-LOG §1.324.
+
+**How to check.** Read `bye_weight` in the `30_centres.json` trace of a Johannesburg 2026 run: the All Citizens Party and the Truth and Solidarity Movement show `{"weight": 0.0, "class": "no record"}`.
 
 ### §B1 · `SPINE_K = 1.0`, reciprocal form — 🔴
 

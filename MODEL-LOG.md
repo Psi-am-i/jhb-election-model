@@ -30815,3 +30815,41 @@ Largest party alone in the council, share of draws: ANC 57.0% → 47.4%, DA 35.4
 **What this changes.** At Johannesburg the by-elections now reach the forecast. In mean seats the DA (70.0) passes the ANC (69.7); the ANC is still more often the largest party alone, 47.4% of draws against the DA's 44.3%. The All Citizens Party rises from 0.05% to 1.24% on two contests (159 and 39 votes): it has no national share and so no θ band, its by-election level is not capped, and two contests pass `BYE_MIN_WEIGHT`. MK has a 2024 national share, so its level is capped by θ's band; at 10.6% it sits inside the band. "Every party, every city" in §A59 is true of the setting, not of its reach.
 
 **Limits.** Argued, not tested: no backtested target has a by-election in the current file. The IEC by-election dashboard also serves the 2016–2021 cycle (84 dates, voting-district level, checked 2026-10-19); with it, the 2021 targets would carry by-elections and the weight could be scored.
+
+## 1.324 By-elections no longer move a party with no earlier record; at Johannesburg the All Citizens Party returns to 0.05% and the DA becomes the more likely largest party (2026-10-19)
+
+**Change.** In `montecarlo.blended_centres` a party sized by the arrival record (a pool seed, so no national share) with no previous local PR share and no previous local ward share gets by-election weight 0 (class `"no record"`), the owner's decision of 2026-10-19 (JUDGEMENT-CALLS §A60). Everything else is §1.323's model. Pre-registered in `prereg/2026-10-19-byelections-need-a-record.md` (ac11120) before the change.
+
+**Method.** Johannesburg and Tshwane 2026 at the shipped defaults, 5,000 draws, seed 20261104, in process, against §1.323's `w_bye` 0.5 runs. The code change moves `montecarlo_sha` in the width record's key, so the record was rebuilt for this tree into a scratch directory and passed in (`width_override`); its shipped variant's targets are identical to the record §1.323 ran on. Script, output and traces: `audits/2026-10-19-byelections-need-a-record/`.
+
+**Result, Johannesburg 2026.** Four parties now carry "no record": the All Citizens Party, the Truth and Solidarity Movement, NCC and Vuka SA. Only the first two had moved (the other two are below `BYE_MIN_WEIGHT`). Their pre-shrink centres return to their `w_bye = None` values: All Citizens 1.043% → 0.035%, Truth and Solidarity 0.086% → 0.062%. No other pre-shrink centre changes by more than 1.4e-17 (float order). The four are exactly the by-election parties seeded in `pools_2026.json`; the runs were made with the rule keyed on θ's prior, which picks out the same four, and it was then keyed on the seed after review. The seed-keyed code was re-run (Johannesburg 2026, same draws and seed, for the old-against-new report): every drawn mean within 1.1e-16 of this entry's, every mean seat figure identical.
+
+| party | drawn mean, §1.323 → now | mean seats |
+|---|---|---|
+| DA | 26.35 → 26.68% | 70.0 → 71.0 |
+| ANC | 22.25 → 22.52% | 69.7 → 70.0 |
+| ActionSA | 12.51 → 12.67% | 28.9 → 29.3 |
+| EFF | 10.01 → 10.13% | 27.3 → 27.7 |
+| MK | 8.94 → 9.05% | 23.0 → 23.4 |
+| PA | 6.49 → 6.56% | 17.1 → 17.3 |
+| All Citizens Party | 1.24 → 0.05% | 3.3 → 0.1 |
+
+Largest party alone, share of draws: DA 44.3% → 47.4%, ANC 47.4% → 44.7%, MK 3.7% → 3.7%, tie 3.8% → 3.8%.
+
+**Tshwane 2026.** Every mean seat figure and every largest-party share is identical; drawn means differ by at most 1.1e-16 (process-to-process float order, §1.46), which no reported figure resolves.
+
+**Scored against the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| Q1 | backtest identical | not re-run: the change sits inside `if party in bye`, and `bye` is empty at every backtested target (the by-election file starts in 2022) |
+| Q2 | no pool spec changes | held: `pools.py` is not touched |
+| Q3 | All Citizens and Truth and Solidarity return to 0.04% and 0.06% pre-shrink; no other centre changes | held (0.035%, 0.062%) |
+| Q4 | All Citizens under 0.5 seats; no large party moves by more than 1.5 seats | held (0.1; largest move DA +1.0). Of the 3.3 seats gained by other parties, the five largest (DA, ANC, ActionSA, EFF, MK) take 2.5 |
+| Q5 | Tshwane does not move | held (no reported figure moves; drawn means within 1.1e-16); certain in advance, since Tshwane has no by-election input |
+
+Q1 is argued from the code, not measured; the next `compare_history` run measures it.
+
+**What this changes.** The three seats the All Citizens Party took on 198 by-election votes return to the larger parties in proportion, and the DA passes the ANC as the party most often largest alone (47.4% against 44.7%). The two are within three points of each other.
+
+**Limits.** Argued, not tested: no backtested target has a by-election in the current file.

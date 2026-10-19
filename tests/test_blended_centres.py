@@ -1278,5 +1278,48 @@ def test_no_city_file_sets_a_derived_lever_and_apply_city_refuses_one():
         M.apply_city(good)
         assert M.DEFAULTS["w_bye"] == 0.5
 
+
+def test_a_party_with_no_record_is_not_moved_by_its_by_elections():
+    """Owner, 2026-10-19 (JUDGEMENT-CALLS §A60): no earlier vote of any kind,
+    no by-election weight. Constructed: N is a seeded arrival (no θ prior, no
+    previous PR or ward share), K has a θ prior and a previous PR share; both
+    carry the same by-election evidence. At `w_bye` 0.5 N's centre is what it
+    is at 0 and its weight is recorded 0 ("no record"), while K moves. It can
+    see: give N a previous PR share and it moves at 0.5 like K."""
+    base = {"N": 0.01, "K": 0.10}
+    bye = {"N": (100.0, 0.02), "K": (100.0, 0.02)}
+
+    def run(w_bye, prior_pr):
+        scenario = _scenario(w_bye=w_bye, pool_seeds={"N": 0.01},
+                             spine_level={"K": 0.10},
+                             theta_prior={"K": THETA_PRIOR})
+        with _plan_bounds({}):
+            centres, _ = M.blended_centres(scenario, base, prior_pr, bye)
+        return centres, scenario["_bye_weight"]
+
+    off, _ = run(0.0, {"K": 0.09})
+    on, weights = run(0.5, {"K": 0.09})
+    assert weights["N"] == {"weight": 0.0, "class": "no record"}, weights
+    assert weights["K"]["weight"] == 0.5, weights
+    assert on["N"] == off["N"], (on["N"], off["N"])
+    assert on["K"] != off["K"], (on["K"], off["K"])
+    # the detector goes quiet once N has a record of its own
+    off_r, _ = run(0.0, {"K": 0.09, "N": 0.005})
+    on_r, weights_r = run(0.5, {"K": 0.09, "N": 0.005})
+    assert weights_r["N"]["weight"] == 0.5, weights_r
+    assert on_r["N"] != off_r["N"], (on_r["N"], off_r["N"])
+    # each clause on its own: a previous ward share is a record (the ward-only
+    # skip downstream then holds the centre, but the weight is not "no
+    # record"); and the MK case, a national share with no local vote at all
+    # (θ prior, no seed, no PR share), keeps its weight
+    scenario = _scenario(w_bye=0.5, pool_seeds={"N": 0.01},
+                         spine_level={"K": 0.10}, theta_prior={"K": THETA_PRIOR},
+                         _prior_ward_share={"N": 0.004})
+    with _plan_bounds({}):
+        M.blended_centres(scenario, base, {"K": 0.09}, bye)
+    assert scenario["_bye_weight"]["N"]["class"] != "no record", scenario["_bye_weight"]
+    on_mk, weights_mk = run(0.5, {})
+    assert weights_mk["K"] == {"weight": 0.5, "class": "override"}, weights_mk
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

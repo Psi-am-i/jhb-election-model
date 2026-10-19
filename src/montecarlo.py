@@ -2655,6 +2655,11 @@ def blended_centres(
     per adjusted party for the report; the weight each party with evidence
     was given is ``scenario["_bye_weight"]`` and the ``30_centres`` trace's
     ``bye_weight``.
+
+    A party with no earlier record is not moved at any ``w_bye`` (owner,
+    2026-10-19, JUDGEMENT-CALLS §A60): one that is pool-seeded (no national
+    share), with no previous local PR share and no previous local ward share,
+    gets weight 0 and class ``"no record"``.
     """
     # Read with no default: a scenario without the key fails here, not as 0.
     w_override = scenario["w_bye"]
@@ -2752,6 +2757,22 @@ def blended_centres(
         w = 0.0
         if party in bye:
             w, _cls = bye_weight(scenario, party, prior_pr_share, base_city)
+            # NO RECORD, NO BY-ELECTION WEIGHT (owner, 2026-10-19,
+            # JUDGEMENT-CALLS §A60). A party with no earlier vote of its own
+            # anywhere the model reads -- sized by the arrival record (a pool
+            # seed, which only a party with no national share gets), no
+            # previous local PR share, no previous local ward share -- is not
+            # moved by its by-elections: two ward contests are not evidence
+            # about a party nobody has measured. MK keeps its weight (2024
+            # national share, so never seeded); keyed on the seed rather than
+            # on θ's prior so a prior that failed to load cannot reclassify
+            # it. The All Citizens Party went 0.05% -> 1.24% on 198 votes in
+            # two wards before this (MODEL-LOG §1.323).
+            if (seeded.get(party, 0.0) > 0
+                    and prior_pr_share.get(party, 0.0) <= 0
+                    and (scenario.get("_prior_ward_share") or {}
+                         ).get(party, 0.0) <= 0):
+                w, _cls = 0.0, "no record"
             bye_weights[party] = {"weight": w, "class": _cls}
         if party in bye and w > 0:
             weight_sum, delta = bye[party]
