@@ -156,7 +156,7 @@ Covering **Johannesburg 2021, Tshwane 2021, Ekurhuleni 2021, eThekwini 2021, Cap
 **Quoting one number in a sentence? Paste this token, do not retype the figure:**
 
 ```
-seat_abs_err_coherent=710/@cbcdd5fd+dirty/1000d/pools:e532c300/rows=24
+seat_abs_err_coherent=710/@a9754ede+dirty/1000d/pools:e532c300/rows=24
 ```
 
 The full set, for anything more than one number:

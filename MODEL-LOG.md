@@ -30853,3 +30853,5 @@ Q1 is argued from the code, not measured; the next `compare_history` run measure
 **What this changes.** The three seats the All Citizens Party took on 198 by-election votes return to the larger parties in proportion, and the DA passes the ANC as the party most often largest alone (47.4% against 44.7%). The two are within three points of each other.
 
 **Limits.** Argued, not tested: no backtested target has a by-election in the current file.
+
+**§1.324 addendum (2026-10-19): Q1 measured.** `compare_history` at a9754ed (1,000 draws, seed 20261104) against the `history.json` committed at b0ab4b0: every figure for every metro and year is identical; only `generated` and `git_commit` differ. Q1 held, measured.

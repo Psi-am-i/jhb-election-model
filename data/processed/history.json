@@ -1,7 +1,7 @@
 {
   "manifest": {
     "schema": 3,
-    "generated": "2026-10-17T23:23:29Z",
+    "generated": "2026-10-19T07:52:44Z",
     "draws": 1000,
     "seed": 20261104,
     "seed_by_row": {
@@ -31,7 +31,7 @@
       "buffalocity:2021": 20261104
     },
     "overrides": [],
-    "git_commit": "cbcdd5fdfcd3f968df31933c533dcfd9d32d9304",
+    "git_commit": "a9754ede4fa43ba9563a664789fd5d04a196ce24",
     "git_dirty": true,
     "env_switches": {
       "raw": {
