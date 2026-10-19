@@ -974,25 +974,30 @@ def test_every_centre_is_finite_and_positive_on_a_mixed_scenario():
     renormalises.
     """
     base = {"P": 0.30, "Q": 0.10, "R": 0.06, "S": 0.02}
-    # `w_bye` ships as None (derived, BRIEF item 19): the class weights are
-    # constructed and positive so the by-election block is live.
-    assert M.DEFAULTS["w_bye"] is None
-    scenario = _scenario(
-        w_bye=M.DEFAULTS["w_bye"],
-        _bye_value={"weights": {"under": 0.4, "at_or_over": 0.4}},
-        level_shrink=M.DEFAULTS["level_shrink"],
-        level_shrink_scale=M.DEFAULTS["level_shrink_scale"],
-        poll_levels={"P": 0.28},
-        pool_seeds={"Q": 0.03},
-        spine_level={"R": 0.07}, theta_prior={"S": THETA_PRIOR})
-    with _plan_bounds({}):
-        centres, _ = M.blended_centres(
-            scenario, base, {"P": 0.26, "R": 0.05},
-            {"P": (100.0, 0.03), "R": (100.0, -0.01)})
-    assert set(centres) == set(base)
-    for party, value in centres.items():
-        assert math.isfinite(value), f"{party} centre is {value}"
-        assert 0.0 < value < 1.0, f"{party} centre is {value}, outside (0, 1)"
+    # `w_bye` ships as 0.5 for every party (JUDGEMENT-CALLS §A59); the derived
+    # route (`None`, constructed positive class weights) is run as well, so
+    # both ways into the by-election block are covered.
+    assert M.DEFAULTS["w_bye"] == 0.5
+    for w_bye in (M.DEFAULTS["w_bye"], None):
+        scenario = _scenario(
+            w_bye=w_bye,
+            _bye_value={"weights": {"under": 0.4, "at_or_over": 0.4}},
+            level_shrink=M.DEFAULTS["level_shrink"],
+            level_shrink_scale=M.DEFAULTS["level_shrink_scale"],
+            poll_levels={"P": 0.28},
+            pool_seeds={"Q": 0.03},
+            spine_level={"R": 0.07}, theta_prior={"S": THETA_PRIOR})
+        with _plan_bounds({}):
+            centres, _ = M.blended_centres(
+                scenario, base, {"P": 0.26, "R": 0.05},
+                {"P": (100.0, 0.03), "R": (100.0, -0.01)})
+        assert {p: v["weight"] for p, v in scenario["_bye_weight"].items()} == {
+            "P": w_bye if w_bye is not None else 0.4,
+            "R": w_bye if w_bye is not None else 0.4}, scenario["_bye_weight"]
+        assert set(centres) == set(base)
+        for party, value in centres.items():
+            assert math.isfinite(value), f"{w_bye}: {party} centre is {value}"
+            assert 0.0 < value < 1.0, f"{w_bye}: {party} centre is {value}, outside (0, 1)"
 
 
 def test_the_centres_do_not_collapse_to_the_baseline_when_the_spine_is_absent():
@@ -1237,7 +1242,9 @@ def test_no_city_file_sets_a_derived_lever_and_apply_city_refuses_one():
     import tempfile
     import cityconfig
     import levels
-    assert M.DERIVED_NOT_CITY == ("w_bye",) and M.DEFAULTS["w_bye"] is None
+    # Since 2026-10-17 the default is the owner's 0.5 (§A59), not derived; it
+    # is still one value for every city, so a city file may not set it.
+    assert M.DERIVED_NOT_CITY == ("w_bye",) and M.DEFAULTS["w_bye"] == 0.5
     cities_dir = ROOT / "cities"
     files = sorted(cities_dir.glob("*.toml"))
     loaded = [cityconfig.load(f.stem, cities_dir=cities_dir) for f in files]
@@ -1269,7 +1276,7 @@ def test_no_city_file_sets_a_derived_lever_and_apply_city_refuses_one():
         good = cityconfig.load("joburg", cities_dir=Path(tmp))
         assert M.city_derived_keys(good) == []
         M.apply_city(good)
-        assert M.DEFAULTS["w_bye"] is None
+        assert M.DEFAULTS["w_bye"] == 0.5
 
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

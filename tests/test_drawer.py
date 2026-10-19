@@ -510,22 +510,31 @@ PROCESSED = ROOT / "data" / "processed"
 # so the pool totals moved: White mean 31.67% -> 20.02% of the drawn vote,
 # band 26.1-36.8 -> 15.9-23.7 (prereg P6, held). Party bands moved by at most
 # 0.17pp at an end. No improvement is claimed here; the backtest is §1.321's.
+# RE-RECORDED 2026-10-19, deliberately: BY-ELECTIONS COUNT FOR HALF, FOR EVERY
+# PARTY (owner, `w_bye` 0.5, JUDGEMENT-CALLS §A59; prereg
+# prereg/2026-10-17-byelection-weight-half.md, MODEL-LOG §1.323). The input to
+# the drawer moved, not the drawer: Johannesburg's centres take half of each
+# party's by-election level. ANC mean 23.72% -> 22.39%, DA 26.04% -> 26.79%,
+# EFF 11.06% -> 10.19%, ASA 11.68% -> 12.62%, PA 5.87% -> 6.46%; Black African
+# pool 61.61% -> 60.29% of the drawn vote. Nothing scores it (no backtested
+# target has a by-election); no improvement is claimed.
+#
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.7227, 18.2841, 28.9968),
-    "DA": (26.0355, 19.7650, 31.9580),
-    "EFF": (11.0586, 6.6855, 16.1944),
-    "ASA": (11.6817, 7.5152, 17.0808),
-    "MK": (8.8361, 2.1146, 21.2606),
-    "PA": (5.8744, 1.9269, 11.9489),
-    "VFPLUS": (0.8994, 0.1951, 2.3512),
-    "ALJAMAAH": (0.8480, 0.1961, 2.1554),
+    "ANC": (22.3917, 17.2373, 27.5202),
+    "DA": (26.7945, 20.3939, 32.8404),
+    "EFF": (10.1879, 5.7857, 15.6084),
+    "ASA": (12.6209, 8.5124, 17.7796),
+    "MK": (8.8317, 2.1231, 21.1980),
+    "PA": (6.4603, 2.2986, 12.6508),
+    "VFPLUS": (0.8732, 0.1882, 2.2694),
+    "ALJAMAAH": (0.8234, 0.1912, 2.0897),
     "ENTRANT": (1.3859, 0.0000, 7.7892),
 }
 GOLDEN_POOLS = {
-    "Black African": (61.6071, 54.1401, 68.9055),
-    "Coloured": (9.5989, 5.6135, 15.6380),
-    "Indian/Asian": (5.7164, 4.2551, 7.7519),
-    "White": (20.0231, 15.8776, 23.6920),
+    "Black African": (60.2863, 52.8858, 67.7230),
+    "Coloured": (10.2484, 6.0785, 16.3190),
+    "Indian/Asian": (5.8215, 4.3664, 7.7941),
+    "White": (20.6376, 16.3783, 24.4263),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")

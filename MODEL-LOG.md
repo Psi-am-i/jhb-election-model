@@ -30775,3 +30775,43 @@ Version A for MK: Johannesburg 6 contests, median 0.855, vote-weighted 0.845; 8 
 *Addendum, same day.* The "about 7 ANC wards" attributed above to §1.319 is not in §1.319. It comes from the ward study reported to the owner on 17 October, which was not logged: from the model's MK level to MK's 2024 share moves about 7 wards to or from the ANC. §1.319's MK drawn mean (8.63%) was measured on the 16 October turnout model, since reverted (§1.320). The 9.04% in the table above is the model at f32523b (§1.321).
 
 *Second addendum, same day.* Coverage checked directly: in all 45 contests every voting district in the by-election file is in the 2024 file (none partial). On the other parties, the median gives a different picture from the vote-weighted ratio in Johannesburg: ANC 0.591 against the model's 0.743, DA 0.548 against 1.043. Both DA figures are pulled down by the four contests it did not stand in (version A median 1.452). "Not displaced in one direction" holds on the vote-weighted ratio; on the Johannesburg medians ANC and DA both sit below the model, and MK's median (0.704) is also below its drawn-mean ratio (0.740), by less than the ±0.15 band.
+
+## 1.323 By-election weight 0.5 for every party: at Johannesburg the DA passes the ANC in mean seats and the ANC's chance of the most seats falls from 57% to 47%; Tshwane has no by-election input and does not move (2026-10-19)
+
+**Change.** `DEFAULTS["w_bye"]` from `None` (each size class's weight from `bye_value.json`, 0.0 for both) to 0.5 for every party, the owner's decision of 2026-10-17 (JUDGEMENT-CALLS §A59). Pre-registered in `prereg/2026-10-17-byelection-weight-half.md` (cbcdd5f) before the change was made.
+
+**Method.** Johannesburg and Tshwane 2026, `w_bye` `None` against 0.5, 5,000 draws, seed 20261104, in process; only traces written, outside `data/`. Script and output: `audits/2026-10-17-byelection-half/` (`measure.py`; drawn means, seats and largest-party shares in `out.json`; centres, by-election levels and caps in the four `*_30_centres.json` traces). The backtest is `compare_history` at 1,000 draws on the changed tree (`history.json` manifest `cbcdd5f`, dirty).
+
+**Result, Johannesburg 2026.** Centre = expected list share before / after the level shrink (`30_centres.json`); drawn mean = mean list share over the 5,000 draws; seats = mean council seats over the draws.
+
+| party | centre before shrink, w 0 → 0.5 | centre after shrink | drawn mean | seats | by-election level (contests), capped to |
+|---|---|---|---|---|---|
+| DA | 30.88 → 32.60% | 28.89 → 30.41% | 26.06 → 26.35% | 69.7 → 70.0 | 34.3% (11) |
+| ANC | 28.07 → 27.33% | 26.40 → 25.73% | 23.75 → 22.25% | 72.1 → 69.7 | 26.6% (15) |
+| ActionSA | 13.07 → 14.70% | 12.97 → 14.44% | 11.69 → 12.51% | 27.2 → 28.9 | 18.9% (4), 16.3% |
+| EFF | 12.20 → 11.47% | 12.18 → 11.51% | 11.01 → 10.01% | 30.2 → 27.3 | 10.7% (11) |
+| MK | 9.93 → 10.26% | 10.10 → 10.40% | 9.04 → 8.94% | 23.3 → 23.0 | 10.6% (8) |
+| PA | 6.05 → 6.97% | 6.47 → 7.34% | 5.95 → 6.49% | 15.8 → 17.1 | 22.2% (4), 7.9% |
+| IFP | 1.35 → 1.60% | 1.67 → 1.95% | 1.50 → 1.69% | 4.1 → 4.5 | 2.5% (3), 1.8% |
+| All Citizens Party | 0.04 → 1.04% | 0.05 → 1.31% | 0.05 → 1.24% | 0.1 → 3.3 | 2.1% (2) |
+| ATM | 0.36 → 0.42% | 0.48 → 0.55% | 0.43 → 0.48% | — | 0.5% (3) |
+| AIC | 0.32 → 0.25% | 0.42 → 0.33% | 0.38 → 0.29% | — | −0.5% (4), 0.2% |
+
+Largest party alone in the council, share of draws: ANC 57.0% → 47.4%, DA 35.4% → 44.3%, MK 3.8% → 3.7%, tie 3.3% → 3.8%.
+
+**Tshwane 2026: no number moves.** `bye_weight` is empty: there is no `byelection_party_deltas.csv` for Tshwane (`data/processed/tshwane/2026/`). `byelections.py` has been run for Johannesburg's default `--processed` path only, so the by-election term reaches Johannesburg alone.
+
+**Scored against the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| P1 | all 24 backtest rows identical | held: `history.json` differs only in its manifest (commit, dirty flag, generated time) and the recorded `w_bye` |
+| P2 | no pool spec changes | held: `pools.py` does not read `w_bye` |
+| P3 | centres: DA, ActionSA, MK, PA, IFP, ATM, All Citizens up; ANC, EFF, AIC down; others unchanged; drawn means of the five largest move the same way | centres held, all ten. Drawn means: four of five; **MK's falls (9.04 → 8.94%) while its centre rises 0.30pp after the shrink**. Not explained here |
+| P4 | P(ANC largest alone) falls, P(DA) rises | held |
+| P5 | Tshwane centres move | **falsified**: Tshwane has no by-election input |
+| P6 | AIC, ActionSA, IFP, PA capped | held, those four and no others |
+
+**What this changes.** At Johannesburg the by-elections now reach the forecast. In mean seats the DA (70.0) passes the ANC (69.7); the ANC is still more often the largest party alone, 47.4% of draws against the DA's 44.3%. The All Citizens Party rises from 0.05% to 1.24% on two contests (159 and 39 votes): it has no national share and so no θ band, its by-election level is not capped, and two contests pass `BYE_MIN_WEIGHT`. MK has a 2024 national share, so its level is capped by θ's band; at 10.6% it sits inside the band. "Every party, every city" in §A59 is true of the setting, not of its reach.
+
+**Limits.** Argued, not tested: no backtested target has a by-election in the current file. The IEC by-election dashboard also serves the 2016–2021 cycle (84 dates, voting-district level, checked 2026-10-19); with it, the 2021 targets would carry by-elections and the weight could be scored.

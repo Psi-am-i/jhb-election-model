@@ -391,7 +391,7 @@ touched.
 | Per-party spread | `levels.theta_prior` | MEASURED size-dispersion line | 0.19 at 40% of the vote rising to ~0.9 at 0.1% |
 | by-election deltas | `byelections.py` | MEASURED, contests before the target | **inert in every backtest** — the scrape covers 2022-06 to 2026-02 only |
 | ward→PR conversion of the delta | `montecarlo.blended_centres` | MEASURED out-of-sample | the delta is a within-ward change on the **ward** ballot and the level it joins is on **PR**, so it is divided by the party's measured ward/PR ratio — on the population and clip `ward_pr_ratios` already uses (`pc > 0.001`, `[0.5, 2.0]`). Additive below that: the ratio is then a quotient of two noisy numbers. §1.113, §1.114 |
-| by-election weight per size class | `bye_value.py` → `montecarlo.bye_weight` | **MEASURED** against the 2024 provincial ballot, leave one metro out (JUDGEMENT-CALLS §A55) | a cross-ballot test on the whole record; 0 where no gain is measurable. `w_bye` (DEFAULTS `None`) overrides it for sweeps; a city file may not set it (`montecarlo.DERIVED_NOT_CITY`, refused by `apply_city`). Was a typed 0.40 (§A35) |
+| by-election weight | `DEFAULTS["w_bye"]` → `montecarlo.bye_weight` | **DECLARED** 0.5 for every party (owner, 2026-10-17, JUDGEMENT-CALLS §A59) | argued, not tested: no backtested target has a by-election. Set to `None`, each party takes its size class's weight measured against the 2024 provincial ballot by `bye_value.py` (§A55; 0.0 for both classes when 0.5 was set). A city file may not set it (`montecarlo.DERIVED_NOT_CITY`, refused by `apply_city`). Was a typed 0.40 (§A35) |
 | **Metro polls** | `polling.py` | DECLARED decomposition + inverse-variance blend | σ is `_sigma_total` — sampling + σ_common² + σ_idio²/H_eff + screen² + drift² + σ_volatility², and **only σ_idio shrinks with houses**. Adopted 2026-08-24 (§1.91), replacing the measured 3.03pp Ipsos-2016 track record, which could not say which part of the error more houses would remove |
 | Several waves | `polling.aggregate` | recency-weighted, 120-day half-life | combined ONCE; applying them in sequence let the oldest win |
 | Admission | `polling.usable_for` | rules, not judgement | must be dated, must declare its election (or fall inside 550 days), must NAME ITS CITY, and party-commissioned polls are excluded |
@@ -681,8 +681,7 @@ forecast path, `state` (`live`, `off` or `absent`) and, for every non-live claim
 a `probe` (a function in `tests/test_model_claims.py` returning True when the
 declared state holds). The test imports every symbol, runs every probe (no model
 run), and asserts the pages the register lists and the pages its claims cite are
-the same set. Known non-live entries: by-election weights are 0.0 at 2026
-(`data/processed/bye_value.json`); the heavier-tails text describes the retired
+the same set. Known non-live entries: the heavier-tails text describes the retired
 Student-t draw (shipped `draw_law = "universal"`); the IFP pool exists only in
 `pools_2026_simulation.json`; ActionSA is sized by the local/national blend
 (`levels.SPINE_K`); the roll is IEC ward totals apportioned to voting districts.
@@ -1222,9 +1221,9 @@ in proportion to it — ActionSA's ×36 would have produced a 95th percentile at
 Two things are switched ON but cannot be exercised by any backtest, and must be
 labelled as argued rather than tested wherever they are quoted: the by-election
 weights (the scrape covers 2022-06 to 2026-02, so no past target has any; since
-2026-10-10 each class's weight is measured against the 2024 provincial ballot by
-`bye_value.py`, a cross-ballot test, and a missing or stale `bye_value.json`
-stops a run that reads by-elections) and the
+2026-10-17 every party's weight is 0.5, the owner's declared value (JUDGEMENT-CALLS
+§A59): each party with by-election evidence is centred halfway between the
+model's level and its by-election level, its by-election level first capped by θ's band where the party has a national share, before the shrink; only Johannesburg has a by-election input, MODEL-LOG §1.323) and the
 15% under-bias correction on the first-local-election path (**42** of its 45 cases
 fall at 2021, so a backtest there has one prior case to fit on) — the latter
 identified but NOT applied.

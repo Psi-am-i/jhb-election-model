@@ -195,7 +195,7 @@ promotion note in §F.
 | `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` | 0.02, 0.95 | — | 0.02 / 0.95, applied per draw. They contradict §C's claim that the turnout band 'removes caps rather than adding one'; whether the ceiling ever binds is unmeasured. | 🔴 | §F34 |
 | `turnout_noise_sd`, `turnout_blend_jitter` | 0.08, 0.25 | — | Typed; ~0.003 citywide, i.e. nothing. | 🟡 | §F23 + §A41 |
 | `turnout_pattern_blend` / `turnout_blend_jitter` / `turnout_noise_sd` | 0.5 / 0.25 / 0.08 | `montecarlo.py` | Typed. The citywide effect of the 0.08 is ~0.003, i.e. nothing — but see §G-R5: the turnout knobs move 46 ward wins, so the citywide null is not the whole story. | 🟡 | §A41 + §F23 |
-| `w_bye` | None (derived) | `montecarlo.py` | **SUPERSEDED 2026-10-10 by §A55.** Each party's by-election weight is its size class's weight from `bye_value.json`; a number in `w_bye` is a sweep override for every party, recorded. Was: typed at 0.40. | — | §A35 |
+| `w_bye` | 0.5 | `montecarlo.py` | **Owner's decision 2026-10-17 (§A59).** Every party with by-election evidence is centred halfway between the model's level and its by-election level (that level capped first), before the shrink and normalisation. Declared; no backtest can score it. Was: derived per size class (§A55), 0.0 for both classes; before that a typed 0.40 (§A35). | 🔴 | §A59 |
 | `w_bye_local_ward` / `w_bye_local_pr` | 0.0 / 0.0 | `montecarlo.py` | Built and disabled at 0.0 / 0.0. Untestable for the same reason as `w_bye`. | 🟡 | §A37 + §F25 |
 | `w_bye_local_ward`, `w_bye_local_pr` | 0.0, 0.0 | — | Built, disabled, untestable. | 🟡 | §F25 + §A37 |
 | `w_recency` | 0.70 | `turnout.py --w-recency` | 0.70, verbatim from the original plan. It reaches the model through 20 committed `turnout.csv` files that carry no artefact key, so changing it does nothing until someone re-runs the script. | 🔴 | §H2 |
@@ -1002,17 +1002,9 @@ What is typed: the grid (natural-log units of size; 1.0 is a factor of about 2.7
 
 ### §A55 · the by-election value test — `BYE_CLASS_EDGE` 1% · leave one metro out · 5th percentile of `BYE_VALUE_RESAMPLES` 2,000 · `BYE_VALUE_MIN_PAIRS` 10 — 🟡
 
-**Plain — How much recent by-elections count.** A party's swing in the
-by-elections held since the last local election can move its expected share.
-How far is measured, not chosen. We checked whether by-election swings before
-the 2024 national election predicted that election's result better than the
-model did without them, separately for small parties and larger ones. A group of parties gets weight only if
-the improvement held when each metro was left out in turn and across resampled
-sets of metros; otherwise its by-elections count for nothing. By-elections are
-ward contests and the 2024 result was a national and provincial list vote, so
-this is the only test the record allows, and a weak one. On
-[your forecast](your-forecast/) you can make by-elections count not at all or
-fully.
+**SUPERSEDED AS THE DEFAULT 2026-10-17 by §A59.** `DEFAULTS["w_bye"]` is 0.5 for every party (owner). The test below still runs (`bye_value.py --emit`) and its weights are read when `w_bye` is set to `None`; they were 0.0 for both classes when it was superseded.
+
+*(Its reader-facing Plain field moved to §A59 on 2026-10-17: a retired call is not shown to a reader as a live choice.)*
 
 **Where.** `src/bye_value.py` measures; `byelections.size_class` and `byelections.BYE_CLASS_EDGE` define the classes for the test and for the model; `byelections.weighted_deltas`, `byelections.delta_pr` and `levels.trusted_ward_pr` are the deltas and their list-scale conversion, one definition each with the model's.
 
@@ -1122,6 +1114,27 @@ picked it, did not.
 **How to check it.** `tests/test_arms.py` (identical arms give zero difference and zero Monte Carlo error; a shifted arm stays paired above `R2_MIN_MEDIAN`; an independent one does not).
 
 **Since 2026-10-13 (step-7 review fixes).** Three more of the pre-registration's numbers are copied as code for the instruments it registered without one: `BAND` (5, 95), the drawn percentiles of "inside the 90% band" (§4); `IMPLAUSIBLE_PREVIOUS_MAX` 1% and `IMPLAUSIBLE_DRAWN_MIN` 5%, "previous < 1%" and "above 5%" of §5.6 and §5.1 row 3. `plausibility.SCORED_YEARS` (2016, 2021) and `SCORED_COUNT` (16) are §2's scored population. None is this writer's; amendment 3 states the readings.
+
+### §A59 · `w_bye` — 0.5 for every party — 🔴 declared (owner, 2026-10-17)
+
+**Plain — How much recent by-elections count.** Each party's expected share is
+set halfway between what the model expects from earlier elections and what the
+by-elections since 2021 imply for it. Nobody knows the right weight, so the two
+count equally. A party that had a vote in the 2024 national election cannot be
+moved by its by-elections further than the model's usual range for it allows,
+so a party whose by-elections imply a very large swing moves less than halfway.
+A party with no national vote has no such range and moves halfway. A party that
+stood only for ward seats in 2021, and not on the party list, is not moved. In
+Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your forecast](your-forecast/) you can make
+by-elections count not at all or fully.
+
+**Where.** `DEFAULTS["w_bye"]` in `src/montecarlo.py`, applied by `montecarlo.bye_weight` (override branch) in `montecarlo.blended_centres`: `centre = 0.5 × level + 0.5 × clamped`, where `clamped` is the previous local list share plus `byelections.delta_pr`, held inside θ's relative band around the level (`PLAN_BOUNDS`, empty by default, for a party with no θ prior, so a party with no national share is not capped). A party with no previous PR share that stood on the 2021 ward ballot is skipped (`bye.ward_only_base_skipped`). Parties below `BYE_MIN_WEIGHT` of contest weight are not moved. The level shrink and normalisation come after the blend.
+
+**Why.** Owner, 2026-10-17: "since we do not know what the by-election weight should be. Weight them all at 50%. So if our forecast says 10% and by election result was 8%, then use 9%." It replaces the size-class weights measured by `bye_value.py` (§A55), which were 0.0 for both classes, so the by-elections reached no centre.
+
+**Evidence.** None possible on the panel: no backtested target has a by-election before its polling day (the file starts in 2022), so this is **argued, not tested**. MODEL-LOG §1.322 measured one party's by-election level against the model independently (MK, consistent within ±0.15 of its ratio). What it moves at Johannesburg and Tshwane 2026 is in MODEL-LOG §1.323.
+
+**How to check.** `.venv/bin/python src/montecarlo.py --city joburg --target 2026 --run-dir /tmp/t` and read `30_centres.json`: `bye_weight` shows 0.5 "override" for each party with evidence, and `route_notes` gives each party's level, by-election level and whether it was capped.
 
 ### §B1 · `SPINE_K = 1.0`, reciprocal form — 🔴
 
@@ -1736,7 +1749,7 @@ that survives contact with a long session.
 
 **Now.** 30.0, the admission gate on the WHOLE by-election channel, promoted from a bare literal. Same reach into the published forecast, same untestability, same status as `w_bye`.
 
-**Record.** `montecarlo`, inside `blended_centres`. **The admission gate on the whole by-election channel.** `w_bye` = 0.40 is registered at 🔴 as live in the 2026 forecast and untested by anything here; the threshold deciding whether it fires *for a given party* sat beside it as a bare `30` and was not registered at all. Below this many weighted contests the by-election evidence is discarded silently. Same untestable branch, same reach into the published forecast, same status. Promoted §1.69
+**Record.** *(`w_bye` was 0.40 when this was written; it is 0.5 since 2026-10-17, §A59.)* `montecarlo`, inside `blended_centres`. **The admission gate on the whole by-election channel.** `w_bye` = 0.40 is registered at 🔴 as live in the 2026 forecast and untested by anything here; the threshold deciding whether it fires *for a given party* sat beside it as a bare `30` and was not registered at all. Below this many weighted contests the by-election evidence is discarded silently. Same untestable branch, same reach into the published forecast, same status. Promoted §1.69
 
 ### §F34 · `TURNOUT_DRAW_FLOOR`, `TURNOUT_DRAW_CEILING` — 0.02, 0.95 — 🔴
 
@@ -1841,7 +1854,7 @@ the honest range is "unknown". The last column is what would produce one.
 
 | call | value | what would create a range |
 |---|---|---|
-| `w_bye` | 0.40 | Nothing available. The by-election window is 2022-06 to 2026-02, so **no past target has any by-election data at all** — it is live in the 2026 forecast and inert in every backtest. Only the 2026 result can bound it |
+| `w_bye` | 0.5 (since 2026-10-17, §A59; 0.40 when this table was written) | The 2016–2021 by-elections (IEC dashboard, fetched 2026-10-19): with them the 2021 targets carry by-elections and the weight can be scored. The current file covers 2022-02 to 2026-06, so no past target has any |
 | `w_bye_local_ward`, `w_bye_local_pr` | 0.0, 0.0 | Same, and they are switched off, so the gate is doing the work rather than the value |
 | `bye_local_cap`, `bye_tau_months` | 1.5, 18 | Same again — inert in every backtest by construction |
 | `BYE_MIN_WEIGHT` | 30.0 | The admission gate on the **whole** by-election channel, promoted from an inline literal §1.69. Never swept. A sweep at 2026 would at least show what it gates |

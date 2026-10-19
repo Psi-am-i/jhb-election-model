@@ -613,8 +613,8 @@ def write_index(root: Path) -> dict:
     The cells are listed from least to most by-election weight
     (:func:`order_bye_cells`), each with its ``bye_weight_range`` (the least
     and greatest weight its run gave any party, :func:`bye_weight_range`) and
-    its ``bye_order``. ``w_bye`` stays the cell's override, ``None`` for the
-    published cell, whose weight is per class (BRIEF item 19); the page and
+    its ``bye_order``. ``w_bye`` stays the cell's value (0.5 for the published
+    cell since 2026-10-17, JUDGEMENT-CALLS §A59; ``None`` would be per class); the page and
     ``build_play`` order and compare by the range, never by ``w_bye``.
 
     ⚠️ THE CELLS ARE NOT PAIRED (measured 2026-09-30, MODEL-LOG §1.283): a
@@ -692,9 +692,9 @@ def bye_weight_range(bye_weight: dict | None, w_bye) -> list[float]:
     weights its run gave each party (the manifest's ``bye_weight``, BRIEF item
     19).
 
-    The published cell has ``w_bye = None`` and per-party class weights, which
-    differ between classes when the measured weights do, so one number cannot
-    stand for it; the range can, and it is a single point for an override cell
+    A cell with ``w_bye = None`` has per-party class weights, which differ
+    between classes when the measured weights do, so one number cannot stand
+    for it; the range can, and it is a single point for an override cell
     (every party at the override). A manifest with no ``bye_weight`` was
     exported before item 19, when ``w_bye`` was the one weight for every party,
     and its range is that point. A derived cell whose run weighed no party
@@ -713,7 +713,8 @@ def order_bye_cells(cells: list[dict]) -> list[dict]:
     and ``build_play`` use.
 
     Sorted by :func:`bye_weight_range` (least weight, then greatest), never by
-    ``w_bye``, which is ``None`` for the published cell. A cell with no
+    ``w_bye``, which was ``None`` for the published cell until 2026-10-17
+    (0.5 since, JUDGEMENT-CALLS §A59). A cell with no
     ``bye_weight_range`` (an index written before the field) is read from its
     ``w_bye``. On a tie the published cell (``"."``) sits between the cells
     either side of it: an override of 0 before it, any other override after,

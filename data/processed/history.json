@@ -1,7 +1,7 @@
 {
   "manifest": {
     "schema": 3,
-    "generated": "2026-10-17T10:52:22Z",
+    "generated": "2026-10-17T23:23:29Z",
     "draws": 1000,
     "seed": 20261104,
     "seed_by_row": {
@@ -31,8 +31,8 @@
       "buffalocity:2021": 20261104
     },
     "overrides": [],
-    "git_commit": "f32523b17533261616c1568ddf08b61067f8a78f",
-    "git_dirty": false,
+    "git_commit": "cbcdd5fdfcd3f968df31933c533dcfd9d32d9304",
+    "git_dirty": true,
     "env_switches": {
       "raw": {
         "SIGMA_TWO_TERM": null,
@@ -1856,7 +1856,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -3791,7 +3791,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -6977,7 +6977,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -9496,7 +9496,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -11223,7 +11223,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -13930,7 +13930,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -16429,7 +16429,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -18368,7 +18368,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -21122,7 +21122,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -23261,7 +23261,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -25256,7 +25256,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -28715,7 +28715,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -31350,7 +31350,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -33629,7 +33629,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -37037,7 +37037,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -39230,7 +39230,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -40649,7 +40649,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -42597,7 +42597,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -44298,7 +44298,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -45971,7 +45971,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -48289,7 +48289,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -49967,7 +49967,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -51368,7 +51368,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,
@@ -53291,7 +53291,7 @@
       "scenario_defaults": {
         "draws": 1000,
         "seed": 20261104,
-        "w_bye": null,
+        "w_bye": 0.5,
         "bye_weight_mode": "fixed",
         "contestation_expand": 0.22,
         "w_bye_local_ward": 0.0,

@@ -149,14 +149,17 @@ DEFAULTS: dict = {
     # as an argument that function never read, and printed. Three appearances,
     # no effect. See MODEL-LOG §1.35.
     #
-    # ⛔ NONE MEANS DERIVED (BRIEF item 19, 2026-10-10). The weight each party's
-    # by-election evidence gets is its size class's weight from
-    # `data/processed/bye_value.json` (`src/bye_value.py`, JUDGEMENT-CALLS
-    # §A55): the measured out-of-sample increment over the model's own
-    # baseline, 0 where none is measurable. A NUMBER here is an override for
-    # sweeps and the reader page's cells, applied to every party and recorded
-    # (`w_bye.override`). It replaced the typed 0.40 (§A35, superseded).
-    "w_bye": None,
+    # ⛔ 0.5 FOR EVERY PARTY, THE OWNER'S DECISION (2026-10-17, JUDGEMENT-CALLS
+    # §A59): "since we do not know what the by-election weight should be,
+    # weight them all at 50%" -- a party the model puts at 10% whose
+    # by-elections imply 8% is centred at 9%. Declared, and argued rather than
+    # tested: no backtested target has a by-election, so nothing on the panel
+    # can score it. A number here is applied to every party and recorded
+    # (`w_bye.override`). None would mean derived: each party's size-class
+    # weight from `data/processed/bye_value.json` (`src/bye_value.py`, §A55),
+    # 0.0 for both classes when this was set, so the by-elections reached no
+    # centre. That route stays for sweeps (`--set w_bye=None`).
+    "w_bye": 0.5,
     # HOW the by-election reading is weighed against the spine. "fixed" is
     # w_bye above, typed and untested. "inverse_variance" DERIVES it from the
     # two estimates' own precisions — the minimum-variance combination, which
@@ -565,7 +568,7 @@ def expit(x):
 # THE ADMISSION GATE ON THE WHOLE BY-ELECTION CHANNEL, promoted from an
 # inline literal 2026-08-22 (MODEL-LOG §1.69). `w_bye` was then a typed 0.40,
 # 🔴 as "live in the 2026 forecast, untested by anything here" (since
-# 2026-10-10 it is derived per size class, §A55) — and the
+# 2026-10-10 it was derived per size class, §A55; 0.5 since 2026-10-17, §A59) — and the
 # threshold deciding whether it fires for a given party was a bare `30` in the
 # function body, in the same untestable branch and with the same reach into the
 # published forecast. Below this many weighted contests the by-election
@@ -1702,12 +1705,13 @@ def _refuse_non_statutory(key: str, value) -> None:
             f"table. They must not reach a forecast. MODEL-LOG §1.165.")
 
 
-#: ``DEFAULTS`` keys a city file may not set: each is derived per run, and
-#: ``apply_city`` writes a city's ``[judgements.scalars]`` over ``DEFAULTS``,
-#: so a number there would override the derivation on every run of that city.
-#: ``w_bye`` (BRIEF item 19): ``None`` derives each party's class weight from
-#: ``bye_value.json``; ``w_bye = 0.4`` sat in two city files until 2026-10-10
-#: and would have done exactly that. A sweep or scenario file may still set
+#: ``DEFAULTS`` keys a city file may not set: each is one value for every
+#: city, and ``apply_city`` writes a city's ``[judgements.scalars]`` over
+#: ``DEFAULTS``, so a number there would replace it on every run of that city.
+#: ``w_bye``: 0.5 for every party (owner, JUDGEMENT-CALLS §A59), or ``None``
+#: for each party's derived class weight from ``bye_value.json`` (§A55);
+#: ``w_bye = 0.4`` sat in two city files until 2026-10-10 and overrode the
+#: derivation in silence. A sweep or scenario file may still set
 #: it (an override, recorded); only a city file may not.
 DERIVED_NOT_CITY = ("w_bye",)
 
@@ -2612,8 +2616,9 @@ def bye_weight(scenario: dict, party: str, prior_pr_share: dict[str, float],
                base_city: dict[str, float]) -> tuple[float, str]:
     """The weight one party's by-election evidence gets, and where it came from.
 
-    ``scenario["w_bye"]`` is read with no default. A number is an override,
-    the same for every party (``"override"``). ``None`` is derived: the
+    ``scenario["w_bye"]`` is read with no default. A number applies to every
+    party (``"override"``); the default is 0.5, the owner's declared weight
+    (2026-10-17, JUDGEMENT-CALLS §A59). ``None`` is derived: the
     party's class (``byelections.size_class`` at :func:`bye_class_size`)
     weight from ``scenario["_bye_value"]``, which ``run_model`` fills from
     :func:`read_bye_value`; absent, it is read here, so a direct call refuses
@@ -2644,8 +2649,9 @@ def blended_centres(
     with meaningful by-election weight, the implied level (the previous LGE's PR
     share + weighted delta) is clamped to §3.5's range — a concentrated party's
     stronghold swing cannot claim an absurd citywide level — and blended in at
-    the party's by-election weight (:func:`bye_weight`: its size class's
-    measured weight, or a ``w_bye`` override). Returns the centres and a note
+    the party's by-election weight (:func:`bye_weight`: ``w_bye``, 0.5 for
+    every party by the owner's decision of 2026-10-17, JUDGEMENT-CALLS §A59;
+    ``None`` would read each size class's measured weight). Returns the centres and a note
     per adjusted party for the report; the weight each party with evidence
     was given is ``scenario["_bye_weight"]`` and the ``30_centres`` trace's
     ``bye_weight``.
@@ -6934,8 +6940,9 @@ def run_model(target, scenario: dict,
                 _spread[row["party"]] = (int(row.get("contests") or 0),
                                          float(row.get("delta_sd") or 0.0))
             scenario["_bye_spread"] = _spread
-    # THE WEIGHT IS DERIVED (BRIEF item 19). A target that reads by-elections
-    # with no `w_bye` override needs the measured class weights, and a missing
+    # THE DERIVED ROUTE (BRIEF item 19), taken only when `w_bye` is None; the
+    # default is the owner's 0.5 (§A59). A target that reads by-elections
+    # with `w_bye` None needs the measured class weights, and a missing
     # or stale `bye_value.json` stops the run here rather than at the first
     # party (same class as a stale pool spec). Read once; `blended_centres`
     # takes them from the scenario.
