@@ -210,6 +210,12 @@ a 2026 forecast (`src/inputs_preflight.py --strict --city tshwane --target
 spec and judgements file. Do not start acquiring rolls before Johannesburg's
 interactive is done.
 
+**Owner, 2026-10-19: Tshwane launches after Johannesburg is live.** A third gap
+for that launch: Tshwane has no by-election deltas file, so its forecast reads
+no by-elections. `src/byelections.py --city tshwane` has never been run; the
+raw file already holds its contests. Pre-register before building it (it moves
+Tshwane's forecast).
+
 **Before the election**
 
 * **Post-election scoring must be frozen before 4 November** — seat count per
