@@ -33,3 +33,4 @@ never edited after the measurement — a pre-registration that moves is not one.
 | `2026-10-19-byelections-need-a-record.md` | when a party with no earlier vote of any kind gets no by-election weight (owner), what moves at Johannesburg 2026? | MODEL-LOG §1.324: Q1–Q5 held (Q1 measured in its addendum). |
 
 *2026-10-08, after the outcome above was written:* the 739 in the `2026-10-08-prediction-rule-backtest.md` row is corrected to 737 by MODEL-LOG §1.291 (Johannesburg 2016 was decided by an exact seat tie broken by hash-seed order).
+| `2026-10-20-byelection-weight-2021-backtest.md` | does the by-election term, fed the 2016–2021 by-elections, move the 2021 forecast toward or away from the result, at weights 0, ½, 1, and with seat-changing contests doubled? | *Not yet scored.* |
