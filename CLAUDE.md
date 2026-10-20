@@ -1,5 +1,6 @@
 **MemPalace wing:** `jhb_election_model` — file every diary entry, drawer and KG fact here.
 **Global policy — agent identity, MemPalace, machines, secrets — is in `~/CLAUDE.md` (rules 1-5)** and `~/projects/SECRETS.md`. Do not restate it.
+**Open questions for the owner:** `OWNER-DECISIONS.md` (rule in `~/CLAUDE.md` rule 8).
 
 > **The newsdesk is a separate repository**, `~/projects/atlas-jhb-model-newsdesk`
 > (private, `Psi-am-i/jhb-model-newsdesk`). Its digests arrive there; its rules
