@@ -6,7 +6,7 @@ message that needs a decision links here and names the item by its heading.
 When an item is answered, it moves to **Answered** with the date and the
 answer, and the record it changed (JUDGEMENT-CALLS, MODEL-LOG) is named.
 
-Last updated: 2026-10-20.
+Last updated: 2026-10-21.
 
 ---
 
@@ -54,11 +54,33 @@ the cap held back six parties in Cape Town and eight in eThekwini at weight ½.
 **Options.** Keep the cap (the current setting), or let by-elections move every
 party by the full weight.
 
-**Status.** Being measured: the by-election weight measurement (Answered,
-item 4) is computed both with and without the cap, so this can be decided on
-the 2021 result. Recommendation follows the measurement.
+**Measured (MODEL-LOG §1.326, 2021 backtest with the 2016–2021
+by-elections).** Without the cap, the best-fitting weight is 0.34 and the fit
+is worse overall: squared error 781 points² against 760 with the cap. Without
+the cap the fit is better in 3 of the 6 metros where by-elections reach a
+party (Johannesburg, eThekwini, Mangaung) and worse in the other 3. The rule
+written before the run needed 4 of 6 to recommend removing the cap.
+
+**Recommendation.** Keep the cap.
 
 **Gates.** The final rebuild.
+
+### 9. Separate by-election weights for small and large parties
+
+**Context.** You asked whether the weight should differ by party size. The
+model can take one weight for parties under 1% of the previous list vote and
+another for the rest. Fitted on 2021 (MODEL-LOG §1.326): under 1%, 0.81
+(range 0.50 to 1.90 leaving one metro out, 43 party-metros); 1% and over,
+0.32 (range 0.16 to 0.58, 29 party-metros). Run with those two weights, the
+summed list-vote error is 21.53 against ½'s 21.78, but the weights were fitted
+on the same eight metros they are scored on, and the two ranges overlap
+(0.50 to 0.58). Small parties carry little of the error either way: 25 parties
+under 1% sum to 6.4 points against 54.2 for the 17 parties over 10% (at ½).
+
+**Recommendation.** One weight, ½, for every party. The rule written before
+the run allowed separate weights only if the two ranges did not overlap.
+
+**Gates.** The final rebuild, only if you choose separate weights.
 
 ### 5. Polls
 
@@ -88,7 +110,7 @@ before go-live.
 
 ### 7. The go-live yes
 
-**Context.** Once items 1–6 are settled and the final rebuild is done, I need
+**Context.** Once items 1, 2, 3, 5, 6 and 9 are settled and the final rebuild is done, I need
 your yes to:
 
 - regenerate the frozen forecast and the site's simulation files;
@@ -120,9 +142,17 @@ make this a measured variable." Whether ½, ⅓ or another value, the weight is
 to be measured from the 2016–2021 by-elections against the 2021 result, per
 party size if the evidence supports it, rather than declared.
 
-**What follows.** Pre-registered measurement (`prereg/2026-10-20-byelection-weight-measured.md`),
-then a proposal to make the measured value the model's default through
-`bye_value.py`, which you see before it is wired in.
+**Result (MODEL-LOG §1.326, 2026-10-21).** Measured over twelve weights from
+0 to 1 against the 2021 result in the eight metros. Summed list-vote error
+(points, eight metros): 0 → 23.90, ⅓ → 22.24, 0.4 → 21.94, **½ → 21.78**,
+0.6 → 21.91, 1 → 24.68. Leaving each metro out in turn, the other seven pick
+0.4 to 0.6. ⅓ is 0.46 points worse than ½ on this measure. A second measure
+(least-squares fit, which weights the big misses more) gives 0.33, with a
+range of 0.17 to 0.59 that contains ½. The gain comes from the by-election
+swing; pulling the forecast back toward the last result alone gains nothing.
+
+The measured weight equals the shipped one, so the model does not change.
+½ is now recorded as measured on one cycle rather than declared.
 
 ---
 

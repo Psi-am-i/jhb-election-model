@@ -55,7 +55,7 @@ def swing0_dir(slug):
     return out
 
 
-orig_run, orig_read, orig_w = M.run_model, M.read_bye_value, M.DEFAULTS['w_bye']
+orig_run, orig_read = M.run_model, M.read_bye_value
 (W / 'sweep').mkdir(parents=True, exist_ok=True)
 for arm in a.arm:
     if arm.startswith('g'):
@@ -65,25 +65,28 @@ for arm in a.arm:
     elif arm == 'C':
         under, over = (float(x) for x in a.class_weights.split(','))
         weights = {'under': under, 'at_or_over': over}
-        M.DEFAULTS['w_bye'] = None
+        # `w_bye=null` as an override: `apply_city` resets DEFAULTS, so a patch
+        # there would not survive into the scenario.
         M.read_bye_value = lambda path=None: {'weights': dict(weights),
                                               'artefact_key': 'sweep-arm-C', 'path': 'none'}
-        overrides, pdir = [], (lambda s: BASE / s)
+        overrides, pdir = ['w_bye=null'], (lambda s: BASE / s)
     else:
         raise SystemExit(f'unknown arm {arm}')
-    results = {}
+    name = f'C{under:g}_{over:g}' if arm == 'C' else arm
+    results = {'_arm': {'overrides': overrides,
+                        'class_weights': weights if arm == 'C' else None}}
     try:
         for slug in SLUGS:
             M.run_model = functools.partial(orig_run, processed=pdir(slug))
             try:
                 row = CH.run_city_year(slug, '2021', 1000, DATA, overrides=overrides,
-                                       run_dir=W / 'sweep-trace' / arm)
+                                       run_dir=W / 'sweep-trace' / name)
             finally:
                 M.run_model = orig_run
             results[slug] = {'pr_mae': row['pr_mae'], 'ward_mae': row['ward_mae'],
                              'seat_abs_err': row['seat_abs_err'], 'wards': row['wards'],
                              'votes': row['votes'], 'seats': row['seats']}
-            print(arm, slug, round(row['pr_mae'], 4), row['seat_abs_err'], flush=True)
+            print(name, slug, round(row['pr_mae'], 4), row['seat_abs_err'], flush=True)
     finally:
-        M.read_bye_value, M.DEFAULTS['w_bye'] = orig_read, orig_w
-    (W / 'sweep' / f'{arm}.json').write_text(json.dumps(results, indent=1, default=str))
+        M.read_bye_value = orig_read
+    (W / 'sweep' / f'{name}.json').write_text(json.dumps(results, indent=1, default=str))

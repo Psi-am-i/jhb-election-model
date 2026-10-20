@@ -1,0 +1,44 @@
+1. summed pr_mae over 8 metros (points) | wards wrong | seats to wrong party
+   w=0       23.896 |  24 |  152.0
+   w=0.1     23.405 |  24 |  150.0
+   w=0.2     22.909 |  21 |  148.5
+   w=0.25    22.657 |  21 |  150.0
+   w=0.333   22.236 |  21 |  147.5
+   w=0.4     21.941 |  21 |  147.5
+   w=0.5     21.780 |  22 |  147.5
+   w=0.6     21.909 |  22 |  146.5
+   w=0.667   22.351 |  22 |  147.5
+   w=0.75    22.928 |  23 |  149.5
+   w=0.9     23.978 |  22 |  154.0
+   w=1       24.682 |  22 |  153.5
+   C0.813_0.319  21.527 |  21 |  146.0
+   R         23.927 |  22 |  159.0
+   minimum at w=0.5; within 0.3 of it: 0.4-0.6
+2. leave one metro out (grid choice on the other seven; held-out pr_mae)
+   joburg            w=0.5    held-out 6.585 | at 0.5 6.585 | at 0 6.296
+   ekurhuleni        w=0.5    held-out 2.335 | at 0.5 2.335 | at 0 2.563
+   capetown          w=0.4    held-out 1.294 | at 0.5 0.998 | at 0 2.451
+   ethekwini         w=0.6    held-out 3.628 | at 0.5 3.244 | at 0 2.522
+   nelsonmandelabay  w=0.4    held-out 2.047 | at 0.5 1.766 | at 0 3.279
+   mangaung          w=0.5    held-out 1.828 | at 0.5 1.828 | at 0 1.762
+   chosen range 0.4-0.6; summed held-out 17.717 vs fixed 0.5 16.756 vs fixed 0 18.872
+3. least-squares slope w* = sum(e d)/sum(d^2) on forecast list shares (w=0 vs w=1)
+   pooled          w*=0.329 over 72 party-metros; leave-one-out 0.174-0.585
+   under 1%        w*=0.813 over 43 party-metros; leave-one-out 0.496-1.904
+   at or over 1%   w*=0.319 over 29 party-metros; leave-one-out 0.160-0.576
+   under 10%       w*=0.215 over 58 party-metros; leave-one-out 0.122-0.431
+   at or over 10%  w*=0.345 over 14 party-metros; leave-one-out 0.183-0.636
+4. cap: slope on (by-election level - model level), capped vs uncapped, from 30_centres notes
+   capped    w*=0.557  pooled squared error 759.95 (points^2)
+   uncapped  w*=0.344  pooled squared error 781.28 (points^2)
+   uncapped has lower squared error in 3 of 6 metros: ['joburg', 'ethekwini', 'mangaung']
+per metro pr_mae by grid weight
+   joburg            6.30  6.35  6.41  6.44  6.49  6.53  6.58  6.64  6.68  6.73  6.82  6.88
+   tshwane           2.12  2.12  2.12  2.12  2.12  2.12  2.12  2.12  2.12  2.12  2.12  2.12
+   ekurhuleni        2.56  2.52  2.47  2.45  2.41  2.38  2.33  2.29  2.26  2.22  2.16  2.12
+   capetown          2.45  2.17  1.88  1.73  1.49  1.29  1.00  0.70  0.85  1.08  1.50  1.78
+   ethekwini         2.52  2.59  2.67  2.70  2.76  2.85  3.24  3.63  3.88  4.19  4.75  5.11
+   nelsonmandelabay  3.28  2.97  2.67  2.51  2.26  2.05  1.77  1.79  1.80  1.82  1.85  1.87
+   buffalocity       2.90  2.90  2.90  2.90  2.90  2.90  2.90  2.90  2.90  2.90  2.90  2.90
+   mangaung          1.76  1.78  1.79  1.80  1.81  1.81  1.83  1.84  1.85  1.86  1.88  1.89
+   weights              0   0.1   0.2  0.25 0.333   0.4   0.5   0.6 0.667  0.75   0.9     1

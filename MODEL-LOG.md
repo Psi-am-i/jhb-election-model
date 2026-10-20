@@ -30892,3 +30892,43 @@ Per metro, list-vote error A0 → A5: Johannesburg 6.30 → 6.58, Ekurhuleni 2.5
 | B7 | wards and seats no better at A5 | **falsified**: wards wrong 24 → 22, seats 152 → 147.5 |
 
 **What this changes.** Nothing in the model. On the one cycle available, ½ scores better than 0 and 1 and the seat-flip weighting scores worse than ½. The evidence for ½ is two metros, and in one of them the gain is the pull back toward the previous result rather than the by-elections. Not measured: Monte Carlo error on the per-metro differences; calibration (the width record was measured without the by-election term). Every 2021 row is in-sample for the pools and `level_shrink`, equally in every arm.
+
+## 1.326 The by-election weight measured on 2021: the list-vote error is lowest at ½ and within 0.3 points of it from 0.4 to 0.6; the swing, not the pull back to 2016, carries the gain; the cap and a per-size split are not supported (2026-10-21)
+
+**Method.** `prereg/2026-10-20-byelection-weight-measured.md` (committed 54fbf49 before the run), at 54fbf49 with no model code changed. `audits/2026-10-20-byelection-weight-measured/sweep.py` reuses §1.325's scratch deltas and scoring (1,000 draws, seed 20261104): twelve grid arms `w_bye` ∈ {0, 0.1, 0.2, 0.25, 0.333, 0.4, 0.5, 0.6, 0.667, 0.75, 0.9, 1}; arm R, `w_bye` 0.5 with every `weighted_delta` set to 0 (admission unchanged); arm C, `w_bye` `null` with class weights under 1% 0.813, at or over 1% 0.319 (instrument 3's estimates), applied through `montecarlo.bye_weight`'s class path (confirmed in the `30_centres` trace). `analyze.py` computes the instruments; arm results and `score.txt` are in the audit folder. An independent review of the script before the run found that arm C as first written would have re-run ½ (`apply_city` resets `DEFAULTS`); fixed to pass `w_bye=null` as an override.
+
+**Instrument 1, the grid (summed over the eight metros, 2021).**
+
+| `w_bye` | 0 | 0.1 | 0.2 | 0.25 | 0.333 | 0.4 | 0.5 | 0.6 | 0.667 | 0.75 | 0.9 | 1 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| list-vote error, summed over 8 metros (points) | 23.90 | 23.41 | 22.91 | 22.66 | 22.24 | 21.94 | 21.78 | 21.91 | 22.35 | 22.93 | 23.98 | 24.68 |
+| wards called wrong | 24 | 24 | 21 | 21 | 21 | 21 | 22 | 22 | 22 | 23 | 22 | 22 |
+| seats to the wrong party | 152.0 | 150.0 | 148.5 | 150.0 | 147.5 | 147.5 | 147.5 | 146.5 | 147.5 | 149.5 | 154.0 | 153.5 |
+
+Minimum at 0.5; within 0.3 points of it, 0.4 to 0.6. At 0.333 the sum is 0.46 points above ½. Per metro the minimum differs: Johannesburg and Mangaung at 0 (each rises monotonically with the weight), Ekurhuleni at 1 (falls monotonically), Cape Town at 0.6, eThekwini at 0, Nelson Mandela Bay at 0.5. Seats to the wrong party lie between 146.5 and 150.0 from 0.1 to 0.75.
+
+**Instrument 2, leave one metro out** (grid weight minimising the other seven): Johannesburg 0.5, Ekurhuleni 0.5, Cape Town 0.4, eThekwini 0.6, Nelson Mandela Bay 0.4, Mangaung 0.5. Range 0.4–0.6. Summed held-out list-vote error over the six metros: 17.72 at the left-out choice, 16.76 at fixed ½, 18.87 at fixed 0.
+
+**Instrument 3, least-squares slope** `Σed/Σd²` on the forecast list shares (`e` actual − forecast at 0, `d` forecast at 1 − forecast at 0, the top twelve parties per metro): pooled 0.329 over 72 party-metros, leave-one-metro-out 0.174–0.585. By previous (2016) list share: under 1% 0.813 (43 party-metros; 0.496–1.904), at or over 1% 0.319 (29; 0.160–0.576), under 10% 0.215 (58; 0.122–0.431), at or over 10% 0.345 (14; 0.183–0.636). The slope and the grid disagree (0.33 against 0.5): the slope minimises squared error, which the large misses dominate (eThekwini's and Johannesburg's ANC, where the by-elections pointed the wrong way), while `pr_mae` is an absolute error over the same parties.
+
+**Arm C** (0.813 under 1%, 0.319 at or over): summed list-vote error 21.53, wards wrong 21, seats to the wrong party 146.0, against ½'s 21.78, 22, 147.5. Its weights were estimated on the same eight metros it is scored on; no held-out test of C was run. Per metro against ½: eThekwini 3.24 → 2.34, Ekurhuleni 2.33 → 2.26, Mangaung 1.83 → 1.80, Johannesburg 6.58 → 6.48; Cape Town 1.00 → 1.32, Nelson Mandela Bay 1.77 → 2.30.
+
+**Arm R, the pull back to 2016 alone:** summed 23.93 against 23.90 at weight 0 and 21.78 at ½; seats to the wrong party 159.0. Per metro, weight 0 → R → ½: Johannesburg 6.30 → 6.42 → 6.58, Ekurhuleni 2.56 → 2.97 → 2.33, Cape Town 2.45 → 2.46 → 1.00, eThekwini 2.52 → 3.57 → 3.24, Nelson Mandela Bay 3.28 → 2.57 → 1.77, Mangaung 1.76 → 0.91 → 1.83. Over the eight metros the pull back to the previous result gains nothing; the swing carries the gain at ½. §1.325's reading that the gain was "mostly" the pull back held for Nelson Mandela Bay (about half of its gain) and is not true of the total.
+
+**Instrument 4, the cap** (from the ½ trace's route notes, to 0.1 point; `e` actual − the pre-shrink level): slope on the capped by-election level 0.557, pooled squared error 760 points²; on the uncapped level 0.344, 781 points². The uncapped level has lower squared error in 3 of 6 metros (Johannesburg, eThekwini, Mangaung).
+
+**Scoring the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| M1 | re-run 0, ½, 1 reproduce §1.325 | held: `pr_mae` within 2.2e-14, seat errors identical |
+| M2 | flat within 0.3 from about 0.3 to 0.6, minimum in 0.3–0.6 | minimum held (0.5); **flat range falsified**, narrower (0.4–0.6) |
+| M3 | left-out range at least 0.3 wide, contains ½ | contains ½ held; **width falsified** (0.2) |
+| M4 | pooled slope in 0.2–0.6, need not equal the grid minimum | held (0.329 against 0.5) |
+| M5 | R gains at least half of ½'s gain on 0 | **falsified**: R is 0.03 worse than 0 |
+| M6 | the 1% class split not supported (under-1% range over 0.5 wide) | held (0.496–1.904) |
+| M7 | the uncapped slope does not win four of six metros | held (three) |
+
+**Decision rule, as registered.** The measured weight is ½. ½ lies inside the left-out range, so the record does not distinguish the measured weight from ½. The class ranges overlap (0.496–0.576), so per-class weights are not recommended. The uncapped level wins three metros, not four, so the cap stays.
+
+**What this changes.** Nothing in the model: the measured value equals the shipped one. ½ moves from declared to measured on one cycle (JUDGEMENT-CALLS §A59). Limits: one cycle (2016→2021, when the ANC fell and its by-election swings did not show it); six metros where by-elections reach a party, treated as independent although they share one national swing; the slope instrument puts the weight at 0.33 with a left-out range that contains ½; Monte Carlo error on the per-metro differences not measured; every 2021 row in-sample for the pools and `level_shrink`, equally in every arm.
