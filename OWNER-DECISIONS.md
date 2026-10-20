@@ -22,115 +22,173 @@ into `judgements/joburg-2026.toml` with your reason, is listed in
 JUDGEMENT-CALLS.md, and the forecast is run and reported both with and without
 your calls.
 
-**Options.** Mark the parties you disagree with on the sheet, or say "no
-calls" and the forecast ships as the model has it.
+**Your question (2026-10-21): how does ActionSA go from 18.1% to 12.5% if it is
+sized on 2021?** The steps, from the model's trace of today's Johannesburg
+2026 run (5,000 simulations, list vote):
+
+| step | ActionSA | what happens |
+|---|---|---|
+| 2021 list vote | 18.1% | the starting record |
+| carried to 2026 | 13.1% | multiplied by 0.72: how much of its share a party keeps from one local election to the next. ActionSA has stood in only one local election, so it takes the record's typical value for a party of its size (from 292 past party-metro cases) |
+| by-elections | 14.7% | four contests imply 18.9%, capped at 16.3%, blended at ½ |
+| level shrink | 14.5% | |
+| the parties' shares made to add to 100% | 12.6% | every party's level is set on its own, and together they add to 114.6%, so each is divided by 1.146 |
+| simulations | 12.7% average, 90% range 8.4%–17.9% | |
+
+The step that does most of the work is the 0.72: 18.1% × 0.72 = 13.1%. It is
+the record's typical value, applied because ActionSA has no
+second local election of its own. Its 2024 national vote in Johannesburg,
+5.4%, is not used: the model reads ActionSA's 2026 level from its local
+record only. A party call would be the place to say ActionSA keeps more (or
+less) of its 2021 vote than the average party.
 
 **Gates.** The final rebuild of the forecast inputs.
 
-### 2. Two MK confirmations (from your 15 October "option A" decision)
+### 10. Letting readers make the judgement calls
 
-**Context.** MK stood in the 2024 national election but never in a Johannesburg
-local election. On 15 October you chose option A: place MK voting district by
-voting district from its own 2024 national results, instead of assuming its
-voters look like the ANC's.
+**Context.** You asked (2026-10-21) whether readers could make calls like
+these on the site: "part of judgement calls we make and they can make." It is
+possible. The interactive already re-seats a council from a reader's own
+picks. A judgement-call control would let a reader change a party's starting
+level (for example, how much of its 2021 vote it keeps) and see the forecast
+redrawn. Two constraints apply: the same control has to be offered for every
+party (your rule, no party singled out), and the redraw has to happen from the
+published simulations in the browser, because the full model does not run
+there.
 
-- **2a.** That replaces your earlier note that MK's voters are "about 90% ANC"
-  (JUDGEMENT-CALLS §SJ1, `parent_weight = 0.9`). The note stays on the sheet
-  and is used again only if the fit from MK's own results stops working.
-  Confirm the fitted placement wins.
-- **2b.** A party counts as "identified", and is placed from its own record,
-  if the fit finds it in at least one voter group. Confirm that test.
+**Options.** (a) Build it after go-live, as a new site feature with a brief
+first (the usual process). (b) Build it before go-live, which delays go-live
+by the brief, the build and the test site round.
 
-**Gates.** The final rebuild.
-
-### 3. The by-election cap
-
-**Context.** A party's by-election level is held inside its usual range before
-it is blended in. For a party with a 2024 national vote, that range comes from
-how its local vote has related to its national vote in the past. So a large
-by-election swing moves the party less than the weight says. In the 2021 test
-the cap held back six parties in Cape Town and eight in eThekwini at weight ½.
-
-**Options.** Keep the cap (the current setting), or let by-elections move every
-party by the full weight.
-
-**Measured (MODEL-LOG §1.326, 2021 backtest with the 2016–2021
-by-elections).** Without the cap, the best-fitting weight is 0.34 and the fit
-is worse overall: squared error 781 points² against 760 with the cap. Without
-the cap the fit is better in 3 of the 6 metros where by-elections reach a
-party (Johannesburg, eThekwini, Mangaung) and worse in the other 3. The rule
-written before the run needed 4 of 6 to recommend removing the cap.
-
-**Recommendation.** Keep the cap.
-
-**Gates.** The final rebuild.
+**Recommendation.** (a).
 
 ### 9. Separate by-election weights for small and large parties
 
-**Context.** You asked whether the weight should differ by party size. The
-model can take one weight for parties under 1% of the previous list vote and
-another for the rest. Fitted on 2021 (MODEL-LOG §1.326): under 1%, 0.81
-(range 0.50 to 1.90 leaving one metro out, 43 party-metros); 1% and over,
-0.32 (range 0.16 to 0.58, 29 party-metros). Run with those two weights, the
-summed list-vote error is 21.53 against ½'s 21.78, but the weights were fitted
-on the same eight metros they are scored on, and the two ranges overlap
-(0.50 to 0.58). Small parties carry little of the error either way: 25 parties
-under 1% sum to 6.4 points against 54.2 for the 17 parties over 10% (at ½).
+**Your answer (2026-10-21):** one weight, ½, for every party, provisional on
+one measured cycle.
 
-**Recommendation.** One weight, ½, for every party. The rule written before
-the run allowed separate weights only if the two ranges did not overlap.
+**New evidence since you answered: the checker found my size classes were
+not the model's.** The model puts a party with no 2021 list vote in the class
+of its 2024 national share; my analysis put every such party under 1%, and it
+also counted parties the by-elections never reached. Re-done with the model's
+classes, counting only parties the by-elections reach:
+
+| class | best-fitting weight | range, leaving one metro out | party-metros |
+|---|---|---|---|
+| under 1% of the previous vote | 0.91 | 0.81 to 1.80 | 6 (ACDP in three metros, VF Plus, ATM, Justice and Employment) |
+| 1% and over | 0.32 | 0.16 to 0.57 | 22 |
+
+The two ranges do not overlap, and the rule written before the run said
+separate weights are recommended when they do not. Run through the full
+model (summed list-vote error over the eight metros, 2021; the weights were
+fitted on the same metros, so this is in-sample):
+
+| weights | summed list-vote error (points) |
+|---|---|
+| ½ for every party | 21.78 |
+| 0.91 under 1%, 0.32 over | 21.42 |
+| ½ under 1%, 0.32 over | 22.01 |
+
+The last row shows that giving the larger parties ⅓ on its own scores worse
+than ½. All of the split's gain comes from letting the six small-party cases
+move almost the whole way to their by-election level.
+
+**My recommendation is unchanged: ½ for every party.** The small-party class
+rests on six cases, one of them a party (ACDP) counted three times, and the
+gain is in-sample. The measurement and the rule disagree here, so it is your
+call. Your answer above stands unless you change it.
 
 **Gates.** The final rebuild, only if you choose separate weights.
 
-### 5. Polls
+### 7. The go-live yes
 
-**Context.** No poll enters the forecast now (pulled out 2026-09-12). The rules
-for using them, which house, how each is weighted, how a poll with no sample
-size is priced, are not written. Putting polls in needs those rules, a
-pre-registration and a backtest.
+**Context.** Items 2, 3, 5, 6 and 9 are answered. Item 1 (party calls) is the
+one left before the final rebuild. After the rebuild, with your yes:
 
-**Recommendation.** Go live without polls.
+- regenerate the frozen forecast and the site's simulation files;
+- rebuild the test site from today's model (the one there now, UAT version
+  d22294e0, carries the 16 October model);
+- redeploy the seat-picture worker (`joburg-seats`) if its code changed, in
+  the order `docs/DEPLOY-UAT.md` sets (site first, then the seat worker).
 
-**Gates.** Nothing until you say otherwise.
+Your instruction: skip anything that need not run. Promoting the test site to
+live stays yours.
+
+### 11. Sign-in, and the three Cloudflare items listed for it
+
+**Context.** These belong to the sign-in feature: readers signing in (Apple,
+Facebook, X, Microsoft) so their predictions are saved and can go on a
+leaderboard. It is built (`worker-api/`) but not switched on, and it has its
+own security and privacy review gate (R5 in TODO.md §0). The three items:
+
+- **Data location.** Where Cloudflare keeps the sign-in database (a "location
+  hint" when it is created: Europe, Africa, and so on). It holds personal data
+  (email addresses, and political predictions), so where it is stored matters
+  under POPIA.
+- **Provider app registrations.** Each sign-in button needs an app registered
+  with that company under your account (Apple developer account, Facebook
+  developer app, X developer app, Microsoft Entra). `worker-api/README.md` has
+  the exact settings for each. Only you can create them.
+- **Workers Paid.** Cloudflare's $5 a month plan. The free plan allows 100,000
+  worker requests a day and very little processing time per request. Pages
+  themselves are free and unlimited, but sealing a shared link and drawing its
+  seat picture each count as worker requests, and results night could pass
+  the limit. Above it, those requests fail. I have not checked which plan the
+  account is on.
+
+**Options.** Is sign-in part of this launch? If not, the first two wait. I
+recommend Workers Paid either way, before results night.
 
 ### 6. The splinter split
 
-**Context.** For a splinter party with no record of its own (no 2024 national
-vote, no earlier local vote), the model assumes 35% of its voters look like the
-parent party's and 65% like the city's (`SPLINTER_PARENT_WEIGHT`, JUDGEMENT-CALLS
-§F6). It was measured over 22 past splinter cases (EFF from the ANC 0.89, GOOD
-0.28, ActionSA about 0.02) and has not been re-measured since the archive grew.
-Parties with a national record (MK, RISE, BOSA) no longer use it.
+**Your answer (2026-10-21):** go live with 35% as it is, and measure it after
+going live. "It seems incorrect as it stands in a country so divided by
+population group."
 
-**Options.** Keep 35%, or hold it unchanged and re-measure after the election.
-Either way the number for 2026 is 35%; the choice is whether to re-measure it
-before go-live.
-
-**Gates.** The final rebuild only if you want it re-measured first.
-
-### 7. The go-live yes
-
-**Context.** Once items 1, 2, 3, 5, 6 and 9 are settled and the final rebuild is done, I need
-your yes to:
-
-- regenerate the frozen forecast and the site's simulation files;
-- rebuild the test site from today's model. The one there now (UAT version
-  d22294e0, branch site-r11) carries the 16 October model.
-
-Promoting the test site to live stays yours.
-
-### 8. Two site settings (outstanding since 3 October)
-
-**Context.** Both need your Cloudflare login.
-
-- `wrangler secret put SEAL_KEY`. Without it, shared prediction links go out
-  unsealed (anyone can edit the picks in the link).
-- Deploy the `joburg-seats` worker. Without it, every shared link shows the
-  default preview image instead of the reader's seat picture.
+Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
+(JUDGEMENT-CALLS §F6), with the population-group question in the brief.
 
 ---
 
 ## Answered
+
+### 2. Two MK confirmations — answered 2026-10-21
+
+**Question.** MK stood in the 2024 national election but never in a
+Johannesburg local election. On 15 October you chose option A: place MK from
+its own 2024 national results. (2a) Does that fitted placement win over your
+earlier "about 90% ANC" note (JUDGEMENT-CALLS §SJ1)? (2b) Does a party count as
+identified if the fit finds it in at least one voter group?
+
+**Answer (owner).** 2a: the placement wins for MK. 2b: "Yes. I confirm that as
+a test." Recorded in JUDGEMENT-CALLS §SJ1 at the final rebuild.
+
+### 3. The by-election cap — answered 2026-10-21
+
+**Question.** A party's by-election level is held inside its usual range
+before it is blended in. Keep the cap, or let by-elections move every party by
+the full weight?
+
+**Answer (owner).** Keep the cap. Evidence (MODEL-LOG §1.326): removing it is
+better in 3 of the 6 metros where by-elections reach a party and worse in the
+other 3; the rule written before the run needed 4 of 6. The cap moves levels
+both ways (it raised the ANC and DA in Cape Town as well as lowering others).
+My statement that the uncapped fit is "worse overall" depended on the measure:
+on the measure the pre-registration named, it is slightly better overall
+(200 against 202 points²) and wins 2 of 6 metros. Corrected in MODEL-LOG
+§1.327.
+
+### 5. Polls — answered 2026-10-21
+
+**Answer (owner).** Go live without polls in the forecast. Polls stay on the
+interactive, for readers to use.
+
+### 8. The two site settings — found done, 2026-10-21
+
+`SEAL_KEY` is already set on the site worker (checked 2026-10-21: the secret
+exists; its value was not read). The seat-picture worker `joburg-seats` was
+last deployed 2026-10-14. Nothing is needed from you. If its code changes
+before go-live, I redeploy it as part of item 7.
 
 ### 4. The by-election weight before go-live — answered 2026-10-20
 
@@ -138,29 +196,14 @@ Promoting the test site to live stays yours.
 test change the weight before go-live (b).
 
 **Answer (owner, 2026-10-20).** (b), and more: "the results should tell us and
-make this a measured variable." Whether ½, ⅓ or another value, the weight is
-to be measured from the 2016–2021 by-elections against the 2021 result, per
-party size if the evidence supports it, rather than declared.
+make this a measured variable."
 
 **Result (MODEL-LOG §1.326, 2026-10-21).** Measured over twelve weights from
 0 to 1 against the 2021 result in the eight metros. Summed list-vote error
 (points, eight metros): 0 → 23.90, ⅓ → 22.24, 0.4 → 21.94, **½ → 21.78**,
 0.6 → 21.91, 1 → 24.68. Leaving each metro out in turn, the other seven pick
-0.4 to 0.6. ⅓ is 0.46 points worse than ½ on this measure. A second measure
-(least-squares fit, which weights the big misses more) gives 0.33, with a
-range of 0.17 to 0.59 that contains ½. The gain comes from the by-election
-swing; pulling the forecast back toward the last result alone gains nothing.
-
-The measured weight equals the shipped one, so the model does not change.
-½ is now recorded as measured on one cycle rather than declared.
-
----
-
-## From HANDOVER.md, 3 October, not re-checked since
-
-These were listed for you on 3 October for the sign-in feature (R5 gate in
-TODO.md §0). Their current status has not been verified.
-
-- the data location for the sign-in data;
-- the provider app registrations (`worker-api/README.md`);
-- moving to Workers Paid before results night.
+0.4 to 0.6. A second measure (least-squares fit, which weights the big misses
+more) gives 0.33, with a range of 0.17 to 0.59 that contains ½. The gain comes
+from the by-election swing; pulling the forecast back toward the last result
+alone gains nothing. The measured weight equals the shipped one, so the model
+does not change.
