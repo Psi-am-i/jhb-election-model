@@ -549,6 +549,16 @@ has to be revisited for results:
   party rows across 311 ward contests in every province
   (`fetch_byelections.py --province ""`); the CoJ subset reconciles with the
   15 contests already used by the model.
+  It covers contests dated 2022-02-02 to 2026-06-24 (Johannesburg's: 2022-06-01
+  to 2026-02-25).
+* **By-elections, 2016 cycle, whole country** — `byelections_SA_vd_party_2016.csv`
+  (`fetch_byelections.py --province "" --year 2016`, fetched 2026-10-19, copied into `data/raw` 2026-10-20): 8,453
+  VD×party rows across 319 ward contests dated 2016-11-09 to 2021-05-19, 77 of
+  them in the eight metros (CPT 17, ETH 15, EKU 14, JHB 12, NMA 9, MAN 4, BUF 3,
+  TSH 3). The 2016 list carries no `dtStartDate`; the date is parsed from the
+  event's `Name`. 260 rows carry 7 party ids the 2016 party list does not name
+  (581 votes; `PartyName` empty). Nothing reads it yet: `byelections.py` reads
+  the 2021-cycle file only.
 * **Boundaries, all metros** — 2026 ward, VD and voting-station GeoJSON
   extracts per metro (`fetch_boundaries.py --muni TSH` …); the 2011 and 2016
   ward geodatabases were already national.
