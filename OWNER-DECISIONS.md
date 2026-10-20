@@ -44,6 +44,62 @@ less) of its 2021 vote than the average party.
 
 **Gates.** The final rebuild of the forecast inputs.
 
+### 12. The two steps after the levels: the size pull and making shares add to 100%
+
+**Your questions (2026-10-21):** what is the "small adjustment", and should
+every party be scaled equally to fit 100%?
+
+**Today's Johannesburg 2026 run, list vote (%):**
+
+| party | level | after the size pull | after scaling to 100% |
+|---|---|---|---|
+| DA | 32.60 | 30.48 | 26.62 |
+| ANC | 27.33 | 25.79 | 22.53 |
+| ActionSA | 14.70 | 14.48 | 12.64 |
+| EFF | 11.47 | 11.54 | 10.08 |
+| MK | 10.26 | 10.42 | 9.11 |
+| PA | 6.97 | 7.36 | 6.43 |
+
+**The size pull (`level_shrink`, JUDGEMENT-CALLS §A23).** Each party is cut by
+an amount that grows with its size: a party keeps `1 − 0.35 × s / (s + 0.04)`
+of its level `s`. A party at 15% keeps 72.5%, one at 1% keeps 93%. The vote
+cut is then handed back to every party in proportion to its share, so the
+total does not change. Net: the largest parties lose, the middle gains a
+little. It exists because forecasts of past elections gave the top three
+parties too much and the next nine too little by about the same amount
+(summed over nine city-years: +32.3 points against −36.2). The 0.35 was fitted
+on Johannesburg 2016 alone (0.375) and leaving out each city-year in turn
+picks 0.35 every time. Adopted 2026-08-17 (MODEL-LOG §1.44): seat error over
+nine city-years 312 → 264. Known cost: the handed-back vote over-feeds the
+smallest parties.
+
+**Scaling to 100%.** Each party's level is estimated on its own, and nothing
+makes the levels add up. Every party is then divided by the same number, so
+each loses the same fraction of its own share (12.7% here), which in points
+falls most on the largest parties (DA −3.9, PA −0.9).
+
+Measured, from the traces of the 2021 backtest: the levels added to between
+100.0% (Buffalo City) and 112.4% (Cape Town) across the eight metros, and
+111.9% in Johannesburg. Johannesburg 2026's 114.6% is above all of them. The
+backtest scores include this rule, so it is tested in that sense, but it has
+never been compared with another rule.
+
+**The alternative worth testing.** Take the excess from each party in
+proportion to how uncertain its level is, rather than in proportion to its
+size. A party whose level rests on a typical value rather than its own record
+(ActionSA's 0.72, a first-time party) would absorb more than one with a long
+record. Dividing the excess equally in points is not a candidate: it would push
+small parties below zero.
+
+**Options.** (a) Go live with proportional scaling, and test the
+uncertainty-weighted rule after go-live. (b) Pre-register and test it on the
+backtest now. This changes forecast numbers, so the width record and the
+backtest are re-run, and an old-against-new report is added: about a day
+before the rebuild.
+
+**Recommendation.** (b) if go-live can take a day; it is the step that moves
+ActionSA, the DA and the ANC most after the levels themselves.
+
 ### 10. Letting readers make the judgement calls
 
 **Context.** You asked (2026-10-21) whether readers could make calls like
@@ -62,7 +118,62 @@ by the brief, the build and the test site round.
 
 **Recommendation.** (a).
 
-### 9. Separate by-election weights for small and large parties
+### 7. The go-live yes
+
+**Context.** Items 2, 3, 5, 6 and 9 are answered. Item 1 (party calls) and item 12 (how
+shares are made to add to 100%) are left before the final rebuild. After the rebuild, with your yes:
+
+- regenerate the frozen forecast and the site's simulation files;
+- rebuild the test site from today's model (the one there now, UAT version
+  d22294e0, carries the 16 October model);
+- redeploy the seat-picture worker (`joburg-seats`) if its code changed, in
+  the order `docs/DEPLOY-UAT.md` sets (site first, then the seat worker).
+
+Your instruction: skip anything that need not run. Promoting the test site to
+live stays yours.
+
+### 11. Sign-in, and the three Cloudflare items listed for it
+
+**Context.** These belong to the sign-in feature: readers signing in (Apple,
+Facebook, X, Microsoft) so their predictions are saved and can go on a
+leaderboard. It is built (`worker-api/`) but not switched on, and it has its
+own security and privacy review gate (R5 in TODO.md §0). The three items:
+
+- **Data location.** Where Cloudflare keeps the sign-in database (a "location
+  hint" when it is created: Europe, Africa, and so on). It holds personal data
+  (email addresses, and political predictions), so where it is stored matters
+  under POPIA.
+- **Provider app registrations.** Each sign-in button needs an app registered
+  with that company under your account (Apple developer account, Facebook
+  developer app, X developer app, Microsoft Entra). `worker-api/README.md` has
+  the exact settings for each. Only you can create them.
+- **Workers Paid.** Cloudflare's $5 a month plan. The free plan allows 100,000
+  worker requests a day and very little processing time per request. Pages
+  themselves are free and unlimited, but sealing a shared link and drawing its
+  seat picture each count as worker requests, and results night could pass
+  the limit. Above it, those requests fail. I have not checked which plan the
+  account is on.
+
+**Answer (owner, 2026-10-21):** sign-in is later; the data location and the
+provider registrations wait for it.
+
+**Still open: Workers Paid.** It applies without sign-in (sealing links and
+seat pictures). I recommend moving to it before results night.
+
+### 6. The splinter split
+
+**Your answer (2026-10-21):** go live with 35% as it is, and measure it after
+going live. "It seems incorrect as it stands in a country so divided by
+population group."
+
+Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
+(JUDGEMENT-CALLS §F6), with the population-group question in the brief.
+
+---
+
+## Answered
+
+### 9. Separate by-election weights for small and large parties — answered 2026-10-21
 
 **Your answer (2026-10-21):** one weight, ½, for every party, provisional on
 one measured cycle.
@@ -98,59 +209,7 @@ rests on six cases, one of them a party (ACDP) counted three times, and the
 gain is in-sample. The measurement and the rule disagree here, so it is your
 call. Your answer above stands unless you change it.
 
-**Gates.** The final rebuild, only if you choose separate weights.
-
-### 7. The go-live yes
-
-**Context.** Items 2, 3, 5, 6 and 9 are answered. Item 1 (party calls) is the
-one left before the final rebuild. After the rebuild, with your yes:
-
-- regenerate the frozen forecast and the site's simulation files;
-- rebuild the test site from today's model (the one there now, UAT version
-  d22294e0, carries the 16 October model);
-- redeploy the seat-picture worker (`joburg-seats`) if its code changed, in
-  the order `docs/DEPLOY-UAT.md` sets (site first, then the seat worker).
-
-Your instruction: skip anything that need not run. Promoting the test site to
-live stays yours.
-
-### 11. Sign-in, and the three Cloudflare items listed for it
-
-**Context.** These belong to the sign-in feature: readers signing in (Apple,
-Facebook, X, Microsoft) so their predictions are saved and can go on a
-leaderboard. It is built (`worker-api/`) but not switched on, and it has its
-own security and privacy review gate (R5 in TODO.md §0). The three items:
-
-- **Data location.** Where Cloudflare keeps the sign-in database (a "location
-  hint" when it is created: Europe, Africa, and so on). It holds personal data
-  (email addresses, and political predictions), so where it is stored matters
-  under POPIA.
-- **Provider app registrations.** Each sign-in button needs an app registered
-  with that company under your account (Apple developer account, Facebook
-  developer app, X developer app, Microsoft Entra). `worker-api/README.md` has
-  the exact settings for each. Only you can create them.
-- **Workers Paid.** Cloudflare's $5 a month plan. The free plan allows 100,000
-  worker requests a day and very little processing time per request. Pages
-  themselves are free and unlimited, but sealing a shared link and drawing its
-  seat picture each count as worker requests, and results night could pass
-  the limit. Above it, those requests fail. I have not checked which plan the
-  account is on.
-
-**Options.** Is sign-in part of this launch? If not, the first two wait. I
-recommend Workers Paid either way, before results night.
-
-### 6. The splinter split
-
-**Your answer (2026-10-21):** go live with 35% as it is, and measure it after
-going live. "It seems incorrect as it stands in a country so divided by
-population group."
-
-Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
-(JUDGEMENT-CALLS §F6), with the population-group question in the brief.
-
----
-
-## Answered
+**Answer after the new evidence (owner, 2026-10-21):** keep ½.
 
 ### 2. Two MK confirmations — answered 2026-10-21
 
