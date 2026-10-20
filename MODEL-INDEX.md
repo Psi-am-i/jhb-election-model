@@ -1437,7 +1437,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `export_draws` | neither | NO | `src/build_play`, `tests/test_export_draws`, `tests/test_served_draws` | Export the published run's draws for the interactive: one binary file and its manifest. |
 | `export_interactive` | neither | NO | `tests/test_stage_inputs` | Export the data pack for the interactive forecast page. |
 | `fetch_boundaries` | neither | yes | -- | Download CoJ ward and voting-district boundaries from the MDB Spatial Knowledge Hub. |
-| `fetch_byelections` | neither | yes | -- | Download every municipal by-election result since the 2021 LGE, at VD level. |
+| `fetch_byelections` | neither | yes | -- | Download every municipal by-election result under one parent LGE, at VD level. |
 | `fetch_iec` | neither | yes | -- | Download every IEC report the model needs that is reachable without a browser. |
 | `fold` | model+measurement | NO | `src/arrivals`, `src/backtest`, `src/benchmarks`, `src/compare_history`, `src/diagnose`, `src/export_interactive`, `src/gamma_recent`, `src/montecarlo`, `src/plausibility`, `tests/test_regressions`, `tests/test_roster_aware_baseline`, `tests/test_ward_pr_ratios` | Backtest a national/provincial baseline against a local-government target (plan §4). |
 | `freeze` | model+measurement | NO | `src/arms`, `src/compare_history`, `src/declares`, `src/export_draws`, `src/publication`, `tests/test_export_draws`, `tests/test_freeze`, `tests/test_provenance_gates` | Freeze a stage-1 forecast, and hash everything that could move it. |

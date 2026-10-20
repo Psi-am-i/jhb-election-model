@@ -30855,3 +30855,40 @@ Q1 is argued from the code, not measured; the next `compare_history` run measure
 **Limits.** Argued, not tested: no backtested target has a by-election in the current file.
 
 **§1.324 addendum (2026-10-19): Q1 measured.** `compare_history` at a9754ed (1,000 draws, seed 20261104) against the `history.json` committed at b0ab4b0: every figure for every metro and year is identical; only `generated` and `git_commit` differ. Q1 held, measured.
+
+## 1.325 The by-election weight on 2021, fed the 2016–2021 by-elections: ½ beats 0 and 1 over the eight metros, through two metros, mostly by pulling the forecast back toward the 2016 result; doubling seat-changing contests does worse (2026-10-20)
+
+**Method.** `prereg/2026-10-20-byelection-weight-2021-backtest.md`, run as registered by `audits/2026-10-20-byelection-2021-backtest/run.py` at a9754ed + the fetcher commit (no model code changed): each metro's 2021 deltas built from `data/raw/byelections/byelections_SA_vd_party_2016.csv` into a scratch tree, the eight 2021 elections scored with `compare_history.run_city_year` at 1,000 draws, seed 20261104, `run_model` pointed at the scratch `processed`. Arms: A0 `w_bye` 0, A5 0.5, A10 1.0, F 0.5 with seat-changing contests weighted ×2. Outputs, deltas and the scoring in the audit folder. An independent check (read-only) re-derived every total, confirmed the `processed` redirect is complete (`turnout.csv`, `gamma_recent.csv`, the deltas; the contest-detail file is unread at the default local weights), and rebuilt A0/A5/A10 traces to read the caps.
+
+**Result, summed over the eight metros (2021):**
+
+| arm | average list-vote error (points, mean of 8) | wards called wrong | seats to the wrong party |
+|---|---|---|---|
+| A0, by-elections off | 2.987 | 24 | 152.0 |
+| A5, ½ | 2.723 | 22 | 147.5 |
+| A10, 1 | 3.085 | 22 | 153.5 |
+| F, ½, flips ×2 | 2.773 | 23 | 147.5 |
+
+Per metro, list-vote error A0 → A5: Johannesburg 6.30 → 6.58, Ekurhuleni 2.56 → 2.33, Cape Town 2.45 → 1.00, eThekwini 2.52 → 3.24, Nelson Mandela Bay 3.28 → 1.77, Mangaung 1.76 → 1.83; Tshwane and Buffalo City admit no party (weight under `BYE_MIN_WEIGHT`) and do not move. Johannesburg at A5: wards wrong 8 → 7, seats to the wrong party 50.5 → 50.
+
+**What the gain is made of.** The blend target is the previous local list share plus the by-election swing, so A5 does two things at once: it applies the swing, and it pulls the forecast halfway back toward the 2016 list result. Cape Town's DA gains from both (2016 66.7% vs model 72.5%, swing −8.7). Nelson Mandela Bay's gain is mostly the pull back to 2016 (DA 46.7% vs 51.3%, swing −1.6). Johannesburg's ANC is hurt by the swing alone (2016 44.9% ≈ model 45.0%, swing +4.2). eThekwini's ANC is hurt by the pull back (2016 59.1% vs 49.3%) and is held at its θ ceiling. Two metros carry more than the whole summed gain (Cape Town −1.45, Nelson Mandela Bay −1.51 of −2.12); three of the six affected metros improve and three worsen. This experiment cannot separate the swing from the pull back; an arm blending toward the previous result alone (swing 0) would.
+
+**The cap binds widely at A5**: six parties in Cape Town (ANC 16.8 → 20.0, DA 58.0 → 59.2), eight in eThekwini (the ANC at its ceiling), three in Ekurhuleni (VF Plus 18.2 → 3.3), the EFF in Johannesburg and Nelson Mandela Bay; none in Mangaung. The size of every effect above is partly the θ band's.
+
+**Mangaung.** The ANC's centre rose (implied 53.1%, centre 52.68 → 52.87%), but the EFF's rose more (12.11 → 12.57%), the centres' sum rose, and `pool_spec`'s division by the sum took the ANC's normalised share down 0.12 points. The pre-registration reasoned on the centre, not the normalised share.
+
+**Arm F is not a clean test of the seat-flip idea.** Doubling contest weights also admits four parties over `BYE_MIN_WEIGHT` (Ekurhuleni IFP, NFP; eThekwini Al Jama-ah, independents). All five flips were toward the ANC, which fell in 2021. The eThekwini "independent → ANC" flip compares summed independents, not one candidate.
+
+**Scoring the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| B1 | A0 reproduces `history.json` 2021 | held: seats and ward calls identical; votes within 3.4e-15 (float order) |
+| B2 | Tshwane, Buffalo City unchanged | held |
+| B3 | A5 worse in JHB, EKU, ETH; better in CPT, MAN | JHB, ETH, CPT held; **EKU falsified** (better); **MAN falsified** (worse, by renormalisation) |
+| B4 | A5 worse than A0 summed | **falsified**: better, 2.987 → 2.723 |
+| B5 | A10 worse than A5 in JHB, EKU, ETH | JHB, ETH held; **EKU falsified** |
+| B6 | F worse than A5 on the ANC in JHB, EKU, ETH | held (7.3 → 8.1, 4.2 → 4.5, 6.3 → 6.7); confounded by four extra admissions |
+| B7 | wards and seats no better at A5 | **falsified**: wards wrong 24 → 22, seats 152 → 147.5 |
+
+**What this changes.** Nothing in the model. On the one cycle available, ½ scores better than 0 and 1 and the seat-flip weighting scores worse than ½. The evidence for ½ is two metros, and in one of them the gain is the pull back toward the previous result rather than the by-elections. Not measured: Monte Carlo error on the per-metro differences; calibration (the width record was measured without the by-election term). Every 2021 row is in-sample for the pools and `level_shrink`, equally in every arm.
