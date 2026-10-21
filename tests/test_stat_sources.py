@@ -89,17 +89,25 @@ def test_a_history_source_refuses_two_records_and_a_malformed_name():
             raise AssertionError(f"{bad} was resolved")
 
 
-def test_a_history_figure_names_the_backtest_run_not_the_forecast():
-    """The tooltip of a history: figure says which run it came from, in words:
-    no source grammar, and not "the current model run"."""
+def test_a_history_figure_names_the_backtest_count_not_the_forecast():
+    """A history: figure's sentence counts the past-elections test's
+    simulations, not the forecast's. It used to be checked on `stats.render`'s
+    own tip ("the model's test against past elections (src/compare_history.py)
+    ... code version a2bc44c"); since 2026-10-22 the tooltip has one writer
+    (build_site.tooltip_text, tooltip_says) and, by the owner's rule, names no
+    file or code version, so the check moved to the sentence and the render
+    leaves the tooltip empty for that writer."""
     with tempfile.TemporaryDirectory() as t:
         ctx = _hist(Path(t), J11)
         reg = {"w": {"mode": "free", "source": "history:joburg:2011:wards.called", "format": "int"}}
         out, _d, unresolved = stats.render("{{w}}", reg, ctx)
         assert not unresolved
-        tip = re.search(r'data-prov="([^"]*)"', out).group(1)
-        assert "past elections" in tip and "1,000 simulations" in tip and "29 September 2026" in tip
-        assert "a2bc44c" in tip and "history:" not in tip and "current model run" not in tip
+        assert re.search(r'data-prov="([^"]*)"', out).group(1) == ""
+    import tooltip_says
+    said = tooltip_says.says("hist_jhb_wards_called_2011",
+                             tooltip_says.Facts(n=5000, n_hist=1000))[2]
+    assert "1,000 simulations" in said and "5,000" not in said and "2011" in said, said
+    assert "compare_history" not in said and "a2bc44c" not in said, said
 
 
 def test_the_home_page_ward_tokens_name_history_sources_for_joburg():

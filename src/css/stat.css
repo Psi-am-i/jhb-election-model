@@ -1,12 +1,13 @@
 /* Token figures and their provenance (stats.render wraps every figure in
-   <span class="mstat" data-prov="…">), on every page. `mstat` (model stat),
+   <span class="mstat" data-prov="…">, whose two lines build_site.tooltip_text
+   writes: pre-line keeps the break between them), on every page. `mstat` (model stat),
    NOT `stat`: that class is the forecast sheet's headline tiles, whose
    flex-column display turned every inline figure into its own block. */
 .mstat{display:inline;position:relative;border-bottom:1px dotted var(--ink-3);cursor:help;}
 .mstat[data-mode="fixed"]{border-bottom-style:dashed;}
 @media (min-width:760px){.tablewrap{overflow:visible;}}  /* phones keep sideways scroll */
 .mstat:hover::after,.mstat:focus::after,.mstat-move:hover::after{content:attr(data-prov);position:absolute;
-  left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:normal;
+  left:0;top:1.5em;z-index:50;width:max-content;max-width:300px;white-space:pre-line;
   background:var(--ink,#1a1d1b);color:var(--paper,#fbfbfa);font:500 11.5px/1.35 ui-sans-serif,system-ui;
   padding:6px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;}
 /* Interactive tables: the figure is the point, and a provenance box on every

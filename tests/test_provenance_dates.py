@@ -134,8 +134,12 @@ def test_the_built_tooltip_dates_an_unchanged_figure_to_its_first_edition():
     tips = [html.unescape(m) for m in re.findall(
         rf'data-token="{token}"[^>]*data-prov="([^"]*)"', page)]
     assert tips, f"{token} is not on /forecast; the test is looking at nothing"
+    # The wording is the 2026-10-22 structure (build_site.tooltip_text: "<v>
+    # since <date>.", the year left off a date in the edition's year); what is
+    # checked is unchanged: the date is the run's FIRST edition, not its last.
+    unit = " seats" if token == "asa_2021_seats" else ""
     for tip in tips:
-        assert tip.startswith(f"{shown}. Unchanged since 8 August 2026."), tip
+        assert tip.startswith(f"{shown}{unit} since 8 August.\n"), tip
         assert "30 September" not in tip, tip
 
 
@@ -176,8 +180,13 @@ def test_a_figure_typed_before_it_was_a_token_is_dated_from_its_first_publicatio
         shown = S._fmt(reg[token]["value"], reg[token].get("format"))
         assert tips(token, page), f"{token} is not on {page}"
         for tip in tips(token, page):
-            assert tip.startswith(f"{shown}. Unchanged since 8 August 2026."), tip
-    assert tips(*undated) and all("new in this edition" in t for t in tips(*undated))
+            # 2026-10-22 structure (build_site.tooltip_text); still dated from
+            # the article (`on_site`), not from this build
+            assert tip.startswith(f"{shown} since 8 August.\n"), tip
+    # a new figure outside a publication: "in this build" (was "new in this
+    # edition"), so the branch is still seen to discriminate
+    assert tips(*undated) and all(t.split("\n")[0].endswith(" in this build.")
+                                  for t in tips(*undated)), tips(*undated)
 
 
 def test_no_typed_figure_is_left_in_an_article():

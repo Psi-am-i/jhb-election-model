@@ -1752,7 +1752,7 @@ token resolves out of a FILE, and the file has a date:
 | `validation:` | `validation_<year>.json`, written by `build_validation.py`: its `headline` as written, or (`stats.validation_value`) `cities.<slug>.<model|best>.<field>`, one metro and its best baseline by CRPS, and `total.*`, the sums of those same per-metro figures, so a printed total is the sum of its printed rows. "Seats given to the wrong party" is `stats.wrong_party_seats`, half the summed absolute seat error, the one definition |
 | `published:small_party_surge` | the published draws (`site/draws/`): the share of simulations in which an established party under `stats.SMALL_PARTY_SHARE` mean list share exceeds `stats.SMALL_PARTY_SURGE` (the record's test, MODEL-LOG §1.296) |
 | `published:run_date` | the published draws' manifest: `export_draws.run_time`, when the run that exported them was made. `generated_date` reads it, so the pages' date and our forecast's card (`forecast.json` `forecast_date`) come from one instant (owner, 2026-10-15) |
-| `history:<city>:<year>:` | `history.json`, written by `compare_history.py`: the backtest of past elections, a different run from the forecast's. Not dated against the forecast run; `stats.history_key_fault` instead refuses a record whose manifest's artefact key for `pools_<year>.json` is not the current spec's, and its tooltip names the backtest run (`stats.history_provenance`) |
+| `history:<city>:<year>:` | `history.json`, written by `compare_history.py`: the backtest of past elections, a different run from the forecast's. Not dated against the forecast run; `stats.history_key_fault` instead refuses a record whose manifest's artefact key for `pools_<year>.json` is not the current spec's, and its tooltip's sentence counts the backtest's simulations, not the forecast's (`tooltip_says`, `build_site.run_facts`) |
 
 So a `regime:` token republishes its file's number on every build while reading
 as the model speaking now, and the drift report says nothing — correctly, since
@@ -1908,6 +1908,23 @@ passes it to `_ledger_candidates`, which records `since` (when the value on the
 page first appeared; empty when it moved) and `previous_since` (when the last
 published value first appeared) on every change, so `changes.json` and the
 tooltips read one date. "Unchanged since" used to name the latest edition.
+
+**Every figure's tooltip has one writer, `build_site.tooltip_text`** (owner,
+2026-10-22; audits/2026-10-22-tooltips/BRIEF.md). `stats.render` leaves
+`data-prov` empty; the build fills it with two lines. Line 1 is the figure, its
+unit word and its history from those dates: `<v> since <this edition>. Was
+<old> on <date>.` when it moved, `<v> since <run start>.` when it did not,
+`<v> since <this edition>.` when it is new (`on_site` dates a figure typed
+before it became a token), and for a frozen figure in a dated piece (`tracks`,
+or `historical`) `<v> on <date>.`, followed by the live counterpart when that
+has moved. Outside a publication "since <this edition>" reads "in this build".
+Line 2 is `SOURCE: <who>. <sentence>.` from `src/tooltip_says.py`: one table
+of token-name patterns, each with the unit word, the source ("This Model" for
+any figure the model computes, never a component of it) and the sentence,
+filled with party names (`render_sheet.NAMES`) and the run's own counts
+(`build_site.run_facts`). A published token matching no pattern, or two,
+stops the build; `tests/test_tooltip_says.py` checks the table against a
+build's published set in both directions.
 
 ### The seam: a ledger that starts empty, and a figure that can simply vanish
 
@@ -2384,7 +2401,7 @@ had 12 such violations.
 
 **Arrows.** After ledger classification, `build_site` marks each figure that
 moved visibly since the last publication (▲/▼, ◆ for a changed string), with a
-"was X on <date>" tooltip. It then re-stamps the page hashes in
+"Was X." hover note (the figure's own tooltip is `tooltip_text`'s). It then re-stamps the page hashes in
 `NUMBERS-REVIEW.md`, so `deploy_check` still matches the pages.
 
 ## Per-draw pool turnouts (2026-09-28)
