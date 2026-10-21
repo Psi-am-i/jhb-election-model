@@ -1915,9 +1915,11 @@ tooltips read one date. "Unchanged since" used to name the latest edition.
 unit word and its history from those dates: `<v> since <this edition>. Was
 <old> on <date>.` when it moved, `<v> since <run start>.` when it did not,
 `<v> since <this edition>.` when it is new (`on_site` dates a figure typed
-before it became a token), and for a frozen figure in a dated piece (`tracks`,
-or `historical`) `<v> on <date>.`, followed by the live counterpart when that
-has moved. Outside a publication "since <this edition>" reads "in this build".
+before it became a token), and for a pinned figure (`mode = "fixed"`,
+`tracks` or `historical`) `<v> on <date>.`, the date being the earliest of its
+dated passage's `data-asof`, `on_site` and its first ledger row, followed by
+the live counterpart when one it `tracks` has moved. A date figure is the date
+alone. Outside a publication "since <this edition>" reads "in this build".
 Line 2 is `SOURCE: <who>. <sentence>.` from `src/tooltip_says.py`: one table
 of token-name patterns, each with the unit word, the source ("This Model" for
 any figure the model computes, never a component of it) and the sentence,

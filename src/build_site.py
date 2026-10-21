@@ -1257,44 +1257,57 @@ def run_facts(ctx: dict, ident: dict):
 
 
 def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
-                 publishing: bool, facts, first_ledgered: dict | None = None) -> str:
+                 publishing: bool, facts, first_ledgered: dict | None = None,
+                 dated_on: dict | None = None) -> str:
     """THE ONE TOOLTIP WRITER (owner, 2026-10-22; audits/2026-10-22-tooltips/
     BRIEF.md). Two lines, the same structure for every figure on the site:
 
         35% chance since 21 October. Was 45% on 6 October.
         SOURCE: This Model. The % of 5,000 simulations where the ANC was the largest party.
 
-    Line 1 is the figure as displayed, its unit word, and its history from the
-    ledger: moved (``since`` this edition, ``Was`` the last published value on
-    the date that value first appeared), unchanged (since its run's first
-    date), new (since this edition), or a frozen figure in a dated piece (``on``
-    the date the piece published it, then the live counterpart when it has
-    moved). Outside a publication, "since <this edition>" is "in this build":
-    a build is not a publication, and today is not a provenance. Line 2 is
+    Line 1 is the figure as displayed, its unit word, and its history:
+
+    * a LIVE figure, from the ledger: moved (``since`` this edition, ``Was``
+      the last published value on the date that value first appeared),
+      unchanged (since its run's first date), new (since this edition). A
+      figure typed on the site before it became a token (``on_site``) is dated
+      from that day while its value has not changed since it was first
+      ledgered: the ledger's first row is not its first publication (owner's
+      sweep, 2026-10-03, items 1 and 2).
+    * a FROZEN figure (``mode = "fixed"``, ``tracks`` or ``historical``): ``on``
+      the date it was published, which is the dated passage's own date
+      (``data-asof``, ``dated_on``), ``on_site`` or its first ledger row,
+      whichever is earliest; then, for one that ``tracks`` a live figure
+      that has moved, the live figure and its date. A pinned figure is not
+      current, and "since" would say it is.
+    * a DATE (format ``date_long``): the date alone.
+
+    Outside a publication, "since <this edition>" is "in this build": a build
+    is not a publication, and today is not a provenance. Line 2 is
     `tooltip_says.says`: who, and what the figure is, in plain words.
 
     ``c`` is one `_ledger_candidates` change; ``by_token`` all of them;
     ``registry`` the stats registry's entries; ``edition`` the date this
     build is dated to (``YYYY-MM-DD``); ``first_ledgered`` each token's first
-    ledger date. A figure typed on the site before it became a token
-    (``on_site``) is dated from that day while its value has not changed since
-    it was first ledgered: the ledger's first row is not its first
-    publication (owner's sweep, 2026-10-03, items 1 and 2)."""
+    ledger date; ``dated_on`` each token's earliest dated-passage date."""
     import tooltip_says
     unit, who, said = tooltip_says.says(c["token"], facts)
     entry = registry.get(c["token"]) or {}
+    first = first_ledgered or {}
+
+    def bare(display):
+        """The figure with a "%" its format leaves to the prose."""
+        return f"{display}%" if unit == "%" else str(display)
 
     def shown(display):
-        if not unit:
-            return str(display)
+        if unit in ("", "%"):
+            return bare(display)
         word = unit[:-1] if unit in ("seats", "wards") and str(display) == "1" else unit
         return f"{display} {word}"
 
     def when(d):
         return tooltip_date(d, edition)
     this = f"since {when(edition)}" if publishing else "in this build"
-
-    first = first_ledgered or {}
 
     def since_part(x):
         """How line 1 dates a live figure ``x`` (a change)."""
@@ -1314,9 +1327,17 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
         return f"since {when(run)}"
 
     tracked = entry.get("tracks")
-    frozen_on = entry.get("on_site") or entry.get("captured")
-    if tracked or entry.get("historical"):
-        line = f"{shown(c['display'])} on {when(frozen_on)}."
+    if c.get("fmt") == "date_long":
+        line = f"{c['display']}."
+    elif tracked or entry.get("historical") or c.get("mode") == "fixed":
+        # the EARLIEST of the dates it is known to have been published on: a
+        # figure quoted again in a later dated passage (a correction) was
+        # still first published on the earlier date
+        known = [str(d)[:10] for d in ((dated_on or {}).get(c["token"]), entry.get("on_site"),
+                                       first.get(c["token"])) if d]
+        published_on = min(known) if known else None
+        line = (f"{shown(c['display'])} on {when(published_on)}." if published_on
+                else f"{shown(c['display'])} {'on ' + when(edition) if publishing else 'in this build'}.")
         live = by_token.get(tracked) if tracked else None
         if live and live["display"] != c["display"]:
             line += f" {shown(live['display'])} {since_part(live)}."
@@ -1324,7 +1345,8 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
         part = since_part(c)
         line = f"{shown(c['display'])} {part}."
         if part == this and c["previous"] is not None:
-            line += f" Was {c['previous']} on {when(c['previous_since'] or c['previous_published_at'])}."
+            line += (f" Was {bare(c['previous'])} on "
+                     f"{when(c['previous_since'] or c['previous_published_at'])}.")
     return f"{line}\nSOURCE: {who}. {said}"
 
 
@@ -2191,9 +2213,13 @@ def main(argv: list[str] | None = None) -> int:
         if r.published_at and (r.token not in first_ledgered
                                or str(r.published_at) < first_ledgered[r.token]):
             first_ledgered[r.token] = str(r.published_at)
+    dated_on: dict[str, str] = {}
+    for r in published:
+        if r.get("token") and r.get("asof"):
+            dated_on[r["token"]] = min(dated_on.get(r["token"], r["asof"]), r["asof"])
     history = {c["token"]: tooltip_text(c, by_token=by_token, registry=registry_entries,
                                         edition=now_date, publishing=publishing, facts=facts,
-                                        first_ledgered=first_ledgered)
+                                        first_ledgered=first_ledgered, dated_on=dated_on)
                for c in changes}
     if changes:
         for page in sorted({p for c in changes for p in c["pages"]}):

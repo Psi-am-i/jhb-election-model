@@ -24,11 +24,12 @@
  * Without this branch those hosts fell through to the city-directory lookup
  * and showed the portal.
  *
- * Channel short paths (/go, /x, /li, /fb, /ig, /g; any case, optional trailing
- * slash) on the apex and www answer 302 to the same path and query on
- * joburg.whysoserious.city, and log nothing. On the Johannesburg host and on
- * workers.dev hosts they answer 302 to the home page and log one object, which
- * Workers Logs indexes as fields:
+ * Channel short paths (the CHANNELS table below, and each one's twin ending
+ * in "p"; any case, optional trailing slash) on the apex and www answer 302
+ * to the same path and query on joburg.whysoserious.city, and log nothing. On
+ * the Johannesburg host and on workers.dev hosts they answer 302 to the home
+ * page (a "p" twin: to /your-forecast/) and log one object, which Workers
+ * Logs indexes as fields:
  *   {event: "arrival", channel: "<name>", host: "<hostname>"}
  * Cloudflare Web Analytics does not record query strings, so UTM tags are
  * invisible there; Workers Logs ([observability] in wrangler.toml) counts these

@@ -11,8 +11,8 @@ Statistics South Africa, a poll's house, a news outlet). The technical source
 stays in the ledger and NUMBERS-REVIEW.md, which we read; the reader does not.
 
 One table, :data:`SAYS`, keyed by token-name patterns. Each pattern gives the
-unit word line 1 prints after the figure ("chance", "seats", "wards", or
-none), ``<who>``, and the sentence. A sentence is filled from:
+unit word line 1 prints after the figure ("chance", "seats", "wards", "%"
+for a share whose format leaves the sign to the prose, or none), ``<who>``, and the sentence. A sentence is filled from:
 
 * the pattern's named groups: ``party`` (a party code, named through
   ``render_sheet.NAMES``, then ``build_play.reader_name``), ``coal`` (codes
@@ -212,11 +212,11 @@ SAYS: tuple[Say, ...] = (
         "The registered DA voters she said must vote for the DA to win an outright majority."),
     Say(r"claim_poll_2021", "", IEC21,
         "The votes cast on each ballot paper in Johannesburg's 2021 election."),
-    Say(r"claim_490k_of_2021", "", IEC21,
+    Say(r"claim_490k_of_2021", "%", IEC21,
         "Helen Zille's DA vote target as a % of the votes cast in Johannesburg in 2021."),
     Say(r"claim_others_shed", "", IEC21,
         "The votes every other party would have to lose for the DA to double its vote while the total stays at the 2021 level."),
-    Say(r"claim_hi_turnout", "", "IEC past results",
+    Say(r"claim_hi_turnout", "%", "IEC past results",
         "The highest turnout on record in Johannesburg's voting districts, weighted by their registered voters."),
     Say(r"claim_poll_base", "", M,
         "The votes This Model expected in Johannesburg: registered voters times its expected turnout."),
@@ -225,7 +225,7 @@ SAYS: tuple[Say, ...] = (
     Say(r"claim_poll_surged", "", M, "The votes cast in Johannesburg " + _SURGE + "."),
     Say(r"claim_half_surged", "", M, "Half the votes cast in Johannesburg " + _SURGE + "."),
     Say(r"claim_da_votes_surge", "", M, "The DA's votes " + _SURGE + "."),
-    Say(r"claim_da_share_surged", "", M, "The DA's % of the vote " + _SURGE + "."),
+    Say(r"claim_da_share_surged", "%", M, "The DA's % of the vote " + _SURGE + "."),
     Say(r"claim_da_median", "seats", M, "The DA's middle seat count across the simulations " + _SURGE + "."),
     Say(r"claim_short_by", "seats", M,
         "The seats by which the DA's middle count fell short of a majority " + _SURGE + "."),
@@ -234,7 +234,7 @@ SAYS: tuple[Say, ...] = (
         "The seats the ANC's votes would give it in proportion " + _SURGE + "."),
     Say(r"claim_anc_collapse_seats", "seats", M,
         "The ANC's middle seat count in the simulations where the DA reached a majority " + _SURGE + "."),
-    Say(r"claim_vote_share_needed", "", M,
+    Say(r"claim_vote_share_needed", "%", M,
         "The % of the vote the DA would need for a majority with the ANC on its expected ward wins, in a one-off seat calculation."),
     Say(r"jhb_2021_coalition_parties", "", "News24",
         "The parties in Mpho Phalatse's coalition government in Johannesburg, formed after the 2021 election."),
@@ -252,10 +252,12 @@ SAYS: tuple[Say, ...] = (
     Say(rf"play\.bye\.w_bye_0\.{_P}", "seats", M,
         "How far {party}'s middle seat count moves from the forecast when the by-elections since 2021 do not count at all."),
     Say(r"play\.max_figure_se", "seats", M,
-        "The most a figure on this page may be off by chance alone, from the limited number of simulations, before the page withholds it."),
+        "The largest standard error a figure on this page may have before the page withholds it: how far, typically, the figure would move if the same number of simulations were made again."),
     # --- the run and the council ---------------------------------------------
-    Say(r"council_size", "seats", M, "The seats on Johannesburg's council."),
-    Say(r"majority", "seats", M, "The seats needed for a majority of the council."),
+    Say(r"council_size", "seats", "Municipal Structures Act",
+        "The number of seats on Johannesburg's council, which the province's MEC for local government sets under the act."),
+    Say(r"majority", "seats", "Municipal Structures Act",
+        "The seats a majority of the council needs: more than half of them."),
     Say(r"n_vds", "", M, "The voting districts This Model simulates in Johannesburg."),
     Say(r"run_seed", "", M,
         "The random seed of This Model's simulations; the same seed reproduces them."),
@@ -321,9 +323,9 @@ SAYS: tuple[Say, ...] = (
     Say(r"polls_off_crps_after", "", M,
         "This Model's error score in its test against past metro elections, with polls taken out; lower is better."),
     Say(r"polls_off_seat_err_before", "seats", M,
-        "The summed seat error of This Model's test against past metro elections, with polls in the forecast."),
+        "The seats This Model's forecasts were off by in its test against past metro elections, counted for every party and added up, with polls in the forecast."),
     Say(r"polls_off_seat_err_after", "seats", M,
-        "The summed seat error of This Model's test against past metro elections, with polls taken out."),
+        "The seats This Model's forecasts were off by in its test against past metro elections, counted for every party and added up, with polls taken out."),
     Say(r"blind_test_called", "wards", M,
         "The 2021 Johannesburg ward winners This Model called correctly when forecasting that election from earlier ones."),
     Say(r"hist_jhb_wards_(?P<year>\d{4})", "wards", M,
@@ -368,14 +370,21 @@ def _cities() -> dict:
     return dict(build_validation.CITIES)
 
 
+#: Names in capitals that take no "the" (owner's call via the coordinator,
+#: 2026-10-22: "no 'the' for BOSA and VF+"). The pages' rule ("the " before
+#: a name in capitals, ``build_play.roster``) is left as it is: no page prose
+#: puts an article before either name, so nothing there disagrees.
+NO_ARTICLE = frozenset({"BOSA", "VFPLUS"})
+
+
 def party_name(code: str, *, article: bool = True) -> str:
     """The reader's name for ``code``: ``render_sheet.NAMES``, then
     ``build_play.reader_name``; "the " before a name in capitals, as every
-    page writes it ("the ANC", "MK Party")."""
+    page writes it ("the ANC", "MK Party"), except :data:`NO_ARTICLE`."""
     import build_play
     import render_sheet
     name = render_sheet.NAMES.get(code) or build_play.reader_name(code)
-    return ("the " + name) if article and name.isupper() else name
+    return ("the " + name) if article and name.isupper() and code not in NO_ARTICLE else name
 
 
 def _list(names: list[str]) -> str:
