@@ -78,6 +78,9 @@ MODULES = ["test_seats", "test_overhang", "test_drawer", "test_draw_streams", "t
            # Added 2026-10-03 with lane N: the dates on a figure's tooltip, a
            # dated passage's figures, and a registered fact's page.
            "test_provenance_dates",
+           # Added 2026-10-22 with the tooltips brief: the one tooltip writer
+           # and the plain-sentence table, both ways round.
+           "test_tooltip_says",
            # Added 2026-10-03 with the site-structure lane (items 9-15): the
            # nav, the pages cut from the sheet, the old anchors, the footer.
            "test_site_structure",

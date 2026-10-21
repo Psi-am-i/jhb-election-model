@@ -1223,6 +1223,111 @@ def _ledger_candidates(published: list[dict], ledger: dict, ident: dict,
     return rows, changes
 
 
+def tooltip_date(d: str, edition: str) -> str:
+    """"21 October": every date on the site is in the edition's year, so the
+    year is printed only for a date in another one."""
+    from datetime import date as _date
+    try:
+        y, m, dd = (int(x) for x in str(d)[:10].split("-"))
+        day = _date(y, m, dd)
+    except (ValueError, TypeError):
+        return str(d)
+    return f"{dd} {day:%B}" + ("" if str(y) == str(edition)[:4] else f" {y}")
+
+
+def run_facts(ctx: dict, ident: dict):
+    """The counts and names a tooltip's sentence needs, read from the run:
+    the forecast's simulations, the past-elections test's and the
+    validation's, and the population groups of the target's pool spec."""
+    import build_play
+    import tooltip_says
+    n = ident.get("draws") or len(ctx.get("draws") or [])
+    hist = (ctx.get("history") or {}).get("manifest") or {}
+    val = ctx.get("validation") or {}
+    groups = {}
+    processed = ctx.get("processed")
+    if processed is not None:
+        import cityconfig as _cc
+        spec = Path(processed) / f"pools_{_cc.target().year}.json"
+        if spec.is_file():
+            groups = {build_play._slug(g): g for g in
+                      json.loads(spec.read_text(encoding="utf-8")).get("categories", [])}
+    return tooltip_says.Facts(n=int(n), n_hist=hist.get("draws"), n_val=val.get("draws"),
+                              val_year=str(val.get("target") or "") or None, groups=groups)
+
+
+def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
+                 publishing: bool, facts, first_ledgered: dict | None = None) -> str:
+    """THE ONE TOOLTIP WRITER (owner, 2026-10-22; audits/2026-10-22-tooltips/
+    BRIEF.md). Two lines, the same structure for every figure on the site:
+
+        35% chance since 21 October. Was 45% on 6 October.
+        SOURCE: This Model. The % of 5,000 simulations where the ANC was the largest party.
+
+    Line 1 is the figure as displayed, its unit word, and its history from the
+    ledger: moved (``since`` this edition, ``Was`` the last published value on
+    the date that value first appeared), unchanged (since its run's first
+    date), new (since this edition), or a frozen figure in a dated piece (``on``
+    the date the piece published it, then the live counterpart when it has
+    moved). Outside a publication, "since <this edition>" is "in this build":
+    a build is not a publication, and today is not a provenance. Line 2 is
+    `tooltip_says.says`: who, and what the figure is, in plain words.
+
+    ``c`` is one `_ledger_candidates` change; ``by_token`` all of them;
+    ``registry`` the stats registry's entries; ``edition`` the date this
+    build is dated to (``YYYY-MM-DD``); ``first_ledgered`` each token's first
+    ledger date. A figure typed on the site before it became a token
+    (``on_site``) is dated from that day while its value has not changed since
+    it was first ledgered: the ledger's first row is not its first
+    publication (owner's sweep, 2026-10-03, items 1 and 2)."""
+    import tooltip_says
+    unit, who, said = tooltip_says.says(c["token"], facts)
+    entry = registry.get(c["token"]) or {}
+
+    def shown(display):
+        if not unit:
+            return str(display)
+        word = unit[:-1] if unit in ("seats", "wards") and str(display) == "1" else unit
+        return f"{display} {word}"
+
+    def when(d):
+        return tooltip_date(d, edition)
+    this = f"since {when(edition)}" if publishing else "in this build"
+
+    first = first_ledgered or {}
+
+    def since_part(x):
+        """How line 1 dates a live figure ``x`` (a change)."""
+        on_site = (registry.get(x["token"]) or {}).get("on_site")
+        if x["previous"] is None:
+            return f"since {when(on_site)}" if on_site else this
+        if x["movement"] in ("none", "rounding"):
+            run = x["since"]
+        elif x["display"] == x["previous"]:
+            # a raw value that changed while its printed form did not
+            # (`nominal` on a string) is unchanged to a reader
+            run = x["previous_since"]
+        else:
+            return this
+        if on_site and run and run == first.get(x["token"]) and str(on_site) < str(run)[:10]:
+            run = on_site
+        return f"since {when(run)}"
+
+    tracked = entry.get("tracks")
+    frozen_on = entry.get("on_site") or entry.get("captured")
+    if tracked or entry.get("historical"):
+        line = f"{shown(c['display'])} on {when(frozen_on)}."
+        live = by_token.get(tracked) if tracked else None
+        if live and live["display"] != c["display"]:
+            line += f" {shown(live['display'])} {since_part(live)}."
+    else:
+        part = since_part(c)
+        line = f"{shown(c['display'])} {part}."
+        if part == this and c["previous"] is not None:
+            line += f" Was {c['previous']} on {when(c['previous_since'] or c['previous_published_at'])}."
+    return f"{line}\nSOURCE: {who}. {said}"
+
+
 def audit_configs(registry: dict, ctx: dict) -> tuple[dict, dict]:
     """The settings EVERY page is audited and scanned with, in one place.
 
@@ -1964,9 +2069,11 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             gate = statlib.is_blocking(h)
             blocking += gate
-            ctx = h["context"].replace("|", "\\|")
+            # `around`, not `ctx`: that name is the run's context, which the
+            # tooltips read below
+            around = h["context"].replace("|", "\\|")
             lines.append(f"| {'BLOCKS' if gate else 'review'} | {h['kind']} | "
-                         f"{h['region']} | `{h['value']}` | …{ctx}… |")
+                         f"{h['region']} | `{h['value']}` | …{around}… |")
         lines.append("")
     import hashlib as _hashlib
     shas = {page: _hashlib.sha256((args.out / page).read_bytes()).hexdigest()
@@ -2050,68 +2157,44 @@ def main(argv: list[str] | None = None) -> int:
     # that the figure is new, or that it moved — and dates only what actually
     # has a date.
     publishing = bool(getattr(args, "publish", False)) or as_of_publication is not None
-    # TOOLTIP CONVENTION (owner, 2026-09-17): the brief statement first, then
-    # dates and source. "{new}. Was {old}." for a live figure that moved;
-    # "{old}. Is now {new}." for a frozen, as-published one.
-    def _long(d):
-        from datetime import date as _date
-        try:
-            y, m, dd = (int(x) for x in str(d)[:10].split("-"))
-            return f"{dd} {_date(y, m, dd):%B %Y}"
-        except (ValueError, TypeError):
-            return str(d)
-    history = {}
-    display_now = {c["token"]: c["display"] for c in changes}
+    # THE TOOLTIPS: one writer, `tooltip_text`, two lines (owner, 2026-10-22;
+    # audits/2026-10-22-tooltips/BRIEF.md). A published token with no sentence
+    # in src/tooltip_says.py stops the build here, before any page is touched.
+    import tooltip_says as _says
+    unsaid = _says.unsaid(c["token"] for c in changes)
+    if unsaid:
+        raise SystemExit(
+            "TOOLTIPS: these published tokens do not match exactly one pattern in "
+            "src/tooltip_says.py (token, patterns matched):\n  "
+            + "\n  ".join(f"{t} ({n})" for t, n in unsaid)
+            + "\nGive each one plain sentence there.")
+    facts = run_facts(ctx, ident)
+    by_token = {c["token"]: c for c in changes}
     registry_entries = {k: v for k, v in registry.items() if isinstance(v, dict)}
     for c in changes:
         tracked = (registry_entries.get(c["token"]) or {}).get("tracks")
-        if tracked:
+        now_disp = (by_token.get(tracked) or {}).get("display") if tracked else None
+        if now_disp and now_disp != c["display"]:
             # A FROZEN figure whose live counterpart has moved gets its own
             # muted marker: the reader should see that the published number has
             # since changed, without it being read as a move in this edition.
-            now_disp = display_now.get(tracked)
-            if now_disp and now_disp != c["display"]:
-                def _num(s):
-                    try:
-                        return float(str(s).strip().rstrip("%").replace(",", ""))
-                    except ValueError:
-                        return None
-                a, b = _num(c["display"]), _num(now_disp)
-                arrows[c["token"]] = (("↗" if b > a else "↘") if None not in (a, b) else "◆",
-                                      f"Is now {now_disp}.", "moved-since")
-            when = _long((registry_entries[c["token"]] or {}).get("captured", ""))
-            now = display_now.get(tracked)
-            # "5,000. Is now 5,000." says nothing: an equal live figure is
-            # not a change, so the frozen one states only when it was published.
-            if now == c["display"]:
-                now = None
-            history[c["token"]] = (
-                (f"{c['display']}. Is now {now}. " if now else f"{c['display']}. ")
-                + f"Published {when}"
-                + ((f"; now {_long(now_date)}." if publishing else "; changed since.")
-                   if now else "."))
-        elif c["previous"] is None and (registry_entries.get(c["token"]) or {}).get("on_site"):
-            # A figure that was on the site, typed, before it became a token:
-            # dated from the publication that first showed it (the article's
-            # date), not from the edition that first ledgered it (owner's
-            # list, 2026-10-03, items 1 and 2).
-            history[c["token"]] = (f"{c['display']}. Unchanged since "
-                                   f"{_long(registry_entries[c['token']]['on_site'])}.")
-        elif c["previous"] is None:
-            history[c["token"]] = (
-                f"{c['display']}. First published in this edition "
-                f"({_long(now_date)})." if publishing else
-                f"{c['display']}. Not published before; new in this edition.")
-        elif c["movement"] in ("none", "rounding"):
-            # The first date of the unbroken run, not the latest row
-            # (`publication.run_starts`; owner's sweep, 2026-10-03).
-            history[c["token"]] = (f"{c['display']}. Unchanged since "
-                                   f"{_long(c['since'])}.")
-        else:
-            history[c["token"]] = (
-                f"{c['display']}. Was {c['previous']}. Published "
-                f"{_long(c['previous_since'])}"
-                + (f"; now {_long(now_date)}." if publishing else "; changed since."))
+            def _num(s):
+                try:
+                    return float(str(s).strip().rstrip("%").replace(",", ""))
+                except ValueError:
+                    return None
+            a_, b_ = _num(c["display"]), _num(now_disp)
+            arrows[c["token"]] = (("↗" if b_ > a_ else "↘") if None not in (a_, b_) else "◆",
+                                  f"Is now {now_disp}.", "moved-since")
+    first_ledgered: dict[str, str] = {}
+    for r in classified_rows:
+        if r.published_at and (r.token not in first_ledgered
+                               or str(r.published_at) < first_ledgered[r.token]):
+            first_ledgered[r.token] = str(r.published_at)
+    history = {c["token"]: tooltip_text(c, by_token=by_token, registry=registry_entries,
+                                        edition=now_date, publishing=publishing, facts=facts,
+                                        first_ledgered=first_ledgered)
+               for c in changes}
     if changes:
         for page in sorted({p for c in changes for p in c["pages"]}):
             f = args.out / page
@@ -2133,15 +2216,20 @@ def main(argv: list[str] | None = None) -> int:
                         f'data-prov="{_html.escape(was, quote=True)}">{glyph}</span>')
             def _prov(m):
                 span = m.group(1)
-                note = history.get(m.group(2))
-                if note:
-                    span = _re.sub(r'data-prov="([^"]*)"',
-                                   lambda d: f'data-prov="{_html.escape(note, quote=True)} {d.group(1)}"',
-                                   span, count=1)
+                if m.group(2) not in history:
+                    raise SystemExit(f"TOOLTIPS: {m.group(2)} is on {page} but not in this "
+                                     "build's published figures")
+                note = _html.escape(history[m.group(2)], quote=True).replace("\n", "&#10;")
+                span = _re.sub(r'data-prov="[^"]*"', lambda d: f'data-prov="{note}"',
+                               span, count=1)
                 return (_mark(_re.match(r"(.*)", span, _re.S))
                         if glyphs and m.group(2) in arrows else span)
             text = _re.sub(r'(<span class="mstat"[^>]*data-token="([^"]+)"[^>]*>[^<]*</span>)',
                            _prov, text)
+            if 'data-prov=""' in text:
+                raise SystemExit(f"TOOLTIPS: {page} carries a figure the tooltip writer did not "
+                                 "reach (an empty data-prov): every figure's tooltip is "
+                                 "build_site.tooltip_text's")
             f.write_text(text, encoding="utf-8")
         # the pages changed, so the number review's page stamp must follow them
         import hashlib as _hashlib

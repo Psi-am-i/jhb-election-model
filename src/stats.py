@@ -661,17 +661,6 @@ def history_key_fault(hist: dict, slug: str, year: str, root: Path | None = None
     return None
 
 
-def history_provenance(ctx: dict) -> str:
-    """The reader's source line for a ``history:`` figure: the backtest run,
-    not the forecast's."""
-    m = (ctx.get("history") or {}).get("manifest") or {}
-    when = _fmt(m["generated"], "date_long") if m.get("generated") else "an undated run"
-    draws = f"{int(m['draws']):,} simulations of each election" if m.get("draws") else "simulations"
-    code = f", code version {str(m['git_commit'])[:7]}" if m.get("git_commit") else ""
-    return (f"Source: the model's test against past elections (src/compare_history.py), "
-            f"{draws}, run on {when}{code}.")
-
-
 def load_context(processed: Path) -> dict:
     """Model outputs the resolver reads, and the files they came out of.
 
@@ -927,33 +916,25 @@ def freshness_report(problems: list[dict]) -> str:
 # --------------------------------------------------------------------------
 
 def _span(text: str, entry: dict, name: str, live_str: str | None) -> str:
-    """Wrap a rendered stat so its provenance travels with it."""
+    """Wrap a rendered stat so the build can attach its tooltip.
+
+    ⛔ THE TOOLTIP IS NOT WRITTEN HERE. `data-prov` is left empty and
+    ``build_site.tooltip_text`` writes the whole of it, two lines from the
+    ledger and ``tooltip_says`` (owner, 2026-10-22: "use the identical
+    structure everywhere"; audits/2026-10-22-tooltips/BRIEF.md). This wrote a
+    technical source line ("Source: seat_draws.csv, … computed at build") that
+    the build then prefixed with the history: two writers, and file names in
+    front of readers. The build refuses a page that still carries an empty
+    one."""
     mode = entry.get("mode", "free")
-    src = entry.get("source", "")
     when = entry.get("captured") or entry.get("inserted") or ""
-    if mode == "fixed":
-        tip = f"Source: {src}. Pinned {when}"
-        if entry.get("run"):
-            tip += f" ({entry['run']})"
-        tip += "."
-        if live_str is not None and live_str != text:
-            tip += f" The current model gives {live_str}."
-    elif mode == "generated":
-        tip = f"Source: {src}, computed at build from the current model run."
-    elif entry.get("_provenance"):
-        tip = entry["_provenance"]
-    else:
-        tip = f"Source: {src}, live from the current model run."
-    # the tip goes into an attribute: escape before anything else can break out
-    tip = (tip.replace("&", "&amp;").replace("<", "&lt;")
-              .replace(">", "&gt;").replace('"', "&quot;"))
     # `data-current`, not `data-live` (renamed 2026-09-30): `data-live` now
     # marks a LIVE region, and one attribute may not mean two things.
     live_attr = f' data-current="{live_str}"' if live_str is not None else ""
     # `data-prov`, not `title`: a browser shows a title tooltip late or not at
     # all, and the owner saw none (2026-09-17). src/css/stat.css draws it as a hover box.
     return (f'<span class="mstat" data-mode="{mode}" data-token="{name}"'
-            f' data-when="{when}"{live_attr} data-prov="{tip}" tabindex="0">{text}</span>')
+            f' data-when="{when}"{live_attr} data-prov="" tabindex="0">{text}</span>')
 
 
 def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
@@ -988,8 +969,6 @@ def render(text: str, registry: dict, ctx: dict, *, wrap: bool = True,
         spec = entry.get("format")
         live = resolve(entry.get("source", ""), ctx)
         live_str = None if live is None else _fmt(live, spec)
-        if str(entry.get("source", "")).startswith("history:"):
-            entry = {**entry, "_provenance": history_provenance(ctx)}
 
         if entry.get("mode") == "fixed":
             if "value" not in entry:
