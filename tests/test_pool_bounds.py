@@ -410,19 +410,23 @@ def _capacity_cases(spec: dict, actual: dict) -> list[dict]:
     return out
 
 
-# The seven 2011 cells MODEL-LOG §1.321 P8 predicted when each ward's roll
-# became the roll split by census 2022 group shares (f32523b): the shares are
-# held flat back to 2011, which understates 2011's White roll. Each is exempt
-# only at or below its ratio when exempted (2026-10-21), so a new cell, a worse
-# one, or a cell that no longer appears (the exemption is then stale) fails.
-KNOWN_2011_CENSUS_FLAT = {
-    ("buffalocity", "2011", "DA", "White"): 1.23,
-    ("capetown", "2011", "DA", "White"): 1.22,
-    ("ethekwini", "2011", "DA", "White"): 1.04,
-    ("joburg", "2011", "DA", "White"): 1.04,
-    ("mangaung", "2011", "DA", "Indian/Asian"): 1.25,
-    ("mangaung", "2011", "DA", "White"): 1.03,
-    ("nelsonmandelabay", "2011", "DA", "White"): 1.17,
+# The seven fatal 2011 cells on the tree after f32523b, the set MODEL-LOG
+# §1.321 P8 predicted. Buffalo City, Cape Town and Nelson Mandela Bay already
+# failed before it (1.25, 1.14, 1.07 under the old nest); the other four
+# appeared when each ward's roll became the roll split by census 2022 group
+# shares, held flat back to 2011, which understates 2011's White roll. Each is
+# exempt only up to its ratio when exempted (2026-10-21, unrounded) plus
+# KNOWN_2011_TOLERANCE, so a new cell, a worse one, or one that no longer
+# appears (the exemption is then stale) fails.
+KNOWN_2011_TOLERANCE = 1e-3
+KNOWN_2011_FATAL = {
+    ("buffalocity", "2011", "DA", "White"): 1.2289,
+    ("capetown", "2011", "DA", "White"): 1.2214,
+    ("ethekwini", "2011", "DA", "White"): 1.0435,
+    ("joburg", "2011", "DA", "White"): 1.0444,
+    ("mangaung", "2011", "DA", "Indian/Asian"): 1.2484,
+    ("mangaung", "2011", "DA", "White"): 1.0270,
+    ("nelsonmandelabay", "2011", "DA", "White"): 1.1718,
 }
 
 
@@ -521,8 +525,8 @@ def test_no_emitted_composition_weight_is_arithmetically_impossible():
                            f"carries weight {case['weight']:.4f}")
             elif case["kind"] == "fatal":
                 key = (slug, year, case["party"], case["pool"])
-                if (key in KNOWN_2011_CENSUS_FLAT
-                        and case["ratio"] <= KNOWN_2011_CENSUS_FLAT[key] + 0.005):
+                if (key in KNOWN_2011_FATAL
+                        and case["ratio"] <= KNOWN_2011_FATAL[key] + KNOWN_2011_TOLERANCE):
                     known_seen.add(key)
                     continue
                 bad.append(
@@ -556,10 +560,10 @@ def test_no_emitted_composition_weight_is_arithmetically_impossible():
           "fit-time capacity constraint on the strength of this message "
           "alone: one was built, measured and reverted (MODEL-LOG §1.41, "
           "coherent seat error 306 -> 486).")
-    stale = sorted(set(KNOWN_2011_CENSUS_FLAT) - known_seen)
+    stale = sorted(set(KNOWN_2011_FATAL) - known_seen)
     assert not stale, (
         f"these exempted 2011 cells no longer fail, so their exemption is "
-        f"stale and must be deleted from KNOWN_2011_CENSUS_FLAT: {stale}")
+        f"stale and must be deleted from KNOWN_2011_FATAL: {stale}")
 
 
 def test_turnout_is_the_only_fitted_rate_and_stays_inside_its_bounds():

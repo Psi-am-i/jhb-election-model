@@ -34,12 +34,16 @@ that"):
 - [ ] **ActionSA call**: the owner's answer to OWNER-DECISIONS item 1 (18.1% or
       12.6%), entered with reason in `judgements/joburg-2026.toml` and
       JUDGEMENT-CALLS; forecast reported with and without it.
-- [ ] **A red guard that cannot see** (Reviewer A 1): `tests/test_pool_bounds.py`
+- [x] **A red guard that cannot see** (Reviewer A 1): `tests/test_pool_bounds.py`
       `test_no_emitted_composition_weight_is_arithmetically_impossible` fails on
       seven known 2011 DA cells (MODEL-LOG §1.321 P8, census shares held flat to
       2011). Exempt exactly those seven cells, each citing §1.321, so the test
       goes red on any new cell. A test change: written, then reviewed by another
       agent.
+      Done: 3f0e019 and the commit after it (`KNOWN_2011_FATAL`, exact ratios,
+      tolerance 1e-3), reviewed. Johannesburg 2011's headroom is 0.0006, so a
+      rebuild that moves that spec at all turns the test red (fails safe). The
+      test does not scan the 2026 spec: a future target has no result to check.
 - [x] **By-election deltas have no run-time key** (Reviewer A 2): regenerate
       `data/processed/byelection_party_deltas.csv` with `byelections.py` into a
       scratch directory and diff it against the live file; confirm the Gauteng
