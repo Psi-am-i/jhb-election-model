@@ -1,10 +1,15 @@
-# How the model was broken — and fixed
+# How the model is tested
 
 <div class="pubdate">6 August 2026: Published</div>
 
-After the first version of this model was built, we reviewed it the way a
-hostile examiner would — against its own written plan, line by line, output by
-output. The review found **six implementation errors**, one of which made the
+This page shows how the model is improved. Each version is reviewed the way a
+hostile examiner would, against its own written plan, line by line and output
+by output, and the errors found are fixed and published. What follows is that
+review of the very first version; the same process is applied to each revision
+since.
+
+After the first version of this model was built, we reviewed it against its
+own written plan, line by line, output by output. The review found **six implementation errors**, one of which made the
 forecast's original headline claim outright false. Every error was fixed the
 same day, the forecast changed materially, and the full technical audit is
 published, warts and all, in

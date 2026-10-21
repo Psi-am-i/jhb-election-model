@@ -871,10 +871,13 @@ def main(argv: list[str] | None = None) -> int:
                 f'<div class="pubdate">{c["published"]}: Published</div>'
                 f'<div class="claim-top">{ident}'
                 f'<div class="claim-who"><b>{c.get("party_name", c["party"])}'
-                f'</b><span>{c["speaker"]} \u00b7 {link}</span></div>'
-                f'{badge}</div>'
+                f'</b><span>{c["speaker"]} \u00b7 {link}</span></div></div>'
                 f'<blockquote class="claim-quote">{c["quote"]}'
                 f'<span class="q-close">\u201d</span></blockquote>'
+                # the claim we test and our verdict on it, together (owner,
+                # 2026-10-21): the quote is the party's, the claim is ours
+                f'<div class="claim-test"><span class="claim-label">{c["label"]}</span>'
+                f'{badge}</div>'
                 f'<p class="claim-intro">{_md(_fill(with_holds(c, c["intro"])))}</p>'
                 f'<ol class="claimsteps">{steps}</ol>{since_html}</article>')
         claims_html = ("<!-- __CLAIMS_START__ -->\n    "

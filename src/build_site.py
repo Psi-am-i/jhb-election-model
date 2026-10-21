@@ -726,7 +726,29 @@ def share_button(html: str, prefix: str = "") -> str:
             f'  {dialog}\n'
             f'  <script type="module" src="{escape(prefix)}{site_assets.JS_DIR}/{PAGE_SHARE_JS}"></script>\n'
             '</div>')
-    return html.replace("</h1>", "</h1>" + part, 1)
+    html = html.replace("</h1>", "</h1>" + part, 1)
+    return share_openers(html)
+
+
+#: A second opener for the page's one share sheet, at the end of each section
+#: of the forecast (owner, 2026-10-21: "the share button by map and after each
+#: section of forecast"). page-share.js binds every element carrying it.
+SHARE_MORE = "data-pgshare-more"
+_FORECAST_SECTION = re.compile(r'(<details class="rollup" data-band="forecast"[^>]*>)(.*?)(</details>)', re.S)
+
+
+def share_openers(html: str) -> str:
+    """``html`` with an opener for its share sheet before the close of each
+    ``<details data-band="forecast">`` section, the map's first: the one
+    sheet, the one page link. Refuses a forecast section holding another
+    ``<details>`` (its close would be ambiguous)."""
+    def add(m):
+        if "<details" in m.group(2):
+            raise SystemExit("share_openers: a forecast section holds another <details>")
+        return (m.group(1) + m.group(2)
+                + f'<p class="pgshare-more-row"><button class="btn model pgshare-more" type="button" {SHARE_MORE}>'
+                  'Share this forecast</button></p>\n  ' + m.group(3))
+    return _FORECAST_SECTION.sub(add, html)
 
 
 # --------------------------------------------------------------------------

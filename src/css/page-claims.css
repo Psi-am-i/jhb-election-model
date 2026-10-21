@@ -18,10 +18,11 @@
     padding:20px 24px 24px;border:1px solid color-mix(in srgb,var(--c) 30%,var(--rule-soft));
     border-left:6px solid var(--c);border-radius:4px;
     background:color-mix(in srgb,var(--c) 7%,var(--paper));}
-  /* THE BADGE STAYS TOP RIGHT, ON THE FIRST ROW, AT EVERY NAME LENGTH (owner,
-     2026-10-07). The row does not wrap; the name block takes the room left
-     and its speaker line wraps under the name, where a long speaker used to
-     push the badge onto a row of its own. Below 560px the row may wrap. */
+  /* The first row is the party and the speaker; the name block takes the room
+     and its speaker line wraps under the name. Below 560px the row may wrap.
+     THE VERDICT SITS WITH THE CLAIM WE TEST, under the quote (owner,
+     2026-10-21, replacing the badge top right of 2026-10-07): the quote is
+     the party's words, the claim is our statement of what they assert. */
   .claim-top{display:flex;align-items:center;gap:18px;flex-wrap:nowrap;}
   .plogo{width:96px;height:96px;border-radius:10px;object-fit:contain;
     background:#fff;padding:5px;flex:none;box-shadow:0 0 0 3px var(--c);}
@@ -41,6 +42,10 @@
   .claim-quote::before{content:"\201C";position:absolute;left:-2px;top:-6px;
     font-size:56px;line-height:1;color:var(--c);}
   .q-close{color:var(--c);margin-left:1px;}
+  .claim-test{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;
+    padding:10px 0 2px;border-top:1px solid color-mix(in srgb,var(--c) 35%,var(--paper));}
+  .claim-label{font-family:var(--serif);font-size:18px;font-weight:600;line-height:1.3;
+    flex:1 1 240px;min-width:0;}
   .claim-intro{font-family:var(--serif);font-size:16px;color:var(--ink-2);}
   .claimsteps{margin:0;padding-left:0;list-style:none;counter-reset:cs;
     display:flex;flex-direction:column;gap:16px;}
