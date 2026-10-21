@@ -112,7 +112,7 @@ Two things are drawn:
   17.6% of the list vote: the model carries the 2021 result forward at the
   share a typical party of its size keeps between local elections, and its
   by-elections lift it part of the way back; we judge that ActionSA keeps more
-  of its 2021 vote than that. Every other party's share is scaled down in proportion so
+  of that vote than the model does. Every other party's share is scaled down in proportion so
   the shares still add up, and ActionSA keeps the model's usual uncertainty
   for a party of that size. It cannot be changed on [your
   forecast](your-forecast/).
