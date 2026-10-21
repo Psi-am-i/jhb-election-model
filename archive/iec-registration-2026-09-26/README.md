@@ -71,3 +71,17 @@ Each VD is placed wholly in one ward by `../vd-ward-assignment-2026/`
 (JUDGEMENT-CALLS section T1), and its 2024 registration is scaled to that
 ward's row here. The voting-district counts in this file are the solver's
 constraint; its README gives the method and limits.
+
+## Re-read 2026-10-21: the 29 September snapshot is identical by ward
+
+The page read on 2026-10-21 was labelled **"Registered voters as at 29 September
+2026"**. All 135 Johannesburg ward rows (ward, voting districts, registered),
+extracted from its seven table pages in a browser, equal this file's row for
+row; their sum is 2,417,915. The page's Johannesburg demographics total is now
+also 2,417,915, so the 613 difference recorded above is gone. Gauteng: 6,751,064
+(6,749,631 on 26 September). National: 29,230,808.
+
+No new snapshot directory was committed: the ward table the model reads did not
+change, and a new directory would relabel `vd_ward_2026.csv`'s `roll_snapshot`
+column with no change in any roll. `inputs_preflight.py --strict` still reports
+this snapshot's age from its directory date.

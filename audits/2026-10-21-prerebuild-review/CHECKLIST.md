@@ -63,6 +63,9 @@ that"):
 3. `inputs_preflight.py --strict --city joburg --target 2026`; the voters'
    roll snapshot is 24+ days old (read in a browser and committed under
    `archive/iec-registration-<date>/` if the IEC page has changed).
+   Done 2026-10-21: the page now says 29 September; all 135 ward rows equal
+   the 26 September file (its README records the re-read). Only the roll
+   flag remains, from the directory's age.
 4. The freeze, `export_draws`, the site draws.
 5. Old-against-new report (QC.md §4c) if any Johannesburg 2026 number moved.
 6. Whole suite once for the UAT version; failures compared with the known
