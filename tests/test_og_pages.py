@@ -338,7 +338,7 @@ def claim_card_faults(spec: dict, svg: str, W: int = 1200, H: int = 630) -> list
         out.append(f"the order is not quote ({quote_last}), party ({party}), text beside the stamp ({beside})")
     elif party - quote_last > 80:
         out.append(f"the party is {party - quote_last:.0f}px under the quote's last line, not directly under it")
-    if spec["date_line"] not in flat or "whysoserious.city forecast of" not in flat:
+    if spec["date_line"] not in flat or "forecast of" not in flat:
         out.append("the foot line does not name the forecast's date")
     for x, y, anchor, t in texts:
         if y > H * 0.85 and not anchor and x < W / 2:
@@ -357,7 +357,10 @@ def test_a_claim_card_prints_its_statement_beside_a_large_stamp_and_keeps_the_fo
         c = next(c for c in toml if spec["slug"] == og_pages.claim_image_slug(c["slug"]))
         assert (spec["statement"] == " ".join(c["label"].split())) if c.get("card_test") else \
             (spec["statement"] is None and spec["reason"]), (spec["slug"], spec["statement"], spec.get("reason"))
-        assert spec["date_line"] == f"Tested against the whysoserious.city forecast of {og_pages.run_date()}."
+        assert spec["date_line"] == (
+            f"Tested on {c['published']}; the verdict stands on the forecast of {og_pages.run_date()}."
+            if c["verdict"] in ("FALSE", "TRUE") else
+            f"Tested against the whysoserious.city forecast of {og_pages.run_date()}.")
         assert claim_card_faults(spec, d["svg"]) == [], (spec["slug"], claim_card_faults(spec, d["svg"]))
         # the page's og:title is not the statement the card prints
         page = (out / og_pages.CLAIM_DIR / f"{c['slug']}.html").read_text(encoding="utf-8")

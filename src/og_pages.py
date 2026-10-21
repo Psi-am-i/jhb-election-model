@@ -410,7 +410,13 @@ def claim_spec(html: str, claim: dict) -> dict:
             "more": "Click to see more analysis of this claim." if reason else None,
             # the forecast the verdict is from: the run the page is built on
             # (owner, 2026-10-22: the card said the first test's date)
-            "date_line": f"Tested against the whysoserious.city forecast of {run_date()}.",
+            # A settled verdict (FALSE/TRUE) rests on the figures of the day it
+            # was tested, which the page dates; it still stands on the current
+            # run, so both dates (review 2026-10-22, owner: the card said only
+            # the first test's date)
+            "date_line": (f"Tested on {claim['published']}; the verdict stands on the forecast of {run_date()}."
+                          if claim["verdict"] in render_sheet.SETTLED_VERDICTS else
+                          f"Tested against the whysoserious.city forecast of {run_date()}."),
             # the top bar takes the party's colour from the roster, like its chip
             "kind_colour": roster[claim["party"]]["colour"],
             "figures": {},
