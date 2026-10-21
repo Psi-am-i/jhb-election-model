@@ -98,3 +98,47 @@ pre-registration first.
 included; each comes back to you before code.
 
 **Gates.** The Tshwane forecast and page.
+
+### 21. Outreach: the drafts, the X posts and the X ads
+
+**Context.** New outreach, all in
+`~/projects/atlas-jhb-model-newsdesk/marketing/outreach-2026-10-22/`. Nothing
+is sent or posted.
+
+* **Email:** 47 drafts are in Mail (Drafts, from psi@whysoserious.city,
+  signed "Simon Davis, whysoserious.city"): 19 parties, 12 outlets, 9
+  journalists, 1 analyst, 4 university departments, 2 civic bodies. Six are
+  held because their address could not be confirmed (Wits Political
+  Studies, Africa Check, SANEF, Code for Africa, Carol Paton, Kgothatso
+  Madisa); `drafts-made-2026-10-22.md` lists them. The 38 drafts of 14
+  October are still in Drafts (subjects ending "tested claims for your
+  supporters" or "tested party claims, free to cite"); they are out of date,
+  delete them. The party note is word for word the same for every party.
+  Parties without an email: ActionSA and ATM have only a contact form; five
+  sites were unreachable (EFF, Organic Humanity, Africa Restoration
+  Alliance, APC, COPE); 55 others had no address found or were not
+  searched (`emails.md`, with each party's ward count).
+* **X posts:** 16 dated slots, 22 October to after polls close, no forecast
+  figures, no party named, nothing between 07:00 and the close of polls on
+  4 November (`x-posts.md`). Each needs your yes to the exact text.
+* **X ads (R3,000):** X allows political-content ads in South Africa; an ad
+  that argues for no party and asks for no vote needs no certification.
+  Plan: website-traffic objective, Johannesburg, adults, no interest
+  targeting, promoting only posts that name no party, landing on /x; R150 a
+  day 22-25 October, R250 a day 26-31 October, R300 a day 1-3 November.
+  X publishes no reach or cost range for South Africa. Sources in `x-ads.md`.
+
+**Decisions.**
+1. Party tags on X: (a) none, the public party note only; or (b) one
+   identical reply per party with a known handle (parties without a handle
+   get none).
+2. Submit X's political-ads pre-approval form anyway, as insurance (X says
+   1-3 business days)? And confirm @whyseriouscity is Premium or a Verified
+   Organization (required to advertise).
+3. Ads on their own short link (a site change, item 18.4) or sharing /x.
+4. Add "send one claim for us to test" to every party email, or to none
+   (item 18.6).
+
+**Recommendation.** 1 (a); 2 yes; 3 own link; 4 to every party.
+
+**Gates.** The first send and the first post.
