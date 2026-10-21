@@ -97,13 +97,13 @@ quote = """We won't go into a coalition with MK, and we will not go into coaliti
 speaker = "Helen Zille, DA"
 outlet = "Daily Maverick, 13 September 2026"
 url = "https://www.dailymaverick.co.za/article/2026-09-13-zille-draws-coalition-red-lines-as-da-targets-joburg-majority/"
-verdict = "VERY LIKELY"
+verdict = "NEAR CERTAIN"
 chance = "no_red_share"
 tests = "P(a majority exists without the ANC, the EFF and MK)"
 label = "A majority without the ANC, the EFF and MK is possible for the DA"
 captured = "2026-09-13"
 published = "26 September 2026"
-since = """Since then the rest of the council, without the ANC, the EFF and MK, clears {{majority}} in [[no_red_share]] of simulations. The DA and the ANC together clear it in [[grand_share]]; the DA with ActionSA and the PA in [[three_share]]."""
+since = """Since then the rest of the council, without the ANC, the EFF and MK, clears {{majority}} in [[no_red_share]] of simulations. The DA and the ANC together clear it in [[grand_share]]; the DA with ActionSA and the PA in [[three_share]]. The claim holds with a [[no_red_share]] chance, which the scale calls near certain."""
 intro = """A red line is a choice, so there is nothing here to call true or false. What can be tested is what it costs. Without the ANC, the EFF and MK, the rest of the council still clears {{majority}} in [[no_red_share]] of simulations."""
 steps = [
   """**There are three ways to a majority.** The whole rest of the council except the ANC, which clears {{majority}} in [[no_red_share]] of simulations; a deal with the ANC alone, [[grand_share]]; or the narrower option, ActionSA and the PA, [[three_share]].""",
