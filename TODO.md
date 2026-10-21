@@ -201,6 +201,10 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
   named circumstances where a key is received. The built `worker-api/` stores
   email addresses and needs reworking to this before any sign-in goes on.
   OWNER-DECISIONS item 11.
+* **The share badge's bands** (owner, 2026-10-21: went live with the bands
+  as they are). Re-record `tests/test_reweight.py`'s badge table on the 21
+  October simulations and measure why a same-sized move from our prediction
+  now scores lower. OWNER-DECISIONS item 13.
 
 ## Done
 

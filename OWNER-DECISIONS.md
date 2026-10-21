@@ -12,7 +12,20 @@ Last updated: 2026-10-21.
 
 ## Open
 
-### 13. The share badge's bands on the new forecast
+### 6. The splinter split
+
+**Your answer (2026-10-21):** go live with 35% as it is, and measure it after
+going live. "It seems incorrect as it stands in a country so divided by
+population group."
+
+Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
+(JUDGEMENT-CALLS §F6), with the population-group question in the brief.
+
+---
+
+## Answered
+
+### 13. The share badge's bands on the new forecast — answered 2026-10-21
 
 **Context.** When a reader shares a prediction, the site rates how close it is
 to our prediction with a badge: Safe bet, Steady as she goes, Long shot, Wild
@@ -47,18 +60,9 @@ forecast figure, and nothing is published from it until readers share.
 
 **Gates.** Nothing in the forecast. One test stays red until it is answered.
 
-### 6. The splinter split
-
-**Your answer (2026-10-21):** go live with 35% as it is, and measure it after
-going live. "It seems incorrect as it stands in a country so divided by
-population group."
-
-Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
-(JUDGEMENT-CALLS §F6), with the population-group question in the brief.
-
----
-
-## Answered
+**Your answer (2026-10-21):** "go live", given with this item open and
+recommendation (a) standing; taken as (a). Re-recording the test table and
+measuring why relative moves score lower are in TODO.md.
 
 ### 7. The go-live yes — answered 2026-10-21
 
