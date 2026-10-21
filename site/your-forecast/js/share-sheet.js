@@ -26,8 +26,9 @@
 // as one entry for the results-night ranking (src/share-edge.js storeEntry),
 // so a name is sealed once typing has paused NAME_PAUSE_MS, or at once when
 // the field is left, not after every letter. The model's own forecast
-// (section 1 untouched) is not a reader's forecast: nothing is sealed, the
-// seal's line and the ranking's words are hidden, and its link is the page's.
+// (section 1 untouched) is not a reader's prediction: nothing is sealed, the
+// name field and its note, the seal's line and the ranking's words are hidden
+// (H.nameShown), and its link is the page's.
 // A sealed forecast's link goes out as /s/?…&ch=<button>, which the Worker
 // counts by button and forwards to the arrival view (src/share-edge.js).
 //
@@ -83,9 +84,10 @@ export function loadAssets(codes, party, badges = []) {
         return "@font-face{font-family:\"" + f.family + "\";font-weight:" + f.weight + ";src:url(" + src + ") format(\"woff2\")}";
       } catch (e) { return ""; }
     }));
-    let brand = null;
+    let brand = null, wsc = null;
     try { brand = brandOf(await (await asset("logo.svg")).text()); } catch (e) { brand = null; }
-    return { fontCSS: faces.join(""), brand, logos: {}, badges: {} };
+    try { wsc = brandOf(await (await asset("whysoseriouscity.svg")).text()); } catch (e) { wsc = null; }
+    return { fontCSS: faces.join(""), brand, wsc, logos: {}, badges: {} };
   })();
   return assetsReady.then(async a => {
     await Promise.all(codes.filter(c => c && !(c in a.logos) && party(c).logo).map(async c => {
@@ -148,7 +150,8 @@ function requestSeal(fields) {
 }
 
 // E: the sheet's elements, from the section's own region: { open, dlg, close,
-//   name, namenote, url, copy, seal, entry, kind, img, wa, x,
+//   namefield (the label round the name), name, namenote, url, copy, seal,
+//   entry, kind, img, wa, x,
 //   native, dl, toast }.
 // H: what the section shares, as functions of what its page shows now:
 //   canOpen()          may the sheet open
@@ -163,6 +166,8 @@ function requestSeal(fields) {
 //                      figure it needs is being worked out or cannot be;
 //                      `made` is { at, sealed } or null
 //   emptyName()        what the image says when the name is left empty
+//   nameShown()        is the name offered at all (default: yes); the model's
+//                      forecast has none, and takes no name anywhere
 //   entered()          does this sheet seal and enter what it shares
 //   onName(name)       the name changed (the page rewrites its address and
 //                      calls update())
@@ -235,7 +240,7 @@ export function shareSheet(E, H) {
     E.seal.hidden = f === null;
     E.entry.hidden = f === null || !!(f && f.failed);
     if (f === null) { E.seal.textContent = ""; settled = k; typingName = false; buttons(); return; }
-    if (f === undefined) { E.seal.textContent = "Working out the forecast to seal."; buttons(); return; }
+    if (f === undefined) { E.seal.textContent = "Working out the prediction to seal."; buttons(); return; }
     if (f.failed) { E.seal.textContent = "Not sealed: " + f.failed + "."; settled = k; typingName = false; buttons(); return; }
     if (SEALS.has(k)) {
       E.seal.textContent = "Sealed " + localStamp(SEALS.get(k).at, H.election()) + ".";
@@ -306,7 +311,10 @@ export function shareSheet(E, H) {
   }
 
   function fill() {
-    E.namenote.textContent = nameNote(E.name.value, H.emptyName(), H.entered());
+    const named = H.nameShown ? H.nameShown() : true;
+    E.namefield.hidden = !named;
+    E.namenote.hidden = !named;
+    E.namenote.textContent = named ? nameNote(E.name.value, H.emptyName(), H.entered()) : "";
     seal();
     draw();
   }

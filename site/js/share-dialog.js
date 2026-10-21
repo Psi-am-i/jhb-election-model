@@ -21,7 +21,7 @@
 const WA = "https://wa.me/?text=";
 const X = "https://x.com/intent/post?url=";
 
-// E: { open, dlg, close, url, copy, wa, x, native, dl, toast }
+// E: { open, more (optional, more openers), dlg, close, url, copy, wa, x, native, dl, toast }
 // H: what the caller shares, as functions of what its page shows now:
 //   canOpen()      may the sheet open (default: yes)
 //   prepare()      async, before it opens
@@ -56,9 +56,11 @@ export function shareDialog(E, H) {
     E.native.disabled = !(hasWebShare() && on && (H.nativeOn ? H.nativeOn() : true));
   }
 
-  E.open.addEventListener("click", async () => {
+  // E.more: further openers of the same sheet (a page's section buttons);
+  // focus returns to whichever opened it
+  for (const b of [E.open, ...(E.more || [])]) b.addEventListener("click", async () => {
     if (H.canOpen && !H.canOpen()) return;
-    opener = E.open;
+    opener = b;
     say("");
     await H.prepare?.();
     E.dlg.showModal();

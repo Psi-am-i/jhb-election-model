@@ -20,6 +20,7 @@ const E = {
   open: document.querySelector('[data-live="b-share"] .shareopen'),
   dlg: document.querySelector('[data-live="b-share"] dialog'),
   close: document.querySelector('[data-live="b-share"] .x'),
+  namefield: document.querySelector('[data-live="b-share"] .namefield'),
   name: document.querySelector('[data-live="b-share"] .shname'),
   namenote: document.querySelector('[data-live="b-share"] .shnamenote'),
   url: document.querySelector('[data-live="b-share"] .shurl'),
@@ -53,7 +54,7 @@ const sheet = shareSheet(E, {
   emptyName: () => cardTitle(""),
   entered: () => true,
   onName: n => nameCb(n),                 // the page rewrites the address and calls setShareable
-  shareWords: () => ({ title: "My Johannesburg election forecast", text: "My forecast for the Johannesburg council." }),
+  shareWords: () => ({ title: "My Johannesburg election prediction", text: "My prediction for the Johannesburg council." }),
   fileBase: () => "joburg-forecast",
   async card(kind, made) {
     const info = now;

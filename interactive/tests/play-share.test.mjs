@@ -13,15 +13,15 @@
 //    2026-10-06) is drawn from the compute result the page shows: each
 //    party's row carries that party's middle seat count and no range (review
 //    2026-10-02), every other digit comes from the result's totals, its
-//    largest-party shares, its ward count, the election day, the date the
-//    card was made or the reader's name (drawn as text, never markup), every
+//    largest-party shares, its ward count, the election day, the forecast's date or the reader's name (drawn as text, never markup), every
 //    ward is drawn in the result's colour, the parties are in the page's
 //    order, and a figure typed into the card, or a result the card ignored,
 //    is caught (and the check goes quiet again).
-// 4. The card says whose figures these are: "Our Johannesburg Forecast",
-//    the name only on a "Shared by" line (critic G1), the published stamp in
-//    the foot; it is black and white, carries the site's logo, no photograph
-//    and no canvas-drawn site name (owner, 2026-10-06).
+// 4. The card says whose figures these are: the whysoserious.city logo, then
+//    "forecast, <the forecast's date>" (owner, 2026-10-13), no name of anyone
+//    (critic G1; the sheet has no name field for it), the published stamp in
+//    the foot; it is black and white, carries that logo, no photograph and
+//    no canvas-drawn site name.
 // 5. It uses the canvas: at both sizes the map is drawn at least the stated
 //    share of the card's width, and on the story card the words reach to
 //    within STORY_FILL_SLACK of STORY_TEXT_BOTTOM and never past it; a card
@@ -37,8 +37,8 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as PS from "../js/play-state.js";
 import * as SC from "../js/share-card.js";
-import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, madeLine, headline, sharedBy, largestLine,
-         rangeText, councilLine, chamberOf, UNCALLED_COLOUR, section1Share, NO_HANDOFF, PUBLISHED_STAMP, CHAMBER_NOTE, MODEL_TITLE, STORY_TEXT_BOTTOM, SIZES, SITE } from "../js/play-card.js";
+import { buildPlayCardSVG, order, seatText, settingsWords, playCardAlt, INVITE, forecastTitle, forecastWords, FORECAST_NAME, dayText, largestLine,
+         rangeText, councilLine, chamberOf, UNCALLED_COLOUR, section1Share, NO_HANDOFF, PUBLISHED_STAMP, CHAMBER_NOTE, STORY_TEXT_BOTTOM, SIZES, SITE } from "../js/play-card.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = JSON.parse(readFileSync(resolve(here, "native-play.json"), "utf8"));
@@ -108,9 +108,10 @@ const textOf = svg => [...svg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/g)].map(m =
 const runs = s => (s.replace(/[   ]/g, "").match(/\d+(?:\.\d+)?/g) || []);
 const unesc = s => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
 const BRAND = SC.brandOf(readFileSync(resolve(here, "../../site/logo.svg"), "utf8"));
-const ASSETS = { logos: {}, brand: BRAND };
+const WSC = SC.brandOf(readFileSync(resolve(here, "../../src/brand/whysoseriouscity.svg"), "utf8"));
+const ASSETS = { logos: {}, brand: BRAND, wsc: WSC };
+const FDATE = "2026-09-29";
 
-const MADE = "2026-10-01";
 const WHEN = "4 November 2026";
 // Constructed boundaries, one square per ward the result carries: the card's
 // map is checked against the result, not against a file on this machine.
@@ -118,18 +119,18 @@ const geometryFor = r => ({ W: 100, H: 50, step: 7, rotate: 45, places: [],
   paths: Object.fromEntries(r.wards.map((w, i) => [w.ward, `M${i} 0L${i + 1} 0L${i + 1} 1Z`])) });
 const card = (c, extra = {}) => {
   const r = extra.r ?? c.result;
-  return { r, party, made: MADE, when: WHEN, name: "reader-7", geometry: geometryFor(r), assets: ASSETS, ...extra };
+  return { r, party, forecastDate: FDATE, when: WHEN, geometry: geometryFor(r), assets: ASSETS, ...extra };
 };
 
 // The digit runs the card may print outside the seat rows: the result's
 // council and majority, its largest-party shares, its ward count, the made
-// line, the election day and the reader's name. No seat figure is here: a
+// line, the election day and the forecast's date. No seat figure is here: a
 // row's figure is checked against its own party.
 function allowed(info) {
   const out = new Set();
   const add = x => runs(String(x)).forEach(d => out.add(d));
   add(councilLine(info)); add(largestLine(info.r, party)); add(info.r.wards.length);
-  add(madeLine(MADE)); add(WHEN); add(info.name);
+  add(WHEN); add(dayText(FDATE));
   return out;
 }
 // What the card prints that it should not: a row whose figure is not that
@@ -157,7 +158,7 @@ function typed(svg, info) {
 function mapOf(svg, geometry) {
   const m = /<g transform="translate\(([\d.]+) ([\d.]+)\) scale\(([\d.]+)\)">([\s\S]*?)<\/g>/.exec(svg);
   if (!m) return null;
-  return { x: +m[1], y: +m[2], w: geometry.W * m[3], h: geometry.H * m[3], paths: (m[4].match(/<path d="M/g) || []).length };
+  return { x: +m[1], y: +m[2], w: geometry.W * m[3], h: geometry.H * m[3], paths: (svg.match(/<path d="M\d+ 0L/g) || []).length };   // the constructed ward squares: a contested ward is drawn twice (its clip and its edge)
 }
 const baselines = svg => [...svg.matchAll(/<text x="[\d.-]+" y="([\d.-]+)"/g)].map(m => +m[1]);
 
@@ -175,14 +176,20 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       const svg = buildPlayCardSVG(info);
       assert.match(svg, new RegExp(`width="${SIZES[size][0]}" height="${SIZES[size][1]}"`));
       assert.deepEqual(typed(svg, info), [], `${c.name} ${size}`);
-      // whose figures these are: the model's forecast, the name only as "Shared by"
+      // whose figures these are: the logo, then "forecast, <date>", and no name
       const lines = textOf(svg).map(unesc);
       const all = lines.join(" ");
-      assert.equal(lines[0], MODEL_TITLE, `${c.name} ${size}: headline`);
-      assert.equal(headline("reader-7"), MODEL_TITLE);
-      assert.ok(!lines[0].includes("reader-7"), `${c.name} ${size}: the name is not the model's headline`);
-      assert.ok(lines.slice(0, 3).includes(sharedBy("reader-7")), `${c.name} ${size}: shared by`);
+      assert.equal(lines[0], forecastTitle(FDATE), `${c.name} ${size}: headline`);
+      assert.equal(forecastTitle(FDATE), "Forecast, 29 September 2026");
+      assert.ok(!/shared by/i.test(all), `${c.name} ${size}: a "Shared by" line`);
+      assert.ok(svg.includes(`viewBox="${WSC.viewBox}"`), `${c.name} ${size}: the whysoserious.city logo`);
+      assert.ok(!svg.includes(`viewBox="${BRAND.viewBox}"`), `${c.name} ${size}: the Johannesburg lockup`);
       assert.ok(all.includes(PUBLISHED_STAMP), `${c.name} ${size}: stamp`);
+      // the foot invites a prediction, and the forecast's date is the card's one date
+      assert.equal(INVITE, "Make your own prediction at joburg.whysoserious.city/your-forecast");
+      assert.ok(all.includes(INVITE + "."), `${c.name} ${size}: the invitation`);
+      assert.ok(!/try your own|made \d/i.test(all), `${c.name} ${size}: a stale foot`);
+      assert.equal(all.match(/\b\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b/g).filter(d => d !== WHEN).join("|"), dayText(FDATE), `${c.name} ${size}: one date besides polling day`);
       assert.ok(!/election forecast/i.test(all), `${c.name} ${size}`);
       // the largest-party line, ties apart, in the result's own text
       assert.ok(all.includes(largestLine(info.r, party)), `${c.name} ${size}: largest`);
@@ -191,7 +198,7 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       // its stripes where contested
       const map = mapOf(svg, info.geometry);
       for (const w of info.r.wards.slice(0, 20)) assert.ok(svg.includes(`fill="${w.fill}"`), w.ward);
-      assert.equal(map.paths, info.r.wards.length + info.r.wards.filter(w => w.bands).length, `${c.name} ${size}: one fill and one stripe layer per ward`);
+      assert.equal(map.paths, info.r.wards.length + info.r.wards.filter(w => w.bands).length, `${c.name} ${size}: a contested ward is clipped and edged, the others filled`);
       // the council graphic is on every card
       assert.ok(all.includes(info.r.majority + " for a majority"), `${c.name} ${size}: the council graphic's majority`);
       // nothing runs off the card, and the story stays clear of the apps' lower chrome
@@ -200,26 +207,33 @@ test("the card's figures are the result's, in the page's order, at both sizes", 
       assert.ok(Math.min(...ys) > 0, `${c.name} ${size}: text above the card`);
     }
     const alt = playCardAlt(card(c));
-    assert.ok(alt.startsWith(MODEL_TITLE + ". " + sharedBy("reader-7")));
+    assert.ok(alt.startsWith("whysoserious.city forecast, 29 September 2026. "), alt.slice(0, 80));
+    assert.equal(alt.startsWith(forecastWords(FDATE) + ". "), true);
+    assert.ok(!/shared by/i.test(alt));
     assert.ok(alt.includes(largestLine(c.result, party)) && alt.includes(CHAMBER_NOTE));
     for (const p of c.result.shown) assert.ok(!alt.includes(rangeText(c.result.seats[p])), `${c.name}: ${p}'s range in the alt`);
   }
 });
 
-test("a name never heads the model's forecast, and a moved setting draws no model's card", () => {
+test("no name is on the model's forecast, and a moved setting draws no model's card", () => {
   // critic G1: "The IEC's Election Forecast" printed over the model's own figures
   const lines = textOf(buildPlayCardSVG(card(untouched, { name: "The IEC" }))).map(unesc);
-  assert.equal(lines[0], MODEL_TITLE);
-  assert.ok(lines.includes(sharedBy("The IEC")));
-  assert.ok(!lines.some(l => /IEC's/.test(l)), lines.join(" | "));
+  assert.equal(lines[0], forecastTitle(FDATE));
+  assert.ok(!lines.some(l => /IEC/.test(l)), lines.join(" | "));
+  assert.equal(FORECAST_NAME, "whysoserious.city forecast");
+  // the date is the forecast's, never a default
+  assert.throws(() => buildPlayCardSVG(card(untouched, { forecastDate: undefined })), /forecast's date/);
+  assert.throws(() => buildPlayCardSVG(card(untouched, { forecastDate: "29 Sept" })), /forecast's date/);
+  // without the logo the headline names the site
+  const bare = textOf(buildPlayCardSVG(card(untouched, { assets: { logos: {}, brand: BRAND } }))).map(unesc);
+  assert.equal(bare[0], "whysoserious.city Forecast, 29 September 2026");
   // a moved setting is the reader's forecast, sealed (share-card.js): never this card
   assert.throws(() => buildPlayCardSVG(card(moved[0], { touched: true })), /reader's forecast/);
 });
 
-test("the reader's name is drawn as text, never as markup", () => {
+test("a name handed to the model's card is not drawn, as text or markup", () => {
   const svg = buildPlayCardSVG(card(untouched, { name: "<image href=x onerror=alert(1)>" }));
-  assert.ok(!svg.includes("<image href=x"), "the name was injected as markup");
-  assert.ok(svg.includes("&lt;image href=x"));
+  assert.ok(!svg.includes("<image href=x") && !svg.includes("&lt;image href=x") && !svg.includes("onerror"));
 });
 
 test("a typed figure, or a result the card did not read, is caught; reverted, quiet", () => {
@@ -257,8 +271,7 @@ test("a withheld figure is printed as withheld; a refusal, no date or no map dra
   info.r.seats[top].median = { ...info.r.seats[top].median, withheld: true };
   assert.ok(textOf(buildPlayCardSVG(info)).includes("withheld"));
   assert.throws(() => buildPlayCardSVG({ ...info, r: { refused: "too few" } }));
-  assert.throws(() => buildPlayCardSVG({ ...info, made: undefined }));
-  assert.throws(() => buildPlayCardSVG({ ...info, geometry: null }));
+    assert.throws(() => buildPlayCardSVG({ ...info, geometry: null }));
 });
 
 test("the council graphic is the table's middles, the rest grey; middles past the council are refused", () => {
@@ -318,6 +331,46 @@ test("section 1's sheet: the model's forecast is never sealed and its link carri
   assert.equal(link.hash, "#adjust");
 });
 
+// The share sheet itself, run against constructed elements: the name field
+// and its note are on only for a prediction, and sharing the model's forecast
+// asks the Worker for no seal (owner, 2026-10-13).
+async function sheetRun(H) {
+  const { shareSheet } = await import("../js/share-sheet.js");
+  const el = (extra = {}) => ({ addEventListener() {}, removeAttribute() {}, setAttribute() {}, select() {}, focus() {}, value: "", textContent: "", ...extra });
+  const E = { open: el(), close: el(), dlg: el({ open: true, showModal() {}, close() {} }), namefield: el({ hidden: false }), name: el(),
+    namenote: el({ hidden: false }), url: el(), copy: el(), seal: el({ hidden: false }), entry: el({ hidden: false }), kind: el({ value: "link" }),
+    img: el(), wa: el(), x: el(), native: el(), dl: el(), toast: el() };
+  const calls = [];
+  const saved = globalThis.fetch;
+  globalThis.fetch = async (u, o) => { calls.push(String(u)); throw new Error("no network in this test"); };
+  try {
+    const sheet = shareSheet(E, { canOpen: () => true, prepare: async () => {}, link: () => "https://x.test/your-forecast/", election: () => ({}),
+      emptyName: () => "a label", entered: () => false, onName() {}, shareWords: () => ({ title: "t", text: "t" }), fileBase: () => "f",
+      card: async () => ({ wait: "no card in this test" }), ...H });
+    sheet.update();
+    await settle(); await settle();
+  } finally { globalThis.fetch = saved; }
+  return { E, calls };
+}
+
+test("the share sheet offers no name for the model's forecast and seals nothing; it does for a prediction", async () => {
+  const none = await sheetRun({ fields: () => null, nameShown: () => false });
+  assert.equal(none.E.namefield.hidden, true, "the name field is offered for the model's forecast");
+  assert.equal(none.E.namenote.hidden, true);
+  assert.equal(none.E.namenote.textContent, "");
+  assert.equal(none.E.seal.hidden, true);
+  assert.equal(none.E.entry.hidden, true);
+  assert.deepEqual(none.calls.filter(u => /seal/.test(u)), [], "the model's forecast asked for a seal");
+  // a prediction: the field and its note are there, and a seal is asked for
+  const mine = await sheetRun({ fields: () => ({ v: "1", c: "c", f: "f", n: "T" }), nameShown: () => true, entered: () => true });
+  assert.equal(mine.E.namefield.hidden, false);
+  assert.equal(mine.E.namenote.hidden, false);
+  assert.match(mine.E.namenote.textContent, /Left empty/);
+  // the sheet that gives no nameShown (section 2's) keeps its field
+  const two = await sheetRun({ fields: () => ({ v: "1", c: "c", f: "f", n: "T" }) });
+  assert.equal(two.E.namefield.hidden, false);
+});
+
 test("section 1's sheet: moved settings seal the hand-off, under the same name the link carries", async () => {
   const t = sheetFor({ touched: true });
   assert.equal(t.s.fields(), undefined, "before it is asked, it is being worked out");
@@ -367,7 +420,7 @@ test("the model's card is black and white, carries the logo, and no photograph o
     assert.equal(new Set(bars).size, 1, size + ": bars in more than one colour");
     assert.ok(!bars.includes(party("ANC").colour), size + ": a bar in a party's colour");
     // the logo, at its own proportions, inside the card
-    const m = new RegExp(`<svg x="([\\d.]+)" y="([\\d.]+)" width="([\\d.]+)" height="([\\d.]+)" viewBox="${BRAND.viewBox}"`).exec(svg);
+    const m = new RegExp(`<svg x="([\\d.]+)" y="([\\d.]+)" width="([\\d.]+)" height="([\\d.]+)" viewBox="${WSC.viewBox}"`).exec(svg);
     assert.ok(m, size + ": the logo");
     assert.ok(Number(m[1]) + Number(m[3]) <= W && Number(m[2]) >= 0, size + ": the logo runs off the card");
     // no photograph, no image of the site's name: everything is in the SVG

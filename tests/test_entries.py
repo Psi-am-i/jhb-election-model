@@ -483,8 +483,8 @@ def test_wrangler_toml_states_the_limit_and_the_owner_commands():
 
 
 PRIVACY_MUST = (
-    "## Forecasts entered",
-    "the forecast", "the name you typed", "the time of the seal", "the seal's id",
+    "## Predictions entered",
+    "the prediction", "the name you typed", "the time of the seal", "the seal's id",
     "the model's version",
     "each party's vote on the ward ballot and on the list ballot",
     "the version of the entry",
@@ -493,8 +493,8 @@ PRIVACY_MUST = (
     "within six months of polling day if no leaderboard is published",
     "the names come off the leaderboard",
     "for up to thirty days after they are deleted",
-    "share sheet seals the forecast, and so enters it",
-    "the forecast as the link carries it",
+    "share sheet seals the prediction, and so enters it",
+    "the prediction as the link carries it",
     "from the leaderboard",
     "only its first half",
     "public on the leaderboard",

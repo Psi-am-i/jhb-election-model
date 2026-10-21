@@ -235,7 +235,7 @@ for (const [w, h] of [[375, 812], [1440, 1000]]) {
       .then(ok => { looked.push(`next after the vote: focus on the first coalition chip ${ok ? "yes" : "NO"}`);
         if (!ok) failures.push("Next after the vote leaves the focus off the coalition's first chip"); }),
     ["a coalition party", ".coal", p => p.locator(".coal button").first().click(), ".coalstat"],
-    ["analyse", ".yf-step4", p => p.locator('[data-live="b-actions"] .yf-analyse').click(), '[data-live="b-analysis"] .yf-verdict', { scrolls: true }],
+    ["analyse", ".yf-step4", p => p.locator('[data-live="b-actions"] .yf-analyse').click(), '[data-live="b-analysis"] .yf-abadge', { scrolls: true }],
     ["edit after analysing", VOTE, vote(25), null],
     ["a second coalition party after analysing", ".coal", p => p.locator(".coal button").nth(1).click(), null],
   ];

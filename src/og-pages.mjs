@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 import { toPNG } from "./og-raster-node.mjs";
 import { FACES } from "../interactive/tools/card_fonts.mjs";
 import * as SC from "../interactive/js/share-card.js";
+import { buildPlayCardSVG } from "../interactive/js/play-card.js";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { C, text, rect, brand, chip, brandWidth, stampOf, stampSVG, textWidth, fitText, wrapText } = SC;
@@ -44,14 +45,15 @@ const capBase = (fs, top = TOP) => top + fs * 0.7; // a first line whose cap hei
 const WORDMARK_TOP = TOP + LOGO_H * 41 / 120;
 const HEAD_LEADING = 1.08;
 
-function frame(spec) {
+function frame(spec, { footRight = false } = {}) {
   const dateLine = spec.date_line;
   if (!/^#[0-9a-fA-F]{6}$/.test(spec.kind_colour || "")) throw new Error(`${spec.slug}: no kind colour`);
   let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` + rect(0, 0, W, H, C.paper);
   s += rect(0, 0, W, KIND_BAR, spec.kind_colour);
   s += brand(ASSETS, LOGO_X, TOP, LOGO_H);
   s += rect(X, FOOT, R - X, 1, C.rule);
-  s += text(X, FOOT_TEXT, fitText(dateLine, R - X, FOOT_FS, "sans", FOOT_FS * 0.75).text, FOOT_FS, "sans", { fill: C.ink3 });
+  s += text(footRight ? R : X, FOOT_TEXT, fitText(dateLine, R - X, FOOT_FS, "sans", FOOT_FS * 0.75).text, FOOT_FS, "sans",
+    footRight ? { fill: C.ink3, anchor: "end" } : { fill: C.ink3 });
   return s;
 }
 
@@ -106,34 +108,71 @@ function claims(spec) {
   return s + "</svg>";
 }
 
-// ---------- a claim's own page: the quote large, then the owner's verdict
-// badge, the party's logo, the party and who said it (SHARE-BRIEF item 1) ----------
-const CLAIM_QUOTE = { big: 60, least: 30, lines: 6, bottom: 356 };
-const CLAIM_ROW = { badge: 150, cy: 468, chip: 100, gap: 30, party: 34, partyY: 456, who: 24, whoY: 498 };
+// ---------- a claim's own page ----------
+// Top to bottom (owner, 2026-10-13): the quote; directly under it the party's
+// logo, name and speaker; then, lower, the verdict stamp, large, beside the
+// tested statement (claims.toml's label, with a full stop). The top bar is the
+// party's colour. X lays the link's title over the image's bottom left, so
+// nothing is drawn in the lowest 15% of the card at the left: the rule
+// and the foot line end it, and the foot line is set at the right.
+const CLAIM_QUOTE = { big: 40, least: 24, lines: 6 };
+const CLAIM_ROW = { chip: 56, gapTop: 18, gap: 18, party: 28, who: 20 };
+const CLAIM_STAMP = { max: 250, min: 200, preferred: 230, bottom: 526, gapTop: 14, gap: 40 };
+const CLAIM_STATEMENT = { tag: 21, big: 46, least: 28, lines: 3 };
+// A party's logo in the one container every claim card uses: a rounded white
+// square, the logo inset by equal padding, centred and whole (a logo that is
+// itself a full-bleed square gets the same margin as one with a transparent
+// ground). A party with no logo gets its colour in the same square.
+function claimChip(spec, x, y, s) {
+  const src = logoOf(spec.logo), rx = s / 6, pad = s * 0.1;
+  if (!src) return rect(x, y, s, s, spec.colour, ` rx="${n1(rx)}"`);
+  const id = "cc";
+  return `<clipPath id="${id}"><rect x="${n1(x + pad)}" y="${n1(y + pad)}" width="${n1(s - 2 * pad)}" height="${n1(s - 2 * pad)}" rx="${n1(rx / 2)}"/></clipPath>` +
+    rect(x, y, s, s, C.chip, ` rx="${n1(rx)}"`) +
+    `<image x="${n1(x + pad)}" y="${n1(y + pad)}" width="${n1(s - 2 * pad)}" height="${n1(s - 2 * pad)}" href="${src}" preserveAspectRatio="xMidYMid meet" clip-path="url(#${id})"/>`;
+}
 function claim(spec) {
-  let s = frame(spec);
-  const words = "\u201c" + spec.quote + "\u201d";
-  let q = null;
-  for (let fs = CLAIM_QUOTE.big; fs >= CLAIM_QUOTE.least && !q; fs -= 2) {
-    const L = wrapText(words, HEAD_MAX, fs, "serifSemi");
-    const last = capBase(fs) + (L.length - 1) * fs * HEAD_LEADING;
-    if (L.length <= CLAIM_QUOTE.lines && last <= CLAIM_QUOTE.bottom)
-      q = L.map((l, k) => text(X, capBase(fs) + k * fs * HEAD_LEADING, l, fs, "serifSemi")).join("");
-  }
-  if (!q) throw new Error(`${spec.slug}: the quote does not fit ${CLAIM_QUOTE.lines} lines at ${CLAIM_QUOTE.least}px`);
-  s += q;
+  let s = frame(spec, { footRight: true });
+  if (!spec.statement) throw new Error(`${spec.slug}: no tested statement`);
   STAMPS[spec.badge] ??= stampOf(readFileSync(resolve(REPO, spec.badge), "utf8"));
   const [, , vw, vh] = STAMPS[spec.badge].viewBox.split(/\s+/).map(Number);
-  const bw = CLAIM_ROW.badge * vw / vh;
-  s += stamp(spec.badge, "v", X + bw / 2, CLAIM_ROW.cy, CLAIM_ROW.badge);
-  const logo = logoOf(spec.logo);
-  if (logo) ASSETS.logos[spec.code] = logo;
-  const cx = X + bw + CLAIM_ROW.gap;
-  s += chip({ code: spec.code, colour: spec.colour, logo: !!logo }, cx, CLAIM_ROW.cy - CLAIM_ROW.chip / 2, CLAIM_ROW.chip, ASSETS);
-  const tx = cx + CLAIM_ROW.chip + CLAIM_ROW.gap, tw = R - tx;
-  const pn = fitText(spec.party, tw, CLAIM_ROW.party, "sansBold", 22), who = fitText(spec.speaker, tw, CLAIM_ROW.who, "sans", 16);
-  s += text(tx, CLAIM_ROW.partyY, pn.text, pn.fs, "sansBold");
-  s += text(tx, CLAIM_ROW.whoY, who.text, who.fs, "sans", { fill: C.ink2 });
+  const words = "\u201c" + spec.quote + "\u201d";
+  // the quote at the largest size that leaves the stamp its preferred height
+  // (or, at the smallest size, the room there is, never under CLAIM_STAMP.min)
+  let pick = null;
+  for (let fs = CLAIM_QUOTE.big; fs >= CLAIM_QUOTE.least && !pick; fs -= 2) {
+    const L = wrapText(words, HEAD_MAX, fs, "serifSemi");
+    if (L.length > CLAIM_QUOTE.lines) continue;
+    const last = capBase(fs) + (L.length - 1) * fs * HEAD_LEADING;
+    const rowTop = last + CLAIM_ROW.gapTop, rowBottom = rowTop + CLAIM_ROW.chip;
+    const stampH = Math.min(CLAIM_STAMP.max, CLAIM_STAMP.bottom - (rowBottom + CLAIM_STAMP.gapTop));
+    if (stampH >= CLAIM_STAMP.preferred || fs === CLAIM_QUOTE.least) pick = { fs, L, rowTop, rowBottom, stampH };
+  }
+  if (!pick || pick.stampH < CLAIM_STAMP.min) throw new Error(`${spec.slug}: the quote leaves the stamp under ${CLAIM_STAMP.min}px`);
+  const { fs, L, rowTop, rowBottom, stampH } = pick;
+  s += L.map((l, k) => text(X, capBase(fs) + k * fs * HEAD_LEADING, l, fs, "serifSemi")).join("");
+  // the party, directly under the quote
+  if (spec.logo) ASSETS.logos[spec.code] = logoOf(spec.logo);
+  s += claimChip(spec, X, rowTop, CLAIM_ROW.chip);
+  const px = X + CLAIM_ROW.chip + CLAIM_ROW.gap, pw = R - px;
+  const pn = fitText(spec.party, pw, CLAIM_ROW.party, "sansBold", 22), who = fitText(spec.speaker, pw, CLAIM_ROW.who, "sans", 16);
+  s += text(px, rowTop + 25, pn.text, pn.fs, "sansBold");
+  s += text(px, rowTop + 48, who.text, who.fs, "sans", { fill: C.ink2 });
+  // the stamp, and the tested statement beside it
+  const sTop = rowBottom + CLAIM_STAMP.gapTop, cy = sTop + stampH / 2, bw = stampH * vw / vh;
+  s += stamp(spec.badge, "v", X + bw / 2, cy, stampH);
+  const tx = X + bw + CLAIM_STAMP.gap, tw = R - tx;
+  const statement = spec.statement + ".";
+  let st = null;
+  for (let sf = CLAIM_STATEMENT.big; sf >= CLAIM_STATEMENT.least && !st; sf -= 2) {
+    const SL = wrapText(statement, tw, sf, "serifSemi");
+    if (SL.length <= CLAIM_STATEMENT.lines) st = { sf, SL };
+  }
+  if (!st) throw new Error(`${spec.slug}: the statement does not fit ${CLAIM_STATEMENT.lines} lines at ${CLAIM_STATEMENT.least}px`);
+  const pitch = st.sf * HEAD_LEADING, block = CLAIM_STATEMENT.tag + 14 + st.sf * 0.9 + (st.SL.length - 1) * pitch;
+  const top = cy - block / 2;
+  s += text(tx, top + CLAIM_STATEMENT.tag, "Tested statement", CLAIM_STATEMENT.tag, "sansSemi", { fill: C.ink2 });
+  s += st.SL.map((l, k) => text(tx, top + CLAIM_STATEMENT.tag + 14 + st.sf * 0.9 + k * pitch, l, st.sf, "serifSemi")).join("");
   return s + "</svg>";
 }
 
@@ -170,82 +209,20 @@ function article(spec) {
   return s + "</svg>";
 }
 
-// ---------- /forecast: the headline and the figures left, the striped map right ----------
-// The page's map, its contested wards' stripes drawn as geometry. The page
-// fills each contested ward twice: a solid grey base, then a pattern of
-// parallel stripes (one direction, rotate(45), 7-unit tile). resvg renders a
-// rotated pattern tile by tile, and at card scale the tile edges leave
-// hairline seams through which the base shows. Here each contested ward is
-// clipped to itself and filled with long parallel bands in the pattern's
-// colours and widths, over a base in its widest band's colour.
-const STRIPE_STEP = 7;
-function stripedMap(svgText) {
-  const pats = {};
-  for (const [, id, body] of svgText.matchAll(/<pattern id="([^"]+)"[^>]*>([\s\S]*?)<\/pattern>/g))
-    pats[id] = [...body.matchAll(/x1="([\d.]+)"[^>]*stroke="(#[0-9A-Fa-f]{6})" stroke-width="([\d.]+)"/g)].map(([, x, c, w]) => ({ x: +x, c, w: +w }));
-  const k45 = Math.SQRT1_2;
-  let out = "", defs = "", n = 0;
-  const overlaid = new Set([...svgText.matchAll(/<path d="([^"]+)" fill="url\(/g)].map(m => m[1]));
-  for (const p of svgText.match(/<path [^>]*>/g)) {
-    const d = /d="([^"]+)"/.exec(p)[1];
-    const fill = /fill="([^"]+)"/.exec(p)[1];
-    const pm = /url\(#([^)]+)\)/.exec(fill);
-    if (!pm) {
-      if (overlaid.has(d)) continue;                 // the base under a stripe overlay
-      out += `<path d="${d}" fill="${fill}" stroke="${C.paper}" stroke-width="0.8" stroke-linejoin="round"/>`;
-      continue;
-    }
-    const bands = pats[pm[1]];
-    if (!bands || !bands.length) throw new Error("a striped ward's pattern " + pm[1] + " has no stripes");
-    const nums = d.match(/-?[\d.]+/g).map(Number);
-    const xs = nums.filter((_, i) => i % 2 === 0), ys = nums.filter((_, i) => i % 2 === 1);
-    const us = xs.map((x, i) => (x + ys[i]) * k45), vs = xs.map((x, i) => (ys[i] - x) * k45);
-    const u0 = Math.floor(Math.min(...us) / STRIPE_STEP) - 1, u1 = Math.ceil(Math.max(...us) / STRIPE_STEP) + 1;
-    const v0 = Math.min(...vs) - 10, v1 = Math.max(...vs) + 10;
-    const widest = bands.reduce((a, b) => (b.w > a.w ? b : a));
-    const id = "cw" + n++;
-    defs += `<clipPath id="${id}"><path d="${d}"/></clipPath>`;
-    let g = rect(Math.min(...xs) - 2, Math.min(...ys) - 2, Math.max(...xs) - Math.min(...xs) + 4, Math.max(...ys) - Math.min(...ys) + 4, widest.c);
-    g += `<g transform="rotate(45)">`;
-    for (let k = u0; k <= u1; k++) for (const b of bands) if (b !== widest)
-      g += `<rect x="${n1(k * STRIPE_STEP + b.x - b.w / 2)}" y="${n1(v0)}" width="${b.w.toFixed(2)}" height="${n1(v1 - v0)}" fill="${b.c}"/>`;
-    g += "</g>";
-    out += `<g clip-path="url(#${id})">${g}</g><path d="${d}" fill="none" stroke="${C.paper}" stroke-width="0.8" stroke-linejoin="round"/>`;
-  }
-  return `<defs>${defs}</defs>` + out;
-}
-const FC_HEAD = { big: 64, least: 44, lines: 2 };
-const FC = { left: 600, gapHead: 58, head: 24, row: 30, alone: 26, coal: 26, pitch: 36, coalPitch: 35, mapH: 330 };
-const KEY = { w: 34, h: 22, bands: 5 };
+// ---------- /forecast: our forecast's one card ----------
+// The card the share sheet of /your-forecast/ draws in the browser (owner,
+// 2026-10-13: one card for our forecast, one code path): play-card.js's
+// buildPlayCardSVG, over the compute result for the published settings, which
+// og_pages.forecast_spec takes from page.py run natively. Nothing is drawn
+// here: the logo, the title "forecast, <date>", the figures and the foot are
+// play-card.js's and share-card.js's.
+const WORDMARK = SC.brandOf(readFileSync(resolve(REPO, "src/brand/whysoseriouscity.svg"), "utf8"));
 function forecast(spec) {
-  let s = frame(spec);
-  const h = headline(spec.headline, HEAD_MAX, FC_HEAD.big, FC_HEAD.least, FC_HEAD.lines);
-  s += h.svg;
-  const LW = FC.left - X;
-  const row = (y, label, value, fs) => text(X, y, fitText(label, LW - textWidth(value, fs, "sansSemi") - 16, fs, "sans", fs * 0.75).text, fs, "sans", { fill: C.ink2 }) +
-    text(X + LW, y, value, fs, "sansSemi", { anchor: "end" });
-  let y = h.last + FC.gapHead;
-  s += text(X, y, spec.most_seats, FC.head, "sans", { fill: C.ink3 });
-  for (const r of spec.rows) { y += FC.pitch; s += row(y, r.label, r.value, FC.row); }
-  y += FC.pitch + 6;
-  s += row(y, spec.alone.label, spec.alone.value, FC.alone);
-  y += FC.pitch + 8;
-  s += text(X, y, spec.coalitions_head, FC.head, "sans", { fill: C.ink3 });
-  for (const c of spec.coalitions) { y += FC.coalPitch; s += row(y, c.label, c.value, FC.coal); }
-  if (y > FOOT - 8) throw new Error("the forecast card's figures run into its foot");
-  // the map under the logo, its key under it: stripes in the card's inks
-  const vb = /viewBox="([^"]+)"/.exec(spec.map_svg)[1];
-  const [, , vw, vh] = vb.split(/\s+/).map(Number);
-  const inner = stripedMap(spec.map_svg);
-  const mh = FC.mapH, mw = mh * vw / vh, mx = R + 10 - mw;
-  s += `<svg x="${n1(mx)}" y="${TOP + LOGO_H + 6}" width="${n1(mw)}" height="${n1(mh)}" viewBox="${vb}">${inner}</svg>`;
-  const ky = FOOT - 34, kx = FC.left + 100;
-  let key = "";
-  for (let k = 0; k < KEY.bands; k++) key += rect(kx + KEY.w / 2 + (k - (KEY.bands - 1) / 2) * 2 * 3.5 - 1.6, ky - 30, 3.2, 82, C.ink3);
-  s += `<defs><clipPath id="key"><rect x="${kx}" y="${ky}" width="${KEY.w}" height="${KEY.h}" rx="3"/></clipPath></defs><g clip-path="url(#key)">` +
-    rect(kx, ky, KEY.w, KEY.h, C.ink2) + `<g transform="rotate(45 ${kx + KEY.w / 2} ${ky + KEY.h / 2})">` + key + "</g></g>";
-  s += text(kx + KEY.w + 12, ky + 18, spec.key_label, 20, "sans", { fill: C.ink2 });
-  return s + "</svg>";
+  const logos = {};
+  for (const [code, file] of Object.entries(spec.logos)) logos[code] = logoOf(file);
+  const party = c => spec.roster[c];
+  return buildPlayCardSVG({ r: spec.result, party, forecastDate: spec.forecast_date, geometry: spec.geometry, when: spec.when,
+    size: "link", assets: { logos, wsc: WORDMARK } });
 }
 
 // ---------- /your-forecast/: our prediction's map, its seal large over the

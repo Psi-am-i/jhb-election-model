@@ -901,19 +901,31 @@ def test_a_shared_link_names_its_forecast_and_points_at_its_own_image():
              {"url": f"https://{JOBURG}/your-forecast/?t=1,0,0,0", "env": {}},
              {"url": f"https://{PREVIEW_HOSTS[1]}/your-forecast/?{S['link']}&n=whysoserious", "env": {}}]
     named, escaped, plain, blocked = run_worker(source(), cases, S["files"])
-    img = f"https://{JOBURG}/og/2/link.png?{S['link']}&amp;n=Thandi".replace("&amp;", "&")
+    img = f"https://{JOBURG}/og/6/link.png?{S['link']}&amp;n=Thandi".replace("&amp;", "&")
     assert f'<meta property="og:image" content="{img.replace("&", "&amp;")}">' in named["body"], named["body"][:3000]
     assert f'<meta name="twitter:image" content="{img.replace("&", "&amp;")}">' in named["body"]
-    assert '<meta property="og:title" content="Thandi&#x27;s Election Forecast">' in named["body"] or \
-        '<meta property="og:title" content="Thandi\'s Election Forecast">' in named["body"]
+    assert '<meta property="og:title" content="Thandi&#x27;s Election Prediction">' in named["body"] or \
+        '<meta property="og:title" content="Thandi\'s Election Prediction">' in named["body"]
     assert "from=1" not in re.search(r'og:image" content="([^"]*)"', named["body"]).group(1)
     assert "t=1" not in re.search(r'og:url" content="([^"]*)"', named["body"]).group(1)
     assert "<b>" not in escaped["body"].split("</head>")[0] or "&lt;b&gt;" in escaped["body"]
     page = (ROOT / "site/your-forecast/index.html").read_text(encoding="utf-8")
     assert plain["body"] == "asset:/your-forecast/" or plain["body"] == page   # no forecast: untouched
-    assert "My Election Forecast" in blocked["body"] and "whysoserious&#x27;s" not in blocked["body"]
+    assert "My Election Prediction" in blocked["body"] and "whysoserious&#x27;s" not in blocked["body"]
     assert dict(blocked["headers"]).get("x-robots-tag") == NOINDEX
     assert not any(r["logs"] or r["points"] for r in (named, escaped, plain, blocked))
+
+
+def test_the_edge_and_the_seat_worker_name_the_badge_measure_alike():
+    """share-edge.js CLOSENESS_MEASURE is reweight.CLOSENESS_MEASURE: the edge
+    refuses a card answer whose ``measure`` differs (an earlier seat Worker's
+    boldest-call answer has none), so the two texts must be one. Read from
+    each module, not retyped."""
+    import reweight
+    src = (ROOT / "src/share-edge.js").read_text()
+    js = re.search(r'export const CLOSENESS_MEASURE = "([^"]+)";', src).group(1)
+    assert js == reweight.CLOSENESS_MEASURE
+    assert "o.measure !== CLOSENESS_MEASURE" in src
 
 
 def test_an_earlier_card_version_answers_301_to_the_current_one():
@@ -937,19 +949,52 @@ def test_an_earlier_card_version_answers_301_to_the_current_one():
     assert runs[-1]["status"] != 301 and not runs[-1]["seatCalls"]
 
 
+def test_an_old_forecast_image_address_answers_301_to_the_one_the_page_names():
+    """The forecast page's share image is named by its content, so an address
+    a chat app kept from an earlier build names no file. It answers 301 to the
+    image /forecast names now (its og:image), query kept; the current name is
+    served; another image's missing name is left to the asset layer; a page
+    that names no image leaves the 404 alone."""
+    with tempfile.TemporaryDirectory() as t:
+        page, png, bare = Path(t, "forecast"), Path(t, "now.png"), Path(t, "bare")
+        page.write_text('<head><meta property="og:image" content="https://joburg.whysoserious.city/'
+                        'og-page/forecast-bbbbbbbbbbbb.png"></head>', encoding="utf-8")
+        png.write_bytes(b"png")
+        bare.write_text("<head></head>", encoding="utf-8")
+        files = {"/forecast": page, "/og-page/forecast-bbbbbbbbbbbb.png": png}
+        old, cur = "/og-page/forecast-aaaaaaaaaaaa.png", "/og-page/forecast-bbbbbbbbbbbb.png"
+        cases = [{"url": f"https://{JOBURG}{old}?x=1", "env": {}},
+                 {"url": f"https://{JOBURG}{cur}", "env": {}},
+                 {"url": f"https://{JOBURG}/og-page/claim-aaaaaaaaaaaa.png", "env": {}},
+                 {"url": f"https://{PREVIEW_HOSTS[0]}{old}", "env": {}}]
+        runs = run_worker(source(), cases, files)
+        h = [dict(r["headers"]) for r in runs]
+        assert runs[0]["status"] == 301 and h[0]["location"] == f"https://{JOBURG}{cur}?x=1", (runs[0]["status"], h[0])
+        assert runs[1]["status"] == 200 and not h[1].get("location")
+        assert runs[2]["status"] == 404
+        assert runs[3]["status"] == 301 and h[3]["location"] == f"https://{PREVIEW_HOSTS[0]}{cur}"
+        assert h[3].get("x-robots-tag") == NOINDEX and not runs[0]["error"]
+        # it can see: a page that names no image leaves the missing address a 404
+        runs = run_worker(source(), cases[:1], {"/forecast": bare})
+        assert runs[0]["status"] == 404, runs[0]["status"]
+        # and the redirect is the Worker's, not the asset layer's
+        base = run_worker(baseline_source(), cases[:1], files)
+        assert base[0]["status"] == 404
+
+
 def test_the_image_asks_the_seat_worker_and_falls_back_to_the_generic_image():
     """No binding, a failing seat Worker, an incomplete answer and an
     unreadable link each answer 302 to /og.png, never an error. The seat
     Worker is asked for the link's picks, never seats from the link, with the
     published draws' hash."""
     S = _share_setup()
-    base = f"https://{JOBURG}/og/2/link.png?{S['link']}&n=Thandi&seats=999"
+    base = f"https://{JOBURG}/og/6/link.png?{S['link']}&n=Thandi&seats=999"
     ok = {"status": 200, "body": {"seats": {}, "outcome": {}}}
     cases = [{"url": base, "env": {}},
              {"url": base, "env": {}, "seats": {"status": 500, "body": {}}},
              {"url": base, "env": {}, "seats": ok},
-             {"url": f"https://{JOBURG}/og/2/link.png?v=1&c=x&f=AAAA", "env": {}, "seats": ok},
-             {"url": f"https://{PREVIEW_HOSTS[0]}/og/2/story.png?{S['link']}", "env": {}, "seats": ok}]
+             {"url": f"https://{JOBURG}/og/6/link.png?v=1&c=x&f=AAAA", "env": {}, "seats": ok},
+             {"url": f"https://{PREVIEW_HOSTS[0]}/og/6/story.png?{S['link']}", "env": {}, "seats": ok}]
     runs = run_worker(source(), cases, S["files"])
     for r in runs:
         h = dict(r["headers"])
@@ -958,8 +1003,15 @@ def test_the_image_asks_the_seat_worker_and_falls_back_to_the_generic_image():
     assert runs[0]["seatCalls"] == [] and runs[3]["seatCalls"] == []
     call = runs[2]["seatCalls"][0]
     assert call["url"] == "https://seats/v1/card"
-    assert set(call["body"]) == {"seats", "coalition", "draws_sha256"}
+    assert set(call["body"]) == {"seats", "coalition", "draws_sha256", "prediction_sha256"}
     assert call["body"]["draws_sha256"] == S["data"]["draws_sha256"]
+    # the published prediction's hash, one code=seats line per party in code
+    # order (the seat Worker's entry.prediction_sha256, computed here from
+    # forecast.json's start.seats independently of both)
+    import hashlib
+    seats = S["data"]["start"]["seats"]
+    assert call["body"]["prediction_sha256"] == hashlib.sha256(
+        "".join(f"{c}={seats[c]}\n" for c in sorted(seats)).encode()).hexdigest()
     assert call["body"]["coalition"] == S["top"]
     wards = S["data"]["schema"]["x-seat-context"]["wards"]
     assert call["body"]["seats"]["ward_winners"] == dict(zip(wards, S["calls"]))

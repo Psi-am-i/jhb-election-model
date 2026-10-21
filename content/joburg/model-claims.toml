@@ -27,13 +27,13 @@ pages = [
 # ---- docs-public/methodology.md -------------------------------------------
 
 [[claim]]
-id = "roll-per-vd-unadjusted"
+id = "roll-ward-snapshot-whole-vds"
 page = "docs-public/methodology.md"
-text = "The Electoral Commission publishes registration per voting district; the count is not estimated, projected or adjusted."
-symbol = "montecarlo.read_ward_crosswalk"
-state = "absent"
+text = "The forecast uses the IEC's per-ward count of registered voters as at 26 September 2026; each voting district is placed wholly in a single ward and the ward's total is shared among its voting districts in proportion to their registration when the wards were drawn."
+symbol = "build_concordance.apportion_roll"
+state = "live"
 probe = "roll_is_ward_totals_apportioned"
-note = "The 2026 roll is the IEC's per-WARD totals (26 September 2026 snapshot) apportioned to voting-district parts in proportion to their 2024 registration (JUDGEMENT-CALLS T1). The IEC publishes no per-VD figure for 2026."
+note = "Page corrected 2026-10-16 (it said the IEC publishes registration per voting district and the count is not adjusted). JUDGEMENT-CALLS T1; archive/vd-ward-assignment-2026/."
 
 [[claim]]
 id = "pools-from-census-groups"
@@ -50,13 +50,13 @@ symbol = "pools.registered_at_target"
 state = "live"
 
 [[claim]]
-id = "ifp-extra-pool"
+id = "four-census-pools"
 page = "docs-public/methodology.md"
-text = "The model carries one extra pool the census cannot see, identified from a party's own geography (the IFP's)."
-symbol = "pools.SIMULATION_BLOC"
-state = "absent"
+text = "Until home language by ward arrives the forecast uses the four census pools."
+symbol = "pools.pool_counts"
+state = "live"
 probe = "ifp_pool_only_in_simulation_spec"
-note = "The IFP-located pool is emitted only into pools_2026_simulation.json, which the published forecast never reads; pools_2026.json has the four census pools."
+note = "Page corrected 2026-10-16 (it described the IFP-located pool, which is emitted only into pools_2026_simulation.json and is not read by the published forecast)."
 
 [[claim]]
 id = "joint-nonnegative-fit"
@@ -82,17 +82,31 @@ state = "live"
 [[claim]]
 id = "byelections-tilt-expected-share"
 page = "docs-public/methodology.md"
-text = "Before the draws, recent by-elections tilt each party's expected share."
+text = "Recent by-elections tilt parties' expected shares before the draws."
 symbol = "montecarlo.read_bye_value"
 state = "live"
 probe = "bye_weight_is_positive"
-note = "w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323)."
+note = "Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "splits-sized-from-parent"
 page = "docs-public/methodology.md"
 text = "A split is sized as a fraction of its parent, from what previous splits took."
 symbol = "pools.arrival_rules"
+state = "live"
+
+[[claim]]
+id = "split-placed-from-own-national-result"
+page = "docs-public/methodology.md"
+text = "A split that has stood in a national election since, as MK did in 2024, takes where its voters are from that result by ward, not from its parent."
+symbol = "pools.place_vectorless"
+state = "live"
+
+[[claim]]
+id = "ward-only-parties"
+page = "docs-public/methodology.md"
+text = "A party gets ward votes only in the wards where it has a candidate; a party with ward candidates and no party list is not on the party ballot, a ward it wins is its seat, and the list seats are shared among the other parties over the seats that remain."
+symbol = "levels.ballots"
 state = "live"
 
 [[claim]]
@@ -135,13 +149,13 @@ probe = "poll_channel_is_off"
 note = "The poll channel exists in the code and is switched off by DEFAULTS['poll_paths'] = 'off'."
 
 [[claim]]
-id = "heavier-tails"
+id = "log-scale-bell-curve"
 page = "docs-public/methodology.md"
-text = "Each party's simulated support is drawn with heavier tails than a bell curve."
+text = "Each party's simulated support is drawn from a bell curve on a log scale, wider for a smaller party and for a party new to the city, its width measured from past elections."
 symbol = "montecarlo.DRAW_LAWS"
-state = "absent"
+state = "live"
 probe = "draw_law_is_universal"
-note = "The heavy-tailed Student-t level draw (LEVEL_DF) belongs to draw_law = 'incumbent', which is retired from the shipped forecast; the shipped draw_law is 'universal', which has no Student-t term."
+note = "Page corrected 2026-10-16 (it said heavier tails than a bell curve, the retired incumbent law's Student-t draw). The text is JUDGEMENT-CALLS §A57's Plain field."
 
 [[claim]]
 id = "largest-parties-pulled-down"
@@ -183,13 +197,21 @@ symbol = "pools.apply_mergers"
 state = "live"
 
 [[claim]]
-id = "actionsa-built-on-the-smaller-number"
+id = "actionsa-judged-level"
 page = "docs-public/methodology.md"
-text = "Every party's starting level comes from the last national election, converted down to local (ActionSA is built on its 2024 national number)."
+text = "ActionSA is set at 17.6% of the list vote; every other party's share is scaled down in proportion, and ActionSA keeps the model's usual uncertainty for a party of that size."
+symbol = "montecarlo._apply_strength_judgements"
+state = "live"
+note = "Owner's call 2026-10-21, judgements/joburg-2026.toml [party.ASA] support 0.176, sigma_j 0 (JUDGEMENT-CALLS §SJ2, MODEL-LOG §1.330)."
+
+[[claim]]
+id = "starting-level-blends-local-and-national"
+page = "docs-public/methodology.md"
+text = "A party's starting level blends its national result, converted down to local, with its last local result: the less record a party has of that gap, the more its local result counts."
 symbol = "levels.SPINE_K"
-state = "absent"
+state = "live"
 probe = "starting_level_is_local_national_blend"
-note = "A party's level is the local/national blend with weight on the local route k / (worth + k) (levels.SPINE_K), so ActionSA is not sized by its 2024 national share alone."
+note = "Page corrected 2026-10-16 (it said every level comes from the national election and ActionSA is built on the smaller number, the largest open item). Weight on the local route k / (worth + k)."
 
 # ---- docs-public/sources.md -----------------------------------------------
 
@@ -203,11 +225,11 @@ state = "live"
 [[claim]]
 id = "byelections-an-input"
 page = "docs-public/sources.md"
-text = "By-elections are an input to this forecast."
+text = "The model reads by-elections and moves each party's expected share up to halfway toward what they imply."
 symbol = "byelections.load_byelections"
 state = "live"
-probe = "bye_weight_is_positive"
-note = "w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323)."
+probe = "bye_weight_is_half"
+note = "Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "census-ward-product"
@@ -235,20 +257,20 @@ state = "live"
 [[claim]]
 id = "sheet-arithmetic-on-results-registration-byelections"
 page = "forecast-sheet.html"
-text = "It is arithmetic on results, registration and by-elections; polls are not an input."
+text = "It is arithmetic on results and registration; the by-elections since 2021 count at half weight; polls are not an input."
 symbol = "montecarlo.read_bye_value"
 state = "live"
-probe = "bye_weight_is_positive"
-note = "w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323)."
+probe = "bye_weight_is_half"
+note = "The poll half is poll_channel_is_off. Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "sheet-byelection-deltas-central-scenario"
 page = "forecast-sheet.html"
-text = "All CoJ by-elections 2021-2026 (weighted within-ward deltas, an input to the central scenario)."
+text = "All CoJ by-elections 2021-2026 (counted at half weight in this forecast)."
 symbol = "byelections.load_byelections"
 state = "live"
-probe = "bye_weight_is_positive"
-note = "w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323)."
+probe = "bye_weight_is_half"
+note = "Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "sheet-parties-claims-tested"
@@ -274,13 +296,13 @@ symbol = "reweight.poll_trust_sd"
 state = "live"
 
 [[claim]]
-id = "your-byelections-count-partly"
+id = "your-byelections-half-weight"
 page = "interactive/your-forecast.html"
-text = "The forecast counts by-elections partly."
+text = "The forecast counts by-elections at half weight."
 symbol = "montecarlo.bye_weight"
 state = "live"
-probe = "bye_weight_is_positive"
-note = "w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323)."
+probe = "bye_weight_is_half"
+note = "Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "your-party-vote-split-by-group"

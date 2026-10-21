@@ -258,5 +258,24 @@ def test_the_published_small_party_surge_reads_the_published_draws():
     assert 0.0 <= got <= 1.0
 
 
+def test_the_pages_date_and_the_forecast_card_date_are_the_draws_own_run():
+    """`generated_date` reads `published:run_date`, and the forecast card's
+    `forecast_date` is the day of the same `export_draws.run_time`, taken from
+    constructed draws (a manifest and nothing else), not from the ledger."""
+    import export_draws
+    reg = tomllib.loads((ROOT / "content/joburg/stats.toml").read_text(encoding="utf-8"))
+    assert reg["generated_date"]["source"] == "published:run_date"
+    man = {"artefact_key": {"time": "2026-10-14T02:00:10Z"},
+           "published_run": {"run_at": "2026-09-29T17:59:46Z"}}
+    assert export_draws.run_time(man)[:10] == "2026-10-14"
+    assert stats._fmt(export_draws.run_time(man), "date_long") == "14 October 2026"
+    try:
+        export_draws.run_time({"artefact_key": {}})
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("a manifest with no run time was accepted")
+
+
 if __name__ == "__main__":
     raise SystemExit(run_module(globals()))

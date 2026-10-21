@@ -71,7 +71,7 @@ import build_your_forecast  # noqa: E402  (the interactive page's address, below
 #: /make/ (owner, 2026-10-03).
 NAV_ITEMS = [
     ("forecast", "our forecast"),
-    (build_your_forecast.YF_HREF, "your forecast"),
+    (build_your_forecast.YF_HREF, "your prediction"),
     ("commentary", "commentary"),
     ("claims", "party claims"),
     # /about merged into /methodology (owner's sweep, 2026-10-03); the Worker
@@ -265,12 +265,14 @@ def footer_for() -> str:
     umbrella = (f'<a class="foot-umbrella" href="{site_assets.APEX_URL}" aria-label="whysoserious.city">'
                 f'{site_assets.umbrella_svg("wsc-logo")}</a>')
     return f"""<footer class="sitefooter">
-  <div class="foot-top">{umbrella}
+  <div class="foot-text">
   <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="{STATSSA_URL}">Stats SA</a>. Ward and voting-district boundaries from the <a href="{MDB_URL}">Municipal Demarcation Board</a>. Raw election results from the <a href="{IEC_RESULTS_URL}">IEC</a>. <a href="{REPO_URL}">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
-  </div>
   <hr class="foot-rule">
   <div class="foot-independence">
     <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
+  </div>
+  </div>
+  <div class="foot-side">{umbrella}
     <a class="foot-support" href="support">Support Our Work</a>
   </div>
 </footer>"""
@@ -724,7 +726,29 @@ def share_button(html: str, prefix: str = "") -> str:
             f'  {dialog}\n'
             f'  <script type="module" src="{escape(prefix)}{site_assets.JS_DIR}/{PAGE_SHARE_JS}"></script>\n'
             '</div>')
-    return html.replace("</h1>", "</h1>" + part, 1)
+    html = html.replace("</h1>", "</h1>" + part, 1)
+    return share_openers(html)
+
+
+#: A second opener for the page's one share sheet, at the end of each section
+#: of the forecast (owner, 2026-10-21: "the share button by map and after each
+#: section of forecast"). page-share.js binds every element carrying it.
+SHARE_MORE = "data-share-more"
+_FORECAST_SECTION = re.compile(r'(<details class="rollup" data-band="forecast"[^>]*>)(.*?)(</details>)', re.S)
+
+
+def share_openers(html: str) -> str:
+    """``html`` with an opener for its share sheet before the close of each
+    ``<details data-band="forecast">`` section, the map's first: the one
+    sheet, the one page link. Refuses a forecast section holding another
+    ``<details>`` (its close would be ambiguous)."""
+    def add(m):
+        if "<details" in m.group(2):
+            raise SystemExit("share_openers: a forecast section holds another <details>")
+        return (m.group(1) + m.group(2)
+                + f'<p class="pgshare-more-row"><button class="btn model pgshare-more" type="button" {SHARE_MORE}>'
+                  'Share this forecast</button></p>\n  ' + m.group(3))
+    return _FORECAST_SECTION.sub(add, html)
 
 
 # --------------------------------------------------------------------------
@@ -800,6 +824,8 @@ def link_claims(html: str, claims: list[dict]) -> str:
 
 #: The kicker over a claim's own page, and the link back under it.
 CLAIM_KICKER = "The parties' claims, tested"
+#: A claim page's og:title is this and the party's name (owner, 2026-10-13).
+CLAIM_OG_TITLE = "Party claims tested"
 CLAIM_BACK = "All the parties' claims"
 
 
@@ -841,7 +867,9 @@ def claim_pages(html: str, claims: list[dict]) -> list[tuple[str, dict, str]]:
         page = re.sub(r"<title>.*?</title>", lambda _m: f"<title>{claim_title(c)}</title>",
                       page, count=1, flags=re.S)
         output = f"{og_pages.CLAIM_DIR}/{slug}.html"
-        og = page_og(" ".join(c["quote"].split()), c["label"], output.removesuffix(".html"),
+        # X shows the og:title over the image's foot, so it must not repeat the
+        # statement the card prints (owner, 2026-10-13)
+        og = page_og(" ".join(c["quote"].split()), f"{CLAIM_OG_TITLE}: {og_pages.claim_party(c)}", output.removesuffix(".html"),
                      *og_pages.pending(SITE_URL, og_pages.claim_image_slug(slug)))
         page = inject_nav(page, "claims", og)
         page = page.replace('<body class="', f'<body class="{page_type("claims").strip()} ', 1)
@@ -850,11 +878,10 @@ def claim_pages(html: str, claims: list[dict]) -> list[tuple[str, dict, str]]:
 
 
 def share_images(held: list[tuple[str, str, str, str]], out: Path, published: list[dict],
-                 registry: dict, ctx: dict, articles: dict[str, dict]) -> dict[str, tuple[str, str]]:
+                 articles: dict[str, dict]) -> dict[str, tuple[str, str]]:
     """Draw the share image of every page in ``held`` (``(output, slug,
     layout, rendered html)``) into ``<out>/og-page/``: ``{slug: (file name,
-    alt text)}``. Every figure is one a page printed (``published``), or a
-    forecast-card coalition no page prints, rendered as a generated token.
+    alt text)}``. Every figure is one a page printed (``published``).
     Every figure an image prints is appended to ``published`` under the page
     that carries the image, so it is ledgered like the page's own. Refuses on
     any failure (``og_pages``)."""
@@ -865,7 +892,7 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
     import tomllib
     city = cityconfig.active()
     election = build_make.election_of(city)
-    pool, records = og_pages.figure_pool(published, registry, ctx)
+    pool, records = og_pages.figure_pool(published)
     pages = {output: html for output, _s, _l, html in held}
     forecast_html = pages.get("forecast.html")
     yf_data = None
@@ -877,8 +904,7 @@ def share_images(held: list[tuple[str, str, str, str]], out: Path, published: li
             if yf_data is None:
                 raise SystemExit("the forecast share image needs the ward count from "
                                  f"{yf.YF_DIR}/{build_make.DATA}, which this build did not write")
-            spec = og_pages.forecast_spec(html, pool, election=election, headline=OG_TITLE,
-                                          wards=len(yf_data["geometry"]["wards"]))
+            spec = og_pages.forecast_spec(pool, yfd=yf_data, out=out, election=election, headline=OG_TITLE)
         elif layout == "claims":
             claims = tomllib.loads((REPO_ROOT / "content" / city.slug / "claims.toml")
                                    .read_text(encoding="utf-8"))["claim"]
@@ -1536,7 +1562,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         held_pages = held
     if held_pages:
-        images = share_images(held_pages, args.out, published, registry, ctx, articles)
+        images = share_images(held_pages, args.out, published, articles)
         for output, slug, _layout, html in held_pages:
             filename, alt = images[slug]
             html = og_pages.fill(html, SITE_URL, slug, filename, alt)

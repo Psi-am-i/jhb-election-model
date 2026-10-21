@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Your Forecast</title>
+<title>Your prediction</title>
 <!--
   "Your forecast". This file is the page's ONE source: build_site
   (src/build_your_forecast.py) builds /your-forecast/ from it, and it also
@@ -63,7 +63,7 @@
   <nav class="topnav" aria-label="Site">
     <a class="home" href="../site/index.html">joburg.whysoserious.city</a>
     <a href="../site/forecast.html">forecast</a>
-    <a class="active" href="your-forecast.html" aria-current="page">your forecast</a>
+    <a class="active" href="your-forecast.html" aria-current="page">your prediction</a>
     <a href="../site/methodology.html">methodology</a>
   </nav>
   <!-- __DEVONLY_END__ -->
@@ -71,14 +71,14 @@
 
 <div class="wrap yf-wrap">
   <!-- the view a shared link opens (js/arrival.js; from=1 in the address) -->
-  <section class="yf-arrival" data-live="arrival" aria-label="A forecast shared with you" hidden></section>
+  <section class="yf-arrival" data-live="arrival" aria-label="A prediction shared with you" hidden></section>
   <header class="lede pl-lede">
-    <h1>Your Forecast</h1>
-    <p>Adjust the model, then break it. Untouched, the page shows the <a href="../forecast">published forecast</a>.</p>
+    <h1>Your prediction</h1>
+    <p>Adjust our forecast, then make your own prediction. Untouched, the page shows the <a href="../forecast">published forecast</a>.</p>
   </header>
   <nav class="yf-jump" aria-label="Sections">
-    <a href="#adjust">Adjust the model</a>
-    <a href="#break">Break the model</a>
+    <a href="#adjust">Adjust our forecast</a>
+    <a href="#break">Make your own prediction</a>
   </nav>
 
   <section id="adjust" class="yf-section" aria-labelledby="h-adjust">
@@ -88,7 +88,7 @@
       <div class="pl-banner pl-pub" aria-label="Seats in the published forecast"><span class="pl-bstate">Published forecast</span><!-- __PLAY:banner__ --></div>
       <div class="pl-banner pl-live" data-live="banner" aria-label="Seats under your changes"></div>
     </div>
-    <h2 id="h-adjust" class="yf-shead">Adjust the model</h2>
+    <h2 id="h-adjust" class="yf-shead">Adjust our forecast</h2>
     <p class="yf-sdek yf-sub">Move turnout by population group, take a poll into account, decide how much by-election
       results count, and see how other systems would seat the vote.</p>
 
@@ -183,7 +183,7 @@
          forecast, sealed, once a setting is moved -->
     <div class="pl-sharebox yf-sharebox yf-cta" data-live="share">
       <button class="cta shareopen" type="button" disabled>Share this forecast</button>
-      <p class="yf-ctanote">The map, the council and the seats as an image, and a link. Move a setting and it is your own forecast, sealed.</p>
+      <p class="yf-ctanote">The map, the council and the seats as an image, and a link. Move a setting and it is your own prediction, sealed.</p>
       <p class="pl-note pl-sharewhy yf-slot"></p>
       <!-- __YFSHEET:play__ -->
     </div>
@@ -192,12 +192,13 @@
   <div class="yf-break" role="separator"></div>
 
   <section id="break" class="yf-section" aria-labelledby="h-break">
-    <h2 id="h-break" class="yf-shead">Break the model</h2>
-    <p class="yf-sdek yf-sub">Take the forecast above as your own. Call every ward, set each party's share of the vote, and pick
+    <h2 id="h-break" class="yf-shead">Make your own prediction</h2>
+    <p class="yf-sdek yf-sub">Turn the forecast above into your own prediction. Call every ward, set each party's share of the vote, and pick
       who governs. The seats follow from the law that seats the council. Each ward starts at its most likely winner
       under your changes.</p>
-    <p class="pos">Your forecast, and the name you type when you share it, are kept only in the page's address, so a
-      link carries them. Nothing is sent or stored.</p>
+    <p class="pos">Your prediction, and the name you type when you share it, are kept in the page's address, so a
+      link carries them. Opening the share sheet seals your prediction and enters it in the ranking against the
+      result; the <a href="../privacy">privacy page</a> says what is stored.</p>
 
     <noscript><p class="notours">This section needs JavaScript. The <a href="../forecast">model's forecast</a> works without it.</p></noscript>
 
@@ -260,7 +261,7 @@
           <div class="body">
             <!-- the footnote marker's number is drawn by css/your-forecast.css
                  (.yf-fnvote): this region holds no build-time digit -->
-            <p class="yf-oneline yf-sub">Each party's ward vote, with its list vote following it; moving one scales the
+            <p class="yf-oneline yf-sub">Each party's list vote, with its ward vote following it; moving one scales the
               others.<sup class="fn"><a class="yf-fnvote" href="#note-vote" aria-label="Note on the vote"></a></sup></p>
             <div class="row">
               <button class="btn small model prmodel" type="button">Back to the start votes</button>
@@ -287,8 +288,8 @@
           <h3 class="stephead stepno">See how likely it is</h3>
           <!-- a large button, like the two calls to share -->
           <div data-live="b-actions" class="body yf-actions">
-            <button class="cta yf-analyse" type="button" disabled>Analyse my forecast</button>
-            <p class="yf-ctanote">Our chance for your outcome, your map ward by ward, and each party's seats and vote.</p>
+            <button class="cta yf-analyse" type="button" disabled>Analyse my prediction</button>
+            <p class="yf-ctanote">Our badge for your prediction, your map ward by ward, and each party's seats and vote.</p>
           </div>
         </div>
       </div>
@@ -298,14 +299,13 @@
          which holds no build-time digit; css/your-forecast.css hides the
          section while the region is hidden -->
     <section class="yf-analysis" aria-labelledby="h-analysis">
-      <h3 id="h-analysis">How likely is your forecast?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
+      <h3 id="h-analysis">How likely is your prediction?<sup class="fn"><a href="#note-outcome">9</a></sup></h3>
       <div data-live="b-analysis" hidden>
-        <!-- the headline: what "this outcome" is (share-card.js outcomeWords,
-             as on the cards), then the chance we give it (chanceSentence) -->
+        <!-- the headline: what the council outcome is (share-card.js outcomeWords),
+             then the badge, what it says (verdictLine) and how predictions are
+             ranked (SEALED_LINE) -->
         <p class="yf-outcome yf-slot"></p>
-        <p class="yf-verdict yf-slot"></p>
-        <p class="yf-cityonly">This is the citywide result only. Your ward calls and seat counts can be off while it
-          comes true, so its chance can be high even when they are off.</p>
+        <div class="yf-abadge yf-slot"></div>
         <!-- ward wins: the reader's own map, each ward shaded by the chance we
              give their call there; the expected number of calls right beside it -->
         <section class="yf-apart yf-awards" aria-labelledby="h-amap">
@@ -343,8 +343,8 @@
          (js/share-sheet.js) with this section's content (js/make-share.js) -->
     <div class="yf-ctafoot">
       <div class="sharebox yf-cta" data-live="b-share">
-        <button class="cta shareopen" type="button" disabled>Share this forecast</button>
-        <p class="yf-ctanote">Your map, your seats, our chance for your outcome, and a sealed link.</p>
+        <button class="cta shareopen" type="button" disabled>Share this prediction</button>
+        <p class="yf-ctanote">Your map, your seats, our badge for your prediction, and a sealed link.</p>
         <!-- __YFSHEET:break__ -->
       </div>
       <p class="stubnote yf-entries" data-live="entries" role="status" hidden></p>
@@ -354,10 +354,9 @@
   <section class="pl-notes" aria-labelledby="h-notes">
     <h2 id="h-notes">Notes</h2>
     <ol>
-      <li id="note-browser">Your figures are worked out in your browser from the published simulations and are not
-        recorded. A chance is the share of the {{n_draws}} simulations in which the outcome happens, weighted by your
-        settings. A figure is withheld when its sampling error exceeds <!-- __PLAY:maxse__ --> seats.
-        <span data-live="ess" class="yf-slot"></span></li>
+      <li id="note-browser">Your figures are worked out in your browser from the published simulations; your settings
+        are not recorded. A chance is the share of the {{n_draws}} simulations in which the outcome happens, weighted by
+        your settings. A figure is withheld when its sampling error exceeds <!-- __PLAY:maxse__ --> seats.</li>
       <li id="note-turnout">The page does not re-run the model. It re-weights the model's {{n_draws}} published simulations
         towards those with the turnout you set. For Black African turnout at the top of the slider's range this was
         checked against a full re-run of the model, and every party's seat change agreed within sampling error. The other
@@ -370,13 +369,14 @@
         model's simulations nearest the poll; the poll does not come true. The slider stops where too few simulations
         lie near the poll.</li>
       <li id="note-bye">By-elections are small, low-turnout contests, and some parties' swings rest on a handful of wards.
-        The forecast counts them partly. Each setting is a separate full run of the
+        The forecast counts them at half weight. Each setting is a separate full run of the
         model, so part of any difference between settings is sampling noise; the line under the control lists only
         changes larger than that.</li>
       <li id="note-law">The Municipal Structures Act deducts the surplus. Germany's laws are here for comparison, and only a
-        council seated under South African law can be shared. Breaking the model always seats by South African law.</li>
-      <li id="note-vote">An election has two ballots, and "Break the model" sets both. Each party's ward vote is its
-        share of the ward ballot; its list vote follows it, as many points above or below as "Adjust list vote" says.
+        council seated under South African law can be shared. Your own prediction is always seated by South African law.</li>
+      <li id="note-vote">An election has two ballots, and your prediction sets both. You have called the wards on the
+        map, so here you set each party's list vote, its share of the list ballot; its ward vote follows it, as many
+        points above or below as "Adjust ward vote" says. A party with no list sets its ward vote.
         The law gives each party seats from its votes on both ballots together. Your prediction is scored on seats
         first, then ward calls, then the list vote. Moving one party scales the others in proportion. A party that wins a ward on your map keeps a vote on each ballot. The range each slider allows follows the wards on your map. In each ward, a
         party starts from its result there at the last local election. A party that has not stood in a local election
@@ -387,19 +387,25 @@
         votes on each ballot across them. The list puts first the parties that hold a seat at the start, most seats
         first, and the rest under "Other parties". The order stays fixed while you edit, so a party can sit in the
         first list with no votes.</li>
-      <li id="note-outcome">"This outcome" is your council's: the party with the most seats on its own, or a tie for
+      <li id="note-outcome">The "council outcome" is your council's: the party with the most seats on its own, or a tie for
         the most; whether any one party has a majority on its own; and, if you picked who governs, that coalition
-        holding a majority. Its chance is the share of the published forecast's {{n_draws}} simulations, each counted
-        once, in which all of these happen together. A ward's chance is the share in which your party wins it; your
+        holding a majority. No chance is given for it. The badge says how close your prediction is to ours. For
+        each party, it takes the share of the published forecast's {{n_draws}} simulations, each counted once, that
+        land at least as far from our seats as yours, and the same for the list vote; the largest parties in our
+        prediction count double. The badges are fixed bands of that score, from Safe bet, closest, to Hail Mary. The
+        score is not a chance and is not shown, and the badge plays no part in the ranking. A ward's chance is the share of
+        the simulations in which your party wins it; your
         map draws it as the strength of each ward's colour, and the number of your ward calls we expect to come true
-        is their average count over the simulations. The citywide figures score your forecast against each simulation
+        is their average count over the simulations. The citywide figures score your prediction against each simulation
         as if it were the result, by the competition's rules in its order. Seats: the gap between your seats and the
         simulation's, party by party, added up. The seat line under the table is the model's own spread: its middle
         forecast, each party at its middle seat count, is that close to half the simulations. Vote: the gap between
-        your vote and the simulation's list-ballot share, party by party, added up, in points. Your vote is your share
-        of both ballots together; the simulations carry each party's list-ballot share only, so that is what it is
-        compared with, and the parties they do not carry one by one are compared as one group.</li>
+        your list vote and the simulation's, party by party, added up, in points.</li>
     </ol>
+    <!-- how many simulations section 1's figures rest on, once a setting is
+         moved: after the notes, so its reserved lines never sit between two
+         of them (owner, 2026-10-13) -->
+    <p data-live="ess" class="pl-note yf-slot"></p>
   </section>
 
   <div class="pl-tip pl-pubtip" hidden></div>

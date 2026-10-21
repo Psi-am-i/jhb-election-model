@@ -8,6 +8,8 @@
 /* the button by the page title */
 .pgshare{margin:12px 0 4px;}
 .pgshare .pgshare-open{min-height:38px;padding:8px 16px;}
+.pgshare-more-row{margin:14px 0 2px;}
+.pgshare-more{min-height:38px;padding:8px 16px;}
 
 /* the dialog */
 /* sized by its border box whatever the page's own rule (the forecast

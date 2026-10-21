@@ -20,9 +20,9 @@
 //
 // DESIGN-decided §8: every control applies to every party identically. Parties
 // are listed alphabetically wherever a reader chooses; nothing is preselected.
-// The vote list is two alphabetical lists, the parties seated at the
-// published start and then the rest, collapsed: an order fixed by the page,
-// not a ranking. The builder holds only a valid prediction (the seat law's
+// The vote list is the parties with the largest vote in our prediction (the
+// published start), largest first, then the rest alphabetically, collapsed:
+// an order fixed by the page, the same rule for every party. The builder holds only a valid prediction (the seat law's
 // refusals, js/builder-state.js), and its editor keeps each party inside the
 // bounds the past results allow (schema x-editor-bounds, JUDGEMENT-CALLS §R);
 // a state from a link or a hand-off may lie outside them, opens as it is, and
@@ -63,7 +63,7 @@
 // friend's forecast stays on the page only: neither the address nor the
 // reader's share link carries it, so no link draws the two forecasts side by
 // side (owner, 2026-10-10: that card is off the share choices). Its seats come
-// from the same seat Worker, in a lane of their own, and its chance from the
+// from the same seat Worker, in a lane of their own, and its badge from the
 // same analysis.
 
 import * as B from "./builder-state.js";
@@ -73,7 +73,8 @@ import { WardMap } from "./map.js";
 import { setShareable, onNameChange, onOpen } from "./make-share.js";
 import { setHandoff } from "./play-share.js";
 import { showArrival, hideArrival, onChoose } from "./arrival.js";
-import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords } from "./share-card.js";
+import { forecastSpec, aChance, chanceSentence, wardChanceSentence, outcomeWords, badgeFile, STAMP_DIR, verdictLine,
+  SEALED_LINE } from "./share-card.js";
 import { seatTable } from "./seat-table.js";
 import { placeTip } from "./tip.js";
 import { engineCall, onForecast } from "./model.js";
@@ -120,7 +121,7 @@ const one = {
   actions: document.querySelector('[data-live="b-actions"]'),
   analyse: document.querySelector('[data-live="b-actions"] .yf-analyse'),
   analysis: document.querySelector('[data-live="b-analysis"]'),
-  verdict: document.querySelector('[data-live="b-analysis"] .yf-verdict'),
+  badge: document.querySelector('[data-live="b-analysis"] .yf-abadge'),
   sseats: document.querySelector('[data-live="b-analysis"] .yf-sseats'),
   svote: document.querySelector('[data-live="b-analysis"] .yf-svote'),
   outcome: document.querySelector('[data-live="b-analysis"] .yf-outcome'),
@@ -348,7 +349,7 @@ async function start() {
   if (geom.wards.map(w => String(w.id)).join() !== ctx.wards.join()) throw new Error("the geometry and the schema disagree about the wards");
   from = pubStart;
   const opened = MS.parse(YU.partOf(location.search, YU.BREAK_KEYS), ctx, D.context_ref, pubStart,
-                          "Break the model opens at its start instead.");
+                          "Make your own prediction opens at its start instead.");
   state = opened.state;
   S = { coalition: opened.coalition.slice(), brush: null };
   if (opened.note) { one.linknote.textContent = opened.note; one.linknote.hidden = false; }
@@ -367,7 +368,7 @@ async function start() {
     fromLink = false;
     friend = { name: YU.currentName(), f: linkF, state, coalition: S.coalition.slice(), answer: null, outcome: null,
                seal: { state: "checking", at: null } };
-    one.status.textContent = "This is " + (friend.name || "a reader") + "'s forecast. Pick where to start, above, to make your own.";
+    one.status.textContent = "This is " + (friend.name || "a reader") + "'s prediction. Pick where to start, above, to make your own.";
     checkSeal();
   } else if (YU.friend()) {
     // an address from before 2026-10-10 carries a friend's forecast: its
@@ -400,7 +401,7 @@ async function checkSeal() {
 }
 const partyOf = c => parties[c] || { name: byCode[c] ? byCode[c].name : c, colour: "#8b918b", article: "", logo: false };
 function friendSpec() {
-  return forecastSpec({ name: friend.name, answer: friend.answer, outcome: friend.outcome || { coalition: friend.coalition, text: "", badge: "" },
+  return forecastSpec({ name: friend.name, answer: friend.answer, outcome: friend.outcome || { coalition: friend.coalition, badge: "" },
     vote: B.percentOf(friend.state, ctx, "list"), calls: friend.state.calls, party: partyOf, baseline: D.baseline, election: D.election,
     made: friend.seal && friend.seal.state === "sealed" ? { at: friend.seal.at, sealed: true } : null });
 }
@@ -410,11 +411,13 @@ function paintArrival() {
   if (!friend.outcome) spec.outcome = null;
   showArrival({ spec, geom, seal: friend.seal, now: Date.now(), party: partyOf, logo: c => new URL("logos/" + c + ".png", pageRoot).href });
 }
-// The chance and badge of a forecast's outcome (page.py analyse), for the
+// The published prediction, as page.py analyse takes it (forecast.json `start`).
+const ours = () => ({ prediction: { seats: D.start.seats, list_votes: D.start.list_votes } });
+// A forecast's council in words and its badge (page.py analyse), for the
 // arrival view, the return card and the reader's own card.
 function outcomeOf(st, coalition, answer) {
   return engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, st.calls[i]])),
-    share: B.percentOf(st, ctx, "list"), seats: answer.seats, majority: answer.majority, coalition, keep: [] }).then(a => a.outcome);
+    share: B.percentOf(st, ctx, "list"), seats: answer.seats, majority: answer.majority, coalition, keep: [], ...ours() }).then(a => a.outcome);
 }
 async function friendOutcome() {
   if (!friend || !friend.answer || friend.outcome) return;
@@ -684,19 +687,26 @@ one.undo.addEventListener("click", () => {
 });
 
 // ---------- the vote: a table with the seat table's columns ----------
-// Party | slider | percent, one identical row per party, on the WARD ballot;
-// each row's list vote follows its ward vote, and a collapsed "Adjust list
-// vote" under it sets the list vote as points from the ward vote (STYLE.md
-// rule 11: every vote figure names its ballot). A party with no PR list has
-// no list control. The parties that hold a seat in the published start come
-// first, most seats first as the seat table orders them; every other party,
-// alphabetical, in a collapsed "Other parties". The order is the published
-// start's, fixed for the page, so a row never moves under the reader's
-// finger; finding a party opens the second list. The percent boxes are text
-// with a decimal keypad: no spinner. The slider's ends follow the party's
-// limits for the wards on the map (builder-state.js wardLimits: what its
-// wards allow, inside its citywide limit), so the reader sees the range move
-// as they paint.
+// Party | slider | percent, one identical row per party, on the LIST ballot
+// (owner, 2026-10-21: the reader has called the wards on the map, so the vote
+// they set is the list vote). Each row's ward vote follows its list vote at
+// the gap it had, and a collapsed "Adjust ward vote" under it sets the ward
+// vote as points from the list vote (STYLE.md rule 11: every vote figure names
+// its ballot). The engine is unchanged: it holds the ward vote and lets the
+// list follow at its gap (builder-state.js setWardPercent, setListGap), and
+// this page drives it from the list side. A party with no PR list has no list
+// vote and keeps a ward-vote row. The parties at or above SHOWN_MIN of their
+// ballot in our prediction (the published start) come first, largest vote
+// first; every other party, alphabetical, in a collapsed "Other parties"
+// (owner, 2026-10-21: "the parties which have largest vote in our model are
+// shown, the rest are hidden"). The order is the published start's, fixed for
+// the page, so a row never moves under the reader's finger; finding a party
+// opens the second list. The percent boxes are text with a decimal keypad: no
+// spinner. The slider's ends follow the party's limits for the wards on the
+// map (builder-state.js wardLimits: what its wards allow, inside its citywide
+// limit), moved onto the list ballot by its gap, so the reader sees the range
+// move as they paint.
+const SHOWN_MIN = 0.0025;
 const rows = {};
 // The percent each row's box last showed (paintShares). Enter edits a box and
 // then the browser fires "change" with the value the edit painted back; that
@@ -704,30 +714,35 @@ const rows = {};
 // one wrote (check step of slice B2a, 2026-10-09).
 const shown = {};
 let rest;
+const onList = c => !ctx.noList.has(c);
 function buildVote() {
-  const start = D.start.seats;
-  const seatedAtStart = alpha.filter(c => (start[c] || 0) > 0)
-    .sort((a, b) => start[b] - start[a] || name(a).localeCompare(name(b)));
+  const sv = D.start.list_votes, sw_ = D.start.ward_votes;
+  const tot = m => Object.values(m).reduce((a, x) => a + x, 0);
+  const Tl = tot(sv), Tw = tot(sw_);
+  const startShare = c => onList(c) ? (sv[c] || 0) / Tl : (sw_[c] || 0) / Tw;
+  const lead = alpha.filter(c => startShare(c) >= SHOWN_MIN)
+    .sort((a, b) => startShare(b) - startShare(a) || name(a).localeCompare(name(b)));
   const restList = el("div", { className: "prrest" });
   rest = el("details", { className: "rollup prmore" }, el("summary", {}, el("span", { className: "eyebrow" }, "Other parties")), restList);
   const head = el("div", { className: "prrow prhead", "aria-hidden": "true" },
-    el("span", {}, "Party"), el("span", {}, "Ward vote"), el("span", { className: "prpct" }, "Ward vote %"));
+    el("span", {}, "Party"), el("span", {}, "List vote"), el("span", { className: "prpct" }, "List vote %"));
   one.prlist.append(head);
-  for (const c of [...seatedAtStart, ...alpha.filter(x => !seatedAtStart.includes(x))]) {
+  for (const c of [...lead, ...alpha.filter(x => !lead.includes(x))]) {
+    const ballot = onList(c) ? "list" : "ward";
     const num = el("input", { type: "text", id: "pr-n-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
                               disabled: true, className: "prnum" });
-    const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", ward vote, percent" });
+    const rng = el("input", { type: "range", min: "0", max: "100", step: "0.1", disabled: true, "aria-label": name(c) + ", " + ballot + " vote, percent" });
     const fl = el("span", { className: "fl" });
     let gap = null, gapText = null;
     const parts = [el("label", { htmlFor: "pr-n-" + c, className: "prname" }, sw(c), name(c)), rng, num, fl];
-    if (ctx.noList.has(c)) {
-      parts.push(el("p", { className: "prgap prgap-none" }, "Ward ballot only: no list."));
+    if (!onList(c)) {
+      parts.push(el("p", { className: "prgap prgap-none" }, "Ward ballot only: no list. This row is its ward vote."));
     } else {
       gap = el("input", { type: "text", id: "pr-g-" + c, inputMode: "decimal", autocomplete: "off", spellcheck: false,
                           disabled: true, className: "prnum prgapnum" });
       gapText = el("span", { className: "prgaptext" });
-      parts.push(el("details", { className: "prgap" }, el("summary", {}, "Adjust list vote"),
-        el("label", { htmlFor: "pr-g-" + c }, "List vote: points from ward vote "), gap, gapText));
+      parts.push(el("details", { className: "prgap" }, el("summary", {}, "Adjust ward vote"),
+        el("label", { htmlFor: "pr-g-" + c }, "Ward vote: points from list vote "), gap, gapText));
       gap.addEventListener("change", () => editGap(c, gap.value));
       gap.addEventListener("keydown", e => { if (e.key === "Enter") editGap(c, gap.value); });
       editables.push(gap);
@@ -737,7 +752,7 @@ function buildVote() {
     num.addEventListener("keydown", e => { if (e.key === "Enter") editShare(c, num.value, true, null); });
     rng.addEventListener("input", () => editShare(c, rng.value, false, rng));
     rng.addEventListener("change", () => editShare(c, rng.value, true, null));
-    rows[c] = { row, num, rng, fl, gap, gapText, seated: seatedAtStart.includes(c) };
+    rows[c] = { row, num, rng, fl, gap, gapText, seated: lead.includes(c) };
     if (!firstVote) firstVote = rng;
     editables.push(num, rng);
     (rows[c].seated ? one.prlist : restList).append(row);
@@ -753,36 +768,47 @@ one.prfind.addEventListener("input", () => {
 });
 
 const signed1 = x => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(1);
+// A row's ballot: the list for a party with a PR list, else the ward.
+const rowBallot = c => (onList(c) ? "list" : "ward");
 function paintShares(except = null) {
   const Tw = B.totalOf(state, "ward"), Tl = B.totalOf(state, "list");
   const { floor, ceil, bind } = B.wardLimits(state.calls, ctx, Tw);
   const what = side => (side === "box" ? "its wards allow." : "past results allow.");
   for (const c of alpha) {
-    const v = state.ward[c], r = rows[c], p = v / Tw * 100;
+    const r = rows[c], w = state.ward[c];
+    // on the list ballot the ward limits carry over at the party's gap
+    const g = onList(c) ? B.gapOf(state, ctx, c) : 0;
+    const p = onList(c) ? state.list[c] / Tl * 100 : w / Tw * 100;
+    const clip = x => Math.max(0, Math.min(100, x));
     if (r.num !== except) r.num.value = shown[c] = p.toFixed(1);
     if (r.rng !== except) r.rng.value = p.toFixed(1);
-    r.rng.setAttribute("min", (floor[c] / Tw * 100).toFixed(1));
-    r.rng.setAttribute("max", (ceil[c] / Tw * 100).toFixed(1));
-    r.rng.setAttribute("aria-valuetext", pct(v, Tw) + " percent of the ward vote");
-    r.fl.textContent = floor[c] && v <= floor[c] ? "At the least " + what(bind[c].floor)
-      : v >= ceil[c] ? "At the most " + what(bind[c].ceil) : "";
+    r.rng.setAttribute("min", clip(floor[c] / Tw * 100 + g).toFixed(1));
+    r.rng.setAttribute("max", clip(ceil[c] / Tw * 100 + g).toFixed(1));
+    r.rng.setAttribute("aria-valuetext", p.toFixed(1) + " percent of the " + rowBallot(c) + " vote");
+    r.fl.textContent = floor[c] && w <= floor[c] ? "At the least " + what(bind[c].floor)
+      : w >= ceil[c] ? "At the most " + what(bind[c].ceil) : "";
     if (r.gap) {
-      const g = B.gapOf(state, ctx, c);
-      if (document.activeElement !== r.gap) r.gap.value = signed1(g);
-      r.gapText.textContent = " List vote " + pct(state.list[c], Tl) + "%.";
+      if (document.activeElement !== r.gap) r.gap.value = signed1(-g);
+      r.gapText.textContent = " Ward vote " + pct(w, Tw) + "%.";
     }
   }
   one.totals.textContent = "Ward ballot: " + Tw.toLocaleString("en-ZA") + " votes. List ballot: " + Tl.toLocaleString("en-ZA") + " votes.";
 }
 let openEdit = null;
+// Set party `c`'s vote on its row's ballot to `raw` percent. For a list row
+// the engine's ward vote is set to the asked list share less the party's gap,
+// and the list follows at that gap.
 function editShare(c, raw, final, active) {
   if (!engineReady || locked) return;
   const want = parseFloat(raw);
   if (!Number.isFinite(want)) { if (final) paintShares(); return; }
   if (openEdit !== c) { snapshot(); openEdit = c; }
   if (final) openEdit = null;
-  const r = B.setWardPercent(state, ctx, c, want);
-  const at = pct(r.state.ward[c], B.totalOf(r.state, "ward"));
+  const g = onList(c) ? B.gapOf(state, ctx, c) : 0;
+  const r = B.setWardPercent(state, ctx, c, want - g);
+  const ballot = rowBallot(c);
+  const at = ballot === "list" ? pct(r.state.list[c], B.totalOf(r.state, "list"))
+    : pct(r.state.ward[c], B.totalOf(r.state, "ward"));
   const lower = r.clamped === "floor";
   // why the citywide limit stops it, by the history the limit comes from
   const history = {
@@ -792,31 +818,44 @@ function editShare(c, raw, final, active) {
   };
   let note = "";
   if (r.by === "others") {
-    note = name(c) + "'s ward vote cannot go " + (lower ? "lower" : "higher") +
-      ": the other parties are at the limits of their own ward votes.";
+    note = name(c) + "'s " + ballot + " vote cannot go " + (lower ? "lower" : "higher") +
+      ": the other parties are at the limits of their own votes.";
   } else if (r.by === "city") {
-    note = name(c) + "'s ward vote cannot go " + (lower ? "below " : "above ") + at + "%: " +
+    note = name(c) + "'s " + ballot + " vote cannot go " + (lower ? "below " : "above ") + at + "%: " +
       history[ctx.bounds.city.kind[c]];
   } else if (lower) {
-    note = name(c) + "'s ward vote cannot go below " + at +
+    note = name(c) + "'s " + ballot + " vote cannot go below " + at +
       "% with the wards it wins on your map and their past results. Give its wards to other parties to take it lower.";
   } else if (r.clamped === "ceiling") {
-    note = name(c) + "'s ward vote cannot go above " + at + "% with the wards on your map: it cannot pass the winner" +
+    note = name(c) + "'s " + ballot + " vote cannot go above " + at + "% with the wards on your map: it cannot pass the winner" +
       " in a ward it does not win, nor go past what each ward's past results allow. Give it more wards to take it higher.";
   }
   state = r.state;
   one.floornote.textContent = note;
   afterEdit(final ? null : active);
 }
+// Set party `c`'s ward vote as `raw` points from its list vote, the list vote
+// held: the ward vote moves to the list share plus the points (setWardPercent,
+// the list following at the old gap), then the list is put back by setting
+// the gap to minus the points (setListGap).
 function editGap(c, raw) {
   if (!engineReady || locked) return;
   const want = parseFloat(String(raw).replace("−", "-"));
   if (!Number.isFinite(want)) { paintShares(); return; }
   snapshot();
-  const r = B.setListGap(state, ctx, c, want);
-  const note = r.clamped === "gap_min" || r.clamped === "gap_max"
-    ? name(c) + "'s list vote is as far from its ward vote as this page allows, past the widest gap in past results."
-    : r.clamped === "others" ? name(c) + "'s list vote moved as far as it can without taking another party's list vote out of range." : "";
+  // the points are ward minus list, so the gap the engine bounds is minus them
+  const { gap_min, gap_max } = ctx.bounds;
+  const points = Math.max(-gap_max, Math.min(-gap_min, want));
+  const listPct = state.list[c] / B.totalOf(state, "list") * 100;
+  const r1 = B.setWardPercent(state, ctx, c, listPct + points);
+  // the points the ward reached, where its limits stopped it short
+  const reached = r1.state.ward[c] / B.totalOf(r1.state, "ward") * 100 - listPct;
+  const r = B.setListGap(r1.state, ctx, c, -reached);
+  const note = r1.clamped
+    ? name(c) + "'s ward vote cannot go " + (r1.clamped === "floor" ? "lower" : "higher") + " with the wards on your map."
+    : points !== want || r.clamped === "gap_min" || r.clamped === "gap_max"
+      ? name(c) + "'s ward vote is as far from its list vote as this page allows, past the widest gap in past results."
+      : r.clamped === "others" ? name(c) + "'s list vote moved as far as it can without taking another party's list vote out of range." : "";
   commit(r.state, note);
 }
 one.prmodel.addEventListener("click", () => {
@@ -1016,7 +1055,7 @@ async function analyse(scroll) {
     a = await engineCall("analyse", { ward_calls: Object.fromEntries(ctx.wards.map((w, i) => [w, state.calls[i]])),
                                       share: B.percentOf(state, ctx, "list"), seats: result.seats,
                                       majority: result.majority, coalition: S.coalition,
-                                      keep: analysed ? Object.keys(analysed.seats) : [] });
+                                      keep: analysed ? Object.keys(analysed.seats) : [], ...ours() });
   } catch (e) {
     if (ticket === analyseTicket) one.anote.textContent = "The analysis could not run: " + (e.message || e) + ".";
     return;
@@ -1030,14 +1069,15 @@ async function analyse(scroll) {
   if (scroll) one.analysis.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
 }
 // "We give this outcome a 3% chance." The owner's wording (2026-10-03), for
-// the whole forecast, a ward, a party's seats and its vote alike:
-// share-card.js's aChance and chanceSentence, one definition.
+// a ward, a party's seats and its vote alike: share-card.js's aChance and
+// chanceSentence, one definition. The council outcome has no chance printed
+// (owner, 2026-10-13).
 //
-// The analysis (owner, 2026-10-05), three parts:
-//   * the headline: what "this outcome" is, the reader's council-level
+// The analysis (owner, 2026-10-05 and 2026-10-13), three parts:
+//   * the headline: what the "council outcome" is, the reader's council-level
 //     outcome in the cards' words (share-card.js outcomeWords: the largest
-//     party, a majority alone or not, the chosen coalition), its chance, and
-//     the page's line that it is the citywide result only;
+//     party, a majority alone or not, the chosen coalition); the badge with
+//     what it says (verdictLine, "your") and how predictions are ranked (SEALED_LINE);
 //   * ward wins, "Your map": the reader's own map, each ward in the colour of
 //     the party called, as strong as our chance for that call, with the
 //     number of calls we expect to come true beside it, and each ward's
@@ -1050,8 +1090,9 @@ async function analyse(scroll) {
 let amap = null;
 function paintAnalysis(a) {
   const sc = a.score;
-  one.outcome.textContent = "This outcome: " + outcomeWords(a.outcome, partyOf);
-  one.verdict.textContent = chanceSentence(a.outcome.text);
+  one.outcome.textContent = "Council outcome: " + outcomeWords(a.outcome, partyOf);
+  one.badge.replaceChildren(el("img", { src: "../" + STAMP_DIR + "/" + badgeFile(a.outcome.badge), alt: a.outcome.badge, className: "yf-stamp" }),
+    el("div", {}, el("p", { className: "yf-abadge-what" }, verdictLine(a.outcome.phrase, "your")), el("p", { className: "yf-abadge-rank" }, SEALED_LINE)));
   // ward wins: the reader's map, shaded by our chance for each call
   // each ward's title names our chance for the call there (a screen reader
   // reads it; a pointer shows it); a ward's strength has a floor, so a call
@@ -1062,10 +1103,11 @@ function paintAnalysis(a) {
   one.expected.textContent = "We expect " + Math.round(sc.wards_called) + " of your " + a.wards_count + " ward calls to come true.";
   // citywide: each party's seats and vote beside its chance
   const sb = a.seat_band, pb = a.share_band;
+  const seatHead = "Chance it lands within " + sb + " seats", voteHead = "Chance it lands within " + pb + " points";
   const head = el("tr", { className: "yf-wide" }, el("th", { scope: "col" }, "Party"), el("th", { scope: "col", className: "num" }, "Your seats"),
-    el("th", { scope: "col", className: "num" }, "The odds we give this*"),
+    el("th", { scope: "col", className: "num" }, seatHead),
     el("th", { scope: "col", className: "num" }, "Your list vote"),
-    el("th", { scope: "col", className: "num" }, "The odds we give this†"));
+    el("th", { scope: "col", className: "num" }, voteHead));
   const seats = result.seats, share = B.percentOf(state, ctx, "list");
   const codes = Object.keys(a.seats).sort((x, y) => (seats[y] || 0) - (seats[x] || 0) || name(x).localeCompare(name(y)));
   // two layouts of the same cells (css/your-forecast.css): one row per party,
@@ -1087,10 +1129,8 @@ function paintAnalysis(a) {
   ]);
   const narrowHead = el("tr", { className: "yf-narrow" }, el("th", { scope: "col" }, "Party"),
     el("th", { scope: "col", className: "num" }, "Yours"),
-    el("th", { scope: "col", className: "num" }, "The odds we give this*†"));
-  // the caveat the two odds columns carry, once, under the table
-  const caveat = el("p", { className: "yf-alegend" }, "* Within " + sb + " seats of yours. † Within " + pb + " points of yours, on the list ballot.");
-  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)), caveat);
+    el("th", { scope: "col", className: "num" }, "Chance it lands within " + sb + " seats or " + pb + " points"));
+  one.atable.replaceChildren(el("table", { className: "yf-at" }, el("thead", {}, head, narrowHead), el("tbody", {}, ...body)));
   // the totals, every party added up
   one.sseats.replaceChildren(el("b", {}, "All seats: "), "we expect your seat counts to be off by " + Math.round(sc.seat_error) +
     " in total across the parties, and give " + aChance(sc.seat_error_within.text) + " that they are off by " + sc.within + " or fewer.");
@@ -1167,7 +1207,7 @@ function onWorker(e) {
   } else if (m.type === "result") {
     if (m.seq !== seq) return;
     if (!m.ok) {
-      one.status.textContent = "The seat law refused this forecast (" + m.errors.join("; ") + "). The page should not be able to build it; please report it.";
+      one.status.textContent = "The seat law refused this prediction (" + m.errors.join("; ") + "). The page should not be able to build it; please report it.";
       one.status.classList.add("low");
       return;
     }

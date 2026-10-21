@@ -376,11 +376,11 @@ def test_every_page_links_it_and_it_has_its_own_card():
     assert len(pages) >= 5, pages
     for page in pages:
         text = page.read_text(encoding="utf-8")
-        assert f'href="{YF.YF_HREF}">your forecast</a>' in text, page.name
+        assert f'href="{YF.YF_HREF}">your prediction</a>' in text, page.name
         for d in YF.RETIRED:
             assert f'href="{d}/"' not in text, (page.name, d)
     html = _html(site)
-    assert f'class="active" href="../{YF.YF_HREF}">your forecast</a>' in html
+    assert f'class="active" href="../{YF.YF_HREF}">your prediction</a>' in html
     og = dict(re.findall(r'<meta property="og:(title|description|url)" content="([^"]*)"', html))
     assert og["title"] == YF.OG_TITLE and og["url"].endswith(f"/{YF.YF_HREF}"), og
     from html import unescape
@@ -1015,7 +1015,9 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     file rewritten (or one crosswalk), each seen and each quiet when reverted:
     (1) one VD's party votes in the preceding file raised: exactly the wards
     that VD's parts lie in change their ranges; (2) a split VD's
-    ``part_registered`` changed: both its wards' priors and ``e`` move; (3) a
+    ``part_registered`` changed: its one nonzero part scaled, no ward's prior
+    moves (the VD is wholly in that ward); its roll moved to its other ward,
+    both wards' priors and ``e`` move; (3) a
     stood-both swing pushed past its bin's greatest: that bin's extreme moves,
     no other; (4) a party's ward rows deleted in one ward's VDs: its range
     there becomes its citywide one; (5) a party deleted from the preceding
@@ -1099,24 +1101,47 @@ def test_the_ward_ranges_are_regenerated_from_the_panel():
     with tempfile.TemporaryDirectory() as t:
         cells, _party = _ranges_from(b, wards, roster, elections=_mirror(t, {prev: rows}))
     assert _changed(cells, b["ward_ranges"]) == vd_wards[vd]
-    # (2) a split VD's part_registered_2026 changed in a copied crosswalk
+    # (2) a split VD's part_registered_2026 changed in a copied crosswalk.
+    # Since the whole-VD assignment (185fa78, archive/vd-ward-assignment-2026/)
+    # a split VD has a nonzero part in exactly one of its wards, and `_join`
+    # apportions its votes by part over the VD's total, so scaling the one
+    # nonzero part moves no ward: (2a). Moving the VD's registration from its
+    # ward to another of its wards moves both: (2b).
     with tgt.crosswalk.open(encoding="utf-8", newline="") as fh:
-        xw = list(csv.DictReader(fh))
-    split = next(r["VD_Number"] for r in xw if r.get("is_split") == "Y" and r["VD_Number"] in local_by_vd)
-    both = {r[f"Ward_{target}"] for r in xw if r["VD_Number"] == split}
-    first = next(r for r in xw if r["VD_Number"] == split)
-    first["part_registered_2026"] = str(int(first["part_registered_2026"]) * 2 + 1)
-    e0 = b["e"]
-    with tempfile.TemporaryDirectory() as t:
-        proc = Path(t) / "processed"
-        proc.mkdir()
-        _write_panel(proc / tgt.crosswalk.name, xw)
-        h0 = build_make.ward_priors(city, target, wards)["h"]
-        h1 = build_make.ward_priors(city, target, wards, processed=proc)["h"]
-        e1, _ = build_make.expected_ward_shares(city, target, wards, processed=proc)
+        xw0 = list(csv.DictReader(fh))
+    split = next(r["VD_Number"] for r in xw0 if r.get("is_split") == "Y" and r["VD_Number"] in local_by_vd
+                 and sum(1 for x in xw0 if x["VD_Number"] == r["VD_Number"]) == 2)
+    mine = [i for i, r in enumerate(xw0) if r["VD_Number"] == split]
+    both = {xw0[i][f"Ward_{target}"] for i in mine}
     assert len(both) == 2
-    assert {w for w in wards if h0.get(w) != h1.get(w)} == both
-    assert all(e1[w] != e0[w] for w in both)
+    held = [i for i in mine if int(xw0[i]["part_registered_2026"]) > 0]
+    assert len(held) == 1, "a split VD holds its whole roll in one ward"
+    e0 = b["e"]
+
+    def _priors(xw):
+        with tempfile.TemporaryDirectory() as t:
+            proc = Path(t) / "processed"
+            proc.mkdir()
+            _write_panel(proc / tgt.crosswalk.name, xw)
+            return (build_make.ward_priors(city, target, wards, processed=proc)["h"],
+                    build_make.expected_ward_shares(city, target, wards, processed=proc)[0])
+    h0 = build_make.ward_priors(city, target, wards)["h"]
+    # (2a) the held part doubled: the VD is still wholly in that ward
+    xw = [dict(r) for r in xw0]
+    xw[held[0]]["part_registered_2026"] = str(int(xw[held[0]]["part_registered_2026"]) * 2 + 1)
+    h1, _e1 = _priors(xw)
+    assert {w for w in wards if h0.get(w) != h1.get(w)} == set()
+    # (2b) the roll moved to the VD's other ward: both wards' priors and e move
+    xw = [dict(r) for r in xw0]
+    a, z = held[0], next(i for i in mine if i != held[0])
+    xw[a]["part_registered_2026"], xw[z]["part_registered_2026"] = \
+        xw[z]["part_registered_2026"], xw[a]["part_registered_2026"]
+    h2, e2 = _priors(xw)
+    assert {w for w in wards if h0.get(w) != h2.get(w)} == both
+    assert all(e2[w] != e0[w] for w in both)
+    # reverted: the unchanged crosswalk gives the served priors
+    h3, _e3 = _priors(xw0)
+    assert h3 == h0
     # (3) one stood-both swing pushed past its bin's greatest, by rewriting the
     # later file of a transition (one whose later election starts no pair, of
     # another metro), read by swing_panel from a mirror
@@ -1532,11 +1557,13 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
         calls[w] = next(c for c in other if c != calls[w])
     # the reader's list-ballot percent, as make.js sends it (B.percentOf "list")
     list_total = sum(d["start"]["list_votes"].values())
-    share = {c: 100.0 * v / list_total for c, v in d["start"]["list_votes"].items()}
+    share = {c: v / list_total * 100 for c, v in d["start"]["list_votes"].items()}
     seats = dict(d["start"]["seats"])
     top2 = sorted(seats, key=lambda c: -seats[c])[:2]
+    # the published prediction, as make.js sends it
+    pred = {"seats": seats, "list_votes": d["start"]["list_votes"]}
     a = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                             "coalition": top2})))
+                                             "prediction": pred, "coalition": top2})))
     man = json.loads((ROOT / "site/draws/manifest.json").read_text(encoding="utf-8"))
     arr = R.unpack((ROOT / "site/draws/base.bin").read_bytes(), man)
     cols = lambda n: next(b for b in man["blocks"] if b["name"] == n)["columns"]
@@ -1588,8 +1615,10 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
         v = pr_rows[:, pc.index(c)] * 100.0
         assert math.isclose(got["p"], R.within_band(v, w, share.get(c, 0.0), R.ANALYSIS_SHARE_BAND_POINTS), rel_tol=1e-12), c
     assert (a["seat_band"], a["share_band"]) == (R.ANALYSIS_SEAT_BAND, R.ANALYSIS_SHARE_BAND_POINTS)
-    # the headline: the reader's council-level outcome, read off the reader's
-    # seats here, scored on the same draws by reweight.council_outcome
+    # the headline: the reader's council in words, read off the reader's
+    # seats here, and its badge: how close it is to the published prediction
+    # the page sends (reweight.outcome_badge,
+    # JUDGEMENT-CALLS §N10). No chance of the council outcome is returned.
     held = {c: v for c, v in seats.items() if v > 0}
     most = max(held.values())
     tops = [c for c, v in held.items() if v == most]
@@ -1597,31 +1626,63 @@ def test_the_analysis_is_reweights_arithmetic_on_the_published_draws():
     o = a["outcome"]
     assert (o["largest"], o["majority_alone"], o["coalition"]) == (
         tops[0] if len(tops) == 1 else None, most >= need, sorted(top2))
-    pc_cols = [c for c in sc if c != "OTHER"]
-    want_o = R.council_outcome(arr["seats/deduct"][:, [sc.index(c) for c in pc_cols]].astype(float), pc_cols,
-                               arr["council/deduct"][:, 0], w, largest=o["largest"],
-                               majority_alone=o["majority_alone"], coalition=o["coalition"])
-    assert math.isclose(o["p"], want_o, rel_tol=1e-12) and o["text"] == R.chance_text(o["p"])
-    # the coalition part bites on the real draws: without it the chance is
-    # at least as high, and a coalition of the two smallest shown parties
-    # (never a majority) scores zero
-    bare = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats})))
-    assert bare["outcome"]["p"] >= o["p"] and bare["outcome"]["coalition"] == []
-    small = sorted(a["seats"], key=lambda c: seats.get(c, 0))[:2]
-    tiny = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                                "coalition": small})))
-    assert tiny["outcome"]["p"] == 0.0, small
+    assert set(o) == {"largest", "majority_alone", "coalition", "badge", "phrase", "measure"}, o
+    party_seats, party_cols = R.party_columns(arr["seats/deduct"], sc)
+    pct = R.draw_percents(arr["list_vote"])
+    ours = {"seats": seats, "share": R.list_percent(d["start"]["list_votes"])}
+    # the reader's seats and vote ARE the prediction: every party 1, a Safe bet
+    assert R.closeness(party_seats, party_cols, pct, pc, None, {"seats": seats, "share": share}, ours)["overall"] == 1.0
+    assert o["badge"] == "Safe bet"
+    bare = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
+                                               "prediction": pred})))
+    assert bare["outcome"]["coalition"] == [] and bare["outcome"]["badge"] == o["badge"]
+    # a forecast twelve seats off on the two largest parties: the page's badge
+    # is the one outcome_badge gives on the published draws, and its
+    # closeness is below ours
+    moved = dict(seats)
+    moved[top2[0]] += 12
+    moved[top2[1]] -= 12
+    m = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": moved,
+                                             "prediction": pred, "coalition": top2})))["outcome"]
+    want = R.outcome_badge(party_seats, party_cols, pct, pc, None, {"seats": moved, "share": share},
+                           need, top2, ours=ours)
+    assert m == want, (m, want)
+    assert R.closeness(party_seats, party_cols, pct, pc, None, {"seats": moved, "share": share}, ours)["overall"] < 1.0
+    for missing in ({"ward_calls": calls, "share": share, "seats": seats},
+                    {"ward_calls": calls, "share": share, "seats": seats, "prediction": seats}):
+        try:
+            ns["analyse"](json.dumps(missing))
+        except ValueError as exc:
+            assert "prediction" in str(exc)
+        else:
+            raise AssertionError(f"analyse ran without the published prediction: {sorted(missing)}")
     # it moves with the forecast: the start's own calls score higher
     b = json.loads(ns["analyse"](json.dumps({"ward_calls": dict(zip(wards, d["start"]["ward_calls"])),
-                                             "share": share, "seats": seats})))
+                                             "share": share, "seats": seats,
+                                             "prediction": pred})))
     assert b["score"]["wards_called"] > a["score"]["wards_called"]
     assert np.isfinite(a["score"]["list_vote_error"])
     # a row the page shows stays while the reader edits: "keep" holds it
     gone = sorted(set(sc) - {"OTHER"} - set(a["seats"]))[0]
     kept = json.loads(ns["analyse"](json.dumps({"ward_calls": calls, "share": share, "seats": seats,
-                                                "keep": [gone]})))
+                                                "prediction": pred, "keep": [gone]})))
     assert gone in kept["seats"] and set(a["seats"]) < set(kept["seats"])
 
+
+
+def test_the_page_sends_the_published_prediction_with_every_analyse_request():
+    """make.js asks page.py's analyse in two places (the analysis, and the
+    badge of the arrival view and the cards); each sends the published
+    prediction through ``...ours()`` (JUDGEMENT-CALLS §N10: the badge is
+    measured from it, and analyse refuses without it), and ``ours`` reads
+    forecast.json's ``start``. A call
+    site without it, built here by removing one, is caught."""
+    js = (_built() / BREAK).read_text(encoding="utf-8")
+    calls = js.count('engineCall("analyse"')
+    assert calls == 2, calls
+    assert js.count("...ours() }") == calls
+    assert js.replace("...ours() }", "}", 1).count("...ours() }") != calls
+    assert "const ours = () => ({ prediction: { seats: D.start.seats, list_votes: D.start.list_votes } });" in js
 
 
 # -- Lane B (owner, 2026-10-05): stops said, every option applies or says why --
@@ -1844,7 +1905,7 @@ def test_the_calls_to_act_are_large_buttons_where_the_owner_put_them():
             out.append("not one share row in each section")
         # each row, in its own section, with its one line
         rows = (("section 1", page.find(share, s1) if s1 > 0 else -1, ("map", "council", "seats", "sealed")),
-                ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "chance", "sealed link")),
+                ("section 2", page.find(share, s2) if s2 > 0 else -1, ("map", "seats", "badge", "sealed link")),
                 ("step 4", at('class="cta yf-analyse"'), ()))
         for where, i, words in rows:
             end = page.find("</button>", i) if i >= 0 else -1
@@ -1894,6 +1955,19 @@ def test_both_share_sheets_are_one_sheet_with_one_set_of_controls():
     # it can see: a sheet without WhatsApp, or with Copy link worded otherwise
     assert differ([c for c in one if c[0] != "btn shwa"], two)
     assert differ([(c, "Copy") if c == "btn shcopy" else (c, w) for c, w in one], two)
+
+
+def test_the_notes_run_full_width_in_two_columns_and_one_at_phone_width():
+    """Owner, 2026-10-13: the notes in two columns across the page's width,
+    one list numbered across both, a single column at phone width."""
+    css = re.sub(r"\s+", "", (ROOT / "interactive/css/your-forecast.css").read_text(encoding="utf-8"))
+    assert ".yf.pl-notesol{column-count:2;" in css
+    assert "@media(max-width:760px){.yf.pl-notesol{column-count:1;}}" in css
+    # the text-width cap is off the notes
+    assert ".yf.pl-notes," not in css and ",.yf.pl-notes," not in css
+    html = _html(_built())
+    assert html.count('class="pl-notes"') == 1 and len(re.findall(r'<section class="pl-notes".*?<ol>', html, re.S)) == 1
+    assert len(re.findall(r"<ol>", html[html.index('class="pl-notes"'):html.index("</section>", html.index('class="pl-notes"'))])) == 1
 
 
 def _cta_rules(css: str) -> list[str]:
@@ -2050,12 +2124,14 @@ def test_next_scrolls_to_the_next_step_and_focuses_its_first_control():
 
 
 def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
-    """B6, on the built page: the headline names what "this outcome" is and
-    says it is the citywide result only; "Ward wins" is a part titled "Your
+    """B6, on the built page (as amended 2026-10-13): the headline names the
+    council outcome and shows the badge, what it is and how entries are
+    ranked, with no chance of the outcome; "Ward wins" is a part titled "Your
     map" holding the reader's map (an SVG make.js shades by our chance for
     each call, with a legend), the expected count of ward calls right and a
     line on hover and tap; "Citywide vote and seats" holds the table of each
-    party's seats and vote beside its chance, then the totals. The long
+    party's seats and vote beside its chance, under column headings that say
+    what each chance is (no footnote symbols), then the totals. The long
     explanation is the note on the outcome, not the region. Each of these
     removed is caught."""
     site = _built()
@@ -2065,25 +2141,36 @@ def test_the_analysis_has_the_headline_your_map_and_the_citywide_part():
     note = re.search(r'<li id="note-outcome">(.*?)</li>', html, re.S).group(1)
 
     def missing(reg: str, src: str, nt: str) -> list[str]:
-        need_html = ('class="yf-outcome yf-slot"', 'class="yf-verdict yf-slot"', "citywide result only",
+        need_html = ('class="yf-outcome yf-slot"', 'class="yf-abadge yf-slot"',
                      ">Ward wins<", ">Your map<", 'class="yf-amapsvg"', 'class="yf-alegend"',
                      'class="yf-expected yf-slot"', ">Citywide vote and seats<", 'class="yf-atable"',
                      'class="yf-sseats yf-slot"', 'class="yf-svote yf-slot"')
-        need_js = ('"This outcome: " + outcomeWords(', "chanceSentence(a.outcome.text)",
+        need_js = ('"Council outcome: " + outcomeWords(', "badgeFile(a.outcome.badge)",
+                   'el("p", { className: "yf-abadge-what" }, verdictLine(a.outcome.phrase, "your"))',
+                   'el("p", { className: "yf-abadge-rank" }, SEALED_LINE)',
+                   '"Chance it lands within " + sb + " seats"', '"Chance it lands within " + pb + " points"',
                    "new WardMap(one.amap, geom, { byCode, readonly: true, labelFor: wardWords })",
                    "SHADE_FLOOR + (1 - SHADE_FLOOR) * a.wards[w].p", "amap.setShade(",
                    "ward calls to come true", 'one.amap.addEventListener("click"', 'one.anote.textContent = "";')
         out = [n for n in need_html if n not in reg] + [n for n in need_js if n not in src]
-        if "score your forecast against each simulation" not in re.sub(r"\s+", " ", nt):
+        if "score your prediction against each simulation" not in re.sub(r"\s+", " ", nt):
             out.append("the explanation is not in the note")
         if "simulation" in re.sub(r"<[^>]+>", " ", reg):
             out.append("the region explains with simulations (STYLE rule 10)")
+        for gone in ("councilChanceSentence", "a.outcome.text", "The odds we give this", "* Within", "† Within"):
+            if gone in src:
+                out.append(f"the analysis still prints {gone!r}")
         return out
 
     assert missing(region, js, note) == []
+    # the reader's entry is a prediction (owner, 2026-10-13; STYLE.md rule 11)
+    assert "How likely is your prediction?" in html and ">Analyse my prediction<" in html
+    assert "How likely is your forecast?" not in html and "Analyse my forecast" not in html
     assert missing(region.replace(">Your map<", ">Wards<"), js, note)
     assert missing(region, js.replace("amap.setShade(", "amap.setCalls("), note)
     assert missing(region + "<p>Of the simulations</p>", js, note)
+    assert missing(region, js.replace('className: "yf-abadge-rank" }, SEALED_LINE)', 'className: "yf-abadge-rank" }, "")'), note)
+    assert missing(region, js + "\n// one.verdict.textContent = councilChanceSentence(a.outcome.text);", note)
 
 
 if __name__ == "__main__":

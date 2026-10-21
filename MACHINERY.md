@@ -681,10 +681,11 @@ forecast path, `state` (`live`, `off` or `absent`) and, for every non-live claim
 a `probe` (a function in `tests/test_model_claims.py` returning True when the
 declared state holds). The test imports every symbol, runs every probe (no model
 run), and asserts the pages the register lists and the pages its claims cite are
-the same set. Known non-live entries: the heavier-tails text describes the retired
-Student-t draw (shipped `draw_law = "universal"`); the IFP pool exists only in
-`pools_2026_simulation.json`; ActionSA is sized by the local/national blend
-(`levels.SPINE_K`); the roll is IEC ward totals apportioned to voting districts.
+the same set. The non-live entries found when it was written (the by-election
+tilt and input, the heavier-tails draw, the IFP pool, ActionSA on the national
+number alone, the roll per voting district) were corrected on the pages on
+2026-10-16 and are now `live`, each keeping its probe; each entry's `note` says
+what the page said before.
 To add a claim, add a `[[claim]]` and, if it is not live, its probe. The register
 records the pages; correcting a page is a separate edit.
 
@@ -1750,6 +1751,7 @@ token resolves out of a FILE, and the file has a date:
 | `regime:<rule>:` | `regime_<rule>_summary.json`, written by `overhang_regimes.py`, which is **opt-in** (`build_all.py --regimes`) and therefore lags |
 | `validation:` | `validation_<year>.json`, written by `build_validation.py`: its `headline` as written, or (`stats.validation_value`) `cities.<slug>.<model|best>.<field>`, one metro and its best baseline by CRPS, and `total.*`, the sums of those same per-metro figures, so a printed total is the sum of its printed rows. "Seats given to the wrong party" is `stats.wrong_party_seats`, half the summed absolute seat error, the one definition |
 | `published:small_party_surge` | the published draws (`site/draws/`): the share of simulations in which an established party under `stats.SMALL_PARTY_SHARE` mean list share exceeds `stats.SMALL_PARTY_SURGE` (the record's test, MODEL-LOG §1.296) |
+| `published:run_date` | the published draws' manifest: `export_draws.run_time`, when the run that exported them was made. `generated_date` reads it, so the pages' date and our forecast's card (`forecast.json` `forecast_date`) come from one instant (owner, 2026-10-15) |
 | `history:<city>:<year>:` | `history.json`, written by `compare_history.py`: the backtest of past elections, a different run from the forecast's. Not dated against the forecast run; `stats.history_key_fault` instead refuses a record whose manifest's artefact key for `pools_<year>.json` is not the current spec's, and its tooltip names the backtest run (`stats.history_provenance`) |
 
 So a `regime:` token republishes its file's number on every build while reading
@@ -2865,20 +2867,31 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   Worker draws the link card as the forecast's preview image. A reader who
   moves section 1's settings shares section 1's hand-off as a reader's
   forecast, sealed through the same `/seal/1` (`make.js` `setHandoff`: the
-  hand-off seated in the seat Worker's `handoff` lane, its chance from
+  hand-off seated in the seat Worker's `handoff` lane, its badge from
   `analyse`).
-  `forecastSpec` takes the seat law's answer, the chance of the reader's
-  council-level outcome and the badge of the forecast's boldest call, the
-  reader's vote, and forecast.json's
+  `forecastSpec` takes the seat law's answer, the badge (words only: no card
+  prints a chance or the closeness figure; each card prints `verdictLine`,
+  what the badge says: "We think this prediction is <phrase>, but time will
+  tell."), the reader's vote, and forecast.json's
   `baseline` (the previous council election per roster party, from
   `build_make.baseline`); it adds no figure of its own. The council graphic's
   geometry (`councilLayout`, `stepPath`) is shared with the arrival view.
   Text is measured with the IBM Plex faces that draw it (`card-fonts.js`,
   generated from `src/card-fonts/` by `interactive/tools/card_fonts.mjs`).
-* **The chance and the badge** come only from Python:
-  `reweight.outcome_chance` (council_outcome and chance_text for the chance;
-  `boldest_call` and `boldness` for the badge and the call it names,
-  JUDGEMENT-CALLS §N10). The cards draw the owner's badge for the words
+* **The badge** comes only from Python: `reweight.outcome_badge` (the
+  council in words, `reader_outcome`; and the badge, `closeness_badge` of
+  `closeness`, JUDGEMENT-CALLS §N10). The closeness is measured from the
+  published prediction (`forecast.json` `start`: seats and list votes) and
+  banded in the owner's fixed ten-point bands (`reweight.CLOSENESS_BANDS`):
+  the page sends the prediction with `analyse` (`make.js` `ours`) and the
+  seat Worker reads it from the site's `forecast.json`
+  (`entry.load_prediction`). The closeness itself is
+  never returned; the answer carries the badge's `phrase`
+  (`reweight.CLOSENESS_PHRASES`). The analysis prints the badge at twice the
+  arrival view's size, with `verdictLine(phrase, "your")` and `SEALED_LINE`;
+  the arrival view prints `verdictLine(phrase)` and `RANKING_SENTENCE`
+  (share-card.js, one definition each; `SEALED_LINE` ends with
+  `RANKING_SENTENCE`). The cards draw the owner's badge for the words
   (`src/stamps/reader-*.svg`, served at `/stamps/`) through share-card.js
   `stampSVG`, the one function that places a stamp, which prefixes the
   stamp's internal ids per embed. The page reaches it through `page.py`'s `analyse`;
@@ -2886,10 +2899,25 @@ The design and the owner's decisions: `audits/2026-10-03-share-design/`.
   (`worker-api/seats-py/src/entry.py`), which seats the link's picks with
   `reader_seats` and reads the published draws from the site. A link's own
   figures are never read for an image.
+* **Our forecast's card and sheet** (owner, 2026-10-13; `play-card.js`,
+  `play-share.js`, `share-card.js` `modelCardSVG`): the card is drawn in the
+  browser, never by the edge. It carries `whysoseriouscity.svg` (the umbrella
+  logo without its tagline, traced from the owner's file), "forecast" and the
+  forecast's date, read from `forecast.json` `forecast_date` (`build_make.py`:
+  the day of `export_draws.run_time`, the draws manifest's own
+  `artefact_key.time`, never typed and never the ledger's newest row, which a
+  new forecast enters only after the build that prints its date; the pages'
+  `generated_date` reads the same instant through `published:run_date`, and
+  `og_pages.forecast_spec` refuses a build where the two differ). A reader's
+  card prints the reader's own date (`madeText`: "Sealed" or "Made", from the
+  seal or the day the reader made it), never the forecast's; the same words head the alt text
+  and the native share (`forecastWords`). It carries no name, and the sheet
+  does not offer the name field for it (`nameShown`), so sharing it seals
+  nothing: `section1Share.fields()` is `null` until a setting is moved.
 * **The edge** (`share-edge.js`, routed by `src/worker.js`): `/s/` counts a
   share arrival (channel `share`, the button) and redirects to the arrival
   view; `/your-forecast/?f=…` gets its og: tags pointed at
-  `/og/2/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
+  `/og/6/link.png?…`, which is drawn from `/v1/card` over the `SEATS` binding,
   rasterised by resvg (`src/og-render.js`), cached at the edge by the link and
   the draws' hash (a year when the link's seal checks, an hour otherwise), and
   is `/og.png` on any failure.

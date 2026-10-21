@@ -49,39 +49,34 @@
 .strapline{font-family:var(--sans);font-size:11px;line-height:1.5;color:var(--ink-3);
   max-width:none;margin:5px 0 26px;}
 
-/* The footer: the credits, then the independence statement with the support
-   link set larger, in the accent colour, at the right (owner's sweep,
-   2026-10-03). The two notes side by side in two columns (owner, 2026-10-10),
-   the credits at the left; stacked, with the rule between them, on a narrow
-   screen. The support rule is specific enough to win over any page's own
-   `footer.sitefooter a`. */
+/* The footer (owner, 2026-10-13): the credits, the rule and the independence
+   statement in one column at the left; at the right the umbrella logo with
+   "Support Our Work" beneath it, set larger, in the accent colour. Under the
+   text, one column, on a narrow screen. The support rule is specific enough
+   to win over any page's own `footer.sitefooter a`. */
 .sitefooter{font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--ink-3);
   border-top:1px solid var(--rule);padding-top:14px;margin-top:40px;
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 48px;align-items:start;}
-.sitefooter .foot-rule{display:none;}
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 48px;align-items:start;}
 @media (max-width:760px){
-  .sitefooter{grid-template-columns:minmax(0,1fr);gap:0;}
-  .sitefooter .foot-rule{display:block;}
+  .sitefooter{grid-template-columns:minmax(0,1fr);gap:16px;}
 }
 .sitefooter p{margin:0;color:var(--ink-3);}
-/* the umbrella site's logo, small, beside the credits that name it */
-.sitefooter .foot-top{display:flex;align-items:flex-start;gap:12px 24px;}
-.sitefooter .foot-top p{flex:1 1 auto;min-width:0;}
+/* the umbrella site's logo, with "Support Our Work" beneath it, at the right;
+   under the text at phone width (owner, 2026-10-13) */
+.sitefooter .foot-side{display:flex;flex-direction:column;align-items:flex-end;gap:14px;}
 .sitefooter a.foot-umbrella{flex:none;display:block;line-height:0;color:var(--ink-2);
-  text-decoration:none;margin-top:3px;}
+  text-decoration:none;}
 .sitefooter a.foot-umbrella:hover{color:var(--accent);}
-.sitefooter .wsc-logo{display:block;height:44px;width:calc(44px * 1984 / 1016);}
-@media (max-width:560px){.sitefooter .foot-top{flex-direction:column;}}
+.sitefooter .wsc-logo{display:block;height:88px;width:calc(88px * 1969 / 1002);}
+@media (max-width:760px){.sitefooter .foot-side{align-items:flex-start;}}
 /* Underlined, so a link reads as one inside the sentence-form credits on
    every page, the home page's no-underline links included. */
 .sitefooter a{color:var(--ink-3);text-decoration:underline;
   text-decoration-color:var(--rule);text-underline-offset:2px;}
 .sitefooter a:hover{color:var(--accent);}
 .sitefooter .foot-rule{border:none;border-top:1px solid var(--rule-soft);margin:12px 0;}
-.sitefooter .foot-independence{display:flex;flex-wrap:wrap;align-items:flex-end;
-  justify-content:space-between;gap:10px 28px;}
-.sitefooter .foot-independence p{flex:1 1 30ch;}
-.sitefooter a.foot-support{margin-left:auto;font-family:var(--sans);font-size:18px;
+.sitefooter .foot-text{max-width:100ch;}
+.sitefooter a.foot-support{font-family:var(--sans);font-size:18px;
   font-weight:650;line-height:1.3;color:var(--accent);text-align:right;white-space:nowrap;
   text-decoration:none;}
 .sitefooter a.foot-support:hover{text-decoration:underline;}

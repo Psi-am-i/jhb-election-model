@@ -419,6 +419,10 @@ def _soweto(args, rows, seats, thr, winners, since_vals, tok, chance):
                                         c["partners.ASA+PA"][none].mean(), cond),
             "anc_given_none": chance("claim.soweto.anc_given_none",
                                      c["partners.ANC"][none].mean(), cond),
+            # the claim's own chance (`chance = "1 - realistic_given_none"`),
+            # printed in its since box (owner, 2026-10-16)
+            "holds_given_none": chance("claim.soweto.holds_given_none",
+                                       1.0 - c["realistic"][none].mean(), cond),
         })
     if (~none).any():
         since_vals["realistic_given_some"] = chance(
@@ -867,10 +871,13 @@ def main(argv: list[str] | None = None) -> int:
                 f'<div class="pubdate">{c["published"]}: Published</div>'
                 f'<div class="claim-top">{ident}'
                 f'<div class="claim-who"><b>{c.get("party_name", c["party"])}'
-                f'</b><span>{c["speaker"]} \u00b7 {link}</span></div>'
-                f'{badge}</div>'
+                f'</b><span>{c["speaker"]} \u00b7 {link}</span></div></div>'
                 f'<blockquote class="claim-quote">{c["quote"]}'
                 f'<span class="q-close">\u201d</span></blockquote>'
+                # the claim we test and our verdict on it, together (owner,
+                # 2026-10-21): the quote is the party's, the claim is ours
+                f'<div class="claim-test"><span class="claim-label" data-asof="{c["captured"]}">{c["label"]}</span>'
+                f'{badge}</div>'
                 f'<p class="claim-intro">{_md(_fill(with_holds(c, c["intro"])))}</p>'
                 f'<ol class="claimsteps">{steps}</ol>{since_html}</article>')
         claims_html = ("<!-- __CLAIMS_START__ -->\n    "

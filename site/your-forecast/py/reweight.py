@@ -70,6 +70,11 @@ for one party that does not exist for all.
   page reports, each reducing EXACTLY to the published figure's own formula
   when the weights are uniform, so the untouched page is the published forecast
   (``tests/test_reweight.py`` checks this bitwise against the published files).
+* :func:`closeness` and :func:`closeness_badge` — the reader's badge: how
+  close a forecast is to the published prediction, in fixed bands
+  (JUDGEMENT-CALLS §N10).
+  :func:`outcome_badge` is what the page's analysis and the seat Worker's
+  card answer return.
 
 What re-weighting cannot do
 ===========================
@@ -123,15 +128,50 @@ ANALYSIS_SHARE_BAND_POINTS = 2.0
 #: seat Worker's card answer read it from here).
 PUBLISHED_LAW = "deduct"
 
-#: The badge on a reader's shared forecast (owner, 2026-10-10): the chance of
-#: the forecast's boldest single call (:func:`boldest_call`) names it.
-#: ``(lowest chance, words)``, highest band first; a chance at a band's edge
-#: takes that band. The words are the owner's badges, drawn with these edges
-#: printed on them (``src/stamps/reader-*.svg``, the file named by the words).
-#: JUDGEMENT CALLS, not measurements: JUDGEMENT-CALLS.md §N10, which
-#: supersedes §N6. :func:`boldness` is the one reader of it.
-BOLDNESS = ((0.45, "Safe bet"), (0.30, "Steady as she goes"), (0.15, "Long shot"),
-            (0.05, "Wild call"), (0.0, "Hail Mary"))
+#: The badge on a reader's forecast (owner, 2026-10-13: "90-100 SAFE, 80-90
+#: VERY LIKELY etc"; JUDGEMENT-CALLS.md §N10): fixed bands of ten points on
+#: the overall :func:`closeness` scale. ``(lowest overall closeness, words)``,
+#: closest band first; a closeness at a band's edge takes that band, and the
+#: last band takes everything below the one before it. The words name the
+#: owner's badges, ``src/stamps/reader-<words>.svg`` (one file per word,
+#: swapped file for file). JUDGEMENT CALLS, not measurements.
+#: :func:`closeness_badge` is the one reader of it.
+CLOSENESS_BANDS = ((0.90, "Safe bet"), (0.80, "Steady as she goes"), (0.70, "Long shot"),
+                   (0.60, "Wild call"), (0.0, "Hail Mary"))
+
+#: What each badge says about a prediction, in words (owner, 2026-10-13, the
+#: brief's amendment): the page prints "We think your prediction is <phrase>,
+#: but time will tell." and a card "We think this prediction is <phrase>, but
+#: time will tell." (share-card.js ``verdictLine``). One phrase per word of
+#: :data:`CLOSENESS_BANDS`; :func:`outcome_badge` returns it beside the badge.
+CLOSENESS_PHRASES = {"Safe bet": "likely", "Steady as she goes": "plausible", "Long shot": "unlikely",
+                     "Wild call": "very unlikely", "Hail Mary": "extremely unlikely"}
+
+#: How many parties count as large in :func:`closeness`: those with the most
+#: seats in the published prediction (ties by code). JUDGEMENT CALL, §N10.
+CLOSENESS_LARGE_PARTIES = 6
+
+#: How many times the large parties' mean counts against the small parties'
+#: in the overall closeness: ``(2L + S) / 3`` (owner, 2026-10-13: "large
+#: parties and predictions are way more important"). JUDGEMENT CALL, §N10.
+CLOSENESS_LARGE_WEIGHT = 2
+
+#: A party with no seats and under this many points of the list ballot in BOTH
+#: the published prediction and the reader's forecast is left out of the
+#: small parties' mean in :func:`closeness`, in percentage points (0.5 = half
+#: a percent). JUDGEMENT CALL, §N10.
+CLOSENESS_TINY_POINTS = 0.5
+
+#: The rounding allowance in :func:`party_closeness`'s comparison of two
+#: distances, so a simulation exactly as far from the prediction as the reader
+#: counts (seats are integers; a list share is a quotient). A numerical
+#: tolerance, not a modelling choice.
+CLOSENESS_TOLERANCE = 1e-9
+
+#: The ``measure`` field of :func:`outcome_badge`'s answer: the edge refuses a
+#: card answer without it (an answer from a seat Worker that bands something
+#: else, src/share-edge.js ``cardAnswer``).
+CLOSENESS_MEASURE = "closeness to the published prediction"
 
 #: What a figure computed under a poll's weights is, in the page's words. The
 #: weights select the model's own draws that lie near the poll; they do not
@@ -922,18 +962,7 @@ def chance_text(p: float) -> str:
         return "over 99%"
     if v < 0.0005:
         return "under 0.1%"
-    return f"{v * 100:.0f}%" if v >= 0.095 else f"{v * 100:.1f}%"
-
-
-def boldness(p: float) -> str:
-    """The badge for the chance of a reader's boldest call
-    (:func:`boldest_call`): :data:`BOLDNESS`'s words for the highest band
-    whose lowest chance ``p`` reaches. ONE DEFINITION:
-    ``interactive/pyboot/page.py``'s ``analyse`` and the seat Worker's card
-    answer (``worker-api/seats-py/src/entry.py``) both return it, through
-    :func:`outcome_chance`."""
-    v = float(p)
-    return next(words for low, words in BOLDNESS if v >= low)
+    return (f"{v * 100:.0f}" if v >= 0.095 else f"{v * 100:.1f}") + "%"
 
 
 def largest_party(seats, columns, weights=None) -> dict:
@@ -1090,56 +1119,129 @@ def reader_outcome(seats: dict, majority: int, coalition=()) -> dict:
             "coalition": sorted(set(coalition or []))}
 
 
-def boldest_call(seats, columns, weights, mine: dict) -> dict:
-    """A reader's boldest single call against the model's middle forecast
-    (owner, 2026-10-10; JUDGEMENT-CALLS.md §N10).
+def list_percent(votes: dict) -> dict:
+    """Each party's percent of a ballot from whole votes, ``{party: points}``:
+    ``votes / total * 100``, the order of operations of :func:`list_shares`
+    times 100 and of builder-state.js ``percentOf``, so the three give the
+    same floats. Refuses a ballot with no votes."""
+    total = sum(int(v) for v in votes.values())
+    if not total > 0:
+        raise Refused("the ballot holds no votes")
+    return {str(c): int(v) / total * 100.0 for c, v in votes.items()}
 
-    For each party whose seats in the reader's forecast ``mine`` differ from
-    :func:`middle_seats`, the share of simulations at least that far out on
-    the reader's side: ``P(seats >= x)`` when the reader's ``x`` is above the
-    middle, ``P(seats <= x)`` when below. The boldest call is the smallest of
-    these; a tie goes to the party first in ``columns`` order. Returns
-    ``{"party", "seats", "middle", "p", "text"}``; a forecast equal to the
-    middle forecast has no call (``party`` and ``seats`` None) and ``p`` 1.0.
 
-    ``seats`` is ``(draws, len(columns))`` party columns
-    (:func:`party_columns`). A party with seats in ``mine`` and no column
-    holds no seats in any simulation, as in :func:`council_outcome`; a column
-    absent from ``mine`` is a reader's 0. Unit weights when ``weights`` is
-    None.
+def draw_percents(list_votes) -> np.ndarray:
+    """Each draw's list-ballot percents, ``(draws, parties)``: :func:`list_shares`
+    of the ``list_vote`` block times 100. ONE DEFINITION for the page, the seat
+    Worker and the build, so :func:`closeness` reads the same floats in all
+    three."""
+    return list_shares(list_votes) * 100.0
+
+
+def party_closeness(values, ours: float, mine: float, weights) -> float:
+    """One party's closeness on one measure (owner, 2026-10-13; JUDGEMENT-CALLS
+    §N10): the weighted share of simulations at least as far from OUR
+    published figure ``ours`` as the reader's ``mine`` is,
+    ``P(|X - ours| >= |mine - ours|)``. A simulation exactly as far counts
+    (:data:`CLOSENESS_TOLERANCE`), so integer seats tie at whole distances
+    and ``mine == ours`` is exactly 1. Two-sided: a figure the same distance
+    above or below ours is as close. ``values`` is the party's column of
+    draws, in the units of ``ours`` and ``mine``."""
+    v = np.asarray(values, dtype=float)
+    d = abs(float(mine) - float(ours))
+    return weighted_probability(np.abs(v - float(ours)) >= d - CLOSENESS_TOLERANCE, weights)
+
+
+def large_parties(ours_seats: dict) -> list:
+    """The :data:`CLOSENESS_LARGE_PARTIES` parties with the most seats in the
+    published prediction, most first, a tie by code."""
+    ranked = sorted(ours_seats, key=lambda c: (-int(ours_seats[c]), str(c)))
+    return ranked[:CLOSENESS_LARGE_PARTIES]
+
+
+def closeness(seats, seat_columns, shares, share_columns, weights, mine: dict, ours: dict) -> dict:
+    """How close a reader's forecast is to the published prediction, as the
+    published simulations measure it (owner, 2026-10-13; JUDGEMENT-CALLS.md
+    §N10). Never printed as a number: :func:`closeness_badge` bands it.
+
+    ``mine`` and ``ours`` are ``{"seats": {party: seats}, "share": {party:
+    percent of the list ballot}}`` (:func:`list_percent`); ``ours`` is the
+    published prediction, forecast.json ``start`` (``build_make.start_state``).
+    ``seats`` is ``(draws, len(seat_columns))`` party columns
+    (:func:`party_columns`), ``shares`` ``(draws, len(share_columns))`` list
+    percents (:func:`draw_percents`). A party missing from a forecast holds 0;
+    a party with no column holds 0 in every simulation.
+
+    * Each party's closeness is the mean of its seats and its list-vote
+      :func:`party_closeness`.
+    * L is the mean over :func:`large_parties` of ``ours``.
+    * S is the mean over every other party, leaving out any party with no
+      seats and under :data:`CLOSENESS_TINY_POINTS` of the list ballot in
+      both ``ours`` and ``mine``.
+    * The overall closeness is ``(w L + S) / (w + 1)``, ``w`` =
+      :data:`CLOSENESS_LARGE_WEIGHT`. With no small party it is L.
+
+    Returns ``{"overall", "large", "small", "parties": {party: closeness},
+    "large_parties", "small_parties"}``; ``parties`` holds the parties
+    counted. Unit weights when ``weights`` is None.
     """
     s = np.asarray(seats, dtype=float)
+    x = np.asarray(shares, dtype=float)
     w = uniform(s.shape[0]) if weights is None else np.asarray(weights, dtype=float)
-    cols = list(columns)
-    middle = middle_seats(s, cols, w)
-    best = {"party": None, "seats": None, "middle": None, "p": 1.0}
-    for c in cols + sorted(set(mine) - set(cols)):
-        x = int(mine.get(c, 0))
-        m = middle.get(c, 0)
-        if x == m:
-            continue
-        v = s[:, cols.index(c)] if c in cols else np.zeros(s.shape[0])
-        p = weighted_probability(v >= x if x > m else v <= x, w)
-        if p < best["p"]:
-            best = {"party": c, "seats": x, "middle": m, "p": float(p)}
-    return {**best, "text": chance_text(best["p"])}
+    scols, xcols = list(seat_columns), list(share_columns)
+    zero = np.zeros(s.shape[0])
+    ms, mv = mine.get("seats", {}), mine.get("share", {})
+    os_, ov = ours.get("seats", {}), ours.get("share", {})
+    every = sorted(set(scols) | set(xcols) | set(ms) | set(mv) | set(os_) | set(ov))
+    large = large_parties(os_)
+
+    def tiny(c):
+        return (int(ms.get(c, 0)) == 0 and int(os_.get(c, 0)) == 0
+                and float(mv.get(c, 0.0)) < CLOSENESS_TINY_POINTS
+                and float(ov.get(c, 0.0)) < CLOSENESS_TINY_POINTS)
+
+    small = [c for c in every if c not in large and not tiny(c)]
+    parties = {}
+    for c in large + small:
+        sv = s[:, scols.index(c)] if c in scols else zero
+        xv = x[:, xcols.index(c)] if c in xcols else zero
+        parties[c] = (party_closeness(sv, os_.get(c, 0), ms.get(c, 0), w)
+                      + party_closeness(xv, ov.get(c, 0.0), mv.get(c, 0.0), w)) / 2.0
+    big = float(np.mean([parties[c] for c in large])) if large else 1.0
+    if small:
+        rest = float(np.mean([parties[c] for c in small]))
+        overall = (CLOSENESS_LARGE_WEIGHT * big + rest) / (CLOSENESS_LARGE_WEIGHT + 1)
+    else:
+        rest, overall = None, big
+    return {"overall": float(overall), "large": big, "small": rest, "parties": parties,
+            "large_parties": large, "small_parties": small}
 
 
-def outcome_chance(seats, columns, thresholds, weights, mine: dict, majority: int,
-                   coalition=()) -> dict:
-    """The chance the model gives a reader's council-level outcome, with what
-    it was read as and its text (:func:`chance_text`), and the badge
-    (:func:`boldness`) of the forecast's boldest call (:func:`boldest_call`,
-    returned as ``boldest``): ``{"largest", "majority_alone", "coalition",
-    "p", "text", "badge", "boldest"}``. The badge does not read ``p``
-    (JUDGEMENT-CALLS.md §N10, amending §N3). ``seats``/``columns`` are party
-    columns (:func:`party_columns`), ``thresholds`` each simulation's
-    majority."""
-    out = reader_outcome(mine, majority, coalition)
-    p = council_outcome(seats, columns, thresholds, weights, **out)
-    bold = boldest_call(seats, columns, weights, mine)
-    return {**out, "p": float(p), "text": chance_text(p), "badge": boldness(bold["p"]),
-            "boldest": bold}
+def closeness_badge(overall: float) -> str:
+    """The badge for an overall :func:`closeness`: the words of the first band
+    of :data:`CLOSENESS_BANDS` whose lowest closeness it reaches, so a
+    closeness at an edge takes the closer band. ONE DEFINITION for the page's
+    analysis and the seat Worker's card answer, through :func:`outcome_badge`."""
+    v = float(overall)
+    return next(words for low, words in CLOSENESS_BANDS if v >= low)
+
+
+def outcome_badge(seats, seat_columns, shares, share_columns, weights, mine: dict, majority: int,
+                  coalition=(), *, ours: dict) -> dict:
+    """A reader's council read in words, and its badge: ``{"largest",
+    "majority_alone", "coalition", "badge", "phrase", "measure"}``. The first three are
+    :func:`reader_outcome` of ``mine["seats"]`` (the cards and the analysis
+    describe the council with them; no chance of it is computed). ``badge`` is
+    :func:`closeness_badge` of :func:`closeness` against ``ours`` (the
+    published prediction), and ``phrase`` its :data:`CLOSENESS_PHRASES` words;
+    the closeness itself is not returned, so no page can print it. ``measure``
+    is :data:`CLOSENESS_MEASURE`. ONE DEFINITION for
+    ``interactive/pyboot/page.py``'s ``analyse`` and the seat Worker's
+    ``/v1/card`` (``worker-api/seats-py/src/entry.py``)."""
+    out = reader_outcome(mine["seats"], majority, coalition)
+    near = closeness(seats, seat_columns, shares, share_columns, weights, mine, ours)
+    badge = closeness_badge(near["overall"])
+    return {**out, "badge": badge, "phrase": CLOSENESS_PHRASES[badge], "measure": CLOSENESS_MEASURE}
 
 
 def middle_seats(seats, columns, weights) -> dict:

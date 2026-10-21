@@ -7,8 +7,13 @@ upload` stores a new version without sending it any live traffic and prints a
 version, so what goes live is the build that was checked. There is no separate
 staging Worker and no second config file.
 
-Every command runs from the repository root. The agent does not run wrangler; the
-owner does.
+Every command runs from the repository root. The agent may run steps 0 to 2
+(build, `versions upload`, the Version URL checks) and deploy a UAT version of
+a Worker so it can be tested (owner, 2026-10-12). Promotion to live is the
+owner's alone: `wrangler versions deploy <id>@100%` for `joburg-whysoserious`
+(step 3), and any deploy of `joburg-seats` that live traffic reaches (a live
+`joburg-seats` is bound by the live site Worker; see "Releasing the closeness
+badge"). The agent never runs those.
 
 ## How each host behaves
 
@@ -168,7 +173,7 @@ Version URL host; the count excludes them by host.
 
 If anything is wrong, stop. Nothing is live; fix, commit, go back to step 1.
 
-### 3. Promote the checked version
+### 3. Promote the checked version (owner only)
 
 ```sh
 env -u CLOUDFLARE_API_TOKEN npx wrangler versions deploy <version-id>@100% --message "UAT passed"
@@ -308,6 +313,113 @@ our side can reach that cache.
 **Rollback.** Roll the site Worker back first, then `joburg-seats` if
 wanted: the old site Worker reads the new answer (above). Rolling back only
 `joburg-seats` puts link previews on the generic image.
+
+## Releasing the card's one chance (2026-10-12)
+
+The card prints the boldest call's own chance (JUDGEMENT-CALLS §N10, amended
+2026-10-12); `reweight.py` changed (`boldest_call` takes the published
+prediction, `outcome_chance` requires it). The seat Worker reads the
+prediction from the site's `/your-forecast/forecast.json`, which must name
+the same draws as `/draws/`. `/v1/card` now takes a `prediction_sha256` (a
+hash of that prediction's seats) and answers it back, and the site Worker
+refuses an answer that lacks it or whose call was not measured from the
+prediction (`share-edge.js` `cardAnswer`).
+
+**Either order is safe; neither draws a wrong card.** Deploy `joburg-seats`
+first (steps below). A mismatched pair of Workers answers with a refusal,
+never a card:
+- *old site Worker, new seat Worker:* the new seat Worker refuses the old
+  request (no `prediction_sha256`, 400); previews fall back to the generic
+  image (`/og.png`, `no-store`) until the site Worker is promoted.
+- *new site Worker, old seat Worker:* the old seat Worker refuses the new
+  request body (400), or, if it answered, the answer has no `prediction` in
+  its call; the edge refuses it. Previews fall back to `/og.png`, not cached.
+- a `joburg-seats` isolate that holds an earlier `forecast.json` answers 409
+  to a site Worker whose `forecast.json` carries another prediction; the
+  isolate reloads on its next cold start.
+
+A card's cached image is keyed by the draws' hash and by the prediction's
+(`ps=`), so a new prediction on the same draws draws new images. Bump
+`CARD_VERSION` whenever the card's wording or layout changes.
+
+1. `node worker-api/tools/sync_seats_py.mjs` (and `--check`), then deploy
+   `joburg-seats` as above.
+2. Upload, check and promote the site Worker. On the Version URL, a shared
+   link's `/og/3/link.png` draws "Your boldest call: ..." with "We give that
+   ... chance.", and `/og/2/…` and `/og/1/…` answer 301 to it. The page's
+   analysis (Analyse my forecast) still shows the council outcome's chance,
+   labelled "Council outcome".
+
+**Why the image address moved to `/og/3/`.** The card's wording changed and
+a sealed card's image is cached for a year as immutable (see above).
+
+**Rollback.** Roll the site Worker back first, then `joburg-seats`. Rolling
+back only `joburg-seats` leaves the new site Worker asking with a body the old
+seat Worker refuses (400): previews fall back to `/og.png` until both match.
+Rolling back only the site Worker leaves the new seat Worker refusing its
+older request the same way.
+
+## Releasing the closeness badge (2026-10-13)
+
+The badge measures how close a forecast is to the published prediction, in
+the owner's fixed ten-point bands (JUDGEMENT-CALLS §N10, amended
+2026-10-13). `reweight.py` changed (`outcome_badge` replaces
+`outcome_chance`); the seat Worker reads the prediction's seats and list
+votes from the site at `/your-forecast/forecast.json`. The
+`/v1/card` request body is unchanged; its answer's `outcome` carries the
+badge and `measure`, and no chance. The site Worker refuses an answer whose
+`measure` is not `share-edge.js` `CLOSENESS_MEASURE` (`cardAnswer`).
+
+**Either order is safe; neither draws a wrong card.**
+- *old site Worker, new seat Worker:* the old edge requires `boldest` in the
+  answer, finds none, and refuses it: previews fall back to `/og.png`
+  (`no-store`) until the site Worker is promoted.
+- *new site Worker, old seat Worker:* the old seat Worker answers a boldest
+  call with no `measure`; the edge refuses it. Previews fall back to
+  `/og.png`.
+
+1. `node worker-api/tools/sync_seats_py.mjs` (and `--check`), then deploy
+   `joburg-seats` as above.
+2. Upload, check and promote the site Worker. On the Version URL, a shared
+   link's `/og/6/link.png` draws the owner's badge and "We think this
+   prediction is <phrase>, but time will tell.", no call and no chance;
+   `/og/5/…` to `/og/1/…` answer 301 to it. "Analyse my prediction" shows
+   the badge at twice its arrival-view size, "We think your prediction is
+   <phrase>, but time will tell." and the sealed-and-ranked paragraph, and no
+   council-outcome chance.
+
+The card answer's `outcome` also carries `phrase` (amendment, 2026-10-13);
+the edge refuses an answer without it, so a seat Worker from before the
+amendment draws `/og.png` until `joburg-seats` is deployed.
+
+**Why the image address moved to `/og/5/`, then `/og/6/`** (it was `/og/4/` before the
+amendment; `/og/6/` follows the sealed wording and the card module's model
+card, 2026-10-13). The card's wording changed and
+a sealed card's image is cached for a year as immutable (see above).
+
+**Rollback.** Roll the site Worker back first, then `joburg-seats`. Either
+alone leaves a mismatched pair, which falls back to `/og.png` as above.
+
+## Releasing our forecast's one card (2026-10-13)
+
+`/forecast`'s share image is now the card the share sheet of `/your-forecast/`
+draws (`play-card.js`, through `src/og-pages.mjs`): the whysoserious.city
+logo, "forecast, <date>", no name. No seat Worker change, so no ordering
+against `joburg-seats`.
+
+- **Old image addresses.** The image's name is a hash of its content, so the
+  address a chat app kept names no file after the deploy. `src/worker.js`
+  answers `/og-page/forecast-<12 letters>.png` that the assets do not hold with
+  301 to the image `/forecast` names in its `og:image`
+  (`staleForecastImage`; `tests/test_worker_routing.py`).
+- **Two ledger tokens retire.** The old card printed four coalitions; two of
+  them (`coal.ANC+EFF+PA+ALJAMAAH.majority`,
+  `coal.DA+ASA+PA+ACDP+IFP+VFPLUS.majority`) appeared on no page, only on the
+  image, and are in the real ledger. `build_site.py` refuses until each is
+  retired, which is the owner's step before `--publish`:
+  `publication.retire('joburg', '<token>', reason=..., change_class='mechanism')`.
+  A UAT build is made against a scratch copy of `publications/`
+  (`--ledger-root`) with the two retired there; the real ledger is untouched.
 
 ## Entries at launch
 

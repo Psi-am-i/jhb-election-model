@@ -70,32 +70,9 @@ def stamp_path(file: str) -> str:
 #: Worker's reader-card routes and /og.png its fallback (src/share-edge.js).
 OG_DIR = "og-page"
 
-#: The forecast card's coalitions (owner, 2026-10-10, "looks good" on the mock
-#: in og-design/make_og.mjs; JUDGEMENT-CALLS §S1). THE ONE DEFINITION of each
-#: set: its parties, in groups. The label is written from it (", " inside a
-#: group, " + " between groups, the parties' names), and so is its figure, the
-#: token ``coal.<render_sheet.coalition_key>.majority``: the share of
-#: simulations in which they hold a majority together. /forecast's coalition
-#: table prints that token for the sets it lists; for a set it does not, the
-#: image computes it over every party's seats (``stats.coalition_majority``)
-#: and records it, as a generated token, under the forecast page.
-FORECAST_COALITIONS = (
-    (("ANC",), ("DA",)),
-    (("DA", "ASA", "PA"), ("IFP", "VFPLUS", "ACDP")),
-    (("ANC", "EFF", "PA"), ("ALJAMAAH",)),
-    (("ANC",), ("EFF",), ("MK",)),
-)
-
-
-def coalition_token(groups) -> str:
-    """The token holding a coalition's majority chance, as /forecast names it."""
-    import render_sheet
-    return f"coal.{render_sheet.coalition_key([c for g in groups for c in g])}.majority"
-
-
-def coalition_label(groups, roster: dict) -> str:
-    return " + ".join(", ".join(roster[c]["name"] for c in g) for g in groups)
-#: The forecast card's other figures: most seats, one party alone.
+#: The forecast card's figures: the two largest parties' chances of the most
+#: seats (the card prints them as its largest-party line), and the chance of
+#: one party alone with a majority (the seat-range article's).
 FORECAST_LARGEST = (("ANC", "p_anc_largest"), ("DA", "p_da_largest"))
 FORECAST_ALONE = "p_alone"
 
@@ -177,13 +154,12 @@ def fill(html: str, site: str, slug: str, filename: str, alt: str) -> str:
 AMBIGUOUS = "\x00ambiguous"
 
 
-def figure_pool(published: list[dict], registry: dict, ctx: dict) -> tuple[dict[str, str], dict[str, dict]]:
+def figure_pool(published: list[dict]) -> tuple[dict[str, str], dict[str, dict]]:
     """``(pool, records)``: every token a page printed, by name, with the
     string it printed, and the record ``stats.render`` made of it (what the
     publication ledger takes). A token printed differently on two pages is
     marked :data:`AMBIGUOUS`, and an image that draws it is refused (it could
-    show only one). Each forecast-card coalition no page prints is added as a
-    generated token (:func:`coalition_figure`)."""
+    show only one)."""
     seen: dict[str, str] = {}
     records: dict[str, dict] = {}
     for r in published:
@@ -192,30 +168,7 @@ def figure_pool(published: list[dict], registry: dict, ctx: dict) -> tuple[dict[
             continue
         seen[t] = r["display"] if seen.get(t, r["display"]) == r["display"] else AMBIGUOUS
         records.setdefault(t, r)
-    for groups in FORECAST_COALITIONS:
-        t = coalition_token(groups)
-        if t not in seen:
-            seen[t], records[t] = coalition_figure(groups, registry, ctx)
     return seen, records
-
-
-def coalition_figure(groups, registry: dict, ctx: dict) -> tuple[str, dict]:
-    """A coalition's majority chance as a generated token, rendered by
-    ``stats.render`` as a page renders one (format "chance", as /forecast's
-    coalition table prints it): ``(display, record)``."""
-    import stats as statlib
-    members = [c for g in groups for c in g]
-    p = statlib.coalition_majority(members, ctx)
-    if p is None:
-        raise OgError(f"no draws to compute {coalition_token(groups)} from")
-    n = len(ctx.get("draws") or [])
-    text = (f"{{{{@{coalition_token(groups)}={p:.6f};chance;seat_detail_draws.csv, {n:,} "
-            f"simulations, every party's seats}}}}")
-    rec: list[dict] = []
-    out, _drift, unresolved = statlib.render(text, registry, ctx, wrap=False, record=rec)
-    if unresolved or len(rec) != 1:
-        raise OgError(f"{coalition_token(groups)} did not render: {unresolved}")
-    return out, rec[0]
 
 
 def ledger_records(specs: list[dict], records: dict[str, dict]) -> list[dict]:
@@ -262,7 +215,7 @@ def uncovered(spec: dict, have: dict[str, set[int]] | None = None) -> list[str]:
     def walk(v, where):
         if isinstance(v, dict):
             for k, x in v.items():
-                if k not in ("map", "map_svg", "badge", "logo", "seal", "slug", "layout", "page", "kind_colour"):
+                if k not in ("map", "map_svg", "badge", "logo", "logos", "seal", "slug", "layout", "page", "kind_colour", "result", "geometry"):
                     walk(x, f"{where}.{k}")
         elif isinstance(v, list):
             for i, x in enumerate(v):
@@ -290,63 +243,48 @@ def _vote_line(election: dict, pool: dict, figures: dict) -> str:
             f"{_long(election['date'])}.")
 
 
-def map_paths(html: str) -> str:
-    """The forecast page's ward map as the image draws it: the <svg> that
-    holds the first <pattern> (contested wards are striped), reduced to its
-    viewBox, its <pattern> definitions and its <path> elements. The key, the
-    north mark and anything else the page draws in other elements are left
-    out by what they are, not by where the page puts them."""
-    i = html.find("<pattern")
-    if i < 0:
-        raise OgError("forecast.html: no striped ward map (<pattern>) to draw")
-    a, b = html.rfind("<svg", 0, i), html.find("</svg>", i)
-    m = html[a:b]
-    vb = re.search(r'viewBox="([^"]+)"', m[:m.find(">") + 1])
-    if not vb:
-        raise OgError("forecast.html: the ward map's <svg> has no viewBox")
-    patterns = re.findall(r"<pattern\b[\s\S]*?</pattern>", m)
-    paths = re.findall(r"<path\b[^>]*>", m)
-    return (f'<svg viewBox="{vb.group(1)}"><defs>{"".join(patterns)}</defs>'
-            + "".join(paths) + "</svg>")
-
-
-def ward_shapes(map_svg: str) -> int:
-    """How many distinct ward outlines a map holds."""
-    return len(set(re.findall(r'<path d="([^"]+)"', map_svg)))
-
-
-def forecast_spec(html: str, pool: dict, *, election: dict, wards: int, headline: str) -> dict:
-    """/forecast: the headline, most seats, one party alone, the owner's four
-    coalitions, and the page's striped ward map."""
+def forecast_spec(pool: dict, *, yfd: dict, out: Path, election: dict, headline: str) -> dict:
+    """/forecast: our forecast's one card, the card the share sheet of
+    /your-forecast/ draws (play-card.js, through og-pages.mjs). Its figures are
+    the compute result for the published settings, which page.py gives run
+    natively (interactive/tools/native_play.py --result untouched), and its date
+    is forecast.json's ``forecast_date``; nothing here is typed. The chances the
+    pages print (``p_anc_largest``, ``p_da_largest``), the council's size and
+    the date the pages print must be the card's own, or the build refuses."""
+    import sys
     import build_play
+    run = subprocess.run([sys.executable, str(REPO_ROOT / "interactive" / "tools" / "native_play.py"),
+                          "--result", "untouched"], capture_output=True, text=True, cwd=REPO_ROOT)
+    if run.returncode:
+        raise OgError("og_pages: the published forecast could not be computed natively "
+                      f"(interactive/tools/native_play.py):\n{run.stderr[-2000:]}")
+    r = json.loads(run.stdout)
+    if r.get("refused"):
+        raise OgError(f"og_pages: the published forecast was refused: {r['refused']}")
+    date = _long(yfd["forecast_date"])
+    if date != pool["generated_date"]:
+        raise OgError(f"forecast.json's forecast_date reads {date!r}, the pages print {pool['generated_date']!r}")
     roster = build_play.roster()
-    figures: dict = {}
-    rows = []
     for code, tok in FORECAST_LARGEST:
-        figures[tok] = _fig(pool, tok)
-        rows.append({"label": roster[code]["name"], "value": pool[tok]})
-    figures[FORECAST_ALONE] = _fig(pool, FORECAST_ALONE)
-    coalitions = []
-    for groups in FORECAST_COALITIONS:
-        tok = coalition_token(groups)
-        figures[tok] = _fig(pool, tok)
-        coalitions.append({"label": coalition_label(groups, roster), "value": pool[tok]})
-    figures["generated_date"] = _fig(pool, "generated_date")
-    m = map_paths(html)
-    if ward_shapes(m) != wards:
-        raise OgError(f"forecast.html's map holds {ward_shapes(m)} ward outlines, not the "
-                      f"{wards} wards of the geometry: the map was not cut out whole")
-    date = f"Forecast of {pool['generated_date']}. " + _vote_line(election, pool, figures)
-    alt = (f"{headline} Most seats: " + ", ".join(f"{r['label']} {r['value']}" for r in rows) +
-           f". One party alone with a majority: {pool[FORECAST_ALONE]}. Coalitions with a majority: " +
-           "; ".join(f"{c['label']} {c['value']}" for c in coalitions) +
-           ". The ward map, contested wards striped.")
-    return {"layout": "forecast", "headline": headline, "date_line": date,
-            "most_seats": "Most seats", "rows": rows,
-            "alone": {"label": "One party alone, a majority", "value": pool[FORECAST_ALONE]},
-            "coalitions_head": "Coalitions with a majority", "coalitions": coalitions,
-            "key_label": "Striped: contested wards", "map_svg": m,
-            "figures": figures, "alt": alt}
+        if r["largest"][code]["text"] != pool[tok]:
+            raise OgError(f"the card's chance for {code} to hold the most seats is {r['largest'][code]['text']!r}, "
+                          f"the pages print {pool[tok]!r}")
+    if str(int(r["council"])) != pool["council_size"]:
+        raise OgError(f"the card's council is {r['council']} seats, the pages print {pool['council_size']}")
+    codes = sorted(set(r["shown"]) | set(r["largest"]))
+    logos = {c: f"{c}.png" for c in codes if roster[c]["logo"]}
+    geometry = json.loads((out / "your-forecast" / "ward_paths.json").read_text(encoding="utf-8"))
+    when = _long(election["date"])
+    figures = {"generated_date": _fig(pool, "generated_date"), "council_size": _fig(pool, "council_size"),
+               **{tok: _fig(pool, tok) for _c, tok in FORECAST_LARGEST}}
+    top = ", ".join(f"{pool[tok]} chance it's {roster[code]['article']}{roster[code]['name']}"
+                    for code, tok in FORECAST_LARGEST)
+    alt = (f"whysoserious.city forecast, {date}. {election['city']} council, {when}, {pool['council_size']} seats. "
+           f"Most seats: {top}. Ward map, contested wards striped; each party at its middle seat count.")
+    return {"layout": "forecast", "headline": headline, "date_line": f"Forecast of {date}.",
+            "result": r, "geometry": geometry, "when": when, "forecast_date": yfd["forecast_date"],
+            "roster": {c: {k: roster[c][k] for k in ("name", "colour", "article", "logo")} for c in codes},
+            "logos": logos, "figures": figures, "alt": alt}
 
 
 def verdict_badge(word: str) -> str:
@@ -440,7 +378,14 @@ def claim_spec(html: str, claim: dict) -> dict:
             "badge": stamp_path(verdict_badge(claim["verdict"])),
             "code": claim["party"], "party": party, "colour": roster[claim["party"]]["colour"],
             "logo": claim_logo(claim), "speaker": speaker,
-            "date_line": f"Tested against the forecast. Published {claim['published']}.",
+            # the tested statement, printed beside the stamp: claims.toml's label,
+            # the claim's own title (owner, 2026-10-13)
+            "statement": " ".join(claim["label"].split()),
+            # the date of the forecast the claim was tested against: claims.toml's
+            # `published`, the day the test was published
+            "date_line": f"Tested against the whysoserious.city forecast published {claim['published']}.",
+            # the top bar takes the party's colour from the roster, like its chip
+            "kind_colour": roster[claim["party"]]["colour"],
             "figures": {},
             "alt": f"\u201c{quote}\u201d {speaker}, {party}. Verdict: {claim['verdict']}."}
 
@@ -526,7 +471,7 @@ def check(spec: dict) -> dict:
     bad = uncovered(spec)
     if bad:
         raise OgError("characters the card faces do not carry: " + "; ".join(bad))
-    text = json.dumps({k: v for k, v in spec.items() if k not in ("figures", "map", "map_svg")},
+    text = json.dumps({k: v for k, v in spec.items() if k not in ("figures", "map", "map_svg", "result", "geometry")},
                       ensure_ascii=False)
     unused = [t for t, f in spec["figures"].items() if f["display"] not in text]
     if unused:

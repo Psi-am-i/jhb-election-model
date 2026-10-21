@@ -42,7 +42,7 @@
 <nav class="topnav">
   <a class="home" href="./" aria-label="Johannesburg election forecast — joburg.whysoserious.city"><svg class="logo" viewBox="19 87 2826 1296" aria-hidden="true" focusable="false"><use href="logo.svg#logo"></use></svg></a>
   <div class="navlinks">
-  <span class="navgroup"><a href="forecast">our forecast</a><a href="your-forecast/">your forecast</a><a class="active" href="commentary">commentary</a><a href="claims">party claims</a></span>
+  <span class="navgroup"><a href="forecast">our forecast</a><a href="your-forecast/">your prediction</a><a class="active" href="commentary">commentary</a><a href="claims">party claims</a></span>
   <span class="navgroup"><a href="methodology">methodology</a><a href="review">review</a><a href="corrections">corrections</a><a href="sources">sources</a><a href="https://github.com/Psi-am-i/jhb-election-model">source code</a></span>
   </div>
   <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
@@ -105,7 +105,7 @@
     <div class="tablewrap"><table>
       <thead><tr><th>Candidate, and who votes against (everyone else abstains)</th><th class="num">Viable in, of simulations</th></tr></thead>
       <tbody><!-- __MINORITY_START__ -->
-<tr><td>DA minority, ANC+EFF+MK oppose</td><td class="num"><span class="mstat" data-mode="generated" data-token="minority.DA_minority_ANC_EFF_MK_oppose" data-when="" data-prov="4.0%. Unchanged since 26 September 2026. Source: forecast_summary.json minority, computed at build from the current model run." tabindex="0">4.0%</span></td></tr><tr><td>DA minority, only ANC opposes (2021 pattern)</td><td class="num"><span class="mstat" data-mode="generated" data-token="minority.DA_minority_only_ANC_opposes_2021_pattern" data-when="" data-prov="50%. Unchanged since 26 September 2026. Source: forecast_summary.json minority, computed at build from the current model run." tabindex="0">50%</span></td></tr><tr><td>ANC minority, only DA opposes</td><td class="num"><span class="mstat" data-mode="generated" data-token="minority.ANC_minority_only_DA_opposes" data-when="" data-prov="48%. Unchanged since 26 September 2026. Source: forecast_summary.json minority, computed at build from the current model run." tabindex="0">48%</span></td></tr><tr><td>ANC minority, DA+ASA oppose</td><td class="num"><span class="mstat" data-mode="generated" data-token="minority.ANC_minority_DA_ASA_oppose" data-when="" data-prov="13%. Unchanged since 26 September 2026. Source: forecast_summary.json minority, computed at build from the current model run." tabindex="0">13%</span></td></tr>
+<tr><td>DA minority, ANC+EFF+MK oppose</td><td class="num"><span class="mstat" data-mode="generated" data-token="minority.DA_minority_ANC_EFF_MK_oppose" data-when="" data-prov="under 0.1%. Was 4.0%. Published 26 September 2026; now 21 October 2026. Source: forecast_summary.json minority, computed at build from the current model run." tabindex="0">under 0.1%</span><span class="arrow mstat-move down" data-prov="Was 4.0%.">▼</span></td></tr><tr><td>DA minority, only ANC opposes (2021 pattern)</td><td class="num"><span class="mstat" data-mode="generated" data-token="minority.DA_minority_only_ANC_opposes_2021_pattern" data-when="" data-prov="38%. Was 50%. Published 26 September 2026; now 21 October 2026. Source: forecast_summary.json minority, computed at build from the current model run." tabindex="0">38%</span><span class="arrow mstat-move down" data-prov="Was 50%.">▼</span></td></tr><tr><td>ANC minority, only DA opposes</td><td class="num"><span class="mstat" data-mode="generated" data-token="minority.ANC_minority_only_DA_opposes" data-when="" data-prov="59%. Was 48%. Published 26 September 2026; now 21 October 2026. Source: forecast_summary.json minority, computed at build from the current model run." tabindex="0">59%</span><span class="arrow mstat-move up" data-prov="Was 48%.">▲</span></td></tr><tr><td>ANC minority, DA+ASA oppose</td><td class="num"><span class="mstat" data-mode="generated" data-token="minority.ANC_minority_DA_ASA_oppose" data-when="" data-prov="0.1%. Was 13%. Published 26 September 2026; now 21 October 2026. Source: forecast_summary.json minority, computed at build from the current model run." tabindex="0">0.1%</span><span class="arrow mstat-move down" data-prov="Was 13%.">▼</span></td></tr>
 <!-- __MINORITY_END__ --></tbody>
     </table></div>
   </section>
@@ -149,12 +149,14 @@
   </div>
 </section>
 <footer class="sitefooter">
-  <div class="foot-top"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="440 272 1984 1016" aria-hidden="true" focusable="false"><use href="whysoserious.svg#wsc"></use></svg></a>
+  <div class="foot-text">
   <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="https://www.statssa.gov.za/">Stats SA</a>. Ward and voting-district boundaries from the <a href="https://spatialhub-mdb-sa.opendata.arcgis.com/">Municipal Demarcation Board</a>. Raw election results from the <a href="https://results.elections.org.za/">IEC</a>. <a href="https://github.com/Psi-am-i/jhb-election-model">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
-  </div>
   <hr class="foot-rule">
   <div class="foot-independence">
     <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
+  </div>
+  </div>
+  <div class="foot-side"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="0 0 1969 1002" aria-hidden="true" focusable="false"><use href="whysoseriouscity.svg#wsc"></use></svg></a>
     <a class="foot-support" href="support">Support Our Work</a>
   </div>
 </footer>

@@ -49,6 +49,7 @@ Two full model runs go in parallel subprocesses, so this module takes minutes.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import math
 import os
@@ -1301,26 +1302,234 @@ def test_the_seat_line_is_the_middle_forecasts_median_error_by_hand():
 
 
 
-def test_boldness_bands_at_their_edges():
-    """JUDGEMENT-CALLS §N10 (superseding §N6): Safe bet at 45% or more,
-    Steady as she goes from 30%, Long shot from 15%, Wild call from 5%, Hail
-    Mary under 5%; an edge takes the higher band. Constructed chances on and
-    just under each of the four edges, so a band moved, reordered or renamed
-    turns this red."""
-    assert R.boldness(1.0) == "Safe bet"
-    assert R.boldness(0.45) == "Safe bet"
-    assert R.boldness(0.4499) == "Steady as she goes"
-    assert R.boldness(0.30) == "Steady as she goes"
-    assert R.boldness(0.2999) == "Long shot"
-    assert R.boldness(0.15) == "Long shot"
-    assert R.boldness(0.1499) == "Wild call"
-    assert R.boldness(0.05) == "Wild call"
-    assert R.boldness(0.0499) == "Hail Mary"
-    assert R.boldness(0.0) == "Hail Mary"
-    # the table is read highest band first and ends at zero
-    lows = [low for low, _ in R.BOLDNESS]
-    assert lows == sorted(lows, reverse=True) and lows[-1] == 0.0
-    assert lows == [0.45, 0.30, 0.15, 0.05, 0.0]
+def test_party_closeness_by_hand():
+    """party_closeness (JUDGEMENT-CALLS §N10, 2026-10-13): the share of
+    simulations at least as far from OUR figure as the reader's is,
+    P(|X - ours| >= |mine - ours|), ties counting. Two-sided: the same
+    distance below ours scores the same as above. Constructed draws 0..4,
+    ours 2."""
+    x, w = np.array([0.0, 1, 2, 3, 4]), R.uniform(5)
+    assert R.party_closeness(x, 2, 2, w) == 1.0           # ours itself
+    assert R.party_closeness(x, 2, 3, w) == 0.8           # 0, 1, 3, 4 are at least 1 away
+    assert R.party_closeness(x, 2, 1, w) == 0.8           # the same distance below
+    assert R.party_closeness(x, 2, 4, w) == 0.4           # 0 and 4
+    assert R.party_closeness(x, 2, 0, w) == 0.4           # one-sided would give P(X <= 0) = 0.2
+    assert R.party_closeness(x, 2, 9, w) == 0.0
+    # list percents: a simulation exactly as far counts despite float rounding
+    v = np.array([10.0, 10.1, 10.3, 9.7])
+    assert R.party_closeness(v, 10.0, 10.3, R.uniform(4)) == 0.5   # 10.3 and 9.7
+    # weights count
+    assert R.party_closeness(x, 2, 4, [1, 1, 1, 1, 6]) == 0.7
+
+
+#: A council of constructed draws for the closeness tests: every simulation
+#: gives each party exactly OUR figure, so a party's closeness on a measure is
+#: 1 where the reader matches ours and 0 where they differ, and the
+#: aggregation can be checked by hand. A..F are the six largest parties in
+#: ours (60 down to 10 seats), G a small party with seats, H a party with no
+#: seats and 0.2 points of the list ballot (tiny unless someone moves it).
+_C_OURS_SEATS = {"A": 60, "B": 50, "C": 40, "D": 30, "E": 20, "F": 10, "G": 2, "H": 0}
+_C_OURS_SHARE = {"A": 30.0, "B": 25.0, "C": 18.0, "D": 12.0, "E": 8.0, "F": 4.8, "G": 2.0, "H": 0.2}
+
+
+def _council(n=4):
+    cols = list(_C_OURS_SEATS)
+    seats = np.array([[_C_OURS_SEATS[c] for c in cols]] * n, dtype=float)
+    shares = np.array([[_C_OURS_SHARE[c] for c in cols]] * n, dtype=float)
+    return seats, cols, shares, cols, {"seats": dict(_C_OURS_SEATS), "share": dict(_C_OURS_SHARE)}
+
+
+def _moved(ours, seats=None, share=None):
+    return {"seats": {**ours["seats"], **(seats or {})}, "share": {**ours["share"], **(share or {})}}
+
+
+def test_closeness_aggregates_by_hand():
+    """L is the mean over the six parties with most seats in OUR prediction,
+    S over the rest less the tiny ones, overall (2L + S) / 3. On the
+    constructed council each party's closeness is 1 or 0 per measure."""
+    s, sc, x, xc, ours = _council()
+    assert R.CLOSENESS_LARGE_PARTIES == 6 and R.CLOSENESS_LARGE_WEIGHT == 2
+    got = R.closeness(s, sc, x, xc, None, ours, ours)
+    assert got["large_parties"] == ["A", "B", "C", "D", "E", "F"]
+    assert got["small_parties"] == ["G"]                 # H is tiny in both
+    assert got["parties"] == {c: 1.0 for c in "ABCDEFG"} and got["overall"] == 1.0
+    # A's seats moved: A scores (0 + 1) / 2; L = 5.5 / 6; S = 1
+    got = R.closeness(s, sc, x, xc, None, _moved(ours, seats={"A": 70}), ours)
+    assert got["parties"]["A"] == 0.5
+    assert math.isclose(got["large"], 5.5 / 6) and got["small"] == 1.0
+    assert math.isclose(got["overall"], (2 * 5.5 / 6 + 1) / 3)
+    # G's vote moved: G scores 0.5; S = 0.5; L = 1
+    got = R.closeness(s, sc, x, xc, None, _moved(ours, share={"G": 3.0}), ours)
+    assert math.isclose(got["overall"], (2 * 1 + 0.5) / 3)
+    # a party missing from the reader's forecast holds 0 there
+    mine = _moved(ours); del mine["seats"]["B"]
+    assert R.closeness(s, sc, x, xc, None, mine, ours)["parties"]["B"] == 0.5
+    # the answer carries the closeness but outcome_badge does not pass it on
+    o = R.outcome_badge(s, sc, x, xc, None, ours, 106, [], ours=ours)
+    assert set(o) == {"largest", "majority_alone", "coalition", "badge", "phrase", "measure"}
+    assert o["badge"] == "Safe bet" and o["phrase"] == "likely" and o["measure"] == R.CLOSENESS_MEASURE
+    assert not any(isinstance(v, float) for v in o.values())
+
+
+def test_the_tiny_party_exclusion_both_ways():
+    """A party with no seats and under 0.5 points of the list ballot in BOTH
+    ours and the reader's is left out of S; at or over 0.5 in either, or a
+    seat in either, it counts. H: 0 seats, 0.2 points in ours."""
+    s, sc, x, xc, ours = _council()
+    assert R.CLOSENESS_TINY_POINTS == 0.5
+    # the reader moves H within the tiny range: still excluded, nothing changes
+    got = R.closeness(s, sc, x, xc, None, _moved(ours, share={"H": 0.4}), ours)
+    assert "H" not in got["parties"] and got["overall"] == 1.0
+    # the reader lifts H to 0.5 points: counted, its vote scores 0, S = (1 + 0.5) / 2
+    got = R.closeness(s, sc, x, xc, None, _moved(ours, share={"H": 0.5}), ours)
+    assert got["small_parties"] == ["G", "H"] and got["parties"]["H"] == 0.5
+    assert math.isclose(got["overall"], (2 + 0.75) / 3)
+    # a seat for H in the reader's forecast: counted
+    got = R.closeness(s, sc, x, xc, None, _moved(ours, seats={"H": 1}), ours)
+    assert "H" in got["parties"]
+    # the other direction: H at 0.6 points in OURS, the reader's 0.4: counted
+    s2, sc2, x2, xc2, ours2 = _council()
+    ours2["share"]["H"] = 0.6
+    x2[:, xc2.index("H")] = 0.6
+    got = R.closeness(s2, sc2, x2, xc2, None, _moved(ours2, share={"H": 0.4}), ours2)
+    assert "H" in got["parties"] and got["parties"]["H"] == 0.5
+    # a party in neither forecast nor the draws' columns adds nothing
+    got = R.closeness(s, sc, x, xc, None, _moved(ours, share={"Z": 0.0}), ours)
+    assert "Z" not in got["parties"] and got["overall"] == 1.0
+
+
+def test_the_large_parties_are_ours_with_ties_by_code():
+    assert R.large_parties({"A": 5, "B": 9, "C": 5, "D": 7, "E": 1, "F": 5, "G": 5, "H": 0}) == \
+        ["B", "D", "A", "C", "F", "G"]
+    assert R.large_parties({"X": 3, "Y": 3}) == ["X", "Y"]
+
+
+def test_closeness_badge_at_its_edges():
+    """The owner's fixed ten-point bands (2026-10-13, JUDGEMENT-CALLS §N10):
+    Safe bet from 0.90, Steady as she goes from 0.80, Long shot from 0.70,
+    Wild call from 0.60, Hail Mary below. A closeness at an edge takes the
+    closer band; just under it, the next. Each edge on both sides, so a cut
+    moved, a band reordered or renamed turns this red."""
+    assert R.CLOSENESS_BANDS == ((0.90, "Safe bet"), (0.80, "Steady as she goes"), (0.70, "Long shot"),
+                                 (0.60, "Wild call"), (0.0, "Hail Mary"))
+    for v, words in [(1.0, "Safe bet"), (0.90, "Safe bet"), (0.8999, "Steady as she goes"),
+                     (0.80, "Steady as she goes"), (0.7999, "Long shot"), (0.70, "Long shot"),
+                     (0.6999, "Wild call"), (0.60, "Wild call"), (0.5999, "Hail Mary"), (0.0, "Hail Mary")]:
+        assert R.closeness_badge(v) == words, (v, words, R.closeness_badge(v))
+
+
+def _published():
+    man_bytes = (ROOT / "site" / "draws" / "manifest.json").read_bytes()
+    manifest = json.loads(man_bytes)
+    blob = (ROOT / "site" / "draws" / "base.bin").read_bytes()
+    arrays = R.unpack(blob, manifest)
+    law = R.PUBLISHED_LAW
+    cols = next(b for b in manifest["blocks"] if b["name"] == f"seats/{law}")["columns"]
+    seats, parties = R.party_columns(arrays[f"seats/{law}"], cols)
+    xcols = next(b for b in manifest["blocks"] if b["name"] == "list_vote")["columns"]
+    forecast = json.loads((ROOT / "site" / "your-forecast" / "forecast.json").read_text(encoding="utf-8"))
+    assert forecast["draws_sha256"] == hashlib.sha256(man_bytes + blob).hexdigest()
+    ours = {"seats": {c: int(v) for c, v in forecast["start"]["seats"].items()},
+            "share": R.list_percent(forecast["start"]["list_votes"])}
+    return seats, parties, R.draw_percents(arrays["list_vote"]), list(xcols), ours, forecast
+
+
+def test_every_band_has_the_owners_phrase_and_nothing_else_does():
+    """CLOSENESS_PHRASES (owner, 2026-10-13): one phrase per badge word, the
+    owner's words, both directions."""
+    assert [w for _l, w in R.CLOSENESS_BANDS] == list(R.CLOSENESS_PHRASES)
+    assert R.CLOSENESS_PHRASES == {"Safe bet": "likely", "Steady as she goes": "plausible", "Long shot": "unlikely",
+                                   "Wild call": "very unlikely", "Hail Mary": "extremely unlikely"}
+
+
+def test_ours_is_one_on_every_party_and_a_safe_bet_on_the_published_draws():
+    """On the published draws and the published prediction: every party
+    counted scores exactly 1, the overall is 1, and the badge is Safe bet."""
+    seats, cols, x, xcols, ours, _forecast = _published()
+    got = R.closeness(seats, cols, x, xcols, None, ours, ours)
+    assert len(got["large_parties"]) == R.CLOSENESS_LARGE_PARTIES
+    assert got["parties"] and all(v == 1.0 for v in got["parties"].values()), got["parties"]
+    assert got["overall"] == 1.0
+    assert R.closeness_badge(got["overall"]) == "Safe bet"
+
+
+#: The brief's test forecasts (audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md),
+#: measured 2026-10-13 on the published draws of model 7ea27c28 (MODEL-LOG
+#: "Closeness badge: the quantile cut-offs rejected"): overall closeness to
+#: three places and the badge under the owner's ten-point bands. Mild, moderate
+#: and wild are score/v4.py's constructions: our prediction with the named
+#: seat moves, each moved party's list percent scaled by its seats.
+BRIEF_TABLE_MODEL = "7ea27c28"
+BRIEF_TABLE = {"ours": (1.000, "Safe bet"), "fixture A": (0.991, "Safe bet"), "fixture B": (0.685, "Wild call"),
+               "screenshot": (0.820, "Steady as she goes"), "mild": (0.918, "Safe bet"),
+               "moderate": (0.846, "Steady as she goes"), "wild": (0.780, "Long shot")}
+#: The owner's screenshot forecast: seats and list percent for 14 parties;
+#: every other party at our prediction.
+SCREENSHOT = {"ANC": (75, 23.3), "DA": (65, 25.8), "ASA": (33, 14.4), "MK": (26, 10.6), "EFF": (25, 9.5),
+              "PA": (14, 2.6), "IFP": (4, 1.5), "RISE": (4, 1.6), "ALJAMAAH": (3, 0.9), "ALL_CITIZENS_PARTY": (3, 0.9),
+              "BOSA": (3, 1.0), "SOUTH_AFRICAN_COMMUNIST_PARTY": (3, 1.3), "ACDP": (2, 0.7), "VFPLUS": (2, 0.9)}
+
+
+def test_the_briefs_test_forecasts_take_the_owners_bands():
+    """The seven forecasts the brief names, on the published draws: mild a
+    Safe bet, moderate and the screenshot Steady as she goes, wild a Long
+    shot, fixture B a Wild call. Measured on model 7ea27c28; on any other
+    published model this fails and says to re-measure."""
+    model = json.loads((ROOT / "site" / "draws" / "manifest.json").read_bytes())["artefact_key"]["model_sha256"]
+    assert model.startswith(BRIEF_TABLE_MODEL), (
+        f"the published draws are model {model[:8]}, not {BRIEF_TABLE_MODEL}: re-measure BRIEF_TABLE")
+    seats, cols, x, xcols, ours, _f = _published()
+    fx = json.loads((ROOT / "interactive" / "tests" / "share-fixture.json").read_text(encoding="utf-8"))
+
+    def moved(ch):
+        s, v = dict(ours["seats"]), dict(ours["share"])
+        for c, d in ch.items():
+            v[c] = v[c] * (s[c] + d) / s[c]
+            s[c] += d
+        return {"seats": s, "share": v}
+    o = R.large_parties(ours["seats"])
+    shot = {"seats": {**ours["seats"], **{c: a for c, (a, _b) in SCREENSHOT.items()}},
+            "share": {**ours["share"], **{c: b for c, (_a, b) in SCREENSHOT.items()}}}
+    forecasts = {
+        "ours": ours,
+        "fixture A": {"seats": fx["A"]["answer"]["seats"], "share": R.list_percent(fx["A"]["list_votes"])},
+        "fixture B": {"seats": fx["B"]["answer"]["seats"], "share": R.list_percent(fx["B"]["list_votes"])},
+        "screenshot": shot,
+        "mild": moved({o[0]: -8, o[1]: 8}),
+        "moderate": moved({o[0]: -15, o[1]: 5, o[2]: 5, o[3]: 5, "IFP": 2}),
+        "wild": moved({o[0]: -25, o[3]: 25, "ALJAMAAH": 3, "IFP": 3, "RISE": 3}),
+    }
+    assert forecasts.keys() == BRIEF_TABLE.keys()
+    for name, mine in forecasts.items():
+        overall = R.closeness(seats, cols, x, xcols, None, mine, ours)["overall"]
+        want, badge = BRIEF_TABLE[name]
+        assert abs(overall - want) <= 0.0005, (name, overall, want)
+        assert R.closeness_badge(overall) == badge, (name, overall, badge)
+    # the bands are all used but Hail Mary: the table can tell them apart
+    assert len({b for _v, b in BRIEF_TABLE.values()}) == 4
+
+
+def test_moving_a_party_further_from_ours_never_raises_its_closeness():
+    """Monotone, on the published draws: for each of the six large parties
+    and three small ones, its closeness on seats and on the vote is
+    non-increasing as the reader's figure moves away from ours, in both
+    directions; and the party's closeness inside closeness() follows."""
+    seats, cols, x, xcols, ours, _f = _published()
+    w = R.uniform(seats.shape[0])
+    names = R.large_parties(ours["seats"]) + sorted(
+        (c for c in ours["seats"] if c not in R.large_parties(ours["seats"])), key=lambda c: -ours["seats"][c])[:3]
+    assert len(names) == 9
+    for c in names:
+        sv, xv = seats[:, cols.index(c)], x[:, xcols.index(c)]
+        o_s, o_v = ours["seats"][c], ours["share"][c]
+        for sign in (1, -1):
+            run = [R.party_closeness(sv, o_s, o_s + sign * k, w) for k in range(0, 41) if o_s + sign * k >= 0]
+            assert all(a >= b for a, b in zip(run, run[1:])), (c, sign, run)
+            run = [R.party_closeness(xv, o_v, o_v + sign * k / 4, w) for k in range(0, 41) if o_v + sign * k / 4 >= 0]
+            assert all(a >= b for a, b in zip(run, run[1:])), (c, sign)
+        whole = [R.closeness(seats, cols, x, xcols, None, _moved(ours, seats={c: o_s + k}), ours)["parties"][c]
+                 for k in (0, 2, 5, 10, 20)]
+        assert all(a >= b for a, b in zip(whole, whole[1:])) and whole[0] == 1.0 and whole[-1] < 1.0, (c, whole)
 
 
 def test_every_badge_word_has_the_owners_file_and_every_file_a_word():
@@ -1330,7 +1539,7 @@ def test_every_badge_word_has_the_owners_file_and_every_file_a_word():
     directions, each population asserted equal to what was compared; and a
     constructed word with no file is caught."""
     import site_assets
-    words = [w for _low, w in R.BOLDNESS]
+    words = [w for _low, w in R.CLOSENESS_BANDS]
     script = ("import { badgeFile, STAMP_DIR } from " + json.dumps((ROOT / "interactive/js/share-card.js").as_uri())
               + "; process.stdout.write(JSON.stringify({ dir: STAMP_DIR, files: "
               + json.dumps(words + ["Bold call"]) + ".map(badgeFile) }));")
@@ -1345,92 +1554,29 @@ def test_every_badge_word_has_the_owners_file_and_every_file_a_word():
     assert retired not in files      # a retired word, constructed: no file
 
 
-def test_boldest_call_by_hand():
-    """boldest_call on constructed draws: the middle is each column's median;
-    a party above its middle is scored P(seats >= x), below P(seats <= x);
-    the smallest names the badge; a forecast at the middle has no call."""
-    # A's seats 10..19 (median 14.5 -> 15 rounded half up), B's 30 throughout
-    seats = np.array([[10 + i, 30] for i in range(10)], dtype=float)
-    assert R.middle_seats(seats, ["A", "B"], R.uniform(10)) == {"A": 15, "B": 30}
-    # A at 18: P(A >= 18) = 2/10; B at its middle is no call
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 18, "B": 30})
-    assert got == {"party": "A", "seats": 18, "middle": 15, "p": 0.2, "text": R.chance_text(0.2)}
-    # A at 11: P(A <= 11) = 2/10; B at 29: P(B <= 29) = 0, the bolder
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 11, "B": 29})
-    assert got["party"] == "B" and got["seats"] == 29 and got["p"] == 0.0
-    # a party with no column holds no seats in any simulation
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 15, "B": 30, "C": 1})
-    assert got["party"] == "C" and got["p"] == 0.0
-    # the middle forecast itself: no call, a Safe bet
-    got = R.boldest_call(seats, ["A", "B"], None, {"A": 15, "B": 30})
-    assert got["party"] is None and got["seats"] is None and got["p"] == 1.0
-    assert R.boldness(got["p"]) == "Safe bet"
-    # a column missing from the reader's forecast is a reader's 0
-    got = R.boldest_call(seats, ["A", "B"], None, {"B": 30})
-    assert got["party"] == "A" and got["seats"] == 0 and got["p"] == 0.0
+def test_list_percent_is_votes_over_the_total_times_a_hundred():
+    """The one arithmetic for a ballot's percents, the same order as
+    list_shares x 100 and builder-state.js percentOf (m[c] / T * 100), so the
+    page and the seat Worker read the same floats."""
+    votes = {"A": 333, "B": 667, "C": 0}
+    assert R.list_percent(votes) == {"A": 333 / 1000 * 100.0, "B": 667 / 1000 * 100.0, "C": 0.0}
+    block = np.array([[333, 667, 0]])
+    assert R.draw_percents(block)[0].tolist() == list(R.list_percent(votes).values())
+    try:
+        R.list_percent({"A": 0})
+    except R.Refused:
+        pass
+    else:
+        raise AssertionError("a ballot with no votes was given percents")
 
 
-#: BADGE-DECISION.md's table (audits/2026-10-09-site-batch/), measured on the
-#: published draws of model 7ea27c28: each forecast is the model's middle
-#: forecast with the named moves (("=", n): set to n seats), and its boldest
-#: call and chance (printed to 0.1 point there).
-BADGE_TABLE_MODEL = "7ea27c28"
-BADGE_TABLE = [
-    ({"ANC": +3, "DA": -3}, "DA", 63, 0.432),
-    ({"ANC": +10, "DA": -10}, "DA", 56, 0.236),
-    ({"EFF": +10, "ANC": -10}, "EFF", 35, 0.264),
-    ({"DA": +15, "ANC": -15}, "DA", 81, 0.143),
-    ({"PA": +8, "DA": -8}, "PA", 31, 0.128),
-    ({"PA": +15, "DA": -15}, "PA", 38, 0.041),
-    ({"ANC": +25, "DA": -25}, "DA", 41, 0.025),
-    ({"DA": ("=", 106)}, "DA", 106, 0.009),
-]
-
-
-def test_the_owners_table_on_the_published_draws():
-    """The eight constructed forecasts of BADGE-DECISION.md, re-measured on
-    the published draws (site/draws/) under the published law. The table was
-    measured on model 7ea27c28; on any other published model this test fails
-    and says so, rather than passing on numbers nobody re-measured."""
-    man_bytes = (ROOT / "site" / "draws" / "manifest.json").read_bytes()
-    manifest = json.loads(man_bytes)
-    model = manifest["artefact_key"]["model_sha256"]
-    assert model.startswith(BADGE_TABLE_MODEL), (
-        f"the published draws are model {model[:8]}, not {BADGE_TABLE_MODEL}: re-measure "
-        "BADGE-DECISION.md's table on them and update BADGE_TABLE")
-    arrays = R.unpack((ROOT / "site" / "draws" / "base.bin").read_bytes(), manifest)
-    law = R.PUBLISHED_LAW
-    cols = next(b for b in manifest["blocks"] if b["name"] == f"seats/{law}")["columns"]
-    seats, parties = R.party_columns(arrays[f"seats/{law}"], cols)
-    middle = R.middle_seats(seats, parties, R.uniform(seats.shape[0]))
-    assert middle["ANC"] == middle["DA"]          # the table's premise: tied at the middle
-    for moves, party, at, chance in BADGE_TABLE:
-        mine = dict(middle)
-        for c, d in moves.items():
-            mine[c] = d[1] if isinstance(d, tuple) else middle[c] + d
-        got = R.boldest_call(seats, parties, None, mine)
-        assert (got["party"], got["seats"]) == (party, at), (moves, got)
-        assert abs(got["p"] - chance) <= 0.0005, (moves, got["p"], chance)
-    assert len(BADGE_TABLE) == 8
-
-
-def test_reader_outcome_and_its_chance_by_hand():
-    """reader_outcome reads a council as council_outcome takes it, and
-    outcome_chance is council_outcome's figure with its text and badge."""
+def test_reader_outcome_by_hand():
+    """reader_outcome reads a council in words: the one largest party or a
+    tie, a majority alone or not, the coalition sorted."""
     assert R.reader_outcome({"A": 140, "B": 130, "C": 0}, 136, ["B", "A", "A"]) == {
         "largest": "A", "majority_alone": True, "coalition": ["A", "B"]}
     assert R.reader_outcome({"A": 100, "B": 100, "C": 70}, 136) == {
         "largest": None, "majority_alone": False, "coalition": []}
-    seats = np.array([[140, 130], [100, 170], [120, 150], [150, 120]], dtype=float)
-    thr = np.array([136, 136, 136, 136], dtype=float)
-    got = R.outcome_chance(seats, ["A", "B"], thr, None, {"A": 140, "B": 130}, 136)
-    # "A largest with a majority alone": draws 0 and 3
-    assert math.isclose(got["p"], 0.5) and got["text"] == R.chance_text(0.5)
-    assert got["largest"] == "A" and got["majority_alone"] is True
-    # the badge is the boldest call's, not the outcome's (§N10): A at 140 and
-    # B at 130 against middles of 130 and 140: P(A >= 140) = P(B <= 130) = 0.5
-    assert got["boldest"] == R.boldest_call(seats, ["A", "B"], None, {"A": 140, "B": 130})
-    assert got["badge"] == R.boldness(got["boldest"]["p"])
 
 
 def test_party_columns_drop_the_remainder_column_only():

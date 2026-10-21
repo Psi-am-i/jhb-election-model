@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Johannesburg 2026 — How the model was broken — and fixed</title>
+<title>Johannesburg 2026 — How the model is tested</title>
 <meta property="og:site_name" content="Johannesburg 2026 Election Model">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Johannesburg 2026 — How the model was broken — and fixed">
+<meta property="og:title" content="Johannesburg 2026 — How the model is tested">
 <meta property="og:description" content="How the first version of the model was reviewed against its own plan, the errors that review found, and how each was fixed.">
 <meta property="og:url" content="https://joburg.whysoserious.city/review">
 <link rel="canonical" href="https://joburg.whysoserious.city/review">
@@ -29,7 +29,7 @@
 <nav class="topnav">
   <a class="home" href="./" aria-label="Johannesburg election forecast — joburg.whysoserious.city"><svg class="logo" viewBox="19 87 2826 1296" aria-hidden="true" focusable="false"><use href="logo.svg#logo"></use></svg></a>
   <div class="navlinks">
-  <span class="navgroup"><a href="forecast">our forecast</a><a href="your-forecast/">your forecast</a><a href="commentary">commentary</a><a href="claims">party claims</a></span>
+  <span class="navgroup"><a href="forecast">our forecast</a><a href="your-forecast/">your prediction</a><a href="commentary">commentary</a><a href="claims">party claims</a></span>
   <span class="navgroup"><a href="methodology">methodology</a><a class="active" href="review">review</a><a href="corrections">corrections</a><a href="sources">sources</a><a href="https://github.com/Psi-am-i/jhb-election-model">source code</a></span>
   </div>
   <button class="themetoggle" type="button" aria-label="Switch between dark and light" title="Light or dark"><span class="to-light"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="to-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg></span></button>
@@ -38,7 +38,7 @@
 <header>
   <div class="kicker">The review</div>
   <div class="pubdate">6 August 2026: Published</div>
-  <h1>How the model was broken — and fixed</h1>
+  <h1>How the model is tested</h1>
 <div class="pgshare" data-pgshare>
   <button class="btn model pgshare-open" type="button">Share</button>
   <dialog class="sharesheet" aria-labelledby="pgshare-title">
@@ -62,20 +62,23 @@
   <script type="module" src="js/page-share.js"></script>
 </div>
 </header>
-<p>After the first version of this model was built, we reviewed it the way a
-hostile examiner would — against its own written plan, line by line, output by
-output. The review found <strong>six implementation errors</strong>, one of which made the
+<p>This page shows how the model is improved. Each version is reviewed the way a
+hostile examiner would, against its own written plan, line by line and output
+by output, and the errors found are fixed and published. What follows is that
+review of the very first version; the same process is applied to each revision
+since.</p>
+<p>The review of the first version found <strong>six implementation errors</strong>, one of which made the
 forecast&rsquo;s original headline claim outright false. Every error was fixed the
 same day, the forecast changed materially, and the full technical audit is
 published, warts and all, in
 <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html"><code>model-review.html</code> on GitHub</a>.
 Here is what happened, in plain language — and why we think publishing it
 makes the forecast more worth your trust, not less.</p>
-<aside class="since"><div class="since-h"><span class="mstat" data-mode="free" data-token="generated_date" data-when="2026-09-17" data-current="29 September 2026" data-prov="29 September 2026. Unchanged since 30 September 2026. Source: model:_generated, live from the current model run." tabindex="0">29 September 2026</span>: what the model says now</div>
+<aside class="since"><div class="since-h"><span class="mstat" data-mode="free" data-token="generated_date" data-when="2026-09-17" data-current="21 October 2026" data-prov="21 October 2026. Was 29 September 2026. Published 30 September 2026; now 21 October 2026. Source: published:run_date, live from the current model run." tabindex="0">21 October 2026</span><span class="arrow mstat-move changed" data-prov="Was 29 September 2026.">◆</span>: what the model says now</div>
 <p>The figures below describe the <b>first version</b> of the model, as it stood on 6 August 2026.
-The largest party today: <span class="mstat" data-mode="free" data-token="p_anc_largest" data-when="2026-08-07" data-current="47%" data-prov="47%. Unchanged since 26 September 2026. Source: derived:largest_outright.ANC, live from the current model run." tabindex="0">47%</span> chance it's the ANC alone and <span class="mstat" data-mode="free" data-token="p_da_largest" data-when="2026-08-07" data-current="45%" data-prov="45%. Unchanged since 6 October 2026. Source: derived:largest_outright.DA, live from the current model run." tabindex="0">45%</span> chance
-it's the DA alone. Two or more parties tie for the most seats: <span class="mstat" data-mode="free" data-token="p_largest_tied" data-when="2026-10-02" data-current="1.4%" data-prov="1.4%. Unchanged since 6 October 2026. Source: derived:largest_tied, live from the current model run." tabindex="0">1.4%</span> chance. The ANC
-triggers the excessive-seats clause: <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-current="62%" data-prov="62%. Unchanged since 30 September 2026. Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">62%</span> chance. A chance is the share of the
+The largest party today: <span class="mstat" data-mode="free" data-token="p_anc_largest" data-when="2026-08-07" data-current="58%" data-prov="58%. Was 47%. Published 26 September 2026; now 21 October 2026. Source: derived:largest_outright.ANC, live from the current model run." tabindex="0">58%</span><span class="arrow mstat-move up" data-prov="Was 47%.">▲</span> chance it's the ANC alone and <span class="mstat" data-mode="free" data-token="p_da_largest" data-when="2026-08-07" data-current="34%" data-prov="34%. Was 45%. Published 6 October 2026; now 21 October 2026. Source: derived:largest_outright.DA, live from the current model run." tabindex="0">34%</span><span class="arrow mstat-move down" data-prov="Was 45%.">▼</span> chance
+it's the DA alone. Two or more parties tie for the most seats: <span class="mstat" data-mode="free" data-token="p_largest_tied" data-when="2026-10-02" data-current="3.6%" data-prov="3.6%. Was 1.4%. Published 6 October 2026; now 21 October 2026. Source: derived:largest_tied, live from the current model run." tabindex="0">3.6%</span><span class="arrow mstat-move up" data-prov="Was 1.4%.">▲</span> chance. The ANC
+triggers the excessive-seats clause: <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-current="90%" data-prov="90%. Was 62%. Published 30 September 2026; now 21 October 2026. Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">90%</span><span class="arrow mstat-move up" data-prov="Was 62%.">▲</span> chance. A chance is the share of the
 <span class="mstat" data-mode="free" data-token="n_draws" data-when="2026-08-07" data-current="5,000" data-prov="5,000. Unchanged since 26 September 2026. Source: derived:n_draws, live from the current model run." tabindex="0">5,000</span> simulations in which the outcome happens. No
 poll has been an input since <span data-asof="2026-09-12">12 September 2026</span>. The page is kept as published, as a record
 of how the errors were found and fixed.</p></aside>
@@ -170,15 +173,17 @@ that shows you its repair history is one you can calibrate your trust
 against. One that doesn&rsquo;t is asking you to take it on faith.</p>
 <p></span></p>
 <div class="colophon">
-  Reader edition, generated from docs-public/review.md on 2026-10-11. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html">model-review.html on GitHub</a>.
+  Reader edition, generated from docs-public/review.md on 2026-10-21. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/model-review.html">model-review.html on GitHub</a>.
 </div>
 <footer class="sitefooter">
-  <div class="foot-top"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="440 272 1984 1016" aria-hidden="true" focusable="false"><use href="whysoserious.svg#wsc"></use></svg></a>
+  <div class="foot-text">
   <p class="foot-credits">Johannesburg · 2026 Local Government Election Model · All site text, images, charts and figures are distributed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons BY 4.0 licence</a> and are free to re-use with attribution and a link back. Census and Ward-level Small Area Population Estimates 2022 data from <a href="https://www.statssa.gov.za/">Stats SA</a>. Ward and voting-district boundaries from the <a href="https://spatialhub-mdb-sa.opendata.arcgis.com/">Municipal Demarcation Board</a>. Raw election results from the <a href="https://results.elections.org.za/">IEC</a>. <a href="https://github.com/Psi-am-i/jhb-election-model">Code on GitHub</a> (MIT licence) · <a href="privacy">Privacy Policy</a> · Model design by <a href="mailto:psi@whysoserious.city">Psi</a> · © 2026 whysoserious.city is part of picnic labs.</p>
-  </div>
   <hr class="foot-rule">
   <div class="foot-independence">
     <p>This site is politically independent and unaligned. We do not accept donations, money or in-kind support from any political party, any candidate, any of their office-bearers, or any organisation they control or fund, or that campaigns for or against a party or candidate.</p>
+  </div>
+  </div>
+  <div class="foot-side"><a class="foot-umbrella" href="https://whysoserious.city/" aria-label="whysoserious.city"><svg class="wsc-logo" viewBox="0 0 1969 1002" aria-hidden="true" focusable="false"><use href="whysoseriouscity.svg#wsc"></use></svg></a>
     <a class="foot-support" href="support">Support Our Work</a>
   </div>
 </footer>

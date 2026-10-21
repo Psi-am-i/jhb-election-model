@@ -193,10 +193,10 @@ inserted = "2026-08-07"
 
 [generated_date]
 mode = "free"
-source = "model:_generated"
+source = "published:run_date"
 format = "date_long"
 inserted = "2026-09-17"
-used_in = "footer colophon and dateline — the run the page's figures come from"
+used_in = "footer colophon and dateline — the run the page's figures come from; since 2026-10-15 read from the published draws, the same run as the forecast's card"
 
 [run_seed]
 mode = "free"
@@ -487,7 +487,6 @@ format = "int"
 used_in = "methodology (the seat law)"
 
 unverifiable = "a measured historical figure from an official result or the census, not a model output"
-
 [hist_asa_pr_2021]
 mode = "fixed"
 on_site = "2026-09-26"   # typed on the site, before it was a token, from this publication
@@ -885,7 +884,7 @@ page = "index.html, forecast.html, nobody-will-win.html"
 
 [[audit.fixed]]
 value = "8"
-context = "The largest party is a near tie, where on 8 August the DA led clearly:"
+context = "The ANC is now ahead for largest party, where on 8 August the DA led clearly:"  # re-keyed 2026-10-16: wording (owner-approved draft for UAT)
 kind = "history"
 source = "the date of the published edition this piece is compared against (the 8 August deploy; /corrections, 27 September)"
 reviewed = "2026-10-02"
@@ -1000,14 +999,6 @@ value = "5 August 2026"
 context = "we put the question to it on 5 august 2026 and have no answer yet"  # re-keyed 2026-10-01: wording only (STYLE.md sweep)
 kind = "history"
 source = "the date the question was put to the Electoral Commission"
-reviewed = "2026-09-17"
-page = "methodology.html"
-
-[[audit.fixed]]
-value = "five"
-context = "the two routes are close to even, five parties to four. ActionSA is the"
-kind = "history"
-source = "MODEL-LOG — the two routes tested at 2021"
 reviewed = "2026-09-17"
 page = "methodology.html"
 
@@ -1544,12 +1535,25 @@ source = "Proclaimed by the Minister of Cooperative Governance and Traditional A
 reviewed = "2026-10-03"
 page = "index.html"
 
+# The corrections page (2026-10-16): the voting districts the live forecast
+# split between wards by the MDB layer's part figures (vd_ward_2026.csv,
+# is_split = Y; montecarlo.ward_parts' docstring).
 [[audit.fixed]]
-value = "40%"
-context = "at a weight of 40%"
-kind = "judgement"
-source = "JUDGEMENT-CALLS.md §A35 (the by-election blend weight, a judgement call)"
-reviewed = "2026-10-02"
+value = "181"
+context = "The forecast split 181 voting districts between wards"
+kind = "history"
+source = "data/processed/vd_ward_2026.csv: VD_Number with is_split = Y (montecarlo.ward_parts docstring, 181 of 865)"
+reviewed = "2026-10-16"
+page = "corrections.html"
+
+# The roll's snapshot date on /methodology, step 1 (2026-10-16): the IEC's
+# per-ward registration page labels its one snapshot with this date.
+[[audit.fixed]]
+value = "26 September 2026"
+context = "registered voters as at 26 September 2026"
+kind = "history"
+source = "archive/iec-registration-2026-09-26/README.md (the IEC's 'Registered voters as at 26 September 2026'; inputs_preflight.roll_snapshot)"
+reviewed = "2026-10-16"
 page = "methodology.html"
 
 [[audit.fixed]]
@@ -1569,11 +1573,11 @@ reviewed = "2026-10-02"
 page = "methodology.html"
 
 [[audit.fixed]]
-value = "40%"
-context = "others more than 40%"
+value = "17.6%"
+context = "instead, at 17.6% of the"
 kind = "judgement"
-source = "JUDGEMENT-CALLS.md §A35 (the by-election blend weight, a judgement call; the per-party alternative of §A33 is compared with it)"
-reviewed = "2026-10-02"
+source = "JUDGEMENT-CALLS.md §SJ2 (the owner's call of 2026-10-21, judgements/joburg-2026.toml support = 0.176)"
+reviewed = "2026-10-21"
 page = "methodology.html"
 
 [[audit.fixed]]

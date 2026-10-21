@@ -28,7 +28,7 @@ export function entryCount() {
 // The line, or "" when there is nothing to show.
 export function countLine(n) {
   if (!n) return "";
-  return n + (n === 1 ? " forecast" : " forecasts") + " sealed so far.";
+  return n + (n === 1 ? " prediction" : " predictions") + " sealed so far.";
 }
 
 entryCount().then(n => {

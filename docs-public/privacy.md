@@ -50,12 +50,12 @@ nothing about the visitor) is also kept in Cloudflare's
 [Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/),
 which deletes it after three months.
 
-## Shared forecasts
+## Shared predictions
 
-A forecast you make on [your forecast](your-forecast/) lives in its link. When
+A prediction you make on [your prediction](your-forecast/) lives in its link. When
 you share it, three things happen on the site's server.
 
-- **The seal.** The page sends the forecast and its name to the server, which
+- **The seal.** The page sends the prediction and its name to the server, which
   signs them with the time, using a key only the server holds, and returns the
   signature for the link to carry. Anyone opening the link can then see that
   it was sealed and when. Each seal is also kept as an entry, below.
@@ -65,21 +65,21 @@ you share it, three things happen on the site's server.
   apps and search engines that fetch it may keep their own copy, under their
   own rules.
 - **The count.** Shared links go out as `/s/` addresses. Each forwards to the
-  forecast and writes one log line and one Analytics Engine data point naming
+  prediction and writes one log line and one Analytics Engine data point naming
   "share", the button used (WhatsApp, X, copy or the phone's share menu) and
   the site's own address, as the short links above do.
 
-## Forecasts entered
+## Predictions entered
 
-Every sealed forecast is entered in a ranking against the result. Opening the
-share sheet seals the forecast, and so enters it. Typing a
-name or changing the forecast with the sheet open seals again, and each seal
+Every sealed prediction is entered in a ranking against the result. Opening the
+share sheet seals the prediction, and so enters it. Typing a
+name or changing the prediction with the sheet open seals again, and each seal
 is another entry. A person may enter several. The server stores, for each
 seal, in a database at Cloudflare:
 
-- the forecast: every ward's winner, each party's vote on the ward ballot and
+- the prediction: every ward's winner, each party's vote on the ward ballot and
   on the list ballot, and the governing parties;
-- the forecast as the link carries it, and the version of the page's figures
+- the prediction as the link carries it, and the version of the page's figures
   it was made against;
 - the name you typed on it, if any;
 - the time of the seal;
@@ -92,7 +92,7 @@ one minute under a scrambled form of its address, which is not stored. For an
 address of the newer kind, which holds many addresses for one connection,
 only its first half is used.
 
-**Why.** To rank every forecast sealed before polls open against the result.
+**Why.** To rank every prediction sealed before polls open against the result.
 Until the results only the number of entries is shown. After the count the
 leaderboard lists entries by place, under the name typed on each, or
 "Anonymous" and the start of its seal id if none was typed. The name is then

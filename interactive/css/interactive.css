@@ -257,6 +257,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--reader);outline
   border:1px solid var(--rule);border-radius:4px;padding:6px 8px;min-height:36px;}
 .prrow[hidden]{display:none;}
 .namefield{display:flex;flex-direction:column;gap:4px;font-size:13.5px;color:var(--ink);}
+.namefield[hidden]{display:none;}
 .sharebox{border:1px solid var(--rule-soft);padding:12px 14px;}
 .linknote{margin-top:6px;}
 .mapcol{display:flex;flex-direction:column;gap:14px;}

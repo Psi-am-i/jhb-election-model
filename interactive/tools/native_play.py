@@ -3,6 +3,8 @@
     .venv/bin/python interactive/tools/native_play.py            print the cases
     .venv/bin/python interactive/tools/native_play.py --write     store them in
                                                                   tests/native-play.json
+    .venv/bin/python interactive/tools/native_play.py --result NAME  one case's compute
+                                                                  result, as JSON
     .venv/bin/python interactive/tools/native_play.py --measure   the src/ modules
                                                                   page.py imports and
                                                                   the files it opens
@@ -95,9 +97,20 @@ def run_section2(ns) -> list[dict]:
         # the reader's list-ballot percent, as make.js sends it (B.percentOf "list")
         lt = sum(h["list_votes"].values())
         share = {c: 100.0 * v / lt for c, v in h["list_votes"].items()}
+        ours = {"seats": seats, "list_votes": h["list_votes"]}
         a = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
-                                                 "seats": seats, "coalition": two})))
-        out.append({"name": name, "handoff": h, "analyse": a})
+                                                 "seats": seats, "prediction": ours,
+                                                 "coalition": two})))
+        # the first reader IS the prediction (a Safe bet); the second is
+        # measured from a prediction twelve seats away on the two largest
+        # parties, a different input for the two runtimes to agree on
+        assert a["outcome"]["badge"] == "Safe bet", name
+        pred = {"seats": {**seats, two[0]: seats[two[0]] - 12, two[1]: seats[two[1]] + 12},
+                "list_votes": h["list_votes"]}
+        a2 = json.loads(ns["analyse"](json.dumps({"ward_calls": h["ward_calls"], "share": share,
+                                                  "seats": seats, "prediction": pred,
+                                                  "coalition": two})))
+        out.append({"name": name, "handoff": h, "analyse": a, "analyse_moved": a2})
     return out
 
 
@@ -141,7 +154,21 @@ def measure() -> dict:
     return {"modules": mods, "opened": sorted(opened - own)}
 
 
+def result(name: str = "untouched") -> dict:
+    """``compute`` for the settings of the case ``name``, as the page's Python
+    gives it. The share image of /forecast is drawn from the "untouched" case:
+    the published forecast (src/og_pages.py forecast_spec)."""
+    ns = _page(SERVED, SERVED)
+    for c in run(ns):
+        if c["name"] == name:
+            return c["result"]
+    raise SystemExit(f"native_play: no case {name!r} in {SETTINGS.relative_to(REPO)}")
+
+
 def main(argv: list[str]) -> int:
+    if "--result" in argv:
+        sys.stdout.write(json.dumps(result(argv[argv.index("--result") + 1])))
+        return 0
     if "--measure" in argv:
         print(json.dumps(measure()))
         return 0

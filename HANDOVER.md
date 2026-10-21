@@ -5,7 +5,19 @@
 `MODEL-LOG.md`, which is append-only and dated. `CLAUDE.md` sends every session
 here first, so anything stale in this file is read as an instruction.
 
-> ## ⛔ STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
+> ## ⛔ STATE AT 2026-10-16 (branch `site-r11`): UAT VERSION d22294e0 OF THE 16 OCTOBER FORECAST, FOR OWNER REVIEW. NOT LIVE.
+>
+> Preview: https://d22294e0-joburg-whysoserious.psi-02e.workers.dev (commit
+> `d482584`). Built against a scratch ledger with 35 retirements; the real
+> ledger is untouched. **Before live `--publish`:**
+> `.venv/bin/python audits/2026-10-11-model-round/step11_retire.py` (real
+> ledger), then the build; after it, the served draws name an older run
+> (`test_served_draws`) and need re-exporting. `test_reweight`'s paired
+> re-run moves nothing at Black African +5 on this model, so the turnout
+> note's "checked against a full re-run" is unsupported until that is
+> examined. Details: `audits/2026-10-11-model-round/STEP11-CHECKPOINT-2.md`.
+>
+> ## STATE AT 2026-09-30: THE MODEL IS FROZEN (F3 + F5), PUBLISHED TO THE LEDGER (run `r-c68c627d287e`). DEPLOY PENDING (owner). NEXT: THE INTERACTIVE.
 >
 > **Sharing a reader's forecast (2026-10-03, branch `remediation`).** Built from
 > `audits/2026-10-03-share-design/` (DESIGN.md, DECISIONS.md): section 2's

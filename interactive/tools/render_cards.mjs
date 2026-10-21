@@ -26,11 +26,13 @@ export function assets(F = FIXTURE) {
   for (const [c, p] of Object.entries(F.parties)) {
     if (p.logo && have.has(c + ".png")) logos[c] = "data:image/png;base64," + readFileSync(resolve(REPO, "site/logos", c + ".png")).toString("base64");
   }
-  // the owner's badges for the fixture's forecasts (src/stamps/, served at /stamps/)
+  // the owner's badges (src/stamps/, served at /stamps/): every one, so a card
+  // drawn from a spec with any badge word draws its stamp, as the edge does
+  // (a word with no stamp supplied falls back to a plain pill)
   const badges = {};
-  for (const X of [F.A, F.B]) {
-    const w = X.answer.outcome.badge;
-    badges[w] = SC.stampOf(readFileSync(resolve(REPO, "src/stamps", SC.badgeFile(w)), "utf8"));
+  for (const f of readdirSync(resolve(REPO, "src/stamps")).filter(f => /^reader-[a-z-]+\.svg$/.test(f))) {
+    const w = f.slice(7, -4).replace(/-/g, " ").replace(/^./, c => c.toUpperCase());
+    badges[w] = SC.stampOf(readFileSync(resolve(REPO, "src/stamps", f), "utf8"));
   }
   return { logos, badges, brand: SC.brandOf(readFileSync(resolve(REPO, "site/logo.svg"), "utf8")), geom: F.geometry };
 }

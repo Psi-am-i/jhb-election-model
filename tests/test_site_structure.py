@@ -31,7 +31,7 @@ ARTICLES = ROOT / "content" / "joburg" / "articles.toml"
 BEFORE_SPLIT = "a912197"
 
 #: The owner's nav, in order (sweep of 2026-10-03, item 9).
-NAV = ["our forecast", "your forecast", "commentary", "party claims",
+NAV = ["our forecast", "your prediction", "commentary", "party claims",
        "methodology", "review", "corrections", "sources", "source code"]
 
 #: The owner's footer, his words, with his two typos corrected
@@ -96,7 +96,7 @@ def nav_problems(items) -> list[str]:
 def test_the_nav_is_the_owners_and_every_item_is_a_built_page():
     assert nav_problems(B.NAV_ITEMS) == []
     # "your forecast" is the interactive page's own address, not a literal
-    assert dict((lab, h) for h, lab in B.NAV_ITEMS)["your forecast"] == build_your_forecast.YF_HREF
+    assert dict((lab, h) for h, lab in B.NAV_ITEMS)["your prediction"] == build_your_forecast.YF_HREF
     assert dict((lab, h) for h, lab in B.NAV_ITEMS)["source code"] == B.REPO_URL
     # the other direction: every reader-facing page of the model is in the nav
     in_nav = {h for h, _l in B.NAV_ITEMS}
@@ -493,6 +493,40 @@ def test_the_footer_check_fires_on_each_constructed_violation():
         assert footer_problems(f.replace(old, new)), f"blind to {new!r}"
 
 
+def footer_layout_problems(footer: str, css: str) -> list[str]:
+    """Owner, 2026-10-13: the text (credits, rule, independence statement) in
+    one column at the left; the logo with "Support Our Work" beneath it at the
+    right; one column at phone width."""
+    out = []
+    text = re.search(r'<div class="foot-text">(.*?)</div>\s*</div>\s*<div class="foot-side">(.*?)</div>\s*</footer>', footer, re.S)
+    if not text:
+        return ["no .foot-text column followed by .foot-side"]
+    left, right = text.groups()
+    if not (left.index('class="foot-credits"') < left.index('class="foot-rule"') < left.index('class="foot-independence"')):
+        out.append("the text column is not the credits, the rule, the independence statement")
+    if 'class="foot-umbrella"' in left or 'class="foot-support"' in left:
+        out.append("the logo or the support link is in the text column")
+    if not (right.find('class="foot-umbrella"') != -1 and right.find('class="foot-umbrella"') < right.find('class="foot-support"')):
+        out.append("the side column is not the logo, then Support Our Work")
+    flat = re.sub(r"\s+", "", css)
+    if "grid-template-columns:minmax(0,1fr)auto" not in flat:
+        out.append("the footer is not a text column and a logo column")
+    if not re.search(r"@media\(max-width:760px\)\{\.sitefooter\{grid-template-columns:minmax\(0,1fr\)", flat):
+        out.append("the footer does not stack at phone width")
+    return out
+
+
+def test_the_footer_is_one_text_column_with_the_logo_over_support_at_the_right():
+    import site_assets as SA
+    css = (SA.CSS_SRC / "chrome.css").read_text(encoding="utf-8")
+    assert footer_layout_problems(B.FOOTER, css) == []
+    f = B.FOOTER
+    swapped = f.replace('<div class="foot-side">', '<div class="foot-side"><a class="foot-support" href="support">Support Our Work</a>', 1)
+    assert footer_layout_problems(swapped, css)
+    assert footer_layout_problems(f, css.replace("minmax(0,1fr) auto", "repeat(2,minmax(0,1fr))"))
+    assert footer_layout_problems(f.replace('<div class="foot-text">', '<div>', 1), css)
+
+
 def test_every_built_page_carries_the_footer_once():
     """The committed site/: every page at any depth, counted against what the
     build produces, carries the footer exactly once."""
@@ -571,7 +605,9 @@ def claim_colour_problems(html: str, css: str, codes) -> list[str]:
     """Every claim wears its own party's colour class and nothing else picks
     a party: the claims stylesheet reads --pc and names no party."""
     out = []
-    arts = re.findall(r'<article class="claim([^"]*)" data-party="([^"]+)">', html)
+    # the claim's anchor (`id`) follows `data-party` since the claim cards
+    # (2026-10-13); it is optional so a claim without one is still read
+    arts = re.findall(r'<article class="claim([^"]*)" data-party="([^"]+)"(?: id="[^"]*")?>', html)
     if not arts:
         out.append("no claims")
     for classes, party in arts:
@@ -594,7 +630,7 @@ def test_every_claim_wears_its_own_partys_colour_and_none_is_singled_out():
     assert claim_colour_problems(html, css, codes) == []
     assert '<body class="pg-claims ' in html
     # it can see: a claim in another party's colour, one with none, a party named
-    one = re.search(r'<article class="claim pc-(\w+)" data-party="\1">', html)
+    one = re.search(r'<article class="claim pc-(\w+)" data-party="\1"(?: id="[^"]*")?>', html)
     assert one
     wrong = "OTHER" if one.group(1) != "OTHER" else "DA"
     assert claim_colour_problems(html.replace(one.group(0), one.group(0).replace(f"pc-{one.group(1)}", f"pc-{wrong}"), 1), css, codes)
@@ -606,7 +642,7 @@ def verdict_problems(html: str, step_of) -> list[str]:
     """Every claim's badge carries the class its verdict's step names, and
     nothing else picks its colour."""
     out = []
-    badges = re.findall(r'<article class="claim pc-(\w+)" data-party="\1">.*?'
+    badges = re.findall(r'<article class="claim pc-(\w+)" data-party="\1"(?: id="[^"]*")?>.*?'
                         r'<span class="verdict ([^"]*)">([^<]+)</span>', html, re.S)
     if not badges:
         out.append("no verdict badges")

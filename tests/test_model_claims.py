@@ -218,14 +218,16 @@ def test_the_register_was_read_in_full():
             what="claims parsed", denominator="[[claim]] tables in the file text")
     assert 20 <= tables <= 200, tables
     assert {c["state"] for c in doc["claim"]} <= set(STATES)
-    # the register states each known claim's state truthfully (the by-election
-    # one is live since `w_bye` became 0.5 on 2026-10-17, JUDGEMENT-CALLS §A59)
+    # the register states the known claims truthfully: the five pages found
+    # non-live were corrected on 2026-10-16, and each correction is there, live
+    # (the by-election one live since `w_bye` became 0.5 on 2026-10-17,
+    # JUDGEMENT-CALLS §A59; its page text changed 2026-10-21)
     by_id = {c["id"]: c for c in doc["claim"]}
     for cid, state in (("byelections-tilt-expected-share", "live"),
-                       ("heavier-tails", "absent"),
-                       ("ifp-extra-pool", "absent"),
-                       ("actionsa-built-on-the-smaller-number", "absent"),
-                       ("roll-per-vd-unadjusted", "absent")):
+                       ("log-scale-bell-curve", "live"),
+                       ("four-census-pools", "live"),
+                       ("starting-level-blends-local-and-national", "live"),
+                       ("roll-ward-snapshot-whole-vds", "live")):
         assert by_id[cid]["state"] == state, (cid, by_id[cid]["state"])
 
 

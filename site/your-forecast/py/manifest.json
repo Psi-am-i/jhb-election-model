@@ -10,11 +10,12 @@
   "parties.py",
   "polling.py",
   "prediction.py",
+  "byelections.py",
   "reweight.py",
   "code_ref.py",
   "entry.py"
  ],
- "code_ref": "aab589918e253a5a0a73371bd841e183e91f046d3ef50016c1de554a9069196e",
+ "code_ref": "2ee2f60e38c4c38a185e75fbf3e02f3c7ce7710f5d5f50a7494ad45cf4bd5c88",
  "page": {
   "dir": "page",
   "files": [
@@ -24,10 +25,11 @@
    "render_map.py",
    "reweight.py",
    "parties.py",
-   "score_forecasts.py"
+   "score_forecasts.py",
+   "seats.py"
   ],
   "data": [],
   "boot": "pyboot/page.py",
-  "code_ref": "23cde400bb5c560cd0f89ec9b64a7a311e961d5b9d21f36933892d19b7a6bf95"
+  "code_ref": "8031e9f27e1e4e09cf452892b880c7916e742261fea56cef2a90a9f66a48fe92"
  }
 }

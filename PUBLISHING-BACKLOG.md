@@ -969,3 +969,78 @@ gate.
 **Done when** a committed harness writes the claims file first, then the three
 lists, and the lists have been read before `build_site.py --publish`.
 **Not started.**
+
+## 16. A page of readers' predictions (owner idea, 2026-10-13, still open)
+
+Owner: "We should have a page of all the different prediction maps with badges.
+or some sort of latest predictions or something... still thinking."
+
+Open questions before any brief:
+- **Names:** sealed entries in D1 carry the name each reader typed. Showing them
+  publicly needs the reader's agreement at sealing time, which existing
+  entries never gave. The alternative is showing predictions without names.
+- **Moderation:** typed names need a filter or a review step before they
+  appear.
+- **What is shown:** the latest N, a random sample, or one per badge. Totals
+  per badge ("412 Safe bets, 37 Hail Marys") need no names at all.
+- **Cost:** thumbnails per entry are card renders; cache them like /og/.
+- **Ranking:** the ranking against the result happens after the count; this
+  page must not look like a leaderboard before then.
+
+**Owner, 2026-10-13: agreed.** Show predictions without names. A name appears
+only if a reader opts in at sealing, and only after a filter. Show totals per
+badge and examples per badge, plus the latest few. No ranking before the count.
+
+## 17. Backtest maps, animated across elections (owner idea, 2026-10-13)
+
+Owner: "making forecast maps for before each of the previous elections. then
+animate them so you see wards changing and colours shifting over time."
+
+What it needs:
+- **The model's own call for each past election**, made with only data from
+  before that election: the backtest runs for 2011, 2016 and 2021, plus 2026.
+  Build it only from the canonical run after the current model round; the
+  backtest numbers move in that round.
+- **Ward boundaries per year.** Johannesburg's wards were redrawn between
+  elections, so each year needs its own geometry. The animation must
+  cross-fade between maps rather than morph shapes that are not the same
+  ward.
+- **Our call beside what happened**, so it shows hits and misses honestly.
+  Per STYLE rule 11, each map is labelled a prediction (one most-likely
+  result) or a forecast (shaded by chance).
+- **Where it lives:** probably the forecast page's history, or the backtest
+  write-up.
+- **Owner, same day:** "they could be forecast maps or 'results maps'". Results
+  maps (who actually won each ward, 2011 → 2016 → 2021) need no model run and
+  can be built now from the archived results. Forecast maps wait for the
+  canonical run. One animation can carry both, as a toggle between "what we
+  would have called" and "what happened".
+
+## 18. Competition entry: consent to publish, sign-in, one entry each (owner idea, 2026-10-13)
+
+Owner: "a light way of a user agreeing we can publish their prediction using
+whatever name they enter - but in the background we store it alongside a
+twitter/fb/google/apple authentication. then we can contact them. If we did
+that, their last prediction is their entry. one prediction per authorisation."
+
+The problem it solves: every seal is an entry today, so one person who
+re-seals five times has five entries in the ranking.
+
+The proposal (agent, for the owner to decide):
+- an optional "Enter the competition" step at sealing;
+- one consent checkbox;
+- OAuth sign-in done in the site's Worker, as scarabtech does through
+  Cloudflare Access, but not through Access itself: Access is priced per
+  user and its free plan stops at 50, so it cannot carry a public
+  competition;
+- providers: Google and Apple first (Apple needs an Apple Developer Program
+  membership, free in effect if scarabtech already has one); X, Facebook
+  and GitHub are possible; an email code as the fallback;
+- store only the provider's account id and the email, with the entry;
+- the latest seal per sign-in is the entry;
+- sealing without signing in still works for sharing but is not ranked.
+
+Needs the privacy page rewritten first (POPIA: consent, purpose, retention),
+since today it promises nothing is stored about the reader.
+
+**Owner, 2026-10-13: not for this election** ("a bridge too far given how soon the election is"). Entries stay as they are; how repeat seals count is decided before the count.

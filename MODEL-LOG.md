@@ -29123,6 +29123,105 @@ the batch. Outstanding before the batch can ship:
 - the draws re-export;
 - `test_pool_bounds` (failing before the batch).
 
+## Card coherence: the published prediction against the medians (2026-10-12)
+
+Measured on the served pair `site/draws/` and `site/your-forecast/forecast.json`
+(model `7ea27c28`, `draws_sha256` equal across them); recorded for
+JUDGEMENT-CALLS §N10 (amended 2026-10-12), which holds the rule and points
+here. `start.seats` is rule A through the seat law
+(`build_make.start_state`); `reweight.middle_seats` is each party's median
+over the draws.
+
+- The two differ for 23 parties. ANC: prediction 70, median 66. DA: prediction
+  65, median 66. For most small parties the prediction holds 1 seat and the
+  median 0. Eight parties hold exactly 1 seat in the prediction.
+- The prediction against itself is no call, a Safe bet.
+- BADGE-DECISION's eight constructed forecasts, moved from the prediction
+  instead of from the medians (chance to 0.1 point; the table is held in
+  `tests/test_reweight.py` `BADGE_TABLE`): ANC +3 DA −3: ANC 73, 36.2%.
+  ANC +10 DA −10: ANC 80, 21.0%. EFF +10 ANC −10: EFF 36, 24.9%. DA +15
+  ANC −15: DA 80, 15.7%. PA +8 DA −8: PA 32, 10.5%. PA +15 DA −15: PA 39,
+  3.6%. ANC +25 DA −25: DA 40, 2.2%. DA 106: DA 106, 0.9%.
+- Review of 6ae7e90 and 63138a8 (`audits/2026-10-09-site-batch/CARD-COHERENCE-REVIEW.md`),
+  every 50th published simulation (100) taken as a reader's forecast against
+  the prediction: median boldest-call chance 1.13%; badges 90 Hail Mary and 10
+  Wild call. The calls that set them are mostly parties the prediction holds at
+  0 to 3 seats, called at 2 to 16, which the one-seat rule does not reach. This
+  is BADGE-DECISION's accepted known limit re-measured under the new reference.
+
+Addendum, same day (owner: ignore anything under a 10 seat move). With
+`MIN_CALL_SEATS` = 10 in place of the one-seat rule, the eight constructed
+forecasts above give: ANC +3 DA −3 and PA +8 DA −8, no call (Safe bet); the
+other six as listed. The two readers of `interactive/tests/share-fixture.json`,
+through the real path: the first has no call (no party 10 seats from the
+prediction), the second a call (MK 13 against 23, 21%).
+
+## Closeness badge: the cut-offs against the brief's test forecasts (2026-10-13)
+
+Measured on the served pair `site/draws/` and `site/your-forecast/forecast.json`
+(model `7ea27c28`, `draws_sha256` equal across them), with `reweight.closeness`
+and `reweight.closeness_cuts` as committed for JUDGEMENT-CALLS §N10 (amended
+2026-10-13; brief `audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md`).
+Overall closeness to four places; it is never printed on the site.
+
+- Cut-offs (the 75th, 50th, 25th and 5th percentiles of the 5,000 draws' own
+  overall closeness): Safe bet 0.5863, Steady as she goes 0.5265, Long shot
+  0.4673, Wild call 0.3861.
+- Our prediction: 1.0000, Safe bet. Fixture A (share-fixture.json): 0.9910,
+  Safe bet. Fixture B: 0.6854, Safe bet. The owner's screenshot forecast (14
+  parties set, the rest at our prediction): 0.8202, Safe bet. score/v4.py's
+  mild (ANC −8, DA +8): 0.9178, Safe bet; moderate (ANC −15, DA, ASA, EFF +5
+  each, IFP +2): 0.8456, Safe bet; wild (ANC −25, EFF +25, Al Jama-ah, IFP,
+  Rise +3 each): 0.7797, Safe bet.
+- The draws' own scores, every 10th draw (500), p5/25/50/75/95: overall
+  0.386/0.456/0.518/0.581/0.671; L 0.310/0.412/0.496/0.592/0.728; S
+  0.436/0.504/0.548/0.598/0.677; parties in S 17/18/19/21/22.
+- Scored against its own population, a draw's per-party closeness
+  `P(|X − ours| ≥ |draw − ours|)` is a probability integral transform, close to
+  uniform on (0, 1) with mean about 0.5, whatever the model's spread; so the
+  cut-offs sit near 0.4 to 0.6 for any draw set. A draw moves every party; the
+  test forecasts hold most parties at our prediction (closeness 1 there) and
+  move a few. All seven test forecasts band Safe bet. Reported to the owner
+  before the whole suite and the UAT deploy; the cut-off rule is his to
+  decide.
+
+## Closeness badge: the quantile cut-offs rejected, the owner's ten-point bands adopted (2026-10-13)
+
+The entry above measured the brief's quantile rule; it is rejected on that
+measurement and replaced by the owner's fixed bands (2026-10-13: "90-100 SAFE,
+80-90 VERY LIKELY etc"; JUDGEMENT-CALLS §N10). Same served pair, model
+`7ea27c28`.
+
+The rejected cut-offs (percentiles of the 5,000 draws' own overall closeness):
+
+| band | lowest overall closeness |
+|---|---|
+| Safe bet | 0.5863 (75th percentile) |
+| Steady as she goes | 0.5265 (50th) |
+| Long shot | 0.4673 (25th) |
+| Wild call | 0.3861 (5th) |
+
+A draw scored against its own population has a per-party closeness spread
+evenly between 0 and 1, so the draws score about 0.5 overall (median 0.518)
+and every test forecast fell above the Safe bet edge.
+
+The brief's test forecasts, overall closeness and band under each rule:
+
+| forecast | overall | quantile rule | ten-point bands |
+|---|---|---|---|
+| our prediction | 1.0000 | Safe bet | Safe bet |
+| fixture A | 0.9910 | Safe bet | Safe bet |
+| mild | 0.9178 | Safe bet | Safe bet |
+| moderate | 0.8456 | Safe bet | Steady as she goes |
+| screenshot | 0.8202 | Safe bet | Steady as she goes |
+| wild | 0.7797 | Safe bet | Long shot |
+| fixture B | 0.6854 | Safe bet | Wild call |
+
+`build_make.closeness_cuts`, `reweight.closeness_cuts`,
+`reweight.draw_closeness` and forecast.json's `closeness_cuts` are deleted
+with the rule; `tests/test_reweight.py` `BRIEF_TABLE` holds the right-hand
+column.
+
 ## 1.297 The within-group split carries a known limitation of the Dirichlet; the design moves to one log-scale draw for every party (2026-10-12)
 
 ### What the model does
@@ -30246,6 +30345,14 @@ The tests in `test_scored_universe` now assert the measured state (with the incu
 **Draw file size.** `site/draws/base.bin` is 2,109,184 bytes gzipped against the 1.5 MB budget of PLAN step S2, which states no rationale. The growth predates §1.308: each vote block roughly doubled compressed between `2bc6740` and `5ce3f3f`, because every small party now draws a real vote in every draw (§1.305) where it used to be mostly zero. The page reads those votes. Measured exact alternatives: dropping all-zero columns saves about 108 bytes; byte-shuffling reaches about 1.92 MB with a format change in every reader. Decision for the UAT build (orchestrator, owner may reverse before live): budget raised, not detail cut.
 
 **Pre-registrations scored.** `prereg/2026-10-15-roll-assignment-and-mk.md` and `prereg/2026-10-16-ward-contest-and-national-fit.md`, scored in `reports/model-changes/2026-10-16/prereg-scoring.md`. Every gate and prediction confirmed, with two exceptions. Falsified: the premise that the national-record fits move no voting district's expected vote (the 2011 ward vote error fell at all eight metros, by 0.35 to 0.64 points). Not testable: that 2021 moves only through the slate mask and small-party geography (no run holds one of the two fixed). Confirmed in sign only: the MK parent-weight call (MK wards 10.287 → 10.277; seat moves at most 0.01), so its stated mechanism is unsupported. Not predicted: 2011 wards called wrongly 26 → 30 (Buffalo City 0 → 3, eThekwini 12 → 13). Old-vs-new report: `reports/model-changes/2026-10-16/`, old = the roll round's arm.
+
+## 1.313 The site rebuild on the 16 October forecast stops at the claims sheet; four stale tests and the method pages repaired (2026-10-16)
+
+**Blocked.** `render_sheet.py`, the only writer of the inline figures (`{{@name=…}}`) on /forecast, /claims and the articles, refuses on the new run twice: the Soweto claim holds with chance 0.7134, which the scale calls QUITE LIKELY against its published VERY LIKELY; and the 490,000-voters claim's `since` box names `[[wall_anc_span]]`, which no simulation now supports (the DA wins alone in none). Both are the owner's text. `build_site.py` copies `forecast-sheet.html` as committed and does not run the check, so a build today would print the 11 October run's inline figures beside the 16 October run's registry tokens; no UAT version was built or uploaded. The new values were measured by a scratch render with both refusals bypassed in memory (`audits/2026-10-11-model-round/STEP11-CHECKPOINT-2.md`).
+
+**Tests.** `test_your_forecast_page::test_the_ward_ranges_are_regenerated_from_the_panel` (2): since the whole-VD assignment (`185fa78`) a split VD has one nonzero part, and `build_make._join` apportions by part over the VD's total, so doubling that part moves no ward; the test now asserts that, and that moving the roll to the VD's other ward moves both. `test_site_structure`'s two claim-colour scans missed every claim after the claim cards put `id` after `data-party` (0 matched); they read an optional `id`. `test_provenance_dates`: two `[[audit.fixed]]` "40%" entries named methodology sentences deleted with §A35 (`e0ce282`); removed. `test_export_draws.BUDGET_GZIP_BYTES` raised to 2.5 MB (§1.312).
+
+**Pages.** The claims register's five non-live entries were corrected on the pages they cite: the roll (the IEC's per-ward snapshot, each voting district wholly in one ward), the four census pools (the IFP pool is only in the simulation spec), by-elections (weight 0 in this forecast, on /methodology, /sources, /forecast and /your-forecast, whose published by-election setting was labelled "Partly"), the starting level (the local/national blend, `levels.SPINE_K`), and the draw (§A18's Plain field moved to §A57, the universal law). The ward-only rule and the national-record placement of a split are described in steps 7 and 5. The ActionSA sentence said "nationally in 2024" of 6.22%, which is ActionSA's share of Johannesburg's 2024 national ballot; it now says "in the city".
 
 ## 1.314 The newcomer width by anchor class (arm S): the record's classes, both arms on the 24 city-years and Johannesburg 2026, the pre-registration scored (2026-10-16)
 

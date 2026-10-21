@@ -118,6 +118,13 @@
   "logo": false,
   "name": "All Natives of South Africa"
  },
+ "AMALGAMATED_RAINBOW_MOVEMENT": {
+  "article": "",
+  "code": "AMALGAMATED_RAINBOW_MOVEMENT",
+  "colour": "#8b918b",
+  "logo": false,
+  "name": "Amalgamated Rainbow Movement"
+ },
  "ANC": {
   "article": "the ",
   "code": "ANC",
@@ -181,6 +188,13 @@
   "logo": false,
   "name": "BOSA"
  },
+ "CHANGE": {
+  "article": "",
+  "code": "CHANGE",
+  "colour": "#8b918b",
+  "logo": false,
+  "name": "Change"
+ },
  "CHRIST_KINGDOM_PARTY": {
   "article": "",
   "code": "CHRIST_KINGDOM_PARTY",
@@ -229,6 +243,13 @@
   "colour": "#8b918b",
   "logo": false,
   "name": "Operation Dudula"
+ },
+ "ECONOMIC_EMANCIPATION_FORUM": {
+  "article": "",
+  "code": "ECONOMIC_EMANCIPATION_FORUM",
+  "colour": "#8b918b",
+  "logo": false,
+  "name": "Economic Emancipation Forum"
  },
  "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": {
   "article": "",
@@ -299,6 +320,13 @@
   "colour": "#8b918b",
   "logo": false,
   "name": "Independent Citizens Movement"
+ },
+ "INTERNATIONAL_REVELATION_CONGRESS": {
+  "article": "",
+  "code": "INTERNATIONAL_REVELATION_CONGRESS",
+  "colour": "#8b918b",
+  "logo": false,
+  "name": "International Revelation Congress"
  },
  "KINGDOM_COVENANT_DEMOCRATIC_PARTY": {
   "article": "",
@@ -454,6 +482,13 @@
   "logo": false,
   "name": "Service Delivery Party"
  },
+ "SHOSHOLOZA_PROGRESSIVE_PARTY": {
+  "article": "",
+  "code": "SHOSHOLOZA_PROGRESSIVE_PARTY",
+  "colour": "#8b918b",
+  "logo": false,
+  "name": "Shosholoza Progressive Party"
+ },
  "SOUTH_AFRICAN_COMMUNIST_PARTY": {
   "article": "the ",
   "code": "SOUTH_AFRICAN_COMMUNIST_PARTY",
@@ -475,6 +510,13 @@
   "logo": false,
   "name": "Tau Dia Rora Cultural and Traditional Lekgotla"
  },
+ "THE_ORGANIC_HUMANITY_MOVEMENT": {
+  "article": "",
+  "code": "THE_ORGANIC_HUMANITY_MOVEMENT",
+  "colour": "#8b918b",
+  "logo": false,
+  "name": "The Organic Humanity Movement"
+ },
  "TRUTH_AND_SOLIDARITY_MOVEMENT": {
   "article": "",
   "code": "TRUTH_AND_SOLIDARITY_MOVEMENT",
@@ -488,6 +530,13 @@
   "colour": "#8b918b",
   "logo": true,
   "name": "UDM"
+ },
+ "UIM": {
+  "article": "the ",
+  "code": "UIM",
+  "colour": "#8b918b",
+  "logo": false,
+  "name": "UIM"
  },
  "UMPHAKATHI_WARONA": {
   "article": "",

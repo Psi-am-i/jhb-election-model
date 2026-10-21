@@ -211,7 +211,10 @@ worker.onmessage = e => {
 
 // ---------- controls ----------
 async function ready(m) {
-  const cells = [...m.cells].sort((a, b) => a.w_bye - b.w_bye);
+  // export_draws.order_bye_cells set the order (by each cell's effective
+  // weight; the published cell's w_bye is null); an index written before
+  // bye_order is ordered by w_bye, the one weight its cells had
+  const cells = [...m.cells].sort((a, b) => (a.bye_order ?? a.w_bye) - (b.bye_order ?? b.w_bye));
   roster = m.parties || {};
   const lawsText = await lawsP;
   ctx = { pools: m.pools, polls: m.polls.map(p => p.id), pollRows: m.polls,

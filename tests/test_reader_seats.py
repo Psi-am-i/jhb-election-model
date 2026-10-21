@@ -630,12 +630,13 @@ def test_the_seat_service_answers_a_refusal_as_422_and_a_bad_body_as_400():
 
 
 
-def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_draws():
+def test_the_card_answer_is_the_seats_and_the_badge_of_the_published_draws():
     """/v1/card (the link preview's answer): the /v1/seats answer for the
-    body's seats part, and reweight.outcome_chance on the draws for that
-    council and the coalition. Constructed draws, so the chance is known by
-    hand; a stale draw hash is a 409, a bad body a 400, and the seat law's
-    refusal passes through as 422."""
+    body's seats part, and reweight.outcome_badge on the draws for that
+    council: its words and its badge, how close it is to the published
+    prediction. Constructed draws, so the
+    closeness is known by hand; a stale draw hash is a 409, a bad body a 400,
+    and the seat law's refusal passes through as 422."""
     import numpy as np
     import reweight
     entry = _load_entry()
@@ -643,28 +644,65 @@ def test_the_card_answer_is_the_seats_and_the_outcome_chance_of_the_published_dr
     body = {"ward_votes": ward, "list_votes": lst,
             "ward_winners": {w: "A" for w in _toy_context()["wards"]},
             "context": _toy_context()}
-    draws = {"sha256": "ab" * 32, "columns": ["A", "B", "C"],
+    pct = reweight.list_percent(lst)
+    cols = ["A", "B", "C"]
+    # the published prediction: B at 13 seats and 5 points more of the list vote
+    ours = {"seats": {"A": 5, "B": 13, "C": 2}, "share": {**pct, "B": pct["B"] + 5.0}}
+    draws = {"sha256": "ab" * 32, "columns": cols,
              "seats": np.array([[5, 3, 2], [3, 5, 2], [6, 2, 2], [4, 4, 2]], dtype=float),
-             "thresholds": np.array([6, 6, 6, 6], dtype=float)}
-    status, got = entry.card({"seats": body, "coalition": ["A", "C"], "draws_sha256": "ab" * 32}, draws)
+             "shares": np.array([[ours["share"][c] for c in cols]] * 4), "share_columns": cols,
+             "prediction": ours["seats"], "ours": ours}
+    draws["prediction_sha256"] = entry.prediction_sha256(draws["prediction"])
+    ps = draws["prediction_sha256"]
+    status, got = entry.card({"seats": body, "coalition": ["A", "C"], "draws_sha256": "ab" * 32,
+                                "prediction_sha256": ps}, draws)
     assert status == 200, got
     assert got["seats"] == {"A": 5, "B": 3, "C": 2} and got["majority"] == 6
-    # A largest, no majority alone, A + C reach 6: draws 0 and 2 have A
-    # alone on top; in draw 2 A has 6 alone, so only draw 0 counts
-    assert got["outcome"]["p"] == 0.25
-    # the badge is the boldest call's (JUDGEMENT-CALLS §N10): middles A 5, B 4,
-    # C 2; B at 3 is below its middle, P(B <= 3) = 2/4
-    assert got["outcome"]["boldest"] == {"party": "B", "seats": 3, "middle": 4, "p": 0.5,
-                                         "text": reweight.chance_text(0.5)}
-    assert got["outcome"]["badge"] == reweight.boldness(0.5)
-    assert got["outcome"] == reweight.outcome_chance(draws["seats"], draws["columns"], draws["thresholds"],
-                                                     None, got["seats"], 6, ["A", "C"])
-    assert got["draws_sha256"] == "ab" * 32
-    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "cd" * 32}, draws)[0] == 409
-    assert entry.card({"seats": body, "coalition": "A", "draws_sha256": "ab" * 32}, draws)[0] == 400
+    # A and C match ours on both measures (closeness 1). B's seats: 3 is 10
+    # from 13, and draws 0 and 2 are at least 10 from it: 2/4. B's vote: 5
+    # points from ours, every draw at ours: 0. B = (0.5 + 0) / 2. All three
+    # parties are large (fewer than six), so the overall is L = (1 + 0.25 + 1) / 3
+    # = 0.75: a Long shot (0.70 to under 0.80)
+    assert got["outcome"] == {"largest": "A", "majority_alone": False, "coalition": ["A", "C"],
+                              "badge": "Long shot", "phrase": "unlikely", "measure": reweight.CLOSENESS_MEASURE}
+    assert got["outcome"] == reweight.outcome_badge(draws["seats"], cols, draws["shares"], cols, None,
+                                                    {"seats": got["seats"], "share": pct}, 6, ["A", "C"],
+                                                    ours=ours)
+    assert got["draws_sha256"] == "ab" * 32 and got["prediction_sha256"] == ps
+    # the prediction's hash is one code=seats line per party in code order
+    import hashlib
+    assert ps == hashlib.sha256(b"A=5\nB=13\nC=2\n").hexdigest()
+    # a caller holding another prediction is refused (409), as one holding other draws is
+    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "ab" * 32, "prediction_sha256": "00" * 32}, draws)[0] == 409
+    # a body without the hash is a bad body: an earlier site Worker's request
+    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "ab" * 32}, draws)[0] == 400
+    assert entry.card({"seats": body, "coalition": [], "draws_sha256": "cd" * 32, "prediction_sha256": ps}, draws)[0] == 409
+    assert entry.card({"seats": body, "coalition": "A", "draws_sha256": "ab" * 32, "prediction_sha256": ps}, draws)[0] == 400
     assert entry.card({"seats": body}, draws)[0] == 400
     refused = {**body, "list_votes": {**lst, "A": 0}}
-    assert entry.card({"seats": refused, "coalition": [], "draws_sha256": "ab" * 32}, draws)[0] == 422
+    assert entry.card({"seats": refused, "coalition": [], "draws_sha256": "ab" * 32, "prediction_sha256": ps}, draws)[0] == 422
+
+
+def test_the_card_reads_the_published_prediction_the_draws_were_built_into():
+    """load_prediction: forecast.json's start (its seats, and its list votes
+    as reweight.list_percent), only when that file names the draws' hash;
+    another build's file is refused. The served pair (site/draws,
+    site/your-forecast/forecast.json) agree."""
+    import reweight
+    entry = _load_entry()
+    site = ROOT / "site"
+    forecast = (site / "your-forecast" / "forecast.json")
+    data = json.loads(forecast.read_text(encoding="utf-8"))
+    got = entry.load_prediction(forecast.read_bytes(), data["draws_sha256"])
+    seats = {p: int(v) for p, v in data["start"]["seats"].items()}
+    assert got["prediction"] == seats and len(seats) > 0
+    assert got["ours"] == {"seats": seats, "share": reweight.list_percent(data["start"]["list_votes"])}
+    try:
+        entry.load_prediction(forecast.read_bytes(), "00" * 32)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("a forecast.json built from other draws was accepted")
 
 
 def test_the_card_reads_the_draws_the_page_was_built_from():
@@ -678,7 +716,7 @@ def test_the_card_reads_the_draws_the_page_was_built_from():
                          (site / "draws" / "base.bin").read_bytes())
     assert d["sha256"] == data["draws_sha256"]
     assert "OTHER" not in d["columns"] and len(d["columns"]) == d["seats"].shape[1]
-    assert d["thresholds"].shape[0] == d["seats"].shape[0] > 0
+    assert d["shares"].shape == (d["seats"].shape[0], len(d["share_columns"])) and d["seats"].shape[0] > 0
 
 _CLOSURE_PROBE = r'''
 import json, os, sys
