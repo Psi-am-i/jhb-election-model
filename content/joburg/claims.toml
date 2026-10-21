@@ -114,30 +114,6 @@ steps = [
 ]
 
 [[claim]]
-slug = "da-forty-percent-not-enough"
-party = "DA"
-party_name = "Democratic Alliance"
-chip = "#1B5EA8"
-logo = "DA"
-quote = """If we get 40%, although we will be the biggest party by a long shot, we won't be big enough to get into government"""
-speaker = "Helen Zille, DA"
-outlet = "News24, 9 October 2026"
-url = "https://www.news24.com/politics/elections-2026-helen-zille-rules-out-forming-an-unwieldy-coalition-to-run-joburg-20261009-0706"
-verdict = "NEAR CERTAIN"
-chance = "forty_bloc_share"
-tests = "P(the ANC, MK, the EFF, ActionSA and the PA together reach a majority)"
-label = "The ANC, MK, the EFF, ActionSA and the PA could reach a majority without the DA"
-captured = "2026-10-08"
-published = "22 October 2026"
-since = """Since then those parties together reach {{majority}} in [[forty_bloc_share]] of simulations. The DA reaches [[forty_target]] of the list vote in [[forty_da_count]] of the {{n_draws}} simulations."""
-intro = """<span data-asof="2026-10-08">Zille said this to the Centre for Development and Enterprise on 8 October: that at 40% the DA would be the largest party, but that the ANC, MK, the EFF, ActionSA and the PA together "might get over 50% before we can".</span> Two things can be tested: whether those parties together can reach {{majority}} of {{council_size}} seats, and whether the DA reaches [[forty_target]]."""
-steps = [
-  """**Together they reach a majority in [[forty_bloc_share]] of simulations.** Their median is [[forty_bloc_median]] seats, against the {{majority}} needed. This counts seats, not willingness: it says the arithmetic is there, not that they would agree.""",
-  """**The DA reaches [[forty_target]] of the list vote in [[forty_da_count]] of the {{n_draws}} simulations.** Its best is [[forty_da_best]].""",
-  """**What this cannot see.** Which parties would work together. <span data-asof="2026-10-08">In the same talk Zille said the DA would go into opposition rather than lead a coalition that depends on the EFF (News24, 9 October 2026).</span>""",
-]
-
-[[claim]]
 slug = "actionsa-soweto"
 party = "ASA"
 party_name = "ActionSA"

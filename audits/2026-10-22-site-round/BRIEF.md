@@ -65,3 +65,12 @@ Diff reviewed by another agent before the build. Then the build and
 `deploy_check`; the modules for the pages touched (home_page, forecast sheet,
 your_forecast_page, claims, published_page, model_claims, reweight); the
 whole suite once for the UAT version. Live with the owner's yes.
+
+## Owner, later on 2026-10-22 (recorded here; the items above are unchanged)
+
+> Levae the DA's latest. It's not very interesting. We can update teh first
+> one if she's made the same claim. We need to look for other comments.
+
+So item 2 (the Zille 40% card) is withdrawn from this round; item 4 (the
+dated line on the 490,000 card) stays. Added at the owner's yes: the claims
+page's standfirst says how claims are chosen and where to send one.
