@@ -31,7 +31,7 @@ const n1 = v => Number(v.toFixed(1));
 // top right, the headline's cap line level with it, the date line at the foot
 // (owner, 2026-10-09: "keep logo same place big and top right for all") ----------
 // The bar's colour is the spec's (og_pages.kind_colour, from tokens.css).
-const KIND_BAR = 8;
+const KIND_BAR = 24;
 const FOOT = 560, FOOT_TEXT = 606, FOOT_FS = 21;
 const TOP = 40;
 const LOGO_H = 120;
@@ -116,9 +116,9 @@ function claims(spec) {
 // nothing is drawn in the lowest 15% of the card at the left: the rule
 // and the foot line end it, and the foot line is set at the right.
 const CLAIM_QUOTE = { big: 40, least: 24, lines: 6 };
-const CLAIM_ROW = { chip: 56, gapTop: 18, gap: 18, party: 28, who: 20 };
-const CLAIM_STAMP = { max: 250, min: 200, preferred: 230, bottom: 526, gapTop: 14, gap: 40 };
-const CLAIM_STATEMENT = { tag: 21, big: 46, least: 28, lines: 3 };
+const CLAIM_ROW = { chip: 100, gapTop: 22, gap: 24, party: 40, who: 34 };
+const CLAIM_STAMP = { max: 230, min: 170, preferred: 200, bottom: 526, gapTop: 40, gap: 40 };
+const CLAIM_STATEMENT = { tag: 21, big: 46, least: 28, lines: 3, more: 24 };
 // A party's logo in the one container every claim card uses: a rounded white
 // square, the logo inset by equal padding, centred and whole (a logo that is
 // itself a full-bleed square gets the same margin as one with a transparent
@@ -133,7 +133,7 @@ function claimChip(spec, x, y, s) {
 }
 function claim(spec) {
   let s = frame(spec, { footRight: true });
-  if (!spec.statement) throw new Error(`${spec.slug}: no tested statement`);
+  if (!spec.statement && !spec.reason) throw new Error(`${spec.slug}: no tested statement and no reason`);
   STAMPS[spec.badge] ??= stampOf(readFileSync(resolve(REPO, spec.badge), "utf8"));
   const [, , vw, vh] = STAMPS[spec.badge].viewBox.split(/\s+/).map(Number);
   const words = "\u201c" + spec.quote + "\u201d";
@@ -155,24 +155,30 @@ function claim(spec) {
   if (spec.logo) ASSETS.logos[spec.code] = logoOf(spec.logo);
   s += claimChip(spec, X, rowTop, CLAIM_ROW.chip);
   const px = X + CLAIM_ROW.chip + CLAIM_ROW.gap, pw = R - px;
-  const pn = fitText(spec.party, pw, CLAIM_ROW.party, "sansBold", 22), who = fitText(spec.speaker, pw, CLAIM_ROW.who, "sans", 16);
-  s += text(px, rowTop + 25, pn.text, pn.fs, "sansBold");
-  s += text(px, rowTop + 48, who.text, who.fs, "sans", { fill: C.ink2 });
+  const pn = fitText(spec.party, pw, CLAIM_ROW.party, "sansBold", 26), who = fitText(spec.speaker, pw, CLAIM_ROW.who, "sansSemi", 22);
+  s += text(px, rowTop + CLAIM_ROW.chip * 0.42, pn.text, pn.fs, "sansBold");
+  s += text(px, rowTop + CLAIM_ROW.chip * 0.86, who.text, who.fs, "sansSemi");
   // the stamp, and the tested statement beside it
   const sTop = rowBottom + CLAIM_STAMP.gapTop, cy = sTop + stampH / 2, bw = stampH * vw / vh;
   s += stamp(spec.badge, "v", X + bw / 2, cy, stampH);
   const tx = X + bw + CLAIM_STAMP.gap, tw = R - tx;
-  const statement = spec.statement + ".";
+  // beside the stamp: the tested statement under its tag, or the reason with
+  // the pointer to the page under it (owner, 2026-10-22)
+  const body = spec.statement ? spec.statement + "." : spec.reason;
   let st = null;
   for (let sf = CLAIM_STATEMENT.big; sf >= CLAIM_STATEMENT.least && !st; sf -= 2) {
-    const SL = wrapText(statement, tw, sf, "serifSemi");
+    const SL = wrapText(body, tw, sf, "serifSemi");
     if (SL.length <= CLAIM_STATEMENT.lines) st = { sf, SL };
   }
-  if (!st) throw new Error(`${spec.slug}: the statement does not fit ${CLAIM_STATEMENT.lines} lines at ${CLAIM_STATEMENT.least}px`);
-  const pitch = st.sf * HEAD_LEADING, block = CLAIM_STATEMENT.tag + 14 + st.sf * 0.9 + (st.SL.length - 1) * pitch;
+  if (!st) throw new Error(`${spec.slug}: the card text does not fit ${CLAIM_STATEMENT.lines} lines at ${CLAIM_STATEMENT.least}px`);
+  const pitch = st.sf * HEAD_LEADING;
+  const head = spec.statement ? CLAIM_STATEMENT.tag + 14 : 0;
+  const foot = spec.more ? 18 + CLAIM_STATEMENT.more : 0;
+  const block = head + st.sf * 0.9 + (st.SL.length - 1) * pitch + foot;
   const top = cy - block / 2;
-  s += text(tx, top + CLAIM_STATEMENT.tag, "Tested statement", CLAIM_STATEMENT.tag, "sansSemi", { fill: C.ink2 });
-  s += st.SL.map((l, k) => text(tx, top + CLAIM_STATEMENT.tag + 14 + st.sf * 0.9 + k * pitch, l, st.sf, "serifSemi")).join("");
+  if (spec.statement) s += text(tx, top + CLAIM_STATEMENT.tag, "Tested statement", CLAIM_STATEMENT.tag, "sansSemi", { fill: C.ink2 });
+  s += st.SL.map((l, k) => text(tx, top + head + st.sf * 0.9 + k * pitch, l, st.sf, "serifSemi")).join("");
+  if (spec.more) s += text(tx, top + block, spec.more, CLAIM_STATEMENT.more, "sansSemi", { fill: C.ink2 });
   return s + "</svg>";
 }
 

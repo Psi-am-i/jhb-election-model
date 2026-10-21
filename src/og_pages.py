@@ -361,6 +361,16 @@ def claims_spec(html: str, claims: list[dict], *, headline: str) -> dict:
             "items": items, "figures": {}, "alt": alt}
 
 
+def run_date() -> str:
+    """The run the pages are built on, as "21 October 2026"
+    (forecast_summary.json ``_generated``)."""
+    import cityconfig
+    from datetime import date
+    g = json.loads((cityconfig.active().processed / "forecast_summary.json").read_text(encoding="utf-8"))["_generated"]
+    y, m, d = (int(x) for x in str(g)[:10].split("-"))
+    return f"{d} {date(y, m, d):%B %Y}"
+
+
 def claim_spec(html: str, claim: dict) -> dict:
     """A claim's own page: its quote, its verdict badge, its party's logo and
     name, and who said it. The verdict is the one the page prints (checked
@@ -374,16 +384,33 @@ def claim_spec(html: str, claim: dict) -> dict:
                       f"claims.toml has {word!r}")
     party, speaker = claim_party(claim), speaker_name(claim)
     quote = " ".join(claim["quote"].split())
+    # The tested statement only where the badge needs it to make sense
+    # (claims.toml `card_test = true`); otherwise one reason and a pointer to
+    # the page (owner, 2026-10-22). A settled verdict's reason is its
+    # `settled` text; a chance verdict's is render_sheet.VERDICT_REASON.
+    import render_sheet
+    if claim.get("card_test"):
+        statement, reason = " ".join(claim["label"].split()), None
+    else:
+        statement = None
+        if claim["verdict"] in render_sheet.SETTLED_VERDICTS:
+            why = " ".join(str(claim.get("card_reason") or "").split())
+            if not why:
+                raise OgError(f"claims/{claim.get('slug')}: a settled verdict's card needs card_reason")
+        else:
+            why = render_sheet.VERDICT_REASON[verdict_word(claim["verdict"])]
+        reason = why
     return {"layout": "claim", "quote": quote, "verdict": claim["verdict"],
             "badge": stamp_path(verdict_badge(claim["verdict"])),
             "code": claim["party"], "party": party, "colour": roster[claim["party"]]["colour"],
             "logo": claim_logo(claim), "speaker": speaker,
-            # the tested statement, printed beside the stamp: claims.toml's label,
-            # the claim's own title (owner, 2026-10-13)
-            "statement": " ".join(claim["label"].split()),
-            # the date of the forecast the claim was tested against: claims.toml's
-            # `published`, the day the test was published
-            "date_line": f"Tested against the whysoserious.city forecast published {claim['published']}.",
+            # beside the stamp: the tested statement (claims.toml's label), or
+            # the reason and "see more"
+            "statement": statement, "reason": reason,
+            "more": "Click to see more analysis of this claim." if reason else None,
+            # the forecast the verdict is from: the run the page is built on
+            # (owner, 2026-10-22: the card said the first test's date)
+            "date_line": f"Tested against the whysoserious.city forecast of {run_date()}.",
             # the top bar takes the party's colour from the roster, like its chip
             "kind_colour": roster[claim["party"]]["colour"],
             "figures": {},

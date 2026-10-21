@@ -69,6 +69,19 @@ CHANCE_SCALE = (
     (1.00, "NEAR CERTAIN", "true"),
 )
 SETTLED_VERDICTS = {"FALSE": "false", "TRUE": "true"}
+#: What a chance-rated verdict says, in words with no figure, for a claim's
+#: share image, where the image draws no figure (owner, 2026-10-22: "just say
+#: FALSE - Add in one reason"). Chosen by the verdict, which the build checks
+#: against the scale, so the words cannot outlive the chance.
+VERDICT_REASON = {
+    "NEAR IMPOSSIBLE": "It happens in almost none of the simulations.",
+    "EXTREMELY UNLIKELY": "It happens in very few of the simulations.",
+    "QUITE UNLIKELY": "It happens in fewer than half of the simulations.",
+    "COIN FLIP": "It happens in about half of the simulations.",
+    "QUITE LIKELY": "It happens in more than half of the simulations.",
+    "VERY LIKELY": "It happens in most of the simulations.",
+    "NEAR CERTAIN": "It happens in almost all of the simulations.",
+}
 #: The shortest `settled` reason accepted on a FALSE or TRUE claim; the same
 #: floor `stats` puts on a declared reason.
 from stats import DECLARATION_MIN_CHARS as SETTLED_MIN_CHARS  # noqa: E402

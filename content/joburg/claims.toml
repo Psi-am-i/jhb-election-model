@@ -26,6 +26,7 @@ outlet = "Business Day, March 2026"
 url = "https://www.businessday.co.za/politics/2026-03-01-da-needs-490000-voters-to-win-outright-majority-in-joburg-says-zille/"
 verdict = "FALSE"
 settled = "arithmetic: the target is half of the wrong total, and the seat law moves the line further (the claim's steps)"
+card_reason = "The target is half of the wrong total, and the seat law moves the line further."
 tests = "P(DA reaches 136 alone) under a full DA-camp turnout surge"
 label = "490,000 DA voters would win the DA an outright majority"
 captured = "2026-08-07"
@@ -89,6 +90,7 @@ steps = [
 
 [[claim]]
 slug = "da-coalition-red-lines"
+card_test = true
 party = "DA"
 party_name = "Democratic Alliance"
 chip = "#1B5EA8"
@@ -115,6 +117,7 @@ steps = [
 
 [[claim]]
 slug = "actionsa-soweto"
+card_test = true
 party = "ASA"
 party_name = "ActionSA"
 chip = "#2FA79B"
