@@ -72,7 +72,7 @@ appears on the site only as reporting.
    case is reserved with no date; no new Johannesburg by-election.
 
 **Recommendation.** 1, 2 and 3, in one site round with a brief. On 1, decide
-with item 18's claims-balance question, since it adds a third DA claim.
+with item 17's claims-balance question, since it adds a third DA claim.
 
 **Gates.** Nothing in the forecast.
 
