@@ -40,11 +40,13 @@ that"):
       2011). Exempt exactly those seven cells, each citing §1.321, so the test
       goes red on any new cell. A test change: written, then reviewed by another
       agent.
-- [ ] **By-election deltas have no run-time key** (Reviewer A 2): regenerate
+- [x] **By-election deltas have no run-time key** (Reviewer A 2): regenerate
       `data/processed/byelection_party_deltas.csv` with `byelections.py` into a
       scratch directory and diff it against the live file; confirm the Gauteng
       rows of `byelections_Gauteng_vd_party.csv` and `byelections_SA_vd_party.csv`
       still agree (they did on 2026-10-21: 1,385 rows identical).
+      Done 2026-10-21: `byelections.py --city joburg --target 2026` into a
+      scratch directory gives all three files byte-identical to the live ones.
 
 ## The rebuild, in order (with the owner's go-live yes, OWNER-DECISIONS item 7)
 
