@@ -1381,12 +1381,21 @@ def _gate_incumbent_law_shipped_off(year: str) -> tuple[bool, str]:
 
 
 def _gate_backtest_ignores_judgements(year: str) -> tuple[bool, str]:
-    """The target has a result file, so `montecarlo.strength_judgements`
-    returns every entry as ignored and `apply_judgements` has nothing to
-    switch there. Read off the calendar; no model run."""
+    """The target has a result file, and `montecarlo.strength_judgements`
+    applies no entry from any city's judgements file for it, so
+    `apply_judgements` has nothing to switch there. Read off the calendar and
+    the files; no model run."""
     held = M.target_is_held(year)
-    return held, (f"target_is_held({year!r}) = {held}"
-                  + ("" if held else " — THE GATE IS OPEN"))
+    applied = []
+    for f in sorted((ROOT / "judgements").glob(f"*-{year}.toml")):
+        city = type("C", (), {"slug": f.name[:-len(f"-{year}.toml")]})()
+        target = type("T", (), {"city": city, "year": str(year)})()
+        applied += [f"{f.name}:{e['party']}"
+                    for e in M.strength_judgements(city, target)[0]]
+    shut = held and not applied
+    return shut, (f"target_is_held({year!r}) = {held}; applied: "
+                  f"{applied or 'none'}"
+                  + ("" if shut else " — THE GATE IS OPEN"))
 
 
 GATES = {
