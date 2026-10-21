@@ -5,6 +5,50 @@ where the change was recorded. Open questions are in `OWNER-DECISIONS.md`.
 
 ---
 
+### 18. The marketing decisions — answered 2026-10-22
+
+**Context.** Item 17 settled that new drafts are needed (nothing was sent).
+The rest of `~/projects/atlas-jhb-model-newsdesk/marketing/PLAN-2026-10-21.md`
+§9 is still open, with its context there:
+
+1. Budget — answered 2026-10-22: "We have a 3,000 budget and it will be
+   entirely spent on Twitter/X" (taken as R3,000; say if not). Open: Workers
+   Paid ($5 USD a month) if daily requests pass 50,000.
+2. Channels to keep or drop: Reddit and forums, LinkedIn, Facebook and
+   Instagram, radio.
+3. Whether you front it in person (radio, a photo, named posts) or the site
+   speaks as whysoserious.city.
+4. An email short link (`/e`) and short links that land on Your Forecast.
+5. What "every party" means for the party note: every party on the certified
+   Johannesburg ballot, or every party with a seat range on the site.
+6. The claims balance: with the Zille card, six claims from four parties (DA
+   3). Leave it, say on the page how claims are chosen, or invite every party
+   to submit one by a date.
+7. Empty the live entries table of test predictions before the first post
+   (your yes; a live change).
+8. Store `CF_ANALYTICS_TOKEN` and `CF_ACCOUNT_ID` in the Keychain so the
+   daily counts start (the free plan keeps logs 3 days).
+9. The billboard: the slot's dates and format (size, seconds, still or
+   moving), and which of the ideas in chat to make.
+
+**Recommendation.** 5: every party on the certified ballot. 6: say on the
+page how claims are chosen. 7 and 8 today.
+
+**Gates.** The first post.
+
+**Your answers (2026-10-22), verbatim where quoted:**
+1. Budget: "We have a 3,000 budget and it will be entirely spent on Twitter/X".
+2. Channels: "Keep instagram - and if reddit has SA politics subreddits of any value. Radio woudl be nice. LinkedIn I don't see the tie-in? Facebook doesn't seem to fit either. Youtube is worth looking at though" (eNCA, SABC News, party channels, @_SMWX).
+3. "Speak as whysoserious.city and I am representing it. But it should not be \"mine\"".
+4. Email short link and short links to Your Forecast: "yes".
+5. "on the ballot".
+6. "Levae the DA's latest. It's not very interesting. We can update teh first one if she's made the same claim. We need to look for other comments." And: say on the page how claims are chosen.
+7 and 8: "today".
+9. Billboard (the operator's email, RE: Free DOOH Billboard): 4 to 8 weeks, subject to availability; a 15 s MP4 in a 180 s loop; 768x480, H.264 High, 30 fps CFR, 8-bit, Rec.709, 4:2:0, gamma 2.2 ("Looks good"); avoid static, avoid white backgrounds, avoid colour on similar colour.
+
+Recorded: the Zille 40% card is withdrawn from the 22 October round (its dated line on the 490,000 card stays); a line on how claims are chosen goes on the claims page; a search for other parties' testable claims is running; /e and Your Forecast short links are briefed; the entries table is backed up and the delete command given to you (deleting is yours to run); the analytics token is yours to create and store; the billboard spot is being made, with a version for after 4 November since the slot outlasts the election.
+
+
 ### 17. Marketing plan — answered 2026-10-22
 
 **Context.** The plan is
