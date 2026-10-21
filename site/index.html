@@ -9,7 +9,8 @@
   2026-10-10 (audits/2026-10-09-site-batch/LAYOUT-BRIEF.md item 2): the
   headline and a button into /your-forecast/; the forecast simplified, map
   and seats side by side, with the way to /forecast; the articles beside
-  "What this is"; the interactive; the claims; how this is built.
+  the interactive (owner, 2026-10-21); the claims; how this is built; "What
+  this is" in one column last.
 
   ⛔ WHY THIS PAGE EXISTS: SO A LEADING ARTICLE CAN BE RETIRED. Until now the
   article WAS the front page, so a piece written on a date sat at the front door
@@ -140,7 +141,7 @@
   <p class="cta-row"><a class="cta cta-quiet" href="forecast">See the detailed forecast</a></p>
 </section>
 
-<!-- the articles at the left, "What this is" at the right (owner, 2026-10-10) -->
+<!-- the articles at the left, "Your Forecast" at the right; "What this is" last, full width (owner, 2026-10-21) -->
 <div class="two kinds">
   <section class="kind kind-article">
     <div class="eyebrow">Articles</div>
@@ -185,36 +186,26 @@
   <!-- __HOMEARTICLES_END__ -->
   </section>
 
-  <section class="kind kind-explain home-intro">
-    <!-- __HOMEINTRO_START__ -->
-  <div class="eyebrow">What this is</div>
-  <p>An unaffiliated forecast of Johannesburg's council election, built from primary sources. It starts from each voting district's history: past results, turnout, census data and each party's trajectory. From there it builds the city up from its wards, rather than applying generalisations down.</p>
-  <p>The model simulates the election thousands of times. Each run uses different values for turnout and for every party's support, but not just any values: each is drawn from how far turnout and parties have moved in past elections.</p>
-  <p>Run on Johannesburg's last three elections, it called <span class="mstat" data-mode="free" data-token="hist_jhb_wards_called_2011" data-when="2026-10-10" data-current="126" data-prov="126. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">126</span> of <span class="mstat" data-mode="free" data-token="hist_jhb_wards_2011" data-when="2026-10-10" data-current="130" data-prov="130. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">130</span>, <span class="mstat" data-mode="free" data-token="hist_jhb_wards_called_2016" data-when="2026-10-10" data-current="134" data-prov="134. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">134</span> of <span class="mstat" data-mode="free" data-token="hist_jhb_wards_2016" data-when="2026-10-10" data-current="135" data-prov="135. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">135</span> and <span class="mstat" data-mode="free" data-token="hist_jhb_wards_called_2021" data-when="2026-10-10" data-current="127" data-prov="127. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">127</span> of <span class="mstat" data-mode="free" data-token="hist_jhb_wards_2021" data-when="2026-10-10" data-current="135" data-prov="135. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">135</span> ward winners.</p>
-  <p>It uses as few judgement calls as possible. Each one is listed, with its evidence, on the <a href="methodology#the-judgement-calls">judgement calls</a> page, and several can be changed on <a href="your-forecast/">your prediction</a>.</p>
-  <!-- __HOMEINTRO_END__ -->
+  <section class="kind kind-interactive">
+    <div class="comingsoon">
+      <h3>Your Forecast</h3>
+      <p>Change our model's assumptions to ones you believe, or set the model aside
+      and forecast the election yourself: give each ward to a party, set each
+      party's share of the vote, and pick who governs. We tell you how likely we
+      think your forecast is, and on election day you will see how close you came.</p>
+      <ul>
+        <li>Share your forecast anywhere you like.</li>
+        <li>Sharing seals it: the forecast is signed with the time, so anyone can
+        see it is real, and entered in a ranking against the result. There will
+        be surprises for the forecasts that come closest.</li>
+        <li>We keep each sealed forecast and the name you put on it until after the
+        results, and no IP address, cookie or account. <a href="privacy">Privacy</a>
+        has the detail.</li>
+      </ul>
+      <p class="cta-row"><a class="cta" href="your-forecast/">Predict the election yourself</a></p>
+    </div>
   </section>
 </div>
-
-<section class="kind kind-interactive">
-  <div class="comingsoon">
-    <h3>Your Forecast</h3>
-    <p>Change our model's assumptions to ones you believe, or set the model aside
-    and forecast the election yourself: give each ward to a party, set each
-    party's share of the vote, and pick who governs. We tell you how likely we
-    think your forecast is, and on election day you will see how close you came.</p>
-    <ul>
-      <li>Share your forecast anywhere you like.</li>
-      <li>Sharing seals it: the forecast is signed with the time, so anyone can
-      see it is real, and entered in a ranking against the result. There will
-      be surprises for the forecasts that come closest.</li>
-      <li>We keep each sealed forecast and the name you put on it until after the
-      results, and no IP address, cookie or account. <a href="privacy">Privacy</a>
-      has the detail.</li>
-    </ul>
-    <p class="cta-row"><a class="cta" href="your-forecast/">Predict the election yourself</a></p>
-  </div>
-</section>
 
 <section class="kind kind-claim">
   <div class="eyebrow">The parties' claims, tested</div>
@@ -295,9 +286,9 @@
     </div>
     <div class="item">
       <div>
-        <div class="t"><a href="review">How the model was broken — and fixed</a></div>
-        <div class="d">A review found errors in the first version. Each was
-          repaired, and the page says what the repair changed.</div>
+        <div class="t"><a href="review">How the model is tested</a></div>
+        <div class="d">Each version is reviewed against its own plan and its
+          errors fixed. This is the review of the first version.</div>
       </div>
     </div>
     <div class="item">
@@ -317,6 +308,16 @@
       </div>
     </div>
   </div>
+</section>
+
+<section class="kind kind-explain home-intro">
+  <!-- __HOMEINTRO_START__ -->
+  <div class="eyebrow">What this is</div>
+  <p>An unaffiliated forecast of Johannesburg's council election, built from primary sources. It starts from each voting district's history: past results, turnout, census data and each party's trajectory. From there it builds the city up from its wards, rather than applying generalisations down.</p>
+  <p>The model simulates the election thousands of times. Each run uses different values for turnout and for every party's support, but not just any values: each is drawn from how far turnout and parties have moved in past elections.</p>
+  <p>Run on Johannesburg's last three elections, it called <span class="mstat" data-mode="free" data-token="hist_jhb_wards_called_2011" data-when="2026-10-10" data-current="126" data-prov="126. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">126</span> of <span class="mstat" data-mode="free" data-token="hist_jhb_wards_2011" data-when="2026-10-10" data-current="130" data-prov="130. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">130</span>, <span class="mstat" data-mode="free" data-token="hist_jhb_wards_called_2016" data-when="2026-10-10" data-current="134" data-prov="134. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">134</span> of <span class="mstat" data-mode="free" data-token="hist_jhb_wards_2016" data-when="2026-10-10" data-current="135" data-prov="135. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">135</span> and <span class="mstat" data-mode="free" data-token="hist_jhb_wards_called_2021" data-when="2026-10-10" data-current="127" data-prov="127. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">127</span> of <span class="mstat" data-mode="free" data-token="hist_jhb_wards_2021" data-when="2026-10-10" data-current="135" data-prov="135. Unchanged since 10 October 2026. Source: the model's test against past elections (src/compare_history.py), 1,000 simulations of each election, run on 19 October 2026, code version a9754ed." tabindex="0">135</span> ward winners.</p>
+  <p>It uses as few judgement calls as possible. Each one is listed, with its evidence, on the <a href="methodology#the-judgement-calls">judgement calls</a> page, and several can be changed on <a href="your-forecast/">your prediction</a>.</p>
+  <!-- __HOMEINTRO_END__ -->
 </section>
 
 <footer class="sitefooter">
