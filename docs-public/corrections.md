@@ -18,7 +18,7 @@ This page lists errors on published pages. Nothing is removed from it.
 
 <span data-asof="2026-10-17">**What was wrong.** The methodology page said the voters' roll carries about 560,000 registered white voters in Johannesburg, against about 300,000 white adults in the census. The roll does not record population group. The 560,000 was the model's own estimate, made with an adult share and a registration rate for each group fitted across the city, and it gave more registered white voters than there are white adults.
 
-**What is right.** The roll does not record population group. The comparison is removed.</span>
+**What is right.** The roll does not record population group; the model estimates each group's registered voters. The comparison is removed.</span>
 
 ## <span data-asof="2026-10-07">"Going the other way — an ANC-led council built with ActionSA, the PA and the smaller parties instead — reaches it in 57%"</span> — published 26 September 2026, corrected 7 October 2026
 

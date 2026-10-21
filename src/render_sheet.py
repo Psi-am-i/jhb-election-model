@@ -876,7 +876,7 @@ def main(argv: list[str] | None = None) -> int:
                 f'<span class="q-close">\u201d</span></blockquote>'
                 # the claim we test and our verdict on it, together (owner,
                 # 2026-10-21): the quote is the party's, the claim is ours
-                f'<div class="claim-test"><span class="claim-label">{c["label"]}</span>'
+                f'<div class="claim-test"><span class="claim-label" data-asof="{c["captured"]}">{c["label"]}</span>'
                 f'{badge}</div>'
                 f'<p class="claim-intro">{_md(_fill(with_holds(c, c["intro"])))}</p>'
                 f'<ol class="claimsteps">{steps}</ol>{since_html}</article>')

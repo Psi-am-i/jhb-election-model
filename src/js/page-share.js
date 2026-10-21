@@ -16,7 +16,7 @@ if (box) {
   const page = canonical ? canonical.href : location.href;
   const pic = q(".preview img");
   const E = {
-    open: q(".pgshare-open"), more: [...document.querySelectorAll("[data-pgshare-more]")], dlg: q("dialog"), close: q(".x"), url: q(".shurl"), copy: q(".shcopy"),
+    open: q(".pgshare-open"), more: [...document.querySelectorAll("[data-share-more]")], dlg: q("dialog"), close: q(".x"), url: q(".shurl"), copy: q(".shcopy"),
     wa: q(".shwa"), x: q(".shx"), native: q(".shnative"), dl: q(".shdl"), toast: q(".toast"),
   };
   const D = shareDialog(E, {

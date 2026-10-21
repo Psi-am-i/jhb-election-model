@@ -733,7 +733,7 @@ def share_button(html: str, prefix: str = "") -> str:
 #: A second opener for the page's one share sheet, at the end of each section
 #: of the forecast (owner, 2026-10-21: "the share button by map and after each
 #: section of forecast"). page-share.js binds every element carrying it.
-SHARE_MORE = "data-pgshare-more"
+SHARE_MORE = "data-share-more"
 _FORECAST_SECTION = re.compile(r'(<details class="rollup" data-band="forecast"[^>]*>)(.*?)(</details>)', re.S)
 
 

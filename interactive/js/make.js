@@ -20,9 +20,9 @@
 //
 // DESIGN-decided §8: every control applies to every party identically. Parties
 // are listed alphabetically wherever a reader chooses; nothing is preselected.
-// The vote list is two alphabetical lists, the parties seated at the
-// published start and then the rest, collapsed: an order fixed by the page,
-// not a ranking. The builder holds only a valid prediction (the seat law's
+// The vote list is the parties with the largest vote in our prediction (the
+// published start), largest first, then the rest alphabetically, collapsed:
+// an order fixed by the page, the same rule for every party. The builder holds only a valid prediction (the seat law's
 // refusals, js/builder-state.js), and its editor keeps each party inside the
 // bounds the past results allow (schema x-editor-bounds, JUDGEMENT-CALLS §R);
 // a state from a link or a hand-off may lie outside them, opens as it is, and
@@ -843,12 +843,17 @@ function editGap(c, raw) {
   const want = parseFloat(String(raw).replace("−", "-"));
   if (!Number.isFinite(want)) { paintShares(); return; }
   snapshot();
+  // the points are ward minus list, so the gap the engine bounds is minus them
+  const { gap_min, gap_max } = ctx.bounds;
+  const points = Math.max(-gap_max, Math.min(-gap_min, want));
   const listPct = state.list[c] / B.totalOf(state, "list") * 100;
-  const r1 = B.setWardPercent(state, ctx, c, listPct + want);
-  const r = B.setListGap(r1.state, ctx, c, -want);
+  const r1 = B.setWardPercent(state, ctx, c, listPct + points);
+  // the points the ward reached, where its limits stopped it short
+  const reached = r1.state.ward[c] / B.totalOf(r1.state, "ward") * 100 - listPct;
+  const r = B.setListGap(r1.state, ctx, c, -reached);
   const note = r1.clamped
     ? name(c) + "'s ward vote cannot go " + (r1.clamped === "floor" ? "lower" : "higher") + " with the wards on your map."
-    : r.clamped === "gap_min" || r.clamped === "gap_max"
+    : points !== want || r.clamped === "gap_min" || r.clamped === "gap_max"
       ? name(c) + "'s ward vote is as far from its list vote as this page allows, past the widest gap in past results."
       : r.clamped === "others" ? name(c) + "'s list vote moved as far as it can without taking another party's list vote out of range." : "";
   commit(r.state, note);
