@@ -144,3 +144,33 @@ checked for exact wording at the source
 the check supports it; not 4.
 
 **Gates.** Nothing.
+
+### 23. The billboard's schedule and delivery
+
+**Context.** Relativ Media's spec sheet for Monte Casino Digital (REL351):
+an 8 m x 4.5 m screen, 768 x 480 pixels (the pixels are shown about 11%
+wider than tall, which the spot is being drawn to compensate for), a 15 s
+spot in a 180 s loop of 12, about 20 plays an hour, 24 hours a day.
+Artwork is due 5 days before it goes live, by 14:00 Monday to Thursday or
+12:00 on Friday, as an attachment or WeTransfer to digital@relativgroup.co.za,
+the subject naming the brand and creative, the file named "Client Name
+YYYY MM DD Campaign Name Site Name". A custom schedule (exact dates and
+times) can be asked for.
+
+So: delivered today (Thursday 22 October) by 14:00, it can go live on
+Tuesday 27 October, 8 days before the vote; delivered by Friday 12:00, on
+Wednesday 28 October.
+
+**Decisions.**
+1. Ask for a custom schedule with two creatives: the "seal your prediction"
+   spot until 06:59 on 4 November (sealing closes at 07:00), and the
+   "Joburg has voted" spot after that? Its first line is untrue until the
+   polls close, so the second spot would start at 21:00 on 4 November (or 5
+   November 00:00), with nothing of ours in between.
+2. You send the email with the files attached (I prepare it as a draft in
+   Mail once the spots pass their checks).
+
+**Recommendation.** 1 yes, the second spot from 21:00 on 4 November and
+nothing between 07:00 and 21:00; 2 today before 14:00.
+
+**Gates.** The go-live date.
