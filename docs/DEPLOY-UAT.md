@@ -31,17 +31,25 @@ Source: `src/worker.js`. Tests: `tests/test_worker_routing.py`.
 
 Cloudflare Web Analytics does not record query strings, so `utm_` tags on links
 cannot be counted there. Each channel gets its own short path instead. The Worker
-answers it with a 302 to the home page and logs one object, whose keys Workers Logs
+answers it with a 302 to the home page (a `p` twin: to `/your-forecast/`) and logs one object, whose keys Workers Logs
 indexes as fields.
 
-| Link to use | Channel in the log |
-|---|---|
-| `https://joburg.whysoserious.city/go` | `billboard` |
-| `https://joburg.whysoserious.city/x` | `x` |
-| `https://joburg.whysoserious.city/li` | `linkedin` |
-| `https://joburg.whysoserious.city/fb` | `facebook` |
-| `https://joburg.whysoserious.city/ig` | `instagram` |
-| `https://joburg.whysoserious.city/g` (Google Ads final URL) | `google_ads` |
+Each path below lands on the home page; its twin ending in `p` (`/gop`, `/xp`,
+`/lip`, …, `/fmp`) lands on `/your-forecast/` and logs `<channel>_prediction`.
+The list is `CHANNELS` in `src/worker.js`; this table follows it.
+
+| Link to use | Channel in the log | Twin (to `/your-forecast/`) |
+|---|---|---|
+| `https://joburg.whysoserious.city/go` | `billboard` | `/gop` |
+| `https://joburg.whysoserious.city/x` | `x` | `/xp` |
+| `https://joburg.whysoserious.city/li` | `linkedin` | `/lip` |
+| `https://joburg.whysoserious.city/fb` | `facebook` | `/fbp` |
+| `https://joburg.whysoserious.city/ig` | `instagram` | `/igp` |
+| `https://joburg.whysoserious.city/g` (Google Ads final URL) | `google_ads` | `/gp` |
+| `https://joburg.whysoserious.city/e` | `email` | `/ep` |
+| `https://joburg.whysoserious.city/r` | `reddit` | `/rp` |
+| `https://joburg.whysoserious.city/yt` | `youtube` | `/ytp` |
+| `https://joburg.whysoserious.city/fm` | `radio` | `/fmp` |
 
 Matching ignores case and one trailing slash (`/GO`, `/go/`). A query string on the
 short path, such as the `gclid` Google Ads appends, still matches and is dropped
@@ -164,10 +172,14 @@ curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "$U/play/?t=5,0,0,0"   
 curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "$U/make/?v=1"         # 301 …/your-forecast/?v=1#break
 curl -sI "$U/draws/index.json"      | grep -iE '^(HTTP|content-type)'   # 200 · application/json
 curl -sI "$U/draws/base.bin"        | grep -iE '^(HTTP|content-type)'   # 200 · application/octet-stream
-for p in go x li fb ig g GO go/; do
-  printf '%-4s ' "$p"; curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "$U/$p"
+for p in go x li fb ig g e r yt fm GO go/; do
+  printf '%-5s ' "$p"; curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "$U/$p"
 done
 #   every line: 302 https://<version-prefix>-joburg-whysoserious.<sub>.workers.dev/
+for p in gop xp lip fbp igp gp ep rp ytp fmp GOP gop/; do
+  printf '%-5s ' "$p"; curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' "$U/$p"
+done
+#   every line: 302 https://<version-prefix>-joburg-whysoserious.<sub>.workers.dev/your-forecast/
 ```
 
 Then open `$U/?v=<anything>` in a browser and read the pages that changed. On

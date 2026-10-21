@@ -134,12 +134,13 @@ def test_the_built_tooltip_dates_an_unchanged_figure_to_its_first_edition():
     tips = [html.unescape(m) for m in re.findall(
         rf'data-token="{token}"[^>]*data-prov="([^"]*)"', page)]
     assert tips, f"{token} is not on /forecast; the test is looking at nothing"
-    # The wording is the 2026-10-22 structure (build_site.tooltip_text: "<v>
-    # since <date>.", the year left off a date in the edition's year); what is
-    # checked is unchanged: the date is the run's FIRST edition, not its last.
+    # The wording is the 2026-10-22 structure (build_site.tooltip_text): a
+    # pinned (fixed) figure reads "<v> on <date>.", not "since", because it is
+    # not current; the year is left off a date in the edition's year. What is
+    # checked is unchanged: the date is the FIRST edition, not the last.
     unit = " seats" if token == "asa_2021_seats" else ""
     for tip in tips:
-        assert tip.startswith(f"{shown}{unit} since 8 August.\n"), tip
+        assert tip.startswith(f"{shown}{unit} on 8 August.\n"), tip
         assert "30 September" not in tip, tip
 
 
@@ -180,12 +181,15 @@ def test_a_figure_typed_before_it_was_a_token_is_dated_from_its_first_publicatio
         shown = S._fmt(reg[token]["value"], reg[token].get("format"))
         assert tips(token, page), f"{token} is not on {page}"
         for tip in tips(token, page):
-            # 2026-10-22 structure (build_site.tooltip_text); still dated from
-            # the article (`on_site`), not from this build
-            assert tip.startswith(f"{shown} since 8 August.\n"), tip
-    # a new figure outside a publication: "in this build" (was "new in this
-    # edition"), so the branch is still seen to discriminate
-    assert tips(*undated) and all(t.split("\n")[0].endswith(" in this build.")
+            # 2026-10-22 structure (build_site.tooltip_text: a pinned figure
+            # reads "on <date>"); still dated from the article, not this build
+            assert tip.startswith(f"{shown} on 8 August.\n"), tip
+    # A fixed figure WITHOUT on_site is not dated from 8 August, so the branch
+    # is still seen to discriminate. (It said "new in this edition"; since
+    # 2026-10-22 a pinned figure reads "on" the date of the dated passage it
+    # sits in, here methodology's, or "in this build" with no date at all.)
+    assert tips(*undated) and all(" 8 August" not in t.split("\n")[0]
+                                  and " since " not in t.split("\n")[0]
                                   for t in tips(*undated)), tips(*undated)
 
 

@@ -59,6 +59,21 @@ def test_a_constructed_unmatched_token_is_reported_and_the_report_clears():
         raise AssertionError("says() gave a sentence for a token with no pattern")
 
 
+def test_a_pattern_matching_nothing_is_reported_and_the_report_clears():
+    every = ["seats.ANC.median"]
+    assert r"seats\.OTHERS\.median" in T.unused(every)
+    assert r"seats\.OTHERS\.median" not in T.unused(every + ["seats.OTHERS.median"])
+    # and a constructed table: one pattern that matches nothing is named alone
+    saved = T.SAYS, T._COMPILED
+    try:
+        T.SAYS = (T.Say(r"probe\.a", "", "x", "A."), T.Say(r"probe\.never", "", "x", "B."))
+        T._COMPILED = [(x, __import__("re").compile(x.pattern)) for x in T.SAYS]
+        assert T.unused(["probe.a"]) == [r"probe\.never"]
+        assert T.unused(["probe.a", "probe.never"]) == []
+    finally:
+        T.SAYS, T._COMPILED = saved
+
+
 def test_a_party_code_must_be_a_party():
     """A pattern with a party slot matches only a known party: an unknown code
     is unsaid, not printed as a name."""
@@ -171,16 +186,44 @@ def test_line_one_frozen_figures():
     frozen = _c("pub0831_anc_entitlement", "65", "none", "65", since="2026-08-08")
     reg = {"pub0831_anc_entitlement": {"tracks": "anc_entitlement", "captured": "2026-08-08"}}
     by = {c["token"]: c for c in (live, frozen)}
-    assert _tip(frozen, registry=reg, by_token=by).startswith(
-        "65 seats on 8 August. 59 seats since 21 October.\n")
-    assert _tip({**frozen, "display": "59"}, registry=reg, by_token=by).startswith(
-        "59 seats on 8 August.\n")
+    import build_site as B
+
+    def tip(x, by_token, publishing=True):
+        return B.tooltip_text(x, by_token=by_token, registry=reg, edition="2026-10-21",
+                              publishing=publishing, facts=FACTS,
+                              dated_on={"pub0831_anc_entitlement": "2026-08-08"})
+    assert tip(frozen, by).startswith("65 seats on 8 August. 59 seats since 21 October.\n")
+    assert tip({**frozen, "display": "59"}, by).startswith("59 seats on 8 August.\n")
     moved_live = {**live, "movement": "material", "previous": "61"}
-    assert _tip(frozen, registry=reg, by_token={**by, "anc_entitlement": moved_live},
-                publishing=False).startswith("65 seats on 8 August. 59 seats in this build.\n")
+    assert tip(frozen, {**by, "anc_entitlement": moved_live}, publishing=False).startswith(
+        "65 seats on 8 August. 59 seats in this build.\n")
+    # a pinned figure is not current: "on" its published date, never "since";
+    # the dated passage's own date first, then on_site, then its first ledger row
+    pinned = {**_c("claim_poll_base", "985,000", "none", "985,000", since="2026-08-08"),
+              "mode": "fixed"}
+    reg = {"claim_poll_base": {"mode": "fixed", "captured": "2026-08-07"}}
+    import build_site as B
+    tip = B.tooltip_text(pinned, by_token={}, registry=reg, edition="2026-10-21",
+                         publishing=True, facts=FACTS, dated_on={"claim_poll_base": "2026-08-07"},
+                         first_ledgered={"claim_poll_base": "2026-08-08T00:00:00Z"})
+    assert tip.startswith("985,000 on 7 August.\n"), tip
+    tip = B.tooltip_text(pinned, by_token={}, registry=reg, edition="2026-10-21",
+                         publishing=True, facts=FACTS,
+                         first_ledgered={"claim_poll_base": "2026-08-08T00:00:00Z"})
+    assert tip.startswith("985,000 on 8 August.\n"), tip
+    # a share whose "%" the prose carries gets it in line 1
+    pct = {**_c("claim_490k_of_2021", "53", "none", "53"), "mode": "fixed"}
+    assert _tip(pct, registry={"claim_490k_of_2021": {"mode": "fixed", "on_site": "2026-08-08"}}
+                ).startswith("53% on 8 August.\n")
+    # a date is the date alone
+    day = {**_c("generated_date", "21 October 2026", "material", "29 September 2026"),
+           "fmt": "date_long"}
+    assert _tip(day).startswith("21 October 2026.\n"), _tip(day)
     hist = _c("claim_short_by", "39", "none", "39", since="2026-08-07")
-    assert _tip(hist, registry={"claim_short_by": {"historical": "x", "captured": "2026-08-07"}}
-                ).startswith("39 seats on 7 August.\n")
+    assert B.tooltip_text(hist, by_token={}, registry={"claim_short_by": {"historical": "x"}},
+                          edition="2026-10-21", publishing=True, facts=FACTS,
+                          dated_on={"claim_short_by": "2026-08-07"}
+                          ).startswith("39 seats on 7 August.\n")
 
 
 # --- end to end: the build ------------------------------------------------------
@@ -260,11 +303,52 @@ def test_every_built_tooltip_is_two_lines_and_names_no_part_of_the_model():
     assert len(tips) >= len(T.SAYS), len(tips)
     bad = [(t, tip, technical_words(tip)) for t, tip in sorted(tips) if technical_words(tip)]
     assert not bad, bad[:5]
-    # the empty ledger: every figure is new, and this is not a publication,
-    # unless the registry dates it from its first appearance on the site
-    first = {tip.split("\n")[0] for _, tip in tips}
-    assert all(" in this build." in line or " on " in line or " since " in line
-               for line in first), sorted(first)[:5]
+    import tomllib
+    reg = tomllib.loads((ROOT / "content/joburg/stats.toml").read_text(encoding="utf-8"))
+    wrong = dry_line_one_faults(tips, reg)
+    assert not wrong, wrong[:5]
+
+
+def dry_line_one_faults(tips, reg) -> list:
+    """Line 1s wrong for a dry build on an empty ledger: every live figure is
+    "in this build" unless the registry dates it from the site (`on_site`);
+    a pinned, tracking or historical figure is "on" a date; a date figure is
+    the date alone. A build that dated itself as a publication ("since
+    <today>") is caught."""
+    import calendar
+    wrong = []
+    for t, tip in sorted(tips):
+        line = tip.split("\n")[0]
+        e = reg.get(t) if isinstance(reg.get(t), dict) else {}
+        if re.fullmatch(r"\d{1,2} [A-Z][a-z]+ \d{4}\.", line):
+            continue
+        if e.get("mode") == "fixed" or e.get("tracks") or e.get("historical"):
+            # dated by its passage or on_site, else undated on an empty ledger
+            ok = (bool(re.search(r" on \d{1,2} [A-Z][a-z]+( \d{4})?\.", line))
+                  and " since " not in line.split(" on ")[0]) or line.endswith(" in this build.")
+        elif e.get("on_site"):
+            d = e["on_site"]
+            ok = line.endswith(f" since {int(d[8:10])} {calendar.month_name[int(d[5:7])]}.")
+        else:
+            ok = line.endswith(" in this build.")
+        if not ok:
+            wrong.append((t, line))
+    return wrong
+
+
+def test_the_dry_run_check_fires_on_a_build_dated_as_a_publication():
+    reg = {"pinned": {"mode": "fixed"}, "typed": {"on_site": "2026-08-08"}}
+    good = {("live", "58% chance in this build.\nSOURCE: This Model. X."),
+            ("pinned", "44 seats on 8 August.\nSOURCE: IEC. X."),
+            ("typed", "52,000 since 8 August.\nSOURCE: IEC. X.")}
+    assert dry_line_one_faults(good, reg) == []
+    for t, line in (("live", "58% chance since 21 October."),
+                    ("pinned", "44 seats since 8 August."),
+                    ("pinned", "44 seats since 21 October."),
+                    ("typed", "52,000 in this build.")):
+        bad = {x for x in good if x[0] != t} | {(t, line + "\nSOURCE: X. Y.")}
+        assert [w[0] for w in dry_line_one_faults(bad, reg)] == [t], (t, line)
+    assert dry_line_one_faults(good, reg) == []
 
 
 if __name__ == "__main__":
