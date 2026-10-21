@@ -34,10 +34,12 @@ by-elections are candidate contests at 18–50% turnout; a party absent from a
 contest contributes no delta for it (absence is a nomination decision, not a
 collapse); a party with no votes at the previous LGE has its deltas measured
 against a zero base and they are therefore genuine new-party evidence, not
-swing. The consumer (montecarlo.py) blends these deltas in at each party's
-size-class weight, measured by ``bye_value.py`` against the 2024 result (BRIEF
-item 19; ``w_bye`` overrides it for sweeps) — they move the centre of the
-prior, never replace it.
+swing. The consumer (montecarlo.py) blends these deltas in at ``w_bye``, 0.5
+for every party since 2026-10-17 (JUDGEMENT-CALLS §A59; ``None`` reads each
+size class's weight measured by ``bye_value.py``, BRIEF item 19), for a party
+whose contest weight reaches ``montecarlo.BYE_MIN_WEIGHT``; under
+``bye_weight_mode = "inverse_variance"`` the weight is derived instead. They
+move the centre of the prior, never replace it.
 
 Outputs, under the target's processed directory:
     byelection_party_deltas.csv     weighted per-party share deltas

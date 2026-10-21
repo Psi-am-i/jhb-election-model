@@ -4,54 +4,54 @@
    "label": "Our law \u2014 the surplus is deducted from everyone else",
    "parties": {
     "ANC": {
-     "median": 74.0,
-     "p5": 51.0,
-     "p95": 83.0
+     "median": 72.0,
+     "p5": 48.0,
+     "p95": 81.0
     },
     "DA": {
-     "median": 70.0,
+     "median": 67.0,
      "p5": 52.0,
-     "p95": 88.0
-    },
-    "EFF": {
-     "median": 29.0,
-     "p5": 18.0,
-     "p95": 46.0
+     "p95": 82.0
     },
     "ASA": {
-     "median": 27.0,
-     "p5": 17.0,
-     "p95": 40.0
+     "median": 40.0,
+     "p5": 31.0,
+     "p95": 51.0
+    },
+    "EFF": {
+     "median": 25.0,
+     "p5": 14.0,
+     "p95": 43.0
     },
     "MK": {
      "median": 17.0,
-     "p5": 4.0,
-     "p95": 64.0
+     "p5": 5.0,
+     "p95": 55.0
     },
     "PA": {
      "median": 14.0,
-     "p5": 5.0,
+     "p5": 6.0,
      "p95": 33.0
     },
     "RISE": {
      "median": 3.0,
      "p5": 1.0,
-     "p95": 17.0
+     "p95": 14.0
     },
     "IFP": {
      "median": 3.0,
      "p5": 1.0,
-     "p95": 10.0
+     "p95": 11.0
     },
     "BOSA": {
      "median": 2.0,
      "p5": 0.0,
-     "p95": 10.0
+     "p95": 9.0
     },
     "ALJAMAAH": {
      "median": 2.0,
      "p5": 1.0,
-     "p95": 7.0
+     "p95": 6.0
     },
     "VFPLUS": {
      "median": 2.0,
@@ -60,10 +60,15 @@
     },
     "ACDP": {
      "median": 1.0,
-     "p5": 1.0,
-     "p95": 5.0
+     "p5": 0.950000000000017,
+     "p95": 4.0
     },
     "ATM": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 4.0
+    },
+    "AHC": {
      "median": 1.0,
      "p5": 0.0,
      "p95": 3.0
@@ -71,12 +76,7 @@
     "AIC": {
      "median": 1.0,
      "p5": 0.0,
-     "p95": 3.0
-    },
-    "AHC": {
-     "median": 1.0,
-     "p5": 0.0,
-     "p95": 3.0
+     "p95": 2.0
     },
     "PAC": {
      "median": 1.0,
@@ -94,78 +94,78 @@
      "p95": 2.0
     }
    },
-   "p_excessive_any": 0.8382,
+   "p_excessive_any": 0.924,
    "threshold_median": 136,
    "structural": {
     "P(some majority without the ANC)": 1.0,
-    "P(some majority without ANC, EFF and MK)": 0.7848,
-    "P(ANC+DA is winning)": 0.6814,
+    "P(some majority without ANC, EFF and MK)": 0.9274,
+    "P(ANC+DA is winning)": 0.5646,
     "P(some majority without the DA)": 1.0,
-    "P(DA is the largest single party)": 0.361,
-    "P(ANC is the largest single party)": 0.5766,
-    "field without ANC, EFF and MK: median seats": 146.0
+    "P(DA is the largest single party)": 0.3396,
+    "P(ANC is the largest single party)": 0.6152,
+    "field without ANC, EFF and MK: median seats": 154.0
    }
   },
   "expand": {
    "label": "Old Germany \u2014 the council grows to absorb the surplus",
    "parties": {
     "DA": {
-     "median": 73.0,
+     "median": 71.0,
      "p5": 54.0,
-     "p95": 90.0
+     "p95": 86.0
     },
     "ANC": {
-     "median": 74.0,
-     "p5": 51.0,
-     "p95": 83.0
-    },
-    "EFF": {
-     "median": 30.0,
-     "p5": 18.0,
-     "p95": 47.05000000000018
+     "median": 72.0,
+     "p5": 48.0,
+     "p95": 81.0
     },
     "ASA": {
-     "median": 27.0,
-     "p5": 17.950000000000017,
-     "p95": 42.0
+     "median": 42.5,
+     "p5": 32.0,
+     "p95": 54.0
+    },
+    "EFF": {
+     "median": 26.0,
+     "p5": 15.0,
+     "p95": 44.0
     },
     "MK": {
      "median": 18.0,
-     "p5": 4.0,
-     "p95": 64.0
+     "p5": 5.0,
+     "p95": 55.0
     },
     "PA": {
-     "median": 14.0,
-     "p5": 5.0,
+     "median": 15.0,
+     "p5": 6.0,
      "p95": 35.0
     },
     "RISE": {
      "median": 3.0,
      "p5": 1.0,
-     "p95": 17.0
+     "p95": 15.0
     },
     "IFP": {
      "median": 3.0,
      "p5": 1.0,
-     "p95": 11.0
+     "p95": 12.0
     },
     "BOSA": {
      "median": 2.0,
      "p5": 0.0,
-     "p95": 11.0
+     "p95": 9.0
     },
     "ALJAMAAH": {
      "median": 2.0,
      "p5": 1.0,
-     "p95": 7.0
+     "p95": 6.050000000000182
     },
     "VFPLUS": {
      "median": 2.0,
      "p5": 1.0,
-     "p95": 7.0
+     "p95": 6.0
     },
     "ACDP": {
-     "median": 2.0,
+     "median": 1.0,
      "p5": 1.0,
      "p95": 5.0
     },
@@ -174,12 +174,12 @@
      "p5": 0.0,
      "p95": 4.0
     },
-    "AIC": {
+    "AHC": {
      "median": 1.0,
      "p5": 0.0,
      "p95": 3.0
     },
-    "AHC": {
+    "AIC": {
      "median": 1.0,
      "p5": 0.0,
      "p95": 3.0
@@ -198,77 +198,67 @@
      "median": 0.0,
      "p5": 0.0,
      "p95": 2.0
-    },
-    "UIM": {
-     "median": 0.0,
-     "p5": 0.0,
-     "p95": 1.0
-    },
-    "APC": {
-     "median": 0.0,
-     "p5": 0.0,
-     "p95": 1.0
     }
    },
-   "p_excessive_any": 0.8382,
-   "threshold_median": 139,
+   "p_excessive_any": 0.924,
+   "threshold_median": 142,
    "structural": {
     "P(some majority without the ANC)": 1.0,
-    "P(some majority without ANC, EFF and MK)": 0.8004,
-    "P(ANC+DA is winning)": 0.6566,
+    "P(some majority without ANC, EFF and MK)": 0.9358,
+    "P(ANC+DA is winning)": 0.5182,
     "P(some majority without the DA)": 1.0,
-    "P(DA is the largest single party)": 0.4834,
-    "P(ANC is the largest single party)": 0.4542,
-    "field without ANC, EFF and MK: median seats": 151.0
+    "P(DA is the largest single party)": 0.5198,
+    "P(ANC is the largest single party)": 0.4346,
+    "field without ANC, EFF and MK: median seats": 163.0
    }
   },
   "level": {
    "label": "Modern Germany \u2014 every party is topped up to proportionality",
    "parties": {
     "DA": {
-     "median": 81.0,
-     "p5": 57.0,
-     "p95": 103.0
+     "median": 85.0,
+     "p5": 58.0,
+     "p95": 107.0
     },
     "ANC": {
-     "median": 75.0,
-     "p5": 51.0,
-     "p95": 85.0
-    },
-    "EFF": {
-     "median": 34.0,
-     "p5": 20.0,
-     "p95": 53.0
+     "median": 72.0,
+     "p5": 48.0,
+     "p95": 82.0
     },
     "ASA": {
-     "median": 30.0,
-     "p5": 18.0,
-     "p95": 50.0
+     "median": 51.0,
+     "p5": 35.0,
+     "p95": 67.0
+    },
+    "EFF": {
+     "median": 31.0,
+     "p5": 16.0,
+     "p95": 53.0
     },
     "MK": {
-     "median": 21.0,
-     "p5": 4.0,
-     "p95": 66.0
+     "median": 23.0,
+     "p5": 6.0,
+     "p95": 56.0
     },
     "PA": {
-     "median": 16.0,
-     "p5": 6.0,
-     "p95": 41.0
+     "median": 18.0,
+     "p5": 7.0,
+     "p95": 46.0
     },
     "RISE": {
      "median": 3.0,
      "p5": 1.0,
-     "p95": 21.0
+     "p95": 19.0
     },
     "IFP": {
      "median": 4.0,
      "p5": 1.0,
-     "p95": 13.0
+     "p95": 15.0
     },
     "BOSA": {
      "median": 2.0,
      "p5": 0.0,
-     "p95": 13.0
+     "p95": 12.0
     },
     "ALJAMAAH": {
      "median": 2.0,
@@ -288,17 +278,17 @@
     "ATM": {
      "median": 1.0,
      "p5": 0.0,
-     "p95": 4.0
-    },
-    "AIC": {
-     "median": 1.0,
-     "p5": 0.0,
-     "p95": 4.0
+     "p95": 5.0
     },
     "AHC": {
      "median": 1.0,
      "p5": 0.0,
      "p95": 4.0
+    },
+    "AIC": {
+     "median": 1.0,
+     "p5": 0.0,
+     "p95": 3.0
     },
     "PAC": {
      "median": 1.0,
@@ -326,78 +316,78 @@
      "p95": 1.0
     }
    },
-   "p_excessive_any": 0.8382,
-   "threshold_median": 149,
+   "p_excessive_any": 0.924,
+   "threshold_median": 161,
    "structural": {
     "P(some majority without the ANC)": 1.0,
-    "P(some majority without ANC, EFF and MK)": 0.8184,
-    "P(ANC+DA is winning)": 0.5754,
+    "P(some majority without ANC, EFF and MK)": 0.9438,
+    "P(ANC+DA is winning)": 0.3584,
     "P(some majority without the DA)": 1.0,
-    "P(DA is the largest single party)": 0.7402,
-    "P(ANC is the largest single party)": 0.1956,
-    "field without ANC, EFF and MK: median seats": 166.0
+    "P(DA is the largest single party)": 0.8612,
+    "P(ANC is the largest single party)": 0.0924,
+    "field without ANC, EFF and MK: median seats": 193.0
    }
   },
   "cap": {
    "label": "Germany 2023 \u2014 pure proportionality at a fixed council",
    "parties": {
     "DA": {
-     "median": 73.0,
+     "median": 71.0,
      "p5": 54.0,
-     "p95": 90.0
+     "p95": 86.0
     },
     "ANC": {
-     "median": 65.0,
-     "p5": 48.0,
-     "p95": 81.0
-    },
-    "EFF": {
-     "median": 30.0,
-     "p5": 18.0,
-     "p95": 47.05000000000018
+     "median": 59.0,
+     "p5": 44.0,
+     "p95": 72.0
     },
     "ASA": {
-     "median": 27.0,
-     "p5": 17.950000000000017,
-     "p95": 42.0
+     "median": 42.5,
+     "p5": 32.0,
+     "p95": 54.0
+    },
+    "EFF": {
+     "median": 26.0,
+     "p5": 15.0,
+     "p95": 44.0
     },
     "MK": {
      "median": 18.0,
-     "p5": 4.0,
-     "p95": 64.0
+     "p5": 5.0,
+     "p95": 55.0
     },
     "PA": {
-     "median": 14.0,
-     "p5": 5.0,
+     "median": 15.0,
+     "p5": 6.0,
      "p95": 35.0
     },
     "RISE": {
      "median": 3.0,
      "p5": 1.0,
-     "p95": 17.0
+     "p95": 15.0
     },
     "IFP": {
      "median": 3.0,
      "p5": 1.0,
-     "p95": 11.0
+     "p95": 12.0
     },
     "BOSA": {
      "median": 2.0,
      "p5": 0.0,
-     "p95": 11.0
+     "p95": 9.0
     },
     "ALJAMAAH": {
      "median": 2.0,
      "p5": 1.0,
-     "p95": 7.0
+     "p95": 6.050000000000182
     },
     "VFPLUS": {
      "median": 2.0,
      "p5": 1.0,
-     "p95": 7.0
+     "p95": 6.0
     },
     "ACDP": {
-     "median": 2.0,
+     "median": 1.0,
      "p5": 1.0,
      "p95": 5.0
     },
@@ -406,12 +396,12 @@
      "p5": 0.0,
      "p95": 4.0
     },
-    "AIC": {
+    "AHC": {
      "median": 1.0,
      "p5": 0.0,
      "p95": 3.0
     },
-    "AHC": {
+    "AIC": {
      "median": 1.0,
      "p5": 0.0,
      "p95": 3.0
@@ -425,33 +415,18 @@
      "median": 0.0,
      "p5": 0.0,
      "p95": 2.0
-    },
-    "DUDULA": {
-     "median": 0.0,
-     "p5": 0.0,
-     "p95": 2.0
-    },
-    "UIM": {
-     "median": 0.0,
-     "p5": 0.0,
-     "p95": 1.0
-    },
-    "APC": {
-     "median": 0.0,
-     "p5": 0.0,
-     "p95": 1.0
     }
    },
-   "p_excessive_any": 0.8382,
+   "p_excessive_any": 0.924,
    "threshold_median": 136,
    "structural": {
     "P(some majority without the ANC)": 1.0,
-    "P(some majority without ANC, EFF and MK)": 0.8186,
-    "P(ANC+DA is winning)": 0.566,
+    "P(some majority without ANC, EFF and MK)": 0.9436,
+    "P(ANC+DA is winning)": 0.3446,
     "P(some majority without the DA)": 1.0,
-    "P(DA is the largest single party)": 0.7492,
-    "P(ANC is the largest single party)": 0.1866,
-    "field without ANC, EFF and MK: median seats": 151.0
+    "P(DA is the largest single party)": 0.8674,
+    "P(ANC is the largest single party)": 0.0862,
+    "field without ANC, EFF and MK: median seats": 163.0
    }
   }
  },

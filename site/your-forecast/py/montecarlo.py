@@ -149,14 +149,17 @@ DEFAULTS: dict = {
     # as an argument that function never read, and printed. Three appearances,
     # no effect. See MODEL-LOG §1.35.
     #
-    # ⛔ NONE MEANS DERIVED (BRIEF item 19, 2026-10-10). The weight each party's
-    # by-election evidence gets is its size class's weight from
-    # `data/processed/bye_value.json` (`src/bye_value.py`, JUDGEMENT-CALLS
-    # §A55): the measured out-of-sample increment over the model's own
-    # baseline, 0 where none is measurable. A NUMBER here is an override for
-    # sweeps and the reader page's cells, applied to every party and recorded
-    # (`w_bye.override`). It replaced the typed 0.40 (§A35, superseded).
-    "w_bye": None,
+    # ⛔ 0.5 FOR EVERY PARTY, THE OWNER'S DECISION (2026-10-17, JUDGEMENT-CALLS
+    # §A59): "since we do not know what the by-election weight should be,
+    # weight them all at 50%" -- a party the model puts at 10% whose
+    # by-elections imply 8% is centred at 9%. Declared, and argued rather than
+    # tested: no backtested target has a by-election, so nothing on the panel
+    # can score it. A number here is applied to every party and recorded
+    # (`w_bye.override`). None would mean derived: each party's size-class
+    # weight from `data/processed/bye_value.json` (`src/bye_value.py`, §A55),
+    # 0.0 for both classes when this was set, so the by-elections reached no
+    # centre. That route stays for sweeps (`--set w_bye=None`).
+    "w_bye": 0.5,
     # HOW the by-election reading is weighed against the spine. "fixed" is
     # w_bye above, typed and untested. "inverse_variance" DERIVES it from the
     # two estimates' own precisions — the minimum-variance combination, which
@@ -432,6 +435,14 @@ DEFAULTS: dict = {
     # the calibration pass. Estimation: m is the centres' average size-related
     # error against real results of earlier elections.
     "centre_correction": False,
+    # THE NEWCOMER WIDTH BY ANCHOR CLASS (prereg/2026-10-16-newness-width-by-
+    # anchor.md, arm S). "by_anchor": a party new to the city takes the δ of
+    # its class (`newness_class`: "anchored" when its centre is its own
+    # national result here, "unanchored" when it has none), each fitted by
+    # `width_record.fit_class_deltas` on its own class's rows. "single": the
+    # one δ fitted on every new party together (the comparison arm). Read only
+    # under the universal law. JUDGEMENT-CALLS §A57.
+    "newness_width": "by_anchor",
     # STRENGTH JUDGEMENTS ON OR OFF (design v3 §11). A forecast with
     # judgements in its `judgements/` file is also run with this off, paired,
     # and both are reported. A backtest ignores judgements either way.
@@ -557,7 +568,7 @@ def expit(x):
 # THE ADMISSION GATE ON THE WHOLE BY-ELECTION CHANNEL, promoted from an
 # inline literal 2026-08-22 (MODEL-LOG §1.69). `w_bye` was then a typed 0.40,
 # 🔴 as "live in the 2026 forecast, untested by anything here" (since
-# 2026-10-10 it is derived per size class, §A55) — and the
+# 2026-10-10 it was derived per size class, §A55; 0.5 since 2026-10-17, §A59) — and the
 # threshold deciding whether it fires for a given party was a bare `30` in the
 # function body, in the same untestable branch and with the same reach into the
 # published forecast. Below this many weighted contests the by-election
@@ -1694,12 +1705,13 @@ def _refuse_non_statutory(key: str, value) -> None:
             f"table. They must not reach a forecast. MODEL-LOG §1.165.")
 
 
-#: ``DEFAULTS`` keys a city file may not set: each is derived per run, and
-#: ``apply_city`` writes a city's ``[judgements.scalars]`` over ``DEFAULTS``,
-#: so a number there would override the derivation on every run of that city.
-#: ``w_bye`` (BRIEF item 19): ``None`` derives each party's class weight from
-#: ``bye_value.json``; ``w_bye = 0.4`` sat in two city files until 2026-10-10
-#: and would have done exactly that. A sweep or scenario file may still set
+#: ``DEFAULTS`` keys a city file may not set: each is one value for every
+#: city, and ``apply_city`` writes a city's ``[judgements.scalars]`` over
+#: ``DEFAULTS``, so a number there would replace it on every run of that city.
+#: ``w_bye``: 0.5 for every party (owner, JUDGEMENT-CALLS §A59), or ``None``
+#: for each party's derived class weight from ``bye_value.json`` (§A55);
+#: ``w_bye = 0.4`` sat in two city files until 2026-10-10 and overrode the
+#: derivation in silence. A sweep or scenario file may still set
 #: it (an override, recorded); only a city file may not.
 DERIVED_NOT_CITY = ("w_bye",)
 
@@ -2604,8 +2616,9 @@ def bye_weight(scenario: dict, party: str, prior_pr_share: dict[str, float],
                base_city: dict[str, float]) -> tuple[float, str]:
     """The weight one party's by-election evidence gets, and where it came from.
 
-    ``scenario["w_bye"]`` is read with no default. A number is an override,
-    the same for every party (``"override"``). ``None`` is derived: the
+    ``scenario["w_bye"]`` is read with no default. A number applies to every
+    party (``"override"``); the default is 0.5, the owner's declared weight
+    (2026-10-17, JUDGEMENT-CALLS §A59). ``None`` is derived: the
     party's class (``byelections.size_class`` at :func:`bye_class_size`)
     weight from ``scenario["_bye_value"]``, which ``run_model`` fills from
     :func:`read_bye_value`; absent, it is read here, so a direct call refuses
@@ -2636,11 +2649,17 @@ def blended_centres(
     with meaningful by-election weight, the implied level (the previous LGE's PR
     share + weighted delta) is clamped to §3.5's range — a concentrated party's
     stronghold swing cannot claim an absurd citywide level — and blended in at
-    the party's by-election weight (:func:`bye_weight`: its size class's
-    measured weight, or a ``w_bye`` override). Returns the centres and a note
+    the party's by-election weight (:func:`bye_weight`: ``w_bye``, 0.5 for
+    every party by the owner's decision of 2026-10-17, JUDGEMENT-CALLS §A59;
+    ``None`` would read each size class's measured weight). Returns the centres and a note
     per adjusted party for the report; the weight each party with evidence
     was given is ``scenario["_bye_weight"]`` and the ``30_centres`` trace's
     ``bye_weight``.
+
+    A party with no earlier record is not moved at any ``w_bye`` (owner,
+    2026-10-19, JUDGEMENT-CALLS §A60): one that is pool-seeded (no national
+    share), with no previous local PR share and no previous local ward share,
+    gets weight 0 and class ``"no record"``.
     """
     # Read with no default: a scenario without the key fails here, not as 0.
     w_override = scenario["w_bye"]
@@ -2738,6 +2757,22 @@ def blended_centres(
         w = 0.0
         if party in bye:
             w, _cls = bye_weight(scenario, party, prior_pr_share, base_city)
+            # NO RECORD, NO BY-ELECTION WEIGHT (owner, 2026-10-19,
+            # JUDGEMENT-CALLS §A60). A party with no earlier vote of its own
+            # anywhere the model reads -- sized by the arrival record (a pool
+            # seed, which only a party with no national share gets), no
+            # previous local PR share, no previous local ward share -- is not
+            # moved by its by-elections: two ward contests are not evidence
+            # about a party nobody has measured. MK keeps its weight (2024
+            # national share, so never seeded); keyed on the seed rather than
+            # on θ's prior so a prior that failed to load cannot reclassify
+            # it. The All Citizens Party went 0.05% -> 1.24% on 198 votes in
+            # two wards before this (MODEL-LOG §1.323).
+            if (seeded.get(party, 0.0) > 0
+                    and prior_pr_share.get(party, 0.0) <= 0
+                    and (scenario.get("_prior_ward_share") or {}
+                         ).get(party, 0.0) <= 0):
+                w, _cls = 0.0, "no record"
             bye_weights[party] = {"weight": w, "class": _cls}
         if party in bye and w > 0:
             weight_sum, delta = bye[party]
@@ -3572,14 +3607,92 @@ def width_rho(rho: dict, s: float) -> float:
     return float(np.interp(x, xs, ys))
 
 
+NEWNESS_WIDTHS = ("by_anchor", "single")
+NEWNESS_CLASSES = ("anchored", "unanchored")
+
+
+def newness_class(scenario: dict, party: str) -> str:
+    """Where a NEW party's centre comes from: ONE DEFINITION, read by the width
+    record's fit (``width_record.case_for``) and by the draw (``make_drawer``,
+    ``poll_model_sd``). Meaningful only for a party in ``_new_parties`` (no
+    result at the previous local election in the city).
+
+    * ``"anchored"``: the party took votes at the preceding national election
+      in this city. ``levels.spine`` then sizes it on its "national only (first
+      local election)" route, and ``blended_centres`` takes that spine level
+      as its centre: the centre is the party's own national result through θ.
+      COPE 2011, EFF 2016, MK 2026.
+    * ``"unanchored"``: no national result here. Its centre is an arrival
+      seed (``pools.arrival_rules``), and the spine, which reads the baseline
+      after the seeds are added, labels it "national only" too, so the route
+      label alone cannot tell the two apart. ActionSA 2021.
+
+    The test is ``scenario["_baseline_before_seeds"]`` (the national baseline
+    as the election left it, written by ``run_model`` before any seed is
+    added), the same input that makes the spine's national route real rather
+    than seeded. REFUSES when it was never set: a default would put every
+    newcomer in one class in silence. A metro poll level outranks both routes
+    in ``blended_centres``; no poll path is on in the shipped model and the
+    class does not look at it.
+    """
+    base = scenario.get("_baseline_before_seeds")
+    if base is None:
+        raise SystemExit(
+            f"newness_class({party!r}): `_baseline_before_seeds` was never "
+            f"set, so whether the party's centre is its own national result "
+            f"cannot be read. run_model sets it before the seeds; a fixture "
+            f"that calls the drawer directly must set it too.")
+    return ("anchored" if float(base.get(party, 0.0) or 0.0) > 0.0
+            else "unanchored")
+
+
+def drawn_newness(scenario: dict, party: str) -> str | None:
+    """The class whose δ a NEW party is drawn with under the scenario's
+    ``newness_width``: ``newness_class`` under "by_anchor", None (the single
+    δ) under "single". REFUSES any other value. Call it for a new party only;
+    an established party has no newness term to choose."""
+    mode = scenario.get("newness_width", DEFAULTS["newness_width"])
+    if mode not in NEWNESS_WIDTHS:
+        raise SystemExit(f"newness_width {mode!r} is not one of "
+                         f"{NEWNESS_WIDTHS}")
+    return newness_class(scenario, party) if mode == "by_anchor" else None
+
+
+def newness_delta(record: dict, cls: str | None) -> float:
+    """The newness δ a new party takes from a fitted record.
+
+    ``cls`` None is the single δ fitted on every new party together
+    (``record["delta"]``, ``newness_width = "single"``). A class name reads
+    ``record["delta_by_class"][cls]["delta"]`` (``width_record.
+    fit_class_deltas``), and REFUSES a record that carries none: it was built
+    before the classes existed, and the shipped δ in its place would be a run
+    labelled with a split it did not apply.
+    """
+    if cls is None:
+        return float(record["delta"])
+    by = record.get("delta_by_class")
+    if not by or cls not in by:
+        raise SystemExit(
+            f"the width record for target {record.get('target')} has no "
+            f"newness δ for class {cls!r} (`delta_by_class`). Rebuild it with "
+            f"`src/width_record.py --emit` in a re-emit window, or run the "
+            f"single δ with --set newness_width=single.")
+    return float(by[cls]["delta"])
+
+
 def party_width(record: dict, s: float, new: bool,
                 history: bool | None = None,
-                sigma_j: float | None = None) -> dict:
+                sigma_j: float | None = None,
+                newness: str | None = None) -> dict:
     """One party's width components from a target's record: ONE DEFINITION.
 
     Returns ``{"sigma", "delta", "rho", "total"}`` in log units. ``sigma`` is
-    σ(s), ``delta`` the newness term (``record["delta"]`` for a party new to the
-    city, else 0), ``rho`` the shared share ρ(s), ``total`` √(σ² + δ²).
+    σ(s), ``delta`` the newness term (for a party new to the city
+    ``newness_delta(record, newness)``: the single δ when ``newness`` is
+    None, else the δ of that class (``newness_class``); 0 for an established
+    party, whatever the class), ``rho`` the shared share ρ(s), ``total``
+    √(σ² + δ²). σ and ρ never read the class, so an established party's width
+    is the same under either ``newness_width``.
 
     A strength judgement (``sigma_j`` not None, design v3 §11.1) REPLACES the
     newness term with σ_J: the class increment measures the error of the
@@ -3602,7 +3715,7 @@ def party_width(record: dict, s: float, new: bool,
     if sigma_j is not None:
         delta = float(sigma_j)
     else:
-        delta = float(record["delta"]) if new else 0.0
+        delta = newness_delta(record, newness) if new else 0.0
     return {"sigma": sig, "delta": delta, "rho": width_rho(record["rho"], s),
             "total": math.sqrt(sig * sig + delta * delta)}
 
@@ -3933,7 +4046,9 @@ def poll_model_sd(party: str, scenario: dict, base_city_d: dict,
     share = max(float(centres.get(party, 0.0)), 0.0) / (tot or 1.0)
     rec = width_rec()
     hist = party in theta_history(scenario, rec)
-    return party_width(rec, share, new, history=hist)["total"]
+    return party_width(rec, share, new, history=hist,
+                       newness=drawn_newness(scenario, party) if new else None
+                       )["total"]
 
 
 def _apply_strength_judgements(target, scenario: dict, centres: dict,
@@ -4327,6 +4442,8 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
     # one latent log level, x = √ρ·σ·z + ω·ε, with z the run's one shared
     # normal (`level.shared`) and ε the party's own (`level.z`);
     # ω² = σ²(1 − ρ) + δ²·new − v_comp, floored at 0 with the excess recorded.
+    # δ is the newcomer's class δ under newness_width="by_anchor"
+    # (`drawn_newness`), the single δ under "single".
     # The shares are c·exp(κ + x), normalised; κ is set by the calibration pass
     # below so each party's mean drawn share is its `pool_spec` centre c.
     # ------------------------------------------------------------------
@@ -4483,13 +4600,18 @@ def make_drawer(scenario, base_city_d, centres, index, streams):
             [_turnouts(_cal, "calib.", dd)[1] for dd in range(N_CAL)],
             ipf, n_ind=len(ind_names))
         for k, p in enumerate(u_names):
+            # The newcomer's class, read only for a new party (an established
+            # party's width never reads it); None under newness_width="single".
+            cls = drawn_newness(scenario, p) if p in new_set else None
             w = party_width(rec, float(u_s[k]), p in new_set,
                             history=p in hist,
-                            sigma_j=(judged[p]["sigma_j"] if p in judged else None))
+                            sigma_j=(judged[p]["sigma_j"] if p in judged else None),
+                            newness=cls)
             own2 = (w["sigma"] ** 2 * (1.0 - w["rho"]) + w["delta"] ** 2
                     - float(v_comp[k]))
             widths[p] = dict(w, centre=float(u_c[k]),
                              centre_uncorrected=float(u_s[k]), new=p in new_set,
+                             newness_class=cls,
                              judged=p in judged, v_comp=float(v_comp[k]),
                              shared=math.sqrt(w["rho"]) * w["sigma"],
                              own=math.sqrt(max(own2, 0.0)),
@@ -6839,8 +6961,9 @@ def run_model(target, scenario: dict,
                 _spread[row["party"]] = (int(row.get("contests") or 0),
                                          float(row.get("delta_sd") or 0.0))
             scenario["_bye_spread"] = _spread
-    # THE WEIGHT IS DERIVED (BRIEF item 19). A target that reads by-elections
-    # with no `w_bye` override needs the measured class weights, and a missing
+    # THE DERIVED ROUTE (BRIEF item 19), taken only when `w_bye` is None; the
+    # default is the owner's 0.5 (§A59). A target that reads by-elections
+    # with `w_bye` None needs the measured class weights, and a missing
     # or stale `bye_value.json` stops the run here rather than at the first
     # party (same class as a stale pool spec). Read once; `blended_centres`
     # takes them from the scenario.
@@ -7164,7 +7287,9 @@ def run_model(target, scenario: dict,
         centres["ENTRANT"] = 0.0
 
     # Parties new to the city: no result at the previous local election here
-    # (design v4 §1, `new_i`). The universal draw's newness term reads it.
+    # (design v4 §1, `new_i`). The universal draw's newness term reads it, and
+    # under newness_width="by_anchor" each one's class (`newness_class`, from
+    # `_baseline_before_seeds` above) picks which δ.
     scenario["_new_parties"] = sorted(
         p for p in index
         if p != "ENTRANT" and float(prior_pr_share.get(p, 0.0) or 0.0) <= 0.0)
@@ -7409,8 +7534,10 @@ def run_model(target, scenario: dict,
     trace.put("35_widths", {
         "draw_law": getattr(draw_target, "law", _law),
         "record": {k: _rec.get(k) for k in
-                   ("target", "kind", "curve", "delta", "location", "rho",
-                    "fallback", "untestable") if k in _rec},
+                   ("target", "kind", "curve", "delta", "delta_by_class",
+                    "location", "rho", "fallback", "untestable") if k in _rec},
+        "newness_width": scenario.get("newness_width",
+                                      DEFAULTS["newness_width"]),
         "parties": _widths,
         # The calibration pass: iterations run, and whether the last κ met
         # `KAPPA_TOL` (None under the incumbent law, which has no pass). The

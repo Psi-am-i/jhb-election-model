@@ -85,7 +85,7 @@ Laingsburg in 2021, where the DA won <span class="mstat" data-mode="fixed" data-
 over-winner stays slightly over-represented; the cost falls on everyone else.</p>
 <p>Two consequences shape this site. The council is always close to proportional,
 so a fragmented vote produces a fragmented council. The excessive-seats clause
-catches the ANC in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-current="81%" data-prov="81%. Was 62%. Published 30 September 2026; now 16 October 2026. Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">81%</span><span class="arrow mstat-move up" data-prov="Was 62%.">▲</span> of simulations: a citywide vote in the
+catches the ANC in <span class="mstat" data-mode="free" data-token="p_excessive_anc" data-when="2026-08-07" data-current="90%" data-prov="90%. Was 62%. Published 30 September 2026; now 21 October 2026. Source: model:p_excessive_by_party.ANC, live from the current model run." tabindex="0">90%</span><span class="arrow mstat-move up" data-prov="Was 62%.">▲</span> of simulations: a citywide vote in the
 mid-twenties, with stronghold wards that still win. Where it fires, the party&rsquo;s
 ward count is a floor, its list seats go to zero, and the squeeze lands on
 every other party&rsquo;s list seats, inside a council fixed at <span class="mstat" data-mode="free" data-token="council_size" data-when="2026-08-07" data-current="270" data-prov="270. Unchanged since 8 August 2026. Source: derived:council_size, live from the current model run." tabindex="0">270</span> with
@@ -125,11 +125,10 @@ ward product; we have requested it. Income, employment and dwelling type would
 also help, and are also request-only, since at ward level they can identify
 households. Until those arrive the forecast uses the four census pools.</p>
 <p><strong>How big is each pool?</strong> Each ward&rsquo;s registered voters, split by that ward&rsquo;s
-composition, summed across all 135 wards. The census gives the <em>proportions</em>
-within a ward; the roll gives the <em>number</em>, and where they disagree the roll
-wins. They disagree a lot: the census implies about <span class="mstat" data-mode="fixed" data-token="hist_census_white_adults" data-when="2026-09-17" data-prov="300,000. Unchanged since 6 October 2026. Source: external:Stats SA Census 2022 ward estimates, Johannesburg's white adults, against the IEC voters' roll (DATA-QUALITY.md item 11). Pinned 2026-09-17." tabindex="0">300,000</span> white adults in
-Johannesburg, and the roll carries about <span class="mstat" data-mode="fixed" data-token="hist_roll_white_voters" data-when="2026-09-17" data-prov="560,000. Unchanged since 6 October 2026. Source: external:IEC voters' roll against Stats SA Census 2022 ward estimates, Johannesburg's registered white voters (DATA-QUALITY.md item 11). Pinned 2026-09-17." tabindex="0">560,000</span> registered white voters. We
-publish the gap rather than absorb it.</p>
+census population shares, summed across all 135 wards. The census gives the
+<em>proportions</em> within a ward; the roll gives the <em>number</em>. The voters&rsquo; roll does
+not record population group, so the split assumes every group in a ward
+registers at the same rate.</p>
 <h3 id="3-measure-how-each-party-does-in-each-pool">3. Measure how each party does in each pool</h3>
 <p>This is the model&rsquo;s statistics. We know how every ward voted and roughly what
 each ward is made of. From 135 wards at once the model works back to how each
@@ -150,14 +149,21 @@ uncertain, so the model draws thousands of answers instead of picking one.</p>
   national result, converted down to local, with its last local result: the
   less record a party has of that gap, the more its local result counts.
   ActionSA polled <span class="mstat" data-mode="fixed" data-token="hist_asa_pr_2021" data-when="2026-10-03" data-prov="18.12%. Unchanged since 6 October 2026. Source: external:IEC LGE 2021, City of Johannesburg: ActionSA's PR-ballot share (SOURCES.md, 'ASA citywide PR share'). Pinned 2026-10-03." tabindex="0">18.12%</span> in this city&rsquo;s 2021 local election and
-  <span class="mstat" data-mode="fixed" data-token="hist_asa_npe_2024" data-when="2026-10-03" data-prov="6.22%. Unchanged since 6 October 2026. Source: external:IEC NPE 2024, national ballot: ActionSA's share (MODEL-LOG, the local-premium entry quoting 18.12% against 6.22%). Pinned 2026-10-03." tabindex="0">6.22%</span> in the city in the 2024 national election, and its
-  starting level draws on both.</li>
+  <span class="mstat" data-mode="fixed" data-token="hist_asa_npe_2024" data-when="2026-10-03" data-prov="6.22%. Unchanged since 6 October 2026. Source: external:IEC NPE 2024, national ballot: ActionSA's share (MODEL-LOG, the local-premium entry quoting 18.12% against 6.22%). Pinned 2026-10-03." tabindex="0">6.22%</span> in the city in the 2024 national election. It has no
+  national-to-local gap on record, so its starting level is its local result.
+  In this forecast its level is set by our judgement instead, at 17.6% of the
+  list vote: the model carries the 2021 result forward at the share a typical
+  party of its size keeps between local elections, and we judge that ActionSA
+  keeps more of it. Every other party&rsquo;s share is scaled down in proportion so
+  the shares still add up, and ActionSA keeps the model&rsquo;s usual uncertainty
+  for a party of that size. It cannot be changed on <a href="your-forecast/">your
+  forecast</a>.</li>
 <li><strong>Turnout, per pool.</strong> It is the one unknown quantity, and it is drawn from
   what turnout has done in that city before. In 2021 every pool&rsquo;s turnout was
   the lowest on record, so the range allows falls as well as rises.</li>
 </ul>
-<p>Recent by-elections can tilt each party&rsquo;s expected share before the draws. In
-this forecast they do not (see <em>The judgement calls</em>, below).</p>
+<p>Recent by-elections tilt each party&rsquo;s expected share before the draws (see <em>The
+judgement calls</em>, below).</p>
 <h3 id="5-handle-parties-that-were-not-there-last-time">5. Handle parties that were not there last time</h3>
 <p>This is the hardest part of forecasting an election. There are two kinds of
 new party, and they behave differently:</p>
@@ -1275,7 +1281,7 @@ wards.</p>
 <h3 id="what-this-does-not-prove">What this does not prove</h3>
 <p><strong>These are not fully out-of-sample scores, and every run says so.</strong> At least one input could not be confined to the period before the election; the run prints the full list above its results:</p>
 <ul>
-<li><strong>The census.</strong> Ward-level population figures come from the 2022 census, taken after the 2021 election; it is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result. It is still information from after the fact, and is declared as such.</li>
+<li><strong>The census.</strong> Ward-level population-group shares come from the 2022 census, taken after the 2021 election; it is the only census we hold. A census records who lives in a ward, not how they voted, so it cannot leak a result. It is still information from after the fact, and is declared as such.</li>
 </ul>
 <p><strong>How much a breakaway party takes was a leak until 14 August 2026.</strong> When a well-known figure leaves a party and starts their own, how much of the old party&rsquo;s vote follows depends mostly on whether that figure&rsquo;s support is in <em>this</em> city. Only one such split had happened anywhere before 2021. The model used to fill that gap with splits from after 2021, including MK&rsquo;s three years later, which flattered these scores. Since 14 August 2026 the record is cut at the election being forecast, as every other record here is. Johannesburg&rsquo;s figure is worse for it.</p>
 <p>Read the scores as an estimate of what the machinery is worth, not as a sealed prediction made in 2021.</p>
@@ -1293,8 +1299,9 @@ wards.</p>
 <p>These are choices about how the model works that the data did not make for us. Each is filed, with its evidence, in the <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/JUDGEMENT-CALLS.md">register of judgement calls</a>.</p>
 <p><strong>No poll is used.</strong> There is no designed rule yet for how several polls combine. With polls in, the forecast moves toward the polls the rules admit; what that was worth when measured is under <em>Where polls fit</em>, below. On <a href="your-forecast/">your forecast</a> you can pick one poll at a time and choose how far to believe it.</p>
 <p><strong>The largest parties are pulled down.</strong> Before the simulations are drawn, each party&rsquo;s expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. Without the cut, forecasts of past elections gave the largest parties too much and the middle-sized parties too little; adding it was the largest single improvement the model has had. The smallest parties are now forecast slightly too high. It cannot be changed on <a href="your-forecast/">your forecast</a>.</p>
-<p><strong>How much recent by-elections count.</strong> A party&rsquo;s swing in the by-elections held since the last local election can move its expected share. How far is measured, not chosen. We checked whether by-election swings before the 2024 national election predicted that election&rsquo;s result better than the model did without them, separately for small parties and larger ones. A group of parties gets weight only if the improvement held when each metro was left out in turn and across resampled sets of metros; otherwise its by-elections count for nothing. By-elections are ward contests and the 2024 result was a national and provincial list vote, so this is the only test the record allows, and a weak one. On <a href="your-forecast/">your forecast</a> you can make by-elections count not at all or fully. For this forecast neither group passed, so by-elections do not move it.</p>
 <p><strong>How far each party&rsquo;s support can move.</strong> Each party&rsquo;s simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far the model&rsquo;s expected shares missed in the past elections before this one. Part of each simulation&rsquo;s move is shared by all parties. It cannot be changed on <a href="your-forecast/">your forecast</a>.</p>
+<p><strong>How much recent by-elections count.</strong> Each party&rsquo;s expected share is set halfway between what the model expects from earlier elections and what the by-elections since 2021 imply for it. Nobody knows the right weight, so the two count equally. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than the model&rsquo;s usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane&rsquo;s are not yet read. On <a href="your-forecast/">your forecast</a> you can make by-elections count not at all or fully.</p>
+<p><strong>New parties and by-elections.</strong> A party with no vote in the 2024 national election and none in the 2021 local election, on the list or in a ward, is not moved by its by-elections, and the by-election setting on <a href="your-forecast/">your forecast</a> does not move it either. A few ward contests are not enough to size a party nobody has measured before; such a party is sized the way earlier new parties did in their first election.</p>
 <p><strong>Turnout moves together across population groups.</strong> In each simulation, turnout in the four population groups rises and falls together, to one degree for every pair: the average of how closely each pair&rsquo;s turnout moved between past local elections in the metros. Black African, Coloured and White turnout have moved closely together, and Indian/Asian turnout much less. Separate figures for each pair have not been tried. Removing the link was tested and changed the forecast&rsquo;s spread very little, and why it matters so little is not yet explained. It cannot be changed on <a href="your-forecast/">your forecast</a>.</p>
 <p><strong>The excessive-seats clause.</strong> The clause is applied as amended in 2021, with the arithmetic the Commission used in Laingsburg in 2021 (see <em>How Johannesburg&rsquo;s council elections work</em>). No court has ruled on it. <a href="your-forecast/">Your forecast</a> applies three versions of Germany&rsquo;s seat law instead; two of them enlarge the council and move the majority line.</p>
 <p><strong>Expected turnout leans on 2021.</strong> Each voting district&rsquo;s turnout is projected from how far turnout fell from the national election to the local election two years later, in 2016 and in 2021, with 2021 counting for 70%. The weight comes from the model&rsquo;s original plan and has never been tested. Turnout fell less in 2016, so weighting the two equally would raise projected turnout. On <a href="your-forecast/">your forecast</a> you can move the turnout of any or all four population groups at once. A group you leave alone stays at the forecast&rsquo;s turnout.</p>
@@ -1319,7 +1326,7 @@ wards.</p>
   has reached in the record. In the eight metros&rsquo; consecutive local elections
   from 2006 to 2021, 337 times a party had under <span class="mstat" data-mode="free" data-token="small_party_share" data-when="2026-10-10" data-current="1%" data-prov="1%. Unchanged since 10 October 2026. Source: derived:small_party_share, live from the current model run." tabindex="0">1%</span> of the list vote at
   one election, and none reached <span class="mstat" data-mode="free" data-token="small_party_surge_share" data-when="2026-10-10" data-current="5%" data-prov="5%. Unchanged since 10 October 2026. Source: derived:small_party_surge_share, live from the current model run." tabindex="0">5%</span> at the next (<a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/MODEL-LOG.md">model log, §1.296</a>).
-  In this forecast, <span class="mstat" data-mode="free" data-token="small_party_surge" data-when="2026-10-10" data-current="0.9%" data-prov="0.9%. Was 9.0%. Published 10 October 2026; now 16 October 2026. Source: published:small_party_surge, live from the current model run." tabindex="0">0.9%</span><span class="arrow mstat-move down" data-prov="Was 9.0%.">▼</span> of the simulations give at least one such
+  In this forecast, <span class="mstat" data-mode="free" data-token="small_party_surge" data-when="2026-10-10" data-current="0.7%" data-prov="0.7%. Was 9.0%. Published 10 October 2026; now 21 October 2026. Source: published:small_party_surge, live from the current model run." tabindex="0">0.7%</span><span class="arrow mstat-move down" data-prov="Was 9.0%.">▼</span> of the simulations give at least one such
   party more than <span class="mstat" data-mode="free" data-token="small_party_surge_share" data-when="2026-10-10" data-current="5%" data-prov="5%. Unchanged since 10 October 2026. Source: derived:small_party_surge_share, live from the current model run." tabindex="0">5%</span>. A fix is in progress.</li>
 <li><strong>Arithmetic is not politics.</strong> The model says which governments are
   numerically possible, not which will form.</li>
@@ -1379,7 +1386,7 @@ defects in the public records the model depends on are published:</p>
 <li><code>SOURCES.md</code>: where every input came from and how to fetch it again</li>
 </ul>
 <div class="colophon">
-  Reader edition, generated from docs-public/methodology.md on 2026-10-16. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
+  Reader edition, generated from docs-public/methodology.md on 2026-10-21. The full technical record, with every URL, identifier and workaround, is <a href="https://github.com/Psi-am-i/jhb-election-model/blob/main/METHODOLOGY.md">METHODOLOGY.md on GitHub</a>.
 </div>
 <footer class="sitefooter">
   <div class="foot-text">
