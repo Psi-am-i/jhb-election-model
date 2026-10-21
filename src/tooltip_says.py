@@ -255,7 +255,7 @@ SAYS: tuple[Say, ...] = (
         "The largest standard error a figure on this page may have before the page withholds it: how far, typically, the figure would move if the same number of simulations were made again."),
     # --- the run and the council ---------------------------------------------
     Say(r"council_size", "seats", "Municipal Structures Act",
-        "The number of seats on Johannesburg's council, which the province's MEC for local government sets under the act."),
+        "The number of seats on Johannesburg's council, set under the act."),
     Say(r"majority", "seats", "Municipal Structures Act",
         "The seats a majority of the council needs: more than half of them."),
     Say(r"n_vds", "", M, "The voting districts This Model simulates in Johannesburg."),
