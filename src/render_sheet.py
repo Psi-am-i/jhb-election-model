@@ -768,9 +768,14 @@ def main(argv: list[str] | None = None) -> int:
         _forty = _sum(FORTY_BLOC)
         import reweight as _rw
         _blk, _cols = _sc.published_draw_blocks()
-        if len(_blk["list_vote"]) != N:
-            raise SystemExit("site/draws and seat_detail_draws.csv hold different numbers of "
-                             "simulations: re-export the draws from this run")
+        # the same run, simulation by simulation: every party both files
+        # carry holds the same seats in every draw (as render_home._overhang)
+        _same = len(_blk["list_vote"]) == N and all(
+            np.array_equal(_blk["seats/deduct"][:, j].astype(int), _A[p])
+            for j, p in enumerate(_cols["seats/deduct"]) if p in _A)
+        if not _same:
+            raise SystemExit("site/draws and seat_detail_draws.csv are not the same run: "
+                             "re-export the draws from this run (src/export_draws.py)")
         _da_list = _rw.list_shares(_blk["list_vote"])[:, _cols["list_vote"].index("DA")]
         _LV = f"site/draws list_vote, {N:,} simulations, the DA's share of the list vote"
         _anc_side = _bloc(("EFF", "MK", "DA"))

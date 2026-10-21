@@ -725,7 +725,7 @@ for both pages~~ — `render_sheet:147` and `render_home:161` both call
 within each simulation. ✅ **AND THE TWO ROWS NOW PRINT THE SAME NUMBER** (owner, 2026-09-25: *"use
 the same number of others throughout"*). They had differed by construction —
 the sheet named ten parties and the home page seven, so each page's "everyone
-else" was everyone *that page* did not show. `scenarios.NAMED_PARTIES` is now
+else" was everyone *that page* did not show. `scenarios.named_parties` (a typed list until 2026-10-22) is now
 the one set, both tables read it, and the home page takes the sheet's labels and
 chip colours with it, so a party added anywhere gains a row on both pages and
 leaves both "Others". Measured after the rebuild: median 23, range 8–48 on both.

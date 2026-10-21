@@ -78,7 +78,8 @@ LEDE_PLACEHOLDERS = {
     "lede_p_overhang": "figure: chance the clause applies to that party",
     "lede_overhang_seats": "figure: that party's share of the council, median where the clause applies to it",
     "lede_overhang_votes": "figure: its share of the party-list vote, median in the same simulations",
-    "lede_wards_lead": "phrase: how the two parties' ward counts and close wards compare, chosen by the four figures",
+    "lede_first_cap": "phrase: lede_first at the start of a sentence",
+    "lede_wards_but": "phrase: \"but \" when lede_first has more close wards than lede_second in number and share, else nothing",
     "lede_wards_first": "figure: wards in which lede_first is the likeliest winner",
     "lede_close_first": "figure: of those, wards the map draws as contested (under lede_safe)",
     "lede_wards_second": "figure: wards in which lede_second is the likeliest winner",
@@ -105,16 +106,13 @@ def ward_races(processed: Path) -> dict:
     return {p: (a, b) for p, (a, b) in out.items()}
 
 
-def wards_lead(first: str, second: str, races: dict, party) -> str:
-    """The phrase before the ward counts, chosen by them: said only when true."""
+def wards_but(first: str, second: str, races: dict) -> str:
+    """"but " before the first-named party's close wards when it has more
+    close wards than the second, both in number and as a share of the wards it
+    leads, so the contrast is said only when it is true; else nothing. The
+    same test whichever party is named first."""
     (w1, c1), (w2, c2) = races.get(first, (0, 0)), races.get(second, (0, 0))
-    name = party(first)
-    name = name[0].upper() + name[1:]
-    if w1 > w2 and c1 > c2:
-        return f"{name} is favourite in more wards, but more of them are close"
-    if w1 > w2:
-        return f"{name} is favourite in more wards, and no more of them are close"
-    return "Ward by ward"
+    return "but " if (c1 > c2 and w1 and w2 and c1 / w1 > c2 / w2) else ""
 
 
 def load_lede(city_dir: Path) -> dict:
@@ -335,7 +333,8 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
     c_src = ("ward_winner_probs.csv, wards the map draws as contested: the winner "
              "wins in under render_map.SAFE of simulations (render_map.ward_call)")
     values.update({
-        "lede_wards_lead": _word("lede_wards_lead", wards_lead(first, second, races, party)),
+        "lede_first_cap": _word("lede_first_cap", party(first)[:1].upper() + party(first)[1:]),
+        "lede_wards_but": _word("lede_wards_but", wards_but(first, second, races)),
         "lede_wards_first": tok(f"home.wards.{first.lower()}", races.get(first, (0, 0))[0], "int", w_src),
         "lede_close_first": tok(f"home.wards_close.{first.lower()}", races.get(first, (0, 0))[1], "int", c_src),
         "lede_wards_second": tok(f"home.wards.{second.lower()}", races.get(second, (0, 0))[0], "int", w_src),
