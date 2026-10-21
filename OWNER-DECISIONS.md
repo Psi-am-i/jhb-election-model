@@ -136,8 +136,9 @@ and the forecast is reported with and without it.
 **Entered** as ActionSA's own centre, 17.6% of the list vote, with the
 model's usual width at that size (`judgements/joburg-2026.toml`,
 JUDGEMENT-CALLS §SJ2). Every other party is scaled down so the shares add to
-100%. Johannesburg 2026, 5,000 simulations, average (90% range) — MODEL-LOG
-§1.330 has every party:
+100%. Johannesburg 2026, 5,000 simulations: list vote and seats, simulation
+average, with ActionSA's 90% range in brackets. MODEL-LOG §1.330 has every
+party's range:
 
 | | list vote without the call | with it | seats without | with |
 |---|---|---|---|---|

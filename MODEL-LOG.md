@@ -31018,3 +31018,5 @@ An independent review of the record from §1.314 on (brief `audits/2026-10-21-pr
 | BOSA | 1.1 (0.1–3.6) | 1.1 (0.1–3.4) | 3.0 (0–9) | 2.8 (0–9) |
 
 **Limits.** The call is argued, not tested: the record holds one local election for ActionSA. The backtest ignores every strength judgement by design, so no `history.json` row moves. Checked against the 2026 result per §SJ2.
+
+**§1.330 addendum (2026-10-21).** The `35_widths.json` the entry cites is committed for both runs under `audits/2026-10-21-actionsa-call/{with,without}/`. An independent review re-derived `centre_before` (0.126376), the common rescaling of the other parties (DA × 0.9432 = (1 − 0.176)/(1 − 0.1264)), that `sigma_j = 0` leaves ActionSA's width the model's own at 17.6% (ActionSA is not new, so no newness term is replaced), and every figure in the table against `summary.json`.
