@@ -79,9 +79,9 @@ with item 17's claims-balance question, since it adds a third DA claim.
 ### 16. Tshwane: three decisions before a forecast
 
 **Context.** Tshwane's inputs, checked read-only today: the 2026 ward map,
-past results, census and national baselines are on disk. Missing: the IEC
-ward roll (being read from the IEC page now, since the page overwrites
-itself), the certified party roster and party lists (in the IEC's certified
+past results, census and national baselines are on disk. The IEC ward roll was
+read from its page on 21 October (snapshot of 29 September: 107 wards,
+1,684,463 registered; `archive/iec-registration-2026-09-29/`). Missing: the certified party roster and party lists (in the IEC's certified
 Gauteng candidates PDF of 16 September, on disk; a first parse finds 79
 parties, 70 with a party list), by-election adjustments (never built for
 Tshwane), and a page builder (none exists; new code). Three things need you:
