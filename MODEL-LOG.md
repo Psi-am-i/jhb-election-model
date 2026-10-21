@@ -30996,3 +30996,25 @@ An independent review of the record from §1.314 on (brief `audits/2026-10-21-pr
 **Reviewer A** (code, `3357a5ee..e537df9`) found no defect giving a wrong forecast number today. Its items for the rebuild are in `audits/2026-10-21-prerebuild-review/CHECKLIST.md`.
 
 **§1.329 addendum (2026-10-21).** Reviewer B's check of the corrections: the list of improvements under the alternatives also includes V at Nelson Mandela Bay 2011 (7.35 → 7.33). §A59's quotation of §1.325's seat figure is relabelled as the median-vector statistic, and its per-class sentence now states M6's width result beside the non-overlap result.
+
+## 1.330 ActionSA's centre held at 17.6% by the owner: Johannesburg 2026 with and without the call (2026-10-21)
+
+**The call.** Owner, 2026-10-21: "Put action SA at 17.6%". Entered as `[party.ASA] support = 0.176, sigma_j = 0, register = "§SJ2"` in `judgements/joburg-2026.toml` (JUDGEMENT-CALLS §SJ2). The judged centre replaces the model's own (12.64% of the list vote in this run, `35_widths.judgements_applied[ASA].centre_before`); every other party's centre is rescaled so the centres add to 100%. `sigma_j = 0` keeps the model's own width at that size.
+
+**What it re-emitted.** The two Johannesburg 2026 specs (`pools_2026.json`, `pools_2026_simulation.json`): only `artefact_key.judgements_sha` changed, against the copy taken by `backup_ignored.py` immediately before (ActionSA is not an arrival, so its membership in `judged_parties` moves no capture). `width_record.py --emit`: identical apart from `generated`.
+
+**The two runs.** `audits/2026-10-21-actionsa-call/run.py`, in process, 5,000 simulations each, seed 20261104, the freeze's scenario, `apply_judgements` on and off; results in `summary.json` there. List vote: simulation mean (90% range). Seats: mean (90% range), council of 270.
+
+| party | list vote, without | list vote, with | seats, without | seats, with |
+|---|---|---|---|---|
+| DA | 26.7 (20.4–32.8) | 25.2 (19.4–30.9) | 71.0 (55–88) | 66.7 (52–82) |
+| ANC | 22.5 (17.1–27.8) | 21.2 (16.1–26.2) | 70.0 (50–81) | 69.2 (48–81) |
+| ActionSA | 12.7 (8.4–17.9) | 17.6 (13.3–22.3) | 29.3 (20–41) | 40.5 (31–51) |
+| EFF | 10.1 (5.6–16.1) | 9.6 (5.1–15.6) | 27.7 (16–44) | 26.0 (14–43) |
+| MK | 9.1 (2.1–21.4) | 8.5 (1.9–20.5) | 23.4 (6–57) | 22.0 (5–55) |
+| PA | 6.6 (2.3–13.2) | 6.2 (2.1–12.9) | 17.3 (6–34) | 16.3 (6–33) |
+| RISE | 1.8 (0.2–5.8) | 1.7 (0.2–5.5) | 4.7 (1–15) | 4.4 (1–14) |
+| IFP | 1.7 (0.3–4.4) | 1.6 (0.3–4.2) | 4.6 (1–12) | 4.3 (1–11) |
+| BOSA | 1.1 (0.1–3.6) | 1.1 (0.1–3.4) | 3.0 (0–9) | 2.8 (0–9) |
+
+**Limits.** The call is argued, not tested: the record holds one local election for ActionSA. The backtest ignores every strength judgement by design, so no `history.json` row moves. Checked against the 2026 result per §SJ2.

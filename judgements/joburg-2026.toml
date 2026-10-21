@@ -107,6 +107,14 @@ parent_weight = 0.9
 register = "§SJ1"
 # weights = [0.0, 0.0, 0.0, 0.0, 0.0]
 
+[party.ASA]
+# OWNER'S CALL, 2026-10-21: ActionSA's centre is 17.6% of the list vote, in
+# place of the model's own (MODEL-LOG §1.330). sigma_j = 0: the model's own
+# width at that size, nothing added. JUDGEMENT-CALLS.md §SJ2.
+support = 0.176
+sigma_j = 0.0
+register = "§SJ2"
+
 [party.RISE]
 baseline_share = 0.0156
 parent = ""      # e.g. "ANC" to inherit the ANC's pool vector

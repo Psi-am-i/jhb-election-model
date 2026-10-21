@@ -12,53 +12,6 @@ Last updated: 2026-10-21.
 
 ## Open
 
-### 1. Your party calls
-
-**Context.** The party sheet (https://claude.ai/artifact/MvLaG1WzrzwVmq7driyMAb)
-lists every party on Johannesburg's 2026 ballot with the model's expected share
-and range. A party call is your judgement that the model has a party wrong
-(too high, too low, too narrow). None is entered yet. Each call you make goes
-into `judgements/joburg-2026.toml` with your reason, is listed in
-JUDGEMENT-CALLS.md, and the forecast is run and reported both with and without
-your calls.
-
-**Your question (2026-10-21): how does ActionSA go from 18.1% to 12.5% if it is
-sized on 2021?** The steps, from the model's trace of today's Johannesburg
-2026 run (5,000 simulations, list vote):
-
-| step | ActionSA | what happens |
-|---|---|---|
-| 2021 list vote | 18.1% | the starting record |
-| carried to 2026 | 13.1% | multiplied by 0.72: how much of its share a party keeps from one local election to the next. ActionSA has stood in only one local election, so it takes the record's typical value for a party of its size (from 292 past party-metro cases) |
-| by-elections | 14.7% | four contests imply 18.9%, capped at 16.3%, blended at ½ |
-| level shrink | 14.5% | |
-| the parties' shares made to add to 100% | 12.6% | every party's level is set on its own, and together they add to 114.6%, so each is divided by 1.146 |
-| simulations | 12.7% average, 90% range 8.4%–17.9% | |
-
-The step that does most of the work is the 0.72: 18.1% × 0.72 = 13.1%. It is
-the record's typical value, applied because ActionSA has no
-second local election of its own. Its 2024 national vote in Johannesburg,
-5.4%, is not used: the model reads ActionSA's 2026 level from its local
-record only. A party call would be the place to say ActionSA keeps more (or
-less) of its 2021 vote than the average party.
-
-**Your answer (2026-10-21):** "no calls" depends on the scaling test; the only
-change you would make is ActionSA "to hold their current percentage". The
-scaling test kept today's rule, so the model's ActionSA stays at 12.6%.
-
-**One question before I enter it: which percentage?**
-- **18.1%**, its 2021 Johannesburg list vote (above the model's 90% range of
-  8.4–17.9%), or
-- **12.6%**, today's forecast, held so the rebuild cannot move it.
-
-The evidence either way: 2021 list vote 18.1%; 2024 national vote in
-Johannesburg 5.4%; four by-elections since 2021 imply 18.9% (capped at
-16.3% by the model). A call is entered as ActionSA's own centre in
-`judgements/joburg-2026.toml` with your reason, listed in JUDGEMENT-CALLS,
-and the forecast is reported with and without it.
-
-**Gates.** The final rebuild of the forecast inputs.
-
 ### 10. Letting readers make the judgement calls
 
 **Context.** You asked (2026-10-21) whether readers could make calls like
@@ -79,8 +32,7 @@ by the brief, the build and the test site round.
 
 ### 7. The go-live yes
 
-**Context.** Items 2, 3, 5, 6 and 9 are answered. Item 1 (which ActionSA percentage) is left
-before the final rebuild, then the review (below). After the rebuild, with your yes:
+**Context.** Items 2, 3, 5, 6 and 9 are answered. Item 1 is answered (ActionSA at 17.6%). After the rebuild, with your yes:
 
 - regenerate the frozen forecast and the site's simulation files;
 - rebuild the test site from today's model (the one there now, UAT version
@@ -131,6 +83,70 @@ Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
 ---
 
 ## Answered
+
+### 1. Your party calls — answered 2026-10-21
+
+**Context.** The party sheet (https://claude.ai/artifact/MvLaG1WzrzwVmq7driyMAb)
+lists every party on Johannesburg's 2026 ballot with the model's expected share
+and range. A party call is your judgement that the model has a party wrong
+(too high, too low, too narrow). None is entered yet. Each call you make goes
+into `judgements/joburg-2026.toml` with your reason, is listed in
+JUDGEMENT-CALLS.md, and the forecast is run and reported both with and without
+your calls.
+
+**Your question (2026-10-21): how does ActionSA go from 18.1% to 12.5% if it is
+sized on 2021?** The steps, from the model's trace of today's Johannesburg
+2026 run (5,000 simulations, list vote):
+
+| step | ActionSA | what happens |
+|---|---|---|
+| 2021 list vote | 18.1% | the starting record |
+| carried to 2026 | 13.1% | multiplied by 0.72: how much of its share a party keeps from one local election to the next. ActionSA has stood in only one local election, so it takes the record's typical value for a party of its size (from 292 past party-metro cases) |
+| by-elections | 14.7% | four contests imply 18.9%, capped at 16.3%, blended at ½ |
+| level shrink | 14.5% | |
+| the parties' shares made to add to 100% | 12.6% | every party's level is set on its own, and together they add to 114.6%, so each is divided by 1.146 |
+| simulations | 12.7% average, 90% range 8.4%–17.9% | |
+
+The step that does most of the work is the 0.72: 18.1% × 0.72 = 13.1%. It is
+the record's typical value, applied because ActionSA has no
+second local election of its own. Its 2024 national vote in Johannesburg,
+5.4%, is not used: the model reads ActionSA's 2026 level from its local
+record only. A party call would be the place to say ActionSA keeps more (or
+less) of its 2021 vote than the average party.
+
+**Your answer (2026-10-21):** "no calls" depends on the scaling test; the only
+change you would make is ActionSA "to hold their current percentage". The
+scaling test kept today's rule, so the model's ActionSA stays at 12.6%.
+
+**One question before I enter it: which percentage?**
+- **18.1%**, its 2021 Johannesburg list vote (above the model's 90% range of
+  8.4–17.9%), or
+- **12.6%**, today's forecast, held so the rebuild cannot move it.
+
+The evidence either way: 2021 list vote 18.1%; 2024 national vote in
+Johannesburg 5.4%; four by-elections since 2021 imply 18.9% (capped at
+16.3% by the model). A call is entered as ActionSA's own centre in
+`judgements/joburg-2026.toml` with your reason, listed in JUDGEMENT-CALLS,
+and the forecast is reported with and without it.
+
+**Gates.** The final rebuild of the forecast inputs.
+
+**Your answer (2026-10-21):** "Put action SA at 17.6%".
+
+**Entered** as ActionSA's own centre, 17.6% of the list vote, with the
+model's usual width at that size (`judgements/joburg-2026.toml`,
+JUDGEMENT-CALLS §SJ2). Every other party is scaled down so the shares add to
+100%. Johannesburg 2026, 5,000 simulations, average (90% range) — MODEL-LOG
+§1.330 has every party:
+
+| | list vote without the call | with it | seats without | with |
+|---|---|---|---|---|
+| ActionSA | 12.7% (8.4–17.9) | 17.6% (13.3–22.3) | 29.3 (20–41) | 40.5 (31–51) |
+| DA | 26.7% | 25.2% | 71.0 | 66.7 |
+| ANC | 22.5% | 21.2% | 70.0 | 69.2 |
+| EFF | 10.1% | 9.6% | 27.7 | 26.0 |
+| MK | 9.1% | 8.5% | 23.4 | 22.0 |
+
 
 ### 12. The two steps after the levels: the size pull and making shares add to 100% — answered 2026-10-21
 

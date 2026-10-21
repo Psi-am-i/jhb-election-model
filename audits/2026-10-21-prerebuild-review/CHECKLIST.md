@@ -31,9 +31,11 @@ that"):
 
 ## Before the rebuild
 
-- [ ] **ActionSA call**: the owner's answer to OWNER-DECISIONS item 1 (18.1% or
-      12.6%), entered with reason in `judgements/joburg-2026.toml` and
-      JUDGEMENT-CALLS; forecast reported with and without it.
+- [x] **ActionSA call**: the owner's answer to OWNER-DECISIONS item 1, entered
+      with reason in `judgements/joburg-2026.toml` and JUDGEMENT-CALLS; forecast
+      reported with and without it.
+      Done 2026-10-21: 17.6% (§SJ2, MODEL-LOG §1.330). Both 2026 specs
+      re-emitted (key only changed); width record re-emitted (unchanged).
 - [x] **A red guard that cannot see** (Reviewer A 1): `tests/test_pool_bounds.py`
       `test_no_emitted_composition_weight_is_arithmetically_impossible` fails on
       seven known 2011 DA cells (MODEL-LOG §1.321 P8, census shares held flat to
