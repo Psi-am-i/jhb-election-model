@@ -1368,6 +1368,14 @@ def main(argv: list[str] | None = None) -> int:
                              "still written) — the ledger is append-only, "
                              "so a row written by an experimental build is "
                              "permanent.")
+    parser.add_argument("--as-published", action="store_true",
+                        help="rebuild the pages the ledger's newest publication "
+                             "served: classify every figure against the ledger "
+                             "as it stood before that publication's rows "
+                             "(publication.before_latest_publication) and date "
+                             "the tooltips to it. Appends nothing. For the "
+                             "rebuild after a --publish (the draws re-exported "
+                             "against it) and for test_published_page.")
     parser.add_argument("--reason",
                         help="why the figures moved, in the reader's language. "
                              "Required by --publish whenever anything moved.")
@@ -1388,6 +1396,8 @@ def main(argv: list[str] | None = None) -> int:
                              "that one; the page rendered is always the real one.")
     cityconfig.add_city_argument(parser)
     args = parser.parse_args(argv)
+    if args.publish and args.as_published:
+        parser.error("--as-published rebuilds a past publication; it cannot also --publish")
     # Before anything is written anywhere, the ledger and --out included.
     if args.publish:
         privacy = args.privacy_source or PRIVACY_SOURCE
@@ -1689,8 +1699,15 @@ def main(argv: list[str] | None = None) -> int:
     # and silently, which is the exact failure the declared-dating design was
     # chosen to avoid.
     ledger_root = args.ledger_root or (REPO_ROOT / publication.LEDGER_ROOT)
-    ledger = publication.latest(city, root=ledger_root)
-    since = publication.run_starts(publication.history(city, root=ledger_root))
+    rows_read = publication.history(city, root=ledger_root)
+    as_of_publication = None
+    if args.as_published:
+        rows_read, _run, as_of_publication = publication.before_latest_publication(rows_read)
+        if as_of_publication is None:
+            raise SystemExit(f"--as-published: {ledger_root}/{city} holds no publication to rebuild")
+        print(f"  as published: run {_run}, {as_of_publication}; classified against the ledger before it")
+    ledger = publication.latest_of(rows_read)
+    since = publication.run_starts(rows_read)
     undated = publication.dated_context_violations(published, ledger)
     if undated:
         refuse = True
@@ -1969,7 +1986,7 @@ def main(argv: list[str] | None = None) -> int:
     # an experimental build can never be taken back, and this script is run
     # many times a day during a rewrite.
     ident = publication.run_identity(args.processed)
-    now = publication.utc_now()
+    now = as_of_publication or publication.utc_now()
     rows, changes = _ledger_candidates(published, ledger, ident, now,
                                        reason=args.reason,
                                        change_class=args.change_class,
@@ -2016,7 +2033,7 @@ def main(argv: list[str] | None = None) -> int:
     # (2026-09-25). Outside a `--publish`, the tooltip states what it knows —
     # that the figure is new, or that it moved — and dates only what actually
     # has a date.
-    publishing = bool(getattr(args, "publish", False))
+    publishing = bool(getattr(args, "publish", False)) or as_of_publication is not None
     # TOOLTIP CONVENTION (owner, 2026-09-17): the brief statement first, then
     # dates and source. "{new}. Was {old}." for a live figure that moved;
     # "{old}. Is now {new}." for a frozen, as-published one.

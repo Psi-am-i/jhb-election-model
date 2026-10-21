@@ -84,8 +84,11 @@ def test_the_built_site_carries_no_inline_css_or_js():
     # /your-forecast/), not a floor that ratchets
     import build_site as B
     import build_your_forecast as YF
+    import og_pages
     expected = {spec[0] for spec in B.DOCS.values()} | set(B.ARTEFACTS) | {"portal.html"}
     expected |= {YF.YF_PAGE}
+    # each claim's own page (build_site.claim_pages), one per claims.toml entry
+    expected |= {f"{og_pages.CLAIM_DIR}/{c['slug']}.html" for c in B.load_claims()}
     assert expected <= set(pages), sorted(expected - set(pages))
     assert len(pages) <= len(expected) + 2, pages
     assert problems == [], problems[:5]

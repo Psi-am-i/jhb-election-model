@@ -293,10 +293,36 @@ def history(city: str, *, root: Path | None = None) -> list[Row]:
 def latest(city: str, *, root: Path | None = None) -> dict[str, Row]:
     """The current published row per token, by publication order."""
     root = LEDGER_ROOT if root is None else root
+    return latest_of(history(city, root=root))
+
+
+def latest_of(rows: Iterable[Row]) -> dict[str, Row]:
+    """:func:`latest` over rows already read: the last row per token, in
+    publication order."""
     out: dict[str, Row] = {}
-    for row in history(city, root=root):
+    for row in sorted(rows, key=lambda r: r.published_at):
         out[row.token] = row
     return out
+
+
+def before_latest_publication(rows: Iterable[Row]) -> tuple[list[Row], str | None, str | None]:
+    """``(rows, model_run_id, published_at)``: the ledger as it stood just
+    before its newest publication, and that publication's run and time.
+
+    A publication is the rows one ``build_site.py --publish`` appended: one
+    ``model_run_id`` and one ``published_at``, none superseded. Retirement
+    rows (:func:`retire`, ``superseded_at`` set) are kept even when written
+    after it, because the publish build already read them. This is what
+    ``build_site.py --as-published`` rebuilds against, so the pages a
+    publication served (their arrows and "now <date>" tooltips classify each
+    figure against the edition before) can be rebuilt after it."""
+    rows = sorted(rows, key=lambda r: r.published_at)
+    pubs = [r for r in rows if not r.superseded_at]
+    if not pubs:
+        return rows, None, None
+    run, at = pubs[-1].model_run_id, pubs[-1].published_at
+    kept = [r for r in rows if r.superseded_at or not (r.model_run_id == run and r.published_at == at)]
+    return kept, run, at
 
 
 def run_starts(rows: Iterable[Row]) -> dict[str, str]:

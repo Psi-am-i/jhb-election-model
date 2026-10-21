@@ -389,7 +389,10 @@ def test_the_overlay_never_reaches_a_site():
     pages, problems = EM.shipped(ROOT / "site")
     expected = {spec[0] for spec in B.DOCS.values()} | set(B.ARTEFACTS) | {"portal.html"}
     import build_your_forecast
+    import og_pages
     expected |= {build_your_forecast.YF_PAGE}
+    # each claim's own page (build_site.claim_pages), one per claims.toml entry
+    expected |= {f"{og_pages.CLAIM_DIR}/{c['slug']}.html" for c in B.load_claims()}
     assert expected <= set(pages) and len(pages) <= len(expected) + 2, pages
     assert problems == [], problems
 

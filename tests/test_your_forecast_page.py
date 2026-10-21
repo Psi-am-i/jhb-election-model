@@ -556,8 +556,10 @@ def test_the_live_by_election_line_is_the_builds_at_every_setting():
     """At the published turnout, poll and seat law, the reader's by-election
     comparison (page.py ``against_published_cell``) lists exactly the moves
     the build's line under the control lists (``build_play._moves``), for
-    every by-election cell; at least one is outside the shown rows, which is
-    the case the critic's S1 defect broke."""
+    every by-election cell. The critic's S1 defect compared only the shown
+    rows; the party-set check below catches it whenever a party with a
+    median is outside the shown rows, so that is asserted (whether such a
+    party also moves past the noise depends on the draws, so it is not)."""
     _built()
     NP, ns = _engine()
     pub, _ = build_play._cell_medians(".")
@@ -573,8 +575,8 @@ def test_the_live_by_election_line_is_the_builds_at_every_setting():
                      if not d["within_noise"] and round(d["difference"]))
         want = sorted(build_play._moves(med, pub))
         assert got == want, (c["path"], got, want)
-        outside += sum(1 for p, _ in want if p not in res["shown"])
-    assert outside, "no move outside the shown rows: the test cannot see the defect it guards"
+        outside += len((set(med) | set(pub)) - set(res["shown"]))
+    assert outside, "no party outside the shown rows: the test cannot see the defect it guards"
 
 
 # -- section 2: the start, and the hand-off from section 1 ---------------------
@@ -629,7 +631,12 @@ def test_the_start_is_rule_a_on_the_published_draws():
     assert agree >= len(wards) - 2, agree
     assert schema["x-placeholder"] is False and not d["model_ref"].startswith("placeholder")
     assert d["model_ref"] == man["published_run"]["model_run_id"]
-    assert schema["x-seat-context"]["parties"] == man["parties"]
+    # the roster is every party the draws carry (build_play.roster_codes, the
+    # vote blocks' columns): the seat-winning parties (manifest "parties")
+    # and the parties that win no seat in any draw, ward-only slates among them
+    import build_play
+    assert schema["x-seat-context"]["parties"] == build_play.roster_codes(man)
+    assert set(man["parties"]) <= set(build_play.roster_codes(man))
     # no total is fixed: each prediction states its own (SPEC-B D1)
     assert "x-total-votes" not in schema and "x-share-sum" not in schema
     for gone in ("combined_share", "published_middle"):

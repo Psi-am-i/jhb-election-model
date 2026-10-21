@@ -417,13 +417,33 @@ def _token_diff(old: str, new: str) -> list[str]:
     return lines
 
 
+def _served_by_newest_publication() -> bool:
+    """Whether site/ is what the ledger's newest publication served: its
+    ``changes.json`` names that publication's run. Such pages classify each
+    figure against the edition before (the arrows, "now <date>"), so a plain
+    rebuild, which classifies against the publication itself, cannot
+    reproduce them; ``--as-published`` can."""
+    import cityconfig
+    import publication
+    try:
+        run = json.loads((SITE / "changes.json").read_text("utf-8"))["run"]["model_run_id"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+    _, newest, _ = publication.before_latest_publication(
+        publication.history(cityconfig.active().slug, root=ROOT / publication.LEDGER_ROOT))
+    return newest is not None and run == newest
+
+
 def _build_to(out: Path) -> tuple[int | str | None, str]:
-    """Run the real build with NO escape hatches. Returns (exit code, output)."""
+    """Run the real build with NO escape hatches (``--as-published`` is not
+    one: it changes which edition the figures are classified against, not
+    what is checked). Returns (exit code, output)."""
     buf = io.StringIO()
     code: int | str | None = 0
+    argv = ["--out", str(out)] + (["--as-published"] if _served_by_newest_publication() else [])
     try:
         with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
-            code = build_site.main(["--out", str(out)])
+            code = build_site.main(argv)
     except SystemExit as exc:
         code = exc.code
     return code, buf.getvalue()

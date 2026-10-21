@@ -121,6 +121,15 @@ ledger reads "Unchanged since 30 September 2026" (157 tooltips on the
 2026-10-03 build). Live is built against the real ledger and does not have
 this.
 
+A live release that moves the forecast runs `build_site.py --publish` on the
+real ledger, then re-exports the draws (`export_draws.py`, each cell, then
+`--index`), whose manifests name the new publication, then rebuilds with
+`build_site.py --as-published`. A plain rebuild after a publication
+classifies every figure against that publication and drops the arrows and
+"now <date>" tooltips; `--as-published` classifies against the ledger as it
+stood before it and appends nothing (2026-10-21: the Your Forecast page had
+read the run from the pre-export manifest).
+
 `[build]` in `wrangler.toml` runs `src/deploy_check.py --city joburg` before every
 upload; a build whose numbers were not reviewed is refused there.
 

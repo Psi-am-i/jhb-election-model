@@ -409,12 +409,22 @@ def _new_parties(spec: dict, codes) -> dict:
     return out
 
 
+def _fitted_parties(spec: dict, codes, new: dict) -> dict:
+    """``{code: fitted}`` for parties absent in 2021 but fitted on their own
+    national result (``pools.place_vectorless``): a measured split, so not
+    "assumed" and not hatched, but still a party that did not stand in 2021.
+    The composition chart marks them and note 4 names them, from this one set."""
+    return {c: f for c, f in (spec.get("fitted_from_national") or {}).items()
+            if c in codes and c not in new}
+
+
 def composition(processed: Path, rows: list[dict], names: dict) -> str:
     """Where each shown party's votes come from, by population group, and the roll."""
     spec, fname = _spec(processed)
     groups = spec["categories"]
     codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
     new = _new_parties(spec, codes)
+    fitted = _fitted_parties(spec, codes, new)
 
     # One SVG per bar, the segments placed in percent of its width (no style
     # on the page). A label is HTML in a <foreignObject>, because a token
@@ -449,8 +459,10 @@ def composition(processed: Path, rows: list[dict], names: dict) -> str:
     for c in codes:
         # a party with no 2021 record has an ASSUMED split, not an estimate:
         # said in the row and drawn hatched (critic S4)
+        # a party fitted on its national result did not stand in 2021 either:
+        # pointed at the same note, not called assumed
         mark = ('<sup class="fn"><a href="#note-new">4</a></sup><span class="pl-asm">assumed</span>'
-                if c in new else "")
+                if c in new else '<sup class="fn"><a href="#note-new">4</a></sup>' if c in fitted else "")
         vals = [float(spec["pools"][g]["members"].get(c, 0.0)) for g in groups]
         out.append(f'<div class="pl-crow"><span class="pl-cname">{_esc(names[c]["name"])}{mark}</span>'
                    f'{bar(f"play.votes.{c}", vals, f"{fname} pools[group].members[{c}]", c in new)}</div>')
@@ -464,11 +476,7 @@ def new_parties_note(processed: Path, rows: list[dict], names: dict) -> str:
     spec, fname = _spec(processed)
     codes = sorted((r["code"] for r in rows if r["code"] != "OTHERS"), key=lambda c: names[c]["name"].lower())
     new = _new_parties(spec, codes)
-    # Absent in 2021 but fitted on their own national result (`pools.
-    # place_vectorless`): a measured split, so not "assumed" and not hatched,
-    # but still a party that did not stand in 2021.
-    fitted = {c: f for c, f in (spec.get("fitted_from_national") or {}).items()
-              if c in codes and c not in new}
+    fitted = _fitted_parties(spec, codes, new)
     if not new and not fitted:
         return "Every party shown stood in 2021."
     who = [names[c]["name"] for c in codes if c in new or c in fitted]
