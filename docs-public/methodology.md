@@ -107,11 +107,12 @@ Two things are drawn:
   less record a party has of that gap, the more its local result counts.
   ActionSA polled {{hist_asa_pr_2021}} in this city's 2021 local election and
   {{hist_asa_npe_2024}} in the city in the 2024 national election. It has no
-  national-to-local gap on record, so its starting level is its local result.
-  In this forecast its level is set by our judgement instead, at 17.6% of the
-  list vote: the model carries the 2021 result forward at the share a typical
-  party of its size keeps between local elections, and we judge that ActionSA
-  keeps more of it. Every other party's share is scaled down in proportion so
+  national-to-local gap on record, so its starting level comes from its local
+  result alone. In this forecast its level is set by our judgement instead, at
+  17.6% of the list vote: the model carries the 2021 result forward at the
+  share a typical party of its size keeps between local elections, and its
+  by-elections lift it part of the way back; we judge that ActionSA keeps more
+  of its 2021 vote than that. Every other party's share is scaled down in proportion so
   the shares still add up, and ActionSA keeps the model's usual uncertainty
   for a party of that size. It cannot be changed on [your
   forecast](your-forecast/).
@@ -119,7 +120,7 @@ Two things are drawn:
   what turnout has done in that city before. In 2021 every pool's turnout was
   the lowest on record, so the range allows falls as well as rises.
 
-Recent by-elections tilt each party's expected share before the draws (see *The
+Recent by-elections tilt parties' expected shares before the draws (see *The
 judgement calls*, below).
 
 ### 5. Handle parties that were not there last time

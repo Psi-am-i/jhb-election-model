@@ -12,6 +12,41 @@ Last updated: 2026-10-21.
 
 ## Open
 
+### 13. The share badge's bands on the new forecast
+
+**Context.** When a reader shares a prediction, the site rates how close it is
+to our prediction with a badge: Safe bet, Steady as she goes, Long shot, Wild
+call, Hail Mary (`reweight.closeness_badge`, your ten-point bands). The share
+brief fixed seven test predictions and the badge each should get, and
+`tests/test_reweight.py` checks them on the published simulations. On the 21
+October forecast, three of them get a harsher badge than the brief expects:
+
+| test prediction | brief expects | 16 October forecast | 21 October forecast |
+|---|---|---|---|
+| our prediction | Safe bet | 1.000, Safe bet | 1.000, Safe bet |
+| mild: largest party −8 seats, second +8 | Safe bet | 0.918, Safe bet | 0.871, Steady as she goes |
+| moderate: largest −15, next three +5 each, IFP +2 | Steady as she goes | 0.846, Steady | 0.745, Long shot |
+| your screenshot prediction | Steady as she goes | 0.820, Steady | 0.755, Long shot |
+| wild: largest −25, fourth +25, three small +3 | Long shot | 0.780, Long shot | 0.736, Long shot |
+| fixture A (a fixed prediction) | Safe bet | 0.991, Safe bet | 0.725, Long shot |
+| fixture B (a fixed prediction) | Wild call | 0.685, Wild call | 0.637, Wild call |
+
+Fixture A and your screenshot are fixed seat counts written against an earlier
+forecast (ActionSA 33 seats in the screenshot; the forecast now has 40), so
+part of their fall is distance from a moved prediction. The mild and moderate
+predictions are moves relative to our prediction, and they fall too. Why the
+same-sized move now scores lower is not yet measured.
+
+**Options.** (a) Go live with the bands as they are; re-record the test table
+on the new forecast and measure why relative moves score lower, after go-live.
+(b) Hold go-live and re-set the bands so the brief's examples keep their
+badges.
+
+**Recommendation.** (a). The badge is a rating of readers' predictions, not a
+forecast figure, and nothing is published from it until readers share.
+
+**Gates.** Nothing in the forecast. One test stays red until it is answered.
+
 ### 6. The splinter split
 
 **Your answer (2026-10-21):** go live with 35% as it is, and measure it after
@@ -125,8 +160,9 @@ sized on 2021?** The steps, from the model's trace of today's Johannesburg
 
 The step that does most of the work is the 0.72: 18.1% × 0.72 = 13.1%. It is
 the record's typical value, applied because ActionSA has no
-second local election of its own. Its 2024 national vote in Johannesburg,
-5.4%, is not used: the model reads ActionSA's 2026 level from its local
+second local election of its own. Its share of Johannesburg's 2024 national
+ballot, 6.22% (5.4% after the model's conversion to a local level), is not
+used: the model reads ActionSA's 2026 level from its local
 record only. A party call would be the place to say ActionSA keeps more (or
 less) of its 2021 vote than the average party.
 
@@ -139,8 +175,8 @@ scaling test kept today's rule, so the model's ActionSA stays at 12.6%.
   8.4–17.9%), or
 - **12.6%**, today's forecast, held so the rebuild cannot move it.
 
-The evidence either way: 2021 list vote 18.1%; 2024 national vote in
-Johannesburg 5.4%; four by-elections since 2021 imply 18.9% (capped at
+The evidence either way: 2021 list vote 18.1%; share of Johannesburg's
+2024 national ballot 6.22%; four by-elections since 2021 imply 18.9% (capped at
 16.3% by the model). A call is entered as ActionSA's own centre in
 `judgements/joburg-2026.toml` with your reason, listed in JUDGEMENT-CALLS,
 and the forecast is reported with and without it.

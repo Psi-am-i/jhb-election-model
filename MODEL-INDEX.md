@@ -1224,7 +1224,7 @@ Every public function in the import closure of `montecarlo` or of `compare_histo
 | `montecarlo.width_record_key` | model+measurement | The live key a width record must carry: the code that computed the | `arms`, `declares`, `tests/test_intermediates_are_current`, `tests/test_universal_draw`, `width_record` |
 | `montecarlo.read_width_record` | model+measurement | The width record for target ``year`` in the variant ``scenario`` needs. | `arms`, `tests/test_drawer`, `tests/test_universal_draw` |
 | `montecarlo.target_is_held` | model+measurement | True when the election at ``year`` has a result file: a BACKTEST | `arms`, `declares`, `pools`, `tests/test_intermediates_are_current`, `tests/test_levers_are_live` |
-| `montecarlo.strength_judgements` | model+measurement | The target's strength judgements: ``(applied, ignored)``. | `tests/test_universal_draw` |
+| `montecarlo.strength_judgements` | model+measurement | The target's strength judgements: ``(applied, ignored)``. | `tests/test_levers_are_live`, `tests/test_universal_draw` |
 | `montecarlo.judgements_applied_sha` | model+measurement | The hash a run declares over the strength entries it APPLIED. | `arms`, `declares`, `export_draws`, `tests/test_export_draws`, `tests/test_intermediates_are_current`, `tests/test_universal_draw` |
 | `montecarlo.centre_correction` | model+measurement | The centre-correction arm's location for one target's record. | `arms`, `backtest`, `tests/test_arms`, `tests/test_levers_are_live`, `tests/test_universal_draw` |
 | `montecarlo.mean_conservation` | model+measurement | The mean-conservation falsifier of design v2 §1.2, on one run. | `tests/test_universal_draw` |

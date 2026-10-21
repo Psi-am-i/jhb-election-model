@@ -53,7 +53,7 @@ current would be wrong.
 
 Fifteen Johannesburg wards have held by-elections since 2021. They are the only
 direct evidence of how opinion has moved between elections. The model reads them
-and moves each party's expected share halfway toward what they imply (see the methodology). The IEC's official download page could not supply them: its report
+and moves each party's expected share up to halfway toward what they imply (see the methodology). The IEC's official download page could not supply them: its report
 links work only inside the browser session that created them. The IEC's public
 dashboard is fed by plain data files that anyone can read, with more detail than
 the reports, down to voting-district level with every party and candidate. The
