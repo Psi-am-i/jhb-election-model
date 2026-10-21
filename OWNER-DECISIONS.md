@@ -111,3 +111,36 @@ is sent or posted.
 **Recommendation.** 1 (a); 2 yes; 3 own link; 4 to every party.
 
 **Gates.** The first send and the first post.
+
+### 22. New claims from other parties
+
+**Context.** Your "We need to look for other comments": a search of news,
+party sites, X and YouTube since August for testable claims about the
+Johannesburg result by named figures of parties other than the DA, each
+checked for exact wording at the source
+(`audits/2026-10-22-site-round/CLAIM-CANDIDATES.md`).
+
+1. **MK, Bongani Baloyi** (Daily Maverick, 6 October): voters "must not
+   waste their vote on a party that will take 2% or 3%; they must be
+   strategic". Testable: how many seats a party wins at 2 to 3% of the vote,
+   and how often such parties decide who has a majority. Applies to every
+   small party alike.
+2. **MK, Baloyi** (same article): the ANC's losses are "a direct consequence
+   or attributed to uMkhonto Wesizwe's growth". Testable only if the model's
+   record of where votes move supports it; to be checked before a card.
+3. **ANC, Dada Morero** (eNCA, 24 August): "Allow us to lead on our own, for
+   the next five years". The same question as the ANC card already on the
+   site: a dated second line on it, not a new card.
+4. **IFP, Velenkosini Hlabisa** (News24, 7 October): "most of the
+   municipalities are going to be led by a coalition of partners in the
+   GNU". In Johannesburg the GNU parties include the ANC and the DA, so the
+   answer is near certain and of little interest.
+5. Not usable: MK's "can win Joburg outright" (reporter's paraphrase only;
+   the newsdesk's draft card rests on it); the EFF's "50-plus-one" (a
+   paraphrase); ActionSA and the PA made pledges, not claims about the
+   result.
+
+**Recommendation.** 1 as a new card; 3 as a line on the ANC card; 2 only if
+the check supports it; not 4.
+
+**Gates.** Nothing.
