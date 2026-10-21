@@ -31020,3 +31020,11 @@ An independent review of the record from §1.314 on (brief `audits/2026-10-21-pr
 **Limits.** The call is argued, not tested: the record holds one local election for ActionSA. The backtest ignores every strength judgement by design, so no `history.json` row moves. Checked against the 2026 result per §SJ2.
 
 **§1.330 addendum (2026-10-21).** The `35_widths.json` the entry cites is committed for both runs under `audits/2026-10-21-actionsa-call/{with,without}/`. An independent review re-derived `centre_before` (0.126376), the common rescaling of the other parties (DA × 0.9432 = (1 − 0.176)/(1 − 0.1264)), that `sigma_j = 0` leaves ActionSA's width the model's own at 17.6% (ActionSA is not new, so no newness term is replaced), and every figure in the table against `summary.json`.
+
+## 1.331 Johannesburg 2026 artefacts regenerated with ActionSA at 17.6% (2026-10-21)
+
+On d0c3347/37b3e66, clean tree: `montecarlo.py --city joburg --target 2026 --draws 5000 --seed 20261104`; `overhang_regimes.py` (its reference re-run reproduced `seat_draws.csv`, `ward_winner_probs.csv` and the coalition tables byte for byte; `forecast_summary.json` differs only in `_generated`); `freeze.py` (1,500 simulations, seed 20261104, not dirty; `content_sha256` d9a0a20217e3742c…); `export_draws.py` for the base cell and `w_bye=0`, `w_bye=1` (5,000 each), then `--index site/draws` (the base cell's by-election weight range is now [0.5, 0.5]); `citywide_table.py`.
+
+Frozen seat medians (90% range), 1,500 simulations: ANC 72 (48–81), DA 67 (52–82), ActionSA 40 (31–51), EFF 25 (14–43), MK 16 (5–54), PA 14 (5–32). Forecast run, 5,000 simulations: as §1.330's "with" column.
+
+`declares.py --verify`: one artefact declaring wrongly, `history.json` (`git` a9754ed, `git_dirty: true`); not re-run, because no model code has changed since a9754ed and §1.328's arm P, run at the clean f30f913, reproduced all 24 of its rows (CHECKLIST, "What the rebuild must run").

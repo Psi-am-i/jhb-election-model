@@ -90,7 +90,6 @@
  "ward_parties": [
   "AFRIKA_UNITE_CONGRESS",
   "ALJAMAAH",
-  "ALL_CITIZENS_PARTY",
   "ANC",
   "ASA",
   "ATM",
@@ -100,6 +99,7 @@
   "DUDULA",
   "ECONOMIC_REDRESS_MOVEMENT",
   "EFF",
+  "GAP_FIXERS_OF_SOUTH_AFRICA",
   "IFP",
   "LAND_PARTY",
   "LEKWE_BEPE_KINGDOM_PARTY",
@@ -309,9 +309,9 @@
   },
   {
    "name": "seats/level",
-   "dtype": "<u2",
+   "dtype": "|u1",
    "offset": 830000,
-   "nbytes": 790000,
+   "nbytes": 395000,
    "columns": [
     "ACDP",
     "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT",
@@ -397,7 +397,7 @@
   {
    "name": "council/level",
    "dtype": "<u2",
-   "offset": 1620000,
+   "offset": 1225000,
    "nbytes": 20000,
    "columns": [
     "threshold",
@@ -407,7 +407,7 @@
   {
    "name": "seats/cap",
    "dtype": "|u1",
-   "offset": 1640000,
+   "offset": 1245000,
    "nbytes": 395000,
    "columns": [
     "ACDP",
@@ -494,7 +494,7 @@
   {
    "name": "council/cap",
    "dtype": "<u2",
-   "offset": 2035000,
+   "offset": 1640000,
    "nbytes": 20000,
    "columns": [
     "threshold",
@@ -504,7 +504,7 @@
   {
    "name": "ward_winner",
    "dtype": "|u1",
-   "offset": 2055000,
+   "offset": 1660000,
    "nbytes": 675000,
    "columns": [
     "1",
@@ -647,7 +647,7 @@
   {
    "name": "ward_vote",
    "dtype": "<u4",
-   "offset": 2730000,
+   "offset": 2335000,
    "nbytes": 1620000,
    "columns": [
     "ACDP",
@@ -736,7 +736,7 @@
   {
    "name": "list_vote",
    "dtype": "<u4",
-   "offset": 4350000,
+   "offset": 3955000,
    "nbytes": 1620000,
    "columns": [
     "ACDP",
@@ -825,7 +825,7 @@
   {
    "name": "pool_turnout",
    "dtype": "<f8",
-   "offset": 5970000,
+   "offset": 5575000,
    "nbytes": 160000,
    "columns": [
     "Black African",
@@ -838,85 +838,85 @@
  "centres": {
   "source": "run_model trace, stage 30_centres, after_shrink",
   "values": {
-   "ACDP": 0.008134439275047691,
-   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0008317708704108192,
-   "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0006934924277259575,
-   "AFRICAN_ECONOMIC_FREEDOM": 0.000837691144601502,
-   "AFRICAN_LABOUR_CONVENTION": 0.0004943267737981933,
-   "AFRICAN_RENAISSANCE_UNITY": 0.0008725903382688932,
-   "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.0004089598715749343,
-   "AFRICAN_UNEMPLOYED_CONGRESS": 0.000837691144601502,
-   "AFRICA_RESTORATION_ALLIANCE": 0.0004797116660603589,
-   "AFRIKA_MAYIBUYE_MOVEMENT": 0.000837691144601502,
-   "AFRIKA_UNITE_CONGRESS": 0.0003778141980606838,
-   "AHC": 0.004546230253842958,
-   "AIC": 0.002415943651615169,
-   "ALJAMAAH": 0.009779607030080385,
-   "ALLIED_INDEPENDENTS_UMBRELLA": 0.000837691144601502,
-   "ALL_CITIZENS_PARTY": 0.0245182520735353,
-   "ALL_NATIVES_OF_SOUTH_AFRICA": 0.000837691144601502,
-   "AMALGAMATED_RAINBOW_MOVEMENT": 0.00032497978324840703,
-   "ANC": 0.25098606307753835,
-   "APC": 0.0013198260262727707,
-   "ASA": 0.15933612396994876,
-   "ATM": 0.006220322582497209,
-   "AZANIAN_GROUND_FORCES": 0.000837691144601502,
-   "AZANIA_PEACEFUL_REVOLUTION": 0.0003297255733090467,
-   "AZAPO": 0.0010841050713809041,
-   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.00037435357644158176,
-   "BOSA": 0.012937599868447312,
-   "CHANGE": 0.0004477035438137078,
-   "CHRIST_KINGDOM_PARTY": 0.0003778141980606838,
-   "COMBAT": 0.0004101816893960836,
-   "COMMUNITY_FIRST_MOVEMENT": 0.0004101816893960836,
-   "COPE": 0.0006782305681253374,
-   "DA": 0.3196581108012169,
-   "DUDULA": 0.0017624487647209142,
-   "ECONOMIC_EMANCIPATION_FORUM": 0.00044277170602975675,
-   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.0008284987802097016,
-   "ECONOMIC_REDRESS_MOVEMENT": 0.00041983356722230715,
-   "EFF": 0.10856035836751786,
-   "EKHETHU_PEOPLES_PARTY": 0.000837691144601502,
-   "GAP_FIXERS_OF_SOUTH_AFRICA": 0.00041701560159780463,
-   "GAZA_DEMOCRATIC_FRONT": 0.0004089598715749343,
-   "IFP": 0.022263646914357334,
-   "ILIZWE_NATHI": 0.0004089598715749343,
-   "IMSTAYING": 0.0004089598715749343,
-   "INDEPENDENT_CITIZENS_MOVEMENT": 0.0008409624465069237,
-   "INTERNATIONAL_REVELATION_CONGRESS": 0.0011008516764628297,
-   "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.00041701560159780463,
-   "KNOW_YOUR_POWER": 0.000837691144601502,
-   "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.000837691144601502,
-   "LAND_PARTY": 0.00041983356722230715,
-   "LEKWE_BEPE_KINGDOM_PARTY": 0.0003778141980606838,
-   "MINORITY_FRONT": 0.000837691144601502,
-   "MK": 0.10710196217767715,
-   "MOVEMENT_OF_RESIDENTS_PARTY": 0.0004089598715749343,
-   "MOVE_SA": 0.0008403523451528676,
-   "NATIONAL_DEMOCRATIC_CONVENTION": 0.0007909405045554605,
-   "NCC": 0.000837691144601502,
-   "NFP": 0.0007596830376008903,
-   "PA": 0.08215873647004862,
-   "PAC": 0.0037633916572407913,
-   "PEOPLE_OF_JOBURG": 0.000837691144601502,
-   "PEOPLE_S_CONSENT_PARTY": 0.0003227961953989292,
-   "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.000837691144601502,
-   "PRO_SOUTH_AFRICA": 0.0005906375589866093,
-   "RESIDENT_DEVELOPMENT": 0.0003227961953989292,
-   "RISE": 0.02025107255550627,
-   "SERVICE_DELIVERY_PARTY": 0.000837691144601502,
-   "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.00019671710158837956,
-   "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.000837691144601502,
-   "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.0008282487195946612,
-   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.0003227961953989292,
-   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.0004993684371837863,
-   "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.0014786502383548842,
-   "UIM": 0.0014197231668732113,
-   "UMPHAKATHI_WARONA": 0.0008282487195946612,
-   "UNITED_AFRICANS_TRANSFORMATION": 0.0023893211796193513,
-   "VFPLUS": 0.009836319737312799,
-   "VUKA_SA": 0.0008471685334324118,
-   "OTHER": 0.003645955170243314
+   "ACDP": 0.008162507911182783,
+   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0008346409728382777,
+   "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0006958853875795015,
+   "AFRICAN_ECONOMIC_FREEDOM": 0.0008405816754833949,
+   "AFRICAN_LABOUR_CONVENTION": 0.0004960324941160198,
+   "AFRICAN_RENAISSANCE_UNITY": 0.0008756012920509192,
+   "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.00041037102548990693,
+   "AFRICAN_UNEMPLOYED_CONGRESS": 0.0008405816754833949,
+   "AFRICA_RESTORATION_ALLIANCE": 0.0004813669555952762,
+   "AFRIKA_MAYIBUYE_MOVEMENT": 0.0008405816754833949,
+   "AFRIKA_UNITE_CONGRESS": 0.00037911788094446494,
+   "AHC": 0.004561917442408358,
+   "AIC": 0.0024242800889511863,
+   "ALJAMAAH": 0.00981335246993062,
+   "ALLIED_INDEPENDENTS_UMBRELLA": 0.0008405816754833949,
+   "ALL_CITIZENS_PARTY": 0.00047977098504377205,
+   "ALL_NATIVES_OF_SOUTH_AFRICA": 0.0008405816754833949,
+   "AMALGAMATED_RAINBOW_MOVEMENT": 0.0003261011560903239,
+   "ANC": 0.2518521137346639,
+   "APC": 0.0013243802082194861,
+   "ASA": 0.15988592802351237,
+   "ATM": 0.006241786381698043,
+   "AZANIAN_GROUND_FORCES": 0.0008405816754833949,
+   "AZANIA_PEACEFUL_REVOLUTION": 0.0003308633219391257,
+   "AZAPO": 0.0010878458763401517,
+   "BOLSHEVIKS_PARTY_OF_SOUTH_AFRICA": 0.0003756453181299414,
+   "BOSA": 0.012982242255081482,
+   "CHANGE": 0.000449248386358202,
+   "CHRIST_KINGDOM_PARTY": 0.00037911788094446494,
+   "COMBAT": 0.0004115970593066135,
+   "COMMUNITY_FIRST_MOVEMENT": 0.0004115970593066135,
+   "COPE": 0.0006805708655187671,
+   "DA": 0.32076112071945834,
+   "DUDULA": 0.0017685302574226226,
+   "ECONOMIC_EMANCIPATION_FORUM": 0.00044429953081118764,
+   "ECONOMIC_LIBERATORS_FORUM_SOUTH_AFRICA": 0.0008313575919868584,
+   "ECONOMIC_REDRESS_MOVEMENT": 0.00042128224183123904,
+   "EFF": 0.10893495593898908,
+   "EKHETHU_PEOPLES_PARTY": 0.0008405816754833949,
+   "GAP_FIXERS_OF_SOUTH_AFRICA": 0.0004184545525553476,
+   "GAZA_DEMOCRATIC_FRONT": 0.00041037102548990693,
+   "IFP": 0.02234046969010737,
+   "ILIZWE_NATHI": 0.00041037102548990693,
+   "IMSTAYING": 0.00041037102548990693,
+   "INDEPENDENT_CITIZENS_MOVEMENT": 0.0008438642653190308,
+   "INTERNATIONAL_REVELATION_CONGRESS": 0.001104650267133993,
+   "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.0004184545525553476,
+   "KNOW_YOUR_POWER": 0.0008405816754833949,
+   "LABOUR_PARTY_OF_SOUTH_AFRICA": 0.0008405816754833949,
+   "LAND_PARTY": 0.00042128224183123904,
+   "LEKWE_BEPE_KINGDOM_PARTY": 0.00037911788094446494,
+   "MINORITY_FRONT": 0.0008405816754833949,
+   "MK": 0.1074715274180178,
+   "MOVEMENT_OF_RESIDENTS_PARTY": 0.00041037102548990693,
+   "MOVE_SA": 0.0008432520587537447,
+   "NATIONAL_DEMOCRATIC_CONVENTION": 0.0007936697180238027,
+   "NCC": 0.0008405816754833949,
+   "NFP": 0.000762304394284421,
+   "PA": 0.08244223279982892,
+   "PAC": 0.003776377588721645,
+   "PEOPLE_OF_JOBURG": 0.0008405816754833949,
+   "PEOPLE_S_CONSENT_PARTY": 0.0003239100335687262,
+   "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.0008405816754833949,
+   "PRO_SOUTH_AFRICA": 0.0005926756085890898,
+   "RESIDENT_DEVELOPMENT": 0.0003239100335687262,
+   "RISE": 0.02032095075702527,
+   "SERVICE_DELIVERY_PARTY": 0.0008405816754833949,
+   "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.00019739589216746366,
+   "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.0008405816754833949,
+   "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.000831106668514505,
+   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.0003239100335687262,
+   "THE_ORGANIC_HUMANITY_MOVEMENT": 0.0005010915542280867,
+   "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.0008432520587537447,
+   "UIM": 0.0014246220531561001,
+   "UMPHAKATHI_WARONA": 0.000831106668514505,
+   "UNITED_AFRICANS_TRANSFORMATION": 0.0023975657536499575,
+   "VFPLUS": 0.009870260869612103,
+   "VUKA_SA": 0.0008500917669222667,
+   "OTHER": 0.003658535876248746
   },
   "absent": []
  },
@@ -934,8 +934,8 @@
    "class": "override"
   },
   "ALL_CITIZENS_PARTY": {
-   "weight": 1.0,
-   "class": "override"
+   "weight": 0.0,
+   "class": "no record"
   },
   "AMALGAMATED_RAINBOW_MOVEMENT": {
    "weight": 1.0,
@@ -982,8 +982,8 @@
    "class": "override"
   },
   "NCC": {
-   "weight": 1.0,
-   "class": "override"
+   "weight": 0.0,
+   "class": "no record"
   },
   "PA": {
    "weight": 1.0,
@@ -1002,12 +1002,12 @@
    "class": "override"
   },
   "TRUTH_AND_SOLIDARITY_MOVEMENT": {
-   "weight": 1.0,
-   "class": "override"
+   "weight": 0.0,
+   "class": "no record"
   },
   "VUKA_SA": {
-   "weight": 1.0,
-   "class": "override"
+   "weight": 0.0,
+   "class": "no record"
   }
  },
  "vote_blocks": {
@@ -1082,11 +1082,11 @@
  },
  "artefact_key": {
   "git": {
-   "commit": "08136c5092ebc55363dc145bd47ec591bdcfd9c3",
+   "commit": "37b3e6654631b5f1a373f60fbc7ab5d93b76190f",
    "dirty": false
   },
-  "code_sha256": "cb218a20d85c47a339b84129f2da0168a452bbb9d40f1e8f8d42ab858bde5789",
-  "model_sha256": "de1911fd45724934b3c03b07037701f66043418cc684da4c31f98dc1fb5c1d94",
+  "code_sha256": "d99bd20efe90e568d136b147bbbabd2d1d1d56c25265fd6c279162f09b3ec9d6",
+  "model_sha256": "336d666d05a0f7b3714f8b7ebcbadf9b90be66e385c273604f30760a74b1615b",
   "model_modules": [
    "backtest.py",
    "benchmarks.py",
@@ -1135,11 +1135,11 @@
    "pools_2011.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "fab627a741c0c7c8",
-    "pools_sha": "76bfd9d621659ee1",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "absent",
     "schema": 2,
     "target": "2011"
@@ -1147,11 +1147,11 @@
    "pools_2016.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "7ea7faaaafd6e3c5",
-    "pools_sha": "76bfd9d621659ee1",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "absent",
     "schema": 2,
     "target": "2016"
@@ -1159,11 +1159,11 @@
    "pools_2021.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "54e74cd0d54d1a2b",
-    "pools_sha": "76bfd9d621659ee1",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "absent",
     "schema": 2,
     "target": "2021"
@@ -1171,11 +1171,11 @@
    "pools_2026.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
-    "judgements_sha": "9317b4262a4bbe09",
-    "pools_sha": "76bfd9d621659ee1",
+    "judgements_sha": "3851439df49e04fb",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "db831def8e100fbd",
     "schema": 2,
     "target": "2026"
@@ -1183,11 +1183,11 @@
    "pools_2026_simulation.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
-    "judgements_sha": "9317b4262a4bbe09",
-    "pools_sha": "76bfd9d621659ee1",
+    "judgements_sha": "3851439df49e04fb",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "db831def8e100fbd",
     "schema": 2,
     "target": "2026"
@@ -1216,6 +1216,7 @@
     "level_floor": 1e-06,
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    "newness_width": "by_anchor",
     "overhang_rule": "deduct",
     "poll_credence": 1.0,
     "poll_deff_subsample": 1.6,
@@ -1259,6 +1260,7 @@
     "level_floor": 1e-06,
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    "newness_width": "by_anchor",
     "overhang_rule": "expand",
     "poll_credence": 1.0,
     "poll_deff_subsample": 1.6,
@@ -1302,6 +1304,7 @@
     "level_floor": 1e-06,
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    "newness_width": "by_anchor",
     "overhang_rule": "level",
     "poll_credence": 1.0,
     "poll_deff_subsample": 1.6,
@@ -1345,6 +1348,7 @@
     "level_floor": 1e-06,
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    "newness_width": "by_anchor",
     "overhang_rule": "cap",
     "poll_credence": 1.0,
     "poll_deff_subsample": 1.6,
@@ -1367,10 +1371,10 @@
     "ward_noise_sd": 0.1
    }
   },
-  "judgements_applied_sha": "4f53cda18c2baa0c",
+  "judgements_applied_sha": "b803b2e9af93852a",
   "overrides": [
    "w_bye=1"
   ],
-  "time": "2026-10-16T01:56:23Z"
+  "time": "2026-10-21T10:15:55Z"
  }
 }
