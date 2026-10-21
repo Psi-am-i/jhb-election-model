@@ -205,6 +205,10 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
   as they are). Re-record `tests/test_reweight.py`'s badge table on the 21
   October simulations and measure why a same-sized move from our prediction
   now scores lower. OWNER-DECISIONS item 13.
+* **The splinter split** (owner, 2026-10-21: live at 35%, measure after
+  go-live). Re-measure `SPLINTER_PARENT_WEIGHT` (JUDGEMENT-CALLS §F6), with
+  the population-group question in the brief: "It seems incorrect as it
+  stands in a country so divided by population group." OWNER-DECISIONS item 6.
 
 ## Done
 
