@@ -140,7 +140,10 @@ async function staleForecastImage(url, env) {
   return FORECAST_IMAGE.test(now) ? [now, ""] : undefined;
 }
 
-// Short path (lowercase, no slashes) -> channel name in the arrival log.
+// Short path (lowercase, no slashes) -> channel name in the arrival log. Each
+// lands on the home page; its twin ending in "p" lands on Your Forecast and
+// logs "<channel>_prediction" (owner, 2026-10-22;
+// audits/2026-10-22-short-links/BRIEF.md). This table is the only list.
 const CHANNELS = new Map([
   ["go", "billboard"],
   ["x", "x"],
@@ -148,19 +151,29 @@ const CHANNELS = new Map([
   ["fb", "facebook"],
   ["ig", "instagram"],
   ["g", "google_ads"],
+  ["e", "email"],
+  ["r", "reddit"],
+  ["yt", "youtube"],
+  ["fm", "radio"],
 ]);
+const PREDICTION = "/your-forecast/";
 
 function isPreview(host) {
   return host.endsWith(".workers.dev");
 }
 
-// "/GO", "/go/" -> "billboard"; anything else -> undefined.
+// "/GO", "/go/" -> {name: "billboard", to: "/"}; "/gop" -> {name:
+// "billboard_prediction", to: "/your-forecast/"}; anything else -> undefined.
 function channelOf(path) {
   const m = /^\/([a-z]+)\/?$/.exec(path.toLowerCase());
-  return m ? CHANNELS.get(m[1]) : undefined;
+  if (!m) return undefined;
+  if (CHANNELS.has(m[1])) return { name: CHANNELS.get(m[1]), to: "/" };
+  const base = m[1].endsWith("p") ? m[1].slice(0, -1) : "";
+  return CHANNELS.has(base) ? { name: `${CHANNELS.get(base)}_prediction`, to: PREDICTION } : undefined;
 }
 
-function arrival(url, host, channel, env) {
+function arrival(url, host, ch, env) {
+  const channel = ch.name;
   // An object, not a JSON string: Workers Logs indexes an object's keys as
   // fields (filter event, group by channel); a string is one message field.
   console.log({ event: "arrival", channel, host });
@@ -175,7 +188,7 @@ function arrival(url, host, channel, env) {
   }
   return new Response(null, {
     status: 302,
-    headers: { Location: new URL("/", url).toString() },
+    headers: { Location: new URL(ch.to, url).toString() },
   });
 }
 

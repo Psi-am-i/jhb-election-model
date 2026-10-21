@@ -91,7 +91,14 @@ NOINDEX = "noindex, nofollow"
 #: Short path -> channel name in the arrival log (the cross-lane decision of
 #: 2026-10-01). Ad and post links use these paths.
 CHANNELS = {"go": "billboard", "x": "x", "li": "linkedin", "fb": "facebook",
-            "ig": "instagram", "g": "google_ads"}
+            "ig": "instagram", "g": "google_ads", "e": "email", "r": "reddit",
+            "yt": "youtube", "fm": "radio"}
+#: Each short path's twin ending in "p" lands on Your Forecast and logs
+#: "<channel>_prediction" (owner, 2026-10-22; audits/2026-10-22-short-links).
+CHANNELS.update({k + "p": n + "_prediction" for k, n in list(CHANNELS.items())})
+#: Where each channel's arrival lands.
+LANDING = {n: ("/your-forecast/" if n.endswith("_prediction") else "/")
+           for n in CHANNELS.values()}
 #: Every spelling that must count: lower, upper, mixed, trailing slash, and a
 #: query string such as the gclid Google Ads appends.
 CHANNEL_PATHS = {f"/{v}": n for k, n in CHANNELS.items()
@@ -377,7 +384,7 @@ def channel_problems(src: str) -> list[str]:
     out = []
     for r, (host, _p, name, preview) in zip(run_worker(src, cases), keys):
         h = dict(r["headers"])
-        if r["status"] != 302 or h.get("location") != f"https://{host}/" or r["fetched"]:
+        if r["status"] != 302 or h.get("location") != f"https://{host}{LANDING[name]}" or r["fetched"]:
             out.append(f"{r['url']}: {r['status']} {h.get('location')!r} "
                        f"fetched {r['fetched']}")
         want = {"event": "arrival", "channel": name, "host": host}
@@ -413,14 +420,14 @@ def portal_channel_problems(src: str) -> list[str]:
 
 def resilience_problems(src: str) -> list[str]:
     """With ARRIVALS absent, or throwing on every write, each channel path on
-    the Joburg host still answers 302 home and logs its one arrival."""
+    the Joburg host still answers 302 to its landing page and logs its one arrival."""
     keys = [(m, p, n) for m in ("absent", "throw") for p, n in CHANNEL_PATHS.items()]
     cases = [{"url": f"https://{JOBURG}{p}", "env": {}, "arrivals": m}
              for m, p, _n in keys]
     out = []
     for r, (mode, _p, name) in zip(run_worker(src, cases), keys):
         h = dict(r["headers"])
-        if r["error"] or r["status"] != 302 or h.get("location") != f"https://{JOBURG}/":
+        if r["error"] or r["status"] != 302 or h.get("location") != f"https://{JOBURG}{LANDING[name]}":
             out.append(f"{r['url']} [{mode}]: {r['status']} {h.get('location')!r} "
                        f"error={r['error']!r}")
         want = {"event": "arrival", "channel": name, "host": JOBURG}
@@ -636,7 +643,10 @@ def test_channel_check_fires_on_each_constructed_violation():
                  ('console.log({ event: "arrival", channel, host })',
                   'console.log(JSON.stringify({ event: "arrival", channel, host }))'),
                  ('/^\\/([a-z]+)\\/?$/', '/^\\/([a-z]+)$/'),
-                 ('new URL("/", url)', 'new URL("/forecast", url)'),
+                 ('new URL(ch.to, url)', 'new URL("/forecast", url)'),
+                 ('const PREDICTION = "/your-forecast/";', 'const PREDICTION = "/";'),
+                 ('`${CHANNELS.get(base)}_prediction`', 'CHANNELS.get(base)'),
+                 ('  ["fm", "radio"],\n', ""),
                  ('  ["ig", "instagram"],\n', ""),
                  (AE_WRITE, ""),
                  ("blobs: [channel, host]", "blobs: [host, channel]"),

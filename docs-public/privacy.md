@@ -35,9 +35,11 @@ described below are the only count the site keeps.
 ## Which link brought you here
 
 Links in this site's advertising and social posts use short addresses, one per
-channel: `/go` on the billboard, `/x`, `/li`, `/fb` and `/ig` for social posts,
-and `/g` for Google Ads. Each forwards to the home page and writes one log line
-naming the channel and the site's own address, and nothing about the visitor.
+channel: `/go` on the billboard, `/x`, `/ig`, `/r` (Reddit), `/yt` (YouTube),
+`/li` and `/fb` for social posts, `/e` in email, `/fm` on radio, and `/g` for
+Google Ads. Each forwards to the home page, and the same address ending in `p`
+(`/xp`, `/ep` and so on) to Your Forecast; each writes one log line naming the
+channel and the site's own address, and nothing about the visitor.
 The site counts those lines by channel.
 
 Cloudflare's [Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/)
