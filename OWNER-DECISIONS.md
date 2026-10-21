@@ -42,63 +42,22 @@ second local election of its own. Its 2024 national vote in Johannesburg,
 record only. A party call would be the place to say ActionSA keeps more (or
 less) of its 2021 vote than the average party.
 
+**Your answer (2026-10-21):** "no calls" depends on the scaling test; the only
+change you would make is ActionSA "to hold their current percentage". The
+scaling test kept today's rule, so the model's ActionSA stays at 12.6%.
+
+**One question before I enter it: which percentage?**
+- **18.1%**, its 2021 Johannesburg list vote (above the model's 90% range of
+  8.4–17.9%), or
+- **12.6%**, today's forecast, held so the rebuild cannot move it.
+
+The evidence either way: 2021 list vote 18.1%; 2024 national vote in
+Johannesburg 5.4%; four by-elections since 2021 imply 18.9% (capped at
+16.3% by the model). A call is entered as ActionSA's own centre in
+`judgements/joburg-2026.toml` with your reason, listed in JUDGEMENT-CALLS,
+and the forecast is reported with and without it.
+
 **Gates.** The final rebuild of the forecast inputs.
-
-### 12. The two steps after the levels: the size pull and making shares add to 100%
-
-**Your questions (2026-10-21):** what is the "small adjustment", and should
-every party be scaled equally to fit 100%?
-
-**Today's Johannesburg 2026 run, list vote (%):**
-
-| party | level | after the size pull | after scaling to 100% |
-|---|---|---|---|
-| DA | 32.60 | 30.48 | 26.62 |
-| ANC | 27.33 | 25.79 | 22.53 |
-| ActionSA | 14.70 | 14.48 | 12.64 |
-| EFF | 11.47 | 11.54 | 10.08 |
-| MK | 10.26 | 10.42 | 9.11 |
-| PA | 6.97 | 7.36 | 6.43 |
-
-**The size pull (`level_shrink`, JUDGEMENT-CALLS §A23).** Each party is cut by
-an amount that grows with its size: a party keeps `1 − 0.35 × s / (s + 0.04)`
-of its level `s`. A party at 15% keeps 72.5%, one at 1% keeps 93%. The vote
-cut is then handed back to every party in proportion to its share, so the
-total does not change. Net: the largest parties lose, the middle gains a
-little. It exists because forecasts of past elections gave the top three
-parties too much and the next nine too little by about the same amount
-(summed over nine city-years: +32.3 points against −36.2). The 0.35 was fitted
-on Johannesburg 2016 alone (0.375) and leaving out each city-year in turn
-picks 0.35 every time. Adopted 2026-08-17 (MODEL-LOG §1.44): seat error over
-nine city-years 312 → 264. Known cost: the handed-back vote over-feeds the
-smallest parties.
-
-**Scaling to 100%.** Each party's level is estimated on its own, and nothing
-makes the levels add up. Every party is then divided by the same number, so
-each loses the same fraction of its own share (12.7% here), which in points
-falls most on the largest parties (DA −3.9, PA −0.9).
-
-Measured, from the traces of the 2021 backtest: the levels added to between
-100.0% (Buffalo City) and 112.4% (Cape Town) across the eight metros, and
-111.9% in Johannesburg. Johannesburg 2026's 114.6% is above all of them. The
-backtest scores include this rule, so it is tested in that sense, but it has
-never been compared with another rule.
-
-**The alternative worth testing.** Take the excess from each party in
-proportion to how uncertain its level is, rather than in proportion to its
-size. A party whose level rests on a typical value rather than its own record
-(ActionSA's 0.72, a first-time party) would absorb more than one with a long
-record. Dividing the excess equally in points is not a candidate: it would push
-small parties below zero.
-
-**Options.** (a) Go live with proportional scaling, and test the
-uncertainty-weighted rule after go-live. (b) Pre-register and test it on the
-backtest now. This changes forecast numbers, so the width record and the
-backtest are re-run, and an old-against-new report is added: about a day
-before the rebuild.
-
-**Recommendation.** (b) if go-live can take a day; it is the step that moves
-ActionSA, the DA and the ANC most after the levels themselves.
 
 ### 10. Letting readers make the judgement calls
 
@@ -120,8 +79,8 @@ by the brief, the build and the test site round.
 
 ### 7. The go-live yes
 
-**Context.** Items 2, 3, 5, 6 and 9 are answered. Item 1 (party calls) and item 12 (how
-shares are made to add to 100%) are left before the final rebuild. After the rebuild, with your yes:
+**Context.** Items 2, 3, 5, 6 and 9 are answered. Item 1 (which ActionSA percentage) is left
+before the final rebuild, then the review (below). After the rebuild, with your yes:
 
 - regenerate the frozen forecast and the site's simulation files;
 - rebuild the test site from today's model (the one there now, UAT version
@@ -172,6 +131,74 @@ Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
 ---
 
 ## Answered
+
+### 12. The two steps after the levels: the size pull and making shares add to 100% — answered 2026-10-21
+
+**Your questions (2026-10-21):** what is the "small adjustment", and should
+every party be scaled equally to fit 100%?
+
+**Today's Johannesburg 2026 run, list vote (%):**
+
+| party | level | after the size pull | after scaling to 100% |
+|---|---|---|---|
+| DA | 32.60 | 30.48 | 26.62 |
+| ANC | 27.33 | 25.79 | 22.53 |
+| ActionSA | 14.70 | 14.48 | 12.64 |
+| EFF | 11.47 | 11.54 | 10.08 |
+| MK | 10.26 | 10.42 | 9.11 |
+| PA | 6.97 | 7.36 | 6.43 |
+
+**The size pull (`level_shrink`, JUDGEMENT-CALLS §A23).** Each party is cut by
+an amount that grows with its size: a party keeps `1 − 0.35 × s / (s + 0.04)`
+of its level `s`. A party at 15% keeps 72.5%, one at 1% keeps 93%. The vote
+cut is then handed back to every party in proportion to its share, so the
+total does not change. Net: the largest parties lose, the middle gains a
+little. It exists because forecasts of past elections gave the top three
+parties too much and the next nine too little by about the same amount
+(summed over nine city-years: +32.3 points against −36.2). The 0.35 was fitted
+on Johannesburg 2016 alone (0.375) and leaving out each city-year in turn
+picks 0.35 every time. Adopted 2026-08-17 (MODEL-LOG §1.44): seat error over
+nine city-years 312 → 264. Known cost: the handed-back vote over-feeds the
+smallest parties.
+
+**Scaling to 100%.** Each party's level is estimated on its own, and nothing
+makes the levels add up. Every party is then divided by the same number, so
+each loses the same fraction of its own share (12.7% here), which in points
+falls most on the largest parties (DA −3.9, PA −0.9).
+
+Measured, from the traces of the 2021 backtest: the levels added to between
+100.0% (Buffalo City) and 112.4% (Cape Town) across the eight metros, and
+111.9% in Johannesburg. Johannesburg 2026's 114.6% is above all of them. The
+backtest scores include this rule, so it is tested in that sense, but it has
+never been compared with another rule.
+
+**The alternative worth testing.** Take the excess from each party in
+proportion to how uncertain its level is, rather than in proportion to its
+size. A party whose level rests on a typical value rather than its own record
+(ActionSA's 0.72, a first-time party) would absorb more than one with a long
+record. Dividing the excess equally in points is not a candidate: it would push
+small parties below zero.
+
+**Answer (owner, 2026-10-21):** test it now, with the note "no point
+adhering to a level when one has a history of the level decreasing".
+
+**Result (MODEL-LOG §1.328).** Tested on all 24 past city-years (eight metros,
+2011, 2016, 2021):
+
+| rule | summed list-vote error (points) | seats to the wrong party |
+|---|---|---|
+| proportional (as now) | 77.19 | 386 |
+| by uncertainty | 99.51 | 469 |
+| halfway between | 104.29 | 480 |
+
+Both alternatives are worse in 2016 and 2021 and in total. The least certain
+levels belong to parties standing for the first time, and in this record
+their levels are not the ones that are too high: under proportional scaling
+they are over-forecast by 4.9 points summed over 24 elections, and taking the
+excess from them under-forecasts them by 30.8 (ActionSA in 2021 would have been
+cut to 0.7%; it won 16%). Proportional scaling stays. Your point about a party
+whose record is falling is not tested by this: the model's uncertainty is set
+by size and newness, not by trend.
 
 ### 9. Separate by-election weights for small and large parties — answered 2026-10-21
 

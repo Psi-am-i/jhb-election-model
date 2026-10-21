@@ -30948,3 +30948,33 @@ An independent check of §1.326 (read-only; every figure re-derived from the arm
 **Wording.** The pull back alone gives 47% of ½'s gain in Nelson Mandela Bay (0.705 of 1.513 points), not "about half"; §1.325's "mostly" does not hold there either.
 
 **What this changes.** Nothing in the model. ½ remains the measured single weight (instrument 1, unaffected). The per-class question goes to the owner with both partitions' results (OWNER-DECISIONS item 9).
+
+## 1.328 Making the shares add to 100% by uncertainty instead of in proportion: both alternatives are worse on the 24-city-year panel; proportional scaling stays (2026-10-21)
+
+**Method.** `prereg/2026-10-21-scaling-by-uncertainty.md` (committed f30f913 before the runs), at f30f913 with no model code changed. `audits/2026-10-21-scaling-by-uncertainty/run.py` scores every city-year of `history.json` (24) with `compare_history.run_city_year`, 1,000 draws, seed 20261104, one arm per process. P: as shipped (every centre divided by the same number in `pool_spec`). V and H wrap `blended_centres` so that, after the size pull, the excess `T − 1` is taken from each party in proportion to `u_i`: V `(c_i σ_i)²`, H `c_i σ_i²`, with `σ_i` the draw's own log width (`montecarlo.poll_model_sd`); a party is held at 10% of its centre if its cut would pass 90%. Before the panel ran, a smoke test of V at Johannesburg 2021 was run (ActionSA held at the floor, 7.39% → 0.74%; list-vote error 6.30 → 9.37). Arm results and `score.txt` in the audit folder.
+
+**Result, 24 city-years** (list-vote error is `pr_mae`, vote-weighted, points; signed errors are forecast − actual over the vote table's parties, summed):
+
+| arm | list-vote error, summed | 2011 | 2016 | 2021 | wards called wrong | seats to the wrong party | new parties, signed | top three, signed |
+|---|---|---|---|---|---|---|---|---|
+| P, proportional | 77.19 | 44.52 | 8.78 | 23.90 | 78 | 386.0 | +4.92 | −16.36 |
+| V, by variance | 99.51 | 45.40 | 18.51 | 35.60 | 81 | 469.0 | −30.84 | −0.64 |
+| H, halfway | 104.29 | 43.33 | 22.80 | 38.16 | 80 | 480.0 | −31.69 | +30.77 |
+
+Under V the parties held at the floor are the arrivals: ActionSA at Johannesburg and Tshwane 2021, the EFF at Cape Town and Nelson Mandela Bay 2016, GOOD at Cape Town 2021. The largest single losses: Cape Town 2016 0.51 → 5.01 (V) and 7.53 (H), Johannesburg 2021 6.30 → 9.37 and 9.93. Under H a large number of small parties reach the floor in five city-years, because `c σ²` weights the small parties' wide widths more heavily than V. H improves 2011 (44.52 → 43.33), where few parties are new to the city; V improves Mangaung 2021 (1.76 → 1.27).
+
+**Scoring the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| S1 | P reproduces `history.json`, `pr_mae` within 1e-12, seat errors identical | seat errors identical held; **`pr_mae` falsified on its letter**: largest difference 1.47e-11 (float summation order) |
+| S2 | under V, new parties' summed signed error moves down by more than 3 points | held (+4.92 → −30.84) |
+| S3 | V fails the decision rule | held: worse on all three criteria |
+| S4 | H between P and V on every summed instrument | **falsified**: H is worse than V on the total, 2016, 2021 and seats; better than both in 2011 |
+| S5 | the three largest parties' signed error rises under V | held (−16.36 → −0.64) |
+
+**Decision rule, as registered.** Neither alternative has a lower summed list-vote error, so proportional scaling stays.
+
+**What this says.** The parties whose levels are least certain are mostly arrivals, and in this record the model's levels for them are not too high: proportional scaling leaves them over-forecast by 4.92 points summed over 24 city-years, and taking the excess from them turns that into −30.8. The excess over 100% is not concentrated where the widths are widest. The owner's point about trajectory (a party whose record is falling) is not tested: the widths measure uncertainty by size and newness, not by trend.
+
+**What this changes.** Nothing in the model. JUDGEMENT-CALLS gains the scaling rule as a measured choice (§A23's record).
