@@ -419,19 +419,21 @@ def _token_diff(old: str, new: str) -> list[str]:
 
 def _served_by_newest_publication() -> bool:
     """Whether site/ is what the ledger's newest publication served: its
-    ``changes.json`` names that publication's run. Such pages classify each
+    ``changes.json`` carries that publication's forecast content (the identity
+    ``build_site.py --as-published`` checks; not the run id, whose commit part
+    changes with every later commit). Such pages classify each
     figure against the edition before (the arrows, "now <date>"), so a plain
     rebuild, which classifies against the publication itself, cannot
     reproduce them; ``--as-published`` can."""
     import cityconfig
     import publication
     try:
-        run = json.loads((SITE / "changes.json").read_text("utf-8"))["run"]["model_run_id"]
+        run = json.loads((SITE / "changes.json").read_text("utf-8"))["run"]["forecast_content_sha256"]
     except (OSError, ValueError, KeyError, TypeError):
         return False
     _, newest = publication.before_latest_publication(
         publication.history(cityconfig.active().slug, root=ROOT / publication.LEDGER_ROOT))
-    return newest is not None and run == newest.model_run_id
+    return newest is not None and bool(run) and run == (newest.provenance or {}).get("forecast_content_sha256")
 
 
 def _build_to(out: Path) -> tuple[int | str | None, str]:
