@@ -21,8 +21,9 @@ Answered items: `OWNER-DECISIONS-ANSWERED.md`.
 The rest of `~/projects/atlas-jhb-model-newsdesk/marketing/PLAN-2026-10-21.md`
 §9 is still open, with its context there:
 
-1. Budget: nothing, or a sum (Google Search ads only), and Workers Paid
-   ($5 USD a month) if daily requests pass 50,000.
+1. Budget — answered 2026-10-22: "We have a 3,000 budget and it will be
+   entirely spent on Twitter/X" (taken as R3,000; say if not). Open: Workers
+   Paid ($5 USD a month) if daily requests pass 50,000.
 2. Channels to keep or drop: Reddit and forums, LinkedIn, Facebook and
    Instagram, radio.
 3. Whether you front it in person (radio, a photo, named posts) or the site
