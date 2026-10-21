@@ -124,9 +124,9 @@ SAYS: tuple[Say, ...] = (
         "The % of " + _SIMS + " where the ANC and the DA together held a majority of the council."),
     # --- the excessive-seats clause ------------------------------------------
     Say(r"tile\.p_anc_excessive|ballots\.p_anc_excessive|p_excessive_anc", "chance", M,
-        "The % of " + _SIMS + " where the excessive-seats clause applied to the ANC: it won more wards than its votes entitle it to in seats, so it got no list seats."),
+        "The % of " + _SIMS + " where the excessive-seats clause applied to the ANC: it won as many wards as its votes entitle it to in seats, or more, so it got no list seats."),
     Say(rf"(?:home|tile)\.p_excessive\.{_p}", "chance", M,
-        "The % of " + _SIMS + " where the excessive-seats clause applied to {party}: it won more wards than its votes entitle it to in seats, so it got no list seats."),
+        "The % of " + _SIMS + " where the excessive-seats clause applied to {party}: it won as many wards as its votes entitle it to in seats, or more, so it got no list seats."),
     Say(r"tile\.p_excessive_any", "chance", M,
         "The % of " + _SIMS + " where the excessive-seats clause applied to at least one party."),
     Say(r"tile\.p_excessive_rest", "chance", M,
@@ -156,7 +156,7 @@ SAYS: tuple[Say, ...] = (
     # --- minority administrations --------------------------------------------
     Say(r"minority\.(?P<cand>[A-Z]+)_minority_(?:only_)?(?P<opp>[A-Z]+(?:_[A-Z]+)*?)_opposes?(?:_2021_pattern)?",
         "chance", M,
-        "The % of " + _SIMS + " where {cand} has more seats than {opp}, so it can govern alone if every other party abstains."),
+        "The % of " + _SIMS + " where {cand} has more seats than {opp}, so it can govern as a minority if every other party abstains."),
     # --- the who-can-govern lede ---------------------------------------------
     Say(r"govern\.da_best_without", "chance", M,
         "The best chance, across " + _SIMS + ", of any coalition in the table that includes the DA and not the ANC, the EFF or MK Party."),

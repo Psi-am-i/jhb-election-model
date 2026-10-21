@@ -1257,7 +1257,7 @@ def run_facts(ctx: dict, ident: dict):
 
 
 def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
-                 publishing: bool, facts) -> str:
+                 publishing: bool, facts, first_ledgered: dict | None = None) -> str:
     """THE ONE TOOLTIP WRITER (owner, 2026-10-22; audits/2026-10-22-tooltips/
     BRIEF.md). Two lines, the same structure for every figure on the site:
 
@@ -1275,7 +1275,11 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
 
     ``c`` is one `_ledger_candidates` change; ``by_token`` all of them;
     ``registry`` the stats registry's entries; ``edition`` the date this
-    build is dated to (``YYYY-MM-DD``)."""
+    build is dated to (``YYYY-MM-DD``); ``first_ledgered`` each token's first
+    ledger date. A figure typed on the site before it became a token
+    (``on_site``) is dated from that day while its value has not changed since
+    it was first ledgered: the ledger's first row is not its first
+    publication (owner's sweep, 2026-10-03, items 1 and 2)."""
     import tooltip_says
     unit, who, said = tooltip_says.says(c["token"], facts)
     entry = registry.get(c["token"]) or {}
@@ -1290,18 +1294,24 @@ def tooltip_text(c: dict, *, by_token: dict, registry: dict, edition: str,
         return tooltip_date(d, edition)
     this = f"since {when(edition)}" if publishing else "in this build"
 
+    first = first_ledgered or {}
+
     def since_part(x):
         """How line 1 dates a live figure ``x`` (a change)."""
+        on_site = (registry.get(x["token"]) or {}).get("on_site")
         if x["previous"] is None:
-            on_site = (registry.get(x["token"]) or {}).get("on_site")
             return f"since {when(on_site)}" if on_site else this
         if x["movement"] in ("none", "rounding"):
-            return f"since {when(x['since'])}"
-        if x["display"] == x["previous"]:
+            run = x["since"]
+        elif x["display"] == x["previous"]:
             # a raw value that changed while its printed form did not
             # (`nominal` on a string) is unchanged to a reader
-            return f"since {when(x['previous_since'])}"
-        return this
+            run = x["previous_since"]
+        else:
+            return this
+        if on_site and run and run == first.get(x["token"]) and str(on_site) < str(run)[:10]:
+            run = on_site
+        return f"since {when(run)}"
 
     tracked = entry.get("tracks")
     frozen_on = entry.get("on_site") or entry.get("captured")
@@ -2176,8 +2186,14 @@ def main(argv: list[str] | None = None) -> int:
             a_, b_ = _num(c["display"]), _num(now_disp)
             arrows[c["token"]] = (("↗" if b_ > a_ else "↘") if None not in (a_, b_) else "◆",
                                   f"Is now {now_disp}.", "moved-since")
+    first_ledgered: dict[str, str] = {}
+    for r in classified_rows:
+        if r.published_at and (r.token not in first_ledgered
+                               or str(r.published_at) < first_ledgered[r.token]):
+            first_ledgered[r.token] = str(r.published_at)
     history = {c["token"]: tooltip_text(c, by_token=by_token, registry=registry_entries,
-                                        edition=now_date, publishing=publishing, facts=facts)
+                                        edition=now_date, publishing=publishing, facts=facts,
+                                        first_ledgered=first_ledgered)
                for c in changes}
     if changes:
         for page in sorted({p for c in changes for p in c["pages"]}):

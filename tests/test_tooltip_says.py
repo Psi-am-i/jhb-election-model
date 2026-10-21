@@ -146,6 +146,19 @@ def test_line_one_moved_unchanged_new_and_unpublished():
     assert _tip(new, publishing=False).startswith("35% chance in this build.\n")
     typed = _tip(new, registry={"home.p_anc_largest": {"on_site": "2026-08-08"}})
     assert typed.startswith("35% chance since 8 August.\n"), typed
+    # ... and keeps that date once ledgered, while the value has not moved
+    # since its first ledger row; once it has moved, the run's own date
+    ledgered = _c(display="45%", movement="none", since="2026-10-06T10:00:00Z")
+    reg = {"home.p_anc_largest": {"on_site": "2026-08-08"}}
+    import build_site as B
+    tip = B.tooltip_text(ledgered, by_token={ledgered["token"]: ledgered}, registry=reg,
+                         edition="2026-10-21", publishing=True, facts=FACTS,
+                         first_ledgered={"home.p_anc_largest": "2026-10-06T10:00:00Z"})
+    assert tip.startswith("45% chance since 8 August.\n"), tip
+    tip = B.tooltip_text(ledgered, by_token={ledgered["token"]: ledgered}, registry=reg,
+                         edition="2026-10-21", publishing=True, facts=FACTS,
+                         first_ledgered={"home.p_anc_largest": "2026-09-01T00:00:00Z"})
+    assert tip.startswith("45% chance since 6 October.\n"), tip
     # a date in another year keeps its year
     assert _tip(_c(previous_since="2025-12-01T00:00:00Z")).split("\n")[0].endswith(
         "Was 45% on 1 December 2025.")
