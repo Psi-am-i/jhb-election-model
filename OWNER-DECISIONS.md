@@ -168,8 +168,8 @@ falls most on the largest parties (DA −3.9, PA −0.9).
 
 Measured, from the traces of the 2021 backtest: the levels added to between
 100.0% (Buffalo City) and 112.4% (Cape Town) across the eight metros, and
-111.9% in Johannesburg. Johannesburg 2026's 114.6% is above all of them
-(Cape Town 2016 reached 117.6%). The
+111.9% in Johannesburg. Johannesburg 2026's 114.6% is above all eight
+2021 metros; on the 24-city-year panel Cape Town 2016 reached 117.6%. The
 backtest scores include this rule, so it is tested in that sense, but it has
 never been compared with another rule.
 

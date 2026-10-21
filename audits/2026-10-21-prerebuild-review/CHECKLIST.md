@@ -22,9 +22,11 @@ that"):
   which is in the Johannesburg 2026 spec's key and the width record's key.
   Re-emit that one spec, then `width_record.py --emit` (after `bye_value.json`
   and the group-share record, which are current and need no re-emit).
-- **The backtest (`compare_history`)**: no model code changed since its last
-  run at a9754ed, which reproduced b0ab4b0 exactly. Re-run only if the freeze
-  refuses a `history.json` that declares an older code commit; a judgement on
+- **The backtest (`compare_history`)**: no model code changed since a9754ed.
+  §1.328's arm P, run at the clean f30f913 tree, reproduced all 24
+  `history.json` rows (list-vote error within 1.47e-11, seat errors
+  identical). `history.json`'s manifest records a9754ed with `git_dirty: true`;
+  re-run only if the freeze's provenance check refuses that. A judgement on
   Johannesburg 2026 does not reach any backtest row.
 
 ## Before the rebuild

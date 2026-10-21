@@ -30994,3 +30994,5 @@ An independent review of the record from §1.314 on (brief `audits/2026-10-21-pr
 **Corrected in place** (not this log): JUDGEMENT-CALLS §A23 record item 3, §A59 Evidence (per-class result on the model's classes) and heading, §F6 and §SJ1 (the owner's answers of 2026-10-21), MACHINERY's by-election rows, the prereg index rows of 2026-10-20 and 2026-10-21, OWNER-DECISIONS items 9 and 12.
 
 **Reviewer A** (code, `3357a5ee..e537df9`) found no defect giving a wrong forecast number today. Its items for the rebuild are in `audits/2026-10-21-prerebuild-review/CHECKLIST.md`.
+
+**§1.329 addendum (2026-10-21).** Reviewer B's check of the corrections: the list of improvements under the alternatives also includes V at Nelson Mandela Bay 2011 (7.35 → 7.33). §A59's quotation of §1.325's seat figure is relabelled as the median-vector statistic, and its per-class sentence now states M6's width result beside the non-overlap result.
