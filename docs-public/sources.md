@@ -53,7 +53,7 @@ current would be wrong.
 
 Fifteen Johannesburg wards have held by-elections since 2021. They are the only
 direct evidence of how opinion has moved between elections. The model reads them
-and, in this forecast, gives them no weight (see the methodology). The IEC's official download page could not supply them: its report
+and moves each party's expected share halfway toward what they imply (see the methodology). The IEC's official download page could not supply them: its report
 links work only inside the browser session that created them. The IEC's public
 dashboard is fed by plain data files that anyone can read, with more detail than
 the reports, down to voting-district level with every party and candidate. The
@@ -62,8 +62,9 @@ model uses those.
 ## People
 
 Statistics South Africa publishes ward-level population estimates from Census
-2022 (age, sex and population group for all 135 wards), and the turnout
-modelling uses them. The more detailed small-area data (income, dwelling type,
+2022 (age, sex and population group for all 135 wards). The model uses one
+thing from them: each ward's population-group shares, which split that ward's
+registered voters into groups. The more detailed small-area data (income, dwelling type,
 employment) is not published, because at ward level it can identify households.
 Access under conditions exists, and we have not sought it.
 

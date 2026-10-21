@@ -10,8 +10,8 @@
     0.0,
     0.0
    ],
-   "code_sha256": "cb218a20d85c47a339b84129f2da0168a452bbb9d40f1e8f8d42ab858bde5789",
-   "model_sha256": "de1911fd45724934b3c03b07037701f66043418cc684da4c31f98dc1fb5c1d94",
+   "code_sha256": "d99bd20efe90e568d136b147bbbabd2d1d1d56c25265fd6c279162f09b3ec9d6",
+   "model_sha256": "336d666d05a0f7b3714f8b7ebcbadf9b90be66e385c273604f30760a74b1615b",
    "published_run": "r-c68c627d287e-e6f5c4f1-dirty",
    "draws": 5000,
    "seed": 20261104,
@@ -20,13 +20,13 @@
   {
    "path": ".",
    "overrides": [],
-   "w_bye": null,
+   "w_bye": 0.5,
    "bye_weight_range": [
-    0.0,
-    0.0
+    0.5,
+    0.5
    ],
-   "code_sha256": "cb218a20d85c47a339b84129f2da0168a452bbb9d40f1e8f8d42ab858bde5789",
-   "model_sha256": "de1911fd45724934b3c03b07037701f66043418cc684da4c31f98dc1fb5c1d94",
+   "code_sha256": "d99bd20efe90e568d136b147bbbabd2d1d1d56c25265fd6c279162f09b3ec9d6",
+   "model_sha256": "336d666d05a0f7b3714f8b7ebcbadf9b90be66e385c273604f30760a74b1615b",
    "published_run": "r-c68c627d287e-e6f5c4f1-dirty",
    "draws": 5000,
    "seed": 20261104,
@@ -42,8 +42,8 @@
     1.0,
     1.0
    ],
-   "code_sha256": "cb218a20d85c47a339b84129f2da0168a452bbb9d40f1e8f8d42ab858bde5789",
-   "model_sha256": "de1911fd45724934b3c03b07037701f66043418cc684da4c31f98dc1fb5c1d94",
+   "code_sha256": "d99bd20efe90e568d136b147bbbabd2d1d1d56c25265fd6c279162f09b3ec9d6",
+   "model_sha256": "336d666d05a0f7b3714f8b7ebcbadf9b90be66e385c273604f30760a74b1615b",
    "published_run": "r-c68c627d287e-e6f5c4f1-dirty",
    "draws": 5000,
    "seed": 20261104,
@@ -129,8 +129,8 @@
    "weight_sum": 181.84,
    "weighted_delta": -0.0679,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "EFF",
@@ -138,8 +138,8 @@
    "weight_sum": 127.88,
    "weighted_delta": 0.0069,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "DA",
@@ -147,8 +147,8 @@
    "weight_sum": 125.09,
    "weighted_delta": 0.0934,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "MK",
@@ -156,8 +156,8 @@
    "weight_sum": 122.17,
    "weighted_delta": 0.1058,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "AIC",
@@ -165,8 +165,8 @@
    "weight_sum": 62.18,
    "weighted_delta": -0.0089,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "PA",
@@ -174,8 +174,8 @@
    "weight_sum": 59.0,
    "weighted_delta": 0.1892,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "ASA",
@@ -183,8 +183,8 @@
    "weight_sum": 57.25,
    "weighted_delta": 0.0055,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "ALL_CITIZENS_PARTY",
@@ -193,7 +193,7 @@
    "weighted_delta": 0.0205,
    "reaches_model": true,
    "class_weight": 0.0,
-   "size_class": "under"
+   "size_class": "no record"
   },
   {
    "party": "ATM",
@@ -201,8 +201,8 @@
    "weight_sum": 39.54,
    "weighted_delta": 0.0019,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "IFP",
@@ -210,8 +210,8 @@
    "weight_sum": 31.94,
    "weighted_delta": 0.001,
    "reaches_model": true,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "TRUTH_AND_SOLIDARITY_MOVEMENT",
@@ -220,7 +220,7 @@
    "weighted_delta": 0.0011,
    "reaches_model": true,
    "class_weight": 0.0,
-   "size_class": "under"
+   "size_class": "no record"
   },
   {
    "party": "AFRICAN_MOVEMENT_CONGRESS",
@@ -237,8 +237,8 @@
    "weight_sum": 28.83,
    "weighted_delta": 0.0101,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "DUDULA",
@@ -246,8 +246,8 @@
    "weight_sum": 28.83,
    "weighted_delta": 0.0307,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "ALJAMAAH",
@@ -255,8 +255,8 @@
    "weight_sum": 28.57,
    "weighted_delta": 0.0586,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "AMALGAMATED_RAINBOW_MOVEMENT",
@@ -264,8 +264,8 @@
    "weight_sum": 28.57,
    "weighted_delta": 0.0039,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "PAC",
@@ -273,8 +273,8 @@
    "weight_sum": 20.03,
    "weighted_delta": 0.0289,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "VUKA_SA",
@@ -283,7 +283,7 @@
    "weighted_delta": 0.0012,
    "reaches_model": false,
    "class_weight": 0.0,
-   "size_class": "under"
+   "size_class": "no record"
   },
   {
    "party": "ARISE_AFRIKA_ARISE_INDEPENDENT_CONGRESS",
@@ -300,8 +300,8 @@
    "weight_sum": 13.85,
    "weighted_delta": 0.0358,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "INDIGENOUS_DEMOCRATIC_REVOLUTION",
@@ -319,7 +319,7 @@
    "weighted_delta": 0.02,
    "reaches_model": false,
    "class_weight": 0.0,
-   "size_class": "under"
+   "size_class": "no record"
   },
   {
    "party": "THE_ORGANIC_HUMANITY_MOVEMENT",
@@ -327,8 +327,8 @@
    "weight_sum": 10.44,
    "weighted_delta": 0.0047,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "ALLIED_MOVEMENT_FOR_CHANGE",
@@ -345,8 +345,8 @@
    "weight_sum": 8.39,
    "weighted_delta": 0.0647,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "under"
+   "class_weight": 0.5,
+   "size_class": "override"
   },
   {
    "party": "RISE",
@@ -354,8 +354,8 @@
    "weight_sum": 7.58,
    "weighted_delta": 0.1031,
    "reaches_model": false,
-   "class_weight": 0.0,
-   "size_class": "at_or_over"
+   "class_weight": 0.5,
+   "size_class": "override"
   }
  ],
  "byelection_min_weight": 30.0,

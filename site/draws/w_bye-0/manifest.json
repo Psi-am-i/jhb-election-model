@@ -839,10 +839,10 @@
   "source": "run_model trace, stage 30_centres, after_shrink",
   "values": {
    "ACDP": 0.008126761078573509,
-   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.000830985751738398,
+   "ACTIVE_AFRICAN_CHRISTIANS_UNITED_MOVEMENT": 0.0008309857517383978,
    "AFRICAN_CONGRESS_FOR_TRANSFORMATION": 0.0006928378317626227,
    "AFRICAN_ECONOMIC_FREEDOM": 0.0008369004377100431,
-   "AFRICAN_LABOUR_CONVENTION": 0.0004938601727254784,
+   "AFRICAN_LABOUR_CONVENTION": 0.0004938601727254783,
    "AFRICAN_RENAISSANCE_UNITY": 0.0008717666896027516,
    "AFRICAN_ROYAL_RAINBOW_CONGRESS": 0.00040857384936272834,
    "AFRICAN_UNEMPLOYED_CONGRESS": 0.0008369004377100431,
@@ -853,7 +853,7 @@
    "AIC": 0.004215590335611408,
    "ALJAMAAH": 0.009770375939690714,
    "ALLIED_INDEPENDENTS_UMBRELLA": 0.0008369004377100431,
-   "ALL_CITIZENS_PARTY": 0.00047766987919741204,
+   "ALL_CITIZENS_PARTY": 0.00047766987919741193,
    "ALL_NATIVES_OF_SOUTH_AFRICA": 0.0008369004377100431,
    "AMALGAMATED_RAINBOW_MOVEMENT": 0.00032467303086615337,
    "ANC": 0.26398619428564024,
@@ -867,8 +867,8 @@
    "BOSA": 0.012925387910089098,
    "CHANGE": 0.0004472809509765919,
    "CHRIST_KINGDOM_PARTY": 0.00037745757462969397,
-   "COMBAT": 0.0004097945138951297,
-   "COMMUNITY_FIRST_MOVEMENT": 0.0004097945138951297,
+   "COMBAT": 0.00040979451389512963,
+   "COMMUNITY_FIRST_MOVEMENT": 0.00040979451389512963,
    "COPE": 0.0006775903780174787,
    "DA": 0.2889201462535121,
    "DUDULA": 0.0017607851678295196,
@@ -882,7 +882,7 @@
    "IFP": 0.016666607839753416,
    "ILIZWE_NATHI": 0.00040857384936272834,
    "IMSTAYING": 0.00040857384936272834,
-   "INDEPENDENT_CITIZENS_MOVEMENT": 0.0008401686517936854,
+   "INDEPENDENT_CITIZENS_MOVEMENT": 0.0008401686517936851,
    "INTERNATIONAL_REVELATION_CONGRESS": 0.0010998125691347139,
    "KINGDOM_COVENANT_DEMOCRATIC_PARTY": 0.00041662197548374786,
    "KNOW_YOUR_POWER": 0.0008369004377100431,
@@ -892,30 +892,30 @@
    "MINORITY_FRONT": 0.0008369004377100431,
    "MK": 0.10104277115294096,
    "MOVEMENT_OF_RESIDENTS_PARTY": 0.00040857384936272834,
-   "MOVE_SA": 0.000839559126321741,
-   "NATIONAL_DEMOCRATIC_CONVENTION": 0.0007901939261635122,
+   "MOVE_SA": 0.0008395591263217406,
+   "NATIONAL_DEMOCRATIC_CONVENTION": 0.0007901939261635121,
    "NCC": 0.0008369004377100431,
    "NFP": 0.0007589659635133504,
    "PA": 0.06470614355573408,
    "PAC": 0.0037598393459410766,
    "PEOPLE_OF_JOBURG": 0.0008369004377100431,
-   "PEOPLE_S_CONSENT_PARTY": 0.000322491504131887,
+   "PEOPLE_S_CONSENT_PARTY": 0.00032249150413188695,
    "PEOPLE_S_MOVEMENT_FOR_CHANGE": 0.0008369004377100431,
    "PRO_SOUTH_AFRICA": 0.000590080048988736,
-   "RESIDENT_DEVELOPMENT": 0.000322491504131887,
+   "RESIDENT_DEVELOPMENT": 0.00032249150413188695,
    "RISE": 0.0202319573210523,
    "SERVICE_DELIVERY_PARTY": 0.0008369004377100431,
    "SHOSHOLOZA_PROGRESSIVE_PARTY": 0.00019653141791618588,
    "SOUTH_AFRICAN_COMMUNIST_PARTY": 0.0008369004377100431,
    "SOUTH_AFRICAN_PEOPLE_S_CIVIC_ORGANIZATION": 0.0008274669255233666,
-   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.000322491504131887,
+   "TAU_DIA_RORA_CULTURAL_AND_TRADITIONAL_LEKGOTLA": 0.00032249150413188695,
    "THE_ORGANIC_HUMANITY_MOVEMENT": 0.0004988970772234919,
-   "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.000839559126321741,
+   "TRUTH_AND_SOLIDARITY_MOVEMENT": 0.0008395591263217406,
    "UIM": 0.0014183830728549745,
    "UMPHAKATHI_WARONA": 0.0008274669255233666,
    "UNITED_AFRICANS_TRANSFORMATION": 0.0023870658702075127,
    "VFPLUS": 0.00982703511510686,
-   "VUKA_SA": 0.0008463688807180085,
+   "VUKA_SA": 0.0008463688807180083,
    "OTHER": 0.0036425137086764344
   },
   "absent": []
@@ -935,7 +935,7 @@
   },
   "ALL_CITIZENS_PARTY": {
    "weight": 0.0,
-   "class": "override"
+   "class": "no record"
   },
   "AMALGAMATED_RAINBOW_MOVEMENT": {
    "weight": 0.0,
@@ -983,7 +983,7 @@
   },
   "NCC": {
    "weight": 0.0,
-   "class": "override"
+   "class": "no record"
   },
   "PA": {
    "weight": 0.0,
@@ -1003,11 +1003,11 @@
   },
   "TRUTH_AND_SOLIDARITY_MOVEMENT": {
    "weight": 0.0,
-   "class": "override"
+   "class": "no record"
   },
   "VUKA_SA": {
    "weight": 0.0,
-   "class": "override"
+   "class": "no record"
   }
  },
  "vote_blocks": {
@@ -1082,11 +1082,11 @@
  },
  "artefact_key": {
   "git": {
-   "commit": "08136c5092ebc55363dc145bd47ec591bdcfd9c3",
+   "commit": "37b3e6654631b5f1a373f60fbc7ab5d93b76190f",
    "dirty": false
   },
-  "code_sha256": "cb218a20d85c47a339b84129f2da0168a452bbb9d40f1e8f8d42ab858bde5789",
-  "model_sha256": "de1911fd45724934b3c03b07037701f66043418cc684da4c31f98dc1fb5c1d94",
+  "code_sha256": "d99bd20efe90e568d136b147bbbabd2d1d1d56c25265fd6c279162f09b3ec9d6",
+  "model_sha256": "336d666d05a0f7b3714f8b7ebcbadf9b90be66e385c273604f30760a74b1615b",
   "model_modules": [
    "backtest.py",
    "benchmarks.py",
@@ -1135,11 +1135,11 @@
    "pools_2011.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "fab627a741c0c7c8",
-    "pools_sha": "76bfd9d621659ee1",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "absent",
     "schema": 2,
     "target": "2011"
@@ -1147,11 +1147,11 @@
    "pools_2016.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "7ea7faaaafd6e3c5",
-    "pools_sha": "76bfd9d621659ee1",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "absent",
     "schema": 2,
     "target": "2016"
@@ -1159,11 +1159,11 @@
    "pools_2021.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
     "judgements_sha": "54e74cd0d54d1a2b",
-    "pools_sha": "76bfd9d621659ee1",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "absent",
     "schema": 2,
     "target": "2021"
@@ -1171,11 +1171,11 @@
    "pools_2026.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
-    "judgements_sha": "9317b4262a4bbe09",
-    "pools_sha": "76bfd9d621659ee1",
+    "judgements_sha": "3851439df49e04fb",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "db831def8e100fbd",
     "schema": 2,
     "target": "2026"
@@ -1183,11 +1183,11 @@
    "pools_2026_simulation.json": {
     "cities_sha": "9328df1260c85faf",
     "city": "joburg",
-    "config_sha": "25f89b38e7b7532f",
+    "config_sha": "7ffb5edbe82f3f51",
     "deps_sha": "b23065521e4a4474",
     "gates_sha": "2ec84f1fcb67779f",
-    "judgements_sha": "9317b4262a4bbe09",
-    "pools_sha": "76bfd9d621659ee1",
+    "judgements_sha": "3851439df49e04fb",
+    "pools_sha": "e532c3005e0524b8",
     "roll_sha": "db831def8e100fbd",
     "schema": 2,
     "target": "2026"
@@ -1216,6 +1216,7 @@
     "level_floor": 1e-06,
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    "newness_width": "by_anchor",
     "overhang_rule": "deduct",
     "poll_credence": 1.0,
     "poll_deff_subsample": 1.6,
@@ -1259,6 +1260,7 @@
     "level_floor": 1e-06,
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    "newness_width": "by_anchor",
     "overhang_rule": "expand",
     "poll_credence": 1.0,
     "poll_deff_subsample": 1.6,
@@ -1302,6 +1304,7 @@
     "level_floor": 1e-06,
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    "newness_width": "by_anchor",
     "overhang_rule": "level",
     "poll_credence": 1.0,
     "poll_deff_subsample": 1.6,
@@ -1345,6 +1348,7 @@
     "level_floor": 1e-06,
     "level_shrink": 0.35,
     "level_shrink_scale": 0.04,
+    "newness_width": "by_anchor",
     "overhang_rule": "cap",
     "poll_credence": 1.0,
     "poll_deff_subsample": 1.6,
@@ -1367,10 +1371,10 @@
     "ward_noise_sd": 0.1
    }
   },
-  "judgements_applied_sha": "4f53cda18c2baa0c",
+  "judgements_applied_sha": "b803b2e9af93852a",
   "overrides": [
    "w_bye=0"
   ],
-  "time": "2026-10-16T01:54:14Z"
+  "time": "2026-10-21T10:12:14Z"
  }
 }

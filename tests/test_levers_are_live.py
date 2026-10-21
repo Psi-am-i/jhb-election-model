@@ -377,18 +377,22 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
         reason=_INCUMBENT_ONLY)
        for lever in ("dirichlet_floor", "dirichlet_scale")
        for year in ("2021", "2026")},
-    **{("apply_judgements", year): Null(
+    # At 2026 the lever is live since 2026-10-21 (ActionSA's strength
+    # judgement, JUDGEMENT-CALLS §SJ2), so its 2026 entry is deleted and the
+    # sweep must see it move there. At 2021 it stays inert for a different
+    # reason, which its gate now checks: a backtest ignores every judgement.
+    ("apply_judgements", "2021"): Null(
         cause="UNDELIVERED",
-        where="`montecarlo._apply_strength_judgements`: no strength entry "
-              "exists to apply (and a backtest ignores them by design)",
-        blocker="DATA", gate_check="no_strength_judgements",
-        evidence="no judgements file declares `support` or `overperform`; "
-                 "checked with no model run",
+        where="`montecarlo.strength_judgements`: a target with a result file "
+              "returns every entry as ignored",
+        blocker="DATA", gate_check="backtest_ignores_judgements",
+        evidence="2026-10-21: `no_strength_judgements` opened (ActionSA, "
+                 "§SJ2); the 2021 gate is `target_is_held`, checked with no "
+                 "model run",
         reason="strength judgements (design 1j v3 §11) are read at run time "
                "and are number-neutral until the owner enters one. At 2021 "
                "they would be ignored anyway: a backtest never applies a "
-               "judgement made after the election.")
-       for year in ("2021", "2026")},
+               "judgement made after the election."),
     # The three generic-entrant levers, at the targets whose arrivals are
     # SEEDED BY NAME — which is not the same set as "whose ballot is known",
     # and the difference is the whole of the correction below.
@@ -459,7 +463,8 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
                  "sweep says so. Checked by `GATES['bye_deltas_absent']`, no "
                  "model run needed. NOTE what this does NOT establish: nothing "
                  "here shows what `w_bye` is worth, at 2021 or anywhere. It is "
-                 "0.40 on the published forecast and no backtest can score it.",
+                 "0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59) "
+                 "and no backtest can score it.",
         reason=
         "by-election data covers 2022-06 to 2026-02 only, so no past target has "
         "any. Inert in every backtest by construction; live in 2026. This is why "
@@ -483,58 +488,19 @@ EXPECTED_INERT: dict[tuple[str, str], Null] = {
                  "above described the typed-0.40 model. Since item 19 (M4) the "
                  "weight is derived per size class from `bye_value.json`, both "
                  "class weights are 0, and the lever is inert at 2026 too — "
-                 "see `(\"bye_weight_mode\", \"2026\")` below.",
+                 "see `(\"bye_weight_mode\", \"2026\")` below.\n"
+                 "  ⛔ CORRECTED 2026-10-17: `w_bye` is 0.5 for every party "
+                 "(JUDGEMENT-CALLS §A59); the lever is live at 2026 and its "
+                 "2026 entry is deleted.",
         reason=
         "the minimum-variance weight derived from the two estimates' own "
         "precisions, instead of a typed 0.40. Adopted as a LEVER rather than a "
         "default on 2026-08-28: switching it moves the published 2026 forecast "
         "and nothing can score it, so it is the owner's decision. §1.122"),
-    # ⛔ BOTH 2026 ENTRIES BELOW ARE A FACT ABOUT `bye_value.json`, NOT ABOUT
-    # THE LEVERS. Added 2026-10-10 (model correction batch, step 10; M4-SUMMARY,
-    # prereg P19). The by-election block is entered only when a party's weight
-    # is positive, and since item 19 that weight is its size class's derived
-    # weight. Both derive to 0, so the block never runs and neither lever is
-    # consulted. The day either class weight is positive the gate opens,
-    # `test_the_gate_named_by_every_excuse_is_actually_shut` goes red, and both
-    # levers must be re-measured.
-    ("bye_weight_mode", "2026"): Null(
-        cause="UNDELIVERED",
-        where="`if party in bye and w > 0` in `blended_centres` — `w` is the "
-              "party's size-class weight from `bye_value.json`, both classes "
-              "derive to 0, so the block `bye_weight_mode` chooses a weight "
-              "INSIDE is never entered",
-        blocker="DATA",
-        gate_check="bye_class_weights_zero",
-        evidence="both class weights in `bye_value.json` are 0 (MODEL-LOG "
-                 "§1.295; JUDGEMENT-CALLS §A55); checked by "
-                 "`GATES['bye_class_weights_zero']`, no model run. A `w_bye` "
-                 "override bypasses the derived weight and would open the "
-                 "block; that is `w_bye`'s own sweep, not this lever's. NOTE "
-                 "what this does NOT establish: what `inverse_variance` would "
-                 "do at a positive weight, which nothing here measures.",
-        reason=
-        "the by-election evidence earns no weight in either size class "
-        "(item 19's out-of-sample test), so there is no weight for this lever "
-        "to re-derive. Inert while both class weights are 0."),
-    ("BYE_MIN_WEIGHT", "2026"): Null(
-        cause="UNDELIVERED",
-        where="`if party in bye and w > 0` in `blended_centres` — the "
-              "`weight_sum >= BYE_MIN_WEIGHT` test sits inside that block, "
-              "and both size-class weights in `bye_value.json` derive to 0, so "
-              "it is never evaluated",
-        blocker="DATA",
-        gate_check="bye_class_weights_zero",
-        evidence="both class weights in `bye_value.json` are 0 (MODEL-LOG "
-                 "§1.295; JUDGEMENT-CALLS §A55); checked by "
-                 "`GATES['bye_class_weights_zero']`, no model run. Swept "
-                 "through `MODULE_PERTURB` (it is a module constant, not a "
-                 "DEFAULTS key), which consults this entry by its bare name. "
-                 "NOTE what this does NOT establish: what the threshold is "
-                 "worth at a positive weight.",
-        reason=
-        "a minimum on a party's by-election evidence before it is used, inside "
-        "a block that runs only for a positive weight. Inert while both class "
-        "weights are 0."),
+    # The 2026 entries for `bye_weight_mode` and `BYE_MIN_WEIGHT` were deleted
+    # on 2026-10-17, with their gate `bye_class_weights_zero`: `w_bye` is 0.5
+    # for every party (owner, JUDGEMENT-CALLS §A59), the by-election block is
+    # entered at 2026, and both levers move the forecast there.
     # `level_sd_default` (DELETED 2026-10-09 after item 17 made it bind
     # nowhere, M3 review row 7) was excused here as inert at 2021 and 2026 until
     # 2026-10-09. Item 8 of the model correction batch made it bind in the
@@ -954,11 +920,17 @@ PERTURB: dict[str, object] = {
     # THE DRAW LAW (design 1j v4-L1, 2026-10-12): perturbed to the incumbent
     # law, which must move every party's draw.
     "draw_law": "incumbent",
-    # Strength judgements off: inert while no judgements file declares one
-    # (EXPECTED_INERT, gate `no_strength_judgements`).
+    # Strength judgements off: live at 2026 since ActionSA's entry (§SJ2);
+    # inert at 2021, where a backtest ignores them (EXPECTED_INERT, gate
+    # `backtest_ignores_judgements`).
     "apply_judgements": False,
     # The small-party centre correction (prereg arm UC), switched on.
     "centre_correction": True,
+    # The newcomer δ by anchor class (prereg 2026-10-16, arm S), perturbed to
+    # the single δ: every new party's width moves wherever the two classes'
+    # δ differ from the single one (targets 2021 and 2026; at 2016 every
+    # earlier newcomer was anchored, so the split is the single δ there).
+    "newness_width": "single",
     # Added 2026-08-17 after the enumeration test below found that PERTURB
     # covered 13 of 27 DEFAULTS keys and nobody had noticed.
     "entrant_share": [0.20, 0.30, 0.45],
@@ -1291,32 +1263,6 @@ def _gate_bye_deltas_absent(year: str) -> tuple[bool, str]:
     return not path.exists(), f"{path} {'exists' if path.exists() else 'absent'}"
 
 
-def _bye_class_weights_shut(path: Path) -> tuple[bool, str]:
-    """Shut iff `path` is a CURRENT `bye_value.json` whose class weights are all 0.
-
-    Read through `M.read_bye_value`, the reader `run_model` uses, so a file the
-    model would refuse (missing, stale key, malformed weights) is reported as
-    NOT shut: an absent or unreadable record is no evidence that the block is
-    skipped, and a gate that read it as shut would pass vacuously.
-    """
-    try:
-        weights = M.read_bye_value(path)["weights"]
-    except SystemExit as refusal:
-        return False, f"{path} is not a current record, so nothing is shown: {refusal}"
-    positive = {k: v for k, v in weights.items() if v > 0}
-    return not positive, (
-        f"{path.name} class weights {weights}"
-        + (f" — THE GATE IS OPEN: {positive} positive, so the by-election "
-           f"block runs" if positive else
-           ", so `if party in bye and w > 0` never fires"))
-
-
-def _gate_bye_class_weights_zero(year: str) -> tuple[bool, str]:
-    """Both derived by-election class weights are 0, so the by-election block
-    in `blended_centres` is never entered and nothing inside it is read."""
-    return _bye_class_weights_shut(M.bye_value_path())
-
-
 def _gate_bye_contest_detail_absent(year: str) -> tuple[bool, str]:
     """The ward-local by-election block's input file is not there."""
     _, target = _joburg(year)
@@ -1434,27 +1380,20 @@ def _gate_incumbent_law_shipped_off(year: str) -> tuple[bool, str]:
         + ("" if shipped == "universal" else " — THE GATE IS OPEN"))
 
 
-def _gate_no_strength_judgements(year: str) -> tuple[bool, str]:
-    """No `judgements/*.toml` file declares a strength (`support` or
-    `overperform`), so `apply_judgements` has nothing to switch (design v3
-    §11.2: number-neutral today). Read off the files; no model run."""
-    import tomllib
-    found = []
-    for f in sorted((ROOT / "judgements").glob("*.toml")):
-        table = (tomllib.loads(f.read_text()).get("party") or {})
-        found += [f"{f.name}:{p}" for p, body in table.items()
-                  if "support" in body or "overperform" in body]
-    return not found, (f"{len(list((ROOT / 'judgements').glob('*.toml')))} "
-                       f"judgements files; strength entries: {found or 'none'}"
-                       + (" — THE GATE IS OPEN" if found else ""))
+def _gate_backtest_ignores_judgements(year: str) -> tuple[bool, str]:
+    """The target has a result file, so `montecarlo.strength_judgements`
+    returns every entry as ignored and `apply_judgements` has nothing to
+    switch there. Read off the calendar; no model run."""
+    held = M.target_is_held(year)
+    return held, (f"target_is_held({year!r}) = {held}"
+                  + ("" if held else " — THE GATE IS OPEN"))
 
 
 GATES = {
     "incumbent_law_shipped_off": _gate_incumbent_law_shipped_off,
-    "no_strength_judgements": _gate_no_strength_judgements,
+    "backtest_ignores_judgements": _gate_backtest_ignores_judgements,
     "arrivals_are_named": _gate_arrivals_are_named,
     "bye_deltas_absent": _gate_bye_deltas_absent,
-    "bye_class_weights_zero": _gate_bye_class_weights_zero,
     "bye_contest_detail_absent": _gate_bye_contest_detail_absent,
     "no_metro_poll": _gate_no_metro_poll,
     "real_contestation_lists": _gate_real_contestation_lists,
@@ -1699,10 +1638,9 @@ def _sweep_conditional() -> list[str]:
 # 2026 alone, and the reason is not economy: at 2021 `BYE_MIN_WEIGHT` guards a
 # `bye` dict that is empty, so it would land straight back in EXPECTED_INERT as
 # another UNDELIVERED entry. Sweeping a constant where its evidence exists is
-# the whole lesson of this file. Since 2026-10-10 it is inert at 2026 as well
-# (both derived by-election class weights are 0) and excused there by
-# `EXPECTED_INERT[("BYE_MIN_WEIGHT", "2026")]`; the sweep keeps it so that
-# the excuse is re-tested whenever the weights change.
+# the whole lesson of this file. From 2026-10-10 to 2026-10-17 it was inert
+# at 2026 too (both derived by-election class weights were 0); since `w_bye`
+# became 0.5 for every party (JUDGEMENT-CALLS §A59) it is live there.
 MODULE_PERTURB: tuple = (
     ("montecarlo", "LEVEL_DF", "2026", 2.5,
      "the t degrees of freedom on the level shock, and this project's founding "
@@ -1730,7 +1668,7 @@ MODULE_PERTURB: tuple = (
      "how much by-election weight a party needs before its evidence is used at "
      "all. It gates each party's by-election weight, which is its size "
      "class's weight from bye_value.json (JUDGEMENT-CALLS §A55) unless "
-     "`w_bye` overrides it."),
+     "`w_bye` sets one, as its default 0.5 does (§A59)."),
     ("montecarlo", "TURNOUT_DRAW_CEILING", "2026", 0.50,
      "the ceiling on a drawn turnout. A guard that has gone blind reports "
      "exactly what a guard that never fires reports."),
@@ -2900,40 +2838,6 @@ def test_the_gate_named_by_every_excuse_is_actually_shut():
         f"GATES defines {stale}, which nothing names. A check for a gate nobody "
         f"claims is a check that will be believed for a claim it never made — "
         f"delete it, or point an entry at it.")
-
-
-def test_the_bye_class_weight_gate_opens_on_a_positive_weight():
-    """`bye_class_weights_zero` can see: constructed records, no model run.
-
-    The gate excuses two levers at 2026. A gate that reported shut whatever
-    the record held would excuse them for ever, so it is shown three inputs:
-    every weight 0 (shut), one weight positive (open), and no file (not shut,
-    because an absent record shows nothing). The first two carry the live
-    artefact key, so they reach the weights rather than the stale-key refusal.
-    """
-    import byelections as _bye
-    key = _bye.bye_value_key((M.WARD_PR_RATIO_MIN, M.WARD_PR_RATIO_MAX))
-    with tempfile.TemporaryDirectory() as tmp:
-        path = Path(tmp) / _bye.BYE_VALUE
-
-        def write(weights):
-            path.write_text(json.dumps({"artefact_key": key, "weights": weights}),
-                            encoding="utf-8")
-
-        missing_shut, missing_detail = _bye_class_weights_shut(path)
-        write({cls: 0.0 for cls in _bye.SIZE_CLASSES})
-        zero_shut, zero_detail = _bye_class_weights_shut(path)
-        verdicts = {}
-        for cls in _bye.SIZE_CLASSES:
-            write({c: (0.3 if c == cls else 0.0) for c in _bye.SIZE_CLASSES})
-            verdicts[cls] = _bye_class_weights_shut(path)
-        write({cls: 0.0 for cls in _bye.SIZE_CLASSES})
-        reverted_shut, _ = _bye_class_weights_shut(path)
-    assert not missing_shut, f"a missing record reads as shut: {missing_detail}"
-    assert zero_shut, f"all-zero weights read as open: {zero_detail}"
-    for cls, (shut, detail) in verdicts.items():
-        assert not shut, f"a positive {cls!r} weight reads as shut: {detail}"
-    assert reverted_shut, "the gate did not go quiet when the weight reverted to 0"
 
 
 def test_no_undelivered_null_is_excused_without_opening_its_gate():

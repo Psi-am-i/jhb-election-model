@@ -30353,3 +30353,785 @@ The tests in `test_scored_universe` now assert the measured state (with the incu
 **Tests.** `test_your_forecast_page::test_the_ward_ranges_are_regenerated_from_the_panel` (2): since the whole-VD assignment (`185fa78`) a split VD has one nonzero part, and `build_make._join` apportions by part over the VD's total, so doubling that part moves no ward; the test now asserts that, and that moving the roll to the VD's other ward moves both. `test_site_structure`'s two claim-colour scans missed every claim after the claim cards put `id` after `data-party` (0 matched); they read an optional `id`. `test_provenance_dates`: two `[[audit.fixed]]` "40%" entries named methodology sentences deleted with §A35 (`e0ce282`); removed. `test_export_draws.BUDGET_GZIP_BYTES` raised to 2.5 MB (§1.312).
 
 **Pages.** The claims register's five non-live entries were corrected on the pages they cite: the roll (the IEC's per-ward snapshot, each voting district wholly in one ward), the four census pools (the IFP pool is only in the simulation spec), by-elections (weight 0 in this forecast, on /methodology, /sources, /forecast and /your-forecast, whose published by-election setting was labelled "Partly"), the starting level (the local/national blend, `levels.SPINE_K`), and the draw (§A18's Plain field moved to §A57, the universal law). The ward-only rule and the national-record placement of a split are described in steps 7 and 5. The ActionSA sentence said "nationally in 2024" of 6.22%, which is ActionSA's share of Johannesburg's 2024 national ballot; it now says "in the city".
+
+## 1.314 The newcomer width by anchor class (arm S): the record's classes, both arms on the 24 city-years and Johannesburg 2026, the pre-registration scored (2026-10-16)
+
+Pre-registration: `prereg/2026-10-16-newness-width-by-anchor.md` (`cce7f16`) and its scoring addendum `prereg/2026-10-16-newness-logscore-definition.md` (`97e3e29`), both committed before the width record carrying the class δ's was emitted and before either arm ran. Code `853c83f`.
+
+**The change.** A party new to the city (no result at the previous local election there) is **anchored** when it took votes at the preceding national election in the city, so that its centre is the spine's "national only (first local election)" level, and **unanchored** otherwise (an arrival seed). `montecarlo.newness_class` reads `_baseline_before_seeds`, not the spine's route label: the spine reads the baseline after the seeds and labels every seeded arrival "national only" too (at Johannesburg 2026 all 54 new parties carry that label; 8 hold a 2024 national vote: MK, RISE, BOSA and five under 0.2% of it). At Johannesburg 2021 the class equals "spine national-only route and no arrival seed" for every new party, both directions (`test_the_class_follows_the_centres_route_at_a_real_city_year`). Each class's δ is `width_record.joint_nll` profiled over δ alone on that class's new rows, at the single-δ fit's converged curve, location and fixed-point shifts (`width_record.fit_class_deltas`). `newness_width = "single"` runs the one δ.
+
+**The record** (`data/processed/width_record.json`, re-emitted for the default variant, `level_shrink = 0` and `level_shrink_scale = 0.40`). Default variant, δ per target (rows / party-elections in the class):
+
+| target (cycles) | single δ | anchored δ | unanchored δ |
+|---|---|---|---|
+| 2016 (2011) | 0.965 | 0.965 (24 / 10) | 0.965, no rows: the single δ |
+| 2021 (2011-16) | 0.954 | 0.811 (45 / 18) | 0.999 (68 / 52) |
+| 2026 (2011-21) | 0.874 | 0.679 (87 / 35) | 0.916 (221 / 133) |
+
+At 2016 every 2011 newcomer is anchored, so the profiled anchored δ is the single δ to the search tolerance and both arms draw 2016 identically; 2011 is the fallback record and has no δ. Every other field of every target (curve, single δ, location, ρ, fixed point, `delta_shift`, bands) is byte-identical to the record emitted before the change (`.claude/newness-2026-10-16/width_record.before.json`). The `level_shrink = 0` variant gives 0.806 / 1.009 at 2021 and 0.675 / 0.925 at 2026; `level_shrink_scale = 0.40` gives 0.826 / 1.001 and 0.691 / 0.918.
+
+**The record's anchored cases**: every anchored newcomer row of the 2011-2021 record with a `pool_spec` centre of 0.5% or more; r is the residual in the record's frame (log realised over centre, relative to the large block).
+
+| city | year | party | centre % | realised list % | r |
+|---|---|---|---|---|---|
+| Buffalo City | 2011 | COPE | 17.09 | 3.70 | -1.63 |
+| Nelson Mandela Bay | 2011 | COPE | 16.64 | 4.88 | -1.38 |
+| Mangaung | 2011 | COPE | 14.00 | 3.30 | -1.56 |
+| Johannesburg | 2011 | COPE | 9.92 | 1.11 | -2.31 |
+| Tshwane | 2016 | EFF | 9.47 | 11.64 | +0.19 |
+| Ekurhuleni | 2016 | EFF | 9.04 | 11.10 | +0.22 |
+| Johannesburg | 2016 | EFF | 8.58 | 10.93 | +0.26 |
+| Tshwane | 2011 | COPE | 7.87 | 0.89 | -2.33 |
+| Mangaung | 2016 | EFF | 7.84 | 8.84 | +0.15 |
+| Cape Town | 2011 | COPE | 7.24 | 1.13 | -1.95 |
+| Ekurhuleni | 2011 | COPE | 6.58 | 1.09 | -1.89 |
+| Buffalo City | 2016 | EFF | 5.41 | 8.21 | +0.44 |
+| Nelson Mandela Bay | 2016 | EFF | 3.95 | 5.03 | +0.25 |
+| Cape Town | 2021 | GOOD | 3.19 | 3.68 | +0.22 |
+| eThekwini | 2016 | EFF | 2.74 | 3.63 | +0.28 |
+| eThekwini | 2011 | COPE | 2.64 | 0.40 | -1.94 |
+| Cape Town | 2016 | EFF | 2.42 | 3.12 | +0.26 |
+| Mangaung | 2021 | PA | 1.76 | 1.78 | -0.02 |
+| Nelson Mandela Bay | 2016 | AIC | 1.11 | 1.61 | +0.38 |
+| Buffalo City | 2021 | ATM | 1.00 | 0.89 | -0.13 |
+| Cape Town | 2011 | ALJAMAAH | 0.86 | 0.35 | -0.99 |
+| Nelson Mandela Bay | 2021 | GOOD | 0.83 | 0.49 | -0.48 |
+| Buffalo City | 2011 | AIC | 0.72 | 3.58 | +1.50 |
+| Johannesburg | 2016 | AGANG | 0.67 | 0.03 | -3.07 |
+| eThekwini | 2021 | ATM | 0.64 | 0.57 | -0.04 |
+| Tshwane | 2016 | AGANG | 0.63 | 0.04 | -2.67 |
+| Tshwane | 2021 | AIC | 0.62 | 0.81 | +0.31 |
+| Mangaung | 2021 | ATM | 0.61 | 0.61 | -0.03 |
+| eThekwini | 2021 | NFP | 0.51 | 0.36 | -0.27 |
+
+The unanchored rows at 0.5% or more are ActionSA 2021 in four metros (r +0.52 to +1.19; Johannesburg +1.19) and three 2016 Buffalo City and Tshwane arrivals (r -1.05 to -2.62). On the raw record back to 1999 (national share in the metro against the first local list share, first-national parties at 0.5% or more national share, 45 metro-cycles; scratch `ratios.py`, re-run here), the largest ratio of local list share to national share is 1.50 (EFF, Buffalo City 2014→2016); none exceeds 1.65. The upside of an anchored newcomer on this record is small and its downside large (COPE 2011, AGANG 2016); the symmetric δ prices both at one width.
+
+**Backtest.** `src/compare_history.py` at `853c83f`, clean tree, 1,000 draws, seed 20261104, both arms: `--set newness_width=single` into `.claude/newness-2026-10-16/old/` first, then the default (arm S) into `data/processed/history.json`, committed here. The single arm reproduces the previous committed `history.json` (`5dfdfa2`) in every row's seats, votes and wards. Under arm S the 2011 and 2016 rows are identical to the single arm's, as the record requires. The 2021 rows:
+
+| 2021 city | wrong-party seats, single | arm S | wards wrong, single | arm S | list-share error, single | arm S |
+|---|---|---|---|---|---|---|
+| Buffalo City | 4.5 | 4.5 | 2 | 2 | 2.908 | 2.911 |
+| Cape Town | 22.0 | 22.0 | 1 | 1 | 2.444 | 2.449 |
+| Ekurhuleni | 20.0 | 19.5 | 5 | 5 | 2.566 | 2.565 |
+| eThekwini | 18.5 | 18.0 | 2 | 2 | 2.518 | 2.524 |
+| Johannesburg | 49.5 | 50.0 | 8 | 8 | 6.254 | 6.250 |
+| Mangaung | 5.0 | 5.0 | 1 | 1 | 1.760 | 1.763 |
+| Nelson Mandela Bay | 11.5 | 11.5 | 3 | 3 | 3.278 | 3.278 |
+| Tshwane | 21.0 | 21.0 | 2 | 2 | 2.108 | 2.105 |
+
+Wrong-party seats are half the summed absolute seat error of the median forecast; wards wrong are wards whose favourite was not the winner; list-share error is `pr_mae`, the vote-weighted mean absolute error of the mean drawn list share, in points. Totals per cycle, single then arm S: wrong-party seats 153.5 / 153.5 (2011), 77.0 / 77.0 (2016), 152.0 / 151.5 (2021); wards wrong 30 / 30, 25 / 25, 24 / 24; list-share error summed over the eight cities 44.469 / 44.469, 8.784 / 8.784, 23.834 / 23.845. Panel: 382.5 to 382.0 wrong-party seats, 79 wrong wards in both. The seat entries that moved: Johannesburg ActionSA median 11 to 10 (realised 44); Ekurhuleni ATM 0 to 1 (realised 1); eThekwini JUSTICE_AND_EMPLOYMENT_PARTY 0 to 1 (realised 1); Cape Town EFF 9 to 10 and ATM 0 to 1 (realised 10 and 0).
+
+**Newcomers' held-out log score**, as the addendum defines it (normal on log drawn list share, 1,000 draws per city-year, nats; the draws are `compare_history`'s own: ActionSA's Johannesburg 2021 median list share is 4.246% single and 4.134% arm S in both). 2016 is identical in both arms (21 anchored, 68 unanchored scored). 2021:
+
+| class | scored (zero results not scored) | sum, single | sum, arm S | arm S − single | sampling error (8 city-years) |
+|---|---|---|---|---|---|
+| anchored | 42 (1) | -57.82 | -53.60 | +4.23 | 0.52 |
+| unanchored | 153 (12) | -232.92 | -235.50 | -2.58 | 0.70 |
+
+The kernel-density check gives +4.09 and -2.12. The anchored gain is spread over the 42 rows (about +0.12 nats each). The unanchored loss is spread over 149 parties under 0.5% (about -0.02 to -0.04 each): the 2021 record's unanchored δ (0.999, fitted on the 2016 arrivals) is wider than the single δ (0.954), and the 2021 arrivals landed nearer their centres than the 2016 ones.
+
+**ActionSA, Johannesburg 2021** (unanchored): predicted list share 5th to 95th percentile 0.75% to 21.63% single, 0.69% to 22.18% arm S. The realised list share is 18.12%; its combined ward and list share is 16.05%. Both are inside both bands; P(list share ≥ 18.12%) 0.079 single, 0.085 arm S.
+
+**Johannesburg 2026**, in process (`run_model`, nothing written under `data/`), 5,000 draws, seed 20261104, arrays in the session scratch `anchor/jhb/{single,S}/`. The single arm reproduces §1.310's mean seats and ward favourites exactly.
+
+| | single δ | arm S |
+|---|---|---|
+| P(MK largest party, ties included) | 5.84% | 3.76% |
+| P(MK largest alone) | 5.64% | 3.64% |
+| P(MK list share > ANC's) | 7.72% | 5.52% |
+| MK list share, percentiles 5 / 50 / 95 / 99 | 1.44 / 6.74 / 24.29 / 38.61 | 2.13 / 7.43 / 21.35 / 32.11 |
+| MK mean list share | 9.02 | 9.04 |
+| ANC list share, percentiles 5 / 50 / 95 / 99 | 17.53 / 23.89 / 29.58 / 31.92 | 18.01 / 23.83 / 29.32 / 31.59 |
+| MK seats, 5th to 95th percentile | 4 to 64 | 6 to 57 |
+| mean seats ANC / DA / EFF / ActionSA / MK / PA | 71.71 / 69.84 / 30.26 / 27.23 / 23.39 / 15.80 | 72.04 / 69.73 / 30.22 / 27.18 / 23.35 / 15.78 |
+| mean seats RISE / IFP / BOSA / Al Jama-ah / VF Plus / ACDP | 4.88 / 4.07 / 3.08 / 2.76 / 2.56 / 1.97 | 4.86 / 4.07 / 3.09 / 2.76 / 2.55 / 1.97 |
+| ward favourites | ANC 78, DA 45, PA 5, MK 3, EFF 3, IFP 1 | the same |
+
+Arm K (a two-sided width per class: anchored up 0, down 0.911; unanchored up 1.257, down 0.188) was run as a scratch comparison only (the `mk-tail/patched.py` patch on today's code, `newness_width = "single"` underneath, class from `newness_class`; 5,000 draws, seed 20261104): P(MK largest) 0.28%, MK list share 2.04 / 9.45 / 16.71 / 20.48, mean seats MK 23.30, ANC 72.06. Its four widths are the scratch `split_fit.py` values, fitted with a free mode that `joint_nll` does not have; it is not built and not backtested.
+
+**The pre-registration, scored.**
+
+| item | verdict | evidence |
+|---|---|---|
+| G1 established widths unchanged | CONFIRMED | every record field an established width reads is byte-identical; drawer test (`test_the_draw_takes_each_newcomers_class_delta_and_leaves_established_widths`) |
+| P1 δ(anchored) < δ(unanchored) | CONFIRMED where testable | 0.811 < 0.999 (2021), 0.679 < 0.916 (2026); 2016 has no unanchored row |
+| P1 no anchored ratio above 1.65 at ≥ 0.5% national share | CONFIRMED | largest 1.50 (EFF, Buffalo City 2016), 45 metro-cycles |
+| P2 P(MK largest) between 1.5% and 4.5% | CONFIRMED | 5.84% → 3.76% |
+| P2 MK mean list share moves under 1 point | CONFIRMED | 9.02 → 9.04 |
+| P3 wrong-party seats change by under 3 per year | CONFIRMED | 0, 0, -0.5 |
+| P3 the biggest movers are city-years with a sizeable anchored newcomer (COPE 2011, EFF 2016) | FALSIFIED | 2011 and 2016 cannot move (fallback record; no unanchored row at 2016, so both classes take the single δ); every move is at 2021, the largest Johannesburg's +0.5 through ActionSA (unanchored) |
+| P3 anchored newcomers' log score improves | CONFIRMED | +4.23 nats, sampling error 0.52 (2021); 2016 identical |
+| P3 unanchored newcomers' log score worsens by no more than its sampling error | FALSIFIED | -2.58 nats against a sampling error of 0.70 |
+| P4 ActionSA 2021 band covers the real result | CONFIRMED | 0.69% to 22.18% covers 18.12% (list) and 16.05% (combined) |
+| falsifier: anchored newcomers score worse under arm S | not triggered | +4.23 |
+
+`newness_width` ships as `"by_anchor"` in the code at `853c83f`; whether arm S is published is the owner's decision after the blind review. The site draws, the freeze and the canonical forecast artefacts were not regenerated.
+
+**What moved with the committed history.** Only 2021 rows changed. ITERATING rule 8's marked tables are re-pasted (claimed ranks 4-12 n 124 → 125, mean PIT 0.458, PIT coverage 46 / 77 / 83%, probit-SD 1.443; the 2021 cycle `sd(z)` 3.705 → 3.744; the vote-error totals by at most 0.02pp). `score.chi2_clustered` on `claimed`, R = 64: second order 16.95 against 11.68, rejecting in 62 of 64 randomisations (was 64 of 64), so not established by the function's own rule, while first order still rejects in 64 of 64; the two orders now disagree on `claimed`. `reference`: 13.87 against 14.05, 23 of 64 second order, 30 of 64 first. `test_scored_universe` records both verdicts per population.
+
+**`test_drawer` goldens re-recorded.** With `newness_width = "single"` the fixture reproduces the previous goldens to 5e-5pp; the movement is the split (MK p5 / p95 1.43 / 24.11 → 2.13 / 21.16; ANC 17.71 / 29.30 → 18.16 / 29.07).
+
+## 1.315 What reaches the simulated vote at Johannesburg 2026: pool turnout and pool size move no mean share; the page's turnout control is a conditional the model cannot produce by re-run (2026-10-16)
+
+Pre-registration: `prereg/2026-10-16-reaches-the-vote.md` (`6a19b84`, before any run).
+Runs: tree `6a19b84`, Johannesburg 2026, 2,000 draws per arm, seed 20261104 paired by
+draw index (sampling scale from seed 20261105), `PYTHONHASHSEED` 0, `run_model` in
+process with `run_dir` outside `data/`; nothing under `data/` written.
+
+**Measured (change against the paired baseline; SE is the paired SE).**
+
+| change | largest move in a mean list share (parties > 1%) | largest move in mean seats | ward favourites changed |
+|---|---|---|---|
+| Black African pool turnout band +5 points | DA +0.011 points (SE 0.006) | ANC −0.035 (SE 0.013) | 1 |
+| all four bands +5 points | ANC −0.005 points | ANC −0.05 | 0 |
+| Black African pool registered ×1.2 | ActionSA −0.002 points | ANC −0.02 | 0 |
+| turnout correlation 0.63 → 0 | DA +0.015 points | ANC +0.19 (SE 0.05); DA seat p5-p95 +4, DA share sd +18.5% | 0 |
+| VD turnout ×1.15 in the higher-turnout half of VDs | 0.0000 for every party | ANC +0.47 (SE 0.02), DA −0.20 | 1 (ward 120, DA → ANC) |
+| capacity margin 0.98 → 0.5 | MK +0.0008 points | 0.003 | 0 |
+| capacity margin → 0.2 (guard) | DA −6.22, ANC −3.65 points | DA −16.7 | 18 |
+| ward_noise_sd 0.10 → 0 | list shares identical | ANC +0.34 (SE 0.04) | 0 |
+| level_shrink 0.35 → 0 (positive control) | DA +1.79, ANC +1.51 points | DA +5.4, ANC +2.2 | 2 |
+
+Re-weighting the baseline draws to Black African turnout +5 points (`reweight.turnout_tilt`,
+Kish 516): DA −4.10 seats (SE 0.44), ANC +1.58. On the published 5,000 draws the same tilt
+gives DA −4.20 (Kish 1,294).
+
+**Mechanism.** Pool turnout and pool size enter only the IPF matrix, whose party margin
+is fixed to the centres (montecarlo.py:3298), and κ re-pins each party's mean drawn
+share to its centre (:4842); VD turnout and the roll enter only the weights
+`solve_and_predict` distributes a fixed citywide target over (:1573, :1583, :7402). In
+these runs the IPF re-fit at the shifted modal turnout did the compensating, and κ moved
+by at most 0.0007. The capacity cap binds only below a margin of about 0.27 (the DA asks
+0.265 of its capacity at the baseline).
+
+**The pre-registration scored.** P0, P2, P3, P4, P7, P8, P9, P10, P11 held. P1 held on the
+mean and was falsified on the mechanism (κ did not move in the compensating direction;
+the IPF compensated first). P5 falsified for the DA's width: with pool turnouts
+independent, the DA's composition variance exceeds its own budget, its own term floors
+at zero (`width_floored` 0.0094 against 0.0004) and its spread exceeds the record. P6 held
+on the mean; falsified on the favourites (1, not 2-20, and towards the ANC) and on the
+ANC's seat sign (+0.47, predicted ≤ 0). Mean ward wins: ANC 70.42 → 70.93, DA 44.68 → 44.01.
+
+**Consequences for reader text** (census in the session scratchpad, `census.md` §2d):
+the turnout note on /your-forecast/ ("checked against a full re-run … agreed") rests on
+§1.271, measured under the incumbent law, and is not true of the shipped law; the
+methodology's by-election weight (40%), heavy tails, SACP hand-sizing, the IFP fifth
+pool, "national results downward", and "removing the turnout link changed the spread
+very little" do not describe the shipped model; /your-forecast/'s MK "35% / 65%" is
+neither the judgements file's 0.9 nor what is read (MK's own national fit). The
+DA/ActionSA "mild offset" is not in the citywide draws: corr(DA, ActionSA list share)
++0.057 over the 2,000 baseline draws.
+
+**Not run.** A shift to the drawn pool turnout with the band's mode held (the §1.271
+wrapper on `correlated_triangular`), where κ rather than the IPF would carry the
+compensation. The per-draw overhang count in the VD-turnout arm (not saved).
+
+## 1.316 Owner decision: the newcomer width by anchor class stays the default (2026-10-16)
+
+The owner chose `newness_width = "by_anchor"` (§1.314) over the single δ and over a declared ceiling on a newcomer's local/national ratio. Accepted with the unanchored log-score clause of P3 falsified (§1.314). The blind review's recommendation (a declared limit, no fitted change) was put to the owner unsplit beside the backtest.
+
+## 1.317 Turnout enters the vote (owner decision): the citywide vote is the sum of the districts' turnout-adjusted votes; with counted turnout fed in, the list error rises (2026-10-16)
+
+Owner decision, 2026-10-16: turnout changes the vote the way it does in reality; the
+mechanism that redistributed a fixed citywide total over the districts is deleted. Owner's
+call on the reference: the preliminary vote is at the model's own turnout centre (each
+pool's band mode, and the district projection's blend centre). Pre-registration
+`prereg/2026-10-16-turnout-enters-the-vote.md` (`cfd70bf`, before any run or code change).
+Code `4fb8002`; mechanism MACHINERY.md "Turnout enters the vote"; the open choices
+JUDGEMENT-CALLS.md §V1-§V7. The three locks of §1.315 are gone: the pool matrix is fitted
+at the reference (read from `pools.pool_counts`, not from the band), the calibration pass
+reads no turnout, and `solve_and_predict` places each ballot at reference weights while the
+votes are the districts' sums at the drawn turnout. `composition_variance` and `v_comp` are
+deleted; the width record measures residuals about centres carried to each earlier
+target's realised pool turnout (`width_record.case_for`). No `pools.py` change and no spec
+re-emit (the district composition and the reference are computed at run time from the
+`pool_counts` object `run_model` already built); the width record was re-emitted in its
+three variants.
+
+Runs: 24 city-years, `compare_history.run_city_year` in process (the canonical scorer),
+1,000 draws, seed 20261104 per city-year in every arm, outputs in the session scratchpad
+(`turnout-build/out/`, runner `turnout-build/arm.py`). C-P and C-O on `cfd70bf`, N arms on
+`4fb8002`. C-P reproduces the history of `853c83f` at every city-year (same code path).
+Oracle arms (C-O, N-Opool, N-Ovd) read the target's own turnout and are diagnostics only.
+
+**Measured, pooled over the 24 city-years** (list MAE in points of list share, mean over
+city-years; wards called wrong and seats given to the wrong party summed):
+
+| arm | list MAE | better than its control at | wards wrong | wrong-party seats |
+|---|---|---|---|---|
+| C-P (current code, projected) | 3.212 | — | 79 | 356 |
+| C-O (current code, ORACLE counted district turnout, pool band at realised) | 3.221 | — | 71 | 357 |
+| N-P (new code, projected) | 3.152 | 15 of 24 (against C-P) | 78 | 357 |
+| N-Opool (new code, ORACLE realised pool turnout, ecological) | 3.824 | 8 of 24 (against N-P) | 89 | 382 |
+| N-Ovd (new code, ORACLE realised counted district turnout) | 3.631 | 6 of 24 (against N-P) | 73 | 374 |
+
+By cycle (list MAE, mean of 8): 2011 C-P 5.559, N-P 5.573, N-Opool 6.041, N-Ovd 5.883; 2016
+1.098, 0.994, 2.144, 1.776; 2021 2.981, 2.890, 3.287, 3.233. Per city-year rows: scratchpad
+`turnout-build/table.py` over `out/`.
+
+**The canonical backtest** (`compare_history`, 1,000 draws, `4fb8002`, written to
+`data/processed/history.*`; the previous one, `853c83f`, kept in
+`.claude/turnout-2026-10-16/old/`): identical to arm N-P at every city-year. List MAE 3.212
+→ 3.152, wards wrong 79 → 78, wrong-party seats 356 → 357, CRPS total 542.7 → 542.5. Largest
+list-MAE moves: Nelson Mandela Bay 2016 1.102 → 0.570, 2021 3.278 → 2.895, Cape Town 2016
+0.502 → 0.258; Tshwane 2016 1.247 → 1.423 the largest rise.
+
+**What moved the N-P means.** The drawn pool turnout has the band's mean, not its mode, and
+that skew now reaches the vote (JUDGEMENT-CALLS §V6). The DA's mean list share fell and the
+ANC's rose at 20 of 24 city-years, each within 0.25 points of the pre-registered pool
+arithmetic at 24 of 24.
+
+**With counted turnout fed in, the list error rises.** N-Ovd moves the DA up 1-3 points and
+the ANC down at the 2016 targets (Johannesburg 2016: DA 39.9 → 41.0 against an actual 38.5;
+Cape Town 2016: 66.8 → 68.7 against 66.8; Nelson Mandela Bay 2016: 47.5 → 50.0 against
+46.7); the realised turnout fell less where the DA is strong than the projection said, and
+the actual DA share did not follow. N-Opool does the same and more. Three mechanisms
+explain this and the arms do not separate them: (i) the ecological pool turnout is biased
+(ruled out as the whole explanation, since counted district turnout also worsens); (ii)
+within-pool preference covaries with turnout (the voters who stay home differ from those
+who vote); (iii) the centre already carries the cycle's local-election turnout behaviour
+through θ, so the deviation from the projection is counted twice. The measurement that
+would separate (ii) from (iii): the same N-Ovd arm on centres whose θ is estimated on
+turnout-standardised shares (θ that carries no turnout), which does not exist.
+
+**Johannesburg 2026** (5,000 draws, seed 20261104, `run_model` in process; arrays in the
+scratchpad `turnout-build/jhb/old` at `cfd70bf` and `jhb/new` at `4fb8002`; nothing under
+`data/` written; site draws, freeze and forecast artefacts not regenerated). Mean list
+share, old → new: DA 26.06 → 25.76, ANC 23.75 → 23.93, ActionSA 11.69 → 11.73, EFF 11.01 →
+11.06, MK 9.04 → 9.12, PA 5.95 → 5.85. Mean seats: ANC 72.04 → 72.50, DA 69.73 → 68.94,
+EFF 30.22 → 30.35, ActionSA 27.18 → 27.29, MK 23.35 → 23.57, PA 15.78 → 15.49. Seat
+p5-p95: ANC 53-83 both; DA 53-87 → 50-87; EFF 18-46 → 21-42; ActionSA 17-40 → 20-36; MK
+6-57 → 6-56; PA 5-33 → 5-34. P(largest alone): ANC 56.1% → 60.6%, DA 35.9% → 31.8%, MK
+3.6% → 3.7%; a tie for most seats 7.8% → 7.1%. List-share sd: DA 3.77 → 4.15, EFF 3.11 →
+2.33, ActionSA 3.04 → 2.19 points (the re-fitted width record's σ at a 10% centre fell 0.346
+→ 0.271 for target 2026). Ward favourites: one of 135 changed (ward 82, PA → DA, both near
+0.5). `turnout_moved`: DA −0.26, ANC +0.18, PA −0.12 points. `district_ipf` worst pool-row
+error 0.056 over 10,000 splits (60-round cap reached on most).
+
+**The fixture** (`tests/test_turnout_enters_the_vote.py`, constructed): baseline X 0.45 and
+A's turnout 0.5 → 0.3 gives X = 0.3625 within 1e-9. Each lock put back by hand turned the
+module red (2 of 4 failing) and reverting turned it green (4 of 4): the pool votes read
+from the band, X = 0.4500000000; the calibration pass and the preliminary vote weighted by
+drawn turnout, X = 0.3623554731; the citywide share solved back to the preliminary vote at
+drawn-turnout weights, X = 0.4500000000. The pre-registration predicted that each returns
+X to 0.45; the second does not (it applies turnout twice instead of cancelling it) and
+still turns the test red.
+
+**The pre-registration scored.** P1 held (largest C-O − C-P list-MAE move 0.093 at
+eThekwini 2011; wards called moved by at most 3). P2 held (signs at 20 of 24, every
+city-year within 0.25 of the arithmetic, pooled list MAE −0.060, wards wrong −1, wrong-party
+seats +1, DA sd at Johannesburg 2021 +1.8%). P3 FALSIFIED: N-Ovd's pooled list MAE is
+0.478 higher than N-P's, better at 6 of 24. P4 held (+0.672, better at 8). P5 falsified
+(N-Ovd against N-P: wards wrong 73 against 78, a pooled difference of 5, under the 10
+predicted; summed absolute difference 13). P6 held (every bound). P7 held on the values; its
+claim that each lock returns X to 0.45 held for two of three. The stop rule did not fire:
+N-P is not worse than C-P on list error and wrong-party seats together.
+
+**Debt, with a hypothesis (ITERATING.md).** The change makes turnout reach the vote, which
+was false before, at no cost to the canonical backtest. The oracle shows that the
+mechanism, given the true turnout, moves the vote the wrong way on this record. Hypothesis:
+(iii) above, the centre's θ already carries local-election turnout behaviour. Until the
+separating measurement exists, a turnout scenario on this model (a band moved, the page's
+turnout control) moves the vote by an amount the record says is too large in the DA's
+favour when turnout falls in Black African areas.
+
+**Tests changed with the mechanism.** `test_drawer`'s two goldens re-recorded deliberately
+(the drawer no longer weights pools by drawn turnout, and the width record moved; the
+reason is beside the goldens). `test_stage_realisation`: `width_floored` and the
+composition term leave the width invariant and the board; the three turnout records are
+checked by `_turnout_faults` with three constructed violations. `test_draw_streams`,
+`test_draw_record`, `test_universal_draw`: the calibration pass reads no turnout stream (a
+turnout call there is the κ lock put back); the run's turnout streams are read by
+`pool_turnouts`. `test_projected_roster_declaration`: the head line names its source.
+`test_register_matches_code`: `v_comp` recorded as deleted. Expected red until the
+published artefacts are regenerated (not done here; owner): every test comparing a re-run
+with `site/draws/`, `seat_draws.csv` or `forecast_summary.json` (`test_draw_record`'s
+published-seats check, `test_export_draws`' three reproduction checks, four
+`test_reweight` uniform-weight checks). The suite result is in the commit message of the
+commit carrying this entry.
+
+## 1.318 Turnout review: the forecast's mean move from turnout is the band's shape; the citywide level has no skill and reaches no share; between-district composition is real and θ already carries it (2026-10-17)
+
+Owner, 2026-10-17: a review of how turnout is forecast and how it can be improved; he is
+not willing to publish the model of §1.317. Read-only throughout: no model code changed, no
+spec emitted, nothing under `data/` written. Evidence in `audits/2026-10-17-turnout-review/`:
+`map/map.md` (the chain with code citations and probe runs), `measure/report.md` and CSVs
+(turnout accuracy over the 24 city-years; real share changes decomposed), `pollster/report.md`
+(blind review, brief `POLLSTER-BRIEF.md` issued verbatim), `rederive/` (my own checks).
+Descriptive measurements, not pre-registered; any change that follows needs its own
+pre-registration.
+
+**Re-derived by me.** Johannesburg 2021 projected citywide turnout (roll-weighted over the
+95.2% of the roll with a projection of its own) 52.00% against a realised 42.66% (votes cast
+on the higher ballot over registered). DA between-district composition from turnout alone,
+NPE 2019 → LGE 2021, Johannesburg: +2.96 points (VDs joined by number, 99.5% of 2021 list
+votes; the measurement agent +3.04 on 97.97%). The JHB 2026 band mean over mode per pool from
+`pools_2026.json`: Black African 0.3720/0.3639, Coloured 0.5336/0.5432, Indian/Asian
+0.4434/0.4085, White 0.5237/0.5268. Each pool's reference equals its band mode and the
+districts carry it within 0.5 points (`41_guards.turnout_reference`, 20-draw trace).
+
+**1. The skew.** `turnout_band` is symmetric in logit and drawn as a triangular in turnout,
+so a pool's draws average above its mode below 50% turnout and below it above 50%. With the
+reference at the mode (§V1), that sets the sign of every pool's mean shock. Probe (map agent,
+`run_model` in process, 1,000 and 2,000 paired draws, seed 20261104; not re-run by me): with
+each pool's mean equal to its mode, JHB 2026 DA mean list share 26.03 → 26.31, ANC 24.06 →
+23.88, DA mean seats 69.68 → 70.29, P(ANC largest alone) 60.8% → 58.0%, and `turnout_moved`
+DA −0.247 → +0.038. The realised Black African − White pool-turnout differential (ecological,
+`pool_counts`) has the opposite sign to the skew's push at 18 of 24 city-years. The canonical
+improvement of §1.317 (list MAE 3.212 → 3.152, better at 15 of 24, sign test p ≈ 0.31)
+comes through this channel at city-years where the DA centre was already high.
+
+**2. The level.** Projected citywide turnout, realised − projected, mean of 8 metros: 2011
++13.1, 2016 +6.9, 2021 −8.4 points; mean absolute 9.45 against 9.46 for "same as the last
+LGE"; within-cycle residual 2.8 RMS. A common factor on every district's turnout changes no
+share, ward winner or seat (`district_votes`; the 0.95 clip aside), so the level reaches only
+a published turnout figure. The λ ratio pattern is the worst of three district patterns on
+pattern-only RMSE at 22 of 24 city-years. The projection under-predicts turnout where the DA
+is strong: DA-majority minus ANC-majority VD error +5.1 (2011), +4.2 (2016), +1.3 (2021),
+8-metro means.
+
+**3. Composition is real between districts.** Previous-election VD list shares held fixed,
+new-election turnout applied: DA +1.3 to +1.6 points per LGE cycle (8-metro means, positive
+at 7 of 8 in each cycle; pollster and measurement agent independently); NPE → following LGE
++1.8 (2009→11), +2.3 (2014→16), +2.7 (2019→21). Within districts the slope of share change on
+turnout change is at most 0.2 share points per turnout point, mixed in sign. θ is a ratio of
+realised local to national citywide shares, so it contains the NPE → LGE composition.
+
+**4. Why counted turnout fed in scores worse (§1.317).** The composition shift does not
+correlate with the model's list error (r −0.07 DA, +0.06 ANC, 24 city-years, `history.json`
+at `4fb8002`); adding it moves DA MAE 3.35 → 3.71. Supported: θ already carries the
+composition and the deviation from the projection re-applies it (iii); ecological pool
+turnout adds ≈0.19 of the 0.48 rise (i). Bounded small at district level, not ruled out:
+within-pool preference moving with turnout (ii). Separating measurement: θ on shares
+standardised to the projection method's turnout for each training election, then N-P and
+N-Ovd; (iii) predicts N-Ovd beats N-P pooled and at ≥14 of 24.
+
+**5. Width.** The band uses the record's 0.90 quantile of |Δlogit| as the triangular's
+support edge, so its own 90% interval is ≈0.68 of that. Realised citywide turnout falls in
+the drawn 90% interval at 13 of 24 city-years; the Black African − White differential at 15
+of 24 (map agent, copula on spec bands).
+
+**Also found (map agent, `map.md` D5-D14).** `district_split` stops at the 60-round cap with
+worst pool-row error 0.047 (§V4 states 6e-4); pool rates use PR valid votes and district
+levels votes cast; a tied pool group gets one absolute turnout rather than one ratio (no
+emitted spec has a tie); the level pattern is computed in `turnout.py` and again in
+`run_model`; §A41/§F23 noise claims were measured under the deleted mechanism (re-measured:
+noise and jitter at zero move mean shares ≤0.002 points); 2011-target Coloured band modes
+fitted on 2006 are implausible (Buffalo City 3.2%, Tshwane 15.4%).
+
+The pollster's ranked improvements and its recommendation are in `pollster/report.md`; the
+choice is the owner's.
+
+**Addendum (same day).** Two attributions in this entry are the map agent's, not re-derived:
+that the canonical list-MAE improvement of §1.317 comes through the skew, and the probe run
+with the skew removed. The skew removal accounts for about 3 of the 4.5 points by which
+§1.317 moved P(ANC largest alone) (56.1 → 60.6); the rest comes with the width record's
+re-fit in the same change (§V5: list-share sd DA 3.77 → 4.15, EFF 3.11 → 2.33, ActionSA
+3.04 → 2.19). That re-fit carries earlier targets' centres to realised turnout with a
+citywide fixed-split re-weighting, not the draw's district path (map agent D8).
+
+## 1.319 Why the ANC leads the 2026 seats with fewer votes, and what removing the turnout double count would do to the centre, approximately (2026-10-17)
+
+Owner, 2026-10-17: the ANC as favourite is wrong, and turnout must stop counting twice; asked
+whether the effect of removing the double count can be estimated without days of work.
+Descriptive, not pre-registered; scripts `audits/2026-10-17-turnout-review/rederive/`
+(`wardlist.py`, `ward2024.py`, `dc2026.py`).
+
+**Seats against votes** (`run_model` in process at `1598de6`, Johannesburg 2026, 300 draws,
+seed 20261104; nothing written). Mean list / ward share / seats / wards won: ANC 23.72 /
+24.11 / 72.6 / 70.8; DA 25.90 / 27.14 / 69.2 / 44.9; EFF 10.92 / 11.95 / 29.9 / 3.1; ActionSA
+11.81 / 9.16 / 27.4 / 0.0; MK 8.63 / 8.18 / 22.2 / 8.8. The DA leads both ballots; the ANC's
+combined vote is worth about 64.5 of 270 seats and it wins about 71 wards, which it keeps
+(overhang, `overhang_rule = deduct`).
+
+**The ward record it extrapolates from.** NPE 2024 results summed to 2026 wards through
+`vd_ward_2026.csv` (865 of 865 VDs matched): the ANC carried 82 of 135 wards (DA 45, MK 5,
+PA 2, EFF 1) on 31.96% of the city vote; in the wards it carried, its median share was 46.1%
+and its median lead over the second party 27.8 points. In the canonical backtest
+(`history.json` at `4fb8002`) the model under-forecast the ANC's Johannesburg seats in 2021
+(91 against 106) and over-forecast them in 2011 (153 against 147).
+
+**The double count, approximately.** θ's NPE → LGE composition for Johannesburg
+(`partB8`, between-VD turnout term): DA +2.83 (2014→16), +3.04 (2019→21); ANC −2.38, −2.38.
+The composition the 2026 turnout projection implies over the NPE 2024 VD shares (2026 roll,
+98% of it; 2024 national turnout pattern against the projection): DA +1.74, ANC −1.00, EFF
+−0.55, MK −0.56 at the centre blend (ratio pattern DA +1.91, level pattern +1.56). A θ
+standardised for turnout with the projection's composition applied explicitly would move
+the centre by the difference: about DA −1.2, ANC +1.4 points. Limits: ratio θ treated as
+additive; θ's cycle weights and pool structure ignored; the projection under-predicts
+turnout in DA areas (§1.318), so the explicit composition is likely too small, and a better
+projection would close part of that gap.
+
+## 1.320 Owner decision: the turnout change of 2026-10-16 is reverted; the model is back at the state it held before it, reproduced draw for draw (2026-10-17)
+
+Owner, 2026-10-17: revert the turnout change (§1.317), keep the newcomer-width change
+(§1.314, §1.316); no pre-registration, because the model held this exact state before and
+was measured there (§1.314, §1.317's "before" column).
+
+**What was restored.** Every file `4fb8002` changed, and the test and register files `0d01740`
+changed to follow it, returned to their content at `cfd70bf` (`git diff cfd70bf` over them is
+empty): `src/montecarlo.py`, `src/width_record.py`, `src/compare_history.py`,
+`judgements/joburg-2026.toml`, `skills/forecast-stage-realisation/SKILL.md`, MACHINERY.md,
+JUDGEMENT-CALLS.md (§V withdrawn with the mechanism it described), JUDGEMENT-SHEET.md,
+MODEL-INDEX.md, the eight test files, and `data/processed/history.json`/`.md`.
+`tests/test_turnout_enters_the_vote.py` deleted. MODEL-LOG §1.317–§1.319 stay: they describe
+the reverted mechanism and the review of it. `data/processed/width_record.json` restored from
+the copy taken before `4fb8002`'s re-emit (`.claude/turnout-2026-10-16/old/`), after
+`backup_ignored.py`; every field of its `artefact_key` equals `montecarlo.width_record_key()`
+on the restored code. No spec, `turnout.csv` or other intermediate was touched by `4fb8002`.
+
+**Reproduction.** `run_model` in process, Johannesburg 2026, 5,000 draws, seed 20261104,
+nothing written, against the run saved at `cfd70bf` (`.claude/turnout-2026-10-16/jhb-old-cfd70bf/`):
+list shares, ward shares, seats and ward winners identical in every draw. Mean list share /
+seats: ANC 23.75 / 72.0; DA 26.06 / 69.7; EFF 11.01 / 30.2; ActionSA 11.69 / 27.2; MK 9.04 /
+23.3. Largest party alone: ANC 56.1%, DA 35.9%. These are the numbers the model gave before
+the turnout change; they agree because the state is the same, and say nothing about whether
+either state is right.
+
+**What the revert leaves open.** §1.318's findings about the turnout projection (no skill
+over "same as last LGE" at the citywide level; the λ pattern worst at 22 of 24 city-years;
+θ carrying the NPE → LGE composition) apply to the restored model too, where the projection
+fixes the citywide total redistributed over districts. The ANC's lead in seats with fewer
+votes (§1.319) is unchanged by the revert.
+
+## 1.321 Registered voters only: each ward's roll is split by its census group shares; the forecast and the backtest barely move (2026-10-17)
+
+Owner, 2026-10-17: the model concerns itself with registered voters; census data predicts
+only each group's share of a ward's roll. Prereg `prereg/2026-10-17-roll-split-by-census-share.md`
+(`86fa193`); code `f32523b`.
+
+**What the code did.** `pools.pool_counts` built people → adults (20+) → registered → voted per
+ward and group, fitting one rate per group across the city at each level and scaling each ward
+to its published totals. The registration rate was bounded at 2.0 and reached it in two cities.
+Johannesburg 2021 (re-derived in process): White 25.2% of the roll, Black African 64.8%;
+registered over modelled adults, after the per-ward scaling, Black African 0.50, Coloured 0.83,
+Indian/Asian 0.84, White 1.87. 34 of 135 wards have more registered voters than census adults
+and 21 more than their whole census population. The documents said otherwise in nine places
+(the census adult count "not an input the model consumes"; three of four levels "observed";
+each ward's composition "from that ward's own data"; the public methodology page described the
+split adopted here).
+
+**What it does now.** `registered_wg = roll_w × census share_wg`; turnout by group the one
+fitted level. Deleted: the adult and registration levels, `census_correction`, the 2.0 bound,
+the census head-count and 20+ reads, the count reprojection, a function with no caller, the age
+and sex tilt dimensions (rejected by the gate, read anyway). The reprojection drift gate weights
+by the roll. The two fixed site figures built on the nest (560,000 registered White voters,
+300,000 White adults) and the methodology passage printing them are removed; the built site is
+not rebuilt. Assumptions declared in JUDGEMENT-CALLS §L9: equal registration across groups
+within a ward; census population includes children (Black African share of the roll probably
+overstated); "Other" dropped.
+
+**Scored.** P1 held: Johannesburg 2021 roll 75.6 / 5.5 / 5.0 / 13.9%, ward sums equal to the
+roll to 7e-12. P2 held: no registered-over-adults level exists; voted ≤ registered per pool.
+P3 held: ward turnout from each ward's group mix and one turnout per group (roll-weighted RMSE,
+2021) is lower at 6 of 8 metros (Johannesburg 5.46 → 5.22, Tshwane 5.32 → 5.11, eThekwini 5.88
+→ 5.86, Cape Town 4.31 → 4.11, Mangaung 4.74 → 4.34, Nelson Mandela Bay 4.21 → 4.05; worse at
+Ekurhuleni 4.17 → 4.27 and Buffalo City 5.04 → 5.20). P4 held: Johannesburg 2026, 5,000 draws,
+seed 20261104, mean list shares unchanged to two decimals (ANC 23.75, DA 26.06, EFF 11.01,
+ActionSA 11.69, MK 9.04), ANC seats 72.0 → 72.1, P(ANC largest alone) 56.1% → 57.0%, P(DA)
+35.9% → 35.4%. P5 held: 2026 White turnout band mode 0.527 → 0.602, Black African 0.364 → 0.370;
+2026 White share of the roll 26.2% → 14.4%. P6 held: the drawer's White pool total 31.67% →
+20.02% of the drawn vote, band 26.1–36.8 → 15.9–23.7; party band ends moved by at most 0.17
+points (`test_drawer` goldens re-recorded). P7 held: `compare_history`, 1,000 draws,
+`PYTHONHASHSEED=0`, 24 city-years: list MAE 3.212 → 3.217 (better at 4, worse at 9), ward MAE
+2.773 → 2.779, coherent seat error 712 → 710, CRPS 542.3 → 543.1, wards called wrong 71 → 70
+(`seat_abs_err_coherent=710/@f32523b1/1000d/pools:e532c300/rows=24`). P8 held on its stated
+direction: the three 2011 DA-in-White cells remain (Buffalo City 1.25× → 1.23×, Cape Town 1.14×
+→ 1.22×, Nelson Mandela Bay 1.07× → 1.17×) and four more 2011 cells appear (eThekwini 1.04×,
+Johannesburg 1.04×, Mangaung White 1.03×, Mangaung Indian/Asian 1.25×).
+
+**Reading.** The record cannot tell the two splits apart on the means: the party fit absorbs
+pool size, as §1.315 found for turnout and roll. The new split fits ward turnout slightly
+better at most metros with four fewer fitted numbers, and removes a registration rate that
+cannot happen. Every new impossible-weight cell is a 2011 target: Census 2022 shares are held
+flat back to 2011, and Johannesburg's White census share fell from 12.3% (2011) to 7.0%
+(2022), so the 2011 White roll is probably understated; argued, not tested (a 2011 census
+ward table would settle it and is not held). Not examined: per-party pool vectors at 2026.
+
+*Addendum, same day, on "wards called wrong".* §1.321's 71 → 70 is `wards_matched − called`
+summed from each record's `wards` block in `history.json`. §1.314 and §1.317 quote 79 for the
+same model state (cfd70bf, restored exactly) on their own count, "wards whose favourite was not
+the winner", computed outside `history.json`. The two counts are not reconciled here; compare
+§1.321's figures only with each other.
+
+## 1.322 The 2026 MK level against post-2024 metro by-elections: consistent; by-elections do not support MK at its 2024 share (2026-10-17)
+
+**Question.** §1.319's ward study found MK's 2026 level decides how many wards the ANC keeps. Is the model's MK level consistent with what MK did in local by-elections after the 2024 national election? Pre-registered in `prereg/2026-10-17-mk-level-from-byelections.md` (2980e23) before any share was computed. A measurement: nothing in the model changed.
+
+**Method.** Every ward by-election in the eight metros after 2024-05-29 in `byelections_SA_vd_party.csv`: 45 contests, all of whose voting districts appear in the 2024 provincial-ballot files. Each party's by-election share is set against its 2024 share in the same voting districts (joined on `VD_Number`, no crosswalk), for parties at or above 3% there in 2024. Version A: contests the party stood in. Version B: A plus contests where it did not stand (ratio 0). The model's ratio is Johannesburg 2026 over the party's 2024 Johannesburg share: drawn mean (5,000 draws, seed 20261104, in process, nothing written) and pre-draw centre. The by-election term in the centres is zero for every party (`bye_value.json` weights 0.0), so the by-elections did not build the model's level. Scripts and output: `audits/2026-10-17-mk-byelections/` (`ratios.py`, `model_ratio.py`, `rows.json`, `*.txt`).
+
+**Result.** Ratio = share in the by-election over share in the same districts in 2024.
+
+| party | by-elections, Johannesburg (B): contests, median, vote-weighted | by-elections, 8 metros (B): contests, median, vote-weighted | model, Johannesburg 2026: drawn mean, centre |
+|---|---|---|---|
+| MK | 7 (1 not stood), 0.704, 0.820 | 17 (3 not stood), 0.704, 0.817 | 0.740, 0.827 |
+| ANC | 12, 0.591, 0.829 | 42, 0.676, 0.842 | 0.743, 0.826 |
+| DA | 12 (4 not stood), 0.548, 1.201 | 42 (6), 1.158, 1.144 | 1.043, 1.157 |
+| EFF | 12 (4), 0.754, 0.819 | 32 (10), 0.348, 0.832 | 0.884, 0.977 |
+| ActionSA | 12 (10), 0.000, 0.546 | 15 (13), 0.000, 0.478 | 1.881, 2.085 |
+| PA | — (under 3 contests) | 7 (1), 2.002, 1.876 | 2.047, 2.225 |
+
+Version A for MK: Johannesburg 6 contests, median 0.855, vote-weighted 0.845; 8 metros 14, 0.836, 0.859.
+
+**Scored against the pre-registered rule.** MK's version-B ratio is within ±0.15 of the model's on both summaries, in Johannesburg and across the metros: **consistent**. Johannesburg has seven contests with MK at or above 3% in 2024, so it is read alone as well as pooled. The other large parties are not displaced in one direction: ANC and DA are within ±0.15 on the vote-weighted ratio, and EFF is 0.06–0.16 below the model. ActionSA cannot be read: it stood in 2 of the 12 Johannesburg contests where it held 3% in 2024 (ratios 2.9 and 1.4 there), so version B measures its absence.
+
+**What this changes.** The model holds MK at about three-quarters to four-fifths of its 2024 share, and so do the by-elections. §1.319's "MK's level is worth about 7 ANC wards" measured moving MK from the model's level to its 2024 share (12.2%); the by-elections give no support for that move. Nothing in the model is changed by this entry.
+
+**Limits.** By-elections are low-turnout contests with a ward candidate on the ballot; the ratio describes a by-election electorate, not the 2026 one, and both the ANC's and MK's ratios could fall or rise together on a general-election turnout. Seventeen MK contests, eleven of them outside Johannesburg, spread over 18 months; MK's support may have moved since. Contests were fought where vacancies arose, not chosen to represent the city.
+
+*Addendum, same day.* The "about 7 ANC wards" attributed above to §1.319 is not in §1.319. It comes from the ward study reported to the owner on 17 October, which was not logged: from the model's MK level to MK's 2024 share moves about 7 wards to or from the ANC. §1.319's MK drawn mean (8.63%) was measured on the 16 October turnout model, since reverted (§1.320). The 9.04% in the table above is the model at f32523b (§1.321).
+
+*Second addendum, same day.* Coverage checked directly: in all 45 contests every voting district in the by-election file is in the 2024 file (none partial). On the other parties, the median gives a different picture from the vote-weighted ratio in Johannesburg: ANC 0.591 against the model's 0.743, DA 0.548 against 1.043. Both DA figures are pulled down by the four contests it did not stand in (version A median 1.452). "Not displaced in one direction" holds on the vote-weighted ratio; on the Johannesburg medians ANC and DA both sit below the model, and MK's median (0.704) is also below its drawn-mean ratio (0.740), by less than the ±0.15 band.
+
+## 1.323 By-election weight 0.5 for every party: at Johannesburg the DA passes the ANC in mean seats and the ANC's chance of the most seats falls from 57% to 47%; Tshwane has no by-election input and does not move (2026-10-19)
+
+**Change.** `DEFAULTS["w_bye"]` from `None` (each size class's weight from `bye_value.json`, 0.0 for both) to 0.5 for every party, the owner's decision of 2026-10-17 (JUDGEMENT-CALLS §A59). Pre-registered in `prereg/2026-10-17-byelection-weight-half.md` (cbcdd5f) before the change was made.
+
+**Method.** Johannesburg and Tshwane 2026, `w_bye` `None` against 0.5, 5,000 draws, seed 20261104, in process; only traces written, outside `data/`. Script and output: `audits/2026-10-17-byelection-half/` (`measure.py`; drawn means, seats and largest-party shares in `out.json`; centres, by-election levels and caps in the four `*_30_centres.json` traces). The backtest is `compare_history` at 1,000 draws on the changed tree (`history.json` manifest `cbcdd5f`, dirty).
+
+**Result, Johannesburg 2026.** Centre = expected list share before / after the level shrink (`30_centres.json`); drawn mean = mean list share over the 5,000 draws; seats = mean council seats over the draws.
+
+| party | centre before shrink, w 0 → 0.5 | centre after shrink | drawn mean | seats | by-election level (contests), capped to |
+|---|---|---|---|---|---|
+| DA | 30.88 → 32.60% | 28.89 → 30.41% | 26.06 → 26.35% | 69.7 → 70.0 | 34.3% (11) |
+| ANC | 28.07 → 27.33% | 26.40 → 25.73% | 23.75 → 22.25% | 72.1 → 69.7 | 26.6% (15) |
+| ActionSA | 13.07 → 14.70% | 12.97 → 14.44% | 11.69 → 12.51% | 27.2 → 28.9 | 18.9% (4), 16.3% |
+| EFF | 12.20 → 11.47% | 12.18 → 11.51% | 11.01 → 10.01% | 30.2 → 27.3 | 10.7% (11) |
+| MK | 9.93 → 10.26% | 10.10 → 10.40% | 9.04 → 8.94% | 23.3 → 23.0 | 10.6% (8) |
+| PA | 6.05 → 6.97% | 6.47 → 7.34% | 5.95 → 6.49% | 15.8 → 17.1 | 22.2% (4), 7.9% |
+| IFP | 1.35 → 1.60% | 1.67 → 1.95% | 1.50 → 1.69% | 4.1 → 4.5 | 2.5% (3), 1.8% |
+| All Citizens Party | 0.04 → 1.04% | 0.05 → 1.31% | 0.05 → 1.24% | 0.1 → 3.3 | 2.1% (2) |
+| ATM | 0.36 → 0.42% | 0.48 → 0.55% | 0.43 → 0.48% | — | 0.5% (3) |
+| AIC | 0.32 → 0.25% | 0.42 → 0.33% | 0.38 → 0.29% | — | −0.5% (4), 0.2% |
+
+Largest party alone in the council, share of draws: ANC 57.0% → 47.4%, DA 35.4% → 44.3%, MK 3.8% → 3.7%, tie 3.3% → 3.8%.
+
+**Tshwane 2026: no number moves.** `bye_weight` is empty: there is no `byelection_party_deltas.csv` for Tshwane (`data/processed/tshwane/2026/`). `byelections.py` has been run for Johannesburg's default `--processed` path only, so the by-election term reaches Johannesburg alone.
+
+**Scored against the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| P1 | all 24 backtest rows identical | held: `history.json` differs only in its manifest (commit, dirty flag, generated time) and the recorded `w_bye` |
+| P2 | no pool spec changes | held: `pools.py` does not read `w_bye` |
+| P3 | centres: DA, ActionSA, MK, PA, IFP, ATM, All Citizens up; ANC, EFF, AIC down; others unchanged; drawn means of the five largest move the same way | centres held, all ten. Drawn means: four of five; **MK's falls (9.04 → 8.94%) while its centre rises 0.30pp after the shrink**. Not explained here |
+| P4 | P(ANC largest alone) falls, P(DA) rises | held |
+| P5 | Tshwane centres move | **falsified**: Tshwane has no by-election input |
+| P6 | AIC, ActionSA, IFP, PA capped | held, those four and no others |
+
+**What this changes.** At Johannesburg the by-elections now reach the forecast. In mean seats the DA (70.0) passes the ANC (69.7); the ANC is still more often the largest party alone, 47.4% of draws against the DA's 44.3%. The All Citizens Party rises from 0.05% to 1.24% on two contests (159 and 39 votes): it has no national share and so no θ band, its by-election level is not capped, and two contests pass `BYE_MIN_WEIGHT`. MK has a 2024 national share, so its level is capped by θ's band; at 10.6% it sits inside the band. "Every party, every city" in §A59 is true of the setting, not of its reach.
+
+**Limits.** Argued, not tested: no backtested target has a by-election in the current file. The IEC by-election dashboard also serves the 2016–2021 cycle (84 dates, voting-district level, checked 2026-10-19); with it, the 2021 targets would carry by-elections and the weight could be scored.
+
+## 1.324 By-elections no longer move a party with no earlier record; at Johannesburg the All Citizens Party returns to 0.05% and the DA becomes the more likely largest party (2026-10-19)
+
+**Change.** In `montecarlo.blended_centres` a party sized by the arrival record (a pool seed, so no national share) with no previous local PR share and no previous local ward share gets by-election weight 0 (class `"no record"`), the owner's decision of 2026-10-19 (JUDGEMENT-CALLS §A60). Everything else is §1.323's model. Pre-registered in `prereg/2026-10-19-byelections-need-a-record.md` (ac11120) before the change.
+
+**Method.** Johannesburg and Tshwane 2026 at the shipped defaults, 5,000 draws, seed 20261104, in process, against §1.323's `w_bye` 0.5 runs. The code change moves `montecarlo_sha` in the width record's key, so the record was rebuilt for this tree into a scratch directory and passed in (`width_override`); its shipped variant's targets are identical to the record §1.323 ran on. Script, output and traces: `audits/2026-10-19-byelections-need-a-record/`.
+
+**Result, Johannesburg 2026.** Four parties now carry "no record": the All Citizens Party, the Truth and Solidarity Movement, NCC and Vuka SA. Only the first two had moved (the other two are below `BYE_MIN_WEIGHT`). Their pre-shrink centres return to their `w_bye = None` values: All Citizens 1.043% → 0.035%, Truth and Solidarity 0.086% → 0.062%. No other pre-shrink centre changes by more than 1.4e-17 (float order). The four are exactly the by-election parties seeded in `pools_2026.json`; the runs were made with the rule keyed on θ's prior, which picks out the same four, and it was then keyed on the seed after review. The seed-keyed code was re-run (Johannesburg 2026, same draws and seed, for the old-against-new report): every drawn mean within 1.1e-16 of this entry's, every mean seat figure identical.
+
+| party | drawn mean, §1.323 → now | mean seats |
+|---|---|---|
+| DA | 26.35 → 26.68% | 70.0 → 71.0 |
+| ANC | 22.25 → 22.52% | 69.7 → 70.0 |
+| ActionSA | 12.51 → 12.67% | 28.9 → 29.3 |
+| EFF | 10.01 → 10.13% | 27.3 → 27.7 |
+| MK | 8.94 → 9.05% | 23.0 → 23.4 |
+| PA | 6.49 → 6.56% | 17.1 → 17.3 |
+| All Citizens Party | 1.24 → 0.05% | 3.3 → 0.1 |
+
+Largest party alone, share of draws: DA 44.3% → 47.4%, ANC 47.4% → 44.7%, MK 3.7% → 3.7%, tie 3.8% → 3.8%.
+
+**Tshwane 2026.** Every mean seat figure and every largest-party share is identical; drawn means differ by at most 1.1e-16 (process-to-process float order, §1.46), which no reported figure resolves.
+
+**Scored against the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| Q1 | backtest identical | not re-run: the change sits inside `if party in bye`, and `bye` is empty at every backtested target (the by-election file starts in 2022) |
+| Q2 | no pool spec changes | held: `pools.py` is not touched |
+| Q3 | All Citizens and Truth and Solidarity return to 0.04% and 0.06% pre-shrink; no other centre changes | held (0.035%, 0.062%) |
+| Q4 | All Citizens under 0.5 seats; no large party moves by more than 1.5 seats | held (0.1; largest move DA +1.0). Of the 3.3 seats gained by other parties, the five largest (DA, ANC, ActionSA, EFF, MK) take 2.5 |
+| Q5 | Tshwane does not move | held (no reported figure moves; drawn means within 1.1e-16); certain in advance, since Tshwane has no by-election input |
+
+Q1 is argued from the code, not measured; the next `compare_history` run measures it.
+
+**What this changes.** The three seats the All Citizens Party took on 198 by-election votes return to the larger parties in proportion, and the DA passes the ANC as the party most often largest alone (47.4% against 44.7%). The two are within three points of each other.
+
+**Limits.** Argued, not tested: no backtested target has a by-election in the current file.
+
+**§1.324 addendum (2026-10-19): Q1 measured.** `compare_history` at a9754ed (1,000 draws, seed 20261104) against the `history.json` committed at b0ab4b0: every figure for every metro and year is identical; only `generated` and `git_commit` differ. Q1 held, measured.
+
+## 1.325 The by-election weight on 2021, fed the 2016–2021 by-elections: ½ beats 0 and 1 over the eight metros, through two metros, mostly by pulling the forecast back toward the 2016 result; doubling seat-changing contests does worse (2026-10-20)
+
+**Method.** `prereg/2026-10-20-byelection-weight-2021-backtest.md`, run as registered by `audits/2026-10-20-byelection-2021-backtest/run.py` at a9754ed + the fetcher commit (no model code changed): each metro's 2021 deltas built from `data/raw/byelections/byelections_SA_vd_party_2016.csv` into a scratch tree, the eight 2021 elections scored with `compare_history.run_city_year` at 1,000 draws, seed 20261104, `run_model` pointed at the scratch `processed`. Arms: A0 `w_bye` 0, A5 0.5, A10 1.0, F 0.5 with seat-changing contests weighted ×2. Outputs, deltas and the scoring in the audit folder. An independent check (read-only) re-derived every total, confirmed the `processed` redirect is complete (`turnout.csv`, `gamma_recent.csv`, the deltas; the contest-detail file is unread at the default local weights), and rebuilt A0/A5/A10 traces to read the caps.
+
+**Result, summed over the eight metros (2021):**
+
+| arm | average list-vote error (points, mean of 8) | wards called wrong | seats to the wrong party |
+|---|---|---|---|
+| A0, by-elections off | 2.987 | 24 | 152.0 |
+| A5, ½ | 2.723 | 22 | 147.5 |
+| A10, 1 | 3.085 | 22 | 153.5 |
+| F, ½, flips ×2 | 2.773 | 23 | 147.5 |
+
+Per metro, list-vote error A0 → A5: Johannesburg 6.30 → 6.58, Ekurhuleni 2.56 → 2.33, Cape Town 2.45 → 1.00, eThekwini 2.52 → 3.24, Nelson Mandela Bay 3.28 → 1.77, Mangaung 1.76 → 1.83; Tshwane and Buffalo City admit no party (weight under `BYE_MIN_WEIGHT`) and do not move. Johannesburg at A5: wards wrong 8 → 7, seats to the wrong party 50.5 → 50.
+
+**What the gain is made of.** The blend target is the previous local list share plus the by-election swing, so A5 does two things at once: it applies the swing, and it pulls the forecast halfway back toward the 2016 list result. Cape Town's DA gains from both (2016 66.7% vs model 72.5%, swing −8.7). Nelson Mandela Bay's gain is mostly the pull back to 2016 (DA 46.7% vs 51.3%, swing −1.6). Johannesburg's ANC is hurt by the swing alone (2016 44.9% ≈ model 45.0%, swing +4.2). eThekwini's ANC is hurt by the pull back (2016 59.1% vs 49.3%) and is held at its θ ceiling. Two metros carry more than the whole summed gain (Cape Town −1.45, Nelson Mandela Bay −1.51 of −2.12); three of the six affected metros improve and three worsen. This experiment cannot separate the swing from the pull back; an arm blending toward the previous result alone (swing 0) would.
+
+**The cap binds widely at A5**: six parties in Cape Town (ANC 16.8 → 20.0, DA 58.0 → 59.2), eight in eThekwini (the ANC at its ceiling), three in Ekurhuleni (VF Plus 18.2 → 3.3), the EFF in Johannesburg and Nelson Mandela Bay; none in Mangaung. The size of every effect above is partly the θ band's.
+
+**Mangaung.** The ANC's centre rose (implied 53.1%, centre 52.68 → 52.87%), but the EFF's rose more (12.11 → 12.57%), the centres' sum rose, and `pool_spec`'s division by the sum took the ANC's normalised share down 0.12 points. The pre-registration reasoned on the centre, not the normalised share.
+
+**Arm F is not a clean test of the seat-flip idea.** Doubling contest weights also admits four parties over `BYE_MIN_WEIGHT` (Ekurhuleni IFP, NFP; eThekwini Al Jama-ah, independents). All five flips were toward the ANC, which fell in 2021. The eThekwini "independent → ANC" flip compares summed independents, not one candidate.
+
+**Scoring the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| B1 | A0 reproduces `history.json` 2021 | held: seats and ward calls identical; votes within 3.4e-15 (float order) |
+| B2 | Tshwane, Buffalo City unchanged | held |
+| B3 | A5 worse in JHB, EKU, ETH; better in CPT, MAN | JHB, ETH, CPT held; **EKU falsified** (better); **MAN falsified** (worse, by renormalisation) |
+| B4 | A5 worse than A0 summed | **falsified**: better, 2.987 → 2.723 |
+| B5 | A10 worse than A5 in JHB, EKU, ETH | JHB, ETH held; **EKU falsified** |
+| B6 | F worse than A5 on the ANC in JHB, EKU, ETH | held (7.3 → 8.1, 4.2 → 4.5, 6.3 → 6.7); confounded by four extra admissions |
+| B7 | wards and seats no better at A5 | **falsified**: wards wrong 24 → 22, seats 152 → 147.5 |
+
+**What this changes.** Nothing in the model. On the one cycle available, ½ scores better than 0 and 1 and the seat-flip weighting scores worse than ½. The evidence for ½ is two metros, and in one of them the gain is the pull back toward the previous result rather than the by-elections. Not measured: Monte Carlo error on the per-metro differences; calibration (the width record was measured without the by-election term). Every 2021 row is in-sample for the pools and `level_shrink`, equally in every arm.
+
+## 1.326 The by-election weight measured on 2021: the list-vote error is lowest at ½ and within 0.3 points of it from 0.4 to 0.6; the swing, not the pull back to 2016, carries the gain; the cap and a per-size split are not supported (2026-10-21)
+
+**Method.** `prereg/2026-10-20-byelection-weight-measured.md` (committed 54fbf49 before the run), at 54fbf49 with no model code changed. `audits/2026-10-20-byelection-weight-measured/sweep.py` reuses §1.325's scratch deltas and scoring (1,000 draws, seed 20261104): twelve grid arms `w_bye` ∈ {0, 0.1, 0.2, 0.25, 0.333, 0.4, 0.5, 0.6, 0.667, 0.75, 0.9, 1}; arm R, `w_bye` 0.5 with every `weighted_delta` set to 0 (admission unchanged); arm C, `w_bye` `null` with class weights under 1% 0.813, at or over 1% 0.319 (instrument 3's estimates), applied through `montecarlo.bye_weight`'s class path (confirmed in the `30_centres` trace). `analyze.py` computes the instruments; arm results and `score.txt` are in the audit folder. An independent review of the script before the run found that arm C as first written would have re-run ½ (`apply_city` resets `DEFAULTS`); fixed to pass `w_bye=null` as an override.
+
+**Instrument 1, the grid (summed over the eight metros, 2021).**
+
+| `w_bye` | 0 | 0.1 | 0.2 | 0.25 | 0.333 | 0.4 | 0.5 | 0.6 | 0.667 | 0.75 | 0.9 | 1 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| list-vote error, summed over 8 metros (points) | 23.90 | 23.41 | 22.91 | 22.66 | 22.24 | 21.94 | 21.78 | 21.91 | 22.35 | 22.93 | 23.98 | 24.68 |
+| wards called wrong | 24 | 24 | 21 | 21 | 21 | 21 | 22 | 22 | 22 | 23 | 22 | 22 |
+| seats to the wrong party | 152.0 | 150.0 | 148.5 | 150.0 | 147.5 | 147.5 | 147.5 | 146.5 | 147.5 | 149.5 | 154.0 | 153.5 |
+
+Minimum at 0.5; within 0.3 points of it, 0.4 to 0.6. At 0.333 the sum is 0.46 points above ½. Per metro the minimum differs: Johannesburg and Mangaung at 0 (each rises monotonically with the weight), Ekurhuleni at 1 (falls monotonically), Cape Town at 0.6, eThekwini at 0, Nelson Mandela Bay at 0.5. Seats to the wrong party lie between 146.5 and 150.0 from 0.1 to 0.75.
+
+**Instrument 2, leave one metro out** (grid weight minimising the other seven): Johannesburg 0.5, Ekurhuleni 0.5, Cape Town 0.4, eThekwini 0.6, Nelson Mandela Bay 0.4, Mangaung 0.5. Range 0.4–0.6. Summed held-out list-vote error over the six metros: 17.72 at the left-out choice, 16.76 at fixed ½, 18.87 at fixed 0.
+
+**Instrument 3, least-squares slope** `Σed/Σd²` on the forecast list shares (`e` actual − forecast at 0, `d` forecast at 1 − forecast at 0, the top twelve parties per metro): pooled 0.329 over 72 party-metros, leave-one-metro-out 0.174–0.585. By previous (2016) list share: under 1% 0.813 (43 party-metros; 0.496–1.904), at or over 1% 0.319 (29; 0.160–0.576), under 10% 0.215 (58; 0.122–0.431), at or over 10% 0.345 (14; 0.183–0.636). The slope and the grid disagree (0.33 against 0.5): the slope minimises squared error, which the large misses dominate (eThekwini's and Johannesburg's ANC, where the by-elections pointed the wrong way), while `pr_mae` is an absolute error over the same parties.
+
+**Arm C** (0.813 under 1%, 0.319 at or over): summed list-vote error 21.53, wards wrong 21, seats to the wrong party 146.0, against ½'s 21.78, 22, 147.5. Its weights were estimated on the same eight metros it is scored on; no held-out test of C was run. Per metro against ½: eThekwini 3.24 → 2.34, Ekurhuleni 2.33 → 2.26, Mangaung 1.83 → 1.80, Johannesburg 6.58 → 6.48; Cape Town 1.00 → 1.32, Nelson Mandela Bay 1.77 → 2.30.
+
+**Arm R, the pull back to 2016 alone:** summed 23.93 against 23.90 at weight 0 and 21.78 at ½; seats to the wrong party 159.0. Per metro, weight 0 → R → ½: Johannesburg 6.30 → 6.42 → 6.58, Ekurhuleni 2.56 → 2.97 → 2.33, Cape Town 2.45 → 2.46 → 1.00, eThekwini 2.52 → 3.57 → 3.24, Nelson Mandela Bay 3.28 → 2.57 → 1.77, Mangaung 1.76 → 0.91 → 1.83. Over the eight metros the pull back to the previous result gains nothing; the swing carries the gain at ½. §1.325's reading that the gain was "mostly" the pull back held for Nelson Mandela Bay (about half of its gain) and is not true of the total.
+
+**Instrument 4, the cap** (from the ½ trace's route notes, to 0.1 point; `e` actual − the pre-shrink level): slope on the capped by-election level 0.557, pooled squared error 760 points²; on the uncapped level 0.344, 781 points². The uncapped level has lower squared error in 3 of 6 metros (Johannesburg, eThekwini, Mangaung).
+
+**Scoring the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| M1 | re-run 0, ½, 1 reproduce §1.325 | held: `pr_mae` within 2.2e-14, seat errors identical |
+| M2 | flat within 0.3 from about 0.3 to 0.6, minimum in 0.3–0.6 | minimum held (0.5); **flat range falsified**, narrower (0.4–0.6) |
+| M3 | left-out range at least 0.3 wide, contains ½ | contains ½ held; **width falsified** (0.2) |
+| M4 | pooled slope in 0.2–0.6, need not equal the grid minimum | held (0.329 against 0.5) |
+| M5 | R gains at least half of ½'s gain on 0 | **falsified**: R is 0.03 worse than 0 |
+| M6 | the 1% class split not supported (under-1% range over 0.5 wide) | held (0.496–1.904) |
+| M7 | the uncapped slope does not win four of six metros | held (three) |
+
+**Decision rule, as registered.** The measured weight is ½. ½ lies inside the left-out range, so the record does not distinguish the measured weight from ½. The class ranges overlap (0.496–0.576), so per-class weights are not recommended. The uncapped level wins three metros, not four, so the cap stays.
+
+**What this changes.** Nothing in the model: the measured value equals the shipped one. ½ moves from declared to measured on one cycle (JUDGEMENT-CALLS §A59). Limits: one cycle (2016→2021, when the ANC fell and its by-election swings did not show it); six metros where by-elections reach a party, treated as independent although they share one national swing; the slope instrument puts the weight at 0.33 with a left-out range that contains ½; Monte Carlo error on the per-metro differences not measured; every 2021 row in-sample for the pools and `level_shrink`, equally in every arm.
+
+## 1.327 Corrections to §1.326 from the independent check: under the model's own size classes the per-class ranges do not overlap; the cap instrument used an `e` other than the registered one; `pr_mae` is vote-weighted (2026-10-21)
+
+An independent check of §1.326 (read-only; every figure re-derived from the arm files) reproduced instruments 1 and 2, the class figures of instrument 3 as computed, instrument 4 as computed, and M1. It found the following, each confirmed by computation; the first was re-derived by the lead before this entry.
+
+**Instrument 3's classes were not the model's.** `analyze.py` classed a party with no 2016 list share as under 1%; `montecarlo.bye_class_size` falls back to the baseline share (Cape Town GOOD and Mangaung PA are at or over 1% in the model). It also counted parties the by-elections never reached, whose `d` comes only from renormalisation. Re-estimated with the model's classes (read from arm C's `30_centres.bye_weight`), counting only parties with a route note (admitted, weight over 0) in the vote table: under 1%, 0.913 over 6 party-metros (Ekurhuleni ACDP, VF Plus; eThekwini ACDP, ATM, Justice and Employment Party; Nelson Mandela Bay ACDP), leave-one-metro-out 0.813–1.804; at or over 1%, 0.317 over 22, 0.160–0.567. The checker, counting every party with a class weight over 0, got 1.046 (15; 0.939–2.589) and 0.319 (28; 0.163–0.570). On either count the ranges do not overlap, so the registered rule ("per-class weights recommended only if the two classes' leave-one-out ranges do not overlap") recommends per-class weights under the model's classes and not under §1.326's. The pre-registration names both `byelections.size_class` and "1% of the previous list share", so it supports either reading. M6 holds by its letter on every partition.
+
+**Two further arms, not pre-registered, run after the check:** C with 0.913 / 0.317, summed list-vote error 21.42 (per metro: Johannesburg 6.48, Tshwane 2.12, Ekurhuleni 2.23, Cape Town 1.29, eThekwini 2.30, Nelson Mandela Bay 2.30, Buffalo City 2.90, Mangaung 1.80); C with 0.5 / 0.317, 22.01. Against ½ for every party, 21.78. The split's in-sample gain is the small-party weight; the larger parties at 0.32 with the small at ½ score worse than ½ for all. Arm C of §1.326 applied 0.813 / 0.319 through the model's classes while those values were estimated on the other partition, so it did not test its own estimate.
+
+**Instrument 4 used `e` = actual − pre-shrink level**, where the pre-registration ("the same slope with `d` replaced") keeps instrument 3's `e` = actual − forecast at 0. With the registered `e`: capped 0.198, pooled squared error 202.47 points²; uncapped 0.144, 199.84. The uncapped level has the lower pooled error on the registered instrument and wins 2 of 6 metros; §1.326's "781 against 760" holds only on the unregistered `e`. The registered four-of-six rule still keeps the cap (M7 holds on both). Six of 34 route notes were dropped silently because the party is outside the vote table (Cape Town AIC, Democratic Independent Party, The Greens; eThekwini Minorities of SA, NFP, People's Revolutionary Movement), three of them clamped. The cap moves levels both ways: it raised Cape Town's ANC and DA, eThekwini's ANC and EFF and the EFF in Johannesburg and Nelson Mandela Bay.
+
+**`pr_mae` is vote-share-weighted** over every party in the actual result (`compare_history.vote_mae`), not an unweighted absolute error over the vote table's parties. §1.326's explanation of why the slope (0.33) and the grid (0.5) differ is wrong on that point: the instruments differ in weighting (vote share against none), in the parties counted (all against the top twelve), and in the loss (absolute against squared).
+
+**Wording.** The pull back alone gives 47% of ½'s gain in Nelson Mandela Bay (0.705 of 1.513 points), not "about half"; §1.325's "mostly" does not hold there either.
+
+**What this changes.** Nothing in the model. ½ remains the measured single weight (instrument 1, unaffected). The per-class question goes to the owner with both partitions' results (OWNER-DECISIONS item 9).
+
+## 1.328 Making the shares add to 100% by uncertainty instead of in proportion: both alternatives are worse on the 24-city-year panel; proportional scaling stays (2026-10-21)
+
+**Method.** `prereg/2026-10-21-scaling-by-uncertainty.md` (committed f30f913 before the runs), at f30f913 with no model code changed. `audits/2026-10-21-scaling-by-uncertainty/run.py` scores every city-year of `history.json` (24) with `compare_history.run_city_year`, 1,000 draws, seed 20261104, one arm per process. P: as shipped (every centre divided by the same number in `pool_spec`). V and H wrap `blended_centres` so that, after the size pull, the excess `T − 1` is taken from each party in proportion to `u_i`: V `(c_i σ_i)²`, H `c_i σ_i²`, with `σ_i` the draw's own log width (`montecarlo.poll_model_sd`); a party is held at 10% of its centre if its cut would pass 90%. Before the panel ran, a smoke test of V at Johannesburg 2021 was run (ActionSA held at the floor, 7.39% → 0.74%; list-vote error 6.30 → 9.37). Arm results and `score.txt` in the audit folder.
+
+**Result, 24 city-years** (list-vote error is `pr_mae`, vote-weighted, points; signed errors are forecast − actual over the vote table's parties, summed):
+
+| arm | list-vote error, summed | 2011 | 2016 | 2021 | wards called wrong | seats to the wrong party | new parties, signed | top three, signed |
+|---|---|---|---|---|---|---|---|---|
+| P, proportional | 77.19 | 44.52 | 8.78 | 23.90 | 78 | 386.0 | +4.92 | −16.36 |
+| V, by variance | 99.51 | 45.40 | 18.51 | 35.60 | 81 | 469.0 | −30.84 | −0.64 |
+| H, halfway | 104.29 | 43.33 | 22.80 | 38.16 | 80 | 480.0 | −31.69 | +30.77 |
+
+Under V the parties held at the floor are the arrivals: ActionSA at Johannesburg and Tshwane 2021, the EFF at Cape Town and Nelson Mandela Bay 2016, GOOD at Cape Town 2021. The largest single losses: Cape Town 2016 0.51 → 5.01 (V) and 7.53 (H), Johannesburg 2021 6.30 → 9.37 and 9.93. Under H a large number of small parties reach the floor in five city-years, because `c σ²` weights the small parties' wide widths more heavily than V. H improves 2011 (44.52 → 43.33), where few parties are new to the city; V improves Mangaung 2021 (1.76 → 1.27).
+
+**Scoring the pre-registration.**
+
+| | prediction | outcome |
+|---|---|---|
+| S1 | P reproduces `history.json`, `pr_mae` within 1e-12, seat errors identical | seat errors identical held; **`pr_mae` falsified on its letter**: largest difference 1.47e-11 (float summation order) |
+| S2 | under V, new parties' summed signed error moves down by more than 3 points | held (+4.92 → −30.84) |
+| S3 | V fails the decision rule | held: worse on all three criteria |
+| S4 | H between P and V on every summed instrument | **falsified**: H is worse than V on the total, 2016, 2021 and seats; better than both in 2011 |
+| S5 | the three largest parties' signed error rises under V | held (−16.36 → −0.64) |
+
+**Decision rule, as registered.** Neither alternative has a lower summed list-vote error, so proportional scaling stays.
+
+**What this says.** The parties whose levels are least certain are mostly arrivals, and in this record the model's levels for them are not too high: proportional scaling leaves them over-forecast by 4.92 points summed over 24 city-years, and taking the excess from them turns that into −30.8. The excess over 100% is not concentrated where the widths are widest. The owner's point about trajectory (a party whose record is falling) is not tested: the widths measure uncertainty by size and newness, not by trend.
+
+**What this changes.** Nothing in the model. JUDGEMENT-CALLS gains the scaling rule as a measured choice (§A23's record).
+
+## 1.329 Corrections from the pre-rebuild record review: two statistics under one seat name, three ward counts, and the new-party evidence in §1.328 (2026-10-21)
+
+An independent review of the record from §1.314 on (brief `audits/2026-10-21-prerebuild-review/BRIEF.md`, Reviewer B) reproduced the figures of §1.325–§1.328 from their saved arm files and found the following, each confirmed by the reviewer from the artefacts.
+
+**"Seats given to the wrong party" has named two statistics.** §1.314 and §1.325–§1.328 quote half of `seat_abs_err`, the error of the marginal median vector, which does not fill a council (`median_sum` falls 1–13 seats short in every `history.json` row; Johannesburg 2021 sums to 257 of 270), so its half includes unfilled seats. §1.317, §1.321 and the prereg index quote half of `seat_abs_err_coherent`, which fills the council. On the same `history.json`: 386 against 355. Only the coherent one is seats given to the wrong party. The arm files of §1.325, §1.326 and §1.328 saved `seat_abs_err` only, so their seat columns are the marginal statistic and are not comparable with §1.317 or §1.321; no decision in those entries rested on the seat column. Future experiment scripts save both.
+
+**"Wards called wrong" has had three counts:** 79 (favourite not the winner, §1.314, §1.317), 78 (`n_wards − called`, §1.328), 70 (`wards_matched − called`, §1.321). The differences are the 8 unmatched wards (Tshwane 2011: 6, eThekwini 2016: 1, Mangaung 2016: 1), counted wrong by the `n_wards` forms though never matched. They coincide on the 2021-only experiments.
+
+**§1.328's new-party evidence.** The summed new-party signed error under proportional scaling (+4.92) adds cycles of opposite sign: 2011 +57.85 (COPE alone +63.88), 2016 −20.46, 2021 −32.47; under V +58.07, −39.10, −49.80. By count, 58 new-party rows are under-forecast and 25 over. In 2016 and 2021, where V loses, the arrivals are under-forecast and V makes it worse; that is S3's registered reasoning and the record supports it. §1.328's "+4.92 over-forecast" sentence and "2011, where few parties are new" (22 of 82 rows in 2011, against 32 of 96 and 29 of 96) are wrong. "Worse on all 24 city-years" (JUDGEMENT-CALLS §A23 record, commit 814f1fa) is wrong per city-year: H improves five 2011 city-years and V and H improve Mangaung 2021; six city-years have levels summing to 1 or less and are identical by construction; the pre-registration called that case rare, and V and H acted on 18 of 24. Summed over 24 and in 2016 and 2021 both are worse. S5's description has its sign backwards: the three largest (by actual share) are under-forecast under P (−16.36) and less so under V (−0.64). H's form `c σ²` is not between proportional and V in effect: against V it drops a factor of `c`, so small parties with wide widths take as much as the largest, which is why 31–34 reach the floor in four city-years.
+
+**Disclosure and order.** The scaling smoke test's file was written 17 seconds before the prereg commit, after the prereg text was last edited; §1.328 discloses it. `audits/2026-10-20-byelection-2021-backtest/run.py` was committed after its results (f57f6a8), though written after its prereg commit. §1.326's arms ran on the amended `sweep.py` (disclosed). `prereg/2026-10-17-roll-split-by-census-share.md` P1 (75.6 / 5.5 / 5.0 / 13.9) was very likely computed before the prereg commit (a scratch script born 25 minutes earlier prints that quantity); the prereg discloses P3's prior measurement but not P1's, so §1.321's "all eight held" counts one prediction that was not a prediction.
+
+**Corrected in place** (not this log): JUDGEMENT-CALLS §A23 record item 3, §A59 Evidence (per-class result on the model's classes) and heading, §F6 and §SJ1 (the owner's answers of 2026-10-21), MACHINERY's by-election rows, the prereg index rows of 2026-10-20 and 2026-10-21, OWNER-DECISIONS items 9 and 12.
+
+**Reviewer A** (code, `3357a5ee..e537df9`) found no defect giving a wrong forecast number today. Its items for the rebuild are in `audits/2026-10-21-prerebuild-review/CHECKLIST.md`.
+
+**§1.329 addendum (2026-10-21).** Reviewer B's check of the corrections: the list of improvements under the alternatives also includes V at Nelson Mandela Bay 2011 (7.35 → 7.33). §A59's quotation of §1.325's seat figure is relabelled as the median-vector statistic, and its per-class sentence now states M6's width result beside the non-overlap result.
+
+## 1.330 ActionSA's centre held at 17.6% by the owner: Johannesburg 2026 with and without the call (2026-10-21)
+
+**The call.** Owner, 2026-10-21: "Put action SA at 17.6%". Entered as `[party.ASA] support = 0.176, sigma_j = 0, register = "§SJ2"` in `judgements/joburg-2026.toml` (JUDGEMENT-CALLS §SJ2). The judged centre replaces the model's own (12.64% of the list vote in this run, `35_widths.judgements_applied[ASA].centre_before`); every other party's centre is rescaled so the centres add to 100%. `sigma_j = 0` keeps the model's own width at that size.
+
+**What it re-emitted.** The two Johannesburg 2026 specs (`pools_2026.json`, `pools_2026_simulation.json`): only `artefact_key.judgements_sha` changed, against the copy taken by `backup_ignored.py` immediately before (ActionSA is not an arrival, so its membership in `judged_parties` moves no capture). `width_record.py --emit`: identical apart from `generated`.
+
+**The two runs.** `audits/2026-10-21-actionsa-call/run.py`, in process, 5,000 simulations each, seed 20261104, the freeze's scenario, `apply_judgements` on and off; results in `summary.json` there. List vote: simulation mean (90% range). Seats: mean (90% range), council of 270.
+
+| party | list vote, without | list vote, with | seats, without | seats, with |
+|---|---|---|---|---|
+| DA | 26.7 (20.4–32.8) | 25.2 (19.4–30.9) | 71.0 (55–88) | 66.7 (52–82) |
+| ANC | 22.5 (17.1–27.8) | 21.2 (16.1–26.2) | 70.0 (50–81) | 69.2 (48–81) |
+| ActionSA | 12.7 (8.4–17.9) | 17.6 (13.3–22.3) | 29.3 (20–41) | 40.5 (31–51) |
+| EFF | 10.1 (5.6–16.1) | 9.6 (5.1–15.6) | 27.7 (16–44) | 26.0 (14–43) |
+| MK | 9.1 (2.1–21.4) | 8.5 (1.9–20.5) | 23.4 (6–57) | 22.0 (5–55) |
+| PA | 6.6 (2.3–13.2) | 6.2 (2.1–12.9) | 17.3 (6–34) | 16.3 (6–33) |
+| RISE | 1.8 (0.2–5.8) | 1.7 (0.2–5.5) | 4.7 (1–15) | 4.4 (1–14) |
+| IFP | 1.7 (0.3–4.4) | 1.6 (0.3–4.2) | 4.6 (1–12) | 4.3 (1–11) |
+| BOSA | 1.1 (0.1–3.6) | 1.1 (0.1–3.4) | 3.0 (0–9) | 2.8 (0–9) |
+
+**Limits.** The call is argued, not tested: the record holds one local election for ActionSA. The backtest ignores every strength judgement by design, so no `history.json` row moves. Checked against the 2026 result per §SJ2.
+
+**§1.330 addendum (2026-10-21).** The `35_widths.json` the entry cites is committed for both runs under `audits/2026-10-21-actionsa-call/{with,without}/`. An independent review re-derived `centre_before` (0.126376), the common rescaling of the other parties (DA × 0.9432 = (1 − 0.176)/(1 − 0.1264)), that `sigma_j = 0` leaves ActionSA's width the model's own at 17.6% (ActionSA is not new, so no newness term is replaced), and every figure in the table against `summary.json`.
+
+## 1.331 Johannesburg 2026 artefacts regenerated with ActionSA at 17.6% (2026-10-21)
+
+On d0c3347/37b3e66, clean tree: `montecarlo.py --city joburg --target 2026 --draws 5000 --seed 20261104`; `overhang_regimes.py` (its reference re-run reproduced `seat_draws.csv`, `ward_winner_probs.csv` and the coalition tables byte for byte; `forecast_summary.json` differs only in `_generated`); `freeze.py` (1,500 simulations, seed 20261104, not dirty; `content_sha256` d9a0a20217e3742c…); `export_draws.py` for the base cell and `w_bye=0`, `w_bye=1` (5,000 each), then `--index site/draws` (the base cell's by-election weight range is now [0.5, 0.5]); `citywide_table.py`.
+
+Frozen seat medians (90% range), 1,500 simulations: ANC 72 (48–81), DA 67 (52–82), ActionSA 40 (31–51), EFF 25 (14–43), MK 16 (5–54), PA 14 (5–32). Forecast run, 5,000 simulations: as §1.330's "with" column.
+
+`declares.py --verify`: one artefact declaring wrongly, `history.json` (`git` a9754ed, `git_dirty: true`); not re-run, because no model code has changed since a9754ed and §1.328's arm P, run at the clean f30f913, reproduced all 24 of its rows (CHECKLIST, "What the rebuild must run").

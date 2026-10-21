@@ -427,7 +427,12 @@ FIXTURE_RECORD = {"kind": "fit",
                   "curve": {"a": 0.03, "b": 0.816, "log_mid": math.log(0.0856),
                             "k": 2.57},
                   "delta": 0.873, "location": {"c1": 0.342, "c2": 0.075},
-                  "rho": {"lo": 0.33, "hi": 0.11}}
+                  "rho": {"lo": 0.33, "hi": 0.11},
+                  # The newcomer δ by anchor class (prereg 2026-10-16),
+                  # typed apart from `delta` so a test can tell which was read.
+                  "delta_by_class": {
+                      "anchored": {"delta": 0.66, "source": "fit"},
+                      "unanchored": {"delta": 0.92, "source": "fit"}}}
 
 
 def base_spec(with_entrant: bool = False, tie: bool = False,
@@ -466,6 +471,9 @@ def base_spec(with_entrant: bool = False, tie: bool = False,
     sc["draw_law"] = law
     sc["_width"] = dict(FIXTURE_RECORD)
     sc["_new_parties"] = []
+    # Every fixture party holds a national result (`montecarlo.newness_class`
+    # reads this): a test that makes one new and unanchored removes it.
+    sc["_baseline_before_seeds"] = dict(centres)
     sc["_strength_applied"] = []
     index = {p: i for i, p in enumerate(PARTIES)}
     if with_entrant:

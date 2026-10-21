@@ -1002,8 +1002,9 @@ def centres_the_recorded_levers_reproduce_the_shrink(stage: dict) -> list[str]:
 
 def centres_the_bye_weights_belong_to_centred_parties(stage: dict) -> list[str]:
     """``bye_weight`` names only parties with a centre, each with a finite
-    non-negative weight and a class that is a size class or ``"override"``;
-    an override is one weight for every party (BRIEF item 19)."""
+    non-negative weight and a class that is a size class, ``"override"`` or
+    ``"no record"`` (weight 0, JUDGEMENT-CALLS §A60); an override is one weight
+    for every party (BRIEF item 19)."""
     import byelections as _by
     before = stage.get("before_shrink") or {}
     given = stage.get("bye_weight") or {}
@@ -1016,8 +1017,10 @@ def centres_the_bye_weights_belong_to_centred_parties(stage: dict) -> list[str]:
         w, cls = (v or {}).get("weight"), (v or {}).get("class")
         if not _finite(w) or w < 0:
             faults.append(f"{party}: by-election weight {w!r} is not a weight")
-        if cls not in (*_by.SIZE_CLASSES, "override"):
+        if cls not in (*_by.SIZE_CLASSES, "override", "no record"):
             faults.append(f"{party}: by-election class {cls!r} is no class")
+        if cls == "no record" and w != 0.0:
+            faults.append(f"{party}: no record but by-election weight {w!r}")
     overrides = {v.get("weight") for v in given.values()
                  if (v or {}).get("class") == "override"}
     if len(overrides) > 1:

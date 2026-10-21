@@ -191,6 +191,16 @@ is a correction, not a rewording. *(Owner: add, leave for now.)*
   when a lever moves.
 * **The judgement calls have no published surface** since the sheet was
   withdrawn as unreadable.
+* **Readers make the judgement calls** (owner, 2026-10-21: after go-live, a
+  new site feature with a brief first). One control offered for every party,
+  redrawn from the published simulations in the browser. OWNER-DECISIONS
+  item 10.
+* **Sign-in, redesigned** (owner, 2026-10-21, held for later): readers sign in
+  with X or another account and the site keeps no credentials; their contact
+  details are sealed inside their entry, readable by the operators only in
+  named circumstances where a key is received. The built `worker-api/` stores
+  email addresses and needs reworking to this before any sign-in goes on.
+  OWNER-DECISIONS item 11.
 
 ## Done
 
@@ -209,6 +219,12 @@ a 2026 forecast (`src/inputs_preflight.py --strict --city tshwane --target
 2026`) are the voters' roll and the certified roster; it already has a 2026
 spec and judgements file. Do not start acquiring rolls before Johannesburg's
 interactive is done.
+
+**Owner, 2026-10-19: Tshwane launches after Johannesburg is live.** A third gap
+for that launch: Tshwane has no by-election deltas file, so its forecast reads
+no by-elections. `src/byelections.py --city tshwane` has never been run; the
+raw file already holds its contests. Pre-register before building it (it moves
+Tshwane's forecast).
 
 **Before the election**
 

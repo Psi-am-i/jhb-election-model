@@ -24,9 +24,9 @@ What this file proves, per CLAUDE.md section 4:
    live file.
 
 A probe returns True when the claim's DECLARED state holds. A probe for an `off`
-or `absent` claim is what keeps that status honest: if the by-election weights
-became non-zero, `bye_weights_are_zero` returns False and the entry must change
-state (and the page may then be right).
+or `absent` claim is what keeps that status honest; a probe on a `live` claim
+does the same the other way: if `w_bye` went to 0, `bye_weight_is_positive`
+returns False and every by-election claim must change state.
 """
 from __future__ import annotations
 
@@ -53,12 +53,24 @@ EXPECTED_PAGES = {
 # probes: cheap reads of live state. True means the declared state holds.
 # ---------------------------------------------------------------------------
 
-def bye_weights_are_zero() -> bool:
-    path = ROOT / "data" / "processed" / "bye_value.json"
+def bye_weight_is_positive() -> bool:
+    """By-elections reach the 2026 centres: a positive `w_bye` and a
+    by-election input for Johannesburg 2026 to apply it to."""
+    import montecarlo as M
+    path = ROOT / "data" / "processed" / "byelection_party_deltas.csv"
     if not path.exists():
-        skip("data/processed/bye_value.json is not on this machine")
-    weights = json.loads(path.read_text(encoding="utf-8")).get("weights") or {}
-    return bool(weights) and all(float(v) == 0.0 for v in weights.values())
+        skip("data/processed/byelection_party_deltas.csv is not on this machine")
+    with path.open(encoding="utf-8") as handle:
+        if sum(1 for _ in handle) < 2:
+            return False
+    w = M.DEFAULTS["w_bye"]
+    return w is not None and float(w) > 0.0
+
+
+def bye_weight_is_half() -> bool:
+    """Halfway for every party: 0.5, applied as given ("fixed")."""
+    import montecarlo as M
+    return M.DEFAULTS["w_bye"] == 0.5 and M.DEFAULTS["bye_weight_mode"] == "fixed"
 
 
 def draw_law_is_universal() -> bool:
@@ -126,7 +138,7 @@ def ifp_pool_only_in_simulation_spec() -> bool:
 
 
 PROBES = {f.__name__: f for f in (
-    bye_weights_are_zero, draw_law_is_universal, level_shrink_is_positive,
+    bye_weight_is_positive, bye_weight_is_half, draw_law_is_universal, level_shrink_is_positive,
     poll_channel_is_off, turnout_correlation_is_a_correlation,
     overhang_default_is_a_known_rule, overhang_rules_include_the_comparison_laws,
     splinter_weight_falls_back_to_default, starting_level_is_local_national_blend,
@@ -208,8 +220,10 @@ def test_the_register_was_read_in_full():
     assert {c["state"] for c in doc["claim"]} <= set(STATES)
     # the register states the known claims truthfully: the five pages found
     # non-live were corrected on 2026-10-16, and each correction is there, live
+    # (the by-election one live since `w_bye` became 0.5 on 2026-10-17,
+    # JUDGEMENT-CALLS §A59; its page text changed 2026-10-21)
     by_id = {c["id"]: c for c in doc["claim"]}
-    for cid, state in (("byelections-can-tilt-and-do-not", "live"),
+    for cid, state in (("byelections-tilt-expected-share", "live"),
                        ("log-scale-bell-curve", "live"),
                        ("four-census-pools", "live"),
                        ("starting-level-blends-local-and-national", "live"),
@@ -252,32 +266,34 @@ def test_the_detector_sees_each_fault():
 
 
 def test_a_mutated_live_probe_turns_the_register_red():
-    """Mutation of the thing a claim speaks of: point the probes at a scratch
-    tree whose by-election weights are non-zero and every claim resting on
-    that evidence goes red; pointed back, the register is clean."""
-    global ROOT
-    real = ROOT / "data" / "processed" / "bye_value.json"
-    if not real.exists():
-        skip("data/processed/bye_value.json is not on this machine")
-    import tempfile
-    saved = ROOT
-    with tempfile.TemporaryDirectory() as tmp:
-        scratch = Path(tmp)
-        (scratch / "data" / "processed").mkdir(parents=True)
-        data = json.loads(real.read_text())
-        data["weights"] = {k: 0.25 for k in data["weights"]}
-        (scratch / "data" / "processed" / "bye_value.json").write_text(json.dumps(data))
-        ROOT = scratch
-        try:
-            only = dict(_live(), claim=[c for c in _live()["claim"]
-                                        if c.get("probe") == "bye_weights_are_zero"])
-            red = [f for f in faults(only, PROBES, page_exists=lambda p: True)
-                   if "is False" in f]
-        finally:
-            ROOT = saved
-    declared = [c for c in _live()["claim"] if c.get("probe") == "bye_weights_are_zero"]
+    """Mutation of the thing a claim speaks of: set `w_bye` to 0 and the
+    claims declaring the by-election channel `live` go red; set back, the
+    register is clean."""
+    import montecarlo as M
+    if not (ROOT / "data" / "processed" / "byelection_party_deltas.csv").exists():
+        skip("data/processed/byelection_party_deltas.csv is not on this machine")
+    declared = [c for c in _live()["claim"]
+                if c.get("probe") in ("bye_weight_is_positive", "bye_weight_is_half")]
+    only = dict(_live(), claim=declared)
+    saved = M.DEFAULTS["w_bye"]
+    M.DEFAULTS["w_bye"] = 0.0
+    try:
+        red = [f for f in faults(only, PROBES, page_exists=lambda p: True)
+               if "is False" in f]
+    finally:
+        M.DEFAULTS["w_bye"] = saved
     assert len(declared) >= 4 and len(red) == len(declared), (len(red), len(declared))
-    assert not [f for f in faults(_live(), PROBES) if "bye_weights_are_zero" in f]
+    # the halfway claim also needs the weight applied as given
+    half = dict(_live(), claim=[c for c in declared if c["probe"] == "bye_weight_is_half"])
+    saved_mode = M.DEFAULTS["bye_weight_mode"]
+    M.DEFAULTS["bye_weight_mode"] = "inverse_variance"
+    try:
+        red_mode = [f for f in faults(half, PROBES, page_exists=lambda p: True)
+                    if "is False" in f]
+    finally:
+        M.DEFAULTS["bye_weight_mode"] = saved_mode
+    assert half["claim"] and len(red_mode) == len(half["claim"]), red_mode
+    assert not [f for f in faults(_live(), PROBES) if "bye_weight_is" in f]
 
 
 if __name__ == "__main__":

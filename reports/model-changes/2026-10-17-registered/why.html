@@ -1,0 +1,18 @@
+  <h2>What changed, and what it did</h2>
+  <div class="why">
+    <div><h3>The turnout change of 16 October is reverted</h3>
+      <p>The model is back where it was before that change, checked by re-running it: all 5,000 simulations came out identical to the run saved before the change. The newcomer change from the same day stays.</p></div>
+    <div><h3>Registered voters are the only population the model uses</h3>
+      <p>The voters' roll gives each ward's registered voters but not their population group, so the model has to estimate the split. The old model estimated it in steps: census population, then adults, then registered voters, with one registration rate per group fitted across the whole city. It came out with 1.74 registered White voters for every White adult in Johannesburg, which cannot happen, and gave White voters 25% of the 2021 roll.</p>
+      <p>The new model splits each ward's roll by that ward's census population shares, and uses nothing else from the census: no adult counts, no age or sex, no head counts. Ward totals are still the exact roll. Votes by group are still estimated, because nobody publishes them. Johannesburg 2021's roll now splits Black African 75.6%, Coloured 5.5%, Indian/Asian 5.0%, White 13.9%.</p>
+      <p>Two limits come with it. It assumes every group in a ward registers at the same rate, which nobody can check because the roll records no group. And census population includes children; the Black African population is younger, so its share of the roll is probably overstated.</p></div>
+    <div><h3>Effect on the 2026 forecast: almost none</h3>
+      <p>Average vote shares are unchanged to two decimals. ANC seats 72.0 to 72.1. The ANC is the largest party in 59% of simulations (was 58%), the DA in 37% (was 38%); a tie for most seats is split evenly between the tied parties. No ward changes favourite. White voters' share of the drawn vote falls from 32% to 20%, but the model's estimate of how each group votes adjusts to match the same ward results, so the parties' totals barely move.</p></div>
+    <div><h3>Effect on past elections: almost none</h3>
+      <p>Across 24 past metro elections, wards called wrong 71 to 70, seats given to the wrong party 356 to 355, average list-vote error 3.21 to 3.22 points. The new split predicts each ward's turnout from its population mix better at 6 of 8 metros, with four fewer fitted numbers.</p></div>
+    <div><h3>What it shows that the old model hid</h3>
+      <p>The census used is from 2022, and the model applies it back to 2011. In 2011 the DA won more votes in seven metros than the census's White share of the roll could supply even at full turnout. Johannesburg's census White share fell from 12% in 2011 to 7% in 2022, so the 2011 roll was probably whiter than this split assumes. A 2011 census ward table would settle it; we do not hold one.</p></div>
+    <div><h3>What we predicted</h3>
+      <p>Written before the run, all eight predictions held: the roll split, ward totals exact, better turnout fit at 5 or more metros (6), 2026 shares within 0.3 points (unchanged), the ANC's chance of being the largest party alone within 3 points (56.1% to 57.0%), the White turnout centre rising toward 60% (53% to 60%), the White share of the drawn vote falling, the past-election error moving by under 0.1 points (3.212 to 3.217).</p></div>
+  </div>
+  <p class="note" style="margin-top:16px">Both models are the code at their commits, re-run at 5,000 simulations. The site still shows the 29 September forecast.</p>

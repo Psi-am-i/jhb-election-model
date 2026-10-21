@@ -321,27 +321,32 @@ def test_every_census_refusal_is_reachable_named_and_reverts():
     assert _pool_counts_reason(city, CEILING_YEAR, cfg) is None, (
         f"{CITY} {CEILING_YEAR} is still refused after the patch was removed.")
 
-    # (c) fewer than half the election's wards find a census population.
-    real_pop = pools.read_census_population
-    pools.read_census_population = lambda *a, **k: {"no_such_ward": 1.0}
+    # (c) fewer than half the election's wards find a census composition.
+    real_comp = pools.composition_at
+    pools.composition_at = lambda *a, **k: ({"no_such_ward": None}, None)
     try:
         observed["c"] = _pool_counts_reason(city, JOIN_YEAR, cfg)
     finally:
-        pools.read_census_population = real_pop
+        pools.composition_at = real_comp
     assert observed["c"] == "census_wards_unmatched", (
-        f"a census population keyed on wards this city does not have gave "
+        f"a census composition keyed on wards this city does not have gave "
         f"{observed['c']!r}, not 'census_wards_unmatched'.")
 
-    # (d) no ward joins at all: the composition comes back empty while the
-    #     population still matches, so (c)'s guard passes and (d)'s fires.
-    real_comp = pools.composition_at
-    pools.composition_at = lambda *a, **k: ({}, None)
+    # (d) no ward joins at all: every ward matches the census but none has a
+    #     registered voter, so (c)'s guard passes and (d)'s fires.
+    real_totals = pools.ward_totals
+
+    def empty_roll(*a, **k):
+        reg, votes = real_totals(*a, **k)
+        return {w: 0.0 for w in reg}, votes
+
+    pools.ward_totals = empty_roll
     try:
         observed["d"] = _pool_counts_reason(city, JOIN_YEAR, cfg)
     finally:
-        pools.composition_at = real_comp
+        pools.ward_totals = real_totals
     assert observed["d"] == "census_no_join", (
-        f"an empty ward composition gave {observed['d']!r}, not "
+        f"a roll of zero in every ward gave {observed['d']!r}, not "
         f"'census_no_join'.")
 
     assert _pool_counts_reason(city, JOIN_YEAR, cfg) is None, (

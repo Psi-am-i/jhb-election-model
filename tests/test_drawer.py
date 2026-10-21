@@ -492,22 +492,49 @@ PROCESSED = ROOT / "data" / "processed"
 # one. Largest party move: MK p95 23.67 -> 24.11. No improvement is claimed
 # and none is measured
 # here.
+# RE-RECORDED 2026-10-16 (second time), deliberately: THE NEWCOMER δ BY ANCHOR
+# CLASS (prereg/2026-10-16-newness-width-by-anchor.md, arm S; MODEL-LOG §1.314)
+# MOVED THE DRAWER, NOT THE INPUT. Attributed, not assumed: this fixture with
+# `newness_width = "single"` on the re-emitted width record reproduces every
+# previous golden to 5e-5pp (under TOL); with the shipped "by_anchor" the
+# whole movement appears. MK is anchored (a 2024 national vote here) and its δ
+# fell from the single δ to the anchored class's, so its band narrowed (p5
+# 1.43 -> 2.13, p95 24.11 -> 21.16) and, through the normalisation, ANC's and
+# DA's narrowed with it; the other newcomers' widths moved by class. No
+# improvement is claimed here; the backtest is §1.314's.
+# RE-RECORDED 2026-10-17, deliberately: EACH WARD'S ROLL IS SPLIT BY ITS
+# CENSUS GROUP SHARES (owner, registered voters only; prereg
+# prereg/2026-10-17-roll-split-by-census-share.md, MODEL-LOG §1.321). The
+# pools' registered sizes changed (Johannesburg 2026 White share of the roll
+# 26.2% -> 14.4%) and so did their turnout bands (White mode 0.527 -> 0.602),
+# so the pool totals moved: White mean 31.67% -> 20.02% of the drawn vote,
+# band 26.1-36.8 -> 15.9-23.7 (prereg P6, held). Party bands moved by at most
+# 0.17pp at an end. No improvement is claimed here; the backtest is §1.321's.
+# RE-RECORDED 2026-10-19, deliberately: BY-ELECTIONS COUNT FOR HALF, FOR EVERY
+# PARTY (owner, `w_bye` 0.5, JUDGEMENT-CALLS §A59; prereg
+# prereg/2026-10-17-byelection-weight-half.md, MODEL-LOG §1.323). The input to
+# the drawer moved, not the drawer: Johannesburg's centres take half of each
+# party's by-election level. ANC mean 23.72% -> 22.39%, DA 26.04% -> 26.79%,
+# EFF 11.06% -> 10.19%, ASA 11.68% -> 12.62%, PA 5.87% -> 6.46%; Black African
+# pool 61.61% -> 60.29% of the drawn vote. Nothing scores it (no backtested
+# target has a by-election); no improvement is claimed.
+#
 GOLDEN_PARTIES: dict[str, tuple[float, float, float]] = {
-    "ANC": (23.7340, 17.7082, 29.2960),
-    "DA": (26.0435, 19.1859, 32.4262),
-    "EFF": (11.0604, 6.5658, 16.3375),
-    "ASA": (11.6825, 7.3925, 17.1309),
-    "MK": (8.7784, 1.4263, 24.1122),
-    "PA": (5.8750, 1.9452, 12.0393),
-    "VFPLUS": (0.9003, 0.1912, 2.2925),
-    "ALJAMAAH": (0.8468, 0.1923, 2.1369),
+    "ANC": (22.3917, 17.2373, 27.5202),
+    "DA": (26.7945, 20.3939, 32.8404),
+    "EFF": (10.1879, 5.7857, 15.6084),
+    "ASA": (12.6209, 8.5124, 17.7796),
+    "MK": (8.8317, 2.1231, 21.1980),
+    "PA": (6.4603, 2.2986, 12.6508),
+    "VFPLUS": (0.8732, 0.1882, 2.2694),
+    "ALJAMAAH": (0.8234, 0.1912, 2.0897),
     "ENTRANT": (1.3859, 0.0000, 7.7892),
 }
 GOLDEN_POOLS = {
-    "Black African": (51.9628, 44.4045, 60.6804),
-    "Coloured": (9.1842, 5.1897, 15.1520),
-    "Indian/Asian": (4.1040, 3.0251, 5.5705),
-    "White": (31.6894, 25.6592, 37.0962),
+    "Black African": (60.2863, 52.8858, 67.7230),
+    "Coloured": (10.2484, 6.0785, 16.3190),
+    "Indian/Asian": (5.8215, 4.3664, 7.7941),
+    "White": (20.6376, 16.3783, 24.4263),
 }
 
 WATCHED = ("ANC", "DA", "EFF", "ASA", "MK", "PA", "VFPLUS", "ALJAMAAH", "ENTRANT")
@@ -599,6 +626,9 @@ def build_inputs(law: str = "universal"):
     # local election here): the universal draw's newness term reads it.
     scenario["_new_parties"] = sorted(
         p for p in index if p != "ENTRANT" and share_2021.get(p, 0.0) <= 0.0)
+    # The baseline before any seed (`montecarlo.newness_class` reads it): this
+    # fixture adds no seed, so it is the national baseline itself.
+    scenario["_baseline_before_seeds"] = dict(base_city_d)
     return scenario, base_city_d, centres, index
 
 

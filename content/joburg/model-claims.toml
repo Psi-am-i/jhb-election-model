@@ -80,13 +80,13 @@ symbol = "pools.turnout_band"
 state = "live"
 
 [[claim]]
-id = "byelections-can-tilt-and-do-not"
+id = "byelections-tilt-expected-share"
 page = "docs-public/methodology.md"
-text = "Recent by-elections can tilt each party's expected share before the draws; in this forecast they do not."
+text = "Recent by-elections tilt each party's expected share before the draws."
 symbol = "montecarlo.read_bye_value"
 state = "live"
-probe = "bye_weights_are_zero"
-note = "Page corrected 2026-10-16. The measured class weights in data/processed/bye_value.json are 0.0 at 2026."
+probe = "bye_weight_is_positive"
+note = "Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "splits-sized-from-parent"
@@ -166,13 +166,13 @@ state = "live"
 probe = "level_shrink_is_positive"
 
 [[claim]]
-id = "byelection-weight-measured"
+id = "byelection-weight-half"
 page = "docs-public/methodology.md"
-text = "How much recent by-elections count is measured, by group of parties, leaving each metro out in turn."
-symbol = "bye_value.BYE_VALUE_MIN_PAIRS"
+text = "Each party's expected share is set halfway between what the model expects from earlier elections and what the by-elections since 2021 imply for it."
+symbol = "montecarlo.DEFAULTS"
 state = "live"
-probe = "bye_weights_are_zero"
-note = "The measurement is run and its result is a weight of 0.0 for both classes at 2026; since 2026-10-16 the page says neither group passed."
+probe = "bye_weight_is_half"
+note = "DEFAULTS['w_bye'] 0.5, the owner's declared weight (JUDGEMENT-CALLS §A59); halfway before the level shrink and normalisation."
 
 [[claim]]
 id = "turnout-moves-together"
@@ -197,6 +197,14 @@ symbol = "pools.apply_mergers"
 state = "live"
 
 [[claim]]
+id = "actionsa-judged-level"
+page = "docs-public/methodology.md"
+text = "ActionSA is set at 17.6% of the list vote; every other party's share is scaled down in proportion, and ActionSA keeps the model's usual uncertainty for a party of that size."
+symbol = "montecarlo._apply_strength_judgements"
+state = "live"
+note = "Owner's call 2026-10-21, judgements/joburg-2026.toml [party.ASA] support 0.176, sigma_j 0 (JUDGEMENT-CALLS §SJ2, MODEL-LOG §1.330)."
+
+[[claim]]
 id = "starting-level-blends-local-and-national"
 page = "docs-public/methodology.md"
 text = "A party's starting level blends its national result, converted down to local, with its last local result: the less record a party has of that gap, the more its local result counts."
@@ -217,16 +225,16 @@ state = "live"
 [[claim]]
 id = "byelections-an-input"
 page = "docs-public/sources.md"
-text = "The model reads by-elections and, in this forecast, gives them no weight."
+text = "The model reads by-elections and moves each party's expected share halfway toward what they imply."
 symbol = "byelections.load_byelections"
 state = "live"
-probe = "bye_weights_are_zero"
-note = "Page corrected 2026-10-16 (it said they are an input). Their weights are 0.0 at 2026."
+probe = "bye_weight_is_half"
+note = "Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "census-ward-product"
 page = "docs-public/sources.md"
-text = "Census 2022 ward-level population estimates are used in the turnout modelling."
+text = "Census 2022 ward-level population-group shares split each ward's registered voters into groups."
 symbol = "pools.pool_counts"
 state = "live"
 
@@ -249,20 +257,20 @@ state = "live"
 [[claim]]
 id = "sheet-arithmetic-on-results-registration-byelections"
 page = "forecast-sheet.html"
-text = "It is arithmetic on results and registration; the by-elections since 2021 are read and given no weight; polls are not an input."
+text = "It is arithmetic on results and registration; the by-elections since 2021 count at half weight; polls are not an input."
 symbol = "montecarlo.read_bye_value"
 state = "live"
-probe = "bye_weights_are_zero"
-note = "Page corrected 2026-10-16. The poll half is poll_channel_is_off."
+probe = "bye_weight_is_half"
+note = "The poll half is poll_channel_is_off. Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "sheet-byelection-deltas-central-scenario"
 page = "forecast-sheet.html"
-text = "All CoJ by-elections 2021-2026 (read, and given no weight in this forecast)."
+text = "All CoJ by-elections 2021-2026 (counted at half weight in this forecast)."
 symbol = "byelections.load_byelections"
 state = "live"
-probe = "bye_weights_are_zero"
-note = "Page corrected 2026-10-16 (it said an input to the central scenario)."
+probe = "bye_weight_is_half"
+note = "Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "sheet-parties-claims-tested"
@@ -288,13 +296,13 @@ symbol = "reweight.poll_trust_sd"
 state = "live"
 
 [[claim]]
-id = "your-byelections-no-weight"
+id = "your-byelections-half-weight"
 page = "interactive/your-forecast.html"
-text = "The forecast gives by-elections no weight."
+text = "The forecast counts by-elections at half weight."
 symbol = "montecarlo.bye_weight"
 state = "live"
-probe = "bye_weights_are_zero"
-note = "Page corrected 2026-10-16 (it said the forecast counts them partly; the control's published setting was labelled 'Partly, as the forecast does', now 'As the forecast does')."
+probe = "bye_weight_is_half"
+note = "Page text changed 2026-10-21: w_bye is 0.5 for every party since 2026-10-17 (JUDGEMENT-CALLS §A59), so at Johannesburg 2026 the by-elections move the centres (MODEL-LOG §1.323). The 16 October test site said they were given no weight; that text was never live."
 
 [[claim]]
 id = "your-party-vote-split-by-group"

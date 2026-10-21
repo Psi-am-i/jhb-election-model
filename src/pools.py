@@ -697,75 +697,22 @@ def read_census(dim: Dimension, census: Census, cfg: Config) -> dict[str, np.nda
     return out
 
 
-def read_census_population(census: Census,
-                           cfg: Config) -> dict[str, float]:
-    """Ward -> the population this dimension's categories are counted over.
-
-    :func:`read_census` normalises each ward to shares and throws the head count
-    away, which is fine for composition and wrong for everything else: a pool's
-    size in the *electorate* is population times turnout, and without the
-    denominator neither term is available.
-    """
-    import openpyxl
-
-    path = cfg.covariate_root / census.source
-    book = openpyxl.load_workbook(path, read_only=True, data_only=True)
-    rows = book[census.sheet].iter_rows(values_only=True)
-    next(rows)
-
-    def cell(row, spec) -> float:
-        ix = spec if isinstance(spec, (list, tuple)) else (spec,)
-        return sum(float(row[i] or 0.0) for i in ix)
-
-    out: dict[str, float] = {}
-    for row in rows:
-        code = str(row[census.code_column]).strip()
-        # ⛔ THE WORKBOOK CARRIES A 'Total' ROW AND IT IS NOT A WARD. Harmless
-        # under a code join, which simply never asks for it; ruinous in any
-        # denominator taken over the dict, where it double-counts the whole
-        # country. Exactly one non-8-digit key exists in all three workbooks.
-        if code in _CENSUS_TOTAL_ROW or not (code.isdigit() and len(code) == 8):
-            continue
-        if census.total_column >= 0:
-            total = float(row[census.total_column] or 0.0)
-        else:
-            total = sum(cell(row, c) for c in census.columns)
-        if total > 0:
-            out[code] = total
-    return out
-
-
 @dataclass
 class PoolCounts:
-    """A pool is a set of people, and three nested subsets of it.
+    """A pool's registered voters and the votes they cast, each a wards x pools
+    count: ``registered ⊇ voted``.
 
-    ``people ⊇ voting_age ⊇ registered ⊇ voted``, each a wards x pools count.
-    Collapsing these into one votes-per-head number, which is what this module
-    did first, throws away three separate processes and hides which of them is
-    doing the work. Measured on Johannesburg 2021 the composite spans four to
-    one across pools, and almost none of that is turnout::
-
-        pool             adult   registration   turnout   votes/person
-        Black African    69.9%       43%         35.9%       0.107
-        Coloured         63.8%       77%         55.4%       0.272
-        Indian/Asian     69.6%       78%         44.0%       0.237
-        White            90.5%      173%         52.9%       0.830
-
-    Turnout — the thing "voting percentage" normally means — spans only about
-    1.5 to 1. The spread is mostly registration, and the white pool's 173% is
-    impossible, so the composite leaned hardest on its least trustworthy part.
-
-    The levels also behave differently over time, which is the forecasting
-    reason to keep them apart: ageing is near-deterministic and moves in one
-    direction (South Africa's Black African pool is much younger, so its
-    eligible share grows every cycle), registration drifts slowly, and turnout
-    swings — the 2021 ANC collapse was 587k abstentions, not switches.
+    REGISTERED VOTERS ONLY (owner, 2026-10-17). Each ward's registered count is
+    the IEC roll, split across pools by the ward's census population shares
+    (:func:`pool_counts`). No census count, adult figure or registration rate
+    enters: a census head count and a roll are not the same population, and the
+    nest that related them (people ⊇ adults ⊇ registered) fitted a White
+    registration rate of 1.74 per adult at Johannesburg 2021, which cannot
+    happen (MODEL-LOG §1.321).
     """
 
     wards: list[str]
     categories: tuple[str, ...]
-    people: np.ndarray
-    voting_age: np.ndarray
     registered: np.ndarray
     voted: np.ndarray
     rates: dict[str, np.ndarray] = field(default_factory=dict)
@@ -921,37 +868,6 @@ def _at_bound(rate: np.ndarray, upper: float = 1.0) -> np.ndarray:
     return (rate <= _RATE_BOUND_EPS) | (rate >= upper - _RATE_BOUND_EPS)
 
 
-# ⚖️ The most a REGISTRATION rate may reach before it is treated as a runaway.
-# NOT an estimate — a guard. JUDGEMENT-CALLS §L9,
-# prereg/2026-09-05-registration-rate-bound.md.
-#
-# Registered voters are COUNTED; census voting-age population is MODELLED, so
-# their ratio is not a rate bounded by 1. The model computes it separately as
-# `census_correction` — 1.206 Indian/Asian and 1.480 White at Johannesburg 2021
-# — and the old single bound of 1.0 clipped that very quantity.
-#
-# ⛔ THE VALUE 2.0 IS UNDEFENDED. The table that used to justify it here was
-# measured with the bound lifted on ALL THREE levels, which inflates
-# `adult_share` and deflates this rate. Re-derived on the shipped instrument:
-#
-#     Johannesburg White        1.27 / 1.38 / 1.71 / 1.74
-#     Cape Town Indian/Asian    1.90 / 2.13 / 2.26 / 1.93   <- TWO above 2.0
-#     Mangaung Indian/Asian        —  /    — / 4.34 / 3.27
-#
-# So this binds on FOUR cells in TWO cities, not on Mangaung alone — and the
-# retracted comment cited Cape Town as proof it binds on nothing. See
-# JUDGEMENT-CALLS §L9, which carries the correction and the deferral.
-#
-# ⚠️ Do NOT cite DATA-QUALITY item 11 for this. Item 11 says the census
-# over-statement "does not explain this gap; it WIDENS it" — an over-stated
-# denominator makes the ratio smaller. The support for rates above 1 is item 13
-# and the `registration_series` docstring.
-#
-# The per-level split ships because bounding a quantity the model separately
-# computes as 1.48 is wrong on its face. The VALUE is deferred, not defended.
-REGISTRATION_MAX = 2.0
-
-
 def _nest(parent: np.ndarray, observed: np.ndarray,
           upper: float = 1.0,
           hold: dict[int, float] | None = None) -> tuple[np.ndarray, np.ndarray]:
@@ -978,9 +894,10 @@ def _nnls(A: np.ndarray, b: np.ndarray, iters: int = 40000,
     """Fit one non-negative rate per pool, BOUNDED ABOVE BY A PROPORTION.
 
     ⛔ THE UPPER BOUND WAS MISSING AND IT MANUFACTURED EVERY DEGENERATE CELL IN
-    THE PANEL (§1.164). Each fitted quantity here — ``adult_share``,
-    ``registration``, ``turnout`` — is a PROPORTION of the level above it, so a
-    value above 1.0 is not a rate at all. Unbounded, this returned
+    THE PANEL (§1.164). The fitted quantity here (turnout, since 2026-10-17
+    the only one; ``adult_share`` and ``registration`` were the others) is a
+    PROPORTION of the level above it, so a value above 1.0 is not a rate at
+    all. Unbounded, this returned
     ``adult_share`` of **1.3037** at Buffalo City and **2.0573** at Mangaung:
     more adults than people.
 
@@ -1317,115 +1234,44 @@ def ward_totals(city: cityconfig.City, year: str,
 
 def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
                 split_bloc: dict | None = None) -> PoolCounts:
-    """Build the four nested levels for one city and election.
+    """Each ward's registered voters and votes cast, split across pools, for
+    one city and election.
 
-    Three of the four are observed rather than modelled: the census publishes
-    people and the 20+ count per ward, and the IEC publishes registered voters
-    and votes cast per voting district. Only the *split of each across pools*
-    is estimated, and each level is anchored to its published ward total.
+    REGISTERED VOTERS ONLY (owner, 2026-10-17; MODEL-LOG §1.321). The IEC
+    publishes each ward's roll and its votes cast. The roll is split across
+    pools by the ward's census population shares and nothing else:
 
-    Nesting violations are reported, not clamped. Johannesburg's white pool
-    comes out with more registered voters than adults, which cannot be true;
-    silently capping it would bury a defect in the public record (Census 2022's
-    ward-level undercount, or voters registered where they do not live) inside
-    our own numbers.
+        registered_wg = roll_w × census share_wg
 
-    ⛔ **A pool that exists is never fitted to vanish.** Where any of the three
-    solves lands a pool on the 0.0 bound while the level above holds people in
-    it, that pool is held at the city's own rate for that level and the others
-    are re-fitted around it (:func:`_nest_holding_silent`, JUDGEMENT-CALLS
-    §L14). Left at zero, the pool's column in ``composition("voted")`` was
-    empty, the party fit could not place anyone in it, and ``emit_pools``
-    dropped it from a spec that still sized it — prereg C1, MODEL-LOG §1.269. The held pools are listed in
-    ``imputed`` and, with the corner they came from, in ``unidentified``.
+    which assumes every group in a ward registers at the same rate. No census
+    count, adult figure or fitted registration rate enters. Votes cast by pool
+    are not published, so they are the one fitted level: one turnout per pool
+    across the city's wards (``_nnls``), each ward then scaled to its counted
+    votes (:func:`_nest`). Both ward totals are therefore exact; only the
+    split of each is assumed (registered) or estimated (voted).
+
+    ⛔ **A pool that exists is never fitted to vanish.** Where the turnout
+    solve lands a pool on the 0.0 bound while it holds registered voters, that
+    pool is held at the city's own turnout and the others are re-fitted around
+    it (:func:`_nest_holding_silent`, JUDGEMENT-CALLS §L14). The held pools are
+    listed in ``imputed`` and, with the corner they came from, in
+    ``unidentified``.
     """
     base = cfg.base()
     when = polling_decimal_year(year, city)
     reg_by_ward, votes_by_ward = ward_totals(city, year)
     codes = set(reg_by_ward)
 
+    # The census SHARE, moved onto this election's wards through voting
+    # districts and weighted by registered voters when the census was published
+    # on another delimitation (`composition_at` -> `reproject`).
     comp_by_ward, _ = composition_at(base, cfg, when, codes,
                                      city=city, election_year=year)
-    people_by_ward = read_census_population(base.censuses[-1], cfg)
-    age = next((d for d in cfg.dimensions if d.name == "age"), None)
-    adults_by_ward = (read_census_population(age.censuses[-1], cfg)
-                      if age else {})
 
-    # ⛔ THE COUNT HALF OF THE CENSUS JOIN, TRIGGERED ON DELIMITATION.
-    #
-    # `composition_at` above already moves the SHARE onto this election's wards
-    # whenever the census was published on a different delimitation. These two
-    # reads did not, so `people = composition x population` mixed TWO POLYGON
-    # SETS: median per-ward disagreement 6.8%-24.4% at a 2011 fitting year and
-    # up to 10% at 2016. Every one of the sixteen city-years carried it.
-    #
-    # ⚠️ THE TRIGGER IS THE DELIMITATION, NOT AN EMPTY OVERLAP, AND THE
-    # DIFFERENCE IS NOT COSMETIC. The first version asked `if not (codes &
-    # set(people_by_ward))` — which is the trap `composition_at`'s own comment
-    # warns about, because ward codes are REUSED and a wrong join therefore
-    # SUCCEEDS. Cape Town's municipal code never changed (191...), so its 2006
-    # wards "joined" Census 2022 and the branch never fired: it was fitted on
-    # 2000, 2006, 2011 and 2016 turnout where every other metro had 2011 and
-    # 2016, on a join with a median per-ward error of 14.7%. Nobody saw it
-    # because `turnout_record` swallows the refusal.
     src_delim = base.censuses[-1].delimitation
-
-    # ⛔ THE AGE DIMENSION IS GATED ON ITS OWN DELIMITATION, NOT ON THE BASE'S.
-    #
-    # This block used to sit INSIDE the `base` gate below while using
-    # `age.censuses[-1].delimitation` for its own reprojection — so the gate and
-    # the operation read two different dimensions. The silent direction is the
-    # one that matters: base matches the election delimitation and age does not.
-    # The block never runs, `adults_by_ward` stays on its own polygon set, and
-    # it is then joined to this election's wards by ward code — **which
-    # SUCCEEDS, because ward codes are reused**, the exact trap the comment
-    # below warns about one level up.
-    #
-    # ⚠️ AND THE ADULTS JOIN HAS NO KEY-SET ASSERTION, so the failure is silent
-    # in a second way. `people_by_ward` gets `matched = codes & set(...)` and a
-    # 50% refusal further down; `adults_by_ward` is read with `.get(w, 0.0)`, so
-    # an unmatched ward reads as **zero adults** and `_nest` fits `adult_share`
-    # toward the floor rather than raising. Recorded, not fixed here: a new
-    # refusal on an unreachable path is a guard nothing can exercise.
-    #
-    # ⚠️ UNREACHABLE TODAY AND NOT TOMORROW. Every live dimension in
-    # `config/dimensions.toml` is Census 2022 on delimitation 2021, so the two
-    # gates always agree and this branch is number-neutral — which the emit must
-    # CONFIRM by diff, not assume. Each dimension carries its own
-    # `[[dimension.census]]` list, and the commented-out base 2011 entry is the
-    # highest-value outstanding data request after home language. The moment one
-    # dimension gains a census the other does not, this is live, which is why it
-    # lands BEFORE that data arrives rather than after. Ultra review #1,
-    # POOLS-REEMIT-QUEUE entry 15, §1.195.
-    if adults_by_ward:
-        age_delim = age.censuses[-1].delimitation
-        if int(age_delim) != delimitation_for(year):
-            adults_by_ward, _ = reproject_counts(
-                adults_by_ward, city, str(age_delim), year)
-
     if int(src_delim) != delimitation_for(year):
-        people_by_ward, cov = reproject_counts(
-            people_by_ward, city, str(src_delim), year)
-        # ⛔ GATED ON WHAT THE MISSINGNESS DOES, NOT ON HOW MUCH OF IT THERE IS.
-        #
-        # A coverage floor is a proxy for the quantity that matters — how far
-        # the citywide composition moves because of what failed to map — with an
-        # unknown transfer function. Measured, the function is weak: randomly
-        # ablating Johannesburg's wards from 95% to 60% coverage moves the
-        # largest pool share by only 0.021 to 0.028.
-        #
-        # And coverage is PESSIMISTIC here, because it counts population lost at
-        # the voting-district level while whole wards are rarely lost at all:
-        # Tshwane reports 72.6% coverage but loses **7 wards of 107**, and those
-        # seven are demographically almost identical to the ones kept (largest
-        # pool-share difference 0.013). Mangaung loses **one ward of 51** at
-        # 0.043. A raw floor of 0.80 blocked both metros from ever becoming
-        # backtest targets on the strength of a number that was not measuring
-        # the harm.
-        #
-        # So the refusal is on the demographic SHIFT the loss induces. Coverage
-        # is still computed and reported, because a very low one means something
-        # structural even when the mix happens to match.
+        # ⛔ GATED ON WHAT THE MISSINGNESS DOES: how far the city's roll-weighted
+        # mix moves because of the wards that fail to reproject.
         drift = _reprojection_drift(city, str(src_delim), year, cfg)
         # ⛔ "COULD NOT BE MEASURED" IS NOT "NOTHING WAS LOST", AND ONE `None`
         # MEANT BOTH. `_reprojection_drift` returned `None` for a clean
@@ -1448,7 +1294,7 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
                 f"{city.slug} {year}: the demographic drift induced by "
                 f"reprojecting from the {src_delim} delimitation could not be "
                 f"MEASURED — the census mixes came out empty on one or both "
-                f"sides. Coverage was {cov:.1%}. An unmeasurable shift is not "
+                f"sides. An unmeasurable shift is not "
                 f"a safe one, and admitting it printed a conclusion the code "
                 f"never reached.")
         if drift is not None and drift > CENSUS_DRIFT_CEILING:
@@ -1457,43 +1303,22 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
                 f"{city.slug} {year}: the wards that fail to reproject from the "
                 f"{src_delim} delimitation are demographically unlike the ones "
                 f"that survive — largest pool-share difference {drift:.3f}, "
-                f"ceiling {CENSUS_DRIFT_CEILING:.3f}. Coverage was {cov:.1%}. "
+                f"ceiling {CENSUS_DRIFT_CEILING:.3f}. "
                 f"A biased loss cannot be averaged away.")
-        if cov < CENSUS_COVERAGE_FLOOR:
-            # ⚠️ SAYS WHAT WAS MEASURED, AND USED TO STATE A CONCLUSION IT HAD
-            # NOT REACHED. With the drift uncomputable this printed "admitted
-            # because the loss is demographically even (shift nan)" — on every
-            # case observed the run was then REFUSED two lines later, so the
-            # message was a lie about its own outcome as well as about its
-            # evidence. The uncomputable case cannot reach here at all now, and
-            # the branch that can names the number it has.
-            print(f"  !! {city.slug} {year}: census reprojection mapped "
-                  f"{cov:.1%} of this city's people, below "
-                  f"{CENSUS_COVERAGE_FLOOR:.0%} — admitted because the "
-                  f"measured demographic shift is "
-                  f"{'0.000 (nothing was lost)' if drift is None else f'{drift:.3f}'}"
-                  f", within the {CENSUS_DRIFT_CEILING:.3f} ceiling")
 
-    # ⛔ AND THE KEY SETS MUST AGREE, NOT MERELY INTERSECT.
-    #
-    # The delimitation label answers "should these join?"; it does not answer
-    # "did the right rows join?". A MUNICIPAL boundary change inside one
-    # delimitation gives a matching label and a silently wrong join — the same
-    # shape as Cape Town, one level down. A join on reusable keys must assert on
-    # the KEY SET. Reported rather than raised when the shortfall is small,
-    # because a handful of wards genuinely fail to reproject and the coverage
-    # floor above is the quantitative guard; a large gap is a different animal.
-    matched = codes & set(people_by_ward)
+    # ⛔ THE KEY SETS MUST AGREE, NOT MERELY INTERSECT. Ward codes are reused,
+    # so a wrong join SUCCEEDS; a large shortfall means the census and the
+    # election are not describing the same city.
+    matched = codes & set(comp_by_ward)
     if codes and len(matched) < 0.5 * len(codes):
         raise PoolCountsUnsafe(
             city.slug, year, "census_wards_unmatched",
             f"{city.slug} {year}: only {len(matched)} of {len(codes)} election "
-            f"wards found a census population after reprojection. The two are "
+            f"wards found a census composition after reprojection. The two are "
             f"not describing the same city.")
 
     wards = sorted(w for w in codes
-                   if w in comp_by_ward and w in people_by_ward
-                   and reg_by_ward.get(w, 0) > 0)
+                   if w in comp_by_ward and reg_by_ward.get(w, 0) > 0)
     if not wards:
         raise PoolCountsUnsafe(
             city.slug, year, "census_no_join",
@@ -1524,130 +1349,48 @@ def pool_counts(city: cityconfig.City, year: str, cfg: Config, *,
         comp[:, g] -= carved
         categories = categories + (bloc_name,)
 
-    people = comp * np.array([people_by_ward[w] for w in wards])[:, None]
+    registered = comp * np.array([reg_by_ward[w] for w in wards])[:, None]
 
-    # ⛔ A POOL THAT EXISTS AT ONE LEVEL IS NEVER FITTED TO VANISH AT THE NEXT
-    # (prereg C1, queue entry 30, MODEL-LOG §1.269). Each solve that lands a
-    # pool on the 0.0 corner while the level above holds people in it HOLDS
-    # that pool at the city's own rate for the level and re-fits the rest —
-    # `_nest_holding_silent`. Left at 0.0, the pool's `voted` column was empty,
-    # the joint fit left its rate row empty, and `emit_pools` dropped a pool the
-    # spec itself sized. The fallback is declared, not measured —
-    # JUDGEMENT-CALLS §L14 — and each held pool is still reported below in
-    # `unidentified` with the corner it came from, so a reader sees both.
     rates: dict[str, np.ndarray] = {}
     held: dict[str, dict[int, float]] = {}
-    if adults_by_ward:
-        observed_adults = np.array([adults_by_ward.get(w, 0.0) for w in wards])
-        voting_age, rates["adult_share"], held["adult_share"] = \
-            _nest_holding_silent(people, observed_adults)
-    else:
-        # No age table: every pool assumed equally adult, which is false and
-        # said out loud rather than assumed silently.
-        voting_age = people.copy()
-        rates["adult_share"] = np.ones(people.shape[1])
-
-    # ⛔ REGISTRATION IS THE ONE LEVEL THAT MAY EXCEED 1, AND IT WAS CLIPPED.
-    # Bounding all three at 1.0 clamped a quantity `census_correction` two
-    # blocks down independently computes as 1.206 and 1.480 for this very city,
-    # and pushed the surplus into the other pools: Johannesburg's White share of
-    # the registered roll read 20.0% against 25.2% unclipped. See
-    # REGISTRATION_MAX. `adult_share` and `turnout` genuinely cannot exceed 1
-    # and keep the tight bound.
-    registered, rates["registration"], held["registration"] = \
-        _nest_holding_silent(voting_age,
-                             np.array([reg_by_ward[w] for w in wards]),
-                             upper=REGISTRATION_MAX)
     voted, rates["turnout"], held["turnout"] = _nest_holding_silent(
         registered, np.array([votes_by_ward.get(w, 0.0) for w in wards]))
     imputed = {level: sorted(idx) for level, idx in held.items() if idx}
 
-    # How wrong the census would have to be for this to hold. Registration is
-    # counted; ward population is a modelled small-area estimate, and for the
-    # 2022 census the estimates for exactly these groups are the disputed ones.
-    # So this ratio is reported as a property of the census, not of the model.
-    implied = registered.sum(axis=0) / np.maximum(voting_age.sum(axis=0), 1e-9)
-    rates["census_correction"] = np.maximum(implied, 1.0)
-
-    # ⛔ A RATE ON A BOUND IS A REPORT THAT THE POOL IS UNIDENTIFIED.
-    #
-    # `_nnls` is now bounded to [0, 1] (§1.164), which stops a runaway rate but
-    # replaces it with a corner — and a corner is not an estimate either. The
-    # three levels are named so a reader can see WHERE identification failed:
-    # Mangaung's Indian/Asian pool reaches a maximum ward share of 2.0-2.4%
-    # anywhere in the city, so its turnout has never been identifiable and the
-    # old code reported 0.0000 as though it were measured.
+    # ⛔ A RATE ON A BOUND IS A REPORT THAT THE POOL IS UNIDENTIFIED, not an
+    # estimate (§1.164).
     unidentified = []
-    _level_above = {"adult_share": "people", "registration": "adults",
-                    "turnout": "registered voters"}
-    for level, pools_held in held.items():
-        for g, size in sorted(pools_held.items()):
+    for g, size in sorted(held["turnout"].items()):
+        unidentified.append(
+            f"{categories[g]}: turnout fitted to 0.0000, which is ON A BOUND — "
+            f"a pool of {size:,.0f} registered voters fitted to none. HELD at "
+            f"the city's own rate {rates['turnout'][g]:.4f} and the other pools "
+            f"re-fitted around it: a declared fallback, not a measurement "
+            f"(JUDGEMENT-CALLS §L14).")
+    reg_share = registered / np.maximum(registered.sum(axis=1, keepdims=True), 1e-9)
+    for g, flag in enumerate(_at_bound(rates["turnout"], upper=1.0)):
+        if flag:
+            reach = float(reg_share[:, g].max())
+            why = ("the ward table cannot identify this pool"
+                   if reach < 0.25 else
+                   "this pool IS identifiable (it reaches "
+                   f"{reach:.1%} of a ward's roll), so the bound is binding "
+                   "because the true value lies beyond it")
             unidentified.append(
-                f"{categories[g]}: {level} fitted to 0.0000, which is ON A "
-                f"BOUND — a pool of {size:,.0f} {_level_above[level]} fitted to "
-                f"none at this level. HELD at the city's own rate "
-                f"{rates[level][g]:.4f} and the other pools re-fitted around "
-                f"it: a declared fallback, not a measurement (JUDGEMENT-CALLS "
-                f"§L14).")
-    # ⚠️ EACH LEVEL IS TESTED AGAINST ITS OWN BOUND. `registration` is bounded
-    # at REGISTRATION_MAX, not 1.0, so testing it against 1.0 reported every
-    # legitimately-above-one rate as a clipped corner — Johannesburg White at
-    # 1.739 is an estimate, not a bound. Caught immediately after loosening the
-    # bound without moving the detector with it.
-    for name in ("adult_share", "registration", "turnout"):
-        rate = rates.get(name)
-        if rate is None:
-            continue
-        level_upper = REGISTRATION_MAX if name == "registration" else 1.0
-        for g, flag in enumerate(_at_bound(rate, upper=level_upper)):
-            if flag:
-                reach = float((people[:, g]
-                               / np.maximum(people.sum(axis=1), 1e-9)).max())
-                # ⛔ TWO CAUSES, ONE MESSAGE, AND IT NAMED THE WRONG ONE. This
-                # said "the ward table cannot identify this pool" for pools
-                # reaching 71.1% and 77.2% of a single ward — abundant
-                # identifying variation. They sat on the bound because the true
-                # rate EXCEEDS it, which is a different fault with a different
-                # fix, and the message sent the reader to the ward table
-                # instead of the census denominator. Found by review 2026-09-05.
-                why = ("the ward table cannot identify this pool at this level"
-                       if reach < 0.25 else
-                       "this pool IS identifiable (it reaches "
-                       f"{reach:.1%} of a ward), so the bound is binding "
-                       "because the true value lies beyond it — look at the "
-                       "denominator, not the ward table")
-                unidentified.append(
-                    f"{categories[g]}: {name} fitted to {rate[g]:.4f}, which is "
-                    f"ON A BOUND — {why}. The value is a clipped corner and not "
-                    f"a measurement. Largest share this pool reaches in any "
-                    f"ward: {reach:.1%}.")
+                f"{categories[g]}: turnout fitted to {rates['turnout'][g]:.4f}, "
+                f"which is ON A BOUND — {why}. The value is a clipped corner "
+                f"and not a measurement.")
 
     violations = []
-    for name, child, parent in (("registered", registered, voting_age),
-                                ("voted", voted, registered)):
-        over = child.sum(axis=0) / np.maximum(parent.sum(axis=0), 1e-9)
-        for g, ratio in enumerate(over):
-            if ratio > 1.0:
-                violations.append(
-                    f"{categories[g]}: {name} is {ratio:.0%} of the level "
-                    f"above it. ⛔ THE RATIO IS IMPOSSIBLE; THE COUNT IS NOT. "
-                    f"Registration and votes are administrative events — an "
-                    f"in-person appearance with an ID book — and the "
-                    f"denominator is a MODELLED small-area census estimate, so "
-                    f"the term that fails here is the estimate. The published "
-                    f"ward totals are untouched either way: this machinery "
-                    f"SPLITS them and does not revise them, so what a ratio "
-                    f"above 1 impeaches is the split, not the roll. Do NOT "
-                    f"read this as a "
-                    f"census UNDERCOUNT either: the published Census 2022 figures for "
-                    f"the white and Indian groups are argued to be too HIGH, "
-                    f"not too low (over-adjustment for a 62%/72% "
-                    f"post-enumeration undercount, leaving them 14%/24% above "
-                    f"projections), which makes this gap wider rather than "
-                    f"narrower. See DATA-QUALITY.md item 11.")
+    over = voted.sum(axis=0) / np.maximum(registered.sum(axis=0), 1e-9)
+    for g, ratio in enumerate(over):
+        if ratio > 1.0:
+            violations.append(
+                f"{categories[g]}: voted is {ratio:.0%} of registered, which "
+                f"cannot happen; the split, not the counted totals, is wrong.")
 
-    return PoolCounts(wards=wards, categories=categories, people=people,
-                      voting_age=voting_age, registered=registered, voted=voted,
+    return PoolCounts(wards=wards, categories=categories,
+                      registered=registered, voted=voted,
                       rates=rates, violations=violations,
                       unidentified=unidentified, imputed=imputed)
 
@@ -1732,19 +1475,11 @@ def registration_series(city: cityconfig.City, cfg: Config,
                         split_bloc: dict | None = None) -> dict[str, np.ndarray]:
     """Each pool's share of the registered roll, at every election on disk.
 
-    This is the series the model should lean on, and the census is the junior
-    partner. Registration is *counted*, published per voting district, and we
-    hold ten cycles of it for Johannesburg (2000 through 2024) plus the roll
-    for the target. The census offers one usable ward-level observation, and
-    for the groups that matter most it is the disputed one: Census 2022 has
-    Johannesburg's white population falling by 211,000 in eleven years, from
-    12.3% to 7.0%, while the 2021 roll carries ~560,000 registered white
-    voters — a figure consistent with the 2011 count and not with the 2022 one.
-
-    Two things this buys. The trend in a pool's share of the roll is measured
-    over many cycles rather than inferred from two censuses. And each series
-    checks the other: where the census implies a change the roll does not show,
-    the roll wins and the run says so.
+    RECORDED, NOT USED TO SIZE ANYTHING, AND NOT COUNTED. Each year's figure is
+    that year's ward rolls split by the wards' census shares
+    (:func:`pool_counts`), with one census held for every year, so the series
+    moves only with the roll's geography: where registration grew, not which
+    groups registered. The roll publishes no population group.
 
     ``before`` restricts to elections strictly before that year, so a backtest
     cannot see its own target's roll.
@@ -1775,59 +1510,6 @@ def registration_series(city: cityconfig.City, cfg: Config,
             out[year] = total / total.sum()
     _report_pool_losses("registration_series", city, losses)
     return out
-
-
-def projected_pool_shares(series: dict[str, np.ndarray], target: str,
-                          damping: float = 0.6) -> tuple[np.ndarray, str]:
-    """Carry each pool's share of the roll forward to the target election.
-
-    **THE TREND IS A RATE OF CHANGE, NOT A DIFFERENCE** (owner, 2026-08-27:
-    *"the pool size prediction should rely on rate of change not raw
-    numbers"*), and that choice is what lets this projection survive a pool
-    whose LEVEL is known to be wrong.
-
-    Johannesburg's white pool is sized from a census population the roll
-    contradicts by roughly 2x (`DATA-QUALITY.md` items 11 and 13). Under the
-    additive trend used until 2026-08-27 that bias entered TWICE: once in the
-    level carried forward, and again in the increment, because a difference
-    between two inflated numbers is itself inflated. **A ratio is not.** If a
-    pool's share carries a constant factor k in every year::
-
-        share_b / share_a = (c_b / c_a) · (S_a / S_b)
-
-    and k divides out — the remaining term is the roll's own growth, common to
-    every pool. So a log-space trend measures a pool's real rate of change even
-    when nobody can agree how many people are in it, which is the situation we
-    are actually in and expect to stay in.
-
-    Damped for the same reason as before, and the same reason
-    :func:`composition_at` damps census composition: a trend measured over one
-    interval, extended, claims more than the data supports.
-
-    A pool that vanishes between observations has no defined rate of change and
-    holds its last share instead — a log of zero would carry it to zero
-    everywhere and silently delete a pool.
-    """
-    years = sorted(series)
-    if not years:
-        raise SystemExit("no registration series: cannot size the pools")
-    if len(years) == 1:
-        return series[years[0]], f"{years[0]} roll held flat"
-    a, b = years[-2], years[-1]
-    span = int(b) - int(a)
-    step = (int(target) - int(b)) / span if span else 0.0
-    prev = np.asarray(series[a], dtype=float)
-    last = np.asarray(series[b], dtype=float)
-    FLOOR = 1e-9
-    movable = (prev > FLOOR) & (last > FLOOR)
-    ratio = np.ones_like(last)
-    np.divide(last, prev, out=ratio, where=movable)
-    rate = np.zeros_like(last)
-    np.log(ratio, out=rate, where=movable)
-    shares = np.maximum(last * np.exp(damping * step * rate), 1e-6)
-    return shares / shares.sum(), (
-        f"{b} roll carried to {target} on the {a}-{b} RATE of change "
-        f"(log-space, invariant to a constant level bias), damped x{damping:g}")
 
 
 def pool_shares_of_roll(registered: np.ndarray, target: str) -> tuple[np.ndarray, str]:
@@ -2040,7 +1722,7 @@ def _reprojection_drift(city: cityconfig.City, from_year: str, to_year: str,
     reached. POOLS-REEMIT-QUEUE entry 22.
     """
     import numpy as _np
-    old_ward, _ = vd_map(city, from_year)
+    old_ward, old_reg = vd_map(city, from_year)
     new_ward, _ = vd_map(city, to_year)
     reached = {w for vd, w in old_ward.items() if new_ward.get(vd) is not None}
     lost = {w for w in old_ward.values()} - reached
@@ -2048,14 +1730,19 @@ def _reprojection_drift(city: cityconfig.City, from_year: str, to_year: str,
         return None
     base = cfg.base()
     shares = read_census(base, base.censuses[-1], cfg)
-    people = read_census_population(base.censuses[-1], cfg)
+    # Each source ward weighted by its REGISTERED VOTERS at the source
+    # delimitation, not its census population (owner, 2026-10-17): the mix
+    # that matters is the roll's.
+    roll: dict[str, float] = defaultdict(float)
+    for vd, w in old_ward.items():
+        roll[w] += float(old_reg.get(vd, 0.0))
 
     def mix(ws):
         acc = _np.zeros(len(base.categories)); tot = 0.0
         for w in ws:
-            if w in shares and w in people:
-                acc = acc + _np.asarray(shares[w], dtype=float) * float(people[w])
-                tot += float(people[w])
+            if w in shares and roll.get(w, 0.0) > 0:
+                acc = acc + _np.asarray(shares[w], dtype=float) * roll[w]
+                tot += roll[w]
         return acc / tot if tot > 0 else acc
 
     # ⛔ THE HARM IS HOW FAR THE CITY MOVES, NOT HOW ODD THE LOST WARDS ARE.
@@ -2075,64 +1762,6 @@ def _reprojection_drift(city: cityconfig.City, from_year: str, to_year: str,
     if not kept.any() or not whole.any():
         return DRIFT_UNMEASURABLE
     return float(_np.max(_np.abs(whole - kept)))
-
-
-def reproject_counts(counts: dict[str, float], city: cityconfig.City,
-                     from_year: str, to_year: str) -> tuple[dict[str, float], float]:
-    """Move a ward-level COUNT from one delimitation onto another.
-
-    The twin of :func:`reproject`, and it must be a twin rather than a reuse
-    because the two quantities move differently. A composition is a SHARE and is
-    averaged into the new ward, weighted by registered voters; a population is a
-    COUNT and must be SPLIT — each old ward's people are divided among its
-    voting districts in proportion to registration, then summed into whichever
-    new ward each district now sits in. Averaging a count would destroy it.
-
-    ⛔ WHY THIS EXISTS. `composition_at` has reprojected since it was written, so
-    the pre-2011 wards join the census correctly there — but
-    `read_census_population` had no such branch, returned census-delimitation
-    codes, and NOTHING JOINED. That single gap is what made 2006 unusable as a
-    fitting year and therefore 2011 unusable as a backtest target: the whole
-    pre-2011 archive was on disk, reconciled, and unreachable because one of two
-    parallel census reads could not follow the wards.
-
-    Owner, 2026-08-31: *"wards changed sizes yes… but you have the ward maps.
-    Calculate what ward became what and adjust systematically to compensate when
-    this happens (and it happens in every cycle)."* This is that compensation
-    for the count half.
-
-    Returns the reprojected counts and the fraction of the SOURCE total that
-    could be mapped, so a caller can refuse a bad join instead of trusting it.
-    """
-    old_ward, old_reg = vd_map(city, from_year)
-    new_ward, _ = vd_map(city, to_year)
-
-    # Each old ward's registration, so a ward's people can be split across its
-    # own voting districts in proportion to where its voters are.
-    ward_reg: dict[str, float] = {}
-    for vd, ward in old_ward.items():
-        ward_reg[ward] = ward_reg.get(ward, 0.0) + old_reg.get(vd, 0.0)
-
-    out: dict[str, float] = {}
-    mapped = 0.0
-    # ⛔ THE DENOMINATOR IS THIS CITY'S OWN POPULATION, NOT THE NATION'S.
-    # The first version summed every key in `counts` — all 4,469 national wards,
-    # plus a literal 'Total' row that double-counted the national figure — so
-    # coverage came out as city/country, about 3%, and the guard refused every
-    # time. Johannesburg 2006 reports 87.0% on the correct denominator and 3.4%
-    # on the wrong one; the fix looked like a working refusal and was a broken
-    # one.
-    total = sum(float(counts[w]) for w in ward_reg if w in counts)
-    for vd, src_ward in old_ward.items():
-        people = counts.get(src_ward)
-        denom = ward_reg.get(src_ward, 0.0)
-        dest = new_ward.get(vd)
-        if people is None or denom <= 0 or dest is None:
-            continue
-        share = old_reg.get(vd, 0.0) / denom
-        out[dest] = out.get(dest, 0.0) + float(people) * share
-        mapped += float(people) * share
-    return out, (mapped / total if total > 0 else 0.0)
 
 
 def composition_at(dim: Dimension, cfg: Config, when: float,
@@ -2705,8 +2334,8 @@ def fit_city(city: cityconfig.City, year: str, cfg: Config, *,
     """
     shares, votes = ward_party_shares(city, year)
 
-    # The pool is a set of people and three nested subsets of it; the party
-    # rates act on the innermost one, the people who actually voted.
+    # A pool is its registered voters and the votes they cast; the party
+    # rates act on the votes.
     counts = pool_counts(city, year, cfg, split_bloc=split_bloc)
     for violation in counts.violations:
         print(f"  ! {violation}")
@@ -3304,11 +2933,12 @@ def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
                          split_bloc: dict | None = None) -> np.ndarray:
     """How many registered voters each pool holds at the target.
 
-    Not a forecast. The roll is published per voting district before polling
-    day, and each ward's pool composition comes from that ward's own data, so
-    a pool's size is *counted* rather than drawn::
+    Not a forecast. The roll is published per ward before polling day, and
+    each ward's pool composition is its census population share (the same
+    split :func:`pool_counts` makes), so a pool's size is the roll times an
+    assumed composition rather than a draw::
 
-        registered at target  x  that ward's pool composition  =  pool size
+        registered at target  x  that ward's census shares  =  pool size
 
     This replaces the pool "ratio" — a triangular fitted to two historical
     transitions that stood in for population change, registration change and
@@ -3333,8 +2963,8 @@ def registered_at_target(city: cityconfig.City, target: cityconfig.Target,
     # 2026 forecast, where the target delimitation (2026) differs from 2021's.
     #
     # `reproject` is the SHARE twin and is the right one here: a composition is
-    # averaged into the new ward weighted by registration, where a population
-    # count would have to be split. See `reproject_counts` for the other half.
+    # averaged into the new ward weighted by registration. No count is moved:
+    # the model reads no census count (owner, 2026-10-17).
     # The fitting election's wards are not the target's. Wards are redrawn
     # between local elections, so for any pair straddling a delimitation this
     # was joining composition to the wrong polygon — and because ward codes are

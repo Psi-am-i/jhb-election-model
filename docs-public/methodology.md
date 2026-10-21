@@ -76,11 +76,10 @@ also help, and are also request-only, since at ward level they can identify
 households. Until those arrive the forecast uses the four census pools.
 
 **How big is each pool?** Each ward's registered voters, split by that ward's
-composition, summed across all 135 wards. The census gives the *proportions*
-within a ward; the roll gives the *number*, and where they disagree the roll
-wins. They disagree a lot: the census implies about {{hist_census_white_adults}} white adults in
-Johannesburg, and the roll carries about {{hist_roll_white_voters}} registered white voters. We
-publish the gap rather than absorb it.
+census population shares, summed across all 135 wards. The census gives the
+*proportions* within a ward; the roll gives the *number*. The voters' roll does
+not record population group, so the split assumes every group in a ward
+registers at the same rate.
 
 ### 3. Measure how each party does in each pool
 
@@ -107,14 +106,21 @@ Two things are drawn:
   national result, converted down to local, with its last local result: the
   less record a party has of that gap, the more its local result counts.
   ActionSA polled {{hist_asa_pr_2021}} in this city's 2021 local election and
-  {{hist_asa_npe_2024}} in the city in the 2024 national election, and its
-  starting level draws on both.
+  {{hist_asa_npe_2024}} in the city in the 2024 national election. It has no
+  national-to-local gap on record, so its starting level is its local result.
+  In this forecast its level is set by our judgement instead, at 17.6% of the
+  list vote: the model carries the 2021 result forward at the share a typical
+  party of its size keeps between local elections, and we judge that ActionSA
+  keeps more of it. Every other party's share is scaled down in proportion so
+  the shares still add up, and ActionSA keeps the model's usual uncertainty
+  for a party of that size. It cannot be changed on [your
+  forecast](your-forecast/).
 - **Turnout, per pool.** It is the one unknown quantity, and it is drawn from
   what turnout has done in that city before. In 2021 every pool's turnout was
   the lowest on record, so the range allows falls as well as rises.
 
-Recent by-elections can tilt each party's expected share before the draws. In
-this forecast they do not (see *The judgement calls*, below).
+Recent by-elections tilt each party's expected share before the draws (see *The
+judgement calls*, below).
 
 ### 5. Handle parties that were not there last time
 
@@ -236,9 +242,11 @@ These are choices about how the model works that the data did not make for us. E
 
 **The largest parties are pulled down.** Before the simulations are drawn, each party's expected share is cut by an amount that grows with its size, and the vote freed is returned to all parties in proportion to their share. Without the cut, forecasts of past elections gave the largest parties too much and the middle-sized parties too little; adding it was the largest single improvement the model has had. The smallest parties are now forecast slightly too high. It cannot be changed on [your forecast](your-forecast/).
 
-**How much recent by-elections count.** A party's swing in the by-elections held since the last local election can move its expected share. How far is measured, not chosen. We checked whether by-election swings before the 2024 national election predicted that election's result better than the model did without them, separately for small parties and larger ones. A group of parties gets weight only if the improvement held when each metro was left out in turn and across resampled sets of metros; otherwise its by-elections count for nothing. By-elections are ward contests and the 2024 result was a national and provincial list vote, so this is the only test the record allows, and a weak one. On [your forecast](your-forecast/) you can make by-elections count not at all or fully. For this forecast neither group passed, so by-elections do not move it.
-
 **How far each party's support can move.** Each party's simulated support is drawn from a bell curve on a log scale, so its share is multiplied up or down. The curve is wider for a smaller party and for a party new to the city. Its width is measured from how far the model's expected shares missed in the past elections before this one. Part of each simulation's move is shared by all parties. It cannot be changed on [your forecast](your-forecast/).
+
+**How much recent by-elections count.** Each party's expected share is set halfway between what the model expects from earlier elections and what the by-elections since 2021 imply for it. Nobody knows the right weight, so the two count equally. A party that had a vote in the 2024 national election cannot be moved by its by-elections further than the model's usual range for it allows, so a party whose by-elections imply a very large swing moves less than halfway. A party whose only earlier vote is the 2021 local election has no such range and moves halfway. A party with no earlier vote at all is covered under new parties and by-elections. A party that stood only for ward seats in 2021, and not on the party list, is not moved. In Johannesburg the by-elections reach the forecast; Tshwane's are not yet read. On [your forecast](your-forecast/) you can make by-elections count not at all or fully.
+
+**New parties and by-elections.** A party with no vote in the 2024 national election and none in the 2021 local election, on the list or in a ward, is not moved by its by-elections, and the by-election setting on [your forecast](your-forecast/) does not move it either. A few ward contests are not enough to size a party nobody has measured before; such a party is sized the way earlier new parties did in their first election.
 
 **Turnout moves together across population groups.** In each simulation, turnout in the four population groups rises and falls together, to one degree for every pair: the average of how closely each pair's turnout moved between past local elections in the metros. Black African, Coloured and White turnout have moved closely together, and Indian/Asian turnout much less. Separate figures for each pair have not been tried. Removing the link was tested and changed the forecast's spread very little, and why it matters so little is not yet explained. It cannot be changed on [your forecast](your-forecast/).
 

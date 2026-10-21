@@ -897,9 +897,11 @@ def chi2_clustered(groups, bins: int = 10, level: float = 0.95,
     (2026-10-14, MODEL-LOG §1.302) ``reference`` no longer rejects (35 of 64
     randomisations first order, 28 of 64 second order), ``claimed`` still does
     (64 of 64 both), the pooled cycle split is not monotone, and the largest
-    cell design effect is the bottom decile in every population. The current
-    figures are MODEL-LOG §1.311 and ``tests/test_scored_universe.py``, which
-    holds them to the artefact; the mechanism described here is unchanged.
+    cell design effect is the bottom decile in every population. On the
+    arm-S panel (2026-10-16, MODEL-LOG §1.314) ``claimed`` rejects in 64 of 64
+    first order and 62 of 64 second order, so the two orders disagree there.
+    The current figures are ``tests/test_scored_universe.py``, which holds
+    them to the artefact; the mechanism described here is unchanged.
 
     ⚠️ **THE CLUSTER LEVEL MAY BE THE WRONG ONE, AND THIS PANEL CANNOT TEST THE
     RIGHT ONE.** The clusters are whatever the caller grouped by, and

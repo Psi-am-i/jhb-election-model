@@ -205,6 +205,199 @@ def test_residual_rows_use_the_block_frame():
     assert rs["A"]["r"] is None, "a one-member block has no within-block residual"
 
 
+# --------------------------------------------------------------------------
+# the newcomer δ by anchor class (prereg/2026-10-16-newness-width-by-anchor.md)
+# --------------------------------------------------------------------------
+
+def class_rows(seed: int, d_anchored: float, d_unanchored: float):
+    """Rows simulated from design v4 §1's model with a different δ for each
+    newcomer class: the established rows and the anchored newcomers from one
+    simulation at ``d_anchored``, the unanchored newcomers from a second at
+    ``d_unanchored`` (their own parties and cities, so no party-cycle is
+    shared between the classes)."""
+    a = simulate_rows(seed, truth=dict(TRUTH, delta=d_anchored), n_city=16,
+                      years=("2011", "2016", "2021"))
+    u = simulate_rows(seed + 1000, truth=dict(TRUTH, delta=d_unanchored),
+                      n_city=16, years=("2011", "2016", "2021"))
+    rows = []
+    for r in a:
+        rows.append(dict(r, newness_class="anchored" if r["new"] else None))
+    for r in u:
+        if r["new"]:
+            rows.append(dict(r, party="U" + r["party"], city="u" + r["city"],
+                             newness_class="unanchored"))
+    return rows
+
+
+def test_the_newness_class_is_whether_the_centre_is_the_partys_own_national_result():
+    """The class is read from the route the party's centre takes
+    (`montecarlo.newness_class`): an anchored newcomer holds a national result
+    in the city before any seed (its centre is the spine's national-only
+    level); an unanchored one holds only an arrival seed, which the spine
+    also calls national-only, so the post-seed baseline must not decide it;
+    an established party's width never reads a class."""
+    sc = {"_baseline_before_seeds": {"ANC": 0.40, "MK": 0.12},
+          # the post-seed baseline: ActionSA's 7% is an arrival seed
+          "pool_seeds": {"ASA": 0.07}}
+    assert M.newness_class(sc, "MK") == "anchored"
+    assert M.newness_class(sc, "ASA") == "unanchored"
+    assert M.drawn_newness(dict(sc, newness_width="by_anchor"), "MK") == "anchored"
+    assert M.drawn_newness(dict(sc, newness_width="single"), "MK") is None
+    for bad in ({}, dict(sc, newness_width="two-sided")):
+        try:
+            M.drawn_newness(bad, "MK")
+        except SystemExit:
+            continue
+        raise AssertionError(f"drawn_newness accepted {bad}")
+    rec = FIXTURE_RECORD
+    est = [M.party_width(rec, 0.3, new=False, newness=c)
+           for c in (None,) + M.NEWNESS_CLASSES]
+    assert all(e == est[0] for e in est) and est[0]["delta"] == 0.0
+    by = rec["delta_by_class"]
+    assert M.party_width(rec, 0.1, new=True, newness="anchored")["delta"] == \
+        by["anchored"]["delta"]
+    assert M.party_width(rec, 0.1, new=True, newness="unanchored")["delta"] == \
+        by["unanchored"]["delta"]
+    assert M.party_width(rec, 0.1, new=True)["delta"] == rec["delta"]
+    old = {k: v for k, v in rec.items() if k != "delta_by_class"}
+    try:
+        M.party_width(old, 0.1, new=True, newness="anchored")
+    except SystemExit as exc:
+        assert "delta_by_class" in str(exc)
+    else:
+        raise AssertionError("a record with no class δ was read as if it had one")
+
+
+def test_each_class_delta_is_fitted_on_its_own_rows_and_the_rest_is_untouched():
+    """`width_record.fit_class_deltas`: each class's δ is recovered from
+    rows simulated at different δs; moving one class's residuals moves that
+    class's δ and leaves the other's bit for bit; profiling every newcomer as
+    one class returns the joint fit's own δ (the same estimator); a class
+    with no rows takes the single δ; and nothing the established parties'
+    widths read (curve, location, ρ, single δ) is changed."""
+    rows = class_rows(11, 0.45, 1.15)
+    fit = W.fit_joint(rows)
+    frozen = copy.deepcopy(fit)
+    by = W.fit_class_deltas(rows, fit)
+    assert fit == frozen, "fitting the classes changed the shared fit"
+    assert abs(by["anchored"]["delta"] - 0.45) < 0.2, by
+    assert abs(by["unanchored"]["delta"] - 1.15) < 0.25, by
+    assert by["anchored"]["delta"] < fit["delta"] < by["unanchored"]["delta"]
+    for cls in M.NEWNESS_CLASSES:
+        n = sum(1 for r in W.fit_records(rows) if r["newness_class"] == cls)
+        assert by[cls]["n"] == n and by[cls]["source"] == "fit"
+        assert by[cls]["nll"] <= by[cls]["nll_single"]
+    # Each δ reads only its own class's rows: widen the unanchored residuals
+    # about their mean and only the unanchored δ moves.
+    wide = []
+    for r in rows:
+        if r["newness_class"] == "unanchored" and r["r"] is not None:
+            r = dict(r, r=1.8 * r["r"])
+        wide.append(r)
+    by_w = W.fit_class_deltas(wide, fit)
+    assert by_w["anchored"] == by["anchored"]
+    assert by_w["unanchored"]["delta"] > by["unanchored"]["delta"] + 0.1
+    # Each row weighs what it weighs in the whole record: a party-cycle whose
+    # cities fall in different classes keeps ONE unit across both, not one
+    # per class. Give one unanchored party the name of an anchored one.
+    a_name = next(r["party"] for r in rows if r["newness_class"] == "anchored")
+    u_name = next(r["party"] for r in rows if r["newness_class"] == "unanchored")
+    split = [dict(r, party=a_name) if r["party"] == u_name else r for r in rows]
+    recs = W.fit_records(split)
+    w_all = W._weights(recs)
+    idx = [k for k, r in enumerate(recs) if r["newness_class"] == "anchored"]
+    assert len(set(w_all[idx])) > 1 and any(
+        w_all[k] != W._weights([recs[j] for j in idx])[n]
+        for n, k in enumerate(idx)), "the fixture split no party-cycle"
+    p_single = [fit["curve"]["a"], fit["curve"]["b"], fit["curve"]["log_mid"],
+                fit["curve"]["k"], fit["delta"], fit["location"]["c1"],
+                fit["location"]["c2"]]
+    hand = W.joint_nll(p_single, np.array([recs[k]["s"] for k in idx]),
+                       np.array([recs[k]["r"] for k in idx]),
+                       np.ones(len(idx)), w_all[idx])
+    assert abs(W.fit_class_deltas(split, fit)["anchored"]["nll_single"]
+               - hand) < 1e-9
+    # One class holding every newcomer is the single-δ fit's own optimum.
+    pooled = [dict(r, newness_class="anchored" if r["new"] else None)
+              for r in rows]
+    one = W.fit_class_deltas(pooled, fit)
+    assert abs(one["anchored"]["delta"] - fit["delta"]) < 1e-4, one
+    assert one["unanchored"] == {"delta": fit["delta"], "n": 0,
+                                 "party_elections": 0,
+                                 "source": "single: no rows",
+                                 "nll": None, "nll_single": None}
+
+
+def test_the_draw_takes_each_newcomers_class_delta_and_leaves_established_widths():
+    """The drawer under `newness_width = "by_anchor"`: an anchored newcomer
+    takes the anchored δ, an unanchored one the unanchored δ; under
+    "single" both take the single δ; and every established party's width
+    components are identical, value for value, under the two (prereg G1;
+    its calibration κ is not a width and is excluded, see below)."""
+    sc, c, i = base_spec(law="universal")
+    sc["_new_parties"] = ["C", "F"]
+    del sc["_baseline_before_seeds"]["F"]          # F: an arrival, no record
+    arms = {}
+    for mode in M.NEWNESS_WIDTHS:
+        s2 = copy.deepcopy(sc)
+        s2["newness_width"] = mode
+        arms[mode] = run_arm(s2, c, i, lot="newness|1", draws=20)[2].widths
+    by = FIXTURE_RECORD["delta_by_class"]
+    a, s = arms["by_anchor"], arms["single"]
+    assert a["C"]["delta"] == by["anchored"]["delta"]
+    assert a["C"]["newness_class"] == "anchored"
+    assert a["F"]["delta"] == by["unanchored"]["delta"]
+    assert a["F"]["newness_class"] == "unanchored"
+    assert s["C"]["delta"] == s["F"]["delta"] == FIXTURE_RECORD["delta"]
+    assert s["C"]["newness_class"] is None
+    # Every width component of an established party is identical. Its κ is
+    # not a width: the calibration pass sets it so the mean drawn share is
+    # the centre, and that depends on every party's width through the
+    # normalisation, so it differs wherever a newcomer's width does.
+    established = [p for p in PARTIES if p not in ("C", "F")]
+
+    def width_of(w):
+        return {k: v for k, v in w.items() if k != "kappa"}
+    assert set(a["A"]) - set(width_of(a["A"])) == {"kappa"}
+    assert established and all(width_of(a[p]) == width_of(s[p])
+                               for p in established), {
+        p: (a[p], s[p]) for p in established
+        if width_of(a[p]) != width_of(s[p])}
+    assert a["C"] != s["C"] and a["F"] != s["F"]
+
+
+def test_the_class_follows_the_centres_route_at_a_real_city_year():
+    """Johannesburg 2021 through `run_model(stop_after="drawer_inputs")`: of
+    the new parties, those `newness_class` calls anchored are exactly those
+    the spine sized on its national-only route without an arrival seed, in
+    both directions; GOOD (a 2019 national vote) is anchored, ActionSA (no
+    national vote, seeded) unanchored; the ANC is not new; and the record's
+    rows carry the class."""
+    inp = W.drawer_inputs("joburg", "2021", [])
+    sc = inp.scenario
+    new = list(sc["_new_parties"])
+    detail = sc["_spine_info"]["detail"]
+    seeded = sc.get("pool_seeds") or {}
+    route = {p: (detail.get(p) or {}).get("route") for p in new}
+    spine_national = {p for p in new
+                      if route[p] == "national only (first local election)"
+                      and not float(seeded.get(p, 0.0) or 0.0) > 0}
+    anchored = {p for p in new if M.newness_class(sc, p) == "anchored"}
+    scanned(new, of=len(inp.index), low=0.2, high=0.9,
+            what="new parties", denominator="the run's parties")
+    assert anchored == spine_national, (anchored ^ spine_national)
+    assert {p for p in new if route[p] is None or seeded.get(p)} \
+        == set(new) - anchored
+    assert "GOOD" in anchored and "ASA" in set(new) - anchored
+    assert "ANC" not in new
+    case = W.case_for(inp, "joburg", "2021")
+    assert set(case["anchored"]) == anchored
+    rows = {r["party"]: r for r in W.residual_rows([case])}
+    assert rows["ASA"]["newness_class"] == "unanchored"
+    assert rows["GOOD"]["newness_class"] == "anchored"
+    assert rows["ANC"]["newness_class"] is None
+
+
 def test_the_record_reads_the_models_own_centres_at_a_real_city_year():
     """The writer's seam on one real backtest city-year (Buffalo City 2016):
     `run_model(stop_after="drawer_inputs")` hands back the model's own inputs
@@ -452,7 +645,8 @@ def test_a_judged_party_takes_its_judged_width():
                                  "overperform": 1.0, "sigma_j": 0.25,
                                  "register": "§SJ0"}]
     _, _, d1 = run_arm(sc2, c, i, lot="judged|1", draws=20)
-    assert d0.widths["C"]["delta"] == FIXTURE_RECORD["delta"]
+    assert d0.widths["C"]["delta"] == \
+        FIXTURE_RECORD["delta_by_class"]["anchored"]["delta"]
     assert d1.widths["C"]["delta"] == 0.25 and d1.widths["C"]["judged"]
 
 

@@ -358,28 +358,40 @@ def test_the_pool_split_is_computed_per_ward_not_citywide():
 # 2. the nested voter sets
 # --------------------------------------------------------------------------
 
-def test_the_nested_levels_are_ordered_where_the_data_allows():
-    """people >= voting_age, and voted <= registered.
-
-    The registered-vs-voting-age step is NOT asserted: Johannesburg's white
-    pool genuinely comes out at 187% of it, which is a defect in the published
-    census rather than in this code (DATA-QUALITY item 11). That one must be
-    *reported*, which the next test checks.
-    """
+def test_no_pool_casts_more_votes_than_it_has_registered_voters():
+    """voted <= registered, per pool."""
     c = _counts()
-    assert (c.voting_age.sum(axis=0) <= c.people.sum(axis=0) + 1e-6).all(), \
-        "a pool has more voting-age people than people"
     assert (c.voted.sum(axis=0) <= c.registered.sum(axis=0) + 1e-6).all(), \
         "a pool cast more votes than it has registered voters"
 
 
-def test_an_impossible_nesting_is_reported_not_swallowed():
-    """The 187% is known. Silence about it would be the bug."""
+def test_each_wards_roll_is_split_by_its_census_shares_and_nothing_else():
+    """REGISTERED VOTERS ONLY (owner, 2026-10-17): ``registered_wg = roll_w x
+    census share_wg``, so each ward's registered composition IS its census
+    composition and its total IS the IEC roll. A census count, adult figure or
+    fitted registration rate anywhere in the path breaks the first equality.
+
+    It can see: under the nest this replaced, Johannesburg 2021's White share of
+    the roll was 25.2% against a roll-weighted census share of 13.9%, so a
+    composition differing by more than 1e-9 in any ward fails here."""
+    city = _city()
+    cfg = _cfg()
     c = _counts()
-    over = c.registered.sum(axis=0) / np.maximum(c.voting_age.sum(axis=0), 1e-9)
-    if (over > 1.0).any():
-        assert c.violations, ("a pool has more registered voters than adults "
-                              "and nothing was reported")
+    assert len(c.wards) > 100, f"{len(c.wards)} wards: the scan is empty"
+    comp, _ = pools.composition_at(
+        cfg.base(), cfg, pools.polling_decimal_year(FIT_YEAR, city),
+        set(c.wards), city=city, election_year=FIT_YEAR)
+    reg, _ = pools.ward_totals(city, FIT_YEAR)
+    got = c.composition("registered")
+    for i, w in enumerate(c.wards):
+        assert np.allclose(got[i], comp[w], atol=1e-9), (
+            f"ward {w}: registered composition {got[i]} is not its census "
+            f"share {comp[w]}")
+        assert abs(c.registered[i].sum() - reg[w]) < 1e-6, (
+            f"ward {w}: registered {c.registered[i].sum():,.1f} against the "
+            f"roll {reg[w]:,.1f}")
+    assert set(c.rates) == {"turnout"}, (
+        f"pool_counts fits {sorted(c.rates)}; only turnout is unobserved")
 
 
 def test_every_level_is_anchored_to_its_published_ward_total():
@@ -590,7 +602,7 @@ def test_a_vote_located_bloc_is_carved_out_of_its_parent_not_added_on_top():
     assert len(split.categories) == len(plain.categories) + 1
     assert split.categories[-1] == "IFP-located"
 
-    for level in ("people", "voting_age", "registered", "voted"):
+    for level in ("registered", "voted"):
         before = getattr(plain, level)
         after = getattr(split, level)
         assert abs(after.sum() - before.sum()) < 1.0, \
@@ -2521,96 +2533,6 @@ def test_an_undeclared_split_is_flagged_in_the_spec_not_printed():
     assert len(live) < 10, (
         f"{len(live)} parties flagged. The list is meant to be short enough to "
         f"read on nomination day; this one would be ignored.")
-
-
-def test_each_census_dimension_is_reprojected_on_its_own_delimitation():
-    """The gate and the operation must read the SAME dimension.
-
-    ``pool_counts`` reprojects two ward-level counts onto the election's
-    delimitation: the base dimension's population, and the age dimension's 20+
-    count. Until 2026-09-08 the second sat INSIDE the first's ``if`` while using
-    ``age.censuses[-1].delimitation`` for its own reprojection — so a run where
-    the base matched the election and age did not would skip the age
-    reprojection entirely, then join ``adults_by_ward`` to this election's wards
-    by ward code. **Ward codes are reused, so that join succeeds**, and there is
-    no key-set assertion on the adults side: an unmatched ward reads as zero
-    adults through ``.get(w, 0.0)`` and ``_nest`` fits ``adult_share`` toward
-    the floor rather than raising. Ultra review #1, queue entry 15, §1.195.
-
-    ⚠️ **THE BRANCH IS UNREACHABLE ON TODAY'S CONFIG**, so an observational
-    test of it would assert emptiness and prove nothing. Every dimension in
-    ``config/dimensions.toml`` is Census 2022 on delimitation 2021 — asserted
-    below, because that is the premise — and the divergence is therefore
-    CONSTRUCTED, not waited for.
-    """
-    cfg = pools.load_config()
-    base = cfg.base()
-    age = next((d for d in cfg.dimensions if d.name == "age"), None)
-    assert age is not None, "no age dimension: this test has no subject"
-
-    # (0) THE POPULATION, AND BOTH DIRECTIONS OF IT. The claim is about every
-    #     dimension that carries a census, not only the two named above.
-    dims = [d for d in cfg.dimensions if d.censuses]
-    assert len(dims) >= 2, (
-        f"{len(dims)} dimensions carry a census; the claim is about a "
-        f"DISAGREEMENT between two of them and needs at least two.")
-    delims = {d.name: int(d.censuses[-1].delimitation) for d in dims}
-    assert len(set(delims.values())) == 1, (
-        f"dimension delimitations already disagree: {delims}. That is not a "
-        f"failure — it is the day this branch goes live. Re-derive the emit's "
-        f"number-neutrality before trusting a spec.")
-
-    # (1) IT LOOKED: pool_counts must actually reproject something, or the
-    #     recorded calls below are empty for a reason that has nothing to do
-    #     with the gate.
-    city = cityconfig.load("joburg")
-    seen: list[tuple[str, str]] = []
-    real = pools.reproject_counts
-
-    def spy(counts, city_, from_year, to_year):
-        seen.append((str(from_year), str(to_year)))
-        return real(counts, city_, from_year, to_year)
-
-    # The election year whose delimitation differs from the census's, so the
-    # base gate fires and both counts are due a reprojection.
-    year = "2011"
-    assert int(base.censuses[-1].delimitation) != pools.delimitation_for(year), (
-        f"{year} is on the census's own delimitation, so nothing reprojects "
-        f"and this test would pass on an empty call list.")
-
-    pools.reproject_counts = spy
-    try:
-        pools.pool_counts(city, year, cfg)
-        both = list(seen)
-        seen.clear()
-
-        # (2) IT CAN SEE: construct the divergence the gate is for — age on a
-        #     delimitation the election does NOT share, base on one it does.
-        #     Under the old nesting the age call disappears; under the fix it
-        #     survives on its own gate.
-        import dataclasses
-        moved = dataclasses.replace(
-            base, censuses=(dataclasses.replace(
-                base.censuses[-1],
-                delimitation=pools.delimitation_for(year)),))
-        constructed = dataclasses.replace(
-            cfg, dimensions=tuple(moved if d is base else d
-                                  for d in cfg.dimensions))
-        pools.pool_counts(city, year, constructed)
-        age_only = list(seen)
-    finally:
-        pools.reproject_counts = real
-
-    assert len(both) == 2, (
-        f"the base gate fired and {len(both)} counts were reprojected, not 2. "
-        f"Calls: {both}. Both the population and the 20+ count are due one.")
-    assert len(age_only) == 1, (
-        f"with the BASE dimension moved onto {year}'s own delimitation and the "
-        f"AGE dimension left on {age.censuses[-1].delimitation}, "
-        f"{len(age_only)} reprojections ran, not 1. Calls: {age_only}. Zero is "
-        f"the pre-fix behaviour: the age block was nested inside the base's "
-        f"gate, so adults silently stayed on the wrong polygon set and joined "
-        f"anyway on reused ward codes.")
 
 
 def test_every_arrival_definition_is_named_where_it_is_computed():

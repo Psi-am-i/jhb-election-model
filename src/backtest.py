@@ -499,10 +499,10 @@ NOT_FITTED: dict[str, str] = {
     # LGE result, and its evidence window POST-DATES every past target, so the
     # whole block is unreachable in a backtest. If the channel ever does deliver
     # at a past target, the window makes that a LEAK and these entries move.
-    "w_bye": "the by-election weight override. `None` (the default) gives each "
-             "party its size class's weight, measured by bye_value.py against "
-             "the 2024 provincial ballot (JUDGEMENT-CALLS §A55); a number is a "
-             "sweep override. The evidence window is 2022-06 to 2026-02, so "
+    "w_bye": "the by-election weight, 0.5 for every party (owner, "
+             "JUDGEMENT-CALLS §A59); `None` gives each party its size class's "
+             "weight measured by bye_value.py (§A55). The evidence window is "
+             "2022-02 to 2026-06, so "
              "`bye` is empty at every past target and the weight multiplies "
              "nothing — GATES['bye_deltas_absent']. Scoreable against a local "
              "result only by the 2026 one",
@@ -582,6 +582,11 @@ NOT_FITTED: dict[str, str] = {
                          "width record's location for the target, fitted on "
                          "strictly EARLIER cycles only, so no correction reads "
                          "its own target's result",
+    "newness_width": "WHICH newcomer δ the universal draw reads (prereg "
+                     "2026-10-16, arm S): one per anchor class or the single "
+                     "δ. A switch over mechanisms; both are fitted by "
+                     "`src/width_record.py` on strictly EARLIER backtest "
+                     "cycles, so no δ reads its own target's result",
     "apply_judgements": "whether strength judgements apply (design v3 §11). A "
                         "switch; a backtest ignores every judgement whatever "
                         "its value, because a judgement cannot be blind after "

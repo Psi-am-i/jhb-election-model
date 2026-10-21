@@ -1,4 +1,4 @@
-"""Download every municipal by-election result since the 2021 LGE, at VD level.
+"""Download every municipal by-election result under one parent LGE, at VD level.
 
 The IEC's downloads page serves by-election reports only through per-session
 ``ReportViewer?_f=<token>`` links, which cannot be fetched outside the browser
@@ -23,6 +23,11 @@ Party names arrive as numeric ids resolved through ``MapsJason/{year}/PartyList.
 
 Plan §3.6 wants CoJ contests for the by-election deltas and Gauteng-wide ones for
 the swing estimator, so the whole province is kept by default.
+
+The parent ``--year`` names the cycle: 2021 is the by-elections after the 2021
+LGE, 2016 those between the 2016 and 2021 LGEs. A cycle other than 2021 is
+written under its own name (``byelections_SA_vd_party_2016.csv``), so fetching
+it cannot overwrite the 2021 file that ``byelections.py`` reads.
 
 Usage:
     python src/fetch_byelections.py [--province Gauteng] [--year 2021]
@@ -76,6 +81,21 @@ def party_lookup(year: str) -> dict[int, tuple[str, str]]:
     }
 
 
+def event_date(event: dict) -> str:
+    """ISO date of one by-election. The 2021 list carries ``dtStartDate``; the
+    2016 list does not, and gives the date only as ``Name`` ("19 May 2021")."""
+    if event.get("dtStartDate"):
+        return event["dtStartDate"][:10]
+    from datetime import datetime
+    name = " ".join(event["Name"].split())
+    for fmt in ("%d %b %Y", "%d %B %Y"):
+        try:
+            return datetime.strptime(name, fmt).date().isoformat()
+        except ValueError:
+            pass
+    raise ValueError(f"by-election {event.get('EEID')}: no date in {event['Name']!r}")
+
+
 def contested_municipalities(eeid: int, province: str) -> list[tuple[int, str, str]]:
     """Return (municipality id, municipality name, province) contested at this event."""
     payload = _get_json(f"{DASH}/{eeid}/EEID{eeid}BigMapsNational.js")
@@ -113,7 +133,7 @@ def municipality_rows(
                 rows.append(
                     {
                         "EEID": str(eeid),
-                        "ByElectionDate": event.get("dtStartDate", "")[:10],
+                        "ByElectionDate": event_date(event),
                         "Province": province,
                         "Municipality": muni_name,
                         "MunicipalityID": str(muni_id),
@@ -140,13 +160,13 @@ def main(argv: list[str] | None = None) -> int:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     parties = party_lookup(args.year)
-    events = sorted(_get_json(f"{DASH}/{args.year}/ByElections.js"), key=lambda e: e["dtStartDate"])
+    events = sorted(_get_json(f"{DASH}/{args.year}/ByElections.js"), key=event_date)
     print(f"{len(events)} by-election dates under the {args.year} LGE; {len(parties)} parties known\n")
 
     rows: list[dict[str, str]] = []
     skipped: list[str] = []
     for index, event in enumerate(events, 1):
-        eeid, date = event["EEID"], event["dtStartDate"][:10]
+        eeid, date = event["EEID"], event_date(event)
         try:
             munis = contested_municipalities(eeid, args.province)
         except (urllib.error.HTTPError, urllib.error.URLError, ValueError) as error:
@@ -165,7 +185,8 @@ def main(argv: list[str] | None = None) -> int:
             time.sleep(0.2)
         time.sleep(0.15)
 
-    destination = args.out_dir / f"byelections_{args.province or 'SA'}_vd_party.csv"
+    suffix = "" if args.year == "2021" else f"_{args.year}"
+    destination = args.out_dir / f"byelections_{args.province or 'SA'}_vd_party{suffix}.csv"
     with destination.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=COLUMNS)
         writer.writeheader()
