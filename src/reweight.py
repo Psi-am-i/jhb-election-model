@@ -128,6 +128,14 @@ ANALYSIS_SHARE_BAND_POINTS = 2.0
 #: seat Worker's card answer read it from here).
 PUBLISHED_LAW = "deduct"
 
+#: A party gets its own row in every seats table when its middle seat count is
+#: at least this (owner, decision D1, 2026-10-02; one rule for every page,
+#: owner 2026-10-22): Our Forecast and the home page on the published run
+#: (``scenarios.named_parties``), Your Forecast's section 1 on the published
+#: forecast or the reader's settings (``interactive/pyboot/page.py``). Every
+#: other party is in "Others".
+MIN_SHOWN_SEATS = 2
+
 #: The badge on a reader's forecast (owner, 2026-10-13: "90-100 SAFE, 80-90
 #: VERY LIKELY etc"; JUDGEMENT-CALLS.md §N10): fixed bands of ten points on
 #: the overall :func:`closeness` scale. ``(lowest overall closeness, words)``,

@@ -285,10 +285,6 @@ def coalition_key(members) -> str:
 
 
 
-# ⛔ NOT A LIST OF ITS OWN — `scenarios.NAMED_PARTIES` is the one set both seats
-# tables name, because "Others" is its complement and one word may not mean two
-# numbers. See that constant's note.
-CHART_PARTIES = list(_scenarios.NAMED_PARTIES)
 
 ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
 
@@ -299,6 +295,15 @@ ALLIANCE_8 = ("DA", "ASA", "PA", "IFP", "VFPLUS", "ACDP", "RISE", "ALJAMAAH")
 # either left the sentence describing a different scenario from the number next
 # to it. The page now renders it as a token.
 WALL_FLIPS = 30
+
+#: The DA's share of the vote in Helen Zille's coalition arithmetic (News24,
+#: 9 October 2026: "if we get 40%, ... we won't be big enough to get into
+#: government"). The claim's own figure, not a parameter of the model: the
+#: page counts the simulations in which the DA's list share reaches it.
+FORTY_DA_SHARE = 0.40
+
+#: The parties she says "might get over 50% before we can".
+FORTY_BLOC = ("ANC", "MK", "EFF", "ASA", "PA")
 
 #: The parties Helen Zille ruled out of a DA coalition (Daily Maverick,
 #: 13 September 2026): the EFF and MK. Not the ANC (JUDGEMENT-CALLS.md §P3).
@@ -539,6 +544,10 @@ def main(argv: list[str] | None = None) -> int:
     # (no 'council 270 · majority 136' tile: that is the law, not something the simulations say)
 
     # --- where the parties land: ordered by median, then mean ----------------
+    # ⛔ NOT A LIST OF ITS OWN — `scenarios.named_parties` is the one set every
+    # seats table names, because "Others" is its complement and one word may
+    # not mean two numbers. See that function's note.
+    CHART_PARTIES = _scq.named_parties(args.processed)
     others = _scq.others_per_draw(args.processed, CHART_PARTIES)
     chart = [(NAMES[p], S[p], p) for p in CHART_PARTIES if p in S]
     chart.sort(key=lambda c: (-np.median(c[1]), -c[1].mean()))
@@ -752,6 +761,18 @@ def main(argv: list[str] | None = None) -> int:
             that those parties would ever sit together."""
             return _sum([p for p in _A if p not in exclude])
         _no_red = _bloc(("EFF", "MK", "ANC"))
+        # Zille's 40% (News24, 9 October 2026): the five parties she names,
+        # and how often the DA reaches 40% of the list vote, from the
+        # published draws (the run's only per-simulation list votes), joined
+        # by simulation number like the home page's excessive-seats line
+        _forty = _sum(FORTY_BLOC)
+        import reweight as _rw
+        _blk, _cols = _sc.published_draw_blocks()
+        if len(_blk["list_vote"]) != N:
+            raise SystemExit("site/draws and seat_detail_draws.csv hold different numbers of "
+                             "simulations: re-export the draws from this run")
+        _da_list = _rw.list_shares(_blk["list_vote"])[:, _cols["list_vote"].index("DA")]
+        _LV = f"site/draws list_vote, {N:,} simulations, the DA's share of the list vote"
         _anc_side = _bloc(("EFF", "MK", "DA"))
         _three = _sum(("DA", "ASA", "PA"))
         _left = _sum(("ANC", "EFF", "MK"))
@@ -777,6 +798,12 @@ def main(argv: list[str] | None = None) -> int:
                               "render_sheet.WALL_FLIPS, the threshold this "
                               "scenario is counted at"),
             "no_red_share": chance("claim.red_lines.no_red_share", float((_no_red >= thr).mean()), _ALL),
+            "forty_bloc_share": chance("claim.forty.bloc_share", float((_forty >= thr).mean()), _ALL),
+            "forty_bloc_median": tok("claim.forty.bloc_median", int(np.median(_forty)), "int", _ALL),
+            "forty_da_count": tok("claim.forty.da_count", int((_da_list >= FORTY_DA_SHARE).sum()), "int", _LV),
+            "forty_target": tok("claim.forty.target", f"{FORTY_DA_SHARE:.6f}", "pct0",
+                                "render_sheet.FORTY_DA_SHARE, the claim's own figure"),
+            "forty_da_best": tok("claim.forty.da_best", f"{float(_da_list.max()):.6f}", "pct1", _LV),
             "no_red_median": tok("claim.red_lines.no_red_median", int(np.median(_no_red)), "int", _ALL),
             "three_share": chance("claim.red_lines.three_share", float((_three >= thr).mean()), _ALL),
             # TWO MEDIANS, AND THEY ANSWER DIFFERENT QUESTIONS. The

@@ -114,16 +114,53 @@ def seat_quantiles(series) -> tuple[int, int, int]:
             int(round(float(_np.percentile(x, BAND[1])))))
 
 
-# The parties a seats table NAMES, and therefore the complement that "Others"
-# means. ⛔ ONE SET, EVERY PAGE. Until 2026-09-25 the forecast sheet named ten
-# parties and the home page seven, so both pages printed a row labelled
-# "Others" and the two numbers differed by the seats of the three the home page
-# left out — one word, two figures, and nothing wrong with either arithmetic.
-# The owner's ruling: the same "Others" throughout. Adding a party here adds a
-# row to every seats table and removes its seats from every "Others"; that is
-# the point, and it is why the set may not be redeclared per page.
-NAMED_PARTIES = ("DA", "ANC", "EFF", "ASA", "MK", "PA", "IFP", "RISE",
-                 "ALJAMAAH", "ENTRANT")
+def published_draw_blocks(root: Path | None = None) -> tuple[dict, dict]:
+    """``(blocks, columns)`` of the published draw export (``site/draws``,
+    base cell): every block unpacked (``reweight.unpack``) and each block's
+    party columns. The only place the run's per-simulation list votes are
+    kept; ``reweight.list_shares(blocks["list_vote"])`` turns them into
+    shares. One reader for the home page's excessive-seats line and the
+    claims that need a party's list share."""
+    import json as _json
+    import reweight as _rw
+    draws = (Path(root) if root else Path(__file__).resolve().parent.parent) / "site" / "draws"
+    man = _json.loads((draws / "manifest.json").read_text(encoding="utf-8"))
+    return (_rw.unpack((draws / "base.bin").read_bytes(), man),
+            {b["name"]: b["columns"] for b in man["blocks"]})
+
+
+#: seat_draws.csv columns that are not parties.
+SEAT_DRAW_META = ("draw", "threshold", "council_size")
+
+
+def named_parties(processed: Path) -> list[str]:
+    """The parties a seats table NAMES, and therefore the complement that
+    "Others" means: every party whose median seats in the run
+    (``seat_draws.csv``) is at least ``reweight.MIN_SHOWN_SEATS``, in the
+    file's column order.
+
+    ⛔ ONE SET, EVERY PAGE. Until 2026-09-25 the forecast sheet named ten
+    parties and the home page seven, so both pages printed a row labelled
+    "Others" and the two numbers differed by the seats of the three the home
+    page left out. Until 2026-10-22 the set was a typed list
+    (``NAMED_PARTIES``) while Your Forecast used this rule, and on the 21
+    October run BOSA and Freedom Front Plus (median 2 each) had rows there and
+    were in "Others" here. Owner, 2026-10-22: "Standardise them". A party
+    enters or leaves the table by its own figure."""
+    import csv as _csv
+    import numpy as _np
+    import reweight as _rw
+    path = Path(processed) / "seat_draws.csv"
+    if not path.exists():
+        raise SystemExit(f"no {path}: the parties a seats table names come from the run's seats")
+    with path.open(encoding="utf-8", newline="") as fh:
+        reader = _csv.DictReader(fh)
+        rows = list(reader)
+        cols = [c for c in (reader.fieldnames or []) if c not in SEAT_DRAW_META]
+    if not rows:
+        raise SystemExit(f"{path} has no simulations in it")
+    return [c for c in cols
+            if float(_np.median([float(r[c] or 0) for r in rows])) >= _rw.MIN_SHOWN_SEATS]
 
 
 def others_per_draw(processed: Path, named) -> "np.ndarray":

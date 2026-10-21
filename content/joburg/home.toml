@@ -14,7 +14,9 @@
 [[lede]]
 head = """<em>{{lede_coalition}}.</em> The largest party is {{lede_race}}.
 {{lede_p_first}} chance it's {{lede_first}} and {{lede_p_second}} chance it's
-{{lede_second}}."""
+{{lede_second}}. {{lede_wards_lead}}: {{lede_first}} leads in {{lede_wards_first}}
+wards, {{lede_close_first}} of them won in under {{lede_safe}} of simulations;
+{{lede_second}} leads in {{lede_wards_second}}, {{lede_close_second}} of them."""
 sub = """Chance of one party winning outright: {{lede_p_alone}}. Proportional
 representation is meant to give parties seats that match their support. Our
 system mixes directly elected ward councillors with party seats topped up

@@ -41,13 +41,12 @@ import render_sheet as _sheet
 import scenarios as _scenarios
 
 # ⛔ THE SEATS TABLE IS NOT THIS PAGE'S OWN DESIGN, AND THAT IS DELIBERATE.
-# The parties named and their labels come from the forecast sheet, and their
+# The parties named come from the run (`scenarios.named_parties`), their labels from the forecast sheet, and their
 # colours from the site's one party palette (src/site_assets.py), so the two tables name the same parties — which is the only way the
 # word "Others" can mean one number on both (owner, 2026-09-25). This page used
 # to declare its own shorter list and its own colour map, and the cost was two
 # "Others" rows differing by the seats of the three parties it left out, plus an
 # IFP chip that was grey here and red there.
-NAMED = tuple(_scenarios.NAMED_PARTIES)
 LABEL = _sheet.NAMES
 
 
@@ -79,7 +78,43 @@ LEDE_PLACEHOLDERS = {
     "lede_p_overhang": "figure: chance the clause applies to that party",
     "lede_overhang_seats": "figure: that party's share of the council, median where the clause applies to it",
     "lede_overhang_votes": "figure: its share of the party-list vote, median in the same simulations",
+    "lede_wards_lead": "phrase: how the two parties' ward counts and close wards compare, chosen by the four figures",
+    "lede_wards_first": "figure: wards in which lede_first is the likeliest winner",
+    "lede_close_first": "figure: of those, wards the map draws as contested (under lede_safe)",
+    "lede_wards_second": "figure: wards in which lede_second is the likeliest winner",
+    "lede_close_second": "figure: of those, wards the map draws as contested",
+    "lede_safe": "figure: the share of simulations a ward's winner needs for the map to draw it safe",
 }
+
+
+def ward_races(processed: Path) -> dict:
+    """``{party: (wards it is the likeliest winner of, how many of those the
+    map draws as contested)}``, from ``ward_winner_probs.csv`` through the
+    map's own call (``render_map.ward_call``), so "close" here is exactly a
+    ward the map shades as contested (owner, 2026-10-22: the ANC's wards are
+    far tighter than the DA's)."""
+    import csv as _csv
+    import render_map as _rm
+    out: dict[str, list[int]] = {}
+    with (Path(processed) / "ward_winner_probs.csv").open(encoding="utf-8", newline="") as fh:
+        for r in _csv.DictReader(fh):
+            call = _rm.ward_call(r["ward"], r["winner"], float(r["p_win"]), r["dist"])
+            n = out.setdefault(r["winner"], [0, 0])
+            n[0] += 1
+            n[1] += call["cls"] == "contested"
+    return {p: (a, b) for p, (a, b) in out.items()}
+
+
+def wards_lead(first: str, second: str, races: dict, party) -> str:
+    """The phrase before the ward counts, chosen by them: said only when true."""
+    (w1, c1), (w2, c2) = races.get(first, (0, 0)), races.get(second, (0, 0))
+    name = party(first)
+    name = name[0].upper() + name[1:]
+    if w1 > w2 and c1 > c2:
+        return f"{name} is favourite in more wards, but more of them are close"
+    if w1 > w2:
+        return f"{name} is favourite in more wards, and no more of them are close"
+    return "Ward by ward"
 
 
 def load_lede(city_dir: Path) -> dict:
@@ -161,10 +196,7 @@ def _overhang(processed: Path, party: str) -> tuple[float, float, int]:
             if r["party"] == party:
                 d = int(r["draw"])
                 seats[d], applies[d] = int(r["seats"]), r["excessive"] == "1"
-    draws = ROOT / "site" / "draws"
-    man = json.loads((draws / "manifest.json").read_text(encoding="utf-8"))
-    blocks = _rw.unpack((draws / "base.bin").read_bytes(), man)
-    cols = {b["name"]: b["columns"] for b in man["blocks"]}
+    blocks, cols = _scenarios.published_draw_blocks(ROOT)
     statute = blocks["seats/deduct"][:, cols["seats/deduct"].index(party)]
     share = _rw.list_shares(blocks["list_vote"])[:, cols["list_vote"].index(party)]
     order = sorted(seats)
@@ -297,6 +329,19 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
         "lede_overhang_votes": tok("home.overhang_list_share", f"{o_votes:.6f}", "pct0",
                                    f"site/draws list_vote, median {o_src}"),
     }
+    import render_map as _rm
+    races = ward_races(Path(processed))
+    w_src = "ward_winner_probs.csv, the likeliest winner of each ward"
+    c_src = ("ward_winner_probs.csv, wards the map draws as contested: the winner "
+             "wins in under render_map.SAFE of simulations (render_map.ward_call)")
+    values.update({
+        "lede_wards_lead": _word("lede_wards_lead", wards_lead(first, second, races, party)),
+        "lede_wards_first": tok(f"home.wards.{first.lower()}", races.get(first, (0, 0))[0], "int", w_src),
+        "lede_close_first": tok(f"home.wards_close.{first.lower()}", races.get(first, (0, 0))[1], "int", c_src),
+        "lede_wards_second": tok(f"home.wards.{second.lower()}", races.get(second, (0, 0))[0], "int", w_src),
+        "lede_close_second": tok(f"home.wards_close.{second.lower()}", races.get(second, (0, 0))[1], "int", c_src),
+        "lede_safe": tok("home.ward_safe", f"{_rm.SAFE:.6f}", "pct0", "render_map.SAFE, the map's safe-ward share"),
+    })
     assert set(values) == set(LEDE_PLACEHOLDERS), "LEDE_PLACEHOLDERS is the list"
     lede = load_lede(city_dir)
     where = str(city_dir / "home.toml")
@@ -314,7 +359,7 @@ def _lede(summary: dict, processed: Path, tok, chance, city_dir: Path) -> str:
 
 def _seats(summary: dict, tok, processed: Path) -> str:
     parties = summary["parties"]
-    named = [p for p in NAMED if p in parties]
+    named = [p for p in _scenarios.named_parties(processed) if p in parties]
     others = sorted(set(parties) - set(named))
     # THE FORECAST PAGE'S ORDER (render_sheet's seat chart): middle seat count,
     # then mean seats over the draws, highest first. STYLE rule 7: numeric,
@@ -349,7 +394,7 @@ def _seats(summary: dict, tok, processed: Path) -> str:
         med, lo, hi = _scn.seat_quantiles(_scn.others_per_draw(processed, named))
         # ⛔ "Others" ON BOTH PAGES, ONE WORD FOR ONE NUMBER. This row read
         # "Everyone else" here and "Others" on the forecast sheet until
-        # 2026-09-26. The two now print the same figure (`scenarios.NAMED_PARTIES`
+        # 2026-09-26. The two now print the same figure (`scenarios.named_parties`
         # is the one named set), and two labels for one figure invites the same
         # confusion the shared set was adopted to end (owner: settle for one).
         rows.append(row("Others", "Others", med, lo, hi,
@@ -543,7 +588,7 @@ def main(argv: list[str] | None = None) -> int:
     args.page.write_text(page, encoding="utf-8")
 
     n_articles = len(load_articles(city_dir))
-    print(f"home: lede, {len(NAMED)} named parties + others, "
+    print(f"home: lede, {len(_scenarios.named_parties(city.processed))} named parties + others, "
           f"{n_articles} articles -> {args.page.name}")
     return 0
 

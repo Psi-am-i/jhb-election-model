@@ -30,7 +30,7 @@ tests = "P(DA reaches 136 alone) under a full DA-camp turnout surge"
 label = "490,000 DA voters would win the DA an outright majority"
 captured = "2026-08-07"
 published = "7 August 2026"
-since = """The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In the current forecast, the DA wins a majority on its own in none of the [[n_draws]] simulations. The verdict stands."""
+since = """The turnout setting this test used is no longer in the model, so the surge cannot be re-run. In the current forecast, the DA wins a majority on its own in none of the [[n_draws]] simulations. The verdict stands. <span data-asof="2026-10-08">On 8 October Zille repeated the claim, ending "136 seats out of 270" (News24, 9 October 2026).</span>"""
 intro = """<span data-asof="2026-08-07">When we put the claim through the full model on 7 August 2026 it fell short by {{claim_short_by}} seats at the median. The figures below are from that run. The model has changed since, and the turnout setting they were measured under no longer exists, so read them as history rather than as today's forecast. The claim also falls at its use of arithmetic.</span>"""
 steps = [
   """<span data-asof="2026-08-07">**It is half of the wrong number.** {{claim_zille_votes}} is almost exactly half of the ~{{claim_poll_base}} votes expected in Johannesburg if turnout stays at its record low. At first glance it looks plausible, until you realise that if there are more voters, you need half of a bigger number. If all DA members did what Helen wanted, the total number of voters would be ~{{claim_poll_surged}}, and half of that is {{claim_half_surged}} — not {{claim_zille_votes}}.</span>""",
@@ -111,6 +111,30 @@ steps = [
   """**The DA and the ANC together clear {{majority}} in [[grand_share]] of simulations.** Neither party has said it wants it, but on this arithmetic it is the most reliable two-party majority in the city.""",
   """**The DA with ActionSA and the Patriotic Alliance reaches {{majority}} in [[three_share]] of simulations.** Across all simulations the three hold a median of [[three_median]] seats; where they reach a majority, a median of [[three_median_when_wins]].""",
   """**The same test applied to the other side:** an ANC-led council excluding the DA, the EFF and MK reaches {{majority}} in [[anc_side_share]] of simulations.""",
+]
+
+[[claim]]
+slug = "da-forty-percent-not-enough"
+party = "DA"
+party_name = "Democratic Alliance"
+chip = "#1B5EA8"
+logo = "DA"
+quote = """If we get 40%, although we will be the biggest party by a long shot, we won't be big enough to get into government"""
+speaker = "Helen Zille, DA"
+outlet = "News24, 9 October 2026"
+url = "https://www.news24.com/politics/elections-2026-helen-zille-rules-out-forming-an-unwieldy-coalition-to-run-joburg-20261009-0706"
+verdict = "NEAR CERTAIN"
+chance = "forty_bloc_share"
+tests = "P(the ANC, MK, the EFF, ActionSA and the PA together reach a majority)"
+label = "The ANC, MK, the EFF, ActionSA and the PA could reach a majority without the DA"
+captured = "2026-10-08"
+published = "22 October 2026"
+since = """Since then the five parties together reach {{majority}} in [[forty_bloc_share]] of simulations. The DA reaches [[forty_target]] of the list vote in [[forty_da_count]] of the {{n_draws}} simulations."""
+intro = """Zille said this to the Centre for Development and Enterprise on 8 October: that at [[forty_target]] the DA would be the largest party, but that the ANC, MK, the EFF, ActionSA and the PA together "might get over 50% before we can". Two things can be tested: whether those five parties can reach {{majority}} of {{council_size}} seats, and whether the DA reaches [[forty_target]]."""
+steps = [
+  """**The five parties together reach a majority in [[forty_bloc_share]] of simulations.** Their median is [[forty_bloc_median]] seats, against the {{majority}} needed. This counts seats, not willingness: it says the arithmetic is there, not that they would agree.""",
+  """**The DA reaches [[forty_target]] of the list vote in [[forty_da_count]] of the {{n_draws}} simulations.** Its best is [[forty_da_best]]. So the case she describes, a DA at [[forty_target]], is beyond what the model expects; at the DA's forecast vote the five parties' majority is larger still.""",
+  """**What this cannot see.** Which parties would work together. Zille has said the DA would go into opposition rather than lead a coalition that depends on the EFF.""",
 ]
 
 [[claim]]

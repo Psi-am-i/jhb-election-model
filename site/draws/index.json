@@ -120,6 +120,58 @@
    "n": null,
    "asof": "2026-11-04",
    "caveat": "The Johannesburg breakout of a national omnibus survey. Ipsos's own release was not available: the figures come from news reports, which gave two DA figures a point apart, and the higher is used here. The Johannesburg sample size and the fieldwork dates were not reported."
+  },
+  {
+   "id": "enca-markdata-2026-coj",
+   "label": "eNCA/MarkData \u00b7 Johannesburg \u00b7 August\u2013September 2026",
+   "pollster": "MarkData (for eNCA)",
+   "fieldwork": "10 August to 14 September 2026 per eNCA's methodology page and TimesLIVE; eNCA's 11 October explainer gives 10 August to 12 September and the Sunday Times 12 August to 10 September",
+   "geography": "City of Johannesburg, registered voters who intend to vote; Johannesburg sample of a six-metro survey (6,113 interviews)",
+   "url": "https://www.enca.com/news-shows/enca-markdata-election-survey-johannesburg-results-are",
+   "numbers": {
+    "DA": 0.35,
+    "ANC": 0.218,
+    "MK": 0.125,
+    "EFF": 0.119,
+    "ASA": 0.103,
+    "PA": 0.037,
+    "VFPLUS": 0.009,
+    "ALJAMAAH": 0.008,
+    "RISE": 0.008,
+    "IFP": 0.007,
+    "ACDP": 0.006
+   },
+   "fieldwork_start": "2026-08-10",
+   "fieldwork_end": "2026-09-14",
+   "scope": "metro",
+   "house": "MarkData",
+   "city": "joburg",
+   "n": 1011,
+   "asof": "2026-11-04",
+   "caveat": "The Johannesburg sample of a six-metro survey, weighted to the voters' roll and to who turns out. Its fieldwork dates are published three ways, a few days apart. It asked people who said they intend to vote, so it describes a smaller electorate than the voters' roll."
+  },
+  {
+   "id": "news24-sabi-2026-coj",
+   "label": "News24/SABI \u00b7 Johannesburg \u00b7 August\u2013September 2026",
+   "pollster": "SABI Strategy Group (for News24)",
+   "fieldwork": "25 August to 17 September 2026 per News24's 4 October report; its 9 October article gives 25 August to 7 September",
+   "geography": "City of Johannesburg, registered voters; Johannesburg sample of a national survey (5,001 interviews), mainly face-to-face",
+   "url": "https://www.news24.com/politics/elections/elections-poll-26-joburg-out-of-reach-for-zille-exclusive-news24sabi-poll-shows-20261003-1123",
+   "numbers": {
+    "DA": 0.29,
+    "ANC": 0.23,
+    "MK": 0.12,
+    "EFF": 0.11,
+    "ASA": 0.07
+   },
+   "fieldwork_start": "2026-08-25",
+   "fieldwork_end": "2026-09-17",
+   "scope": "metro",
+   "house": "SABI Strategy Group",
+   "city": "joburg",
+   "n": 1000,
+   "asof": "2026-11-04",
+   "caveat": "The Johannesburg sample of a national survey, mostly face-to-face. The party figures were published in whole points and two different fieldwork windows were published for it."
   }
  ],
  "byelection": [

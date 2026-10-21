@@ -266,9 +266,10 @@ def test_everyone_else_is_counted_inside_each_simulation():
     * the other column's median       → 1                       (§1.214's shape:
       a sum of per-party medians describes no simulation at all)
 
-    ⚠️ The tail party is BOSA on purpose: it is outside `scenarios.NAMED_PARTIES`,
-    so it stays in "everyone else" however that set changes. A fixture using a
-    NAMED party has no tail at all, and the row under test is never rendered.
+    ⚠️ The named set here is passed explicitly, ("ANC", "DA"), so BOSA is the
+    tail whatever `scenarios.named_parties` gives on the real run. A fixture
+    with no party outside the named set has no tail at all, and the row under
+    test is never rendered.
     """
     rows = [{"ANC": 4, "DA": 3, "BOSA": 1},
             {"ANC": 6, "DA": 3, "BOSA": 1},
@@ -308,8 +309,8 @@ def test_everyone_else_is_counted_inside_each_simulation():
 def test_a_party_the_page_names_is_never_pooled_into_everyone_else():
     """Both directions on the same fixture: named out, unnamed in.
 
-    The named set is `render_home.NAMED`, so a party added to that tuple must
-    leave the "everyone else" row in the same change. Here DA moves from named
+    The named set is `scenarios.named_parties` of the run, so a party that
+    enters it must leave the "everyone else" row in the same change. Here DA moves from named
     to unnamed and the row moves by exactly DA's seats in every draw.
     """
     rows = [{"ANC": 4, "DA": 3, "BOSA": 1},

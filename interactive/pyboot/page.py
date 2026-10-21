@@ -64,8 +64,9 @@ BASE = "."
 PUBLISHED_LAW = R.PUBLISHED_LAW
 #: A party gets its own seat row when its middle seat count is at least this,
 #: in the published forecast or under the reader's settings; every other party
-#: is summed into "Others" (owner, decision D1, 2026-10-02).
-MIN_SHOWN_SEATS = 2
+#: is summed into "Others". One definition, ``reweight``'s, which the other
+#: seats tables use too.
+MIN_SHOWN_SEATS = R.MIN_SHOWN_SEATS
 #: The quantiles the seat rows show for each party: its range ends and middle.
 SHOWN_QUANTILES = {"p5": 0.05, "median": 0.5, "p95": 0.95}
 #: The row of every party below MIN_SHOWN_SEATS, summed within each draw.
