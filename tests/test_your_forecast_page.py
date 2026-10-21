@@ -554,29 +554,47 @@ def test_the_page_engine_at_uniform_weights_is_the_forecast_pages_rows():
 
 def test_the_live_by_election_line_is_the_builds_at_every_setting():
     """At the published turnout, poll and seat law, the reader's by-election
-    comparison (page.py ``against_published_cell``) lists exactly the moves
-    the build's line under the control lists (``build_play._moves``), for
-    every by-election cell. The critic's S1 defect compared only the shown
-    rows; the party-set check below catches it whenever a party with a
-    median is outside the shown rows, so that is asserted (whether such a
-    party also moves past the noise depends on the draws, so it is not)."""
+    comparison (page.py ``against_published_cell``) is the build's for every
+    by-election cell and every party, shown row or not: the same party set,
+    each party's difference and noise equal to ``reweight.beyond_noise`` on
+    ``build_play._cell_medians``, and the same moves past the noise as the
+    build's line under the control (``build_play._moves``). The critic's S1
+    defect compared only the shown rows; comparing every party's figures,
+    not only the moves, catches it whether or not an unshown party moves
+    past the noise on today's draws, and a constructed violation (one unshown
+    party's figures zeroed) is caught."""
+    import reweight as R
     _built()
     NP, ns = _engine()
     pub, _ = build_play._cell_medians(".")
     others = [c for c in NP.cells() if c["path"] != "."]
     assert len(others) >= 2, others
-    outside = 0
+
+    def wrong(live, med):
+        bad = sorted(set(live) ^ (set(med) | set(pub)))
+        for p, d in live.items():
+            a, b = med.get(p, (0.0, 0.0)), pub.get(p, (0.0, 0.0))
+            want = R.beyond_noise(a[0], a[1], b[0], b[1])
+            if abs(d["difference"] - want["difference"]) > 1e-9 or abs(d["noise"] - want["noise"]) > 1e-9:
+                bad.append(p)
+        return bad
+
+    seen = 0
     for c in others:
         res = json.loads(ns["compute"](json.dumps({**PUBLISHED, "cell": c["path"]})))
         live = res["against_published_cell"]
         med, _ = build_play._cell_medians(c["path"])
-        assert set(live) == set(med) | set(pub), (c["path"], sorted(set(live) ^ (set(med) | set(pub))))
+        assert not wrong(live, med), (c["path"], wrong(live, med))
         got = sorted((p, int(round(d["difference"]))) for p, d in live.items()
                      if not d["within_noise"] and round(d["difference"]))
-        want = sorted(build_play._moves(med, pub))
-        assert got == want, (c["path"], got, want)
-        outside += len((set(med) | set(pub)) - set(res["shown"]))
-    assert outside, "no party outside the shown rows: the test cannot see the defect it guards"
+        assert got == sorted(build_play._moves(med, pub)), c["path"]
+        # it can see: an unshown party with sampling noise, its figures zeroed
+        hidden = [p for p in live if p not in res["shown"] and live[p]["noise"] > 0]
+        if hidden:
+            seen += 1
+            zeroed = {**live, hidden[0]: {**live[hidden[0]], "difference": 0.0, "noise": 0.0}}
+            assert wrong(zeroed, med) == [hidden[0]], (c["path"], hidden[0])
+    assert seen == len(others), "a cell with no unshown party carrying noise: the check cannot see S1 there"
 
 
 # -- section 2: the start, and the hand-off from section 1 ---------------------
@@ -634,9 +652,12 @@ def test_the_start_is_rule_a_on_the_published_draws():
     # the roster is every party the draws carry (build_play.roster_codes, the
     # vote blocks' columns): the seat-winning parties (manifest "parties")
     # and the parties that win no seat in any draw, ward-only slates among them
-    import build_play
-    assert schema["x-seat-context"]["parties"] == build_play.roster_codes(man)
-    assert set(man["parties"]) <= set(build_play.roster_codes(man))
+    ward_vote = next(b["columns"] for b in man["blocks"] if b["name"] == "ward_vote")
+    roster = schema["x-seat-context"]["parties"]
+    assert roster == [str(c) for c in ward_vote]
+    assert set(man["parties"]) < set(roster)
+    # a ward-only party wins no seat in any draw and is on the roster
+    assert set(schema["x-seat-context"]["no_pr_list"]) & (set(roster) - set(man["parties"]))
     # no total is fixed: each prediction states its own (SPEC-B D1)
     assert "x-total-votes" not in schema and "x-share-sum" not in schema
     for gone in ("combined_share", "published_middle"):

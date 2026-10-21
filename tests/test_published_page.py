@@ -429,9 +429,9 @@ def _served_by_newest_publication() -> bool:
         run = json.loads((SITE / "changes.json").read_text("utf-8"))["run"]["model_run_id"]
     except (OSError, ValueError, KeyError, TypeError):
         return False
-    _, newest, _ = publication.before_latest_publication(
+    _, newest = publication.before_latest_publication(
         publication.history(cityconfig.active().slug, root=ROOT / publication.LEDGER_ROOT))
-    return newest is not None and run == newest
+    return newest is not None and run == newest.model_run_id
 
 
 def _build_to(out: Path) -> tuple[int | str | None, str]:

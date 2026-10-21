@@ -1700,14 +1700,30 @@ def main(argv: list[str] | None = None) -> int:
     # chosen to avoid.
     ledger_root = args.ledger_root or (REPO_ROOT / publication.LEDGER_ROOT)
     rows_read = publication.history(city, root=ledger_root)
-    as_of_publication = None
-    if args.as_published:
-        rows_read, _run, as_of_publication = publication.before_latest_publication(rows_read)
-        if as_of_publication is None:
-            raise SystemExit(f"--as-published: {ledger_root}/{city} holds no publication to rebuild")
-        print(f"  as published: run {_run}, {as_of_publication}; classified against the ledger before it")
+    # The refusals below (a retired figure in present tense, a published
+    # figure gone unretired) read the WHOLE ledger in every mode. Only the
+    # classification (`classified`, `since`: arrows, tooltips, changes.json)
+    # moves back to before the newest publication under --as-published.
     ledger = publication.latest_of(rows_read)
-    since = publication.run_starts(rows_read)
+    classified_rows, as_of_publication = rows_read, None
+    if args.as_published:
+        classified_rows, newest = publication.before_latest_publication(rows_read)
+        if newest is None:
+            raise SystemExit(f"--as-published: {ledger_root}/{city} holds no publication to rebuild")
+        # the pages are dated to that publication, so they must be its run's:
+        # the same forecast content (the run id's commit part is not compared,
+        # because every commit after the publication changes it)
+        mine = publication.run_identity(args.processed).get("forecast_content_sha256")
+        theirs = (newest.provenance or {}).get("forecast_content_sha256")
+        if not mine or mine != theirs:
+            raise SystemExit(f"--as-published: this tree's forecast ({str(mine)[:12]}) is not the newest "
+                             f"publication's ({str(theirs)[:12]}, run {newest.model_run_id}); "
+                             f"its pages would be dated to a publication that never showed them")
+        as_of_publication = newest.published_at
+        print(f"  as published: run {newest.model_run_id}, {as_of_publication}; "
+              f"classified against the ledger before it")
+    classified = publication.latest_of(classified_rows)
+    since = publication.run_starts(classified_rows)
     undated = publication.dated_context_violations(published, ledger)
     if undated:
         refuse = True
@@ -1987,7 +2003,7 @@ def main(argv: list[str] | None = None) -> int:
     # many times a day during a rewrite.
     ident = publication.run_identity(args.processed)
     now = as_of_publication or publication.utc_now()
-    rows, changes = _ledger_candidates(published, ledger, ident, now,
+    rows, changes = _ledger_candidates(published, classified, ident, now,
                                        reason=args.reason,
                                        change_class=args.change_class,
                                        since=since)

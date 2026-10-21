@@ -305,24 +305,24 @@ def latest_of(rows: Iterable[Row]) -> dict[str, Row]:
     return out
 
 
-def before_latest_publication(rows: Iterable[Row]) -> tuple[list[Row], str | None, str | None]:
-    """``(rows, model_run_id, published_at)``: the ledger as it stood just
-    before its newest publication, and that publication's run and time.
+def before_latest_publication(rows: Iterable[Row]) -> tuple[list[Row], Row | None]:
+    """``(rows, newest)``: the ledger as it stood just before its newest
+    publication (every row published before it), and one row of that
+    publication, which carries its run, time and provenance.
 
     A publication is the rows one ``build_site.py --publish`` appended: one
-    ``model_run_id`` and one ``published_at``, none superseded. Retirement
-    rows (:func:`retire`, ``superseded_at`` set) are kept even when written
-    after it, because the publish build already read them. This is what
-    ``build_site.py --as-published`` rebuilds against, so the pages a
-    publication served (their arrows and "now <date>" tooltips classify each
-    figure against the edition before) can be rebuilt after it."""
+    ``model_run_id`` and one ``published_at``, none superseded. A retirement
+    (:func:`retire`, ``superseded_at`` set) written before it is kept, since
+    the publish build read it; one written after it is not, since it did not.
+    This is what ``build_site.py --as-published`` classifies against, so the
+    pages a publication served (their arrows and "now <date>" tooltips
+    classify each figure against the edition before) can be rebuilt after it."""
     rows = sorted(rows, key=lambda r: r.published_at)
     pubs = [r for r in rows if not r.superseded_at]
     if not pubs:
-        return rows, None, None
-    run, at = pubs[-1].model_run_id, pubs[-1].published_at
-    kept = [r for r in rows if r.superseded_at or not (r.model_run_id == run and r.published_at == at)]
-    return kept, run, at
+        return rows, None
+    newest = pubs[-1]
+    return [r for r in rows if r.published_at < newest.published_at], newest
 
 
 def run_starts(rows: Iterable[Row]) -> dict[str, str]:
