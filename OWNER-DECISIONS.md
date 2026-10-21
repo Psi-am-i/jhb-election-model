@@ -168,7 +168,8 @@ falls most on the largest parties (DA −3.9, PA −0.9).
 
 Measured, from the traces of the 2021 backtest: the levels added to between
 100.0% (Buffalo City) and 112.4% (Cape Town) across the eight metros, and
-111.9% in Johannesburg. Johannesburg 2026's 114.6% is above all of them. The
+111.9% in Johannesburg. Johannesburg 2026's 114.6% is above all of them
+(Cape Town 2016 reached 117.6%). The
 backtest scores include this rule, so it is tested in that sense, but it has
 never been compared with another rule.
 
@@ -185,18 +186,19 @@ adhering to a level when one has a history of the level decreasing".
 **Result (MODEL-LOG §1.328).** Tested on all 24 past city-years (eight metros,
 2011, 2016, 2021):
 
-| rule | summed list-vote error (points) | seats to the wrong party |
-|---|---|---|
-| proportional (as now) | 77.19 | 386 |
-| by uncertainty | 99.51 | 469 |
-| halfway between | 104.29 | 480 |
+| rule | summed list-vote error (points) |
+|---|---|
+| proportional (as now) | 77.19 |
+| by uncertainty | 99.51 |
+| a third form (`c σ²`) | 104.29 |
 
-Both alternatives are worse in 2016 and 2021 and in total. The least certain
-levels belong to parties standing for the first time, and in this record
-their levels are not the ones that are too high: under proportional scaling
-they are over-forecast by 4.9 points summed over 24 elections, and taking the
-excess from them under-forecasts them by 30.8 (ActionSA in 2021 would have been
-cut to 0.7%; it won 16%). Proportional scaling stays. Your point about a party
+Both alternatives are worse in total and in 2016 and 2021; a few 2011
+city-years and Mangaung 2021 improve. The least certain levels belong to
+parties standing for the first time. In 2016 and 2021 the model already
+under-forecasts them (signed list-vote error, summed: 2016 −20.5 points, 2021
+−32.5), so taking the excess from them makes that worse (−39.1 and −49.8).
+ActionSA in Johannesburg 2021 would have been forecast at 0.7% of the list
+vote; it won 18.1%. Proportional scaling stays. Your point about a party
 whose record is falling is not tested by this: the model's uncertainty is set
 by size and newness, not by trend.
 
@@ -206,9 +208,11 @@ by size and newness, not by trend.
 one measured cycle.
 
 **New evidence since you answered: the checker found my size classes were
-not the model's.** The model puts a party with no 2021 list vote in the class
-of its 2024 national share; my analysis put every such party under 1%, and it
-also counted parties the by-elections never reached. Re-done with the model's
+not the model's.** The model puts a party with no list vote at the previous local election in the
+class of its share at the national election before the target (for this 2021
+test, the 2019 national vote: Cape Town GOOD, Mangaung PA); my analysis put
+every such party under 1%, and it also counted parties the by-elections never
+reached. Re-done with the model's
 classes, counting only parties the by-elections reach:
 
 | class | best-fitting weight | range, leaving one metro out | party-metros |
