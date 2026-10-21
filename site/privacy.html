@@ -83,9 +83,11 @@ purpose of displaying analytics.&rdquo;</p>
 </ul>
 <h2 id="which-link-brought-you-here">Which link brought you here</h2>
 <p>Links in this site&rsquo;s advertising and social posts use short addresses, one per
-channel: <code>/go</code> on the billboard, <code>/x</code>, <code>/li</code>, <code>/fb</code> and <code>/ig</code> for social posts,
-and <code>/g</code> for Google Ads. Each forwards to the home page and writes one log line
-naming the channel and the site&rsquo;s own address, and nothing about the visitor.
+channel: <code>/go</code> on the billboard, <code>/x</code>, <code>/ig</code>, <code>/r</code> (Reddit), <code>/yt</code> (YouTube),
+<code>/li</code> and <code>/fb</code> for social posts, <code>/e</code> in email, <code>/fm</code> on radio, and <code>/g</code> for
+Google Ads. Each forwards to the home page, and the same address ending in <code>p</code>
+(<code>/xp</code>, <code>/ep</code> and so on) to Your Forecast; each writes one log line naming the
+channel and the site&rsquo;s own address, and nothing about the visitor.
 The site counts those lines by channel.</p>
 <p>Cloudflare&rsquo;s <a href="https://developers.cloudflare.com/workers/observability/logs/workers-logs/">Workers Logs</a>
 holds those lines, with the metadata Cloudflare attaches to each, and any error
