@@ -31135,3 +31135,26 @@ On d0c3347/37b3e66, clean tree: `montecarlo.py --city joburg --target 2026 --dra
 Frozen seat medians (90% range), 1,500 simulations: ANC 72 (48–81), DA 67 (52–82), ActionSA 40 (31–51), EFF 25 (14–43), MK 16 (5–54), PA 14 (5–32). Forecast run, 5,000 simulations: as §1.330's "with" column.
 
 `declares.py --verify`: one artefact declaring wrongly, `history.json` (`git` a9754ed, `git_dirty: true`); not re-run, because no model code has changed since a9754ed and §1.328's arm P, run at the clean f30f913, reproduced all 24 of its rows (CHECKLIST, "What the rebuild must run").
+
+## 1.332 The share badge falls a band on the 21 October forecast because its simulations are about half as wide (2026-10-21)
+
+Owner, OWNER-DECISIONS item 13: go live with the bands as they are, re-record the test table and measure why the same move from our prediction scores lower. Measured with `audits/2026-10-21-actionsa-call/badge_widths.py` on the published draws in git: model 7ea27c28 (draws of 2bc6740, forecast.json of 5285001, which recorded the table on 13 October) and model 336d666d (8ce7372, live 21 October). 5,000 simulations each, unit weights, published seat law.
+
+Seat standard deviation across simulations, the six parties with most seats in our prediction:
+
+| party | 7ea27c28 (13 Oct table) | 336d666d (21 Oct) |
+|---|---|---|
+| ANC | 19.4 | 10.2 |
+| DA | 13.9 | 9.1 |
+| ActionSA | 12.9 | 6.3 |
+| EFF | 15.1 | 9.0 |
+| MK | 13.3 | 16.9 |
+| PA | 7.6 | 9.0 |
+
+Overall closeness (badge) of the brief's test predictions, 7ea27c28 → 336d666d: mild (largest −8, second +8) 0.918 Safe bet → 0.871 Steady as she goes; moderate 0.846 Steady → 0.745 Long shot; wild 0.780 → 0.736, Long shot both; screenshot 0.820 Steady → 0.755 Long shot; fixture A 0.991 Safe bet → 0.725 Long shot; fixture B 0.685 → 0.637, Wild call both.
+
+The fall is in the large parties' term. Mild's ANC and DA closeness went from 0.711 and 0.549 to 0.444 and 0.399: an 8-seat move was 0.4 of the ANC's spread and is now 0.8 of it, so fewer simulations lie as far from our prediction. Closeness is the share of simulations at least as far from our prediction as the reader's figure (`reweight.party_closeness`), so it is measured in units of the forecast's own width; the brief wrote its examples in seats, which carried the 13 October width with them. Fixture A and the screenshot also moved for a second reason: they are fixed seat counts written against an earlier prediction (ActionSA 28 and 33 seats; ours is now 39), so ActionSA's closeness in fixture A fell from 1.000 to 0.076.
+
+The bands are unchanged (owner's (a)). `tests/test_reweight.py` BRIEF_TABLE re-recorded on 336d666d. Not measured: whether readers' shared predictions sit closer to or further from ours than the brief's examples, which would say whether the bands now read harsh in use.
+
+Correction to OWNER-DECISIONS item 13 as asked: its "16 October forecast" column is model 7ea27c28's (the 8 October draws, the table's own record), not the 16 October draws (de1911fd, aa95c51). On those draws mild scores 0.888 and moderate 0.760, but against the forecast.json committed beside them, whose start was still the 8 October prediction (ANC 70, PA 24 seats; those draws' medians 74 and 14), so that column measures a mismatched pair and is not quoted as the 16 October forecast's.

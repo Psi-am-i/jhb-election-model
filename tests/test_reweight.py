@@ -1453,16 +1453,19 @@ def test_ours_is_one_on_every_party_and_a_safe_bet_on_the_published_draws():
     assert R.closeness_badge(got["overall"]) == "Safe bet"
 
 
-#: The brief's test forecasts (audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md),
-#: measured 2026-10-13 on the published draws of model 7ea27c28 (MODEL-LOG
-#: "Closeness badge: the quantile cut-offs rejected"): overall closeness to
-#: three places and the badge under the owner's ten-point bands. Mild, moderate
-#: and wild are score/v4.py's constructions: our prediction with the named
-#: seat moves, each moved party's list percent scaled by its seats.
-BRIEF_TABLE_MODEL = "7ea27c28"
-BRIEF_TABLE = {"ours": (1.000, "Safe bet"), "fixture A": (0.991, "Safe bet"), "fixture B": (0.685, "Wild call"),
-               "screenshot": (0.820, "Steady as she goes"), "mild": (0.918, "Safe bet"),
-               "moderate": (0.846, "Steady as she goes"), "wild": (0.780, "Long shot")}
+#: The brief's test forecasts (audits/2026-10-09-site-batch/CLOSENESS-BADGE-BRIEF.md):
+#: overall closeness to three places and the badge under the owner's ten-point
+#: bands, on the published draws of model 336d666d (21 October 2026). Mild,
+#: moderate and wild are score/v4.py's constructions: our prediction with the
+#: named seat moves, each moved party's list percent scaled by its seats.
+#: Re-recorded 2026-10-21 (owner, OWNER-DECISIONS item 13 (a)); the 13 October
+#: record (model 7ea27c28) had mild a Safe bet, moderate and the screenshot
+#: Steady as she goes. The same seat move scores lower because the 21 October
+#: simulations are about half as wide (MODEL-LOG 1.332); the bands are unchanged.
+BRIEF_TABLE_MODEL = "336d666d"
+BRIEF_TABLE = {"ours": (1.000, "Safe bet"), "fixture A": (0.725, "Long shot"), "fixture B": (0.637, "Wild call"),
+               "screenshot": (0.755, "Long shot"), "mild": (0.871, "Steady as she goes"),
+               "moderate": (0.745, "Long shot"), "wild": (0.736, "Long shot")}
 #: The owner's screenshot forecast: seats and list percent for 14 parties;
 #: every other party at our prediction.
 SCREENSHOT = {"ANC": (75, 23.3), "DA": (65, 25.8), "ASA": (33, 14.4), "MK": (26, 10.6), "EFF": (25, 9.5),
@@ -1471,10 +1474,11 @@ SCREENSHOT = {"ANC": (75, 23.3), "DA": (65, 25.8), "ASA": (33, 14.4), "MK": (26,
 
 
 def test_the_briefs_test_forecasts_take_the_owners_bands():
-    """The seven forecasts the brief names, on the published draws: mild a
-    Safe bet, moderate and the screenshot Steady as she goes, wild a Long
-    shot, fixture B a Wild call. Measured on model 7ea27c28; on any other
-    published model this fails and says to re-measure."""
+    """The seven forecasts the brief names, on the published draws, take the
+    badges BRIEF_TABLE records for that model (on 336d666d: mild Steady as
+    she goes; moderate, wild, the screenshot and fixture A Long shots;
+    fixture B a Wild call). On any other published model this fails and says
+    to re-measure."""
     model = json.loads((ROOT / "site" / "draws" / "manifest.json").read_bytes())["artefact_key"]["model_sha256"]
     assert model.startswith(BRIEF_TABLE_MODEL), (
         f"the published draws are model {model[:8]}, not {BRIEF_TABLE_MODEL}: re-measure BRIEF_TABLE")
