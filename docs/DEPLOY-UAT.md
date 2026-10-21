@@ -53,8 +53,9 @@ host, `double1` = 1, index the channel. Nothing about the visitor is written.
 `host` separates real arrivals from hits on the live `workers.dev` host and on
 Version URLs. Count only `host = joburg.whysoserious.city`.
 
-**The account moves to Workers Paid before results night** (owner's decision,
-2026-10-01). Workers Logs then keeps events for 7 days (3 on Workers Free;
+**The account stays on Workers Free until traffic warrants Workers Paid**
+(owner, 2026-10-21, replacing the 2026-10-01 decision to move before results
+night). On Workers Paid, Workers Logs keeps events for 7 days (3 on Workers Free;
 developers.cloudflare.com/workers/observability/logs/workers-logs/, "Pricing").
 Analytics Engine keeps them three months, so it holds the count; Workers Logs is
 for checking a single arrival soon after it happens.

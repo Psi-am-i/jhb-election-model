@@ -12,25 +12,20 @@ Last updated: 2026-10-21.
 
 ## Open
 
-### 10. Letting readers make the judgement calls
+### 6. The splinter split
 
-**Context.** You asked (2026-10-21) whether readers could make calls like
-these on the site: "part of judgement calls we make and they can make." It is
-possible. The interactive already re-seats a council from a reader's own
-picks. A judgement-call control would let a reader change a party's starting
-level (for example, how much of its 2021 vote it keeps) and see the forecast
-redrawn. Two constraints apply: the same control has to be offered for every
-party (your rule, no party singled out), and the redraw has to happen from the
-published simulations in the browser, because the full model does not run
-there.
+**Your answer (2026-10-21):** go live with 35% as it is, and measure it after
+going live. "It seems incorrect as it stands in a country so divided by
+population group."
 
-**Options.** (a) Build it after go-live, as a new site feature with a brief
-first (the usual process). (b) Build it before go-live, which delays go-live
-by the brief, the build and the test site round.
+Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
+(JUDGEMENT-CALLS §F6), with the population-group question in the brief.
 
-**Recommendation.** (a).
+---
 
-### 7. The go-live yes
+## Answered
+
+### 7. The go-live yes — answered 2026-10-21
 
 **Context.** Items 2, 3, 5, 6 and 9 are answered. Item 1 is answered (ActionSA at 17.6%). After the rebuild, with your yes:
 
@@ -43,7 +38,10 @@ by the brief, the build and the test site round.
 Your instruction: skip anything that need not run. Promoting the test site to
 live stays yours.
 
-### 11. Sign-in, and the three Cloudflare items listed for it
+**Your answer (2026-10-21):** "go live when ready". Live promotion follows the
+test site passing its checks (`docs/DEPLOY-UAT.md`).
+
+### 11. Sign-in, and the three Cloudflare items listed for it — answered 2026-10-21
 
 **Context.** These belong to the sign-in feature: readers signing in (Apple,
 Facebook, X, Microsoft) so their predictions are saved and can go on a
@@ -68,21 +66,39 @@ own security and privacy review gate (R5 in TODO.md §0). The three items:
 **Answer (owner, 2026-10-21):** sign-in is later; the data location and the
 provider registrations wait for it.
 
-**Still open: Workers Paid.** It applies without sign-in (sealing links and
-seat pictures). I recommend moving to it before results night.
+**Your answer (2026-10-21), sign-in:** hold it for later, and design it
+differently: readers sign in with X or another account, but the site keeps no
+credentials; their contact details are sealed inside their entry and cannot be
+read by the site's operators except in named circumstances where a key is
+received. "make it a system of never needing someone's details with very
+specific exceptions." Recorded in TODO.md as the brief for the sign-in redesign.
 
-### 6. The splinter split
+**Your answer (2026-10-21), Workers Paid:** "we will deal with if we see
+traffic. Currently absolutely no guarantee of any." The account stays on the
+free plan; `docs/DEPLOY-UAT.md` is updated to say so.
 
-**Your answer (2026-10-21):** go live with 35% as it is, and measure it after
-going live. "It seems incorrect as it stands in a country so divided by
-population group."
+### 10. Letting readers make the judgement calls — answered 2026-10-21
 
-Kept open as a task: re-measure `SPLINTER_PARENT_WEIGHT` after go-live
-(JUDGEMENT-CALLS §F6), with the population-group question in the brief.
+**Context.** You asked (2026-10-21) whether readers could make calls like
+these on the site: "part of judgement calls we make and they can make." It is
+possible. The interactive already re-seats a council from a reader's own
+picks. A judgement-call control would let a reader change a party's starting
+level (for example, how much of its 2021 vote it keeps) and see the forecast
+redrawn. Two constraints apply: the same control has to be offered for every
+party (your rule, no party singled out), and the redraw has to happen from the
+published simulations in the browser, because the full model does not run
+there.
 
----
+**Options.** (a) Build it after go-live, as a new site feature with a brief
+first (the usual process). (b) Build it before go-live, which delays go-live
+by the brief, the build and the test site round.
 
-## Answered
+**Recommendation.** (a).
+
+**Your answer (2026-10-21):** "(a) Build it after go-live, as a new site
+feature with a brief first (the usual process)." Recorded in TODO.md (after
+go-live).
+
 
 ### 1. Your party calls — answered 2026-10-21
 
