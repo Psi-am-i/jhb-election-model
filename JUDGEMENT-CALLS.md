@@ -2944,6 +2944,8 @@ failure with the sign reversed.
 instruction was that uncertain names be registered as judgement calls unless they
 can be certified automatically, and nothing available certifies these. §1.242.
 
+**Tshwane 2026 (entered 2026-10-22).** The roster in `judgements/tshwane-2026.toml` is the IEC's certified Gauteng list of 16 September 2026 (its provenance comment there; sha256 matched a fresh IEC download on 2026-10-21), not a press list. The same two substitutions as Johannesburg's (`UMKHONTO WESIZWE`, `VRYHEIDSFRONT PLUS`), and one more on judgement: the IEC's "ORGANIC HUMANITY MOVEMENT" is written `THE ORGANIC HUMANITY MOVEMENT`, the name on the 2021 Tshwane ballot (0.040% of its 2021 PR vote). `confirm_drop = false`: the parties the roster deletes held 0.61% of Tshwane's 2021 PR vote (all sixteen 2021 parties off the roster, 1.11%), under the 1.5% ceiling. How to check: re-parse the PDF's `TSH - City of Tshwane` rows and diff with `[roster]`.
+
 ### §L13 · The SACP's first general ballot is sized by hand from its by-elections — ⚪ RETIRED 2026-10-09
 
 ⚪ **RETIRED 2026-10-09 (model correction batch, BRIEF items 13 and 18).** The
