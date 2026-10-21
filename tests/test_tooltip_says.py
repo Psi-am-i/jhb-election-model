@@ -73,8 +73,7 @@ def test_a_party_code_must_be_a_party():
 def test_the_sentence_names_the_party_and_the_count():
     unit, who, said = T.says("home.p_anc_largest", FACTS)
     assert (unit, who) == ("chance", "This Model")
-    assert said == ("The % of 5,000 simulations where the ANC was the largest party, "
-                    "with no other party level."), said
+    assert said == "The % of 5,000 simulations where the ANC was the largest party.", said
     # the count is the run's, not typed: another count, another sentence
     assert "1,234 simulations" in T.says("home.p_anc_largest", T.Facts(n=1234))[2]
     assert T.says("coal.ANC+ASA+EFF.majority", FACTS)[2].startswith(
@@ -135,7 +134,7 @@ def test_line_one_moved_unchanged_new_and_unpublished():
     moved = _tip(_c())
     assert moved == ("35% chance since 21 October. Was 45% on 6 October.\nSOURCE: This "
                      "Model. The % of 5,000 simulations where the ANC was the largest "
-                     "party, with no other party level."), moved
+                     "party."), moved
     assert _tip(_c(), publishing=False).startswith(
         "35% chance in this build. Was 45% on 6 October.\n")
     same = _c(display="45%", movement="none", since="2026-09-30T00:00:00Z")
