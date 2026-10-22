@@ -1984,14 +1984,16 @@ cannot be re-checked from the repository.
 
 ### §H2 · `w_recency` — 0.70 — 🔴
 
-**Plain — Expected turnout leans on 2021.** Each voting district's turnout is
-projected from how far turnout fell from the national election to the local
-election two years later, in 2016 and in 2021, with 2021 counting for 70%. The
-weight comes from This Model's original plan and has never been tested. Turnout
-fell less in 2016, so weighting the two equally would raise projected turnout.
-On [your forecast](your-forecast/) you can move the turnout of any or all four
-population groups at once. A group you leave alone stays at the forecast's
-turnout.
+**Plain — Expected turnout starts at 2021.** Each population group's expected
+turnout is its turnout at the 2021 local election. Its range is as wide as that
+group's turnout has swung across Johannesburg's local elections since 2000. How
+turnout differs between voting districts is set about half by each district's
+own 2021 turnout and half by a projection from how far its turnout fell from
+the national to the local election in 2016 and 2021, with 2021 counting for
+70%. That weight comes from This Model's original plan and has never been
+tested. On [your forecast](your-forecast/) you can move the turnout of any or
+all four population groups at once. A group you leave alone stays at the
+forecast's turnout.
 
 **Where.** `turnout.py --w-recency`
 
