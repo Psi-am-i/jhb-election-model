@@ -473,8 +473,10 @@ validation in this repo was run against.
   differ in language and share ground (+0.61 in Johannesburg, +0.86 in
   Tshwane). Language would settle how many voter pools a city has and put a
   demographic bound on MK, which took 71% of its Johannesburg vote from the
-  ANC while standing on IFP ground. Requested — draft at
-  `drafts/statssa-request-language.md`.
+  ANC while standing on IFP ground. Requested in August 2026; Stats SA replied on
+  24 August that language data is not available at ward level. The
+  correspondence is kept in the private newsdesk repository
+  (`correspondence/`), not here.
 * **Census 2022 Small Area Layer (SAL) — ANSWERED 2026-08-27: IT DOES NOT
   EXIST.** This entry previously said the SAL was *"supplied on request only"*.
   **That was wrong**, and the correction comes from the division that would have
